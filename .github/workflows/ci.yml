@@ -23,9 +23,17 @@ jobs:
         run: node scripts/check-model-refs.mjs
       - name: 后台接口必须鉴权
         run: node scripts/check-admin-guard.mjs
+      - name: Unit tests
+        run: pnpm test
       - run: pnpm build
+      # 固定 Chrome 版本，避免 runner 自带 Chrome 升级后与 Lighthouse 的 trace 格式不兼容（frame_sequence 报错）
+      - uses: browser-actions/setup-chrome@v1
+        id: chrome
+        with: { chrome-version: stable, install-dependencies: true }
       - name: Lighthouse 性能门槛
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: |
-          pnpm start &
-          npx wait-on http://localhost:3000/en
-          npx @lhci/cli@0.14.x autorun
+          pnpm start > /tmp/next.log 2>&1 &
+          npx --yes wait-on@8 --timeout 120000 http://localhost:3000/en http://localhost:3000/en/products
+          npx --yes @lhci/cli@0.15.x autorun

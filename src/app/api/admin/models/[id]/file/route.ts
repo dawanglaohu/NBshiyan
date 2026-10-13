@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
-import { requireAdmin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { ID_RE } from '@/lib/server/admin/inquiries';
 
@@ -11,7 +11,7 @@ const TYPES = { glb: 'model/gltf-binary', lod: 'model/gltf-binary', poster: 'ima
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireAdmin(req, ['ADMIN', 'EDITOR']);
   if (ctx instanceof Response) return ctx;
-  const limited = adminRateLimit(req, 'model.file', 240);
+  const limited = await enforceAdminRateLimit(req, 'model.file', 240);
   if (limited) return limited;
   const { id } = await params;
   const variant = (new URL(req.url).searchParams.get('variant') ?? 'glb') as keyof typeof TYPES;

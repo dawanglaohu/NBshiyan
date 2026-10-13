@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import { securityHeaders } from './security-headers';
+import { assertProdEnv } from './prod-env-check';
+
+assertProdEnv();
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const adminHeaders = [

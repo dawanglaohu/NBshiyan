@@ -1,0 +1,127 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>交互稿：询价清单与样品申请（Fixes #129）</title>
+<style>
+:root{--bg:#FBF8F3;--ink:#1C1C1C;--ink-2:#5A5650;--line:#E8E2D8;--accent:#FF5A36;--err:#B42318;--errb:#FDE8E7;--ok:#1A7F37;--okb:#E6F4EA;--warnb:#FFF4D1}
+*{box-sizing:border-box}body{margin:0;padding:32px;background:#E9E4DB;font-family:Manrope,system-ui,sans-serif;color:var(--ink);width:2480px}
+h1.doc{font-size:26px;margin:0 0 6px}.sub{color:var(--ink-2);font-size:14px;line-height:1.7;margin:0 0 24px;max-width:2300px}
+.sc{margin-bottom:44px}.sc>h2{font-size:18px;margin:0 0 4px}.sc>.n{font-size:13px;color:var(--ink-2);margin:0 0 12px;max-width:2300px;line-height:1.6}
+.row{display:flex;gap:24px;align-items:flex-start}.lbl{font:700 12px Manrope;color:var(--ink-2);margin:0 0 6px}
+.f{background:var(--bg);border:1px solid var(--line);box-shadow:0 8px 24px #0001;overflow:hidden;position:relative;container-type:inline-size}
+.d{width:1440px;zoom:.5}.m{width:390px}.dw{width:720px}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid var(--line);background:#fff8}.hd b{font-size:18px}.hd em{color:var(--accent);font-style:normal}
+@container (max-width:500px){.hd{padding:14px 18px}}
+.btn{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:var(--accent);color:#fff;border-radius:999px;padding:12px 22px;font-weight:700;font-size:15px;border:0}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}.btn.sm{padding:8px 14px;font-size:13px}.btn.dis{background:#E8E2D8;color:#9a948a}.btn.blk{width:100%}
+.pad{padding:32px 40px}@container (max-width:500px){.pad{padding:20px 18px}}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}@container (max-width:500px){.cards{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}.card .im{aspect-ratio:4/3;background:#F1EBE1 center/70% no-repeat}.card .b{padding:16px;display:flex;flex-direction:column;gap:8px}.card h3{margin:0;font-size:18px}
+.card.added .btn{background:var(--okb);color:var(--ok)}
+.fab{position:absolute;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;align-items:flex-end}.fab b{width:52px;height:52px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:12px;position:relative;box-shadow:0 6px 18px #0003}
+.fab b.q{background:var(--accent)}.fab b.q s{position:absolute;top:-4px;right:-4px;background:#fff;color:var(--accent);border:2px solid var(--accent);border-radius:999px;min-width:22px;height:22px;font-size:12px;display:grid;place-items:center;text-decoration:none;font-weight:800}
+.cookie{position:absolute;left:20px;bottom:20px;right:auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;font-size:13px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 18px #0001;max-width:520px}
+@container (max-width:500px){.cookie{left:10px;right:10px;bottom:10px;max-width:none;flex-wrap:wrap}}
+.toast{position:absolute;right:90px;bottom:40px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;font-size:14px;display:flex;gap:12px;align-items:center;white-space:nowrap}.toast u{color:#FFD166}
+@container (max-width:500px){.toast{left:10px;right:74px;white-space:normal}}
+.anno{position:absolute;background:#FFD166;color:#1C1C1C;font:700 12px Manrope;padding:4px 8px;border-radius:6px}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:520px;background:#fff;border-left:1px solid var(--line);box-shadow:-20px 0 40px #0002;display:flex;flex-direction:column}
+@container (max-width:500px){.drawer{width:100%;top:40px;border-radius:18px 18px 0 0}}
+.scrim{position:absolute;inset:0;background:#1C1C1C55}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line)}.dh h3{margin:0;font-size:20px}
+.dl{flex:1;overflow:hidden;padding:8px 24px}.it{display:grid;grid-template-columns:72px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.th{width:72px;height:72px;border-radius:10px;background:#F1EBE1 center/cover}.it h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between;gap:8px}.it h4 a{font-size:12px;color:var(--ink-2);font-weight:600;white-space:nowrap}
+.fs{display:grid;grid-template-columns:110px 1fr;gap:8px}.fs .in,.in{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;background:#fff}.stp{display:flex;align-items:center;justify-content:space-between}.stp i{font-style:normal;width:24px;text-align:center;font-weight:800}
+.dsg{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;background:#F7F3EC;border-radius:8px;padding:6px 8px}.dsg span{width:28px;height:28px;border-radius:6px;background:#C49A6C;flex:none}.dsg code{color:var(--ink-2)}
+.df{padding:16px 24px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}.note{font-size:12px;color:var(--ink-2);line-height:1.5}
+.msg{border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5}.msg.e{background:var(--errb);color:#7a1a12}.msg.w{background:var(--warnb);color:#5c4300}.msg.o{background:var(--okb);color:#0f5323}.msg.i{background:#E3EEFC;color:#123a6b}
+.steps{display:flex;gap:6px;margin-bottom:18px}.steps span{flex:1;height:5px;border-radius:3px;background:var(--line)}.steps .on{background:var(--accent)}
+.form{max-width:720px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px}@container (max-width:500px){.form{padding:18px;border-radius:14px}}
+.form h3{margin:0 0 4px;font-size:22px}.lb{display:block;font-size:12px;color:var(--ink-2);margin:12px 0 4px;font-weight:600}.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@container (max-width:500px){.g2{grid-template-columns:1fr}}
+.in.bad{border-color:var(--err);background:#FFF8F7}.er{color:var(--err);font-size:12px;margin-top:4px}
+.rv{border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin:10px 0}.rv div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;gap:10px}.rv div:last-child{border:0}
+.cap{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;width:300px;background:#FAFAFA}.cap i{width:22px;height:22px;border:2px solid #bbb;border-radius:4px}.cap .ok{border-color:var(--ok);background:var(--ok)}
+.chk{display:flex;gap:8px;font-size:13px;line-height:1.5;margin-top:14px}.chk i{width:18px;height:18px;flex:none;border:1.5px solid var(--ink);border-radius:4px;margin-top:2px}
+.nav{display:flex;justify-content:space-between;margin-top:20px;gap:10px}
+.cty{display:flex;gap:6px;flex-wrap:wrap}.cty span{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px;white-space:nowrap}.cty .on{background:var(--ink);color:#fff}
+.big{font-size:44px;font-weight:800;margin:10px 0}@container (max-width:500px){.big{font-size:30px}}
+.ctr{text-align:center}
+.adm{width:760px;background:#F7F5F1;border-radius:14px;box-shadow:0 12px 32px #0002;display:grid;grid-template-columns:150px 1fr;font-size:13px;overflow:hidden}.adm .side{background:#1C1C1C;color:#cfc9be;padding:16px 12px}.adm .side b{color:#fff}.adm .side em{color:var(--accent);font-style:normal}.adm .side div{padding:7px 8px;border-radius:6px}.adm .side .on{background:#2c2b29;color:#fff}
+.adm .main{padding:18px}.adm .cardx{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}.kv{display:grid;grid-template-columns:90px 1fr;row-gap:8px}.kv span:nth-child(odd){color:var(--ink-2)}
+.tip{font-size:11px;color:var(--ink-2)}
+</style></head><body>
+<h1 class="doc">交互稿 · 询价清单与样品申请（Fixes #129，对应 #101 / #104）</h1>
+<p class="sub">每个场景从左到右依次为：桌面 1440 英文、桌面 1440 俄文（都按 50% 缩放）、手机 390 英文、手机 390 俄文。黄色标签是交互说明。后端约束见 #101：清单最多 20 项；每项包括品类、数量、尺寸、备注，以及可选的定制方案短链接 /s/&lt;id&gt;。整张清单提交后生成一条询盘，要经过人机验证（Turnstile）并评分。样品申请同一个邮箱（规范化后）30 天内只能提交一次，超过时返回 429。短链接内容不可修改，180 天后过期（返回 410）。清单保存在 localStorage（键名 pj.quote.v1），不用 cookie；只保存产品参数，不保存联系方式。</p>
+<div id="out"></div>
+<script>
+const L={en:{q:'Get a quote',add:'Add to quote',added:'Added ✓',cookie:'We use cookies for analytics.',acc:'Accept',set:'Settings',toast:'Added to your quote list',view:'View list',
+list:'Your quote list',items:n=>`${n} of 20 items`,qty:'Quantity',size:'Size (L×W×H)',note:'Note',rm:'Remove',design:'Saved design',open:'Open ↗',ro:'read-only',
+submit:'Request a quote for all items',keep:'Saved on this device only. Contact details are never stored.',
+c1:'Corrugated Boxes',c2:'Gift Boxes',c3:'Paper Cups',lim:'Your list is full (20 items). Submit this list or remove an item to add more.',
+empty:'Your quote list is empty',emptyp:'Add products from the 3D catalog or the customizer, then request one quote for all of them.',browse:'Browse products in 3D',
+s1:'Contact details',s2:'Review',s3:'Verify & send',stepOf:(a,b)=>`Step ${a} of ${b}`,name:'Name',email:'Work email',company:'Company',country:'Country',phone:'Phone / WhatsApp',
+next:'Next',back:'Back',send:'Send request',human:'Verify you are human',edit:'Edit',
+succ:'Thank you — request received',succp:'Your reference number is',succ2:'We reply within 24 hours. A confirmation email is on its way. Your list has been cleared.',home:'Back to home',
+sample:'Request a sample',sampp:'One sample request per email every 30 days. Samples are free; you only cover shipping, which we will quote by email before dispatch.',
+ship:'Shipping address',a1:'Street address',a2:'Apt, suite (optional)',city:'City',state:'State',zip:'ZIP code',
+consent:'I agree that PackJoyU processes my data to send this sample, as described in the Privacy Policy.',
+e429:'You\'ve already requested a sample in the last 30 days. Please try again later.',e429b:'Meanwhile, we can quote these products right away.',e429c:'Send as a regular quote',
+eval:'Please check the highlighted fields.',evalE:'Enter a valid email address',evalZ:'ZIP code should be 5 digits',
+enet:'Could not send — check your connection.',enetb:'Nothing was lost: your list and answers are still here.',retry:'Try again',
+fromS:'Design from a shared link',fromSp:'Box 300×200×100 mm · kraft · logo on lid',addS:'Add this design to quote',
+x410:'This design has expired',x410p:'Shared designs are kept for 180 days. Please customize again — it only takes a minute.',x410b:'Customize Corrugated Boxes again'},
+ru:{q:'Запросить цену',add:'Добавить в запрос',added:'Добавлено ✓',cookie:'Мы используем cookie для аналитики.',acc:'Принять',set:'Настройки',toast:'Добавлено в список запроса',view:'Открыть список',
+list:'Список для запроса цены',items:n=>`${n} из 20 позиций`,qty:'Тираж',size:'Размер (Д×Ш×В)',note:'Комментарий',rm:'Удалить',design:'Сохранённый дизайн',open:'Открыть ↗',ro:'только просмотр',
+submit:'Запросить цену на все позиции',keep:'Сохраняется только на этом устройстве. Контактные данные не сохраняются.',
+c1:'Гофрокоробки',c2:'Подарочные коробки',c3:'Бумажные стаканы',lim:'Список заполнен (20 позиций). Отправьте запрос или удалите позицию, чтобы добавить новую.',
+empty:'Список запроса пуст',emptyp:'Добавьте продукцию из 3D-каталога или конструктора и запросите цену сразу на всё.',browse:'Смотреть продукцию в 3D',
+s1:'Контактные данные',s2:'Проверка',s3:'Подтверждение и отправка',stepOf:(a,b)=>`Шаг ${a} из ${b}`,name:'Имя',email:'Рабочий e-mail',company:'Компания',country:'Страна',phone:'Телефон / WhatsApp',
+next:'Далее',back:'Назад',send:'Отправить запрос',human:'Подтвердите, что вы человек',edit:'Изменить',
+succ:'Спасибо — запрос получен',succp:'Номер вашего запроса',succ2:'Мы ответим в течение 24 часов. Письмо с подтверждением уже отправлено. Список очищен.',home:'На главную',
+sample:'Заказать образец',sampp:'Один образец на один e-mail раз в 30 дней. Образец бесплатный — вы оплачиваете только доставку; стоимость сообщим по e-mail до отправки.',
+ship:'Адрес доставки',a1:'Улица, дом, корпус',a2:'Квартира / офис (необязательно)',city:'Город',state:'Область / край',zip:'Индекс',
+consent:'Я согласен(на) на обработку моих данных PackJoyU для отправки образца в соответствии с политикой конфиденциальности.',
+e429:'Вы уже запрашивали образец за последние 30 дней. Пожалуйста, попробуйте позже.',e429b:'А цену на эту продукцию мы можем рассчитать прямо сейчас.',e429c:'Отправить как обычный запрос',
+eval:'Проверьте выделенные поля.',evalE:'Введите корректный e-mail',evalZ:'Индекс должен состоять из 6 цифр',
+enet:'Не удалось отправить — проверьте подключение.',enetb:'Ничего не потеряно: список и ответы сохранены.',retry:'Повторить',
+fromS:'Дизайн по ссылке',fromSp:'Коробка 300×200×100 мм · крафт · логотип на крышке',addS:'Добавить дизайн в запрос',
+x410:'Срок действия дизайна истёк',x410p:'Сохранённые дизайны хранятся 180 дней. Пожалуйста, настройте коробку заново — это займёт минуту.',x410b:'Настроить гофрокоробку заново'}};
+const hd=t=>`<div class="hd"><b>Pack<em>Joy</em>U</b><span class="btn sm">${t.q}</span></div>`;
+const fab=(n,lift)=>`<div class="fab" style="bottom:${lift?'96px':'20px'}"><b class="q">🧾<s>${n}</s></b><b>Chat</b><b>↑</b></div>`;
+const item=(t,c,img,q,sz,nt,dsg,bad)=>`<div class="it"><div class="th" style="background-image:url(${img})"></div><div><h4>${c}<a>✕ ${t.rm}</a></h4><div class="fs"><span class="tip">${t.qty}</span><div class="in stp"><i>−</i>${q}<i>+</i></div><span class="tip">${t.size}</span><div class="in ${bad?'bad':''}">${sz}</div><span class="tip">${t.note}</span><div class="in">${nt}</div></div>${dsg?`<div class="dsg"><span></span>${t.design} · <code>/s/7Kx2Qa</code> · ${t.ro} <a style="margin-left:auto;font-weight:700;color:var(--accent)">${t.open}</a></div>`:''}</div></div>`;
+const P='../public/images/posters/';
+const list=(t,full)=>`<div class="drawer"><div class="dh"><div><h3>${t.list}</h3><span class="tip">${t.items(full?20:3)}</span></div><b style="font-size:20px">✕</b></div><div class="dl">
+${item(t,t.c1,P+'custom-corrugated-boxes.webp','5 000','300×200×100 mm','Kraft, 1-color logo',true)}${item(t,t.c2,P+'custom-gift-boxes.webp','1 000','250×250×80 mm','Magnetic lid, gold foil')}${item(t,t.c3,'../public/images/placeholder.svg','20 000','12 oz','')}</div>
+<div class="df">${full?`<div class="msg w">${t.lim}</div>`:''}<span class="btn blk">${t.submit}</span><span class="note">💾 ${t.keep}</span></div></div>`;
+const card=(t,c,img,added,full)=>`<div class="card ${added?'added':''}"><div class="im" style="background-image:url(${img})"></div><div class="b"><h3>${c}</h3><span class="btn sm ${full?'dis':''}" style="align-self:flex-start">${added?t.added:t.add}</span></div></div>`;
+const S=[
+['① 产品卡片“加入询价清单” + 浮动清单角标 + Cookie 条','点击后按钮变成“已添加 ✓”保持 2 秒，并弹出提示条，可以点“查看清单”。角标显示件数，和 Chat、回到顶部一起放在右下角；Cookie 条显示时，按钮组整体上移到 Cookie 条上方 12px（手机端 Cookie 条占满宽，按钮组同样上移）。定制器里的“加入询价清单”按钮放在 Get a quote 上方，会带上 /s/<id>。',
+ (t,m)=>`${hd(t)}<div class="pad"><div class="cards">${card(t,t.c1,P+'custom-corrugated-boxes.webp',true)}${card(t,t.c2,P+'custom-gift-boxes.webp')}${m?'':card(t,t.c3,'../public/images/placeholder.svg')}</div></div><div class="toast">✓ ${t.toast} <u>${t.view}</u></div>${fab(3,true)}<div class="cookie">${t.cookie} <span class="btn sm">${t.acc}</span><span class="btn sm ghost">${t.set}</span></div><div class="anno" style="right:84px;bottom:${m?'150px':'160px'}">↕ cookie bar + 12px</div>`],
+['② 清单抽屉：在行内改数量、尺寸、备注，删除，带定制方案缩略图', '桌面端从右侧滑出 520px 的抽屉，手机端从底部弹出全屏面板。修改即时保存到 localStorage，删除后 5 秒内可以撤销。定制方案只读，点“打开”在新标签页查看 /s/<id>，想改方案要回到定制器重新生成一个新链接。尺寸填错时字段标红（示例：第一项）。',
+ (t,m)=>`${hd(t)}<div class="scrim"></div>${list(t,false)}`],
+['③ 达到 20 项上限 + 空清单', '达到 20 项后，所有“加入询价清单”按钮置灰，悬停或点击时提示原因；抽屉顶部显示黄色提示条。空清单时显示插图、说明和一个去 3D 产品页的按钮。',
+ (t,m)=>m?`${hd(t)}<div class="pad ctr" style="padding-top:60px"><div style="font-size:60px">📦</div><h3>${t.empty}</h3><p class="note" style="font-size:14px">${t.emptyp}</p><span class="btn">${t.browse}</span></div>${fab(0)}`:`${hd(t)}<div class="pad"><div class="cards">${card(t,t.c1,P+'custom-corrugated-boxes.webp',false,true)}${card(t,t.c2,P+'custom-gift-boxes.webp',false,true)}</div></div><div class="scrim"></div>${list(t,true)}`],
+['④ 提交流程 1/3：联系方式 + 校验错误', '整张清单作为一条询盘提交。字段与询价向导一致；校验在失焦和提交时进行，出错时页面顶部给出汇总，并把焦点移到第一个出错的字段。',
+ (t,m)=>`${hd(t)}<div class="pad"><div class="form"><div class="steps"><span class="on"></span><span></span><span></span></div><p class="tip">${t.stepOf(1,3)} · ${t.s1}</p><div class="msg e">${t.eval}</div><div class="g2"><div><span class="lb">${t.name} *</span><div class="in">Anna K.</div></div><div><span class="lb">${t.email} *</span><div class="in bad">anna@acme</div><div class="er">${t.evalE}</div></div><div><span class="lb">${t.company}</span><div class="in">Acme GmbH</div></div><div><span class="lb">${t.country} *</span><div class="in">Deutschland ▾</div></div></div><div class="nav"><span class="btn ghost">${t.back}</span><span class="btn">${t.next}</span></div></div></div>`],
+['⑤ 提交流程 2/3 核对 → 3/3 人机验证 → 成功（询盘编号）', '核对页列出所有产品，每一块都有“修改”入口，可以跳回去改。人机验证（Turnstile）放在最后一步，验证通过后“发送”按钮才能点。成功页显示询盘编号，并清空清单。',
+ (t,m)=>`${hd(t)}<div class="pad" style="display:grid;grid-template-columns:${m?'1fr':'1fr 1fr'};gap:20px"><div class="form" style="margin:0"><div class="steps"><span class="on"></span><span class="on"></span><span class="on"></span></div><p class="tip">${t.stepOf(3,3)} · ${t.s3}</p><div class="rv"><div><b>${t.c1}</b><span>5 000 · 300×200×100</span></div><div><b>${t.c2}</b><span>1 000 · /s/7Kx2Qa</span></div><div><b>${t.c3}</b><span>20 000 · 12 oz</span></div><div><span>Anna K. · anna@acme-example.de</span><a style="color:var(--accent);font-weight:700">${t.edit}</a></div></div><div class="cap"><i class="ok"></i>${t.human}</div><div class="nav"><span class="btn ghost">${t.back}</span><span class="btn">${t.send}</span></div></div>
+<div class="form ctr" style="margin:0"><div style="font-size:44px">✓</div><h3>${t.succ}</h3><p class="note">${t.succp}</p><div class="big">Q-7K3F</div><p class="note" style="font-size:14px">${t.succ2}</p><span class="btn ghost">${t.home}</span></div></div>`],
+['⑥ 样品申请：收件地址按国家切换格式（US / EU / AU / RU）+ 同意条款 + 费用说明', '切换国家后，地址字段的顺序和标签跟着变。US：州 + 5 位 ZIP；EU：邮编在城市前面；AU：州 + 4 位邮编；RU：6 位邮编、地区和城市，街道和门牌写在一行。必须勾选同意条款才能提交。下图英文版为 US 格式，俄文版为 RU 格式（邮编字段演示了校验错误）。',
+ (t,m,l)=>`${hd(t)}<div class="pad"><div class="form"><h3>${t.sample}</h3><div class="msg i" style="margin:10px 0">${t.sampp}</div><div class="g2"><div><span class="lb">${t.name} *</span><div class="in">${l=='ru'?'Иван Петров':'Mike R.'}</div></div><div><span class="lb">${t.email} *</span><div class="in">${l=='ru'?'ivan@vino-example.ru':'mike@brew-example.com'}</div></div></div>
+<span class="lb">${t.ship} · ${t.country}</span><div class="cty"><span class="${l=='en'?'on':''}">US</span><span>EU</span><span>AU</span><span class="${l=='ru'?'on':''}">RU</span></div>
+${l=='ru'?`<div class="g2"><div><span class="lb">${t.zip} *</span><div class="in bad">10100</div><div class="er">${t.evalZ}</div></div><div><span class="lb">${t.state}</span><div class="in">Московская обл.</div></div></div><span class="lb">${t.city} *</span><div class="in">Москва</div><span class="lb">${t.a1} *</span><div class="in">ул. Тверская, д. 12, стр. 1</div><span class="lb">${t.a2}</span><div class="in">кв. 45</div>`
+:`<span class="lb">${t.a1} *</span><div class="in">1200 Market St</div><span class="lb">${t.a2}</span><div class="in">Suite 400</div><div class="g2" style="grid-template-columns:${m?'1fr':'2fr 1fr 1fr'}"><div><span class="lb">${t.city} *</span><div class="in">San Francisco</div></div><div><span class="lb">${t.state} *</span><div class="in">CA ▾</div></div><div><span class="lb">${t.zip} *</span><div class="in">94102</div></div></div>`}
+<div class="chk"><i></i>${t.consent}</div><div class="nav"><span></span><span class="btn">${t.sample}</span></div></div></div>`],
+['⑦ 出错状态：429（30 天内重复申请样品）和网络错误', '429：只用笼统文案（“30 天内已申请过，请稍后再试”），不显示具体可再申请日期——否则任何人输入邮箱即可探测该邮箱近期是否申请过（安全要求）。前端按错误码映射：30 天样品限制时后端只返回 {"error":"sample_recent"}（不带 retryAfter，也不带 Retry-After 头），显示此笼统文案；retryAfter / Retry-After 只出现在按 IP 限流的 429 上。仍给出替代方案：一键把同样的产品转成普通询价（已填的内容保留）。网络错误：保留已填写的内容，提供“重试”按钮。两种情况都不提示具体原因以外的信息，也不暴露邮箱是否已注册。',
+ (t,m)=>`${hd(t)}<div class="pad" style="display:grid;grid-template-columns:${m?'1fr':'1fr 1fr'};gap:20px"><div class="form" style="margin:0"><h3>${t.sample}</h3><div class="msg w" style="margin-top:12px"><b>${t.e429}</b><br>${t.e429b}</div><div class="nav" style="justify-content:flex-start;flex-wrap:wrap"><span class="btn">${t.e429c}</span><span class="btn ghost">${t.home}</span></div></div>
+<div class="form" style="margin:0"><h3>${t.s3}</h3><div class="msg e" style="margin-top:12px"><b>${t.enet}</b><br>${t.enetb}</div><div class="nav"><span class="btn ghost">${t.back}</span><span class="btn">${t.retry}</span></div></div></div>`],
+['⑧ 短链接 /s/<id>：有效时回到清单；过期时返回 410', '有效链接显示只读预览，按钮“加入询价清单”会把该方案加进清单（带 /s/<id>）。超过 180 天的链接返回 HTTP 410，页面加 noindex，提供一个回到该品类落地页 / 定制器的按钮；不自动跳转。',
+ (t,m)=>`${hd(t)}<div class="pad" style="display:grid;grid-template-columns:${m?'1fr':'1fr 1fr'};gap:20px"><div class="form" style="margin:0"><p class="tip">/s/7Kx2Qa · ${t.ro}</p><div style="aspect-ratio:16/10;background:#F1EBE1 url(${P}custom-corrugated-boxes.webp) center/55% no-repeat;border-radius:12px;margin:8px 0"></div><h3>${t.fromS}</h3><p class="note">${t.fromSp}</p><span class="btn">${t.addS}</span></div>
+<div class="form ctr" style="margin:0"><p class="tip">HTTP 410 · noindex</p><div style="font-size:48px">⌛</div><h3>${t.x410}</h3><p class="note" style="font-size:14px">${t.x410p}</p><span class="btn">${t.x410b}</span><p class="tip" style="margin-top:10px">→ /{locale}/products/custom-corrugated-boxes</p></div></div>`]];
+const out=document.getElementById('out');
+for(const [title,note,fn] of S){let h=`<div class="sc"><h2>${title}</h2><p class="n">${note}</p><div class="row">`;
+ for(const [l,m] of [['en',0],['ru',0],['en',1],['ru',1]]) h+=`<div><p class="lbl">${m?'Mobile 390':'Desktop 1440 (50%)'} · ${l.toUpperCase()}</p>${m?'':'<div class="dw">'}<div class="f ${m?'m':'d'}" style="height:${m?'760px':'1000px'}">${fn(L[l],m,l)}</div>${m?'':'</div>'}</div>`;
+ out.insertAdjacentHTML('beforeend',h+'</div></div>');}
+out.insertAdjacentHTML('beforeend',`<div class="sc"><h2>⑨ 后台：样品申请详情里的收件地址默认打码</h2><p class="n">默认只显示收件人名字和姓氏首字母，街道和邮编用星号遮住，国家和城市照常显示。点“显示完整地址”需要确认，确认后写入审计日志（谁、什么时候、哪条申请）；导出 CSV 时同样提示会记录审计日志。只有 ADMIN 和被分配的 SALES 能看到这两个操作。<b>权限在服务端接口判断，不靠前端隐藏：</b>EDITOR 和未被分配的 SALES 从 API 拿到的数据本身就是打码的，完整地址不会下发到浏览器。</p>
+<div class="adm"><div class="side"><b>Pack<em>Joy</em>U</b><div style="margin-top:14px">询盘</div><div class="on">样品申请</div><div>3D 模型</div><div>账号权限</div></div><div class="main"><div style="display:flex;align-items:center;gap:8px"><b style="font-size:16px">样品申请 S-2Q8M</b><span class="tip">· RU · 2 小时前</span><span style="flex:1"></span><span class="btn sm ghost">导出 CSV</span></div>
+<div class="cardx"><div class="kv"><span>联系人</span><span>Иван П. · ivan@vino-example.ru</span><span>产品</span><span>Коробки для вина × 1 · /s/7Kx2Qa</span><span>收件地址</span><span><b>Ivan P., ul. ****, Moscow, RU 1*****</b></span></div>
+<div style="display:flex;gap:8px;margin-top:12px;align-items:center"><span class="btn sm">显示完整地址</span><span class="tip">🔒 查看完整地址会记录到审计日志（操作人、时间、申请编号）</span></div></div>
+<div class="cardx msg w">导出 CSV：导出的文件包含完整地址，此次导出会记录到审计日志。确认导出？ <span class="btn sm" style="margin-left:8px">确认导出</span></div></div></div></div>`);
+</script></body></html>
