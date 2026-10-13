@@ -124,6 +124,7 @@ model InquiryItem {
   productSlug String // 对应 Sanity 产品
   quantity    Int?
   config      Json? // 颜色、尺寸、材质、logo 文件 key
+  notes       String? // 客户对该产品的备注，<= 500 字
   designId    String?
   design      SharedDesign? @relation(fields: [designId], references: [id])
 }
@@ -152,19 +153,31 @@ model SampleRequest {
   id         String       @id @default(cuid())
   inquiryId  String       @unique
   inquiry    Inquiry      @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-  status     SampleStatus @default(PENDING)
-  trackingNo String?
-  reviewedBy String?
-  updatedAt  DateTime     @updatedAt
+  status          SampleStatus @default(PENDING)
+  trackingNo      String?
+  reviewedBy      String?
+  normalizedEmail String? // 去 +后缀、Gmail 去点、小写；用于“每邮箱 30 天 1 次”
+  shippingAddress Json? // PII：后台列表脱敏，查看完整地址写审计
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([normalizedEmail, createdAt])
 }
 
 // 定制方案短链接 /s/:id，id 为随机字符串，不可递增
 model SharedDesign {
-  id          String        @id // nanoid(10)
-  productSlug String
-  config      Json
-  items       InquiryItem[]
-  createdAt   DateTime      @default(now())
+  id           String        @id // 随机 16 位（旧数据 10 位），不可递增
+  productSlug  String
+  category     String? // categoryMeta 的内部 key，用于 /s/:id 的 canonical
+  locale       Locale        @default(en)
+  config       Json // 经 zod 校验，见 src/lib/server/designs.ts
+  logoUploadId String?
+  logoUpload   LogoUpload?   @relation(fields: [logoUploadId], references: [id], onDelete: SetNull)
+  items        InquiryItem[]
+  expiresAt    DateTime? // null = 已被询盘引用，跟随询盘保留期
+  createdAt    DateTime      @default(now())
+
+  @@index([expiresAt])
 }
 
 model Model3D {
@@ -225,6 +238,7 @@ model LogoUpload {
   inquiry   Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   expiresAt DateTime // 可绑定截止时间
+  designs   SharedDesign[] // 被未过期方案引用时不清理
 
   @@index([inquiryId, createdAt])
 }

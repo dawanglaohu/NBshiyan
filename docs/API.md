@@ -12,17 +12,49 @@
   "locale": "en | ru",
   "contact": { "name": "", "email": "", "company": "", "phone": "", "region": "US" },
   "message": "",
-  "items": [{ "productSlug": "corrugated-box", "quantity": 5000, "config": {}, "designId": "abc123XYZ0" }],
+  "items": [{ "productSlug": "corrugated-box", "quantity": 5000, "config": {}, "notes": "", "designId": "", "shareUrl": "/s/AbCdEfGh23456789" }],
+  "shippingAddress": { "line1": "", "line2": "", "city": "", "state": "", "postalCode": "", "country": "DE" }, // 仅 SAMPLE，必填
   "attribution": { "page": "/en/products/corrugated-box", "utm": {} },
   "website": "",            // 诱饵字段，必须为空
   "turnstileToken": "",
   "logoUploadId": ""       // 可选，见下方 logo 上传
 }
 ```
-返回 `201 { "ref": "PJ-2610-K7Q2MX" }`。会给业务邮箱发通知、给客户发对应语言的自动回复。
+返回 `201 { "ref": "PJ-2610-K7Q2MX" }`。会给业务邮箱发通知、给客户发对应语言的自动回复。所有来源都要 Turnstile，都走同一套可信度评分（产品备注和留言一起评分）。
 
-### `POST /api/designs` 和 `GET /api/designs/:id`
-保存定制方案，返回 `{ "id": "abc123XYZ0", "url": "/s/abc123XYZ0" }`。`/s/*` 页面带 `noindex`。
+- **询价清单（`CART`）**：一个清单提交成一条询盘。`items` 1–20 个，服务端校验；`quantity` 正整数 ≤ 1 亿，`notes` ≤ 500 字，`config` 是严格白名单 `{ size（≤200 字文本或 {length,width,height,unit}）, material, timeline: 2w|1m|2m|3m, finishes[], colors{名称:#hex}, printing }`，未知字段 400；同一产品 + 方案不能重复。
+- **分享链接**：`shareUrl` 只接受本站 `/{en|ru}/s/<id>`（兼容 `/s/<id>`；相对路径或 `NEXT_PUBLIC_SITE_URL` 开头），解析成 `designId`；外站链接返回 400 `share_url_invalid`。引用的方案必须存在且没过期，否则 `422 { "error": "design_invalid" }`。被询盘引用后方案不再过期。
+- **样品申请（`SAMPLE`）**：`items` 1–5 个，`shippingAddress` 必填（禁止控制字符和 `<>`）。限制：
+  - 每个规范化邮箱 30 天 1 次（小写、去 `+后缀`、Gmail 去点，googlemail 归一为 gmail），数据库判断并加锁。超限返回 `429 { "error": "sample_recent" }`，**不带** `retryAfter` / `Retry-After`，避免借此探测邮箱。
+  - 每 IP 30 天 3 次（Turnstile 通过后才计数），超限返回带 `retryAfter` 的标准 429。
+- **429 格式**（IP 类限流）：`{ "error": "rate_limited", "retryAfter": 秒 }` + `Retry-After` 头；`retryAfter` 是窗口长度，属上限值。内存限流存储只保留 24 小时内的记录，30 天窗口需要 `RATE_LIMIT_STORE=upstash` 才完全生效（邮箱限制在数据库里，不受影响）。
+
+**收货地址（PII）**：后台询盘列表不返回地址；详情 `GET /api/admin/inquiries/:id` 永远返回脱敏地址（国家、城市首字母、邮编前 2 位），`canRevealAddress` 告诉前端是否显示“查看完整地址”按钮。完整地址只能 `POST /api/admin/samples/:id/address`（`:id` 是 `sample.id`，没有 GET）：同源校验 → 登录（ADMIN/SALES）→ 限流 → 只有 ADMIN 和被分配的 SALES，否则 404 → 写审计 `sample.address.view`（不记录地址内容）→ 返回 `{ shippingAddress }`，`Cache-Control: no-store`。EDITOR 无权访问。目前没有导出功能，以后加导出时也要写审计。
+
+### `POST /api/designs`、`GET /api/designs/:id`、`GET /api/designs/:id/logo`
+保存定制方案（不可修改），返回 `201 { "id": "AbCdEfGh23456789", "url": "/en/s/AbCdEfGh23456789", "expiresAt": "…" }`（`url` 按方案的 `locale`）。
+```json
+{
+  "productSlug": "mailer-box",
+  "category": "gift-boxes",          // 可选，categoryMeta 的 key，用于 canonical
+  "locale": "en | ru",
+  "logoUploadId": "",               // 可选，未过期、未绑定询盘的 logo 上传
+  "turnstileToken": "",
+  "config": {
+    "modelId": "", "colors": { "body": "#112233" },
+    "size": { "length": 200, "width": 150, "height": 50, "unit": "mm | cm | in" },
+    "material": "kraft", "finishes": ["foil"], "quantity": 500,
+    "logo": { "placement": "lid", "scale": 1, "offset": [0, 0], "rotation": 0 },
+    "camera": { "position": [0, 0, 3], "target": [0, 0, 0] }
+  }
+}
+```
+- `config` 白名单字段，未知字段 400；请求体 ≤ 16KB，`config` ≤ 8000 字节；每 IP 10 分钟 30 次；需要 Turnstile。
+- id：16 位随机字符（拒绝采样，约 93 bit），不可递增；旧的 10 位 id 仍可读取。
+- 过期：默认 180 天；被询盘引用后不过期，跟随询盘保留期。过期后 `GET` 返回 `410 { "error": "expired", "categoryUrl": "…" }`，再保留 90 天后由定时任务删除（之后 404）。
+- `HEAD /api/designs/:id`：只返回状态码 200 / 404 / 410（限流时 429），没有 body，`Cache-Control: public, max-age=60`；只查 `expiresAt` 和 `category`，410 时带 `X-Design-Category: <categoryMeta key>`（没有分类就不带），不返回其它方案信息；每 IP 10 分钟 600 次，无 IP（服务端内部调用）共用 6000 次。middleware 探测时带 `x-internal-probe: $MIDDLEWARE_PROBE_SECRET`（≥ 32 字节，常量时间比较）和 `x-probe-client-ip: <客户端 IP>`：密钥通过且 IP 格式合法才按该 IP 单独分桶（`design-head:probe:<ip>`，同样 600 次），否则忽略这两个头、按连接 IP 限流。给 middleware 的 410 规则用。
+- `GET /api/designs/:id` 返回 `{ id, productSlug, category, locale, config, hasLogo, expiresAt, createdAt, slugs, canonical }`，不返回 logo 上传 id（防止被人拿去绑定询盘）；logo 用 `GET /api/designs/:id/logo` 取（重新编码过的 PNG）。都带 `X-Robots-Tag: noindex, nofollow`。
+- 页面 `/{locale}/s/:id`（`/en/s/…`、`/ru/s/…`，文案跟 URL 语言）：`noindex, nofollow`，canonical 指向对应分类落地页 `/{locale}/products/{slug}`（没有分类时指向 `/{locale}/products`）。过期时页面显示“链接已过期”和分类页链接。页面本身没法返回 410：全栈的 middleware 对 `/*/s/` 调 `HEAD /api/designs/:id`，按结果返回 410（调用失败时放行）。
 
 ### `POST /api/uploads/logo`
 询价时上传 logo。公开接口，不需要登录，也不需要 Turnstile token（人机校验只在提交询盘时做）。
@@ -68,7 +100,8 @@
 角色：`ADMIN` 全部可见；`SALES` 只能看和操作分配给自己的询盘，不能改分配；`EDITOR` 无询盘权限。
 
 - `GET /api/admin/users` → `{ items: [{ id, name, email, role }] }`。ADMIN 拿到所有未禁用的 ADMIN/SALES（分配下拉框用）；SALES 只拿到自己。
-- `GET /api/admin/inquiries` → `{ items, total, page, pageSize }`。参数（都可选）：
+- `GET /api/admin/inquiries` → `{ items, total, page, pageSize }`，每条带 `sample: { status } | null`（不含地址）。参数（都可选）：
+  - `type`：`general`（FORM/WIZARD/CUSTOMIZER）| `quote_list`（CART）| `sample`（SAMPLE），其它值 400
   - `page`（默认 1）、`pageSize`（默认 20，最大 100）
   - `q`：搜编号、留言、联系人姓名/邮箱/公司
   - `from`、`to`：创建时间区间，ISO 日期或时间；`to` 只给日期（如 `2026-10-13`）时包含当天
@@ -77,18 +110,34 @@
   - `product`：产品 slug，询盘任一产品匹配即可
   - `assignee`：`me` | `none`（未分配）| 用户 id。SALES 无论传什么都只看到自己的
   - `items[]`：`{ id, ref, status, source, locale, trustScore, ipCountry, createdAt, assigneeId, contact: { name, email, company, region }, _count: { items, messages } }`。参数非法返回 400 `invalid`。
-- `GET /api/admin/inquiries/:id` → 询盘全部字段（不含 `replyToken`）+ `contact, items, messages, notes, sample, assignee, logoUploads: [{ id, width, height, bytes, createdAt }]`，以及 `logoUploadId`（第一个 logo 的 id，没有为 `null`）。
+- `GET /api/admin/inquiries/:id` → 询盘全部字段（不含 `replyToken`）+ `contact, items, messages, notes, sample, assignee, logoUploads: [{ id, width, height, bytes, createdAt }]`，以及 `logoUploadId`（第一个 logo 的 id，没有为 `null`）、`canRevealAddress`。
+- `GET /api/admin/inquiries/:id/history?limit=10&before=<cursor>` → `{ items: [{ type: created|status|assignment|reply|inbound, at, actor: { name, role } | null, summary, cursor }], total }`。新的在前；`limit` 默认 10、最多 50；下一页把最后一条的 `cursor` 传给 `before`，非法游标 400 `bad_cursor`。数据来自询盘创建时间、审计里的状态/分配变更和往来邮件记录；`summary` 里的邮件主题截到 80 字，出现的收货地址片段（街道、城市、州、邮编）替换成 `***`；不含正文、附件、IP 和用户 id。SALES 只能看分配给自己的询盘，但能看到该询盘的完整时间线（包括分配前的记录）。
 - `GET /api/admin/uploads/:id` → logo 图片（PNG）。`Content-Disposition: inline`、`X-Content-Type-Options: nosniff`、`Cache-Control: private, no-store`，带会话 cookie 直接用作 `<img src>`。ADMIN 都能看；SALES 只能看分配给自己的询盘上的 logo，其他一律 404。
 - `PATCH /api/admin/inquiries/:id` `{ status?, assigneeId? }`（`assigneeId` 仅 ADMIN，可为 `null`）→ `{ id, status, assigneeId, updatedAt }`。
 - `POST /api/admin/inquiries/:id/reply` `{ subject ≤200, body ≤20000 纯文本 }` → 201 新的 `InquiryMessage`。正文全部转义、换行转 `<br>`，主题去换行；配置 `REPLY_DOMAIN` 后 Reply-To 为 `reply+<token>@域名`。发信失败返回 502 `mail_failed`，不入库。
 - `POST /api/admin/inquiries/:id/notes` `{ body ≤5000 }` → 201 新备注。
 
+### 账号
+所有接口：`requireAdmin` → `assertSameOrigin` → `await enforceAdminRateLimit`；每个操作都让受影响账号的全部会话失效（`sessionVersion+1`，等同 `revokeSessions()`），并写 AuditLog（不记密码、验证码、恢复码）。密码 argon2id，策略：12–200 位，不能等于邮箱。
+
+**自己的账号（ADMIN / SALES / EDITOR）**
+- `POST /api/admin/account/password` `{ currentPassword, newPassword, totp | recoveryCode }` → `{ ok: true, reauthRequired: true }`。当前会话也失效，需重新登录。错误：401 `bad_credentials`，422 `weak_password` / `same_password`。
+- `POST /api/admin/account/2fa/reset` `{ currentPassword, totp | recoveryCode }` → `{ ok: true, reenrollRequired: true }`。清空 TOTP 密钥和所有恢复码，会话失效；之后走 `/api/auth-admin/enroll` 重新绑定。
+- 两个接口的验证失败与登录共用失败计数：连续 5 次锁定 15 分钟，锁定期间会话被拒（401）。每 IP 每分钟 5 次。
+
+**账号管理（仅 ADMIN）**
+- `GET /api/admin/users?all=1` → `{ items: [{ id, email, name, role, disabled, totpEnabled, locked, createdAt }] }`（不带 `all` 时是分配下拉框用的精简列表，见上）。
+- `POST /api/admin/users` `{ email, name, role: ADMIN|SALES|EDITOR, password }` → 201。新账号需先绑定 2FA 才能登录。409 `email_taken`，422 `weak_password`。
+- `PATCH /api/admin/users/:id` `{ role?, disabled?, name?, unlock?: true }` → 用户对象。停用或改为 EDITOR 时取消其名下询盘的分配。
+- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码；对方需重新绑定。
+- `DELETE /api/admin/users/:id` → 204。名下询盘取消分配；审计记录保留。
+- 保护规则：不能修改/停用/删除/重置自己（409 `cannot_modify_self`，自己用上面的自助接口）；不能让系统里没有有效管理员（role=ADMIN 且未停用），否则 409 `last_admin`。账号变更在事务里用 advisory lock 串行执行，防止两个管理员同时互相停用。
+
 ### 规划中
 - `PATCH /samples/:id`、`GET|PUT /settings/:key`、`GET /stats`
-- 改密码、重置 2FA、账号管理接口（需调用 `revokeSessions()`）
 
 ## 定时任务
-- `GET|POST /api/admin/cron/cleanup-uploads`：删除超过 24 小时未绑定询盘的 logo（文件和记录）。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
+- `GET|POST /api/admin/cron/cleanup-uploads`：先删除过期超过 90 天、且没被询盘引用的方案（以及询盘已删除后留下的方案），再删除超过 24 小时未绑定询盘、也没被有效方案引用的 logo（文件和记录）。返回 `{ deleted, designs }`。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
 
 ## 存储与限流（部署配置）
 - **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（默认，`UPLOAD_DIR`）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
