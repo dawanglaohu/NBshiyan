@@ -9,13 +9,18 @@ overrides:
   sharp: '>=0.35.5'
   deepmerge-ts: '>=8.0.0'
 
+patchedDependencies:
+  '@needle-tools/gltf-progressive@3.6.1':
+    hash: 8b657e3c8c7805a339653552f83d7f9d36001e46438d548e7cd5459f6823e98a
+    path: patches/@needle-tools__gltf-progressive@3.6.1.patch
+
 importers:
 
   .:
     dependencies:
       '@needle-tools/gltf-progressive':
-        specifier: ^3.3.0
-        version: 3.6.1(three@0.186.1)
+        specifier: 3.6.1
+        version: 3.6.1(patch_hash=8b657e3c8c7805a339653552f83d7f9d36001e46438d548e7cd5459f6823e98a)(three@0.186.1)
       '@prisma/client':
         specifier: ^6.19.3
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
@@ -1252,7 +1257,7 @@ snapshots:
       promise-worker-transferable: 1.0.4
       three: 0.186.1
 
-  '@needle-tools/gltf-progressive@3.6.1(three@0.186.1)':
+  '@needle-tools/gltf-progressive@3.6.1(patch_hash=8b657e3c8c7805a339653552f83d7f9d36001e46438d548e7cd5459f6823e98a)(three@0.186.1)':
     dependencies:
       three: 0.186.1
 

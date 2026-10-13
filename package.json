@@ -9,7 +9,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@needle-tools/gltf-progressive": "^3.3.0",
+    "@needle-tools/gltf-progressive": "3.6.1",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
     "idb-keyval": "^6.2.2",
@@ -34,6 +34,9 @@
       "postcss": ">=8.5.18",
       "sharp": ">=0.35.5",
       "deepmerge-ts": ">=8.0.0"
+    },
+    "patchedDependencies": {
+      "@needle-tools/gltf-progressive@3.6.1": "patches/@needle-tools__gltf-progressive@3.6.1.patch"
     }
   }
 }
