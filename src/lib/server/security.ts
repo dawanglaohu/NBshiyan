@@ -31,3 +31,26 @@ export function rateLimit(key: string, limit = 5, windowMs = 10 * 60_000) {
 export const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim();
 export const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+/** 只信任 Cloudflare / Vercel 平台写入的头，不读可被客户端伪造的 X-Forwarded-For 首项 */
+export function clientIp(req: Request) {
+  return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip') ?? null;
+}
+
+/** 按字节上限读取请求体，超出返回 null */
+export async function readBody(req: Request, maxBytes: number) {
+  const len = Number(req.headers.get('content-length') ?? 0);
+  if (len > maxBytes) return null;
+  const reader = req.body?.getReader();
+  if (!reader) return '';
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) { await reader.cancel(); return null; }
+    chunks.push(value);
+  }
+  return new TextDecoder().decode(Buffer.concat(chunks));
+}

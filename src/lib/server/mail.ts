@@ -16,7 +16,7 @@ const AUTO_REPLY = {
   en: { subject: 'We received your inquiry', body: 'Thank you for contacting PackJoyU. Our team will reply within 24 hours. Your reference number is' },
   ru: { subject: 'Мы получили ваш запрос', body: 'Спасибо за обращение в PackJoyU. Мы ответим в течение 24 часов. Номер вашего запроса' },
 } as const;
-export function autoReply(locale: 'en' | 'ru', name: string, ref: string) {
+export function autoReply(locale: 'en' | 'ru', ref: string) {
   const t = AUTO_REPLY[locale];
-  return { subject: `${t.subject} · ${ref}`, html: `<p>${escapeHtml(name)},</p><p>${t.body} <b>${ref}</b>.</p>` };
+  return { subject: `${t.subject} · ${ref}`, html: `<p>${t.body} <b>${escapeHtml(ref)}</b>.</p>` };
 }

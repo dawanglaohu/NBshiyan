@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { randomId, rateLimit, verifyTurnstile, escapeHtml } from '@/lib/server/security';
+import { randomId, rateLimit, verifyTurnstile, escapeHtml, clientIp, readBody } from '@/lib/server/security';
 import { scoreInquiry } from '@/lib/server/trust';
 import { sendMail, autoReply } from '@/lib/server/mail';
 
@@ -23,17 +23,21 @@ const Body = z.object({
     designId: z.string().regex(/^[A-Za-z0-9]{10}$/).optional(),
   })).max(30).default([]),
   attribution: z.record(z.unknown()).optional(),
-  website: z.string().max(0).optional(), // 诱饵字段
+  website: z.string().max(500).optional(), // 诱饵字段，有值则静默丢弃
   turnstileToken: z.string().optional(),
 });
 
 const RETAIN_DAYS = 730;
 
 export async function POST(req: Request) {
-  const ip = req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null;
+  const ip = clientIp(req);
   if (!rateLimit(`inq:${ip ?? 'unknown'}`)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
 
-  const parsed = Body.safeParse(await req.json().catch(() => null));
+  const raw = await readBody(req, 32_000);
+  if (raw === null) return NextResponse.json({ error: 'too_large' }, { status: 413 });
+  let json: unknown = null;
+  try { json = JSON.parse(raw); } catch {}
+  const parsed = Body.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
   const b = parsed.data;
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃
@@ -41,9 +45,9 @@ export async function POST(req: Request) {
 
   const ipCountry = req.headers.get('cf-ipcountry');
   const trust = scoreInquiry({ ...b.contact, ipCountry, message: b.message });
-  const year = new Date().getFullYear();
-  const count = await prisma.inquiry.count({ where: { createdAt: { gte: new Date(`${year}-01-01`) } } });
-  const ref = `PJ-${year}-${String(count + 1).padStart(4, '0')}-${randomId(3)}`;
+  // 编号完全随机，不依赖计数，并发下不会重复（ref 有唯一约束兜底）
+  const d = new Date();
+  const ref = `PJ-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}-${randomId(6).toUpperCase()}`;
 
   const inquiry = await prisma.inquiry.create({
     data: {
@@ -65,7 +69,9 @@ export async function POST(req: Request) {
       subject: `[${trust.score < 40 ? '待核实' : '新询盘'}] ${ref} · ${b.contact.region} · ${b.contact.company ?? b.contact.name}`,
       html: `<p>${escapeHtml(b.contact.name)} &lt;${escapeHtml(b.contact.email)}&gt;</p><p>${products}</p><pre>${escapeHtml(b.message ?? '')}</pre><p>score ${trust.score}</p>`,
     }),
-    sendMail({ to: b.contact.email, ...autoReply(b.locale, b.contact.name, ref) }),
+    // 自动回复只发给可信询盘，且同一邮箱 24 小时最多 1 封，内容不含任何用户输入，防止被当作垃圾邮件跳板
+    trust.score >= 40 && rateLimit(`autoreply:${b.contact.email.toLowerCase()}`, 1, 86_400_000) &&
+      sendMail({ to: b.contact.email, ...autoReply(b.locale, ref) }),
   ]);
 
   return NextResponse.json({ ref: inquiry.ref }, { status: 201 });

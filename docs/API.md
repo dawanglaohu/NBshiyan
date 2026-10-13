@@ -18,7 +18,7 @@
   "turnstileToken": ""
 }
 ```
-返回 `201 { "ref": "PJ-2026-0001" }`。会给业务邮箱发通知、给客户发对应语言的自动回复。
+返回 `201 { "ref": "PJ-2610-K7Q2MX" }`。会给业务邮箱发通知、给客户发对应语言的自动回复。
 
 ### `POST /api/designs` 和 `GET /api/designs/:id`
 保存定制方案，返回 `{ "id": "abc123XYZ0", "url": "/s/abc123XYZ0" }`。`/s/*` 页面带 `noindex`。
