@@ -1,5 +1,29 @@
 import createMiddleware from 'next-intl/middleware';
+import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
-export default createMiddleware(routing);
-// /admin、/api、/s 短链接和静态资源不走多语言路由
-export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|.*\\..*).*)'] };
+import { EXPIRED_RE, probeShortlink, parseShortlink } from './lib/edge/shortlink';
+
+const intl = createMiddleware(routing);
+const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private, no-store' };
+
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  // 过期页只能由下面的 rewrite 到达，直接访问一律 404
+  if (EXPIRED_RE.test(pathname)) return new NextResponse(null, { status: 404, headers: NOINDEX });
+  const sl = parseShortlink(pathname);
+  if (sl) {
+    const probe = await probeShortlink(req.nextUrl.origin, sl.id);
+    if (probe?.expired) {
+      const locale = sl.locale ?? (/^ru\b/i.test(req.headers.get('accept-language') ?? '') ? 'ru' : 'en');
+      const to = new URL(`/${locale}/s/expired`, req.url);
+      to.search = probe.category ? `?category=${encodeURIComponent(probe.category)}` : '';
+      return NextResponse.rewrite(to, { status: 410, headers: NOINDEX });
+    }
+    // 未过期、超时或出错：照常交给页面处理
+    if (!sl.locale) return NextResponse.next();
+  }
+  return intl(req);
+}
+
+// /admin、/api 和静态资源不走中间件；/s/<id> 只做过期检查，不走多语言路由
+export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|.*\\..*).*)', '/s/:id'] };
