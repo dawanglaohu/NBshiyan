@@ -27,3 +27,10 @@ test('non-matching host passes the guard (fails later only on DB connect)', () =
   const r = run({ DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x', PROD_DATABASE_HOST: 'db.prod.example.com' });
   assert.doesNotMatch(r.err, /生产库/);
 });
+
+test('seed refuses missing or unparseable DATABASE_URL', () => {
+  for (const url of ['', 'not a url', 'postgresql://', '://@:5432/x']) {
+    const r = run({ DATABASE_URL: url, PROD_DATABASE_HOST: 'db.prod.example.com' });
+    assert.equal(r.code, 1, url); assert.match(r.err, /无法解析/, url);
+  }
+});

@@ -15,6 +15,11 @@ export function isProdDatabase(url, patterns) {
   return (patterns ?? '').split(',').map((p) => p.trim().toLowerCase()).filter(Boolean).some((p) =>
     p.startsWith('*.') ? host.endsWith(p.slice(1)) : host === p);
 }
+// DATABASE_URL 必须存在且能解析出主机名，否则无法判断是不是生产库，直接拒绝
+function parsedHost(url) { try { return new URL(url).hostname || null; } catch { return null; } }
+if (!process.env.DATABASE_URL || !parsedHost(process.env.DATABASE_URL)) {
+  console.error('DATABASE_URL 缺失或无法解析，seed 脚本拒绝运行'); process.exit(1);
+}
 if (process.env.DATABASE_URL && isProdDatabase(process.env.DATABASE_URL, process.env.PROD_DATABASE_HOST)) {
   console.error('DATABASE_URL 指向生产库（命中 PROD_DATABASE_HOST），seed 脚本拒绝运行'); process.exit(1);
 }
