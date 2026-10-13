@@ -33,3 +33,37 @@ test('noindex / placeholder paths never appear', () => {
   const s = buildSitemap({ ...opts, includeCategories: true });
   for (const e of s) assert.doesNotMatch(new URL(e.url).pathname, /\/(privacy|s|industries|factory|case-studies|admin|api)(\/|$)/);
 });
+
+import { buildCmsEntries } from '../src/lib/seo/sitemapEntries';
+const cms = { ...opts, base: '/articles' };
+
+test('cms: Sanity not configured (null) → no entries', () => {
+  assert.deepEqual(buildCmsEntries({ ...cms, docs: null }), []);
+  assert.deepEqual(buildCmsEntries({ ...cms, docs: [] }), []);
+});
+
+test('cms: detail pages use per-locale slug, lastModified, alternates; noindex skipped', () => {
+  const s = buildCmsEntries({ ...cms, docs: [
+    { updatedAt: '2026-10-01T00:00:00Z', slug: { en: 'how-to', ru: 'kak' } },
+    { updatedAt: '2026-10-05T00:00:00Z', slug: { en: 'en-only' } },
+    { updatedAt: '2026-10-09T00:00:00Z', noindex: true, slug: { en: 'hidden', ru: 'skryto' } }
+  ] });
+  const urls = s.map((e) => e.url);
+  assert.ok(!urls.some((u) => /hidden|skryto/.test(u)));
+  const ru = s.find((e) => e.url === 'https://example.com/ru/articles/kak')!;
+  assert.deepEqual(ru.alternates!.languages, { en: 'https://example.com/en/articles/how-to', ru: 'https://example.com/ru/articles/kak', 'x-default': 'https://example.com/en/articles/how-to' });
+  assert.equal((ru.lastModified as Date).toISOString(), '2026-10-01T00:00:00.000Z');
+  const enOnly = s.find((e) => e.url.endsWith('/en/articles/en-only'))!;
+  assert.deepEqual(Object.keys(enOnly.alternates!.languages!).sort(), ['en', 'x-default']);
+  assert.ok(!urls.includes('https://example.com/ru/articles/en-only'));
+  // list pages: both locales have docs → both listed; en list lastModified = newest doc
+  const enList = s.find((e) => e.url === 'https://example.com/en/articles')!;
+  assert.equal((enList.lastModified as Date).toISOString(), '2026-10-09T00:00:00.000Z');
+  assert.ok(urls.includes('https://example.com/ru/articles'));
+});
+
+test('cms: list page omitted for a locale with no docs', () => {
+  const s = buildCmsEntries({ ...cms, docs: [{ slug: { en: 'a' } }] });
+  assert.ok(s.some((e) => e.url === 'https://example.com/en/articles'));
+  assert.ok(!s.some((e) => e.url === 'https://example.com/ru/articles'));
+});
