@@ -34,6 +34,7 @@
 - [ ] 所有 `NEXT_PUBLIC_*_MOCK` 都未开启，开了构建会失败。
 - [ ] `NEXT_PUBLIC_ADMIN_API=http`，否则构建失败。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。
+- [ ] 生产环境必须设置 `MIDDLEWARE_PROBE_SECRET`：没设的话 `/s/<id>` 在后端故障时会返回 200 而不是 503（#215），搜索引擎和监控都看不到故障。上线后让 `/api/designs` 暂时不可用，验证 `/en/s/<id>` 和 `/ru/s/<id>` 返回 503。
 - [ ] `SHORTLINK_PROBE_ORIGIN`（或 `NEXT_PUBLIC_SITE_URL`）是正式 https 域名。探测请求不使用请求里的 Host 头。
 - [ ] Turnstile：正式站点密钥和 secret 已配置。生产环境不读 `TURNSTILE_VERIFY_URL`。
 - [ ] Postgres：`DATABASE_URL` 已配置，并已执行 `prisma migrate deploy`。
