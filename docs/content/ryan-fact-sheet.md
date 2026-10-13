@@ -98,7 +98,7 @@ corrugated-boxes、color-boxes、gift-boxes、wine-boxes、christmas-merchandise
 
 **Q10. 胶印用什么设备（品牌/型号/色组数）？**
 - 影响：offset-printing.en / .ru，「Press equipment / Оборудование」。
-- ⚠️ 注意：「Heidelberg offset presses / Офсетные машины Heidelberg」目前**仍在线上**（`messages/en.json`、`messages/ru.json` 的 offset-printing 卖点），没有确认依据，见附录。
+- 「Heidelberg offset presses / Офсетные машины Heidelberg」已隐藏（seo/yo-unification `3e7fd98`），见附录。
 
 **Q11. 胶印能做的幅面范围和可用纸张/材料？**
 - 影响：offset-printing.en / .ru，「Formats and stocks / Форматы и материалы」。
@@ -160,7 +160,7 @@ corrugated-boxes、color-boxes、gift-boxes、wine-boxes、christmas-merchandise
 |---|---|---|---|
 | 24 hours / в течение 24 часов（回复时限） | `messages/*.json` 的 ctaBandText、联系表单 reply、contactText、/contact meta（seo/yo-unification `db5fd13`、`7a21bcf`、`ef26703`） | 改成「a packaging specialist will reply by email」/「специалист по упаковке ответит вам по email」；守卫测试拦截 `24 hours/час`。后端邮件默认 24 小时，由后端在 #171 线处理 | Q16 |
 | Factory-direct (export) / Прямые поставки с фабрики、Оптом с фабрики、напрямую с завода | `categoryMeta.ts`（corrugated-boxes、paper-cups、eco-paper-cups，英俄）（seo/yo-unification `7a21bcf`） | 改为中性说法；守卫测试拦截 | Q17 |
-| Export worldwide | #188 落地页草稿（`seo-188/docs/content/*.md`） | 品类文案 `0235510` 未沿用。⚠️ `categoryMeta.ts` offset-printing 英文描述里仍有「in-house finishing for export」，守卫测试不拦，待确认 | Q17 |
+| Export worldwide | #188 落地页草稿（`seo-188/docs/content/*.md`） | 品类文案未沿用；`categoryMeta.ts` offset-printing 英文描述「in-house finishing for export」改为「finishing options for your order」（seo/yo-unification `3e7fd98`）；守卫测试拦截 for export / export worldwide / экспорт | Q17 |
 | Food-safe inks / Пищевые краски、безопасные краски | `messages/*.json` party-supplies 卖点、`categoryMeta.ts`（seo/yo-unification `7a21bcf`） | 删除；守卫测试拦截 food-safe、пищевые краски | Q18 |
 | Water-based or PLA lining / водной или PLA основой | `categoryMeta.ts` paper-cups / eco-paper-cups（`7a21bcf`） | 删除；守卫测试拦截 PLA、water-based、водное покрытие | Q6、Q7 |
 | Free samples / Samples are free of charge / бесплатные образцы | 后端询盘/样品确认邮件模板（#171 线）；网站文案没有 | 网站侧守卫测试拦截；统一用「Any costs will be confirmed by email before dispatch」 | Q19、F21 措辞 |
@@ -171,6 +171,6 @@ corrugated-boxes、color-boxes、gift-boxes、wine-boxes、christmas-merchandise
 | FSC-certified board / Картон с сертификатом FSC | `messages/*.json` eco-paper-cups 卖点（seo/yo-unification `b61a363`） | 删除；品类文案未沿用 | Q20 |
 | FSC · ISO 9001、2 млн+、5–7 дней、100%（首页数字） | 首页优势区（#222） | value 清空，整块不显示 | Q20、Q21 |
 | Compostable / Biodegradable / Биоразлагаемые | eco-paper-cups 的 H1、meta、英文 slug（`compostable-paper-cups` → `eco-paper-cups`）、`messages/*.json`、#220 alt | 改为 Eco-friendly / Экологичные | Q7、Q20 |
-| Heidelberg offset presses / Офсетные машины Heidelberg | 品类文案 `0235510` 未沿用（改为占位） | ⚠️ **未隐藏**：`messages/en.json` / `messages/ru.json` 的 offset-printing 卖点仍在线上，守卫测试不拦。建议按 PM 规则先隐藏（需另开任务） | Q10 |
+| Heidelberg offset presses / Офсетные машины Heidelberg | `messages/*.json` offset-printing 卖点（seo/yo-unification `3e7fd98`）；品类文案未沿用 | 改为「CMYK and Pantone offset printing」/「Офсетная печать CMYK и Pantone」；守卫测试拦截 Heidelberg/Хайдельберг/Гейдельберг | Q10 |
 
-守卫测试 `tests/unconfirmed-claims.test.ts` 当前扫描 `messages/*.json` 和 `src/lib/seo/categoryMeta.ts`，规则：24 小时、factory-direct、food-safe、PLA、пищевые краски、free samples（英俄）、прямые поставки с фабрики、plastic-free（英俄）、water-based（英俄）、FDA、EPS/polystyrene/styrofoam/пенопласт/полистирол。
+守卫测试 `tests/unconfirmed-claims.test.ts` 当前扫描 `messages/*.json` 和 `src/lib/seo/categoryMeta.ts`，规则：24 小时、factory-direct、food-safe、PLA、пищевые краски、free samples（英俄）、прямые поставки с фабрики、plastic-free（英俄）、water-based（英俄）、FDA、EPS/polystyrene/styrofoam/пенопласт/полистирол、Heidelberg（英俄）、for export / export worldwide / экспорт。
