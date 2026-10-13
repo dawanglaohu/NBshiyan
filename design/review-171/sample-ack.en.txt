@@ -1,0 +1,20 @@
+Subject: We received your sample request #PJ-20261013-0042
+
+Hi Jane Smith,
+
+Thank you for contacting PackJoyU. We have received your sample request. A packaging specialist will review it and confirm shipping details within 24h.
+
+Your sample request
+Reference: #PJ-20261013-0042
+Company: Acme Ltd
+Product: wine-box, gift-box, corrugated-box +2
+Quantity: 500 / 1,000 / 2,000 +2
+
+Please keep the reference number in the subject line if you reply to this email.
+
+View our products: http://localhost:3000/en/products
+
+Need to reach us sooner? Email sales@packjoyu.com or WhatsApp +86 138 0000 0000.
+
+--
+You are receiving this email because you sent an inquiry on http://localhost:3000. PackJoyU · Custom paper packaging and printing.
