@@ -43,11 +43,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
   }
   const b = parsed.data;
-  // 正常提交的限流：有平台 IP 时按 IP；拿不到 IP（如本地 pnpm start）时按邮箱分桶，
-  // 再加一个所有无 IP 请求共用的宽松总闸，避免所有用户挤进同一个 5 次的桶
-  const limited = ip
-    ? !rateLimit(`inq:${ip}`)
-    : !rateLimit(`inq:noip:${b.contact.email.toLowerCase()}`) || !rateLimit('inq:noip:all', 100);
+  // 正常提交的限流：IP 桶和邮箱桶同时计数，任意一个超限就 429（两个都要先计数，不能短路）。
+  // 拿不到 IP（如本地 pnpm start）时用所有无 IP 请求共用的宽松总闸代替 IP 桶。
+  const email = b.contact.email.trim().toLowerCase();
+  const ipOk = ip ? rateLimit(`inq:${ip}`) : rateLimit('inq:noip:all', 100);
+  const emailOk = rateLimit(`inq:email:${email}`);
+  const limited = !ipOk || !emailOk;
   if (limited) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃
   const captcha = await verifyTurnstile(b.turnstileToken, ip);
