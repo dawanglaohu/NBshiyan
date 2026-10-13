@@ -1,0 +1,93 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>PackJoyU 后台 · 账号管理（#112）</title>
+<style>
+:root{--bg:#F7F5F1;--s:#fff;--ink:#1C1C1C;--ink2:#6B665E;--line:#E8E2D8;--acc:#FF5A36;--ok:#1A7F37;--okb:#E6F4EA;--warn:#8A6300;--warnb:#FFF4D1;--err:#B42318;--errb:#FDE8E7;--info:#1D4F91;--infob:#E3EEFC}
+*{box-sizing:border-box;margin:0}body{font-family:Manrope,Inter,Arial,sans-serif;background:#dcd8d1;padding:28px;width:1880px;color:var(--ink);font-size:13px}
+h1{font-size:22px;margin-bottom:6px}.sub{color:#5a5650;margin-bottom:18px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.t{font-weight:800;font-size:14px;margin-bottom:8px}.win{background:var(--bg);border-radius:14px;overflow:hidden;box-shadow:0 12px 32px #0002;display:grid;grid-template-columns:200px 1fr;height:860px}
+.side{background:#1C1C1C;color:#cfc9be;padding:18px 12px}.side .lg{color:#fff;font-weight:800;font-size:16px;margin-bottom:22px}.side .lg i{color:var(--acc);font-style:normal}
+.side div.it{padding:9px 12px;border-radius:8px;margin-bottom:2px;display:flex;justify-content:space-between}.side .on{background:#2c2b29;color:#fff}.side .b{background:var(--acc);color:#fff;border-radius:999px;padding:0 7px;font-size:11px}
+.main{padding:20px 24px;overflow:hidden}.crumb{color:var(--ink2);font-size:12px;margin-bottom:6px}
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:16px}.hd h2{font-size:20px}.tag{border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700}
+.btn{white-space:nowrap;border-radius:10px;padding:8px 14px;font-weight:700;border:1px solid var(--line);background:#fff;font-size:12px}.pri{background:var(--acc);color:#fff;border:none}
+.sp{flex:1}.g2{display:grid;grid-template-columns:1.55fr 1fr;gap:16px}.card{background:var(--s);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h3{font-size:13px;margin-bottom:10px;display:flex;justify-content:space-between}.muted{color:var(--ink2)}
+.msg{border-radius:12px;padding:10px 12px;margin-bottom:8px;max-width:88%}.in{background:#F3F0EA}.out{background:#FFEDE7;margin-left:auto}.meta{font-size:11px;color:var(--ink2);margin-bottom:4px}
+.url{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#F3F0EA;border-radius:6px;padding:1px 6px;color:#5a5650}
+.box{border:1px solid var(--line);border-radius:12px;padding:10px;min-height:96px;color:var(--ink2)}.tool{display:flex;gap:8px;margin-top:8px;align-items:center}
+.kv{display:grid;grid-template-columns:96px 1fr;row-gap:8px;font-size:12px}.kv span:nth-child(odd){color:var(--ink2)}
+.score{display:flex;align-items:center;gap:12px}.ring{width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--ok) 0 86%,#eee 0);display:grid;place-items:center}.ring b{background:#fff;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:15px}
+.chk{font-size:12px;line-height:1.9}.prod{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.th{width:52px;height:52px;border-radius:10px;background:#121214;border:1.5px solid #D4AF6A}
+.steps{display:flex;gap:0;margin-bottom:18px}.st{flex:1;display:flex;align-items:center;gap:8px;font-weight:700;font-size:12px;color:var(--ink2)}.st i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#ECE8E1}
+.st.done i{background:var(--ok);color:#fff}.st.cur i{background:var(--acc);color:#fff}.st.cur{color:var(--ink)}.st::after{content:"";flex:1;height:2px;background:var(--line);margin:0 10px}.st:last-child::after{display:none}
+.drop{border:2px dashed #d7cfc2;border-radius:14px;padding:18px;text-align:center;color:var(--ink2);background:#FBF9F5}
+.row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}.ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800}
+.pass{background:var(--okb);color:var(--ok)}.fail{background:var(--errb);color:var(--err)}.run{background:var(--infob);color:var(--info)}
+.bar{height:6px;background:#eee;border-radius:3px;overflow:hidden;width:140px}.bar i{display:block;height:100%}
+.alert{background:var(--errb);border:1px solid #f5c2bd;color:#7a1a12;border-radius:12px;padding:12px;margin-top:10px;font-size:12px}
+.pv{height:230px;border-radius:12px;background:radial-gradient(circle at 50% 45%,#fff,#efe8dc);display:grid;place-items:center;position:relative}
+.cube{width:110px;height:110px;background:#c49a6c;transform:rotate(-12deg) skewY(6deg);border-radius:6px;box-shadow:inset -22px -22px 0 #a77d50}
+.seg{position:absolute;top:10px;left:10px;display:flex;background:#fff;border-radius:999px;padding:3px;border:1px solid var(--line)}.seg span{padding:4px 10px;border-radius:999px;font-size:11px}.seg .on{background:#1c1c1c;color:#fff}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.f label{display:block;font-size:11px;color:var(--ink2);margin-bottom:4px}.f div{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff}
+.sw{display:flex;gap:6px}.sw b{width:22px;height:22px;border-radius:6px;display:inline-block}
+.note{font-size:11px;color:#5a5650;margin-top:10px;line-height:1.6}
+</style></head><body>
+<style>
+table.u{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}table.u th,table.u td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;white-space:nowrap}table.u th{color:var(--ink2);background:#FBF9F5;font-weight:700}
+table.u tr:hover td{background:#FBF7F2}.r-admin{background:#1C1C1C;color:#fff}.r-sales{background:var(--infob);color:var(--info)}.r-editor{background:#EFE9FB;color:#5B3A9E}
+.st-ok{background:var(--okb);color:var(--ok)}.st-off{background:#ECE8E1;color:#6B665E}.st-lock{background:var(--warnb);color:var(--warn)}.st-err{background:var(--errb);color:var(--err)}
+.acts{display:flex;gap:4px;flex-wrap:nowrap}table.u td:last-child{white-space:normal}.acts .btn{padding:5px 8px;font-size:11px}.btn.dis{opacity:.4}.btn.dng{color:var(--err);border-color:#f5c2bd}
+.tip{position:absolute;background:#1C1C1C;color:#fff;font-size:11px;padding:6px 10px;border-radius:8px;white-space:nowrap;margin-top:-34px}
+.toast{position:absolute;right:24px;top:20px;background:#fff;border:1px solid #f5c2bd;border-left:4px solid var(--err);border-radius:10px;padding:10px 14px;box-shadow:0 8px 24px #0002;font-size:12px;max-width:420px}
+.modal{position:absolute;inset:0;background:#0006;display:grid;place-items:center}.dlg{background:#fff;border-radius:14px;padding:20px;width:440px;box-shadow:0 20px 50px #0004}.dlg h3{font-size:16px;margin-bottom:8px}
+.in{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;margin-bottom:8px;color:var(--ink2)}.lbl{font-size:11px;color:var(--ink2);margin-bottom:4px;display:block}
+.tg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--info);margin-bottom:10px}.danger{background:var(--err);color:#fff;border:none}
+.en{color:#9a948a;font-size:10px;font-weight:500}.mainr{position:relative}
+.info{background:var(--infob);color:#123a6b;border-radius:10px;padding:10px 12px;font-size:12px;margin:8px 0}.warnb{background:var(--warnb);color:#5c4300;border-radius:10px;padding:10px 12px;font-size:12px;margin:8px 0}
+</style>
+</head><body>
+<h1>PackJoyU 后台高保真稿 · 账号管理 / 我的账号（Fixes #112，对应 #93 接口、#95 页面）</h1><div class="sub">沿用 admin-hifi 风格：暖灰底、深色侧栏、珊瑚橙只用于主按钮。中文界面，灰色小字为英文对照/接口错误码。所有人员均为示例数据。</div>
+<div class="cols">
+
+<div style="grid-column:1/-1"><div class="t">① 账号列表 /admin/users <span class="en">Users</span> — 含 409 last_admin 提示</div><div class="win" style="height:620px"><div class="side"><div class="lg">Pack<i>Joy</i>U <span style="font-size:11px;color:#8d877c">Admin</span></div><div class="it">询盘 <span class="b">12</span></div><div class="it">样品申请</div><div class="it">3D 模型</div><div class="it">内容</div><div class="it">数据看板</div><div class="it">站点设置</div><div class="it on">账号权限</div></div>
+<div class="main mainr"><div class="crumb">账号权限 / 账号</div>
+<div class="hd"><h2>账号管理</h2><span class="muted">共 6 个</span><div class="sp"></div><span class="btn">筛选：全部角色 ▾</span><span class="btn pri">＋ 新建账号</span></div>
+<table class="u"><tr><th>姓名 / 邮箱</th><th>角色</th><th>状态</th><th>两步验证</th><th>创建</th><th>操作</th></tr>
+<tr><td><b>王明（我）</b><br><span class="muted">ming@packjoyu.com</span></td><td><span class="tag r-admin">ADMIN</span></td><td><span class="tag st-ok">正常</span></td><td><span class="tag st-ok">已开启</span></td><td>2026-05-02</td><td style="position:relative"><div class="tip">不能修改自己的账号，请到“我的账号”操作 · cannot_modify_self</div><div class="acts"><span class="btn dis">改角色</span><span class="btn dis">停用</span><span class="btn dis">重置两步验证</span><span class="btn dis">删除</span></div></td></tr>
+<tr><td><b>李娜</b><br><span class="muted">na.li@packjoyu.com</span></td><td><span class="tag r-admin">ADMIN</span></td><td><span class="tag st-ok">正常</span></td><td><span class="tag st-ok">已开启</span></td><td>2026-05-10</td><td><div class="acts"><span class="btn">改角色 ▾</span><span class="btn">停用</span><span class="btn">重置两步验证</span><span class="btn dng">删除</span></div></td></tr>
+<tr><td><b>Alex Chen</b><br><span class="muted">alex@packjoyu.com</span></td><td><span class="tag r-sales">SALES</span></td><td><span class="tag st-lock">已锁定 · 12 分钟后自动解锁</span></td><td><span class="tag st-ok">已开启</span></td><td>2026-06-01</td><td><div class="acts"><span class="btn pri">解锁</span><span class="btn">改角色 ▾</span><span class="btn">停用</span><span class="btn dng">删除</span></div></td></tr>
+<tr><td><b>赵琪</b><br><span class="muted">qi@packjoyu.com</span></td><td><span class="tag r-sales">SALES</span></td><td><span class="tag st-off">已停用</span></td><td><span class="tag st-ok">已开启</span></td><td>2026-06-12</td><td><div class="acts"><span class="btn">启用</span><span class="btn">改角色 ▾</span><span class="btn dng">删除</span></div></td></tr>
+<tr><td><b>Olga P.</b><br><span class="muted">olga@packjoyu.com</span></td><td><span class="tag r-editor">EDITOR</span></td><td><span class="tag st-ok">正常</span></td><td><span class="tag st-err">未绑定 · 不能登录</span></td><td>2026-10-12</td><td><div class="acts"><span class="btn">改角色 ▾</span><span class="btn">停用</span><span class="btn dng">删除</span></div></td></tr>
+</table>
+<div class="note">规则：停用或改为 EDITOR 时提示“名下 N 条询盘将变为未分配”。改角色、停用、重置两步验证后对方所有会话立即失效。已锁定的行显示剩余时间，管理员可手动解锁（PATCH unlock）。</div>
+<div class="toast"><b style="color:var(--err)">操作未完成</b><br>系统里至少要保留一个有效管理员，不能停用李娜。请先把另一个账号设为管理员。<br><span class="en">409 last_admin</span></div>
+</div></div></div>
+
+<div><div class="t">② 删除确认（危险操作） + 新建账号</div><div class="win"><div class="side"><div class="lg">Pack<i>Joy</i>U <span style="font-size:11px;color:#8d877c">Admin</span></div><div class="it">询盘 <span class="b">12</span></div><div class="it">样品申请</div><div class="it">3D 模型</div><div class="it">内容</div><div class="it">数据看板</div><div class="it">站点设置</div><div class="it on">账号权限</div></div>
+<div class="main mainr"><div class="crumb">账号权限 / 账号</div><div class="hd"><h2>账号管理</h2></div>
+<div class="card" style="width:440px"><h3>新建账号 <span class="en">New account</span></h3>
+<span class="lbl">姓名</span><div class="in">Ivan S.</div><span class="lbl">邮箱</span><div class="in">ivan@packjoyu.com</div>
+<span class="lbl">角色</span><div class="in">SALES ▾ <span class="en">ADMIN · SALES · EDITOR</span></div><span class="lbl">初始密码</span><div class="in">•••••••••••• <span style="color:var(--ok)">强度：强</span></div>
+<div class="info">新账号首次登录前必须先绑定两步验证（扫码 + 输入验证码），领取 10 个恢复码后才能进入后台。请把绑定链接和初始密码分开发给对方。</div>
+<div class="alert" style="margin-top:0">该邮箱已有账号 <span class="en">409 email_taken</span></div>
+<div class="tool"><div class="sp"></div><span class="btn">取消</span><span class="btn pri">创建账号</span></div></div>
+<div class="modal" style="left:200px"><div class="dlg"><h3>删除账号“赵琪”？</h3><p class="muted" style="margin-bottom:10px;line-height:1.6">删除后无法恢复。名下 <b>7</b> 条询盘将变为未分配；审计记录会保留。如只是暂时不用，建议改为“停用”。</p>
+<span class="lbl">请输入邮箱 qi@packjoyu.com 确认</span><div class="in">qi@packjoyu.com</div>
+<div class="tool"><div class="sp"></div><span class="btn">取消</span><span class="btn">改为停用</span><span class="btn danger">永久删除</span></div></div></div>
+</div></div></div>
+
+<div><div class="t">③ 我的账号 /admin/account <span class="en">My account</span> — 改密码 / 重置自己的两步验证</div><div class="win"><div class="side"><div class="lg">Pack<i>Joy</i>U <span style="font-size:11px;color:#8d877c">Admin</span></div><div class="it">询盘 <span class="b">12</span></div><div class="it">样品申请</div><div class="it">3D 模型</div><div class="it">内容</div><div class="it">数据看板</div><div class="it">站点设置</div><div class="it on">账号权限</div></div>
+<div class="main"><div class="crumb">账号权限 / 我的账号</div><div class="hd"><h2>我的账号</h2><span class="tag r-admin">ADMIN</span><span class="muted">ming@packjoyu.com</span></div>
+<div class="g2" style="grid-template-columns:1fr 1fr"><div class="card"><h3>修改密码 <span class="en">Change password</span></h3>
+<span class="lbl">当前密码</span><div class="in">••••••••</div><span class="lbl">新密码</span><div class="in">•••••••••••• <span style="color:var(--ok)">强</span></div><span class="lbl">确认新密码</span><div class="in">••••••••••••</div>
+<span class="lbl">两步验证码（6 位）</span><div class="in">4 8 2 _ _ _</div><div class="tg">⇄ 改用恢复码 <span class="en">Use a recovery code</span></div>
+<div class="warnb">保存后你会在所有设备上退出登录，需要用新密码重新登录。</div>
+<div class="tool"><div class="sp"></div><span class="btn pri">保存新密码</span></div><div class="note">错误文案：当前密码或验证码不正确（bad_credentials）· 密码太弱（weak_password）· 新密码不能与旧密码相同（same_password）</div></div>
+<div class="card"><h3>重置两步验证 <span class="en">Reset my 2FA</span></h3><p class="muted" style="margin-bottom:10px">换手机时使用。会清空当前验证器和所有恢复码。</p>
+<span class="lbl">当前密码</span><div class="in">••••••••</div><span class="lbl">恢复码</span><div class="in">XXXX-XXXX-XX</div><div class="tg">⇄ 改用验证器验证码 <span class="en">Use authenticator code</span></div>
+<div class="warnb">重置后你会立即退出登录，下次登录前需要重新扫码绑定，并领取新的恢复码。</div>
+<div class="tool"><div class="sp"></div><span class="btn danger">重置两步验证</span></div></div></div>
+<div class="card"><h3>锁定状态（连续 5 次失败） <span class="en">Locked</span></h3><div class="alert" style="margin-top:0"><b>验证失败次数过多，账号已锁定 15 分钟。</b><br>为保护账号，修改密码、重置两步验证和登录都暂停到 10:47（剩余 14 分 32 秒）。如需立即解锁，请联系其他管理员。<br><span class="en">5 failures / shared counter with login · 401 while locked</span></div>
+<div class="note">第 3、4 次失败时在按钮上方提示“还可以再试 2 次 / 1 次”。表单在锁定期间整体禁用。</div></div>
+</div></div></div>
+
+</div></body></html>
