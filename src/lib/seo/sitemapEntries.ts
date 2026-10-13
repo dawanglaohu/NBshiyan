@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { categoryMeta, type CategoryMeta } from './categoryMeta';
+export { CATEGORY_PAGES_LIVE } from './categoryPages';
 
 type Locale = 'en' | 'ru';
 type Freq = 'weekly' | 'monthly';
@@ -16,13 +17,6 @@ export const STATIC_PAGES: Page[] = [
   { paths: { en: '/products', ru: '/products' }, priority: 0.9, changeFrequency: 'weekly' },
   { paths: { en: '/contact', ru: '/contact' }, priority: 0.7, changeFrequency: 'monthly' }
 ];
-
-/**
- * 12 个品类落地页 /{locale}/products/{各语言 slug}，slug 来自 categoryMeta（与 canonicalFor 一致）。
- * 路由 [locale]/products/[slug] 合并前保持 false，否则 sitemap 里会出现 404 地址（e2e seo #6 会失败）。
- * 落地页 PR 合并时把它改成 true。
- */
-export const CATEGORY_PAGES_LIVE = false;
 
 export function categoryPages(meta: CategoryMeta[] = categoryMeta): Page[] {
   return meta.map((c) => ({
@@ -70,7 +64,7 @@ export const CMS_SECTIONS = [
 /**
  * 详情页：每种语言只在该语言 slug 存在时输出（否则详情页 404），alternates 只互指存在的语言，
  * x-default 优先 en；seo.noindex 的文档整篇跳过。lastModified 取文档的 _updatedAt。
- * 列表页：该语言至少有一篇文档时才可索引（与 #199 listMetadata 一致：无内容时 noindex），否则不输出。
+ * 列表页：该语言至少有一篇可索引文档时才输出（与 #207 的 listQuery 一致：noindex 文档不计），否则不输出。
  */
 export function buildCmsEntries(opts: {
   siteUrl: string;
@@ -87,9 +81,10 @@ export function buildCmsEntries(opts: {
   for (const d of opts.docs) {
     const lm = d.updatedAt && !Number.isNaN(Date.parse(d.updatedAt)) ? new Date(d.updatedAt) : undefined;
     const have = opts.locales.filter((l) => d.slug[l]);
+    // 与 #207 一致：noindex 文档既不输出详情页，也不计入列表页是否有内容
+    if (d.noindex || have.length === 0) continue;
     for (const l of have) if (lm && (!listLatest.get(l) || listLatest.get(l)! < lm)) listLatest.set(l, lm);
     for (const l of have) if (!listLatest.has(l)) listLatest.set(l, opts.now ?? new Date());
-    if (d.noindex || have.length === 0) continue;
     const url = (l: Locale) => `${site}/${l}${opts.base}/${d.slug[l]}`;
     const languages = {
       ...Object.fromEntries(have.map((l) => [l, url(l)])),

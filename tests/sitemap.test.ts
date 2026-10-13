@@ -56,9 +56,9 @@ test('cms: detail pages use per-locale slug, lastModified, alternates; noindex s
   const enOnly = s.find((e) => e.url.endsWith('/en/articles/en-only'))!;
   assert.deepEqual(Object.keys(enOnly.alternates!.languages!).sort(), ['en', 'x-default']);
   assert.ok(!urls.includes('https://example.com/ru/articles/en-only'));
-  // list pages: both locales have docs → both listed; en list lastModified = newest doc
+  // list pages: both locales have docs → both listed; en list lastModified = newest indexable doc
   const enList = s.find((e) => e.url === 'https://example.com/en/articles')!;
-  assert.equal((enList.lastModified as Date).toISOString(), '2026-10-09T00:00:00.000Z');
+  assert.equal((enList.lastModified as Date).toISOString(), '2026-10-05T00:00:00.000Z');
   assert.ok(urls.includes('https://example.com/ru/articles'));
 });
 
@@ -66,4 +66,18 @@ test('cms: list page omitted for a locale with no docs', () => {
   const s = buildCmsEntries({ ...cms, docs: [{ slug: { en: 'a' } }] });
   assert.ok(s.some((e) => e.url === 'https://example.com/en/articles'));
   assert.ok(!s.some((e) => e.url === 'https://example.com/ru/articles'));
+});
+
+import { categoryPagePath, CATEGORY_PAGES_LIVE } from '../src/lib/seo/categoryPages';
+test('categoryPagePath: null when not live or unknown key; per-locale slug when live', () => {
+  assert.equal(CATEGORY_PAGES_LIVE, false);
+  assert.equal(categoryPagePath('en', 'gift-boxes'), null);
+  assert.equal(categoryPagePath('ru', 'gift-boxes', true), '/ru/products/podarochnye-korobki');
+  assert.equal(categoryPagePath('en', 'nope', true), null);
+});
+
+test('cms: list page omitted when a locale only has noindex docs (#207)', () => {
+  const s = buildCmsEntries({ ...cms, docs: [{ slug: { en: 'a' } }, { noindex: true, slug: { ru: 'b' } }] });
+  assert.ok(s.some((e) => e.url === 'https://example.com/en/articles'));
+  assert.ok(!s.some((e) => e.url.startsWith('https://example.com/ru/')));
 });
