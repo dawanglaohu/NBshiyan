@@ -9,6 +9,7 @@ import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
 import { SITE_URL } from '@/lib/site';
 import { QuoteProvider } from '@/components/quote/QuoteProvider';
 import FloatingActions from '@/components/quote/FloatingActions';
+import CookieConsent from '@/components/consent/CookieConsent';
 import '../globals.css';
 
 // 只加载拉丁和西里尔子集，控制字体体积
@@ -51,6 +52,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
             </header>
             {children}
             <FloatingActions />
+            <CookieConsent />
           </QuoteProvider>
         </NextIntlClientProvider>
       </body>

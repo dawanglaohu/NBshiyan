@@ -176,5 +176,12 @@
     "closed": "Closed",
     "open": "Open",
     "dieline": "Dieline"
+  },
+  "Consent": {
+    "label": "Cookie consent",
+    "text": "We use essential cookies to run this site. With your permission we also use analytics and live chat.",
+    "policy": "Privacy policy",
+    "accept": "Accept all",
+    "reject": "Reject non-essential"
   }
 }
