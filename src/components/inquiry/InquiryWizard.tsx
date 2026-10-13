@@ -29,6 +29,12 @@ export default function InquiryWizard() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [wait, setWait] = useState(0);
+  useEffect(() => {
+    if (wait <= 0) return;
+    const id = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(id);
+  }, [wait]);
   const prefilled = useRef(false);
 
   // 从询价清单进来时预填产品
@@ -83,6 +89,10 @@ export default function InquiryWizard() {
         if (fromQuote) quote.clear();
       } else {
         const code = res.status === 404 ? 'unavailable' : res.status === 429 ? 'rate' : res.status === 400 ? 'invalid' : res.status === 403 ? 'captcha' : res.status === 503 ? 'retry' : 'server';
+        if (res.status === 503) {
+          const ra = Number(res.headers.get('Retry-After'));
+          setWait(Number.isFinite(ra) && ra > 0 ? Math.min(Math.round(ra), 120) : 0);
+        }
         setResult({ ok: false, code });
       }
     } catch {
@@ -136,7 +146,7 @@ export default function InquiryWizard() {
           <div className="field"><label htmlFor="iq-size">{t('size')}</label><input id="iq-size" value={size} maxLength={200} placeholder={t('sizePh')} onChange={(e) => setSize(e.target.value)} /></div>
           <fieldset className="field"><legend>{t('material')}</legend>{chips('material', MATERIALS, material, setMaterial, (k) => t(`materials.${k}`))}</fieldset>
           <fieldset className="field"><legend>{t('timeline')}</legend>{chips('timeline', TIMELINES, timeline, setTimeline, (k) => t(`timelines.${k}`))}</fieldset>
-          <div className="field"><label htmlFor="iq-msg">{t('message')}</label><textarea id="iq-msg" rows={4} maxLength={5000} value={message} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="field"><label htmlFor="iq-msg">{t('message')}</label><textarea id="iq-msg" rows={4} maxLength={5000} value={message} onChange={(e) => setMessage(e.target.value)} aria-describedby="iq-logo-note" /><p id="iq-logo-note" className="hint" style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>{t('logoNote')}</p></div>
         </>
       )}
 
@@ -166,7 +176,7 @@ export default function InquiryWizard() {
         <div className="alert err" role="alert">
           {t(`errors.${result.code}`)}
           {RETRYABLE.has(result.code) && (
-            <> <button type="button" className="btn ghost" disabled={busy} onClick={() => formRef.current?.requestSubmit()}>{t('retry')}</button></>
+            <> <button type="button" className="btn ghost" disabled={busy || wait > 0} onClick={() => formRef.current?.requestSubmit()}>{wait > 0 ? t('retryIn', { s: wait }) : t('retry')}</button></>
           )}
         </div>
       )}
