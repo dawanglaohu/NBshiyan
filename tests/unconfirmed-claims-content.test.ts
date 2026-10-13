@@ -9,7 +9,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
 export const CONTENT_CLAIMS: RegExp[] = [
-  /24\s*(hours?|h\b|час)/i,
+  /(reply|respond|response|get back|within|ответ\S*|в течение)[^.\n]{0,30}24\s*(hours?|h\b|час)/i,
   /factory[-\s]direct/i,
   /food[-\s]safe/i,
   /\bPLA\b/,
@@ -69,5 +69,9 @@ test('guard catches claims in published copy but not in notes or keyword researc
   assert.equal(claimLines('a.md', '- **Plastic-free** — Replaces EPS foam.').length, 2);
   assert.equal(claimLines('a.ndjson', '{"text":"Экспортная доставка"}').length, 1);
   assert.equal(claimLines('a.md', '> ⚠️ compostable 已去掉').length, 0);
+  assert.equal(claimLines('a.md', 'Logos are deleted 24 hours after upload.').length, 0);
+  assert.equal(claimLines('a.md', 'Логотипы удаляются через 24 часа после загрузки.').length, 0);
+  assert.equal(claimLines('a.md', 'We reply within 24 hours.').length, 1);
+  assert.equal(claimLines('a.md', 'Ответим в течение 24 часов.').length, 1);
   assert.equal(claimLines('a.md', '## Keywords\n- PLA paper cups supplier\n## RU — Текст\n- без пластика').length, 1);
 });
