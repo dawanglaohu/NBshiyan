@@ -74,7 +74,7 @@
 | category→category | `/ru/products/podarochnye-korobki` | `/ru/products/tsvetnye-korobki` | коробки с логотипом |
 | category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/gofrokorobki` | гофрокороба на заказ |
 | category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/ekologichnye-stakany` | экологичные стаканы |
-| category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/podarochnye-korobki` | жесткие коробки с магнитом |
+| category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/podarochnye-korobki` | жёсткие коробки с магнитом |
 | category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/ekologichnye-stakany` | эко стаканы без пластика |
 | category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/tovary-dlya-prazdnikov` | бумажная посуда для праздника |
 | category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/tsvetnye-korobki` | упаковка для косметики и розницы |
@@ -96,7 +96,7 @@
 | category→category | `/ru/products/podarochnye-karty` | `/ru/products/tsvetnaya-pechat` | печать упаковки |
 | category→category | `/ru/products/podarochnye-karty` | `/ru/products/podarochnye-korobki` | подарочные коробки на заказ |
 | category→category | `/ru/products/podarochnye-karty` | `/ru/products/ofsetnaya-pechat` | офсетная печать упаковки |
-| category→category | `/ru/products/novogodnyaya-upakovka` | `/ru/products/podarochnye-korobki` | жесткие коробки с магнитом |
+| category→category | `/ru/products/novogodnyaya-upakovka` | `/ru/products/podarochnye-korobki` | жёсткие коробки с магнитом |
 | category→category | `/ru/products/novogodnyaya-upakovka` | `/ru/products/upakovka-dlya-vina` | подарочная упаковка для алкоголя |
 | category→category | `/ru/products/novogodnyaya-upakovka` | `/ru/products/tovary-dlya-prazdnikov` | товары для праздника под вашей маркой |
 | article→category | `/ru/articles/pochtovye-korobki-s-logotipom-dlya-internet-magazina` | `/ru/products/gofrokorobki` | почтовые коробки с логотипом |
