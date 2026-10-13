@@ -7,7 +7,7 @@ export const products: Product[] = [
   { slug: 'pulp-molding', model: '/models/pulp-egg-tray.3d60dd23.glb', poster: '/images/placeholder.svg' },
   { slug: 'paper-cups', model: '/models/paper-cup.8375532a.glb', poster: '/images/placeholder.svg' },
   { slug: 'party-supplies', model: '/models/party-supplies.828369f3.glb', poster: '/images/placeholder.svg' },
-  { slug: 'wine-boxes', model: '/models/wine-box.anim.5a34d7a6.glb', poster: '/images/posters/custom-wine-boxes.webp', animated: true, animationClips: { open: 'Open' } },
+  { slug: 'wine-boxes', model: '/models/wine-box.anim.072bb7f6.glb', poster: '/images/posters/custom-wine-boxes.webp', animated: true, animationClips: { open: 'Open' } },
   { slug: 'color-printing', model: '/models/color-printing.6f6d1883.glb', poster: '/images/placeholder.svg' },
   { slug: 'offset-printing', model: '/models/offset-catalog.ce7ebab1.glb', poster: '/images/placeholder.svg' },
   { slug: 'eco-paper-cups', model: '/models/eco-paper-cup.c7dc1bb3.glb', poster: '/images/placeholder.svg' },
