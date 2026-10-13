@@ -127,3 +127,10 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 .consent-actions button:focus-visible,.consent a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @keyframes consent-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.consent{animation:none}}
+/* 手机端：同意条横跨底部，悬浮按钮组上移到同意条上方 12px（高度由 ResizeObserver 写入 --consent-h），关闭后复原 */
+@media (max-width:767px){
+  .consent{left:12px;right:12px;bottom:12px;max-width:none}
+  .fab{transition:bottom .2s ease}
+  html.has-consent .fab{bottom:calc(12px + var(--consent-h,0px) + 12px)}
+}
+@media (max-width:767px) and (prefers-reduced-motion:reduce){.fab{transition:none}}
