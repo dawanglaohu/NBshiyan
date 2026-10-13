@@ -7,6 +7,8 @@ import { routing } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
 import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
 import { SITE_URL } from '@/lib/site';
+import { QuoteProvider } from '@/components/quote/QuoteProvider';
+import FloatingActions from '@/components/quote/FloatingActions';
 import '../globals.css';
 
 // 只加载拉丁和西里尔子集，控制字体体积
@@ -36,15 +38,20 @@ export default async function LocaleLayout({ children, params }: { children: Rea
       <body>
         <OrganizationJsonLd locale={locale} />
         <NextIntlClientProvider>
-          <header className="site">
-            <strong>PackJoyU</strong>
-            <nav>
-              <Link href="/">{t('home')}</Link>
-              <Link href="/products">{t('products')}</Link>
-              <Link href="/" locale={locale === 'en' ? 'ru' : 'en'}>{locale === 'en' ? 'RU' : 'EN'}</Link>
-            </nav>
-          </header>
-          {children}
+          <QuoteProvider>
+            <header className="site">
+              <Link href="/" className="logo">Pack<i>Joy</i>U</Link>
+              <nav>
+                <Link href="/">{t('home')}</Link>
+                <Link href="/products">{t('products')}</Link>
+                <Link href="/contact">{t('contact')}</Link>
+                <Link href="/" locale={locale === 'en' ? 'ru' : 'en'}>{locale === 'en' ? 'RU' : 'EN'}</Link>
+                <Link href="/contact" className="btn sm">{t('quote')}</Link>
+              </nav>
+            </header>
+            {children}
+            <FloatingActions />
+          </QuoteProvider>
         </NextIntlClientProvider>
       </body>
     </html>

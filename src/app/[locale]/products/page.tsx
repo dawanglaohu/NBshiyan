@@ -19,7 +19,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
     <main className="container" style={{ paddingBottom: 80 }}>
       <h1>{t('title')}</h1>
       <p>{t('hint')}</p>
-      <ProductGallery items={items} labels={{ tap: t('tapToRotate'), loading: t('loading'), add: t('addToQuote'), details: t('details') }} />
+      <ProductGallery items={items} labels={{ tap: t('tapToRotate'), loading: t('loading'), add: t('addToQuote'), details: t('details'), done: t('done') }} />
     </main>
   );
 }

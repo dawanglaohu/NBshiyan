@@ -2,12 +2,16 @@
 import dynamic from 'next/dynamic';
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '@/data/products';
+import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
+
+const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
+const HOVER_ZOOM_MS = 500;
 
 // three.js 只在客户端按需加载，不进首屏包
 const GalleryScene = dynamic(() => import('./GalleryScene'), { ssr: false });
 
 type Item = Product & { name: string };
-type Labels = { tap: string; loading: string; add: string; details: string };
+type Labels = { tap: string; loading: string; add: string; details: string; done: string };
 
 export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -15,6 +19,28 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState<Set<string>>(new Set());
   const [active, setActive] = useState<string | null>(null);
+  // 桌面端滚轮缩放：只有按住鼠标或悬停 0.5 秒后才交给模型，否则滚轮照常滚动页面
+  const [zoomSlug, setZoomSlug] = useState<string | null>(null);
+  const hoverTimer = useRef<number | undefined>(undefined);
+  const pressed = useRef(false);
+  const finePointer = useRef(false);
+  useEffect(() => {
+    finePointer.current = window.matchMedia('(pointer: fine)').matches;
+    const up = () => { pressed.current = false; };
+    window.addEventListener('pointerup', up);
+    return () => { window.removeEventListener('pointerup', up); window.clearTimeout(hoverTimer.current); };
+  }, []);
+  const onEnter = (slug: string) => (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
+    window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => setZoomSlug(slug), HOVER_ZOOM_MS);
+  };
+  const onLeave = () => { window.clearTimeout(hoverTimer.current); if (!pressed.current) setZoomSlug(null); };
+  const onDown = (slug: string) => (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
+    pressed.current = true;
+    setZoomSlug(slug);
+  };
   // three.js 不参与首屏：用户第一次交互（移动鼠标、滚动、触摸、按键）后才加载 3D，
   // 或页面完全空闲 4 秒后兜底加载，避免阻塞主线程影响首屏指标
   const [armed, setArmed] = useState(false);
@@ -52,20 +78,27 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     <div ref={rootRef}>
       <div className="grid">
         {items.map((p, idx) => (
-          <article key={p.slug} id={p.slug} className="card">
+          <article key={p.slug} id={p.slug} className={`card${PREMIUM.has(p.slug) ? ' theme-premium' : ''}`}>
             <div
               ref={tracks[idx]}
               data-slug={p.slug}
               className={`stage${active === p.slug ? ' active' : ''}`}
-              onClick={() => setActive(p.slug)}
+              onClick={() => { if (!finePointer.current) setActive(p.slug); }}
+              onPointerEnter={onEnter(p.slug)}
+              onPointerLeave={onLeave}
+              onPointerDown={onDown(p.slug)}
             >
               {/* 静态图先显示，模型就绪后淡出，不造成布局偏移 */}
               <img src={p.poster} alt={p.name} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) ? 0 : 1 }} />
-              <span className="hint">{ready.has(p.slug) ? (active === p.slug ? '↻' : labels.tap) : labels.loading}</span>
+              <span className="hint">{ready.has(p.slug) ? (active === p.slug || zoomSlug === p.slug ? '↻' : labels.tap) : labels.loading}</span>
+              {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面 */}
+              {active === p.slug && (
+                <button type="button" className="btn sm done" onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
+              )}
             </div>
             <div className="body">
               <h2 style={{ fontSize: 16, margin: 0 }}>{p.name}</h2>
-              <button type="button">{labels.add}</button>
+              <AddToQuoteButton slug={p.slug} />
             </div>
           </article>
         ))}
@@ -73,7 +106,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
       {armed && visible.size > 0 && (<GalleryScene
         eventSource={rootRef}
         onReady={onReady}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), track: tracks[i] }))}
       />)}
     </div>
   );
