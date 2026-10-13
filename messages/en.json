@@ -150,7 +150,8 @@
       ]
     },
     "learnMore": "Learn more",
-    "specsLabel": "Key specs"
+    "specsLabel": "Key specs",
+    "empty": "No 3D models are published yet. Please check back soon or contact us for samples."
   },
   "Admin": {
     "title": "Admin"
