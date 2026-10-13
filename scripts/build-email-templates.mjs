@@ -77,15 +77,17 @@ function applyRules(t, rules, label) {
 }
 for (const [loc, rules] of Object.entries(SAMPLE_RULES)) out[`sample-ack.${loc}`] = applyRules(out[`inquiry-ack.${loc}`], rules, `sample-ack.${loc}`);
 
-// 所有模板：暗色模式卡片正文改浅色、logo 暗色下加浅底；邮箱和 WhatsApp 不换行
+// 所有模板：logo 图片换成文字商标 PackJoyU（站点没有 logo.png，避免破图）；暗色模式卡片正文、商标、外层背景和 body 都改深色；邮箱和 WhatsApp 不换行
+const WORDMARK = '<span class="logo" style="display:block;text-align:left;font-family:Manrope,Arial,Helvetica,sans-serif;font-size:20px;line-height:32px;font-weight:700;color:#1C1C1C;">PackJoyU</span>';
 for (const k of Object.keys(out)) {
   let h = out[k].html;
   const n0 = h;
-  h = h.replace('.card{background:#1B1B1F!important}', '.card{background:#1B1B1F!important;color:#F2E9D8!important}.logo{background:#FFFFFF!important;border-radius:6px!important;padding:4px 6px!important}');
+  h = h.replace('.card{background:#1B1B1F!important}', 'body,.bg{background:#121214!important}.card{background:#1B1B1F!important;color:#F2E9D8!important}.logo{color:#FFFFFF!important}');
   h = h.replace('class="card px"', 'class="card px ink"');
-  h = h.replace(/<img src="\{\{siteUrl\}\}\/images\/logo\.png"/, '<img class="logo" src="{{siteUrl}}/images/logo.png"');
+  h = h.replace(/<img src="\{\{siteUrl\}\}\/images\/logo\.png"[^>]*>/, WORDMARK);
+  h = h.replace(/<body style="([^"]*)">/, '<body class="bg" style="$1">');
   h = h.replace('{{contactEmail}}', '<span style="white-space:nowrap">{{contactEmail}}</span>').replace('{{whatsapp}}', '<span style="white-space:nowrap">{{whatsapp}}</span>');
-  if (h === n0 || !h.includes('class="logo"') || !h.includes('card px ink') || !h.includes('color:#F2E9D8!important}.logo')) throw new Error(`${k}: dark-mode transform failed`);
+  if (h === n0 || h.includes('<img') || h.includes('logo.png') || !h.includes('>PackJoyU</span>') || !h.includes('<body class="bg"') || !h.includes('card px ink') || !h.includes('body,.bg{background:#121214!important}')) throw new Error(`${k}: wordmark/dark-mode transform failed`);
   out[k].html = h;
 }
 writeFileSync('src/lib/server/email/templates.generated.ts',
