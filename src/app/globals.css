@@ -132,3 +132,8 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 .legal li{margin:4px 0}
 .legal code{font-size:.9em;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:0 4px}
 .draft-banner{background:#FFF4D6;border:1px solid var(--sun);color:#5A4300;border-radius:var(--r-sm);padding:12px 16px;font-size:14px}
+
+/* #119 站内样式的文件选择按钮 */
+.file-pick{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.file-pick .btn{white-space:nowrap;cursor:pointer}.file-pick input:disabled+.btn{opacity:.5;cursor:not-allowed}
+.file-pick .file-name{font-size:var(--fs-small);color:var(--ink-2);overflow-wrap:anywhere;min-width:0}
+.file-pick:has(input:focus-visible) .btn{outline:2px solid var(--accent);outline-offset:3px}
