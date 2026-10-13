@@ -21,7 +21,7 @@ PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, la
 
 #### Why PackJoyU
 
-- **Efficient at volume** — Lower unit cost on larger runs (pricing TBD per quote).
+- **Efficient at volume** — Lower unit cost on larger runs (pricing confirmed with your quote).
 - **Sharp, consistent** — Fine detail and stable color sheet to sheet.
 - **Finishing and binding** — Lamination, foil, die-cut, saddle-stitch, perfect binding.
 - **Packaging + print** — Boxes and catalogs from one production line.
@@ -31,19 +31,19 @@ PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, la
 | Option | Details |
 |---|---|
 | Products | Folding cartons, catalogs, brochures, booklets, labels, posters |
-| Press | Sheet-fed offset (press sizes TBD) |
+| Press | Sheet-fed offset (press sizes confirmed with your quote) |
 | Colors | CMYK + Pantone spot |
 | Finishing | Lamination, foil, spot UV, die-cut, folding, gluing |
-| Binding | Saddle stitch, perfect binding, wire-o (TBD) |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| Binding | Saddle stitch, perfect binding, wire-o (confirmed with your quote) |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -70,7 +70,7 @@ PackJoyU выполняет офсетную печать больших тир�
 
 #### Почему PackJoyU
 
-- **Выгодно на тиражах** — Ниже цена за единицу на больших тиражах (расчёт — TBD).
+- **Выгодно на тиражах** — Ниже цена за единицу на больших тиражах (цена согласовывается при расчёте).
 - **Чётко и стабильно** — Мелкие детали и стабильный цвет от листа к листу.
 - **Постпечать и переплет** — Ламинация, фольга, высечка, скрепка, КБС.
 - **Упаковка и полиграфия** — Коробки и каталоги в одном производстве.
@@ -80,19 +80,19 @@ PackJoyU выполняет офсетную печать больших тир�
 | Параметр | Описание |
 |---|---|
 | Продукция | Складные коробки, каталоги, буклеты, брошюры, этикетки, плакаты |
-| Оборудование | Листовой офсет (форматы — TBD) |
+| Оборудование | Листовой офсет (форматы согласовываются при расчёте) |
 | Цвета | CMYK + пантоны |
 | Обработка | Ламинация, фольга, выборочный лак, высечка, фальцовка, склейка |
-| Переплет | Скрепка, КБС, пружина (TBD) |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Переплёт | Скрепка, КБС, пружина (согласовывается при расчёте) |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

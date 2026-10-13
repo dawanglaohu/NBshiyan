@@ -24,27 +24,27 @@ PackJoyU offers eco-friendly paper cups custom printed with your logo, for cafes
 
 - **Coating options** — Confirmed per order.
 - **Branded** — Full-wrap logo printing.
-- **Matching fiber lids** — Paper or fiber lid options (TBD).
+- **Matching fiber lids** — Paper or fiber lid options confirmed with your quote.
 - **Honest claims** — Certification documents verified per product before marketing use.
 
 #### Specifications & options
 
 | Option | Details |
 |---|---|
-| Lining | Confirmed per order (TBD) |
+| Lining | Confirmed per order |
 | Types | Single / double wall |
-| Sizes | TBD (aligned with custom-paper-cups range) |
-| Certifications | TBD — listed only if held |
-| Accessories | Fiber/paper lids, sleeves (TBD) |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| Sizes | Confirmed with your quote (aligned with custom-paper-cups range) |
+
+| Accessories | Fiber/paper lids, sleeves (confirmed with your quote) |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -71,27 +71,27 @@ PackJoyU предлагает экологичные бумажные стака
 
 - **Варианты покрытия** — Уточняем под заказ.
 - **Ваш бренд** — Печать логотипа по всей поверхности.
-- **Крышки из волокна** — Варианты бумажных крышек (TBD).
+- **Крышки из волокна** — Варианты бумажных крышек согласовываются при расчёте.
 - **Честные формулировки** — Сертификаты проверяются до использования в маркетинге.
 
 #### Характеристики и опции
 
 | Параметр | Описание |
 |---|---|
-| Покрытие | Уточняем под заказ (TBD) |
+| Покрытие | Уточняем под заказ |
 | Виды | Однослойные / двухслойные |
-| Объёмы | TBD |
-| Сертификаты | TBD — указывать только при наличии |
-| Аксессуары | Крышки из волокна/бумаги, манжеты (TBD) |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Объёмы | Согласовываются при расчёте |
+
+| Аксессуары | Крышки из волокна/бумаги, манжеты (согласовываются при расчёте) |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

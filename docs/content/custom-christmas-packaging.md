@@ -34,16 +34,16 @@ PackJoyU produces custom Christmas and holiday packaging for retailers, confecti
 | Material | Rigid board, folding carton, corrugated, kraft |
 | Printing | Offset CMYK/Pantone, metallic inks |
 | Finishes | Foil, glitter, embossing, window, ribbon |
-| Order deadline | Recommended latest order date for on-time holiday delivery: TBD |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| Order deadline | Recommended latest order date for on-time holiday delivery: confirmed with your quote |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -83,16 +83,16 @@ PackJoyU производит новогоднюю и праздничную у�
 | Материал | Переплетный картон, картон, гофрокартон, крафт |
 | Печать | Офсет CMYK/Pantone, металлизированные краски |
 | Отделка | Фольга, глиттер, конгрев, окно, лента |
-| Срок заказа | Рекомендуемая крайняя дата заказа к Новому году: TBD |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Срок заказа | Рекомендуемая крайняя дата заказа к Новому году: согласовывается при расчёте |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

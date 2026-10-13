@@ -32,18 +32,18 @@ PackJoyU offers full-color printing for packaging, labels, inserts and printed p
 |---|---|
 | Products | Packaging, labels, inserts, leaflets, hang tags |
 | Substrates | Coated/uncoated paper, paperboard, kraft |
-| Colors | CMYK, Pantone spot, white ink on kraft (TBD) |
-| Proofing | Digital proof; physical/press proof TBD |
+| Colors | CMYK, Pantone spot |
+| Proofing | Digital proof; physical/press proof options confirmed with your quote |
 | Finishes | Varnish, lamination, foil, embossing, die-cut |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -81,18 +81,18 @@ PackJoyU выполняет полноцветную печать упаковк
 |---|---|
 | Продукция | Упаковка, этикетки, вкладыши, листовки, бирки |
 | Материалы | Мелованная/немелованная бумага, картон, крафт |
-| Цвета | CMYK, пантоны, белила по крафту (TBD) |
-| Пробы | Цифровая; физическая/печатная — TBD |
+| Цвета | CMYK, пантоны |
+| Пробы | Цифровая; физическая/печатная — согласовывается при расчёте |
 | Отделка | Лак, ламинация, фольга, конгрев, высечка |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

@@ -35,15 +35,15 @@ PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retai
 | Printing | Flexographic, digital or litho-laminated (offset print on liner) |
 | Finishes | Matte/gloss varnish, lamination, inside printing, tear strips, inserts |
 | Sizes | Custom — send product dimensions or a sample |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -84,15 +84,15 @@ PackJoyU производит гофрокороба на заказ для до
 | Печать | Флексопечать, цифровая печать или кашировка офсетным листом |
 | Отделка | Матовый/глянцевый лак, ламинация, печать внутри, отрывная лента, ложементы |
 | Размеры | Любые — пришлите габариты товара или образец |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

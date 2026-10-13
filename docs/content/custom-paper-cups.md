@@ -24,26 +24,26 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 - **Your brand in every hand** — Full-wrap printing of logo and artwork.
 - **Hot and cold** — Single, double and ripple wall for heat insulation; cold cup options.
 - **Matching accessories** — Lids, sleeves and carriers to complete the set.
-- **Food-contact materials** — Food-grade paperboard and inks; documentation per market TBD.
+- **Food-contact materials** — Food-grade paperboard and inks.
 
 #### Specifications & options
 
 | Option | Details |
 |---|---|
 | Types | Single wall, double wall, ripple wall, cold cups |
-| Sizes | Common sizes approx. 4–22 oz (exact range TBD by factory) |
-| Lining | Confirmed per order (TBD); see also eco-paper-cups |
+| Sizes | Common sizes approx. 4–22 oz (exact range confirmed with your quote) |
+| Lining | Confirmed per order; see also eco-paper-cups |
 | Printing | Flexo or offset, full-wrap |
 | Accessories | PS/PP/fiber lids, sleeves, carriers |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -73,26 +73,26 @@ PackJoyU производит бумажные стаканы с печатью 
 - **Ваш бренд в каждой руке** — Печать логотипа и дизайна по всей поверхности.
 - **Горячие и холодные напитки** — Однослойные, двухслойные и гофрированные стаканы; варианты для холодных напитков.
 - **Аксессуары в комплекте** — Крышки, манжеты и подставки.
-- **Пищевые материалы** — Пищевой картон и краски; документы для рынка РФ — TBD.
+- **Пищевые материалы** — Пищевой картон и краски.
 
 #### Характеристики и опции
 
 | Параметр | Описание |
 |---|---|
 | Виды | Однослойные, двухслойные, гофрированные, для холодных напитков |
-| Объёмы | Ориентировочно 110–650 мл (точный ряд — TBD) |
-| Покрытие | Уточняем под заказ (TBD); см. также экологичные стаканы |
+| Объёмы | Ориентировочно 110–650 мл (точный ряд согласовывается при расчёте) |
+| Покрытие | Уточняем под заказ; см. также экологичные стаканы |
 | Печать | Флексо или офсет по всей поверхности |
 | Аксессуары | Крышки PS/PP/из волокна, манжеты, подставки |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

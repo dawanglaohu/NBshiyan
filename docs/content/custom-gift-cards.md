@@ -23,7 +23,7 @@ PackJoyU prints custom paper gift cards, vouchers and certificates, together wit
 
 - **Premium look** — Foil, spot UV, embossing, special papers.
 - **Complete set** — Cards, holders, envelopes and boxes in one design.
-- **Personalization** — Variable numbering/barcodes (capability TBD).
+- **Personalization** — Options confirmed with your quote.
 - **Retail-ready** — Hang-tab holders and display packs.
 
 #### Specifications & options
@@ -31,19 +31,19 @@ PackJoyU prints custom paper gift cards, vouchers and certificates, together wit
 | Option | Details |
 |---|---|
 | Products | Gift cards, vouchers, certificates, card holders, envelopes, gift card boxes |
-| Material | Paperboard / special papers (plastic PVC cards: TBD whether offered) |
+| Material | Paperboard / special papers |
 | Printing | Offset CMYK/Pantone |
-| Finishes | Foil, spot UV, embossing, edge painting (TBD) |
-| Variable data | Numbering, barcode/QR — TBD |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| Finishes | Foil, spot UV, embossing (options confirmed with your quote) |
+| Variable data | Confirmed with your quote |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -72,7 +72,7 @@ PackJoyU печатает подарочные карты, ваучеры и с�
 
 - **Премиальный вид** — Фольга, выборочный лак, конгрев, дизайнерская бумага.
 - **Полный комплект** — Карты, держатели, конверты и коробки в одном дизайне.
-- **Персонализация** — Нумерация/штрихкоды (возможность — TBD).
+- **Персонализация** — Варианты согласовываются при расчёте.
 - **Для розницы** — Держатели с европодвесом и упаковка для выкладки.
 
 #### Характеристики и опции
@@ -80,19 +80,19 @@ PackJoyU печатает подарочные карты, ваучеры и с�
 | Параметр | Описание |
 |---|---|
 | Продукция | Подарочные карты, ваучеры, сертификаты, держатели, конверты, коробки |
-| Материал | Картон / дизайнерская бумага (пластиковые карты — TBD) |
+| Материал | Картон / дизайнерская бумага |
 | Печать | Офсет CMYK/Pantone |
-| Отделка | Фольга, выборочный лак, конгрев, окраска торца (TBD) |
-| Переменные данные | Нумерация, штрихкод/QR — TBD |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Отделка | Фольга, выборочный лак, конгрев (варианты согласовываются при расчёте) |
+| Переменные данные | Согласовываются при расчёте |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

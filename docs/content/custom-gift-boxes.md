@@ -31,19 +31,19 @@ PackJoyU makes rigid gift boxes for brands that want packaging customers keep: m
 | Option | Details |
 |---|---|
 | Styles | Magnetic closure, lid & base, drawer/sliding, book-style, collapsible (flat-pack) |
-| Material | Greyboard core (thickness TBD per size) + art paper, specialty or textured paper |
+| Material | Greyboard core (thickness confirmed with your quote) + art paper, specialty or textured paper |
 | Printing | Offset CMYK/Pantone on wrapping paper |
 | Finishes | Foil, embossing/debossing, spot UV, lamination, ribbon pull, magnets |
 | Inserts | EVA, foam, paperboard, molded pulp, satin lining |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -84,15 +84,15 @@ PackJoyU производит жёсткие подарочные коробки
 | Печать | Офсет CMYK/Pantone на оклеечной бумаге |
 | Отделка | Фольга, конгрев/блинтовое тиснение, выборочный лак, ламинация, лента, магниты |
 | Ложементы | EVA, поролон, картон, формованная целлюлоза, атлас |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 

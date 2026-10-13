@@ -34,16 +34,16 @@ PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) an
 | Material | Bagasse, bamboo or recycled paper pulp |
 | Process | Wet-press (smooth) or dry-press (standard) molding |
 | Options | Natural, bleached or dyed color; embossed logo |
-| Tooling | Custom mold required — tooling cost and time TBD |
-| MOQ | **TBD（待 Ryan 提供）** |
-| Sample lead time | **TBD（待 Ryan 提供）** |
-| Production lead time | **TBD（待 Ryan 提供）** |
+| Tooling | Custom mold required — tooling cost and timing confirmed with your quote |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
 
 #### How it works
 
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
-3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
 4. **Production & QC** — mass production with inspection before packing.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
@@ -83,16 +83,16 @@ PackJoyU производит упаковку из формованной це�
 | Материал | Багасса, бамбук или вторичная бумажная масса |
 | Технология | Мокрое прессование (гладкая) или сухое (стандартная) |
 | Опции | Натуральный, отбеленный или окрашенный цвет; рельефный логотип |
-| Оснастка | Нужна пресс-форма — стоимость и сроки TBD |
-| Минимальный тираж | **TBD（待 Ryan 提供）** |
-| Срок изготовления образца | **TBD（待 Ryan 提供）** |
-| Срок производства | **TBD（待 Ryan 提供）** |
+| Оснастка | Нужна пресс-форма — стоимость и сроки согласовываются при расчёте |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
-3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
