@@ -10,6 +10,9 @@ const FORBIDDEN: RegExp[] = [
   /(reply|respond|response|get back|within|support|ответ\S*|в течение|поддержк\S*|(?<![а-яё])за(?![а-яё]))[^.\n]{0,30}24[\s-]*(hours?|h\b|час)/i,
   /24[\s-]*(hours?|h\b|час\S*)[^.\n]{0,20}(support|reply|response|turnaround|поддержк|ответ)/i,
   /24\s*\/\s*7|круглосуточн/i,
+  // MOQ figures (fact sheet Q1): «от 500 шт.», 'MOQ from 500 pcs', 'minimum order 1,000'
+  /\bMOQ\b[^.\n]{0,15}\d|min(imum)?\.?\s+order(\s+quantity)?[^.\n]{0,15}\d|\bfrom\s+\d[\d,.\s]*\s*(pcs|pieces|units)\b/i,
+  /(?<![а-яё])от\s*\d[\d\s\u00a0\u202f]*\s*(шт|экз)|минимальн\S*\s+(тираж|заказ|парти)\S*[^.\n]{0,15}\d/i,
   /factory[-\s]direct/i,
   /food[-\s]safe/i,
   /\bPLA\b/,
@@ -59,4 +62,13 @@ test('24h rules allow retention facts and the whole privacy page (fix/privacy-pa
     assert.ok(all.some((t) => /24/.test(t)), `${l} fixture has the 24-hour logo rule`);
     for (const t of all) for (const re of FORBIDDEN) assert.ok(!re.test(t), `${l}: ${re} hits «${t}»`);
   }
+});
+
+test('MOQ figures are blocked; neutral quantity wording passes', () => {
+  const moq = FORBIDDEN.filter((re) => /MOQ|шт/.test(re.source));
+  const hit = (t: string) => moq.some((re) => re.test(t));
+  for (const bad of ['MOQ from 500 pcs', 'MOQ: 1,000', 'Minimum order 1,000 pieces', 'from 10,000 pcs', 'Тираж от 500 шт.', 'Тираж от 1 000 шт.', 'минимальный тираж 300'])
+    assert.ok(hit(bad), bad);
+  for (const ok of ['Quantities confirmed per order', 'Тираж уточняем под заказ', '4–22 oz, single or double wall', 'Up to 4-color flexo or digital print', 'от 2 до 4 недель'])
+    assert.ok(!hit(ok), ok);
 });
