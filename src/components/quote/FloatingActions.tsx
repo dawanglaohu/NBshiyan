@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useTawk } from '@/components/chat/useTawk';
 import { Link } from '@/i18n/navigation';
 import { useQuote } from './QuoteProvider';
 
@@ -11,6 +12,7 @@ export default function FloatingActions() {
   const names = useTranslations('Products.names');
   const { items, remove, open, setOpen } = useQuote();
   const [expanded, setExpanded] = useState(false);
+  const chat = useTawk(useLocale());
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
@@ -27,8 +29,12 @@ export default function FloatingActions() {
         <button type="button" className="item" aria-label={`${t('quote')} (${items.length})`} title={t('quote')} onClick={() => setOpen(true)}>
           🧾{items.length > 0 && <span className="badge">{items.length}</span>}
         </button>
-        {/* TODO: 客服插件（Tawk.to）接入前先跳到联系页 */}
-        <Link className="item" href="/contact" aria-label={t('chat')} title={t('chat')}>💬</Link>
+        {/* 配置了 Tawk.to 且已同意 Cookie 时打开在线客服，否则跳到联系页 */}
+        {chat.enabled ? (
+          <button type="button" className="item" aria-label={t('chat')} title={t('chat')} onClick={() => chat.open()}>💬</button>
+        ) : (
+          <Link className="item" href="/contact" aria-label={t('chat')} title={t('chat')}>💬</Link>
+        )}
         <button type="button" className="item" aria-label={t('top')} title={t('top')} onClick={toTop}>↑</button>
         <button type="button" className="toggle" aria-expanded={expanded} aria-label={t('menu')} onClick={() => setExpanded((v) => !v)}>
           {expanded ? '×' : '☰'}{!expanded && items.length > 0 && <span className="badge">{items.length}</span>}
