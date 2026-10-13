@@ -170,3 +170,29 @@ test('linkmap.py: --meta defaults to src/lib/seo/categoryMeta.ts; missing, unrea
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('sanity-import: build.py refuses product docs with food-contact claims (EN + RU)', () => {
+  for (const word of ['Food-grade board', 'food safe inks', 'FOOD-CONTACT', 'пищевой картон']) {
+    const dir = mkdtempSync(join(tmpdir(), 'sanity-food-'));
+    try {
+      const content = join(dir, 'docs/content');
+      const sib = join(content, 'sanity-import');
+      mkdirSync(join(content, 'articles'), { recursive: true });
+      mkdirSync(sib);
+      mkdirSync(join(dir, 'src/lib/seo'), { recursive: true });
+      copyFileSync('src/lib/seo/categoryMeta.ts', join(dir, 'src/lib/seo/categoryMeta.ts'));
+      copyFileSync('docs/content/sanity-import/build.py', join(sib, 'build.py'));
+      copyFileSync('docs/content/internal-links.json', join(content, 'internal-links.json'));
+      const lines = readFileSync('docs/content/sanity-import/import.ndjson', 'utf8').split('\n');
+      const d = JSON.parse(lines[0]);
+      d.body.en[1].children[1].text += ` ${word}`;
+      lines[0] = JSON.stringify(d);
+      writeFileSync(join(sib, 'import.ndjson'), lines.join('\n'));
+      const r = spawnSync('python3', [join(sib, 'build.py'), content, '--out', join(dir, 'out.ndjson')], { encoding: 'utf8' });
+      assert.notEqual(r.status, 0, word);
+      assert.match(r.stderr, new RegExp(`${d._id}: unconfirmed food-use claim`), r.stderr);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+});

@@ -184,6 +184,11 @@ def product_refusals():
             if UNCONFIRMED.search(v): bad.append(f'{d["_id"]} ({loc}): {v}')
     return bad
 _prod_bad = product_refusals()
+# Unconfirmed food-use claims (FOOD pattern below, EN + RU stem) stay out of published product docs until Ryan confirms.
+FOOD = re.compile(r'food[-\s]?(grade|safe|contact)|пищев', re.I)
+for d in docs + [json.loads(l) for l in kept_products]:
+    if d['_type'] == 'product' and FOOD.search(json.dumps({k: d[k] for k in ('title', 'excerpt', 'body', 'seo')}, ensure_ascii=False)):
+        _prod_bad.append(f'{d["_id"]}: unconfirmed food-use claim matches {FOOD.pattern}')
 if _prod_bad:
     print('error: refusing import, product body has {{待Ryan确认}} or TBD (replace with neutral wording, no time or number):', file=sys.stderr)
     print('\n'.join(_prod_bad), file=sys.stderr)
