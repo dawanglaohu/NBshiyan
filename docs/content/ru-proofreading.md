@@ -42,6 +42,7 @@
 | F15 | ALT-OG-ekologichnye-stakany | 「Биоразлагаемые」改为「Экологичные」 | 「биоразлагаемый/компостируемый」属于需要认证支撑的声明。**需要 Ryan 提供认证**（证书名称/编号/链接）后才能恢复该说法。H1、meta（`categoryMeta.ts`、`docs/seo-category-meta.md`）、`messages/ru.json` 和内链锚文本已同步改为「Экологичные」（seo/yo-unification、#188、#205）。英文见 F17。 |
 | F16 | ALT-OG-podarochnye-karty / 英文 slug `custom-gift-cards` | gift cards 的含义（俄英都有） | 「подарочные карты」在俄语里通常指储值礼品卡（подарочный сертификат）；如果产品是贺卡/祝福卡，应改为「открытки」。英文 slug `custom-gift-cards` 同样有歧义：英文搜索里 "gift cards" 多指储值卡，贺卡应为 `custom-greeting-cards`。影响 alt、H1、slug（英俄）和 meta，请 Ryan 确认；未上线，改 slug 不需要 301。 |
 | F17 | 英文 eco-paper-cups（`M-eco-paper-cups-*`、#188 落地页、`messages/en.json`、#220 英文 alt） | 「Compostable」改为「Eco-friendly」 | 与 F15 相同：compostable / biodegradable 需要证书支撑。Ryan 提供认证（证书名称/编号/链接）前，英文统一用 Eco-friendly；英文 slug 也由 `compostable-paper-cups` 改为 `eco-paper-cups`（从未上线，不需要 301）。 |
+| F18 | eco-paper-cups 卖点「FSC-certified board」/「Картон с сертификатом FSC」（`messages/en.json`、`messages/ru.json` 的 eco-paper-cups 列表） | 已隐藏（seo/yo-unification `b61a363`） | FSC 认证属于需要出处的声明，目前没有证书依据。**需要 Ryan 提供 FSC 证书**（持证主体、证书编号 FSC-C……、范围、有效期、可公开验证的链接）后才能恢复。设计稿里的 Compostable 由 UX 改，3D 贴图由产品经理转 3D。俄语原文待 Ryan 校对。 |
 
 说明：F1、F3、F4、F5、F7（расчёт）、F8、F9 已按产品经理决定处理（标 ✅），改动后的俄语仍待 Ryan 校对。F2 仍是待确认的业务承诺（24 小时回复、工厂直供），本轮未改。其余是语言判断，需要母语者决定。
 
