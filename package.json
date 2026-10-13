@@ -6,16 +6,21 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "admin:create": "node scripts/create-admin.mjs"
   },
   "dependencies": {
+    "@gltf-transform/core": "^4.5.1",
     "@needle-tools/gltf-progressive": "3.6.1",
+    "@node-rs/argon2": "^2.2.2",
     "@prisma/client": "^6.19.3",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
     "idb-keyval": "^6.2.2",
     "next": "~15.5.27",
+    "next-auth": "5.0.0-beta.32",
     "next-intl": "^4.3.9",
+    "otplib": "^12.0.1",
     "react": "~19.3.0",
     "react-dom": "~19.3.0",
     "sharp": "^0.35.5",

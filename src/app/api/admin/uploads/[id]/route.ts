@@ -1,19 +1,26 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
-import { isAdminPlaceholder, LOGO_ID_RE } from '@/lib/server/uploads';
+import { LOGO_ID_RE } from '@/lib/server/uploads';
+import { requireAdmin, adminRateLimit } from '@/lib/server/auth';
+import { audit } from '@/lib/server/admin/audit';
 
 export const runtime = 'nodejs';
 const noStore = { 'Cache-Control': 'private, no-store' };
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  // TODO(auth): 接入 Auth.js 后台会话 + 角色校验，并写 AuditLog
-  if (!(await isAdminPlaceholder(req))) return NextResponse.json({ error: 'unauthorized' }, { status: 401, headers: noStore });
+  const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
+  if (ctx instanceof Response) return ctx;
+  const limited = adminRateLimit(req, 'upload.view');
+  if (limited) return limited;
   const { id } = await params;
   if (!LOGO_ID_RE.test(id)) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: noStore });
-  const u = await prisma.logoUpload.findUnique({ where: { id } });
+  const u = await prisma.logoUpload.findUnique({ where: { id }, include: { inquiry: { select: { assigneeId: true } } } });
+  // SALES 只能看分配给自己的询盘上的 logo；未绑定询盘的上传只有 ADMIN 能看。无权限按 404 处理，不暴露是否存在
+  if (u && ctx.user.role !== 'ADMIN' && u.inquiry?.assigneeId !== ctx.user.id) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: noStore });
   const data = u && (await storage.get(u.path));
   if (!u || !data) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: noStore });
+  await audit({ actorId: ctx.user.id, action: 'upload.view', target: u.id, ip: ctx.ip });
   return new Response(new Uint8Array(data), {
     headers: {
       ...noStore,

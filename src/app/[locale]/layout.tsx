@@ -8,6 +8,7 @@ import SiteHeader from '@/components/layout/SiteHeader';
 import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
 import { SITE_URL } from '@/lib/site';
 import { QuoteProvider } from '@/components/quote/QuoteProvider';
+import SiteFooter from '@/components/layout/SiteFooter';
 import FloatingActions from '@/components/quote/FloatingActions';
 import CookieConsent from '@/components/consent/CookieConsent';
 import '../globals.css';
@@ -55,6 +56,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           <QuoteProvider>
             <SiteHeader />
             {children}
+            <SiteFooter />
             <FloatingActions />
             <CookieConsent />
           </QuoteProvider>

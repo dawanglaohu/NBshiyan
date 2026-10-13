@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+:root{--bg:#F7F5F1;--s:#fff;--ink:#1C1C1C;--ink2:#6B665E;--line:#E8E2D8;--acc:#FF5A36;--ok:#1A7F37;--okb:#E6F4EA;--warn:#8A6300;--warnb:#FFF4D1;--err:#B42318;--errb:#FDE8E7;--info:#1D4F91;--infob:#E3EEFC}
+*{box-sizing:border-box;margin:0}body{font-family:Manrope,Inter,Arial,sans-serif;background:#dcd8d1;padding:28px;width:1880px;color:var(--ink);font-size:13px}
+h1{font-size:22px;margin-bottom:6px}.sub{color:#5a5650;margin-bottom:18px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.t{font-weight:800;font-size:14px;margin-bottom:8px}.win{background:var(--bg);border-radius:14px;overflow:hidden;box-shadow:0 12px 32px #0002;display:grid;grid-template-columns:200px 1fr;height:860px}
+.side{background:#1C1C1C;color:#cfc9be;padding:18px 12px}.side .lg{color:#fff;font-weight:800;font-size:16px;margin-bottom:22px}.side .lg i{color:var(--acc);font-style:normal}
+.side div.it{padding:9px 12px;border-radius:8px;margin-bottom:2px;display:flex;justify-content:space-between}.side .on{background:#2c2b29;color:#fff}.side .b{background:var(--acc);color:#fff;border-radius:999px;padding:0 7px;font-size:11px}
+.main{padding:20px 24px;overflow:hidden}.crumb{color:var(--ink2);font-size:12px;margin-bottom:6px}
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:16px}.hd h2{font-size:20px}.tag{border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700}
+.btn{white-space:nowrap;border-radius:10px;padding:8px 14px;font-weight:700;border:1px solid var(--line);background:#fff;font-size:12px}.pri{background:var(--acc);color:#fff;border:none}
+.sp{flex:1}.g2{display:grid;grid-template-columns:1.55fr 1fr;gap:16px}.card{background:var(--s);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h3{font-size:13px;margin-bottom:10px;display:flex;justify-content:space-between}.muted{color:var(--ink2)}
+.msg{border-radius:12px;padding:10px 12px;margin-bottom:8px;max-width:88%}.in{background:#F3F0EA}.out{background:#FFEDE7;margin-left:auto}.meta{font-size:11px;color:var(--ink2);margin-bottom:4px}
+.url{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#F3F0EA;border-radius:6px;padding:1px 6px;color:#5a5650}
+.box{border:1px solid var(--line);border-radius:12px;padding:10px;min-height:96px;color:var(--ink2)}.tool{display:flex;gap:8px;margin-top:8px;align-items:center}
+.kv{display:grid;grid-template-columns:96px 1fr;row-gap:8px;font-size:12px}.kv span:nth-child(odd){color:var(--ink2)}
+.score{display:flex;align-items:center;gap:12px}.ring{width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--ok) 0 86%,#eee 0);display:grid;place-items:center}.ring b{background:#fff;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:15px}
+.chk{font-size:12px;line-height:1.9}.prod{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}.th{width:52px;height:52px;border-radius:10px;background:#121214;border:1.5px solid #D4AF6A}
+.steps{display:flex;gap:0;margin-bottom:18px}.st{flex:1;display:flex;align-items:center;gap:8px;font-weight:700;font-size:12px;color:var(--ink2)}.st i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:#ECE8E1}
+.st.done i{background:var(--ok);color:#fff}.st.cur i{background:var(--acc);color:#fff}.st.cur{color:var(--ink)}.st::after{content:"";flex:1;height:2px;background:var(--line);margin:0 10px}.st:last-child::after{display:none}
+.drop{border:2px dashed #d7cfc2;border-radius:14px;padding:18px;text-align:center;color:var(--ink2);background:#FBF9F5}
+.row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}.ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800}
+.pass{background:var(--okb);color:var(--ok)}.fail{background:var(--errb);color:var(--err)}.run{background:var(--infob);color:var(--info)}
+.bar{height:6px;background:#eee;border-radius:3px;overflow:hidden;width:140px}.bar i{display:block;height:100%}
+.alert{background:var(--errb);border:1px solid #f5c2bd;color:#7a1a12;border-radius:12px;padding:12px;margin-top:10px;font-size:12px}
+.pv{height:230px;border-radius:12px;background:radial-gradient(circle at 50% 45%,#fff,#efe8dc);display:grid;place-items:center;position:relative}
+.cube{width:110px;height:110px;background:#c49a6c;transform:rotate(-12deg) skewY(6deg);border-radius:6px;box-shadow:inset -22px -22px 0 #a77d50}
+.seg{position:absolute;top:10px;left:10px;display:flex;background:#fff;border-radius:999px;padding:3px;border:1px solid var(--line)}.seg span{padding:4px 10px;border-radius:999px;font-size:11px}.seg .on{background:#1c1c1c;color:#fff}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.f label{display:block;font-size:11px;color:var(--ink2);margin-bottom:4px}.f div{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff}
+.sw{display:flex;gap:6px}.sw b{width:22px;height:22px;border-radius:6px;display:inline-block}
+.note{font-size:11px;color:#5a5650;margin-top:10px;line-height:1.6}
+</style></head><body>
+<h1>PackJoyU 后台高保真稿 v1 · 询盘详情 / 模型上传（#75）</h1><div class="sub">后台用中性暖灰底，珊瑚橙只用于主按钮和未读计数；状态色：绿=通过/已成交，黄=跟进中，蓝=已报价/处理中，红=失败/待核实。页面中所有客户、数字均为示例数据。</div>
+<div class="cols">
+
+<div><div class="t">① 询盘详情 /admin/inquiries/Q-7K3F</div><div class="win">
+<div class="side"><div class="lg">Pack<i>Joy</i>U <span style="font-size:11px;color:#8d877c">Admin</span></div><div class="it on">询盘 <span class="b">12</span></div><div class="it">样品申请</div><div class="it">3D 模型</div><div class="it">内容</div><div class="it">数据看板</div><div class="it">站点设置</div><div class="it">账号权限</div></div>
+<div class="main"><div class="crumb">询盘 / Q-7K3F</div>
+<div class="hd"><h2>Acme GmbH</h2><span class="tag" style="background:#FFE3DB;color:#C03A1A">新询盘</span><span class="muted">· DE · 10 分钟前</span><div class="sp"></div><span class="btn">状态：新询盘 ▾</span><span class="btn">负责人：未分配 ▾</span><span class="btn">标记无效</span></div>
+<div class="g2"><div>
+<div class="card"><h3>往来记录 <span class="muted" style="font-weight:500">3 条</span></h3>
+<div class="msg in"><div class="meta">客户 · Anna K. · 10:12</div>Hi, we need 5,000 wine boxes for 750ml bottles, magnetic closure, gold foil logo. Please see our brand guide: <span class="url">https://acme-example.de/brand.pdf</span></div>
+<div class="msg out"><div class="meta">自动回复 · 英语 · 10:12</div>Thanks for your inquiry Q-7K3F. Our team will reply within 24 hours.</div>
+<div class="msg in"><div class="meta">客户 · 附件</div>📎 artwork-v2.png · 1.2MB · <span style="color:var(--ok)">扫描通过</span> · <u>下载</u>（不在页面预览）</div></div>
+<div class="card"><h3>回复客户 <span class="muted" style="font-weight:500">将以英语发送 · 发件人 sales@…</span></h3><div class="box">Dear Anna, thank you for…</div>
+<div class="tool"><span class="btn">插入模板 ▾</span><span class="btn">📎 附件</span><div class="sp"></div><span class="btn">保存草稿</span><span class="btn pri">发送并改为“跟进中”</span></div></div>
+<div class="card"><h3>内部备注 <span class="muted" style="font-weight:500">仅团队可见</span></h3><div class="box" style="min-height:52px">@业务员 A 这个客户去年展会见过…</div></div>
+</div><div>
+<div class="card"><h3>可信度</h3><div class="score"><div class="ring"><b>86</b></div><div class="chk">✓ 企业邮箱域名<br>✓ IP 国家与填写一致（DE）<br>✓ 内容非模板话术<br><span class="muted">− 首次来访</span></div></div></div>
+<div class="card"><h3>客户信息</h3><div class="kv"><span>联系人</span><span>Anna K.</span><span>邮箱</span><span>anna@acme-example.de</span><span>公司</span><span>Acme GmbH</span><span>国家</span><span>德国 · 回复用英语</span><span>来源</span><span>/en/products · 酒盒卡片</span></div></div>
+<div class="card"><h3>产品明细 <span class="muted" style="font-weight:500">1 项</span></h3><div class="prod"><div class="th"></div><div><b>Wine Box · 5,000 pcs</b><div class="muted">750ml · 磁吸 · 烫金 · 附 Logo</div><div class="muted">定制方案 <span class="url">/s/x7Qp2a</span></div></div></div></div>
+</div></div></div></div></div>
+
+<div><div class="t">② 模型上传 /admin/models/new</div><div class="win">
+<div class="side"><div class="lg">Pack<i>Joy</i>U <span style="font-size:11px;color:#8d877c">Admin</span></div><div class="it">询盘 <span class="b">12</span></div><div class="it">样品申请</div><div class="it on">3D 模型</div><div class="it">内容</div><div class="it">数据看板</div><div class="it">站点设置</div><div class="it">账号权限</div></div>
+<div class="main"><div class="crumb">3D 模型 / 新建</div><div class="hd"><h2>上传新模型</h2><div class="sp"></div><span class="btn">取消</span></div>
+<div class="steps"><div class="st done"><i>✓</i>上传</div><div class="st cur"><i>2</i>处理与检查</div><div class="st"><i>3</i>预览确认</div><div class="st"><i>4</i>上架</div></div>
+<div class="g2"><div>
+<div class="card"><h3>文件</h3><div class="drop">✓ <b>wine-box.glb</b> 3.8MB · 封面 <b>custom-wine-boxes.webp</b> 84KB<br><span style="font-size:11px">拖入新文件可替换 · 只收 .glb 和 .webp</span></div></div>
+<div class="card"><h3>处理结果 <span class="muted" style="font-weight:500">实时更新</span></h3>
+<div class="row"><span class="ic pass">✓</span><b style="width:90px">格式</b><span class="muted">文件头确认为 GLB 2.0</span></div>
+<div class="row"><span class="ic pass">✓</span><b style="width:90px">压缩</b><span class="muted">Draco 压缩完成 3.8MB → 1.32MB</span></div>
+<div class="row"><span class="ic pass">✓</span><b style="width:90px">轻量版</b><span class="muted">已生成 184KB 首屏版本</span></div>
+<div class="row"><span class="ic fail">✕</span><b style="width:90px">体积</b><span class="muted">1.32MB / 1MB</span><div class="sp"></div><div class="bar"><i style="width:100%;background:var(--err)"></i></div></div>
+<div class="alert"><b>体积超出上限。</b>可以：降低纹理分辨率后重新上传；或者如果该模型带开盒 / 刀模动画，标记为“带动画”，上限放宽到 1.5MB。<div class="tool"><span class="btn">标记为带动画</span><span class="btn">重新上传</span></div></div></div>
+</div><div>
+<div class="card"><h3>预览 <span class="muted" style="font-weight:500">复用前台加载组件</span></h3><div class="pv"><div class="seg"><span class="on">前台</span><span>礼盒深色</span><span>手机</span></div><div class="cube"></div></div>
+<div class="form"><div class="f"><label>分类</label><div>酒盒 ▾</div></div><div class="f"><label>排序</label><div>7</div></div><div class="f"><label>名称 EN</label><div>Wine Boxes</div></div><div class="f"><label>名称 RU</label><div>Коробки для вина</div></div><div class="f"><label>可选颜色</label><div class="sw"><b style="background:#121214"></b><b style="background:#6B1F2A"></b><b style="background:#D4AF6A"></b><b style="border:1px dashed #bbb">＋</b></div></div><div class="f"><label>动画</label><div>开盒 ✓ · 刀模 ✓</div></div></div>
+<div class="tool" style="margin-top:14px"><div class="sp"></div><span class="btn">存为草稿</span><span class="btn pri" style="opacity:.45">下一步：确认上架</span></div>
+<div class="note">检查有未通过项时，“下一步”保持禁用，悬停提示原因。下架、删除需二次确认；所有操作写入操作日志。</div></div>
+</div></div></div></div></div>
+</div></body></html>

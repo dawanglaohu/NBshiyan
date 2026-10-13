@@ -1,0 +1,96 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>PackJoyU — Industry solutions / Factory / Case wall (hi-fi, Refs #86)</title>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+:root{--bg:#FBF8F3;--ink:#1C1C1C;--ink-2:#5A5650;--line:#E8E2D8;--accent:#FF5A36;--sun:#FFD166}
+*{box-sizing:border-box}body{margin:0;background:#E9E4DB;font-family:Manrope,system-ui,sans-serif;color:var(--ink);padding:40px}
+h1.doc{font-size:28px;margin:0 0 6px}.note{color:var(--ink-2);margin:0 0 32px;font-size:14px}
+.row{display:flex;gap:40px;align-items:flex-start;margin-bottom:64px}
+.lbl{font:600 13px Manrope;color:var(--ink-2);margin:0 0 8px}
+.frame{background:var(--bg);container-type:inline-size;border:1px solid var(--line);box-shadow:0 8px 30px #0001;overflow:hidden}
+.d{width:1440px}.m{width:390px}
+.sec{padding:72px 80px}@container (max-width:500px){.sec{padding:40px 20px}}
+.eyebrow{color:var(--accent);font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+h2{font-size:44px;line-height:1.15;margin:8px 0 12px;max-width:900px}@container (max-width:500px){h2{font-size:28px}}
+.lead{color:var(--ink-2);font-size:17px;line-height:1.6;max-width:720px;margin:0 0 32px}
+.btn{display:inline-flex;align-items:center;white-space:nowrap;background:var(--accent);color:#fff;border-radius:999px;padding:14px 26px;font-weight:700;font-size:15px;text-decoration:none;border:0}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.grid{display:grid;gap:20px}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@container (max-width:500px){.g3,.g4{grid-template-columns:1fr}.g4.k{grid-template-columns:1fr 1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.card .b{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.card h3{margin:0;font-size:20px}.desc{font-size:14px;color:var(--ink-2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+.ph{aspect-ratio:4/3;background:repeating-linear-gradient(45deg,#F3EDE3 0 12px,#EFE8DC 12px 24px);display:grid;place-items:center;color:var(--ink-2);font:600 12px Manrope;text-align:center;padding:8px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap;color:var(--ink-2)}
+.link{color:var(--accent);font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap;margin-top:auto}
+.theme-premium{background:#121214;color:#F2E9D8}.theme-premium .card{background:#1B1B1F;border-color:#2C2A27}.theme-premium .desc,.theme-premium .lead{color:#BFB6A6}
+.theme-premium .eyebrow,.theme-premium .link{color:#D4AF6A}.theme-premium .btn{background:#D4AF6A;color:#121214}.theme-premium .ph{background:repeating-linear-gradient(45deg,#1F1E22 0 12px,#232226 12px 24px);color:#8E8676}
+.theme-premium .tag{border-color:#3A352D;color:#D4AF6A}
+.kpi{border-top:2px solid var(--ink);padding-top:14px}.kpi b{font-size:40px;display:block}.kpi span{font-size:14px;color:var(--ink-2)}
+@container (max-width:500px){.kpi b{font-size:30px}}
+.split{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}@container (max-width:500px){.split{grid-template-columns:1fr;gap:24px}}
+.steps{counter-reset:s;display:grid;gap:14px;padding:0;margin:0;list-style:none}.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;font-size:15px;line-height:1.5}
+.steps li:before{content:counter(s,decimal-leading-zero);font-weight:800;color:var(--accent);min-width:28px}
+.cert{display:flex;flex-wrap:wrap;gap:10px}.cert span{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-weight:700;font-size:13px;white-space:nowrap}
+.filters{display:flex;gap:8px;overflow-x:auto;margin-bottom:24px;padding-bottom:4px}.filters span{white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;background:#fff}
+.filters .on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.masonry{columns:3;column-gap:20px}@container (max-width:500px){.masonry{columns:1}}.masonry .card{break-inside:avoid;margin-bottom:20px}
+.quote{font-size:15px;font-style:italic;color:var(--ink-2);margin:0}.flag{font-size:12px;font-weight:700;color:var(--ink-2)}
+.cta{background:var(--ink);color:#fff;border-radius:24px;padding:40px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.cta h3{margin:0;font-size:28px;max-width:680px}@container (max-width:500px){.cta{padding:24px}.cta h3{font-size:22px}}
+.ru{border-top:1px dashed var(--line)}
+</style></head><body>
+<h1 class="doc">设计稿 · 行业方案 / 工厂实力 / 案例墙（Refs #86 · #65 第 4 条 · #8）</h1>
+<p class="note">每页左侧 1440 桌面、右侧 390 手机；每页先英文，下方虚线后为俄语样例（检验长文案留白）。礼盒、酒盒相关块使用 .theme-premium。斜纹块 = 待 3D 建模海报 / 工厂实拍替换的占位图，标注了目标路径。所有按钮 white-space:nowrap；CTA 统一 “Get a quote”。</p>
+<div id="pages"></div>
+
+<template id="t-industry">
+<section class="sec"><div class="eyebrow">{{ind.eye}}</div><h2>{{ind.h}}</h2><p class="lead">{{ind.lead}}</p>
+<div class="grid g3">
+ <article class="card"><div class="ph">posters/custom-color-boxes.webp</div><div class="b"><h3>{{ind.c1}}</h3><p class="desc">{{ind.c1d}}</p><div class="tags"><span class="tag">Color boxes</span><span class="tag">Paper cups</span></div><a class="link">{{ind.more}} →</a></div></article>
+ <article class="card"><div class="ph">posters/custom-corrugated-boxes.webp</div><div class="b"><h3>{{ind.c2}}</h3><p class="desc">{{ind.c2d}}</p><div class="tags"><span class="tag">Corrugated</span><span class="tag">Pulp molding</span></div><a class="link">{{ind.more}} →</a></div></article>
+ <article class="card"><div class="ph">posters/custom-party-supplies.webp</div><div class="b"><h3>{{ind.c3}}</h3><p class="desc">{{ind.c3d}}</p><div class="tags"><span class="tag">Christmas</span><span class="tag">Gift cards</span></div><a class="link">{{ind.more}} →</a></div></article>
+</div></section>
+<section class="sec theme-premium"><div class="split"><div><div class="eyebrow">{{ind.pe}}</div><h2>{{ind.ph}}</h2><p class="lead">{{ind.pl}}</p><div class="tags" style="margin-bottom:24px"><span class="tag">Hot-stamped gold foil</span><span class="tag">Magnetic lid</span><span class="tag">EVA insert</span></div><a class="btn">Get a quote</a></div>
+<div class="grid" style="grid-template-columns:1fr 1fr"><div class="ph" style="aspect-ratio:1">posters/custom-wine-boxes.webp<br>(#121214 bg)</div><div class="ph" style="aspect-ratio:1">posters/custom-gift-boxes.webp<br>(#121214 bg)</div></div></div></section>
+<section class="sec"><div class="cta"><h3>{{cta}}</h3><a class="btn">Get a quote</a></div></section>
+</template>
+
+<template id="t-factory">
+<section class="sec"><div class="split"><div><div class="eyebrow">{{fac.eye}}</div><h2>{{fac.h}}</h2><p class="lead">{{fac.lead}}</p><a class="btn">Get a quote</a> <a class="btn ghost">{{fac.tour}}</a></div><div class="ph" style="aspect-ratio:16/10">factory/workshop-wide.webp · 工厂实拍待提供</div></div></section>
+<section class="sec" style="padding-top:0"><div class="grid g4 k">
+ <div class="kpi"><b>15+</b><span>{{fac.k1}}</span></div><div class="kpi"><b>20,000 m²</b><span>{{fac.k2}}</span></div><div class="kpi"><b>8 M</b><span>{{fac.k3}}</span></div><div class="kpi"><b>40+</b><span>{{fac.k4}}</span></div></div></section>
+<section class="sec" style="padding-top:0"><div class="split"><div><h2 style="font-size:32px">{{fac.ph}}</h2><ol class="steps"><li>{{fac.s1}}</li><li>{{fac.s2}}</li><li>{{fac.s3}}</li><li>{{fac.s4}}</li><li>{{fac.s5}}</li></ol></div>
+<div class="grid" style="grid-template-columns:1fr 1fr"><div class="ph">factory/offset-press.webp</div><div class="ph">factory/die-cutting.webp</div><div class="ph">factory/qc-lab.webp</div><div class="ph">factory/warehouse.webp</div></div></div></section>
+<section class="sec" style="padding-top:0"><h2 style="font-size:28px">{{fac.ce}}</h2><div class="cert"><span>ISO 9001</span><span>FSC® (Chain of Custody)</span><span>BSCI</span><span>FDA food contact</span><span>EAC (RU)</span></div><p class="desc" style="margin-top:10px">{{fac.cn}}</p></section>
+</template>
+
+<template id="t-cases">
+<section class="sec"><div class="eyebrow">{{cas.eye}}</div><h2>{{cas.h}}</h2><p class="lead">{{cas.lead}}</p>
+<div class="filters"><span class="on">{{cas.all}}</span><span>North America</span><span>Europe</span><span>Australia</span><span>Russia</span><span>Gift &amp; wine</span><span>Food &amp; beverage</span></div>
+<div class="masonry">
+ <article class="card"><div class="ph" style="aspect-ratio:4/5">cases/coffee-cups-ca.webp</div><div class="b"><span class="flag">🇨🇦 Canada · Paper cups · 300k pcs</span><h3>{{cas.a}}</h3><p class="quote">“{{cas.aq}}”</p><a class="link">{{cas.more}} →</a></div></article>
+ <article class="card"><div class="ph">cases/ecom-mailers-de.webp</div><div class="b"><span class="flag">🇩🇪 Germany · Corrugated · 120k pcs</span><h3>{{cas.b}}</h3><p class="desc">{{cas.bd}}</p><a class="link">{{cas.more}} →</a></div></article>
+ <article class="card"><div class="ph" style="aspect-ratio:1">cases/xmas-au.webp</div><div class="b"><span class="flag">🇦🇺 Australia · Christmas · 50k sets</span><h3>{{cas.c}}</h3><p class="desc">{{cas.cd}}</p><a class="link">{{cas.more}} →</a></div></article>
+ <article class="card"><div class="ph">cases/pulp-trays-us.webp</div><div class="b"><span class="flag">🇺🇸 USA · Pulp molding · 1M pcs</span><h3>{{cas.d}}</h3><p class="desc">{{cas.dd}}</p><a class="link">{{cas.more}} →</a></div></article>
+</div></section>
+<section class="sec theme-premium"><div class="eyebrow">{{cas.pe}}</div><div class="split"><div class="ph" style="aspect-ratio:16/10">cases/wine-box-ru.webp (#121214)</div><div><span class="flag" style="color:#BFB6A6">🇷🇺 Russia · Wine boxes · 20k pcs</span><h2 style="font-size:32px">{{cas.ph}}</h2><p class="quote" style="color:#BFB6A6">“{{cas.pq}}”</p><p style="margin-top:24px"><a class="btn">Get a quote</a></p></div></div></section>
+</template>
+
+<script>
+const T={en:{cta:"Tell us your product, quantity and market — we reply within 24 hours.",
+ind:{eye:"Solutions by industry",h:"Packaging built for your industry",lead:"Pick your sector to see matching structures, materials and certifications.",c1:"Food & beverage",c1d:"Food-safe inks, FDA-compliant cups and grease-resistant color boxes.",c2:"E-commerce & shipping",c2d:"Mailer boxes and molded inserts that survive long-haul export freight.",c3:"Seasonal & retail",c3d:"Christmas sets, party supplies and gift cards ready for shelf.",more:"View solution",pe:"Premium · Wine & gift",ph:"Wine and gift boxes that open like a ceremony",pl:"Rigid board, gold foil and custom inserts for spirits, wine and corporate gifting."},
+fac:{eye:"Our factory",h:"In-house printing, die-cutting and QC under one roof",lead:"From dieline to container loading, every step happens in our own plant.",tour:"Video tour",k1:"Years exporting",k2:"Production floor",k3:"Units per month",k4:"Countries served",ph:"How your order is made",s1:"Dieline & 3D mock-up within 48 h",s2:"Pre-production sample, approved by you",s3:"Offset / flexo printing and lamination",s4:"Die-cutting, gluing and inline QC",s5:"Packing, inspection report and shipping",ce:"Certifications",cn:"Certificate list is a placeholder — real certificates to be confirmed by Ryan."},
+cas:{eye:"Case wall",h:"Packaging we've shipped worldwide",lead:"Real projects for brands in North America, Europe, Australia and Russia.",all:"All",more:"Read the case",a:"Compostable cups for a café chain",aq:"Lids fit perfectly and the print is sharp.",b:"Mailer boxes for a DTC brand",bd:"Cut damage rate in transit and halved packing time.",c:"Christmas gift sets",cd:"Six SKUs in one coordinated design, delivered before November.",d:"Molded pulp trays",dd:"Plastic-free inserts replacing EPS foam.",pe:"Premium case",ph:"Gold-foil wine boxes for a Moscow winery",pq:"Our customers keep the box after the bottle is gone."}},
+ru:{cta:"Расскажите о товаре, тираже и рынке — ответим в течение 24 часов.",
+ind:{eye:"Решения по отраслям",h:"Упаковка, созданная для вашей отрасли",lead:"Выберите отрасль, чтобы увидеть подходящие конструкции, материалы и сертификаты.",c1:"Продукты питания и напитки",c1d:"Безопасные для пищевых продуктов краски, стаканы по стандартам FDA и жиростойкие коробки.",c2:"Электронная коммерция и доставка",c2d:"Почтовые коробки и литые вкладыши, выдерживающие дальнюю экспортную перевозку.",c3:"Сезонная и розничная упаковка",c3d:"Рождественские наборы, товары для праздников и подарочные карты.",more:"Подробнее о решении",pe:"Премиум · Вино и подарки",ph:"Винные и подарочные коробки, которые открывают как церемонию",pl:"Жёсткий картон, золотое тиснение и индивидуальные ложементы."},
+fac:{eye:"Наша фабрика",h:"Печать, высечка и контроль качества на собственном производстве",lead:"От развёртки до погрузки контейнера — каждый этап на нашем заводе.",tour:"Видеоэкскурсия",k1:"Лет экспорта",k2:"Производственная площадь",k3:"Единиц в месяц",k4:"Стран-клиентов",ph:"Как изготавливается ваш заказ",s1:"Развёртка и 3D-макет за 48 часов",s2:"Предсерийный образец на ваше утверждение",s3:"Офсетная / флексопечать и ламинирование",s4:"Высечка, склейка и поточный контроль",s5:"Упаковка, отчёт об инспекции и отгрузка",ce:"Сертификаты",cn:"Список сертификатов — заглушка, Райан подтвердит реальные."},
+cas:{eye:"Стена кейсов",h:"Упаковка, которую мы отправили по всему миру",lead:"Реальные проекты для брендов Северной Америки, Европы, Австралии и России.",all:"Все",more:"Читать кейс",a:"Компостируемые стаканы для сети кофеен",aq:"Крышки сидят идеально, печать чёткая.",b:"Почтовые коробки для DTC-бренда",bd:"Меньше повреждений при доставке и вдвое быстрее упаковка.",c:"Рождественские подарочные наборы",cd:"Шесть артикулов в едином дизайне, поставка до ноября.",d:"Лотки из формованной целлюлозы",dd:"Вкладыши без пластика вместо пенополистирола.",pe:"Премиум-кейс",ph:"Винные коробки с золотым тиснением для московской винодельни",pq:"Покупатели хранят коробку и после того, как бутылка выпита."}}};
+const fill=(h,d)=>h.replace(/\{\{([\w.]+)\}\}/g,(_,k)=>k.split('.').reduce((o,x)=>o[x],d));
+const pages=[["t-industry","① Industry solutions · /[locale]/industries"],["t-factory","② Factory · /[locale]/factory"],["t-cases","③ Case wall · /[locale]/case-studies"]];
+const root=document.getElementById('pages');
+for(const[id,title] of pages){const h=document.getElementById(id).innerHTML;
+ const row=document.createElement('div');row.className='row';
+ for(const c of ['d','m']){const w=document.createElement('div');w.innerHTML=`<p class="lbl">${title} — ${c=='d'?'Desktop 1440':'Mobile 390'} · EN / RU</p><div class="frame ${c}">${fill(h,T.en)}<div class="ru">${fill(h,T.ru)}</div></div>`;row.append(w)}
+ root.append(row)}
+</script></body></html>
