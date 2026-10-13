@@ -55,8 +55,9 @@ type RetentionDb = {
 };
 
 /** 删除超过 AUDIT_RETAIN_DAYS 的审计日志（分批） */
+export const auditLogsWhere = (now = new Date()) => ({ createdAt: { lt: daysAgo(retention.auditDays, now) } });
 export async function cleanupAuditLogs(db: RetentionDb, now = new Date(), cap = maxPerRun()) {
-  const where = { createdAt: { lt: daysAgo(retention.auditDays, now) } };
+  const where = auditLogsWhere(now);
   return inBatches(
     async (take) => (await db.auditLog.findMany({ where, select: { id: true }, orderBy: { createdAt: 'asc' }, take })).map((r) => r.id),
     async (ids) => (await db.auditLog.deleteMany({ where: { id: { in: ids } } })).count, cap);
@@ -65,8 +66,9 @@ export async function cleanupAuditLogs(db: RetentionDb, now = new Date(), cap = 
  * 样品申请计数：数据库里“每邮箱 30 天 1 次”靠 SampleRequest.normalizedEmail，超过期限后清空（分批）。
  * 每 IP 计数在限流存储里（内存 / Upstash），带 TTL 自动过期，不需要这里处理。
  */
+export const sampleCountersWhere = (now = new Date()) => ({ normalizedEmail: { not: null }, createdAt: { lt: daysAgo(retention.sampleCounterDays, now) } } as const);
 export async function clearSampleCounters(db: RetentionDb, now = new Date(), cap = maxPerRun()) {
-  const where = { normalizedEmail: { not: null }, createdAt: { lt: daysAgo(retention.sampleCounterDays, now) } } as const;
+  const where = sampleCountersWhere(now);
   return inBatches(
     async (take) => (await db.sampleRequest.findMany({ where, select: { id: true }, orderBy: { createdAt: 'asc' }, take })).map((r) => r.id),
     async (ids) => (await db.sampleRequest.updateMany({ where: { id: { in: ids } }, data: { normalizedEmail: null } })).count, cap);

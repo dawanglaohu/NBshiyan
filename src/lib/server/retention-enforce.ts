@@ -13,6 +13,8 @@ function intEnv(name: string, def: number, min: number, max: number) {
 /** 后台账号闲置多少天自动停用 */
 export const adminInactiveDays = () => intEnv('ADMIN_INACTIVE_DAYS', 90, 7, 3650);
 
+export const expiredInquiryWhere = (now = new Date()) => ({ retainUntil: { lt: now }, anonymizedAt: null });
+
 /**
  * 保留期到期（retainUntil < now）且未匿名化的询盘：用和手动删除同一套逻辑匿名化（anonymizeInquiryOps），
  * 删除绑定的 logo（记录 + 文件），标记 anonymizedAt 保证幂等。
@@ -21,7 +23,7 @@ export const adminInactiveDays = () => intEnv('ADMIN_INACTIVE_DAYS', 90, 7, 3650
  */
 export async function anonymizeExpiredInquiries(db: PrismaClient, now = new Date(), cap = maxPerRun(), storage: PrivateStorage = defaultStorage) {
   return inBatches(
-    async (take) => (await db.inquiry.findMany({ where: { retainUntil: { lt: now }, anonymizedAt: null }, select: { id: true }, orderBy: { retainUntil: 'asc' }, take })).map((r) => r.id),
+    async (take) => (await db.inquiry.findMany({ where: expiredInquiryWhere(now), select: { id: true }, orderBy: { retainUntil: 'asc' }, take })).map((r) => r.id),
     async (ids) => {
       const rows = await db.inquiry.findMany({ where: { id: { in: ids }, anonymizedAt: null }, select: { id: true, contactId: true } });
       const inqIds = rows.map((r) => r.id);

@@ -20,6 +20,8 @@ export function sniffImage(b: Buffer): 'png' | 'jpeg' | 'webp' | null {
 /** 未过期或已被询盘引用（expiresAt=null）的方案 */
 const liveDesign = (now: Date) => ({ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] });
 
+/** 可删除的未绑定 logo（cleanupOrphanLogos 和 dry run 共用条件） */
+export const orphanLogoWhere = (now = new Date()) => ({ inquiryId: null, createdAt: { lt: new Date(now.getTime() - LOGO_ORPHAN_TTL_MS) }, designs: { none: liveDesign(now) } });
 export async function cleanupOrphanLogos(now = new Date()) {
   const cutoff = new Date(now.getTime() - LOGO_ORPHAN_TTL_MS);
   let deleted = 0;
