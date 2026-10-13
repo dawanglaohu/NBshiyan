@@ -1,6 +1,13 @@
+import type { Metadata } from 'next';
+import { alternatesFor } from '@/i18n/alternates';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { products } from '@/data/products';
 import ProductGallery from '@/components/three/ProductGallery';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  return { alternates: alternatesFor(locale, '/products') };
+}
 
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
