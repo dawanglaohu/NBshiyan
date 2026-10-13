@@ -6,6 +6,7 @@ import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { ID_RE, inquiryScope, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
 import { maskAddress, canViewFullAddress } from '@/lib/server/sample';
+import { buildHistory } from '@/lib/server/admin/history';
 
 export const runtime = 'nodejs';
 type P = { params: Promise<{ id: string }> };
@@ -34,8 +35,19 @@ export async function GET(req: Request, { params }: P) {
   // 样品收货地址是 PII：这里永远脱敏；完整地址只能 POST /api/admin/samples/:id/address（同源 + 权限 + 审计）
   const sample = inq.sample && { ...inq.sample, shippingAddress: maskAddress(inq.sample.shippingAddress), normalizedEmail: undefined };
   const safe = { ...rest, sample, canRevealAddress: !!inq.sample?.shippingAddress && canViewFullAddress(ctx.user, inq), logoUploadId: inq.logoUploads[0]?.id ?? null };
+  // 时间线：只对已通过范围校验（inquiryScope）的询盘查询
+  const audits = await prisma.auditLog.findMany({ where: { target: id, action: 'inquiry.update' }, orderBy: { createdAt: 'asc' }, take: 500, select: { action: true, actorId: true, meta: true, createdAt: true } });
+  const userIds = new Set<string>();
+  for (const a of audits) {
+    if (a.actorId) userIds.add(a.actorId);
+    const aid = (a.meta as { after?: { assigneeId?: string | null } } | null)?.after?.assigneeId;
+    if (aid) userIds.add(aid);
+  }
+  for (const m of inq.messages) if (m.authorId) userIds.add(m.authorId);
+  const users = await prisma.user.findMany({ where: { id: { in: [...userIds] } }, select: { id: true, name: true, role: true } });
+  const history = buildHistory(inq, audits, inq.messages, users);
   await audit({ actorId: ctx.user.id, action: 'inquiry.view', target: id, ip: ctx.ip });
-  return NextResponse.json(safe, { headers: noStore });
+  return NextResponse.json({ ...safe, history }, { headers: noStore });
 }
 
 const Patch = z.object({

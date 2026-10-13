@@ -41,3 +41,11 @@ test('canonical: category landing page per locale, fallback to products', () => 
   assert.match(canonicalFor({ locale: 'ru', category: null }), /\/ru\/products$/);
   assert.match(canonicalFor({ locale: 'en', category: 'unknown' }), /\/en\/products$/);
 });
+
+import { InquiryItemConfig } from '../src/lib/server/designs';
+test('inquiry item config: strict whitelist, wizard shape accepted', () => {
+  assert.ok(InquiryItemConfig.safeParse({ size: '30x20x10 cm', material: 'kraft', timeline: '1m' }).success);
+  assert.ok(InquiryItemConfig.safeParse({ size: { length: 1, width: 2, height: 3, unit: 'cm' }, colors: { body: '#aabbcc' } }).success);
+  for (const bad of [{ evil: 1 }, { material: '<b>' }, { timeline: 'tomorrow' }, { size: 'x'.repeat(201) }, { colors: { body: 'red' } }])
+    assert.equal(InquiryItemConfig.safeParse(bad).success, false, JSON.stringify(bad));
+});
