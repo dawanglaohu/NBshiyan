@@ -17,7 +17,7 @@ A = {
  'wine-boxes': {'en': ['custom wine boxes', 'wine and spirits gift boxes', 'luxury bottle packaging'], 'ru': ['коробки для вина на заказ', 'подарочная упаковка для алкоголя', 'коробки для бутылок с логотипом']},
  'color-printing': {'en': ['packaging printing services', 'full-color packaging printing', 'CMYK and Pantone printing'], 'ru': ['печать упаковки', 'полноцветная печать на картоне', 'печать пантонами']},
  'offset-printing': {'en': ['offset printing services', 'high-volume offset printing', 'catalog and box printing'], 'ru': ['офсетная печать упаковки', 'офсетная печать тиражом', 'печать каталогов и коробок']},
- 'eco-paper-cups': {'en': ['compostable paper cups', 'plastic-free coffee cups', 'PLA and water-based lined cups'], 'ru': ['биоразлагаемые стаканы', 'эко стаканы без пластика', 'стаканы с водным покрытием']},
+ 'eco-paper-cups': {'en': ['eco-friendly paper cups', 'plastic-free coffee cups', 'PLA and water-based lined cups'], 'ru': ['экологичные стаканы', 'эко стаканы без пластика', 'стаканы с водным покрытием']},
  'gift-cards': {'en': ['custom gift cards', 'printed gift vouchers', 'gift card holders and envelopes'], 'ru': ['печать подарочных карт', 'подарочные сертификаты на заказ', 'упаковка для подарочных карт']},
  'christmas-merchandise': {'en': ['custom Christmas packaging', 'holiday gift boxes', 'advent calendars and seasonal packaging'], 'ru': ['новогодняя упаковка на заказ', 'новогодние подарочные коробки', 'адвент-календари на заказ']},
 }

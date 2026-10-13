@@ -20,9 +20,9 @@
 | category→category | `/en/products/custom-gift-boxes` | `/en/products/custom-christmas-packaging` | custom Christmas packaging |
 | category→category | `/en/products/custom-gift-boxes` | `/en/products/custom-printed-boxes` | full-color retail boxes |
 | category→category | `/en/products/molded-pulp-packaging` | `/en/products/custom-corrugated-boxes` | custom corrugated boxes |
-| category→category | `/en/products/molded-pulp-packaging` | `/en/products/compostable-paper-cups` | compostable paper cups |
+| category→category | `/en/products/molded-pulp-packaging` | `/en/products/eco-paper-cups` | eco-friendly paper cups |
 | category→category | `/en/products/molded-pulp-packaging` | `/en/products/custom-gift-boxes` | rigid magnetic gift boxes |
-| category→category | `/en/products/custom-paper-cups` | `/en/products/compostable-paper-cups` | plastic-free coffee cups |
+| category→category | `/en/products/custom-paper-cups` | `/en/products/eco-paper-cups` | plastic-free coffee cups |
 | category→category | `/en/products/custom-paper-cups` | `/en/products/custom-party-supplies` | custom party supplies |
 | category→category | `/en/products/custom-paper-cups` | `/en/products/custom-printed-boxes` | printed product packaging |
 | category→category | `/en/products/custom-party-supplies` | `/en/products/custom-paper-cups` | custom paper cups |
@@ -37,9 +37,9 @@
 | category→category | `/en/products/offset-printing-services` | `/en/products/custom-color-printing` | CMYK and Pantone printing |
 | category→category | `/en/products/offset-printing-services` | `/en/products/custom-printed-boxes` | full-color retail boxes |
 | category→category | `/en/products/offset-printing-services` | `/en/products/custom-gift-cards` | printed gift vouchers |
-| category→category | `/en/products/compostable-paper-cups` | `/en/products/custom-paper-cups` | branded coffee cups |
-| category→category | `/en/products/compostable-paper-cups` | `/en/products/molded-pulp-packaging` | molded fiber trays |
-| category→category | `/en/products/compostable-paper-cups` | `/en/products/custom-party-supplies` | printed party tableware |
+| category→category | `/en/products/eco-paper-cups` | `/en/products/custom-paper-cups` | branded coffee cups |
+| category→category | `/en/products/eco-paper-cups` | `/en/products/molded-pulp-packaging` | molded fiber trays |
+| category→category | `/en/products/eco-paper-cups` | `/en/products/custom-party-supplies` | printed party tableware |
 | category→category | `/en/products/custom-gift-cards` | `/en/products/custom-color-printing` | packaging printing services |
 | category→category | `/en/products/custom-gift-cards` | `/en/products/custom-gift-boxes` | custom gift boxes |
 | category→category | `/en/products/custom-gift-cards` | `/en/products/offset-printing-services` | offset printing services |
@@ -73,7 +73,7 @@
 | category→category | `/ru/products/podarochnye-korobki` | `/ru/products/novogodnyaya-upakovka` | новогодняя упаковка на заказ |
 | category→category | `/ru/products/podarochnye-korobki` | `/ru/products/tsvetnye-korobki` | коробки с логотипом |
 | category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/gofrokorobki` | гофрокороба на заказ |
-| category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/ekologichnye-stakany` | биоразлагаемые стаканы |
+| category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/ekologichnye-stakany` | экологичные стаканы |
 | category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/podarochnye-korobki` | жесткие коробки с магнитом |
 | category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/ekologichnye-stakany` | эко стаканы без пластика |
 | category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/tovary-dlya-prazdnikov` | бумажная посуда для праздника |

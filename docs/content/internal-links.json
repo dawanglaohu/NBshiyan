@@ -76,8 +76,8 @@
       "locale": "en",
       "kind": "category→category",
       "from": "/en/products/molded-pulp-packaging",
-      "to": "/en/products/compostable-paper-cups",
-      "anchor": "compostable paper cups"
+      "to": "/en/products/eco-paper-cups",
+      "anchor": "eco-friendly paper cups"
     },
     {
       "locale": "en",
@@ -90,7 +90,7 @@
       "locale": "en",
       "kind": "category→category",
       "from": "/en/products/custom-paper-cups",
-      "to": "/en/products/compostable-paper-cups",
+      "to": "/en/products/eco-paper-cups",
       "anchor": "plastic-free coffee cups"
     },
     {
@@ -194,21 +194,21 @@
     {
       "locale": "en",
       "kind": "category→category",
-      "from": "/en/products/compostable-paper-cups",
+      "from": "/en/products/eco-paper-cups",
       "to": "/en/products/custom-paper-cups",
       "anchor": "branded coffee cups"
     },
     {
       "locale": "en",
       "kind": "category→category",
-      "from": "/en/products/compostable-paper-cups",
+      "from": "/en/products/eco-paper-cups",
       "to": "/en/products/molded-pulp-packaging",
       "anchor": "molded fiber trays"
     },
     {
       "locale": "en",
       "kind": "category→category",
-      "from": "/en/products/compostable-paper-cups",
+      "from": "/en/products/eco-paper-cups",
       "to": "/en/products/custom-party-supplies",
       "anchor": "printed party tableware"
     },
@@ -413,7 +413,7 @@
       "kind": "category→category",
       "from": "/ru/products/izdeliya-iz-tsellyulozy",
       "to": "/ru/products/ekologichnye-stakany",
-      "anchor": "биоразлагаемые стаканы"
+      "anchor": "экологичные стаканы"
     },
     {
       "locale": "ru",
