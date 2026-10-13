@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
+import { pathsForModelPublish, submitIndexNow } from '@/lib/seo/indexnow';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
 import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
@@ -42,6 +43,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await prisma.model3D.update({ where: { id }, data: { published: false } });
   }
   await audit({ actorId: ctx.user.id, action: p.data.published ? 'model.publish' : 'model.unpublish', target: id, meta: { productSlug: m.productSlug, replaced }, ip: ctx.ip });
-  const after = await prisma.model3D.findUniqueOrThrow({ where: { id } });
-  return NextResponse.json({ ...adminView(after), replaced }, { headers: noStore });
+  if (p.data.published) after(() => submitIndexNow(pathsForModelPublish()));
+  const updated = await prisma.model3D.findUniqueOrThrow({ where: { id } });
+  return NextResponse.json({ ...adminView(updated), replaced }, { headers: noStore });
 }
