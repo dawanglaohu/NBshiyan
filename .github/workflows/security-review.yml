@@ -1,0 +1,32 @@
+name: security-review
+# 改动安全相关路径的 PR，必须有安全复查 App 对最新提交的 APPROVE 才能通过
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted, dismissed]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          REVIEWER_APP: ${{ vars.SECURITY_REVIEWER_APP }} # 例：packjoyu-security-reviewer[bot]
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const { owner, repo } = context.repo;
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number });
+            const sensitive = [/^package\.json$/, /^pnpm-lock\.yaml$/, /^\.github\//, /^src\/middleware\.ts$/,
+              /^src\/app\/api\//, /^src\/lib\/server\//, /^security-headers\.ts$/, /^next\.config\.ts$/, /^prisma\//];
+            const hit = files.map(f => f.filename).filter(f => sensitive.some(r => r.test(f)));
+            if (!hit.length) { core.info('未改动安全路径，跳过'); return; }
+            core.info('安全路径：' + hit.join(', '));
+            const app = process.env.REVIEWER_APP;
+            if (!app) core.setFailed('未配置仓库变量 SECURITY_REVIEWER_APP');
+            const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: pr.number });
+            const ok = reviews.some(r => r.user?.login === app && r.state === 'APPROVED' && r.commit_id === pr.head.sha);
+            if (!ok) core.setFailed(`需要 ${app} 对最新提交 ${pr.head.sha.slice(0,7)} 的安全复查批准`);
