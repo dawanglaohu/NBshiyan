@@ -4,6 +4,8 @@ import { Prisma, type PrismaClient } from '@prisma/client';
 import { normalizeEmail } from './sample';
 import { storage as defaultStorage, type PrivateStorage } from './storage';
 import { isLogoKey } from './uploads';
+import { randomId } from './security';
+import { errorSummary } from './mail';
 
 export const PrivacyExportBody = z.object({ email: z.string().trim().email().max(200) }).strict();
 export const PrivacyDeleteBody = z.object({ email: z.string().trim().email().max(200), confirmEmail: z.string().trim().max(200) }).strict()
@@ -81,27 +83,52 @@ export async function deleteCustomer(db: PrismaClient, email: string, storage: P
   const logos = await db.logoUpload.findMany({ where: { inquiryId: { in: inquiryIds } }, select: { id: true, path: true } });
   await db.$transaction([
     db.contact.updateMany({ where: { id: { in: ids } }, data: anonymizedContact(hash) as Prisma.ContactUpdateManyMutationInput }),
-    ...anonymizeInquiryOps(db, inquiryIds, logos.map((l) => l.id)),
+    ...(await anonymizeInquiryOps(db, inquiryIds, logos.map((l) => l.id))),
   ]);
   await deleteLogoFiles(logos, storage);
   return { contacts: ids.length, inquiries: inquiryIds.length, logos: logos.length };
 }
 
-/** 询盘级匿名化（手动删除和保留期到期 cron 共用）：留言、备注、往来邮件、样品地址清空，绑定的 logo 记录删除，标记 anonymizedAt */
-export function anonymizeInquiryOps(db: PrismaClient, inquiryIds: string[], logoIds: string[], now = new Date()) {
+/** 去掉产品配置里 logo 开头的键（如 logo 文件 key）；其余白名单字段（尺寸、颜色等）保留用于统计 */
+export function stripLogoKeys(config: unknown): Prisma.InputJsonValue | typeof Prisma.DbNull {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return Prisma.DbNull;
+  const out = Object.fromEntries(Object.entries(config as Record<string, unknown>).filter(([k]) => !/^logo/i.test(k)));
+  return out as Prisma.InputJsonValue;
+}
+
+/**
+ * 询盘级匿名化（手动删除和保留期到期 cron 共用），返回要放进同一个 $transaction 的操作：
+ * 留言、来源归因、评分理由清空；回信 token 换成新的随机值（旧的回信地址失效）；产品备注清空、配置去掉 logo 键；
+ * 往来邮件主题正文、内部备注改为 [deleted]；样品收货地址、规范化邮箱、物流单号清空；绑定的 logo 记录删除；标记 anonymizedAt。
+ */
+export async function anonymizeInquiryOps(db: PrismaClient, inquiryIds: string[], logoIds: string[], now = new Date()) {
+  const items = await db.inquiryItem.findMany({ where: { inquiryId: { in: inquiryIds }, NOT: { config: { equals: Prisma.DbNull } } }, select: { id: true, config: true } });
   return [
-    db.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null, anonymizedAt: now } }),
+    db.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null, attribution: Prisma.DbNull, trustReasons: Prisma.DbNull, anonymizedAt: now } }),
+    // replyToken 有唯一约束，每条单独换
+    ...inquiryIds.map((id) => db.inquiry.update({ where: { id }, data: { replyToken: randomId(24) } })),
     db.inquiryItem.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { notes: null } }),
+    ...items.map((it) => db.inquiryItem.update({ where: { id: it.id }, data: { config: stripLogoKeys(it.config) } })),
     db.inquiryMessage.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { subject: DELETED, bodyHtml: DELETED } }),
-    db.sampleRequest.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { shippingAddress: Prisma.DbNull, normalizedEmail: null } }),
+    db.inquiryNote.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { body: DELETED } }),
+    db.sampleRequest.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { shippingAddress: Prisma.DbNull, normalizedEmail: null, trackingNo: null } }),
     db.logoUpload.deleteMany({ where: { id: { in: logoIds } } }),
   ];
+}
+
+/**
+ * 客户回信（发到 reply+<token>@REPLY_DOMAIN）找询盘时必须用这个：已匿名化的询盘一律当作不存在。
+ * 注意：目前代码里还没有处理客户回信的接口，以后加的时候必须用它。
+ */
+export async function findInquiryForReply(db: Pick<PrismaClient, 'inquiry'>, token: string) {
+  if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) return null;
+  return db.inquiry.findFirst({ where: { replyToken: token, anonymizedAt: null }, select: { id: true, ref: true, locale: true } });
 }
 
 /** 记录已删再删文件；只删合法 logo key；失败只记错误类型（文件私有，孤儿文件无记录可访问） */
 export async function deleteLogoFiles(logos: { path: string }[], storage: PrivateStorage = defaultStorage) {
   for (const l of logos) {
     if (!isLogoKey(l.path)) { console.error('[privacy] skip non-logo key'); continue; }
-    await storage.delete(l.path).catch((e) => console.error('[privacy] logo file delete failed', (e as Error).name));
+    await storage.delete(l.path).catch((e) => console.error('[privacy] logo file delete failed', errorSummary(e)));
   }
 }

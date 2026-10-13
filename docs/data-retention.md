@@ -9,11 +9,13 @@
 | 设计（短链） | `DESIGN_TTL_DAYS` / `DESIGN_GRACE_DAYS` | 180 / 90 | 过期返回 410，过期后 grace 天由 cron 删除 |
 | 样品申请邮箱计数（normalizedEmail） | `SAMPLE_COUNTER_RETAIN_DAYS` | 30 | cron 置空；IP 计数器靠限流存储 TTL 自动过期 |
 | 审计日志 | `AUDIT_RETAIN_DAYS` | 365（最少 30） | cron 删除 |
-| 询盘到期匿名化 | `INQUIRY_RETAIN_DAYS` | 730 | 新询盘写入 `retainUntil`；到期后 cron 用与手动删除相同的逻辑匿名化（留言、备注、往来邮件、样品地址清空，绑定的 logo 记录和文件删除），写 `anonymizedAt`，不重复处理。联系人在其名下没有其他未匿名化询盘时才匿名化。每批 500 条，受 `RETENTION_MAX_PER_RUN` 限制 |
+| 询盘到期匿名化 | `INQUIRY_RETAIN_DAYS` | 730 | 新询盘写入 `retainUntil`；到期后 cron 用与手动删除相同的逻辑匿名化（留言、来源归因、评分理由、产品备注清空；往来邮件和内部备注改为 `[deleted]`；产品配置去掉 logo 键；样品地址、物流单号清空；回信 token 换成随机值，旧回信地址失效；绑定的 logo 记录和文件删除），写 `anonymizedAt`，不重复处理。联系人在其名下没有其他未匿名化询盘时才匿名化。每批 500 条，受 `RETENTION_MAX_PER_RUN` 限制 |
 | 后台账号闲置停用 | `ADMIN_INACTIVE_DAYS` | 90（7–3650） | 从 max(最近登录 `lastLoginAt`, 重新启用 `reactivatedAt`, 创建时间) 起算；从未登录的按创建时间。cron **停用不删除**，与手动停用同一路径（会话失效、取消询盘分配），审计 `user.disable_inactive`（actor = `system`）。最后一个有效 ADMIN 不停用（`assertNotLastActiveAdmin`，与停用同一事务，`SELECT … FOR UPDATE`）。ADMIN 可用 `PATCH /api/admin/users/:id {"disabled": false}` 重新启用，闲置天数从启用时重新计算 |
 | 未绑定 / 已失效的 logo | — | — | cron 分批删除（删除前校验 key 必须是 `logos/YYYY-MM/<id>.png`） |
 
 清理入口：`/api/admin/cron/cleanup-uploads`（CRON_SECRET，每天 03:00 UTC）。顺序：过期方案 → 孤儿 logo → 样品邮箱计数 → 到期询盘匿名化 → 闲置账号停用 → 审计日志；日志和告警只含条数和错误类型/码，不含个人信息。数据库字段 `Inquiry.anonymizedAt`、`User.lastLoginAt`、`User.reactivatedAt` 需要在部署前 `prisma db push`。审计日志、样品计数、过期方案都分批处理（每批 500 条，按 id 删除/更新），每次运行最多 `RETENTION_MAX_PER_RUN`（默认 20000）条，没处理完的留给下次。每步独立执行，任一失败返回 500 并发送管理员告警（只含错误 name/code）。
+
+**并发**：清理（包括试运行）同一时间只跑一次，正在跑时再请求返回 409 `cleanup_running`（Postgres advisory lock）。
 
 **试运行（`RETENTION_DRY_RUN=1`）**：cron 只统计、不清理。返回 `{ dryRun: true, designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos, inactiveUsers, skippedLastAdmin }`。全程只用 count 和只读查询：不写数据库、不删文件、不写审计，日志只记条数。统计的是全部待处理条数，不受 `RETENTION_MAX_PER_RUN` 限制。真实运行会先删过期方案，有些 logo 会因此变成孤儿，所以 `orphanLogos` 可能比真实运行时少。上线前设成 `1` 触发一次，核对条数后**删掉这个变量**，下次 cron 才会真正清理。
 

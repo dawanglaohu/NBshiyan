@@ -23,14 +23,14 @@ const liveDesign = (now: Date) => ({ OR: [{ expiresAt: null }, { expiresAt: { gt
 /** 可删除的未绑定 logo（cleanupOrphanLogos 和 dry run 共用条件） */
 export const orphanLogoWhere = (now = new Date()) => ({ inquiryId: null, createdAt: { lt: new Date(now.getTime() - LOGO_ORPHAN_TTL_MS) }, designs: { none: liveDesign(now) } });
 export async function cleanupOrphanLogos(now = new Date()) {
-  const cutoff = new Date(now.getTime() - LOGO_ORPHAN_TTL_MS);
+  const where = orphanLogoWhere(now);
   let deleted = 0;
   for (;;) {
-    const batch = await prisma.logoUpload.findMany({ where: { inquiryId: null, createdAt: { lt: cutoff }, designs: { none: liveDesign(now) } }, select: { id: true, path: true }, take: 200 });
+    const batch = await prisma.logoUpload.findMany({ where, select: { id: true, path: true }, take: 200 });
     if (!batch.length) break;
     for (const u of batch) {
       // 先删记录（条件里再确认未绑定），再删文件，避免删掉刚被绑定的文件
-      const r = await prisma.logoUpload.deleteMany({ where: { id: u.id, inquiryId: null, designs: { none: liveDesign(now) } } });
+      const r = await prisma.logoUpload.deleteMany({ where: { id: u.id, ...where } });
       if (r.count === 1) { if (isLogoKey(u.path)) await storage.delete(u.path); else console.error('[uploads] skip non-logo key'); deleted++; }
     }
     if (batch.length < 200) break;

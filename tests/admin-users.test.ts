@@ -38,7 +38,7 @@ test('disabling / role change / enable / unlock invalidate sessions (sessionVers
   assert.ok(bumpsSession({ unlock: true }));
   assert.ok(!bumpsSession({ name: 'x' }));
   const r = readFileSync('src/app/api/admin/users/[id]/route.ts', 'utf8');
-  assert.match(r, /bumpsSession\(b\) \? \{ sessionVersion: \{ increment: 1 \} \}/);
+  assert.match(r, /bumpsSession\(rest\) \? \{ sessionVersion: \{ increment: 1 \} \}/); // 停用的会话失效走 disableUserTx（同样 sessionVersion+1）
 });
 
 test('normalizeAccountEmail: trim + NFKC + lowercase, keeps +tag and dots', () => {

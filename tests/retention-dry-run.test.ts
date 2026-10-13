@@ -49,6 +49,6 @@ test('cron route: dry-run branch returns before any cleanup step', async () => {
   const dry = src.indexOf('if (isRetentionDryRun())');
   const auth = src.indexOf('secretMatches(token');
   const steps = src.indexOf('const steps');
-  assert.ok(auth > 0 && dry > auth && steps > dry, 'order: auth → dry run return → steps');
+  assert.ok(auth > 0 && dry > auth && steps > dry, 'order: auth → (lock) → dry run return → steps');
   assert.match(src.slice(dry, steps), /return NextResponse\.json\(\{ dryRun: true/);
 });

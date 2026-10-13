@@ -21,10 +21,12 @@ function inquiryDb(inqs: Inq[], logos: { id: string; path: string; inquiryId: st
         if (w.contactId?.in) r = r.filter((i) => w.contactId.in.includes(i.contactId));
         return r.slice(0, a.take ?? 1e9);
       },
+      update: async () => ({}),
       updateMany: async (a: any) => { let n = 0; for (const i of inqs) if (a.where.id.in.includes(i.id)) { i.message = a.data.message; i.anonymizedAt = a.data.anonymizedAt; n++; } ops.push('inquiry'); return { count: n }; },
     },
     contact: { update: async (a: any) => { contacts[a.where.id].name = a.data.name; return {}; } },
-    inquiryItem: { updateMany: async () => ({ count: 0 }) },
+    inquiryItem: { updateMany: async () => ({ count: 0 }), findMany: async () => [], update: async () => ({}) },
+    inquiryNote: { updateMany: async () => ({ count: 0 }) },
     inquiryMessage: { updateMany: async () => ({ count: 0 }) },
     sampleRequest: { updateMany: async () => ({ count: 0 }) },
     logoUpload: {

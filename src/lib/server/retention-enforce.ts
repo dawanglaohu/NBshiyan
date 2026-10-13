@@ -34,7 +34,7 @@ export async function anonymizeExpiredInquiries(db: PrismaClient, now = new Date
       const logos = await db.logoUpload.findMany({ where: { inquiryId: { in: inqIds } }, select: { id: true, path: true } });
       await db.$transaction([
         ...toAnon.map((c) => db.contact.update({ where: { id: c }, data: anonymizedContact(createHash('sha256').update(`retention:${c}`).digest('hex')) })),
-        ...anonymizeInquiryOps(db, inqIds, logos.map((l) => l.id), now),
+        ...(await anonymizeInquiryOps(db, inqIds, logos.map((l) => l.id), now)),
       ]);
       await deleteLogoFiles(logos, storage);
       return inqIds.length;

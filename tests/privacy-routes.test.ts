@@ -25,8 +25,9 @@ function deps() {
   const op = (name: string, ret: unknown = { count: 0 }) => async (..._a: unknown[]) => { calls.push(name); return ret; };
   const db = {
     contact: { findMany: async (a: { where?: { normalizedEmail?: string; id?: unknown } }) => { calls.push('contact.findMany'); return a.where?.normalizedEmail ? [{ id: 'c1' }] : []; }, updateMany: op('contact.updateMany') },
-    inquiry: { findMany: async () => { calls.push('inquiry.findMany'); return [{ id: 'i1' }]; }, updateMany: op('inquiry.updateMany') },
-    inquiryItem: { updateMany: op('inquiryItem.updateMany') },
+    inquiry: { findMany: async () => { calls.push('inquiry.findMany'); return [{ id: 'i1' }]; }, updateMany: op('inquiry.updateMany'), update: op('inquiry.update') },
+    inquiryItem: { updateMany: op('inquiryItem.updateMany'), findMany: async () => [], update: op('inquiryItem.update') },
+    inquiryNote: { updateMany: op('inquiryNote.updateMany') },
     inquiryMessage: { updateMany: op('inquiryMessage.updateMany') },
     sampleRequest: { updateMany: op('sampleRequest.updateMany') },
     logoUpload: { findMany: async () => { calls.push('logoUpload.findMany'); return []; }, deleteMany: op('logoUpload.deleteMany') },
@@ -123,8 +124,9 @@ test('logo deletion via mocked R2: valid logos/YYYY-MM/<id>.png deleted, invalid
     const deleted: string[][] = [];
     const db = {
       contact: { findMany: async () => [{ id: 'c1' }], updateMany: async () => ({ count: 1 }) },
-      inquiry: { findMany: async () => [{ id: 'i1' }], updateMany: async () => ({ count: 1 }) },
-      inquiryItem: { updateMany: async () => ({ count: 0 }) },
+      inquiry: { findMany: async () => [{ id: 'i1' }], updateMany: async () => ({ count: 1 }), update: async () => ({}) },
+      inquiryItem: { updateMany: async () => ({ count: 0 }), findMany: async () => [], update: async () => ({}) },
+      inquiryNote: { updateMany: async () => ({ count: 0 }) },
       inquiryMessage: { updateMany: async () => ({ count: 0 }) },
       sampleRequest: { updateMany: async () => ({ count: 0 }) },
       logoUpload: { findMany: async () => logos, deleteMany: async (a: { where: { id: { in: string[] } } }) => { deleted.push(a.where.id.in); return { count: a.where.id.in.length }; } },
