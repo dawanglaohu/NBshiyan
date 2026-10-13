@@ -12,17 +12,48 @@
   "locale": "en | ru",
   "contact": { "name": "", "email": "", "company": "", "phone": "", "region": "US" },
   "message": "",
-  "items": [{ "productSlug": "corrugated-box", "quantity": 5000, "config": {}, "designId": "abc123XYZ0" }],
+  "items": [{ "productSlug": "corrugated-box", "quantity": 5000, "config": {}, "notes": "", "designId": "", "shareUrl": "/s/AbCdEfGh23456789" }],
+  "shippingAddress": { "line1": "", "line2": "", "city": "", "state": "", "postalCode": "", "country": "DE" }, // 仅 SAMPLE，必填
   "attribution": { "page": "/en/products/corrugated-box", "utm": {} },
   "website": "",            // 诱饵字段，必须为空
   "turnstileToken": "",
   "logoUploadId": ""       // 可选，见下方 logo 上传
 }
 ```
-返回 `201 { "ref": "PJ-2610-K7Q2MX" }`。会给业务邮箱发通知、给客户发对应语言的自动回复。
+返回 `201 { "ref": "PJ-2610-K7Q2MX" }`。会给业务邮箱发通知、给客户发对应语言的自动回复。所有来源都要 Turnstile，都走同一套可信度评分（产品备注和留言一起评分）。
 
-### `POST /api/designs` 和 `GET /api/designs/:id`
-保存定制方案，返回 `{ "id": "abc123XYZ0", "url": "/s/abc123XYZ0" }`。`/s/*` 页面带 `noindex`。
+- **询价清单（`CART`）**：一个清单提交成一条询盘。`items` 1–20 个，服务端校验；`quantity` 正整数 ≤ 1 亿，`notes` ≤ 500 字，`config` 序列化后 ≤ 2000 字节；同一产品 + 方案不能重复。
+- **分享链接**：`shareUrl` 只接受本站 `/s/<id>`（相对路径或 `NEXT_PUBLIC_SITE_URL` 开头），解析成 `designId`；外站链接返回 400 `share_url_invalid`。引用的方案必须存在且没过期，否则 `422 { "error": "design_invalid" }`。被询盘引用后方案不再过期。
+- **样品申请（`SAMPLE`）**：`items` 1–5 个，`shippingAddress` 必填（禁止控制字符和 `<>`）。限制：
+  - 每个规范化邮箱 30 天 1 次（小写、去 `+后缀`、Gmail 去点，googlemail 归一为 gmail），数据库判断并加锁。超限返回 `429 { "error": "sample_recent" }`，**不带** `retryAfter` / `Retry-After`，避免借此探测邮箱。
+  - 每 IP 30 天 3 次，超限返回带 `retryAfter` 的标准 429。
+- **429 格式**（IP 类限流）：`{ "error": "rate_limited", "retryAfter": 秒 }` + `Retry-After` 头；`retryAfter` 是窗口长度，属上限值。内存限流存储只保留 24 小时内的记录，30 天窗口需要 `RATE_LIMIT_STORE=upstash` 才完全生效（邮箱限制在数据库里，不受影响）。
+
+**收货地址（PII）**：后台询盘列表不返回地址。详情 `GET /api/admin/inquiries/:id` 默认返回脱敏地址（国家、城市首字母、邮编前 2 位）。只有 ADMIN 和被分配的 SALES 可以加 `?reveal=address` 看完整地址，每次写审计 `sample.address.view`（不记录地址内容）；响应里 `canRevealAddress` 告诉前端是否显示“查看完整地址”按钮。EDITOR 无权访问询盘接口。目前没有导出功能，以后加导出时也要写审计。
+
+### `POST /api/designs`、`GET /api/designs/:id`、`GET /api/designs/:id/logo`
+保存定制方案（不可修改），返回 `201 { "id": "AbCdEfGh23456789", "url": "/s/AbCdEfGh23456789", "expiresAt": "…" }`。
+```json
+{
+  "productSlug": "mailer-box",
+  "category": "gift-boxes",          // 可选，categoryMeta 的 key，用于 canonical
+  "locale": "en | ru",
+  "logoUploadId": "",               // 可选，未过期、未绑定询盘的 logo 上传
+  "turnstileToken": "",
+  "config": {
+    "modelId": "", "colors": { "body": "#112233" },
+    "size": { "length": 200, "width": 150, "height": 50, "unit": "mm | cm | in" },
+    "material": "kraft", "finishes": ["foil"], "quantity": 500,
+    "logo": { "placement": "lid", "scale": 1, "offset": [0, 0], "rotation": 0 },
+    "camera": { "position": [0, 0, 3], "target": [0, 0, 0] }
+  }
+}
+```
+- `config` 白名单字段，未知字段 400；请求体 ≤ 16KB，`config` ≤ 8000 字节；每 IP 10 分钟 30 次；需要 Turnstile。
+- id：16 位随机字符（拒绝采样，约 93 bit），不可递增；旧的 10 位 id 仍可读取。
+- 过期：默认 180 天；被询盘引用后不过期，跟随询盘保留期。过期后 `GET` 返回 `410 { "error": "expired", "categoryUrl": "…" }`，再保留 90 天后由定时任务删除（之后 404）。
+- `GET /api/designs/:id` 返回 `{ id, productSlug, category, locale, config, hasLogo, expiresAt, createdAt, slugs, canonical }`，不返回 logo 上传 id（防止被人拿去绑定询盘）；logo 用 `GET /api/designs/:id/logo` 取（重新编码过的 PNG）。都带 `X-Robots-Tag: noindex, nofollow`。
+- 页面 `/s/:id`：`noindex, nofollow`，canonical 指向对应分类落地页 `/{locale}/products/{slug}`（没有分类时指向 `/{locale}/products`）。过期时页面显示“链接已过期”和分类页链接。App Router 页面没法返回 410，HTTP 410 由 API 返回；如果页面也必须 410，需要在 middleware 加规则（安全工程师负责）。
 
 ### `POST /api/uploads/logo`
 询价时上传 logo。公开接口，不需要登录，也不需要 Turnstile token（人机校验只在提交询盘时做）。
@@ -87,7 +118,7 @@
 - 改密码、重置 2FA、账号管理接口（需调用 `revokeSessions()`）
 
 ## 定时任务
-- `GET|POST /api/admin/cron/cleanup-uploads`：删除超过 24 小时未绑定询盘的 logo（文件和记录）。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
+- `GET|POST /api/admin/cron/cleanup-uploads`：先删除过期超过 90 天、且没被询盘引用的方案（以及询盘已删除后留下的方案），再删除超过 24 小时未绑定询盘、也没被有效方案引用的 logo（文件和记录）。返回 `{ deleted, designs }`。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
 
 ## 存储与限流（部署配置）
 - **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（默认，`UPLOAD_DIR`）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。

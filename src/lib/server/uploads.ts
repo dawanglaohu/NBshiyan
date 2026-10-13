@@ -17,15 +17,18 @@ export function sniffImage(b: Buffer): 'png' | 'jpeg' | 'webp' | null {
 }
 
 /** 删除未绑定询盘、创建超过 24 小时的上传（文件和记录）。返回删除条数。 */
+/** 未过期或已被询盘引用（expiresAt=null）的方案 */
+const liveDesign = (now: Date) => ({ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] });
+
 export async function cleanupOrphanLogos(now = new Date()) {
   const cutoff = new Date(now.getTime() - LOGO_ORPHAN_TTL_MS);
   let deleted = 0;
   for (;;) {
-    const batch = await prisma.logoUpload.findMany({ where: { inquiryId: null, createdAt: { lt: cutoff } }, select: { id: true, path: true }, take: 200 });
+    const batch = await prisma.logoUpload.findMany({ where: { inquiryId: null, createdAt: { lt: cutoff }, designs: { none: liveDesign(now) } }, select: { id: true, path: true }, take: 200 });
     if (!batch.length) break;
     for (const u of batch) {
       // 先删记录（条件里再确认未绑定），再删文件，避免删掉刚被绑定的文件
-      const r = await prisma.logoUpload.deleteMany({ where: { id: u.id, inquiryId: null } });
+      const r = await prisma.logoUpload.deleteMany({ where: { id: u.id, inquiryId: null, designs: { none: liveDesign(now) } } });
       if (r.count === 1) { await storage.delete(u.path); deleted++; }
     }
     if (batch.length < 200) break;

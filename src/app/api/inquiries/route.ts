@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { randomId, hitRateLimit, verifyTurnstile, escapeHtml, clientIp, readBody } from '@/lib/server/security';
+import { randomId, hitRateLimit, verifyTurnstile, escapeHtml, clientIp, readBody, tooManyRequests } from '@/lib/server/security';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
 import { sendMail, autoReply } from '@/lib/server/mail';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
+import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl } from '@/lib/server/designs';
+import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT } from '@/lib/server/sample';
 
 class LogoInvalid extends Error {}
+class SampleLimited extends Error {}
+
+const CART_MAX_ITEMS = 20;
 
 const Body = z.object({
   source: z.enum(['FORM', 'WIZARD', 'CART', 'CUSTOMIZER', 'SAMPLE']),
@@ -22,13 +27,30 @@ const Body = z.object({
   items: z.array(z.object({
     productSlug: z.string().regex(/^[a-z0-9-]{1,80}$/),
     quantity: z.number().int().positive().max(100_000_000).optional(),
-    config: z.record(z.unknown()).optional(),
-    designId: z.string().regex(/^[A-Za-z0-9]{10}$/).optional(),
-  })).max(30).default([]),
+    config: z.record(z.unknown()).refine((c) => JSON.stringify(c).length <= 2000, 'config_too_large').optional(),
+    notes: z.string().trim().max(500).optional(),
+    designId: z.string().regex(DESIGN_ID_RE).optional(),
+    shareUrl: z.string().max(300).optional(), // 本站 /s/<id>，服务端解析成 designId
+  }).strict().transform((i, ctx) => {
+    const { shareUrl, ...rest } = i;
+    if (shareUrl === undefined) return rest;
+    const id = designIdFromShareUrl(shareUrl);
+    if (!id || (rest.designId && rest.designId !== id)) { ctx.addIssue({ code: 'custom', message: 'share_url_invalid' }); return z.NEVER; }
+    return { ...rest, designId: id };
+  })).max(CART_MAX_ITEMS).default([]),
+  shippingAddress: ShippingAddress.optional(), // 仅样品申请，PII
   attribution: z.record(z.unknown()).optional(),
   website: z.string().max(500).optional(), // 诱饵字段，有值则静默丢弃
   turnstileToken: z.string().optional(),
   logoUploadId: z.string().regex(LOGO_ID_RE).optional(), // 来自 POST /api/uploads/logo
+}).superRefine((b, ctx) => {
+  // 询价清单（CART）和样品申请（SAMPLE）必须带产品；样品最多 5 个
+  if ((b.source === 'CART' || b.source === 'SAMPLE') && b.items.length === 0) ctx.addIssue({ code: 'custom', path: ['items'], message: 'items_required' });
+  if (b.source === 'SAMPLE' && b.items.length > SAMPLE_MAX_ITEMS) ctx.addIssue({ code: 'custom', path: ['items'], message: 'too_many_samples' });
+  if (b.source === 'SAMPLE' && !b.shippingAddress) ctx.addIssue({ code: 'custom', path: ['shippingAddress'], message: 'required' });
+  if (b.source !== 'SAMPLE' && b.shippingAddress) ctx.addIssue({ code: 'custom', path: ['shippingAddress'], message: 'sample_only' });
+  const slugs = b.items.map((i) => i.productSlug + '|' + (i.designId ?? ''));
+  if (new Set(slugs).size !== slugs.length) ctx.addIssue({ code: 'custom', path: ['items'], message: 'duplicate_items' });
 });
 
 const RETAIN_DAYS = 730;
@@ -43,7 +65,7 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(json);
   if (!parsed.success) {
     // 无效请求单独计数：有 IP 时按 IP，宽松上限，不占用正常提交的额度
-    if (ip && !(await hitRateLimit(`inq-bad:${ip}`, 30))) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+    if (ip && !(await hitRateLimit(`inq-bad:${ip}`, 30))) return tooManyRequests(600);
     return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
   }
   const b = parsed.data;
@@ -52,7 +74,10 @@ export async function POST(req: Request) {
   const email = b.contact.email.trim().toLowerCase();
   const [ipOk, emailOk] = await Promise.all([ip ? hitRateLimit(`inq:${ip}`) : hitRateLimit('inq:noip:all', 100), hitRateLimit(`inq:email:${email}`)]);
   const limited = !ipOk || !emailOk;
-  if (limited) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+  if (limited) return tooManyRequests(600);
+  // 样品：按规范化邮箱 30 天 1 次（数据库判断，见事务内）+ 每 IP 30 天 3 次
+  const sampleEmail = b.source === 'SAMPLE' ? normalizeEmail(email) : null;
+  if (sampleEmail && !(await hitRateLimit(`inq:sample:ip:${ip ?? 'noip'}`, ip ? SAMPLE_IP_LIMIT : 50, SAMPLE_EMAIL_WINDOW_DAYS * 86_400_000))) return tooManyRequests(SAMPLE_EMAIL_WINDOW_DAYS * 86_400, { reason: 'sample_ip_limit' });
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃
   const captcha = await verifyTurnstile(b.turnstileToken, ip);
   if (captcha === 'unavailable') {
@@ -61,8 +86,15 @@ export async function POST(req: Request) {
   }
   if (captcha === 'fail') return NextResponse.json({ error: 'captcha' }, { status: 403 });
 
+  // 引用的方案必须存在且未过期
+  const designIds = [...new Set(b.items.flatMap((i) => (i.designId ? [i.designId] : [])))];
+  const live = await liveDesignIds(designIds);
+  if (live.size !== designIds.length) return NextResponse.json({ error: 'design_invalid' }, { status: 422 });
+
   const ipCountry = process.env.BEHIND_CLOUDFLARE === '1' ? req.headers.get('cf-ipcountry') : req.headers.get('x-vercel-ip-country');
-  const trust = scoreInquiry({ ...b.contact, ipCountry, message: b.message });
+  // 产品备注和留言一起评分（链接、垃圾词同样计入）
+  const scoredText = [b.message, ...b.items.map((i) => i.notes)].filter(Boolean).join('\n');
+  const trust = scoreInquiry({ ...b.contact, ipCountry, message: scoredText || undefined });
   // 编号完全随机，不依赖计数，并发下不会重复（ref 有唯一约束兜底）
   const d = new Date();
   const ref = `PJ-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}-${randomId(6).toUpperCase()}`;
@@ -71,6 +103,12 @@ export async function POST(req: Request) {
   let inquiry;
   try {
     inquiry = await prisma.$transaction(async (tx) => {
+      if (sampleEmail) {
+        // 同一规范化邮箱排队判断，避免并发绕过
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'sample:' + sampleEmail}))`;
+        const since = new Date(Date.now() - SAMPLE_EMAIL_WINDOW_DAYS * 86_400_000);
+        if (await tx.sampleRequest.findFirst({ where: { normalizedEmail: sampleEmail, createdAt: { gte: since } }, select: { id: true } })) throw new SampleLimited();
+      }
       const created = await tx.inquiry.create({
         data: {
           ref, replyToken: randomId(24), locale: b.locale, source: b.source, message: b.message,
@@ -79,9 +117,11 @@ export async function POST(req: Request) {
           retainUntil: new Date(Date.now() + RETAIN_DAYS * 86_400_000),
           contact: { create: b.contact },
           items: { create: b.items.map((i) => ({ ...i, config: (i.config ?? undefined) as object | undefined })) },
-          ...(b.source === 'SAMPLE' ? { sample: { create: {} } } : {}),
+          ...(sampleEmail ? { sample: { create: { normalizedEmail: sampleEmail, shippingAddress: b.shippingAddress } } } : {}),
         },
       });
+      // 被询盘引用的方案不再过期，跟随询盘保留期
+      if (designIds.length) await tx.sharedDesign.updateMany({ where: { id: { in: designIds } }, data: { expiresAt: null } });
       if (b.logoUploadId) {
         const r = await tx.logoUpload.updateMany({
           where: { id: b.logoUploadId, inquiryId: null, expiresAt: { gt: new Date() } },
@@ -92,6 +132,8 @@ export async function POST(req: Request) {
       return created;
     });
   } catch (e) {
+    // 按邮箱的限制不返回 retryAfter / Retry-After，避免借此探测某邮箱何时申请过
+    if (e instanceof SampleLimited) return NextResponse.json({ error: 'sample_recent' }, { status: 429, headers: { 'Cache-Control': 'no-store' } });
     if (e instanceof LogoInvalid) return NextResponse.json({ error: 'logo_invalid' }, { status: 422 });
     throw e;
   }

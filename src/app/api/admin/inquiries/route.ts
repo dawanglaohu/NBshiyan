@@ -52,7 +52,8 @@ export async function GET(req: Request) {
     prisma.inquiry.findMany({
       where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * pageSize, take: pageSize,
       select: { id: true, ref: true, status: true, source: true, locale: true, trustScore: true, ipCountry: true, createdAt: true, assigneeId: true,
-        contact: { select: { name: true, email: true, company: true, region: true } }, _count: { select: { items: true, messages: true } } },
+        contact: { select: { name: true, email: true, company: true, region: true } }, _count: { select: { items: true, messages: true } },
+        sample: { select: { status: true } } }, // 列表不含收货地址
     }),
   ]);
   await audit({ actorId: ctx.user.id, action: 'inquiry.list', meta: { page, status, minScore, maxScore, product, assignee, hasQuery: !!q }, ip: ctx.ip });
