@@ -76,15 +76,22 @@ export async function POST(req: Request) {
   return NextResponse.json({ ref: inquiry.ref }, { status: 201 });
 }
 
-/** 自动回复限制存在数据库里：多实例、重启都不会失效。用条件更新抢占，避免并发重复发送 */
+/**
+ * 自动回复限制存在数据库里：多实例、重启都不会失效。
+ * 在事务里按邮箱加 Postgres 事务级咨询锁，同一邮箱的并发请求排队判断，只有一条能抢到。
+ */
 async function sendAutoReplyOnce(inquiryId: string, email: string, locale: 'en' | 'ru', ref: string) {
+  const key = email.trim().toLowerCase();
   const since = new Date(Date.now() - 86_400_000);
-  const recent = await prisma.inquiry.findFirst({
-    where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { email: { equals: email, mode: 'insensitive' } } },
-    select: { id: true },
+  const claimed = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'autoreply:' + key}))`;
+    const recent = await tx.inquiry.findFirst({
+      where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { email: { equals: key, mode: 'insensitive' } } },
+      select: { id: true },
+    });
+    if (recent) return false;
+    const r = await tx.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
+    return r.count === 1;
   });
-  if (recent) return;
-  const claimed = await prisma.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
-  if (claimed.count === 0) return;
-  await sendMail({ to: email, ...autoReply(locale, ref) });
+  if (claimed) await sendMail({ to: email, ...autoReply(locale, ref) });
 }
