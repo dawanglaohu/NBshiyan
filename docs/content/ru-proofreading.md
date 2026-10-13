@@ -39,8 +39,9 @@
 | F15 | D217 FAQ「Доставляете ли вы в Россию? Да…」 | 业务表述 | 和待定的俄罗斯配送/地址表述相关（见下方 TBD），定稿前不要上线。D217 示例数值（`1 000 шт.`、`50 USD`、`15–25 days`）仅是格式示例，不是真实数据。 |
 | F13 | C-*（落地页正文） | 偏直译 | 落地页俄语正文与英文逐句对应（本表能逐行配对就是因为结构完全平行），有些句子是英文句式，例如「упаковку которых хочется сохранить」。请重点看每页导语段（每页第 2 条）。 |
 | F14 | 全站 | ✅ 产品经理决定：全站统一使用 ё | 已有文本中的 е/ё（如 расчет/расчёт、жесткие/жёсткие）将按此统一；本包新增的 #220 alt 已用 ё。请 Ryan 校对时一并留意。 |
-| F15 | ALT-OG-ekologichnye-stakany | 「Биоразлагаемые」改为「Экологичные」 | 「биоразлагаемый/компостируемый」属于需要认证支撑的声明。**需要 Ryan 提供认证**（证书名称/编号/链接）后才能恢复该说法；H1 和 meta 里的同类用词也要同步决定。 |
-| F16 | ALT-OG-podarochnye-karty | gift cards 的俄语含义 | 「подарочные карты」在俄语里通常指储值礼品卡（подарочный сертификат）；如果产品是贺卡/祝福卡，应改为「открытки」。影响 alt、H1、slug 和 meta，请 Ryan 确认。 |
+| F15 | ALT-OG-ekologichnye-stakany | 「Биоразлагаемые」改为「Экологичные」 | 「биоразлагаемый/компостируемый」属于需要认证支撑的声明。**需要 Ryan 提供认证**（证书名称/编号/链接）后才能恢复该说法。H1、meta（`categoryMeta.ts`、`docs/seo-category-meta.md`）、`messages/ru.json` 和内链锚文本已同步改为「Экологичные」（seo/yo-unification、#188、#205）。英文见 F17。 |
+| F16 | ALT-OG-podarochnye-karty / 英文 slug `custom-gift-cards` | gift cards 的含义（俄英都有） | 「подарочные карты」在俄语里通常指储值礼品卡（подарочный сертификат）；如果产品是贺卡/祝福卡，应改为「открытки」。英文 slug `custom-gift-cards` 同样有歧义：英文搜索里 "gift cards" 多指储值卡，贺卡应为 `custom-greeting-cards`。影响 alt、H1、slug（英俄）和 meta，请 Ryan 确认；未上线，改 slug 不需要 301。 |
+| F17 | 英文 eco-paper-cups（`M-eco-paper-cups-*`、#188 落地页、`messages/en.json`、#220 英文 alt） | 「Compostable」改为「Eco-friendly」 | 与 F15 相同：compostable / biodegradable 需要证书支撑。Ryan 提供认证（证书名称/编号/链接）前，英文统一用 Eco-friendly；英文 slug 也由 `compostable-paper-cups` 改为 `eco-paper-cups`（从未上线，不需要 301）。 |
 
 说明：F1、F3、F4、F5、F7（расчёт）、F8、F9 已按产品经理决定处理（标 ✅），改动后的俄语仍待 Ryan 校对。F2 仍是待确认的业务承诺（24 小时回复、工厂直供），本轮未改。其余是语言判断，需要母语者决定。
 
@@ -62,40 +63,40 @@
 
 | ID | 来源 | PR | English | Русский | 字符数 | Ryan: OK / correction |
 |---|---|---|---|---|---|---|
-| C-compostable-paper-cups-01 | `docs/content/compostable-paper-cups.md` | #188 | ### H1: Compostable Paper Cups | ### H1: Биоразлагаемые стаканы с логотипом |  |  |
-| C-compostable-paper-cups-02 | `docs/content/compostable-paper-cups.md` | #188 | PackJoyU offers plastic-reduced paper cups with water-based or PLA linings, custom printed with your logo. These cups are designed for cafes, chains and brands moving away from conventional PE-lined cups. Exact compostability claims depend on the lining, inks and the certification held for each product — we confirm documentation before you use any claim on your packaging. | PackJoyU предлагает бумажные стаканы с водно-дисперсионным или PLA-покрытием вместо обычного полиэтилена, с печатью вашего логотипа. Они подходят кофейням, сетям и брендам, которые отказываются от стаканов с ПЭ-покрытием. Заявления о компостируемости зависят от покрытия, красок и сертификатов на конкретный продукт — мы подтверждаем документы до того, как вы используете такие формулировки на упаковке. |  |  |
-| C-compostable-paper-cups-03 | `docs/content/compostable-paper-cups.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
-| C-compostable-paper-cups-04 | `docs/content/compostable-paper-cups.md` | #188 | - **Alternative linings** — Water-based (aqueous) or PLA instead of PE. | - **Альтернативные покрытия** — Водно-дисперсионное или PLA вместо ПЭ. |  |  |
-| C-compostable-paper-cups-05 | `docs/content/compostable-paper-cups.md` | #188 | - **Branded and greener** — Full-wrap logo printing with food-contact inks. | - **Бренд и экология** — Печать логотипа по всей поверхности пищевыми красками. |  |  |
-| C-compostable-paper-cups-06 | `docs/content/compostable-paper-cups.md` | #188 | - **Matching fiber lids** — Paper or fiber lid options (TBD). | - **Крышки из волокна** — Варианты бумажных крышек (TBD). |  |  |
-| C-compostable-paper-cups-07 | `docs/content/compostable-paper-cups.md` | #188 | - **Honest claims** — Certification documents verified per product before marketing use. | - **Честные формулировки** — Сертификаты проверяются до использования в маркетинге. |  |  |
-| C-compostable-paper-cups-08 | `docs/content/compostable-paper-cups.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
-| C-compostable-paper-cups-09 | `docs/content/compostable-paper-cups.md` | #188 | Lining \| Water-based (aqueous) dispersion or PLA | Покрытие \| Водно-дисперсионное или PLA |  |  |
-| C-compostable-paper-cups-10 | `docs/content/compostable-paper-cups.md` | #188 | Types \| Single / double wall | Виды \| Однослойные / двухслойные |  |  |
-| C-compostable-paper-cups-11 | `docs/content/compostable-paper-cups.md` | #188 | Sizes \| TBD (aligned with custom-paper-cups range) | Объемы \| TBD |  |  |
-| C-compostable-paper-cups-12 | `docs/content/compostable-paper-cups.md` | #188 | Certifications \| TBD — e.g. industrial compostability certificates only if held | Сертификаты \| TBD — указывать только при наличии |  |  |
-| C-compostable-paper-cups-13 | `docs/content/compostable-paper-cups.md` | #188 | Accessories \| Fiber/paper lids, sleeves (TBD) | Аксессуары \| Крышки из волокна/бумаги, манжеты (TBD) |  |  |
-| C-compostable-paper-cups-14 | `docs/content/compostable-paper-cups.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| **TBD（待 Ryan 提供）** |  |  |
-| C-compostable-paper-cups-15 | `docs/content/compostable-paper-cups.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| **TBD（待 Ryan 提供）** |  |  |
-| C-compostable-paper-cups-16 | `docs/content/compostable-paper-cups.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| **TBD（待 Ryan 提供）** |  |  |
-| C-compostable-paper-cups-17 | `docs/content/compostable-paper-cups.md` | #188 | #### How it works | #### Как мы работаем |  |  |
-| C-compostable-paper-cups-18 | `docs/content/compostable-paper-cups.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
-| C-compostable-paper-cups-19 | `docs/content/compostable-paper-cups.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-compostable-paper-cups-20 | `docs/content/compostable-paper-cups.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD). |  |  |
-| C-compostable-paper-cups-21 | `docs/content/compostable-paper-cups.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
-| C-compostable-paper-cups-22 | `docs/content/compostable-paper-cups.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
-| C-compostable-paper-cups-23 | `docs/content/compostable-paper-cups.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
-| C-compostable-paper-cups-24 | `docs/content/compostable-paper-cups.md` | #188 | - **Q: Are these cups home compostable?** | - **В: Компостируются ли стаканы в домашних условиях?** |  |  |
-| C-compostable-paper-cups-25 | `docs/content/compostable-paper-cups.md` | #188 | A: Do not assume. Home vs industrial compostability depends on certification: TBD. | О: Не стоит предполагать: зависит от сертификата — TBD. |  |  |
-| C-compostable-paper-cups-26 | `docs/content/compostable-paper-cups.md` | #188 | - **Q: What is the difference between PLA and water-based lining?** | - **В: Чем PLA отличается от водного покрытия?** |  |  |
-| C-compostable-paper-cups-27 | `docs/content/compostable-paper-cups.md` | #188 | A: PLA is a plant-based plastic lining; aqueous is a water-based barrier coating. Suitability by drink type TBD. | О: PLA — покрытие из растительного пластика, водное — барьерный слой на водной основе. Применимость — TBD. |  |  |
-| C-compostable-paper-cups-28 | `docs/content/compostable-paper-cups.md` | #188 | - **Q: Can I print "compostable" on my cups?** | - **В: Можно ли написать «компостируемый» на стакане?** |  |  |
-| C-compostable-paper-cups-29 | `docs/content/compostable-paper-cups.md` | #188 | A: Only with valid certification for that exact product; we will provide documents if available. | О: Только при наличии сертификата на конкретный продукт. |  |  |
-| C-compostable-paper-cups-kw-Транзакционные | `docs/content/compostable-paper-cups.md` | #188 |  | **Транзакционные (主页面)**: биоразлагаемые стаканы, эко стаканы без пластика, компостируемые стаканы оптом, экологичные бумажные стаканы с логотипом |  |  |
-| C-compostable-paper-cups-kw-Коммерческие | `docs/content/compostable-paper-cups.md` | #188 |  | **Коммерческие (主页面 + 小节)**: стаканы с PLA покрытием, экоупаковка для кофейни, бумажные стаканы без полиэтилена |  |  |
-| C-compostable-paper-cups-kw-Информационные | `docs/content/compostable-paper-cups.md` | #188 |  | **Информационные (博客文章)**: чем PLA отличается от ПЭ, перерабатываются ли бумажные стаканы |  |  |
-| C-compostable-paper-cups-outline-1 | `docs/content/compostable-paper-cups.md` | #188 |  | Экостаканы для кофейни: какие бывают и что писать на упаковке |  |  |
-| C-compostable-paper-cups-outline-2 | `docs/content/compostable-paper-cups.md` | #188 |  | H2s: Покрытия; сертификаты; формулировки |  |  |
+| C-eco-paper-cups-01 | `docs/content/eco-paper-cups.md` | #188 | ### H1: Eco-Friendly Paper Cups | ### H1: Экологичные стаканы с логотипом ⚠️F15/F17 |  |  |
+| C-eco-paper-cups-02 | `docs/content/eco-paper-cups.md` | #188 | PackJoyU offers plastic-reduced paper cups with water-based or PLA linings, custom printed with your logo. These cups are designed for cafes, chains and brands moving away from conventional PE-lined cups. Exact compostability claims depend on the lining, inks and the certification held for each product — we confirm documentation before you use any claim on your packaging. | PackJoyU предлагает бумажные стаканы с водно-дисперсионным или PLA-покрытием вместо обычного полиэтилена, с печатью вашего логотипа. Они подходят кофейням, сетям и брендам, которые отказываются от стаканов с ПЭ-покрытием. Заявления о компостируемости зависят от покрытия, красок и сертификатов на конкретный продукт — мы подтверждаем документы до того, как вы используете такие формулировки на упаковке. |  |  |
+| C-eco-paper-cups-03 | `docs/content/eco-paper-cups.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
+| C-eco-paper-cups-04 | `docs/content/eco-paper-cups.md` | #188 | - **Alternative linings** — Water-based (aqueous) or PLA instead of PE. | - **Альтернативные покрытия** — Водно-дисперсионное или PLA вместо ПЭ. |  |  |
+| C-eco-paper-cups-05 | `docs/content/eco-paper-cups.md` | #188 | - **Branded and greener** — Full-wrap logo printing with food-contact inks. | - **Бренд и экология** — Печать логотипа по всей поверхности пищевыми красками. |  |  |
+| C-eco-paper-cups-06 | `docs/content/eco-paper-cups.md` | #188 | - **Matching fiber lids** — Paper or fiber lid options (TBD). | - **Крышки из волокна** — Варианты бумажных крышек (TBD). |  |  |
+| C-eco-paper-cups-07 | `docs/content/eco-paper-cups.md` | #188 | - **Honest claims** — Certification documents verified per product before marketing use. | - **Честные формулировки** — Сертификаты проверяются до использования в маркетинге. |  |  |
+| C-eco-paper-cups-08 | `docs/content/eco-paper-cups.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
+| C-eco-paper-cups-09 | `docs/content/eco-paper-cups.md` | #188 | Lining \| Water-based (aqueous) dispersion or PLA | Покрытие \| Водно-дисперсионное или PLA |  |  |
+| C-eco-paper-cups-10 | `docs/content/eco-paper-cups.md` | #188 | Types \| Single / double wall | Виды \| Однослойные / двухслойные |  |  |
+| C-eco-paper-cups-11 | `docs/content/eco-paper-cups.md` | #188 | Sizes \| TBD (aligned with custom-paper-cups range) | Объемы \| TBD |  |  |
+| C-eco-paper-cups-12 | `docs/content/eco-paper-cups.md` | #188 | Certifications \| TBD — e.g. industrial compostability certificates only if held | Сертификаты \| TBD — указывать только при наличии |  |  |
+| C-eco-paper-cups-13 | `docs/content/eco-paper-cups.md` | #188 | Accessories \| Fiber/paper lids, sleeves (TBD) | Аксессуары \| Крышки из волокна/бумаги, манжеты (TBD) |  |  |
+| C-eco-paper-cups-14 | `docs/content/eco-paper-cups.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| **TBD（待 Ryan 提供）** |  |  |
+| C-eco-paper-cups-15 | `docs/content/eco-paper-cups.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| **TBD（待 Ryan 提供）** |  |  |
+| C-eco-paper-cups-16 | `docs/content/eco-paper-cups.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| **TBD（待 Ryan 提供）** |  |  |
+| C-eco-paper-cups-17 | `docs/content/eco-paper-cups.md` | #188 | #### How it works | #### Как мы работаем |  |  |
+| C-eco-paper-cups-18 | `docs/content/eco-paper-cups.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
+| C-eco-paper-cups-19 | `docs/content/eco-paper-cups.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
+| C-eco-paper-cups-20 | `docs/content/eco-paper-cups.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD). |  |  |
+| C-eco-paper-cups-21 | `docs/content/eco-paper-cups.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
+| C-eco-paper-cups-22 | `docs/content/eco-paper-cups.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
+| C-eco-paper-cups-23 | `docs/content/eco-paper-cups.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
+| C-eco-paper-cups-24 | `docs/content/eco-paper-cups.md` | #188 | - **Q: Are these cups home compostable?** | - **В: Компостируются ли стаканы в домашних условиях?** |  |  |
+| C-eco-paper-cups-25 | `docs/content/eco-paper-cups.md` | #188 | A: Do not assume. Home vs industrial compostability depends on certification: TBD. | О: Не стоит предполагать: зависит от сертификата — TBD. |  |  |
+| C-eco-paper-cups-26 | `docs/content/eco-paper-cups.md` | #188 | - **Q: What is the difference between PLA and water-based lining?** | - **В: Чем PLA отличается от водного покрытия?** |  |  |
+| C-eco-paper-cups-27 | `docs/content/eco-paper-cups.md` | #188 | A: PLA is a plant-based plastic lining; aqueous is a water-based barrier coating. Suitability by drink type TBD. | О: PLA — покрытие из растительного пластика, водное — барьерный слой на водной основе. Применимость — TBD. |  |  |
+| C-eco-paper-cups-28 | `docs/content/eco-paper-cups.md` | #188 | - **Q: Can I print "compostable" on my cups?** | - **В: Можно ли написать «компостируемый» на стакане?** |  |  |
+| C-eco-paper-cups-29 | `docs/content/eco-paper-cups.md` | #188 | A: Only with valid certification for that exact product; we will provide documents if available. | О: Только при наличии сертификата на конкретный продукт. |  |  |
+| C-eco-paper-cups-kw-Транзакционные | `docs/content/eco-paper-cups.md` | #188 |  | **Транзакционные (主页面)**: биоразлагаемые стаканы, эко стаканы без пластика, компостируемые стаканы оптом, экологичные бумажные стаканы с логотипом |  |  |
+| C-eco-paper-cups-kw-Коммерческие | `docs/content/eco-paper-cups.md` | #188 |  | **Коммерческие (主页面 + 小节)**: стаканы с PLA покрытием, экоупаковка для кофейни, бумажные стаканы без полиэтилена |  |  |
+| C-eco-paper-cups-kw-Информационные | `docs/content/eco-paper-cups.md` | #188 |  | **Информационные (博客文章)**: чем PLA отличается от ПЭ, перерабатываются ли бумажные стаканы |  |  |
+| C-eco-paper-cups-outline-1 | `docs/content/eco-paper-cups.md` | #188 |  | Экостаканы для кофейни: какие бывают и что писать на упаковке |  |  |
+| C-eco-paper-cups-outline-2 | `docs/content/eco-paper-cups.md` | #188 |  | H2s: Покрытия; сертификаты; формулировки |  |  |
 | C-custom-christmas-packaging-01 | `docs/content/custom-christmas-packaging.md` | #188 | ### H1: Custom Christmas Packaging | ### H1: Новогодняя упаковка на заказ |  |  |
 | C-custom-christmas-packaging-02 | `docs/content/custom-christmas-packaging.md` | #188 | PackJoyU produces custom Christmas and holiday packaging for retailers, confectionery, cosmetics and corporate gifting: gift boxes, advent calendars, seasonal sleeves, bags and themed printed products. Holiday packaging is time-critical, so we help you plan structure, artwork and production early to arrive on shelf before the season starts. | PackJoyU производит новогоднюю и праздничную упаковку на заказ для розницы, кондитерских, косметических брендов и корпоративных подарков: подарочные коробки, адвент-календари, сезонные футляры, пакеты и тематическую полиграфию. Новогодняя упаковка — это жесткие сроки, поэтому мы помогаем заранее спланировать конструкцию, дизайн и производство, чтобы продукция была на полке до начала сезона. |  |  |
 | C-custom-christmas-packaging-03 | `docs/content/custom-christmas-packaging.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
@@ -510,9 +511,9 @@
 | M-offset-printing-title | `src/lib/seo/categoryMeta.ts` | main | Offset Printing Services Manufacturer \| PackJoyU | Офсетная печать упаковки на заказ \| PackJoyU | 44/60 |  |
 | M-offset-printing-desc | `src/lib/seo/categoryMeta.ts` | #222 | High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and in-house finishing for export. Request a quote. | Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Четкая детализация, стабильный цвет и постпечатная обработка. Запросите расчёт. | 154/160 |  |
 | M-offset-printing-kw | `src/lib/seo/categoryMeta.ts` | main | офсетная печать упаковки | офсетная печать упаковки |  |  |
-| M-eco-paper-cups-title | `src/lib/seo/categoryMeta.ts` | main | Compostable Paper Cups Manufacturer \| PackJoyU | Биоразлагаемые стаканы с логотипом \| PackJoyU | 45/60 |  |
-| M-eco-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | #222 | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. | Биоразлагаемые и компостируемые стаканы без пластика, с водной или PLA основой и печатью логотипа. Экологичный выбор для кофеен и сетей. Запросите расчёт. | 154/160 |  |
-| M-eco-paper-cups-kw | `src/lib/seo/categoryMeta.ts` | main | биоразлагаемые стаканы | биоразлагаемые стаканы |  |  |
+| M-eco-paper-cups-title | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | Eco-Friendly Paper Cups Manufacturer \| PackJoyU | Экологичные стаканы с логотипом \| PackJoyU ⚠️F15/F17 | 42/60 |  |
+| M-eco-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | Eco-friendly paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes and coffee chains. Request a quote today. | Экологичные бумажные стаканы с водной или PLA основой и печатью вашего логотипа. Для кофеен, ресторанов и сетей. Запросите расчёт. ⚠️F15/F17 | 130/160 |  |
+| M-eco-paper-cups-kw | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | eco-friendly paper cups | экологичные стаканы |  |  |
 | M-gift-cards-title | `src/lib/seo/categoryMeta.ts` | main | Custom Gift Cards Printing & Supplier \| PackJoyU | Печать подарочных карт на заказ \| PackJoyU | 42/60 |  |
 | M-gift-cards-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom printed gift cards, vouchers and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. | Печать подарочных карт и сертификатов на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка для карт в едином стиле бренда. Запросите расчёт. | 152/160 |  |
 | M-gift-cards-kw | `src/lib/seo/categoryMeta.ts` | main | печать подарочных карт | печать подарочных карт |  |  |
@@ -546,22 +547,22 @@
 
 ### 3.1 品类分享图 alt / Category share-image alt（#220，`public/og/category-<slug>-ru.jpg`）
 
-依据设计师 #220 草稿整理：去掉品牌名 / H1 前缀（标题已在 og:title），全部用 ё，「Биоразлагаемые」→「Экологичные」，「с листиком」→「с изображением листа」。**Provisional / 临时稿**：设计师原稿文字本地无副本，这 12 条是按规则自拟的临时版本，待设计师 #220 定稿表替换后再交 Ryan 校对。英文仅为对照，不是 #220 英文 alt 原文。全部待 Ryan 校对。
+设计师 #220 **定稿表**（已替换此前的临时稿）：只描述画面，不带品牌名 / H1 前缀（标题已在 og:title），全部用 ё。英文列是设计师的英文 alt 定稿（对应英文分享图 `/og/category-<en-slug>-en.jpg`）。**英俄两列都待 Ryan 确认。**
 
 | ID | 文件 | PR | English（对照） | Русский | 字符数 | Ryan: OK / correction |
 |---|---|---|---|---|---|---|
-| ALT-OG-gofrokorobki | `public/og/category-gofrokorobki-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Corrugated mailer box | Коробка из гофрокартона | 23 |  |
-| ALT-OG-tsvetnye-korobki | `public/og/category-tsvetnye-korobki-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Orange printed box with yellow accents | Оранжевая коробка с печатью и жёлтыми акцентами | 47 |  |
-| ALT-OG-podarochnye-korobki | `public/og/category-podarochnye-korobki-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Rigid gift box on a dark background | Жёсткая подарочная коробка на тёмном фоне | 41 |  |
-| ALT-OG-izdeliya-iz-tsellyulozy | `public/og/category-izdeliya-iz-tsellyulozy-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Molded pulp tray with a green leaf | Лоток из формованной целлюлозы с изображением листа | 51 |  |
-| ALT-OG-bumazhnye-stakany | `public/og/category-bumazhnye-stakany-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Paper cup with an orange band | Бумажный стакан с оранжевой полосой | 35 |  |
-| ALT-OG-tovary-dlya-prazdnikov | `public/og/category-tovary-dlya-prazdnikov-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Paper plate and party hat | Бумажная тарелка и праздничный колпак | 37 |  |
-| ALT-OG-upakovka-dlya-vina | `public/og/category-upakovka-dlya-vina-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Wine box on a dark background | Коробка для вина на тёмном фоне | 31 |  |
-| ALT-OG-tsvetnaya-pechat | `public/og/category-tsvetnaya-pechat-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Full-color (CMYK) print sample | Образец полноцветной печати (CMYK) | 34 |  |
-| ALT-OG-ofsetnaya-pechat | `public/og/category-ofsetnaya-pechat-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Stack of offset-printed sheets | Стопка листов офсетной печати | 29 |  |
-| ALT-OG-ekologichnye-stakany | `public/og/category-ekologichnye-stakany-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Paper cup with a green band and a leaf | Экологичный стакан с зелёной полосой и изображением листа ⚠️F15 | 57 |  |
-| ALT-OG-podarochnye-karty | `public/og/category-podarochnye-karty-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Two printed gift cards | Две подарочные карты с печатью ⚠️F16 | 30 |  |
-| ALT-OG-novogodnyaya-upakovka | `public/og/category-novogodnyaya-upakovka-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Red box with a green ribbon | Красная коробка с зелёной лентой | 32 |  |
+| ALT-OG-gofrokorobki | `public/og/category-gofrokorobki-ru.jpg` ✔ | #220 · final (designer) | corrugated shipping box with printed logo and handling symbols (`/og/category-custom-corrugated-boxes-en.jpg`) | гофрокороб с печатью логотипа и манипуляционных знаков | 54 |  |
+| ALT-OG-tsvetnye-korobki | `public/og/category-tsvetnye-korobki-ru.jpg` ✔ | #220 · final (designer) | red printed paperboard box (`/og/category-custom-printed-boxes-en.jpg`) | красная картонная коробка с печатью | 35 |  |
+| ALT-OG-podarochnye-korobki | `public/og/category-podarochnye-korobki-ru.jpg` ✔ | #220 · final (designer) | black rigid gift box with gold ribbon and logo on the lid (`/og/category-custom-gift-boxes-en.jpg`) | чёрная жёсткая подарочная коробка с золотой лентой и логотипом на крышке | 72 |  |
+| ALT-OG-izdeliya-iz-tsellyulozy | `public/og/category-izdeliya-iz-tsellyulozy-ru.jpg` ✔ | #220 · final (designer) | molded pulp tray (`/og/category-molded-pulp-packaging-en.jpg`) | лоток из формованной целлюлозы | 30 |  |
+| ALT-OG-bumazhnye-stakany | `public/og/category-bumazhnye-stakany-ru.jpg` ✔ | #220 · final (designer) | paper cup with a red band (`/og/category-custom-paper-cups-en.jpg`) | бумажный стакан с красной полосой | 33 |  |
+| ALT-OG-tovary-dlya-prazdnikov | `public/og/category-tovary-dlya-prazdnikov-ru.jpg` ✔ | #220 · final (designer) | paper plate and party hat (`/og/category-custom-party-supplies-en.jpg`) | бумажная тарелка и праздничный колпак | 37 |  |
+| ALT-OG-upakovka-dlya-vina | `public/og/category-upakovka-dlya-vina-ru.jpg` ✔ | #220 · final (designer) | tall dark wine box with a gold band (`/og/category-custom-wine-boxes-en.jpg`) | высокая тёмная коробка для вина с золотой полосой | 49 |  |
+| ALT-OG-tsvetnaya-pechat | `public/og/category-tsvetnaya-pechat-ru.jpg` ✔ | #220 · final (designer) | full-color (CMYK) print sample (`/og/category-custom-color-printing-en.jpg`) | образец полноцветной печати (CMYK) | 34 |  |
+| ALT-OG-ofsetnaya-pechat | `public/og/category-ofsetnaya-pechat-ru.jpg` ✔ | #220 · final (designer) | stack of printed sheets (`/og/category-offset-printing-services-en.jpg`) | стопка отпечатанных листов | 26 |  |
+| ALT-OG-ekologichnye-stakany | `public/og/category-ekologichnye-stakany-ru.jpg` ✔ | #220 · final (designer) | paper cup with green band and leaf print (`/og/category-eco-paper-cups-en.jpg`) | бумажный стакан с зелёной полосой и изображением листа | 54 |  |
+| ALT-OG-podarochnye-karty | `public/og/category-podarochnye-karty-ru.jpg` ✔ | #220 · final (designer) | printed gift cards (`/og/category-custom-gift-cards-en.jpg`) | напечатанные подарочные карты ⚠️F16（карты / открытки — ждёт Ryan） | 29 |  |
+| ALT-OG-novogodnyaya-upakovka | `public/og/category-novogodnyaya-upakovka-ru.jpg` ✔ | #220 · final (designer) | red Christmas gift box with green ribbon (`/og/category-custom-christmas-packaging-en.jpg`) | красная новогодняя коробка с зелёной лентой | 43 |  |
 
 ## 4. 内链锚文本 / Internal-link anchors（#205）
 
@@ -577,7 +578,7 @@
 | A-08 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/podarochnye-korobki → /ru/products/novogodnyaya-upakovka | новогодняя упаковка на заказ |  |  |
 | A-09 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/podarochnye-korobki → /ru/products/tsvetnye-korobki | коробки с логотипом |  |  |
 | A-10 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/izdeliya-iz-tsellyulozy → /ru/products/gofrokorobki | гофрокороба на заказ |  |  |
-| A-11 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/izdeliya-iz-tsellyulozy → /ru/products/ekologichnye-stakany | биоразлагаемые стаканы |  |  |
+| A-11 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/izdeliya-iz-tsellyulozy → /ru/products/ekologichnye-stakany | экологичные стаканы |  |  |
 | A-12 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/izdeliya-iz-tsellyulozy → /ru/products/podarochnye-korobki | жесткие коробки с магнитом |  |  |
 | A-13 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/bumazhnye-stakany → /ru/products/ekologichnye-stakany | эко стаканы без пластика |  |  |
 | A-14 | `docs/content/internal-links.json` | #205 | category→category: /ru/products/bumazhnye-stakany → /ru/products/tovary-dlya-prazdnikov | бумажная посуда для праздника |  |  |
