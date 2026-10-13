@@ -4,7 +4,8 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import JsonLd from '@/components/seo/JsonLd';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
-import { categoryHref, categoryPagePath } from '@/lib/seo/categoryPages';
+import { categoryHref, categoryLocaleAlternates, categoryPagePath } from '@/lib/seo/categoryPages';
+import LocaleAlternates from '@/components/layout/LocaleAlternates';
 import { categoryPagesLive } from '@/lib/seo/mock';
 import { categoryOgImage } from '@/lib/seo/categoryOg';
 import { categorySeo } from '@/lib/seo/templates';
@@ -42,8 +43,10 @@ export default async function CategoryPage({ params }: P) {
   setRequestLocale(locale);
   const names = await getTranslations({ locale, namespace: 'Products.names' });
   const name = names(c.key);
+  const alts = categoryLocaleAlternates(c.key);
   return (
     <main className="container">
+      {alts && <LocaleAlternates pathname={`/products/${c[locale].slug}`} value={alts} />}
       <JsonLd data={categoryBreadcrumb(SITE_URL, locale, c.key, name, live)} />
       <h1>{name}</h1>
       <p><Link href={categoryHref(locale, c.key, false)}>{locale === 'ru' ? '3D-каталог' : '3D Products'}</Link></p>
