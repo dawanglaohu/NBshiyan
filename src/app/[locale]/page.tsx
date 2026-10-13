@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { alternatesFor } from '@/i18n/alternates';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -22,7 +23,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   return (
     <main>
       <section className="hero">
-        <div className="container">
+        <div className="container hero-text">
           <h1>{t('headline')}</h1>
           <p>{t('sub')}</p>
           <div className="actions">
@@ -30,6 +31,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <Link className="btn ghost" href="/products">{t('cta')}</Link>
           </div>
         </div>
+        <Image className="hero-img" src="/images/hero/custom-printing-packaging-manufacturer.webp" alt="Custom wine box, gift box and corrugated shipping box by PackJoyU" width={1200} height={900} priority sizes="(max-width: 900px) 100vw, 45vw" />
       </section>
 
       <section className="block container" aria-labelledby="adv-h">
