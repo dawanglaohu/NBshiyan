@@ -47,7 +47,7 @@
 | slug | `custom-paper-cups` | `bumazhnye-stakany` |
 | 主关键词 | custom paper cups | бумажные стаканы с логотипом |
 | title | Custom Paper Cups Manufacturer & Supplier \| PackJoyU (52) | Бумажные стаканы с логотипом оптом \| PackJoyU (45) |
-| description | Custom printed paper coffee cups with your logo in single and double wall, 4 to 22 oz. Food-safe inks and matching lids for cafes and brands. Get a quote. (154) | Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объёмы, безопасные краски и крышки в комплекте. Оптом с фабрики. Запросите расчёт. (155) |
+| description | Custom printed paper coffee cups with your logo in single and double wall, 4 to 22 oz, with matching lids for cafes, coffee shops and brands. Get a quote. (154) | Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объёмы, крышки в комплекте. Для кофеен и брендов. Запросите расчёт. (140) |
 
 ## party-supplies
 
