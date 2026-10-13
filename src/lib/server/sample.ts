@@ -35,3 +35,23 @@ export function maskAddress(a: unknown) {
   if (!p.success) return a == null ? null : { masked: true };
   return { masked: true, country: p.data.country, city: maskStr(p.data.city), postalCode: `${p.data.postalCode.slice(0, 2)}***`, line1: '***' };
 }
+
+/** 只有 ADMIN 和被分配的 SALES 能看完整收货地址；EDITOR 和未分配的 SALES 一律不行 */
+export function canViewFullAddress(user: { id: string; role: string }, inquiry: { assigneeId: string | null }) {
+  return user.role === 'ADMIN' || (user.role === 'SALES' && inquiry.assigneeId === user.id);
+}
+
+export const SAMPLE_ID_RE = /^[a-z0-9]{20,32}$/;
+
+type AddressDeps = {
+  findSample: (id: string) => Promise<{ id: string; shippingAddress: unknown; inquiry: { id: string; assigneeId: string | null } } | null>;
+  audit: (e: { actorId: string; action: string; target: string; ip: string | null }) => Promise<void>;
+};
+/** 读取完整地址：无权限和不存在都返回 null（路由按 404 处理，不暴露是否存在）；成功先写审计再返回，审计不含地址内容 */
+export async function revealSampleAddress(ctx: { user: { id: string; role: string }; ip: string | null }, sampleId: string, deps: AddressDeps) {
+  if (!SAMPLE_ID_RE.test(sampleId)) return null;
+  const s = await deps.findSample(sampleId);
+  if (!s || !s.shippingAddress || !canViewFullAddress(ctx.user, s.inquiry)) return null;
+  await deps.audit({ actorId: ctx.user.id, action: 'sample.address.view', target: s.id, ip: ctx.ip });
+  return s.shippingAddress;
+}

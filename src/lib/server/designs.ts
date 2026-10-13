@@ -83,10 +83,10 @@ export function canonicalFor(d: { locale: 'en' | 'ru'; category: string | null }
   return `${SITE_URL}/${d.locale}/products${slug ? `/${slug}` : ''}`;
 }
 
-/** 询价清单里附带的分享链接：只接受本站 /s/<id>（相对路径或 SITE_URL 开头），返回 id；其它一律 null */
+/** 询价清单里附带的分享链接：只接受本站 /{en|ru}/s/<id>（也兼容 /s/<id>）（相对路径或 SITE_URL 开头），返回 id；其它一律 null */
 export function designIdFromShareUrl(raw: string): string | null {
   const v = raw.trim();
   const rel = v.startsWith(SITE_URL + '/') ? v.slice(SITE_URL.length) : v;
-  const m = /^\/s\/([A-Za-z0-9]{10,16})\/?$/.exec(rel);
+  const m = /^(?:\/(?:en|ru))?\/s\/([A-Za-z0-9]{10,16})\/?$/.exec(rel);
   return m ? m[1] : null;
 }

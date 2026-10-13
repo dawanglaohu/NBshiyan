@@ -5,7 +5,7 @@ import { DesignBody, DESIGN_ID_LEN, DESIGN_MAX_BODY, DESIGN_MAX_CONFIG, DESIGN_T
 
 export const runtime = 'nodejs';
 
-/** 公开：保存定制方案，返回短链接 /s/:id。限流 + Turnstile + 白名单 schema + 体积上限，180 天后过期（被询盘引用后不过期）。 */
+/** 公开：保存定制方案，返回短链接 /{locale}/s/:id。限流 + Turnstile + 白名单 schema + 体积上限，180 天后过期（被询盘引用后不过期）。 */
 export async function POST(req: Request) {
   const ip = clientIp(req);
   const ok = ip ? await hitRateLimit(`design:${ip}`, 30) : await hitRateLimit('design:noip:all', 200);
@@ -31,5 +31,5 @@ export async function POST(req: Request) {
   const id = randomId(DESIGN_ID_LEN);
   const expiresAt = new Date(Date.now() + DESIGN_TTL_DAYS * 86_400_000);
   await prisma.sharedDesign.create({ data: { id, productSlug, category, locale, config, logoUploadId, expiresAt } });
-  return NextResponse.json({ id, url: `/s/${id}`, expiresAt }, { status: 201 });
+  return NextResponse.json({ id, url: `/${locale}/s/${id}`, expiresAt }, { status: 201 });
 }

@@ -23,16 +23,16 @@
 返回 `201 { "ref": "PJ-2610-K7Q2MX" }`。会给业务邮箱发通知、给客户发对应语言的自动回复。所有来源都要 Turnstile，都走同一套可信度评分（产品备注和留言一起评分）。
 
 - **询价清单（`CART`）**：一个清单提交成一条询盘。`items` 1–20 个，服务端校验；`quantity` 正整数 ≤ 1 亿，`notes` ≤ 500 字，`config` 序列化后 ≤ 2000 字节；同一产品 + 方案不能重复。
-- **分享链接**：`shareUrl` 只接受本站 `/s/<id>`（相对路径或 `NEXT_PUBLIC_SITE_URL` 开头），解析成 `designId`；外站链接返回 400 `share_url_invalid`。引用的方案必须存在且没过期，否则 `422 { "error": "design_invalid" }`。被询盘引用后方案不再过期。
+- **分享链接**：`shareUrl` 只接受本站 `/{en|ru}/s/<id>`（兼容 `/s/<id>`；相对路径或 `NEXT_PUBLIC_SITE_URL` 开头），解析成 `designId`；外站链接返回 400 `share_url_invalid`。引用的方案必须存在且没过期，否则 `422 { "error": "design_invalid" }`。被询盘引用后方案不再过期。
 - **样品申请（`SAMPLE`）**：`items` 1–5 个，`shippingAddress` 必填（禁止控制字符和 `<>`）。限制：
   - 每个规范化邮箱 30 天 1 次（小写、去 `+后缀`、Gmail 去点，googlemail 归一为 gmail），数据库判断并加锁。超限返回 `429 { "error": "sample_recent" }`，**不带** `retryAfter` / `Retry-After`，避免借此探测邮箱。
   - 每 IP 30 天 3 次，超限返回带 `retryAfter` 的标准 429。
 - **429 格式**（IP 类限流）：`{ "error": "rate_limited", "retryAfter": 秒 }` + `Retry-After` 头；`retryAfter` 是窗口长度，属上限值。内存限流存储只保留 24 小时内的记录，30 天窗口需要 `RATE_LIMIT_STORE=upstash` 才完全生效（邮箱限制在数据库里，不受影响）。
 
-**收货地址（PII）**：后台询盘列表不返回地址。详情 `GET /api/admin/inquiries/:id` 默认返回脱敏地址（国家、城市首字母、邮编前 2 位）。只有 ADMIN 和被分配的 SALES 可以加 `?reveal=address` 看完整地址，每次写审计 `sample.address.view`（不记录地址内容）；响应里 `canRevealAddress` 告诉前端是否显示“查看完整地址”按钮。EDITOR 无权访问询盘接口。目前没有导出功能，以后加导出时也要写审计。
+**收货地址（PII）**：后台询盘列表不返回地址；详情 `GET /api/admin/inquiries/:id` 永远返回脱敏地址（国家、城市首字母、邮编前 2 位），`canRevealAddress` 告诉前端是否显示“查看完整地址”按钮。完整地址只能 `POST /api/admin/samples/:id/address`（`:id` 是 `sample.id`，没有 GET）：同源校验 → 登录（ADMIN/SALES）→ 限流 → 只有 ADMIN 和被分配的 SALES，否则 404 → 写审计 `sample.address.view`（不记录地址内容）→ 返回 `{ shippingAddress }`，`Cache-Control: no-store`。EDITOR 无权访问。目前没有导出功能，以后加导出时也要写审计。
 
 ### `POST /api/designs`、`GET /api/designs/:id`、`GET /api/designs/:id/logo`
-保存定制方案（不可修改），返回 `201 { "id": "AbCdEfGh23456789", "url": "/s/AbCdEfGh23456789", "expiresAt": "…" }`。
+保存定制方案（不可修改），返回 `201 { "id": "AbCdEfGh23456789", "url": "/en/s/AbCdEfGh23456789", "expiresAt": "…" }`（`url` 按方案的 `locale`）。
 ```json
 {
   "productSlug": "mailer-box",
@@ -52,8 +52,9 @@
 - `config` 白名单字段，未知字段 400；请求体 ≤ 16KB，`config` ≤ 8000 字节；每 IP 10 分钟 30 次；需要 Turnstile。
 - id：16 位随机字符（拒绝采样，约 93 bit），不可递增；旧的 10 位 id 仍可读取。
 - 过期：默认 180 天；被询盘引用后不过期，跟随询盘保留期。过期后 `GET` 返回 `410 { "error": "expired", "categoryUrl": "…" }`，再保留 90 天后由定时任务删除（之后 404）。
+- `HEAD /api/designs/:id`：只返回状态码 200 / 404 / 410（限流时 429），没有 body，`Cache-Control: public, max-age=60`；每 IP 10 分钟 600 次，无 IP（服务端内部调用）共用 6000 次。给 middleware 的 410 规则用。
 - `GET /api/designs/:id` 返回 `{ id, productSlug, category, locale, config, hasLogo, expiresAt, createdAt, slugs, canonical }`，不返回 logo 上传 id（防止被人拿去绑定询盘）；logo 用 `GET /api/designs/:id/logo` 取（重新编码过的 PNG）。都带 `X-Robots-Tag: noindex, nofollow`。
-- 页面 `/s/:id`：`noindex, nofollow`，canonical 指向对应分类落地页 `/{locale}/products/{slug}`（没有分类时指向 `/{locale}/products`）。过期时页面显示“链接已过期”和分类页链接。App Router 页面没法返回 410，HTTP 410 由 API 返回；如果页面也必须 410，需要在 middleware 加规则（安全工程师负责）。
+- 页面 `/{locale}/s/:id`（`/en/s/…`、`/ru/s/…`，文案跟 URL 语言）：`noindex, nofollow`，canonical 指向对应分类落地页 `/{locale}/products/{slug}`（没有分类时指向 `/{locale}/products`）。过期时页面显示“链接已过期”和分类页链接。页面本身没法返回 410：全栈的 middleware 对 `/*/s/` 调 `HEAD /api/designs/:id`，按结果返回 410（调用失败时放行）。
 
 ### `POST /api/uploads/logo`
 询价时上传 logo。公开接口，不需要登录，也不需要 Turnstile token（人机校验只在提交询盘时做）。
