@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useThree } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { useEffect, useRef, useState } from 'react';
+import { LoopOnce, type Group } from 'three';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useGLTF, useAnimations } from '@react-three/drei';
 import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation } from '@needle-tools/gltf-progressive';
 import FoldBox, { type BoxView } from './FoldBox';
 
@@ -18,16 +19,44 @@ const PALETTE: Record<string, { color: string; lid?: string }> = {
 setDracoDecoderLocation('/draco/');
 setKTX2TranscoderLocation('/basis/');
 
-function Gltf({ url }: { url: string }) {
+function Gltf({ url, view, clip }: { url: string; view?: BoxView; clip?: string }) {
   const gl = useThree((s) => s.gl);
+  const root = useRef<Group>(null);
   // Draco 解码器和渐进式加载：先出轻量版本，细节后台静默替换
-  const { scene } = useGLTF(url, '/draco/', false, (loader) => {
+  const { scene, animations } = useGLTF(url, '/draco/', false, (loader) => {
     useNeedleProgressive(loader as never, gl);
   });
-  // 模型解析完成后主动出一帧（画布是按需渲染）
+  const { actions } = useAnimations(animations, root);
+  const first = useRef(true);
+  useEffect(() => {
+    const action = clip ? actions[clip] : undefined;
+    if (!action || !view) return;
+    const open = view === 'open';
+    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dur = action.getClip().duration;
+    action.setLoop(LoopOnce, 1);
+    action.clampWhenFinished = true;
+    if (!action.isRunning() && !action.enabled) action.reset();
+    action.enabled = true;
+    action.play();
+    if (reduced || first.current) {
+      // 减少动态效果 / 首次挂载：直接跳到目标帧
+      action.time = open ? dur : 0;
+      action.timeScale = 1;
+      action.paused = true;
+    } else {
+      action.paused = false;
+      action.timeScale = open ? 1 : -1;
+      if (open && action.time >= dur) action.time = 0;
+      if (!open && action.time <= 0) action.time = dur;
+    }
+    first.current = false;
+  }, [actions, clip, view]);
+  // 画布按需渲染（frameloop="demand"）：模型解析完成后出一帧；动画播放期间逐帧 invalidate，否则动画不前进
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => { invalidate(); }, [scene, invalidate]);
-  return <primitive object={scene} />;
+  useFrame(() => { const a = clip ? actions[clip] : undefined; if (a && a.isRunning()) invalidate(); });
+  return <group ref={root}><primitive object={scene} /></group>;
 }
 
 // 还没有真实模型时的占位盒子
@@ -44,14 +73,15 @@ function PlaceholderBox() {
 
 /**
  * view：合盖 / 开盖 / 展开刀模。没有真实模型时用程序化的 FoldBox 演示。
- * TODO: 有真实 GLB 后，用 drei 的 useAnimations 按 animationClips.open / animationClips.unfold
- * 播放对应片段（clampWhenFinished，反向播放回到合盖），替换 FoldBox。
  */
 export default function ProductModel({ src, onReady, slug, view, animationClips }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips }) {
   const [url, setUrl] = useState<string>();
+  const [loadError, setLoadError] = useState<Error>();
+  // 抛给外层 SceneErrorBoundary，卡片退回静态图
+  if (loadError) throw loadError;
   useEffect(() => {
     if (!src) { onReady(); return; }
-    import('./modelCache').then(({ cachedModelUrl }) => cachedModelUrl(src)).then(setUrl);
+    import('./modelCache').then(({ cachedModelUrl }) => cachedModelUrl(src)).then(setUrl).catch((e) => setLoadError(e instanceof Error ? e : new Error(String(e))));
   }, [src, onReady]);
   useEffect(() => { if (url) onReady(); }, [url, onReady]);
   // 当前 GLB 只有 'Open' 片段、没有展开刀模片段：刀模视图继续用 FoldBox 演示
@@ -59,5 +89,5 @@ export default function ProductModel({ src, onReady, slug, view, animationClips 
     if (view && slug) { const c = PALETTE[slug] ?? { color: '#c9a77c' }; return <FoldBox view={view} color={c.color} lidColor={c.lid} />; }
     return <PlaceholderBox />;
   }
-  return url ? <Gltf url={url} /> : null;
+  return url ? <Gltf url={url} view={view} clip={animationClips?.open} /> : null;
 }

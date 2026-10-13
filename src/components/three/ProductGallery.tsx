@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '@/data/products';
 import type { BoxView } from './FoldBox';
+import SceneErrorBoundary from './SceneErrorBoundary';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
@@ -23,6 +24,10 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   const tracks = useMemo(() => items.map(() => createRef<HTMLDivElement>()), [items]);
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState<Set<string>>(new Set());
+  // 模型加载失败的卡片继续显示静态图
+  const [failed, setFailed] = useState<Set<string>>(new Set());
+  const onError = useCallback((slug: string) => setFailed((prev) => (prev.has(slug) ? prev : new Set(prev).add(slug))), []);
+  const [sceneDead, setSceneDead] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   // 桌面端滚轮缩放：只有按住鼠标或悬停 0.5 秒后才交给模型，否则滚轮照常滚动页面
   const [views, setViews] = useState<Record<string, BoxView>>({});
@@ -95,8 +100,8 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               onPointerDown={onDown(p.slug)}
             >
               {/* 静态图先显示，模型就绪后淡出，不造成布局偏移 */}
-              <img src={p.poster} alt={p.name} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) ? 0 : 1 }} />
-              <span className="hint">{ready.has(p.slug) ? (active === p.slug || zoomSlug === p.slug ? '↻' : labels.tap) : labels.loading}</span>
+              <img src={p.poster} alt={p.name} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
+              {!failed.has(p.slug) && !sceneDead && <span className="hint">{ready.has(p.slug) ? (active === p.slug || zoomSlug === p.slug ? '↻' : labels.tap) : labels.loading}</span>}
               {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面 */}
               {active === p.slug && (
                 <button type="button" className="btn sm done" onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
@@ -119,11 +124,12 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
           </article>
         ))}
       </div>
-      {armed && visible.size > 0 && (<GalleryScene
+      {armed && visible.size > 0 && !sceneDead && (<SceneErrorBoundary onError={() => setSceneDead(true)}><GalleryScene
         eventSource={rootRef}
         onReady={onReady}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, track: tracks[i] }))}
-      />)}
+        onError={onError}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, track: tracks[i] }))}
+      /></SceneErrorBoundary>)}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 'use client';
 import { Suspense, useEffect, type RefObject } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { View, OrbitControls, PerspectiveCamera, Environment, Lightformer } from '@react-three/drei';
+import { View, Bounds, Center, OrbitControls, PerspectiveCamera, Environment, Lightformer } from '@react-three/drei';
+import SceneErrorBoundary from './SceneErrorBoundary';
 import ProductModel, { type BoxView, type AnimationClips } from './ProductModel';
 
 export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; track: RefObject<HTMLDivElement | null> };
@@ -21,7 +22,7 @@ function DemandSync({ deps }: { deps: string }) {
   return null;
 }
 
-export default function GalleryScene({ items, eventSource, onReady }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void }) {
+export default function GalleryScene({ items, eventSource, onReady, onError }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void; onError?: (slug: string) => void }) {
   return (
     <Canvas
       className="three-canvas"
@@ -39,7 +40,14 @@ export default function GalleryScene({ items, eventSource, onReady }: { items: S
           <ambientLight intensity={0.6} />
           <directionalLight position={[3, 5, 2]} intensity={1.2} />
           <Suspense fallback={null}>
-            <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} onReady={() => onReady(i.slug)} />
+            {/* 真实模型按米建模（0.1–0.4 m），相机在约 4 m 外：居中并自动取景，否则模型只有几个像素 */}
+              <SceneErrorBoundary onError={() => onError?.(i.slug)}>
+              <Bounds fit clip observe margin={1.2}>
+                <Center>
+                  <ProductModel src={i.model} slug={i.slug} view={i.view} animationClips={i.animationClips} onReady={() => onReady(i.slug)} />
+                </Center>
+              </Bounds>
+              </SceneErrorBoundary>
             {/* 用 Lightformer 在本地生成影棚环境光，不下载外部 HDR，CSP 无需放行 */}
             <Environment resolution={256}>
               <Lightformer intensity={2} position={[0, 4, 2]} scale={[6, 2, 1]} />
