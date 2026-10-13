@@ -49,5 +49,5 @@ Spec values in the frames are **placeholders for layout only** (shape = `/api/sp
 - RU H1 uses `overflow-wrap:anywhere; hyphens:auto` so it doesn't scroll sideways at 360 (#194 lesson).
 
 ## 503 (`/s/<id>` DB down)
-- Theme C. `<h1>` Temporarily unavailable / Временно недоступно. Body text plus **Try again** (reloads) and **Browse products** → `/{locale}/products`.
+- Theme C. `<h1>` Temporarily unavailable / Временно недоступно. Copy matches #215 exactly — EN: “Temporarily unavailable, please try again later.” / RU: «Временно недоступно, пожалуйста, попробуйте позже.» (no “your design is saved” line). Plus **Try again** (reloads) and **Browse products** → `/{locale}/products`.
 - noindex + `no-store` + `Retry-After`. No error details shown. No SEO content.

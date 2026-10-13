@@ -203,8 +203,8 @@ function page({cat='corr',l='en',size='d',spec=SPEC_PARTIAL,theme='',faq=true,fo
  </div>`;
 }
 function optT(c){return `<table class="opt"><tbody>${c.opt.map(o=>`<tr><th scope="row">${o[0]}</th><td>${o[1]}</td></tr>`).join('')}</tbody></table>`}
-const E={en:{c:'503 · TEMPORARILY UNAVAILABLE',h:'Temporarily unavailable',p:'We can’t load this saved design right now. Please try again in a minute — your design is safe.',r:'Try again',h2:'Browse products',s:'Retrying automatically is off — tap “Try again”.'},
- ru:{c:'503 · ВРЕМЕННО НЕДОСТУПНО',h:'Временно недоступно',p:'Сейчас не удается загрузить сохраненный дизайн. Попробуйте еще раз через минуту — ваш дизайн сохранен.',r:'Попробовать снова',h2:'Смотреть продукцию',s:''}};
+const E={en:{c:'503 · TEMPORARILY UNAVAILABLE',h:'Temporarily unavailable',p:'Temporarily unavailable, please try again later.',r:'Try again',h2:'Browse products'},
+ ru:{c:'503 · ВРЕМЕННО НЕДОСТУПНО',h:'Временно недоступно',p:'Временно недоступно, пожалуйста, попробуйте позже.',r:'Попробовать снова',h2:'Смотреть продукцию'}};
 function e503(l,size){const e=E[l];return `<div class="frame ${size}" lang="${l}"><div class="wrap"><header class="hdr"><a class="logo" href="#">Pack<b>Joy</b>U</a><button class="burger" aria-label="Menu">☰</button></header></div>
  <main class="err"><div><div class="ill">${BOX('var(--line)')}</div><div class="code">${e.c}</div><h1>${e.h}</h1><p>${e.p}</p>
  <div class="ctas"><button class="btn btn-p">↻ ${e.r}</button><a class="btn btn-s" href="/${l}/products">${e.h2}</a></div></div></main></div>`}
