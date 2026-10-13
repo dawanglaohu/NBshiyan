@@ -1,10 +1,14 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
-// 所有外部请求一律拦截（CI 无外网），Turnstile 脚本用本地桩替代：给 .cf-turnstile 注入测试 token。
-const TURNSTILE_STUB = `(() => { const r = () => document.querySelectorAll('.cf-turnstile').forEach((el) => {
-  if (el.querySelector('input[name="cf-turnstile-response"]')) return;
-  const i = document.createElement('input'); i.type = 'hidden'; i.name = 'cf-turnstile-response'; i.value = 'XXXX.DUMMY.TOKEN.XXXX'; el.appendChild(i); });
-  r(); new MutationObserver(r).observe(document.documentElement, { childList: true, subtree: true }); window.turnstile = { reset() {}, render() {} }; })();`;
+// 所有外部请求一律拦截（CI 无外网），Turnstile 脚本用本地桩替代。
+// 桩按真实 API 行为：只有显式 render() 才会出控件（不再自动扫描 .cf-turnstile），这样 #181 这类重挂载问题能被测出来。
+const TURNSTILE_STUB = `(() => { let n = 0; const w = {};
+  const issue = (id) => { const x = w[id]; if (!x) return; x.input.value = 'XXXX.DUMMY.TOKEN.' + (++n); x.opts.callback && x.opts.callback(x.input.value); };
+  window.turnstile = {
+    render(el, opts) { const id = 'w' + (++n); const i = document.createElement('input'); i.type = 'hidden'; i.name = 'cf-turnstile-response'; el.appendChild(i); w[id] = { el, opts, input: i }; issue(id); return id; },
+    reset(id) { if (id) issue(id); else Object.keys(w).forEach(issue); },
+    remove(id) { const x = w[id]; if (x) { x.input.remove(); delete w[id]; } }
+  }; })();`;
 
 export type External = { urls: string[] };
 export const test = base.extend<{ external: External }>({
@@ -21,6 +25,10 @@ export const test = base.extend<{ external: External }>({
 });
 export { expect };
 
-export async function consent(page: Page, value: string) {
-  await page.evaluate((v) => { localStorage.setItem('pj-consent', v); window.dispatchEvent(new Event('pj:consent')); }, value);
+// 写入与 src/lib/consent.ts 相同的 v1 JSON 格式；'all' 全部同意，'none' 全部拒绝
+export async function consent(page: Page, value: 'all' | 'none') {
+  await page.evaluate((all) => {
+    localStorage.setItem('pj-consent', JSON.stringify({ v: 1, analytics: all, chat: all, ts: Date.now() }));
+    window.dispatchEvent(new Event('pj:consent'));
+  }, value === 'all');
 }
