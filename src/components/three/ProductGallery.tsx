@@ -1,17 +1,22 @@
 'use client';
+import '@/styles/views.css';
 import dynamic from 'next/dynamic';
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '@/data/products';
+import type { BoxView } from './FoldBox';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 const HOVER_ZOOM_MS = 500;
+// 支持“合盖 / 开盖 / 展开刀模”切换的品类
+const VIEW_SLUGS = new Set(['gift-boxes', 'wine-boxes', 'corrugated-boxes']);
+const VIEWS: BoxView[] = ['closed', 'open', 'dieline'];
 
 // three.js 只在客户端按需加载，不进首屏包
 const GalleryScene = dynamic(() => import('./GalleryScene'), { ssr: false });
 
 type Item = Product & { name: string };
-type Labels = { tap: string; loading: string; add: string; details: string; done: string };
+type Labels = { tap: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
 export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -20,6 +25,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   const [ready, setReady] = useState<Set<string>>(new Set());
   const [active, setActive] = useState<string | null>(null);
   // 桌面端滚轮缩放：只有按住鼠标或悬停 0.5 秒后才交给模型，否则滚轮照常滚动页面
+  const [views, setViews] = useState<Record<string, BoxView>>({});
   const [zoomSlug, setZoomSlug] = useState<string | null>(null);
   const hoverTimer = useRef<number | undefined>(undefined);
   const pressed = useRef(false);
@@ -100,13 +106,23 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               <h2 style={{ fontSize: 16, margin: 0 }}>{p.name}</h2>
               <AddToQuoteButton slug={p.slug} />
             </div>
+            {VIEW_SLUGS.has(p.slug) && (
+              <div className="views" role="group" aria-label={labels.viewsLabel}>
+                {VIEWS.map((v) => (
+                  <button key={v} type="button" aria-pressed={(views[p.slug] ?? 'closed') === v}
+                    onClick={(e) => { e.stopPropagation(); setArmed(true); setViews((s) => ({ ...s, [p.slug]: v })); }}>
+                    {labels.views[v]}
+                  </button>
+                ))}
+              </div>
+            )}
           </article>
         ))}
       </div>
       {armed && visible.size > 0 && (<GalleryScene
         eventSource={rootRef}
         onReady={onReady}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, track: tracks[i] }))}
       />)}
     </div>
   );
