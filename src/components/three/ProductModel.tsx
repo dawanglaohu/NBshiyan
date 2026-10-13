@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { useNeedleProgressive } from '@needle-tools/gltf-progressive';
+import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation } from '@needle-tools/gltf-progressive';
 import FoldBox, { type BoxView } from './FoldBox';
 
 export type { BoxView };
@@ -13,6 +13,10 @@ const PALETTE: Record<string, { color: string; lid?: string }> = {
   'wine-boxes': { color: '#6b1f2a', lid: '#d4af6a' },
   'corrugated-boxes': { color: '#c9a77c' }
 };
+
+// 解码器本地托管，不依赖 gstatic / cdn.needle.tools（issue #31）
+setDracoDecoderLocation('/draco/');
+setKTX2TranscoderLocation('/basis/');
 
 function Gltf({ url }: { url: string }) {
   const gl = useThree((s) => s.gl);
@@ -39,14 +43,14 @@ function PlaceholderBox() {
  * 播放对应片段（clampWhenFinished，反向播放回到合盖），替换 FoldBox。
  */
 export default function ProductModel({ src, onReady, slug, view, animationClips }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips }) {
-  void animationClips;
   const [url, setUrl] = useState<string>();
   useEffect(() => {
     if (!src) { onReady(); return; }
     import('./modelCache').then(({ cachedModelUrl }) => cachedModelUrl(src)).then(setUrl);
   }, [src, onReady]);
   useEffect(() => { if (url) onReady(); }, [url, onReady]);
-  if (!src) {
+  // 当前 GLB 只有 'Open' 片段、没有展开刀模片段：刀模视图继续用 FoldBox 演示
+  if (!src || (view === 'dieline' && !animationClips?.unfold)) {
     if (view && slug) { const c = PALETTE[slug] ?? { color: '#c9a77c' }; return <FoldBox view={view} color={c.color} lidColor={c.lid} />; }
     return <PlaceholderBox />;
   }
