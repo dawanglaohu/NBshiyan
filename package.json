@@ -11,6 +11,7 @@
     "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@gltf-transform/core": "^4.5.1",
     "@needle-tools/gltf-progressive": "3.6.1",
     "@node-rs/argon2": "^2.2.2",
     "@prisma/client": "^6.19.3",

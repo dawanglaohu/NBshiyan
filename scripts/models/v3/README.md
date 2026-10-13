@@ -14,3 +14,9 @@ for f in corrugated-box gift-box wine-box; do node merge-anim.mjs out/$f.glb out
 # 4) Draco + KTX2 + 预览 LOD（预览贴图 32px，瓦楞芯在预览中压平；完整版保留真实楞纹）
 for f in corrugated-box gift-box wine-box; do PREVIEW_TEX=32 PREVIEW_FLATTEN=Fluting node ../progressive.mjs out/$f.m.glb ../../../public/models $f.anim; done
 ```
+
+## v3 review batch (Blender 4.2.3 LTS)
+- `build_boxes.py` – `blender -b --python build_boxes.py -- <corrugated|gift|wine> <outdir>` (TEX_DIR defaults to ./tex, self-made textures)
+- `render_studio.py` – Cycles studio renders/posters (HDRI Poly Haven studio_small_09, CC0)
+- `merge-anim.mjs` → single `Open` clip; `progressive.mjs` → Draco+KTX2 lod0 + ≤30KB preview (`PREVIEW_TEX=16 PREVIEW_FLATTEN=Fluting`)
+- `public/env/studio_small_09_256.hdr` – CC0 (Poly Haven), downsized for optional site use.

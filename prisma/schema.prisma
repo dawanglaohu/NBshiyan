@@ -181,10 +181,17 @@ model Model3D {
   sizeBytes    Int?
   animated     Boolean     @default(false) // 开箱/折叠动画，上限 1.5MB，其余 1MB
   customizable Json? // 可选颜色、尺寸范围
-  checks       Json? // [{ key: format/compress/lod/size, ok, detail }]
+  checks       Json? // [{ key, ok, detail, severity }]，key: format/compress/size/triangles/textures/animation/bounds/lod
+  triangles    Int?
+  animations   String[]    @default([])
+  uploadedBy   String?
+  publishedAt  DateTime?
   error        String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([productSlug])
 }
 
 model SiteSetting {
