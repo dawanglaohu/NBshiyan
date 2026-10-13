@@ -4,12 +4,14 @@ import { cleanupOrphanLogos, secretMatches } from '@/lib/server/uploads';
 import { sendAdminAlert, errorSummary } from '@/lib/server/mail';
 import { cleanupExpiredDesigns } from '@/lib/server/designs';
 import { cleanupAuditLogs, clearSampleCounters } from '@/lib/server/retention';
+import { anonymizeExpiredInquiries, disableInactiveUsers } from '@/lib/server/retention-enforce';
+import { audit } from '@/lib/server/admin/audit';
 
 export const runtime = 'nodejs';
 
 /**
  * 定时清理（保留期限见 docs/data-retention.md）：
- * 过期方案 → 孤儿 logo → 样品申请邮箱计数 → 过期审计日志。每步独立执行，任一步失败都发告警（只含步骤名和错误类型/码），其余步骤照常跑。
+ * 过期方案 → 孤儿 logo → 样品申请邮箱计数 → 到期询盘匿名化 → 闲置后台账号停用 → 过期审计日志。日志只记条数和 errorSummary，不含个人信息。每步独立执行，任一步失败都发告警（只含步骤名和错误类型/码），其余步骤照常跑。
  * 需 Authorization: Bearer $CRON_SECRET（Vercel Cron 会自动带上）。
  */
 async function handle(req: Request) {
@@ -20,6 +22,8 @@ async function handle(req: Request) {
     ['designs', () => cleanupExpiredDesigns()], // 先删过期方案，它们引用的 logo 随后才会被当作孤儿清理
     ['deleted', () => cleanupOrphanLogos()],
     ['sampleCounters', () => clearSampleCounters(prisma)],
+    ['inquiries', () => anonymizeExpiredInquiries(prisma)],
+    ['inactiveUsers', () => disableInactiveUsers(prisma, (e) => audit(e))],
     ['auditLogs', () => cleanupAuditLogs(prisma)],
   ];
   const result: Record<string, number> = {};

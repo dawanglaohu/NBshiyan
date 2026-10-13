@@ -4,7 +4,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { ID_RE, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { guardResponse, mutateUser, publicUser } from '@/lib/server/admin/accounts';
+import { guardResponse, mutateUser, publicUser, REVOKE_SESSIONS, unassignInquiries } from '@/lib/server/admin/accounts';
 
 export const runtime = 'nodejs';
 type P = { params: Promise<{ id: string }> };
@@ -38,11 +38,12 @@ export async function PATCH(req: Request, { params }: P) {
           ...(b.disabled !== undefined ? { disabled: b.disabled } : {}),
           ...(b.name !== undefined ? { name: b.name } : {}),
           ...(b.unlock ? { lockedUntil: null, failedLogins: 0 } : {}),
-          sessionVersion: { increment: 1 }, // revokeSessions：权限变化后旧会话立即失效
+          ...(b.disabled === false && t.disabled ? { reactivatedAt: new Date() } : {}), // 重新启用：闲置天数从现在重新算，避免次日 cron 又停用
+          ...REVOKE_SESSIONS, // 权限变化后旧会话立即失效
         },
       });
       // 停用或改成非 SALES 角色时，取消其名下询盘的分配
-      if (b.disabled === true || (b.role && b.role === 'EDITOR')) await tx.inquiry.updateMany({ where: { assigneeId: id }, data: { assigneeId: null } });
+      if (b.disabled === true || (b.role && b.role === 'EDITOR')) await unassignInquiries(tx, id);
       return { before: t, after };
     });
     await audit({ actorId: ctx.user.id, action: 'user.update', target: id, meta: { fields: Object.keys(b), before: { role: before.role, disabled: before.disabled }, after: { role: after.role, disabled: after.disabled } }, ip: ctx.ip });

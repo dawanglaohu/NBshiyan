@@ -36,6 +36,16 @@ export async function reauth(user: User, password: string, totp: string | undefi
 /** 清空 2FA 并让会话失效；用户下次需重新走 /api/auth-admin/enroll */
 export const RESET_2FA: Prisma.UserUpdateInput = { totpEnabled: false, totpSecret: null, totpLastStep: null, recoveryCodes: [], sessionVersion: { increment: 1 } };
 
+/** 撤销该账号所有会话（改角色、停用共用） */
+export const REVOKE_SESSIONS = { sessionVersion: { increment: 1 } } as const;
+/** 停用（手动 PATCH 和闲置自动停用共用）：停用 + 会话失效 + 取消其名下询盘分配 */
+export async function disableUserTx(tx: Prisma.TransactionClient, id: string) {
+  const u = await tx.user.update({ where: { id }, data: { disabled: true, ...REVOKE_SESSIONS } });
+  await unassignInquiries(tx, id);
+  return u;
+}
+export const unassignInquiries = (tx: Prisma.TransactionClient, id: string) => tx.inquiry.updateMany({ where: { assigneeId: id }, data: { assigneeId: null } });
+
 export class GuardError extends Error { constructor(public code: 'last_admin' | 'self' | 'not_found') { super(code); } }
 
 /**

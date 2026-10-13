@@ -81,16 +81,27 @@ export async function deleteCustomer(db: PrismaClient, email: string, storage: P
   const logos = await db.logoUpload.findMany({ where: { inquiryId: { in: inquiryIds } }, select: { id: true, path: true } });
   await db.$transaction([
     db.contact.updateMany({ where: { id: { in: ids } }, data: anonymizedContact(hash) as Prisma.ContactUpdateManyMutationInput }),
-    db.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null } }),
+    ...anonymizeInquiryOps(db, inquiryIds, logos.map((l) => l.id)),
+  ]);
+  await deleteLogoFiles(logos, storage);
+  return { contacts: ids.length, inquiries: inquiryIds.length, logos: logos.length };
+}
+
+/** 询盘级匿名化（手动删除和保留期到期 cron 共用）：留言、备注、往来邮件、样品地址清空，绑定的 logo 记录删除，标记 anonymizedAt */
+export function anonymizeInquiryOps(db: PrismaClient, inquiryIds: string[], logoIds: string[], now = new Date()) {
+  return [
+    db.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null, anonymizedAt: now } }),
     db.inquiryItem.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { notes: null } }),
     db.inquiryMessage.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { subject: DELETED, bodyHtml: DELETED } }),
     db.sampleRequest.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { shippingAddress: Prisma.DbNull, normalizedEmail: null } }),
-    db.logoUpload.deleteMany({ where: { id: { in: logos.map((l) => l.id) } } }),
-  ]);
-  // 记录已删再删文件；文件删除失败只记日志（文件私有，孤儿文件无记录可访问）
+    db.logoUpload.deleteMany({ where: { id: { in: logoIds } } }),
+  ];
+}
+
+/** 记录已删再删文件；只删合法 logo key；失败只记错误类型（文件私有，孤儿文件无记录可访问） */
+export async function deleteLogoFiles(logos: { path: string }[], storage: PrivateStorage = defaultStorage) {
   for (const l of logos) {
     if (!isLogoKey(l.path)) { console.error('[privacy] skip non-logo key'); continue; }
     await storage.delete(l.path).catch((e) => console.error('[privacy] logo file delete failed', (e as Error).name));
   }
-  return { contacts: ids.length, inquiries: inquiryIds.length, logos: logos.length };
 }
