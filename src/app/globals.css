@@ -7,7 +7,8 @@ html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{font-family:var(--font-sans),system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:var(--fs-body);line-height:1.55}
 a{color:inherit}
-h1,h2,h3{line-height:1.15}
+h1,h2,h3{line-height:1.15;overflow-wrap:anywhere;hyphens:auto} /* #194 长俄语单词可断开，避免横向滚动 */
+.legal h1{font-size:clamp(28px,8vw,40px)}
 .container{max-width:var(--container);margin:0 auto;padding:0 20px}
 header.site{display:flex;gap:20px;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:20}
 header.site .logo{font-weight:800;font-size:20px;text-decoration:none}header.site .logo i{color:var(--accent);font-style:normal}
@@ -46,7 +47,7 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .card .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .4s}
 .card .view{position:absolute;inset:0}
 .card .body{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
-.card .body h2{font-size:16px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .body h2{font-size:16px;margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;hyphens:auto;line-height:1.25} /* #193 俄语长名称最多两行 + 断词，不用省略号截断成一行 */
 .card .body .actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px}
 .card .body .actions .btn{white-space:nowrap}
 .card .more{font-size:14px;font-weight:700;color:var(--accent);text-decoration:none;white-space:nowrap}
@@ -137,9 +138,9 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 /* Cookie 同意条：左下角细条，右侧给悬浮按钮组（52px + 16px 边距）留出空间 */
 .consent{position:fixed;left:16px;bottom:16px;z-index:45;max-width:min(560px,calc(100vw - 100px));display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px;background:#fffaf5;color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);font-size:13px;line-height:1.4;animation:consent-in .25s ease-out}
 .consent p{margin:0;flex:1 1 220px}
-.consent a{color:var(--accent);font-weight:600}
+.consent a{color:var(--accent);font-weight:600;display:inline-block;padding:13px 0;margin:-13px 0} /* #184 可点高度 ≥44px，视觉行高不变 */
 .consent-actions{display:flex;gap:8px}
-.consent-actions button{font:inherit;font-weight:600;font-size:13px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--accent);background:#fff;color:var(--ink);cursor:pointer}
+.consent-actions button{font:inherit;font-weight:600;font-size:13px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--accent);background:#fff;color:var(--ink);cursor:pointer}
 .consent-actions button:hover{background:var(--accent);color:#fff}
 .consent-actions button:focus-visible,.consent a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @keyframes consent-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -170,3 +171,8 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 /* #148 方案 B（Ryan 确认）：深色区金色按钮保留 #D4AF6A 底，文字用深色 --on-accent #121214（9.03:1）；hover 变浅 #E2C285（10.95:1），不加深 */
 .theme-premium .btn:not(.ghost){color:var(--on-accent)}
 .theme-premium .btn:not(.ghost):hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+
+/* #183 页面底部给悬浮按钮（52px + 16px）和 Cookie 条留空间，滚到底时页脚最后一行可见可点 */
+:root{--fab-clearance:84px}
+body{padding-bottom:var(--fab-clearance)}
+html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
