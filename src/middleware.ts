@@ -8,6 +8,12 @@ const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  // /admin 只把当前路径交给服务端 layout 用作登录回跳（callbackUrl 在 layout 里再校验），不走多语言路由
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    const h = new Headers(req.headers);
+    h.set('x-admin-path', pathname + req.nextUrl.search);
+    return NextResponse.next({ request: { headers: h } });
+  }
   // 过期页只能由下面的 rewrite 到达，直接访问一律 404
   if (EXPIRED_RE.test(pathname)) return new NextResponse(null, { status: 404, headers: NOINDEX });
   const sl = parseShortlink(pathname);
@@ -29,4 +35,4 @@ export default async function middleware(req: NextRequest) {
 }
 
 // /admin、/api 和静态资源不走中间件；/s/<id> 只做过期检查，不走多语言路由
-export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|.*\\..*).*)', '/s/:id'] };
+export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|.*\\..*).*)', '/s/:id', '/admin', '/admin/:path*'] };

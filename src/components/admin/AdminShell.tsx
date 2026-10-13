@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { adminApi, usingMock } from '@/lib/admin/api';
-import AdminGuard from './AdminGuard';
 
 const NAV: { href: string; label: string; ready?: boolean }[] = [
   { href: '/admin/inquiries', label: '询盘', ready: true },
@@ -28,7 +27,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </nav>
       <main className="adm-main">
         {usingMock && <div className="adm-mock">当前使用示例数据（mock），接入 /api/admin/* 后设置 NEXT_PUBLIC_ADMIN_API=http 切换。</div>}
-        <AdminGuard>{children}</AdminGuard>
+        {children}
       </main>
     </div>
   );
