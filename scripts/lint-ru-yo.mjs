@@ -91,11 +91,16 @@ const ROOTS = [
   { path: 'docs/seo-category-meta.md' },
   { path: 'src/lib/seo/categoryMeta.ts' },
   { path: 'docs/content', ext: /\.(md|json|ts|txt)$/ },
-  { path: 'design', ext: /\.html$/ },
   { path: 'src/lib/server/email', ext: /\.(ts|tsx|html|txt)$/ },
 ];
 
+// Not scanned: proofreading sheets quote the old е-spellings on purpose (before/after columns), and
+// design/*.html are mock-ups whose copy is taken over by the real source files.
+// Explicit file arguments are still linted.
+export const EXCLUDE = [/(^|\/)docs\/content\/ru-proofreading[^/]*\.md$/, /(^|\/)design\/[^/]*\.html$/];
+
 function walk(p, ext, out) {
+  if (EXCLUDE.some((re) => re.test(p.split(sep).join('/')))) return out;
   if (!existsSync(p)) return out; // optional dirs (e.g. src/lib/server/email) are skipped gracefully
   if (statSync(p).isDirectory()) for (const f of readdirSync(p)) walk(join(p, f), ext, out);
   else if (!ext || ext.test(p)) out.push(p);
