@@ -18,6 +18,10 @@ const TITLES: Record<DocType, Record<Locale, string>> = {
   solution: { en: 'Solutions', ru: 'Решения' },
   article: { en: 'Articles', ru: 'Статьи' }
 };
+// <title> for list pages (30–60 chars); H1 stays the short TITLES label. RU awaiting Ryan proofreading.
+const META_TITLES: Partial<Record<DocType, Record<Locale, string>>> = {
+  article: { en: 'Packaging & Printing Articles and Guides | PackJoyU', ru: 'Статьи об упаковке и печати | PackJoyU' }
+};
 const EMPTY: Record<Locale, string> = { en: 'Content coming soon.', ru: 'Скоро здесь появятся материалы.' };
 type P = { params: Promise<{ locale: string; slug?: string }> };
 
@@ -25,7 +29,7 @@ export function listMetadata(type: DocType, base: string) {
   return async ({ params }: P): Promise<Metadata> => {
     const { locale } = await params;
     const docs = await getDocs(type, loc(locale));
-    return { title: TITLES[type][loc(locale)], alternates: alternatesFor(locale, base), ...(docs?.length ? {} : { robots: { index: false, follow: true } }) };
+    return { title: (META_TITLES[type] ?? TITLES[type])[loc(locale)], alternates: alternatesFor(locale, base), ...(docs?.length ? {} : { robots: { index: false, follow: true } }) };
   };
 }
 
