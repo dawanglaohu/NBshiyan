@@ -138,26 +138,63 @@ test('errorSummary: only name/code, never message', async () => {
 test('sample ack copy: no inquiry wording left, sample sentences, preheader/footer/labels', () => {
   const en = customerAckMail('sample', vars);
   for (const part of [en.html, en.text]) {
-    assert.ok(part.includes('Samples are free of charge. Shipping cost will be quoted by email before dispatch.'));
+    assert.ok(part.includes('Any costs will be confirmed by email before dispatch.'));
+    assert.ok(!/free of charge|free/i.test(part), 'no free-samples claim');
     assert.ok(part.includes('Sample qty') && part.includes('because you requested samples on'));
     assert.ok(!/inquiry|reply within/i.test(part), 'no inquiry wording');
   }
   assert.ok(en.html.includes("Thanks — we'll confirm your sample shipping within 12 hours."));
   const ru = customerAckMail('sample', { ...vars, locale: 'ru' });
   for (const part of [ru.html, ru.text]) {
-    assert.ok(part.includes('Образцы бесплатны. Стоимость доставки мы сообщим по email до отправки.'));
+    assert.ok(part.includes('Все расходы мы подтвердим по email до отправки.'));
+    assert.ok(!/бесплатн/i.test(part), 'no free-samples claim');
     assert.ok(part.includes('Номер заявки') && part.includes('Количество образцов') && part.includes('оставили заявку на образцы на сайте'));
     assert.ok(!/запрос|Тираж|ответит/.test(part), 'no inquiry wording');
   }
   assert.ok(ru.html.includes('Спасибо! Подтвердим доставку образцов в течение 12 часов.'));
 });
 
-test('reply time localized; RU never shows raw "24h"', () => {
-  delete process.env.CONTACT_REPLY_TIME;
+test('reply time localized when CONTACT_REPLY_TIME set; RU never shows raw "24h"', () => {
+  process.env.CONTACT_REPLY_TIME = '24';
   assert.ok(customerAckMail('inquiry', { ...vars, locale: 'ru' }).text.includes('24 часа'));
   assert.ok(customerAckMail('inquiry', vars).text.includes('24 hours'));
   assert.ok(!customerAckMail('sample', { ...vars, locale: 'ru' }).html.includes('24h'));
+  process.env.CONTACT_REPLY_TIME = '12';
+  const en = customerAckMail('inquiry', vars);
+  assert.ok(en.html.includes('will reply within <b>12 hours</b>.') && en.text.includes('will reply within 12 hours.'));
+  assert.ok(en.html.includes('Thanks — our team will reply within 12 hours.'));
+  assert.ok(!en.html.includes('by email.</div>'), 'neutral preheader not shown when set');
   assert.equal(replyTimeText(1, 'ru'), '1 час'); assert.equal(replyTimeText(48, 'ru'), '48 часов'); assert.equal(replyTimeText(22, 'ru'), '22 часа');
+});
+
+test('reply time unset/invalid: whole sentence neutral, no "within", no 24, preheader neutral', () => {
+  for (const v of [undefined, '', 'soon', '0', '9999', '24 days', '<b>1</b>']) {
+    if (v === undefined) delete process.env.CONTACT_REPLY_TIME; else process.env.CONTACT_REPLY_TIME = v;
+    for (const [kind, loc] of [['inquiry', 'en'], ['inquiry', 'ru'], ['sample', 'en'], ['sample', 'ru']] as const) {
+      const m = customerAckMail(kind, { ...vars, locale: loc });
+      for (const part of [m.html, m.text]) {
+        assert.ok(!/within|в течение/i.test(part), `${kind}.${loc} ${v}: no reply-time sentence`);
+        assert.ok(!/\b24\b|24 ?h|24 час/.test(part.replace(/padding:24px|margin:24px|\{2,24\}/g, '')), `${kind}.${loc} ${v}: no 24`);
+        assert.ok(!/free of charge|бесплатн/i.test(part));
+        assert.ok(!part.includes('{{') && !part.includes('<b></b>'));
+      }
+    }
+  }
+  delete process.env.CONTACT_REPLY_TIME;
+  const en = customerAckMail('inquiry', vars), ru = customerAckMail('inquiry', { ...vars, locale: 'ru' });
+  const se = customerAckMail('sample', vars), sr = customerAckMail('sample', { ...vars, locale: 'ru' });
+  for (const p of [en.html, en.text]) assert.ok(p.includes('We have received your inquiry and a packaging specialist will reply by email.'));
+  for (const p of [ru.html, ru.text]) assert.ok(p.includes('Мы получили ваш запрос — специалист по упаковке ответит вам по email.'));
+  for (const p of [se.html, se.text]) assert.ok(p.includes('We have received your sample request. A packaging specialist will review it and confirm shipping by email.'));
+  for (const p of [sr.html, sr.text]) assert.ok(p.includes('Мы получили вашу заявку на образцы — специалист проверит её и подтвердит доставку по email.'));
+  assert.ok(en.html.includes('opacity:0">Thanks — our team will reply by email.</div>'));
+  assert.ok(ru.html.includes('opacity:0">Спасибо! Мы ответим вам по email.</div>'));
+  assert.ok(se.html.includes("opacity:0\">Thanks — we'll confirm your sample shipping by email.</div>"));
+  assert.ok(sr.html.includes('opacity:0">Спасибо! Подтвердим доставку образцов по email.</div>'));
+});
+
+test('no free-samples claim in any generated template', () => {
+  for (const t of Object.values(TEMPLATES)) for (const p of [t.subject, t.html, t.text]) assert.ok(!/free of charge|бесплатн|免费/i.test(p));
 });
 
 test('dark mode + nowrap in all customer templates', () => {

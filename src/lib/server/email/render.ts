@@ -14,10 +14,12 @@ export const escapeHtml = (s: string) => cleanText(s).replace(/[&<>"'`={}]/g, (c
 /** 主题和 Reply-To：去掉 \r\n 和控制字符 */
 export const headerSafe = (s: string) => cleanText(s).slice(0, 250);
 
-/** CONTACT_REPLY_TIME 写小时数（如 24 或 24h），默认 24 */
-function replyHours(v?: string) {
-  const n = Number.parseInt((v ?? '').trim(), 10);
-  return Number.isFinite(n) && n > 0 && n <= 720 ? n : 24;
+/** CONTACT_REPLY_TIME 写小时数（如 24 或 24h，1–720）。未设置或无效时返回 null：邮件里不写回复时长（未确认的承诺不默认 24 小时） */
+export function replyHours(v?: string): number | null {
+  const m = /^(\d{1,3})\s*h?$/i.exec((v ?? '').trim());
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isInteger(n) && n > 0 && n <= 720 ? n : null;
 }
 /** 按语言写回复时间：en "24 hours"，ru "24 часа" */
 export function replyTimeText(hours: number, locale: string) {
@@ -70,9 +72,9 @@ export function renderEmail(key: TemplateKey, v: EmailVars) {
   const vals: Record<string, string> = {
     name: v.name, company: v.company || '—', product: v.product, quantity: v.quantity, inquiryId: v.inquiryId, locale: v.locale,
     adminId: v.adminId ?? '', score: v.score === undefined ? '' : String(v.score),
-    siteUrl: cfg.siteUrl, replyTime: replyTimeText(cfg.replyHours, key.endsWith('.ru') ? 'ru' : key.endsWith('.zh') ? 'zh' : 'en'), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
+    siteUrl: cfg.siteUrl, replyTime: cfg.replyHours === null ? '' : replyTimeText(cfg.replyHours, key.endsWith('.ru') ? 'ru' : key.endsWith('.zh') ? 'zh' : 'en'), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
   };
-  const flags = { risk: v.score !== undefined && v.score < 40, contact: !!(cfg.contactEmail && cfg.whatsapp), named: safeGreetingName(v.name) !== null };
+  const flags = { risk: v.score !== undefined && v.score < 40, contact: !!(cfg.contactEmail && cfg.whatsapp), named: safeGreetingName(v.name) !== null, reply: cfg.replyHours !== null };
   return {
     subject: headerSafe(fill(t.subject, vals, flags, cleanText)),
     html: fill(t.html, vals, flags, escapeHtml),

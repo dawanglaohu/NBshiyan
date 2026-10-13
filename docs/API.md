@@ -149,7 +149,7 @@
 | 新询盘通知 `inquiry-notify.zh` | `INQUIRY_NOTIFY_EMAIL` | 每条询盘；可信度 < 40 时显示“待核实”块 |
 | 后台告警（中文） | `ADMIN_ALERT_EMAIL`，没配则 `INQUIRY_NOTIFY_EMAIL` | 发信失败、定时清理失败、后台账号被锁定；同一类（同一账号）30 分钟最多 1 封 |
 
-变量：`name, company, product, quantity, inquiryId`（对外编号）`, locale, score`，以及环境变量 `NEXT_PUBLIC_SITE_URL`（siteUrl，生产必须是 https 域名）、`CONTACT_REPLY_TIME`（小时数，如 `24`，默认 24；按语言显示为 “24 hours” / “24 часа”）、`CONTACT_EMAIL`、`CONTACT_WHATSAPP`（两个都配了才显示联系方式那段，不换行）。
+变量：`name, company, product, quantity, inquiryId`（对外编号）`, locale, score`，以及环境变量 `NEXT_PUBLIC_SITE_URL`（siteUrl，生产必须是 https 域名）、`CONTACT_REPLY_TIME`（小时数 1–720，如 `24` 或 `24h`；按语言显示为 “24 hours” / “24 часа”；未设置或无效时整句改成不带时长的中性说法，不默认 24 小时）、`CONTACT_EMAIL`、`CONTACT_WHATSAPP`（两个都配了才显示联系方式那段，不换行）。
 
 客户确认邮件（询盘、样品）：不含公司名；称呼只在姓名 ≤ 40 字且不像链接/域名/邮箱时使用，否则用 “Hello” / “Здравствуйте”；产品名按语言取 categoryMeta 关键词（匹配不上时把 slug 转成可读文字）。内部通知不变（slug、公司、姓名照常显示）。样品确认在询盘确认基础上改写：主题、预览文字、正文、标签（Sample qty / Номер заявки / Количество образцов）、页脚，并加 “样品免费、运费发货前邮件报价” 一句；每条改写在 html 和 text 里都必须命中，否则 `pnpm email:build` 报错。所有模板暗色模式下卡片正文为浅色，logo 加浅色底。
 

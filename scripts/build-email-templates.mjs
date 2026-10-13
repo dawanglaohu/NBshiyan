@@ -3,6 +3,7 @@
 // txt 里带 “<- 仅低于 40 分时输出” 的行同样包成 risk 块；含 {{contactEmail}}/{{whatsapp}} 的段落包成 {{#contact}} 块（未配置时整段不输出）；
 // 通知邮件的后台链接改用 {{adminId}}（内部 id，不是对外编号，不带 token）。
 // 样品申请确认（sample-ack）由询盘确认改写几句文案得到。
+// 回复时间句子包在 {{#reply}}…{{/reply}}{{^reply}}中性说法{{/reply}} 里：CONTACT_REPLY_TIME 未设置/无效时整句换成不带时长的说法。
 // 客户确认（inquiry-ack / sample-ack）去掉公司行，称呼用 {{#named}}…{{/named}}{{^named}}通用问候{{/named}}。
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 
@@ -48,8 +49,11 @@ const SAMPLE_RULES = {
     ['Your inquiry', 'Your sample request', 'html,text'],
     ['Quantity', 'Sample qty', 'html,text'],
     ['because you sent an inquiry on', 'because you requested samples on', 'html,text'],
-    ['</b>.</p>', '</b>.</p><p style="margin:0 0 20px 0;">Samples are free of charge. Shipping cost will be quoted by email before dispatch.</p>', 'html'],
-    ['{{replyTime}}.\n\n', '{{replyTime}}.\n\nSamples are free of charge. Shipping cost will be quoted by email before dispatch.\n\n', 'text'],
+    ['Thanks — our team will reply by email.', 'Thanks — we\'ll confirm your sample shipping by email.', 'html'],
+    ['We have received your inquiry and a packaging specialist will reply by email.', 'We have received your sample request. A packaging specialist will review it and confirm shipping by email.', 'html,text'],
+    // 不写“样品免费”（未确认）；费用只说会先邮件确认
+    ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Any costs will be confirmed by email before dispatch.</p>', 'html'],
+    ['{{/reply}}\n\n', '{{/reply}}\n\nAny costs will be confirmed by email before dispatch.\n\n', 'text'],
   ],
   ru: [
     ['Мы получили ваш запрос — специалист по упаковке ответит в течение', 'Мы получили вашу заявку на образцы — специалист проверит её и подтвердит доставку в течение', 'html,text'],
@@ -60,8 +64,10 @@ const SAMPLE_RULES = {
     ['сохраните номер запроса', 'сохраните номер заявки', 'html,text'],
     ['Тираж', 'Количество образцов', 'html,text'],
     ['потому что отправили запрос на сайте', 'потому что оставили заявку на образцы на сайте', 'html,text'],
-    ['</b>.</p>', '</b>.</p><p style="margin:0 0 20px 0;">Образцы бесплатны. Стоимость доставки мы сообщим по email до отправки.</p>', 'html'],
-    ['{{replyTime}}.\n\n', '{{replyTime}}.\n\nОбразцы бесплатны. Стоимость доставки мы сообщим по email до отправки.\n\n', 'text'],
+    ['Мы получили ваш запрос — специалист по упаковке ответит вам по email.', 'Мы получили вашу заявку на образцы — специалист проверит её и подтвердит доставку по email.', 'html,text'],
+    ['Спасибо! Мы ответим вам по email.', 'Спасибо! Подтвердим доставку образцов по email.', 'html'],
+    ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Все расходы мы подтвердим по email до отправки.</p>', 'html'],
+    ['{{/reply}}\n\n', '{{/reply}}\n\nВсе расходы мы подтвердим по email до отправки.\n\n', 'text'],
   ],
 };
 function applyRules(t, rules, label) {
