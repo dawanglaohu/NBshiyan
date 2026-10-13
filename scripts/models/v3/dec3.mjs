@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 const O='/workspace/nb3d-v3/tex/';
-const w=(f,W,H,b)=>sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${b}</svg>`)).png().toFile(O+f);
+const w=(f,W,H,b)=>sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${b}</svg>`),{density:144}).png().toFile(O+f);
 const C='#E8573F'; // coral
 // corrugated side print (coral ink on transparent)
 await w('corr_print.png',1024,512,`<g fill="${C}" font-family="Inter" font-weight="800"><text x="60" y="150" font-size="96">PackJoyU</text></g>
