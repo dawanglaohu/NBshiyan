@@ -89,7 +89,9 @@ test('submit: hanging endpoint is aborted by timeout, logged without secrets, ne
   let sawSignal = false;
   const hang = ((_u: string, init: RequestInit) => new Promise((_res, rej) => {
     sawSignal = init.signal instanceof AbortSignal;
-    init.signal?.addEventListener('abort', () => rej(init.signal?.reason));
+    // AbortSignal.timeout() 的计时器是 unref 的；模拟真实 fetch 的挂起连接保持事件循环，否则 node:test 会把本用例判为 cancelled
+    const keepAlive = setInterval(() => {}, 1000);
+    init.signal?.addEventListener('abort', () => { clearInterval(keepAlive); rej(init.signal?.reason); });
   })) as unknown as typeof fetch;
   const n = await submitIndexNow(['/en/a'], { env: PROD, store: new MemoryStore(), fetchImpl: hang, log: (m) => logs.push(m), timeoutMs: 50 });
   assert.equal(n, 0);
