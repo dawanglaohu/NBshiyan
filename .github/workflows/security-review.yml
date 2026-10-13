@@ -21,7 +21,7 @@ jobs:
             const { owner, repo } = context.repo;
             const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number });
             const sensitive = [/^package\.json$/, /^pnpm-lock\.yaml$/, /^\.github\//, /^src\/middleware\.ts$/,
-              /^src\/app\/api\//, /^src\/lib\/server\//, /^security-headers\.ts$/, /^next\.config\.ts$/, /^prisma\//, /^patches\//, /^pnpm-workspace\.yaml$/, /^\.npmrc$/];
+              /^src\/app\/api\//, /^src\/lib\/server\//, /^security-headers\.ts$/, /^next\.config\.ts$/, /^prisma\//, /^patches\//, /^public\/(draco|basis)\//, /^pnpm-workspace\.yaml$/, /^\.npmrc$/];
             const hit = files.map(f => f.filename).filter(f => sensitive.some(r => r.test(f)));
             if (!hit.length) { core.info('未改动安全路径，跳过'); return; }
             core.info('安全路径：' + hit.join(', '));
