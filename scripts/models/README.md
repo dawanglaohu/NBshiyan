@@ -18,3 +18,9 @@ done
 `progressive.mjs <src.glb> <outDir> <name>` 生成两份文件（都是 Draco + KTX2）：
 `<name>.<hash>.glb` 轻量预览（64px 贴图、简化网格，首屏先加载）和 `<name>.<hash>.lod0.glb` 完整精度
 （通过 `NEEDLE_progressive` 扩展由 gltf-progressive 后台替换）。文件名带内容哈希，可长缓存。
+
+## v2 模型（更贴近实物）
+
+`generate-v2.mjs <outDir> [corrugated,gift,wine,color,pulp,cup,party,colorprint,offset,ecocup,giftcard,xmas]`
+用 gltf-transform 程序化建模，印刷面贴图用 SVG（sharp 栅格化）；依赖 `@gltf-transform/core@4 sharp`。
+产物再用 `progressive.mjs <src.glb> ../../public/models <name>`（动画模型 name 带 `.anim`）打包成 Draco + KTX2 + 预览 LOD。
