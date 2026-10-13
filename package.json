@@ -9,7 +9,8 @@
     "postinstall": "prisma generate",
     "admin:create": "node scripts/create-admin.mjs",
     "test": "node --import tsx --test tests/*.test.ts",
-    "email:build": "node scripts/build-email-templates.mjs"
+    "email:build": "node scripts/build-email-templates.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.5.1",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "^1.64.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
