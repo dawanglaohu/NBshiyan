@@ -165,5 +165,11 @@
       "server": "Something went wrong on our side. Please try again later.",
       "network": "Network error. Please check your connection and try again."
     }
+  },
+  "Views": {
+    "label": "Box view",
+    "closed": "Closed",
+    "open": "Open",
+    "dieline": "Dieline"
   }
 }
