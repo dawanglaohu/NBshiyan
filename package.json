@@ -5,10 +5,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@needle-tools/gltf-progressive": "^3.3.0",
+    "@prisma/client": "^6.19.3",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
     "idb-keyval": "^6.2.2",
@@ -16,19 +18,22 @@
     "next-intl": "^4.3.9",
     "react": "~19.1.9",
     "react-dom": "~19.1.9",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.180.0",
+    "prisma": "^6.19.3",
     "typescript": "^5.9.2"
   },
   "pnpm": {
     "overrides": {
       "postcss": ">=8.5.18",
-      "sharp": ">=0.35.5"
+      "sharp": ">=0.35.5",
+      "deepmerge-ts": ">=8.0.0"
     }
   }
 }
