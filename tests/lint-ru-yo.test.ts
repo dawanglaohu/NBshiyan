@@ -42,3 +42,12 @@ test('ru-yo: repo Russian copy is clean; optional dirs are skipped', () => {
   const hits = files.flatMap((f) => lintText(readFileSync(f, 'utf8'), f));
   assert.deepEqual(hits, []);
 });
+
+test('default scan skips proofreading sheets and design mock-ups', async () => {
+  const { EXCLUDE } = await import('../scripts/lint-ru-yo.mjs');
+  const skipped = (p: string) => EXCLUDE.some((re: RegExp) => re.test(p));
+  assert.ok(skipped('/w/docs/content/ru-proofreading.md'));
+  assert.ok(skipped('/w/design/error-pages.html'));
+  assert.ok(!skipped('/w/docs/content/articles/a.md'));
+  assert.ok(!skipped('/w/messages/ru.json'));
+});
