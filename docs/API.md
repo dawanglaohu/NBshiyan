@@ -41,3 +41,10 @@
 
 ## 待定
 - 客户回信自动归档：需要正式域名后接 Resend 收信。
+
+## 模型处理状态
+`GET /api/admin/models/:id` 返回 `status` 和 `checks`：
+```json
+[{ "key": "format", "ok": true, "detail": "glTF 2.0 binary" }, { "key": "size", "ok": false, "detail": "1.24MB / 1MB" }]
+```
+`key` 取值 `format | compress | lod | size`，前端按顺序显示。

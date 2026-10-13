@@ -174,6 +174,7 @@ model Model3D {
   sizeBytes    Int?
   animated     Boolean     @default(false) // 开箱/折叠动画，上限 1.5MB，其余 1MB
   customizable Json? // 可选颜色、尺寸范围
+  checks       Json? // [{ key: format/compress/lod/size, ok, detail }]
   error        String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
