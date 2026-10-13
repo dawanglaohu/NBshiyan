@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { clientIp, rateLimit, readBody } from '@/lib/server/security';
+import { clientIp, hitRateLimit, readBody } from '@/lib/server/security';
 import { parseRum } from '@/lib/server/rum';
 
 export const runtime = 'nodejs';
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const self = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '');
   if (origin && self && origin !== self && process.env.VERCEL_ENV === 'production') return new NextResponse(null, { status: 403 });
   const ip = clientIp(req) ?? 'unknown';
-  if (!(await rateLimit(`rum:${ip}`, 60, 60_000))) return new NextResponse(null, { status: 429 });
+  if (!(await hitRateLimit(`rum:${ip}`, 60, 60_000))) return new NextResponse(null, { status: 429 });
   const raw = await readBody(req, 1_000);
   const m = raw === null ? null : parseRum(raw);
   if (!m) return new NextResponse(null, { status: 400 });
