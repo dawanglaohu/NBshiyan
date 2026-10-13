@@ -1,0 +1,826 @@
+{
+ "390-en": {
+  "bar": {
+   "consent": {
+    "top": 715.25,
+    "bottom": 832,
+    "left": 12,
+    "right": 378,
+    "h": 116.75,
+    "w": 366
+   },
+   "fab": {
+    "top": 651,
+    "bottom": 703,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   },
+   "sizes": [
+    "☰:52x52",
+    "Privacy policy:324x36",
+    "Reject non-essential:155x32",
+    "Accept all:87x32"
+   ],
+   "last": {
+    "top": 6740,
+    "bottom": 6776,
+    "left": 20,
+    "right": 122.953125,
+    "txt": "Get a quote"
+   },
+   "pb": "0px",
+   "fabc": "",
+   "sh": 6943
+  },
+  "gap": 12,
+  "overlapBar": false,
+  "openOverlap": false,
+  "openSizes": [
+   "🧾:52x52",
+   "💬:52x52",
+   "↑:52x52",
+   "×:52x52",
+   "Privacy policy:324x36",
+   "Reject non-essential:155x32",
+   "Accept all:87x32"
+  ],
+  "bottomBar": {
+   "lastCovered": false,
+   "last": {
+    "top": 641,
+    "bottom": 677,
+    "left": 20,
+    "right": 122.953125,
+    "txt": "Get a quote"
+   },
+   "fab": {
+    "top": 651,
+    "bottom": 703,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   },
+   "pb": "0px",
+   "fabc": ""
+  },
+  "tabOrder": [
+   "CONSENT:Privacy policy",
+   "CONSENT:Reject non-esse",
+   "CONSENT:Accept all",
+   "BODY:{\"@context\":\"ht",
+   "A:PackJoyU",
+   "A:RU",
+   "BUTTON:Open menu",
+   "A:Get a quote",
+   "A:Explore product",
+   "A:Corrugated Boxe",
+   "A:Color Boxes",
+   "A:Gift Boxes",
+   "A:Molded Pulp",
+   "A:Paper Cups",
+   "A:Party Supplies",
+   "A:Wine Boxes",
+   "A:Color Printing",
+   "A:Offset Printing",
+   "A:Eco-Friendly Pa",
+   "A:Gift Cards",
+   "A:Christmas Merch",
+   "A:Gift Boxes",
+   "A:Wine Boxes",
+   "A:Get a quote",
+   "A:Corrugated Boxe",
+   "A:Color Boxes",
+   "A:Gift Boxes",
+   "A:Molded Pulp",
+   "A:Paper Cups",
+   "A:Party Supplies",
+   "A:Wine Boxes",
+   "A:Color Printing",
+   "A:Offset Printing",
+   "A:Eco-Friendly Pa",
+   "A:Gift Cards",
+   "A:Christmas Merch",
+   "A:Get a quote",
+   "A:Privacy policy",
+   "A:Русский",
+   "FAB:Quick actions"
+  ],
+  "after": {
+   "fab": {
+    "top": 776,
+    "bottom": 828,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   },
+   "consent": null,
+   "vh": 844
+  },
+  "bottomAfter": {
+   "lastCovered": false,
+   "last": {
+    "top": 641,
+    "bottom": 677,
+    "left": 20,
+    "right": 122.953125,
+    "txt": "Get a quote"
+   },
+   "fab": {
+    "top": 776,
+    "bottom": 828,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   }
+  }
+ },
+ "390-ru": {
+  "bar": {
+   "consent": {
+    "top": 715.25,
+    "bottom": 832,
+    "left": 12,
+    "right": 378,
+    "h": 116.75,
+    "w": 366
+   },
+   "fab": {
+    "top": 651,
+    "bottom": 703,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   },
+   "sizes": [
+    "☰:52x52",
+    "Политика конфиденциа:204x18",
+    "Только необходимые:161x32",
+    "Принять все:105x32"
+   ],
+   "last": {
+    "top": 6911.15625,
+    "bottom": 6947.15625,
+    "left": 20,
+    "right": 153.84375,
+    "txt": "Запросить цену"
+   },
+   "pb": "0px",
+   "fabc": "",
+   "sh": 7156
+  },
+  "gap": 12,
+  "overlapBar": false,
+  "openOverlap": false,
+  "openSizes": [
+   "🧾:52x52",
+   "💬:52x52",
+   "↑:52x52",
+   "×:52x52",
+   "Политика конфиденциа:204x18",
+   "Только необходимые:161x32",
+   "Принять все:105x32"
+  ],
+  "bottomBar": {
+   "lastCovered": false,
+   "last": {
+    "top": 599.15625,
+    "bottom": 635.15625,
+    "left": 20,
+    "right": 153.84375,
+    "txt": "Запросить цену"
+   },
+   "fab": {
+    "top": 651,
+    "bottom": 703,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   },
+   "pb": "0px",
+   "fabc": ""
+  },
+  "tabOrder": [
+   "CONSENT:Политика конфид",
+   "CONSENT:Только необходи",
+   "CONSENT:Принять все",
+   "BODY:{\"@context\":\"ht",
+   "A:PackJoyU",
+   "A:EN",
+   "BUTTON:Открыть меню",
+   "A:Запросить цену",
+   "A:Смотреть продук",
+   "A:Гофрокоробки",
+   "A:Цветные коробки",
+   "A:Подарочные коро",
+   "A:Изделия из форм",
+   "A:Бумажные стакан",
+   "A:Товары для праз",
+   "A:Коробки для вин",
+   "A:Цветная печать",
+   "A:Офсетная печать",
+   "A:Экологичные бум",
+   "A:Подарочные карт",
+   "A:Рождественская ",
+   "A:Подарочные коро",
+   "A:Коробки для вин",
+   "A:Запросить цену",
+   "A:Гофрокоробки",
+   "A:Цветные коробки",
+   "A:Подарочные коро",
+   "A:Изделия из форм",
+   "A:Бумажные стакан",
+   "A:Товары для праз",
+   "A:Коробки для вин",
+   "A:Цветная печать",
+   "A:Офсетная печать",
+   "A:Экологичные бум",
+   "A:Подарочные карт",
+   "A:Рождественская ",
+   "A:Запросить цену",
+   "A:Политика конфид",
+   "A:English",
+   "FAB:Быстрые действи"
+  ],
+  "after": {
+   "fab": {
+    "top": 776,
+    "bottom": 828,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   },
+   "consent": null,
+   "vh": 844
+  },
+  "bottomAfter": {
+   "lastCovered": false,
+   "last": {
+    "top": 599.15625,
+    "bottom": 635.15625,
+    "left": 20,
+    "right": 153.84375,
+    "txt": "Запросить цену"
+   },
+   "fab": {
+    "top": 776,
+    "bottom": 828,
+    "left": 322,
+    "right": 374,
+    "h": 52,
+    "w": 52
+   }
+  }
+ },
+ "360-en": {
+  "bar": {
+   "consent": {
+    "top": 611.25,
+    "bottom": 728,
+    "left": 12,
+    "right": 348,
+    "h": 116.75,
+    "w": 336
+   },
+   "fab": {
+    "top": 547,
+    "bottom": 599,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   },
+   "sizes": [
+    "☰:52x52",
+    "Privacy policy:84x18",
+    "Reject non-essential:155x32",
+    "Accept all:87x32"
+   ],
+   "last": {
+    "top": 6602.96875,
+    "bottom": 6638.96875,
+    "left": 20,
+    "right": 122.953125,
+    "txt": "Get a quote"
+   },
+   "pb": "0px",
+   "fabc": "",
+   "sh": 6806
+  },
+  "gap": 12,
+  "overlapBar": false,
+  "openOverlap": false,
+  "openSizes": [
+   "🧾:52x52",
+   "💬:52x52",
+   "↑:52x52",
+   "×:52x52",
+   "Privacy policy:84x18",
+   "Reject non-essential:155x32",
+   "Accept all:87x32"
+  ],
+  "bottomBar": {
+   "lastCovered": false,
+   "last": {
+    "top": 536.96875,
+    "bottom": 572.96875,
+    "left": 20,
+    "right": 122.953125,
+    "txt": "Get a quote"
+   },
+   "fab": {
+    "top": 547,
+    "bottom": 599,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   },
+   "pb": "0px",
+   "fabc": ""
+  },
+  "tabOrder": [
+   "CONSENT:Privacy policy",
+   "CONSENT:Reject non-esse",
+   "CONSENT:Accept all",
+   "BODY:{\"@context\":\"ht",
+   "A:PackJoyU",
+   "A:RU",
+   "BUTTON:Open menu",
+   "A:Get a quote",
+   "A:Explore product",
+   "A:Corrugated Boxe",
+   "A:Color Boxes",
+   "A:Gift Boxes",
+   "A:Molded Pulp",
+   "A:Paper Cups",
+   "A:Party Supplies",
+   "A:Wine Boxes",
+   "A:Color Printing",
+   "A:Offset Printing",
+   "A:Eco-Friendly Pa",
+   "A:Gift Cards",
+   "A:Christmas Merch",
+   "A:Gift Boxes",
+   "A:Wine Boxes",
+   "A:Get a quote",
+   "A:Corrugated Boxe",
+   "A:Color Boxes",
+   "A:Gift Boxes",
+   "A:Molded Pulp",
+   "A:Paper Cups",
+   "A:Party Supplies",
+   "A:Wine Boxes",
+   "A:Color Printing",
+   "A:Offset Printing",
+   "A:Eco-Friendly Pa",
+   "A:Gift Cards",
+   "A:Christmas Merch",
+   "A:Get a quote",
+   "A:Privacy policy",
+   "A:Русский",
+   "FAB:Quick actions"
+  ],
+  "after": {
+   "fab": {
+    "top": 672,
+    "bottom": 724,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   },
+   "consent": null,
+   "vh": 740
+  },
+  "bottomAfter": {
+   "lastCovered": false,
+   "last": {
+    "top": 536.96875,
+    "bottom": 572.96875,
+    "left": 20,
+    "right": 122.953125,
+    "txt": "Get a quote"
+   },
+   "fab": {
+    "top": 672,
+    "bottom": 724,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   }
+  }
+ },
+ "360-ru": {
+  "bar": {
+   "consent": {
+    "top": 611.25,
+    "bottom": 728,
+    "left": 12,
+    "right": 348,
+    "h": 116.75,
+    "w": 336
+   },
+   "fab": {
+    "top": 547,
+    "bottom": 599,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   },
+   "sizes": [
+    "☰:52x52",
+    "Политика конфиденциа:204x18",
+    "Только необходимые:161x32",
+    "Принять все:105x32"
+   ],
+   "last": {
+    "top": 6753.828125,
+    "bottom": 6789.828125,
+    "left": 20,
+    "right": 153.84375,
+    "txt": "Запросить цену"
+   },
+   "pb": "0px",
+   "fabc": "",
+   "sh": 6998
+  },
+  "gap": 12,
+  "overlapBar": false,
+  "openOverlap": false,
+  "openSizes": [
+   "🧾:52x52",
+   "💬:52x52",
+   "↑:52x52",
+   "×:52x52",
+   "Политика конфиденциа:204x18",
+   "Только необходимые:161x32",
+   "Принять все:105x32"
+  ],
+  "bottomBar": {
+   "lastCovered": false,
+   "last": {
+    "top": 495.828125,
+    "bottom": 531.828125,
+    "left": 20,
+    "right": 153.84375,
+    "txt": "Запросить цену"
+   },
+   "fab": {
+    "top": 547,
+    "bottom": 599,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   },
+   "pb": "0px",
+   "fabc": ""
+  },
+  "tabOrder": [
+   "CONSENT:Политика конфид",
+   "CONSENT:Только необходи",
+   "CONSENT:Принять все",
+   "BODY:{\"@context\":\"ht",
+   "A:PackJoyU",
+   "A:EN",
+   "BUTTON:Открыть меню",
+   "A:Запросить цену",
+   "A:Смотреть продук",
+   "A:Гофрокоробки",
+   "A:Цветные коробки",
+   "A:Подарочные коро",
+   "A:Изделия из форм",
+   "A:Бумажные стакан",
+   "A:Товары для праз",
+   "A:Коробки для вин",
+   "A:Цветная печать",
+   "A:Офсетная печать",
+   "A:Экологичные бум",
+   "A:Подарочные карт",
+   "A:Рождественская ",
+   "A:Подарочные коро",
+   "A:Коробки для вин",
+   "A:Запросить цену",
+   "A:Гофрокоробки",
+   "A:Цветные коробки",
+   "A:Подарочные коро",
+   "A:Изделия из форм",
+   "A:Бумажные стакан",
+   "A:Товары для праз",
+   "A:Коробки для вин",
+   "A:Цветная печать",
+   "A:Офсетная печать",
+   "A:Экологичные бум",
+   "A:Подарочные карт",
+   "A:Рождественская ",
+   "A:Запросить цену",
+   "A:Политика конфид",
+   "A:English",
+   "FAB:Быстрые действи"
+  ],
+  "after": {
+   "fab": {
+    "top": 672,
+    "bottom": 724,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   },
+   "consent": null,
+   "vh": 740
+  },
+  "bottomAfter": {
+   "lastCovered": false,
+   "last": {
+    "top": 495.828125,
+    "bottom": 531.828125,
+    "left": 20,
+    "right": 153.84375,
+    "txt": "Запросить цену"
+   },
+   "fab": {
+    "top": 672,
+    "bottom": 724,
+    "left": 292,
+    "right": 344,
+    "h": 52,
+    "w": 52
+   }
+  }
+ },
+ "1440-en": {
+  "bar": {
+   "consent": {
+    "top": 807.4375,
+    "bottom": 884,
+    "left": 16,
+    "right": 576,
+    "h": 76.5625,
+    "w": 560
+   },
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   },
+   "sizes": [
+    "🧾:52x52",
+    "💬:52x52",
+    "↑:52x52",
+    "Privacy policy:84x18",
+    "Reject non-essential:155x32",
+    "Accept all:87x32"
+   ],
+   "last": {
+    "top": 2308.9375,
+    "bottom": 2344.9375,
+    "left": 1049.515625,
+    "right": 1152.46875,
+    "txt": "Get a quote"
+   },
+   "pb": "0px",
+   "fabc": "",
+   "sh": 2510
+  },
+  "gap": -77,
+  "overlapBar": false,
+  "bottomBar": {
+   "lastCovered": false,
+   "last": {
+    "top": 698.9375,
+    "bottom": 734.9375,
+    "left": 1049.515625,
+    "right": 1152.46875,
+    "txt": "Get a quote"
+   },
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   },
+   "pb": "0px",
+   "fabc": ""
+  },
+  "tabOrder": [
+   "A:PackJoyU",
+   "A:Home",
+   "A:3D Products",
+   "A:Contact",
+   "A:RU",
+   "A:Get a quote",
+   "A:Get a quote",
+   "A:Explore product",
+   "A:Corrugated Boxe",
+   "A:Color Boxes",
+   "A:Gift Boxes",
+   "A:Molded Pulp",
+   "A:Paper Cups",
+   "A:Party Supplies",
+   "A:Wine Boxes",
+   "A:Color Printing",
+   "A:Offset Printing",
+   "A:Eco-Friendly Pa",
+   "A:Gift Cards",
+   "A:Christmas Merch",
+   "A:Gift Boxes",
+   "A:Wine Boxes",
+   "A:Get a quote",
+   "A:Corrugated Boxe",
+   "A:Color Boxes",
+   "A:Gift Boxes",
+   "A:Molded Pulp",
+   "A:Paper Cups",
+   "A:Party Supplies",
+   "A:Wine Boxes",
+   "A:Color Printing",
+   "A:Offset Printing",
+   "A:Eco-Friendly Pa",
+   "A:Gift Cards",
+   "A:Christmas Merch",
+   "A:Get a quote",
+   "A:Privacy policy",
+   "A:Русский",
+   "FAB:Quote list (0)",
+   "FAB:Contact us"
+  ],
+  "after": {
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   },
+   "consent": null,
+   "vh": 900
+  },
+  "bottomAfter": {
+   "lastCovered": false,
+   "last": {
+    "top": 698.9375,
+    "bottom": 734.9375,
+    "left": 1049.515625,
+    "right": 1152.46875,
+    "txt": "Get a quote"
+   },
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   }
+  }
+ },
+ "1440-ru": {
+  "bar": {
+   "consent": {
+    "top": 789.25,
+    "bottom": 884,
+    "left": 16,
+    "right": 576,
+    "h": 94.75,
+    "w": 560
+   },
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   },
+   "sizes": [
+    "🧾:52x52",
+    "💬:52x52",
+    "↑:52x52",
+    "Политика конфиденциа:204x18",
+    "Только необходимые:161x32",
+    "Принять все:105x32"
+   ],
+   "last": {
+    "top": 2383.328125,
+    "bottom": 2419.328125,
+    "left": 1049.515625,
+    "right": 1183.359375,
+    "txt": "Запросить цену"
+   },
+   "pb": "0px",
+   "fabc": "",
+   "sh": 2585
+  },
+  "gap": -95,
+  "overlapBar": false,
+  "bottomBar": {
+   "lastCovered": false,
+   "last": {
+    "top": 698.328125,
+    "bottom": 734.328125,
+    "left": 1049.515625,
+    "right": 1183.359375,
+    "txt": "Запросить цену"
+   },
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   },
+   "pb": "0px",
+   "fabc": ""
+  },
+  "tabOrder": [
+   "A:PackJoyU",
+   "A:Главная",
+   "A:3D-каталог",
+   "A:Контакты",
+   "A:EN",
+   "A:Запросить цену",
+   "A:Запросить цену",
+   "A:Смотреть продук",
+   "A:Гофрокоробки",
+   "A:Цветные коробки",
+   "A:Подарочные коро",
+   "A:Изделия из форм",
+   "A:Бумажные стакан",
+   "A:Товары для праз",
+   "A:Коробки для вин",
+   "A:Цветная печать",
+   "A:Офсетная печать",
+   "A:Экологичные бум",
+   "A:Подарочные карт",
+   "A:Рождественская ",
+   "A:Подарочные коро",
+   "A:Коробки для вин",
+   "A:Запросить цену",
+   "A:Гофрокоробки",
+   "A:Цветные коробки",
+   "A:Подарочные коро",
+   "A:Изделия из форм",
+   "A:Бумажные стакан",
+   "A:Товары для праз",
+   "A:Коробки для вин",
+   "A:Цветная печать",
+   "A:Офсетная печать",
+   "A:Экологичные бум",
+   "A:Подарочные карт",
+   "A:Рождественская ",
+   "A:Запросить цену",
+   "A:Политика конфид",
+   "A:English",
+   "FAB:Список для запр",
+   "FAB:Связаться с нам"
+  ],
+  "after": {
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   },
+   "consent": null,
+   "vh": 900
+  },
+  "bottomAfter": {
+   "lastCovered": false,
+   "last": {
+    "top": 698.328125,
+    "bottom": 734.328125,
+    "left": 1049.515625,
+    "right": 1183.359375,
+    "txt": "Запросить цену"
+   },
+   "fab": {
+    "top": 708,
+    "bottom": 884,
+    "left": 1372,
+    "right": 1424,
+    "h": 176,
+    "w": 52
+   }
+  }
+ }
+}

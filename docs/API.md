@@ -52,7 +52,7 @@
 - `config` 白名单字段，未知字段 400；请求体 ≤ 16KB，`config` ≤ 8000 字节；每 IP 10 分钟 30 次；需要 Turnstile。
 - id：16 位随机字符（拒绝采样，约 93 bit），不可递增；旧的 10 位 id 仍可读取。
 - 过期：默认 180 天；被询盘引用后不过期，跟随询盘保留期。过期后 `GET` 返回 `410 { "error": "expired", "categoryUrl": "…" }`，再保留 90 天后由定时任务删除（之后 404）。
-- `HEAD /api/designs/:id`：只返回状态码 200 / 404 / 410（限流时 429），没有 body，`Cache-Control: public, max-age=60`；只查 `expiresAt` 和 `category`，410 时带 `X-Design-Category: <categoryMeta key>`（没有分类就不带），不返回其它方案信息；每 IP 10 分钟 600 次，无 IP（服务端内部调用）共用 6000 次。给 middleware 的 410 规则用。
+- `HEAD /api/designs/:id`：只返回状态码 200 / 404 / 410（限流时 429），没有 body，`Cache-Control: public, max-age=60`；只查 `expiresAt` 和 `category`，410 时带 `X-Design-Category: <categoryMeta key>`（没有分类就不带），不返回其它方案信息；每 IP 10 分钟 600 次，无 IP（服务端内部调用）共用 6000 次。middleware 探测时带 `x-internal-probe: $MIDDLEWARE_PROBE_SECRET`（≥ 32 字节，常量时间比较）和 `x-probe-client-ip: <客户端 IP>`：密钥通过且 IP 格式合法才按该 IP 单独分桶（`design-head:probe:<ip>`，同样 600 次），否则忽略这两个头、按连接 IP 限流。给 middleware 的 410 规则用。
 - `GET /api/designs/:id` 返回 `{ id, productSlug, category, locale, config, hasLogo, expiresAt, createdAt, slugs, canonical }`，不返回 logo 上传 id（防止被人拿去绑定询盘）；logo 用 `GET /api/designs/:id/logo` 取（重新编码过的 PNG）。都带 `X-Robots-Tag: noindex, nofollow`。
 - 页面 `/{locale}/s/:id`（`/en/s/…`、`/ru/s/…`，文案跟 URL 语言）：`noindex, nofollow`，canonical 指向对应分类落地页 `/{locale}/products/{slug}`（没有分类时指向 `/{locale}/products`）。过期时页面显示“链接已过期”和分类页链接。页面本身没法返回 410：全栈的 middleware 对 `/*/s/` 调 `HEAD /api/designs/:id`，按结果返回 410（调用失败时放行）。
 

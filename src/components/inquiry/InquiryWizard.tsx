@@ -12,6 +12,13 @@ const TIMELINES = ['2w', '1m', '2m', 'unsure'] as const;
 const COUNTRIES = ['US', 'GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'PL', 'RU', 'KZ', 'BY', 'UZ', 'AE', 'SA', 'AU', 'CA', 'ZZ'] as const;
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
+type TurnstileApi = {
+  render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+  reset: (id?: string) => void;
+  remove: (id: string) => void;
+};
+const getTurnstile = () => (window as unknown as { turnstile?: TurnstileApi }).turnstile;
+
 const RETRYABLE = new Set(['retry', 'network']);
 type Result = { ok: true; ref: string } | { ok: false; code: string };
 
@@ -57,14 +64,45 @@ export default function InquiryWizard() {
   }, [quote.items]);
 
   // Turnstile 只在配置了站点密钥时加载（CSP 已放行 challenges.cloudflare.com）
+  // 用显式渲染：隐式模式只在脚本首次加载时扫描一次 .cf-turnstile，
+  // 第 3 步点 Back 再 Next 后容器重新挂载，控件不会再渲染，令牌为空 → 403（#181）。
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
   useEffect(() => {
-    if (!SITE_KEY || step !== 2 || document.getElementById('cf-turnstile-js')) return;
-    const s = document.createElement('script');
-    s.id = 'cf-turnstile-js';
-    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    s.async = true;
-    document.head.appendChild(s);
-  }, [step]);
+    if (!SITE_KEY || step !== 2) return;
+    let cancelled = false;
+    const mount = () => {
+      const ts = getTurnstile();
+      const el = turnstileRef.current;
+      if (cancelled || !ts || !el || widgetId.current) return;
+      widgetId.current = ts.render(el, {
+        sitekey: SITE_KEY,
+        language: locale,
+        callback: (tok: string) => setTurnstileToken(tok),
+        'expired-callback': () => { setTurnstileToken(''); if (widgetId.current) getTurnstile()?.reset(widgetId.current); },
+        'error-callback': () => { setTurnstileToken(''); }
+      });
+    };
+    if (getTurnstile()) mount();
+    else {
+      let s = document.getElementById('cf-turnstile-js') as HTMLScriptElement | null;
+      if (!s) {
+        s = document.createElement('script');
+        s.id = 'cf-turnstile-js';
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        s.async = true;
+        document.head.appendChild(s);
+      }
+      s.addEventListener('load', mount);
+    }
+    return () => {
+      cancelled = true;
+      document.getElementById('cf-turnstile-js')?.removeEventListener('load', mount);
+      if (widgetId.current) { getTurnstile()?.remove(widgetId.current); widgetId.current = null; }
+      setTurnstileToken('');
+    };
+  }, [step, locale]);
 
   const toggle = (slug: string) => setSelected((p) => (p.includes(slug) ? p.filter((s) => s !== slug) : [...p, slug]));
 
@@ -88,10 +126,10 @@ export default function InquiryWizard() {
       locale,
       contact: { name: c(contact.name), email: c(contact.email), company: c(contact.company), phone: c(contact.phone), region: c(contact.region) },
       message: message.trim() || undefined,
-      items: selected.slice(0, 30).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
+      items: selected.slice(0, 20).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
       attribution: { page: window.location.pathname },
       website: String(fd.get('website') ?? ''),
-      turnstileToken: opt('cf-turnstile-response'),
+      turnstileToken: turnstileToken || opt('cf-turnstile-response'),
       ...(logo ? { logoUploadId: logo.uploadId } : {})
     };
     setBusy(true); setResult(null);
@@ -116,7 +154,8 @@ export default function InquiryWizard() {
     } finally {
       setBusy(false);
       // Turnstile 令牌只能用一次：失败后刷新，方便直接重试
-      (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
+      setTurnstileToken('');
+      if (widgetId.current) getTurnstile()?.reset(widgetId.current);
     }
   }
 
@@ -185,7 +224,7 @@ export default function InquiryWizard() {
           <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 16 }}>
             <input type="checkbox" name="consent" required checked={contact.consent} onChange={(e) => { const v = e.target.checked; setContact((c) => ({ ...c, consent: v })); }} /> <span>{t('consent')}</span>
           </label>
-          {SITE_KEY && <div className="cf-turnstile" data-sitekey={SITE_KEY} data-language={locale} style={{ marginBottom: 16 }} />}
+          {SITE_KEY && <div ref={turnstileRef} className="cf-turnstile" style={{ marginBottom: 16 }} />}
         </>
       )}
 

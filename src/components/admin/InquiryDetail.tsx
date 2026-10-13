@@ -164,7 +164,7 @@ export default function InquiryDetailView({ id }: { id: string }) {
                 <div>
                   <b>{productName(it.productSlug)} · {it.quantity?.toLocaleString('en-US') ?? '—'} pcs</b>
                   <div className="muted">{it.config ? Object.values(it.config).map(String).join(' · ') : '—'}{inq.logoUploadId && i === 0 ? ' · 附 Logo' : ''}</div>
-                  {it.designId && <div className="muted">定制方案 <span className="adm-url">/s/{it.designId}</span></div>}
+                  {it.designId && <div className="muted">定制方案 <a className="adm-url" href={`/${inq.locale}/s/${it.designId}`} target="_blank" rel="noopener noreferrer">/{inq.locale}/s/{it.designId}</a></div>}
                 </div>
               </div>))}
           </section>

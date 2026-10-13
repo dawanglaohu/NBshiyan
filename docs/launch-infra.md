@@ -71,6 +71,7 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 | `APP_ORIGIN` | 通常留空；有反向代理/对外域名与请求 origin 不一致时填 `https://<正式域名>` | 后台 Origin 校验 |
 | `ADMIN_TOTP_KEY` | `openssl rand -base64 32`（32 字节 base64） | 2FA 密钥加密；**设置后不要更换**，换了已绑定的 2FA 全部失效 |
 | `CRON_SECRET` | `openssl rand -base64 32` | 定时任务鉴权，见第 5 节 |
+| `MIDDLEWARE_PROBE_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | middleware 探测短链状态（`HEAD /api/designs/:id`）时带在 `x-internal-probe` 头里，服务端据此信任 `x-probe-client-ip` 做分桶限流；不配置则探测按连接 IP 限流 |
 | `BEHIND_CLOUDFLARE` | 域名走 Cloudflare 代理时填 `1`，否则留空 | 决定是否信任 `CF-Connecting-IP` |
 | `RATE_LIMIT_STORE` | `upstash` | 生产必须，不能用 memory |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | |

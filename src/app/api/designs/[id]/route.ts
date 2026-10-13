@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { lookupDesign, canonicalFor, designStatus } from '@/lib/server/designs';
+import { lookupDesign, canonicalFor, designStatus, isDbUnavailable, errorSummary } from '@/lib/server/designs';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
 import { clientIp, hitRateLimit, tooManyRequests } from '@/lib/server/security';
+import { probeClientIp } from '@/lib/server/probe';
 
 export const runtime = 'nodejs';
 
@@ -24,11 +25,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
  * 短暂缓存 60 秒（状态只会从 200 变成 410/404）。
  */
 export async function HEAD(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  // middleware 探测带密钥时按它转发的客户端 IP 单独计数，避免所有探测共用一个桶；否则按连接 IP
+  const probeIp = probeClientIp(req);
   const ip = clientIp(req);
-  const ok = ip ? await hitRateLimit(`design-head:${ip}`, 600) : await hitRateLimit('design-head:noip', 6000);
+  const ok = probeIp ? await hitRateLimit(`design-head:probe:${probeIp}`, 600)
+    : ip ? await hitRateLimit(`design-head:${ip}`, 600) : await hitRateLimit('design-head:noip', 6000);
   if (!ok) return new Response(null, { status: 429, headers: { 'Retry-After': '600', 'Cache-Control': 'no-store' } });
   const { id } = await params;
-  const { status, category } = await designStatus(id); // 只查 expiresAt + category
+  let st: Awaited<ReturnType<typeof designStatus>>;
+  try {
+    st = await designStatus(id); // 只查 expiresAt + category
+  } catch (err) {
+    if (!isDbUnavailable(err)) throw err;
+    console.error('[HEAD /api/designs/:id] db unavailable', errorSummary(err));
+    return new Response(null, { status: 503, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
+  }
+  const { status, category } = st;
   const headers: Record<string, string> = { 'Cache-Control': 'public, max-age=60', 'X-Robots-Tag': 'noindex, nofollow' };
   if (status === 410 && category) headers['X-Design-Category'] = category; // 仅 categoryMeta key，供 middleware 拼分类页链接
   return new Response(null, { status, headers });

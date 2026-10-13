@@ -74,6 +74,40 @@ export async function lookupDesign(id: string, now = new Date()): Promise<Design
   return { state: 'ok', design: { ...rest, hasLogo: !!logoUploadId } };
 }
 
+/** 数据库/连接类错误（区别于“查不到”）：Prisma 初始化失败、P1001/P1002/P1008/P1017/P2024、Rust panic，或底层网络错误码 */
+const DB_DOWN_CODES = new Set(['P1001', 'P1002', 'P1008', 'P1017', 'P2024']);
+const NET_CODES = new Set(['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAI_AGAIN', 'EHOSTUNREACH', 'ENETUNREACH']);
+export function isDbUnavailable(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { name?: unknown; code?: unknown; errorCode?: unknown; cause?: unknown };
+  if (e.name === 'PrismaClientInitializationError' || e.name === 'PrismaClientRustPanicError') return true;
+  for (const c of [e.code, e.errorCode]) {
+    if (typeof c === 'string' && (DB_DOWN_CODES.has(c) || NET_CODES.has(c))) return true;
+  }
+  return e.cause !== err && isDbUnavailable(e.cause);
+}
+
+/** 只记错误类型和错误码，不记 message / 连接串 */
+export function errorSummary(err: unknown): string {
+  if (!err || typeof err !== 'object') return 'unknown';
+  const e = err as { name?: unknown; code?: unknown; errorCode?: unknown };
+  const code = typeof e.code === 'string' ? e.code : typeof e.errorCode === 'string' ? e.errorCode : '';
+  const name = typeof e.name === 'string' ? e.name : 'Error';
+  return (code ? `${name}:${code}` : name).replace(/[^\w:.-]/g, '').slice(0, 80);
+}
+
+export type DesignPageLookup = DesignLookup | { state: 'unavailable' };
+/** /s/:id 页面用：数据库不可用时返回 unavailable（只记 errorSummary）；其它异常照常抛出 */
+export async function lookupDesignForPage(id: string, lookup: (id: string) => Promise<DesignLookup> = lookupDesign): Promise<DesignPageLookup> {
+  try {
+    return await lookup(id);
+  } catch (err) {
+    if (!isDbUnavailable(err)) throw err;
+    console.error('[s/:id] db unavailable', errorSummary(err));
+    return { state: 'unavailable' };
+  }
+}
+
 /** 询盘引用的方案必须都存在且未过期 */
 export async function liveDesignIds(ids: string[]) {
   if (!ids.length) return new Set<string>();
