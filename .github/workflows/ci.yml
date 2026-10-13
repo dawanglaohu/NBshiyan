@@ -23,6 +23,8 @@ jobs:
         run: node scripts/check-model-refs.mjs
       - name: 后台接口必须鉴权
         run: node scripts/check-admin-guard.mjs
+      - name: Unit tests
+        run: pnpm test
       - run: pnpm build
       - name: Lighthouse 性能门槛
         run: |
