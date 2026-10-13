@@ -163,3 +163,7 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 .cta-band{--focus-ring:#fff}
 /* 深色礼盒/酒盒区块里用金色 */
 .theme-premium *,.theme-premium .btn:not(.ghost){--focus-ring:var(--gold)}
+
+/* #148 方案 B（Ryan 确认）：深色区金色按钮保留 #D4AF6A 底，文字用深色 --on-accent #121214（9.03:1）；hover 变浅 #E2C285（10.95:1），不加深 */
+.theme-premium .btn:not(.ghost){color:var(--on-accent)}
+.theme-premium .btn:not(.ghost):hover{background:var(--accent-hover);border-color:var(--accent-hover)}
