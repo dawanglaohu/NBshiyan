@@ -23,7 +23,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.180.0",
-    "typescript": "^5.9.2"
+    "typescript": "^7.0.2"
   },
   "pnpm": {
     "overrides": {
