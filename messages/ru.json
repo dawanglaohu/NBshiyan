@@ -9,7 +9,12 @@
     "products": "3D-каталог",
     "about": "О компании",
     "contact": "Контакты",
-    "quote": "Запросить цену"
+    "quote": "Запросить цену",
+    "menu": "Меню",
+    "main": "Основная навигация",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню",
+    "switchLang": "English version"
   },
   "Home": {
     "headline": "Упаковка, которая дарит радость",
