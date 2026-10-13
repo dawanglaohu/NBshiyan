@@ -121,7 +121,7 @@
 
 | key | 内容 | 规则 |
 |---|---|---|
-| `format` | GLB 容器和 JSON | glTF 2.0；只允许白名单扩展（Draco、meshopt、KTX2、WebP 贴图、常用材质扩展、`NEEDLE_progressive`）；外部 buffer/图片地址一律拒绝 |
+| `format` | GLB 容器和 JSON | glTF 2.0；只允许白名单扩展（Draco、meshopt、KTX2、WebP 贴图、常用材质扩展、`NEEDLE_progressive`）；buffers/images 的 `uri` 只允许 `data:`，其他（http、相对路径等）在解析前即拒绝 |
 | `compress` | 几何、贴图压缩 | 几何必须 Draco 或 meshopt；贴图非 KTX2 时在 detail 里提示 |
 | `size` | 体积 | ≤ 1MB，`animated` 时 ≤ 1.5MB |
 | `triangles` | 三角面数（按 accessor 声明） | 1 – 100,000 |

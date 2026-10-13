@@ -3,7 +3,7 @@ import sharp from 'sharp';
 
 /**
  * GLB 静态检查。只解析容器和 JSON，不解码 Draco/meshopt、不执行任何内嵌内容、不访问外部地址
- * （外部 buffer/image 由 binaryToJSON 直接拒绝，data: URI 只在内存里解码）。所有数字都来自 glTF JSON 的声明或嵌入图片的文件头。
+ * （buffers/images 的 uri 只允许 data:，其他一律在解析前拒绝；data: URI 只在内存里解码）。所有数字都来自 glTF JSON 的声明或嵌入图片的文件头。
  */
 
 export const MODEL_MAX_BYTES = 1024 * 1024; // PRD：单模型 ≤ 1MB
@@ -63,6 +63,14 @@ export async function inspectGlb(glb: Buffer, opts: { animated: boolean; lod?: B
   if (!isGlb(glb)) { push('format', false, '不是 glTF 2.0 二进制（GLB）文件'); return fail(); }
   const jsonLen = glb.readUInt32LE(12);
   if (jsonLen > MAX_JSON_BYTES) { push('format', false, 'JSON 块过大'); return fail(); }
+  // 先自己读 JSON 块，显式拒绝任何非 data: 的 buffers[].uri / images[].uri（不依赖 binaryToJSON 的默认行为）
+  try {
+    if (glb.readUInt32LE(16) !== 0x4e4f534a || 20 + jsonLen > glb.length) throw new Error('JSON 块无效');
+    const raw = JSON.parse(glb.toString('utf8', 20, 20 + jsonLen)) as J;
+    const uris = [...(raw.buffers ?? []).map((b) => b?.uri), ...(raw.images ?? []).map((i) => i?.uri)].filter((u) => u !== undefined);
+    const badUri = uris.find((u) => typeof u !== 'string' || !u.startsWith('data:'));
+    if (badUri !== undefined) { push('format', false, '包含外部资源地址（buffers/images 的 uri 只允许 data:），已拒绝'); return fail(); }
+  } catch (e) { push('format', false, `GLB 解析失败：${String((e as Error).message).slice(0, 120)}`); return fail(); }
   let json: J; let resources: Record<string, Uint8Array>;
   try {
     const doc = await new NodeIO().binaryToJSON(new Uint8Array(glb.buffer, glb.byteOffset, glb.byteLength));
