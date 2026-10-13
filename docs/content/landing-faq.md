@@ -4,7 +4,7 @@
 > **状态：草稿。FAQ 在 Ryan 定稿前不渲染（#217）。俄语全部 ⚠️ 待 Ryan 校对（ждёт вычитки Ryan）。**
 
 ## 约定 / Conventions（前端、内容都要遵守）
-1. **占位符**：所有事实（MOQ、交期、样品费、模具费、价格、证书、环保说法如 biodegradable / compostable、"factory-direct"、"24 hours"、发货范围和俄罗斯配送）一律写字面占位符 `{{待Ryan确认}}`，不编任何数字或说法。
+1. **占位符**：所有事实（MOQ、交期、样品费、模具费、价格、证书、环保说法（可降解、可堆肥等）、工厂直供、回复时限、发货范围和俄罗斯配送）一律写字面占位符 `{{待Ryan确认}}`，不编任何数字或说法。
 2. **含 `{{…}}` 的问答不渲染**：只要一条问答（问题或答案）里还有 `{{…}}`，这一条就不出现在页面上，也**不进 FAQPage JSON-LD**。
 3. **生产环境测试**：生产构建如果发现任何 `{{…}}` 占位符，测试直接失败（前端在接入时加）。
 4. **JSON-LD 开关**：FAQPage JSON-LD 还要受 `NEXT_PUBLIC_FAQ_JSONLD_ENABLED` 控制，默认关闭；Ryan 定稿且开关打开后才输出（#192）。
@@ -111,7 +111,7 @@ Our MOQ is {{待Ryan确认}}. It is confirmed in your quote based on size, print
 
 <details id="faq-color-boxes-en-2"><summary>What file format should my artwork be in?</summary>
 
-Vector files (AI, PDF or EPS) with fonts outlined work best. We send you a dieline so you can place the artwork, then a digital proof to approve before printing.
+Vector files (AI, PDF or Encapsulated PostScript) with fonts outlined work best. We send you a dieline so you can place the artwork, then a digital proof to approve before printing.
 
 </details>
 
@@ -144,7 +144,7 @@ Production lead time: {{待Ryan确认}}. Shipping time depends on the destinatio
 
 <details id="faq-color-boxes-ru-2"><summary>В каком формате прислать макет?</summary>
 
-Лучше всего векторные файлы (AI, PDF или EPS) с переведёнными в кривые шрифтами. Мы пришлём развёртку для размещения макета, а затем цифровую пробу на согласование перед печатью.
+Лучше всего векторные файлы (AI, PDF или Encapsulated PostScript) с переведёнными в кривые шрифтами. Мы пришлём развёртку для размещения макета, а затем цифровую пробу на согласование перед печатью.
 
 </details>
 
@@ -199,7 +199,7 @@ Yes. Sample lead time: {{待Ryan确认}}. Sample fee: {{待Ryan确认}}.
 
 <details id="faq-gift-boxes-en-5"><summary>How are rigid boxes protected during shipping?</summary>
 
-Packing method for export: {{待Ryan确认}}. We confirm packing and shipping terms in your quote.
+Packing method for shipping: {{待Ryan确认}}. We confirm packing and shipping terms in your quote.
 
 </details>
 
@@ -232,7 +232,7 @@ Packing method for export: {{待Ryan确认}}. We confirm packing and shipping te
 
 <details id="faq-gift-boxes-ru-5"><summary>Как жёсткие коробки защищают при перевозке?</summary>
 
-Способ экспортной упаковки — {{待Ryan确认}}. Упаковку и условия поставки подтверждаем в расчёте.
+Способ упаковки для отгрузки — {{待Ryan确认}}. Упаковку и условия поставки подтверждаем в расчёте.
 
 </details>
 
@@ -255,15 +255,15 @@ A custom tray shape usually needs a mold. Mold fee: {{待Ryan确认}}. Mold lead
 
 </details>
 
-<details id="faq-pulp-molding-en-3"><summary>Is molded pulp recyclable or compostable?</summary>
+<details id="faq-pulp-molding-en-3"><summary>Which end-of-life claims can be made for molded pulp?</summary>
 
 Do not assume: it depends on the material and certification. Certifications: {{待Ryan确认}}. We only state such claims when documents exist.
 
 </details>
 
-<details id="faq-pulp-molding-en-4"><summary>Can molded pulp replace plastic inserts for electronics or cosmetics?</summary>
+<details id="faq-pulp-molding-en-4"><summary>Is molded pulp suitable for inserts for electronics or cosmetics?</summary>
 
-Often yes, for trays and protective inserts. Send your product so we can check fit and protection; suitability for your product is confirmed after sampling.
+Send your product so we can check fit and protection; suitability for your product is confirmed after sampling.
 
 </details>
 
@@ -288,15 +288,15 @@ Our MOQ is {{待Ryan确认}}.
 
 </details>
 
-<details id="faq-pulp-molding-ru-3"><summary>Перерабатывается ли формованная целлюлоза и компостируется ли она?</summary>
+<details id="faq-pulp-molding-ru-3"><summary>Какие экологические заявления можно делать для формованной целлюлозы?</summary>
 
 Не стоит предполагать заранее: это зависит от материала и сертификации. Сертификаты — {{待Ryan确认}}. Такие формулировки используем только при наличии документов.
 
 </details>
 
-<details id="faq-pulp-molding-ru-4"><summary>Может ли формованная целлюлоза заменить пластиковые ложементы для электроники или косметики?</summary>
+<details id="faq-pulp-molding-ru-4"><summary>Подходит ли формованная целлюлоза для ложементов для электроники или косметики?</summary>
 
-Часто да — для лотков и защитных вкладышей. Пришлите товар, чтобы мы проверили посадку и защиту; пригодность подтверждаем после образца.
+Пришлите товар, чтобы мы проверили посадку и защиту; пригодность подтверждаем после образца.
 
 </details>
 
@@ -325,7 +325,7 @@ Double-wall cups keep hot drinks more comfortable to hold without a sleeve; sing
 
 </details>
 
-<details id="faq-paper-cups-en-3"><summary>Are the inks and cups food-safe?</summary>
+<details id="faq-paper-cups-en-3"><summary>Which food-contact documents are available for the inks and cups?</summary>
 
 Food-contact compliance documents: {{待Ryan确认}}. We share them before you order.
 
@@ -358,7 +358,7 @@ Lids and sleeves: {{待Ryan确认}}.
 
 </details>
 
-<details id="faq-paper-cups-ru-3"><summary>Безопасны ли краски и стаканы для контакта с пищей?</summary>
+<details id="faq-paper-cups-ru-3"><summary>Какие документы о контакте с пищей есть для красок и стаканов?</summary>
 
 Документы о соответствии для контакта с пищей — {{待Ryan确认}}. Предоставим их до заказа.
 
@@ -663,19 +663,19 @@ Production lead time: {{待Ryan确认}}, confirmed in your quote after artwork a
 
 ### EN
 
-<details id="faq-eco-paper-cups-en-1"><summary>Are these cups compostable or biodegradable?</summary>
+<details id="faq-eco-paper-cups-en-1"><summary>Which environmental claims can be made for these cups?</summary>
 
-We do not make this claim without certification. Certifications: {{待Ryan确认}}. If a certificate exists for the exact cup, we share it before you order.
-
-</details>
-
-<details id="faq-eco-paper-cups-en-2"><summary>What is the difference between PLA and water-based lining?</summary>
-
-PLA is a plant-based plastic lining; a water-based (aqueous) coating is a dispersion barrier layer. Which linings we offer: {{待Ryan确认}}.
+We make no end-of-life claims without certification. Certifications: {{待Ryan确认}}. If a certificate exists for the exact cup, we share it before you order.
 
 </details>
 
-<details id="faq-eco-paper-cups-en-3"><summary>Can I print "eco-friendly" or "compostable" on my cups?</summary>
+<details id="faq-eco-paper-cups-en-2"><summary>Which coating options are available?</summary>
+
+Coating options are confirmed per order. Which coatings we offer: {{待Ryan确认}}.
+
+</details>
+
+<details id="faq-eco-paper-cups-en-3"><summary>Can I print environmental claims on my cups?</summary>
 
 Only with valid documentation for that exact product. Wording that needs a certificate is {{待Ryan确认}}.
 
@@ -696,19 +696,19 @@ Our MOQ is {{待Ryan确认}}.
 
 ### RU ⚠️ ждёт вычитки Ryan
 
-<details id="faq-eco-paper-cups-ru-1"><summary>Эти стаканы компостируемые или биоразлагаемые?</summary>
+<details id="faq-eco-paper-cups-ru-1"><summary>Какие экологические заявления можно делать для этих стаканов?</summary>
 
-Мы не заявляем этого без сертификата. Сертификаты — {{待Ryan确认}}. Если на конкретный стакан есть сертификат, предоставим его до заказа.
-
-</details>
-
-<details id="faq-eco-paper-cups-ru-2"><summary>Чем PLA-покрытие отличается от покрытия на водной основе?</summary>
-
-PLA — покрытие из растительного пластика; покрытие на водной основе — барьерный дисперсионный слой. Какие покрытия доступны — {{待Ryan确认}}.
+Мы не делаем заявлений об утилизации без сертификата. Сертификаты — {{待Ryan确认}}. Если на конкретный стакан есть сертификат, предоставим его до заказа.
 
 </details>
 
-<details id="faq-eco-paper-cups-ru-3"><summary>Можно ли написать на стакане «экологичный» или «компостируемый»?</summary>
+<details id="faq-eco-paper-cups-ru-2"><summary>Какие варианты покрытия доступны?</summary>
+
+Варианты покрытия уточняем под заказ. Какие покрытия доступны — {{待Ryan确认}}.
+
+</details>
+
+<details id="faq-eco-paper-cups-ru-3"><summary>Можно ли печатать экологические заявления на стаканах?</summary>
 
 Только при наличии документов на конкретный продукт. Какие формулировки требуют сертификата — {{待Ryan确认}}.
 
