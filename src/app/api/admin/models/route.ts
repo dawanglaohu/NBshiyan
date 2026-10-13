@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { noStore, jsonErr } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readMultipart, fileField } from '@/lib/server/multipart';
@@ -16,7 +16,7 @@ const ROLES = ['ADMIN', 'EDITOR'] as const;
 export async function GET(req: Request) {
   const ctx = await requireAdmin(req, [...ROLES]);
   if (ctx instanceof Response) return ctx;
-  const limited = adminRateLimit(req, 'model.list');
+  const limited = await enforceAdminRateLimit(req, 'model.list');
   if (limited) return limited;
   const sp = new URL(req.url).searchParams;
   const status = z.enum(['UPLOADED', 'PROCESSING', 'READY', 'FAILED']).optional().safeParse(sp.get('status') ?? undefined);
@@ -40,7 +40,7 @@ const Meta = z.object({
 export async function POST(req: Request) {
   const ctx = await requireAdmin(req, [...ROLES]);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'model.upload', 20);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'model.upload', 20));
   if (blocked) return blocked;
   const form = await readMultipart(req, MODEL_ANIM_MAX_BYTES + LOD_MAX_BYTES + POSTER_MAX_BYTES + 64 * 1024);
   if (form instanceof Response) return form;
@@ -64,9 +64,9 @@ export async function POST(req: Request) {
   const m = await prisma.model3D.create({ data: { ...meta.data, sourceKey: 'pending', status: 'UPLOADED', uploadedBy: ctx.user.id } });
   const base = `models/${m.id}`;
   const keys = { sourceKey: `${base}/main.glb`, lodKey: lod ? `${base}/lod.glb` : null, posterKey: poster ? `${base}/poster.webp` : null };
-  await storage.put(keys.sourceKey, glb);
-  if (lod) await storage.put(keys.lodKey!, lod);
-  if (poster) await storage.put(keys.posterKey!, poster);
+  await storage.put(keys.sourceKey, glb, 'model/gltf-binary');
+  if (lod) await storage.put(keys.lodKey!, lod, 'model/gltf-binary');
+  if (poster) await storage.put(keys.posterKey!, poster, 'image/webp');
   await prisma.model3D.update({ where: { id: m.id }, data: keys });
   const done = await processModel(m.id);
   await audit({ actorId: ctx.user.id, action: 'model.upload', target: m.id, meta: { productSlug: m.productSlug, bytes: glb.length, status: done.status }, ip: ctx.ip });

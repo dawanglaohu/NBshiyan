@@ -23,6 +23,8 @@ jobs:
         run: node scripts/check-model-refs.mjs
       - name: 后台接口必须鉴权
         run: node scripts/check-admin-guard.mjs
+      - name: Unit tests
+        run: pnpm test
       - run: pnpm build
       # 固定 Chrome 版本，避免 runner 自带 Chrome 升级后与 Lighthouse 的 trace 格式不兼容（frame_sequence 报错）
       - uses: browser-actions/setup-chrome@v1
