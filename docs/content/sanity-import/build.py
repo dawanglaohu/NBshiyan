@@ -100,7 +100,7 @@ def related_md(url, loc):
 
 docs = []
 for f in sorted(ROOT.glob('*.md')):
-    if f.name in ('README.md', 'industries.md'): continue
+    if f.name in ('README.md', 'industries.md', 'internal-links.md'): continue
     md = f.read_text()
     k = re.search(r'内部 key `([^`]+)`', md).group(1)
     cm = cat_meta(k)
@@ -135,7 +135,7 @@ for group, langs in sorted(arts.items()):
         d['slug'][loc] = {'_type': 'slug', 'current': fm['slug']}
         d['excerpt'][loc] = fm['meta_description']
         d['body'][loc] = blocks(body, f'{group}-{loc}')
-        d['seo']['title'][loc] = fm['title']
+        d['seo']['title'][loc] = fm.get('seo_title') or fm['title']  # ≤60 字符的 SEO 标题；H1 仍用 title
         d['seo']['description'][loc] = fm['meta_description']
     docs.append(d)
 

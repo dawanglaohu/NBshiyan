@@ -9,6 +9,7 @@
 
 ## 字段怎么对应
 - schema 是一个文档里同时放两种语言：`title`、`excerpt`、`body`、`seo.title`、`seo.description` 都是 `{ en, ru }`，`slug` 是 `{ en: {current}, ru: {current} }`。俄语文章不单独建文档，和英文版合成一个文档，两种语言的 slug 分开填。
+- 文章 `seo.title` 取 front matter 的 `seo_title`（≤60 字符），没有时退回 `title`；`title`（H1）可以更长。
 - 落地页：`title` 用 H1，`excerpt` 用导语段，`body` 是卖点、规格（表格转成列表）和流程，`seo` 来自 `categoryMeta.ts`，`category` 填内部 key（例如 `color-boxes`）。
 - **FAQ 草稿没有导入**，等 Ryan 定稿后再加，到时 FAQPage JSON-LD 也一起打开（#192）。
 - 正文是 Portable Text：normal、h2、h3、列表、strong，加上 `link` 标记（`markDefs: [{_type:'link', href}]`）。href 只会是 `/en/…` 或 `/ru/…` 的相对路径，其他链接一律转成纯文本。渲染链接要等全栈在 #91 之后给渲染器加上支持；在那之前链接文字会照常显示，只是不能点。
