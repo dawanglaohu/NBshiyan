@@ -85,7 +85,71 @@
       "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
       "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
     },
-    "alt": "{name}: custom packaging by PackJoyU"
+    "alt": "{name}: custom packaging by PackJoyU",
+    "specs": {
+      "corrugated-boxes": [
+        "Single & double wall (E/B/C flute)",
+        "Up to 4-color flexo or digital print",
+        "MOQ from 500 pcs"
+      ],
+      "color-boxes": [
+        "300–400 gsm SBS or kraft board",
+        "CMYK + Pantone, matte/gloss lamination",
+        "MOQ from 1,000 pcs"
+      ],
+      "gift-boxes": [
+        "Rigid 1.5–2.5 mm greyboard",
+        "Foil stamping, embossing, magnetic lid",
+        "Custom EVA or paper inserts"
+      ],
+      "pulp-molding": [
+        "Recycled paper or sugarcane fiber",
+        "Custom cavities for any product",
+        "Plastic-free and compostable"
+      ],
+      "paper-cups": [
+        "4–22 oz, single or double wall",
+        "Hot & cold drink coatings",
+        "MOQ from 10,000 pcs"
+      ],
+      "party-supplies": [
+        "Plates, cups, napkins, banners",
+        "Food-safe inks",
+        "Retail-ready packs"
+      ],
+      "wine-boxes": [
+        "1, 2 or 3-bottle formats",
+        "Foil, spot UV, magnetic closures",
+        "Fitted inserts for safe shipping"
+      ],
+      "color-printing": [
+        "CMYK + spot colors",
+        "Labels, sleeves, leaflets",
+        "Color proof before production"
+      ],
+      "offset-printing": [
+        "Heidelberg offset presses",
+        "Catalogs, brochures, cartons",
+        "Consistent color at volume"
+      ],
+      "eco-paper-cups": [
+        "Water-based, plastic-free coating",
+        "Home or industrial compostable",
+        "FSC-certified board"
+      ],
+      "gift-cards": [
+        "350–600 gsm card stock",
+        "Foil, embossing, die-cut shapes",
+        "Envelopes & card holders"
+      ],
+      "christmas-merchandise": [
+        "Gift boxes, tubes, advent calendars",
+        "Seasonal foil & glitter finishes",
+        "Order by September for Q4"
+      ]
+    },
+    "learnMore": "Learn more",
+    "specsLabel": "Key specs"
   },
   "Admin": {
     "title": "Admin"
