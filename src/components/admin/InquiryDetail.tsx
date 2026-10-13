@@ -83,7 +83,7 @@ export default function InquiryDetailView({ id }: { id: string }) {
       <div className="adm-g2">
         <div>
           <section className="adm-sec">
-            <h2>往来记录 <span className="muted">{inq.messages.length + inq.attachments.length} 条</span></h2>
+            <h2>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></h2>
             {inq.message && (
               <div className="adm-msg2 INBOUND"><div className="meta">客户 · {c.name} · {fmtDate(inq.createdAt)}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}><PlainText text={inq.message} /></div></div>)}
@@ -92,14 +92,7 @@ export default function InquiryDetailView({ id }: { id: string }) {
                 <div className="meta">{m.direction === 'INBOUND' ? `客户 · ${c.name}` : `我们${m.author ? ` · ${m.author}` : ''}`} · {fmtDate(m.createdAt)} · {m.subject}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}><PlainText text={plain(m.bodyHtml)} /></div>
               </div>))}
-            {inq.attachments.map((a) => (
-              <div key={a.id} className="adm-msg2 INBOUND">
-                <div className="meta">客户 · 附件</div>
-                📎 {a.filename} · {(a.sizeBytes / 1024 / 1024).toFixed(1)}MB ·{' '}
-                {a.scan === 'clean' ? <span className="adm-scan">扫描通过</span> : <span className="warn">{a.scan === 'infected' ? '发现风险，已拦截' : '扫描中'}</span>}
-                {' · '}{a.scan === 'clean' && a.downloadUrl ? <a href={a.downloadUrl} download rel="noopener">下载</a> : <span className="muted">下载</span>}
-                <span className="muted">（不在页面预览）</span>
-              </div>))}
+            {/* 附件区整体不显示：后端暂无附件接口（#85），有了再按扫描状态加回 */}
           </section>
 
           <section className="adm-sec">
