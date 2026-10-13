@@ -2,7 +2,7 @@ import { createHmac } from 'crypto';
 import { z } from 'zod';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { normalizeEmail } from './sample';
-import { storage } from './storage';
+import { storage as defaultStorage, type PrivateStorage } from './storage';
 import { isLogoKey } from './uploads';
 
 export const PrivacyExportBody = z.object({ email: z.string().trim().email().max(200) }).strict();
@@ -73,7 +73,7 @@ export const anonymizedContact = (hash: string): Prisma.ContactUpdateInput => ({
  * 删除个人信息：联系人姓名/邮箱/电话/公司、留言、产品备注、往来邮件正文和主题、样品收货地址和规范化邮箱清空；
  * logo 上传记录和文件删除。保留询盘条数、来源/状态/产品 slug/数量/日期/地区用于统计。
  */
-export async function deleteCustomer(db: PrismaClient, email: string) {
+export async function deleteCustomer(db: PrismaClient, email: string, storage: PrivateStorage = defaultStorage) {
   const ids = await contactIdsFor(db, email);
   if (!ids.length) return { contacts: 0, inquiries: 0, logos: 0 };
   const hash = emailHash(email);

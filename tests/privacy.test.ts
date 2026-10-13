@@ -92,11 +92,11 @@ test('cleanup jobs: configured cutoffs, batches of 500, per-run cap', async () =
   delete process.env.RETENTION_MAX_PER_RUN;
 });
 
-test('privacy routes: requireAdmin -> assertSameOrigin -> rate limit -> secret check', async () => {
+test('privacy routes: requireAdmin -> assertSameOrigin -> rate limit -> secret check (static order)', async () => {
   const { readFileSync } = await import('node:fs');
-  for (const n of ['export', 'delete']) {
-    const src = readFileSync(`src/app/api/admin/privacy/${n}/route.ts`, 'utf8');
-    const idx = ["requireAdmin(req, ['ADMIN'])", 'assertSameOrigin(req)', 'enforceAdminRateLimit(req', 'privacyHashReady()', 'safeParse'].map((s) => src.indexOf(s));
-    assert.ok(idx.every((v, k) => v >= 0 && (k === 0 || v > idx[k - 1])), `${n}: ${idx}`);
-  }
+  const src = readFileSync('src/lib/server/privacy-routes.ts', 'utf8');
+  const g = src.slice(src.indexOf('async function guard'));
+  const idx = ["deps.requireAdmin(req, ['ADMIN'])", 'assertSameOrigin(req)', 'enforceAdminRateLimit(req', 'privacyHashReady()'].map((s) => g.indexOf(s));
+  assert.ok(idx.every((v, k) => v >= 0 && (k === 0 || v > idx[k - 1])), String(idx));
+  for (const n of ['export', 'delete']) assert.match(readFileSync(`src/app/api/admin/privacy/${n}/route.ts`, 'utf8'), /requireAdmin\(r, roles\)/);
 });
