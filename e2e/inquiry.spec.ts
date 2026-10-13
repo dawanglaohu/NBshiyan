@@ -28,7 +28,7 @@ test('询价全流程：三步提交成功并显示询盘编号', async ({ page 
 test('#181 回归：第 3 步 Back → Next 后 Turnstile 重新渲染，提交不再 403', async ({ page }) => {
   await toStep3(page);
   await expect(page.locator('input[name="cf-turnstile-response"]')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Back' }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.locator('input[name="cf-turnstile-response"]')).toHaveCount(1);
   await expect(page.locator('input[name="cf-turnstile-response"]')).not.toHaveValue('');
@@ -42,7 +42,7 @@ test('#98 回归：第 3 步 Back → Next 后联系人信息保留', async ({ p
   test.fixme(true, '#98 未修复（step 3 为非受控输入，卸载后清空）；修复合并后去掉 fixme');
   await toStep3(page);
   await fillContact(page);
-  await page.getByRole('button', { name: 'Back' }).click();
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByLabel(/^Name/)).toHaveValue('QA E2E');
   await expect(page.getByLabel(/Business email|Email/)).toHaveValue('qa@acme-test.com');
