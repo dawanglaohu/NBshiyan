@@ -1,5 +1,37 @@
 import createMiddleware from 'next-intl/middleware';
+import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
-export default createMiddleware(routing);
-// /admin、/api、/s 短链接和静态资源不走多语言路由
-export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|.*\\..*).*)'] };
+import { EXPIRED_RE, probeConfig, probeHeaders, probeShortlink, parseShortlink } from './lib/edge/shortlink';
+
+const intl = createMiddleware(routing);
+const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private, no-store' };
+const UNAVAILABLE = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store', 'Retry-After': '60' };
+
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  // 过期页只能由下面的 rewrite 到达，直接访问一律 404
+  if (EXPIRED_RE.test(pathname)) return new NextResponse(null, { status: 404, headers: NOINDEX });
+  const sl = parseShortlink(pathname);
+  if (sl) {
+    const cfg = probeConfig(process.env);
+    // 带内部密钥和原始客户端 IP，API 按客户端 IP 限流，而不是所有探测共用服务器 IP
+    const ip = req.headers.get('x-real-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0] ?? null;
+    const probe = cfg ? await probeShortlink(cfg.origin, sl.id, fetch, Date.now(), probeHeaders(cfg.secret, ip)) : null;
+    const locale = sl.locale ?? (/^ru\b/i.test(req.headers.get('accept-language') ?? '') ? 'ru' : 'en');
+    if (probe?.unavailable) {
+      // 数据库不可用：503 + Retry-After，不缓存，不暴露错误细节
+      return NextResponse.rewrite(new URL(`/${locale}/s/unavailable`, req.url), { status: 503, headers: UNAVAILABLE });
+    }
+    if (probe?.expired) {
+      const to = new URL(`/${locale}/s/expired`, req.url);
+      to.search = probe.category ? `?category=${encodeURIComponent(probe.category)}` : '';
+      return NextResponse.rewrite(to, { status: 410, headers: NOINDEX });
+    }
+    // 未过期、超时或出错：照常交给页面处理
+    if (!sl.locale) return NextResponse.next();
+  }
+  return intl(req);
+}
+
+// /admin、/api 和静态资源不走中间件；/s/<id> 只做过期检查，不走多语言路由
+export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|.*\\..*).*)', '/s/:id'] };

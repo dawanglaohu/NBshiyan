@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
+import { pathsForModelPublish, submitIndexNow } from '@/lib/seo/indexnow';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { noStore, jsonErr } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { ID_RE, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
@@ -17,7 +18,7 @@ const Body = z.object({ published: z.boolean() }).strict();
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireAdmin(req, ['ADMIN', 'EDITOR']);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'model.publish', 30);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'model.publish', 30));
   if (blocked) return blocked;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
@@ -42,6 +43,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await prisma.model3D.update({ where: { id }, data: { published: false } });
   }
   await audit({ actorId: ctx.user.id, action: p.data.published ? 'model.publish' : 'model.unpublish', target: id, meta: { productSlug: m.productSlug, replaced }, ip: ctx.ip });
-  const after = await prisma.model3D.findUniqueOrThrow({ where: { id } });
-  return NextResponse.json({ ...adminView(after), replaced }, { headers: noStore });
+  if (p.data.published) after(() => submitIndexNow(pathsForModelPublish()));
+  const updated = await prisma.model3D.findUniqueOrThrow({ where: { id } });
+  return NextResponse.json({ ...adminView(updated), replaced }, { headers: noStore });
 }

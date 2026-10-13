@@ -1,0 +1,126 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>询盘邮件模板（Fixes #122）</title><style>body{margin:0;padding:32px;background:#E9E4DB;font-family:Manrope,system-ui,sans-serif;width:1900px;color:#1C1C1C}h1{font-size:24px;margin:0 0 6px}.sub{color:#5A5650;font-size:14px;margin-bottom:20px;line-height:1.6}
+.g{display:grid;grid-template-columns:repeat(3,620px);gap:20px}.t{font-weight:800;margin:0 0 6px}iframe{width:620px;height:820px;border:0;border-radius:12px;background:#fff}pre{background:#fff;border-radius:12px;padding:14px;font-size:12px;white-space:pre-wrap;margin:10px 0 0;height:420px;overflow:hidden;border:1px solid #E8E2D8}</style></head><body>
+<h1>询盘邮件模板 · 设计稿（Fixes #122）</h1><div class="sub">可直接使用的文件在 design/emails/。表格布局、内联样式、600px 宽；字体用 Manrope 加系统字体兜底，不加载外部字体。不放追踪像素。唯一的图片是 Logo（{{siteUrl}}/images/logo.png 绝对地址），图片被屏蔽时显示 alt 文字。<br>
+可用变量只有 {{name}} {{company}} {{product}} {{quantity}} {{inquiryId}} {{locale}}。<b>需要后端确认新增</b>的变量：{{siteUrl}} {{replyTime}} {{contactEmail}} {{whatsapp}}，通知邮件还要 {{score}}。自动回复不回显客户留言；主题只用询盘编号，不带客户姓名。后端必须对所有变量做 HTML 转义，主题和 Reply-To 去掉 CR/LF。<br>
+深色模式：写了 color-scheme 和 prefers-color-scheme 覆盖（Apple Mail、iOS 生效）；Gmail、Outlook 会自动反色，所以浅底上不放浅色文字，按钮用实色底配白字。下方为纯文本版本。</div><div class="g"><div><p class="t">① 客户自动回复 · EN</p><iframe srcdoc="<!-- Subject: We received your inquiry #{{inquiryId}} -->
+<!doctype html>
+<html lang=&quot;en&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot;><head><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;>
+<meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;><meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;><title>We received your inquiry #{{inquiryId}}</title>
+<!-- 所有 {{变量}} 由后端做 HTML 转义后再填入；不加载外部字体、不放追踪像素。 -->
+<style>@media (prefers-color-scheme:dark){.bg{background:#121214!important}.card{background:#1B1B1F!important}.ink{color:#F2E9D8!important}.muted{color:#BFB6A6!important}.line{border-color:#2C2A27!important}}
+@media (max-width:620px){.wrap{width:100%!important}.px{padding-left:20px!important;padding-right:20px!important}}</style></head>
+<body style=&quot;margin:0;padding:0;background:#FBF8F3;&quot;>
+<div style=&quot;display:none;max-height:0;overflow:hidden;opacity:0&quot;>Thanks — our team will reply within {{replyTime}}.</div>
+<table role=&quot;presentation&quot; class=&quot;bg&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;background:#FBF8F3;&quot;><tr><td align=&quot;center&quot; style=&quot;padding:24px 12px;&quot;>
+<table role=&quot;presentation&quot; class=&quot;wrap&quot; width=&quot;600&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;width:600px;max-width:600px;&quot;>
+<tr><td class=&quot;px&quot; style=&quot;padding:8px 32px 20px 32px;&quot;><img src=&quot;{{siteUrl}}/images/logo.png&quot; width=&quot;132&quot; height=&quot;32&quot; alt=&quot;PackJoyU&quot; style=&quot;display:block;border:0;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;color:#1C1C1C;&quot;></td></tr>
+<tr><td class=&quot;card px&quot; style=&quot;background:#FFFFFF;border-radius:16px;border-top:4px solid #FF5A36;padding:32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1C1C1C;font-size:15px;line-height:1.6;&quot;>
+<h1 class=&quot;ink&quot; style=&quot;margin:0 0 12px 0;font-size:22px;line-height:1.3;&quot;>Hi {{name}},</h1><p style=&quot;margin:0 0 20px 0;&quot;>Thank you for contacting PackJoyU. We have received your inquiry and a packaging specialist will reply within <b>{{replyTime}}</b>.</p>
+<p class=&quot;muted&quot; style=&quot;margin:0 0 6px 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#FF5A36;font-weight:700;&quot;>Your inquiry</p>
+<table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Reference</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>#{{inquiryId}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Company</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{company}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Product</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{product}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Quantity</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{quantity}}</td></tr></table>
+<p class=&quot;muted&quot; style=&quot;margin:16px 0 0 0;font-size:13px;color:#5A5650;&quot;>Please keep the reference number in the subject line if you reply to this email.</p><table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;margin:24px 0 8px 0;&quot;><tr><td style=&quot;border-radius:999px;background:#FF5A36;&quot;><a href=&quot;{{siteUrl}}/{{locale}}/products&quot; style=&quot;display:inline-block;padding:13px 26px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;white-space:nowrap;border-radius:999px;&quot;>View our products</a></td></tr></table>
+<p class=&quot;muted&quot; style=&quot;margin:16px 0 0 0;font-size:13px;color:#5A5650;&quot;>Need to reach us sooner? Email {{contactEmail}} or WhatsApp {{whatsapp}}.</p>
+</td></tr>
+<tr><td class=&quot;px muted&quot; style=&quot;padding:20px 32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#5A5650;&quot;>You are receiving this email because you sent an inquiry on {{siteUrl}}. PackJoyU · Custom paper packaging and printing.</td></tr>
+</table></td></tr></table></body></html>
+"></iframe><pre>Subject: We received your inquiry #{{inquiryId}}
+
+Hi {{name}},
+
+Thank you for contacting PackJoyU. We have received your inquiry and a packaging specialist will reply within {{replyTime}}.
+
+Your inquiry
+Reference: #{{inquiryId}}
+Company: {{company}}
+Product: {{product}}
+Quantity: {{quantity}}
+
+Please keep the reference number in the subject line if you reply to this email.
+
+View our products: {{siteUrl}}/{{locale}}/products
+
+Need to reach us sooner? Email {{contactEmail}} or WhatsApp {{whatsapp}}.
+
+--
+You are receiving this email because you sent an inquiry on {{siteUrl}}. PackJoyU · Custom paper packaging and printing.
+</pre></div><div><p class="t">② 客户自动回复 · RU</p><iframe srcdoc="<!-- Subject: Мы получили ваш запрос №{{inquiryId}} -->
+<!doctype html>
+<html lang=&quot;ru&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot;><head><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;>
+<meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;><meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;><title>Мы получили ваш запрос №{{inquiryId}}</title>
+<!-- 所有 {{变量}} 由后端做 HTML 转义后再填入；不加载外部字体、不放追踪像素。 -->
+<style>@media (prefers-color-scheme:dark){.bg{background:#121214!important}.card{background:#1B1B1F!important}.ink{color:#F2E9D8!important}.muted{color:#BFB6A6!important}.line{border-color:#2C2A27!important}}
+@media (max-width:620px){.wrap{width:100%!important}.px{padding-left:20px!important;padding-right:20px!important}}</style></head>
+<body style=&quot;margin:0;padding:0;background:#FBF8F3;&quot;>
+<div style=&quot;display:none;max-height:0;overflow:hidden;opacity:0&quot;>Спасибо! Мы ответим в течение {{replyTime}}.</div>
+<table role=&quot;presentation&quot; class=&quot;bg&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;background:#FBF8F3;&quot;><tr><td align=&quot;center&quot; style=&quot;padding:24px 12px;&quot;>
+<table role=&quot;presentation&quot; class=&quot;wrap&quot; width=&quot;600&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;width:600px;max-width:600px;&quot;>
+<tr><td class=&quot;px&quot; style=&quot;padding:8px 32px 20px 32px;&quot;><img src=&quot;{{siteUrl}}/images/logo.png&quot; width=&quot;132&quot; height=&quot;32&quot; alt=&quot;PackJoyU&quot; style=&quot;display:block;border:0;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;color:#1C1C1C;&quot;></td></tr>
+<tr><td class=&quot;card px&quot; style=&quot;background:#FFFFFF;border-radius:16px;border-top:4px solid #FF5A36;padding:32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1C1C1C;font-size:15px;line-height:1.6;&quot;>
+<h1 class=&quot;ink&quot; style=&quot;margin:0 0 12px 0;font-size:22px;line-height:1.3;&quot;>Здравствуйте, {{name}}!</h1><p style=&quot;margin:0 0 20px 0;&quot;>Спасибо, что обратились в PackJoyU. Мы получили ваш запрос — специалист по упаковке ответит в течение <b>{{replyTime}}</b>.</p>
+<p class=&quot;muted&quot; style=&quot;margin:0 0 6px 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#FF5A36;font-weight:700;&quot;>Ваш запрос</p>
+<table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Номер запроса</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>#{{inquiryId}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Компания</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{company}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Продукция</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{product}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>Тираж</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{quantity}}</td></tr></table>
+<p class=&quot;muted&quot; style=&quot;margin:16px 0 0 0;font-size:13px;color:#5A5650;&quot;>Если будете отвечать на это письмо, пожалуйста, сохраните номер запроса в теме.</p><table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;margin:24px 0 8px 0;&quot;><tr><td style=&quot;border-radius:999px;background:#FF5A36;&quot;><a href=&quot;{{siteUrl}}/{{locale}}/products&quot; style=&quot;display:inline-block;padding:13px 26px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;white-space:nowrap;border-radius:999px;&quot;>Посмотреть продукцию</a></td></tr></table>
+<p class=&quot;muted&quot; style=&quot;margin:16px 0 0 0;font-size:13px;color:#5A5650;&quot;>Нужно связаться быстрее? Напишите на {{contactEmail}} или в WhatsApp {{whatsapp}}.</p>
+</td></tr>
+<tr><td class=&quot;px muted&quot; style=&quot;padding:20px 32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#5A5650;&quot;>Вы получили это письмо, потому что отправили запрос на сайте {{siteUrl}}. PackJoyU · Бумажная упаковка и печать на заказ.</td></tr>
+</table></td></tr></table></body></html>
+"></iframe><pre>Subject: Мы получили ваш запрос №{{inquiryId}}
+
+Здравствуйте, {{name}}!
+
+Спасибо, что обратились в PackJoyU. Мы получили ваш запрос — специалист по упаковке ответит в течение {{replyTime}}.
+
+Ваш запрос
+Номер запроса: #{{inquiryId}}
+Компания: {{company}}
+Продукция: {{product}}
+Тираж: {{quantity}}
+
+Если будете отвечать на это письмо, пожалуйста, сохраните номер запроса в теме.
+
+Посмотреть продукцию: {{siteUrl}}/{{locale}}/products
+
+Нужно связаться быстрее? Напишите на {{contactEmail}} или в WhatsApp {{whatsapp}}.
+
+--
+Вы получили это письмо, потому что отправили запрос на сайте {{siteUrl}}. PackJoyU · Бумажная упаковка и печать на заказ.
+</pre></div><div><p class="t">③ 内部新询盘通知 · 中文（含“待核实”状态）</p><iframe srcdoc="<!-- Subject: [PackJoyU] 新询盘 #{{inquiryId}} -->
+<!doctype html>
+<html lang=&quot;zh&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot;><head><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;>
+<meta name=&quot;color-scheme&quot; content=&quot;light dark&quot;><meta name=&quot;supported-color-schemes&quot; content=&quot;light dark&quot;><title>新询盘 #{{inquiryId}}</title>
+<!-- 所有 {{变量}} 由后端做 HTML 转义后再填入；不加载外部字体、不放追踪像素。 -->
+<style>@media (prefers-color-scheme:dark){.bg{background:#121214!important}.card{background:#1B1B1F!important}.ink{color:#F2E9D8!important}.muted{color:#BFB6A6!important}.line{border-color:#2C2A27!important}}
+@media (max-width:620px){.wrap{width:100%!important}.px{padding-left:20px!important;padding-right:20px!important}}</style></head>
+<body style=&quot;margin:0;padding:0;background:#FBF8F3;&quot;>
+<div style=&quot;display:none;max-height:0;overflow:hidden;opacity:0&quot;>新询盘 #{{inquiryId}} · {{product}} · {{quantity}}</div>
+<table role=&quot;presentation&quot; class=&quot;bg&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;background:#FBF8F3;&quot;><tr><td align=&quot;center&quot; style=&quot;padding:24px 12px;&quot;>
+<table role=&quot;presentation&quot; class=&quot;wrap&quot; width=&quot;600&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;width:600px;max-width:600px;&quot;>
+<tr><td class=&quot;px&quot; style=&quot;padding:8px 32px 20px 32px;&quot;><img src=&quot;{{siteUrl}}/images/logo.png&quot; width=&quot;132&quot; height=&quot;32&quot; alt=&quot;PackJoyU&quot; style=&quot;display:block;border:0;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;color:#1C1C1C;&quot;></td></tr>
+<tr><td class=&quot;card px&quot; style=&quot;background:#FFFFFF;border-radius:16px;border-top:4px solid #FF5A36;padding:32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1C1C1C;font-size:15px;line-height:1.6;&quot;>
+<h1 class=&quot;ink&quot; style=&quot;margin:0 0 6px 0;font-size:20px;&quot;>新询盘 #{{inquiryId}}</h1><p class=&quot;muted&quot; style=&quot;margin:0 0 18px 0;color:#5A5650;font-size:13px;&quot;>站点语言：{{locale}} · 客户回复语言跟随询盘语言</p>
+<!--RISK: 仅当可信度 < 40 时由后端输出此块（需新增变量，见 PR 说明）-->
+<table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;margin-bottom:16px;&quot;><tr><td style=&quot;background:#FDE8E7;border-radius:10px;padding:10px 14px;font-size:14px;color:#7A1A12;&quot;><b>待核实</b> · 可信度 {{score}} 分（低于 40），请先核实再回复。</td></tr></table>
+<table role=&quot;presentation&quot; width=&quot;100%&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot;><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>联系人</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{name}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>公司</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{company}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>产品</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{product}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>数量</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{quantity}}</td></tr><tr><td class=&quot;muted line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;&quot;>可信度</td><td class=&quot;ink line&quot; style=&quot;padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;&quot;>{{score}} / 100</td></tr></table>
+<p class=&quot;muted&quot; style=&quot;margin:14px 0 0 0;font-size:13px;color:#5A5650;&quot;>留言正文、链接和附件不放进邮件，请到后台查看：链接只显示为纯文本，附件只能下载、不预览。</p>
+<table role=&quot;presentation&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; border=&quot;0&quot; style=&quot;margin:24px 0 8px 0;&quot;><tr><td style=&quot;border-radius:999px;background:#1C1C1C;&quot;><a href=&quot;{{siteUrl}}/admin/inquiries/{{inquiryId}}&quot; style=&quot;display:inline-block;padding:13px 26px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;white-space:nowrap;border-radius:999px;&quot;>在后台打开询盘</a></td></tr></table>
+<p class=&quot;muted&quot; style=&quot;margin:8px 0 0 0;font-size:12px;color:#5A5650;word-break:break-all;&quot;>若按钮无法点击，复制此地址：{{siteUrl}}/admin/inquiries/{{inquiryId}}</p>
+</td></tr>
+<tr><td class=&quot;px muted&quot; style=&quot;padding:20px 32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#5A5650;&quot;>PackJoyU 后台自动通知 · 请勿直接回复此邮件。</td></tr>
+</table></td></tr></table></body></html>
+"></iframe><pre>Subject: [PackJoyU] 新询盘 #{{inquiryId}}
+
+新询盘 #{{inquiryId}}（站点语言：{{locale}}）
+[待核实] 可信度 {{score}} 分，低于 40，请先核实。   &lt;- 仅低于 40 分时输出
+
+联系人：{{name}}
+公司：{{company}}
+产品：{{product}}
+数量：{{quantity}}
+可信度：{{score}} / 100
+
+留言正文、链接和附件请到后台查看（链接只显示为纯文本，附件只能下载）。
+在后台打开：{{siteUrl}}/admin/inquiries/{{inquiryId}}
+
+--
+PackJoyU 后台自动通知 · 请勿直接回复此邮件。
+</pre></div></div></body></html>

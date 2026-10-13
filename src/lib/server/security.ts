@@ -1,21 +1,39 @@
 import { randomBytes } from 'crypto';
+import { rateLimitStore } from './ratelimit';
 
 /** 随机、不可递增的 id，用于短链接和回信 token */
 export function randomId(len = 10) {
   const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-  const bytes = randomBytes(len);
-  return Array.from(bytes, (b) => abc[b % abc.length]).join('');
+  // 拒绝采样，避免取模偏差
+  const max = 256 - (256 % abc.length);
+  let out = '';
+  while (out.length < len) {
+    for (const b of randomBytes(len * 2)) {
+      if (b < max) out += abc[b % abc.length];
+      if (out.length === len) break;
+    }
+  }
+  return out;
 }
 
-/** Turnstile 校验：ok 通过，fail 校验不通过，unavailable 连不上 Cloudflare（超时、网络错误、5xx）。连不上时一律不放行。 */
+const TURNSTILE_VERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+/** E2E 用：非正式环境可把校验地址指向本机模拟服务（只接受 http://127.0.0.1 / localhost），正式环境始终用 Cloudflare。 */
+export function turnstileVerifyUrl(env: Record<string, string | undefined> = process.env) {
+  const o = env.TURNSTILE_VERIFY_URL;
+  if (!o || env.VERCEL_ENV === 'production') return TURNSTILE_VERIFY;
+  try { const u = new URL(o); if (u.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(u.hostname)) return u.toString(); } catch {}
+  return TURNSTILE_VERIFY;
+}
+
 export type TurnstileResult = 'ok' | 'fail' | 'unavailable';
+/** Turnstile 校验：ok 通过，fail 校验不通过，unavailable 连不上 Cloudflare（超时、网络错误、5xx）。连不上时一律不放行。 */
 export async function verifyTurnstile(token: string | undefined, ip: string | null): Promise<TurnstileResult> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) return process.env.NODE_ENV !== 'production' ? 'ok' : 'unavailable'; // 开发环境无密钥时放行；生产缺密钥按不可用处理
   if (!token) return 'fail';
   const body = new URLSearchParams({ secret, response: token, ...(ip ? { remoteip: ip } : {}) });
   try {
-    const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body, signal: AbortSignal.timeout(10_000) });
+    const r = await fetch(turnstileVerifyUrl(), { method: 'POST', body, signal: AbortSignal.timeout(10_000) });
     if (r.status >= 500) return 'unavailable';
     const j = (await r.json()) as { success?: boolean };
     return j.success ? 'ok' : 'fail';
@@ -24,14 +42,12 @@ export async function verifyTurnstile(token: string | undefined, ip: string | nu
   }
 }
 
-/** 简单的内存限流（单实例）；上线后换成 Upstash/Cloudflare 限流 */
-const hits = new Map<string, number[]>();
-export function rateLimit(key: string, limit = 5, windowMs = 10 * 60_000) {
-  const now = Date.now();
-  const arr = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
-  arr.push(now);
-  hits.set(key, arr);
-  return arr.length <= limit;
+/**
+ * 限流：计一次数，返回是否仍在上限内。存储由 RATE_LIMIT_STORE 决定（内存 / Upstash），见 ./ratelimit。
+ * 注意是异步的，必须 await（旧的同步 rateLimit 已删除，避免漏写 await 时 Promise 被当成 true）。
+ */
+export function hitRateLimit(key: string, limit = 5, windowMs = 10 * 60_000): Promise<boolean> {
+  return rateLimitStore().hit(key, limit, windowMs);
 }
 
 /** 去掉换行，防止邮件头注入 */
@@ -64,4 +80,10 @@ export async function readBody(req: Request, maxBytes: number) {
     chunks.push(value);
   }
   return new TextDecoder().decode(Buffer.concat(chunks));
+}
+
+/** 429 统一格式：{ error: 'rate_limited', retryAfter } + Retry-After 头（秒）。retryAfter 取窗口长度，是上限值。 */
+export function tooManyRequests(retryAfterSec: number, extra: Record<string, unknown> = {}) {
+  const s = Math.max(1, Math.ceil(retryAfterSec));
+  return Response.json({ error: 'rate_limited', retryAfter: s, ...extra }, { status: 429, headers: { 'Retry-After': String(s), 'Cache-Control': 'no-store' } });
 }

@@ -150,7 +150,8 @@
       ]
     },
     "learnMore": "Learn more",
-    "specsLabel": "Key specs"
+    "specsLabel": "Key specs",
+    "empty": "No 3D models are published yet. Please check back soon or contact us for samples."
   },
   "Admin": {
     "title": "Admin"
@@ -265,6 +266,8 @@
       "uploading": "Uploading…",
       "uploaded": "Logo uploaded",
       "remove": "Remove",
+      "choose": "Choose file",
+      "none": "No file chosen",
       "expired": "Your logo upload has expired. Please upload it again.",
       "errors": {
         "type": "Please choose a PNG, JPEG or WebP image.",
@@ -283,6 +286,13 @@
     "open": "Open",
     "dieline": "Dieline"
   },
+  "Consent": {
+    "label": "Cookie consent",
+    "text": "We use essential cookies to run this site. With your permission we also use analytics and live chat.",
+    "policy": "Privacy policy",
+    "accept": "Accept all",
+    "reject": "Reject non-essential"
+  },
   "Footer": {
     "about": "Custom paper packaging and printing — from prototype to mass production.",
     "categories": "Products",
@@ -296,5 +306,21 @@
     "title": "Privacy policy",
     "draft": "Draft.",
     "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch."
+  },
+  "DesignExpired": {
+    "metaTitle": "Design expired | PackJoyU",
+    "title": "This design has expired",
+    "text": "This design has expired, please customize again.",
+    "backToCategory": "Customize {category} again",
+    "backToProducts": "Browse products and customize again",
+    "quote": "Get a quote"
+  },
+  "NotFound": {
+    "code": "404",
+    "title": "Page not found",
+    "lead": "This box is empty. The page may have moved — try one of our product categories instead.",
+    "home": "Back to home",
+    "quote": "Get a quote",
+    "browse": "Browse products"
   }
 }
