@@ -88,7 +88,7 @@ export default function InquiryWizard() {
       locale,
       contact: { name: c(contact.name), email: c(contact.email), company: c(contact.company), phone: c(contact.phone), region: c(contact.region) },
       message: message.trim() || undefined,
-      items: selected.slice(0, 30).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
+      items: selected.slice(0, 20).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
       attribution: { page: window.location.pathname },
       website: String(fd.get('website') ?? ''),
       turnstileToken: opt('cf-turnstile-response'),
