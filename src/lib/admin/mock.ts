@@ -2,7 +2,7 @@ import type { AdminApi, AdminUser, InquiryDetail, InquiryStatus, InquirySummary 
 import { REVIEW_THRESHOLD, STATUS_LABEL } from './types';
 
 // 示例数据，仅用于后台页面开发；接入真实接口后不再使用
-const users: AdminUser[] = [{ id: 'u1', name: '业务员 A' }, { id: 'u2', name: '业务员 B' }];
+const users: AdminUser[] = [{ id: 'u1', name: '业务员 A', email: 'sales-a@packjoyu.example', role: 'SALES' }, { id: 'u2', name: '业务员 B', email: 'sales-b@packjoyu.example', role: 'SALES' }];
 const now = Date.now();
 const ago = (min: number) => new Date(now - min * 60_000).toISOString();
 const PRODUCTS = ['wine-boxes', 'paper-cups', 'corrugated-boxes', 'gift-boxes', 'molded-pulp', 'color-boxes'];
@@ -38,7 +38,8 @@ function make(i: number): InquiryDetail {
       ...(status !== 'NEW' ? [{ id: 'm2', direction: 'OUTBOUND' as const, subject: 'Re: Quote', bodyHtml: '<p>报价单已发，请查收。</p>', author: assignee?.name, createdAt: ago(5 + i * 300) }] : [])
     ],
     notes: status === 'NEW' ? [] : [{ id: 'n1', author: assignee?.name ?? '—', body: '客户要求 4 周内交货，@业务员 B 确认产能', createdAt: ago(60) }],
-    attachments: i % 3 === 0 ? [{ id: 'a1', kind: 'logo', filename: 'logo.png', mime: 'image/png', sizeBytes: 182_311 }] : [],
+    attachments: i % 3 === 0 ? [{ id: 'a1', kind: 'file', filename: 'artwork-v2.png', mime: 'image/png', sizeBytes: 1_258_291, scan: 'clean' }] : [],
+    logoUploadId: i % 2 === 0 ? `mockLogo${String(i).padStart(16, '0')}` : undefined,
     history: [
       { id: 'h1', at: createdAt, action: '询盘创建' },
       ...(assignee ? [{ id: 'h2', at: ago(8 + i * 350), actor: '管理员', action: `分配给 ${assignee.name}` }] : [])
@@ -59,10 +60,12 @@ export const mockAdminApi: AdminApi = {
     if (q.q) { const s = q.q.toLowerCase(); rows = rows.filter((r) => [r.ref, r.contact.email, r.contact.company ?? '', r.contact.name].some((v) => v.toLowerCase().includes(s))); }
     if (q.from) rows = rows.filter((r) => r.createdAt >= q.from!);
     if (q.to) rows = rows.filter((r) => r.createdAt <= q.to! + 'T23:59:59Z');
-    if (q.region) rows = rows.filter((r) => r.contact.region === q.region);
     if (q.product) rows = rows.filter((r) => r.products.some((p) => p.productSlug === q.product));
     if (q.minScore != null) rows = rows.filter((r) => r.trustScore >= q.minScore!);
-    if (q.mine) rows = rows.filter((r) => r.assignee?.id === 'u1');
+    if (q.maxScore != null) rows = rows.filter((r) => r.trustScore <= q.maxScore!);
+    if (q.assignee === 'me') rows = rows.filter((r) => r.assignee?.id === 'u1');
+    else if (q.assignee === 'none') rows = rows.filter((r) => !r.assignee);
+    else if (q.assignee) rows = rows.filter((r) => r.assignee?.id === q.assignee);
     const pageSize = q.pageSize ?? 10, page = Math.max(1, q.page ?? 1);
     return delay({ items: rows.slice((page - 1) * pageSize, page * pageSize).map(summary), total: rows.length, page, pageSize });
   },
@@ -84,5 +87,10 @@ export const mockAdminApi: AdminApi = {
     const n = { id: `n${Date.now()}`, author: '我', body, createdAt: new Date().toISOString() };
     r.notes.push(n); return delay(n);
   },
-  async listUsers() { return delay(users); }
+  async listUsers() { return delay(users); },
+  async logoPreview() {
+    // 示例 Logo（SVG data URL），真实接口返回重新编码后的 PNG
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" rx="12" fill="#fff"/><circle cx="50" cy="50" r="28" fill="#D4AF6A"/><text x="90" y="60" font-family="Arial" font-size="26" font-weight="700" fill="#1C1C1C">ACME</text></svg>';
+    return delay(`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`);
+  }
 };
