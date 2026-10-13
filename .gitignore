@@ -6,3 +6,5 @@ next-env.d.ts
 
 # 本地上传文件（私有，不进仓库）
 /storage/
+test-results/
+playwright-report/
