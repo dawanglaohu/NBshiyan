@@ -96,7 +96,7 @@
 - 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enabled`，不记密码、验证码、token。
 
 ## 后台接口（`/api/admin/*`）
-每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录 401 `unauthorized`，角色不符 403 `forbidden`。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
+每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录（或锁定、会话失效、未开 2FA）401 `unauthorized`，账号已停用 403 `account_disabled`（与未登录区分，重新登录也无效），角色不符 403 `forbidden`。后台页面用同一规则（`checkAdminSession`）。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
 角色：`ADMIN` 全部可见；`SALES` 只能看和操作分配给自己的询盘，不能改分配；`EDITOR` 无询盘权限。
 
 - `GET /api/admin/users` → `{ items: [{ id, name, email, role }] }`。ADMIN 拿到所有未禁用的 ADMIN/SALES（分配下拉框用）；SALES 只拿到自己。
@@ -211,3 +211,43 @@
 
 ### POST /api/admin/privacy/export · POST /api/admin/privacy/delete（仅 ADMIN）
 详见 docs/data-retention.md。export 返回 JSON 附件（no-store）；顺序 requireAdmin → assertSameOrigin → 限流；生产未设置 PRIVACY_HASH_SECRET 时 503 `privacy_hash_secret_missing`。delete 需 `{email, confirmEmail}` 一致，返回 `{ok, contacts, inquiries, samples, logos}`。
+
+## 产品规格（CategorySpec）
+
+每个品类一行（`category` 必须是 `src/lib/seo/categoryMeta.ts` 里的 key）。所有字段可选。数值字段统一为「值 + 单位」对象，本地化文本为 `{ en, ru }`。
+
+### 后台：GET / PUT /api/admin/specs/:category（EDITOR、ADMIN；SALES 403）
+- 顺序：requireAdmin → assertSameOrigin（仅 PUT）→ enforceAdminRateLimit；未知品类 404；`Cache-Control: no-store`。
+- PUT 为整体替换（省略或 `null` = 清空），严格 zod（多余字段 400）：
+```json
+{
+  "size": { "min": { "l": 50, "w": 50, "h": 20 }, "max": { "l": 600, "w": 400, "h": 400 }, "unit": "mm" },
+  "material": { "en": "Kraft paper", "ru": "Крафт-бумага" },
+  "moq": { "value": 500, "unit": "pcs" },
+  "sampleFee": { "amount": 30, "currency": "USD" },          // 或 { "free": true }；currency: USD/EUR/CNY/RUB
+  "leadTime": { "min": 10, "max": 15, "unit": "day" },
+  "certifications": [{ "name": "FSC", "certNo": "FSC-C123456" }, { "name": "ISO 9001", "url": "https://..." }],
+  "tradeTerms": ["FOB", "EXW"],                                // Incoterms 2020
+  "notes": { "en": "...", "ru": "..." }
+}
+```
+- 校验：尺寸 min ≤ max（逐维），leadTime min ≤ max，tradeTerms 不重复；每条认证至少有 `certNo` 或 `url`；`url` 必须能被 `new URL()` 解析且协议正好是 `https:`（拒绝 `javascript:`、`data:`、`http:` 等），最长 2048。
+- 审计 `spec.update`，meta 含 before / after（后台视图）；保存后 `revalidateTag('category-specs')`。
+
+### 公开：GET /api/specs · GET /api/specs/:category（`?locale=en|ru`，默认 en，其他值 400）
+- 未知品类 404；`Cache-Control: public, s-maxage=3600, stale-while-revalidate=600`。后台保存时 `revalidateTag` 只清 Next 的数据缓存，**不会清 CDN**：CDN 上的旧响应在 s-maxage（3600 秒）内仍可能返回，之后最多 600 秒内可能先返回旧数据再后台刷新。所以修改通常 1 小时内生效，最长约 70 分钟，不是立即生效。
+- 显式白名单序列化：只输出已填写的字段，null / 空数组 / 空字符串的键整个省略；本地化文本只给当前语言（该语言没填就省略，不回退）。每个有内容的品类带 `updatedAt`。审计数据、`updatedById` 等内部字段不会出现在任何公开接口。
+- `/api/specs` 返回 `{ locale, specs: [...] }`，只含有内容的品类，按 categoryMeta 顺序。
+- 前端渲染认证链接时必须加 `rel="noopener noreferrer"`（并 `target="_blank"`）。
+
+### 与 schema.org Product 的映射
+| 字段 | schema.org（Product 不输出 offers / 价格 / 评分） |
+|---|---|
+| `material` | `Product.material`（当前语言的字符串） |
+| `size` | 每个维度一条 `additionalProperty`：`PropertyValue{ name: "Length" / "Width" / "Height", value: QuantitativeValue{ minValue: min.l, maxValue: max.l, unitCode: "MMT" } }`（w、h 同理）。表示尺寸范围，**不要**写进 `Product.depth/width/height`（那是单一尺寸）。只填了 min 或 max 时只输出对应的一项 |
+| `moq` | `additionalProperty`：`PropertyValue{ name: "Minimum order quantity", value: QuantitativeValue{ minValue: moq.value, unitCode: "H87" } }`。**不要**映射到 `Offer.eligibleQuantity` |
+| `certifications[]` | `Product.hasCertification`：`Certification{ name, certificationIdentification: certNo, url }`。**JSON-LD 只输出带 https `url` 的证书**；只有 `certNo` 的证书只在正文展示，不进 JSON-LD；不使用 `award` 等背书语义 |
+| `updatedAt` | 可作 `dateModified` / sitemap `lastmod`（与页面内容更新时间取较晚者） |
+| `notes` | 不放进 JSON-LD，只在正文展示 |
+
+**`sampleFee`、`leadTime`、`tradeTerms` 不要放进 JSON-LD 的 `offers`**：样品费不是产品售价，交期和贸易术语也不是 Offer 的标准报价属性，放进去会被 Google 当成价格/配送信息，导致富结果错误。它们只在页面正文展示。

@@ -5,7 +5,6 @@ import { spawnSync } from 'node:child_process';
 // 只验证在连库之前就退出；用不存在的端口，万一没拦住也连不上
 function run(env: Record<string, string>) {
   const r = spawnSync(process.execPath, ['scripts/create-admin.mjs'], {
-    // 故意不带 NODE_ENV（除非用例自己传），Next 的类型把它标成必填，这里显式断言
     env: { PATH: process.env.PATH ?? '', ADMIN_SEED_EMAIL: 'a@ci.test', ADMIN_SEED_PASSWORD: 'ci-password-123456', ...env } as unknown as NodeJS.ProcessEnv,
     encoding: 'utf8', timeout: 20_000,
   });
