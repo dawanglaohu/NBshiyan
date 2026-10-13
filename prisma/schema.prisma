@@ -1,0 +1,199 @@
+// PackJoyU 业务数据库（Postgres）。内容类数据（产品页、文章）在 Sanity，不在这里。
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SALES
+  EDITOR
+}
+
+enum InquiryStatus {
+  NEW
+  FOLLOWING
+  QUOTED
+  WON
+  INVALID
+}
+
+enum InquirySource {
+  FORM
+  WIZARD
+  CART
+  CUSTOMIZER
+  SAMPLE
+}
+
+enum MessageDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum SampleStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SHIPPED
+}
+
+enum ModelStatus {
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum Locale {
+  en
+  ru
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(SALES)
+  totpSecret   String? // 双重验证，管理员强制开启
+  failedLogins Int       @default(0)
+  lockedUntil  DateTime?
+  inquiries    Inquiry[] @relation("Assignee")
+  createdAt    DateTime  @default(now())
+}
+
+// 客户个人信息单独一张表，便于按地区迁移（如俄罗斯数据本地化）和 GDPR 删除
+model Contact {
+  id        String    @id @default(cuid())
+  region    String // 国家代码，如 US / RU / DE
+  name      String
+  email     String
+  company   String?
+  phone     String?
+  inquiries Inquiry[]
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model Inquiry {
+  id           String           @id @default(cuid())
+  ref          String           @unique // 对外询盘编号，如 PJ-2026-0001
+  replyToken   String           @unique // 专用回信地址用的随机 token
+  contactId    String
+  contact      Contact          @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  locale       Locale
+  source       InquirySource
+  status       InquiryStatus    @default(NEW)
+  message      String?
+  trustScore   Int              @default(50) // 0-100 可信度评分
+  trustReasons Json?
+  assigneeId   String?
+  assignee     User?            @relation("Assignee", fields: [assigneeId], references: [id])
+  attribution  Json? // 来源页面、关键词、UTM
+  ipCountry    String?
+  items        InquiryItem[]
+  messages     InquiryMessage[]
+  notes        InquiryNote[]
+  sample       SampleRequest?
+  retainUntil  DateTime // GDPR 保留期限
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([status, createdAt])
+  @@index([assigneeId])
+}
+
+// 一条询盘可含多个产品，每个带定制参数
+model InquiryItem {
+  id          String        @id @default(cuid())
+  inquiryId   String
+  inquiry     Inquiry       @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  productSlug String // 对应 Sanity 产品
+  quantity    Int?
+  config      Json? // 颜色、尺寸、材质、logo 文件 key
+  designId    String?
+  design      SharedDesign? @relation(fields: [designId], references: [id])
+}
+
+model InquiryMessage {
+  id        String           @id @default(cuid())
+  inquiryId String
+  inquiry   Inquiry          @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  direction MessageDirection
+  subject   String
+  bodyHtml  String // 入库前已清洗
+  authorId  String?
+  createdAt DateTime         @default(now())
+}
+
+model InquiryNote {
+  id        String   @id @default(cuid())
+  inquiryId String
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model SampleRequest {
+  id         String       @id @default(cuid())
+  inquiryId  String       @unique
+  inquiry    Inquiry      @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  status     SampleStatus @default(PENDING)
+  trackingNo String?
+  reviewedBy String?
+  updatedAt  DateTime     @updatedAt
+}
+
+// 定制方案短链接 /s/:id，id 为随机字符串，不可递增
+model SharedDesign {
+  id          String        @id // nanoid(10)
+  productSlug String
+  config      Json
+  items       InquiryItem[]
+  createdAt   DateTime      @default(now())
+}
+
+model Model3D {
+  id           String      @id @default(cuid())
+  productSlug  String
+  category     String
+  sortOrder    Int         @default(0)
+  published    Boolean     @default(false)
+  status       ModelStatus @default(UPLOADED)
+  sourceKey    String // R2 原始文件
+  glbKey       String? // 压缩后
+  lodKey       String? // gltf-progressive 轻量版本
+  posterKey    String? // WebP 封面
+  sizeBytes    Int?
+  animated     Boolean     @default(false) // 开箱/折叠动画，上限 1.5MB，其余 1MB
+  customizable Json? // 可选颜色、尺寸范围
+  checks       Json? // [{ key: format/compress/lod/size, ok, detail }]
+  error        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model SiteSetting {
+  key   String @id // 如 chat.welcome.en、inquiry.notifyEmail
+  value Json
+}
+
+// 只增不改
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  target    String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
