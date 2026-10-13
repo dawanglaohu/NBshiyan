@@ -76,13 +76,13 @@
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
       "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
-      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber, a plastic-free alternative.",
+      "pulp-molding": "Molded pulp trays and inserts made from paper and sugarcane fiber.",
       "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
       "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
       "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
       "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
       "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
-      "eco-paper-cups": "Eco-friendly paper cups with water-based coatings, printed with your logo.",
+      "eco-paper-cups": "Paper cups printed with your logo; coating options confirmed per order.",
       "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
       "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
     },
@@ -134,7 +134,7 @@
         "Consistent color at volume"
       ],
       "eco-paper-cups": [
-        "Water-based, plastic-free coating",
+        "Coating options confirmed per order",
         "Eco-friendly option for cafes"
       ],
       "gift-cards": [
