@@ -92,7 +92,7 @@
 | slug | `compostable-paper-cups` | `ekologichnye-stakany` |
 | 主关键词 | compostable paper cups | биоразлагаемые стаканы |
 | title | Compostable Paper Cups Manufacturer \| PackJoyU (46) | Биоразлагаемые стаканы с логотипом \| PackJoyU (45) |
-| description | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. (149) | Биоразлагаемые и компостируемые бумажные стаканы без пластика, с водной или PLA основой и печатью логотипа. Эко выбор для кофеен и сетей. Запросите расчет. (155) |
+| description | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. (149) | Биоразлагаемые и компостируемые бумажные стаканы без пластика, с водной или PLA основой и печатью логотипа. Экологичный выбор для кофеен и сетей. Запросите расчет. (161) — ⚠️ ждёт вычитки Ryan |
 
 ## gift-cards
 
