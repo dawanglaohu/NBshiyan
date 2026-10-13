@@ -10,7 +10,7 @@ def slugs(k):
 A = {
  'corrugated-boxes': {'en': ['custom corrugated boxes', 'branded shipping boxes', 'corrugated mailer boxes'], 'ru': ['гофрокороба на заказ', 'почтовые коробки с логотипом', 'транспортная упаковка из гофрокартона']},
  'color-boxes': {'en': ['custom printed boxes', 'full-color retail boxes', 'printed product packaging'], 'ru': ['картонные коробки с печатью', 'коробки с логотипом', 'упаковка для косметики и розницы']},
- 'gift-boxes': {'en': ['custom gift boxes', 'rigid magnetic gift boxes', 'premium gift packaging'], 'ru': ['подарочные коробки на заказ', 'жесткие коробки с магнитом', 'премиальная подарочная упаковка']},
+ 'gift-boxes': {'en': ['custom gift boxes', 'rigid magnetic gift boxes', 'premium gift packaging'], 'ru': ['подарочные коробки на заказ', 'жёсткие коробки с магнитом', 'премиальная подарочная упаковка']},
  'pulp-molding': {'en': ['molded pulp packaging', 'plastic-free pulp inserts', 'molded fiber trays'], 'ru': ['упаковка из формованной целлюлозы', 'ложементы без пластика', 'лотки из целлюлозы']},
  'paper-cups': {'en': ['custom paper cups', 'branded coffee cups', 'printed paper cups with your logo'], 'ru': ['бумажные стаканы с логотипом', 'стаканы для кофе с печатью', 'фирменные бумажные стаканы']},
  'party-supplies': {'en': ['custom party supplies', 'printed party tableware', 'private-label party products'], 'ru': ['бумажная посуда для праздника', 'праздничная посуда с печатью', 'товары для праздника под вашей маркой']},
