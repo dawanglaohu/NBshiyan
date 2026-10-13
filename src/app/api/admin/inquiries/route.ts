@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { noStore } from '@/lib/server/admin/guard';
 import { inquiryScope } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
@@ -24,7 +24,7 @@ const Q = z.object({
 export async function GET(req: Request) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
-  const limited = adminRateLimit(req, 'inquiry.list');
+  const limited = await enforceAdminRateLimit(req, 'inquiry.list');
   if (limited) return limited;
   const p = Q.safeParse(Object.fromEntries(new URL(req.url).searchParams));
   if (!p.success) return NextResponse.json({ error: 'invalid', issues: p.error.flatten() }, { status: 400, headers: noStore });

@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { rateLimit } from '../security';
+import { hitRateLimit } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { audit } from './audit';
 
@@ -13,10 +13,12 @@ export const LOCK_MS = 15 * 60_000;
 export type CheckFail = 'rate_limited' | 'bad_credentials' | 'locked' | 'totp_required' | 'totp_not_enrolled';
 
 /** 登录限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。 */
-export function loginRateOk(ip: string | null, email: string) {
-  const a = rateLimit(`login:${ip ?? 'noip'}:${email}`, 5, 10 * 60_000);
-  const b = rateLimit(`login-acct:${email}`, 10, 10 * 60_000);
-  const c = rateLimit(`login-ip:${ip ?? 'noip'}`, 30, 10 * 60_000);
+export async function loginRateOk(ip: string | null, email: string) {
+  const [a, b, c] = await Promise.all([
+    hitRateLimit(`login:${ip ?? 'noip'}:${email}`, 5, 10 * 60_000),
+    hitRateLimit(`login-acct:${email}`, 10, 10 * 60_000),
+    hitRateLimit(`login-ip:${ip ?? 'noip'}`, 30, 10 * 60_000),
+  ]);
   return a && b && c;
 }
 
@@ -39,7 +41,7 @@ async function fail(user: User | null, email: string, ip: string | null, reason:
 
 /** 校验邮箱和密码，并检查锁定。成功返回 user。 */
 export async function checkPassword(email: string, password: string, ip: string | null): Promise<User | CheckFail> {
-  if (!loginRateOk(ip, email)) { await audit({ action: 'auth.login_fail', target: email.slice(0, 200), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
+  if (!(await loginRateOk(ip, email))) { await audit({ action: 'auth.login_fail', target: email.slice(0, 200), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.disabled) { await burnVerify(password); await fail(null, email, ip, 'bad_credentials'); return 'bad_credentials'; }
   if (user.lockedUntil && user.lockedUntil > new Date()) { await audit({ actorId: user.id, action: 'auth.login_fail', target: email, meta: { reason: 'locked' }, ip }); return 'locked'; }
