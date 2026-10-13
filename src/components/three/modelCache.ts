@@ -3,6 +3,9 @@ import { get, set } from 'idb-keyval';
 // 把 GLB 缓存进 IndexedDB，回访用户不用重新下载。
 // key 带上文件版本（文件名哈希），模型更新后自动失效。
 export async function cachedModelUrl(url: string): Promise<string> {
+  // 带 gltf-progressive 分级的模型（NEEDLE_progressive）按相对路径加载 .lod0.glb，blob 地址会断开相对路径；
+  // /models/ 下文件名带内容哈希、CDN immutable 长缓存，直接走网络地址。
+  if (url.startsWith('/models/')) return url;
   const key = `glb:${url}`;
   try {
     const hit = await get<Blob>(key);
