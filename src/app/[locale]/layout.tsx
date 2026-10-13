@@ -34,7 +34,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       alternateLocale: locale === 'ru' ? ['en_US'] : ['ru_RU']
     },
     twitter: { card: 'summary_large_image' },
-    metadataBase: new URL(SITE_URL)
+    metadataBase: new URL(SITE_URL),
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+      yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || undefined,
+      other: process.env.NEXT_PUBLIC_BING_VERIFICATION ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION } : undefined
+    }
   };
 }
 
