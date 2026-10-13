@@ -1,7 +1,7 @@
 // 后台模型上传数据层，按 PR #89 的 docs/API.md「后台模型管理」：
 // POST /api/admin/models（multipart 上传，同步静态检查，不压缩）、GET/PATCH /api/admin/models/:id、
 // POST /api/admin/models/:id/process（重新检查）、POST /api/admin/models/:id/publish、GET /api/admin/models/:id/file?variant=
-export type ModelStatus = 'PROCESSING' | 'READY' | 'FAILED';
+export type ModelStatus = 'UPLOADED' | 'PROCESSING' | 'READY' | 'FAILED';
 export type CheckKey = 'format' | 'compress' | 'size' | 'triangles' | 'textures' | 'animation' | 'bounds' | 'lod';
 export const CHECK_ORDER: CheckKey[] = ['format', 'compress', 'size', 'triangles', 'textures', 'animation', 'bounds', 'lod'];
 export const CHECK_LABEL: Record<CheckKey, string> = {
@@ -13,8 +13,8 @@ export const LIMITS = { glb: 1.5 * 1024 * 1024, lod: 1024 * 1024, poster: 512 * 
 export type ModelCheck = { key: CheckKey; ok: boolean; detail: string; severity: 'error' | 'warn' };
 export type AdminModel = {
   id: string; productSlug: string; category: string; sortOrder: number; published: boolean; publishedAt?: string | null;
-  status: ModelStatus; sizeBytes: number; animated: boolean; customizable?: { colors?: string[] } | null;
-  checks: ModelCheck[]; triangles?: number; animations?: string[]; error?: string | null;
+  status: ModelStatus; sizeBytes: number; animated: boolean; customizable?: Record<string, unknown> | null;
+  checks: ModelCheck[]; triangles?: number | null; animations?: string[]; error?: string | null; uploadedBy?: string | null;
   hasLod: boolean; hasPoster: boolean; createdAt: string; updatedAt: string;
 };
 export type ModelUploadInput = { file: File; lod?: File; poster?: File; productSlug: string; category: string; animated: boolean; sortOrder?: number };

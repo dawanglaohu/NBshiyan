@@ -52,6 +52,9 @@ const summary = ({ id, ref, status, source, locale, contact, products, trustScor
   ({ id, ref, status, source, locale, contact: { name: contact.name, email: contact.email, company: contact.company, region: contact.region }, products, trustScore, assignee, createdAt });
 const delay = <T,>(v: T) => new Promise<T>((r) => setTimeout(() => r(structuredClone(v)), 120));
 
+/** 与服务端一致：纯文本全部转义，换行转 <br> */
+const textToHtml = (t: string) => t.split(/\r?\n/).map((l) => l.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)).join('<br>');
+
 export const mockAdminApi: AdminApi = {
   async listInquiries(q) {
     let rows = db.slice();
@@ -74,11 +77,11 @@ export const mockAdminApi: AdminApi = {
     const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found');
     if (patch.status && patch.status !== r.status) { r.history.push({ id: `h${Date.now()}`, at: new Date().toISOString(), actor: '我', action: `状态改为「${STATUS_LABEL[patch.status]}」` }); r.status = patch.status; }
     if (patch.assigneeId !== undefined) { r.assignee = users.find((u) => u.id === patch.assigneeId); r.history.push({ id: `h${Date.now()}a`, at: new Date().toISOString(), actor: '我', action: r.assignee ? `分配给 ${r.assignee.name}` : '取消分配' }); }
-    return delay(r);
+    return delay({ id: r.id, status: r.status, assigneeId: r.assignee?.id ?? null, updatedAt: new Date().toISOString() });
   },
-  async reply(id, body) {
+  async reply(id, { subject, body }) {
     const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found');
-    const m = { id: `m${Date.now()}`, direction: 'OUTBOUND' as const, ...body, author: '我', createdAt: new Date().toISOString() };
+    const m = { id: `m${Date.now()}`, direction: 'OUTBOUND' as const, subject, bodyHtml: textToHtml(body), author: '我', createdAt: new Date().toISOString() };
     r.messages.push(m); r.history.push({ id: `h${Date.now()}r`, at: m.createdAt, actor: '我', action: '发送回复' });
     return delay(m);
   },

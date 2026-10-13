@@ -81,7 +81,8 @@
 
 ### `GET /api/models`
 已上架（`published=true` 且 `status=READY`）的模型列表，`Cache-Control: public, max-age=60`：
-`{ items: [{ id, productSlug, category, sortOrder, animated, customizable, glbUrl, lodUrl, posterUrl }] }`。
+`{ items: [{ id, productSlug, category, sortOrder, animated, customizable, slugs, glbUrl, lodUrl, posterUrl }] }`。
+`slugs` 形如 `{ "en": "custom-gift-boxes", "ru": "podarochnye-korobki" }`，按 `category`（内部 key）从 `src/lib/seo/categoryMeta.ts` 取；`category` 不在 categoryMeta 里时为 `null`，前端回退用 key。ru slug 目前是草稿，等母语审核，可能改动，前端不要把它写死。
 文件地址形如 `/api/models/:id/glb?v=版本`（`lod`、`poster` 同理），只对已上架模型返回，否则 404；`Cache-Control: public, max-age=300`。gltf-progressive 按主 GLB 里记录的相对路径请求 `/api/models/:id/<名称>.lod0.glb`，服务端映射到 lod 文件。
 
 ## 后台登录（Auth.js v5，Credentials + 强制 TOTP）

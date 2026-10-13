@@ -1,0 +1,16 @@
+Subject: [PackJoyU] 新询盘 #{{inquiryId}}
+
+新询盘 #{{inquiryId}}（站点语言：{{locale}}）
+[待核实] 可信度 {{score}} 分，低于 40，请先核实。   <- 仅低于 40 分时输出
+
+联系人：{{name}}
+公司：{{company}}
+产品：{{product}}
+数量：{{quantity}}
+可信度：{{score}} / 100
+
+留言正文、链接和附件请到后台查看（链接只显示为纯文本，附件只能下载）。
+在后台打开：{{siteUrl}}/admin/inquiries/{{inquiryId}}
+
+--
+PackJoyU 后台自动通知 · 请勿直接回复此邮件。

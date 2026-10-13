@@ -3,16 +3,17 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
-import { errorText, fmtDate, productName, relTime } from './format';
+import { errorText, loginHref, fmtDate, productName, relTime } from './format';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
-const plain = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+// 服务端存的是转义后的 HTML（换行为 <br>）：先还原换行、去标签，再解码实体，整体按纯文本显示
+const plain = (html: string) => html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*<p[^>]*>/gi, '\n').replace(/<[^>]*>/g, '')
+  .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#(\d+);/g, (_, n: string) => String.fromCharCode(Number(n))).replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&');
 const URL_RE = /(https?:\/\/[^\s<>"]+)/g;
 /** 链接一律显示为完整纯文本网址、不可点击（PRD 第 9 节 / #85） */
 function PlainText({ text }: { text: string }) {
   return <>{text.split(URL_RE).map((part, i) => (i % 2 ? <span key={i} className="adm-url">{part}</span> : part))}</>;
 }
-const esc = (s: string) => s.replace(/[<>&]/g, (ch) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[ch]!);
 const LANG = { en: '英语', ru: '俄语' } as const;
 const draftKey = (id: string) => `pj-admin-draft:${id}`;
 
@@ -45,13 +46,15 @@ export default function InquiryDetailView({ id }: { id: string }) {
     try { await fn(); setInq(await adminApi.getInquiry(id)); } catch (e) { setErr(String((e as Error).message ?? e)); } finally { setBusy(false); }
   };
 
+  // 后端：SALES 调 /users 只拿到自己，且不能改分配；列表里没有 ADMIN 即视为业务员视角（服务端仍会拒绝）
+  const canAssign = users.some((u) => u.role === 'ADMIN');
   if (inq === undefined) return <p className="muted">{err ? errorText(err) : '加载中…'}</p>;
   if (inq === null) return <p>找不到这条询盘，或你没有查看权限。 <Link href="/admin/inquiries">返回列表</Link></p>;
   const c = inq.contact;
   const score = inq.trustScore;
   const ringColor = score < REVIEW_THRESHOLD ? 'var(--err)' : score < 70 ? 'var(--warn-c)' : 'var(--ok)';
   const sendAndFollow = () => run(async () => {
-    await adminApi.reply(inq.id, { subject: `Re: ${inq.ref}`, bodyHtml: body.split('\n').map((l) => `<p>${esc(l)}</p>`).join('') });
+    await adminApi.reply(inq.id, { subject: `Re: ${inq.ref}`, body });
     if (inq.status === 'NEW') await adminApi.updateInquiry(inq.id, { status: 'FOLLOWING' });
     localStorage.removeItem(draftKey(inq.id)); setBody('');
   });
@@ -68,14 +71,14 @@ export default function InquiryDetailView({ id }: { id: string }) {
         <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { status: e.target.value as InquiryStatus }))} aria-label="状态">
           {(Object.keys(STATUS_LABEL) as InquiryStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </select></label>
-        <label className="muted">负责人：<select value={inq.assignee?.id ?? ''} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { assigneeId: e.target.value || null }))} aria-label="负责人">
+        <label className="muted">负责人：<select value={inq.assignee?.id ?? ''} disabled={busy || !canAssign} title={canAssign ? undefined : '只有管理员可以改分配'} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { assigneeId: e.target.value || null }))} aria-label="负责人">
           <option value="">未分配</option>
           {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select></label>
         <button type="button" className="adm-btn sq" disabled={busy || inq.status === 'INVALID'}
           onClick={() => { if (confirm('确定标记为无效询盘？')) run(() => adminApi.updateInquiry(inq.id, { status: 'INVALID' })); }}>标记无效</button>
       </div>
-      {err && <p className="warn" role="alert">{err === 'forbidden_origin' || err === 'unauthorized' || err === 'forbidden' ? errorText(err) : `操作失败：${err}`}</p>}
+      {err && <p className="warn" role="alert">{errorText(err, '操作失败')}{err === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</p>}
 
       <div className="adm-g2">
         <div>
