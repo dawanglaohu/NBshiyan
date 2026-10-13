@@ -1,6 +1,6 @@
 # Ryan 待确认事实问卷（品类页 + 已隐藏说法）
 
-> 用途：把 `docs/content/category-pages/*.md` 里的 142 处 `{{待Ryan确认}}` 去重合并成 15 个问题，再加 8 个影响全站、目前已隐藏说法的问题，共 **23 题**。
+> 用途：把 `docs/content/category-pages/*.md` 里的 142 处 `{{待Ryan确认}}` 去重合并成 15 个问题，再加 10 个影响全站、目前已隐藏说法的问题，共 **25 题**。
 > Ryan 只需逐题回答；每题注明影响哪些品类和页面，SEO 按答案回填英俄两份页面。
 > 规则：没回答的题，对应内容继续隐藏（含 `{{` 的块不渲染）。本文不包含任何推测的数值。俄语文案回填后仍需 Ryan 校对。
 >
@@ -146,6 +146,14 @@ corrugated-boxes、color-boxes、gift-boxes、wine-boxes、christmas-merchandise
 **Q23. 俄罗斯：配送范围、谁负责清关、需要哪些文件（EAC 等）、对外写的地址？**（ru-proofreading TBD 表、F15 D217 FAQ）
 - 影响：Yandex 地区设置、俄语文章「Доставка」小节、industries.md 文章 5、FAQ「Доставляете ли вы в Россию?」。
 
+**Q24. 是否持有 BSCI（amfori BSCI）审核？** 请提供审核报告或 amfori 平台上的编号、审核日期、评级和有效期。
+- 影响：设计稿认证区的「BSCI」标签（`design/pages-86.html`、`design/pages-108-mobile.html`，目前是占位，设计稿已注明“Certificate list is a placeholder”）、首页优势区、关于工厂页面。
+- 未回答时：BSCI 标签不上线。
+
+**Q25. 哪些产品有 FDA 食品接触相关的检测或合规文件？** 请写明产品、材料、检测机构、报告编号和日期（FDA 本身不发证书，只能写依据哪条法规做了检测）。
+- 影响：设计稿认证区的「FDA food contact / FDA」标签（同样是占位）、paper-cups / eco-paper-cups 页面、Q18 油墨问题；与 Q22 相关。
+- 未回答时：FDA 标签和相关说法不上线，守卫测试继续拦截 `FDA`。
+
 ## 十、措辞问题（需 Ryan 拍板，不是事实）
 
 **F21 俄语措辞**：样品费用说明英文是「Any costs will be confirmed by email before dispatch」，俄语目前用「Все расходы мы **согласуем с вами** по email до отправки」（意思是“和您商定”）。直译 confirmed 应为「**подтвердим**」（“我们会确认”）。两者含义不同：согласуем 暗示可协商，подтвердим 只表示告知确认。请 Ryan 选一个。
@@ -171,6 +179,7 @@ corrugated-boxes、color-boxes、gift-boxes、wine-boxes、christmas-merchandise
 | FSC-certified board / Картон с сертификатом FSC | `messages/*.json` eco-paper-cups 卖点（seo/yo-unification `b61a363`） | 删除；品类文案未沿用 | Q20 |
 | FSC · ISO 9001、2 млн+、5–7 дней、100%（首页数字） | 首页优势区（#222） | value 清空，整块不显示 | Q20、Q21 |
 | Compostable / Biodegradable / Биоразлагаемые | eco-paper-cups 的 H1、meta、英文 slug（`compostable-paper-cups` → `eco-paper-cups`）、`messages/*.json`、#220 alt | 改为 Eco-friendly / Экологичные | Q7、Q20 |
+| MOQ from 500 / 1,000 / 10,000 pcs / Тираж от 500 / 1 000 / 10 000 шт. | `messages/*.json` 的 specs（corrugated-boxes、color-boxes、paper-cups）（seo/yo-unification `2ddcf41`） | 改为「Quantities confirmed per order」/「Тираж уточняем под заказ」；守卫测试拦截 MOQ 数字（MOQ N、from N pcs、от N шт.、минимальный тираж N） | Q1 |
 | Heidelberg offset presses / Офсетные машины Heidelberg | `messages/*.json` offset-printing 卖点（seo/yo-unification `3e7fd98`）；品类文案未沿用 | 改为「CMYK and Pantone offset printing」/「Офсетная печать CMYK и Pantone」；守卫测试拦截 Heidelberg/Хайдельберг/Гейдельберг | Q10 |
 
 守卫测试 `tests/unconfirmed-claims.test.ts` 当前扫描 `messages/*.json` 和 `src/lib/seo/categoryMeta.ts`，规则：24 小时、factory-direct、food-safe、PLA、пищевые краски、free samples（英俄）、прямые поставки с фабрики、plastic-free（英俄）、water-based（英俄）、FDA、EPS/polystyrene/styrofoam/пенопласт/полистирол、Heidelberg（英俄）、for export / export worldwide / экспорт。
