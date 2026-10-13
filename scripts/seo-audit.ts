@@ -15,6 +15,9 @@
  *   hreflang en<->ru reciprocal, x-default consistent (error) · noindex on sitemap URL (error),
  *   indexable /admin or /s/ page (error) · internal link -> 404 (error) · literal "{{" in HTML (error)
  *
+ * --ignore-env-noindex (or SEO_AUDIT_IGNORE_ENV_NOINDEX=1): ignore the X-Robots-Tag header, which next.config.ts sets
+ *   site-wide when VERCEL_ENV !== 'production' (i.e. on every local build); <meta name=robots> is still checked.
+ * SEO_AUDIT_SITE_ORIGIN: origin baked into canonical/hreflang at build time (NEXT_PUBLIC_SITE_URL, default localhost:3000).
  * Output: reports/seo-audit.md + reports/seo-audit.json. Exit 1 if any error, else 0.
  * Canonical/hreflang/sitemap hosts are production SITE_URL; they are compared by path, and the
  * host is checked against SEO_AUDIT_SITE_ORIGIN (default: NEXT_PUBLIC_SITE_URL or the base URL).
@@ -115,6 +118,8 @@ async function main() {
   const args = process.argv.slice(2); const opt = (k: string) => args.find((a) => a.startsWith(`--${k}=`))?.split('=').slice(1).join('=');
   const base = (args.find((a) => !a.startsWith('--')) ?? process.env.SEO_AUDIT_BASE ?? 'http://localhost:3000').replace(/\/$/, '');
   const max = Number(opt('max') ?? process.env.SEO_AUDIT_MAX ?? 300); const outDir = opt('out') ?? 'reports';
+  // next.config.ts adds a site-wide X-Robots-Tag: noindex when VERCEL_ENV !== 'production' (always true locally).
+  const ignoreEnvHeader = args.includes('--ignore-env-noindex') || process.env.SEO_AUDIT_IGNORE_ENV_NOINDEX === '1';
   const siteOrigin = process.env.SEO_AUDIT_SITE_ORIGIN ?? process.env.NEXT_PUBLIC_SITE_URL ?? base;
   const findings: Finding[] = []; const pages = new Map<string, PageInfo>(); const status = new Map<string, number>();
   const linkedFrom = new Map<string, Set<string>>();
@@ -130,9 +135,9 @@ async function main() {
     const finalPath = normPath(r.url);
     if (r.status === 404) { findings.push({ url: path, check: 'links', severity: 'error', message: `404 (linked from: ${[...(linkedFrom.get(path) ?? ['seed'])].slice(0, 5).join(', ')})` }); continue; }
     if (!r.ok || !(r.headers.get('content-type') ?? '').includes('text/html')) continue;
-    if (finalPath !== path && pages.has(finalPath)) continue;
+    if (pages.has(finalPath)) continue;
     const p = parsePage(await r.text()); const url = base + finalPath; pages.set(finalPath, p);
-    const robotsHdr = r.headers.get('x-robots-tag') ?? '';
+    const robotsHdr = ignoreEnvHeader ? '' : (r.headers.get('x-robots-tag') ?? '');
     const indexable = !/noindex/.test(`${p.robots ?? ''} ${robotsHdr}`);
     findings.push(...checkLengths(finalPath, p, indexable), ...checkH1(finalPath, p), ...checkCanonical(url, p, siteOrigin, indexable).map((x) => ({ ...x, url: finalPath })),
       ...checkNoindex(url, p, sitemapSet.has(finalPath), robotsHdr).map((x) => ({ ...x, url: finalPath })), ...checkPlaceholder(finalPath, p));
@@ -148,7 +153,7 @@ async function main() {
   }
   findings.push(...checkHreflang(pages));
   const errors = findings.filter((f) => f.severity === 'error').length, warns = findings.length - errors;
-  const summary = { base, siteOrigin, generatedAt: new Date().toISOString(), crawled: status.size, htmlPages: pages.size, sitemapUrls: sitemap.length, capped: queue.length > 0, errors, warnings: warns };
+  const summary = { base, siteOrigin, ignoreEnvNoindex: ignoreEnvHeader, generatedAt: new Date().toISOString(), crawled: status.size, htmlPages: pages.size, sitemapUrls: sitemap.length, capped: queue.length > 0, errors, warnings: warns };
   mkdirSync(outDir, { recursive: true });
   writeFileSync(`${outDir}/seo-audit.json`, JSON.stringify({ summary, findings, status: Object.fromEntries(status) }, null, 2));
   const byCheck = findings.reduce<Record<string, Finding[]>>((a, f) => ((a[f.check] ??= []).push(f), a), {});
