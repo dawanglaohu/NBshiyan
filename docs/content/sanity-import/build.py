@@ -15,6 +15,9 @@ _args = sys.argv[1:]
 _out = None
 if '--out' in _args:
     i = _args.index('--out'); _out = _args[i + 1]; del _args[i:i + 2]
+_links = None
+if '--links' in _args:
+    i = _args.index('--links'); _links = _args[i + 1]; del _args[i:i + 2]
 ROOT = pathlib.Path(_args[0] if _args else pathlib.Path(__file__).resolve().parents[1])
 COMMITTED = pathlib.Path(__file__).resolve().parent / 'import.ndjson'
 OUT = pathlib.Path(_out) if _out else COMMITTED
@@ -99,7 +102,7 @@ def cat_meta(k):
     g = lambda s, f: re.search(f + r": '([^']*)'", s).group(1)
     return {l: {f: g(s, f) for f in ('slug', 'title', 'description')} for l, s in (('en', en), ('ru', ru))}
 
-LINKS = json.loads((pathlib.Path(__file__).resolve().parent.parent / 'internal-links.json').read_text())['links']
+LINKS = json.loads(pathlib.Path(_links or pathlib.Path(__file__).resolve().parent.parent / 'internal-links.json').read_text())['links']
 HEAD = {'category→category': {'en': 'Related products', 'ru': 'Похожие товары'},
         'category→article': {'en': 'Further reading', 'ru': 'Полезные статьи'}}
 def related_md(url, loc):
@@ -116,7 +119,19 @@ if not LANDING:
     # #188 landing sources not on this branch: keep the committed product lines as they are (no data invented, none dropped)
     if COMMITTED.exists():
         kept_products = [l for l in COMMITTED.read_text().splitlines(keepends=True) if json.loads(l).get('_type') == 'product']
-    print(f'warning: no landing sources in {ROOT}; keeping {len(kept_products)} committed product docs verbatim', file=sys.stderr)
+    # Their trailing "Related products"/"Further reading" sections are rebuilt from internal-links.json, so links to
+    # articles that are not importable (import: false / missing) drop out and come back with linkmap.py. The section
+    # start line is recovered from the committed block key, so an unchanged link map reproduces the line byte for byte.
+    def relink(line):
+        d = json.loads(line)
+        for loc, body in d['body'].items():
+            ns = f"{d['category']}-{loc}"
+            i = next(j for j, b in enumerate(body) if b['style'] == 'h2' and b['children'][0]['text'] == HEAD['category→category'][loc])
+            n0 = next(n for n in range(10000) if key(ns, str(n)) == body[i]['_key'])
+            body[i:] = blocks('\n' * n0 + related_md(f"/{loc}/products/{d['slug'][loc]['current']}", loc), ns)
+        return json.dumps(d, ensure_ascii=False) + '\n'
+    kept_products = [relink(l) for l in kept_products]
+    print(f'warning: no landing sources in {ROOT}; keeping {len(kept_products)} committed product docs (link sections rebuilt from internal-links.json)', file=sys.stderr)
 
 docs = []
 for f in LANDING:

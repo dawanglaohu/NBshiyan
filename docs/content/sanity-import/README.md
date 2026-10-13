@@ -14,6 +14,8 @@
 - **FAQ 草稿没有导入**，等 Ryan 定稿后再加，到时 FAQPage JSON-LD 也一起打开（#192）。
 - 正文是 Portable Text：normal、h2、h3、列表、strong，加上 `link` 标记（`markDefs: [{_type:'link', href}]`）。href 只会是 `/en/…` 或 `/ru/…` 的相对路径，其他链接一律转成纯文本。渲染链接要等全栈在 #91 之后给渲染器加上支持；在那之前链接文字会照常显示，只是不能点。
 - 落地页正文末尾会根据 `../internal-links.json` 自动加上"相关产品"和"延伸阅读"两节，内链地图见 `../internal-links.md`，由 `linkmap.py` 生成。
+- `linkmap.py` 只给会被导入的文章生成链接：`articles/` 里没有该语言的文件，或 front matter 写了 `import: false`，这篇文章进出的链接都不生成。文章可以导入后重跑 `linkmap.py && build.py`，链接自动回来。没有 #188 源文件的分支上，`build.py` 会按 `internal-links.json` 重建保留下来的产品文档末尾两节。
+- 在 #205 上生成内链地图要用 seo/yo-unification 的 `categoryMeta.ts`（eco-paper-cups 英文 slug）：`python3 docs/content/sanity-import/linkmap.py --meta <seo-yo>/src/lib/seo/categoryMeta.ts`。
 - `seo.noindex` 全部设为 `true`：内容里还有 TBD，俄语也没校对。Ryan 确认后逐个改成 false。
 - 行业方案页（`solution` 类型）还没写正文，只有 `industries.md` 里的关键词，所以没有导入。
 

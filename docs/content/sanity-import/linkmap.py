@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 """Generate docs/content/internal-links.{json,md} (Refs #99). Anchors vary per source page."""
-import json, pathlib, re
+import json, pathlib, re, sys
 HERE = pathlib.Path(__file__).resolve().parent
-META = (HERE.parents[2] / 'src/lib/seo/categoryMeta.ts').read_text()
+# Usage: linkmap.py [content_dir] [--out DIR] [--meta categoryMeta.ts]  (defaults: docs/content, src/lib/seo/categoryMeta.ts)
+# On #205 the committed map is built with --meta from seo/yo-unification (eco-paper-cups EN slug), see README.
+_args = sys.argv[1:]
+OUT_DIR = None
+_meta = None
+if '--meta' in _args:
+    i = _args.index('--meta'); _meta = _args[i + 1]; del _args[i:i + 2]
+if '--out' in _args:
+    i = _args.index('--out'); OUT_DIR = pathlib.Path(_args[i + 1]); del _args[i:i + 2]
+CONTENT = pathlib.Path(_args[0]) if _args else HERE.parent
+META = pathlib.Path(_meta or HERE.parents[2] / 'src/lib/seo/categoryMeta.ts').read_text()
 def slugs(k):
     b = META.split(f"key: '{k}'")[1].split('{ key:')[0]; en, ru = b.split('ru: {')
     return {'en': re.search(r"slug: '([^']*)'", en).group(1), 'ru': re.search(r"slug: '([^']*)'", ru).group(1)}
@@ -39,6 +49,16 @@ ART = {
    'anchor': {'en': ['corporate gift packaging planning guide', 'how to plan corporate gift boxes', 'timeline for corporate gift packaging'],
               'ru': ['как спланировать упаковку для корпоративных подарков', 'упаковка корпоративных подарков к Новому году', 'гид по корпоративной подарочной упаковке']}},
 }
+# Only articles that build.py will import get links: a file for that locale/slug must exist in articles/ and must not
+# say 'import: false'. Missing or held-back articles drop out here (both directions) and come back on the next run.
+def importable():
+    ok = set()
+    for f in sorted((CONTENT / 'articles').glob('*.md')):
+        m = re.match(r'^---\n(.*?)\n---\n', f.read_text(), re.S)
+        fm = dict(re.findall(r'^(\w+): "?(.*?)"?$', m.group(1), re.M)) if m else {}
+        if fm.get('import') != 'false': ok.add((fm.get('locale', 'en'), fm.get('slug')))
+    return ok
+LIVE = importable()
 cat_url = lambda k, l: f'/{l}/products/{slugs(k)[l]}'
 art_url = lambda a, l: f'/{l}/articles/{ART[a]["slug"][l]}'
 links = []
@@ -50,14 +70,16 @@ for l in ('en', 'ru'):
         for t in rel:
             links.append({'locale': l, 'kind': 'category→category', 'from': cat_url(k, l), 'to': cat_url(t, l), 'anchor': anchor(A[t][l], t, l)})
     for a, v in ART.items():
+        if (l, v['slug'][l]) not in LIVE: continue
         for k in v['cats']:
             links.append({'locale': l, 'kind': 'article→category', 'from': art_url(a, l), 'to': cat_url(k, l), 'anchor': anchor(A[k][l], k, l)})
             links.append({'locale': l, 'kind': 'category→article', 'from': cat_url(k, l), 'to': art_url(a, l), 'anchor': anchor(v['anchor'][l], a, l)})
 for x in links: assert re.match(r'^/(en|ru)/', x['to']) and x['to'].startswith(f"/{x['locale']}/")
-out = HERE.parent
+out = OUT_DIR or HERE.parent
 (out / 'internal-links.json').write_text(json.dumps({'version': 1, 'note': 'Refs #99. Relative paths only (/en/ or /ru/). Same-locale links only.', 'links': links}, ensure_ascii=False, indent=2) + '\n')
 md = ['# 内链地图（Refs #99）\n', '由 `docs/content/sanity-import/linkmap.py` 生成，机器可读版本见 `internal-links.json`。只在同一种语言内部互链，路径都是相对路径。',
       '锚文本每个目标页准备 3 种说法轮流用，避免同一个精确匹配词重复出现。俄语锚文本：⚠️ 需要 Ryan 校对。\n',
+      '只给会被导入的文章生成链接：`articles/` 里没有对应语言的文件、或 front matter 写了 `import: false` 的文章，两个方向的链接都不生成；文章可以导入后重新运行本脚本，链接会自动回来。\n',
       '品类 → 品类的链接会作为"相关产品"一节加在落地页正文末尾；文章 → 品类的链接已经写在文章正文里，导入时会转成链接标记，不再另加一节。\n']
 for l, title in (('en', 'English'), ('ru', 'Русский ⚠️ 需要 Ryan 校对')):
     md += [f'\n## {title}\n', '| 类型 | 来源 | 目标 | 锚文本 |', '|---|---|---|---|']
