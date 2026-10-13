@@ -33,7 +33,7 @@ function inquiryDb(inqs: Inq[], logos: { id: string; path: string; inquiryId: st
       findMany: async (a: any) => logos.filter((l) => a.where.inquiryId.in.includes(l.inquiryId)).map(({ id, path }) => ({ id, path })),
       deleteMany: async (a: any) => { const before = logos.length; for (const id of a.where.id.in) logos.splice(logos.findIndex((l) => l.id === id), 1); return { count: before - logos.length }; },
     },
-    $transaction: async (p: Promise<unknown>[]) => Promise.all(p),
+    async $transaction(x: any) { return typeof x === 'function' ? x(this) : Promise.all(x); },
   };
   return { db, contacts, ops };
 }
@@ -116,4 +116,11 @@ test('ADMIN_INACTIVE_DAYS override; second inactive ADMIN disabled when another 
   const { db } = userDb(users);
   assert.equal(await disableInactiveUsers(db as never, async () => {}, NOW), 1);
   assert.equal(users[1].disabled, true);
+});
+
+test('inBatches: stops starting new batches once the step time budget is used up', async () => {
+  const { inBatches } = await import('../src/lib/server/retention');
+  let t = 0; let calls = 0;
+  const n = await inBatches(async (take) => Array.from({ length: take }, (_, k) => `x${k}`), async (ids) => { calls++; t += 15_000; return ids.length; }, 20_000, 40_000, () => t);
+  assert.equal(calls, 3); assert.equal(n, 1500); // 0s、15s、30s 开始的批次跑完，45s 时超出 40s 预算停止
 });

@@ -10,6 +10,8 @@ import { isRetentionDryRun, retentionDryRunCounts } from '@/lib/server/retention
 import { withCleanupLock } from '@/lib/server/cleanup-lock';
 
 export const runtime = 'nodejs';
+/** 函数最长运行时间（秒）。持锁事务超时 290s（LOCK_TX_TIMEOUT_MS），比这里短 10s。Vercel 各套餐上限见 launch-runbook.md；单次处理量由 RETENTION_MAX_PER_RUN 控制。 */
+export const maxDuration = 300;
 
 /**
  * 定时清理（保留期限见 docs/data-retention.md）：

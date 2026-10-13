@@ -76,17 +76,18 @@ export const anonymizedContact = (hash: string): Prisma.ContactUpdateInput => ({
  * logo 上传记录和文件删除。保留询盘条数、来源/状态/产品 slug/数量/日期/地区用于统计。
  */
 export async function deleteCustomer(db: PrismaClient, email: string, storage: PrivateStorage = defaultStorage) {
-  const ids = await contactIdsFor(db, email);
-  if (!ids.length) return { contacts: 0, inquiries: 0, logos: 0 };
   const hash = emailHash(email);
-  const inquiryIds = (await db.inquiry.findMany({ where: { contactId: { in: ids } }, select: { id: true } })).map((i) => i.id);
-  const logos = await db.logoUpload.findMany({ where: { inquiryId: { in: inquiryIds } }, select: { id: true, path: true } });
-  await db.$transaction([
-    db.contact.updateMany({ where: { id: { in: ids } }, data: anonymizedContact(hash) as Prisma.ContactUpdateManyMutationInput }),
-    ...(await anonymizeInquiryOps(db, inquiryIds, logos.map((l) => l.id))),
-  ]);
-  await deleteLogoFiles(logos, storage);
-  return { contacts: ids.length, inquiries: inquiryIds.length, logos: logos.length };
+  // 读（联系人、询盘、logo、产品配置）和写都在同一个事务里，避免读完到写之前有新 logo / 配置写入而漏删
+  const out = await db.$transaction(async (tx) => {
+    const ids = await contactIdsFor(tx, email);
+    if (!ids.length) return { contacts: 0, inquiries: 0, logos: [] as { id: string; path: string }[] };
+    const inquiryIds = (await tx.inquiry.findMany({ where: { contactId: { in: ids } }, select: { id: true } })).map((i) => i.id);
+    await tx.contact.updateMany({ where: { id: { in: ids } }, data: anonymizedContact(hash) as Prisma.ContactUpdateManyMutationInput });
+    const logos = await anonymizeInquiriesTx(tx, inquiryIds);
+    return { contacts: ids.length, inquiries: inquiryIds.length, logos };
+  }, { timeout: ANON_TX_TIMEOUT_MS });
+  await deleteLogoFiles(out.logos, storage); // 文件删除在事务提交之后（删不掉只留无记录的私有孤儿文件）
+  return { contacts: out.contacts, inquiries: out.inquiries, logos: out.logos.length };
 }
 
 /** 去掉产品配置里 logo 开头的键（如 logo 文件 key）；其余白名单字段（尺寸、颜色等）保留用于统计 */
@@ -96,24 +97,29 @@ export function stripLogoKeys(config: unknown): Prisma.InputJsonValue | typeof P
   return out as Prisma.InputJsonValue;
 }
 
+/** 单批匿名化事务的超时（500 条一批实测见 launch-runbook.md） */
+export const ANON_TX_TIMEOUT_MS = 60_000;
+
 /**
- * 询盘级匿名化（手动删除和保留期到期 cron 共用），返回要放进同一个 $transaction 的操作：
+ * 询盘级匿名化（手动删除和保留期到期 cron 共用），必须在调用方的交互式事务 tx 里执行：
+ * 绑定的 logo 记录和产品配置都在 tx 里读，再在同一个 tx 里写，事务外不做任何读取。返回被删的 logo 记录（id、path），调用方在提交后删文件。
  * 留言、来源归因、评分理由清空；回信 token 换成新的随机值（旧的回信地址失效）；产品备注清空、配置去掉 logo 键；
  * 往来邮件主题正文、内部备注改为 [deleted]；样品收货地址、规范化邮箱、物流单号清空；绑定的 logo 记录删除；标记 anonymizedAt。
  */
-export async function anonymizeInquiryOps(db: PrismaClient, inquiryIds: string[], logoIds: string[], now = new Date()) {
-  const items = await db.inquiryItem.findMany({ where: { inquiryId: { in: inquiryIds }, NOT: { config: { equals: Prisma.DbNull } } }, select: { id: true, config: true } });
-  return [
-    db.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null, attribution: Prisma.DbNull, trustReasons: Prisma.DbNull, anonymizedAt: now } }),
-    // replyToken 有唯一约束，每条单独换
-    ...inquiryIds.map((id) => db.inquiry.update({ where: { id }, data: { replyToken: randomId(24) } })),
-    db.inquiryItem.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { notes: null } }),
-    ...items.map((it) => db.inquiryItem.update({ where: { id: it.id }, data: { config: stripLogoKeys(it.config) } })),
-    db.inquiryMessage.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { subject: DELETED, bodyHtml: DELETED } }),
-    db.inquiryNote.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { body: DELETED } }),
-    db.sampleRequest.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { shippingAddress: Prisma.DbNull, normalizedEmail: null, trackingNo: null } }),
-    db.logoUpload.deleteMany({ where: { id: { in: logoIds } } }),
-  ];
+export async function anonymizeInquiriesTx(tx: Prisma.TransactionClient, inquiryIds: string[], now = new Date()) {
+  if (!inquiryIds.length) return [];
+  const logos = await tx.logoUpload.findMany({ where: { inquiryId: { in: inquiryIds } }, select: { id: true, path: true } });
+  const items = await tx.inquiryItem.findMany({ where: { inquiryId: { in: inquiryIds }, NOT: { config: { equals: Prisma.DbNull } } }, select: { id: true, config: true } });
+  await tx.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null, attribution: Prisma.DbNull, trustReasons: Prisma.DbNull, anonymizedAt: now } });
+  // replyToken 有唯一约束，每条单独换
+  for (const id of inquiryIds) await tx.inquiry.update({ where: { id }, data: { replyToken: randomId(24) } });
+  await tx.inquiryItem.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { notes: null } });
+  for (const it of items) await tx.inquiryItem.update({ where: { id: it.id }, data: { config: stripLogoKeys(it.config) } });
+  await tx.inquiryMessage.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { subject: DELETED, bodyHtml: DELETED } });
+  await tx.inquiryNote.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { body: DELETED } });
+  await tx.sampleRequest.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { shippingAddress: Prisma.DbNull, normalizedEmail: null, trackingNo: null } });
+  if (logos.length) await tx.logoUpload.deleteMany({ where: { id: { in: logos.map((l) => l.id) } } });
+  return logos;
 }
 
 /**

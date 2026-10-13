@@ -28,12 +28,20 @@ export const BATCH_SIZE = 500;
 export const maxPerRun = () => intEnv('RETENTION_MAX_PER_RUN', 20_000, BATCH_SIZE, 1_000_000);
 
 /**
- * 分批执行：每次取一批 id（≤ BATCH_SIZE），按 id 删除/更新，直到取完或达到本次运行上限。
+ * 每个清理步骤的时间预算（毫秒）：超过后不再开始新批次，剩下的留给下次 cron。
+ * 默认 40s：6 个步骤最坏 6×40s + 每步最多再跑完一批，仍在持锁事务 290s / maxDuration 300s 之内。
+ * 平台上限更低时（例如未开 Fluid compute 的 Hobby 为 60s）要调小，见 launch-runbook.md。
+ */
+export const stepBudgetMs = () => intEnv('RETENTION_STEP_BUDGET_MS', 40_000, 1_000, 280_000);
+
+/**
+ * 分批执行：每次取一批 id（≤ BATCH_SIZE），按 id 删除/更新，直到取完、达到本次运行上限或用完本步骤时间预算。
  * 没处理完的留给下次 cron。
  */
-export async function inBatches(fetchIds: (take: number) => Promise<string[]>, apply: (ids: string[]) => Promise<number>, cap = maxPerRun()) {
+export async function inBatches(fetchIds: (take: number) => Promise<string[]>, apply: (ids: string[]) => Promise<number>, cap = maxPerRun(), budgetMs = stepBudgetMs(), clock: () => number = Date.now) {
   let total = 0;
-  while (total < cap) {
+  const deadline = clock() + budgetMs;
+  while (total < cap && clock() < deadline) {
     const ids = await fetchIds(Math.min(BATCH_SIZE, cap - total));
     if (!ids.length) break;
     total += await apply(ids);

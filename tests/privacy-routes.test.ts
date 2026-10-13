@@ -31,7 +31,7 @@ function deps() {
     inquiryMessage: { updateMany: op('inquiryMessage.updateMany') },
     sampleRequest: { updateMany: op('sampleRequest.updateMany') },
     logoUpload: { findMany: async () => { calls.push('logoUpload.findMany'); return []; }, deleteMany: op('logoUpload.deleteMany') },
-    $transaction: async (ops: Promise<unknown>[]) => { calls.push('$transaction'); return Promise.all(ops); },
+    async $transaction(x: any) { calls.push('$transaction'); return typeof x === 'function' ? x(this) : Promise.all(x); },
   };
   const d: PrivacyDeps = {
     requireAdmin: async (r, roles) => {
@@ -130,7 +130,7 @@ test('logo deletion via mocked R2: valid logos/YYYY-MM/<id>.png deleted, invalid
       inquiryMessage: { updateMany: async () => ({ count: 0 }) },
       sampleRequest: { updateMany: async () => ({ count: 0 }) },
       logoUpload: { findMany: async () => logos, deleteMany: async (a: { where: { id: { in: string[] } } }) => { deleted.push(a.where.id.in); return { count: a.where.id.in.length }; } },
-      $transaction: async (ops: Promise<unknown>[]) => Promise.all(ops),
+      async $transaction(x: any) { return typeof x === 'function' ? x(this) : Promise.all(x); },
     };
     const out = await deleteCustomer(db as never, 'a@acme.de', r2);
     assert.equal(out.logos, 4);
