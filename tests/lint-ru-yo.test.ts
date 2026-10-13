@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-// @ts-expect-error plain .mjs script without types
 import { lintText, fixText, defaultFiles } from '../scripts/lint-ru-yo.mjs';
 
 type Hit = { word: string; fix: string; kind: string };
@@ -45,7 +44,7 @@ test('ru-yo: repo Russian copy is clean; optional dirs are skipped', () => {
 
 test('default scan skips proofreading sheets and design mock-ups', async () => {
   const { EXCLUDE } = await import('../scripts/lint-ru-yo.mjs');
-  const skipped = (p: string) => EXCLUDE.some((re: RegExp) => re.test(p));
+  const skipped = (p: string) => EXCLUDE.some((re) => re.test(p));
   assert.ok(skipped('/w/docs/content/ru-proofreading.md'));
   assert.ok(skipped('/w/design/error-pages.html'));
   assert.ok(!skipped('/w/docs/content/articles/a.md'));

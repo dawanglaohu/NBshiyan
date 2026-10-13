@@ -5,7 +5,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const FORBIDDEN: RegExp[] = [
-  /24\s*(hours?|h\b|час)/i,
+  // reply-time promises only (F19); retention facts like 'deleted 24 hours after upload' are allowed
+  /(reply|respond|response|get back|within|ответ\S*|в течение)[^.\n]{0,30}24\s*(hours?|h\b|час)/i,
   /factory[-\s]direct/i,
   /food[-\s]safe/i,
   /\bPLA\b/,
@@ -34,3 +35,13 @@ for (const file of files) {
     for (const re of FORBIDDEN) assert.ok(!re.test(src), `${file} matches ${re}`);
   });
 }
+
+test('24h rule blocks reply-time promises only', () => {
+  const re = FORBIDDEN[0];
+  for (const ok of ['Logos not attached to an inquiry are deleted 24 hours after upload (at most 48 hours).',
+    'Логотипы, не привязанные к запросу, удаляются через 24 часа после загрузки (не позднее 48 часов).'])
+    assert.ok(!re.test(ok), ok);
+  for (const bad of ['Tell us what you need — we reply within 24 hours.', 'Our team will get back to you within 24 hours.',
+    'Расскажите, что вам нужно, — ответим в течение 24 часов.', 'Наш менеджер свяжется с вами в течение 24 часов.'])
+    assert.ok(re.test(bad), bad);
+});
