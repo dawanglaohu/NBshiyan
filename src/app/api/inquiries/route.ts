@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
 import { randomId, hitRateLimit, verifyTurnstile, clientIp, readBody, tooManyRequests } from '@/lib/server/security';
+import { retention } from '@/lib/server/retention';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
 import { sendSafely, inquiryNotifyMail, customerAckMail } from '@/lib/server/mail';
 import { summarizeItems } from '@/lib/server/email/render';
@@ -54,7 +55,6 @@ const Body = z.object({
   if (new Set(slugs).size !== slugs.length) ctx.addIssue({ code: 'custom', path: ['items'], message: 'duplicate_items' });
 });
 
-const RETAIN_DAYS = 730;
 
 export async function POST(req: Request) {
   const ip = clientIp(req);
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
           ref, replyToken: randomId(24), locale: b.locale, source: b.source, message: b.message,
           trustScore: trust.score, trustReasons: trust.reasons, ipCountry,
           attribution: (b.attribution ?? undefined) as object | undefined,
-          retainUntil: new Date(Date.now() + RETAIN_DAYS * 86_400_000),
+          retainUntil: new Date(Date.now() + retention.inquiryDays * 86_400_000),
           contact: { create: b.contact },
           items: { create: b.items.map((i) => ({ ...i, config: (i.config ?? undefined) as object | undefined })) },
           ...(sampleEmail ? { sample: { create: { normalizedEmail: sampleEmail, shippingAddress: b.shippingAddress } } } : {}),
