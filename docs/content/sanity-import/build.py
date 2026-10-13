@@ -140,13 +140,30 @@ for f in LANDING:
         d['seo']['description'][loc] = cm[loc]['description']
     docs.append(d)
 
+# Guard: an importable article must not carry unconfirmed facts in its published body.
+# Same lines blocks() publishes: front matter and '> ' editorial notes are not checked.
+UNCONFIRMED = re.compile(r'\{\{待Ryan确认\}\}|\bTBD\b')
+def unconfirmed_lines(text):
+    head = re.match(r'^---\n.*?\n---\n', text, re.S)
+    offset = head.group(0).count('\n') if head else 0
+    body = text[head.end():] if head else text
+    return [(offset + n + 1, raw.strip()) for n, raw in enumerate(body.splitlines())
+            if not raw.strip().startswith('>') and UNCONFIRMED.search(raw)]
+
 arts = {}
+refused = []
 for f in sorted((ROOT / 'articles').glob('*.md')):
-    fm, body = front(f.read_text())
+    text = f.read_text()
+    fm, body = front(text)
     if fm.get('import') == 'false': continue  # drafts with open {{待Ryan确认}} facts stay out of Sanity until filled
+    refused += [f'{f}:{n}: {line}' for n, line in unconfirmed_lines(text)]
     loc = fm.get('locale', 'en')
     group = fm.get('en_version') or fm['slug']
     arts.setdefault(group, {})[loc] = (fm, body)
+if refused:
+    print('error: refusing import, article body has {{待Ryan确认}} or TBD (fill it in or set import: false):', file=sys.stderr)
+    print('\n'.join(refused), file=sys.stderr)
+    sys.exit(1)
 for group, langs in sorted(arts.items()):
     d = {'_id': f'article-{group}', '_type': 'article', 'title': {}, 'slug': {}, 'excerpt': {}, 'body': {},
          'seo': {'title': {}, 'description': {}, 'noindex': True}}

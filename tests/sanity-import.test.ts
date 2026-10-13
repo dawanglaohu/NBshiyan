@@ -38,3 +38,21 @@ test('sanity-import: build.py skips docs without an internal key (FAQ drafts, pr
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('sanity-import: build.py refuses importable articles whose body has {{待Ryan确认}} or TBD, naming file and line', () => {
+  for (const [name, word] of [['placeholder', '{{待Ryan确认}}'], ['tbd', 'TBD']] as const) {
+    const dir = mkdtempSync(join(tmpdir(), 'sanity-guard-'));
+    try {
+      mkdirSync(join(dir, 'articles'));
+      const md = `---\ntitle: "Guard"\nslug: guard-${name}\nlocale: en\nstatus: draft TBD\nmeta_description: "x"\n---\n\n> note TBD {{待Ryan确认}}\n\n# Guard\n\nLead time is ${word}.\n`;
+      writeFileSync(join(dir, 'articles', `guard-${name}.md`), md);
+      const out = join(dir, 'import.ndjson');
+      const r = spawnSync('python3', ['docs/content/sanity-import/build.py', dir, '--out', out], { encoding: 'utf8' });
+      assert.notEqual(r.status, 0, `${name}: build.py should refuse`);
+      assert.match(r.stderr, new RegExp(`guard-${name}\\.md:13: `), r.stderr);
+      assert.doesNotMatch(r.stderr, /:(5|9): /, 'front matter and > notes are not checked');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+});
