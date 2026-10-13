@@ -11,11 +11,32 @@ META_TS = pathlib.Path(__file__).resolve().parents[3] / 'src/lib/seo/categoryMet
 
 def key(*p): return hashlib.sha1('|'.join(p).encode()).hexdigest()[:12]
 
-def spans(text, k):
-    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text).replace('`', '')
+SAFE_HREF = re.compile(r'^/(en|ru)/[a-z0-9/-]*$')
+
+def spans(text, k, defs):
+    """Inline markdown -> spans. **bold** -> strong; [t](/en/..|/ru/..) -> link markDef.
+    Any other href (external, relative without locale) is dropped to plain text."""
+    text = text.replace('`', '')
     out = []
-    for i, part in enumerate(re.split(r'\*\*(.+?)\*\*', text)):
-        if part: out.append({'_type': 'span', '_key': key(k, str(i)), 'text': part, 'marks': ['strong'] if i % 2 else []})
+    tok = re.compile(r'\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)')
+    pos, i = 0, 0
+    def add(t, marks):
+        nonlocal i
+        if t: out.append({'_type': 'span', '_key': key(k, str(i)), 'text': t, 'marks': marks}); i += 1
+    for m in tok.finditer(text):
+        add(text[pos:m.start()], [])
+        if m.group(1) is not None:
+            add(m.group(1), ['strong'])
+        else:
+            href = m.group(3).strip()
+            if SAFE_HREF.match(href):
+                dk = key(k, 'link', href, str(len(defs)))
+                defs.append({'_type': 'link', '_key': dk, 'href': href})
+                add(m.group(2), [dk])
+            else:
+                add(m.group(2), [])
+        pos = m.end()
+    add(text[pos:], [])
     return out
 
 def blocks(md, ns):
@@ -36,7 +57,8 @@ def blocks(md, ns):
             if cells[0] in ('Option', 'Параметр'): continue
             li, line = 'bullet', f'**{cells[0]}:** {cells[1]}'
         k = key(ns, str(n))
-        b = {'_type': 'block', '_key': k, 'style': style, 'markDefs': [], 'children': spans(line, k)}
+        defs = []
+        b = {'_type': 'block', '_key': k, 'style': style, 'markDefs': defs, 'children': spans(line, k, defs)}
         if li: b.update(listItem=li, level=1)
         res.append(b)
     return res
@@ -66,6 +88,16 @@ def cat_meta(k):
     g = lambda s, f: re.search(f + r": '([^']*)'", s).group(1)
     return {l: {f: g(s, f) for f in ('slug', 'title', 'description')} for l, s in (('en', en), ('ru', ru))}
 
+LINKS = json.loads((pathlib.Path(__file__).resolve().parent.parent / 'internal-links.json').read_text())['links']
+HEAD = {'category→category': {'en': 'Related products', 'ru': 'Похожие товары'},
+        'category→article': {'en': 'Further reading', 'ru': 'Полезные статьи'}}
+def related_md(url, loc):
+    md = []
+    for kind in ('category→category', 'category→article'):
+        ls = [x for x in LINKS if x['from'] == url and x['kind'] == kind]
+        if ls: md += [f'## {HEAD[kind][loc]}'] + [f"- [{x['anchor'][:1].upper() + x['anchor'][1:]}]({x['to']})" for x in ls]
+    return '\n'.join(md)
+
 docs = []
 for f in sorted(ROOT.glob('*.md')):
     if f.name in ('README.md', 'industries.md'): continue
@@ -83,7 +115,8 @@ for f in sorted(ROOT.glob('*.md')):
         d['title'][loc] = h1
         d['slug'][loc] = {'_type': 'slug', 'current': cm[loc]['slug']}
         d['excerpt'][loc] = intro
-        d['body'][loc] = blocks(drop_first_para(sec, intro), f'{k}-{loc}')
+        url = f"/{loc}/products/{cm[loc]['slug']}"
+        d['body'][loc] = blocks(drop_first_para(sec, intro) + '\n' + related_md(url, loc), f'{k}-{loc}')
         d['seo']['title'][loc] = cm[loc]['title']
         d['seo']['description'][loc] = cm[loc]['description']
     docs.append(d)
