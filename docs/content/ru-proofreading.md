@@ -511,7 +511,7 @@
 | M-offset-printing-desc | `src/lib/seo/categoryMeta.ts` | #222 | High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and in-house finishing for export. Request a quote. | Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Четкая детализация, стабильный цвет и постпечатная обработка. Запросите расчёт. | 154/160 |  |
 | M-offset-printing-kw | `src/lib/seo/categoryMeta.ts` | main | офсетная печать упаковки | офсетная печать упаковки |  |  |
 | M-eco-paper-cups-title | `src/lib/seo/categoryMeta.ts` | main | Compostable Paper Cups Manufacturer \| PackJoyU | Биоразлагаемые стаканы с логотипом \| PackJoyU | 45/60 |  |
-| M-eco-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | #222 | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. | Биоразлагаемые и компостируемые бумажные стаканы без пластика, с водной или PLA основой и печатью логотипа. Эко выбор для кофеен и сетей. Запросите расчёт. | 155/160 |  |
+| M-eco-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | #222 | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. | Биоразлагаемые и компостируемые стаканы без пластика, с водной или PLA основой и печатью логотипа. Экологичный выбор для кофеен и сетей. Запросите расчёт. | 154/160 |  |
 | M-eco-paper-cups-kw | `src/lib/seo/categoryMeta.ts` | main | биоразлагаемые стаканы | биоразлагаемые стаканы |  |  |
 | M-gift-cards-title | `src/lib/seo/categoryMeta.ts` | main | Custom Gift Cards Printing & Supplier \| PackJoyU | Печать подарочных карт на заказ \| PackJoyU | 42/60 |  |
 | M-gift-cards-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom printed gift cards, vouchers and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. | Печать подарочных карт и сертификатов на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка для карт в едином стиле бренда. Запросите расчёт. | 152/160 |  |
@@ -546,22 +546,22 @@
 
 ### 3.1 品类分享图 alt / Category share-image alt（#220，`public/og/category-<slug>-ru.jpg`）
 
-依据设计师 #220 草稿整理：去掉品牌名 / H1 前缀（标题已在 og:title），全部用 ё，「Биоразлагаемые」→「Экологичные」，「с листиком」→「с изображением листа」。设计师原稿文字本地无副本，以 #220 PR 为准核对。英文仅为对照，不是 #220 英文 alt 原文。全部待 Ryan 校对。
+依据设计师 #220 草稿整理：去掉品牌名 / H1 前缀（标题已在 og:title），全部用 ё，「Биоразлагаемые」→「Экологичные」，「с листиком」→「с изображением листа」。**Provisional / 临时稿**：设计师原稿文字本地无副本，这 12 条是按规则自拟的临时版本，待设计师 #220 定稿表替换后再交 Ryan 校对。英文仅为对照，不是 #220 英文 alt 原文。全部待 Ryan 校对。
 
 | ID | 文件 | PR | English（对照） | Русский | 字符数 | Ryan: OK / correction |
 |---|---|---|---|---|---|---|
-| ALT-OG-gofrokorobki | `public/og/category-gofrokorobki-ru.jpg` ✔ | #220 | Corrugated mailer box | Коробка из гофрокартона | 23 |  |
-| ALT-OG-tsvetnye-korobki | `public/og/category-tsvetnye-korobki-ru.jpg` ✔ | #220 | Orange printed box with yellow accents | Оранжевая коробка с печатью и жёлтыми акцентами | 47 |  |
-| ALT-OG-podarochnye-korobki | `public/og/category-podarochnye-korobki-ru.jpg` ✔ | #220 | Rigid gift box on a dark background | Жёсткая подарочная коробка на тёмном фоне | 41 |  |
-| ALT-OG-izdeliya-iz-tsellyulozy | `public/og/category-izdeliya-iz-tsellyulozy-ru.jpg` ✔ | #220 | Molded pulp tray with a green leaf | Лоток из формованной целлюлозы с изображением листа | 51 |  |
-| ALT-OG-bumazhnye-stakany | `public/og/category-bumazhnye-stakany-ru.jpg` ✔ | #220 | Paper cup with an orange band | Бумажный стакан с оранжевой полосой | 35 |  |
-| ALT-OG-tovary-dlya-prazdnikov | `public/og/category-tovary-dlya-prazdnikov-ru.jpg` ✔ | #220 | Paper plate and party hat | Бумажная тарелка и праздничный колпак | 37 |  |
-| ALT-OG-upakovka-dlya-vina | `public/og/category-upakovka-dlya-vina-ru.jpg` ✔ | #220 | Wine box on a dark background | Коробка для вина на тёмном фоне | 31 |  |
-| ALT-OG-tsvetnaya-pechat | `public/og/category-tsvetnaya-pechat-ru.jpg` ✔ | #220 | Full-color (CMYK) print sample | Образец полноцветной печати (CMYK) | 34 |  |
-| ALT-OG-ofsetnaya-pechat | `public/og/category-ofsetnaya-pechat-ru.jpg` ✔ | #220 | Stack of offset-printed sheets | Стопка листов офсетной печати | 29 |  |
-| ALT-OG-ekologichnye-stakany | `public/og/category-ekologichnye-stakany-ru.jpg` ✔ | #220 | Paper cup with a green band and a leaf | Экологичный стакан с зелёной полосой и изображением листа ⚠️F15 | 57 |  |
-| ALT-OG-podarochnye-karty | `public/og/category-podarochnye-karty-ru.jpg` ✔ | #220 | Two printed gift cards | Две подарочные карты с печатью ⚠️F16 | 30 |  |
-| ALT-OG-novogodnyaya-upakovka | `public/og/category-novogodnyaya-upakovka-ru.jpg` ✔ | #220 | Red box with a green ribbon | Красная коробка с зелёной лентой | 32 |  |
+| ALT-OG-gofrokorobki | `public/og/category-gofrokorobki-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Corrugated mailer box | Коробка из гофрокартона | 23 |  |
+| ALT-OG-tsvetnye-korobki | `public/og/category-tsvetnye-korobki-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Orange printed box with yellow accents | Оранжевая коробка с печатью и жёлтыми акцентами | 47 |  |
+| ALT-OG-podarochnye-korobki | `public/og/category-podarochnye-korobki-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Rigid gift box on a dark background | Жёсткая подарочная коробка на тёмном фоне | 41 |  |
+| ALT-OG-izdeliya-iz-tsellyulozy | `public/og/category-izdeliya-iz-tsellyulozy-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Molded pulp tray with a green leaf | Лоток из формованной целлюлозы с изображением листа | 51 |  |
+| ALT-OG-bumazhnye-stakany | `public/og/category-bumazhnye-stakany-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Paper cup with an orange band | Бумажный стакан с оранжевой полосой | 35 |  |
+| ALT-OG-tovary-dlya-prazdnikov | `public/og/category-tovary-dlya-prazdnikov-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Paper plate and party hat | Бумажная тарелка и праздничный колпак | 37 |  |
+| ALT-OG-upakovka-dlya-vina | `public/og/category-upakovka-dlya-vina-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Wine box on a dark background | Коробка для вина на тёмном фоне | 31 |  |
+| ALT-OG-tsvetnaya-pechat | `public/og/category-tsvetnaya-pechat-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Full-color (CMYK) print sample | Образец полноцветной печати (CMYK) | 34 |  |
+| ALT-OG-ofsetnaya-pechat | `public/og/category-ofsetnaya-pechat-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Stack of offset-printed sheets | Стопка листов офсетной печати | 29 |  |
+| ALT-OG-ekologichnye-stakany | `public/og/category-ekologichnye-stakany-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Paper cup with a green band and a leaf | Экологичный стакан с зелёной полосой и изображением листа ⚠️F15 | 57 |  |
+| ALT-OG-podarochnye-karty | `public/og/category-podarochnye-karty-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Two printed gift cards | Две подарочные карты с печатью ⚠️F16 | 30 |  |
+| ALT-OG-novogodnyaya-upakovka | `public/og/category-novogodnyaya-upakovka-ru.jpg` ✔ | #220 · provisional, to be replaced by the designer's final table | Red box with a green ribbon | Красная коробка с зелёной лентой | 32 |  |
 
 ## 4. 内链锚文本 / Internal-link anchors（#205）
 
