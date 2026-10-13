@@ -74,6 +74,13 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .field label,.field legend{font-weight:700;font-size:14px}
 .field input,.field select,.field textarea{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--bg);color:var(--ink)}
 fieldset.field{border:0;padding:0;margin:0 0 16px}
+/* #152 输入框状态（design-system §5）：hover 加深边框（仅 hover 设备）；focus 用全站 :focus-visible 环 + 边框；error 用 --err 边框（aria-invalid 或用户交互后的原生校验失败）；disabled 半透明 */
+.field input,.field select,.field textarea{transition:border-color var(--dur-fast,150ms) var(--ease)}
+@media (hover:hover){.field input:hover:not(:disabled),.field select:hover:not(:disabled),.field textarea:hover:not(:disabled){border-color:var(--ink-2)}}
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{border-color:var(--accent-text,var(--accent));outline-offset:2px}
+.field [aria-invalid="true"],.field input:user-invalid,.field select:user-invalid,.field textarea:user-invalid{border-color:var(--err,#B42318);border-width:1.5px}
+.field input:disabled,.field select:disabled,.field textarea:disabled{opacity:.45;cursor:not-allowed}
+.field input::placeholder,.field textarea::placeholder{color:var(--ink-2);opacity:.8}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips label{font-weight:500;border:1px solid var(--line);border-radius:var(--r-pill);padding:6px 12px;cursor:pointer}
 .chips input{position:absolute;opacity:0;pointer-events:none}
