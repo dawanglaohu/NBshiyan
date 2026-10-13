@@ -5,8 +5,11 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const FORBIDDEN: RegExp[] = [
-  // reply-time promises only (F19); retention facts like 'deleted 24 hours after upload' are allowed
-  /(reply|respond|response|get back|within|ответ\S*|в течение)[^.\n]{0,30}24\s*(hours?|h\b|час)/i,
+  // reply/support-time promises only (F19); retention facts like 'deleted 24 hours after upload' are allowed.
+  // «за» is matched as a whole word only: a bare «за» also hits «запросу» in the RU privacy text.
+  /(reply|respond|response|get back|within|support|ответ\S*|в течение|поддержк\S*|(?<![а-яё])за(?![а-яё]))[^.\n]{0,30}24[\s-]*(hours?|h\b|час)/i,
+  /24[\s-]*(hours?|h\b|час\S*)[^.\n]{0,20}(support|reply|response|turnaround|поддержк|ответ)/i,
+  /24\s*\/\s*7|круглосуточн/i,
   /factory[-\s]direct/i,
   /food[-\s]safe/i,
   /\bPLA\b/,
@@ -36,12 +39,24 @@ for (const file of files) {
   });
 }
 
-test('24h rule blocks reply-time promises only', () => {
-  const re = FORBIDDEN[0];
-  for (const ok of ['Logos not attached to an inquiry are deleted 24 hours after upload (at most 48 hours).',
-    'Логотипы, не привязанные к запросу, удаляются через 24 часа после загрузки (не позднее 48 часов).'])
-    assert.ok(!re.test(ok), ok);
-  for (const bad of ['Tell us what you need — we reply within 24 hours.', 'Our team will get back to you within 24 hours.',
-    'Расскажите, что вам нужно, — ответим в течение 24 часов.', 'Наш менеджер свяжется с вами в течение 24 часов.'])
-    assert.ok(re.test(bad), bad);
+const REPLY_TIME = FORBIDDEN.slice(0, 3);
+const replyHit = (t: string) => REPLY_TIME.some((re) => re.test(t));
+const strings = (o: unknown): string[] =>
+  typeof o === 'string' ? [o] : o && typeof o === 'object' ? Object.values(o).flatMap(strings) : [];
+
+test('24h rules block reply/support-time promises and 24/7', () => {
+  for (const bad of ['24h support', '24-hour support', 'ответ за 24 часа', 'поддержка 24 часа', 'reply within 24 hours',
+    'ответим в течение 24 часов', '24/7 support', 'круглосуточная поддержка',
+    'Our team will get back to you within 24 hours.', 'Наш менеджер свяжется с вами в течение 24 часов.'])
+    assert.ok(replyHit(bad), bad);
+});
+
+test('24h rules allow retention facts and the whole privacy page (fix/privacy-page fixtures)', () => {
+  for (const ok of ['Logos are deleted 24 hours after upload', 'Логотип удаляется через 24 часа после загрузки'])
+    assert.ok(!replyHit(ok), ok);
+  for (const l of ['en', 'ru']) {
+    const all = strings(JSON.parse(readFileSync(`tests/fixtures/privacy-${l}.json`, 'utf8')).Privacy);
+    assert.ok(all.some((t) => /24/.test(t)), `${l} fixture has the 24-hour logo rule`);
+    for (const t of all) for (const re of FORBIDDEN) assert.ok(!re.test(t), `${l}: ${re} hits «${t}»`);
+  }
 });
