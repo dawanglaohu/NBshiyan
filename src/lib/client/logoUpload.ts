@@ -1,5 +1,6 @@
 // 客户 Logo 上传：对应 docs/API.md `POST /api/uploads/logo`（PR #59）。
 // 公开接口，不需要 Turnstile；返回的 uploadId 1 小时内有效，提交询盘时作为 logoUploadId 绑定。
+import { logoUploadMockEnabled } from '../mockFlags';
 export const LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 export const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 /** 服务端 1 小时过期；前端留 5 分钟余量，快到期就提示重新上传 */
@@ -43,4 +44,4 @@ async function mockUpload(file: File): Promise<LogoUpload> {
 }
 
 export class LogoError extends Error { constructor(public code: LogoErrorCode) { super(code); } }
-export const uploadLogo = process.env.NEXT_PUBLIC_LOGO_UPLOAD_MOCK === '1' ? mockUpload : realUpload;
+export const uploadLogo = logoUploadMockEnabled() ? mockUpload : realUpload;
