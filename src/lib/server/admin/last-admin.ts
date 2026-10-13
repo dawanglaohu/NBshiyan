@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 
 export class LastAdminError extends Error {
+  readonly code = 'last_admin' as const;
   constructor() { super('last_admin'); this.name = 'LastAdminError'; }
 }
 

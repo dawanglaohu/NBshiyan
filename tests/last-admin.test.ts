@@ -24,7 +24,12 @@ function fakeDb(users: { id: string; role: string; disabled: boolean }[]) {
 
 test('only active ADMIN -> LastAdminError; uses FOR UPDATE', async () => {
   const db = fakeDb([{ id: 'a1', role: 'ADMIN', disabled: false }, { id: 'a2', role: 'ADMIN', disabled: true }, { id: 's1', role: 'SALES', disabled: false }]);
-  await assert.rejects(db.transaction((tx) => assertNotLastActiveAdmin(tx, 'a1')), LastAdminError);
+  await assert.rejects(db.transaction((tx) => assertNotLastActiveAdmin(tx, 'a1')), (e: unknown) => {
+    assert.ok(e instanceof LastAdminError);
+    assert.equal(e.name, 'LastAdminError');
+    assert.equal(e.code, 'last_admin');
+    return true;
+  });
   assert.match(db.sqls[0], /FOR UPDATE/);
 });
 
