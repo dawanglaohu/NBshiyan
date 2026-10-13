@@ -304,7 +304,7 @@ def build_wine():
     reset()
     W, D, H, wall = .115, .115, .36, .0025
     BH = .29; LH = H - BH  # base height; lid = top cap + back + front flap
-    dark = paper_set('winepaper', (0.25, 0.21, 0.225), .35, fib=.3, nstr=.5, rough=(.62, .12))
+    dark = paper_set('winepaper', (0.17, 0.16, 0.17), .35, fib=.3, nstr=.5, rough=(.86, .08))
     m_dark = mat('DarkTexturedPaper', texset=dark)
     m_inner = mat('InnerPaper', col=(0.025, 0.02, 0.02), rough=.95)
     m_gold = mat('GoldFoil', col=(0.95, 0.76, 0.40), rough=.30, metal=1, alpha_img=load('wine_foil.png'))
@@ -312,7 +312,7 @@ def build_wine():
     m_satin = mat('CreamSatinInsert', texset=satin)
     root = empty('WineBox', (0, 0, 0))
     base = empty('Base', (0, 0, 0), root)
-    rigid_tray('Base', W, D, H - .028, wall, m_dark, m_inner, base, bevel=.0015)
+    rigid_tray('Base', W, D, H - wall - .0008, wall, m_dark, m_inner, base, bevel=.0015)
     # bottle insert: card board block with round cradle + neck support
     # 酒瓶托：底托把瓶子抬高，瓶口距盖板约 12mm（开盖即可看到瓶颈、瓶封）
     z0 = H - .012 - .302
@@ -328,25 +328,28 @@ def build_wine():
     lathe('Capsule', [(.0146, .255), (.0146, .29), (.0158, .293), (.0158, .3015), (0, .302)], foil, seg=32, parent=base, loc=(0, 0, z0))
     lab = mat('BottleLabel', rough=.7, base_img=load('bottle_label.png'))
     lathe('Label', [(.0376, .11), (.0376, .19)], lab, seg=48, parent=base, loc=(0, 0, z0), vrange=(.11, .19))
-    # 磁吸翻盖：盖 = 顶板 + 前翻边，与盒身同宽；铰链在盒身后上沿；前翻边贴在盒身正面外侧
-    # 天地盖式翻盖（参考 Krug/Singleton 礼盒）：盖为与盒身同尺寸的平顶罩，四面裙边与盒身外壁齐平，
-    # 铰链在后上沿；正面无外挂翻边，闭合时仅一条细缝
-    SK = .028
-    plane('BaseFoil', (0, -D/2 - .0003, (H - SK)/2), 'y', -1, W*.88, (H - SK)*.9, m_gold, base)
-    lid = empty('Lid', (0, D/2, H - SK), root)
+    # 天地盖：盖为深罩，四面裙边向下罩住盒身上部 LS，裙边内壁与盒身外壁留 0.8mm 间隙
+    clr = .0008; LW, LD = W + 2*(wall + clr), D + 2*(wall + clr); LS = .12
+    lid = empty('Lid', (0, 0, H - LS), root)
     boxes('Lid_wrap', [
-        (0, -D + wall/2, (SK - wall)/2, W, wall, SK - wall),                 # 前裙边
-        (0, -wall/2, (SK - wall)/2, W, wall, SK - wall),                     # 后裙边
-        (-(W/2 - wall/2), -D/2, (SK - wall)/2, wall, D - 2*wall, SK - wall), # 左裙边
-        ((W/2 - wall/2), -D/2, (SK - wall)/2, wall, D - 2*wall, SK - wall),  # 右裙边
+        (0, -(LD/2 - wall/2), (LS - wall)/2, LW, wall, LS - wall),
+        (0, (LD/2 - wall/2), (LS - wall)/2, LW, wall, LS - wall),
+        (-(LW/2 - wall/2), 0, (LS - wall)/2, wall, LD - 2*wall, LS - wall),
+        ((LW/2 - wall/2), 0, (LS - wall)/2, wall, LD - 2*wall, LS - wall),
     ], m_dark, lid, uvs=2, bevel=0)
-    boxes('Lid_top', [(0, -D/2, SK - wall/2, W, D, wall)], m_dark, lid, uvs=2, bevel=.0012)  # 顶板
-    boxes('Lid_lining', [(0, -D/2, SK - wall - .0002, W - 2*wall, D - 2*wall, .0004)], m_inner, lid, uvs=4)
-    m_gold2 = mat('GoldFoilLid', col=(0.95, 0.76, 0.40), rough=.30, metal=1, alpha_img=load('wine_lid_foil.png'))
-    plane('LidFoil', (0, -D/2, SK + .0003), 'z', 1, W*.8, D*.8, m_gold2, lid)
-    fr = [0, 6, 12, 18, 24]
-    lid.rotation_mode = 'XYZ'
-    for f, k in zip(fr, ease(5, 1)): lid.rotation_euler = (math.radians(-110*k), 0, 0); lid.keyframe_insert('rotation_euler', frame=f)
+    boxes('Lid_top', [(0, 0, LS - wall/2, LW, LD, wall)], m_dark, lid, uvs=2, bevel=.0012)
+    boxes('Lid_lining', [(0, 0, LS - wall - .0002, LW - 2*wall, LD - 2*wall, .0004)], m_inner, lid, uvs=4)
+    # 连续环绕金带（盖裙边下部，四面闭合）
+    m_band = mat('GoldBand', col=(0.80, 0.52, 0.16), rough=.38, metal=1)
+    bz, bh, bt = .022, .010, .0005
+    boxes('Lid_band', [
+        (0, -(LD/2 + bt/2), bz, LW + 2*bt, bt, bh), (0, (LD/2 + bt/2), bz, LW + 2*bt, bt, bh),
+        (-(LW/2 + bt/2), 0, bz, bt, LD, bh), ((LW/2 + bt/2), 0, bz, bt, LD, bh),
+    ], m_band, lid, uvs=1, bevel=0)
+    m_gold2 = mat('GoldFoilLid', col=(0.95, 0.76, 0.40), rough=.25, metal=1, alpha_img=load('wine_lid_foil.png'))
+    plane('LidFoil', (0, 0, LS + .0003), 'z', 1, LW*.8, LD*.8, m_gold2, lid)
+    z0l = H - LS; up = z0l + LS + .03; side = (W/2 + LW/2 + .03)
+    key_loc(lid, [0, 8, 14, 20, 24], [(0, 0, z0l), (0, 0, up), (side*.55, 0, up + .01), (side, 0, .06), (side, 0, 0)])
     export('wine-box.glb')
 
 {'corrugated': build_corrugated, 'gift': build_gift, 'wine': build_wine}[WHICH]()

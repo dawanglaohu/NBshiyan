@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { ID_RE, inquiryScope, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
@@ -12,7 +12,7 @@ type P = { params: Promise<{ id: string }> };
 export async function GET(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
-  const limited = adminRateLimit(req, 'inquiry.view');
+  const limited = await enforceAdminRateLimit(req, 'inquiry.view');
   if (limited) return limited;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
@@ -43,7 +43,7 @@ const Patch = z.object({
 export async function PATCH(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'inquiry.update', 60);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'inquiry.update', 60));
   if (blocked) return blocked;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
