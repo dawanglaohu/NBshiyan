@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { lookupDesign, canonicalFor, designStatus } from '@/lib/server/designs';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
 import { clientIp, hitRateLimit, tooManyRequests } from '@/lib/server/security';
+import { probeClientIp } from '@/lib/server/probe';
 
 export const runtime = 'nodejs';
 
@@ -24,8 +25,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
  * 短暂缓存 60 秒（状态只会从 200 变成 410/404）。
  */
 export async function HEAD(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  // middleware 探测带密钥时按它转发的客户端 IP 单独计数，避免所有探测共用一个桶；否则按连接 IP
+  const probeIp = probeClientIp(req);
   const ip = clientIp(req);
-  const ok = ip ? await hitRateLimit(`design-head:${ip}`, 600) : await hitRateLimit('design-head:noip', 6000);
+  const ok = probeIp ? await hitRateLimit(`design-head:probe:${probeIp}`, 600)
+    : ip ? await hitRateLimit(`design-head:${ip}`, 600) : await hitRateLimit('design-head:noip', 6000);
   if (!ok) return new Response(null, { status: 429, headers: { 'Retry-After': '600', 'Cache-Control': 'no-store' } });
   const { id } = await params;
   const { status, category } = await designStatus(id); // 只查 expiresAt + category
