@@ -188,11 +188,29 @@
       "captcha": "Security check failed. Please reload the page and try again.",
       "server": "Something went wrong on our side. Please try again later.",
       "network": "Network error. Please check your connection and try again.",
-      "retry": "We couldn't complete the security check just now. Your details are kept — please try again in a moment."
+      "retry": "We couldn't complete the security check just now. Your details are kept — please try again in a moment.",
+      "logo_invalid": "Your logo upload has expired or is no longer valid. Please upload your logo again — your other details are kept."
     },
     "retry": "Try again",
     "retryIn": "Try again in {s}s",
-    "logoNote": "Have a vector logo (PDF/AI)? Send it as an attachment when replying to our inquiry email."
+    "logoNote": "Have a vector logo (PDF/AI)? Send it as an attachment when replying to our inquiry email.",
+    "logo": {
+      "label": "Logo (optional)",
+      "hint": "PNG, JPEG or WebP, up to 2 MB.",
+      "uploading": "Uploading…",
+      "uploaded": "Logo uploaded",
+      "remove": "Remove",
+      "expired": "Your logo upload has expired. Please upload it again.",
+      "errors": {
+        "type": "Please choose a PNG, JPEG or WebP image.",
+        "size": "This file is larger than 2 MB. Please choose a smaller image.",
+        "dimensions": "This image is too large (max 4096 × 4096 px). Please resize it and try again.",
+        "corrupt": "We couldn't read this image. Please try another file.",
+        "rate": "Too many uploads. Please wait a while and try again.",
+        "network": "Network error. Please check your connection and try again.",
+        "server": "We couldn't upload your logo just now. Please try again later."
+      }
+    }
   },
   "Views": {
     "label": "Box view",

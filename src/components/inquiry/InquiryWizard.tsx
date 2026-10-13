@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { products } from '@/data/products';
 import { useQuote } from '@/components/quote/QuoteProvider';
+import LogoUploadField from './LogoUploadField';
+import { LOGO_TTL_MS, type LogoUpload } from '@/lib/client/logoUpload';
 
 const QTY = [{ k: '1k', v: 1000 }, { k: '5k', v: 5000 }, { k: '10k', v: 10000 }, { k: '50k', v: 50000 }, { k: 'unsure', v: undefined }] as const;
 const MATERIALS = ['corrugated', 'paperboard', 'kraft', 'pulp', 'unsure'] as const;
@@ -26,6 +28,9 @@ export default function InquiryWizard() {
   const [material, setMaterial] = useState<string>('unsure');
   const [timeline, setTimeline] = useState<string>('unsure');
   const [message, setMessage] = useState('');
+  // Logo 先单独上传拿 uploadId（1 小时有效），提交询盘时作为 logoUploadId 绑定；人机校验只在最后提交时做一次
+  const [logo, setLogo] = useState<LogoUpload | null>(null);
+  const [logoNotice, setLogoNotice] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -69,6 +74,10 @@ export default function InquiryWizard() {
     if (size.trim()) config.size = size.trim().slice(0, 200);
     if (material !== 'unsure') config.material = material;
     if (timeline !== 'unsure') config.timeline = timeline;
+    // uploadId 快过期时不再发送，提示重新上传（服务端会以 logo_invalid 拒绝整条询盘）
+    if (logo && Date.now() - logo.uploadedAt > LOGO_TTL_MS) {
+      setLogo(null); setLogoNotice(t('logo.expired')); setResult({ ok: false, code: 'logo_invalid' }); return;
+    }
     const opt = (k: string) => { const v = String(fd.get(k) ?? '').trim(); return v || undefined; };
     const body = {
       source: fromQuote ? 'CART' : 'WIZARD',
@@ -78,7 +87,8 @@ export default function InquiryWizard() {
       items: selected.slice(0, 30).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
       attribution: { page: window.location.pathname },
       website: String(fd.get('website') ?? ''),
-      turnstileToken: opt('cf-turnstile-response')
+      turnstileToken: opt('cf-turnstile-response'),
+      ...(logo ? { logoUploadId: logo.uploadId } : {})
     };
     setBusy(true); setResult(null);
     try {
@@ -88,6 +98,8 @@ export default function InquiryWizard() {
         setResult({ ok: true, ref: String(data.ref ?? '') });
         if (fromQuote) quote.clear();
       } else {
+        const errBody = res.status === 422 ? await res.json().catch(() => ({})) as { error?: string } : {};
+        if (errBody.error === 'logo_invalid') { setLogo(null); setLogoNotice(t('logo.expired')); setResult({ ok: false, code: 'logo_invalid' }); return; }
         const code = res.status === 404 ? 'unavailable' : res.status === 429 ? 'rate' : res.status === 400 ? 'invalid' : res.status === 403 ? 'captcha' : res.status === 503 ? 'retry' : 'server';
         if (res.status === 503) {
           const ra = Number(res.headers.get('Retry-After'));
@@ -146,6 +158,7 @@ export default function InquiryWizard() {
           <div className="field"><label htmlFor="iq-size">{t('size')}</label><input id="iq-size" value={size} maxLength={200} placeholder={t('sizePh')} onChange={(e) => setSize(e.target.value)} /></div>
           <fieldset className="field"><legend>{t('material')}</legend>{chips('material', MATERIALS, material, setMaterial, (k) => t(`materials.${k}`))}</fieldset>
           <fieldset className="field"><legend>{t('timeline')}</legend>{chips('timeline', TIMELINES, timeline, setTimeline, (k) => t(`timelines.${k}`))}</fieldset>
+          <LogoUploadField id="iq-logo" value={logo} onChange={(v) => { setLogo(v); if (v) setLogoNotice(undefined); }} notice={logoNotice} />
           <div className="field"><label htmlFor="iq-msg">{t('message')}</label><textarea id="iq-msg" rows={4} maxLength={5000} value={message} onChange={(e) => setMessage(e.target.value)} aria-describedby="iq-logo-note" /><p id="iq-logo-note" className="hint" style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>{t('logoNote')}</p></div>
         </>
       )}
@@ -175,6 +188,7 @@ export default function InquiryWizard() {
       {result && !result.ok && (
         <div className="alert err" role="alert">
           {t(`errors.${result.code}`)}
+          {result.code === 'logo_invalid' && !logo && <LogoUploadField id="iq-logo-re" value={logo} onChange={(v) => { setLogo(v); if (v) { setLogoNotice(undefined); setResult(null); } }} />}
           {RETRYABLE.has(result.code) && (
             <> <button type="button" className="btn ghost" disabled={busy || wait > 0} onClick={() => formRef.current?.requestSubmit()}>{wait > 0 ? t('retryIn', { s: wait }) : t('retry')}</button></>
           )}
