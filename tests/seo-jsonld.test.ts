@@ -12,17 +12,44 @@ test('product: all 12 categories, EN/RU, no commercial fields by default', () =>
     assert.ok(String(ld.url).endsWith(`/${l}/products/${c[l].slug}`));
     assert.equal(ld.description, c[l].description);
     assert.ok(!String(ld.name).includes('PackJoyU'));
-    for (const f of ['offers', 'aggregateRating', 'review', 'additionalProperty', 'image', 'sku']) assert.ok(!(f in ld), f);
+    assert.ok(!('inLanguage' in ld));
+    for (const f of ['offers', 'aggregateRating', 'review', 'additionalProperty', 'image', 'sku', 'material', 'hasCertification']) assert.ok(!(f in ld), f);
   }
 });
 
 test('product: optional real data is emitted only when given', () => {
-  const ld = buildProductJsonLd('wine-boxes', 'en', {
-    images: ['/posters/custom-wine-boxes.webp'], specs: [{ name: 'MOQ', value: '500' }],
+  const ld = buildProductJsonLd('wine-boxes', 'ru', {
+    images: ['/posters/custom-wine-boxes.webp'],
+    specs: {
+      moq: { value: 500, unit: 'pcs' }, material: 'Крафт-бумага',
+      size: { min: { l: 50, w: 50, h: 20 }, max: { l: 600, w: 400, h: 400 }, unit: 'mm' },
+    },
+    certifications: [
+      { name: 'FSC', certNo: 'FSC-C1', url: 'https://example.com/fsc' },
+      { name: 'ISO 9001', certNo: 'X1' },
+      { name: 'Bad', url: 'http://example.com' },
+      { name: 'JS', url: 'javascript:alert(1)' },
+    ],
   });
   assert.ok(String((ld.image as string[])[0]).startsWith('http'));
-  assert.equal((ld.additionalProperty as unknown[]).length, 1);
-  assert.ok(!('offers' in ld));
+  assert.equal(ld.material, 'Крафт-бумага');
+  const props = ld.additionalProperty as any[];
+  assert.equal(props.length, 4);
+  assert.deepEqual(props[0].value, { '@type': 'QuantitativeValue', minValue: 500, unitCode: 'H87' });
+  assert.deepEqual(props[1].value, { '@type': 'QuantitativeValue', unitCode: 'MMT', minValue: 50, maxValue: 600 });
+  assert.equal(props[3].name, 'Height');
+  const certs = ld.hasCertification as any[];
+  assert.equal(certs.length, 1);
+  assert.deepEqual(certs[0], { '@type': 'Certification', name: 'FSC', url: 'https://example.com/fsc', certificationIdentification: 'FSC-C1' });
+  for (const f of ['offers', 'aggregateRating', 'review', 'inLanguage']) assert.ok(!(f in ld), f);
+  assert.ok(!JSON.stringify(ld).includes('TBD'));
+});
+
+test('product: empty specs/certs are omitted entirely', () => {
+  const ld = buildProductJsonLd('wine-boxes', 'en', { specs: { material: '  ' }, certifications: [{ name: 'ISO', certNo: '1' }] });
+  for (const f of ['material', 'additionalProperty', 'hasCertification']) assert.ok(!(f in ld), f);
+  const half = buildProductJsonLd('wine-boxes', 'en', { specs: { size: { max: { l: 1, w: 2, h: 3 }, unit: 'mm' } } });
+  assert.deepEqual((half.additionalProperty as any[])[2].value, { '@type': 'QuantitativeValue', unitCode: 'MMT', maxValue: 3 });
 });
 
 test('product: unknown key throws', () => {

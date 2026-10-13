@@ -1,23 +1,28 @@
 // Product JSON-LD for category landing pages (Refs #99).
-// Only fields backed by real data are emitted. offers / aggregateRating / review /
-// additionalProperty are NOT generated unless explicitly supplied by the caller
-// with real data — never fabricate them.
+// Only fields backed by real data are emitted. offers / price / aggregateRating /
+// review are never output (no inputs exist for them). Spec values come from
+// /api/specs (#219); sampleFee / leadTime / tradeTerms are deliberately not mapped.
 import { SITE_URL } from '../../site';
 import { categoryMeta, type CategoryMeta } from '../categoryMeta';
 
 export type Locale = 'en' | 'ru';
 
+/** Size range in mm per dimension, as returned by /api/specs. */
+export type Dims = { l: number; w: number; h: number };
+
 export type ProductRealData = {
   /** Absolute or site-relative image URLs (e.g. /posters/custom-color-boxes.webp). */
   images?: string[];
   sku?: string;
-  /** Only pass when real commercial terms exist. */
-  offers?: { price: string; priceCurrency: string; availability?: string; url?: string };
-  /** Only pass with genuine, verifiable reviews. */
-  aggregateRating?: { ratingValue: number; reviewCount: number };
-  review?: Array<{ author: string; reviewBody: string; ratingValue?: number }>;
-  /** Real, confirmed spec values only (e.g. MOQ once Ryan provides it). */
-  specs?: Array<{ name: string; value: string }>;
+  /** Real, confirmed spec values only (from /api/specs). Empty/missing => omitted. */
+  specs?: {
+    moq?: { value: number; unit: 'pcs' };
+    size?: { min?: Dims; max?: Dims; unit: 'mm' };
+    /** Localized material string for the page's locale. */
+    material?: string;
+  };
+  /** Only certs with an https url are output. */
+  certifications?: Array<{ name: string; certNo?: string; url?: string }>;
 };
 
 const abs = (u: string) => (/^https?:\/\//.test(u) ? u : `${SITE_URL}${u.startsWith('/') ? '' : '/'}${u}`);
@@ -28,6 +33,31 @@ export function findCategory(key: string): CategoryMeta | undefined {
 
 export function categoryUrl(c: CategoryMeta, locale: Locale) {
   return `${SITE_URL}/${locale}/products/${c[locale].slug}`;
+}
+
+const isHttps = (u?: string) => {
+  if (!u) return false;
+  try { return new URL(u).protocol === 'https:'; } catch { return false; }
+};
+
+const DIM_NAMES: Record<keyof Dims, string> = { l: 'Length', w: 'Width', h: 'Height' };
+
+function specProperties(specs: NonNullable<ProductRealData['specs']>) {
+  const props: Record<string, unknown>[] = [];
+  if (specs.moq && specs.moq.value > 0)
+    props.push({
+      '@type': 'PropertyValue', name: 'Minimum order quantity', propertyID: 'moq',
+      value: { '@type': 'QuantitativeValue', minValue: specs.moq.value, unitCode: 'H87' },
+    });
+  const s = specs.size;
+  if (s && (s.min || s.max))
+    for (const d of ['l', 'w', 'h'] as const) {
+      const q: Record<string, unknown> = { '@type': 'QuantitativeValue', unitCode: 'MMT' };
+      if (s.min) q.minValue = s.min[d];
+      if (s.max) q.maxValue = s.max[d];
+      props.push({ '@type': 'PropertyValue', name: DIM_NAMES[d], propertyID: `size.${d}`, value: q });
+    }
+  return props;
 }
 
 export function buildProductJsonLd(key: string, locale: Locale, data: ProductRealData = {}) {
@@ -44,23 +74,21 @@ export function buildProductJsonLd(key: string, locale: Locale, data: ProductRea
     description: m.description,
     url,
     category: m.keyword,
-    inLanguage: locale,
     brand: { '@type': 'Brand', name: 'PackJoyU' },
     manufacturer: { '@type': 'Organization', name: 'PackJoyU', url: SITE_URL },
   };
   if (data.images?.length) ld.image = data.images.map(abs);
   if (data.sku) ld.sku = data.sku;
-  if (data.specs?.length)
-    ld.additionalProperty = data.specs.map((s) => ({ '@type': 'PropertyValue', name: s.name, value: s.value }));
-  if (data.offers)
-    ld.offers = { '@type': 'Offer', url, availability: 'https://schema.org/InStock', ...data.offers };
-  if (data.aggregateRating) ld.aggregateRating = { '@type': 'AggregateRating', ...data.aggregateRating };
-  if (data.review?.length)
-    ld.review = data.review.map((r) => ({
-      '@type': 'Review',
-      author: { '@type': 'Person', name: r.author },
-      reviewBody: r.reviewBody,
-      ...(r.ratingValue != null ? { reviewRating: { '@type': 'Rating', ratingValue: r.ratingValue } } : {}),
+  const material = data.specs?.material?.trim();
+  if (material) ld.material = material;
+  const props = data.specs ? specProperties(data.specs) : [];
+  if (props.length) ld.additionalProperty = props;
+  const certs = (data.certifications ?? [])
+    .filter((x) => x.name?.trim() && isHttps(x.url))
+    .map((x) => ({
+      '@type': 'Certification', name: x.name.trim(), url: x.url,
+      ...(x.certNo?.trim() ? { certificationIdentification: x.certNo.trim() } : {}),
     }));
+  if (certs.length) ld.hasCertification = certs;
   return ld;
 }
