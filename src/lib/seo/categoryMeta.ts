@@ -66,7 +66,7 @@ export const categoryMeta: CategoryMeta[] = [
   { key: 'offset-printing',
     en: { slug: 'offset-printing-services', keyword: 'offset printing services',
       title: 'Offset Printing Services Manufacturer | PackJoyU',
-      description: 'High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and in-house finishing for export. Request a quote.' },
+      description: 'High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and finishing options for your order. Request a quote.' },
     ru: { slug: 'ofsetnaya-pechat', keyword: 'офсетная печать упаковки', draft: true,
       title: 'Офсетная печать упаковки на заказ | PackJoyU',
       description: 'Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Чёткая детализация, стабильный цвет и постпечатная обработка. Запросите расчёт.' } },

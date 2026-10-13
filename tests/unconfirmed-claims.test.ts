@@ -20,6 +20,9 @@ const FORBIDDEN: RegExp[] = [
   /водн\S*\s+(покрыти|основ)|на\s+водной\s+основе/i,
   /\bFDA\b/,
   /\bEPS\b|polystyrene|styrofoam|пенопласт|полистирол/i,
+  // equipment brand / export claims (offset-printing): Heidelberg, for export, export worldwide
+  /heidelberg|хайдельберг|гейдельберг/i,
+  /for\s+export|export\s+worldwide|worldwide\s+export|export\s+to\s+\d+\s+countries|экспорт/i,
 ];
 const files = [
   ...readdirSync('messages').filter((f) => f.endsWith('.json')).map((f) => join('messages', f)),
