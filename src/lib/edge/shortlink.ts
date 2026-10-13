@@ -3,10 +3,11 @@ import { categoryMeta } from '../seo/categoryMeta';
 const CATEGORY_KEYS = new Set(categoryMeta.map((c) => c.key));
 // 中间件用：判断短链接是否过期（HEAD /api/designs/:id → 410）。Edge 运行时，不依赖 Node API。
 export const SHORTLINK_RE = /^\/(?:(en|ru)\/)?s\/([A-Za-z0-9]{10,16})\/?$/; // 与 DESIGN_ID_RE 一致
-export const EXPIRED_RE = /^\/(en|ru)\/s\/expired\/?$/;
+// 过期页和“暂时不可用”页只能经 middleware rewrite 到达，直接访问一律 404
+export const EXPIRED_RE = /^\/(en|ru)\/s\/(?:expired|unavailable)\/?$/;
 const TTL_MS = 60_000;
 const MAX = 500;
-export type Probe = { expired: boolean; category: string | null };
+export type Probe = { expired: boolean; category: string | null; unavailable?: true };
 const cache = new Map<string, Probe & { at: number }>();
 
 export function parseShortlink(pathname: string): { locale: 'en' | 'ru' | null; id: string } | null {
@@ -44,6 +45,8 @@ export async function probeShortlink(origin: string, id: string, f: typeof fetch
   if (hit && now - hit.at < TTL_MS) return { expired: hit.expired, category: hit.category };
   try {
     const r = await f(`${origin}/api/designs/${encodeURIComponent(id)}`, { method: 'HEAD', signal: AbortSignal.timeout(1500), headers, redirect: 'manual' });
+    // 503 = 数据库不可用（HEAD 路由明确返回），不缓存；其它 5xx/429 放行
+    if (r.status === 503) return { expired: false, category: null, unavailable: true };
     if (r.status >= 500 || r.status === 429) return null;
     const expired = r.status === 410;
     const c = r.headers.get('x-design-category');
