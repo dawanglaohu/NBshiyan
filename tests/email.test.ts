@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { renderEmail, summarizeItems, cleanText, safeGreetingName, looksLinky, replyTimeText, productName } from '../src/lib/server/email/render';
 import { sendMail, sendSafely, sendAdminAlert, customerAckMail, inquiryNotifyMail, errorSummary } from '../src/lib/server/mail';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit';
+import { TEMPLATES } from '../src/lib/server/email/templates.generated';
 
 type Call = { url: string; headers: Record<string, string>; body: Record<string, unknown> };
 let calls: Call[] = [];
@@ -163,7 +164,7 @@ test('dark mode + nowrap in all customer templates', () => {
   for (const m of [customerAckMail('inquiry', vars), customerAckMail('sample', vars), customerAckMail('sample', { ...vars, locale: 'ru' })]) {
     assert.ok(m.html.includes('class="card px ink"'));
     assert.ok(m.html.includes('.card{background:#1B1B1F!important;color:#F2E9D8!important}'));
-    assert.ok(m.html.includes('class="logo"') && m.html.includes('.logo{background:#FFFFFF!important'));
+    assert.ok(m.html.includes('body,.bg{background:#121214!important}') && m.html.includes('<body class="bg"'));
     assert.ok(m.html.includes('<span style="white-space:nowrap">+8613800000000</span>'));
   }
 });
@@ -205,4 +206,25 @@ for (const [label, name] of [
 test('greeting keeps ordinary names (incl. initials and Cyrillic)', () => {
   for (const ok of ['Anna Müller', 'J. Smith', 'Anna M. Smith', 'Иван Петров', 'Мария-Анна', "O'Brien", '王小明'])
     assert.equal(safeGreetingName(ok), ok, ok);
+});
+
+test('logo: text wordmark in every template, no <img> / logo.png', () => {
+  for (const key of Object.keys(TEMPLATES) as (keyof typeof TEMPLATES)[]) {
+    const h = TEMPLATES[key].html;
+    assert.ok(!h.includes('<img'), key);
+    assert.ok(!h.includes('logo.png'), key);
+    assert.ok(h.includes('class="logo"') && h.includes('>PackJoyU</span>'), key);
+    assert.ok(h.includes('font-family:Manrope,Arial,Helvetica,sans-serif;font-size:20px;line-height:32px;font-weight:700;color:#1C1C1C;'), key);
+    assert.ok(h.includes('.logo{color:#FFFFFF!important}') && !h.includes('.logo{background'), key);
+    assert.ok(h.includes('body,.bg{background:#121214!important}') && h.includes('<body class="bg"'), key);
+  }
+});
+
+test('quantities: en 1,000 / ru 1 000', () => {
+  const items = [{ productSlug: 'gift-boxes', quantity: 1000 }, { productSlug: 'wine-boxes', quantity: 25000 }];
+  assert.equal(summarizeItems(items, 'en').quantity, '1,000 / 25,000');
+  assert.equal(summarizeItems(items, 'ru').quantity, '1 000 / 25 000');
+  assert.equal(summarizeItems([{ productSlug: 'gift-boxes', quantity: 500 }], 'ru').quantity, '500');
+  const ru = customerAckMail('inquiry', { ...vars, locale: 'ru', ...summarizeItems(items, 'ru') });
+  assert.ok(ru.text.includes('1 000 / 25 000') && ru.html.includes('1 000 / 25 000'));
 });

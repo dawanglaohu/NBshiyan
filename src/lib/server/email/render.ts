@@ -103,7 +103,9 @@ export function summarizeItems(items: { productSlug: string; quantity?: number }
   const shown = items.slice(0, 3);
   const more = items.length > 3 ? ` +${items.length - 3}` : '';
   const product = shown.map((i) => (locale ? productName(i.productSlug, locale) : i.productSlug)).join(', ') + more;
-  const qs = shown.map((i) => (i.quantity ? i.quantity.toLocaleString('en-US') : '—'));
+  // 数量按语言格式化：en 1,000；ru 1 000（ru-RU 的千位分隔是不换行空格，统一成普通空格便于纯文本显示）
+  const fmt = new Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US');
+  const qs = shown.map((i) => (i.quantity ? fmt.format(i.quantity).replace(/[\u00a0\u202f]/g, ' ') : '—'));
   const quantity = qs.every((q) => q === '—') ? '—' : qs.join(' / ') + more;
   return { product, quantity };
 }
