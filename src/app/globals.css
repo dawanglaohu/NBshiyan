@@ -99,3 +99,15 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 @media (max-width:767px){header.site{position:static}.catbar-wrap{top:0}.card{scroll-margin-top:64px}}
 .card .desc{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
 .card.theme-premium .desc,.card.theme-premium .specs{color:color-mix(in srgb,var(--premium-ink) 70%,transparent)}
+/* #63 头部：手机端单行 Logo + 语言 + 菜单，链接进抽屉 */
+header.site .nav-mobile{display:none;align-items:center;gap:8px}
+header.site .lang{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;font-weight:700;text-decoration:none}
+.menu-btn{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;padding:0 11px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);cursor:pointer}
+.menu-btn span{display:block;height:2px;background:var(--ink);border-radius:1px}
+.nav-drawer{position:fixed;top:0;right:0;bottom:0;width:min(320px,86vw);background:var(--surface);z-index:51;display:flex;flex-direction:column;gap:16px;padding:16px 20px;box-shadow:var(--shadow)}
+.nav-drawer-head{display:flex;justify-content:space-between;align-items:center}
+.nav-drawer .logo{font-weight:800;font-size:20px}.nav-drawer .logo i{color:var(--accent);font-style:normal}
+.nav-drawer .close{font-size:20px;min-width:44px;min-height:44px;color:var(--ink)}
+header.site .nav-drawer nav{display:flex;flex-direction:column;align-items:stretch;gap:0}
+header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none;font-weight:600;font-size:18px}
+@media (max-width:767px){header.site{padding:10px 16px}header.site .nav-desktop{display:none}header.site .nav-mobile{display:flex}}
