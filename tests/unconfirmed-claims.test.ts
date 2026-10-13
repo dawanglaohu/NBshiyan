@@ -10,6 +10,10 @@ const FORBIDDEN: RegExp[] = [
   /(reply|respond|response|get back|within|support|ответ\S*|в течение|поддержк\S*|(?<![а-яё])за(?![а-яё]))[^.\n]{0,30}24[\s-]*(hours?|h\b|час)/i,
   /24[\s-]*(hours?|h\b|час\S*)[^.\n]{0,20}(support|reply|response|turnaround|поддержк|ответ)/i,
   /24\s*\/\s*7|круглосуточн/i,
+  // specific lead-time figures (fact sheet Q2/Q3): '15-day lead time', 'production 20–25 days', «срок 15 дней», «за 15 дней».
+  // Context-bound so privacy/retention durations (after 180 days, через 30 дней, 2 years) pass; stops at '(' so «образцов (раз в 30 дней)» passes.
+  /\b\d+\s*(?:[-–]\s*\d+\s*)?-?\s*(?:business[-\s]|working[-\s])?(?:days?|weeks?)\s+(?:lead[-\s]?time|turnaround|production|delivery|shipping|dispatch)|(?:lead[-\s]?times?|turnaround|production|delivery|ship(?:ping|s)?|dispatch|ready|samples?|proofs?)[^.\n()]{0,25}?\b\d+\s*(?:[-–]\s*\d+\s*)?(?:business\s+|working\s+)?(?:days?|weeks?)\b|\b\d+\s*[-–]\s*\d+\s*(?:business\s+|working\s+)?(?:days|weeks)\b/i,
+  /(?:срок\S*|производств\S*|изготовлен\S*|доставк\S*|отгрузк\S*|образц\S*|образец|готов\S*)[^.\n()]{0,25}?\d+\s*(?:[-–]\s*\d+\s*)?(?:рабоч\S*\s+)?(?:дн|недел)|(?<![а-яё])за\s*\d+\s*(?:[-–]\s*\d+\s*)?(?:рабоч\S*\s+)?(?:дн|недел)|\d+\s*[-–]\s*\d+\s*(?:рабоч\S*\s+)?(?:дн|недел)/i,
   // MOQ figures (fact sheet Q1): «от 500 шт.», 'MOQ from 500 pcs', 'minimum order 1,000'
   /\bMOQ\b[^.\n]{0,15}\d|min(imum)?\.?\s+order(\s+quantity)?[^.\n]{0,15}\d|\bfrom\s+\d[\d,.\s]*\s*(pcs|pieces|units)\b/i,
   /(?<![а-яё])от\s*\d[\d\s\u00a0\u202f]*\s*(шт|экз)|минимальн\S*\s+(тираж|заказ|парти)\S*[^.\n]{0,15}\d/i,
@@ -70,5 +74,17 @@ test('MOQ figures are blocked; neutral quantity wording passes', () => {
   for (const bad of ['MOQ from 500 pcs', 'MOQ: 1,000', 'Minimum order 1,000 pieces', 'from 10,000 pcs', 'Тираж от 500 шт.', 'Тираж от 1 000 шт.', 'минимальный тираж 300'])
     assert.ok(hit(bad), bad);
   for (const ok of ['Quantities confirmed per order', 'Тираж уточняем под заказ', '4–22 oz, single or double wall', 'Up to 4-color flexo or digital print', 'от 2 до 4 недель'])
+    assert.ok(!hit(ok), ok);
+});
+
+test('lead-time figures are blocked; privacy durations and form options pass', () => {
+  const lt = FORBIDDEN.filter((re) => /lead|срок/.test(re.source));
+  assert.equal(lt.length, 2);
+  const hit = (t: string) => lt.some((re) => re.test(t));
+  for (const bad of ['15-day lead time', 'Lead time: 15 days', 'production 20–25 days', 'Samples in 5 days', '5–7 days', 'ships in 2 weeks',
+    'за 15 дней', 'срок 15 дней', 'Срок производства — 20 дней', 'образец за 7 рабочих дней', '5–7 дней'])
+    assert.ok(hit(bad), bad);
+  for (const ok of ['Within 2 weeks', '1–2 months', 'В течение 2 недель', 'Logos are deleted 24 hours after upload, at most 48 hours',
+    'Inquiries are anonymized after 2 years', 'inactive for 90 days', 'Сохранённые дизайны истекают через 180 дней'])
     assert.ok(!hit(ok), ok);
 });
