@@ -17,14 +17,14 @@
 
 ### H1: Custom Paper Cups
 
-PackJoyU manufactures custom printed paper cups for coffee shops, restaurant chains, events and brands. Choose single wall, double wall or ripple wall cups in a range of sizes, printed with your logo and artwork using food-contact inks, with matching lids and sleeves available. Your cup becomes a moving advertisement every time a customer walks out the door.
+PackJoyU manufactures custom printed paper cups for coffee shops, restaurant chains, events and brands. Choose single wall, double wall or ripple wall cups in a range of sizes, printed with your logo and artwork, with matching lids and sleeves available. Your cup becomes a moving advertisement every time a customer walks out the door.
 
 #### Why PackJoyU
 
 - **Your brand in every hand** — Full-wrap printing of logo and artwork.
 - **Hot and cold** — Single, double and ripple wall for heat insulation; cold cup options.
 - **Matching accessories** — Lids, sleeves and carriers to complete the set.
-- **Food-contact materials** — Food-grade paperboard and inks.
+- **Materials** — Paperboard and inks.
 
 #### Specifications & options
 
@@ -56,7 +56,7 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 - **Q: Can you match lids to the cup?**
   A: Yes, matching lids are available for each rim size.
 - **Q: Which inks do you use?**
-  A: Ink type and any food-contact documents per market: TBD.
+  A: Ink type is confirmed with your quote.
 
 ---
 
@@ -66,14 +66,14 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 
 ### H1: Бумажные стаканы с логотипом
 
-PackJoyU производит бумажные стаканы с печатью для кофеен, ресторанных сетей, мероприятий и брендов. Выбирайте однослойные, двухслойные или гофрированные стаканы разных объёмов с вашим логотипом, напечатанным красками для контакта с пищевыми продуктами; в комплекте доступны крышки и манжеты. Ваш стакан становится рекламой каждый раз, когда гость выходит из кофейни.
+PackJoyU производит бумажные стаканы с печатью для кофеен, ресторанных сетей, мероприятий и брендов. Выбирайте однослойные, двухслойные или гофрированные стаканы разных объёмов с вашим логотипом; в комплекте доступны крышки и манжеты. Ваш стакан становится рекламой каждый раз, когда гость выходит из кофейни.
 
 #### Почему PackJoyU
 
 - **Ваш бренд в каждой руке** — Печать логотипа и дизайна по всей поверхности.
 - **Горячие и холодные напитки** — Однослойные, двухслойные и гофрированные стаканы; варианты для холодных напитков.
 - **Аксессуары в комплекте** — Крышки, манжеты и подставки.
-- **Пищевые материалы** — Пищевой картон и краски.
+- **Материалы** — Картон и краски.
 
 #### Характеристики и опции
 
@@ -107,7 +107,7 @@ PackJoyU производит бумажные стаканы с печатью 
 - **В: Подойдут ли крышки к стакану?**
   О: Да, для каждого диаметра есть подходящие крышки.
 - **В: Какие краски вы используете?**
-  О: Тип красок и документы для контакта с пищей для РФ: TBD.
+  О: Тип красок согласовывается при расчёте.
 
 ---
 
