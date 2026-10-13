@@ -31,7 +31,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <Link className="btn ghost" href="/products">{t('cta')}</Link>
           </div>
         </div>
-        <Image className="hero-img" src="/images/hero/custom-printing-packaging-manufacturer.webp" alt="Custom wine box, gift box and corrugated shipping box by PackJoyU" width={1200} height={900} priority sizes="(max-width: 900px) 100vw, 45vw" />
+        <Image className="hero-img" src="/images/hero/custom-printing-packaging-manufacturer.webp" alt={locale === 'ru' ? 'Индивидуальные винные коробки с печатью, подарочные коробки и гофрокоробки для доставки от PackJoyU' : 'Custom printed wine boxes, gift boxes and corrugated shipping boxes by PackJoyU'} width={1200} height={900} priority sizes="(max-width: 900px) 100vw, 45vw" />
       </section>
 
       <section className="block container" aria-labelledby="adv-h">
