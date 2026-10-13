@@ -39,12 +39,3 @@ export function secretMatches(given: string | null, expected: string | undefined
   const a = Buffer.from(given), b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
 }
-
-/**
- * 临时管理员校验。TODO(auth): 后台 Auth.js（含双重验证）上线后改为校验会话和 ADMIN/SALES 角色。
- * 现在：生产环境一律拒绝；开发环境仅当设置 ADMIN_DEV_TOKEN 且请求头 x-admin-dev-token 相同时放行，便于本地测试。
- */
-export async function isAdminPlaceholder(req: Request) {
-  if (process.env.NODE_ENV === 'production') return false;
-  return secretMatches(req.headers.get('x-admin-dev-token'), process.env.ADMIN_DEV_TOKEN);
-}

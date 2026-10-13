@@ -50,16 +50,39 @@
 ### `GET /api/models`
 已上架模型列表：`productSlug, category, sortOrder, glbUrl, lodUrl, posterUrl, animated, customizable`。
 
-## 后台接口（`/api/admin/*`，需登录，按角色校验）
-- `GET /inquiries?status=&region=&product=&minScore=`，业务员只能看到分给自己的
-- `GET /inquiries/:id`，`PATCH /inquiries/:id`（状态、分配）
-- `POST /inquiries/:id/reply`（按客户语言发信，存入往来记录）
-- `POST /inquiries/:id/notes`
-- `PATCH /samples/:id`
-- `POST /models`（拿上传地址）、`POST /models/:id/process`、`PATCH /models/:id`
-- `GET|PUT /settings/:key`
-- `GET /stats`
-- `GET /uploads/:id`：查看询盘 logo（重新编码后的 PNG），响应头 `Content-Disposition: inline`、`X-Content-Type-Options: nosniff`、`Cache-Control: private, no-store`。后台登录还没做，现在生产环境一律 401；开发环境设置 `ADMIN_DEV_TOKEN` 后带请求头 `x-admin-dev-token` 可访问（TODO：接 Auth.js）。
+## 后台登录（Auth.js v5，Credentials + 强制 TOTP）
+- 创建账号：`ADMIN_SEED_EMAIL=… ADMIN_SEED_NAME=… ADMIN_SEED_PASSWORD=… [ADMIN_SEED_ROLE=SALES] pnpm admin:create`（密码 ≥12 位，argon2id 哈希；凭据只走环境变量）。
+- 绑定 2FA（账号未开 2FA 前不能登录，两步都要同源 `Origin`；接口在 `/api/auth-admin/` 下，不在 `/api/admin/` 下，因为这是登录前流程）：
+  1. `POST /api/auth-admin/enroll` `{ email, password }` → `{ otpauthUri }`（每次调用换新密钥；已开启的账号返回 401）。
+  2. `POST /api/auth-admin/enroll/confirm` `{ email, password, totp }` → `{ recoveryCodes: [10 个] }`，只返回这一次，服务端只存哈希。
+- 登录：Auth.js 标准流程，`GET /api/auth/csrf` 取 token，再 `POST /api/auth/callback/credentials`（表单字段 `csrfToken, email, password, totp` 或 `recoveryCode`）。任何一步失败统一返回 `CredentialsSignin`，不区分原因。
+- 会话：JWT，2 小时有效；cookie HttpOnly、SameSite=Lax，生产强制 Secure（`__Secure-` 前缀）。每次请求核对 `User.sessionVersion`、禁用、2FA 状态，不一致即失效（改密码/重置 2FA 时调用 `revokeSessions()`）。
+- 防爆破：10 分钟内 IP+账号 5 次、单账号 10 次、单 IP 30 次；同一账号连续 5 次失败锁定 15 分钟。TOTP 同一时间步只能用一次，恢复码用后作废。
+- 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enabled`，不记密码、验证码、token。
+
+## 后台接口（`/api/admin/*`）
+每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录 401 `unauthorized`，角色不符 403 `forbidden`。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `adminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
+角色：`ADMIN` 全部可见；`SALES` 只能看和操作分配给自己的询盘，不能改分配；`EDITOR` 无询盘权限。
+
+- `GET /api/admin/users` → `{ items: [{ id, name, email, role }] }`。ADMIN 拿到所有未禁用的 ADMIN/SALES（分配下拉框用）；SALES 只拿到自己。
+- `GET /api/admin/inquiries` → `{ items, total, page, pageSize }`。参数（都可选）：
+  - `page`（默认 1）、`pageSize`（默认 20，最大 100）
+  - `q`：搜编号、留言、联系人姓名/邮箱/公司
+  - `from`、`to`：创建时间区间，ISO 日期或时间；`to` 只给日期（如 `2026-10-13`）时包含当天
+  - `status`：`NEW | FOLLOWING | QUOTED | WON | INVALID`
+  - `minScore`、`maxScore`：可信度 0–100
+  - `product`：产品 slug，询盘任一产品匹配即可
+  - `assignee`：`me` | `none`（未分配）| 用户 id。SALES 无论传什么都只看到自己的
+  - `items[]`：`{ id, ref, status, source, locale, trustScore, ipCountry, createdAt, assigneeId, contact: { name, email, company, region }, _count: { items, messages } }`。参数非法返回 400 `invalid`。
+- `GET /api/admin/inquiries/:id` → 询盘全部字段（不含 `replyToken`）+ `contact, items, messages, notes, sample, assignee, logoUploads: [{ id, width, height, bytes, createdAt }]`，以及 `logoUploadId`（第一个 logo 的 id，没有为 `null`）。
+- `GET /api/admin/uploads/:id` → logo 图片（PNG）。`Content-Disposition: inline`、`X-Content-Type-Options: nosniff`、`Cache-Control: private, no-store`，带会话 cookie 直接用作 `<img src>`。ADMIN 都能看；SALES 只能看分配给自己的询盘上的 logo，其他一律 404。
+- `PATCH /api/admin/inquiries/:id` `{ status?, assigneeId? }`（`assigneeId` 仅 ADMIN，可为 `null`）→ `{ id, status, assigneeId, updatedAt }`。
+- `POST /api/admin/inquiries/:id/reply` `{ subject ≤200, body ≤20000 纯文本 }` → 201 新的 `InquiryMessage`。正文全部转义、换行转 `<br>`，主题去换行；配置 `REPLY_DOMAIN` 后 Reply-To 为 `reply+<token>@域名`。发信失败返回 502 `mail_failed`，不入库。
+- `POST /api/admin/inquiries/:id/notes` `{ body ≤5000 }` → 201 新备注。
+
+### 规划中
+- `PATCH /samples/:id`、`POST /models`、`POST /models/:id/process`、`PATCH /models/:id`、`GET|PUT /settings/:key`、`GET /stats`
+- 改密码、重置 2FA、账号管理接口（需调用 `revokeSessions()`）
 
 ## 定时任务
 - `GET|POST /api/admin/cron/cleanup-uploads`：删除超过 24 小时未绑定询盘的 logo（文件和记录）。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。

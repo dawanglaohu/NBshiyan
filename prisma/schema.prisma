@@ -55,16 +55,21 @@ enum Locale {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  name         String
-  passwordHash String
-  role         Role      @default(SALES)
-  totpSecret   String? // 双重验证，管理员强制开启
-  failedLogins Int       @default(0)
-  lockedUntil  DateTime?
-  inquiries    Inquiry[] @relation("Assignee")
-  createdAt    DateTime  @default(now())
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  passwordHash   String
+  role           Role      @default(SALES)
+  totpSecret     String? // 双重验证密钥，AES-256-GCM 加密（ADMIN_TOTP_KEY），所有后台账号强制开启
+  totpEnabled    Boolean   @default(false) // 绑定确认前为 false，此时不能登录
+  totpLastStep   Int? // 上次用过的 TOTP 时间步，防止验证码重放
+  recoveryCodes  String[]  @default([]) // 恢复码 argon2id 哈希，用一个删一个
+  sessionVersion Int       @default(0) // 加一即让该账号所有会话失效
+  disabled       Boolean   @default(false)
+  failedLogins   Int       @default(0)
+  lockedUntil    DateTime?
+  inquiries      Inquiry[] @relation("Assignee")
+  createdAt      DateTime  @default(now())
 }
 
 // 客户个人信息单独一张表，便于按地区迁移（如俄罗斯数据本地化）和 GDPR 删除
