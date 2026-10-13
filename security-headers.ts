@@ -2,11 +2,11 @@
 const csp = [
   "default-src 'self'",
   // Next.js 内联脚本暂用 unsafe-inline，后续改为 nonce；wasm 供 Draco 解码
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.gstatic.com https://embed.tawk.to https://*.tawk.to https://challenges.cloudflare.com",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://embed.tawk.to https://*.tawk.to https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline' https://*.tawk.to https://fonts.googleapis.com",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://*.tawk.to https://fonts.gstatic.com",
-  "connect-src 'self' blob: data: https://www.gstatic.com https://*.tawk.to wss://*.tawk.to https://*.r2.dev https://*.vercel-insights.com",
+  "connect-src 'self' blob: data: https://*.tawk.to wss://*.tawk.to https://*.r2.dev https://*.vercel-insights.com",
   "media-src 'self' blob: https:",
   "frame-src https://*.tawk.to https://challenges.cloudflare.com",
   "worker-src 'self' blob:",
