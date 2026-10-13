@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { LoopOnce, type Group } from 'three';
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation } from '@needle-tools/gltf-progressive';
 import FoldBox, { type BoxView } from './FoldBox';
@@ -52,11 +52,17 @@ function Gltf({ url, view, clip }: { url: string; view?: BoxView; clip?: string 
     }
     first.current = false;
   }, [actions, clip, view]);
+  // 画布按需渲染（frameloop="demand"）：模型解析完成后出一帧；动画播放期间逐帧 invalidate，否则动画不前进
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => { invalidate(); }, [scene, invalidate]);
+  useFrame(() => { const a = clip ? actions[clip] : undefined; if (a && a.isRunning()) invalidate(); });
   return <group ref={root}><primitive object={scene} /></group>;
 }
 
 // 还没有真实模型时的占位盒子
 function PlaceholderBox() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => { invalidate(); }, [invalidate]);
   return (
     <mesh>
       <boxGeometry args={[1.6, 1, 1.2]} />
@@ -70,9 +76,12 @@ function PlaceholderBox() {
  */
 export default function ProductModel({ src, onReady, slug, view, animationClips }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips }) {
   const [url, setUrl] = useState<string>();
+  const [loadError, setLoadError] = useState<Error>();
+  // 抛给外层 SceneErrorBoundary，卡片退回静态图
+  if (loadError) throw loadError;
   useEffect(() => {
     if (!src) { onReady(); return; }
-    import('./modelCache').then(({ cachedModelUrl }) => cachedModelUrl(src)).then(setUrl);
+    import('./modelCache').then(({ cachedModelUrl }) => cachedModelUrl(src)).then(setUrl).catch((e) => setLoadError(e instanceof Error ? e : new Error(String(e))));
   }, [src, onReady]);
   useEffect(() => { if (url) onReady(); }, [url, onReady]);
   // 当前 GLB 只有 'Open' 片段、没有展开刀模片段：刀模视图继续用 FoldBox 演示
