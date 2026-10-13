@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { LoopOnce, type Group } from 'three';
 import { useThree } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, useAnimations } from '@react-three/drei';
 import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation } from '@needle-tools/gltf-progressive';
 import FoldBox, { type BoxView } from './FoldBox';
 
@@ -18,13 +19,40 @@ const PALETTE: Record<string, { color: string; lid?: string }> = {
 setDracoDecoderLocation('/draco/');
 setKTX2TranscoderLocation('/basis/');
 
-function Gltf({ url }: { url: string }) {
+function Gltf({ url, view, clip }: { url: string; view?: BoxView; clip?: string }) {
   const gl = useThree((s) => s.gl);
+  const root = useRef<Group>(null);
   // Draco 解码器和渐进式加载：先出轻量版本，细节后台静默替换
-  const { scene } = useGLTF(url, '/draco/', false, (loader) => {
+  const { scene, animations } = useGLTF(url, '/draco/', false, (loader) => {
     useNeedleProgressive(loader as never, gl);
   });
-  return <primitive object={scene} />;
+  const { actions } = useAnimations(animations, root);
+  const first = useRef(true);
+  useEffect(() => {
+    const action = clip ? actions[clip] : undefined;
+    if (!action || !view) return;
+    const open = view === 'open';
+    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dur = action.getClip().duration;
+    action.setLoop(LoopOnce, 1);
+    action.clampWhenFinished = true;
+    if (!action.isRunning() && !action.enabled) action.reset();
+    action.enabled = true;
+    action.play();
+    if (reduced || first.current) {
+      // 减少动态效果 / 首次挂载：直接跳到目标帧
+      action.time = open ? dur : 0;
+      action.timeScale = 1;
+      action.paused = true;
+    } else {
+      action.paused = false;
+      action.timeScale = open ? 1 : -1;
+      if (open && action.time >= dur) action.time = 0;
+      if (!open && action.time <= 0) action.time = dur;
+    }
+    first.current = false;
+  }, [actions, clip, view]);
+  return <group ref={root}><primitive object={scene} /></group>;
 }
 
 // 还没有真实模型时的占位盒子
@@ -39,8 +67,6 @@ function PlaceholderBox() {
 
 /**
  * view：合盖 / 开盖 / 展开刀模。没有真实模型时用程序化的 FoldBox 演示。
- * TODO: 有真实 GLB 后，用 drei 的 useAnimations 按 animationClips.open / animationClips.unfold
- * 播放对应片段（clampWhenFinished，反向播放回到合盖），替换 FoldBox。
  */
 export default function ProductModel({ src, onReady, slug, view, animationClips }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips }) {
   const [url, setUrl] = useState<string>();
@@ -54,5 +80,5 @@ export default function ProductModel({ src, onReady, slug, view, animationClips 
     if (view && slug) { const c = PALETTE[slug] ?? { color: '#c9a77c' }; return <FoldBox view={view} color={c.color} lidColor={c.lid} />; }
     return <PlaceholderBox />;
   }
-  return url ? <Gltf url={url} /> : null;
+  return url ? <Gltf url={url} view={view} clip={animationClips?.open} /> : null;
 }
