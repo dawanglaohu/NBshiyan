@@ -97,3 +97,9 @@ header.site .lang{display:inline-flex;align-items:center;justify-content:center;
 header.site .nav-drawer nav{display:flex;flex-direction:column;align-items:stretch;gap:0}
 header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none;font-weight:600;font-size:18px}
 @media (max-width:767px){header.site{padding:10px 16px}header.site .nav-desktop{display:none}header.site .nav-mobile{display:flex}}
+/* #68 隐私政策页（草稿） */
+.legal{max-width:760px;padding-top:32px;padding-bottom:64px}
+.legal h2{font-size:var(--fs-h3);margin:32px 0 8px}
+.legal li{margin:4px 0}
+.legal code{font-size:.9em;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.draft-banner{background:#FFF4D6;border:1px solid var(--sun);color:#5A4300;border-radius:var(--r-sm);padding:12px 16px;font-size:14px}
