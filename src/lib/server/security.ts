@@ -4,8 +4,16 @@ import { rateLimitStore } from './ratelimit';
 /** 随机、不可递增的 id，用于短链接和回信 token */
 export function randomId(len = 10) {
   const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-  const bytes = randomBytes(len);
-  return Array.from(bytes, (b) => abc[b % abc.length]).join('');
+  // 拒绝采样，避免取模偏差
+  const max = 256 - (256 % abc.length);
+  let out = '';
+  while (out.length < len) {
+    for (const b of randomBytes(len * 2)) {
+      if (b < max) out += abc[b % abc.length];
+      if (out.length === len) break;
+    }
+  }
+  return out;
 }
 
 /** Turnstile 校验：ok 通过，fail 校验不通过，unavailable 连不上 Cloudflare（超时、网络错误、5xx）。连不上时一律不放行。 */
@@ -63,4 +71,10 @@ export async function readBody(req: Request, maxBytes: number) {
     chunks.push(value);
   }
   return new TextDecoder().decode(Buffer.concat(chunks));
+}
+
+/** 429 统一格式：{ error: 'rate_limited', retryAfter } + Retry-After 头（秒）。retryAfter 取窗口长度，是上限值。 */
+export function tooManyRequests(retryAfterSec: number, extra: Record<string, unknown> = {}) {
+  const s = Math.max(1, Math.ceil(retryAfterSec));
+  return Response.json({ error: 'rate_limited', retryAfter: s, ...extra }, { status: 429, headers: { 'Retry-After': String(s), 'Cache-Control': 'no-store' } });
 }
