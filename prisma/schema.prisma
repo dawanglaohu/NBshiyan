@@ -101,6 +101,7 @@ model Inquiry {
   messages     InquiryMessage[]
   notes        InquiryNote[]
   sample       SampleRequest?
+  autoReplyAt  DateTime? // 自动回复发送时间，用于每邮箱 24 小时一封
   retainUntil  DateTime // GDPR 保留期限
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt

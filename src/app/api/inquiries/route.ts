@@ -70,9 +70,28 @@ export async function POST(req: Request) {
       html: `<p>${escapeHtml(b.contact.name)} &lt;${escapeHtml(b.contact.email)}&gt;</p><p>${products}</p><pre>${escapeHtml(b.message ?? '')}</pre><p>score ${trust.score}</p>`,
     }),
     // 自动回复只发给可信询盘，且同一邮箱 24 小时最多 1 封，内容不含任何用户输入，防止被当作垃圾邮件跳板
-    trust.score >= 40 && rateLimit(`autoreply:${b.contact.email.toLowerCase()}`, 1, 86_400_000) &&
-      sendMail({ to: b.contact.email, ...autoReply(b.locale, ref) }),
+    trust.score >= 40 && sendAutoReplyOnce(inquiry.id, b.contact.email, b.locale, ref),
   ]);
 
   return NextResponse.json({ ref: inquiry.ref }, { status: 201 });
+}
+
+/**
+ * 自动回复限制存在数据库里：多实例、重启都不会失效。
+ * 在事务里按邮箱加 Postgres 事务级咨询锁，同一邮箱的并发请求排队判断，只有一条能抢到。
+ */
+async function sendAutoReplyOnce(inquiryId: string, email: string, locale: 'en' | 'ru', ref: string) {
+  const key = email.trim().toLowerCase();
+  const since = new Date(Date.now() - 86_400_000);
+  const claimed = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'autoreply:' + key}))`;
+    const recent = await tx.inquiry.findFirst({
+      where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { email: { equals: key, mode: 'insensitive' } } },
+      select: { id: true },
+    });
+    if (recent) return false;
+    const r = await tx.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
+    return r.count === 1;
+  });
+  if (claimed) await sendMail({ to: email, ...autoReply(locale, ref) });
 }

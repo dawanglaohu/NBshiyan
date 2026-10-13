@@ -61,7 +61,8 @@
       "gift-cards": "Gift Cards",
       "christmas-merchandise": "Christmas Merchandise"
     },
-    "done": "Done"
+    "done": "Done",
+    "categories": "Product categories"
   },
   "Admin": {
     "title": "Admin"

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { alternatesFor } from '@/i18n/alternates';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { products } from '@/data/products';
+import CategoryBar from '@/components/CategoryBar';
 import ProductGallery from '@/components/three/ProductGallery';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -20,6 +21,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
     <main className="container" style={{ paddingBottom: 80 }}>
       <h1>{t('title')}</h1>
       <p>{t('hint')}</p>
+      <CategoryBar items={items.map(({ slug, name }) => ({ slug, name }))} label={t('categories')} />
       <ProductGallery items={items} labels={{ tap: t('tapToRotate'), loading: t('loading'), add: t('addToQuote'), details: t('details'), done: t('done'), viewsLabel: v('label'), views: { closed: v('closed'), open: v('open'), dieline: v('dieline') } }} />
     </main>
   );
