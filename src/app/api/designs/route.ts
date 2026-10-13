@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { randomId, rateLimit, clientIp, readBody } from '@/lib/server/security';
+import { randomId, hitRateLimit, clientIp, readBody } from '@/lib/server/security';
 
 const Body = z.object({ productSlug: z.string().regex(/^[a-z0-9-]{1,80}$/), config: z.record(z.unknown()) });
 
 export async function POST(req: Request) {
   const ip = clientIp(req) ?? 'unknown';
-  if (!rateLimit(`design:${ip}`, 30)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+  if (!(await hitRateLimit(`design:${ip}`, 30))) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   const raw = await readBody(req, 16_000);
   if (raw === null) return NextResponse.json({ error: 'too_large' }, { status: 413 });
   let json: unknown = null;

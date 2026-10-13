@@ -11,8 +11,8 @@ export type AdminCtx = { user: User; ip: string | null };
 
 /**
  * 后台接口统一入口：校验会话、账号状态（未禁用、未锁定、会话版本一致、已开 2FA）和角色。
- * 只管登录、会话和角色。同源校验和限流由 admin-guard.ts 的 assertSameOrigin / adminRateLimit 负责，
- * 路由里按 requireAdmin → assertSameOrigin → adminRateLimit 的顺序调用。失败直接返回 Response。
+ * 只管登录、会话和角色。同源校验和限流由 admin-guard.ts 的 assertSameOrigin / enforceAdminRateLimit 负责，
+ * 路由里按 requireAdmin → assertSameOrigin → await enforceAdminRateLimit 的顺序调用。失败直接返回 Response。
  */
 export async function requireAdmin(req: Request, roles: Role[] = ['ADMIN']): Promise<AdminCtx | Response> {
   const session = await auth();

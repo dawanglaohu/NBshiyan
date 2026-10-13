@@ -11,6 +11,7 @@ import { QuoteProvider } from '@/components/quote/QuoteProvider';
 import SiteFooter from '@/components/layout/SiteFooter';
 import FloatingActions from '@/components/quote/FloatingActions';
 import CookieConsent from '@/components/consent/CookieConsent';
+import WebVitals from '@/components/analytics/WebVitals';
 import '../globals.css';
 
 // 只加载拉丁和西里尔子集，控制字体体积
@@ -52,6 +53,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
     <html lang={locale} className={manrope.variable}>
       <body>
         <OrganizationJsonLd locale={locale} />
+        <WebVitals />
         <NextIntlClientProvider>
           <QuoteProvider>
             <SiteHeader />

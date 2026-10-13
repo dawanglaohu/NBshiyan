@@ -28,6 +28,9 @@ export default function InquiryWizard() {
   const [material, setMaterial] = useState<string>('unsure');
   const [timeline, setTimeline] = useState<string>('unsure');
   const [message, setMessage] = useState('');
+  // 第 3 步的联系方式放在 state 里，返回上一步再回来时不会被清空（#98）
+  const [contact, setContact] = useState({ name: '', email: '', company: '', phone: '', region: locale === 'ru' ? 'RU' : '', consent: false });
+  const setC = (k: 'name' | 'email' | 'company' | 'phone' | 'region') => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => { const v = e.target.value; setContact((c) => ({ ...c, [k]: v })); };
   // Logo 先单独上传拿 uploadId（1 小时有效），提交询盘时作为 logoUploadId 绑定；人机校验只在最后提交时做一次
   const [logo, setLogo] = useState<LogoUpload | null>(null);
   const [logoNotice, setLogoNotice] = useState<string>();
@@ -79,10 +82,11 @@ export default function InquiryWizard() {
       setLogo(null); setLogoNotice(t('logo.expired')); setResult({ ok: false, code: 'logo_invalid' }); return;
     }
     const opt = (k: string) => { const v = String(fd.get(k) ?? '').trim(); return v || undefined; };
+    const c = (v: string) => v.trim() || undefined;
     const body = {
       source: fromQuote ? 'CART' : 'WIZARD',
       locale,
-      contact: { name: opt('name'), email: opt('email'), company: opt('company'), phone: opt('phone'), region: opt('region') },
+      contact: { name: c(contact.name), email: c(contact.email), company: c(contact.company), phone: c(contact.phone), region: c(contact.region) },
       message: message.trim() || undefined,
       items: selected.slice(0, 30).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
       attribution: { page: window.location.pathname },
@@ -165,13 +169,13 @@ export default function InquiryWizard() {
 
       {step === 2 && (
         <>
-          <div className="field"><label htmlFor="iq-name">{t('name')} *</label><input id="iq-name" name="name" required maxLength={100} autoComplete="name" /></div>
-          <div className="field"><label htmlFor="iq-email">{t('email')} *</label><input id="iq-email" name="email" type="email" required maxLength={200} autoComplete="email" /></div>
-          <div className="field"><label htmlFor="iq-company">{t('company')}</label><input id="iq-company" name="company" maxLength={200} autoComplete="organization" /></div>
-          <div className="field"><label htmlFor="iq-phone">{t('phone')}</label><input id="iq-phone" name="phone" maxLength={40} autoComplete="tel" /></div>
+          <div className="field"><label htmlFor="iq-name">{t('name')} *</label><input id="iq-name" name="name" value={contact.name} onChange={setC('name')} required maxLength={100} autoComplete="name" /></div>
+          <div className="field"><label htmlFor="iq-email">{t('email')} *</label><input id="iq-email" name="email" value={contact.email} onChange={setC('email')} type="email" required maxLength={200} autoComplete="email" /></div>
+          <div className="field"><label htmlFor="iq-company">{t('company')}</label><input id="iq-company" name="company" value={contact.company} onChange={setC('company')} maxLength={200} autoComplete="organization" /></div>
+          <div className="field"><label htmlFor="iq-phone">{t('phone')}</label><input id="iq-phone" name="phone" value={contact.phone} onChange={setC('phone')} maxLength={40} autoComplete="tel" /></div>
           <div className="field">
             <label htmlFor="iq-region">{t('country')} *</label>
-            <select id="iq-region" name="region" required defaultValue={locale === 'ru' ? 'RU' : ''}>
+            <select id="iq-region" name="region" required value={contact.region} onChange={setC('region')}>
               <option value="" disabled>{t('countryPh')}</option>
               {COUNTRIES.map((c) => <option key={c} value={c}>{t(`countries.${c}`)}</option>)}
             </select>
@@ -179,7 +183,7 @@ export default function InquiryWizard() {
           {/* 诱饵字段：真人看不到，机器人填了会被服务端静默丢弃 */}
           <div className="hp" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" defaultValue="" /></label></div>
           <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 16 }}>
-            <input type="checkbox" name="consent" required /> <span>{t('consent')}</span>
+            <input type="checkbox" name="consent" required checked={contact.consent} onChange={(e) => { const v = e.target.checked; setContact((c) => ({ ...c, consent: v })); }} /> <span>{t('consent')}</span>
           </label>
           {SITE_KEY && <div className="cf-turnstile" data-sitekey={SITE_KEY} data-language={locale} style={{ marginBottom: 16 }} />}
         </>

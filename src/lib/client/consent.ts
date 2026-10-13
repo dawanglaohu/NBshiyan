@@ -10,3 +10,14 @@ export function hasChatConsent(): boolean {
 export function onConsentChange(cb: () => void) {
   return onConsent(() => cb());
 }
+
+/** 是否同意统计类 Cookie/上报（web-vitals RUM）。只认显式 analytics 或 all。 */
+export function hasAnalyticsConsent(): boolean {
+  try {
+    const v = localStorage.getItem(CONSENT_KEY);
+    if (!v) return false;
+    if (v === 'all') return true;
+    const j = JSON.parse(v);
+    return j?.analytics === true || j?.all === true;
+  } catch { return false; }
+}

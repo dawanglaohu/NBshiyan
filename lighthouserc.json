@@ -1,7 +1,18 @@
 {
   "ci": {
-    "collect": { "url": ["http://localhost:3000/en", "http://localhost:3000/en/products"], "numberOfRuns": 3, "settings": { "preset": "desktop" } },
+    "collect": {
+      "url": ["http://localhost:3000/en", "http://localhost:3000/en/products"],
+      "numberOfRuns": 3,
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --use-gl=swiftshader",
+        "maxWaitForLoad": 60000,
+        "disableFullPageScreenshot": true,
+        "skipAudits": ["full-page-screenshot", "bf-cache"]
+      }
+    },
     "assert": {
+      "aggregationMethod": "median-run",
       "assertions": {
         "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }],
         "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
