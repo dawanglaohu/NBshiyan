@@ -1,7 +1,7 @@
 // 模拟数据：后端接口（docs/API.md）就绪后替换
 export type Product = { slug: string; model?: string; poster: string; animated?: boolean; animationClips?: { open?: string; unfold?: string }; /** 品类落地页路径（上线后填写），卡片显示 Learn more */ landing?: string };
 export const products: Product[] = [
-  { slug: 'corrugated-boxes', model: '/models/corrugated-box.anim.779ca12f.glb', poster: '/images/posters/custom-corrugated-boxes.webp', animated: true, animationClips: { open: 'Open' } },
+  { slug: 'corrugated-boxes', model: '/models/corrugated-box.anim.da398ca9.glb', poster: '/images/posters/custom-corrugated-boxes.webp', animated: true, animationClips: { open: 'Open' } },
   { slug: 'color-boxes', model: '/models/color-box.7fb65a38.glb', poster: '/images/placeholder.svg' },
   { slug: 'gift-boxes', model: '/models/gift-box.anim.ccfb2baa.glb', poster: '/images/posters/custom-gift-boxes.webp', animated: true, animationClips: { open: 'Open' } },
   { slug: 'pulp-molding', model: '/models/pulp-egg-tray.3d60dd23.glb', poster: '/images/placeholder.svg' },
