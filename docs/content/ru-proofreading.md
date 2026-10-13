@@ -10,14 +10,14 @@
 |---|---|
 | 1. 品类落地页 / Category pages（#188） | 414 |
 | 2. Metadata（title ≤60 / description ≤160） | 52 |
-| 3. Alt text | 3 |
+| 3. Alt text（含 3.1 #220 品类分享图 12 条） | 15 |
 | 4. 内链锚文本 / Internal-link anchors（#205） | 48 |
 | 5. 站内 SEO 相关界面文案 / SEO-facing UI copy（messages/ru.json） | 39 |
 | 6. 落地页设计稿 / Landing design（#217，design/landing/） | 85 |
 | 7. /s/<id> 503 与兜底页 / Shortlink 503 & fallback（#215） | 3 |
 | 8. 文章 / Articles（#205） | 2 篇，20 个小节（清单）；标题和描述在第 2 组 |
 
-合计 644 条表格条目 + 文章小节清单。
+合计 656 条表格条目 + 文章小节清单。
 
 ## ⚠️ 重点存疑 / Flagged items（请先看这些）
 
@@ -38,6 +38,9 @@
 | F14 | S215-text vs D217 503 文案 | 两处 503 文案不一致 | #215 页面：「Временно недоступно, пожалуйста, попробуйте позже.」（标题和正文重复同一句）；#217 设计稿：「Сейчас не удается загрузить сохраненный дизайн. Попробуйте еще раз через минуту — ваш дизайн сохранен.」。请定一版；另外「ваш дизайн сохранен」是功能承诺，需确认 503 时数据确实没丢。 |
 | F15 | D217 FAQ「Доставляете ли вы в Россию? Да…」 | 业务表述 | 和待定的俄罗斯配送/地址表述相关（见下方 TBD），定稿前不要上线。D217 示例数值（`1 000 шт.`、`50 USD`、`15–25 days`）仅是格式示例，不是真实数据。 |
 | F13 | C-*（落地页正文） | 偏直译 | 落地页俄语正文与英文逐句对应（本表能逐行配对就是因为结构完全平行），有些句子是英文句式，例如「упаковку которых хочется сохранить」。请重点看每页导语段（每页第 2 条）。 |
+| F14 | 全站 | ✅ 产品经理决定：全站统一使用 ё | 已有文本中的 е/ё（如 расчет/расчёт、жесткие/жёсткие）将按此统一；本包新增的 #220 alt 已用 ё。请 Ryan 校对时一并留意。 |
+| F15 | ALT-OG-ekologichnye-stakany | 「Биоразлагаемые」改为「Экологичные」 | 「биоразлагаемый/компостируемый」属于需要认证支撑的声明。**需要 Ryan 提供认证**（证书名称/编号/链接）后才能恢复该说法；H1 和 meta 里的同类用词也要同步决定。 |
+| F16 | ALT-OG-podarochnye-karty | gift cards 的俄语含义 | 「подарочные карты」在俄语里通常指储值礼品卡（подарочный сертификат）；如果产品是贺卡/祝福卡，应改为「открытки」。影响 alt、H1、slug 和 meta，请 Ryan 确认。 |
 
 说明：F1、F3、F4、F5、F7（расчёт）、F8、F9 已按产品经理决定处理（标 ✅），改动后的俄语仍待 Ryan 校对。F2 仍是待确认的业务承诺（24 小时回复、工厂直供），本轮未改。其余是语言判断，需要母语者决定。
 
@@ -540,6 +543,25 @@
 | ALT-Meta.ogImageAlt | `messages/ru.json` | #201 | PackJoyU custom packaging: boxes, paper cups and printing | Упаковка на заказ PackJoyU: коробки, бумажные стаканы и печать |  |  |
 | ALT-Home.heroLabel | `messages/ru.json` | main | Stack of custom PackJoyU boxes and a paper cup | Коробки и бумажный стакан PackJoyU |  |  |
 | ALT-Products.alt | `messages/ru.json` | main | {name}: custom packaging by PackJoyU | {name}: упаковка на заказ от PackJoyU |  |  |
+
+### 3.1 品类分享图 alt / Category share-image alt（#220，`public/og/category-<slug>-ru.jpg`）
+
+依据设计师 #220 草稿整理：去掉品牌名 / H1 前缀（标题已在 og:title），全部用 ё，「Биоразлагаемые」→「Экологичные」，「с листиком」→「с изображением листа」。设计师原稿文字本地无副本，以 #220 PR 为准核对。英文仅为对照，不是 #220 英文 alt 原文。全部待 Ryan 校对。
+
+| ID | 文件 | PR | English（对照） | Русский | 字符数 | Ryan: OK / correction |
+|---|---|---|---|---|---|---|
+| ALT-OG-gofrokorobki | `public/og/category-gofrokorobki-ru.jpg` ✔ | #220 | Corrugated mailer box | Коробка из гофрокартона | 23 |  |
+| ALT-OG-tsvetnye-korobki | `public/og/category-tsvetnye-korobki-ru.jpg` ✔ | #220 | Orange printed box with yellow accents | Оранжевая коробка с печатью и жёлтыми акцентами | 47 |  |
+| ALT-OG-podarochnye-korobki | `public/og/category-podarochnye-korobki-ru.jpg` ✔ | #220 | Rigid gift box on a dark background | Жёсткая подарочная коробка на тёмном фоне | 41 |  |
+| ALT-OG-izdeliya-iz-tsellyulozy | `public/og/category-izdeliya-iz-tsellyulozy-ru.jpg` ✔ | #220 | Molded pulp tray with a green leaf | Лоток из формованной целлюлозы с изображением листа | 51 |  |
+| ALT-OG-bumazhnye-stakany | `public/og/category-bumazhnye-stakany-ru.jpg` ✔ | #220 | Paper cup with an orange band | Бумажный стакан с оранжевой полосой | 35 |  |
+| ALT-OG-tovary-dlya-prazdnikov | `public/og/category-tovary-dlya-prazdnikov-ru.jpg` ✔ | #220 | Paper plate and party hat | Бумажная тарелка и праздничный колпак | 37 |  |
+| ALT-OG-upakovka-dlya-vina | `public/og/category-upakovka-dlya-vina-ru.jpg` ✔ | #220 | Wine box on a dark background | Коробка для вина на тёмном фоне | 31 |  |
+| ALT-OG-tsvetnaya-pechat | `public/og/category-tsvetnaya-pechat-ru.jpg` ✔ | #220 | Full-color (CMYK) print sample | Образец полноцветной печати (CMYK) | 34 |  |
+| ALT-OG-ofsetnaya-pechat | `public/og/category-ofsetnaya-pechat-ru.jpg` ✔ | #220 | Stack of offset-printed sheets | Стопка листов офсетной печати | 29 |  |
+| ALT-OG-ekologichnye-stakany | `public/og/category-ekologichnye-stakany-ru.jpg` ✔ | #220 | Paper cup with a green band and a leaf | Экологичный стакан с зелёной полосой и изображением листа ⚠️F15 | 57 |  |
+| ALT-OG-podarochnye-karty | `public/og/category-podarochnye-karty-ru.jpg` ✔ | #220 | Two printed gift cards | Две подарочные карты с печатью ⚠️F16 | 30 |  |
+| ALT-OG-novogodnyaya-upakovka | `public/og/category-novogodnyaya-upakovka-ru.jpg` ✔ | #220 | Red box with a green ribbon | Красная коробка с зелёной лентой | 32 |  |
 
 ## 4. 内链锚文本 / Internal-link anchors（#205）
 
