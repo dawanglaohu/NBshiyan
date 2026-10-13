@@ -33,12 +33,12 @@ test('product: optional real data is emitted only when given', () => {
   });
   assert.ok(String((ld.image as string[])[0]).startsWith('http'));
   assert.equal(ld.material, 'Крафт-бумага');
-  const props = ld.additionalProperty as any[];
+  const props = ld.additionalProperty as Array<Record<string, unknown>>;
   assert.equal(props.length, 4);
   assert.deepEqual(props[0].value, { '@type': 'QuantitativeValue', minValue: 500, unitCode: 'H87' });
   assert.deepEqual(props[1].value, { '@type': 'QuantitativeValue', unitCode: 'MMT', minValue: 50, maxValue: 600 });
   assert.equal(props[3].name, 'Height');
-  const certs = ld.hasCertification as any[];
+  const certs = ld.hasCertification as Array<Record<string, unknown>>;
   assert.equal(certs.length, 1);
   assert.deepEqual(certs[0], { '@type': 'Certification', name: 'FSC', url: 'https://example.com/fsc', certificationIdentification: 'FSC-C1' });
   for (const f of ['offers', 'aggregateRating', 'review', 'inLanguage']) assert.ok(!(f in ld), f);
@@ -49,7 +49,7 @@ test('product: empty specs/certs are omitted entirely', () => {
   const ld = buildProductJsonLd('wine-boxes', 'en', { specs: { material: '  ' }, certifications: [{ name: 'ISO', certNo: '1' }] });
   for (const f of ['material', 'additionalProperty', 'hasCertification']) assert.ok(!(f in ld), f);
   const half = buildProductJsonLd('wine-boxes', 'en', { specs: { size: { max: { l: 1, w: 2, h: 3 }, unit: 'mm' } } });
-  assert.deepEqual((half.additionalProperty as any[])[2].value, { '@type': 'QuantitativeValue', unitCode: 'MMT', maxValue: 3 });
+  assert.deepEqual((half.additionalProperty as Array<Record<string, unknown>>)[2].value, { '@type': 'QuantitativeValue', unitCode: 'MMT', maxValue: 3 });
 });
 
 test('product: unknown key throws', () => {
