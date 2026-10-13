@@ -24,7 +24,7 @@ section.block{padding-top:64px;padding-bottom:64px}
 section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .theme-premium{background:var(--bg);color:var(--ink)}
 /* 首页 */
-.hero{padding:80px 0;background:linear-gradient(120deg,var(--surface),#fdeee8)}
+.hero{padding:80px 0;background:linear-gradient(120deg,var(--surface),var(--tint-accent))}
 .hero h1{font-size:var(--fs-display);margin:0 0 16px;max-width:820px}
 .hero p{font-size:20px;color:var(--ink-2);max-width:640px;margin:0 0 28px}
 .hero .actions{display:flex;gap:12px;flex-wrap:wrap}
@@ -90,7 +90,7 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 .chips label:has(input:checked){background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chips label:has(input:focus-visible){outline:2px solid var(--focus-ring,var(--accent));outline-offset:3px}
 .hp{position:absolute!important;left:-10000px;width:1px;height:1px;overflow:hidden}
-.alert{padding:12px 16px;border-radius:var(--r-sm);margin:12px 0}.alert.err{background:#fde8e4;color:#8a1f0b}.alert.ok{background:#e8f6ec;color:#14532d}
+.alert{padding:12px 16px;border-radius:var(--r-sm);margin:12px 0}.alert.err{background:var(--errb);color:var(--err)}.alert.ok{background:var(--okb);color:var(--ok)}.alert.warn{background:var(--warnb);color:var(--warn)}.alert.info{background:var(--infob);color:var(--info)}
 .row{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}
 /* 吸顶分类条：贴在站点头部下方，手机上横向滚动 */
 :root{--header-h:64px}
@@ -113,7 +113,7 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 .hero-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:32px;align-items:center}
 .hero-art{width:100%;height:auto;max-width:480px;justify-self:end;aspect-ratio:6/5}
 @media (max-width:767px){.hero{padding:48px 0}.hero-grid{grid-template-columns:1fr}.hero-art{max-width:300px;justify-self:center}}
-.entry img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r-sm);background:#efe6da}
+.entry img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r-sm);background:var(--placeholder)}
 .site-footer{margin-top:64px;padding:48px 0 24px;background:var(--surface);border-top:1px solid var(--line);font-size:14px;color:var(--ink-2)}
 .site-footer .cols{display:grid;grid-template-columns:1.2fr 2fr 1fr;gap:32px}
 .site-footer h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);margin:0 0 12px}
