@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { alternatesFor } from '@/i18n/alternates';
+import { pageMetadata } from '@/lib/seo/pageMeta';
 
 // 隐私政策（#68）：正文来自 docs/privacy-policy.md，构建时读入。
 // 草稿阶段：页面带 Draft 横幅、noindex，不进 sitemap；[COMPANY] 等占位符原样显示。
@@ -11,11 +11,7 @@ export const dynamic = 'force-static';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Privacy' });
-  return {
-    title: t('metaTitle'),
-    alternates: alternatesFor(locale, '/privacy'),
-    robots: { index: false, follow: true }
-  };
+  return pageMetadata({ locale, path: '/privacy', title: t('metaTitle'), description: t('metaDescription'), robots: { index: false, follow: true } });
 }
 
 function section(locale: string) {

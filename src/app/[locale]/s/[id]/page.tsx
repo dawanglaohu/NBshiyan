@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { lookupDesign, canonicalFor } from '@/lib/server/designs';
 
 export const dynamic = 'force-dynamic';
@@ -8,12 +9,13 @@ type Props = { params: Promise<{ locale: string; id: string }> };
 const robots = { index: false, follow: false };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: 'DesignShared' });
   const r = await lookupDesign(id);
   if (r.state === 'missing') return { title: 'PackJoyU', robots };
   const d = r.state === 'ok' ? r.design : r;
   // canonical 指向对应分类落地页（按方案语言取 slug）
-  return { title: 'Custom packaging design | PackJoyU', robots, alternates: { canonical: canonicalFor(d) } };
+  return { title: { absolute: t('metaTitle') }, robots, alternates: { canonical: canonicalFor(d) } };
 }
 
 /**

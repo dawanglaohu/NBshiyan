@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { alternatesFor } from '@/i18n/alternates';
+import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { products } from '@/data/products';
@@ -10,7 +10,8 @@ const ADV = ['capacity', 'certs', 'sampling', 'eco'] as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  return { alternates: alternatesFor(locale, '') };
+  const t = await getTranslations({ locale, namespace: 'Meta' });
+  return pageMetadata({ locale, path: '', title: t('title'), description: t('description') });
 }
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {

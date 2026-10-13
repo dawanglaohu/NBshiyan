@@ -1,8 +1,9 @@
 {
   "Meta": {
-    "title": "Custom Packaging Manufacturer: Boxes, Cups & Printing | PackJoyU",
+    "title": "Custom Packaging Manufacturer: Boxes & Cups | PackJoyU",
     "description": "PackJoyU manufactures custom corrugated boxes, gift and wine boxes, molded pulp, eco paper cups and printed packaging for brands in North America, Europe and Australia.",
-    "home": "Home"
+    "home": "Home",
+    "ogImageAlt": "PackJoyU custom packaging: boxes, paper cups and printing"
   },
   "Nav": {
     "home": "Home",
@@ -172,8 +173,8 @@
     "menu": "Quick actions"
   },
   "Contact": {
-    "metaTitle": "Request a quote | PackJoyU",
-    "metaDescription": "Tell us about your packaging project and get a quote from PackJoyU within 24 hours.",
+    "metaTitle": "Request a Custom Packaging Quote | PackJoyU Manufacturer",
+    "metaDescription": "Tell us about your custom boxes, paper cups or printing project and get a quote from PackJoyU within 24 hours. Factory-direct export packaging for brands.",
     "title": "Request a quote",
     "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet."
   },
@@ -304,7 +305,8 @@
     "metaTitle": "Privacy policy (draft) | PackJoyU",
     "title": "Privacy policy",
     "draft": "Draft.",
-    "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch."
+    "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch.",
+    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders, chat and cookies, and how to exercise your privacy rights."
   },
   "DesignExpired": {
     "metaTitle": "Design expired | PackJoyU",
@@ -313,5 +315,8 @@
     "backToCategory": "Customize {category} again",
     "backToProducts": "Browse products and customize again",
     "quote": "Get a quote"
+  },
+  "DesignShared": {
+    "metaTitle": "Custom Packaging Design | PackJoyU"
   }
 }

@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { alternatesFor } from '@/i18n/alternates';
+import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import InquiryWizard from '@/components/inquiry/InquiryWizard';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Contact' });
-  return { title: t('metaTitle'), description: t('metaDescription'), alternates: alternatesFor(locale, '/contact') };
+  return pageMetadata({ locale, path: '/contact', title: t('metaTitle'), description: t('metaDescription') });
 }
 
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
