@@ -23,7 +23,7 @@ async function mockTawk(page: Page) {
 }
 async function presetConsent(page: Page, c: { analytics: boolean; chat: boolean } | null) {
   await page.addInitScript((v) => {
-    if (v) localStorage.setItem('pj-consent', JSON.stringify({ v: 1, ...v, ts: Date.now() }));
+    if (v) localStorage.setItem('pj-consent', JSON.stringify({ v: 2, ...v, ts: Date.now() }));
     else localStorage.removeItem('pj-consent');
   }, c);
 }
@@ -97,10 +97,18 @@ test('先拒绝、再在页面内同意聊天：之后才加载', async ({ page 
   await armAndWait(page, 1500);
   expect(hits).toEqual([]);
   await page.evaluate(() => {
-    localStorage.setItem('pj-consent', JSON.stringify({ v: 1, analytics: false, chat: true, ts: Date.now() }));
-    window.dispatchEvent(new CustomEvent('pj:consent', { detail: { v: 1, analytics: false, chat: true, ts: Date.now() } }));
+    localStorage.setItem('pj-consent', JSON.stringify({ v: 2, analytics: false, chat: true, ts: Date.now() }));
+    window.dispatchEvent(new CustomEvent('pj:consent', { detail: { v: 2, analytics: false, chat: true, ts: Date.now() } }));
   });
   await expect.poll(() => hits.length, { timeout: 12_000 }).toBeGreaterThan(0);
+});
+
+test('写入 v1 同意记录（chat=true）：不加载 Tawk.to', async ({ page }) => {
+  const hits = await mockTawk(page);
+  await page.addInitScript(() => localStorage.setItem('pj-consent', JSON.stringify({ v: 1, analytics: true, chat: true, ts: Date.now() })));
+  await page.goto('/en');
+  await armAndWait(page);
+  await expectNoTawk(page, hits);
 });
 
 test('CSP：tawk 只放行 *.tawk.to，脚本/连接/框架没有通配 https:', async ({ request }) => {
