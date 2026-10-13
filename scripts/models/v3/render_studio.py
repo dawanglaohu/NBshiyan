@@ -1,5 +1,5 @@
 # blender -b --python render.py -- <glb> <outprefix> <angles: e.g. 35,-35,145> [frames 0,24]
-import bpy, sys, math
+import bpy, sys, math, os
 from mathutils import Vector
 a = sys.argv[sys.argv.index('--')+1:]
 glb, outp = a[0], a[1]; angles = [float(x) for x in (a[2] if len(a) > 2 else '35').split(',')]
@@ -12,6 +12,7 @@ sc.frame_start = 0; sc.frame_end = 30
 sc.render.engine = 'CYCLES'; sc.cycles.samples = int(__import__('os').environ.get('SAMPLES', 96)); sc.cycles.use_denoising = True; sc.cycles.device = 'CPU'
 RES = int(__import__('os').environ.get('RES', 900)); sc.render.resolution_x = RES; sc.render.resolution_y = RES; sc.render.film_transparent = True
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
+sc.view_settings.exposure = float(os.environ.get('EXPOSURE', 0))
 # world HDRI
 w = bpy.data.worlds.new('W'); sc.world = w; w.use_nodes = True; nt = w.node_tree
 env = nt.nodes.new('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load('/workspace/nb3d-v3/hdri/studio_small_09_1k.hdr')
