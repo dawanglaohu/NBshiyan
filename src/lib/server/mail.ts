@@ -1,4 +1,4 @@
-import { headerSafe, renderAlert, renderEmail, type EmailVars } from './email/render';
+import { headerSafe, renderAlert, renderEmail, safeGreetingName, type EmailVars } from './email/render';
 import { hitRateLimit } from './security';
 
 const RESEND_URL = 'https://api.resend.com/emails';
@@ -28,7 +28,7 @@ export async function sendMail(m: Mail) {
     body: JSON.stringify({ from: process.env.MAIL_FROM ?? 'PackJoyU <onboarding@resend.dev>', to, subject, html: m.html, ...(m.text ? { text: m.text } : {}), ...(replyTo ? { reply_to: replyTo } : {}) }),
     signal: AbortSignal.timeout(10_000),
   });
-  if (!r.ok) throw new Error(`resend ${r.status}`);
+  if (!r.ok) throw Object.assign(new Error(`resend ${r.status}`), { name: 'ResendError', code: `RESEND_${r.status}` });
 }
 
 /** 后台告警：发给 ADMIN_ALERT_EMAIL（没配则 INQUIRY_NOTIFY_EMAIL）。同类告警 30 分钟最多 1 封；告警自身失败只记日志，不再告警。 */
@@ -45,6 +45,8 @@ export function inquiryNotifyMail(v: EmailVars & { adminId: string; score: numbe
 }
 /** 客户确认：询盘或样品申请，按语言。主题只含对外编号；不回显留言 */
 export function customerAckMail(kind: 'inquiry' | 'sample', v: EmailVars) {
+  // 客户邮件不带公司名；名字不合适时模板用通用问候（防止把攻击者填的链接发到别人邮箱）
+  v = { ...v, company: undefined, name: safeGreetingName(v.name) ?? '' };
   return renderEmail(`${kind === 'sample' ? 'sample-ack' : 'inquiry-ack'}.${v.locale}`, v);
 }
 
@@ -52,7 +54,14 @@ export function customerAckMail(kind: 'inquiry' | 'sample', v: EmailVars) {
 export async function sendSafely(label: string, m: Mail) {
   try { await sendMail(m); return true; } catch (e) {
     console.error(`[mail] ${label} failed`, (e as Error).message);
-    await sendAdminAlert('邮件发送失败', { 类型: label, 错误: (e as Error).message.slice(0, 100) }, `mail-fail:${label}`);
+    await sendAdminAlert('邮件发送失败', { 类型: label, ...errorSummary(e) }, `mail-fail:${label}`);
     return false;
   }
+}
+
+/** 告警里只放错误名和错误码，不放 message（可能含连接串、SQL、用户数据） */
+export function errorSummary(e: unknown): Record<string, string> {
+  const err = (e ?? {}) as { name?: unknown; code?: unknown };
+  const clean = (v: unknown) => String(v).replace(/[^A-Za-z0-9_.-]/g, '').slice(0, 40) || 'unknown';
+  return { 错误类型: clean(typeof err.name === 'string' ? err.name : 'Error'), 错误码: err.code === undefined ? '无' : clean(err.code) };
 }

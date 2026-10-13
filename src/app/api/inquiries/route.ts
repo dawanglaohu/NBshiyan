@@ -146,7 +146,7 @@ export async function POST(req: Request) {
     await Promise.allSettled([
       notify && sendSafely('inquiry-notify', { to: notify, ...inquiryNotifyMail({ ...vars, adminId: inquiry.id, score: trust.score }) }),
       // 自动回复只发给可信询盘；同一邮箱 24 小时 1 封（数据库）+ 按邮箱和 IP 限流，防止被当作发信跳板
-      trust.score >= REVIEW_THRESHOLD && sendAutoReplyOnce(inquiry.id, email, ip, b.source === 'SAMPLE' ? 'sample' : 'inquiry', vars),
+      trust.score >= REVIEW_THRESHOLD && sendAutoReplyOnce(inquiry.id, email, ip, b.source === 'SAMPLE' ? 'sample' : 'inquiry', { ...vars, ...summarizeItems(b.items, b.locale) }),
     ]);
   } catch (e) { console.error('[mail] unexpected', (e as Error).message); }
 
@@ -158,17 +158,21 @@ export async function POST(req: Request) {
  * 在事务里按邮箱加 Postgres 事务级咨询锁，同一邮箱的并发请求排队判断，只有一条能抢到。
  */
 async function sendAutoReplyOnce(inquiryId: string, email: string, ip: string | null, kind: 'inquiry' | 'sample', vars: Parameters<typeof customerAckMail>[1]) {
-  const key = email.trim().toLowerCase();
+  // 限流 key、咨询锁、数据库 24 小时判断都用规范化邮箱（去 +后缀、Gmail 去点），别名不能绕过
+  const key = normalizeEmail(email);
   const [emailOk, ipOk] = await Promise.all([hitRateLimit(`autoreply:e:${key}`, 1, 86_400_000), hitRateLimit(`autoreply:ip:${ip ?? 'noip'}`, ip ? 5 : 200, 86_400_000)]);
   if (!emailOk || !ipOk) return;
   const since = new Date(Date.now() - 86_400_000);
+  const domain = key.slice(key.lastIndexOf('@') + 1);
+  const domains = domain === 'gmail.com' ? ['gmail.com', 'googlemail.com'] : [domain];
   const claimed = await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'autoreply:' + key}))`;
-    const recent = await tx.inquiry.findFirst({
-      where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { email: { equals: key, mode: 'insensitive' } } },
-      select: { id: true },
+    // 同域名、24 小时内发过自动回复的询盘，再在内存里按规范化邮箱比对
+    const recent = await tx.inquiry.findMany({
+      where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { OR: domains.map((d) => ({ email: { endsWith: `@${d}`, mode: 'insensitive' as const } })) } },
+      select: { contact: { select: { email: true } } }, take: 500,
     });
-    if (recent) return false;
+    if (recent.some((r) => normalizeEmail(r.contact.email) === key)) return false;
     const r = await tx.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
     return r.count === 1;
   });

@@ -1,7 +1,7 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderEmail, summarizeItems, cleanText } from '../src/lib/server/email/render';
-import { sendMail, sendSafely, sendAdminAlert, customerAckMail, inquiryNotifyMail } from '../src/lib/server/mail';
+import { renderEmail, summarizeItems, cleanText, safeGreetingName, replyTimeText, productName } from '../src/lib/server/email/render';
+import { sendMail, sendSafely, sendAdminAlert, customerAckMail, inquiryNotifyMail, errorSummary } from '../src/lib/server/mail';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit';
 
 type Call = { url: string; headers: Record<string, string>; body: Record<string, unknown> };
@@ -32,12 +32,16 @@ const vars = { name: EVIL, company: 'A&B "Co"', product: 'gift-box', quantity: '
 test('customer ack: escaped vars, subject only inquiry id, no message echo, env contact info', () => {
   const m = customerAckMail('inquiry', vars);
   assert.equal(m.subject, 'We received your inquiry #PJ-2610-ABC123');
-  assert.ok(!m.html.includes('<script>'));
-  assert.ok(m.html.includes('&#60;script&#62;'));
-  assert.ok(m.html.includes('A&#38;B &#34;Co&#34;'));
+  assert.ok(!m.html.includes('<script>') && !m.html.includes('evil.com'), 'unsafe name replaced by generic greeting');
+  const short = customerAckMail('inquiry', { ...vars, name: '<b>Bob</b>' });
+  assert.ok(short.html.includes('&#60;b&#62;Bob&#60;/b&#62;') && !short.html.includes('<b>Bob</b>'));
+  const n = inquiryNotifyMail({ ...vars, adminId: 'cm1', score: 80 });
+  assert.ok(n.html.includes('&#60;script&#62;') && !n.html.includes('<script>'));
+  assert.ok(!m.html.includes('A&#38;B') && !m.text.includes('A&B'), 'company removed from customer mail');
+  assert.ok(!m.text.includes('Company'));
   assert.ok(!m.html.includes('{{'), 'no unfilled or re-expanded placeholders');
   assert.ok(m.html.includes('{{siteUrl}}') === false);
-  assert.ok(m.text.includes('hello@example.com') && m.text.includes('+8613800000000') && m.text.includes('12h'));
+  assert.ok(m.text.includes('hello@example.com') && m.text.includes('+8613800000000') && m.text.includes('12 hours'));
   assert.ok(!/\r|Bcc: x@evil.com\n/.test(m.text), 'no CRLF injection in text');
 });
 
@@ -99,4 +103,76 @@ test('helpers', () => {
   assert.equal(summarizeItems([1, 2, 3, 4, 5].map((n) => ({ productSlug: `p${n}` }))).product, 'p1, p2, p3 +2');
   assert.equal(cleanText('a\u202eb\u0000c\r\nd'), 'abc d');
   assert.equal(renderEmail('inquiry-ack.en', vars).subject.includes('\n'), false);
+});
+
+test('customer greeting: name only if <=40 chars and not link-like, else generic', () => {
+  assert.equal(safeGreetingName('Anna Müller'), 'Anna Müller');
+  for (const bad of ['x'.repeat(41), 'Visit evil.com', 'http://x', 'www.spam', 'a@b.c', 'Win at shop.ru now', '//evil'])
+    assert.equal(safeGreetingName(bad), null, bad);
+  const en = customerAckMail('inquiry', { ...vars, name: 'Claim prize at evil.com' });
+  assert.match(en.text, /^Hello,/m); assert.ok(!en.text.includes('evil.com') && !en.html.includes('evil.com'));
+  const ru = customerAckMail('sample', { ...vars, locale: 'ru', name: 'Иван' });
+  assert.match(ru.text, /Здравствуйте, Иван!/);
+  const ruGeneric = customerAckMail('inquiry', { ...vars, locale: 'ru', name: 'x'.repeat(50) });
+  assert.match(ruGeneric.text, /^Здравствуйте!$/m);
+  assert.match(customerAckMail('inquiry', { ...vars, name: 'Bob' }).html, /Hi Bob,/);
+});
+
+test('internal notification keeps company and name', () => {
+  const n = inquiryNotifyMail({ ...vars, name: 'Claim prize at evil.com', adminId: 'cm1', score: 80 });
+  assert.ok(n.text.includes('A&B "Co"') && n.text.includes('evil.com'));
+});
+
+test('errorSummary: only name/code, never message', async () => {
+  const e = Object.assign(new Error('connect postgres://user:pass@db/x failed'), { code: 'ECONNREFUSED' });
+  assert.deepEqual(errorSummary(e), { 错误类型: 'Error', 错误码: 'ECONNREFUSED' });
+  assert.ok(!JSON.stringify(errorSummary(e)).includes('pass'));
+  status = 503;
+  await sendSafely('x', { to: 'a@example.com', subject: 's', html: '' });
+  const alert = calls.find((c) => c.body.to === 'sales@example.com')!;
+  assert.match(String(alert.body.text), /RESEND_503/);
+  assert.ok(!String(alert.body.text).includes('resend 503'));
+});
+
+test('sample ack copy: no inquiry wording left, sample sentences, preheader/footer/labels', () => {
+  const en = customerAckMail('sample', vars);
+  for (const part of [en.html, en.text]) {
+    assert.ok(part.includes('Samples are free of charge. Shipping cost will be quoted by email before dispatch.'));
+    assert.ok(part.includes('Sample qty') && part.includes('because you requested samples on'));
+    assert.ok(!/inquiry|reply within/i.test(part), 'no inquiry wording');
+  }
+  assert.ok(en.html.includes("Thanks — we'll confirm your sample shipping within 12 hours."));
+  const ru = customerAckMail('sample', { ...vars, locale: 'ru' });
+  for (const part of [ru.html, ru.text]) {
+    assert.ok(part.includes('Образцы бесплатны. Стоимость доставки мы сообщим по email до отправки.'));
+    assert.ok(part.includes('Номер заявки') && part.includes('Количество образцов') && part.includes('оставили заявку на образцы на сайте'));
+    assert.ok(!/запрос|Тираж|ответит/.test(part), 'no inquiry wording');
+  }
+  assert.ok(ru.html.includes('Спасибо! Подтвердим доставку образцов в течение 12 часов.'));
+});
+
+test('reply time localized; RU never shows raw "24h"', () => {
+  delete process.env.CONTACT_REPLY_TIME;
+  assert.ok(customerAckMail('inquiry', { ...vars, locale: 'ru' }).text.includes('24 часа'));
+  assert.ok(customerAckMail('inquiry', vars).text.includes('24 hours'));
+  assert.ok(!customerAckMail('sample', { ...vars, locale: 'ru' }).html.includes('24h'));
+  assert.equal(replyTimeText(1, 'ru'), '1 час'); assert.equal(replyTimeText(48, 'ru'), '48 часов'); assert.equal(replyTimeText(22, 'ru'), '22 часа');
+});
+
+test('dark mode + nowrap in all customer templates', () => {
+  for (const m of [customerAckMail('inquiry', vars), customerAckMail('sample', vars), customerAckMail('sample', { ...vars, locale: 'ru' })]) {
+    assert.ok(m.html.includes('class="card px ink"'));
+    assert.ok(m.html.includes('.card{background:#1B1B1F!important;color:#F2E9D8!important}'));
+    assert.ok(m.html.includes('class="logo"') && m.html.includes('.logo{background:#FFFFFF!important'));
+    assert.ok(m.html.includes('<span style="white-space:nowrap">+8613800000000</span>'));
+  }
+});
+
+test('product names localized from categoryMeta; notify keeps slugs', () => {
+  assert.equal(productName('gift-boxes', 'en'), 'Custom gift boxes');
+  assert.equal(productName('gift-box', 'ru'), 'Подарочные коробки на заказ');
+  assert.equal(productName('wine-box', 'en'), productName('wine-boxes', 'en'));
+  assert.equal(productName('mystery-thing', 'ru'), 'Mystery thing');
+  assert.equal(summarizeItems([{ productSlug: 'gift-boxes', quantity: 500 }], 'ru').product, 'Подарочные коробки на заказ');
+  assert.equal(summarizeItems([{ productSlug: 'gift-boxes' }]).product, 'gift-boxes');
 });
