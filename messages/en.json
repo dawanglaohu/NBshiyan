@@ -217,5 +217,11 @@
     "closed": "Closed",
     "open": "Open",
     "dieline": "Dieline"
+  },
+  "Privacy": {
+    "metaTitle": "Privacy policy (draft) | PackJoyU",
+    "title": "Privacy policy",
+    "draft": "Draft.",
+    "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch."
   }
 }
