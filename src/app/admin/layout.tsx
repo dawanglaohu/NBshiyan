@@ -21,7 +21,7 @@ const manrope = Manrope({ subsets: ['latin', 'cyrillic'], display: 'swap', varia
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const check = await checkAdminSession([...ADMIN_AREA_ROLES]);
-  const gate = adminGate(check.ok ? { ok: true, role: check.user.role } : { ok: false, status: check.status }, (await headers()).get('x-admin-path'));
+  const gate = adminGate(check.ok ? { ok: true, role: check.user.role } : { ok: false, reason: check.reason }, (await headers()).get('x-admin-path'));
   if (gate.action === 'redirect') redirect(gate.to);
   if (gate.action === 'notFound') notFound();
   return (<html lang="zh-CN" className={manrope.variable}><body style={{ margin: 0 }}><AdminShell>{children}</AdminShell></body></html>);

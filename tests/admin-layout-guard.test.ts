@@ -7,11 +7,11 @@ import { adminGate, ADMIN_AREA_ROLES, rolesForAdminPath } from '../src/lib/serve
 const cb = (to: string) => new URL(to, 'https://x.test').searchParams.get('callbackUrl')!;
 
 test('unauthenticated → redirect to signin with same-site callbackUrl', () => {
-  const g = adminGate({ ok: false, status: 401 }, '/admin/specs/gift-boxes?tab=ru');
+  const g = adminGate({ ok: false, reason: 'unauthenticated' }, '/admin/specs/gift-boxes?tab=ru');
   assert.equal(g.action, 'redirect');
   assert.ok(g.action === 'redirect' && g.to.startsWith('/api/auth/signin?callbackUrl='));
   assert.equal(g.action === 'redirect' && cb(g.to), '/admin/specs/gift-boxes?tab=ru');
-  const none = adminGate({ ok: false, status: 401 }, null);
+  const none = adminGate({ ok: false, reason: 'unauthenticated' }, null);
   assert.equal(none.action === 'redirect' && cb(none.to), '/admin');
 });
 
@@ -26,7 +26,8 @@ test('open-redirect attempts fall back to /admin', () => {
 });
 
 test('wrong role → 404, correct role → render', () => {
-  assert.deepEqual(adminGate({ ok: false, status: 403 }, '/admin'), { action: 'notFound' });
+  assert.deepEqual(adminGate({ ok: false, reason: 'forbidden' }, '/admin'), { action: 'notFound' });
+  for (const p of ['/admin', '/admin/inquiries', '/admin/x']) assert.deepEqual(adminGate({ ok: false, reason: 'disabled' }, p), { action: 'notFound' }, 'disabled → 404, not login');
   assert.deepEqual(adminGate({ ok: true, role: 'ADMIN' }, '/admin'), { action: 'render' });
   assert.deepEqual([...ADMIN_AREA_ROLES].sort(), ['ADMIN', 'EDITOR', 'SALES']);
 });

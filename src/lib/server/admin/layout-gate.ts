@@ -43,11 +43,11 @@ export function rolesForAdminPath(raw: string | null | undefined): readonly Admi
   return best ? ADMIN_ROUTE_ROLES[best] : DEFAULT_ROLES;
 }
 
-export type GateInput = { ok: true; role: string } | { ok: false; status: 401 | 403 };
+export type GateInput = { ok: true; role: string } | { ok: false; reason: 'unauthenticated' | 'disabled' | 'forbidden' };
 export type GateResult = { action: 'render' } | { action: 'redirect'; to: string } | { action: 'notFound' };
 
-/** 401 → 登录页（安全的 callbackUrl）；403 或该路径不允许此角色 → 404 */
+/** 未登录 → 登录页（安全的 callbackUrl）；停用账号 / 角色不符 / 该路径不允许此角色 → 404 */
 export function adminGate(check: GateInput, path: string | null | undefined): GateResult {
-  if (!check.ok) return check.status === 401 ? { action: 'redirect', to: adminLoginHref(path) } : { action: 'notFound' };
+  if (!check.ok) return check.reason === 'unauthenticated' ? { action: 'redirect', to: adminLoginHref(path) } : { action: 'notFound' };
   return (rolesForAdminPath(path) as readonly string[]).includes(check.role) ? { action: 'render' } : { action: 'notFound' };
 }
