@@ -3,10 +3,21 @@
 Usage: python3 docs/content/sanity-import/build.py [content_dir]
 Matches sanity/schemas/index.ts: product / article docs with {en,ru} locale objects.
 Portable Text subset matches src/lib/server/portableText.ts (normal/h2/h3/blockquote, bullet/number, strong/em).
-Links have no mark in that subset, so markdown links become plain text."""
+Links have no mark in that subset, so markdown links become plain text.
+
+Usage: build.py [content_dir] [--out PATH]
+Product docs come from the #188 landing sources (docs/content/custom-*.md etc.). On a branch without them
+(e.g. #205 before #188 is merged) the product lines already committed in import.ndjson are kept verbatim
+instead of being dropped; only the articles are regenerated. tests/sanity-import.test.ts checks that a
+rebuild reproduces the committed file byte for byte."""
 import json, re, sys, hashlib, pathlib
-ROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else pathlib.Path(__file__).resolve().parents[1])
-OUT = pathlib.Path(__file__).resolve().parent / 'import.ndjson'
+_args = sys.argv[1:]
+_out = None
+if '--out' in _args:
+    i = _args.index('--out'); _out = _args[i + 1]; del _args[i:i + 2]
+ROOT = pathlib.Path(_args[0] if _args else pathlib.Path(__file__).resolve().parents[1])
+COMMITTED = pathlib.Path(__file__).resolve().parent / 'import.ndjson'
+OUT = pathlib.Path(_out) if _out else COMMITTED
 META_TS = pathlib.Path(__file__).resolve().parents[3] / 'src/lib/seo/categoryMeta.ts'
 
 def key(*p): return hashlib.sha1('|'.join(p).encode()).hexdigest()[:12]
@@ -98,9 +109,16 @@ def related_md(url, loc):
         if ls: md += [f'## {HEAD[kind][loc]}'] + [f"- [{x['anchor'][:1].upper() + x['anchor'][1:]}]({x['to']})" for x in ls]
     return '\n'.join(md)
 
+LANDING = [f for f in sorted(ROOT.glob('*.md')) if f.name not in ('README.md', 'industries.md', 'internal-links.md')]
+kept_products = []
+if not LANDING:
+    # #188 landing sources not on this branch: keep the committed product lines as they are (no data invented, none dropped)
+    if COMMITTED.exists():
+        kept_products = [l for l in COMMITTED.read_text().splitlines(keepends=True) if json.loads(l).get('_type') == 'product']
+    print(f'warning: no landing sources in {ROOT}; keeping {len(kept_products)} committed product docs verbatim', file=sys.stderr)
+
 docs = []
-for f in sorted(ROOT.glob('*.md')):
-    if f.name in ('README.md', 'industries.md', 'internal-links.md'): continue
+for f in LANDING:
     md = f.read_text()
     k = re.search(r'内部 key `([^`]+)`', md).group(1)
     cm = cat_meta(k)
@@ -139,5 +157,5 @@ for group, langs in sorted(arts.items()):
         d['seo']['description'][loc] = fm['meta_description']
     docs.append(d)
 
-OUT.write_text(''.join(json.dumps(d, ensure_ascii=False) + '\n' for d in docs))
-print(f'wrote {len(docs)} docs -> {OUT}')
+OUT.write_text(''.join(kept_products) + ''.join(json.dumps(d, ensure_ascii=False) + '\n' for d in docs))
+print(f'wrote {len(kept_products) + len(docs)} docs ({len(kept_products)} kept) -> {OUT}')

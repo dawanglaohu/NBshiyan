@@ -19,6 +19,8 @@
 
 ## 导入步骤（需要 Ryan 登录 Sanity，在私聊里做）
 1. #188 和 #196 合并后，重新生成：`python3 docs/content/sanity-import/linkmap.py && python3 docs/content/sanity-import/build.py`（默认读 `docs/content/`）。
+   在没有 #188 落地页源文件的分支上，`build.py` 会原样保留已提交的 12 个产品文档（并在 stderr 提示），只重新生成文章，不会丢行。
+   `tests/sanity-import.test.ts`（`pnpm test`）会重新生成并与已提交的 `import.ndjson` 逐字节比对。
 2. 检查 JSON：`python3 -c "import json;[json.loads(l) for l in open('docs/content/sanity-import/import.ndjson')]"`
 3. 先导入测试数据集：`npx sanity dataset import docs/content/sanity-import/import.ndjson staging --replace`（`--replace` 按 `_id` 覆盖，可以重复导）。
 4. 在 Studio 里检查几篇，然后导入 `production`。导入会触发 `/api/sanity/revalidate`。
