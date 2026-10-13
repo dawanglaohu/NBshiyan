@@ -2,7 +2,7 @@ import { categoryMeta } from '../seo/categoryMeta';
 
 const CATEGORY_KEYS = new Set(categoryMeta.map((c) => c.key));
 // 中间件用：判断短链接是否过期（HEAD /api/designs/:id → 410）。Edge 运行时，不依赖 Node API。
-export const SHORTLINK_RE = /^\/(?:(en|ru)\/)?s\/([A-Za-z0-9_-]{8,64})\/?$/;
+export const SHORTLINK_RE = /^\/(?:(en|ru)\/)?s\/([A-Za-z0-9]{10,16})\/?$/; // 与 DESIGN_ID_RE 一致
 export const EXPIRED_RE = /^\/(en|ru)\/s\/expired\/?$/;
 const TTL_MS = 60_000;
 const MAX = 500;
@@ -16,11 +16,29 @@ export function parseShortlink(pathname: string): { locale: 'en' | 'ru' | null; 
 }
 
 /** expired=true 表示 410；null=超时/出错（放行）。category 来自 X-Design-Category，只接受 categoryMeta 里的 key。结果缓存 60 秒。 */
-export async function probeShortlink(origin: string, id: string, f: typeof fetch = fetch, now = Date.now()): Promise<Probe | null> {
+/** 探测配置：固定 origin（SHORTLINK_PROBE_ORIGIN 或 NEXT_PUBLIC_SITE_URL，不用请求里的 Host）；未设置则不探测（放行）。 */
+export function probeConfig(env: Record<string, string | undefined>) {
+  const raw = env.SHORTLINK_PROBE_ORIGIN || env.NEXT_PUBLIC_SITE_URL;
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if (!['http:', 'https:'].includes(u.protocol)) return null;
+    return { origin: u.origin, secret: env.MIDDLEWARE_PROBE_SECRET || null };
+  } catch { return null; }
+}
+
+/** 探测请求头：只有配置了 MIDDLEWARE_PROBE_SECRET 才带密钥和原始客户端 IP（API 校验密钥后按该 IP 限流）。 */
+export function probeHeaders(secret: string | null, clientIp: string | null): Record<string, string> {
+  if (!secret) return {};
+  const ip = clientIp?.trim().slice(0, 64) ?? '';
+  return /^[0-9a-fA-F:.]{2,64}$/.test(ip) ? { 'x-internal-probe': secret, 'x-probe-client-ip': ip } : { 'x-internal-probe': secret };
+}
+
+export async function probeShortlink(origin: string, id: string, f: typeof fetch = fetch, now = Date.now(), headers: Record<string, string> = {}): Promise<Probe | null> {
   const hit = cache.get(id);
   if (hit && now - hit.at < TTL_MS) return { expired: hit.expired, category: hit.category };
   try {
-    const r = await f(`${origin}/api/designs/${encodeURIComponent(id)}`, { method: 'HEAD', signal: AbortSignal.timeout(1500), headers: { 'x-shortlink-probe': '1' } });
+    const r = await f(`${origin}/api/designs/${encodeURIComponent(id)}`, { method: 'HEAD', signal: AbortSignal.timeout(1500), headers, redirect: 'manual' });
     if (r.status >= 500 || r.status === 429) return null;
     const expired = r.status === 410;
     const c = r.headers.get('x-design-category');

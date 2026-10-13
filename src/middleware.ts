@@ -1,7 +1,7 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
-import { EXPIRED_RE, probeShortlink, parseShortlink } from './lib/edge/shortlink';
+import { EXPIRED_RE, probeConfig, probeHeaders, probeShortlink, parseShortlink } from './lib/edge/shortlink';
 
 const intl = createMiddleware(routing);
 const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private, no-store' };
@@ -12,7 +12,10 @@ export default async function middleware(req: NextRequest) {
   if (EXPIRED_RE.test(pathname)) return new NextResponse(null, { status: 404, headers: NOINDEX });
   const sl = parseShortlink(pathname);
   if (sl) {
-    const probe = await probeShortlink(req.nextUrl.origin, sl.id);
+    const cfg = probeConfig(process.env);
+    // 带内部密钥和原始客户端 IP，API 按客户端 IP 限流，而不是所有探测共用服务器 IP
+    const ip = req.headers.get('x-real-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0] ?? null;
+    const probe = cfg ? await probeShortlink(cfg.origin, sl.id, fetch, Date.now(), probeHeaders(cfg.secret, ip)) : null;
     if (probe?.expired) {
       const locale = sl.locale ?? (/^ru\b/i.test(req.headers.get('accept-language') ?? '') ? 'ru' : 'en');
       const to = new URL(`/${locale}/s/expired`, req.url);

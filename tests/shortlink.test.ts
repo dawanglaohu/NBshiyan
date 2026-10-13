@@ -1,13 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseShortlink, probeShortlink, _resetCache } from '../src/lib/edge/shortlink';
+import { parseShortlink, probeShortlink, probeConfig, probeHeaders, _resetCache } from '../src/lib/edge/shortlink';
 
 test('parseShortlink', () => {
-  assert.deepEqual(parseShortlink('/s/abcDEF123456'), { locale: null, id: 'abcDEF123456' });
-  assert.deepEqual(parseShortlink('/ru/s/abcDEF123456'), { locale: 'ru', id: 'abcDEF123456' });
+  assert.deepEqual(parseShortlink('/s/abcDEF1234'), { locale: null, id: 'abcDEF1234' });
+  assert.deepEqual(parseShortlink('/ru/s/abcDEF1234'), { locale: 'ru', id: 'abcDEF1234' });
   assert.equal(parseShortlink('/en/s/expired'), null);
   assert.equal(parseShortlink('/s/../api'), null);
   assert.equal(parseShortlink('/en/products'), null);
+  assert.equal(parseShortlink('/s/abc-def_12345'), null);
+  assert.equal(parseShortlink('/s/abcdefghi'), null);
+  assert.equal(parseShortlink('/s/abcdefghijklmnopq'), null);
+});
+test('probeConfig / probeHeaders', () => {
+  assert.equal(probeConfig({}), null);
+  assert.equal(probeConfig({ NEXT_PUBLIC_SITE_URL: 'javascript:x' }), null);
+  assert.deepEqual(probeConfig({ NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com/' }), { origin: 'https://packjoyu.com', secret: null });
+  assert.deepEqual(probeConfig({ SHORTLINK_PROBE_ORIGIN: 'http://internal:3000', NEXT_PUBLIC_SITE_URL: 'https://a.com', MIDDLEWARE_PROBE_SECRET: 's' }), { origin: 'http://internal:3000', secret: 's' });
+  assert.deepEqual(probeHeaders(null, '1.2.3.4'), {});
+  assert.deepEqual(probeHeaders('s', '1.2.3.4'), { 'x-internal-probe': 's', 'x-probe-client-ip': '1.2.3.4' });
+  assert.deepEqual(probeHeaders('s', '1.2.3.4\r\nx: y'), { 'x-internal-probe': 's' });
 });
 test('probeShortlink：X-Design-Category 只接受 categoryMeta 的 key', async () => {
   _resetCache();
