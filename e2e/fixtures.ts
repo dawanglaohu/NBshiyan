@@ -21,6 +21,10 @@ export const test = base.extend<{ external: External }>({
 });
 export { expect };
 
-export async function consent(page: Page, value: string) {
-  await page.evaluate((v) => { localStorage.setItem('pj-consent', v); window.dispatchEvent(new Event('pj:consent')); }, value);
+// 写入与 src/lib/consent.ts 相同的 v1 JSON 格式；'all' 全部同意，'none' 全部拒绝
+export async function consent(page: Page, value: 'all' | 'none') {
+  await page.evaluate((all) => {
+    localStorage.setItem('pj-consent', JSON.stringify({ v: 1, analytics: all, chat: all, ts: Date.now() }));
+    window.dispatchEvent(new Event('pj:consent'));
+  }, value === 'all');
 }

@@ -19,6 +19,23 @@ test('同意前不加载 Tawk.to 和统计上报；同意后才加载 Tawk.to', 
   await expect.poll(() => external.urls.filter(tawk).length, { timeout: 10_000 }).toBeGreaterThan(0);
 });
 
-test('Cookie 同意条：拒绝后不加载第三方', async () => {
-  test.fixme(true, 'Cookie 同意条（feat/cookie-consent）未合并到 main；合并后补 getByRole 用例');
+test('Cookie 同意条：拒绝后不加载第三方，刷新后不再出现', async ({ page, external }) => {
+  const rum: string[] = [];
+  page.on('request', (r) => { if (r.url().includes('/api/rum')) rum.push(r.url()); });
+  await page.goto('/en');
+  const bar = page.getByRole('region', { name: 'Cookie consent' });
+  await expect(bar).toBeVisible();
+  await bar.getByRole('button', { name: 'Reject non-essential' }).click();
+  await expect(bar).toBeHidden();
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pj-consent') ?? 'null'));
+  expect(stored).toMatchObject({ v: 1, analytics: false, chat: false });
+
+  await page.mouse.move(200, 200); await page.mouse.wheel(0, 600);
+  await page.waitForTimeout(3500);
+  await page.reload();
+  await expect(page.getByRole('region', { name: 'Cookie consent' })).toHaveCount(0);
+  await page.waitForTimeout(1000);
+  expect(external.urls.filter(tawk)).toEqual([]);
+  expect(rum).toEqual([]);
+  expect(await page.evaluate(() => Boolean(window.Tawk_API))).toBe(false);
 });
