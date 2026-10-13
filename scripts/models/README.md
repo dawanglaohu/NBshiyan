@@ -15,7 +15,7 @@ done
 
 ## 渐进加载（gltf-progressive）
 
-`progressive.mjs <src.glb> <outDir> <name>` 生成两份文件（都是 Draco + KTX2）：
+`progressive.mjs <src.glb> <outDir> <name>`（outDir 为 public/models 时会自动更新 `src/data/models.generated.ts` 并删除同名旧版本；products.ts 只写 `MODELS['名字']`，不要手抄带哈希的文件名）生成两份文件（都是 Draco + KTX2）：
 `<name>.<hash>.glb` 轻量预览（64px 贴图、简化网格，首屏先加载）和 `<name>.<hash>.lod0.glb` 完整精度
 （通过 `NEEDLE_progressive` 扩展由 gltf-progressive 后台替换）。文件名带内容哈希，可长缓存。
 

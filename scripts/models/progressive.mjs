@@ -65,3 +65,19 @@ fs.mkdirSync(outDir, { recursive: true });
 writeGlb(path.join(outDir, mainFile), prev); writeGlb(path.join(outDir, lodFile), full);
 fs.rmSync(tmp, { recursive: true });
 console.log(JSON.stringify({ main: mainFile, lod0: lodFile, mainBytes: fs.statSync(path.join(outDir, mainFile)).size, lod0Bytes: fs.statSync(path.join(outDir, lodFile)).size }));
+
+// 4) 更新 src/data/models.generated.ts（products.ts 从这里取路径，避免手抄哈希文件名导致 404，issue #31）
+//    同名旧版本文件一并删除，保证 public/models 里每个模型只有一份。
+const isPublic = path.resolve(outDir) === path.resolve(new URL('../../public/models', import.meta.url).pathname);
+const manifestPath = new URL('../../src/data/models.generated.ts', import.meta.url);
+let models = {};
+try { const src = fs.readFileSync(manifestPath, 'utf8'); for (const m of src.matchAll(/'([^']+)': '([^']+)'/g)) models[m[1]] = m[2]; } catch {}
+const old = models[name];
+if (isPublic && old && old !== `/models/${mainFile}`) {
+  for (const f of [old, old.replace(/\.glb$/, '.lod0.glb')]) fs.rmSync(path.join(outDir, path.basename(f)), { force: true });
+}
+if (isPublic) {
+models[name] = `/models/${mainFile}`;
+const body = Object.keys(models).sort().map(k => `  '${k}': '${models[k]}',`).join('\n');
+fs.writeFileSync(manifestPath, `// 自动生成：scripts/models/progressive.mjs 打包模型时写入，请勿手改。\n// key = 模型名（文件名去掉内容哈希），value = public/ 下的实际路径。\nexport const MODELS = {\n${body}\n} as const;\nexport type ModelKey = keyof typeof MODELS;\n`);
+}
