@@ -16,12 +16,12 @@ const manrope = Manrope({ subsets: ['latin', 'cyrillic'], display: 'swap', varia
 
 /**
  * 第一道防线：所有 /admin 页面渲染前在服务端检查会话、账号状态和角色。
- * 未登录 → 登录页（callbackUrl 只允许站内路径）；角色不对 → 404。
+ * 未登录 → 登录页（callbackUrl 只允许站内路径）；角色不对或该页面（ADMIN_ROUTE_ROLES）不允许此角色 → 404。
  * 注意：layout 不能替代各页面 / 接口自己的检查（客户端导航时 layout 不一定重新执行），/api/admin/* 仍各自 requireAdmin。
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const check = await checkAdminSession([...ADMIN_AREA_ROLES]);
-  const gate = adminGate(check.ok ? { ok: true } : { ok: false, status: check.status }, (await headers()).get('x-admin-path'));
+  const gate = adminGate(check.ok ? { ok: true, role: check.user.role } : { ok: false, status: check.status }, (await headers()).get('x-admin-path'));
   if (gate.action === 'redirect') redirect(gate.to);
   if (gate.action === 'notFound') notFound();
   return (<html lang="zh-CN" className={manrope.variable}><body style={{ margin: 0 }}><AdminShell>{children}</AdminShell></body></html>);

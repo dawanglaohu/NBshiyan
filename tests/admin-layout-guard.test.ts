@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { safeCallbackPath, adminLoginHref } from '../src/lib/admin/safe-callback';
-import { adminGate, ADMIN_AREA_ROLES } from '../src/lib/server/admin/layout-gate';
+import { adminGate, ADMIN_AREA_ROLES, rolesForAdminPath } from '../src/lib/server/admin/layout-gate';
 
 const cb = (to: string) => new URL(to, 'https://x.test').searchParams.get('callbackUrl')!;
 
@@ -27,7 +27,7 @@ test('open-redirect attempts fall back to /admin', () => {
 
 test('wrong role → 404, correct role → render', () => {
   assert.deepEqual(adminGate({ ok: false, status: 403 }, '/admin'), { action: 'notFound' });
-  assert.deepEqual(adminGate({ ok: true }, '/admin'), { action: 'render' });
+  assert.deepEqual(adminGate({ ok: true, role: 'ADMIN' }, '/admin'), { action: 'render' });
   assert.deepEqual([...ADMIN_AREA_ROLES].sort(), ['ADMIN', 'EDITOR', 'SALES']);
 });
 
@@ -42,4 +42,36 @@ test('admin layout: server-side check before render, noindex, AdminGuard removed
   assert.ok(!readFileSync('src/components/admin/AdminShell.tsx', 'utf8').includes('AdminGuard'));
   const mw = readFileSync('src/middleware.ts', 'utf8');
   assert.match(mw, /'\/admin', '\/admin\/:path\*'/);
+});
+
+const g = (role: string, p: string | null) => adminGate({ ok: true, role }, p).action;
+
+test('per-route roles: SALES', () => {
+  for (const p of ['/admin/models/new', '/admin/models', '/admin/specs', '/admin/specs/gift-boxes', '/admin/settings', '/admin/users']) assert.equal(g('SALES', p), 'notFound', p);
+  for (const p of ['/admin/inquiries', '/admin/inquiries/', '/admin/inquiries/abc123', '/admin/inquiries/abc?x=1', '/admin']) assert.equal(g('SALES', p), 'render', p);
+});
+
+test('per-route roles: EDITOR', () => {
+  assert.equal(g('EDITOR', '/admin/inquiries'), 'notFound');
+  assert.equal(g('EDITOR', '/admin/inquiries/abc'), 'notFound');
+  assert.equal(g('EDITOR', '/admin/models/new'), 'render');
+  assert.equal(g('EDITOR', '/admin/specs/'), 'render');
+  assert.equal(g('EDITOR', '/admin/settings'), 'notFound');
+});
+
+test('unknown / missing / invalid paths default to ADMIN only', () => {
+  for (const p of ['/admin/unknown', '/admin/foo/bar', '/admin/x', null, '', '//evil.com/admin/inquiries', '/admin\\inquiries']) {
+    assert.deepEqual(rolesForAdminPath(p), ['ADMIN'], String(p));
+    assert.equal(g('SALES', p), 'notFound');
+    assert.equal(g('EDITOR', p), 'notFound');
+    assert.equal(g('ADMIN', p), 'render');
+  }
+});
+
+test('segment prefix: no confusion with look-alike paths', () => {
+  for (const p of ['/admin/inquiries-x', '/admin/inquiriesx/1', '/admin/specs-evil', '/admin/models.json', '/adminx', '/admin/inquiries/../users']) {
+    assert.equal(g('SALES', p), 'notFound', p);
+    assert.equal(g('EDITOR', p), 'notFound', p);
+  }
+  assert.equal(g('EDITOR', '/admin/x'), 'notFound'); // /admin 仅精确匹配
 });
