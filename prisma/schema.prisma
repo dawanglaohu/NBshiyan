@@ -101,6 +101,7 @@ model Inquiry {
   messages     InquiryMessage[]
   notes        InquiryNote[]
   sample       SampleRequest?
+  logoUploads  LogoUpload[]
   autoReplyAt  DateTime? // 自动回复发送时间，用于每邮箱 24 小时一封
   retainUntil  DateTime // GDPR 保留期限
   createdAt    DateTime         @default(now())
@@ -197,4 +198,21 @@ model AuditLog {
   createdAt DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// 询价 logo 上传。文件私有存储（本地 storage/uploads，以后换 R2），从不提供公开地址。
+// 未绑定询盘的上传 1 小时内可绑定，24 小时后由清理任务删除文件和记录。
+model LogoUpload {
+  id        String   @id // 随机 24 位，不可递增
+  path      String // 存储 key，服务端生成
+  mime      String // 重新编码后的类型，固定 image/png
+  width     Int
+  height    Int
+  bytes     Int
+  inquiryId String?
+  inquiry   Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  expiresAt DateTime // 可绑定截止时间
+
+  @@index([inquiryId, createdAt])
 }

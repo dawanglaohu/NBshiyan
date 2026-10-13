@@ -4,6 +4,9 @@ import { prisma } from '@/lib/server/db';
 import { randomId, rateLimit, verifyTurnstile, escapeHtml, clientIp, readBody } from '@/lib/server/security';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
 import { sendMail, autoReply } from '@/lib/server/mail';
+import { LOGO_ID_RE } from '@/lib/server/uploads';
+
+class LogoInvalid extends Error {}
 
 const Body = z.object({
   source: z.enum(['FORM', 'WIZARD', 'CART', 'CUSTOMIZER', 'SAMPLE']),
@@ -25,6 +28,7 @@ const Body = z.object({
   attribution: z.record(z.unknown()).optional(),
   website: z.string().max(500).optional(), // 诱饵字段，有值则静默丢弃
   turnstileToken: z.string().optional(),
+  logoUploadId: z.string().regex(LOGO_ID_RE).optional(), // 来自 POST /api/uploads/logo
 });
 
 const RETAIN_DAYS = 730;
@@ -64,17 +68,34 @@ export async function POST(req: Request) {
   const d = new Date();
   const ref = `PJ-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}-${randomId(6).toUpperCase()}`;
 
-  const inquiry = await prisma.inquiry.create({
-    data: {
-      ref, replyToken: randomId(24), locale: b.locale, source: b.source, message: b.message,
-      trustScore: trust.score, trustReasons: trust.reasons, ipCountry,
-      attribution: (b.attribution ?? undefined) as object | undefined,
-      retainUntil: new Date(Date.now() + RETAIN_DAYS * 86_400_000),
-      contact: { create: b.contact },
-      items: { create: b.items.map((i) => ({ ...i, config: (i.config ?? undefined) as object | undefined })) },
-      ...(b.source === 'SAMPLE' ? { sample: { create: {} } } : {}),
-    },
-  });
+  // 建询盘和绑定 logo 在同一事务里：logo 必须存在、未过期、未绑定，条件更新只有一个请求能成功；失败整体回滚
+  let inquiry;
+  try {
+    inquiry = await prisma.$transaction(async (tx) => {
+      const created = await tx.inquiry.create({
+        data: {
+          ref, replyToken: randomId(24), locale: b.locale, source: b.source, message: b.message,
+          trustScore: trust.score, trustReasons: trust.reasons, ipCountry,
+          attribution: (b.attribution ?? undefined) as object | undefined,
+          retainUntil: new Date(Date.now() + RETAIN_DAYS * 86_400_000),
+          contact: { create: b.contact },
+          items: { create: b.items.map((i) => ({ ...i, config: (i.config ?? undefined) as object | undefined })) },
+          ...(b.source === 'SAMPLE' ? { sample: { create: {} } } : {}),
+        },
+      });
+      if (b.logoUploadId) {
+        const r = await tx.logoUpload.updateMany({
+          where: { id: b.logoUploadId, inquiryId: null, expiresAt: { gt: new Date() } },
+          data: { inquiryId: created.id },
+        });
+        if (r.count !== 1) throw new LogoInvalid();
+      }
+      return created;
+    });
+  } catch (e) {
+    if (e instanceof LogoInvalid) return NextResponse.json({ error: 'logo_invalid' }, { status: 422 });
+    throw e;
+  }
 
   const notify = process.env.INQUIRY_NOTIFY_EMAIL;
   const products = b.items.map((i) => `${escapeHtml(i.productSlug)}${i.quantity ? ` × ${i.quantity}` : ''}`).join('<br>') || '—';
