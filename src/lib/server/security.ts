@@ -32,9 +32,13 @@ export const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim();
 export const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
-/** 只信任 Cloudflare / Vercel 平台写入的头，不读可被客户端伪造的 X-Forwarded-For 首项 */
+/**
+ * 只信任平台写入的头。接入 Cloudflare 前 cf-connecting-ip 可被客户端伪造，
+ * 所以只有 BEHIND_CLOUDFLARE=1 时才读它；否则读 Vercel 写入的 x-real-ip。
+ */
 export function clientIp(req: Request) {
-  return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip') ?? null;
+  if (process.env.BEHIND_CLOUDFLARE === '1') return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip');
+  return req.headers.get('x-real-ip');
 }
 
 /** 按字节上限读取请求体，超出返回 null */
