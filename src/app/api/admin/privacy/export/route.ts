@@ -4,7 +4,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { jsonErr } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { PrivacyExportBody, emailHash, exportCustomer } from '@/lib/server/privacy';
+import { PrivacyExportBody, emailHash, exportCustomer, privacyHashReady } from '@/lib/server/privacy';
 
 export const runtime = 'nodejs';
 
@@ -13,12 +13,14 @@ export const runtime = 'nodejs';
  * JSON 直接作为附件返回，不在服务器或 R2 上保存；Cache-Control: no-store；审计只记邮箱 HMAC。
  */
 export async function POST(req: Request) {
-  const bad = assertSameOrigin(req);
-  if (bad) return bad;
+  // 与其他后台路由一致：requireAdmin → assertSameOrigin → 限流
   const ctx = await requireAdmin(req, ['ADMIN']);
   if (ctx instanceof Response) return ctx;
+  const bad = assertSameOrigin(req);
+  if (bad) return bad;
   const limited = await enforceAdminRateLimit(req, 'privacy.export', 5);
   if (limited) return limited;
+  if (!privacyHashReady()) return jsonErr('privacy_hash_secret_missing', 503);
   const raw = await readJson(req, 2_000);
   if (raw === TOO_LARGE) return jsonErr('too_large', 413);
   const p = PrivacyExportBody.safeParse(raw);

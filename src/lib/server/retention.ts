@@ -23,19 +23,51 @@ export const retention = {
 const DAY = 86_400_000;
 export const daysAgo = (days: number, now = new Date()) => new Date(now.getTime() - days * DAY);
 
+/** 每批处理条数和每次运行的总上限（避免首次运行或积压时一次性大删除导致超时/长时间锁表） */
+export const BATCH_SIZE = 500;
+export const maxPerRun = () => intEnv('RETENTION_MAX_PER_RUN', 20_000, BATCH_SIZE, 1_000_000);
+
+/**
+ * 分批执行：每次取一批 id（≤ BATCH_SIZE），按 id 删除/更新，直到取完或达到本次运行上限。
+ * 没处理完的留给下次 cron。
+ */
+export async function inBatches(fetchIds: (take: number) => Promise<string[]>, apply: (ids: string[]) => Promise<number>, cap = maxPerRun()) {
+  let total = 0;
+  while (total < cap) {
+    const ids = await fetchIds(Math.min(BATCH_SIZE, cap - total));
+    if (!ids.length) break;
+    total += await apply(ids);
+    if (ids.length < BATCH_SIZE) break;
+  }
+  return total;
+}
+
+type IdRows = Promise<{ id: string }[]>;
 type RetentionDb = {
-  auditLog: { deleteMany(a: { where: { createdAt: { lt: Date } } }): Promise<{ count: number }> };
-  sampleRequest: { updateMany(a: { where: { normalizedEmail: { not: null }; createdAt: { lt: Date } }; data: { normalizedEmail: null } }): Promise<{ count: number }> };
+  auditLog: {
+    findMany(a: { where: { createdAt: { lt: Date } }; select: { id: true }; orderBy: { createdAt: 'asc' }; take: number }): IdRows;
+    deleteMany(a: { where: { id: { in: string[] } } }): Promise<{ count: number }>;
+  };
+  sampleRequest: {
+    findMany(a: { where: { normalizedEmail: { not: null }; createdAt: { lt: Date } }; select: { id: true }; orderBy: { createdAt: 'asc' }; take: number }): IdRows;
+    updateMany(a: { where: { id: { in: string[] } }; data: { normalizedEmail: null } }): Promise<{ count: number }>;
+  };
 };
 
-/** 删除超过 AUDIT_RETAIN_DAYS 的审计日志 */
-export async function cleanupAuditLogs(db: RetentionDb, now = new Date()) {
-  return (await db.auditLog.deleteMany({ where: { createdAt: { lt: daysAgo(retention.auditDays, now) } } })).count;
+/** 删除超过 AUDIT_RETAIN_DAYS 的审计日志（分批） */
+export async function cleanupAuditLogs(db: RetentionDb, now = new Date(), cap = maxPerRun()) {
+  const where = { createdAt: { lt: daysAgo(retention.auditDays, now) } };
+  return inBatches(
+    async (take) => (await db.auditLog.findMany({ where, select: { id: true }, orderBy: { createdAt: 'asc' }, take })).map((r) => r.id),
+    async (ids) => (await db.auditLog.deleteMany({ where: { id: { in: ids } } })).count, cap);
 }
 /**
- * 样品申请计数：数据库里“每邮箱 30 天 1 次”靠 SampleRequest.normalizedEmail，超过期限后清空。
+ * 样品申请计数：数据库里“每邮箱 30 天 1 次”靠 SampleRequest.normalizedEmail，超过期限后清空（分批）。
  * 每 IP 计数在限流存储里（内存 / Upstash），带 TTL 自动过期，不需要这里处理。
  */
-export async function clearSampleCounters(db: RetentionDb, now = new Date()) {
-  return (await db.sampleRequest.updateMany({ where: { normalizedEmail: { not: null }, createdAt: { lt: daysAgo(retention.sampleCounterDays, now) } }, data: { normalizedEmail: null } })).count;
+export async function clearSampleCounters(db: RetentionDb, now = new Date(), cap = maxPerRun()) {
+  const where = { normalizedEmail: { not: null }, createdAt: { lt: daysAgo(retention.sampleCounterDays, now) } } as const;
+  return inBatches(
+    async (take) => (await db.sampleRequest.findMany({ where, select: { id: true }, orderBy: { createdAt: 'asc' }, take })).map((r) => r.id),
+    async (ids) => (await db.sampleRequest.updateMany({ where: { id: { in: ids } }, data: { normalizedEmail: null } })).count, cap);
 }

@@ -29,12 +29,15 @@ export async function cleanupOrphanLogos(now = new Date()) {
     for (const u of batch) {
       // 先删记录（条件里再确认未绑定），再删文件，避免删掉刚被绑定的文件
       const r = await prisma.logoUpload.deleteMany({ where: { id: u.id, inquiryId: null, designs: { none: liveDesign(now) } } });
-      if (r.count === 1) { await storage.delete(u.path); deleted++; }
+      if (r.count === 1) { if (isLogoKey(u.path)) await storage.delete(u.path); else console.error('[uploads] skip non-logo key'); deleted++; }
     }
     if (batch.length < 200) break;
   }
   return deleted;
 }
+
+/** logo 文件 key 只能是 logos/YYYY-MM/<id>.png（上传接口生成的格式）；删除前再校验一次，防止误删其他文件 */
+export const isLogoKey = (k: string) => /^logos\/\d{4}-\d{2}\/[A-Za-z0-9_-]{8,64}\.png$/.test(k);
 
 /** 常量时间比较密钥；未配置密钥时一律拒绝 */
 export function secretMatches(given: string | null, expected: string | undefined) {

@@ -67,6 +67,7 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 |---|---|---|
 | `DATABASE_URL` | Postgres 连接串（带 `sslmode=require`） | 必填 |
 | `AUTH_SECRET` | `openssl rand -base64 32` | Auth.js 会话签名，必填 |
+| `PRIVACY_HASH_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | 隐私导出/删除审计里的邮箱 HMAC 密钥，必填；未设置时 `/api/admin/privacy/*` 返回 503。不要随 AUTH_SECRET 一起轮换 |
 | `AUTH_URL` | `https://<正式域名>` | 必填 |
 | `APP_ORIGIN` | 通常留空；有反向代理/对外域名与请求 origin 不一致时填 `https://<正式域名>` | 后台 Origin 校验 |
 | `ADMIN_TOTP_KEY` | `openssl rand -base64 32`（32 字节 base64） | 2FA 密钥加密；**设置后不要更换**，换了已绑定的 2FA 全部失效 |
@@ -182,3 +183,8 @@ R2 走服务器端签名请求（浏览器不直连），Upstash、Resend 只在
 - [ ] 后台登录需要 2FA；`NEXT_PUBLIC_ADMIN_API=http`，后台显示真实数据
 - [ ] GSC / Yandex / Bing 验证通过，sitemap 已提交
 - [ ] Lighthouse：桌面 < 2s，手机 < 3s
+
+### 隐私 / 数据保留上线检查
+- [ ] 已设置 `PRIVACY_HASH_SECRET`（≥ 32 字节，独立于 AUTH_SECRET）。
+- [ ] 部署 #200 后运行一次 `pnpm tsx scripts/backfill-normalized-email.ts`（先 `--dry-run`），回填 Contact.normalizedEmail，否则旧联系人查不到。
+- [ ] 保留天数与隐私政策对齐（见 docs/data-retention.md）。

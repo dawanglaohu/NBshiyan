@@ -4,7 +4,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { jsonErr } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { PrivacyDeleteBody, emailHash, deleteCustomer } from '@/lib/server/privacy';
+import { PrivacyDeleteBody, emailHash, deleteCustomer, privacyHashReady } from '@/lib/server/privacy';
 
 export const runtime = 'nodejs';
 const NO_STORE = { 'Cache-Control': 'no-store' };
@@ -14,12 +14,14 @@ const NO_STORE = { 'Cache-Control': 'no-store' };
  * body { email, confirmEmail }，两者规范化后必须一致，否则 400。审计只记邮箱 HMAC。
  */
 export async function POST(req: Request) {
-  const bad = assertSameOrigin(req);
-  if (bad) return bad;
+  // 与其他后台路由一致：requireAdmin → assertSameOrigin → 限流
   const ctx = await requireAdmin(req, ['ADMIN']);
   if (ctx instanceof Response) return ctx;
+  const bad = assertSameOrigin(req);
+  if (bad) return bad;
   const limited = await enforceAdminRateLimit(req, 'privacy.delete', 5);
   if (limited) return limited;
+  if (!privacyHashReady()) return jsonErr('privacy_hash_secret_missing', 503);
   const raw = await readJson(req, 2_000);
   if (raw === TOO_LARGE) return jsonErr('too_large', 413);
   const p = PrivacyDeleteBody.safeParse(raw);

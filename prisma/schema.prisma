@@ -80,10 +80,13 @@ model Contact {
   email     String
   company   String?
   phone     String?
+  /// 规范化邮箱（小写、去 +后缀、Gmail 去点）：隐私导出/删除和自动回复去重按它精确匹配。写入时填，旧数据用 scripts/backfill-normalized-email.ts 回填
+  normalizedEmail String?
   inquiries Inquiry[]
   createdAt DateTime  @default(now())
 
   @@index([email])
+  @@index([normalizedEmail])
 }
 
 model Inquiry {

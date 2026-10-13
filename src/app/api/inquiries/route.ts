@@ -117,7 +117,7 @@ export async function POST(req: Request) {
           trustScore: trust.score, trustReasons: trust.reasons, ipCountry,
           attribution: (b.attribution ?? undefined) as object | undefined,
           retainUntil: new Date(Date.now() + retention.inquiryDays * 86_400_000),
-          contact: { create: b.contact },
+          contact: { create: { ...b.contact, normalizedEmail: normalizeEmail(b.contact.email) } },
           items: { create: b.items.map((i) => ({ ...i, config: (i.config ?? undefined) as object | undefined })) },
           ...(sampleEmail ? { sample: { create: { normalizedEmail: sampleEmail, shippingAddress: b.shippingAddress } } } : {}),
         },
@@ -164,16 +164,11 @@ async function sendAutoReplyOnce(inquiryId: string, email: string, ip: string | 
   const [emailOk, ipOk] = await Promise.all([hitRateLimit(`autoreply:e:${key}`, 1, 86_400_000), hitRateLimit(`autoreply:ip:${ip ?? 'noip'}`, ip ? 5 : 200, 86_400_000)]);
   if (!emailOk || !ipOk) return;
   const since = new Date(Date.now() - 86_400_000);
-  const domain = key.slice(key.lastIndexOf('@') + 1);
-  const domains = domain === 'gmail.com' ? ['gmail.com', 'googlemail.com'] : [domain];
   const claimed = await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'autoreply:' + key}))`;
-    // 同域名、24 小时内发过自动回复的询盘，再在内存里按规范化邮箱比对
-    const recent = await tx.inquiry.findMany({
-      where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { OR: domains.map((d) => ({ email: { endsWith: `@${d}`, mode: 'insensitive' as const } })) } },
-      select: { contact: { select: { email: true } } }, take: 500,
-    });
-    if (recent.some((r) => normalizeEmail(r.contact.email) === key)) return false;
+    // 24 小时内同一规范化邮箱发过自动回复就不再发（Contact.normalizedEmail 精确匹配，有索引）
+    const recent = await tx.inquiry.findFirst({ where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { normalizedEmail: key } }, select: { id: true } });
+    if (recent) return false;
     const r = await tx.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
     return r.count === 1;
   });

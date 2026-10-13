@@ -210,4 +210,4 @@
 安全：只解析 GLB 容器、JSON 和贴图文件头，不解码 Draco/meshopt、不执行任何内容、不访问外部地址；文件存私有存储（`storage/`，以后换 R2），只通过上述接口按状态提供。
 
 ### POST /api/admin/privacy/export · POST /api/admin/privacy/delete（仅 ADMIN）
-详见 docs/data-retention.md。export 返回 JSON 附件（no-store）；delete 需 `{email, confirmEmail}` 一致，返回 `{ok, contacts, inquiries, samples, logos}`。
+详见 docs/data-retention.md。export 返回 JSON 附件（no-store）；顺序 requireAdmin → assertSameOrigin → 限流；生产未设置 PRIVACY_HASH_SECRET 时 503 `privacy_hash_secret_missing`。delete 需 `{email, confirmEmail}` 一致，返回 `{ok, contacts, inquiries, samples, logos}`。
