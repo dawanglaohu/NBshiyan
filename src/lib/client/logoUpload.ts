@@ -1,6 +1,5 @@
 // 客户 Logo 上传：对应 docs/API.md `POST /api/uploads/logo`（PR #59）。
 // 公开接口，不需要 Turnstile；返回的 uploadId 1 小时内有效，提交询盘时作为 logoUploadId 绑定。
-import { logoUploadMockEnabled } from '../mockFlags';
 export const LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 export const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 /** 服务端 1 小时过期；前端留 5 分钟余量，快到期就提示重新上传 */
@@ -34,14 +33,8 @@ async function realUpload(file: File): Promise<LogoUpload> {
   throw new LogoError(res.status === 413 ? 'size' : res.status === 415 ? 'type' : res.status === 429 ? 'rate' : res.status === 422 ? 'corrupt' : 'server');
 }
 
-/** 本地开发用模拟（NEXT_PUBLIC_LOGO_UPLOAD_MOCK=1）：#59 合并前接口不存在 */
-async function mockUpload(file: File): Promise<LogoUpload> {
-  await new Promise((r) => setTimeout(r, 400));
-  const img = await createImageBitmap(file).catch(() => null);
-  if (!img) throw new LogoError('corrupt');
-  if (img.width > 4096 || img.height > 4096) throw new LogoError('dimensions');
-  return { uploadId: Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, '0')).join(''), width: img.width, height: img.height, bytes: file.size, uploadedAt: Date.now() };
-}
-
 export class LogoError extends Error { constructor(public code: LogoErrorCode) { super(code); } }
-export const uploadLogo = logoUploadMockEnabled() ? mockUpload : realUpload;
+// 生产构建：条件内联为 false，mock 的动态 import 被删除，不进生产包
+export const uploadLogo: (file: File) => Promise<LogoUpload> = process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_LOGO_UPLOAD_MOCK === '1'
+  ? (file) => import('./logoUpload.mock').then((m) => m.mockUpload(file))
+  : realUpload;
