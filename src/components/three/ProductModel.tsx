@@ -2,7 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { useNeedleProgressive } from '@needle-tools/gltf-progressive';
+import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation } from '@needle-tools/gltf-progressive';
+
+// 解码器本地托管，不依赖 gstatic / cdn.needle.tools（issue #31）
+setDracoDecoderLocation('/draco/');
+setKTX2TranscoderLocation('/basis/');
 
 function Gltf({ url }: { url: string }) {
   const gl = useThree((s) => s.gl);
