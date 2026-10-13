@@ -49,6 +49,17 @@ export default function CookieConsent() {
 
   useEffect(() => { if (!toast) return; const id = window.setTimeout(() => setToast(null), 5000); return () => window.clearTimeout(id); }, [toast]);
 
+  // 确认 toast 显示时把（高度 + 12px）写进 --pj-consent-h，其他底部提示（如询价清单提示）据此上移；隐藏/卸载时归 0
+  const toastRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = toastRef.current; const root = document.documentElement;
+    if (!toast || !el) { root.style.setProperty('--pj-consent-h', '0px'); return; }
+    const sync = () => root.style.setProperty('--pj-consent-h', `${Math.ceil(el.getBoundingClientRect().height) + 12}px`);
+    sync();
+    const ro = new ResizeObserver(sync); ro.observe(el);
+    return () => { ro.disconnect(); root.style.setProperty('--pj-consent-h', '0px'); };
+  }, [toast]);
+
   // 手机端同意条占满底部：把实际高度写进 CSS 变量，悬浮按钮组据此上移到同意条上方 12px，关闭后复原
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -98,7 +109,7 @@ export default function CookieConsent() {
       )}
       {open && <SettingsDialog draft={draft} setDraft={setDraft} onClose={close} onSave={(c) => save(c, true)} />}
       {toast && (
-        <div className="consent-toast" role="status">
+        <div ref={toastRef} className="consent-toast" role="status">
           <span>{t(toast === 'saved' ? 'saved' : 'withdrawn')}</span>
           <button type="button" onClick={(e) => { setToast(null); openSettings(e.currentTarget); }}>{t('change')}</button>
         </div>
