@@ -1,0 +1,14 @@
+/* PackJoyU design tokens v1 — 主调 C（Warm Pop），礼盒/酒盒区借用 B（Noir & Gold） */
+:root{
+  --bg:#FBF8F3; --surface:#FFFFFF; --ink:#1C1C1C; --ink-2:#5A5650; --line:#E8E2D8;
+  --accent:#FF5A36; --accent-press:#E0401F; --sun:#FFD166;
+  --premium-bg:#121214; --premium-ink:#F2E9D8; --gold:#D4AF6A; --wine:#6B1F2A;
+  --font:"Manrope",system-ui,sans-serif;
+  --fs-display:clamp(36px,5vw,64px); --fs-h2:clamp(26px,3vw,40px); --fs-h3:20px; --fs-body:16px; --fs-small:13px;
+  --r-sm:8px; --r-md:14px; --r-lg:24px; --r-pill:999px;
+  --space:8px; --container:1240px;
+  --shadow:0 8px 24px rgba(28,28,28,.08);
+  --ease:cubic-bezier(.2,.7,.2,1); --dur:280ms;
+}
+.theme-premium{ --bg:var(--premium-bg); --surface:#1D1D22; --ink:var(--premium-ink); --ink-2:#B9AF9C; --line:#2E2C28; --accent:var(--gold); --accent-press:#B8934F; }
+@media (prefers-reduced-motion:reduce){ :root{ --dur:0ms } }

@@ -4,7 +4,7 @@ import { Canvas } from '@react-three/fiber';
 import { View, OrbitControls, PerspectiveCamera, Environment, Lightformer } from '@react-three/drei';
 import ProductModel from './ProductModel';
 
-export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; track: RefObject<HTMLDivElement | null> };
+export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; track: RefObject<HTMLDivElement | null> };
 
 // 整页只用一个 WebGL 画布，用 View 切分到每张卡片，避免超出浏览器的画布数量上限
 export default function GalleryScene({ items, eventSource, onReady }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void }) {
@@ -24,7 +24,7 @@ export default function GalleryScene({ items, eventSource, onReady }: { items: S
               <Lightformer intensity={1} position={[4, 1, 0]} rotation-y={-Math.PI / 2} scale={[4, 2, 1]} />
             </Environment>
           </Suspense>
-          <OrbitControls enabled={i.active} enablePan={false} minDistance={1.8} maxDistance={6} />
+          <OrbitControls enabled={i.active} enableZoom={!!i.zoom} enablePan={false} minDistance={1.8} maxDistance={6} />
         </View>
       ))}
       <Canvas
