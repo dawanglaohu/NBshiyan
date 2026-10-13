@@ -158,6 +158,36 @@ for f in LANDING:
 # Guard: an importable article must not carry unconfirmed facts in its published body.
 # Same lines blocks() publishes: front matter and '> ' editorial notes are not checked.
 UNCONFIRMED = re.compile(r'\{\{待Ryan确认\}\}|\bTBD\b')
+
+# Guard: product docs (everything that lands in import.ndjson) must not carry them either: no lead time, MOQ or
+# other unconfirmed fact goes live as TBD. Landing sources are checked per file line (only the EN/RU landing
+# sections that blocks() publishes, '> ' notes skipped); kept product lines per import.ndjson line and field.
+def product_refusals():
+    bad = []
+    for f in LANDING:
+        lines = f.read_text().splitlines()
+        on = False
+        for n, raw in enumerate(lines, 1):
+            if raw.startswith(('## EN — Landing copy', '## RU — Текст посадочной страницы')): on = True; continue
+            if raw.startswith('### FAQ'): on = False
+            if on and not raw.strip().startswith('>') and UNCONFIRMED.search(raw): bad.append(f'{f}:{n}: {raw.strip()}')
+    for n, l in enumerate(kept_products, 1):
+        d = json.loads(l)
+        fields = [(f'{f}.{loc}', v) for f in ('title', 'excerpt') for loc, v in d.get(f, {}).items()]
+        fields += [(f'seo.{f}.{loc}', v) for f in ('title', 'description') for loc, v in d.get('seo', {}).get(f, {}).items()]
+        fields += [(f'body.{loc}[{i}]', ''.join(c.get('text', '') for c in b.get('children', [])))
+                   for loc, body in d.get('body', {}).items() for i, b in enumerate(body)]
+        bad += [f'{COMMITTED.name}:{n}: {d["_id"]} {where}: {v}' for where, v in fields if UNCONFIRMED.search(v)]
+    for d in docs:
+        if d['_type'] != 'product': continue
+        for loc, v in [*d['title'].items(), *d['excerpt'].items(), *d['seo']['title'].items(), *d['seo']['description'].items()]:
+            if UNCONFIRMED.search(v): bad.append(f'{d["_id"]} ({loc}): {v}')
+    return bad
+_prod_bad = product_refusals()
+if _prod_bad:
+    print('error: refusing import, product body has {{待Ryan确认}} or TBD (replace with neutral wording, no time or number):', file=sys.stderr)
+    print('\n'.join(_prod_bad), file=sys.stderr)
+    sys.exit(1)
 def unconfirmed_lines(text):
     head = re.match(r'^---\n.*?\n---\n', text, re.S)
     offset = head.group(0).count('\n') if head else 0

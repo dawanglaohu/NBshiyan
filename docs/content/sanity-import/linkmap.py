@@ -3,7 +3,7 @@
 import json, pathlib, re, sys
 HERE = pathlib.Path(__file__).resolve().parent
 # Usage: linkmap.py [content_dir] [--out DIR] [--meta categoryMeta.ts]  (defaults: docs/content, src/lib/seo/categoryMeta.ts)
-# On #205 the committed map is built with --meta from seo/yo-unification (eco-paper-cups EN slug), see README.
+# Exits non-zero if the meta file is missing/unreadable or an EN slug still contains 'compost' (retired eco-paper-cups slug).
 _args = sys.argv[1:]
 OUT_DIR = None
 _meta = None
@@ -12,7 +12,20 @@ if '--meta' in _args:
 if '--out' in _args:
     i = _args.index('--out'); OUT_DIR = pathlib.Path(_args[i + 1]); del _args[i:i + 2]
 CONTENT = pathlib.Path(_args[0]) if _args else HERE.parent
-META = pathlib.Path(_meta or HERE.parents[2] / 'src/lib/seo/categoryMeta.ts').read_text()
+# --meta defaults to the app's canonical src/lib/seo/categoryMeta.ts (same file categorySlugs.ts and build.py use).
+META_PATH = pathlib.Path(_meta) if _meta else HERE.parents[2] / 'src/lib/seo/categoryMeta.ts'
+try:
+    META = META_PATH.read_text(encoding='utf-8')
+except (OSError, UnicodeDecodeError) as e:
+    sys.exit(f'error: cannot read category meta {META_PATH}: {e}')
+# Retired slug guard: the old EN eco-paper-cups slug (never live, #218 F15/F17) contained 'compost'; a stale meta must not map links.
+# Matching the stem 'compost' covers the retired slug and any other 'compost…' EN slug.
+_en_slugs = re.findall(r"en: \{ slug: '([^']*)'", META)
+if not _en_slugs:
+    sys.exit(f'error: no category slugs found in {META_PATH}')
+_retired = [x for x in _en_slugs if 'compost' in x]
+if _retired:
+    sys.exit(f"error: {META_PATH} has retired/unconfirmed EN slug(s) {_retired}; sync categoryMeta.ts with seo/yo-unification (eco-paper-cups)")
 def slugs(k):
     b = META.split(f"key: '{k}'")[1].split('{ key:')[0]; en, ru = b.split('ru: {')
     return {'en': re.search(r"slug: '([^']*)'", en).group(1), 'ru': re.search(r"slug: '([^']*)'", ru).group(1)}
