@@ -1,15 +1,38 @@
 'use client';
-import { Suspense, type RefObject } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useEffect, type RefObject } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { View, OrbitControls, PerspectiveCamera, Environment, Lightformer } from '@react-three/drei';
 import ProductModel, { type BoxView, type AnimationClips } from './ProductModel';
 
 export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; track: RefObject<HTMLDivElement | null> };
 
 // 整页只用一个 WebGL 画布，用 View 切分到每张卡片，避免超出浏览器的画布数量上限
+// frameloop="demand" 只在 invalidate 时出帧：View 按卡片位置裁剪，页面滚动、尺寸变化、卡片增减后都要重新出一帧，
+// 否则画布一直是空的，模型也不会跟着卡片滚动（issue #31）
+function DemandSync({ deps }: { deps: string }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const on = () => invalidate();
+    window.addEventListener('scroll', on, { passive: true });
+    window.addEventListener('resize', on);
+    return () => { window.removeEventListener('scroll', on); window.removeEventListener('resize', on); };
+  }, [invalidate]);
+  useEffect(() => { invalidate(); }, [deps, invalidate]);
+  return null;
+}
+
 export default function GalleryScene({ items, eventSource, onReady }: { items: SceneItem[]; eventSource: RefObject<HTMLElement | null>; onReady: (slug: string) => void }) {
   return (
-    <>
+    <Canvas
+      className="three-canvas"
+      eventSource={eventSource as RefObject<HTMLElement>}
+      dpr={[1, 1.75]}
+      frameloop="demand"
+      gl={{ antialias: true, powerPreference: 'high-performance' }}
+    >
+      <DemandSync deps={items.filter((i) => i.visible).map((i) => `${i.slug}:${i.view ?? ''}`).join(',')} />
+      {/* View 必须放在 Canvas 里面才会使用 track 跟踪卡片；放在外面时 drei 会走 HtmlView，忽略 track，
+          改为跟踪自己生成的空 div（高度 0），所有模型都画不出来（issue #31） */}
       {items.filter((i) => i.visible).map((i) => (
         <View key={i.slug} track={i.track as RefObject<HTMLElement>}>
           <PerspectiveCamera makeDefault position={[2.4, 1.6, 2.6]} fov={40} />
@@ -28,15 +51,6 @@ export default function GalleryScene({ items, eventSource, onReady }: { items: S
           <OrbitControls domElement={i.track.current ?? undefined} enabled={i.active} enableZoom={!!i.zoom} enablePan={false} minDistance={1.8} maxDistance={6} />
         </View>
       ))}
-      <Canvas
-        className="three-canvas"
-        eventSource={eventSource as RefObject<HTMLElement>}
-        dpr={[1, 1.75]}
-        frameloop="demand"
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-      >
-        <View.Port />
-      </Canvas>
-    </>
+    </Canvas>
   );
 }

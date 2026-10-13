@@ -24,11 +24,16 @@ function Gltf({ url }: { url: string }) {
   const { scene } = useGLTF(url, '/draco/', false, (loader) => {
     useNeedleProgressive(loader as never, gl);
   });
+  // 模型解析完成后主动出一帧（画布是按需渲染）
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => { invalidate(); }, [scene, invalidate]);
   return <primitive object={scene} />;
 }
 
 // 还没有真实模型时的占位盒子
 function PlaceholderBox() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => { invalidate(); }, [invalidate]);
   return (
     <mesh>
       <boxGeometry args={[1.6, 1, 1.2]} />
