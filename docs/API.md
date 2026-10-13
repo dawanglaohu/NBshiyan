@@ -83,9 +83,24 @@
 - `POST /api/admin/inquiries/:id/reply` `{ subject ≤200, body ≤20000 纯文本 }` → 201 新的 `InquiryMessage`。正文全部转义、换行转 `<br>`，主题去换行；配置 `REPLY_DOMAIN` 后 Reply-To 为 `reply+<token>@域名`。发信失败返回 502 `mail_failed`，不入库。
 - `POST /api/admin/inquiries/:id/notes` `{ body ≤5000 }` → 201 新备注。
 
+### 账号
+所有接口：`requireAdmin` → `assertSameOrigin` → `await enforceAdminRateLimit`；每个操作都让受影响账号的全部会话失效（`sessionVersion+1`，等同 `revokeSessions()`），并写 AuditLog（不记密码、验证码、恢复码）。密码 argon2id，策略：12–200 位，不能等于邮箱。
+
+**自己的账号（ADMIN / SALES / EDITOR）**
+- `POST /api/admin/account/password` `{ currentPassword, newPassword, totp | recoveryCode }` → `{ ok: true, reauthRequired: true }`。当前会话也失效，需重新登录。错误：401 `bad_credentials`，422 `weak_password` / `same_password`。
+- `POST /api/admin/account/2fa/reset` `{ currentPassword, totp | recoveryCode }` → `{ ok: true, reenrollRequired: true }`。清空 TOTP 密钥和所有恢复码，会话失效；之后走 `/api/auth-admin/enroll` 重新绑定。
+- 两个接口的验证失败与登录共用失败计数：连续 5 次锁定 15 分钟，锁定期间会话被拒（401）。每 IP 每分钟 5 次。
+
+**账号管理（仅 ADMIN）**
+- `GET /api/admin/users?all=1` → `{ items: [{ id, email, name, role, disabled, totpEnabled, locked, createdAt }] }`（不带 `all` 时是分配下拉框用的精简列表，见上）。
+- `POST /api/admin/users` `{ email, name, role: ADMIN|SALES|EDITOR, password }` → 201。新账号需先绑定 2FA 才能登录。409 `email_taken`，422 `weak_password`。
+- `PATCH /api/admin/users/:id` `{ role?, disabled?, name?, unlock?: true }` → 用户对象。停用或改为 EDITOR 时取消其名下询盘的分配。
+- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码；对方需重新绑定。
+- `DELETE /api/admin/users/:id` → 204。名下询盘取消分配；审计记录保留。
+- 保护规则：不能修改/停用/删除/重置自己（409 `cannot_modify_self`，自己用上面的自助接口）；不能让系统里没有有效管理员（role=ADMIN 且未停用），否则 409 `last_admin`。账号变更在事务里用 advisory lock 串行执行，防止两个管理员同时互相停用。
+
 ### 规划中
 - `PATCH /samples/:id`、`GET|PUT /settings/:key`、`GET /stats`
-- 改密码、重置 2FA、账号管理接口（需调用 `revokeSessions()`）
 
 ## 定时任务
 - `GET|POST /api/admin/cron/cleanup-uploads`：删除超过 24 小时未绑定询盘的 logo（文件和记录）。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
