@@ -296,5 +296,13 @@
     "title": "Privacy policy",
     "draft": "Draft.",
     "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch."
+  },
+  "DesignExpired": {
+    "metaTitle": "Design expired | PackJoyU",
+    "title": "This design has expired",
+    "text": "This design has expired, please customize again.",
+    "backToCategory": "Customize {category} again",
+    "backToProducts": "Browse products and customize again",
+    "quote": "Get a quote"
   }
 }
