@@ -20,3 +20,8 @@ test('admin spec route: EDITOR+ADMIN only, same-origin + rate limit on PUT, no-s
   assert.ok(order.every((i, n) => i >= 0 && (n === 0 || i > order[n - 1])), String(order));
   assert.match(admin, /'Cache-Control': 'no-store'/);
 });
+
+test('public cache header: s-maxage=3600, stale-while-revalidate=600', async () => {
+  const { PUBLIC_CACHE } = await import('../src/lib/server/specs');
+  assert.equal(PUBLIC_CACHE['Cache-Control'], 'public, s-maxage=3600, stale-while-revalidate=600');
+});

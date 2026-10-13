@@ -210,7 +210,7 @@
 - 审计 `spec.update`，meta 含 before / after（后台视图）；保存后 `revalidateTag('category-specs')`。
 
 ### 公开：GET /api/specs · GET /api/specs/:category（`?locale=en|ru`，默认 en，其他值 400）
-- 未知品类 404；`Cache-Control: public, s-maxage=3600, stale-while-revalidate=86400`。后台保存时 `revalidateTag` 只清 Next 的数据缓存，**不会清 CDN**：CDN 上的旧响应在 s-maxage（3600 秒）内仍可能返回，过期后的 stale-while-revalidate 期间也可能先返回旧数据再后台刷新。所以修改一般在 1 小时内生效，不是立即生效。
+- 未知品类 404；`Cache-Control: public, s-maxage=3600, stale-while-revalidate=600`。后台保存时 `revalidateTag` 只清 Next 的数据缓存，**不会清 CDN**：CDN 上的旧响应在 s-maxage（3600 秒）内仍可能返回，之后最多 600 秒内可能先返回旧数据再后台刷新。所以修改通常 1 小时内生效，最长约 70 分钟，不是立即生效。
 - 显式白名单序列化：只输出已填写的字段，null / 空数组 / 空字符串的键整个省略；本地化文本只给当前语言（该语言没填就省略，不回退）。每个有内容的品类带 `updatedAt`。审计数据、`updatedById` 等内部字段不会出现在任何公开接口。
 - `/api/specs` 返回 `{ locale, specs: [...] }`，只含有内容的品类，按 categoryMeta 顺序。
 - 前端渲染认证链接时必须加 `rel="noopener noreferrer"`（并 `target="_blank"`）。

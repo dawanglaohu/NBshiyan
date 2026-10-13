@@ -6,7 +6,7 @@ import { categoryMeta } from '@/lib/seo/categoryMeta';
 export const CATEGORY_KEYS: readonly string[] = categoryMeta.map((c) => c.key);
 export const isCategoryKey = (k: string) => CATEGORY_KEYS.includes(k);
 export const SPECS_TAG = 'category-specs';
-export const PUBLIC_CACHE = { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' };
+export const PUBLIC_CACHE = { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' };
 export const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'] as const satisfies readonly Incoterm[];
 export const CURRENCIES = ['USD', 'EUR', 'CNY', 'RUB'] as const;
 export type SpecLocale = 'en' | 'ru';
