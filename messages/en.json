@@ -302,10 +302,76 @@
     "otherLang": "Русский"
   },
   "Privacy": {
-    "metaTitle": "Privacy policy (draft) | PackJoyU",
+    "metaTitle": "Privacy policy | PackJoyU",
     "title": "Privacy policy",
-    "draft": "Draft.",
-    "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch."
+    "intro": "This page explains what personal data PackJoyU collects through this website, why, and how long we keep it.",
+    "contactLink": "Contact us through the inquiry form",
+    "sections": {
+      "collected": {
+        "title": "Data we collect",
+        "items": [
+          "Inquiries and quote requests: your name, email, company, phone, country and message, plus the products and options you choose.",
+          "Sample requests: the above plus your shipping address.",
+          "Logos you upload with an inquiry.",
+          "Shared custom designs you create in the 3D customizer.",
+          "Technical data: your IP address (used only for rate limiting and abuse protection) and, if you allow analytics, anonymous page-performance metrics."
+        ]
+      },
+      "purpose": {
+        "title": "Why we use it",
+        "items": [
+          "To answer inquiries, prepare quotes and ship samples.",
+          "To protect the site from spam and abuse (security check and rate limits).",
+          "With your consent only: to measure site performance and to offer live chat."
+        ]
+      },
+      "retention": {
+        "title": "How long we keep it",
+        "items": {
+          "designs": "Shared custom designs expire after 180 days (the link then returns “410 Gone”) and are deleted 90 days later.",
+          "logos": "Logos not attached to an inquiry are deleted after 24 hours.",
+          "sampleEmail": "For sample requests (one per email every 30 days), the email used for this limit is cleared after 30 days.",
+          "rateLimit": "Per-IP rate-limit counters expire when the rate-limit window ends.",
+          "audit": "Audit logs are deleted after 365 days.",
+          "adminSessions": "Admin sessions last 2 hours.",
+          "inquiries": "Inquiries are anonymized after 2 years; logos attached to an inquiry are deleted with it.",
+          "onRequest": "On request, we delete or anonymize your contact details, messages, shipping address, emails and logos, keeping only non-personal statistics.",
+          "exports": "Data exports are delivered to you as a file; no copy is kept on the server.",
+          "cleanup": "An automatic cleanup runs once a day."
+        }
+      },
+      "cookies": {
+        "title": "Cookies, local storage and consent",
+        "items": [
+          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records whether you allowed analytics and chat, and when.",
+          "Analytics (anonymous performance metrics) load only after you allow them.",
+          "Live chat (Tawk.to) loads only after you allow it.",
+          "Your choice expires after 12 months, and we ask again.",
+          "You can change or withdraw consent at any time via “Cookie settings” in the footer. After you withdraw, analytics and chat stop loading; withdrawing chat also clears the chat provider’s data from your browser."
+        ]
+      },
+      "chat": {
+        "title": "Live chat (Tawk.to)",
+        "items": [
+          "Live chat is provided by Tawk.to and is loaded only if you allow chat.",
+          "When it loads, Tawk.to receives your messages and technical data needed to run the chat, and sets its own storage in your browser.",
+          "The chat never loads on our admin pages."
+        ]
+      },
+      "contact": {
+        "title": "Contact and your rights",
+        "text": [
+          "You can ask us to access, export, correct or delete your data.",
+          "Email: {{待Ryan确认}}"
+        ]
+      },
+      "company": {
+        "title": "Who is responsible",
+        "text": [
+          "Data controller: {{待Ryan确认}}"
+        ]
+      }
+    }
   },
   "DesignExpired": {
     "metaTitle": "Design expired | PackJoyU",

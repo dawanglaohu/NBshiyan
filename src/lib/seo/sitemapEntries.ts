@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { categoryMeta, type CategoryMeta } from './categoryMeta';
+import { PRIVACY_PAGE_COMPLETE, PRIVACY_PATH } from '../legal/privacy';
 export { CATEGORY_PAGES_LIVE } from './categoryPages';
 
 type Locale = 'en' | 'ru';
@@ -9,13 +10,14 @@ type Page = { paths: Record<Locale, string>; priority: number; changeFrequency: 
 
 /**
  * 只列可索引的公开页面。以下页面带 noindex 或仍是占位，故意不进 sitemap：
- * /privacy（草稿）、/s/*（分享短链）、/industries、/factory、/case-studies（占位）、/admin、/api。
+ * /privacy（PRIVACY_PAGE_COMPLETE=false 时，与 noindex 同一开关）、/s/*（分享短链）、/industries、/factory、/case-studies（占位）、/admin、/api。
  * 新页面上线且去掉 noindex 后再加进来。
  */
 export const STATIC_PAGES: Page[] = [
   { paths: { en: '', ru: '' }, priority: 1, changeFrequency: 'weekly' },
   { paths: { en: '/products', ru: '/products' }, priority: 0.9, changeFrequency: 'weekly' },
-  { paths: { en: '/contact', ru: '/contact' }, priority: 0.7, changeFrequency: 'monthly' }
+  { paths: { en: '/contact', ru: '/contact' }, priority: 0.7, changeFrequency: 'monthly' },
+  ...(PRIVACY_PAGE_COMPLETE ? [{ paths: { en: PRIVACY_PATH, ru: PRIVACY_PATH }, priority: 0.3, changeFrequency: 'monthly' as Freq }] : [])
 ];
 
 export function categoryPages(meta: CategoryMeta[] = categoryMeta): Page[] {
