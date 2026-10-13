@@ -8,6 +8,7 @@ import { Link } from '@/i18n/navigation';
 import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
 import { SITE_URL } from '@/lib/site';
 import { QuoteProvider } from '@/components/quote/QuoteProvider';
+import SiteFooter from '@/components/layout/SiteFooter';
 import FloatingActions from '@/components/quote/FloatingActions';
 import '../globals.css';
 
@@ -59,6 +60,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
               </nav>
             </header>
             {children}
+            <SiteFooter />
             <FloatingActions />
           </QuoteProvider>
         </NextIntlClientProvider>
