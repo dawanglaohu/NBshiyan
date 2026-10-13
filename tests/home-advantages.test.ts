@@ -32,3 +32,11 @@ test('unsourced home-page figures stay hidden in both locales until Ryan confirm
     assert.doesNotMatch(JSON.stringify(m.Home), /TBD/, locale);
   }
 });
+
+test('unsourced FSC certification claim is not rendered in any locale until Ryan confirms it (#218 F18)', () => {
+  for (const locale of ['en', 'ru']) {
+    const raw = readFileSync(new URL(`../messages/${locale}.json`, import.meta.url), 'utf8');
+    JSON.parse(raw);
+    assert.doesNotMatch(raw, /FSC/, locale);
+  }
+});
