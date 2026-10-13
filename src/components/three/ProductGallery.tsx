@@ -122,7 +122,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
       {armed && visible.size > 0 && (<GalleryScene
         eventSource={rootRef}
         onReady={onReady}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, track: tracks[i] }))}
       />)}
     </div>
   );
