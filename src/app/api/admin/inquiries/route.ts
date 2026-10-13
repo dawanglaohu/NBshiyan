@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin } from '@/lib/server/auth';
+import { requireAdmin, adminRateLimit } from '@/lib/server/auth';
 import { noStore } from '@/lib/server/admin/guard';
 import { inquiryScope } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
@@ -15,18 +15,30 @@ const Q = z.object({
   minScore: z.coerce.number().int().min(0).max(100).optional(),
   maxScore: z.coerce.number().int().min(0).max(100).optional(),
   q: z.string().trim().min(1).max(100).optional(),
+  from: z.coerce.date().optional(), // 创建时间 >= from（ISO 日期或时间）
+  to: z.coerce.date().optional(), // 创建时间 < to；只给日期时按当天结束算
+  product: z.string().regex(/^[a-z0-9-]{1,80}$/).optional(),
+  assignee: z.union([z.literal('me'), z.literal('none'), z.string().regex(/^[a-z0-9]{20,40}$/)]).optional(),
 });
 
 export async function GET(req: Request) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
+  const limited = adminRateLimit(req, 'inquiry.list');
+  if (limited) return limited;
   const p = Q.safeParse(Object.fromEntries(new URL(req.url).searchParams));
   if (!p.success) return NextResponse.json({ error: 'invalid', issues: p.error.flatten() }, { status: 400, headers: noStore });
-  const { page, pageSize, status, minScore, maxScore, q } = p.data;
+  const { page, pageSize, status, minScore, maxScore, q, from, product, assignee } = p.data;
+  let to = p.data.to;
+  if (to && /^\d{4}-\d{2}-\d{2}$/.test(new URL(req.url).searchParams.get('to') ?? '')) to = new Date(to.getTime() + 86_400_000);
+  const assigneeWhere: Prisma.InquiryWhereInput = assignee === 'me' ? { assigneeId: ctx.user.id } : assignee === 'none' ? { assigneeId: null } : assignee ? { assigneeId: assignee } : {};
   const where: Prisma.InquiryWhereInput = {
     AND: [
       inquiryScope(ctx.user),
       status ? { status } : {},
+      assigneeWhere,
+      from || to ? { createdAt: { gte: from, lt: to } } : {},
+      product ? { items: { some: { productSlug: product } } } : {},
       minScore !== undefined || maxScore !== undefined ? { trustScore: { gte: minScore, lte: maxScore } } : {},
       q ? { OR: [
         { ref: { contains: q, mode: 'insensitive' } },
@@ -43,6 +55,6 @@ export async function GET(req: Request) {
         contact: { select: { name: true, email: true, company: true, region: true } }, _count: { select: { items: true, messages: true } } },
     }),
   ]);
-  await audit({ actorId: ctx.user.id, action: 'inquiry.list', meta: { page, status, minScore, maxScore, q: q ?? null }, ip: ctx.ip });
+  await audit({ actorId: ctx.user.id, action: 'inquiry.list', meta: { page, status, minScore, maxScore, product, assignee, hasQuery: !!q }, ip: ctx.ip });
   return NextResponse.json({ page, pageSize, total, items: rows }, { headers: noStore });
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { ID_RE, inquiryScope, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
@@ -12,6 +12,8 @@ type P = { params: Promise<{ id: string }> };
 export async function GET(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
+  const limited = adminRateLimit(req, 'inquiry.view');
+  if (limited) return limited;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
   const inq = await prisma.inquiry.findFirst({
@@ -22,11 +24,13 @@ export async function GET(req: Request, { params }: P) {
       messages: { orderBy: { createdAt: 'asc' } },
       notes: { orderBy: { createdAt: 'asc' } },
       assignee: { select: { id: true, name: true, email: true } },
+      logoUploads: { select: { id: true, width: true, height: true, bytes: true, createdAt: true }, orderBy: { createdAt: 'asc' } },
     },
   });
   if (!inq) return jsonErr('not_found', 404);
-  const { replyToken: _omit, ...safe } = inq; void _omit; // 回信 token 不下发
-  // TODO(#59 合并后)：附带 logoUploads: [{ id, width, height }]，前端用 /api/admin/uploads/:id 查看
+  const { replyToken: _omit, ...rest } = inq; void _omit; // 回信 token 不下发
+  // logoUploadId：第一个（通常唯一）logo，前端用 GET /api/admin/uploads/:id 预览
+  const safe = { ...rest, logoUploadId: inq.logoUploads[0]?.id ?? null };
   await audit({ actorId: ctx.user.id, action: 'inquiry.view', target: id, ip: ctx.ip });
   return NextResponse.json(safe, { headers: noStore });
 }
@@ -39,6 +43,8 @@ const Patch = z.object({
 export async function PATCH(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
+  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'inquiry.update', 60);
+  if (blocked) return blocked;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
   const json = await readJson(req, 2_000);

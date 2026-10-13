@@ -6,14 +6,16 @@ import { clientIp, readBody } from '@/lib/server/security';
 import { checkPassword } from '@/lib/server/admin/login';
 import { encrypt } from '@/lib/server/admin/crypto';
 import { audit } from '@/lib/server/admin/audit';
-import { jsonErr, noStore, sameOrigin } from '@/lib/server/admin/guard';
+import { jsonErr, noStore } from '@/lib/server/admin/guard';
+import { assertSameOrigin } from '@/lib/server/admin-guard';
 
 export const runtime = 'nodejs';
 const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200), password: z.string().min(1).max(200) });
 
 /** 第一步：用邮箱+密码换取 otpauth URI。仅限尚未开启 2FA 的账号；每次调用都会换新密钥，旧的作废。 */
 export async function POST(req: Request) {
-  if (!sameOrigin(req)) return jsonErr('bad_origin', 403);
+  const bad = assertSameOrigin(req);
+  if (bad) return bad;
   const ip = clientIp(req);
   const raw = await readBody(req, 4_000);
   let json: unknown = null; try { json = JSON.parse(raw ?? ''); } catch {}

@@ -4,14 +4,16 @@ import { prisma } from '@/lib/server/db';
 import { clientIp, readBody } from '@/lib/server/security';
 import { checkPassword, checkSecondFactor, hashCodes, newRecoveryCodes } from '@/lib/server/admin/login';
 import { audit } from '@/lib/server/admin/audit';
-import { jsonErr, noStore, sameOrigin } from '@/lib/server/admin/guard';
+import { jsonErr, noStore } from '@/lib/server/admin/guard';
+import { assertSameOrigin } from '@/lib/server/admin-guard';
 
 export const runtime = 'nodejs';
 const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200), password: z.string().min(1).max(200), totp: z.string().regex(/^\d{6}$/) });
 
 /** 第二步：提交验证器上的 6 位码确认绑定，开启 2FA，返回 10 个恢复码（只显示这一次）。 */
 export async function POST(req: Request) {
-  if (!sameOrigin(req)) return jsonErr('bad_origin', 403);
+  const bad = assertSameOrigin(req);
+  if (bad) return bad;
   const ip = clientIp(req);
   const raw = await readBody(req, 4_000);
   let json: unknown = null; try { json = JSON.parse(raw ?? ''); } catch {}
