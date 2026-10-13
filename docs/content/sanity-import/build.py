@@ -109,7 +109,8 @@ def related_md(url, loc):
         if ls: md += [f'## {HEAD[kind][loc]}'] + [f"- [{x['anchor'][:1].upper() + x['anchor'][1:]}]({x['to']})" for x in ls]
     return '\n'.join(md)
 
-LANDING = [f for f in sorted(ROOT.glob('*.md')) if f.name not in ('README.md', 'industries.md', 'internal-links.md')]
+# Landing sources are the #188 files that carry an internal key; other docs (FAQ drafts, proofreading, fact sheet) are skipped.
+LANDING = [f for f in sorted(ROOT.glob('*.md')) if f.name not in ('README.md', 'industries.md', 'internal-links.md') and '内部 key `' in f.read_text()]
 kept_products = []
 if not LANDING:
     # #188 landing sources not on this branch: keep the committed product lines as they are (no data invented, none dropped)
