@@ -17,7 +17,7 @@ header.site nav a{text-decoration:none}
 .btn.ghost:hover{border-color:var(--accent);background:transparent}
 .btn.sm{min-height:36px;padding:6px 14px;font-size:var(--fs-small)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-section.block{padding:64px 0}
+section.block{padding-top:64px;padding-bottom:64px}
 section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .theme-premium{background:var(--bg);color:var(--ink)}
 /* 首页 */
