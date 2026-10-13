@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 import type { Prisma, PrismaClient } from '@prisma/client';
 import { storage as defaultStorage, type PrivateStorage } from './storage';
 import { anonymizedContact, anonymizeInquiriesTx, deleteLogoFiles, ANON_TX_TIMEOUT_MS } from './privacy';
-import { BATCH_SIZE, inBatches, maxPerRun, daysAgo } from './retention';
+import { BATCH_SIZE, inBatches, maxPerRun, daysAgo, NO_DEADLINE } from './retention';
 import { assertNotLastActiveAdmin, LastAdminError } from './admin/last-admin';
 import { disableUserTx } from './admin/accounts';
 
@@ -21,7 +21,7 @@ export const expiredInquiryWhere = (now = new Date()) => ({ retainUntil: { lt: n
  * 联系人只有在其名下没有其他未匿名化询盘时才匿名化（同一客户较新的询盘不受影响）。
  * 每批 BATCH_SIZE（500）条，每次运行最多 RETENTION_MAX_PER_RUN。返回处理的询盘条数。
  */
-export async function anonymizeExpiredInquiries(db: PrismaClient, now = new Date(), cap = maxPerRun(), storage: PrivateStorage = defaultStorage) {
+export async function anonymizeExpiredInquiries(db: PrismaClient, now = new Date(), cap = maxPerRun(), storage: PrivateStorage = defaultStorage, deadline = NO_DEADLINE) {
   return inBatches(
     async (take) => (await db.inquiry.findMany({ where: expiredInquiryWhere(now), select: { id: true }, orderBy: { retainUntil: 'asc' }, take })).map((r) => r.id),
     async (ids) => {
@@ -39,7 +39,7 @@ export async function anonymizeExpiredInquiries(db: PrismaClient, now = new Date
       }, { timeout: ANON_TX_TIMEOUT_MS });
       await deleteLogoFiles(logos, storage); // 提交后再删文件
       return n;
-    }, cap);
+    }, cap, deadline);
 }
 
 /** 闲置判断：max(lastLoginAt, reactivatedAt, createdAt) 早于 cutoff；从未登录（lastLoginAt=null）按 createdAt 算 */
@@ -59,25 +59,33 @@ type AuditFn = (e: { actorId: string; action: string; target: string; meta: Pris
  * 闲置超过 ADMIN_INACTIVE_DAYS 的后台账号自动停用（不删除），走和手动停用同一路径（disableUserTx：会话失效 + 取消询盘分配），
  * 审计 actor = system。最后一个有效 ADMIN 不停用：检查和停用在同一事务里（assertNotLastActiveAdmin 用 SELECT … FOR UPDATE 锁有效 ADMIN 行）。
  */
-export async function disableInactiveUsers(db: PrismaClient, audit: AuditFn, now = new Date()) {
+export async function disableInactiveUsers(db: PrismaClient, audit: AuditFn, now = new Date(), deadline = NO_DEADLINE, clock: () => number = Date.now) {
   const days = adminInactiveDays();
   const cutoff = daysAgo(days, now);
-  const candidates = await db.user.findMany({ where: inactiveWhere(cutoff), select: { id: true }, orderBy: { createdAt: 'asc' }, take: BATCH_SIZE });
   let disabled = 0, skippedLastAdmin = 0;
-  for (const { id } of candidates) {
-    try {
-      const done = await db.$transaction(async (tx) => {
-        await assertNotLastActiveAdmin(tx, id);
-        // 锁内重新确认仍满足闲置条件（期间可能刚登录或被重新启用）
-        if (!(await tx.user.findFirst({ where: { id, ...inactiveWhere(cutoff) }, select: { id: true } }))) return false;
-        await disableUserTx(tx, id);
-        return true;
-      });
-      if (done) { disabled++; await audit({ actorId: 'system', action: 'user.disable_inactive', target: id, meta: { inactiveDays: days } }); }
-    } catch (e) {
-      if (e instanceof LastAdminError) { skippedLastAdmin++; continue; }
-      throw e;
+  const seen: string[] = []; // 本次已处理过（含因最后一个 ADMIN 被跳过）的 id，不再取，保证循环结束
+  // 每批 BATCH_SIZE 个候选，每批开始前和每个账号之前检查 deadline
+  while (clock() < deadline) {
+    const candidates = await db.user.findMany({ where: { ...inactiveWhere(cutoff), ...(seen.length ? { id: { notIn: seen } } : {}) }, select: { id: true }, orderBy: { createdAt: 'asc' }, take: BATCH_SIZE });
+    if (!candidates.length) break;
+    for (const { id } of candidates) {
+      if (clock() >= deadline) break;
+      seen.push(id);
+      try {
+        const done = await db.$transaction(async (tx) => {
+          await assertNotLastActiveAdmin(tx, id);
+          // 锁内重新确认仍满足闲置条件（期间可能刚登录或被重新启用）
+          if (!(await tx.user.findFirst({ where: { id, ...inactiveWhere(cutoff) }, select: { id: true } }))) return false;
+          await disableUserTx(tx, id);
+          return true;
+        });
+        if (done) { disabled++; await audit({ actorId: 'system', action: 'user.disable_inactive', target: id, meta: { inactiveDays: days } }); }
+      } catch (e) {
+        if (e instanceof LastAdminError) { skippedLastAdmin++; continue; }
+        throw e;
+      }
     }
+    if (candidates.length < BATCH_SIZE) break;
   }
   if (skippedLastAdmin) console.warn('[retention] inactive last ADMIN not disabled', { count: skippedLastAdmin });
   return disabled;

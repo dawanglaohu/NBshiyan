@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { prisma } from './db';
-import { retention, daysAgo, inBatches } from './retention';
+import { retention, daysAgo, inBatches, maxPerRun, NO_DEADLINE } from './retention';
 import { LOGO_ID_RE } from './uploads';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
@@ -117,12 +117,12 @@ export async function liveDesignIds(ids: string[]) {
 /** 定时清理：删掉过期超过宽限期且未被询盘引用的方案；以及询盘已删除（GDPR 到期）后留下的、曾被引用（expiresAt=null）的方案 */
 /** 可删除的方案（cleanupExpiredDesigns 和 dry run 共用条件） */
 export const expiredDesignsWhere = (now = new Date()) => ({ items: { none: {} }, OR: [{ expiresAt: { lt: daysAgo(retention.designGraceDays, now) } }, { expiresAt: null }] });
-export async function cleanupExpiredDesigns(now = new Date()) {
+export async function cleanupExpiredDesigns(now = new Date(), deadline = NO_DEADLINE) {
   const where = expiredDesignsWhere(now);
   // 分批：每批 ≤ 500，每次运行有总上限；删除时再带一次条件，避免删掉刚被询盘引用的方案
   return inBatches(
     async (take) => (await prisma.sharedDesign.findMany({ where, select: { id: true }, orderBy: { createdAt: 'asc' }, take })).map((r) => r.id),
-    async (ids) => (await prisma.sharedDesign.deleteMany({ where: { id: { in: ids }, ...where } })).count);
+    async (ids) => (await prisma.sharedDesign.deleteMany({ where: { id: { in: ids }, ...where } })).count, maxPerRun(), deadline);
 }
 
 /** /s/:id 的 canonical：指向对应分类落地页（按方案语言取 slug）；没有分类时指向产品总页 */

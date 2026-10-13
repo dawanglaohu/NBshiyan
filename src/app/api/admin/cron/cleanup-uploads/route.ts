@@ -3,14 +3,14 @@ import { prisma } from '@/lib/server/db';
 import { cleanupOrphanLogos, secretMatches } from '@/lib/server/uploads';
 import { sendAdminAlert, errorSummary } from '@/lib/server/mail';
 import { cleanupExpiredDesigns } from '@/lib/server/designs';
-import { cleanupAuditLogs, clearSampleCounters } from '@/lib/server/retention';
+import { cleanupAuditLogs, clearSampleCounters, maxPerRun, runCleanupSteps, runDeadlineMs } from '@/lib/server/retention';
 import { anonymizeExpiredInquiries, disableInactiveUsers } from '@/lib/server/retention-enforce';
 import { audit } from '@/lib/server/admin/audit';
 import { isRetentionDryRun, retentionDryRunCounts } from '@/lib/server/retention-dry-run';
 import { withCleanupLock } from '@/lib/server/cleanup-lock';
 
 export const runtime = 'nodejs';
-/** 函数最长运行时间（秒）。持锁事务超时 290s（LOCK_TX_TIMEOUT_MS），比这里短 10s。Vercel 各套餐上限见 launch-runbook.md；单次处理量由 RETENTION_MAX_PER_RUN 控制。 */
+/** 函数最长运行时间（秒）。持锁事务超时 290s（LOCK_TX_TIMEOUT_MS）；所有步骤共用的截止时间 RETENTION_RUN_DEADLINE_MS 默认 270s、最大 280s。Vercel 各套餐上限见 launch-runbook.md。 */
 export const maxDuration = 300;
 
 /**
@@ -36,25 +36,24 @@ async function handle(req: Request) {
         return NextResponse.json({ error: 'dry_run_failed' }, { status: 500 });
       }
     }
-    const steps: [string, () => Promise<number>][] = [
-      ['designs', () => cleanupExpiredDesigns()], // 先删过期方案，它们引用的 logo 随后才会被当作孤儿清理
-      ['deleted', () => cleanupOrphanLogos()],
-      ['sampleCounters', () => clearSampleCounters(prisma)],
-      ['inquiries', () => anonymizeExpiredInquiries(prisma)],
-      ['inactiveUsers', () => disableInactiveUsers(prisma, (e) => audit(e))],
-      ['auditLogs', () => cleanupAuditLogs(prisma)],
+    // 整次运行只算一次截止时间，所有步骤共用（见 runDeadlineMs）
+    const deadline = Date.now() + runDeadlineMs();
+    const steps: [string, (deadline: number) => Promise<number>][] = [
+      ['designs', (d) => cleanupExpiredDesigns(new Date(), d)], // 先删过期方案，它们引用的 logo 随后才会被当作孤儿清理
+      ['deleted', (d) => cleanupOrphanLogos(new Date(), d)],
+      ['sampleCounters', (d) => clearSampleCounters(prisma, new Date(), maxPerRun(), d)],
+      ['inquiries', (d) => anonymizeExpiredInquiries(prisma, new Date(), maxPerRun(), undefined, d)],
+      ['inactiveUsers', (d) => disableInactiveUsers(prisma, (e) => audit(e), new Date(), d)],
+      ['auditLogs', (d) => cleanupAuditLogs(prisma, new Date(), maxPerRun(), d)],
     ];
-    const result: Record<string, number> = {};
-    const failed: string[] = [];
-    for (const [name, run] of steps) {
-      try { result[name] = await run(); } catch (e) {
-        failed.push(name);
-        console.error(`[cron] cleanup step ${name} failed`, errorSummary(e));
-        await sendAdminAlert('定时清理失败', { 任务: `cleanup-uploads/${name}`, ...errorSummary(e) }, `cron:cleanup:${name}`);
-      }
-    }
-    if (failed.length) return NextResponse.json({ error: 'cleanup_failed', failed, ...result }, { status: 500 });
-    return NextResponse.json(result);
+    const s = await runCleanupSteps(steps, deadline, async (name, e) => {
+      console.error(`[cron] cleanup step ${name} failed`, errorSummary(e));
+      await sendAdminAlert('定时清理失败', { 任务: `cleanup-uploads/${name}`, ...errorSummary(e) }, `cron:cleanup:${name}`);
+    });
+    const summary = { ...s.result, skipped: s.skipped, deadlineReached: s.deadlineReached };
+    if (s.deadlineReached) console.warn('[cron] cleanup deadline reached', { skipped: s.skipped, counts: s.result });
+    if (s.failed.length) return NextResponse.json({ error: 'cleanup_failed', failed: s.failed, ...summary }, { status: 500 });
+    return NextResponse.json(summary);
   });
 }
 export { handle as GET, handle as POST };

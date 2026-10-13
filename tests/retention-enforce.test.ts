@@ -82,7 +82,7 @@ function userDb(users: U[]) {
     inquiry: { updateMany: async (a: any) => { unassigned.push(a.where.assigneeId); return { count: 0 }; } },
   };
   const db = {
-    user: { findMany: async (a: any) => { cutoff = a.where.createdAt.lt; return users.filter((u) => inactive(u, cutoff)).map((u) => ({ id: u.id })); } },
+    user: { findMany: async (a: any) => { cutoff = a.where.createdAt.lt; const skip: string[] = a.where.id?.notIn ?? []; return users.filter((u) => inactive(u, cutoff) && !skip.includes(u.id)).slice(0, a.take).map((u) => ({ id: u.id })); } },
     $transaction: async (fn: (t: typeof tx) => Promise<unknown>) => fn(tx),
   };
   return { db, unassigned };
@@ -118,9 +118,62 @@ test('ADMIN_INACTIVE_DAYS override; second inactive ADMIN disabled when another 
   assert.equal(users[1].disabled, true);
 });
 
-test('inBatches: stops starting new batches once the step time budget is used up', async () => {
+test('inBatches: stops starting new batches once the run deadline passes (checked before each batch)', async () => {
   const { inBatches } = await import('../src/lib/server/retention');
   let t = 0; let calls = 0;
   const n = await inBatches(async (take) => Array.from({ length: take }, (_, k) => `x${k}`), async (ids) => { calls++; t += 15_000; return ids.length; }, 20_000, 40_000, () => t);
-  assert.equal(calls, 3); assert.equal(n, 1500); // 0s、15s、30s 开始的批次跑完，45s 时超出 40s 预算停止
+  assert.equal(calls, 3); assert.equal(n, 1500); // 0s、15s、30s 开始的批次跑完；45s 时已过 40s 截止时间，不再开始
+});
+
+test('runCleanupSteps: one deadline shared by all steps; later steps skipped and reported', async () => {
+  const { runCleanupSteps } = await import('../src/lib/server/retention');
+  let t = 0; const got: number[] = [];
+  const step = (ms: number, n: number) => async (d: number) => { got.push(d); t += ms; return n; };
+  const errs: string[] = [];
+  const s = await runCleanupSteps([['a', step(100, 1)], ['b', async (d) => { got.push(d); t += 50; throw new Error('x'); }], ['c', step(900, 3)], ['d', step(1, 4)], ['e', step(1, 5)]], 1000, async (n) => { errs.push(n); }, () => t);
+  assert.deepEqual(got, [1000, 1000, 1000], 'same absolute deadline passed to every step that ran');
+  assert.deepEqual(s.result, { a: 1, c: 3 }); assert.deepEqual(s.failed, ['b']); assert.deepEqual(errs, ['b']);
+  assert.deepEqual(s.skipped, ['d', 'e']); assert.equal(s.deadlineReached, true);
+  t = 0;
+  const ok = await runCleanupSteps([['a', step(1, 1)]], 1000, async () => {}, () => t);
+  assert.deepEqual(ok, { result: { a: 1 }, failed: [], skipped: [], deadlineReached: false });
+});
+
+test('runDeadlineMs: default 270000, out-of-range ignored, always < 290s lock tx timeout', async () => {
+  const { runDeadlineMs } = await import('../src/lib/server/retention');
+  const { LOCK_TX_TIMEOUT_MS } = await import('../src/lib/server/cleanup-lock');
+  const env = process.env.RETENTION_RUN_DEADLINE_MS;
+  try {
+    delete process.env.RETENTION_RUN_DEADLINE_MS; assert.equal(runDeadlineMs(), 270_000);
+    for (const v of ['50000', '280000']) { process.env.RETENTION_RUN_DEADLINE_MS = v; assert.equal(runDeadlineMs(), Number(v)); }
+    for (const v of ['290000', '999999', '5000', 'abc', '-1']) { process.env.RETENTION_RUN_DEADLINE_MS = v; assert.equal(runDeadlineMs(), 270_000, v); }
+    assert.ok(280_000 < LOCK_TX_TIMEOUT_MS);
+  } finally { if (env === undefined) delete process.env.RETENTION_RUN_DEADLINE_MS; else process.env.RETENTION_RUN_DEADLINE_MS = env; }
+});
+
+test('cleanupOrphanLogos: batched, checks the deadline between batches', async () => {
+  const { cleanupOrphanLogos, ORPHAN_BATCH } = await import('../src/lib/server/uploads');
+  const rows = Array.from({ length: ORPHAN_BATCH * 3 }, (_, k) => ({ id: `l${k}`, path: `logos/2026-10/abcdefgh${String(k).padStart(4, '0')}.png` }));
+  let t = 0; const files: string[] = [];
+  const db = { logoUpload: {
+    findMany: async (a: { take: number }) => rows.slice(0, a.take),
+    deleteMany: async (a: { where: { id: string } }) => { const i = rows.findIndex((r) => r.id === a.where.id); if (i < 0) return { count: 0 }; rows.splice(i, 1); t += 1; return { count: 1 }; },
+  } };
+  // 每条 1ms，每批 200ms；截止 250ms：第 1 批（0ms 开始）、第 2 批（200ms 开始）跑完，第 3 批（400ms）不开始
+  const n = await cleanupOrphanLogos(new Date(), 250, { db: db as never, storage: { delete: async (k: string) => { files.push(k); } }, clock: () => t });
+  assert.equal(n, ORPHAN_BATCH * 2); assert.equal(rows.length, ORPHAN_BATCH); assert.equal(files.length, ORPHAN_BATCH * 2);
+  assert.equal(await cleanupOrphanLogos(new Date(), 0, { db: db as never, storage: { delete: async () => {} }, clock: () => t }), 0, 'past deadline: nothing fetched');
+});
+
+test('disableInactiveUsers: batched over all candidates, stops at the shared deadline', async () => {
+  const mk = (k: number): U => ({ id: `s${k}`, role: 'SALES', disabled: false, createdAt: ago(400), lastLoginAt: null, reactivatedAt: null, sessionVersion: 0 });
+  const users: U[] = [{ id: 'adm', role: 'ADMIN', disabled: false, createdAt: ago(1), lastLoginAt: ago(1), reactivatedAt: null, sessionVersion: 0 }, ...Array.from({ length: 1100 }, (_, k) => mk(k))];
+  const { db } = userDb(users);
+  assert.equal(await disableInactiveUsers(db as never, async () => {}, NOW), 1100, 'more than one batch of 500 processed');
+  const more: U[] = [users[0], ...Array.from({ length: 10 }, (_, k) => mk(k))];
+  const r = userDb(more);
+  let t = 0;
+  const n = await disableInactiveUsers(r.db as never, async () => { t += 10; }, NOW, 35, () => t);
+  assert.equal(n, 4); // 0、10、20、30ms 时开始的账号处理完；40ms 已过 35ms 截止时间
+  assert.equal(await disableInactiveUsers(r.db as never, async () => {}, NOW, 0, () => 1), 0, 'past deadline: nothing fetched');
 });
