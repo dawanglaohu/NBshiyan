@@ -21,6 +21,8 @@ jobs:
         run: node scripts/check-model-size.mjs
       - name: 模型和封面路径必须存在（products.ts）
         run: node scripts/check-model-refs.mjs
+      - name: 后台接口必须鉴权
+        run: node scripts/check-admin-guard.mjs
       - run: pnpm build
       - name: Lighthouse 性能门槛
         run: |
