@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { switchPath, safeLocaleHref, switchHref } from '../src/lib/i18n/localeSwitch';
+import { switchPath, safeLocaleHref, switchHref, langSwitchTarget } from '../src/lib/i18n/localeSwitch';
 import { categoryMeta } from '../src/lib/seo/categoryMeta';
 
 const c = categoryMeta[0];
@@ -56,4 +56,20 @@ test('valid hrefs pass', () => {
   assert.equal(safeLocaleHref('/ru/articles/privet', 'ru'), '/ru/articles/privet');
   assert.equal(safeLocaleHref('/en/products', 'ru'), '/ru', 'wrong locale');
   assert.equal(switchHref('/', 'en', 'ru'), '/ru');
+});
+
+test('malformed % and control/traversal inputs fall back to target home', () => {
+  assert.equal(switchHref('/articles/%E0%A4%A', 'en', 'ru'), '/ru');
+  assert.equal(switchHref('/products/%zz', 'en', 'ru'), '/ru');
+  for (const bad of ['/ru/a\tb', '/ru/a\nb', '/ru/a%09b', '/ru/a%0ab', '/ru/%2e%2e/x', '/ru/%2E%2E', '\\evil', '\\evil.com', '/ru/%'])
+    assert.equal(safeLocaleHref(bad, 'ru'), '/ru', JSON.stringify(bad));
+  for (const bad of ['/ru/a\tb', '/ru/%2e%2e', '\\evil'])
+    assert.equal(switchHref('/articles/a', 'en', 'ru', { ru: bad }), '/ru', JSON.stringify(bad));
+});
+
+test('LangLink target: query+hash dropped when the path changes, kept when it does not', () => {
+  assert.equal(langSwitchTarget('/articles/hello', 'en', 'ru', { ru: '/articles/privet' }, '?utm=x#sec'), '/articles/privet');
+  assert.equal(langSwitchTarget('/products/nope', 'en', 'ru', null, '?q=1#h'), '/products');
+  assert.equal(langSwitchTarget('/contact', 'en', 'ru', null, '?x=1#f'), '/contact?x=1#f');
+  assert.equal(langSwitchTarget('/contact', 'en', 'ru', null, '//evil.com'), '/contact', 'suffix must start with ? or #');
 });

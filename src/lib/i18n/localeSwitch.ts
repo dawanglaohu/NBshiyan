@@ -24,7 +24,8 @@ export function switchPath(pathname: string, from: Loc, to: Loc, alternates?: Lo
     return section ?? '/';
   }
   if (!section) return path;
-  const slug = decodeURIComponent(path.slice(section.length + 1).split('/')[0]);
+  let slug: string;
+  try { slug = decodeURIComponent(path.slice(section.length + 1).split('/')[0]); } catch { return '/'; } // 非法 % 编码 → 目标语言首页
   if (section === '/products' && live) { // 品类落地页未上线时目标页也不存在，回退到列表页
     const c = meta.find((m) => m[from].slug === slug);
     if (c) return `/products/${c[to].slug}`;
@@ -49,4 +50,15 @@ export function safeLocaleHref(href: string, to: Loc): string {
 export function switchHref(pathname: string, from: Loc, to: Loc, alternates?: LocaleAlternates | null, meta?: CategoryMeta[], live?: boolean): string {
   const p = switchPath(pathname, from, to, alternates, meta, live);
   return safeLocaleHref(`/${to}${p === '/' ? '' : p}`, to);
+}
+
+/**
+ * LangLink 用的最终目标（不含 locale 前缀，交给 next-intl）：路径变了就丢掉 ?query/#hash，
+ * 只有路径不变时才保留 suffix（suffix 只会接在已校验的路径后面，不参与生成路径）。
+ */
+export function langSwitchTarget(pathname: string, from: Loc, to: Loc, alternates: LocaleAlternates | null | undefined, suffix: string): string {
+  const full = switchHref(pathname, from, to, alternates);
+  const target = full.slice(3) || '/';
+  const tail = /^[?#]/.test(suffix) ? suffix : '';
+  return target === pathname ? target + tail : target;
 }
