@@ -5,6 +5,8 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
+import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
+import { SITE_URL } from '@/lib/site';
 import '../globals.css';
 
 // 只加载拉丁和西里尔子集，控制字体体积
@@ -20,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t('title'),
     description: t('description'),
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000')
+    metadataBase: new URL(SITE_URL)
   };
 }
 
@@ -32,6 +34,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   return (
     <html lang={locale} className={manrope.variable}>
       <body>
+        <OrganizationJsonLd locale={locale} />
         <NextIntlClientProvider>
           <header className="site">
             <strong>PackJoyU</strong>
