@@ -48,18 +48,43 @@
 **询盘里的 `logoUploadId`（可选）**：必须存在、没过期、没绑定过，否则整条询盘不入库，返回 `422 { "error": "logo_invalid" }`，前端应提示重新上传 logo。绑定是原子条件更新，同一个 `uploadId` 只能绑定一次。
 
 ### `GET /api/models`
-已上架模型列表：`productSlug, category, sortOrder, glbUrl, lodUrl, posterUrl, animated, customizable`。
+已上架（`published=true` 且 `status=READY`）的模型列表，`Cache-Control: public, max-age=60`：
+`{ items: [{ id, productSlug, category, sortOrder, animated, customizable, glbUrl, lodUrl, posterUrl }] }`。
+文件地址形如 `/api/models/:id/glb?v=版本`（`lod`、`poster` 同理），只对已上架模型返回，否则 404；`Cache-Control: public, max-age=300`。gltf-progressive 按主 GLB 里记录的相对路径请求 `/api/models/:id/<名称>.lod0.glb`，服务端映射到 lod 文件。
 
-## 后台接口（`/api/admin/*`，需登录，按角色校验）
-- `GET /inquiries?status=&region=&product=&minScore=`，业务员只能看到分给自己的
-- `GET /inquiries/:id`，`PATCH /inquiries/:id`（状态、分配）
-- `POST /inquiries/:id/reply`（按客户语言发信，存入往来记录）
-- `POST /inquiries/:id/notes`
-- `PATCH /samples/:id`
-- `POST /models`（拿上传地址）、`POST /models/:id/process`、`PATCH /models/:id`
-- `GET|PUT /settings/:key`
-- `GET /stats`
-- `GET /uploads/:id`：查看询盘 logo（重新编码后的 PNG），响应头 `Content-Disposition: inline`、`X-Content-Type-Options: nosniff`、`Cache-Control: private, no-store`。后台登录还没做，现在生产环境一律 401；开发环境设置 `ADMIN_DEV_TOKEN` 后带请求头 `x-admin-dev-token` 可访问（TODO：接 Auth.js）。
+## 后台登录（Auth.js v5，Credentials + 强制 TOTP）
+- 创建账号：`ADMIN_SEED_EMAIL=… ADMIN_SEED_NAME=… ADMIN_SEED_PASSWORD=… [ADMIN_SEED_ROLE=SALES] pnpm admin:create`（密码 ≥12 位，argon2id 哈希；凭据只走环境变量）。
+- 绑定 2FA（账号未开 2FA 前不能登录，两步都要同源 `Origin`；接口在 `/api/auth-admin/` 下，不在 `/api/admin/` 下，因为这是登录前流程）：
+  1. `POST /api/auth-admin/enroll` `{ email, password }` → `{ otpauthUri }`（每次调用换新密钥；已开启的账号返回 401）。
+  2. `POST /api/auth-admin/enroll/confirm` `{ email, password, totp }` → `{ recoveryCodes: [10 个] }`，只返回这一次，服务端只存哈希。
+- 登录：Auth.js 标准流程，`GET /api/auth/csrf` 取 token，再 `POST /api/auth/callback/credentials`（表单字段 `csrfToken, email, password, totp` 或 `recoveryCode`）。任何一步失败统一返回 `CredentialsSignin`，不区分原因。
+- 会话：JWT，2 小时有效；cookie HttpOnly、SameSite=Lax，生产强制 Secure（`__Secure-` 前缀）。每次请求核对 `User.sessionVersion`、禁用、2FA 状态，不一致即失效（改密码/重置 2FA 时调用 `revokeSessions()`）。
+- 防爆破：10 分钟内 IP+账号 5 次、单账号 10 次、单 IP 30 次；同一账号连续 5 次失败锁定 15 分钟。TOTP 同一时间步只能用一次，恢复码用后作废。
+- 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enabled`，不记密码、验证码、token。
+
+## 后台接口（`/api/admin/*`）
+每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录 401 `unauthorized`，角色不符 403 `forbidden`。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `adminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
+角色：`ADMIN` 全部可见；`SALES` 只能看和操作分配给自己的询盘，不能改分配；`EDITOR` 无询盘权限。
+
+- `GET /api/admin/users` → `{ items: [{ id, name, email, role }] }`。ADMIN 拿到所有未禁用的 ADMIN/SALES（分配下拉框用）；SALES 只拿到自己。
+- `GET /api/admin/inquiries` → `{ items, total, page, pageSize }`。参数（都可选）：
+  - `page`（默认 1）、`pageSize`（默认 20，最大 100）
+  - `q`：搜编号、留言、联系人姓名/邮箱/公司
+  - `from`、`to`：创建时间区间，ISO 日期或时间；`to` 只给日期（如 `2026-10-13`）时包含当天
+  - `status`：`NEW | FOLLOWING | QUOTED | WON | INVALID`
+  - `minScore`、`maxScore`：可信度 0–100
+  - `product`：产品 slug，询盘任一产品匹配即可
+  - `assignee`：`me` | `none`（未分配）| 用户 id。SALES 无论传什么都只看到自己的
+  - `items[]`：`{ id, ref, status, source, locale, trustScore, ipCountry, createdAt, assigneeId, contact: { name, email, company, region }, _count: { items, messages } }`。参数非法返回 400 `invalid`。
+- `GET /api/admin/inquiries/:id` → 询盘全部字段（不含 `replyToken`）+ `contact, items, messages, notes, sample, assignee, logoUploads: [{ id, width, height, bytes, createdAt }]`，以及 `logoUploadId`（第一个 logo 的 id，没有为 `null`）。
+- `GET /api/admin/uploads/:id` → logo 图片（PNG）。`Content-Disposition: inline`、`X-Content-Type-Options: nosniff`、`Cache-Control: private, no-store`，带会话 cookie 直接用作 `<img src>`。ADMIN 都能看；SALES 只能看分配给自己的询盘上的 logo，其他一律 404。
+- `PATCH /api/admin/inquiries/:id` `{ status?, assigneeId? }`（`assigneeId` 仅 ADMIN，可为 `null`）→ `{ id, status, assigneeId, updatedAt }`。
+- `POST /api/admin/inquiries/:id/reply` `{ subject ≤200, body ≤20000 纯文本 }` → 201 新的 `InquiryMessage`。正文全部转义、换行转 `<br>`，主题去换行；配置 `REPLY_DOMAIN` 后 Reply-To 为 `reply+<token>@域名`。发信失败返回 502 `mail_failed`，不入库。
+- `POST /api/admin/inquiries/:id/notes` `{ body ≤5000 }` → 201 新备注。
+
+### 规划中
+- `PATCH /samples/:id`、`GET|PUT /settings/:key`、`GET /stats`
+- 改密码、重置 2FA、账号管理接口（需调用 `revokeSessions()`）
 
 ## 定时任务
 - `GET|POST /api/admin/cron/cleanup-uploads`：删除超过 24 小时未绑定询盘的 logo（文件和记录）。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
@@ -67,9 +92,42 @@
 ## 待定
 - 客户回信自动归档：需要正式域名后接 Resend 收信。
 
-## 模型处理状态
-`GET /api/admin/models/:id` 返回 `status` 和 `checks`：
+## 后台模型管理（`/api/admin/models`，ADMIN / EDITOR）
+流程对应 PRD 第 9 节：**上传 → 处理中 → 预览确认 → 上架**。鉴权、同源、限流同其他后台接口；每步写 AuditLog（`model.upload / update / process / publish / unpublish / delete`）。
+
+1. **上传** `POST /api/admin/models`，`multipart/form-data`：
+   - `file`（必填）：GLB，按文件头 `glTF` v2 判断，≤ 1.5MB（超出 413，不是 GLB 415）
+   - `lod`（可选）：gltf-progressive 高精度层 `*.lod0.glb`，≤ 1MB。主 GLB 声明了 `NEEDLE_progressive` 时必填
+   - `poster`（可选）：PNG/JPEG/WebP ≤ 512KB，重新编码为 WebP（最长边 1024）
+   - `productSlug`、`category`（必填），`animated`（`true|false`，默认 false），`sortOrder`
+   - 返回 201 模型对象（含 `status`、`checks`）。服务端只做静态检查，**不压缩**，上传的文件需已用 Draco/meshopt + KTX2 处理好。
+2. **处理中**：上传后同步跑检查，`status` 由 `PROCESSING` 变为 `READY`（所有 error 级检查通过）或 `FAILED`（`error` 字段列出未通过的 key）。`POST /api/admin/models/:id/process` 可重新检查。
+3. **预览** `GET /api/admin/models/:id/file?variant=glb|lod|poster`：后台私有预览（`private, no-store`），未上架也能看。
+4. **上架** `POST /api/admin/models/:id/publish` `{ "published": true|false }`。只有 `READY` 能上架，否则 409 `not_ready`；同一 `productSlug` 只保留一个上架版本，上架新版本会自动下架旧版本，返回 `replaced: [旧 id]`。
+
+其他：
+- `GET /api/admin/models?status=&product=&published=` → `{ items }`；`GET /api/admin/models/:id` → 模型对象
+- `PATCH /api/admin/models/:id` `{ productSlug?, category?, sortOrder?, animated?, customizable? }`；改 `animated` 会自动重新检查
+- `DELETE /api/admin/models/:id`：只能删未上架的（否则 409 `published`），文件一起删除
+
+模型对象：`{ id, productSlug, category, sortOrder, published, publishedAt, status, sizeBytes, animated, customizable, checks, triangles, animations, uploadedBy, error, hasLod, hasPoster, createdAt, updatedAt }`（不含存储路径）。
+
+### `checks` 格式
 ```json
-[{ "key": "format", "ok": true, "detail": "glTF 2.0 binary" }, { "key": "size", "ok": false, "detail": "1.24MB / 1MB" }]
+[{ "key": "format", "ok": true, "detail": "glTF 2.0 binary，2 个网格", "severity": "error" },
+ { "key": "size", "ok": false, "detail": "1.24MB / 1.00MB", "severity": "error" }]
 ```
-`key` 取值 `format | compress | lod | size`，前端按顺序显示。
+`severity`：`error` 未通过时不能上架；`warn` 只提示。`key` 按以下顺序返回：
+
+| key | 内容 | 规则 |
+|---|---|---|
+| `format` | GLB 容器和 JSON | glTF 2.0；只允许白名单扩展（Draco、meshopt、KTX2、WebP 贴图、常用材质扩展、`NEEDLE_progressive`）；buffers/images 的 `uri` 只允许 `data:`，其他（http、相对路径等）在解析前即拒绝 |
+| `compress` | 几何、贴图压缩 | 几何必须 Draco 或 meshopt；贴图非 KTX2 时在 detail 里提示 |
+| `size` | 体积 | ≤ 1MB，`animated` 时 ≤ 1.5MB |
+| `triangles` | 三角面数（按 accessor 声明） | 1 – 100,000 |
+| `textures` | 贴图数量和尺寸（读 KTX2/图片文件头） | 每边 ≤ 2048；有非 KTX2 贴图时为 warn |
+| `animation` | 动画名称 | `animated` 时必须有 `Open`；否则仅提示（warn） |
+| `bounds` | 包围盒（POSITION min/max，未计节点缩放） | 最长边 0.01–5 m，否则 warn（单位可能不对） |
+| `lod` | 高精度层 | 有则检查格式、≤ 1MB、贴图；没有且主文件用了 `NEEDLE_progressive` 时 error，否则 warn |
+
+安全：只解析 GLB 容器、JSON 和贴图文件头，不解码 Draco/meshopt、不执行任何内容、不访问外部地址；文件存私有存储（`storage/`，以后换 R2），只通过上述接口按状态提供。

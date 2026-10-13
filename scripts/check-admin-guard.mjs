@@ -1,10 +1,10 @@
 // CI 门禁：src/app/api/admin/** 下每个 route.ts 都必须调用鉴权函数。
-// 允许：requireAdmin(（正式后台会话）、isAdminPlaceholder(（接入登录前的占位）、secretMatches(（定时任务 CRON_SECRET）。
+// 允许：requireAdmin(（正式后台会话）、secretMatches(（定时任务 CRON_SECRET）。
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = 'src/app/api/admin';
-const GUARDS = ['requireAdmin(', 'isAdminPlaceholder(', 'secretMatches('];
+const GUARDS = ['requireAdmin(', 'secretMatches('];
 
 function walk(dir) {
   return readdirSync(dir).flatMap((n) => {

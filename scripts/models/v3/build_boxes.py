@@ -4,7 +4,7 @@ import numpy as np
 from mathutils import Vector, Matrix
 argv = sys.argv[sys.argv.index('--')+1:]
 WHICH, OUT = argv[0], argv[1]
-TEX = os.environ.get('TEX_DIR', 'tex/')
+TEX = os.environ.get("TEX_DIR", os.path.join(os.path.dirname(__file__), "tex"))
 rng = np.random.default_rng(7)
 
 def reset():
@@ -41,7 +41,7 @@ def img(name, arr):
     im = bpy.data.images.new(name, n, n, alpha=True); im.pixels.foreach_set(np.flipud(rgba).astype(np.float32).ravel())
     im.filepath_raw = f'/tmp/{name}.png'; im.file_format = 'PNG'; im.save(); return im
 def paper_set(name, col, var, n=512, fib=0.5, nstr=3.0, rough=(.85, .05)):
-    h = fbm(n, 6, 5)*.6 + fibers(n, 2500, 14)*fib
+    h = fbm(n, 6, 5)*.45 + fbm(n, 60, 5, 1.2)*.25 + fibers(n, 2500, 14)*fib
     c = np.array(col)[None, None, :]*(1 - var*.5 + var*(h[..., None]))
     r = np.clip(rough[0] + (h - .5)*rough[1], 0, 1)
     orm = np.stack([np.ones_like(r), r, np.zeros_like(r)], -1)
@@ -97,7 +97,7 @@ def boxes(name, specs, m, parent=None, uvs=1.0, bevel=0):
     for s in specs: v, f = box_geo(*s, off=len(V)); V += v; F += f
     o = obj_from(name, V, F, m, parent, uvs=uvs)
     if bevel:
-        md = o.modifiers.new('bev', 'BEVEL'); md.width = bevel; md.segments = 2; md.limit_method = 'ANGLE'
+        md = o.modifiers.new('bev', 'BEVEL'); md.width = bevel; md.segments = 3; md.limit_method = 'ANGLE'; md.harden_normals = True
         o.modifiers.new('wn', 'WEIGHTED_NORMAL')
     return o
 def plane(name, center, normal_axis, sign, w, h, m, parent=None):
@@ -106,8 +106,7 @@ def plane(name, center, normal_axis, sign, w, h, m, parent=None):
     if normal_axis == 'y':
         d = [(cx + sign*w/2, cy, cz - h/2), (cx - sign*w/2, cy, cz - h/2), (cx - sign*w/2, cy, cz + h/2), (cx + sign*w/2, cy, cz + h/2)]
     elif normal_axis == 'x':
-        d = [(cx, cy + sign*w/2, cz - h/2), (cx, cy - sign*w/2, cz - h/2), (cx, cy - sign*w/2, cz + h/2), (cx, cy + sign*w/2, cz + h/2)]
-        d = [(cx, cy - sign*w/2 * -1, z) if False else p for p, z in zip(d, [0]*4)]
+        d = [(cx, cy - sign*w/2, cz - h/2), (cx, cy + sign*w/2, cz - h/2), (cx, cy + sign*w/2, cz + h/2), (cx, cy - sign*w/2, cz + h/2)]
     else:  # z up
         d = [(cx - w/2, cy - h/2, cz), (cx + w/2, cy - h/2, cz), (cx + w/2, cy + h/2, cz), (cx - w/2, cy + h/2, cz)]
     if normal_axis == 'y' and sign < 0: f = [(0, 1, 2, 3)]
@@ -218,10 +217,10 @@ def build_corrugated():
     # walls: panel local x=width, y=height, z=outward
     wall('WallFront', (-W/2, -D/2 + t/2, 0), (math.radians(90), 0, 0), W, H)
     e = wall('WallBack', (W/2, D/2 - t/2, 0), (math.radians(90), 0, math.radians(180)), W, H)
-    wall('WallRight', (W/2 - t/2, -D/2, 0), (math.radians(90), 0, math.radians(90)), D, H)
-    wall('WallLeft', (-W/2 + t/2, D/2, 0), (math.radians(90), 0, math.radians(-90)), D, H)
+    wall('WallRight', (W/2 - t/2, -D/2 + t, 0), (math.radians(90), 0, math.radians(90)), D - 2*t, H)
+    wall('WallLeft', (-W/2 + t/2, D/2 - t, 0), (math.radians(90), 0, math.radians(-90)), D - 2*t, H)
     # bottom (closed flaps, simplified as a panel)
-    b = empty('Bottom', (-W/2, -D/2, t/2), root); corr_panel('Bottom', W, D, m_in, m_in, m_fl, b, flutes=False)
+    b = empty('Bottom', (-W/2 + t, -D/2 + t, t/2), root); corr_panel('Bottom', W - 2*t, D - 2*t, m_in, m_in, m_fl, b, flutes=False)
     # top flaps: hinge at top edge of each wall; flap local: x along hinge, y away from hinge, z normal (up when closed)
     flaps = []
     def flap(name, hinge, rotz, w, L, zoff):
@@ -229,10 +228,10 @@ def build_corrugated():
         corr_panel(name, w, L, m_out, m_flap_k, m_flap_k, e, origin=(-w/2, 0, zoff))
         return e
     # minor flaps (left/right) underneath, major flaps (front/back) on top, meeting in middle
-    fL = flap('FlapLeft', (-W/2 + t/2, 0, H), math.radians(-90), D - .004, W/2*0 + D/2 - .002, -t)  # minor flap depth = D/2
-    fR = flap('FlapRight', (W/2 - t/2, 0, H), math.radians(90), D - .004, D/2 - .002, -t)
-    fF = flap('FlapFront', (0, -D/2 + t/2, H), 0, W, D/2 - .001, 0)
-    fB = flap('FlapBack', (0, D/2 - t/2, H), math.radians(180), W, D/2 - .001, 0)
+    fL = flap('FlapLeft', (-W/2 + t/2, 0, H), math.radians(-90), D - 2*t - .002, D/2 - .002, t/2)  # minor flap depth = D/2，压在箱壁顶边上
+    fR = flap('FlapRight', (W/2 - t/2, 0, H), math.radians(90), D - 2*t - .002, D/2 - .002, t/2)
+    fF = flap('FlapFront', (0, -D/2 + t/2, H), 0, W, D/2 - t/2 - .001, 1.5*t)
+    fB = flap('FlapBack', (0, D/2 - t/2, H), math.radians(180), W, D/2 - t/2 - .001, 1.5*t)
     # closed: flaps lie flat (rotation about local x = 0). Our flap local y points inward. Open: rotate outward about hinge.
     # store rotation via parent euler: hinge axis is local X; use rotation_mode with delta via child empties
     for e in (fL, fR, fF, fB):
@@ -247,7 +246,7 @@ def build_corrugated():
     # print decals on long sides + label + tape strip (on closed major flaps; tape moves with front flap half)
     plane('PrintFront', (0, -D/2 - .0004, H*.55), 'y', -1, .36, .18, m_print, root)
     plane('PrintBack', (0, D/2 + .0004, H*.55), 'y', 1, .36, .18, m_print, root)
-    plane('Label', (W*.22, -D/2 - .0006, H*.28), 'y', -1, .12, .09, m_label, root)
+    plane('Label', (W/2 + .0006, 0, H*.45), 'x', 1, .12, .09, m_label, root)
     export('corrugated-box.glb')
 
 def rigid_tray(name, W, D, H, wall, m_outer, m_inner, parent, bevel=.0015, top_down=False):
@@ -255,7 +254,7 @@ def rigid_tray(name, W, D, H, wall, m_outer, m_inner, parent, bevel=.0015, top_d
     s = -1 if top_down else 1
     z0 = 0
     outer = boxes(name+'_wrap', [
-        (0, 0, s*wall/2, W, D, wall),
+        (0, 0, s*wall/2, W - 2*wall, D - 2*wall, wall),
         (0, -D/2 + wall/2, s*H/2, W, wall, H), (0, D/2 - wall/2, s*H/2, W, wall, H),
         (-W/2 + wall/2, 0, s*H/2, wall, D - 2*wall, H), (W/2 - wall/2, 0, s*H/2, wall, D - 2*wall, H)], m_outer, parent, uvs=2, bevel=bevel)
     inner = boxes(name+'_lining', [
@@ -268,12 +267,12 @@ def build_gift():
     reset()
     W, D, H, wall = .26, .26, .10, .0025
     LH = .045; gap = .0012; LW = W + 2*(wall + gap)
-    dark = paper_set('darkpaper', (0.035, 0.035, 0.04), .4, fib=.25, nstr=.2, rough=(.6, .08))
+    dark = paper_set('darkpaper', (0.24, 0.235, 0.25), .35, fib=.25, nstr=.5, rough=(.66, .12))
     m_dark = mat('DarkTexturedPaper', texset=dark)
     m_inner = mat('InnerPaper', col=(0.02, 0.02, 0.022), rough=.95)
     velvet = paper_set('velvet', (0.07, 0.065, 0.07), .4, fib=0, nstr=1.0, rough=(.95, .05))
     m_vel = mat('BlackVelvetInsert', texset=velvet)
-    m_gold = mat('GoldFoil', col=(0.95, 0.76, 0.40), rough=.3, metal=1, alpha_img=load('gift_foil.png'))
+    m_gold = mat('GoldFoil', col=(0.95, 0.76, 0.40), rough=.30, metal=1, alpha_img=load('gift_foil.png'))
     m_satin = mat('GoldSatinRibbon', col=(0.78, 0.56, 0.24), rough=.35, metal=1)
     root = empty('GiftBox', (0, 0, 0))
     base = empty('Base', (0, 0, 0), root)
@@ -284,49 +283,44 @@ def build_gift():
     bo = ins.modifiers.new('cav', 'BOOLEAN'); bo.object = cut; bo.operation = 'DIFFERENCE'; bo.solver = 'EXACT'
     cut.hide_set(True); cut.hide_render = True
     bpy.context.view_layer.objects.active = ins; ins.select_set(True); bpy.ops.object.modifier_apply(modifier='cav'); bpy.data.objects.remove(cut)
-    # lid (天地盖): origin at top surface, walls hang down
-    lid = empty('Lid', (0, 0, H + wall + .0005), root)
-    rigid_tray('Lid', LW, LW, LH, wall, m_dark, m_inner, lid, top_down=False)
-    # flip: lid tray built open-top; mirror so it's open-bottom
-    for c in lid.children: c.scale.z = -1; c.location.z = wall
-    plane('LidFoil', (0, 0, wall + .0003), 'z', 1, LW*.92, LW*.92, m_gold, lid)
-    # ribbon band around lid + flat bow at corner
-    rw = .018
-    boxes('Ribbon', [(LW*.32, 0, wall + .0006, rw, LW + .002, .0008), (LW*.32, -LW/2 - .0005, wall - LH/2, rw, .0008, LH), (LW*.32, LW/2 + .0005, wall - LH/2, rw, .0008, LH)], m_satin, lid)
-    # bow: two flattened loops made from lathe torus-ish
+    # lid (天地盖)：empty 在盖顶面；顶板 z∈[-wall,0]，裙边向下 LH；顶板下表面正好压在底盒口沿 z=H 上
+    lid = empty('Lid', (0, 0, H + wall + .0003), root)
+    rigid_tray('Lid', LW, LW, LH, wall, m_dark, m_inner, lid, top_down=True, bevel=.002)
+    plane('LidFoil', (0, 0, .0003), 'z', 1, LW*.86, LW*.86, m_gold, lid)
+    rw = .018; rx = LW*.38
+    boxes('Ribbon', [(rx, 0, .0005, rw, LW + .0016, .0008), (rx, -LW/2 - .0004, -LH/2, rw, .0008, LH), (rx, LW/2 + .0004, -LH/2, rw, .0008, LH)], m_satin, lid)
     for sgn in (-1, 1):
-        prof = [(.012 + .006*math.cos(a), .003*math.sin(a)) for a in np.linspace(0, 2*math.pi, 10)]
-        o = lathe('BowLoop', prof, m_satin, seg=24, parent=lid, loc=(0, 0, 0))
-        o.scale = (1.5, .55, 1); o.location = (LW*.32, sgn*.022, wall + .004); o.rotation_euler = (sgn*math.radians(12), 0, math.radians(90))
-    boxes('BowKnot', [(LW*.32, 0, wall + .004, .02, .012, .007)], m_satin, lid, bevel=.002)
-    # animation: lift, tilt, set aside
-    fr = [0, 6, 12, 18, 24]
-    top = H + wall + .0005
-    locs = [(0, 0, top), (0, 0, top + .03), (0, 0, top + .09), (.10, .07, top + .08), (.25, .10, LH - top*0 + .0)]
-    locs[-1] = (.20, .14, LH)  # resting beside base, top face up
-    key_loc(lid, fr, locs); key_rot(lid, fr, 'x', [0, 0, -6, -10, 0])
+        prof = [(.012 + .0045*math.cos(a), .0025*math.sin(a)) for a in np.linspace(0, 2*math.pi, 10)]
+        o = lathe('BowLoop', prof, m_satin, seg=24, parent=lid)
+        o.scale = (1.4, .6, 1); o.location = (rx, sgn*.021, .0045); o.rotation_euler = (sgn*math.radians(14), 0, math.radians(90))
+    boxes('BowKnot', [(rx, 0, .004, .021, .013, .007)], m_satin, lid, bevel=.002)
+    # 动画：抬起 → 后移翻转 → 立靠在底盒后方（盖面朝前，全程在画面内，不与底盒相交）
+    fr = [0, 6, 12, 18, 24]; top = H + wall + .0003
+    key_loc(lid, fr, [(0, 0, top), (0, 0, top + .05), (0, .06, top + .10), (0, .13, .19), (0, .157, .1415)])
+    key_rot(lid, fr, 'x', [0, 0, 25, 60, 80])
     export('gift-box.glb')
 
 def build_wine():
     reset()
     W, D, H, wall = .115, .115, .36, .0025
     BH = .29; LH = H - BH  # base height; lid = top cap + back + front flap
-    dark = paper_set('winepaper', (0.03, 0.028, 0.03), .4, fib=.3, nstr=.2, rough=(.56, .08))
+    dark = paper_set('winepaper', (0.25, 0.21, 0.225), .35, fib=.3, nstr=.5, rough=(.62, .12))
     m_dark = mat('DarkTexturedPaper', texset=dark)
     m_inner = mat('InnerPaper', col=(0.025, 0.02, 0.02), rough=.95)
-    m_gold = mat('GoldFoil', col=(0.95, 0.76, 0.40), rough=.3, metal=1, alpha_img=load('wine_foil.png'))
+    m_gold = mat('GoldFoil', col=(0.95, 0.76, 0.40), rough=.30, metal=1, alpha_img=load('wine_foil.png'))
     satin = paper_set('cream', (0.92, 0.87, 0.78), .1, fib=.1, nstr=1.0, rough=(.6, .05))
     m_satin = mat('CreamSatinInsert', texset=satin)
     root = empty('WineBox', (0, 0, 0))
     base = empty('Base', (0, 0, 0), root)
-    rigid_tray('Base', W, D, BH, wall, m_dark, m_inner, base)
+    rigid_tray('Base', W, D, H - .028, wall, m_dark, m_inner, base, bevel=.0015)
     # bottle insert: card board block with round cradle + neck support
-    ins = boxes('Insert', [(0, 0, wall + .04, W - 2*wall - .001, D - 2*wall - .001, .08)], m_satin, base, uvs=8)
-    cyl = lathe('cutter', [(0, 0), (.0385, 0), (.0385, .2), (0, .2)], m_satin, seg=48, loc=(0, 0, wall + .02))
+    # 酒瓶托：底托把瓶子抬高，瓶口距盖板约 12mm（开盖即可看到瓶颈、瓶封）
+    z0 = H - .012 - .302
+    ins = boxes('Insert', [(0, 0, (wall + z0 + .05)/2, W - 2*wall - .001, D - 2*wall - .001, z0 + .05 - wall)], m_satin, base, uvs=8)
+    cyl = lathe('cutter', [(0, 0), (.0385, 0), (.0385, .2), (0, .2)], m_satin, seg=48, loc=(0, 0, z0))
     bo = ins.modifiers.new('cav', 'BOOLEAN'); bo.object = cyl; bo.operation = 'DIFFERENCE'; bo.solver = 'EXACT'
     bpy.context.view_layer.objects.active = ins; ins.select_set(True); bpy.ops.object.modifier_apply(modifier='cav'); bpy.data.objects.remove(cyl)
     # bottle (750ml Bordeaux, ~300mm tall, 75mm dia) standing in cradle
-    z0 = wall + .02
     glass = mat('BottleGlass', col=(0.02, 0.07, 0.035), rough=.07)
     prof = [(0, 0), (.035, 0), (.0372, .006), (.0372, .205), (.034, .225), (.022, .245), (.0145, .265), (.0142, .29), (.0155, .293), (.0155, .30), (0, .301)]
     lathe('Bottle', prof, glass, seg=48, parent=base, loc=(0, 0, z0))
@@ -334,22 +328,25 @@ def build_wine():
     lathe('Capsule', [(.0146, .255), (.0146, .29), (.0158, .293), (.0158, .3015), (0, .302)], foil, seg=32, parent=base, loc=(0, 0, z0))
     lab = mat('BottleLabel', rough=.7, base_img=load('bottle_label.png'))
     lathe('Label', [(.0376, .11), (.0376, .19)], lab, seg=48, parent=base, loc=(0, 0, z0), vrange=(.11, .19))
-    # front foil on base front
-    plane('BaseFoil', (0, -D/2 - .0003, BH/2), 'y', -1, W*.9, BH*.95, m_gold, base)
-    # lid: hinge at back-top edge of base; lid closed = cap covering top LH + front flap overlapping base front by 60mm
-    lid = empty('Lid', (0, D/2 + wall, BH), root)
-    lw = W + 2*wall + .001; ld = D + 2*wall + .001
+    # 磁吸翻盖：盖 = 顶板 + 前翻边，与盒身同宽；铰链在盒身后上沿；前翻边贴在盒身正面外侧
+    # 天地盖式翻盖（参考 Krug/Singleton 礼盒）：盖为与盒身同尺寸的平顶罩，四面裙边与盒身外壁齐平，
+    # 铰链在后上沿；正面无外挂翻边，闭合时仅一条细缝
+    SK = .028
+    plane('BaseFoil', (0, -D/2 - .0003, (H - SK)/2), 'y', -1, W*.88, (H - SK)*.9, m_gold, base)
+    lid = empty('Lid', (0, D/2, H - SK), root)
     boxes('Lid_wrap', [
-        (0, -ld/2, LH - wall/2, lw, ld, wall),                       # top
-        (0, -wall/2, LH/2, lw, wall, LH),                             # back
-        (-lw/2 + wall/2, -ld/2, LH/2, wall, ld, LH), (lw/2 - wall/2, -ld/2, LH/2, wall, ld, LH),  # sides
-        (0, -ld + wall/2, (LH - .06)/2, lw, wall, LH + .06),          # front flap extends 60mm down
-    ], m_dark, lid, uvs=2, bevel=.0012)
-    m_gold2 = mat('GoldFoilLid', col=(0.95, 0.76, 0.40), rough=.3, metal=1, alpha_img=load('wine_lid_foil.png'))
-    plane('LidFoil', (0, -ld - .0003, (LH - .06)/2), 'y', -1, LH + .05, LH + .05, m_gold2, lid)
+        (0, -D + wall/2, (SK - wall)/2, W, wall, SK - wall),                 # 前裙边
+        (0, -wall/2, (SK - wall)/2, W, wall, SK - wall),                     # 后裙边
+        (-(W/2 - wall/2), -D/2, (SK - wall)/2, wall, D - 2*wall, SK - wall), # 左裙边
+        ((W/2 - wall/2), -D/2, (SK - wall)/2, wall, D - 2*wall, SK - wall),  # 右裙边
+    ], m_dark, lid, uvs=2, bevel=0)
+    boxes('Lid_top', [(0, -D/2, SK - wall/2, W, D, wall)], m_dark, lid, uvs=2, bevel=.0012)  # 顶板
+    boxes('Lid_lining', [(0, -D/2, SK - wall - .0002, W - 2*wall, D - 2*wall, .0004)], m_inner, lid, uvs=4)
+    m_gold2 = mat('GoldFoilLid', col=(0.95, 0.76, 0.40), rough=.30, metal=1, alpha_img=load('wine_lid_foil.png'))
+    plane('LidFoil', (0, -D/2, SK + .0003), 'z', 1, W*.8, D*.8, m_gold2, lid)
     fr = [0, 6, 12, 18, 24]
     lid.rotation_mode = 'XYZ'
-    for f, k in zip(fr, ease(5, 1)): lid.rotation_euler = (math.radians(-115*k), 0, 0); lid.keyframe_insert('rotation_euler', frame=f)
+    for f, k in zip(fr, ease(5, 1)): lid.rotation_euler = (math.radians(-110*k), 0, 0); lid.keyframe_insert('rotation_euler', frame=f)
     export('wine-box.glb')
 
 {'corrugated': build_corrugated, 'gift': build_gift, 'wine': build_wine}[WHICH]()

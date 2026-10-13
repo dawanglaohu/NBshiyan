@@ -19,6 +19,19 @@ export default function CategoryBar({ items, label }: { items: { slug: string; n
     const nav = navRef.current;
     if (el && nav) nav.scrollTo({ left: el.offsetLeft - nav.clientWidth / 2 + el.clientWidth / 2, behavior: 'auto' });
   }, [active]);
+  // 两端渐隐遮罩和箭头：只在还能往该方向滚动时出现（#64）
+  const [edges, setEdges] = useState({ l: false, r: false });
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const upd = () => setEdges({ l: nav.scrollLeft > 4, r: nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 4 });
+    upd();
+    nav.addEventListener('scroll', upd, { passive: true });
+    const ro = new ResizeObserver(upd);
+    ro.observe(nav);
+    return () => { nav.removeEventListener('scroll', upd); ro.disconnect(); };
+  }, []);
+  const page = (dir: 1 | -1) => navRef.current?.scrollBy({ left: dir * navRef.current.clientWidth * 0.7 });
   const go = (e: React.MouseEvent, slug: string) => {
     const el = document.getElementById(slug);
     if (!el) return;
@@ -29,10 +42,14 @@ export default function CategoryBar({ items, label }: { items: { slug: string; n
     setActive(slug);
   };
   return (
-    <nav ref={navRef} className="catbar" aria-label={label}>
-      {items.map((i) => (
-        <a key={i.slug} data-slug={i.slug} href={`#${i.slug}`} className={active === i.slug ? 'on' : undefined} aria-current={active === i.slug ? 'true' : undefined} onClick={(e) => go(e, i.slug)}>{i.name}</a>
-      ))}
-    </nav>
+    <div className={`catbar-wrap${edges.l ? ' can-l' : ''}${edges.r ? ' can-r' : ''}`}>
+      <button type="button" className="catbar-arrow l" tabIndex={-1} aria-hidden="true" onClick={() => page(-1)}>‹</button>
+      <nav ref={navRef} className="catbar" aria-label={label}>
+        {items.map((i) => (
+          <a key={i.slug} data-slug={i.slug} href={`#${i.slug}`} className={active === i.slug ? 'on' : undefined} aria-current={active === i.slug ? 'true' : undefined} onClick={(e) => go(e, i.slug)}>{i.name}</a>
+        ))}
+      </nav>
+      <button type="button" className="catbar-arrow r" tabIndex={-1} aria-hidden="true" onClick={() => page(1)}>›</button>
+    </div>
   );
 }

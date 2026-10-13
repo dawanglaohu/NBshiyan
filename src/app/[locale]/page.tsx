@@ -19,19 +19,21 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const t = await getTranslations('Home');
   const names = await getTranslations('Products.names');
   // TODO: 开屏视频（首次访问、≤5 秒、可跳过）等素材到位后做成覆盖层；正文始终先在 HTML 里渲染
-  // TODO: 首屏右侧主图（WebP）和空闲时替换的 3D 盒子
+  // TODO: 空闲时把主图替换成 3D 盒子
   return (
     <main>
       <section className="hero">
-        <div className="container hero-text">
+        <div className="container hero-grid">
+          <div>
           <h1>{t('headline')}</h1>
           <p>{t('sub')}</p>
           <div className="actions">
             <Link className="btn" href="/contact">{t('ctaQuote')}</Link>
             <Link className="btn ghost" href="/products">{t('cta')}</Link>
           </div>
+          </div>
+          <Image className="hero-art" src="/images/hero/custom-printing-packaging-manufacturer.webp" alt={locale === 'ru' ? 'Индивидуальные винные коробки с печатью, подарочные коробки и гофрокоробки для доставки от PackJoyU' : 'Custom printed wine boxes, gift boxes and corrugated shipping boxes by PackJoyU'} width={1200} height={900} priority sizes="(max-width: 900px) 100vw, 45vw" />
         </div>
-        <Image className="hero-img" src="/images/hero/custom-printing-packaging-manufacturer.webp" alt={locale === 'ru' ? 'Индивидуальные винные коробки с печатью, подарочные коробки и гофрокоробки для доставки от PackJoyU' : 'Custom printed wine boxes, gift boxes and corrugated shipping boxes by PackJoyU'} width={1200} height={900} priority sizes="(max-width: 900px) 100vw, 45vw" />
       </section>
 
       <section className="block container" aria-labelledby="adv-h">
@@ -47,7 +49,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <h2 id="entry-h">{t('entryTitle')}</h2>
         <div className="entry">
           {products.map((p) => (
-            <Link key={p.slug} href={`/products#${p.slug}`} className={PREMIUM.has(p.slug) ? 'theme-premium' : undefined}>{names(p.slug)}</Link>
+            <Link key={p.slug} href={`/products#${p.slug}`} className={PREMIUM.has(p.slug) ? 'theme-premium' : undefined}>
+              {/* 品类封面：3D 组导出到 public/images/posters/ 后在 products.ts 更新 poster 即生效 */}
+              <img src={p.poster} alt="" width={160} height={120} loading="lazy" decoding="async" />
+              <span>{names(p.slug)}</span>
+            </Link>
           ))}
         </div>
       </section>

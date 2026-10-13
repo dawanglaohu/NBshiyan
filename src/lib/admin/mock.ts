@@ -1,5 +1,5 @@
-import type { AdminApi, AdminUser, InquiryDetail, InquiryStatus, InquirySummary } from './types';
-import { REVIEW_THRESHOLD, STATUS_LABEL } from './types';
+import type { AdminApi, AdminUser, AdminUsersResponse, InquiryDetail, InquiryStatus, InquirySummary } from './types';
+import { REVIEW_THRESHOLD, STATUS_LABEL, usersFromResponse } from './types';
 
 // 示例数据，仅用于后台页面开发；接入真实接口后不再使用
 const users: AdminUser[] = [{ id: 'u1', name: '业务员 A', email: 'sales-a@packjoyu.example', role: 'SALES' }, { id: 'u2', name: '业务员 B', email: 'sales-b@packjoyu.example', role: 'SALES' }];
@@ -87,7 +87,7 @@ export const mockAdminApi: AdminApi = {
     const n = { id: `n${Date.now()}`, author: '我', body, createdAt: new Date().toISOString() };
     r.notes.push(n); return delay(n);
   },
-  async listUsers() { return delay(users); },
+  async listUsers() { const res: AdminUsersResponse = { items: users }; return usersFromResponse(await delay(res)); },
   async logoPreview() {
     // 示例 Logo（SVG data URL），真实接口返回重新编码后的 PNG
     const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" rx="12" fill="#fff"/><circle cx="50" cy="50" r="28" fill="#D4AF6A"/><text x="90" y="60" font-family="Arial" font-size="26" font-weight="700" fill="#1C1C1C">ACME</text></svg>';
