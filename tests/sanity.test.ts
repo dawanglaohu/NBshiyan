@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { sanityConfig, buildQueryUrl, bySlugQuery } from '../src/lib/server/sanity';
+import { sanityConfig, buildQueryUrl, bySlugQuery, listQuery } from '../src/lib/server/sanity';
 
 test('sanityConfig: 未配置或非法 projectId 返回 null', () => {
   assert.equal(sanityConfig({}), null);
@@ -16,4 +16,12 @@ test('buildQueryUrl: 主机固定为 sanity.io，参数 JSON 编码', () => {
 });
 test('bySlugQuery: slug 走参数而不是拼接', () => {
   assert.match(bySlugQuery('product', 'ru'), /slug\.ru\.current == \$slug/);
+});
+
+test('listQuery: 列表页只取可索引文档（排除 noindex），按语言', () => {
+  for (const t of ['article', 'solution'] as const) for (const l of ['en', 'ru'] as const) {
+    const q = listQuery(t, l);
+    assert.ok(q.includes('seo.noindex != true'));
+    assert.ok(q.includes(`defined(slug.${l}.current)`));
+  }
 });

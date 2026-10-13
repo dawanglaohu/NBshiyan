@@ -46,6 +46,7 @@
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
 - [ ] `RESEND_API_KEY` 和发件地址已配置，发件域名已在 Resend 完成 DNS 验证。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值。
+- [ ] `PRIVACY_HASH_SECRET` 已配置，是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。生产环境没配应用会拒绝启动。它是审计日志里邮箱 HMAC 哈希的密钥，不要随意轮换，轮换后旧日志里的哈希就对不上了。
 - [ ] 生产环境**不能**设置 `ADMIN_SEED_TOTP_SECRET`。设置了的话，种子脚本会报错退出。
 - [ ] 数据保留天数等隐私政策定稿后再定，相关变量写在 `docs/data-retention.md`，隐私 PR 合并后补上。
 
