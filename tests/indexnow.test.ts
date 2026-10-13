@@ -79,7 +79,33 @@ test('urls only from NEXT_PUBLIC_SITE_URL, endpoint fixed', async () => {
   const { f, calls } = fakeFetch();
   const doc = { _type: 'product', slug: { en: { current: 'x-evil-example' } }, host: 'evil.example', url: 'https://evil.example/' } as any;
   await submitIndexNow(pathsForSanityDoc(doc, LIVE), { env: PROD, store: new MemoryStore(), fetchImpl: f, log: () => {} });
-  assert.equal(calls[0].url, 'https://yandex.com/indexnow');
+  assert.equal(calls[0].url, 'https://api.indexnow.org/indexnow');
   assert.equal(calls[0].body.host, 'packjoyu.example');
   assert.ok(calls[0].body.urlList.every((u: string) => u.startsWith('https://packjoyu.example/en/')));
+});
+
+test('submit: hanging endpoint is aborted by timeout, logged without secrets, never throws', async () => {
+  const logs: string[] = [];
+  let sawSignal = false;
+  const hang = ((_u: string, init: RequestInit) => new Promise((_res, rej) => {
+    sawSignal = init.signal instanceof AbortSignal;
+    init.signal?.addEventListener('abort', () => rej(init.signal?.reason));
+  })) as unknown as typeof fetch;
+  const n = await submitIndexNow(['/en/a'], { env: PROD, store: new MemoryStore(), fetchImpl: hang, log: (m) => logs.push(m), timeoutMs: 50 });
+  assert.equal(n, 0);
+  assert.ok(sawSignal);
+  assert.deepEqual(logs, ['[indexnow] errorSummary=TimeoutError']);
+  assert.ok(logs.every((l) => !l.includes(KEY)));
+});
+
+test('submit: 5xx and network errors return 0; protocol-relative / backslash paths never pushed', async () => {
+  const logs: string[] = [];
+  const { f, calls } = fakeFetch(503);
+  assert.equal(await submitIndexNow(['/en/a'], { env: PROD, store: new MemoryStore(), fetchImpl: f, log: (m) => logs.push(m) }), 0);
+  const net = (async () => { throw new TypeError('fetch failed'); }) as unknown as typeof fetch;
+  await assert.doesNotReject(submitIndexNow(['/en/b'], { env: PROD, store: new MemoryStore(), fetchImpl: net, log: (m) => logs.push(m) }));
+  assert.deepEqual(logs, ['[indexnow] errorSummary=http_503', '[indexnow] errorSummary=TypeError']);
+  const before = calls.length;
+  assert.equal(await submitIndexNow(['//evil.com/x', '/\\evil.com/x', '/en//evil.com'], { env: PROD, store: new MemoryStore(), fetchImpl: f, log: () => {} }), 0);
+  assert.equal(calls.length, before);
 });
