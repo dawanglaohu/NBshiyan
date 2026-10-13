@@ -1,0 +1,24 @@
+/* PackJoyU motion tokens v1 (#133) — 只动 transform / opacity。与 tokens.css 的 --ease/--dur 兼容 */
+:root{
+  --dur-instant:80ms;   /* 按下反馈 */
+  --dur-fast:150ms;     /* hover、focus、颜色 */
+  --dur-base:240ms;     /* 下拉、toast、tab */
+  --dur-slow:320ms;     /* 抽屉、弹窗、滚动入场 */
+  --dur-page:200ms;     /* 页面切换（只淡，不位移整页） */
+  --ease-out:cubic-bezier(.2,.7,.2,1);    /* 进入 = 原 --ease */
+  --ease-in:cubic-bezier(.4,0,1,1);       /* 离开 */
+  --ease-inout:cubic-bezier(.4,0,.2,1);   /* 往返状态 */
+  --ease-spring:cubic-bezier(.34,1.4,.64,1); /* 仅加入清单徽标 */
+  --dist-xs:2px; --dist-sm:8px; --dist-md:16px; --dist-lg:24px;
+  --stagger:60ms; --stagger-max:4;          /* 同组最多错开 4 个，之后同时出现 */
+  --scale-press:.97; --scale-hover:1.02;
+}
+@media (prefers-reduced-motion:reduce){
+  :root{ --dur-instant:0ms; --dur-fast:0ms; --dur-base:120ms; --dur-slow:120ms; --dur-page:0ms;
+         --dist-xs:0px; --dist-sm:0px; --dist-md:0px; --dist-lg:0px; --stagger:0ms;
+         --scale-press:1; --scale-hover:1; }
+}
+/* 滚动入场：仅首屏以下。内容默认在 HTML 中可见；只有 JS 加上 .reveal-ready 后才隐藏，IntersectionObserver 进入视口再加 .in */
+.reveal-ready .reveal:not(.in){ opacity:0; transform:translateY(var(--dist-lg)); }
+.reveal{ transition:opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out); }
+@media (prefers-reduced-motion:reduce){ .reveal-ready .reveal:not(.in){ transform:none; } }
