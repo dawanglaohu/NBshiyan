@@ -143,6 +143,7 @@ for f in LANDING:
 arts = {}
 for f in sorted((ROOT / 'articles').glob('*.md')):
     fm, body = front(f.read_text())
+    if fm.get('import') == 'false': continue  # drafts with open {{待Ryan确认}} facts stay out of Sanity until filled
     loc = fm.get('locale', 'en')
     group = fm.get('en_version') or fm['slug']
     arts.setdefault(group, {})[loc] = (fm, body)

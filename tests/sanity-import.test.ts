@@ -21,7 +21,7 @@ test('sanity-import: build.py output matches committed import.ndjson', () => {
   }
 });
 
-test('sanity-import: build.py skips docs without an internal key (FAQ drafts, proofreading, fact sheet)', () => {
+test('sanity-import: build.py skips docs without an internal key (FAQ drafts, proofreading, fact sheet) and articles with import: false', () => {
   const dir = mkdtempSync(join(tmpdir(), 'sanity-src-'));
   try {
     mkdirSync(join(dir, 'articles'));
@@ -29,6 +29,7 @@ test('sanity-import: build.py skips docs without an internal key (FAQ drafts, pr
     writeFileSync(join(dir, 'landing-faq.md'), '# FAQ drafts\n\n## EN\n- Q?\n');
     writeFileSync(join(dir, 'ru-proofreading.md'), '# ru proofreading\n| F1 | x |\n');
     writeFileSync(join(dir, 'ryan-fact-sheet.md'), '# fact sheet\n## Q1\n');
+    writeFileSync(join(dir, 'articles', 'draft.md'), '---\ntitle: "Draft"\nslug: draft\nlocale: en\nimport: false\nmeta_description: "x"\n---\n\n# Draft\n\nBody {{待Ryan确认}}\n');
     const out = join(dir, 'import.ndjson');
     const r = spawnSync('python3', ['docs/content/sanity-import/build.py', dir, '--out', out], { encoding: 'utf8' });
     assert.equal(r.status, 0, r.stderr);
