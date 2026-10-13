@@ -108,7 +108,7 @@ export function adminView(category: string, r: Row | null) {
 }
 
 /** 审计 meta 用：去掉 updatedAt */
-export const auditView = (category: string, r: Row | null) => { const { updatedAt: _u, ...v } = adminView(category, r); return v; };
+export const auditView = (category: string, r: Row | null) => { const v: Partial<ReturnType<typeof adminView>> = adminView(category, r); delete v.updatedAt; return v; };
 
 /**
  * 公开视图（单一语言）。显式白名单逐字段构造，绝不展开数据库行；未填写的字段整个省略。
