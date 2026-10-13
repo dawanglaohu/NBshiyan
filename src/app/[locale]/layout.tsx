@@ -24,6 +24,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: t('title'),
     description: t('description'),
+    openGraph: {
+      type: 'website',
+      siteName: 'PackJoyU',
+      title: t('title'),
+      description: t('description'),
+      locale: locale === 'ru' ? 'ru_RU' : 'en_US',
+      alternateLocale: locale === 'ru' ? ['en_US'] : ['ru_RU']
+    },
+    twitter: { card: 'summary_large_image' },
     metadataBase: new URL(SITE_URL)
   };
 }
