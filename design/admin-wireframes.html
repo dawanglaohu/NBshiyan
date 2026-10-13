@@ -1,0 +1,40 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}body{font-family:Manrope,Inter,Arial,sans-serif;background:#e9e6e1;padding:28px;width:1800px;color:#1c1c1c;font-size:11px}
+h1{font-size:22px;margin-bottom:16px}.cols{display:grid;grid-template-columns:1.25fr 1fr;gap:24px}
+.f{background:#fff;border-radius:14px;box-shadow:0 8px 24px #0001;overflow:hidden}.t{background:#1c1c1c;color:#fff;font-size:13px;font-weight:700;padding:8px 14px}
+.app{display:grid;grid-template-columns:130px 1fr;min-height:560px}.side{background:#fbf8f3;border-right:1px solid #e8e2d8;padding:12px}.side div{padding:6px 8px;border-radius:6px;margin-bottom:2px}.side .on{background:#1c1c1c;color:#fff}
+.main{padding:12px;position:relative}.bar{display:flex;gap:6px;margin-bottom:8px}.bar span{border:1px solid #e8e2d8;border-radius:999px;padding:3px 9px}.bar .p{background:#ff5a36;color:#fff;border:none}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid #eee}th{color:#5a5650;font-weight:600}
+.tag{border-radius:999px;padding:1px 7px;font-size:10px}.new{background:#ffe3db;color:#c03a1a}.fu{background:#fff4d1;color:#8a6300}.q{background:#e3eefc;color:#1d4f91}
+.s{font-weight:700}.lo{color:#b42318}.hi{color:#1a7f37}
+.drawer{position:absolute;right:0;top:0;bottom:0;width:48%;background:#fff;border-left:1px solid #e8e2d8;box-shadow:-8px 0 20px #0001;padding:12px}
+.box{border:1.5px dashed #bdb5a8;border-radius:8px;padding:8px;margin-bottom:8px;color:#5a5650}.box b{color:#1c1c1c;display:block;margin-bottom:2px}
+.msg{background:#f6f3ee;border-radius:8px;padding:6px;margin-bottom:4px}.me{background:#fdeee8;margin-left:20px}
+.steps{display:flex;gap:6px;margin-bottom:10px}.steps div{flex:1;border-radius:8px;padding:8px;background:#f6f3ee}.steps .on{background:#1c1c1c;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.m{border:1px solid #e8e2d8;border-radius:10px;padding:6px}.m .th{height:60px;background:#f6f3ee;border-radius:6px;margin-bottom:4px}
+.err{color:#b42318}.ok{color:#1a7f37}
+</style></head><body><h1>PackJoyU 管理后台线框图 v1 · 询盘管理 / 3D 模型管理（简洁组件风格，主色只用于主要按钮和状态）</h1><div class="cols">
+
+<div class="f"><div class="t">① 询盘管理 /admin/inquiries</div><div class="app"><div class="side"><b style="font-size:13px">PackJoyU</b><br><br><div class="on">询盘 (12)</div><div>样品申请</div><div>3D 模型</div><div>内容（Sanity）</div><div>数据看板</div><div>站点设置</div><div>账号权限</div></div>
+<div class="main"><div class="bar"><span>🔍 搜索公司/邮箱/编号</span><span>状态 ▾</span><span>国家 ▾</span><span>产品 ▾</span><span>可信度 ▾</span><span>负责人 ▾</span><span class="p">只看分给我的</span></div>
+<table><tr><th>编号</th><th>公司 · 国家</th><th>产品</th><th>可信度</th><th>状态</th><th>负责人</th><th>时间</th></tr>
+<tr style="background:#fff7f4"><td>Q-7K3F</td><td>Acme GmbH · DE</td><td>酒盒 ×2</td><td class="s hi">86</td><td><span class="tag new">新询盘</span></td><td>—</td><td>10 分钟前</td></tr>
+<tr><td>Q-9P2A</td><td>ООО Ромашка · RU</td><td>纸杯</td><td class="s hi">72</td><td><span class="tag fu">跟进中</span></td><td>业务员 A</td><td>2 小时前</td></tr>
+<tr><td>Q-4M8C</td><td>gmail.com · US</td><td>瓦楞纸箱</td><td class="s lo">31 ⚠</td><td><span class="tag new">新询盘</span></td><td>—</td><td>昨天</td></tr>
+<tr><td>Q-2X6D</td><td>Bloom Co · AU</td><td>礼盒</td><td class="s">64</td><td><span class="tag q">已报价</span></td><td>业务员 B</td><td>3 天前</td></tr></table>
+<p style="margin-top:8px;color:#5a5650">示例数据，仅表示版式。低于 40 分的行显示 ⚠，默认折叠到“待核实”分组；所有询盘内的链接一律显示为完整纯文本网址、不可点击；附件经服务端扫描后只提供下载，不在页面内预览。</p>
+<div class="drawer"><b style="font-size:13px">Q-7K3F · Acme GmbH</b> <span class="tag new">新询盘</span><br><span style="color:#5a5650">状态 ▾ · 分配给 ▾ · 语言 DE→回复用 EN</span><br><br>
+<div class="box"><b>客户信息</b>姓名 · 企业邮箱 · 国家 · 来源页面和关键词 · 可信度明细（为什么是 86 分）</div>
+<div class="box"><b>产品明细（多产品）</b>酒盒 × 5,000 · 尺寸 · 材质 · [定制截图] · 短链接 /s/…</div>
+<div class="box"><b>往来记录</b><div class="msg">客户：首次询盘内容…</div><div class="msg me">我们：报价单已发…</div></div>
+<div class="box"><b>回复框</b>富文本（过滤 HTML）· 插入模板 ▾ · 附件（仅下载，不预览）· <span style="background:#ff5a36;color:#fff;border-radius:999px;padding:2px 8px">发送</span></div>
+<div class="box"><b>内部备注</b>只有团队可见，带 @ 同事</div></div></div></div></div>
+
+<div class="f"><div class="t">② 3D 模型管理 /admin/models</div><div style="padding:12px">
+<div class="steps"><div class="on">① 上传 GLB + 封面图</div><div class="on">② 处理中（压缩 / 检查）</div><div>③ 预览确认</div><div>④ 上架</div></div>
+<div class="box"><b>② 处理结果（实时更新）</b><span class="ok">✓ 文件格式是 GLB</span> · <span class="ok">✓ Draco 压缩完成</span> · <span class="ok">✓ 已生成轻量版本</span> · <span class="err">✕ 压缩后 1.32MB，超过 1MB 上限 → 建议：减面或降低纹理分辨率；或标记为“带动画”（上限 1.5MB）</span></div>
+<div class="box" style="height:150px"><b>③ 预览（复用前台加载组件）</b>左：3D 视窗，可切换 前台白底 / 礼盒深色主题 / 手机尺寸<br>右：分类 · 排序 · 是否可定制 · 可选颜色 · 尺寸范围 · 是否有开箱/刀模动画 · 各语言名称和 alt</div>
+<div class="bar"><span class="p">全部 12</span><span>已上架</span><span>草稿</span><span>处理失败</span><span>拖动排序 ⇅</span></div>
+<div class="grid"><div class="m"><div class="th"></div>瓦楞纸箱<br><span class="ok">● 已上架</span> · 0.86MB</div><div class="m"><div class="th" style="background:#121214"></div>酒盒<br><span class="ok">● 已上架</span> · 1.4MB 动画</div><div class="m"><div class="th"></div>纸杯<br><span style="color:#8a6300">● 草稿</span></div><div class="m"><div class="th"></div>派对用品<br><span class="err">● 处理失败</span> 重试</div></div>
+<p style="margin-top:8px;color:#5a5650">下架、删除需二次确认；所有操作写入操作日志。</p></div></div>
+</div></body></html>
