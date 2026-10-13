@@ -1,0 +1,114 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>PackJoyU — 3D customizer and product landing (Fixes #102)</title>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+:root{--bg:#FBF8F3;--ink:#1C1C1C;--ink-2:#5A5650;--line:#E8E2D8;--accent:#FF5A36;--sun:#FFD166}
+*{box-sizing:border-box}body{margin:0;background:#E9E4DB;font-family:Manrope,system-ui,sans-serif;color:var(--ink);padding:40px}
+h1.doc{font-size:28px;margin:0 0 6px}.note{color:var(--ink-2);margin:0 0 32px;font-size:14px}
+.row{display:flex;gap:40px;align-items:flex-start;margin-bottom:64px}
+.lbl{font:600 13px Manrope;color:var(--ink-2);margin:0 0 8px}
+.frame{background:var(--bg);container-type:inline-size;border:1px solid var(--line);box-shadow:0 8px 30px #0001;overflow:hidden}
+.d{width:1440px}.m{width:390px}
+.sec{padding:72px 80px}@container (max-width:500px){.sec{padding:40px 20px}}
+.eyebrow{color:var(--accent);font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+h2{font-size:44px;line-height:1.15;margin:8px 0 12px;max-width:900px}@container (max-width:500px){h2{font-size:28px}}
+.lead{color:var(--ink-2);font-size:17px;line-height:1.6;max-width:720px;margin:0 0 32px}
+.btn{display:inline-flex;align-items:center;white-space:nowrap;background:var(--accent);color:#fff;border-radius:999px;padding:14px 26px;font-weight:700;font-size:15px;text-decoration:none;border:0}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.grid{display:grid;gap:20px}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@container (max-width:500px){.g3,.g4{grid-template-columns:1fr}.g4.k{grid-template-columns:1fr 1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.card .b{padding:20px;display:flex;flex-direction:column;gap:10px;flex:1}
+.card h3{margin:0;font-size:20px}.desc{font-size:14px;color:var(--ink-2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+.ph{aspect-ratio:4/3;background:repeating-linear-gradient(45deg,#F3EDE3 0 12px,#EFE8DC 12px 24px);display:grid;place-items:center;color:var(--ink-2);font:600 12px Manrope;text-align:center;padding:8px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}.tag{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap;color:var(--ink-2)}
+.link{color:var(--accent);font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap;margin-top:auto}
+.theme-premium{background:#121214;color:#F2E9D8}.theme-premium .card{background:#1B1B1F;border-color:#2C2A27}.theme-premium .desc,.theme-premium .lead{color:#BFB6A6}
+.theme-premium .eyebrow,.theme-premium .link{color:#D4AF6A}.theme-premium .btn{background:#D4AF6A;color:#121214}.theme-premium .ph{background:repeating-linear-gradient(45deg,#1F1E22 0 12px,#232226 12px 24px);color:#8E8676}
+.theme-premium .tag{border-color:#3A352D;color:#D4AF6A}
+.kpi{border-top:2px solid var(--ink);padding-top:14px}.kpi b{font-size:40px;display:block}.kpi span{font-size:14px;color:var(--ink-2)}
+@container (max-width:500px){.kpi b{font-size:30px}}
+.split{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}@container (max-width:500px){.split{grid-template-columns:1fr;gap:24px}}
+.steps{counter-reset:s;display:grid;gap:14px;padding:0;margin:0;list-style:none}.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;font-size:15px;line-height:1.5}
+.steps li:before{content:counter(s,decimal-leading-zero);font-weight:800;color:var(--accent);min-width:28px}
+.cert{display:flex;flex-wrap:wrap;gap:10px}.cert span{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-weight:700;font-size:13px;white-space:nowrap}
+.filters{display:flex;gap:8px;overflow-x:auto;margin-bottom:24px;padding-bottom:4px}.filters span{white-space:nowrap;border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;background:#fff}
+.filters .on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.masonry{columns:3;column-gap:20px}@container (max-width:500px){.masonry{columns:1}}.masonry .card{break-inside:avoid;margin-bottom:20px}
+.quote{font-size:15px;font-style:italic;color:var(--ink-2);margin:0}.flag{font-size:12px;font-weight:700;color:var(--ink-2)}
+.cta{background:var(--ink);color:#fff;border-radius:24px;padding:40px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.cta h3{margin:0;font-size:28px;max-width:680px}@container (max-width:500px){.cta{padding:24px}.cta h3{font-size:22px}}
+.ru{border-top:1px dashed var(--line)}
+</style></head><body>
+<style>
+.bc{font-size:13px;color:var(--ink-2);margin-bottom:12px}.bc a{color:var(--ink-2)}
+table.spec{width:100%;border-collapse:collapse;font-size:15px}table.spec th,table.spec td{text-align:left;padding:12px 0;border-bottom:1px solid var(--line);vertical-align:top}table.spec th{width:38%;color:var(--ink-2);font-weight:600}
+.theme-premium table.spec th,.theme-premium table.spec td{border-color:#2C2A27}.theme-premium table.spec th{color:#BFB6A6}
+details{border-bottom:1px solid var(--line);padding:14px 0}summary{font-weight:700;cursor:pointer}details p{color:var(--ink-2);margin:8px 0 0;font-size:15px}
+.theme-premium details{border-color:#2C2A27}.theme-premium details p{color:#BFB6A6}
+.meta{font:12px ui-monospace,monospace;background:#fff;border:1px dashed var(--accent);border-radius:10px;padding:10px 14px;color:var(--ink-2);margin-bottom:20px;word-break:break-word}
+.theme-premium .meta{background:#1B1B1F;color:#BFB6A6;border-color:#D4AF6A}
+.cz{display:grid;grid-template-columns:1fr 400px;min-height:760px;position:relative}@container (max-width:500px){.cz{grid-template-columns:1fr;min-height:0}}
+.stage{position:relative;background:radial-gradient(circle at 50% 45%,#fff,#F1EBE1);display:grid;place-items:center;min-height:420px}
+.stage .ph{width:60%;aspect-ratio:1;border-radius:20px}
+.hint{position:absolute;left:50%;top:20px;transform:translateX(-50%);background:#1C1C1Ccc;color:#fff;font-size:13px;padding:8px 14px;border-radius:999px;white-space:nowrap}
+.tapov{position:absolute;inset:0;display:grid;place-items:center;background:#1C1C1C33}.tapov span{background:#fff;border-radius:999px;padding:12px 20px;font-weight:700;white-space:nowrap}
+.panel{border-left:1px solid var(--line);padding:28px;display:flex;flex-direction:column;gap:22px;background:#fff}@container (max-width:500px){.panel{border-left:0;border-top:1px solid var(--line);padding:20px}}
+.panel h4{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2)}
+.sw{display:flex;gap:10px;flex-wrap:wrap}.sw i{width:36px;height:36px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);display:block}.sw i.on{box-shadow:0 0 0 2px var(--accent)}
+.drop{border:1.5px dashed var(--line);border-radius:14px;padding:18px;text-align:center;font-size:14px;color:var(--ink-2)}
+.dims{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dims label{font-size:12px;color:var(--ink-2)}.dims div{border:1px solid var(--line);border-radius:10px;padding:10px;font-weight:700}
+.share{display:flex;gap:8px}.share code{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.btn.sm{padding:10px 16px;font-size:14px}
+.fab{position:absolute;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px}.fab b{width:52px;height:52px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:12px;box-shadow:0 6px 18px #0003}.fab b.a{background:var(--accent)}
+.cookie{position:absolute;left:20px;bottom:20px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;font-size:13px;display:flex;gap:10px;align-items:center;max-width:420px;box-shadow:0 6px 18px #0001}
+@container (max-width:500px){.cookie{left:10px;right:76px;bottom:10px;max-width:none;flex-wrap:wrap}.fab{right:10px;bottom:10px}}
+.theme-premium .btn.ghost{background:transparent}
+.rm{font-size:12px;color:var(--ink-2);background:#FFF4E0;border-radius:10px;padding:10px 12px}
+</style>
+</head><body>
+<h1 class="doc">设计稿 · 3D 定制器 / 产品落地页（Fixes #102）</h1>
+<p class="note">每块左 1440 桌面、右 390 手机；虚线下为俄语。落地页文案、slug、title、description 取自 src/lib/seo/categoryMeta.ts（PR #106，俄语为待 Ryan 校对草稿）；结构按 docs/seo-product-pages.md。规格/FAQ 内容为示意（MOQ 未定，不写数字）。工厂页已在 #107，本稿不重复。</p>
+<div id="pages"></div>
+
+<template id="t-cz">
+<div class="cz"><div class="stage"><div class="hint">{{c.hint}}</div><div class="ph">{{c.model}}</div>{{tap}}
+<div class="fab"><b class="a">Quote</b><b>Chat</b><b>↑</b></div>
+<div class="cookie">{{c.cookie}} <a class="btn sm">{{c.accept}}</a> <a class="btn sm ghost">{{c.settings}}</a></div></div>
+<aside class="panel"><div class="bc">Home / Products / {{c.cat}}</div><h3 style="margin:0;font-size:24px">{{c.title}}</h3>
+<div><h4>{{c.color}}</h4><div class="sw"><i class="on" style="background:#C8A27A"></i><i style="background:#fff"></i><i style="background:#1C1C1C"></i><i style="background:#FF5A36"></i><i style="background:#6B1F2A"></i><i style="background:#D4AF6A"></i><i style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red)" title="Pantone"></i></div></div>
+<div><h4>{{c.logo}}</h4><div class="drop">{{c.drop}}<br><small>SVG · PNG · PDF ≤ 10 MB</small></div></div>
+<div><h4>{{c.size}}</h4><div class="dims"><span><label>L</label><div>300 mm</div></span><span><label>W</label><div>200 mm</div></span><span><label>H</label><div>100 mm</div></span></div></div>
+<div><h4>{{c.share}}</h4><div class="share"><code>packjoyu.com/s/7Kx2Qa</code><a class="btn sm ghost">{{c.copy}}</a></div></div>
+<a class="btn" style="justify-content:center">Get a quote</a><div class="rm">{{c.rm}}</div></aside></div>
+</template>
+
+<template id="t-lp">
+<section class="sec {{theme}}"><div class="bc">Home / Products / {{p.crumb}}</div>
+<div class="meta">URL /{{loc}}/products/{{p.slug}}<br>&lt;title&gt; {{p.title}}<br>description: {{p.desc}}</div>
+<div class="split"><div><h1 style="font-size:46px;line-height:1.1;margin:0 0 16px">{{p.h1}}</h1><p class="lead">{{p.intro}}</p><a class="btn">Get a quote</a> <a class="btn ghost" style="{{gh}}">{{p.cz}}</a></div><div class="ph" style="aspect-ratio:1">posters/{{p.poster}}.webp + 3D</div></div></section>
+<section class="sec {{theme}}" style="padding-top:0"><div class="split" style="align-items:start"><div><h2 style="font-size:30px">{{p.specH}}</h2>{{p.spec}}</div>
+<div><h2 style="font-size:30px">{{p.useH}}</h2><div class="tags" style="margin-bottom:28px">{{p.uses}}</div><h2 style="font-size:30px">FAQ</h2>{{p.faq}}</div></div></section>
+<section class="sec" style="padding-top:{{rp}}"><h2 style="font-size:28px">{{p.relH}}</h2><div class="grid g3">{{p.rel}}</div></section>
+</template>
+<script>
+const C={en:{hint:"Hold mouse or hover 0.5 s, then scroll to zoom · drag to rotate",model:"3D model · corrugated-boxes.glb",cookie:"We use cookies for analytics.",accept:"Accept",settings:"Settings",cat:"Custom corrugated boxes",title:"Customize your box",color:"Color",logo:"Your logo",drop:"Drop logo here or browse",size:"Size",share:"Share design",copy:"Copy link",rm:"Reduced motion: auto-rotate and transitions off; model stays static until dragged."},
+ru:{hint:"Удерживайте кнопку мыши или наведите на 0,5 с и прокрутите для масштаба",model:"3D-модель · corrugated-boxes.glb",cookie:"Мы используем cookie для аналитики.",accept:"Принять",settings:"Настройки",cat:"Гофрокороба на заказ",title:"Настройте свою коробку",color:"Цвет",logo:"Ваш логотип",drop:"Перетащите логотип сюда или выберите файл",size:"Размер",share:"Поделиться дизайном",copy:"Копировать ссылку",rm:"Уменьшение движения: автоповорот и анимации отключены; модель неподвижна, пока её не повернут."}};
+const row=(a)=>'<table class="spec">'+a.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('')+'</table>';
+const faq=(a)=>a.map(([q,x],i)=>`<details ${i==0?'open':''}><summary>${q}</summary><p>${x}</p></details>`).join('');
+const tags=(a)=>a.map(t=>`<a class="tag" href="#">${t} →</a>`).join('');
+const rel=(a,more)=>a.map(t=>`<article class="card"><div class="ph">posters/${t[1]}.webp</div><div class="b"><h3>${t[0]}</h3><a class="link">${t[0]} →</a></div></article>`).join('');
+const P={
+corr:{en:{crumb:"Custom corrugated boxes",slug:"custom-corrugated-boxes",title:"Custom Corrugated Boxes Manufacturer | PackJoyU",desc:"Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Factory-direct export. Request a quote today.",h1:"Custom Corrugated Boxes",intro:"Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Built for long-haul export, factory-direct from PackJoyU.",cz:"Customize in 3D",poster:"custom-corrugated-boxes",specH:"Specifications",spec:row([["Material","E / B / BE-flute kraft or white board"],["Size range","Custom, to your product"],["Printing","Flexo, digital, offset-laminated"],["Finishes","Matte / gloss varnish, spot UV"],["MOQ","To be confirmed"],["Sampling","Sample time TBC"],["Production","Lead time TBC"]]),useH:"Applications",uses:tags(["E-commerce & shipping","Food & beverage","Seasonal & retail"]),faq:faq([["Can you match my exact box size?","Yes. Send product dimensions and we prepare a dieline and 3D mock-up."],["Do you ship to Europe and Australia?","Yes, we export by sea and air to North America, Europe, Australia and Russia."],["Can I get a sample first?","Yes, a pre-production sample is made for your approval."]]),relH:"Related products",rel:rel([["Custom printed boxes","custom-color-boxes"],["Molded pulp packaging","custom-pulp-molding"],["Custom gift boxes","custom-gift-boxes"]])},
+ru:{crumb:"Гофрокороба на заказ",slug:"gofrokorobki",title:"Гофрокороба на заказ — производство | PackJoyU",desc:"Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Прямые поставки с фабрики. Запросите расчет.",h1:"Гофрокороба на заказ",intro:"Почтовые и транспортные гофрокоробы любых размеров с печатью и логотипом. Рассчитаны на дальнюю экспортную перевозку, прямые поставки с фабрики PackJoyU.",cz:"Настроить в 3D",poster:"custom-corrugated-boxes",specH:"Характеристики",spec:row([["Материал","Крафт или белый картон, профиль E / B / BE"],["Размеры","Любые, под ваш товар"],["Печать","Флексо, цифровая, офсет с кашированием"],["Отделка","Матовый / глянцевый лак, выборочный УФ-лак"],["Минимальный тираж","Уточняется"],["Образец","Сроки уточняются"],["Производство","Сроки уточняются"]]),useH:"Применение",uses:tags(["Электронная коммерция и доставка","Продукты питания и напитки","Сезонная и розничная упаковка"]),faq:faq([["Можно сделать коробку точно под мой размер?","Да. Пришлите размеры товара — подготовим развёртку и 3D-макет."],["Вы доставляете в Россию?","Да, отправляем морем, авиа и ж/д в Россию, Европу, Северную Америку и Австралию."],["Можно сначала получить образец?","Да, предсерийный образец изготавливается на ваше утверждение."]]),relH:"Похожие товары",rel:rel([["Картонные коробки с печатью","custom-color-boxes"],["Упаковка из формованной целлюлозы","custom-pulp-molding"],["Подарочные коробки на заказ","custom-gift-boxes"]])}},
+wine:{en:{crumb:"Custom wine boxes",slug:"custom-wine-boxes",title:"Custom Wine Boxes Manufacturer & Supplier | PackJoyU",desc:"Luxury wine and spirits boxes for single or multiple bottles, with magnetic closures, inserts, foil and embossed logos. Gift-ready packaging. Get a quote.",h1:"Custom Wine Boxes",intro:"Luxury wine and spirits boxes for single or multiple bottles, with magnetic closures, custom inserts, gold foil and embossed logos. Gift-ready, made to order.",cz:"Customize in 3D",poster:"custom-wine-boxes",specH:"Specifications",spec:row([["Material","1200–2000 gsm rigid board, specialty paper"],["Structure","Lid & base, magnetic flap, drawer"],["Bottles","1 / 2 / 3 / 6 bottles"],["Finishes","Gold foil, embossing, soft-touch"],["MOQ","To be confirmed"],["Lead time","TBC"]]),useH:"Applications",uses:tags(["Wineries & spirits","Corporate gifting","Seasonal & retail"]),faq:faq([["Can the insert hold different bottle shapes?","Yes, EVA or board inserts are cut to your bottle."],["Can you match a Pantone gold?","Foil colors are matched to your brand guide and proofed before production."]]),relH:"Related products",rel:rel([["Custom gift boxes","custom-gift-boxes"],["Custom Christmas packaging","custom-christmas-merchandise"],["Custom gift cards","custom-gift-cards"]])},
+ru:{crumb:"Коробки для вина на заказ",slug:"upakovka-dlya-vina",title:"Коробки для вина на заказ с логотипом | PackJoyU",desc:"Подарочные коробки для вина и крепких напитков на заказ: на одну или несколько бутылок, с магнитом, ложементом и тиснением логотипа. Запросите расчет.",h1:"Коробки для вина на заказ",intro:"Подарочные коробки для вина и крепких напитков на одну или несколько бутылок: с магнитом, ложементом, золотым тиснением и логотипом бренда.",cz:"Настроить в 3D",poster:"custom-wine-boxes",specH:"Характеристики",spec:row([["Материал","Жёсткий картон 1200–2000 г/м², дизайнерская бумага"],["Конструкция","Крышка-дно, магнитный клапан, выдвижная"],["Бутылки","1 / 2 / 3 / 6"],["Отделка","Золотое тиснение, конгрев, soft-touch"],["Минимальный тираж","Уточняется"],["Сроки","Уточняются"]]),useH:"Применение",uses:tags(["Винодельни и спиртные напитки","Корпоративные подарки","Сезонная и розничная упаковка"]),faq:faq([["Ложемент подойдёт под бутылку нестандартной формы?","Да, ложемент из EVA или картона вырезается под вашу бутылку."],["Можно подобрать золото по Pantone?","Цвет фольги подбираем по брендбуку и согласуем пробу до производства."]]),relH:"Похожие товары",rel:rel([["Подарочные коробки на заказ","custom-gift-boxes"],["Новогодняя упаковка на заказ","custom-christmas-merchandise"],["Печать подарочных карт","custom-gift-cards"]])}}};
+const fill=(h,d)=>h.replace(/\{\{([\w.]+)\}\}/g,(_,k)=>{const v=k.split('.').reduce((o,x)=>o?.[x],d);return v??''});
+const root=document.getElementById('pages');
+function add(title,html){const r=document.createElement('div');r.className='row';
+ for(const c of['d','m']){const w=document.createElement('div');w.innerHTML=`<p class="lbl">${title} — ${c=='d'?'Desktop 1440':'Mobile 390 '}· EN / RU</p><div class="frame ${c}">${html(c,'en')}<div class="ru">${html(c,'ru')}</div></div>`;r.append(w)}root.append(r)}
+const cz=document.getElementById('t-cz').innerHTML, lp=document.getElementById('t-lp').innerHTML;
+add('① 3D customizer · /[locale]/products/{slug}/customize',(c,l)=>fill(cz,{c:{...C[l],hint:c=='m'?(l=='en'?'Tap to rotate · pinch to zoom':'Коснитесь, чтобы вращать'):C[l].hint},tap:c=='m'?`<div class="tapov"><span>${l=='en'?'Tap to rotate':'Коснитесь для вращения'}</span></div>`:''}));
+add('② Product landing · corrugated-boxes',(c,l)=>fill(lp,{p:P.corr[l],loc:l,theme:'',gh:'',rp:'0'}));
+add('③ Product landing · wine-boxes (.theme-premium)',(c,l)=>fill(lp,{p:P.wine[l],loc:l,theme:'theme-premium',gh:'color:#F2E9D8;border-color:#F2E9D8',rp:'72px'}));
+</script></body></html>
