@@ -22,7 +22,7 @@
 | category→category | `/en/products/molded-pulp-packaging` | `/en/products/custom-corrugated-boxes` | custom corrugated boxes |
 | category→category | `/en/products/molded-pulp-packaging` | `/en/products/eco-paper-cups` | eco-friendly paper cups |
 | category→category | `/en/products/molded-pulp-packaging` | `/en/products/custom-gift-boxes` | rigid magnetic gift boxes |
-| category→category | `/en/products/custom-paper-cups` | `/en/products/eco-paper-cups` | plastic-free coffee cups |
+| category→category | `/en/products/custom-paper-cups` | `/en/products/eco-paper-cups` | eco-friendly coffee cups |
 | category→category | `/en/products/custom-paper-cups` | `/en/products/custom-party-supplies` | custom party supplies |
 | category→category | `/en/products/custom-paper-cups` | `/en/products/custom-printed-boxes` | printed product packaging |
 | category→category | `/en/products/custom-party-supplies` | `/en/products/custom-paper-cups` | custom paper cups |
@@ -30,7 +30,7 @@
 | category→category | `/en/products/custom-party-supplies` | `/en/products/custom-color-printing` | full-color packaging printing |
 | category→category | `/en/products/custom-wine-boxes` | `/en/products/custom-gift-boxes` | premium gift packaging |
 | category→category | `/en/products/custom-wine-boxes` | `/en/products/custom-christmas-packaging` | advent calendars and seasonal packaging |
-| category→category | `/en/products/custom-wine-boxes` | `/en/products/molded-pulp-packaging` | plastic-free pulp inserts |
+| category→category | `/en/products/custom-wine-boxes` | `/en/products/molded-pulp-packaging` | custom pulp inserts |
 | category→category | `/en/products/custom-color-printing` | `/en/products/offset-printing-services` | catalog and box printing |
 | category→category | `/en/products/custom-color-printing` | `/en/products/custom-printed-boxes` | custom printed boxes |
 | category→category | `/en/products/custom-color-printing` | `/en/products/custom-gift-cards` | custom gift cards |
@@ -75,7 +75,7 @@
 | category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/gofrokorobki` | гофрокороба на заказ |
 | category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/ekologichnye-stakany` | экологичные стаканы |
 | category→category | `/ru/products/izdeliya-iz-tsellyulozy` | `/ru/products/podarochnye-korobki` | жёсткие коробки с магнитом |
-| category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/ekologichnye-stakany` | эко стаканы без пластика |
+| category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/ekologichnye-stakany` | эко стаканы с логотипом |
 | category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/tovary-dlya-prazdnikov` | бумажная посуда для праздника |
 | category→category | `/ru/products/bumazhnye-stakany` | `/ru/products/tsvetnye-korobki` | упаковка для косметики и розницы |
 | category→category | `/ru/products/tovary-dlya-prazdnikov` | `/ru/products/bumazhnye-stakany` | бумажные стаканы с логотипом |
@@ -83,7 +83,7 @@
 | category→category | `/ru/products/tovary-dlya-prazdnikov` | `/ru/products/tsvetnaya-pechat` | полноцветная печать на картоне |
 | category→category | `/ru/products/upakovka-dlya-vina` | `/ru/products/podarochnye-korobki` | премиальная подарочная упаковка |
 | category→category | `/ru/products/upakovka-dlya-vina` | `/ru/products/novogodnyaya-upakovka` | адвент-календари на заказ |
-| category→category | `/ru/products/upakovka-dlya-vina` | `/ru/products/izdeliya-iz-tsellyulozy` | ложементы без пластика |
+| category→category | `/ru/products/upakovka-dlya-vina` | `/ru/products/izdeliya-iz-tsellyulozy` | ложементы из целлюлозы |
 | category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/ofsetnaya-pechat` | печать каталогов и коробок |
 | category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/tsvetnye-korobki` | картонные коробки с печатью |
 | category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/podarochnye-karty` | печать подарочных карт |

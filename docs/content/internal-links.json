@@ -91,7 +91,7 @@
       "kind": "category→category",
       "from": "/en/products/custom-paper-cups",
       "to": "/en/products/eco-paper-cups",
-      "anchor": "plastic-free coffee cups"
+      "anchor": "eco-friendly coffee cups"
     },
     {
       "locale": "en",
@@ -147,7 +147,7 @@
       "kind": "category→category",
       "from": "/en/products/custom-wine-boxes",
       "to": "/en/products/molded-pulp-packaging",
-      "anchor": "plastic-free pulp inserts"
+      "anchor": "custom pulp inserts"
     },
     {
       "locale": "en",
@@ -427,7 +427,7 @@
       "kind": "category→category",
       "from": "/ru/products/bumazhnye-stakany",
       "to": "/ru/products/ekologichnye-stakany",
-      "anchor": "эко стаканы без пластика"
+      "anchor": "эко стаканы с логотипом"
     },
     {
       "locale": "ru",
@@ -483,7 +483,7 @@
       "kind": "category→category",
       "from": "/ru/products/upakovka-dlya-vina",
       "to": "/ru/products/izdeliya-iz-tsellyulozy",
-      "anchor": "ложементы без пластика"
+      "anchor": "ложементы из целлюлозы"
     },
     {
       "locale": "ru",
