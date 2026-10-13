@@ -10,6 +10,8 @@ const FORBIDDEN: RegExp[] = [
   /food[-\s]safe/i,
   /\bPLA\b/,
   /пищев\S*\s+краск/i,
+  /samples?\s+(are\s+)?free|free\s+(of\s+charge\s+)?samples?/i,
+  /бесплатн\S*\s+образц|образц\S*\s+бесплатн/i,
   /прям\S*\s+поставк\S*\s+с\s+фабрик/i,
 ];
 const files = [
