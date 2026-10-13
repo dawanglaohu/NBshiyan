@@ -39,3 +39,34 @@ test('Cookie 同意条：拒绝后不加载第三方，刷新后不再出现', a
   expect(rum).toEqual([]);
   expect(await page.evaluate(() => Boolean(window.Tawk_API))).toBe(false);
 });
+
+// #183：手机 390px 下 Cookie 条不能盖住页脚最后一行。前端合并 #183/#184 的 PR 后去掉 fixme。
+test.fixme('Cookie 同意条：390px 下页脚最后一行不被遮挡（#183）', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/en');
+  const bar = page.getByRole('region', { name: 'Cookie consent' });
+  await expect(bar).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const footer = page.getByRole('contentinfo');
+  const links = footer.getByRole('link');
+  const last = links.last();
+  await expect(last).toBeVisible();
+  const barBox = (await bar.boundingBox())!;
+  const lastBox = (await last.boundingBox())!;
+  expect(lastBox.y + lastBox.height).toBeLessThanOrEqual(barBox.y);
+  await last.click({ trial: true }); // 能点到，没被盖住
+});
+
+// #184：Cookie 条按钮和隐私链接点击区域高度不小于 44px。
+test.fixme('Cookie 同意条：按钮和隐私链接高度不小于 44px（#184）', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/en');
+  const bar = page.getByRole('region', { name: 'Cookie consent' });
+  await expect(bar).toBeVisible();
+  const targets = [...(await bar.getByRole('button').all()), ...(await bar.getByRole('link').all())];
+  expect(targets.length).toBeGreaterThan(0);
+  for (const t of targets) {
+    const box = (await t.boundingBox())!;
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+});
