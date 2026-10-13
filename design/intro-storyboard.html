@@ -1,0 +1,39 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>PackJoyU 首屏背景视频分镜（#112 / #104）</title>
+<link rel="stylesheet" href="tokens.css"><style>
+body{margin:0;padding:36px;background:#E9E4DB;font-family:Manrope,system-ui,sans-serif;color:#1C1C1C;width:1800px}h1{font-size:26px;margin:0 0 6px}.sub{color:#5A5650;margin-bottom:24px;font-size:14px}
+.rules{background:#fff;border:1px solid #E8E2D8;border-left:5px solid #FF5A36;border-radius:14px;padding:18px 22px;margin-bottom:28px;font-size:14px;line-height:1.7;columns:2;column-gap:40px}.rules b{color:#FF5A36}
+.frames{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.f{background:#fff;border-radius:16px;overflow:hidden;border:1px solid #E8E2D8}
+.sc{aspect-ratio:16/9;position:relative;display:grid;place-items:center;overflow:hidden}.sc .tc{position:absolute;left:12px;top:10px;font:700 12px ui-monospace,monospace;background:#1C1C1Ccc;color:#fff;padding:3px 8px;border-radius:6px}
+.sc .ov{position:absolute;left:28px;bottom:22px;max-width:52%;color:#1C1C1C}.ov h2{margin:0;font-size:22px;line-height:1.15}.ov p{margin:6px 0 10px;font-size:11px;color:#5A5650}.ov a{background:#FF5A36;color:#fff;border-radius:999px;padding:7px 14px;font-size:11px;font-weight:700;white-space:nowrap}
+.d{padding:14px 18px;font-size:13px;line-height:1.6}.d dt{font-weight:800;color:#5A5650;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-top:6px}.d dd{margin:0}
+.kraft{background:#C49A6C}.sheet{width:46%;height:34%;background:#C49A6C;box-shadow:inset 0 0 0 2px #a77d50;transform:perspective(500px) rotateX(55deg)}
+.box{width:120px;height:110px;background:#C49A6C;box-shadow:inset -30px -26px 0 #a77d50;border-radius:4px;position:relative}.flap{position:absolute;top:-28px;left:0;width:120px;height:28px;background:#d5ad80;transform-origin:bottom;transform:rotateX(-50deg)}
+.gift{width:130px;height:90px;background:#121214;border:2px solid #D4AF6A;position:relative;border-radius:4px}.lid{position:absolute;left:-6px;top:-46px;width:142px;height:26px;background:#1b1b1f;border:2px solid #D4AF6A;border-radius:4px}.glint{position:absolute;left:30px;top:-40px;width:60px;height:4px;background:linear-gradient(90deg,transparent,#fff6d8,transparent);filter:blur(1px)}
+.logo{font-size:44px;font-weight:800;letter-spacing:-.02em}.logo i{color:#FF5A36;font-style:normal}
+.tl{display:flex;margin:26px 0 10px;border-radius:10px;overflow:hidden;font-size:12px;font-weight:700;color:#fff}.tl div{padding:10px;text-align:center}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:22px}.flow .f{padding:16px 18px;font-size:13px;line-height:1.6}.flow h3{margin:0 0 6px;font-size:15px}
+</style></head><body>
+<h1>首屏背景视频分镜 · 约 5 秒（Fixes #112 · 视频需求 #104）</h1>
+<div class="sub">参考 hxpp.com.cn 开场节奏，但<b>不做遮挡式开屏</b>：视频是首屏 hero 内的背景层，文字、按钮和正文 HTML 始终显示在上方、可点击。每帧下方写了时间、镜头、动效、画面文字。</div>
+<div class="rules">
+<b>播放方式</b>：&lt;video muted autoplay playsinline preload="none"&gt;，只播一遍（不加 loop），播完停在最后一帧（Logo 落版）。没有声音、没有控件、没有遮罩层，所以不需要“跳过”按钮；hero 角落给一个小的暂停/播放按钮（WCAG 2.2.2）。<br>
+<b>Poster</b>：用 #92 主图 <code>/images/hero/custom-printing-packaging-manufacturer.webp</code>，同时它也是 LCP 元素（next/image priority + width/height），视频加载前后画面不跳动（固定 aspect-ratio）。<br>
+<b>不播放、只显示 poster</b>：prefers-reduced-motion: reduce；navigator.connection.saveData 为 true；effectiveType 为 slow-2g / 2g / 3g。判断在客户端完成后才插入 &lt;source&gt;，避免先下载再放弃。<br>
+<b>文件</b>：自托管在 <code>public/video/hero-intro.webm</code>（VP9）+ <code>hero-intro.mp4</code>（H.264 兜底），1280×720、24fps、无音轨，每个 ≤ 1.5MB；手机端用 720×405 版本 ≤ 700KB。首屏 HTML、主图加载完、浏览器空闲后再开始拉视频，不影响 2 秒/3 秒目标。<br>
+<b>安全与隐私</b>：不用 YouTube / Vimeo 等第三方嵌入，CSP 保持 <code>media-src 'self'</code>，没有第三方 cookie，不需要额外的 Cookie 同意。<br>
+<b>文字</b>：hero 标题、副标题、“Get a quote” 都是 HTML，不烧进视频，英/俄按语言切换；视频里只出现 Logo，不出现任何需翻译的文字。画面左侧 45% 保持干净（浅色 #FBF8F3），给文字留位置，俄语长标题也放得下。
+</div>
+<div class="tl"><div style="flex:.6;background:#C49A6C">0–0.6s ①</div><div style="flex:1;background:#a77d50">0.6–1.6s ②</div><div style="flex:.8;background:#5A5650">1.6–2.4s ③</div><div style="flex:1;background:#121214">2.4–3.4s ④</div><div style="flex:.8;background:#D4AF6A;color:#121214">3.4–4.2s ⑤</div><div style="flex:.8;background:#FF5A36">4.2–5.0s ⑥</div></div>
+<div class="frames">
+<div class="f"><div class="sc" style="background:#FBF8F3"><span class="tc">00:00.0 – 00:00.6</span><div class="sheet" style="margin-left:40%"></div><div class="ov"><h2>Custom packaging, made to ship worldwide</h2><p>HTML 文字从 0s 就在</p><a>Get a quote</a></div></div><dl class="d"><dt>① 画面</dt><dd>与 poster 同构图的暖白底，右侧一张平铺的牛皮纸瓦楞板。</dd><dt>镜头</dt><dd>3/4 俯视，固定，极慢推近 3%。</dd><dt>动效</dt><dd>纸板上压痕线由浅到深亮起（ease-out）。</dd><dt>画面文字</dt><dd>无（标题为 HTML 叠加）。</dd></dl></div>
+<div class="f"><div class="sc" style="background:#FBF8F3"><span class="tc">00:00.6 – 00:01.6</span><div class="box" style="margin-left:40%"><div class="flap"></div></div><div class="ov"><h2>Custom packaging, made to ship worldwide</h2><p></p><a>Get a quote</a></div></div><dl class="d"><dt>② 画面</dt><dd>纸板沿压痕折起，四壁立起成瓦楞箱，翻盖合上。</dd><dt>镜头</dt><dd>跟随折叠轻微环绕 15°。</dd><dt>动效</dt><dd>折叠带一点回弹（overshoot 4%），翻盖最终压平（对应 Ryan 对 #92 的意见）。</dd><dt>画面文字</dt><dd>无。</dd></dl></div>
+<div class="f"><div class="sc" style="background:#FBF8F3"><span class="tc">00:01.6 – 00:02.4</span><div class="box" style="margin-left:24%;transform:scale(.8)"></div><div style="width:60px;height:80px;background:#FF5A36;border-radius:4px 4px 12px 12px;margin-left:10%"></div><div class="ov"><h2>Custom packaging, made to ship worldwide</h2><a>Get a quote</a></div></div><dl class="d"><dt>③ 画面</dt><dd>瓦楞箱后退到右侧中景，珊瑚色纸杯从画面右侧滑入。</dd><dt>镜头</dt><dd>横移 + 拉远，展示品类丰富。</dd><dt>动效</dt><dd>匹配剪辑，背景从 #FBF8F3 开始向右侧渐暗。</dd><dt>画面文字</dt><dd>无。</dd></dl></div>
+<div class="f"><div class="sc" style="background:linear-gradient(90deg,#FBF8F3 45%,#121214 70%)"><span class="tc">00:02.4 – 00:03.4</span><div class="gift" style="margin-left:45%"><div class="lid" style="top:-40px"></div></div><div class="ov"><h2>Custom packaging, made to ship worldwide</h2><a>Get a quote</a></div></div><dl class="d"><dt>④ 画面</dt><dd>右半部转入 premium 深色（#121214），黑金礼盒居中，天地盖缓缓抬起。</dd><dt>镜头</dt><dd>低机位微仰，推近 6%。</dd><dt>动效</dt><dd>盖子抬起 1 秒，ease-in-out；左侧文字区保持浅色，对比度不变。</dd><dt>画面文字</dt><dd>无。</dd></dl></div>
+<div class="f"><div class="sc" style="background:linear-gradient(90deg,#FBF8F3 45%,#121214 70%)"><span class="tc">00:03.4 – 00:04.2</span><div class="gift" style="margin-left:45%"><div class="lid"></div><div class="glint"></div></div><div class="ov"><h2>Custom packaging, made to ship worldwide</h2><a>Get a quote</a></div></div><dl class="d"><dt>⑤ 画面</dt><dd>烫金 Logo 上划过一道金色高光（#D4AF6A → 白）。</dd><dt>镜头</dt><dd>静止。</dd><dt>动效</dt><dd>高光 0.5s 扫过，之后礼盒和瓦楞箱、纸杯一起回到 poster 的三件套构图。</dd><dt>画面文字</dt><dd>无。</dd></dl></div>
+<div class="f"><div class="sc" style="background:#FBF8F3"><span class="tc">00:04.2 – 00:05.0 · 停在最后一帧</span><div class="logo" style="margin-left:40%">Pack<i>Joy</i>U</div><div class="ov"><h2>Custom packaging, made to ship worldwide</h2><a>Get a quote</a></div></div><dl class="d"><dt>⑥ 画面</dt><dd>Logo 落版：PackJoyU 字标在暖白底上，“Joy” 珊瑚橙，下方一条 2px 珊瑚线从左向右画出。</dd><dt>镜头</dt><dd>静止。</dd><dt>动效</dt><dd>字标淡入 + 上移 8px，0.4s。视频停在此帧，与 poster 色调一致，不闪。</dd><dt>画面文字</dt><dd>仅 Logo，不需翻译。</dd></dl></div>
+</div>
+<div class="flow">
+<div class="f"><h3>首次访问 / 再次访问</h3>只在每个会话首次进入首页时播放；同一会话再次回到首页直接显示最后一帧（poster），用 sessionStorage 记录，不用 cookie。</div>
+<div class="f"><h3>手机 390</h3>hero 上下排，视频区在文字下方，4:3 裁切（主体居中），用 720×405 小文件；仍遵守省流量 / 慢网 / 减弱动效规则。</div>
+<div class="f"><h3>交付清单（待 3D 建模 + 设计）</h3>Blender 渲染序列 → ffmpeg 导出 webm/mp4 两档；poster 直接复用 #92 最终版主图（酒盒修好后重渲染）。</div>
+</div></body></html>
