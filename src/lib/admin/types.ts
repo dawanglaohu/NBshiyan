@@ -14,7 +14,7 @@ export const SOURCE_LABEL: Record<InquirySource, string> = {
 export const REVIEW_THRESHOLD = 40;
 
 export type AdminRole = 'ADMIN' | 'SALES' | 'EDITOR';
-/** GET /api/admin/users → AdminUser[] */
+/** GET /api/admin/users → { items: AdminUser[] }（docs/API.md） */
 export type AdminUser = { id: string; name: string; email: string; role: AdminRole };
 export type Contact = { name: string; email: string; company?: string; phone?: string; region: string };
 export type InquiryItem = { productSlug: string; quantity?: number; config?: Record<string, unknown>; designId?: string };
@@ -57,4 +57,11 @@ export interface AdminApi {
   listUsers(): Promise<AdminUser[]>;
   /** 返回可直接用于 <img src> 的地址（blob: 或 data:），调用方用完后 revoke */
   logoPreview(uploadId: string): Promise<string>;
+}
+
+/** Wire shape of GET /api/admin/users; a bare array is tolerated for older backends. */
+export type AdminUsersResponse = { items: AdminUser[] } | AdminUser[];
+export function usersFromResponse(res: AdminUsersResponse | null | undefined): AdminUser[] {
+  if (Array.isArray(res)) return res;
+  return Array.isArray(res?.items) ? res.items : [];
 }

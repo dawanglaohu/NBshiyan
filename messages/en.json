@@ -9,7 +9,7 @@
     "products": "3D Products",
     "about": "About",
     "contact": "Contact",
-    "quote": "Get a Quote",
+    "quote": "Get a quote",
     "menu": "Menu",
     "main": "Main navigation",
     "openMenu": "Open menu",
@@ -44,7 +44,8 @@
     "premiumTitle": "Premium gift & wine boxes",
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
     "ctaBandTitle": "Have a project in mind?",
-    "ctaBandText": "Tell us what you need — we reply within 24 hours."
+    "ctaBandText": "Tell us what you need — we reply within 24 hours.",
+    "heroLabel": "Stack of custom PackJoyU boxes and a paper cup"
   },
   "Products": {
     "title": "Our products in 3D",
@@ -281,6 +282,14 @@
     "closed": "Closed",
     "open": "Open",
     "dieline": "Dieline"
+  },
+  "Footer": {
+    "about": "Custom paper packaging and printing — from prototype to mass production.",
+    "categories": "Products",
+    "contact": "Contact",
+    "contactText": "Tell us about your project — we reply within 24 hours.",
+    "privacy": "Privacy policy",
+    "otherLang": "Русский"
   },
   "Privacy": {
     "metaTitle": "Privacy policy (draft) | PackJoyU",

@@ -11,7 +11,7 @@ export interface PrivateStorage {
   delete(key: string): Promise<void>;
 }
 
-const KEY_RE = /^[A-Za-z0-9/_-]+\.(png|webp)$/;
+const KEY_RE = /^[A-Za-z0-9/_-]+\.(png|webp|glb)$/;
 
 class LocalStorage implements PrivateStorage {
   constructor(private root: string) {}

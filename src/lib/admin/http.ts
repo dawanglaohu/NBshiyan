@@ -1,4 +1,5 @@
-import type { AdminApi, InquiryDetail } from './types';
+import type { AdminApi, AdminUsersResponse, InquiryDetail } from './types';
+import { usersFromResponse } from './types';
 
 // 真实实现：对应 docs/API.md「后台接口」（/api/admin/*，需登录）。
 // 鉴权由 /admin 的登录保护负责，这里用同源 cookie（credentials: 'same-origin'）。
@@ -26,7 +27,7 @@ export const httpAdminApi: AdminApi = {
   updateInquiry: (id, patch) => call(`/inquiries/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   reply: (id, body) => call(`/inquiries/${encodeURIComponent(id)}/reply`, { method: 'POST', body: JSON.stringify(body) }),
   addNote: (id, body) => call(`/inquiries/${encodeURIComponent(id)}/notes`, { method: 'POST', body: JSON.stringify({ body }) }),
-  listUsers: () => call('/users'),
+  listUsers: async () => usersFromResponse(await call<AdminUsersResponse>('/users')),
   // 同源 cookie 鉴权，可直接用于 <img src>；无权限或不存在时图片加载失败（404），由页面显示占位
   logoPreview: async (uploadId) => `/api/admin/uploads/${encodeURIComponent(uploadId)}`
 };
