@@ -117,8 +117,13 @@ export async function anonymizeInquiryOps(db: PrismaClient, inquiryIds: string[]
 }
 
 /**
- * 客户回信（发到 reply+<token>@REPLY_DOMAIN）找询盘时必须用这个：已匿名化的询盘一律当作不存在。
- * 注意：目前代码里还没有处理客户回信的接口，以后加的时候必须用它。
+ * ⚠️ 安全规则（必须遵守）⚠️
+ * 以后任何处理客户回信（inbound reply，发到 reply+<token>@REPLY_DOMAIN）的接口：
+ *   1. **必须**通过本函数按 token 查找询盘，不能自己写 findUnique/findFirst 查 replyToken。
+ *      本函数会拒绝已匿名化（anonymizedAt 不为 null）的询盘，一律当作不存在。
+ *   2. **绝不能**对 anonymizedAt 不为 null 的询盘做任何写入（不能新增 InquiryMessage、改状态、存附件等），
+ *      否则匿名化后的询盘会重新出现个人信息。
+ * 目前代码里还没有处理客户回信的接口；新增时安全审查要核对这两条。见 docs/data-retention.md。
  */
 export async function findInquiryForReply(db: Pick<PrismaClient, 'inquiry'>, token: string) {
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) return null;

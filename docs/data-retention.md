@@ -15,6 +15,8 @@
 
 清理入口：`/api/admin/cron/cleanup-uploads`（CRON_SECRET，每天 03:00 UTC）。顺序：过期方案 → 孤儿 logo → 样品邮箱计数 → 到期询盘匿名化 → 闲置账号停用 → 审计日志；日志和告警只含条数和错误类型/码，不含个人信息。数据库字段 `Inquiry.anonymizedAt`、`User.lastLoginAt`、`User.reactivatedAt` 需要在部署前 `prisma db push`。审计日志、样品计数、过期方案都分批处理（每批 500 条，按 id 删除/更新），每次运行最多 `RETENTION_MAX_PER_RUN`（默认 20000）条，没处理完的留给下次。每步独立执行，任一失败返回 500 并发送管理员告警（只含错误 name/code）。
 
+**客户回信（安全规则）**：以后新增的任何客户回信（inbound reply）处理接口，**必须**用 `findInquiryForReply`（`src/lib/server/privacy.ts`）按 token 查找询盘，它会拒绝已匿名化的询盘；并且**绝不能**对 `anonymizedAt` 不为空的询盘做任何写入（新增往来邮件、改状态、存附件等）。目前还没有这个接口，新增时安全审查要核对。
+
 **并发**：清理（包括试运行）同一时间只跑一次，正在跑时再请求返回 409 `cleanup_running`（Postgres advisory lock）。
 
 **试运行（`RETENTION_DRY_RUN=1`）**：cron 只统计、不清理。返回 `{ dryRun: true, designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos, inactiveUsers, skippedLastAdmin }`。全程只用 count 和只读查询：不写数据库、不删文件、不写审计，日志只记条数。统计的是全部待处理条数，不受 `RETENTION_MAX_PER_RUN` 限制。真实运行会先删过期方案，有些 logo 会因此变成孤儿，所以 `orphanLogos` 可能比真实运行时少。上线前设成 `1` 触发一次，核对条数后**删掉这个变量**，下次 cron 才会真正清理。
