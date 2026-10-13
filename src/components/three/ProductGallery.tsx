@@ -15,6 +15,18 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState<Set<string>>(new Set());
   const [active, setActive] = useState<string | null>(null);
+  // three.js 不参与首屏：用户第一次交互（移动鼠标、滚动、触摸、按键）后才加载 3D，
+  // 或页面完全空闲 4 秒后兜底加载，避免阻塞主线程影响首屏指标
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (armed) return;
+    const arm = () => setArmed(true);
+    const evts = ['pointermove', 'pointerdown', 'wheel', 'touchstart', 'keydown', 'scroll'] as const;
+    evts.forEach((e) => window.addEventListener(e, arm, { once: true, passive: true }));
+    const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    const timer = window.setTimeout(() => (ric ? ric(arm, { timeout: 2000 }) : arm()), 4000);
+    return () => { evts.forEach((e) => window.removeEventListener(e, arm)); window.clearTimeout(timer); };
+  }, [armed]);
 
   // 视口内才加载和渲染模型，提前 200px 预热
   useEffect(() => {
@@ -58,11 +70,11 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
           </article>
         ))}
       </div>
-      <GalleryScene
+      {armed && visible.size > 0 && (<GalleryScene
         eventSource={rootRef}
         onReady={onReady}
         items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, track: tracks[i] }))}
-      />
+      />)}
     </div>
   );
 }
