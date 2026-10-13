@@ -28,10 +28,15 @@ export function probeConfig(env: Record<string, string | undefined>) {
 }
 
 /** 探测请求头：只有配置了 MIDDLEWARE_PROBE_SECRET 才带密钥和原始客户端 IP（API 校验密钥后按该 IP 限流）。 */
+const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+const IPV6 = /^[0-9a-fA-F:.]{2,45}$/;
+export function isIp(s: string) { return s.length <= 45 && (IPV4.test(s) || (s.includes(':') && IPV6.test(s))); }
+
+/** 与 #177 约定：密钥 ≥32 字节才发送；客户端 IP 必须是合法 IP 且 ≤45 字符，否则两个头都不发。 */
 export function probeHeaders(secret: string | null, clientIp: string | null): Record<string, string> {
-  if (!secret) return {};
-  const ip = clientIp?.trim().slice(0, 64) ?? '';
-  return /^[0-9a-fA-F:.]{2,64}$/.test(ip) ? { 'x-internal-probe': secret, 'x-probe-client-ip': ip } : { 'x-internal-probe': secret };
+  if (!secret || new TextEncoder().encode(secret).length < 32) return {};
+  const ip = clientIp?.trim() ?? '';
+  return isIp(ip) ? { 'x-internal-probe': secret, 'x-probe-client-ip': ip } : {};
 }
 
 export async function probeShortlink(origin: string, id: string, f: typeof fetch = fetch, now = Date.now(), headers: Record<string, string> = {}): Promise<Probe | null> {

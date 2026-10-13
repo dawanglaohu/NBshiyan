@@ -18,8 +18,13 @@ test('probeConfig / probeHeaders', () => {
   assert.deepEqual(probeConfig({ NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com/' }), { origin: 'https://packjoyu.com', secret: null });
   assert.deepEqual(probeConfig({ SHORTLINK_PROBE_ORIGIN: 'http://internal:3000', NEXT_PUBLIC_SITE_URL: 'https://a.com', MIDDLEWARE_PROBE_SECRET: 's' }), { origin: 'http://internal:3000', secret: 's' });
   assert.deepEqual(probeHeaders(null, '1.2.3.4'), {});
-  assert.deepEqual(probeHeaders('s', '1.2.3.4'), { 'x-internal-probe': 's', 'x-probe-client-ip': '1.2.3.4' });
-  assert.deepEqual(probeHeaders('s', '1.2.3.4\r\nx: y'), { 'x-internal-probe': 's' });
+  const k = 'k'.repeat(32);
+  assert.deepEqual(probeHeaders('short', '1.2.3.4'), {});
+  assert.deepEqual(probeHeaders(k, '1.2.3.4'), { 'x-internal-probe': k, 'x-probe-client-ip': '1.2.3.4' });
+  assert.deepEqual(probeHeaders(k, '2001:db8::1'), { 'x-internal-probe': k, 'x-probe-client-ip': '2001:db8::1' });
+  assert.deepEqual(probeHeaders(k, '1.2.3.4\r\nx: y'), {});
+  assert.deepEqual(probeHeaders(k, '999.1.1.1'), {});
+  assert.deepEqual(probeHeaders(k, null), {});
 });
 test('probeShortlink：X-Design-Category 只接受 categoryMeta 的 key', async () => {
   _resetCache();
