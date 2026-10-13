@@ -1,7 +1,8 @@
 {
   "Meta": {
-    "title": "PackJoyU | Custom Packaging Manufacturer",
-    "description": "Custom corrugated boxes, gift boxes, paper cups and printed packaging from PackJoyU."
+    "title": "Custom Packaging Manufacturer: Boxes, Cups & Printing | PackJoyU",
+    "description": "PackJoyU manufactures custom corrugated boxes, gift and wine boxes, molded pulp, eco paper cups and printed packaging for brands in North America, Europe and Australia.",
+    "home": "Home"
   },
   "Nav": {
     "home": "Home",
@@ -62,7 +63,24 @@
       "christmas-merchandise": "Christmas Merchandise"
     },
     "done": "Done",
-    "categories": "Product categories"
+    "categories": "Product categories",
+    "metaTitle": "Custom Packaging Products in 3D: Boxes, Cups & Printing | PackJoyU",
+    "metaDescription": "Explore 12 custom packaging categories in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
+    "desc": {
+      "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
+      "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
+      "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
+      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber, a plastic-free alternative.",
+      "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
+      "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
+      "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
+      "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
+      "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
+      "eco-paper-cups": "Compostable and plastic-free paper cups with water-based or PLA-free coatings.",
+      "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
+      "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
+    },
+    "alt": "{name}: custom packaging by PackJoyU"
   },
   "Admin": {
     "title": "Admin"
