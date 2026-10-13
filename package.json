@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "admin:create": "node scripts/create-admin.mjs",
     "test": "node --import tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "seo:audit": "tsx scripts/seo-audit.ts"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.5.1",
