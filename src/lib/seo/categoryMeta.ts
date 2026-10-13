@@ -76,7 +76,7 @@ export const categoryMeta: CategoryMeta[] = [
       description: 'Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today.' },
     ru: { slug: 'ekologichnye-stakany', keyword: 'биоразлагаемые стаканы', draft: true,
       title: 'Биоразлагаемые стаканы с логотипом | PackJoyU',
-      description: 'Биоразлагаемые и компостируемые бумажные стаканы без пластика, с водной или PLA основой и печатью логотипа. Экологичный выбор для кофеен и сетей. Запросите расчёт.' } }, // RU: awaiting Ryan proofreading ("Эко выбор" → "Экологичный выбор")
+      description: 'Биоразлагаемые и компостируемые стаканы без пластика, с водной или PLA основой и печатью логотипа. Экологичный выбор для кофеен и сетей. Запросите расчёт.' } }, // RU: awaiting Ryan proofreading ("Эко выбор" → "Экологичный выбор")
   { key: 'gift-cards',
     en: { slug: 'custom-gift-cards', keyword: 'custom gift cards',
       title: 'Custom Gift Cards Printing & Supplier | PackJoyU',

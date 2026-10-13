@@ -56,7 +56,7 @@
 | slug | `custom-party-supplies` | `tovary-dlya-prazdnikov` |
 | 主关键词 | custom party supplies | бумажная посуда для праздника оптом |
 | title | Custom Party Supplies Manufacturer \| PackJoyU (45) | Бумажная посуда для праздника оптом \| PackJoyU (46) |
-| description | Custom printed paper party supplies: plates, cups, napkins and decorations in your designs. Wholesale production for retailers and brands. Request a quote. (155) | Одноразовая бумажная посуда с печатью для праздников: тарелки, стаканы, салфетки и декор по вашему дизайну. Оптом для сетей и брендов. Запросите расчет. (152) |
+| description | Custom printed paper party supplies: plates, cups, napkins and decorations in your designs. Wholesale production for retailers and brands. Request a quote. (155) | Одноразовая бумажная посуда с печатью для праздников: тарелки, стаканы, салфетки и декор по вашему дизайну. Оптом для сетей и брендов. Запросите расчет. (154) |
 
 ## wine-boxes
 
@@ -92,7 +92,7 @@
 | slug | `compostable-paper-cups` | `ekologichnye-stakany` |
 | 主关键词 | compostable paper cups | биоразлагаемые стаканы |
 | title | Compostable Paper Cups Manufacturer \| PackJoyU (46) | Биоразлагаемые стаканы с логотипом \| PackJoyU (45) |
-| description | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. (149) | Биоразлагаемые и компостируемые бумажные стаканы без пластика, с водной или PLA основой и печатью логотипа. Экологичный выбор для кофеен и сетей. Запросите расчет. (161) — ⚠️ ждёт вычитки Ryan |
+| description | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. (149) | Биоразлагаемые и компостируемые стаканы без пластика, с водной или PLA основой и печатью логотипа. Экологичный выбор для кофеен и сетей. Запросите расчет. (154) — ⚠️ ждёт вычитки Ryan |
 
 ## gift-cards
 
@@ -101,7 +101,7 @@
 | slug | `custom-gift-cards` | `podarochnye-karty` |
 | 主关键词 | custom gift cards | печать подарочных карт |
 | title | Custom Gift Cards Printing & Supplier \| PackJoyU (48) | Печать подарочных карт на заказ \| PackJoyU (42) |
-| description | Custom printed gift cards, vouchers and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. (155) | Печать подарочных карт и сертификатов на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка для карт в едином стиле бренда. Запросите расчет. (152) |
+| description | Custom printed gift cards, vouchers and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. (155) | Печать подарочных карт и сертификатов на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка для карт в едином стиле бренда. Запросите расчет. (154) |
 
 ## christmas-merchandise
 
