@@ -1,0 +1,86 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Cookie settings — #185</title>
+<link rel="stylesheet" href="motion-tokens.css">
+<style>
+:root{--bg:#FBF8F3;--surface:#fff;--ink:#1C1C1C;--ink-2:#5A5650;--line:#E8E2D8;--accent:#FF5A36;--accent-press:#E04A28;--on-accent:#1C1C1C;--accent-text:#C2381A;--ok:#1A7F37;--okb:#E6F4EA;--r-sm:8px;--r-md:12px;--r-lg:20px;--shadow-lg:0 20px 48px rgba(28,28,28,.16);--focus:0 0 0 2px var(--bg),0 0 0 4px var(--accent-text)}
+*{box-sizing:border-box}body{margin:0;font-family:Manrope,system-ui,sans-serif;background:#EFEAE2;color:var(--ink);padding:32px}
+h1{font-size:36px;margin:0 0 8px}h2{font-size:22px;margin:32px 0 12px}.note{max-width:1100px;color:var(--ink-2);font-size:14px;line-height:1.55}
+.cap{font-size:13px;font-weight:700;color:var(--ink-2);margin:0 0 8px}
+.frame{position:relative;overflow:hidden;background:var(--bg);border:1px solid #d9d2c6;border-radius:12px;margin:0 32px 32px 0;display:inline-block;vertical-align:top}
+.f1440{width:1440px;height:900px}.f390{width:390px;height:844px}.f360{width:360px;height:740px}
+.page{padding:24px 48px;opacity:.9}.page .hdr{height:56px;display:flex;align-items:center;justify-content:space-between;font-weight:800}.page .blk{height:220px;border-radius:20px;background:#F3EDE4;margin:16px 0}
+.footer{position:absolute;left:0;right:0;bottom:0;background:#F3EDE4;border-top:1px solid var(--line);padding:16px 48px;font-size:14px;display:flex;gap:24px;flex-wrap:wrap;align-items:center;color:var(--ink-2)}
+.f390 .footer,.f360 .footer{padding:12px 16px;gap:4px 16px}.f390 .page,.f360 .page{padding:12px 16px}
+.footer a{color:var(--ink);text-decoration:underline;min-height:44px;display:inline-flex;align-items:center}
+.footer a.hl{box-shadow:var(--focus);border-radius:4px;padding:0 4px}
+.scrim{position:absolute;inset:0;background:rgba(28,28,28,.45)}
+.dlg{position:absolute;background:var(--surface);color:var(--ink);box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
+.f1440 .dlg{width:560px;left:440px;top:110px;border-radius:var(--r-lg);max-height:680px}
+.sheet{left:0;right:0;bottom:0;border-radius:20px 20px 0 0;max-height:88%}
+.grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:8px auto 0}
+.dh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 24px 8px}.sheet .dh{padding:12px 16px 4px}
+.dh h3{margin:0;font-size:22px;line-height:1.25;hyphens:auto}.sheet .dh h3{font-size:19px}
+.x{width:44px;height:44px;flex:none;border:0;background:transparent;border-radius:var(--r-sm);font-size:22px;color:var(--ink);display:grid;place-items:center;margin:-8px -10px 0 0}
+.body{overflow:auto;padding:0 24px}.sheet .body{padding:0 16px}
+.body p.lead{font-size:14px;line-height:1.5;color:var(--ink-2);margin:0 0 8px}.body p.lead a{color:var(--accent-text);font-weight:600}
+.cat{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line)}
+.cat b{font-size:15px;display:block;margin-bottom:2px}.cat span{font-size:13px;line-height:1.45;color:var(--ink-2);display:block}.cat em{font-style:normal;font-size:12px;font-weight:700;color:var(--ok);background:var(--okb);border-radius:999px;padding:2px 8px;margin-left:6px;white-space:nowrap}
+.sw{flex:none;width:52px;height:44px;display:grid;place-items:center;border-radius:999px;position:relative}
+.sw i{width:44px;height:26px;border-radius:999px;background:#8C857B;position:relative;display:block}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform var(--dur-fast) var(--ease-inout)}
+.sw.on i{background:var(--ink)}.sw.on i::after{transform:translateX(18px)}
+.sw.on i::before{content:"✓";position:absolute;left:8px;top:3px;font-size:13px;color:#fff;font-weight:800}
+.sw.dis{opacity:.45}.sw.foc i{box-shadow:var(--focus)}
+.foot{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 24px 20px;border-top:1px solid var(--line)}.sheet .foot{padding:12px 16px 16px}
+.b{min-height:44px;border-radius:var(--r-sm);font:600 15px/1.2 Manrope,sans-serif;padding:10px 16px;border:1.5px solid var(--accent);background:var(--accent);color:var(--on-accent);text-align:center;display:flex;align-items:center;justify-content:center}
+.b.ghost{background:transparent;border-color:var(--ink);color:var(--ink);grid-column:1/-1}.b.foc{box-shadow:var(--focus)}
+.bar{position:absolute;left:24px;bottom:24px;width:520px;background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:16px;font-size:14px;line-height:1.45}
+.f390 .bar,.f360 .bar{left:0;right:0;bottom:0;width:auto;border-radius:16px 16px 0 0}
+.bar a{color:var(--accent-text);font-weight:600;display:inline-block;padding:13px 0;margin:-13px 0}
+.bar .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.bar .acts .b.set{grid-column:1/-1;background:transparent;border-color:var(--ink);color:var(--ink);order:0}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;font-size:14px;box-shadow:var(--shadow-lg);width:max-content;max-width:calc(100% - 32px);display:flex;gap:10px;align-items:center}
+.toast u{color:#FFB39F;font-weight:700;text-decoration:underline;min-height:44px;display:inline-flex;align-items:center}
+.ann{position:absolute;background:#1D4F91;color:#fff;font:600 12px/1.3 Manrope;padding:4px 8px;border-radius:6px;z-index:5}
+table{border-collapse:collapse;font-size:13px;background:#fff;max-width:1400px}td,th{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+</style></head><body>
+<h1>Cookie settings — dialog + footer entry (Refs #185)</h1>
+<p class="note">Theme C · Manrope · coral #FF5A36 with #1C1C1C text (5.49:1) until #147 is decided · all tap targets ≥44px · focus = <code>--focus</code> (#120, no transition) · motion from <code>motion-tokens.css</code> (transform/opacity only). <b>Reject all</b> and <b>Accept all</b> are identical coral buttons of equal width side by side — withdrawing is exactly as easy as consenting (GDPR Art. 7(3)). <b>Save choices</b> is the secondary outline button. Blue tags = annotations only.</p>
+<div id="out"></div>
+<h2>Spec</h2>
+<table id="spec"></table>
+<script>
+const T={en:{bar:'We use essential cookies to run this site. With your permission we also use analytics and live chat.',pol:'Privacy policy',rej:'Reject all',acc:'Accept all',set:'Settings',title:'Cookie settings',lead:'Choose which cookies we may use. You can change this any time via “Cookie settings” in the footer.',nec:'Necessary',necD:'Language, security (Turnstile), quote list and this choice. Always on.',al:'Always on',an:'Analytics',anD:'Anonymous page-speed and usage stats (web vitals) to improve the site.',ch:'Live chat (Tawk.to)',chD:'Loads the Tawk.to chat widget, which sets its own cookies.',save:'Save choices',close:'Close',foot:'Cookie settings',saved:'Your cookie choices were saved.',wd:'Consent withdrawn. Analytics and chat are off.',undo:'Change'},
+ru:{bar:'Мы используем необходимые cookie для работы сайта. С вашего согласия — также для аналитики и онлайн-чата.',pol:'Политика конфиденциальности',rej:'Отклонить все',acc:'Принять все',set:'Настройки',title:'Настройки cookie',lead:'Выберите, какие cookie мы можем использовать. Изменить выбор можно в любой момент по ссылке «Настройки cookie» внизу страницы.',nec:'Необходимые',necD:'Язык, защита от спама (Turnstile), список для запроса цены и этот выбор. Всегда включены.',al:'Всегда включены',an:'Аналитика',anD:'Анонимная статистика скорости загрузки и посещаемости (web vitals) для улучшения сайта.',ch:'Онлайн-чат (Tawk.to)',chD:'Загружает виджет чата Tawk.to, который устанавливает собственные cookie.',save:'Сохранить выбор',close:'Закрыть',foot:'Настройки cookie',saved:'Ваш выбор cookie сохранён.',wd:'Согласие отозвано. Аналитика и чат отключены.',undo:'Изменить'}};
+const sw=(on,lbl,cls='')=>`<span class="sw ${on?'on':''} ${cls}" role="switch" aria-checked="${on}" aria-label="${lbl}"><i></i></span>`;
+function footer(t,hl){return `<div class="footer"><span>© 2026 PackJoyU</span><a>${t.pol}</a><a class="${hl?'hl':''}">${t.foot}</a><a>EN / RU</a></div>`}
+function dlg(t,s,sheet){return `<div class="scrim"></div><div class="dlg ${sheet?'sheet':''}" role="dialog" aria-modal="true">${sheet?'<div class="grab"></div>':''}
+<div class="dh"><h3>${t.title}</h3><button class="x" aria-label="${t.close}">✕</button></div>
+<div class="body"><p class="lead">${t.lead} <a>${t.pol}</a></p>
+<div class="cat"><div><b>${t.nec}<em>${t.al}</em></b><span>${t.necD}</span></div>${sw(1,t.nec,'dis')}</div>
+<div class="cat"><div><b>${t.an}</b><span>${t.anD}</span></div>${sw(s.an,t.an,s.foc?'foc':'')}</div>
+<div class="cat"><div><b>${t.ch}</b><span>${t.chD}</span></div>${sw(s.ch,t.ch)}</div></div>
+<div class="foot"><span class="b">${t.rej}</span><span class="b">${t.acc}</span><span class="b ghost">${t.save}</span></div></div>`}
+function bar(t){return `<div class="bar" role="region"><p style="margin:0">${t.bar} <a>${t.pol}</a></p><div class="acts"><span class="b">${t.rej}</span><span class="b">${t.acc}</span><span class="b set foc">${t.set}</span></div></div>`}
+function frame(sz,l,cap,inner,ann=''){const t=T[l];return `<div style="display:inline-block;vertical-align:top"><p class="cap">${cap}</p><div class="frame f${sz}" lang="${l}" data-shot="${sz}-${l}-${cap.split(' ')[0]}"><div class="page"><div class="hdr">PackJoyU<span>☰</span></div><div class="blk"></div><div class="blk"></div></div>${inner(t)}${ann}</div></div>`}
+const A=(x,y,s)=>`<span class="ann" style="left:${x}px;top:${y}px">${s}</span>`;
+const F=[
+['1440','en','1-bar · first visit: bar with 3 options',t=>bar(t),A(560,770,'Settings has keyboard focus; Reject/Accept equal size')],
+['1440','en','2-first · Settings from bar: all optional OFF',t=>footer(t)+dlg(t,{an:0,ch:0,foc:1}),A(1010,330,'Focus ring on switch (Tab). Tab cycles inside dialog, Esc = close without saving')],
+['1440','ru','3-reopen · footer link, saved choices pre-filled',t=>footer(t,1)+dlg(t,{an:1,ch:0}),A(1010,330,'Pre-filled from pj-consent: analytics ON, chat OFF')],
+['1440','ru','4-withdrawn · toast after Reject all',t=>footer(t,1)+`<div class="toast" role="status">${t.wd} <u>${t.undo}</u></div>`,A(560,700,'role=status, 5s, focus returns to footer link')],
+['390','en','5-first · bottom sheet',t=>dlg(t,{an:0,ch:0},1)],
+['390','ru','6-reopen · bottom sheet RU',t=>dlg(t,{an:1,ch:1},1)],
+['360','ru','7-longest · 360 RU longest strings',t=>dlg(t,{an:0,ch:1,foc:1},1)],
+['360','ru','8-bar · 360 RU bar 3 buttons',t=>footer(t)+bar(t)],
+['390','en','9-saved · toast after Save choices',t=>footer(t,1)+`<div class="toast" role="status">${T.en.saved} <u>${T.en.undo}</u></div>`],
+['360','ru','10-withdrawn · toast RU',t=>footer(t,1)+`<div class="toast" role="status">${t.wd} <u>${t.undo}</u></div>`]];
+out.innerHTML=F.map(f=>frame(...f)).join('');
+const S=[['Entry points','Bar: Reject all · Accept all (equal coral) + Settings (outline, full width). Footer: “Cookie settings / Настройки cookie” link (≥44px, real <code>&lt;button&gt;</code> styled as link) on every page, also when no choice saved. Expose <code>openConsentSettings()</code> from lib/consent (window event <code>pj:consent-open</code>).'],
+['Dialog','Desktop ≥768: centered modal 560px, max-height 680px, body scrolls, footer sticky. Mobile: bottom sheet, radius 20px top, max-height 88vh, safe-area padding. Scrim rgba(28,28,28,.45); click scrim = close without saving.'],
+['States','First visit (from bar): optional switches OFF (no pre-ticking). Reopen (footer): switches = stored values. Save choices writes current switches; Reject all = {analytics:false,chat:false}; Accept all = both true. Each closes and shows toast: saved / withdrawn (withdrawn when any category went true→false).'],
+['A11y','role=dialog, aria-modal=true, aria-labelledby=title, aria-describedby=lead. Initial focus = first enabled switch (Analytics). Focus trap Tab/Shift+Tab; Esc closes without saving; focus returns to opener (bar Settings or footer link; if bar was dismissed, to footer link). Switches = <code>&lt;button role="switch" aria-checked&gt;</code> with aria-label = category name, aria-describedby = description; Space/Enter toggles. Necessary: aria-checked=true, aria-disabled=true + “Always on” text. Toast role=status. Focus ring <code>--focus</code>, no transition (#120). Background gets <code>inert</code>.'],
+['Motion','Desktop: opacity 0→1 + translateY(var(--dist-sm)) over --dur-slow --ease-out; exit --dur-base --ease-in. Sheet: translateY(100%)→0 --dur-slow. Scrim opacity only. Switch knob transform --dur-fast. Reduced motion: tokens give 120ms opacity fade, distances 0. Only transform/opacity.'],
+['Storage (FE+security)','Keep localStorage <code>pj-consent</code> = <code>{v:1,analytics,chat,ts}</code> via <code>setConsent()</code>; event <code>pj:consent</code> + cross-tab <code>storage</code>. No new keys. Necessary isn\'t stored (always on). Bump to v:2 only if categories change → re-ask. Re-prompt after 12 months (ts) — PM to confirm.'],
+['Withdrawal rule (security+QA)','On analytics false: stop web-vitals RUM, send nothing more. On chat false: <code>Tawk_API.hideWidget()/shutdown</code>, remove Tawk script + iframe, delete Tawk cookies/localStorage (<code>TawkConnectionTime</code>, <code>twk_*</code>, <code>__tawkuuid</code>) where readable; then reload page if removal incomplete. After withdrawal no requests to embed.tawk.to / analytics endpoint on that page or any later page/tab. Scripts load only when value is true, never preloaded.'],
+['QA cases','Bar 3 buttons ≥44px; Settings opens dialog with switches off; footer reopen pre-fills; Tab trap + Esc + focus return; Reject all after Accept all → no Tawk/analytics requests (network); cross-tab update; RU 360 no clipping/overflow; reduced-motion = fade only.']];
+spec.innerHTML=S.map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td></tr>`).join('');
+</script></body></html>
