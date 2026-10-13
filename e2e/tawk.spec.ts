@@ -53,12 +53,27 @@ test('chat=false（即使 analytics=true）：不加载 Tawk.to', async ({ page 
   await expectNoTawk(page, hits);
 });
 
-test('格式不对的同意值（v≠1、chat 非 true）按未同意处理', async ({ page }) => {
+test('同意值格式（v2）：v1、缺 ts、格式错误按未同意处理；合法 v2 才加载', async ({ page }) => {
   const hits = await mockTawk(page);
-  await page.addInitScript(() => localStorage.setItem('pj-consent', JSON.stringify({ v: 2, analytics: true, chat: 'true' })));
   await page.goto('/en');
-  await armAndWait(page);
-  await expectNoTawk(page, hits);
+  const bad = [
+    { v: 1, analytics: true, chat: true, ts: Date.now() },
+    { v: 2, analytics: true, chat: true },
+    { v: 2, analytics: true, chat: 'true', ts: Date.now() },
+    { v: 3, analytics: true, chat: true, ts: Date.now() },
+    'not-json{',
+  ];
+  for (const val of bad) {
+    await page.evaluate((x) => localStorage.setItem('pj-consent', typeof x === 'string' ? x : JSON.stringify(x)), val);
+    await page.reload();
+    await armAndWait(page, 1500);
+    await expectNoTawk(page, hits);
+  }
+  if (!configured) return; // TODO(#185): 未配置 Tawk 测试 ID（构建期变量）时跳过“合法 v2 加载”部分
+  await page.evaluate(() => localStorage.setItem('pj-consent', JSON.stringify({ v: 2, analytics: false, chat: true, ts: Date.now() })));
+  await page.reload();
+  await page.mouse.move(200, 200); await page.mouse.wheel(0, 300);
+  await expect.poll(() => hits.length, { timeout: 12_000 }).toBeGreaterThan(0);
 });
 
 test('chat=true：交互后只从 embed.tawk.to 加载脚本（mock）', async ({ page }) => {
