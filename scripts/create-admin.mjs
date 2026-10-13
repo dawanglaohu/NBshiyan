@@ -7,6 +7,18 @@ import { createCipheriv, randomBytes } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { hash } from '@node-rs/argon2';
 
+// 拒绝对生产库运行：PROD_DATABASE_HOST 是逗号分隔的生产库主机名（支持 *.example.com 通配），
+// DATABASE_URL 的主机命中任意一个就退出。生产库只能走正式流程建号。
+export function isProdDatabase(url, patterns) {
+  let host;
+  try { host = new URL(url).hostname.toLowerCase(); } catch { return false; }
+  return (patterns ?? '').split(',').map((p) => p.trim().toLowerCase()).filter(Boolean).some((p) =>
+    p.startsWith('*.') ? host.endsWith(p.slice(1)) : host === p);
+}
+if (process.env.DATABASE_URL && isProdDatabase(process.env.DATABASE_URL, process.env.PROD_DATABASE_HOST)) {
+  console.error('DATABASE_URL 指向生产库（命中 PROD_DATABASE_HOST），seed 脚本拒绝运行'); process.exit(1);
+}
+
 const totpSeed = process.env.ADMIN_SEED_TOTP_SECRET?.trim().replace(/\s+/g, '').toUpperCase();
 if (totpSeed) {
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production') {
