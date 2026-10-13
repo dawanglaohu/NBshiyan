@@ -196,6 +196,7 @@ body{padding-bottom:var(--fab-clearance)}
 html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 
 /* 询价清单已满提示（20 项） */
-.quote-notice{position:fixed;left:50%;bottom:calc(16px + var(--consent-h,0px));transform:translateX(-50%);z-index:56;max-width:min(520px,calc(100vw - 32px));background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none}
+/* 与 #185 的 .consent-toast 纵向堆叠：toast 在下，本提示在上（--pj-consent-h = toast 高度 + 底部间距，由 CookieConsent 写入） */
+.quote-notice{position:fixed;left:50%;bottom:calc(var(--pj-consent-h,0px) + var(--consent-h,0px) + 16px);transform:translateX(-50%);z-index:56;max-width:min(520px,calc(100vw - 32px));background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none}
 .quote-notice.on{opacity:1}
 .quote-notice:empty{padding:0}
