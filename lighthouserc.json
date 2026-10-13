@@ -1,0 +1,14 @@
+{
+  "ci": {
+    "collect": { "url": ["http://localhost:3000/en", "http://localhost:3000/en/products"], "numberOfRuns": 3, "settings": { "preset": "desktop" } },
+    "assert": {
+      "assertions": {
+        "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+        "total-blocking-time": ["warn", { "maxNumericValue": 200 }],
+        "categories:performance": ["error", { "minScore": 0.9 }]
+      }
+    },
+    "upload": { "target": "temporary-public-storage" }
+  }
+}

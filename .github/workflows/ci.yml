@@ -1,0 +1,27 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: 依赖漏洞扫描（high 及以上阻断）
+        run: pnpm audit --audit-level high --prod
+      - name: 模型体积门槛（普通 1MB，带动画 1.5MB）
+        run: node scripts/check-model-size.mjs
+      - run: pnpm build
+      - name: Lighthouse 性能门槛
+        run: |
+          pnpm start &
+          npx wait-on http://localhost:3000/en
+          npx @lhci/cli@0.14.x autorun
