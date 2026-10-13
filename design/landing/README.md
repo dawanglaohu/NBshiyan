@@ -1,3 +1,8 @@
+> [!WARNING]
+> **⚠️ 示例数据，严禁上线**：本目录设计稿中的所有规格数值（MOQ、尺寸、交期、样品费、材质、证书等）均为示例数据，仅用于展示版式，**绝不能写进代码或上线**。线上规格只能从后端 `/api/specs` 获取，没有值的字段不显示。
+>
+> **⚠️ EXAMPLE DATA — MUST NEVER GO LIVE**: All spec values in these mock-ups (MOQ, dimensions, lead time, sample fee, material, certificates, etc.) are placeholder examples for layout only and **must never be hard-coded or shipped**. Live specs come **only** from the backend `/api/specs`; fields without a value are not shown.
+
 # Category landing `/[locale]/products/<slug>` + 503 (Refs #209)
 
 Open `category-landing.html` (add `#d-en`, `#m-ru`, … to see one frame). PNG renders: `d-en`, `d-ru`, `d-wine-b` (theme B), `m-en`, `m-ru` (390), `m360-ru` (360, no specs), `e503` (EN/RU, desktop + mobile).
