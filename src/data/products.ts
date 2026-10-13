@@ -10,7 +10,7 @@ export const products: Product[] = [
   { slug: 'wine-boxes', model: '/models/wine-box.anim.49bdad5f.glb', poster: '/images/posters/custom-wine-boxes.webp', animated: true, animationClips: { open: 'Open' } },
   { slug: 'color-printing', model: '/models/color-printing.6f6d1883.glb', poster: '/images/placeholder.svg' },
   { slug: 'offset-printing', model: '/models/offset-catalog.ce7ebab1.glb', poster: '/images/placeholder.svg' },
-  { slug: 'eco-paper-cups', model: '/models/eco-paper-cup.c7dc1bb3.glb', poster: '/images/placeholder.svg' },
+  { slug: 'eco-paper-cups', model: '/models/eco-paper-cup.f04a5942.glb', poster: '/images/placeholder.svg' },
   { slug: 'gift-cards', model: '/models/gift-card.5f15f08c.glb', poster: '/images/placeholder.svg' },
   { slug: 'christmas-merchandise', model: '/models/christmas-tube.e7bde861.glb', poster: '/images/placeholder.svg' }
 ];

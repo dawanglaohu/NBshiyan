@@ -196,7 +196,7 @@ if (want('offset')) {
 }
 // 10) 环保纸杯：牛皮纸杯 + PLA 盖 + 杯套
 if (want('ecocup')) {
-  const wrap = await svgTex(1024, 512, kraftBase(1024, 512, '#c9a676') + `<g fill="#2f6b3a" ${F}><text x="512" y="230" text-anchor="middle" font-size="80" font-weight="800">100% PLASTIC FREE</text><text x="512" y="300" text-anchor="middle" font-size="34">COMPOSTABLE · FSC®</text></g>${Array.from({length: 6}, (_, i) => `<path transform="translate(${80 + i*170},400)" d="M0 40 C 10 0 50 0 60 -10 C 55 30 30 50 0 40 Z" fill="#4c9a5a"/>`).join('')}`);
+  const wrap = await svgTex(1024, 512, kraftBase(1024, 512, '#c9a676') + `<g fill="#3a2a1a" ${F}><text x="512" y="240" text-anchor="middle" font-size="84" font-weight="800">PackJoyU</text><text x="512" y="300" text-anchor="middle" font-size="30" letter-spacing="10">CUSTOM PAPER CUPS</text></g>${Array.from({length: 16}, (_, i) => `<circle cx="${40 + i*63}" cy="410" r="9" fill="#FF5A36" opacity=".85"/>`).join('')}`);  // 中性图案：不印无依据的环保/认证声明
   const sleeve = await svgTex(512, 128, kraftBase(512, 128, '#a87d4c') + Array.from({length: 32}, (_, i) => `<rect x="${i*16}" width="6" height="128" fill="#8a6238" opacity=".5"/>`).join(''));
   const cup = new Geo().lathe(cupProfile(.11, .028, .045), 48, 0, 0, 0, 1, 1);
   const inside = new Geo().lathe([[.044, .108], [.029, .01], [0, .009]], 48);
