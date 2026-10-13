@@ -1,14 +1,20 @@
 {
   "Meta": {
-    "title": "PackJoyU | Custom Packaging Manufacturer",
-    "description": "Custom corrugated boxes, gift boxes, paper cups and printed packaging from PackJoyU."
+    "title": "Custom Packaging Manufacturer: Boxes, Cups & Printing | PackJoyU",
+    "description": "PackJoyU manufactures custom corrugated boxes, gift and wine boxes, molded pulp, eco paper cups and printed packaging for brands in North America, Europe and Australia.",
+    "home": "Home"
   },
   "Nav": {
     "home": "Home",
     "products": "3D Products",
     "about": "About",
     "contact": "Contact",
-    "quote": "Get a Quote"
+    "quote": "Get a Quote",
+    "menu": "Menu",
+    "main": "Main navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchLang": "Русская версия"
   },
   "Home": {
     "headline": "Packaging that sparks joy",
@@ -62,7 +68,88 @@
       "christmas-merchandise": "Christmas Merchandise"
     },
     "done": "Done",
-    "categories": "Product categories"
+    "categories": "Product categories",
+    "metaTitle": "Custom Packaging Products in 3D: Boxes, Cups & Printing | PackJoyU",
+    "metaDescription": "Explore 12 custom packaging categories in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
+    "desc": {
+      "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
+      "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
+      "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
+      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber, a plastic-free alternative.",
+      "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
+      "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
+      "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
+      "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
+      "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
+      "eco-paper-cups": "Compostable and plastic-free paper cups with water-based or PLA-free coatings.",
+      "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
+      "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
+    },
+    "alt": "{name}: custom packaging by PackJoyU",
+    "specs": {
+      "corrugated-boxes": [
+        "Single & double wall (E/B/C flute)",
+        "Up to 4-color flexo or digital print",
+        "MOQ from 500 pcs"
+      ],
+      "color-boxes": [
+        "300–400 gsm SBS or kraft board",
+        "CMYK + Pantone, matte/gloss lamination",
+        "MOQ from 1,000 pcs"
+      ],
+      "gift-boxes": [
+        "Rigid 1.5–2.5 mm greyboard",
+        "Foil stamping, embossing, magnetic lid",
+        "Custom EVA or paper inserts"
+      ],
+      "pulp-molding": [
+        "Recycled paper or sugarcane fiber",
+        "Custom cavities for any product",
+        "Plastic-free and compostable"
+      ],
+      "paper-cups": [
+        "4–22 oz, single or double wall",
+        "Hot & cold drink coatings",
+        "MOQ from 10,000 pcs"
+      ],
+      "party-supplies": [
+        "Plates, cups, napkins, banners",
+        "Food-safe inks",
+        "Retail-ready packs"
+      ],
+      "wine-boxes": [
+        "1, 2 or 3-bottle formats",
+        "Foil, spot UV, magnetic closures",
+        "Fitted inserts for safe shipping"
+      ],
+      "color-printing": [
+        "CMYK + spot colors",
+        "Labels, sleeves, leaflets",
+        "Color proof before production"
+      ],
+      "offset-printing": [
+        "Heidelberg offset presses",
+        "Catalogs, brochures, cartons",
+        "Consistent color at volume"
+      ],
+      "eco-paper-cups": [
+        "Water-based, plastic-free coating",
+        "Home or industrial compostable",
+        "FSC-certified board"
+      ],
+      "gift-cards": [
+        "350–600 gsm card stock",
+        "Foil, embossing, die-cut shapes",
+        "Envelopes & card holders"
+      ],
+      "christmas-merchandise": [
+        "Gift boxes, tubes, advent calendars",
+        "Seasonal foil & glitter finishes",
+        "Order by September for Q4"
+      ]
+    },
+    "learnMore": "Learn more",
+    "specsLabel": "Key specs"
   },
   "Admin": {
     "title": "Admin"
@@ -165,11 +252,29 @@
       "captcha": "Security check failed. Please reload the page and try again.",
       "server": "Something went wrong on our side. Please try again later.",
       "network": "Network error. Please check your connection and try again.",
-      "retry": "We couldn't complete the security check just now. Your details are kept — please try again in a moment."
+      "retry": "We couldn't complete the security check just now. Your details are kept — please try again in a moment.",
+      "logo_invalid": "Your logo upload has expired or is no longer valid. Please upload your logo again — your other details are kept."
     },
     "retry": "Try again",
     "retryIn": "Try again in {s}s",
-    "logoNote": "Have a vector logo (PDF/AI)? Send it as an attachment when replying to our inquiry email."
+    "logoNote": "Have a vector logo (PDF/AI)? Send it as an attachment when replying to our inquiry email.",
+    "logo": {
+      "label": "Logo (optional)",
+      "hint": "PNG, JPEG or WebP, up to 2 MB.",
+      "uploading": "Uploading…",
+      "uploaded": "Logo uploaded",
+      "remove": "Remove",
+      "expired": "Your logo upload has expired. Please upload it again.",
+      "errors": {
+        "type": "Please choose a PNG, JPEG or WebP image.",
+        "size": "This file is larger than 2 MB. Please choose a smaller image.",
+        "dimensions": "This image is too large (max 4096 × 4096 px). Please resize it and try again.",
+        "corrupt": "We couldn't read this image. Please try another file.",
+        "rate": "Too many uploads. Please wait a while and try again.",
+        "network": "Network error. Please check your connection and try again.",
+        "server": "We couldn't upload your logo just now. Please try again later."
+      }
+    }
   },
   "Views": {
     "label": "Box view",
@@ -183,5 +288,11 @@
     "policy": "Privacy policy",
     "accept": "Accept all",
     "reject": "Reject non-essential"
+  },
+  "Privacy": {
+    "metaTitle": "Privacy policy (draft) | PackJoyU",
+    "title": "Privacy policy",
+    "draft": "Draft.",
+    "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch."
   }
 }

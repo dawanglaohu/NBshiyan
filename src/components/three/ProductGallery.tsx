@@ -6,6 +6,7 @@ import type { Product } from '@/data/products';
 import type { BoxView } from './FoldBox';
 import SceneErrorBoundary from './SceneErrorBoundary';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
+import { Link } from '@/i18n/navigation';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 const HOVER_ZOOM_MS = 500;
@@ -16,8 +17,8 @@ const VIEWS: BoxView[] = ['closed', 'open', 'dieline'];
 // three.js 只在客户端按需加载，不进首屏包
 const GalleryScene = dynamic(() => import('./GalleryScene'), { ssr: false });
 
-type Item = Product & { name: string };
-type Labels = { tap: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
+type Item = Product & { name: string; desc?: string; alt?: string; specs?: string[] };
+type Labels = { learnMore: string; specsLabel: string; tap: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
 export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -100,7 +101,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               onPointerDown={onDown(p.slug)}
             >
               {/* 静态图先显示，模型就绪后淡出，不造成布局偏移 */}
-              <img src={p.poster} alt={p.name} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
+              <img src={p.poster} alt={p.alt ?? p.name} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
               {!failed.has(p.slug) && !sceneDead && <span className="hint">{ready.has(p.slug) ? (active === p.slug || zoomSlug === p.slug ? '↻' : labels.tap) : labels.loading}</span>}
               {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面 */}
               {active === p.slug && (
@@ -108,8 +109,16 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               )}
             </div>
             <div className="body">
-              <h2 style={{ fontSize: 16, margin: 0 }}>{p.name}</h2>
-              <AddToQuoteButton slug={p.slug} />
+              <h2 title={p.name}>{p.name}</h2>
+              {p.desc && <p className="desc">{p.desc}</p>}
+              {p.specs && p.specs.length > 0 && (
+                <ul className="specs" aria-label={labels.specsLabel}>{p.specs.slice(0, 3).map((s) => <li key={s}>{s}</li>)}</ul>
+              )}
+              <div className="actions">
+                <AddToQuoteButton slug={p.slug} />
+                {/* 品类落地页上线后在 products.ts 填 landing 即显示 */}
+                {p.landing && <Link href={p.landing} className="more">{labels.learnMore} <span aria-hidden="true">→</span><span className="sr-only"> {p.name}</span></Link>}
+              </div>
             </div>
             {VIEW_SLUGS.has(p.slug) && (
               <div className="views" role="group" aria-label={labels.viewsLabel}>
