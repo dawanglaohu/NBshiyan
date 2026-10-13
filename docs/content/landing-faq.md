@@ -325,9 +325,9 @@ Double-wall cups keep hot drinks more comfortable to hold without a sleeve; sing
 
 </details>
 
-<details id="faq-paper-cups-en-3"><summary>Which food-contact documents are available for the inks and cups?</summary>
+<details id="faq-paper-cups-en-3"><summary>Which documents are available for the inks and cups?</summary>
 
-Food-contact compliance documents: {{待Ryan确认}}. We share them before you order.
+Compliance documents: {{待Ryan确认}}. We share them before you order.
 
 </details>
 
@@ -358,9 +358,9 @@ Lids and sleeves: {{待Ryan确认}}.
 
 </details>
 
-<details id="faq-paper-cups-ru-3"><summary>Какие документы о контакте с пищей есть для красок и стаканов?</summary>
+<details id="faq-paper-cups-ru-3"><summary>Какие документы есть для красок и стаканов?</summary>
 
-Документы о соответствии для контакта с пищей — {{待Ryan确认}}. Предоставим их до заказа.
+Документы о соответствии — {{待Ryan确认}}. Предоставим их до заказа.
 
 </details>
 
