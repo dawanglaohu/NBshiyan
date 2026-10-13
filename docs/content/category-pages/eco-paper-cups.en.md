@@ -13,7 +13,7 @@ PackJoyU makes paper cups for businesses looking for lower-impact options. Tell 
 
 ## Materials and options
 - **Types:** Single wall, double wall
-- **Coating and end-of-life:** Coating material, recyclability or compostability: {{待Ryan确认}}
+- **Coating and end-of-life:** Coating material and end-of-life claims: {{待Ryan确认}}
 - **Available options for your order:** {{待Ryan确认}}
 
 ## Customization and printing

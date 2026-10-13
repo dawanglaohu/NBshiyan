@@ -13,7 +13,7 @@
 8. 相关品类内链（用 `categoryMeta.ts` 的 slug）
 9. CTA：Request a quote / Запросить расчёт
 
-来源：#188 落地页（`seo-188/docs/content/*.md`）的规格表、`src/lib/seo/categoryMeta.ts`、`docs/seo-category-meta.md`、landing-faq。#188 里的 factory-direct、export worldwide、FSC、Heidelberg、water-based、plastic-free、compostable 等说法全部未沿用或改成占位符。
+来源：#188 落地页（`seo-188/docs/content/*.md`）的规格表、`src/lib/seo/categoryMeta.ts`、`docs/seo-category-meta.md`、landing-faq。#188 里没确认的说法（清单见 `docs/content/ryan-fact-sheet.md` 附录）全部未沿用或改成占位符。
 
 ## 前端渲染规则（必须遵守）
 - **任何含 `{{` 的块（段落、列表项、表格行、整节）都不能渲染。** 一节里全部条目都被过滤掉时，整节不显示（例如 MOQ 一节目前会整节隐藏）。
@@ -52,6 +52,6 @@
 ## 待 Ryan 确认
 - 每个品类的 MOQ、打样/生产周期、贸易条款、可选工艺清单
 - paper-cups / eco-paper-cups 的涂层材料、可回收/可降解说法（F22）；pulp-molding 的纤维来源
-- offset-printing 的设备和幅面（#188 里写的 Heidelberg 未确认）
+- offset-printing 的设备和幅面（#188 里写的设备品牌未确认，见 fact sheet Q10）
 - party-supplies 涂层；christmas 的季节下单截止日
 - gift-cards：F16 —— 储值卡还是贺卡/открытки？影响 H1、slug、正文；塑料卡和刷边是否提供
