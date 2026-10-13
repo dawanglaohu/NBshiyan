@@ -156,6 +156,11 @@ export function mockSeeds(): string[] {
 
 export function parseSitemap(xml: string): string[] { return [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/g)].map((m) => decode(m[1])); }
 
+// Next 15 streams <title>/<meta> into <body> on dynamic routes unless the UA matches htmlLimitedBots (YandexBot,
+// Bingbot, ...). Crawl as YandexBot so the audit sees the blocking <head> metadata HTML-only crawlers get.
+export const AUDIT_UA = 'Mozilla/5.0 (compatible; YandexBot/3.0; PackJoyU-seo-audit)';
+const H = { headers: { 'user-agent': AUDIT_UA } };
+
 async function main() {
   const args = process.argv.slice(2); const opt = (k: string) => args.find((a) => a.startsWith(`--${k}=`))?.split('=').slice(1).join('=');
   const base = (args.find((a) => !a.startsWith('--')) ?? process.env.SEO_AUDIT_BASE ?? 'http://localhost:3000').replace(/\/$/, '');
@@ -167,13 +172,13 @@ async function main() {
   const findings: Finding[] = []; const pages = new Map<string, PageInfo>(); const status = new Map<string, number>();
   const linkedFrom = new Map<string, Set<string>>();
   let sitemap: string[] = [];
-  try { const r = await fetch(`${base}/sitemap.xml`); if (r.ok) sitemap = parseSitemap(await r.text()).map(normPath); else findings.push({ url: '/sitemap.xml', check: 'sitemap', severity: 'error', message: `HTTP ${r.status}` }); }
+  try { const r = await fetch(`${base}/sitemap.xml`, H); if (r.ok) sitemap = parseSitemap(await r.text()).map(normPath); else findings.push({ url: '/sitemap.xml', check: 'sitemap', severity: 'error', message: `HTTP ${r.status}` }); }
   catch (e) { console.error(`cannot reach ${base}: ${(e as Error).message}`); process.exit(2); }
   const sitemapSet = new Set(sitemap);
   const queue = [...new Set(['/', '/en', '/ru', ...sitemap, ...(mock ? mockSeeds() : [])])]; const seen = new Set(queue);
   while (queue.length && status.size < max) {
     const path = queue.shift()!;
-    let r: Response; try { r = await fetch(base + path, { redirect: 'follow' }); } catch (e) { findings.push({ url: path, check: 'fetch', severity: 'error', message: (e as Error).message }); continue; }
+    let r: Response; try { r = await fetch(base + path, { ...H, redirect: 'follow' }); } catch (e) { findings.push({ url: path, check: 'fetch', severity: 'error', message: (e as Error).message }); continue; }
     status.set(path, r.status);
     const finalPath = normPath(r.url);
     if (r.status === 404) { findings.push({ url: path, check: 'links', severity: 'error', message: `404 (linked from: ${[...(linkedFrom.get(path) ?? ['seed'])].slice(0, 5).join(', ')})` }); continue; }
