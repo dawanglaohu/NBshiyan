@@ -27,7 +27,7 @@ async function handle(req: Request) {
   for (const [name, run] of steps) {
     try { result[name] = await run(); } catch (e) {
       failed.push(name);
-      console.error(`[cron] cleanup step ${name} failed`, e);
+      console.error(`[cron] cleanup step ${name} failed`, errorSummary(e));
       await sendAdminAlert('定时清理失败', { 任务: `cleanup-uploads/${name}`, ...errorSummary(e) }, `cron:cleanup:${name}`);
     }
   }
