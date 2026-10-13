@@ -16,7 +16,7 @@
     "next-intl": "^4.3.9",
     "react": "~19.1.9",
     "react-dom": "~19.1.9",
-    "three": "^0.180.0"
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@types/node": "^22",
