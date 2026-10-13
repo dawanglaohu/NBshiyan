@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃
   if (!(await verifyTurnstile(b.turnstileToken, ip))) return NextResponse.json({ error: 'captcha' }, { status: 403 });
 
-  const ipCountry = req.headers.get('cf-ipcountry');
+  const ipCountry = process.env.BEHIND_CLOUDFLARE === '1' ? req.headers.get('cf-ipcountry') : req.headers.get('x-vercel-ip-country');
   const trust = scoreInquiry({ ...b.contact, ipCountry, message: b.message });
   // 编号完全随机，不依赖计数，并发下不会重复（ref 有唯一约束兜底）
   const d = new Date();
