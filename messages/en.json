@@ -1,0 +1,43 @@
+{
+  "Meta": {
+    "title": "PackJoyU | Custom Packaging Manufacturer",
+    "description": "Custom corrugated boxes, gift boxes, paper cups and printed packaging from PackJoyU."
+  },
+  "Nav": {
+    "home": "Home",
+    "products": "3D Products",
+    "about": "About",
+    "contact": "Contact",
+    "quote": "Get a Quote"
+  },
+  "Home": {
+    "headline": "Packaging that makes your brand unboxable",
+    "sub": "Custom paper packaging and printing, from prototype to mass production.",
+    "cta": "Explore products in 3D"
+  },
+  "Products": {
+    "title": "Our products in 3D",
+    "hint": "Drag to rotate, scroll or pinch to zoom.",
+    "tapToRotate": "Tap to rotate",
+    "loading": "Loading 3D model…",
+    "addToQuote": "Add to quote",
+    "details": "Details",
+    "names": {
+      "corrugated-boxes": "Corrugated Boxes",
+      "color-boxes": "Color Boxes",
+      "gift-boxes": "Gift Boxes",
+      "pulp-molding": "Molded Pulp",
+      "paper-cups": "Paper Cups",
+      "party-supplies": "Party Supplies",
+      "wine-boxes": "Wine Boxes",
+      "color-printing": "Color Printing",
+      "offset-printing": "Offset Printing",
+      "eco-paper-cups": "Eco-Friendly Paper Cups",
+      "gift-cards": "Gift Cards",
+      "christmas-merchandise": "Christmas Merchandise"
+    }
+  },
+  "Admin": {
+    "title": "Admin"
+  }
+}
