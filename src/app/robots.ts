@@ -1,5 +1,10 @@
 import type { MetadataRoute } from 'next';
+import { SITE_URL, isProdEnv } from '@/lib/site';
+
 export default function robots(): MetadataRoute.Robots {
-  const isProd = process.env.VERCEL_ENV === 'production';
-  return { rules: isProd ? { userAgent: '*', allow: '/', disallow: ['/admin', '/s/', '/api/'] } : { userAgent: '*', disallow: '/' } };
+  if (!isProdEnv) return { rules: { userAgent: '*', disallow: '/' } };
+  return {
+    rules: { userAgent: '*', allow: '/', disallow: ['/admin', '/s/', '/api/'] },
+    sitemap: `${SITE_URL}/sitemap.xml`
+  };
 }
