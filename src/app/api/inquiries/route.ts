@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { randomId, rateLimit, verifyTurnstile, escapeHtml, clientIp, readBody } from '@/lib/server/security';
+import { randomId, hitRateLimit, verifyTurnstile, escapeHtml, clientIp, readBody } from '@/lib/server/security';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
 import { sendMail, autoReply } from '@/lib/server/mail';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
@@ -43,15 +43,14 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(json);
   if (!parsed.success) {
     // 无效请求单独计数：有 IP 时按 IP，宽松上限，不占用正常提交的额度
-    if (ip && !rateLimit(`inq-bad:${ip}`, 30)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+    if (ip && !(await hitRateLimit(`inq-bad:${ip}`, 30))) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
     return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
   }
   const b = parsed.data;
   // 正常提交的限流：IP 桶和邮箱桶同时计数，任意一个超限就 429（两个都要先计数，不能短路）。
   // 拿不到 IP（如本地 pnpm start）时用所有无 IP 请求共用的宽松总闸代替 IP 桶。
   const email = b.contact.email.trim().toLowerCase();
-  const ipOk = ip ? rateLimit(`inq:${ip}`) : rateLimit('inq:noip:all', 100);
-  const emailOk = rateLimit(`inq:email:${email}`);
+  const [ipOk, emailOk] = await Promise.all([ip ? hitRateLimit(`inq:${ip}`) : hitRateLimit('inq:noip:all', 100), hitRateLimit(`inq:email:${email}`)]);
   const limited = !ipOk || !emailOk;
   if (limited) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃

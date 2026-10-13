@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import { rateLimitStore } from './ratelimit';
 
 /** 随机、不可递增的 id，用于短链接和回信 token */
 export function randomId(len = 10) {
@@ -24,14 +25,12 @@ export async function verifyTurnstile(token: string | undefined, ip: string | nu
   }
 }
 
-/** 简单的内存限流（单实例）；上线后换成 Upstash/Cloudflare 限流 */
-const hits = new Map<string, number[]>();
-export function rateLimit(key: string, limit = 5, windowMs = 10 * 60_000) {
-  const now = Date.now();
-  const arr = (hits.get(key) ?? []).filter((t) => now - t < windowMs);
-  arr.push(now);
-  hits.set(key, arr);
-  return arr.length <= limit;
+/**
+ * 限流：计一次数，返回是否仍在上限内。存储由 RATE_LIMIT_STORE 决定（内存 / Upstash），见 ./ratelimit。
+ * 注意是异步的，必须 await（旧的同步 rateLimit 已删除，避免漏写 await 时 Promise 被当成 true）。
+ */
+export function hitRateLimit(key: string, limit = 5, windowMs = 10 * 60_000): Promise<boolean> {
+  return rateLimitStore().hit(key, limit, windowMs);
 }
 
 /** 去掉换行，防止邮件头注入 */

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { noStore, jsonErr } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE, ID_RE } from '@/lib/server/admin/inquiries';
@@ -14,7 +14,7 @@ type P = { params: Promise<{ id: string }> };
 export async function GET(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ROLES);
   if (ctx instanceof Response) return ctx;
-  const limited = adminRateLimit(req, 'model.view');
+  const limited = await enforceAdminRateLimit(req, 'model.view');
   if (limited) return limited;
   const { id } = await params;
   const m = ID_RE.test(id) ? await prisma.model3D.findUnique({ where: { id } }) : null;
@@ -33,7 +33,7 @@ const Patch = z.object({
 export async function PATCH(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ROLES);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'model.update', 60);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'model.update', 60));
   if (blocked) return blocked;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
@@ -54,7 +54,7 @@ export async function PATCH(req: Request, { params }: P) {
 export async function DELETE(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ROLES);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'model.delete', 30);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'model.delete', 30));
   if (blocked) return blocked;
   const { id } = await params;
   const m = ID_RE.test(id) ? await prisma.model3D.findUnique({ where: { id } }) : null;

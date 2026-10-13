@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type AdminUser, type InquiryQuery, type InquiryStatus, type InquirySummary, type Page } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
 import DateRange from './DateRange';
-import { PRODUCT_LABEL, errorText, productName, relTime } from './format';
+import { PRODUCT_LABEL, errorText, loginHref, productName, relTime } from './format';
 
 const TABS: (InquiryStatus | 'REVIEW' | '')[] = ['', 'NEW', 'FOLLOWING', 'QUOTED', 'WON', 'INVALID', 'REVIEW'];
 const tabLabel = (t: (typeof TABS)[number]) => (t === '' ? '全部' : t === 'REVIEW' ? `待核实（<${REVIEW_THRESHOLD} 分）` : STATUS_LABEL[t]);
@@ -47,7 +47,7 @@ export default function InquiryList() {
         title={r.status === 'NEW' && !r.assignee ? '未分配，请尽快分配负责人' : undefined}>
         <td><Link href={`/admin/inquiries/${r.id}`} onClick={(e) => e.stopPropagation()} tabIndex={-1}>{r.ref}</Link></td>
         <td>{r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
-        <td>{productName(r.products[0]?.productSlug ?? '')}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</td>
+        <td>{r.products.length ? <>{productName(r.products[0].productSlug)}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</> : r.itemCount ? `${r.itemCount} 个产品` : '—'}</td>
         <td className={r.trustScore < REVIEW_THRESHOLD ? 'warn' : undefined}>{r.trustScore}{r.trustScore < REVIEW_THRESHOLD ? ' ⚠' : ''}</td>
         <td><StatusBadge status={r.status} /></td>
         <td className="muted">{r.assignee?.name ?? '—'}</td>
@@ -81,7 +81,7 @@ export default function InquiryList() {
         <table>
           <thead><tr><th>编号</th><th>公司 · 国家</th><th>产品</th><th>可信度</th><th>状态</th><th>负责人</th><th>时间</th></tr></thead>
           <tbody>
-            {error && <tr><td colSpan={7} className="warn">{errorText(error)}</td></tr>}
+            {error && <tr><td colSpan={7} className="warn">{errorText(error)}{error === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</td></tr>}
             {!data && !error && <tr><td colSpan={7} className="muted">加载中…</td></tr>}
             {data?.items.length === 0 && <tr><td colSpan={7} className="muted">没有符合条件的询盘</td></tr>}
             {data && (() => {

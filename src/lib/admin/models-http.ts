@@ -7,6 +7,9 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 const enc = encodeURIComponent;
+/** 后端 Model3D 里 checks、sizeBytes 可为 null（刚上传或检查未跑完），这里补默认值 */
+type RawModel = Omit<AdminModel, 'checks' | 'sizeBytes'> & { checks: AdminModel['checks'] | null; sizeBytes: number | null };
+const norm = (m: RawModel): AdminModel => ({ ...m, checks: Array.isArray(m.checks) ? m.checks : [], sizeBytes: m.sizeBytes ?? 0, animations: m.animations ?? [] });
 
 export const httpModelApi: ModelApi = {
   upload({ file, lod, poster, productSlug, category, animated, sortOrder }) {
@@ -14,15 +17,15 @@ export const httpModelApi: ModelApi = {
     fd.append('file', file); if (lod) fd.append('lod', lod); if (poster) fd.append('poster', poster);
     fd.append('productSlug', productSlug); fd.append('category', category); fd.append('animated', String(animated));
     if (sortOrder !== undefined) fd.append('sortOrder', String(sortOrder));
-    return call<AdminModel>('/models', { method: 'POST', body: fd });
+    return call<RawModel>('/models', { method: 'POST', body: fd }).then(norm);
   },
-  get: (id) => call(`/models/${enc(id)}`),
-  update: (id, patch) => call(`/models/${enc(id)}`, { method: 'PATCH', body: JSON.stringify(patch) }),
-  recheck: (id) => call(`/models/${enc(id)}/process`, { method: 'POST' }),
-  // 假设返回 { ...模型对象, replaced }；文档只写了 replaced 字段
+  get: (id) => call<RawModel>(`/models/${enc(id)}`).then(norm),
+  update: (id, patch) => call<RawModel>(`/models/${enc(id)}`, { method: 'PATCH', body: JSON.stringify(patch) }).then(norm),
+  recheck: (id) => call<RawModel>(`/models/${enc(id)}/process`, { method: 'POST' }).then(norm),
+  // docs/API.md + publish 路由：返回 { ...模型对象, replaced: [旧 id] }；未 READY 为 409 not_ready
   async publish(id, published) {
-    const r = await call<AdminModel & { replaced?: string[] }>(`/models/${enc(id)}/publish`, { method: 'POST', body: JSON.stringify({ published }) });
+    const r = await call<RawModel & { replaced?: string[] }>(`/models/${enc(id)}/publish`, { method: 'POST', body: JSON.stringify({ published }) });
     const { replaced = [], ...model } = r;
-    return { model: model as AdminModel, replaced };
+    return { model: norm(model), replaced };
   }
 };
