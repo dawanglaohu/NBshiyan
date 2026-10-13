@@ -13,6 +13,10 @@ export const CONTENT_CLAIMS: RegExp[] = [
   /(reply|respond|response|get back|within|support|ответ\S*|в течение|поддержк\S*|(?<![а-яё])за(?![а-яё]))[^.\n]{0,30}24[\s-]*(hours?|h\b|час)/i,
   /24[\s-]*(hours?|h\b|час\S*)[^.\n]{0,20}(support|reply|response|turnaround|поддержк|ответ)/i,
   /24\s*\/\s*7|круглосуточн/i,
+  // specific lead-time figures (fact sheet Q2/Q3): '15-day lead time', 'production 20–25 days', «срок 15 дней», «за 15 дней».
+  // Context-bound so privacy/retention durations (after 180 days, через 30 дней, 2 years) pass; stops at '(' so «образцов (раз в 30 дней)» passes.
+  /\b\d+\s*(?:[-–]\s*\d+\s*)?-?\s*(?:business[-\s]|working[-\s])?(?:days?|weeks?)\s+(?:lead[-\s]?time|turnaround|production|delivery|shipping|dispatch)|(?:lead[-\s]?times?|turnaround|production|delivery|ship(?:ping|s)?|dispatch|ready|samples?|proofs?)[^.\n()]{0,25}?\b\d+\s*(?:[-–]\s*\d+\s*)?(?:business\s+|working\s+)?(?:days?|weeks?)\b|\b\d+\s*[-–]\s*\d+\s*(?:business\s+|working\s+)?(?:days|weeks)\b/i,
+  /(?:срок\S*|производств\S*|изготовлен\S*|доставк\S*|отгрузк\S*|образц\S*|образец|готов\S*)[^.\n()]{0,25}?\d+\s*(?:[-–]\s*\d+\s*)?(?:рабоч\S*\s+)?(?:дн|недел)|(?<![а-яё])за\s*\d+\s*(?:[-–]\s*\d+\s*)?(?:рабоч\S*\s+)?(?:дн|недел)|\d+\s*[-–]\s*\d+\s*(?:рабоч\S*\s+)?(?:дн|недел)/i,
   // MOQ figures (fact sheet Q1)
   /\bMOQ\b[^.\n]{0,15}\d|min(imum)?\.?\s+order(\s+quantity)?[^.\n]{0,15}\d|\bfrom\s+\d[\d,.\s]*\s*(pcs|pieces|units)\b/i,
   /(?<![а-яё])от\s*\d[\d\s\u00a0\u202f]*\s*(шт|экз)|минимальн\S*\s+(тираж|заказ|парти)\S*[^.\n]{0,15}\d/i,
@@ -85,6 +89,10 @@ test('guard catches claims in published copy but not in notes or keyword researc
     assert.ok(claimLines('a.md', bad).length > 0, bad);
   assert.equal(claimLines('a.md', '| MOQ | **TBD（待 Ryan 提供）** |').length, 0);
   assert.equal(claimLines('a.md', 'Тираж уточняем под заказ').length, 0);
+  for (const bad of ['15-day lead time', 'production 20–25 days', 'срок 15 дней', 'за 15 дней'])
+    assert.ok(claimLines('a.md', bad).length > 0, bad);
+  assert.equal(claimLines('a.md', '| Sample lead time | **TBD（待 Ryan 提供）** |').length, 0);
+  assert.equal(claimLines('a.md', 'Shared designs expire after 180 days and are deleted 90 days later.').length, 0);
   assert.equal(claimLines('a.md', 'Логотипы, не прикреплённые к запросу, удаляются через 24 часа после загрузки, не позднее чем через 48 часов.').length, 0);
   assert.equal(claimLines('a.md', '## Keywords\n- PLA paper cups supplier\n## RU — Текст\n- без пластика').length, 1);
 });
