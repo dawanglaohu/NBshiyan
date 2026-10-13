@@ -96,7 +96,7 @@
 - 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enabled`，不记密码、验证码、token。
 
 ## 后台接口（`/api/admin/*`）
-每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录 401 `unauthorized`，角色不符 403 `forbidden`。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
+每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录（或锁定、会话失效、未开 2FA）401 `unauthorized`，账号已停用 403 `account_disabled`（与未登录区分，重新登录也无效），角色不符 403 `forbidden`。后台页面用同一规则（`checkAdminSession`）。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
 角色：`ADMIN` 全部可见；`SALES` 只能看和操作分配给自己的询盘，不能改分配；`EDITOR` 无询盘权限。
 
 - `GET /api/admin/users` → `{ items: [{ id, name, email, role }] }`。ADMIN 拿到所有未禁用的 ADMIN/SALES（分配下拉框用）；SALES 只拿到自己。
