@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="tokens.css"><style>
+*{box-sizing:border-box;margin:0}body{font-family:Manrope,Inter,Arial,sans-serif;background:#e9e6e1;padding:28px;width:1800px;color:#1c1c1c}
+h1{font-size:22px;margin-bottom:18px}.cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+.f{background:var(--bg);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}.t{background:#1c1c1c;color:#fff;font-size:13px;font-weight:700;padding:8px 14px}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);font-size:11px}.nav b{font-size:15px}.nav b i{color:var(--accent);font-style:normal}
+.blk{margin:10px 14px;border:1.5px dashed #bdb5a8;border-radius:10px;padding:10px;font-size:11px;color:#5a5650;position:relative}
+.blk b{color:#1c1c1c;display:block;font-size:12px;margin-bottom:3px}.n{position:absolute;right:8px;top:8px;background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;text-align:center;line-height:18px;font-size:10px}
+.hero{height:170px;background:linear-gradient(120deg,#fff,#fdeee8)}.pill{display:inline-block;background:var(--accent);color:#fff;border-radius:999px;padding:4px 10px;font-size:10px;margin-top:4px}
+.g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.g div{height:46px;border-radius:8px;background:#fff;border:1px solid var(--line)}
+.dark{background:#121214;color:#f2e9d8;border-color:#d4af6a}.dark b{color:#d4af6a}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.tabs span{border:1px solid var(--line);background:#fff;border-radius:999px;padding:2px 7px;font-size:9px}.tabs .on{background:#1c1c1c;color:#fff}
+.card{display:grid;grid-template-columns:1.3fr 1fr;gap:8px;height:120px}.cv{background:#fff;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px}
+.steps{display:flex;gap:4px;margin-bottom:6px}.steps span{flex:1;height:5px;border-radius:3px;background:var(--line)}.steps .on{background:var(--accent)}
+.fab{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:4px}.fab span{width:26px;height:26px;border-radius:50%;background:#1c1c1c;color:#fff;font-size:9px;text-align:center;line-height:26px}
+</style></head><body><h1>PackJoyU 线框图 v1 · 首页 / 3D 展示页 / 询价流程（桌面端，移动端规则见右下注释）</h1><div class="cols">
+
+<div class="f"><div class="t">① 首页 /en</div><div class="nav"><b>Pack<i>Joy</i>U</b><span>Products · Solutions · Factory · About · EN/RU · <span class="pill">Get a quote</span></span></div>
+<div class="blk" style="border:none;padding:0"><div class="blk hero"><span class="n">1</span><b>开屏视频（首次访问，≤5 秒，右上角“Skip”）</b>结束后纸张展开转场到首屏。HTML 标题始终先渲染，视频只是一层覆盖。</div></div>
+<div class="blk"><span class="n">2</span><b>首屏：H1 + 副标题 + 2 个按钮</b>“Packaging that sparks joy” · Get a quote（主）/ Explore 3D（次）；右侧 WebP 主图，后台空闲时换成可旋转的 3D 盒子</div>
+<div class="blk"><span class="n">3</span><b>核心优势 4 格</b>产能 · 认证 · 打样周期 · 环保材料（数字滚动动画，文字可被搜索引擎抓取）</div>
+<div class="blk"><span class="n">4</span><b>产品入口 12 宫格</b>点击跳到 3D 展示页对应锚点<div class="g"><div></div><div></div><div></div><div class="dark"></div><div class="dark"></div><div></div></div></div>
+<div class="blk dark"><span class="n">5</span><b>高端礼盒 / 酒盒专区（B 主题）</b>深色底加烫金，开箱动画预告</div>
+<div class="blk"><span class="n">6</span><b>按行业找方案 · 工厂实力 · 案例墙 · 询价 CTA 条</b></div></div>
+
+<div class="f" style="position:relative"><div class="t">② 3D 展示页 /en/products（一页不分页）</div><div class="nav"><b>Pack<i>Joy</i>U</b><span>询价清单 (2)</span></div>
+<div class="blk"><span class="n">1</span><b>吸顶分类条（滚动时自动高亮当前分类）</b><div class="tabs"><span class="on">Corrugated</span><span>Color box</span><span>Gift box</span><span>Pulp</span><span>Cups</span><span>Party</span><span>Wine</span><span>Print</span><span>…</span></div></div>
+<div class="blk"><span class="n">2</span><b>产品卡片（共用一个画布）</b><div class="card"><div class="cv">3D 视窗<br>未就绪：WebP + 细进度条</div><div>名称 · 3 条规格要点<br>[尺寸参照：手/瓶/手机]<br><span class="pill">+ 加入询价清单</span><br>了解详情 →（落地页）<br>定制 ✎（规则盒型）</div></div></div>
+<div class="blk dark"><span class="n">3</span><b>礼盒 / 酒盒卡片（B 主题）</b>额外按钮：开箱 ▸ / 展开刀模 ▸（点击后才加载动画）</div>
+<div class="blk"><span class="n">4</span><b>交互规则</b>桌面：拖动旋转、滚轮需按住或悬停 0.5 秒才缩放（不抢页面滚动）；双击复位。<br>手机：单指滚页面，点卡片进入旋转模式，出现“完成”按钮退出。</div>
+<div class="blk"><span class="n">5</span><b>页尾：样品申请 + 询价 CTA</b></div>
+<div class="fab"><span>清单</span><span>客服</span><span>↑</span></div></div>
+
+<div class="f"><div class="t">③ 询价流程（清单 / 向导 / 定制器 → 同一个询盘接口）</div>
+<div class="blk"><span class="n">1</span><b>询价清单抽屉（右侧滑出）</b>产品列表，每项可改数量 / 删除；带定制配置的项显示缩略图和短链接；底部“继续填写”</div>
+<div class="blk"><span class="n">2</span><b>向导第 1 步：产品与数量</b><div class="steps"><span class="on"></span><span></span><span></span></div>已从清单预填；数量区间单选（1k / 5k / 10k / 50k+）</div>
+<div class="blk"><span class="n">3</span><b>第 2 步：尺寸、材质、交期</b><div class="steps"><span class="on"></span><span class="on"></span><span></span></div>全部可选填，“不确定”也是一个选项，降低流失</div>
+<div class="blk"><span class="n">4</span><b>第 3 步：联系方式</b><div class="steps"><span class="on"></span><span class="on"></span><span class="on"></span></div>姓名 · 企业邮箱 · 公司 · 国家（按 IP 预选）· 隐私同意勾选 · Turnstile（无感）</div>
+<div class="blk"><span class="n">5</span><b>提交成功页</b>询盘编号 · “我们会在 24 小时内回复”· 免费样品申请入口</div>
+<div class="blk"><span class="n">6</span><b>定制器（全屏覆盖层）</b>左 3D 实时预览 / 右步骤：①颜色 ②上传 logo ③高级选项（尺寸、材质，默认收起）→ 加入清单 / 生成分享链接</div>
+<div class="blk"><span class="n">!</span><b>全局规则</b>悬浮按钮组统一在右下（清单 · 客服 · 回顶部），手机收成一个按钮；Cookie 条在底部且不遮挡按钮组；所有按钮按俄语长度预留宽度；遵循“减少动态效果”系统设置。</div></div>
+</div></body></html>
