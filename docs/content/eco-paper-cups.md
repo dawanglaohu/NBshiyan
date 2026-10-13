@@ -1,21 +1,22 @@
-# Compostable Paper Cups / Биоразлагаемые стаканы с логотипом（环保纸杯）
+# Eco-Friendly Paper Cups / Экологичные стаканы с логотипом（环保纸杯）
 
-> Fixes #99 · 内部 key `eco-paper-cups` · EN `/en/products/compostable-paper-cups` · RU `/ru/products/ekologichnye-stakany`
+> Fixes #99 · 内部 key `eco-paper-cups` · EN `/en/products/eco-paper-cups`（原 `compostable-paper-cups`，从未上线，不需要 301） · RU `/ru/products/ekologichnye-stakany`
 > 元信息与 `src/lib/seo/categoryMeta.ts` 一致。所有 **TBD** 处需 Ryan/工厂提供真实数据，禁止编造数字、认证、评分或价格。
+> ⚠️ “compostable / biodegradable / биоразлагаемые / компостируемые” 作为产品说法已去掉：Ryan 提供证书前属于无出处的说法（#218 F15/F17）。下方 FAQ 里的相关**问题**保留（真实搜索意图），答案一律待定。
 
 ## Meta
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Compostable Paper Cups Manufacturer | PackJoyU | Биоразлагаемые стаканы с логотипом | PackJoyU |
-| description | Plastic-free compostable paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes. Request a quote today. | Биоразлагаемые и компостируемые бумажные стаканы без пластика, с водной или PLA основой и печатью логотипа. Эко выбор для кофеен и сетей. Запросите расчёт. |
-| keyword | compostable paper cups | биоразлагаемые стаканы |
+| title | Eco-Friendly Paper Cups Manufacturer | PackJoyU | Экологичные стаканы с логотипом | PackJoyU |
+| description | Eco-friendly paper cups with water-based or PLA lining, custom printed with your logo. A greener choice for cafes and coffee chains. Request a quote today. | Экологичные бумажные стаканы с водной или PLA основой и печатью вашего логотипа. Для кофеен, ресторанов и сетей. Запросите расчёт. |
+| keyword | eco-friendly paper cups | экологичные стаканы |
 
 ---
 
 ## EN — Landing copy
 
-### H1: Compostable Paper Cups
+### H1: Eco-Friendly Paper Cups
 
 PackJoyU offers plastic-reduced paper cups with water-based or PLA linings, custom printed with your logo. These cups are designed for cafes, chains and brands moving away from conventional PE-lined cups. Exact compostability claims depend on the lining, inks and the certification held for each product — we confirm documentation before you use any claim on your packaging.
 
@@ -64,7 +65,7 @@ PackJoyU offers plastic-reduced paper cups with water-based or PLA linings, cust
 
 > ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
 
-### H1: Биоразлагаемые стаканы с логотипом
+### H1: Экологичные стаканы с логотипом
 
 PackJoyU предлагает бумажные стаканы с водно-дисперсионным или PLA-покрытием вместо обычного полиэтилена, с печатью вашего логотипа. Они подходят кофейням, сетям и брендам, которые отказываются от стаканов с ПЭ-покрытием. Заявления о компостируемости зависят от покрытия, красок и сертификатов на конкретный продукт — мы подтверждаем документы до того, как вы используете такие формулировки на упаковке.
 
@@ -81,7 +82,7 @@ PackJoyU предлагает бумажные стаканы с водно-ди
 |---|---|
 | Покрытие | Водно-дисперсионное или PLA |
 | Виды | Однослойные / двухслойные |
-| Объемы | TBD |
+| Объёмы | TBD |
 | Сертификаты | TBD — указывать только при наличии |
 | Аксессуары | Крышки из волокна/бумаги, манжеты (TBD) |
 | Минимальный тираж | **TBD（待 Ryan 提供）** |
@@ -91,7 +92,7 @@ PackJoyU предлагает бумажные стаканы с водно-ди
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
-2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку.
+2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
@@ -115,15 +116,17 @@ PackJoyU предлагает бумажные стаканы с водно-ди
 
 ### EN — Google
 
-- **Transactional / commercial (主页面)**: compostable paper cups, compostable coffee cups wholesale, plastic free paper cups manufacturer, PLA paper cups supplier
-- **Commercial investigation (主页面 + 小节)**: eco friendly coffee cups with logo, aqueous coated paper cups, biodegradable cups custom, sustainable cafe packaging
+> compostable / biodegradable 类关键词只有在 Ryan 提供对应证书后才能用于页面文案。
+
+- **Transactional / commercial (主页面)**: eco friendly paper cups, compostable coffee cups wholesale（需证书）, plastic free paper cups manufacturer, PLA paper cups supplier
+- **Commercial investigation (主页面 + 小节)**: eco friendly coffee cups with logo, aqueous coated paper cups, biodegradable cups custom（需证书）, sustainable cafe packaging
 - **Informational (博客文章)**: PLA vs aqueous coating, are paper cups recyclable, home vs industrial compostable
 
 ### RU — Yandex
 
 > ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
 
-- **Транзакционные (主页面)**: биоразлагаемые стаканы, эко стаканы без пластика, компостируемые стаканы оптом, экологичные бумажные стаканы с логотипом
+- **Транзакционные (主页面)**: экологичные стаканы, эко стаканы без пластика, биоразлагаемые / компостируемые стаканы оптом（需证书）, экологичные бумажные стаканы с логотипом
 - **Коммерческие (主页面 + 小节)**: стаканы с PLA покрытием, экоупаковка для кофейни, бумажные стаканы без полиэтилена
 - **Информационные (博客文章)**: чем PLA отличается от ПЭ, перерабатываются ли бумажные стаканы
 
@@ -138,10 +141,10 @@ PackJoyU предлагает бумажные стаканы с водно-ди
 
 1. **PLA vs Aqueous-Coated Cups: What Cafes Should Know**
    - H2s: Materials; end-of-life; claim rules
-   - CTA → `compostable-paper-cups` 落地页
+   - CTA → `eco-paper-cups` 落地页
 2. **Avoiding Greenwashing in Packaging Claims**
    - H2s: Certifications; wording; regional rules
-   - CTA → `compostable-paper-cups` 落地页
+   - CTA → `eco-paper-cups` 落地页
 3. **Экостаканы для кофейни: какие бывают и что писать на упаковке**  ⚠️ 需要 Ryan 校对
    - H2s: Покрытия; сертификаты; формулировки
    - CTA → `ekologichnye-stakany` 落地页

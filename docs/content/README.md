@@ -20,7 +20,7 @@
 | 酒盒 | `wine-boxes` | `custom-wine-boxes` | `upakovka-dlya-vina` | [custom-wine-boxes.md](./custom-wine-boxes.md) |
 | 彩色印刷 | `color-printing` | `custom-color-printing` | `tsvetnaya-pechat` | [custom-color-printing.md](./custom-color-printing.md) |
 | 胶印 | `offset-printing` | `offset-printing-services` | `ofsetnaya-pechat` | [offset-printing-services.md](./offset-printing-services.md) |
-| 环保纸杯 | `eco-paper-cups` | `compostable-paper-cups` | `ekologichnye-stakany` | [compostable-paper-cups.md](./compostable-paper-cups.md) |
+| 环保纸杯 | `eco-paper-cups` | `eco-paper-cups` | `ekologichnye-stakany` | [eco-paper-cups.md](./eco-paper-cups.md) |
 | 礼品卡 | `gift-cards` | `custom-gift-cards` | `podarochnye-karty` | [custom-gift-cards.md](./custom-gift-cards.md) |
 | 圣诞周边 | `christmas-merchandise` | `custom-christmas-packaging` | `novogodnyaya-upakovka` | [custom-christmas-packaging.md](./custom-christmas-packaging.md) |
 

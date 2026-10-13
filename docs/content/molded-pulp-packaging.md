@@ -130,7 +130,7 @@ PackJoyU производит упаковку из формованной це�
 ## Internal links
 
 - → `custom-corrugated-boxes`（Custom Corrugated Boxes / RU `gofrokorobki`），锚文本用品类名
-- → `compostable-paper-cups`（Compostable Paper Cups / RU `ekologichnye-stakany`），锚文本用品类名
+- → `eco-paper-cups`（Eco-Friendly Paper Cups / RU `ekologichnye-stakany`），锚文本用品类名
 - → `custom-gift-boxes`（Custom Gift Boxes / RU `podarochnye-korobki`），锚文本用品类名
 - → `/products`（3D 展示页）；→ 询价页；→ 相关行业方案页（见 `industries.md`，页面上线前不链接）
 

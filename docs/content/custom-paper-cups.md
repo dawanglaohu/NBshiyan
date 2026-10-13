@@ -32,7 +32,7 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 |---|---|
 | Types | Single wall, double wall, ripple wall, cold cups |
 | Sizes | Common sizes approx. 4–22 oz (exact range TBD by factory) |
-| Lining | PE lining; water-based / PLA see compostable-paper-cups |
+| Lining | PE lining; water-based / PLA see eco-paper-cups |
 | Printing | Flexo or offset, full-wrap |
 | Accessories | PS/PP/fiber lids, sleeves, carriers |
 | MOQ | **TBD（待 Ryan 提供）** |
@@ -129,7 +129,7 @@ PackJoyU производит бумажные стаканы с печатью 
 
 ## Internal links
 
-- → `compostable-paper-cups`（Compostable Paper Cups / RU `ekologichnye-stakany`），锚文本用品类名
+- → `eco-paper-cups`（Eco-Friendly Paper Cups / RU `ekologichnye-stakany`），锚文本用品类名
 - → `custom-party-supplies`（Custom Party Supplies / RU `tovary-dlya-prazdnikov`），锚文本用品类名
 - → `custom-printed-boxes`（Custom Printed Boxes / RU `tsvetnye-korobki`），锚文本用品类名
 - → `/products`（3D 展示页）；→ 询价页；→ 相关行业方案页（见 `industries.md`，页面上线前不链接）
