@@ -13,14 +13,16 @@ export const SOURCE_LABEL: Record<InquirySource, string> = {
 /** PRD 第 9 节：可信度低于 40 分归入“待核实” */
 export const REVIEW_THRESHOLD = 40;
 
-export type AdminUser = { id: string; name: string };
+export type AdminRole = 'ADMIN' | 'SALES' | 'EDITOR';
+/** GET /api/admin/users → AdminUser[] */
+export type AdminUser = { id: string; name: string; email: string; role: AdminRole };
 export type Contact = { name: string; email: string; company?: string; phone?: string; region: string };
 export type InquiryItem = { productSlug: string; quantity?: number; config?: Record<string, unknown>; designId?: string };
 export type TrustReason = { label: string; delta: number };
 export type InquiryMessage = { id: string; direction: 'INBOUND' | 'OUTBOUND'; subject: string; bodyHtml: string; author?: string; createdAt: string };
 export type InquiryNote = { id: string; author: string; body: string; createdAt: string };
 /** Logo 只在后台经鉴权接口查看；这里只有元数据，预览地址由鉴权接口提供（接入前为占位） */
-export type InquiryAttachment = { id: string; kind: 'logo' | 'file'; filename: string; mime: string; sizeBytes: number };
+export type InquiryAttachment = { id: string; kind: 'logo' | 'file'; filename: string; mime: string; sizeBytes: number; scan?: 'clean' | 'pending' | 'infected'; downloadUrl?: string };
 export type HistoryEvent = { id: string; at: string; actor?: string; action: string };
 
 export type InquirySummary = {
@@ -34,11 +36,15 @@ export type InquiryDetail = InquirySummary & {
   attribution?: { page?: string; utm?: Record<string, string> };
   ipCountry?: string; messages: InquiryMessage[]; notes: InquiryNote[];
   attachments: InquiryAttachment[]; history: HistoryEvent[];
+  /** 客户上传的 Logo（#59）；预览走鉴权接口 GET /api/admin/uploads/:id */
+  logoUploadId?: string;
 };
 
 export type InquiryQuery = {
   status?: InquiryStatus | 'REVIEW'; q?: string; from?: string; to?: string;
-  region?: string; product?: string; minScore?: number; mine?: boolean; page?: number; pageSize?: number;
+  product?: string; minScore?: number; maxScore?: number;
+  /** 'me' | 'none'（未分配）| 用户 id；业务员角色后端只返回自己的 */
+  assignee?: string; page?: number; pageSize?: number;
 };
 export type Page<T> = { items: T[]; total: number; page: number; pageSize: number };
 
@@ -49,4 +55,6 @@ export interface AdminApi {
   reply(id: string, body: { subject: string; bodyHtml: string }): Promise<InquiryMessage>;
   addNote(id: string, body: string): Promise<InquiryNote>;
   listUsers(): Promise<AdminUser[]>;
+  /** 返回可直接用于 <img src> 的地址（blob: 或 data:），调用方用完后 revoke */
+  logoPreview(uploadId: string): Promise<string>;
 }
