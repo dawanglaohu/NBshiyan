@@ -45,3 +45,17 @@ AR 预览、AI 包装顾问、其余模型动画、材质近看、尺寸运费�
 
 ## 10. 待定
 正式域名（.com）、询盘邮箱、俄语文案母语校对。
+
+## 11. 上线前清单
+- [ ] 正式域名、询盘邮箱（Ryan 决定）
+- [ ] Vercel 项目与预览环境，Turnstile 正式密钥
+- [ ] Resend API 密钥与发信域名验证
+- [ ] 上传文件改存 Cloudflare R2（私有）
+- [ ] 配置 CRON_SECRET，并设置未绑定 Logo 的定时清理
+- [ ] 限流改为共享存储（如 Upstash 或 Cloudflare KV），不再按单个实例在内存里计数
+- [ ] /api/admin/uploads 单独设置 CSP（sandbox）
+- [ ] 隐私政策页 /[locale]/privacy（英/俄）：收集的数据、用途、保存期限（未绑定上传 24 小时，Logo 30 天，询盘按业务需要）、Cookie 类别、第三方服务（Tawk.to、Cloudflare、Resend）、用户权利与联系方式
+- [ ] 俄语文案及 docs/seo-keywords-ru.md 母语校对
+- [ ] 首页“核心优势”的真实数据（月产量、认证、打样周期）
+- [ ] 在有真实 GPU 的设备上复测：3D 可交互时间小于 3 秒
+- [ ] 3D 模型全部按实物重建并经 Ryan 确认

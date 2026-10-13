@@ -84,3 +84,4 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 .catbar a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .card{scroll-margin-top:calc(var(--header-h) + 64px)}
 @media (max-width:767px){header.site{position:static}.catbar{top:0}.card{scroll-margin-top:64px}}
+.card .desc{margin:0;padding:0 16px 14px;font-size:14px;line-height:1.5;opacity:.8}
