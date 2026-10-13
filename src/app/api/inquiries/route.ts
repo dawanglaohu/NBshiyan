@@ -31,15 +31,24 @@ const RETAIN_DAYS = 730;
 
 export async function POST(req: Request) {
   const ip = clientIp(req);
-  if (!rateLimit(`inq:${ip ?? 'unknown'}`)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
 
   const raw = await readBody(req, 32_000);
   if (raw === null) return NextResponse.json({ error: 'too_large' }, { status: 413 });
   let json: unknown = null;
   try { json = JSON.parse(raw); } catch {}
   const parsed = Body.safeParse(json);
-  if (!parsed.success) return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
+  if (!parsed.success) {
+    // 无效请求单独计数：有 IP 时按 IP，宽松上限，不占用正常提交的额度
+    if (ip && !rateLimit(`inq-bad:${ip}`, 30)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+    return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
+  }
   const b = parsed.data;
+  // 正常提交的限流：有平台 IP 时按 IP；拿不到 IP（如本地 pnpm start）时按邮箱分桶，
+  // 再加一个所有无 IP 请求共用的宽松总闸，避免所有用户挤进同一个 5 次的桶
+  const limited = ip
+    ? !rateLimit(`inq:${ip}`)
+    : !rateLimit(`inq:noip:${b.contact.email.toLowerCase()}`) || !rateLimit('inq:noip:all', 100);
+  if (limited) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃
   if (!(await verifyTurnstile(b.turnstileToken, ip))) return NextResponse.json({ error: 'captcha' }, { status: 403 });
 
