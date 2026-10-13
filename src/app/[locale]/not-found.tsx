@@ -1,12 +1,15 @@
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
+import { categoryHref } from '@/lib/seo/categoryPages';
+import { useLocale } from 'next-intl';
 
 // 本地化 404（design/error-pages.html，#125/#195）：返回真实 404，Next 对 not-found 自动输出 noindex；不重定向、不放搜索框。
 // 品类落地页 /{locale}/products/{slug} 上线前（CATEGORY_PAGES_LIVE，#198），入口先链到 3D 目录里对应的卡片，避免 404 页再链到 404。
 export default function NotFound() {
   const t = useTranslations('NotFound');
   const names = useTranslations('Products.names');
+  const locale = useLocale() as 'en' | 'ru';
   return (
     <main className="container nf">
       <p className="nf-code">{t('code')}</p>
@@ -24,7 +27,7 @@ export default function NotFound() {
       <h2>{t('browse')}</h2>
       <ul className="nf-grid">
         {categoryMeta.map((c) => (
-          <li key={c.key}><Link href={`/products#${c.key}`}><i aria-hidden="true" />{names(c.key)}</Link></li>
+          <li key={c.key}><Link href={categoryHref(locale, c.key)}><i aria-hidden="true" />{names(c.key)}</Link></li>
         ))}
       </ul>
     </main>

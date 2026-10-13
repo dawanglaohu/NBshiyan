@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
+import { categoryHref } from '@/lib/seo/categoryPages';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 
 // 过期的定制方案（Refs #101）。全栈在 middleware 里把过期的 /[locale]/s/<id> 重写到这里并返回 410，
@@ -23,7 +24,7 @@ export default async function ExpiredDesignPage({ params, searchParams }: Props)
   const key = typeof raw === 'string' ? raw : undefined;
   const cat = key ? categoryMeta.find((c) => c.key === key) : undefined;
   // 品类落地页还没上线：先链到产品页对应卡片（锚点 = 内部 key），key 先经 categoryMeta 校验，显示名用 Products.names
-  const href = cat ? `/products#${cat.key}` : '/products';
+  const href = cat ? categoryHref(locale === 'ru' ? 'ru' : 'en', cat.key) : '/products';
   const label = cat ? t('backToCategory', { category: names(cat.key) }) : t('backToProducts');
 
   return (
