@@ -1,6 +1,8 @@
 import { test, expect } from './fixtures';
 
-const sw = (page: import('@playwright/test').Page, to: 'EN' | 'RU') => page.getByRole('banner').getByRole('link', { name: to, exact: true }).first();
+// 头部语言切换按钮的可访问名称来自 messages 的 switchLang
+const NAME = { RU: 'Русская версия', EN: 'English version' } as const;
+const sw = (page: import('@playwright/test').Page, to: 'EN' | 'RU') => page.getByRole('banner').getByRole('link', { name: NAME[to] }).first();
 
 test('语言切换 EN ↔ RU 保持当前页面', async ({ page }) => {
   for (const p of ['', '/products', '/contact', '/privacy']) {

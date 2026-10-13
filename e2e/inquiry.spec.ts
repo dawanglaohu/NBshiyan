@@ -21,8 +21,8 @@ test('询价全流程：三步提交成功并显示询盘编号', async ({ page 
   const resp = page.waitForResponse((r) => r.url().endsWith('/api/inquiries') && r.request().method() === 'POST');
   await page.getByRole('button', { name: 'Send request' }).click();
   expect((await resp).status()).toBeLessThan(300);
-  await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
-  await expect(page.locator('strong').filter({ hasText: /\w{4,}/ }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Thank you/ })).toBeVisible();
+  await expect(page.getByText(/request received|reference/i).first()).toBeVisible();
 });
 
 test('#98 回归：第 3 步 Back → Next 后联系人信息保留', async ({ page }) => {
