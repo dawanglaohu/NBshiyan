@@ -90,6 +90,25 @@
 ## 定时任务
 - `GET|POST /api/admin/cron/cleanup-uploads`：删除超过 24 小时未绑定询盘的 logo（文件和记录）。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
 
+## 邮件（Resend）
+模板来源 `design/emails/`，用 `pnpm email:build` 生成 `src/lib/server/email/templates.generated.ts`（提交生成结果，运行时不读 design 目录）。
+
+| 邮件 | 收件人 | 何时发送 |
+| --- | --- | --- |
+| 询盘确认 `inquiry-ack.{en,ru}` | 客户 | 可信度 ≥ 40 的询盘 |
+| 样品申请确认 `sample-ack.{en,ru}` | 客户 | 可信度 ≥ 40 的 `SAMPLE` 询盘（由询盘确认改写文案生成） |
+| 新询盘通知 `inquiry-notify.zh` | `INQUIRY_NOTIFY_EMAIL` | 每条询盘；可信度 < 40 时显示“待核实”块 |
+| 后台告警（中文） | `ADMIN_ALERT_EMAIL`，没配则 `INQUIRY_NOTIFY_EMAIL` | 发信失败、定时清理失败、后台账号被锁定；同一类（同一账号）30 分钟最多 1 封 |
+
+变量：`name, company, product, quantity, inquiryId`（对外编号）`, locale, score`，以及环境变量 `NEXT_PUBLIC_SITE_URL`（siteUrl）、`CONTACT_REPLY_TIME`（默认 24h）、`CONTACT_EMAIL`、`CONTACT_WHATSAPP`（两个都配了才显示联系方式那段）。
+
+安全：
+- 所有变量 HTML 转义（含 `{ }`，单次替换，用户输入里的 `{{x}}` 不会被展开）；文本版去掉控制字符和双向控制符；主题、收件人、Reply-To 去掉 `\r\n` 并校验为单个地址。
+- 客户确认邮件主题只含编号，不回显留言；通知邮件也不含留言正文，只给后台链接 `{siteUrl}/admin/inquiries/{内部 id}`（只用环境变量里的站点地址，不取请求 Host，不带 token，正常登录后台）。
+- `RESEND_API_KEY` 只从环境变量读，建议用 Resend 的 Sending access key；请求只发往 `https://api.resend.com/emails`。
+- 自动回复：同一邮箱 24 小时 1 封（数据库 + 咨询锁），另加 `hitRateLimit`：每邮箱 24 小时 1 次、每 IP 24 小时 5 次。
+- 发信失败不影响询盘提交：记日志并发后台告警。
+
 ## 存储与限流（部署配置）
 - **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（默认，`UPLOAD_DIR`）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
 - **限流**（`src/lib/server/ratelimit/`）：`RATE_LIMIT_STORE=memory`（默认，单实例）或 `upstash`（`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`，固定窗口 `INCR` + `PEXPIRE NX`，一次 pipeline 请求，1.5 秒超时）。Upstash 不可用时退回本实例内存计数并记错误日志，既不整站放行也不整站拒绝。代码里用 `await hitRateLimit(...)` / `await enforceAdminRateLimit(...)`（原同步的 `rateLimit` / `adminRateLimit` 已删除，防止漏写 `await`）。

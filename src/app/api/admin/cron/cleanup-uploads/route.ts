@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cleanupOrphanLogos, secretMatches } from '@/lib/server/uploads';
+import { sendAdminAlert } from '@/lib/server/mail';
 
 export const runtime = 'nodejs';
 
@@ -8,7 +9,13 @@ async function handle(req: Request) {
   const auth = req.headers.get('authorization');
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
   if (!secretMatches(token, process.env.CRON_SECRET)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  const deleted = await cleanupOrphanLogos();
-  return NextResponse.json({ deleted });
+  try {
+    const deleted = await cleanupOrphanLogos();
+    return NextResponse.json({ deleted });
+  } catch (e) {
+    console.error('[cron] cleanup-uploads failed', e);
+    await sendAdminAlert('定时清理失败', { 任务: 'cleanup-uploads', 错误: String((e as Error).message ?? e).slice(0, 100) }, 'cron:cleanup-uploads');
+    return NextResponse.json({ error: 'cleanup_failed' }, { status: 500 });
+  }
 }
 export { handle as GET, handle as POST };
