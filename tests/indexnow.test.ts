@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { indexNowDedupeStore, activeIndexNowKey, pathsForSanityDoc, pathsForModelPublish, submitIndexNow, INDEXNOW_ENDPOINT } from '../src/lib/seo/indexnow';
+import { type SanityWebhookDoc, indexNowDedupeStore, activeIndexNowKey, pathsForSanityDoc, pathsForModelPublish, submitIndexNow, INDEXNOW_ENDPOINT } from '../src/lib/seo/indexnow';
 import { MemoryStore } from '../src/lib/server/ratelimit';
 
 const KEY = 'abcDEF12-3456';
@@ -26,9 +26,11 @@ test('paths: both locales, skips noindex / not-live / bad slug', () => {
   assert.deepEqual(pathsForModelPublish(), ['/en/products', '/ru/products']);
 });
 
+type IndexNowBody = { host: string; key: string; keyLocation: string; urlList: string[] };
+
 function fakeFetch(status = 200) {
-  const calls: { url: string; body: any }[] = [];
-  const f = (async (url: string, init: RequestInit) => { calls.push({ url, body: JSON.parse(String(init.body)) }); return new Response(null, { status }); }) as unknown as typeof fetch;
+  const calls: { url: string; body: IndexNowBody }[] = [];
+  const f = (async (url: string, init: RequestInit) => { calls.push({ url, body: JSON.parse(String(init.body)) as IndexNowBody }); return new Response(null, { status }); }) as unknown as typeof fetch;
   return { f, calls };
 }
 
@@ -77,7 +79,7 @@ test('dedupe store: Upstash only; off without it; upstash failure = no push', as
 
 test('urls only from NEXT_PUBLIC_SITE_URL, endpoint fixed', async () => {
   const { f, calls } = fakeFetch();
-  const doc = { _type: 'product', slug: { en: { current: 'x-evil-example' } }, host: 'evil.example', url: 'https://evil.example/' } as any;
+  const doc = { _type: 'product', slug: { en: { current: 'x-evil-example' } }, host: 'evil.example', url: 'https://evil.example/' } satisfies SanityWebhookDoc & { host: string; url: string };
   await submitIndexNow(pathsForSanityDoc(doc, LIVE), { env: PROD, store: new MemoryStore(), fetchImpl: f, log: () => {} });
   assert.equal(calls[0].url, 'https://api.indexnow.org/indexnow');
   assert.equal(calls[0].body.host, 'packjoyu.example');
