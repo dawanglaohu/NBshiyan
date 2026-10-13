@@ -4,6 +4,9 @@
   --accent:#FF5A36; --accent-press:#E0401F; --sun:#FFD166;
   --accent-text:#C2381A; /* 珊瑚色文字/链接/焦点环，5.1:1（#149）；--accent 只做填充/图形 */
   --premium-bg:#121214; --premium-ink:#F2E9D8; --gold:#D4AF6A; --wine:#6B1F2A;
+  /* 状态色：前台和后台共用（#153，design-system §1）；文字色在对应浅底上均 ≥4.5:1 */
+  --ok:#1A7F37; --okb:#E6F4EA; --warn:#8A6300; --warnb:#FFF4D1; --err:#B42318; --errb:#FDE8E7; --info:#1D4F91; --infob:#E7EEF8;
+  --tint-accent:#FDEEE8; --placeholder:#EFE6DA;
   --font:"Manrope",system-ui,sans-serif;
   --fs-display:clamp(36px,5vw,64px); --fs-h2:clamp(26px,3vw,40px); --fs-h3:20px; --fs-body:16px; --fs-small:13px;
   --r-sm:8px; --r-md:14px; --r-lg:24px; --r-pill:999px;
