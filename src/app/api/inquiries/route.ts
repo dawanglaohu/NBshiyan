@@ -50,7 +50,12 @@ export async function POST(req: Request) {
     : !rateLimit(`inq:noip:${b.contact.email.toLowerCase()}`) || !rateLimit('inq:noip:all', 100);
   if (limited) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃
-  if (!(await verifyTurnstile(b.turnstileToken, ip))) return NextResponse.json({ error: 'captcha' }, { status: 403 });
+  const captcha = await verifyTurnstile(b.turnstileToken, ip);
+  if (captcha === 'unavailable') {
+    console.error('[turnstile] verify unavailable');
+    return NextResponse.json({ error: 'captcha_unavailable' }, { status: 503, headers: { 'Retry-After': '30' } });
+  }
+  if (captcha === 'fail') return NextResponse.json({ error: 'captcha' }, { status: 403 });
 
   const ipCountry = process.env.BEHIND_CLOUDFLARE === '1' ? req.headers.get('cf-ipcountry') : req.headers.get('x-vercel-ip-country');
   const trust = scoreInquiry({ ...b.contact, ipCountry, message: b.message });

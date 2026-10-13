@@ -10,6 +10,7 @@ const TIMELINES = ['2w', '1m', '2m', 'unsure'] as const;
 const COUNTRIES = ['US', 'GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'PL', 'RU', 'KZ', 'BY', 'UZ', 'AE', 'SA', 'AU', 'CA', 'ZZ'] as const;
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
+const RETRYABLE = new Set(['retry', 'network']);
 type Result = { ok: true; ref: string } | { ok: false; code: string };
 
 export default function InquiryWizard() {
@@ -28,6 +29,12 @@ export default function InquiryWizard() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [wait, setWait] = useState(0);
+  useEffect(() => {
+    if (wait <= 0) return;
+    const id = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(id);
+  }, [wait]);
   const prefilled = useRef(false);
 
   // 从询价清单进来时预填产品
@@ -81,13 +88,19 @@ export default function InquiryWizard() {
         setResult({ ok: true, ref: String(data.ref ?? '') });
         if (fromQuote) quote.clear();
       } else {
-        const code = res.status === 404 ? 'unavailable' : res.status === 429 ? 'rate' : res.status === 400 ? 'invalid' : res.status === 403 ? 'captcha' : 'server';
+        const code = res.status === 404 ? 'unavailable' : res.status === 429 ? 'rate' : res.status === 400 ? 'invalid' : res.status === 403 ? 'captcha' : res.status === 503 ? 'retry' : 'server';
+        if (res.status === 503) {
+          const ra = Number(res.headers.get('Retry-After'));
+          setWait(Number.isFinite(ra) && ra > 0 ? Math.min(Math.round(ra), 120) : 0);
+        }
         setResult({ ok: false, code });
       }
     } catch {
       setResult({ ok: false, code: 'network' });
     } finally {
       setBusy(false);
+      // Turnstile 令牌只能用一次：失败后刷新，方便直接重试
+      (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
     }
   }
 
@@ -133,7 +146,7 @@ export default function InquiryWizard() {
           <div className="field"><label htmlFor="iq-size">{t('size')}</label><input id="iq-size" value={size} maxLength={200} placeholder={t('sizePh')} onChange={(e) => setSize(e.target.value)} /></div>
           <fieldset className="field"><legend>{t('material')}</legend>{chips('material', MATERIALS, material, setMaterial, (k) => t(`materials.${k}`))}</fieldset>
           <fieldset className="field"><legend>{t('timeline')}</legend>{chips('timeline', TIMELINES, timeline, setTimeline, (k) => t(`timelines.${k}`))}</fieldset>
-          <div className="field"><label htmlFor="iq-msg">{t('message')}</label><textarea id="iq-msg" rows={4} maxLength={5000} value={message} onChange={(e) => setMessage(e.target.value)} /></div>
+          <div className="field"><label htmlFor="iq-msg">{t('message')}</label><textarea id="iq-msg" rows={4} maxLength={5000} value={message} onChange={(e) => setMessage(e.target.value)} aria-describedby="iq-logo-note" /><p id="iq-logo-note" className="hint" style={{ fontSize: 13, opacity: 0.75, marginTop: 6 }}>{t('logoNote')}</p></div>
         </>
       )}
 
@@ -159,7 +172,14 @@ export default function InquiryWizard() {
         </>
       )}
 
-      {result && !result.ok && <div className="alert err" role="alert">{t(`errors.${result.code}`)}</div>}
+      {result && !result.ok && (
+        <div className="alert err" role="alert">
+          {t(`errors.${result.code}`)}
+          {RETRYABLE.has(result.code) && (
+            <> <button type="button" className="btn ghost" disabled={busy || wait > 0} onClick={() => formRef.current?.requestSubmit()}>{wait > 0 ? t('retryIn', { s: wait }) : t('retry')}</button></>
+          )}
+        </div>
+      )}
 
       <div className="row">
         {step > 0 ? <button type="button" className="btn ghost" onClick={() => setStep(step - 1)}>{t('back')}</button> : <span />}

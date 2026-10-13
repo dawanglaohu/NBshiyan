@@ -1,0 +1,55 @@
+diff --git a/lib/loaders.js b/lib/loaders.js
+index 4c9191c724ea8b953c9db341b221e4eafbb5a732..d0b8fb0689d8927809adc7bdd79e07132f071454 100644
+--- a/lib/loaders.js
++++ b/lib/loaders.js
+@@ -3,45 +3,14 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
+ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+ import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
+-let DEFAULT_DRACO_DECODER_LOCATION = 'https://www.gstatic.com/draco/versioned/decoders/1.5.7/';
+-let DEFAULT_KTX2_TRANSCODER_LOCATION = "https://cdn.needle.tools/static/three/0.179.1/basis2/"; // 'https://www.gstatic.com/basis-universal/versioned/2021-04-15-ba1c3e4/';
++// PackJoyU：默认改为站内托管的解码器，不访问外部 CDN（CSP，issue #31）
++let DEFAULT_DRACO_DECODER_LOCATION = '/draco/';
++let DEFAULT_KTX2_TRANSCODER_LOCATION = "/basis/"; // 'https://www.gstatic.com/basis-universal/versioned/2021-04-15-ba1c3e4/';
+ const defaultDraco = DEFAULT_DRACO_DECODER_LOCATION;
+ const defaultKTX2 = DEFAULT_KTX2_TRANSCODER_LOCATION;
+ // #region Online check
+-const _remoteDracoDecoderUrl = new URL(DEFAULT_DRACO_DECODER_LOCATION + "draco_decoder.js");
+-// if (typeof window !== "undefined") {
+-//     if (!window.navigator.onLine) {
+-//         // check if the default values have been changed by the user. 
+-//         // If they didnt change / the default paths are not reachable, fall back to local versions
+-//         if (DEFAULT_DRACO_DECODER_LOCATION === defaultDraco)
+-//             DEFAULT_DRACO_DECODER_LOCATION = "./include/draco/";
+-//         if (DEFAULT_KTX2_TRANSCODER_LOCATION === defaultKTX2)
+-//             DEFAULT_KTX2_TRANSCODER_LOCATION = "./include/ktx2/";
+-//     }
+-//     prepareLoaders();
+-// }
+-// Avoid cache busting - if we don't do this chrome will clear the fully cached file (potentially)
+-_remoteDracoDecoderUrl.searchParams.append("range", "true");
+-fetch(_remoteDracoDecoderUrl, {
+-    method: "GET",
+-    headers: {
+-        "Range": "bytes=0-1"
+-    }
+-})
+-    .catch(_ => {
+-    console.debug(`Failed to fetch remote Draco decoder from ${DEFAULT_DRACO_DECODER_LOCATION} (offline: ${(typeof navigator !== "undefined") ? navigator.onLine : "unknown"})`);
+-    // check if the default values have been changed by the user. 
+-    // If they didnt change / the default paths are not reachable, fall back to local versions
+-    if (DEFAULT_DRACO_DECODER_LOCATION === defaultDraco) {
+-        setDracoDecoderLocation("./include/draco/");
+-    }
+-    if (DEFAULT_KTX2_TRANSCODER_LOCATION === defaultKTX2) {
+-        setKTX2TranscoderLocation("./include/ktx2/");
+-    }
+-})
+-    .finally(() => {
+-    prepareLoaders();
+-});
++// PackJoyU：去掉导入时探测远程 Draco 解码器的 fetch（会请求 gstatic），直接准备本地加载器
++if (typeof window !== 'undefined') Promise.resolve().then(() => prepareLoaders());
+ // #region Loader Configuration
+ /**
+  * Return the current loader configuration.
