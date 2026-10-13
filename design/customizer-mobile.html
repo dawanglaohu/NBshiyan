@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="motion-tokens.css">
 <style>
 :root{--on-accent:#1C1C1C;--accent-text:#C2381A;--err:#B42318;--errb:#FDE8E7;--ok:#1A7F37;
---focus:0 0 0 2px var(--bg),0 0 0 4px var(--accent-text);--cookie-h:0px;--fab-clearance:calc(136px + var(--cookie-h));--bar-h:76px}
+--focus:0 0 0 2px var(--bg),0 0 0 4px var(--accent-text);--consent-h:0px;--fab-clearance:calc(136px + var(--consent-h));--bar-h:76px}
 .theme-premium{--on-accent:#121214;--accent-text:#D4AF6A;--focus:0 0 0 2px var(--bg),0 0 0 4px var(--gold)}
 *{box-sizing:border-box}
 body{margin:0;font-family:Manrope,system-ui,sans-serif;background:#EFEAE2;color:#1C1C1C}
@@ -23,11 +23,11 @@ h1{font-size:28px;margin:0 0 8px}h2{font-size:20px;margin:40px 0 12px}p,li{font-
 .view .tools button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:16px}
 .view .hint{position:absolute;left:10px;bottom:14px;font-size:12px;color:var(--ink-2);max-width:220px}
 .sk{width:150px;height:130px;border-radius:10px;background:linear-gradient(90deg,var(--line),var(--surface),var(--line));background-size:200% 100%;opacity:.9}
-.bar{position:absolute;left:0;right:0;bottom:var(--cookie-h);height:var(--bar-h);padding:14px 16px;display:flex;gap:10px;background:var(--surface);border-top:1px solid var(--line);z-index:3}
+.bar{position:absolute;left:0;right:0;bottom:var(--consent-h);height:var(--bar-h);padding:14px 16px;display:flex;gap:10px;background:var(--surface);border-top:1px solid var(--line);z-index:3}
 .btn{height:48px;min-width:44px;padding:0 18px;border-radius:999px;border:2px solid var(--accent);background:var(--accent);color:var(--on-accent);font:700 15px Manrope,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
 .btn.gh{background:transparent;color:var(--ink);border-color:var(--line)}.btn.f{flex:1}
 .focus{box-shadow:var(--focus)!important}
-.panel{padding:14px 16px;height:calc(844px - 56px - 52px - 300px - var(--bar-h) - var(--cookie-h));overflow:hidden}
+.panel{padding:14px 16px;height:calc(844px - 56px - 52px - 300px - var(--bar-h) - var(--consent-h));overflow:hidden}
 .panel h3{margin:0 0 8px;font-size:16px}
 .sw{display:flex;gap:10px;flex-wrap:wrap}.sw span{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);position:relative}.sw span.on{outline:2px solid var(--ink);outline-offset:2px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.chip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);display:inline-flex;align-items:center;font-size:14px;background:var(--surface)}.chip.on{border-color:var(--ink);font-weight:700}
@@ -36,7 +36,7 @@ h1{font-size:28px;margin:0 0 8px}h2{font-size:20px;margin:40px 0 12px}p,li{font-
 .dim{border:1px solid var(--line);border-radius:12px;padding:0 4px 0 12px;background:var(--surface);font-size:14px;color:var(--ink-2);display:flex;align-items:center;justify-content:space-between}.dim .st{gap:8px}.dim .st{gap:8px}
 .dim .st{display:flex;align-items:center;justify-content:space-between}.dim .st button{width:44px;height:44px;border:0;background:none;font-size:20px;color:var(--ink)}.dim b{font-size:16px;color:var(--ink)}
 .ref{position:absolute;inset:0}
-.cookie{position:absolute;left:0;right:0;bottom:0;height:var(--cookie-h);background:#1C1C1C;color:#fff;padding:12px 16px;font-size:13px;z-index:4}
+.cookie{position:absolute;left:0;right:0;bottom:0;height:var(--consent-h);background:#1C1C1C;color:#fff;padding:12px 16px;font-size:13px;z-index:4}
 .cookie div{display:flex;gap:8px;margin-top:8px}.cookie span{height:44px;flex:1;border-radius:999px;border:1px solid #fff;display:grid;place-items:center;font-weight:700}
 .fab{position:absolute;right:16px;width:52px;height:52px;border-radius:50%;background:#1C1C1C;color:#fff;display:grid;place-items:center;font-size:20px;z-index:2;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .ann{position:absolute;font:700 11px Manrope;color:#1D4F91;background:#E7EEF8;padding:2px 6px;border-radius:6px;z-index:9}
@@ -54,7 +54,7 @@ code{font-size:12px;background:#fff;padding:1px 4px;border-radius:4px}
 <table>
 <tr><th>Area</th><th>Rule</th></tr>
 <tr><td>Layout</td><td>Top bar 56px (Back-to-product 44×44, product name ellipsised, Share 44×44). Progress 52px. Viewer fixed 300px high (min 260px on 360-wide/short screens), sticky under top bar while the step panel scrolls. Panel scrolls; its <code>padding-bottom = var(--bar-h) + var(--fab-clearance)</code> so the last control is never under the bar, FABs or cookie bar.</td></tr>
-<tr><td>Sticky action bar</td><td><code>position:fixed; bottom:var(--cookie-h,0px)</code> + <code>env(safe-area-inset-bottom)</code>; height 76px. Cookie bar sits below it (bar rises with it, never overlaps). On this route the chat / WhatsApp FABs lift to <code>bottom: calc(var(--cookie-h) + var(--bar-h) + 12px)</code>; <code>--fab-clearance</code> (136px + cookie bar height, from #183) stays the page bottom padding. When cookie bar closes, <code>--cookie-h</code> → 0 and everything drops with <code>transform</code> (--dur-base, --ease-out).</td></tr>
+<tr><td>Sticky action bar</td><td><code>position:fixed; bottom:var(--consent-h,0px)</code> + <code>env(safe-area-inset-bottom)</code>; height 76px. Cookie bar sits below it (bar rises with it, never overlaps). On this route the chat / WhatsApp FABs lift to <code>bottom: calc(var(--consent-h) + var(--bar-h) + 12px)</code>; <code>--fab-clearance</code> (136px + cookie bar height, from #183) stays the page bottom padding. When cookie bar closes, <code>--consent-h</code> → 0 and everything drops with <code>transform</code> (--dur-base, --ease-out).</td></tr>
 <tr><td>Progress</td><td>Segmented bar, one segment per step; label row "Step 2 of 4 · Logo" (RU «Шаг 2 из 4 · Логотип»). <code>&lt;nav aria-label="Customizer steps"&gt;&lt;ol&gt;</code>, current item <code>aria-current="step"</code>. Completed segments are tappable (44px tall hit area over 4px line) to jump back; future segments are not tappable.</td></tr>
 <tr><td>Next / Back</td><td>Back = ghost, Next = coral primary (flex:1). Step 1 shows "Back" disabled-hidden: bar has only Next. Last step: Next becomes "Request a quote" / «Запросить расчёт», secondary "Copy link" moves into the panel. Next never disables silently: if a step is invalid (e.g. size out of range), Next stays enabled, tapping scrolls to the error and focuses it (<code>aria-invalid</code>, <code>aria-describedby</code>). Logo is optional ("Skip" = Next).</td></tr>
 <tr><td>Choices kept</td><td>All state in one store (<code>{color, logo:{fileId,scale,pos}, size:{l,w,h,unit}, step}</code>), mirrored to the URL query (<code>?step=2&amp;c=coral…</code>, <code>history.replaceState</code>) and sessionStorage. Back, step jump, browser back and reload restore every choice; the uploaded logo is not re-uploaded. Frame ⑦ shows Back to Color with previous choice kept and a confirmation chip "Your choices are saved".</td></tr>
@@ -75,11 +75,11 @@ function prog(t,s,n=4){return `<nav class="prog" aria-label="steps"><div class="
 function frame(l,o){const t=T[l];const s=o.s;const cookie=o.cookie?136:0;
 const view=o.view||`<span class="tag">↻ 0.15 rad/s</span>${box(o.c,o.logo)}<span class="hint">${t.hint}</span><div class="tools"><button aria-label="reset">⟲</button><button aria-label="fullscreen">⤢</button></div>`;
 const last=s==3;const bar=`<div class="bar">${s>0?`<button class="btn gh ${o.fb?'focus':''}">‹ ${t.back}</button>`:''}<button class="btn f ${o.fn?'focus':''}">${last?t.quote:(o.skip?t.skip:t.next+' ›')}</button></div>`;
-return `<div><p class="cap">${o.cap}</p><div class="ph ${o.prem?'theme-premium':''}" lang="${l}" style="--cookie-h:${cookie}px">
+return `<div><p class="cap">${o.cap}</p><div class="ph ${o.prem?'theme-premium':''}" lang="${l}" style="--consent-h:${cookie}px">
 <div class="top"><button class="ib">‹</button><b>${o.prem?t.wine:t.prod}</b><button class="ib">⤴</button></div>${prog(t,s)}
 <div class="view">${view}</div><div class="panel">${o.panel(t)}</div>${o.toast?`<div class="toast">✓ ${t.saved}</div>`:''}
 <div class="fab" style="bottom:calc(${cookie}px + 76px + 12px)">💬</div>${bar}
-${o.cookie?`<div class="cookie">${t.cookie}<div><span>${t.rej}</span><span>${t.set}</span><span>${t.acc}</span></div></div><span class="ann" style="right:76px;bottom:${cookie+76+20}px">FAB lifts: cookie-h + bar-h + 12</span><span class="ann" style="left:8px;bottom:${cookie+80}px">bar bottom = --cookie-h</span>`:''}
+${o.cookie?`<div class="cookie">${t.cookie}<div><span>${t.rej}</span><span>${t.set}</span><span>${t.acc}</span></div></div><span class="ann" style="right:76px;bottom:${cookie+76+20}px">FAB lifts: cookie-h + bar-h + 12</span><span class="ann" style="left:8px;bottom:${cookie+80}px">bar bottom = --consent-h</span>`:''}
 </div></div>`}
 const colors=t=>`<h3 tabindex="-1">${t.colH}</h3><div class="sw"><span class="on" style="background:#C89B6D"></span><span style="background:#fff"></span><span style="background:#1C1C1C"></span><span style="background:#FF5A36"></span><span style="background:#2F5D50"></span><span style="background:#1D4F91"></span></div><p style="margin:10px 0 0;font-size:14px">✓ ${t.cols}</p>`;
 const logo=(f)=>t=>`<h3 tabindex="-1">${t.logoH}</h3><div class="drop ${f?'focus':''}">⬆ ${t.drop}</div><div class="chips">${t.place.map((p,i)=>`<span class="chip ${i==0?'on':''}">${p}</span>`).join('')}</div>`;
@@ -111,4 +111,5 @@ F.push({id:`${l}-7-back-kept`,l,o:{cap:`⑦ ${l.toUpperCase()} · Back from Size
 }
 F.push({id:'ru-9-theme-b-wine',l:'ru',o:{cap:'⑨ RU · Theme B (wine box only) · Step 1 Color',s:0,prem:1,c:'#1D1D22',view:`<span class="tag">↻ 0.15 rad/s</span>${box('#2A2A30')}<span class="hint">${T.ru.hint}</span>`,panel:t=>`<h3>${t.colH}</h3><div class="sw"><span class="on" style="background:#121214"></span><span style="background:#6B1F2A"></span><span style="background:#F2E9D8"></span><span style="background:#2F3B2F"></span></div><p style="margin:10px 0 0;font-size:14px">✓ ${t.gold}</p>`}});
 document.getElementById('frames').innerHTML=F.map(f=>`<div id="${f.id}">${frame(f.l,f.o)}</div>`).join('');
-</script></body></html>
+</script><p class="spec-note"><strong>变量：</strong>悬浮按钮 bottom = <code>var(--consent-h) + var(--action-bar-h) + 12px</code>（<code>--action-bar-h</code> 由前端新增）。<br><strong>安全：</strong>URL 只放颜色、尺寸等枚举值，Logo 只存服务端返回的 id（不放 data URL 或文件名）；从 URL 读回时按白名单校验，不认识的值丢弃并用默认值。</p>
+</body></html>
