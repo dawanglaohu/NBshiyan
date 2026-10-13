@@ -45,7 +45,7 @@ PackJoyU produces full-color printed paperboard boxes for cosmetics, electronics
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
 4. **Production & QC** — mass production with inspection before packing.
-5. **Export shipping** — export packing and documents; terms confirmed per quote.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
 
@@ -94,7 +94,7 @@ PackJoyU производит картонные коробки с полноц�
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
-5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
 

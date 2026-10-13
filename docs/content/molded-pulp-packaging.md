@@ -8,7 +8,7 @@
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
 | title | Molded Pulp Packaging Manufacturer | PackJoyU | Упаковка из формованной целлюлозы | PackJoyU |
-| description | Eco-friendly molded pulp trays, inserts and boxes made from bagasse and recycled fiber. Plastic-free, recyclable and custom shaped. Request a quote today. | Лотки, ложементы и коробки из формованной целлюлозы и сахарного тростника. Экоупаковка без пластика любой формы под ваш продукт. Запросите расчёт. |
+| description | Eco-friendly molded pulp trays, inserts and boxes made from bagasse and recycled fiber. Custom shaped to fit your product. Request a quote today. | Лотки, ложементы и коробки из формованной целлюлозы и сахарного тростника. Любая форма под ваш продукт. Запросите расчёт. |
 | keyword | molded pulp packaging | упаковка из формованной целлюлозы |
 
 ---
@@ -17,11 +17,11 @@
 
 ### H1: Molded Pulp Packaging
 
-PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) and recycled paper fiber: protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp replaces plastic and foam inserts with a fiber-based alternative that is shaped precisely to your product, helping brands reduce plastic in their packaging.
+PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) and recycled paper fiber: protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp gives you fiber-based inserts shaped precisely to your product.
 
 #### Why PackJoyU
 
-- **Plastic-free** — Replaces EPS foam and plastic trays with fiber.
+- **Fiber-based** — Inserts and trays made from molded fiber.
 - **Precision fit** — Custom molds shaped to your product for protection.
 - **Smooth premium option** — Dry-pressed (thermoformed) pulp for a refined look.
 - **Pairs with printed boxes** — Combine inserts with our corrugated or gift boxes.
@@ -45,14 +45,14 @@ PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) an
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
 4. **Production & QC** — mass production with inspection before packing.
-5. **Export shipping** — export packing and documents; terms confirmed per quote.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
 
 ### FAQ（DRAFT — 待确认，暂不输出 FAQPage schema）
 
-- **Q: Is molded pulp compostable?**
-  A: Compostability depends on material and additives; certification status: TBD — do not claim until documents are confirmed.
+- **Q: Which end-of-life claims can be made for molded pulp?**
+  A: Depends on material and additives; certification status: TBD — no claims until documents are confirmed.
 - **Q: Do I need a custom mold?**
   A: Yes for a custom shape. Tooling cost and lead time: TBD.
 - **Q: Can you emboss our logo?**
@@ -66,11 +66,11 @@ PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) an
 
 ### H1: Упаковка из формованной целлюлозы
 
-PackJoyU производит упаковку из формованной целлюлозы на основе багассы (волокна сахарного тростника) и вторичного бумажного волокна: защитные ложементы, лотки, контейнеры и премиальные коробки с гладкой поверхностью. Формованная целлюлоза заменяет пластиковые и пенопластовые вставки волокнистым материалом, который точно повторяет форму вашего товара и помогает брендам сократить пластик в упаковке.
+PackJoyU производит упаковку из формованной целлюлозы на основе багассы (волокна сахарного тростника) и вторичного бумажного волокна: защитные ложементы, лотки, контейнеры и премиальные коробки с гладкой поверхностью. Ложементы из формованной целлюлозы точно повторяют форму вашего товара.
 
 #### Почему PackJoyU
 
-- **Без пластика** — Заменяет пенопласт и пластиковые лотки на волокно.
+- **Из волокна** — Ложементы и лотки из формованного волокна.
 - **Точная посадка** — Пресс-форма под ваш товар для надежной защиты.
 - **Премиальная гладкая поверхность** — Термоформованная целлюлоза для аккуратного внешнего вида.
 - **В комплекте с коробкой** — Сочетайте ложементы с нашими гофро- или подарочными коробками.
@@ -94,7 +94,7 @@ PackJoyU производит упаковку из формованной це�
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
-5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
 
@@ -102,7 +102,7 @@ PackJoyU производит упаковку из формованной це�
 
 > ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
 
-- **В: Компостируется ли формованная целлюлоза?**
+- **В: Какие экологические заявления можно делать для формованной целлюлозы?**
   О: Зависит от материала и добавок; наличие сертификатов: TBD — не заявлять до подтверждения документов.
 - **В: Нужна ли отдельная пресс-форма?**
   О: Да, для индивидуальной формы. Стоимость и сроки оснастки: TBD.

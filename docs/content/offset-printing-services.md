@@ -8,7 +8,7 @@
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
 | title | Offset Printing Services Manufacturer | PackJoyU | Офсетная печать упаковки на заказ | PackJoyU |
-| description | High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and in-house finishing for export. Request a quote. | Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Чёткая детализация, стабильный цвет и постпечатная обработка. Запросите расчёт. |
+| description | High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and finishing options for your order. Request a quote. | Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Чёткая детализация, стабильный цвет и постпечатная обработка. Запросите расчёт. |
 | keyword | offset printing services | офсетная печать упаковки |
 
 ---
@@ -17,7 +17,7 @@
 
 ### H1: Offset Printing Services
 
-PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, labels and other printed materials. Offset printing delivers sharp detail and consistent color across large runs, and with in-house finishing — lamination, foil, die-cutting and binding — we take your project from press to packed export cartons.
+PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, labels and other printed materials. Offset printing delivers sharp detail and consistent color across large runs, and with finishing options such as lamination, foil, die-cutting and binding, we take your project from press to packed cartons.
 
 #### Why PackJoyU
 
@@ -45,7 +45,7 @@ PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, la
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
 4. **Production & QC** — mass production with inspection before packing.
-5. **Export shipping** — export packing and documents; terms confirmed per quote.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
 
@@ -66,7 +66,7 @@ PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, la
 
 ### H1: Офсетная печать упаковки
 
-PackJoyU выполняет офсетную печать больших тиражей: коробки, каталоги, буклеты, этикетки и другая полиграфия. Офсет обеспечивает чёткую детализацию и стабильный цвет на больших тиражах, а благодаря собственной постпечатной обработке — ламинации, фольге, высечке и переплету — мы ведем проект от печати до упакованных экспортных коробов.
+PackJoyU выполняет офсетную печать больших тиражей: коробки, каталоги, буклеты, этикетки и другая полиграфия. Офсет обеспечивает чёткую детализацию и стабильный цвет на больших тиражах, а благодаря постпечатной обработке — ламинации, фольге, высечке и переплёту — мы ведём проект от печати до упакованных коробов.
 
 #### Почему PackJoyU
 
@@ -94,7 +94,7 @@ PackJoyU выполняет офсетную печать больших тир�
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
-5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
 

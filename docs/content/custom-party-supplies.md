@@ -45,7 +45,7 @@ PackJoyU produces custom printed paper party supplies for retailers, party brand
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
 4. **Production & QC** — mass production with inspection before packing.
-5. **Export shipping** — export packing and documents; terms confirmed per quote.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
 
@@ -55,8 +55,8 @@ PackJoyU produces custom printed paper party supplies for retailers, party brand
   A: Yes, we coordinate designs across product types.
 - **Q: Do you offer private-label packing?**
   A: Yes, with your barcode and brand on the pack.
-- **Q: Can party supplies be plastic-free?**
-  A: Paper options exist; specific coating/compostability claims TBD.
+- **Q: Which materials and coatings are available?**
+  A: Paper options exist; coating details: TBD.
 
 ---
 
@@ -94,7 +94,7 @@ PackJoyU производит бумажную праздничную проду
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
-5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
 
@@ -106,8 +106,8 @@ PackJoyU производит бумажную праздничную проду
   О: Да, согласуем дизайн для всех видов изделий.
 - **В: Упаковка под вашей маркой?**
   О: Да, со штрихкодом и брендом на упаковке.
-- **В: Может ли посуда быть без пластика?**
-  О: Есть бумажные варианты; заявления о покрытиях и компостируемости — TBD.
+- **В: Какие материалы и покрытия доступны?**
+  О: Есть бумажные варианты; покрытия — TBD.
 
 ---
 

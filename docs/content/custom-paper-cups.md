@@ -8,7 +8,7 @@
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
 | title | Custom Paper Cups Manufacturer & Supplier | PackJoyU | Бумажные стаканы с логотипом оптом | PackJoyU |
-| description | Custom printed paper coffee cups with your logo in single and double wall, 4 to 22 oz. Food-safe inks and matching lids for cafes and brands. Get a quote. | Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объёмы, безопасные краски и крышки в комплекте. Оптом с фабрики. Запросите расчёт. |
+| description | Custom printed paper coffee cups with your logo in single and double wall, 4 to 22 oz, with matching lids for cafes, coffee shops and brands. Get a quote. | Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объёмы, крышки в комплекте. Для кофеен и брендов. Запросите расчёт. |
 | keyword | custom paper cups | бумажные стаканы с логотипом |
 
 ---
@@ -32,7 +32,7 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 |---|---|
 | Types | Single wall, double wall, ripple wall, cold cups |
 | Sizes | Common sizes approx. 4–22 oz (exact range TBD by factory) |
-| Lining | PE lining; water-based / PLA see eco-paper-cups |
+| Lining | Confirmed per order (TBD); see also eco-paper-cups |
 | Printing | Flexo or offset, full-wrap |
 | Accessories | PS/PP/fiber lids, sleeves, carriers |
 | MOQ | **TBD（待 Ryan 提供）** |
@@ -45,7 +45,7 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
 4. **Production & QC** — mass production with inspection before packing.
-5. **Export shipping** — export packing and documents; terms confirmed per quote.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
 
@@ -55,8 +55,8 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
   A: Common coffee cup sizes; confirm exact sizes with your quote (TBD).
 - **Q: Can you match lids to the cup?**
   A: Yes, matching lids are available for each rim size.
-- **Q: Are the inks food safe?**
-  A: We use food-contact inks; certificates per market: TBD.
+- **Q: Which inks do you use?**
+  A: Ink type and any food-contact documents per market: TBD.
 
 ---
 
@@ -81,7 +81,7 @@ PackJoyU производит бумажные стаканы с печатью 
 |---|---|
 | Виды | Однослойные, двухслойные, гофрированные, для холодных напитков |
 | Объёмы | Ориентировочно 110–650 мл (точный ряд — TBD) |
-| Покрытие | ПЭ; водное/PLA — см. экологичные стаканы |
+| Покрытие | Уточняем под заказ (TBD); см. также экологичные стаканы |
 | Печать | Флексо или офсет по всей поверхности |
 | Аксессуары | Крышки PS/PP/из волокна, манжеты, подставки |
 | Минимальный тираж | **TBD（待 Ryan 提供）** |
@@ -94,7 +94,7 @@ PackJoyU производит бумажные стаканы с печатью 
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
-5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
 
@@ -106,8 +106,8 @@ PackJoyU производит бумажные стаканы с печатью 
   О: Стандартные объёмы для кофе; точный ряд уточняется в расчёте (TBD).
 - **В: Подойдут ли крышки к стакану?**
   О: Да, для каждого диаметра есть подходящие крышки.
-- **В: Безопасны ли краски?**
-  О: Используем краски для контакта с пищей; документы для РФ: TBD.
+- **В: Какие краски вы используете?**
+  О: Тип красок и документы для контакта с пищей для РФ: TBD.
 
 ---
 

@@ -24,7 +24,7 @@ PackJoyU offers full-color printing for packaging, labels, inserts and printed p
 - **Accurate color** — CMYK + Pantone with proofing before production.
 - **One supplier** — Boxes, labels, inserts and leaflets matched in color.
 - **Finishing in-house** — Coating, lamination, foil, die-cutting.
-- **Export support** — Packing and documentation for international shipment.
+- **Shipping support** — Packing and documentation for your shipment.
 
 #### Specifications & options
 
@@ -45,7 +45,7 @@ PackJoyU offers full-color printing for packaging, labels, inserts and printed p
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
 4. **Production & QC** — mass production with inspection before packing.
-5. **Export shipping** — export packing and documents; terms confirmed per quote.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
 
@@ -73,7 +73,7 @@ PackJoyU выполняет полноцветную печать упаковк
 - **Точный цвет** — CMYK и пантоны с цветопробой до тиража.
 - **Один поставщик** — Коробки, этикетки, вкладыши и листовки в одном цвете.
 - **Своя постпечатная обработка** — Лак, ламинация, фольга, высечка.
-- **Экспорт** — Упаковка и документы для международных поставок.
+- **Отгрузка** — Упаковка и документы для вашей поставки.
 
 #### Характеристики и опции
 
@@ -94,7 +94,7 @@ PackJoyU выполняет полноцветную печать упаковк
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
-5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
 

@@ -8,7 +8,7 @@
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
 | title | Custom Corrugated Boxes Manufacturer | PackJoyU | Гофрокороба на заказ — производство | PackJoyU |
-| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Factory-direct export. Request a quote today. | Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Прямые поставки с фабрики. Запросите расчёт. |
+| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Bulk orders welcome. Request a quote today. | Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Работаем с оптовыми заказами. Запросите расчёт. |
 | keyword | custom corrugated boxes | гофрокороба на заказ |
 
 ---
@@ -17,14 +17,14 @@
 
 ### H1: Custom Corrugated Boxes
 
-PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. As a factory-direct export supplier, we work with importers, distributors and brands who need consistent quality across repeat orders.
+PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. We work with importers, distributors and brands who need consistent quality across repeat orders.
 
 #### Why PackJoyU
 
 - **Made to your size** — Every box is cut to your product dimensions, reducing void fill and shipping volume.
 - **Branded unboxing** — Flexo or digital printing inside and outside, from one-color logos to full artwork.
 - **Built for transit** — Board grade and flute selected for your product weight and shipping route.
-- **Factory-direct export** — One supplier from structural design to export packing and documentation.
+- **One supplier** — From structural design to packing and shipping documents.
 
 #### Specifications & options
 
@@ -45,7 +45,7 @@ PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retai
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (lead time TBD).
 4. **Production & QC** — mass production with inspection before packing.
-5. **Export shipping** — export packing and documents; terms confirmed per quote.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
 
@@ -56,7 +56,7 @@ PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retai
 - **Q: Can you print inside the box?**
   A: Yes, inside printing is available for mailer boxes. Cost and lead time impact: TBD.
 - **Q: Do you ship to my country?**
-  A: We export worldwide. Shipping terms (e.g. FOB/CIF) are confirmed per quote.
+  A: Destinations and shipping terms (e.g. FOB/CIF) are confirmed per quote.
 
 ---
 
@@ -73,7 +73,7 @@ PackJoyU производит гофрокороба на заказ для до
 - **Точно по размеру** — Каждая коробка изготавливается под габариты товара — меньше наполнителя и объёма при доставке.
 - **Фирменная распаковка** — Флексо- или цифровая печать снаружи и внутри: от логотипа в один цвет до полноцветного дизайна.
 - **Прочность при перевозке** — Марку картона и профиль гофры подбираем под вес товара и маршрут доставки.
-- **Прямые поставки с фабрики** — Один поставщик — от конструкции коробки до экспортной упаковки и документов.
+- **Один поставщик** — От конструкции коробки до упаковки и отгрузочных документов.
 
 #### Характеристики и опции
 
@@ -94,7 +94,7 @@ PackJoyU производит гофрокороба на заказ для до
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (срок TBD).
 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
-5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
 
@@ -107,7 +107,7 @@ PackJoyU производит гофрокороба на заказ для до
 - **В: Возможна ли печать внутри коробки?**
   О: Да, для почтовых коробок доступна печать внутри. Влияние на цену и сроки: TBD.
 - **В: Доставляете ли вы в Россию?**
-  О: Да, мы экспортируем продукцию, условия поставки уточняются в расчёте.
+  О: География и условия поставки уточняются в расчёте.
 
 ---
 
