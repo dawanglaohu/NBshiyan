@@ -109,8 +109,8 @@
   - `product`：产品 slug，询盘任一产品匹配即可
   - `assignee`：`me` | `none`（未分配）| 用户 id。SALES 无论传什么都只看到自己的
   - `items[]`：`{ id, ref, status, source, locale, trustScore, ipCountry, createdAt, assigneeId, contact: { name, email, company, region }, _count: { items, messages } }`。参数非法返回 400 `invalid`。
-- `GET /api/admin/inquiries/:id` → 询盘全部字段（不含 `replyToken`）+ `contact, items, messages, notes, sample, assignee, logoUploads: [{ id, width, height, bytes, createdAt }]`，以及 `logoUploadId`（第一个 logo 的 id，没有为 `null`）、`canRevealAddress`、`history`。
-  - `history: [{ type: created|status|assignment|reply|inbound, at, actor: { name, role } | null, summary }]`，按时间升序，来自询盘创建时间、审计里的状态/分配变更和往来邮件记录；不含邮件正文、主题、附件和用户 id。SALES 只能看到分配给自己的询盘，所以也只拿得到这些询盘的时间线。
+- `GET /api/admin/inquiries/:id` → 询盘全部字段（不含 `replyToken`）+ `contact, items, messages, notes, sample, assignee, logoUploads: [{ id, width, height, bytes, createdAt }]`，以及 `logoUploadId`（第一个 logo 的 id，没有为 `null`）、`canRevealAddress`。
+- `GET /api/admin/inquiries/:id/history?limit=10&before=<cursor>` → `{ items: [{ type: created|status|assignment|reply|inbound, at, actor: { name, role } | null, summary, cursor }], total }`。新的在前；`limit` 默认 10、最多 50；下一页把最后一条的 `cursor` 传给 `before`，非法游标 400 `bad_cursor`。数据来自询盘创建时间、审计里的状态/分配变更和往来邮件记录；`summary` 里的邮件主题截到 80 字，出现的收货地址片段（街道、城市、州、邮编）替换成 `***`；不含正文、附件、IP 和用户 id。SALES 只能看分配给自己的询盘，但能看到该询盘的完整时间线（包括分配前的记录）。
 - `GET /api/admin/uploads/:id` → logo 图片（PNG）。`Content-Disposition: inline`、`X-Content-Type-Options: nosniff`、`Cache-Control: private, no-store`，带会话 cookie 直接用作 `<img src>`。ADMIN 都能看；SALES 只能看分配给自己的询盘上的 logo，其他一律 404。
 - `PATCH /api/admin/inquiries/:id` `{ status?, assigneeId? }`（`assigneeId` 仅 ADMIN，可为 `null`）→ `{ id, status, assigneeId, updatedAt }`。
 - `POST /api/admin/inquiries/:id/reply` `{ subject ≤200, body ≤20000 纯文本 }` → 201 新的 `InquiryMessage`。正文全部转义、换行转 `<br>`，主题去换行；配置 `REPLY_DOMAIN` 后 Reply-To 为 `reply+<token>@域名`。发信失败返回 502 `mail_failed`，不入库。
