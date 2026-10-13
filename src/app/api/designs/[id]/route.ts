@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { lookupDesign, canonicalFor } from '@/lib/server/designs';
+import { lookupDesign, canonicalFor, designStatus } from '@/lib/server/designs';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
 import { clientIp, hitRateLimit, tooManyRequests } from '@/lib/server/security';
 
@@ -17,4 +17,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (r.state === 'expired') return NextResponse.json({ error: 'expired', categoryUrl: canonicalFor(r) }, { status: 410, headers: NO_INDEX });
   const d = r.design;
   return NextResponse.json({ ...d, slugs: d.category ? categorySlugs(d.category) : null, canonical: canonicalFor(d) }, { headers: NO_INDEX });
+}
+
+/**
+ * 显式 HEAD（不依赖 Next 的 GET 回退）。轻量状态检查，给 middleware 的 410 规则用：只返回 200 / 404 / 410（或限流 429），无 body，不暴露方案内容。
+ * 短暂缓存 60 秒（状态只会从 200 变成 410/404）。
+ */
+export async function HEAD(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const ip = clientIp(req);
+  const ok = ip ? await hitRateLimit(`design-head:${ip}`, 600) : await hitRateLimit('design-head:noip', 6000);
+  if (!ok) return new Response(null, { status: 429, headers: { 'Retry-After': '600', 'Cache-Control': 'no-store' } });
+  const { id } = await params;
+  const { status, category } = await designStatus(id); // 只查 expiresAt + category
+  const headers: Record<string, string> = { 'Cache-Control': 'public, max-age=60', 'X-Robots-Tag': 'noindex, nofollow' };
+  if (status === 410 && category) headers['X-Design-Category'] = category; // 仅 categoryMeta key，供 middleware 拼分类页链接
+  return new Response(null, { status, headers });
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
+import { categorySlugs } from '@/lib/seo/categorySlugs';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export async function GET() {
     const v = m.updatedAt.getTime().toString(36); // 版本参数，换模型后 URL 变化
     return {
       id: m.id, productSlug: m.productSlug, category: m.category, sortOrder: m.sortOrder, animated: m.animated, customizable: m.customizable,
+      slugs: categorySlugs(m.category),
       glbUrl: `/api/models/${m.id}/glb?v=${v}`,
       lodUrl: m.lodKey ? `/api/models/${m.id}/lod?v=${v}` : null,
       posterUrl: m.posterKey ? `/api/models/${m.id}/poster?v=${v}` : null,

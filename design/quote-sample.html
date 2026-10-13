@@ -62,7 +62,7 @@ succ:'Thank you — request received',succp:'Your reference number is',succ2:'We
 sample:'Request a sample',sampp:'One sample request per email every 30 days. Samples are free; you only cover shipping, which we will quote by email before dispatch.',
 ship:'Shipping address',a1:'Street address',a2:'Apt, suite (optional)',city:'City',state:'State',zip:'ZIP code',
 consent:'I agree that PackJoyU processes my data to send this sample, as described in the Privacy Policy.',
-e429:'You already requested a sample in the last 30 days.',e429b:'You can request another sample from 12 November 2026. Meanwhile, we can quote these products right away.',e429c:'Send as a regular quote',
+e429:'You\'ve already requested a sample in the last 30 days. Please try again later.',e429b:'Meanwhile, we can quote these products right away.',e429c:'Send as a regular quote',
 eval:'Please check the highlighted fields.',evalE:'Enter a valid email address',evalZ:'ZIP code should be 5 digits',
 enet:'Could not send — check your connection.',enetb:'Nothing was lost: your list and answers are still here.',retry:'Try again',
 fromS:'Design from a shared link',fromSp:'Box 300×200×100 mm · kraft · logo on lid',addS:'Add this design to quote',
@@ -78,7 +78,7 @@ succ:'Спасибо — запрос получен',succp:'Номер ваше
 sample:'Заказать образец',sampp:'Один образец на один e-mail раз в 30 дней. Образец бесплатный — вы оплачиваете только доставку; стоимость сообщим по e-mail до отправки.',
 ship:'Адрес доставки',a1:'Улица, дом, корпус',a2:'Квартира / офис (необязательно)',city:'Город',state:'Область / край',zip:'Индекс',
 consent:'Я согласен(на) на обработку моих данных PackJoyU для отправки образца в соответствии с политикой конфиденциальности.',
-e429:'Вы уже запрашивали образец за последние 30 дней.',e429b:'Новый образец можно будет запросить с 12 ноября 2026 года. А цену на эту продукцию мы можем рассчитать прямо сейчас.',e429c:'Отправить как обычный запрос',
+e429:'Вы уже запрашивали образец за последние 30 дней. Пожалуйста, попробуйте позже.',e429b:'А цену на эту продукцию мы можем рассчитать прямо сейчас.',e429c:'Отправить как обычный запрос',
 eval:'Проверьте выделенные поля.',evalE:'Введите корректный e-mail',evalZ:'Индекс должен состоять из 6 цифр',
 enet:'Не удалось отправить — проверьте подключение.',enetb:'Ничего не потеряно: список и ответы сохранены.',retry:'Повторить',
 fromS:'Дизайн по ссылке',fromSp:'Коробка 300×200×100 мм · крафт · логотип на крышке',addS:'Добавить дизайн в запрос',
@@ -109,7 +109,7 @@ const S=[
 ${l=='ru'?`<div class="g2"><div><span class="lb">${t.zip} *</span><div class="in bad">10100</div><div class="er">${t.evalZ}</div></div><div><span class="lb">${t.state}</span><div class="in">Московская обл.</div></div></div><span class="lb">${t.city} *</span><div class="in">Москва</div><span class="lb">${t.a1} *</span><div class="in">ул. Тверская, д. 12, стр. 1</div><span class="lb">${t.a2}</span><div class="in">кв. 45</div>`
 :`<span class="lb">${t.a1} *</span><div class="in">1200 Market St</div><span class="lb">${t.a2}</span><div class="in">Suite 400</div><div class="g2" style="grid-template-columns:${m?'1fr':'2fr 1fr 1fr'}"><div><span class="lb">${t.city} *</span><div class="in">San Francisco</div></div><div><span class="lb">${t.state} *</span><div class="in">CA ▾</div></div><div><span class="lb">${t.zip} *</span><div class="in">94102</div></div></div>`}
 <div class="chk"><i></i>${t.consent}</div><div class="nav"><span></span><span class="btn">${t.sample}</span></div></div></div>`],
-['⑦ 出错状态：429（30 天内重复申请样品）和网络错误', '429：用中性语气说明原因，告诉对方哪天可以再申请（服务端返回的 retryAfter，按当地日期格式显示），并给出替代方案：一键把同样的产品转成普通询价（已填的内容保留）。网络错误：保留已填写的内容，提供“重试”按钮。两种情况都不提示具体原因以外的信息，也不暴露邮箱是否已注册。',
+['⑦ 出错状态：429（30 天内重复申请样品）和网络错误', '429：只用笼统文案（“30 天内已申请过，请稍后再试”），不显示具体可再申请日期——否则任何人输入邮箱即可探测该邮箱近期是否申请过（安全要求）。前端按错误码映射：30 天样品限制时后端只返回 {"error":"sample_recent"}（不带 retryAfter，也不带 Retry-After 头），显示此笼统文案；retryAfter / Retry-After 只出现在按 IP 限流的 429 上。仍给出替代方案：一键把同样的产品转成普通询价（已填的内容保留）。网络错误：保留已填写的内容，提供“重试”按钮。两种情况都不提示具体原因以外的信息，也不暴露邮箱是否已注册。',
  (t,m)=>`${hd(t)}<div class="pad" style="display:grid;grid-template-columns:${m?'1fr':'1fr 1fr'};gap:20px"><div class="form" style="margin:0"><h3>${t.sample}</h3><div class="msg w" style="margin-top:12px"><b>${t.e429}</b><br>${t.e429b}</div><div class="nav" style="justify-content:flex-start;flex-wrap:wrap"><span class="btn">${t.e429c}</span><span class="btn ghost">${t.home}</span></div></div>
 <div class="form" style="margin:0"><h3>${t.s3}</h3><div class="msg e" style="margin-top:12px"><b>${t.enet}</b><br>${t.enetb}</div><div class="nav"><span class="btn ghost">${t.back}</span><span class="btn">${t.retry}</span></div></div></div>`],
 ['⑧ 短链接 /s/<id>：有效时回到清单；过期时返回 410', '有效链接显示只读预览，按钮“加入询价清单”会把该方案加进清单（带 /s/<id>）。超过 180 天的链接返回 HTTP 410，页面加 noindex，提供一个回到该品类落地页 / 定制器的按钮；不自动跳转。',
@@ -119,7 +119,7 @@ const out=document.getElementById('out');
 for(const [title,note,fn] of S){let h=`<div class="sc"><h2>${title}</h2><p class="n">${note}</p><div class="row">`;
  for(const [l,m] of [['en',0],['ru',0],['en',1],['ru',1]]) h+=`<div><p class="lbl">${m?'Mobile 390':'Desktop 1440 (50%)'} · ${l.toUpperCase()}</p>${m?'':'<div class="dw">'}<div class="f ${m?'m':'d'}" style="height:${m?'760px':'1000px'}">${fn(L[l],m,l)}</div>${m?'':'</div>'}</div>`;
  out.insertAdjacentHTML('beforeend',h+'</div></div>');}
-out.insertAdjacentHTML('beforeend',`<div class="sc"><h2>⑨ 后台：样品申请详情里的收件地址默认打码</h2><p class="n">默认只显示收件人名字和姓氏首字母，街道和邮编用星号遮住，国家和城市照常显示。点“显示完整地址”需要确认，确认后写入审计日志（谁、什么时候、哪条申请）；导出 CSV 时同样提示会记录审计日志。只有 ADMIN 和被分配的 SALES 能看到这两个操作。</p>
+out.insertAdjacentHTML('beforeend',`<div class="sc"><h2>⑨ 后台：样品申请详情里的收件地址默认打码</h2><p class="n">默认只显示收件人名字和姓氏首字母，街道和邮编用星号遮住，国家和城市照常显示。点“显示完整地址”需要确认，确认后写入审计日志（谁、什么时候、哪条申请）；导出 CSV 时同样提示会记录审计日志。只有 ADMIN 和被分配的 SALES 能看到这两个操作。<b>权限在服务端接口判断，不靠前端隐藏：</b>EDITOR 和未被分配的 SALES 从 API 拿到的数据本身就是打码的，完整地址不会下发到浏览器。</p>
 <div class="adm"><div class="side"><b>Pack<em>Joy</em>U</b><div style="margin-top:14px">询盘</div><div class="on">样品申请</div><div>3D 模型</div><div>账号权限</div></div><div class="main"><div style="display:flex;align-items:center;gap:8px"><b style="font-size:16px">样品申请 S-2Q8M</b><span class="tip">· RU · 2 小时前</span><span style="flex:1"></span><span class="btn sm ghost">导出 CSV</span></div>
 <div class="cardx"><div class="kv"><span>联系人</span><span>Иван П. · ivan@vino-example.ru</span><span>产品</span><span>Коробки для вина × 1 · /s/7Kx2Qa</span><span>收件地址</span><span><b>Ivan P., ul. ****, Moscow, RU 1*****</b></span></div>
 <div style="display:flex;gap:8px;margin-top:12px;align-items:center"><span class="btn sm">显示完整地址</span><span class="tip">🔒 查看完整地址会记录到审计日志（操作人、时间、申请编号）</span></div></div>

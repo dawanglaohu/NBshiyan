@@ -5,7 +5,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { ID_RE, inquiryScope, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
-import { maskAddress } from '@/lib/server/sample';
+import { maskAddress, canViewFullAddress } from '@/lib/server/sample';
 
 export const runtime = 'nodejs';
 type P = { params: Promise<{ id: string }> };
@@ -31,14 +31,10 @@ export async function GET(req: Request, { params }: P) {
   if (!inq) return jsonErr('not_found', 404);
   const { replyToken: _omit, ...rest } = inq; void _omit; // 回信 token 不下发
   // logoUploadId：第一个（通常唯一）logo，前端用 GET /api/admin/uploads/:id 预览
-  // 样品收货地址是 PII：默认脱敏，?reveal=address 才返回完整地址，并单独写审计（不记录地址内容）
-  // 只有 ADMIN 和被分配的 SALES 能看完整地址；EDITOR 根本进不了询盘接口；其他人一律脱敏
-  const mayReveal = ctx.user.role === 'ADMIN' || (ctx.user.role === 'SALES' && inq.assigneeId === ctx.user.id);
-  const reveal = mayReveal && new URL(req.url).searchParams.get('reveal') === 'address' && !!inq.sample?.shippingAddress;
-  const sample = inq.sample && { ...inq.sample, shippingAddress: reveal ? inq.sample.shippingAddress : maskAddress(inq.sample.shippingAddress), normalizedEmail: undefined };
-  const safe = { ...rest, sample, canRevealAddress: mayReveal, logoUploadId: inq.logoUploads[0]?.id ?? null };
+  // 样品收货地址是 PII：这里永远脱敏；完整地址只能 POST /api/admin/samples/:id/address（同源 + 权限 + 审计）
+  const sample = inq.sample && { ...inq.sample, shippingAddress: maskAddress(inq.sample.shippingAddress), normalizedEmail: undefined };
+  const safe = { ...rest, sample, canRevealAddress: !!inq.sample?.shippingAddress && canViewFullAddress(ctx.user, inq), logoUploadId: inq.logoUploads[0]?.id ?? null };
   await audit({ actorId: ctx.user.id, action: 'inquiry.view', target: id, ip: ctx.ip });
-  if (reveal) await audit({ actorId: ctx.user.id, action: 'sample.address.view', target: id, ip: ctx.ip });
   return NextResponse.json(safe, { headers: noStore });
 }
 

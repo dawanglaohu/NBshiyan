@@ -24,6 +24,9 @@ test('shipping address validation + masking', () => {
 test('share url: same-site /s/<id> only', () => {
   assert.equal(designIdFromShareUrl('/s/AbCdEfGh23456789'), 'AbCdEfGh23456789');
   assert.equal(designIdFromShareUrl(`${SITE_URL}/s/AbCdEfGh23456789`), 'AbCdEfGh23456789');
+  assert.equal(designIdFromShareUrl('/ru/s/AbCdEfGh23456789'), 'AbCdEfGh23456789');
+  assert.equal(designIdFromShareUrl(`${SITE_URL}/en/s/AbCdEfGh23456789`), 'AbCdEfGh23456789');
+  assert.equal(designIdFromShareUrl('/de/s/AbCdEfGh23456789'), null);
   for (const bad of ['https://evil.com/s/AbCdEfGh23456789', '//evil.com/s/AbCdEfGh23456789', '/s/abc', '/s/AbCdEfGh23456789?x=1', 'javascript:alert(1)', `${SITE_URL}.evil.com/s/AbCdEfGh23456789`])
     assert.equal(designIdFromShareUrl(bad), null, bad);
 });

@@ -10,6 +10,7 @@ export default function LogoUploadField({ id, value, onChange, notice }: { id: s
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<LogoErrorCode | null>(null);
   const [name, setName] = useState('');
+  const [pending, setPending] = useState('');
   const [preview, setPreview] = useState<string>();
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
   useEffect(() => { if (!value) { setName(''); setPreview(undefined); } }, [value]);
@@ -19,7 +20,7 @@ export default function LogoUploadField({ id, value, onChange, notice }: { id: s
     setError(null);
     const pre = precheckLogo(file);
     if (pre) { setError(pre); if (input.current) input.current.value = ''; return; }
-    setBusy(true);
+    setBusy(true); setPending(file.name);
     try {
       const up = await uploadLogo(file);
       setName(file.name);
@@ -29,7 +30,7 @@ export default function LogoUploadField({ id, value, onChange, notice }: { id: s
       setError(e instanceof LogoError ? e.code : 'server');
       onChange(null);
     } finally {
-      setBusy(false);
+      setBusy(false); setPending('');
       if (input.current) input.current.value = '';
     }
   }
@@ -45,8 +46,13 @@ export default function LogoUploadField({ id, value, onChange, notice }: { id: s
           <button type="button" className="btn ghost sm" onClick={() => { onChange(null); setError(null); }}>{t('remove')}</button>
         </div>
       ) : (
-        <input ref={input} id={id} type="file" accept={LOGO_TYPES.join(',')} disabled={busy} aria-describedby={`${id}-hint ${id}-err`}
-          onChange={(e) => pick(e.target.files?.[0])} />
+        // 原生控件视觉隐藏，用站内胶囊按钮（label）代替，文案跟随语言（#119）；input 本身仍可 Tab 聚焦、空格/回车打开选择框
+        <div className="file-pick">
+          <input ref={input} id={id} className="sr-only" type="file" accept={LOGO_TYPES.join(',')} disabled={busy} aria-describedby={`${id}-file ${id}-hint ${id}-err`}
+            onChange={(e) => pick(e.target.files?.[0])} />
+          <label htmlFor={id} className="btn ghost sm" aria-hidden="true">{t('choose')}</label>
+          <span id={`${id}-file`} className="file-name">{pending || t('none')}</span>
+        </div>
       )}
       <p id={`${id}-hint`} className="hint" style={{ fontSize: 13, opacity: 0.75, margin: '6px 0 0' }}>{busy ? t('uploading') : t('hint')}</p>
       <p id={`${id}-err`} role="alert" style={{ color: 'var(--accent-press)', fontSize: 13, margin: error || notice ? '6px 0 0' : 0 }}>

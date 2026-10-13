@@ -71,7 +71,7 @@ export default function ModelUpload() {
 
   const blocking = model ? blockingChecks(model) : [];
   const warns = model ? model.checks.filter((c) => !c.ok && c.severity === 'warn') : [];
-  const nextReason = !model ? '请先上传文件' : model.status === 'PROCESSING' ? '检查进行中' : blocking.length ? `检查未通过：${blocking.map((c) => CHECK_LABEL[c.key]).join('、')}` : undefined;
+  const nextReason = !model ? '请先上传文件' : model.status === 'PROCESSING' || model.status === 'UPLOADED' ? '检查进行中' : blocking.length ? `检查未通过：${blocking.map((c) => CHECK_LABEL[c.key]).join('、')}` : undefined;
   const missingLod = needsLod && !files.lod;
   const doneUpTo = model?.published ? 4 : step;
 

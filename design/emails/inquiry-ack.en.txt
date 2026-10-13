@@ -1,0 +1,20 @@
+Subject: We received your inquiry #{{inquiryId}}
+
+Hi {{name}},
+
+Thank you for contacting PackJoyU. We have received your inquiry and a packaging specialist will reply within {{replyTime}}.
+
+Your inquiry
+Reference: #{{inquiryId}}
+Company: {{company}}
+Product: {{product}}
+Quantity: {{quantity}}
+
+Please keep the reference number in the subject line if you reply to this email.
+
+View our products: {{siteUrl}}/{{locale}}/products
+
+Need to reach us sooner? Email {{contactEmail}} or WhatsApp {{whatsapp}}.
+
+--
+You are receiving this email because you sent an inquiry on {{siteUrl}}. PackJoyU · Custom paper packaging and printing.

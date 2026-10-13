@@ -1,22 +1,17 @@
 'use client';
-// TODO: 全栈的 Cookie 同意条上线后，改为读取它的同意状态。
-// 目前约定：同意后 localStorage 写入 pj-consent = "granted"（或包含 "chat"/"all" 的 JSON），并派发 window 事件 "pj:consent"。
-export const CONSENT_KEY = 'pj-consent';
-export const CONSENT_EVENT = 'pj:consent';
+// 兼容旧接口：内部改用 src/lib/consent.ts（Cookie 同意条写入的 pj-consent）
+import { getConsent, onConsent } from '@/lib/consent';
+export { CONSENT_KEY, CONSENT_EVENT } from '@/lib/consent';
 
 export function hasChatConsent(): boolean {
-  try {
-    const v = localStorage.getItem(CONSENT_KEY);
-    if (!v) return false;
-    if (v === 'granted' || v === 'all') return true;
-    const j = JSON.parse(v);
-    return j === true || j?.chat === true || j?.all === true || j?.functional === true;
-  } catch { return false; }
+  return getConsent()?.chat === true;
 }
 
 export function onConsentChange(cb: () => void) {
-  const h = () => cb();
-  window.addEventListener(CONSENT_EVENT, h);
-  window.addEventListener('storage', h);
-  return () => { window.removeEventListener(CONSENT_EVENT, h); window.removeEventListener('storage', h); };
+  return onConsent(() => cb());
+}
+
+/** 是否同意统计类 Cookie/上报（web-vitals RUM）。只认显式 analytics 或 all。 */
+export function hasAnalyticsConsent(): boolean {
+  return getConsent()?.analytics === true;
 }

@@ -4,7 +4,7 @@ import { lookupDesign, canonicalFor } from '@/lib/server/designs';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ locale: string; id: string }> };
 const robots = { index: false, follow: false };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -18,13 +18,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /**
  * 占位页：服务端只负责读取和 SEO 头，3D 预览由前端接入（数据见 GET /api/designs/:id）。
- * 过期：页面带 noindex 并给出分类页链接。App Router 页面无法返回 410，HTTP 410 由 GET /api/designs/:id 返回。
+ * 地址 /{locale}/s/:id。过期：页面带 noindex 并给出分类页链接；HTTP 410 由全栈的 middleware 调 HEAD /api/designs/:id 实现。
+ * 页面文案语言跟随 URL 的 locale；canonical 跟随方案保存时的 locale。
  */
 export default async function SharedDesignPage({ params }: Props) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const r = await lookupDesign(id);
   if (r.state === 'missing') notFound();
-  const ru = (r.state === 'ok' ? r.design.locale : r.locale) === 'ru';
+  const ru = locale === 'ru';
   if (r.state === 'expired') {
     return (
       <main data-design-state="expired" style={{ maxWidth: 720, margin: '40px auto', padding: 16 }}>

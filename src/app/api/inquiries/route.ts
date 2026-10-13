@@ -5,7 +5,7 @@ import { randomId, hitRateLimit, verifyTurnstile, escapeHtml, clientIp, readBody
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
 import { sendMail, autoReply } from '@/lib/server/mail';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
-import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl } from '@/lib/server/designs';
+import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl, InquiryItemConfig } from '@/lib/server/designs';
 import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT } from '@/lib/server/sample';
 
 class LogoInvalid extends Error {}
@@ -27,7 +27,7 @@ const Body = z.object({
   items: z.array(z.object({
     productSlug: z.string().regex(/^[a-z0-9-]{1,80}$/),
     quantity: z.number().int().positive().max(100_000_000).optional(),
-    config: z.record(z.unknown()).refine((c) => JSON.stringify(c).length <= 2000, 'config_too_large').optional(),
+    config: InquiryItemConfig.optional(), // 严格白名单，未知字段 400
     notes: z.string().trim().max(500).optional(),
     designId: z.string().regex(DESIGN_ID_RE).optional(),
     shareUrl: z.string().max(300).optional(), // 本站 /s/<id>，服务端解析成 designId
@@ -75,9 +75,7 @@ export async function POST(req: Request) {
   const [ipOk, emailOk] = await Promise.all([ip ? hitRateLimit(`inq:${ip}`) : hitRateLimit('inq:noip:all', 100), hitRateLimit(`inq:email:${email}`)]);
   const limited = !ipOk || !emailOk;
   if (limited) return tooManyRequests(600);
-  // 样品：按规范化邮箱 30 天 1 次（数据库判断，见事务内）+ 每 IP 30 天 3 次
   const sampleEmail = b.source === 'SAMPLE' ? normalizeEmail(email) : null;
-  if (sampleEmail && !(await hitRateLimit(`inq:sample:ip:${ip ?? 'noip'}`, ip ? SAMPLE_IP_LIMIT : 50, SAMPLE_EMAIL_WINDOW_DAYS * 86_400_000))) return tooManyRequests(SAMPLE_EMAIL_WINDOW_DAYS * 86_400, { reason: 'sample_ip_limit' });
   if (b.website) return NextResponse.json({ ref: 'PJ-OK' }, { status: 201 }); // 机器人，静默丢弃
   const captcha = await verifyTurnstile(b.turnstileToken, ip);
   if (captcha === 'unavailable') {
@@ -85,6 +83,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'captcha_unavailable' }, { status: 503, headers: { 'Retry-After': '30' } });
   }
   if (captcha === 'fail') return NextResponse.json({ error: 'captcha' }, { status: 403 });
+  // 样品：每 IP 30 天 3 次，Turnstile 通过后才计数；按规范化邮箱 30 天 1 次在事务里判断
+  if (sampleEmail && !(await hitRateLimit(`inq:sample:ip:${ip ?? 'noip'}`, ip ? SAMPLE_IP_LIMIT : 50, SAMPLE_EMAIL_WINDOW_DAYS * 86_400_000))) return tooManyRequests(SAMPLE_EMAIL_WINDOW_DAYS * 86_400, { reason: 'sample_ip_limit' });
 
   // 引用的方案必须存在且未过期
   const designIds = [...new Set(b.items.flatMap((i) => (i.designId ? [i.designId] : [])))];

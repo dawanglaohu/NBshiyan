@@ -1,14 +1,15 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
+import { useLangSwitch } from './LangLink';
 
 // 站点头部：桌面端一行链接；手机端只留 Logo + 语言切换 + 菜单按钮，链接收进抽屉（#63）
 export default function SiteHeader() {
   const t = useTranslations('Nav');
-  const locale = useLocale();
   const pathname = usePathname();
-  const other = locale === 'en' ? 'ru' : 'en';
+  const langSw = useLangSwitch();
+  const other = langSw.other;
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -45,7 +46,7 @@ export default function SiteHeader() {
     </>
   );
   const lang = (
-    <Link href={pathname} locale={other} className="lang" hrefLang={other} aria-label={t('switchLang')}>{other.toUpperCase()}</Link>
+    <Link href={langSw.href} locale={other} onClick={langSw.onClick} className="lang" hrefLang={other} aria-label={t('switchLang')}>{other.toUpperCase()}</Link>
   );
 
   return (

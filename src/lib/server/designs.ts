@@ -19,6 +19,16 @@ const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 const vec3 = z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]);
 const dim = z.number().finite().positive().max(5000);
 
+/** 询盘 item 的 config：严格白名单（兼容询价向导的 size 文本 / material / timeline） */
+export const InquiryItemConfig = z.object({
+  size: z.union([z.string().trim().max(200), z.object({ length: dim, width: dim, height: dim, unit: z.enum(['mm', 'cm', 'in']) }).strict()]),
+  material: token,
+  timeline: z.enum(['2w', '1m', '2m', '3m']),
+  finishes: z.array(token).max(10),
+  colors: z.record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9_-]{0,31}$/), hex).refine((r) => Object.keys(r).length <= 12, 'too_many_colors'),
+  printing: token,
+}).partial().strict();
+
 /** 方案配置：白名单字段，未知字段一律拒绝，不存任意 JSON */
 export const DesignConfig = z.object({
   modelId: z.string().regex(/^[a-z0-9]{20,32}$/).optional(),
@@ -83,10 +93,19 @@ export function canonicalFor(d: { locale: 'en' | 'ru'; category: string | null }
   return `${SITE_URL}/${d.locale}/products${slug ? `/${slug}` : ''}`;
 }
 
-/** 询价清单里附带的分享链接：只接受本站 /s/<id>（相对路径或 SITE_URL 开头），返回 id；其它一律 null */
+/** 询价清单里附带的分享链接：只接受本站 /{en|ru}/s/<id>（也兼容 /s/<id>）（相对路径或 SITE_URL 开头），返回 id；其它一律 null */
 export function designIdFromShareUrl(raw: string): string | null {
   const v = raw.trim();
   const rel = v.startsWith(SITE_URL + '/') ? v.slice(SITE_URL.length) : v;
-  const m = /^\/s\/([A-Za-z0-9]{10,16})\/?$/.exec(rel);
+  const m = /^(?:\/(?:en|ru))?\/s\/([A-Za-z0-9]{10,16})\/?$/.exec(rel);
   return m ? m[1] : null;
+}
+
+/** HEAD 用：只查 expiresAt 和 category。category 只在过期时返回，且必须是 categoryMeta 的 key */
+export async function designStatus(id: string, now = new Date()): Promise<{ status: 200 | 404 | 410; category?: string }> {
+  if (!DESIGN_ID_RE.test(id)) return { status: 404 };
+  const d = await prisma.sharedDesign.findUnique({ where: { id }, select: { expiresAt: true, category: true } });
+  if (!d) return { status: 404 };
+  if (d.expiresAt && d.expiresAt <= now) return { status: 410, ...(d.category && CATEGORY_KEYS.has(d.category) ? { category: d.category } : {}) };
+  return { status: 200 };
 }
