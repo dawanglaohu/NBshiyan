@@ -2,9 +2,10 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type InquiryQuery, type InquiryStatus, type InquirySummary, type Page } from '@/lib/admin/api';
+import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type AdminUser, type InquiryQuery, type InquiryStatus, type InquirySummary, type Page } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
-import { PRODUCT_LABEL, productName, relTime } from './format';
+import DateRange from './DateRange';
+import { PRODUCT_LABEL, errorText, productName, relTime } from './format';
 
 const TABS: (InquiryStatus | 'REVIEW' | '')[] = ['', 'NEW', 'FOLLOWING', 'QUOTED', 'WON', 'INVALID', 'REVIEW'];
 const tabLabel = (t: (typeof TABS)[number]) => (t === '' ? '全部' : t === 'REVIEW' ? `待核实（<${REVIEW_THRESHOLD} 分）` : STATUS_LABEL[t]);
@@ -16,12 +17,16 @@ export default function InquiryList() {
   const query: InquiryQuery = {
     status: (sp.get('status') as InquiryQuery['status']) || undefined, q: sp.get('q') || undefined,
     from: sp.get('from') || undefined, to: sp.get('to') || undefined, product: sp.get('product') || undefined,
-    mine: sp.get('mine') === '1', page: Number(sp.get('page') || 1), pageSize: 10
+    assignee: sp.get('assignee') || undefined, page: Number(sp.get('page') || 1), pageSize: 10
   };
   const key = sp.toString();
   const [data, setData] = useState<Page<InquirySummary>>();
   const [error, setError] = useState<string>();
   const [q, setQ] = useState(query.q ?? '');
+  // 可信度 <40 的询盘默认折叠到「待核实」分组（#85 第 2 条）
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  useEffect(() => { adminApi.listUsers().then(setUsers).catch(() => {}); }, []);
   useEffect(() => {
     let live = true; setError(undefined);
     adminApi.listInquiries(query).then((d) => live && setData(d)).catch((e) => live && setError(String(e.message ?? e)));
@@ -34,6 +39,22 @@ export default function InquiryList() {
     if (!('page' in patch)) n.delete('page');
     router.replace(`/admin/inquiries${n.size ? `?${n}` : ''}`);
   };
+  const row = (r: InquirySummary) => {
+    const cls = ['row', r.trustScore < REVIEW_THRESHOLD ? 'review' : r.status === 'NEW' && !r.assignee ? 'unassigned' : ''].join(' ').trim();
+    const go = () => router.push(`/admin/inquiries/${r.id}`);
+    return (
+      <tr key={r.id} className={cls} tabIndex={0} onClick={go} onKeyDown={(e) => { if (e.key === 'Enter') go(); }}
+        title={r.status === 'NEW' && !r.assignee ? '未分配，请尽快分配负责人' : undefined}>
+        <td><Link href={`/admin/inquiries/${r.id}`} onClick={(e) => e.stopPropagation()} tabIndex={-1}>{r.ref}</Link></td>
+        <td>{r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
+        <td>{productName(r.products[0]?.productSlug ?? '')}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</td>
+        <td className={r.trustScore < REVIEW_THRESHOLD ? 'warn' : undefined}>{r.trustScore}{r.trustScore < REVIEW_THRESHOLD ? ' ⚠' : ''}</td>
+        <td><StatusBadge status={r.status} /></td>
+        <td className="muted">{r.assignee?.name ?? '—'}</td>
+        <td className="muted" title={r.createdAt}>{relTime(r.createdAt)}</td>
+      </tr>
+    );
+  };
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
@@ -44,13 +65,15 @@ export default function InquiryList() {
       </div>
       <form className="adm-filters" onSubmit={(e) => { e.preventDefault(); set({ q: q.trim() || undefined }); }}>
         <input type="search" placeholder="搜索公司 / 邮箱 / 编号" value={q} onChange={(e) => setQ(e.target.value)} aria-label="搜索" />
-        <label className="muted">从 <input type="date" value={query.from ?? ''} onChange={(e) => set({ from: e.target.value || undefined })} /></label>
-        <label className="muted">到 <input type="date" value={query.to ?? ''} onChange={(e) => set({ to: e.target.value || undefined })} /></label>
+        <DateRange from={query.from} to={query.to} onChange={(from, to) => set({ from, to })} />
         <select value={query.product ?? ''} onChange={(e) => set({ product: e.target.value || undefined })} aria-label="产品">
           <option value="">产品：全部</option>
           {Object.entries(PRODUCT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
-        <label className="adm-row muted"><input type="checkbox" checked={!!query.mine} onChange={(e) => set({ mine: e.target.checked ? '1' : undefined })} /> 只看分给我的</label>
+        <select value={query.assignee ?? ''} onChange={(e) => set({ assignee: e.target.value || undefined })} aria-label="负责人">
+          <option value="">负责人：全部</option><option value="me">分给我的</option><option value="none">未分配</option>
+          {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+        </select>
         <button className="adm-btn" type="submit">搜索</button>
         {key && <button className="adm-btn" type="button" onClick={() => { setQ(''); router.replace('/admin/inquiries'); }}>清除筛选</button>}
       </form>
@@ -58,20 +81,22 @@ export default function InquiryList() {
         <table>
           <thead><tr><th>编号</th><th>公司 · 国家</th><th>产品</th><th>可信度</th><th>状态</th><th>负责人</th><th>时间</th></tr></thead>
           <tbody>
-            {error && <tr><td colSpan={7} className="warn">加载失败：{error}</td></tr>}
+            {error && <tr><td colSpan={7} className="warn">{errorText(error)}</td></tr>}
             {!data && !error && <tr><td colSpan={7} className="muted">加载中…</td></tr>}
             {data?.items.length === 0 && <tr><td colSpan={7} className="muted">没有符合条件的询盘</td></tr>}
-            {data?.items.map((r) => (
-              <tr key={r.id} onClick={() => router.push(`/admin/inquiries/${r.id}`)}>
-                <td><Link href={`/admin/inquiries/${r.id}`} onClick={(e) => e.stopPropagation()}>{r.ref}</Link></td>
-                <td>{r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
-                <td>{productName(r.products[0]?.productSlug ?? '')}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</td>
-                <td className={r.trustScore < REVIEW_THRESHOLD ? 'warn' : undefined}>{r.trustScore}{r.trustScore < REVIEW_THRESHOLD ? ' ⚠' : ''}</td>
-                <td><StatusBadge status={r.status} /></td>
-                <td className="muted">{r.assignee?.name ?? '—'}</td>
-                <td className="muted" title={r.createdAt}>{relTime(r.createdAt)}</td>
-              </tr>
-            ))}
+            {data && (() => {
+              const isReview = (r: InquirySummary) => r.trustScore < REVIEW_THRESHOLD;
+              const review = query.status === 'REVIEW' ? [] : data.items.filter(isReview);
+              const main = query.status === 'REVIEW' ? data.items : data.items.filter((r) => !isReview(r));
+              return (<>
+                {main.map(row)}
+                {review.length > 0 && (
+                  <tr className="group" onClick={() => setReviewOpen(!reviewOpen)}>
+                    <td colSpan={7}><button type="button" aria-expanded={reviewOpen}>{reviewOpen ? '▾' : '▸'} 待核实（可信度 &lt;{REVIEW_THRESHOLD}）· 本页 {review.length} 条</button></td>
+                  </tr>)}
+                {reviewOpen && review.map(row)}
+              </>);
+            })()}
           </tbody>
         </table>
         <div className="adm-pager">
