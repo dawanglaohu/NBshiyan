@@ -73,6 +73,7 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 | `CRON_SECRET` | `openssl rand -base64 32` | 定时任务鉴权，见第 5 节 |
 | `MIDDLEWARE_PROBE_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | middleware 探测短链状态（`HEAD /api/designs/:id`）时带在 `x-internal-probe` 头里，服务端据此信任 `x-probe-client-ip` 做分桶限流；不配置则探测按连接 IP 限流 |
 | `BEHIND_CLOUDFLARE` | 域名走 Cloudflare 代理时填 `1`，否则留空 | 决定是否信任 `CF-Connecting-IP` |
+| `TRUSTED_PROXY_HOPS` | **Vercel 上不要设**（Vercel 写入 `x-real-ip`）。只有自建且前面是已知的反向代理链时才填代理层数 N（1–10），在没有 `x-real-ip` 时从 `X-Forwarded-For` 右数第 N 个取客户端 IP（校验是合法 IP） | 默认不信任 `X-Forwarded-For`。配错会让客户端伪造 IP、绕过按 IP 限流。与 `BEHIND_CLOUDFLARE=1` 同时设置时被忽略。取不到 IP 时审计记 `unknown` |
 | `RATE_LIMIT_STORE` | `upstash` | 生产必须，不能用 memory |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | |
 | `STORAGE_DRIVER` | `r2` | 生产必须（Vercel 文件系统不持久） |

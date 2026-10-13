@@ -45,13 +45,29 @@ export const SAMPLE_ID_RE = /^[a-z0-9]{20,32}$/;
 
 type AddressDeps = {
   findSample: (id: string) => Promise<{ id: string; shippingAddress: unknown; inquiry: { id: string; assigneeId: string | null } } | null>;
-  audit: (e: { actorId: string; action: string; target: string; ip: string | null }) => Promise<void>;
+  audit: (e: { actorId: string; action: string; target: string | null; meta?: { reason: AddressDenyReason }; ip: string }) => Promise<void>;
+  /** 拒绝审计去重：同一 actor + reason 每分钟最多 1 条；返回 true 才写 */
+  allowDenyAudit: (key: string) => Promise<boolean>;
 };
 /** 读取完整地址：无权限和不存在都返回 null（路由按 404 处理，不暴露是否存在）；成功先写审计再返回，审计不含地址内容 */
+export type AddressDenyReason = 'bad_id' | 'not_found' | 'no_address' | 'forbidden';
+/** 被拒绝的请求也写审计 sample.address.denied（只记操作人、样品 id、原因码、ip，不记地址）；bad_id 不记 target，避免把任意输入写进审计 */
 export async function revealSampleAddress(ctx: { user: { id: string; role: string }; ip: string | null }, sampleId: string, deps: AddressDeps) {
-  if (!SAMPLE_ID_RE.test(sampleId)) return null;
+  const ip = ctx.ip || 'unknown';
+  const deny = async (reason: AddressDenyReason, target: string | null) => {
+    if (await deps.allowDenyAudit(`${ctx.user.id}:${reason}`)) await deps.audit({ actorId: ctx.user.id, action: 'sample.address.denied', target, meta: { reason }, ip });
+    return null;
+  };
+  if (!SAMPLE_ID_RE.test(sampleId)) return deny('bad_id', null);
   const s = await deps.findSample(sampleId);
-  if (!s || !s.shippingAddress || !canViewFullAddress(ctx.user, s.inquiry)) return null;
-  await deps.audit({ actorId: ctx.user.id, action: 'sample.address.view', target: s.id, ip: ctx.ip });
+  if (!s) return deny('not_found', sampleId);
+  if (!s.shippingAddress) return deny('no_address', s.id);
+  if (!canViewFullAddress(ctx.user, s.inquiry)) return deny('forbidden', s.id);
+  await deps.audit({ actorId: ctx.user.id, action: 'sample.address.view', target: s.id, ip });
   return s.shippingAddress;
+}
+
+/** 按规范化邮箱 30 天 1 次超限：故意不带 retryAfter / Retry-After，避免借此探测某邮箱何时申请过（见 docs/API.md） */
+export function sampleRecentResponse() {
+  return Response.json({ error: 'sample_recent' }, { status: 429, headers: { 'Cache-Control': 'no-store' } });
 }

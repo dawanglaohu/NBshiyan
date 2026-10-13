@@ -46,6 +46,7 @@
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
 - [ ] `RESEND_API_KEY` 和发件地址已配置，发件域名已在 Resend 完成 DNS 验证。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值。
+- [ ] `TRUSTED_PROXY_HOPS`：**部署在 Vercel 上不要设**，保持留空（Vercel 写入 `x-real-ip`）。只有自建、且前面是已知的反向代理链时才设成代理层数 N（1–10）。**配错（层数多设或前面没有那么多层代理）会让客户端伪造 `X-Forwarded-For`，绕过按 IP 的限流。** 和 `BEHIND_CLOUDFLARE=1` 同时设置时它会被忽略（Cloudflare 优先）。上线后抽查后台审计，ip 不应是 `unknown`。
 - [ ] 生产环境**不能**设置 `ADMIN_SEED_TOTP_SECRET`。设置了的话，种子脚本会报错退出。
 - [ ] 数据保留天数等隐私政策定稿后再定，相关变量写在 `docs/data-retention.md`，隐私 PR 合并后补上。
 
