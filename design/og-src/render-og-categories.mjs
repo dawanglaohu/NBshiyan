@@ -13,7 +13,7 @@ const H1={'corrugated-boxes':['Custom Corrugated Boxes','Гофрокороба 
 'gift-boxes':['Custom Gift Boxes','Подарочные коробки на заказ'],'pulp-molding':['Molded Pulp Packaging','Упаковка из формованной целлюлозы'],
 'paper-cups':['Custom Paper Cups','Бумажные стаканы с логотипом'],'party-supplies':['Custom Party Supplies','Бумажная посуда для праздника оптом'],
 'wine-boxes':['Custom Wine Boxes','Коробки для вина на заказ'],'color-printing':['Packaging Printing Services','Печать упаковки на заказ'],
-'offset-printing':['Offset Printing Services','Офсетная печать упаковки'],'eco-paper-cups':['Compostable Paper Cups','Биоразлагаемые стаканы с логотипом'],
+'offset-printing':['Offset Printing Services','Офсетная печать упаковки'],'eco-paper-cups':['Compostable Paper Cups','Экологичные стаканы'],
 'gift-cards':['Custom Gift Cards','Печать подарочных карт на заказ'],'christmas-merchandise':['Custom Christmas Packaging','Новогодняя упаковка на заказ']};
 const posters={'corrugated-boxes':'custom-corrugated-boxes.webp','gift-boxes':'custom-gift-boxes.webp','wine-boxes':'custom-wine-boxes.webp'};
 const K='#C49A6C',KD='#A77D50',KL='#8a6440',C='#FF5A36',Y='#FFD166',G='#2E9E6B';
