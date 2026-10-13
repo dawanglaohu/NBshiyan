@@ -279,7 +279,8 @@
         "network": "Network error. Please check your connection and try again.",
         "server": "We couldn't upload your logo just now. Please try again later."
       }
-    }
+    },
+    "overLimit": "Your list has {n} items; the limit is {max}. Remove some to submit."
   },
   "Views": {
     "label": "Box view",

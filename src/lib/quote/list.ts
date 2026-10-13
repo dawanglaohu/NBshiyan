@@ -24,3 +24,6 @@ export function parseQuoteItems(raw: string | null): QuoteItem[] {
     return [];
   }
 }
+
+/** More than the cap: block submit, never auto-trim. */
+export const isOverQuoteLimit = (n: number) => n > QUOTE_MAX_ITEMS;
