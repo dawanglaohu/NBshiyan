@@ -1,0 +1,32 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/server/db';
+import { storage } from '@/lib/server/storage';
+import { DESIGN_ID_RE } from '@/lib/server/designs';
+import { clientIp, hitRateLimit, tooManyRequests } from '@/lib/server/security';
+
+export const runtime = 'nodejs';
+const H = { 'Cache-Control': 'private, max-age=300', 'X-Robots-Tag': 'noindex, nofollow' };
+
+/** 公开：方案里的 logo（服务端已用 sharp 重新编码为 PNG），持有短链接的人可见。不暴露上传 id。 */
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const ip = clientIp(req);
+  if (ip && !(await hitRateLimit(`design-logo:${ip}`, 300))) return tooManyRequests(600);
+  const { id } = await params;
+  if (!DESIGN_ID_RE.test(id)) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: H });
+  const now = new Date();
+  const d = await prisma.sharedDesign.findFirst({
+    where: { id, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] }, // 过期不再提供 logo
+    select: { logoUpload: { select: { path: true, mime: true } } },
+  });
+  const data = d?.logoUpload && (await storage.get(d.logoUpload.path));
+  if (!d?.logoUpload || !data) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: H });
+  return new Response(new Uint8Array(data), {
+    headers: {
+      ...H,
+      'Content-Type': d.logoUpload.mime,
+      'Content-Length': String(data.length),
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
+    },
+  });
+}

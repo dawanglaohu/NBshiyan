@@ -265,6 +265,8 @@
       "uploading": "Uploading…",
       "uploaded": "Logo uploaded",
       "remove": "Remove",
+      "choose": "Choose file",
+      "none": "No file chosen",
       "expired": "Your logo upload has expired. Please upload it again.",
       "errors": {
         "type": "Please choose a PNG, JPEG or WebP image.",
@@ -282,6 +284,13 @@
     "closed": "Closed",
     "open": "Open",
     "dieline": "Dieline"
+  },
+  "Consent": {
+    "label": "Cookie consent",
+    "text": "We use essential cookies to run this site. With your permission we also use analytics and live chat.",
+    "policy": "Privacy policy",
+    "accept": "Accept all",
+    "reject": "Reject non-essential"
   },
   "Footer": {
     "about": "Custom paper packaging and printing — from prototype to mass production.",
