@@ -1,0 +1,23 @@
+<!-- Subject: [PackJoyU] 新询盘 #{{inquiryId}} -->
+<!doctype html>
+<html lang="zh" xmlns="http://www.w3.org/1999/xhtml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>新询盘 #{{inquiryId}}</title>
+<!-- 所有 {{变量}} 由后端做 HTML 转义后再填入；不加载外部字体、不放追踪像素。 -->
+<style>@media (prefers-color-scheme:dark){.bg{background:#121214!important}.card{background:#1B1B1F!important}.ink{color:#F2E9D8!important}.muted{color:#BFB6A6!important}.line{border-color:#2C2A27!important}}
+@media (max-width:620px){.wrap{width:100%!important}.px{padding-left:20px!important;padding-right:20px!important}}</style></head>
+<body style="margin:0;padding:0;background:#FBF8F3;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">新询盘 #{{inquiryId}} · {{product}} · {{quantity}}</div>
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FBF8F3;"><tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
+<tr><td class="px" style="padding:8px 32px 20px 32px;"><img src="{{siteUrl}}/images/logo.png" width="132" height="32" alt="PackJoyU" style="display:block;border:0;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;color:#1C1C1C;"></td></tr>
+<tr><td class="card px" style="background:#FFFFFF;border-radius:16px;border-top:4px solid #FF5A36;padding:32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1C1C1C;font-size:15px;line-height:1.6;">
+<h1 class="ink" style="margin:0 0 6px 0;font-size:20px;">新询盘 #{{inquiryId}}</h1><p class="muted" style="margin:0 0 18px 0;color:#5A5650;font-size:13px;">站点语言：{{locale}} · 客户回复语言跟随询盘语言</p>
+<!--RISK: 仅当可信度 < 40 时由后端输出此块（需新增变量，见 PR 说明）-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;"><tr><td style="background:#FDE8E7;border-radius:10px;padding:10px 14px;font-size:14px;color:#7A1A12;"><b>待核实</b> · 可信度 {{score}} 分（低于 40），请先核实再回复。</td></tr></table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td class="muted line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;">联系人</td><td class="ink line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;">{{name}}</td></tr><tr><td class="muted line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;">公司</td><td class="ink line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;">{{company}}</td></tr><tr><td class="muted line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;">产品</td><td class="ink line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;">{{product}}</td></tr><tr><td class="muted line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;">数量</td><td class="ink line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;">{{quantity}}</td></tr><tr><td class="muted line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;color:#5A5650;width:40%;font-size:14px;">可信度</td><td class="ink line" style="padding:10px 0;border-bottom:1px solid #E8E2D8;font-size:14px;font-weight:600;">{{score}} / 100</td></tr></table>
+<p class="muted" style="margin:14px 0 0 0;font-size:13px;color:#5A5650;">留言正文、链接和附件不放进邮件，请到后台查看：链接只显示为纯文本，附件只能下载、不预览。</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 8px 0;"><tr><td style="border-radius:999px;background:#1C1C1C;"><a href="{{siteUrl}}/admin/inquiries/{{inquiryId}}" style="display:inline-block;padding:13px 26px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;white-space:nowrap;border-radius:999px;">在后台打开询盘</a></td></tr></table>
+<p class="muted" style="margin:8px 0 0 0;font-size:12px;color:#5A5650;word-break:break-all;">若按钮无法点击，复制此地址：{{siteUrl}}/admin/inquiries/{{inquiryId}}</p>
+</td></tr>
+<tr><td class="px muted" style="padding:20px 32px;font-family:Manrope,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#5A5650;">PackJoyU 后台自动通知 · 请勿直接回复此邮件。</td></tr>
+</table></td></tr></table></body></html>

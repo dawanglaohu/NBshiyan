@@ -17,7 +17,7 @@ header.site nav a{text-decoration:none}
 .btn.ghost:hover{border-color:var(--accent);background:transparent}
 .btn.sm{min-height:36px;padding:6px 14px;font-size:var(--fs-small)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-section.block{padding:64px 0}
+section.block{padding-top:64px;padding-bottom:64px}
 section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .theme-premium{background:var(--bg);color:var(--ink)}
 /* 首页 */
@@ -78,7 +78,7 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 .chips label{font-weight:500;border:1px solid var(--line);border-radius:var(--r-pill);padding:6px 12px;cursor:pointer}
 .chips input{position:absolute;opacity:0;pointer-events:none}
 .chips label:has(input:checked){background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.chips label:has(input:focus-visible){outline:2px solid var(--accent)}
+.chips label:has(input:focus-visible){outline:2px solid var(--focus-ring,var(--accent));outline-offset:3px}
 .hp{position:absolute!important;left:-10000px;width:1px;height:1px;overflow:hidden}
 .alert{padding:12px 16px;border-radius:var(--r-sm);margin:12px 0}.alert.err{background:#fde8e4;color:#8a1f0b}.alert.ok{background:#e8f6ec;color:#14532d}
 .row{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap}
@@ -132,3 +132,13 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 .legal li{margin:4px 0}
 .legal code{font-size:.9em;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:0 4px}
 .draft-banner{background:#FFF4D6;border:1px solid var(--sun);color:#5A4300;border-radius:var(--r-sm);padding:12px 16px;font-size:14px}
+
+/* #120 统一键盘焦点样式：只在 :focus-visible 时出现，鼠标点击不显示 */
+:root{--focus-ring:var(--accent)}
+:focus-visible{outline:2px solid var(--focus-ring);outline-offset:3px}
+:focus:not(:focus-visible){outline:none}
+/* 珊瑚橙底按钮上改用深色外框，保证 ≥3:1；CTA 条（珊瑚橙底）里用白色 */
+.btn:not(.ghost){--focus-ring:var(--ink)}
+.cta-band{--focus-ring:#fff}
+/* 深色礼盒/酒盒区块里用金色 */
+.theme-premium *,.theme-premium .btn:not(.ghost){--focus-ring:var(--gold)}

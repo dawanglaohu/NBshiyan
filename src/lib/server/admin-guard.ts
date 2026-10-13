@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { clientIp, rateLimit } from '@/lib/server/security';
+import { clientIp, hitRateLimit } from '@/lib/server/security';
 
 // 后台接口通用防护。登录、会话、角色由 auth.ts 的 requireAdmin() 负责，这里不涉及。
 
@@ -27,11 +27,12 @@ export function assertSameOrigin(req: Request): NextResponse | null {
 /**
  * 后台接口限流：按「key + 客户端 IP」计数，默认每分钟 120 次。
  * 通过返回 null；超限返回 429 响应。
- * 注意：底层 rateLimit 是单实例内存计数，上线前要换成共享存储（见 PRD 第 11 节）。
+ * 异步，必须 await。存储可切换为 Upstash（RATE_LIMIT_STORE=upstash），见 ratelimit/index.ts。
+ * 原同步 adminRateLimit 已改名，避免 `assertSameOrigin(req) ?? adminRateLimit(...)` 漏 await 时返回 Promise。
  */
-export function adminRateLimit(req: Request, key: string, limit = 120): NextResponse | null {
+export async function enforceAdminRateLimit(req: Request, key: string, limit = 120): Promise<NextResponse | null> {
   const ip = clientIp(req) ?? 'unknown';
-  if (rateLimit(`admin:${key}:${ip}`, limit, 60_000)) return null;
+  if (await hitRateLimit(`admin:${key}:${ip}`, limit, 60_000)) return null;
   return NextResponse.json(
     { error: 'rate_limited' },
     { status: 429, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store' } }

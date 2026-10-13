@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { ID_RE, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
@@ -20,7 +20,7 @@ const Patch = z.object({
 export async function PATCH(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ['ADMIN']);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'users.update', 30);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'users.update', 30));
   if (blocked) return blocked;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
@@ -54,7 +54,7 @@ export async function PATCH(req: Request, { params }: P) {
 export async function DELETE(req: Request, { params }: P) {
   const ctx = await requireAdmin(req, ['ADMIN']);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'users.delete', 10);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'users.delete', 10));
   if (blocked) return blocked;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);

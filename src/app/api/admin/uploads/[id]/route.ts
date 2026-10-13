@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
-import { requireAdmin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { audit } from '@/lib/server/admin/audit';
 
 export const runtime = 'nodejs';
@@ -11,7 +11,7 @@ const noStore = { 'Cache-Control': 'private, no-store' };
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
-  const limited = adminRateLimit(req, 'upload.view');
+  const limited = await enforceAdminRateLimit(req, 'upload.view');
   if (limited) return limited;
   const { id } = await params;
   if (!LOGO_ID_RE.test(id)) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: noStore });

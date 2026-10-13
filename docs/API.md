@@ -49,7 +49,8 @@
 
 ### `GET /api/models`
 已上架（`published=true` 且 `status=READY`）的模型列表，`Cache-Control: public, max-age=60`：
-`{ items: [{ id, productSlug, category, sortOrder, animated, customizable, glbUrl, lodUrl, posterUrl }] }`。
+`{ items: [{ id, productSlug, category, sortOrder, animated, customizable, slugs, glbUrl, lodUrl, posterUrl }] }`。
+`slugs` 形如 `{ "en": "custom-gift-boxes", "ru": "podarochnye-korobki" }`，按 `category`（内部 key）从 `src/lib/seo/categoryMeta.ts` 取；`category` 不在 categoryMeta 里时为 `null`，前端回退用 key。ru slug 目前是草稿，等母语审核，可能改动，前端不要把它写死。
 文件地址形如 `/api/models/:id/glb?v=版本`（`lod`、`poster` 同理），只对已上架模型返回，否则 404；`Cache-Control: public, max-age=300`。gltf-progressive 按主 GLB 里记录的相对路径请求 `/api/models/:id/<名称>.lod0.glb`，服务端映射到 lod 文件。
 
 ## 后台登录（Auth.js v5，Credentials + 强制 TOTP）
@@ -63,7 +64,7 @@
 - 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enabled`，不记密码、验证码、token。
 
 ## 后台接口（`/api/admin/*`）
-每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录 401 `unauthorized`，角色不符 403 `forbidden`。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `adminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
+每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录 401 `unauthorized`，角色不符 403 `forbidden`。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
 角色：`ADMIN` 全部可见；`SALES` 只能看和操作分配给自己的询盘，不能改分配；`EDITOR` 无询盘权限。
 
 - `GET /api/admin/users` → `{ items: [{ id, name, email, role }] }`。ADMIN 拿到所有未禁用的 ADMIN/SALES（分配下拉框用）；SALES 只拿到自己。
@@ -83,7 +84,7 @@
 - `POST /api/admin/inquiries/:id/notes` `{ body ≤5000 }` → 201 新备注。
 
 ### 账号
-所有接口：`requireAdmin` → `assertSameOrigin` → `adminRateLimit`；每个操作都让受影响账号的全部会话失效（`sessionVersion+1`，等同 `revokeSessions()`），并写 AuditLog（不记密码、验证码、恢复码）。密码 argon2id，策略：12–200 位，不能等于邮箱。
+所有接口：`requireAdmin` → `assertSameOrigin` → `await enforceAdminRateLimit`；每个操作都让受影响账号的全部会话失效（`sessionVersion+1`，等同 `revokeSessions()`），并写 AuditLog（不记密码、验证码、恢复码）。密码 argon2id，策略：12–200 位，不能等于邮箱。
 
 **自己的账号（ADMIN / SALES / EDITOR）**
 - `POST /api/admin/account/password` `{ currentPassword, newPassword, totp | recoveryCode }` → `{ ok: true, reauthRequired: true }`。当前会话也失效，需重新登录。错误：401 `bad_credentials`，422 `weak_password` / `same_password`。
@@ -103,6 +104,11 @@
 
 ## 定时任务
 - `GET|POST /api/admin/cron/cleanup-uploads`：删除超过 24 小时未绑定询盘的 logo（文件和记录）。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
+
+## 存储与限流（部署配置）
+- **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（默认，`UPLOAD_DIR`）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
+- **限流**（`src/lib/server/ratelimit/`）：`RATE_LIMIT_STORE=memory`（默认，单实例）或 `upstash`（`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`，固定窗口 `INCR` + `PEXPIRE NX`，一次 pipeline 请求，1.5 秒超时）。Upstash 不可用时退回本实例内存计数并记错误日志，既不整站放行也不整站拒绝。代码里用 `await hitRateLimit(...)` / `await enforceAdminRateLimit(...)`（原同步的 `rateLimit` / `adminRateLimit` 已删除，防止漏写 `await`）。
+- 单元测试：`pnpm test`（node:test + tsx，Upstash 和 R2 都用本地模拟服务器，不需要真实账号）。
 
 ## 待定
 - 客户回信自动归档：需要正式域名后接 Resend 收信。

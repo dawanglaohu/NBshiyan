@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
@@ -16,7 +16,7 @@ export const runtime = 'nodejs';
 export async function GET(req: Request) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
-  const limited = adminRateLimit(req, 'users.list');
+  const limited = await enforceAdminRateLimit(req, 'users.list');
   if (limited) return limited;
   if (new URL(req.url).searchParams.get('all') === '1') {
     if (ctx.user.role !== 'ADMIN') return jsonErr('forbidden', 403);
@@ -41,7 +41,7 @@ const Create = z.object({
 export async function POST(req: Request) {
   const ctx = await requireAdmin(req, ['ADMIN']);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'users.create', 20);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'users.create', 20));
   if (blocked) return blocked;
   const json = await readJson(req, 2_000);
   if (json === TOO_LARGE) return jsonErr('too_large', 413);

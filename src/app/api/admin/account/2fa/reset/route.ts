@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
@@ -18,7 +18,7 @@ const Body = z.object({
 export async function POST(req: Request) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES', 'EDITOR']);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'account.2fa_reset', 5);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'account.2fa_reset', 5));
   if (blocked) return blocked;
   const json = await readJson(req, 2_000);
   if (json === TOO_LARGE) return jsonErr('too_large', 413);

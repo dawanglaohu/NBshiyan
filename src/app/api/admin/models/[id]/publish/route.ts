@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { requireAdmin, assertSameOrigin, adminRateLimit } from '@/lib/server/auth';
+import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { noStore, jsonErr } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { ID_RE, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
@@ -17,7 +17,7 @@ const Body = z.object({ published: z.boolean() }).strict();
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireAdmin(req, ['ADMIN', 'EDITOR']);
   if (ctx instanceof Response) return ctx;
-  const blocked = assertSameOrigin(req) ?? adminRateLimit(req, 'model.publish', 30);
+  const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'model.publish', 30));
   if (blocked) return blocked;
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
