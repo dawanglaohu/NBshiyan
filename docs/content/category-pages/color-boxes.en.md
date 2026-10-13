@@ -8,7 +8,7 @@ PackJoyU makes custom printed folding cartons for retail products. Tell us what 
 
 ## Use cases
 - Cosmetics and personal care
-- Food and confectionery retail packs (food-contact use to be confirmed)
+- Food and confectionery retail packs
 - Electronics and accessories
 
 ## Materials and options
