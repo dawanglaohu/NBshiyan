@@ -9,7 +9,12 @@
     "products": "3D Products",
     "about": "About",
     "contact": "Contact",
-    "quote": "Get a quote"
+    "quote": "Get a quote",
+    "menu": "Menu",
+    "main": "Main navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "switchLang": "Русская версия"
   },
   "Home": {
     "headline": "Packaging that sparks joy",
