@@ -24,7 +24,8 @@ export default function GalleryScene({ items, eventSource, onReady }: { items: S
               <Lightformer intensity={1} position={[4, 1, 0]} rotation-y={-Math.PI / 2} scale={[4, 2, 1]} />
             </Environment>
           </Suspense>
-          <OrbitControls enabled={i.active} enableZoom={!!i.zoom} enablePan={false} minDistance={1.8} maxDistance={6} />
+          {/* 显式绑定到卡片自身的 DOM：View 里 events.connected 可能还指向 pointer-events:none 的画布，导致滚轮事件收不到 */}
+          <OrbitControls domElement={i.track.current ?? undefined} enabled={i.active} enableZoom={!!i.zoom} enablePan={false} minDistance={1.8} maxDistance={6} />
         </View>
       ))}
       <Canvas

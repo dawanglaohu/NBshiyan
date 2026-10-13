@@ -38,8 +38,9 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 /* 3D 展示页 */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
 .card{background:var(--surface);color:var(--ink);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
-.card .stage{position:relative;aspect-ratio:4/3;touch-action:pan-y}
-.card .stage.active{touch-action:none}
+.card .stage{position:relative;aspect-ratio:4/3;touch-action:pan-y!important}
+/* OrbitControls 连接时会在卡片上写内联 touch-action:none，这里用 !important 保证手机单指仍能滚动页面 */
+.card .stage.active{touch-action:none!important}
 .card .stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .4s}
 .card .view{position:absolute;inset:0}
 .card .body{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
