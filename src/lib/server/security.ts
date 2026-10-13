@@ -8,7 +8,6 @@ export function randomId(len = 10) {
   return Array.from(bytes, (b) => abc[b % abc.length]).join('');
 }
 
-/** Turnstile 校验：ok 通过，fail 校验不通过，unavailable 连不上 Cloudflare（超时、网络错误、5xx）。连不上时一律不放行。 */
 const TURNSTILE_VERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 /** E2E 用：非正式环境可把校验地址指向本机模拟服务（只接受 http://127.0.0.1 / localhost），正式环境始终用 Cloudflare。 */
 export function turnstileVerifyUrl(env: Record<string, string | undefined> = process.env) {
@@ -19,6 +18,7 @@ export function turnstileVerifyUrl(env: Record<string, string | undefined> = pro
 }
 
 export type TurnstileResult = 'ok' | 'fail' | 'unavailable';
+/** Turnstile 校验：ok 通过，fail 校验不通过，unavailable 连不上 Cloudflare（超时、网络错误、5xx）。连不上时一律不放行。 */
 export async function verifyTurnstile(token: string | undefined, ip: string | null): Promise<TurnstileResult> {
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) return process.env.NODE_ENV !== 'production' ? 'ok' : 'unavailable'; // 开发环境无密钥时放行；生产缺密钥按不可用处理
