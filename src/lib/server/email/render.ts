@@ -48,11 +48,19 @@ function fill(tpl: string, vals: Record<string, string>, flags: Record<string, b
   return s;
 }
 
-const LINKY = /(https?:|\/\/|www\.|@|\b[a-z0-9-]+\.(?:[a-z]{2,24})\b)/i;
+// 各种“点”的写法：. 。 ． ｡ [.] (.) {.} [dot] (dot) 以及前后空白，统一折成 "."
+const DOTS = /\s*(?:\[\s*(?:\.|dot)\s*\]|\(\s*(?:\.|dot)\s*\)|\{\s*(?:\.|dot)\s*\}|\s(?:dot|точка)\s|[.。．｡])\s*/giu;
+// 域名：标签至少 2 个字符（避免把 “J. Smith” 这类缩写当域名），支持任意文字（пример.рф）和 xn--
+const LINKY = /(https?:|\/\/|www\.|@|xn--|(?<![\p{L}\p{N}-])[\p{L}\p{N}-]{2,}\.\p{L}{2,24}(?![\p{L}\p{N}]))/iu;
+/** 名字是否像链接 / 域名 / 邮箱：先 NFKC（全角转半角、＠→@），再把各种点的写法折成 "." */
+export function looksLinky(name: string): boolean {
+  const n = name.normalize('NFKC').replace(DOTS, '.');
+  return LINKY.test(n);
+}
 /** 客户邮件里的称呼：≤ 40 字且不像链接/域名/邮箱才用，否则返回 null（用通用问候） */
 export function safeGreetingName(name: string): string | null {
   const n = cleanText(name);
-  if (!n || n.length > 40 || LINKY.test(n)) return null;
+  if (!n || n.length > 40 || looksLinky(n)) return null;
   return n;
 }
 

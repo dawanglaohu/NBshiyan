@@ -16,7 +16,7 @@ async function handle(req: Request) {
     const deleted = await cleanupOrphanLogos();
     return NextResponse.json({ deleted, designs });
   } catch (e) {
-    console.error('[cron] cleanup-uploads failed', e);
+    console.error('[cron] cleanup-uploads failed', errorSummary(e));
     await sendAdminAlert('定时清理失败', { 任务: 'cleanup-uploads', ...errorSummary(e) }, 'cron:cleanup-uploads');
     return NextResponse.json({ error: 'cleanup_failed' }, { status: 500 });
   }

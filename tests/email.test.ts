@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderEmail, summarizeItems, cleanText, safeGreetingName, replyTimeText, productName } from '../src/lib/server/email/render';
+import { renderEmail, summarizeItems, cleanText, safeGreetingName, looksLinky, replyTimeText, productName } from '../src/lib/server/email/render';
 import { sendMail, sendSafely, sendAdminAlert, customerAckMail, inquiryNotifyMail, errorSummary } from '../src/lib/server/mail';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit';
 
@@ -175,4 +175,34 @@ test('product names localized from categoryMeta; notify keeps slugs', () => {
   assert.equal(productName('mystery-thing', 'ru'), 'Mystery thing');
   assert.equal(summarizeItems([{ productSlug: 'gift-boxes', quantity: 500 }], 'ru').product, 'Подарочные коробки на заказ');
   assert.equal(summarizeItems([{ productSlug: 'gift-boxes' }]).product, 'gift-boxes');
+});
+
+// 安全复审 #171：各种变形的域名写法都要识别成链接，每种一条用例
+for (const [label, name] of [
+  ['spaces around dot', 'example . com'],
+  ['space before dot', 'example .com'],
+  ['space after dot', 'example. com'],
+  ['bracket dot', 'example[.]com'],
+  ['paren dot', 'example(.)com'],
+  ['brace dot', 'example{.}com'],
+  ['[dot]', 'example[dot]com'],
+  ['" dot "', 'example dot com'],
+  ['fullwidth', 'ｅｘａｍｐｌｅ．ｃｏｍ'],
+  ['ideographic full stop', 'example。com'],
+  ['halfwidth ideographic stop', 'example｡com'],
+  ['cyrillic IDN', 'пример.рф'],
+  ['cyrillic IDN spaced', 'пример . рф'],
+  ['punycode', 'xn--e1afmkfd.xn--p1ai'],
+  ['fullwidth at', 'ａ＠ｂ．ｃｏ'],
+  ['uppercase', 'EXAMPLE.COM'],
+] as const) {
+  test(`greeting rejects link-like name: ${label}`, () => {
+    assert.ok(looksLinky(name), name);
+    assert.equal(safeGreetingName(name), null);
+  });
+}
+
+test('greeting keeps ordinary names (incl. initials and Cyrillic)', () => {
+  for (const ok of ['Anna Müller', 'J. Smith', 'Anna M. Smith', 'Иван Петров', 'Мария-Анна', "O'Brien", '王小明'])
+    assert.equal(safeGreetingName(ok), ok, ok);
 });
