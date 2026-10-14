@@ -131,7 +131,7 @@ if (want('wine')) {
 // 4) 彩盒：反插式（tuck-end）折叠彩盒 80×40×160，四色印刷
 if (want('color')) {
   const W = .08, D = .04, H = .16, t = .0006;
-  const art = await svgTex(1024, 1024, `<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset=".55" stop-color="#ffb347"/><stop offset="1" stop-color="#4fb3bf"/></linearGradient></defs><rect width="1024" height="1024" fill="url(#a)"/><circle cx="760" cy="300" r="190" fill="#fff" opacity=".25"/><g fill="#fff" ${F}><text x="70" y="560" font-size="120" font-weight="800">GLOW</text><text x="74" y="620" font-size="40">VITAMIN C SERUM · 30 ml</text></g><rect x="70" y="860" width="240" height="70" rx="35" fill="#fff"/><text x="190" y="907" text-anchor="middle" fill="#ff7a59" ${F} font-size="34" font-weight="700">NEW</text>`);
+  const art = await svgTex(1024, 1024, `<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset=".55" stop-color="#ffb347"/><stop offset="1" stop-color="#4fb3bf"/></linearGradient></defs><rect width="1024" height="1024" fill="url(#a)"/><circle cx="760" cy="300" r="190" fill="#fff" opacity=".25"/><g fill="#1f2a44" ${F}><text x="70" y="560" font-size="120" font-weight="800">PackJoyU</text><text x="74" y="620" font-size="40">CUSTOM PRINTED BOXES</text></g><rect x="70" y="860" width="240" height="70" rx="35" fill="#fff"/><text x="190" y="907" text-anchor="middle" fill="#ff7a59" ${F} font-size="34" font-weight="700">NEW</text>`);
   const sideArt = await svgTex(256, 1024, `<rect width="256" height="1024" fill="#4fb3bf"/><g fill="#fff" ${F} font-size="22"><text x="20" y="80">INGREDIENTS</text>${Array.from({length: 10}, (_, i) => `<rect x="20" y="${110 + i*30}" width="${150 + (i*37)%60}" height="8" opacity=".8"/>`).join('')}</g>${Array.from({length: 30}, (_, i) => `<rect x="${30 + i*6}" y="900" width="${(i*5)%3 + 1}" height="80" fill="#111"/>`).join('')}`);
   const a = ['colorBoxFront', art, .45], s = ['colorBoxSide', sideArt, .45];
   const g = new Geo().box(0, H/2, D/2 - t/2, W, H, t).box(0, H/2, -D/2 + t/2, W, H, t);
@@ -196,13 +196,13 @@ if (want('offset')) {
 }
 // 10) 环保纸杯：牛皮纸杯 + PLA 盖 + 杯套
 if (want('ecocup')) {
-  const wrap = await svgTex(1024, 512, kraftBase(1024, 512, '#c9a676') + `<g fill="#3a2a1a" ${F}><text x="512" y="240" text-anchor="middle" font-size="84" font-weight="800">PackJoyU</text><text x="512" y="300" text-anchor="middle" font-size="30" letter-spacing="10">CUSTOM PAPER CUPS</text></g>${Array.from({length: 16}, (_, i) => `<circle cx="${40 + i*63}" cy="410" r="9" fill="#FF5A36" opacity=".85"/>`).join('')}`);  // 中性图案：不印无依据的环保/认证声明
-  const sleeve = await svgTex(512, 128, kraftBase(512, 128, '#a87d4c') + Array.from({length: 32}, (_, i) => `<rect x="${i*16}" width="6" height="128" fill="#8a6238" opacity=".5"/>`).join(''));
+  const wrap = await svgTex(1024, 512, kraftBase(1024, 512, '#8e5f36') + `<g fill="#2a1c10" ${F}>${[128, 384, 640, 896].map(x => `<text x="${x}" y="78" text-anchor="middle" font-size="40" font-weight="800">PackJoyU</text>`).join('')}<text x="512" y="300" text-anchor="middle" font-size="30" letter-spacing="10">CUSTOM PAPER CUPS</text></g>${Array.from({length: 16}, (_, i) => `<circle cx="${40 + i*63}" cy="410" r="9" fill="#FF5A36" opacity=".85"/>`).join('')}`);  // 中性图案：不印无依据的环保/认证声明
+  const sleeve = await svgTex(512, 128, kraftBase(512, 128, '#734a26') + Array.from({length: 32}, (_, i) => `<rect x="${i*16}" width="6" height="128" fill="#6a4524" opacity=".55"/>`).join(''));
   const cup = new Geo().lathe(cupProfile(.11, .028, .045), 48, 0, 0, 0, 1, 1);
-  const inside = new Geo().lathe([[.044, .108], [.029, .01], [0, .009]], 48);
+  const inside = new Geo().lathe([[.044, .108], [.0265, .012], [0, .011]], 48);
   const sl = new Geo().lathe([[.0365, .035], [.0425, .085]], 48, 0, 0, 0, 1, 2);
   const lid = new Geo().lathe([[.047, .108], [.048, .118], [.038, .124], [.012, .126], [0, .126]], 48);
-  build('eco-paper-cup.glb', [{ name: 'Cup', geo: [[cup, ['ecoWrap', wrap, .8]], [inside, ['kraftIn', kraftTex, .9, 0, { double: true }]], [sl, ['sleeve', sleeve, .95, 0, { double: true }]], [lid, ['plaLid', null, .5, 0, { color: [.93, .9, .82, 1] }]]] }]);
+  build('eco-paper-cup.glb', [{ name: 'Cup', geo: [[cup, ['ecoWrap', wrap, .88]], [inside, ['kraftIn', kraftTex, .9, 0, { double: true }]], [sl, ['sleeve', sleeve, .95, 0, { double: true }]], [lid, ['plaLid', null, .42, 0, { color: [.42, .4, .37, 1] }]]] }]);
 }
 // 11) 礼品卡：卡片 + 信封
 if (want('giftcard')) {
