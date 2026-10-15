@@ -23,15 +23,15 @@ test('#172-10: 鼠标显示拖动、触屏显示点击', () => {
 
 test('#172-10: EN/RU 都有 dragToRotate 文案', () => {
   assert.equal(en.Products.dragToRotate, 'Drag to rotate');
-  assert.equal(ru.Products.dragToRotate, 'Потяните, чтобы повернуть');
+  assert.equal(ru.Products.dragToRotate, 'Потяните, чтобы вращать');
 });
 
 test('fitDistance: 窄卡片（手机竖屏）要退得更远', () => {
   const wide = fitDistance(1, 40, 1.5);
   const narrow = fitDistance(1, 40, 0.6);
   assert.ok(narrow > wide);
-  // 包围球在竖直方向刚好放下（含 15% 留白）
-  assert.ok(Math.abs(wide - 1.15 / Math.sin((20 * Math.PI) / 180)) < 1e-9);
+  // 包围球在竖直方向刚好放下（含 8% 留白）
+  assert.ok(Math.abs(wide - 1.08 / Math.sin((20 * Math.PI) / 180)) < 1e-9);
 });
 
 test('frameBox: near/far 包住整个模型', () => {

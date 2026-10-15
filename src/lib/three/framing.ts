@@ -9,7 +9,7 @@ export type Framing = { center: [number, number, number]; distance: number; near
  * 让半径为 radius 的包围球完整落在视锥内所需的相机距离。
  * 竖直方向按 fov，水平方向按 aspect 换算出的水平 fov，取两者中更远的那个；margin 是额外留白倍数。
  */
-export function fitDistance(radius: number, fovDeg: number, aspect: number, margin = 1.15): number {
+export function fitDistance(radius: number, fovDeg: number, aspect: number, margin = 1.08): number {
   const v = (fovDeg * Math.PI) / 180 / 2;
   const h = Math.atan(Math.tan(v) * Math.max(aspect, 1e-3));
   const half = Math.min(v, h);
@@ -17,7 +17,7 @@ export function fitDistance(radius: number, fovDeg: number, aspect: number, marg
 }
 
 /** 按包围盒算出相机位置、近/远裁剪面（近面过小会有深度闪烁，过大会切掉模型） */
-export function frameBox(min: [number, number, number], max: [number, number, number], fovDeg: number, aspect: number, margin = 1.15, dir: [number, number, number] = VIEW_DIR): Framing {
+export function frameBox(min: [number, number, number], max: [number, number, number], fovDeg: number, aspect: number, margin = 1.08, dir: [number, number, number] = VIEW_DIR): Framing {
   const center: [number, number, number] = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
   const radius = Math.max(1e-4, Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 2);
   const distance = fitDistance(radius, fovDeg, aspect, margin);
