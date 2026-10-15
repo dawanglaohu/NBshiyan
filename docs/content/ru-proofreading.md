@@ -69,32 +69,32 @@
 | ID | 来源 | PR | English | Русский | 字符数 | Ryan: OK / correction |
 |---|---|---|---|---|---|---|
 | C-eco-paper-cups-01 | `docs/content/eco-paper-cups.md` | #188 | ### H1: Eco-Friendly Paper Cups | ### H1: Экологичные стаканы с логотипом ⚠️F15/F17 |  |  |
-| C-eco-paper-cups-02 | `docs/content/eco-paper-cups.md` | #188 | PackJoyU offers plastic-reduced paper cups with water-based or PLA linings, custom printed with your logo. These cups are designed for cafes, chains and brands moving away from conventional PE-lined cups. Exact compostability claims depend on the lining, inks and the certification held for each product — we confirm documentation before you use any claim on your packaging. | PackJoyU предлагает бумажные стаканы с печатью вашего логотипа. Они подходят кофейням, сетям и брендам. Заявления о компостируемости зависят от покрытия, красок и сертификатов на конкретный продукт — мы подтверждаем документы до того, как вы используете такие формулировки на упаковке. |  |  |
+| C-eco-paper-cups-02 | `docs/content/eco-paper-cups.md` | #188 | PackJoyU offers paper cups custom printed with your logo. These cups are designed for cafes, chains and brands. Exact compostability claims depend on the lining, inks and the certification held for each product — we confirm documentation before you use any claim on your packaging. | PackJoyU предлагает бумажные стаканы с печатью вашего логотипа. Они подходят кофейням, сетям и брендам. Заявления о компостируемости зависят от покрытия, красок и сертификатов на конкретный продукт — мы подтверждаем документы до того, как вы используете такие формулировки на упаковке. |  |  |
 | C-eco-paper-cups-03 | `docs/content/eco-paper-cups.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
-| C-eco-paper-cups-04 | `docs/content/eco-paper-cups.md` | #188 | - **Alternative linings** — Water-based (aqueous) or PLA instead of PE. | |  |  |
-| C-eco-paper-cups-05 | `docs/content/eco-paper-cups.md` | #188 | - **Branded and greener** — Full-wrap logo printing with food-contact inks. | - **Бренд и экология** — Печать логотипа по всей поверхности. |  |  |
-| C-eco-paper-cups-06 | `docs/content/eco-paper-cups.md` | #188 | - **Matching fiber lids** — Paper or fiber lid options (TBD). | |  |  |
+| C-eco-paper-cups-04 | `docs/content/eco-paper-cups.md` | #188 | | |  |  |
+| C-eco-paper-cups-05 | `docs/content/eco-paper-cups.md` | #188 | - **Branded and greener** — Full-wrap logo printing. | - **Бренд и экология** — Печать логотипа по всей поверхности. |  |  |
+| C-eco-paper-cups-06 | `docs/content/eco-paper-cups.md` | #188 | | |  |  |
 | C-eco-paper-cups-07 | `docs/content/eco-paper-cups.md` | #188 | - **Honest claims** — Certification documents verified per product before marketing use. | - **Честные формулировки** — Сертификаты проверяются до использования в маркетинге. |  |  |
 | C-eco-paper-cups-08 | `docs/content/eco-paper-cups.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
-| C-eco-paper-cups-09 | `docs/content/eco-paper-cups.md` | #188 | Lining \| Water-based (aqueous) dispersion or PLA | Покрытие \| По запросу |  |  |
+| C-eco-paper-cups-09 | `docs/content/eco-paper-cups.md` | #188 | Lining \| On request | Покрытие \| По запросу |  |  |
 | C-eco-paper-cups-10 | `docs/content/eco-paper-cups.md` | #188 | Types \| Single / double wall | Виды \| Однослойные / двухслойные |  |  |
-| C-eco-paper-cups-11 | `docs/content/eco-paper-cups.md` | #188 | Sizes \| TBD (aligned with custom-paper-cups range) | Объемы \| По запросу |  |  |
-| C-eco-paper-cups-12 | `docs/content/eco-paper-cups.md` | #188 | Certifications \| TBD — e.g. industrial compostability certificates only if held | |  |  |
-| C-eco-paper-cups-13 | `docs/content/eco-paper-cups.md` | #188 | Accessories \| Fiber/paper lids, sleeves (TBD) | Аксессуары \| По запросу |  |  |
-| C-eco-paper-cups-14 | `docs/content/eco-paper-cups.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-eco-paper-cups-15 | `docs/content/eco-paper-cups.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-eco-paper-cups-16 | `docs/content/eco-paper-cups.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-eco-paper-cups-11 | `docs/content/eco-paper-cups.md` | #188 | Sizes \| On request | Объемы \| По запросу |  |  |
+| C-eco-paper-cups-12 | `docs/content/eco-paper-cups.md` | #188 | | |  |  |
+| C-eco-paper-cups-13 | `docs/content/eco-paper-cups.md` | #188 | Accessories \| On request | Аксессуары \| По запросу |  |  |
+| C-eco-paper-cups-14 | `docs/content/eco-paper-cups.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-eco-paper-cups-15 | `docs/content/eco-paper-cups.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-eco-paper-cups-16 | `docs/content/eco-paper-cups.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-eco-paper-cups-17 | `docs/content/eco-paper-cups.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-eco-paper-cups-18 | `docs/content/eco-paper-cups.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-eco-paper-cups-19 | `docs/content/eco-paper-cups.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-eco-paper-cups-20 | `docs/content/eco-paper-cups.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-eco-paper-cups-20 | `docs/content/eco-paper-cups.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-eco-paper-cups-21 | `docs/content/eco-paper-cups.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-eco-paper-cups-22 | `docs/content/eco-paper-cups.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-eco-paper-cups-23 | `docs/content/eco-paper-cups.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
-| C-eco-paper-cups-24 | `docs/content/eco-paper-cups.md` | #188 | - **Q: Are these cups home compostable?** | |  |  |
-| C-eco-paper-cups-25 | `docs/content/eco-paper-cups.md` | #188 | A: Do not assume. Home vs industrial compostability depends on certification: TBD. | О: Это зависит от покрытия и сертификата на конкретный продукт. |  |  |
-| C-eco-paper-cups-26 | `docs/content/eco-paper-cups.md` | #188 | - **Q: What is the difference between PLA and water-based lining?** | |  |  |
-| C-eco-paper-cups-27 | `docs/content/eco-paper-cups.md` | #188 | A: PLA is a plant-based plastic lining; aqueous is a water-based barrier coating. Suitability by drink type TBD. | |  |  |
+| C-eco-paper-cups-24 | `docs/content/eco-paper-cups.md` | #188 | | |  |  |
+| C-eco-paper-cups-25 | `docs/content/eco-paper-cups.md` | #188 | | |  |  |
+| C-eco-paper-cups-26 | `docs/content/eco-paper-cups.md` | #188 | | |  |  |
+| C-eco-paper-cups-27 | `docs/content/eco-paper-cups.md` | #188 | | |  |  |
 | C-eco-paper-cups-28 | `docs/content/eco-paper-cups.md` | #188 | - **Q: Can I print "compostable" on my cups?** | - **В: Можно ли написать «компостируемый» на стакане?** |  |  |
 | C-eco-paper-cups-29 | `docs/content/eco-paper-cups.md` | #188 | A: Only with valid certification for that exact product; we will provide documents if available. | О: Только при наличии сертификата на конкретный продукт. |  |  |
 | C-eco-paper-cups-kw-Транзакционные | `docs/content/eco-paper-cups.md` | #188 |  | **Транзакционные (主页面)**: биоразлагаемые стаканы, эко стаканы без пластика, компостируемые стаканы оптом, экологичные бумажные стаканы с логотипом |  |  |
@@ -114,19 +114,19 @@
 | C-custom-christmas-packaging-10 | `docs/content/custom-christmas-packaging.md` | #188 | Material \| Rigid board, folding carton, corrugated, kraft | Материал \| Переплетный картон, картон, гофрокартон, крафт |  |  |
 | C-custom-christmas-packaging-11 | `docs/content/custom-christmas-packaging.md` | #188 | Printing \| Offset CMYK/Pantone, metallic inks | Печать \| Офсет CMYK/Pantone, металлизированные краски |  |  |
 | C-custom-christmas-packaging-12 | `docs/content/custom-christmas-packaging.md` | #188 | Finishes \| Foil, glitter, embossing, window, ribbon | Отделка \| Фольга, глиттер, конгрев, окно, лента |  |  |
-| C-custom-christmas-packaging-13 | `docs/content/custom-christmas-packaging.md` | #188 | Order deadline \| Recommended latest order date for on-time holiday delivery: TBD | Срок заказа \| По запросу |  |  |
-| C-custom-christmas-packaging-14 | `docs/content/custom-christmas-packaging.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-christmas-packaging-15 | `docs/content/custom-christmas-packaging.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-christmas-packaging-16 | `docs/content/custom-christmas-packaging.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-christmas-packaging-13 | `docs/content/custom-christmas-packaging.md` | #188 | Order deadline \| On request | Срок заказа \| По запросу |  |  |
+| C-custom-christmas-packaging-14 | `docs/content/custom-christmas-packaging.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-christmas-packaging-15 | `docs/content/custom-christmas-packaging.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-christmas-packaging-16 | `docs/content/custom-christmas-packaging.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-christmas-packaging-17 | `docs/content/custom-christmas-packaging.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-christmas-packaging-18 | `docs/content/custom-christmas-packaging.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-christmas-packaging-19 | `docs/content/custom-christmas-packaging.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-christmas-packaging-20 | `docs/content/custom-christmas-packaging.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-christmas-packaging-20 | `docs/content/custom-christmas-packaging.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-christmas-packaging-21 | `docs/content/custom-christmas-packaging.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-christmas-packaging-22 | `docs/content/custom-christmas-packaging.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-christmas-packaging-23 | `docs/content/custom-christmas-packaging.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-christmas-packaging-24 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: When should I order Christmas packaging?** | - **В: Когда заказывать новогоднюю упаковку?** |  |  |
-| C-custom-christmas-packaging-25 | `docs/content/custom-christmas-packaging.md` | #188 | A: As early as possible; the latest safe order date including shipping is TBD. | О: Как можно раньше; крайнюю дату с учетом доставки — по запросу. |  |  |
+| C-custom-christmas-packaging-25 | `docs/content/custom-christmas-packaging.md` | #188 | A: As early as possible; the latest safe order date including shipping is on request. | О: Как можно раньше; крайнюю дату с учетом доставки — по запросу. |  |  |
 | C-custom-christmas-packaging-26 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Do you make advent calendars?** | - **В: Делаете ли адвент-календари?** |  |  |
 | C-custom-christmas-packaging-27 | `docs/content/custom-christmas-packaging.md` | #188 | A: Yes, custom advent calendars with compartments. | О: Да, на заказ с ячейками. |  |  |
 | C-custom-christmas-packaging-28 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Can you make corporate New Year gift sets?** | - **В: Делаете ли корпоративные новогодние наборы?** |  |  |
@@ -141,26 +141,26 @@
 | C-custom-color-printing-03 | `docs/content/custom-color-printing.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
 | C-custom-color-printing-04 | `docs/content/custom-color-printing.md` | #188 | - **Accurate color** — CMYK + Pantone with proofing before production. | - **Точный цвет** — CMYK и пантоны с цветопробой до тиража. |  |  |
 | C-custom-color-printing-05 | `docs/content/custom-color-printing.md` | #188 | - **One supplier** — Boxes, labels, inserts and leaflets matched in color. | - **Один поставщик** — Коробки, этикетки, вкладыши и листовки в одном цвете. |  |  |
-| C-custom-color-printing-06 | `docs/content/custom-color-printing.md` | #188 | - **Finishing in-house** — Coating, lamination, foil, die-cutting. | - **Постпечатная обработка** — Лак, ламинация, фольга, высечка. |  |  |
+| C-custom-color-printing-06 | `docs/content/custom-color-printing.md` | #188 | - **Finishing** — Coating, lamination, foil, die-cutting. | - **Постпечатная обработка** — Лак, ламинация, фольга, высечка. |  |  |
 | C-custom-color-printing-07 | `docs/content/custom-color-printing.md` | #188 | - **Export support** — Packing and documentation for international shipment. | - **Экспорт** — Упаковка и документы для международных поставок. |  |  |
 | C-custom-color-printing-08 | `docs/content/custom-color-printing.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
 | C-custom-color-printing-09 | `docs/content/custom-color-printing.md` | #188 | Products \| Packaging, labels, inserts, leaflets, hang tags | Продукция \| Упаковка, этикетки, вкладыши, листовки, бирки |  |  |
 | C-custom-color-printing-10 | `docs/content/custom-color-printing.md` | #188 | Substrates \| Coated/uncoated paper, paperboard, kraft | Материалы \| Мелованная/немелованная бумага, картон, крафт |  |  |
-| C-custom-color-printing-11 | `docs/content/custom-color-printing.md` | #188 | Colors \| CMYK, Pantone spot, white ink on kraft (TBD) | Цвета \| CMYK, пантоны; белила по крафту — по запросу |  |  |
-| C-custom-color-printing-12 | `docs/content/custom-color-printing.md` | #188 | Proofing \| Digital proof; physical/press proof TBD | Пробы \| Цифровая; физическая/печатная — по запросу |  |  |
+| C-custom-color-printing-11 | `docs/content/custom-color-printing.md` | #188 | Colors \| CMYK, Pantone spot; white ink on kraft on request | Цвета \| CMYK, пантоны; белила по крафту — по запросу |  |  |
+| C-custom-color-printing-12 | `docs/content/custom-color-printing.md` | #188 | Proofing \| Digital proof; physical/press proof on request | Пробы \| Цифровая; физическая/печатная — по запросу |  |  |
 | C-custom-color-printing-13 | `docs/content/custom-color-printing.md` | #188 | Finishes \| Varnish, lamination, foil, embossing, die-cut | Отделка \| Лак, ламинация, фольга, конгрев, высечка |  |  |
-| C-custom-color-printing-14 | `docs/content/custom-color-printing.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-color-printing-15 | `docs/content/custom-color-printing.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-color-printing-16 | `docs/content/custom-color-printing.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-color-printing-14 | `docs/content/custom-color-printing.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-color-printing-15 | `docs/content/custom-color-printing.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-color-printing-16 | `docs/content/custom-color-printing.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-color-printing-17 | `docs/content/custom-color-printing.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-color-printing-18 | `docs/content/custom-color-printing.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-color-printing-19 | `docs/content/custom-color-printing.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-color-printing-20 | `docs/content/custom-color-printing.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-color-printing-20 | `docs/content/custom-color-printing.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-color-printing-21 | `docs/content/custom-color-printing.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-color-printing-22 | `docs/content/custom-color-printing.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-color-printing-23 | `docs/content/custom-color-printing.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-color-printing-24 | `docs/content/custom-color-printing.md` | #188 | - **Q: Which file formats do you accept?** | - **В: Какие форматы файлов принимаете?** |  |  |
-| C-custom-color-printing-25 | `docs/content/custom-color-printing.md` | #188 | A: Print-ready PDF / AI with outlined fonts and bleed (requirements TBD in a file-prep guide). | О: PDF/AI для печати, шрифты в кривых, вылеты; требования — по запросу. |  |  |
+| C-custom-color-printing-25 | `docs/content/custom-color-printing.md` | #188 | A: Print-ready PDF / AI with outlined fonts and bleed; requirements on request. | О: PDF/AI для печати, шрифты в кривых, вылеты; требования — по запросу. |  |  |
 | C-custom-color-printing-26 | `docs/content/custom-color-printing.md` | #188 | - **Q: How do you ensure color consistency?** | - **В: Как обеспечивается стабильность цвета?** |  |  |
 | C-custom-color-printing-27 | `docs/content/custom-color-printing.md` | #188 | A: Pantone references and proof approval before the run. | О: Пантонные эталоны и утверждение пробы до тиража. |  |  |
 | C-custom-color-printing-28 | `docs/content/custom-color-printing.md` | #188 | - **Q: Can you print labels and boxes together?** | - **В: Можно ли напечатать этикетки и коробки вместе?** |  |  |
@@ -171,32 +171,32 @@
 | C-custom-color-printing-outline-1 | `docs/content/custom-color-printing.md` | #188 |  | Как добиться точного фирменного цвета в печати |  |  |
 | C-custom-color-printing-outline-2 | `docs/content/custom-color-printing.md` | #188 |  | H2s: Пантоны; пробы; материалы; контроль |  |  |
 | C-custom-corrugated-boxes-01 | `docs/content/custom-corrugated-boxes.md` | #188 | ### H1: Custom Corrugated Boxes | ### H1: Гофрокороба на заказ |  |  |
-| C-custom-corrugated-boxes-02 | `docs/content/custom-corrugated-boxes.md` | #188 | PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. As a factory-direct export supplier, we work with importers, distributors and brands who need consistent quality across repeat orders. | PackJoyU производит гофрокороба на заказ для доставки, интернет-торговли и розницы: почтовые коробки, четырехклапанные короба и демонстрационную упаковку точно под ваши размеры. Мы наносим логотип и дизайн прямо на гофрокартон, поэтому коробка защищает товар при перевозке и при этом работает на узнаваемость бренда. Мы поставляем продукцию импортерам, дистрибьюторам и брендам, которым важно стабильное качество от партии к партии. |  |  |
+| C-custom-corrugated-boxes-02 | `docs/content/custom-corrugated-boxes.md` | #188 | PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. We work with importers, distributors and brands who need consistent quality across repeat orders. | PackJoyU производит гофрокороба на заказ для доставки, интернет-торговли и розницы: почтовые коробки, четырехклапанные короба и демонстрационную упаковку точно под ваши размеры. Мы наносим логотип и дизайн прямо на гофрокартон, поэтому коробка защищает товар при перевозке и при этом работает на узнаваемость бренда. Мы поставляем продукцию импортерам, дистрибьюторам и брендам, которым важно стабильное качество от партии к партии. |  |  |
 | C-custom-corrugated-boxes-03 | `docs/content/custom-corrugated-boxes.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
 | C-custom-corrugated-boxes-04 | `docs/content/custom-corrugated-boxes.md` | #188 | - **Made to your size** — Every box is cut to your product dimensions, reducing void fill and shipping volume. | - **Точно по размеру** — Каждая коробка изготавливается под габариты товара — меньше наполнителя и объема при доставке. |  |  |
 | C-custom-corrugated-boxes-05 | `docs/content/custom-corrugated-boxes.md` | #188 | - **Branded unboxing** — Flexo or digital printing inside and outside, from one-color logos to full artwork. | - **Фирменная распаковка** — Флексо- или цифровая печать снаружи и внутри: от логотипа в один цвет до полноцветного дизайна. |  |  |
 | C-custom-corrugated-boxes-06 | `docs/content/custom-corrugated-boxes.md` | #188 | - **Built for transit** — Board grade and flute selected for your product weight and shipping route. | - **Прочность при перевозке** — Марку картона и профиль гофры подбираем под вес товара и маршрут доставки. |  |  |
-| C-custom-corrugated-boxes-07 | `docs/content/custom-corrugated-boxes.md` | #188 | - **Factory-direct export** — One supplier from structural design to export packing and documentation. | - **Один поставщик** — От конструкции коробки до экспортной упаковки и документов. |  |  |
+| C-custom-corrugated-boxes-07 | `docs/content/custom-corrugated-boxes.md` | #188 | - **One supplier** — From structural design to export packing and documentation. | - **Один поставщик** — От конструкции коробки до экспортной упаковки и документов. |  |  |
 | C-custom-corrugated-boxes-08 | `docs/content/custom-corrugated-boxes.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
 | C-custom-corrugated-boxes-09 | `docs/content/custom-corrugated-boxes.md` | #188 | Styles \| Mailer (tuck-front) boxes, regular slotted cartons (RSC), die-cut boxes, display/shelf-ready boxes | Конструкции \| Почтовые коробки (самосборные), четырехклапанные короба, высечные коробки, шоу-боксы |  |  |
 | C-custom-corrugated-boxes-10 | `docs/content/custom-corrugated-boxes.md` | #188 | Material \| Kraft or white corrugated board; flute and wall (single / double) to be confirmed per product | Материал \| Бурый или белый гофрокартон; профиль гофры и количество слоев — по продукту |  |  |
 | C-custom-corrugated-boxes-11 | `docs/content/custom-corrugated-boxes.md` | #188 | Printing \| Flexographic, digital or litho-laminated (offset print on liner) | Печать \| Флексопечать, цифровая печать или кашировка офсетным листом |  |  |
 | C-custom-corrugated-boxes-12 | `docs/content/custom-corrugated-boxes.md` | #188 | Finishes \| Matte/gloss varnish, lamination, inside printing, tear strips, inserts | Отделка \| Матовый/глянцевый лак, ламинация, печать внутри, отрывная лента, ложементы |  |  |
 | C-custom-corrugated-boxes-13 | `docs/content/custom-corrugated-boxes.md` | #188 | Sizes \| Custom — send product dimensions or a sample | Размеры \| Любые — пришлите габариты товара или образец |  |  |
-| C-custom-corrugated-boxes-14 | `docs/content/custom-corrugated-boxes.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-corrugated-boxes-15 | `docs/content/custom-corrugated-boxes.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-corrugated-boxes-16 | `docs/content/custom-corrugated-boxes.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-corrugated-boxes-14 | `docs/content/custom-corrugated-boxes.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-corrugated-boxes-15 | `docs/content/custom-corrugated-boxes.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-corrugated-boxes-16 | `docs/content/custom-corrugated-boxes.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-corrugated-boxes-17 | `docs/content/custom-corrugated-boxes.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-corrugated-boxes-18 | `docs/content/custom-corrugated-boxes.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-corrugated-boxes-19 | `docs/content/custom-corrugated-boxes.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-corrugated-boxes-20 | `docs/content/custom-corrugated-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-corrugated-boxes-20 | `docs/content/custom-corrugated-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-corrugated-boxes-21 | `docs/content/custom-corrugated-boxes.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-corrugated-boxes-22 | `docs/content/custom-corrugated-boxes.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-corrugated-boxes-23 | `docs/content/custom-corrugated-boxes.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-corrugated-boxes-24 | `docs/content/custom-corrugated-boxes.md` | #188 | - **Q: Can you design the box structure for my product?** | - **В: Можете ли вы разработать конструкцию коробки?** |  |  |
 | C-custom-corrugated-boxes-25 | `docs/content/custom-corrugated-boxes.md` | #188 | A: Yes. Send your product dimensions and weight, and our team will propose a structure and dieline for approval. | О: Да. Пришлите размеры и вес товара — мы предложим конструкцию и развертку на согласование. |  |  |
 | C-custom-corrugated-boxes-26 | `docs/content/custom-corrugated-boxes.md` | #188 | - **Q: Can you print inside the box?** | - **В: Возможна ли печать внутри коробки?** |  |  |
-| C-custom-corrugated-boxes-27 | `docs/content/custom-corrugated-boxes.md` | #188 | A: Yes, inside printing is available for mailer boxes. Cost and lead time impact: TBD. | О: Да, для почтовых коробок доступна печать внутри. Влияние на цену и сроки — по запросу. |  |  |
+| C-custom-corrugated-boxes-27 | `docs/content/custom-corrugated-boxes.md` | #188 | A: Yes, inside printing is available for mailer boxes. Cost and lead time impact: on request. | О: Да, для почтовых коробок доступна печать внутри. Влияние на цену и сроки — по запросу. |  |  |
 | C-custom-corrugated-boxes-28 | `docs/content/custom-corrugated-boxes.md` | #188 | - **Q: Do you ship to my country?** | - **В: Доставляете ли вы в Россию?** |  |  |
 | C-custom-corrugated-boxes-29 | `docs/content/custom-corrugated-boxes.md` | #188 | A: We export worldwide. Shipping terms (e.g. FOB/CIF) are confirmed per quote. | О: Да, мы экспортируем продукцию, условия поставки уточняются в расчёте. |  |  |
 | C-custom-corrugated-boxes-kw-Транзакционные | `docs/content/custom-corrugated-boxes.md` | #188 |  | **Транзакционные (主页面)**: гофрокороба на заказ, производство гофрокоробов, гофрокороб оптом, гофрокоробка с логотипом купить |  |  |
@@ -217,13 +217,13 @@
 | C-custom-gift-boxes-11 | `docs/content/custom-gift-boxes.md` | #188 | Printing \| Offset CMYK/Pantone on wrapping paper | Печать \| Офсет CMYK/Pantone на оклеечной бумаге |  |  |
 | C-custom-gift-boxes-12 | `docs/content/custom-gift-boxes.md` | #188 | Finishes \| Foil, embossing/debossing, spot UV, lamination, ribbon pull, magnets | Отделка \| Фольга, конгрев/блинтовое тиснение, выборочный лак, ламинация, лента, магниты |  |  |
 | C-custom-gift-boxes-13 | `docs/content/custom-gift-boxes.md` | #188 | Inserts \| EVA, foam, paperboard, molded pulp, satin lining | Ложементы \| EVA, поролон, картон, формованная целлюлоза, атлас |  |  |
-| C-custom-gift-boxes-14 | `docs/content/custom-gift-boxes.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-gift-boxes-15 | `docs/content/custom-gift-boxes.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-gift-boxes-16 | `docs/content/custom-gift-boxes.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-gift-boxes-14 | `docs/content/custom-gift-boxes.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-gift-boxes-15 | `docs/content/custom-gift-boxes.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-gift-boxes-16 | `docs/content/custom-gift-boxes.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-gift-boxes-17 | `docs/content/custom-gift-boxes.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-gift-boxes-18 | `docs/content/custom-gift-boxes.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-gift-boxes-19 | `docs/content/custom-gift-boxes.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-gift-boxes-20 | `docs/content/custom-gift-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-gift-boxes-20 | `docs/content/custom-gift-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-gift-boxes-21 | `docs/content/custom-gift-boxes.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-gift-boxes-22 | `docs/content/custom-gift-boxes.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-gift-boxes-23 | `docs/content/custom-gift-boxes.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
@@ -243,64 +243,64 @@
 | C-custom-gift-cards-03 | `docs/content/custom-gift-cards.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
 | C-custom-gift-cards-04 | `docs/content/custom-gift-cards.md` | #188 | - **Premium look** — Foil, spot UV, embossing, special papers. | - **Премиальный вид** — Фольга, выборочный лак, конгрев, дизайнерская бумага. |  |  |
 | C-custom-gift-cards-05 | `docs/content/custom-gift-cards.md` | #188 | - **Complete set** — Cards, holders, envelopes and boxes in one design. | - **Полный комплект** — Карты, держатели, конверты и коробки в одном дизайне. |  |  |
-| C-custom-gift-cards-06 | `docs/content/custom-gift-cards.md` | #188 | - **Personalization** — Variable numbering/barcodes (capability TBD). | - **Персонализация** — Нумерация/штрихкоды — по запросу. |  |  |
+| C-custom-gift-cards-06 | `docs/content/custom-gift-cards.md` | #188 | - **Personalization** — Variable numbering/barcodes on request. | - **Персонализация** — Нумерация/штрихкоды — по запросу. |  |  |
 | C-custom-gift-cards-07 | `docs/content/custom-gift-cards.md` | #188 | - **Retail-ready** — Hang-tab holders and display packs. | - **Для розницы** — Держатели с европодвесом и упаковка для выкладки. |  |  |
 | C-custom-gift-cards-08 | `docs/content/custom-gift-cards.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
 | C-custom-gift-cards-09 | `docs/content/custom-gift-cards.md` | #188 | Products \| Gift cards, vouchers, certificates, card holders, envelopes, gift card boxes | Продукция \| Подарочные карты, ваучеры, сертификаты, держатели, конверты, коробки |  |  |
-| C-custom-gift-cards-10 | `docs/content/custom-gift-cards.md` | #188 | Material \| Paperboard / special papers (plastic PVC cards: TBD whether offered) | Материал \| Картон / дизайнерская бумага |  |  |
+| C-custom-gift-cards-10 | `docs/content/custom-gift-cards.md` | #188 | Material \| Paperboard / special papers | Материал \| Картон / дизайнерская бумага |  |  |
 | C-custom-gift-cards-11 | `docs/content/custom-gift-cards.md` | #188 | Printing \| Offset CMYK/Pantone | Печать \| Офсет CMYK/Pantone |  |  |
-| C-custom-gift-cards-12 | `docs/content/custom-gift-cards.md` | #188 | Finishes \| Foil, spot UV, embossing, edge painting (TBD) | Отделка \| Фольга, выборочный лак, конгрев, окраска торца — по запросу |  |  |
-| C-custom-gift-cards-13 | `docs/content/custom-gift-cards.md` | #188 | Variable data \| Numbering, barcode/QR — TBD | Переменные данные \| Нумерация, штрихкод/QR — по запросу |  |  |
-| C-custom-gift-cards-14 | `docs/content/custom-gift-cards.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-gift-cards-15 | `docs/content/custom-gift-cards.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-gift-cards-16 | `docs/content/custom-gift-cards.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-gift-cards-12 | `docs/content/custom-gift-cards.md` | #188 | Finishes \| Foil, spot UV, embossing, edge painting on request | Отделка \| Фольга, выборочный лак, конгрев, окраска торца — по запросу |  |  |
+| C-custom-gift-cards-13 | `docs/content/custom-gift-cards.md` | #188 | Variable data \| Numbering, barcode/QR — on request | Переменные данные \| Нумерация, штрихкод/QR — по запросу |  |  |
+| C-custom-gift-cards-14 | `docs/content/custom-gift-cards.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-gift-cards-15 | `docs/content/custom-gift-cards.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-gift-cards-16 | `docs/content/custom-gift-cards.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-gift-cards-17 | `docs/content/custom-gift-cards.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-gift-cards-18 | `docs/content/custom-gift-cards.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-gift-cards-19 | `docs/content/custom-gift-cards.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-gift-cards-20 | `docs/content/custom-gift-cards.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-gift-cards-20 | `docs/content/custom-gift-cards.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-gift-cards-21 | `docs/content/custom-gift-cards.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-gift-cards-22 | `docs/content/custom-gift-cards.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-gift-cards-23 | `docs/content/custom-gift-cards.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-gift-cards-24 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Can each card have a unique number or barcode?** | - **В: Можно ли уникальный номер или штрихкод на каждой карте?** |  |  |
-| C-custom-gift-cards-25 | `docs/content/custom-gift-cards.md` | #188 | A: Variable data printing capability: TBD. | О: Возможность печати переменных данных — по запросу. |  |  |
+| C-custom-gift-cards-25 | `docs/content/custom-gift-cards.md` | #188 | A: Variable data printing capability: on request. | О: Возможность печати переменных данных — по запросу. |  |  |
 | C-custom-gift-cards-26 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Do you make packaging for gift cards?** | - **В: Делаете ли упаковку для карт?** |  |  |
 | C-custom-gift-cards-27 | `docs/content/custom-gift-cards.md` | #188 | A: Yes, holders, envelopes and boxes. | О: Да, держатели, конверты и коробки. |  |  |
 | C-custom-gift-cards-28 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Can you print plastic cards?** | - **В: Печатаете пластиковые карты?** |  |  |
-| C-custom-gift-cards-29 | `docs/content/custom-gift-cards.md` | #188 | A: TBD — confirm with factory before offering. | О: По запросу. |  |  |
+| C-custom-gift-cards-29 | `docs/content/custom-gift-cards.md` | #188 | A: On request. | О: По запросу. |  |  |
 | C-custom-gift-cards-kw-Транзакционные | `docs/content/custom-gift-cards.md` | #188 |  | **Транзакционные (主页面)**: печать подарочных карт, подарочные сертификаты на заказ, упаковка для подарочных карт, конверты для сертификатов |  |  |
 | C-custom-gift-cards-kw-Коммерческие | `docs/content/custom-gift-cards.md` | #188 |  | **Коммерческие (主页面 + 小节)**: печать ваучеров, держатель для подарочной карты, подарочный сертификат с логотипом |  |  |
 | C-custom-gift-cards-kw-Информационные | `docs/content/custom-gift-cards.md` | #188 |  | **Информационные (博客文章)**: как оформить подарочный сертификат, бумажные или пластиковые карты |  |  |
 | C-custom-gift-cards-outline-1 | `docs/content/custom-gift-cards.md` | #188 |  | Подарочные сертификаты для бизнеса: печать и упаковка |  |  |
 | C-custom-gift-cards-outline-2 | `docs/content/custom-gift-cards.md` | #188 |  | H2s: Варианты; отделка; сроки |  |  |
 | C-custom-paper-cups-01 | `docs/content/custom-paper-cups.md` | #188 | ### H1: Custom Paper Cups | ### H1: Бумажные стаканы с логотипом |  |  |
-| C-custom-paper-cups-02 | `docs/content/custom-paper-cups.md` | #188 | PackJoyU manufactures custom printed paper cups for coffee shops, restaurant chains, events and brands. Choose single wall, double wall or ripple wall cups in a range of sizes, printed with your logo and artwork using food-contact inks, with matching lids and sleeves available. Your cup becomes a moving advertisement every time a customer walks out the door. | PackJoyU производит бумажные стаканы с печатью для кофеен, ресторанных сетей, мероприятий и брендов. Выбирайте однослойные, двухслойные или гофрированные стаканы разных объемов с вашим логотипом; в комплекте доступны крышки и манжеты. Ваш стакан становится рекламой каждый раз, когда гость выходит из кофейни. |  |  |
+| C-custom-paper-cups-02 | `docs/content/custom-paper-cups.md` | #188 | PackJoyU manufactures custom printed paper cups for coffee shops, restaurant chains, events and brands. Choose single wall, double wall or ripple wall cups in a range of sizes, printed with your logo and artwork, with matching lids and sleeves available. Your cup becomes a moving advertisement every time a customer walks out the door. | PackJoyU производит бумажные стаканы с печатью для кофеен, ресторанных сетей, мероприятий и брендов. Выбирайте однослойные, двухслойные или гофрированные стаканы разных объемов с вашим логотипом; в комплекте доступны крышки и манжеты. Ваш стакан становится рекламой каждый раз, когда гость выходит из кофейни. |  |  |
 | C-custom-paper-cups-03 | `docs/content/custom-paper-cups.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
 | C-custom-paper-cups-04 | `docs/content/custom-paper-cups.md` | #188 | - **Your brand in every hand** — Full-wrap printing of logo and artwork. | - **Ваш бренд в каждой руке** — Печать логотипа и дизайна по всей поверхности. |  |  |
 | C-custom-paper-cups-05 | `docs/content/custom-paper-cups.md` | #188 | - **Hot and cold** — Single, double and ripple wall for heat insulation; cold cup options. | - **Горячие и холодные напитки** — Однослойные, двухслойные и гофрированные стаканы; варианты для холодных напитков. |  |  |
 | C-custom-paper-cups-06 | `docs/content/custom-paper-cups.md` | #188 | - **Matching accessories** — Lids, sleeves and carriers to complete the set. | - **Аксессуары в комплекте** — Крышки, манжеты и подставки. |  |  |
-| C-custom-paper-cups-07 | `docs/content/custom-paper-cups.md` | #188 | - **Food-contact materials** — Food-grade paperboard and inks; documentation per market TBD. | |  |  |
+| C-custom-paper-cups-07 | `docs/content/custom-paper-cups.md` | #188 | | |  |  |
 | C-custom-paper-cups-08 | `docs/content/custom-paper-cups.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
 | C-custom-paper-cups-09 | `docs/content/custom-paper-cups.md` | #188 | Types \| Single wall, double wall, ripple wall, cold cups | Виды \| Однослойные, двухслойные, гофрированные, для холодных напитков |  |  |
-| C-custom-paper-cups-10 | `docs/content/custom-paper-cups.md` | #188 | Sizes \| Common sizes approx. 4–22 oz (exact range TBD by factory) | Объемы \| По запросу |  |  |
-| C-custom-paper-cups-11 | `docs/content/custom-paper-cups.md` | #188 | Lining \| PE lining; water-based / PLA see compostable-paper-cups | Покрытие \| ПЭ; другие варианты — по запросу |  |  |
+| C-custom-paper-cups-10 | `docs/content/custom-paper-cups.md` | #188 | Sizes \| On request | Объемы \| По запросу |  |  |
+| C-custom-paper-cups-11 | `docs/content/custom-paper-cups.md` | #188 | Lining \| PE lining; other options on request | Покрытие \| ПЭ; другие варианты — по запросу |  |  |
 | C-custom-paper-cups-12 | `docs/content/custom-paper-cups.md` | #188 | Printing \| Flexo or offset, full-wrap | Печать \| Флексо или офсет по всей поверхности |  |  |
 | C-custom-paper-cups-13 | `docs/content/custom-paper-cups.md` | #188 | Accessories \| PS/PP/fiber lids, sleeves, carriers | Аксессуары \| Крышки PS/PP/из волокна, манжеты, подставки |  |  |
-| C-custom-paper-cups-14 | `docs/content/custom-paper-cups.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-paper-cups-15 | `docs/content/custom-paper-cups.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-paper-cups-16 | `docs/content/custom-paper-cups.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-paper-cups-14 | `docs/content/custom-paper-cups.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-paper-cups-15 | `docs/content/custom-paper-cups.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-paper-cups-16 | `docs/content/custom-paper-cups.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-paper-cups-17 | `docs/content/custom-paper-cups.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-paper-cups-18 | `docs/content/custom-paper-cups.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-paper-cups-19 | `docs/content/custom-paper-cups.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-paper-cups-20 | `docs/content/custom-paper-cups.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-paper-cups-20 | `docs/content/custom-paper-cups.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-paper-cups-21 | `docs/content/custom-paper-cups.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-paper-cups-22 | `docs/content/custom-paper-cups.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-paper-cups-23 | `docs/content/custom-paper-cups.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-paper-cups-24 | `docs/content/custom-paper-cups.md` | #188 | - **Q: What sizes are available?** | - **В: Какие объемы доступны?** |  |  |
-| C-custom-paper-cups-25 | `docs/content/custom-paper-cups.md` | #188 | A: Common coffee cup sizes; confirm exact sizes with your quote (TBD). | О: Стандартные объемы для кофе; точный ряд — по запросу. |  |  |
+| C-custom-paper-cups-25 | `docs/content/custom-paper-cups.md` | #188 | A: Common coffee cup sizes; exact range on request. | О: Стандартные объемы для кофе; точный ряд — по запросу. |  |  |
 | C-custom-paper-cups-26 | `docs/content/custom-paper-cups.md` | #188 | - **Q: Can you match lids to the cup?** | - **В: Подойдут ли крышки к стакану?** |  |  |
 | C-custom-paper-cups-27 | `docs/content/custom-paper-cups.md` | #188 | A: Yes, matching lids are available for each rim size. | О: Да, для каждого диаметра есть подходящие крышки. |  |  |
-| C-custom-paper-cups-28 | `docs/content/custom-paper-cups.md` | #188 | - **Q: Are the inks food safe?** | |  |  |
-| C-custom-paper-cups-29 | `docs/content/custom-paper-cups.md` | #188 | A: We use food-contact inks; certificates per market: TBD. | О: По запросу. |  |  |
+| C-custom-paper-cups-28 | `docs/content/custom-paper-cups.md` | #188 | | |  |  |
+| C-custom-paper-cups-29 | `docs/content/custom-paper-cups.md` | #188 | | |  |  |
 | C-custom-paper-cups-kw-Транзакционные | `docs/content/custom-paper-cups.md` | #188 |  | **Транзакционные (主页面)**: бумажные стаканы с логотипом, бумажные стаканчики оптом, стаканы для кофе с печатью, производство бумажных стаканов |  |  |
 | C-custom-paper-cups-kw-Коммерческие | `docs/content/custom-paper-cups.md` | #188 |  | **Коммерческие (主页面 + 小节)**: двухслойные стаканы с логотипом, стаканы для кофейни, крышки для бумажных стаканов, фирменные стаканы для кофе |  |  |
 | C-custom-paper-cups-kw-Информационные | `docs/content/custom-paper-cups.md` | #188 |  | **Информационные (博客文章)**: однослойный или двухслойный стакан, объемы стаканов для кофе, как сделать стаканы с логотипом |  |  |
@@ -315,17 +315,17 @@
 | C-custom-party-supplies-07 | `docs/content/custom-party-supplies.md` | #188 | - **Seasonal themes** — Plan birthday, wedding and holiday lines in one order. | - **Сезонные серии** — Дни рождения, свадьбы и праздники в одном заказе. |  |  |
 | C-custom-party-supplies-08 | `docs/content/custom-party-supplies.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
 | C-custom-party-supplies-09 | `docs/content/custom-party-supplies.md` | #188 | Products \| Paper plates, cups, napkins, banners, cake toppers, party bags | Изделия \| Бумажные тарелки, стаканы, салфетки, гирлянды, топперы, пакеты |  |  |
-| C-custom-party-supplies-10 | `docs/content/custom-party-supplies.md` | #188 | Material \| Paperboard, tissue paper; coating options TBD | Материал \| Картон, тишью; покрытия — по запросу |  |  |
+| C-custom-party-supplies-10 | `docs/content/custom-party-supplies.md` | #188 | Material \| Paperboard, tissue paper; coating options on request | Материал \| Картон, тишью; покрытия — по запросу |  |  |
 | C-custom-party-supplies-11 | `docs/content/custom-party-supplies.md` | #188 | Printing \| Offset / flexo, Pantone matching | Печать \| Офсет / флексо, пантоны |  |  |
 | C-custom-party-supplies-12 | `docs/content/custom-party-supplies.md` | #188 | Finishes \| Foil accents, die-cut shapes | Отделка \| Фольга, фигурная высечка |  |  |
 | C-custom-party-supplies-13 | `docs/content/custom-party-supplies.md` | #188 | Packing \| Shrink-wrap, header card, retail box | Упаковка \| Термоусадка, хедер, коробка |  |  |
-| C-custom-party-supplies-14 | `docs/content/custom-party-supplies.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-party-supplies-15 | `docs/content/custom-party-supplies.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-party-supplies-16 | `docs/content/custom-party-supplies.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-party-supplies-14 | `docs/content/custom-party-supplies.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-party-supplies-15 | `docs/content/custom-party-supplies.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-party-supplies-16 | `docs/content/custom-party-supplies.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-party-supplies-17 | `docs/content/custom-party-supplies.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-party-supplies-18 | `docs/content/custom-party-supplies.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-party-supplies-19 | `docs/content/custom-party-supplies.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-party-supplies-20 | `docs/content/custom-party-supplies.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-party-supplies-20 | `docs/content/custom-party-supplies.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-party-supplies-21 | `docs/content/custom-party-supplies.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-party-supplies-22 | `docs/content/custom-party-supplies.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-party-supplies-23 | `docs/content/custom-party-supplies.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
@@ -333,8 +333,8 @@
 | C-custom-party-supplies-25 | `docs/content/custom-party-supplies.md` | #188 | A: Yes, we coordinate designs across product types. | О: Да, согласуем дизайн для всех видов изделий. |  |  |
 | C-custom-party-supplies-26 | `docs/content/custom-party-supplies.md` | #188 | - **Q: Do you offer private-label packing?** | - **В: Упаковка под вашей маркой?** |  |  |
 | C-custom-party-supplies-27 | `docs/content/custom-party-supplies.md` | #188 | A: Yes, with your barcode and brand on the pack. | О: Да, со штрихкодом и брендом на упаковке. |  |  |
-| C-custom-party-supplies-28 | `docs/content/custom-party-supplies.md` | #188 | - **Q: Can party supplies be plastic-free?** | |  |  |
-| C-custom-party-supplies-29 | `docs/content/custom-party-supplies.md` | #188 | A: Paper options exist; specific coating/compostability claims TBD. | |  |  |
+| C-custom-party-supplies-28 | `docs/content/custom-party-supplies.md` | #188 | | |  |  |
+| C-custom-party-supplies-29 | `docs/content/custom-party-supplies.md` | #188 | | |  |  |
 | C-custom-party-supplies-kw-Транзакционные | `docs/content/custom-party-supplies.md` | #188 |  | **Транзакционные (主页面)**: бумажная посуда для праздника оптом, одноразовая посуда с печатью, товары для праздника оптом, праздничные тарелки и стаканы |  |  |
 | C-custom-party-supplies-kw-Коммерческие | `docs/content/custom-party-supplies.md` | #188 |  | **Коммерческие (主页面 + 小节)**: салфетки с печатью на заказ, посуда для дня рождения, бумажный декор для праздника, товары для праздника под СТМ |  |  |
 | C-custom-party-supplies-kw-Информационные | `docs/content/custom-party-supplies.md` | #188 |  | **Информационные (博客文章)**: экологичная одноразовая посуда, как продавать товары для праздника на маркетплейсе |  |  |
@@ -353,13 +353,13 @@
 | C-custom-printed-boxes-11 | `docs/content/custom-printed-boxes.md` | #188 | Printing \| Offset CMYK, Pantone spot colors | Печать \| Офсет CMYK, пантоны |  |  |
 | C-custom-printed-boxes-12 | `docs/content/custom-printed-boxes.md` | #188 | Finishes \| Foil stamping, embossing, spot UV, matte/gloss/soft-touch lamination, window patching | Отделка \| Тиснение фольгой, конгрев, выборочный лак, матовая/глянцевая/soft-touch ламинация, окно |  |  |
 | C-custom-printed-boxes-13 | `docs/content/custom-printed-boxes.md` | #188 | Sizes \| Custom | Размеры \| Любые |  |  |
-| C-custom-printed-boxes-14 | `docs/content/custom-printed-boxes.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-printed-boxes-15 | `docs/content/custom-printed-boxes.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-printed-boxes-16 | `docs/content/custom-printed-boxes.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-printed-boxes-14 | `docs/content/custom-printed-boxes.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-printed-boxes-15 | `docs/content/custom-printed-boxes.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-printed-boxes-16 | `docs/content/custom-printed-boxes.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-printed-boxes-17 | `docs/content/custom-printed-boxes.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-printed-boxes-18 | `docs/content/custom-printed-boxes.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-printed-boxes-19 | `docs/content/custom-printed-boxes.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-printed-boxes-20 | `docs/content/custom-printed-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-printed-boxes-20 | `docs/content/custom-printed-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-printed-boxes-21 | `docs/content/custom-printed-boxes.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-printed-boxes-22 | `docs/content/custom-printed-boxes.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-printed-boxes-23 | `docs/content/custom-printed-boxes.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
@@ -368,7 +368,7 @@
 | C-custom-printed-boxes-26 | `docs/content/custom-printed-boxes.md` | #188 | - **Q: Do you provide dielines?** | - **В: Вы предоставляете развертку (штамп)?** |  |  |
 | C-custom-printed-boxes-27 | `docs/content/custom-printed-boxes.md` | #188 | A: Yes, we can supply a dieline for your product size so your designer can place artwork. | О: Да, подготовим развертку под размер товара для вашего дизайнера. |  |  |
 | C-custom-printed-boxes-28 | `docs/content/custom-printed-boxes.md` | #188 | - **Q: Can I get a physical sample first?** | - **В: Можно ли сначала получить образец?** |  |  |
-| C-custom-printed-boxes-29 | `docs/content/custom-printed-boxes.md` | #188 | A: Yes. Sample cost and lead time: TBD. | О: Да. Стоимость и сроки образца — по запросу. |  |  |
+| C-custom-printed-boxes-29 | `docs/content/custom-printed-boxes.md` | #188 | A: Yes. Sample cost and lead time: on request. | О: Да. Стоимость и сроки образца — по запросу. |  |  |
 | C-custom-printed-boxes-kw-Транзакционные | `docs/content/custom-printed-boxes.md` | #188 |  | **Транзакционные (主页面)**: картонные коробки с печатью, коробки с логотипом на заказ, производство картонной упаковки, упаковка для косметики оптом |  |  |
 | C-custom-printed-boxes-kw-Коммерческие | `docs/content/custom-printed-boxes.md` | #188 |  | **Коммерческие (主页面 + 小节)**: коробки для косметики на заказ, коробки с окном, упаковка для БАДов, подарочная картонная упаковка |  |  |
 | C-custom-printed-boxes-kw-Информационные | `docs/content/custom-printed-boxes.md` | #188 |  | **Информационные (博客文章)**: что такое развертка коробки, виды ламинации, как подготовить макет коробки |  |  |
@@ -387,20 +387,20 @@
 | C-custom-wine-boxes-11 | `docs/content/custom-wine-boxes.md` | #188 | Material \| Rigid greyboard + specialty paper; corrugated for shipping | Материал \| Переплетный картон + дизайнерская бумага; гофрокартон для доставки |  |  |
 | C-custom-wine-boxes-12 | `docs/content/custom-wine-boxes.md` | #188 | Finishes \| Foil, embossing, spot UV, soft-touch, ribbon | Отделка \| Фольга, конгрев, выборочный лак, soft-touch, лента |  |  |
 | C-custom-wine-boxes-13 | `docs/content/custom-wine-boxes.md` | #188 | Inserts \| EVA, paperboard, molded pulp, satin | Ложементы \| EVA, картон, формованная целлюлоза, атлас |  |  |
-| C-custom-wine-boxes-14 | `docs/content/custom-wine-boxes.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-custom-wine-boxes-15 | `docs/content/custom-wine-boxes.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-custom-wine-boxes-16 | `docs/content/custom-wine-boxes.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-custom-wine-boxes-14 | `docs/content/custom-wine-boxes.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-custom-wine-boxes-15 | `docs/content/custom-wine-boxes.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-custom-wine-boxes-16 | `docs/content/custom-wine-boxes.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-custom-wine-boxes-17 | `docs/content/custom-wine-boxes.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-custom-wine-boxes-18 | `docs/content/custom-wine-boxes.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-custom-wine-boxes-19 | `docs/content/custom-wine-boxes.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-custom-wine-boxes-20 | `docs/content/custom-wine-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-custom-wine-boxes-20 | `docs/content/custom-wine-boxes.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-custom-wine-boxes-21 | `docs/content/custom-wine-boxes.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-custom-wine-boxes-22 | `docs/content/custom-wine-boxes.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-custom-wine-boxes-23 | `docs/content/custom-wine-boxes.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-wine-boxes-24 | `docs/content/custom-wine-boxes.md` | #188 | - **Q: Can you fit non-standard bottle shapes?** | - **В: Подойдет ли для бутылки нестандартной формы?** |  |  |
 | C-custom-wine-boxes-25 | `docs/content/custom-wine-boxes.md` | #188 | A: Yes, send bottle dimensions or a sample for a custom insert. | О: Да, пришлите размеры или образец бутылки для ложемента. |  |  |
 | C-custom-wine-boxes-26 | `docs/content/custom-wine-boxes.md` | #188 | - **Q: Do you make shipping-safe wine boxes?** | - **В: Есть ли коробки для пересылки вина?** |  |  |
-| C-custom-wine-boxes-27 | `docs/content/custom-wine-boxes.md` | #188 | A: Corrugated and pulp-insert shippers are available; transit testing TBD. | О: Есть гофро- и целлюлозные варианты; испытания при перевозке — по запросу. |  |  |
+| C-custom-wine-boxes-27 | `docs/content/custom-wine-boxes.md` | #188 | A: Corrugated and pulp-insert shippers are available; transit testing on request. | О: Есть гофро- и целлюлозные варианты; испытания при перевозке — по запросу. |  |  |
 | C-custom-wine-boxes-28 | `docs/content/custom-wine-boxes.md` | #188 | - **Q: Can boxes include glasses or accessories?** | - **В: Можно ли добавить бокалы или аксессуары?** |  |  |
 | C-custom-wine-boxes-29 | `docs/content/custom-wine-boxes.md` | #188 | A: Yes, gift sets with multi-cavity inserts. | О: Да, наборы с многоместным ложементом. |  |  |
 | C-custom-wine-boxes-kw-Транзакционные | `docs/content/custom-wine-boxes.md` | #188 |  | **Транзакционные (主页面)**: коробки для вина на заказ, подарочная упаковка для вина, коробка для бутылки с логотипом, упаковка для алкоголя оптом |  |  |
@@ -415,9 +415,9 @@
 | IND-art5 | `docs/content/industries.md` | #188 |  | Как заказать упаковку из Китая: пошаговое руководство: поставщик, образцы, контроль качества, логистика и таможня. |  |  |
 | IND-art6 | `docs/content/industries.md` | #188 |  | Упаковка для маркетплейсов: требования и решения：требования WB/Ozon, гофрокороба, маркировка. |  |  |
 | C-molded-pulp-packaging-01 | `docs/content/molded-pulp-packaging.md` | #188 | ### H1: Molded Pulp Packaging | ### H1: Упаковка из формованной целлюлозы |  |  |
-| C-molded-pulp-packaging-02 | `docs/content/molded-pulp-packaging.md` | #188 | PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) and recycled paper fiber: protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp replaces plastic and foam inserts with a fiber-based alternative that is shaped precisely to your product, helping brands reduce plastic in their packaging. | PackJoyU производит упаковку из формованной целлюлозы на основе багассы (волокна сахарного тростника) и вторичного бумажного волокна: защитные ложементы, лотки, контейнеры и премиальные коробки с гладкой поверхностью. Формованная целлюлоза точно повторяет форму вашего товара. |  |  |
+| C-molded-pulp-packaging-02 | `docs/content/molded-pulp-packaging.md` | #188 | PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) and recycled paper fiber: protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp is shaped precisely to your product. | PackJoyU производит упаковку из формованной целлюлозы на основе багассы (волокна сахарного тростника) и вторичного бумажного волокна: защитные ложементы, лотки, контейнеры и премиальные коробки с гладкой поверхностью. Формованная целлюлоза точно повторяет форму вашего товара. |  |  |
 | C-molded-pulp-packaging-03 | `docs/content/molded-pulp-packaging.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
-| C-molded-pulp-packaging-04 | `docs/content/molded-pulp-packaging.md` | #188 | - **Plastic-free** — Replaces EPS foam and plastic trays with fiber. | |  |  |
+| C-molded-pulp-packaging-04 | `docs/content/molded-pulp-packaging.md` | #188 | | |  |  |
 | C-molded-pulp-packaging-05 | `docs/content/molded-pulp-packaging.md` | #188 | - **Precision fit** — Custom molds shaped to your product for protection. | - **Точная посадка** — Пресс-форма под ваш товар для надежной защиты. |  |  |
 | C-molded-pulp-packaging-06 | `docs/content/molded-pulp-packaging.md` | #188 | - **Smooth premium option** — Dry-pressed (thermoformed) pulp for a refined look. | - **Премиальная гладкая поверхность** — Термоформованная целлюлоза для аккуратного внешнего вида. |  |  |
 | C-molded-pulp-packaging-07 | `docs/content/molded-pulp-packaging.md` | #188 | - **Pairs with printed boxes** — Combine inserts with our corrugated or gift boxes. | - **В комплекте с коробкой** — Сочетайте ложементы с нашими гофро- или подарочными коробками. |  |  |
@@ -426,21 +426,21 @@
 | C-molded-pulp-packaging-10 | `docs/content/molded-pulp-packaging.md` | #188 | Material \| Bagasse, bamboo or recycled paper pulp | Материал \| Багасса, бамбук или вторичная бумажная масса |  |  |
 | C-molded-pulp-packaging-11 | `docs/content/molded-pulp-packaging.md` | #188 | Process \| Wet-press (smooth) or dry-press (standard) molding | Технология \| Мокрое прессование (гладкая) или сухое (стандартная) |  |  |
 | C-molded-pulp-packaging-12 | `docs/content/molded-pulp-packaging.md` | #188 | Options \| Natural, bleached or dyed color; embossed logo | Опции \| Натуральный, отбеленный или окрашенный цвет; рельефный логотип |  |  |
-| C-molded-pulp-packaging-13 | `docs/content/molded-pulp-packaging.md` | #188 | Tooling \| Custom mold required — tooling cost and time TBD | Оснастка \| Нужна пресс-форма — стоимость и сроки по запросу |  |  |
-| C-molded-pulp-packaging-14 | `docs/content/molded-pulp-packaging.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-molded-pulp-packaging-15 | `docs/content/molded-pulp-packaging.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-molded-pulp-packaging-16 | `docs/content/molded-pulp-packaging.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-molded-pulp-packaging-13 | `docs/content/molded-pulp-packaging.md` | #188 | Tooling \| Custom mold required — tooling cost and time on request | Оснастка \| Нужна пресс-форма — стоимость и сроки по запросу |  |  |
+| C-molded-pulp-packaging-14 | `docs/content/molded-pulp-packaging.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-molded-pulp-packaging-15 | `docs/content/molded-pulp-packaging.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-molded-pulp-packaging-16 | `docs/content/molded-pulp-packaging.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-molded-pulp-packaging-17 | `docs/content/molded-pulp-packaging.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-molded-pulp-packaging-18 | `docs/content/molded-pulp-packaging.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-molded-pulp-packaging-19 | `docs/content/molded-pulp-packaging.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-molded-pulp-packaging-20 | `docs/content/molded-pulp-packaging.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-molded-pulp-packaging-20 | `docs/content/molded-pulp-packaging.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-molded-pulp-packaging-21 | `docs/content/molded-pulp-packaging.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-molded-pulp-packaging-22 | `docs/content/molded-pulp-packaging.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-molded-pulp-packaging-23 | `docs/content/molded-pulp-packaging.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-molded-pulp-packaging-24 | `docs/content/molded-pulp-packaging.md` | #188 | - **Q: Is molded pulp compostable?** | |  |  |
-| C-molded-pulp-packaging-25 | `docs/content/molded-pulp-packaging.md` | #188 | A: Compostability depends on material and additives; certification status: TBD — do not claim until documents are confirmed. | О: Зависит от материала и добавок; наличие сертификатов — по запросу. |  |  |
+| C-molded-pulp-packaging-25 | `docs/content/molded-pulp-packaging.md` | #188 | | |  |  |
 | C-molded-pulp-packaging-26 | `docs/content/molded-pulp-packaging.md` | #188 | - **Q: Do I need a custom mold?** | - **В: Нужна ли отдельная пресс-форма?** |  |  |
-| C-molded-pulp-packaging-27 | `docs/content/molded-pulp-packaging.md` | #188 | A: Yes for a custom shape. Tooling cost and lead time: TBD. | О: Да, для индивидуальной формы. Стоимость и сроки оснастки — по запросу. |  |  |
+| C-molded-pulp-packaging-27 | `docs/content/molded-pulp-packaging.md` | #188 | A: Yes for a custom shape. Tooling cost and lead time: on request. | О: Да, для индивидуальной формы. Стоимость и сроки оснастки — по запросу. |  |  |
 | C-molded-pulp-packaging-28 | `docs/content/molded-pulp-packaging.md` | #188 | - **Q: Can you emboss our logo?** | - **В: Можно ли нанести логотип?** |  |  |
 | C-molded-pulp-packaging-29 | `docs/content/molded-pulp-packaging.md` | #188 | A: Yes, a logo can be molded into the surface. | О: Да, логотип формуется рельефом на поверхности. |  |  |
 | C-molded-pulp-packaging-kw-Транзакционные | `docs/content/molded-pulp-packaging.md` | #188 |  | **Транзакционные (主页面)**: упаковка из формованной целлюлозы, лотки из целлюлозы оптом, производство изделий из целлюлозы, эко упаковка из сахарного тростника |  |  |
@@ -449,30 +449,30 @@
 | C-molded-pulp-packaging-outline-1 | `docs/content/molded-pulp-packaging.md` | #188 |  | |  |  |
 | C-molded-pulp-packaging-outline-2 | `docs/content/molded-pulp-packaging.md` | #188 |  | H2s: Материалы; ограничения; как заказать ложементы |  |  |
 | C-offset-printing-services-01 | `docs/content/offset-printing-services.md` | #188 | ### H1: Offset Printing Services | ### H1: Офсетная печать упаковки |  |  |
-| C-offset-printing-services-02 | `docs/content/offset-printing-services.md` | #188 | PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, labels and other printed materials. Offset printing delivers sharp detail and consistent color across large runs, and with in-house finishing — lamination, foil, die-cutting and binding — we take your project from press to packed export cartons. | PackJoyU выполняет офсетную печать больших тиражей: коробки, каталоги, буклеты, этикетки и другая полиграфия. Офсет обеспечивает четкую детализацию и стабильный цвет на больших тиражах; доступна постпечатная обработка — ламинация, фольга, высечка и переплет. |  |  |
+| C-offset-printing-services-02 | `docs/content/offset-printing-services.md` | #188 | PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, labels and other printed materials. Offset printing delivers sharp detail and consistent color across large runs, with finishing available — lamination, foil, die-cutting and binding. | PackJoyU выполняет офсетную печать больших тиражей: коробки, каталоги, буклеты, этикетки и другая полиграфия. Офсет обеспечивает четкую детализацию и стабильный цвет на больших тиражах; доступна постпечатная обработка — ламинация, фольга, высечка и переплет. |  |  |
 | C-offset-printing-services-03 | `docs/content/offset-printing-services.md` | #188 | #### Why PackJoyU | #### Почему PackJoyU |  |  |
-| C-offset-printing-services-04 | `docs/content/offset-printing-services.md` | #188 | - **Efficient at volume** — Lower unit cost on larger runs (pricing TBD per quote). | - **Выгодно на тиражах** — Ниже цена за единицу на больших тиражах. |  |  |
+| C-offset-printing-services-04 | `docs/content/offset-printing-services.md` | #188 | - **Efficient at volume** — Lower unit cost on larger runs. | - **Выгодно на тиражах** — Ниже цена за единицу на больших тиражах. |  |  |
 | C-offset-printing-services-05 | `docs/content/offset-printing-services.md` | #188 | - **Sharp, consistent** — Fine detail and stable color sheet to sheet. | - **Четко и стабильно** — Мелкие детали и стабильный цвет от листа к листу. |  |  |
 | C-offset-printing-services-06 | `docs/content/offset-printing-services.md` | #188 | - **Finishing and binding** — Lamination, foil, die-cut, saddle-stitch, perfect binding. | - **Постпечать и переплет** — Ламинация, фольга, высечка, скрепка, КБС. |  |  |
-| C-offset-printing-services-07 | `docs/content/offset-printing-services.md` | #188 | - **Packaging + print** — Boxes and catalogs from one production line. | |  |  |
+| C-offset-printing-services-07 | `docs/content/offset-printing-services.md` | #188 | | |  |  |
 | C-offset-printing-services-08 | `docs/content/offset-printing-services.md` | #188 | #### Specifications & options | #### Характеристики и опции |  |  |
 | C-offset-printing-services-09 | `docs/content/offset-printing-services.md` | #188 | Products \| Folding cartons, catalogs, brochures, booklets, labels, posters | Продукция \| Складные коробки, каталоги, буклеты, брошюры, этикетки, плакаты |  |  |
-| C-offset-printing-services-10 | `docs/content/offset-printing-services.md` | #188 | Press \| Sheet-fed offset (press sizes TBD) | Оборудование \| Листовой офсет (форматы — по запросу) |  |  |
+| C-offset-printing-services-10 | `docs/content/offset-printing-services.md` | #188 | Press \| Sheet-fed offset (press sizes on request) | Оборудование \| Листовой офсет (форматы — по запросу) |  |  |
 | C-offset-printing-services-11 | `docs/content/offset-printing-services.md` | #188 | Colors \| CMYK + Pantone spot | Цвета \| CMYK + пантоны |  |  |
 | C-offset-printing-services-12 | `docs/content/offset-printing-services.md` | #188 | Finishing \| Lamination, foil, spot UV, die-cut, folding, gluing | Обработка \| Ламинация, фольга, выборочный лак, высечка, фальцовка, склейка |  |  |
-| C-offset-printing-services-13 | `docs/content/offset-printing-services.md` | #188 | Binding \| Saddle stitch, perfect binding, wire-o (TBD) | Переплет \| Скрепка, КБС, пружина — по запросу |  |  |
-| C-offset-printing-services-14 | `docs/content/offset-printing-services.md` | #188 | MOQ \| **TBD（待 Ryan 提供）** | Минимальный тираж \| По запросу |  |  |
-| C-offset-printing-services-15 | `docs/content/offset-printing-services.md` | #188 | Sample lead time \| **TBD（待 Ryan 提供）** | Срок изготовления образца \| По запросу |  |  |
-| C-offset-printing-services-16 | `docs/content/offset-printing-services.md` | #188 | Production lead time \| **TBD（待 Ryan 提供）** | Срок производства \| По запросу |  |  |
+| C-offset-printing-services-13 | `docs/content/offset-printing-services.md` | #188 | Binding \| Saddle stitch, perfect binding, wire-o — on request | Переплет \| Скрепка, КБС, пружина — по запросу |  |  |
+| C-offset-printing-services-14 | `docs/content/offset-printing-services.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
+| C-offset-printing-services-15 | `docs/content/offset-printing-services.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
+| C-offset-printing-services-16 | `docs/content/offset-printing-services.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
 | C-offset-printing-services-17 | `docs/content/offset-printing-services.md` | #188 | #### How it works | #### Как мы работаем |  |  |
 | C-offset-printing-services-18 | `docs/content/offset-printing-services.md` | #188 | 1. **Send your brief** — product size, quantity, artwork or reference. | 1. **Отправьте задачу** — размеры товара, тираж, макет или референс. |  |  |
 | C-offset-printing-services-19 | `docs/content/offset-printing-services.md` | #188 | 2. **Quote & structure** — we propose material, structure and dieline. | 2. **Расчёт и конструкция** — предложим материал, конструкцию и развертку. |  |  |
-| C-offset-printing-services-20 | `docs/content/offset-printing-services.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time TBD). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
+| C-offset-printing-services-20 | `docs/content/offset-printing-services.md` | #188 | 3. **Proof & sample** — digital proof, then physical sample (lead time on request). | 3. **Проба и образец** — цифровая проба, затем физический образец (срок — по запросу). |  |  |
 | C-offset-printing-services-21 | `docs/content/offset-printing-services.md` | #188 | 4. **Production & QC** — mass production with inspection before packing. | 4. **Производство и контроль** — тираж с проверкой качества перед упаковкой. |  |  |
 | C-offset-printing-services-22 | `docs/content/offset-printing-services.md` | #188 | 5. **Export shipping** — export packing and documents; terms confirmed per quote. | 5. **Экспортная доставка** — упаковка и документы; условия поставки — в расчёте. |  |  |
 | C-offset-printing-services-23 | `docs/content/offset-printing-services.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-offset-printing-services-24 | `docs/content/offset-printing-services.md` | #188 | - **Q: When is offset better than digital?** | - **В: Когда офсет выгоднее цифры?** |  |  |
-| C-offset-printing-services-25 | `docs/content/offset-printing-services.md` | #188 | A: Typically for larger runs and strict color; break-even quantity TBD. | О: Обычно на больших тиражах и при строгих требованиях к цвету; расчёт — по запросу. |  |  |
+| C-offset-printing-services-25 | `docs/content/offset-printing-services.md` | #188 | A: Typically for larger runs and strict color; break-even quantity on request. | О: Обычно на больших тиражах и при строгих требованиях к цвету; расчёт — по запросу. |  |  |
 | C-offset-printing-services-26 | `docs/content/offset-printing-services.md` | #188 | - **Q: Can you print catalogs in Russian?** | - **В: Печатаете каталоги на русском?** |  |  |
 | C-offset-printing-services-27 | `docs/content/offset-printing-services.md` | #188 | A: Yes, we print from your supplied files in any language. | О: Да, печатаем по вашим файлам на любом языке. |  |  |
 | C-offset-printing-services-28 | `docs/content/offset-printing-services.md` | #188 | - **Q: Do you check files before printing?** | - **В: Проверяете файлы перед печатью?** |  |  |
@@ -490,7 +490,7 @@
 | ID | 来源 | PR | English | Русский | 字符数 | Ryan: OK / correction |
 |---|---|---|---|---|---|---|
 | M-corrugated-boxes-title | `src/lib/seo/categoryMeta.ts` | main | Custom Corrugated Boxes Manufacturer \| PackJoyU | Гофрокороба на заказ — производство \| PackJoyU | 46/60 |  |
-| M-corrugated-boxes-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Factory-direct export. Request a quote today. | Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Запросите расчёт. | 123/160 |  |
+| M-corrugated-boxes-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Request a quote today. | Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Запросите расчёт. | 123/160 |  |
 | M-corrugated-boxes-kw | `src/lib/seo/categoryMeta.ts` | main | гофрокороба на заказ | гофрокороба на заказ |  |  |
 | M-color-boxes-title | `src/lib/seo/categoryMeta.ts` | main | Custom Printed Boxes Manufacturer & Supplier \| PackJoyU | Картонные коробки с печатью на заказ \| PackJoyU | 47/60 |  |
 | M-color-boxes-desc | `src/lib/seo/categoryMeta.ts` | #222 | Full-color printed paperboard boxes for cosmetics, electronics and retail. Custom sizes, foil, embossing and matte or gloss coating. Request a quote today. | Картонные коробки с полноцветной печатью и логотипом для косметики, электроники и розницы. Любые размеры, тиснение и ламинация. Запросите расчёт. | 145/160 |  |
@@ -499,10 +499,10 @@
 | M-gift-boxes-desc | `src/lib/seo/categoryMeta.ts` | #222 | Rigid gift boxes with magnetic lids, drawers and custom inserts. Premium wrapping paper, foil stamping and embossing for your brand. Request a quote today. | Жесткие подарочные коробки на заказ: с магнитом, выдвижные, с ложементом. Дизайнерская бумага, тиснение фольгой и логотип бренда. Запросите расчёт. | 147/160 |  |
 | M-gift-boxes-kw | `src/lib/seo/categoryMeta.ts` | main | подарочные коробки на заказ | подарочные коробки на заказ |  |  |
 | M-pulp-molding-title | `src/lib/seo/categoryMeta.ts` | main | Molded Pulp Packaging Manufacturer \| PackJoyU | Упаковка из формованной целлюлозы \| PackJoyU | 44/60 |  |
-| M-pulp-molding-desc | `src/lib/seo/categoryMeta.ts` | #222 | Eco-friendly molded pulp trays, inserts and boxes made from bagasse and recycled fiber. Plastic-free, recyclable and custom shaped. Request a quote today. | Лотки, ложементы и коробки из формованной целлюлозы любой формы под ваш продукт. Запросите расчёт. | 98/160 |  |
+| M-pulp-molding-desc | `src/lib/seo/categoryMeta.ts` | #222 | Molded pulp trays, inserts and boxes, custom shaped. Request a quote today. | Лотки, ложементы и коробки из формованной целлюлозы любой формы под ваш продукт. Запросите расчёт. | 98/160 |  |
 | M-pulp-molding-kw | `src/lib/seo/categoryMeta.ts` | main | упаковка из формованной целлюлозы | упаковка из формованной целлюлозы |  |  |
 | M-paper-cups-title | `src/lib/seo/categoryMeta.ts` | main | Custom Paper Cups Manufacturer & Supplier \| PackJoyU | Бумажные стаканы с логотипом оптом \| PackJoyU | 45/60 |  |
-| M-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom printed paper coffee cups with your logo in single and double wall, 4 to 22 oz. Food-safe inks and matching lids for cafes and brands. Get a quote. | Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объемы и крышки в комплекте. Запросите расчёт. | 119/160 |  |
+| M-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom printed paper coffee cups with your logo in single and double wall, with matching lids for cafes and brands. Get a quote. | Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объемы и крышки в комплекте. Запросите расчёт. | 119/160 |  |
 | M-paper-cups-kw | `src/lib/seo/categoryMeta.ts` | main | бумажные стаканы с логотипом | бумажные стаканы с логотипом |  |  |
 | M-party-supplies-title | `src/lib/seo/categoryMeta.ts` | main | Custom Party Supplies Manufacturer \| PackJoyU | Бумажная посуда для праздника оптом \| PackJoyU | 46/60 |  |
 | M-party-supplies-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom printed paper party supplies: plates, cups, napkins and decorations in your designs. Wholesale production for retailers and brands. Request a quote. | Одноразовая бумажная посуда с печатью для праздников: тарелки, стаканы, салфетки и декор по вашему дизайну. Оптом для сетей и брендов. Запросите расчёт. | 152/160 |  |
@@ -517,7 +517,7 @@
 | M-offset-printing-desc | `src/lib/seo/categoryMeta.ts` | #222 | High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and in-house finishing for export. Request a quote. | Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Четкая детализация, стабильный цвет и постпечатная обработка. Запросите расчёт. | 154/160 |  |
 | M-offset-printing-kw | `src/lib/seo/categoryMeta.ts` | main | офсетная печать упаковки | офсетная печать упаковки |  |  |
 | M-eco-paper-cups-title | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | Eco-Friendly Paper Cups Manufacturer \| PackJoyU | Экологичные стаканы с логотипом \| PackJoyU ⚠️F15/F17 | 42/60 |  |
-| M-eco-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | Eco-friendly paper cups custom printed with your logo, in sizes for hot and cold drinks. A greener choice for cafes and coffee chains. Request a quote today. | Экологичные бумажные стаканы с печатью вашего логотипа. Для кофеен, ресторанов и сетей. Запросите расчёт. | 105/160 |  |
+| M-eco-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | Eco-friendly paper cups custom printed with your logo, for cafes and coffee chains. Request a quote today. | Экологичные бумажные стаканы с печатью вашего логотипа. Для кофеен, ресторанов и сетей. Запросите расчёт. | 105/160 |  |
 | M-eco-paper-cups-kw | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | eco-friendly paper cups | экологичные стаканы |  |  |
 | M-gift-cards-title | `src/lib/seo/categoryMeta.ts` | main | Custom Gift Cards Printing & Supplier \| PackJoyU | Печать подарочных карт на заказ \| PackJoyU | 42/60 |  |
 | M-gift-cards-desc | `src/lib/seo/categoryMeta.ts` | #222 | Custom printed gift cards, vouchers and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. | Печать подарочных карт и сертификатов на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка для карт в едином стиле бренда. Запросите расчёт. | 152/160 |  |
@@ -530,7 +530,7 @@
 | MSG-Products.metaTitle | `messages/ru.json` | main | Custom Packaging Products in 3D: Boxes, Cups & Printing \| PackJoyU | Упаковка на заказ в 3D: коробки, стаканы, печать \| PackJoyU | 59/60 |  |
 | MSG-Products.metaDescription | `messages/ru.json` | #222 | Explore 12 custom packaging categories in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU. | 12 видов упаковки на заказ в 3D: гофрокороба, подарочные и винные коробки, формованная целлюлоза, бумажные стаканы и печать. Запросите расчёт у PackJoyU. | 153/160 |  |
 | MSG-Contact.metaTitle | `messages/ru.json` | #201 | Request a Custom Packaging Quote \| PackJoyU Manufacturer | Запросить расчёт стоимости упаковки на заказ \| PackJoyU | 55/60 |  |
-| MSG-Contact.metaDescription | `messages/ru.json` | #201 | Tell us about your custom boxes, paper cups or printing project and get a quote from PackJoyU within 24 hours. Factory-direct export packaging for brands. | Расскажите о проекте: коробки, бумажные стаканы или печать на заказ. PackJoyU подготовит расчёт. | 96/160 |  |
+| MSG-Contact.metaDescription | `messages/ru.json` | #201 | Tell us about your custom boxes, paper cups or printing project and get a quote from PackJoyU. | Расскажите о проекте: коробки, бумажные стаканы или печать на заказ. PackJoyU подготовит расчёт. | 96/160 |  |
 | MSG-Privacy.metaTitle | `messages/ru.json` | main | Privacy policy (draft) \| PackJoyU | Политика конфиденциальности (черновик) \| PackJoyU | 49/60 |  |
 | MSG-Privacy.metaDescription | `messages/ru.json` | #201 | How PackJoyU collects, uses and protects personal data from quote requests, sample orders, chat and cookies, and how to exercise your privacy rights. | Как PackJoyU собирает, использует и защищает персональные данные из запросов цены, заявок на образцы, чата и cookie, и как воспользоваться своими правами. | 154/160 |  |
 | MSG-DesignExpired.metaTitle | `messages/ru.json` | main | Design expired \| PackJoyU | Срок действия дизайна истёк \| PackJoyU | 38/60 |  |
@@ -639,7 +639,7 @@
 | UI-Home.premiumTitle | `messages/ru.json` | main | Premium gift & wine boxes | Премиальные подарочные и винные коробки |  |  |
 | UI-Home.premiumText | `messages/ru.json` | main | Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera. | Жёсткие коробки с тиснением фольгой, магнитным замком и ложементами — их хочется распаковывать на камеру. |  |  |
 | UI-Home.ctaBandTitle | `messages/ru.json` | main | Have a project in mind? | Есть проект? |  |  |
-| UI-Home.ctaBandText | `messages/ru.json` | main | Tell us what you need — we reply within 24 hours. | Расскажите, что вам нужно. |  |  |
+| UI-Home.ctaBandText | `messages/ru.json` | main | Tell us what you need. | Расскажите, что вам нужно. |  |  |
 | UI-Products.title | `messages/ru.json` | main | Our products in 3D | Наша продукция в 3D |  |  |
 | UI-Products.names.corrugated-boxes | `messages/ru.json` | #222 | Corrugated Boxes | Гофрокороба |  |  |
 | UI-Products.names.color-boxes | `messages/ru.json` | main | Color Boxes | Цветные коробки |  |  |
@@ -656,13 +656,13 @@
 | UI-Products.desc.corrugated-boxes | `messages/ru.json` | #222 | Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand. | Гофрокороба и почтовые коробки на заказ, однослойный и двухслойный гофрокартон, печать логотипа. |  |  |
 | UI-Products.desc.color-boxes | `messages/ru.json` | main | Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics. | Картонные коробки с полноцветной печатью для косметики, продуктов и электроники. |  |  |
 | UI-Products.desc.gift-boxes | `messages/ru.json` | main | Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts. | Жесткие и магнитные подарочные коробки на заказ с тиснением фольгой и ложементами. |  |  |
-| UI-Products.desc.pulp-molding | `messages/ru.json` | main | Molded pulp trays and inserts made from recycled paper and sugarcane fiber, a plastic-free alternative. | Лотки и вкладыши из формованной целлюлозы. |  |  |
+| UI-Products.desc.pulp-molding | `messages/ru.json` | main | Molded pulp trays and inserts. | Лотки и вкладыши из формованной целлюлозы. |  |  |
 | UI-Products.desc.paper-cups | `messages/ru.json` | main | Custom printed paper cups for coffee, tea and cold drinks, in single and double wall. | Бумажные стаканы с логотипом для кофе, чая и холодных напитков. |  |  |
 | UI-Products.desc.party-supplies | `messages/ru.json` | main | Printed paper party tableware: plates, cups, napkins and decorations for events and retail. | Бумажная праздничная посуда с печатью: тарелки, стаканы, салфетки и декор. |  |  |
 | UI-Products.desc.wine-boxes | `messages/ru.json` | main | Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts. | Коробки для вина и крепких напитков на одну или несколько бутылок, премиальная отделка. |  |  |
 | UI-Products.desc.color-printing | `messages/ru.json` | main | CMYK and spot-color printing for packaging, labels and marketing materials. | Полноцветная печать и печать пантонами для упаковки, этикеток и полиграфии. |  |  |
 | UI-Products.desc.offset-printing | `messages/ru.json` | main | Offset printing for boxes, catalogs and brochures with consistent color at volume. | Офсетная печать коробок, каталогов и буклетов со стабильной цветопередачей. |  |  |
-| UI-Products.desc.eco-paper-cups | `messages/ru.json` | main | Compostable and plastic-free paper cups with water-based or PLA-free coatings. | Экологичные бумажные стаканы. |  |  |
+| UI-Products.desc.eco-paper-cups | `messages/ru.json` | main | Eco-friendly paper cups. | Экологичные бумажные стаканы. |  |  |
 | UI-Products.desc.gift-cards | `messages/ru.json` | main | Custom printed gift cards, greeting cards and card packaging for retail and promotions. | Подарочные и поздравительные карты с печатью и упаковка для них. |  |  |
 | UI-Products.desc.christmas-merchandise | `messages/ru.json` | main | Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order. | Новогодние подарочные коробки, тубусы, адвент-календари и сезонная упаковка на заказ. |  |  |
 
