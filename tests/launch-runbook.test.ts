@@ -18,3 +18,9 @@ test('launch-runbook.md contains no connection strings, secrets or local paths',
   assert.doesNotMatch(doc, /\/workspace\//);
   assert.doesNotMatch(doc, /(re_|sk_|whsec_)[A-Za-z0-9]{16,}/);
 });
+
+test('launch-runbook.md documents the manual deletion step for the notification inbox', () => {
+  assert.match(doc, /INQUIRY_NOTIFY_EMAIL/);
+  assert.match(doc, /30 天内/);
+  assert.match(doc, /Resend/);
+});
