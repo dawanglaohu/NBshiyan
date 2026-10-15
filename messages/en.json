@@ -27,7 +27,11 @@
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
     "ctaBandTitle": "Have a project in mind?",
     "ctaBandText": "Tell us what you need — a packaging specialist will reply by email.",
-    "heroLabel": "Stack of custom PackJoyU boxes and a paper cup"
+    "heroLabel": "Stack of custom PackJoyU boxes and a paper cup",
+    "heroVideoSkip": "Skip video",
+    "heroVideoPlay": "Play video",
+    "heroVideoPause": "Pause video",
+    "heroPosterAlt": "PackJoyU custom printed packaging: white mailer box with coral logo, tall black box with gold band, black gift box with gold trim and clasp, white paper cup and small gradient-printed box"
   },
   "Products": {
     "title": "Our products in 3D",
