@@ -22,7 +22,7 @@ for (const l of ['en', 'ru']) {
   });
   test(`privacy ${l}: all sections except unconfirmed company render; every retention line present`, () => {
     const doc = buildPrivacy(load(l));
-    assert.deepEqual(doc.sections.map((s) => s.key), ['collected', 'purpose', 'retention', 'cookies', 'chat', 'contact']);
+    assert.deepEqual(doc.sections.map((s) => s.key), ['collected', 'purpose', 'retention', 'cookies', 'chat', 'processors', 'contact']);
     assert.equal(doc.sections.find((s) => s.key === 'retention')!.items.length, RETENTION_KEYS.length);
     assert.ok(JSON.stringify(load(l)).includes('pj-consent'));
   });

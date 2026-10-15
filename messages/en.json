@@ -331,9 +331,10 @@
         "items": [
           "Inquiries and quote requests: your name, email, company, phone, country and message, plus the products and options you choose.",
           "Sample requests: the above plus your shipping address.",
-          "Logos you upload with an inquiry.",
+          "Logos you upload in the customizer or inquiry form. A logo may be uploaded before you submit the inquiry.",
           "Shared custom designs you create in the 3D customizer.",
-          "Technical data: your IP address (used only for rate limiting and abuse protection) and, if you allow analytics, anonymous page-performance metrics."
+          "Referral and campaign data sent by your browser with an inquiry: the page you came from, search keywords and UTM parameters.",
+          "Technical data: your IP address and, if you allow analytics, anonymous page-performance metrics. We use the IP address for rate limiting and abuse protection, send it to our security-verification provider to check that you are not a bot, and record it in admin security (audit) logs. We also store the country derived from your IP address with an inquiry to help detect spam."
         ]
       },
       "purpose": {
@@ -348,14 +349,16 @@
         "title": "How long we keep it",
         "items": {
           "designs": "Shared custom designs expire after 180 days (the link then returns “410 Gone”) and are deleted 90 days later.",
-          "logos": "Logos not attached to an inquiry are deleted 24 hours after upload, at most 48 hours, except logos still used by an unexpired saved design.",
+          "designsInquiry": "Designs attached to an inquiry are kept as long as that inquiry and are anonymized or deleted with it.",
+          "logos": "Logos not attached to an inquiry are usually deleted within 48 hours of upload (they become eligible for deletion after 24 hours and a cleanup runs daily), except logos still used by an unexpired saved design.",
           "sampleEmail": "For sample requests (one per email every 30 days), the email used for this limit is cleared after 30 days.",
-          "rateLimit": "Per-IP rate-limit counters expire when the rate-limit window ends.",
-          "audit": "Audit logs are deleted after 365 days.",
+          "rateLimit": "Rate-limit counters use your IP address and a hashed (not readable) version of your email address, and expire when their limit window ends — at most 30 days.",
+          "audit": "Admin security (audit) logs, including IP addresses, are deleted after 365 days.",
           "adminSessions": "Admin sessions end after 2 hours of inactivity.",
           "inquiries": "Inquiries are anonymized after 2 years: we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
           "inquiriesContact": "Contact details are kept while that contact still has inquiries that have not been anonymized.",
-          "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
+          "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept. Records in our database are deleted or anonymized immediately.",
+          "deletionCopies": "Copies of inquiry notification emails in our business inbox are deleted manually within 30 days of your request. Logs kept by our service providers (for example email delivery and hosting logs) are deleted according to each provider’s own retention period.",
           "oldReplies": "Replies to old emails about an anonymized inquiry are not added to it.",
           "exports": "Data exports are delivered to you as a file; no copy is kept on the server.",
           "cleanup": "An automatic cleanup runs once a day."
@@ -377,6 +380,20 @@
           "Live chat is provided by Tawk.to and is loaded only if you allow chat.",
           "When it loads, Tawk.to receives your messages and technical data needed to run the chat, and sets its own storage in your browser.",
           "The chat never loads on our admin pages."
+        ]
+      },
+      "processors": {
+        "title": "Service providers",
+        "text": [
+          "We use service providers in the following categories. Some may process data outside your country. We do not sell your data."
+        ],
+        "items": [
+          "Website hosting: {{待Ryan确认}}",
+          "Security verification and file storage: {{待Ryan确认}}",
+          "Rate-limit storage: {{待Ryan确认}}",
+          "Email delivery: {{待Ryan确认}}",
+          "Database: {{待Ryan确认}}",
+          "Live chat (only with your consent): {{待Ryan确认}}"
         ]
       },
       "contact": {
