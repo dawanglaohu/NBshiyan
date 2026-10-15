@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Manrope } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
+import { clientMessages } from '@/lib/legal/privacy';
 import { routing } from '@/i18n/routing';
 import SiteHeader from '@/components/layout/SiteHeader';
 import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
@@ -49,12 +50,14 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
+  // Privacy 文案只在服务端渲染（含 {{待Ryan确认}} 占位符），不下发到客户端
+  const messages = clientMessages((await getMessages()) as Record<string, unknown>);
   return (
     <html lang={locale} className={manrope.variable}>
       <body>
         <OrganizationJsonLd locale={locale} />
         <WebVitals />
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages as Parameters<typeof NextIntlClientProvider>[0]['messages']}>
           <QuoteProvider>
             <SiteHeader />
             {children}
