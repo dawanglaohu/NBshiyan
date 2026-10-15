@@ -46,7 +46,7 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
   const active = state !== 'poster';
   // 桌面封面仍走 next/image 优化；竖版封面直接用 3D 产出的 AVIF/WebP（已是 1080x1350 小文件）
   const { props: { srcSet: desktopSrcSet, ...posterImg } } = getImageProps({
-    className: 'hero-media-poster', src: '/video/hero-115-poster.webp', alt: labels.poster,
+    className: 'hero-media-poster', src: '/video/hero-115-poster.932371d6.webp', alt: labels.poster,
     fill: true, priority: true, sizes: '50vw',
   });
   return (
@@ -64,8 +64,8 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
           onEnded={() => stop('ended')} onError={(e) => { if (isFatalMediaError(e.target as Element, e.currentTarget)) stop('error'); }}>
           <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.webm" type="video/webm" />
           <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.mp4" type="video/mp4" />
-          <source src="/video/hero-115.webm" type="video/webm" />
-          <source src="/video/hero-115.mp4" type="video/mp4" />
+          <source src="/video/hero-115.c293080a.webm" type="video/webm" />
+          <source src="/video/hero-115.c2be059f.mp4" type="video/mp4" />
         </video>
       )}
       <div className="hero-media-ctrls">
