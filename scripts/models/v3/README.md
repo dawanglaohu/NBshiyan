@@ -45,3 +45,6 @@ TEX_DIR=tex-b2/ blender -b --python build_b2.py -- color out-b3
 for f in paper-cup eco-paper-cup party-supplies color-box; do PREVIEW_TEX=32 node ../progressive.mjs out-b3/$f.glb ../../../public/models $f; done
 ```
 字标统一 Inter Black + 同色描边。纸杯仅 navy PackJoyU（朝相机、≤60% 可见宽）；牛皮杯 #8e5f36，杯套上方一圈 PackJoyU，无环保声明。
+
+## 预览 LOD 贴图 32px → 最高 128px
+`sh pack-previews.sh <源 glb 目录>`：每个预览 GLB ≤ 30KB 前提下取最大尺寸——礼品卡 112、胶印画册 128、三折页 48、彩盒 80（倒角段数 2→1）、圣诞纸罐 112、蛋托 64、纸杯/牛皮纸杯/派对用品 128。
