@@ -32,7 +32,7 @@
 - 上线前用 Google Rich Results Test 和 Yandex 的结构化数据校验工具检查。
 
 ## 5. 图片
-- 文件名：`posters/custom-corrugated-boxes.webp` 这类带关键词的名字，不用哈希。
+- 文件名：`posters/custom-corrugated-boxes.b3d628f6.webp` 这类带关键词的名字，不用哈希。
 - alt：描述画面，例如 “Printed kraft corrugated mailer box with logo”。
 
 ## 6. Yandex 与搜索平台接入准备

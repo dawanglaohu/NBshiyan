@@ -49,7 +49,6 @@ for f in paper-cup eco-paper-cup party-supplies color-box; do PREVIEW_TEX=32 nod
 ## #252 颜色偏浅修复
 - 印刷材质（`mat_print`）改为哑光：去掉 coat（KHR_materials_clearcoat）、粗糙度 +0.25、Specular IOR Level 0.25（可用 `PRINT_COAT_SCALE / PRINT_ROUGH_ADD / PRINT_SPEC` 覆盖复现旧版）。
 - `render_studio.py` 灯光与 HDRI 统一乘 `LIGHT`（默认 0.6）；视图变换可用 `VIEW`/`LOOK` 覆盖。海报和对比图都用这一套。
-- 深色海报（premium 区块 `--premium-bg #121214`）：`blender -b --python render_dark.py -- <wine-box|gift-box 源 glb> out.png 35`，再 `python3 poster_dark.py out.png ../../../public/images/posters/custom-wine-boxes-dark.webp`。
 - #252b：PackJoyU 藏青印刷输入色改为 `#020924`（目标渲染色 #1f2a44；在 LIGHT 0.6 + AgX 下按线性空间逐通道迭代求解，实测彩盒 ΔE76 7.0、纸杯 4.7）。可用 `NAVY_PRINT=#xxxxxx node decals-b3.mjs` 覆盖。牛皮纸未改（ΔE 8.5）。
 ## 预览 LOD 贴图 32px → 最高 128px
 `sh pack-previews.sh <源 glb 目录>`：每个预览 GLB ≤ 30KB 前提下取最大尺寸——礼品卡 112、胶印画册 128、三折页 48、彩盒 80（倒角段数 2→1）、圣诞纸罐 112、蛋托 64、纸杯/牛皮纸杯/派对用品 128。
