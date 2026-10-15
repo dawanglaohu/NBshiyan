@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { products } from '@/data/products';
+import { categoryProducts as products } from '@/data/categories';
 import HeroVideo from '@/components/layout/HeroVideo';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
