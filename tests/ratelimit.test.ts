@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { MemoryStore, UpstashStore, createRateLimitStore } from '../src/lib/server/ratelimit/index';
 import { mockServer } from './helpers';
 import { MemoryStore as MS, setRateLimitStore, type RateLimitStore } from '../src/lib/server/ratelimit/index';
-import { hitRateLimit, rateLimitEnv, rateLimitKeyHash } from '../src/lib/server/security';
+import { hitRateLimit, rateLimitEnv, rateLimitKeyHash, resetRateLimitLogThrottle } from '../src/lib/server/security';
 import { loginRateOk } from '../src/lib/server/admin/login';
 import { enforceAdminRateLimit } from '../src/lib/server/admin-guard';
 import { POST as rumPOST } from '../src/app/api/rum/route';
@@ -164,4 +164,35 @@ test('routes that used to skip limiting when IP is null now hit a noip bucket', 
     await inqPOST(new Request('http://x/api/inquiries', { method: 'POST', body: '{}' }));
     for (const k of ['design-logo:noip:all', 'design-get:noip:all', 'inq-bad:noip:all']) assert.ok(r.keys.some((x) => x.endsWith(':' + k)), k);
   } finally { setRateLimitStore(undefined); }
+});
+
+// ---- #74 安全复审：子密钥派生、日志不含原始邮箱/IP ----
+import { createHmac } from 'node:crypto';
+
+test('email HMAC uses domain-separated subkey, never AUTH_SECRET directly', () => {
+  const secret = 'test-auth-secret-xyz';
+  const sub = createHmac('sha256', secret).update('ratelimit-email-v1').digest();
+  const expected = createHmac('sha256', sub).update('a@b.com').digest('base64url').slice(0, 32);
+  assert.equal(rateLimitKeyHash('a@b.com', { AUTH_SECRET: secret }), expected);
+  const direct = createHmac('sha256', secret).update('a@b.com').digest('base64url').slice(0, 32);
+  assert.notEqual(rateLimitKeyHash('a@b.com', { AUTH_SECRET: secret }), direct);
+});
+
+test('store-failure logs contain no raw email, IP or key', async () => {
+  const logs: string[] = [];
+  const e = console.error, w = console.warn, l = console.log;
+  const cap = (...a: unknown[]) => { logs.push(a.map(String).join(' ')); };
+  console.error = cap; console.warn = cap; console.log = cap;
+  // 让错误信息本身带上 key，确认也不会被打出来
+  setRateLimitStore({ hit: async (k: string) => { throw new Error(`boom ${k}`); } });
+  try {
+    resetRateLimitLogThrottle();
+    await hitRateLimit('inq:email:x@leak.com:192.0.2.5', 1, 60_000);
+    resetRateLimitLogThrottle();
+    await loginRateOk('203.0.113.77', 'Victim.User@Example.com');
+    await hitRateLimit('rum:198.51.100.9', 1, 60_000, { onStoreError: 'open' });
+  } finally { console.error = e; console.warn = w; console.log = l; setRateLimitStore(undefined); }
+  assert.ok(logs.length >= 2, 'expected log lines');
+  const all = logs.join('\n');
+  for (const s of ['203.0.113.77', '198.51.100.9', '192.0.2.5', 'leak.com', 'victim', 'example.com', 'login:', 'rum:', 'inq:']) assert.ok(!all.toLowerCase().includes(s), `log leaked ${s}: ${all}`);
 });

@@ -54,6 +54,15 @@ export interface RateLimitOpts { onStoreError?: FailMode }
 
 const localFallback = new MemoryStore();
 let lastStoreErrorLog = 0;
+/** 测试用：清掉日志去重时间 */
+export function resetRateLimitLogThrottle() { lastStoreErrorLog = 0; }
+/** 存储错误只记错误类型和已知的安全文案，绝不记原始 message（可能带 key、邮箱或 IP） */
+function safeStoreError(e: unknown) {
+  const m = (e as Error)?.message ?? '';
+  if (/^upstash (\d{3}|bad response)$/.test(m)) return m;
+  const n = (e as Error)?.name;
+  return n === 'TimeoutError' || n === 'AbortError' ? 'timeout' : 'error';
+}
 
 /** key 的环境前缀：Preview 和 Production 共用一个 Upstash 库时计数不混。 */
 export function rateLimitEnv(env: Record<string, string | undefined> = process.env) {
@@ -62,12 +71,12 @@ export function rateLimitEnv(env: Record<string, string | undefined> = process.e
 
 /**
  * 邮箱等 PII 放进限流 key 之前先做 HMAC，Redis 里不存明文。
- * 密钥由 AUTH_SECRET 派生（加用途标签，和会话签名互不影响）；轮换 AUTH_SECRET 只会让限流计数清零。
+ * 密钥做域分离：subkey = HMAC(AUTH_SECRET, "ratelimit-email-v1")，再 HMAC(subkey, email)；绝不直接用 AUTH_SECRET 当 HMAC 密钥；轮换 AUTH_SECRET 只会让限流计数清零。
  * 没有 AUTH_SECRET（本地/测试）时用固定的开发密钥。
  */
 export function rateLimitKeyHash(value: string, env: Record<string, string | undefined> = process.env) {
   const base = env.AUTH_SECRET || 'dev-only-rate-limit-key';
-  const k = createHmac('sha256', base).update('ratelimit-key:v1').digest();
+  const k = createHmac('sha256', base).update('ratelimit-email-v1').digest();
   return createHmac('sha256', k).update(value).digest('base64url').slice(0, 32);
 }
 
@@ -84,7 +93,7 @@ export async function hitRateLimit(key: string, limit = 5, windowMs = 10 * 60_00
     const mode = opts.onStoreError ?? 'local';
     // 日志按 10 秒去重，避免存储挂掉时刷屏；不在这里调 sendAdminAlert（它本身也走 hitRateLimit，会递归）
     const now = Date.now();
-    if (now - lastStoreErrorLog > 10_000) { lastStoreErrorLog = now; console.error(`[ratelimit] store unavailable (${mode}):`, (e as Error).message); }
+    if (now - lastStoreErrorLog > 10_000) { lastStoreErrorLog = now; console.error(`[ratelimit] store unavailable (${mode}):`, safeStoreError(e)); }
     if (mode === 'closed') return false;
     if (mode === 'open') return true;
     return localFallback.hit(k, limit, windowMs);
