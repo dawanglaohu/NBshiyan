@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr } from '@/lib/server/admin/guard';
+import { hitRateLimit } from '@/lib/server/security';
 import { audit } from '@/lib/server/admin/audit';
 import { revealSampleAddress } from '@/lib/server/sample';
 
@@ -23,6 +24,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const address = await revealSampleAddress(ctx, id, {
     findSample: (sid) => prisma.sampleRequest.findUnique({ where: { id: sid }, select: { id: true, shippingAddress: true, inquiry: { select: { id: true, assigneeId: true } } } }),
     audit: (e) => audit(e),
+    allowDenyAudit: (k) => hitRateLimit(`audit:sample.address.denied:${k}`, 1, 60_000),
   });
   if (address === null) return jsonErr('not_found', 404);
   return NextResponse.json({ shippingAddress: address }, { headers: NO_STORE });

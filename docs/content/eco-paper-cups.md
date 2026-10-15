@@ -1,0 +1,146 @@
+# Eco-Friendly Paper Cups / Экологичные стаканы с логотипом（环保纸杯）
+
+> Fixes #99 · 内部 key `eco-paper-cups` · EN `/en/products/eco-paper-cups`（原 `compostable-paper-cups`，从未上线，不需要 301） · RU `/ru/products/ekologichnye-stakany`
+> 元信息与 `src/lib/seo/categoryMeta.ts` 一致。所有 **TBD** 处需 Ryan/工厂提供真实数据，禁止编造数字、认证、评分或价格。
+> ⚠️ “compostable / biodegradable / биоразлагаемые / компостируемые” 作为产品说法已去掉：Ryan 提供证书前属于无出处的说法（#218 F15/F17）。下方 FAQ 里的相关**问题**保留（真实搜索意图），答案一律待定。
+
+## Meta
+
+| | EN | RU ⚠️ 需要 Ryan 校对 |
+|---|---|---|
+| title | Eco-Friendly Paper Cups Manufacturer | PackJoyU | Экологичные стаканы с логотипом | PackJoyU |
+| description | Eco-friendly paper cups custom printed with your logo, in sizes for hot and cold drinks. A greener choice for cafes and coffee chains. Request a quote today. | Экологичные бумажные стаканы с печатью вашего логотипа для горячих и холодных напитков. Для кофеен, ресторанов и сетей. Запросите расчёт. |
+| keyword | eco-friendly paper cups | экологичные стаканы |
+
+---
+
+## EN — Landing copy
+
+### H1: Eco-Friendly Paper Cups
+
+PackJoyU offers eco-friendly paper cups custom printed with your logo, for cafes, chains and brands. Coating options are confirmed per order. Environmental claims depend on the lining, inks and the certification held for each product — we confirm documentation before you use any claim on your packaging.
+
+#### Why PackJoyU
+
+- **Coating options** — Confirmed per order.
+- **Branded** — Full-wrap logo printing.
+- **Matching fiber lids** — Paper or fiber lid options confirmed with your quote.
+- **Honest claims** — Certification documents verified per product before marketing use.
+
+#### Specifications & options
+
+| Option | Details |
+|---|---|
+| Lining | Confirmed per order |
+| Types | Single / double wall |
+| Sizes | Confirmed with your quote (aligned with custom-paper-cups range) |
+
+| Accessories | Fiber/paper lids, sleeves (confirmed with your quote) |
+| MOQ | Confirmed with your quote |
+| Sample lead time | Timing confirmed with your quote |
+| Production lead time | Timing confirmed with your quote |
+
+#### How it works
+
+1. **Send your brief** — product size, quantity, artwork or reference.
+2. **Quote & structure** — we propose material, structure and dieline.
+3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
+4. **Production & QC** — mass production with inspection before packing.
+5. **Shipping** — packing and shipping documents; terms confirmed per quote.
+
+**CTA:** Request a quote →（链接到询价表单，预填品类）
+
+### FAQ（DRAFT — 待确认，暂不输出 FAQPage schema）
+
+- **Q: Which environmental claims can be printed on the cups?**
+  A: Only claims backed by valid certification for that exact product; certification status: TBD.
+- **Q: Which coating options are available?**
+  A: Coating material and suitability by drink type: TBD, confirmed per order.
+
+---
+
+## RU — Текст посадочной страницы
+
+> ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
+
+### H1: Экологичные стаканы с логотипом
+
+PackJoyU предлагает экологичные бумажные стаканы с печатью вашего логотипа для кофеен, сетей и брендов. Варианты покрытия уточняем под заказ. Экологические заявления зависят от покрытия, красок и сертификатов на конкретный продукт — мы подтверждаем документы до того, как вы используете такие формулировки на упаковке.
+
+#### Почему PackJoyU
+
+- **Варианты покрытия** — Уточняем под заказ.
+- **Ваш бренд** — Печать логотипа по всей поверхности.
+- **Крышки из волокна** — Варианты бумажных крышек согласовываются при расчёте.
+- **Честные формулировки** — Сертификаты проверяются до использования в маркетинге.
+
+#### Характеристики и опции
+
+| Параметр | Описание |
+|---|---|
+| Покрытие | Уточняем под заказ |
+| Виды | Однослойные / двухслойные |
+| Объёмы | Согласовываются при расчёте |
+
+| Аксессуары | Крышки из волокна/бумаги, манжеты (согласовываются при расчёте) |
+| Минимальный тираж | Согласовывается при расчёте |
+| Срок изготовления образца | Сроки согласовываются при расчёте |
+| Срок производства | Сроки согласовываются при расчёте |
+
+#### Как мы работаем
+
+1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
+2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
+3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
+4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
+5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
+
+**CTA:** Запросить расчёт →
+
+### FAQ（ЧЕРНОВИК — без разметки FAQPage）
+
+> ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
+
+- **В: Какие экологические заявления можно печатать на стаканах?**
+  О: Только подтверждённые сертификатом на конкретный продукт; наличие сертификатов — TBD.
+- **В: Какие варианты покрытия доступны?**
+  О: Материал покрытия и применимость для разных напитков — TBD, уточняем под заказ.
+
+---
+
+## Keywords（无搜索量数据，接入 Google Keyword Planner / Yandex Wordstat 后补）
+
+### EN — Google
+
+> compostable / biodegradable 类关键词只有在 Ryan 提供对应证书后才能用于页面文案。
+
+- **Transactional / commercial (主页面)**: eco friendly paper cups, compostable coffee cups wholesale（需证书）, plastic free paper cups manufacturer, PLA paper cups supplier
+- **Commercial investigation (主页面 + 小节)**: eco friendly coffee cups with logo, aqueous coated paper cups, biodegradable cups custom（需证书）, sustainable cafe packaging
+- **Informational (博客文章)**: PLA vs aqueous coating, are paper cups recyclable, home vs industrial compostable
+
+### RU — Yandex
+
+> ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
+
+- **Транзакционные (主页面)**: экологичные стаканы, эко стаканы без пластика, биоразлагаемые / компостируемые стаканы оптом（需证书）, экологичные бумажные стаканы с логотипом
+- **Коммерческие (主页面 + 小节)**: стаканы с PLA покрытием, экоупаковка для кофейни, бумажные стаканы без полиэтилена
+- **Информационные (博客文章)**: чем PLA отличается от ПЭ, перерабатываются ли бумажные стаканы
+
+## Internal links
+
+- → `custom-paper-cups`（Custom Paper Cups / RU `bumazhnye-stakany`），锚文本用品类名
+- → `molded-pulp-packaging`（Molded Pulp Packaging / RU `izdeliya-iz-tsellyulozy`），锚文本用品类名
+- → `custom-party-supplies`（Custom Party Supplies / RU `tovary-dlya-prazdnikov`），锚文本用品类名
+- → `/products`（3D 展示页）；→ 询价页；→ 相关行业方案页（见 `industries.md`，页面上线前不链接）
+
+## Article outlines（博客选题）
+
+1. **PLA vs Aqueous-Coated Cups: What Cafes Should Know**
+   - H2s: Materials; end-of-life; claim rules
+   - CTA → `eco-paper-cups` 落地页
+2. **Avoiding Greenwashing in Packaging Claims**
+   - H2s: Certifications; wording; regional rules
+   - CTA → `eco-paper-cups` 落地页
+3. **Экостаканы для кофейни: какие бывают и что писать на упаковке**  ⚠️ 需要 Ryan 校对
+   - H2s: Покрытия; сертификаты; формулировки
+   - CTA → `ekologichnye-stakany` 落地页

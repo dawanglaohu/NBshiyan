@@ -25,10 +25,10 @@ test('Cookie 同意条：拒绝后不加载第三方，刷新后不再出现', a
   await page.goto('/en');
   const bar = page.getByRole('region', { name: 'Cookie consent' });
   await expect(bar).toBeVisible();
-  await bar.getByRole('button', { name: 'Reject non-essential' }).click();
+  await bar.getByRole('button', { name: 'Reject all' }).click();
   await expect(bar).toBeHidden();
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pj-consent') ?? 'null'));
-  expect(stored).toMatchObject({ v: 1, analytics: false, chat: false });
+  expect(stored).toMatchObject({ v: 2, analytics: false, chat: false });
 
   await page.mouse.move(200, 200); await page.mouse.wheel(0, 600);
   await page.waitForTimeout(3500);
