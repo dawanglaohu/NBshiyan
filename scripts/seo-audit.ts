@@ -16,10 +16,10 @@
  *   indexable /admin or /s/ page (error) · internal link -> 404 (error) · literal "{{" in HTML (error)
  *
  * --ignore-env-noindex (or SEO_AUDIT_IGNORE_ENV_NOINDEX=1): ignore the X-Robots-Tag header, which next.config.ts sets
- *   site-wide when VERCEL_ENV !== 'production' (i.e. on every local build); <meta name=robots> is still checked.
+ *   site-wide when APP_ENV !== 'production' (i.e. on every local build); <meta name=robots> is still checked.
  * --mock (or SEO_AUDIT_MOCK=1): coverage mode for category + article pages. Build AND start the server with
  *   SEO_AUDIT_MOCK=1 so the app force-enables category pages and serves local mock Sanity articles (no network;
- *   ignored when VERCEL_ENV=production). The audit then seeds every /{en,ru}/products/{slug} and /{en,ru}/articles,
+ *   ignored when APP_ENV=production). The audit then seeds every /{en,ru}/products/{slug} and /{en,ru}/articles,
  *   and errors if any expected page is missing or no article detail page was reached.
  * BreadcrumbList (error): required on /{locale}/products/{slug} and /{locale}/articles/{slug}; any BreadcrumbList
  *   found is validated (positions 1..n, absolute same-site item URLs, first = /{locale}, last = the page itself).
@@ -165,7 +165,7 @@ async function main() {
   const args = process.argv.slice(2); const opt = (k: string) => args.find((a) => a.startsWith(`--${k}=`))?.split('=').slice(1).join('=');
   const base = (args.find((a) => !a.startsWith('--')) ?? process.env.SEO_AUDIT_BASE ?? 'http://localhost:3000').replace(/\/$/, '');
   const max = Number(opt('max') ?? process.env.SEO_AUDIT_MAX ?? 300); const outDir = opt('out') ?? 'reports';
-  // next.config.ts adds a site-wide X-Robots-Tag: noindex when VERCEL_ENV !== 'production' (always true locally).
+  // next.config.ts adds a site-wide X-Robots-Tag: noindex when APP_ENV !== 'production' (always true locally).
   const ignoreEnvHeader = args.includes('--ignore-env-noindex') || process.env.SEO_AUDIT_IGNORE_ENV_NOINDEX === '1';
   const mock = args.includes('--mock') || process.env.SEO_AUDIT_MOCK === '1';
   const siteOrigin = process.env.SEO_AUDIT_SITE_ORIGIN ?? process.env.NEXT_PUBLIC_SITE_URL ?? base;

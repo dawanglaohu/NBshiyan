@@ -1,9 +1,10 @@
+import { isProdEnvFrom } from './src/lib/site';
 // 生产环境配置自检：在 next.config 加载时执行（next build 和 next start 都会加载），
-// 只在 Vercel 正式环境生效，CI / 预览 / 本地不受影响。
+// 只在 APP_ENV=production 时生效，CI / 预览 / 本地不受影响。
 const TRUTHY = /^(1|true|yes|on)$/i;
 
 export function isProductionDeploy(env: Record<string, string | undefined>) {
-  return env.VERCEL_ENV === 'production' || (env.VERCEL === '1' && env.NODE_ENV === 'production' && !env.VERCEL_ENV);
+  return isProdEnvFrom(env);
 }
 
 export function prodEnvProblems(env: Record<string, string | undefined>): string[] {

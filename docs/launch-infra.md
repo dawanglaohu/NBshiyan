@@ -127,7 +127,7 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 
 ### 4.7 建议：生产配置自检（后续单独 PR）
 
-建议加一个 `scripts/check-prod-env.mjs`，在 `VERCEL_ENV=production` 时于构建前运行，满足任一条件就让构建失败：
+建议加一个 `scripts/check-prod-env.mjs`，在 `APP_ENV=production` 时于构建前运行，满足任一条件就让构建失败：
 - 任何 `*_MOCK` 变量为真（如 `NEXT_PUBLIC_LOGO_UPLOAD_MOCK=1`）
 - `NEXT_PUBLIC_ADMIN_API` 不等于 `http`
 - `RATE_LIMIT_STORE` 不是 `upstash`、`STORAGE_DRIVER` 不是 `r2`
@@ -157,7 +157,7 @@ Ryan 操作：
 4. **Google Search Console**：添加资源 → 网址前缀 → HTML 标记 → 复制 `content` 值填 `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` → 重新部署 → 点验证 → 提交 `https://<域名>/sitemap.xml`。（也可用 DNS TXT 的“网域”资源。）
 5. **Yandex Webmaster**：添加站点 → Meta 标签 → 值填 `NEXT_PUBLIC_YANDEX_VERIFICATION` → 部署后验证 → 提交 sitemap；俄语市场重点平台。
 6. **Bing Webmaster**：可直接从 GSC 导入；或 Meta 标签 `msvalidate.01` 值填 `NEXT_PUBLIC_BING_VERIFICATION` → 验证 → 提交 sitemap。
-7. 非生产环境已全站 `X-Robots-Tag: noindex`，只有 `VERCEL_ENV=production` 才允许收录。
+7. 非生产环境已全站 `X-Robots-Tag: noindex`，只有 `APP_ENV=production` 才允许收录。
 
 ## 7. 首个管理员
 

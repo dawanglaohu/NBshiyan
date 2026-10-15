@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import { securityHeaders } from './security-headers';
 import { assertProdEnv } from './prod-env-check';
+import { isProdEnvFrom } from './src/lib/site';
 
 assertProdEnv();
 
@@ -11,7 +12,7 @@ const adminHeaders = [
   { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
   { key: 'Referrer-Policy', value: 'no-referrer' }
 ];
-const isProd = process.env.VERCEL_ENV === 'production';
+const isProd = isProdEnvFrom();
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
