@@ -59,3 +59,16 @@ export const needsReview = (r: { trustScore: number; anonymizedAt?: string | nul
 /** 往来记录：已匿名化时 subject / 正文的 [deleted] 不直接显示 */
 export const DELETED_BODY = '内容已删除';
 export function DeletedBody() { return <span data-testid="deleted-body" style={{ color: 'var(--ink-2)' }}>{DELETED_BODY}</span>; }
+
+/** 已匿名化：状态下拉框置灰 + 说明（后台界面只有中文；EN/RU 文案待语言 bot 校对后再接入） */
+export const STATUS_LOCKED_MSG = '内容已删除，无法更改状态';
+export function LockedStatus({ label }: { label: string }) {
+  return (
+    <span className="muted" data-testid="status-locked">
+      <label>状态：<select value="x" disabled aria-label="状态" aria-describedby="status-locked-why"><option value="x">{label}</option></select></label>
+      <span id="status-locked-why" style={{ color: 'var(--ink-2)', marginLeft: 8, fontSize: 12 }}>{STATUS_LOCKED_MSG}</span>
+    </span>
+  );
+}
+/** 改状态返回 409 anonymized：显示同一句话并刷新详情 */
+export const statusConflictText = (err?: string) => (err === 'anonymized' ? STATUS_LOCKED_MSG : undefined);
