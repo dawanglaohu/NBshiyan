@@ -2,7 +2,8 @@
   "Meta": {
     "title": "Custom Packaging Manufacturer: Boxes & Cups | PackJoyU",
     "description": "PackJoyU makes custom corrugated boxes, gift and wine boxes, molded pulp, custom paper cups, printed packaging for brands in North America, Europe and Australia.",
-    "home": "Home"
+    "home": "Home",
+    "ogImageAlt": "PackJoyU custom packaging: boxes, paper cups and printing"
   },
   "Nav": {
     "home": "Home",
@@ -150,7 +151,8 @@
     },
     "learnMore": "Learn more",
     "specsLabel": "Key specs",
-    "empty": "No 3D models are published yet. Please check back soon or contact us for samples."
+    "empty": "No 3D models are published yet. Please check back soon or contact us for samples.",
+    "ogImageAlt": "PackJoyU: Our products in 3D: custom corrugated, gift and wine boxes"
   },
   "Admin": {
     "title": "Admin"
@@ -176,7 +178,8 @@
     "metaTitle": "Request a Custom Packaging Quote | PackJoyU",
     "metaDescription": "Tell us about your packaging project and request a custom quote from PackJoyU.",
     "title": "Request a quote",
-    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet."
+    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
+    "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {
     "stepOf": "Step {n} of {total}",
@@ -322,6 +325,7 @@
   "Privacy": {
     "metaTitle": "Privacy policy: data we collect | PackJoyU",
     "title": "Privacy policy",
+    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders, chat and cookies, and how to exercise your privacy rights.",
     "intro": "This page explains what personal data PackJoyU collects through this website, why, and how long we keep it.",
     "contactLink": "Contact us through the inquiry form",
     "sections": {
@@ -391,7 +395,8 @@
           "Data controller: {{待Ryan确认}}"
         ]
       }
-    }
+    },
+    "ogImageAlt": "PackJoyU: Privacy policy"
   },
   "DesignExpired": {
     "metaTitle": "Design expired | PackJoyU",
@@ -400,6 +405,9 @@
     "backToCategory": "Customize {category} again",
     "backToProducts": "Browse products and customize again",
     "quote": "Get a quote"
+  },
+  "DesignShared": {
+    "metaTitle": "Custom Packaging Design | PackJoyU"
   },
   "NotFound": {
     "code": "404",
