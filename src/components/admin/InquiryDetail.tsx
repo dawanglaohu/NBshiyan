@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
+import InquiryNotFound from './InquiryNotFound';
 import StatusBadge from './StatusBadge';
 import { canAssignInquiry, errorText, loginHref, fmtDate, productName, relTime } from './format';
 
@@ -50,13 +51,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
   const canAssign = canAssignInquiry(role);
   if (inq === undefined) return <p className="muted">{err ? <>{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></> : '加载中…'}</p>;
-  if (inq === null) return (
-    <div className="adm-empty">
-      <h1>询盘不存在</h1>
-      <p className="muted">这条询盘可能已删除，或者你没有查看权限。</p>
-      <Link href="/admin/inquiries" className="adm-btn">返回询盘列表</Link>
-    </div>
-  );
+  if (inq === null) return <InquiryNotFound />;
   const c = inq.contact;
   const score = inq.trustScore;
   const ringColor = score < REVIEW_THRESHOLD ? 'var(--err)' : score < 70 ? 'var(--warn-c)' : 'var(--ok)';
