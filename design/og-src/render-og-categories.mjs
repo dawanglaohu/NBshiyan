@@ -4,6 +4,8 @@
 // Run from repo root: NODE_PATH=<dir with playwright> node design/og-src/render-og-categories.mjs
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
+import { tag } from './og-tagline.mjs';
+import { resolvePoster } from './og-assets.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const R=process.cwd(), ts=fs.readFileSync(R+'/src/lib/seo/categoryMeta.ts','utf8');
 const cats=[...ts.matchAll(/key: '([\w-]+)',\s*en: \{ slug: '([\w-]+)'.*?ru: \{ slug: '([\w-]+)'/gs)].map(m=>({key:m[1],en:m[2],ru:m[3]}));
@@ -15,7 +17,7 @@ const H1={'corrugated-boxes':['Custom Corrugated Boxes','Гофрокороба 
 'wine-boxes':['Custom Wine Boxes','Коробки для вина на заказ'],'color-printing':['Packaging Printing Services','Печать упаковки на заказ'],
 'offset-printing':['Offset Printing Services','Офсетная печать упаковки'],
 'gift-cards':['Custom Gift Cards','Печать подарочных карт на заказ'],'christmas-merchandise':['Custom Christmas Packaging','Новогодняя упаковка на заказ']};
-const posters={'corrugated-boxes':'custom-corrugated-boxes.88879bdf.webp','gift-boxes':'custom-gift-boxes.2b476905.webp','wine-boxes':'custom-wine-boxes.98e212ab.webp'};
+const posters=Object.fromEntries(['corrugated-boxes','gift-boxes','wine-boxes'].map(k=>[k,resolvePoster('custom-'+k)]));
 const K='#C49A6C',KD='#A77D50',KL='#8a6440',C='#FF5A36',Y='#FFD166',G='#2E9E6B';
 const S=b=>`<svg viewBox="0 0 200 180" width="380">${b}</svg>`;
 const box=(f=K,d=KD,s=KL,acc=Y)=>`<path d="M30 60 100 30l70 30v80l-70 34-70-34Z" fill="${f}"/><path d="M100 90v84L30 140V60Z" fill="${d}"/><path d="m30 60 70 30 70-30" fill="none" stroke="${s}" stroke-width="3"/><circle cx="168" cy="26" r="14" fill="${acc}"/>`;
@@ -30,7 +32,6 @@ const ill={
  'gift-cards':S(`<rect x="30" y="54" width="130" height="84" rx="12" fill="${K}" transform="rotate(-10 95 96)"/><rect x="44" y="64" width="130" height="84" rx="12" fill="${C}"/><rect x="58" y="80" width="30" height="22" rx="4" fill="${Y}"/><rect x="58" y="120" width="90" height="8" rx="4" fill="#fff"/>`),
  'christmas-merchandise':S(box('#C2381A','#9E2C13','#fff','#FFD166')+`<path d="M100 30v144" stroke="#2E9E6B" stroke-width="10"/><path d="M100 30c-20-22-40-4-20 8M100 30c20-22 40-4 20 8" fill="none" stroke="#2E9E6B" stroke-width="7"/>`),
 };
-const tag={en:'Custom packaging & printing · Factory direct',ru:'Упаковка и печать на заказ · Напрямую с фабрики'};
 const b64=f=>'data:image/webp;base64,'+fs.readFileSync(R+'/public/images/posters/'+f).toString('base64');
 const page=({title,sub,img,dark})=>`<!doctype html><html><head><meta charset="utf-8"><style>
 *{margin:0;box-sizing:border-box}body{width:1200px;height:630px;overflow:hidden;font-family:Manrope,sans-serif;background:${dark?'#121214':'#FBF8F3'};color:${dark?'#F2E9D8':'#1C1C1C'}}
