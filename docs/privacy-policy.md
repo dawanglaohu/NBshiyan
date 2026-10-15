@@ -28,7 +28,7 @@
 - Uploaded logos not attached to an inquiry: usually deleted **within 48 hours** of upload (eligible after 24 hours; cleanup runs daily), except logos still used by an unexpired saved design.
 - Shared designs: expire after 180 days and are deleted 90 days later; designs attached to an inquiry follow that inquiry's retention.
 - Logos attached to an inquiry: deleted together with the inquiry when it is anonymized, or earlier on your deletion request.
-- Inquiry records: anonymized **2 years** after submission; only non-personal statistics are kept.
+- Inquiry records: anonymized **2 years** after the last activity on the inquiry (our reply or a status change); only non-personal statistics are kept.
 - Rate-limit records: based on your IP address and a hashed email address; expire when the limit window ends, **at most 30 days**.
 - Admin security (audit) logs, including IP addresses: deleted after **365 days**.
 - On a deletion request: database records are deleted or anonymized immediately; copies of notification emails in our business inbox are deleted manually within 30 days; service-provider logs (e.g. email delivery, hosting) are deleted according to each provider's retention period.
@@ -80,7 +80,7 @@ You can request access, correction, deletion, restriction, portability, or objec
 - Загруженные логотипы, не привязанные к запросу, — обычно удаляются **в течение 48 часов** после загрузки (через 24 часа становятся доступны для удаления, очистка выполняется ежедневно), кроме логотипов, которые ещё используются в сохранённом дизайне с неистёкшим сроком.
 - Сохранённые дизайны — истекают через 180 дней и удаляются ещё через 90 дней; дизайны, прикреплённые к запросу, хранятся столько же, сколько запрос.
 - Логотипы, привязанные к запросу, — удаляются вместе с запросом при его обезличивании или раньше — по вашему запросу на удаление.
-- Запросы — обезличиваются через **2 года** после отправки; сохраняется только неперсональная статистика.
+- Запросы — обезличиваются через **2 года** после последней активности по ним (нашего ответа или смены статуса); сохраняется только неперсональная статистика.
 - Данные ограничения частоты запросов — на основе IP-адреса и хешированного email; истекают по окончании окна лимита, **не позднее чем через 30 дней**.
 - Журналы безопасности (аудита) администрирования, включая IP-адреса, — удаляются через **365 дней**.
 - По запросу на удаление: записи в базе данных удаляются или обезличиваются сразу; копии писем-уведомлений в рабочем почтовом ящике удаляются вручную в течение 30 дней; журналы поставщиков услуг (например, доставки почты и хостинга) удаляются в сроки, установленные каждым поставщиком.

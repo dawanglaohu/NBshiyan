@@ -85,6 +85,6 @@ test('lead-time figures are blocked; privacy durations and form options pass', (
     'за 15 дней', 'срок 15 дней', 'Срок производства — 20 дней', 'образец за 7 рабочих дней', '5–7 дней'])
     assert.ok(hit(bad), bad);
   for (const ok of ['Within 2 weeks', '1–2 months', 'В течение 2 недель', 'Logos are deleted 24 hours after upload, at most 48 hours',
-    'Inquiries are anonymized after 2 years', 'inactive for 90 days', 'Сохранённые дизайны истекают через 180 дней'])
+    'Inquiries are anonymized 2 years after the last activity on the inquiry (our reply or a status change)', 'inactive for 90 days', 'Сохранённые дизайны истекают через 180 дней'])
     assert.ok(!hit(ok), ok);
 });
