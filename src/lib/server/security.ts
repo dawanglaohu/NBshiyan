@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import { isIP as netIsIP } from 'node:net';
 import { rateLimitStore } from './ratelimit';
 
 /** 随机、不可递增的 id，用于短链接和回信 token */
@@ -59,7 +60,9 @@ export const escapeHtml = (s: string) =>
  * 只信任平台写入的头。接入 Cloudflare 前 cf-connecting-ip 可被客户端伪造，
  * 所以只有 BEHIND_CLOUDFLARE=1 时才读它；否则读 Vercel 写入的 x-real-ip。
  * 非 Vercel 部署（自建反代链）可设 TRUSTED_PROXY_HOPS=N：从 x-forwarded-for 右数第 N 个取客户端 IP。
- * 默认不信任 x-forwarded-for（客户端可伪造最左侧值）。所有结果都校验是合法 IP，否则视为没有。
+ * 默认不信任 x-forwarded-for（客户端可伪造最左侧值）。
+ * 每条返回路径（cf-connecting-ip / x-real-ip / x-forwarded-for）都先 trim 再用 node:net isIP 校验，
+ * 不是合法 IPv4/IPv6 一律返回 null（调用方按“没有 IP”处理，审计记 unknown）；不会回退到下一个头。
  */
 export function clientIp(req: Request): string | null {
   const h = req.headers;
@@ -67,15 +70,14 @@ export function clientIp(req: Request): string | null {
   if (process.env.BEHIND_CLOUDFLARE === '1') {
     // Cloudflare 优先：同时设了 TRUSTED_PROXY_HOPS 时忽略它（配置错误，告警一次）
     if (process.env.TRUSTED_PROXY_HOPS && !warnedBoth) { warnedBoth = true; console.error('[clientIp] TRUSTED_PROXY_HOPS ignored because BEHIND_CLOUDFLARE=1'); }
-    return h.get('cf-connecting-ip') ?? h.get('x-real-ip');
+    return validIp(h.get('cf-connecting-ip') ?? h.get('x-real-ip'));
   }
   const real = h.get('x-real-ip');
   const hops = trustedProxyHops();
-  if (real || hops === null) return real;
+  if (real || hops === null) return validIp(real);
   const parts = (h.get('x-forwarded-for') ?? '').split(',').map((x) => x.trim()).filter(Boolean);
   if (parts.length < hops) return null;
-  const ip = parts[parts.length - hops];
-  return isIP(ip) ? ip : null;
+  return validIp(parts[parts.length - hops]);
 }
 let warnedBoth = false;
 /** 合法值 1–10；未设或非法返回 null（= 不信任 x-forwarded-for） */
@@ -86,13 +88,14 @@ export function trustedProxyHops() {
   return Number.isInteger(n) && n >= 1 && n <= 10 ? n : null;
 }
 
-/** IPv4 / IPv6 文本校验（不依赖 node:net，edge 运行时也能用） */
+/** IPv4 / IPv6 文本校验（node:net isIP；超长直接拒绝） */
 export function isIP(s: string) {
-  if (s.length > 45) return false;
-  const v4 = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
-  if (v4.test(s)) return true;
-  if (!/^[0-9a-fA-F:.]+$/.test(s) || !s.includes(':')) return false;
-  try { return new URL(`http://[${s}]/`).hostname.length > 2; } catch { return false; }
+  return s.length <= 45 && netIsIP(s) !== 0;
+}
+/** trim 后是合法 IP 才返回，否则 null */
+function validIp(v: string | null | undefined): string | null {
+  const t = v?.trim();
+  return t && isIP(t) ? t : null;
 }
 
 /** 按字节上限读取请求体，超出返回 null */

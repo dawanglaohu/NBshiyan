@@ -7,7 +7,7 @@ afterEach(() => { delete process.env.TRUSTED_PROXY_HOPS; delete process.env.BEHI
 
 test('default (no TRUSTED_PROXY_HOPS) identical to old behaviour', () => {
   assert.equal(clientIp(req({ 'x-real-ip': '203.0.113.5' })), '203.0.113.5');
-  assert.equal(clientIp(req({ 'x-real-ip': 'raw-unchanged' })), 'raw-unchanged');
+  assert.equal(clientIp(req({ 'x-real-ip': ' 2001:db8::1 ' })), '2001:db8::1'); // trim
   assert.equal(clientIp(req({})), null);
 });
 
@@ -62,4 +62,23 @@ test('sample_recent 429 has no Retry-After / retryAfter (anti email probing)', a
   assert.equal(r.headers.get('Retry-After'), null);
   assert.equal(r.headers.get('Cache-Control'), 'no-store');
   assert.deepEqual(await r.json(), { error: 'sample_recent' });
+});
+
+test('forged / non-IP header values are rejected on every path (security review #246)', () => {
+  for (const bad of ['evil<script>', '1.2.3.4, 5.6.7.8', 'raw-unchanged', '1.2.3.4:80', '', '   ']) {
+    assert.equal(clientIp(req({ 'x-real-ip': bad })), null, `x-real-ip ${JSON.stringify(bad)}`);
+  }
+  // 非法 x-real-ip 不回退到 XFF
+  process.env.TRUSTED_PROXY_HOPS = '1';
+  assert.equal(clientIp(req({ 'x-real-ip': 'evil<script>', 'x-forwarded-for': '198.51.100.7' })), null);
+  delete process.env.TRUSTED_PROXY_HOPS;
+  process.env.BEHIND_CLOUDFLARE = '1';
+  assert.equal(clientIp(req({ 'cf-connecting-ip': '9'.repeat(10_000) })), null);
+  assert.equal(clientIp(req({ 'cf-connecting-ip': 'a'.repeat(10_000) })), null);
+  assert.equal(clientIp(req({ 'cf-connecting-ip': 'evil<script>', 'x-real-ip': '203.0.113.5' })), null);
+  assert.equal(clientIp(req({ 'x-real-ip': '1.2.3.4, 5.6.7.8' })), null);
+  // 合法值仍然通过
+  assert.equal(clientIp(req({ 'cf-connecting-ip': ' 203.0.113.9 ' })), '203.0.113.9');
+  assert.equal(clientIp(req({ 'cf-connecting-ip': '2001:db8::2' })), '2001:db8::2');
+  assert.equal(clientIp(req({ 'x-real-ip': '::1' })), '::1');
 });
