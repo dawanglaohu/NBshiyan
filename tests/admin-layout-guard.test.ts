@@ -35,7 +35,7 @@ test('wrong role → 404, correct role → render', () => {
 test('admin layout: server-side check before render, noindex, AdminGuard removed', () => {
   const src = readFileSync('src/app/admin/layout.tsx', 'utf8');
   assert.ok(!src.includes("'use client'"));
-  const order = ['checkAdminSession(', 'adminGate(', 'redirect(gate.to)', 'notFound()', '<AdminShell>'].map((s) => src.indexOf(s));
+  const order = ['checkAdminSession(', 'adminGate(', 'redirect(gate.to)', 'notFound()', '<AdminShell'] .map((s) => src.indexOf(s));
   assert.ok(order.every((i, n) => i >= 0 && (n === 0 || i > order[n - 1])), String(order));
   assert.match(src, /robots: \{ index: false, follow: false \}/);
   assert.match(src, /dynamic = 'force-dynamic'/);

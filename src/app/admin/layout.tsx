@@ -24,5 +24,5 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const gate = adminGate(check.ok ? { ok: true, role: check.user.role } : { ok: false, reason: check.reason }, (await headers()).get('x-admin-path'));
   if (gate.action === 'redirect') redirect(gate.to);
   if (gate.action === 'notFound') notFound();
-  return (<html lang="zh-CN" className={manrope.variable}><body style={{ margin: 0 }}><AdminShell>{children}</AdminShell></body></html>);
+  return (<html lang="zh-CN" className={manrope.variable}><body style={{ margin: 0 }}><AdminShell role={check.ok ? check.user.role : undefined}>{children}</AdminShell></body></html>);
 }

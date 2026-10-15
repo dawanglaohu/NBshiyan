@@ -1,8 +1,9 @@
 @import "../../styles/tokens.css";
+@import "./mail.css"; /* #74 邮件界面 */
 /* 后台：简洁组件风格，主色只用于主要按钮和状态（见 design/admin-wireframes.html） */
 .adm{display:grid;grid-template-columns:200px 1fr;min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--font-sans),system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
 .adm *{box-sizing:border-box}
-.adm{--adm-bg:#F7F5F1;--warn-c:var(--warn);--rowb-review:#FEF3F2;--rowb-unassigned:#FFF4EE;background:var(--adm-bg)}
+.adm{--neutral-bg:#F3EFE8;--line-strong:#8A8378;--adm-bg:#F7F5F1;--warn-c:var(--warn);--rowb-review:#FEF3F2;--rowb-unassigned:#FFF4EE;background:var(--adm-bg)}
 /* 深色侧栏，与前台区分（#85 第 6 条） */
 .adm-side{background:#1C1C1C;color:#CFC9BE;padding:18px 12px}
 .adm-side .brand{color:#fff;font-weight:800;font-size:16px;padding:0 12px 22px}.adm-side .brand i{color:var(--accent);font-style:normal}.adm-side .brand small{color:#8C867C;font-weight:600;font-size:11px;margin-left:6px}

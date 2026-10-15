@@ -105,3 +105,12 @@ test('可信度卡片：已匿名化时整块不渲染（ADMIN / SALES 都一样
   assert.equal(detailControls(anon, 'SALES').showTrust, false);
   assert.equal(detailControls(live, 'SALES').showTrust, true);
 });
+
+test('#74 已匿名化：状态下拉框置灰并说明；409 anonymized 映射到同一句', async () => {
+  const { LockedStatus, STATUS_LOCKED_MSG, statusConflictText } = await import('../src/components/admin/anonymized');
+  const html = renderToStaticMarkup(React.createElement(LockedStatus, { label: '已成交' }));
+  assert.match(html, /<select[^>]*disabled/); assert.match(html, /aria-describedby="status-locked-why"/);
+  assert.match(html, /内容已删除，无法更改状态/); assert.equal(STATUS_LOCKED_MSG, '内容已删除，无法更改状态');
+  assert.equal(statusConflictText('anonymized'), STATUS_LOCKED_MSG); assert.equal(statusConflictText('invalid'), undefined);
+  await assert.rejects(mockAdminApi.updateInquiry('inq_anon_1', { status: 'NEW' }), /anonymized/);
+});
