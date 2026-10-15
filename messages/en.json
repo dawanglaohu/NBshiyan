@@ -414,5 +414,119 @@
     "home": "Back to home",
     "quote": "Get a quote",
     "browse": "Browse products"
+  },
+  "Solutions": {
+    "meta": {
+      "title": "Packaging Solutions by Industry | PackJoyU",
+      "description": "Custom boxes, cups and inserts for your industry, with specs matched to how your product ships and sells. Tell us about your product to get a quote."
+    },
+    "eyebrow": "Industry solutions",
+    "title": "Packaging built for your industry",
+    "lead": "Custom boxes, cups and inserts, with specs matched to how your product ships and sells.",
+    "more": "View solution",
+    "premium": {
+      "eyebrow": "Wine & gift boxes",
+      "title": "Premium finishes, made to order",
+      "lead": "Rigid wine and gift boxes built around your bottle or product, with the finish and opening experience you choose.",
+      "imageAlt": {
+        "wine": "Custom wine box",
+        "gift": "Custom gift box"
+      }
+    },
+    "empty": "Solutions are being updated. Tell us what you need.",
+    "cta": "Not sure which box fits? Send us your product.",
+    "detail": {
+      "crumb": "Industry solutions",
+      "lead": "Custom packaging for {industryGen}, with specs matched to how your product ships and sells.",
+      "metaTitle": "{industry} Packaging Solutions | PackJoyU",
+      "metaDescription": "Custom packaging for {industryGen}, with specs matched to how your product ships and sells. Tell us about your product to get a quote.",
+      "cta": "Tell us about your product and we'll suggest a fit."
+    },
+    "industries": {
+      "color-boxes": {
+        "name": "Retail Products",
+        "title": "Packaging for Retail Products",
+        "industryGen": "Retail Products"
+      },
+      "corrugated-boxes": {
+        "name": "E-commerce & Shipping",
+        "title": "Packaging for E-commerce & Shipping",
+        "industryGen": "E-commerce & Shipping"
+      },
+      "paper-cups": {
+        "name": "Cafés & Coffee Shops",
+        "title": "Packaging for Cafés & Coffee Shops",
+        "industryGen": "Cafés & Coffee Shops"
+      },
+      "party-supplies": {
+        "name": "Parties & Events",
+        "title": "Packaging for Parties & Events",
+        "industryGen": "Parties & Events"
+      },
+      "wine-boxes": {
+        "name": "Wine & Spirits",
+        "title": "Packaging for Wine & Spirits",
+        "industryGen": "Wine & Spirits"
+      },
+      "gift-boxes": {
+        "name": "Gifts & Corporate Gifting",
+        "title": "Packaging for Gifts & Corporate Gifting",
+        "industryGen": "Gifts & Corporate Gifting"
+      }
+    }
+  },
+  "Factory": {
+    "meta": {
+      "title": "How We Work: From Quote to Shipment | PackJoyU",
+      "description": "How a custom packaging order works at PackJoyU, step by step: brief and dieline, sample, printing, die-cutting and assembly, quality control and shipping."
+    },
+    "eyebrow": "How we work",
+    "title": "From brief to finished packaging",
+    "lead": "See how your order moves, step by step, from the first dieline to shipping.",
+    "steps": {
+      "title": "From quote to shipment",
+      "1": {
+        "title": "Brief & dieline",
+        "desc": "You share your product, quantities and artwork, and we agree the box structure and a dieline to match."
+      },
+      "2": {
+        "title": "Sample",
+        "desc": "A sample is made from the agreed dieline so you can check size, fit and print before the run."
+      },
+      "3": {
+        "title": "Print",
+        "desc": "Once the sample is approved, your artwork is printed on the selected material."
+      },
+      "4": {
+        "title": "Die-cut & assembly",
+        "desc": "Printed sheets are die-cut, folded and assembled, with inserts added where your design needs them."
+      },
+      "5": {
+        "title": "QC & ship",
+        "desc": "Finished packaging is checked against the approved sample, packed and prepared for shipment."
+      }
+    },
+    "stepImageAlt": {
+      "print": "Printing",
+      "dieCut": "Die-cutting",
+      "qc": "Quality control",
+      "warehouse": "Warehouse"
+    },
+    "cta": "Have a project in mind? Tell us about it."
+  },
+  "Cases": {
+    "meta": {
+      "title": "Packaging Case Studies | PackJoyU",
+      "description": "Custom packaging projects by PackJoyU. Case studies are coming soon. Tell us about your product and we will discuss the right packaging."
+    },
+    "eyebrow": "Case wall",
+    "title": "Boxes we've made",
+    "lead": "Case studies are coming soon. In the meantime, tell us about your project.",
+    "comingSoon": "Case studies coming soon.",
+    "filtersLabel": "Filter by industry",
+    "all": "All",
+    "empty": "No cases in this category yet.",
+    "showAll": "Show all",
+    "cta": "Have a project in mind? Tell us about it."
   }
 }
