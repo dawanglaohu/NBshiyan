@@ -6,6 +6,7 @@ import { hitRateLimit } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
+import { normalizeEmail } from '../sample';
 
 authenticator.options = { window: 1, step: 30 };
 export const MAX_FAILS = 5;
@@ -24,12 +25,12 @@ export async function loginRateOk(ip: string | null, email: string) {
 }
 
 /**
- * 登录失败审计里的邮箱只存 HMAC（不存明文）：subkey = HMAC(AUTH_SECRET, "audit-email-v1")，再 HMAC(subkey, 规范化邮箱)。
+ * 登录失败审计里的邮箱只存 HMAC（不存明文）：subkey = HMAC(AUTH_SECRET, "audit-email-v1")，再 HMAC(subkey, normalizeEmail(email))（与 Contact/SampleRequest.normalizedEmail 同一规范化）。
  * 绝不直接用 AUTH_SECRET 当 HMAC 密钥；没有 AUTH_SECRET（本地/测试）时用固定开发密钥。写入格式 `emailh:<32 字符>`。
  */
 export function auditEmailHash(email: string, env: Record<string, string | undefined> = process.env) {
   const sub = createHmac('sha256', env.AUTH_SECRET || 'dev-only-audit-email-key').update('audit-email-v1').digest();
-  return 'emailh:' + createHmac('sha256', sub).update(email.trim().toLowerCase()).digest('base64url').slice(0, 32);
+  return 'emailh:' + createHmac('sha256', sub).update(normalizeEmail(email)).digest('base64url').slice(0, 32);
 }
 
 /** 让该账号所有现有会话失效。改密码、重置或关闭 2FA、禁用账号时必须调用。 */
@@ -97,7 +98,7 @@ export async function authorizeLogin(input: { email: string; password: string; t
   if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
   if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
   await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
-  await audit({ actorId: user.id, action: 'auth.login_success', target: email, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
+  await audit({ actorId: user.id, action: 'auth.login_success', target: user.id, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
   return user;
 }
 

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHmac } from 'node:crypto';
 import { anonymizeInquiriesTx } from '../src/lib/server/privacy';
 import { auditEmailHash } from '../src/lib/server/admin/login';
+import { normalizeEmail } from '../src/lib/server/sample';
 
 test('anonymizeInquiriesTx also clears ipCountry', async () => {
   const calls: [string, any][] = [];
@@ -39,4 +40,23 @@ test('every auth.login_fail audit stores the hashed email, never plaintext', () 
   assert.ok(fails.length >= 4);
   for (const l of fails) assert.match(l, /target: auditEmailHash\(email\)/, l);
   assert.doesNotMatch(src, /login_fail'[^\n]*target: email[,. ]/);
+});
+
+test('auditEmailHash normalizes with normalizeEmail (same as normalizedEmail): aliases hash equal', () => {
+  const env = { AUTH_SECRET: 'k' };
+  const sub = createHmac('sha256', 'k').update('audit-email-v1').digest();
+  const raw = ' J.Doe+tag@GoogleMail.com ';
+  assert.equal(auditEmailHash(raw, env), 'emailh:' + createHmac('sha256', sub).update(normalizeEmail(raw)).digest('base64url').slice(0, 32));
+  assert.equal(auditEmailHash(raw, env), auditEmailHash(normalizeEmail(raw), env));
+  const src = readFileSync('src/lib/server/admin/login.ts', 'utf8');
+  assert.match(src, /import \{ normalizeEmail \} from '\.\.\/sample'/);
+  assert.doesNotMatch(src.slice(src.indexOf('export function auditEmailHash'), src.indexOf('export function auditEmailHash') + 400), /toLowerCase/);
+});
+
+test('auth.login_success audit stores the admin userId, never the email', () => {
+  const src = readFileSync('src/lib/server/admin/login.ts', 'utf8');
+  const lines = src.split('\n').filter((l) => l.includes("action: 'auth.login_success'"));
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /target: user\.id/);
+  assert.doesNotMatch(lines[0], /target: (input\.)?email/);
 });
