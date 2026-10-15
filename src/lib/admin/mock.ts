@@ -5,7 +5,7 @@ import { REVIEW_THRESHOLD, STATUS_LABEL, usersFromResponse } from './types';
 const users: AdminUser[] = [{ id: 'u1', name: '业务员 A', email: 'sales-a@packjoyu.example', role: 'SALES' }, { id: 'u2', name: '业务员 B', email: 'sales-b@packjoyu.example', role: 'SALES' }];
 const now = Date.now();
 const ago = (min: number) => new Date(now - min * 60_000).toISOString();
-const PRODUCTS = ['wine-boxes', 'paper-cups', 'corrugated-boxes', 'gift-boxes', 'molded-pulp', 'color-boxes'];
+const PRODUCTS = ['wine-boxes', 'paper-cups', 'corrugated-boxes', 'gift-boxes', 'pulp-molding', 'color-boxes'];
 const COMPANIES: [string, string, string][] = [
   ['Acme GmbH', 'DE', 'anna@acme.de'], ['ООО Ромашка', 'RU', 'ivan@romashka.ru'], ['', 'US', 'buyer123@gmail.com'],
   ['Bloom Co', 'AU', 'sam@bloom.co'], ['Nordic Tea AB', 'SE', 'lena@nordictea.se'], ['Maison Vin', 'FR', 'paul@maisonvin.fr']

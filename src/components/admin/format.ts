@@ -1,6 +1,17 @@
 import { adminLoginHref } from '@/lib/admin/safe-callback';
 export const PRODUCT_LABEL: Record<string, string> = {
-  'corrugated-boxes': '瓦楞纸箱', 'gift-boxes': '礼盒', 'wine-boxes': '酒盒', 'paper-cups': '纸杯', 'molded-pulp': '纸浆模塑', 'color-boxes': '彩盒'
+  'corrugated-boxes': '瓦楞纸箱',
+  'color-boxes': '彩盒',
+  'gift-boxes': '礼盒',
+  'pulp-molding': '纸浆模塑',
+  'paper-cups': '纸杯',
+  'party-supplies': '派对用品',
+  'wine-boxes': '酒盒',
+  'color-printing': '彩色印刷',
+  'offset-printing': '胶印',
+  'eco-paper-cups': '印刷咖啡杯',
+  'gift-cards': '礼品卡',
+  'christmas-merchandise': '圣诞用品'
 };
 export const productName = (slug: string) => PRODUCT_LABEL[slug] ?? slug;
 export function relTime(iso: string) {
