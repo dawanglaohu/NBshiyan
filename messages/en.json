@@ -164,7 +164,8 @@
     "empty": "Your quote list is empty. Add products from the 3D catalog.",
     "continue": "Continue to request",
     "browse": "Browse 3D catalog",
-    "close": "Close"
+    "close": "Close",
+    "full": "Your quote list is full ({max} items). Remove one to add another."
   },
   "Fab": {
     "quote": "Quote list",
@@ -278,7 +279,8 @@
         "network": "Network error. Please check your connection and try again.",
         "server": "We couldn't upload your logo just now. Please try again later."
       }
-    }
+    },
+    "overLimit": "Your list has {n} items; the limit is {max}. Remove some to submit."
   },
   "Views": {
     "label": "Box view",
