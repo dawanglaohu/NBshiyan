@@ -242,6 +242,7 @@
     "next": "Next",
     "submit": "Send request",
     "sending": "Sending…",
+    "checking": "Completing security check…",
     "success": {
       "title": "Thank you — request received!",
       "ref": "Your inquiry number:",
