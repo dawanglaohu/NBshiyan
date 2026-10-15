@@ -6,7 +6,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { noStore, jsonErr } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readMultipart, fileField } from '@/lib/server/multipart';
-import { isGlb, encodePoster, MODEL_ANIM_MAX_BYTES, LOD_MAX_BYTES, POSTER_MAX_BYTES } from '@/lib/server/models';
+import { isGlb, encodePoster, MODEL_ANIM_MAX_BYTES, LOD_MAX_BYTES, POSTER_MAX_BYTES, MODEL_UPLOAD_MAX_REQUEST_BYTES, modelUploadSizeError } from '@/lib/server/models';
 import { sniffImage } from '@/lib/server/uploads';
 import { adminView, processModel } from '@/lib/server/model-service';
 
@@ -42,7 +42,10 @@ export async function POST(req: Request) {
   if (ctx instanceof Response) return ctx;
   const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'model.upload', 20));
   if (blocked) return blocked;
-  const form = await readMultipart(req, MODEL_ANIM_MAX_BYTES + LOD_MAX_BYTES + POSTER_MAX_BYTES + 64 * 1024);
+  // 整个请求 < 4MB（Vercel 请求体上限约 4.5MB）；先按 Content-Length 拒绝，读取时 readMultipart 再按实际字节数兜底
+  const sizeErr = modelUploadSizeError(req.headers.get('content-length'));
+  if (sizeErr) return NextResponse.json({ error: sizeErr, maxBytes: MODEL_UPLOAD_MAX_REQUEST_BYTES }, { status: sizeErr === 'upload_too_large' ? 413 : 411, headers: noStore });
+  const form = await readMultipart(req, MODEL_UPLOAD_MAX_REQUEST_BYTES);
   if (form instanceof Response) return form;
   const meta = Meta.safeParse(Object.fromEntries([...form.entries()].filter(([, v]) => typeof v === 'string')));
   if (!meta.success) return NextResponse.json({ error: 'invalid', issues: meta.error.flatten() }, { status: 400, headers: noStore });
