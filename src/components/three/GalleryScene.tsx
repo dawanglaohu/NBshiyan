@@ -4,10 +4,11 @@ import { ACESFilmicToneMapping, type PerspectiveCamera as PCam, type Texture } f
 import { Canvas, useThree } from '@react-three/fiber';
 import { View, Bounds, Center, OrbitControls, PerspectiveCamera, Environment, ContactShadows, useEnvironment } from '@react-three/drei';
 import SceneErrorBoundary from './SceneErrorBoundary';
+import { lightRig } from './lights';
 import ProductModel, { type BoxView, type AnimationClips, type ModelBounds } from './ProductModel';
 import { frameBox } from '@/lib/three/framing';
 
-export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; track: RefObject<HTMLDivElement | null> };
+export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
 
 // 整页只用一个 WebGL 画布，用 View 切分到每张卡片，避免超出浏览器的画布数量上限
 // frameloop="demand" 只在 invalidate 时出帧：View 按卡片位置裁剪，页面滚动、尺寸变化、卡片增减后都要重新出一帧，
@@ -34,13 +35,13 @@ function SharedEnvironment({ children }: { children: (env: Texture) => React.Rea
   return <>{children(env)}</>;
 }
 
-/** 每个 View 的灯光：暖色主光 + 冷色补光 + 弱环境光，深色礼盒/酒盒不再发黑（#31，3D bot 建议） */
-function StudioLights() {
+/** 每个 View 的灯光，见 lights.ts；dark = 深色卡片，多一盏轮廓光 */
+function StudioLights({ dark }: { dark?: boolean }) {
+  const rig = lightRig(!!dark);
   return (
     <>
-      <ambientLight intensity={0.25} />
-      <directionalLight position={[-2, 4, 3]} intensity={1.5} color="#fff1e0" />
-      <directionalLight position={[3, 2, -2]} intensity={0.4} color="#dce8ff" />
+      <ambientLight intensity={rig.ambient} />
+      {rig.directional.map((l, k) => <directionalLight key={k} position={l.position} intensity={l.intensity} color={l.color} />)}
     </>
   );
 }
@@ -116,7 +117,7 @@ export default function GalleryScene({ items, eventSource, onReady, onError }: {
       <SharedEnvironment>{(env) => items.filter((i) => i.visible).map((i) => (
         <View key={i.slug} track={i.track as RefObject<HTMLElement>}>
           <PerspectiveCamera makeDefault position={[2.4, 1.6, 2.6]} fov={40} />
-          <StudioLights />
+          <StudioLights dark={i.dark} />
           {usesGltf(i) ? <FramedGltf item={i} env={env} onReady={onReady} onError={onError} /> : (<>
           <Suspense fallback={null}>
             {/* 程序化 FoldBox / 占位盒：沿用 Bounds 自动取景 */}
