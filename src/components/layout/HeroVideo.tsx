@@ -46,7 +46,7 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
   const active = state !== 'poster';
   // 桌面封面仍走 next/image 优化；竖版封面直接用 3D 产出的 AVIF/WebP（已是 1080x1350 小文件）
   const { props: { srcSet: desktopSrcSet, ...posterImg } } = getImageProps({
-    className: 'hero-media-poster', src: '/video/hero-115-poster.932371d6.webp', alt: labels.poster,
+    className: 'hero-media-poster', src: '/video/hero-115-poster.59e587a1.webp', alt: labels.poster,
     fill: true, priority: true, sizes: '50vw',
   });
   return (
