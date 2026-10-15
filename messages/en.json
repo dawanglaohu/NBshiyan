@@ -21,25 +21,6 @@
     "sub": "Custom paper packaging and printing, from prototype to mass production — explore every product in 3D.",
     "cta": "Explore products in 3D",
     "ctaQuote": "Get a quote",
-    "advTitle": "Why brands choose PackJoyU",
-    "adv": {
-      "capacity": {
-        "value": "2M+",
-        "label": "boxes produced per month"
-      },
-      "certs": {
-        "value": "",
-        "label": ""
-      },
-      "sampling": {
-        "value": "5–7 days",
-        "label": "from artwork to physical sample"
-      },
-      "eco": {
-        "value": "100%",
-        "label": "recyclable paper options"
-      }
-    },
     "entryTitle": "Find your packaging",
     "premiumTitle": "Premium gift & wine boxes",
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
@@ -76,13 +57,13 @@
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
       "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
-      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber, a plastic-free alternative.",
+      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber.",
       "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
       "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
       "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
       "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
       "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
-      "eco-paper-cups": "Compostable and plastic-free paper cups with water-based or PLA-free coatings.",
+      "eco-paper-cups": "Paper cups with water-based coatings.",
       "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
       "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
     },
@@ -103,8 +84,7 @@
       ],
       "pulp-molding": [
         "Recycled paper or sugarcane fiber",
-        "Custom cavities for any product",
-        "Plastic-free and compostable"
+        "Custom cavities for any product"
       ],
       "paper-cups": [
         "4–22 oz, single or double wall",
@@ -112,7 +92,6 @@
       ],
       "party-supplies": [
         "Plates, cups, napkins, banners",
-        "Food-safe inks",
         "Retail-ready packs"
       ],
       "wine-boxes": [
@@ -126,13 +105,11 @@
         "Color proof before production"
       ],
       "offset-printing": [
-        "Heidelberg offset presses",
         "Catalogs, brochures, cartons",
         "Consistent color at volume"
       ],
       "eco-paper-cups": [
-        "Water-based, plastic-free coating",
-        "Home or industrial compostable"
+        "Water-based coating"
       ],
       "gift-cards": [
         "350–600 gsm card stock",
