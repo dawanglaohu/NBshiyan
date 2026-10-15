@@ -1,6 +1,8 @@
 import { TEMPLATES, type TemplateKey } from './templates.generated';
 import { SITE_URL } from '@/lib/site';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
+import enMessages from '../../../../messages/en.json';
+import ruMessages from '../../../../messages/ru.json';
 
 export type EmailVars = {
   name: string; company?: string; product: string; quantity: string; inquiryId: string; locale: 'en' | 'ru';
@@ -92,10 +94,12 @@ export function renderAlert(kind: string, lines: Record<string, string | number>
 }
 
 /** 产品名：按 categoryMeta 的 key / 英文 slug / 去掉复数的 key 匹配，给当前语言的关键词；匹配不上就把 slug 转成可读文字 */
-/** 已并入纸杯的旧 slug：邮件里按纸杯显示，不把 slug（含 eco）原样露给客户 */
-const SLUG_ALIAS: Record<string, string> = { 'eco-paper-cups': 'paper-cups', 'eco-paper-cup': 'paper-cups' };
+/** 不在 categoryMeta 里的卡片（已并入纸杯的 eco-paper-cups）：邮件里用卡片名 Products.names.<slug>，不把 slug（含 eco）原样露给客户 */
+const CARD_SLUG: Record<string, string> = { 'eco-paper-cups': 'eco-paper-cups', 'eco-paper-cup': 'eco-paper-cups' };
+const CARD_NAMES: Record<'en' | 'ru', Record<string, string>> = { en: enMessages.Products.names, ru: ruMessages.Products.names };
 export function productName(slug: string, locale: 'en' | 'ru' | 'zh') {
-  slug = SLUG_ALIAS[slug] ?? slug;
+  const card = CARD_SLUG[slug];
+  if (card) { const n = CARD_NAMES[locale === 'ru' ? 'ru' : 'en'][card]; if (n) return n; }
   const m = categoryMeta.find((c) => c.key === slug || c.en.slug === slug || c.key.replace(/s$/, '') === slug || c.key === `${slug}s` || c.key === `${slug}es`);
   const kw = m ? (locale === 'ru' ? m.ru.keyword : m.en.keyword) : null;
   const text = kw ?? slug.replace(/-/g, ' ');
