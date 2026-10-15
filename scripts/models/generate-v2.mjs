@@ -131,8 +131,8 @@ if (want('wine')) {
 // 4) 彩盒：反插式（tuck-end）折叠彩盒 80×40×160，四色印刷
 if (want('color')) {
   const W = .08, D = .04, H = .16, t = .0006;
-  const art = await svgTex(1024, 1024, `<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset=".55" stop-color="#ffb347"/><stop offset="1" stop-color="#4fb3bf"/></linearGradient></defs><rect width="1024" height="1024" fill="url(#a)"/><circle cx="760" cy="300" r="190" fill="#fff" opacity=".25"/><g fill="#1f2a44" ${F}><text x="70" y="560" font-size="120" font-weight="800">PackJoyU</text><text x="74" y="620" font-size="40">CUSTOM PRINTED BOXES</text></g><rect x="70" y="860" width="240" height="70" rx="35" fill="#fff"/><text x="190" y="907" text-anchor="middle" fill="#ff7a59" ${F} font-size="34" font-weight="700">NEW</text>`);
-  const sideArt = await svgTex(256, 1024, `<rect width="256" height="1024" fill="#4fb3bf"/><g fill="#fff" ${F} font-size="22"><text x="20" y="80">INGREDIENTS</text>${Array.from({length: 10}, (_, i) => `<rect x="20" y="${110 + i*30}" width="${150 + (i*37)%60}" height="8" opacity=".8"/>`).join('')}</g>${Array.from({length: 30}, (_, i) => `<rect x="${30 + i*6}" y="900" width="${(i*5)%3 + 1}" height="80" fill="#111"/>`).join('')}`);
+  const art = await svgTex(1024, 1024, `<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset=".55" stop-color="#ffb347"/><stop offset="1" stop-color="#4fb3bf"/></linearGradient></defs><rect width="1024" height="1024" fill="url(#a)"/><circle cx="760" cy="300" r="190" fill="#fff" opacity=".25"/><g fill="#1f2a44" ${F}><text x="70" y="560" font-size="120" font-weight="800">PackJoyU</text><text x="74" y="620" font-size="40">CUSTOM PRINTED BOXES</text></g>`);
+  const sideArt = await svgTex(256, 1024, `<rect width="256" height="1024" fill="#4fb3bf"/>`);
   const a = ['colorBoxFront', art, .45], s = ['colorBoxSide', sideArt, .45];
   const g = new Geo().box(0, H/2, D/2 - t/2, W, H, t).box(0, H/2, -D/2 + t/2, W, H, t);
   const sides = new Geo().box(W/2 - t/2, H/2, 0, t, H, D).box(-W/2 + t/2, H/2, 0, t, H, D);
