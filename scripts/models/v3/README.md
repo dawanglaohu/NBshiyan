@@ -36,3 +36,12 @@ for m in color xmas pulp; do TEX_DIR=tex-b2/ blender -b --python build_b2.py -- 
 for f in color-box christmas-tube pulp-egg-tray; do PREVIEW_TEX=32 node ../progressive.mjs out-b2/$f.glb ../../../public/models $f; done
 ```
 彩盒 80×40×160、0.45mm 白卡，顶盖开 115° 见插舌与防尘翼（仅 PackJoyU + CUSTOM PRINTED BOXES，无 NEW/成分表/条码）；纸罐 Ø100×160 + Ø102 盖（不印 MER… 文字）+ Ø70 挂球；蛋托 300×300、6×5 窝、1.6mm 壁厚。
+
+## #77 batch 3：纸杯 / 牛皮纸杯 / 派对用品（+ 彩盒字标加粗）
+```bash
+node decals-b3.mjs tex-b3/ && cp tex-b3/colorbox_front.png tex-b3/colorbox_lid.png tex-b2/
+for m in cup ecocup party; do TEX_DIR=tex-b3/ blender -b --python build_b3.py -- $m out-b3; done
+TEX_DIR=tex-b2/ blender -b --python build_b2.py -- color out-b3
+for f in paper-cup eco-paper-cup party-supplies color-box; do PREVIEW_TEX=32 node ../progressive.mjs out-b3/$f.glb ../../../public/models $f; done
+```
+字标统一 Inter Black + 同色描边。纸杯仅 navy PackJoyU（朝相机、≤60% 可见宽）；牛皮杯 #8e5f36，杯套上方一圈 PackJoyU，无环保声明。
