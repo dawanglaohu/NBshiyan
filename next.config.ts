@@ -16,6 +16,8 @@ const isProd = isProdEnvFrom();
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // #291：未设置时也要内联成常量（空字符串），否则构建产物里留着运行时的 process.env，mock 分支去不掉、mock 数据会被打包
+  env: { NEXT_PUBLIC_ADMIN_API: process.env.NEXT_PUBLIC_ADMIN_API ?? '', NEXT_PUBLIC_ADMIN_MAIL: process.env.NEXT_PUBLIC_ADMIN_MAIL ?? '' },
   images: { formats: ['image/avif', 'image/webp'] },
   // IndexNow 密钥文件 /{key}.txt（Refs #74）。中间件的 matcher 不处理带点的路径，所以不会进多语言路由；
   // 功能关闭或文件名不对时，路由返回 404。
