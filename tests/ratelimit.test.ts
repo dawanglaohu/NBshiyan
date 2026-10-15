@@ -2,6 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MemoryStore, UpstashStore, createRateLimitStore } from '../src/lib/server/ratelimit/index';
 import { mockServer } from './helpers';
+import { MemoryStore as MS, setRateLimitStore, type RateLimitStore } from '../src/lib/server/ratelimit/index';
+import { hitRateLimit, rateLimitEnv, rateLimitKeyHash } from '../src/lib/server/security';
+import { loginRateOk } from '../src/lib/server/admin/login';
+import { enforceAdminRateLimit } from '../src/lib/server/admin-guard';
+import { POST as rumPOST } from '../src/app/api/rum/route';
 
 test('memory: allows up to limit then blocks, per key', async () => {
   const s = new MemoryStore();
@@ -44,33 +49,25 @@ test('upstash: sends INCR + PEXPIRE NX pipeline with bearer token, counts from s
   } finally { await srv.close(); }
 });
 
-test('upstash: 5xx falls back to local memory limiting (not fail-open)', async () => {
+test('upstash: 5xx throws (fail mode decided by hitRateLimit)', async () => {
   const srv = await mockServer((_r, res) => { res.statusCode = 503; res.end('down'); });
-  const err = console.error; console.error = () => {};
-  try {
-    const s = new UpstashStore(srv.url, 't');
-    const r = [];
-    for (let i = 0; i < 3; i++) r.push(await s.hit('k', 2, 60_000));
-    assert.deepEqual(r, [true, true, false]);
-  } finally { console.error = err; await srv.close(); }
+  try { await assert.rejects(new UpstashStore(srv.url, 't').hit('k', 2, 60_000), /upstash 503/); }
+  finally { await srv.close(); }
 });
 
-test('upstash: timeout falls back', async () => {
+test('upstash: timeout throws quickly', async () => {
   const srv = await mockServer(() => { /* never answers */ });
-  const err = console.error; console.error = () => {};
   try {
-    const s = new UpstashStore(srv.url, 't', new MemoryStore(), 100);
     const t0 = Date.now();
-    assert.equal(await s.hit('k', 1, 60_000), true);
+    await assert.rejects(new UpstashStore(srv.url, 't', 100).hit('k', 1, 60_000));
     assert.ok(Date.now() - t0 < 1000);
-  } finally { console.error = err; await srv.close(); }
+  } finally { await srv.close(); }
 });
 
-test('upstash: error payload falls back', async () => {
+test('upstash: error payload throws', async () => {
   const srv = await mockServer((_r, res) => { res.end(JSON.stringify([{ error: 'WRONGPASS' }, { error: 'x' }])); });
-  const err = console.error; console.error = () => {};
-  try { assert.equal(await new UpstashStore(srv.url, 't').hit('k', 1, 60_000), true); }
-  finally { console.error = err; await srv.close(); }
+  try { await assert.rejects(new UpstashStore(srv.url, 't').hit('k', 1, 60_000), /bad response/); }
+  finally { await srv.close(); }
 });
 
 test('factory: env selection and validation', () => {
@@ -79,4 +76,92 @@ test('factory: env selection and validation', () => {
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'upstash' }), /UPSTASH_REDIS_REST_URL/);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'http://x', UPSTASH_REDIS_REST_TOKEN: 't', NODE_ENV: 'production' }), /https/);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis' }), /未知/);
+});
+
+// ---- #74：按路由的故障模式、环境前缀、邮箱 HMAC、noip ----
+const failing: RateLimitStore = { hit: async () => { throw new Error('down'); } };
+const recording = () => { const keys: string[] = []; const m = new MS(); return { keys, store: { hit: (k: string, l: number, w: number) => { keys.push(k); return m.hit(k, l, w); } } as RateLimitStore }; };
+async function quiet<T>(f: () => Promise<T>) { const e = console.error; console.error = () => {}; try { return await f(); } finally { console.error = e; } }
+
+test('hitRateLimit: store error -> closed denies, open allows, local counts in memory (default)', async () => {
+  setRateLimitStore(failing);
+  try {
+    await quiet(async () => {
+      assert.equal(await hitRateLimit('fm:c', 100, 60_000, { onStoreError: 'closed' }), false);
+      for (let i = 0; i < 5; i++) assert.equal(await hitRateLimit('fm:o', 1, 60_000, { onStoreError: 'open' }), true);
+      const r = []; for (let i = 0; i < 3; i++) r.push(await hitRateLimit('fm:l', 2, 60_000, { onStoreError: 'local' }));
+      assert.deepEqual(r, [true, true, false]);
+      const d = []; for (let i = 0; i < 3; i++) d.push(await hitRateLimit('fm:d', 2, 60_000));
+      assert.deepEqual(d, [true, true, false]);
+    });
+  } finally { setRateLimitStore(undefined); }
+});
+
+test('hitRateLimit: healthy store ignores fail mode', async () => {
+  setRateLimitStore(new MS());
+  try { assert.equal(await hitRateLimit('fm:h', 1, 60_000, { onStoreError: 'closed' }), true); }
+  finally { setRateLimitStore(undefined); }
+});
+
+test('keys get environment prefix (VERCEL_ENV > NODE_ENV)', async () => {
+  assert.equal(rateLimitEnv({ VERCEL_ENV: 'preview', NODE_ENV: 'production' }), 'preview');
+  assert.equal(rateLimitEnv({ NODE_ENV: 'test' }), 'test');
+  assert.equal(rateLimitEnv({}), 'development');
+  const r = recording(); setRateLimitStore(r.store);
+  try { await hitRateLimit('x:1', 5); assert.equal(r.keys[0], `${rateLimitEnv()}:x:1`); }
+  finally { setRateLimitStore(undefined); }
+});
+
+test('email keys are HMACed: stable, no plaintext, depends on secret', () => {
+  const a = rateLimitKeyHash('a@b.com', { AUTH_SECRET: 's1' });
+  assert.equal(a, rateLimitKeyHash('a@b.com', { AUTH_SECRET: 's1' }));
+  assert.notEqual(a, rateLimitKeyHash('a@b.com', { AUTH_SECRET: 's2' }));
+  assert.notEqual(a, rateLimitKeyHash('c@b.com', { AUTH_SECRET: 's1' }));
+  assert.ok(!a.includes('@') && a.length === 32);
+});
+
+test('login/2FA: store down -> denied (closed); keys hold no plaintext email', async () => {
+  setRateLimitStore(failing);
+  try { assert.equal(await quiet(() => loginRateOk('1.2.3.4', 'Admin@Example.com')), false); }
+  finally { setRateLimitStore(undefined); }
+  const r = recording(); setRateLimitStore(r.store);
+  try {
+    assert.equal(await loginRateOk(null, 'Admin@Example.com'), true);
+    assert.ok(r.keys.every((k) => !/example/i.test(k)));
+    assert.ok(r.keys.some((k) => k.includes('login-ip:noip')));
+  } finally { setRateLimitStore(undefined); }
+});
+
+test('admin guard: store down -> 429 (closed); null IP uses noip bucket', async () => {
+  const req = () => new Request('http://x/api/admin/x', { method: 'POST' });
+  setRateLimitStore(failing);
+  try { assert.equal((await quiet(() => enforceAdminRateLimit(req(), 'k')))?.status, 429); }
+  finally { setRateLimitStore(undefined); }
+  const r = recording(); setRateLimitStore(r.store);
+  try { assert.equal(await enforceAdminRateLimit(req(), 'k'), null); assert.match(r.keys[0], /admin:k:noip$/); }
+  finally { setRateLimitStore(undefined); }
+});
+
+test('rum: store down -> allowed (open); null IP uses rum:noip:all', async () => {
+  const req = () => new Request('http://x/api/rum', { method: 'POST', body: '{}' });
+  setRateLimitStore(failing);
+  try { assert.notEqual((await quiet(() => rumPOST(req()))).status, 429); }
+  finally { setRateLimitStore(undefined); }
+  const r = recording(); setRateLimitStore(r.store);
+  try { await rumPOST(req()); assert.match(r.keys[0], /:rum:noip:all$/); }
+  finally { setRateLimitStore(undefined); }
+});
+
+test('routes that used to skip limiting when IP is null now hit a noip bucket', async () => {
+  const { GET: logoGET } = await import('../src/app/api/designs/[id]/logo/route');
+  const { GET: designGET } = await import('../src/app/api/designs/[id]/route');
+  const { POST: inqPOST } = await import('../src/app/api/inquiries/route');
+  const r = recording(); setRateLimitStore(r.store);
+  const p = { params: Promise.resolve({ id: '!bad' }) };
+  try {
+    await logoGET(new Request('http://x/api/designs/!bad/logo'), p);
+    await designGET(new Request('http://x/api/designs/!bad'), p).catch(() => {});
+    await inqPOST(new Request('http://x/api/inquiries', { method: 'POST', body: '{}' }));
+    for (const k of ['design-logo:noip:all', 'design-get:noip:all', 'inq-bad:noip:all']) assert.ok(r.keys.some((x) => x.endsWith(':' + k)), k);
+  } finally { setRateLimitStore(undefined); }
 });

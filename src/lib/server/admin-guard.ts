@@ -31,8 +31,9 @@ export function assertSameOrigin(req: Request): NextResponse | null {
  * 原同步 adminRateLimit 已改名，避免 `assertSameOrigin(req) ?? adminRateLimit(...)` 漏 await 时返回 Promise。
  */
 export async function enforceAdminRateLimit(req: Request, key: string, limit = 120): Promise<NextResponse | null> {
-  const ip = clientIp(req) ?? 'unknown';
-  if (await hitRateLimit(`admin:${key}:${ip}`, limit, 60_000)) return null;
+  const ip = clientIp(req) ?? 'noip';
+  // 存储故障时拒绝（已登录用户，影响面小）
+  if (await hitRateLimit(`admin:${key}:${ip}`, limit, 60_000, { onStoreError: 'closed' })) return null;
   return NextResponse.json(
     { error: 'rate_limited' },
     { status: 429, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store' } }

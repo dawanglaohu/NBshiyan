@@ -1,6 +1,6 @@
-import { randomBytes } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { isIP as netIsIP } from 'node:net';
-import { rateLimitStore } from './ratelimit';
+import { MemoryStore, rateLimitStore } from './ratelimit';
 
 /** 随机、不可递增的 id，用于短链接和回信 token */
 export function randomId(len = 10) {
@@ -44,11 +44,51 @@ export async function verifyTurnstile(token: string | undefined, ip: string | nu
 }
 
 /**
+ * 存储（Upstash）出错时的行为，按路由选择（#74 §2）：
+ * - closed：当作超限（拒绝）。登录、2FA、后台接口、自动回复。
+ * - local：退回本实例内存计数。询价、上传、方案、告警去重（默认）。
+ * - open：放行。RUM。
+ */
+export type FailMode = 'open' | 'closed' | 'local';
+export interface RateLimitOpts { onStoreError?: FailMode }
+
+const localFallback = new MemoryStore();
+let lastStoreErrorLog = 0;
+
+/** key 的环境前缀：Preview 和 Production 共用一个 Upstash 库时计数不混。 */
+export function rateLimitEnv(env: Record<string, string | undefined> = process.env) {
+  return (env.VERCEL_ENV || env.NODE_ENV || 'development').replace(/[^a-z0-9_-]/gi, '');
+}
+
+/**
+ * 邮箱等 PII 放进限流 key 之前先做 HMAC，Redis 里不存明文。
+ * 密钥由 AUTH_SECRET 派生（加用途标签，和会话签名互不影响）；轮换 AUTH_SECRET 只会让限流计数清零。
+ * 没有 AUTH_SECRET（本地/测试）时用固定的开发密钥。
+ */
+export function rateLimitKeyHash(value: string, env: Record<string, string | undefined> = process.env) {
+  const base = env.AUTH_SECRET || 'dev-only-rate-limit-key';
+  const k = createHmac('sha256', base).update('ratelimit-key:v1').digest();
+  return createHmac('sha256', k).update(value).digest('base64url').slice(0, 32);
+}
+
+/**
  * 限流：计一次数，返回是否仍在上限内。存储由 RATE_LIMIT_STORE 决定（内存 / Upstash），见 ./ratelimit。
+ * key 自动加环境前缀（`<env>:<key>`）。存储出错时按 opts.onStoreError 处理，默认 local。
  * 注意是异步的，必须 await（旧的同步 rateLimit 已删除，避免漏写 await 时 Promise 被当成 true）。
  */
-export function hitRateLimit(key: string, limit = 5, windowMs = 10 * 60_000): Promise<boolean> {
-  return rateLimitStore().hit(key, limit, windowMs);
+export async function hitRateLimit(key: string, limit = 5, windowMs = 10 * 60_000, opts: RateLimitOpts = {}): Promise<boolean> {
+  const k = `${rateLimitEnv()}:${key}`;
+  try {
+    return await rateLimitStore().hit(k, limit, windowMs);
+  } catch (e) {
+    const mode = opts.onStoreError ?? 'local';
+    // 日志按 10 秒去重，避免存储挂掉时刷屏；不在这里调 sendAdminAlert（它本身也走 hitRateLimit，会递归）
+    const now = Date.now();
+    if (now - lastStoreErrorLog > 10_000) { lastStoreErrorLog = now; console.error(`[ratelimit] store unavailable (${mode}):`, (e as Error).message); }
+    if (mode === 'closed') return false;
+    if (mode === 'open') return true;
+    return localFallback.hit(k, limit, windowMs);
+  }
 }
 
 /** 去掉换行，防止邮件头注入 */
