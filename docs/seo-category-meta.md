@@ -28,7 +28,7 @@
 |---|---|---|
 | slug | `custom-gift-boxes` | `podarochnye-korobki` |
 | 主关键词 | custom gift boxes | подарочные коробки на заказ |
-| title | Custom Gift Boxes Manufacturer & Supplier \| PackJoyU (52) | Подарочные коробки на заказ оптом \| PackJoyU (44) |
+| title | Custom Gift Boxes Manufacturer & Supplier \| PackJoyU (52) | Подарочные коробки на заказ с логотипом \| PackJoyU (50) |
 | description | Rigid gift boxes with magnetic lids, drawers and custom inserts. Premium wrapping paper, foil stamping and embossing for your brand. Request a quote today. (155) | Жёсткие подарочные коробки на заказ: с магнитом, выдвижные, с ложементом. Дизайнерская бумага, тиснение фольгой и логотип бренда. Запросите расчёт. (147) |
 
 ## pulp-molding
@@ -111,6 +111,6 @@
 |---|---|---|
 | slug | `custom-christmas-packaging` | `novogodnyaya-upakovka` |
 | 主关键词 | custom christmas packaging | новогодняя упаковка на заказ |
-| title | Custom Christmas Packaging Manufacturer \| PackJoyU (50) | Новогодняя упаковка на заказ оптом \| PackJoyU (45) |
+| title | Custom Christmas Packaging Manufacturer \| PackJoyU (50) | Новогодняя упаковка с логотипом на заказ \| PackJoyU (51) |
 | description | Custom Christmas gift boxes, advent calendars and seasonal packaging printed with your brand. Plan early for on-time holiday delivery. Request a quote. (151) | Новогодние подарочные коробки, адвент календари и сезонная упаковка на заказ с логотипом. Закажите заранее, чтобы успеть к Новому году. Запросите расчёт. (153) |
 

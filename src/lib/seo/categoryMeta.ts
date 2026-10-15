@@ -26,7 +26,7 @@ export const categoryMeta: CategoryMeta[] = [
       title: 'Custom Gift Boxes Supplier | PackJoyU',
       description: 'Rigid gift boxes with magnetic lids, drawers and custom inserts. Premium wrapping paper, foil stamping and embossing for your brand. Request a quote today.' },
     ru: { slug: 'podarochnye-korobki', keyword: 'подарочные коробки на заказ', draft: true,
-      title: 'Подарочные коробки на заказ оптом | PackJoyU',
+      title: 'Подарочные коробки на заказ с логотипом | PackJoyU',
       description: 'Жёсткие подарочные коробки на заказ: с магнитом, выдвижные, с ложементом. Дизайнерская бумага, тиснение фольгой и логотип бренда. Запросите расчёт.' } },
   { key: 'pulp-molding',
     en: { slug: 'molded-pulp-packaging', keyword: 'molded pulp packaging',
@@ -82,6 +82,6 @@ export const categoryMeta: CategoryMeta[] = [
       title: 'Custom Christmas Packaging Supplier | PackJoyU',
       description: 'Custom Christmas gift boxes, advent calendars and seasonal packaging printed with your brand. Plan early for on-time holiday delivery. Request a quote.' },
     ru: { slug: 'novogodnyaya-upakovka', keyword: 'новогодняя упаковка на заказ', draft: true,
-      title: 'Новогодняя упаковка на заказ оптом | PackJoyU',
+      title: 'Новогодняя упаковка с логотипом на заказ | PackJoyU',
       description: 'Новогодние подарочные коробки, адвент календари и сезонная упаковка на заказ с логотипом. Закажите заранее, чтобы успеть к Новому году. Запросите расчёт.' } },
 ];
