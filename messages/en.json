@@ -37,6 +37,7 @@
     "title": "Our products in 3D",
     "hint": "Drag to rotate, scroll or pinch to zoom.",
     "tapToRotate": "Tap to rotate",
+    "dragToRotate": "Drag to rotate",
     "loading": "Loading 3D model…",
     "addToQuote": "Add to quote",
     "details": "Details",
