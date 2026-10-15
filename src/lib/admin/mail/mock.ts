@@ -3,6 +3,7 @@
 //
 // 演示开关（只在 mock 里生效）：
 // - 正文里写 [mock:202] → 202 后台发送，两次轮询后 SENT；[mock:202-fail] → 后台发送后 FAILED(send_unavailable)
+// - [mock:daily] → 202 daily_cap_deferred（带 deferredUntil，状态一直是 QUEUED）
 // - [mock:fail] → 502 send_unavailable（可重试）；[mock:unknown] → 502 unknown_delivery（可能已送达）；[mock:auth] → 502 send_auth
 // - [mock:429] / [mock:429g] → 个人 / 全站限流；[mock:400] → 主题 too_long；[mock:413] → 请求过大；[mock:503] → mail_not_configured；[mock:409] → 不认识的 409
 // - localStorage `pj-mock-mail-sending` = `off`（或地址栏 ?mockSending=off）→ GET /mail/config 返回 sendingEnabled:false
@@ -73,7 +74,7 @@ async function thread(id: string): Promise<ThreadPage> {
   threads.set(id, page); return page;
 }
 const findMsg = (mid: string) => { for (const p of threads.values()) { const m = p.items.find((x) => x.id === mid); if (m) return { m, p }; } return null; };
-const statusOf = (m: ThreadItem): SendStatus => ({ id: m.id, status: m.status === 'RECEIVED' ? 'SENT' : m.status, errorCode: m.errorCode, retryable: m.retryable, retryCount: m.retryCount, maxRetries: 5, deliveryStatus: 'unknown', sentAt: m.sentAt });
+const statusOf = (m: ThreadItem): SendStatus => ({ id: m.id, deferredUntil: m.deferredUntil ?? null, status: m.status === 'RECEIVED' ? 'SENT' : m.status, errorCode: m.errorCode, retryable: m.retryable, retryCount: m.retryCount, maxRetries: 5, deliveryStatus: 'unknown', sentAt: m.sentAt });
 /** 后台发送的剩余轮询次数（到 0 时落终态） */
 const pending = new Map<string, { left: number; final: Partial<ThreadItem> }>();
 
@@ -113,6 +114,10 @@ export const mockMailApi: MailApi = {
     if (sc === '202' || sc === '202-fail') {
       pending.set(m.id, { left: 2, final: sc === '202' ? { status: 'SENT', sentAt: new Date().toISOString() } : { status: 'FAILED', errorCode: 'send_unavailable', retryable: true } });
       res = { kind: 'sending' as const, id: m.id, pollAfterMs: 5000 };
+    } else if (sc === 'daily') {
+      const until = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 1)).toISOString();
+      Object.assign(m, { status: 'QUEUED', errorCode: 'daily_cap_deferred', deferredUntil: until });
+      res = { kind: 'sending' as const, id: m.id, pollAfterMs: 5000, deferred: true, deferredUntil: until };
     } else if (sc === 'fail' || sc === 'unknown' || sc === 'auth') {
       Object.assign(m, { status: 'FAILED', errorCode: sc === 'fail' ? 'send_unavailable' : sc === 'auth' ? 'send_auth' : 'unknown_delivery', retryable: sc === 'fail' });
       throw new MailError('mail_failed', 502, { id: m.id, reason: m.errorCode!, retryable: m.retryable });

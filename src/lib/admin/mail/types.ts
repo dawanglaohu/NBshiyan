@@ -10,7 +10,7 @@ export type MailAttachment = { id: string; filename: string; sniffedType: string
 /** 8.3 往来记录条目（新表 source:"mail"，旧 InquiryMessage source:"legacy"） */
 export type ThreadItem = {
   id: string; source: 'mail' | 'legacy'; direction: 'INBOUND' | 'OUTBOUND';
-  status: 'SENDING' | 'SENT' | 'FAILED' | 'RECEIVED';
+  status: 'SENDING' | 'SENT' | 'FAILED' | 'RECEIVED' | 'QUEUED';
   /** 第 1 阶段恒为 unknown；第 2 阶段才可能 bounced（前端第 1 阶段不显示投递失败） */
   deliveryStatus: 'unknown' | 'bounced'; bouncedAt: string | null;
   retryCount: number; maxRetries: number;
@@ -22,13 +22,16 @@ export type ThreadItem = {
   /** 可能含后端以后新增的值：未知 flag 不显示 */
   flags: string[];
   errorCode: string | null; retryable: boolean;
+  /** v4 §17：daily_cap_deferred 时的预计发送时间（ISO UTC） */
+  deferredUntil?: string | null;
   createdAt: string; sentAt: string | null; receivedAt: string | null;
   attachments: MailAttachment[];
 };
 export type ThreadPage = { anonymizedAt: string | null; items: ThreadItem[]; nextCursor: string | null; linksExpireAt?: string | null };
 
 /** 8.3a 单条状态 */
-export type SendStatus = { id: string; status: 'SENDING' | 'SENT' | 'FAILED'; errorCode: string | null; retryable: boolean; retryCount: number; maxRetries: number; deliveryStatus: 'unknown' | 'bounced'; sentAt: string | null };
+/** v4 §17：daily_cap_deferred 时可能是 QUEUED，带 deferredUntil（ISO UTC），不带 pollAfterMs */
+export type SendStatus = { id: string; status: 'SENDING' | 'SENT' | 'FAILED' | 'QUEUED'; deferredUntil?: string | null; errorCode: string | null; retryable: boolean; retryCount: number; maxRetries: number; deliveryStatus: 'unknown' | 'bounced'; sentAt: string | null };
 
 /** §15 补充：GET /api/admin/mail/config */
 export type MailConfig = { sendingEnabled: boolean };
@@ -51,7 +54,7 @@ export type AssignLookup = { inquiryId: string; ref: string; customer: { name: s
 /** 8.1 / 8.2 发信结果（成功类） */
 export type SendResult =
   | { kind: 'sent'; id: string; sentAt: string | null; retryCount: number; maxRetries: number }
-  | { kind: 'sending'; id: string; pollAfterMs: number };
+  | { kind: 'sending'; id: string; pollAfterMs: number; deferred?: boolean; deferredUntil?: string | null };
 
 /**
  * 所有失败统一抛 MailError：http.ts 按状态码 + 错误体 `error` 字段分支（8.0），UI 只看 code。
@@ -62,7 +65,7 @@ export type MailErrorBody = {
   fields?: Record<string, string>; limits?: Record<string, number>;
   field?: 'body' | 'request'; limit?: number; unit?: 'chars' | 'bytes';
   scope?: 'admin' | 'global'; retryAfterSec?: number; windowSec?: number;
-  id?: string; reason?: string; retryable?: boolean;
+  id?: string; reason?: string; retryable?: boolean; deferredUntil?: string;
 };
 export class MailError extends Error {
   constructor(public code: string, public status: number, public body: MailErrorBody = {}) { super(code); this.name = 'MailError'; }

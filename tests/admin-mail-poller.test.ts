@@ -65,9 +65,18 @@ test('stop() 之后不再请求', async () => {
   stop(); await c.advance(60_000); assert.equal(calls, 0);
 });
 
-test('provider_throttled 不是终态：继续轮询直到 SENT', async () => {
+test('daily_cap_deferred 不是终态：继续轮询直到 SENT', async () => {
   const c = clock(); const ev: PollEvent[] = []; let calls = 0;
-  startSendPoll({ fetchStatus: async () => (++calls < 3 ? S('FAILED', { errorCode: 'provider_throttled', retryable: true }) : S('SENT')), onEvent: (e) => ev.push(e), ...c });
+  startSendPoll({ fetchStatus: async () => (++calls < 3 ? S('QUEUED', { errorCode: 'daily_cap_deferred', deferredUntil: '2026-10-16T00:00:00Z' }) : S('SENT')), onEvent: (e) => ev.push(e), ...c });
   await c.advance(15_000);
   assert.equal(calls, 3); assert.deepEqual(ev.map((e) => e.type), ['update', 'update', 'done']);
+});
+
+test('daily_cap_deferred 一直排队：满 2 分钟停止轮询；provider_throttled FAILED 是终态', async () => {
+  const c = clock(); const ev: PollEvent[] = [];
+  startSendPoll({ fetchStatus: async () => S('QUEUED', { errorCode: 'daily_cap_deferred' }), onEvent: (e) => ev.push(e), ...c });
+  await c.advance(130_000); assert.equal(ev.at(-1)!.type, 'timeout'); assert.equal(c.pending(), 0);
+  const c2 = clock(); const ev2: PollEvent[] = [];
+  startSendPoll({ fetchStatus: async () => S('FAILED', { errorCode: 'provider_throttled', retryable: true }), onEvent: (e) => ev2.push(e), ...c2 });
+  await c2.advance(5000); assert.deepEqual(ev2.map((e) => e.type), ['done']);
 });

@@ -66,3 +66,16 @@ test('邮件开关：默认关闭；生产环境拒绝 NEXT_PUBLIC_ADMIN_MAIL=mo
   assert.ok(prodEnvProblems({ ...env, NEXT_PUBLIC_ADMIN_MAIL: 'mock' }).some((p) => p.includes('NEXT_PUBLIC_ADMIN_MAIL')));
   assert.ok(!prodEnvProblems({ ...env, NEXT_PUBLIC_ADMIN_MAIL: 'http' }).some((p) => p.includes('NEXT_PUBLIC_ADMIN_MAIL')));
 });
+
+test('正文把手：可聚焦、aria-label、44px 命中区；列表已删除标签用 --neutral-bg', async () => {
+  const html = renderToStaticMarkup(React.createElement(MailBody, { html: '<p>x</p>', text: 'x', hasRemoteImages: false, title: 't' }));
+  assert.match(html, /role="separator"[^>]*tabindex="0"[^>]*aria-label="调整正文高度"|aria-label="调整正文高度"/);
+  assert.match(html, /tabindex="0"/);
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync('src/app/admin/mail.css', 'utf8');
+  assert.match(css, /\.ml-resize\{height:44px/); assert.match(css, /min-height:240px;max-height:70vh/);
+  assert.match(readFileSync('src/app/admin/admin.css', 'utf8'), /--neutral-bg:#F3EFE8/);
+  const { DeletedTag } = await import('../src/components/admin/anonymized');
+  const tag = renderToStaticMarkup(React.createElement(DeletedTag));
+  assert.match(tag, />已删除</); assert.match(tag, /background:var\(--neutral-bg\)/); assert.doesNotMatch(tag, /--err|--danger|red/);
+});

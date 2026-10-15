@@ -42,3 +42,8 @@ test('201 → sent；202 → sending（pollAfterMs 缺省 5000）', () => {
 test('201 messageId 为 null 也照常解析为 sent', () => {
   assert.equal(toSendResult(201, { id: 'n', status: 'SENT', messageId: null, sentAt: null }).kind, 'sent');
 });
+
+test('daily_cap_deferred 响应 → sending + deferred + deferredUntil', () => {
+  assert.deepEqual(toSendResult(202, { id: 'd', status: 'QUEUED', errorCode: 'daily_cap_deferred', deferredUntil: '2026-10-16T00:00:00Z' }), { kind: 'sending', id: 'd', pollAfterMs: 5000, deferred: true, deferredUntil: '2026-10-16T00:00:00Z' });
+  assert.equal(toSendResult(200, { id: 'e', reason: 'daily_cap_deferred' }).kind, 'sending');
+});

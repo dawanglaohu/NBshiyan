@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type AdminUser, type InquiryQuery, type InquiryStatus, type InquirySummary, type Page } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
 import DateRange from './DateRange';
-import { filterAnonymized, isAnonymized, needsReview, parseIncludeAnon, piiField } from './anonymized';
+import { DeletedTag, filterAnonymized, isAnonymized, needsReview, parseIncludeAnon, piiField } from './anonymized';
 import { PRODUCT_LABEL, errorText, loginHref, productName, relTime } from './format';
 
 const TABS: (InquiryStatus | 'REVIEW' | '')[] = ['', 'NEW', 'FOLLOWING', 'QUOTED', 'WON', 'INVALID', 'REVIEW'];
@@ -53,7 +53,7 @@ export default function InquiryList() {
         <td>{isAnonymized(r) ? piiField(r, null) : r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
         <td>{r.products.length ? <>{productName(r.products[0].productSlug)}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</> : r.itemCount ? `${r.itemCount} 个产品` : '—'}</td>
         <td className={needsReview(r) ? 'warn' : undefined}>{r.trustScore}{needsReview(r) ? ' ⚠' : ''}</td>
-        <td><StatusBadge status={r.status} /></td>
+        <td><StatusBadge status={r.status} />{isAnonymized(r) && <DeletedTag />}</td>
         <td className="muted">{r.assignee?.name ?? '—'}</td>
         <td className="muted" title={r.createdAt}>{relTime(r.createdAt)}</td>
       </tr>

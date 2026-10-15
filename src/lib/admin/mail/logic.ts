@@ -41,6 +41,7 @@ export const showUnverified = (m: { senderVerified?: boolean | null; redacted?: 
 // —— 发送失败原因（8.1 表；v3 smtp_* 旧码保留文案兼容）——
 const REASON: Record<string, { text: string; retryable: boolean }> = {
   send_unavailable: { text: '邮件服务暂时无法连接，这封信没有发出。内容已保存，可以重试。', retryable: true },
+  provider_throttled: { text: '发信服务商限流（每小时发送量已达上限），这封信没有发出。内容已保存，请稍后重试。', retryable: true },
   send_auth: { text: '发信账号验证未通过，请联系管理员检查邮箱设置。', retryable: false },
   recipient_rejected: { text: '对方邮箱拒收，地址可能无效或已停用。请通过其他方式联系客户。', retryable: false },
   message_rejected: { text: '邮件内容被服务器拒收（可能被判为垃圾邮件）。请修改内容后重新发送。', retryable: false },
@@ -51,10 +52,17 @@ const REASON: Record<string, { text: string; retryable: boolean }> = {
 };
 export const UNKNOWN_FAIL = '发送失败（未知原因）。请稍后重新编写发送；多次失败请联系管理员。';
 export const MAYBE_DELIVERED = '可能已送达';
-/** provider_throttled：按待发送（延后）显示，不算失败、不显示重试，继续按排队中的规则轮询 */
-export const DEFERRED_REASON = 'provider_throttled';
-export const DEFERRED_TEXT = '今日发信已达上限，稍后自动发送';
-export const isDeferred = (m: { status?: string; errorCode?: string | null }) => m.status === 'FAILED' && m.errorCode === DEFERRED_REASON;
+/** v4 §17 daily_cap_deferred：今日配额用完，后端在每日重置后自动发送。按排队中显示：不算失败、不计 n/5、没有重试，轮询不设 2 分钟上限 */
+export const DEFERRED_REASON = 'daily_cap_deferred';
+/** 下一个 UTC 零点（deferredUntil 缺失时的兜底） */
+export const nextUtcMidnight = (now = Date.now()) => { const d = new Date(now); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)).toISOString(); };
+/** 「今日发信已达上限，将在 {time} 后自动发送」，time 按管理员本地时区显示 */
+export function deferredText(until?: string | null, now = Date.now(), timeZone?: string): string {
+  const t = until && !Number.isNaN(Date.parse(until)) ? until : nextUtcMidnight(now);
+  const time = new Date(t).toLocaleString('zh-CN', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', ...(timeZone ? { timeZone } : {}) });
+  return `今日发信已达上限，将在 ${time} 后自动发送`;
+}
+export const isDeferred = (m: { status?: string; errorCode?: string | null }) => m.status !== 'SENT' && m.errorCode === DEFERRED_REASON;
 export const MAYBE_DELIVERED_HINT = '发送过程中连接中断，无法确认对方是否收到。为免重复，系统不会自动重发；如需确认，请换其他方式联系客户。';
 export const RETRY_LIMIT_HINT = '这封邮件已重试 5 次仍未发出。请复制内容重新编写发送，或联系管理员检查邮箱设置。';
 export const NOT_RETRYABLE = '这封邮件不能重试，请重新编写发送。';
@@ -68,11 +76,11 @@ export type OutboundView =
   | { kind: 'failed'; text: string; canRetry: boolean; retryLimit: boolean; retryCount: number };
 
 /** 出站条目 / 8.3a 状态 → 界面状态。不认识的 reason 一律当 unknown：不可重试（忽略接口给的 retryable）。 */
-export function outboundView(m: { status: SendStatus['status'] | 'RECEIVED' } & Pick<SendStatus, 'errorCode' | 'retryable' | 'retryCount' | 'sentAt'> & { maxRetries?: number }): OutboundView {
-  if (m.status === 'SENDING') return { kind: 'sending' };
+export function outboundView(m: { status: SendStatus['status'] | 'RECEIVED' | 'QUEUED' } & Pick<SendStatus, 'errorCode' | 'retryable' | 'retryCount' | 'sentAt'> & { maxRetries?: number }): OutboundView {
+  if (isDeferred(m)) return { kind: 'deferred' };
+  if (m.status === 'SENDING' || m.status === 'QUEUED') return { kind: 'sending' };
   if (m.status === 'SENT' || m.status === 'RECEIVED') return { kind: 'sent', at: m.sentAt };
   if (m.errorCode === 'unknown_delivery') return { kind: 'maybe_delivered' };
-  if (m.errorCode === DEFERRED_REASON) return { kind: 'deferred' };
   const r = m.errorCode ? REASON[m.errorCode] : undefined;
   const max = m.maxRetries ?? MAX_RETRIES;
   const retryableReason = !!r?.retryable && m.retryable;
@@ -195,7 +203,18 @@ export function buildSrcdoc(html: string): string {
   return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${SRCDOC_CSP}"><meta name="referrer" content="no-referrer"><style>${style}</style></head><body>${out}</body></html>`;
 }
 /** iframe 没有 allow-same-origin 读不到内容高度：按纯文本行数估算，超出部分在 iframe 内滚动 */
-export function estimateHeight(text: string | null | undefined): number {
+export const FRAME_MIN = 240;
+/** 最大高度 70vh（无窗口时按 900 计） */
+export const frameMax = (vh = typeof window === 'undefined' ? 900 : window.innerHeight) => Math.round(vh * 0.7);
+export const clampHeight = (h: number, max = frameMax()) => Math.max(FRAME_MIN, Math.min(Math.max(FRAME_MIN, max), Math.round(h)));
+export function estimateHeight(text: string | null | undefined, max = frameMax()): number {
   const lines = (text ?? '').split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0);
-  return Math.min(480, Math.max(40, lines * 22 + 12));
+  return clampHeight(lines * 22 + 12, max);
+}
+/** 调整高度把手的键盘步长：↑/↓ 每次 40px，PageUp/PageDown 160px，Home/End 到最小/最大 */
+export function resizeByKey(key: string, h: number, max = frameMax()): number | null {
+  const step: Record<string, number> = { ArrowUp: -40, ArrowDown: 40, PageUp: -160, PageDown: 160 };
+  if (key === 'Home') return FRAME_MIN;
+  if (key === 'End') return clampHeight(max, max);
+  return key in step ? clampHeight(h + step[key], max) : null;
 }

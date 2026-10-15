@@ -2,7 +2,7 @@
 // #74 邮件界面的共用小组件：正文 iframe、附件卡、flags 标签、发件人未验证提示、复制正文、倒计时。
 import { useEffect, useState } from 'react';
 import { mailApi, MailError, type MailAttachment } from '@/lib/admin/mail/api';
-import { buildSrcdoc, estimateHeight, FLAG_HINT, FLAG_LABEL, fmtSize, IFRAME_SANDBOX, knownFlags, linkExpired, REMOTE_IMAGES, typeBadge, UNVERIFIED } from '@/lib/admin/mail/logic';
+import { buildSrcdoc, clampHeight, estimateHeight, frameMax, FRAME_MIN, resizeByKey, FLAG_HINT, FLAG_LABEL, fmtSize, IFRAME_SANDBOX, knownFlags, linkExpired, REMOTE_IMAGES, typeBadge, UNVERIFIED } from '@/lib/admin/mail/logic';
 
 /** 正文：服务端净化后的 HTML 放进沙箱 iframe（只有 allow-popups 两项，srcdoc 内再加 CSP）。没有 HTML 时按纯文本显示。 */
 export function MailBody({ html, text, hasRemoteImages, title }: { html: string | null; text: string | null; hasRemoteImages: boolean; title: string }) {
@@ -10,9 +10,30 @@ export function MailBody({ html, text, hasRemoteImages, title }: { html: string 
     <>
       {hasRemoteImages && <div className="ml-banner" role="note" data-testid="remote-images">{REMOTE_IMAGES}</div>}
       {html
-        ? <iframe className="ml-frame" title={title} sandbox={IFRAME_SANDBOX} referrerPolicy="no-referrer" srcDoc={buildSrcdoc(html)} style={{ height: estimateHeight(text) }} />
+        ? <ResizableFrame html={html} text={text} title={title} />
         : text ? <div className="ml-text">{text}</div> : null}
     </>
+  );
+}
+
+/** 正文 iframe：高度 240px–70vh，内容在 iframe 内滚动；底部把手可拖动或用方向键调整 */
+export function ResizableFrame({ html, text, title }: { html: string; text: string | null; title: string }) {
+  const [h, setH] = useState(() => estimateHeight(text, 630));
+  const [max, setMax] = useState(630);
+  useEffect(() => { const m = frameMax(); setMax(m); setH(estimateHeight(text, m)); }, [text]);
+  const drag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const y0 = e.clientY, h0 = h; const el = e.currentTarget; el.setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => setH(clampHeight(h0 + ev.clientY - y0, frameMax()));
+    const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); };
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="ml-frame-wrap">
+      <iframe className="ml-frame" title={title} sandbox={IFRAME_SANDBOX} referrerPolicy="no-referrer" srcDoc={buildSrcdoc(html)} style={{ height: h }} />
+      <div className="ml-resize" role="separator" tabIndex={0} aria-orientation="horizontal" aria-label="调整正文高度"
+        aria-valuemin={FRAME_MIN} aria-valuemax={max} aria-valuenow={h} onPointerDown={drag}
+        onKeyDown={(e) => { const n = resizeByKey(e.key, h, frameMax()); if (n !== null) { e.preventDefault(); setH(n); } }}><span aria-hidden="true" /></div>
+    </div>
   );
 }
 

@@ -40,7 +40,8 @@ const q = (o: Record<string, string | undefined>) => new URLSearchParams(Object.
 
 /** 201 / 202 → SendResult */
 export function toSendResult(status: number, b: Record<string, unknown>): SendResult {
-  if (status === 202) return { kind: 'sending', id: String(b.id), pollAfterMs: typeof b.pollAfterMs === 'number' ? b.pollAfterMs : 5000 };
+  const deferred = b.errorCode === 'daily_cap_deferred' || b.reason === 'daily_cap_deferred';
+  if (status === 202 || deferred) return { kind: 'sending', id: String(b.id), pollAfterMs: typeof b.pollAfterMs === 'number' ? b.pollAfterMs : 5000, ...(deferred ? { deferred: true, deferredUntil: typeof b.deferredUntil === 'string' ? b.deferredUntil : null } : {}) };
   return { kind: 'sent', id: String(b.id), sentAt: (b.sentAt as string) ?? null, retryCount: Number(b.retryCount ?? 0), maxRetries: Number(b.maxRetries ?? 5) };
 }
 async function post(path: string, body: unknown, key: string): Promise<SendResult> {

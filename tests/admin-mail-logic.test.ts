@@ -27,7 +27,7 @@ test('不认识的 reason / unknown → 通用文案、不可重试（忽略 ret
   }
 });
 test('v4 新原因码都有文案；send_auth / recipient_rejected / message_rejected 不可重试', () => {
-  for (const code of ['send_unavailable', 'smtp_timeout', 'smtp_unavailable']) { const v = st({ errorCode: code, retryable: true }); assert.ok(v.kind === 'failed' && v.canRetry && v.text !== L.UNKNOWN_FAIL); }
+  for (const code of ['send_unavailable', 'provider_throttled', 'smtp_timeout', 'smtp_unavailable']) { const v = st({ errorCode: code, retryable: true }); assert.ok(v.kind === 'failed' && v.canRetry && v.text !== L.UNKNOWN_FAIL); }
   for (const code of ['send_auth', 'recipient_rejected', 'message_rejected']) { const v = st({ errorCode: code, retryable: true }); assert.ok(v.kind === 'failed' && !v.canRetry && v.text !== L.UNKNOWN_FAIL); }
 });
 test('retryCountText：0 不显示，4 提示还能 1 次', () => {
@@ -115,9 +115,23 @@ test('附件链接过期判断与大小格式', () => {
   assert.equal(L.typeBadge('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'), 'XLSX'); assert.equal(L.typeBadge('application/x-unknown'), 'FILE');
 });
 
-test('provider_throttled：待发送（不算失败、没有重试），文案固定', () => {
-  assert.deepEqual(st({ errorCode: 'provider_throttled', retryable: true, retryCount: 1 }), { kind: 'deferred' });
-  assert.equal(L.DEFERRED_TEXT, '今日发信已达上限，稍后自动发送');
-  assert.equal(L.isDeferred({ status: 'FAILED', errorCode: 'provider_throttled' }), true);
+test('daily_cap_deferred：排队中（不算失败、无重试）；provider_throttled 回到可重试失败、计入 n/5', () => {
+  for (const status of ['QUEUED', 'SENDING', 'FAILED'] as const) assert.deepEqual(st({ status, errorCode: 'daily_cap_deferred', retryable: true }), { kind: 'deferred' });
+  assert.equal(L.isDeferred({ status: 'SENT', errorCode: 'daily_cap_deferred' }), false);
+  const p = st({ errorCode: 'provider_throttled', retryable: true, retryCount: 2 });
+  assert.ok(p.kind === 'failed' && p.canRetry && p.retryCount === 2 && /每小时/.test(p.text) && /稍后重试/.test(p.text));
+  assert.ok((() => { const v = st({ errorCode: 'provider_throttled', retryable: true, retryCount: 5 }); return v.kind === 'failed' && v.retryLimit; })());
   for (const code of ['smtp_auth', 'smtp_tls']) { const v = st({ errorCode: code }); assert.ok(v.kind === 'failed' && v.text !== L.UNKNOWN_FAIL); }
+});
+test('deferredText：deferredUntil 按本地时区显示；缺失 → 下一个 UTC 零点', () => {
+  assert.equal(L.deferredText('2026-10-16T00:00:00Z', 0, 'America/Los_Angeles'), '今日发信已达上限，将在 10/15 17:00 后自动发送');
+  const now = Date.parse('2026-10-15T08:00:00Z');
+  assert.equal(L.nextUtcMidnight(now), '2026-10-16T00:00:00.000Z');
+  assert.equal(L.deferredText(null, now, 'UTC'), '今日发信已达上限，将在 10/16 00:00 后自动发送');
+  assert.equal(L.deferredText('garbage', now, 'UTC'), L.deferredText(undefined, now, 'UTC'));
+});
+test('正文 iframe 高度：240px–70vh，键盘调整', () => {
+  assert.equal(L.estimateHeight('x', 700), 240); assert.equal(L.estimateHeight('a\n'.repeat(200), 700), 700);
+  assert.equal(L.resizeByKey('ArrowDown', 240, 700), 280); assert.equal(L.resizeByKey('ArrowUp', 240, 700), 240);
+  assert.equal(L.resizeByKey('End', 300, 700), 700); assert.equal(L.resizeByKey('Home', 500, 700), 240); assert.equal(L.resizeByKey('a', 300, 700), null);
 });

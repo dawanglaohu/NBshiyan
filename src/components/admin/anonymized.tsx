@@ -72,3 +72,9 @@ export function LockedStatus({ label }: { label: string }) {
 }
 /** 改状态返回 409 anonymized：显示同一句话并刷新详情 */
 export const statusConflictText = (err?: string) => (err === 'anonymized' ? STATUS_LOCKED_MSG : undefined);
+
+/** 列表里已匿名化的行：状态旁一个中性灰小标签，不放长说明 */
+export const DELETED_TAG = '已删除';
+export function DeletedTag() {
+  return <span className="adm-deleted-tag" data-testid="deleted-tag" style={{ marginLeft: 6, background: 'var(--neutral-bg)', color: 'var(--ink-2)', border: '1px solid var(--line-strong, #8A8378)', borderRadius: 999, padding: '0 8px', fontSize: 12 }}>{DELETED_TAG}</span>;
+}

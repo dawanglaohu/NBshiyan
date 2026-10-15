@@ -46,6 +46,7 @@ export function startSendPoll(d: PollDeps): () => void {
     try {
       const s = await d.fetchStatus();
       if (stopped) return;
+      // daily_cap_deferred 不是终态：照常轮询，满 2 分钟停（界面仍显示延后发送 +「刷新」，不显示「状态未确认」）
       if (s.status === 'SENT' || (s.status === 'FAILED' && !isDeferred(s))) { d.onEvent({ type: 'done', status: s }); stop(); return; }
       d.onEvent({ type: 'update', status: s });
     } catch (e) {
