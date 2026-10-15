@@ -7,7 +7,7 @@
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Custom Paper Cups Manufacturer & Supplier | PackJoyU | Бумажные стаканы с логотипом оптом | PackJoyU |
+| title | Custom Paper Cups Supplier | PackJoyU | Бумажные стаканы с логотипом оптом | PackJoyU |
 | description | Custom printed paper coffee cups with your logo in single and double wall, 4 to 22 oz, with matching lids for cafes, coffee shops and brands. Get a quote. | Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объёмы, крышки в комплекте. Для кофеен и брендов. Запросите расчёт. |
 | keyword | custom paper cups | бумажные стаканы с логотипом |
 
@@ -17,7 +17,7 @@
 
 ### H1: Custom Paper Cups
 
-PackJoyU manufactures custom printed paper cups for coffee shops, restaurant chains, events and brands. Choose single wall, double wall or ripple wall cups in a range of sizes, printed with your logo and artwork, with matching lids and sleeves available. Your cup becomes a moving advertisement every time a customer walks out the door.
+PackJoyU supplies custom printed paper cups for coffee shops, restaurant chains, events and brands. Choose single wall, double wall or ripple wall cups in a range of sizes, printed with your logo and artwork, with matching lids and sleeves available. Your cup becomes a moving advertisement every time a customer walks out the door.
 
 #### Why PackJoyU
 
@@ -44,7 +44,7 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 1. **Send your brief** — product size, quantity, artwork or reference.
 2. **Quote & structure** — we propose material, structure and dieline.
 3. **Proof & sample** — digital proof, then physical sample (timing confirmed with your quote).
-4. **Production & QC** — mass production with inspection before packing.
+4. **Order fulfillment** — bulk order is prepared and packed for shipment.
 5. **Shipping** — packing and shipping documents; terms confirmed per quote.
 
 **CTA:** Request a quote →（链接到询价表单，预填品类）
@@ -66,7 +66,7 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 
 ### H1: Бумажные стаканы с логотипом
 
-PackJoyU производит бумажные стаканы с печатью для кофеен, ресторанных сетей, мероприятий и брендов. Выбирайте однослойные, двухслойные или гофрированные стаканы разных объёмов с вашим логотипом; в комплекте доступны крышки и манжеты. Ваш стакан становится рекламой каждый раз, когда гость выходит из кофейни.
+PackJoyU подбирает и поставляет бумажные стаканы с печатью для кофеен, ресторанных сетей, мероприятий и брендов. Выбирайте однослойные, двухслойные или гофрированные стаканы разных объёмов с вашим логотипом; в комплекте доступны крышки и манжеты. Ваш стакан становится рекламой каждый раз, когда гость выходит из кофейни.
 
 #### Почему PackJoyU
 
@@ -86,14 +86,14 @@ PackJoyU производит бумажные стаканы с печатью 
 | Аксессуары | Крышки PS/PP/из волокна, манжеты, подставки |
 | Минимальный тираж | Согласовывается при расчёте |
 | Срок изготовления образца | Сроки согласовываются при расчёте |
-| Срок производства | Сроки согласовываются при расчёте |
+| Сроки изготовления | По запросу |
 
 #### Как мы работаем
 
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
-4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
+4. **Как выполняется заказ** — тираж готовится и упаковывается к отгрузке.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
@@ -115,7 +115,7 @@ PackJoyU производит бумажные стаканы с печатью 
 
 ### EN — Google
 
-- **Transactional / commercial (主页面)**: custom paper cups, paper cup manufacturer, custom coffee cups wholesale, printed paper cups with logo
+- **Transactional / commercial (主页面)**: custom paper cups, paper cup supplier, custom coffee cups wholesale, printed paper cups with logo
 - **Commercial investigation (主页面 + 小节)**: double wall paper cups custom, branded coffee cups, ripple cups wholesale, paper cups with lids
 - **Informational (博客文章)**: single vs double wall cup, paper cup sizes oz chart, how paper cups are made
 

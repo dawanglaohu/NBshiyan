@@ -3,12 +3,12 @@
 export type Industry = { slug: string; premium: boolean; poster: string };
 
 export const INDUSTRIES: readonly Industry[] = [
-  { slug: 'color-boxes', premium: false, poster: '/images/posters/custom-color-boxes.webp' },
-  { slug: 'corrugated-boxes', premium: false, poster: '/images/posters/custom-corrugated-boxes.webp' },
-  { slug: 'paper-cups', premium: false, poster: '/images/posters/custom-paper-cups.webp' },
-  { slug: 'party-supplies', premium: false, poster: '/images/posters/custom-party-supplies.webp' },
-  { slug: 'wine-boxes', premium: true, poster: '/images/posters/custom-wine-boxes.webp' },
-  { slug: 'gift-boxes', premium: true, poster: '/images/posters/custom-gift-boxes.webp' }
+  { slug: 'color-boxes', premium: false, poster: '/images/posters/custom-color-boxes.01433ea7.webp' },
+  { slug: 'corrugated-boxes', premium: false, poster: '/images/posters/custom-corrugated-boxes.b3d628f6.webp' },
+  { slug: 'paper-cups', premium: false, poster: '/images/posters/custom-paper-cups.8d18d66f.webp' },
+  { slug: 'party-supplies', premium: false, poster: '/images/posters/custom-party-supplies.3959e9e5.webp' },
+  { slug: 'wine-boxes', premium: true, poster: '/images/posters/custom-wine-boxes.98e212ab.webp' },
+  { slug: 'gift-boxes', premium: true, poster: '/images/posters/custom-gift-boxes.2b476905.webp' }
 ];
 
 export type ResolvedIndustry = Industry & { name: string; title?: string; industryGen: string };

@@ -19,7 +19,7 @@ test('product: all 11 categories, EN/RU, no commercial fields by default', () =>
 
 test('product: optional real data is emitted only when given', () => {
   const ld = buildProductJsonLd('wine-boxes', 'ru', {
-    images: ['/posters/custom-wine-boxes.webp'],
+    images: ['/posters/custom-wine-boxes.98e212ab.webp'],
     specs: {
       moq: { value: 500, unit: 'pcs' }, material: 'Крафт-бумага',
       size: { min: { l: 50, w: 50, h: 20 }, max: { l: 600, w: 400, h: 400 }, unit: 'mm' },
