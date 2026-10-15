@@ -25,7 +25,7 @@ def cuboid(name, size, center, mats, face_mat, parent=None):
     o = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(o)
     for m in mats: o.data.materials.append(m)
     if parent: o.parent = parent
-    md = o.modifiers.new('bev', 'BEVEL'); md.width = min(size)*.35; md.segments = 2; md.limit_method = 'ANGLE'; md.harden_normals = True
+    md = o.modifiers.new('bev', 'BEVEL'); md.width = min(size)*.35; md.segments = int(os.environ.get('BEVEL_SEGMENTS', 1)); md.limit_method = 'ANGLE'; md.harden_normals = True
     o.modifiers.new('wn', 'WEIGHTED_NORMAL')
     return o
 
