@@ -1,7 +1,8 @@
 import { products, type Product } from './products';
 
 /**
- * 已下线的品类（#195）：环保纸杯并入纸杯，slug `eco-paper-cups` / `ekologichnye-stakany` 删除。
+ * 不作为独立分类展示的品类（#195）：环保纸杯并入纸杯，`eco-paper-cups` 不作为独立分类展示；
+ * slug `eco-paper-cups` / `ekologichnye-stakany` 和 /products#eco-paper-cups 锚点都保留（卡片挪到纸杯下面）。
  * products.ts 里的卡片由后端迁走；在那之前，导航、入口和卡片统一从这里过滤。
  */
 export const RETIRED_CATEGORIES: ReadonlySet<string> = new Set(['eco-paper-cups']);
