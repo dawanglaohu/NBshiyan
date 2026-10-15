@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
 import InquiryNotFound from './InquiryNotFound';
 import StatusBadge from './StatusBadge';
-import { canAssignInquiry, errorText, loginHref, fmtDate, productName, relTime } from './format';
+import { anonymizedNotice, detailControls, isAnonymized, piiField } from './anonymized';
+import { errorText, loginHref, fmtDate, productName, relTime } from './format';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
 // 服务端存的是转义后的 HTML（换行为 <br>）：先还原换行、去标签，再解码实体，整体按纯文本显示
@@ -49,10 +50,13 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   };
 
   // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
-  const canAssign = canAssignInquiry(role);
   if (inq === undefined) return <p className="muted">{err ? <>{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></> : '加载中…'}</p>;
   if (inq === null) return <InquiryNotFound />;
   const c = inq.contact;
+  const anon = isAnonymized(inq);
+  // 已匿名化：回复区、分配下拉框直接隐藏（服务端另有 409 拦截）
+  const ctl = detailControls(inq, role);
+  const who = anon ? '已匿名化' : c.name;
   const score = inq.trustScore;
   const ringColor = score < REVIEW_THRESHOLD ? 'var(--err)' : score < 70 ? 'var(--warn-c)' : 'var(--ok)';
   const sendAndFollow = () => run(async () => {
@@ -65,7 +69,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
     <>
       <div className="adm-crumb"><Link href="/admin/inquiries">询盘</Link> / {inq.ref}</div>
       <div className="adm-hd">
-        <h1>{c.company ?? c.name}</h1>
+        <h1>{anon ? `询盘 ${inq.ref}` : c.company ?? c.name}</h1>
         <StatusBadge status={inq.status} />
         {score < REVIEW_THRESHOLD && <span className="badge REVIEW">待核实</span>}
         <span className="muted">· {c.region} · {relTime(inq.createdAt)}</span>
@@ -73,15 +77,16 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { status: e.target.value as InquiryStatus }))} aria-label="状态">
           {(Object.keys(STATUS_LABEL) as InquiryStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </select></label>
-        {canAssign ? (
+        {ctl.showAssign ? (
           <label className="muted">负责人：<select value={inq.assignee?.id ?? ''} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { assigneeId: e.target.value || null }))} aria-label="负责人">
             <option value="">未分配</option>
             {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select></label>
-        ) : <span className="muted" data-testid="assignee-text">负责人：{inq.assignee?.name ?? '未分配'}</span>}
+        ) : ctl.showAssigneeText ? <span className="muted" data-testid="assignee-text">负责人：{inq.assignee?.name ?? '未分配'}</span> : null}
         <button type="button" className="adm-btn sq" disabled={busy || inq.status === 'INVALID'}
           onClick={() => { if (confirm('确定标记为无效询盘？')) run(() => adminApi.updateInquiry(inq.id, { status: 'INVALID' })); }}>标记无效</button>
       </div>
+      {inq.anonymizedAt && <p data-testid="anon-notice" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{anonymizedNotice(inq.anonymizedAt, fmtDate)}</p>}
       {err && <p className="warn" role="alert">{errorText(err, '操作失败')}{err === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</p>}
 
       <div className="adm-g2">
@@ -89,17 +94,17 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
           <section className="adm-sec">
             <h2>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></h2>
             {inq.message && (
-              <div className="adm-msg2 INBOUND"><div className="meta">客户 · {c.name} · {fmtDate(inq.createdAt)}</div>
+              <div className="adm-msg2 INBOUND"><div className="meta">客户 · {who} · {fmtDate(inq.createdAt)}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}><PlainText text={inq.message} /></div></div>)}
             {inq.messages.map((m) => (
               <div key={m.id} className={`adm-msg2 ${m.direction}`}>
-                <div className="meta">{m.direction === 'INBOUND' ? `客户 · ${c.name}` : `我们${m.author ? ` · ${m.author}` : ''}`} · {fmtDate(m.createdAt)} · {m.subject}</div>
+                <div className="meta">{m.direction === 'INBOUND' ? `客户 · ${who}` : `我们${m.author ? ` · ${m.author}` : ''}`} · {fmtDate(m.createdAt)} · {m.subject}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}><PlainText text={plain(m.bodyHtml)} /></div>
               </div>))}
             {/* 附件区整体不显示：后端暂无附件接口（#85），有了再按扫描状态加回 */}
           </section>
 
-          <section className="adm-sec">
+          {ctl.showReply && <section className="adm-sec">
             <h2>回复客户 <span className="muted">将以{LANG[inq.locale]}发送</span></h2>
             <textarea rows={5} style={{ width: '100%' }} value={body} onChange={(e) => { setBody(e.target.value); setSaved(false); }} aria-label="回复内容"
               placeholder={inq.locale === 'ru' ? `Здравствуйте, ${c.name}!` : `Dear ${c.name.split(' ')[0]}, thank you for…`} />
@@ -116,7 +121,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
                 {inq.status === 'NEW' ? '发送并改为“跟进中”' : '发送'}
               </button>
             </div>
-          </section>
+          </section>}
 
           <section className="adm-sec">
             <h2>内部备注 <span className="muted">仅团队可见</span></h2>
@@ -148,10 +153,10 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
           <section className="adm-sec">
             <h2>客户信息</h2>
             <dl className="adm-kv">
-              <dt>联系人</dt><dd>{c.name}</dd>
-              <dt>邮箱</dt><dd>{c.email}</dd>
-              {c.company && (<><dt>公司</dt><dd>{c.company}</dd></>)}
-              {c.phone && (<><dt>电话</dt><dd>{c.phone}</dd></>)}
+              <dt>联系人</dt><dd>{piiField(inq, c.name)}</dd>
+              <dt>邮箱</dt><dd>{piiField(inq, c.email)}</dd>
+              {(anon || c.company) && (<><dt>公司</dt><dd>{piiField(inq, c.company)}</dd></>)}
+              {(anon || c.phone) && (<><dt>电话</dt><dd>{piiField(inq, c.phone)}</dd></>)}
               <dt>国家</dt><dd>{c.region} · 回复用{LANG[inq.locale]}{inq.ipCountry && inq.ipCountry !== c.region ? <span className="warn">（IP 国家 {inq.ipCountry}）</span> : null}</dd>
               <dt>来源</dt><dd>{SOURCE_LABEL[inq.source]}{inq.attribution?.page && <> · <span className="adm-url">{inq.attribution.page}</span></>}</dd>
               {inq.attribution?.utm && (<><dt>关键词</dt><dd>{Object.entries(inq.attribution.utm).map(([k, v]) => `${k}=${v}`).join(' · ')}</dd></>)}

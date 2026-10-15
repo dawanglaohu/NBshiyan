@@ -47,9 +47,20 @@ function make(i: number): InquiryDetail {
   };
 }
 
-const db: InquiryDetail[] = Array.from({ length: 23 }, (_, i) => make(i));
-const summary = ({ id, ref, status, source, locale, contact, products, trustScore, assignee, createdAt }: InquiryDetail): InquirySummary =>
-  ({ id, ref, status, source, locale, contact: { name: contact.name, email: contact.email, company: contact.company, region: contact.region }, products, trustScore, assignee, createdAt });
+/** 已匿名化示例（保留期到期 cron 处理后的样子）：PII 为 [deleted] / 空，邮箱为 deleted+随机@invalid.invalid */
+function makeAnonymized(): InquiryDetail {
+  const base = make(23);
+  return {
+    ...base, id: 'inq_anon_1', status: 'WON', assignee: users[0], createdAt: ago(60 * 24 * 760), anonymizedAt: ago(60 * 24 * 30),
+    contact: { name: '[deleted]', email: 'deleted+k3j9q2x7@invalid.invalid', company: '[deleted]', phone: undefined, region: 'DE' },
+    message: undefined, attribution: undefined, trustReasons: [], logoUploadId: undefined, attachments: [], notes: [],
+    messages: [{ id: 'm1', direction: 'INBOUND', subject: '[deleted]', bodyHtml: '[deleted]', createdAt: ago(60 * 24 * 760) }],
+    history: [{ id: 'h1', at: ago(60 * 24 * 760), action: '询盘创建' }, { id: 'h2', at: ago(60 * 24 * 30), actor: '系统', action: '按数据保留政策匿名化' }],
+  };
+}
+const db: InquiryDetail[] = [...Array.from({ length: 23 }, (_, i) => make(i)), makeAnonymized()];
+const summary = ({ id, ref, status, source, locale, contact, products, trustScore, assignee, createdAt, anonymizedAt }: InquiryDetail): InquirySummary =>
+  ({ id, ref, status, source, locale, contact: { name: contact.name, email: contact.email, company: contact.company, region: contact.region }, products, trustScore, assignee, createdAt, anonymizedAt });
 const delay = <T,>(v: T) => new Promise<T>((r) => setTimeout(() => r(structuredClone(v)), 120));
 
 /** 与服务端一致：纯文本全部转义，换行转 <br> */
@@ -58,6 +69,7 @@ const textToHtml = (t: string) => t.split(/\r?\n/).map((l) => l.replace(/[&<>"']
 export const mockAdminApi: AdminApi = {
   async listInquiries(q) {
     let rows = db.slice();
+    if (!q.includeAnonymized) rows = rows.filter((r) => !r.anonymizedAt); // 与后端 includeAnonymized 默认 false 一致
     if (q.status === 'REVIEW') rows = rows.filter((r) => r.trustScore < REVIEW_THRESHOLD);
     else if (q.status) rows = rows.filter((r) => r.status === q.status);
     if (q.q) { const s = q.q.toLowerCase(); rows = rows.filter((r) => [r.ref, r.contact.email, r.contact.company ?? '', r.contact.name].some((v) => v.toLowerCase().includes(s))); }

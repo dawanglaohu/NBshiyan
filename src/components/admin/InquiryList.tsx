@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type AdminUser, type InquiryQuery, type InquiryStatus, type InquirySummary, type Page } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
 import DateRange from './DateRange';
+import { filterAnonymized, isAnonymized, parseIncludeAnon, piiField } from './anonymized';
 import { PRODUCT_LABEL, errorText, loginHref, productName, relTime } from './format';
 
 const TABS: (InquiryStatus | 'REVIEW' | '')[] = ['', 'NEW', 'FOLLOWING', 'QUOTED', 'WON', 'INVALID', 'REVIEW'];
@@ -19,6 +20,9 @@ export default function InquiryList() {
     from: sp.get('from') || undefined, to: sp.get('to') || undefined, product: sp.get('product') || undefined,
     assignee: sp.get('assignee') || undefined, page: Number(sp.get('page') || 1), pageSize: 10
   };
+  // 「含已匿名化」默认关：打开时传 includeAnonymized=true（关时不传）；后端参数上线前，另在当前页客户端过滤兜底
+  const includeAnon = parseIncludeAnon(sp.get('anon'));
+  if (includeAnon) query.includeAnonymized = true;
   const key = sp.toString();
   const [data, setData] = useState<Page<InquirySummary>>();
   const [error, setError] = useState<string>();
@@ -46,7 +50,7 @@ export default function InquiryList() {
       <tr key={r.id} className={cls} tabIndex={0} onClick={go} onKeyDown={(e) => { if (e.key === 'Enter') go(); }}
         title={r.status === 'NEW' && !r.assignee ? '未分配，请尽快分配负责人' : undefined}>
         <td><Link href={`/admin/inquiries/${r.id}`} onClick={(e) => e.stopPropagation()} tabIndex={-1}>{r.ref}</Link></td>
-        <td>{r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
+        <td>{isAnonymized(r) ? piiField(r, null) : r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
         <td>{r.products.length ? <>{productName(r.products[0].productSlug)}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</> : r.itemCount ? `${r.itemCount} 个产品` : '—'}</td>
         <td className={r.trustScore < REVIEW_THRESHOLD ? 'warn' : undefined}>{r.trustScore}{r.trustScore < REVIEW_THRESHOLD ? ' ⚠' : ''}</td>
         <td><StatusBadge status={r.status} /></td>
@@ -75,7 +79,8 @@ export default function InquiryList() {
           {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
         </select>
         <button className="adm-btn" type="submit">搜索</button>
-        {key && <button className="adm-btn" type="button" onClick={() => { setQ(''); router.replace('/admin/inquiries'); }}>清除筛选</button>}
+        <label className="muted"><input type="checkbox" checked={includeAnon} onChange={(e) => set({ anon: e.target.checked ? '1' : undefined, page: query.page && query.page > 1 ? String(query.page) : undefined })} /> 含已匿名化</label>
+        {sp.size > 0 && <button className="adm-btn" type="button" onClick={() => { setQ(''); router.replace('/admin/inquiries'); }}>清除筛选</button>}
       </form>
       <div className="adm-card">
         <table>
@@ -83,11 +88,13 @@ export default function InquiryList() {
           <tbody>
             {error && <tr><td colSpan={7} className="warn">{errorText(error)}{error === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</td></tr>}
             {!data && !error && <tr><td colSpan={7} className="muted">加载中…</td></tr>}
+            {data && data.items.length > 0 && filterAnonymized(data.items, includeAnon).length === 0 && <tr><td colSpan={7} className="muted">本页都是已匿名化询盘，勾选「含已匿名化」可查看</td></tr>}
             {data?.items.length === 0 && <tr><td colSpan={7} className="muted">没有符合条件的询盘</td></tr>}
             {data && (() => {
+              const items = filterAnonymized(data.items, includeAnon);
               const isReview = (r: InquirySummary) => r.trustScore < REVIEW_THRESHOLD;
-              const review = query.status === 'REVIEW' ? [] : data.items.filter(isReview);
-              const main = query.status === 'REVIEW' ? data.items : data.items.filter((r) => !isReview(r));
+              const review = query.status === 'REVIEW' ? [] : items.filter(isReview);
+              const main = query.status === 'REVIEW' ? items : items.filter((r) => !isReview(r));
               return (<>
                 {main.map(row)}
                 {review.length > 0 && (

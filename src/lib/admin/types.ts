@@ -32,6 +32,8 @@ export type InquirySummary = {
   trustScore: number; assignee?: AdminUser; createdAt: string;
   /** 产品条数（列表接口只给 _count.items，没有产品明细时用它显示） */
   itemCount?: number;
+  /** 已匿名化时间（ISO）。详情接口（include 全字段）会返回；列表接口 select 目前没有这个字段，缺失按未匿名化处理 */
+  anonymizedAt?: string | null;
 };
 export type InquiryDetail = InquirySummary & {
   contact: Contact; message?: string; items: InquiryItem[]; trustReasons: TrustReason[];
@@ -47,6 +49,8 @@ export type InquiryQuery = {
   product?: string; minScore?: number; maxScore?: number;
   /** 'me' | 'none'（未分配）| 用户 id；业务员角色后端只返回自己的 */
   assignee?: string; page?: number; pageSize?: number;
+  /** 含已匿名化（后端第六轮加，默认 false 由服务端过滤）；只在开关打开时传 true，关时不传 */
+  includeAnonymized?: boolean;
 };
 export type InquiryPatchResult = { id: string; status: InquiryStatus; assigneeId: string | null; updatedAt: string };
 export type Page<T> = { items: T[]; total: number; page: number; pageSize: number };
