@@ -22,9 +22,9 @@ export default async function FactoryPage({ params }: { params: Promise<{ locale
   const t = await getTranslations('Factory');
   const nav = await getTranslations('Nav');
   const kpis = KPI_KEYS.every((k) => t.has(`${k}.value`) && t.has(`${k}.label`)) ? KPI_KEYS : [];
-  // 键形：Factory.steps.<n>.name（必有）+ Factory.steps.<n>.desc（SEO 稍后提供，有才渲染）
-  const steps = ['1', '2', '3', '4', '5'].filter((k) => t.has(`steps.${k}.name`))
-    .map((k) => ({ name: t(`steps.${k}.name`), desc: t.has(`steps.${k}.desc`) ? t(`steps.${k}.desc`) : undefined }));
+  // 键形：Factory.steps.title（区块标题，字符串）；Factory.steps.<n>.{title,desc}（desc 有才渲染）
+  const steps = ['1', '2', '3', '4', '5'].filter((k) => t.has(`steps.${k}.title`))
+    .map((k) => ({ title: t(`steps.${k}.title`), desc: t.has(`steps.${k}.desc`) ? t(`steps.${k}.desc`) : undefined }));
   return (
     <main className="sx-page">
       <section className="sx sx-block">

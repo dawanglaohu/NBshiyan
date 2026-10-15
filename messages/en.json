@@ -475,19 +475,24 @@
     "steps": {
       "title": "From quote to delivery",
       "1": {
-        "name": "Brief & dieline"
+        "title": "Brief & dieline",
+        "desc": "You share your product, quantities and artwork, and we agree the box structure and a dieline to match."
       },
       "2": {
-        "name": "Sample"
+        "title": "Sample",
+        "desc": "A sample is made from the agreed dieline so you can check size, fit and print before the run."
       },
       "3": {
-        "name": "Print"
+        "title": "Print",
+        "desc": "Once the sample is approved, your artwork is printed on the selected material."
       },
       "4": {
-        "name": "Die-cut & assembly"
+        "title": "Die-cut & assembly",
+        "desc": "Printed sheets are die-cut, folded and assembled, with inserts added where your design needs them."
       },
       "5": {
-        "name": "QC & ship"
+        "title": "QC & ship",
+        "desc": "Finished packaging is checked against the approved sample, packed and prepared for shipment."
       }
     },
     "stepImageAlt": {

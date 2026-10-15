@@ -46,13 +46,13 @@ export function Kpi({ value, label }: { value: string; label: string }) {
   return <div className="sx-kpi"><b>{value}</b><span>{label}</span></div>;
 }
 
-export function Steps({ items }: { items: { name: string; desc?: string }[] }) {
+export function Steps({ items }: { items: { title: string; desc?: string }[] }) {
   return (
     <ol className="sx-steps">
       {items.map((s, i) => (
-        <li key={s.name}>
+        <li key={s.title}>
           <span className="sx-step-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-          <b className="sx-step-name">{s.name}</b>
+          <b className="sx-step-name">{s.title}</b>
           {s.desc && <p className="sx-step-desc">{s.desc}</p>}
         </li>
       ))}
