@@ -11,7 +11,7 @@ export type Locale = 'en' | 'ru';
 export type Dims = { l: number; w: number; h: number };
 
 export type ProductRealData = {
-  /** Absolute or site-relative image URLs (e.g. /posters/custom-color-boxes.webp). */
+  /** Absolute or site-relative image URLs (e.g. /posters/custom-color-boxes.01433ea7.webp). */
   images?: string[];
   sku?: string;
   /** Real, confirmed spec values only (from /api/specs). Empty/missing => omitted. */
@@ -75,7 +75,6 @@ export function buildProductJsonLd(key: string, locale: Locale, data: ProductRea
     url,
     category: m.keyword,
     brand: { '@type': 'Brand', name: 'PackJoyU' },
-    manufacturer: { '@type': 'Organization', name: 'PackJoyU', url: SITE_URL },
   };
   if (data.images?.length) ld.image = data.images.map(abs);
   if (data.sku) ld.sku = data.sku;

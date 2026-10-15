@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { LoopOnce, type Group } from 'three';
+import { LoopOnce, Matrix4, type Group } from 'three';
+import { unionAnimatedBox, boxToTuple } from '@/lib/three/framing';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation, LODsManager } from '@needle-tools/gltf-progressive';
@@ -9,6 +10,7 @@ import FoldBox, { type BoxView } from './FoldBox';
 export type { BoxView };
 /** 真实 GLB 里对应“开盖 / 展开刀模”的动画片段名 */
 export type AnimationClips = { open?: string; unfold?: string };
+export type ModelBounds = { min: [number, number, number]; max: [number, number, number] };
 const PALETTE: Record<string, { color: string; lid?: string }> = {
   'gift-boxes': { color: '#1d1d22', lid: '#d4af6a' },
   'wine-boxes': { color: '#6b1f2a', lid: '#d4af6a' },
@@ -47,7 +49,7 @@ function useLodUpgradeRedraw() {
   }, [gl, invalidate]);
 }
 
-function Gltf({ url, view, clip }: { url: string; view?: BoxView; clip?: string }) {
+function Gltf({ url, view, clip, onBounds }: { url: string; view?: BoxView; clip?: string; onBounds?: (b: ModelBounds) => void }) {
   const gl = useThree((s) => s.gl);
   const root = useRef<Group>(null);
   // Draco 解码器和渐进式加载：先出轻量版本，细节后台静默替换
@@ -55,6 +57,15 @@ function Gltf({ url, view, clip }: { url: string; view?: BoxView; clip?: string 
     useNeedleProgressive(loader as never, gl);
   });
   useLodUpgradeRedraw();
+  // 取景用所有动画状态的并集包围盒（合盖 + 开盖全过程），在播放任何动画之前算好（#172）
+  useEffect(() => {
+    if (!onBounds) return;
+    const used = clip ? animations.filter((a) => a.name === clip) : [];
+    const box = unionAnimatedBox(scene, used);
+    // 转到外层 group 的局部坐标：外层取景 group 只做平移，结果与它的局部空间一致
+    if (scene.parent) box.applyMatrix4(new Matrix4().copy(scene.parent.matrixWorld).invert());
+    if (!box.isEmpty()) onBounds(boxToTuple(box));
+  }, [scene, animations, clip, onBounds]);
   const { actions } = useAnimations(animations, root);
   const first = useRef(true);
   useEffect(() => {
@@ -103,7 +114,7 @@ function PlaceholderBox() {
 /**
  * view：合盖 / 开盖 / 展开刀模。没有真实模型时用程序化的 FoldBox 演示。
  */
-export default function ProductModel({ src, onReady, slug, view, animationClips }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips }) {
+export default function ProductModel({ src, onReady, slug, view, animationClips, onBounds }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips; onBounds?: (b: ModelBounds) => void }) {
   const [url, setUrl] = useState<string>();
   const [loadError, setLoadError] = useState<Error>();
   // 抛给外层 SceneErrorBoundary，卡片退回静态图
@@ -118,5 +129,5 @@ export default function ProductModel({ src, onReady, slug, view, animationClips 
     if (view && slug) { const c = PALETTE[slug] ?? { color: '#c9a77c' }; return <FoldBox view={view} color={c.color} lidColor={c.lid} />; }
     return <PlaceholderBox />;
   }
-  return url ? <Gltf url={url} view={view} clip={animationClips?.open} /> : null;
+  return url ? <Gltf url={url} view={view} clip={animationClips?.open} onBounds={onBounds} /> : null;
 }

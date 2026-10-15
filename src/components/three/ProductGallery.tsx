@@ -5,10 +5,12 @@ import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 're
 import type { Product } from '@/data/products';
 import type { BoxView } from './FoldBox';
 import SceneErrorBoundary from './SceneErrorBoundary';
+import { hintText, COARSE_QUERY } from './hint';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 import { Link } from '@/i18n/navigation';
 
-const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
+/** 深色卡片（.theme-premium）：卡片样式和 3D 轮廓光共用这一份 */
+export const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 const HOVER_ZOOM_MS = 500;
 // 支持“合盖 / 开盖 / 展开刀模”切换的品类
 const VIEW_SLUGS = new Set(['gift-boxes', 'wine-boxes', 'corrugated-boxes']);
@@ -18,7 +20,7 @@ const VIEWS: BoxView[] = ['closed', 'open', 'dieline'];
 const GalleryScene = dynamic(() => import('./GalleryScene'), { ssr: false });
 
 type Item = Product & { name: string; desc?: string; alt?: string; specs?: string[] };
-type Labels = { learnMore: string; specsLabel: string; tap: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
+type Labels = { learnMore: string; specsLabel: string; tap: string; drag: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
 export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -36,6 +38,15 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   const hoverTimer = useRef<number | undefined>(undefined);
   const pressed = useRef(false);
   const finePointer = useRef(false);
+  // 角标文案按指针类型选（#172 第 10 点）；SSR 时角标不渲染（模型未就绪），无水合差异
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(COARSE_QUERY);
+    const sync = () => setCoarse(mq.matches);
+    sync();
+    mq.addEventListener?.('change', sync);
+    return () => mq.removeEventListener?.('change', sync);
+  }, []);
   useEffect(() => {
     finePointer.current = window.matchMedia('(pointer: fine)').matches;
     const up = () => { pressed.current = false; };
@@ -102,7 +113,10 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
             >
               {/* 静态图先显示，模型就绪后淡出，不造成布局偏移 */}
               <img src={p.poster} alt={p.alt ?? p.name} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
-              {!failed.has(p.slug) && !sceneDead && <span className="hint">{ready.has(p.slug) ? (active === p.slug || zoomSlug === p.slug ? '↻' : labels.tap) : labels.loading}</span>}
+              {(() => {
+                const h = hintText({ failed: failed.has(p.slug) || sceneDead, started: armed && visible.has(p.slug), ready: ready.has(p.slug), interacting: active === p.slug || zoomSlug === p.slug, coarse }, labels);
+                return h && <span className="hint">{h}</span>;
+              })()}
               {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面 */}
               {active === p.slug && (
                 <button type="button" className="btn sm done" onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
@@ -137,7 +151,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
         eventSource={rootRef}
         onReady={onReady}
         onError={onError}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, dark: PREMIUM.has(p.slug), track: tracks[i] }))}
       /></SceneErrorBoundary>)}
     </div>
   );

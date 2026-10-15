@@ -11,7 +11,7 @@ export default function OrganizationJsonLd({ locale }: { locale: string }) {
         name: 'PackJoyU',
         alternateName: '保乐优',
         url: SITE_URL,
-        description: 'Custom packaging manufacturer: corrugated boxes, gift boxes, color boxes, molded pulp, paper cups and printing.'
+        description: 'Custom packaging supplier: corrugated boxes, gift boxes, color boxes, molded pulp, paper cups and printing.'
       },
       {
         '@type': 'WebSite',

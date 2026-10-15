@@ -56,7 +56,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
       <p>{t('hint')}</p>
       {items.length === 0 ? <p role="status" className="empty">{t('empty')}</p> : <>
       <CategoryBar items={items.map(({ slug, name }) => ({ slug, name }))} label={t('categories')} />
-      <ProductGallery items={items} labels={{ learnMore: t('learnMore'), specsLabel: t('specsLabel'), tap: t('tapToRotate'), loading: t('loading'), add: t('addToQuote'), details: t('details'), done: t('done'), viewsLabel: v('label'), views: { closed: v('closed'), open: v('open'), dieline: v('dieline') } }} />
+      <ProductGallery items={items} labels={{ learnMore: t('learnMore'), specsLabel: t('specsLabel'), tap: t('tapToRotate'), drag: t('dragToRotate'), loading: t('loading'), add: t('addToQuote'), details: t('details'), done: t('done'), viewsLabel: v('label'), views: { closed: v('closed'), open: v('open'), dieline: v('dieline') } }} />
       </>}
     </main>
   );

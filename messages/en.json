@@ -1,6 +1,6 @@
 {
   "Meta": {
-    "title": "Custom Packaging Manufacturer: Boxes & Cups | PackJoyU",
+    "title": "Custom Packaging Supplier: Boxes & Cups | PackJoyU",
     "description": "PackJoyU makes custom corrugated boxes, gift and wine boxes, molded pulp, custom paper cups, printed packaging for brands in North America, Europe and Australia.",
     "home": "Home",
     "ogImageAlt": "PackJoyU custom packaging: boxes, paper cups and printing"
@@ -19,7 +19,7 @@
   },
   "Home": {
     "headline": "Packaging that sparks joy",
-    "sub": "Custom paper packaging and printing, from prototype to mass production — explore every product in 3D.",
+    "sub": "Custom paper packaging and printing, from sample to bulk order — explore every product in 3D.",
     "cta": "Explore products in 3D",
     "ctaQuote": "Get a quote",
     "entryTitle": "Find your packaging",
@@ -37,6 +37,7 @@
     "title": "Our products in 3D",
     "hint": "Drag to rotate, scroll or pinch to zoom.",
     "tapToRotate": "Tap to rotate",
+    "dragToRotate": "Drag to rotate",
     "loading": "Loading 3D model…",
     "addToQuote": "Add to quote",
     "details": "Details",
@@ -299,7 +300,7 @@
     "change": "Change"
   },
   "Footer": {
-    "about": "Custom paper packaging and printing — from prototype to mass production.",
+    "about": "Custom paper packaging and printing — from sample to bulk order.",
     "categories": "Products",
     "contact": "Contact",
     "contactText": "Tell us about your project — a packaging specialist will reply by email.",
@@ -343,7 +344,7 @@
           "rateLimit": "Rate-limit counters use your IP address and a hashed (not readable) version of your email address, and expire when their limit window ends — at most 30 days.",
           "audit": "Admin security (audit) logs, including IP addresses, are deleted after 365 days.",
           "adminSessions": "Admin sessions end after 2 hours of inactivity.",
-          "inquiries": "Inquiries are anonymized after 2 years: we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
+          "inquiries": "Inquiries are anonymized 2 years after the last activity on the inquiry (our reply or a status change): we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
           "inquiriesContact": "Contact details are kept while that contact still has inquiries that have not been anonymized.",
           "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept. Records in our database are deleted or anonymized immediately.",
           "deletionCopies": "Copies of inquiry notification emails in our business inbox are deleted manually within 30 days of your request. Logs kept by our service providers (for example email delivery and hosting logs) are deleted according to each provider’s own retention period.",

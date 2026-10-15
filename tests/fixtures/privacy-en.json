@@ -33,7 +33,7 @@
           "rateLimit": "Per-IP rate-limit counters expire when the rate-limit window ends.",
           "audit": "Audit logs are deleted after 365 days.",
           "adminSessions": "Admin sessions end after 2 hours of inactivity.",
-          "inquiries": "Inquiries are anonymized after 2 years: we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
+          "inquiries": "Inquiries are anonymized 2 years after the last activity on the inquiry (our reply or a status change): we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
           "inquiriesContact": "Contact details are kept while that contact still has inquiries that have not been anonymized.",
           "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
           "oldReplies": "Replies to old emails about an anonymized inquiry are not added to it.",

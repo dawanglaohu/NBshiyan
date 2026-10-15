@@ -36,7 +36,6 @@ PackJoyU изготавливает бумажные стаканы с лого�
 Частые вопросы по этой категории: [FAQ](/ru/products/bumazhnye-stakany#faq) (источник: `docs/content/landing-faq.md`, `paper-cups`).
 
 ## Похожие товары
-- [Экологичные стаканы](/ru/products/ekologichnye-stakany)
 - [Бумажная посуда для праздника](/ru/products/tovary-dlya-prazdnikov)
 - [Печать упаковки на заказ](/ru/products/tsvetnaya-pechat)
 

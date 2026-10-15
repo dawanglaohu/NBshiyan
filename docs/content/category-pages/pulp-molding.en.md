@@ -38,7 +38,6 @@ See the questions buyers ask most about this category: [FAQ](/en/products/molded
 ## Related products
 - [Custom Corrugated Boxes](/en/products/custom-corrugated-boxes)
 - [Custom Gift Boxes](/en/products/custom-gift-boxes)
-- [Eco Paper Cups](/en/products/eco-paper-cups)
 
 ## CTA
 **Request a quote** → inquiry form, category pre-filled.

@@ -3,7 +3,7 @@
 import json, pathlib, re, sys
 HERE = pathlib.Path(__file__).resolve().parent
 # Usage: linkmap.py [content_dir] [--out DIR] [--meta categoryMeta.ts]  (defaults: docs/content, src/lib/seo/categoryMeta.ts)
-# Exits non-zero if the meta file is missing/unreadable or an EN slug still contains 'compost' (retired eco-paper-cups slug).
+# Exits non-zero if the meta file is missing/unreadable or an EN slug still contains 'compost' (retired eco-cups slug, category merged into paper-cups).
 _args = sys.argv[1:]
 OUT_DIR = None
 _meta = None
@@ -18,14 +18,14 @@ try:
     META = META_PATH.read_text(encoding='utf-8')
 except (OSError, UnicodeDecodeError) as e:
     sys.exit(f'error: cannot read category meta {META_PATH}: {e}')
-# Retired slug guard: the old EN eco-paper-cups slug (never live, #218 F15/F17) contained 'compost'; a stale meta must not map links.
+# Retired slug guard: the old EN eco-cups slug (never live, #218 F15/F17) contained 'compost'; a stale meta must not map links.
 # Matching the stem 'compost' covers the retired slug and any other 'compost…' EN slug.
 _en_slugs = re.findall(r"en: \{ slug: '([^']*)'", META)
 if not _en_slugs:
     sys.exit(f'error: no category slugs found in {META_PATH}')
 _retired = [x for x in _en_slugs if 'compost' in x]
 if _retired:
-    sys.exit(f"error: {META_PATH} has retired/unconfirmed EN slug(s) {_retired}; sync categoryMeta.ts with seo/yo-unification (eco-paper-cups)")
+    sys.exit(f"error: {META_PATH} has retired/unconfirmed EN slug(s) {_retired}; eco cups category was merged into paper-cups")
 def slugs(k):
     b = META.split(f"key: '{k}'")[1].split('{ key:')[0]; en, ru = b.split('ru: {')
     return {'en': re.search(r"slug: '([^']*)'", en).group(1), 'ru': re.search(r"slug: '([^']*)'", ru).group(1)}
@@ -40,16 +40,15 @@ A = {
  'wine-boxes': {'en': ['custom wine boxes', 'wine and spirits gift boxes', 'luxury bottle packaging'], 'ru': ['коробки для вина на заказ', 'подарочная упаковка для алкоголя', 'коробки для бутылок с логотипом']},
  'color-printing': {'en': ['packaging printing services', 'full-color packaging printing', 'CMYK and Pantone printing'], 'ru': ['печать упаковки', 'полноцветная печать на картоне', 'печать пантонами']},
  'offset-printing': {'en': ['offset printing services', 'high-volume offset printing', 'catalog and box printing'], 'ru': ['офсетная печать упаковки', 'офсетная печать тиражом', 'печать каталогов и коробок']},
- 'eco-paper-cups': {'en': ['eco-friendly paper cups', 'eco-friendly coffee cups', 'eco paper cups with your logo'], 'ru': ['экологичные стаканы', 'эко стаканы с логотипом', 'экологичные бумажные стаканы']},
  'gift-cards': {'en': ['custom gift cards', 'printed gift vouchers', 'gift card holders and envelopes'], 'ru': ['печать подарочных карт', 'подарочные сертификаты на заказ', 'упаковка для подарочных карт']},
  'christmas-merchandise': {'en': ['custom Christmas packaging', 'holiday gift boxes', 'advent calendars and seasonal packaging'], 'ru': ['новогодняя упаковка на заказ', 'новогодние подарочные коробки', 'адвент-календари на заказ']},
 }
 REL = {  # category -> related categories (from #188), 3 each
  'corrugated-boxes': ['color-boxes', 'pulp-molding', 'offset-printing'], 'color-boxes': ['gift-boxes', 'color-printing', 'offset-printing'],
- 'gift-boxes': ['wine-boxes', 'christmas-merchandise', 'color-boxes'], 'pulp-molding': ['corrugated-boxes', 'eco-paper-cups', 'gift-boxes'],
- 'paper-cups': ['eco-paper-cups', 'party-supplies', 'color-boxes'], 'party-supplies': ['paper-cups', 'christmas-merchandise', 'color-printing'],
+ 'gift-boxes': ['wine-boxes', 'christmas-merchandise', 'color-boxes'], 'pulp-molding': ['corrugated-boxes', 'paper-cups', 'gift-boxes'],
+ 'paper-cups': ['pulp-molding', 'party-supplies', 'color-boxes'], 'party-supplies': ['paper-cups', 'christmas-merchandise', 'color-printing'],
  'wine-boxes': ['gift-boxes', 'christmas-merchandise', 'pulp-molding'], 'color-printing': ['offset-printing', 'color-boxes', 'gift-cards'],
- 'offset-printing': ['color-printing', 'color-boxes', 'gift-cards'], 'eco-paper-cups': ['paper-cups', 'pulp-molding', 'party-supplies'],
+ 'offset-printing': ['color-printing', 'color-boxes', 'gift-cards'],
  'gift-cards': ['color-printing', 'gift-boxes', 'offset-printing'], 'christmas-merchandise': ['gift-boxes', 'wine-boxes', 'party-supplies'],
 }
 ART = {
