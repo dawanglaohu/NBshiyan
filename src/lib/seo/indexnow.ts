@@ -21,7 +21,9 @@ type Env = Record<string, string | undefined>;
 export function indexNowDedupeStore(env: Env = process.env): RateLimitStore | null {
   const url = env.UPSTASH_REDIS_REST_URL, token = env.UPSTASH_REDIS_REST_TOKEN;
   if (env.RATE_LIMIT_STORE !== 'upstash' || !url?.startsWith('https://') || !token) return null;
-  return new UpstashStore(url, token, { hit: async () => false }, 1500, 'indexnow:');
+  const s = new UpstashStore(url, token, 1500, 'indexnow:');
+  // Upstash 出错时按「已推过」处理（不推送），和之前的行为一致
+  return { hit: (k, l, w) => s.hit(k, l, w).catch(() => false) };
 }
 
 /** 返回可用的密钥；未设置、格式不对或不是生产环境时返回 null（功能整体关闭）。 */

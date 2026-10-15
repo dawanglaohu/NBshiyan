@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { hitRateLimit } from '../security';
+import { hitRateLimit, rateLimitKeyHash } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
@@ -13,12 +13,15 @@ export const LOCK_MS = 15 * 60_000;
 
 export type CheckFail = 'rate_limited' | 'bad_credentials' | 'locked' | 'totp_required' | 'totp_not_enrolled';
 
-/** 登录限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。 */
+/** 登录/2FA 限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。 */
 export async function loginRateOk(ip: string | null, email: string) {
+  // 限流存储故障时拒绝（closed）；邮箱先 trim+小写再 HMAC，key 里不存明文
+  const o = { onStoreError: 'closed' } as const;
+  const e = rateLimitKeyHash(email.trim().toLowerCase());
   const [a, b, c] = await Promise.all([
-    hitRateLimit(`login:${ip ?? 'noip'}:${email}`, 5, 10 * 60_000),
-    hitRateLimit(`login-acct:${email}`, 10, 10 * 60_000),
-    hitRateLimit(`login-ip:${ip ?? 'noip'}`, 30, 10 * 60_000),
+    hitRateLimit(`login:${ip ?? 'noip'}:${e}`, 5, 10 * 60_000, o),
+    hitRateLimit(`login-acct:${e}`, 10, 10 * 60_000, o),
+    hitRateLimit(`login-ip:${ip ?? 'noip'}`, 30, 10 * 60_000, o),
   ]);
   return a && b && c;
 }
