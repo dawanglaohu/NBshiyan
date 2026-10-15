@@ -5,7 +5,7 @@ export const products: Product[] = [
   { slug: 'color-boxes', model: '/models/color-box.355d50bc.glb', poster: '/images/posters/custom-color-boxes.webp' },
   { slug: 'gift-boxes', model: '/models/gift-box.anim.ccfb2baa.glb', poster: '/images/posters/custom-gift-boxes.webp', animated: true, animationClips: { open: 'Open' } },
   { slug: 'pulp-molding', model: '/models/pulp-egg-tray.3d60dd23.glb', poster: '/images/posters/custom-pulp-molding.webp' },
-  { slug: 'paper-cups', model: '/models/paper-cup.8375532a.glb', poster: '/images/posters/custom-paper-cups.webp' },
+  { slug: 'paper-cups', model: '/models/paper-cup.0902c965.glb', poster: '/images/posters/custom-paper-cups.webp' },
   { slug: 'party-supplies', model: '/models/party-supplies.828369f3.glb', poster: '/images/posters/custom-party-supplies.webp' },
   { slug: 'wine-boxes', model: '/models/wine-box.anim.49bdad5f.glb', poster: '/images/posters/custom-wine-boxes.webp', animated: true, animationClips: { open: 'Open' } },
   { slug: 'color-printing', model: '/models/color-printing.6f6d1883.glb', poster: '/images/posters/custom-color-printing.webp' },

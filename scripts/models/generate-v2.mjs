@@ -152,7 +152,7 @@ if (want('pulp')) {
 const cupProfile = (h, rb, rt) => [[0, .002], [rb - .002, .002], [rb, .006], [rb, .008], ...Array.from({length: 8}, (_, i) => [rb + (rt - rb)*(i+1)/8, .008 + (h - .012)*(i+1)/8]), [rt + .002, h - .002], [rt + .003, h], [rt, h + .001]];
 // 6) 纸杯：12oz 热饮杯 + 杯盖
 if (want('cup')) {
-  const wrap = await svgTex(1024, 512, `<rect width="1024" height="512" fill="#fdf8f2"/><rect y="300" width="1024" height="212" fill="#ff7a59"/>${Array.from({length: 8}, (_, i) => `<circle cx="${64 + i*128}" cy="300" r="40" fill="#ffb347"/>`).join('')}<g fill="#3b2a1a" ${F}><text x="512" y="190" text-anchor="middle" font-size="88" font-weight="800">COFFEE&amp;CO</text><text x="512" y="250" text-anchor="middle" font-size="32">FRESHLY ROASTED</text></g>`);
+  const wrap = await svgTex(1024, 512, `<rect width="1024" height="512" fill="#fdf8f2"/><rect y="300" width="1024" height="212" fill="#ff7a59"/>${Array.from({length: 8}, (_, i) => `<circle cx="${64 + i*128}" cy="300" r="40" fill="#ffb347"/>`).join('')}${[122, 1146].map(x => `<text x="${x}" y="170" text-anchor="middle" fill="#1f2a44" stroke="#1f2a44" stroke-width="1.5" ${F} font-size="44" font-weight="900">PackJoyU</text>`).join('')}`);
   const cup = new Geo().lathe(cupProfile(.11, .028, .045), 48, 0, 0, 0, 1, 1);
   const inside = new Geo().lathe([[.044, .108], [.029, .01], [0, .009]], 48);
   const lid = new Geo().lathe([[.047, .108], [.048, .118], [.04, .12], [.038, .128], [.012, .13], [0, .13]], 48);
