@@ -28,6 +28,7 @@ let updates = 0;
   inquiry: {
     findFirst: async ({ where }: { where: { AND?: Record<string, unknown>[] } }) => (matches(where) ? inquiry : null),
     update: async () => { updates++; return { id: INQ, status: 'NEW', assigneeId: 's1', updatedAt: new Date() }; },
+    updateMany: async () => { updates++; return { count: 1 }; },
   },
   auditLog: { create: async () => ({}), findMany: async () => [] },
 };
