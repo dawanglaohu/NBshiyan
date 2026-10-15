@@ -388,12 +388,12 @@
           "We use service providers in the following categories. Some may process data outside your country. We do not sell your data."
         ],
         "items": [
-          "Website hosting: {{待Ryan确认}}",
-          "Security verification and file storage: {{待Ryan确认}}",
-          "Rate-limit storage: {{待Ryan确认}}",
-          "Email delivery: {{待Ryan确认}}",
-          "Database: {{待Ryan确认}}",
-          "Live chat (only with your consent): {{待Ryan确认}}"
+          "Website hosting",
+          "Security verification (bot protection) and file storage",
+          "Rate-limit storage",
+          "Email delivery",
+          "Database",
+          "Live chat (only with your consent)"
         ]
       },
       "contact": {

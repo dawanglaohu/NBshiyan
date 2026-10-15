@@ -45,3 +45,14 @@ for (const l of ['en', 'ru']) test(`client messages (${l}) never carry placehold
   const c = JSON.stringify(clientMessages(m));
   assert.ok(!c.includes('{{') && !c.includes('待Ryan确认'));
 });
+
+test('processors section renders all 6 categories (EN/RU), no placeholders, not sent to client', async () => {
+  for (const l of ['en', 'ru']) {
+    const m = JSON.parse(await (await import('node:fs/promises')).readFile(`messages/${l}.json`, 'utf8'));
+    const sec = buildPrivacy(m.Privacy).sections.find((s) => s.key === 'processors')!;
+    assert.equal(sec.items.length, 6, l);
+    assert.ok(sec.paragraphs.length >= 1);
+    assert.ok(!JSON.stringify(m.Privacy.sections.processors).includes('{{'), l);
+    assert.ok(!('Privacy' in clientMessages(m)));
+  }
+});
