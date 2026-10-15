@@ -12,6 +12,7 @@
    - `User.lastLoginAt`、`User.reactivatedAt`
    - `Contact.normalizedEmail`（及其索引）、`Inquiry.anonymizedAt`（及 `[retainUntil, anonymizedAt]` 索引）
    - 新表 `CategorySpec`、枚举 `Incoterm`
+   - [ ] **上线前检查项**：在首次生产部署前，用 `prisma db push` 的输出（或 `\d "Inquiry"`）逐项确认 `Inquiry.anonymizedAt`、`[retainUntil, anonymizedAt]` 索引以及上面列出的其他新列/表都已存在。缺 `anonymizedAt` 时到期匿名化、回信/改状态的 409 检查都会报 P2022。
 4. 部署后跑一次 `scripts/backfill-normalized-email.ts`（隐私/retention 依赖规范化邮箱）。
 
 ## 2. 回滚：只回滚代码

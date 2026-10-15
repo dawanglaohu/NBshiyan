@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
 import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
-import { ID_RE, inquiryScope, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
+import { ID_RE, inquiryScope, readJson, retainUntilFromNow, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
 import { maskAddress, canViewFullAddress } from '@/lib/server/sample';
 
@@ -59,9 +59,15 @@ export async function PATCH(req: Request, { params }: P) {
     const a = await prisma.user.findUnique({ where: { id: p.data.assigneeId }, select: { role: true, disabled: true } });
     if (!a || a.disabled || a.role === 'EDITOR') return jsonErr('invalid_assignee', 422);
   }
-  const before = await prisma.inquiry.findFirst({ where: { AND: [{ id }, inquiryScope(ctx.user)] }, select: { status: true, assigneeId: true } });
+  const before = await prisma.inquiry.findFirst({ where: { AND: [{ id }, inquiryScope(ctx.user)] }, select: { status: true, assigneeId: true, anonymizedAt: true } });
   if (!before) return jsonErr('not_found', 404);
-  const after = await prisma.inquiry.update({ where: { id }, data: p.data, select: { id: true, status: true, assigneeId: true, updatedAt: true } });
-  await audit({ actorId: ctx.user.id, action: 'inquiry.update', target: id, meta: { before, after: { status: after.status, assigneeId: after.assigneeId } }, ip: ctx.ip });
-  return NextResponse.json(after, { headers: noStore });
+  if (before.anonymizedAt) return jsonErr('anonymized', 409); // 已匿名化的询盘不能改状态/改派
+  // 最后活动规则：状态有变化时顺延保留期；单纯改派不算客户活动
+  const data = p.data.status !== undefined && p.data.status !== before.status ? { ...p.data, retainUntil: retainUntilFromNow() } : p.data;
+  const after = await prisma.inquiry.updateMany({ where: { id, anonymizedAt: null }, data });
+  if (!after.count) return jsonErr('anonymized', 409); // 检查后到写入前被匿名化
+  const row = await prisma.inquiry.findFirst({ where: { id }, select: { id: true, status: true, assigneeId: true, updatedAt: true } });
+  if (!row) return jsonErr('not_found', 404);
+  await audit({ actorId: ctx.user.id, action: 'inquiry.update', target: id, meta: { before: { status: before.status, assigneeId: before.assigneeId }, after: { status: row.status, assigneeId: row.assigneeId } }, ip: ctx.ip });
+  return NextResponse.json(row, { headers: noStore });
 }

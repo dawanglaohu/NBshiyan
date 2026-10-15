@@ -1,4 +1,4 @@
-import { createHmac } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { z } from 'zod';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { normalizeEmail } from './sample';
@@ -68,21 +68,23 @@ export async function exportCustomer(db: PrismaClient, email: string) {
 }
 
 const DELETED = '[deleted]';
-/** 匿名化后的联系人字段（地区保留用于统计） */
-export const anonymizedContact = (hash: string): Prisma.ContactUpdateInput => ({ name: DELETED, email: `deleted+${hash.slice(0, 16)}@invalid.invalid`, normalizedEmail: null, company: null, phone: null });
+/**
+ * 匿名化后的联系人字段（地区保留用于统计）。
+ * 邮箱用随机字节生成（deleted+<随机 16 位 hex>@invalid.invalid），不再从原邮箱哈希派生，无法反查或比对原邮箱。参数仅为兼容旧调用，已不使用。
+ */
+export const anonymizedContact = (_legacy?: string): Prisma.ContactUpdateInput => { void _legacy; return { name: DELETED, email: `deleted+${randomBytes(8).toString('hex')}@invalid.invalid`, normalizedEmail: null, company: null, phone: null }; };
 
 /**
  * 删除个人信息：联系人姓名/邮箱/电话/公司、留言、产品备注、往来邮件正文和主题、样品收货地址和规范化邮箱清空；
  * logo 上传记录和文件删除。保留询盘条数、来源/状态/产品 slug/数量/日期/地区用于统计。
  */
 export async function deleteCustomer(db: PrismaClient, email: string, storage: PrivateStorage = defaultStorage) {
-  const hash = emailHash(email);
   // 读（联系人、询盘、logo、产品配置）和写都在同一个事务里，避免读完到写之前有新 logo / 配置写入而漏删
   const out = await db.$transaction(async (tx) => {
     const ids = await contactIdsFor(tx, email);
     if (!ids.length) return { contacts: 0, inquiries: 0, logos: [] as { id: string; path: string }[] };
     const inquiryIds = (await tx.inquiry.findMany({ where: { contactId: { in: ids } }, select: { id: true } })).map((i) => i.id);
-    await tx.contact.updateMany({ where: { id: { in: ids } }, data: anonymizedContact(hash) as Prisma.ContactUpdateManyMutationInput });
+    await tx.contact.updateMany({ where: { id: { in: ids } }, data: anonymizedContact() as Prisma.ContactUpdateManyMutationInput });
     const logos = await anonymizeInquiriesTx(tx, inquiryIds);
     return { contacts: ids.length, inquiries: inquiryIds.length, logos };
   }, { timeout: ANON_TX_TIMEOUT_MS });
