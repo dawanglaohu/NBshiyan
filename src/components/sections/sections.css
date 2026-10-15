@@ -59,7 +59,10 @@ html[lang="ru"] .sx-eyebrow{letter-spacing:.04em}
 .theme-premium .sx-img img{object-fit:contain}
 .sx-premium{background:var(--bg);color:var(--ink)}
 .sx-premium-imgs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.sx-crumb{font-size:13px;color:var(--ink-2);margin-bottom:24px}
+.sx-crumb{font-size:13px;color:var(--ink-2);margin-bottom:24px;display:flex;align-items:baseline;min-width:0;max-width:100%}
+.sx-crumb>a,.sx-crumb>span[aria-hidden]{flex:none;white-space:nowrap}
+.sx-crumb>span[aria-hidden]{white-space:pre}
+.sx-crumb-cur{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .sx-crumb a{color:var(--accent-text)}
 .sx-gallery{display:flex;flex-direction:column;gap:8px}
 .sx-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}

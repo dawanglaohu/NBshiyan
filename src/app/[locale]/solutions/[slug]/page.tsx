@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
 import { Link } from '@/i18n/navigation';
+import JsonLd from '@/components/seo/JsonLd';
+import { breadcrumbJsonLd, solutionCrumbs } from '@/lib/seo/breadcrumbs';
+import { SITE_URL } from '@/lib/site';
+import type { Locale } from '@/lib/seo/templates';
 import { industryParams, resolveFromMessages, type IndustryMessages } from '@/lib/solutions';
 import { CtaBand, SectionHeader, Button } from '@/components/sections/ui';
 import Gallery from '@/components/sections/Gallery';
@@ -24,7 +28,7 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
   const ind = await lookup(locale, slug);
   if (!ind) notFound();
   const t = await getTranslations({ locale, namespace: 'Solutions.detail' });
-  return { title: t('metaTitle', { industry: ind.name }), description: t('metaDescription', { industry: ind.name }),
+  return { title: t('metaTitle', { industry: ind.name }), description: t('metaDescription', { industryGen: ind.industryGen }),
     alternates: alternatesFor(locale, `/solutions/${ind.slug}`), robots: { index: false, follow: true } };
 }
 
@@ -36,16 +40,20 @@ export default async function SolutionDetail({ params }: P) {
   const t = await getTranslations('Solutions');
   const nav = await getTranslations('Nav');
   const p = await getTranslations('Products');
+  const crumbs = solutionCrumbs(nav('home'), t('detail.crumb'), ind.slug, ind.name);
   const alt = p.has(`alt.${ind.slug}`) ? p(`alt.${ind.slug}`) : '';
   return (
     <main className={`sx-page${ind.premium ? ' theme-premium sx-premium' : ''}`}>
       <section className="sx sx-block">
+        <JsonLd data={breadcrumbJsonLd(SITE_URL, locale as Locale, crumbs)} />
         <nav className="sx-crumb" aria-label={t('detail.crumb')}>
-          <Link href="/solutions">{t('detail.crumb')}</Link><span aria-hidden="true"> / </span><span aria-current="page">{ind.name}</span>
+          <Link href="/">{crumbs[0].name}</Link><span aria-hidden="true"> / </span>
+          <Link href="/solutions">{crumbs[1].name}</Link><span aria-hidden="true"> / </span>
+          <span className="sx-crumb-cur" aria-current="page" title={crumbs[2].name}>{crumbs[2].name}</span>
         </nav>
         <div className="sx-split">
           <div>
-            <SectionHeader as="h1" title={ind.title ?? ind.name} lead={t('detail.lead', { industry: ind.name })} />
+            <SectionHeader as="h1" title={ind.title ?? ind.name} lead={t('detail.lead', { industryGen: ind.industryGen })} />
             <div className="sx-actions"><Button href={`/contact?solution=${ind.slug}`}>{nav('quote')}</Button></div>
           </div>
           <Gallery shots={[{ path: ind.poster, src: ind.poster, alt }]} label={ind.name} />

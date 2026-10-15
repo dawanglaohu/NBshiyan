@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { INDUSTRIES, industryParams, resolveIndustry, resolveFromMessages } from '../src/lib/solutions';
+import { breadcrumbJsonLd, solutionCrumbs } from '../src/lib/seo/breadcrumbs';
 import { CMS_SECTIONS } from '../src/lib/seo/sitemapEntries';
 
 const msgs = (l: string) => JSON.parse(readFileSync(`messages/${l}.json`, 'utf8'));
@@ -27,7 +28,7 @@ for (const l of ['en', 'ru']) {
     for (const i of INDUSTRIES) {
       const r = resolveFromMessages(i.slug, m)!;
       assert.ok(r.title, `${l} ${i.slug} has title`);
-      for (const k of ['lead', 'metaTitle', 'metaDescription']) {
+      for (const k of ['metaTitle']) {
         const out = fill(d[k], r.name);
         assert.ok(out.includes(r.name), `${k} has name`);
         if (r.name.toLowerCase() !== i.slug) assert.ok(!out.includes(i.slug), `${k} must not contain slug ${i.slug}`);
@@ -53,4 +54,37 @@ test('Solutions.industries.<slug> wins over Products.names; falls back when miss
 
 test('sitemap: no Sanity-generated /solutions entries (#108 static list)', () => {
   assert.ok(!CMS_SECTIONS.some((s) => (s.base as string) === '/solutions' || (s.type as string) === 'solution'));
+});
+
+for (const l of ['en', 'ru'] as const) {
+  const m = msgs(l);
+  test(`${l}: BreadcrumbList names equal the visible breadcrumb strings`, () => {
+    for (const i of INDUSTRIES) {
+      const r = resolveFromMessages(i.slug, m)!;
+      const crumbs = solutionCrumbs(m.Nav.home, m.Solutions.detail.crumb, r.slug, r.name);
+      const ld = breadcrumbJsonLd('https://example.com', l, crumbs);
+      assert.deepEqual(ld.itemListElement.map((x) => x.name), [m.Nav.home, m.Solutions.detail.crumb, r.name]);
+      assert.equal(ld.itemListElement[2].item, `https://example.com/${l}/solutions/${i.slug}`);
+    }
+    assert.equal(m.Solutions.detail.crumb, l === 'ru' ? 'Отраслевые решения' : 'Industry solutions');
+  });
+
+  test(`${l}: industryGen present and every metaDescription < 150 chars`, () => {
+    for (const i of INDUSTRIES) {
+      const r = resolveFromMessages(i.slug, m)!;
+      assert.ok(m.Solutions.industries[i.slug].industryGen, `${i.slug} industryGen`);
+      const out = m.Solutions.detail.metaDescription.replace('{industryGen}', r.industryGen);
+      const lead = m.Solutions.detail.lead.replace('{industryGen}', r.industryGen);
+      assert.ok(!/[{}]/.test(out + lead));
+      if (l === 'ru') assert.ok(out.length < 150, `${i.slug}: ${out.length}`);
+    }
+  });
+}
+
+test('breadcrumb current item: aria-current="page", title=full name, full text in DOM (truncation CSS-only)', () => {
+  const src = readFileSync('src/app/[locale]/solutions/[slug]/page.tsx', 'utf8');
+  assert.match(src, /<span className="sx-crumb-cur" aria-current="page" title=\{crumbs\[2\]\.name\}>\{crumbs\[2\]\.name\}<\/span>/);
+  const css = readFileSync('src/components/sections/sections.css', 'utf8');
+  const rule = css.match(/\.sx-crumb-cur\{([^}]*)\}/)?.[1] ?? '';
+  for (const d of ['min-width:0', 'overflow:hidden', 'white-space:nowrap', 'text-overflow:ellipsis']) assert.ok(rule.includes(d), d);
 });

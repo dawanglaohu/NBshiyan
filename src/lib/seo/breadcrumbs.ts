@@ -44,3 +44,12 @@ export function articleBreadcrumb(siteUrl: string, locale: Locale, slug: string,
     { name: title, path: `/articles/${encodeURIComponent(slug)}` }
   ]);
 }
+
+/** Home > 行业方案 > 行业。name 必须与页面上可见的面包屑文字同源（Nav.home / Solutions.detail.crumb / 行业名） */
+export function solutionCrumbs(home: string, hub: string, slug: string, name: string): Crumb[] {
+  return [
+    { name: home, path: '/' },
+    { name: hub, path: '/solutions' },
+    { name, path: `/solutions/${encodeURIComponent(slug)}` }
+  ];
+}

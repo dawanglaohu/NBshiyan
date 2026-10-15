@@ -11,9 +11,9 @@ export const INDUSTRIES: readonly Industry[] = [
   { slug: 'gift-boxes', premium: true, poster: '/images/posters/custom-gift-boxes.webp' }
 ];
 
-export type ResolvedIndustry = Industry & { name: string; title?: string };
+export type ResolvedIndustry = Industry & { name: string; title?: string; industryGen: string };
 type Names = Readonly<Record<string, string>> | undefined;
-type IndustryCopy = Readonly<Record<string, { name?: string; title?: string }>> | undefined;
+type IndustryCopy = Readonly<Record<string, { name?: string; title?: string; industryGen?: string }>> | undefined;
 const own = <T,>(m: Readonly<Record<string, T>> | undefined, k: string): T | undefined => (m && Object.prototype.hasOwnProperty.call(m, k) ? m[k] : undefined);
 const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 
@@ -26,13 +26,14 @@ export function resolveIndustry(slug: string, fallback: Names, preferred?: Indus
   if (!hit) return null;
   const copy = own(preferred, hit.slug);
   const name = str(copy?.name) ?? str(own(fallback, hit.slug));
-  return name ? { ...hit, name, title: str(copy?.title) } : null;
+  // industryGen：ru 属格（语言专家审），缺失时回退 name
+  return name ? { ...hit, name, title: str(copy?.title), industryGen: str(copy?.industryGen) ?? name } : null;
 }
 
 export const industryParams = () => INDUSTRIES.map((i) => ({ slug: i.slug }));
 
 /** 页面侧：从 next-intl messages 取名称来源 */
-export type IndustryMessages = { Products?: { names?: Record<string, string> }; Solutions?: { industries?: Record<string, { name?: string; title?: string }> } };
+export type IndustryMessages = { Products?: { names?: Record<string, string> }; Solutions?: { industries?: Record<string, { name?: string; title?: string; industryGen?: string }> } };
 export const resolveFromMessages = (slug: string, m: IndustryMessages) => resolveIndustry(slug, m.Products?.names, m.Solutions?.industries);
 export const resolvedIndustries = (m: IndustryMessages) => INDUSTRIES.map((i) => resolveFromMessages(i.slug, m)).filter((x): x is ResolvedIndustry => x !== null);
 /** 筛选 chips 保留产品类目名（Products.names） */
