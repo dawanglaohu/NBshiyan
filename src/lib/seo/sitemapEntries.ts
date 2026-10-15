@@ -57,10 +57,9 @@ export function buildSitemap(opts: {
 /** Sanity 文档在 sitemap 里需要的字段：各语言 slug、更新时间、noindex */
 export type CmsDoc = { updatedAt?: string; noindex?: boolean | null; slug: Partial<Record<Locale, string | null>> };
 
-/** 对应 #199 的 /[locale]/articles、/[locale]/solutions（列表页 + 详情页） */
+/** 对应 #199 的 /[locale]/articles（列表页 + 详情页）。/solutions 自 #108 起由 src/lib/solutions.ts 静态列表驱动，不再从 Sanity 生成条目（否则未知 slug 会 404） */
 export const CMS_SECTIONS = [
-  { type: 'article', base: '/articles' },
-  { type: 'solution', base: '/solutions' }
+  { type: 'article', base: '/articles' }
 ] as const;
 
 /**

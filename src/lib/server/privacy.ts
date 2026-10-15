@@ -112,7 +112,7 @@ export async function anonymizeInquiriesTx(tx: Prisma.TransactionClient, inquiry
   if (!inquiryIds.length) return [];
   const logos = await tx.logoUpload.findMany({ where: { inquiryId: { in: inquiryIds } }, select: { id: true, path: true } });
   const items = await tx.inquiryItem.findMany({ where: { inquiryId: { in: inquiryIds }, NOT: { config: { equals: Prisma.DbNull } } }, select: { id: true, config: true } });
-  await tx.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null, attribution: Prisma.DbNull, trustReasons: Prisma.DbNull, anonymizedAt: now } });
+  await tx.inquiry.updateMany({ where: { id: { in: inquiryIds } }, data: { message: null, attribution: Prisma.DbNull, trustReasons: Prisma.DbNull, ipCountry: null, anonymizedAt: now } });
   // replyToken 有唯一约束，每条单独换
   for (const id of inquiryIds) await tx.inquiry.update({ where: { id }, data: { replyToken: randomId(24) } });
   await tx.inquiryItem.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { notes: null } });

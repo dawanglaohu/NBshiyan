@@ -13,7 +13,7 @@ PackJoyU makes molded pulp trays, inserts and boxes shaped to your product. Tell
 
 ## Materials and options
 - **Types:** Protective inserts, trays, clamshells, cup carriers, boxes
-- **Fibre:** Pulp source (e.g. sugarcane fibre or paper): {{待Ryan确认}}
+- **Fibre:** Pulp source: {{待Ryan确认}}
 - **Available options for your order:** {{待Ryan确认}}
 
 ## Customization and printing

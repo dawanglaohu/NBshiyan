@@ -3,7 +3,7 @@ import sharp from 'sharp';
 const O = process.argv[2] ?? 'tex-b1/';
 const w = (f, W, H, b) => sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${b}</svg>`)).png().toFile(O + f);
 const F = 'font-family="Inter, Manrope, sans-serif"';
-const NAVY = '#1f2a44';
+const NAVY = process.env.NAVY_PRINT ?? '#020924';  // #252b：目标 #1f2a44 的印刷输入色（按 linear + AgX、LIGHT 0.6 迭代求解，渲染实测 ΔE76 7.0）
 // gift card front 85.6×54 (ratio 1.585)
 await w('giftcard_front.png', 1024, 646, `<defs><linearGradient id="c" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset="1" stop-color="#a77bd8"/></linearGradient></defs><rect width="1024" height="646" fill="url(#c)"/><circle cx="860" cy="520" r="260" fill="#fff" opacity=".12"/><circle cx="960" cy="380" r="150" fill="#fff" opacity=".10"/><g fill="#fff" ${F}><text x="72" y="160" font-size="88" font-weight="800">GIFT CARD</text><text x="72" y="560" font-size="46" font-weight="800">PackJoyU</text></g>`);
 await w('giftcard_back.png', 512, 323, `<rect width="512" height="323" fill="#f6f2ee"/><rect y="34" width="512" height="54" fill="#2b2b33"/><g fill="#9a96a0" ${F}><text x="36" y="250" font-size="22" font-weight="700">PackJoyU</text></g>`);

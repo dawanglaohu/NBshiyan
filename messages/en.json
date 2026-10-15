@@ -27,7 +27,11 @@
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
     "ctaBandTitle": "Have a project in mind?",
     "ctaBandText": "Tell us what you need — a packaging specialist will reply by email.",
-    "heroLabel": "Stack of custom PackJoyU boxes and a paper cup"
+    "heroLabel": "Stack of custom PackJoyU boxes and a paper cup",
+    "heroVideoSkip": "Skip video",
+    "heroVideoPlay": "Play video",
+    "heroVideoPause": "Pause video",
+    "heroPosterAlt": "PackJoyU custom printed packaging: white mailer box with coral logo, tall black box with gold band, black gift box with gold trim and clasp, white paper cup and small gradient-printed box"
   },
   "Products": {
     "title": "Our products in 3D",
@@ -58,7 +62,7 @@
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
       "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
-      "pulp-molding": "Molded pulp trays and inserts made from sugarcane fiber.",
+      "pulp-molding": "Molded pulp trays and inserts.",
       "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
       "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
       "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
@@ -86,8 +90,8 @@
         "Custom EVA or paper inserts"
       ],
       "pulp-molding": [
-        "Sugarcane fiber",
-        "Custom cavities for any product",
+        "Molded pulp",
+        "Custom cavities shaped to your product",
         "Material options on request"
       ],
       "paper-cups": [
@@ -156,7 +160,7 @@
     "menu": "Quick actions"
   },
   "Contact": {
-    "metaTitle": "Request a quote | PackJoyU",
+    "metaTitle": "Request a packaging quote | PackJoyU",
     "metaDescription": "Tell us about your packaging project and request a quote from PackJoyU.",
     "title": "Request a quote",
     "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
@@ -315,9 +319,10 @@
         "items": [
           "Inquiries and quote requests: your name, email, company, phone, country and message, plus the products and options you choose.",
           "Sample requests: the above plus your shipping address.",
-          "Logos you upload with an inquiry.",
+          "Logos you upload in the customizer or inquiry form. A logo may be uploaded before you submit the inquiry.",
           "Shared custom designs you create in the 3D customizer.",
-          "Technical data: your IP address (used only for rate limiting and abuse protection) and, if you allow analytics, anonymous page-performance metrics."
+          "Referral and campaign data sent by your browser with an inquiry: the page you came from, search keywords and UTM parameters.",
+          "Technical data: your IP address and, if you allow analytics, anonymous page-performance metrics. We use the IP address for rate limiting and abuse protection, send it to our security-verification provider to check that you are not a bot, and record it in admin security (audit) logs. We also store the country derived from your IP address with an inquiry to help detect spam."
         ]
       },
       "purpose": {
@@ -332,14 +337,16 @@
         "title": "How long we keep it",
         "items": {
           "designs": "Shared custom designs expire after 180 days (the link then returns “410 Gone”) and are deleted 90 days later.",
-          "logos": "Logos not attached to an inquiry are deleted 24 hours after upload, at most 48 hours, except logos still used by an unexpired saved design.",
+          "designsInquiry": "Designs attached to an inquiry are kept as long as that inquiry and are anonymized or deleted with it.",
+          "logos": "Logos not attached to an inquiry are usually deleted within 48 hours of upload (they become eligible for deletion after 24 hours and a cleanup runs daily), except logos still used by an unexpired saved design.",
           "sampleEmail": "For sample requests (one per email every 30 days), the email used for this limit is cleared after 30 days.",
-          "rateLimit": "Per-IP rate-limit counters expire when the rate-limit window ends.",
-          "audit": "Audit logs are deleted after 365 days.",
+          "rateLimit": "Rate-limit counters use your IP address and a hashed (not readable) version of your email address, and expire when their limit window ends — at most 30 days.",
+          "audit": "Admin security (audit) logs, including IP addresses, are deleted after 365 days.",
           "adminSessions": "Admin sessions end after 2 hours of inactivity.",
           "inquiries": "Inquiries are anonymized after 2 years: we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
           "inquiriesContact": "Contact details are kept while that contact still has inquiries that have not been anonymized.",
-          "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
+          "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept. Records in our database are deleted or anonymized immediately.",
+          "deletionCopies": "Copies of inquiry notification emails in our business inbox are deleted manually within 30 days of your request. Logs kept by our service providers (for example email delivery and hosting logs) are deleted according to each provider’s own retention period.",
           "oldReplies": "Replies to old emails about an anonymized inquiry are not added to it.",
           "exports": "Data exports are delivered to you as a file; no copy is kept on the server.",
           "cleanup": "An automatic cleanup runs once a day."
@@ -361,6 +368,20 @@
           "Live chat is provided by Tawk.to and is loaded only if you allow chat.",
           "When it loads, Tawk.to receives your messages and technical data needed to run the chat, and sets its own storage in your browser.",
           "The chat never loads on our admin pages."
+        ]
+      },
+      "processors": {
+        "title": "Service providers",
+        "text": [
+          "We use service providers in the following categories. Some may process data outside your country. We do not sell your data."
+        ],
+        "items": [
+          "Website hosting",
+          "Security verification (bot protection) and file storage",
+          "Rate-limit storage",
+          "Email delivery",
+          "Database",
+          "Live chat (only with your consent)"
         ]
       },
       "contact": {
@@ -397,5 +418,119 @@
     "home": "Back to home",
     "quote": "Get a quote",
     "browse": "Browse products"
+  },
+  "Solutions": {
+    "meta": {
+      "title": "Packaging Solutions by Industry | PackJoyU",
+      "description": "Custom boxes, cups and inserts for your industry, with specs matched to how your product ships and sells. Tell us about your product to get a quote."
+    },
+    "eyebrow": "Industry solutions",
+    "title": "Packaging built for your industry",
+    "lead": "Custom boxes, cups and inserts, with specs matched to how your product ships and sells.",
+    "more": "View solution",
+    "premium": {
+      "eyebrow": "Wine & gift boxes",
+      "title": "Premium finishes, made to order",
+      "lead": "Rigid wine and gift boxes built around your bottle or product, with the finish and opening experience you choose.",
+      "imageAlt": {
+        "wine": "Custom wine box",
+        "gift": "Custom gift box"
+      }
+    },
+    "empty": "Solutions are being updated. Tell us what you need.",
+    "cta": "Not sure which box fits? Send us your product.",
+    "detail": {
+      "crumb": "Industry solutions",
+      "lead": "Custom packaging for {industryGen}, with specs matched to how your product ships and sells.",
+      "metaTitle": "{industry} Packaging Solutions | PackJoyU",
+      "metaDescription": "Custom packaging for {industryGen}, with specs matched to how your product ships and sells. Tell us about your product to get a quote.",
+      "cta": "Tell us about your product and we'll suggest a fit."
+    },
+    "industries": {
+      "color-boxes": {
+        "name": "Retail Products",
+        "title": "Packaging for Retail Products",
+        "industryGen": "Retail Products"
+      },
+      "corrugated-boxes": {
+        "name": "E-commerce & Shipping",
+        "title": "Packaging for E-commerce & Shipping",
+        "industryGen": "E-commerce & Shipping"
+      },
+      "paper-cups": {
+        "name": "Cafés & Coffee Shops",
+        "title": "Packaging for Cafés & Coffee Shops",
+        "industryGen": "Cafés & Coffee Shops"
+      },
+      "party-supplies": {
+        "name": "Parties & Events",
+        "title": "Packaging for Parties & Events",
+        "industryGen": "Parties & Events"
+      },
+      "wine-boxes": {
+        "name": "Wine & Spirits",
+        "title": "Packaging for Wine & Spirits",
+        "industryGen": "Wine & Spirits"
+      },
+      "gift-boxes": {
+        "name": "Gifts & Corporate Gifting",
+        "title": "Packaging for Gifts & Corporate Gifting",
+        "industryGen": "Gifts & Corporate Gifting"
+      }
+    }
+  },
+  "Factory": {
+    "meta": {
+      "title": "How We Work: From Quote to Shipment | PackJoyU",
+      "description": "How a custom packaging order works at PackJoyU, step by step: brief and dieline, sample, printing, die-cutting and assembly, quality control and shipping."
+    },
+    "eyebrow": "How we work",
+    "title": "From brief to finished packaging",
+    "lead": "See how your order moves, step by step, from the first dieline to shipping.",
+    "steps": {
+      "title": "From quote to shipment",
+      "1": {
+        "title": "Brief & dieline",
+        "desc": "You share your product, quantities and artwork, and we agree the box structure and a dieline to match."
+      },
+      "2": {
+        "title": "Sample",
+        "desc": "A sample is made from the agreed dieline so you can check size, fit and print before the run."
+      },
+      "3": {
+        "title": "Print",
+        "desc": "Once the sample is approved, your artwork is printed on the selected material."
+      },
+      "4": {
+        "title": "Die-cut & assembly",
+        "desc": "Printed sheets are die-cut, folded and assembled, with inserts added where your design needs them."
+      },
+      "5": {
+        "title": "QC & ship",
+        "desc": "Finished packaging is checked against the approved sample, packed and prepared for shipment."
+      }
+    },
+    "stepImageAlt": {
+      "print": "Printing",
+      "dieCut": "Die-cutting",
+      "qc": "Quality control",
+      "warehouse": "Warehouse"
+    },
+    "cta": "Have a project in mind? Tell us about it."
+  },
+  "Cases": {
+    "meta": {
+      "title": "Packaging Case Studies | PackJoyU",
+      "description": "Custom packaging projects by PackJoyU. Case studies are coming soon. Tell us about your product and we will discuss the right packaging."
+    },
+    "eyebrow": "Case wall",
+    "title": "Boxes we've made",
+    "lead": "Case studies are coming soon. In the meantime, tell us about your project.",
+    "comingSoon": "Case studies coming soon.",
+    "filtersLabel": "Filter by industry",
+    "all": "All",
+    "empty": "No cases in this category yet.",
+    "showAll": "Show all",
+    "cta": "Have a project in mind? Tell us about it."
   }
 }

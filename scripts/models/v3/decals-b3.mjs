@@ -2,7 +2,7 @@
 import sharp from 'sharp';
 const O = process.argv[2] ?? 'tex-b3/';
 const w = (f, W, H, b) => sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${b}</svg>`)).png().toFile(O + f);
-const NAVY = '#1f2a44';
+const NAVY = process.env.NAVY_PRINT ?? '#020924';  // #252b：目标 #1f2a44 的印刷输入色（按 linear + AgX、LIGHT 0.6 迭代求解，渲染实测 ΔE76 7.0）
 // 字标：Inter Black + 同色描边加粗
 const mark = (x, y, size, fill = NAVY, sw = size*.045) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="Inter" font-weight="900" font-size="${size}" fill="${fill}" stroke="${fill}" stroke-width="${sw}" stroke-linejoin="round">PackJoyU</text>`;
 // 纸杯：u=0.5 朝镜头；可见宽 ≈ 半周 = 512px → 字标 ≤ 60% ≈ 300px，取 ~270px
