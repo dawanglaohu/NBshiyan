@@ -11,7 +11,7 @@ export type Locale = 'en' | 'ru';
 export type Dims = { l: number; w: number; h: number };
 
 export type ProductRealData = {
-  /** Absolute or site-relative image URLs (e.g. /posters/custom-color-boxes.01433ea7.webp). */
+  /** Absolute or site-relative image URLs (e.g. /posters/custom-color-boxes.b7756eae.webp). */
   images?: string[];
   sku?: string;
   /** Real, confirmed spec values only (from /api/specs). Empty/missing => omitted. */
