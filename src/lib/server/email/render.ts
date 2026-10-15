@@ -7,17 +7,19 @@ export type EmailVars = {
   adminId?: string; score?: number;
 };
 
-const CTRL = /[\u0000-\u0008\u000b-\u001f\u007f-\u009f\u2028\u2029\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g;
+const CTRL = /[\p{Cc}\p{Cf}\u2028\u2029]/gu;
 /** 文本版：去掉控制字符和双向控制符（保留 \t \n 以外的都去掉），并压成单行 */
-export const cleanText = (s: string) => s.replace(CTRL, '').replace(/[\r\n\t]+/g, ' ').trim();
+export const cleanText = (s: string) => s.replace(/[\r\n\t]+/g, ' ').replace(CTRL, '').trim();
 export const escapeHtml = (s: string) => cleanText(s).replace(/[&<>"'`={}]/g, (c) => `&#${c.charCodeAt(0)};`);
 /** 主题和 Reply-To：去掉 \r\n 和控制字符 */
 export const headerSafe = (s: string) => cleanText(s).slice(0, 250);
 
-/** CONTACT_REPLY_TIME 写小时数（如 24 或 24h），默认 24 */
-function replyHours(v?: string) {
-  const n = Number.parseInt((v ?? '').trim(), 10);
-  return Number.isFinite(n) && n > 0 && n <= 720 ? n : 24;
+/** CONTACT_REPLY_TIME 写小时数（如 24 或 24h，1–720）。未设置或无效时返回 null：邮件里不写回复时长（未确认的承诺不默认 24 小时） */
+export function replyHours(v?: string): number | null {
+  const m = /^(\d{1,3})\s*h?$/i.exec((v ?? '').trim());
+  if (!m) return null;
+  const n = Number(m[1]);
+  return Number.isInteger(n) && n > 0 && n <= 720 ? n : null;
 }
 /** 按语言写回复时间：en "24 hours"，ru "24 часа" */
 export function replyTimeText(hours: number, locale: string) {
@@ -54,7 +56,7 @@ const DOTS = /\s*(?:\[\s*(?:\.|dot)\s*\]|\(\s*(?:\.|dot)\s*\)|\{\s*(?:\.|dot)\s*
 const LINKY = /(https?:|\/\/|www\.|@|xn--|(?<![\p{L}\p{N}-])[\p{L}\p{N}-]{2,}\.\p{L}{2,24}(?![\p{L}\p{N}]))/iu;
 /** 名字是否像链接 / 域名 / 邮箱：先 NFKC（全角转半角、＠→@），再把各种点的写法折成 "." */
 export function looksLinky(name: string): boolean {
-  const n = name.normalize('NFKC').replace(DOTS, '.');
+  const n = name.replace(CTRL, '').normalize('NFKC').replace(DOTS, '.');
   return LINKY.test(n);
 }
 /** 客户邮件里的称呼：≤ 40 字且不像链接/域名/邮箱才用，否则返回 null（用通用问候） */
@@ -70,9 +72,9 @@ export function renderEmail(key: TemplateKey, v: EmailVars) {
   const vals: Record<string, string> = {
     name: v.name, company: v.company || '—', product: v.product, quantity: v.quantity, inquiryId: v.inquiryId, locale: v.locale,
     adminId: v.adminId ?? '', score: v.score === undefined ? '' : String(v.score),
-    siteUrl: cfg.siteUrl, replyTime: replyTimeText(cfg.replyHours, key.endsWith('.ru') ? 'ru' : key.endsWith('.zh') ? 'zh' : 'en'), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
+    siteUrl: cfg.siteUrl, replyTime: cfg.replyHours === null ? '' : replyTimeText(cfg.replyHours, key.endsWith('.ru') ? 'ru' : key.endsWith('.zh') ? 'zh' : 'en'), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
   };
-  const flags = { risk: v.score !== undefined && v.score < 40, contact: !!(cfg.contactEmail && cfg.whatsapp), named: safeGreetingName(v.name) !== null };
+  const flags = { risk: v.score !== undefined && v.score < 40, contact: !!(cfg.contactEmail && cfg.whatsapp), named: safeGreetingName(v.name) !== null, reply: cfg.replyHours !== null };
   return {
     subject: headerSafe(fill(t.subject, vals, flags, cleanText)),
     html: fill(t.html, vals, flags, escapeHtml),
