@@ -21,7 +21,9 @@ export const CONTENT_CLAIMS: RegExp[] = [
   /\bMOQ\b[^.\n]{0,15}\d|min(imum)?\.?\s+order(\s+quantity)?[^.\n]{0,15}\d|\bfrom\s+\d[\d,.\s]*\s*(pcs|pieces|units)\b/i,
   /(?<![а-яё])от\s*\d[\d\s\u00a0\u202f]*\s*(шт|экз)|минимальн\S*\s+(тираж|заказ|парти)\S*[^.\n]{0,15}\d/i,
   /factory[-\s]direct/i,
-  /food[-\s]safe/i,
+  /food[-\s]?(safe|grade|contact)/i,
+  // RU food-contact claims; claim-shaped so keyword research such as «упаковка для пищевых продуктов» (industries.md) passes
+  /пищев\S*\s+(картон|бумаг|материал|краск|сырь|покрыт|допуск)|(контакт\S*|соприкосновен\S*)\s+с\s+пищ/i,
   /\bPLA\b/,
   /пищев\S*\s+краск/i,
   /samples?\s+(are\s+)?free|free\s+(of\s+charge\s+)?samples?/i,
@@ -95,4 +97,12 @@ test('guard catches claims in published copy but not in notes or keyword researc
   assert.equal(claimLines('a.md', 'Shared designs expire after 180 days and are deleted 90 days later.').length, 0);
   assert.equal(claimLines('a.md', 'Логотипы, не прикреплённые к запросу, удаляются через 24 часа после загрузки, не позднее чем через 48 часов.').length, 0);
   assert.equal(claimLines('a.md', '## Keywords\n- PLA paper cups supplier\n## RU — Текст\n- без пластика').length, 1);
+});
+
+test('food-contact patterns: claims are flagged, keyword research and neutral wording pass', () => {
+  const hit = (t: string) => CONTENT_CLAIMS.some((re) => re.test(t));
+  for (const t of ['Food-grade paperboard', 'food safe inks', 'food-contact inks', 'FOODGRADE', 'Пищевой картон и краски', 'красками для контакта с пищевыми продуктами', 'для контакта с пищей'])
+    assert.ok(hit(t), t);
+  for (const t of ['упаковка для пищевых продуктов', 'food packaging manufacturer', 'Paperboard and inks.', 'Картон и краски.', 'Food & beverage'])
+    assert.ok(!hit(t), t);
 });
