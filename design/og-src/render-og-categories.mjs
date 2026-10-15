@@ -15,7 +15,7 @@ const H1={'corrugated-boxes':['Custom Corrugated Boxes','Гофрокороба 
 'wine-boxes':['Custom Wine Boxes','Коробки для вина на заказ'],'color-printing':['Packaging Printing Services','Печать упаковки на заказ'],
 'offset-printing':['Offset Printing Services','Офсетная печать упаковки'],'eco-paper-cups':['Eco-friendly Paper Cups','Экологичные стаканы'],
 'gift-cards':['Custom Gift Cards','Печать подарочных карт на заказ'],'christmas-merchandise':['Custom Christmas Packaging','Новогодняя упаковка на заказ']};
-const posters={'corrugated-boxes':'custom-corrugated-boxes.webp','gift-boxes':'custom-gift-boxes.webp','wine-boxes':'custom-wine-boxes.webp'};
+const posters={'corrugated-boxes':'custom-corrugated-boxes.b3d628f6.webp','gift-boxes':'custom-gift-boxes.2b476905.webp','wine-boxes':'custom-wine-boxes.98e212ab.webp'};
 const K='#C49A6C',KD='#A77D50',KL='#8a6440',C='#FF5A36',Y='#FFD166',G='#2E9E6B';
 const S=b=>`<svg viewBox="0 0 200 180" width="380">${b}</svg>`;
 const box=(f=K,d=KD,s=KL,acc=Y)=>`<path d="M30 60 100 30l70 30v80l-70 34-70-34Z" fill="${f}"/><path d="M100 90v84L30 140V60Z" fill="${d}"/><path d="m30 60 70 30 70-30" fill="none" stroke="${s}" stroke-width="3"/><circle cx="168" cy="26" r="14" fill="${acc}"/>`;
