@@ -31,7 +31,7 @@ export const categoryMeta: CategoryMeta[] = [
   { key: 'pulp-molding',
     en: { slug: 'molded-pulp-packaging', keyword: 'molded pulp packaging',
       title: 'Molded Pulp Packaging Manufacturer | PackJoyU',
-      description: 'Eco-friendly molded pulp trays, inserts and boxes made from bagasse and recycled fiber. Custom shaped to fit your product. Request a quote today.' },
+      description: 'Eco-friendly molded pulp trays, inserts and boxes made from bagasse. Custom shaped to fit your product. Request a quote today.' },
     ru: { slug: 'izdeliya-iz-tsellyulozy', keyword: 'упаковка из формованной целлюлозы', draft: true,
       title: 'Упаковка из формованной целлюлозы | PackJoyU',
       description: 'Лотки, ложементы и коробки из формованной целлюлозы и сахарного тростника. Любая форма под ваш продукт. Запросите расчёт.' } },
