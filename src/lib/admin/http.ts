@@ -11,6 +11,8 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(e.error === 'forbidden_origin' ? 'forbidden_origin' : 'forbidden');
   }
   if (res.status === 404) throw new NotFound();
+  // 已匿名化询盘：改状态 / 回复 / 分配一律 409（后端第六轮）
+  if (res.status === 409) throw new Error('anonymized');
   if (!res.ok) {
     // 后端错误体 { error }：invalid / invalid_assignee / too_large / rate_limited / mail_failed …
     const e = await res.json().catch(() => ({})) as { error?: string };

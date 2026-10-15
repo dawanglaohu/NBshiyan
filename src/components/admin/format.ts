@@ -17,6 +17,7 @@ const ERR: Record<string, string> = {
   too_large: '内容太长，请删减后重试。',
   rate_limited: '操作太频繁，请稍等一分钟再试。',
   mail_failed: '邮件发送失败，回复没有保存。请稍后重试。',
+  anonymized: '此询盘已匿名化，无法修改',
   not_found: '询盘不存在，或不在你的权限范围内。'
 };
 export function errorText(code: string, prefix = '加载失败') {
