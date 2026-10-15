@@ -409,5 +409,73 @@
     "home": "Back to home",
     "quote": "Get a quote",
     "browse": "Browse products"
+  },
+  "Solutions": {
+    "meta": {
+      "title": "Packaging Solutions by Industry | PackJoyU",
+      "description": "Custom boxes, cups and inserts for your industry, with specs matched to how your product ships and sells. Tell us about your product to get a quote."
+    },
+    "eyebrow": "Industry solutions",
+    "title": "Packaging built for your industry",
+    "lead": "Custom boxes, cups and inserts, with specs matched to how your product ships and sells.",
+    "more": "View solution",
+    "premium": {
+      "eyebrow": "Wine & gift boxes",
+      "title": "Premium finishes, made to order",
+      "lead": "Rigid wine and gift boxes built around your bottle or product, with the finish and opening experience you choose.",
+      "imageAlt": {
+        "wine": "Custom wine box",
+        "gift": "Custom gift box"
+      }
+    },
+    "empty": "Solutions are being updated. Tell us what you need.",
+    "cta": "Not sure which box fits? Send us your product.",
+    "detail": {
+      "crumb": "Solutions",
+      "title": "Packaging for {industry}",
+      "lead": "Custom packaging for {industry}, with specs matched to how your product ships and sells.",
+      "metaTitle": "{industry} Packaging Solutions | PackJoyU",
+      "metaDescription": "Custom packaging for {industry}, with specs matched to how your product ships and sells. Tell us about your product to get a quote.",
+      "cta": "Tell us about your product and we'll suggest a fit."
+    }
+  },
+  "Factory": {
+    "meta": {
+      "title": "How We Work: Our Production Process | PackJoyU",
+      "description": "See how custom packaging is made at PackJoyU, step by step: brief and dieline, sample, printing, die-cutting and assembly, quality control and shipping."
+    },
+    "eyebrow": "How we work",
+    "title": "From brief to finished packaging",
+    "lead": "See how your packaging is made, step by step, from the first dieline to the shipping carton.",
+    "steps": {
+      "title": "How we work",
+      "1": "Brief & dieline",
+      "2": "Sample",
+      "3": "Print",
+      "4": "Die-cut & assembly",
+      "5": "QC & ship"
+    },
+    "stepImageAlt": {
+      "print": "Printing",
+      "dieCut": "Die-cutting",
+      "qc": "Quality control",
+      "warehouse": "Warehouse"
+    },
+    "cta": "Have a project in mind? Tell us about it."
+  },
+  "Cases": {
+    "meta": {
+      "title": "Packaging Case Studies | PackJoyU",
+      "description": "Custom packaging projects by PackJoyU. Case studies are coming soon. Tell us about your product and we will discuss the right packaging."
+    },
+    "eyebrow": "Case wall",
+    "title": "Boxes we've made",
+    "lead": "Case studies are coming soon. In the meantime, tell us about your project.",
+    "comingSoon": "Case studies coming soon.",
+    "filtersLabel": "Filter by industry",
+    "all": "All",
+    "empty": "No cases in this category yet.",
+    "showAll": "Show all",
+    "cta": "Have a project in mind? Tell us about it."
   }
 }
