@@ -8,7 +8,7 @@ import { sendSafely, inquiryNotifyMail, customerAckMail } from '@/lib/server/mai
 import { summarizeItems } from '@/lib/server/email/render';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
 import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl, InquiryItemConfig } from '@/lib/server/designs';
-import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT } from '@/lib/server/sample';
+import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT, sampleRecentResponse } from '@/lib/server/sample';
 
 class LogoInvalid extends Error {}
 class SampleLimited extends Error {}
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     // 按邮箱的限制不返回 retryAfter / Retry-After，避免借此探测某邮箱何时申请过
-    if (e instanceof SampleLimited) return NextResponse.json({ error: 'sample_recent' }, { status: 429, headers: { 'Cache-Control': 'no-store' } });
+    if (e instanceof SampleLimited) return sampleRecentResponse();
     if (e instanceof LogoInvalid) return NextResponse.json({ error: 'logo_invalid' }, { status: 422 });
     throw e;
   }
