@@ -50,7 +50,13 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
   const canAssign = canAssignInquiry(role);
   if (inq === undefined) return <p className="muted">{err ? <>{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></> : '加载中…'}</p>;
-  if (inq === null) return <p>找不到这条询盘，或你没有查看权限。 <Link href="/admin/inquiries">返回列表</Link></p>;
+  if (inq === null) return (
+    <div className="adm-empty">
+      <h1>询盘不存在</h1>
+      <p className="muted">这条询盘可能已删除，或者你没有查看权限。</p>
+      <Link href="/admin/inquiries" className="adm-btn">返回询盘列表</Link>
+    </div>
+  );
   const c = inq.contact;
   const score = inq.trustScore;
   const ringColor = score < REVIEW_THRESHOLD ? 'var(--err)' : score < 70 ? 'var(--warn-c)' : 'var(--ok)';

@@ -76,3 +76,4 @@
 .adm-logo2{width:52px;height:52px;border-radius:10px;border:1px solid var(--line);background:#fff;object-fit:contain;flex:none;display:grid;place-items:center;font-size:10px;color:var(--ink-2)}
 .adm-btn.sq{border-radius:10px;font-weight:700;font-size:12px}
 .adm-scan{color:var(--ok);font-weight:600}
+.adm-empty{padding:48px 0;text-align:center}.adm-empty h1{margin:0 0 8px}.adm-empty p{margin:0 0 20px}.adm-empty .adm-btn{display:inline-block;text-decoration:none}
