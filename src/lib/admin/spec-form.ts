@@ -58,7 +58,6 @@ export function fromView(v: SpecView): SpecForm {
   return f;
 }
 
-/** 证书链接：必须能被 new URL() 解析，协议正好是 https:，长度 ≤ 2048 */
 /** 与服务端 normalizeUrlSchemeHost 一致：协议和主机名转小写，路径原样保留 */
 export function normalizeUrlSchemeHost(u: string): string {
   const m = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\/([^/?#]*)/.exec(u);
@@ -69,8 +68,22 @@ export function normalizeUrlSchemeHost(u: string): string {
   return m[1].toLowerCase() + '://' + host + u.slice(m[0].length);
 }
 
+/**
+ * URL 是否带 userinfo（user@host、user:pass@host、空的 :@、百分号编码的 %40 等）。
+ * 先按 WHATWG 规则去掉制表/换行，再取协议后的 authority（特殊协议里 \ 等同 /，且 https:host 也会被当成 https://host），
+ * 看里面有没有 @ 或 %40；同时以 new URL() 解析出的 username/password 兜底。
+ */
+export function hasUserinfo(u: string): boolean {
+  const s = u.replace(/[\t\n\r]/g, '').trim();
+  const m = /^[a-zA-Z][a-zA-Z0-9+.-]*:[\/\\]*([^\/\\?#]*)/.exec(s);
+  if (m && (m[1].includes('@') || /%40/i.test(m[1]))) return true;
+  try { const x = new URL(s); return x.username !== '' || x.password !== ''; } catch { return false; }
+}
+
+/** 证书链接（前后台共用这一个校验）：能被 new URL() 解析、协议正好是 https:、不带 userinfo、长度 ≤ 2048 */
 export function isHttpsUrl(u: string): boolean {
   if (u.length > URL_MAX) return false;
+  if (hasUserinfo(u)) return false;
   try { return new URL(u).protocol === 'https:'; } catch { return false; }
 }
 
@@ -131,7 +144,7 @@ export function toBody(f: SpecForm): { body: Record<string, unknown> | null; err
     else if (name.length > 80) e[`certifications.${i}.name`] = '最多 80 个字符';
     if (certNo.length > 80) e[`certifications.${i}.certNo`] = '最多 80 个字符';
     if (!certNo && !url) e[`certifications.${i}.certNo`] = '证书编号和链接至少填一个';
-    if (url && !isHttpsUrl(url)) e[`certifications.${i}.url`] = '链接必须是 https:// 开头的有效地址（≤ 2048 字符）';
+    if (url && !isHttpsUrl(url)) e[`certifications.${i}.url`] = '链接必须是 https:// 开头的有效地址，不能包含用户名或密码（≤ 2048 字符）';
     return { name, ...(certNo ? { certNo } : {}), ...(url ? { url } : {}) };
   });
 

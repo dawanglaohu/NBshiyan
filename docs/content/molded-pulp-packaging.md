@@ -8,7 +8,7 @@
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
 | title | Molded Pulp Packaging Manufacturer | PackJoyU | Упаковка из формованной целлюлозы | PackJoyU |
-| description | Eco-friendly molded pulp trays, inserts and boxes made from bagasse and recycled fiber. Custom shaped to fit your product. Request a quote today. | Лотки, ложементы и коробки из формованной целлюлозы и сахарного тростника. Любая форма под ваш продукт. Запросите расчёт. |
+| description | Eco-friendly molded pulp trays, inserts and boxes made from bagasse. Custom shaped to fit your product. Request a quote today. | Лотки, ложементы и коробки из формованной целлюлозы и сахарного тростника. Любая форма под ваш продукт. Запросите расчёт. |
 | keyword | molded pulp packaging | упаковка из формованной целлюлозы |
 
 ---
@@ -17,7 +17,7 @@
 
 ### H1: Molded Pulp Packaging
 
-PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) and recycled paper fiber: protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp gives you fiber-based inserts shaped precisely to your product.
+PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber): protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp gives you fiber-based inserts shaped precisely to your product.
 
 #### Why PackJoyU
 
@@ -31,7 +31,7 @@ PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) an
 | Option | Details |
 |---|---|
 | Types | Protective inserts, trays, clamshells, cup carriers, premium boxes |
-| Material | Bagasse, bamboo or recycled paper pulp |
+| Material | Bagasse or bamboo pulp |
 | Process | Wet-press (smooth) or dry-press (standard) molding |
 | Options | Natural, bleached or dyed color; embossed logo |
 | Tooling | Custom mold required — tooling cost and timing confirmed with your quote |
@@ -66,7 +66,7 @@ PackJoyU produces custom molded pulp packaging from bagasse (sugarcane fiber) an
 
 ### H1: Упаковка из формованной целлюлозы
 
-PackJoyU производит упаковку из формованной целлюлозы на основе багассы (волокна сахарного тростника) и вторичного бумажного волокна: защитные ложементы, лотки, контейнеры и премиальные коробки с гладкой поверхностью. Ложементы из формованной целлюлозы точно повторяют форму вашего товара.
+PackJoyU производит упаковку из формованной целлюлозы на основе багассы (волокна сахарного тростника): защитные ложементы, лотки, контейнеры и премиальные коробки с гладкой поверхностью. Ложементы из формованной целлюлозы точно повторяют форму вашего товара.
 
 #### Почему PackJoyU
 
@@ -80,7 +80,7 @@ PackJoyU производит упаковку из формованной це�
 | Параметр | Описание |
 |---|---|
 | Виды | Защитные ложементы, лотки, контейнеры, держатели для стаканов, премиальные коробки |
-| Материал | Багасса, бамбук или вторичная бумажная масса |
+| Материал | Багасса или бамбуковая масса |
 | Технология | Мокрое прессование (гладкая) или сухое (стандартная) |
 | Опции | Натуральный, отбеленный или окрашенный цвет; рельефный логотип |
 | Оснастка | Нужна пресс-форма — стоимость и сроки согласовываются при расчёте |

@@ -11,5 +11,11 @@ export const CATEGORY_PAGES_LIVE = false;
 export function categoryPagePath(locale: 'en' | 'ru', key: string, live: boolean = CATEGORY_PAGES_LIVE): string | null {
   if (!live) return null;
   const s = categorySlugs(key);
-  return s ? `/${locale}/products/${s[locale]}` : null;
+  return s ? `/${locale}/products/${encodeURIComponent(s[locale])}` : null;
+}
+
+/** 站内 next-intl <Link> 用的品类链接（不含 locale 前缀）：落地页上线后指向 /products/{slug}，否则回退到 3D 目录里的卡片 /products#{key} */
+export function categoryHref(locale: 'en' | 'ru', key: string, live: boolean = CATEGORY_PAGES_LIVE): string {
+  const p = categoryPagePath(locale, key, live);
+  return p ? p.slice(locale.length + 1) : `/products#${encodeURIComponent(key)}`;
 }

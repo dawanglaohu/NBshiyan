@@ -3,7 +3,7 @@ import '@/components/admin/models/models.css';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { CHECK_LABEL, LIMITS, ModelApiError, blockingChecks, modelApi, readGlbJson, sizeFailed, type AdminModel } from '@/lib/admin/models-api';
+import { CHECK_LABEL, LIMITS, ModelApiError, blockingChecks, modelApi, readGlbJson, sizeFailed, uploadTotalError, type AdminModel } from '@/lib/admin/models-api';
 import { PRODUCT_LABEL } from '@/components/admin/format';
 
 const ModelPreview = dynamic(() => import('./ModelPreview'), { ssr: false });
@@ -11,7 +11,7 @@ const STEPS = ['上传', '处理与检查', '预览确认', '上架'] as const;
 const fmt = (b: number) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(2)}MB` : `${Math.round(b / 1024)}KB`);
 const API_ERR: Record<string, string> = {
   too_large: '文件超过上限（主 GLB ≤1.5MB、高精度层 ≤1MB、封面 ≤512KB）', unsupported_type: '不是有效的 GLB 文件', not_ready: '检查未全部通过，不能上架',
-  forbidden_origin: '请求被拒绝：来源校验失败，请刷新页面后重试', unauthorized: '登录已过期，请重新登录', forbidden: '没有权限（需要 ADMIN 或 EDITOR 角色）', rate_limited: '操作太频繁，请稍后再试'
+  forbidden_origin: '请求被拒绝：来源校验失败，请刷新页面后重试', unauthorized: '登录已过期，请重新登录', forbidden: '没有权限（需要 ADMIN 或 EDITOR 角色）', upload_too_large: '本次上传的文件合计超过 4MB 上限（服务器单个请求不能超过 4MB），请先压缩后再上传', length_required: '上传请求缺少大小信息，请刷新页面后重试', rate_limited: '操作太频繁，请稍后再试'
 };
 const errText = (e: unknown) => (e instanceof ModelApiError ? API_ERR[e.code] ?? `操作失败：${e.code}` : `操作失败：${String((e as Error)?.message ?? e)}`);
 
@@ -53,6 +53,8 @@ export default function ModelUpload() {
   }
   async function upload() {
     if (!files.glb) return;
+    const tooBig = uploadTotalError([files.glb, files.lod, files.poster].filter((f): f is File => !!f));
+    if (tooBig) { setErr(tooBig); return; }
     setBusy(true); setErr(undefined);
     try {
       setStep(1);

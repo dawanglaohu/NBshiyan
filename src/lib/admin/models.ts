@@ -8,7 +8,15 @@ export const CHECK_LABEL: Record<CheckKey, string> = {
   format: '格式', compress: '压缩', size: '体积', triangles: '面数', textures: '贴图', animation: '动画', bounds: '尺寸', lod: '高精度层'
 };
 /** 上传限制（服务端以同样规则拒绝：413 / 415） */
-export const LIMITS = { glb: 1.5 * 1024 * 1024, lod: 1024 * 1024, poster: 512 * 1024, sizeNormal: 1024 * 1024, sizeAnimated: 1.5 * 1024 * 1024 };
+export const LIMITS = { glb: 1.5 * 1024 * 1024, lod: 1024 * 1024, poster: 512 * 1024, sizeNormal: 1024 * 1024, sizeAnimated: 1.5 * 1024 * 1024, total: 4_000_000 };
+/** 留给 multipart 表单开销的余量（和服务端一致） */
+const FORM_OVERHEAD = 64 * 1024;
+/** 本次上传的文件总大小是否超过单次请求上限（< 4MB，见服务端 MODEL_UPLOAD_MAX_REQUEST_BYTES）。超过返回提示文字，否则 null */
+export function uploadTotalError(files: { size: number }[]): string | null {
+  const total = files.reduce((a, f) => a + f.size, 0);
+  if (total + FORM_OVERHEAD <= LIMITS.total) return null;
+  return `本次上传的文件合计 ${(total / 1_000_000).toFixed(2)}MB，超过单次上传上限 ${((LIMITS.total - FORM_OVERHEAD) / 1_000_000).toFixed(2)}MB（服务器单个请求不能超过 4MB）。请先压缩 GLB 或封面后再上传`;
+}
 
 export type ModelCheck = { key: CheckKey; ok: boolean; detail: string; severity: 'error' | 'warn' };
 export type AdminModel = {

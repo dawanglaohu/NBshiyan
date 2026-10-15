@@ -5,6 +5,10 @@ import { setRequestLocale } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
 import { getDocBySlug, getDocs, type DocType, type Locale } from '@/lib/server/sanity';
 import PortableText from './PortableText';
+import JsonLd from '@/components/seo/JsonLd';
+import { SITE_URL } from '@/lib/site';
+import { articleSeo } from '@/lib/seo/templates';
+import { articleBreadcrumb } from '@/lib/seo/breadcrumbs';
 import LocaleAlternates from '@/components/layout/LocaleAlternates';
 
 // Sanity 驱动的列表页/详情页（#100）。未配置 Sanity 或无内容时：列表页 noindex 且显示空态，详情页 404。
@@ -15,6 +19,10 @@ const TITLES: Record<DocType, Record<Locale, string>> = {
   solution: { en: 'Solutions', ru: 'Решения' },
   article: { en: 'Articles', ru: 'Статьи' }
 };
+// <title> for list pages (30–60 chars); H1 stays the short TITLES label. RU awaiting Ryan proofreading.
+const META_TITLES: Partial<Record<DocType, Record<Locale, string>>> = {
+  article: { en: 'Packaging & Printing Articles and Guides | PackJoyU', ru: 'Статьи об упаковке и печати | PackJoyU' }
+};
 const EMPTY: Record<Locale, string> = { en: 'Content coming soon.', ru: 'Скоро здесь появятся материалы.' };
 type P = { params: Promise<{ locale: string; slug?: string }> };
 
@@ -22,7 +30,7 @@ export function listMetadata(type: DocType, base: string) {
   return async ({ params }: P): Promise<Metadata> => {
     const { locale } = await params;
     const docs = await getDocs(type, loc(locale));
-    return { title: TITLES[type][loc(locale)], alternates: alternatesFor(locale, base), ...(docs?.length ? {} : { robots: { index: false, follow: true } }) };
+    return { title: (META_TITLES[type] ?? TITLES[type])[loc(locale)], alternates: alternatesFor(locale, base), ...(docs?.length ? {} : { robots: { index: false, follow: true } }) };
   };
 }
 
@@ -54,9 +62,11 @@ export function detailMetadata(type: DocType, base: string) {
     const { locale, slug = '' } = await params;
     const d = (await getDocBySlug(type, loc(locale), slug)) as Doc | null;
     if (!d) return { robots: { index: false } };
+    // 文章页走 SEO 模板（docs/seo-page-templates.md）；hreflang 用各语言自己的 slug（d.alt）
+    const seo = type === 'article' ? articleSeo({ locale: loc(locale), title: d.title, excerpt: d.excerpt, seo: d.seo }) : { title: d.seo?.title || d.title, description: d.seo?.description || d.excerpt };
     return {
-      title: d.seo?.title || d.title,
-      description: d.seo?.description || d.excerpt,
+      title: seo.title,
+      ...(seo.description ? { description: seo.description } : {}),
       alternates: docAlternates(locale, base, slug, d.alt),
       ...(d.seo?.noindex ? { robots: { index: false, follow: true } } : {})
     };
@@ -80,6 +90,7 @@ export function DetailPage(type: DocType, base: string) {
     if (!d) notFound();
     return (
       <main className="prose mx-auto max-w-3xl px-4 py-12">
+        {type === 'article' && d.title && <JsonLd data={articleBreadcrumb(SITE_URL, loc(locale), d.slug ?? slug, d.title)} />}
         <LocaleAlternates pathname={`${base}/${slug}`} value={{ en: d.alt?.en ? `${base}/${d.alt.en}` : null, ru: d.alt?.ru ? `${base}/${d.alt.ru}` : null }} />
         <h1>{d.title}</h1>
         {d.excerpt && <p className="lead">{d.excerpt}</p>}
