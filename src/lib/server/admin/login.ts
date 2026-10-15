@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
@@ -23,6 +23,15 @@ export async function loginRateOk(ip: string | null, email: string) {
   return a && b && c;
 }
 
+/**
+ * 登录失败审计里的邮箱只存 HMAC（不存明文）：subkey = HMAC(AUTH_SECRET, "audit-email-v1")，再 HMAC(subkey, 规范化邮箱)。
+ * 绝不直接用 AUTH_SECRET 当 HMAC 密钥；没有 AUTH_SECRET（本地/测试）时用固定开发密钥。写入格式 `emailh:<32 字符>`。
+ */
+export function auditEmailHash(email: string, env: Record<string, string | undefined> = process.env) {
+  const sub = createHmac('sha256', env.AUTH_SECRET || 'dev-only-audit-email-key').update('audit-email-v1').digest();
+  return 'emailh:' + createHmac('sha256', sub).update(email.trim().toLowerCase()).digest('base64url').slice(0, 32);
+}
+
 /** 让该账号所有现有会话失效。改密码、重置或关闭 2FA、禁用账号时必须调用。 */
 export async function revokeSessions(userId: string) {
   await prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
@@ -41,15 +50,15 @@ async function fail(user: User | null, email: string, ip: string | null, reason:
       await sendAdminAlert('后台账号被锁定', { 账号ID: user.id, IP: ip ?? '未知', 锁定分钟: LOCK_MS / 60_000 }, `lockout:${user.id}`);
     }
   }
-  await audit({ actorId: user?.id ?? null, action: 'auth.login_fail', target: email.slice(0, 200), meta: { reason }, ip });
+  await audit({ actorId: user?.id ?? null, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason }, ip });
 }
 
 /** 校验邮箱和密码，并检查锁定。成功返回 user。 */
 export async function checkPassword(email: string, password: string, ip: string | null): Promise<User | CheckFail> {
-  if (!(await loginRateOk(ip, email))) { await audit({ action: 'auth.login_fail', target: email.slice(0, 200), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
+  if (!(await loginRateOk(ip, email))) { await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.disabled) { await burnVerify(password); await fail(null, email, ip, 'bad_credentials'); return 'bad_credentials'; }
-  if (user.lockedUntil && user.lockedUntil > new Date()) { await audit({ actorId: user.id, action: 'auth.login_fail', target: email, meta: { reason: 'locked' }, ip }); return 'locked'; }
+  if (user.lockedUntil && user.lockedUntil > new Date()) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'locked' }, ip }); return 'locked'; }
   if (!(await verifySecret(user.passwordHash, password))) { await fail(user, email, ip, 'bad_password'); return 'bad_credentials'; }
   return user;
 }
@@ -85,7 +94,7 @@ export async function authorizeLogin(input: { email: string; password: string; t
   const email = input.email.trim().toLowerCase();
   const user = await checkPassword(email, input.password, ip);
   if (typeof user === 'string') return null;
-  if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: email, meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
+  if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
   if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
   await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: 'auth.login_success', target: email, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
