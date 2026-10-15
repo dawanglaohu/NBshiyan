@@ -1,9 +1,9 @@
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { products } from '@/data/products';
-import HeroArt from '@/components/layout/HeroArt';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 // Home stats row (capacity / sampling / eco / certs) removed — all unconfirmed; section hidden
@@ -33,7 +33,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <Link className="btn ghost" href="/products">{t('cta')}</Link>
           </div>
           </div>
-          <HeroArt label={t('heroLabel')} />
+          <Image className="hero-art" src="/images/hero/custom-printing-packaging-manufacturer.webp" alt={locale === 'ru' ? 'Индивидуальные винные коробки с печатью, подарочные коробки и гофрокоробки для доставки от PackJoyU' : 'Custom printed wine boxes, gift boxes and corrugated shipping boxes by PackJoyU'} width={1200} height={900} priority sizes="(max-width: 900px) 100vw, 45vw" />
         </div>
       </section>
 
