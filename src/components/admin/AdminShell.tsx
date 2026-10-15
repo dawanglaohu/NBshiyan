@@ -26,7 +26,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           : <a key={n.href} className="soon" aria-disabled="true" title="待开发">{n.label}</a>)}
       </nav>
       <main className="adm-main">
-        {usingMock && <div className="adm-mock">当前使用示例数据（mock），接入 /api/admin/* 后设置 NEXT_PUBLIC_ADMIN_API=http 切换。</div>}
+        {process.env.NODE_ENV !== 'production' && usingMock && <div className="adm-mock">当前使用示例数据（mock），接入 /api/admin/* 后设置 NEXT_PUBLIC_ADMIN_API=http 切换。</div>}
         {children}
       </main>
     </div>
