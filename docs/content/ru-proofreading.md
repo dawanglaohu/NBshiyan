@@ -565,7 +565,7 @@
 | ALT-OG-upakovka-dlya-vina | `public/og/category-upakovka-dlya-vina-ru.jpg` ✔ | #220 · final (designer) | tall dark wine box with a gold band (`/og/category-custom-wine-boxes-en.jpg`) | высокая тёмная коробка для вина с золотой полосой | 49 |  |
 | ALT-OG-tsvetnaya-pechat | `public/og/category-tsvetnaya-pechat-ru.jpg` ✔ | #220 · final (designer) | full-color (CMYK) print sample (`/og/category-custom-color-printing-en.jpg`) | образец полноцветной печати (CMYK) | 34 |  |
 | ALT-OG-ofsetnaya-pechat | `public/og/category-ofsetnaya-pechat-ru.jpg` ✔ | #220 · final (designer) | stack of printed sheets (`/og/category-offset-printing-services-en.jpg`) | стопка отпечатанных листов | 26 |  |
-| ALT-OG-ekologichnye-stakany | `public/og/category-ekologichnye-stakany-ru.jpg` ✔ | #220 · final (designer) | paper cup with green band and leaf print (`/og/category-eco-paper-cups-en.jpg`) | бумажный стакан с зелёной полосой и изображением листа | 54 |  |
+| ALT-OG-ekologichnye-stakany | `public/og/category-ekologichnye-stakany-ru.jpg` ✘ | #220 · 已删除（图片已移除，见本 PR） | paper cup with green band and leaf print (`/og/category-eco-paper-cups-en.jpg`) | бумажный стакан с зелёной полосой и изображением листа | 54 |  |
 | ALT-OG-podarochnye-karty | `public/og/category-podarochnye-karty-ru.jpg` ✔ | #220 · final (designer) | printed gift cards (`/og/category-custom-gift-cards-en.jpg`) | напечатанные подарочные карты ⚠️F16（карты / открытки — ждёт Ryan） | 29 |  |
 | ALT-OG-novogodnyaya-upakovka | `public/og/category-novogodnyaya-upakovka-ru.jpg` ✔ | #220 · final (designer) | red Christmas gift box with green ribbon (`/og/category-custom-christmas-packaging-en.jpg`) | красная новогодняя коробка с зелёной лентой | 43 |  |
 
