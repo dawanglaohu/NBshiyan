@@ -56,7 +56,7 @@ test('component markup: poster is high-priority img, video muted/playsInline/pre
   assert.match(src, /getImageProps\(\{[^}]*className: 'hero-media-poster'[^}]*priority: true/);
   assert.match(src, /<video[^>]*\bmuted\b[^>]*\bplaysInline\b[^>]*preload="none"/);
   assert.doesNotMatch(src, /\bloop\b|autoPlay/);
-  assert.ok(src.indexOf('hero-115.webm') < src.indexOf('hero-115.mp4'));
+  assert.ok(src.indexOf('hero-115.c293080a.webm') < src.indexOf('hero-115.c2be059f.mp4'));
   assert.match(src, /<button type="button"/);
   const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
   assert.match(css, /\.hero-media\{[^}]*aspect-ratio:16\/9/);
@@ -73,7 +73,7 @@ test('portrait (<=767px): portrait poster + video via media queries, before land
   assert.match(src, /<source media=\{PORTRAIT_MQ\} type="image\/avif" srcSet="\/video\/hero-115-portrait-poster\.avif"/);
   assert.match(src, /<source media=\{DESKTOP_MQ\} srcSet=\{desktopSrcSet\}/);
   assert.match(src, /DESKTOP_MQ = '\(min-width: 768px\)'/);
-  const pw = src.indexOf('hero-115-portrait.webm'), pm = src.indexOf('hero-115-portrait.mp4'), lw = src.indexOf('hero-115.webm');
+  const pw = src.indexOf('hero-115-portrait.webm'), pm = src.indexOf('hero-115-portrait.mp4'), lw = src.indexOf('hero-115.c293080a.webm');
   assert.ok(pw > 0 && pw < pm && pm < lw, 'portrait webm < portrait mp4 < landscape');
   assert.match(src, /<source media=\{PORTRAIT_MQ\} src="\/video\/hero-115-portrait\.webm"/);
   for (const f of ['hero-115-portrait.webm', 'hero-115-portrait.mp4', 'hero-115-portrait-poster.avif', 'hero-115-portrait-poster.webp'])
