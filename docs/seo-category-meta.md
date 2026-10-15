@@ -11,7 +11,7 @@
 | slug | `custom-corrugated-boxes` | `gofrokorobki` |
 | 主关键词 | custom corrugated boxes | гофрокороба на заказ |
 | title | Custom Corrugated Boxes Manufacturer \| PackJoyU (47) | Гофрокороба на заказ — производство \| PackJoyU (46) |
-| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Factory-direct export. Request a quote today. (154) | Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Прямые поставки с фабрики. Запросите расчёт. (150) |
+| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Request a quote today. (131) | Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Запросите расчёт. (123) |
 
 ## color-boxes
 
@@ -38,7 +38,7 @@
 | slug | `molded-pulp-packaging` | `izdeliya-iz-tsellyulozy` |
 | 主关键词 | molded pulp packaging | упаковка из формованной целлюлозы |
 | title | Molded Pulp Packaging Manufacturer \| PackJoyU (45) | Упаковка из формованной целлюлозы \| PackJoyU (44) |
-| description | Eco-friendly molded pulp trays, inserts and boxes made from bagasse and recycled fiber. Plastic-free, recyclable and custom shaped. Request a quote today. (154) | Лотки, ложементы и коробки из формованной целлюлозы и сахарного тростника. Эко упаковка без пластика любой формы под ваш продукт. Запросите расчёт. (147) |
+| description | Eco-friendly molded pulp trays, inserts and boxes made from bagasse. Custom shaped to fit your product. Request a quote today. (126) | Лотки, ложементы и коробки из формованной целлюлозы и сахарного тростника. Любая форма под ваш продукт. Запросите расчёт. (121) |
 
 ## paper-cups
 
