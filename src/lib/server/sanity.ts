@@ -1,7 +1,6 @@
 // Sanity 内容读取：服务端用 fetch 调 GROQ HTTP API，不引入 SDK，浏览器不直连 Sanity（CSP 不需要放行）。
 // 未配置 SANITY_PROJECT_ID 时返回 null，页面回退到仓库内的静态内容。
 import { seoMockEnabled } from '@/lib/seo/mock';
-import { mockDocs, mockDocBySlug } from './sanityMock';
 
 export const SANITY_API_VERSION = 'v2025-02-19';
 const PROJECT_RE = /^[a-z0-9]{1,32}$/;
@@ -55,6 +54,8 @@ export function bySlugQuery(type: DocType, locale: Locale) {
 }
 
 // SEO 审计 mock 模式（本地，生产无效）：用 sanityMock 里的测试文章，不访问网络
-export const getDocs = (type: DocType, locale: Locale) => seoMockEnabled() ? Promise.resolve(mockDocs(type, locale)) : sanityFetch<{ _id: string; slug: string; title: string; excerpt?: string }[]>(listQuery(type, locale), {}, { tags: [`sanity:${type}`] });
+// #291：mock 数据按需 import()；SEO_AUDIT_MOCK_BUILD 在构建时内联，正式部署构建里这个分支被去掉，不打包 sanityMock
+// 条件必须直接写在 import() 所在的三元里（不能包成函数），webpack 才会把它当常量、跳过死分支
+export const getDocs = (type: DocType, locale: Locale) => process.env.SEO_AUDIT_MOCK_BUILD === '1' && seoMockEnabled() ? import('./sanityMock').then((m) => m.mockDocs(type, locale)) : sanityFetch<{ _id: string; slug: string; title: string; excerpt?: string }[]>(listQuery(type, locale), {}, { tags: [`sanity:${type}`] });
 export const getDocBySlug = (type: DocType, locale: Locale, slug: string) =>
-  !/^[a-z0-9-]{1,96}$/.test(slug) ? Promise.resolve(null) : seoMockEnabled() ? Promise.resolve(mockDocBySlug(type, locale, slug) as Record<string, unknown> | null) : sanityFetch<Record<string, unknown>>(bySlugQuery(type, locale), { slug }, { tags: [`sanity:${type}`] });
+  !/^[a-z0-9-]{1,96}$/.test(slug) ? Promise.resolve(null) : process.env.SEO_AUDIT_MOCK_BUILD === '1' && seoMockEnabled() ? import('./sanityMock').then((m) => m.mockDocBySlug(type, locale, slug) as Record<string, unknown> | null) : sanityFetch<Record<string, unknown>>(bySlugQuery(type, locale), { slug }, { tags: [`sanity:${type}`] });
