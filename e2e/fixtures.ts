@@ -25,10 +25,10 @@ export const test = base.extend<{ external: External }>({
 });
 export { expect };
 
-// 写入与 src/lib/consent.ts 相同的 v1 JSON 格式；'all' 全部同意，'none' 全部拒绝
+// 写入与 src/lib/consent.ts 相同的 v2 JSON 格式；'all' 全部同意，'none' 全部拒绝
 export async function consent(page: Page, value: 'all' | 'none') {
   await page.evaluate((all) => {
-    localStorage.setItem('pj-consent', JSON.stringify({ v: 1, analytics: all, chat: all, ts: Date.now() }));
+    localStorage.setItem('pj-consent', JSON.stringify({ v: 2, analytics: all, chat: all, ts: Date.now() }));
     window.dispatchEvent(new Event('pj:consent'));
   }, value === 'all');
 }
