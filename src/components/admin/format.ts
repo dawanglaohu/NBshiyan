@@ -29,3 +29,6 @@ export const fmtDate = (iso: string) => new Date(iso).toLocaleString('zh-CN', { 
 
 /** Auth.js 默认登录页（Credentials：email、password、totp 或 recoveryCode），登录后回到当前页 */
 export const loginHref = () => `/api/auth/signin?callbackUrl=${encodeURIComponent(typeof location === 'undefined' ? '/admin' : location.pathname + location.search)}`;
+
+/** #225：只有 ADMIN 能改询盘负责人；角色未知时一律按不能改处理 */
+export const canAssignInquiry = (role: string | null | undefined) => role === 'ADMIN';
