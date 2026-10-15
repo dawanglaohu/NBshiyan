@@ -1,13 +1,13 @@
 /* PackJoyU design tokens v1 — 主调 C（Warm Pop），礼盒/酒盒区借用 B（Noir & Gold） */
 :root{
-  --bg:#FBF8F3; --surface:#FFFFFF; --ink:#1C1C1C; --ink-2:#5A5650; --line:#E8E2D8;
+  --bg:#FBF8F3; --surface:#FFFFFF; --stage-bg:#FBF8F3; --ink:#1C1C1C; --ink-2:#5A5650; --line:#E8E2D8;
   --accent:#FF5A36; --accent-press:#FF866A; --accent-hover:#FF7452; --on-accent:#1F2A44; --sun:#FFD166;
   /* #147（PM 定）：珊瑚底上的文字统一用海军蓝 --on-accent（#FF5A36 上 4.59:1）；hover/按下改为变浅不加深（5.34/6.02:1），按下另加内阴影 */
   --accent-text:#C2381A; /* 珊瑚色文字/链接/焦点环，5.1:1（#149）；--accent 只做填充/图形 */
   --premium-bg:#121214; --premium-ink:#F2E9D8; --gold:#D4AF6A; --wine:#6B1F2A;
   /* 状态色：前台和后台共用（#153，design-system §1）；文字色在对应浅底上均 ≥4.5:1 */
   --ok:#1A7F37; --okb:#E6F4EA; --warn:#8A6300; --warnb:#FFF4D1; --err:#B42318; --errb:#FDE8E7; --info:#1D4F91; --infob:#E7EEF8;
-  --tint-accent:#FDEEE8; --placeholder:#EFE6DA;
+  --tint-accent:#FDEEE8; --placeholder:#FBF8F3;
   --font:"Manrope",system-ui,sans-serif;
   --fs-display:clamp(36px,5vw,64px); --fs-h2:clamp(26px,3vw,40px); --fs-h3:20px; --fs-body:16px; --fs-small:13px;
   --r-sm:8px; --r-md:14px; --r-lg:24px; --r-pill:999px;
@@ -15,5 +15,5 @@
   --shadow:0 8px 24px rgba(28,28,28,.08);
   --ease:cubic-bezier(.2,.7,.2,1); --dur:280ms;
 }
-.theme-premium{ --bg:var(--premium-bg); --surface:#1D1D22; --ink:var(--premium-ink); --ink-2:#B9AF9C; --line:#2E2C28; --accent:var(--gold); --accent-press:#B8934F; --on-accent:#121214; --accent-hover:#E2C285; --accent-text:var(--gold); }
+.theme-premium{ --bg:var(--premium-bg); --surface:#1D1D22; --stage-bg:#1D1D22; --ink:var(--premium-ink); --ink-2:#B9AF9C; --line:#2E2C28; --accent:var(--gold); --accent-press:#B8934F; --on-accent:#121214; --accent-hover:#E2C285; --accent-text:var(--gold); }
 @media (prefers-reduced-motion:reduce){ :root{ --dur:0ms } }
