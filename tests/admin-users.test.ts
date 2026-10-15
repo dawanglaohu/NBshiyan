@@ -87,6 +87,7 @@ test('logs only errorSummary', () => {
 test('/admin/users page: ADMIN only in layout map and own server check', () => {
   assert.deepEqual(rolesForAdminPath('/admin/users'), ['ADMIN']);
   const p = readFileSync('src/app/admin/users/page.tsx', 'utf8');
-  assert.match(p, /adminPageDenied\(\['ADMIN'\]\)\) notFound\(\)/);
+  assert.match(p, /await enforceAdminPage\(\['ADMIN'\], '\/admin\/users'\)/);
+  assert.ok(!/adminPageDenied/.test(p), 'logged-out must redirect, not 404');
   assert.ok(!p.includes("'use client'"));
 });
