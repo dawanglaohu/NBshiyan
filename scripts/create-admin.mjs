@@ -2,7 +2,7 @@
 // 用法：ADMIN_SEED_EMAIL=... ADMIN_SEED_NAME=... ADMIN_SEED_PASSWORD=... pnpm admin:create
 // 创建后需先走 /api/auth-admin/enroll 绑定 2FA 才能登录。
 // 仅 CI / 本地：设置 ADMIN_SEED_TOTP_SECRET（base32）会直接写入加密后的 TOTP 密钥并启用 2FA，跳过绑定。
-//   生产环境（NODE_ENV=production 或 VERCEL_ENV=production）设置了该变量直接报错退出。
+//   生产环境（NODE_ENV=production 或 APP_ENV=production）设置了该变量直接报错退出。
 import { createCipheriv, randomBytes } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { hash } from '@node-rs/argon2';
@@ -26,7 +26,7 @@ if (process.env.DATABASE_URL && isProdDatabase(process.env.DATABASE_URL, process
 
 const totpSeed = process.env.ADMIN_SEED_TOTP_SECRET?.trim().replace(/\s+/g, '').toUpperCase();
 if (totpSeed) {
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production') {
+  if (process.env.NODE_ENV === 'production' || process.env.APP_ENV === 'production' || process.env.VERCEL_ENV === 'production') { // TODO(迁移后删除): remove VERCEL_ENV fallback after self-host migration
     console.error('生产环境禁止使用 ADMIN_SEED_TOTP_SECRET，请删掉该变量，改走 2FA 绑定流程'); process.exit(1);
   }
   // base32，至少 16 字符（80 bit）

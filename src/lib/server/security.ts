@@ -1,3 +1,4 @@
+import { isProdEnvFrom } from '../site';
 import { createHmac, randomBytes } from 'crypto';
 import { isIP as netIsIP } from 'node:net';
 import { MemoryStore, rateLimitStore } from './ratelimit';
@@ -21,7 +22,7 @@ const TURNSTILE_VERIFY = 'https://challenges.cloudflare.com/turnstile/v0/sitever
 /** E2E 用：非正式环境可把校验地址指向本机模拟服务（只接受 http://127.0.0.1 / localhost），正式环境始终用 Cloudflare。 */
 export function turnstileVerifyUrl(env: Record<string, string | undefined> = process.env) {
   const o = env.TURNSTILE_VERIFY_URL;
-  if (!o || env.VERCEL_ENV === 'production') return TURNSTILE_VERIFY;
+  if (!o || isProdEnvFrom(env)) return TURNSTILE_VERIFY;
   try { const u = new URL(o); if (u.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(u.hostname)) return u.toString(); } catch {}
   return TURNSTILE_VERIFY;
 }
@@ -66,7 +67,7 @@ function safeStoreError(e: unknown) {
 
 /** key 的环境前缀：Preview 和 Production 共用一个 Upstash 库时计数不混。 */
 export function rateLimitEnv(env: Record<string, string | undefined> = process.env) {
-  return (env.VERCEL_ENV || env.NODE_ENV || 'development').replace(/[^a-z0-9_-]/gi, '');
+  return (env.APP_ENV || env.VERCEL_ENV || env.NODE_ENV || 'development').replace(/[^a-z0-9_-]/gi, '');
 }
 
 /**

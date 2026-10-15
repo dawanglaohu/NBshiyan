@@ -28,6 +28,6 @@ These templates only clean up and shorten copy that already exists (categoryMeta
 To build and run locally with `SEO_AUDIT_MOCK=1`, run `pnpm seo:audit --mock --ignore-env-noindex`. Mock mode:
 - turns category pages on;
 - serves mock articles from `src/lib/server/sanityMock.ts` with no network access;
-- is always off when `VERCEL_ENV=production`.
+- is always off when `APP_ENV=production`.
 
 The audit also checks for BreadcrumbList on category and article detail pages, and validates it.

@@ -1,3 +1,4 @@
+import { isProdEnvFrom } from '../../site';
 /**
  * 可插拔限流存储。
  * - RATE_LIMIT_STORE=memory（默认）：进程内存，单实例有效，开发/预览用
@@ -57,7 +58,7 @@ export function createRateLimitStore(env: Record<string, string | undefined> = p
     return new UpstashStore(url, token);
   }
   if (kind !== 'memory') throw new Error(`未知的 RATE_LIMIT_STORE: ${kind}`);
-  if (env.NODE_ENV === 'production' && env.VERCEL) console.warn('[ratelimit] 生产环境仍在用内存限流，多实例下不共享');
+  if (isProdEnvFrom(env)) console.warn('[ratelimit] 生产环境仍在用内存限流，多实例下不共享');
   return new MemoryStore();
 }
 

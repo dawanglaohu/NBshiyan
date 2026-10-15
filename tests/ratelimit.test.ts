@@ -103,7 +103,8 @@ test('hitRateLimit: healthy store ignores fail mode', async () => {
   finally { setRateLimitStore(undefined); }
 });
 
-test('keys get environment prefix (VERCEL_ENV > NODE_ENV)', async () => {
+test('keys get environment prefix (APP_ENV > VERCEL_ENV > NODE_ENV)', async () => {
+  assert.equal(rateLimitEnv({ APP_ENV: 'production', VERCEL_ENV: 'preview', NODE_ENV: 'development' }), 'production');
   assert.equal(rateLimitEnv({ VERCEL_ENV: 'preview', NODE_ENV: 'production' }), 'preview');
   assert.equal(rateLimitEnv({ NODE_ENV: 'test' }), 'test');
   assert.equal(rateLimitEnv({}), 'development');

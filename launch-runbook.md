@@ -44,7 +44,7 @@
 | #200 隐私导出/删除 | ADMIN `POST /api/admin/privacy/export`：200，是附件，`no-store`；delete 时两个邮箱不一致 400 `confirm_mismatch`；生产缺 `PRIVACY_HASH_SECRET` 时 503。审计里只有邮箱的哈希 |
 | retention cron | 正在跑的时候再触发一次应返回 409 `cleanup_running`（试运行也一样）。`curl -H "Authorization: Bearer $CRON_SECRET" https://<域名>/api/admin/cron/cleanup-uploads` 返回各步骤的条数（designs、deleted、sampleCounters、inquiries、inactiveUsers、auditLogs），没带密钥返回 401。**第一次真正清理之前先试运行**：Ryan 在 Vercel 设 `RETENTION_DRY_RUN=1`，触发一次 cron，核对返回的各项条数（designs、orphanLogos、sampleCounters、auditLogs、inquiries、inquiryLogos、inactiveUsers、skippedLastAdmin），确认合理后**删掉这个变量**，之后的 cron 才会真正清理 |
 | Sanity webhook | 在 Sanity 发布一篇文章：页面刷新了，webhook 返回 200（不是 401 或 503）；签名错误时拒绝 |
-| sitemap / noindex | 生产（`VERCEL_ENV=production`）下 `/sitemap.xml` 是 200、`/robots.txt` 不屏蔽前台页面；Preview 是 noindex。品类页由代码常量 `CATEGORY_PAGES_LIVE`（#198）控制，没打开前 sitemap 里不应该有品类页 |
+| sitemap / noindex | 生产（`APP_ENV=production`）下 `/sitemap.xml` 是 200、`/robots.txt` 不屏蔽前台页面；Preview 是 noindex。品类页由代码常量 `CATEGORY_PAGES_LIVE`（#198）控制，没打开前 sitemap 里不应该有品类页 |
 | 隐私页 | `/en/privacy`、`/ru/privacy` 返回 200；还是草稿的时候带 noindex、不进 sitemap |
 | IndexNow / #192 | 发布后只推本站的地址；JSON-LD 里没有 `{{` 占位符，没有 offers 或价格 |
 | Sanity 导入（#188 合并后，由 SEO 做） | 在已合并 #188 的分支上（#205 合并后的 main 或集成分支）：1）`python3 docs/content/sanity-import/linkmap.py`；2）`python3 docs/content/sanity-import/build.py`，输出应为「wrote 14 docs (0 kept)」，不能出现“keeping … committed product docs”的警告；3）检查 `import.ndjson` 和 `internal-links.*` 的改动只来自 #188 正文和 categoryMeta 的已知改动，然后普通提交；4）`node --import tsx --test tests/sanity-import.test.ts` 必须通过（重新生成的文件和已提交的逐字节一致）。之后才往 Sanity 导入 |
@@ -105,7 +105,8 @@
 | RETENTION_DRY_RUN | 设成 `1`：cron 只返回各步骤的待处理条数，不写库、不删文件、不写审计 | 没设时正常清理 | 否（只在上线前试运行时临时设一次，用完删掉） | Ryan |
 | ADMIN_INACTIVE_DAYS | 后台账号闲置多少天自动停用 | 90（7–3650） | 否 | — |
 | SHORTLINK_PROBE_ORIGIN | middleware 探测短链状态（过期返回 410）时用的固定 origin，不用请求里的 Host | 没设时用 `NEXT_PUBLIC_SITE_URL`；两个都没设就不探测，直接放行 | 否 | 由 Ryan 提供（一般留空） |
-| VERCEL / VERCEL_ENV / NODE_ENV / CI | 平台自动注入 | — | 不用手动设 | — |
+| APP_ENV | 正式环境必须设为 `production`；预览/本地不设 | `production` | 必须手动设，未设一律按非生产（整站 noindex、关闭 IndexNow、跳过生产自检） | — |
+| NODE_ENV / CI | 平台自动注入 | — | 不用手动设 | — |
 | E2E_PORT, SEO_AUDIT_*, PREVIEW_*, REVIEWER_APP | 只在 CI 和脚本里用 | — | 否 | — |
 | GitHub `vars.SECURITY_REVIEWER_APP` | 安全审查 bot 的 workflow 配置 | — | CI 用 | 待确认 |
 | GitHub App 私钥 | 代码里没有引用，应该是在 bot 或 CI 那边配置 | — | 待确认 | **Ryan**，只能在私聊里给 |

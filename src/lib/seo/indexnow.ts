@@ -1,3 +1,4 @@
+import { isProdEnvFrom } from '../site';
 // IndexNow（Yandex / Bing）推送。Refs #74。
 // 只在生产环境、并且 INDEXNOW_KEY 格式合法时启用；否则所有函数都是空操作。
 // 端点写死；URL 只用 NEXT_PUBLIC_SITE_URL 拼接，绝不使用 webhook 里的主机名。
@@ -29,7 +30,7 @@ export function indexNowDedupeStore(env: Env = process.env): RateLimitStore | nu
 /** 返回可用的密钥；未设置、格式不对或不是生产环境时返回 null（功能整体关闭）。 */
 export function activeIndexNowKey(env: Env = process.env): string | null {
   const key = env.INDEXNOW_KEY?.trim();
-  if (env.VERCEL_ENV !== 'production' || !key || !INDEXNOW_KEY_RE.test(key)) return null;
+  if (!isProdEnvFrom(env) || !key || !INDEXNOW_KEY_RE.test(key)) return null;
   return key;
 }
 

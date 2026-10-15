@@ -16,7 +16,7 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
-  assert.equal(prodEnvProblems({ VERCEL: '1', NODE_ENV: 'production' }).length, 4 + 17);
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 17);
   assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
 });
 
@@ -79,4 +79,8 @@ test('#74 错误信息里不出现密钥值', () => {
   assert.ok(msg);
   for (const s of [SECRET, 'bm90LTMyLWJ5dGVz', 'short-secret-xyz', 'short-cron-abc', '1x0000000000000000000000000000000AA', 'JBSWY3DPEHPK3PXP'])
     assert.ok(!msg.includes(s), s);
+});
+
+test('APP_ENV: Vercel 自动变量单独不再触发生产自检', () => {
+  assert.deepEqual(prodEnvProblems({ VERCEL: '1', NODE_ENV: 'production' }), []);
 });

@@ -7,7 +7,7 @@
 - **每个页面**都要输出自己的 hreflang（en、ru、x-default）和指向自身的 canonical，不能全站共用首页的地址。
 - 俄语页面的网址用拉丁字母音译（如 `/ru/products/gofrokorobki`），标题、描述、正文用俄语原生撰写，不直译英文。
 - 网址全部小写，用连字符，不带参数；`/s/`、`/admin`、`/api/` 不收录。
-- 非正式环境（`VERCEL_ENV !== 'production'`）整站 `noindex` 并在 robots.txt 中全部屏蔽。
+- 非正式环境（`APP_ENV !== 'production'`）整站 `noindex` 并在 robots.txt 中全部屏蔽。
 
 ## 2. 页面模板要求
 | 页面类型 | title 模板 | H1 | 结构化数据 |
