@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Privacy' });
   const index = privacyIndexable(await privacyMessages(locale));
-  return pageMetadata({ locale, path: '/privacy', title: t('metaTitle'), description: t('metaDescription'), robots: { index, follow: true } });
+  return pageMetadata({ locale, path: '/privacy', title: t('metaTitle'), description: t('metaDescription'), ogSlug: 'privacy', ogAlt: t('ogImageAlt'), robots: { index, follow: true } });
 }
 
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {

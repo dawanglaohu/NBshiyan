@@ -151,7 +151,8 @@
     },
     "learnMore": "Learn more",
     "specsLabel": "Key specs",
-    "empty": "No 3D models are published yet. Please check back soon or contact us for samples."
+    "empty": "No 3D models are published yet. Please check back soon or contact us for samples.",
+    "ogImageAlt": "PackJoyU: Our products in 3D: custom corrugated, gift and wine boxes"
   },
   "Admin": {
     "title": "Admin"
@@ -177,7 +178,8 @@
     "metaTitle": "Request a Custom Packaging Quote | PackJoyU",
     "metaDescription": "Tell us about your packaging project and request a custom quote from PackJoyU.",
     "title": "Request a quote",
-    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet."
+    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
+    "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {
     "stepOf": "Step {n} of {total}",
@@ -393,7 +395,8 @@
           "Data controller: {{待Ryan确认}}"
         ]
       }
-    }
+    },
+    "ogImageAlt": "PackJoyU: Privacy policy"
   },
   "DesignExpired": {
     "metaTitle": "Design expired | PackJoyU",

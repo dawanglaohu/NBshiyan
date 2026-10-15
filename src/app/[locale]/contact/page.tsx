@@ -6,7 +6,7 @@ import InquiryWizard from '@/components/inquiry/InquiryWizard';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Contact' });
-  return pageMetadata({ locale, path: '/contact', title: t('metaTitle'), description: t('metaDescription') });
+  return pageMetadata({ locale, path: '/contact', title: t('metaTitle'), description: t('metaDescription'), ogSlug: 'contact', ogAlt: t('ogImageAlt') });
 }
 
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
