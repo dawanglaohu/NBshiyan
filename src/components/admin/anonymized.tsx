@@ -30,6 +30,8 @@ export const detailControls = (inq: { anonymizedAt?: string | null }, role?: str
   /** 已匿名化：状态只读显示纯文本，「标记无效」隐藏 */
   statusEditable: !isAnonymized(inq),
   showInvalidate: !isAnonymized(inq),
+  /** 已匿名化：可信度卡片整块不渲染 */
+  showTrust: !isAnonymized(inq),
 });
 
 /**

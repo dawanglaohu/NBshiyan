@@ -142,7 +142,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         </div>
 
         <aside>
-          <section className="adm-sec">
+          {ctl.showTrust && <section className="adm-sec">
             <h2>可信度</h2>
             <div className="adm-row" style={{ alignItems: 'flex-start', gap: 12 }}>
               <div className="adm-ring" style={{ background: `conic-gradient(${ringColor} 0 ${score}%, #eee 0)` }} aria-label={`可信度 ${score}`}><b>{score}</b></div>
@@ -150,7 +150,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
                 {inq.trustReasons.map((r, i) => <li key={i} style={{ color: r.delta < 0 ? 'var(--err)' : undefined }}>{r.delta >= 0 ? '✓' : '−'} {r.label}</li>)}
               </ul>
             </div>
-          </section>
+          </section>}
           <section className="adm-sec">
             <h2>客户信息</h2>
             <dl className="adm-kv">

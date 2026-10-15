@@ -37,9 +37,9 @@ test('piiField: 已匿名化显示标签而不是 [deleted] / deleted+…@invali
 });
 
 test('detailControls: 已匿名化时回复和分配都隐藏（ADMIN 也一样）', () => {
-  assert.deepEqual(detailControls(anon, 'ADMIN'), { showReply: false, showAssign: false, showAssigneeText: false, statusEditable: false, showInvalidate: false });
-  assert.deepEqual(detailControls(live, 'ADMIN'), { showReply: true, showAssign: true, showAssigneeText: false, statusEditable: true, showInvalidate: true });
-  assert.deepEqual(detailControls({}, 'SALES'), { showReply: true, showAssign: false, showAssigneeText: true, statusEditable: true, showInvalidate: true });
+  assert.deepEqual(detailControls(anon, 'ADMIN'), { showReply: false, showAssign: false, showAssigneeText: false, statusEditable: false, showInvalidate: false, showTrust: false });
+  assert.deepEqual(detailControls(live, 'ADMIN'), { showReply: true, showAssign: true, showAssigneeText: false, statusEditable: true, showInvalidate: true, showTrust: true });
+  assert.deepEqual(detailControls({}, 'SALES'), { showReply: true, showAssign: false, showAssigneeText: true, statusEditable: true, showInvalidate: true, showTrust: true });
 });
 
 test('anonymizedNotice 用传入的格式化函数', () => {
@@ -98,4 +98,10 @@ test('内部备注：已匿名化时 mock 备注为 [deleted]，新增备注返�
   const d = await mockAdminApi.getInquiry('inq_anon_1');
   assert.ok(d?.notes.length && d.notes.every((n) => n.body === '[deleted]'));
   await assert.rejects(mockAdminApi.addNote('inq_anon_1', 'x'), /anonymized/);
+});
+
+test('可信度卡片：已匿名化时整块不渲染（ADMIN / SALES 都一样）', () => {
+  assert.equal(detailControls(anon, 'ADMIN').showTrust, false);
+  assert.equal(detailControls(anon, 'SALES').showTrust, false);
+  assert.equal(detailControls(live, 'SALES').showTrust, true);
 });
