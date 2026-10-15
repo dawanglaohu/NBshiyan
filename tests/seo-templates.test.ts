@@ -72,7 +72,7 @@ test('categoryBreadcrumb uses categoryHref (encoded, per-locale slug)', () => {
   const j = categoryBreadcrumb(SITE, 'ru', 'gift-boxes', 'Подарочные коробки', true);
   assert.deepEqual(j.itemListElement.map((i) => i.item), [`${SITE}/ru`, `${SITE}/ru/products`, `${SITE}/ru/products/podarochnye-korobki`]);
   assert.equal(j.itemListElement[1].name, 'Продукция');
-  assert.equal(categoryBreadcrumb(SITE, 'en', 'eco-paper-cups', 'Eco', true).itemListElement[2].item, `${SITE}/en/products/eco-paper-cups`);
+  assert.equal(categoryBreadcrumb(SITE, 'en', 'paper-cups', 'Cups', true).itemListElement[2].item, `${SITE}/en/products/custom-paper-cups`);
 });
 
 test('articleBreadcrumb follows /{locale}/articles/{slug}', () => {

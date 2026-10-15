@@ -4,8 +4,8 @@ import { buildProductJsonLd } from '../src/lib/seo/jsonld/product';
 import { buildFaqJsonLd } from '../src/lib/seo/jsonld/faq';
 import { categoryMeta } from '../src/lib/seo/categoryMeta';
 
-test('product: all 12 categories, EN/RU, no commercial fields by default', () => {
-  assert.equal(categoryMeta.length, 12);
+test('product: all 11 categories, EN/RU, no commercial fields by default', () => {
+  assert.equal(categoryMeta.length, 11);
   for (const c of categoryMeta) for (const l of ['en', 'ru'] as const) {
     const ld = buildProductJsonLd(c.key, l);
     assert.equal(ld['@type'], 'Product');
@@ -63,4 +63,10 @@ test('faq: disabled by default, gated on enabled + no TBD', () => {
   const ld = buildFaqJsonLd(items, { enabled: true })!;
   assert.equal(ld['@type'], 'FAQPage');
   assert.equal(ld.mainEntity[0].acceptedAnswer.text, 'A.');
+});
+
+test('product JSON-LD: brand only, no manufacturer claim', () => {
+  const ld = buildProductJsonLd('gift-boxes', 'en');
+  assert.ok(!('manufacturer' in ld));
+  assert.deepEqual(ld.brand, { '@type': 'Brand', name: 'PackJoyU' });
 });
