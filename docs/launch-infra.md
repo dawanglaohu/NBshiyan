@@ -34,7 +34,7 @@ Ryan 操作：
    - 作用范围：**Apply to specific buckets only** → 只选上面这个桶
    - TTL 可不设；IP 限制不设（Vercel 出口 IP 不固定）
 4. 记下 Access Key ID、Secret Access Key、Account ID（只显示一次）。
-5. （建议）给桶加生命周期规则：`tmp/` 前缀 1 天后删除，作为 cron 清理的兜底。
+5. 目前**不**配置生命周期规则：Logo 上传的对象 key 没有 `tmp/` 之类的前缀，按前缀的规则匹配不到任何文件。未绑定询盘的孤儿文件由定时任务 `/api/admin/cron/cleanup-uploads` 清理（见下文 Cron 一节）。以后如需桶级兜底，可先改代码让未绑定的上传写到单独前缀，再对该前缀加规则。
 
 环境变量：`STORAGE_DRIVER=r2`、`R2_ACCOUNT_ID`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`，`R2_ENDPOINT` 留空（默认 `https://<account>.r2.cloudflarestorage.com`）。
 

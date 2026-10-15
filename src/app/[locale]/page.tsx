@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
-import { alternatesFor } from '@/i18n/alternates';
+import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { products } from '@/data/products';
 import HeroArt from '@/components/layout/HeroArt';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
-const ADV = ['capacity', 'certs', 'sampling', 'eco'] as const;
+// Home stats row (capacity / sampling / eco / certs) removed — all unconfirmed; section hidden
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  return { alternates: alternatesFor(locale, '') };
+  const t = await getTranslations({ locale, namespace: 'Meta' });
+  return pageMetadata({ locale, path: '', title: t('title'), description: t('description') });
 }
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
@@ -36,14 +37,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
-      <section className="block container" aria-labelledby="adv-h">
-        <h2 id="adv-h">{t('advTitle')}</h2>
-        <div className="adv">
-          {ADV.map((k) => (
-            <div key={k}><strong>{t(`adv.${k}.value`)}</strong><span>{t(`adv.${k}.label`)}</span></div>
-          ))}
-        </div>
-      </section>
 
       <section className="block container" aria-labelledby="entry-h">
         <h2 id="entry-h">{t('entryTitle')}</h2>

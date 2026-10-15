@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
-import { errorText, loginHref, fmtDate, productName, relTime } from './format';
+import { canAssignInquiry, errorText, loginHref, fmtDate, productName, relTime } from './format';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
 // 服务端存的是转义后的 HTML（换行为 <br>）：先还原换行、去标签，再解码实体，整体按纯文本显示
@@ -17,7 +17,8 @@ function PlainText({ text }: { text: string }) {
 const LANG = { en: '英语', ru: '俄语' } as const;
 const draftKey = (id: string) => `pj-admin-draft:${id}`;
 
-export default function InquiryDetailView({ id }: { id: string }) {
+/** role：当前登录账号的角色，由服务端页面从会话里读出后传入（#225） */
+export default function InquiryDetailView({ id, role }: { id: string; role?: string }) {
   const [inq, setInq] = useState<InquiryDetail | null>();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [body, setBody] = useState('');
@@ -46,9 +47,9 @@ export default function InquiryDetailView({ id }: { id: string }) {
     try { await fn(); setInq(await adminApi.getInquiry(id)); } catch (e) { setErr(String((e as Error).message ?? e)); } finally { setBusy(false); }
   };
 
-  // 后端：SALES 调 /users 只拿到自己，且不能改分配；列表里没有 ADMIN 即视为业务员视角（服务端仍会拒绝）
-  const canAssign = users.some((u) => u.role === 'ADMIN');
-  if (inq === undefined) return <p className="muted">{err ? errorText(err) : '加载中…'}</p>;
+  // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
+  const canAssign = canAssignInquiry(role);
+  if (inq === undefined) return <p className="muted">{err ? <>{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></> : '加载中…'}</p>;
   if (inq === null) return <p>找不到这条询盘，或你没有查看权限。 <Link href="/admin/inquiries">返回列表</Link></p>;
   const c = inq.contact;
   const score = inq.trustScore;
@@ -71,10 +72,12 @@ export default function InquiryDetailView({ id }: { id: string }) {
         <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { status: e.target.value as InquiryStatus }))} aria-label="状态">
           {(Object.keys(STATUS_LABEL) as InquiryStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
         </select></label>
-        <label className="muted">负责人：<select value={inq.assignee?.id ?? ''} disabled={busy || !canAssign} title={canAssign ? undefined : '只有管理员可以改分配'} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { assigneeId: e.target.value || null }))} aria-label="负责人">
-          <option value="">未分配</option>
-          {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-        </select></label>
+        {canAssign ? (
+          <label className="muted">负责人：<select value={inq.assignee?.id ?? ''} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { assigneeId: e.target.value || null }))} aria-label="负责人">
+            <option value="">未分配</option>
+            {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select></label>
+        ) : <span className="muted" data-testid="assignee-text">负责人：{inq.assignee?.name ?? '未分配'}</span>}
         <button type="button" className="adm-btn sq" disabled={busy || inq.status === 'INVALID'}
           onClick={() => { if (confirm('确定标记为无效询盘？')) run(() => adminApi.updateInquiry(inq.id, { status: 'INVALID' })); }}>标记无效</button>
       </div>

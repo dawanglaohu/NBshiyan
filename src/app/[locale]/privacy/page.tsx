@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
-import { alternatesFor } from '@/i18n/alternates';
 import { Link } from '@/i18n/navigation';
 import { buildPrivacy, privacyIndexable } from '@/lib/legal/privacy';
+import { pageMetadata } from '@/lib/seo/pageMeta';
 
 // 隐私政策：文案在 messages Privacy.*；含 {{待Ryan确认}} 的条目不渲染。
 // PRIVACY_PAGE_COMPLETE=false 或仍有占位符时 noindex（sitemap 用同一开关排除）。
@@ -17,11 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Privacy' });
   const index = privacyIndexable(await privacyMessages(locale));
-  return {
-    title: t('metaTitle'),
-    alternates: alternatesFor(locale, '/privacy'),
-    robots: { index, follow: true }
-  };
+  return pageMetadata({ locale, path: '/privacy', title: t('metaTitle'), description: t('metaDescription'), ogSlug: 'privacy', ogAlt: t('ogImageAlt'), robots: { index, follow: true } });
 }
 
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
