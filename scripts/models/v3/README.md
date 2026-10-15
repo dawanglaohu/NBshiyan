@@ -45,3 +45,8 @@ TEX_DIR=tex-b2/ blender -b --python build_b2.py -- color out-b3
 for f in paper-cup eco-paper-cup party-supplies color-box; do PREVIEW_TEX=32 node ../progressive.mjs out-b3/$f.glb ../../../public/models $f; done
 ```
 字标统一 Inter Black + 同色描边。纸杯仅 navy PackJoyU（朝相机、≤60% 可见宽）；牛皮杯 #8e5f36，杯套上方一圈 PackJoyU，无环保声明。
+
+## #252 颜色偏浅修复
+- 印刷材质（`mat_print`）改为哑光：去掉 coat（KHR_materials_clearcoat）、粗糙度 +0.25、Specular IOR Level 0.25（可用 `PRINT_COAT_SCALE / PRINT_ROUGH_ADD / PRINT_SPEC` 覆盖复现旧版）。
+- `render_studio.py` 灯光与 HDRI 统一乘 `LIGHT`（默认 0.6）；视图变换可用 `VIEW`/`LOOK` 覆盖。海报和对比图都用这一套。
+- 深色海报（premium 区块 `--premium-bg #121214`）：`blender -b --python render_dark.py -- <wine-box|gift-box 源 glb> out.png 35`，再 `python3 poster_dark.py out.png ../../../public/images/posters/custom-wine-boxes-dark.webp`。

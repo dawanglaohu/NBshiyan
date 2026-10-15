@@ -14,7 +14,9 @@ def mat_print(name, image, paper, rough=.5, coat=0.):
     nt.links.new(tc.outputs['Color'], b.inputs['Base Color'])
     tn = nt.nodes.new('ShaderNodeTexImage'); tn.image = paper[1]; nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = .35
     nt.links.new(tn.outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], b.inputs['Normal'])
+    rough = min(1., rough + float(os.environ.get('PRINT_ROUGH_ADD', .25))); coat *= float(os.environ.get('PRINT_COAT_SCALE', 0))
     b.inputs['Roughness'].default_value = rough
+    b.inputs['Specular IOR Level'].default_value = float(os.environ.get('PRINT_SPEC', .25))  # #252：印刷面哑光（无覆膜 coat、粗糙度 +0.25、反射 0.25），藏青/牛皮色不再发灰
     if coat: b.inputs['Coat Weight'].default_value = coat; b.inputs['Coat Roughness'].default_value = .25
     return m
 
