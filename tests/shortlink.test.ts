@@ -41,8 +41,22 @@ test('isExpired：410 为 true，200/404 为 false，5xx/超时放行且不缓�
   assert.equal(await isExpired('http://x', 'aaaaaaaaaaaa', mk(200), 1000), true); // 命中缓存
   assert.equal(calls, 1);
   assert.equal(await isExpired('http://x', 'aaaaaaaaaaaa', mk(200), 61_000), false);
-  assert.equal(await isExpired('http://x', 'bbbbbbbbbbbb', mk(503), 0), null);
+  assert.equal(await isExpired('http://x', 'bbbbbbbbbbbb', mk(500), 0), null);
   assert.equal(await isExpired('http://x', 'bbbbbbbbbbbb', mk(404), 1), false);
   const boom = (async () => { throw new Error('timeout'); }) as unknown as typeof fetch;
   assert.equal(await isExpired('http://x', 'cccccccccccc', boom, 0), null);
+});
+
+test('probeShortlink：503 = 数据库不可用，返回 unavailable 且不缓存', async () => {
+  _resetCache();
+  let calls = 0;
+  const mk = (status: number) => (async () => { calls++; return new Response(null, { status }); }) as unknown as typeof fetch;
+  assert.deepEqual(await probeShortlink('http://x', 'ffffffffffff', mk(503), 0), { expired: false, category: null, unavailable: true });
+  assert.deepEqual(await probeShortlink('http://x', 'ffffffffffff', mk(404), 1), { expired: false, category: null });
+  assert.equal(calls, 2);
+  assert.deepEqual(await probeShortlink('http://x', 'gggggggggggg', mk(410), 0), { expired: true, category: null });
+});
+test('parseShortlink：/s/unavailable 不当作短链接 id', () => {
+  assert.equal(parseShortlink('/en/s/unavailable'), null);
+  assert.equal(parseShortlink('/ru/s/unavailable/'), null);
 });
