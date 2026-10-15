@@ -1,5 +1,8 @@
 // Sanity 内容读取：服务端用 fetch 调 GROQ HTTP API，不引入 SDK，浏览器不直连 Sanity（CSP 不需要放行）。
 // 未配置 SANITY_PROJECT_ID 时返回 null，页面回退到仓库内的静态内容。
+import { seoMockEnabled } from '@/lib/seo/mock';
+import { mockDocs, mockDocBySlug } from './sanityMock';
+
 export const SANITY_API_VERSION = 'v2025-02-19';
 const PROJECT_RE = /^[a-z0-9]{1,32}$/;
 const DATASET_RE = /^[a-z0-9_-]{1,64}$/;
@@ -51,6 +54,7 @@ export function bySlugQuery(type: DocType, locale: Locale) {
   return `*[_type == "${type}" && slug.${locale}.current == $slug][0]{ _id, _updatedAt, "slug": slug.${locale}.current, "alt": { "en": slug.en.current, "ru": slug.ru.current }, ${pick(locale, 'title')}, ${pick(locale, 'excerpt')}, ${pick(locale, 'body')}, "seo": { "title": coalesce(seo.title.${locale}, seo.title.en), "description": coalesce(seo.description.${locale}, seo.description.en), "noindex": seo.noindex } }`;
 }
 
-export const getDocs = (type: DocType, locale: Locale) => sanityFetch<{ _id: string; slug: string; title: string; excerpt?: string }[]>(listQuery(type, locale), {}, { tags: [`sanity:${type}`] });
+// SEO 审计 mock 模式（本地，生产无效）：用 sanityMock 里的测试文章，不访问网络
+export const getDocs = (type: DocType, locale: Locale) => seoMockEnabled() ? Promise.resolve(mockDocs(type, locale)) : sanityFetch<{ _id: string; slug: string; title: string; excerpt?: string }[]>(listQuery(type, locale), {}, { tags: [`sanity:${type}`] });
 export const getDocBySlug = (type: DocType, locale: Locale, slug: string) =>
-  /^[a-z0-9-]{1,96}$/.test(slug) ? sanityFetch<Record<string, unknown>>(bySlugQuery(type, locale), { slug }, { tags: [`sanity:${type}`] }) : Promise.resolve(null);
+  !/^[a-z0-9-]{1,96}$/.test(slug) ? Promise.resolve(null) : seoMockEnabled() ? Promise.resolve(mockDocBySlug(type, locale, slug) as Record<string, unknown> | null) : sanityFetch<Record<string, unknown>>(bySlugQuery(type, locale), { slug }, { tags: [`sanity:${type}`] });

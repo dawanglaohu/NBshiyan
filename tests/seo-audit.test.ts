@@ -44,3 +44,24 @@ test('hreflang reciprocity', () => {
 test('parseSitemap', () => {
   assert.deepEqual(parseSitemap('<urlset><url><loc> https://packjoyu.com/en </loc></url><url><loc>https://packjoyu.com/ru?a=1&amp;b=2</loc></url></urlset>'), ['https://packjoyu.com/en', 'https://packjoyu.com/ru?a=1&b=2']);
 });
+
+import { checkBreadcrumb, needsBreadcrumb, mockSeeds } from '../scripts/seo-audit';
+const ld = (o: unknown) => `<html><head><title>t</title></head><body><script type="application/ld+json">${JSON.stringify(o)}</script><h1>x</h1></body></html>`;
+const bc = (items: string[]) => ({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: `n${i}`, item })) });
+test('checkBreadcrumb: valid list passes; missing on category/article page is an error', () => {
+  const p = '/en/products/custom-gift-boxes';
+  assert.deepEqual(checkBreadcrumb(p, parsePage(ld(bc([`${SITE}/en`, `${SITE}/en/products`, `${SITE}${p}`]))), SITE), []);
+  assert.match(checkBreadcrumb(p, parsePage('<h1>x</h1>'), SITE)[0].message, /missing BreadcrumbList/);
+  assert.deepEqual(checkBreadcrumb('/en/contact', parsePage('<h1>x</h1>'), SITE), []);
+  assert.equal(needsBreadcrumb('/ru/articles/abc'), true); assert.equal(needsBreadcrumb('/ru/articles'), false);
+});
+test('checkBreadcrumb: off-site, relative, wrong last item, bad JSON', () => {
+  const p = '/en/articles/a';
+  const msgs = checkBreadcrumb(p, parsePage(ld(bc([`${SITE}/en`, 'https://evil.com/x', '/en/articles/a']))), SITE).map((f) => f.message).join('\n');
+  assert.match(msgs, /off-site/); assert.match(msgs, /not absolute/);
+  assert.match(checkBreadcrumb(p, parsePage(ld(bc([`${SITE}/en`, `${SITE}/en/articles/b`]))), SITE)[0].message, /last item/);
+  assert.match(checkBreadcrumb(p, parsePage('<script type="application/ld+json">{oops</script>'), SITE)[0].message, /invalid JSON-LD/);
+});
+test('mockSeeds covers 12 categories x 2 locales + article lists', () => {
+  const s = mockSeeds(); assert.equal(s.length, 26); assert.ok(s.includes('/ru/products/podarochnye-korobki'));
+});
