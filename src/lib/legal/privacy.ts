@@ -7,8 +7,8 @@ import { visible } from '../placeholder';
 export const PRIVACY_PAGE_COMPLETE = false;
 export const PRIVACY_PATH = '/privacy';
 
-export const SECTION_KEYS = ['collected', 'purpose', 'retention', 'cookies', 'chat', 'contact', 'company'] as const;
-export const RETENTION_KEYS = ['designs', 'logos', 'sampleEmail', 'rateLimit', 'audit', 'adminSessions', 'inquiries', 'inquiriesContact', 'onRequest', 'oldReplies', 'exports', 'cleanup'] as const;
+export const SECTION_KEYS = ['collected', 'purpose', 'retention', 'cookies', 'chat', 'processors', 'contact', 'company'] as const;
+export const RETENTION_KEYS = ['designs', 'designsInquiry', 'logos', 'sampleEmail', 'rateLimit', 'audit', 'adminSessions', 'inquiries', 'inquiriesContact', 'onRequest', 'deletionCopies', 'oldReplies', 'exports', 'cleanup'] as const;
 
 type Msgs = Record<string, unknown>;
 export type PrivacySection = { key: string; title: string; paragraphs: string[]; items: string[] };

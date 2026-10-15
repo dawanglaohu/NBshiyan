@@ -11,7 +11,8 @@ const NO_INDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'privat
 /** 公开读取方案：200 / 过期 410（带分类落地页链接）/ 不存在 404。按 IP 限流，降低枚举价值。 */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ip = clientIp(req);
-  if (ip && !(await hitRateLimit(`design-get:${ip}`, 300))) return tooManyRequests(600);
+  const ok = ip ? await hitRateLimit(`design-get:${ip}`, 300) : await hitRateLimit('design-get:noip:all', 3000);
+  if (!ok) return tooManyRequests(600);
   const { id } = await params;
   const r = await lookupDesign(id);
   if (r.state === 'missing') return NextResponse.json({ error: 'not_found' }, { status: 404, headers: NO_INDEX });

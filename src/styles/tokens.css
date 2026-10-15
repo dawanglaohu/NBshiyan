@@ -1,7 +1,8 @@
 /* PackJoyU design tokens v1 — 主调 C（Warm Pop），礼盒/酒盒区借用 B（Noir & Gold） */
 :root{
   --bg:#FBF8F3; --surface:#FFFFFF; --ink:#1C1C1C; --ink-2:#5A5650; --line:#E8E2D8;
-  --accent:#FF5A36; --accent-press:#E0401F; --sun:#FFD166;
+  --accent:#FF5A36; --accent-press:#FF866A; --accent-hover:#FF7452; --on-accent:#1F2A44; --sun:#FFD166;
+  /* #147（PM 定）：珊瑚底上的文字统一用海军蓝 --on-accent（#FF5A36 上 4.59:1）；hover/按下改为变浅不加深（5.34/6.02:1），按下另加内阴影 */
   --accent-text:#C2381A; /* 珊瑚色文字/链接/焦点环，5.1:1（#149）；--accent 只做填充/图形 */
   --premium-bg:#121214; --premium-ink:#F2E9D8; --gold:#D4AF6A; --wine:#6B1F2A;
   /* 状态色：前台和后台共用（#153，design-system §1）；文字色在对应浅底上均 ≥4.5:1 */

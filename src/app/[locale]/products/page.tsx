@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { alternatesFor } from '@/i18n/alternates';
+import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { products } from '@/data/products';
 import CategoryBar from '@/components/CategoryBar';
@@ -15,7 +15,7 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Products' });
-  return { title: { absolute: t('metaTitle') }, description: t('metaDescription'), alternates: alternatesFor(locale, '/products') };
+  return pageMetadata({ locale, path: '/products', title: t('metaTitle'), description: t('metaDescription'), ogSlug: 'products', ogAlt: t('ogImageAlt') });
 }
 
 // 本地海报的逐图 alt；API 换了海报地址时不用，回退到模板

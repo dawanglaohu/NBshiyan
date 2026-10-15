@@ -1,7 +1,7 @@
 # 产品详情页 SEO 方案（Refs #76）
 
 ## 1. 网址规则
-- 英语：`/en/products/{slug}`，slug 用主关键词，例如 `custom-corrugated-boxes`、`custom-gift-boxes`、`compostable-paper-cups`。
+- 英语：`/en/products/{slug}`，slug 用主关键词，例如 `custom-corrugated-boxes`、`custom-gift-boxes`、`eco-paper-cups`。
 - 俄语：`/ru/products/{slug}`，slug 用拉丁音译，见 `docs/seo-keywords-ru.md`，例如 `gofrokorobki`。
 - 每种语言的 slug 存在 Sanity（或产品数据）里，`alternatesFor` 按产品读取各语言 slug 输出 hreflang，不能拼同一个路径。
 - 3D 展示页 `/products` 的卡片链接到详情页，链接文字用品类名（如 “Custom corrugated boxes”），不用单独的 “Learn more”。

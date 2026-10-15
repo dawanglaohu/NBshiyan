@@ -10,7 +10,9 @@ type Inq = { id: string; contactId: string; retainUntil: Date; anonymizedAt: Dat
 function inquiryDb(inqs: Inq[], logos: { id: string; path: string; inquiryId: string }[]) {
   const contacts: Record<string, { name: string }> = { c1: { name: 'Anna' }, c2: { name: 'Boris' } };
   const ops: string[] = [];
+  const audits: any[] = [];
   const db = {
+    auditLog: { create: async (a: any) => { audits.push(a.data); return {}; } },
     inquiry: {
       findMany: async (a: any) => {
         const w = a.where;
@@ -35,7 +37,7 @@ function inquiryDb(inqs: Inq[], logos: { id: string; path: string; inquiryId: st
     },
     async $transaction(x: any) { return typeof x === 'function' ? x(this) : Promise.all(x); },
   };
-  return { db, contacts, ops };
+  return { db, contacts, ops, audits };
 }
 
 test('expired inquiries anonymized once, bound logos deleted (row + file), contact kept while it has a live inquiry', async () => {
@@ -176,4 +178,28 @@ test('disableInactiveUsers: batched over all candidates, stops at the shared dea
   const n = await disableInactiveUsers(r.db as never, async () => { t += 10; }, NOW, 35, () => t);
   assert.equal(n, 4); // 0、10、20、30ms 时开始的账号处理完；40ms 已过 35ms 截止时间
   assert.equal(await disableInactiveUsers(r.db as never, async () => {}, NOW, 0, () => 1), 0, 'past deadline: nothing fetched');
+});
+
+test('retention.run audit: one entry per batch, only counts + createdAt range, no ids / PII; contact email random', async () => {
+  const inqs: any[] = [
+    { id: 'inq_secret_1', contactId: 'c1', retainUntil: new Date(NOW.getTime() - DAY), anonymizedAt: null, message: 'anna@example.com', createdAt: new Date('2024-01-02T00:00:00Z') },
+    { id: 'inq_secret_2', contactId: 'c2', retainUntil: new Date(NOW.getTime() - 2 * DAY), anonymizedAt: null, message: 'x', createdAt: new Date('2024-03-04T00:00:00Z') },
+  ];
+  const { db, audits } = inquiryDb(inqs, []);
+  const updates: any[] = [];
+  db.contact.update = (async (a: any) => { updates.push(a.data); return {}; }) as never;
+  assert.equal(await anonymizeExpiredInquiries(db as never, NOW, 20_000, { delete: async () => {} } as never), 2);
+  assert.equal(audits.length, 1);
+  assert.equal(audits[0].action, 'retention.run');
+  assert.equal(audits[0].target, null); assert.equal(audits[0].ip, null);
+  assert.deepEqual(audits[0].meta, { step: 'inquiries', count: 2, createdFrom: '2024-01-02T00:00:00.000Z', createdTo: '2024-03-04T00:00:00.000Z' });
+  const dump = JSON.stringify(audits);
+  for (const pii of ['inq_secret', 'c1', 'c2', 'anna', 'Anna', 'Boris', 'example.com']) assert.ok(!dump.includes(pii), pii);
+  // 联系人邮箱来自随机字节，两次不同，且不含原 id
+  assert.equal(updates.length, 2);
+  for (const u of updates) assert.match(u.email, /^deleted\+[0-9a-f]{16}@invalid\.invalid$/);
+  assert.notEqual(updates[0].email, updates[1].email);
+  // 重跑不再写审计
+  assert.equal(await anonymizeExpiredInquiries(db as never, NOW, 20_000, { delete: async () => {} } as never), 0);
+  assert.equal(audits.length, 1);
 });

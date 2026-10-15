@@ -10,6 +10,21 @@ export const MODEL_MAX_BYTES = 1024 * 1024; // PRD：单模型 ≤ 1MB
 export const MODEL_ANIM_MAX_BYTES = 1.5 * 1024 * 1024; // 带动画 ≤ 1.5MB
 export const LOD_MAX_BYTES = 1024 * 1024; // gltf-progressive 高精度层（*.lod0.glb）
 export const POSTER_MAX_BYTES = 512 * 1024;
+/**
+ * 一次模型上传请求（GLB + lod + 封面 + 表单字段）的总上限：4,000,000 字节（< 4MB）。
+ * Vercel 函数请求体上限约 4.5MB，而上传走后端代理（整个读进内存再写 R2），超出会被平台直接 413（#74 §1）。
+ * 单文件上限之和 + 表单开销必须小于它，见 tests/model-upload-limit.test.ts。
+ */
+export const MODEL_UPLOAD_MAX_REQUEST_BYTES = 4_000_000;
+/** multipart 边界、字段名和元数据的余量 */
+export const MODEL_UPLOAD_FORM_OVERHEAD = 64 * 1024;
+/** 按 Content-Length 预检：缺失/非法/超过上限都返回错误码，否则 null */
+export function modelUploadSizeError(contentLength: string | null): 'upload_too_large' | 'length_required' | null {
+  if (contentLength === null || contentLength.trim() === '') return 'length_required';
+  const n = Number(contentLength);
+  if (!Number.isSafeInteger(n) || n < 0) return 'length_required';
+  return n > MODEL_UPLOAD_MAX_REQUEST_BYTES ? 'upload_too_large' : null;
+}
 export const MAX_TRIANGLES = 100_000;
 export const MAX_TEXTURE_DIM = 2048;
 export const MAX_JSON_BYTES = 2 * 1024 * 1024;

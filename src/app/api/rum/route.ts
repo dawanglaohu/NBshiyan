@@ -9,8 +9,10 @@ export async function POST(req: Request) {
   const origin = req.headers.get('origin');
   const self = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '');
   if (origin && self && origin !== self && process.env.VERCEL_ENV === 'production') return new NextResponse(null, { status: 403 });
-  const ip = clientIp(req) ?? 'unknown';
-  if (!(await hitRateLimit(`rum:${ip}`, 60, 60_000))) return new NextResponse(null, { status: 429 });
+  const ip = clientIp(req);
+  // 存储故障时放行（open）；拿不到 IP 时走共用的 noip 总闸
+  const ok = ip ? await hitRateLimit(`rum:${ip}`, 60, 60_000, { onStoreError: 'open' }) : await hitRateLimit('rum:noip:all', 600, 60_000, { onStoreError: 'open' });
+  if (!ok) return new NextResponse(null, { status: 429 });
   const raw = await readBody(req, 1_000);
   const m = raw === null ? null : parseRum(raw);
   if (!m) return new NextResponse(null, { status: 400 });

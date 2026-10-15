@@ -26,6 +26,11 @@ test('emailHash: HMAC of normalized email with PRIVACY_HASH_SECRET, no plaintext
   assert.equal(emailHash('johndoe@gmail.com', { ...env, AUTH_SECRET: 'a'.repeat(40) } as never), h);
   assert.ok(!JSON.stringify(anonymizedContact(h)).includes('john'));
   assert.equal((anonymizedContact(h) as { normalizedEmail: unknown }).normalizedEmail, null);
+  // 匿名邮箱来自随机字节，不由原邮箱哈希派生：同一输入两次结果不同，且不含哈希片段
+  const e1 = (anonymizedContact(h) as { email: string }).email, e2 = (anonymizedContact(h) as { email: string }).email;
+  assert.match(e1, /^deleted\+[0-9a-f]{16}@invalid\.invalid$/);
+  assert.notEqual(e1, e2);
+  assert.ok(!e1.includes(h.slice(0, 16)));
 });
 
 test('PRIVACY_HASH_SECRET: refused in production when unset/short, dev falls back to AUTH_SECRET', () => {
