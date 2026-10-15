@@ -432,28 +432,63 @@
     "cta": "Not sure which box fits? Send us your product.",
     "detail": {
       "crumb": "Solutions",
-      "title": "Packaging for {industry}",
       "lead": "Custom packaging for {industry}, with specs matched to how your product ships and sells.",
       "metaTitle": "{industry} Packaging Solutions | PackJoyU",
       "metaDescription": "Custom packaging for {industry}, with specs matched to how your product ships and sells. Tell us about your product to get a quote.",
       "cta": "Tell us about your product and we'll suggest a fit."
+    },
+    "industries": {
+      "color-boxes": {
+        "name": "Retail Products",
+        "title": "Packaging for Retail Products"
+      },
+      "corrugated-boxes": {
+        "name": "E-commerce & Shipping",
+        "title": "Packaging for E-commerce & Shipping"
+      },
+      "paper-cups": {
+        "name": "Cafés & Coffee Shops",
+        "title": "Packaging for Cafés & Coffee Shops"
+      },
+      "party-supplies": {
+        "name": "Parties & Events",
+        "title": "Packaging for Parties & Events"
+      },
+      "wine-boxes": {
+        "name": "Wine & Spirits",
+        "title": "Packaging for Wine & Spirits"
+      },
+      "gift-boxes": {
+        "name": "Gifts & Corporate Gifting",
+        "title": "Packaging for Gifts & Corporate Gifting"
+      }
     }
   },
   "Factory": {
     "meta": {
-      "title": "How We Work: Our Production Process | PackJoyU",
-      "description": "See how custom packaging is made at PackJoyU, step by step: brief and dieline, sample, printing, die-cutting and assembly, quality control and shipping."
+      "title": "How We Work: From Quote to Delivery | PackJoyU",
+      "description": "How a custom packaging order works at PackJoyU, step by step: brief and dieline, sample, printing, die-cutting and assembly, quality control and shipping."
     },
     "eyebrow": "How we work",
     "title": "From brief to finished packaging",
-    "lead": "See how your packaging is made, step by step, from the first dieline to the shipping carton.",
+    "lead": "See how your order moves, step by step, from the first dieline to shipping.",
     "steps": {
-      "title": "How we work",
-      "1": "Brief & dieline",
-      "2": "Sample",
-      "3": "Print",
-      "4": "Die-cut & assembly",
-      "5": "QC & ship"
+      "title": "From quote to delivery",
+      "1": {
+        "name": "Brief & dieline"
+      },
+      "2": {
+        "name": "Sample"
+      },
+      "3": {
+        "name": "Print"
+      },
+      "4": {
+        "name": "Die-cut & assembly"
+      },
+      "5": {
+        "name": "QC & ship"
+      }
     },
     "stepImageAlt": {
       "print": "Printing",

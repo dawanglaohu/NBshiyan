@@ -8,6 +8,7 @@ html[lang="ru"] .sx-eyebrow{letter-spacing:.04em}
 .sx-h{font-size:var(--fs-h2);line-height:1.15;max-width:900px;margin:0 0 12px;text-wrap:balance;overflow-wrap:break-word}
 .sx-lead{font-size:17px;line-height:1.6;color:var(--ink-2);max-width:720px;margin:0}
 .sx-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.sx-grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .sx-split{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
 .sx-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
 .sx-tag{display:inline-block;font-size:12px;padding:4px 10px;border-radius:var(--r-pill);border:1px solid var(--line);color:var(--ink-2);white-space:nowrap}
@@ -31,9 +32,11 @@ html[lang="ru"] .sx-eyebrow{letter-spacing:.04em}
 .sx-kpi{border-top:2px solid var(--ink);padding-top:14px;display:flex;flex-direction:column;gap:4px}
 .sx-kpi b{font-size:40px;font-weight:800;line-height:1.1}.sx-kpi span{font-size:14px;color:var(--ink-2)}
 /* 流程：≥1024 五步一行，步骤名统一预留两行高度以对齐；以下竖排 */
-.sx-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;font-size:15px;line-height:1.5}
-.sx-steps li{display:flex;flex-direction:column;gap:6px;min-height:calc(1.5em * 2 + 1.5em + 6px);overflow-wrap:break-word;hyphens:auto}
-.sx-steps li>span{min-width:28px;font-weight:800;color:var(--accent-text)}
+.sx-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px}
+.sx-steps li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:20px;display:flex;flex-direction:column;gap:8px;overflow-wrap:break-word;hyphens:auto}
+.sx-step-n{font-size:32px;line-height:1;font-weight:800;color:var(--accent-text)}
+.sx-step-name{font-size:16px;line-height:1.4;font-weight:700;min-height:calc(1.4em * 2)} /* 步骤名统一预留两行高度，五张卡对齐 */
+.sx-step-desc{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2)}
 .sx-cert{display:inline-block;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;font-weight:700;white-space:nowrap}
 .sx-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:14px 26px;box-sizing:border-box;font:inherit;font-size:15px;font-weight:700;line-height:1.2;border-radius:var(--r-pill);white-space:nowrap;text-decoration:none;cursor:pointer;position:relative;transition:background var(--dur) var(--ease)}
 .sx-btn-primary{background:var(--accent);color:var(--on-accent);border:1.5px solid var(--accent)}
@@ -47,10 +50,13 @@ html[lang="ru"] .sx-eyebrow{letter-spacing:.04em}
 .sx-hide{visibility:hidden}
 @keyframes sx-spin{to{transform:rotate(360deg)}}
 .sx-actions{display:flex;gap:12px;flex-wrap:wrap}
-.sx-cta{background:var(--ink);color:#fff;border-radius:var(--r-lg);padding:40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.sx-cta{border-radius:var(--r-lg);padding:40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .sx-cta h3{font-size:28px;margin:0;flex:1 1 320px;overflow-wrap:break-word}
-/* premium 区里 --ink 是浅色，CtaBand 改用 surface 底 + ink 字保持对比 */
-.theme-premium .sx-cta{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+/* UX：CtaBand 一律 --surface 底 + --ink 字（premium 区内沿用 premium token），按钮为主按钮（珊瑚底 + --on-accent，#147） */
+.sx-cta{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+/* premium 产品图：圆角 + 比 premium 底更深一级的面，不用纯白 */
+.theme-premium .sx-img{border-radius:var(--r-md);background:color-mix(in srgb,var(--bg) 60%,#000);border:1px solid var(--line)}
+.theme-premium .sx-img img{object-fit:contain}
 .sx-premium{background:var(--bg);color:var(--ink)}
 .sx-premium-imgs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .sx-crumb{font-size:13px;color:var(--ink-2);margin-bottom:24px}
@@ -80,14 +86,15 @@ html[lang="ru"] .sx-eyebrow{letter-spacing:.04em}
   .sx-lead{font-size:16px}
   .sx-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sx-split{grid-template-columns:1fr;gap:24px}
-  .sx-steps{grid-template-columns:1fr;gap:14px}.sx-steps li{flex-direction:row;gap:12px;min-height:0}
+  .sx-steps{grid-template-columns:1fr;gap:12px}.sx-step-name{min-height:0}
+  .sx-grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sx-masonry{columns:2}
   .sx-cta{flex-direction:column;align-items:flex-start}.sx-cta h3{flex-basis:auto}
 }
 @media (max-width:767px){
   .sx{padding-left:20px;padding-right:20px}.sx-block{padding-top:40px;padding-bottom:40px}
   .sx-h{font-size:28px}
-  .sx-grid{grid-template-columns:1fr;gap:16px}
+  .sx-grid,.sx-grid-4{grid-template-columns:1fr;gap:16px}
   .sx-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.sx-kpi b{font-size:30px}
   .sx-premium-imgs{grid-template-columns:1fr}
   .sx-masonry{columns:1}

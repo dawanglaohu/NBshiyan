@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
-import { INDUSTRIES } from '@/lib/solutions';
+import { categoryChips, type IndustryMessages } from '@/lib/solutions';
 import CaseWall, { type CaseItem } from '@/components/sections/CaseWall';
 import { CtaBand, SectionHeader } from '@/components/sections/ui';
 import '@/components/sections/sections.css';
@@ -21,9 +21,8 @@ export default async function CasesPage({ params }: { params: Promise<{ locale: 
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('Cases');
-  const p = await getTranslations('Products');
   const nav = await getTranslations('Nav');
-  const industries = INDUSTRIES.filter((i) => p.has(`names.${i.slug}`)).map((i) => ({ id: i.slug, label: p(`names.${i.slug}`) }));
+  const industries = categoryChips((await getMessages({ locale })) as IndustryMessages).map((i) => ({ id: i.slug, label: i.name }));
   return (
     <main className="sx-page">
       <section className="sx sx-block">

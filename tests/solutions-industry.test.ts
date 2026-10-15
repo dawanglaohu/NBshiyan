@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { INDUSTRIES, industryParams, resolveIndustry } from '../src/lib/solutions';
+import { INDUSTRIES, industryParams, resolveIndustry, resolveFromMessages } from '../src/lib/solutions';
+import { CMS_SECTIONS } from '../src/lib/seo/sitemapEntries';
 
 const msgs = (l: string) => JSON.parse(readFileSync(`messages/${l}.json`, 'utf8'));
 const fill = (tpl: string, industry: string) => tpl.replace('{industry}', industry);
@@ -24,8 +25,9 @@ for (const l of ['en', 'ru']) {
   test(`${l}: detail title/meta use the list name, never the raw slug`, () => {
     const d = m.Solutions.detail;
     for (const i of INDUSTRIES) {
-      const r = resolveIndustry(i.slug, names)!;
-      for (const k of ['title', 'lead', 'metaTitle', 'metaDescription']) {
+      const r = resolveFromMessages(i.slug, m)!;
+      assert.ok(r.title, `${l} ${i.slug} has title`);
+      for (const k of ['lead', 'metaTitle', 'metaDescription']) {
         const out = fill(d[k], r.name);
         assert.ok(out.includes(r.name), `${k} has name`);
         if (r.name.toLowerCase() !== i.slug) assert.ok(!out.includes(i.slug), `${k} must not contain slug ${i.slug}`);
@@ -38,3 +40,17 @@ for (const l of ['en', 'ru']) {
     for (const ns of ['Solutions', 'Factory', 'Cases']) assert.doesNotMatch(JSON.stringify(m[ns]), /\{\{/);
   });
 }
+
+test('Solutions.industries.<slug> wins over Products.names; falls back when missing', () => {
+  const m = { Products: { names: { 'wine-boxes': 'Wine boxes', 'gift-boxes': 'Gift boxes' } }, Solutions: { industries: { 'wine-boxes': { name: 'Wine & Spirits', title: 'Packaging for Wine & Spirits' } } } };
+  assert.equal(resolveFromMessages('wine-boxes', m)?.name, 'Wine & Spirits');
+  assert.equal(resolveFromMessages('wine-boxes', m)?.title, 'Packaging for Wine & Spirits');
+  assert.equal(resolveFromMessages('gift-boxes', m)?.title, undefined);
+  assert.equal(resolveFromMessages('gift-boxes', m)?.name, 'Gift boxes');
+  assert.equal(resolveFromMessages('nope', m), null);
+  assert.equal(resolveFromMessages('wine-boxes', { Solutions: { industries: { 'wine-boxes': { name: '' } } } }), null);
+});
+
+test('sitemap: no Sanity-generated /solutions entries (#108 static list)', () => {
+  assert.ok(!CMS_SECTIONS.some((s) => (s.base as string) === '/solutions' || (s.type as string) === 'solution'));
+});

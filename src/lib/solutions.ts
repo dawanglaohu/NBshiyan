@@ -11,14 +11,29 @@ export const INDUSTRIES: readonly Industry[] = [
   { slug: 'gift-boxes', premium: true, poster: '/images/posters/custom-gift-boxes.webp' }
 ];
 
-export type ResolvedIndustry = Industry & { name: string };
+export type ResolvedIndustry = Industry & { name: string; title?: string };
+type Names = Readonly<Record<string, string>> | undefined;
+type IndustryCopy = Readonly<Record<string, { name?: string; title?: string }>> | undefined;
+const own = <T,>(m: Readonly<Record<string, T>> | undefined, k: string): T | undefined => (m && Object.prototype.hasOwnProperty.call(m, k) ? m[k] : undefined);
+const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 
-/** 未知 slug 或缺少本地化名称 → null（调用方 notFound()） */
-export function resolveIndustry(slug: string, names: Readonly<Record<string, string>>): ResolvedIndustry | null {
+/**
+ * {industry} 优先取 Solutions.industries.<slug>.name（SEO），H1 用 .title；没有时回退 Products.names.<slug>。
+ * 未知 slug 或没有任何名称 → null（调用方 notFound()）。
+ */
+export function resolveIndustry(slug: string, fallback: Names, preferred?: IndustryCopy): ResolvedIndustry | null {
   const hit = INDUSTRIES.find((i) => i.slug === slug);
   if (!hit) return null;
-  const name = Object.prototype.hasOwnProperty.call(names, hit.slug) ? names[hit.slug] : undefined;
-  return name ? { ...hit, name } : null;
+  const copy = own(preferred, hit.slug);
+  const name = str(copy?.name) ?? str(own(fallback, hit.slug));
+  return name ? { ...hit, name, title: str(copy?.title) } : null;
 }
 
 export const industryParams = () => INDUSTRIES.map((i) => ({ slug: i.slug }));
+
+/** 页面侧：从 next-intl messages 取名称来源 */
+export type IndustryMessages = { Products?: { names?: Record<string, string> }; Solutions?: { industries?: Record<string, { name?: string; title?: string }> } };
+export const resolveFromMessages = (slug: string, m: IndustryMessages) => resolveIndustry(slug, m.Products?.names, m.Solutions?.industries);
+export const resolvedIndustries = (m: IndustryMessages) => INDUSTRIES.map((i) => resolveFromMessages(i.slug, m)).filter((x): x is ResolvedIndustry => x !== null);
+/** 筛选 chips 保留产品类目名（Products.names） */
+export const categoryChips = (m: IndustryMessages) => INDUSTRIES.map((i) => resolveIndustry(i.slug, m.Products?.names)).filter((x): x is ResolvedIndustry => x !== null);

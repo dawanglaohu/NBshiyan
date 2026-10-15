@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
-import { INDUSTRIES } from '@/lib/solutions';
+import { resolvedIndustries, type IndustryMessages } from '@/lib/solutions';
 import { Button, Card, CtaBand, ImagePlaceholder, SectionHeader } from '@/components/sections/ui';
 import '@/components/sections/sections.css';
 
-// #108 行业方案列表（规格 §3.1）。行业列表来自 src/lib/solutions.ts，名称/简介沿用 Products.names / Products.desc。
+// #108 行业方案列表（规格 §3.1）。行业列表来自 src/lib/solutions.ts，名称优先 Solutions.industries，回退 Products.names；简介沿用 Products.desc。
 export const dynamic = 'force-static';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -21,8 +21,9 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
   const t = await getTranslations('Solutions');
   const p = await getTranslations('Products');
   const nav = await getTranslations('Nav');
-  const list = INDUSTRIES.filter((i) => !i.premium && p.has(`names.${i.slug}`));
-  const premium = INDUSTRIES.filter((i) => i.premium);
+  const all = resolvedIndustries((await getMessages({ locale })) as IndustryMessages);
+  const list = all.filter((i) => !i.premium);
+  const premium = all.filter((i) => i.premium);
   return (
     <main className="sx-page">
       <section className="sx sx-block">
@@ -30,9 +31,9 @@ export default async function SolutionsPage({ params }: { params: Promise<{ loca
         {list.length === 0 ? (
           <div className="sx-empty"><p>{t('empty')}</p><Button href="/contact">{nav('quote')}</Button></div>
         ) : (
-          <div className="sx-grid">
+          <div className="sx-grid sx-grid-4">
             {list.map((i) => (
-              <Card key={i.slug} href={`/solutions/${i.slug}`} title={p(`names.${i.slug}`)} desc={p.has(`desc.${i.slug}`) ? p(`desc.${i.slug}`) : undefined} more={t('more')}
+              <Card key={i.slug} href={`/solutions/${i.slug}`} title={i.name} desc={p.has(`desc.${i.slug}`) ? p(`desc.${i.slug}`) : undefined} more={t('more')}
                 image={<ImagePlaceholder path={i.poster} src={i.poster} alt={p.has(`alt.${i.slug}`) ? p(`alt.${i.slug}`) : ''} />} />
             ))}
           </div>

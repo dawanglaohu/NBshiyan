@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
 import { Link } from '@/i18n/navigation';
-import { industryParams, resolveIndustry } from '@/lib/solutions';
+import { industryParams, resolveFromMessages, type IndustryMessages } from '@/lib/solutions';
 import { CtaBand, SectionHeader, Button } from '@/components/sections/ui';
 import Gallery from '@/components/sections/Gallery';
 import '@/components/sections/sections.css';
@@ -16,8 +16,7 @@ export const generateStaticParams = industryParams;
 type P = { params: Promise<{ locale: string; slug: string }> };
 
 async function lookup(locale: string, slug: string) {
-  const m = (await getMessages({ locale })) as { Products?: { names?: Record<string, string> } };
-  return resolveIndustry(slug, m.Products?.names ?? {});
+  return resolveFromMessages(slug, (await getMessages({ locale })) as IndustryMessages);
 }
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
@@ -46,7 +45,7 @@ export default async function SolutionDetail({ params }: P) {
         </nav>
         <div className="sx-split">
           <div>
-            <SectionHeader as="h1" title={t('detail.title', { industry: ind.name })} lead={t('detail.lead', { industry: ind.name })} />
+            <SectionHeader as="h1" title={ind.title ?? ind.name} lead={t('detail.lead', { industry: ind.name })} />
             <div className="sx-actions"><Button href={`/contact?solution=${ind.slug}`}>{nav('quote')}</Button></div>
           </div>
           <Gallery shots={[{ path: ind.poster, src: ind.poster, alt }]} label={ind.name} />
