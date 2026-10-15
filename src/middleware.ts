@@ -5,6 +5,7 @@ import { EXPIRED_RE, probeConfig, probeHeaders, probeShortlink, parseShortlink }
 
 const intl = createMiddleware(routing);
 const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private, no-store' };
+const UNAVAILABLE = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store', 'Retry-After': '60' };
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -22,8 +23,12 @@ export default async function middleware(req: NextRequest) {
     // 带内部密钥和原始客户端 IP，API 按客户端 IP 限流，而不是所有探测共用服务器 IP
     const ip = req.headers.get('x-real-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0] ?? null;
     const probe = cfg ? await probeShortlink(cfg.origin, sl.id, fetch, Date.now(), probeHeaders(cfg.secret, ip)) : null;
+    const locale = sl.locale ?? (/^ru\b/i.test(req.headers.get('accept-language') ?? '') ? 'ru' : 'en');
+    if (probe?.unavailable) {
+      // 数据库不可用：503 + Retry-After，不缓存，不暴露错误细节
+      return NextResponse.rewrite(new URL(`/${locale}/s/unavailable`, req.url), { status: 503, headers: UNAVAILABLE });
+    }
     if (probe?.expired) {
-      const locale = sl.locale ?? (/^ru\b/i.test(req.headers.get('accept-language') ?? '') ? 'ru' : 'en');
       const to = new URL(`/${locale}/s/expired`, req.url);
       to.search = probe.category ? `?category=${encodeURIComponent(probe.category)}` : '';
       return NextResponse.rewrite(to, { status: 410, headers: NOINDEX });
