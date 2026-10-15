@@ -58,7 +58,7 @@
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
       "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
-      "pulp-molding": "Molded pulp trays and inserts made from sugarcane fiber.",
+      "pulp-molding": "Molded pulp trays and inserts.",
       "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
       "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
       "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
@@ -86,8 +86,8 @@
         "Custom EVA or paper inserts"
       ],
       "pulp-molding": [
-        "Sugarcane fiber",
-        "Custom cavities for any product",
+        "Molded pulp",
+        "Custom cavities shaped to your product",
         "Material options on request"
       ],
       "paper-cups": [
@@ -156,7 +156,7 @@
     "menu": "Quick actions"
   },
   "Contact": {
-    "metaTitle": "Request a quote | PackJoyU",
+    "metaTitle": "Request a packaging quote | PackJoyU",
     "metaDescription": "Tell us about your packaging project and request a quote from PackJoyU.",
     "title": "Request a quote",
     "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",

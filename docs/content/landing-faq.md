@@ -245,7 +245,7 @@ Packing method for shipping: {{待Ryan确认}}. We confirm packing and shipping 
 
 <details id="faq-pulp-molding-en-1"><summary>What is molded pulp packaging made from?</summary>
 
-Molded pulp is formed from paper fiber. The exact raw material for your order (for example, sugarcane bagasse) is {{待Ryan确认}}.
+Molded pulp is formed from paper fiber. The exact raw material for your order is {{待Ryan确认}}.
 
 </details>
 
@@ -278,7 +278,7 @@ Our MOQ is {{待Ryan确认}}.
 
 <details id="faq-pulp-molding-ru-1"><summary>Из чего делают упаковку из формованной целлюлозы?</summary>
 
-Формованную целлюлозу получают из бумажного волокна. Конкретное сырьё для вашего заказа (например, жом сахарного тростника) — {{待Ryan确认}}.
+Формованную целлюлозу получают из бумажного волокна. Конкретное сырьё для вашего заказа — {{待Ryan确认}}.
 
 </details>
 

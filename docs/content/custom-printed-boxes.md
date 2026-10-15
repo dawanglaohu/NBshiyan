@@ -23,7 +23,7 @@ PackJoyU produces full-color printed paperboard boxes for cosmetics, electronics
 
 - **Shelf impact** — Offset CMYK + Pantone printing for vivid, consistent brand color.
 - **Premium finishes** — Hot foil, embossing/debossing, spot UV, soft-touch or gloss lamination.
-- **Structures for any product** — Tuck-end, auto-bottom, sleeve, window and hanger-tab boxes.
+- **Structures shaped to your product** — Tuck-end, auto-bottom, sleeve, window and hanger-tab boxes.
 - **Proof before production** — Digital and physical proofs so you approve color and fit first.
 
 #### Specifications & options
@@ -72,7 +72,7 @@ PackJoyU производит картонные коробки с полноц�
 
 - **Заметность на полке** — Офсетная печать CMYK и Pantone — яркий и стабильный фирменный цвет.
 - **Премиальная отделка** — Тиснение фольгой, конгрев, выборочный УФ-лак, soft-touch или глянцевая ламинация.
-- **Конструкция под любой товар** — Коробки с клапанами, с автодном, футляры-слайдеры, с окном и европодвесом.
+- **Конструкция под ваш товар** — Коробки с клапанами, с автодном, футляры-слайдеры, с окном и европодвесом.
 - **Проба до тиража** — Цифровая и физическая проба — вы утверждаете цвет и посадку заранее.
 
 #### Характеристики и опции
