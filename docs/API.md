@@ -96,7 +96,7 @@
 - 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enabled`，不记密码、验证码、token。
 
 ## 后台接口（`/api/admin/*`）
-每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录 401 `unauthorized`，角色不符 403 `forbidden`。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
+每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录（或锁定、会话失效、未开 2FA）401 `unauthorized`，账号已停用 403 `account_disabled`（与未登录区分，重新登录也无效），角色不符 403 `forbidden`。后台页面用同一规则（`checkAdminSession`）。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
 角色：`ADMIN` 全部可见；`SALES` 只能看和操作分配给自己的询盘，不能改分配；`EDITOR` 无询盘权限。
 
 - `GET /api/admin/users` → `{ items: [{ id, name, email, role }] }`。ADMIN 拿到所有未禁用的 ADMIN/SALES（分配下拉框用）；SALES 只拿到自己。
@@ -138,6 +138,28 @@
 
 ## 定时任务
 - `GET|POST /api/admin/cron/cleanup-uploads`：先删除过期超过 90 天、且没被询盘引用的方案（以及询盘已删除后留下的方案），再删除超过 24 小时未绑定询盘、也没被有效方案引用的 logo（文件和记录）。返回 `{ deleted, designs }`。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
+
+## 邮件（Resend）
+模板来源 `design/emails/`，用 `pnpm email:build` 生成 `src/lib/server/email/templates.generated.ts`（提交生成结果，运行时不读 design 目录）。
+
+| 邮件 | 收件人 | 何时发送 |
+| --- | --- | --- |
+| 询盘确认 `inquiry-ack.{en,ru}` | 客户 | 可信度 ≥ 40 的询盘 |
+| 样品申请确认 `sample-ack.{en,ru}` | 客户 | 可信度 ≥ 40 的 `SAMPLE` 询盘（由询盘确认改写文案生成） |
+| 新询盘通知 `inquiry-notify.zh` | `INQUIRY_NOTIFY_EMAIL` | 每条询盘；可信度 < 40 时显示“待核实”块 |
+| 后台告警（中文） | `ADMIN_ALERT_EMAIL`，没配则 `INQUIRY_NOTIFY_EMAIL` | 发信失败、定时清理失败、后台账号被锁定；同一类（同一账号）30 分钟最多 1 封 |
+
+变量：`name, company, product, quantity, inquiryId`（对外编号）`, locale, score`，以及环境变量 `NEXT_PUBLIC_SITE_URL`（siteUrl，生产必须是 https 域名）、`CONTACT_REPLY_TIME`（小时数 1–720，如 `24` 或 `24h`；按语言显示为 “24 hours” / “24 часа”；未设置或无效时整句改成不带时长的中性说法，不默认 24 小时）、`CONTACT_EMAIL`、`CONTACT_WHATSAPP`（两个都配了才显示联系方式那段，不换行）。
+
+客户确认邮件（询盘、样品）：不含公司名；称呼只在姓名 ≤ 40 字且不像链接/域名/邮箱时使用，否则用 “Hello” / “Здравствуйте”；产品名按语言取 categoryMeta 关键词（匹配不上时把 slug 转成可读文字）。内部通知不变（slug、公司、姓名照常显示）。样品确认在询盘确认基础上改写：主题、预览文字、正文、标签（Sample qty / Номер заявки / Количество образцов）、页脚，并加 “样品免费、运费发货前邮件报价” 一句；每条改写在 html 和 text 里都必须命中，否则 `pnpm email:build` 报错。所有模板暗色模式下卡片正文为浅色，logo 加浅色底。
+
+安全：
+- 所有变量 HTML 转义（含 `{ }`，单次替换，用户输入里的 `{{x}}` 不会被展开）；文本版去掉控制字符和双向控制符；主题、收件人、Reply-To 去掉 `\r\n` 并校验为单个地址。
+- 客户确认邮件主题只含编号，不回显留言；通知邮件也不含留言正文，只给后台链接 `{siteUrl}/admin/inquiries/{内部 id}`（只用环境变量里的站点地址，不取请求 Host，不带 token，正常登录后台）。
+- `RESEND_API_KEY` 只从环境变量读，建议用 Resend 的 Sending access key；请求只发往 `https://api.resend.com/emails`。
+- 自动回复：限流 key、咨询锁、数据库 24 小时判断都用规范化邮箱（小写、去 +后缀、Gmail 去点），同一人 24 小时 1 封；另加每 IP 24 小时 5 次。
+- 告警邮件只含错误类型和错误码（如 `ResendError` / `RESEND_503`），不含错误 message。
+- 发信失败不影响询盘提交：记日志并发后台告警。
 
 ## 存储与限流（部署配置）
 - **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（默认，`UPLOAD_DIR`）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
@@ -186,3 +208,46 @@
 | `lod` | 高精度层 | 有则检查格式、≤ 1MB、贴图；没有且主文件用了 `NEEDLE_progressive` 时 error，否则 warn |
 
 安全：只解析 GLB 容器、JSON 和贴图文件头，不解码 Draco/meshopt、不执行任何内容、不访问外部地址；文件存私有存储（`storage/`，以后换 R2），只通过上述接口按状态提供。
+
+### POST /api/admin/privacy/export · POST /api/admin/privacy/delete（仅 ADMIN）
+详见 docs/data-retention.md。export 返回 JSON 附件（no-store）；顺序 requireAdmin → assertSameOrigin → 限流；生产未设置 PRIVACY_HASH_SECRET 时 503 `privacy_hash_secret_missing`。delete 需 `{email, confirmEmail}` 一致，返回 `{ok, contacts, inquiries, samples, logos}`。
+
+## 产品规格（CategorySpec）
+
+每个品类一行（`category` 必须是 `src/lib/seo/categoryMeta.ts` 里的 key）。所有字段可选。数值字段统一为「值 + 单位」对象，本地化文本为 `{ en, ru }`。
+
+### 后台：GET / PUT /api/admin/specs/:category（EDITOR、ADMIN；SALES 403）
+- 顺序：requireAdmin → assertSameOrigin（仅 PUT）→ enforceAdminRateLimit；未知品类 404；`Cache-Control: no-store`。
+- PUT 为整体替换（省略或 `null` = 清空），严格 zod（多余字段 400）：
+```json
+{
+  "size": { "min": { "l": 50, "w": 50, "h": 20 }, "max": { "l": 600, "w": 400, "h": 400 }, "unit": "mm" },
+  "material": { "en": "Kraft paper", "ru": "Крафт-бумага" },
+  "moq": { "value": 500, "unit": "pcs" },
+  "sampleFee": { "amount": 30, "currency": "USD" },          // 或 { "free": true }；currency: USD/EUR/CNY/RUB
+  "leadTime": { "min": 10, "max": 15, "unit": "day" },
+  "certifications": [{ "name": "FSC", "certNo": "FSC-C123456" }, { "name": "ISO 9001", "url": "https://..." }],
+  "tradeTerms": ["FOB", "EXW"],                                // Incoterms 2020
+  "notes": { "en": "...", "ru": "..." }
+}
+```
+- 校验：尺寸 min ≤ max（逐维），leadTime min ≤ max，tradeTerms 不重复；每条认证至少有 `certNo` 或 `url`；`url` 必须能被 `new URL()` 解析且协议正好是 `https:`（拒绝 `javascript:`、`data:`、`http:` 等），最长 2048。
+- 审计 `spec.update`，meta 含 before / after（后台视图）；保存后 `revalidateTag('category-specs')`。
+
+### 公开：GET /api/specs · GET /api/specs/:category（`?locale=en|ru`，默认 en，其他值 400）
+- 未知品类 404；`Cache-Control: public, s-maxage=3600, stale-while-revalidate=600`。后台保存时 `revalidateTag` 只清 Next 的数据缓存，**不会清 CDN**：CDN 上的旧响应在 s-maxage（3600 秒）内仍可能返回，之后最多 600 秒内可能先返回旧数据再后台刷新。所以修改通常 1 小时内生效，最长约 70 分钟，不是立即生效。
+- 显式白名单序列化：只输出已填写的字段，null / 空数组 / 空字符串的键整个省略；本地化文本只给当前语言（该语言没填就省略，不回退）。每个有内容的品类带 `updatedAt`。审计数据、`updatedById` 等内部字段不会出现在任何公开接口。
+- `/api/specs` 返回 `{ locale, specs: [...] }`，只含有内容的品类，按 categoryMeta 顺序。
+- 前端渲染认证链接时必须加 `rel="noopener noreferrer"`（并 `target="_blank"`）。
+
+### 与 schema.org Product 的映射
+| 字段 | schema.org（Product 不输出 offers / 价格 / 评分） |
+|---|---|
+| `material` | `Product.material`（当前语言的字符串） |
+| `size` | 每个维度一条 `additionalProperty`：`PropertyValue{ name: "Length" / "Width" / "Height", value: QuantitativeValue{ minValue: min.l, maxValue: max.l, unitCode: "MMT" } }`（w、h 同理）。表示尺寸范围，**不要**写进 `Product.depth/width/height`（那是单一尺寸）。只填了 min 或 max 时只输出对应的一项 |
+| `moq` | `additionalProperty`：`PropertyValue{ name: "Minimum order quantity", value: QuantitativeValue{ minValue: moq.value, unitCode: "H87" } }`。**不要**映射到 `Offer.eligibleQuantity` |
+| `certifications[]` | `Product.hasCertification`：`Certification{ name, certificationIdentification: certNo, url }`。**JSON-LD 只输出带 https `url` 的证书**；只有 `certNo` 的证书只在正文展示，不进 JSON-LD；不使用 `award` 等背书语义 |
+| `updatedAt` | 可作 `dateModified` / sitemap `lastmod`（与页面内容更新时间取较晚者） |
+| `notes` | 不放进 JSON-LD，只在正文展示 |
+
+**`sampleFee`、`leadTime`、`tradeTerms` 不要放进 JSON-LD 的 `offers`**：样品费不是产品售价，交期和贸易术语也不是 Offer 的标准报价属性，放进去会被 Google 当成价格/配送信息，导致富结果错误。它们只在页面正文展示。
