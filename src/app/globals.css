@@ -147,11 +147,11 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 /* Cookie 同意条：左下角细条，右侧给悬浮按钮组（52px + 16px 边距）留出空间 */
 .consent{position:fixed;left:16px;bottom:16px;z-index:45;max-width:min(560px,calc(100vw - 100px));display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px;background:#fffaf5;color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);font-size:13px;line-height:1.4;animation:consent-in .25s ease-out}
 .consent p{margin:0;flex:1 1 220px}
-.consent a{color:var(--accent);font-weight:600;display:inline-block;padding:13px 0;margin:-13px 0} /* #184 可点高度 ≥44px，视觉行高不变 */
+.consent a{color:var(--accent-text);text-decoration:underline;text-underline-offset:2px;font-weight:600;display:inline-block;padding:13px 0;margin:-13px 0} /* #184 可点高度 ≥44px，视觉行高不变 */
 .consent-actions{display:flex;gap:8px}
 .consent-actions button{font:inherit;font-weight:600;font-size:13px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--accent);background:#fff;color:var(--ink);cursor:pointer}
 .consent-actions button:hover{background:var(--accent);color:var(--on-accent)}
-.consent-actions button:focus-visible,.consent a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.consent-actions button:focus-visible,.consent a:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
 @keyframes consent-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes consent-fade{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.consent{animation:consent-fade var(--dur-base) var(--ease-out)}.card .stage img{transition-duration:var(--dur-base)}}
