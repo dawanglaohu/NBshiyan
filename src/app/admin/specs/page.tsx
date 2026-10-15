@@ -1,14 +1,12 @@
 import Link from 'next/link';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
-import { adminPageDenied, SPEC_PAGE_ROLES } from '@/lib/server/admin/page-access';
-import Denied from '@/components/admin/specs/Denied';
+import { enforceAdminPage, SPEC_PAGE_ROLES } from '@/lib/server/admin/page-access';
 import '@/components/admin/specs/specs.css';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  const denied = await adminPageDenied(SPEC_PAGE_ROLES);
-  if (denied) return <Denied status={denied} />;
+  await enforceAdminPage(SPEC_PAGE_ROLES, '/admin/specs');
   return (
     <>
       <h1>产品规格</h1>

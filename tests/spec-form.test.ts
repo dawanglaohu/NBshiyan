@@ -93,9 +93,9 @@ test('page access: EDITOR + ADMIN only, checked server-side before rendering', (
   assert.deepEqual([...SPEC_PAGE_ROLES].sort(), ['ADMIN', 'EDITOR']);
   for (const f of ['src/app/admin/specs/[category]/page.tsx', 'src/app/admin/specs/page.tsx']) {
     const src = readFileSync(f, 'utf8');
-    assert.match(src, /adminPageDenied\(SPEC_PAGE_ROLES\)/);
+    assert.match(src, /enforceAdminPage\(SPEC_PAGE_ROLES,/);
     assert.match(src, /force-dynamic/);
-    assert.ok(src.indexOf('adminPageDenied(') < src.indexOf('return <'), f);
+    assert.ok(src.indexOf('enforceAdminPage(') < src.lastIndexOf('return'), f);
   }
   const guard = readFileSync('src/lib/server/admin/guard.ts', 'utf8');
   assert.match(guard, /requireAdmin[\s\S]*checkAdminSession\(roles\)/); // 接口和页面同一套规则
