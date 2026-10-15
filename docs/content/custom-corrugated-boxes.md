@@ -7,8 +7,8 @@
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Custom Corrugated Boxes Manufacturer | PackJoyU | Гофрокороба на заказ — производство | PackJoyU |
-| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Bulk orders welcome. Request a quote today. | Производство гофрокоробов на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Работаем с оптовыми заказами. Запросите расчёт. |
+| title | Custom Corrugated Boxes Supplier | PackJoyU | Гофрокороба на заказ с логотипом | PackJoyU |
+| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Bulk orders welcome. Request a quote today. | Гофрокороба на заказ: почтовые и транспортные коробки под ваши размеры с печатью и логотипом. Подбираем и поставляем оптовые партии. Запросите расчёт. |
 | keyword | custom corrugated boxes | гофрокороба на заказ |
 
 ---
@@ -17,7 +17,7 @@
 
 ### H1: Custom Corrugated Boxes
 
-PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. We work with importers, distributors and brands who need consistent quality across repeat orders.
+PackJoyU sources and supplies custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. We work with importers, distributors and brands who need consistent quality across repeat orders.
 
 #### Why PackJoyU
 
@@ -66,11 +66,11 @@ PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retai
 
 ### H1: Гофрокороба на заказ
 
-PackJoyU производит гофрокороба на заказ для доставки, интернет-торговли и розницы: почтовые коробки, четырёхклапанные короба и демонстрационную упаковку точно под ваши размеры. Мы наносим логотип и дизайн прямо на гофрокартон, поэтому коробка защищает товар при перевозке и при этом работает на узнаваемость бренда. Мы работаем напрямую с фабрики и поставляем продукцию импортерам, дистрибьюторам и брендам, которым важно стабильное качество от партии к партии.
+PackJoyU подбирает и поставляет гофрокороба на заказ для доставки, интернет-торговли и розницы: почтовые коробки, четырёхклапанные короба и демонстрационную упаковку точно под ваши размеры. Мы наносим логотип и дизайн прямо на гофрокартон, поэтому коробка защищает товар при перевозке и при этом работает на узнаваемость бренда. Мы поставляем продукцию импортёрам, дистрибьюторам и брендам, которым важно стабильное качество от партии к партии.
 
 #### Почему PackJoyU
 
-- **Точно по размеру** — Каждая коробка изготавливается под габариты товара — меньше наполнителя и объёма при доставке.
+- **Точно по размеру** — Каждая коробка подбирается под габариты товара — меньше наполнителя и объёма при доставке.
 - **Фирменная распаковка** — Флексо- или цифровая печать снаружи и внутри: от логотипа в один цвет до полноцветного дизайна.
 - **Прочность при перевозке** — Марку картона и профиль гофры подбираем под вес товара и маршрут доставки.
 - **Один поставщик** — От конструкции коробки до упаковки и отгрузочных документов.
@@ -93,7 +93,7 @@ PackJoyU производит гофрокороба на заказ для до
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
-4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
+4. **Как выполняется заказ** — тираж готовится и упаковывается к отгрузке.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →

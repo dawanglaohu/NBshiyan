@@ -7,7 +7,7 @@
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Custom Wine Boxes Manufacturer & Supplier | PackJoyU | Коробки для вина на заказ с логотипом | PackJoyU |
+| title | Custom Wine Boxes Supplier | PackJoyU | Коробки для вина на заказ с логотипом | PackJoyU |
 | description | Luxury wine and spirits boxes for single or multiple bottles, with magnetic closures, inserts, foil and embossed logos. Gift-ready packaging. Get a quote. | Подарочные коробки для вина и крепких напитков на заказ: на одну или несколько бутылок, с магнитом, ложементом и тиснением логотипа. Запросите расчёт. |
 | keyword | custom wine boxes | коробки для вина на заказ |
 
@@ -17,7 +17,7 @@
 
 ### H1: Custom Wine Boxes
 
-PackJoyU manufactures luxury wine and spirits boxes for wineries, distilleries, importers and gift brands. We make single-bottle and multi-bottle boxes with magnetic closures, fitted inserts and premium finishes such as foil stamping and embossed logos, so every bottle arrives protected and gift-ready. Our dark-and-gold premium style is designed for exactly this category.
+PackJoyU sources and supplies luxury wine and spirits boxes for wineries, distilleries, importers and gift brands. We make single-bottle and multi-bottle boxes with magnetic closures, fitted inserts and premium finishes such as foil stamping and embossed logos, so every bottle arrives protected and gift-ready. Our dark-and-gold premium style is designed for exactly this category.
 
 #### Why PackJoyU
 
@@ -66,7 +66,7 @@ PackJoyU manufactures luxury wine and spirits boxes for wineries, distilleries, 
 
 ### H1: Коробки для вина на заказ
 
-PackJoyU производит премиальные коробки для вина и крепких напитков для виноделен, производителей, импортеров и подарочных брендов. Изготавливаем коробки на одну и несколько бутылок с магнитными замками, ложементами и премиальной отделкой — тиснением фольгой и конгревом логотипа, чтобы каждая бутылка была защищена и готова к подарку. Наш премиальный черно-золотой стиль создан именно для этой категории.
+PackJoyU подбирает и поставляет премиальные коробки для вина и крепких напитков для виноделен, производителей, импортёров и подарочных брендов. Поставляем коробки на одну и несколько бутылок с магнитными замками, ложементами и премиальной отделкой — тиснением фольгой и конгревом логотипа, чтобы каждая бутылка была защищена и готова к подарку. Наш премиальный черно-золотой стиль создан именно для этой категории.
 
 #### Почему PackJoyU
 
@@ -93,7 +93,7 @@ PackJoyU производит премиальные коробки для ви�
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
-4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
+4. **Как выполняется заказ** — тираж готовится и упаковывается к отгрузке.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
