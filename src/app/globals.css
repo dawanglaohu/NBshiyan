@@ -261,5 +261,8 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 .hero-media-btn{display:inline-flex;align-items:center;gap:0;min-width:44px;min-height:44px;padding:8px 14px;border:0;border-radius:999px;background:rgba(31,42,68,.72);color:#fff;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
 .hero-media-btn-text{margin-left:6px}
 @media (max-width:1023px){.hero-media-btn{justify-content:center;width:44px;height:44px;padding:0;font-size:14px}.hero-media-btn-text{display:none}}
+/* #291 v2：<1024 图标按钮放右下，离开左侧烤进素材的品牌文字；768–1023 竖排贴右边缘，避开礼盒（盒子右缘约 79% 宽） */
+@media (max-width:1023px){.hero-media-ctrls{left:auto;right:16px}}
+@media (min-width:768px) and (max-width:1023px){.hero-media-ctrls{right:8px;bottom:8px;flex-direction:column}}
 .hero-media-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media (max-width:767px){.hero:has(.hero-media){min-height:0}.hero-media{aspect-ratio:4/5}}

@@ -2,7 +2,7 @@
 // #104 首屏视频：封面图（next/image priority）先渲染，是 LCP 元素；空闲后才加载视频（preload="none"）
 // ≤767px 用 4:5 竖版素材（#115 portrait）：<picture>/<source media> 选封面，<video><source media> 选视频，桌面不下载竖版
 // 仅首次访问自动播放；有 暂停/播放 + 跳过 两个按钮（WCAG 2.2.2）；播完/跳过停在封面，不循环
-// #291 按钮放左下角，避开右下的黑色礼盒；<1024px 只显示图标（44px 点击区 + aria-label）
+// #291 ≥1024 按钮在左下（与品牌文字间距 ≥24px）；<1024 只显示图标（44px 点击区 + aria-label），放右下避开品牌文字和礼盒
 import { getImageProps } from 'next/image';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, whenIdle } from '@/lib/home/heroVideo';
