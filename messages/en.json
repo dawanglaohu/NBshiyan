@@ -291,7 +291,22 @@
     "text": "We use essential cookies to run this site. With your permission we also use analytics and live chat.",
     "policy": "Privacy policy",
     "accept": "Accept all",
-    "reject": "Reject non-essential"
+    "reject": "Reject all",
+    "settings": "Settings",
+    "title": "Cookie settings",
+    "lead": "Choose which cookies we may use. You can change this any time via “Cookie settings” in the footer.",
+    "necessary": "Necessary",
+    "necessaryDesc": "Language, security (Turnstile), quote list and this choice. Always on.",
+    "alwaysOn": "Always on",
+    "analytics": "Analytics",
+    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site.",
+    "chat": "Live chat (Tawk.to)",
+    "chatDesc": "Loads the Tawk.to chat widget, which sets its own cookies.",
+    "save": "Save choices",
+    "close": "Close",
+    "saved": "Your cookie choices were saved.",
+    "withdrawn": "Consent withdrawn. Analytics and chat are off.",
+    "change": "Change"
   },
   "Footer": {
     "about": "Custom paper packaging and printing — from prototype to mass production.",
@@ -299,7 +314,8 @@
     "contact": "Contact",
     "contactText": "Tell us about your project — we reply within 24 hours.",
     "privacy": "Privacy policy",
-    "otherLang": "Русский"
+    "otherLang": "Русский",
+    "cookieSettings": "Cookie settings"
   },
   "Privacy": {
     "metaTitle": "Privacy policy (draft) | PackJoyU",
