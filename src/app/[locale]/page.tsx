@@ -6,7 +6,7 @@ import { products } from '@/data/products';
 import HeroArt from '@/components/layout/HeroArt';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
-const ADV = ['capacity', 'certs', 'sampling', 'eco'] as const;
+const ADV = ['capacity', 'sampling', 'eco'] as const; // certs (FSC · ISO 9001) removed — unconfirmed
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;

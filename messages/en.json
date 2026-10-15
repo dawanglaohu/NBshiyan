@@ -28,8 +28,8 @@
         "label": "boxes produced per month"
       },
       "certs": {
-        "value": "FSC · ISO 9001",
-        "label": "certified materials and processes"
+        "value": "",
+        "label": ""
       },
       "sampling": {
         "value": "5–7 days",
@@ -44,7 +44,7 @@
     "premiumTitle": "Premium gift & wine boxes",
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
     "ctaBandTitle": "Have a project in mind?",
-    "ctaBandText": "Tell us what you need — we reply within 24 hours.",
+    "ctaBandText": "Tell us what you need.",
     "heroLabel": "Stack of custom PackJoyU boxes and a paper cup"
   },
   "Products": {
@@ -90,13 +90,11 @@
     "specs": {
       "corrugated-boxes": [
         "Single & double wall (E/B/C flute)",
-        "Up to 4-color flexo or digital print",
-        "MOQ from 500 pcs"
+        "Up to 4-color flexo or digital print"
       ],
       "color-boxes": [
         "300–400 gsm SBS or kraft board",
-        "CMYK + Pantone, matte/gloss lamination",
-        "MOQ from 1,000 pcs"
+        "CMYK + Pantone, matte/gloss lamination"
       ],
       "gift-boxes": [
         "Rigid 1.5–2.5 mm greyboard",
@@ -110,8 +108,7 @@
       ],
       "paper-cups": [
         "4–22 oz, single or double wall",
-        "Hot & cold drink coatings",
-        "MOQ from 10,000 pcs"
+        "Hot & cold drink coatings"
       ],
       "party-supplies": [
         "Plates, cups, napkins, banners",
@@ -135,8 +132,7 @@
       ],
       "eco-paper-cups": [
         "Water-based, plastic-free coating",
-        "Home or industrial compostable",
-        "FSC-certified board"
+        "Home or industrial compostable"
       ],
       "gift-cards": [
         "350–600 gsm card stock",
@@ -175,7 +171,7 @@
   },
   "Contact": {
     "metaTitle": "Request a quote | PackJoyU",
-    "metaDescription": "Tell us about your packaging project and get a quote from PackJoyU within 24 hours.",
+    "metaDescription": "Tell us about your packaging project and get a quote from PackJoyU.",
     "title": "Request a quote",
     "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet."
   },
@@ -246,7 +242,7 @@
     "success": {
       "title": "Thank you — request received!",
       "ref": "Your inquiry number:",
-      "reply": "Our team will get back to you within 24 hours."
+      "reply": ""
     },
     "errors": {
       "unavailable": "Online requests are temporarily unavailable. Please try again later.",
@@ -314,7 +310,7 @@
     "about": "Custom paper packaging and printing — from prototype to mass production.",
     "categories": "Products",
     "contact": "Contact",
-    "contactText": "Tell us about your project — we reply within 24 hours.",
+    "contactText": "Tell us about your project.",
     "privacy": "Privacy policy",
     "otherLang": "Русский",
     "cookieSettings": "Cookie settings"

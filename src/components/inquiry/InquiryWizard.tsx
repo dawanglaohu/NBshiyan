@@ -173,7 +173,7 @@ export default function InquiryWizard() {
       <div className="wizard" role="status">
         <h2 style={{ marginTop: 0 }}>{t('success.title')}</h2>
         <p>{t('success.ref')} <strong>{result.ref}</strong></p>
-        <p>{t('success.reply')}</p>
+        {t('success.reply') ? <p>{t('success.reply')}</p> : null}
       </div>
     );
   }
