@@ -61,7 +61,7 @@ test('component markup: poster is high-priority img, video muted/playsInline/pre
   assert.match(src, /<button type="button"/);
   const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
   assert.match(css, /\.hero-media\{[^}]*aspect-ratio:16\/9/);
-  assert.match(css, /\.hero-media\{aspect-ratio:4\/5\}/);
+  assert.match(css, /\.hero-media\{aspect-ratio:4\/5\}\.hero-media-poster,\.hero-media-video\{object-position:10% 50%\}/);
   assert.match(css, /prefers-reduced-motion:reduce\)\{\.hero-media-video\{transition:none/);
   assert.match(css, /\.hero-media-btn:focus-visible\{outline:2px solid #fff;outline-offset:3px/);
   assert.match(css, /\.hero-media-btn\{[^}]*min-width:44px;min-height:44px/);
