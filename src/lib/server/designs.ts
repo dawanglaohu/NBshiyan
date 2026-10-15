@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { prisma } from './db';
+import { retention, daysAgo, inBatches, maxPerRun, NO_DEADLINE } from './retention';
 import { LOGO_ID_RE } from './uploads';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
@@ -8,8 +9,6 @@ import { SITE_URL } from '@/lib/site';
 /** 新方案 id 16 位（约 93 bit），旧数据 10 位 */
 export const DESIGN_ID_LEN = 16;
 export const DESIGN_ID_RE = /^[A-Za-z0-9]{10,16}$/;
-export const DESIGN_TTL_DAYS = 180;
-export const DESIGN_GRACE_DAYS = 90; // 过期后再保留 90 天用于返回 410
 export const DESIGN_MAX_BODY = 16_000; // 请求体字节上限
 export const DESIGN_MAX_CONFIG = 8_000; // 序列化后 config 上限
 
@@ -60,7 +59,7 @@ const notExpired = (now = new Date()) => ({ OR: [{ expiresAt: null }, { expiresA
 export type PublicDesign = { id: string; productSlug: string; category: string | null; locale: 'en' | 'ru'; config: unknown; expiresAt: Date | null; createdAt: Date; hasLogo: boolean };
 export type DesignLookup = { state: 'ok'; design: PublicDesign } | { state: 'expired'; category: string | null; locale: 'en' | 'ru' } | { state: 'missing' };
 
-/** 公开读取。过期的方案保留 DESIGN_GRACE_DAYS 天以返回 410 和分类页链接，之后删除（404）。
+/** 公开读取。过期的方案保留 retention.designGraceDays 天以返回 410 和分类页链接，之后删除（404）。
  *  不返回 logoUploadId（防止被别人拿去绑定询盘），只返回 hasLogo。方案不可修改。 */
 export async function lookupDesign(id: string, now = new Date()): Promise<DesignLookup> {
   if (!DESIGN_ID_RE.test(id)) return { state: 'missing' };
@@ -116,9 +115,14 @@ export async function liveDesignIds(ids: string[]) {
 }
 
 /** 定时清理：删掉过期超过宽限期且未被询盘引用的方案；以及询盘已删除（GDPR 到期）后留下的、曾被引用（expiresAt=null）的方案 */
-export async function cleanupExpiredDesigns(now = new Date()) {
-  const r = await prisma.sharedDesign.deleteMany({ where: { items: { none: {} }, OR: [{ expiresAt: { lt: new Date(now.getTime() - DESIGN_GRACE_DAYS * 86_400_000) } }, { expiresAt: null }] } });
-  return r.count;
+/** 可删除的方案（cleanupExpiredDesigns 和 dry run 共用条件） */
+export const expiredDesignsWhere = (now = new Date()) => ({ items: { none: {} }, OR: [{ expiresAt: { lt: daysAgo(retention.designGraceDays, now) } }, { expiresAt: null }] });
+export async function cleanupExpiredDesigns(now = new Date(), deadline = NO_DEADLINE) {
+  const where = expiredDesignsWhere(now);
+  // 分批：每批 ≤ 500，每次运行有总上限；删除时再带一次条件，避免删掉刚被询盘引用的方案
+  return inBatches(
+    async (take) => (await prisma.sharedDesign.findMany({ where, select: { id: true }, orderBy: { createdAt: 'asc' }, take })).map((r) => r.id),
+    async (ids) => (await prisma.sharedDesign.deleteMany({ where: { id: { in: ids }, ...where } })).count, maxPerRun(), deadline);
 }
 
 /** /s/:id 的 canonical：指向对应分类落地页（按方案语言取 slug）；没有分类时指向产品总页 */

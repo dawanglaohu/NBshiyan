@@ -12,7 +12,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "smoke": "node --import tsx scripts/smoke.ts",
     "test:e2e": "playwright test",
-    "seo:audit": "tsx scripts/seo-audit.ts"
+    "seo:audit": "tsx scripts/seo-audit.ts",
+    "email:build": "node scripts/build-email-templates.mjs"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.5.1",
