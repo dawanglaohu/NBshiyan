@@ -4,6 +4,7 @@
 // Run from repo root: NODE_PATH=<dir with playwright> node design/og-src/render-og-categories.mjs
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
+import { tag } from './og-tagline.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const R=process.cwd(), ts=fs.readFileSync(R+'/src/lib/seo/categoryMeta.ts','utf8');
 const cats=[...ts.matchAll(/key: '([\w-]+)',\s*en: \{ slug: '([\w-]+)'.*?ru: \{ slug: '([\w-]+)'/gs)].map(m=>({key:m[1],en:m[2],ru:m[3]}));
@@ -31,7 +32,6 @@ const ill={
  'gift-cards':S(`<rect x="30" y="54" width="130" height="84" rx="12" fill="${K}" transform="rotate(-10 95 96)"/><rect x="44" y="64" width="130" height="84" rx="12" fill="${C}"/><rect x="58" y="80" width="30" height="22" rx="4" fill="${Y}"/><rect x="58" y="120" width="90" height="8" rx="4" fill="#fff"/>`),
  'christmas-merchandise':S(box('#C2381A','#9E2C13','#fff','#FFD166')+`<path d="M100 30v144" stroke="#2E9E6B" stroke-width="10"/><path d="M100 30c-20-22-40-4-20 8M100 30c20-22 40-4 20 8" fill="none" stroke="#2E9E6B" stroke-width="7"/>`),
 };
-const tag={en:'Custom packaging & printing · Factory direct',ru:'Упаковка и печать на заказ · Напрямую с фабрики'};
 const b64=f=>'data:image/webp;base64,'+fs.readFileSync(R+'/public/images/posters/'+f).toString('base64');
 const page=({title,sub,img,dark})=>`<!doctype html><html><head><meta charset="utf-8"><style>
 *{margin:0;box-sizing:border-box}body{width:1200px;height:630px;overflow:hidden;font-family:Manrope,sans-serif;background:${dark?'#121214':'#FBF8F3'};color:${dark?'#F2E9D8':'#1C1C1C'}}
