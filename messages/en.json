@@ -253,7 +253,7 @@
       "unavailable": "Online requests are temporarily unavailable. Please try again later.",
       "rate": "Too many requests. Please wait a few minutes and try again.",
       "invalid": "Please check your name, email and country and try again.",
-      "captcha": "Security check failed. Please reload the page and try again.",
+      "captcha": "Security check failed. Please try again.",
       "server": "Something went wrong on our side. Please try again later.",
       "network": "Network error. Please check your connection and try again.",
       "retry": "We couldn't complete the security check just now. Your details are kept — please try again in a moment.",
