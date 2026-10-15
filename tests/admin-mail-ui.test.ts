@@ -57,3 +57,12 @@ test('mock：202 → 轮询两次后 SENT；同一个 Idempotency-Key 不重复�
   assert.equal((await mockMailApi.status(r.id)).status, 'SENT');
   assert.equal((await mockMailApi.getThread('inq_2')).items.filter((m) => m.id === r.id).length, 1);
 });
+
+test('邮件开关：默认关闭；生产环境拒绝 NEXT_PUBLIC_ADMIN_MAIL=mock', async () => {
+  const { mailMode, mailEnabled } = await import('../src/lib/admin/mail/api');
+  if (!process.env.NEXT_PUBLIC_ADMIN_MAIL) { assert.equal(mailMode, 'off'); assert.equal(mailEnabled, false); }
+  const { prodEnvProblems } = await import('../prod-env-check');
+  const env = { APP_ENV: 'production', NODE_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http' };
+  assert.ok(prodEnvProblems({ ...env, NEXT_PUBLIC_ADMIN_MAIL: 'mock' }).some((p) => p.includes('NEXT_PUBLIC_ADMIN_MAIL')));
+  assert.ok(!prodEnvProblems({ ...env, NEXT_PUBLIC_ADMIN_MAIL: 'http' }).some((p) => p.includes('NEXT_PUBLIC_ADMIN_MAIL')));
+});

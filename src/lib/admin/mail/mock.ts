@@ -63,11 +63,13 @@ function simpleThread(id: string): ThreadItem[] {
 const threads = new Map<string, ThreadPage>();
 async function thread(id: string): Promise<ThreadPage> {
   const hit = threads.get(id); if (hit) return hit;
+  // 询盘走真实接口（NEXT_PUBLIC_ADMIN_API=http）时 mock 里没有这条询盘：id 含 anon 的按已匿名化演示，其余用完整演示线程
   const inq = await mockAdminApi.getInquiry(id);
-  if (!inq) throw new MailError('not_found', 404);
-  const page: ThreadPage = inq.anonymizedAt
-    ? { anonymizedAt: inq.anonymizedAt, items: [...richThread().slice(0, 4)].map((m) => redacted(m)), nextCursor: null }
-    : { anonymizedAt: null, items: id === 'inq_1' ? richThread() : simpleThread(id), nextCursor: null };
+  const anonAt = inq ? inq.anonymizedAt : id.includes('anon') ? ago(30 * DAY) : null;
+  const rich = id === 'inq_1' || !inq;
+  const page: ThreadPage = anonAt
+    ? { anonymizedAt: anonAt, items: [...richThread().slice(0, 4)].map((m) => redacted(m)), nextCursor: null }
+    : { anonymizedAt: null, items: rich ? richThread() : simpleThread(id), nextCursor: null };
   threads.set(id, page); return page;
 }
 const findMsg = (mid: string) => { for (const p of threads.values()) { const m = p.items.find((x) => x.id === mid); if (m) return { m, p }; } return null; };
