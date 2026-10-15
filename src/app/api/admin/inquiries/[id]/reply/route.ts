@@ -42,7 +42,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!(await extendInquiryRetention(tx, id))) return null;
     return tx.inquiryMessage.create({ data: { inquiryId: id, direction: 'OUTBOUND', subject, bodyHtml, authorId: ctx.user.id } });
   });
-  if (!msg) return jsonErr('anonymized', 409);
+  if (!msg) {
+    // 邮件已发出，但发送期间询盘被匿名化，往来记录未写入。留审计以便追溯这封已发出的信；不记收件人、主题、正文等个人信息
+    await audit({ actorId: ctx.user.id, action: 'inquiry.reply.sent_but_rejected', target: id, meta: { inquiryId: id, reason: 'anonymized' }, ip: ctx.ip });
+    return jsonErr('anonymized', 409);
+  }
   await audit({ actorId: ctx.user.id, action: 'inquiry.reply', target: id, meta: { messageId: msg.id }, ip: ctx.ip });
   return NextResponse.json(msg, { status: 201, headers: noStore });
 }
