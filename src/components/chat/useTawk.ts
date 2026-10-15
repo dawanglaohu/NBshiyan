@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { hasChatConsent, onConsentChange } from '@/lib/client/consent';
+import { isAdminPath } from '@/lib/chat/adminPath';
 
 type TawkApi = {
   onLoad?: () => void;
@@ -32,8 +33,10 @@ export function useTawk(locale: string) {
 
   useEffect(() => {
     if (!tawkConfigured) return;
-    setConsent(hasChatConsent());
-    return onConsentChange(() => setConsent(hasChatConsent()));
+    // 管理后台（含 /en/admin、/admin/*）明确拒绝加载 Tawk，即使已同意聊天
+    const allowed = () => !isAdminPath(window.location.pathname) && hasChatConsent();
+    setConsent(allowed());
+    return onConsentChange(() => setConsent(allowed()));
   }, []);
 
   useEffect(() => {
@@ -47,7 +50,7 @@ export function useTawk(locale: string) {
   }, [armed]);
 
   useEffect(() => {
-    if (!tawkConfigured || !consent || !armed || document.getElementById('tawk-js')) return;
+    if (!tawkConfigured || !consent || !armed || isAdminPath(window.location.pathname) || document.getElementById('tawk-js')) return;
     const widget = locale === 'ru' && WIDGET_RU && ID_RE.test(WIDGET_RU) ? WIDGET_RU : WIDGET;
     const api: TawkApi = (window.Tawk_API = window.Tawk_API || {});
     window.Tawk_LoadStart = new Date();

@@ -2,7 +2,7 @@ Subject: We received your inquiry #{{inquiryId}}
 
 Hi {{name}},
 
-Thank you for contacting PackJoyU. We have received your inquiry and a packaging specialist will reply within {{replyTime}}.
+Thank you for contacting PackJoyU. {{#reply}}We have received your inquiry and a packaging specialist will reply within {{replyTime}}.{{/reply}}{{^reply}}We have received your inquiry and a packaging specialist will reply by email.{{/reply}}
 
 Your inquiry
 Reference: #{{inquiryId}}

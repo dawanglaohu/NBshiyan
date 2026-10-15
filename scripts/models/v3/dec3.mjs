@@ -1,12 +1,12 @@
 import sharp from 'sharp';
 const O='/workspace/nb3d-v3/tex/';
-const w=(f,W,H,b)=>sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${b}</svg>`)).png().toFile(O+f);
+const w=(f,W,H,b)=>sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${b}</svg>`),{density:144}).png().toFile(O+f);
 const C='#E8573F'; // coral
 // corrugated side print (coral ink on transparent)
 await w('corr_print.png',1024,512,`<g fill="${C}" font-family="Inter" font-weight="800"><text x="60" y="150" font-size="96">PackJoyU</text></g>
-<g fill="${C}" font-family="Inter" font-weight="600"><text x="64" y="205" font-size="30" letter-spacing="4">CORRUGATED SHIPPING CARTON</text><text x="64" y="245" font-size="24" letter-spacing="3" opacity=".85">C-FLUTE · 32 ECT · 400 × 300 × 300 mm</text></g>
+<g fill="${C}" font-family="Inter" font-weight="600"><text x="64" y="205" font-size="30" letter-spacing="4">CORRUGATED SHIPPING CARTON</text></g>
 <g transform="translate(830,80)" fill="${C}"><path d="M20 140 V40 H0 L35 0 L70 40 H50 V140Z"/><path d="M100 140 V40 H80 L115 0 L150 40 H130 V140Z"/><rect x="0" y="150" width="150" height="10"/></g>
-<g transform="translate(64,330)" stroke="${C}" stroke-width="5" fill="none"><rect width="300" height="120" rx="6"/></g><g fill="${C}" font-family="Inter" font-weight="600" font-size="22"><text x="84" y="375">BOX MAKER'S CERTIFICATE</text><text x="84" y="410">EDGE CRUSH 32 LB/IN</text><text x="84" y="440">GROSS WT LIMIT 65 LB</text></g>
+<g transform="translate(70,330)" stroke="${C}" stroke-width="7" fill="none" stroke-linecap="round"><path d="M0 60 A60 60 0 0 1 120 60 Z"/><path d="M60 60 V120 a12 12 0 0 1 -24 0"/><path d="M20 -6 l-8 14 M60 -14 l-8 14 M100 -6 l-8 14"/></g>
 <g transform="translate(860,330)" stroke="${C}" stroke-width="7" fill="none"><path d="M10 10 h70 l-12 60 h-46z"/><path d="M45 70 v35 M20 110 h50"/></g>`);
 // shipping label (opaque)
 await w('corr_label.png',512,384,`<rect width="512" height="384" fill="#fbfaf6"/><g fill="#1b1b1b" font-family="Inter"><text x="24" y="50" font-size="30" font-weight="800">SHIP TO</text><rect x="24" y="72" width="300" height="14"/><rect x="24" y="100" width="240" height="14"/><rect x="24" y="128" width="270" height="14"/>${Array.from({length:70},(_,i)=>`<rect x="${24+i*6.6}" y="200" width="${1+(i*7)%4}" height="120"/>`).join('')}<text x="24" y="355" font-size="22">PJU 0000 1234 5678</text></g>`);

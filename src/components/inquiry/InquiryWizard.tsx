@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { products } from '@/data/products';
 import { useQuote } from '@/components/quote/QuoteProvider';
+import { QUOTE_MAX_ITEMS, isOverQuoteLimit } from '@/lib/quote/list';
 import LogoUploadField from './LogoUploadField';
 import { LOGO_TTL_MS, type LogoUpload } from '@/lib/client/logoUpload';
 
@@ -11,6 +12,13 @@ const MATERIALS = ['corrugated', 'paperboard', 'kraft', 'pulp', 'unsure'] as con
 const TIMELINES = ['2w', '1m', '2m', 'unsure'] as const;
 const COUNTRIES = ['US', 'GB', 'DE', 'FR', 'IT', 'ES', 'NL', 'PL', 'RU', 'KZ', 'BY', 'UZ', 'AE', 'SA', 'AU', 'CA', 'ZZ'] as const;
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+type TurnstileApi = {
+  render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+  reset: (id?: string) => void;
+  remove: (id: string) => void;
+};
+const getTurnstile = () => (window as unknown as { turnstile?: TurnstileApi }).turnstile;
 
 const RETRYABLE = new Set(['retry', 'network']);
 type Result = { ok: true; ref: string } | { ok: false; code: string };
@@ -23,6 +31,7 @@ export default function InquiryWizard() {
   const [step, setStep] = useState(0);
   const [fromQuote, setFromQuote] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const overLimit = isOverQuoteLimit(selected.length);
   const [qty, setQty] = useState<string>('unsure');
   const [size, setSize] = useState('');
   const [material, setMaterial] = useState<string>('unsure');
@@ -44,6 +53,7 @@ export default function InquiryWizard() {
     return () => clearTimeout(id);
   }, [wait]);
   const prefilled = useRef(false);
+  const prevQuote = useRef<string[]>([]);
 
   // 从询价清单进来时预填产品
   useEffect(() => {
@@ -54,23 +64,60 @@ export default function InquiryWizard() {
       prefilled.current = true;
       setSelected(quote.items.map((i) => i.slug));
     }
+    // 从清单抽屉里删除的条目同步移出（用户自行删减，绝不自动截断）
+    const now = new Set(quote.items.map((i) => i.slug));
+    const gone = prevQuote.current.filter((s) => !now.has(s));
+    prevQuote.current = [...now];
+    if (gone.length) setSelected((p) => p.filter((s) => !gone.includes(s)));
   }, [quote.items]);
 
   // Turnstile 只在配置了站点密钥时加载（CSP 已放行 challenges.cloudflare.com）
+  // 用显式渲染：隐式模式只在脚本首次加载时扫描一次 .cf-turnstile，
+  // 第 3 步点 Back 再 Next 后容器重新挂载，控件不会再渲染，令牌为空 → 403（#181）。
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState('');
   useEffect(() => {
-    if (!SITE_KEY || step !== 2 || document.getElementById('cf-turnstile-js')) return;
-    const s = document.createElement('script');
-    s.id = 'cf-turnstile-js';
-    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    s.async = true;
-    document.head.appendChild(s);
-  }, [step]);
+    if (!SITE_KEY || step !== 2) return;
+    let cancelled = false;
+    const mount = () => {
+      const ts = getTurnstile();
+      const el = turnstileRef.current;
+      if (cancelled || !ts || !el || widgetId.current) return;
+      widgetId.current = ts.render(el, {
+        sitekey: SITE_KEY,
+        language: locale,
+        callback: (tok: string) => setTurnstileToken(tok),
+        'expired-callback': () => { setTurnstileToken(''); if (widgetId.current) getTurnstile()?.reset(widgetId.current); },
+        'error-callback': () => { setTurnstileToken(''); }
+      });
+    };
+    if (getTurnstile()) mount();
+    else {
+      let s = document.getElementById('cf-turnstile-js') as HTMLScriptElement | null;
+      if (!s) {
+        s = document.createElement('script');
+        s.id = 'cf-turnstile-js';
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        s.async = true;
+        document.head.appendChild(s);
+      }
+      s.addEventListener('load', mount);
+    }
+    return () => {
+      cancelled = true;
+      document.getElementById('cf-turnstile-js')?.removeEventListener('load', mount);
+      if (widgetId.current) { getTurnstile()?.remove(widgetId.current); widgetId.current = null; }
+      setTurnstileToken('');
+    };
+  }, [step, locale]);
 
   const toggle = (slug: string) => setSelected((p) => (p.includes(slug) ? p.filter((s) => s !== slug) : [...p, slug]));
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step < 2) { setStep(step + 1); return; }
+    if (overLimit) return; // never auto-trim: user must remove items first
     const fd = new FormData(e.currentTarget);
     const quantity = QTY.find((q) => q.k === qty)?.v;
     const config: Record<string, string> = {};
@@ -88,10 +135,10 @@ export default function InquiryWizard() {
       locale,
       contact: { name: c(contact.name), email: c(contact.email), company: c(contact.company), phone: c(contact.phone), region: c(contact.region) },
       message: message.trim() || undefined,
-      items: selected.slice(0, 20).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
+      items: selected.map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
       attribution: { page: window.location.pathname },
       website: String(fd.get('website') ?? ''),
-      turnstileToken: opt('cf-turnstile-response'),
+      turnstileToken: turnstileToken || opt('cf-turnstile-response'),
       ...(logo ? { logoUploadId: logo.uploadId } : {})
     };
     setBusy(true); setResult(null);
@@ -116,7 +163,8 @@ export default function InquiryWizard() {
     } finally {
       setBusy(false);
       // Turnstile 令牌只能用一次：失败后刷新，方便直接重试
-      (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
+      setTurnstileToken('');
+      if (widgetId.current) getTurnstile()?.reset(widgetId.current);
     }
   }
 
@@ -185,7 +233,7 @@ export default function InquiryWizard() {
           <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 16 }}>
             <input type="checkbox" name="consent" required checked={contact.consent} onChange={(e) => { const v = e.target.checked; setContact((c) => ({ ...c, consent: v })); }} /> <span>{t('consent')}</span>
           </label>
-          {SITE_KEY && <div className="cf-turnstile" data-sitekey={SITE_KEY} data-language={locale} style={{ marginBottom: 16 }} />}
+          {SITE_KEY && <div ref={turnstileRef} className="cf-turnstile" style={{ marginBottom: 16 }} />}
         </>
       )}
 
@@ -199,9 +247,10 @@ export default function InquiryWizard() {
         </div>
       )}
 
+      {overLimit && <p id="iq-over" className="quote-notice" role="status" aria-live="polite">{t('overLimit', { max: QUOTE_MAX_ITEMS, n: selected.length })}</p>}
       <div className="row">
         {step > 0 ? <button type="button" className="btn ghost" onClick={() => setStep(step - 1)}>{t('back')}</button> : <span />}
-        <button type="submit" className="btn" disabled={busy}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
+        <button type="submit" className="btn" disabled={busy || (step === 2 && overLimit)} aria-disabled={busy || (step === 2 && overLimit)} aria-describedby={overLimit ? 'iq-over' : undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
       </div>
     </form>
   );
