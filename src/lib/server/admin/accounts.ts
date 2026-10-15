@@ -5,6 +5,8 @@ import { verifySecret, hashSecret } from './crypto';
 import { checkSecondFactor, MAX_FAILS, LOCK_MS } from './login';
 import { audit } from './audit';
 import { jsonErr } from './guard';
+import { checkUserChange, removesActiveAdmin, type UserChange } from './user-policy';
+import { assertNotLastActiveAdmin } from './last-admin'; // 由后端提交提供（待 merge）
 
 /** 密码策略：12–200 位，不能等于邮箱 */
 export const Password = z.string().min(12, 'min_12').max(200);
@@ -36,21 +38,25 @@ export async function reauth(user: User, password: string, totp: string | undefi
 /** 清空 2FA 并让会话失效；用户下次需重新走 /api/auth-admin/enroll */
 export const RESET_2FA: Prisma.UserUpdateInput = { totpEnabled: false, totpSecret: null, totpLastStep: null, recoveryCodes: [], sessionVersion: { increment: 1 } };
 
+/** 认后端 last-admin.ts 抛出的类型化错误（name LastAdminError 或 code 'last_admin'） */
+export const isLastAdminError = (e: unknown) => e instanceof Error && (e.name === 'LastAdminError' || (e as { code?: unknown }).code === 'last_admin');
+
 export class GuardError extends Error { constructor(public code: 'last_admin' | 'self' | 'not_found') { super(code); } }
 
 /**
  * 在事务里改账号，保证至少保留一个“有效管理员”（role=ADMIN 且未禁用）。
  * 用 advisory lock 串行化所有账号变更，避免两个请求同时各降级一个管理员。
  */
-export async function mutateUser<T>(actor: User, targetId: string, willRemoveAdmin: (t: User) => boolean, fn: (tx: Prisma.TransactionClient, t: User) => Promise<T>) {
+export async function mutateUser<T>(actor: User, targetId: string, change: UserChange | 'delete', fn: (tx: Prisma.TransactionClient, t: User) => Promise<T>) {
   if (targetId === actor.id) throw new GuardError('self');
   return prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('admin-accounts'))`;
     const t = await tx.user.findUnique({ where: { id: targetId } });
     if (!t) throw new GuardError('not_found');
-    if (t.role === 'ADMIN' && !t.disabled && willRemoveAdmin(t)) {
-      const others = await tx.user.count({ where: { role: 'ADMIN', disabled: false, id: { not: t.id } } });
-      if (others === 0) throw new GuardError('last_admin');
+    if (checkUserChange(actor.id, t, change, Number.POSITIVE_INFINITY)) throw new GuardError('self');
+    // 会让对方不再是有效管理员时：同一事务内锁住有效管理员行再检查（last-admin.ts），然后才写
+    if (change === 'delete' || removesActiveAdmin(t, change)) {
+      try { await assertNotLastActiveAdmin(tx, t.id); } catch (e) { if (isLastAdminError(e)) throw new GuardError('last_admin'); throw e; }
     }
     return fn(tx, t);
   });
@@ -58,7 +64,7 @@ export async function mutateUser<T>(actor: User, targetId: string, willRemoveAdm
 
 export const publicUser = (u: User) => ({
   id: u.id, email: u.email, name: u.name, role: u.role as Role, disabled: u.disabled, totpEnabled: u.totpEnabled,
-  locked: !!(u.lockedUntil && u.lockedUntil > new Date()), createdAt: u.createdAt,
+  locked: !!(u.lockedUntil && u.lockedUntil > new Date()), createdAt: u.createdAt, lastLoginAt: u.lastLoginAt ?? null,
 });
 
 /** GuardError 转成响应：404 / 409 cannot_modify_self / 409 last_admin */

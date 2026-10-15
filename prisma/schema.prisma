@@ -68,6 +68,7 @@ model User {
   disabled       Boolean   @default(false)
   failedLogins   Int       @default(0)
   lockedUntil    DateTime?
+  lastLoginAt    DateTime? // 最近一次成功登录（#95 账号管理页显示）
   inquiries      Inquiry[] @relation("Assignee")
   createdAt      DateTime  @default(now())
 }
