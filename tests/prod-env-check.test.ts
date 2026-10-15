@@ -13,6 +13,10 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, NEXT_PUBLIC_LOGO_UPLOAD_MOCK: '1' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, NEXT_PUBLIC_FOO_MOCK: 'true' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, NEXT_PUBLIC_ADMIN_API: 'mock' }).length, 1);
+  // #291：mock 改成动态 import 后，生产环境仍然拒绝 mock 开关
+  assert.equal(prodEnvProblems({ ...base, NEXT_PUBLIC_ADMIN_MAIL: 'mock' }).length, 1);
+  assert.equal(prodEnvProblems({ ...base, NEXT_PUBLIC_ADMIN_MAIL: 'http' }).length, 0);
+  assert.throws(() => assertProdEnv({ ...base, NEXT_PUBLIC_ADMIN_API: 'mock' }), /NEXT_PUBLIC_ADMIN_API/);
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);

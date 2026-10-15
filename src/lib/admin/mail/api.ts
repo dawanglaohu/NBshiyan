@@ -1,5 +1,5 @@
 import type { MailApi } from './types';
-import { mockMailApi } from './mock';
+import { lazyApi } from '../lazyApi';
 import { httpMailApi } from './http';
 
 /**
@@ -13,5 +13,8 @@ const raw = process.env.NEXT_PUBLIC_ADMIN_MAIL;
 export const mailMode: 'off' | 'mock' | 'http' = raw === 'http' ? 'http' : raw === 'mock' ? 'mock' : 'off';
 export const mailEnabled = mailMode !== 'off';
 export const usingMailMock = mailMode === 'mock';
-export const mailApi: MailApi = mailMode === 'http' ? httpMailApi : mockMailApi;
+// #291：条件直接写 process.env（构建时内联成常量），生产包里 mock 分支是死代码，不打包 mock。
+// 只有 mock 模式才用示例数据；off 模式邮件功能整体关闭、不会调用 mailApi，指向 http 实现即可。
+export const mailApi: MailApi = process.env.NEXT_PUBLIC_ADMIN_MAIL !== 'mock' ? httpMailApi
+  : lazyApi<MailApi>(() => import('./mock').then((m) => m.mockMailApi));
 export * from './types';
