@@ -22,10 +22,20 @@ export function isHttpsUrl(u: string): boolean {
   try { return new URL(u).protocol === 'https:'; } catch { return false; }
 }
 
+/** 把 URL 的协议和主机名转成小写（如 HTTPS://Example.COM/Path → https://example.com/Path），路径/查询/片段原样保留；不是 scheme:// 形式的原样返回，交给 isHttpsUrl 判定 */
+export function normalizeUrlSchemeHost(u: string): string {
+  const m = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\/([^/?#]*)/.exec(u);
+  if (!m) return u;
+  const auth = m[2];
+  const at = auth.lastIndexOf('@');
+  const host = at >= 0 ? auth.slice(0, at + 1) + auth.slice(at + 1).toLowerCase() : auth.toLowerCase();
+  return m[1].toLowerCase() + '://' + host + u.slice(m[0].length);
+}
+
 export const Certification = z.object({
   name: text(80).min(1),
   certNo: text(80).min(1).optional(),
-  url: z.string().trim().max(2048).refine(isHttpsUrl, 'https_url_required').optional(),
+  url: z.string().trim().max(2048).transform(normalizeUrlSchemeHost).refine(isHttpsUrl, 'https_url_required').optional(),
 }).strict().refine((c) => !!(c.certNo || c.url), { message: 'cert_no_or_url_required' });
 
 /** PUT /api/admin/specs/:category 的 body：整体替换，省略或 null = 清空该字段 */

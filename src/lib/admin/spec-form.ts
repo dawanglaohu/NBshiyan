@@ -59,6 +59,16 @@ export function fromView(v: SpecView): SpecForm {
 }
 
 /** 证书链接：必须能被 new URL() 解析，协议正好是 https:，长度 ≤ 2048 */
+/** 与服务端 normalizeUrlSchemeHost 一致：协议和主机名转小写，路径原样保留 */
+export function normalizeUrlSchemeHost(u: string): string {
+  const m = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\/([^/?#]*)/.exec(u);
+  if (!m) return u;
+  const auth = m[2];
+  const at = auth.lastIndexOf('@');
+  const host = at >= 0 ? auth.slice(0, at + 1) + auth.slice(at + 1).toLowerCase() : auth.toLowerCase();
+  return m[1].toLowerCase() + '://' + host + u.slice(m[0].length);
+}
+
 export function isHttpsUrl(u: string): boolean {
   if (u.length > URL_MAX) return false;
   try { return new URL(u).protocol === 'https:'; } catch { return false; }
@@ -116,7 +126,7 @@ export function toBody(f: SpecForm): { body: Record<string, unknown> | null; err
 
   if (f.certifications.length > 30) e.certifications = '最多 30 条认证';
   const certs = f.certifications.map((c, i) => {
-    const name = c.name.trim(), certNo = c.certNo.trim(), url = c.url.trim();
+    const name = c.name.trim(), certNo = c.certNo.trim(), url = normalizeUrlSchemeHost(c.url.trim());
     if (!name) e[`certifications.${i}.name`] = '请填写认证名称';
     else if (name.length > 80) e[`certifications.${i}.name`] = '最多 80 个字符';
     if (certNo.length > 80) e[`certifications.${i}.certNo`] = '最多 80 个字符';
