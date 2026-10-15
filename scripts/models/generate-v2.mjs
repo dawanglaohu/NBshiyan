@@ -206,7 +206,7 @@ if (want('ecocup')) {
 }
 // 11) 礼品卡：卡片 + 信封
 if (want('giftcard')) {
-  const card = await svgTex(512, 323, `<defs><linearGradient id="c" x1="0" x2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset="1" stop-color="#a77bd8"/></linearGradient></defs><rect width="512" height="323" rx="24" fill="url(#c)"/><g fill="#fff" ${F}><text x="36" y="80" font-size="44" font-weight="800">GIFT CARD</text><text x="36" y="270" font-size="56" font-weight="800">$50</text></g><rect x="380" y="40" width="90" height="64" rx="10" fill="#f4dc98"/>`);
+  const card = await svgTex(512, 323, `<defs><linearGradient id="c" x1="0" x2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset="1" stop-color="#a77bd8"/></linearGradient></defs><rect width="512" height="323" rx="24" fill="url(#c)"/><g fill="#fff" ${F}><text x="36" y="80" font-size="44" font-weight="800">GIFT CARD</text></g><rect x="380" y="40" width="90" height="64" rx="10" fill="#f4dc98"/>`);
   const env = await svgTex(256, 256, `<rect width="256" height="256" fill="#f6efe2"/>${grain(256, 256)}<path d="M0 0 L128 110 L256 0" stroke="#d9cbb0" stroke-width="3" fill="none"/>`);
   build('gift-card.glb', [
     { name: 'Envelope', geo: [[new Geo().box(0, .001, 0, .17, .002, .115), ['env', env, .9]]] },
@@ -215,7 +215,7 @@ if (want('giftcard')) {
 }
 // 12) 圣诞周边：圆筒礼盒（纸罐）+ 球形挂饰
 if (want('xmas')) {
-  const tube = await svgTex(1024, 512, `<rect width="1024" height="512" fill="#b3202e"/>${Array.from({length: 40}, (_, i) => `<g transform="translate(${(i*97)%1024},${(i*61)%512})" stroke="#fff" stroke-width="3" opacity=".8"><path d="M-12 0 H12 M0 -12 V12 M-8 -8 L8 8 M-8 8 L8 -8"/></g>`).join('')}<g fill="#f4dc98" ${F}><text x="512" y="280" text-anchor="middle" font-size="76" font-weight="800">MERRY CHRISTMAS</text></g>`);
+  const tube = await svgTex(1024, 512, `<rect width="1024" height="512" fill="#b3202e"/>${Array.from({length: 40}, (_, i) => `<g transform="translate(${(i*97)%1024},${(i*61)%512})" stroke="#fff" stroke-width="3" opacity=".8"><path d="M-12 0 H12 M0 -12 V12 M-8 -8 L8 8 M-8 8 L8 -8"/></g>`).join('')}`);
   const capT = await svgTex(256, 256, `<rect width="256" height="256" fill="#1f5a3a"/>${grain(256, 256)}`);
   const body = new Geo().lathe([[.05, 0], [.05, .16]], 48, 0, 0, 0, 1, 1).disc(.05, 0, -1);
   const cap = new Geo().lathe([[.0515, .13], [.0515, .182], [0, .182]], 48);

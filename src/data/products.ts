@@ -11,6 +11,6 @@ export const products: Product[] = [
   { slug: 'color-printing', model: '/models/color-printing.6f6d1883.glb', poster: '/images/posters/custom-color-printing.webp' },
   { slug: 'offset-printing', model: '/models/offset-catalog.ce7ebab1.glb', poster: '/images/posters/custom-offset-printing.webp' },
   { slug: 'eco-paper-cups', model: '/models/eco-paper-cup.1c05faa9.glb', poster: '/images/posters/custom-eco-paper-cups.webp' },
-  { slug: 'gift-cards', model: '/models/gift-card.5f15f08c.glb', poster: '/images/posters/custom-gift-cards.webp' },
-  { slug: 'christmas-merchandise', model: '/models/christmas-tube.e7bde861.glb', poster: '/images/posters/custom-christmas-merchandise.webp' }
+  { slug: 'gift-cards', model: '/models/gift-card.7c3c457b.glb', poster: '/images/posters/custom-gift-cards.webp' },
+  { slug: 'christmas-merchandise', model: '/models/christmas-tube.f063de2e.glb', poster: '/images/posters/custom-christmas-merchandise.webp' }
 ];
