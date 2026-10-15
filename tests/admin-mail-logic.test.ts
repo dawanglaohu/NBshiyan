@@ -111,5 +111,6 @@ test('附件链接过期判断与大小格式', () => {
   assert.equal(L.linkExpired(new Date(Date.now() - 1).toISOString()), true);
   assert.equal(L.linkExpired(new Date(Date.now() + 60_000).toISOString()), false);
   assert.equal(L.fmtSize(2_480_000), '2.4 MB'); assert.equal(L.fmtSize(24_000), '23 KB');
-  assert.equal(L.typeBadge('application/pdf'), 'PDF');
+  assert.equal(L.typeBadge('application/pdf'), 'PDF'); assert.equal(L.typeBadge('application/postscript'), 'AI');
+  assert.equal(L.typeBadge('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'), 'XLSX'); assert.equal(L.typeBadge('application/x-unknown'), 'FILE');
 });

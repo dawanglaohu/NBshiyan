@@ -163,7 +163,8 @@ export const ALREADY_HANDLED = '这封信已被其他人处理，列表已刷新
 // —— 附件 ——
 export const fmtSize = (b: number) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} B`);
 export const linkExpired = (expiresAt: string, now = Date.now()) => new Date(expiresAt).getTime() <= now;
-export const typeBadge = (t: string) => (t.split('/').pop() ?? '').replace(/^vnd\.openxmlformats-officedocument\.(\w+).*$/, '$1').slice(0, 4).toUpperCase() || 'FILE';
+const TYPE_BADGE: [RegExp, string][] = [[/pdf/, 'PDF'], [/postscript|illustrator/, 'AI'], [/spreadsheet|excel|csv/, 'XLSX'], [/wordprocessing|msword/, 'DOCX'], [/presentation|powerpoint/, 'PPTX'], [/zip/, 'ZIP'], [/svg/, 'SVG'], [/png/, 'PNG'], [/jpe?g/, 'JPG'], [/webp/, 'WEBP'], [/gif/, 'GIF'], [/text\/plain/, 'TXT']];
+export const typeBadge = (t: string) => TYPE_BADGE.find(([re]) => re.test(t.toLowerCase()))?.[1] ?? 'FILE';
 
 // —— 正文 iframe（§6 M2 方案 A）——
 export const IFRAME_SANDBOX = 'allow-popups allow-popups-to-escape-sandbox';
@@ -192,5 +193,5 @@ export function buildSrcdoc(html: string): string {
 /** iframe 没有 allow-same-origin 读不到内容高度：按纯文本行数估算，超出部分在 iframe 内滚动 */
 export function estimateHeight(text: string | null | undefined): number {
   const lines = (text ?? '').split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0);
-  return Math.min(480, Math.max(72, lines * 22 + 16));
+  return Math.min(480, Math.max(40, lines * 22 + 12));
 }

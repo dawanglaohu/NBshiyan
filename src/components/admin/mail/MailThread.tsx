@@ -68,7 +68,8 @@ export default function MailThread({ inquiryId, recipient, onAnonymized, onSendA
   if (page === undefined) return <section className="adm-sec ml"><h2>往来邮件</h2><p className="muted">{loadErr ? `加载失败：${loadErr}` : '加载中…'}</p></section>;
   if (page === null) return null;
   const anon = !!page.anonymizedAt;
-  const lastInbound = [...page.items].reverse().find((m) => m.direction === 'INBOUND' && !m.redacted && m.source === 'mail');
+  // 回复默认接最近一封客户本人的来信（跳过自动回复 / 退信）
+  const lastInbound = [...page.items].reverse().find((m) => m.direction === 'INBOUND' && !m.redacted && m.source === 'mail' && !m.flags.includes('auto') && !m.flags.includes('bounce'));
   const pollingNow = Object.values(live).some((s) => s.status === 'SENDING' && !s.unconfirmed);
 
   return (
