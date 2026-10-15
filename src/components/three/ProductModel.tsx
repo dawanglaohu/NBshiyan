@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LoopOnce, type Group } from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
-import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation } from '@needle-tools/gltf-progressive';
+import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation, LODsManager } from '@needle-tools/gltf-progressive';
 import FoldBox, { type BoxView } from './FoldBox';
 
 export type { BoxView };
@@ -19,6 +19,34 @@ const PALETTE: Record<string, { color: string; lid?: string }> = {
 setDracoDecoderLocation('/draco/');
 setKTX2TranscoderLocation('/basis/');
 
+/**
+ * 按需渲染下让 LOD 升级生效：
+ * - gltf-progressive 只在渲染后的帧里检查 LOD（lods.manager.js onAfterRender），updateInterval 'auto' 在低帧率时会拉长到每 10 帧才查一次；
+ *   demand 模式下帧很少，改为 0（每个渲染帧都查，本身不额外产生帧）。
+ * - 更高一级贴图/网格加载完成时库会派发 "changed"（lods.manager.js assignTextureLOD/assignMeshLOD 的 then 里），
+ *   这时 invalidate() 补一帧：既把新贴图画出来，也让下一级 LOD 的检查继续进行，直到 lod0。之后不再有帧，不耗电。
+ * 每个 renderer 只注册一次监听（多个模型共用一个画布，避免一次加载触发多帧）。
+ */
+const lodHooks = new WeakMap<object, { count: number; off: () => void }>();
+function useLodUpgradeRedraw() {
+  const gl = useThree((s) => s.gl);
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const lods = LODsManager.get(gl);
+    lods.updateInterval = 0;
+    let hook = lodHooks.get(gl);
+    if (!hook) {
+      hook = { count: 0, off: lods.addEventListener('changed', () => invalidate()) };
+      lodHooks.set(gl, hook);
+    }
+    hook.count += 1;
+    return () => {
+      const h = lodHooks.get(gl);
+      if (h && --h.count <= 0) { h.off(); lodHooks.delete(gl); }
+    };
+  }, [gl, invalidate]);
+}
+
 function Gltf({ url, view, clip }: { url: string; view?: BoxView; clip?: string }) {
   const gl = useThree((s) => s.gl);
   const root = useRef<Group>(null);
@@ -26,6 +54,7 @@ function Gltf({ url, view, clip }: { url: string; view?: BoxView; clip?: string 
   const { scene, animations } = useGLTF(url, '/draco/', false, (loader) => {
     useNeedleProgressive(loader as never, gl);
   });
+  useLodUpgradeRedraw();
   const { actions } = useAnimations(animations, root);
   const first = useRef(true);
   useEffect(() => {
