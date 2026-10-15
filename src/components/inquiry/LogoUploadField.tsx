@@ -55,7 +55,7 @@ export default function LogoUploadField({ id, value, onChange, notice }: { id: s
         </div>
       )}
       <p id={`${id}-hint`} className="hint" style={{ fontSize: 13, opacity: 0.75, margin: '6px 0 0' }}>{busy ? t('uploading') : t('hint')}</p>
-      <p id={`${id}-err`} role="alert" style={{ color: 'var(--accent-press)', fontSize: 13, margin: error || notice ? '6px 0 0' : 0 }}>
+      <p id={`${id}-err`} role="alert" style={{ color: 'var(--err)', fontSize: 13, margin: error || notice ? '6px 0 0' : 0 }}>
         {error ? t(`errors.${error}`) : notice ?? ''}
       </p>
     </div>

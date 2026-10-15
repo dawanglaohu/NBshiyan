@@ -1,0 +1,9 @@
+// #147 contrast check: node design/contrast/coral-147.mjs
+const L=h=>{const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const cr=(a,b)=>{const[x,y]=[L(a),L(b)].sort((p,q)=>q-p);return (x+.05)/(y+.05)};
+const pairs=[
+ ['before normal','#FFFFFF','#FF5A36'],['before cream','#FBF8F3','#FF5A36'],['before pressed','#FFFFFF','#E0401F'],['navy on old pressed','#1F2A44','#E0401F'],
+ ['normal','#1F2A44','#FF5A36'],['hover','#1F2A44','#FF7452'],['active','#1F2A44','#FF866A'],['disabled (opacity .55 on #FBF8F3)','#1F2A44','#FDA591'],
+ ['CTA band btn (navy bg, white text)','#FFFFFF','#1F2A44'],['focus ring #C2381A vs bg #FBF8F3','#C2381A','#FBF8F3'],['USED: .btn focus ring navy vs coral btn','#1F2A44','#FF5A36'],['USED: .btn focus ring navy vs hover btn','#1F2A44','#FF7452'],['USED: .btn focus ring navy vs page #FBF8F3','#1F2A44','#FBF8F3'],['USED: .btn focus ring navy vs white','#1F2A44','#FFFFFF'],['premium ring #121214 vs gold','#121214','#D4AF6A'],['premium ring #121214 vs premium bg (FAIL expected)','#121214','#121214'],['REJECTED: focus ring #C2381A vs coral btn','#C2381A','#FF5A36'],['focus ring #C2381A vs hover btn','#C2381A','#FF7452'],['focus ring #C2381A vs white surface','#C2381A','#FFFFFF'],
+ ['CTA btn hover (white on #2E3B5C)','#FFFFFF','#2E3B5C'],['CTA focus ring navy vs coral band','#1F2A44','#FF5A36'],['CTA focus ring navy vs navy btn (offset gap = coral)','#1F2A44','#FF5A36']];
+for(const[n,f,b]of pairs)console.log(`${n.padEnd(40)} ${f} on ${b}  ${cr(f,b).toFixed(2)}:1 ${cr(f,b)>=4.5?'AA(4.5)':cr(f,b)>=3?'>=3 (non-text ok)':'FAIL'}`);
