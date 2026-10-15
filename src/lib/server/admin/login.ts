@@ -4,6 +4,7 @@ import type { User } from '@prisma/client';
 import { prisma } from '../db';
 import { hitRateLimit } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
+import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
 
 authenticator.options = { window: 1, step: 30 };
@@ -34,7 +35,11 @@ async function fail(user: User | null, email: string, ip: string | null, reason:
       where: { id: user.id },
       data: n >= MAX_FAILS ? { failedLogins: 0, lockedUntil: new Date(Date.now() + LOCK_MS) } : { failedLogins: n },
     });
-    if (n >= MAX_FAILS) await audit({ actorId: user.id, action: 'auth.lockout', ip });
+    if (n >= MAX_FAILS) {
+      await audit({ actorId: user.id, action: 'auth.lockout', ip });
+      // 账号被锁定时告警（同一账号 30 分钟最多 1 封）；只发账号 id 和 IP，不含密码或验证码
+      await sendAdminAlert('后台账号被锁定', { 账号ID: user.id, IP: ip ?? '未知', 锁定分钟: LOCK_MS / 60_000 }, `lockout:${user.id}`);
+    }
   }
   await audit({ actorId: user?.id ?? null, action: 'auth.login_fail', target: email.slice(0, 200), meta: { reason }, ip });
 }
@@ -82,7 +87,7 @@ export async function authorizeLogin(input: { email: string; password: string; t
   if (typeof user === 'string') return null;
   if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: email, meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
   if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
-  await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null } });
+  await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: 'auth.login_success', target: email, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
   return user;
 }

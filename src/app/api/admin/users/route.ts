@@ -6,6 +6,7 @@ import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { hashPassword, passwordPolicyError, publicUser } from '@/lib/server/admin/accounts';
+import { normalizeAccountEmail } from '@/lib/server/admin/user-policy';
 
 export const runtime = 'nodejs';
 
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
 }
 
 const Create = z.object({
-  email: z.string().trim().toLowerCase().email().max(200),
+  email: z.string().max(254).transform(normalizeAccountEmail).pipe(z.string().email().max(200)),
   name: z.string().trim().min(1).max(100),
   role: z.enum(['ADMIN', 'SALES', 'EDITOR']),
   password: z.string().max(200), // 初始密码，线下告知；对方登录前须先绑定 2FA
@@ -51,6 +52,6 @@ export async function POST(req: Request) {
   if (policy) return jsonErr(policy, 422);
   if (await prisma.user.findUnique({ where: { email: p.data.email }, select: { id: true } })) return jsonErr('email_taken', 409);
   const u = await prisma.user.create({ data: { email: p.data.email, name: p.data.name, role: p.data.role, passwordHash: await hashPassword(p.data.password) } });
-  await audit({ actorId: ctx.user.id, action: 'user.create', target: u.id, meta: { role: u.role }, ip: ctx.ip });
+  await audit({ actorId: ctx.user.id, action: 'user.create', target: u.id, meta: { changes: { role: { from: null, to: u.role }, disabled: { from: null, to: false } } }, ip: ctx.ip });
   return NextResponse.json(publicUser(u), { status: 201, headers: noStore });
 }

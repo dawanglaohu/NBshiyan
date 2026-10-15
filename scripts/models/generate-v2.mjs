@@ -131,8 +131,8 @@ if (want('wine')) {
 // 4) 彩盒：反插式（tuck-end）折叠彩盒 80×40×160，四色印刷
 if (want('color')) {
   const W = .08, D = .04, H = .16, t = .0006;
-  const art = await svgTex(1024, 1024, `<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset=".55" stop-color="#ffb347"/><stop offset="1" stop-color="#4fb3bf"/></linearGradient></defs><rect width="1024" height="1024" fill="url(#a)"/><circle cx="760" cy="300" r="190" fill="#fff" opacity=".25"/><g fill="#fff" ${F}><text x="70" y="560" font-size="120" font-weight="800">GLOW</text><text x="74" y="620" font-size="40">VITAMIN C SERUM · 30 ml</text></g><rect x="70" y="860" width="240" height="70" rx="35" fill="#fff"/><text x="190" y="907" text-anchor="middle" fill="#ff7a59" ${F} font-size="34" font-weight="700">NEW</text>`);
-  const sideArt = await svgTex(256, 1024, `<rect width="256" height="1024" fill="#4fb3bf"/><g fill="#fff" ${F} font-size="22"><text x="20" y="80">INGREDIENTS</text>${Array.from({length: 10}, (_, i) => `<rect x="20" y="${110 + i*30}" width="${150 + (i*37)%60}" height="8" opacity=".8"/>`).join('')}</g>${Array.from({length: 30}, (_, i) => `<rect x="${30 + i*6}" y="900" width="${(i*5)%3 + 1}" height="80" fill="#111"/>`).join('')}`);
+  const art = await svgTex(1024, 1024, `<defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset=".55" stop-color="#ffb347"/><stop offset="1" stop-color="#4fb3bf"/></linearGradient></defs><rect width="1024" height="1024" fill="url(#a)"/><circle cx="760" cy="300" r="190" fill="#fff" opacity=".25"/><g fill="#1f2a44" ${F}><text x="70" y="560" font-size="120" font-weight="800">PackJoyU</text><text x="74" y="620" font-size="40">CUSTOM PRINTED BOXES</text></g>`);
+  const sideArt = await svgTex(256, 1024, `<rect width="256" height="1024" fill="#4fb3bf"/>`);
   const a = ['colorBoxFront', art, .45], s = ['colorBoxSide', sideArt, .45];
   const g = new Geo().box(0, H/2, D/2 - t/2, W, H, t).box(0, H/2, -D/2 + t/2, W, H, t);
   const sides = new Geo().box(W/2 - t/2, H/2, 0, t, H, D).box(-W/2 + t/2, H/2, 0, t, H, D);
@@ -196,17 +196,17 @@ if (want('offset')) {
 }
 // 10) 环保纸杯：牛皮纸杯 + PLA 盖 + 杯套
 if (want('ecocup')) {
-  const wrap = await svgTex(1024, 512, kraftBase(1024, 512, '#c9a676') + `<g fill="#2f6b3a" ${F}><text x="512" y="230" text-anchor="middle" font-size="80" font-weight="800">100% PLASTIC FREE</text><text x="512" y="300" text-anchor="middle" font-size="34">COMPOSTABLE · FSC®</text></g>${Array.from({length: 6}, (_, i) => `<path transform="translate(${80 + i*170},400)" d="M0 40 C 10 0 50 0 60 -10 C 55 30 30 50 0 40 Z" fill="#4c9a5a"/>`).join('')}`);
-  const sleeve = await svgTex(512, 128, kraftBase(512, 128, '#a87d4c') + Array.from({length: 32}, (_, i) => `<rect x="${i*16}" width="6" height="128" fill="#8a6238" opacity=".5"/>`).join(''));
+  const wrap = await svgTex(1024, 512, kraftBase(1024, 512, '#8e5f36') + `<g fill="#2a1c10" ${F}>${[128, 384, 640, 896].map(x => `<text x="${x}" y="78" text-anchor="middle" font-size="40" font-weight="800">PackJoyU</text>`).join('')}<text x="512" y="300" text-anchor="middle" font-size="30" letter-spacing="10">CUSTOM PAPER CUPS</text></g>${Array.from({length: 16}, (_, i) => `<circle cx="${40 + i*63}" cy="410" r="9" fill="#FF5A36" opacity=".85"/>`).join('')}`);  // 中性图案：不印无依据的环保/认证声明
+  const sleeve = await svgTex(512, 128, kraftBase(512, 128, '#734a26') + Array.from({length: 32}, (_, i) => `<rect x="${i*16}" width="6" height="128" fill="#6a4524" opacity=".55"/>`).join(''));
   const cup = new Geo().lathe(cupProfile(.11, .028, .045), 48, 0, 0, 0, 1, 1);
-  const inside = new Geo().lathe([[.044, .108], [.029, .01], [0, .009]], 48);
+  const inside = new Geo().lathe([[.044, .108], [.0265, .012], [0, .011]], 48);
   const sl = new Geo().lathe([[.0365, .035], [.0425, .085]], 48, 0, 0, 0, 1, 2);
   const lid = new Geo().lathe([[.047, .108], [.048, .118], [.038, .124], [.012, .126], [0, .126]], 48);
-  build('eco-paper-cup.glb', [{ name: 'Cup', geo: [[cup, ['ecoWrap', wrap, .8]], [inside, ['kraftIn', kraftTex, .9, 0, { double: true }]], [sl, ['sleeve', sleeve, .95, 0, { double: true }]], [lid, ['plaLid', null, .5, 0, { color: [.93, .9, .82, 1] }]]] }]);
+  build('eco-paper-cup.glb', [{ name: 'Cup', geo: [[cup, ['ecoWrap', wrap, .88]], [inside, ['kraftIn', kraftTex, .9, 0, { double: true }]], [sl, ['sleeve', sleeve, .95, 0, { double: true }]], [lid, ['plaLid', null, .42, 0, { color: [.42, .4, .37, 1] }]]] }]);
 }
 // 11) 礼品卡：卡片 + 信封
 if (want('giftcard')) {
-  const card = await svgTex(512, 323, `<defs><linearGradient id="c" x1="0" x2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset="1" stop-color="#a77bd8"/></linearGradient></defs><rect width="512" height="323" rx="24" fill="url(#c)"/><g fill="#fff" ${F}><text x="36" y="80" font-size="44" font-weight="800">GIFT CARD</text><text x="36" y="270" font-size="56" font-weight="800">$50</text></g><rect x="380" y="40" width="90" height="64" rx="10" fill="#f4dc98"/>`);
+  const card = await svgTex(512, 323, `<defs><linearGradient id="c" x1="0" x2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset="1" stop-color="#a77bd8"/></linearGradient></defs><rect width="512" height="323" rx="24" fill="url(#c)"/><g fill="#fff" ${F}><text x="36" y="80" font-size="44" font-weight="800">GIFT CARD</text></g><rect x="380" y="40" width="90" height="64" rx="10" fill="#f4dc98"/>`);
   const env = await svgTex(256, 256, `<rect width="256" height="256" fill="#f6efe2"/>${grain(256, 256)}<path d="M0 0 L128 110 L256 0" stroke="#d9cbb0" stroke-width="3" fill="none"/>`);
   build('gift-card.glb', [
     { name: 'Envelope', geo: [[new Geo().box(0, .001, 0, .17, .002, .115), ['env', env, .9]]] },
@@ -215,7 +215,7 @@ if (want('giftcard')) {
 }
 // 12) 圣诞周边：圆筒礼盒（纸罐）+ 球形挂饰
 if (want('xmas')) {
-  const tube = await svgTex(1024, 512, `<rect width="1024" height="512" fill="#b3202e"/>${Array.from({length: 40}, (_, i) => `<g transform="translate(${(i*97)%1024},${(i*61)%512})" stroke="#fff" stroke-width="3" opacity=".8"><path d="M-12 0 H12 M0 -12 V12 M-8 -8 L8 8 M-8 8 L8 -8"/></g>`).join('')}<g fill="#f4dc98" ${F}><text x="512" y="280" text-anchor="middle" font-size="76" font-weight="800">MERRY CHRISTMAS</text></g>`);
+  const tube = await svgTex(1024, 512, `<rect width="1024" height="512" fill="#b3202e"/>${Array.from({length: 40}, (_, i) => `<g transform="translate(${(i*97)%1024},${(i*61)%512})" stroke="#fff" stroke-width="3" opacity=".8"><path d="M-12 0 H12 M0 -12 V12 M-8 -8 L8 8 M-8 8 L8 -8"/></g>`).join('')}`);
   const capT = await svgTex(256, 256, `<rect width="256" height="256" fill="#1f5a3a"/>${grain(256, 256)}`);
   const body = new Geo().lathe([[.05, 0], [.05, .16]], 48, 0, 0, 0, 1, 1).disc(.05, 0, -1);
   const cap = new Geo().lathe([[.0515, .13], [.0515, .182], [0, .182]], 48);
