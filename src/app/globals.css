@@ -14,8 +14,10 @@ header.site{display:flex;gap:20px;align-items:center;justify-content:space-betwe
 header.site .logo{font-weight:800;font-size:20px;text-decoration:none}header.site .logo i{color:var(--accent-text);font-style:normal}
 header.site nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
 header.site nav a{text-decoration:none}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 20px;border-radius:var(--r-pill);border:1.5px solid var(--accent);background:var(--accent);color:#fff;font:inherit;font-weight:700;text-decoration:none;cursor:pointer;transition:background var(--dur) var(--ease)}
-.btn:hover{background:var(--accent-press);border-color:var(--accent-press)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 20px;border-radius:var(--r-pill);border:1.5px solid var(--accent);background:var(--accent);color:var(--on-accent);font:inherit;font-weight:700;text-decoration:none;cursor:pointer;transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn:not(.ghost):active{background:var(--accent-press);border-color:var(--accent-press);box-shadow:inset 0 2px 4px rgba(31,42,68,.28)}
+.btn:focus-visible{outline:2px solid var(--on-accent);outline-offset:3px} /* #147 焦点环用海军蓝：对按钮 4.59:1、对页面底 ≥13:1 */
 .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 .btn.ghost:hover{border-color:var(--accent);background:transparent}
 .btn.sm{min-height:36px;padding:6px 14px;font-size:var(--fs-small)}
@@ -33,8 +35,8 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .entry a:hover{border-color:var(--accent)}
 .premium-band{border-radius:var(--r-lg);padding:48px 32px}
 .premium-band h2{color:var(--gold)}
-.cta-band{background:var(--accent);color:#fff;border-radius:var(--r-lg);padding:40px 32px;display:flex;gap:20px;justify-content:space-between;align-items:center;flex-wrap:wrap}
-.cta-band h2{margin:0;color:#fff}.cta-band .btn{background:#fff;color:var(--accent);border-color:#fff}
+.cta-band{background:var(--accent);color:var(--on-accent);border-radius:var(--r-lg);padding:40px 32px;display:flex;gap:20px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.cta-band h2{margin:0;color:var(--on-accent)}.cta-band .btn{background:var(--on-accent);color:#fff;border-color:var(--on-accent)}.cta-band .btn:hover{background:#2E3B5C;border-color:#2E3B5C}.cta-band .btn:active{box-shadow:inset 0 2px 4px rgba(0,0,0,.3)}.cta-band .btn:focus-visible{outline-color:var(--on-accent)}
 /* 3D 展示页 */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
 .card{background:var(--surface);color:var(--ink);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
@@ -56,9 +58,9 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 /* 悬浮按钮组：右下角；Cookie 条在左下 */
 .fab{position:fixed;right:16px;bottom:16px;z-index:40;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
 .fab button,.fab a{position:relative;width:52px;height:52px;border-radius:50%;border:0;background:var(--ink);color:#fff;font:inherit;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);text-decoration:none}
-.fab .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;line-height:20px;text-align:center}
+.fab .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:700;line-height:20px;text-align:center}
 .fab .toggle{display:none}
-@media (max-width:767px){.fab .toggle{display:flex;background:var(--accent)}.fab:not(.open) .item{display:none}}
+@media (max-width:767px){.fab .toggle{display:flex;background:var(--accent);color:var(--on-accent)}.fab:not(.open) .item{display:none}}
 /* 询价清单抽屉 */
 .drawer-mask{position:fixed;inset:0;background:rgb(0 0 0/.35);z-index:50}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:var(--surface);z-index:51;display:flex;flex-direction:column;box-shadow:var(--shadow)}
@@ -142,11 +144,11 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 /* Cookie 同意条：左下角细条，右侧给悬浮按钮组（52px + 16px 边距）留出空间 */
 .consent{position:fixed;left:16px;bottom:16px;z-index:45;max-width:min(560px,calc(100vw - 100px));display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px;background:#fffaf5;color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);font-size:13px;line-height:1.4;animation:consent-in .25s ease-out}
 .consent p{margin:0;flex:1 1 220px}
-.consent a{color:var(--accent);font-weight:600;display:inline-block;padding:13px 0;margin:-13px 0} /* #184 可点高度 ≥44px，视觉行高不变 */
+.consent a{color:var(--accent-text);text-decoration:underline;text-underline-offset:2px;font-weight:600;display:inline-block;padding:13px 0;margin:-13px 0} /* #184 可点高度 ≥44px，视觉行高不变 */
 .consent-actions{display:flex;gap:8px}
 .consent-actions button{font:inherit;font-weight:600;font-size:13px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--accent);background:#fff;color:var(--ink);cursor:pointer}
-.consent-actions button:hover{background:var(--accent);color:#fff}
-.consent-actions button:focus-visible,.consent a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.consent-actions button:hover{background:var(--accent);color:var(--on-accent)}
+.consent-actions button:focus-visible,.consent a:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
 @keyframes consent-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes consent-fade{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.consent{animation:consent-fade var(--dur-base) var(--ease-out)}.card .stage img{transition-duration:var(--dur-base)}}
@@ -155,6 +157,14 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
   .consent{left:12px;right:12px;bottom:12px;max-width:none}
   .fab{transition:bottom .2s ease}
   html.has-consent .fab{bottom:calc(12px + var(--consent-h,0px) + 12px)}
+  /* #116 询价流程里不显示悬浮按钮组 */
+  .fab.fab-quote{display:none}
+  /* #116 同意条压缩：三个按钮排成一行，文案保持原字号（12px 时 Manrope 空格仅约 2px，看起来像没有空格），不截断，保留隐私政策链接；页面底部留白仍由 --consent-h 跟随实际高度 */
+  html .consent{padding:8px 10px;gap:6px}
+  html .consent p{flex:1 1 100%}
+  html .consent .consent-actions{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  html .consent .consent-actions button.consent-set{grid-column:auto}
+  html .consent .consent-actions button{padding:0 8px;font-size:13px;white-space:nowrap}
 }
 @media (max-width:767px) and (prefers-reduced-motion:reduce){.fab{transition:none}}
 
@@ -174,6 +184,7 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
 
 /* #148 方案 B（Ryan 确认）：深色区金色按钮保留 #D4AF6A 底，文字用深色 --on-accent #121214（9.03:1）；hover 变浅 #E2C285（10.95:1），不加深 */
 .theme-premium .btn:not(.ghost){color:var(--on-accent)}
+.theme-premium .btn:focus-visible{outline-color:var(--gold)} /* 深色区焦点环用金色，对 #121214 为 9.03:1 */
 .theme-premium .btn:not(.ghost):hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 
 /* #195 本地化 404 */
@@ -201,7 +212,8 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 /* #185 Cookie 设置（design/cookie-settings.html）：拒绝/接受同为珊瑚色、等宽（#147 未定前沿用 #FF5A36 + 深色字）；设置/保存为描边次按钮；所有可点 ≥44px */
 .consent .consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1 1 100%}
 .consent-main,.consent-set{font:inherit;font-weight:600;font-size:14px;min-height:44px;padding:0 16px;border-radius:var(--r-sm);cursor:pointer;line-height:1.2}
-.consent .consent-actions button.consent-main,.cs-foot .consent-main{background:#FF5A36;border:1.5px solid #FF5A36;color:#1C1C1C}
+.consent .consent-actions button.consent-main,.cs-foot .consent-main{background:var(--accent);border:1.5px solid var(--accent);color:var(--on-accent)}
+.consent .consent-actions button.consent-main:hover,.cs-foot .consent-main:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .consent .consent-actions button.consent-main:hover,.cs-foot .consent-main:hover{background:#FF7A5C;border-color:#FF7A5C;color:#1C1C1C}
 .consent .consent-actions button.consent-set,.cs-foot .consent-set{grid-column:1/-1;background:transparent;border:1.5px solid var(--ink);color:var(--ink)}
 .consent .consent-actions button.consent-set:hover,.cs-foot .consent-set:hover{background:var(--surface);color:var(--ink)}

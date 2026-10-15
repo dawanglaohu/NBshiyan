@@ -117,6 +117,7 @@ export default function InquiryWizard() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step < 2) { setStep(step + 1); return; }
+    if (awaitingCheck) return;
     if (overLimit) return; // never auto-trim: user must remove items first
     const fd = new FormData(e.currentTarget);
     const quantity = QTY.find((q) => q.k === qty)?.v;
@@ -167,6 +168,9 @@ export default function InquiryWizard() {
       if (widgetId.current) getTurnstile()?.reset(widgetId.current);
     }
   }
+
+  // 配置了 Turnstile 但还没拿到令牌时，第 3 步不能提交（#181）；令牌清空/重置逻辑不变
+  const awaitingCheck = step === 2 && Boolean(SITE_KEY) && !turnstileToken;
 
   if (result?.ok) {
     return (
@@ -250,8 +254,9 @@ export default function InquiryWizard() {
       {overLimit && <p id="iq-over" className="quote-notice" role="status" aria-live="polite">{t('overLimit', { max: QUOTE_MAX_ITEMS, n: selected.length })}</p>}
       <div className="row">
         {step > 0 ? <button type="button" className="btn ghost" onClick={() => setStep(step - 1)}>{t('back')}</button> : <span />}
-        <button type="submit" className="btn" disabled={busy || (step === 2 && overLimit)} aria-disabled={busy || (step === 2 && overLimit)} aria-describedby={overLimit ? 'iq-over' : undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
+        <button type="submit" className="btn" disabled={busy || awaitingCheck || (step === 2 && overLimit)} aria-disabled={busy || awaitingCheck || (step === 2 && overLimit) || undefined} aria-describedby={[overLimit ? 'iq-over' : '', awaitingCheck ? 'iq-check-hint' : ''].filter(Boolean).join(' ') || undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
       </div>
+      {awaitingCheck && <p id="iq-check-hint" className="hint" role="status" style={{ fontSize: 13, opacity: 0.75, margin: '8px 0 0', textAlign: 'right' }}>{t('checking')}</p>}
     </form>
   );
 }
