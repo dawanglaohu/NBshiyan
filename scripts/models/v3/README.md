@@ -28,3 +28,11 @@ for m in giftcard offset colorprint; do TEX_DIR=tex-b1/ blender -b --python buil
 for f in gift-card offset-catalog color-printing; do PREVIEW_TEX=32 node ../progressive.mjs out-b1/$f.glb ../../../public/models $f; done
 ```
 真实尺寸：CR80 卡 85.6×53.98×0.76mm R3.18 + 110×75 信封；精装 207×280 书芯、3mm 飘口、2.5mm 书板、圆脊；99×210 三折页 + A5 传单。品牌仅 PackJoyU。
+
+## #77 batch 2：反插彩盒 / 圣诞纸罐 / 30 枚纸浆蛋托
+```bash
+node decals-b2.mjs tex-b2/
+for m in color xmas pulp; do TEX_DIR=tex-b2/ blender -b --python build_b2.py -- $m out-b2; done
+for f in color-box christmas-tube pulp-egg-tray; do PREVIEW_TEX=32 node ../progressive.mjs out-b2/$f.glb ../../../public/models $f; done
+```
+彩盒 80×40×160、0.45mm 白卡，顶盖开 115° 见插舌与防尘翼（仅 PackJoyU + CUSTOM PRINTED BOXES，无 NEW/成分表/条码）；纸罐 Ø100×160 + Ø102 盖（不印 MER… 文字）+ Ø70 挂球；蛋托 300×300、6×5 窝、1.6mm 壁厚。
