@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { products } from '@/data/products';
 import { useQuote } from '@/components/quote/QuoteProvider';
+import { QUOTE_MAX_ITEMS, isOverQuoteLimit } from '@/lib/quote/list';
 import LogoUploadField from './LogoUploadField';
 import { LOGO_TTL_MS, type LogoUpload } from '@/lib/client/logoUpload';
 
@@ -30,6 +31,7 @@ export default function InquiryWizard() {
   const [step, setStep] = useState(0);
   const [fromQuote, setFromQuote] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const overLimit = isOverQuoteLimit(selected.length);
   const [qty, setQty] = useState<string>('unsure');
   const [size, setSize] = useState('');
   const [material, setMaterial] = useState<string>('unsure');
@@ -51,6 +53,7 @@ export default function InquiryWizard() {
     return () => clearTimeout(id);
   }, [wait]);
   const prefilled = useRef(false);
+  const prevQuote = useRef<string[]>([]);
 
   // 从询价清单进来时预填产品
   useEffect(() => {
@@ -61,6 +64,11 @@ export default function InquiryWizard() {
       prefilled.current = true;
       setSelected(quote.items.map((i) => i.slug));
     }
+    // 从清单抽屉里删除的条目同步移出（用户自行删减，绝不自动截断）
+    const now = new Set(quote.items.map((i) => i.slug));
+    const gone = prevQuote.current.filter((s) => !now.has(s));
+    prevQuote.current = [...now];
+    if (gone.length) setSelected((p) => p.filter((s) => !gone.includes(s)));
   }, [quote.items]);
 
   // Turnstile 只在配置了站点密钥时加载（CSP 已放行 challenges.cloudflare.com）
@@ -110,6 +118,7 @@ export default function InquiryWizard() {
     e.preventDefault();
     if (step < 2) { setStep(step + 1); return; }
     if (awaitingCheck) return;
+    if (overLimit) return; // never auto-trim: user must remove items first
     const fd = new FormData(e.currentTarget);
     const quantity = QTY.find((q) => q.k === qty)?.v;
     const config: Record<string, string> = {};
@@ -127,7 +136,7 @@ export default function InquiryWizard() {
       locale,
       contact: { name: c(contact.name), email: c(contact.email), company: c(contact.company), phone: c(contact.phone), region: c(contact.region) },
       message: message.trim() || undefined,
-      items: selected.slice(0, 20).map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
+      items: selected.map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),
       attribution: { page: window.location.pathname },
       website: String(fd.get('website') ?? ''),
       turnstileToken: turnstileToken || opt('cf-turnstile-response'),
@@ -242,9 +251,10 @@ export default function InquiryWizard() {
         </div>
       )}
 
+      {overLimit && <p id="iq-over" className="quote-notice" role="status" aria-live="polite">{t('overLimit', { max: QUOTE_MAX_ITEMS, n: selected.length })}</p>}
       <div className="row">
         {step > 0 ? <button type="button" className="btn ghost" onClick={() => setStep(step - 1)}>{t('back')}</button> : <span />}
-        <button type="submit" className="btn" disabled={busy || awaitingCheck} aria-disabled={busy || awaitingCheck || undefined} aria-describedby={awaitingCheck ? 'iq-check-hint' : undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
+        <button type="submit" className="btn" disabled={busy || awaitingCheck || (step === 2 && overLimit)} aria-disabled={busy || awaitingCheck || (step === 2 && overLimit) || undefined} aria-describedby={[overLimit ? 'iq-over' : '', awaitingCheck ? 'iq-check-hint' : ''].filter(Boolean).join(' ') || undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
       </div>
       {awaitingCheck && <p id="iq-check-hint" className="hint" role="status" style={{ fontSize: 13, opacity: 0.75, margin: '8px 0 0', textAlign: 'right' }}>{t('checking')}</p>}
     </form>

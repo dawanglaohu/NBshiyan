@@ -16,6 +16,11 @@ const isProd = process.env.VERCEL_ENV === 'production';
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: { formats: ['image/avif', 'image/webp'] },
+  // IndexNow 密钥文件 /{key}.txt（Refs #74）。中间件的 matcher 不处理带点的路径，所以不会进多语言路由；
+  // 功能关闭或文件名不对时，路由返回 404。
+  async rewrites() {
+    return [{ source: '/:file([a-zA-Z0-9-]{8,128}\\.txt)', destination: '/api/indexnow-key/:file' }];
+  },
   async headers() {
     const headers = [
       // 全站 CSP：/api/admin/uploads/* 除外，由该接口自己返回 `default-src 'none'; sandbox`，避免被全站 CSP 覆盖
