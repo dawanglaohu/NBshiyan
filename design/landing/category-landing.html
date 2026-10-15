@@ -130,11 +130,11 @@ const T={
 en:{nav:['Products','3D customizer','Articles','Contact'],home:'Home',products:'Products',quote:'Request a quote',custom:'Customize in 3D',rotate:'Drag to rotate',open:'Open box',
  why:'Why PackJoyU',specs:'Specifications & options',key:'Key specs',options:'Options',certs:'Certificates',how:'How it works',faq:'Frequently asked questions',related:'Related products',reading:'Further reading',
  f:{size:'Size range',material:'Material',moq:'Minimum order',sample:'Sample fee',lead:'Lead time',terms:'Trade terms'},free:'Free',days:'days',pcs:'pcs',
- ctaT:'Get a quote for your boxes',ctaP:'Send size, quantity and artwork — we reply within 24 hours.',newtab:'(opens in a new tab)',certNo:'Cert. no.',foot:['Privacy','Cookie settings','Contact']},
+ ctaT:'Get a quote for your boxes',ctaP:'Send size, quantity and artwork — we will reply soon.',newtab:'(opens in a new tab)',certNo:'Cert. no.',foot:['Privacy','Cookie settings','Contact']},
 ru:{nav:['Продукция','3D-конструктор','Статьи','Контакты'],home:'Главная',products:'Продукция',quote:'Запросить расчёт',custom:'Собрать в 3D',rotate:'Потяните, чтобы повернуть',open:'Открыть коробку',
  why:'Почему PackJoyU',specs:'Характеристики и опции',key:'Основные параметры',options:'Опции',certs:'Сертификаты',how:'Как мы работаем',faq:'Частые вопросы',related:'Похожие товары',reading:'Полезные статьи',
  f:{size:'Размеры',material:'Материал',moq:'Минимальный тираж',sample:'Стоимость образца',lead:'Срок производства',terms:'Условия поставки'},free:'Бесплатно',days:'дн.',pcs:'шт.',
- ctaT:'Рассчитаем стоимость вашей упаковки',ctaP:'Пришлите размеры, тираж и макет — ответим в течение 24 часов.',newtab:'(откроется в новой вкладке)',certNo:'№',foot:['Конфиденциальность','Настройки cookie','Контакты']}};
+ ctaT:'Рассчитаем стоимость вашей упаковки',ctaP:'Пришлите размеры, тираж и макет — мы скоро ответим.',newtab:'(откроется в новой вкладке)',certNo:'№',foot:['Конфиденциальность','Настройки cookie','Контакты']}};
 const C={ // copy from docs/content (#188); TBD rows removed
 corr:{en:{h1:'Custom Corrugated Boxes',lead:'PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives.',
  why:[['Made to your size','Every box is cut to your product dimensions, reducing void fill and shipping volume.'],['Branded unboxing','Flexo or digital printing inside and outside, from one-color logos to full artwork.'],['Built for transit','Board grade and flute selected for your product weight and shipping route.'],['Factory-direct export','One supplier from structural design to export packing and documentation.']],
@@ -158,17 +158,17 @@ wine:{en:{h1:'Custom Wine Boxes',lead:'PackJoyU manufactures luxury wine and spi
  read:['/en/articles/corporate-gift-packaging-planning-guide','timeline for corporate gift packaging']}}};
 C.wine.en.how=C.corr.en.how;
 // DEMO spec payloads (shape = /api/specs). Values are placeholders for layout only — NOT real data.
-const SPEC_PARTIAL={size:{min:100,max:600,unit:'mm'},moq:{value:500,unit:'pcs'},sample:{free:true},certifications:[{name:'FSC®',certNo:'XXX-COC-000000',url:'https://info.fsc.org/'},{name:'ISO 9001',certNo:'00000000'}]};
-const SPEC_FULL={size:{min:80,max:400,unit:'mm'},material:{en:'Rigid greyboard 1.5–2 mm + specialty paper'},moq:{value:300,unit:'pcs'},sample:{amount:50,currency:'USD'},lead:{min:15,max:25,unit:'days'},terms:{en:'FOB Ningbo · CIF · DAP'},certifications:[{name:'FSC®',certNo:'XXX-COC-000000',url:'https://info.fsc.org/'}]};
+const SPEC_PARTIAL={size:{min:100,max:600,unit:'mm'},moq:{value:'{{待Ryan确认}}',unit:'pcs'},sample:{amount:'{{待Ryan确认}}',currency:''},certifications:[{name:'ISO 9001',certNo:'00000000'}]};
+const SPEC_FULL={size:{min:80,max:400,unit:'mm'},material:{en:'Rigid greyboard 1.5–2 mm + specialty paper'},moq:{value:'{{待Ryan确认}}',unit:'pcs'},sample:{amount:'{{待Ryan确认}}',currency:''},lead:{min:'{{待Ryan确认}}',max:null,unit:'days'},terms:{en:'FOB Ningbo · CIF · DAP'}};
 function nf(l,n){return new Intl.NumberFormat(l==='ru'?'ru-RU':'en-US').format(n)}
 function specHTML(l,s,t){
  if(!s) return '';
  const f=t.f,row=[];
  if(s.size)row.push([f.size,`${nf(l,s.size.min)}–${nf(l,s.size.max)} <small>${l==='ru'?'мм':'mm'}</small>`]);
  if(s.material)row.push([f.material,`<span style="font-size:16px">${s.material[l]||s.material.en}</span>`]);
- if(s.moq)row.push([f.moq,`${nf(l,s.moq.value)} <small>${t.pcs}</small>`]);
- if(s.sample)row.push([f.sample,s.sample.free?t.free:`${nf(l,s.sample.amount)} <small>${s.sample.currency}</small>`]);
- if(s.lead)row.push([f.lead,`${s.lead.min}–${s.lead.max} <small>${t.days}</small>`]);
+ if(s.moq)row.push([f.moq,`${typeof s.moq.value==='string'?s.moq.value:`${nf(l,s.moq.value)} <small>${t.pcs}</small>`}`]);
+ if(s.sample)row.push([f.sample,s.sample.free?t.free:(typeof s.sample.amount==='string'?s.sample.amount:`${nf(l,s.sample.amount)} <small>${s.sample.currency}</small>`)]);
+ if(s.lead)row.push([f.lead,(typeof s.lead.min==='string'?s.lead.min:`${s.lead.min}–${s.lead.max} <small>${t.days}</small>`)]);
  if(s.terms)row.push([f.terms,`<span style="font-size:16px">${s.terms[l]||s.terms.en}</span>`]);
  return row.length?`<h3 class="subh">${t.key}</h3><dl class="keyspecs">${row.map(r=>`<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join('')}</dl>`:'';
 }
