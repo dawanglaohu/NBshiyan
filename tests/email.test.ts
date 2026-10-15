@@ -211,6 +211,8 @@ test('product names localized from categoryMeta; notify keeps slugs', () => {
   assert.equal(productName('gift-box', 'ru'), 'Подарочные коробки на заказ');
   assert.equal(productName('wine-box', 'en'), productName('wine-boxes', 'en'));
   assert.equal(productName('mystery-thing', 'ru'), 'Mystery thing');
+  assert.equal(productName('eco-paper-cups', 'en'), productName('paper-cups', 'en'));
+  assert.equal(productName('eco-paper-cups', 'ru'), productName('paper-cups', 'ru'));
   assert.equal(summarizeItems([{ productSlug: 'gift-boxes', quantity: 500 }], 'ru').product, 'Подарочные коробки на заказ');
   assert.equal(summarizeItems([{ productSlug: 'gift-boxes' }]).product, 'gift-boxes');
 });
