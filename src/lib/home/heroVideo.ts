@@ -55,3 +55,14 @@ export function readEnv(): HeroEnv {
     saveData: w.navigator.connection?.saveData === true,
   };
 }
+
+// #292 <source media> 不匹配或单个 source 加载失败时，浏览器会在该 <source> 上触发 error，
+// React 的 <video onError> 也会收到（Chrome 实测）。只有 <video> 自身报错，或最后一个 <source> 也失败（已无备选）才算真正失败。
+type ErrTarget = { tagName?: string; nextElementSibling?: ErrTarget | null } | null;
+export function isFatalMediaError(target: ErrTarget, video: unknown): boolean {
+  if (!target || target === video) return true;
+  if (target.tagName !== 'SOURCE') return false;
+  let n = target.nextElementSibling;
+  while (n) { if (n.tagName === 'SOURCE') return false; n = n.nextElementSibling; }
+  return true;
+}
