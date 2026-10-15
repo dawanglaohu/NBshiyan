@@ -1,0 +1,14 @@
+.spec h1 small{font-size:12px;color:var(--ink-2);font-weight:500;margin-left:8px}
+.spec h2{font-size:15px;margin:0 0 10px}
+.spec-sec{padding:14px 16px;margin-bottom:14px}
+.spec-sec td{white-space:normal;vertical-align:top}
+.spec-sec input:not([type=radio]):not([type=checkbox]),.spec-sec textarea{width:100%}
+.spec-dims{display:flex;gap:8px}.spec-dims label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--ink-2);flex:1}
+.spec-radio,.spec-terms{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:6px}.spec-radio label,.spec-terms label{display:flex;gap:4px;align-items:center}
+.spec-err{display:block;color:var(--err,#B42318);font-size:12px;margin-top:4px}
+.spec input[aria-invalid=true]{border-color:var(--err,#B42318)}
+.spec-msg{border-radius:var(--r-sm);padding:8px 12px;margin-bottom:12px;font-size:13px}
+.spec-msg.ok{background:var(--okb,#E6F4EA);color:var(--ok,#1A7F37)}.spec-msg.err{background:var(--errb,#FDE8E7);color:var(--err,#B42318)}
+.spec-meta{font-size:12px;color:var(--ink-2)}
+.spec-actions{display:flex;justify-content:flex-end;margin-bottom:24px}
+.spec-list{list-style:none;padding:0;margin:0}.spec-list li{padding:10px 14px;border-bottom:1px solid var(--line)}.spec-list li:last-child{border-bottom:0}
