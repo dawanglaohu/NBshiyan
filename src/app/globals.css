@@ -160,6 +160,14 @@ header.site .nav-drawer nav a{padding:14px 0;border-bottom:1px solid var(--line)
   .consent{left:12px;right:12px;bottom:12px;max-width:none}
   .fab{transition:bottom .2s ease}
   html.has-consent .fab{bottom:calc(12px + var(--consent-h,0px) + 12px)}
+  /* #116 询价流程里不显示悬浮按钮组 */
+  .fab.fab-quote{display:none}
+  /* #116 同意条压缩：三个按钮排成一行，文案保持原字号（12px 时 Manrope 空格仅约 2px，看起来像没有空格），不截断，保留隐私政策链接；页面底部留白仍由 --consent-h 跟随实际高度 */
+  html .consent{padding:8px 10px;gap:6px}
+  html .consent p{flex:1 1 100%}
+  html .consent .consent-actions{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  html .consent .consent-actions button.consent-set{grid-column:auto}
+  html .consent .consent-actions button{padding:0 8px;font-size:13px;white-space:nowrap}
 }
 @media (max-width:767px) and (prefers-reduced-motion:reduce){.fab{transition:none}}
 
