@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { products } from '@/data/products';
 import HeroArt from '@/components/layout/HeroArt';
+import { visibleAdvantages } from '@/lib/home/advantages';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 const ADV = ['capacity', 'certs', 'sampling', 'eco'] as const;
@@ -18,6 +19,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   setRequestLocale(locale);
   const t = await getTranslations('Home');
   const names = await getTranslations('Products.names');
+  // 数值为空的卡片不渲染；全部为空时整个区块（含标题）都不渲染
+  const adv = visibleAdvantages(t.raw('adv'), ADV);
   // TODO: 开屏视频（首次访问、≤5 秒、可跳过）等素材到位后做成覆盖层；正文始终先在 HTML 里渲染
   // TODO: 空闲时把主图替换成 3D 盒子
   return (
@@ -36,14 +39,16 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
-      <section className="block container" aria-labelledby="adv-h">
-        <h2 id="adv-h">{t('advTitle')}</h2>
-        <div className="adv">
-          {ADV.map((k) => (
-            <div key={k}><strong>{t(`adv.${k}.value`)}</strong><span>{t(`adv.${k}.label`)}</span></div>
-          ))}
-        </div>
-      </section>
+      {adv.length > 0 && (
+        <section className="block container" aria-labelledby="adv-h">
+          <h2 id="adv-h">{t('advTitle')}</h2>
+          <div className="adv">
+            {adv.map((a) => (
+              <div key={a.key}><strong>{a.value}</strong><span>{a.label}</span></div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="block container" aria-labelledby="entry-h">
         <h2 id="entry-h">{t('entryTitle')}</h2>
