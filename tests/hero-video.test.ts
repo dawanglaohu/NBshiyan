@@ -86,3 +86,24 @@ test('skip/play labels exist in en and ru', () => {
     assert.ok(h.heroVideoSkip && h.heroVideoPlay && h.heroVideoPause && h.heroPosterAlt, l);
   }
 });
+
+test('#292 skipped/failed non-last <source> does not stop playback; video or last-source error does', async () => {
+  const { isFatalMediaError } = await import('../src/lib/home/heroVideo');
+  const s4 = { tagName: 'SOURCE', nextElementSibling: null };
+  const s3 = { tagName: 'SOURCE', nextElementSibling: s4 };
+  const s1 = { tagName: 'SOURCE', nextElementSibling: { tagName: 'SOURCE', nextElementSibling: s3 } };
+  const video = { tagName: 'VIDEO' };
+  assert.equal(isFatalMediaError(s1, video), false); // 桌面跳过的竖版 source
+  assert.equal(isFatalMediaError(s3, video), false); // webm 失败，还有 mp4
+  assert.equal(isFatalMediaError(s4, video), true);  // 所有 source 都失败
+  assert.equal(isFatalMediaError(video, video), true); // video 自身解码/网络错误
+  const src = readFileSync(new URL('../src/components/layout/HeroVideo.tsx', import.meta.url), 'utf8');
+  assert.match(src, /onError=\{\(e\) => \{ if \(isFatalMediaError\(e\.target/);
+  assert.doesNotMatch(src, /onError=\{\(\) => stop\('error'\)\}/);
+});
+
+test('reduced motion: video never mounts (poster only)', () => {
+  const src = readFileSync(new URL('../src/components/layout/HeroVideo.tsx', import.meta.url), 'utf8');
+  assert.match(src, /if \(env\.reducedMotion \|\| env\.saveData\) return;/);
+  assert.match(src, /\{mounted && \(\s*<video/);
+});

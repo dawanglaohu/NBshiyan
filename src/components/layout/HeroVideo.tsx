@@ -4,7 +4,7 @@
 // 仅首次访问自动播放；有 暂停/播放 + 跳过 两个按钮（WCAG 2.2.2）；播完/跳过停在封面，不循环
 import { getImageProps } from 'next/image';
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { heroReducer, markSeen, readEnv, shouldAutoplay, whenIdle } from '@/lib/home/heroVideo';
+import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, whenIdle } from '@/lib/home/heroVideo';
 
 export const PORTRAIT_MQ = '(max-width: 767px)';
 const DESKTOP_MQ = '(min-width: 768px)';
@@ -61,7 +61,7 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
       {mounted && (
         <video ref={ref} className="hero-media-video" muted playsInline preload="none"
           aria-hidden="true" tabIndex={-1} data-visible={active ? '1' : '0'}
-          onEnded={() => stop('ended')} onError={() => stop('error')}>
+          onEnded={() => stop('ended')} onError={(e) => { if (isFatalMediaError(e.target as Element, e.currentTarget)) stop('error'); }}>
           <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.webm" type="video/webm" />
           <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.mp4" type="video/mp4" />
           <source src="/video/hero-115.webm" type="video/webm" />
