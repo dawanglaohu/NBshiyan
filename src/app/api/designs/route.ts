@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { randomId, hitRateLimit, clientIp, readBody, verifyTurnstile, tooManyRequests } from '@/lib/server/security';
-import { DesignBody, DESIGN_ID_LEN, DESIGN_MAX_BODY, DESIGN_MAX_CONFIG, DESIGN_TTL_DAYS } from '@/lib/server/designs';
+import { DesignBody, DESIGN_ID_LEN, DESIGN_MAX_BODY, DESIGN_MAX_CONFIG } from '@/lib/server/designs';
+import { retention } from '@/lib/server/retention';
 
 export const runtime = 'nodejs';
 
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
     if (!logo) return NextResponse.json({ error: 'logo_invalid' }, { status: 422 });
   }
   const id = randomId(DESIGN_ID_LEN);
-  const expiresAt = new Date(Date.now() + DESIGN_TTL_DAYS * 86_400_000);
+  const expiresAt = new Date(Date.now() + retention.designTtlDays * 86_400_000);
   await prisma.sharedDesign.create({ data: { id, productSlug, category, locale, config, logoUploadId, expiresAt } });
   return NextResponse.json({ id, url: `/${locale}/s/${id}`, expiresAt }, { status: 201 });
 }

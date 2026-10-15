@@ -46,6 +46,8 @@
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
 - [ ] `RESEND_API_KEY` 和发件地址已配置，发件域名已在 Resend 完成 DNS 验证。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值。
+- [ ] `TRUSTED_PROXY_HOPS`：**部署在 Vercel 上不要设**，保持留空（Vercel 写入 `x-real-ip`）。只有自建、且前面是已知的反向代理链时才设成代理层数 N（1–10）。**配错（层数多设或前面没有那么多层代理）会让客户端伪造 `X-Forwarded-For`，绕过按 IP 的限流。** 和 `BEHIND_CLOUDFLARE=1` 同时设置时它会被忽略（Cloudflare 优先）。上线后抽查后台审计，ip 不应是 `unknown`。
+- [ ] `PRIVACY_HASH_SECRET` 已配置，是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。生产环境没配应用会拒绝启动。它是审计日志里邮箱 HMAC 哈希的密钥，不要随意轮换，轮换后旧日志里的哈希就对不上了。
 - [ ] 生产环境**不能**设置 `ADMIN_SEED_TOTP_SECRET`。设置了的话，种子脚本会报错退出。
 - [ ] 数据保留天数等隐私政策定稿后再定，相关变量写在 `docs/data-retention.md`，隐私 PR 合并后补上。
 
@@ -62,6 +64,7 @@
 - [ ] 生产环境的 `NEXT_PUBLIC_SITE_URL` 填正式的 https 域名，canonical、hreflang 和 sitemap 的网址都从它来。
 - [ ] 上线后确认生产页面没有 noindex（meta 和 `X-Robots-Tag` 都要查），`robots.txt` 没有禁止抓取全站。
 - [ ] 填好 `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`、`NEXT_PUBLIC_YANDEX_VERIFICATION`、`NEXT_PUBLIC_BING_VERIFICATION`，然后去 Google Search Console、Yandex Webmaster 和 Bing Webmaster 提交 sitemap。这一步要 Ryan 在私聊里登录，见 #74。
+- [ ] IndexNow：生产环境设 `INDEXNOW_KEY`（8–128 位，只用 `a-zA-Z0-9-`），并且已经用 Upstash 做去重。上线后打开 `https://<域名>/<key>.txt`，应该返回 200 和密钥纯文本，其他 `.txt` 地址返回 404。等品类页或文章页上线后，再把 `src/lib/seo/indexnow.ts` 里 `INDEXNOW_LIVE_TYPES` 对应的类型改成 `live: true`。
 
 ## 7. 设计
 
