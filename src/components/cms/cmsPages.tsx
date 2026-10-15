@@ -9,6 +9,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import { SITE_URL } from '@/lib/site';
 import { articleSeo } from '@/lib/seo/templates';
 import { articleBreadcrumb } from '@/lib/seo/breadcrumbs';
+import LocaleAlternates from '@/components/layout/LocaleAlternates';
 
 // Sanity 驱动的列表页/详情页（#100）。未配置 Sanity 或无内容时：列表页 noindex 且显示空态，详情页 404。
 // 浏览器不直连 Sanity；正文图片暂不渲染，CSP 无需改动。
@@ -56,17 +57,6 @@ export function ListPage(type: DocType, base: string) {
 
 type Doc = { slug?: string; title?: string; excerpt?: string; body?: unknown; alt?: { en?: string; ru?: string }; seo?: { title?: string; description?: string; noindex?: boolean } };
 
-// 各语言 slug 不同（Sanity slug.en / slug.ru），只给有对应 slug 的语言输出 hreflang
-function altFor(locale: string, base: string, slug: string, alt?: { en?: string; ru?: string }) {
-  const a = alternatesFor(locale, `${base}/${slug}`);
-  if (!alt) return a;
-  const languages: Record<string, string> = {};
-  for (const l of ['en', 'ru'] as const) if (alt[l]) languages[l] = `/${l}${base}/${alt[l]}`;
-  if (!languages[locale]) languages[locale] = `/${locale}${base}/${slug}`;
-  languages['x-default'] = languages.en ?? languages[locale];
-  return { canonical: a.canonical, languages };
-}
-
 export function detailMetadata(type: DocType, base: string) {
   return async ({ params }: P): Promise<Metadata> => {
     const { locale, slug = '' } = await params;
@@ -77,13 +67,22 @@ export function detailMetadata(type: DocType, base: string) {
     return {
       title: seo.title,
       ...(seo.description ? { description: seo.description } : {}),
-      alternates: altFor(locale, base, slug, d.alt),
+      alternates: docAlternates(locale, base, slug, d.alt),
       ...(d.seo?.noindex ? { robots: { index: false, follow: true } } : {})
     };
   };
 }
 
-export function DetailPage(type: DocType) {
+/** hreflang 用各语言自己的 slug；某语言没有对应文档时不输出该语言 */
+function docAlternates(locale: string, base: string, slug: string, alt?: Doc['alt']) {
+  const a = alternatesFor(locale, `${base}/${slug}`);
+  const languages: Record<string, string> = {};
+  for (const l of ['en', 'ru'] as const) { const s = l === locale ? slug : alt?.[l]; if (s) languages[l] = `/${l}${base}/${s}`; }
+  if (languages.en) languages['x-default'] = languages.en;
+  return { canonical: a.canonical, languages };
+}
+
+export function DetailPage(type: DocType, base: string) {
   return async function Page({ params }: P) {
     const { locale, slug = '' } = await params;
     setRequestLocale(locale);
@@ -92,6 +91,7 @@ export function DetailPage(type: DocType) {
     return (
       <main className="prose mx-auto max-w-3xl px-4 py-12">
         {type === 'article' && d.title && <JsonLd data={articleBreadcrumb(SITE_URL, loc(locale), d.slug ?? slug, d.title)} />}
+        <LocaleAlternates pathname={`${base}/${slug}`} value={{ en: d.alt?.en ? `${base}/${d.alt.en}` : null, ru: d.alt?.ru ? `${base}/${d.alt.ru}` : null }} />
         <h1>{d.title}</h1>
         {d.excerpt && <p className="lead">{d.excerpt}</p>}
         <PortableText value={d.body} />
