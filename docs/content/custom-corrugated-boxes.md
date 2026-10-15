@@ -8,7 +8,7 @@
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
 | title | Custom Corrugated Boxes Supplier | PackJoyU | Гофрокороба на заказ с логотипом | PackJoyU |
-| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Bulk orders welcome. Request a quote today. | Гофрокороба на заказ: почтовые и транспортные коробки любых размеров с печатью и логотипом. Работаем с оптовыми заказами. Запросите расчёт. |
+| description | Custom corrugated shipping and mailer boxes made to your size, with flexo or digital printing and your logo. Bulk orders welcome. Request a quote today. | Гофрокороба на заказ: почтовые и транспортные коробки под ваши размеры с печатью и логотипом. Подбираем и поставляем оптовые партии. Запросите расчёт. |
 | keyword | custom corrugated boxes | гофрокороба на заказ |
 
 ---

@@ -7,7 +7,7 @@
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Custom Gift Boxes Supplier | PackJoyU | Подарочные коробки на заказ оптом | PackJoyU |
+| title | Custom Gift Boxes Supplier | PackJoyU | Подарочные коробки на заказ с логотипом | PackJoyU |
 | description | Rigid gift boxes with magnetic lids, drawers and custom inserts. Premium wrapping paper, foil stamping and embossing for your brand. Request a quote today. | Жёсткие подарочные коробки на заказ: с магнитом, выдвижные, с ложементом. Дизайнерская бумага, тиснение фольгой и логотип бренда. Запросите расчёт. |
 | keyword | custom gift boxes | подарочные коробки на заказ |
 

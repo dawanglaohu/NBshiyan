@@ -7,7 +7,7 @@
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Custom Christmas Packaging Supplier | PackJoyU | Новогодняя упаковка на заказ оптом | PackJoyU |
+| title | Custom Christmas Packaging Supplier | PackJoyU | Новогодняя упаковка с логотипом на заказ | PackJoyU |
 | description | Custom Christmas gift boxes, advent calendars and seasonal packaging printed with your brand. Plan early for on-time holiday delivery. Request a quote. | Новогодние подарочные коробки, адвент календари и сезонная упаковка на заказ с логотипом. Закажите заранее, чтобы успеть к Новому году. Запросите расчёт. |
 | keyword | custom christmas packaging | новогодняя упаковка на заказ |
 
