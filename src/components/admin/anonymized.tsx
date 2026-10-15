@@ -26,6 +26,9 @@ export const detailControls = (inq: { anonymizedAt?: string | null }, role?: str
   showReply: !isAnonymized(inq),
   showAssign: !isAnonymized(inq) && canAssignInquiry(role),
   showAssigneeText: !isAnonymized(inq) && !canAssignInquiry(role),
+  /** 已匿名化：状态只读显示纯文本，「标记无效」隐藏 */
+  statusEditable: !isAnonymized(inq),
+  showInvalidate: !isAnonymized(inq),
 });
 
 /**
@@ -36,3 +39,13 @@ export const detailControls = (inq: { anonymizedAt?: string | null }, role?: str
 export const filterAnonymized = <T extends Pick<InquirySummary, 'anonymizedAt'>>(rows: T[], include: boolean) =>
   include ? rows : rows.filter((r) => !isAnonymized(r));
 export const parseIncludeAnon = (v: string | null) => v === '1';
+
+/** 409 = 已匿名化（后端拦截改状态 / 回复 / 分配） */
+export const ANON_CONFLICT_MSG = '此询盘已匿名化，无法修改';
+export const isAnonConflict = (err?: string) => err === 'anonymized';
+export function StatusText({ label }: { label: string }) {
+  return <span className="muted" data-testid="status-text" style={{ color: 'var(--ink-2)' }}>状态：{label}</span>;
+}
+export function AnonConflictNotice() {
+  return <p data-testid="anon-conflict" role="status" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{ANON_CONFLICT_MSG}</p>;
+}

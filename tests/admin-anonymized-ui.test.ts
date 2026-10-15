@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import * as React from 'react';
 (globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
 import { renderToStaticMarkup } from 'react-dom/server';
-import { AnonTag, anonymizedNotice, detailControls, filterAnonymized, isAnonymized, parseIncludeAnon, piiField } from '../src/components/admin/anonymized';
+import { AnonConflictNotice, ANON_CONFLICT_MSG, isAnonConflict, StatusText, AnonTag, anonymizedNotice, detailControls, filterAnonymized, isAnonymized, parseIncludeAnon, piiField } from '../src/components/admin/anonymized';
 import { mockAdminApi } from '../src/lib/admin/mock';
+import { errorText } from '../src/components/admin/format';
 
 const anon = { anonymizedAt: '2026-09-14T03:00:00.000Z' };
 const live = { anonymizedAt: null };
@@ -36,9 +37,9 @@ test('piiField: 已匿名化显示标签而不是 [deleted] / deleted+…@invali
 });
 
 test('detailControls: 已匿名化时回复和分配都隐藏（ADMIN 也一样）', () => {
-  assert.deepEqual(detailControls(anon, 'ADMIN'), { showReply: false, showAssign: false, showAssigneeText: false });
-  assert.deepEqual(detailControls(live, 'ADMIN'), { showReply: true, showAssign: true, showAssigneeText: false });
-  assert.deepEqual(detailControls({}, 'SALES'), { showReply: true, showAssign: false, showAssigneeText: true });
+  assert.deepEqual(detailControls(anon, 'ADMIN'), { showReply: false, showAssign: false, showAssigneeText: false, statusEditable: false, showInvalidate: false });
+  assert.deepEqual(detailControls(live, 'ADMIN'), { showReply: true, showAssign: true, showAssigneeText: false, statusEditable: true, showInvalidate: true });
+  assert.deepEqual(detailControls({}, 'SALES'), { showReply: true, showAssign: false, showAssigneeText: true, statusEditable: true, showInvalidate: true });
 });
 
 test('anonymizedNotice 用传入的格式化函数', () => {
@@ -61,4 +62,19 @@ test('mock 演示数据里有一条已匿名化询盘，列表摘要带 anonymiz
   const on = await mockAdminApi.listInquiries({ pageSize: 100, includeAnonymized: true });
   assert.ok(on.items.some((r) => r.id === 'inq_anon_1' && r.anonymizedAt));
   assert.equal(on.total, off.total + 1);
+});
+
+test('已匿名化：状态只读纯文本（--ink-2），不是下拉框', () => {
+  const html = renderToStaticMarkup(React.createElement(StatusText, { label: '跟进中' }));
+  assert.match(html, /状态：跟进中/); assert.match(html, /color:var\(--ink-2\)/);
+  assert.doesNotMatch(html, /<select|disabled/);
+});
+
+test('409 提示：中性色文案，不是红色', async () => {
+  assert.equal(isAnonConflict('anonymized'), true); assert.equal(isAnonConflict('forbidden'), false);
+  assert.equal(errorText('anonymized'), '此询盘已匿名化，无法修改');
+  const html = renderToStaticMarkup(React.createElement(AnonConflictNotice));
+  assert.match(html, new RegExp(ANON_CONFLICT_MSG)); assert.match(html, /--ink-2/); assert.doesNotMatch(html, /--err|warn/);
+  await assert.rejects(mockAdminApi.updateInquiry('inq_anon_1', { status: 'INVALID' }), /anonymized/);
+  await assert.rejects(mockAdminApi.reply('inq_anon_1', { subject: 's', body: 'b' }), /anonymized/);
 });

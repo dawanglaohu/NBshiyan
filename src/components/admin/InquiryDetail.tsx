@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
 import InquiryNotFound from './InquiryNotFound';
 import StatusBadge from './StatusBadge';
-import { anonymizedNotice, detailControls, isAnonymized, piiField } from './anonymized';
+import { AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, StatusText } from './anonymized';
 import { errorText, loginHref, fmtDate, productName, relTime } from './format';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
@@ -74,20 +74,21 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         {score < REVIEW_THRESHOLD && <span className="badge REVIEW">待核实</span>}
         <span className="muted">· {c.region} · {relTime(inq.createdAt)}</span>
         <span className="sp" />
-        <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { status: e.target.value as InquiryStatus }))} aria-label="状态">
+        {ctl.statusEditable ? <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { status: e.target.value as InquiryStatus }))} aria-label="状态">
           {(Object.keys(STATUS_LABEL) as InquiryStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-        </select></label>
+        </select></label> : <StatusText label={STATUS_LABEL[inq.status]} />}
         {ctl.showAssign ? (
           <label className="muted">负责人：<select value={inq.assignee?.id ?? ''} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { assigneeId: e.target.value || null }))} aria-label="负责人">
             <option value="">未分配</option>
             {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select></label>
         ) : ctl.showAssigneeText ? <span className="muted" data-testid="assignee-text">负责人：{inq.assignee?.name ?? '未分配'}</span> : null}
-        <button type="button" className="adm-btn sq" disabled={busy || inq.status === 'INVALID'}
-          onClick={() => { if (confirm('确定标记为无效询盘？')) run(() => adminApi.updateInquiry(inq.id, { status: 'INVALID' })); }}>标记无效</button>
+        {ctl.showInvalidate && <button type="button" className="adm-btn sq" disabled={busy || inq.status === 'INVALID'}
+          onClick={() => { if (confirm('确定标记为无效询盘？')) run(() => adminApi.updateInquiry(inq.id, { status: 'INVALID' })); }}>标记无效</button>}
       </div>
       {inq.anonymizedAt && <p data-testid="anon-notice" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{anonymizedNotice(inq.anonymizedAt, fmtDate)}</p>}
-      {err && <p className="warn" role="alert">{errorText(err, '操作失败')}{err === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</p>}
+      {isAnonConflict(err) && <AnonConflictNotice />}
+      {err && !isAnonConflict(err) && <p className="warn" role="alert">{errorText(err, '操作失败')}{err === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</p>}
 
       <div className="adm-g2">
         <div>

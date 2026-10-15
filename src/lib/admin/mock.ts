@@ -86,13 +86,13 @@ export const mockAdminApi: AdminApi = {
   },
   async getInquiry(id) { return delay(db.find((r) => r.id === id) ?? null); },
   async updateInquiry(id, patch) {
-    const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found');
+    const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found'); if (r.anonymizedAt) throw new Error('anonymized');
     if (patch.status && patch.status !== r.status) { r.history.push({ id: `h${Date.now()}`, at: new Date().toISOString(), actor: '我', action: `状态改为「${STATUS_LABEL[patch.status]}」` }); r.status = patch.status; }
     if (patch.assigneeId !== undefined) { r.assignee = users.find((u) => u.id === patch.assigneeId); r.history.push({ id: `h${Date.now()}a`, at: new Date().toISOString(), actor: '我', action: r.assignee ? `分配给 ${r.assignee.name}` : '取消分配' }); }
     return delay({ id: r.id, status: r.status, assigneeId: r.assignee?.id ?? null, updatedAt: new Date().toISOString() });
   },
   async reply(id, { subject, body }) {
-    const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found');
+    const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found'); if (r.anonymizedAt) throw new Error('anonymized');
     const m = { id: `m${Date.now()}`, direction: 'OUTBOUND' as const, subject, bodyHtml: textToHtml(body), author: '我', createdAt: new Date().toISOString() };
     r.messages.push(m); r.history.push({ id: `h${Date.now()}r`, at: m.createdAt, actor: '我', action: '发送回复' });
     return delay(m);
