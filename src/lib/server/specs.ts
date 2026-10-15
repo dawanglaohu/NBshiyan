@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { Prisma, type CategorySpec, type Incoterm } from '@prisma/client';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
+import { isHttpsUrl, normalizeUrlSchemeHost } from '@/lib/admin/spec-form';
 
 /** 品类 key 以 categoryMeta.ts 为准 */
 export const CATEGORY_KEYS: readonly string[] = categoryMeta.map((c) => c.key);
@@ -17,21 +18,11 @@ const mm = z.number().int().min(1).max(10_000);
 const Dims = z.object({ l: mm, w: mm, h: mm }).strict();
 const days = z.number().int().min(1).max(365);
 
-/** 证书链接只允许能被 new URL() 解析且协议正好是 https: 的地址（拒绝 javascript:、data:、http: 等） */
-export function isHttpsUrl(u: string): boolean {
-  try { return new URL(u).protocol === 'https:'; } catch { return false; }
-}
-
-/** 把 URL 的协议和主机名转成小写（如 HTTPS://Example.COM/Path → https://example.com/Path），路径/查询/片段原样保留；不是 scheme:// 形式的原样返回，交给 isHttpsUrl 判定 */
-export function normalizeUrlSchemeHost(u: string): string {
-  const m = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\/([^/?#]*)/.exec(u);
-  if (!m) return u;
-  const auth = m[2];
-  const at = auth.lastIndexOf('@');
-  const host = at >= 0 ? auth.slice(0, at + 1) + auth.slice(at + 1).toLowerCase() : auth.toLowerCase();
-  return m[1].toLowerCase() + '://' + host + u.slice(m[0].length);
-}
-
+/**
+ * 证书链接的规范化和校验与后台表单共用同一份实现（src/lib/admin/spec-form.ts，纯函数、不依赖 Prisma）：
+ * 协议和主机名转小写；只允许 https:，拒绝 javascript:、data:、http: 以及任何带 userinfo 的地址（#251）。
+ */
+export { isHttpsUrl, normalizeUrlSchemeHost, hasUserinfo } from '@/lib/admin/spec-form';
 export const Certification = z.object({
   name: text(80).min(1),
   certNo: text(80).min(1).optional(),
