@@ -20,3 +20,11 @@ for f in corrugated-box gift-box wine-box; do PREVIEW_TEX=32 PREVIEW_FLATTEN=Flu
 - `render_studio.py` – Cycles studio renders/posters (HDRI Poly Haven studio_small_09, CC0)
 - `merge-anim.mjs` → single `Open` clip; `progressive.mjs` → Draco+KTX2 lod0 + ≤30KB preview (`PREVIEW_TEX=16 PREVIEW_FLATTEN=Fluting`)
 - `public/env/studio_small_09_256.hdr` – CC0 (Poly Haven), downsized for optional site use.
+
+## #77 batch 1：礼品卡 / 胶印画册 / 三折页（Blender 4.2.3 LTS）
+```bash
+node decals-b1.mjs tex-b1/
+for m in giftcard offset colorprint; do TEX_DIR=tex-b1/ blender -b --python build_print_b1.py -- $m out-b1; done
+for f in gift-card offset-catalog color-printing; do PREVIEW_TEX=32 node ../progressive.mjs out-b1/$f.glb ../../../public/models $f; done
+```
+真实尺寸：CR80 卡 85.6×53.98×0.76mm R3.18 + 110×75 信封；精装 207×280 书芯、3mm 飘口、2.5mm 书板、圆脊；99×210 三折页 + A5 传单。品牌仅 PackJoyU。
