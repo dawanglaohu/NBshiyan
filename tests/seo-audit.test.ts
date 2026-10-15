@@ -62,6 +62,6 @@ test('checkBreadcrumb: off-site, relative, wrong last item, bad JSON', () => {
   assert.match(checkBreadcrumb(p, parsePage(ld(bc([`${SITE}/en`, `${SITE}/en/articles/b`]))), SITE)[0].message, /last item/);
   assert.match(checkBreadcrumb(p, parsePage('<script type="application/ld+json">{oops</script>'), SITE)[0].message, /invalid JSON-LD/);
 });
-test('mockSeeds covers 12 categories x 2 locales + article lists', () => {
-  const s = mockSeeds(); assert.equal(s.length, 26); assert.ok(s.includes('/ru/products/podarochnye-korobki'));
+test('mockSeeds covers 11 categories x 2 locales + article lists', () => {
+  const s = mockSeeds(); assert.equal(s.length, 24); assert.ok(s.includes('/ru/products/podarochnye-korobki'));
 });

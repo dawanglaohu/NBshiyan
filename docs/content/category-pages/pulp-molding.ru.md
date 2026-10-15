@@ -38,7 +38,6 @@ PackJoyU изготавливает лотки, ложементы и короб
 ## Похожие товары
 - [Гофрокороба на заказ](/ru/products/gofrokorobki)
 - [Подарочные коробки на заказ](/ru/products/podarochnye-korobki)
-- [Экологичные стаканы](/ru/products/ekologichnye-stakany)
 
 ## CTA
 **Запросить расчёт** → форма заявки с выбранной категорией.

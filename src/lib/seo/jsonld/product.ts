@@ -75,7 +75,6 @@ export function buildProductJsonLd(key: string, locale: Locale, data: ProductRea
     url,
     category: m.keyword,
     brand: { '@type': 'Brand', name: 'PackJoyU' },
-    manufacturer: { '@type': 'Organization', name: 'PackJoyU', url: SITE_URL },
   };
   if (data.images?.length) ld.image = data.images.map(abs);
   if (data.sku) ld.sku = data.sku;
