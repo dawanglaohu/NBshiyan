@@ -32,7 +32,7 @@ PackJoyU manufactures custom printed paper cups for coffee shops, restaurant cha
 |---|---|
 | Types | Single wall, double wall, ripple wall, cold cups |
 | Sizes | Common sizes approx. 4–22 oz (exact range confirmed with your quote) |
-| Lining | Confirmed per order; see also eco-paper-cups |
+| Lining | Confirmed per order |
 | Printing | Flexo or offset, full-wrap |
 | Accessories | PS/PP/fiber lids, sleeves, carriers |
 | MOQ | Confirmed with your quote |
@@ -81,7 +81,7 @@ PackJoyU производит бумажные стаканы с печатью 
 |---|---|
 | Виды | Однослойные, двухслойные, гофрированные, для холодных напитков |
 | Объёмы | Ориентировочно 110–650 мл (точный ряд согласовывается при расчёте) |
-| Покрытие | Уточняем под заказ; см. также экологичные стаканы |
+| Покрытие | Уточняем под заказ |
 | Печать | Флексо или офсет по всей поверхности |
 | Аксессуары | Крышки PS/PP/из волокна, манжеты, подставки |
 | Минимальный тираж | Согласовывается при расчёте |

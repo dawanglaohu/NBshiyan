@@ -36,7 +36,6 @@ Flexo or offset full-wrap printing with your logo; matching lids and sleeves can
 See the questions buyers ask most about this category: [FAQ](/en/products/custom-paper-cups#faq) (source: `docs/content/landing-faq.md`, `paper-cups`).
 
 ## Related products
-- [Eco Paper Cups](/en/products/eco-paper-cups)
 - [Custom Party Supplies](/en/products/custom-party-supplies)
 - [Packaging Printing](/en/products/custom-color-printing)
 

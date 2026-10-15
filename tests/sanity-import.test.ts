@@ -160,11 +160,11 @@ test('linkmap.py: --meta defaults to src/lib/seo/categoryMeta.ts; missing, unrea
     assert.notEqual(unreadable.status, 0);
     assert.match(unreadable.stderr, /cannot read category meta/);
     const stale = join(dir, 'stale.ts');
-    writeFileSync(stale, readFileSync('src/lib/seo/categoryMeta.ts', 'utf8').replace("en: { slug: 'eco-paper-cups'", "en: { slug: 'compostable-paper-cups'"));
+    writeFileSync(stale, readFileSync('src/lib/seo/categoryMeta.ts', 'utf8').replace("en: { slug: 'custom-paper-cups'", "en: { slug: 'compostable-paper-cups'"));
     const r = run('--meta', stale);
     assert.notEqual(r.status, 0);
     assert.match(r.stderr, /retired.*compostable-paper-cups/);
-    writeFileSync(stale, readFileSync('src/lib/seo/categoryMeta.ts', 'utf8').replace("en: { slug: 'eco-paper-cups'", "en: { slug: 'eco-compostable-cups'"));
+    writeFileSync(stale, readFileSync('src/lib/seo/categoryMeta.ts', 'utf8').replace("en: { slug: 'custom-paper-cups'", "en: { slug: 'eco-compostable-cups'"));
     assert.notEqual(run('--meta', stale).status, 0);
   } finally {
     rmSync(dir, { recursive: true, force: true });

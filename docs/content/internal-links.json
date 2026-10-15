@@ -76,8 +76,8 @@
       "locale": "en",
       "kind": "category→category",
       "from": "/en/products/molded-pulp-packaging",
-      "to": "/en/products/eco-paper-cups",
-      "anchor": "eco-friendly paper cups"
+      "to": "/en/products/custom-paper-cups",
+      "anchor": "custom paper cups"
     },
     {
       "locale": "en",
@@ -90,8 +90,8 @@
       "locale": "en",
       "kind": "category→category",
       "from": "/en/products/custom-paper-cups",
-      "to": "/en/products/eco-paper-cups",
-      "anchor": "eco-friendly coffee cups"
+      "to": "/en/products/molded-pulp-packaging",
+      "anchor": "custom pulp inserts"
     },
     {
       "locale": "en",
@@ -112,7 +112,7 @@
       "kind": "category→category",
       "from": "/en/products/custom-party-supplies",
       "to": "/en/products/custom-paper-cups",
-      "anchor": "custom paper cups"
+      "anchor": "branded coffee cups"
     },
     {
       "locale": "en",
@@ -147,7 +147,7 @@
       "kind": "category→category",
       "from": "/en/products/custom-wine-boxes",
       "to": "/en/products/molded-pulp-packaging",
-      "anchor": "custom pulp inserts"
+      "anchor": "molded fiber trays"
     },
     {
       "locale": "en",
@@ -194,27 +194,6 @@
     {
       "locale": "en",
       "kind": "category→category",
-      "from": "/en/products/eco-paper-cups",
-      "to": "/en/products/custom-paper-cups",
-      "anchor": "branded coffee cups"
-    },
-    {
-      "locale": "en",
-      "kind": "category→category",
-      "from": "/en/products/eco-paper-cups",
-      "to": "/en/products/molded-pulp-packaging",
-      "anchor": "molded fiber trays"
-    },
-    {
-      "locale": "en",
-      "kind": "category→category",
-      "from": "/en/products/eco-paper-cups",
-      "to": "/en/products/custom-party-supplies",
-      "anchor": "printed party tableware"
-    },
-    {
-      "locale": "en",
-      "kind": "category→category",
       "from": "/en/products/custom-gift-cards",
       "to": "/en/products/custom-color-printing",
       "anchor": "packaging printing services"
@@ -252,7 +231,7 @@
       "kind": "category→category",
       "from": "/en/products/custom-christmas-packaging",
       "to": "/en/products/custom-party-supplies",
-      "anchor": "private-label party products"
+      "anchor": "printed party tableware"
     },
     {
       "locale": "ru",
@@ -328,8 +307,8 @@
       "locale": "ru",
       "kind": "category→category",
       "from": "/ru/products/izdeliya-iz-tsellyulozy",
-      "to": "/ru/products/ekologichnye-stakany",
-      "anchor": "экологичные стаканы"
+      "to": "/ru/products/bumazhnye-stakany",
+      "anchor": "бумажные стаканы с логотипом"
     },
     {
       "locale": "ru",
@@ -342,8 +321,8 @@
       "locale": "ru",
       "kind": "category→category",
       "from": "/ru/products/bumazhnye-stakany",
-      "to": "/ru/products/ekologichnye-stakany",
-      "anchor": "эко стаканы с логотипом"
+      "to": "/ru/products/izdeliya-iz-tsellyulozy",
+      "anchor": "ложементы из целлюлозы"
     },
     {
       "locale": "ru",
@@ -364,7 +343,7 @@
       "kind": "category→category",
       "from": "/ru/products/tovary-dlya-prazdnikov",
       "to": "/ru/products/bumazhnye-stakany",
-      "anchor": "бумажные стаканы с логотипом"
+      "anchor": "стаканы для кофе с печатью"
     },
     {
       "locale": "ru",
@@ -399,7 +378,7 @@
       "kind": "category→category",
       "from": "/ru/products/upakovka-dlya-vina",
       "to": "/ru/products/izdeliya-iz-tsellyulozy",
-      "anchor": "ложементы из целлюлозы"
+      "anchor": "лотки из целлюлозы"
     },
     {
       "locale": "ru",
@@ -446,27 +425,6 @@
     {
       "locale": "ru",
       "kind": "category→category",
-      "from": "/ru/products/ekologichnye-stakany",
-      "to": "/ru/products/bumazhnye-stakany",
-      "anchor": "стаканы для кофе с печатью"
-    },
-    {
-      "locale": "ru",
-      "kind": "category→category",
-      "from": "/ru/products/ekologichnye-stakany",
-      "to": "/ru/products/izdeliya-iz-tsellyulozy",
-      "anchor": "лотки из целлюлозы"
-    },
-    {
-      "locale": "ru",
-      "kind": "category→category",
-      "from": "/ru/products/ekologichnye-stakany",
-      "to": "/ru/products/tovary-dlya-prazdnikov",
-      "anchor": "праздничная посуда с печатью"
-    },
-    {
-      "locale": "ru",
-      "kind": "category→category",
       "from": "/ru/products/podarochnye-karty",
       "to": "/ru/products/tsvetnaya-pechat",
       "anchor": "печать упаковки"
@@ -504,7 +462,7 @@
       "kind": "category→category",
       "from": "/ru/products/novogodnyaya-upakovka",
       "to": "/ru/products/tovary-dlya-prazdnikov",
-      "anchor": "товары для праздника под вашей маркой"
+      "anchor": "праздничная посуда с печатью"
     }
   ]
 }
