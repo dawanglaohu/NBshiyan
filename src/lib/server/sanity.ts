@@ -43,8 +43,9 @@ const pick = (locale: Locale, field: string) => `"${field}": coalesce(${field}.$
 export const DOC_TYPES = ['product', 'solution', 'article'] as const;
 export type DocType = (typeof DOC_TYPES)[number];
 
+// 列表页只取可索引文档（排除 seo.noindex == true），空态判断也基于此。
 export function listQuery(type: DocType, locale: Locale) {
-  return `*[_type == "${type}" && defined(slug.${locale}.current)] | order(_updatedAt desc){ _id, "slug": slug.${locale}.current, ${pick(locale, 'title')}, ${pick(locale, 'excerpt')} }`;
+  return `*[_type == "${type}" && defined(slug.${locale}.current) && seo.noindex != true] | order(_updatedAt desc){ _id, "slug": slug.${locale}.current, ${pick(locale, 'title')}, ${pick(locale, 'excerpt')} }`;
 }
 export function bySlugQuery(type: DocType, locale: Locale) {
   return `*[_type == "${type}" && slug.${locale}.current == $slug][0]{ _id, _updatedAt, "slug": slug.${locale}.current, "alt": { "en": slug.en.current, "ru": slug.ru.current }, ${pick(locale, 'title')}, ${pick(locale, 'excerpt')}, ${pick(locale, 'body')}, "seo": { "title": coalesce(seo.title.${locale}, seo.title.en), "description": coalesce(seo.description.${locale}, seo.description.en), "noindex": seo.noindex } }`;

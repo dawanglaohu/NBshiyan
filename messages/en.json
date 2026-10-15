@@ -150,7 +150,8 @@
       ]
     },
     "learnMore": "Learn more",
-    "specsLabel": "Key specs"
+    "specsLabel": "Key specs",
+    "empty": "No 3D models are published yet. Please check back soon or contact us for samples."
   },
   "Admin": {
     "title": "Admin"
@@ -313,5 +314,13 @@
     "backToCategory": "Customize {category} again",
     "backToProducts": "Browse products and customize again",
     "quote": "Get a quote"
+  },
+  "NotFound": {
+    "code": "404",
+    "title": "Page not found",
+    "lead": "This box is empty. The page may have moved — try one of our product categories instead.",
+    "home": "Back to home",
+    "quote": "Get a quote",
+    "browse": "Browse products"
   }
 }

@@ -82,7 +82,7 @@ export async function authorizeLogin(input: { email: string; password: string; t
   if (typeof user === 'string') return null;
   if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: email, meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
   if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
-  await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null } });
+  await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: 'auth.login_success', target: email, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
   return user;
 }

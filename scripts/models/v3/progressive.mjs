@@ -4,6 +4,7 @@
 // 两个文件都是 Draco + KTX2(ETC1S)。用法：node progressive.mjs <src.glb> <outDir> <name>
 // 依赖：@gltf-transform/core|functions|cli@4、meshoptimizer、sharp、KTX-Software(toktx)
 import { NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { simplify, weld, textureCompress } from '@gltf-transform/functions';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
@@ -17,7 +18,7 @@ const [src, outDir, name] = process.argv.slice(2);
 const PREVIEW_TEX = +(process.env.PREVIEW_TEX ?? 64), SIMPLIFY_MIN_TRIS = 100, SIMPLIFY_RATIO = 0.15;
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'prog-'));
 const gt = (...a) => execFileSync('npx', ['gltf-transform', ...a], { stdio: 'pipe' });
-const io = new NodeIO();
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 
 // 1) 完整精度
 gt('etc1s', src, `${tmp}/full.k.glb`, '--quality', '160');
