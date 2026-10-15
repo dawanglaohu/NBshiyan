@@ -15,7 +15,7 @@ test('unknown_delivery → 可能已送达，永远不可重试（即使 retryab
 test('可重试原因 + retryCount<5 才显示重试；>=5 → retry_limit', () => {
   const a = st({ errorCode: 'send_unavailable', retryable: true, retryCount: 4 });
   assert.equal(a.kind, 'failed'); assert.ok(a.kind === 'failed' && a.canRetry && !a.retryLimit);
-  const b = st({ errorCode: 'provider_throttled', retryable: true, retryCount: 5 });
+  const b = st({ errorCode: 'send_unavailable', retryable: true, retryCount: 5 });
   assert.ok(b.kind === 'failed' && !b.canRetry && b.retryLimit);
   const c = st({ errorCode: 'send_unavailable', retryable: false });
   assert.ok(c.kind === 'failed' && !c.canRetry);
@@ -27,7 +27,7 @@ test('不认识的 reason / unknown → 通用文案、不可重试（忽略 ret
   }
 });
 test('v4 新原因码都有文案；send_auth / recipient_rejected / message_rejected 不可重试', () => {
-  for (const code of ['send_unavailable', 'provider_throttled']) { const v = st({ errorCode: code, retryable: true }); assert.ok(v.kind === 'failed' && v.canRetry && v.text !== L.UNKNOWN_FAIL); }
+  for (const code of ['send_unavailable', 'smtp_timeout', 'smtp_unavailable']) { const v = st({ errorCode: code, retryable: true }); assert.ok(v.kind === 'failed' && v.canRetry && v.text !== L.UNKNOWN_FAIL); }
   for (const code of ['send_auth', 'recipient_rejected', 'message_rejected']) { const v = st({ errorCode: code, retryable: true }); assert.ok(v.kind === 'failed' && !v.canRetry && v.text !== L.UNKNOWN_FAIL); }
 });
 test('retryCountText：0 不显示，4 提示还能 1 次', () => {
@@ -113,4 +113,11 @@ test('附件链接过期判断与大小格式', () => {
   assert.equal(L.fmtSize(2_480_000), '2.4 MB'); assert.equal(L.fmtSize(24_000), '23 KB');
   assert.equal(L.typeBadge('application/pdf'), 'PDF'); assert.equal(L.typeBadge('application/postscript'), 'AI');
   assert.equal(L.typeBadge('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'), 'XLSX'); assert.equal(L.typeBadge('application/x-unknown'), 'FILE');
+});
+
+test('provider_throttled：待发送（不算失败、没有重试），文案固定', () => {
+  assert.deepEqual(st({ errorCode: 'provider_throttled', retryable: true, retryCount: 1 }), { kind: 'deferred' });
+  assert.equal(L.DEFERRED_TEXT, '今日发信已达上限，稍后自动发送');
+  assert.equal(L.isDeferred({ status: 'FAILED', errorCode: 'provider_throttled' }), true);
+  for (const code of ['smtp_auth', 'smtp_tls']) { const v = st({ errorCode: code }); assert.ok(v.kind === 'failed' && v.text !== L.UNKNOWN_FAIL); }
 });

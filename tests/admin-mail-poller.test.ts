@@ -64,3 +64,10 @@ test('stop() 之后不再请求', async () => {
   const stop = startSendPoll({ fetchStatus: async () => { calls++; return S('SENDING'); }, onEvent: () => {}, ...c });
   stop(); await c.advance(60_000); assert.equal(calls, 0);
 });
+
+test('provider_throttled 不是终态：继续轮询直到 SENT', async () => {
+  const c = clock(); const ev: PollEvent[] = []; let calls = 0;
+  startSendPoll({ fetchStatus: async () => (++calls < 3 ? S('FAILED', { errorCode: 'provider_throttled', retryable: true }) : S('SENT')), onEvent: (e) => ev.push(e), ...c });
+  await c.advance(15_000);
+  assert.equal(calls, 3); assert.deepEqual(ev.map((e) => e.type), ['update', 'update', 'done']);
+});

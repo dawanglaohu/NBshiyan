@@ -1,7 +1,7 @@
 // 8.3a 发送状态轮询：每 pollAfterMs（默认 5000）查一次；SENT / FAILED 停；从首次 202 起满 2 分钟停（「状态未确认」）。
 // 页面隐藏时暂停，回到前台立即查一次（不重置 2 分钟）。不依赖 React，时钟 / 定时器 / 可见性可注入，便于测试。
 import type { SendStatus } from './types';
-import { DEFAULT_POLL_MS, POLL_MAX_MS } from './logic';
+import { DEFAULT_POLL_MS, isDeferred, POLL_MAX_MS } from './logic';
 import { MailError } from './types';
 
 export type PollEvent =
@@ -46,7 +46,7 @@ export function startSendPoll(d: PollDeps): () => void {
     try {
       const s = await d.fetchStatus();
       if (stopped) return;
-      if (s.status === 'SENT' || s.status === 'FAILED') { d.onEvent({ type: 'done', status: s }); stop(); return; }
+      if (s.status === 'SENT' || (s.status === 'FAILED' && !isDeferred(s))) { d.onEvent({ type: 'done', status: s }); stop(); return; }
       d.onEvent({ type: 'update', status: s });
     } catch (e) {
       if (stopped) return;

@@ -41,7 +41,6 @@ export const showUnverified = (m: { senderVerified?: boolean | null; redacted?: 
 // —— 发送失败原因（8.1 表；v3 smtp_* 旧码保留文案兼容）——
 const REASON: Record<string, { text: string; retryable: boolean }> = {
   send_unavailable: { text: '邮件服务暂时无法连接，这封信没有发出。内容已保存，可以重试。', retryable: true },
-  provider_throttled: { text: '发信服务繁忙，请稍后再试。内容已保存，可以重试。', retryable: true },
   send_auth: { text: '发信账号验证未通过，请联系管理员检查邮箱设置。', retryable: false },
   recipient_rejected: { text: '对方邮箱拒收，地址可能无效或已停用。请通过其他方式联系客户。', retryable: false },
   message_rejected: { text: '邮件内容被服务器拒收（可能被判为垃圾邮件）。请修改内容后重新发送。', retryable: false },
@@ -52,6 +51,10 @@ const REASON: Record<string, { text: string; retryable: boolean }> = {
 };
 export const UNKNOWN_FAIL = '发送失败（未知原因）。请稍后重新编写发送；多次失败请联系管理员。';
 export const MAYBE_DELIVERED = '可能已送达';
+/** provider_throttled：按待发送（延后）显示，不算失败、不显示重试，继续按排队中的规则轮询 */
+export const DEFERRED_REASON = 'provider_throttled';
+export const DEFERRED_TEXT = '今日发信已达上限，稍后自动发送';
+export const isDeferred = (m: { status?: string; errorCode?: string | null }) => m.status === 'FAILED' && m.errorCode === DEFERRED_REASON;
 export const MAYBE_DELIVERED_HINT = '发送过程中连接中断，无法确认对方是否收到。为免重复，系统不会自动重发；如需确认，请换其他方式联系客户。';
 export const RETRY_LIMIT_HINT = '这封邮件已重试 5 次仍未发出。请复制内容重新编写发送，或联系管理员检查邮箱设置。';
 export const NOT_RETRYABLE = '这封邮件不能重试，请重新编写发送。';
@@ -60,7 +63,7 @@ export const BACKGROUND_SENDING = '发送较慢，已转到后台继续发送（
 export const ANON_JUST_NOW = '该询盘刚刚被匿名化，不能再发送。页面已刷新。';
 
 export type OutboundView =
-  | { kind: 'sending' } | { kind: 'sent'; at: string | null }
+  | { kind: 'sending' } | { kind: 'sent'; at: string | null } | { kind: 'deferred' }
   | { kind: 'maybe_delivered' }
   | { kind: 'failed'; text: string; canRetry: boolean; retryLimit: boolean; retryCount: number };
 
@@ -69,6 +72,7 @@ export function outboundView(m: { status: SendStatus['status'] | 'RECEIVED' } & 
   if (m.status === 'SENDING') return { kind: 'sending' };
   if (m.status === 'SENT' || m.status === 'RECEIVED') return { kind: 'sent', at: m.sentAt };
   if (m.errorCode === 'unknown_delivery') return { kind: 'maybe_delivered' };
+  if (m.errorCode === DEFERRED_REASON) return { kind: 'deferred' };
   const r = m.errorCode ? REASON[m.errorCode] : undefined;
   const max = m.maxRetries ?? MAX_RETRIES;
   const retryableReason = !!r?.retryable && m.retryable;

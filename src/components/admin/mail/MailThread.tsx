@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { mailApi, MailError, type MailConfig, type SendStatus, type ThreadItem, type ThreadPage } from '@/lib/admin/mail/api';
 import {
-  ANON_THREAD, authorText, BACKGROUND_SENDING, BODY_MAX, bodyCounter, DELETED, fmtCountdown, FORM_UNKNOWN, invalidFieldText, MAYBE_DELIVERED, MAYBE_DELIVERED_HINT,
+  ANON_THREAD, authorText, DEFAULT_POLL_MS, DEFERRED_REASON, DEFERRED_TEXT, BACKGROUND_SENDING, BODY_MAX, bodyCounter, DELETED, fmtCountdown, FORM_UNKNOWN, invalidFieldText, MAYBE_DELIVERED, MAYBE_DELIVERED_HINT,
   NOT_RETRYABLE, oneLineSubject, outboundView, rateLimitText, replySubject, RETRY_LIMIT_HINT, retryCountText, sendErrorText, SENDING_DISABLED, SENDING_DISABLED_HINT,
   showUnverified, SUBJECT_MAX, subjectText, UNCONFIRMED
 } from '@/lib/admin/mail/logic';
@@ -60,6 +60,7 @@ export default function MailThread({ inquiryId, recipient, onAnonymized, onSendA
       else if (err.code === 'retry_limit') setLive((l) => ({ ...l, [m.id]: { ...l[m.id], retryCount: m.maxRetries } }));
       else if (err.code === 'not_retryable') setItemNote((n) => ({ ...n, [m.id]: { text: NOT_RETRYABLE, tone: 'error' } }));
       else if (err.code === 'anonymized') { onAnonymized?.(); }
+      else if (err.code === 'mail_failed' && err.body.reason === DEFERRED_REASON && err.body.id) poll(err.body.id, DEFAULT_POLL_MS);
       else if (err.code !== 'mail_failed') { const t = sendErrorText(err); if (t) setItemNote((n) => ({ ...n, [m.id]: { text: t.text, tone: t.tone } })); }
       await load();
     } finally { setRetrying(undefined); }
@@ -123,6 +124,7 @@ function OutStatus({ s, canSend, bodyText, note, retrying, onRetry }: { s: Threa
   const left = useCountdown(rate?.until);
   if (s.unconfirmed) return <div className="ml-status" role="status">{UNCONFIRMED} <button type="button" className="ml-btn" onClick={() => location.reload()}>刷新</button></div>;
   if (v.kind === 'sending') return <div className="ml-status" role="status">{s.background ? BACKGROUND_SENDING : '正在发送…'}</div>;
+  if (v.kind === 'deferred') return <div className="ml-status" role="status" data-testid="deferred">ⓘ {DEFERRED_TEXT}</div>;
   if (v.kind === 'sent') return <div className="ml-status ok" role="status">✓ 已发送 · {hhmm(v.at)}</div>;
   if (v.kind === 'maybe_delivered') return (
     <div className="ml-status" role="status" data-testid="maybe-delivered"><span className="ml-pill strong">{MAYBE_DELIVERED}</span><span className="t">{MAYBE_DELIVERED_HINT}</span><CopyBody text={bodyText} /></div>);
@@ -186,7 +188,9 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
         setRate({ scope: err.body.scope, limit: err.body.limit, until: Date.now() + (err.body.retryAfterSec ?? 60) * 1000 });
       } else if (err.code === 'mail_failed') {
         // 失败的信已作为 FAILED 记录出现在往来记录里（带重试 / 可能已送达），回复框清空
-        key.current = undefined; setBody(''); await onSent();
+        key.current = undefined; setBody('');
+        if (err.body.reason === DEFERRED_REASON && err.body.id) onBackground(err.body.id, DEFAULT_POLL_MS);
+        await onSent();
       } else {
         const t = sendErrorText(err)!;
         if (t.at === 'body') setFieldErr({ body: t.text }); else setFormErr(t);

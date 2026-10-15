@@ -38,3 +38,7 @@ test('201 → sent；202 → sending（pollAfterMs 缺省 5000）', () => {
   assert.deepEqual(toSendResult(202, { id: 'b', status: 'SENDING', pollAfterMs: 5000 }), { kind: 'sending', id: 'b', pollAfterMs: 5000 });
   assert.deepEqual(toSendResult(202, { id: 'c' }), { kind: 'sending', id: 'c', pollAfterMs: 5000 });
 });
+
+test('201 messageId 为 null 也照常解析为 sent', () => {
+  assert.equal(toSendResult(201, { id: 'n', status: 'SENT', messageId: null, sentAt: null }).kind, 'sent');
+});
