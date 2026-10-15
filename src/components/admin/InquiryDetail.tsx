@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
 import InquiryNotFound from './InquiryNotFound';
+import MailThread from './mail/MailThread';
+import { mailEnabled } from '@/lib/admin/mail/api';
 import StatusBadge from './StatusBadge';
-import { AnonTag, DeletedBody, AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, StatusText } from './anonymized';
+import { AnonTag, DeletedBody, AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, LockedStatus, statusConflictText } from './anonymized';
 import { errorText, loginHref, fmtDate, productName, relTime } from './format';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
@@ -44,6 +46,14 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
     return () => { live = false; if (url?.startsWith('blob:')) URL.revokeObjectURL(url); };
   }, [inq?.logoUploadId]);
 
+  // 改状态 409 anonymized（与回复同一个码）：提示「内容已删除，无法更改状态」并重新拉详情（随后渲染置灰的下拉框）
+  const [statusErr, setStatusErr] = useState<string>();
+  const changeStatus = async (status: InquiryStatus) => {
+    setBusy(true); setErr(undefined); setStatusErr(undefined);
+    try { await adminApi.updateInquiry(id, { status }); }
+    catch (e) { const code = String((e as Error).message ?? e); const t = statusConflictText(code); if (t) setStatusErr(t); else setErr(code); }
+    finally { try { setInq(await adminApi.getInquiry(id)); } catch { /* 保留原数据 */ } setBusy(false); }
+  };
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true); setErr(undefined);
     try { await fn(); setInq(await adminApi.getInquiry(id)); } catch (e) { setErr(String((e as Error).message ?? e)); } finally { setBusy(false); }
@@ -74,9 +84,9 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         {!anon && score < REVIEW_THRESHOLD && <span className="badge REVIEW">待核实</span>}
         <span className="muted">· {c.region} · {relTime(inq.createdAt)}</span>
         <span className="sp" />
-        {ctl.statusEditable ? <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { status: e.target.value as InquiryStatus }))} aria-label="状态">
+        {ctl.statusEditable ? <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => changeStatus(e.target.value as InquiryStatus)} aria-label="状态">
           {(Object.keys(STATUS_LABEL) as InquiryStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-        </select></label> : <StatusText label={STATUS_LABEL[inq.status]} />}
+        </select></label> : <LockedStatus label={STATUS_LABEL[inq.status]} />}
         {ctl.showAssign ? (
           <label className="muted">负责人：<select value={inq.assignee?.id ?? ''} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { assigneeId: e.target.value || null }))} aria-label="负责人">
             <option value="">未分配</option>
@@ -87,17 +97,19 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
           onClick={() => { if (confirm('确定标记为无效询盘？')) run(() => adminApi.updateInquiry(inq.id, { status: 'INVALID' })); }}>标记无效</button>}
       </div>
       {inq.anonymizedAt && <p data-testid="anon-notice" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{anonymizedNotice(inq.anonymizedAt, fmtDate)}</p>}
+      {statusErr && <p data-testid="status-conflict" role="status" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{statusErr}</p>}
       {isAnonConflict(err) && <AnonConflictNotice />}
       {err && !isAnonConflict(err) && <p className="warn" role="alert">{errorText(err, '操作失败')}{err === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</p>}
 
       <div className="adm-g2">
         <div>
           <section className="adm-sec">
-            <h2>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></h2>
+            <h2>{mailEnabled ? '询盘留言' : <>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></>}</h2>
             {inq.message && (
               <div className="adm-msg2 INBOUND"><div className="meta">客户 · {who} · {fmtDate(inq.createdAt)}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={inq.message} />}</div></div>)}
-            {inq.messages.map((m) => (
+            {/* #74：开启邮件功能后，旧 InquiryMessage 由 8.3 接口以 source:"legacy" 合并进下面的 MailThread，这里不再重复显示 */}
+            {!mailEnabled && inq.messages.map((m) => (
               <div key={m.id} className={`adm-msg2 ${m.direction}`}>
                 <div className="meta">{m.direction === 'INBOUND' ? <>客户 · {who}</> : `我们${m.author ? ` · ${m.author}` : ''}`} · {fmtDate(m.createdAt)} · {anon ? <AnonTag /> : m.subject}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={plain(m.bodyHtml)} />}</div>
@@ -105,7 +117,10 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
             {/* 附件区整体不显示：后端暂无附件接口（#85），有了再按扫描状态加回 */}
           </section>
 
-          {ctl.showReply && <section className="adm-sec">
+          {mailEnabled && <MailThread inquiryId={inq.id} recipient={anon ? '' : `${c.name} <${c.email}>`}
+            onSendAccepted={inq.status === 'NEW' ? () => run(() => adminApi.updateInquiry(inq.id, { status: 'FOLLOWING' })) : undefined}
+            onAnonymized={() => { void adminApi.getInquiry(id).then(setInq).catch(() => {}); }} />}
+          {ctl.showReply && !mailEnabled && <section className="adm-sec">
             <h2>回复客户 <span className="muted">将以{LANG[inq.locale]}发送</span></h2>
             <textarea rows={5} style={{ width: '100%' }} value={body} onChange={(e) => { setBody(e.target.value); setSaved(false); }} aria-label="回复内容"
               placeholder={inq.locale === 'ru' ? `Здравствуйте, ${c.name}!` : `Dear ${c.name.split(' ')[0]}, thank you for…`} />

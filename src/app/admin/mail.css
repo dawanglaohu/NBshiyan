@@ -1,0 +1,59 @@
+/* #74 邮件界面（ux-spec.md §0 token；只在后台 .adm 内使用） */
+.ml{--line-strong:#8A8378;--danger:#B42318;--danger-bg:#FEF3F2;--neutral-bg:#F3EFE8;--out-bg:#FFF1EC;--navy:#1F2A44}
+.ml :focus-visible{outline:2px solid var(--navy);outline-offset:3px}
+.ml-thread{display:flex;flex-direction:column;gap:16px}
+.ml-msg{max-width:78%;border-radius:12px;padding:12px 16px;border:1px solid var(--line);background:var(--surface);min-width:0}
+.ml-msg.in{align-self:flex-start}.ml-msg.out{align-self:flex-end;background:var(--out-bg);border-color:#F5C9BB}.ml-msg.wide{max-width:none}
+.ml-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:13px;color:var(--ink-2);margin-bottom:8px}.ml-meta b{color:var(--ink)}
+.ml-subj{font-weight:600;margin-bottom:6px;overflow-wrap:anywhere}.ml .ph{color:var(--ink-2);font-style:italic;font-weight:400}
+.ml-deleted{color:var(--ink-2);font-style:italic}
+.ml-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.ml-frame{display:block;width:100%;min-height:240px;max-height:70vh;border:0;background:transparent;overflow:auto}
+.ml-resize{height:44px;margin-top:-16px;display:grid;place-items:center;cursor:ns-resize;touch-action:none;border-radius:8px}
+.ml-resize span{display:block;width:48px;height:4px;border-radius:2px;background:var(--line-strong)}
+.ml-resize:hover span,.ml-resize:focus-visible span{background:var(--navy)}
+.ml-pill{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line-strong);color:var(--ink-2);background:var(--surface)}
+.ml-pill.strong{color:var(--ink);background:var(--neutral-bg)}
+.ml-chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--neutral-bg);border:1px solid var(--line-strong);color:var(--ink)}
+.ml-banner{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;background:var(--neutral-bg);border:1px solid var(--line-strong);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:13px;color:var(--ink)}
+.ml-unv{background:var(--neutral-bg);border:1px solid var(--line-strong);color:var(--ink-2);border-radius:8px;padding:6px 10px;font-size:13px;margin-bottom:8px}
+.ml-att-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+.ml-att{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 8px;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;max-width:360px;width:100%;text-align:left}
+.ml-att .ico{width:32px;height:32px;border-radius:6px;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;flex:none}
+.ml-att .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ml-att .sz{color:var(--ink-2);font-size:12px}.ml-att .dl{color:var(--accent-text);font-weight:600}
+.ml-note{font-size:13px;color:var(--ink-2)}
+.ml-status{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:13px;border:1px solid var(--line-strong);background:var(--neutral-bg);color:var(--ink)}
+.ml-status .t{flex:1 1 220px;min-width:0}
+.ml-status.err{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+.ml-status.ok{background:var(--surface)}
+.ml-rc{font-size:12px;color:var(--ink-2)}.ml-rc.last{color:var(--accent-text);font-weight:600}
+.ml-btn{white-space:nowrap;min-height:44px;min-width:44px;padding:0 16px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.ml-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.ml-btn:disabled{background:var(--neutral-bg);color:var(--ink-2);border-color:var(--line-strong);cursor:not-allowed}
+.ml-compose label,.ml-assign label{display:block;font-weight:600;margin:12px 0 4px;font-size:13px}
+.ml-compose input,.ml-compose textarea,.ml-assign input{width:100%;min-height:44px;border:1px solid var(--line-strong);border-radius:8px;padding:10px 12px}
+.ml-compose input[readonly]{background:var(--neutral-bg)}
+.ml-ferr{color:var(--danger);font-size:13px;margin-top:4px}
+.ml-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}.ml-row.sb{justify-content:space-between;margin:0}.ml-row.end{justify-content:flex-end}
+.ml-assign .ml-row input{flex:1 1 180px;width:auto}
+.ml-cnt{font-size:12px;color:var(--ink-2)}.ml-cnt.near{color:var(--accent-text)}.ml-cnt.over{color:var(--danger);font-weight:600}
+.ml-exp{font-size:12px;color:var(--ink-2)}.ml-exp.soon{color:var(--accent-text);font-weight:600}
+.ml-inbox{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:16px;align-items:start}
+.ml-list{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ml-list li{border-bottom:1px solid var(--line)}.ml-list li:last-child{border-bottom:0}
+.ml-list button{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:12px;min-height:44px;border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer}
+.ml-list button[aria-current]{background:var(--neutral-bg);box-shadow:inset 3px 0 var(--navy)}
+.ml-list .s{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ml-list .snip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ml-from{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ml-empty{padding:40px 16px;text-align:center;color:var(--ink-2)}
+.ml-back{display:none;margin-bottom:8px}
+.ml-overlay{position:fixed;inset:0;background:rgba(28,28,28,.35);display:grid;place-items:center;z-index:50;padding:16px}
+.ml-dialog{background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;padding:20px;max-width:440px;width:100%}
+.ml-dialog h3{margin:0 0 12px;font-size:16px}.ml-dialog dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 12px}.ml-dialog dt{color:var(--ink-2)}.ml-dialog dd{margin:0}
+.ml-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);display:inline-flex;gap:8px;align-items:center;background:var(--navy);color:#fff;padding:10px 14px;border-radius:8px;z-index:40}
+.ml-toast button{background:transparent;border:0;color:#fff;text-decoration:underline;font:inherit;cursor:pointer;min-height:44px;min-width:44px}
+@media (max-width:720px){
+  .ml-msg{max-width:92%}
+  .ml-inbox{grid-template-columns:1fr}.ml-inbox.has-sel .ml-list{display:none}.ml-inbox:not(.has-sel) .ml-detail{display:none}.ml-back{display:inline-block}
+  .ml-row>.ml-btn{flex:1}
+}
