@@ -7,7 +7,7 @@
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Custom Printed Boxes Manufacturer & Supplier | PackJoyU | Картонные коробки с печатью на заказ | PackJoyU |
+| title | Custom Printed Boxes Supplier | PackJoyU | Картонные коробки с печатью на заказ | PackJoyU |
 | description | Full-color printed paperboard boxes for cosmetics, electronics and retail. Custom sizes, foil, embossing and matte or gloss coating. Request a quote today. | Картонные коробки с полноцветной печатью и логотипом для косметики, электроники и розницы. Любые размеры, тиснение и ламинация. Запросите расчёт. |
 | keyword | custom printed boxes | картонные коробки с печатью |
 
@@ -17,7 +17,7 @@
 
 ### H1: Custom Printed Boxes
 
-PackJoyU produces full-color printed paperboard boxes for cosmetics, electronics, food, supplements and retail products. From tuck-end folding cartons to boxes with windows and inserts, each design is printed with accurate brand colors and finished with foil, embossing or coating to stand out on the shelf. We manufacture to your dielines or develop a new structure with you.
+PackJoyU sources and supplies full-color printed paperboard boxes for cosmetics, electronics, food, supplements and retail products. From tuck-end folding cartons to boxes with windows and inserts, each design is printed with accurate brand colors and finished with foil, embossing or coating to stand out on the shelf. We work to your dielines or develop a new structure with you.
 
 #### Why PackJoyU
 
@@ -66,7 +66,7 @@ PackJoyU produces full-color printed paperboard boxes for cosmetics, electronics
 
 ### H1: Картонные коробки с печатью на заказ
 
-PackJoyU производит картонные коробки с полноцветной печатью для косметики, электроники, продуктов питания, БАДов и розничных товаров. От складных коробок с клапанами до упаковки с окном и ложементом — каждый макет печатается с точной передачей фирменных цветов и дополняется тиснением фольгой, конгревом или ламинацией, чтобы товар выделялся на полке. Изготавливаем по вашей развёртке или разрабатываем конструкцию вместе с вами.
+PackJoyU подбирает и поставляет картонные коробки с полноцветной печатью для косметики, электроники, продуктов питания, БАДов и розничных товаров. От складных коробок с клапанами до упаковки с окном и ложементом — каждый макет печатается с точной передачей фирменных цветов и дополняется тиснением фольгой, конгревом или ламинацией, чтобы товар выделялся на полке. Изготавливаем по вашей развёртке или разрабатываем конструкцию вместе с вами.
 
 #### Почему PackJoyU
 
@@ -93,7 +93,7 @@ PackJoyU производит картонные коробки с полноц�
 1. **Отправьте задачу** — размеры товара, тираж, макет или референс.
 2. **Расчёт и конструкция** — предложим материал, конструкцию и развёртку.
 3. **Проба и образец** — цифровая проба, затем физический образец (сроки согласовываются при расчёте).
-4. **Производство и контроль** — тираж с проверкой качества перед упаковкой.
+4. **Как выполняется заказ** — тираж готовится и упаковывается к отгрузке.
 5. **Доставка** — упаковка и документы; условия поставки — в расчёте.
 
 **CTA:** Запросить расчёт →
