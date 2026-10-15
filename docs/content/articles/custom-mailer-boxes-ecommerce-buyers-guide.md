@@ -6,7 +6,8 @@ target_keyword: custom mailer boxes
 secondary_keywords: [custom mailer boxes with logo, e-commerce packaging boxes, printed shipping boxes, kraft mailer boxes]
 landing_page: /en/products/custom-corrugated-boxes
 status: draft (Refs #99) — every TBD needs real data before publishing
-meta_description: "A practical guide to ordering custom mailer boxes for e-commerce: styles, board, printing, sizing and the ordering process, from a factory-direct manufacturer."
+meta_description: "A practical guide to ordering custom mailer boxes for e-commerce: styles, board, printing, sizing and the ordering process."
+import: false
 ---
 
 # Custom Mailer Boxes for E-commerce: A Buyer's Guide
@@ -40,7 +41,7 @@ Corrugated board is made of liners and a fluted middle layer. The flute size and
 
 The right choice depends on product weight, fragility, how the parcel travels (courier, pallet, international freight) and how the box will be stacked. A good supplier will recommend a board grade for your situation rather than a one-size-fits-all spec. Exact board grades and test values for your box: TBD, confirmed with the factory for each project.
 
-Liner color is a design choice too. Kraft liners give a natural, eco-leaning look; white liners make printed colors brighter.
+Liner color is a design choice too. Kraft liners give a natural, earthy look; white liners make printed colors brighter.
 
 ## Printing options
 
@@ -62,7 +63,7 @@ When in doubt, send a physical product sample. The factory can build a white (un
 
 ## Sustainability without overclaiming
 
-Corrugated board is widely recycled, and kraft or recycled-content board, water-based inks and plastic-free inserts such as molded pulp can all reduce your packaging's footprint. Be careful with wording on the box itself: claims like "100% recycled", "FSC certified" or "compostable" must be backed by documents for that specific material. PackJoyU certification status for these claims: TBD. Only use a claim once the supporting certificate is confirmed.
+Some buyers ask about kraft or recycled-content board, alternative inks and molded pulp inserts. Ask your supplier which of these are available for your project (TBD per quote). Be careful with wording on the box itself: any environmental claim (for example "100% recycled" or "FSC certified") must be backed by documents for that specific material. PackJoyU certification status for these claims: TBD. Only use a claim once the supporting certificate is confirmed.
 
 ## The ordering process
 
@@ -83,7 +84,7 @@ Minimum order quantity: TBD — it varies by structure and printing method, so a
 - What does inside printing add to price and lead time?
 - Can I approve a physical sample before production?
 - How is color checked during production?
-- How will the boxes be packed for export, and what documents are provided?
+- How will the boxes be packed for international shipping, and what documents are provided?
 
 ## Cost drivers to understand
 
@@ -93,4 +94,4 @@ Without quoting numbers, the main factors that move price are: box size and boar
 
 The best mailer box is the one that fits your product snugly, survives your shipping route and carries your brand consistently. Decide on style, board, printing and size, verify any sustainability claims, and approve a sample before production.
 
-**Ready to start?** Send your product dimensions and artwork through our [custom corrugated boxes](/en/products/custom-corrugated-boxes) page to request a quote. You may also want to see [custom printed boxes](/en/products/custom-printed-boxes) for retail packaging and [molded pulp packaging](/en/products/molded-pulp-packaging) for plastic-free inserts.
+**Ready to start?** Send your product dimensions and artwork through our [custom corrugated boxes](/en/products/custom-corrugated-boxes) page to request a quote. You may also want to see [custom printed boxes](/en/products/custom-printed-boxes) for retail packaging and [molded pulp packaging](/en/products/molded-pulp-packaging) for molded pulp inserts.

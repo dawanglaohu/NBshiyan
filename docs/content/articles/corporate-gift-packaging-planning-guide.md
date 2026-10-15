@@ -7,6 +7,7 @@ secondary_keywords: [custom gift boxes, custom magnetic boxes with logo, luxury 
 landing_page: /en/products/custom-gift-boxes
 status: draft (Refs #99) — every TBD needs real data before publishing
 meta_description: "Plan custom corporate gift packaging step by step: box styles, inserts, branding, timelines and delivery, with practical questions to ask your manufacturer."
+import: false
 ---
 
 # Corporate Gift Packaging: A Planning Guide for Brands and Buyers
@@ -40,8 +41,8 @@ Rigid boxes are built from a thick greyboard core wrapped in printed or specialt
 A custom insert keeps each item secure and presents the set the way you intended. Options include:
 
 - **EVA or foam** for precise, cushioned cut-outs, good for fragile items like glassware or electronics.
-- **Paperboard inserts** for a lighter, more recyclable option.
-- **Molded pulp** as a plastic-free alternative with a natural look.
+- **Paperboard inserts** as a lighter alternative to foam.
+- **Molded pulp** as a paper-based insert option with a natural look.
 - **Satin or fabric lining** for a premium finish.
 
 Send samples of the actual products if possible; inserts made from real samples fit far better than ones made from drawings alone.
