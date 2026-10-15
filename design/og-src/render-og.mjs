@@ -1,13 +1,15 @@
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
 import fs from 'node:fs';
-const R='/workspace/nb-design', ts=fs.readFileSync(R+'/src/lib/seo/categoryMeta.ts','utf8');
+import { tag } from './og-tagline.mjs';
+import { resolvePoster } from './og-assets.mjs';
+const { chromium } = createRequire(import.meta.url)('playwright');
+const R=process.cwd(), ts=fs.readFileSync(R+'/src/lib/seo/categoryMeta.ts','utf8');
 const cats=[...ts.matchAll(/key: '([\w-]+)',\s*en: \{ slug: '([\w-]+)', keyword: '([^']+)'.*?ru: \{ slug: '[\w-]+', keyword: '([^']+)'/gs)].map(m=>({key:m[1],slug:m[2],en:m[3],ru:m[4]}));
 const cap=s=>s.replace(/^./,c=>c.toUpperCase()).replace(/christmas/,'Christmas');
-const posters={}; for(const f of fs.readdirSync(R+'/public/images/posters')) posters[f.replace(/^custom-|\.webp$/g,'')]=f;
+const posters=Object.fromEntries(cats.map(c=>[c.key,resolvePoster('custom-'+c.key)]));
 const b64=f=>'data:image/webp;base64,'+fs.readFileSync(f).toString('base64');
-const P=f=>b64(R+'/public/images/posters/'+f);const hero=`<div style="position:relative;width:460px;height:440px"><img src="${P('custom-corrugated-boxes.b3d628f6.webp')}" style="position:absolute;left:0;top:120px;width:250px;height:250px"><img src="${P('custom-gift-boxes.2b476905.webp')}" style="position:absolute;left:210px;top:0;width:250px;height:250px"><img src="${P('custom-wine-boxes.98e212ab.webp')}" style="position:absolute;left:180px;top:200px;width:240px;height:240px"></div>`;
+const P=f=>b64(R+'/public/images/posters/'+f);const hero=`<div style="position:relative;width:460px;height:440px"><img src="${P(resolvePoster('custom-corrugated-boxes'))}" style="position:absolute;left:0;top:120px;width:250px;height:250px"><img src="${P(resolvePoster('custom-gift-boxes'))}" style="position:absolute;left:210px;top:0;width:250px;height:250px"><img src="${P(resolvePoster('custom-wine-boxes'))}" style="position:absolute;left:180px;top:200px;width:240px;height:240px"></div>`;
 const box=(c)=>`<svg viewBox="0 0 200 180" width="380"><path d="M30 60 100 30l70 30v80l-70 34-70-34Z" fill="${c?'#2A2A2E':'#C49A6C'}"/><path d="M100 90v84L30 140V60Z" fill="${c?'#1E1E22':'#A77D50'}"/><path d="m30 60 70 30 70-30" fill="none" stroke="${c?'#D4AF6A':'#8a6440'}" stroke-width="3"/><circle cx="168" cy="26" r="14" fill="${c?'#D4AF6A':'#FFD166'}"/></svg>`;
-const tag={en:'Custom packaging & printing · Factory direct',ru:'Упаковка и печать на заказ · Напрямую с фабрики'};
 const page=({title,sub,img,dark})=>`<!doctype html><html><head><meta charset="utf-8"><style>
 *{margin:0;box-sizing:border-box}body{width:1200px;height:630px;overflow:hidden;font-family:Manrope,sans-serif;background:${dark?'#121214':'#FBF8F3'};color:${dark?'#F2E9D8':'#1C1C1C'}}
 .safe{position:absolute;left:60px;top:35px;width:1080px;height:560px;display:flex;align-items:center;gap:40px}
