@@ -284,7 +284,7 @@
 | C-custom-paper-cups-10 | `docs/content/custom-paper-cups.md` | #188 | Sizes \| On request | Объемы \| По запросу |  |  |
 | C-custom-paper-cups-11 | `docs/content/custom-paper-cups.md` | #188 | Lining \| PE lining; other options on request | Покрытие \| ПЭ; другие варианты — по запросу |  |  |
 | C-custom-paper-cups-12 | `docs/content/custom-paper-cups.md` | #188 | Printing \| Flexo or offset, full-wrap | Печать \| Флексо или офсет по всей поверхности |  |  |
-| C-custom-paper-cups-13 | `docs/content/custom-paper-cups.md` | #188 | Accessories \| PS/PP/fiber lids, sleeves, carriers | Аксессуары \| Крышки PS/PP/из волокна, манжеты, подставки |  |  |
+| C-custom-paper-cups-13 | `docs/content/custom-paper-cups.md` | #188 | Accessories \| PS/PP lids, sleeves, carriers | Аксессуары \| Крышки PS/PP, манжеты, подставки |  |  |
 | C-custom-paper-cups-14 | `docs/content/custom-paper-cups.md` | #188 | MOQ \| On request | Минимальный тираж \| По запросу |  |  |
 | C-custom-paper-cups-15 | `docs/content/custom-paper-cups.md` | #188 | Sample lead time \| On request | Срок изготовления образца \| По запросу |  |  |
 | C-custom-paper-cups-16 | `docs/content/custom-paper-cups.md` | #188 | Production lead time \| On request | Срок производства \| По запросу |  |  |
@@ -514,7 +514,7 @@
 | M-color-printing-desc | `src/lib/seo/categoryMeta.ts` | #222 | Full-color CMYK and Pantone printing for packaging, labels and inserts on paper and board. Accurate color matching and fast proofs. Request a quote. | Полноцветная печать упаковки, этикеток и вкладышей на бумаге и картоне. Точная цветопередача CMYK и Pantone, быстрые пробы для брендов. Запросите расчёт. | 153/160 |  |
 | M-color-printing-kw | `src/lib/seo/categoryMeta.ts` | main | печать упаковки | печать упаковки |  |  |
 | M-offset-printing-title | `src/lib/seo/categoryMeta.ts` | main | Offset Printing Services Manufacturer \| PackJoyU | Офсетная печать упаковки на заказ \| PackJoyU | 44/60 |  |
-| M-offset-printing-desc | `src/lib/seo/categoryMeta.ts` | #222 | High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color and in-house finishing for export. Request a quote. | Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Четкая детализация, стабильный цвет и постпечатная обработка. Запросите расчёт. | 154/160 |  |
+| M-offset-printing-desc | `src/lib/seo/categoryMeta.ts` | #222 | High-volume offset printing for boxes, catalogs, brochures and labels. Sharp detail, consistent color. Request a quote. | Офсетная печать коробок, каталогов, буклетов и этикеток большими тиражами. Четкая детализация, стабильный цвет. Запросите расчёт. | 129/160 |  |
 | M-offset-printing-kw | `src/lib/seo/categoryMeta.ts` | main | офсетная печать упаковки | офсетная печать упаковки |  |  |
 | M-eco-paper-cups-title | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | Eco-Friendly Paper Cups Manufacturer \| PackJoyU | Экологичные стаканы с логотипом \| PackJoyU ⚠️F15/F17 | 42/60 |  |
 | M-eco-paper-cups-desc | `src/lib/seo/categoryMeta.ts` | seo/yo-unification | Eco-friendly paper cups custom printed with your logo, for cafes and coffee chains. Request a quote today. | Экологичные бумажные стаканы с печатью вашего логотипа. Для кофеен, ресторанов и сетей. Запросите расчёт. | 105/160 |  |
@@ -632,7 +632,7 @@
 | UI-Home.ctaQuote | `messages/ru.json` | #222 | Get a quote | Запросить расчёт |  |  |
 | UI-Home.advTitle | `messages/ru.json` | main | Why brands choose PackJoyU | Почему бренды выбирают PackJoyU |  |  |
 | UI-Home.adv.capacity.label | `messages/ru.json` | main | boxes produced per month | коробок в месяц |  |  |
-| UI-Home.adv.certs.label | `messages/ru.json` | main | certified materials and processes | сертифицированные материалы и процессы |  |  |
+| UI-Home.adv.certs.label | `messages/ru.json` | main | | |  |  |
 | UI-Home.adv.sampling.label | `messages/ru.json` | main | from artwork to physical sample | от макета до готового образца |  |  |
 | UI-Home.adv.eco.label | `messages/ru.json` | main | recyclable paper options | перерабатываемые варианты бумаги |  |  |
 | UI-Home.entryTitle | `messages/ru.json` | main | Find your packaging | Подберите упаковку |  |  |
