@@ -52,8 +52,8 @@ function makeAnonymized(): InquiryDetail {
   const base = make(23);
   return {
     ...base, id: 'inq_anon_1', status: 'WON', assignee: users[0], createdAt: ago(60 * 24 * 760), anonymizedAt: ago(60 * 24 * 30),
-    contact: { name: '[deleted]', email: 'deleted+k3j9q2x7@invalid.invalid', company: '[deleted]', phone: undefined, region: 'DE' },
-    message: undefined, attribution: undefined, trustReasons: [], logoUploadId: undefined, attachments: [], notes: [],
+    contact: { name: '[deleted]', email: 'deleted+k3j9q2x7@invalid.invalid', company: '[deleted]', phone: undefined, region: 'DE' }, ipCountry: null,
+    message: undefined, attribution: undefined, trustReasons: [], logoUploadId: undefined, attachments: [], notes: [{ id: 'n1', author: '业务员 A', body: '[deleted]', createdAt: ago(60 * 24 * 700) }],
     messages: [{ id: 'm1', direction: 'INBOUND', subject: '[deleted]', bodyHtml: '[deleted]', createdAt: ago(60 * 24 * 760) }],
     history: [{ id: 'h1', at: ago(60 * 24 * 760), action: '询盘创建' }, { id: 'h2', at: ago(60 * 24 * 30), actor: '系统', action: '按数据保留政策匿名化' }],
   };
@@ -70,7 +70,7 @@ export const mockAdminApi: AdminApi = {
   async listInquiries(q) {
     let rows = db.slice();
     if (!q.includeAnonymized) rows = rows.filter((r) => !r.anonymizedAt); // 与后端 includeAnonymized 默认 false 一致
-    if (q.status === 'REVIEW') rows = rows.filter((r) => r.trustScore < REVIEW_THRESHOLD);
+    if (q.status === 'REVIEW') rows = rows.filter((r) => !r.anonymizedAt && r.trustScore < REVIEW_THRESHOLD);
     else if (q.status) rows = rows.filter((r) => r.status === q.status);
     if (q.q) { const s = q.q.toLowerCase(); rows = rows.filter((r) => [r.ref, r.contact.email, r.contact.company ?? '', r.contact.name].some((v) => v.toLowerCase().includes(s))); }
     if (q.from) rows = rows.filter((r) => r.createdAt >= q.from!);
@@ -98,7 +98,7 @@ export const mockAdminApi: AdminApi = {
     return delay(m);
   },
   async addNote(id, body) {
-    const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found');
+    const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found'); if (r.anonymizedAt) throw new Error('anonymized');
     const n = { id: `n${Date.now()}`, author: '我', body, createdAt: new Date().toISOString() };
     r.notes.push(n); return delay(n);
   },

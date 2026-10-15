@@ -1,5 +1,6 @@
 import type { InquirySummary } from '@/lib/admin/types';
 import { canAssignInquiry } from './format';
+import { REVIEW_THRESHOLD } from '@/lib/admin/api';
 
 // 已匿名化询盘（保留期到期 / 手动删除）：PII 字段为 '[deleted]' 或空，邮箱可能是 deleted+…@invalid.invalid。
 // 只认 anonymizedAt：后端没返回这个字段时一律当作未匿名化。
@@ -49,3 +50,10 @@ export function StatusText({ label }: { label: string }) {
 export function AnonConflictNotice() {
   return <p data-testid="anon-conflict" role="status" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{ANON_CONFLICT_MSG}</p>;
 }
+
+/** 待核实（可信度 < 阈值）：已匿名化询盘不再参与分组 / ⚠ / 警告色 */
+export const needsReview = (r: { trustScore: number; anonymizedAt?: string | null }) => !isAnonymized(r) && r.trustScore < REVIEW_THRESHOLD;
+
+/** 往来记录：已匿名化时 subject / 正文的 [deleted] 不直接显示 */
+export const DELETED_BODY = '内容已删除';
+export function DeletedBody() { return <span data-testid="deleted-body" style={{ color: 'var(--ink-2)' }}>{DELETED_BODY}</span>; }

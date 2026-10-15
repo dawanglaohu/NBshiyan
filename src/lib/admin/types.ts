@@ -38,7 +38,7 @@ export type InquirySummary = {
 export type InquiryDetail = InquirySummary & {
   contact: Contact; message?: string; items: InquiryItem[]; trustReasons: TrustReason[];
   attribution?: { page?: string; utm?: Record<string, string> };
-  ipCountry?: string; messages: InquiryMessage[]; notes: InquiryNote[];
+  ipCountry?: string | null; messages: InquiryMessage[]; notes: InquiryNote[];
   attachments: InquiryAttachment[]; history: HistoryEvent[];
   /** 客户上传的 Logo（#59）；预览走鉴权接口 GET /api/admin/uploads/:id */
   logoUploadId?: string;

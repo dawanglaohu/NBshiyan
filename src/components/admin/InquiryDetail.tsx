@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
 import InquiryNotFound from './InquiryNotFound';
 import StatusBadge from './StatusBadge';
-import { AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, StatusText } from './anonymized';
+import { AnonTag, DeletedBody, AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, StatusText } from './anonymized';
 import { errorText, loginHref, fmtDate, productName, relTime } from './format';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
@@ -56,7 +56,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   const anon = isAnonymized(inq);
   // 已匿名化：回复区、分配下拉框直接隐藏（服务端另有 409 拦截）
   const ctl = detailControls(inq, role);
-  const who = anon ? '已匿名化' : c.name;
+  const who: React.ReactNode = anon ? <AnonTag /> : c.name;
   const score = inq.trustScore;
   const ringColor = score < REVIEW_THRESHOLD ? 'var(--err)' : score < 70 ? 'var(--warn-c)' : 'var(--ok)';
   const sendAndFollow = () => run(async () => {
@@ -71,7 +71,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
       <div className="adm-hd">
         <h1>{anon ? `询盘 ${inq.ref}` : c.company ?? c.name}</h1>
         <StatusBadge status={inq.status} />
-        {score < REVIEW_THRESHOLD && <span className="badge REVIEW">待核实</span>}
+        {!anon && score < REVIEW_THRESHOLD && <span className="badge REVIEW">待核实</span>}
         <span className="muted">· {c.region} · {relTime(inq.createdAt)}</span>
         <span className="sp" />
         {ctl.statusEditable ? <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => run(() => adminApi.updateInquiry(inq.id, { status: e.target.value as InquiryStatus }))} aria-label="状态">
@@ -96,11 +96,11 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
             <h2>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></h2>
             {inq.message && (
               <div className="adm-msg2 INBOUND"><div className="meta">客户 · {who} · {fmtDate(inq.createdAt)}</div>
-                <div style={{ whiteSpace: 'pre-wrap' }}><PlainText text={inq.message} /></div></div>)}
+                <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={inq.message} />}</div></div>)}
             {inq.messages.map((m) => (
               <div key={m.id} className={`adm-msg2 ${m.direction}`}>
-                <div className="meta">{m.direction === 'INBOUND' ? `客户 · ${who}` : `我们${m.author ? ` · ${m.author}` : ''}`} · {fmtDate(m.createdAt)} · {m.subject}</div>
-                <div style={{ whiteSpace: 'pre-wrap' }}><PlainText text={plain(m.bodyHtml)} /></div>
+                <div className="meta">{m.direction === 'INBOUND' ? <>客户 · {who}</> : `我们${m.author ? ` · ${m.author}` : ''}`} · {fmtDate(m.createdAt)} · {anon ? <AnonTag /> : m.subject}</div>
+                <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={plain(m.bodyHtml)} />}</div>
               </div>))}
             {/* 附件区整体不显示：后端暂无附件接口（#85），有了再按扫描状态加回 */}
           </section>
@@ -125,12 +125,12 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
           </section>}
 
           <section className="adm-sec">
-            <h2>内部备注 <span className="muted">仅团队可见</span></h2>
-            {inq.notes.map((n) => <p key={n.id} style={{ margin: '0 0 8px' }}><b>{n.author}</b> <span className="muted">{fmtDate(n.createdAt)}</span><br />{n.body}</p>)}
-            <form onSubmit={(e) => { e.preventDefault(); if (note.trim()) run(async () => { await adminApi.addNote(inq.id, note.trim()); setNote(''); }); }}>
+            <h2>内部备注 <span className="muted">{anon ? '只读' : '仅团队可见'}</span></h2>
+            {inq.notes.map((n) => <p key={n.id} style={{ margin: '0 0 8px' }}><b>{n.author}</b> <span className="muted">{fmtDate(n.createdAt)}</span><br />{anon ? <DeletedBody /> : n.body}</p>)}
+            {!anon && <form onSubmit={(e) => { e.preventDefault(); if (note.trim()) run(async () => { await adminApi.addNote(inq.id, note.trim()); setNote(''); }); }}>
               <textarea rows={2} style={{ width: '100%' }} value={note} onChange={(e) => setNote(e.target.value)} placeholder="@同事 …" aria-label="内部备注" />
               <button className="adm-btn sq" disabled={busy || !note.trim()} style={{ marginTop: 6 }}>添加备注</button>
-            </form>
+            </form>}
           </section>
 
           <section className="adm-sec">
@@ -158,7 +158,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
               <dt>邮箱</dt><dd>{piiField(inq, c.email)}</dd>
               {(anon || c.company) && (<><dt>公司</dt><dd>{piiField(inq, c.company)}</dd></>)}
               {(anon || c.phone) && (<><dt>电话</dt><dd>{piiField(inq, c.phone)}</dd></>)}
-              <dt>国家</dt><dd>{c.region} · 回复用{LANG[inq.locale]}{inq.ipCountry && inq.ipCountry !== c.region ? <span className="warn">（IP 国家 {inq.ipCountry}）</span> : null}</dd>
+              <dt>国家</dt><dd>{c.region} · 回复用{LANG[inq.locale]}{!anon && inq.ipCountry && inq.ipCountry !== c.region ? <span className="warn">（IP 国家 {inq.ipCountry}）</span> : null}</dd>
               <dt>来源</dt><dd>{SOURCE_LABEL[inq.source]}{inq.attribution?.page && <> · <span className="adm-url">{inq.attribution.page}</span></>}</dd>
               {inq.attribution?.utm && (<><dt>关键词</dt><dd>{Object.entries(inq.attribution.utm).map(([k, v]) => `${k}=${v}`).join(' · ')}</dd></>)}
             </dl>

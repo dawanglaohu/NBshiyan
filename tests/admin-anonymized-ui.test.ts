@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as React from 'react';
 (globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
 import { renderToStaticMarkup } from 'react-dom/server';
-import { AnonConflictNotice, ANON_CONFLICT_MSG, isAnonConflict, StatusText, AnonTag, anonymizedNotice, detailControls, filterAnonymized, isAnonymized, parseIncludeAnon, piiField } from '../src/components/admin/anonymized';
+import { DeletedBody, needsReview, AnonConflictNotice, ANON_CONFLICT_MSG, isAnonConflict, StatusText, AnonTag, anonymizedNotice, detailControls, filterAnonymized, isAnonymized, parseIncludeAnon, piiField } from '../src/components/admin/anonymized';
 import { mockAdminApi } from '../src/lib/admin/mock';
 import { errorText } from '../src/components/admin/format';
 
@@ -77,4 +77,25 @@ test('409 提示：中性色文案，不是红色', async () => {
   assert.match(html, new RegExp(ANON_CONFLICT_MSG)); assert.match(html, /--ink-2/); assert.doesNotMatch(html, /--err|warn/);
   await assert.rejects(mockAdminApi.updateInquiry('inq_anon_1', { status: 'INVALID' }), /anonymized/);
   await assert.rejects(mockAdminApi.reply('inq_anon_1', { subject: 's', body: 'b' }), /anonymized/);
+});
+
+test('待核实：已匿名化询盘不参与（不分组、无 ⚠）', async () => {
+  assert.equal(needsReview({ trustScore: 15, ...anon }), false);
+  assert.equal(needsReview({ trustScore: 15, ...live }), true);
+  assert.equal(needsReview({ trustScore: 80 }), false);
+  const rev = await mockAdminApi.listInquiries({ status: 'REVIEW', pageSize: 100, includeAnonymized: true });
+  assert.ok(!rev.items.some((r) => r.id === 'inq_anon_1'));
+});
+
+test('往来记录：已匿名化正文显示「内容已删除」（--ink-2），mock ipCountry 已清空', async () => {
+  const html = renderToStaticMarkup(React.createElement(DeletedBody));
+  assert.match(html, /内容已删除/); assert.match(html, /color:var\(--ink-2\)/); assert.doesNotMatch(html, /deleted\]/);
+  const d = await mockAdminApi.getInquiry('inq_anon_1');
+  assert.equal(d?.ipCountry, null);
+});
+
+test('内部备注：已匿名化时 mock 备注为 [deleted]，新增备注返回 anonymized', async () => {
+  const d = await mockAdminApi.getInquiry('inq_anon_1');
+  assert.ok(d?.notes.length && d.notes.every((n) => n.body === '[deleted]'));
+  await assert.rejects(mockAdminApi.addNote('inq_anon_1', 'x'), /anonymized/);
 });

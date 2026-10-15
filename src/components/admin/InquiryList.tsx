@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type AdminUser, type InquiryQuery, type InquiryStatus, type InquirySummary, type Page } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
 import DateRange from './DateRange';
-import { filterAnonymized, isAnonymized, parseIncludeAnon, piiField } from './anonymized';
+import { filterAnonymized, isAnonymized, needsReview, parseIncludeAnon, piiField } from './anonymized';
 import { PRODUCT_LABEL, errorText, loginHref, productName, relTime } from './format';
 
 const TABS: (InquiryStatus | 'REVIEW' | '')[] = ['', 'NEW', 'FOLLOWING', 'QUOTED', 'WON', 'INVALID', 'REVIEW'];
@@ -44,7 +44,7 @@ export default function InquiryList() {
     router.replace(`/admin/inquiries${n.size ? `?${n}` : ''}`);
   };
   const row = (r: InquirySummary) => {
-    const cls = ['row', r.trustScore < REVIEW_THRESHOLD ? 'review' : r.status === 'NEW' && !r.assignee ? 'unassigned' : ''].join(' ').trim();
+    const cls = ['row', needsReview(r) ? 'review' : r.status === 'NEW' && !r.assignee ? 'unassigned' : ''].join(' ').trim();
     const go = () => router.push(`/admin/inquiries/${r.id}`);
     return (
       <tr key={r.id} className={cls} tabIndex={0} onClick={go} onKeyDown={(e) => { if (e.key === 'Enter') go(); }}
@@ -52,7 +52,7 @@ export default function InquiryList() {
         <td><Link href={`/admin/inquiries/${r.id}`} onClick={(e) => e.stopPropagation()} tabIndex={-1}>{r.ref}</Link></td>
         <td>{isAnonymized(r) ? piiField(r, null) : r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
         <td>{r.products.length ? <>{productName(r.products[0].productSlug)}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</> : r.itemCount ? `${r.itemCount} 个产品` : '—'}</td>
-        <td className={r.trustScore < REVIEW_THRESHOLD ? 'warn' : undefined}>{r.trustScore}{r.trustScore < REVIEW_THRESHOLD ? ' ⚠' : ''}</td>
+        <td className={needsReview(r) ? 'warn' : undefined}>{r.trustScore}{needsReview(r) ? ' ⚠' : ''}</td>
         <td><StatusBadge status={r.status} /></td>
         <td className="muted">{r.assignee?.name ?? '—'}</td>
         <td className="muted" title={r.createdAt}>{relTime(r.createdAt)}</td>
@@ -92,7 +92,7 @@ export default function InquiryList() {
             {data?.items.length === 0 && <tr><td colSpan={7} className="muted">没有符合条件的询盘</td></tr>}
             {data && (() => {
               const items = filterAnonymized(data.items, includeAnon);
-              const isReview = (r: InquirySummary) => r.trustScore < REVIEW_THRESHOLD;
+              const isReview = (r: InquirySummary) => needsReview(r);
               const review = query.status === 'REVIEW' ? [] : items.filter(isReview);
               const main = query.status === 'REVIEW' ? items : items.filter((r) => !isReview(r));
               return (<>
