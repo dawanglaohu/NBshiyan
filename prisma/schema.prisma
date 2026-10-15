@@ -69,6 +69,7 @@ model User {
   failedLogins   Int       @default(0)
   lockedUntil    DateTime?
   lastLoginAt    DateTime? // 最近一次成功登录（#95 账号管理页显示）
+  reactivatedAt  DateTime? // ADMIN 重新启用的时间；闲置天数从 max(lastLoginAt, reactivatedAt, createdAt) 起算（retention cron）
   inquiries      Inquiry[] @relation("Assignee")
   createdAt      DateTime  @default(now())
 }
@@ -81,10 +82,13 @@ model Contact {
   email     String
   company   String?
   phone     String?
+  /// 规范化邮箱（小写、去 +后缀、Gmail 去点）：隐私导出/删除和自动回复去重按它精确匹配。写入时填，旧数据用 scripts/backfill-normalized-email.ts 回填
+  normalizedEmail String?
   inquiries Inquiry[]
   createdAt DateTime  @default(now())
 
   @@index([email])
+  @@index([normalizedEmail])
 }
 
 model Inquiry {
@@ -110,11 +114,14 @@ model Inquiry {
   logoUploads  LogoUpload[]
   autoReplyAt  DateTime? // 自动回复发送时间，用于每邮箱 24 小时一封
   retainUntil  DateTime // GDPR 保留期限
+  anonymizedAt DateTime? // 已匿名化（保留期到期 cron 或手动删除），不再重复处理
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
 
   @@index([status, createdAt])
   @@index([assigneeId])
+
+  @@index([retainUntil, anonymizedAt])
 }
 
 // 一条询盘可含多个产品，每个带定制参数

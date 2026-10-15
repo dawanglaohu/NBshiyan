@@ -40,6 +40,15 @@ export const RESET_2FA: Prisma.UserUpdateInput = { totpEnabled: false, totpSecre
 
 /** 认后端 last-admin.ts 抛出的类型化错误（name LastAdminError 或 code 'last_admin'） */
 export const isLastAdminError = (e: unknown) => e instanceof Error && (e.name === 'LastAdminError' || (e as { code?: unknown }).code === 'last_admin');
+/** 撤销该账号所有会话（改角色、停用共用） */
+export const REVOKE_SESSIONS = { sessionVersion: { increment: 1 } } as const;
+/** 停用（手动 PATCH 和闲置自动停用共用）：停用 + 会话失效 + 取消其名下询盘分配 */
+export async function disableUserTx(tx: Prisma.TransactionClient, id: string) {
+  const u = await tx.user.update({ where: { id }, data: { disabled: true, ...REVOKE_SESSIONS } });
+  await unassignInquiries(tx, id);
+  return u;
+}
+export const unassignInquiries = (tx: Prisma.TransactionClient, id: string) => tx.inquiry.updateMany({ where: { assigneeId: id }, data: { assigneeId: null } });
 
 export class GuardError extends Error { constructor(public code: 'last_admin' | 'self' | 'not_found') { super(code); } }
 

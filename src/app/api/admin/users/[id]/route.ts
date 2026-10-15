@@ -4,7 +4,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { ID_RE, readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { guardResponse, mutateUser, publicUser } from '@/lib/server/admin/accounts';
+import { guardResponse, mutateUser, publicUser, unassignInquiries, disableUserTx } from '@/lib/server/admin/accounts';
 import { auditDiff, bumpsSession } from '@/lib/server/admin/user-policy';
 
 export const runtime = 'nodejs';
@@ -32,18 +32,22 @@ export async function PATCH(req: Request, { params }: P) {
   const b = p.data;
   try {
     const { before, after } = await mutateUser(ctx.user, id, b, async (tx, t) => {
+      // 停用走和闲置自动停用同一条路径：disabled + 会话失效 + 取消询盘分配
+      if (b.disabled === true) await disableUserTx(tx, id);
+      const rest = { ...b, disabled: b.disabled === true ? undefined : b.disabled };
       const after = await tx.user.update({
         where: { id },
         data: {
           ...(b.role !== undefined ? { role: b.role } : {}),
-          ...(b.disabled !== undefined ? { disabled: b.disabled } : {}),
+          ...(rest.disabled !== undefined ? { disabled: rest.disabled } : {}),
           ...(b.name !== undefined ? { name: b.name } : {}),
           ...(b.unlock ? { lockedUntil: null, failedLogins: 0 } : {}),
-          ...(bumpsSession(b) ? { sessionVersion: { increment: 1 } } : {}), // revokeSessions：角色/停用/启用/解锁后旧会话立即失效
+          ...(b.disabled === false && t.disabled ? { reactivatedAt: new Date() } : {}), // 重新启用：闲置天数从现在重新算，避免次日 cron 又停用
+          ...(bumpsSession(rest) ? { sessionVersion: { increment: 1 } } : {}), // 角色/启用/解锁后旧会话立即失效；停用的会话失效已由 disableUserTx 处理，不重复加
         },
       });
       // 停用或改成非 SALES 角色时，取消其名下询盘的分配
-      if (b.disabled === true || (b.role && b.role === 'EDITOR')) await tx.inquiry.updateMany({ where: { assigneeId: id }, data: { assigneeId: null } });
+      if (b.disabled !== true && b.role === 'EDITOR') await unassignInquiries(tx, id);
       return { before: t, after };
     });
     await audit({ actorId: ctx.user.id, action: 'user.update', target: id, meta: auditDiff(before, after, b), ip: ctx.ip });

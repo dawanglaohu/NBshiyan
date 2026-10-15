@@ -9,6 +9,7 @@
     "postinstall": "prisma generate",
     "admin:create": "node scripts/create-admin.mjs",
     "test": "node --import tsx --test tests/*.test.ts",
+    "email:build": "node scripts/build-email-templates.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
