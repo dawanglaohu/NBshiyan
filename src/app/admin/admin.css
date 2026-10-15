@@ -1,4 +1,5 @@
 @import "../../styles/tokens.css";
+@import "./mail.css"; /* #74 邮件界面 */
 /* 后台：简洁组件风格，主色只用于主要按钮和状态（见 design/admin-wireframes.html） */
 .adm{display:grid;grid-template-columns:200px 1fr;min-height:100vh;background:var(--bg);color:var(--ink);font-family:var(--font-sans),system-ui,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px}
 .adm *{box-sizing:border-box}

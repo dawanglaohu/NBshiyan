@@ -18,6 +18,7 @@ export const ADMIN_ROUTE_ROLES: Readonly<Record<string, readonly AdminRole[]>> =
   '/admin/content': ['ADMIN', 'EDITOR'],
   '/admin/settings': ['ADMIN'],
   '/admin/users': ['ADMIN'],
+  '/admin/mail': ['ADMIN'], // #74 未归类邮件：仅 ADMIN（SALES 404）
   '/admin/stats': ['ADMIN'],
 };
 const EXACT_ONLY = new Set(['/admin']);
