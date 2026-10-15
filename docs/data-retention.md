@@ -9,7 +9,7 @@
 | 设计（短链） | `DESIGN_TTL_DAYS` / `DESIGN_GRACE_DAYS` | 180 / 90 | 过期返回 410，过期后 grace 天由 cron 删除 |
 | 样品申请邮箱计数（normalizedEmail） | `SAMPLE_COUNTER_RETAIN_DAYS` | 30 | cron 置空；IP 计数器靠限流存储 TTL 自动过期 |
 | 审计日志 | `AUDIT_RETAIN_DAYS` | 365（最少 30） | cron 删除。`AuditLog.ip`（后台操作人的 IP）不单独匿名化，随整行在 365 天后删除 |
-| 询盘到期匿名化 | `INQUIRY_RETAIN_DAYS` | 730 | 新询盘写入 `retainUntil`；到期后 cron 用与手动删除相同的逻辑匿名化（留言、来源归因、评分理由、产品备注清空；往来邮件和内部备注改为 `[deleted]`；产品配置去掉 logo 键；样品地址、物流单号清空；回信 token 换成随机值，旧回信地址失效；绑定的 logo 记录和文件删除），写 `anonymizedAt`，不重复处理。联系人只要名下还有任何其他未匿名化的询盘，就**保持不变**（姓名、邮箱等都不动），等最后一条询盘也匿名化时才一起匿名化。每批 500 条在同一个事务里读写（复核、logo、产品配置都在事务内读取），受 `RETENTION_MAX_PER_RUN` 和整次运行的截止时间 `RETENTION_RUN_DEADLINE_MS` 限制 |
+| 询盘到期匿名化 | `INQUIRY_RETAIN_DAYS` | 730 | 新询盘写入 `retainUntil`；到期后 cron 用与手动删除相同的逻辑匿名化（留言、来源归因、评分理由、产品备注清空；往来邮件和内部备注改为 `[deleted]`；产品配置去掉 logo 键；样品地址、物流单号、IP 国家（`ipCountry`）清空；回信 token 换成随机值，旧回信地址失效；绑定的 logo 记录和文件删除），写 `anonymizedAt`，不重复处理。联系人只要名下还有任何其他未匿名化的询盘，就**保持不变**（姓名、邮箱等都不动），等最后一条询盘也匿名化时才一起匿名化。每批 500 条在同一个事务里读写（复核、logo、产品配置都在事务内读取），受 `RETENTION_MAX_PER_RUN` 和整次运行的截止时间 `RETENTION_RUN_DEADLINE_MS` 限制 |
 | 后台账号闲置停用 | `ADMIN_INACTIVE_DAYS` | 90（7–3650） | 从 max(最近登录 `lastLoginAt`, 重新启用 `reactivatedAt`, 创建时间) 起算；从未登录的按创建时间。cron **停用不删除**，与手动停用同一路径（会话失效、取消询盘分配），审计 `user.disable_inactive`（actor = `system`）。最后一个有效 ADMIN 不停用（`assertNotLastActiveAdmin`，与停用同一事务，`SELECT … FOR UPDATE`）。ADMIN 可用 `PATCH /api/admin/users/:id {"disabled": false}` 重新启用，闲置天数从启用时重新计算 |
 | 未绑定 / 已失效的 logo | `LOGO_ORPHAN_TTL_MS`（代码常量） | 上传后 24 小时 | 没有绑定询盘、上传超过 24 小时、且没有被未过期的已保存方案引用的 logo，由 cron 删除记录和文件（删除前校验 key 必须是 `logos/YYYY-MM/<id>.png`）。cron 每天 03:00 UTC 跑一次，所以实际删除时间是上传后 24–48 小时 |
 | 后台登录会话 | `SESSION_MAX_AGE`（`src/auth.ts`） | 2 小时 | JWT 会话 maxAge 2 小时，有操作时每 15 分钟续期一次（`updateAge`），所以闲置 2 小时后失效。停用账号会递增 `sessionVersion`，已签发的会话立即失效 |
@@ -31,7 +31,7 @@
 ## 客户数据导出 / 删除（仅 ADMIN）
 
 - `POST /api/admin/privacy/export {email}`：按规范化邮箱匹配，JSON 以附件直接返回，不在服务器或 R2 保存；`Cache-Control: no-store`。
-- `POST /api/admin/privacy/delete {email, confirmEmail}`：两者规范化后必须一致，否则 400 `confirm_mismatch`。匿名化姓名/邮箱/公司/电话/留言/地址/明细备注，保留条数、类别、日期用于统计；删除 logo 上传。
+- `POST /api/admin/privacy/delete {email, confirmEmail}`：两者规范化后必须一致，否则 400 `confirm_mismatch`。匿名化姓名/邮箱/公司/电话/留言/地址/明细备注并清空 IP 国家（`ipCountry`），只保留条数、类别、日期用于统计；删除 logo 上传。
 - 顺序与其他后台路由一致：requireAdmin(['ADMIN'])（其他角色 403）→ assertSameOrigin → 每管理员 5 次/窗口限流。
 - 按 `Contact.normalizedEmail` 精确匹配（有索引，无条数上限），写入询盘时填写；旧数据用 `scripts/backfill-normalized-email.ts` 回填。
 - 审计 `privacy.export` / `privacy.delete` 只记录邮箱的 HMAC-SHA256（密钥 `PRIVACY_HASH_SECRET`，独立于 AUTH_SECRET；生产未设置时接口 503 拒绝执行），从不记录明文。
