@@ -9,7 +9,8 @@ import { hintText, COARSE_QUERY } from './hint';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 import { Link } from '@/i18n/navigation';
 
-const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
+/** 深色卡片（.theme-premium）：卡片样式和 3D 轮廓光共用这一份 */
+export const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 const HOVER_ZOOM_MS = 500;
 // 支持“合盖 / 开盖 / 展开刀模”切换的品类
 const VIEW_SLUGS = new Set(['gift-boxes', 'wine-boxes', 'corrugated-boxes']);
@@ -150,7 +151,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
         eventSource={rootRef}
         onReady={onReady}
         onError={onError}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, dark: PREMIUM.has(p.slug), track: tracks[i] }))}
       /></SceneErrorBoundary>)}
     </div>
   );
