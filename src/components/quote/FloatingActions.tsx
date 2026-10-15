@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useTawk } from '@/components/chat/useTawk';
-import { Link } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { useQuote } from './QuoteProvider';
 
 // 右下角悬浮按钮组：询价清单、客服、回到顶部；手机上收成一个按钮
@@ -13,6 +13,8 @@ export default function FloatingActions() {
   const { items, remove, open, setOpen } = useQuote();
   const [expanded, setExpanded] = useState(false);
   const chat = useTawk(useLocale());
+  // #116 询价流程（/contact 里的 InquiryWizard）中手机端隐藏悬浮按钮组，避免挡住选项
+  const inQuote = usePathname() === '/contact';
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
@@ -25,7 +27,7 @@ export default function FloatingActions() {
   };
   return (
     <>
-      <div className={`fab${expanded ? ' open' : ''}`}>
+      <div className={`fab${expanded ? ' open' : ''}${inQuote ? ' fab-quote' : ''}`}>
         <button type="button" className="item" aria-label={`${t('quote')} (${items.length})`} title={t('quote')} onClick={() => setOpen(true)}>
           🧾{items.length > 0 && <span className="badge">{items.length}</span>}
         </button>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { randomId, hitRateLimit, verifyTurnstile, clientIp, readBody, tooManyRequests } from '@/lib/server/security';
+import { randomId, hitRateLimit, rateLimitKeyHash, verifyTurnstile, clientIp, readBody, tooManyRequests } from '@/lib/server/security';
 import { retention } from '@/lib/server/retention';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
 import { sendSafely, inquiryNotifyMail, customerAckMail } from '@/lib/server/mail';
@@ -65,8 +65,8 @@ export async function POST(req: Request) {
   try { json = JSON.parse(raw); } catch {}
   const parsed = Body.safeParse(json);
   if (!parsed.success) {
-    // 无效请求单独计数：有 IP 时按 IP，宽松上限，不占用正常提交的额度
-    if (ip && !(await hitRateLimit(`inq-bad:${ip}`, 30))) return tooManyRequests(600);
+    // 无效请求单独计数：有 IP 时按 IP，没有 IP 时走共用 noip 总闸，宽松上限，不占用正常提交的额度
+    if (!(await (ip ? hitRateLimit(`inq-bad:${ip}`, 30) : hitRateLimit('inq-bad:noip:all', 300)))) return tooManyRequests(600);
     return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
   }
   const b = parsed.data;
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
   // 拿不到 IP（如本地 pnpm start）时用所有无 IP 请求共用的宽松总闸代替 IP 桶。
   const email = b.contact.email.trim().toLowerCase();
   // 邮箱桶用规范化邮箱（去 +后缀、Gmail 去点），别名不能绕过
-  const [ipOk, emailOk] = await Promise.all([ip ? hitRateLimit(`inq:${ip}`) : hitRateLimit('inq:noip:all', 100), hitRateLimit(`inq:email:${normalizeEmail(email)}`)]);
+  const [ipOk, emailOk] = await Promise.all([ip ? hitRateLimit(`inq:${ip}`) : hitRateLimit('inq:noip:all', 100), hitRateLimit(`inq:email:${rateLimitKeyHash(normalizeEmail(email))}`)]);
   const limited = !ipOk || !emailOk;
   if (limited) return tooManyRequests(600);
   const sampleEmail = b.source === 'SAMPLE' ? normalizeEmail(email) : null;
@@ -161,7 +161,7 @@ export async function POST(req: Request) {
 async function sendAutoReplyOnce(inquiryId: string, email: string, ip: string | null, kind: 'inquiry' | 'sample', vars: Parameters<typeof customerAckMail>[1]) {
   // 限流 key、咨询锁、数据库 24 小时判断都用规范化邮箱（去 +后缀、Gmail 去点），别名不能绕过
   const key = normalizeEmail(email);
-  const [emailOk, ipOk] = await Promise.all([hitRateLimit(`autoreply:e:${key}`, 1, 86_400_000), hitRateLimit(`autoreply:ip:${ip ?? 'noip'}`, ip ? 5 : 200, 86_400_000)]);
+  const [emailOk, ipOk] = await Promise.all([hitRateLimit(`autoreply:e:${rateLimitKeyHash(key)}`, 1, 86_400_000, { onStoreError: 'closed' }), hitRateLimit(`autoreply:ip:${ip ?? 'noip'}`, ip ? 5 : 200, 86_400_000, { onStoreError: 'closed' })]);
   if (!emailOk || !ipOk) return;
   const since = new Date(Date.now() - 86_400_000);
   const claimed = await prisma.$transaction(async (tx) => {

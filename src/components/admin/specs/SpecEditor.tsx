@@ -149,7 +149,7 @@ export default function SpecEditor({ category, title }: { category: string; titl
                 <td><input aria-label={`certification ${i + 1} number`} value={c.certNo} maxLength={80} onChange={(e) => setCert(i, 'certNo', e.target.value)} /><Err e={errors} k={`certifications.${i}.certNo`} /><Err e={errors} k={`certifications.${i}`} /></td>
                 <td><input type="url" aria-label={`certification ${i + 1} url`} aria-invalid={certUrlBad(c.url) || undefined} value={c.url} maxLength={2048} placeholder="https://"
                   onChange={(e) => setCert(i, 'url', e.target.value)} />
-                  {certUrlBad(c.url) && !errors[`certifications.${i}.url`] && <span className="spec-err">链接必须以 https:// 开头</span>}
+                  {certUrlBad(c.url) && !errors[`certifications.${i}.url`] && <span className="spec-err">链接必须以 https:// 开头，不能包含用户名或密码</span>}
                   <Err e={errors} k={`certifications.${i}.url`} /></td>
                 <td><button type="button" className="adm-btn" onClick={() => set('certifications', f.certifications.filter((_, j) => j !== i))}>删除</button></td>
               </tr>

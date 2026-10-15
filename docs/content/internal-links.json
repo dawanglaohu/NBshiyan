@@ -1,0 +1,510 @@
+{
+  "version": 1,
+  "note": "Refs #99. Relative paths only (/en/ or /ru/). Same-locale links only.",
+  "links": [
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-corrugated-boxes",
+      "to": "/en/products/custom-printed-boxes",
+      "anchor": "custom printed boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-corrugated-boxes",
+      "to": "/en/products/molded-pulp-packaging",
+      "anchor": "molded pulp packaging"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-corrugated-boxes",
+      "to": "/en/products/offset-printing-services",
+      "anchor": "offset printing services"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-printed-boxes",
+      "to": "/en/products/custom-gift-boxes",
+      "anchor": "custom gift boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-printed-boxes",
+      "to": "/en/products/custom-color-printing",
+      "anchor": "packaging printing services"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-printed-boxes",
+      "to": "/en/products/offset-printing-services",
+      "anchor": "high-volume offset printing"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-gift-boxes",
+      "to": "/en/products/custom-wine-boxes",
+      "anchor": "custom wine boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-gift-boxes",
+      "to": "/en/products/custom-christmas-packaging",
+      "anchor": "custom Christmas packaging"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-gift-boxes",
+      "to": "/en/products/custom-printed-boxes",
+      "anchor": "full-color retail boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/molded-pulp-packaging",
+      "to": "/en/products/custom-corrugated-boxes",
+      "anchor": "custom corrugated boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/molded-pulp-packaging",
+      "to": "/en/products/eco-paper-cups",
+      "anchor": "eco-friendly paper cups"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/molded-pulp-packaging",
+      "to": "/en/products/custom-gift-boxes",
+      "anchor": "rigid magnetic gift boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-paper-cups",
+      "to": "/en/products/eco-paper-cups",
+      "anchor": "eco-friendly coffee cups"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-paper-cups",
+      "to": "/en/products/custom-party-supplies",
+      "anchor": "custom party supplies"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-paper-cups",
+      "to": "/en/products/custom-printed-boxes",
+      "anchor": "printed product packaging"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-party-supplies",
+      "to": "/en/products/custom-paper-cups",
+      "anchor": "custom paper cups"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-party-supplies",
+      "to": "/en/products/custom-christmas-packaging",
+      "anchor": "holiday gift boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-party-supplies",
+      "to": "/en/products/custom-color-printing",
+      "anchor": "full-color packaging printing"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-wine-boxes",
+      "to": "/en/products/custom-gift-boxes",
+      "anchor": "premium gift packaging"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-wine-boxes",
+      "to": "/en/products/custom-christmas-packaging",
+      "anchor": "advent calendars and seasonal packaging"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-wine-boxes",
+      "to": "/en/products/molded-pulp-packaging",
+      "anchor": "custom pulp inserts"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-color-printing",
+      "to": "/en/products/offset-printing-services",
+      "anchor": "catalog and box printing"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-color-printing",
+      "to": "/en/products/custom-printed-boxes",
+      "anchor": "custom printed boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-color-printing",
+      "to": "/en/products/custom-gift-cards",
+      "anchor": "custom gift cards"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/offset-printing-services",
+      "to": "/en/products/custom-color-printing",
+      "anchor": "CMYK and Pantone printing"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/offset-printing-services",
+      "to": "/en/products/custom-printed-boxes",
+      "anchor": "full-color retail boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/offset-printing-services",
+      "to": "/en/products/custom-gift-cards",
+      "anchor": "printed gift vouchers"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/eco-paper-cups",
+      "to": "/en/products/custom-paper-cups",
+      "anchor": "branded coffee cups"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/eco-paper-cups",
+      "to": "/en/products/molded-pulp-packaging",
+      "anchor": "molded fiber trays"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/eco-paper-cups",
+      "to": "/en/products/custom-party-supplies",
+      "anchor": "printed party tableware"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-gift-cards",
+      "to": "/en/products/custom-color-printing",
+      "anchor": "packaging printing services"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-gift-cards",
+      "to": "/en/products/custom-gift-boxes",
+      "anchor": "custom gift boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-gift-cards",
+      "to": "/en/products/offset-printing-services",
+      "anchor": "offset printing services"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-christmas-packaging",
+      "to": "/en/products/custom-gift-boxes",
+      "anchor": "rigid magnetic gift boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-christmas-packaging",
+      "to": "/en/products/custom-wine-boxes",
+      "anchor": "wine and spirits gift boxes"
+    },
+    {
+      "locale": "en",
+      "kind": "category→category",
+      "from": "/en/products/custom-christmas-packaging",
+      "to": "/en/products/custom-party-supplies",
+      "anchor": "private-label party products"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/gofrokorobki",
+      "to": "/ru/products/tsvetnye-korobki",
+      "anchor": "картонные коробки с печатью"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/gofrokorobki",
+      "to": "/ru/products/izdeliya-iz-tsellyulozy",
+      "anchor": "упаковка из формованной целлюлозы"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/gofrokorobki",
+      "to": "/ru/products/ofsetnaya-pechat",
+      "anchor": "офсетная печать упаковки"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tsvetnye-korobki",
+      "to": "/ru/products/podarochnye-korobki",
+      "anchor": "подарочные коробки на заказ"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tsvetnye-korobki",
+      "to": "/ru/products/tsvetnaya-pechat",
+      "anchor": "печать упаковки"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tsvetnye-korobki",
+      "to": "/ru/products/ofsetnaya-pechat",
+      "anchor": "офсетная печать тиражом"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/podarochnye-korobki",
+      "to": "/ru/products/upakovka-dlya-vina",
+      "anchor": "коробки для вина на заказ"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/podarochnye-korobki",
+      "to": "/ru/products/novogodnyaya-upakovka",
+      "anchor": "новогодняя упаковка на заказ"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/podarochnye-korobki",
+      "to": "/ru/products/tsvetnye-korobki",
+      "anchor": "коробки с логотипом"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/izdeliya-iz-tsellyulozy",
+      "to": "/ru/products/gofrokorobki",
+      "anchor": "гофрокороба на заказ"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/izdeliya-iz-tsellyulozy",
+      "to": "/ru/products/ekologichnye-stakany",
+      "anchor": "экологичные стаканы"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/izdeliya-iz-tsellyulozy",
+      "to": "/ru/products/podarochnye-korobki",
+      "anchor": "жёсткие коробки с магнитом"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/bumazhnye-stakany",
+      "to": "/ru/products/ekologichnye-stakany",
+      "anchor": "эко стаканы с логотипом"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/bumazhnye-stakany",
+      "to": "/ru/products/tovary-dlya-prazdnikov",
+      "anchor": "бумажная посуда для праздника"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/bumazhnye-stakany",
+      "to": "/ru/products/tsvetnye-korobki",
+      "anchor": "упаковка для косметики и розницы"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tovary-dlya-prazdnikov",
+      "to": "/ru/products/bumazhnye-stakany",
+      "anchor": "бумажные стаканы с логотипом"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tovary-dlya-prazdnikov",
+      "to": "/ru/products/novogodnyaya-upakovka",
+      "anchor": "новогодние подарочные коробки"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tovary-dlya-prazdnikov",
+      "to": "/ru/products/tsvetnaya-pechat",
+      "anchor": "полноцветная печать на картоне"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/upakovka-dlya-vina",
+      "to": "/ru/products/podarochnye-korobki",
+      "anchor": "премиальная подарочная упаковка"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/upakovka-dlya-vina",
+      "to": "/ru/products/novogodnyaya-upakovka",
+      "anchor": "адвент-календари на заказ"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/upakovka-dlya-vina",
+      "to": "/ru/products/izdeliya-iz-tsellyulozy",
+      "anchor": "ложементы из целлюлозы"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tsvetnaya-pechat",
+      "to": "/ru/products/ofsetnaya-pechat",
+      "anchor": "печать каталогов и коробок"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tsvetnaya-pechat",
+      "to": "/ru/products/tsvetnye-korobki",
+      "anchor": "картонные коробки с печатью"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/tsvetnaya-pechat",
+      "to": "/ru/products/podarochnye-karty",
+      "anchor": "печать подарочных карт"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/ofsetnaya-pechat",
+      "to": "/ru/products/tsvetnaya-pechat",
+      "anchor": "печать пантонами"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/ofsetnaya-pechat",
+      "to": "/ru/products/tsvetnye-korobki",
+      "anchor": "коробки с логотипом"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/ofsetnaya-pechat",
+      "to": "/ru/products/podarochnye-karty",
+      "anchor": "подарочные сертификаты на заказ"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/ekologichnye-stakany",
+      "to": "/ru/products/bumazhnye-stakany",
+      "anchor": "стаканы для кофе с печатью"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/ekologichnye-stakany",
+      "to": "/ru/products/izdeliya-iz-tsellyulozy",
+      "anchor": "лотки из целлюлозы"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/ekologichnye-stakany",
+      "to": "/ru/products/tovary-dlya-prazdnikov",
+      "anchor": "праздничная посуда с печатью"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/podarochnye-karty",
+      "to": "/ru/products/tsvetnaya-pechat",
+      "anchor": "печать упаковки"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/podarochnye-karty",
+      "to": "/ru/products/podarochnye-korobki",
+      "anchor": "подарочные коробки на заказ"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/podarochnye-karty",
+      "to": "/ru/products/ofsetnaya-pechat",
+      "anchor": "офсетная печать упаковки"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/novogodnyaya-upakovka",
+      "to": "/ru/products/podarochnye-korobki",
+      "anchor": "жёсткие коробки с магнитом"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/novogodnyaya-upakovka",
+      "to": "/ru/products/upakovka-dlya-vina",
+      "anchor": "подарочная упаковка для алкоголя"
+    },
+    {
+      "locale": "ru",
+      "kind": "category→category",
+      "from": "/ru/products/novogodnyaya-upakovka",
+      "to": "/ru/products/tovary-dlya-prazdnikov",
+      "anchor": "товары для праздника под вашей маркой"
+    }
+  ]
+}

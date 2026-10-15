@@ -49,7 +49,7 @@
 
 ### 首批文章选题（5–10 篇）
 1. How to Choose the Right Corrugated Flute Type (A, B, C, E, F)
-2. What Is FSC Certified Packaging and Why Buyers Ask for It
+2. Sustainable Packaging Certifications Explained: What Buyers Ask For (generic explainer; no PackJoyU certification claims until Ryan confirms — #218 F18)
 3. EU Single-Use Plastics Directive: What It Means for Paper Cups
 4. Molded Pulp vs. Plastic Inserts: Cost, Protection and Sustainability
 5. Rigid Box vs. Folding Carton: Which Is Right for Your Product?

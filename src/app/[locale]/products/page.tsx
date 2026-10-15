@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { alternatesFor } from '@/i18n/alternates';
+import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { products } from '@/data/products';
 import CategoryBar from '@/components/CategoryBar';
@@ -15,7 +15,14 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'Products' });
-  return { title: { absolute: t('metaTitle') }, description: t('metaDescription'), alternates: alternatesFor(locale, '/products') };
+  return pageMetadata({ locale, path: '/products', title: t('metaTitle'), description: t('metaDescription'), ogSlug: 'products', ogAlt: t('ogImageAlt') });
+}
+
+// 本地海报的逐图 alt；API 换了海报地址时不用，回退到模板
+function posterAlt(p: { slug: string; poster: string }, locale: string): string | undefined {
+  const local = products.find((x) => x.slug === p.slug);
+  if (!local?.posterAlt || local.poster !== p.poster) return undefined;
+  return locale === 'ru' ? local.posterAlt.ru : local.posterAlt.en;
 }
 
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -28,7 +35,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
   const items = catalog.products.map((p) => {
     const known = t.has(`names.${p.slug}`);
     const name = known ? t(`names.${p.slug}`) : p.slug.replace(/-/g, ' ');
-    return { ...p, name, desc: known ? t(`desc.${p.slug}`) : undefined, specs: known ? (t.raw(`specs.${p.slug}`) as string[]) : undefined, alt: t('alt', { name }) };
+    return { ...p, name, desc: known ? t(`desc.${p.slug}`) : undefined, specs: known ? (t.raw(`specs.${p.slug}`) as string[]) : undefined, alt: posterAlt(p, locale) ?? t('alt', { name }) };
   });
   const pageUrl = `${SITE_URL}/${locale}/products`;
   const m = await getTranslations('Meta');

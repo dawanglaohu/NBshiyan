@@ -1,8 +1,9 @@
 {
   "Meta": {
-    "title": "Custom Packaging Manufacturer: Boxes, Cups & Printing | PackJoyU",
-    "description": "PackJoyU manufactures custom corrugated boxes, gift and wine boxes, molded pulp, eco paper cups and printed packaging for brands in North America, Europe and Australia.",
-    "home": "Home"
+    "title": "Custom Packaging Manufacturer: Boxes & Cups | PackJoyU",
+    "description": "PackJoyU makes custom corrugated boxes, gift and wine boxes, molded pulp, custom paper cups, printed packaging for brands in North America, Europe and Australia.",
+    "home": "Home",
+    "ogImageAlt": "PackJoyU custom packaging: boxes, paper cups and printing"
   },
   "Nav": {
     "home": "Home",
@@ -21,30 +22,11 @@
     "sub": "Custom paper packaging and printing, from prototype to mass production — explore every product in 3D.",
     "cta": "Explore products in 3D",
     "ctaQuote": "Get a quote",
-    "advTitle": "Why brands choose PackJoyU",
-    "adv": {
-      "capacity": {
-        "value": "2M+",
-        "label": "boxes produced per month"
-      },
-      "certs": {
-        "value": "FSC · ISO 9001",
-        "label": "certified materials and processes"
-      },
-      "sampling": {
-        "value": "5–7 days",
-        "label": "from artwork to physical sample"
-      },
-      "eco": {
-        "value": "100%",
-        "label": "recyclable paper options"
-      }
-    },
     "entryTitle": "Find your packaging",
     "premiumTitle": "Premium gift & wine boxes",
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
     "ctaBandTitle": "Have a project in mind?",
-    "ctaBandText": "Tell us what you need — we reply within 24 hours.",
+    "ctaBandText": "Tell us what you need — a packaging specialist will reply by email.",
     "heroLabel": "Stack of custom PackJoyU boxes and a paper cup"
   },
   "Products": {
@@ -70,19 +52,19 @@
     },
     "done": "Done",
     "categories": "Product categories",
-    "metaTitle": "Custom Packaging Products in 3D: Boxes, Cups & Printing | PackJoyU",
+    "metaTitle": "Custom Packaging Products in 3D: Boxes & Cups | PackJoyU",
     "metaDescription": "Explore 12 custom packaging categories in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
     "desc": {
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
       "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
-      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber, a plastic-free alternative.",
+      "pulp-molding": "Molded pulp trays and inserts made from sugarcane fiber.",
       "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
       "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
       "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
       "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
       "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
-      "eco-paper-cups": "Compostable and plastic-free paper cups with water-based or PLA-free coatings.",
+      "eco-paper-cups": "Paper cups printed with your logo; coating options confirmed per order.",
       "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
       "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
     },
@@ -91,12 +73,12 @@
       "corrugated-boxes": [
         "Single & double wall (E/B/C flute)",
         "Up to 4-color flexo or digital print",
-        "MOQ from 500 pcs"
+        "Quantities confirmed per order"
       ],
       "color-boxes": [
         "300–400 gsm SBS or kraft board",
         "CMYK + Pantone, matte/gloss lamination",
-        "MOQ from 1,000 pcs"
+        "Quantities confirmed per order"
       ],
       "gift-boxes": [
         "Rigid 1.5–2.5 mm greyboard",
@@ -104,18 +86,18 @@
         "Custom EVA or paper inserts"
       ],
       "pulp-molding": [
-        "Recycled paper or sugarcane fiber",
+        "Sugarcane fiber",
         "Custom cavities for any product",
-        "Plastic-free and compostable"
+        "Material options on request"
       ],
       "paper-cups": [
         "4–22 oz, single or double wall",
         "Hot & cold drink coatings",
-        "MOQ from 10,000 pcs"
+        "Quantities confirmed per order"
       ],
       "party-supplies": [
         "Plates, cups, napkins, banners",
-        "Food-safe inks",
+        "Custom printed designs",
         "Retail-ready packs"
       ],
       "wine-boxes": [
@@ -129,14 +111,13 @@
         "Color proof before production"
       ],
       "offset-printing": [
-        "Heidelberg offset presses",
+        "CMYK and Pantone offset printing",
         "Catalogs, brochures, cartons",
         "Consistent color at volume"
       ],
       "eco-paper-cups": [
-        "Water-based, plastic-free coating",
-        "Home or industrial compostable",
-        "FSC-certified board"
+        "Coating options confirmed per order",
+        "Material options on request"
       ],
       "gift-cards": [
         "350–600 gsm card stock",
@@ -151,7 +132,8 @@
     },
     "learnMore": "Learn more",
     "specsLabel": "Key specs",
-    "empty": "No 3D models are published yet. Please check back soon or contact us for samples."
+    "empty": "No 3D models are published yet. Please check back soon or contact us for samples.",
+    "ogImageAlt": "PackJoyU: Our products in 3D: custom corrugated, gift and wine boxes"
   },
   "Admin": {
     "title": "Admin"
@@ -175,9 +157,10 @@
   },
   "Contact": {
     "metaTitle": "Request a quote | PackJoyU",
-    "metaDescription": "Tell us about your packaging project and get a quote from PackJoyU within 24 hours.",
+    "metaDescription": "Tell us about your packaging project and request a quote from PackJoyU.",
     "title": "Request a quote",
-    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet."
+    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
+    "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {
     "stepOf": "Step {n} of {total}",
@@ -243,16 +226,17 @@
     "next": "Next",
     "submit": "Send request",
     "sending": "Sending…",
+    "checking": "Completing security check…",
     "success": {
       "title": "Thank you — request received!",
       "ref": "Your inquiry number:",
-      "reply": "Our team will get back to you within 24 hours."
+      "reply": "A packaging specialist will reply by email."
     },
     "errors": {
       "unavailable": "Online requests are temporarily unavailable. Please try again later.",
       "rate": "Too many requests. Please wait a few minutes and try again.",
       "invalid": "Please check your name, email and country and try again.",
-      "captcha": "Security check failed. Please reload the page and try again.",
+      "captcha": "Security check failed. Please try again.",
       "server": "Something went wrong on our side. Please try again later.",
       "network": "Network error. Please check your connection and try again.",
       "retry": "We couldn't complete the security check just now. Your details are kept — please try again in a moment.",
@@ -314,7 +298,7 @@
     "about": "Custom paper packaging and printing — from prototype to mass production.",
     "categories": "Products",
     "contact": "Contact",
-    "contactText": "Tell us about your project — we reply within 24 hours.",
+    "contactText": "Tell us about your project — a packaging specialist will reply by email.",
     "privacy": "Privacy policy",
     "otherLang": "Русский",
     "cookieSettings": "Cookie settings"
@@ -322,6 +306,7 @@
   "Privacy": {
     "metaTitle": "Privacy policy: data we collect | PackJoyU",
     "title": "Privacy policy",
+    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders, chat and cookies, and how to exercise your privacy rights.",
     "intro": "This page explains what personal data PackJoyU collects through this website, why, and how long we keep it.",
     "contactLink": "Contact us through the inquiry form",
     "sections": {
@@ -391,7 +376,8 @@
           "Data controller: {{待Ryan确认}}"
         ]
       }
-    }
+    },
+    "ogImageAlt": "PackJoyU: Privacy policy"
   },
   "DesignExpired": {
     "metaTitle": "Design expired | PackJoyU",
@@ -400,6 +386,9 @@
     "backToCategory": "Customize {category} again",
     "backToProducts": "Browse products and customize again",
     "quote": "Get a quote"
+  },
+  "DesignShared": {
+    "metaTitle": "Custom Packaging Design | PackJoyU"
   },
   "NotFound": {
     "code": "404",

@@ -1,11 +1,12 @@
-import { randomBytes } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { hitRateLimit } from '../security';
+import { hitRateLimit, rateLimitKeyHash } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
+import { normalizeEmail } from '../sample';
 
 authenticator.options = { window: 1, step: 30 };
 export const MAX_FAILS = 5;
@@ -13,14 +14,26 @@ export const LOCK_MS = 15 * 60_000;
 
 export type CheckFail = 'rate_limited' | 'bad_credentials' | 'locked' | 'totp_required' | 'totp_not_enrolled';
 
-/** 登录限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。 */
+/** 登录/2FA 限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。 */
 export async function loginRateOk(ip: string | null, email: string) {
+  // 限流存储故障时拒绝（closed）；邮箱先 trim+小写再 HMAC，key 里不存明文
+  const o = { onStoreError: 'closed' } as const;
+  const e = rateLimitKeyHash(email.trim().toLowerCase());
   const [a, b, c] = await Promise.all([
-    hitRateLimit(`login:${ip ?? 'noip'}:${email}`, 5, 10 * 60_000),
-    hitRateLimit(`login-acct:${email}`, 10, 10 * 60_000),
-    hitRateLimit(`login-ip:${ip ?? 'noip'}`, 30, 10 * 60_000),
+    hitRateLimit(`login:${ip ?? 'noip'}:${e}`, 5, 10 * 60_000, o),
+    hitRateLimit(`login-acct:${e}`, 10, 10 * 60_000, o),
+    hitRateLimit(`login-ip:${ip ?? 'noip'}`, 30, 10 * 60_000, o),
   ]);
   return a && b && c;
+}
+
+/**
+ * 登录失败审计里的邮箱只存 HMAC（不存明文）：subkey = HMAC(AUTH_SECRET, "audit-email-v1")，再 HMAC(subkey, normalizeEmail(email))（与 Contact/SampleRequest.normalizedEmail 同一规范化）。
+ * 绝不直接用 AUTH_SECRET 当 HMAC 密钥；没有 AUTH_SECRET（本地/测试）时用固定开发密钥。写入格式 `emailh:<32 字符>`。
+ */
+export function auditEmailHash(email: string, env: Record<string, string | undefined> = process.env) {
+  const sub = createHmac('sha256', env.AUTH_SECRET || 'dev-only-audit-email-key').update('audit-email-v1').digest();
+  return 'emailh:' + createHmac('sha256', sub).update(normalizeEmail(email)).digest('base64url').slice(0, 32);
 }
 
 /** 让该账号所有现有会话失效。改密码、重置或关闭 2FA、禁用账号时必须调用。 */
@@ -41,15 +54,15 @@ async function fail(user: User | null, email: string, ip: string | null, reason:
       await sendAdminAlert('后台账号被锁定', { 账号ID: user.id, IP: ip ?? '未知', 锁定分钟: LOCK_MS / 60_000 }, `lockout:${user.id}`);
     }
   }
-  await audit({ actorId: user?.id ?? null, action: 'auth.login_fail', target: email.slice(0, 200), meta: { reason }, ip });
+  await audit({ actorId: user?.id ?? null, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason }, ip });
 }
 
 /** 校验邮箱和密码，并检查锁定。成功返回 user。 */
 export async function checkPassword(email: string, password: string, ip: string | null): Promise<User | CheckFail> {
-  if (!(await loginRateOk(ip, email))) { await audit({ action: 'auth.login_fail', target: email.slice(0, 200), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
+  if (!(await loginRateOk(ip, email))) { await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.disabled) { await burnVerify(password); await fail(null, email, ip, 'bad_credentials'); return 'bad_credentials'; }
-  if (user.lockedUntil && user.lockedUntil > new Date()) { await audit({ actorId: user.id, action: 'auth.login_fail', target: email, meta: { reason: 'locked' }, ip }); return 'locked'; }
+  if (user.lockedUntil && user.lockedUntil > new Date()) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'locked' }, ip }); return 'locked'; }
   if (!(await verifySecret(user.passwordHash, password))) { await fail(user, email, ip, 'bad_password'); return 'bad_credentials'; }
   return user;
 }
@@ -85,10 +98,10 @@ export async function authorizeLogin(input: { email: string; password: string; t
   const email = input.email.trim().toLowerCase();
   const user = await checkPassword(email, input.password, ip);
   if (typeof user === 'string') return null;
-  if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: email, meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
+  if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
   if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
   await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
-  await audit({ actorId: user.id, action: 'auth.login_success', target: email, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
+  await audit({ actorId: user.id, action: 'auth.login_success', target: user.id, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
   return user;
 }
 
