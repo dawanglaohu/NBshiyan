@@ -11,7 +11,8 @@
     "admin:create": "node scripts/create-admin.mjs",
     "test": "node --import tsx --test tests/*.test.ts",
     "smoke": "node --import tsx scripts/smoke.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "seo:audit": "tsx scripts/seo-audit.ts"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.5.1",
