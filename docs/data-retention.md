@@ -39,6 +39,7 @@
 **询盘匿名化补充（隐私审计第 7 条）**：
 - **最后活动规则**：后台回信（`POST /api/admin/inquiries/:id/reply`）和改状态（`PATCH /api/admin/inquiries/:id` 的 `status` 有变化）时，`retainUntil` 顺延到 now + `INQUIRY_RETAIN_DAYS`（默认 730 天）。单纯改派负责人不算活动，不顺延。
 - **已匿名化询盘不可写**：回信和 PATCH（改状态/改派）对 `anonymizedAt` 不为空的询盘返回 `409 {"error":"anonymized"}`；写入本身也带 `anonymizedAt IS NULL` 条件，检查后被匿名化同样返回 409。回信在发信前检查；顺延和写往来邮件在同一事务里。
+- **内部备注只读**：已匿名化询盘的内部备注接口（`POST /api/admin/inquiries/[id]/notes`）同样返回 `409 {"error":"anonymized"}`；写入在事务里先 `SELECT … WHERE "anonymizedAt" IS NULL FOR UPDATE` 锁住询盘行，检查后被匿名化也返回 409。匿名化时已有备注的正文改为 `[deleted]`，只保留作者（`authorId`）和时间（`createdAt`），前端显示「内容已删除」。
 - **匿名邮箱**：联系人邮箱改成 `deleted+<16 位随机 hex>@invalid.invalid`（`crypto.randomBytes`），不再由原邮箱哈希派生，无法比对或反查。
 - **审计**：每批匿名化在同一事务里写一条 `AuditLog`，`action = retention.run`，`actorId = system`，`target`、`ip` 为空，`meta = { step: "inquiries", count, createdFrom, createdTo }`（本批询盘 createdAt 的最早/最晚时间），不含询盘 id、邮箱或其他个人信息。
 - **AuditLog.ip**：保存的是后台操作人 IP，不随询盘匿名化，统一按 `AUDIT_RETAIN_DAYS`（默认 365 天）整行删除。

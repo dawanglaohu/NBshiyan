@@ -178,3 +178,36 @@ test('(12) search path (q) also filters anonymized by default; includeAnonymized
     for (const w of seen) { assert.ok(w.AND.some((c: any) => c.OR)); assert.ok(!w.AND.some((c: any) => 'anonymizedAt' in c)); }
   } finally { Object.assign(db.inquiry, { count: saved.count, findMany: saved.findMany }); (db as any).$transaction = saved.tx; }
 });
+
+// 内部备注：已匿名化 → 409；检查后被匿名化（FOR UPDATE 查不到）→ 409，不写入；正常写入不顺延保留期
+let notesRoute: { POST: H }; let notes: unknown[] = []; let raceAnon = false;
+before(async () => {
+  Object.assign(db, {
+    inquiryNote: { create: async ({ data }: { data: unknown }) => { notes.push(data); return { id: 'n1', ...(data as object) }; } },
+    $queryRaw: async (strings: TemplateStringsArray) => {
+      assert.match(strings.join('?'), /"anonymizedAt" IS NULL FOR UPDATE/);
+      if (raceAnon) inq.anonymizedAt = new Date();
+      return inq.anonymizedAt ? [] : [{ id: inq.id }];
+    },
+  });
+  notesRoute = await import('../src/app/api/admin/inquiries/[id]/notes/route');
+});
+beforeEach(() => { notes = []; raceAnon = false; });
+
+test('note on live inquiry → 201, stored, retainUntil unchanged', async () => {
+  const before = inq.retainUntil.getTime();
+  const r = await notesRoute.POST(req('/notes', 'POST', { body: '客户要样品' }), P);
+  assert.equal(r.status, 201); assert.equal(notes.length, 1); assert.equal(inq.retainUntil.getTime(), before);
+});
+
+test('note on anonymized inquiry → 409 anonymized, nothing written', async () => {
+  inq.anonymizedAt = new Date();
+  const r = await notesRoute.POST(req('/notes', 'POST', { body: 'x' }), P);
+  assert.equal(r.status, 409); assert.deepEqual(await r.json(), { error: 'anonymized' }); assert.equal(notes.length, 0);
+});
+
+test('note: anonymized between check and write → 409, nothing written', async () => {
+  raceAnon = true;
+  const r = await notesRoute.POST(req('/notes', 'POST', { body: 'x' }), P);
+  assert.equal(r.status, 409); assert.deepEqual(await r.json(), { error: 'anonymized' }); assert.equal(notes.length, 0);
+});

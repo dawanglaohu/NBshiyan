@@ -27,6 +27,8 @@ test('anonymizeInquiriesTx: notes body, attribution/trustReasons, replyToken, lo
   assert.deepEqual(logos.map((l) => l.id), ['l1']);
   // 1) 内部备注
   assert.deepEqual(r.get('inquiryNote.updateMany')[0], { where: { inquiryId: { in: ['i1', 'i2'] } }, data: { body: '[deleted]' } });
+  // 备注只清正文，作者和时间不动
+  assert.deepEqual(Object.keys(r.get('inquiryNote.updateMany')[0].data), ['body']);
   // 2) 归因、评分理由
   const inq = r.get('inquiry.updateMany')[0].data;
   assert.equal(inq.attribution, Prisma.DbNull); assert.equal(inq.trustReasons, Prisma.DbNull); assert.equal(inq.message, null); assert.ok(inq.anonymizedAt);
