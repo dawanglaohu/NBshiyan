@@ -57,7 +57,7 @@
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
       "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
-      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber.",
+      "pulp-molding": "Molded pulp trays and inserts made from sugarcane fiber.",
       "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
       "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
       "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
@@ -83,7 +83,7 @@
         "Custom EVA or paper inserts"
       ],
       "pulp-molding": [
-        "Recycled paper or sugarcane fiber",
+        "Sugarcane fiber",
         "Custom cavities for any product"
       ],
       "paper-cups": [
