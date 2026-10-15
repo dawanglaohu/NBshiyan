@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { indexNowDedupeStore, activeIndexNowKey, pathsForSanityDoc, pathsForModelPublish, submitIndexNow, INDEXNOW_ENDPOINT } from '../src/lib/seo/indexnow';
+import { type SanityWebhookDoc, indexNowDedupeStore, activeIndexNowKey, pathsForSanityDoc, pathsForModelPublish, submitIndexNow, INDEXNOW_ENDPOINT } from '../src/lib/seo/indexnow';
 import { MemoryStore } from '../src/lib/server/ratelimit';
 
 const KEY = 'abcDEF12-3456';
@@ -26,9 +26,11 @@ test('paths: both locales, skips noindex / not-live / bad slug', () => {
   assert.deepEqual(pathsForModelPublish(), ['/en/products', '/ru/products']);
 });
 
+type IndexNowBody = { host: string; key: string; keyLocation: string; urlList: string[] };
+
 function fakeFetch(status = 200) {
-  const calls: { url: string; body: any }[] = [];
-  const f = (async (url: string, init: RequestInit) => { calls.push({ url, body: JSON.parse(String(init.body)) }); return new Response(null, { status }); }) as unknown as typeof fetch;
+  const calls: { url: string; body: IndexNowBody }[] = [];
+  const f = (async (url: string, init: RequestInit) => { calls.push({ url, body: JSON.parse(String(init.body)) as IndexNowBody }); return new Response(null, { status }); }) as unknown as typeof fetch;
   return { f, calls };
 }
 
@@ -77,9 +79,37 @@ test('dedupe store: Upstash only; off without it; upstash failure = no push', as
 
 test('urls only from NEXT_PUBLIC_SITE_URL, endpoint fixed', async () => {
   const { f, calls } = fakeFetch();
-  const doc = { _type: 'product', slug: { en: { current: 'x-evil-example' } }, host: 'evil.example', url: 'https://evil.example/' } as any;
+  const doc = { _type: 'product', slug: { en: { current: 'x-evil-example' } }, host: 'evil.example', url: 'https://evil.example/' } satisfies SanityWebhookDoc & { host: string; url: string };
   await submitIndexNow(pathsForSanityDoc(doc, LIVE), { env: PROD, store: new MemoryStore(), fetchImpl: f, log: () => {} });
-  assert.equal(calls[0].url, 'https://yandex.com/indexnow');
+  assert.equal(calls[0].url, 'https://api.indexnow.org/indexnow');
   assert.equal(calls[0].body.host, 'packjoyu.example');
   assert.ok(calls[0].body.urlList.every((u: string) => u.startsWith('https://packjoyu.example/en/')));
+});
+
+test('submit: hanging endpoint is aborted by timeout, logged without secrets, never throws', async () => {
+  const logs: string[] = [];
+  let sawSignal = false;
+  const hang = ((_u: string, init: RequestInit) => new Promise((_res, rej) => {
+    sawSignal = init.signal instanceof AbortSignal;
+    // AbortSignal.timeout() 的计时器是 unref 的；模拟真实 fetch 的挂起连接保持事件循环，否则 node:test 会把本用例判为 cancelled
+    const keepAlive = setInterval(() => {}, 1000);
+    init.signal?.addEventListener('abort', () => { clearInterval(keepAlive); rej(init.signal?.reason); });
+  })) as unknown as typeof fetch;
+  const n = await submitIndexNow(['/en/a'], { env: PROD, store: new MemoryStore(), fetchImpl: hang, log: (m) => logs.push(m), timeoutMs: 50 });
+  assert.equal(n, 0);
+  assert.ok(sawSignal);
+  assert.deepEqual(logs, ['[indexnow] errorSummary=TimeoutError']);
+  assert.ok(logs.every((l) => !l.includes(KEY)));
+});
+
+test('submit: 5xx and network errors return 0; protocol-relative / backslash paths never pushed', async () => {
+  const logs: string[] = [];
+  const { f, calls } = fakeFetch(503);
+  assert.equal(await submitIndexNow(['/en/a'], { env: PROD, store: new MemoryStore(), fetchImpl: f, log: (m) => logs.push(m) }), 0);
+  const net = (async () => { throw new TypeError('fetch failed'); }) as unknown as typeof fetch;
+  await assert.doesNotReject(submitIndexNow(['/en/b'], { env: PROD, store: new MemoryStore(), fetchImpl: net, log: (m) => logs.push(m) }));
+  assert.deepEqual(logs, ['[indexnow] errorSummary=http_503', '[indexnow] errorSummary=TypeError']);
+  const before = calls.length;
+  assert.equal(await submitIndexNow(['//evil.com/x', '/\\evil.com/x', '/en//evil.com'], { env: PROD, store: new MemoryStore(), fetchImpl: f, log: () => {} }), 0);
+  assert.equal(calls.length, before);
 });
