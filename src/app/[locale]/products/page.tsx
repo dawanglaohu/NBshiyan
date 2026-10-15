@@ -18,6 +18,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return { title: { absolute: t('metaTitle') }, description: t('metaDescription'), alternates: alternatesFor(locale, '/products') };
 }
 
+// 本地海报的逐图 alt；API 换了海报地址时不用，回退到模板
+function posterAlt(p: { slug: string; poster: string }, locale: string): string | undefined {
+  const local = products.find((x) => x.slug === p.slug);
+  if (!local?.posterAlt || local.poster !== p.poster) return undefined;
+  return locale === 'ru' ? local.posterAlt.ru : local.posterAlt.en;
+}
+
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -28,7 +35,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
   const items = catalog.products.map((p) => {
     const known = t.has(`names.${p.slug}`);
     const name = known ? t(`names.${p.slug}`) : p.slug.replace(/-/g, ' ');
-    return { ...p, name, desc: known ? t(`desc.${p.slug}`) : undefined, specs: known ? (t.raw(`specs.${p.slug}`) as string[]) : undefined, alt: t('alt', { name }) };
+    return { ...p, name, desc: known ? t(`desc.${p.slug}`) : undefined, specs: known ? (t.raw(`specs.${p.slug}`) as string[]) : undefined, alt: posterAlt(p, locale) ?? t('alt', { name }) };
   });
   const pageUrl = `${SITE_URL}/${locale}/products`;
   const m = await getTranslations('Meta');
