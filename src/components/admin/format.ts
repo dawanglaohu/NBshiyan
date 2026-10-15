@@ -1,3 +1,4 @@
+import { adminLoginHref } from '@/lib/admin/safe-callback';
 export const PRODUCT_LABEL: Record<string, string> = {
   'corrugated-boxes': '瓦楞纸箱', 'gift-boxes': '礼盒', 'wine-boxes': '酒盒', 'paper-cups': '纸杯', 'molded-pulp': '纸浆模塑', 'color-boxes': '彩盒'
 };
@@ -28,4 +29,4 @@ export function errorText(code: string, prefix = '加载失败') {
 export const fmtDate = (iso: string) => new Date(iso).toLocaleString('zh-CN', { hour12: false });
 
 /** Auth.js 默认登录页（Credentials：email、password、totp 或 recoveryCode），登录后回到当前页 */
-export const loginHref = () => `/api/auth/signin?callbackUrl=${encodeURIComponent(typeof location === 'undefined' ? '/admin' : location.pathname + location.search)}`;
+export const loginHref = () => adminLoginHref(typeof location === 'undefined' ? '/admin' : location.pathname + location.search);

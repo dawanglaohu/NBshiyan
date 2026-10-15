@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>PackJoyU — Category landing /[locale]/products/&lt;slug&gt; + 503 (Refs #209)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css"><link rel="stylesheet" href="../motion-tokens.css">
+<style>
+/* ===== design-file chrome ===== */
+body{margin:0;background:#DDD8CF;font-family:var(--font);color:#1C1C1C}
+.board{padding:40px;display:flex;flex-direction:column;gap:56px}
+.cap{font:600 14px/1.4 var(--font);margin:0 0 10px;color:#3a362f}
+.cap small{font-weight:500;color:#6b655c}
+.row{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.frame{background:var(--bg);color:var(--ink);overflow:hidden;box-shadow:0 2px 0 #0002;position:relative}
+.d{width:1440px}.m{width:390px}.m360{width:360px}
+.note{position:absolute;right:8px;font:600 11px/1.3 var(--font);background:#2B6CB0;color:#fff;padding:3px 7px;border-radius:6px;z-index:5;max-width:260px}
+body.render .note-ext{display:none}
+/* ===== page tokens (theme C default, .theme-premium = B) ===== */
+:root{--accent-text:#C2381A;--ok:#2F7D4F;--focus-ring:var(--accent-text);--consent-h:0px;--fab-clearance:84px}
+.theme-premium{--accent-text:var(--gold);--focus-ring:var(--gold);--btn-ink:#121214}
+.frame :focus-visible,.focus-demo{outline:2px solid var(--focus-ring);outline-offset:3px}
+.wrap{max-width:var(--container);margin:0 auto;padding:0 40px}
+.m .wrap,.m360 .wrap{padding:0 20px}
+a{color:inherit}
+.hdr{display:flex;align-items:center;justify-content:space-between;height:72px;border-bottom:1px solid var(--line)}
+.logo{font-weight:800;font-size:20px;text-decoration:none}
+.logo b{color:var(--accent)}
+.nav{display:flex;gap:28px;font-weight:600;font-size:15px}.nav a{text-decoration:none;min-height:44px;display:flex;align-items:center}
+.m .nav,.m360 .nav{display:none}
+.burger{display:none;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--ink);font-size:18px}
+.m .burger,.m360 .burger{display:block}
+.crumbs{font-size:14px;color:var(--ink-2);padding:18px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+.crumbs a{text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+.crumbs span[aria-current]{color:var(--ink);font-weight:600;display:inline-flex;align-items:center;min-height:44px}
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;padding:16px 0 64px;align-items:center}
+.m .hero,.m360 .hero{grid-template-columns:1fr;gap:24px;padding:8px 0 40px}
+h1{font-size:var(--fs-display);line-height:1.05;letter-spacing:-.02em;margin:0 0 20px;font-weight:800;overflow-wrap:anywhere;hyphens:auto}
+.m h1{font-size:36px}.m360 h1{font-size:32px}
+.lead{font-size:18px;line-height:1.6;color:var(--ink-2);margin:0 0 28px;max-width:60ch}
+.m .lead,.m360 .lead{font-size:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:var(--r-pill);font:700 16px var(--font);text-decoration:none;border:2px solid transparent;cursor:pointer;transition:transform var(--dur-instant) var(--ease-out),opacity var(--dur-fast)}
+.btn:active{transform:scale(var(--scale-press))}
+.btn-p{background:var(--accent);color:#fff}
+.theme-premium .btn-p{color:#121214}
+.btn-s{border-color:var(--ink);color:var(--ink);background:transparent}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.m .ctas .btn,.m360 .ctas .btn{flex:1 1 100%}
+.trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;font-size:14px;color:var(--ink-2)}
+.viewer{aspect-ratio:4/3;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line);position:relative;display:grid;place-items:center;overflow:hidden}
+.viewer svg{width:62%}
+.vbar{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px;justify-content:space-between}
+.chip{min-height:44px;padding:0 16px;border-radius:var(--r-pill);background:var(--bg);border:1px solid var(--line);display:inline-flex;align-items:center;gap:6px;font:600 14px var(--font);color:var(--ink)}
+.chip.ac{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+section{padding:64px 0;border-top:1px solid var(--line)}
+.m section,.m360 section{padding:40px 0}
+h2{font-size:var(--fs-h2);line-height:1.15;margin:0 0 28px;letter-spacing:-.01em;font-weight:800}
+.m h2,.m360 h2{font-size:26px;margin-bottom:20px}
+h3{font-size:var(--fs-h3);margin:0 0 8px;font-weight:700}
+.why{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.m .why,.m360 .why{grid-template-columns:1fr;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:22px}
+.card p{margin:0;color:var(--ink-2);line-height:1.55;font-size:15px}
+.ico{width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--accent) 14%,transparent);display:grid;place-items:center;margin-bottom:14px;color:var(--accent-text);font-weight:800}
+/* specs */
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.m .spec-grid,.m360 .spec-grid{grid-template-columns:1fr;gap:20px}
+.keyspecs{display:grid;grid-template-columns:repeat(2,1fr);gap:0;margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+.m360 .keyspecs{grid-template-columns:1fr}
+.keyspecs div{padding:16px 18px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.keyspecs dt{font-size:13px;color:var(--ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.keyspecs dd{margin:0;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.keyspecs dd small{font-size:14px;font-weight:600;color:var(--ink-2)}
+.opt{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;font-size:15px}
+.opt th,.opt td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+.opt th{width:34%;font-weight:700}
+.opt td{color:var(--ink-2)}
+.m360 .opt th,.m360 .opt td{display:block;width:auto;padding:10px 16px}.m360 .opt th{border-bottom:0;padding-bottom:0}
+.subh{font-size:15px;font-weight:700;margin:0 0 12px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em}
+.certs{display:flex;flex-wrap:wrap;gap:12px;list-style:none;padding:0;margin:20px 0 0}
+.certs li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 16px;min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.certs a{font-weight:700;text-decoration:underline;text-underline-offset:3px;display:inline-flex;align-items:center;gap:6px;min-height:24px;color:var(--accent-text)}
+.certs small{color:var(--ink-2);font-size:13px}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;counter-reset:s;list-style:none;padding:0;margin:0}
+.m .steps,.m360 .steps{grid-template-columns:1fr}
+.steps li{counter-increment:s;padding-top:52px;position:relative}
+.m .steps li,.m360 .steps li{padding:0 0 0 52px;min-height:40px}
+.steps li:before{content:counter(s);position:absolute;top:0;left:0;width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800}
+.theme-premium .steps li:before{color:#121214}
+.steps p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.5}
+/* faq */
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-weight:700;font-size:17px;cursor:pointer;list-style:none}
+.faq summary:after{content:"+";font-size:24px;color:var(--accent-text);transition:transform var(--dur-base) var(--ease-inout)}
+.faq details[open] summary:after{transform:rotate(45deg)}
+.faq p{margin:0 0 18px;color:var(--ink-2);line-height:1.6}
+/* links */
+.rel{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;list-style:none;padding:0;margin:0}
+.m .rel,.m360 .rel{grid-template-columns:1fr}
+.rel a{display:flex;justify-content:space-between;align-items:center;min-height:64px;padding:16px 20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);text-decoration:none;font-weight:700;transition:transform var(--dur-fast) var(--ease-out)}
+.rel a:hover{transform:translateY(-2px)}
+.rel a span{color:var(--accent-text)}
+.reading a{display:inline-flex;align-items:center;min-height:44px;font-weight:700;color:var(--accent-text);text-underline-offset:4px}
+.ctaband{background:var(--ink);color:var(--bg);border-radius:var(--r-lg);padding:44px;display:flex;justify-content:space-between;align-items:center;gap:24px}
+.theme-premium .ctaband{background:var(--surface);color:var(--ink);border:1px solid var(--gold)}
+.m .ctaband,.m360 .ctaband{flex-direction:column;align-items:stretch;padding:28px 20px}
+.ctaband h2{margin:0 0 8px}.ctaband p{margin:0;opacity:.8}
+.foot{padding:40px 0 calc(40px + var(--fab-clearance));font-size:14px;color:var(--ink-2);border-top:1px solid var(--line);margin-top:64px}
+.foot a{display:inline-flex;min-height:44px;align-items:center;margin-right:20px}
+.sticky{position:absolute;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 92%,transparent);border-top:1px solid var(--line);display:none;backdrop-filter:blur(8px)}
+.m .sticky,.m360 .sticky{display:block}.sticky .btn{width:100%}
+.fab{position:absolute;right:16px;bottom:84px;width:56px;height:56px;border-radius:50%;background:#25D366;display:none;place-items:center;color:#fff;font-weight:800;box-shadow:var(--shadow)}
+.m .fab,.m360 .fab{display:grid}
+/* 503 */
+.err{min-height:720px;display:grid;place-items:center;text-align:center;padding:40px 20px}
+.m .err{min-height:760px}
+.err .code{font-size:14px;font-weight:700;letter-spacing:.12em;color:var(--accent-text);margin-bottom:16px}
+.err h1{font-size:44px}.m .err h1{font-size:30px}
+.err p{color:var(--ink-2);font-size:17px;line-height:1.6;max-width:46ch;margin:0 auto 28px}
+.err .ctas{justify-content:center}
+.err .ill{width:140px;margin:0 auto 24px}
+.status{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--ink-2);margin-top:20px}
+</style></head>
+<body>
+<div class="board" id="board"></div>
+<script>
+const BOX=(c='var(--accent)')=>`<svg viewBox="0 0 200 160" aria-hidden="true"><path d="M100 20 180 55 100 90 20 55Z" fill="${c}" opacity=".9"/><path d="M20 55v60l80 35V90Z" fill="${c}" opacity=".65"/><path d="M180 55v60l-80 35V90Z" fill="${c}" opacity=".45"/></svg>`;
+const EXT=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>`;
+const T={
+en:{nav:['Products','3D customizer','Articles','Contact'],home:'Home',products:'Products',quote:'Request a quote',custom:'Customize in 3D',rotate:'Drag to rotate',open:'Open box',
+ why:'Why PackJoyU',specs:'Specifications & options',key:'Key specs',options:'Options',certs:'Certificates',how:'How it works',faq:'Frequently asked questions',related:'Related products',reading:'Further reading',
+ f:{size:'Size range',material:'Material',moq:'Minimum order',sample:'Sample fee',lead:'Lead time',terms:'Trade terms'},free:'Free',days:'days',pcs:'pcs',
+ ctaT:'Get a quote for your boxes',ctaP:'Send size, quantity and artwork — we will reply soon.',newtab:'(opens in a new tab)',certNo:'Cert. no.',foot:['Privacy','Cookie settings','Contact']},
+ru:{nav:['Продукция','3D-конструктор','Статьи','Контакты'],home:'Главная',products:'Продукция',quote:'Запросить расчёт',custom:'Собрать в 3D',rotate:'Потяните, чтобы повернуть',open:'Открыть коробку',
+ why:'Почему PackJoyU',specs:'Характеристики и опции',key:'Основные параметры',options:'Опции',certs:'Сертификаты',how:'Как мы работаем',faq:'Частые вопросы',related:'Похожие товары',reading:'Полезные статьи',
+ f:{size:'Размеры',material:'Материал',moq:'Минимальный тираж',sample:'Стоимость образца',lead:'Срок производства',terms:'Условия поставки'},free:'Бесплатно',days:'дн.',pcs:'шт.',
+ ctaT:'Рассчитаем стоимость вашей упаковки',ctaP:'Пришлите размеры, тираж и макет — мы скоро ответим.',newtab:'(откроется в новой вкладке)',certNo:'№',foot:['Конфиденциальность','Настройки cookie','Контакты']}};
+const C={ // copy from docs/content (#188); TBD rows removed
+corr:{en:{h1:'Custom Corrugated Boxes',lead:'PackJoyU manufactures custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives.',
+ why:[['Made to your size','Every box is cut to your product dimensions, reducing void fill and shipping volume.'],['Branded unboxing','Flexo or digital printing inside and outside, from one-color logos to full artwork.'],['Built for transit','Board grade and flute selected for your product weight and shipping route.'],['Factory-direct export','One supplier from structural design to export packing and documentation.']],
+ opt:[['Styles','Mailer (tuck-front) boxes, regular slotted cartons (RSC), die-cut boxes, display/shelf-ready boxes'],['Material','Kraft or white corrugated board; flute and wall (single / double) to be confirmed per product'],['Printing','Flexographic, digital or litho-laminated (offset print on liner)'],['Finishes','Matte/gloss varnish, lamination, inside printing, tear strips, inserts'],['Sizes','Custom — send product dimensions or a sample']],
+ how:[['Send your brief','product size, quantity, artwork or reference.'],['Quote & structure','we propose material, structure and dieline.'],['Proof & sample','digital proof, then physical sample.'],['Production & QC','mass production with inspection before packing.'],['Export shipping','export packing and documents; terms confirmed per quote.']],
+ faq:[['Can you design the box structure for my product?','Yes. Send your product dimensions and weight, and our team will propose a structure and dieline for approval.'],['Do you ship to my country?','We export worldwide. Shipping terms (e.g. FOB/CIF) are confirmed per quote.']],
+ rel:[['/en/products/custom-printed-boxes','custom printed boxes'],['/en/products/molded-pulp-packaging','molded pulp packaging'],['/en/products/offset-printing-services','offset printing services']],
+ read:['/en/articles/custom-mailer-boxes-ecommerce-buyers-guide',"our buyer's guide to custom mailer boxes"]},
+ru:{h1:'Гофрокороба на заказ',lead:'PackJoyU производит гофрокороба на заказ для доставки, интернет-торговли и розницы: почтовые коробки, четырёхклапанные короба и демонстрационную упаковку точно под ваши размеры. Мы наносим логотип и дизайн прямо на гофрокартон, поэтому коробка защищает товар при перевозке и при этом работает на узнаваемость бренда.',
+ why:[['Точно по размеру','Каждая коробка изготавливается под габариты товара — меньше наполнителя и объёма при доставке.'],['Фирменная распаковка','Флексо- или цифровая печать снаружи и внутри: от логотипа в один цвет до полноцветного дизайна.'],['Прочность при перевозке','Марку картона и профиль гофры подбираем под вес товара и маршрут доставки.'],['Прямые поставки с фабрики','Один поставщик — от конструкции коробки до экспортной упаковки и документов.']],
+ opt:[['Конструкции','Почтовые коробки (самосборные), четырёхклапанные короба, высечные коробки, шоу-боксы'],['Материал','Бурый или белый гофрокартон; профиль гофры и количество слоёв — по продукту'],['Печать','Флексопечать, цифровая печать или кашировка офсетным листом'],['Отделка','Матовый/глянцевый лак, ламинация, печать внутри, отрывная лента, ложементы'],['Размеры','Любые — пришлите габариты товара или образец']],
+ how:[['Отправьте задачу','размеры товара, тираж, макет или референс.'],['Расчёт и конструкция','предложим материал, конструкцию и развёртку.'],['Проба и образец','цифровая проба, затем физический образец.'],['Производство и контроль','тираж с проверкой качества перед упаковкой.'],['Экспортная доставка','упаковка и документы; условия поставки — в расчёте.']],
+ faq:[['Можете ли вы разработать конструкцию коробки?','Да. Пришлите размеры и вес товара — мы предложим конструкцию и развёртку на согласование.'],['Доставляете ли вы в Россию?','Да, мы экспортируем продукцию, условия поставки уточняются в расчёте.']],
+ rel:[['/ru/products/tsvetnye-korobki','картонные коробки с печатью'],['/ru/products/izdeliya-iz-tsellyulozy','упаковка из формованной целлюлозы'],['/ru/products/ofsetnaya-pechat','офсетная печать упаковки']],
+ read:['/ru/articles/pochtovye-korobki-s-logotipom-dlya-internet-magazina','как заказать почтовые коробки для интернет-магазина']}},
+wine:{en:{h1:'Custom Wine Boxes',lead:'PackJoyU manufactures luxury wine and spirits boxes for wineries, distilleries, importers and gift brands. We make single-bottle and multi-bottle boxes with magnetic closures, fitted inserts and premium finishes such as foil stamping and embossed logos, so every bottle arrives protected and gift-ready.',
+ why:[['Bottle protection','Fitted inserts hold bottles and glasses securely.'],['Luxury presentation','Rigid construction, specialty papers, foil and embossing.'],['Single or multi-bottle','1, 2, 3 or 6-bottle formats and gift sets with accessories.'],['Gift-ready','Ribbon pulls, magnetic lids, window options.']],
+ opt:[['Styles','Magnetic flap, lid & base, book-style, tube, corrugated wine shipper'],['Capacity','1 / 2 / 3 / 6 bottles; gift sets with glasses/accessories'],['Material','Rigid greyboard + specialty paper; corrugated for shipping'],['Finishes','Foil, embossing, spot UV, soft-touch, ribbon'],['Inserts','EVA, paperboard, molded pulp, satin']],
+ how:null,faq:[['Can you fit non-standard bottle shapes?','Yes, send bottle dimensions or a sample for a custom insert.'],['Can boxes include glasses or accessories?','Yes, gift sets with multi-cavity inserts.']],
+ rel:[['/en/products/custom-gift-boxes','premium gift packaging'],['/en/products/custom-christmas-packaging','advent calendars and seasonal packaging'],['/en/products/molded-pulp-packaging','plastic-free pulp inserts']],
+ read:['/en/articles/corporate-gift-packaging-planning-guide','timeline for corporate gift packaging']}}};
+C.wine.en.how=C.corr.en.how;
+// DEMO spec payloads (shape = /api/specs). Values are placeholders for layout only — NOT real data.
+const SPEC_PARTIAL={size:{min:100,max:600,unit:'mm'},moq:{value:'{{待Ryan确认}}',unit:'pcs'},sample:{amount:'{{待Ryan确认}}',currency:''},certifications:[{name:'ISO 9001',certNo:'00000000'}]};
+const SPEC_FULL={size:{min:80,max:400,unit:'mm'},material:{en:'Rigid greyboard 1.5–2 mm + specialty paper'},moq:{value:'{{待Ryan确认}}',unit:'pcs'},sample:{amount:'{{待Ryan确认}}',currency:''},lead:{min:'{{待Ryan确认}}',max:null,unit:'days'},terms:{en:'FOB Ningbo · CIF · DAP'}};
+function nf(l,n){return new Intl.NumberFormat(l==='ru'?'ru-RU':'en-US').format(n)}
+function specHTML(l,s,t){
+ if(!s) return '';
+ const f=t.f,row=[];
+ if(s.size)row.push([f.size,`${nf(l,s.size.min)}–${nf(l,s.size.max)} <small>${l==='ru'?'мм':'mm'}</small>`]);
+ if(s.material)row.push([f.material,`<span style="font-size:16px">${s.material[l]||s.material.en}</span>`]);
+ if(s.moq)row.push([f.moq,`${typeof s.moq.value==='string'?s.moq.value:`${nf(l,s.moq.value)} <small>${t.pcs}</small>`}`]);
+ if(s.sample)row.push([f.sample,s.sample.free?t.free:(typeof s.sample.amount==='string'?s.sample.amount:`${nf(l,s.sample.amount)} <small>${s.sample.currency}</small>`)]);
+ if(s.lead)row.push([f.lead,(typeof s.lead.min==='string'?s.lead.min:`${s.lead.min}–${s.lead.max} <small>${t.days}</small>`)]);
+ if(s.terms)row.push([f.terms,`<span style="font-size:16px">${s.terms[l]||s.terms.en}</span>`]);
+ return row.length?`<h3 class="subh">${t.key}</h3><dl class="keyspecs">${row.map(r=>`<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join('')}</dl>`:'';
+}
+function certHTML(l,s,t){
+ if(!s||!s.certifications||!s.certifications.length)return '';
+ return `<h3 class="subh" style="margin-top:28px">${t.certs}</h3><ul class="certs">${s.certifications.map(c=>`<li>${c.url?`<a href="${c.url}" target="_blank" rel="noopener noreferrer">${c.name}${EXT}<span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">${t.newtab}</span></a>`:`<strong>${c.name}</strong>`}${c.certNo?`<small>${t.certNo} ${c.certNo}</small>`:''}</li>`).join('')}</ul>`;
+}
+function page({cat='corr',l='en',size='d',spec=SPEC_PARTIAL,theme='',faq=true,focus=false,notes}){ notes=notes??size==='d';
+ const t=T[l],c=C[cat][l],n=(top,txt)=>notes?`<div class="note" style="top:${top}px">${txt}</div>`:'';
+ const ks=specHTML(l,spec,t),ce=certHTML(l,spec,t);
+ return `<div class="frame ${size} ${theme}" lang="${l}">
+ <div class="wrap"><header class="hdr"><a class="logo" href="#">Pack<b>Joy</b>U</a><nav class="nav">${t.nav.map(x=>`<a href="#">${x}</a>`).join('')}</nav><button class="burger" aria-label="Menu">☰</button></header>
+ <nav class="crumbs" aria-label="Breadcrumb"><a href="#">${t.home}</a>›<a href="#">${t.products}</a>›<span aria-current="page">${c.h1}</span></nav>
+ <div class="hero"><div><h1>${c.h1}</h1><p class="lead">${c.lead}</p>
+  <div class="ctas"><a class="btn btn-p ${focus?'focus-demo':''}" href="#">${t.quote} →</a><a class="btn btn-s" href="#">${t.custom}</a></div></div>
+  <div class="viewer" role="img" aria-label="${c.h1}">${BOX(theme?'#D4AF6A':'var(--accent)')}<div class="vbar"><span class="chip">↻ ${t.rotate}</span><button class="chip ac">${t.open}</button></div></div></div>
+  ${n(90,'H1 = #188 H1 · server-rendered · NO fade-in on H1/hero. Poster = next/image priority; 3D canvas mounts on top client-side.')}
+ </div>
+ <div class="wrap">
+ <section><h2>${t.why}</h2><div class="why">${c.why.map((w,i)=>`<div class="card reveal"><div class="ico">${i+1}</div><h3>${w[0]}</h3><p>${w[1]}</p></div>`).join('')}</div></section>
+ <section><h2>${t.specs}</h2><div class="spec-grid"><div>${ks}${ce}${!ks&&!ce?`<h3 class="subh">${t.options}</h3>${optT(c)}`:''}</div>${ks||ce?`<div><h3 class="subh">${t.options}</h3>${optT(c)}</div>`:''}</div>
+ </section>
+ <section><h2>${t.how}</h2><ol class="steps">${c.how.map(s=>`<li class="reveal"><h3>${s[0]}</h3><p>${s[1]}</p></li>`).join('')}</ol></section>
+ ${faq?`<section class="faq" style="position:relative"><h2>${t.faq}</h2>${c.faq.map((q,i)=>`<details ${i==0?'open':''}><summary>${q[0]}</summary><p>${q[1]}</p></details>`).join('')}${n(0,'FAQ: hidden until Ryan finalizes (#209 §1/§3). Answers with TBD are dropped.')}</section>`:''}
+ <section><h2>${t.related}</h2><ul class="rel">${c.rel.map(r=>`<li><a href="${r[0]}">${r[1]}<span>→</span></a></li>`).join('')}</ul></section>
+ <section class="reading"><h2>${t.reading}</h2><a href="${c.read[0]}">${c.read[1]} →</a></section>
+ <div class="ctaband"><div><h2>${t.ctaT}</h2><p>${t.ctaP}</p></div><a class="btn btn-p" href="#">${t.quote} →</a></div>
+ </div>
+ <footer class="foot"><div class="wrap">${t.foot.map(x=>`<a href="#">${x}</a>`).join('')}<div>© PackJoyU</div></div></footer>
+ <div class="fab" aria-hidden="true">WA</div>
+ <div class="sticky"><a class="btn btn-p" href="#">${t.quote} →</a></div>
+ </div>`;
+}
+function optT(c){return `<table class="opt"><tbody>${c.opt.map(o=>`<tr><th scope="row">${o[0]}</th><td>${o[1]}</td></tr>`).join('')}</tbody></table>`}
+const E={en:{c:'503 · TEMPORARILY UNAVAILABLE',h:'Temporarily unavailable',p:'Temporarily unavailable, please try again later.',r:'Try again',h2:'Browse products'},
+ ru:{c:'503 · ВРЕМЕННО НЕДОСТУПНО',h:'Временно недоступно',p:'Временно недоступно, пожалуйста, попробуйте позже.',r:'Попробовать снова',h2:'Смотреть продукцию'}};
+function e503(l,size){const e=E[l];return `<div class="frame ${size}" lang="${l}"><div class="wrap"><header class="hdr"><a class="logo" href="#">Pack<b>Joy</b>U</a><button class="burger" aria-label="Menu">☰</button></header></div>
+ <main class="err"><div><div class="ill">${BOX('var(--line)')}</div><div class="code">${e.c}</div><h1>${e.h}</h1><p>${e.p}</p>
+ <div class="ctas"><button class="btn btn-p">↻ ${e.r}</button><a class="btn btn-s" href="/${l}/products">${e.h2}</a></div></div></main></div>`}
+const F=[
+ ['d-en','Desktop 1440 · EN · theme C · partial specs (size, MOQ, sample, certs only)',()=>page({})],
+ ['d-ru','Desktop 1440 · RU · theme C · partial specs',()=>page({l:'ru'})],
+ ['d-wine-b','Desktop 1440 · EN · Wine boxes · theme B (gift/wine) · all spec fields filled',()=>page({cat:'wine',theme:'theme-premium',spec:SPEC_FULL,focus:true})],
+ ['m-en','Mobile 390 · EN · partial specs · sticky CTA + FAB above --fab-clearance',()=>page({size:'m',faq:false})],
+ ['m-ru','Mobile 390 · RU · partial specs',()=>page({l:'ru',size:'m',faq:false})],
+ ['m360-ru','Mobile 360 · RU (longest strings) · NO specs → key-spec block + certs hidden, options table only',()=>page({l:'ru',size:'m360',spec:null,faq:false})],
+ ['e503','503 · EN/RU · desktop 1440 + mobile 390 · noindex',()=>`<div class="row">${e503('en','d')}</div><div class="row" style="margin-top:40px">${e503('ru','m')}${e503('en','m')}</div>`]];
+const only=location.hash.slice(1);if(only)document.body.classList.add('render');
+document.getElementById('board').innerHTML=F.filter(f=>!only||f[0]===only).map(f=>`<div id="${f[0]}"><p class="cap">${f[1]}</p><div class="row">${f[2]()}</div></div>`).join('');
+</script>
+</body></html>
