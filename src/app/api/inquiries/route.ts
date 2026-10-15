@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
-import { randomId, hitRateLimit, verifyTurnstile, escapeHtml, clientIp, readBody, tooManyRequests } from '@/lib/server/security';
+import { randomId, hitRateLimit, rateLimitKeyHash, verifyTurnstile, clientIp, readBody, tooManyRequests } from '@/lib/server/security';
+import { retention } from '@/lib/server/retention';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
-import { sendMail, autoReply } from '@/lib/server/mail';
+import { sendSafely, inquiryNotifyMail, customerAckMail } from '@/lib/server/mail';
+import { summarizeItems } from '@/lib/server/email/render';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
 import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl, InquiryItemConfig } from '@/lib/server/designs';
-import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT } from '@/lib/server/sample';
+import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT, sampleRecentResponse } from '@/lib/server/sample';
 
 class LogoInvalid extends Error {}
 class SampleLimited extends Error {}
@@ -53,7 +55,6 @@ const Body = z.object({
   if (new Set(slugs).size !== slugs.length) ctx.addIssue({ code: 'custom', path: ['items'], message: 'duplicate_items' });
 });
 
-const RETAIN_DAYS = 730;
 
 export async function POST(req: Request) {
   const ip = clientIp(req);
@@ -64,15 +65,16 @@ export async function POST(req: Request) {
   try { json = JSON.parse(raw); } catch {}
   const parsed = Body.safeParse(json);
   if (!parsed.success) {
-    // 无效请求单独计数：有 IP 时按 IP，宽松上限，不占用正常提交的额度
-    if (ip && !(await hitRateLimit(`inq-bad:${ip}`, 30))) return tooManyRequests(600);
+    // 无效请求单独计数：有 IP 时按 IP，没有 IP 时走共用 noip 总闸，宽松上限，不占用正常提交的额度
+    if (!(await (ip ? hitRateLimit(`inq-bad:${ip}`, 30) : hitRateLimit('inq-bad:noip:all', 300)))) return tooManyRequests(600);
     return NextResponse.json({ error: 'invalid', issues: parsed.error.flatten() }, { status: 400 });
   }
   const b = parsed.data;
   // 正常提交的限流：IP 桶和邮箱桶同时计数，任意一个超限就 429（两个都要先计数，不能短路）。
   // 拿不到 IP（如本地 pnpm start）时用所有无 IP 请求共用的宽松总闸代替 IP 桶。
   const email = b.contact.email.trim().toLowerCase();
-  const [ipOk, emailOk] = await Promise.all([ip ? hitRateLimit(`inq:${ip}`) : hitRateLimit('inq:noip:all', 100), hitRateLimit(`inq:email:${email}`)]);
+  // 邮箱桶用规范化邮箱（去 +后缀、Gmail 去点），别名不能绕过
+  const [ipOk, emailOk] = await Promise.all([ip ? hitRateLimit(`inq:${ip}`) : hitRateLimit('inq:noip:all', 100), hitRateLimit(`inq:email:${rateLimitKeyHash(normalizeEmail(email))}`)]);
   const limited = !ipOk || !emailOk;
   if (limited) return tooManyRequests(600);
   const sampleEmail = b.source === 'SAMPLE' ? normalizeEmail(email) : null;
@@ -114,8 +116,8 @@ export async function POST(req: Request) {
           ref, replyToken: randomId(24), locale: b.locale, source: b.source, message: b.message,
           trustScore: trust.score, trustReasons: trust.reasons, ipCountry,
           attribution: (b.attribution ?? undefined) as object | undefined,
-          retainUntil: new Date(Date.now() + RETAIN_DAYS * 86_400_000),
-          contact: { create: b.contact },
+          retainUntil: new Date(Date.now() + retention.inquiryDays * 86_400_000),
+          contact: { create: { ...b.contact, normalizedEmail: normalizeEmail(b.contact.email) } },
           items: { create: b.items.map((i) => ({ ...i, config: (i.config ?? undefined) as object | undefined })) },
           ...(sampleEmail ? { sample: { create: { normalizedEmail: sampleEmail, shippingAddress: b.shippingAddress } } } : {}),
         },
@@ -133,22 +135,21 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     // 按邮箱的限制不返回 retryAfter / Retry-After，避免借此探测某邮箱何时申请过
-    if (e instanceof SampleLimited) return NextResponse.json({ error: 'sample_recent' }, { status: 429, headers: { 'Cache-Control': 'no-store' } });
+    if (e instanceof SampleLimited) return sampleRecentResponse();
     if (e instanceof LogoInvalid) return NextResponse.json({ error: 'logo_invalid' }, { status: 422 });
     throw e;
   }
 
+  // 邮件：失败不影响提交（sendSafely 记日志 + 后台告警）。模板变量全部转义；不回显留言；后台链接只用 SITE_URL + 内部 id
   const notify = process.env.INQUIRY_NOTIFY_EMAIL;
-  const products = b.items.map((i) => `${escapeHtml(i.productSlug)}${i.quantity ? ` × ${i.quantity}` : ''}`).join('<br>') || '—';
-  await Promise.allSettled([
-    notify && sendMail({
-      to: notify,
-      subject: `[${trust.score < REVIEW_THRESHOLD ? '待核实' : '新询盘'}] ${ref} · ${b.contact.region} · ${b.contact.company ?? b.contact.name}`,
-      html: `<p>${escapeHtml(b.contact.name)} &lt;${escapeHtml(b.contact.email)}&gt;</p><p>${products}</p><pre>${escapeHtml(b.message ?? '')}</pre><p>score ${trust.score}</p>`,
-    }),
-    // 自动回复只发给可信询盘，且同一邮箱 24 小时最多 1 封，内容不含任何用户输入，防止被当作垃圾邮件跳板
-    trust.score >= REVIEW_THRESHOLD && sendAutoReplyOnce(inquiry.id, b.contact.email, b.locale, ref),
-  ]);
+  const vars = { name: b.contact.name, company: b.contact.company, ...summarizeItems(b.items), inquiryId: ref, locale: b.locale };
+  try {
+    await Promise.allSettled([
+      notify && sendSafely('inquiry-notify', { to: notify, ...inquiryNotifyMail({ ...vars, adminId: inquiry.id, score: trust.score }) }),
+      // 自动回复只发给可信询盘；同一邮箱 24 小时 1 封（数据库）+ 按邮箱和 IP 限流，防止被当作发信跳板
+      trust.score >= REVIEW_THRESHOLD && sendAutoReplyOnce(inquiry.id, email, ip, b.source === 'SAMPLE' ? 'sample' : 'inquiry', { ...vars, ...summarizeItems(b.items, b.locale) }),
+    ]);
+  } catch (e) { console.error('[mail] unexpected', (e as Error).message); }
 
   return NextResponse.json({ ref: inquiry.ref }, { status: 201 });
 }
@@ -157,18 +158,19 @@ export async function POST(req: Request) {
  * 自动回复限制存在数据库里：多实例、重启都不会失效。
  * 在事务里按邮箱加 Postgres 事务级咨询锁，同一邮箱的并发请求排队判断，只有一条能抢到。
  */
-async function sendAutoReplyOnce(inquiryId: string, email: string, locale: 'en' | 'ru', ref: string) {
-  const key = email.trim().toLowerCase();
+async function sendAutoReplyOnce(inquiryId: string, email: string, ip: string | null, kind: 'inquiry' | 'sample', vars: Parameters<typeof customerAckMail>[1]) {
+  // 限流 key、咨询锁、数据库 24 小时判断都用规范化邮箱（去 +后缀、Gmail 去点），别名不能绕过
+  const key = normalizeEmail(email);
+  const [emailOk, ipOk] = await Promise.all([hitRateLimit(`autoreply:e:${rateLimitKeyHash(key)}`, 1, 86_400_000, { onStoreError: 'closed' }), hitRateLimit(`autoreply:ip:${ip ?? 'noip'}`, ip ? 5 : 200, 86_400_000, { onStoreError: 'closed' })]);
+  if (!emailOk || !ipOk) return;
   const since = new Date(Date.now() - 86_400_000);
   const claimed = await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'autoreply:' + key}))`;
-    const recent = await tx.inquiry.findFirst({
-      where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { email: { equals: key, mode: 'insensitive' } } },
-      select: { id: true },
-    });
+    // 24 小时内同一规范化邮箱发过自动回复就不再发（Contact.normalizedEmail 精确匹配，有索引）
+    const recent = await tx.inquiry.findFirst({ where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { normalizedEmail: key } }, select: { id: true } });
     if (recent) return false;
     const r = await tx.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
     return r.count === 1;
   });
-  if (claimed) await sendMail({ to: email, ...autoReply(locale, ref) });
+  if (claimed) await sendSafely(`${kind}-ack`, { to: email, ...customerAckMail(kind, vars) });
 }

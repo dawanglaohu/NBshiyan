@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { lookupDesign, canonicalFor } from '@/lib/server/designs';
+import { getTranslations } from 'next-intl/server';
+import { lookupDesignForPage, canonicalFor } from '@/lib/server/designs';
+import { UnavailableNotice, unavailableTitle } from '../unavailable/notice';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,12 +10,14 @@ type Props = { params: Promise<{ locale: string; id: string }> };
 const robots = { index: false, follow: false };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
-  const r = await lookupDesign(id);
+  const { id, locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'DesignShared' });
+  const r = await lookupDesignForPage(id);
+  if (r.state === 'unavailable') return { title: unavailableTitle(locale), robots };
   if (r.state === 'missing') return { title: 'PackJoyU', robots };
   const d = r.state === 'ok' ? r.design : r;
   // canonical 指向对应分类落地页（按方案语言取 slug）
-  return { title: 'Custom packaging design | PackJoyU', robots, alternates: { canonical: canonicalFor(d) } };
+  return { title: { absolute: t('metaTitle') }, robots, alternates: { canonical: canonicalFor(d) } };
 }
 
 /**
@@ -23,7 +27,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
  */
 export default async function SharedDesignPage({ params }: Props) {
   const { id, locale } = await params;
-  const r = await lookupDesign(id);
+  const r = await lookupDesignForPage(id);
+  // 正常情况下 middleware 的探测已返回 503；这里兜底（探测未配置/超时），不暴露错误细节
+  if (r.state === 'unavailable') return <UnavailableNotice locale={locale} />;
   if (r.state === 'missing') notFound();
   const ru = locale === 'ru';
   if (r.state === 'expired') {

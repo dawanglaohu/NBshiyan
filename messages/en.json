@@ -1,8 +1,9 @@
 {
   "Meta": {
-    "title": "Custom Packaging Manufacturer: Boxes, Cups & Printing | PackJoyU",
-    "description": "PackJoyU manufactures custom corrugated boxes, gift and wine boxes, molded pulp, eco paper cups and printed packaging for brands in North America, Europe and Australia.",
-    "home": "Home"
+    "title": "Custom Packaging Manufacturer: Boxes & Cups | PackJoyU",
+    "description": "PackJoyU makes custom corrugated boxes, gift and wine boxes, molded pulp, custom paper cups, printed packaging for brands in North America, Europe and Australia.",
+    "home": "Home",
+    "ogImageAlt": "PackJoyU custom packaging: boxes, paper cups and printing"
   },
   "Nav": {
     "home": "Home",
@@ -21,30 +22,11 @@
     "sub": "Custom paper packaging and printing, from prototype to mass production — explore every product in 3D.",
     "cta": "Explore products in 3D",
     "ctaQuote": "Get a quote",
-    "advTitle": "Why brands choose PackJoyU",
-    "adv": {
-      "capacity": {
-        "value": "2M+",
-        "label": "boxes produced per month"
-      },
-      "certs": {
-        "value": "FSC · ISO 9001",
-        "label": "certified materials and processes"
-      },
-      "sampling": {
-        "value": "5–7 days",
-        "label": "from artwork to physical sample"
-      },
-      "eco": {
-        "value": "100%",
-        "label": "recyclable paper options"
-      }
-    },
     "entryTitle": "Find your packaging",
     "premiumTitle": "Premium gift & wine boxes",
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
     "ctaBandTitle": "Have a project in mind?",
-    "ctaBandText": "Tell us what you need — we reply within 24 hours.",
+    "ctaBandText": "Tell us what you need — a packaging specialist will reply by email.",
     "heroLabel": "Stack of custom PackJoyU boxes and a paper cup"
   },
   "Products": {
@@ -70,19 +52,19 @@
     },
     "done": "Done",
     "categories": "Product categories",
-    "metaTitle": "Custom Packaging Products in 3D: Boxes, Cups & Printing | PackJoyU",
+    "metaTitle": "Custom Packaging Products in 3D: Boxes & Cups | PackJoyU",
     "metaDescription": "Explore 12 custom packaging categories in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
     "desc": {
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
       "gift-boxes": "Rigid and magnetic custom gift boxes with foil stamping, embossing and fitted inserts.",
-      "pulp-molding": "Molded pulp trays and inserts made from recycled paper and sugarcane fiber, a plastic-free alternative.",
+      "pulp-molding": "Molded pulp trays and inserts made from sugarcane fiber.",
       "paper-cups": "Custom printed paper cups for coffee, tea and cold drinks, in single and double wall.",
       "party-supplies": "Printed paper party tableware: plates, cups, napkins and decorations for events and retail.",
       "wine-boxes": "Custom wine and spirits boxes for one or more bottles, with premium finishes and inserts.",
       "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
       "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
-      "eco-paper-cups": "Compostable and plastic-free paper cups with water-based or PLA-free coatings.",
+      "eco-paper-cups": "Paper cups printed with your logo; coating options confirmed per order.",
       "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
       "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
     },
@@ -91,12 +73,12 @@
       "corrugated-boxes": [
         "Single & double wall (E/B/C flute)",
         "Up to 4-color flexo or digital print",
-        "MOQ from 500 pcs"
+        "Quantities confirmed per order"
       ],
       "color-boxes": [
         "300–400 gsm SBS or kraft board",
         "CMYK + Pantone, matte/gloss lamination",
-        "MOQ from 1,000 pcs"
+        "Quantities confirmed per order"
       ],
       "gift-boxes": [
         "Rigid 1.5–2.5 mm greyboard",
@@ -104,18 +86,18 @@
         "Custom EVA or paper inserts"
       ],
       "pulp-molding": [
-        "Recycled paper or sugarcane fiber",
+        "Sugarcane fiber",
         "Custom cavities for any product",
-        "Plastic-free and compostable"
+        "Material options on request"
       ],
       "paper-cups": [
         "4–22 oz, single or double wall",
         "Hot & cold drink coatings",
-        "MOQ from 10,000 pcs"
+        "Quantities confirmed per order"
       ],
       "party-supplies": [
         "Plates, cups, napkins, banners",
-        "Food-safe inks",
+        "Custom printed designs",
         "Retail-ready packs"
       ],
       "wine-boxes": [
@@ -129,14 +111,13 @@
         "Color proof before production"
       ],
       "offset-printing": [
-        "Heidelberg offset presses",
+        "CMYK and Pantone offset printing",
         "Catalogs, brochures, cartons",
         "Consistent color at volume"
       ],
       "eco-paper-cups": [
-        "Water-based, plastic-free coating",
-        "Home or industrial compostable",
-        "FSC-certified board"
+        "Coating options confirmed per order",
+        "Material options on request"
       ],
       "gift-cards": [
         "350–600 gsm card stock",
@@ -150,7 +131,9 @@
       ]
     },
     "learnMore": "Learn more",
-    "specsLabel": "Key specs"
+    "specsLabel": "Key specs",
+    "empty": "No 3D models are published yet. Please check back soon or contact us for samples.",
+    "ogImageAlt": "PackJoyU: Our products in 3D: custom corrugated, gift and wine boxes"
   },
   "Admin": {
     "title": "Admin"
@@ -163,7 +146,8 @@
     "empty": "Your quote list is empty. Add products from the 3D catalog.",
     "continue": "Continue to request",
     "browse": "Browse 3D catalog",
-    "close": "Close"
+    "close": "Close",
+    "full": "Your quote list is full ({max} items). Remove one to add another."
   },
   "Fab": {
     "quote": "Quote list",
@@ -173,9 +157,10 @@
   },
   "Contact": {
     "metaTitle": "Request a quote | PackJoyU",
-    "metaDescription": "Tell us about your packaging project and get a quote from PackJoyU within 24 hours.",
+    "metaDescription": "Tell us about your packaging project and request a quote from PackJoyU.",
     "title": "Request a quote",
-    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet."
+    "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
+    "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {
     "stepOf": "Step {n} of {total}",
@@ -241,16 +226,17 @@
     "next": "Next",
     "submit": "Send request",
     "sending": "Sending…",
+    "checking": "Completing security check…",
     "success": {
       "title": "Thank you — request received!",
       "ref": "Your inquiry number:",
-      "reply": "Our team will get back to you within 24 hours."
+      "reply": "A packaging specialist will reply by email."
     },
     "errors": {
       "unavailable": "Online requests are temporarily unavailable. Please try again later.",
       "rate": "Too many requests. Please wait a few minutes and try again.",
       "invalid": "Please check your name, email and country and try again.",
-      "captcha": "Security check failed. Please reload the page and try again.",
+      "captcha": "Security check failed. Please try again.",
       "server": "Something went wrong on our side. Please try again later.",
       "network": "Network error. Please check your connection and try again.",
       "retry": "We couldn't complete the security check just now. Your details are kept — please try again in a moment.",
@@ -277,7 +263,8 @@
         "network": "Network error. Please check your connection and try again.",
         "server": "We couldn't upload your logo just now. Please try again later."
       }
-    }
+    },
+    "overLimit": "Your list has {n} items; the limit is {max}. Remove some to submit."
   },
   "Views": {
     "label": "Box view",
@@ -290,21 +277,124 @@
     "text": "We use essential cookies to run this site. With your permission we also use analytics and live chat.",
     "policy": "Privacy policy",
     "accept": "Accept all",
-    "reject": "Reject non-essential"
+    "reject": "Reject all",
+    "settings": "Settings",
+    "title": "Cookie settings",
+    "lead": "Choose which cookies we may use. You can change this any time via “Cookie settings” in the footer.",
+    "necessary": "Necessary",
+    "necessaryDesc": "Language, security (Turnstile), quote list and this choice. Always on.",
+    "alwaysOn": "Always on",
+    "analytics": "Analytics",
+    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site.",
+    "chat": "Live chat (Tawk.to)",
+    "chatDesc": "Loads the Tawk.to chat widget, which sets its own cookies.",
+    "save": "Save choices",
+    "close": "Close",
+    "saved": "Your cookie choices were saved.",
+    "withdrawn": "Consent withdrawn. Analytics and chat are off.",
+    "change": "Change"
   },
   "Footer": {
     "about": "Custom paper packaging and printing — from prototype to mass production.",
     "categories": "Products",
     "contact": "Contact",
-    "contactText": "Tell us about your project — we reply within 24 hours.",
+    "contactText": "Tell us about your project — a packaging specialist will reply by email.",
     "privacy": "Privacy policy",
-    "otherLang": "Русский"
+    "otherLang": "Русский",
+    "cookieSettings": "Cookie settings"
   },
   "Privacy": {
-    "metaTitle": "Privacy policy (draft) | PackJoyU",
+    "metaTitle": "Privacy policy: data we collect | PackJoyU",
     "title": "Privacy policy",
-    "draft": "Draft.",
-    "draftText": "This policy is under legal review and not yet final. Bracketed placeholders will be replaced before launch."
+    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders, chat and cookies, and how to exercise your privacy rights.",
+    "intro": "This page explains what personal data PackJoyU collects through this website, why, and how long we keep it.",
+    "contactLink": "Contact us through the inquiry form",
+    "sections": {
+      "collected": {
+        "title": "Data we collect",
+        "items": [
+          "Inquiries and quote requests: your name, email, company, phone, country and message, plus the products and options you choose.",
+          "Sample requests: the above plus your shipping address.",
+          "Logos you upload in the customizer or inquiry form. A logo may be uploaded before you submit the inquiry.",
+          "Shared custom designs you create in the 3D customizer.",
+          "Referral and campaign data sent by your browser with an inquiry: the page you came from, search keywords and UTM parameters.",
+          "Technical data: your IP address and, if you allow analytics, anonymous page-performance metrics. We use the IP address for rate limiting and abuse protection, send it to our security-verification provider to check that you are not a bot, and record it in admin security (audit) logs. We also store the country derived from your IP address with an inquiry to help detect spam."
+        ]
+      },
+      "purpose": {
+        "title": "Why we use it",
+        "items": [
+          "To answer inquiries, prepare quotes and ship samples.",
+          "To protect the site from spam and abuse (security check and rate limits).",
+          "With your consent only: to measure site performance and to offer live chat."
+        ]
+      },
+      "retention": {
+        "title": "How long we keep it",
+        "items": {
+          "designs": "Shared custom designs expire after 180 days (the link then returns “410 Gone”) and are deleted 90 days later.",
+          "designsInquiry": "Designs attached to an inquiry are kept as long as that inquiry and are anonymized or deleted with it.",
+          "logos": "Logos not attached to an inquiry are usually deleted within 48 hours of upload (they become eligible for deletion after 24 hours and a cleanup runs daily), except logos still used by an unexpired saved design.",
+          "sampleEmail": "For sample requests (one per email every 30 days), the email used for this limit is cleared after 30 days.",
+          "rateLimit": "Rate-limit counters use your IP address and a hashed (not readable) version of your email address, and expire when their limit window ends — at most 30 days.",
+          "audit": "Admin security (audit) logs, including IP addresses, are deleted after 365 days.",
+          "adminSessions": "Admin sessions end after 2 hours of inactivity.",
+          "inquiries": "Inquiries are anonymized after 2 years: we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
+          "inquiriesContact": "Contact details are kept while that contact still has inquiries that have not been anonymized.",
+          "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept. Records in our database are deleted or anonymized immediately.",
+          "deletionCopies": "Copies of inquiry notification emails in our business inbox are deleted manually within 30 days of your request. Logs kept by our service providers (for example email delivery and hosting logs) are deleted according to each provider’s own retention period.",
+          "oldReplies": "Replies to old emails about an anonymized inquiry are not added to it.",
+          "exports": "Data exports are delivered to you as a file; no copy is kept on the server.",
+          "cleanup": "An automatic cleanup runs once a day."
+        }
+      },
+      "cookies": {
+        "title": "Cookies, local storage and consent",
+        "items": [
+          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records whether you allowed analytics and chat, and when.",
+          "Analytics (anonymous performance metrics) load only after you allow them.",
+          "Live chat (Tawk.to) loads only after you allow it.",
+          "Your choice expires after 12 months, and we ask again.",
+          "You can change or withdraw consent at any time via “Cookie settings” in the footer. After you withdraw, analytics and chat stop loading; withdrawing chat also clears the chat provider’s data from your browser."
+        ]
+      },
+      "chat": {
+        "title": "Live chat (Tawk.to)",
+        "items": [
+          "Live chat is provided by Tawk.to and is loaded only if you allow chat.",
+          "When it loads, Tawk.to receives your messages and technical data needed to run the chat, and sets its own storage in your browser.",
+          "The chat never loads on our admin pages."
+        ]
+      },
+      "processors": {
+        "title": "Service providers",
+        "text": [
+          "We use service providers in the following categories. Some may process data outside your country. We do not sell your data."
+        ],
+        "items": [
+          "Website hosting",
+          "Security verification (bot protection) and file storage",
+          "Rate-limit storage",
+          "Email delivery",
+          "Database",
+          "Live chat (only with your consent)"
+        ]
+      },
+      "contact": {
+        "title": "Contact and your rights",
+        "text": [
+          "You can ask us to access, export, correct or delete your data.",
+          "Email: {{待Ryan确认}}"
+        ]
+      },
+      "company": {
+        "title": "Who is responsible",
+        "text": [
+          "Data controller: {{待Ryan确认}}"
+        ]
+      }
+    },
+    "ogImageAlt": "PackJoyU: Privacy policy"
   },
   "DesignExpired": {
     "metaTitle": "Design expired | PackJoyU",
@@ -313,5 +403,16 @@
     "backToCategory": "Customize {category} again",
     "backToProducts": "Browse products and customize again",
     "quote": "Get a quote"
+  },
+  "DesignShared": {
+    "metaTitle": "Custom Packaging Design | PackJoyU"
+  },
+  "NotFound": {
+    "code": "404",
+    "title": "Page not found",
+    "lead": "This box is empty. The page may have moved — try one of our product categories instead.",
+    "home": "Back to home",
+    "quote": "Get a quote",
+    "browse": "Browse products"
   }
 }

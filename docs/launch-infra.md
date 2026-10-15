@@ -34,7 +34,7 @@ Ryan 操作：
    - 作用范围：**Apply to specific buckets only** → 只选上面这个桶
    - TTL 可不设；IP 限制不设（Vercel 出口 IP 不固定）
 4. 记下 Access Key ID、Secret Access Key、Account ID（只显示一次）。
-5. （建议）给桶加生命周期规则：`tmp/` 前缀 1 天后删除，作为 cron 清理的兜底。
+5. 目前**不**配置生命周期规则：Logo 上传的对象 key 没有 `tmp/` 之类的前缀，按前缀的规则匹配不到任何文件。未绑定询盘的孤儿文件由定时任务 `/api/admin/cron/cleanup-uploads` 清理（见下文 Cron 一节）。以后如需桶级兜底，可先改代码让未绑定的上传写到单独前缀，再对该前缀加规则。
 
 环境变量：`STORAGE_DRIVER=r2`、`R2_ACCOUNT_ID`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`，`R2_ENDPOINT` 留空（默认 `https://<account>.r2.cloudflarestorage.com`）。
 
@@ -67,12 +67,14 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 |---|---|---|
 | `DATABASE_URL` | Postgres 连接串（带 `sslmode=require`） | 必填 |
 | `AUTH_SECRET` | `openssl rand -base64 32` | Auth.js 会话签名，必填 |
+| `PRIVACY_HASH_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | 隐私导出/删除审计里的邮箱 HMAC 密钥，必填；未设置时 `/api/admin/privacy/*` 返回 503。不要随 AUTH_SECRET 一起轮换 |
 | `AUTH_URL` | `https://<正式域名>` | 必填 |
 | `APP_ORIGIN` | 通常留空；有反向代理/对外域名与请求 origin 不一致时填 `https://<正式域名>` | 后台 Origin 校验 |
 | `ADMIN_TOTP_KEY` | `openssl rand -base64 32`（32 字节 base64） | 2FA 密钥加密；**设置后不要更换**，换了已绑定的 2FA 全部失效 |
 | `CRON_SECRET` | `openssl rand -base64 32` | 定时任务鉴权，见第 5 节 |
 | `MIDDLEWARE_PROBE_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | middleware 探测短链状态（`HEAD /api/designs/:id`）时带在 `x-internal-probe` 头里，服务端据此信任 `x-probe-client-ip` 做分桶限流；不配置则探测按连接 IP 限流 |
 | `BEHIND_CLOUDFLARE` | 域名走 Cloudflare 代理时填 `1`，否则留空 | 决定是否信任 `CF-Connecting-IP` |
+| `TRUSTED_PROXY_HOPS` | **Vercel 上不要设**（Vercel 写入 `x-real-ip`）。只有自建且前面是已知的反向代理链时才填代理层数 N（1–10），在没有 `x-real-ip` 时从 `X-Forwarded-For` 右数第 N 个取客户端 IP（校验是合法 IP） | 默认不信任 `X-Forwarded-For`。配错会让客户端伪造 IP、绕过按 IP 限流。与 `BEHIND_CLOUDFLARE=1` 同时设置时被忽略。取不到 IP 时审计记 `unknown` |
 | `RATE_LIMIT_STORE` | `upstash` | 生产必须，不能用 memory |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | |
 | `STORAGE_DRIVER` | `r2` | 生产必须（Vercel 文件系统不持久） |
@@ -182,3 +184,8 @@ R2 走服务器端签名请求（浏览器不直连），Upstash、Resend 只在
 - [ ] 后台登录需要 2FA；`NEXT_PUBLIC_ADMIN_API=http`，后台显示真实数据
 - [ ] GSC / Yandex / Bing 验证通过，sitemap 已提交
 - [ ] Lighthouse：桌面 < 2s，手机 < 3s
+
+### 隐私 / 数据保留上线检查
+- [ ] 已设置 `PRIVACY_HASH_SECRET`（≥ 32 字节，独立于 AUTH_SECRET）。
+- [ ] 部署 #200 后运行一次 `pnpm tsx scripts/backfill-normalized-email.ts`（先 `--dry-run`），回填 Contact.normalizedEmail，否则旧联系人查不到。
+- [ ] 保留天数与隐私政策对齐（见 docs/data-retention.md）。

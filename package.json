@@ -5,11 +5,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint && pnpm run lint:ru-yo",
+    "lint:ru-yo": "node scripts/lint-ru-yo.mjs",
     "postinstall": "prisma generate",
     "admin:create": "node scripts/create-admin.mjs",
     "test": "node --import tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test"
+    "smoke": "node --import tsx scripts/smoke.ts",
+    "email:build": "node scripts/build-email-templates.mjs",
+    "test:e2e": "playwright test",
+    "seo:audit": "tsx scripts/seo-audit.ts"
   },
   "dependencies": {
     "@gltf-transform/core": "^4.5.1",

@@ -11,12 +11,12 @@ bpy.ops.import_scene.gltf(filepath=glb)
 sc.frame_start = 0; sc.frame_end = 30
 sc.render.engine = 'CYCLES'; sc.cycles.samples = int(__import__('os').environ.get('SAMPLES', 96)); sc.cycles.use_denoising = True; sc.cycles.device = 'CPU'
 RES = int(__import__('os').environ.get('RES', 900)); sc.render.resolution_x = RES; sc.render.resolution_y = RES; sc.render.film_transparent = True
-sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Medium High Contrast'
+sc.view_settings.view_transform = os.environ.get('VIEW', 'AgX'); sc.view_settings.look = os.environ.get('LOOK', 'AgX - Medium High Contrast')
 sc.view_settings.exposure = float(os.environ.get('EXPOSURE', 0))
-# world HDRI
+# world HDRI（#252：灯光与 HDRI 统一乘 LIGHT=0.6，海报与对比图同一套）
 w = bpy.data.worlds.new('W'); sc.world = w; w.use_nodes = True; nt = w.node_tree
 env = nt.nodes.new('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load('/workspace/nb3d-v3/hdri/studio_small_09_1k.hdr')
-nt.links.new(env.outputs['Color'], nt.nodes['Background'].inputs['Color']); nt.nodes['Background'].inputs['Strength'].default_value = .7
+nt.links.new(env.outputs['Color'], nt.nodes['Background'].inputs['Color']); nt.nodes['Background'].inputs['Strength'].default_value = .7*float(os.environ.get('LIGHT', .6))
 def bbox_all():
     mn = Vector((1e9,)*3); mx = Vector((-1e9,)*3)
     for o in sc.objects:
@@ -32,7 +32,7 @@ ctr = (mn + mx)/2; size = (mx - mn).length
 bpy.ops.mesh.primitive_plane_add(size=size*20, location=(ctr.x, ctr.y, mn.z)); fl = bpy.context.object; fl.is_shadow_catcher = True
 # 3-point lights (relative to size)
 def area(name, loc, energy, s, col=(1,1,1)):
-    l = bpy.data.lights.new(name, 'AREA'); l.energy = energy*size*size*40; l.size = s*size; l.color = col
+    l = bpy.data.lights.new(name, 'AREA'); l.energy = energy*size*size*40*float(os.environ.get('LIGHT', .6)); l.size = s*size; l.color = col
     o = bpy.data.objects.new(name, l); sc.collection.objects.link(o); o.location = ctr + Vector(loc)*size
     d = ctr - o.location; o.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler()
 area('Key', (-1.2, -1.6, 1.6), 9, .8, (1, .97, .92)); area('Fill', (1.8, -1.0, .6), 3, 1.2, (.92, .96, 1)); area('Rim', (.4, 2.0, 1.4), 7, .5)

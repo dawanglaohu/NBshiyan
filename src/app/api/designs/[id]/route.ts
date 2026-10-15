@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { lookupDesign, canonicalFor, designStatus } from '@/lib/server/designs';
+import { lookupDesign, canonicalFor, designStatus, isDbUnavailable, errorSummary } from '@/lib/server/designs';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
 import { clientIp, hitRateLimit, tooManyRequests } from '@/lib/server/security';
 import { probeClientIp } from '@/lib/server/probe';
@@ -11,7 +11,8 @@ const NO_INDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'privat
 /** 公开读取方案：200 / 过期 410（带分类落地页链接）/ 不存在 404。按 IP 限流，降低枚举价值。 */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ip = clientIp(req);
-  if (ip && !(await hitRateLimit(`design-get:${ip}`, 300))) return tooManyRequests(600);
+  const ok = ip ? await hitRateLimit(`design-get:${ip}`, 300) : await hitRateLimit('design-get:noip:all', 3000);
+  if (!ok) return tooManyRequests(600);
   const { id } = await params;
   const r = await lookupDesign(id);
   if (r.state === 'missing') return NextResponse.json({ error: 'not_found' }, { status: 404, headers: NO_INDEX });
@@ -32,7 +33,15 @@ export async function HEAD(req: Request, { params }: { params: Promise<{ id: str
     : ip ? await hitRateLimit(`design-head:${ip}`, 600) : await hitRateLimit('design-head:noip', 6000);
   if (!ok) return new Response(null, { status: 429, headers: { 'Retry-After': '600', 'Cache-Control': 'no-store' } });
   const { id } = await params;
-  const { status, category } = await designStatus(id); // 只查 expiresAt + category
+  let st: Awaited<ReturnType<typeof designStatus>>;
+  try {
+    st = await designStatus(id); // 只查 expiresAt + category
+  } catch (err) {
+    if (!isDbUnavailable(err)) throw err;
+    console.error('[HEAD /api/designs/:id] db unavailable', errorSummary(err));
+    return new Response(null, { status: 503, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
+  }
+  const { status, category } = st;
   const headers: Record<string, string> = { 'Cache-Control': 'public, max-age=60', 'X-Robots-Tag': 'noindex, nofollow' };
   if (status === 410 && category) headers['X-Design-Category'] = category; // 仅 categoryMeta key，供 middleware 拼分类页链接
   return new Response(null, { status, headers });

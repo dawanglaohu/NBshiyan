@@ -1,16 +1,18 @@
 // 模拟数据：后端接口（docs/API.md）就绪后替换
-export type Product = { slug: string; model?: string; poster: string; animated?: boolean; animationClips?: { open?: string; unfold?: string }; /** 品类落地页路径（上线后填写），卡片显示 Learn more */ landing?: string };
+export type Product = { slug: string; model?: string; poster: string; animated?: boolean; animationClips?: { open?: string; unfold?: string }; /** 品类落地页路径（上线后填写），卡片显示 Learn more */ landing?: string;
+  /** 海报图 alt（只描述外观，不写材质/认证/环保说法）。RU 待 Ryan 校对。仅当海报仍是本地这张时使用，否则回退到 Products.alt 模板 */
+  posterAlt?: { en: string; ru: string } };
 export const products: Product[] = [
-  { slug: 'corrugated-boxes', model: '/models/corrugated-box.anim.b94b346a.glb', poster: '/images/posters/custom-corrugated-boxes.webp', animated: true, animationClips: { open: 'Open' } },
-  { slug: 'color-boxes', model: '/models/color-box.7fb65a38.glb', poster: '/images/placeholder.svg' },
-  { slug: 'gift-boxes', model: '/models/gift-box.anim.4db78eec.glb', poster: '/images/posters/custom-gift-boxes.webp', animated: true, animationClips: { open: 'Open' } },
-  { slug: 'pulp-molding', model: '/models/pulp-egg-tray.3d60dd23.glb', poster: '/images/placeholder.svg' },
-  { slug: 'paper-cups', model: '/models/paper-cup.8375532a.glb', poster: '/images/placeholder.svg' },
-  { slug: 'party-supplies', model: '/models/party-supplies.828369f3.glb', poster: '/images/placeholder.svg' },
-  { slug: 'wine-boxes', model: '/models/wine-box.anim.4250e304.glb', poster: '/images/posters/custom-wine-boxes.webp', animated: true, animationClips: { open: 'Open' } },
-  { slug: 'color-printing', model: '/models/color-printing.6f6d1883.glb', poster: '/images/placeholder.svg' },
-  { slug: 'offset-printing', model: '/models/offset-catalog.ce7ebab1.glb', poster: '/images/placeholder.svg' },
-  { slug: 'eco-paper-cups', model: '/models/eco-paper-cup.c7dc1bb3.glb', poster: '/images/placeholder.svg' },
-  { slug: 'gift-cards', model: '/models/gift-card.5f15f08c.glb', poster: '/images/placeholder.svg' },
-  { slug: 'christmas-merchandise', model: '/models/christmas-tube.e7bde861.glb', poster: '/images/placeholder.svg' }
+  { slug: 'corrugated-boxes', model: '/models/corrugated-box.anim.da398ca9.glb', poster: '/images/posters/custom-corrugated-boxes.webp', animated: true, animationClips: { open: 'Open' } },
+  { slug: 'color-boxes', model: '/models/color-box.22c5a61b.glb', poster: '/images/posters/custom-color-boxes.webp', posterAlt: { en: 'Upright rectangular color box in pastel peach and blue with PackJoyU logo', ru: 'Вертикальная цветная коробка в пастельных персиковых и голубых тонах с логотипом PackJoyU' /* RU 待 Ryan 校对 */ } },
+  { slug: 'gift-boxes', model: '/models/gift-box.anim.ccfb2baa.glb', poster: '/images/posters/custom-gift-boxes.webp', animated: true, animationClips: { open: 'Open' } },
+  { slug: 'pulp-molding', model: '/models/pulp-egg-tray.987b0ed9.glb', poster: '/images/posters/custom-pulp-molding.webp', posterAlt: { en: 'Light grey molded egg tray with rows of cup-shaped cells', ru: 'Светло-серый лоток для яиц из формованной целлюлозы с рядами ячеек' /* RU 待 Ryan 校对 */ } },
+  { slug: 'paper-cups', model: '/models/paper-cup.4477e5bf.glb', poster: '/images/posters/custom-paper-cups.webp', posterAlt: { en: 'White paper cup with a white lid and a peach band at the base', ru: 'Белый бумажный стакан с белой крышкой и персиковой полосой у основания' /* RU 待 Ryan 校对 */ } },
+  { slug: 'party-supplies', model: '/models/party-supplies.91649d75.glb', poster: '/images/posters/custom-party-supplies.webp', posterAlt: { en: 'Striped party cup with straw, dotted paper plate and striped party hat', ru: 'Полосатый стаканчик с трубочкой, бумажная тарелка в горошек и праздничный колпак в полоску' /* RU 待 Ryan 校对 */ } },
+  { slug: 'wine-boxes', model: '/models/wine-box.anim.49bdad5f.glb', poster: '/images/posters/custom-wine-boxes.webp', animated: true, animationClips: { open: 'Open' } },
+  { slug: 'color-printing', model: '/models/color-printing.83089082.glb', poster: '/images/posters/custom-color-printing.webp', posterAlt: { en: 'Pastel tri-fold brochure and a matching flyer with printed text blocks', ru: 'Буклет в пастельных тонах с двумя фальцами и листовка в том же стиле' /* RU 待 Ryan 校对 */ } },
+  { slug: 'offset-printing', model: '/models/offset-catalog.e4b3ee44.glb', poster: '/images/posters/custom-offset-printing.webp', posterAlt: { en: 'Navy perfect-bound catalogue with a peach and blue geometric cover', ru: 'Тёмно-синий каталог с клеевым переплётом и геометрической обложкой' /* RU 待 Ryan 校对 */ } },
+  { slug: 'eco-paper-cups', model: '/models/eco-paper-cup.fc1fbcbc.glb', poster: '/images/posters/custom-eco-paper-cups.webp', posterAlt: { en: 'Paper cup with lid and ribbed sleeve printed with PackJoyU logo', ru: 'Бумажный стакан с крышкой и рифлёной манжетой с логотипом PackJoyU' /* RU 待 Ryan 校对 */ } },
+  { slug: 'gift-cards', model: '/models/gift-card.a9cc3581.glb', poster: '/images/posters/custom-gift-cards.webp', posterAlt: { en: 'Pastel gradient gift card on a white envelope', ru: 'Подарочная карта с пастельным градиентом на белом конверте' /* RU 待 Ryan 校对 */ } },
+  { slug: 'christmas-merchandise', model: '/models/christmas-tube.621c7715.glb', poster: '/images/posters/custom-christmas-merchandise.webp', posterAlt: { en: 'Red Christmas gift tube with green lid, snowflakes and a gold ornament', ru: 'Красный новогодний тубус с зелёной крышкой, снежинками и золотым шаром' /* RU 待 Ryan 校对 */ } }
 ];
