@@ -272,3 +272,20 @@ test('quantities: en 1,000 / ru 1 000', () => {
   const ru = customerAckMail('inquiry', { ...vars, locale: 'ru', ...summarizeItems(items, 'ru') });
   assert.ok(ru.text.includes('1 000 / 25 000') && ru.html.includes('1 000 / 25 000'));
 });
+
+test('eco-paper-cups: customer emails show card name, escaped, never the raw slug', () => {
+  for (const locale of ['en', 'ru'] as const) {
+    for (const slug of ['eco-paper-cups', 'eco-paper-cup']) {
+      const s = summarizeItems([{ productSlug: slug, quantity: 1000 }], locale);
+      for (const kind of ['inquiry-ack', 'sample-ack'] as const) {
+        const out = renderEmail(`${kind}.${locale}`, { ...vars, ...s, locale });
+        for (const part of [out.subject, out.text, out.html]) assert.ok(!/eco[- ]paper[- ]cup/i.test(part), `${kind}.${locale} ${slug}`);
+        const name = locale === 'ru' ? 'Стаканы для кофе с печатью' : 'Printed Coffee Cups';
+        assert.ok(out.text.includes(name) || out.html.includes(name), `${kind}.${locale} name`);
+      }
+    }
+  }
+  // HTML 部分对产品名做转义
+  const evil = renderEmail('inquiry-ack.en', { ...vars, product: '<b>x</b>&' });
+  assert.ok(!evil.html.includes('<b>x</b>'));
+});
