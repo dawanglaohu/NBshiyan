@@ -289,3 +289,14 @@ test('eco-paper-cups: customer emails show card name, escaped, never the raw slu
   const evil = renderEmail('inquiry-ack.en', { ...vars, product: '<b>x</b>&' });
   assert.ok(!evil.html.includes('<b>x</b>'));
 });
+
+test('email productName ignores prototype keys', () => {
+  for (const locale of ['en', 'ru'] as const) {
+    for (const k of ['constructor', '__proto__', 'toString']) {
+      const n = productName(k, locale);
+      assert.equal(typeof n, 'string');
+      assert.ok(!n.includes('function') && !n.includes('[object'), `${k} ${locale}: ${n}`);
+      assert.equal(n.toLowerCase(), k.replace(/-/g, ' ').toLowerCase());
+    }
+  }
+});

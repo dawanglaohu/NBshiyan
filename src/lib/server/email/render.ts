@@ -98,8 +98,11 @@ export function renderAlert(kind: string, lines: Record<string, string | number>
 const CARD_SLUG: Record<string, string> = { 'eco-paper-cups': 'eco-paper-cups', 'eco-paper-cup': 'eco-paper-cups' };
 const CARD_NAMES: Record<'en' | 'ru', Record<string, string>> = { en: enMessages.Products.names, ru: ruMessages.Products.names };
 export function productName(slug: string, locale: 'en' | 'ru' | 'zh') {
-  const card = CARD_SLUG[slug];
-  if (card) { const n = CARD_NAMES[locale === 'ru' ? 'ru' : 'en'][card]; if (n) return n; }
+  // 只查自身属性，原型键（constructor / __proto__ / toString）不命中
+  const own = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
+  const names = CARD_NAMES[locale === 'ru' ? 'ru' : 'en'];
+  const card = own(CARD_SLUG, slug) ? CARD_SLUG[slug] : undefined;
+  if (card && own(names, card)) { const n = names[card]; if (typeof n === 'string' && n) return n; }
   const m = categoryMeta.find((c) => c.key === slug || c.en.slug === slug || c.key.replace(/s$/, '') === slug || c.key === `${slug}s` || c.key === `${slug}es`);
   const kw = m ? (locale === 'ru' ? m.ru.keyword : m.en.keyword) : null;
   const text = kw ?? slug.replace(/-/g, ' ');
