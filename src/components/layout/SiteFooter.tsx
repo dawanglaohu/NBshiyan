@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { products } from '@/data/products';
+import { categoryProducts as products } from '@/data/categories';
 import LangLink from './LangLink';
 import CookieSettingsLink from '@/components/consent/CookieSettingsLink';
 
