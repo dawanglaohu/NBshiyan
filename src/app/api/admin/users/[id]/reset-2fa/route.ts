@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   if (!ID_RE.test(id)) return jsonErr('not_found', 404);
   try {
-    const u = await mutateUser(ctx.user, id, () => false, (tx) => tx.user.update({ where: { id }, data: RESET_2FA }));
+    const u = await mutateUser(ctx.user, id, {}, (tx) => tx.user.update({ where: { id }, data: RESET_2FA }));
     await audit({ actorId: ctx.user.id, action: 'user.reset_2fa', target: id, ip: ctx.ip });
     return NextResponse.json(publicUser(u), { headers: noStore });
   } catch (e) { return guardResponse(e); }

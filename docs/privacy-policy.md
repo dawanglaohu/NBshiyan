@@ -23,8 +23,8 @@
 - Live chat and analytics — only with your consent (Art. 6(1)(a)), which you can withdraw at any time.
 
 ### 3. How long we keep it
-- Uploaded logos not attached to an inquiry: deleted within **24 hours**.
-- Logos attached to an inquiry: deleted after **30 days**.
+- Uploaded logos not attached to an inquiry: deleted **24 hours** after upload (at most 48 hours), except logos still used by an unexpired saved design.
+- Logos attached to an inquiry: deleted together with the inquiry when it is anonymized, or earlier on your deletion request.
 - Inquiry records: kept as long as needed to handle your request and any follow-up business, then deleted or anonymized. [Retention period to confirm, e.g. 24 months.]
 - Rate-limit records: short-term only (hours).
 
@@ -68,8 +68,8 @@ You can request access, correction, deletion, restriction, portability, or objec
 - Онлайн-чат и аналитика — только с вашего согласия, которое можно отозвать в любой момент.
 
 ### 3. Сроки хранения
-- Загруженные логотипы, не привязанные к запросу, — удаляются в течение **24 часов**.
-- Логотипы, привязанные к запросу, — удаляются через **30 дней**.
+- Загруженные логотипы, не привязанные к запросу, — удаляются через **24 часа** после загрузки (не позднее чем через 48 часов), кроме логотипов, которые ещё используются в сохранённом дизайне с неистёкшим сроком.
+- Логотипы, привязанные к запросу, — удаляются вместе с запросом при его обезличивании или раньше — по вашему запросу на удаление.
 - Запросы — хранятся столько, сколько необходимо для обработки и дальнейшего сотрудничества, затем удаляются или обезличиваются. [Срок уточняется, например 24 месяца.]
 - Данные ограничения частоты запросов — несколько часов.
 

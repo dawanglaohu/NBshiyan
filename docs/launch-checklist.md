@@ -34,6 +34,7 @@
 - [ ] 所有 `NEXT_PUBLIC_*_MOCK` 都未开启，开了构建会失败。
 - [ ] `NEXT_PUBLIC_ADMIN_API=http`，否则构建失败。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。
+- [ ] 生产环境必须设置 `MIDDLEWARE_PROBE_SECRET`：没设的话 `/s/<id>` 在后端故障时会返回 200 而不是 503（#215），搜索引擎和监控都看不到故障。上线后让 `/api/designs` 暂时不可用，验证 `/en/s/<id>` 和 `/ru/s/<id>` 返回 503。
 - [ ] `SHORTLINK_PROBE_ORIGIN`（或 `NEXT_PUBLIC_SITE_URL`）是正式 https 域名。探测请求不使用请求里的 Host 头。
 - [ ] Turnstile：正式站点密钥和 secret 已配置。生产环境不读 `TURNSTILE_VERIFY_URL`。
 - [ ] Postgres：`DATABASE_URL` 已配置，并已执行 `prisma migrate deploy`。
@@ -46,6 +47,7 @@
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
 - [ ] `RESEND_API_KEY` 和发件地址已配置，发件域名已在 Resend 完成 DNS 验证。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值。
+- [ ] `TRUSTED_PROXY_HOPS`：**部署在 Vercel 上不要设**，保持留空（Vercel 写入 `x-real-ip`）。只有自建、且前面是已知的反向代理链时才设成代理层数 N（1–10）。**配错（层数多设或前面没有那么多层代理）会让客户端伪造 `X-Forwarded-For`，绕过按 IP 的限流。** 和 `BEHIND_CLOUDFLARE=1` 同时设置时它会被忽略（Cloudflare 优先）。上线后抽查后台审计，ip 不应是 `unknown`。
 - [ ] `PRIVACY_HASH_SECRET` 已配置，是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。生产环境没配应用会拒绝启动。它是审计日志里邮箱 HMAC 哈希的密钥，不要随意轮换，轮换后旧日志里的哈希就对不上了。
 - [ ] 生产环境**不能**设置 `ADMIN_SEED_TOTP_SECRET`。设置了的话，种子脚本会报错退出。
 - [ ] 数据保留天数等隐私政策定稿后再定，相关变量写在 `docs/data-retention.md`，隐私 PR 合并后补上。
