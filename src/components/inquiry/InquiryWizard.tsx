@@ -6,6 +6,7 @@ import { useQuote } from '@/components/quote/QuoteProvider';
 import { QUOTE_MAX_ITEMS, isOverQuoteLimit } from '@/lib/quote/list';
 import LogoUploadField from './LogoUploadField';
 import { LOGO_TTL_MS, type LogoUpload } from '@/lib/client/logoUpload';
+import { prefersReducedMotion, revealAndFocus } from '@/lib/a11y/focus';
 
 const QTY = [{ k: '1k', v: 1000 }, { k: '5k', v: 5000 }, { k: '10k', v: 10000 }, { k: '50k', v: 50000 }, { k: 'unsure', v: undefined }] as const;
 const MATERIALS = ['corrugated', 'paperboard', 'kraft', 'pulp', 'unsure'] as const;
@@ -46,6 +47,13 @@ export default function InquiryWizard() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  // #307 提交成功后表单整块换成成功卡片：390 下卡片会落在可视区上方、焦点掉到 body。
+  // 卡片渲染后滚进可视区并把焦点移过去（读屏会播报）；减少动态效果时不平滑滚动
+  const doneRef = useRef<HTMLDivElement>(null);
+  const succeeded = result?.ok === true;
+  useEffect(() => {
+    if (succeeded) revealAndFocus(doneRef.current, prefersReducedMotion(window));
+  }, [succeeded]);
   const [wait, setWait] = useState(0);
   useEffect(() => {
     if (wait <= 0) return;
@@ -174,8 +182,8 @@ export default function InquiryWizard() {
 
   if (result?.ok) {
     return (
-      <div className="wizard" role="status">
-        <h2 style={{ marginTop: 0 }}>{t('success.title')}</h2>
+      <div ref={doneRef} className="wizard wizard-done" role="status" tabIndex={-1} aria-labelledby="iq-done-title">
+        <h2 id="iq-done-title" style={{ marginTop: 0 }}>{t('success.title')}</h2>
         <p>{t('success.ref')} <strong>{result.ref}</strong></p>
         {t('success.reply') ? <p>{t('success.reply')}</p> : null}
       </div>

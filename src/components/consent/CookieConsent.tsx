@@ -3,6 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import { consentFocusTarget, type ConsentCloseSource } from '@/lib/a11y/focus';
 import { CONSENT_OPEN_EVENT, clearTawkData, getConsent, onConsent, setConsent, type Consent } from '@/lib/consent';
 
 const TOAST_KEY = 'pj-consent-toast';
@@ -82,18 +83,24 @@ export default function CookieConsent() {
     setConsent(choice);
     if (chatWithdrawn) return;
     if (fromDialog || withdrawn) setToast(kind);
-    restoreFocus();
+    restoreFocus(fromDialog ? 'dialog' : 'banner');
   };
 
-  const restoreFocus = () => {
+  const restoreFocus = (source: ConsentCloseSource) => {
     window.setTimeout(() => {
-      // 优先归还给打开它的按钮；条上的按钮已被重新渲染时找条上的“设置”，条已消失则回到页脚链接
-      const el = opener.current && document.contains(opener.current) && opener.current.offsetParent !== null ? opener.current
-        : document.querySelector<HTMLElement>('.consent .consent-set') ?? document.getElementById('cookie-settings-link');
-      el?.focus();
+      // 横幅上点接受/拒绝：焦点放到 <main> 且不滚动（#307，不再落到页脚链接把页面滚到底）。
+      // 设置面板关闭：优先归还给打开它的按钮；条上的按钮已被重新渲染时找条上的“设置”，条已消失则回到页脚链接
+      const o = opener.current && document.contains(opener.current) && opener.current.offsetParent !== null ? opener.current : null;
+      const { el, preventScroll } = consentFocusTarget(source, {
+        opener: o,
+        main: () => document.querySelector<HTMLElement>('main'),
+        bannerSettings: () => document.querySelector<HTMLElement>('.consent .consent-set'),
+        footerLink: () => document.getElementById('cookie-settings-link'),
+      });
+      el?.focus(preventScroll ? { preventScroll: true } : undefined);
     }, 50);
   };
-  const close = () => { setOpen(false); restoreFocus(); };
+  const close = () => { setOpen(false); restoreFocus('dialog'); };
 
   return (
     <>
