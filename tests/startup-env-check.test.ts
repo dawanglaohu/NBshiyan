@@ -11,7 +11,7 @@ const prod = {
   DATABASE_URL: `postgresql://u:${SECRET}@db/x`, AUTH_SECRET: SECRET, AUTH_URL: 'https://packjoyu.com', ADMIN_TOTP_KEY: Buffer.alloc(32, 1).toString('base64'),
   PRIVACY_HASH_SECRET: SECRET, CRON_SECRET: SECRET, TURNSTILE_SECRET_KEY: '0x4AAAAAAArealSecretKey', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey',
   SMTP_HOST: 'smtp.gmail.com', SMTP_PORT: '465', SMTP_USER: 'u@gmail.com', SMTP_PASS: SECRET, MAIL_FROM: 'PackJoyU <u@gmail.com>', INQUIRY_NOTIFY_EMAIL: 'n@example.com',
-  MAIL_SEND_ADAPTER: 'smtp', MAIL_WEBHOOK_SECRET: SECRET, NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', EDGE_AUTH_SECRET: SECRET,
+  MAIL_SEND_ADAPTER: 'smtp', MAIL_WEBHOOK_SECRET: SECRET, NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', APP_ORIGIN: 'https://packjoyu.com', EDGE_AUTH_SECRET: SECRET,
 };
 function run(env: Record<string, string | undefined>) {
   const logs: string[] = []; const exits: number[] = [];

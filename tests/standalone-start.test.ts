@@ -12,7 +12,7 @@ import path from 'node:path';
 const SERVER = path.resolve('.next/standalone/server.js');
 const enabled = process.env.STANDALONE_TEST === '1' && existsSync(SERVER);
 const FAKE = {
-  APP_ENV: 'production', NODE_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', NEXT_PUBLIC_SITE_URL: 'https://packjoyu.example',
+  APP_ENV: 'production', NODE_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', NEXT_PUBLIC_SITE_URL: 'https://packjoyu.example', APP_ORIGIN: 'https://packjoyu.example',
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAAfakePublicSiteKey', RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'https://fake.upstash.invalid',
   UPSTASH_REDIS_REST_TOKEN: 'fake-upstash-token-ZZQ1', STORAGE_DRIVER: 'local',
   DATABASE_URL: 'postgresql://fakeuser:fake-db-pass-ZZQ2@127.0.0.1:1/fake', AUTH_SECRET: 'fake-auth-secret-ZZQ3-0123456789abcdef', AUTH_URL: 'https://packjoyu.example',

@@ -83,7 +83,7 @@ Ryan 已确认：
 | `AUTH_SECRET` | `openssl rand -base64 32` | Auth.js 会话签名，必填 |
 | `PRIVACY_HASH_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | 隐私导出/删除审计里的邮箱 HMAC 密钥，必填；未设置时 `/api/admin/privacy/*` 返回 503。不要随 AUTH_SECRET 一起轮换 |
 | `AUTH_URL` | `https://<正式域名>` | 必填 |
-| `APP_ORIGIN` | 通常留空；有反向代理/对外域名与请求 origin 不一致时填 `https://<正式域名>` | 后台 Origin 校验 |
+| `APP_ORIGIN` | **生产必填**：等于 `NEXT_PUBLIC_SITE_URL` 的 origin（`https://geiom.com`，裸 https origin，不带路径/查询/账号）；缺失或不一致时启动检查 exit 1（只报变量名）。standalone 下请求自身 origin 是 `http://0.0.0.0:<端口>`，不设会让后台改动请求 403 | 后台 Origin 校验 |
 | `ADMIN_TOTP_KEY` | `openssl rand -base64 32`（32 字节 base64） | 2FA 密钥加密；**设置后不要更换**，换了已绑定的 2FA 全部失效 |
 | `CRON_SECRET` | `openssl rand -base64 32` | 定时任务鉴权，见第 5 节 |
 | `MIDDLEWARE_PROBE_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | middleware 探测短链状态（`HEAD /api/designs/:id`）时带在 `x-internal-probe` 头里，服务端据此信任 `x-probe-client-ip` 做分桶限流；不配置则探测按连接 IP 限流 |
