@@ -21,10 +21,13 @@ export function passwordPolicyError(pw, email) {
 /** argon2id 参数与 src/lib/server/admin/crypto.ts 相同 */
 export const ARGON = { memoryCost: 19456, timeCost: 2, parallelism: 1 };
 
+// ADMIN_CREATE_PASSWORD：只给 CI / 本地自动化用。生产（APP_ENV=production）一律拒绝这条路径：
+// 环境变量会进 shell 历史，`docker run -e` / compose environment 传入的值还会出现在 `docker inspect` 里。生产只用终端交互输入或标准输入。
 export const PASSWORD_ENV = 'ADMIN_CREATE_PASSWORD';
 export const USAGE = [
   '用法：node scripts/admin-create.mjs --email <邮箱> [--name <显示名>] [--allow-additional-admin]',
-  '  密码：在终端里交互输入（不回显，输两次）；没有终端时从标准输入读第一行，或读环境变量 ADMIN_CREATE_PASSWORD（读完立即从进程环境里删除）。',
+  '  密码：在终端里交互输入（不回显，输两次）；没有终端时从标准输入读第一行。',
+  '  （ADMIN_CREATE_PASSWORD 环境变量只给 CI 用，APP_ENV=production 时拒绝。）',
   '  密码绝不能放在命令行参数里。',
 ].join('\n');
 
@@ -54,13 +57,18 @@ export function parseArgs(argv, env = {}) {
 }
 
 /**
- * 决定密码来源：有终端（TTY）→ 交互输入；没有终端 → 环境变量（如有），否则标准输入第一行。
+ * 决定密码来源：有终端（TTY）→ 交互输入；没有终端 → 环境变量（仅 CI，生产返回 'env_refused'），否则标准输入第一行。
  * 环境变量在脚本启动时就已读出并删除（见 takeEnvPassword），这里只拿读出的值。
  */
-export function passwordSource({ isTTY, envPassword }) {
+export function passwordSource({ isTTY, envPassword, production = false }) {
   if (isTTY) return 'tty';
-  if (typeof envPassword === 'string' && envPassword.length) return 'env';
+  if (typeof envPassword === 'string' && envPassword.length) return production ? 'env_refused' : 'env';
   return 'stdin';
+}
+
+/** 与 src/lib/site.ts isProdEnvFrom 一致 */
+export function isProductionEnv(env) {
+  return env.APP_ENV === 'production' || env.VERCEL_ENV === 'production';
 }
 
 /** 读取并立即删除环境变量里的密码（无论之后用不用），避免留在进程环境里被子进程或诊断输出带出 */
@@ -86,7 +94,8 @@ export function adminGateError({ existingAdmins, emailTaken, allowAdditionalAdmi
 
 /** 错误码 → 面向运维的提示。只有固定文案，从不包含密码、哈希或底层异常信息 */
 export const MESSAGES = {
-  password_in_argv: '密码不能通过命令行参数传入（会留在 shell 历史和进程列表里）。请交互输入，或通过标准输入 / ADMIN_CREATE_PASSWORD 提供。',
+  password_in_argv: '密码不能通过命令行参数传入（会留在 shell 历史和进程列表里）。请在终端交互输入，或通过标准输入提供。',
+  env_refused: '生产环境（APP_ENV=production）不接受 ADMIN_CREATE_PASSWORD（环境变量会出现在 docker inspect / shell 历史里）。请在终端交互输入，或通过标准输入提供。',
   unknown_arg: `参数无法识别。\n${USAGE}`,
   invalid_email: '邮箱无效（--email 或 ADMIN_CREATE_EMAIL）。',
   invalid_name: '显示名最多 100 个字符。',

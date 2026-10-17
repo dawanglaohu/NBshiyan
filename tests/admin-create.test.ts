@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
-import { parseArgs, passwordPolicyError, passwordSource, takeEnvPassword, firstLine, adminGateError, normalizeAccountEmail, validEmail, ARGON, MESSAGES } from '../scripts/admin-create-lib.mjs';
+import { parseArgs, passwordPolicyError, passwordSource, isProductionEnv, takeEnvPassword, firstLine, adminGateError, normalizeAccountEmail, validEmail, ARGON, MESSAGES } from '../scripts/admin-create-lib.mjs';
 import { passwordPolicyError as appPolicy } from '../src/lib/server/admin/accounts';
 import { normalizeAccountEmail as appNormalize } from '../src/lib/server/admin/user-policy';
 
@@ -38,6 +38,11 @@ test('密码来源：有 TTY → 终端；无 TTY → 环境变量，否则标�
   assert.equal(passwordSource({ isTTY: false, envPassword: PW }), 'env');
   assert.equal(passwordSource({ isTTY: false, envPassword: '' }), 'stdin');
   assert.equal(passwordSource({ isTTY: false, envPassword: undefined }), 'stdin');
+  // 生产：环境变量路径拒绝（docker inspect 可见），终端和标准输入照常
+  assert.equal(passwordSource({ isTTY: false, envPassword: PW, production: true }), 'env_refused');
+  assert.equal(passwordSource({ isTTY: false, envPassword: '', production: true }), 'stdin');
+  assert.equal(passwordSource({ isTTY: true, envPassword: PW, production: true }), 'tty');
+  assert.ok(isProductionEnv({ APP_ENV: 'production' })); assert.ok(!isProductionEnv({ NODE_ENV: 'production' }));
   const env: Record<string, string | undefined> = { ADMIN_CREATE_PASSWORD: PW, OTHER: '1' };
   assert.equal(takeEnvPassword(env), PW);
   assert.ok(!('ADMIN_CREATE_PASSWORD' in env)); assert.equal(env.OTHER, '1');
@@ -71,6 +76,13 @@ test('CLI：弱密码（环境变量 / 标准输入）→ 退出 1，不连库�
     const r = run(['--email', 'a@example.com'], { DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x', ...env }, input);
     assert.equal(r.code, 1); assert.match(r.out, /密码不符合/); assert.ok(!r.out.includes(weak));
   }
+});
+
+test('CLI：生产环境下 ADMIN_CREATE_PASSWORD 被拒绝 → 退出 1，不连库，输出不含密码；标准输入照常可用', () => {
+  const r = run(['--email', 'a@example.com'], { APP_ENV: 'production', DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x', ADMIN_CREATE_PASSWORD: PW });
+  assert.equal(r.code, 1); assert.match(r.out, /不接受 ADMIN_CREATE_PASSWORD/); assert.ok(!r.out.includes(PW));
+  const r2 = run(['--email', 'a@example.com'], { APP_ENV: 'production', DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x' }, `${PW}\n`);
+  assert.equal(r2.code, 1); assert.match(r2.out, /数据库操作失败/); assert.ok(!r2.out.includes(PW)); // 走到了连库这一步
 });
 
 test('CLI：数据库不可达 → 退出 1，只给错误类型，不输出密码或连接串', () => {

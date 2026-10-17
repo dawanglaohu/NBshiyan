@@ -2,12 +2,13 @@
 // 创建第一个后台管理员（自建部署 / standalone 镜像里运行）。只有命令行，没有任何 HTTP 接口。
 //   docker compose exec app node scripts/admin-create.mjs --email admin@example.com --name "Admin"
 //   （或 docker compose run --rm app node scripts/admin-create.mjs …）
-// 密码：终端里交互输入（不回显，输两次）；没有终端时读标准输入第一行，或环境变量 ADMIN_CREATE_PASSWORD（读完立即删除）。
+// 密码：终端里交互输入（不回显，输两次）；没有终端时读标准输入第一行（docker compose exec -T app node scripts/admin-create.mjs … < 文件）。
+// ADMIN_CREATE_PASSWORD 只给 CI 用（读完立即删除）；APP_ENV=production 时拒绝——`docker run -e` 的值会出现在 docker inspect 里。
 // 密码绝不进命令行参数、日志、异常信息或审计记录。规则与后台新建账号相同（12–200 位，不能等于邮箱）。
 // 邮箱已存在 → 失败，不覆盖；已有管理员 → 失败，除非加 --allow-additional-admin。
 // 建好的账号 totpEnabled=false：首次登录前照常走 2FA 绑定流程（与后台新建账号相同）。
 // 依赖只有 @prisma/client 和 @node-rs/argon2（应用本身就用，standalone 产物里都有）。
-import { ARGON, MESSAGES, USAGE, adminGateError, firstLine, parseArgs, passwordPolicyError, passwordSource, takeEnvPassword } from './admin-create-lib.mjs';
+import { ARGON, MESSAGES, USAGE, adminGateError, firstLine, isProductionEnv, parseArgs, passwordPolicyError, passwordSource, takeEnvPassword } from './admin-create-lib.mjs';
 
 // 第一件事：把环境变量里的密码取出并从 process.env 删除
 const envPassword = takeEnvPassword(process.env);
@@ -55,7 +56,8 @@ async function main() {
   if (args.help) { console.log(USAGE); return; }
   if (!process.env.DATABASE_URL) fail('no_database');
 
-  const src = passwordSource({ isTTY: !!process.stdin.isTTY, envPassword });
+  const src = passwordSource({ isTTY: !!process.stdin.isTTY, envPassword, production: isProductionEnv(process.env) });
+  if (src === 'env_refused') fail('env_refused');
   let password;
   if (src === 'tty') {
     password = await readHidden('新管理员密码（不回显）：');
