@@ -15,13 +15,6 @@ export const PRODUCT_LABEL: Record<string, string> = {
 };
 /** 只查自身属性：'constructor'、'__proto__'、'toString' 等原型键回退为 slug */
 export const productName = (slug: string) => (Object.prototype.hasOwnProperty.call(PRODUCT_LABEL, slug) ? PRODUCT_LABEL[slug] : slug);
-export function relTime(iso: string) {
-  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (m < 60) return `${Math.max(1, m)} 分钟前`;
-  if (m < 60 * 24) return `${Math.round(m / 60)} 小时前`;
-  if (m < 60 * 48) return '昨天';
-  return `${Math.round(m / 1440)} 天前`;
-}
 /** 接口错误转成后台可读的提示 */
 const ERR: Record<string, string> = {
   invalid: '参数不正确，请检查后重试。',
@@ -39,7 +32,53 @@ export function errorText(code: string, prefix = '加载失败') {
   if (code === 'forbidden') return '没有权限执行这个操作。';
   return `${prefix}：${code}`;
 }
-export const fmtDate = (iso: string) => new Date(iso).toLocaleString('zh-CN', { hour12: false });
+/**
+ * 后台统一时间格式（#291）：「2026/09/15 00:44」= YYYY/MM/DD HH:mm，月日补零、24 小时制、不显示秒。
+ * 默认按浏览器本地时区；timeZone 只给测试和需要固定时区的地方用。无效时间原样返回，不显示 "Invalid Date"。
+ */
+type DateParts = { year: string; month: string; day: string; hour: string; minute: string };
+function dateParts(d: Date, timeZone?: string): DateParts {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(d);
+  const v = (t: Intl.DateTimeFormatPartTypes) => parts.find((x) => x.type === t)?.value ?? '';
+  return { year: v('year'), month: v('month'), day: v('day'), hour: v('hour'), minute: v('minute') };
+}
+
+/**
+ * 后台完整时间格式（#291）：「2026/09/15 00:44」= YYYY/MM/DD HH:mm，月日补零、24 小时制、不显示秒。
+ * 用于匿名化横幅（固定完整格式）和 <time title>。默认按浏览器本地时区；timeZone 只给测试和需要固定时区的地方用。无效时间原样返回。
+ */
+export function fmtDate(iso: string, timeZone?: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const p = dateParts(d, timeZone);
+  return `${p.year}/${p.month}/${p.day} ${p.hour}:${p.minute}`;
+}
+
+const HOUR = 3_600_000;
+/**
+ * 后台统一时间显示规则（#291 UX）：
+ * - 24 小时内（含将来不超过 1 分钟的时钟误差）：相对时间「刚刚 / N 分钟前 / N 小时前」（向下取整，23h59 → 23 小时前）
+ * - ≥24 小时、同一年：「MM/DD HH:mm」
+ * - 不同年份，或者是将来的时间：完整「YYYY/MM/DD HH:mm」（「同一年」按显示时区判断）
+ * 超过 24 小时一律显示绝对时间，不再用相对天数。界面上用 <AdminTime>，它会包一层 <time dateTime title=完整时间>。
+ */
+export function adminTime(iso: string, opts: { now?: number; timeZone?: string } = {}): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const now = opts.now ?? Date.now();
+  const diff = now - d.getTime();
+  if (diff >= -60_000 && diff < 24 * HOUR) {
+    const m = Math.floor(Math.max(0, diff) / 60_000);
+    if (m < 1) return '刚刚';
+    if (m < 60) return `${m} 分钟前`;
+    return `${Math.floor(m / 60)} 小时前`;
+  }
+  const p = dateParts(d, opts.timeZone);
+  if (diff > 0 && dateParts(new Date(now), opts.timeZone).year === p.year) return `${p.month}/${p.day} ${p.hour}:${p.minute}`;
+  return `${p.year}/${p.month}/${p.day} ${p.hour}:${p.minute}`;
+}
 
 /** Auth.js 默认登录页（Credentials：email、password、totp 或 recoveryCode），登录后回到当前页 */
 export const loginHref = () => adminLoginHref(typeof location === 'undefined' ? '/admin' : location.pathname + location.search);
