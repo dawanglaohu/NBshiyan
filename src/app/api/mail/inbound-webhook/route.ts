@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
-import { clientIp, hitRateLimit } from '@/lib/server/security';
+import { clientIp, hitRateLimit, rateLimitSubject } from '@/lib/server/security';
 import { audit } from '@/lib/server/admin/audit';
 import { mailSwitchGate } from '@/lib/server/mail/http';
 import { webhookSecret } from '@/lib/server/mail/config';
@@ -47,10 +47,10 @@ export async function POST(req: Request) {
   if (off) return off;
   const secret = webhookSecret();
   if (!secret) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: NO_STORE });
+  // 来源桶：只有 X-Edge-Auth 校验通过（#311 resolveClientIp）才按 IP 分桶；其余请求（含伪造 CF-Connecting-IP）
+  // 经 rateLimitSubject 全部落进共用的 'untrusted' 桶，用更严的上限
   const ip = clientIp(req);
-  const sourceOk = ip
-    ? await hitRateLimit(`mail:rl:webhook:ip:${ip}`, WEBHOOK_RATE.perSource, WEBHOOK_RATE.windowMs)
-    : await hitRateLimit('mail:rl:webhook:untrusted', WEBHOOK_RATE.untrusted, WEBHOOK_RATE.windowMs);
+  const sourceOk = await hitRateLimit(`mail:rl:webhook:ip:${rateLimitSubject(ip)}`, ip ? WEBHOOK_RATE.perSource : WEBHOOK_RATE.untrusted, WEBHOOK_RATE.windowMs);
   if (!sourceOk || !(await hitRateLimit('mail:rl:webhook', WEBHOOK_RATE.global, WEBHOOK_RATE.windowMs))) {
     return NextResponse.json({ error: 'rate_limited', retryAfter: 60 }, { status: 429, headers: { ...NO_STORE, 'Retry-After': '60' } });
   }

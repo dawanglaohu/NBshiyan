@@ -107,6 +107,11 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 | `contactEmail` | 对外联系邮箱 | 同上，待 Ryan 提供 |
 | `whatsapp` | WhatsApp 号码（国际格式） | 同上，待 Ryan 提供 |
 
+> **部署前提（收信，Q7）**：在 Ryan 批准 Q7、且收信 Worker 已上线并按契约签名（`X-Geiom-Timestamp` / `X-Geiom-Mail-Id` / `X-Geiom-Signature`，HMAC-SHA256，密钥为 `MAIL_WEBHOOK_SECRET`）**之前**，Cloudflare Email Routing **不得**切到 Worker，来信继续投递到现在的收件邮箱。
+> 原因：webhook 对没有有效签名的请求一律返回 401。提前切换会让**每一封来信都被 401 拒收，邮件丢失**。
+> 切换顺序：Ryan 批准 Q7 → 部署签名 Worker（Worker Secret 与应用的 `MAIL_WEBHOOK_SECRET` 是同一个值，只通过私信交给运维，不进群、不进仓库）→ 应用设好 `MAIL_WEBHOOK_SECRET` 和 `NEXT_PUBLIC_ADMIN_MAIL=http` → 用一封测试信确认 webhook 返回 200 并入库 → 最后才把 Email Routing 切到 Worker。任何一步失败就保持投递到现有邮箱。
+> nginx：`location = /api/mail/inbound-webhook` 单独设 `client_max_body_size 36m`（webhook 上限 36,700,160 字节；全局 4m 不够）。
+
 ### 4.3 人机验证 / 客服
 
 | 变量 | 生产值 |

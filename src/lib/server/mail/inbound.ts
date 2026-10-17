@@ -15,7 +15,7 @@ import { escapeHtml } from '../security';
 export const MAIL_MSG_MAX_BYTES = 25 * 1024 * 1024;
 /** JSON 里的 raw 会转义（\r\n 等），请求体上限留余量 */
 export const WEBHOOK_MAX_BODY = Math.ceil(MAIL_MSG_MAX_BYTES * 1.4);
-/** webhook 限流：全局 + 按来源 IP；拿不到可信来源 IP（clientIp() 为 null）的请求共用一个更严的 untrusted 桶 */
+/** webhook 限流：全局 + 按来源 IP；拿不到可信来源 IP（clientIp() 为 null，即 X-Edge-Auth 未通过）的请求经 rateLimitSubject() 共用一个更严的 'untrusted' 桶 */
 export const WEBHOOK_RATE = { global: 600, perSource: 120, untrusted: 20, windowMs: 60_000 } as const;
 
 export const MAX_SKEW_SEC = 300;

@@ -255,29 +255,45 @@ test('webhook：Content-Length 谎报偏小 → 流式读取超过上限即中�
   assert.ok(cancelled, 'stream cancelled'); assert.ok(pulled <= 11, `read stopped early (pulled ${pulled})`);
 });
 
-test('webhook 限流：同一来源超过每分钟上限 → 429；拿不到可信 IP 的请求进更严的 untrusted 桶', async () => {
+test('webhook 限流：同一可信来源超过每分钟上限 → 429；拿不到可信 IP 的请求（含伪造 CF-Connecting-IP）经 rateLimitSubject 进更严的 untrusted 桶', async () => {
   const { WEBHOOK_RATE } = await import('../src/lib/server/mail/inbound');
   assert.ok(WEBHOOK_RATE.untrusted < WEBHOOK_RATE.perSource);
-  // 未设 BEHIND_CLOUDFLARE / TRUSTED_PROXY_HOPS 时 clientIp() 视部署而定；这里显式走 Cloudflare 模式拿到来源 IP
-  process.env.BEHIND_CLOUDFLARE = '1';
+  // #311：只有 X-Edge-Auth 与 EDGE_AUTH_SECRET 一致时才信 CF-Connecting-IP（测试用假密钥）
+  const EDGE = 'e'.repeat(40);
+  process.env.EDGE_AUTH_SECRET = EDGE;
+  const authed = (ip: string) => ({ 'x-edge-auth': EDGE, 'cf-connecting-ip': ip });
   try {
     const statuses: number[] = [];
     for (let i = 0; i < WEBHOOK_RATE.perSource + 1; i++) {
-      const { req } = spyReq(goodHeaders({ 'x-geiom-signature': undefined, 'cf-connecting-ip': '203.0.113.7' }));
+      const { req } = spyReq(goodHeaders({ 'x-geiom-signature': undefined, ...authed('203.0.113.7') }));
       statuses.push((await routes.webhook.POST!(req, P({}))).status);
     }
     assert.equal(statuses.filter((s) => s === 401).length, WEBHOOK_RATE.perSource);
-    const last = await routes.webhook.POST!(spyReq(goodHeaders({ 'cf-connecting-ip': '203.0.113.7' })).req, P({}));
+    const last = await routes.webhook.POST!(spyReq(goodHeaders(authed('203.0.113.7'))).req, P({}));
     assert.equal(last.status, 429); assert.equal(last.headers.get('retry-after'), '60');
     assert.deepEqual(await last.json(), { error: 'rate_limited', retryAfter: 60 });
-    // 别的来源不受影响
-    assert.equal((await routes.webhook.POST!(spyReq(goodHeaders({ 'x-geiom-signature': undefined, 'cf-connecting-ip': '198.51.100.9' })).req, P({}))).status, 401);
-    // 无可信 IP（Cloudflare 模式下缺 cf-connecting-ip）→ untrusted 桶，上限更低
+    // 别的可信来源不受影响
+    assert.equal((await routes.webhook.POST!(spyReq(goodHeaders({ 'x-geiom-signature': undefined, ...authed('198.51.100.9') })).req, P({}))).status, 401);
+    // 不可信：没有 X-Edge-Auth / X-Edge-Auth 错误 / 换着伪造 CF-Connecting-IP —— 全部共用一个 untrusted 桶，上限更低
+    const spoofs = [
+      {},
+      { 'cf-connecting-ip': '192.0.2.1' },
+      { 'x-edge-auth': 'f'.repeat(40), 'cf-connecting-ip': '192.0.2.2' },
+      { 'x-forwarded-for': '192.0.2.3', 'x-real-ip': '192.0.2.4' },
+    ];
     const un: number[] = [];
-    for (let i = 0; i < WEBHOOK_RATE.untrusted + 1; i++) un.push((await routes.webhook.POST!(spyReq(goodHeaders({ 'x-geiom-signature': undefined })).req, P({}))).status);
+    for (let i = 0; i < WEBHOOK_RATE.untrusted + 1; i++) un.push((await routes.webhook.POST!(spyReq(goodHeaders({ 'x-geiom-signature': undefined, ...spoofs[i % spoofs.length] })).req, P({}))).status);
     assert.equal(un.filter((s) => s === 401).length, WEBHOOK_RATE.untrusted);
     assert.equal(un.at(-1), 429);
-  } finally { delete process.env.BEHIND_CLOUDFLARE; }
+    // untrusted 桶满了不影响可信来源
+    assert.equal((await routes.webhook.POST!(spyReq(goodHeaders({ 'x-geiom-signature': undefined, ...authed('198.51.100.10') })).req, P({}))).status, 401);
+  } finally { delete process.env.EDGE_AUTH_SECRET; }
+});
+
+test('webhook 路由的来源限流 key 只经 rateLimitSubject(clientIp(req))，不再手写 untrusted / unknown 兜底', async () => {
+  const src = await readFile('src/app/api/mail/inbound-webhook/route.ts', 'utf8');
+  assert.match(src, /rateLimitSubject\(ip\)/);
+  assert.doesNotMatch(src, /\?\?\s*'unknown'|webhook:untrusted|x-forwarded-for|x-real-ip/i);
 });
 
 // —— 审查：HMAC 覆盖时间戳 + 体；所有 401 相同、日志只记原因码；签名 / Message-ID 防重放 ——
