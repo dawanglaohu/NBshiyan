@@ -510,7 +510,7 @@
 | M-wine-boxes-title | `src/lib/seo/categoryMeta.ts` | main | Custom Wine Boxes Manufacturer & Supplier \| PackJoyU | Коробки для вина на заказ с логотипом \| PackJoyU | 48/60 |  |
 | M-wine-boxes-desc | `src/lib/seo/categoryMeta.ts` | #222 | Luxury wine and spirits boxes for single or multiple bottles, with magnetic closures, inserts, foil and embossed logos. Gift-ready packaging. Get a quote. | Подарочные коробки для вина и крепких напитков на заказ: на одну или несколько бутылок, с магнитом, ложементом и тиснением логотипа. Запросите расчёт. | 150/160 |  |
 | M-wine-boxes-kw | `src/lib/seo/categoryMeta.ts` | main | коробки для вина на заказ | коробки для вина на заказ |  |  |
-| M-color-printing-title | `src/lib/seo/categoryMeta.ts` | main | Packaging Printing Services Manufacturer \| PackJoyU | Печать упаковки на заказ — полноцвет \| PackJoyU | 47/60 |  |
+| M-color-printing-title | `src/lib/seo/categoryMeta.ts` | main | Packaging Printing Services Manufacturer \| PackJoyU | Полноцветная печать упаковки на заказ \| PackJoyU | 48/60 |  |
 | M-color-printing-desc | `src/lib/seo/categoryMeta.ts` | #222 | Full-color CMYK and Pantone printing for packaging, labels and inserts on paper and board. Accurate color matching and fast proofs. Request a quote. | Полноцветная печать упаковки, этикеток и вкладышей на бумаге и картоне. Точная цветопередача CMYK и Pantone, быстрые пробы для брендов. Запросите расчёт. | 153/160 |  |
 | M-color-printing-kw | `src/lib/seo/categoryMeta.ts` | main | печать упаковки | печать упаковки |  |  |
 | M-offset-printing-title | `src/lib/seo/categoryMeta.ts` | main | Offset Printing Services Manufacturer \| PackJoyU | Офсетная печать упаковки на заказ \| PackJoyU | 44/60 |  |

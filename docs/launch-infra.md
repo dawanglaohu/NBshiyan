@@ -12,7 +12,7 @@
 2. Cloudflare R2：建私有桶 + 只限该桶的 API Token（第 1 节）
 3. Upstash Redis：建数据库，拿 REST URL/Token（第 2 节）
 4. 数据库（Postgres，如 Neon / Supabase / Vercel Postgres）：拿 `DATABASE_URL`
-5. Resend：验证发信域名，建**仅发送权限**的 API Key（第 3 节）
+5. 发信：Gmail SMTP，Ryan 在自己的 Gmail 账号里开应用专用密码（第 3 节）
 6. Cloudflare Turnstile：建正式站点，拿 site key / secret
 7. Tawk.to：拿 property ID / widget ID（英、俄）
 8. Vercel：导入仓库 dawanglaohu/NBshiyan，按第 4 节填全部环境变量，绑定域名
@@ -49,11 +49,14 @@ Ryan 操作：
 
 环境变量：`RATE_LIMIT_STORE=upstash`、`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`。
 
-## 3. Resend（询盘通知、自动回复）
+## 3. 发信：Gmail SMTP（询盘通知、自动回复）
 
-1. 登录 resend.com → Domains → Add domain（建议用子域，如 `mail.<正式域名>`），按提示在 DNS 加 SPF / DKIM（以及 DMARC `p=quarantine`）记录，等验证通过。
-2. API Keys → Create：Permission 选 **Sending access**，Domain 只选上面这个域名。**不要用 Full access**。
-3. `MAIL_FROM` 用已验证域名下的地址，如 `PackJoyU <noreply@mail.<域名>>`。
+Ryan 已确认：
+
+1. **发信**用免费 Gmail SMTP：From = Ryan 的 Gmail 地址，Reply-To = geiom.com 地址。Ryan 在自己的 Google 账号里开两步验证并生成应用专用密码，只填进部署环境变量；不提交到仓库，不发到群里，任何文档里都不写。
+2. **收信**仍走 Cloudflare Email Routing，MX 不改。
+3. **DNS**：信从 gmail.com 发出，geiom.com 的 SPF / DKIM / DMARC 不参与外发校验，所以不为发信新增 SPF `include:` 或 DKIM；现有 SPF `v=spf1 include:_spf.mx.cloudflare.net ~all` 保持。DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。
+4. 代码现状：`src/lib/server/mail.ts` 仍按 Resend 接口发信（`RESEND_API_KEY`），改成 SMTP 由后端另开 PR，SMTP 相关变量名在那个 PR 里定。
 
 ## 4. Vercel 项目与环境变量清单
 
