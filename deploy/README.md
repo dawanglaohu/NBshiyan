@@ -18,6 +18,12 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 - **Cleanup is scoped to NBshiyan:** only its own buildx builder cache and its own images (`nbshiyan-app`,
   `nbshiyan-migrate`; keep `:current` and `:previous`). Never `docker system/image/volume prune`.
 - **Never run `docker compose config`.** It expands `env_file` and would print secrets.
+- **Checkout permissions:** `build-on-server.sh` keeps umask 077 globally (logs, scan dir, pattern file, markers) but clones,
+  checks out and cleans `$NBSHIYAN_DATA_DIR/src` in a `( umask 022; … )` subshell, repairs an older 077 checkout to at most
+  644/755 (`.git` excluded) and then aborts unless every checked-out file is other-readable and nothing is group/other-writable.
+  Reason: non-root containers read it (migrate uid 1001 via COPY, srh-tls uid 101 via the `nginx.conf` bind mount). The
+  Dockerfile also checks, as uid 1001, that everything under `/app` and `/opt/migrate` is readable. Secrets and keys are
+  never in the checkout and keep their own modes (`.env` 600, `redis-rest.key` 640 root:101, `pg_password` 400 uid 70).
 
 ## Files
 | file | purpose |

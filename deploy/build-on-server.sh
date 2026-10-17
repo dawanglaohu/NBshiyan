@@ -54,13 +54,32 @@ log "memory ok: MemAvailable ${avail_mb} MB"
 
 # ---------- 2. source at the pinned, merged commit ----------
 SRC="$NBSHIYAN_DATA_DIR/src"
-if [ ! -d "$SRC/.git" ]; then git clone --quiet --filter=blob:none --no-checkout "$REPO_URL" "$SRC"; fi
-git -C "$SRC" remote set-url origin "$REPO_URL"
-git -C "$SRC" fetch --quiet --prune origin '+refs/heads/main:refs/remotes/origin/main'
-git -C "$SRC" cat-file -e "${PIN_SHA}^{commit}" 2>/dev/null || die "commit $SHORT not found on origin"
-git -C "$SRC" merge-base --is-ancestor "$PIN_SHA" origin/main || die "commit $SHORT is not merged into main"
-git -C "$SRC" -c advice.detachedHead=false checkout --quiet --force --detach "$PIN_SHA"
-git -C "$SRC" clean -fdxq
+# The checkout is public repo content. Containers that run as non-root read parts of it: the migrate/app images COPY from
+# it (COPY keeps the file mode) and srh-tls bind-mounts deploy/srh-tls/nginx.conf (uid 101). Under this script's umask 077
+# every file was root-only 600 → migrate EACCES on schema.prisma, srh-tls EACCES on nginx.conf. So clone/checkout/clean
+# run in a subshell with umask 022; the global umask stays 077 for everything else (logs, .scan, pat file, markers).
+case "$NBSHIYAN_DATA_DIR/secrets/" in "$SRC"/*) die "secrets dir must not be inside the source checkout" ;; esac
+# >>> checkout (extracted by deploy/tests/perms.test.sh)
+( umask 022
+  # errexit is off inside a `( … ) || die` subshell, so every step checks itself (die exits the subshell with a message)
+  gx() { git -C "$SRC" "$@" || die "git $1 failed"; }
+  if [ ! -d "$SRC/.git" ]; then git clone --quiet --filter=blob:none --no-checkout "$REPO_URL" "$SRC" || die "git clone failed"; fi
+  gx remote set-url origin "$REPO_URL"
+  gx fetch --quiet --prune origin '+refs/heads/main:refs/remotes/origin/main'
+  git -C "$SRC" cat-file -e "${PIN_SHA}^{commit}" 2>/dev/null || die "commit $SHORT not found on origin"
+  git -C "$SRC" merge-base --is-ancestor "$PIN_SHA" origin/main || die "commit $SHORT is not merged into main"
+  gx -c advice.detachedHead=false checkout --quiet --force --detach "$PIN_SHA"
+  gx clean -fdxq
+  # One-time repair of a checkout made under umask 077 (git does not rewrite unchanged files): tracked content only
+  # (.git and the top dir excluded), go+r on files / go+rx on dirs, never group/other write → at most 644 / 755.
+  find "$SRC" -mindepth 1 -path "$SRC/.git" -prune -o ! -type l -exec chmod u+rw,go+rX,go-w {} + || die "chmod of the checkout failed"
+) || die "checkout of $SHORT failed"
+# <<< checkout
+# >>> perms gate (extracted by deploy/tests/perms.test.sh)
+# Every checked-out file must be other-readable (dirs other-traversable) and nothing group/other-writable. .git excluded.
+src_perm_problems=$(find "$SRC" -mindepth 1 -path "$SRC/.git" -prune -o ! -type l \( \( -type f ! -perm -o=r \) -o \( -type d ! -perm -o=rx \) -o -perm /022 \) -print 2>&1 || true)
+[ -z "$src_perm_problems" ] || die "checkout has files non-root containers cannot read (or group/other-writable): $(head -n 5 <<<"$src_perm_problems" | sed "s#^$SRC/##" | tr '\n' ' ')"
+# <<< perms gate
 [ "$(git -C "$SRC" rev-parse HEAD)" = "$PIN_SHA" ] || die "HEAD mismatch"
 [ -z "$(git -C "$SRC" status --porcelain)" ] || die "work tree not clean"
 log "source: $SHORT ($(git -C "$SRC" log -1 --format=%cI))"

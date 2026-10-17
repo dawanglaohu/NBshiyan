@@ -125,6 +125,15 @@ post_checks() {
   robots_noindex "$hdrs" && { log "FAIL /en carries noindex (APP_ENV not production at build?)"; ok=0; }
   body=$(curl -s --max-time 10 http://127.0.0.1:3000/en) || { log "FAIL curl /en failed"; ok=0; }
   canonical_ok "$body" || { log "FAIL canonical is not https://geiom.com/en"; ok=0; }
+  # The runtime uid must be able to read .next/static and public/ (a root-only checkout broke this before). PASS/FAIL only.
+  local js asset c2
+  js=$(static_js_path "$body")
+  if [ -n "$js" ]; then c2=$(curl -s -o /dev/null --max-time 10 -w '%{http_code}' "http://127.0.0.1:3000$js")
+  else c2=none; fi
+  if [ "$c2" = 200 ]; then log "PASS /_next/static js referenced by /en → 200"; else log "FAIL /_next/static js referenced by /en → $c2"; ok=0; fi
+  asset=$(public_asset_path "$body"); asset=${asset:-/icon-192.png}
+  c2=$(curl -s -o /dev/null --max-time 10 -w '%{http_code}' "http://127.0.0.1:3000$asset")
+  if [ "$c2" = 200 ]; then log "PASS public/ asset (image/poster/model) → 200"; else log "FAIL public/ asset → $c2"; ok=0; fi
   edge_match || { log "FAIL EDGE_AUTH_SECRET differs from the reverse-proxy include (hash compare)"; ok=0; }
   # Redirect headers as the proxy sees them (HOSTNAME=0.0.0.0 → Next emits relative Location). Any 5xx = FAIL;
   # no header (x-middleware-rewrite included; /s/* is the rewrite path) may mention localhost / 127.0.0.1 / 0.0.0.0;
