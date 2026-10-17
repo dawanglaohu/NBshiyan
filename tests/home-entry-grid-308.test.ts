@@ -14,12 +14,14 @@ const decl = (sel: string) => new RegExp(`(?:^|\\n)\\s*${sel.replace(/[.*+?^${}(
 const px = (d: string, prop: string) => Number(new RegExp(`(?:^|;)${prop}:(\\d+)px`).exec(d)?.[1]);
 
 test('文案 Home.entryAll：EN / RU', () => {
-  assert.equal(en.Home.entryAll, 'All products →');
-  assert.equal(ru.Home.entryAll, 'Вся продукция →');
+  assert.equal(en.Home.entryAll, 'All products');
+  assert.equal(ru.Home.entryAll, 'Вся продукция');
+  // 箭头不在文案里（放在标记里，aria-hidden）
+  assert.doesNotMatch(en.Home.entryAll + ru.Home.entryAll, /→/);
 });
 test('页面：网格下面用 next-intl Link 指向 /products', () => {
   assert.match(page, /import \{ Link \} from '@\/i18n\/navigation';/);
-  const grid = page.indexOf('<div className="entry">'), link = page.indexOf('<Link className="entry-all" href="/products">{t(\'entryAll\')}</Link>');
+  const grid = page.indexOf('<div className="entry">'), link = page.indexOf('<Link className="entry-all" href="/products">{t(\'entryAll\')} <span aria-hidden="true">→</span></Link>');
   assert.ok(grid > 0 && link > grid, '链接在网格之后');
   assert.ok(link < page.indexOf('aria-labelledby="premium-h"'), '还在产品入口这一节里');
 });
@@ -53,4 +55,9 @@ test('≥768 不变：原来的 .entry 规则原样保留，「全部产品」�
 test('#314 首屏设置没动：封面 sizes="50vw"、视频 99%', () => {
   assert.match(readFileSync('src/components/layout/HeroVideo.tsx', 'utf8') + readFileSync('src/lib/home/heroVideo.ts', 'utf8'), /50vw/);
   assert.match(css, /\.hero-media-video\{[^}]*transform:scale\(\.99\)/);
+});
+test('断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符', () => {
+  assert.match(readFileSync('src/app/[locale]/layout.tsx', 'utf8'), /<html lang=\{locale\}/);
+  assert.match(css.slice(css.indexOf('@media (max-width:767px){\n  .entry{')), /\.entry a\{[^}]*hyphens:auto/);
+  for (const m of [en, ru]) for (const [slug, name] of Object.entries(m.Products.names as Record<string, string>)) assert.doesNotMatch(name, /\S-\S|\u2010|\u2011/, `${slug}: ${name}`);
 });

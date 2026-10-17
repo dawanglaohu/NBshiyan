@@ -48,8 +48,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </Link>
           ))}
         </div>
-        {/* #308 手机端（≤767px）网格下面的「全部产品」入口；≥768 隐藏，桌面布局不变 */}
-        <Link className="entry-all" href="/products">{t('entryAll')}</Link>
+        {/* #308 手机端（≤767px）网格下面的「全部产品」入口；≥768 隐藏，桌面布局不变。箭头只是装饰，读屏只念文字 */}
+        <Link className="entry-all" href="/products">{t('entryAll')} <span aria-hidden="true">→</span></Link>
       </section>
 
       <section className="container" aria-labelledby="premium-h">
