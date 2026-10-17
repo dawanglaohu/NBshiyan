@@ -413,6 +413,9 @@
     "metaTitle": "Custom Packaging Design | PackJoyU"
   },
   "NotFound": {
+    "meta": {
+      "title": "Page not found | PackJoyU"
+    },
     "code": "404",
     "title": "Page not found",
     "lead": "This box is empty. The page may have moved — try one of our product categories instead.",
