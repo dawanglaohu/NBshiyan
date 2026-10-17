@@ -43,7 +43,7 @@
 
 ## 4. 后端
 
-- [ ] `STORAGE_DRIVER=r2`，R2 相关变量（账号、桶、访问密钥、公开地址）都已配置。
+- [ ] `STORAGE_DRIVER` 已显式设置：`r2` 时 R2 相关变量（账号、桶、访问密钥）都已配置；`local` 时 `UPLOAD_DIR` 是挂载数据卷的绝对路径、应用用户可读写，且不经 nginx 或静态服务暴露。
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
 - [ ] 发信：免费 Gmail SMTP，From = Gmail 地址，Reply-To = geiom.com 地址；SMTP 账号和应用专用密码只放部署环境变量，不进仓库、不发群。不为发信新增任何 DNS 记录（不加 SPF `include:`、不加 DKIM）。收信仍走 Cloudflare Email Routing。
 - [ ] DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。

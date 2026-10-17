@@ -18,7 +18,7 @@
 8. Vercel：导入仓库 dawanglaohu/NBshiyan，按第 4 节填全部环境变量，绑定域名
 9. Cron（第 5 节）
 10. 上线后：GSC / Yandex Webmaster / Bing 验证并提交 sitemap（第 6 节）
-11. 管理员账号：`pnpm admin:create` 创建首个管理员并绑定 2FA（第 7 节）
+11. 管理员账号：`docker compose exec app node scripts/admin-create.mjs` 创建首个管理员并绑定 2FA（第 7 节）
 
 ---
 
@@ -80,10 +80,13 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 | ~~`BEHIND_CLOUDFLARE`~~ / ~~`TRUSTED_PROXY_HOPS`~~ | 不要再设 | 已废弃，代码不再读取（设了只会在日志里提示一次）。客户端 IP 只由 `EDGE_AUTH_SECRET` + `CF-Connecting-IP` 决定 |
 | `RATE_LIMIT_STORE` | `upstash` | 生产必须，不能用 memory |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | |
-| `STORAGE_DRIVER` | `r2` | 生产必须（Vercel 文件系统不持久） |
-| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 第 1 节，桶级 token | |
+| `STORAGE_DRIVER` | `local` 或 `r2`（待 Ryan 定） | 生产必须显式设置。`local`：自建服务器，文件放挂载数据卷（配 `UPLOAD_DIR`）；`r2`：第 1 节 |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 第 1 节，桶级 token | 仅 `STORAGE_DRIVER=r2` 时必填 |
 | `R2_ENDPOINT` | 留空 | |
-| `UPLOAD_DIR` | 留空（仅 local 驱动使用） | |
+| `UPLOAD_DIR` | 挂载数据卷的绝对路径 | 仅 `STORAGE_DRIVER=local` 时必填：绝对路径、存在且应用用户可读写、不在 `public/` 或 `.next/` 下，否则拒绝启动。不对外静态服务，文件只经现有接口按权限提供 |
+| `ADMIN_CREATE_PASSWORD` | 不写进环境文件 | 仅在没有终端时给建首个管理员的 CLI 临时传密码（第 7 节），读完即从进程环境删除 |
+
+> 自建 standalone：`next build` 只需要 `APP_ENV`、`NODE_ENV` 和 `NEXT_PUBLIC_*` 公开值，不需要任何密钥；上表其余变量只在容器启动时注入，`src/instrumentation.ts` 启动时检查，缺了 exit 1（只报变量名）。健康检查：`GET /api/health`（见 launch-runbook.md 第 4.2 节）。
 
 ### 4.2 邮件
 
@@ -147,7 +150,7 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 建议加一个 `scripts/check-prod-env.mjs`，在 `APP_ENV=production` 时于构建前运行，满足任一条件就让构建失败：
 - 任何 `*_MOCK` 变量为真（如 `NEXT_PUBLIC_LOGO_UPLOAD_MOCK=1`）
 - `NEXT_PUBLIC_ADMIN_API` 不等于 `http`
-- `RATE_LIMIT_STORE` 不是 `upstash`、`STORAGE_DRIVER` 不是 `r2`
+- `RATE_LIMIT_STORE` 不是 `upstash`；`STORAGE_DRIVER` 不是 `local` / `r2`（local 时 `UPLOAD_DIR` 不是可写的绝对路径）
 - `TURNSTILE_SECRET_KEY` 仍是测试密钥 `1x0000…`
 - `AUTH_SECRET` / `ADMIN_TOTP_KEY` / `CRON_SECRET` 缺失或长度不足，`ADMIN_TOTP_KEY` 解码后不是 32 字节
 
@@ -178,7 +181,7 @@ Ryan 操作：
 
 ## 7. 首个管理员
 
-部署后由 Ryan 在自己电脑上，用生产 `DATABASE_URL` 执行 `pnpm admin:create`，登录后台立即绑定 2FA。之后可以从环境变量里移除不需要的临时值。
+自建部署后在服务器上执行 `docker compose exec app node scripts/admin-create.mjs --email <邮箱> --name "<显示名>"`（等同 `pnpm admin:create`），密码在终端交互输入、不回显；没有终端时从标准输入或 `ADMIN_CREATE_PASSWORD` 读取，绝不放在命令行参数里。已有管理员时需显式 `--allow-additional-admin`；邮箱已存在直接失败。只有命令行，没有 HTTP 接口。建好后登录后台立即绑定 2FA。详见 launch-runbook.md 第 4.3 节。`pnpm admin:seed`（旧的环境变量建号脚本）只用于测试 / 本地 / CI。
 
 ## 8. CSP 说明（Tawk.to 等第三方）
 

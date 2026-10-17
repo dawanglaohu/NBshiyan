@@ -86,7 +86,8 @@
 文件地址形如 `/api/models/:id/glb?v=版本`（`lod`、`poster` 同理），只对已上架模型返回，否则 404；`Cache-Control: public, max-age=300`。gltf-progressive 按主 GLB 里记录的相对路径请求 `/api/models/:id/<名称>.lod0.glb`，服务端映射到 lod 文件。
 
 ## 后台登录（Auth.js v5，Credentials + 强制 TOTP）
-- 创建账号：`ADMIN_SEED_EMAIL=… ADMIN_SEED_NAME=… ADMIN_SEED_PASSWORD=… [ADMIN_SEED_ROLE=SALES] pnpm admin:create`（密码 ≥12 位，argon2id 哈希；凭据只走环境变量）。
+- 创建账号：`ADMIN_SEED_EMAIL=… ADMIN_SEED_NAME=… ADMIN_SEED_PASSWORD=… [ADMIN_SEED_ROLE=SALES] pnpm admin:seed`（测试 / 本地 / CI；密码 ≥12 位，argon2id 哈希；凭据只走环境变量）。
+- 生产首个管理员：`node scripts/admin-create.mjs --email … [--name …]`（`pnpm admin:create`；镜像里 `docker compose exec app node scripts/admin-create.mjs …`）。密码只从终端（不回显）/ 标准输入 / `ADMIN_CREATE_PASSWORD` 读，不进命令行参数；已有管理员时需 `--allow-additional-admin`；邮箱已存在直接失败；写一条 `user.create` 审计（不含密码）。
 - 绑定 2FA（账号未开 2FA 前不能登录，两步都要同源 `Origin`；接口在 `/api/auth-admin/` 下，不在 `/api/admin/` 下，因为这是登录前流程）：
   1. `POST /api/auth-admin/enroll` `{ email, password }` → `{ otpauthUri }`（每次调用换新密钥；已开启的账号返回 401）。
   2. `POST /api/auth-admin/enroll/confirm` `{ email, password, totp }` → `{ recoveryCodes: [10 个] }`，只返回这一次，服务端只存哈希。
@@ -163,7 +164,8 @@
 - 发信失败不影响询盘提交：记日志并发后台告警。
 
 ## 存储与限流（部署配置）
-- **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（默认，`UPLOAD_DIR`）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
+- **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（开发默认；自建生产可用：`UPLOAD_DIR` 必须是挂载数据卷的可写绝对路径，key 解析后必须在目录内，不跟随符号链接，写入前校验文件头与扩展名一致，文件 0600 / 目录 0700）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
+- **健康检查** `GET /api/health`：`200 {"ok":true}` / `503 {"ok":false}`，`Cache-Control: no-store`，只查 `SELECT 1`（1.5 秒超时），按来源限流（进程内存），不带版本或错误信息。
 - **限流**（`src/lib/server/ratelimit/`）：`RATE_LIMIT_STORE=memory`（默认，单实例）或 `upstash`（`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`，固定窗口 `INCR` + `PEXPIRE NX`，一次 pipeline 请求，1.5 秒超时）。Upstash 不可用时退回本实例内存计数并记错误日志，既不整站放行也不整站拒绝。代码里用 `await hitRateLimit(...)` / `await enforceAdminRateLimit(...)`（原同步的 `rateLimit` / `adminRateLimit` 已删除，防止漏写 `await`）。
 - 单元测试：`pnpm test`（node:test + tsx，Upstash 和 R2 都用本地模拟服务器，不需要真实账号）。
 

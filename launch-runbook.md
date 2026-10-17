@@ -62,7 +62,8 @@
 | APP_ORIGIN | 后台 Origin 校验用的对外域名 | 空 | 否 | — |
 | ADMIN_TOTP_KEY | 2FA 密钥加密（设好以后不要换） | — | 是 | **Ryan** |
 | ADMIN_ALERT_EMAIL | 后台告警（发信失败、定时任务失败、账号锁定）的收件人；同类告警 30 分钟最多 1 封 | 没设就发给 `INQUIRY_NOTIFY_EMAIL` | 否 | 由 Ryan 提供 |
-| ADMIN_SEED_EMAIL / _NAME / _PASSWORD / _ROLE | 初始化管理员的脚本 | — | 只在初始化时用 | **Ryan**，自己私下操作 |
+| ADMIN_SEED_EMAIL / _NAME / _PASSWORD / _ROLE | 测试 / 本地 / CI 的建号脚本（`pnpm admin:seed`），生产不用 | — | 否 | — |
+| ADMIN_CREATE_PASSWORD | 生产首个管理员 CLI（`scripts/admin-create.mjs`）在**没有终端**时的密码来源，读完立即从进程环境删除；有终端时交互输入，不用设 | — | 否，只在建号那一条命令上临时传，不写进 `.env` | **Ryan**，自己私下操作 |
 | ADMIN_SEED_TOTP_SECRET | 只在测试里用 | — | **生产不能设** | — |
 | PROD_DATABASE_HOST | 让初始化脚本拒绝连生产库 | — | 待确认 | Ryan |
 | CRON_SECRET | 定时任务鉴权 | 没设的话 cron 一律 401 | 是 | **Ryan** |
@@ -71,10 +72,10 @@
 | ~~BEHIND_CLOUDFLARE~~ / ~~TRUSTED_PROXY_HOPS~~ | 已废弃，不再读取 | — | 不要设 | — |
 | RATE_LIMIT_STORE | `upstash` | memory | 是（必须是 upstash） | — |
 | UPSTASH_REDIS_REST_URL / _TOKEN | 限流存储 | — | 是 | **Ryan** |
-| STORAGE_DRIVER | `r2` | local | 是 | — |
-| R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET | 私有存储 | — | 是 | **Ryan** |
+| STORAGE_DRIVER | `local`（自建服务器，文件放挂载的数据卷）或 `r2`，用哪个待 Ryan 定；生产必须显式设置 | local | 是 | Ryan 决定 |
+| R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET | 私有存储（`STORAGE_DRIVER=r2` 时） | — | r2 时必填 | **Ryan** |
 | R2_ENDPOINT | 留空（由账号 ID 推出来） | 推导值 | 否 | — |
-| UPLOAD_DIR | 只有 local 驱动用 | — | 否 | — |
+| UPLOAD_DIR | `STORAGE_DRIVER=local` 时的上传目录：挂载数据卷的**绝对路径**，必须存在且应用用户可读写（建议目录 700、属主为容器内应用用户），不能在应用的 `public/` 或 `.next/` 下。不经 nginx 或静态服务暴露，文件只经现有接口按权限提供 | 本地默认 `./storage/uploads` | local 时必填（缺失、相对路径、不可写 → 拒绝启动） | 运维 |
 | SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS | 发邮件（Gmail SMTP，465 或 587；SMTP_PASS 为 Gmail 应用专用密码） | — | 是 | **Ryan** |
 | MAIL_FROM | 发件人 | — | 是 | Ryan |
 | INQUIRY_NOTIFY_EMAIL | 询盘通知收件人 | — | 是 | Ryan |
@@ -106,11 +107,33 @@
 | RETENTION_DRY_RUN | 设成 `1`：cron 只返回各步骤的待处理条数，不写库、不删文件、不写审计 | 没设时正常清理 | 否（只在上线前试运行时临时设一次，用完删掉） | Ryan |
 | ADMIN_INACTIVE_DAYS | 后台账号闲置多少天自动停用 | 90（7–3650） | 否 | — |
 | SHORTLINK_PROBE_ORIGIN | middleware 探测短链状态（过期返回 410）时用的固定 origin，不用请求里的 Host | 没设时用 `NEXT_PUBLIC_SITE_URL`；两个都没设就不探测，直接放行 | 否 | 由 Ryan 提供（一般留空） |
-| APP_ENV | 正式环境必须设为 `production`；预览/本地不设 | `production` | 必须手动设，未设一律按非生产（整站 noindex、关闭 IndexNow、跳过生产自检） | — |
+| APP_ENV | 正式环境必须设为 `production`；预览/本地不设。**构建和运行时都要设**（noindex 响应头在构建时定下来） | `production` | 必须手动设，未设一律按非生产（整站 noindex、关闭 IndexNow、跳过生产自检） | — |
 | NODE_ENV / CI | 平台自动注入 | — | 不用手动设 | — |
 | E2E_PORT, SEO_AUDIT_*, PREVIEW_*, REVIEWER_APP | 只在 CI 和脚本里用 | — | 否 | — |
 | GitHub `vars.SECURITY_REVIEWER_APP` | 安全审查 bot 的 workflow 配置 | — | CI 用 | 待确认 |
 | GitHub App 私钥 | 代码里没有引用，应该是在 bot 或 CI 那边配置 | — | 待确认 | **Ryan**，只能在私聊里给 |
+
+### 4.1 自建部署（standalone 镜像）：构建时 / 运行时
+
+- **构建时**（服务器上 `docker build`，`next build`，`output: 'standalone'`）只需要：`APP_ENV=production`、`NODE_ENV=production`，以及会被内联进产物的公开值 `NEXT_PUBLIC_SITE_URL`、`NEXT_PUBLIC_TURNSTILE_SITE_KEY`、`NEXT_PUBLIC_ADMIN_API`（以及要用的其他 `NEXT_PUBLIC_*`）。**不需要任何密钥**，也不需要数据库、存储、限流、发信配置；构建阶段不要注入这些值。
+- **运行时**（`node server.js`）：其余全部变量只在容器启动时注入。启动时 `src/instrumentation.ts` 跑完整的生产配置检查，缺任何必填项（如 `EDGE_AUTH_SECRET`、`DATABASE_URL`、`SMTP_PASS`、`UPLOAD_DIR`）直接 exit 1，日志只列变量名和原因，不打印值。
+- 镜像里需要复制：`.next/standalone/`（含 `server.js`、`scripts/admin-create*.mjs` 和追踪到的 `node_modules`）、`.next/static/` → `.next/standalone/.next/static/`、`public/` → `.next/standalone/public/`。
+
+### 4.2 健康检查 `GET /api/health`
+
+- 返回 `200 {"ok":true}` 或 `503 {"ok":false}`，`Cache-Control: no-store`；不带版本、commit、环境或错误信息。只查数据库 `SELECT 1`（1.5 秒超时），不连 Redis、SMTP、R2 或其他外部服务；失败原因只进容器日志（只有错误类型）。
+- 按来源限流（每分钟 120 次，进程内存计数）。容器内的 healthcheck 不经过 nginx、不带 `X-Edge-Auth`，归入 `untrusted` 桶；经 nginx 进来的请求按客户端 IP 分桶。建议 nginx 不对外暴露 `/api/health`（或只允许本机），Docker 健康检查直接请求容器内的 `http://localhost:3000/api/health`。
+- 不经过 middleware（`/api/*` 不做语言跳转），不受邮件开关影响。
+
+### 4.3 首个管理员（只有命令行，没有 HTTP 接口）
+
+```
+docker compose exec app node scripts/admin-create.mjs --email <管理员邮箱> --name "<显示名>"
+```
+
+- 密码在终端里交互输入两次，不回显。没有终端时（如 `docker compose exec -T`）从标准输入读第一行，或读环境变量 `ADMIN_CREATE_PASSWORD`（脚本启动后立即从进程环境删除）。**密码绝不放在命令行参数里**（脚本检测到会直接拒绝）。
+- 密码规则与后台新建账号相同（12–200 位，不能等于邮箱）。邮箱已存在 → 失败，不覆盖。已经有管理员 → 失败，除非显式加 `--allow-additional-admin`；日常加人走后台「账号管理」。
+- 建好的账号未绑定 2FA，首次登录前照常走 2FA 绑定流程。审计里写一条 `user.create`（`via: cli:admin-create`），不含密码、哈希或邮箱。
 
 ## 5. 上线后步骤
 
