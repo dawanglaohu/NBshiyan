@@ -9,6 +9,9 @@
 - **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`），不读请求的 Host。`NEXT_PUBLIC_SITE_URL` 必须等于 `https://geiom.com`（部署要求，运维 `deploy.sh` 校验）；代码会拒绝末尾 `/`、端口、路径、IP/localhost 和非 https：构建失败，运行时也会拒绝启动；域名由 `APP_ORIGIN` 锁定，必须等于它的 origin。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
 - `www.geiom.com` 和 `http://` 的 301 **全部由 nginx 做**（运维已定）：http 裸域、http www、https www 都一跳 301 到 `https://geiom.com$request_uri`。Cloudflare 侧 Always Use HTTPS 关闭，没有 Redirect Rules，也没有 Page Rules。
 - ⚠️ 切换时**不要**在 Cloudflare 加重定向规则，**不要**打开 Always Use HTTPS，否则会和 nginx 的 301 叠成两跳或者循环。
+- nginx 的 `:80` server **只做** `return 301 https://geiom.com$request_uri;`，不反代到容器（PM 2026-10-17 已定）。
+- 如果要加 HSTS：只用较短的 `max-age`，**不加** `preload`（PM 2026-10-17 已定）。
+- Cloudflare 代理（橙云）**必须开**：源站只接受带正确 `X-Edge-Auth` 的请求，这个头由 Cloudflare 注入（见第 2.4 节）。
 - 语言前缀：`src/i18n/routing.ts` 是 `locales: ['en', 'ru']`、`defaultLocale: 'en'`、`localePrefix: 'always'`，所有页面都在 `/en/...` 或 `/ru/...` 下。
 - geiom.com 之前是 Squarespace「Coming Soon」+ noindex，没有旧 URL 收录，不需要做旧地址 301 映射。
 
@@ -116,9 +119,22 @@ for p in /en /ru /en/products /ru/products /en/contact; do echo "== $p"
   curl -sI $S/en | grep -i '^link:' | grep -ci hreflang   # 应为 0
   ```
 
-**转发头（nginx → 容器）——已批准**
+**边缘鉴权和转发头（Cloudflare → nginx → 容器）——安全 + PM 2026-10-17 04:03 PT 已定**
 
-安全已批准运维的新版 nginx，上线用的就是这一版。头部一律在 nginx 里用 `proxy_set_header` 显式设置，不透传客户端发来的值：
+- **Cloudflare 注入 `X-Edge-Auth`**：橙云必须开，由 Cloudflare Transform Rule 给每个请求加上 `X-Edge-Auth`。
+- **nginx 在所有 location 上校验它**（包括 `/api/`、`/_next/`、`/og`）：不对或缺失 → 403 / 444。Host 不是 `geiom.com` → 落到 `default_server`，返回 444。不经过 Cloudflare、直接连源站又不带这个头的请求，都必须被拒绝。
+- **校验通过后，nginx 用服务器上的值覆盖 `X-Edge-Auth` 再转给容器**（同一个值，从服务器上的文件或环境变量读，**绝不进仓库**）。不是清空：应用（`src/lib/edge/client-ip.ts`）会再校验一次，校验通过才信任 `CF-Connecting-IP` 和 `cf-ipcountry`。
+- **顺序**：nginx **先**校验 `X-Edge-Auth`。校验失败直接 403 / 444，根本走不到下面的转发步骤。
+- **`CF-Connecting-IP` 原样转发**：`$http_cf_connecting_ip`（安全 + PM 2026-10-17 决定）。
+  - **为什么安全**：nginx 只放行 `X-Edge-Auth` 正确的请求，这些请求一定经过了 Cloudflare，而 Cloudflare 会覆盖客户端自己带的 `CF-Connecting-IP`，所以转发下去的值可信。
+  - **为什么不用 `real_ip` 模块加 Cloudflare IP 段**：漏掉一段 IP 时会静默出错（不报错），而且要长期同步 Cloudflare 的 IP 列表。这个方案没有采用。
+  - **应用再校验一次**（已在 main，#311，`src/lib/edge/client-ip.ts` 的 `resolveClientIp()`）：
+    1. 先校验 `X-Edge-Auth`（常量时间比较）。不对 → `{ ip: null, trusted: false }`。
+    2. 再用 `validIp()` 校验 `CF-Connecting-IP`：先 trim，必须是单个合法的 IPv4 或 IPv6，不带端口、方括号、zone id，也不能是逗号分隔的列表，最长 45 个字符。IPv4 用正则判断，IPv6 用 `new URL` 解析判断。这段代码要在 Edge 运行时跑，没有 `node:net`，所以不用 `net.isIP`。
+    3. 格式不对 → `{ ip: null, trusted: false }`，限流 key 用统一的 `untrusted`，绝不拿这个头的值当 key。
+    4. `EDGE_AUTH_SECRET` 没设或者不足 32 字节时，**所有**请求都按不可信处理（fail-closed）。`cf-ipcountry` 也只在 `X-Edge-Auth` 正确时才信任（`trustedCountry()`）。
+- **ufw 不变**（Ryan 决定）：源站防护靠 `X-Edge-Auth`，不靠防火墙白名单。
+- 其余头仍在 nginx 里用 `proxy_set_header` 显式设置：
 
 ```nginx
 proxy_set_header Host geiom.com;              # 固定值
@@ -126,13 +142,13 @@ proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
 proxy_set_header X-Forwarded-Proto https;     # 固定值
 proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
 proxy_set_header X-Real-IP "";                # 清空
-proxy_set_header X-Edge-Auth <由 nginx 注入，值不写在这里>;
-proxy_set_header CF-Connecting-IP $remote_addr;   # 只信任 Cloudflare 来源（前提：下面的 444 规则保留）
+proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
 ```
 
-- 443 的 `geiom.com` server 用精确的 `server_name geiom.com`，Host 不对直接返回 **421**。canonical、hreflang、Location 都不会被伪造的 Host 污染。
-- `X-Edge-Auth` 由 nginx 注入，会覆盖客户端自己带的同名头。它的值不能出现在日志、仓库和聊天里。
-- `CF-Connecting-IP` 用 `$remote_addr` 显式设置，不读、不透传客户端带来的同名头。只有在「非 Cloudflare 来源 → 444」这条规则保留时，`$remote_addr` 才一定是 Cloudflare 节点，这条规则**不能删**。
+- 443 的 `geiom.com` server 用精确的 `server_name geiom.com`，Host 不对的请求落到 `default_server`，返回 **444**。canonical、hreflang、Location 都不会被伪造的 Host 污染。
+- `X-Edge-Auth` 和 `EDGE_AUTH_SECRET` 的值不能出现在日志、仓库和聊天里。
+- `CF-Connecting-IP` 可信的前提是：`X-Edge-Auth` 校验覆盖**所有** location。任何一个 location 漏了校验，客户端就能伪造 `CF-Connecting-IP`。
 - **以最终 `nginx -t` 通过的文件为准。** 本文不写任何密钥值或源站 IP。
 - nginx 改动只限安全批准的 NBshiyan 站点配置，服务器上其他 nginx 配置一律不动。
 - 上线后自检：
@@ -217,6 +233,9 @@ location ^~ /api/health/ { return 404; }
 
 - [ ] HTML 不被缓存：`curl -sI $S/en | grep -i cf-cache-status` → `DYNAMIC` 或 `BYPASS`，不能是 `HIT`。`/_next/static/*` 可以 `HIT`。
 - [ ] 爬虫不被挑战：Bot Fight Mode / WAF 放行已验证爬虫（Googlebot、YandexBot、bingbot）。以 GSC「网址检查 → 测试实际网址」和 Yandex「Проверка ответа сервера」返回 200 为准，不能只靠改 UA 的 curl。这两项要等第 4 节的站点验证完成后才能用，所以放在第 4 节验证通过后补做；在那之前先看 Cloudflare Security Events 有没有拦截已验证爬虫。
+- [ ] **直连源站被拒绝**（外部冒烟，由运维从服务器外部做，只记 PASS / FAIL，不记录、不发送任何 IP 或响应内容）：不经过 Cloudflare、直接连源站、不带 `X-Edge-Auth` 的请求，对 `/`、`/en`、`/api/`、`/_next/`、`/og` 都不能拿到正常内容（应为 403 或连接被关闭）。拿到 200 就是 FAIL。
+- [ ] **`:80` 只跳转**：`curl -sI http://geiom.com/en?a=1` 是一个 301 到 `https://geiom.com/en?a=1`，响应里没有应用的内容（第 2.5 节）。
+- [ ] **询盘限流按客户端，不是全站一个桶**（外部冒烟）：从同一个客户端经 `https://geiom.com` 连续提交几次询盘，应在达到上限后被限流（429）；换一个网络的客户端提交仍然正常。随后由运维看容器日志：不能出现成批的 `untrusted` 限流记录（`src/lib/edge/client-ip.ts` 把不可信请求放进同一个 `untrusted` 桶；成批出现说明 `X-Edge-Auth` 覆盖或 `CF-Connecting-IP` 转发没生效）。日志里只看有没有这类记录，不把 IP 或请求内容发到群里。测试询盘要能区分，测完由运维或 Ryan 清理。
 
 ## 3. 上线时开放索引的页面（SEO 单独开代码 PR）
 
