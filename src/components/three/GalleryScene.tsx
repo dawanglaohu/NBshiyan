@@ -1,12 +1,12 @@
 'use client';
-import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentRef, type RefObject } from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentRef, type RefObject } from 'react';
 import { ACESFilmicToneMapping, type PerspectiveCamera as PCam, type Texture } from 'three';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { View, Bounds, Center, OrbitControls, PerspectiveCamera, Environment, ContactShadows, useEnvironment } from '@react-three/drei';
 import SceneErrorBoundary from './SceneErrorBoundary';
 import { lightRig } from './lights';
 import ProductModel, { type BoxView, type AnimationClips, type ModelBounds } from './ProductModel';
-import { frameBox } from '@/lib/three/framing';
+import { frameClosedBox, openDollyFactor, easeInOut, OPEN_DOLLY_MS } from '@/lib/three/framing';
 
 export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
 
@@ -51,11 +51,13 @@ function usesGltf(i: SceneItem) { return !!i.model && !(i.view === 'dieline' && 
 
 const FOV = 40;
 /**
- * 真实模型取景（#172 第 1、2、8 点）：
- * - 包围盒取所有动画状态的并集（合盖 + 开盖），开盖后盖子不会被裁掉，切换视图时相机也不跳；
- * - 模型水平居中、底面落在 y=0，相机按包围球 + 留白算距离，同时考虑卡片宽高比（手机竖卡更窄）；
- * - near/far 跟着模型尺寸走，OrbitControls 的缩放范围也按取景距离换算；
- * - 接触阴影按模型底面尺寸缩放，加深、收紧，盒子不再像悬空。
+ * 真实模型取景（#172 第 1、2、8 点，#291）：
+ * - 只按合盖姿态取景：合盖时模型顶点（真实轮廓）投影后占画面高度 70%（目标 65–75%），四边至少留 1.08 倍余量；
+ *   窄画面 / 扁平产品自动改按宽度放下（390 竖屏不会左右被切）；
+ * - 开盖时镜头沿当前视线拉远，最多 10%、300ms 缓动，盖子仍可能稍微出画；合盖时在盖子落下前 300ms 拉回；
+ *   减少动态效果时直接跳到目标距离；
+ * - 模型水平居中、底面落在 y=0；near/far 跟着模型尺寸走，OrbitControls 的缩放范围也按取景距离换算；
+ * - 接触阴影按开盖全过程的底面尺寸缩放，开盖后盖子的阴影也不会被切。
  */
 function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: Texture; onReady: (slug: string) => void; onError?: (slug: string) => void }) {
   const [b, setB] = useState<ModelBounds>();
@@ -64,10 +66,32 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height));
   const invalidate = useThree((s) => s.invalidate);
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
-  // 模型平移：xz 居中，底面落地
+  // 模型平移：按合盖姿态 xz 居中，底面落地
   const offset: [number, number, number] = b ? [-(b.min[0] + b.max[0]) / 2, -b.min[1], -(b.min[2] + b.max[2]) / 2] : [0, 0, 0];
   const size: [number, number, number] = b ? [b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]] : [1, 1, 1];
-  const f = b ? frameBox([-size[0] / 2, 0, -size[2] / 2], [size[0] / 2, size[1], size[2] / 2], FOV, aspect) : undefined;
+  const ob = b?.open ?? b;
+  const openMin: [number, number, number] = ob ? [ob.min[0] + offset[0], ob.min[1] + offset[1], ob.min[2] + offset[2]] : [0, 0, 0];
+  const openMax: [number, number, number] = ob ? [ob.max[0] + offset[0], ob.max[1] + offset[1], ob.max[2] + offset[2]] : [1, 1, 1];
+  // 顶点采样平移到取景坐标（和模型 group 同样的 offset）
+  const shift = (a?: [number, number, number][]) => a?.map((p) => [p[0] + offset[0], p[1] + offset[1], p[2] + offset[2]] as [number, number, number]);
+  // 取景只在包围盒 / 画面比例变化时重算（顶点采样最多几千个点，二分求距离）
+  const { f, dolly } = useMemo(() => {
+    if (!b) return { f: undefined, dolly: 1 };
+    const fr = frameClosedBox([-size[0] / 2, 0, -size[2] / 2], [size[0] / 2, size[1], size[2] / 2], FOV, aspect, { points: shift(b.points?.closed) });
+    return { f: fr, dolly: openDollyFactor(fr, openMin, openMax, FOV, aspect, { points: shift(b.points?.open) }) };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [b, aspect]);
+  // 当前镜头倍数（1 = 合盖取景距离），和动画状态
+  const zoom = useRef({ k: 1, from: 1, to: 1, t0: 0, dur: OPEN_DOLLY_MS });
+  const placeAt = (k: number) => {
+    if (!f) return;
+    const t = controls.current?.target;
+    const cx = t ? t.x : f.center[0], cy = t ? t.y : f.center[1], cz = t ? t.z : f.center[2];
+    const dx = camera.position.x - cx, dy = camera.position.y - cy, dz = camera.position.z - cz;
+    const len = Math.hypot(dx, dy, dz) || 1;
+    const d = f.distance * k;
+    camera.position.set(cx + (dx / len) * d, cy + (dy / len) * d, cz + (dz / len) * d);
+  };
   useLayoutEffect(() => {
     if (!f) return;
     camera.position.set(...f.position);
@@ -76,10 +100,40 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
     camera.lookAt(...f.center);
     camera.updateProjectionMatrix();
     if (controls.current) { controls.current.target.set(...f.center); controls.current.update(); }
+    zoom.current.k = 1;
+    if (i.view === 'open') { zoom.current = { ...zoom.current, k: dolly, from: dolly, to: dolly }; placeAt(dolly); }
     invalidate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [f?.distance, f?.center[1], camera, invalidate]);
-  const footprint = Math.max(size[0], size[2]);
+  // 开 / 合盖时拉远 / 拉回镜头
+  const lastView = useRef(i.view);
+  useEffect(() => {
+    if (!f || lastView.current === i.view) return;
+    lastView.current = i.view;
+    const to = i.view === 'open' ? dolly : 1;
+    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const z = zoom.current;
+    if (reduced) { z.k = z.from = z.to = to; placeAt(to); controls.current?.update(); invalidate(); return; }
+    // 合盖：等盖子快落下（片段最后 300ms）再拉回，避免盖子还开着时被切掉
+    const delay = i.view === 'open' ? 0 : Math.max(0, (b?.openDuration ?? 0) * 1000 - OPEN_DOLLY_MS);
+    z.from = z.k; z.to = to; z.t0 = performance.now() + delay;
+    invalidate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i.view, dolly]);
+  useFrame(() => {
+    const z = zoom.current;
+    if (z.k === z.to) return;
+    const now = performance.now();
+    if (now >= z.t0) {
+      const t = (now - z.t0) / z.dur;
+      z.k = t >= 1 ? z.to : z.from + (z.to - z.from) * easeInOut(t);
+      placeAt(z.k);
+      controls.current?.update();
+    }
+    invalidate();
+  });
+  const footprint = Math.max(openMax[0] - openMin[0], openMax[2] - openMin[2], size[0], size[2]);
+  const shadowH = Math.max(openMax[1] - openMin[1], size[1]);
   return (
     <>
       <Suspense fallback={null}>
@@ -92,7 +146,7 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
         <Environment map={env} environmentIntensity={1} />
         {b && (
           // 静态接触阴影：按底面尺寸缩放（含开盖后的盖子），比原来更深、更实，盒子贴地
-          <ContactShadows key={`${footprint.toFixed(4)}:${i.view ?? ''}`} position={[0, 0.0005, 0]} opacity={0.6} blur={1.8} scale={footprint * 2.4} far={Math.max(size[1], footprint) * 0.6} resolution={512} frames={1} />
+          <ContactShadows key={`${footprint.toFixed(4)}:${i.view ?? ''}`} position={[0, 0.0005, 0]} opacity={0.6} blur={1.8} scale={footprint * 2.4} far={Math.max(shadowH, footprint) * 0.6} resolution={512} frames={1} />
         )}
       </Suspense>
       <OrbitControls ref={controls} domElement={i.track.current ?? undefined} enabled={i.active} enableZoom={!!i.zoom} enablePan={false}
