@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { LoopOnce, Matrix4, type Group } from 'three';
-import { unionAnimatedBox, boxToTuple } from '@/lib/three/framing';
+import { LoopOnce, Matrix4, Vector3, type Group } from 'three';
+import { unionAnimatedBox, closedPoseBox, sampleAnimatedPoints, boxToTuple } from '@/lib/three/framing';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation, LODsManager } from '@needle-tools/gltf-progressive';
@@ -10,7 +10,11 @@ import FoldBox, { type BoxView } from './FoldBox';
 export type { BoxView };
 /** 真实 GLB 里对应“开盖 / 展开刀模”的动画片段名 */
 export type AnimationClips = { open?: string; unfold?: string };
-export type ModelBounds = { min: [number, number, number]; max: [number, number, number] };
+/**
+ * 取景用包围盒（#291）：min/max = 合盖姿态（相机只按它取景）；
+ * open = 开盖全过程的并集（只用来算开盖时镜头拉远多少、接触阴影多大）；openDuration = 开盖片段时长（秒）。
+ */
+export type ModelBounds = { min: [number, number, number]; max: [number, number, number]; open?: { min: [number, number, number]; max: [number, number, number] }; openDuration?: number; /** 顶点采样：按真实轮廓取景 */ points?: { closed: [number, number, number][]; open: [number, number, number][] } };
 const PALETTE: Record<string, { color: string; lid?: string }> = {
   'gift-boxes': { color: '#1d1d22', lid: '#d4af6a' },
   'wine-boxes': { color: '#6b1f2a', lid: '#d4af6a' },
@@ -57,14 +61,22 @@ function Gltf({ url, view, clip, onBounds }: { url: string; view?: BoxView; clip
     useNeedleProgressive(loader as never, gl);
   });
   useLodUpgradeRedraw();
-  // 取景用所有动画状态的并集包围盒（合盖 + 开盖全过程），在播放任何动画之前算好（#172）
+  // 取景用合盖姿态的包围盒；开盖全过程的并集另外给出（只用于开盖时拉远镜头），在播放任何动画之前算好（#172、#291）
   useEffect(() => {
     if (!onBounds) return;
     const used = clip ? animations.filter((a) => a.name === clip) : [];
-    const box = unionAnimatedBox(scene, used);
+    const closed = closedPoseBox(scene, used);
+    const union = unionAnimatedBox(scene, used).union(closed);
     // 转到外层 group 的局部坐标：外层取景 group 只做平移，结果与它的局部空间一致
-    if (scene.parent) box.applyMatrix4(new Matrix4().copy(scene.parent.matrixWorld).invert());
-    if (!box.isEmpty()) onBounds(boxToTuple(box));
+    const pts = sampleAnimatedPoints(scene, used);
+    if (scene.parent) {
+      const inv = new Matrix4().copy(scene.parent.matrixWorld).invert();
+      closed.applyMatrix4(inv); union.applyMatrix4(inv);
+      const v = new Vector3();
+      const tx = (a: [number, number, number][]) => a.map((p) => { v.set(...p).applyMatrix4(inv); return [v.x, v.y, v.z] as [number, number, number]; });
+      pts.closed = tx(pts.closed); pts.open = tx(pts.open);
+    }
+    if (!closed.isEmpty()) onBounds({ ...boxToTuple(closed), open: boxToTuple(union), openDuration: used[0]?.duration, points: pts });
   }, [scene, animations, clip, onBounds]);
   const { actions } = useAnimations(animations, root);
   const first = useRef(true);

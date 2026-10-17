@@ -63,8 +63,8 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
   return (
     <div className="hero-media" data-state={state}>
       <picture>
-        <source media={PORTRAIT_MQ} type="image/avif" srcSet="/video/hero-115-portrait-poster.avif" />
-        <source media={PORTRAIT_MQ} type="image/webp" srcSet="/video/hero-115-portrait-poster.webp" />
+        <source media={PORTRAIT_MQ} type="image/avif" srcSet="/video/hero-115-portrait-poster.32037cea.avif" />
+        <source media={PORTRAIT_MQ} type="image/webp" srcSet="/video/hero-115-portrait-poster.e3ad2401.webp" />
         <source media={DESKTOP_MQ} srcSet={desktopSrcSet} sizes="50vw" />
         {/* eslint-disable-next-line jsx-a11y/alt-text -- alt 来自 getImageProps */}
         <img {...posterImg} srcSet={desktopSrcSet} />
