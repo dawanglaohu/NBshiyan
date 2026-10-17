@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { mailApi, MailError, type AssignLookup, type UnassignedDetail, type UnassignedPage } from '@/lib/admin/mail/api';
 import { ALREADY_HANDLED, ASSIGN_HINT, assignErrorText, DELETED, expiresText, fmtCountdown, REF_RE, showUnverified, subjectText, UNVERIFIED } from '@/lib/admin/mail/logic';
 import { AttachmentCard, FlagBanners, FlagChips, MailBody, Unverified, useCountdown } from './MailParts';
+import AdminTime from '../AdminTime';
 
-const fmt = (iso: string) => new Date(iso).toLocaleString('zh-CN', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 type Tab = 'UNASSIGNED' | 'IGNORED';
 
 export default function UnassignedInbox() {
@@ -59,7 +59,7 @@ export default function UnassignedInbox() {
             return (
               <li key={r.id}>
                 <button type="button" aria-current={sel === r.id ? 'true' : undefined} onClick={() => setSel(r.id)}>
-                  <span className="ml-row sb"><b className="ml-from">{r.redacted ? '—' : r.from}</b><time dateTime={r.receivedAt} className="muted">{fmt(r.receivedAt)}</time></span>
+                  <span className="ml-row sb"><b className="ml-from">{r.redacted ? '—' : r.from}</b><AdminTime iso={r.receivedAt} className="muted" /></span>
                   <span className={`s${subj === r.subject ? '' : ' ph'}`}>{r.redacted ? DELETED : subj}</span>
                   {r.snippet && <span className="muted snip">{r.snippet}</span>}
                   <span className="ml-row">
@@ -92,7 +92,7 @@ function Detail({ d, onIgnore, onUnignore, onAssigned, onHandled }: { d: Unassig
   const subj = subjectText(d);
   return (
     <article className="ml-msg in wide" aria-label="未归类邮件">
-      <div className="ml-meta">{!d.redacted && <b>{d.from}</b>}{d.to && <span>→ {d.to}</span>}<time dateTime={d.receivedAt}>{fmt(d.receivedAt)}</time>{d.redacted && <span className="ml-pill">已删除</span>}<span className={`ml-exp${ex.soon ? ' soon' : ''}`}>{ex.text}</span></div>
+      <div className="ml-meta">{!d.redacted && <b>{d.from}</b>}{d.to && <span>→ {d.to}</span>}<AdminTime iso={d.receivedAt} />{d.redacted && <span className="ml-pill">已删除</span>}<span className={`ml-exp${ex.soon ? ' soon' : ''}`}>{ex.text}</span></div>
       {showUnverified(d) && <Unverified />}
       {!d.redacted && <FlagBanners flags={d.flags} />}
       {subj !== null && <div className={`ml-subj${subj === d.subject ? '' : ' ph'}`}>{subj}</div>}
@@ -164,7 +164,7 @@ function ConfirmDialog({ hit, unverified, busy, onCancel, onConfirm }: { hit: As
         <dl>
           <dt>客户</dt><dd>{hit.customer.name}{hit.customer.company ? ` · ${hit.customer.company}` : ''}</dd>
           <dt>邮箱</dt><dd>{hit.customer.emailMasked}</dd>
-          <dt>创建</dt><dd>{new Date(hit.createdAt).toLocaleDateString('zh-CN')}</dd>
+          <dt>创建</dt><dd><AdminTime iso={hit.createdAt} /></dd>
         </dl>
         {unverified && <Unverified />}
         <p className="muted">归档后这封信会出现在该询盘的往来记录里，跟随询盘的 730 天保留期。</p>
