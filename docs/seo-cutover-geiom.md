@@ -23,6 +23,7 @@ S=https://geiom.com
 - [ ] 构建时 `APP_ENV=production`、`NODE_ENV=production`。`isProdEnvFrom()`（`src/lib/site.ts`）只认 `APP_ENV === 'production'`（过渡期另认 `VERCEL_ENV`）。没设 → `next.config.ts` 给全站加 `X-Robots-Tag: noindex, nofollow`，`robots.txt` 变成 `Disallow: /`，IndexNow 关闭。
 - [ ] **运行时** env_file 里也必须有 `APP_ENV=production`。启动检查（`src/instrumentation.ts` → `runStartupEnvCheck()`）只在 `APP_ENV=production` 时执行；没设就整段跳过，缺密钥、缺数据库也照样启动。
   部署后由运维在服务器上确认启动检查确实跑了（只看变量名和退出码，不打印任何值）：
+  - ⚠️ **不要**直接跑不带参数的 `printenv`、`env` 或 `docker compose config`：它们会把所有变量连同密钥一起打印出来（屏幕、终端记录、日志）。只能按单个变量查，例如 `printenv APP_ORIGIN`，而且只查本文列出的非密钥变量。是否通过以 `deploy.sh` 检查的退出码为准，单变量查看只作辅助。
   - 容器里 `APP_ENV` 是 `production`，例如 `docker compose exec <app> printenv APP_ENV`。
   - 检查通过时没有日志输出，所以要做一次反向验证：用一次性容器、同一镜像、同一 env_file，故意让一项必填配置失效（比如 `UPLOAD_DIR` 指向不可写目录），应输出「生产环境配置检查未通过，拒绝启动」加变量名，并 exit 1。测完删掉这个容器，正式容器不动。
 - [ ] **运行时** env_file 里必须有 `APP_ORIGIN=https://geiom.com`（不是可选项，不能留空）。后端 PR #328（`fix/root-redirect-location`）加了启动检查，下面任一条不满足就 exit 1：
