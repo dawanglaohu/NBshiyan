@@ -4,12 +4,13 @@ import { storage } from '@/lib/server/storage';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
 import { requireAdmin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { audit } from '@/lib/server/admin/audit';
-import { storedFileResponse } from '@/lib/server/file-response';
+import { fileRoute, storedFileResponse } from '@/lib/server/file-response';
 
 export const runtime = 'nodejs';
 const noStore = { 'Cache-Control': 'private, no-store' };
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+// #323：fileRoute 让 401 / 404 / 429 / 500 等错误响应也带 FILE_CSP + nosniff
+export const GET = fileRoute(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
   const limited = await enforceAdminRateLimit(req, 'upload.view');
@@ -24,4 +25,4 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   await audit({ actorId: ctx.user.id, action: 'upload.view', target: u.id, ip: ctx.ip });
   // Content-Type 由存储 key 决定（写入时按文件头检测），不用数据库里的 mime 字段
   return storedFileResponse(data, u.path, `logo-${u.id}`, { access: 'private' });
-}
+});
