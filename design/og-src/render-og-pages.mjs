@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import { tag } from './og-tagline.mjs';
 import { resolvePoster } from './og-assets.mjs';
+import { writeOgVersions } from './og-versions.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const R=process.cwd();
 const msg={en:JSON.parse(fs.readFileSync(R+'/messages/en.json','utf8')),ru:JSON.parse(fs.readFileSync(R+'/messages/ru.json','utf8'))};
@@ -30,3 +31,4 @@ for(const j of jobs){await pg.setContent(page(j));await pg.evaluate(()=>document
   let q=88,buf;do{buf=await pg.screenshot({type:'jpeg',quality:q});q-=6}while(buf.length>100*1024&&q>40);
   fs.writeFileSync(`${R}/public/og/${j.file}`,buf);out.push([j.file,j.title,buf.length,q+6,ok,font]);}
 await b.close();console.log(JSON.stringify(out,null,0));
+writeOgVersions(R);
