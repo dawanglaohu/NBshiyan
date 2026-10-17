@@ -5,7 +5,7 @@
 
 ## 0. 前提
 - 正式域名已上线，HTTPS 正常，`NEXT_PUBLIC_SITE_URL` 已经填好（例如 `https://<domain>`）。
-- 带 www 和不带 www **只保留一个**：另一个在 Vercel 里 301 到 `NEXT_PUBLIC_SITE_URL`。http 也 301 到 https。
+- 带 www 和不带 www **只保留一个**：另一个由服务器 nginx 301 到 `NEXT_PUBLIC_SITE_URL`。http 也 301 到 https。
 - 生产环境不带 noindex，robots.txt 允许抓取（见 `docs/launch-checklist.md` 第 6 节）。
 
 ## 1. 添加站点 🔑
@@ -14,7 +14,7 @@
 
 ## 2. 所有权验证：meta 标签
 1. 在验证页选择 “Meta tag on the home page”，复制 `content` 里的值。
-2. 在 Vercel 生产环境把这个值设为 `NEXT_PUBLIC_YANDEX_VERIFICATION`（🔑 需要 Vercel 登录），然后重新部署。代码已经支持（#83），会在首页 `<head>` 里输出 `<meta name="yandex-verification" content="…">`。
+2. 把这个值设为 `NEXT_PUBLIC_YANDEX_VERIFICATION`（公开值，构建时内联，放进服务器构建参数），然后重新构建并部署。代码已经支持（#83），会在首页 `<head>` 里输出 `<meta name="yandex-verification" content="…">`。
 3. 查看首页源码，确认标签确实在 `<head>` 里，然后点 Verify。验证最多需要 24 小时。
 4. **验证通过后也不要删掉这个变量**：Yandex 会定期复查，找不到验证码就会撤销所有权。
 5. 如果首页有重定向，或者对 Yandex 机器人返回的不是 200，验证会失败。可以用 Webmaster 里的 Tools → Server response check 检查。
@@ -44,7 +44,7 @@ Yandex 支持 IndexNow：新增、修改或删除页面时主动通知搜索引�
 - **密钥**：8 到 128 个字符，只能用 `a-z A-Z 0-9 -`。放在网站根目录的 `/{key}.txt`，文件名就是密钥，文件内容也只有密钥本身，UTF-8 纯文本，不能有 HTML。如果放在子目录，只能提交那个目录下的地址，所以要放根目录。
 - **推送接口**：单个地址用 `GET https://yandex.com/indexnow?url=…&key=…`；多个地址用 `POST https://yandex.com/indexnow`，JSON 里放 `host`、`key`、`urlList`，一次最多 10,000 个。
 - **实现方案**（之后单独提 PR，需要的话由我来做）：
-  1. 环境变量 `INDEXNOW_KEY`（🔑 由 Ryan 或全栈在 Vercel 里设置）。
+  1. 环境变量 `INDEXNOW_KEY`（🔑 由 Ryan 或运维放进服务器环境文件）。
   2. `/[key].txt` 和 `[locale]` 路由会冲突。在 middleware 里匹配 `/${INDEXNOW_KEY}.txt`，返回 `text/plain` 的密钥内容；或者构建时生成 `public/<key>.txt`。
   3. 在 Sanity 的 revalidate webhook（`/api/sanity/revalidate`）里，文档发布或下线后，把这个文档的英俄两个地址 POST 到 `https://yandex.com/indexnow`（Bing 用 `api.indexnow.org`）。只在生产环境推送，失败只记日志，不重试。
   4. 品类页开关打开时，手动推送一次这 24 个地址。

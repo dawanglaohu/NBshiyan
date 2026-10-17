@@ -1,5 +1,6 @@
-// 创建第一个后台管理员。凭据只从环境变量读，不要写进仓库或 shell 历史文件。
-// 用法：ADMIN_SEED_EMAIL=... ADMIN_SEED_NAME=... ADMIN_SEED_PASSWORD=... pnpm admin:create
+// 测试 / 本地 / CI 建号（pnpm admin:seed）。生产首个管理员请用 scripts/admin-create.mjs（pnpm admin:create）。
+// 凭据只从环境变量读，不要写进仓库或 shell 历史文件。
+// 用法：ADMIN_SEED_EMAIL=... ADMIN_SEED_NAME=... ADMIN_SEED_PASSWORD=... pnpm admin:seed
 // 创建后需先走 /api/auth-admin/enroll 绑定 2FA 才能登录。
 // 仅 CI / 本地：设置 ADMIN_SEED_TOTP_SECRET（base32）会直接写入加密后的 TOTP 密钥并启用 2FA，跳过绑定。
 //   生产环境（NODE_ENV=production 或 APP_ENV=production）设置了该变量直接报错退出。

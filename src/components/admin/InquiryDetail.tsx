@@ -7,7 +7,8 @@ import MailThread from './mail/MailThread';
 import { mailEnabled } from '@/lib/admin/mail/api';
 import StatusBadge from './StatusBadge';
 import { AnonTag, DeletedBody, AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, LockedStatus, statusConflictText } from './anonymized';
-import { errorText, loginHref, fmtDate, productName, relTime } from './format';
+import { errorText, loginHref, fmtDate, productName } from './format';
+import AdminTime from './AdminTime';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
 // 服务端存的是转义后的 HTML（换行为 <br>）：先还原换行、去标签，再解码实体，整体按纯文本显示
@@ -82,7 +83,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         <h1>{anon ? `询盘 ${inq.ref}` : c.company ?? c.name}</h1>
         <StatusBadge status={inq.status} />
         {!anon && score < REVIEW_THRESHOLD && <span className="badge REVIEW">待核实</span>}
-        <span className="muted">· {c.region} · {relTime(inq.createdAt)}</span>
+        <span className="muted">· {c.region} · <AdminTime iso={inq.createdAt} /></span>
         <span className="sp" />
         {ctl.statusEditable ? <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => changeStatus(e.target.value as InquiryStatus)} aria-label="状态">
           {(Object.keys(STATUS_LABEL) as InquiryStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
@@ -106,14 +107,15 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
           <section className="adm-sec">
             <h2>{mailEnabled ? '询盘留言' : <>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></>}</h2>
             {inq.message && (
-              <div className="adm-msg2 INBOUND"><div className="meta">客户 · {who} · {fmtDate(inq.createdAt)}</div>
+              <div className="adm-msg2 INBOUND"><div className="meta">客户 · {who} · <AdminTime iso={inq.createdAt} /></div>
                 <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={inq.message} />}</div></div>)}
             {/* #74：开启邮件功能后，旧 InquiryMessage 由 8.3 接口以 source:"legacy" 合并进下面的 MailThread，这里不再重复显示 */}
             {!mailEnabled && inq.messages.map((m) => (
               <div key={m.id} className={`adm-msg2 ${m.direction}`}>
-                <div className="meta">{m.direction === 'INBOUND' ? <>客户 · {who}</> : `我们${m.author ? ` · ${m.author}` : ''}`} · {fmtDate(m.createdAt)} · {anon ? <AnonTag /> : m.subject}</div>
+                <div className="meta">{m.direction === 'INBOUND' ? <>客户 · {who}</> : `我们${m.author ? ` · ${m.author}` : ''}`} · <AdminTime iso={m.createdAt} /> · {anon ? <AnonTag /> : m.subject}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={plain(m.bodyHtml)} />}</div>
               </div>))}
+            {!inq.message && (mailEnabled || inq.messages.length === 0) && <EmptyNote />}
             {/* 附件区整体不显示：后端暂无附件接口（#85），有了再按扫描状态加回 */}
           </section>
 
@@ -131,17 +133,19 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
                 <option value={inq.locale === 'ru' ? 'Уточните, пожалуйста, размеры и материал.\n' : 'Could you confirm the dimensions and material?\n'}>确认规格</option>
               </select>
               <button type="button" className="adm-btn sq" disabled title="附件上传接口待后端提供">📎 附件</button>
-              <span className="sp" style={{ flex: 1 }} />
+              <div className="adm-reply-actions">
               <button type="button" className="adm-btn sq" disabled={!body.trim()} onClick={() => { localStorage.setItem(draftKey(inq.id), body); setSaved(true); }}>{saved ? '草稿已保存' : '保存草稿'}</button>
               <button type="button" className="adm-btn primary sq" disabled={busy || !body.trim()} onClick={sendAndFollow}>
                 {inq.status === 'NEW' ? '发送并改为“跟进中”' : '发送'}
               </button>
+              </div>
             </div>
           </section>}
 
           <section className="adm-sec">
             <h2>内部备注 <span className="muted">{anon ? '只读' : '仅团队可见'}</span></h2>
-            {inq.notes.map((n) => <p key={n.id} style={{ margin: '0 0 8px' }}><b>{n.author}</b> <span className="muted">{fmtDate(n.createdAt)}</span><br />{anon ? <DeletedBody /> : n.body}</p>)}
+            {anon && inq.notes.length === 0 && <EmptyNote />}
+            {inq.notes.map((n) => <p key={n.id} style={{ margin: '0 0 8px' }}><b>{n.author}</b> <AdminTime iso={n.createdAt} className="muted" /><br />{anon ? <DeletedBody /> : n.body}</p>)}
             {!anon && <form onSubmit={(e) => { e.preventDefault(); if (note.trim()) run(async () => { await adminApi.addNote(inq.id, note.trim()); setNote(''); }); }}>
               <textarea rows={2} style={{ width: '100%' }} value={note} onChange={(e) => setNote(e.target.value)} placeholder="@同事 …" aria-label="内部备注" />
               <button className="adm-btn sq" disabled={busy || !note.trim()} style={{ marginTop: 6 }}>添加备注</button>
@@ -150,8 +154,9 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
 
           <section className="adm-sec">
             <h2>操作历史</h2>
+            {inq.history.length === 0 && <EmptyNote />}
             <ul className="adm-hist">
-              {[...inq.history].reverse().map((h) => <li key={h.id}><span className="muted">{fmtDate(h.at)}</span> · {h.actor ? `${h.actor}：` : ''}{h.action}</li>)}
+              {[...inq.history].reverse().map((h) => <li key={h.id}><AdminTime iso={h.at} className="muted" /> · {h.actor ? `${h.actor}：` : ''}{h.action}</li>)}
             </ul>
           </section>
         </div>
@@ -188,7 +193,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
                   : <span className="adm-logo2">{logoErr ? 'Logo 加载失败' : 'Logo…'}</span>) : null}
                 <div>
                   <b>{productName(it.productSlug)} · {it.quantity?.toLocaleString('en-US') ?? '—'} pcs</b>
-                  <div className="muted">{it.config ? Object.values(it.config).map(String).join(' · ') : '—'}{inq.logoUploadId && i === 0 ? ' · 附 Logo' : ''}</div>
+                  <div className="muted">{it.config && Object.keys(it.config).length ? Object.values(it.config).map(String).join(' · ') : <span className="adm-empty-note">{EMPTY_TEXT}</span>}{inq.logoUploadId && i === 0 ? ' · 附 Logo' : ''}</div>
                   {it.designId && <div className="muted">定制方案 <a className="adm-url" href={`/${inq.locale}/s/${it.designId}`} target="_blank" rel="noopener noreferrer">/{inq.locale}/s/{it.designId}</a></div>}
                 </div>
               </div>))}
@@ -198,3 +203,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
     </>
   );
 }
+
+/** #291：空卡片 / 空字段统一显示灰色「暂无记录」 */
+const EMPTY_TEXT = '暂无记录';
+function EmptyNote() { return <p className="adm-empty-note" data-testid="empty-note">{EMPTY_TEXT}</p>; }

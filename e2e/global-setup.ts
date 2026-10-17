@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-// 用 pnpm admin:create 创建测试管理员（仅 E2E 数据库）。已存在则忽略。
+// 用 scripts/create-admin.mjs（pnpm admin:seed）创建测试管理员（仅 E2E 数据库）。已存在则忽略。
 export default function globalSetup() {
   if (!process.env.DATABASE_URL) throw new Error('E2E 需要 DATABASE_URL（测试库）');
   try {

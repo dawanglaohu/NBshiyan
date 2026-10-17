@@ -1,6 +1,6 @@
 # PackJoyU 上线手册（launch runbook）
 
-代码和 `.env.example` 里引用的 `launch-runbook.md` 就是这份。只写流程和约束，**不写任何真实连接串、密钥、主机名或账号**；这些只放在 Vercel / Cloudflare / Upstash 等平台的环境变量里，由 Ryan 本人配置。基础设施方案见 #74。
+代码和 `.env.example` 里引用的 `launch-runbook.md` 就是这份。只写流程和约束，**不写任何真实连接串、密钥、主机名或账号**；这些只放在服务器上应用的环境文件（`env_file`，权限 600）和 Cloudflare / Upstash 等平台的配置里，由 Ryan 本人或经他授权的运维配置。部署方式：自建服务器，Docker（在服务器上从公开仓库按已合并的 commit SHA 构建 standalone 镜像），本地 Postgres 容器（不开对外端口），上传文件存服务器本地磁盘（`STORAGE_DRIVER=local` + `UPLOAD_DIR`）。基础设施方案见 #74。
 
 ## 1. 部署顺序（硬性）
 
@@ -23,11 +23,11 @@
 
 ## 2. 回滚：只回滚代码
 
-1. **Vercel 立即回滚**：Vercel → Deployments → 上一个正常的部署 → Instant Rollback（Ryan 操作）。
+1. **服务器立即回滚**：在服务器上切回上一个正常的已合并 commit SHA 重新构建镜像（或直接用保留的上一版镜像），`docker compose up -d` 重启 app 容器（运维操作，Ryan 批准）。数据库和上传数据卷不动。
 2. **代码回滚**：`git revert -m 1 <合并提交>`，普通 push，再开 PR 走正常流程。不 force push，不改 main 的历史。
 3. **数据库不回滚**：新加的列、索引、表都**保留，不要删**（全部可空或独立表，旧代码不读它们）。
    - ⚠️ **永远不要用旧 schema 再跑 `prisma db push`。** 演练确认：那样会 DROP `Contact.normalizedEmail`、`Inquiry.anonymizedAt`、`User.lastLoginAt`/`reactivatedAt`、`CategorySpec` 表和 `Incoterm` 枚举，数据丢失。真要回退 schema，先备份，再单独评审。
-4. **停掉 cron**：最快的是在 Vercel 里删掉或换掉 `CRON_SECRET`，cron 请求会全部 401（代码已验证：没有密钥就一律 401）；或者在 `vercel.json` 里去掉 `crons`，走 PR 重新部署。
+4. **停掉 cron**：最快的是停掉服务器上调用清理接口的定时任务（crontab / systemd timer）；或者在服务器环境文件里换掉 `CRON_SECRET` 并重启 app，cron 请求会全部 401（代码已验证：没有密钥就一律 401）。自建部署不读 `vercel.json` 的 `crons`。
 5. **按功能单独关闭**（代码里有的开关）：
    - IndexNow：推送失败不影响发布，**不用做任何处理**。
    - FAQ JSON-LD：`NEXT_PUBLIC_FAQ_JSONLD_ENABLED` 不设成 `true` 就是关的。
@@ -49,7 +49,7 @@
 | #139 | 同一邮箱 30 天内第二次申请样品：429 `{"error":"sample_recent"}`，**不带 `Retry-After`**；同一 IP 超过 3 次：429 带 `Retry-After`；SALES 查看没分配给自己的地址：404，审计里有 `sample.address.denied`，ip 不是空的 |
 | /s/<id> | 正常方案 200，过期 410；数据库不可用时 503 带 `Retry-After`（只在 Preview 环境模拟） |
 | #200 隐私导出/删除 | ADMIN `POST /api/admin/privacy/export`：200，是附件，`no-store`；delete 时两个邮箱不一致 400 `confirm_mismatch`；生产缺 `PRIVACY_HASH_SECRET` 时 503。审计里只有邮箱的哈希 |
-| retention cron | 正在跑的时候再触发一次应返回 409 `cleanup_running`（试运行也一样）。`curl -H "Authorization: Bearer $CRON_SECRET" https://<域名>/api/admin/cron/cleanup-uploads` 返回各步骤的条数（designs、deleted、sampleCounters、inquiries、inactiveUsers、auditLogs），没带密钥返回 401。**第一次真正清理之前先试运行**：Ryan 在 Vercel 设 `RETENTION_DRY_RUN=1`，触发一次 cron，核对返回的各项条数（designs、orphanLogos、sampleCounters、auditLogs、inquiries、inquiryLogos、inactiveUsers、skippedLastAdmin），确认合理后**删掉这个变量**，之后的 cron 才会真正清理 |
+| retention cron | 正在跑的时候再触发一次应返回 409 `cleanup_running`（试运行也一样）。`curl -H "Authorization: Bearer $CRON_SECRET" https://<域名>/api/admin/cron/cleanup-uploads` 返回各步骤的条数（designs、deleted、sampleCounters、inquiries、inactiveUsers、auditLogs），没带密钥返回 401。**第一次真正清理之前先试运行**：在服务器环境文件里设 `RETENTION_DRY_RUN=1` 并重启 app，触发一次 cron，核对返回的各项条数（designs、orphanLogos、sampleCounters、auditLogs、inquiries、inquiryLogos、inactiveUsers、skippedLastAdmin），确认合理后**删掉这个变量**，之后的 cron 才会真正清理 |
 | Sanity webhook | 在 Sanity 发布一篇文章：页面刷新了，webhook 返回 200（不是 401 或 503）；签名错误时拒绝 |
 | sitemap / noindex | 生产（`APP_ENV=production`）下 `/sitemap.xml` 是 200、`/robots.txt` 不屏蔽前台页面；Preview 是 noindex。品类页由代码常量 `CATEGORY_PAGES_LIVE`（#198）控制，没打开前 sitemap 里不应该有品类页 |
 | 隐私页 | `/en/privacy`、`/ru/privacy` 返回 200；还是草稿的时候带 noindex、不进 sitemap |
@@ -58,7 +58,7 @@
 
 ## 4. 环境变量
 
-「Ryan」= Ryan 提供的密钥或账号信息，只在 Vercel 里配，不写进仓库、PR 或群聊。
+「Ryan」= Ryan 提供的密钥或账号信息，只放进服务器上应用的环境文件（运行时注入，不进镜像、不在构建时注入），不写进仓库、PR 或群聊。
 
 | 变量 | 用途 | 默认值 | 生产必填 | 谁提供 |
 |---|---|---|---|---|
@@ -68,7 +68,7 @@
 | APP_ORIGIN | 后台 Origin 校验用的对外域名 | 空 | 否 | — |
 | ADMIN_TOTP_KEY | 2FA 密钥加密（设好以后不要换） | — | 是 | **Ryan** |
 | ADMIN_ALERT_EMAIL | 后台告警（发信失败、定时任务失败、账号锁定）的收件人；同类告警 30 分钟最多 1 封 | 没设就发给 `INQUIRY_NOTIFY_EMAIL` | 否 | 由 Ryan 提供 |
-| ADMIN_SEED_EMAIL / _NAME / _PASSWORD / _ROLE | 初始化管理员的脚本 | — | 只在初始化时用 | **Ryan**，自己私下操作 |
+| ADMIN_SEED_EMAIL / _NAME / _PASSWORD / _ROLE | 测试 / 本地 / CI 的建号脚本（`pnpm admin:seed`），生产不用 | — | 否 | — |
 | ADMIN_SEED_TOTP_SECRET | 只在测试里用 | — | **生产不能设** | — |
 | PROD_DATABASE_HOST | 让初始化脚本拒绝连生产库 | — | 待确认 | Ryan |
 | CRON_SECRET | 定时任务鉴权 | 没设的话 cron 一律 401 | 是 | **Ryan** |
@@ -77,10 +77,10 @@
 | ~~BEHIND_CLOUDFLARE~~ / ~~TRUSTED_PROXY_HOPS~~ | 已废弃，不再读取 | — | 不要设 | — |
 | RATE_LIMIT_STORE | `upstash` | memory | 是（必须是 upstash） | — |
 | UPSTASH_REDIS_REST_URL / _TOKEN | 限流存储 | — | 是 | **Ryan** |
-| STORAGE_DRIVER | `r2` | local | 是 | — |
-| R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET | 私有存储 | — | 是 | **Ryan** |
+| STORAGE_DRIVER | **`local`**（Ryan 已定：上传文件存服务器本地磁盘的挂载数据卷）。`r2` 只作为代码仍支持的可选驱动保留；生产必须显式设置 | local | 是 | — |
+| R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET | 可选 R2 驱动（仅 `STORAGE_DRIVER=r2` 时；当前方案不用） | — | 否（local 时不设） | — |
 | R2_ENDPOINT | 留空（由账号 ID 推出来） | 推导值 | 否 | — |
-| UPLOAD_DIR | 只有 local 驱动用 | — | 否 | — |
+| UPLOAD_DIR | `STORAGE_DRIVER=local` 时的上传目录：挂载数据卷的**绝对路径**，必须存在且应用用户可读写（建议目录 700、属主为容器内应用用户），不能在应用的 `public/` 或 `.next/` 下。不经 nginx 或静态服务暴露，文件只经现有接口按权限提供 | 本地默认 `./storage/uploads` | local 时必填（缺失、相对路径、不可写 → 拒绝启动） | 运维 |
 | SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS | 发邮件（Gmail SMTP，465 或 587；SMTP_PASS 为 Gmail 应用专用密码） | — | 是 | **Ryan** |
 | MAIL_FROM | 发件人 | — | 是 | Ryan |
 | INQUIRY_NOTIFY_EMAIL | 询盘通知收件人 | — | 是 | Ryan |
@@ -97,10 +97,10 @@
 | NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION / _YANDEX_ / _BING_ | 搜索引擎站点验证 | — | 待确认 | Ryan / SEO |
 | NEXT_PUBLIC_FAQ_JSONLD_ENABLED | 设成 `true` 才输出 FAQ 的 JSON-LD | 关闭 | 否（**上线时先不开**，FAQ 定稿后再开） | — |
 | CATALOG_STRICT_API | 设成 `1`：数据库里没有已上架的模型时，产品页显示空状态 | 没设时退回到本地目录 `src/data/products.ts`（上线初期页面不会是空的）；读数据库失败时也一样退回 | 否 | 由 Ryan 提供（上线初期不设） |
-| INDEXNOW_KEY | IndexNow 推送 | — | 是 | **Ryan 在 Vercel 里设** |
+| INDEXNOW_KEY | IndexNow 推送 | — | 是 | **Ryan**（放服务器环境文件） |
 | SANITY_PROJECT_ID / SANITY_DATASET / SANITY_API_READ_TOKEN | CMS | — | 待确认 | **Ryan** |
-| SANITY_WEBHOOK_SECRET | webhook 签名；**Ryan 在 Vercel 和 Sanity 两边各设一次，值相同**；旧的 Bearer token 作废 | 生产没设时拒绝请求 | 是 | **Ryan** |
-| SANITY_REVALIDATE_SECRET | 旧的 Bearer token；`3094658` 合入后代码不再读它 | — | **要删掉**：`3094658` 部署成功、Sanity 改用签名之后，Ryan 删掉 Vercel 上的这个变量 | Ryan |
+| SANITY_WEBHOOK_SECRET | webhook 签名；**服务器环境文件和 Sanity 两边各设一次，值相同**；旧的 Bearer token 作废 | 生产没设时拒绝请求 | 是 | **Ryan** |
+| SANITY_REVALIDATE_SECRET | 旧的 Bearer token；`3094658` 合入后代码不再读它 | — | **要删掉**：`3094658` 部署成功、Sanity 改用签名之后，从服务器环境文件里删掉这个变量 | Ryan |
 | PRIVACY_HASH_SECRET | 隐私审计里的邮箱哈希，≥ 32 字节 | 生产没设时 503 | 是 | **Ryan** |
 | INQUIRY_RETAIN_DAYS | 询盘保留天数 | 730（30–3650） | 否 | 按隐私政策定 |
 | AUDIT_RETAIN_DAYS | 审计日志保留天数 | 365（30–3650） | 否 | 同上 |
@@ -108,15 +108,37 @@
 | SAMPLE_COUNTER_RETAIN_DAYS | 样品申请的邮箱计数保留天数 | 30 | 否 | — |
 | RETENTION_MAX_PER_RUN | 每次 cron 最多处理多少条 | 20000 | 否 | — |
 | RETENTION_RUN_DEADLINE_MS | 整次定时清理共用的截止时间（毫秒，从开始算）；过了就不再开始新批次，后面的步骤跳过 | 270000（范围 10000–280000） | 否 | 平台时限 60s 时设 50000 |
-| ~~RETENTION_STEP_BUDGET_MS~~ | 已废弃，代码不再读取；如果在 Vercel 上设过可以删掉 | — | 否 | — |
+| ~~RETENTION_STEP_BUDGET_MS~~ | 已废弃，代码不再读取；如果设过可以从环境文件删掉 | — | 否 | — |
 | RETENTION_DRY_RUN | 设成 `1`：cron 只返回各步骤的待处理条数，不写库、不删文件、不写审计 | 没设时正常清理 | 否（只在上线前试运行时临时设一次，用完删掉） | Ryan |
 | ADMIN_INACTIVE_DAYS | 后台账号闲置多少天自动停用 | 90（7–3650） | 否 | — |
 | SHORTLINK_PROBE_ORIGIN | middleware 探测短链状态（过期返回 410）时用的固定 origin，不用请求里的 Host | 没设时用 `NEXT_PUBLIC_SITE_URL`；两个都没设就不探测，直接放行 | 否 | 由 Ryan 提供（一般留空） |
-| APP_ENV | 正式环境必须设为 `production`；预览/本地不设 | `production` | 必须手动设，未设一律按非生产（整站 noindex、关闭 IndexNow、跳过生产自检） | — |
+| APP_ENV | 正式环境必须设为 `production`；预览/本地不设。**构建和运行时都要设**（noindex 响应头在构建时定下来） | `production` | 必须手动设，未设一律按非生产（整站 noindex、关闭 IndexNow、跳过生产自检） | — |
 | NODE_ENV / CI | 平台自动注入 | — | 不用手动设 | — |
 | E2E_PORT, SEO_AUDIT_*, PREVIEW_*, REVIEWER_APP | 只在 CI 和脚本里用 | — | 否 | — |
 | GitHub `vars.SECURITY_REVIEWER_APP` | 安全审查 bot 的 workflow 配置 | — | CI 用 | 待确认 |
 | GitHub App 私钥 | 代码里没有引用，应该是在 bot 或 CI 那边配置 | — | 待确认 | **Ryan**，只能在私聊里给 |
+
+### 4.1 自建部署（standalone 镜像）：构建时 / 运行时
+
+- **构建时**（服务器上 `docker build`，`next build`，`output: 'standalone'`）只需要：`APP_ENV=production`、`NODE_ENV=production`，以及会被内联进产物的公开值 `NEXT_PUBLIC_SITE_URL`、`NEXT_PUBLIC_TURNSTILE_SITE_KEY`、`NEXT_PUBLIC_ADMIN_API`（以及要用的其他 `NEXT_PUBLIC_*`）。**不需要任何密钥**，也不需要数据库、存储、限流、发信配置；构建阶段不要注入这些值。
+- **运行时**（`node server.js`）：其余全部变量只在容器启动时注入。启动时 `src/instrumentation.ts` 跑完整的生产配置检查，缺任何必填项（如 `EDGE_AUTH_SECRET`、`DATABASE_URL`、`SMTP_PASS`、`UPLOAD_DIR`）直接 exit 1，日志只列变量名和原因，不打印值。
+- 镜像里需要复制：`.next/standalone/`（含 `server.js`、`scripts/admin-create*.mjs` 和追踪到的 `node_modules`）、`.next/static/` → `.next/standalone/.next/static/`、`public/` → `.next/standalone/public/`。
+
+### 4.2 健康检查 `GET /api/health`
+
+- 返回 `200 {"ok":true}` 或 `503 {"ok":false}`，`Cache-Control: no-store`；不带版本、commit、环境或错误信息。只查数据库 `SELECT 1`（1.5 秒超时），不连 Redis、SMTP、R2 或其他外部服务；失败原因只进容器日志（只有错误类型）。
+- 按来源限流（每分钟 120 次，进程内存计数）。容器内的 healthcheck 不经过 nginx、不带 `X-Edge-Auth`，归入 `untrusted` 桶；经 nginx 进来的请求按客户端 IP 分桶。建议 nginx 不对外暴露 `/api/health`（或只允许本机），Docker 健康检查直接请求容器内的 `http://localhost:3000/api/health`。
+- 不经过 middleware（`/api/*` 不做语言跳转），不受邮件开关影响。
+
+### 4.3 首个管理员（只有命令行，没有 HTTP 接口）
+
+```
+docker compose exec app node scripts/admin-create.mjs --email <管理员邮箱> --name "<显示名>"
+```
+
+- 密码在终端里交互输入两次，不回显。没有终端时（如 `docker compose exec -T app node scripts/admin-create.mjs … < 只有自己可读的文件`）从标准输入读第一行，用完删掉那个文件。**密码绝不放在命令行参数或环境变量里**：命令行参数脚本直接拒绝；生产（`APP_ENV=production`）下环境变量方式也直接拒绝（环境变量会出现在 `docker inspect` 和 shell 历史里）。
+- 密码规则与后台新建账号相同（12–200 位，不能等于邮箱）。邮箱已存在 → 失败，不覆盖。已经有管理员 → 失败，除非显式加 `--allow-additional-admin`；日常加人走后台「账号管理」。
+- 建好的账号未绑定 2FA，首次登录前照常走 2FA 绑定流程。审计里写一条 `user.create`（`via: cli:admin-create`），不含密码、哈希或邮箱。
 
 ## 5. 上线后步骤
 
@@ -137,13 +159,13 @@
 4. **打开品类页**：品类页内容准备好后，单独开一个提交把 `CATEGORY_PAGES_LIVE`（#198）打开；合并后在 GSC 和 Bing 重新提交一次 sitemap。
 5. **FAQ JSON-LD**：FAQ 里的事实 Ryan 确认之后，再把 `NEXT_PUBLIC_FAQ_JSONLD_ENABLED` 设成 `true`。
 
-## 6. 定时清理的运行时长（Vercel 函数时限）
+## 6. 定时清理的运行时长
 
 - 清理路由 `maxDuration = 300` 秒，持锁事务超时 290 秒。整次运行共用一个截止时间 `RETENTION_RUN_DEADLINE_MS`（默认 270 秒，最大 280 秒），开始时算一次，传给全部 6 个步骤。
 - 实际行为：每个步骤只在开始新批次之前检查截止时间，已过就不再开始新批次，但正在执行的那一批会执行完，所以结束时间可能比截止时间晚一批的耗时（询盘匿名化一批估计最多十几秒）。截止时间后还没开始的步骤跳过，结果里有 `skipped`（被跳过的步骤）和 `deadlineReached: true`，并有一条 warn 日志；剩下的留给下一天。
 - 锁事务和各步骤的工作事务是分开的。如果持锁事务撞到 290 秒超时，锁可能在最后一批还没做完时就释放，下一次触发可能和它重叠。可以接受：所有操作都是幂等的（按 id 删除并再带一次条件；清空字段重复执行结果一样；匿名化和停用在事务里重新确认状态）。最坏情况是同一账号多一条停用审计，或已作废的回信 token 被换两次。
-- Vercel 时限（https://vercel.com/docs/functions/configuring-functions/duration ，2026-10-13 查）：开 Fluid compute（默认开）时 Hobby 默认和上限都是 300 秒，Pro/Enterprise 默认 300、上限 800 秒（beta 最长 1800 秒）。没开 Fluid compute 的旧项目时限更低（Hobby 最多 60 秒）。**待 Ryan 确认：套餐和 Fluid compute 是否开启。**
-- 如果实际上限是 60 秒：在 Vercel 设 `RETENTION_RUN_DEADLINE_MS=50000`，并单独提一个提交把路由的 `maxDuration` 改成 60、`LOCK_TX_TIMEOUT_MS` 改成 55000（锁事务超时要大于截止时间、小于 maxDuration）。
+- 自建服务器没有平台函数时限（`maxDuration` 只对 Vercel 这类平台生效，standalone 下不限制）。真正的上限是调用链上的超时：服务器上的定时任务建议直接请求容器内的 `http://localhost:3000/api/admin/cron/cleanup-uploads`（不经过 nginx），curl 的 `--max-time` 设成大于 300 秒；如果一定要经过 nginx，该 location 的 `proxy_read_timeout` 要大于 300 秒，否则 nginx 先断开（清理本身仍会在服务端跑完当前批次）。
+- 如果调用链上限只有 60 秒：在服务器环境文件里设 `RETENTION_RUN_DEADLINE_MS=50000`，并单独提一个提交把 `LOCK_TX_TIMEOUT_MS` 改成 55000（锁事务超时要大于截止时间）。
 - 实测（本机开发库，5000 条到期询盘，每条带产品配置、备注、邮件、logo）：每批 500 条 1.4–1.7 秒（中位 1.6 秒），约 3.1 毫秒/条。生产库在远端，每条有 2 次逐行更新，网络往返多，预计慢 5–10 倍（每批约 8–16 秒），所以靠整次运行的截止时间兜底，没跑完的留给下一天。积压很多时先用 `RETENTION_DRY_RUN=1` 看条数。
 - 两次清理同时触发：第二次返回 409 `cleanup_running`，属正常。
 
@@ -152,7 +174,7 @@
 收到客户的删除请求时，除了后台 `POST /api/admin/privacy/delete`（数据库记录立即删除或匿名化）之外，还要做：
 1. **通知收件箱**：在 `INQUIRY_NOTIFY_EMAIL` 指向的收件箱里，按客户邮箱（和询盘编号 PJ-…）搜索，删除所有匹配的询盘通知邮件和往来邮件，并清空“已删除”文件夹。**必须在收到请求后 30 天内完成**（隐私页已承诺）。完成后在内部记录里写日期和处理人，不写客户邮箱明文。
 2. **发信 Gmail 的“已发送邮件”**：#315 起发信走 Gmail SMTP，不再用 Resend，所以没有 Resend 后台日志要处理。经 Gmail SMTP 发出的信会存进发信账号的“已发送邮件”。收到删除请求后 30 天内，在发信账号的“已发送邮件”里按客户邮箱搜索，手动删除所有匹配的邮件，再到“已删除邮件”里把它们永久删除（不永久删除的话，Gmail 还会再保留 30 天）。只在客户提出删除请求时做，不做定期清理。
-3. 其他服务商日志（Vercel 请求日志等）同样按服务商保留期限处理。
+3. 其他日志（服务器上 nginx 访问日志、容器日志，以及 Cloudflare 等服务商日志）按各自的保留期限处理。
 
 ## 8. 安全规则（长期有效）
 

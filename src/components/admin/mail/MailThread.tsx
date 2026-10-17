@@ -9,9 +9,8 @@ import {
 } from '@/lib/admin/mail/logic';
 import { browserVisibility, startSendPoll } from '@/lib/admin/mail/poller';
 import { AttachmentCard, CopyBody, FlagChips, MailBody, Unverified, useCountdown } from './MailParts';
+import AdminTime from '../AdminTime';
 
-const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString('zh-CN', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
-const hhmm = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit' }) : '');
 const uuid = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
 type Rate = { scope?: string; limit?: number; until: number };
@@ -100,7 +99,7 @@ function Bubble({ m, canSend, live, note, retrying, onRetry }: { m: ThreadItem; 
       <div className="ml-meta">
         {who && <b>{who}</b>}
         {!m.redacted && !out && m.from && m.from !== who && <span>{m.from}</span>}
-        <time dateTime={m.createdAt}>{fmt(m.createdAt)}</time>
+        <AdminTime iso={m.createdAt} />
         {!out && <span className="ml-pill">收件</span>}
         {m.source === 'legacy' && <span className="ml-pill" title="迁移前的站内记录，只读">旧记录</span>}
         {m.redacted && <span className="ml-pill">已删除</span>}
@@ -127,7 +126,7 @@ function OutStatus({ s, canSend, bodyText, note, retrying, onRetry }: { s: Threa
   if (v.kind === 'deferred') return <div className="ml-status" role="status" data-testid="deferred">ⓘ <span className="t">{deferredText(s.deferredUntil)}</span><button type="button" className="ml-btn" onClick={() => location.reload()}>刷新</button></div>;
   if (s.unconfirmed) return <div className="ml-status" role="status">{UNCONFIRMED} <button type="button" className="ml-btn" onClick={() => location.reload()}>刷新</button></div>;
   if (v.kind === 'sending') return <div className="ml-status" role="status">{s.background ? BACKGROUND_SENDING : '正在发送…'}</div>;
-  if (v.kind === 'sent') return <div className="ml-status ok" role="status">✓ 已发送 · {hhmm(v.at)}</div>;
+  if (v.kind === 'sent') return <div className="ml-status ok" role="status">✓ 已发送{v.at ? <> · <AdminTime iso={v.at} /></> : null}</div>;
   if (v.kind === 'maybe_delivered') return (
     <div className="ml-status" role="status" data-testid="maybe-delivered"><span className="ml-pill strong">{MAYBE_DELIVERED}</span><span className="t">{MAYBE_DELIVERED_HINT}</span><CopyBody text={bodyText} /></div>);
   const rc = retryCountText(v.retryCount);
@@ -207,7 +206,7 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
       {!sendingEnabled && <div className="ml-banner" role="note" data-testid="sending-disabled"><b>{SENDING_DISABLED}</b>　{SENDING_DISABLED_HINT}</div>}
       {formErr && <div className={`ml-status${formErr.tone === 'error' ? ' err' : ''}`} role={formErr.tone === 'error' ? 'alert' : 'status'}>{formErr.tone === 'error' ? '⚠ ' : 'ⓘ '}{formErr.text}</div>}
       {limited && <div className="ml-status" role="status" data-testid="rate-limited">ⓘ {rateLimitText(rate!.scope, rate!.limit, '')}<span aria-live="off">{fmtCountdown(left)}</span></div>}
-      {sentAt !== undefined && <div className="ml-status ok" role="status">✓ 已发送 · {hhmm(sentAt)}</div>}
+      {sentAt !== undefined && <div className="ml-status ok" role="status">✓ 已发送{sentAt ? <> · <AdminTime iso={sentAt} /></> : null}</div>}
       <label htmlFor="ml-to">收件人</label>
       <input id="ml-to" type="text" readOnly value={recipient} />
       <label htmlFor="ml-subj">主题</label>
