@@ -90,7 +90,8 @@ barg() { sed -n "s/^$1=//p" "$BUILD_ARGS_FILE" 2>/dev/null | tail -n 1 | sed -e 
 site=$(barg NEXT_PUBLIC_SITE_URL); site=${site:-https://geiom.com}
 [[ "$site" =~ ^https://[^/]+ ]] || die "NEXT_PUBLIC_SITE_URL must be https"
 host=$(sed -E 's#^https://(\[[^]]*\]|[^/:]+).*#\1#' <<<"$site" | tr '[:upper:]' '[:lower:]'); host=${host%.}
-[[ "$host" =~ ^(localhost|.*\.localhost|0\.0\.0\.0|\[::1?\]|127(\.[0-9]{1,3}){3})$ ]] && die "NEXT_PUBLIC_SITE_URL must be the public domain, not a local/loopback host"
+[ "$host" = geiom.com ] || die "NEXT_PUBLIC_SITE_URL host must be exactly geiom.com (allowlist)"
+[ "$site" = https://geiom.com ] || die "NEXT_PUBLIC_SITE_URL must be exactly https://geiom.com (no port, path or trailing slash)"
 tsk=$(barg NEXT_PUBLIC_TURNSTILE_SITE_KEY)
 [ -n "$tsk" ] || die "NEXT_PUBLIC_TURNSTILE_SITE_KEY missing in build-args.env (public; required by the build check)"
 [[ "$tsk" =~ ^[123]x0{20,}[A-Z]{2}$ ]] && die "NEXT_PUBLIC_TURNSTILE_SITE_KEY is the Cloudflare test key"

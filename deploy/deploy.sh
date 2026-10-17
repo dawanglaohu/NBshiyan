@@ -43,7 +43,11 @@ env_prod_ok() {
 # scanned for every secret value of the env file (must be 0 hits) and deleted; it is never printed.
 startup_fail_closed() {
   local out vals rc=0 ok=1 n="nbshiyan-envcheck-$$"
-  out=$(mktemp); vals=$(mktemp); chmod 600 "$out" "$vals"
+  # Temp files live in the 700 root-only secrets dir, never in a shared /tmp. Removed on return; EXIT/INT/TERM as fallback.
+  out=$(mktemp -p "$D/secrets" envcheck-out.XXXXXX); vals=$(mktemp -p "$D/secrets" envcheck-vals.XXXXXX); chmod 600 "$out" "$vals"
+  trap 'rm -f "$out" "$vals"; trap - RETURN' RETURN
+  trap 'rm -f "$out" "$vals"; exit 130' INT TERM
+  trap 'rm -f "$out" "$vals"' EXIT
   timeout 90 docker compose -p nbshiyan -f "$COMPOSE_FILE" --env-file "$CENV" run --rm --no-deps -T --name "$n" -e SMTP_PORT=25 app node server.js >"$out" 2>&1 || rc=$?
   docker rm -f "$n" >/dev/null 2>&1 || true
   sed -nE 's/^[A-Z0-9_]*(SECRET|TOKEN|PASS|PASSWORD|KEY|DATABASE_URL|SMTP_USER)[A-Z0-9_]*=//p' "$ENVF" | sed -e 's/^"//' -e 's/"$//' | awk 'length >= 12' > "$vals"
@@ -51,7 +55,7 @@ startup_fail_closed() {
   grep -q 'SMTP_PORT' "$out" || { log "FAIL startup check output does not name SMTP_PORT"; ok=0; }
   grep -qi 'production build' "$out" && { log "FAIL server.js failed for a missing build, not the env check"; ok=0; }
   if [ -s "$vals" ] && grep -qFf "$vals" "$out"; then log "FAIL startup check output contains a secret value"; ok=0; fi
-  rm -f "$out" "$vals"; (( ok ))
+  rm -f "$out" "$vals"; trap - INT TERM EXIT; (( ok ))
 }
 
 sha_ok() { [[ "$1" =~ ^[0-9a-f]{40}$ ]]; }
@@ -59,6 +63,9 @@ sha_ok() { [[ "$1" =~ ^[0-9a-f]{40}$ ]]; }
 # Destructive-change gate (statement/clause based, case-insensitive, fail closed). Tests: deploy/tests/plan-check.test.sh
 # shellcheck source=deploy/plan-check.sh
 . "$(dirname "$(readlink -f "$0")")/plan-check.sh"
+# Redirect/header smoke helpers (loc_bad, resp_code, resp_loc, root_redirect_ok). Tests: deploy/tests/smoke.test.sh
+# shellcheck source=deploy/smoke-lib.sh
+. "$(dirname "$(readlink -f "$0")")/smoke-lib.sh"
 
 schema_sync() {   # 4 steps, all on the server; nothing leaves it
   local sha; sha=$(cat "$D/.candidate-sha"); sha_ok "$sha" || die "candidate sha invalid"
@@ -113,15 +120,17 @@ post_checks() {
   curl -sI http://127.0.0.1:3000/en | grep -qi '^x-robots-tag:.*noindex' && { log "FAIL /en carries noindex (APP_ENV not production at build?)"; ok=0; }
   curl -s http://127.0.0.1:3000/en | grep -q '<link rel="canonical" href="https://geiom.com/en"' || { log "FAIL canonical is not https://geiom.com/en"; ok=0; }
   edge_match || { log "FAIL EDGE_AUTH_SECRET differs from the reverse-proxy include (hash compare)"; ok=0; }
-  # Redirect headers as the proxy sees them (HOSTNAME=0.0.0.0 → Next emits relative Location). No header may mention
-  # localhost; open-redirect probes must not produce a Location starting with // or pointing at evil.com.
-  local loc hdr=(-H 'Host: geiom.com' -H 'X-Forwarded-Proto: https' -H 'X-Forwarded-Host: geiom.com')
-  for p in / /ru /admin; do
-    curl -sI "${hdr[@]}" "http://127.0.0.1:3000$p" | grep -qi localhost && { log "FAIL a response header of $p contains localhost"; ok=0; }
-  done
-  for p in '//evil.com/' '/%2F%2Fevil.com' '/\evil.com'; do
-    loc=$(curl -sI "${hdr[@]}" "http://127.0.0.1:3000$p" | tr -d '\r' | sed -n 's/^[Ll]ocation:[[:space:]]*//p')
-    [[ "$loc" == //* || "$loc" == *evil.com* && ! "$loc" =~ ^/[^/] ]] && { log "FAIL open redirect: $p → $loc"; ok=0; }
+  # Redirect headers as the proxy sees them (HOSTNAME=0.0.0.0 → Next emits relative Location). Any 5xx = FAIL;
+  # no header may mention localhost; `/` must be 3xx with Location exactly `/en` (app-level rule);
+  # open-redirect probes: see loc_bad in smoke-lib.sh.
+  local resp code loc hdr=(-H 'Host: geiom.com' -H 'X-Forwarded-Proto: https' -H 'X-Forwarded-Host: geiom.com')
+  for p in / /ru /admin '//evil.com/' '/%2F%2Fevil.com' '/\evil.com'; do
+    resp=$(curl -sI --max-time 10 "${hdr[@]}" "http://127.0.0.1:3000$p"); code=$(resp_code "$resp"); loc=$(resp_loc "$resp")
+    [[ "$code" =~ ^[0-9]{3}$ ]] || { log "FAIL $p: no HTTP status"; ok=0; continue; }
+    [[ "$code" == 5* ]] && { log "FAIL $p → $code"; ok=0; }
+    grep -qi localhost <<<"$resp" && { log "FAIL a response header of $p contains localhost"; ok=0; }
+    [ "$p" = / ] && ! root_redirect_ok "$code" "$loc" app && { log "FAIL / → $code Location '$loc' (want 3xx, exactly /en)"; ok=0; }
+    loc_bad "$loc" && { log "FAIL open redirect: $p → $loc"; ok=0; }
   done
   startup_fail_closed || ok=0
   (( ok ))

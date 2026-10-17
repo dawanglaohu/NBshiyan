@@ -23,6 +23,7 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `init-secrets.sh` | one-time: creates data dirs and generates secrets on the host; never overwrites, never prints |
 | `build-on-server.sh` | pinned-SHA build in a memory-capped dedicated builder; disk/memory gates; leak checks; tag rotation |
 | `plan-check.sh`, `tests/plan-check.test.sh` | destructive-change gate for the schema plan (sourced by `deploy.sh`) and its tests (`bash deploy/tests/plan-check.test.sh`, no docker/DB needed) |
+| `smoke-lib.sh`, `tests/smoke.test.sh` | redirect/header smoke rules (`loc_bad`, `root_redirect_ok`) used by `deploy.sh`, and their tests |
 | `deploy.sh` | pg_dump → schema plan + destructive check → `db push` → drift check → start → post-deploy checks → auto-rollback |
 | `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
 
@@ -104,7 +105,9 @@ These can't be verified off the server, because the box has no docker and no rea
    (plus `-T` and a container name, because it runs without a TTY) on the candidate image.
    - It must exit 1, and the output must name only variables (`SMTP_PORT …`), not a "no production build" error.
    - `SMTP_PORT=25` is a non-secret invalid value. **Never blank a secret or pass any secret with `-e`.**
-   - The output goes to a 600 temp file, is scanned for every secret value (0 hits required) and deleted. It is never printed.
+   - The output goes to a 600 temp file created with `mktemp -p` inside the 700 root-only `secrets/` dir, never in `/tmp`.
+     It is scanned for every secret value (0 hits required) and removed when the function returns, with an EXIT/INT/TERM
+     trap as fallback (tested). It is never printed.
    - This works because the image entrypoint fills the `.next` tmpfs from `.next-dist` on every start, including one-off `run … node server.js`.
 9. **First rollback:** if post-checks fail on the very first deploy, there is no `:current` / `:previous` image. Rollback then stops the app container and aborts.
 
@@ -122,7 +125,13 @@ curl -sI 'https://geiom.com/\evil.com'       # same
 for u in /api/health '/api/health?x=1' /api/health/ /api/health/x; do curl -s -o /dev/null -w "%{http_code} $u\n" "https://geiom.com$u"; done   # all 404
 curl -s -o /dev/null -w '%{http_code}\n' https://geiom.com/api/healthz   # reaches the app (its 404 page, not nginx's)
 ```
-No response header may contain `localhost`. Local observation on PR #321 (bad9379): with `HOSTNAME=127.0.0.1`, `/` answers
+Rules, the same as `smoke-lib.sh`. In `deploy.sh`, any of these fails the deploy and triggers a rollback:
+- Any **5xx** on `/`, `/ru`, `/admin` or the three `evil.com` probes is a FAIL.
+- `/` must be a **3xx**. At app level (`deploy.sh`, 127.0.0.1:3000) the Location must be **exactly `/en`**. On the public
+  post-DNS check, `/en` or `https://geiom.com/en` are both accepted.
+- A Location is a FAIL if it starts with two slashes or backslashes in any mix (`//`, `/\`, `\/`, `\\`), starts with `\`,
+  or mentions `evil.com` without being a plain same-site relative path (`/x…`). `/evil.com/` is fine: it's a path on geiom.com.
+- No response header may contain `localhost`. Local observation on PR #321 (bad9379): with `HOSTNAME=127.0.0.1`, `/` answers
 `Location: https://localhost:<port>/en`, so the nginx `proxy_redirect` regex is needed, and compose keeps
 `HOSTNAME=0.0.0.0`. `/%2F%2Fevil.com` answers **500** from the app (reported to the backend; it is not a redirect).
 
@@ -142,6 +151,8 @@ No response header may contain `localhost`. Local observation on PR #321 (bad937
 - Host dirs: `uploads` 700 (uid 1001), `internal-tls` 700 root (docker bind-mounts single files from it), `secrets` 700 root.
 - `env.template` is not a `.env`. Every value line is plain `KEY=`, with comments on their own lines. `init-secrets.sh` treats
   `KEY=`, `KEY=   ` and `KEY=  # note` as empty.
+- `build-on-server.sh` only builds for `NEXT_PUBLIC_SITE_URL` = exactly `https://geiom.com`. The host check is an
+  allowlist (`geiom.com`), not a blocklist of local names.
 - `deploy.sh` compares `EDGE_AUTH_SECRET` with the proxy include only if both are non-empty and at least 32 characters,
   and compares sha256 hashes, never the values.
 - Redis REST is short-term: SRH plus the internal TLS proxy, with no published ports,
