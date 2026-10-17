@@ -1,13 +1,23 @@
 #!/usr/bin/env bash
 # Redirect / header smoke helpers. Sourced by deploy.sh and deploy/tests/smoke.test.sh (pure functions, no network).
 
-# loc_bad <Location value> → 0 (bad) when the Location could leave the site:
-#   starts with two slashes/backslashes in any mix (// /\ \/ \\), starts with a backslash,
-#   or mentions evil.com without being a plain same-site relative path (/x…, second char not / or \).
+# loc_bad <Location value> → 0 (bad) unless the Location provably stays on https://geiom.com. Allow-list, fail closed:
+#   ok:  empty (no Location), a same-site path `/x…` (second char not / or \, or just `/`),
+#        or `https://geiom.com` optionally followed by such a path.
+#   bad: everything else — any backslash, any whitespace/control char (browsers strip tab/CR/LF: "/\t/evil.com" → "//evil.com"),
+#        `//` or `/\` prefixes (also after https://geiom.com), other schemes/hosts/ports, userinfo, bare hosts, relative paths.
 loc_bad() {
   local loc="$1"
-  [[ "$loc" =~ ^[/\\][/\\] || "$loc" == \\* || ( "$loc" == *evil.com* && ! "$loc" =~ ^/[^/\\] ) ]]
+  [ -z "$loc" ] && return 1
+  [[ "$loc" == *\\* || "$loc" =~ [[:space:][:cntrl:]] ]] && return 0
+  if [[ "$loc" =~ ^https://geiom\.com(/.*)?$ ]]; then loc="${loc#https://geiom.com}"; [ -z "$loc" ] && return 1; fi
+  [[ "$loc" =~ ^/([^/]|$) ]] && return 1
+  return 0
 }
+
+# hdr_leak <raw curl -sI output> → 0 when any response header mentions the internal origin
+#   (localhost, 127.0.0.1, 0.0.0.0), e.g. x-middleware-rewrite: http://localhost:3000/... when HOSTNAME=127.0.0.1.
+hdr_leak() { grep -qiE 'localhost|(^|[^0-9])127\.0\.0\.1|(^|[^0-9])0\.0\.0\.0' <<<"$1"; }
 
 # resp_code <raw curl -sI output> → HTTP status code of the first status line
 resp_code() { sed -n '1s/^HTTP\/[0-9.]*[[:space:]]\{1,\}\([0-9]\{3\}\).*/\1/p' <<<"$1" | tr -d '\r'; }

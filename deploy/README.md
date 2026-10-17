@@ -23,7 +23,8 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `init-secrets.sh` | one-time: creates data dirs and generates secrets on the host; never overwrites, never prints |
 | `build-on-server.sh` | pinned-SHA build in a memory-capped dedicated builder; disk/memory gates; leak checks; tag rotation |
 | `plan-check.sh`, `tests/plan-check.test.sh` | destructive-change gate for the schema plan (sourced by `deploy.sh`) and its tests (`bash deploy/tests/plan-check.test.sh`, no docker/DB needed) |
-| `smoke-lib.sh`, `tests/smoke.test.sh` | redirect/header smoke rules (`loc_bad`, `root_redirect_ok`) used by `deploy.sh`, and their tests |
+| `smoke-lib.sh`, `tests/smoke.test.sh` | redirect/header smoke rules (`loc_bad`, `hdr_leak`, `root_redirect_ok`) used by `deploy.sh`, and their tests |
+| `env-check.sh`, `tests/env-check.test.sh` | `env_prod_ok` (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL, HOSTNAME) and the compose `HOSTNAME` check, sourced by `deploy.sh`, and their tests |
 | `deploy.sh` | pg_dump → schema plan + destructive check → `db push` → drift check → start → post-deploy checks → auto-rollback |
 | `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
 
@@ -119,21 +120,31 @@ curl -sI https://geiom.com/          # 307/308, Location: /en or https://geiom.c
 curl -sI https://geiom.com/ru        # 200, or a redirect that stays on https://geiom.com
 curl -sI https://geiom.com/admin     # redirect to the sign-in page on geiom.com (proxy_redirect regex rewrites localhost/127.0.0.1/0.0.0.0 targets)
 for u in / /ru /admin; do curl -sI "https://geiom.com$u" | grep -qi localhost && echo "FAIL $u header mentions localhost"; done
-curl -sI 'https://geiom.com//evil.com/'      # Location must not start with // and must not point at evil.com
-curl -sI 'https://geiom.com/%2F%2Fevil.com'  # same
-curl -sI 'https://geiom.com/\evil.com'       # same
+curl -sI 'https://geiom.com//evil.com'       # 308, Location /evil.com (on site; relative or https://geiom.com/...)
+curl -sI 'https://geiom.com//evil.com/'      # 308, Location /evil.com/
+curl -sI 'https://geiom.com/\evil.com'       # 308, Location /evil.com
+curl -sI 'https://geiom.com/%2F%2Fevil.com'  # 404
+curl -sI 'https://geiom.com/%5C%5Cevil.com'  # 404
+curl -sI https://geiom.com/s/nbshiyan-smoke-probe | grep -qiE 'localhost|127\.0\.0\.1|0\.0\.0\.0' && echo "FAIL /s/ rewrite leaks"
 for u in /api/health '/api/health?x=1' /api/health/ /api/health/x; do curl -s -o /dev/null -w "%{http_code} $u\n" "https://geiom.com$u"; done   # all 404
 curl -s -o /dev/null -w '%{http_code}\n' https://geiom.com/api/healthz   # reaches the app (its 404 page, not nginx's)
 ```
 Rules, the same as `smoke-lib.sh`. In `deploy.sh`, any of these fails the deploy and triggers a rollback:
-- Any **5xx** on `/`, `/ru`, `/admin` or the three `evil.com` probes is a FAIL.
+- Any **5xx** on `/`, `/ru`, `/admin`, `/s/nbshiyan-smoke-probe` or the five `evil.com` probes is a FAIL. Expected from the
+  app (backend PR #328): `/` → 307 `/en`; `//evil.com`, `//evil.com/`, `/\evil.com` → 308 to on-site `/evil.com[/]`;
+  `/%2F%2Fevil.com`, `/%5C%5Cevil.com` → 404. Without a DB `/api/health` is 503 (expected; the healthcheck then fails).
 - `/` must be a **3xx**. At app level (`deploy.sh`, 127.0.0.1:3000) the Location must be **exactly `/en`**. On the public
   post-DNS check, `/en` or `https://geiom.com/en` are both accepted.
-- A Location is a FAIL if it starts with two slashes or backslashes in any mix (`//`, `/\`, `\/`, `\\`), starts with `\`,
-  or mentions `evil.com` without being a plain same-site relative path (`/x…`). `/evil.com/` is fine: it's a path on geiom.com.
-- No response header may contain `localhost`. Local observation on PR #321 (bad9379): with `HOSTNAME=127.0.0.1`, `/` answers
+- `loc_bad` is an allow-list: a Location passes only if it is empty, a same-site path (`/` or `/x…` with the second char
+  not `/` or `\`), or `https://geiom.com` optionally followed by such a path. Anything else fails: any backslash, any
+  whitespace/control char, `//` / `/\` prefixes (also after `https://geiom.com`), other hosts, ports, schemes, userinfo.
+  `/evil.com/` and `https://geiom.com/evil.com/` are fine: they're paths on geiom.com.
+- No response header (including `x-middleware-rewrite`) may contain `localhost`, `127.0.0.1` or `0.0.0.0`. Local observation on PR #321 (bad9379): with `HOSTNAME=127.0.0.1`, `/` answers
 `Location: https://localhost:<port>/en`, so the nginx `proxy_redirect` regex is needed, and compose keeps
-`HOSTNAME=0.0.0.0`. `/%2F%2Fevil.com` answers **500** from the app (reported to the backend; it is not a redirect).
+`HOSTNAME=0.0.0.0`. With `HOSTNAME=127.0.0.1` the `/s/*` rewrite also leaks localhost in `x-middleware-rewrite`, so
+compose hardcodes `HOSTNAME: "0.0.0.0"` for `app`, `env_prod_ok` fails if compose doesn't or if the env file sets HOSTNAME
+to anything else, and post-checks verify the running container's HOSTNAME. `/%2F%2Fevil.com` answered **500** on bad9379;
+fixed in backend PR #328 (now 404).
 
 ## Review notes
 - The schema plan gate (`plan-check.sh`) refuses an empty or unreadable plan. Prisma's no-diff output is `-- This is an empty migration.`, which passes.

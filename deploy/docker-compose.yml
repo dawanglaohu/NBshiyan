@@ -31,6 +31,7 @@ services:
       - ${NBSHIYAN_APP_ENV_FILE:?NBSHIYAN_APP_ENV_FILE is required}
     environment:
       NODE_ENV: production
+      HOSTNAME: "0.0.0.0"                            # REQUIRED: with 127.0.0.1 the /s/* rewrite leaks localhost (x-middleware-rewrite); deploy.sh checks
       APP_ORIGIN: https://geiom.com                  # admin same-origin check behind nginx (also forced in env file)
       APP_ENV: production                            # also required in the env file (deploy.sh checks); without it the startup check is skipped
       NODE_OPTIONS: --max-old-space-size=512

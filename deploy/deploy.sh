@@ -27,24 +27,9 @@ edge_match() {  # EDGE_AUTH_SECRET in the env file vs the include: both non-empt
   [ "$(printf '%s' "$a" | sha256sum | cut -c1-64)" = "$(printf '%s' "$b" | sha256sum | cut -c1-64)" ]
 }
 
-# APP_ENV and NODE_ENV must each appear exactly once in the env file, as "production". Only those lines are read.
-env_prod_ok() {
-  local k
-  for k in APP_ENV NODE_ENV; do
-    if [ "$(grep -c "^$k=" "$ENVF" || true)" != 1 ] || ! grep -qx "$k=production" "$ENVF"; then
-      log "FAIL $k must be exactly 'production' (once) in the app env file"; return 1
-    fi
-  done
-  # APP_ORIGIN: standalone sees its own URL as http://0.0.0.0:3000, so admin same-origin checks (assertSameOrigin)
-  # reject every real POST with 403 unless APP_ORIGIN is the public origin.
-  if [ "$(grep -c '^APP_ORIGIN=' "$ENVF" || true)" != 1 ] || ! grep -qx 'APP_ORIGIN=https://geiom.com' "$ENVF"; then
-    log "FAIL APP_ORIGIN must be exactly 'https://geiom.com' (once) in the app env file"; return 1
-  fi
-  # ...and must equal the NEXT_PUBLIC_SITE_URL origin in the same file (backend's startup check exits 1 otherwise).
-  if [ "$(grep -c '^NEXT_PUBLIC_SITE_URL=' "$ENVF" || true)" != 1 ] || ! grep -qx 'NEXT_PUBLIC_SITE_URL=https://geiom.com' "$ENVF"; then
-    log "FAIL NEXT_PUBLIC_SITE_URL must be exactly 'https://geiom.com' (once) so it matches APP_ORIGIN"; return 1
-  fi
-}
+# env_prod_ok / compose_hostname_ok (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL, HOSTNAME). Tests: deploy/tests/env-check.test.sh
+# shellcheck source=deploy/env-check.sh
+. "$(dirname "$(readlink -f "$0")")/env-check.sh"
 
 # Startup check must really fail closed (full-stack: exactly `run --rm --no-deps -e SMTP_PORT=25 app node server.js` on the
 # candidate). SMTP_PORT=25 is a non-secret invalid value; no secret is blanked or passed with -e. Must exit 1, name SMTP_PORT,
@@ -119,6 +104,8 @@ post_checks() {
   ss -lntH | awk '{print $4}' | grep -E ':3000$' | grep -vqE '^127\.0\.0\.1:3000$' && { log "FAIL 3000 bound beyond 127.0.0.1"; ok=0; }
   dc ps --format '{{.Service}} {{.Publishers}}' | grep -vE '^app ' | grep -q '[0-9]->' && { log "FAIL a non-app service publishes a port"; ok=0; }
   h=$(curl -s http://127.0.0.1:3000/api/health); [ "$h" = '{"ok":true}' ] || { log "FAIL /api/health body is not {\"ok\":true}"; ok=0; }
+  # effective HOSTNAME inside the running app (compose wins over env_file); 127.0.0.1 leaks localhost via x-middleware-rewrite
+  dc exec -T app node -e 'process.exit(process.env.HOSTNAME==="0.0.0.0"?0:1)' 2>/dev/null || { log "FAIL app HOSTNAME is not 0.0.0.0"; ok=0; }
   # srh-net isolation: the app must not resolve srh / redis (only redis-rest via srh-tls on backend)
   for h2 in srh redis; do
     dc exec -T app node -e "require('dns').lookup('$h2',e=>process.exit(e?0:1))" 2>/dev/null || { log "FAIL app can resolve $h2 (must be on srh-net only)"; ok=0; }
@@ -130,14 +117,15 @@ post_checks() {
   curl -s http://127.0.0.1:3000/en | grep -q '<link rel="canonical" href="https://geiom.com/en"' || { log "FAIL canonical is not https://geiom.com/en"; ok=0; }
   edge_match || { log "FAIL EDGE_AUTH_SECRET differs from the reverse-proxy include (hash compare)"; ok=0; }
   # Redirect headers as the proxy sees them (HOSTNAME=0.0.0.0 → Next emits relative Location). Any 5xx = FAIL;
-  # no header may mention localhost; `/` must be 3xx with Location exactly `/en` (app-level rule);
-  # open-redirect probes: see loc_bad in smoke-lib.sh.
+  # no header (x-middleware-rewrite included; /s/* is the rewrite path) may mention localhost / 127.0.0.1 / 0.0.0.0;
+  # `/` must be 3xx with Location exactly `/en` (app-level rule); every Location must stay on site (loc_bad, smoke-lib.sh).
+  # Expected (backend #328): // and /\ probes → 308 to on-site /evil.com[/]; %2F%2F / %5C%5C probes → 404.
   local resp code loc hdr=(-H 'Host: geiom.com' -H 'X-Forwarded-Proto: https' -H 'X-Forwarded-Host: geiom.com')
-  for p in / /ru /admin '//evil.com/' '/%2F%2Fevil.com' '/\evil.com'; do
+  for p in / /ru /admin /s/nbshiyan-smoke-probe '//evil.com' '//evil.com/' '/%2F%2Fevil.com' '/%5C%5Cevil.com' '/\evil.com'; do
     resp=$(curl -sI --max-time 10 "${hdr[@]}" "http://127.0.0.1:3000$p"); code=$(resp_code "$resp"); loc=$(resp_loc "$resp")
     [[ "$code" =~ ^[0-9]{3}$ ]] || { log "FAIL $p: no HTTP status"; ok=0; continue; }
     [[ "$code" == 5* ]] && { log "FAIL $p → $code"; ok=0; }
-    grep -qi localhost <<<"$resp" && { log "FAIL a response header of $p contains localhost"; ok=0; }
+    hdr_leak "$resp" && { log "FAIL a response header of $p contains localhost / 127.0.0.1 / 0.0.0.0"; ok=0; }
     [ "$p" = / ] && ! root_redirect_ok "$code" "$loc" app && { log "FAIL / → $code Location '$loc' (want 3xx, exactly /en)"; ok=0; }
     loc_bad "$loc" && { log "FAIL open redirect: $p → $loc"; ok=0; }
   done
@@ -156,7 +144,7 @@ promote() {
 case "${1:-}" in
   up)
     [ -f "$ENVF" ] && [ "$(stat -c %a "$ENVF")" = 600 ] || die "app env file missing or not 600"
-    env_prod_ok || die "APP_ENV / NODE_ENV not production, or APP_ORIGIN not https://geiom.com, in the app env file"
+    env_prod_ok || die "app env / compose check failed (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL or HOSTNAME; see FAIL above)"
     edge_match || die "EDGE_AUTH_SECRET in env file does not match the include (hash compare)"
     docker image inspect nbshiyan-app:candidate >/dev/null || die "no candidate image; run build-on-server.sh"
     sha_ok "$(cat "$D/.candidate-sha" 2>/dev/null)" || die ".candidate-sha is not a 40-hex git sha"
