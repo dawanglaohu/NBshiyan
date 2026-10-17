@@ -2,6 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 import { EXPIRED_RE, probeConfig, probeHeaders, probeShortlink, parseShortlink } from './lib/edge/shortlink';
+import { resolveClientIp } from './lib/edge/client-ip';
 
 const intl = createMiddleware(routing);
 const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private, no-store' };
@@ -20,8 +21,9 @@ export default async function middleware(req: NextRequest) {
   const sl = parseShortlink(pathname);
   if (sl) {
     const cfg = probeConfig(process.env);
-    // 带内部密钥和原始客户端 IP，API 按客户端 IP 限流，而不是所有探测共用服务器 IP
-    const ip = req.headers.get('x-real-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0] ?? null;
+    // 带内部密钥和原始客户端 IP，API 按客户端 IP 限流，而不是所有探测共用服务器 IP。
+    // IP 和 API 一样走 resolveClientIp：只有 X-Edge-Auth 正确时才取 CF-Connecting-IP；不可信时不带 IP（探测按连接来源限流）
+    const { ip } = resolveClientIp(req.headers, process.env);
     const probe = cfg ? await probeShortlink(cfg.origin, sl.id, fetch, Date.now(), probeHeaders(cfg.secret, ip)) : null;
     const locale = sl.locale ?? (/^ru\b/i.test(req.headers.get('accept-language') ?? '') ? 'ru' : 'en');
     if (probe?.unavailable) {

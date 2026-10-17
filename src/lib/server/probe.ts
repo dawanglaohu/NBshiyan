@@ -1,4 +1,4 @@
-import { isIP } from 'node:net';
+import { validIp } from '../edge/client-ip';
 import { secretMatches } from './uploads';
 
 export const PROBE_SECRET_MIN_BYTES = 32;
@@ -17,6 +17,6 @@ export function probeClientIp(req: Request): string | null {
     return null;
   }
   if (!secretMatches(req.headers.get('x-internal-probe'), secret)) return null;
-  const ip = req.headers.get('x-probe-client-ip')?.trim() ?? '';
-  return ip.length <= 45 && isIP(ip) ? ip.toLowerCase() : null;
+  // 与 clientIp 共用同一个 IP 校验（src/lib/edge/client-ip.ts）
+  return validIp(req.headers.get('x-probe-client-ip'))?.toLowerCase() ?? null;
 }

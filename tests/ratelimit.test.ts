@@ -129,31 +129,31 @@ test('login/2FA: store down -> denied (closed); keys hold no plaintext email', a
   try {
     assert.equal(await loginRateOk(null, 'Admin@Example.com'), true);
     assert.ok(r.keys.every((k) => !/example/i.test(k)));
-    assert.ok(r.keys.some((k) => k.includes('login-ip:noip')));
+    assert.ok(r.keys.some((k) => k.includes('login-ip:untrusted')));
   } finally { setRateLimitStore(undefined); }
 });
 
-test('admin guard: store down -> 429 (closed); null IP uses noip bucket', async () => {
+test('admin guard: store down -> 429 (closed); untrusted request uses shared untrusted bucket', async () => {
   const req = () => new Request('http://x/api/admin/x', { method: 'POST' });
   setRateLimitStore(failing);
   try { assert.equal((await quiet(() => enforceAdminRateLimit(req(), 'k')))?.status, 429); }
   finally { setRateLimitStore(undefined); }
   const r = recording(); setRateLimitStore(r.store);
-  try { assert.equal(await enforceAdminRateLimit(req(), 'k'), null); assert.match(r.keys[0], /admin:k:noip$/); }
+  try { assert.equal(await enforceAdminRateLimit(req(), 'k'), null); assert.match(r.keys[0], /admin:k:untrusted$/); }
   finally { setRateLimitStore(undefined); }
 });
 
-test('rum: store down -> allowed (open); null IP uses rum:noip:all', async () => {
+test('rum: store down -> allowed (open); untrusted request uses rum:untrusted', async () => {
   const req = () => new Request('http://x/api/rum', { method: 'POST', body: '{}' });
   setRateLimitStore(failing);
   try { assert.notEqual((await quiet(() => rumPOST(req()))).status, 429); }
   finally { setRateLimitStore(undefined); }
   const r = recording(); setRateLimitStore(r.store);
-  try { await rumPOST(req()); assert.match(r.keys[0], /:rum:noip:all$/); }
+  try { await rumPOST(req()); assert.match(r.keys[0], /:rum:untrusted$/); }
   finally { setRateLimitStore(undefined); }
 });
 
-test('routes that used to skip limiting when IP is null now hit a noip bucket', async () => {
+test('routes that used to skip limiting when IP is null now hit the shared untrusted bucket', async () => {
   const { GET: logoGET } = await import('../src/app/api/designs/[id]/logo/route');
   const { GET: designGET } = await import('../src/app/api/designs/[id]/route');
   const { POST: inqPOST } = await import('../src/app/api/inquiries/route');
@@ -163,8 +163,28 @@ test('routes that used to skip limiting when IP is null now hit a noip bucket', 
     await logoGET(new Request('http://x/api/designs/!bad/logo'), p);
     await designGET(new Request('http://x/api/designs/!bad'), p).catch(() => {});
     await inqPOST(new Request('http://x/api/inquiries', { method: 'POST', body: '{}' }));
-    for (const k of ['design-logo:noip:all', 'design-get:noip:all', 'inq-bad:noip:all']) assert.ok(r.keys.some((x) => x.endsWith(':' + k)), k);
+    for (const k of ['design-logo:untrusted', 'design-get:untrusted', 'inq-bad:untrusted']) assert.ok(r.keys.some((x) => x.endsWith(':' + k)), k);
   } finally { setRateLimitStore(undefined); }
+});
+
+test('spoofed CF-Connecting-IP / X-Forwarded-For without valid X-Edge-Auth all land in ONE untrusted bucket', async () => {
+  const { GET: designGET } = await import('../src/app/api/designs/[id]/route');
+  const r = recording(); setRateLimitStore(r.store);
+  const p = { params: Promise.resolve({ id: '!bad' }) };
+  const prev = process.env.EDGE_AUTH_SECRET;
+  process.env.EDGE_AUTH_SECRET = 'edge-test-secret-0123456789abcdef-XYZ';
+  try {
+    const spoofed: Record<string, string>[] = [{ 'cf-connecting-ip': '1.1.1.1' }, { 'cf-connecting-ip': '2.2.2.2', 'x-edge-auth': 'wrong' }, { 'x-forwarded-for': '3.3.3.3' }, { 'x-real-ip': '4.4.4.4' }, {}];
+    for (const h of spoofed)
+      await designGET(new Request('http://x/api/designs/!bad', { headers: h }), p).catch(() => {});
+    const keys = r.keys.filter((k) => k.includes(':design-get:'));
+    assert.equal(keys.length, 5);
+    assert.equal(new Set(keys).size, 1);
+    assert.match(keys[0], /:design-get:untrusted$/);
+    // 带正确 X-Edge-Auth 时按 CF-Connecting-IP 分桶
+    await designGET(new Request('http://x/api/designs/!bad', { headers: { 'x-edge-auth': process.env.EDGE_AUTH_SECRET!, 'cf-connecting-ip': '5.5.5.5' } }), p).catch(() => {});
+    assert.ok(r.keys.some((k) => k.endsWith(':design-get:5.5.5.5')));
+  } finally { setRateLimitStore(undefined); if (prev === undefined) delete process.env.EDGE_AUTH_SECRET; else process.env.EDGE_AUTH_SECRET = prev; }
 });
 
 // ---- #74 安全复审：子密钥派生、日志不含原始邮箱/IP ----
