@@ -109,10 +109,10 @@ test('#323 审查 1：生产环境 Origin 必须与 APP_ORIGIN 完全相等（ne
   for (const a of ['https://geiom.com/', 'https://GEIOM.COM', 'https://geiom.com:443']) assert.equal(assertSameOrigin(reqH('POST', { origin: 'https://geiom.com' }), { ...PROD323, APP_ORIGIN: a }), null, a);
   const src = readFileSync('src/lib/server/admin-guard.ts', 'utf8');
   const fn = src.slice(src.indexOf('function canonicalOrigin'), src.indexOf('export async function enforceAdminRateLimit')).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
-  assert.doesNotMatch(fn, /startsWith|endsWith|includes\(|\.test\(|\.match\(|referer/i);
+  assert.doesNotMatch(fn, /startsWith|endsWith|includes\(|\.test\(|\.match\(|referer|sec-fetch/i);
 });
 
-test('#323 审查 2：生产环境 Origin: null → 403；无 Origin 只有 Sec-Fetch-Site: same-origin 放行；从不看 Referer；GET 不变', () => {
+test('#323 审查 2：生产环境 Origin: null → 403；无 Origin 一律 403（Sec-Fetch-Site: same-origin 也不例外）；从不看 Referer；GET 不变', () => {
   for (const m of ['POST', 'PUT', 'PATCH', 'DELETE']) {
     assert.equal(assertSameOrigin(reqH(m, { origin: 'null' }), PROD323)?.status, 403, `${m} null`);
     assert.equal(assertSameOrigin(reqH(m, { origin: 'null', 'sec-fetch-site': 'same-origin' }), PROD323)?.status, 403, `${m} null + sfs`);
@@ -120,11 +120,12 @@ test('#323 审查 2：生产环境 Origin: null → 403；无 Origin 只有 Sec-
     for (const sfs of ['cross-site', 'same-site', 'none', 'SAME-ORIGIN', 'same-origin, cross-site', ''])
       assert.equal(assertSameOrigin(reqH(m, { 'sec-fetch-site': sfs }), PROD323)?.status, 403, `${m} sfs=${sfs}`);
     assert.equal(assertSameOrigin(reqH(m, { referer: 'https://geiom.com/admin' }), PROD323)?.status, 403, `${m} referer only`);
-    assert.equal(assertSameOrigin(reqH(m, { 'sec-fetch-site': 'same-origin' }), PROD323), null, `${m} sfs same-origin`);
+    // 反例：Sec-Fetch-Site: same-origin 不能代替 Origin
+    assert.equal(assertSameOrigin(reqH(m, { 'sec-fetch-site': 'same-origin' }), PROD323)?.status, 403, `${m} sfs same-origin`);
     // Origin 存在时以 Origin 为准，Sec-Fetch-Site 不能把错误的 Origin 救回来
     assert.equal(assertSameOrigin(reqH(m, { origin: 'http://0.0.0.0:3000', 'sec-fetch-site': 'same-origin' }), PROD323)?.status, 403, `${m} bad origin + sfs`);
   }
-  // 生产缺 APP_ORIGIN：无 Origin + same-origin 也拒绝
+  // 生产缺 APP_ORIGIN：同样拒绝
   assert.equal(assertSameOrigin(reqH('POST', { 'sec-fetch-site': 'same-origin' }), { ...PROD323, APP_ORIGIN: undefined })?.status, 403);
   // GET / HEAD / OPTIONS 不检查（不变）
   for (const m of ['GET', 'HEAD', 'OPTIONS']) assert.equal(assertSameOrigin(reqH(m, {}), PROD323), null, m);

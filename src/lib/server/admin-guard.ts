@@ -17,8 +17,7 @@ function canonicalOrigin(o: string): string | null {
  * - 生产（APP_ENV=production，isProdEnvFrom）：
  *   - #323 只认 APP_ORIGIN 的 origin（每次调用时从 env 读，不在构建时内联）；不再自动放行请求自身的 origin
  *     （standalone 下 req.url 是监听地址，如 http://0.0.0.0:3000）。APP_ORIGIN 缺失或无效时一律拒绝（启动检查本来就要求它）。
- *   - 没有 Origin 头：只有 `Sec-Fetch-Site: same-origin`（浏览器设置、页面脚本不能伪造）时放行，其余 403。
- *   - `Origin: null` 一律 403（不看 Sec-Fetch-Site）。
+ *   - 没有 Origin 头或 `Origin: null`：一律 403（不看 Sec-Fetch-Site，也不看 Referer）。
  * - 非生产（本地 / CI / 预览）：与以前一样，允许请求自身的 origin 或 APP_ORIGIN；缺 Origin 或 Origin 为 "null" 一律 403。
  * cron（Bearer CRON_SECRET）、webhook（签名）和公开表单接口不调用这个函数，不受影响。
  * 通过返回 null；不通过返回 403 响应，调用方直接 return。
@@ -36,8 +35,8 @@ export function assertSameOrigin(req: Request, env: Record<string, string | unde
     try { const o = new URL(appOrigin).origin; if (o !== 'null') allowed.add(o); } catch { /* 配置错误时不放行 */ }
   }
   let ok: boolean;
-  if (origin === null) ok = prod && allowed.size > 0 && req.headers.get('sec-fetch-site') === 'same-origin';
-  else { const o = origin === 'null' ? null : canonicalOrigin(origin); ok = o !== null && allowed.has(o); }
+  if (origin === null || origin === 'null') ok = false;
+  else { const o = canonicalOrigin(origin); ok = o !== null && allowed.has(o); }
   if (!ok) return NextResponse.json({ error: 'forbidden_origin' }, { status: 403, headers: { 'Cache-Control': 'no-store' } });
   return null;
 }
