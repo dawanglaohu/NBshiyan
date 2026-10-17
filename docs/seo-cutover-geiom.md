@@ -6,7 +6,7 @@
 
 ## 0. 主域名
 
-- **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`），不读请求的 Host。`NEXT_PUBLIC_SITE_URL` 必须**正好**是 `https://geiom.com`：全小写，不带结尾 `/`，不带路径（#323 起不符合就构建失败）。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
+- **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`），不读请求的 Host。`NEXT_PUBLIC_SITE_URL` 必须等于 `https://geiom.com`（部署要求，运维 `deploy.sh` 校验）；代码会拒绝末尾 `/`、端口、路径、IP/localhost 和非 https：构建失败，运行时也会拒绝启动；域名由 `APP_ORIGIN` 锁定，必须等于它的 origin。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
 - `www.geiom.com` 和 `http://` 的 301 **全部由 nginx 做**（运维已定）：http 裸域、http www、https www 都一跳 301 到 `https://geiom.com$request_uri`。Cloudflare 侧 Always Use HTTPS 关闭，没有 Redirect Rules，也没有 Page Rules。
 - ⚠️ 切换时**不要**在 Cloudflare 加重定向规则，**不要**打开 Always Use HTTPS，否则会和 nginx 的 301 叠成两跳或者循环。
 - 语言前缀：`src/i18n/routing.ts` 是 `locales: ['en', 'ru']`、`defaultLocale: 'en'`、`localePrefix: 'always'`，所有页面都在 `/en/...` 或 `/ru/...` 下。
@@ -38,10 +38,10 @@ S=https://geiom.com
 - [ ] **运行时** 生产容器必须保持 `HOSTNAME=0.0.0.0`。改成 `127.0.0.1` 的话，`/s/*` 的 rewrite 会在 `x-middleware-rewrite` 响应头里带出 localhost（这个问题 #328 之前就有）。第二个原因：`HOSTNAME=127.0.0.1` 时，#328 的跳转修复可能生成简写地址 `127.0.1`，而 nginx 兜底的 `proxy_redirect`（第 2.5 节）只匹配完整的 `127.0.0.1`，会漏掉。运维已在 compose 里写死 `HOSTNAME=0.0.0.0`，`deploy.sh` 也会检查这一项（`ops/app-origin-required`）。部署后验证：
   - 容器里 `HOSTNAME` 是 `0.0.0.0`，例如 `docker compose exec <app> printenv HOSTNAME`。
   - 任何响应头里都不能出现 localhost，例如 `curl -sI $S/en | grep -ci localhost` 和 `curl -sI $S/s/<任意 id> | grep -ci localhost` 都应为 0（第 2.4、2.5 节）。
-- [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`，必须一字不差：全小写，不带结尾 `/`（#323 起 `https://geiom.com/`、`https://Geiom.com` 这类写法都会让构建失败）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
+- [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`：必须等于 `https://geiom.com`（部署要求，运维 `deploy.sh` 校验）；代码会拒绝末尾 `/`、端口、路径、IP/localhost 和非 https：构建失败，运行时也会拒绝启动；域名由 `APP_ORIGIN` 锁定，必须等于它的 origin。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
 - [ ] 构建检查（`prod-env-check.ts`，`next build` 时执行）：
-  - 当前 main：`NEXT_PUBLIC_SITE_URL` 缺失或不是 `https://` 时构建失败。
-  - PR #321 合并后：另外拒绝 localhost / 127.x / ::1 / 0.0.0.0 / `*.localhost`。上线必须用合并了 #321 的 commit 构建。
+  - `APP_ENV=production` 时，`NEXT_PUBLIC_SITE_URL` 缺失、不是 https 裸 origin（带末尾 `/`、端口、路径），或者是 IP / localhost，`next build` 都会失败；#323 起 standalone 启动时再检查一次，不通过就 exit 1。
+  - 代码不比对具体域名：`https://geiom.com` 这个值由运维 `deploy.sh` 校验，代码里锁定域名的是 `APP_ORIGIN`（见上面的 `APP_ORIGIN` 一项）。
 - [ ] 站长验证 meta（可选，见第 4 节）：`NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`、`NEXT_PUBLIC_YANDEX_VERIFICATION`、`NEXT_PUBLIC_BING_VERIFICATION` 也是 `NEXT_PUBLIC_*`，要用的话必须在**构建时**给，改值要重新构建。走 DNS TXT 验证就不用设。
 - [ ] standalone 镜像（`output: 'standalone'`，PR #321）：除 `.next/standalone/` 外，必须把 `public/` 复制到 `.next/standalone/public/`、`.next/static/` 复制到 `.next/standalone/.next/static/`（`launch-runbook.md` §4.1）。漏了会导致 OG 图、favicon、poster、JS/CSS 全部 404。安全已核对运维 Dockerfile 里有这两步。
 - [ ] 限流 / IndexNow 去重：上线用运维 v1.6 的本地 Redis + SRH（Upstash 兼容 REST），`RATE_LIMIT_STORE=upstash`，`UPSTASH_REDIS_REST_URL` 为 https。`src/lib/seo/indexnow.ts` 只在 `RATE_LIMIT_STORE=upstash`、URL 是 https、token 已设、生产环境、`INDEXNOW_KEY` 合法（8–128 位 `[a-zA-Z0-9-]`）时启用，缺一项就**静默关闭**。
