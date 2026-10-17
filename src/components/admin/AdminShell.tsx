@@ -67,7 +67,7 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
           ? <Link key={n.href} href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>
               {n.label}{n.href === '/admin/inquiries' && newCount ? <span className="count" aria-label={`${newCount} 条新询盘`}>{newCount}</span> : null}
             </Link>
-          : <a key={n.href} className="soon" aria-disabled="true" title="待开发">{n.label}</a>)}
+          : <a key={n.href} className="soon" role="link" aria-disabled="true" title="待开发">{n.label}</a>)}
         {mailEnabled && role === 'ADMIN' && <UnassignedNav active={path.startsWith('/admin/mail')} />}
       </nav>
       <main className="adm-main">

@@ -6,7 +6,8 @@ import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type AdminUser, type InquiryQ
 import StatusBadge from './StatusBadge';
 import DateRange from './DateRange';
 import { DeletedTag, filterAnonymized, isAnonymized, needsReview, parseIncludeAnon, piiField } from './anonymized';
-import { PRODUCT_LABEL, errorText, loginHref, productName, relTime } from './format';
+import { PRODUCT_LABEL, errorText, loginHref, productName } from './format';
+import AdminTime from './AdminTime';
 
 const TABS: (InquiryStatus | 'REVIEW' | '')[] = ['', 'NEW', 'FOLLOWING', 'QUOTED', 'WON', 'INVALID', 'REVIEW'];
 const tabLabel = (t: (typeof TABS)[number]) => (t === '' ? '全部' : t === 'REVIEW' ? `待核实（<${REVIEW_THRESHOLD} 分）` : STATUS_LABEL[t]);
@@ -55,7 +56,7 @@ export default function InquiryList() {
         <td className={needsReview(r) ? 'warn' : undefined} data-label="可信度">{r.trustScore}{needsReview(r) ? ' ⚠' : ''}</td>
         <td><StatusBadge status={r.status} />{isAnonymized(r) && <DeletedTag />}</td>
         <td className="muted" data-label="负责人">{r.assignee?.name ?? '—'}</td>
-        <td className="muted" title={r.createdAt}>{relTime(r.createdAt)}</td>
+        <td className="muted"><AdminTime iso={r.createdAt} /></td>
       </tr>
     );
   };

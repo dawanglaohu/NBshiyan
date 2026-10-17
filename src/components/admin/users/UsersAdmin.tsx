@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { errorText, fmtDate } from '@/components/admin/format';
+import { errorText } from '@/components/admin/format';
+import AdminTime from '@/components/admin/AdminTime';
 
 type Role = 'ADMIN' | 'SALES' | 'EDITOR';
 type U = { id: string; email: string; name: string; role: Role; disabled: boolean; totpEnabled: boolean; locked: boolean; createdAt: string; lastLoginAt: string | null };
@@ -56,7 +57,7 @@ export default function UsersAdmin() {
               <td>{u.email}</td><td>{u.name}</td>
               <td><select aria-label={`${u.email} 的角色`} value={u.role} disabled={busy} onChange={(e) => patch(u.id, { role: e.target.value })}>{ROLES.map((r) => <option key={r}>{r}</option>)}</select></td>
               <td>{u.disabled ? '已停用' : u.locked ? '已锁定' : !u.totpEnabled ? '待绑定 2FA' : '正常'}</td>
-              <td>{u.lastLoginAt ? fmtDate(u.lastLoginAt) : '—'}</td>
+              <td>{u.lastLoginAt ? <AdminTime iso={u.lastLoginAt} /> : '—'}</td>
               <td>
                 <button className="adm-btn" disabled={busy} onClick={() => { if (u.disabled || confirm(`停用 ${u.email}？对方会立即退出登录。`)) patch(u.id, { disabled: !u.disabled }); }}>{u.disabled ? '启用' : '停用'}</button>
                 {u.locked && <button className="adm-btn" disabled={busy} onClick={() => patch(u.id, { unlock: true })}>解锁</button>}

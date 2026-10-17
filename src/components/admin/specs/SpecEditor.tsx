@@ -2,7 +2,7 @@
 import './specs.css';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { fmtDate } from '@/components/admin/format';
+import AdminTime from '@/components/admin/AdminTime';
 import {
   CURRENCIES, DIMS, INCOTERMS, LEAD_UNITS, MOQ_UNITS, SIZE_UNITS, emptyForm, fromView, isHttpsUrl, newCertRow, serverErrors, toBody,
   type FieldErrors, type SpecForm, type SpecView,
@@ -74,7 +74,7 @@ export default function SpecEditor({ category, title }: { category: string; titl
     <form className="spec" onSubmit={save} noValidate>
       <p><Link href="/admin/specs">← 全部品类</Link></p>
       <h1>产品规格：{title} <small>{category}</small></h1>
-      {updatedAt && <p className="spec-meta">上次保存：{fmtDate(updatedAt)}</p>}
+      {updatedAt && <p className="spec-meta">上次保存：<AdminTime iso={updatedAt} /></p>}
       {msg && <div className={`spec-msg ${msg.kind}`} role={msg.kind === 'err' ? 'alert' : 'status'}>{msg.text}</div>}
       {errors._ && <div className="spec-msg err" role="alert">{errors._}</div>}
 
