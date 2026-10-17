@@ -53,7 +53,18 @@ function publicProblems(env: Record<string, string | undefined>): string[] {
   if (TEST_TURNSTILE_SITE_KEY.test(v('NEXT_PUBLIC_TURNSTILE_SITE_KEY'))) out.push('NEXT_PUBLIC_TURNSTILE_SITE_KEY 是 Cloudflare 测试 site key，生产必须用真实 key');
   const site = v('NEXT_PUBLIC_SITE_URL');
   if (site && !/^https:\/\//.test(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是 https 地址');
+  else if (site && !publicSiteHostOk(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是正式域名（不能是 localhost / 127.0.0.1 / ::1 / 0.0.0.0 / *.localhost，也不能是无效地址）');
   return out;
+}
+
+/** 正式站点地址的主机名：不能是本机 / 回环 / 未指定地址（canonical、sitemap、邮件链接都用它，构建时内联） */
+export function publicSiteHostOk(site: string): boolean {
+  let host: string;
+  try { host = new URL(site).hostname.toLowerCase().replace(/\.$/, ''); } catch { return false; }
+  if (!host) return false;
+  if (host === 'localhost' || host.endsWith('.localhost')) return false;
+  if (host === '0.0.0.0' || host === '[::1]' || host === '[::]' || /^127(\.\d{1,3}){3}$/.test(host)) return false;
+  return true;
 }
 
 /**

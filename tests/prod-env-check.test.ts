@@ -239,3 +239,20 @@ test('存储检查只在 runtime：build 阶段不看 STORAGE_DRIVER / UPLOAD_DI
   assert.deepEqual(prodEnvProblems({ ...prodFull, STORAGE_DRIVER: 'local', UPLOAD_DIR: 'relative' }, 'build'), []);
   assert.deepEqual(prodEnvProblems({ ...prodFull, R2_SECRET_ACCESS_KEY: '' }, 'build'), []);
 });
+
+test('build 阶段：NEXT_PUBLIC_SITE_URL 缺失 / 非 https / 本机或回环主机名都拒绝', () => {
+  const base = { APP_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey' };
+  const bad: [string | undefined, RegExp][] = [
+    [undefined, /未设置/], ['', /未设置/], ['http://packjoyu.com', /https/],
+    ['https://localhost', /正式域名/], ['https://localhost:3000', /正式域名/], ['https://LOCALHOST.', /正式域名/], ['https://app.localhost', /正式域名/],
+    ['https://127.0.0.1', /正式域名/], ['https://127.1.2.3:8443', /正式域名/], ['https://[::1]', /正式域名/], ['https://[::1]:3000/x', /正式域名/],
+    ['https://0.0.0.0', /正式域名/], ['https://', /正式域名/], ['https://%zz', /正式域名/],
+  ];
+  for (const [site, re] of bad) {
+    const p = prodEnvProblems({ ...base, NEXT_PUBLIC_SITE_URL: site }, 'build');
+    assert.equal(p.length, 1, `${site}: ${p}`); assert.match(p[0], re, String(site));
+    assert.ok(site === undefined || site.length < 9 || !p[0].includes(site), 'value not echoed');
+  }
+  for (const site of ['https://packjoyu.com', 'https://www.packjoyu.com/', 'https://localhost-shop.com', 'https://my.localhosting.ru'])
+    assert.deepEqual(prodEnvProblems({ ...base, NEXT_PUBLIC_SITE_URL: site }, 'build'), [], site);
+});
