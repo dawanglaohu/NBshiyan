@@ -46,15 +46,23 @@ function start(env: Record<string, string | undefined>, onReady?: (port: number)
   });
 }
 
-test('standalone：缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS 各自 exit 1，只打印变量名，不打印任何值', { skip: !enabled }, async () => {
+test('standalone：缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS、MAIL_SEND_ADAPTER=mock、SMTP_PORT=25 各自 exit 1，只打印变量名，不打印任何值', { skip: !enabled }, async () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'sa-upl-'));
+  const cases: [string, Record<string, string | undefined>, RegExp][] = [
+    ['EDGE_AUTH_SECRET missing', { EDGE_AUTH_SECRET: undefined }, /- EDGE_AUTH_SECRET/],
+    ['DATABASE_URL missing', { DATABASE_URL: undefined }, /- DATABASE_URL/],
+    ['SMTP_PASS missing', { SMTP_PASS: undefined }, /- SMTP_PASS/],
+    ['MAIL_SEND_ADAPTER=mock', { MAIL_SEND_ADAPTER: 'mock' }, /- MAIL_SEND_ADAPTER/],
+    ['SMTP_PORT=25', { SMTP_PORT: '25' }, /- SMTP 发信配置无效[^\n]*SMTP_PORT/],
+  ];
   try {
-    for (const k of ['EDGE_AUTH_SECRET', 'DATABASE_URL', 'SMTP_PASS']) {
-      const r = await start({ ...FAKE, UPLOAD_DIR: dir, [k]: undefined });
-      assert.equal(r.code, 1, `${k}: ${r.out}`);
-      assert.equal(r.ready, false, k);
-      assert.match(r.out, new RegExp(`- ${k}`));
-      for (const v of SECRET_VALUES) assert.ok(!r.out.includes(v), `value leaked when ${k} missing`);
+    for (const [label, over, re] of cases) {
+      const r = await start({ ...FAKE, UPLOAD_DIR: dir, ...over });
+      assert.equal(r.code, 1, `${label}: ${r.out}`);
+      assert.equal(r.ready, false, label);
+      assert.match(r.out, re, label);
+      assert.equal((r.out.match(/^- /gm) ?? []).length, 1, `${label}: exactly one problem`);
+      for (const v of SECRET_VALUES) assert.ok(!r.out.includes(v), `value leaked (${label})`);
     }
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
