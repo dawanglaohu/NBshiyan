@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
 import { getDocBySlug, getDocs, type DocType, type Locale } from '@/lib/server/sanity';
 import PortableText from './PortableText';
@@ -10,6 +10,7 @@ import { SITE_URL } from '@/lib/site';
 import { articleSeo } from '@/lib/seo/templates';
 import { articleBreadcrumb } from '@/lib/seo/breadcrumbs';
 import LocaleAlternates from '@/components/layout/LocaleAlternates';
+import { articleShareMeta } from '@/lib/seo/articleOg';
 
 // Sanity 驱动的列表页/详情页（#100）。未配置 Sanity 或无内容时：列表页 noindex 且显示空态，详情页 404。
 // 浏览器不直连 Sanity；正文图片暂不渲染，CSP 无需改动。
@@ -26,11 +27,18 @@ const META_TITLES: Partial<Record<DocType, Record<Locale, string>>> = {
 const EMPTY: Record<Locale, string> = { en: 'Content coming soon.', ru: 'Скоро здесь появятся материалы.' };
 type P = { params: Promise<{ locale: string; slug?: string }> };
 
+/** 文章列表/详情的回退分享图（首页通用图 + Meta.ogImageAlt）；其他类型返回空，保持原输出 */
+async function shareMeta(type: DocType, locale: string): Promise<Pick<Metadata, 'openGraph' | 'twitter'>> {
+  if (type !== 'article') return {};
+  const t = await getTranslations({ locale: loc(locale), namespace: 'Meta' });
+  return articleShareMeta(loc(locale), t('ogImageAlt'));
+}
+
 export function listMetadata(type: DocType, base: string) {
   return async ({ params }: P): Promise<Metadata> => {
     const { locale } = await params;
     const docs = await getDocs(type, loc(locale));
-    return { title: (META_TITLES[type] ?? TITLES[type])[loc(locale)], alternates: alternatesFor(locale, base), ...(docs?.length ? {} : { robots: { index: false, follow: true } }) };
+    return { title: (META_TITLES[type] ?? TITLES[type])[loc(locale)], alternates: alternatesFor(locale, base), ...(docs?.length ? {} : { robots: { index: false, follow: true } }), ...(await shareMeta(type, locale)) };
   };
 }
 
@@ -68,7 +76,8 @@ export function detailMetadata(type: DocType, base: string) {
       title: seo.title,
       ...(seo.description ? { description: seo.description } : {}),
       alternates: docAlternates(locale, base, slug, d.alt),
-      ...(d.seo?.noindex ? { robots: { index: false, follow: true } } : {})
+      ...(d.seo?.noindex ? { robots: { index: false, follow: true } } : {}),
+      ...(await shareMeta(type, locale))
     };
   };
 }
