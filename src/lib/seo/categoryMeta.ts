@@ -61,7 +61,7 @@ export const categoryMeta: CategoryMeta[] = [
       title: 'Packaging Printing Services | PackJoyU',
       description: 'Full-color CMYK and Pantone printing for packaging, labels and inserts on paper and board. Accurate color matching and fast proofs. Request a quote.' },
     ru: { slug: 'tsvetnaya-pechat', keyword: 'печать упаковки', draft: true,
-      title: 'Печать упаковки на заказ — полноцвет | PackJoyU',
+      title: 'Полноцветная печать упаковки на заказ | PackJoyU',
       description: 'Полноцветная печать упаковки, этикеток и вкладышей на бумаге и картоне. Точная цветопередача CMYK и Pantone, быстрые пробы для брендов. Запросите расчёт.' } },
   { key: 'offset-printing',
     en: { slug: 'offset-printing-services', keyword: 'offset printing services',
