@@ -38,7 +38,7 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `smoke-lib.sh`, `tests/smoke.test.sh` | redirect/header smoke rules (`loc_bad`, `hdr_leak`, `root_redirect_ok`) used by `deploy.sh`, and their tests |
 | `env-check.sh`, `tests/env-check.test.sh` | `env_prod_ok` (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL, HOSTNAME) and the compose `HOSTNAME` check, sourced by `deploy.sh`, and their tests |
 | `deploy.sh` | pg_dump → schema plan + destructive check → `db push` → drift check → start → post-deploy checks → auto-rollback |
-| `build-offbox.sh` | build both images OFF the server (fresh clone at the pinned SHA, explicit `--platform`, same pins, public build args only), secret-free pre-checks, `docker save` → `.tar.zst` + `.sha256` + `.manifest` (expected IDs) |
+| `build-offbox.sh`, `tests/build-offbox.test.sh` | build both images OFF the server (fresh clone at the pinned SHA, explicit `--platform`, same pins, public build args only), secret-free pre-checks, `docker save` → `.tar.zst` + `.sha256` + `.manifest` (expected IDs) |
 | `import-and-scan.sh`, `tests/import-scan.test.sh` | ON the server: `sha256sum -c`, tar content check (only our two tags) → `docker load` → IDs / platform / revision label → leak scan with the server's secrets → production build checks → only then `:candidate` + `.candidate-sha`; the transferred files are always removed |
 | `mem-check.sh`, `tests/mem-check.test.sh` | `mem_ok` (sourced by `deploy.sh up` before anything starts): MemAvailable ≥ compose `mem_limit` of the services that still have to start (+ migrate next to a running app) + `MEM_RESERVE_MB` (256) |
 | `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
@@ -215,8 +215,12 @@ and only imported on the server. `deploy.sh up` is the same in both paths (backu
 checks → auto-rollback); it never builds.
 1. **Build host** (has docker + buildx, holds NO production secret):
    `PIN_SHA=<40-hex> PLATFORM=<server: docker version -f '{{.Server.Os}}/{{.Server.Arch}}'> BUILD_ARGS_FILE=<600 file> OUT_DIR=<dir> deploy/build-offbox.sh`.
-   The build-args file holds public values only: `APP_ENV=production`, `NEXT_PUBLIC_SITE_URL=https://geiom.com` and the
-   production Turnstile **site** key (the secret key never leaves the server). The script clones fresh, checks HEAD / clean
+   The build-args file is the server's `build-args.env`, copied verbatim (600 on the build host, deleted after the build).
+   Only the keys present in it are passed; every other ARG keeps its Dockerfile default. Values must be unquoted and LF
+   only (a quote or `\r` would be baked into the bundle). Required: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the **site** key;
+   the secret key never leaves the server). `APP_ENV` / `NEXT_PUBLIC_SITE_URL`, if present, must be `production` /
+   `https://geiom.com`. The sha256 of the effective value of every public ARG is written as a
+   `com.nbshiyan.buildarg.<KEY>` label. The script clones fresh, checks HEAD / clean
    tree / no `.env*` or key files, the base-image and syntax digests, the `buildkitd.toml` sha256, that every Dockerfile
    `ARG` is on the public list, builds on BuildKit v0.34.0 (same digest as the server builder), checks platform, revision
    label, ENV keys, history and key files, then writes `nbshiyan-images-<sha12>.tar.zst`, `.sha256` and `.manifest`.
@@ -229,6 +233,10 @@ checks → auto-rollback); it never builds.
    `//localhost`, `//127.0.0.1`, `//0.0.0.0` URL in the client bundle, prerendered pages or build manifests (server JS chunks
    are excluded: Next.js framework code there has dev/test fallbacks such as `http://localhost:${PORT}`; runtime headers are
    covered by `deploy.sh`'s `hdr_leak`); no Turnstile test key; exactly one baked site key whose sha256 equals the value in
-   `build-args.env`. Only after all of that are `:candidate` and `.candidate-sha` set (and our old images rotated as in
+   `build-args.env`. Build args: `build-args.env` format (public keys only, once each, unquoted, LF), the required keys,
+   and for **every** public ARG the effective value (file value if present, else the Dockerfile default) = the image's
+   `com.nbshiyan.buildarg.<KEY>` label by sha256 (both images); `NEXT_PUBLIC_ADMIN_API` / `NEXT_PUBLIC_ADMIN_MAIL` also
+   against the inlined next.config `env`; every non-empty `NEXT_PUBLIC_*` value of 8+ chars must be literally in the build
+   output; `MAIL_MOCK_ADAPTER_BUILD` must be empty or unset. No quote stripping anywhere. Only after all of that are `:candidate` and `.candidate-sha` set (and our old images rotated as in
    `build-on-server.sh` step 7).
 4. `deploy.sh up` as usual.

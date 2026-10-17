@@ -25,6 +25,7 @@ case "$1" in
       printf 'PATH=/usr/bin\nNODE_ENV=production\nHOME=/tmp\n' > "$d/env"; has env_key && echo "AUTH_SECRET=x" >> "$d/env"
       printf 'RUN apt-get update\nCOPY . .\n' > "$d/hist"; has hist_secret && echo "ENV SMTP_PASS=abc" >> "$d/hist"
       repo=${ref%%:*}; echo "$repo" > "$d/repo"
+      [ -f "$FD/buildarg-labels" ] && cp "$FD/buildarg-labels" "$d/labels"
       echo "Loaded image: $ref"
     done
     has load_foreign && echo "Loaded image: alpine:latest"
@@ -39,6 +40,7 @@ case "$1" in
           "{{.Os}}/{{.Architecture}}") cat "$d/os" ;;
           *revision*) cat "$d/rev" ;;
           *com.nbshiyan.stack*) cat "$d/stack" ;;
+          *com.nbshiyan.buildarg.*) k=${f#*com.nbshiyan.buildarg.}; k=${k%%\"*}; sed -n "s/^$k=//p" "$d/labels" 2>/dev/null ;;
           *Config.Env*) cat "$d/env" ;;
           "") echo "[]" ;;
           *) echo "fake docker: unhandled inspect format $f" >&2; exit 99 ;;

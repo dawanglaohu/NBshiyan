@@ -184,10 +184,77 @@ prod_checks() {  # prod_checks <exported fs root of the app image> → 0 if all 
   if (( n == 0 )); then pass "no Turnstile test key"; else log "FAIL Turnstile test key in $n files"; ok=0; fi
   # (e) exactly one baked site key in the client bundle, and its sha256 = the build-args.env value's sha256
   cands=$( { grep -rhoE '0x4AAAAA[A-Za-z0-9_-]{10,40}' "$N/static" 2>/dev/null || true; } | sort -u)
-  want=$(sed -n 's/^NEXT_PUBLIC_TURNSTILE_SITE_KEY=//p' "$BUILD_ARGS_FILE" 2>/dev/null | tail -n 1 | sed -e 's/^"//' -e 's/"$//' | tr -d '\r\n' | sha256sum | cut -c1-64)
+  # no quote / CR stripping: the value must be byte-identical (buildarg_checks refuses quoted or CRLF values)
+  want=$(sed -n 's/^NEXT_PUBLIC_TURNSTILE_SITE_KEY=//p' "$BUILD_ARGS_FILE" 2>/dev/null | tail -n 1 | tr -d '\n' | sha256sum | cut -c1-64)
   got=""; [ -n "$cands" ] && got=$(printf '%s' "$cands" | sha256sum | cut -c1-64)
   if [ -n "$cands" ] && [ "$(wc -l <<<"$cands")" = 1 ] && [ "$got" = "$want" ] && [ -s "$BUILD_ARGS_FILE" ]; then pass "baked Turnstile site key = build-args.env (sha256)"
   else log "FAIL baked Turnstile site key: $( [ -n "$cands" ] && wc -l <<<"$cands" || echo 0) candidate(s), sha256 match=$([ "$got" = "$want" ] && echo yes || echo no)"; ok=0; fi
+  (( ok ))
+}
+# Build args: EFFECTIVE value of every public ARG (build-args.env value if the key is present, else the Dockerfile default)
+# must equal what the image was built with. Compared by sha256 only, values are never printed. Sources in the image:
+# the com.nbshiyan.buildarg.<KEY> labels written by build-offbox.sh (both images), the next.config `env` block in
+# required-server-files.json (NEXT_PUBLIC_ADMIN_API / NEXT_PUBLIC_ADMIN_MAIL), and the literal value in the build output
+# for every non-empty NEXT_PUBLIC_* value of 8+ chars (proves it was really inlined).
+PUBLIC_ARGS=(APP_ENV NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_ADMIN_API NEXT_PUBLIC_TURNSTILE_SITE_KEY NEXT_PUBLIC_TAWK_PROPERTY_ID NEXT_PUBLIC_TAWK_WIDGET_ID NEXT_PUBLIC_TAWK_WIDGET_ID_RU NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION NEXT_PUBLIC_YANDEX_VERIFICATION NEXT_PUBLIC_BING_VERIFICATION NEXT_PUBLIC_FAQ_JSONLD_ENABLED NEXT_PUBLIC_ADMIN_MAIL SANITY_PROJECT_ID SANITY_DATASET)
+REQUIRED_ARGS=(NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+DF="$SRC/Dockerfile"
+h256() { printf '%s' "$1" | sha256sum | cut -c1-64; }
+ba_has() { grep -qE "^$1=" "$BUILD_ARGS_FILE"; }
+ba_val() { sed -n "s/^$1=//p" "$BUILD_ARGS_FILE" | tail -n 1; }
+df_default() { sed -nE "s/^ARG $1(=(.*))?\$/\2/p" "$DF" | head -n 1; }
+eff_val() { if ba_has "$1"; then ba_val "$1"; else df_default "$1"; fi; }
+buildarg_checks() {  # buildarg_checks <exported fs root of the app image> → 0 if all PASS
+  local N="$1/app/.next-dist" ok=1 line k v n bad="" eff want got img vf rsf
+  [ -f "$BUILD_ARGS_FILE" ] || { log "FAIL build-args.env missing"; return 1; }
+  # file format: KEY=VALUE, allowed public keys only, each once, unquoted, LF only
+  n=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    [[ -z "$line" || "$line" =~ ^# ]] && continue
+    k="${line%%=*}"; v="${line#*=}"
+    if [[ ! " ${PUBLIC_ARGS[*]} " == *" $k "* ]] || [[ "$line" != *=* ]]; then bad="$bad $k(not-allowed)"; continue; fi
+    if [[ "$v" =~ ^[\"\'] || "$v" == *$'\r' || "$k" == *$'\r' ]]; then bad="$bad $k(quoted-or-CR)"; fi
+    n=$((n+1))
+  done < "$BUILD_ARGS_FILE"
+  dups=$(grep -oE '^[A-Z0-9_]+=' "$BUILD_ARGS_FILE" | sort | uniq -d | tr -d '=' | tr '\n' ' ' || true)
+  [ -z "$dups" ] || bad="$bad duplicate:$dups"
+  if [ -z "$bad" ]; then pass "build-args.env format ($n keys, all public, unquoted, LF)"; else log "FAIL build-args.env:$bad"; ok=0; fi
+  for k in "${REQUIRED_ARGS[@]}"; do
+    if ba_has "$k" && [ -n "$(ba_val "$k")" ]; then pass "required build arg $k set"; else log "FAIL required build arg $k missing in build-args.env"; ok=0; fi
+  done
+  if [ "$(eff_val APP_ENV)" = production ] && [ "$(eff_val NEXT_PUBLIC_SITE_URL)" = https://geiom.com ] && [ "$(eff_val NEXT_PUBLIC_ADMIN_API)" = http ]; then
+    pass "effective APP_ENV / NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_ADMIN_API are the production values"
+  else log "FAIL effective APP_ENV / NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_ADMIN_API not production"; ok=0; fi
+  # every public ARG: label hash = hash of the effective value (both images)
+  bad=""
+  for k in "${PUBLIC_ARGS[@]}"; do
+    grep -qE "^ARG $k(=|\$)" "$DF" || { bad="$bad $k(no-ARG-in-Dockerfile)"; continue; }
+    want="sha256:$(h256 "$(eff_val "$k")")"
+    for img in "$APP" "$MIG"; do
+      got=$(docker image inspect -f "{{index .Config.Labels \"com.nbshiyan.buildarg.$k\"}}" "$img" 2>/dev/null || true)
+      [ "$got" = "$want" ] || bad="$bad $k@${img%%:*}"
+    done
+  done
+  if [ -z "$bad" ]; then pass "all ${#PUBLIC_ARGS[@]} public build args: image = effective value (sha256)"; else log "FAIL build arg hash mismatch:$bad"; ok=0; fi
+  # baked evidence 1: next.config env block (inlined at build) for ADMIN_API / ADMIN_MAIL; mock adapters must be empty
+  rsf="$N/required-server-files.json"; bad=""
+  for k in NEXT_PUBLIC_ADMIN_API NEXT_PUBLIC_ADMIN_MAIL; do
+    got=$(grep -oE "\"$k\":[[:space:]]*\"[^\"]*\"" "$rsf" 2>/dev/null | head -n 1 | sed -E 's/^[^:]*:[[:space:]]*"//; s/"$//' || true)
+    [ "$(h256 "$got")" = "$(h256 "$(eff_val "$k")")" ] || bad="$bad $k"
+  done
+  if [ -f "$rsf" ] && [ -z "$bad" ]; then pass "next.config env in build = effective values (sha256)"; else log "FAIL next.config env in build differs:$bad"; ok=0; fi
+  n=$( { grep -rhoE '"MAIL_MOCK_ADAPTER_BUILD":[[:space:]]*"[^"]+"' "$N" --include='*.json' 2>/dev/null || true; } | wc -l)
+  if (( n == 0 )); then pass "MAIL_MOCK_ADAPTER_BUILD empty or unset in the build"; else log "FAIL MAIL_MOCK_ADAPTER_BUILD is set in the build"; ok=0; fi
+  # baked evidence 2: every non-empty NEXT_PUBLIC_* effective value of 8+ chars is literally in the build output
+  vf=$(mktemp -p /dev/shm nbs-val.XXXXXX); bad=""; n=0
+  for k in "${PUBLIC_ARGS[@]}"; do
+    [[ "$k" == NEXT_PUBLIC_* ]] || continue
+    eff=$(eff_val "$k"); (( ${#eff} >= 8 )) || continue
+    printf '%s\n' "$eff" > "$vf"; n=$((n+1))
+    [ -n "$( { grep -rlF -f "$vf" "$N" 2>/dev/null || true; } | head -n 1)" ] || bad="$bad $k"
+  done
+  rm -f "$vf"
+  if [ -z "$bad" ]; then pass "$n non-empty NEXT_PUBLIC_* values found in the build output"; else log "FAIL not inlined in the build output:$bad"; ok=0; fi
   (( ok ))
 }
 for img in "$APP" "$MIG"; do
@@ -197,7 +264,7 @@ for img in "$APP" "$MIG"; do
   keyfiles=$( { find "$scan/app" "$scan/opt" \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) ! -name '.env.example' 2>/dev/null || true; } | wc -l)
   log "fs scan $img: $(wc -l < "$pat") secret values, hits=$hits, env/key files=$keyfiles"
   (( hits == 0 && keyfiles == 0 )) || leak=1
-  if [ "$img" = "$APP" ]; then prod_checks "$scan" || leak=1; fi
+  if [ "$img" = "$APP" ]; then prod_checks "$scan" || leak=1; buildarg_checks "$scan" || leak=1; fi
 done
 rm -f "$pat"; rm -rf "$scan"; pat=""; scan=""
 (( leak == 0 )) || die "leak scan / production checks failed; loaded images removed. Do not deploy."

@@ -7,8 +7,18 @@ set -uo pipefail
 here=$(cd "$(dirname "$0")" && pwd); SCRIPT="$here/../import-and-scan.sh"; pass=0; fail=0
 command -v zstd >/dev/null || { echo "import-scan: zstd missing"; exit 1; }
 KEY=0x4AAAAAAATestSiteKey0123   # fake site key (format only)
+TAWK=abcdef0123456789tawk       # fake Tawk property id (format only)
+PUBLIC_ARGS=(APP_ENV NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_ADMIN_API NEXT_PUBLIC_TURNSTILE_SITE_KEY NEXT_PUBLIC_TAWK_PROPERTY_ID NEXT_PUBLIC_TAWK_WIDGET_ID NEXT_PUBLIC_TAWK_WIDGET_ID_RU NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION NEXT_PUBLIC_YANDEX_VERIFICATION NEXT_PUBLIC_BING_VERIFICATION NEXT_PUBLIC_FAQ_JSONLD_ENABLED NEXT_PUBLIC_ADMIN_MAIL SANITY_PROJECT_ID SANITY_DATASET)
+mklabels() {  # mklabels <build-args file the image was "built" with> <out> : effective value = file value, else Dockerfile default
+  local k v
+  for k in "${PUBLIC_ARGS[@]}"; do
+    if grep -qE "^$k=" "$1"; then v=$(sed -n "s/^$k=//p" "$1" | tail -n 1)
+    else v=$(sed -nE "s/^ARG $k(=(.*))?\$/\2/p" "$here/../../Dockerfile" | head -n 1); fi
+    printf '%s=sha256:%s\n' "$k" "$(printf '%s' "$v" | sha256sum | cut -c1-64)"
+  done > "$2"
+}
 mkrepo() {  # one-commit git repo on main + clone at $1/src → prints the sha
-  local r="$1/origin"; mkdir -p "$r"; ( umask 022; cd "$r" && git init -q -b main && echo x > f && git add f &&
+  local r="$1/origin"; mkdir -p "$r"; ( umask 022; cd "$r" && git init -q -b main && echo x > f && cp "$here/../../Dockerfile" Dockerfile && git add f Dockerfile &&
     git -c user.email=t@t -c user.name=t commit -qm init && git clone -q "$r" "$1/src" ) && git -C "$1/src" rev-parse HEAD
 }
 mkimage_fs() {  # mkimage_fs <FD> <scen>
@@ -22,6 +32,9 @@ mkimage_fs() {  # mkimage_fs <FD> <scen>
   [[ ",$s," == *,sitekey_mismatch,* ]] && printf 'var k="0x4AAAAAAAOtherSiteKey99";' > "$N/static/chunks/main.js"
   [[ ",$s," == *,testkey,* ]] && printf 'var t="1x00000000000000000000AA";' > "$N/static/chunks/t.js"
   printf '<link rel="canonical" href="https://geiom.com/en">' > "$N/server/app/en.html"
+  local api=http mm=""; [[ ",$s," == *,rsf_api_empty,* ]] && api=""; [[ ",$s," == *,mail_mock,* ]] && mm=1
+  printf '{\n  "config": {\n    "env": {\n      "NEXT_PUBLIC_ADMIN_API": "%s",\n      "NEXT_PUBLIC_ADMIN_MAIL": "",\n      "SEO_AUDIT_MOCK_BUILD": "",\n      "MAIL_MOCK_ADAPTER_BUILD": "%s"\n    }\n  }\n}\n' "$api" "$mm" > "$N/required-server-files.json"
+  [[ ",$s," == *,tawk_inlined,* ]] && printf 'var p="%s";' "$TAWK" > "$N/static/chunks/tawk.js"
   [[ ",$s," == *,no_geiom,* ]] && printf '<link rel="canonical" href="https://example.com/en">' > "$N/server/app/en.html"
   [[ ",$s," == *,localhost,* ]] && printf '<a href="http://localhost:3000/en">' > "$N/server/app/ru.html"
   # shellcheck disable=SC2016  # literal framework code sample
@@ -60,7 +73,18 @@ scen() {  # scen <name> <SCEN> <want exit> <regex that must match>
   local sec; sec=$(head -c 48 /dev/urandom | base64 | tr -d '/+=\n' | cut -c1-40)
   printf 'AUTH_SECRET=%s\nSMTP_PASS=%s\nAPP_ENV=production\n' "$sec" "$(head -c 24 /dev/urandom | base64 | tr -d '/+=\n')" > "$T/.env"; chmod 600 "$T/.env"
   printf '%s' "$sec" > "$FD/planted"
-  printf 'NEXT_PUBLIC_TURNSTILE_SITE_KEY=%s\n' "$KEY" > "$T/build-args.env"; chmod 600 "$T/build-args.env"
+  printf 'NEXT_PUBLIC_TURNSTILE_SITE_KEY=%s\n' "$KEY" > "$T/build-args.env"
+  [[ ",$s," == *,tawk_inlined,* || ,$s, == *,tawk_not_inlined,* ]] && printf 'NEXT_PUBLIC_TAWK_PROPERTY_ID=%s\n' "$TAWK" >> "$T/build-args.env"
+  mklabels "$T/build-args.env" "$FD/buildarg-labels"     # what the image was built with
+  # the server file differs from the build input in these cases:
+  [[ ",$s," == *,ba_quoted,* ]] && printf 'NEXT_PUBLIC_TURNSTILE_SITE_KEY="%s"\n' "$KEY" > "$T/build-args.env"
+  [[ ",$s," == *,ba_crlf,* ]] && printf 'NEXT_PUBLIC_TURNSTILE_SITE_KEY=%s\r\n' "$KEY" > "$T/build-args.env"
+  [[ ",$s," == *,ba_not_allowed,* ]] && printf 'DATABASE_URL_X=abc\n' >> "$T/build-args.env"
+  [[ ",$s," == *,ba_required_missing,* ]] && : > "$T/build-args.env"
+  [[ ",$s," == *,ba_extra_key,* ]] && printf 'NEXT_PUBLIC_YANDEX_VERIFICATION=yandex0123456789\n' >> "$T/build-args.env"
+  [[ ",$s," == *,ba_app_env_dev,* ]] && printf 'APP_ENV=development\n' >> "$T/build-args.env"
+  [[ ",$s," == *,label_mismatch,* ]] && sed -i "s/^SANITY_DATASET=.*/SANITY_DATASET=sha256:$(printf '' | sha256sum | cut -c1-64)/" "$FD/buildarg-labels"
+  chmod 600 "$T/build-args.env"
   [[ ",$s," == *,old_candidate,* ]] && { mkdir -p "$FD/images/nbshiyan-app:candidate"; echo sha256:old > "$FD/images/nbshiyan-app:candidate/id"; }
   mkimage_fs "$FD" "$s"; mktar "$T" "$sha" "$s"
   local pin="$sha"; [[ ",$s," == *,pin_mismatch,* ]] && pin=$(printf z | sha1sum | cut -c1-40)
@@ -100,4 +124,15 @@ scen localhost_url      localhost         1 'FAIL localhost/loopback URL in 1 se
 scen turnstile_testkey  testkey           1 'FAIL Turnstile test key in 1 files'
 scen sitekey_mismatch   sitekey_mismatch  1 'FAIL baked Turnstile site key: 1 candidate\(s\), sha256 match=no'
 scen two_sitekeys       two_keys          1 'FAIL baked Turnstile site key: 2 candidate'
+scen good_tawk_inlined   tawk_inlined      0 'PASS 3 non-empty NEXT_PUBLIC_\* values found in the build output'
+scen ba_quoted          ba_quoted         1 'FAIL build-args.env: NEXT_PUBLIC_TURNSTILE_SITE_KEY\(quoted-or-CR\)'
+scen ba_crlf            ba_crlf           1 'FAIL build-args.env: NEXT_PUBLIC_TURNSTILE_SITE_KEY\(quoted-or-CR\)'
+scen ba_not_allowed     ba_not_allowed    1 'FAIL build-args.env: DATABASE_URL_X\(not-allowed\)'
+scen ba_required_missing ba_required_missing 1 'FAIL required build arg NEXT_PUBLIC_TURNSTILE_SITE_KEY missing'
+scen ba_key_not_in_image ba_extra_key     1 'FAIL build arg hash mismatch: NEXT_PUBLIC_YANDEX_VERIFICATION@nbshiyan-app NEXT_PUBLIC_YANDEX_VERIFICATION@nbshiyan-migrate'
+scen default_mismatch   label_mismatch    1 'FAIL build arg hash mismatch: SANITY_DATASET@nbshiyan-app'
+scen ba_app_env_dev     ba_app_env_dev    1 'FAIL effective APP_ENV / NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_ADMIN_API not production'
+scen nextconfig_api     rsf_api_empty     1 'FAIL next.config env in build differs: NEXT_PUBLIC_ADMIN_API'
+scen mail_mock_set      mail_mock         1 'FAIL MAIL_MOCK_ADAPTER_BUILD is set in the build'
+scen tawk_not_inlined   tawk_not_inlined  1 'FAIL not inlined in the build output: NEXT_PUBLIC_TAWK_PROPERTY_ID'
 echo "import-scan: $pass passed, $fail failed"; [ "$fail" = 0 ]

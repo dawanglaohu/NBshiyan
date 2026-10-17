@@ -49,11 +49,15 @@ while IFS= read -r line; do
   [[ -z "$line" || "$line" =~ ^# ]] && continue
   k="${line%%=*}"; v="${line#*=}"
   [[ "$k" =~ $ALLOWED ]] || die "build-args: key $k is not an allowed PUBLIC build arg"
+  # passed verbatim: a quote or a CR would be baked into the bundle (e.g. a broken Turnstile site key) → refuse
+  if [[ "$v" =~ ^[\"\'] || "$v" == *$'\r' ]]; then die "build-args: $k must be unquoted, LF only"; fi
   BARGS+=(--build-arg "$k=$v")
 done < "$BUILD_ARGS_FILE"
-barg() { sed -n "s/^$1=//p" "$BUILD_ARGS_FILE" | tail -n 1 | sed -e 's/^"//' -e 's/"$//'; }
-[ "$(barg APP_ENV)" = production ] || die "build-args: APP_ENV must be production"
-[ "$(barg NEXT_PUBLIC_SITE_URL)" = https://geiom.com ] || die "build-args: NEXT_PUBLIC_SITE_URL must be exactly https://geiom.com"
+barg() { sed -n "s/^$1=//p" "$BUILD_ARGS_FILE" | tail -n 1; }   # no quote stripping: quotes are refused above
+has_key() { grep -qE "^$1=" "$BUILD_ARGS_FILE"; }
+# forced production values: if the file sets them at all, they must be exactly these (the effective value is checked below)
+if has_key APP_ENV; then [ "$(barg APP_ENV)" = production ] || die "build-args: APP_ENV must be production"; fi
+if has_key NEXT_PUBLIC_SITE_URL; then [ "$(barg NEXT_PUBLIC_SITE_URL)" = https://geiom.com ] || die "build-args: NEXT_PUBLIC_SITE_URL must be exactly https://geiom.com"; fi
 tsk=$(barg NEXT_PUBLIC_TURNSTILE_SITE_KEY)
 [ -n "$tsk" ] || die "build-args: NEXT_PUBLIC_TURNSTILE_SITE_KEY missing"
 [[ "$tsk" =~ ^[123]x0{20,}[A-Z]{2}$ ]] && die "build-args: NEXT_PUBLIC_TURNSTILE_SITE_KEY is a Cloudflare test key"
@@ -96,6 +100,22 @@ args=$(sed -nE 's/^[[:space:]]*ARG[[:space:]]+([A-Za-z_][A-Za-z0-9_]*).*/\1/p' "
 unknown=$(grep -vE "$KNOWN_ARGS" <<<"$args" || true)
 [ -z "$unknown" ] || die "Dockerfile declares ARGs not on the reviewed public list: $(tr '\n' ' ' <<<"$unknown")"
 log "dockerfile ok: pins verified, $(wc -l <<<"$args") ARGs all on the public list"
+# Effective value of every public build ARG = the build-args value if the key is present, else the Dockerfile default.
+# Its sha256 is recorded as a label so import-and-scan.sh can compare it with the server's build-args.env + Dockerfile.
+df_default() { sed -nE "s/^ARG $1(=(.*))?\$/\2/p" "$DF" | head -n 1; }
+EFF_LBL=()
+PUBLIC_ARGS=(APP_ENV NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_ADMIN_API NEXT_PUBLIC_TURNSTILE_SITE_KEY NEXT_PUBLIC_TAWK_PROPERTY_ID NEXT_PUBLIC_TAWK_WIDGET_ID NEXT_PUBLIC_TAWK_WIDGET_ID_RU NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION NEXT_PUBLIC_YANDEX_VERIFICATION NEXT_PUBLIC_BING_VERIFICATION NEXT_PUBLIC_FAQ_JSONLD_ENABLED NEXT_PUBLIC_ADMIN_MAIL SANITY_PROJECT_ID SANITY_DATASET)
+[ "^($(IFS='|'; echo "${PUBLIC_ARGS[*]}"))\$" = "$ALLOWED" ] || die "internal: PUBLIC_ARGS and ALLOWED differ"
+for k in "${PUBLIC_ARGS[@]}"; do
+  grep -qE "^ARG $k(=|$)" "$DF" || die "Dockerfile has no ARG $k"
+  if has_key "$k"; then eff=$(barg "$k"); else eff=$(df_default "$k"); fi
+  case "$k" in
+    APP_ENV) [ "$eff" = production ] || die "effective APP_ENV is not production" ;;
+    NEXT_PUBLIC_SITE_URL) [ "$eff" = https://geiom.com ] || die "effective NEXT_PUBLIC_SITE_URL is not https://geiom.com" ;;
+    NEXT_PUBLIC_ADMIN_API) [ "$eff" = http ] || die "effective NEXT_PUBLIC_ADMIN_API is not http" ;;
+  esac
+  EFF_LBL+=(--label "com.nbshiyan.buildarg.$k=sha256:$(printf '%s' "$eff" | sha256sum | cut -c1-64)")
+done
 
 # ---------- 4. builder: dedicated docker-container builder on the pinned BuildKit ----------
 if ! docker buildx inspect "$BUILDER" >/dev/null 2>&1; then
@@ -105,7 +125,7 @@ bk=$(docker buildx inspect --bootstrap "$BUILDER") || die "builder bootstrap fai
 grep -qE '^BuildKit version:[[:space:]]+v0\.34\.0$' <<<"$bk" || die "builder $BUILDER is not BuildKit v0.34.0"
 
 # ---------- 5. build (runner + migrate) for the server platform ----------
-LBL=(--label com.nbshiyan.stack=nbshiyan --label "org.opencontainers.image.revision=$PIN_SHA")
+LBL=(--label com.nbshiyan.stack=nbshiyan --label "org.opencontainers.image.revision=$PIN_SHA" "${EFF_LBL[@]}")
 t0=$(date +%s)
 for target in runner migrate; do
   repo=$([ $target = runner ] && echo nbshiyan-app || echo nbshiyan-migrate)
