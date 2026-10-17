@@ -128,9 +128,9 @@
 | C-custom-christmas-packaging-24 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: When should I order Christmas packaging?** | - **В: Когда заказывать новогоднюю упаковку?** |  |  |
 | C-custom-christmas-packaging-25 | `docs/content/custom-christmas-packaging.md` | #188 | A: As early as possible; the latest safe order date including shipping is on request. | О: Как можно раньше; крайнюю дату с учетом доставки — по запросу. |  |  |
 | C-custom-christmas-packaging-26 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Do you make advent calendars?** | - **В: Делаете ли адвент-календари?** |  |  |
-| C-custom-christmas-packaging-27 | `docs/content/custom-christmas-packaging.md` | #188 | A: Yes, custom advent calendars with compartments. | О: Да, на заказ с ячейками. |  |  |
+| C-custom-christmas-packaging-27 | `docs/content/custom-christmas-packaging.md` | #188 | A: Yes — we supply custom advent calendars with compartments. | О: Да — поставляем адвент-календари на заказ с ячейками. |  |  |
 | C-custom-christmas-packaging-28 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Can you make corporate New Year gift sets?** | - **В: Делаете ли корпоративные новогодние наборы?** |  |  |
-| C-custom-christmas-packaging-29 | `docs/content/custom-christmas-packaging.md` | #188 | A: Yes, branded gift boxes with inserts. | О: Да, брендированные коробки с ложементами. |  |  |
+| C-custom-christmas-packaging-29 | `docs/content/custom-christmas-packaging.md` | #188 | A: Yes — we supply branded gift boxes with inserts. | О: Да — поставляем брендированные коробки с ложементами. |  |  |
 | C-custom-christmas-packaging-kw-Транзакционные | `docs/content/custom-christmas-packaging.md` | #188 |  | **Транзакционные (主页面)**: новогодняя упаковка на заказ, новогодние подарочные коробки оптом, адвент календарь на заказ, упаковка для новогодних подарков |  |  |
 | C-custom-christmas-packaging-kw-Коммерческие | `docs/content/custom-christmas-packaging.md` | #188 |  | **Коммерческие (主页面 + 小节)**: новогодние коробки с логотипом, корпоративные новогодние подарки упаковка, упаковка для сладких подарков, новогодние пакеты с печатью |  |  |
 | C-custom-christmas-packaging-kw-Информационные | `docs/content/custom-christmas-packaging.md` | #188 |  | **Информационные (博客文章)**: когда заказывать новогоднюю упаковку, идеи новогодней упаковки |  |  |
@@ -164,7 +164,7 @@
 | C-custom-color-printing-26 | `docs/content/custom-color-printing.md` | #188 | - **Q: How do you ensure color consistency?** | - **В: Как обеспечивается стабильность цвета?** |  |  |
 | C-custom-color-printing-27 | `docs/content/custom-color-printing.md` | #188 | A: Pantone references and proof approval before the run. | О: Пантонные эталоны и утверждение пробы до тиража. |  |  |
 | C-custom-color-printing-28 | `docs/content/custom-color-printing.md` | #188 | - **Q: Can you print labels and boxes together?** | - **В: Можно ли напечатать этикетки и коробки вместе?** |  |  |
-| C-custom-color-printing-29 | `docs/content/custom-color-printing.md` | #188 | A: Yes, in one order for matching color. | О: Да, в одном заказе для совпадения цвета. |  |  |
+| C-custom-color-printing-29 | `docs/content/custom-color-printing.md` | #188 | A: Yes — we arrange printing of both in one order for matching color. | О: Да — организуем печать в одном заказе для совпадения цвета. |  |  |
 | C-custom-color-printing-kw-Транзакционные | `docs/content/custom-color-printing.md` | #188 |  | **Транзакционные (主页面)**: печать упаковки, полноцветная печать на картоне, печать этикеток на заказ, типография упаковка |  |  |
 | C-custom-color-printing-kw-Коммерческие | `docs/content/custom-color-printing.md` | #188 |  | **Коммерческие (主页面 + 小节)**: печать вкладышей, печать пантонами, печать на крафт картоне, печать бирок |  |  |
 | C-custom-color-printing-kw-Информационные | `docs/content/custom-color-printing.md` | #188 |  | **Информационные (博客文章)**: CMYK или Pantone, как подготовить файл к печати, что такое цветопроба |  |  |
@@ -264,7 +264,7 @@
 | C-custom-gift-cards-24 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Can each card have a unique number or barcode?** | - **В: Можно ли уникальный номер или штрихкод на каждой карте?** |  |  |
 | C-custom-gift-cards-25 | `docs/content/custom-gift-cards.md` | #188 | A: Variable data printing capability: on request. | О: Возможность печати переменных данных — по запросу. |  |  |
 | C-custom-gift-cards-26 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Do you make packaging for gift cards?** | - **В: Делаете ли упаковку для карт?** |  |  |
-| C-custom-gift-cards-27 | `docs/content/custom-gift-cards.md` | #188 | A: Yes, holders, envelopes and boxes. | О: Да, держатели, конверты и коробки. |  |  |
+| C-custom-gift-cards-27 | `docs/content/custom-gift-cards.md` | #188 | A: Yes — we supply holders, envelopes and boxes. | О: Да — поставляем держатели, конверты и коробки. |  |  |
 | C-custom-gift-cards-28 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Can you print plastic cards?** | - **В: Печатаете пластиковые карты?** |  |  |
 | C-custom-gift-cards-29 | `docs/content/custom-gift-cards.md` | #188 | A: On request. | О: По запросу. |  |  |
 | C-custom-gift-cards-kw-Транзакционные | `docs/content/custom-gift-cards.md` | #188 |  | **Транзакционные (主页面)**: печать подарочных карт, подарочные сертификаты на заказ, упаковка для подарочных карт, конверты для сертификатов |  |  |

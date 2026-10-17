@@ -54,9 +54,9 @@ PackJoyU sources and supplies custom Christmas and holiday packaging for retaile
 - **Q: When should I order Christmas packaging?**
   A: As early as possible; the latest safe order date including shipping is TBD.
 - **Q: Do you make advent calendars?**
-  A: Yes, custom advent calendars with compartments.
+  A: Yes — we supply custom advent calendars with compartments.
 - **Q: Can you make corporate New Year gift sets?**
-  A: Yes, branded gift boxes with inserts.
+  A: Yes — we supply branded gift boxes with inserts.
 
 ---
 
@@ -105,9 +105,9 @@ PackJoyU подбирает и поставляет новогоднюю и пр
 - **В: Когда заказывать новогоднюю упаковку?**
   О: Как можно раньше; крайняя дата с учётом доставки — TBD.
 - **В: Делаете ли адвент-календари?**
-  О: Да, на заказ с ячейками.
+  О: Да — поставляем адвент-календари на заказ с ячейками.
 - **В: Делаете ли корпоративные новогодние наборы?**
-  О: Да, брендированные коробки с ложементами.
+  О: Да — поставляем брендированные коробки с ложементами.
 
 ---
 
