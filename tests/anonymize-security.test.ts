@@ -14,6 +14,7 @@ function recDb(items: { id: string; config: unknown }[] = []) {
     inquiry: { updateMany: rec('inquiry.updateMany'), update: rec('inquiry.update') },
     inquiryItem: { updateMany: rec('inquiryItem.updateMany'), update: rec('inquiryItem.update'), findMany: async () => items },
     inquiryMessage: { updateMany: rec('inquiryMessage.updateMany') },
+    mailMessage: { updateMany: rec('mailMessage.updateMany'), update: rec('mailMessage.update'), findMany: async () => [], deleteMany: rec('mailMessage.deleteMany') },
     inquiryNote: { updateMany: rec('inquiryNote.updateMany') },
     sampleRequest: { updateMany: rec('sampleRequest.updateMany') },
     logoUpload: { deleteMany: rec('logoUpload.deleteMany'), findMany: async () => [{ id: 'l1', path: 'logos/2026-10/abcdefghijklmnop.png' }] },

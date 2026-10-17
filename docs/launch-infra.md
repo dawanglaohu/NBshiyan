@@ -86,10 +86,19 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 
 | 变量 | 生产值 | 说明 |
 |---|---|---|
-| `RESEND_API_KEY` | **Sending access** 的 key | 不能用 Full access |
-| `MAIL_FROM` | `PackJoyU <noreply@mail.<域名>>` | |
+| `SMTP_HOST` | `smtp.gmail.com` | #74 §16：所有发信（询盘回复、自动回复、通知、告警）都走免费 Gmail SMTP（nodemailer），不再用 Resend |
+| `SMTP_PORT` | `465`（隐式 TLS）或 `587`（STARTTLS，强制） | 只接受这两个端口；其他端口或 `NODE_TLS_REJECT_UNAUTHORIZED=0` 时发信关闭，生产配置自检报错 |
+| `SMTP_USER` | 发信用的 Gmail 地址 | 值只由 Ryan 私信给运维放服务器环境变量 |
+| `SMTP_PASS` | 该 Gmail 账号的应用专用密码（需开两步验证） | **只**放环境变量；不进仓库、日志、群聊 |
+| `MAIL_FROM` | `PackJoyU <该 Gmail 地址>` | 必须是 Gmail 地址（或 Gmail 已验证的别名），**不能**是 `REPLY_DOMAIN` 的地址（SPF/DMARC 对不齐） |
+| `REPLY_DOMAIN` | `geiom.com` | 询盘回复的 Reply-To 是 `reply+<token>@REPLY_DOMAIN`，Message-ID 也用这个域名；不配则后台「发送」不可用（`sendingEnabled:false`） |
+| `MAIL_DAILY_CAP` | 默认 `450` | 询盘回复每日上限（免费 Gmail 约 500 封/天，余量留给自动回复和通知）；超出的信排队，下次重置后自动发送（`daily_cap_deferred`） |
+| `MAIL_DAILY_CAP_RESET` | 默认 `00:00` | 每日上限的重置时间（UTC，HH:MM） |
+| `MAIL_RATE_ADMIN_PER_HOUR` / `MAIL_RATE_GLOBAL_PER_HOUR` | 默认 `30` / `200` | 询盘回复按管理员 / 全站的每小时上限 |
+| `MAIL_WEBHOOK_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | 收信 webhook（`POST /api/mail/inbound-webhook`）的 HMAC 密钥，同一个值配到收信 Worker 的 Secret；不配则 webhook 不启用。不与其他密钥复用 |
+| `MAIL_SEND_ADAPTER` | 留空（= `smtp`） | 只有本地/预览可设 `mock`（不真的发信）；生产设 `mock` 会被配置自检拒绝 |
+| `NEXT_PUBLIC_ADMIN_MAIL` | 后端上线后设 `http` | 邮件开关（#303）：不是 `http` 时所有 `/api/admin/mail/*`、发信接口和收信 webhook 都返回 404 |
 | `INQUIRY_NOTIFY_EMAIL` | Ryan 的询盘收件邮箱 | 待 Ryan 提供 |
-| `REPLY_DOMAIN` | 可选，客户回信域名 | |
 | `siteUrl` → `NEXT_PUBLIC_SITE_URL` | `https://<正式域名>`（不带结尾 `/`） | 邮件里后台链接、canonical、OG 都用它，**不读请求 Host 头** |
 | `replyTime` | 如 `24h` | #122 邮件模板变量，后端接入时在 `.env.example` 补正式变量名 |
 | `contactEmail` | 对外联系邮箱 | 同上，待 Ryan 提供 |

@@ -1,7 +1,10 @@
 import { headerSafe, renderAlert, renderEmail, safeGreetingName, type EmailVars } from './email/render';
+import nodemailer from 'nodemailer';
 import { hitRateLimit } from './security';
+import { smtpBaseConfig } from './mail/config';
+import { smtpTransportOptions, type CreateTransport } from './mail/smtp';
+import { redactedError } from './mail/adapter';
 
-const RESEND_URL = 'https://api.resend.com/emails';
 type Mail = { to: string; subject: string; html: string; text?: string; replyTo?: string };
 
 const EMAIL_RE = /^[^\s@<>"',;:\\]+@[^\s@<>"',;:\\]+\.[^\s@<>"',;:\\]+$/;
@@ -12,23 +15,37 @@ function addr(s: string) {
   return v;
 }
 
+let transportFactory: CreateTransport | undefined;
+/** 测试用：注入 mock SMTP 传输（不连网络） */
+export function setMailTransportFactory(f: CreateTransport | undefined) { transportFactory = f; }
+
 /**
- * 通过 Resend 发信。RESEND_API_KEY 只从环境变量读（建议在 Resend 后台建 sending-only 权限的 key），只发给固定的 Resend 地址。
- * 没配 key 时只在控制台记录（开发环境）。失败抛错，调用方决定是否吞掉。
+ * 通过 SMTP（§16：免费 Gmail，nodemailer）发信：自动回复、业务通知、后台告警都走这里；询盘回复走 mail/send.ts（带每日上限和状态机）。
+ * SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / MAIL_FROM 只从环境变量读；TLS 强制（465 或 587+STARTTLS），证书校验开启，nodemailer 日志关闭。
+ * SMTP_* 都没配时只在控制台记录（开发环境）。失败抛 SmtpError，只带错误码（如 SMTP_535、SMTP_ECONNECTION），不带原始响应或凭据。
  */
 export async function sendMail(m: Mail) {
-  const key = process.env.RESEND_API_KEY;
   const to = addr(m.to);
   const replyTo = m.replyTo ? addr(m.replyTo) : undefined;
   const subject = headerSafe(m.subject);
-  if (!key) { console.info('[mail:dev]', to, subject); return; }
-  const r = await fetch(RESEND_URL, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: process.env.MAIL_FROM ?? 'PackJoyU <onboarding@resend.dev>', to, subject, html: m.html, ...(m.text ? { text: m.text } : {}), ...(replyTo ? { reply_to: replyTo } : {}) }),
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!r.ok) throw Object.assign(new Error(`resend ${r.status}`), { name: 'ResendError', code: `RESEND_${r.status}` });
+  const c = smtpBaseConfig();
+  if (!c.ok) {
+    if (c.error === 'missing') { console.info('[mail:dev]', to, subject); return; }
+    throw Object.assign(new Error('smtp config invalid'), { name: 'SmtpError', code: `SMTP_CONFIG_${c.error.toUpperCase()}` });
+  }
+  const create = transportFactory ?? ((o: Parameters<CreateTransport>[0]) => nodemailer.createTransport(o));
+  const t = create(smtpTransportOptions(c.cfg));
+  try {
+    await t.sendMail({
+      from: { name: c.cfg.from.name, address: c.cfg.from.address }, to, subject, html: m.html,
+      ...(m.text ? { text: m.text } : {}), ...(replyTo ? { replyTo } : {}),
+      disableFileAccess: true, disableUrlAccess: true,
+    });
+  } catch (e) {
+    throw Object.assign(new Error('smtp send failed'), { name: 'SmtpError', code: `SMTP_${redactedError(e)}` });
+  } finally {
+    (t as { close?: () => void }).close?.();
+  }
 }
 
 /** 后台告警：发给 ADMIN_ALERT_EMAIL（没配则 INQUIRY_NOTIFY_EMAIL）。同类告警 30 分钟最多 1 封；告警自身失败只记日志，不再告警。 */
