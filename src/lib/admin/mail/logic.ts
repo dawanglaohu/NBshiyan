@@ -1,6 +1,7 @@
 // #74 邮件界面的纯逻辑与文案（不依赖 DOM / React，便于单测）。文案依据 ux-spec.md（A/B/C 节）与 backend-plan v4 §8、§15。
 import type { MailError, SendStatus, ThreadItem } from './types';
 import { KNOWN_FLAGS } from './types';
+import { futureTime } from '@/components/admin/format';
 
 export const BODY_MAX = 20000;
 export const BODY_WARN = 19000;
@@ -39,15 +40,19 @@ export const authorText = (m: Pick<ThreadItem, 'direction' | 'authorName' | 'fro
 export const showUnverified = (m: { senderVerified?: boolean | null; redacted?: boolean }) => !m.redacted && m.senderVerified === false;
 
 // —— 发送失败原因（8.1 表；v3 smtp_* 旧码保留文案兼容）——
+/** #74 UX：send_auth 只说「配置有误、已通知运维」，不显示服务端细节（最多显示错误码） */
+export const SEND_AUTH_TEXT = '发信配置有误，已通知运维';
+/** #74 UX：服务商限流是暂时的，用黄色提示（不是红色错误）：role=status，不打断读屏 */
+const WARN_REASONS = new Set(['provider_throttled']);
 const REASON: Record<string, { text: string; retryable: boolean }> = {
   send_unavailable: { text: '邮件服务暂时无法连接，这封信没有发出。内容已保存，可以重试。', retryable: true },
-  provider_throttled: { text: '发信服务商限流（每小时发送量已达上限），这封信没有发出。内容已保存，请稍后重试。', retryable: true },
-  send_auth: { text: '发信账号验证未通过，请联系管理员检查邮箱设置。', retryable: false },
+  provider_throttled: { text: '邮件服务暂时繁忙，请稍后重试', retryable: true },
+  send_auth: { text: SEND_AUTH_TEXT, retryable: false },
   recipient_rejected: { text: '对方邮箱拒收，地址可能无效或已停用。请通过其他方式联系客户。', retryable: false },
   message_rejected: { text: '邮件内容被服务器拒收（可能被判为垃圾邮件）。请修改内容后重新发送。', retryable: false },
   smtp_timeout: { text: '连接邮件服务器超时。内容已保存，可以重试。', retryable: true },
   smtp_unavailable: { text: '邮件服务器暂时无法连接。内容已保存，可以重试。', retryable: true },
-  smtp_auth: { text: '发信账号验证未通过，请联系管理员检查邮箱设置。', retryable: false },
+  smtp_auth: { text: SEND_AUTH_TEXT, retryable: false },
   smtp_tls: { text: '与邮件服务器的安全连接失败，请联系管理员。', retryable: false }
 };
 export const UNKNOWN_FAIL = '发送失败（未知原因）。请稍后重新编写发送；多次失败请联系管理员。';
@@ -56,11 +61,11 @@ export const MAYBE_DELIVERED = '可能已送达';
 export const DEFERRED_REASON = 'daily_cap_deferred';
 /** 下一个 UTC 零点（deferredUntil 缺失时的兜底） */
 export const nextUtcMidnight = (now = Date.now()) => { const d = new Date(now); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)).toISOString(); };
-/** 「今日发信已达上限，将在 {time} 后自动发送」，time 按管理员本地时区显示 */
-export function deferredText(until?: string | null, now = Date.now(), timeZone?: string): string {
+/** #74 UX：每日上限排队的状态标签 + 发送按钮下面的提示；预计时间按管理员本地时区 + 时区缩写（「10/18 00:00 PT」） */
+export const QUEUED_TAG = '已排队';
+export function deferredHint(until?: string | null, now = Date.now(), timeZone?: string): string {
   const t = until && !Number.isNaN(Date.parse(until)) ? until : nextUtcMidnight(now);
-  const time = new Date(t).toLocaleString('zh-CN', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', ...(timeZone ? { timeZone } : {}) });
-  return `今日发信已达上限，将在 ${time} 后自动发送`;
+  return `今天发信已达上限，已排队，预计 ${futureTime(t, { now, timeZone })} 发出`;
 }
 export const isDeferred = (m: { status?: string; errorCode?: string | null }) => m.status !== 'SENT' && m.errorCode === DEFERRED_REASON;
 export const MAYBE_DELIVERED_HINT = '发送过程中连接中断，无法确认对方是否收到。为免重复，系统不会自动重发；如需确认，请换其他方式联系客户。';
@@ -73,7 +78,7 @@ export const ANON_JUST_NOW = '该询盘刚刚被匿名化，不能再发送。�
 export type OutboundView =
   | { kind: 'sending' } | { kind: 'sent'; at: string | null } | { kind: 'deferred' }
   | { kind: 'maybe_delivered' }
-  | { kind: 'failed'; text: string; canRetry: boolean; retryLimit: boolean; retryCount: number };
+  | { kind: 'failed'; text: string; canRetry: boolean; retryLimit: boolean; retryCount: number; tone: 'warn' | 'error'; code: string | null };
 
 /** 出站条目 / 8.3a 状态 → 界面状态。不认识的 reason 一律当 unknown：不可重试（忽略接口给的 retryable）。 */
 export function outboundView(m: { status: SendStatus['status'] | 'RECEIVED' | 'QUEUED' } & Pick<SendStatus, 'errorCode' | 'retryable' | 'retryCount' | 'sentAt'> & { maxRetries?: number }): OutboundView {
@@ -85,7 +90,8 @@ export function outboundView(m: { status: SendStatus['status'] | 'RECEIVED' | 'Q
   const max = m.maxRetries ?? MAX_RETRIES;
   const retryableReason = !!r?.retryable && m.retryable;
   const retryLimit = retryableReason && m.retryCount >= max;
-  return { kind: 'failed', text: r?.text ?? UNKNOWN_FAIL, canRetry: retryableReason && !retryLimit, retryLimit, retryCount: m.retryCount };
+  const tone = !retryLimit && m.errorCode && WARN_REASONS.has(m.errorCode) ? 'warn' : 'error';
+  return { kind: 'failed', text: r?.text ?? UNKNOWN_FAIL, canRetry: retryableReason && !retryLimit, retryLimit, retryCount: m.retryCount, tone, code: r ? m.errorCode : null };
 }
 /** 「已重试 n/5」：n≥1 才显示，n=4 加剩余次数 */
 export function retryCountText(n: number, max = MAX_RETRIES): { text: string; last: boolean } | null {
@@ -148,6 +154,24 @@ export const fmtCountdown = (sec: number) => { const s = Math.max(0, Math.ceil(s
 export function rateLimitText(scope: string | undefined, limit: number | undefined, countdown: string): string {
   if (scope === 'global') return `全站本小时的发信量已达上限（${limit ?? '—'} 封），为保护域名信誉暂停发送。${countdown} 后可以再发。`;
   return `你本小时已发 ${limit ?? '—'} 封，达到上限。${countdown} 后可以再发。内容已保留在输入框里。`;
+}
+
+// —— 429 倒计时：按钮在 Retry-After 之前禁用，到点重新可用 ——
+type Clock = { now: () => number; setInterval: (f: () => void, ms: number) => unknown; clearInterval: (t: never) => void };
+const realClock: Clock = { now: () => Date.now(), setInterval: (f, ms) => setInterval(f, ms), clearInterval: (t) => clearInterval(t) };
+export const secondsLeft = (until: number | undefined, now: number) => (until ? Math.max(0, Math.ceil((until - now) / 1000)) : 0);
+/** 每秒回调剩余秒数，到 0 回调一次 0 并停止；返回停止函数 */
+export function startCountdown(until: number, onTick: (left: number) => void, clock: Clock = realClock): () => void {
+  let t: unknown;
+  const stop = () => { if (t !== undefined) { clock.clearInterval(t as never); t = undefined; } };
+  const tick = () => { const left = secondsLeft(until, clock.now()); onTick(left); if (left <= 0) stop(); };
+  tick();
+  if (secondsLeft(until, clock.now()) > 0) t = clock.setInterval(tick, 1000);
+  return stop;
+}
+/** 失败卡片上的「重试」按钮：能重试才显示；限流倒计时中、正在重试、发信未开通时禁用 */
+export function retryButton(o: { canRetry: boolean; rateLeft: number; retrying: boolean; canSend: boolean }): { show: boolean; disabled: boolean } {
+  return { show: o.canRetry, disabled: o.rateLeft > 0 || o.retrying || !o.canSend };
 }
 
 // —— 未归类 ——

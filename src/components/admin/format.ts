@@ -80,6 +80,32 @@ export function adminTime(iso: string, opts: { now?: number; timeZone?: string }
   return `${p.year}/${p.month}/${p.day} ${p.hour}:${p.minute}`;
 }
 
+/**
+ * 时区缩写（#74）：优先 en-US「shortGeneric」（America/Los_Angeles → PT），太长（如 China Time）或只是 GMT 时退回「short」（GMT+8 / UTC）。
+ * 不依赖浏览器语言，后台始终按同一套写法显示。
+ */
+export function tzAbbr(d: Date, timeZone?: string): string {
+  const pick = (timeZoneName: 'shortGeneric' | 'short') => {
+    try { return new Intl.DateTimeFormat('en-US', { timeZoneName, ...(timeZone ? { timeZone } : {}) }).formatToParts(d).find((x) => x.type === 'timeZoneName')?.value ?? ''; }
+    catch { return ''; }
+  };
+  const g = pick('shortGeneric');
+  return g && g !== 'GMT' && g.length <= 4 && !/\s/.test(g) ? g : pick('short');
+}
+
+/**
+ * 将来时间（#74 deferredUntil 预计发送时间）：「MM/DD HH:mm PT」；和现在不是同一年时补年份「YYYY/MM/DD HH:mm PT」。
+ * 按管理员本地时区显示；timeZone 只给测试用。无效时间返回 null。
+ */
+export function futureTime(iso: string, opts: { now?: number; timeZone?: string } = {}): string | null {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const p = dateParts(d, opts.timeZone);
+  const sameYear = dateParts(new Date(opts.now ?? Date.now()), opts.timeZone).year === p.year;
+  const tz = tzAbbr(d, opts.timeZone);
+  return `${sameYear ? '' : `${p.year}/`}${p.month}/${p.day} ${p.hour}:${p.minute}${tz ? ` ${tz}` : ''}`;
+}
+
 /** Auth.js 默认登录页（Credentials：email、password、totp 或 recoveryCode），登录后回到当前页 */
 export const loginHref = () => adminLoginHref(typeof location === 'undefined' ? '/admin' : location.pathname + location.search);
 
