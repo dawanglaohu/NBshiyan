@@ -1,0 +1,7 @@
+# /etc/cron.d/nbshiyan (root 644). Secrets are never on a command line: the cron call runs INSIDE the app container
+# and reads CRON_SECRET from the container's own env. Times are server local time.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# NBSHIYAN_DATA_DIR is filled in at install time
+30 4 * * * root NBSHIYAN_DATA_DIR=@DATA_DIR@ @DATA_DIR@/src/deploy/backup-postgres.sh daily >> @DATA_DIR@/backup/backup.log 2>&1
+0 3 * * *  root docker exec nbshiyan-app-1 node -e "fetch('http://127.0.0.1:3000/api/admin/cron/cleanup-uploads',{headers:{authorization:'Bearer '+process.env.CRON_SECRET},signal:AbortSignal.timeout(300000)}).then(r=>{console.log(new Date().toISOString(),'cleanup',r.status);process.exit(r.ok?0:1)}).catch(e=>{console.log('cleanup error',e.name);process.exit(1)})" >> @DATA_DIR@/cron-cleanup.log 2>&1

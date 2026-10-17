@@ -2,29 +2,40 @@
 
 对应 PRD 第 11 节上线前清单。**以下所有涉及账号登录、付费、域名、密钥生成的步骤都必须由 Ryan 本人在自己的账号里完成**，我们（bot）不登录、不代管任何账号；需要协助时请在与“全栈工程师/安全工程师”的 1:1 私聊里进行，不在群里传密钥。
 
-密钥只填进 Vercel 环境变量（Production / Preview 分开），不要提交到仓库，不要发到群里。
+**部署方式（Ryan 已定）**：自建服务器。Docker 镜像在服务器上从公开仓库（固定到已合并的 commit SHA）构建，Next.js standalone 输出；本地 Postgres 容器，不开对外端口；上传文件存服务器本地磁盘（`STORAGE_DRIVER=local` + `UPLOAD_DIR` 挂载数据卷）。前面是 Cloudflare → nginx → app。
+
+密钥只放进服务器上应用的环境文件（`env_file`，权限 600）或 compose secrets，在容器启动时注入；不进镜像、不在构建阶段注入，不要提交到仓库，不要发到群里。
 
 ---
 
 ## 0. 总顺序（Ryan 操作）
 
 1. 确定正式域名和询盘邮箱（见第 6 节）
-2. Cloudflare R2：建私有桶 + 只限该桶的 API Token（第 1 节）
+2. 上传文件存储：服务器本地磁盘的挂载数据卷（第 1 节）；Cloudflare R2 只作为可选驱动保留，当前不建桶
 3. Upstash Redis：建数据库，拿 REST URL/Token（第 2 节）
-4. 数据库（Postgres，如 Neon / Supabase / Vercel Postgres）：拿 `DATABASE_URL`
+4. 数据库：服务器上的 Postgres 容器（只在内部网络，不开对外端口），密码随机生成，`DATABASE_URL` 只放 app 的环境文件
 5. 发信：Gmail SMTP，Ryan 在自己的 Gmail 账号里开应用专用密码（第 3 节）
 6. Cloudflare Turnstile：建正式站点，拿 site key / secret
 7. Tawk.to：拿 property ID / widget ID（英、俄）
-8. Vercel：导入仓库 dawanglaohu/NBshiyan，按第 4 节填全部环境变量，绑定域名
+8. 服务器部署：从公开仓库 dawanglaohu/NBshiyan 拉已合并的 commit，服务器上 `docker build`（构建只需要公开值），按第 4 节在运行时注入环境变量；Cloudflare DNS 指向服务器，nginx 反代并绑定域名
 9. Cron（第 5 节）
 10. 上线后：GSC / Yandex Webmaster / Bing 验证并提交 sitemap（第 6 节）
-11. 管理员账号：`pnpm admin:create` 创建首个管理员并绑定 2FA（第 7 节）
+11. 管理员账号：`docker compose exec app node scripts/admin-create.mjs` 创建首个管理员并绑定 2FA（第 7 节）
 
 ---
 
-## 1. Cloudflare R2（私有文件存储：Logo、模型源文件）
+## 1. 私有文件存储：服务器本地磁盘（Logo、模型源文件）
 
-代码：`src/lib/server/storage.ts`（#110 的 `S3Storage`，SigV4 签名，`If-None-Match: *` 防覆盖，`assertKey` 校验路径）。
+Ryan 已定：`STORAGE_DRIVER=local`，`UPLOAD_DIR` 指向挂载数据卷的绝对路径（属主为容器内应用用户 uid 1001，权限 700；容器 `read_only` 时这个卷单独挂成可写）。
+
+- 代码：`src/lib/server/storage.ts` 的 `LocalStorage`：key 只能是服务端生成的随机 id（`png/webp/glb`），解析后必须在 `UPLOAD_DIR` 内，不跟随符号链接，写入前校验文件头与扩展名一致，文件 0600、目录 0700、不覆盖。
+- 这个目录**不**经 nginx 或任何静态服务暴露；文件只经现有接口按权限提供（`src/lib/server/file-response.ts` 统一设 Content-Type、`nosniff`、`sandbox` CSP、`Content-Disposition`）。
+- 启动时检查：`UPLOAD_DIR` 缺失、不是绝对路径、在 `public/`/`.next/` 下、不存在或不可写 → 拒绝启动。
+- 备份：数据卷随服务器备份一起做（与数据库备份同一时间点）。孤儿文件由定时任务 `/api/admin/cron/cleanup-uploads` 清理（第 5 节）。
+
+### 1.1 可选：Cloudflare R2（代码仍支持，当前不用）
+
+以后如果改用 R2（`STORAGE_DRIVER=r2`），按下面配置。代码：`src/lib/server/storage.ts`（#110 的 `S3Storage`，SigV4 签名，`If-None-Match: *` 防覆盖，`assertKey` 校验路径）。
 
 Ryan 操作：
 1. 登录 Cloudflare → R2 → Create bucket，名字如 `packjoyu-private`，区域 Automatic。
@@ -32,7 +43,7 @@ Ryan 操作：
 3. R2 → Manage R2 API Tokens → Create API Token：
    - 权限：**Object Read & Write**（不要选 Admin）
    - 作用范围：**Apply to specific buckets only** → 只选上面这个桶
-   - TTL 可不设；IP 限制不设（Vercel 出口 IP 不固定）
+   - TTL 可不设；可按服务器出口地址限制（可选）
 4. 记下 Access Key ID、Secret Access Key、Account ID（只显示一次）。
 5. 目前**不**配置生命周期规则：Logo 上传的对象 key 没有 `tmp/` 之类的前缀，按前缀的规则匹配不到任何文件。未绑定询盘的孤儿文件由定时任务 `/api/admin/cron/cleanup-uploads` 清理（见下文 Cron 一节）。以后如需桶级兜底，可先改代码让未绑定的上传写到单独前缀，再对该前缀加规则。
 
@@ -43,7 +54,7 @@ Ryan 操作：
 代码：`src/lib/server/ratelimit/index.ts`（#110 的 `UpstashStore`：INCR + PEXPIRE NX，1.5 秒超时，连不上时退回单实例内存计数）。
 
 Ryan 操作：
-1. 登录 upstash.com → Redis → Create Database，Region 选离 Vercel 函数区域最近的（默认 iad1 → us-east-1），开启 TLS（默认）。
+1. 登录 upstash.com → Redis → Create Database，Region 选离服务器最近的区域，开启 TLS（默认）。
 2. 详情页 REST API 区域复制 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN`（用完整权限 token，**不要**用 read-only token，限流需要写）。
 3. 免费额度足够；可设每日请求上限防止被刷爆账单。
 
@@ -58,9 +69,9 @@ Ryan 已确认：
 3. **DNS**：信从 gmail.com 发出，geiom.com 的 SPF / DKIM / DMARC 不参与外发校验，所以不为发信新增 SPF `include:` 或 DKIM；现有 SPF `v=spf1 include:_spf.mx.cloudflare.net ~all` 保持。DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。
 4. 代码现状：#315（#74）合并后，`src/lib/server/mail.ts` 通过 nodemailer 走 Gmail SMTP 发信，已不再使用 Resend，也不读 `RESEND_API_KEY`。发信变量是 `SMTP_HOST`、`SMTP_PORT`、`SMTP_USER`、`SMTP_PASS`、`MAIL_FROM`，生产还要设 `MAIL_SEND_ADAPTER=smtp`，详见 4.2。收信仍走 Cloudflare Email Routing。
 
-## 4. Vercel 项目与环境变量清单
+## 4. 环境变量清单（自建服务器）
 
-Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 自动识别 Next.js → Settings → Environment Variables 逐条添加。Production 填正式值；Preview 用测试值（Turnstile 测试密钥、`STORAGE_DRIVER=local` 或单独的预览桶、单独的数据库）。
+运行时变量放服务器上 app 的环境文件（权限 600），compose 在容器启动时注入；构建阶段只给 `APP_ENV`、`NODE_ENV` 和 `NEXT_PUBLIC_*` 公开值。本地 / 测试环境用测试值（Turnstile 测试密钥、`STORAGE_DRIVER=local`、单独的数据库）。
 
 生成随机密钥：`openssl rand -base64 32`（在 Ryan 自己电脑上运行）。
 
@@ -80,10 +91,12 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 | ~~`BEHIND_CLOUDFLARE`~~ / ~~`TRUSTED_PROXY_HOPS`~~ | 不要再设 | 已废弃，代码不再读取（设了只会在日志里提示一次）。客户端 IP 只由 `EDGE_AUTH_SECRET` + `CF-Connecting-IP` 决定 |
 | `RATE_LIMIT_STORE` | `upstash` | 生产必须，不能用 memory |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | |
-| `STORAGE_DRIVER` | `r2` | 生产必须（Vercel 文件系统不持久） |
-| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 第 1 节，桶级 token | |
+| `STORAGE_DRIVER` | `local`（Ryan 已定） | 生产必须显式设置。`local`：文件放服务器挂载数据卷（配 `UPLOAD_DIR`，第 1 节）；`r2` 只是代码仍支持的可选驱动（第 1.1 节） |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 不设 | 仅可选的 `STORAGE_DRIVER=r2` 时必填（第 1.1 节） |
 | `R2_ENDPOINT` | 留空 | |
-| `UPLOAD_DIR` | 留空（仅 local 驱动使用） | |
+| `UPLOAD_DIR` | 挂载数据卷的绝对路径 | 仅 `STORAGE_DRIVER=local` 时必填：绝对路径、存在且应用用户可读写、不在 `public/` 或 `.next/` 下，否则拒绝启动。不对外静态服务，文件只经现有接口按权限提供 |
+
+> 自建 standalone：`next build` 只需要 `APP_ENV`、`NODE_ENV` 和 `NEXT_PUBLIC_*` 公开值，不需要任何密钥；上表其余变量只在容器启动时注入，`src/instrumentation.ts` 启动时检查，缺了 exit 1（只报变量名）。健康检查：`GET /api/health`（见 launch-runbook.md 第 4.2 节）。
 
 ### 4.2 邮件
 
@@ -147,30 +160,31 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 建议加一个 `scripts/check-prod-env.mjs`，在 `APP_ENV=production` 时于构建前运行，满足任一条件就让构建失败：
 - 任何 `*_MOCK` 变量为真（如 `NEXT_PUBLIC_LOGO_UPLOAD_MOCK=1`）
 - `NEXT_PUBLIC_ADMIN_API` 不等于 `http`
-- `RATE_LIMIT_STORE` 不是 `upstash`、`STORAGE_DRIVER` 不是 `r2`
+- `RATE_LIMIT_STORE` 不是 `upstash`；`STORAGE_DRIVER` 不是 `local` / `r2`（local 时 `UPLOAD_DIR` 不是可写的绝对路径）
 - `TURNSTILE_SECRET_KEY` 仍是测试密钥 `1x0000…`
 - `AUTH_SECRET` / `ADMIN_TOTP_KEY` / `CRON_SECRET` 缺失或长度不足，`ADMIN_TOTP_KEY` 解码后不是 32 字节
 
-## 5. 定时任务（Vercel Cron）
+## 5. 定时任务（服务器上的 cron）
 
-现有任务：`/api/admin/cron/cleanup-uploads` —— 删除 24 小时未绑定询盘的 Logo 上传。接口要求 `Authorization: Bearer $CRON_SECRET`，Vercel Cron 在设置了 `CRON_SECRET` 环境变量时会自动带上这个头。
+现有任务：`/api/admin/cron/cleanup-uploads` —— 删除 24 小时未绑定询盘的 Logo 上传，以及数据保留期清理。接口要求 `Authorization: Bearer $CRON_SECRET`。
 
-需在仓库根目录加 `vercel.json`（单独小 PR，不需要账号操作）：
+自建部署不读 `vercel.json` 的 `crons`（文件保留，只对 Vercel 生效）。在服务器上用 crontab 或 systemd timer 每天 03:00 UTC 调一次，直接请求容器内地址（不经过 nginx），例如：
 
-```json
-{ "crons": [ { "path": "/api/admin/cron/cleanup-uploads", "schedule": "0 3 * * *" } ] }
+```
+curl -fsS --max-time 330 -X POST -H @<只有 root 可读的文件，内容是 Authorization 头> http://localhost:3000/api/admin/cron/cleanup-uploads
 ```
 
-- Hobby 套餐每天最多 1 次，Pro 可更频繁；每天一次已满足 24 小时保留要求。
-- 验证：Vercel → Project → Settings → Cron Jobs 里能看到并可手动 Run；不带头访问应返回 401。
+- 密钥放在只有 root 可读的文件里，用 `-H @文件` 读入，不写进命令行参数（会出现在进程列表里）或 crontab 正文。
+- 每天一次已满足 24 小时保留要求。
+- 验证：手动执行一次返回 200 和各步骤条数；不带头访问返回 401。运行时长见 launch-runbook.md 第 6 节。
 - 以后新增 cron（如样品申请/短链过期清理）同样走 `CRON_SECRET`。
 
 ## 6. 域名与搜索平台验证
 
 Ryan 操作：
 1. 购买/确定正式域名（PRD 待定）。DNS 建议放 Cloudflare。
-2. Vercel → Project → Domains 添加 `<域名>` 和 `www.<域名>`（www 301 到主域）。按提示加 A/CNAME 记录。如果走 Cloudflare 代理（橙云），SSL 模式设为 Full (strict)，并设 `BEHIND_CLOUDFLARE=1`。
-3. 更新 `NEXT_PUBLIC_SITE_URL` / `AUTH_URL` 为正式域名，重新部署。
+2. Cloudflare DNS 把 `<域名>` 和 `www.<域名>` 指向服务器（橙云代理，SSL 模式 Full (strict)）；nginx 做 www → 主域、http → https 的 301。客户端 IP 由 `EDGE_AUTH_SECRET` + nginx 的 `X-Edge-Auth` 头决定（`BEHIND_CLOUDFLARE` 已废弃，不要设）。
+3. 更新 `NEXT_PUBLIC_SITE_URL`（构建时内联，改了要重新构建镜像）/ `AUTH_URL` 为正式域名，重新部署。
 4. **Google Search Console**：添加资源 → 网址前缀 → HTML 标记 → 复制 `content` 值填 `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` → 重新部署 → 点验证 → 提交 `https://<域名>/sitemap.xml`。（也可用 DNS TXT 的“网域”资源。）
 5. **Yandex Webmaster**：添加站点 → Meta 标签 → 值填 `NEXT_PUBLIC_YANDEX_VERIFICATION` → 部署后验证 → 提交 sitemap；俄语市场重点平台。
 6. **Bing Webmaster**：可直接从 GSC 导入；或 Meta 标签 `msvalidate.01` 值填 `NEXT_PUBLIC_BING_VERIFICATION` → 验证 → 提交 sitemap。
@@ -178,7 +192,7 @@ Ryan 操作：
 
 ## 7. 首个管理员
 
-部署后由 Ryan 在自己电脑上，用生产 `DATABASE_URL` 执行 `pnpm admin:create`，登录后台立即绑定 2FA。之后可以从环境变量里移除不需要的临时值。
+自建部署后在服务器上执行 `docker compose exec app node scripts/admin-create.mjs --email <邮箱> --name "<显示名>"`（等同 `pnpm admin:create`），密码在终端交互输入、不回显；没有终端时只从标准输入读取。密码绝不放在命令行参数或环境变量里（生产下脚本会拒绝环境变量方式）。已有管理员时需显式 `--allow-additional-admin`；邮箱已存在直接失败。只有命令行，没有 HTTP 接口。建好后登录后台立即绑定 2FA。详见 launch-runbook.md 第 4.3 节。`pnpm admin:seed`（旧的环境变量建号脚本）只用于测试 / 本地 / CI。
 
 ## 8. CSP 说明（Tawk.to 等第三方）
 
@@ -190,14 +204,17 @@ Ryan 操作：
 - `connect-src`: `https://*.tawk.to wss://*.tawk.to`
 - `frame-src`: `https://*.tawk.to https://challenges.cloudflare.com`
 
-R2 走服务器端签名请求（浏览器不直连），Upstash 只在服务器端调用；发信是服务器经 Gmail SMTP 发出，收信走 Cloudflare Email Routing，浏览器都不直连，**都不需要加进 CSP**。`connect-src` 里现有的 `https://*.r2.dev` 在私有桶方案下用不到，后续可以去掉。Tawk.to 只在用户同意 Cookie 后加载。
+上传文件存服务器本地磁盘，只经本站接口（同源，`'self'`）提供，这些接口自己返回 `default-src 'none'; sandbox`（全站 CSP 对它们排除）；可选的 R2 驱动也是服务器端签名请求，浏览器不直连。Upstash 只在服务器端调用；发信是服务器经 Gmail SMTP 发出，收信走 Cloudflare Email Routing，浏览器都不直连，**都不需要加进 CSP**。
+
+`security-headers.ts` 的 `connect-src` 里现有的 `https://*.r2.dev` 和 `https://*.vercel-insights.com` 在当前方案下都用不到（不开 R2 公开地址；自建部署没有 Vercel Analytics，仓库也没有引用它），后续单独提交去掉（改的是 src，不在文档提交里做）。Tawk.to 只在用户同意 Cookie 后加载。
 
 ## 9. 上线验收
 
 - [ ] 询盘提交 → 收到通知邮件、客户收到自动回复（英/俄）
-- [ ] 上传 Logo → R2 桶里出现对象，桶公开地址不可访问
-- [ ] 连续错误登录触发限流，换一个实例（另一个区域请求）计数仍共享
-- [ ] Cron 手动运行返回 200，不带密钥返回 401
+- [ ] 上传 Logo → `UPLOAD_DIR` 下出现 0600 的 `<随机id>.png`；该文件没有任何静态地址可以直接访问，只能经后台接口（带 `nosniff`、`sandbox` CSP）查看
+- [ ] 连续错误登录触发限流；重启 app 容器后计数仍在（Upstash 共享存储）
+- [ ] 服务器 cron 手动运行返回 200，不带密钥返回 401
+- [ ] `GET /api/health` 返回 200 `{"ok":true}`；停掉 Postgres 容器时返回 503
 - [ ] 后台登录需要 2FA；`NEXT_PUBLIC_ADMIN_API=http`，后台显示真实数据
 - [ ] GSC / Yandex / Bing 验证通过，sitemap 已提交
 - [ ] Lighthouse：桌面 < 2s，手机 < 3s

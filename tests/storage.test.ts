@@ -6,6 +6,9 @@ import path from 'node:path';
 import { LocalStorage, S3Storage, createStorage, assertKey } from '../src/lib/server/storage';
 import { mockServer } from './helpers';
 
+// 本地驱动写入前校验文件头与扩展名一致，测试数据用真实的文件头
+const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from('png-body')]);
+
 test('keys: only server-shaped keys with allowed extensions', () => {
   for (const k of ['logos/2026-10/abc.png', 'models/x1/main.glb', 'models/x1/poster.webp']) assert.equal(assertKey(k), k);
   for (const k of ['../etc/passwd.png', '/abs.png', 'a//b.png', 'a/../b.png', 'x.svg', 'x.png.exe', 'sp ace.png', 'x.PNG%00.png', ''])
@@ -16,14 +19,15 @@ test('local: put/get/delete, private mode, no overwrite', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'st-'));
   try {
     const s = new LocalStorage(dir);
-    await s.put('logos/a.png', Buffer.from('hi'));
-    assert.equal((await s.get('logos/a.png'))?.toString(), 'hi');
+    await s.put('logos/a.png', PNG);
+    assert.deepEqual(await s.get('logos/a.png'), PNG);
     assert.equal((await stat(path.join(dir, 'logos/a.png'))).mode & 0o777, 0o600);
-    await assert.rejects(s.put('logos/a.png', Buffer.from('x')), /EEXIST/);
+    assert.equal((await stat(path.join(dir, 'logos'))).mode & 0o777, 0o700);
+    await assert.rejects(s.put('logos/a.png', PNG), /EEXIST/);
     await s.delete('logos/a.png');
     assert.equal(await s.get('logos/a.png'), null);
     await s.delete('logos/a.png'); // 幂等
-    await assert.rejects(s.put('../escape.png', Buffer.from('x')), /bad storage key/);
+    await assert.rejects(s.put('../escape.png', PNG), /bad storage key/);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 

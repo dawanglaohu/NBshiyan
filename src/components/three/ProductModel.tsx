@@ -14,7 +14,7 @@ export type AnimationClips = { open?: string; unfold?: string };
  * 取景用包围盒（#291）：min/max = 合盖姿态（相机只按它取景）；
  * open = 开盖全过程的并集（只用来算开盖时镜头拉远多少、接触阴影多大）；openDuration = 开盖片段时长（秒）。
  */
-export type ModelBounds = { min: [number, number, number]; max: [number, number, number]; open?: { min: [number, number, number]; max: [number, number, number] }; openDuration?: number; /** 顶点采样：按真实轮廓取景 */ points?: { closed: [number, number, number][]; open: [number, number, number][] } };
+export type ModelBounds = { min: [number, number, number]; max: [number, number, number]; open?: { min: [number, number, number]; max: [number, number, number] }; openDuration?: number; /** 顶点采样：按真实轮廓取景 */ points?: { closed: [number, number, number][]; open: [number, number, number][]; end: [number, number, number][] } };
 const PALETTE: Record<string, { color: string; lid?: string }> = {
   'gift-boxes': { color: '#1d1d22', lid: '#d4af6a' },
   'wine-boxes': { color: '#6b1f2a', lid: '#d4af6a' },
@@ -74,11 +74,12 @@ function Gltf({ url, view, clip, onBounds }: { url: string; view?: BoxView; clip
       closed.applyMatrix4(inv); union.applyMatrix4(inv);
       const v = new Vector3();
       const tx = (a: [number, number, number][]) => a.map((p) => { v.set(...p).applyMatrix4(inv); return [v.x, v.y, v.z] as [number, number, number]; });
-      pts.closed = tx(pts.closed); pts.open = tx(pts.open);
+      pts.closed = tx(pts.closed); pts.open = tx(pts.open); pts.end = tx(pts.end);
     }
     if (!closed.isEmpty()) onBounds({ ...boxToTuple(closed), open: boxToTuple(union), openDuration: used[0]?.duration, points: pts });
   }, [scene, animations, clip, onBounds]);
   const { actions } = useAnimations(animations, root);
+  const clock = useThree((s) => s.clock);
   const first = useRef(true);
   useEffect(() => {
     const action = clip ? actions[clip] : undefined;
@@ -97,13 +98,16 @@ function Gltf({ url, view, clip, onBounds }: { url: string; view?: BoxView; clip
       action.timeScale = 1;
       action.paused = true;
     } else {
+      // 按需渲染时画布可能闲置了很久，下一帧的 delta = 闲置时长，mixer 会一下子跳到动画中后段甚至末帧
+      // （盖子瞬间弹开，镜头 300ms 的拉远还没开始，盖子被切掉，#291）。这里把时钟清零，动画从头正常播放
+      clock.getDelta();
       action.paused = false;
       action.timeScale = open ? 1 : -1;
       if (open && action.time >= dur) action.time = 0;
       if (!open && action.time <= 0) action.time = dur;
     }
     first.current = false;
-  }, [actions, clip, view]);
+  }, [actions, clip, view, clock]);
   // 画布按需渲染（frameloop="demand"）：模型解析完成后出一帧；动画播放期间逐帧 invalidate，否则动画不前进
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => { invalidate(); }, [scene, invalidate]);

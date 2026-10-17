@@ -30,7 +30,7 @@
 
 ## 客户数据导出 / 删除（仅 ADMIN）
 
-- `POST /api/admin/privacy/export {email}`：按规范化邮箱匹配，JSON 以附件直接返回，不在服务器或 R2 保存；`Cache-Control: no-store`。
+- `POST /api/admin/privacy/export {email}`：按规范化邮箱匹配，JSON 以附件直接返回，不在服务器磁盘或任何存储里保存；`Cache-Control: no-store`。
 - `POST /api/admin/privacy/delete {email, confirmEmail}`：两者规范化后必须一致，否则 400 `confirm_mismatch`。匿名化姓名/邮箱/公司/电话/留言/地址/明细备注并清空 IP 国家（`ipCountry`），只保留条数、类别、日期用于统计；删除 logo 上传。
 - 顺序与其他后台路由一致：requireAdmin(['ADMIN'])（其他角色 403）→ assertSameOrigin → 每管理员 5 次/窗口限流。
 - 按 `Contact.normalizedEmail` 精确匹配（有索引，无条数上限），写入询盘时填写；旧数据用 `scripts/backfill-normalized-email.ts` 回填。

@@ -21,7 +21,7 @@
 询盘管理与回复、3D 模型上传/压缩/预览/上下架、产品与内容（Sanity）、样品审核、客服与站点设置、角色权限（管理员/业务员/编辑）与操作日志、数据看板。
 
 ## 5. 技术栈
-Next.js App Router + next-intl；three.js / react-three-fiber；GLB + Draco + gltf-progressive；IndexedDB 缓存；Postgres + Prisma；Auth.js + 2FA；Sanity；邮件（Gmail SMTP 发信 + Cloudflare Email Routing 收信）；Vercel + Cloudflare（CDN、R2、Turnstile、Access）。
+Next.js App Router + next-intl；three.js / react-three-fiber；GLB + Draco + gltf-progressive；IndexedDB 缓存；Postgres + Prisma；Auth.js + 2FA；Sanity；邮件（Gmail SMTP 发信 + Cloudflare Email Routing 收信）；自建服务器部署（Docker，服务器上从公开仓库构建 standalone 镜像，本地 Postgres 容器，上传文件存服务器本地磁盘）+ Cloudflare（DNS/CDN、Turnstile、Email Routing、Access）；Cloudflare R2 作为代码仍支持的可选存储驱动。
 
 ## 6. 验收指标
 桌面首屏 < 2s，移动 < 3s；3D 首次可交互 < 3s；单模型 ≤ 1MB（带动画 ≤ 1.5MB）。CI 中 Lighthouse 不达标则构建失败。
@@ -51,9 +51,9 @@ AR 预览、AI 包装顾问、其余模型动画、材质近看、尺寸运费�
 
 ## 11. 上线前清单
 - [ ] 正式域名、询盘邮箱（Ryan 决定）
-- [ ] Vercel 项目与预览环境，Turnstile 正式密钥
+- [ ] 自建服务器部署（Docker + nginx + 本地 Postgres 容器），Turnstile 正式密钥
 - [ ] Gmail SMTP 发信配置：应用专用密码和 `SMTP_*`、`MAIL_FROM` 变量（见 docs/launch-infra.md §3、§4.2）
-- [ ] 上传文件改存 Cloudflare R2（私有）
+- [ ] 上传文件存服务器本地磁盘（`STORAGE_DRIVER=local` + `UPLOAD_DIR` 挂载数据卷，私有，只经接口按权限提供）；R2 仅作可选驱动
 - [ ] 配置 CRON_SECRET，并设置未绑定 Logo 的定时清理
 - [ ] 限流改为共享存储（如 Upstash 或 Cloudflare KV），不再按单个实例在内存里计数
 - [ ] /api/admin/uploads 单独设置 CSP（sandbox）
