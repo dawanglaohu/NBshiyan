@@ -1,8 +1,9 @@
 'use client';
-// #74 邮件界面的共用小组件：正文 iframe、附件卡、flags 标签、发件人未验证提示、复制正文、倒计时。
+// #74 邮件界面的共用小组件：正文 iframe、附件卡、flags 标签、发件人未验证提示、复制正文、倒计时、提示滚进视口。
 import { useEffect, useState } from 'react';
 import { mailApi, MailError, type MailAttachment } from '@/lib/admin/mail/api';
-import { buildSrcdoc, clampHeight, estimateHeight, frameMax, FRAME_MIN, resizeByKey, FLAG_HINT, FLAG_LABEL, fmtSize, IFRAME_SANDBOX, knownFlags, linkExpired, REMOTE_IMAGES, typeBadge, UNVERIFIED } from '@/lib/admin/mail/logic';
+import { buildSrcdoc, clampHeight, estimateHeight, frameMax, FRAME_MIN, resizeByKey, FLAG_HINT, FLAG_LABEL, fmtSize, IFRAME_SANDBOX, knownFlags, linkExpired, REMOTE_IMAGES, fmtCountdown, rateLimitText, secondsLeft, startCountdown, typeBadge, UNVERIFIED } from '@/lib/admin/mail/logic';
+import { prefersReducedMotion, scrollBehaviorFor } from '@/lib/a11y/focus';
 
 /** 正文：服务端净化后的 HTML 放进沙箱 iframe（只有 allow-popups 两项，srcdoc 内再加 CSP）。没有 HTML 时按纯文本显示。 */
 export function MailBody({ html, text, hasRemoteImages, title }: { html: string | null; text: string | null; hasRemoteImages: boolean; title: string }) {
@@ -95,13 +96,29 @@ export function CopyBody({ text }: { text: string | null }) {
     {done === true ? '已复制' : done === false ? '复制失败，请手动选择' : '复制正文'}</button>;
 }
 
-/** 剩余秒数（到 0 停）；until 为毫秒时间戳 */
+/** 剩余秒数（到 0 停）；until 为毫秒时间戳。计时逻辑在 logic.ts startCountdown（有假时钟单测） */
 export function useCountdown(until: number | undefined) {
-  const [left, setLeft] = useState(() => (until ? Math.max(0, Math.ceil((until - Date.now()) / 1000)) : 0));
+  const [left, setLeft] = useState(() => secondsLeft(until, Date.now()));
   useEffect(() => {
     if (!until) { setLeft(0); return; }
-    const tick = () => setLeft(Math.max(0, Math.ceil((until - Date.now()) / 1000)));
-    tick(); const t = setInterval(tick, 1000); return () => clearInterval(t);
+    return startCountdown(until, setLeft);
   }, [until]);
   return left;
+}
+
+/**
+ * #74：提示出现 / 变化时滚进视口（390 手机上发送按钮下面的提示常在屏幕外）。
+ * key 为 null 不滚；block:'nearest' 已在视口内就不动；减少动态效果时瞬间滚动。
+ */
+export function useRevealOnChange(ref: React.RefObject<HTMLElement | null>, key: string | null) {
+  useEffect(() => {
+    if (key === null || !ref.current) return;
+    ref.current.scrollIntoView?.({ block: 'nearest', behavior: scrollBehaviorFor(prefersReducedMotion(window)) });
+  }, [ref, key]);
+}
+
+/** 429 文案：倒计时插在句中原位（「00:42 后可以再发」），倒计时本身 aria-live=off，不每秒打断读屏 */
+export function RateText({ scope, limit, left }: { scope?: string; limit?: number; left: number }) {
+  const [before, after = ''] = rateLimitText(scope, limit, '\u0000').split('\u0000');
+  return <>{before}<span aria-live="off">{fmtCountdown(left)}</span>{after}</>;
 }

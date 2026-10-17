@@ -5,6 +5,8 @@ import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser,
 import InquiryNotFound from './InquiryNotFound';
 import MailThread from './mail/MailThread';
 import { mailEnabled } from '@/lib/admin/mail/api';
+import { MailOffNote, useMailGate } from './mail/MailGate';
+import { showSendEntry } from '@/lib/admin/mail/gate';
 import StatusBadge from './StatusBadge';
 import { AnonTag, DeletedBody, AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, LockedStatus, statusConflictText } from './anonymized';
 import { errorText, loginHref, fmtDate, productName } from './format';
@@ -33,6 +35,12 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   const [saved, setSaved] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>();
   const [logoErr, setLogoErr] = useState(false);
+  // #74：服务端邮件开关（AdminShell 进入后台时 GET /api/admin/mail/config）。404 = 关闭 → 一开始就不显示任何发信入口
+  const gate = useMailGate();
+  const mailOff = gate.state === 'off';
+  const canSend = showSendEntry(gate);
+  /** 邮件开关打开时旧往来记录合并进 MailThread；关闭时仍在这里显示 */
+  const threadMode = mailEnabled && !mailOff;
 
   useEffect(() => {
     adminApi.getInquiry(id).then(setInq).catch((e) => setErr(String(e.message ?? e)));
@@ -83,7 +91,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         <h1>{anon ? `询盘 ${inq.ref}` : c.company ?? c.name}</h1>
         <StatusBadge status={inq.status} />
         {!anon && score < REVIEW_THRESHOLD && <span className="badge REVIEW">待核实</span>}
-        <span className="muted">· {c.region} · <AdminTime iso={inq.createdAt} /></span>
+        <span className="muted">{c.region} · <AdminTime iso={inq.createdAt} /></span>
         <span className="sp" />
         {ctl.statusEditable ? <label className="muted">状态：<select value={inq.status} disabled={busy} onChange={(e) => changeStatus(e.target.value as InquiryStatus)} aria-label="状态">
           {(Object.keys(STATUS_LABEL) as InquiryStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
@@ -105,24 +113,25 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
       <div className="adm-g2">
         <div>
           <section className="adm-sec">
-            <h2>{mailEnabled ? '询盘留言' : <>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></>}</h2>
+            <h2>{threadMode ? '询盘留言' : <>往来记录 <span className="muted">{inq.messages.length + (inq.message ? 1 : 0)} 条</span></>}</h2>
             {inq.message && (
               <div className="adm-msg2 INBOUND"><div className="meta">客户 · {who} · <AdminTime iso={inq.createdAt} /></div>
                 <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={inq.message} />}</div></div>)}
             {/* #74：开启邮件功能后，旧 InquiryMessage 由 8.3 接口以 source:"legacy" 合并进下面的 MailThread，这里不再重复显示 */}
-            {!mailEnabled && inq.messages.map((m) => (
+            {!threadMode && inq.messages.map((m) => (
               <div key={m.id} className={`adm-msg2 ${m.direction}`}>
                 <div className="meta">{m.direction === 'INBOUND' ? <>客户 · {who}</> : `我们${m.author ? ` · ${m.author}` : ''}`} · <AdminTime iso={m.createdAt} /> · {anon ? <AnonTag /> : m.subject}</div>
                 <div style={{ whiteSpace: 'pre-wrap' }}>{anon ? <DeletedBody /> : <PlainText text={plain(m.bodyHtml)} />}</div>
               </div>))}
-            {!inq.message && (mailEnabled || inq.messages.length === 0) && <EmptyNote />}
+            {!inq.message && (threadMode || inq.messages.length === 0) && <EmptyNote />}
             {/* 附件区整体不显示：后端暂无附件接口（#85），有了再按扫描状态加回 */}
           </section>
 
-          {mailEnabled && <MailThread inquiryId={inq.id} recipient={anon ? '' : `${c.name} <${c.email}>`}
+          {mailOff && !anon && <MailOffNote />}
+          {mailEnabled && canSend && <MailThread inquiryId={inq.id} recipient={anon ? '' : `${c.name} <${c.email}>`}
             onSendAccepted={inq.status === 'NEW' ? () => run(() => adminApi.updateInquiry(inq.id, { status: 'FOLLOWING' })) : undefined}
             onAnonymized={() => { void adminApi.getInquiry(id).then(setInq).catch(() => {}); }} />}
-          {ctl.showReply && !mailEnabled && <section className="adm-sec">
+          {ctl.showReply && !mailEnabled && canSend && <section className="adm-sec">
             <h2>回复客户 <span className="muted">将以{LANG[inq.locale]}发送</span></h2>
             <textarea rows={5} style={{ width: '100%' }} value={body} onChange={(e) => { setBody(e.target.value); setSaved(false); }} aria-label="回复内容"
               placeholder={inq.locale === 'ru' ? `Здравствуйте, ${c.name}!` : `Dear ${c.name.split(' ')[0]}, thank you for…`} />
@@ -193,7 +202,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
                   : <span className="adm-logo2">{logoErr ? 'Logo 加载失败' : 'Logo…'}</span>) : null}
                 <div>
                   <b>{productName(it.productSlug)} · {it.quantity?.toLocaleString('en-US') ?? '—'} pcs</b>
-                  <div className="muted">{it.config && Object.keys(it.config).length ? Object.values(it.config).map(String).join(' · ') : <span className="adm-empty-note">{EMPTY_TEXT}</span>}{inq.logoUploadId && i === 0 ? ' · 附 Logo' : ''}</div>
+                  <div className="muted">{it.config && Object.keys(it.config).length ? Object.values(it.config).map(String).join(' · ') : <span className="adm-empty-note">{NO_SPECS_TEXT}</span>}{inq.logoUploadId && i === 0 ? ' · 附 Logo' : ''}</div>
                   {it.designId && <div className="muted">定制方案 <a className="adm-url" href={`/${inq.locale}/s/${it.designId}`} target="_blank" rel="noopener noreferrer">/{inq.locale}/s/{it.designId}</a></div>}
                 </div>
               </div>))}
@@ -206,4 +215,6 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
 
 /** #291：空卡片 / 空字段统一显示灰色「暂无记录」 */
 const EMPTY_TEXT = '暂无记录';
+/** #74 UX：产品没填规格时显示「未填写规格」（同样灰色）；「暂无记录」只用于空列表 */
+const NO_SPECS_TEXT = '未填写规格';
 function EmptyNote() { return <p className="adm-empty-note" data-testid="empty-note">{EMPTY_TEXT}</p>; }

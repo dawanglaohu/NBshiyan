@@ -66,7 +66,7 @@ test('detail empty states and disabled drawer items', () => {
   const d = readFileSync(new URL('../src/components/admin/InquiryDetail.tsx', import.meta.url), 'utf8');
   assert.match(d, /const EMPTY_TEXT = '暂无记录'/);
   assert.match(d, /\{inq\.history\.length === 0 && <EmptyNote \/>\}/);
-  assert.match(d, /\{!inq\.message && \(mailEnabled \|\| inq\.messages\.length === 0\) && <EmptyNote \/>\}/);
+  assert.match(d, /\{!inq\.message && \(threadMode \|\| inq\.messages\.length === 0\) && <EmptyNote \/>\}/);
   assert.match(d, /<div className="adm-reply-actions">/);
   assert.match(d, /\{anon && inq\.notes\.length === 0 && <EmptyNote \/>\}/);
   const shell = readFileSync(new URL('../src/components/admin/AdminShell.tsx', import.meta.url), 'utf8');
