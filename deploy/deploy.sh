@@ -27,6 +27,33 @@ edge_match() {  # EDGE_AUTH_SECRET in the env file vs the include: both non-empt
   [ "$(printf '%s' "$a" | sha256sum | cut -c1-64)" = "$(printf '%s' "$b" | sha256sum | cut -c1-64)" ]
 }
 
+# APP_ENV and NODE_ENV must each appear exactly once in the env file, as "production". Only those lines are read.
+env_prod_ok() {
+  local k
+  for k in APP_ENV NODE_ENV; do
+    if [ "$(grep -c "^$k=" "$ENVF" || true)" != 1 ] || ! grep -qx "$k=production" "$ENVF"; then
+      log "FAIL $k must be exactly 'production' (once) in the app env file"; return 1
+    fi
+  done
+}
+
+# Startup check must really fail closed (full-stack: exactly `run --rm --no-deps -e SMTP_PORT=25 app node server.js` on the
+# candidate). SMTP_PORT=25 is a non-secret invalid value; no secret is blanked or passed with -e. Must exit 1, name SMTP_PORT,
+# and must NOT be the "no production build" failure (that would be a false pass). The output stays in a 600 temp file, is
+# scanned for every secret value of the env file (must be 0 hits) and deleted; it is never printed.
+startup_fail_closed() {
+  local out vals rc=0 ok=1 n="nbshiyan-envcheck-$$"
+  out=$(mktemp); vals=$(mktemp); chmod 600 "$out" "$vals"
+  timeout 90 docker compose -p nbshiyan -f "$COMPOSE_FILE" --env-file "$CENV" run --rm --no-deps -T --name "$n" -e SMTP_PORT=25 app node server.js >"$out" 2>&1 || rc=$?
+  docker rm -f "$n" >/dev/null 2>&1 || true
+  sed -nE 's/^[A-Z0-9_]*(SECRET|TOKEN|PASS|PASSWORD|KEY|DATABASE_URL|SMTP_USER)[A-Z0-9_]*=//p' "$ENVF" | sed -e 's/^"//' -e 's/"$//' | awk 'length >= 12' > "$vals"
+  [ "$rc" = 1 ] || { log "FAIL startup with SMTP_PORT=25 exited $rc (want 1)"; ok=0; }
+  grep -q 'SMTP_PORT' "$out" || { log "FAIL startup check output does not name SMTP_PORT"; ok=0; }
+  grep -qi 'production build' "$out" && { log "FAIL server.js failed for a missing build, not the env check"; ok=0; }
+  if [ -s "$vals" ] && grep -qFf "$vals" "$out"; then log "FAIL startup check output contains a secret value"; ok=0; fi
+  rm -f "$out" "$vals"; (( ok ))
+}
+
 sha_ok() { [[ "$1" =~ ^[0-9a-f]{40}$ ]]; }
 
 # Destructive-change gate (statement/clause based, case-insensitive, fail closed). Tests: deploy/tests/plan-check.test.sh
@@ -86,6 +113,17 @@ post_checks() {
   curl -sI http://127.0.0.1:3000/en | grep -qi '^x-robots-tag:.*noindex' && { log "FAIL /en carries noindex (APP_ENV not production at build?)"; ok=0; }
   curl -s http://127.0.0.1:3000/en | grep -q '<link rel="canonical" href="https://geiom.com/en"' || { log "FAIL canonical is not https://geiom.com/en"; ok=0; }
   edge_match || { log "FAIL EDGE_AUTH_SECRET differs from the reverse-proxy include (hash compare)"; ok=0; }
+  # Redirect headers as the proxy sees them (HOSTNAME=0.0.0.0 → Next emits relative Location). No header may mention
+  # localhost; open-redirect probes must not produce a Location starting with // or pointing at evil.com.
+  local loc hdr=(-H 'Host: geiom.com' -H 'X-Forwarded-Proto: https' -H 'X-Forwarded-Host: geiom.com')
+  for p in / /ru /admin; do
+    curl -sI "${hdr[@]}" "http://127.0.0.1:3000$p" | grep -qi localhost && { log "FAIL a response header of $p contains localhost"; ok=0; }
+  done
+  for p in '//evil.com/' '/%2F%2Fevil.com' '/\evil.com'; do
+    loc=$(curl -sI "${hdr[@]}" "http://127.0.0.1:3000$p" | tr -d '\r' | sed -n 's/^[Ll]ocation:[[:space:]]*//p')
+    [[ "$loc" == //* || "$loc" == *evil.com* && ! "$loc" =~ ^/[^/] ]] && { log "FAIL open redirect: $p → $loc"; ok=0; }
+  done
+  startup_fail_closed || ok=0
   (( ok ))
 }
 
@@ -100,6 +138,7 @@ promote() {
 case "${1:-}" in
   up)
     [ -f "$ENVF" ] && [ "$(stat -c %a "$ENVF")" = 600 ] || die "app env file missing or not 600"
+    env_prod_ok || die "APP_ENV / NODE_ENV not production in the app env file (startup check would be skipped)"
     edge_match || die "EDGE_AUTH_SECRET in env file does not match the include (hash compare)"
     docker image inspect nbshiyan-app:candidate >/dev/null || die "no candidate image; run build-on-server.sh"
     sha_ok "$(cat "$D/.candidate-sha" 2>/dev/null)" || die ".candidate-sha is not a 40-hex git sha"
@@ -110,8 +149,12 @@ case "${1:-}" in
     if post_checks; then promote; write_cenv current; dc up -d --no-deps app; log "deployed $(cut -c1-12 "$D/.current-sha")"
     else log "post-deploy checks failed → rolling back"; "$0" rollback; exit 1; fi ;;
   rollback)
-    docker image inspect nbshiyan-app:previous >/dev/null 2>&1 || docker image inspect nbshiyan-app:current >/dev/null 2>&1 || die "nothing to roll back to"
     tag=current; [ -f "$CENV" ] && grep -q '^APP_TAG=current$' "$CENV" && tag=previous
+    if ! docker image inspect "nbshiyan-app:$tag" >/dev/null 2>&1; then
+      # First deploy (no :current / :previous yet): never leave a failed candidate serving on 127.0.0.1:3000
+      dc stop app >/dev/null 2>&1 || true
+      die "no nbshiyan-app:$tag to roll back to (first deploy?): app container stopped"
+    fi
     write_cenv "$tag"; dc up -d --no-deps app; log "app now on :$tag (schema unchanged; additive SQL is backward compatible)" ;;
   *) echo "usage: $0 up|rollback" >&2; exit 2 ;;
 esac

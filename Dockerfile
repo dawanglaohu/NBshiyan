@@ -105,6 +105,14 @@ RUN test -f scripts/admin-create.mjs && test -f scripts/admin-create-lib.mjs
 # but the root fs is read_only. So the build output is kept in .next-dist and copied into a tmpfs .next at start.
 RUN mv .next .next-dist && mkdir .next && chown 1001:1001 .next \
  && mkdir -p /data/uploads && chown 1001:1001 /data/uploads
+# Entrypoint: .next is a tmpfs (root fs read_only), so EVERY start — including one-off `compose run app node server.js` —
+# first fills it from .next-dist; otherwise server.js exits "Could not find a production build" (a false fail-closed).
+COPY --chmod=755 <<'SH' /usr/local/bin/nbshiyan-entrypoint
+#!/bin/sh
+set -e
+[ -f /app/.next/BUILD_ID ] || cp -a /app/.next-dist/. /app/.next/
+exec "$@"
+SH
 ARG GIT_SHA=unknown
 LABEL org.opencontainers.image.source="https://github.com/dawanglaohu/NBshiyan" \
       org.opencontainers.image.revision="${GIT_SHA}" \
@@ -115,5 +123,5 @@ EXPOSE 3000
 # 120/min per client (in-process limiter). In-container use only: nginx returns 404 for it externally. No fallback.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["sh", "-c", "cp -a /app/.next-dist/. /app/.next/ && exec node server.js"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/nbshiyan-entrypoint"]
+CMD ["node", "server.js"]

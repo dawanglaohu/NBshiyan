@@ -84,7 +84,53 @@ nginx site returns `404` for `/api/health` and `/api/health/…`. There is **no*
 DNS cutover, check that `/api/health`, `/api/health?x=1`, `/api/health/` and `/api/health/x` all return 404, while
 `/api/healthz` and other `/api/*` still reach the app (nginx: `location = /api/health` + `location ^~ /api/health/`).
 
+## First deploy on the server: run each item and report the result
+These can't be verified off the server, because the box has no docker and no real DB.
+1. **Compose version:** `docker compose version` must support `up --wait` (Compose v2.17 or later). `deploy.sh` uses `up -d --wait postgres redis srh srh-tls`.
+2. **Required env values:** `deploy.sh` refuses to start unless the app env file has `APP_ENV=production` and
+   `NODE_ENV=production`, each exactly once. `init-secrets.sh` forces both. Without runtime `APP_ENV`, the startup check is skipped entirely.
+3. **srh-net isolation:** from inside the app container, `srh` and `redis` must not resolve. `deploy.sh` checks this with `node -e "dns.lookup(...)"`.
+   Only `redis-rest` (srh-tls on `backend`) is reachable.
+4. **Internal TLS:**
+   - `openssl x509 -in internal-tls/ca.crt -noout -ext nameConstraints` shows `permitted DNS:redis-rest`, and `internal-tls/` contains no CA key.
+   - A Node TLS 1.3 handshake from the app container to `https://redis-rest:8443/pipeline` works with the CA (`NODE_EXTRA_CA_CERTS`).
+   - Rate-limited routes work, i.e. no 503 caused by the Redis store.
+5. **Real-DB schema plan:** the plan generated against the real (empty, first-deploy) DB passes `plan-check.sh` with no
+   problems, and the drift check after `db push` exits 0. Report the plan's line count and sha256, never its connection details.
+6. **Leak scan with real values:** `build-on-server.sh`'s image filesystem/history scan, using the values that `init-secrets.sh`
+   generated on the server, must report `hits=0` for both images.
+7. **Ports:** `ss -lntH` shows nothing new on 5432 or 6379, and 3000 is bound only on 127.0.0.1. Only `app` publishes a port.
+8. **Startup fails closed:** `deploy.sh` runs exactly `docker compose … run --rm --no-deps -e SMTP_PORT=25 app node server.js`
+   (plus `-T` and a container name, because it runs without a TTY) on the candidate image.
+   - It must exit 1, and the output must name only variables (`SMTP_PORT …`), not a "no production build" error.
+   - `SMTP_PORT=25` is a non-secret invalid value. **Never blank a secret or pass any secret with `-e`.**
+   - The output goes to a 600 temp file, is scanned for every secret value (0 hits required) and deleted. It is never printed.
+   - This works because the image entrypoint fills the `.next` tmpfs from `.next-dist` on every start, including one-off `run … node server.js`.
+9. **First rollback:** if post-checks fail on the very first deploy, there is no `:current` / `:previous` image. Rollback then stops the app container and aborts.
+
+## Post-deploy smoke tests through nginx (after DNS/CF cutover; nginx files are final)
+Run these from outside, through Cloudflare. `deploy.sh` also runs the local equivalents against 127.0.0.1:3000 with
+`Host: geiom.com` (with `HOSTNAME=0.0.0.0`, Next emits a relative Location).
+```sh
+curl -sI https://geiom.com/          # 307/308, Location: /en or https://geiom.com/en (no localhost, no :port)
+curl -sI https://geiom.com/ru        # 200, or a redirect that stays on https://geiom.com
+curl -sI https://geiom.com/admin     # redirect to the sign-in page on geiom.com (proxy_redirect regex rewrites localhost/127.0.0.1/0.0.0.0 targets)
+for u in / /ru /admin; do curl -sI "https://geiom.com$u" | grep -qi localhost && echo "FAIL $u header mentions localhost"; done
+curl -sI 'https://geiom.com//evil.com/'      # Location must not start with // and must not point at evil.com
+curl -sI 'https://geiom.com/%2F%2Fevil.com'  # same
+curl -sI 'https://geiom.com/\evil.com'       # same
+for u in /api/health '/api/health?x=1' /api/health/ /api/health/x; do curl -s -o /dev/null -w "%{http_code} $u\n" "https://geiom.com$u"; done   # all 404
+curl -s -o /dev/null -w '%{http_code}\n' https://geiom.com/api/healthz   # reaches the app (its 404 page, not nginx's)
+```
+No response header may contain `localhost`. Local observation on PR #321 (bad9379): with `HOSTNAME=127.0.0.1`, `/` answers
+`Location: https://localhost:<port>/en`, so the nginx `proxy_redirect` regex is needed, and compose keeps
+`HOSTNAME=0.0.0.0`. `/%2F%2Fevil.com` answers **500** from the app (reported to the backend; it is not a redirect).
+
 ## Review notes
+- The schema plan gate (`plan-check.sh`) refuses an empty or unreadable plan. Prisma's no-diff output is `-- This is an empty migration.`, which passes.
+  It also sends anything its lexer can't handle safely to manual review: `E''` strings, `$$`/`$tag$`, `/* */`, backslashes,
+  multi-line strings, and identifiers containing `'`, `;` or `--`. On existing tables only `ADD COLUMN` and
+  `ALTER COLUMN … SET DEFAULT` clauses are allowed. `CREATE TABLE IF NOT EXISTS` does not count as a new table.
 - **Never run `docker compose config` for this project.** It prints the resolved `env_file` values, which are secrets.
   Use `docker compose ps` and `docker inspect --format` on specific fields instead.
 - The build carries no secrets: no secret `ARG`/`ENV`, no `.env` in the context. After every build, `build-on-server.sh`

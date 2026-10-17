@@ -73,7 +73,10 @@ setkey MIDDLEWARE_PROBE_SECRET "$(openssl rand -base64 48 | tr -d '\n')"
 setkey INDEXNOW_KEY "$(openssl rand -hex 16)"
 setkey MAIL_WEBHOOK_SECRET "$(openssl rand -base64 48 | tr -d '\n')"   # 48 random bytes; NOT given to the Worker until Q7
 setkey UPSTASH_REDIS_REST_TOKEN "$(sed -n 's/^SRH_TOKEN=//p' "$S/srh.env")"
-for kv in APP_ENV=production NODE_ENV=production NEXT_PUBLIC_SITE_URL=https://geiom.com AUTH_URL=https://geiom.com \
+# APP_ENV / NODE_ENV are FORCED (not just filled when empty): without APP_ENV=production at runtime the startup check
+# in src/instrumentation.ts is skipped entirely. Non-secret, so overwriting is safe.
+for k in APP_ENV NODE_ENV; do sed -i "/^$k=/d" "$ENVF"; printf '%s=production\n' "$k" >> "$ENVF"; done
+for kv in NEXT_PUBLIC_SITE_URL=https://geiom.com AUTH_URL=https://geiom.com \
           NEXT_PUBLIC_ADMIN_API=http RATE_LIMIT_STORE=upstash UPSTASH_REDIS_REST_URL=https://redis-rest:8443 \
           STORAGE_DRIVER=local UPLOAD_DIR=/data/uploads SHORTLINK_PROBE_ORIGIN=http://127.0.0.1:3000 \
           MAIL_SEND_ADAPTER=smtp SMTP_HOST=smtp.gmail.com SMTP_PORT=465 REPLY_DOMAIN=geiom.com \

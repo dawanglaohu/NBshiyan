@@ -12,7 +12,9 @@ check() {  # check good|bad <name> <sql>
   else fail=$((fail+1)); printf 'FAIL [%s] %s\n%s\n' "$1" "$2" "${out:-<no problems reported>}"; fi
 }
 # ---- GOOD ----
-printf '' > "$tmp"; if [ -z "$(plan_problems "$tmp")" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL empty plan"; fi
+# 0-byte / unreadable plans must FAIL (prisma's no-diff output is the comment line, tested as GOOD below)
+printf '' > "$tmp"; if [ -n "$(plan_problems "$tmp")" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL [bad] 0-byte plan"; fi
+if [ -n "$(plan_problems /nonexistent/plan.sql)" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL [bad] unreadable plan"; fi
 out=$(plan_problems "$here/fixtures/first-deploy-91db98e.sql")
 if [ -z "$out" ]; then pass=$((pass+1)); else fail=$((fail+1)); printf 'FAIL [good] first deploy (91db98e)\n%s\n' "$out"; fi
 check good "prisma empty-migration comment" '-- This is an empty migration.'
@@ -70,4 +72,32 @@ check bad "unrecognised statement (INSERT)" 'INSERT INTO "Inquiry" ("id") VALUES
 check bad "first deploy + one bad statement appended" "$(cat "$here/fixtures/first-deploy-91db98e.sql")
 ALTER TABLE \"Admin\" ADD COLUMN \"x\" TEXT,
 ADD COLUMN \"y\" TEXT NOT NULL;"
+# ---- GOOD: literals that look scary but lex cleanly ----
+check good "literal containing -- and \" and ;" 'ALTER TABLE "Inquiry" ADD COLUMN "a" TEXT NOT NULL DEFAULT '"'"'x--"y";z'"'"';'
+check good "doubled quote inside literal" 'ALTER TABLE "Inquiry" ALTER COLUMN "a" SET DEFAULT '"'"'it'"''"'s'"'"';'
+# ---- BAD: lexer (P2 review of 2366cd0) ----
+# shellcheck disable=SC1003  # the backslash is part of the SQL sample
+check bad "E'' string literal" 'ALTER TABLE "Inquiry" ADD COLUMN "a" TEXT NOT NULL DEFAULT E'"'"'x\'"'"', ADD COLUMN "b" TEXT NOT NULL;'
+check bad "lowercase e'' string" 'ALTER TABLE "Inquiry" ALTER COLUMN "a" SET DEFAULT e'"'"'x'"'"';'
+check bad "multi-line string literal" 'ALTER TABLE "Inquiry" ADD COLUMN "a" TEXT DEFAULT '"'"'x
+'"'"', ADD COLUMN "b" TEXT NOT NULL;'
+check bad "unterminated string" 'ALTER TABLE "Inquiry" ADD COLUMN "a" TEXT DEFAULT '"'"'x;'
+check bad "dollar-quoted \$\$" 'DO $$ BEGIN NULL; END $$;'
+# shellcheck disable=SC2016  # literal $t$ is the SQL sample
+check bad "dollar-quoted \$tag\$" 'ALTER TABLE "Inquiry" ALTER COLUMN "a" SET DEFAULT $t$x$t$;'
+check bad "/* */ comment" 'ALTER TABLE "Inquiry" ADD COLUMN "a" TEXT /* , ADD COLUMN "b" TEXT NOT NULL */;'
+check bad "backslash" 'ALTER TABLE "Inquiry" ALTER COLUMN "a" SET DEFAULT '"'"'a\b'"'"';'
+check bad 'identifier containing -- ("a--b")' 'ALTER TABLE "Inquiry" ADD COLUMN "a--b" TEXT, ADD COLUMN "c" TEXT NOT NULL;'
+check bad "identifier containing '" 'ALTER TABLE "Inquiry" ADD COLUMN "a'"'"'b" TEXT, ADD COLUMN "c" TEXT NOT NULL;'
+check bad "identifier containing ;" 'ALTER TABLE "Inquiry" ADD COLUMN "a;b" TEXT;'
+# ---- BAD: existing-table clause whitelist (P3) ----
+check bad "ADD without COLUMN keyword" 'ALTER TABLE "Inquiry" ADD "x" TEXT;'
+check bad "SET STATISTICS on existing" 'ALTER TABLE "Inquiry" ALTER COLUMN "a" SET STATISTICS 100;'
+check bad "ENABLE ROW LEVEL SECURITY" 'ALTER TABLE "Inquiry" ENABLE ROW LEVEL SECURITY;'
+check bad "OWNER TO" 'ALTER TABLE "Inquiry" OWNER TO someone;'
+check bad "second clause not whitelisted" 'ALTER TABLE "Inquiry" ADD COLUMN "a" TEXT, ALTER COLUMN "b" SET STORAGE EXTERNAL;'
+check bad "CREATE TABLE IF NOT EXISTS is not new" 'CREATE TABLE IF NOT EXISTS "Inquiry" ("id" TEXT NOT NULL);
+ALTER TABLE "Inquiry" ADD COLUMN "b" TEXT NOT NULL;'
+check bad "CREATE TABLE IF NOT EXISTS + unique index" 'CREATE TABLE IF NOT EXISTS "Inquiry" ("id" TEXT NOT NULL);
+CREATE UNIQUE INDEX "k" ON "Inquiry"("id");'
 echo "plan-check: $pass passed, $fail failed"; (( fail == 0 ))
