@@ -86,6 +86,9 @@ WORKDIR /opt/migrate
 RUN npm install --no-audit --no-fund --no-save "prisma@${PRISMA_VERSION}" \
  && npx --no-install prisma version >/dev/null
 # --chmod=644: COPY keeps the source mode, and a checkout made under umask 077 left it root-only 600 (migrate EACCES).
+# The parent dir is created first: when COPY --chmod has to create a missing parent, BuildKit gives that dir the same
+# file mode (644 → not traversable for uid 1001; the e155bc1 build stopped on the check below). mkdir here = 755.
+RUN mkdir -p -m 755 /opt/migrate/prisma
 COPY --from=builder --chmod=644 /app/prisma/schema.prisma ./prisma/schema.prisma
 USER 1001:1001
 ENV HOME=/tmp CHECKPOINT_DISABLE=1 PRISMA_HIDE_UPDATE_MESSAGE=1
