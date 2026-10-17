@@ -6,7 +6,7 @@
 
 ## 0. 主域名
 
-- **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`，去掉结尾 `/`），不读请求的 Host。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
+- **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`），不读请求的 Host。`NEXT_PUBLIC_SITE_URL` 必须**正好**是 `https://geiom.com`：全小写，不带结尾 `/`，不带路径（#323 起不符合就构建失败）。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
 - `www.geiom.com` 和 `http://` 的 301 **全部由 nginx 做**（运维已定）：http 裸域、http www、https www 都一跳 301 到 `https://geiom.com$request_uri`。Cloudflare 侧 Always Use HTTPS 关闭，没有 Redirect Rules，也没有 Page Rules。
 - ⚠️ 切换时**不要**在 Cloudflare 加重定向规则，**不要**打开 Always Use HTTPS，否则会和 nginx 的 301 叠成两跳或者循环。
 - 语言前缀：`src/i18n/routing.ts` 是 `locales: ['en', 'ru']`、`defaultLocale: 'en'`、`localePrefix: 'always'`，所有页面都在 `/en/...` 或 `/ru/...` 下。
@@ -21,7 +21,7 @@ S=https://geiom.com
 这些值都是**构建时**写进产物的，只在运行时设置不起作用（`NEXT_PUBLIC_*` 会被内联；`next.config.ts` 里的 `isProd` 和 `src/app/robots.ts`、sitemap 也在构建时确定）。
 
 - [ ] 构建时 `APP_ENV=production`、`NODE_ENV=production`。`isProdEnvFrom()`（`src/lib/site.ts`）只认 `APP_ENV === 'production'`（过渡期另认 `VERCEL_ENV`）。没设 → `next.config.ts` 给全站加 `X-Robots-Tag: noindex, nofollow`，`robots.txt` 变成 `Disallow: /`，IndexNow 关闭。
-- [ ] **运行时** env_file 里也必须有 `APP_ENV=production`。启动检查（`src/instrumentation.ts` → `runStartupEnvCheck()`）只在 `APP_ENV=production` 时执行；没设就整段跳过，缺密钥、缺数据库也照样启动。
+- [ ] **运行时** env_file 里也必须有 `APP_ENV=production`。#323（`fix/321-hardening`）起，生产构建的镜像在运行时 `APP_ENV` 没设、或者和构建时的值不一致时**拒绝启动（exit 1）**，不会再跳过启动检查（`src/instrumentation.ts` → `runStartupEnvCheck()`）。运维的 compose 里已经把 `APP_ENV=production` 写死。
   部署后由运维在服务器上确认启动检查确实跑了（只看变量名和退出码，不打印任何值）：
   - ⚠️ **不要**直接跑不带参数的 `printenv`、`env` 或 `docker compose config`：它们会把所有变量连同密钥一起打印出来（屏幕、终端记录、日志）。只能按单个变量查，例如 `printenv APP_ORIGIN`，而且只查本文列出的非密钥变量。是否通过以 `deploy.sh` 检查的退出码为准，单变量查看只作辅助。
   - 容器里 `APP_ENV` 是 `production`，例如 `docker compose exec <app> printenv APP_ENV`。
@@ -38,7 +38,7 @@ S=https://geiom.com
 - [ ] **运行时** 生产容器必须保持 `HOSTNAME=0.0.0.0`。改成 `127.0.0.1` 的话，`/s/*` 的 rewrite 会在 `x-middleware-rewrite` 响应头里带出 localhost（这个问题 #328 之前就有）。第二个原因：`HOSTNAME=127.0.0.1` 时，#328 的跳转修复可能生成简写地址 `127.0.1`，而 nginx 兜底的 `proxy_redirect`（第 2.5 节）只匹配完整的 `127.0.0.1`，会漏掉。运维已在 compose 里写死 `HOSTNAME=0.0.0.0`，`deploy.sh` 也会检查这一项（`ops/app-origin-required`）。部署后验证：
   - 容器里 `HOSTNAME` 是 `0.0.0.0`，例如 `docker compose exec <app> printenv HOSTNAME`。
   - 任何响应头里都不能出现 localhost，例如 `curl -sI $S/en | grep -ci localhost` 和 `curl -sI $S/s/<任意 id> | grep -ci localhost` 都应为 0（第 2.4、2.5 节）。
-- [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
+- [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`，必须一字不差：全小写，不带结尾 `/`（#323 起 `https://geiom.com/`、`https://Geiom.com` 这类写法都会让构建失败）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
 - [ ] 构建检查（`prod-env-check.ts`，`next build` 时执行）：
   - 当前 main：`NEXT_PUBLIC_SITE_URL` 缺失或不是 `https://` 时构建失败。
   - PR #321 合并后：另外拒绝 localhost / 127.x / ::1 / 0.0.0.0 / `*.localhost`。上线必须用合并了 #321 的 commit 构建。

@@ -231,7 +231,7 @@ curl -s $S/sitemap.xml | grep -Ec '/og(/|<|\?)'   # 0：sitemap 里不能有任�
 
 上线前可以用 standalone 构建在本机跑第 4 节的大部分检查：
 
-- 构建：`APP_ENV=production`、`NODE_ENV=production`、`NEXT_PUBLIC_SITE_URL=https://geiom.com`。
+- 构建：`APP_ENV=production`、`NODE_ENV=production`、`NEXT_PUBLIC_SITE_URL=https://geiom.com`（一字不差，不带结尾 `/`）。
 - 启动：`HOSTNAME=0.0.0.0`、`APP_ORIGIN=https://geiom.com`，监听本机端口。
 - 只有生产环境才能验证的：http/www 的 301（nginx 和 DNS）、Cloudflare 的头、GSC 和 Yandex 能不能抓到、真实 Sanity 文章、文章 OG（需要 UX 的 PR 合并）。
-- 本地启动时如果不设 `APP_ENV=production`，运行时的启动检查会被跳过（缺生产密钥也能起来）。这只适合本地预检，生产必须设，见 [`seo-cutover-geiom.md`](./seo-cutover-geiom.md) 第 1 节。
+- #323（`fix/321-hardening`）起，生产构建的镜像在运行时 `APP_ENV` 没设、或者和构建时不一致时会拒绝启动（exit 1），不能再靠不设 `APP_ENV` 跳过启动检查。本地预检要用同样的 `APP_ENV=production`，并给齐启动检查要求的变量（只用本地占位值，绝不用生产密钥）；做不到就只在生产上跑第 4 节。见 [`seo-cutover-geiom.md`](./seo-cutover-geiom.md) 第 1 节。
