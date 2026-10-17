@@ -9,7 +9,12 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
   `SANITY_PROJECT_ID/DATASET`). All server-side secrets are read at runtime from the env file given by
   `NBSHIYAN_APP_ENV_FILE` (root 600). `src/instrumentation.ts` re-runs the production env check at start and exits if anything is missing.
 - **Build input:** a full 40-character commit SHA that is already merged into `main`, never a branch name.
-- **Base images** are pinned by tag and digest.
+- **Base images** are pinned by tag and digest, and so is the Dockerfile syntax frontend
+  (`docker/dockerfile:1.7@sha256:a57df69d…a33e`, the 1.7 = 1.7.1 index). `build-on-server.sh` refuses any other first line.
+- **Registry mirrors (builder only):** the server cannot reach `registry-1.docker.io`. dockerd uses its own
+  `registry-mirrors`, but the dedicated `docker-container` builder runs its own BuildKit and ignores them, so it is created
+  with the reviewed `deploy/buildkitd.toml` (the same three docker.io mirrors). Mirrors never weaken integrity: everything
+  the build pulls is pinned by digest and BuildKit verifies content digests.
 - **Cleanup is scoped to NBshiyan:** only its own buildx builder cache and its own images (`nbshiyan-app`,
   `nbshiyan-migrate`; keep `:current` and `:previous`). Never `docker system/image/volume prune`.
 - **Never run `docker compose config`.** It expands `env_file` and would print secrets.
@@ -21,12 +26,23 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `docker-compose.yml` | stack definition and hardening (read_only, cap_drop ALL, no-new-privileges, pids/mem limits) |
 | `env.template` | every runtime variable, no values: who supplies it, whether it's a secret, whether prod requires it |
 | `init-secrets.sh` | one-time: creates data dirs and generates secrets on the host; never overwrites, never prints |
-| `build-on-server.sh` | pinned-SHA build in a memory-capped dedicated builder; disk/memory gates; leak checks; tag rotation |
+| `build-on-server.sh` | pinned-SHA build in a memory-capped dedicated builder; disk/memory gates; leak checks; tag rotation; stops the builder when done |
+| `buildkitd.toml` | reviewed BuildKit config of `nbshiyan-builder`: docker.io mirrors only. Its sha256 is pinned in `build-on-server.sh` |
 | `plan-check.sh`, `tests/plan-check.test.sh` | destructive-change gate for the schema plan (sourced by `deploy.sh`) and its tests (`bash deploy/tests/plan-check.test.sh`, no docker/DB needed) |
 | `smoke-lib.sh`, `tests/smoke.test.sh` | redirect/header smoke rules (`loc_bad`, `hdr_leak`, `root_redirect_ok`) used by `deploy.sh`, and their tests |
 | `env-check.sh`, `tests/env-check.test.sh` | `env_prod_ok` (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL, HOSTNAME) and the compose `HOSTNAME` check, sourced by `deploy.sh`, and their tests |
 | `deploy.sh` | pg_dump → schema plan + destructive check → `db push` → drift check → start → post-deploy checks → auto-rollback |
 | `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
+
+## Builder (`nbshiyan-builder`)
+- Created by `build-on-server.sh` with `--buildkitd-config deploy/buildkitd.toml` (from the pinned checkout; the script
+  checks its sha256 first). The sha256 the builder was created with is kept in `$NBSHIYAN_DATA_DIR/.builder-config-sha256` (600).
+- If the builder exists but was created with no or another config (no marker / different sha256), the script runs
+  `docker buildx rm nbshiyan-builder` (**only this builder**, its cache goes with it) and recreates it. Nothing else is removed.
+- After bootstrap it reads `/etc/buildkit/buildkitd.toml` inside `buildx_buildkit_nbshiyan-builder0` and aborts unless all
+  three mirrors are there (content check; buildx re-serializes the toml, so the hash would differ).
+- The builder is stopped (`docker buildx stop nbshiyan-builder`) after every run, successful or not, so it holds no memory
+  between builds. The next build restarts it; the cache (capped at `CACHE_KEEP`) is kept.
 
 ## Schema changes (final: `prisma db push`)
 The repo uses `prisma db push` and has no `prisma/migrations`. `prisma/sql/*.sql` files, including

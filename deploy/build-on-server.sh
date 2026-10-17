@@ -16,6 +16,11 @@ BUILD_ARGS_FILE="${BUILD_ARGS_FILE:-$NBSHIYAN_DATA_DIR/build-args.env}"   # PUBL
 DOCKERFILE_DIR="${DOCKERFILE_DIR:-}"   # until the Dockerfile PR is merged: dir holding reviewed Dockerfile + .dockerignore
 BUILDER=nbshiyan-builder
 BUILDKIT_IMAGE="moby/buildkit:v0.34.0@sha256:b059f8d7226d0b326bc871af489a5dddf65e36af4d20d14251b072974d9ee87c"
+# Reviewed BuildKit config (docker.io mirrors; the server cannot reach registry-1.docker.io). Read from the pinned checkout.
+BUILDKITD_CONFIG_SHA256="6b46269ff5417a435a9891b0d573860947a0954ad6917db359233c5e9d5a1f7f"
+BUILDKITD_MIRRORS=(docker.1ms.run docker.m.daocloud.io docker.xuanyuan.me)
+BUILDER_CFG_MARK="$NBSHIYAN_DATA_DIR/.builder-config-sha256"   # sha256 of the config nbshiyan-builder was created with
+DOCKERFILE_SYNTAX_DIGEST="sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e"   # docker/dockerfile:1.7 (= 1.7.1) index
 BUILDER_MEM="${BUILDER_MEM:-2560m}"     # hard cap for the whole build (OOM kills the builder, not other prod)
 BUILDER_CPUS="${BUILDER_CPUS:-0-2}"     # leave one core for the running services
 NODE_IMAGE_DIGEST="sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392"
@@ -67,6 +72,9 @@ if [ -n "$DOCKERFILE_DIR" ]; then
 fi
 [ -f "$DF" ] && [ -f "$SRC/.dockerignore" ] || die "Dockerfile/.dockerignore missing"
 grep -q "$NODE_IMAGE_DIGEST" "$DF" || die "Dockerfile base image digest is not the reviewed one"
+head -n 1 "$DF" | grep -qxF "# syntax=docker/dockerfile:1.7@$DOCKERFILE_SYNTAX_DIGEST" || die "Dockerfile syntax frontend is not pinned to the reviewed digest"
+BKCFG="$SRC/deploy/buildkitd.toml"
+[ -f "$BKCFG" ] && [ "$(sha256sum < "$BKCFG" | cut -c1-64)" = "$BUILDKITD_CONFIG_SHA256" ] || die "deploy/buildkitd.toml missing or not the reviewed file (sha256)"
 { grep -qE '^\.env$' "$SRC/.dockerignore" && grep -qE '^\.env\.\*$' "$SRC/.dockerignore"; } || die ".dockerignore must exclude .env*"
 if grep -nE '^\s*(ARG|ENV)\s+[A-Z_]*(SECRET|TOKEN|PASSWORD|_KEY|DATABASE_URL)' "$DF" | grep -vE 'NEXT_PUBLIC_|SITE_KEY'; then die "secret-like ARG/ENV in Dockerfile"; fi
 grep -nE '^\s*COPY\s+.*\.env' "$DF" && die "Dockerfile copies an env file"
@@ -99,14 +107,31 @@ aapi=$(barg NEXT_PUBLIC_ADMIN_API); [ -z "$aapi" ] || [ "$aapi" = http ] || die 
 env | grep -qE '^NEXT_PUBLIC_[A-Z_]*_MOCK=' && die "a NEXT_PUBLIC_*_MOCK variable is set in this shell"
 grep -qiE '^NEXT_PUBLIC_[A-Z_]*_MOCK=' "$BUILD_ARGS_FILE" 2>/dev/null && die "mock switches are not allowed in build-args.env"
 
-# ---------- 4. dedicated, memory-capped builder ----------
+# ---------- 4. dedicated, memory-capped builder (with the reviewed registry config) ----------
+# A builder made before this config (or with another one) is removed and recreated. Only OUR builder is ever removed;
+# its build cache goes with it (the next build is a first build again).
+if docker buildx inspect "$BUILDER" >/dev/null 2>&1 && [ "$(cat "$BUILDER_CFG_MARK" 2>/dev/null)" != "$BUILDKITD_CONFIG_SHA256" ]; then
+  log "builder $BUILDER was created with another (or no) buildkitd config: recreating it"
+  docker buildx rm "$BUILDER" >/dev/null
+  rm -f "$BUILDER_CFG_MARK"
+fi
 if ! docker buildx inspect "$BUILDER" >/dev/null 2>&1; then
   docker buildx create --name "$BUILDER" --driver docker-container \
+    --buildkitd-config "$BKCFG" \
     --driver-opt "image=$BUILDKIT_IMAGE" \
     --driver-opt "memory=$BUILDER_MEM" --driver-opt "memory-swap=$BUILDER_MEM" \
     --driver-opt "cpuset-cpus=$BUILDER_CPUS" >/dev/null
+  printf '%s\n' "$BUILDKITD_CONFIG_SHA256" > "$BUILDER_CFG_MARK"; chmod 600 "$BUILDER_CFG_MARK"
 fi
+# From here on, always stop our builder on exit (success or failure) to give its memory back to the other services.
+stop_builder() { docker buildx stop "$BUILDER" >/dev/null 2>&1 || true; }
+trap stop_builder EXIT
 docker buildx inspect --bootstrap "$BUILDER" >/dev/null
+# The running BuildKit must really have the mirrors (buildx re-serializes the toml, so check content, not the file hash).
+BK_CTR="buildx_buildkit_${BUILDER}0"
+bk_toml=$(docker exec "$BK_CTR" cat /etc/buildkit/buildkitd.toml 2>/dev/null) || die "cannot read buildkitd.toml in $BK_CTR"
+for m in "${BUILDKITD_MIRRORS[@]}"; do grep -qF "\"$m\"" <<<"$bk_toml" || die "builder config lacks docker.io mirror $m"; done
+log "builder ok: $BUILDER with docker.io mirrors (${#BUILDKITD_MIRRORS[@]})"
 
 # ---------- 5. build (runner + migrate), tagged by SHA ----------
 LBL=(--label com.nbshiyan.stack=nbshiyan --label "org.opencontainers.image.revision=$PIN_SHA")
@@ -134,7 +159,7 @@ done
 # 6c. filesystem scan of BOTH images (app image includes the full build output under /app/.next-dist):
 #     secret VALUES from the runtime env file + internal secrets must not appear anywhere. Must be 0 hits.
 pat=$(mktemp -p /dev/shm nbs-pat.XXXXXX); scan=$(mktemp -d -p "$NBSHIYAN_DATA_DIR" .scan.XXXXXX)
-trap 'rm -f "$pat"; rm -rf "$scan"' EXIT
+trap 'rm -f "$pat"; rm -rf "$scan"; stop_builder' EXIT
 { [ -f "$APP_ENV_FILE" ] && grep -E "^($SECRET_KEYS_RE)=" "$APP_ENV_FILE" | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
   [ -f "$NBSHIYAN_DATA_DIR/secrets/pg_password" ] && cat "$NBSHIYAN_DATA_DIR/secrets/pg_password"
   [ -f "$NBSHIYAN_DATA_DIR/secrets/srh.env" ] && sed -n 's/^SRH_TOKEN=//p' "$NBSHIYAN_DATA_DIR/secrets/srh.env"
@@ -149,7 +174,7 @@ for img in "nbshiyan-app:$SHORT" "nbshiyan-migrate:$SHORT"; do
   log "fs scan $img: $(wc -l < "$pat") secret values, hits=$hits, env/key files=$keyfiles"
   (( hits == 0 && keyfiles == 0 )) || leak=1
 done
-rm -f "$pat"; rm -rf "$scan"; trap - EXIT
+rm -f "$pat"; rm -rf "$scan"; trap stop_builder EXIT
 if (( leak )); then
   docker image rm "nbshiyan-app:$SHORT" "nbshiyan-migrate:$SHORT" >/dev/null || true
   die "leak check failed; images removed. Do not deploy."
@@ -169,6 +194,7 @@ done
 # ---------- 8. cleanup: ONLY this builder's cache ----------
 docker buildx prune --builder "$BUILDER" --keep-storage "$CACHE_KEEP" --force >/dev/null
 docker buildx du --builder "$BUILDER" 2>/dev/null | tail -1 | sed 's/^/[build] builder cache: /'
+stop_builder; log "builder $BUILDER stopped (frees its memory; the next build restarts it, cache kept)"
 docker image ls --filter label=com.nbshiyan.stack=nbshiyan --format '[build] image {{.Repository}}:{{.Tag}} {{.Size}}'
 for d in "$DOCKER_ROOT" "$NBSHIYAN_DATA_DIR"; do log "free after: $(free_gb "$d") GiB on $(df -P "$d" | awk 'NR==2{print $6}')"; done
 echo "$PIN_SHA" > "$NBSHIYAN_DATA_DIR/.candidate-sha"
