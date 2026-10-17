@@ -34,7 +34,7 @@ S=https://geiom.com
   - 容器里 `APP_ORIGIN` 是 `https://geiom.com`，例如 `docker compose exec <app> printenv APP_ORIGIN`。
   - 浏览器打开 `https://geiom.com/admin` 登录，登录 POST 成功、不是 403；登录后做一次后台里的改动类操作，也不能 403 `forbidden_origin`（见第 2 节）。
   - #328 同时更新了 `deploy/env.template` 和 `deploy/init-secrets.sh`，生成的 env_file 会写入 `APP_ORIGIN=https://geiom.com`。部署前仍要核对实际 env_file 里的值。
-- [ ] **运行时** 生产容器必须保持 `HOSTNAME=0.0.0.0`。改成 `127.0.0.1` 的话，`/s/*` 的 rewrite 会在 `x-middleware-rewrite` 响应头里带出 localhost（这个问题 #328 之前就有）。部署后验证：
+- [ ] **运行时** 生产容器必须保持 `HOSTNAME=0.0.0.0`。改成 `127.0.0.1` 的话，`/s/*` 的 rewrite 会在 `x-middleware-rewrite` 响应头里带出 localhost（这个问题 #328 之前就有）。第二个原因：`HOSTNAME=127.0.0.1` 时，#328 的跳转修复可能生成简写地址 `127.0.1`，而 nginx 兜底的 `proxy_redirect`（第 2.5 节）只匹配完整的 `127.0.0.1`，会漏掉。运维已在 compose 里写死 `HOSTNAME=0.0.0.0`，`deploy.sh` 也会检查这一项（`ops/app-origin-required`）。部署后验证：
   - 容器里 `HOSTNAME` 是 `0.0.0.0`，例如 `docker compose exec <app> printenv HOSTNAME`。
   - 任何响应头里都不能出现 localhost，例如 `curl -sI $S/en | grep -ci localhost` 和 `curl -sI $S/s/<任意 id> | grep -ci localhost` 都应为 0（第 2.4、2.5 节）。
 - [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
@@ -166,6 +166,7 @@ curl -sI $S/en/products/ | grep -iE '^(HTTP|location)'            # 308 → /en/
   注意：路径分组 `(/.*)` 必须是**必选**的，不能写成可选。否则 `http://localhost:3000` 会被改写成空的 Location。
   第二条把容器返回的 `http://geiom.com/...` 绝对跳转改成 `https://`。以上两条照抄安全批准的版本，以最终 `nginx -t` 通过的文件为准。
   验收：`curl -sI https://geiom.com/` 的 Location 是 `/en` 或 `https://geiom.com/en`，且没有任何响应头含 localhost。
+  升级 Next 时：#328 的修法依赖 Next 内部行为（由测试锁定），升级后要在 standalone 下重跑那 39 条跳转探测，全部通过才能上线。
 
 ### 2.6 404
 
