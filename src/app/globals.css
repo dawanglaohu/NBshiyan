@@ -70,10 +70,19 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .drawer footer{padding:16px 20px;border-top:1px solid var(--line)}
 .linkbtn{background:none;border:0;color:var(--accent-text);font:inherit;cursor:pointer;padding:4px}
 /* 询价向导 */
-.wizard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;max-width:720px}
+.wizard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;max-width:640px;margin-inline:auto} /* #308 P3-6：卡片居中、最宽 640px */
 /* #307 成功卡片滚进可视区时不被吸顶页头挡住（手机端页头不吸顶） */
-.wizard-done{scroll-margin-top:calc(var(--header-h) + 16px)}
-@media (max-width:767px){.wizard-done{scroll-margin-top:16px}}
+.wizard-done,.iq-step,.wizard .alert.err{scroll-margin-top:calc(var(--header-h) + 16px)}
+@media (max-width:767px){.wizard-done,.iq-step,.wizard .alert.err{scroll-margin-top:16px}}
+/* #308 P2-1/P2-2：步骤行、成功标题、错误框是脚本移焦点的落点（tabIndex=-1），不是可操作控件，不画焦点框 */
+.iq-step{color:var(--ink-2);margin-top:0}
+.iq-step:focus,.wizard-done h2:focus,.wizard .alert.err:focus{outline:none}
+/* #308 P2-3：字段错误、错误汇总 */
+.iq-err{margin:0;color:var(--err,#B42318);font-size:14px;font-weight:500}
+.iq-consent{margin-bottom:16px}.iq-consent .iq-err{margin-top:6px}
+.iq-summary p{margin:0 0 6px;font-weight:700}.iq-summary ul{margin:0;padding-left:20px}.iq-summary a{color:inherit;text-decoration:underline}
+/* #308 P2-4：隐私政策链接带下划线 */
+.iq-link{color:var(--accent-text,var(--accent));text-decoration:underline;text-underline-offset:2px}
 /* #307 横幅关闭后焦点落在 <main>（tabindex=-1，仅程序聚焦）：不给整块内容画焦点环 */
 main[tabindex="-1"]:focus{outline:none}
 .steps{display:flex;gap:6px;margin-bottom:20px}.steps span{flex:1;height:6px;border-radius:3px;background:var(--line)}.steps .on{background:var(--accent)}
@@ -89,9 +98,11 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 .field input:disabled,.field select:disabled,.field textarea:disabled{opacity:.45;cursor:not-allowed}
 .field input::placeholder,.field textarea::placeholder{color:var(--ink-2);opacity:.8}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips label{font-weight:500;border:1px solid var(--line);border-radius:var(--r-pill);padding:6px 12px;cursor:pointer}
+.chips label{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-weight:500;border:1px solid var(--line);border-radius:var(--r-pill);padding:8px 14px;cursor:pointer} /* #308 P3-5：点按区域 ≥44px */
 .chips input{position:absolute;opacity:0;pointer-events:none}
-.chips label:has(input:checked){background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips label:has(input:checked){background:var(--ink);color:var(--bg);border-color:var(--ink);box-shadow:0 0 0 1px var(--ink);font-weight:700}
+.chips label:has(input:checked)::before{content:"✓";content:"✓" / "";font-weight:700} /* 选中不只靠颜色：✓ + 加粗边框；✓ 只给眼睛看，读屏念 checkbox 自己的选中状态 */
+@media (max-width:767px){.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.chips label{border-radius:var(--r-md,12px);padding:8px 10px;gap:4px;line-height:1.25;hyphens:auto;overflow-wrap:break-word}} /* 长词只按 lang 断字（带连字符），不硬拆 */
 .chips label:has(input:focus-visible){outline:2px solid var(--focus-ring,var(--accent));outline-offset:3px}
 .hp{position:absolute!important;left:-10000px;width:1px;height:1px;overflow:hidden}
 .alert{padding:12px 16px;border-radius:var(--r-sm);margin:12px 0}.alert.err{background:var(--errb);color:var(--err)}.alert.ok{background:var(--okb);color:var(--ok)}.alert.warn{background:var(--warnb);color:var(--warn)}.alert.info{background:var(--infob);color:var(--info)}

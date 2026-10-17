@@ -69,12 +69,12 @@ test('CookieConsent wiring: banner buttons restore as "banner", dialog paths as 
   assert.match(src, /onSave=\{\(c\) => save\(c, true\)\}/);
 });
 
-test('InquiryWizard success card: tabIndex=-1, labelled by its heading, revealed + focused after success', () => {
+test('InquiryWizard success card: labelled by its heading; #308 moved focus to the heading (tabIndex=-1), card still scrolled into view', () => {
   const src = readFileSync(new URL('../src/components/inquiry/InquiryWizard.tsx', import.meta.url), 'utf8');
-  assert.match(src, /<div ref=\{doneRef\} className="wizard wizard-done" role="status" tabIndex=\{-1\} aria-labelledby="iq-done-title">/);
-  assert.match(src, /<h2 id="iq-done-title"/);
-  assert.match(src, /if \(succeeded\) revealAndFocus\(doneRef\.current, prefersReducedMotion\(window\)\)/);
+  assert.match(src, /<div ref=\{doneRef\} className="wizard wizard-done" role="status" aria-labelledby="iq-done-title">/);
+  assert.match(src, /<h2 ref=\{doneTitleRef\} id="iq-done-title" tabIndex=\{-1\}/);
+  assert.match(src, /doneTitleRef\.current\?\.focus\(\{ preventScroll: true \}\);\s*doneRef\.current\?\.scrollIntoView\(\{ block: 'start', behavior: scrollBehaviorFor\(prefersReducedMotion\(window\)\) \}\)/);
   const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
-  assert.match(css, /\.wizard-done\{scroll-margin-top:calc\(var\(--header-h\) \+ 16px\)\}/);
+  assert.match(css, /\.wizard-done,\.iq-step,\.wizard \.alert\.err\{scroll-margin-top:calc\(var\(--header-h\) \+ 16px\)\}/);
   assert.match(css, /main\[tabindex="-1"\]:focus\{outline:none\}/);
 });
