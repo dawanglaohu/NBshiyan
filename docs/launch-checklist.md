@@ -1,12 +1,12 @@
 # 上线前检查清单
 
-> 账号配置（Vercel、Cloudflare R2/Turnstile/DNS、Upstash、Postgres、Gmail SMTP、Tawk.to、Sanity、站长平台）需要 Ryan 登录，在私聊里完成，详见 #74 和 [launch-infra.md](./launch-infra.md)。勾选完再切正式域名。
+> 账号配置（服务器、Cloudflare Turnstile/DNS、Upstash、Gmail SMTP、Tawk.to、Sanity、站长平台）需要 Ryan 登录，在私聊里完成，详见 #74 和 [launch-infra.md](./launch-infra.md)。勾选完再切正式域名。
 
 ## 1. 安全响应头（`security-headers.ts`，由 `next.config.ts` 下发）
 
 | 响应头 | 当前值（摘要） | 结论 |
 |---|---|---|
-| Content-Security-Policy | `default-src 'self'`；脚本只放行自身、Tawk.to、Cloudflare Turnstile；`object-src 'none'`；`base-uri 'self'`；`form-action 'self'`；`frame-ancestors 'none'`；`upgrade-insecure-requests` | 通过。**`'wasm-unsafe-eval'` 必须保留**（public/ 里的 Draco/Basis 解码器要用）。`'unsafe-inline'` 是遗留项，后续改成 nonce。`img-src`/`media-src` 放行所有 `https:`，可接受，以后可收紧到 R2 域名 |
+| Content-Security-Policy | `default-src 'self'`；脚本只放行自身、Tawk.to、Cloudflare Turnstile；`object-src 'none'`；`base-uri 'self'`；`form-action 'self'`；`frame-ancestors 'none'`；`upgrade-insecure-requests` | 通过。**`'wasm-unsafe-eval'` 必须保留**（public/ 里的 Draco/Basis 解码器要用）。`'unsafe-inline'` 是遗留项，后续改成 nonce。`img-src`/`media-src` 放行所有 `https:`，可接受，以后可收紧（上传文件只走同源接口） |
 | Strict-Transport-Security | `max-age=63072000; includeSubDomains; preload` | 通过（2 年、含子域、可提交 preload） |
 | X-Content-Type-Options | `nosniff` | 通过 |
 | X-Frame-Options | `DENY`（另有 CSP `frame-ancestors 'none'`） | 通过 |
@@ -43,12 +43,12 @@
   - [ ] 已执行 `prisma db push`，没有加 `--accept-data-loss`。
   - [ ] 漂移检查：同一条 diff 命令加 `--exit-code` 返回 0（无差异），然后才启动 app。
   - [ ] `DATABASE_URL` 只从 `env_file` 注入，没有出现在命令参数或任何输出里。没有单独执行 `prisma/sql/74-mail-backend.sql`（只供评审核对，`db push` 已包含）。
-- [ ] Vercel Cron：`vercel.json` 里的 `/api/admin/cron/cleanup-uploads` 每天 03:00 UTC 跑一次，确认首次执行成功。
+- [ ] 服务器 cron（crontab / systemd timer）：每天 03:00 UTC 调一次 `/api/admin/cron/cleanup-uploads`（见 launch-infra.md 第 5 节），确认首次执行成功。
 - [ ] Auth.js 的密钥已配置，至少有一个管理员已绑定两步验证。
 
 ## 4. 后端
 
-- [ ] `STORAGE_DRIVER` 已显式设置：`r2` 时 R2 相关变量（账号、桶、访问密钥）都已配置；`local` 时 `UPLOAD_DIR` 是挂载数据卷的绝对路径、应用用户可读写，且不经 nginx 或静态服务暴露。
+- [ ] `STORAGE_DRIVER=local`（Ryan 已定），`UPLOAD_DIR` 是挂载数据卷的绝对路径、应用用户可读写，且不经 nginx 或静态服务暴露；数据卷纳入备份。（R2 只是可选驱动，当前不配。）
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
 - [ ] 发信：免费 Gmail SMTP，From = Gmail 地址，Reply-To = geiom.com 地址；SMTP 账号和应用专用密码只放部署环境变量，不进仓库、不发群。不为发信新增任何 DNS 记录（不加 SPF `include:`、不加 DKIM）。收信仍走 Cloudflare Email Routing。
 - [ ] DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。
