@@ -6,7 +6,7 @@ import { clientIp, hitRateLimit, rateLimitSubject, tooManyRequests } from '@/lib
 import { storedFileResponse } from '@/lib/server/file-response';
 
 export const runtime = 'nodejs';
-const H = { 'Cache-Control': 'private, max-age=300', 'X-Robots-Tag': 'noindex, nofollow' };
+const H = { 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex, nofollow' };
 
 /** 公开：方案里的 logo（服务端已用 sharp 重新编码为 PNG），持有短链接的人可见。不暴露上传 id。 */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
