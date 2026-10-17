@@ -56,7 +56,7 @@ Ryan 已确认：
 1. **发信**用免费 Gmail SMTP：From = Ryan 的 Gmail 地址，Reply-To = geiom.com 地址。Ryan 在自己的 Google 账号里开两步验证并生成应用专用密码，只填进部署环境变量；不提交到仓库，不发到群里，任何文档里都不写。
 2. **收信**仍走 Cloudflare Email Routing，MX 不改。
 3. **DNS**：信从 gmail.com 发出，geiom.com 的 SPF / DKIM / DMARC 不参与外发校验，所以不为发信新增 SPF `include:` 或 DKIM；现有 SPF `v=spf1 include:_spf.mx.cloudflare.net ~all` 保持。DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。
-4. 代码现状：`src/lib/server/mail.ts` 仍按 Resend 接口发信（`RESEND_API_KEY`），改成 SMTP 由后端另开 PR，SMTP 相关变量名在那个 PR 里定。
+4. 代码现状：#315（#74）合并后，`src/lib/server/mail.ts` 通过 nodemailer 走 Gmail SMTP 发信，已不再使用 Resend，也不读 `RESEND_API_KEY`。发信变量是 `SMTP_HOST`、`SMTP_PORT`、`SMTP_USER`、`SMTP_PASS`、`MAIL_FROM`，生产还要设 `MAIL_SEND_ADAPTER=smtp`，详见 4.2。收信仍走 Cloudflare Email Routing。
 
 ## 4. Vercel 项目与环境变量清单
 
@@ -190,7 +190,7 @@ Ryan 操作：
 - `connect-src`: `https://*.tawk.to wss://*.tawk.to`
 - `frame-src`: `https://*.tawk.to https://challenges.cloudflare.com`
 
-R2 走服务器端签名请求（浏览器不直连），Upstash、Resend 只在服务器端调用，**都不需要加进 CSP**。`connect-src` 里现有的 `https://*.r2.dev` 在私有桶方案下用不到，后续可以去掉。Tawk.to 只在用户同意 Cookie 后加载。
+R2 走服务器端签名请求（浏览器不直连），Upstash 只在服务器端调用；发信是服务器经 Gmail SMTP 发出，收信走 Cloudflare Email Routing，浏览器都不直连，**都不需要加进 CSP**。`connect-src` 里现有的 `https://*.r2.dev` 在私有桶方案下用不到，后续可以去掉。Tawk.to 只在用户同意 Cookie 后加载。
 
 ## 9. 上线验收
 
