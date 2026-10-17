@@ -18,8 +18,8 @@
  * --ignore-env-noindex (or SEO_AUDIT_IGNORE_ENV_NOINDEX=1): ignore the X-Robots-Tag header, which next.config.ts sets
  *   site-wide when APP_ENV !== 'production' (i.e. on every local build); <meta name=robots> is still checked.
  * --mock (or SEO_AUDIT_MOCK=1): coverage mode for category + article pages. Build AND start the server with
- *   SEO_AUDIT_MOCK=1 so the app force-enables category pages and serves local mock Sanity articles (no network;
- *   ignored when APP_ENV=production). The audit then seeds every /{en,ru}/products/{slug} and /{en,ru}/articles,
+ *   APP_ENV=development SEO_AUDIT_MOCK=1 (APP_ENV must be set explicitly: unset counts as production, #291) so the app force-enables category pages and serves local mock Sanity articles (no network;
+ *   ignored when APP_ENV/VERCEL_ENV=production or both unset). The audit then seeds every /{en,ru}/products/{slug} and /{en,ru}/articles,
  *   and errors if any expected page is missing or no article detail page was reached.
  * BreadcrumbList (error): required on /{locale}/products/{slug} and /{locale}/articles/{slug}; any BreadcrumbList
  *   found is validated (positions 1..n, absolute same-site item URLs, first = /{locale}, last = the page itself).
@@ -201,7 +201,7 @@ async function main() {
   }
   findings.push(...checkHreflang(pages));
   if (mock) {
-    for (const s of mockSeeds()) if (!pages.has(s)) findings.push({ url: s, check: 'mock-coverage', severity: 'error', message: `expected page not audited (HTTP ${status.get(s) ?? 'not fetched'}) — was the server built and started with SEO_AUDIT_MOCK=1?` });
+    for (const s of mockSeeds()) if (!pages.has(s)) findings.push({ url: s, check: 'mock-coverage', severity: 'error', message: `expected page not audited (HTTP ${status.get(s) ?? 'not fetched'}) — was the server built and started with APP_ENV=development SEO_AUDIT_MOCK=1?` });
     for (const l of ['en', 'ru']) if (![...pages.keys()].some((k) => k.startsWith(`/${l}/articles/`))) findings.push({ url: `/${l}/articles`, check: 'mock-coverage', severity: 'error', message: 'no article detail page reached' });
   }
   const errors = findings.filter((f) => f.severity === 'error').length, warns = findings.length - errors;

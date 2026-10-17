@@ -3,6 +3,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 import { securityHeaders } from './security-headers';
 import { assertProdEnv } from './prod-env-check';
 import { isProdEnvFrom } from './src/lib/site';
+import { seoMockEnabled } from './src/lib/seo/mock';
 
 assertProdEnv();
 
@@ -40,4 +41,7 @@ const nextConfig: NextConfig = {
     return headers;
   }
 };
+// #291：SEO 审计 mock 开关在构建时内联成常量。正式部署或 APP_ENV/VERCEL_ENV 都未设时一律为空字符串，
+// sanity.ts / sitemap.ts 里的 import('./sanityMock') 分支就是死代码，生产包里没有 mock 文章和 mock chunk。
+nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '1' : '' };
 export default withNextIntl(nextConfig);
