@@ -37,7 +37,12 @@
 - [ ] 生产环境必须设置 `MIDDLEWARE_PROBE_SECRET`：没设的话 `/s/<id>` 在后端故障时会返回 200 而不是 503（#215），搜索引擎和监控都看不到故障。上线后让 `/api/designs` 暂时不可用，验证 `/en/s/<id>` 和 `/ru/s/<id>` 返回 503。
 - [ ] `SHORTLINK_PROBE_ORIGIN`（或 `NEXT_PUBLIC_SITE_URL`）是正式 https 域名。探测请求不使用请求里的 Host 头。
 - [ ] Turnstile：正式站点密钥和 secret 已配置。生产环境不读 `TURNSTILE_VERIFY_URL`。
-- [ ] Postgres：`DATABASE_URL` 已配置，并已按 launch-runbook.md §1 在部署代码前执行 `prisma db push`（additive-only）。仓库没有 migrations 目录，`prisma migrate deploy` 不适用。`prisma/sql/74-mail-backend.sql` 只是 #74 的变更 diff，供评审核对，不能代替 `db push` 建库，也不要和 `db push` 重复执行。只能 Ryan 本人或部署流水线执行，不打印 `DATABASE_URL`。
+- [ ] Postgres：`DATABASE_URL` 已配置（只放 `env_file`）。仓库没有 migrations 目录，`prisma migrate deploy` 不适用。首次部署和每次部署都按 launch-runbook.md §1，在服务器上 `tools` profile 的一次性 migrate 容器里、启动 app 之前完成：
+  - [ ] 部署前已备份生产库。
+  - [ ] `prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script` 的输出已检查：没有 `DROP`、`ALTER … TYPE`、`RENAME`、`SET NOT NULL`。有任何一项就停下，等安全评审。
+  - [ ] 已执行 `prisma db push`，没有加 `--accept-data-loss`。
+  - [ ] 漂移检查：同一条 diff 命令加 `--exit-code` 返回 0（无差异），然后才启动 app。
+  - [ ] `DATABASE_URL` 只从 `env_file` 注入，没有出现在命令参数或任何输出里。没有单独执行 `prisma/sql/74-mail-backend.sql`（只供评审核对，`db push` 已包含）。
 - [ ] Vercel Cron：`vercel.json` 里的 `/api/admin/cron/cleanup-uploads` 每天 03:00 UTC 跑一次，确认首次执行成功。
 - [ ] Auth.js 的密钥已配置，至少有一个管理员已绑定两步验证。
 
