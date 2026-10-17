@@ -90,7 +90,7 @@ Sitemap: https://geiom.com/sitemap.xml
 ```bash
 curl -sI $S/sitemap.xml | grep -iE '^(HTTP|content-type)'   # 200, application/xml
 curl -s $S/sitemap.xml | grep -o '<loc>[^<]*' | cut -c6- | sort -u
-curl -s $S/sitemap.xml | grep -Ec 'localhost|vercel\.app|http://|www\.geiom'   # 应为 0
+curl -s $S/sitemap.xml | grep -Eo '(<loc>|href=")[^<"]+' | grep -Ec 'localhost|vercel\.app|http://|www\.geiom'   # 应为 0（只看 loc 和 href；整份文件 grep 会命中 xmlns 里的 http://www.sitemaps.org）
 # 每个 URL：200、无 noindex、canonical 等于自身
 for u in $(curl -s $S/sitemap.xml | grep -o '<loc>[^<]*' | cut -c6-); do
   c=$(curl -s -o /tmp/p -D /tmp/h -w '%{http_code}' "$u")

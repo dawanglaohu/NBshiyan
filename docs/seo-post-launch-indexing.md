@@ -95,12 +95,13 @@ curl -s $S/robots.txt | grep -Eci 'localhost|vercel|staging|http://|www\.'   # 0
 Sanity 没配置或请求失败时，`sanityFetch` 返回 null，sitemap 里就没有文章条目，只剩 6 个固定 URL。
 
 ```bash
+SM=$(mktemp); P=$(mktemp)
 curl -s -o /dev/null -w '%{http_code}\n' $S/sitemap.xml     # 200
-curl -s $S/sitemap.xml | grep -o '<loc>[^<]*</loc>' | sed 's/<[^>]*>//g' | sort > /tmp/sm.txt
-wc -l < /tmp/sm.txt                                          # 6 + 文章数
-grep -vc '^https://geiom\.com/' /tmp/sm.txt                  # 0
-sort /tmp/sm.txt | uniq -d | wc -l                           # 0（没有重复）
-grep -Ec '/(en|ru)/products/.|/solutions|/factory|/cases|/privacy|/api|/admin|/s/|/og(/|$)|\.(jpg|png|webp)$' /tmp/sm.txt   # 0
+curl -s $S/sitemap.xml | grep -o '<loc>[^<]*</loc>' | sed 's/<[^>]*>//g' | sort > "$SM"
+wc -l < "$SM"                                          # 6 + 文章数
+grep -vc '^https://geiom\.com/' "$SM"                  # 0
+sort "$SM" | uniq -d | wc -l                           # 0（没有重复）
+grep -Ec '/(en|ru)/products/.|/solutions|/factory|/cases|/privacy|/api|/admin|/s/|/og(/|$)|\.(jpg|png|webp)$' "$SM"   # 0
 ```
 
 **必须不在 sitemap 里**（出现任何一条都是 FAIL）：
@@ -116,13 +117,13 @@ grep -Ec '/(en|ru)/products/.|/solutions|/factory|/cases|/privacy|/api|/admin|/s
 
 ```bash
 while read u; do
-  h=$(curl -s -D - -o /tmp/p -w '%{http_code}' "$u")
+  h=$(curl -s -D - -o "$P" -w '%{http_code}' "$u")
   code=${h: -3}
   xr=$(printf '%s' "$h" | grep -ci '^x-robots-tag:.*noindex')
-  mr=$(grep -Eo '<meta[^>]+name="robots"[^>]*>' /tmp/p | grep -ci noindex)
-  can=$(grep -Eo '<link[^>]+rel="canonical"[^>]+>' /tmp/p | grep -Eo 'href="[^"]+"' | sed 's/href="//;s/"$//')
+  mr=$(grep -Eo '<meta[^>]+name="robots"[^>]*>' "$P" | grep -ci noindex)
+  can=$(grep -Eo '<link[^>]+rel="canonical"[^>]+>' "$P" | grep -Eo 'href="[^"]+"' | sed 's/href="//;s/"$//')
   [ "$code" = 200 ] && [ "$xr" = 0 ] && [ "$mr" = 0 ] && [ "$can" = "$u" ] && echo "PASS $u" || echo "FAIL $u code=$code xrobots=$xr meta=$mr"
-done < /tmp/sm.txt
+done < "$SM"
 ```
 
 - **PASS**：每个 URL 都是 200（不跟随跳转），没有 `X-Robots-Tag: noindex`，没有 `<meta name="robots" content="noindex">`，而且只有一个 canonical，等于这个 URL 本身。
@@ -147,8 +148,8 @@ x-default → https://geiom.com/en/products
 **文章详情页**：只列出 slug 存在的语言。
 
 ```bash
-# sitemap 里每个 URL 的 xhtml:link 条数（固定页应为 3）
-curl -s $S/sitemap.xml | grep -c 'xhtml:link'
+# sitemap 里 xhtml:link 的总条数：只有 6 个固定页时应为 18（每个 URL 3 条）
+curl -s $S/sitemap.xml | grep -c '<xhtml:link'
 # HTML：
 for p in /en /ru /en/products /ru/products /en/contact /ru/contact; do echo "== $p"
   curl -s $S$p | grep -Eo '<link rel="alternate" hrefLang="[^"]+" href="[^"]+"'; done
