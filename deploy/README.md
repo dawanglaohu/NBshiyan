@@ -59,7 +59,7 @@ account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRE
 
 ## Health endpoint
 `/api/health` (`{"ok":true}`) is for the container healthcheck only. The public nginx site returns `404` for it,
-because it shares the 120/min rate-limit bucket. After the DNS cutover, check that `https://geiom.com/api/health` → 404.
+because it shares the 120/min rate-limit bucket. After the DNS cutover, check that `/api/health`, `/api/health?x=1`, `/api/health/` and `/api/health/x` all return 404, while `/api/healthz` and other `/api/*` still reach the app (nginx: `location = /api/health` + `location ^~ /api/health/`).
 
 ## Review notes
 - **Never run `docker compose config` for this project.** It prints the resolved `env_file` values, which are secrets.
