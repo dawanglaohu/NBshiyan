@@ -72,14 +72,21 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 /* 询价向导 */
 .wizard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;max-width:640px;margin-inline:auto} /* #308 P3-6：卡片居中、最宽 640px */
 /* #307 成功卡片滚进可视区时不被吸顶页头挡住（手机端页头不吸顶） */
-.wizard-done,.iq-step,.wizard .alert.err{scroll-margin-top:calc(var(--header-h) + 16px)}
-@media (max-width:767px){.wizard-done,.iq-step,.wizard .alert.err{scroll-margin-top:16px}}
+/* 滚动落点 = 吸顶导航实际高度 + 16px。生产构建实测 header.site 在 768–1920px（EN/RU）都是 73px（--header-h 写的 64px 偏小，不动它，另设表单用的值）；
+   ≤767px 导航不吸顶（position:static），只留 16px */
+.wizard{--iq-nav-h:73px}
+.wizard-done,.iq-step,.wizard .alert.err,.wizard .field,.wizard .field :is(input,select,textarea),.iq-consent,.iq-consent input{scroll-margin-top:calc(var(--iq-nav-h) + 16px)}
+@media (max-width:767px){.wizard-done,.iq-step,.wizard .alert.err,.wizard .field,.wizard .field :is(input,select,textarea),.iq-consent,.iq-consent input{scroll-margin-top:16px}}
 /* #308 P2-1/P2-2：步骤行、成功标题、错误框是脚本移焦点的落点（tabIndex=-1），不是可操作控件，不画焦点框 */
 .iq-step{color:var(--ink-2);margin-top:0}
 .iq-step:focus,.wizard-done h2:focus,.wizard .alert.err:focus{outline:none}
 /* #308 P2-3：字段错误、错误汇总 */
 .iq-err{margin:0;color:var(--err,#B42318);font-size:14px;font-weight:500}
 .iq-consent{margin-bottom:16px}.iq-consent .iq-err{margin-top:6px}
+.iq-consent input[type=checkbox]{accent-color:var(--ink);width:20px;height:20px;flex:none;margin:1px 0 0;cursor:pointer} /* 和选中的 chips 同色；整行 label 仍可点 */
+.iq-consent label{cursor:pointer}
+/* 主按钮始终靠右（换行后单独一行也靠右），「Назад/Back」保持次要样式在左 */
+.iq-actions .btn:not(.ghost){margin-left:auto}
 .iq-summary p{margin:0 0 6px;font-weight:700}.iq-summary ul{margin:0;padding-left:20px}.iq-summary a{color:inherit;text-decoration:underline}
 /* #308 P2-4：隐私政策链接带下划线 */
 .iq-link{color:var(--accent-text,var(--accent));text-decoration:underline;text-underline-offset:2px}

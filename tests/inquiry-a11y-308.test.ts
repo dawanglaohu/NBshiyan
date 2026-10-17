@@ -38,8 +38,13 @@ test('#308 wizard: noValidate always, fields wired with aria-invalid/aria-descri
     assert.match(src, new RegExp(`\\{\\.\\.\\.invalidProps\\('${f}'\\)\\}`), f);
     assert.match(src, new RegExp(`\\{fieldErr\\('${f}'\\)\\}`), f);
   }
-  assert.match(src, /<div className="alert err iq-summary" role="alert">/);
-  assert.match(src, /if \(first\) \{ document\.getElementById\(FIELD_ID\[first\]\)\?\.focus\(\); return; \}/);
+  // UX 复核：失败后焦点到错误汇总（不是第一个字段）；汇总里的链接把焦点给对应字段
+  assert.match(src, /<div ref=\{summaryRef\} className="alert err iq-summary" role="alert" tabIndex=\{-1\}>/);
+  assert.match(src, /if \(first\) \{ setInvalidAttempt\(\(n\) => n \+ 1\); return; \}/);
+  assert.match(src, /if \(invalidAttempt\) revealNearest\(summaryRef\.current\);\s*\}, \[invalidAttempt\]\);/);
+  assert.match(src, /onClick=\{\(e\) => \{ e\.preventDefault\(\); focusField\(f\); \}\}/);
+  assert.match(src, /el\.focus\(\{ preventScroll: true \}\);\s*\(el\.closest\('\.field, \.iq-consent'\) \?\? el\)\.scrollIntoView\(\{ block: 'start'/);
+  assert.doesNotMatch(src, /document\.getElementById\(FIELD_ID\[first\]\)\?\.focus\(\)/);
   assert.match(src, /setErrs\(\(e\) => revalidate\(e, contact\)\)/);
   assert.match(src, /const shownErrs = revalidate\(errs, contact\);/);
   assert.match(src, /<span aria-hidden="true">⚠ <\/span>/);
@@ -90,4 +95,24 @@ test('#308 CSS: chips ≥44px, ✓ + heavier border when checked, 2 columns ≤7
   assert.match(css, /\.chips label:has\(input:checked\)\{[^}]*box-shadow:0 0 0 1px var\(--ink\)/);
   assert.match(css, /@media \(max-width:767px\)\{\.chips\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}\.chips label\{[^}]*hyphens:auto;overflow-wrap:break-word\}/);
   assert.match(css, /\.wizard\{[^}]*max-width:640px;margin-inline:auto\}/);
+});
+
+test('#308 UX review: scroll-margin on summary + every field = measured nav height (73px) + 16px (16px when nav is static ≤767)', () => {
+  const sel = '.wizard-done,.iq-step,.wizard .alert.err,.wizard .field,.wizard .field :is(input,select,textarea),.iq-consent,.iq-consent input';
+  const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(css, new RegExp(esc + '\\{scroll-margin-top:calc\\(var\\(--iq-nav-h\\) \\+ 16px\\)\\}'));
+  assert.match(css, new RegExp('@media \\(max-width:767px\\)\\{' + esc + '\\{scroll-margin-top:16px\\}\\}'));
+  assert.match(css, /\.wizard\{--iq-nav-h:73px\}/); // 实测吸顶导航 73px（≥768）
+  assert.match(css, /@media \(max-width:767px\)\{header\.site\{position:static\}/);
+});
+
+test('#308 UX review: server error box has aria-hidden ⚠, consent checkbox dark 20px, primary button on the right', () => {
+  assert.match(src, /role="alert" tabIndex=\{-1\}>\s*<span aria-hidden="true">⚠ <\/span>\{t\(`errors\.\$\{result\.code\}`\)\}/);
+  assert.match(css, /\.iq-consent input\[type=checkbox\]\{accent-color:var\(--ink\);width:20px;height:20px;/);
+  assert.match(src, /<div className="iq-consent">\s*<label /);
+  assert.match(src, /<div className="row iq-actions">/);
+  assert.match(css, /\.iq-actions \.btn:not\(\.ghost\)\{margin-left:auto\}/);
+  // 文案不变：服务端错误不加联系方式或时间承诺
+  assert.equal(en.Inquiry.errors.server, 'Something went wrong on our side. Please try again later.');
+  assert.equal(ru.Inquiry.errors.server, 'На нашей стороне произошла ошибка. Пожалуйста, попробуйте позже.');
 });

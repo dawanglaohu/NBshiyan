@@ -26,6 +26,14 @@ const getTurnstile = () => (window as unknown as { turnstile?: TurnstileApi }).t
 const RETRYABLE = new Set(['retry', 'network']);
 
 /** 焦点移过去（不额外滚动），再滚到最近的可视位置（已在视口内就不动；scroll-margin 避开顶部导航）；减少动态效果时瞬间滚动 */
+/** 错误汇总里的链接：把整个字段块（含标签）滚到顶部导航下方（scroll-margin-top），再把焦点给控件 */
+function focusField(f: ContactField) {
+  const el = document.getElementById(FIELD_ID[f]);
+  if (!el) return;
+  el.focus({ preventScroll: true });
+  (el.closest('.field, .iq-consent') ?? el).scrollIntoView({ block: 'start', behavior: scrollBehaviorFor(prefersReducedMotion(window)) });
+}
+
 function revealNearest(el: HTMLElement | null) {
   if (!el) return;
   el.focus({ preventScroll: true });
@@ -83,6 +91,12 @@ export default function InquiryWizard() {
   }, [failed]);
   // #308 P2-3：第 3 步自定义校验。点提交才开始显示；之后改对的字段当场去掉错误
   const [errs, setErrs] = useState<ContactErrors>({});
+  // #308 UX 复核：校验失败后焦点到顶部错误汇总（tabIndex=-1），每次失败的提交都重新移焦点
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const [invalidAttempt, setInvalidAttempt] = useState(0);
+  useEffect(() => {
+    if (invalidAttempt) revealNearest(summaryRef.current);
+  }, [invalidAttempt]);
   const [wait, setWait] = useState(0);
   useEffect(() => {
     if (wait <= 0) return;
@@ -161,7 +175,7 @@ export default function InquiryWizard() {
     const invalid = validateContact(contact);
     setErrs(invalid);
     const first = firstError(invalid);
-    if (first) { document.getElementById(FIELD_ID[first])?.focus(); return; }
+    if (first) { setInvalidAttempt((n) => n + 1); return; }
     if (overLimit) return; // never auto-trim: user must remove items first
     const fd = new FormData(e.currentTarget);
     const quantity = QTY.find((q) => q.k === qty)?.v;
@@ -273,10 +287,10 @@ export default function InquiryWizard() {
       {step === 2 && (
         <>
           {firstError(shownErrs) && (
-            <div className="alert err iq-summary" role="alert">
+            <div ref={summaryRef} className="alert err iq-summary" role="alert" tabIndex={-1}>
               <p><span aria-hidden="true">⚠ </span>{t('validation.summary')}</p>
               <ul>{CONTACT_FIELDS.filter((f) => shownErrs[f]).map((f) => (
-                <li key={f}><a href={`#${FIELD_ID[f]}`} onClick={(e) => { e.preventDefault(); document.getElementById(FIELD_ID[f])?.focus(); }}>{t(`validation.${shownErrs[f]!}`)}</a></li>
+                <li key={f}><a href={`#${FIELD_ID[f]}`} onClick={(e) => { e.preventDefault(); focusField(f); }}>{t(`validation.${shownErrs[f]!}`)}</a></li>
               ))}</ul>
             </div>
           )}
@@ -308,7 +322,7 @@ export default function InquiryWizard() {
 
       {result && !result.ok && (
         <div ref={errRef} className="alert err" role="alert" tabIndex={-1}>
-          {t(`errors.${result.code}`)}
+          <span aria-hidden="true">⚠ </span>{t(`errors.${result.code}`)}
           {result.code === 'logo_invalid' && !logo && <LogoUploadField id="iq-logo-re" value={logo} onChange={(v) => { setLogo(v); if (v) { setLogoNotice(undefined); setResult(null); } }} />}
           {RETRYABLE.has(result.code) && (
             <> <button type="button" className="btn ghost" disabled={busy || wait > 0} onClick={() => formRef.current?.requestSubmit()}>{wait > 0 ? t('retryIn', { s: wait }) : t('retry')}</button></>
@@ -317,7 +331,7 @@ export default function InquiryWizard() {
       )}
 
       {overLimit && <p id="iq-over" className="quote-notice" role="status" aria-live="polite">{t('overLimit', { max: QUOTE_MAX_ITEMS, n: selected.length })}</p>}
-      <div className="row">
+      <div className="row iq-actions">
         {step > 0 ? <button type="button" className="btn ghost" onClick={() => setStep(step - 1)}>{t('back')}</button> : <span />}
         <button ref={submitRef} type="submit" className="btn" disabled={awaitingCheck || (step === 2 && overLimit)} aria-disabled={busy || (step === 2 && wait > 0) || awaitingCheck || (step === 2 && overLimit) || undefined} aria-describedby={[overLimit ? 'iq-over' : '', awaitingCheck ? 'iq-check-hint' : ''].filter(Boolean).join(' ') || undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
       </div>
