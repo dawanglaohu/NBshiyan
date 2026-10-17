@@ -278,3 +278,37 @@ test('#323 publicSiteHostOk：IP 字面量（v4 / v6 / 带括号 / 十进制 / �
   // 正则本身：至少两段，每段只允许小写字母、数字和 -
   assert.equal(PUBLIC_SITE_HOST_RE.source, '^[a-z0-9-]+(\\.[a-z0-9-]+)+$');
 });
+
+test('#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径', async () => {
+  const { mkdtempSync, mkdirSync, symlinkSync, rmSync, realpathSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const base = realpathSync(mkdtempSync(join(tmpdir(), 'upl-real-')));
+  try {
+    const app = join(base, 'app');
+    for (const d of ['public/uploads', '.next/cache/u']) mkdirSync(join(app, d), { recursive: true });
+    mkdirSync(join(base, 'data', 'uploads'), { recursive: true });
+    symlinkSync(join(app, 'public', 'uploads'), join(base, 'link-pub'));
+    symlinkSync(join(app, '.next', 'cache'), join(base, 'link-next'));
+    symlinkSync(join(app, 'public'), join(base, 'link-parent'));
+    symlinkSync(join(base, 'data', 'uploads'), join(base, 'link-ok'));
+    symlinkSync(app, join(base, 'app-link'));
+    const cases: [string, string, RegExp][] = [
+      [join(base, 'link-pub'), app, /public\//],
+      [join(base, 'link-next', 'u'), app, /\.next\//],
+      [join(base, 'link-parent', 'uploads'), app, /public\//],
+      // 应用目录本身经符号链接访问（cwd 是链接）：真实路径照样比对
+      [join(app, 'public', 'uploads'), join(base, 'app-link'), /public\//],
+    ];
+    for (const [dir, cwd, re] of cases) {
+      const p = storageProblems(localEnv({ UPLOAD_DIR: dir }), { cwd });
+      assert.equal(p.length, 1, dir); assert.match(p[0], re, dir); assert.ok(!p[0].includes(base), 'path leaked');
+    }
+    // 指向数据卷的符号链接、真实的数据卷目录：照常通过
+    assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'link-ok') }), { cwd: app }), []);
+    assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'data', 'uploads') }), { cwd: app }), []);
+    // 注入的 realpath 生效；realpath 抛错（目录不存在）时退回字面路径，由 dirProblem 报“不存在”
+    assert.match(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: okDir, realpath: (p) => (p === '/data/uploads' ? '/app/public/x' : p) })[0], /public\//);
+    assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: () => '不存在或当前用户不可读写', realpath: () => { throw new Error('ENOENT'); } }), ['UPLOAD_DIR 不存在或当前用户不可读写']);
+  } finally { rmSync(base, { recursive: true, force: true }); }
+});

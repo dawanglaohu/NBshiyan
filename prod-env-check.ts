@@ -1,4 +1,4 @@
-import { accessSync, constants as fsConstants, statSync } from 'fs';
+import { accessSync, constants as fsConstants, realpathSync, statSync } from 'fs';
 import path from 'path';
 import { isProdEnvFrom } from './src/lib/site';
 import { dailyCapValid, smtpBaseConfig } from './src/lib/server/mail/config';
@@ -26,6 +26,8 @@ export type EnvCheckDeps = {
   dirProblem?: (dir: string) => string | null;
   /** 应用根目录（standalone 下就是 server.js 所在目录），用来拒绝 public/、.next/ 下的上传目录 */
   cwd?: string;
+  /** #323：解析符号链接（默认 fs.realpathSync），比较 public/、.next/ 前缀前先取真实路径 */
+  realpath?: (p: string) => string;
 };
 
 export function prodEnvProblems(env: Record<string, string | undefined>, phase: EnvCheckPhase = 'any', deps: EnvCheckDeps = {}): string[] {
@@ -82,7 +84,7 @@ export function publicSiteHostOk(site: string): boolean {
 /**
  * 私有文件存储（只在 runtime 检查）：
  * - r2：R2_ACCOUNT_ID、R2_ACCESS_KEY_ID、R2_SECRET_ACCESS_KEY、R2_BUCKET 必填（与之前一致）
- * - local：UPLOAD_DIR 必须是规范的绝对路径（不能是 /、不能含 ..），不能在 public/ 或 .next/ 下（否则可能被静态服务），必须存在且可读写
+ * - local：UPLOAD_DIR 必须是规范的绝对路径（不能是 /、不能含 ..），realpath 之后也不能在 public/ 或 .next/ 下（否则可能被静态服务），必须存在且可读写
  * 只报变量名和原因，不输出路径或任何值。
  */
 export function storageProblems(env: Record<string, string | undefined>, deps: EnvCheckDeps = {}): string[] {
@@ -95,9 +97,17 @@ export function storageProblems(env: Record<string, string | undefined>, deps: E
   const norm = path.posix.normalize(dir).replace(/\/+$/, '');
   if (!norm || norm === '/' || dir.split('/').includes('..') || norm !== dir.replace(/\/+$/, '')) return ['UPLOAD_DIR 必须是规范的绝对路径（不能是 /，不能含 . 或 .. 段）'];
   const cwd = path.resolve(deps.cwd ?? process.cwd());
-  for (const pub of ['public', '.next']) {
-    const p = path.join(cwd, pub);
-    if (norm === p || norm.startsWith(p + '/')) return [`UPLOAD_DIR 不能在应用的 ${pub}/ 目录下（会被静态服务）`];
+  // #323：先 realpath 再比前缀（UPLOAD_DIR 或它的上级是指向 public/、.next/ 的符号链接时，按字面路径比较会漏掉）。
+  // 应用目录本身也取 realpath。目录不存在时 realpath 失败，退回字面路径，后面的 dirProblem 会报“不存在”。
+  const real = deps.realpath ?? realpathSync;
+  const resolve = (p: string) => { try { return real(p); } catch { return p; } };
+  const dirs = [...new Set([norm, resolve(norm)])];
+  for (const root of [...new Set([cwd, resolve(cwd)])]) {
+    for (const pub of ['public', '.next']) {
+      const p = path.join(root, pub);
+      const pubs = [...new Set([p, resolve(p)])];
+      if (dirs.some((d) => pubs.some((q) => d === q || d.startsWith(q + '/')))) return [`UPLOAD_DIR 不能在应用的 ${pub}/ 目录下（会被静态服务）`];
+    }
   }
   const fsProblem = (deps.dirProblem ?? defaultDirProblem)(norm);
   return fsProblem ? [`UPLOAD_DIR ${fsProblem}`] : [];
