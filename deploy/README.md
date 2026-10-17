@@ -168,3 +168,6 @@ Rules, the same as `smoke-lib.sh`. In `deploy.sh`, any of these fails the deploy
 - `src/lib/seo/indexnow.ts` reuses the same Upstash variables for de-duplication; no extra config.
 - If SRH/srh-tls is down, routes follow their own `onStoreError`: some reject, some fall back to in-process counting. 429/503 on some endpoints in that state is expected, not a bug.
 - Long term: backend TCP Redis store (`REDIS_URL` with requirepass), then remove `srh` and `srh-tls`.
+
+## APP_ORIGIN (required)
+`APP_ORIGIN=https://geiom.com` must be in the app env file exactly once and equal the `NEXT_PUBLIC_SITE_URL` origin. It is not a secret. standalone sees its own origin as `http://0.0.0.0:<port>`, so without it the admin same-origin check rejects every browser POST with 403 (2FA binding included). `init-secrets.sh` forces it, compose also sets it, `deploy.sh` (`env_prod_ok`) aborts if it's missing, duplicated or different, and the app's startup check (fix/root-redirect-location) exits 1 in production if it's missing, not https, or not the SITE_URL origin.

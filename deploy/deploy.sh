@@ -40,6 +40,10 @@ env_prod_ok() {
   if [ "$(grep -c '^APP_ORIGIN=' "$ENVF" || true)" != 1 ] || ! grep -qx 'APP_ORIGIN=https://geiom.com' "$ENVF"; then
     log "FAIL APP_ORIGIN must be exactly 'https://geiom.com' (once) in the app env file"; return 1
   fi
+  # ...and must equal the NEXT_PUBLIC_SITE_URL origin in the same file (backend's startup check exits 1 otherwise).
+  if [ "$(grep -c '^NEXT_PUBLIC_SITE_URL=' "$ENVF" || true)" != 1 ] || ! grep -qx 'NEXT_PUBLIC_SITE_URL=https://geiom.com' "$ENVF"; then
+    log "FAIL NEXT_PUBLIC_SITE_URL must be exactly 'https://geiom.com' (once) so it matches APP_ORIGIN"; return 1
+  fi
 }
 
 # Startup check must really fail closed (full-stack: exactly `run --rm --no-deps -e SMTP_PORT=25 app node server.js` on the
