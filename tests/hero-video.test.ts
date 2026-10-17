@@ -70,13 +70,13 @@ test('component markup: poster is high-priority img, video muted/playsInline/pre
 test('portrait (<=767px): portrait poster + video via media queries, before landscape; desktop never gets portrait', () => {
   const src = readFileSync(new URL('../src/components/layout/HeroVideo.tsx', import.meta.url), 'utf8');
   assert.match(src, /PORTRAIT_MQ = '\(max-width: 767px\)'/);
-  assert.match(src, /<source media=\{PORTRAIT_MQ\} type="image\/avif" srcSet="\/video\/hero-115-portrait-poster\.avif"/);
+  assert.match(src, /<source media=\{PORTRAIT_MQ\} type="image\/avif" srcSet="\/video\/hero-115-portrait-poster\.32037cea\.avif"/);
   assert.match(src, /<source media=\{DESKTOP_MQ\} srcSet=\{desktopSrcSet\}/);
   assert.match(src, /DESKTOP_MQ = '\(min-width: 768px\)'/);
   const pw = src.indexOf('hero-115-portrait.webm'), pm = src.indexOf('hero-115-portrait.mp4'), lw = src.indexOf('hero-115.c293080a.webm');
   assert.ok(pw > 0 && pw < pm && pm < lw, 'portrait webm < portrait mp4 < landscape');
   assert.match(src, /<source media=\{PORTRAIT_MQ\} src="\/video\/hero-115-portrait\.webm"/);
-  for (const f of ['hero-115-portrait.webm', 'hero-115-portrait.mp4', 'hero-115-portrait-poster.avif', 'hero-115-portrait-poster.webp'])
+  for (const f of ['hero-115-portrait.webm', 'hero-115-portrait.mp4', 'hero-115-portrait-poster.32037cea.avif', 'hero-115-portrait-poster.e3ad2401.webp'])
     assert.ok(readFileSync(new URL(`../public/video/${f}`, import.meta.url)).length > 0, f);
 });
 
