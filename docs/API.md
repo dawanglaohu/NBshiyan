@@ -140,7 +140,7 @@
 ## 定时任务
 - `GET|POST /api/admin/cron/cleanup-uploads`：先删除过期超过 90 天、且没被询盘引用的方案（以及询盘已删除后留下的方案），再删除超过 24 小时未绑定询盘、也没被有效方案引用的 logo（文件和记录）。返回 `{ deleted, designs }`。需 `Authorization: Bearer $CRON_SECRET`，未配置 `CRON_SECRET` 时一律 401。建议每小时跑一次（Vercel Cron 会自动带这个头）。
 
-## 邮件（Resend）
+## 邮件（Gmail SMTP 发信）
 模板来源 `design/emails/`，用 `pnpm email:build` 生成 `src/lib/server/email/templates.generated.ts`（提交生成结果，运行时不读 design 目录）。
 
 | 邮件 | 收件人 | 何时发送 |
@@ -168,7 +168,7 @@
 - 单元测试：`pnpm test`（node:test + tsx，Upstash 和 R2 都用本地模拟服务器，不需要真实账号）。
 
 ## 待定
-- 客户回信自动归档：需要正式域名后接 Resend 收信。
+- 客户回信自动归档：收信走 Cloudflare Email Routing → 收信 Worker → `/api/mail/inbound-webhook`（#315）。Worker 签名改动等 Q7 批准，批准前 Email Routing 保持现状。
 
 ## 后台模型管理（`/api/admin/models`，ADMIN / EDITOR）
 流程对应 PRD 第 9 节：**上传 → 处理中 → 预览确认 → 上架**。鉴权、同源、限流同其他后台接口；每步写 AuditLog（`model.upload / update / process / publish / unpublish / delete`）。
