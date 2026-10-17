@@ -19,6 +19,12 @@ loc_bad() {
 #   (localhost, 127.0.0.1, 0.0.0.0), e.g. x-middleware-rewrite: http://localhost:3000/... when HOSTNAME=127.0.0.1.
 hdr_leak() { grep -qiE 'localhost|(^|[^0-9])127\.0\.0\.1|(^|[^0-9])0\.0\.0\.0' <<<"$1"; }
 
+# robots_noindex <raw curl -sI output> → 0 when an x-robots-tag header carries noindex
+robots_noindex() { grep -qiE '^x-robots-tag:.*noindex' <<<"$1"; }
+# canonical_ok <html> → 0 when the page has the production canonical for /en. Takes the body as a value: never
+#   `curl | grep -q` (pages > 64 KB: grep -q exits early, curl gets SIGPIPE, pipefail turns a match into a FAIL).
+canonical_ok() { grep -qF '<link rel="canonical" href="https://geiom.com/en"' <<<"$1"; }
+
 # resp_code <raw curl -sI output> → HTTP status code of the first status line
 resp_code() { sed -n '1s/^HTTP\/[0-9.]*[[:space:]]\{1,\}\([0-9]\{3\}\).*/\1/p' <<<"$1" | tr -d '\r'; }
 # resp_loc <raw curl -sI output> → Location header value (CR stripped)

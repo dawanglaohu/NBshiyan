@@ -72,7 +72,7 @@ if [ -n "$DOCKERFILE_DIR" ]; then
 fi
 [ -f "$DF" ] && [ -f "$SRC/.dockerignore" ] || die "Dockerfile/.dockerignore missing"
 grep -q "$NODE_IMAGE_DIGEST" "$DF" || die "Dockerfile base image digest is not the reviewed one"
-head -n 1 "$DF" | grep -qxF "# syntax=docker/dockerfile:1.7@$DOCKERFILE_SYNTAX_DIGEST" || die "Dockerfile syntax frontend is not pinned to the reviewed digest"
+[ "$(head -n 1 "$DF")" = "# syntax=docker/dockerfile:1.7@$DOCKERFILE_SYNTAX_DIGEST" ] || die "Dockerfile syntax frontend is not pinned to the reviewed digest"
 BKCFG="$SRC/deploy/buildkitd.toml"
 [ -f "$BKCFG" ] && [ "$(sha256sum < "$BKCFG" | cut -c1-64)" = "$BUILDKITD_CONFIG_SHA256" ] || die "deploy/buildkitd.toml missing or not the reviewed file (sha256)"
 { grep -qE '^\.env$' "$SRC/.dockerignore" && grep -qE '^\.env\.\*$' "$SRC/.dockerignore"; } || die ".dockerignore must exclude .env*"
@@ -93,6 +93,8 @@ fi
 grep -q "^NEXT_PUBLIC_ADMIN_MAIL=mock" "$BUILD_ARGS_FILE" 2>/dev/null && die "NEXT_PUBLIC_ADMIN_MAIL=mock is not allowed"  # admin_mail_mock
 grep -q '^APP_ENV=production$' "$BUILD_ARGS_FILE" 2>/dev/null || BARGS+=(--build-arg APP_ENV=production)
 grep -q '^NEXT_PUBLIC_SITE_URL=' "$BUILD_ARGS_FILE" 2>/dev/null || BARGS+=(--build-arg NEXT_PUBLIC_SITE_URL=https://geiom.com)
+# barg/sed below would exit 2 (silently, under errexit) without the file; the Turnstile site key requires it anyway.
+[ -f "$BUILD_ARGS_FILE" ] || die "build-args.env missing ($BUILD_ARGS_FILE)"
 # Fail early on what prod-env-check's BUILD phase (fix/deploy-readiness) would reject anyway, after a long build:
 barg() { sed -n "s/^$1=//p" "$BUILD_ARGS_FILE" 2>/dev/null | tail -n 1 | sed -e 's/^"//' -e 's/"$//'; }
 site=$(barg NEXT_PUBLIC_SITE_URL); site=${site:-https://geiom.com}
@@ -104,7 +106,7 @@ tsk=$(barg NEXT_PUBLIC_TURNSTILE_SITE_KEY)
 [ -n "$tsk" ] || die "NEXT_PUBLIC_TURNSTILE_SITE_KEY missing in build-args.env (public; required by the build check)"
 [[ "$tsk" =~ ^[123]x0{20,}[A-Z]{2}$ ]] && die "NEXT_PUBLIC_TURNSTILE_SITE_KEY is the Cloudflare test key"
 aapi=$(barg NEXT_PUBLIC_ADMIN_API); [ -z "$aapi" ] || [ "$aapi" = http ] || die "NEXT_PUBLIC_ADMIN_API must be http"
-env | grep -qE '^NEXT_PUBLIC_[A-Z_]*_MOCK=' && die "a NEXT_PUBLIC_*_MOCK variable is set in this shell"
+grep -qE '^NEXT_PUBLIC_[A-Z_]*_MOCK=' <<<"$(env)" && die "a NEXT_PUBLIC_*_MOCK variable is set in this shell"
 grep -qiE '^NEXT_PUBLIC_[A-Z_]*_MOCK=' "$BUILD_ARGS_FILE" 2>/dev/null && die "mock switches are not allowed in build-args.env"
 
 # ---------- 4. dedicated, memory-capped builder (with the reviewed registry config) ----------
@@ -157,17 +159,21 @@ for img in "nbshiyan-app:$SHORT" "nbshiyan-migrate:$SHORT"; do
   bad=$(docker image inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$img" | cut -d= -f1 | grep -vxE 'PATH|NODE_VERSION|YARN_VERSION|NEXT_TELEMETRY_DISABLED|PNPM_HOME|CI|NODE_ENV|HOME|PORT|HOSTNAME|UPLOAD_DIR|CHECKPOINT_DISABLE|PRISMA_HIDE_UPDATE_MESSAGE' || true)
   [ -z "$bad" ] || { log "LEAK? $img has unexpected ENV keys: $bad"; leak=1; }
   # 6b. history must not contain secret-like assignments
-  if docker history --no-trunc --format '{{.CreatedBy}}' "$img" | grep -Eiq "($SECRET_KEYS_RE)="; then
+  #     captured first: `docker history | grep -q` under pipefail can SIGPIPE the producer and read a hit as clean
+  hist=$(docker history --no-trunc --format '{{.CreatedBy}}' "$img") || die "docker history $img failed"
+  if grep -Eiq "($SECRET_KEYS_RE)=" <<<"$hist"; then
     log "LEAK? secret-like assignment in docker history of $img"; leak=1; fi
 done
 # 6c. filesystem scan of BOTH images (app image includes the full build output under /app/.next-dist):
 #     secret VALUES from the runtime env file + internal secrets must not appear anywhere. Must be 0 hits.
 pat=$(mktemp -p /dev/shm nbs-pat.XXXXXX); scan=$(mktemp -d -p "$NBSHIYAN_DATA_DIR" .scan.XXXXXX)
 trap 'rm -f "$pat"; rm -rf "$scan"; stop_builder' EXIT
-{ [ -f "$APP_ENV_FILE" ] && grep -E "^($SECRET_KEYS_RE)=" "$APP_ENV_FILE" | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
-  [ -f "$NBSHIYAN_DATA_DIR/secrets/pg_password" ] && cat "$NBSHIYAN_DATA_DIR/secrets/pg_password"
-  [ -f "$NBSHIYAN_DATA_DIR/secrets/srh.env" ] && sed -n 's/^SRH_TOKEN=//p' "$NBSHIYAN_DATA_DIR/secrets/srh.env"
-  [ -f "$NBSHIYAN_DATA_DIR/secrets/redis.conf" ] && sed -n 's/^requirepass //p' "$NBSHIYAN_DATA_DIR/secrets/redis.conf"
+# The group runs in a pipeline subshell that inherits errexit: a missing file or a no-match grep would end it early (and,
+# with pipefail, the whole script silently). Every line therefore ends in `|| true`.
+{ [ -f "$APP_ENV_FILE" ] && grep -E "^($SECRET_KEYS_RE)=" "$APP_ENV_FILE" | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//' || true
+  [ -f "$NBSHIYAN_DATA_DIR/secrets/pg_password" ] && cat "$NBSHIYAN_DATA_DIR/secrets/pg_password" || true
+  [ -f "$NBSHIYAN_DATA_DIR/secrets/srh.env" ] && sed -n 's/^SRH_TOKEN=//p' "$NBSHIYAN_DATA_DIR/secrets/srh.env" || true
+  [ -f "$NBSHIYAN_DATA_DIR/secrets/redis.conf" ] && sed -n 's/^requirepass //p' "$NBSHIYAN_DATA_DIR/secrets/redis.conf" || true
 } 2>/dev/null | awk 'length >= 12' | sort -u > "$pat"
 [ -s "$pat" ] || log "WARNING: no secret values available yet (run init-secrets.sh first); value scan is vacuous"
 for img in "nbshiyan-app:$SHORT" "nbshiyan-migrate:$SHORT"; do
@@ -199,7 +205,7 @@ done
 
 # ---------- 8. cleanup: ONLY this builder's cache ----------
 docker buildx prune --builder "$BUILDER" --keep-storage "$CACHE_KEEP" --force >/dev/null
-docker buildx du --builder "$BUILDER" 2>/dev/null | tail -1 | sed 's/^/[build] builder cache: /'
+docker buildx du --builder "$BUILDER" 2>/dev/null | tail -1 | sed 's/^/[build] builder cache: /' || true   # info only; must not stop before .candidate-sha
 stop_builder; log "builder $BUILDER stopped (frees its memory; the next build restarts it, cache kept)"
 docker image ls --filter label=com.nbshiyan.stack=nbshiyan --format '[build] image {{.Repository}}:{{.Tag}} {{.Size}}'
 for d in "$DOCKER_ROOT" "$NBSHIYAN_DATA_DIR"; do log "free after: $(free_gb "$d") GiB on $(df -P "$d" | awk 'NR==2{print $6}')"; done
