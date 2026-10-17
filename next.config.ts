@@ -14,6 +14,9 @@ const adminHeaders = [
   { key: 'Referrer-Policy', value: 'no-referrer' }
 ];
 const isProd = isProdEnvFrom();
+// 输出存储文件的接口（logo、模型）：CSP 由 src/lib/server/file-response.ts 设置
+const FILE_ROUTE_SOURCES = ['/api/admin/uploads/:path*', '/api/admin/models/:id/file', '/api/designs/:id/logo', '/api/models/:id/:variant'];
+const FILE_ROUTE_EXCLUDE = 'api/admin/uploads(?:/|$)|api/admin/models/[^/]+/file$|api/designs/[^/]+/logo$|api/models/[^/]+/[^/]+$';
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -33,10 +36,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     const headers = [
-      // 全站 CSP：/api/admin/uploads/* 除外，由该接口自己返回 `default-src 'none'; sandbox`，避免被全站 CSP 覆盖
-      { source: '/((?!api/admin/uploads(?:/|$)).*)', headers: securityHeaders },
+      // 全站 CSP：输出存储文件的接口除外（FILE_ROUTE_SOURCES），由接口自己返回 `default-src 'none'; sandbox`（file-response.ts），避免被全站 CSP 覆盖
+      { source: `/((?!${FILE_ROUTE_EXCLUDE}).*)`, headers: securityHeaders },
       // 被排除的路径仍然要带除 CSP 以外的其他安全头
-      { source: '/api/admin/uploads/:path*', headers: securityHeaders.filter((h) => h.key !== 'Content-Security-Policy') },
+      ...FILE_ROUTE_SOURCES.map((source) => ({ source, headers: securityHeaders.filter((h) => h.key !== 'Content-Security-Policy') })),
       // 非正式环境一律禁止收录（SEO 要求）
       ...(isProd ? [] : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]),
       // 后台页面和后台接口：不缓存、不收录、不带 Referer

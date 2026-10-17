@@ -156,14 +156,14 @@ test('上传大小 / 类型白名单与 R2 一致：限额和嗅探在路由里�
   }
 });
 
-test('文件只经现有接口提供：每个读存储的接口都设置 Content-Type 和 X-Content-Type-Options: nosniff；没有 inline 的 svg/html', async () => {
+test('文件只经现有接口提供：每个读存储的接口都走 storedFileResponse（Content-Type 白名单 + nosniff + sandbox CSP）；没有 svg/html', async () => {
   const { readFileSync } = await import('node:fs');
   const routes = ['src/app/api/admin/uploads/[id]/route.ts', 'src/app/api/designs/[id]/logo/route.ts', 'src/app/api/models/[id]/[variant]/route.ts', 'src/app/api/admin/models/[id]/file/route.ts'];
   for (const f of routes) {
     const src = readFileSync(f, 'utf8');
     assert.match(src, /storage\.get\(/, f);
-    assert.match(src, /'Content-Type':/, f);
-    assert.match(src, /'X-Content-Type-Options': 'nosniff'/, f);
+    // Content-Type / nosniff / CSP / Content-Disposition 由共用的 storedFileResponse 设置（tests/file-response.test.ts 逐项断言）
+    assert.match(src, /storedFileResponse\(/, f);
     assert.doesNotMatch(src, /image\/svg|text\/html/, f);
   }
   // 私有文件（询盘 logo）先鉴权后读取
