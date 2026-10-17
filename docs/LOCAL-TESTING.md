@@ -22,4 +22,4 @@ pnpm build && pnpm start -p 3000
 - 没有配置 SMTP_*（SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS）时邮件只打印到终端日志，不会真的发出。
 - 想测人机验证被拒的情况：把两个 Turnstile 密钥换成 Cloudflare 文档里“总是失败”的测试密钥。
 - 限流：同一 IP 10 分钟最多 5 次询盘，第 6 次返回 429；测试前重启服务可清零。
-- 本地没有 Cloudflare/Vercel 请求头，IP 会记为 unknown，所有请求共用一个限流计数。
+- 本地没有 nginx 的 `X-Edge-Auth` / Cloudflare 请求头，IP 会记为 unknown，所有请求共用一个限流计数。

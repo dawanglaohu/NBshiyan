@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { prodEnvProblems, assertProdEnv, RUNTIME_ONLY } from '../prod-env-check';
+import { prodEnvProblems, assertProdEnv, storageProblems, RUNTIME_ONLY } from '../prod-env-check';
 
 test('非生产环境（CI/预览/本地）不检查', () => {
   assert.deepEqual(prodEnvProblems({ CI: 'true', NODE_ENV: 'production', NEXT_PUBLIC_LOGO_UPLOAD_MOCK: '1' }), []);
@@ -21,7 +21,7 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
-  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 23); // #74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 23); // deploy-readiness：STORAGE_DRIVER 未设置只报一条（不再连带 4 个 R2_*）；#74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）
   assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
 });
 
@@ -71,7 +71,8 @@ test('#74 每一项缺失或不合规都单独报错', () => {
 
 test('#74 多个问题一次性报出', () => {
   const p = prodEnvProblems({ ...prodFull, CRON_SECRET: '', R2_BUCKET: '', STORAGE_DRIVER: 'local' });
-  assert.equal(p.length, 3);
+  // local 驱动不再要求 R2_*，改为要求 UPLOAD_DIR
+  assert.deepEqual(p.map((s) => s.split(/[ ：（]/)[0]), ['CRON_SECRET', 'UPLOAD_DIR']);
   assert.throws(() => assertProdEnv({ ...prodFull, CRON_SECRET: '', R2_BUCKET: '' }), /CRON_SECRET[\s\S]*R2_BUCKET|R2_BUCKET[\s\S]*CRON_SECRET/);
 });
 
@@ -131,13 +132,28 @@ test('#74 邮件密钥只在运行时检查：RUNTIME_ONLY 含 SMTP_USER / SMTP_
   assert.deepEqual([...RUNTIME_ONLY].sort(), ['EDGE_AUTH_SECRET', ...MAIL_RUNTIME].sort());
 });
 
-test('#74 build 阶段：三个邮件密钥全部缺失 → 没有任何邮件密钥问题；MAIL_SEND_ADAPTER / SMTP 端口仍在构建时检查', () => {
+test('deploy-readiness：build 阶段只查公开值（NEXT_PUBLIC_*、mock），构建机不需要任何密钥或服务端配置', () => {
+  // 只有公开值：build 通过
+  const publicOnly = { APP_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey' };
+  assert.deepEqual(prodEnvProblems(publicOnly, 'build'), []);
+  assert.doesNotThrow(() => assertProdEnv(publicOnly, 'build'));
+  // 同样的输入在 runtime 阶段必须拒绝：密钥、数据库、存储、限流、发信全部报出
+  const rt = prodEnvProblems(publicOnly, 'runtime').map((s) => s.split(/[ ：（=]/)[0]);
+  for (const k of [...RUNTIME_ONLY, 'DATABASE_URL', 'AUTH_SECRET', 'CRON_SECRET', 'PRIVACY_HASH_SECRET', 'ADMIN_TOTP_KEY', 'TURNSTILE_SECRET_KEY', 'STORAGE_DRIVER', 'RATE_LIMIT_STORE', 'MAIL_SEND_ADAPTER', 'SMTP_HOST'])
+    assert.ok(rt.includes(k), k);
+  // 公开值在 build 阶段照样拒绝（会被内联进产物，构建后改不了）
+  for (const over of [{ NEXT_PUBLIC_SITE_URL: 'http://packjoyu.com' }, { NEXT_PUBLIC_SITE_URL: '' }, { NEXT_PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA' },
+    { NEXT_PUBLIC_ADMIN_API: 'mock' }, { NEXT_PUBLIC_ADMIN_MAIL: 'mock' }, { NEXT_PUBLIC_LOGO_UPLOAD_MOCK: '1' }])
+    assert.equal(prodEnvProblems({ ...publicOnly, ...over }, 'build').length, 1, JSON.stringify(over));
+});
+
+test('#74 build 阶段：三个邮件密钥全部缺失 → 没有任何邮件密钥问题；MAIL_SEND_ADAPTER / SMTP 端口改在 runtime 检查（deploy-readiness）', () => {
   const noSecrets = { ...prodFull, UPSTASH_REDIS_REST_TOKEN: 't', EDGE_AUTH_SECRET: undefined, SMTP_USER: undefined, SMTP_PASS: undefined, MAIL_WEBHOOK_SECRET: undefined };
   assert.deepEqual(prodEnvProblems(noSecrets, 'build'), []);
   assert.doesNotThrow(() => assertProdEnv(noSecrets, 'build'));
-  // 非密钥的邮件配置在构建时照样拒绝
-  assert.ok(prodEnvProblems({ ...noSecrets, MAIL_SEND_ADAPTER: 'mock' }, 'build').some((p) => p.startsWith('MAIL_SEND_ADAPTER')));
-  assert.ok(prodEnvProblems({ ...noSecrets, SMTP_PORT: '25' }, 'build').some((p) => p.includes('SMTP 发信配置无效')));
+  // 非密钥的邮件配置不合规：runtime（standalone 启动 / next start）拒绝
+  assert.ok(prodEnvProblems({ ...prodFull, MAIL_SEND_ADAPTER: 'mock' }, 'runtime').some((p) => p.startsWith('MAIL_SEND_ADAPTER')));
+  assert.ok(prodEnvProblems({ ...prodFull, SMTP_PORT: '25' }, 'runtime').some((p) => p.includes('SMTP 发信配置无效')));
   // 构建时也不会因为密钥“太短”报错（根本不看）
   assert.deepEqual(prodEnvProblems({ ...noSecrets, MAIL_WEBHOOK_SECRET: 'short' }, 'build'), []);
 });
@@ -164,4 +180,79 @@ test('#74 runtime 阶段：三个邮件密钥逐个缺失 → 各自单独报错
   // 三个都缺 → 三条，一次性报出
   const all = prodEnvProblems({ ...full, SMTP_USER: undefined, SMTP_PASS: undefined, MAIL_WEBHOOK_SECRET: undefined }, 'runtime');
   assert.deepEqual(all.map((s) => s.split(/[ ：]/)[0]).sort(), [...MAIL_RUNTIME].sort());
+});
+
+// ---- deploy-readiness：STORAGE_DRIVER=local（自建服务器挂载数据卷）----
+const okDir = () => null;
+const localEnv = (over: Record<string, string | undefined> = {}) => {
+  const e: Record<string, string | undefined> = { ...prodFull, STORAGE_DRIVER: 'local', UPLOAD_DIR: '/data/uploads', ...over };
+  for (const k of ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET']) if (!(k in over)) delete e[k];
+  return e;
+};
+
+test('local 驱动：UPLOAD_DIR 是存在且可写的绝对路径时通过，不再要求 R2_*', () => {
+  assert.deepEqual(prodEnvProblems(localEnv(), 'runtime', { dirProblem: okDir, cwd: '/app' }), []);
+  assert.deepEqual(storageProblems(localEnv(), { dirProblem: okDir, cwd: '/app' }), []);
+});
+
+test('local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径', () => {
+  const cases: [string | undefined, RegExp][] = [
+    [undefined, /UPLOAD_DIR 未设置/], ['', /UPLOAD_DIR 未设置/], ['data/uploads', /绝对路径/], ['./uploads', /绝对路径/],
+    ['/', /规范/], ['/data/../etc', /规范/], ['/data/./uploads', /规范/], ['/data//uploads', /规范/], ['/data/up\0loads', /绝对路径/],
+    ['/app/public/uploads', /public\//], ['/app/public', /public\//], ['/app/.next/cache/u', /\.next\//],
+  ];
+  for (const [dir, re] of cases) {
+    const p = storageProblems(localEnv({ UPLOAD_DIR: dir }), { dirProblem: okDir, cwd: '/app' });
+    assert.equal(p.length, 1, String(dir)); assert.match(p[0], re, String(dir));
+    if (dir && dir.length > 1) assert.ok(!p[0].includes(dir), `path leaked: ${dir}`);
+  }
+  const p = prodEnvProblems(localEnv(), 'runtime', { dirProblem: () => '不存在或当前用户不可读写', cwd: '/app' });
+  assert.deepEqual(p, ['UPLOAD_DIR 不存在或当前用户不可读写']);
+});
+
+test('local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）', async () => {
+  const { mkdtempSync, writeFileSync, chmodSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const base = mkdtempSync(join(tmpdir(), 'upl-'));
+  try {
+    assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: base }), { cwd: '/app' }), []);
+    assert.match(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'missing') }), { cwd: '/app' })[0], /不存在或当前用户不可读写/);
+    writeFileSync(join(base, 'f'), 'x');
+    assert.match(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'f') }), { cwd: '/app' })[0], /不是目录/);
+    if (process.getuid?.() !== 0) {
+      const ro = join(base, 'ro'); (await import('node:fs')).mkdirSync(ro); chmodSync(ro, 0o500);
+      assert.match(storageProblems(localEnv({ UPLOAD_DIR: ro }), { cwd: '/app' })[0], /不可读写/);
+      chmodSync(ro, 0o700);
+    }
+  } finally { rmSync(base, { recursive: true, force: true }); }
+});
+
+test('r2 驱动行为不变：4 个 R2_* 逐个缺失各报一条；STORAGE_DRIVER 未设置或未知值拒绝', () => {
+  for (const k of ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET'])
+    assert.deepEqual(prodEnvProblems({ ...prodFull, [k]: '' }, 'runtime'), [`${k} 未设置`]);
+  for (const d of [undefined, '', 's3', 'R2', 'LOCAL'])
+    assert.deepEqual(storageProblems({ ...prodFull, STORAGE_DRIVER: d }), ['STORAGE_DRIVER 必须为 "local"（挂载的数据卷）或 "r2"'], String(d));
+});
+
+test('存储检查只在 runtime：build 阶段不看 STORAGE_DRIVER / UPLOAD_DIR / R2_*', () => {
+  assert.deepEqual(prodEnvProblems({ ...prodFull, STORAGE_DRIVER: 'local', UPLOAD_DIR: 'relative' }, 'build'), []);
+  assert.deepEqual(prodEnvProblems({ ...prodFull, R2_SECRET_ACCESS_KEY: '' }, 'build'), []);
+});
+
+test('build 阶段：NEXT_PUBLIC_SITE_URL 缺失 / 非 https / 本机或回环主机名都拒绝', () => {
+  const base = { APP_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey' };
+  const bad: [string | undefined, RegExp][] = [
+    [undefined, /未设置/], ['', /未设置/], ['http://packjoyu.com', /https/],
+    ['https://localhost', /正式域名/], ['https://localhost:3000', /正式域名/], ['https://LOCALHOST.', /正式域名/], ['https://app.localhost', /正式域名/],
+    ['https://127.0.0.1', /正式域名/], ['https://127.1.2.3:8443', /正式域名/], ['https://[::1]', /正式域名/], ['https://[::1]:3000/x', /正式域名/],
+    ['https://0.0.0.0', /正式域名/], ['https://', /正式域名/], ['https://%zz', /正式域名/],
+  ];
+  for (const [site, re] of bad) {
+    const p = prodEnvProblems({ ...base, NEXT_PUBLIC_SITE_URL: site }, 'build');
+    assert.equal(p.length, 1, `${site}: ${p}`); assert.match(p[0], re, String(site));
+    assert.ok(site === undefined || site.length < 9 || !p[0].includes(site), 'value not echoed');
+  }
+  for (const site of ['https://packjoyu.com', 'https://www.packjoyu.com/', 'https://localhost-shop.com', 'https://my.localhosting.ru'])
+    assert.deepEqual(prodEnvProblems({ ...base, NEXT_PUBLIC_SITE_URL: site }, 'build'), [], site);
 });
