@@ -75,7 +75,7 @@
 | R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET | 私有存储 | — | 是 | **Ryan** |
 | R2_ENDPOINT | 留空（由账号 ID 推出来） | 推导值 | 否 | — |
 | UPLOAD_DIR | 只有 local 驱动用 | — | 否 | — |
-| RESEND_API_KEY | 发邮件（Sending access 权限） | — | 是 | **Ryan** |
+| SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS | 发邮件（Gmail SMTP，465 或 587；SMTP_PASS 为 Gmail 应用专用密码） | — | 是 | **Ryan** |
 | MAIL_FROM | 发件人 | — | 是 | Ryan |
 | INQUIRY_NOTIFY_EMAIL | 询盘通知收件人 | — | 是 | Ryan |
 | REPLY_DOMAIN | 客户回信的域名 | — | 否 | Ryan |

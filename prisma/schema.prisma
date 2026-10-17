@@ -112,6 +112,7 @@ model Inquiry {
   notes        InquiryNote[]
   sample       SampleRequest?
   logoUploads  LogoUpload[]
+  mailMessages MailMessage[] // #74 往来邮件（新表）；旧 InquiryMessage 只读
   autoReplyAt  DateTime? // 自动回复发送时间，用于每邮箱 24 小时一封
   retainUntil  DateTime // GDPR 保留期限
   anonymizedAt DateTime? // 已匿名化（保留期到期 cron 或手动删除），不再重复处理
@@ -290,4 +291,72 @@ model CategorySpec {
   notes             Json?
   updatedAt         DateTime   @updatedAt
   updatedById       String?
+}
+
+// —— #74 后台域名邮箱（backend-plan v4 §3 + §16/§17）。只新增表和枚举（db push additive-only）。——
+enum MailDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MailStatus {
+  QUEUED // §17：超过 MAIL_DAILY_CAP，等下一次重置后自动发送
+  SENDING
+  SENT
+  FAILED
+  RECEIVED
+  UNASSIGNED
+  IGNORED
+}
+
+enum DeliveryStatus {
+  UNKNOWN
+  BOUNCED // 第 2 阶段
+}
+
+model MailMessage {
+  id               String         @id @default(cuid())
+  direction        MailDirection
+  status           MailStatus
+  inquiryId        String? // null = 未归类（仅入站）
+  inquiry          Inquiry?       @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  messageId        String?        @unique // RFC 5322 Message-ID。出站：<sendKey@REPLY_DOMAIN>（§16 由我们生成）；入站：原信头
+  sendKey          String?        @unique // 出站：randomId(24)，创建时生成一次，全程不变（M5）
+  inReplyTo        String?
+  references       String? // 截断 2KB
+  remoteMailId     String?        @unique // 入站：Worker 邮件 id，幂等键（§4）
+  idemKey          String?        @unique // 出站：HMAC(userId + Idempotency-Key)，同一键不重复建信
+  fromAddr         String
+  fromHash         String? // 入站发件人 emailHash，供隐私删除匹配未归类信
+  toAddr           String
+  subject          String
+  bodyHtml         String // 入站：白名单净化后；出站：纯文本转义
+  bodyText         String
+  hasRemoteImages  Boolean        @default(false)
+  authSpf          String?
+  authDkim         String?
+  authDmarc        String?
+  senderVerified   Boolean? // 只供 UI 提示，不参与归属（§4.5）
+  authorId         String? // 出站管理员
+  errorCode        String? // 出站失败原因码 / daily_cap_deferred
+  retryable        Boolean        @default(false)
+  attempts         Int            @default(0) // 出站：实际开始 SMTP 会话的次数
+  retryCount       Int            @default(0) // 出站：手动重试次数，上限 5
+  lockedUntil      DateTime? // 出站发送租约（M5）
+  requestStartedAt DateTime? // 出站：已开始 SMTP 会话（不为空即“可能已送达”边界）
+  capDay           DateTime? // §17：占用了哪一个发信日的名额（该日窗口起点，UTC）
+  deferredUntil    DateTime? // §17：daily_cap_deferred 时的预计发送时间
+  deliveryStatus   DeliveryStatus @default(UNKNOWN)
+  redactedAt       DateTime?
+  flags            String[]       @default([]) // too_large | auto | bounce | attachment_rejected | parse_error
+  sentAt           DateTime?
+  receivedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([inquiryId, createdAt])
+  @@index([status, createdAt])
+  @@index([direction, capDay])
+  @@index([status, deferredUntil])
+  @@index([fromHash])
 }

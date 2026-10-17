@@ -42,7 +42,7 @@ before(async () => {
   console.info = (...a: unknown[]) => { if (a[0] === '[mail:dev]') mailsSent++; else origInfo(...a); };
 });
 beforeEach(() => {
-  delete process.env.RESEND_API_KEY;
+  for (const k of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS']) delete process.env[k];
   messages = []; mailsSent = 0;
   inq = { id: INQ, status: 'NEW', assigneeId: null, anonymizedAt: null, retainUntil: new Date(Date.now() + 10 * DAY), replyToken: 'tok', ref: 'PJ-1', contact: { email: 'anna@example.com' } };
 });
