@@ -12,6 +12,8 @@
 node_modules
 .next
 storage
+uploads
+**/uploads
 deploy
 e2e
 tests
