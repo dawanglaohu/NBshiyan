@@ -13,8 +13,8 @@ const b64=f=>'data:image/webp;base64,'+fs.readFileSync(f).toString('base64');
 // Path comes from HeroVideo.tsx so the share image always follows the poster the page ships.
 const heroSrc=fs.readFileSync(R+'/src/components/layout/HeroVideo.tsx','utf8').match(/'\/video\/(hero-115-poster\.[0-9a-f]{8}\.webp)'/);
 if(!heroSrc) throw new Error('hero poster not found in HeroVideo.tsx');
-// Home brand copy, matching the hero HTML overlay (PM); RU reviewed by language bot. No subtitle (PM: no sample wording until confirmed).
-const HOME={en:{title:'Custom printed packaging',sub:''},ru:{title:'Упаковка с индивидуальной печатью',sub:''}};
+// Home brand copy, matching the hero HTML overlay (PM); RU reviewed by language bot. Subtitle restored (PM, after #316).
+const HOME={en:{title:'Custom printed packaging',sub:'From sample to bulk order'},ru:{title:'Упаковка с индивидуальной печатью',sub:'От образца до тиража'}};
 const heroBg=b64(R+'/public/video/'+heroSrc[1]);
 const box=(c)=>`<svg viewBox="0 0 200 180" width="380"><path d="M30 60 100 30l70 30v80l-70 34-70-34Z" fill="${c?'#2A2A2E':'#C49A6C'}"/><path d="M100 90v84L30 140V60Z" fill="${c?'#1E1E22':'#A77D50'}"/><path d="m30 60 70 30 70-30" fill="none" stroke="${c?'#D4AF6A':'#8a6440'}" stroke-width="3"/><circle cx="168" cy="26" r="14" fill="${c?'#D4AF6A':'#FFD166'}"/></svg>`;
 const page=({title,sub,img,dark,bg})=>`<!doctype html><html><head><meta charset="utf-8"><style>
@@ -37,8 +37,11 @@ const only=process.argv.find(a=>a.startsWith('--only='))?.slice(7);
 if(only){jobs.splice(0,jobs.length,...jobs.filter(j=>j.file===only+'.jpg'||j.file.startsWith(only+'-')));if(!jobs.length) throw new Error('--only matched no jobs: '+only);}
 const b=await chromium.launch();const pg=await b.newPage({viewport:{width:1200,height:630}});const out=[];
 for(const j of jobs){await pg.setContent(page(j));await pg.evaluate(()=>document.fonts.ready);
+  // Shrink the headline until no word is wider than the text column, then check nothing in .l leaves the safe area.
+  await pg.evaluate(()=>{const h=document.querySelector('h1');h.innerHTML=h.textContent.split(' ').map(w=>`<span style="display:inline-block">${w}</span>`).join(' ');let f=parseFloat(getComputedStyle(h).fontSize);const W=h.clientWidth;while([...h.children].some(c=>c.getBoundingClientRect().width>W)&&f>40){f-=2;h.style.fontSize=f+'px'}});
+  const ok=await pg.evaluate(()=>{const W=document.querySelector('h1').clientWidth;if([...document.querySelectorAll('h1 span')].some(c=>c.getBoundingClientRect().width>W))return false;const s=document.querySelector('.safe').getBoundingClientRect();return [...document.querySelectorAll('.l *')].every(e=>{const r=e.getBoundingClientRect();return r.left>=s.left-.5&&r.right<=s.right+.5&&r.top>=s.top-.5&&r.bottom<=s.bottom+.5})});
   const fam=await pg.evaluate(()=>document.fonts.check('800 70px Manrope','Яя'));
   let q=88,buf;do{buf=await pg.screenshot({type:'jpeg',quality:q});q-=6}while(buf.length>100*1024&&q>40);
-  fs.writeFileSync(`${R}/public/og/${j.file}`,buf);out.push([j.file,buf.length,q+6,fam]);}
-await b.close();console.log(JSON.stringify(out));
+  fs.writeFileSync(`${R}/public/og/${j.file}`,buf);out.push([j.file,j.title,buf.length,q+6,ok,fam]);}
+await b.close();console.log(out.map(o=>o.join(' | ')).join('\n'));
 writeOgVersions(R);
