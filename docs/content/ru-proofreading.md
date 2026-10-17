@@ -127,9 +127,9 @@
 | C-custom-christmas-packaging-23 | `docs/content/custom-christmas-packaging.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-christmas-packaging-24 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: When should I order Christmas packaging?** | - **В: Когда заказывать новогоднюю упаковку?** |  |  |
 | C-custom-christmas-packaging-25 | `docs/content/custom-christmas-packaging.md` | #188 | A: As early as possible; the latest safe order date including shipping is on request. | О: Как можно раньше; крайнюю дату с учетом доставки — по запросу. |  |  |
-| C-custom-christmas-packaging-26 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Do you make advent calendars?** | - **В: Делаете ли адвент-календари?** |  |  |
+| C-custom-christmas-packaging-26 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Do you make advent calendars?** | - **В: Можно ли заказать адвент-календари?** |  |  |
 | C-custom-christmas-packaging-27 | `docs/content/custom-christmas-packaging.md` | #188 | A: Yes — we supply custom advent calendars with compartments. | О: Да — поставляем адвент-календари на заказ с ячейками. |  |  |
-| C-custom-christmas-packaging-28 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Can you make corporate New Year gift sets?** | - **В: Делаете ли корпоративные новогодние наборы?** |  |  |
+| C-custom-christmas-packaging-28 | `docs/content/custom-christmas-packaging.md` | #188 | - **Q: Can you make corporate New Year gift sets?** | - **В: Можно ли заказать корпоративные новогодние наборы?** |  |  |
 | C-custom-christmas-packaging-29 | `docs/content/custom-christmas-packaging.md` | #188 | A: Yes — we supply branded gift boxes with inserts. | О: Да — поставляем брендированные коробки с ложементами. |  |  |
 | C-custom-christmas-packaging-kw-Транзакционные | `docs/content/custom-christmas-packaging.md` | #188 |  | **Транзакционные (主页面)**: новогодняя упаковка на заказ, новогодние подарочные коробки оптом, адвент календарь на заказ, упаковка для новогодних подарков |  |  |
 | C-custom-christmas-packaging-kw-Коммерческие | `docs/content/custom-christmas-packaging.md` | #188 |  | **Коммерческие (主页面 + 小节)**: новогодние коробки с логотипом, корпоративные новогодние подарки упаковка, упаковка для сладких подарков, новогодние пакеты с печатью |  |  |
@@ -263,7 +263,7 @@
 | C-custom-gift-cards-23 | `docs/content/custom-gift-cards.md` | #188 | **CTA:** Request a quote →（链接到询价表单，预填品类） | **CTA:** Запросить расчёт → |  |  |
 | C-custom-gift-cards-24 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Can each card have a unique number or barcode?** | - **В: Можно ли уникальный номер или штрихкод на каждой карте?** |  |  |
 | C-custom-gift-cards-25 | `docs/content/custom-gift-cards.md` | #188 | A: Variable data printing capability: on request. | О: Возможность печати переменных данных — по запросу. |  |  |
-| C-custom-gift-cards-26 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Do you make packaging for gift cards?** | - **В: Делаете ли упаковку для карт?** |  |  |
+| C-custom-gift-cards-26 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Do you make packaging for gift cards?** | - **В: Можно ли заказать упаковку для карт?** |  |  |
 | C-custom-gift-cards-27 | `docs/content/custom-gift-cards.md` | #188 | A: Yes — we supply holders, envelopes and boxes. | О: Да — поставляем держатели, конверты и коробки. |  |  |
 | C-custom-gift-cards-28 | `docs/content/custom-gift-cards.md` | #188 | - **Q: Can you print plastic cards?** | - **В: Печатаете пластиковые карты?** |  |  |
 | C-custom-gift-cards-29 | `docs/content/custom-gift-cards.md` | #188 | A: On request. | О: По запросу. |  |  |
