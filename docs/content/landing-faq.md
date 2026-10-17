@@ -59,7 +59,7 @@ Sample lead time: {{待Ryan确认}}. Production lead time: {{待Ryan确认}}. Th
 
 <details id="faq-corrugated-boxes-en-5"><summary>Can I get a sample before the full order?</summary>
 
-Yes, you can approve a digital proof first. Physical samples: {{待Ryan确认}}. Sample fee: {{待Ryan确认}}.
+Yes, you can approve a digital proof first, then a physical sample. Sample fee: {{待Ryan确认}}.
 
 </details>
 
@@ -92,7 +92,7 @@ Yes, you can approve a digital proof first. Physical samples: {{待Ryan确认}}.
 
 <details id="faq-corrugated-boxes-ru-5"><summary>Можно ли получить образец до заказа тиража?</summary>
 
-Да, сначала вы согласуете цифровую пробу. Физический образец — {{待Ryan确认}}. Стоимость образца — {{待Ryan确认}}.
+Да, сначала вы согласуете цифровую пробу, затем физический образец. Стоимость образца — {{待Ryan确认}}.
 
 </details>
 
