@@ -1,6 +1,10 @@
+import { accessSync, constants as fsConstants, statSync } from 'fs';
+import path from 'path';
 import { isProdEnvFrom } from './src/lib/site';
 import { dailyCapValid, smtpBaseConfig } from './src/lib/server/mail/config';
-// 生产环境配置自检：在 next.config 加载时执行（next build 和 next start 都会加载），
+// 生产环境配置自检：
+// - next.config 加载时执行（next build → 'build'，next start → 'runtime'）；
+// - 自建 standalone（node server.js 不会重新执行 next.config）由 src/instrumentation.ts 在启动时按 'runtime' 再查一遍。
 // 只在 APP_ENV=production 时生效，CI / 预览 / 本地不受影响。
 const TRUTHY = /^(1|true|yes|on)$/i;
 
@@ -9,27 +13,81 @@ export function isProductionDeploy(env: Record<string, string | undefined>) {
 }
 
 /**
- * build：`next build` 加载配置时；runtime：`next start` 加载配置时；any（默认）：两类都查。
- * 只在运行时使用的密钥（RUNTIME_ONLY）构建时不检查，构建机可以不放这些值；`next start` 时缺了照样拒绝启动。
+ * build：`next build` 加载配置时；runtime：`next start` / standalone 启动时；any（默认）：两类都查。
+ * build 阶段只查会被内联进构建产物的公开值（NEXT_PUBLIC_*、mock 开关），构建机不需要任何密钥或服务端配置；
+ * 其余全部（密钥、数据库、存储、限流、发信）只在 runtime 检查，缺了拒绝启动。
  */
 export type EnvCheckPhase = 'build' | 'runtime' | 'any';
-/** 只在运行时读取、构建产物里不应出现的密钥 */
+/** 只在运行时读取、构建产物里不应出现的密钥（构建后 grep .next/ 验证用；其他服务端变量同样只在 runtime 检查） */
 export const RUNTIME_ONLY = ['EDGE_AUTH_SECRET', 'SMTP_USER', 'SMTP_PASS', 'MAIL_WEBHOOK_SECRET'] as const;
 
-export function prodEnvProblems(env: Record<string, string | undefined>, phase: EnvCheckPhase = 'any'): string[] {
+export type EnvCheckDeps = {
+  /** STORAGE_DRIVER=local 时检查 UPLOAD_DIR：返回问题描述（不含路径）或 null。默认用 fs 检查存在、是目录、可读写 */
+  dirProblem?: (dir: string) => string | null;
+  /** 应用根目录（standalone 下就是 server.js 所在目录），用来拒绝 public/、.next/ 下的上传目录 */
+  cwd?: string;
+};
+
+export function prodEnvProblems(env: Record<string, string | undefined>, phase: EnvCheckPhase = 'any', deps: EnvCheckDeps = {}): string[] {
   if (!isProductionDeploy(env)) return [];
-  const problems: string[] = [];
-  for (const [k, v] of Object.entries(env)) {
-    if (/^NEXT_PUBLIC_.*_MOCK$/.test(k) && v && TRUTHY.test(v.trim())) problems.push(`${k}=${v}：生产环境不能开 mock`);
+  const problems = publicProblems(env);
+  if (phase !== 'build') {
+    if (env.RATE_LIMIT_STORE !== 'upstash') problems.push(`RATE_LIMIT_STORE 必须为 "upstash"（当前：${env.RATE_LIMIT_STORE ?? '未设置'}），多实例下内存限流无效`);
+    for (const k of ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN']) if (!env[k]?.trim()) problems.push(`${k} 未设置`);
+    if (env.UPSTASH_REDIS_REST_URL && !/^https:\/\//.test(env.UPSTASH_REDIS_REST_URL)) problems.push('UPSTASH_REDIS_REST_URL 必须是 https 地址');
+    problems.push(...mailProblems(env), ...storageProblems(env, deps), ...secretProblems(env), ...runtimeSecretProblems(env));
   }
-  if (env.NEXT_PUBLIC_ADMIN_MAIL === 'mock') problems.push('NEXT_PUBLIC_ADMIN_MAIL=mock：生产环境不能用邮件示例数据（#74）');
-  if (env.NEXT_PUBLIC_ADMIN_API !== 'http') problems.push(`NEXT_PUBLIC_ADMIN_API 必须为 "http"（当前：${env.NEXT_PUBLIC_ADMIN_API ?? '未设置'}）`);
-  if (env.RATE_LIMIT_STORE !== 'upstash') problems.push(`RATE_LIMIT_STORE 必须为 "upstash"（当前：${env.RATE_LIMIT_STORE ?? '未设置'}），多实例下内存限流无效`);
-  for (const k of ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN']) if (!env[k]?.trim()) problems.push(`${k} 未设置`);
-  if (env.UPSTASH_REDIS_REST_URL && !/^https:\/\//.test(env.UPSTASH_REDIS_REST_URL)) problems.push('UPSTASH_REDIS_REST_URL 必须是 https 地址');
-  problems.push(...mailProblems(env));
-  problems.push(...secretProblems(env), ...(phase === 'build' ? [] : runtimeSecretProblems(env)));
   return problems.sort();
+}
+
+// 会被内联进构建产物的公开值和 mock 开关：next build 时就要对（构建后改环境变量也改不了产物）
+function publicProblems(env: Record<string, string | undefined>): string[] {
+  const out: string[] = [];
+  const v = (k: string) => env[k]?.trim() ?? '';
+  for (const [k, val] of Object.entries(env)) {
+    if (/^NEXT_PUBLIC_.*_MOCK$/.test(k) && val && TRUTHY.test(val.trim())) out.push(`${k}=${val}：生产环境不能开 mock`);
+  }
+  if (env.NEXT_PUBLIC_ADMIN_MAIL === 'mock') out.push('NEXT_PUBLIC_ADMIN_MAIL=mock：生产环境不能用邮件示例数据（#74）');
+  if (env.NEXT_PUBLIC_ADMIN_API !== 'http') out.push(`NEXT_PUBLIC_ADMIN_API 必须为 "http"（当前：${env.NEXT_PUBLIC_ADMIN_API ?? '未设置'}）`);
+  for (const k of ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'NEXT_PUBLIC_SITE_URL']) if (!v(k)) out.push(`${k} 未设置`);
+  if (TEST_TURNSTILE_SITE_KEY.test(v('NEXT_PUBLIC_TURNSTILE_SITE_KEY'))) out.push('NEXT_PUBLIC_TURNSTILE_SITE_KEY 是 Cloudflare 测试 site key，生产必须用真实 key');
+  const site = v('NEXT_PUBLIC_SITE_URL');
+  if (site && !/^https:\/\//.test(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是 https 地址');
+  return out;
+}
+
+/**
+ * 私有文件存储（只在 runtime 检查）：
+ * - r2：R2_ACCOUNT_ID、R2_ACCESS_KEY_ID、R2_SECRET_ACCESS_KEY、R2_BUCKET 必填（与之前一致）
+ * - local：UPLOAD_DIR 必须是规范的绝对路径（不能是 /、不能含 ..），不能在 public/ 或 .next/ 下（否则可能被静态服务），必须存在且可读写
+ * 只报变量名和原因，不输出路径或任何值。
+ */
+export function storageProblems(env: Record<string, string | undefined>, deps: EnvCheckDeps = {}): string[] {
+  const driver = env.STORAGE_DRIVER?.trim();
+  if (driver === 'r2') return ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET'].filter((k) => !env[k]?.trim()).map((k) => `${k} 未设置`);
+  if (driver !== 'local') return ['STORAGE_DRIVER 必须为 "local"（挂载的数据卷）或 "r2"'];
+  const dir = env.UPLOAD_DIR?.trim() ?? '';
+  if (!dir) return ['UPLOAD_DIR 未设置（STORAGE_DRIVER=local 时必填，指向挂载的数据卷目录）'];
+  if (!path.posix.isAbsolute(dir) || dir.includes('\0')) return ['UPLOAD_DIR 必须是绝对路径'];
+  const norm = path.posix.normalize(dir).replace(/\/+$/, '');
+  if (!norm || norm === '/' || dir.split('/').includes('..') || norm !== dir.replace(/\/+$/, '')) return ['UPLOAD_DIR 必须是规范的绝对路径（不能是 /，不能含 . 或 .. 段）'];
+  const cwd = path.resolve(deps.cwd ?? process.cwd());
+  for (const pub of ['public', '.next']) {
+    const p = path.join(cwd, pub);
+    if (norm === p || norm.startsWith(p + '/')) return [`UPLOAD_DIR 不能在应用的 ${pub}/ 目录下（会被静态服务）`];
+  }
+  const fsProblem = (deps.dirProblem ?? defaultDirProblem)(norm);
+  return fsProblem ? [`UPLOAD_DIR ${fsProblem}`] : [];
+}
+
+function defaultDirProblem(dir: string): string | null {
+  try {
+    if (!statSync(dir).isDirectory()) return '不是目录';
+    accessSync(dir, fsConstants.R_OK | fsConstants.W_OK);
+    return null;
+  } catch {
+    return '不存在或当前用户不可读写';
+  }
 }
 
 // #74 发信（§16 Gmail SMTP）：只报变量名和原因，不输出任何值
@@ -57,11 +115,11 @@ const TEST_TURNSTILE_SITE_KEY = /^[123]x0{20,}[A-Z]{2}$/;
 function secretProblems(env: Record<string, string | undefined>): string[] {
   const out: string[] = [];
   const v = (k: string) => env[k]?.trim() ?? '';
-  const required = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET', 'DATABASE_URL', 'AUTH_SECRET', 'AUTH_URL',
-    'ADMIN_TOTP_KEY', 'PRIVACY_HASH_SECRET', 'CRON_SECRET', 'TURNSTILE_SECRET_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY',
-    'SMTP_HOST', 'SMTP_PORT', 'MAIL_FROM', 'INQUIRY_NOTIFY_EMAIL', 'NEXT_PUBLIC_SITE_URL'];
+  // R2_* 改由 storageProblems 按 STORAGE_DRIVER 检查
+  const required = ['DATABASE_URL', 'AUTH_SECRET', 'AUTH_URL',
+    'ADMIN_TOTP_KEY', 'PRIVACY_HASH_SECRET', 'CRON_SECRET', 'TURNSTILE_SECRET_KEY',
+    'SMTP_HOST', 'SMTP_PORT', 'MAIL_FROM', 'INQUIRY_NOTIFY_EMAIL'];
   for (const k of required) if (!v(k)) out.push(`${k} 未设置`);
-  if (env.STORAGE_DRIVER !== 'r2') out.push('STORAGE_DRIVER 必须为 "r2"，生产环境不能用本地磁盘');
   const totp = v('ADMIN_TOTP_KEY');
   if (totp && Buffer.from(totp, 'base64').length !== 32) out.push('ADMIN_TOTP_KEY 必须是 base64 解码后 32 字节');
   const ph = env.PRIVACY_HASH_SECRET;
@@ -69,9 +127,6 @@ function secretProblems(env: Record<string, string | undefined>): string[] {
   const cron = env.CRON_SECRET;
   if (cron && cron.length < 32) out.push('CRON_SECRET 至少 32 个字符');
   if (TEST_TURNSTILE_SECRET.test(v('TURNSTILE_SECRET_KEY'))) out.push('TURNSTILE_SECRET_KEY 是 Cloudflare 测试密钥，生产必须用真实密钥');
-  if (TEST_TURNSTILE_SITE_KEY.test(v('NEXT_PUBLIC_TURNSTILE_SITE_KEY'))) out.push('NEXT_PUBLIC_TURNSTILE_SITE_KEY 是 Cloudflare 测试 site key，生产必须用真实 key');
-  const site = v('NEXT_PUBLIC_SITE_URL');
-  if (site && !/^https:\/\//.test(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是 https 地址');
   if (v('ADMIN_SEED_TOTP_SECRET')) out.push('ADMIN_SEED_TOTP_SECRET 只用于 CI，生产必须留空');
   return out;
 }
@@ -90,7 +145,7 @@ function runtimeSecretProblems(env: Record<string, string | undefined>): string[
   return out;
 }
 
-export function assertProdEnv(env: Record<string, string | undefined> = process.env, phase: EnvCheckPhase = 'any') {
-  const p = prodEnvProblems(env, phase);
+export function assertProdEnv(env: Record<string, string | undefined> = process.env, phase: EnvCheckPhase = 'any', deps: EnvCheckDeps = {}) {
+  const p = prodEnvProblems(env, phase, deps);
   if (p.length) throw new Error(`生产环境配置检查未通过：\n- ${p.join('\n- ')}`);
 }

@@ -17,6 +17,12 @@ const isProd = isProdEnvFrom();
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // 自建部署：服务器上 docker build，运行 .next/standalone/server.js（Vercel 忽略此项）。
+  // standalone 启动不会重新执行下面的 config()，运行时的生产配置检查在 src/instrumentation.ts 里再做一次。
+  output: 'standalone',
+  // 建首个管理员的 CLI（docker compose exec app node scripts/admin-create.mjs）不被任何页面 import，
+  // 挂在 /api/health 的追踪上一起复制进 standalone；它用到的 @prisma/client、@node-rs/argon2 应用本身已被追踪。
+  outputFileTracingIncludes: { '/api/health': ['./scripts/admin-create.mjs', './scripts/admin-create-lib.mjs'] },
   // #291：未设置时也要内联成常量（空字符串），否则构建产物里留着运行时的 process.env，mock 分支去不掉、mock 数据会被打包
   env: { NEXT_PUBLIC_ADMIN_API: process.env.NEXT_PUBLIC_ADMIN_API ?? '', NEXT_PUBLIC_ADMIN_MAIL: process.env.NEXT_PUBLIC_ADMIN_MAIL ?? '' },
   images: { formats: ['image/avif', 'image/webp'] },
