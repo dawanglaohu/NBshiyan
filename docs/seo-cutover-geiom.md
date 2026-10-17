@@ -235,7 +235,7 @@ location ^~ /api/health/ { return 404; }
 - [ ] 爬虫不被挑战：Bot Fight Mode / WAF 放行已验证爬虫（Googlebot、YandexBot、bingbot）。以 GSC「网址检查 → 测试实际网址」和 Yandex「Проверка ответа сервера」返回 200 为准，不能只靠改 UA 的 curl。这两项要等第 4 节的站点验证完成后才能用，所以放在第 4 节验证通过后补做；在那之前先看 Cloudflare Security Events 有没有拦截已验证爬虫。
 - [ ] **直连源站被拒绝**（外部冒烟，由运维从服务器外部做，只记 PASS / FAIL，不记录、不发送任何 IP 或响应内容）：不经过 Cloudflare、直接连源站、不带 `X-Edge-Auth` 的请求，对 `/`、`/en`、`/api/`、`/_next/`、`/og` 都不能拿到正常内容（应为 403 或连接被关闭）。拿到 200 就是 FAIL。
 - [ ] **`:80` 只跳转**：`curl -sI http://geiom.com/en?a=1` 是一个 301 到 `https://geiom.com/en?a=1`，响应里没有应用的内容（第 2.5 节）。
-- [ ] **询盘限流按客户端，不是全站一个桶**（外部冒烟）：从同一个客户端经 `https://geiom.com` 连续提交几次询盘，应在达到上限后被限流（429）；换一个网络的客户端提交仍然正常。随后由运维看容器日志：不能出现成批的 `untrusted` 限流记录（`src/lib/edge/client-ip.ts` 把不可信请求放进同一个 `untrusted` 桶；成批出现说明 `X-Edge-Auth` 覆盖或 `CF-Connecting-IP` 转发没生效）。日志里只看有没有这类记录，不把 IP 或请求内容发到群里。测试询盘要能区分，测完由运维或 Ryan 清理。
+- [ ] **询盘限流按客户端，不是全站一个桶**（外部冒烟；**必须等 Transform Rule 和 nginx v5 都生效后再跑**。在那之前应用收不到正确的 `X-Edge-Auth`，所有访客都算 `untrusted`、共用一个桶，DNS 刚切完就跑会误判 FAIL；这段时间也尽量不要对外宣传）：从同一个客户端经 `https://geiom.com` 连续提交几次询盘，应在达到上限后被限流（429）；换一个网络的客户端提交仍然正常。随后由运维看容器日志：不能出现成批的 `untrusted` 限流记录（`src/lib/edge/client-ip.ts` 把不可信请求放进同一个 `untrusted` 桶；成批出现说明 `X-Edge-Auth` 覆盖或 `CF-Connecting-IP` 转发没生效）。日志里只看有没有这类记录，不把 IP 或请求内容发到群里。测试询盘要能区分，测完由运维或 Ryan 清理。
 
 ## 3. 上线时开放索引的页面（SEO 单独开代码 PR）
 
