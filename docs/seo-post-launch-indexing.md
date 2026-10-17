@@ -13,7 +13,8 @@ S=https://geiom.com
 - 🔑 **GSC、Yandex 只能由 Ryan 用自己的账号操作**，在私聊里进行，不在群里做。其他人（包括所有机器人）都**不登录 Ryan 的账号**，也**不保存他的账号或密码**。
 - 验证值由 Ryan 从自己的账号里取，**私信**发给运维。运维把它作为一次**单独的** DNS 变更加上 TXT，不和 `_dmarc` 或其他 DNS 改动放在同一批。
 - SEO 不改 DNS，只负责第 3、4 节的检查和第 5 节的观察。
-- 顺序：第 1 节验证 GSC → 第 2 节验证 Yandex → 两边都验证通过后，再按第 3 节提交 sitemap → 第 4 节每次提交前后都跑一遍 → 第 5 节在第 1、3、7 天各看一次。
+- **旧站不需要 301 映射**（PM / 运维 2026-10-17）：切换前的 `geiom.com` 是 Squarespace 的私有「Coming Soon」页，sitemap 返回 401，robots.txt 是 `Disallow: /`，对外只有首页一个 URL。没有要保留的旧 URL，所以不做旧地址到新地址的跳转表。
+- 顺序：第 1 节验证 GSC → 第 2 节验证 Yandex → 两边都验证通过后，先按第 3.1 节让两边重新读取新的 robots.txt，再按第 3.2 节提交 sitemap → 第 4 节每次提交前后都跑一遍 → 第 5 节在第 1、3、7 天各看一次。
 
 ## 1. Google Search Console 验证 🔑
 
@@ -40,6 +41,22 @@ S=https://geiom.com
 4. **站点地区：不设（PM 2026-10-17 已定）。** 目标用户是讲俄语的 B2B 采购，不是本地商家，所以不申请 Site region（[`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4）。Диагностика 里「没有设地区」的提示属于预期，不算问题。
 
 ## 3. 提交 sitemap 🔑（两边都验证通过之后）
+
+### 3.1 先确认新的 robots.txt 生效，再让两边重新读取
+
+旧站的 robots.txt 是 `Disallow: /`。搜索引擎会缓存 robots.txt，如果还拿着旧的那份，新站的 sitemap 和页面都会被当成「被 robots.txt 屏蔽」。所以 DNS 切换后、提交 sitemap 前：
+
+1. 确认线上 `https://geiom.com/robots.txt` 已经是新站输出的那份（第 4.1 节），**不是** `Disallow: /`：
+   ```bash
+   curl -s $S/robots.txt | grep -cx 'Disallow: /'                        # 0
+   curl -s $S/robots.txt | grep -cx 'Sitemap: https://geiom.com/sitemap.xml'   # 1
+   ```
+   还是旧的就先停在这里，查 DNS 和 Cloudflare 缓存（运维），不要提交 sitemap。
+2. 🔑 **GSC**：在「设置」里的 robots.txt 报告中，对 `https://geiom.com/robots.txt` 请求重新抓取，等报告显示抓到的是新的内容。具体按钮名以 GSC 当前界面为准。
+3. 🔑 **Yandex Webmaster**：用 robots.txt 分析工具（Анализ robots.txt）重新检查 `https://geiom.com/robots.txt`，确认读到的是新内容，`/en`、`/ru` 等页面显示为允许抓取。具体菜单位置以 Yandex 当前界面为准。
+4. 两边都确认读到新的 robots.txt 之后，再做第 3.2 节。
+
+### 3.2 提交 sitemap
 
 代码实际输出的 sitemap 只有一个：`https://geiom.com/sitemap.xml`（`src/app/sitemap.ts`，`revalidate = 3600`，没有 sitemap index）。
 
@@ -222,7 +239,7 @@ curl -s $S/sitemap.xml | grep -Ec '/og(/|<|\?)'   # 0：sitemap 里不能有任�
 | Google 搜 `site:geiom.com` | 能搜到 `geiom.com` 的页面，只有 https 裸域 | 暂时搜不到：`site:` 只是粗略参考，以 GSC 为准 | 搜到 www、http、`/solutions`、`/factory`、`/cases`、`/s/`、`/admin` 之类的地址 |
 | Yandex 搜 `site:geiom.com` | 同上 | 同上 | 同上 |
 
-- **第 1 天**：重点看验证、sitemap 状态，以及网址检查里的「测试实际网址」。这时候还没收录是正常的。
+- **第 1 天**：重点看验证、sitemap 状态，以及网址检查里的「测试实际网址」。这时候还没收录是正常的。旧的 Squarespace「Coming Soon」首页可能还会短时间出现在搜索结果里，或者 GSC / Yandex 里还显示旧的抓取结果（比如被 robots.txt 屏蔽）。只要第 3.1 节已经确认新的 robots.txt 生效，这属于「需要关注」，不算 FAIL；在后面几次检查里确认它被新页面替换。
 - **第 3 天**：看 GSC「网页」报告里有没有 FAIL 列的原因，Yandex 的 Диагностика 和抓取统计。
 - **第 7 天**：对照第 4.2 节的 URL 表，逐个确认状态。FAIL 的逐条按 [`seo-cutover-geiom.md`](./seo-cutover-geiom.md) §6 处理，「需要关注」的记下来，下次检查时再看。
 - GSC / Yandex 里看到的任何账号信息、验证值，都不发到群里。
