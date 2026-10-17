@@ -47,7 +47,7 @@
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
 - [ ] `RESEND_API_KEY` 和发件地址已配置，发件域名已在 Resend 完成 DNS 验证。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值。
-- [ ] `EDGE_AUTH_SECRET` 已设置，是至少 32 字节的随机值（例如 `openssl rand -hex 32`），nginx 里 `proxy_set_header X-Edge-Auth` 设成同一个值。没设的话生产配置检查不通过；设了但 nginx 没带头，所有请求都会进同一个严格限流桶（大量 429）。上线后抽查后台审计，ip 不应是 `unknown`。
+- [ ] `EDGE_AUTH_SECRET` 已设置，是至少 32 字节的随机值（例如 `openssl rand -hex 32`），nginx 里 `proxy_set_header X-Edge-Auth` 设成同一个值。只在运行时需要：构建机不用设（`next build` 不检查它，产物里也不会有这个值），`next start` 时没设或不足 32 字节会拒绝启动；设了但 nginx 没带头，所有请求都会进同一个严格限流桶（大量 429）。上线后抽查后台审计，ip 不应是 `unknown`。
 - [ ] 不要再设 `BEHIND_CLOUDFLARE` / `TRUSTED_PROXY_HOPS`（已废弃，不再读取）。
 - [ ] `PRIVACY_HASH_SECRET` 已配置，是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。生产环境没配应用会拒绝启动。它是审计日志里邮箱 HMAC 哈希的密钥，不要随意轮换，轮换后旧日志里的哈希就对不上了。
 - [ ] 生产环境**不能**设置 `ADMIN_SEED_TOTP_SECRET`。设置了的话，种子脚本会报错退出。

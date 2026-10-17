@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { prodEnvProblems, assertProdEnv } from '../prod-env-check';
 
 test('非生产环境（CI/预览/本地）不检查', () => {
@@ -87,4 +88,24 @@ test('#74 错误信息里不出现密钥值', () => {
 
 test('APP_ENV: Vercel 自动变量单独不再触发生产自检', () => {
   assert.deepEqual(prodEnvProblems({ VERCEL: '1', NODE_ENV: 'production' }), []);
+});
+
+test('EDGE_AUTH_SECRET is runtime-only: build phase skips it, runtime / default require >= 32 bytes', () => {
+  const noEdge = { ...prodFull, UPSTASH_REDIS_REST_TOKEN: 't', EDGE_AUTH_SECRET: undefined };
+  assert.deepEqual(prodEnvProblems(noEdge, 'build'), []);
+  assert.doesNotThrow(() => assertProdEnv(noEdge, 'build'));
+  assert.deepEqual(prodEnvProblems(noEdge, 'runtime'), ['EDGE_AUTH_SECRET 未设置']);
+  assert.deepEqual(prodEnvProblems(noEdge), ['EDGE_AUTH_SECRET 未设置']);
+  assert.throws(() => assertProdEnv(noEdge, 'runtime'), /EDGE_AUTH_SECRET/);
+  const short = { ...noEdge, EDGE_AUTH_SECRET: 'short-edge-value' };
+  assert.equal(prodEnvProblems(short, 'runtime').length, 1);
+  let msg = ''; try { assertProdEnv(short, 'runtime'); } catch (e) { msg = (e as Error).message; }
+  assert.ok(msg.includes('EDGE_AUTH_SECRET') && !msg.includes('short-edge-value'));
+  assert.deepEqual(prodEnvProblems({ ...noEdge, EDGE_AUTH_SECRET: SECRET }, 'runtime'), []);
+});
+
+test('next.config runs the prod check per phase (build skips runtime-only secrets)', () => {
+  const cfg = readFileSync('next.config.ts', 'utf8');
+  assert.match(cfg, /assertProdEnv\(process\.env, phase === PHASE_PRODUCTION_BUILD \? 'build' : 'runtime'\)/);
+  assert.doesNotMatch(cfg, /EDGE_AUTH_SECRET/);
 });
