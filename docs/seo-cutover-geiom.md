@@ -21,6 +21,10 @@ S=https://geiom.com
 这些值都是**构建时**写进产物的，只在运行时设置不起作用（`NEXT_PUBLIC_*` 会被内联；`next.config.ts` 里的 `isProd` 和 `src/app/robots.ts`、sitemap 也在构建时确定）。
 
 - [ ] 构建时 `APP_ENV=production`、`NODE_ENV=production`。`isProdEnvFrom()`（`src/lib/site.ts`）只认 `APP_ENV === 'production'`（过渡期另认 `VERCEL_ENV`）。没设 → `next.config.ts` 给全站加 `X-Robots-Tag: noindex, nofollow`，`robots.txt` 变成 `Disallow: /`，IndexNow 关闭。
+- [ ] **运行时** env_file 里也必须有 `APP_ENV=production`。启动检查（`src/instrumentation.ts` → `runStartupEnvCheck()`）只在 `APP_ENV=production` 时执行；没设就整段跳过，缺密钥、缺数据库也照样启动。
+  部署后由运维在服务器上确认启动检查确实跑了（只看变量名和退出码，不打印任何值）：
+  - 容器里 `APP_ENV` 是 `production`，例如 `docker compose exec <app> printenv APP_ENV`。
+  - 检查通过时没有日志输出，所以要做一次反向验证：用一次性容器、同一镜像、同一 env_file，故意让一项必填配置失效（比如 `UPLOAD_DIR` 指向不可写目录），应输出「生产环境配置检查未通过，拒绝启动」加变量名，并 exit 1。测完删掉这个容器，正式容器不动。
 - [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
 - [ ] 构建检查（`prod-env-check.ts`，`next build` 时执行）：
   - 当前 main：`NEXT_PUBLIC_SITE_URL` 缺失或不是 `https://` 时构建失败。
@@ -135,7 +139,7 @@ curl -sI $S/en/products/ | grep -iE '^(HTTP|location)'            # 308 → /en/
 
 - `/` 的跳转由 next-intl middleware 做：按 `NEXT_LOCALE` cookie / `Accept-Language` 选语言，状态码 **307**（本地实测）。根路径不进 sitemap，正常。
 - 三种（http 裸域、http www、https www）都必须是 nginx 的**一个** 301，直接到 `https://geiom.com$request_uri`（路径和 query 都保留），不能有链式跳转。
-- 根路径 Location（#321 standalone 检查的 P1-1）：代码侧由后端 PR `fix/redirect-location` 修，把 Location 改成相对的 `/en`。nginx 再兜底，只改写本地地址，**不是**通配所有域名的正则：
+- 根路径 Location（#321 standalone 检查的 P1-1）：代码侧由后端 PR `fix/root-redirect-location` 修，把 Location 改成相对的 `/en`。nginx 再兜底，只改写本地地址，**不是**通配所有域名的正则：
   ```nginx
   proxy_redirect ~^https?://(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:\d+)?(/.*)$ $3;
   ```
