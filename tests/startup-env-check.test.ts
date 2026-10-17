@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { runStartupEnvCheck } from '../src/lib/server/startup/env-check';
+import { runStartupEnvCheck, appEnvMismatch } from '../src/lib/server/startup/env-check';
 
 const SECRET = 'fake-startup-value-0123456789abcdef-XYZ';
 const prod = {
@@ -47,4 +47,37 @@ test('instrumentation.ts：只在 nodejs runtime 调用启动检查；next.confi
   assert.match(lib, /process\.exit\(code\)/);
   const cfg = readFileSync('next.config.ts', 'utf8');
   assert.match(cfg, /output: 'standalone'/);
+});
+
+test('#323 APP_ENV 构建时内联：NODE_ENV=production 且运行时 APP_ENV 与构建时不一致 → exit(1)，只打印变量名，不含值', () => {
+  const runB = (env: Record<string, string | undefined>, built: string | undefined) => {
+    const logs: string[] = []; const exits: number[] = [];
+    runStartupEnvCheck(env, { builtAppEnv: built, dirProblem: () => null, cwd: '/app', log: (m) => logs.push(m), exit: ((c: number) => { exits.push(c); }) as never });
+    return { logs, exits };
+  };
+  // 生产镜像、运行时没设 APP_ENV：以前整段跳过，现在拒绝启动
+  const missing = runB({ ...prod, APP_ENV: undefined }, 'production');
+  assert.deepEqual(missing.exits, [1]); assert.equal(missing.logs.length, 1);
+  assert.match(missing.logs[0], /- APP_ENV 与构建时的值不一致/);
+  assert.equal((missing.logs[0].match(/^- /gm) ?? []).length, 1, 'only the mismatch is reported');
+  assert.ok(!missing.logs[0].includes('production') && !missing.logs[0].includes(SECRET), 'no values in message');
+  // 其他不一致：preview ↔ production、大小写不同
+  for (const [rt, built] of [['preview', 'production'], ['Production', 'production'], ['production', 'preview']] as const) {
+    const r = runB({ ...prod, APP_ENV: rt }, built);
+    assert.deepEqual(r.exits, [1], `${rt} vs ${built}`); assert.match(r.logs[0], /APP_ENV 与构建时的值不一致/);
+  }
+  // 一致：照常
+  assert.deepEqual(runB(prod, 'production'), { logs: [], exits: [] });
+  assert.deepEqual(runB({ APP_ENV: 'preview', NODE_ENV: 'production' }, 'preview'), { logs: [], exits: [] });
+  // 非 NODE_ENV=production（next dev）、不经 Next 打包（undefined）、构建时没设 APP_ENV（''，CI 的非生产构建）：不比对
+  assert.deepEqual(runB({ ...prod, APP_ENV: undefined, NODE_ENV: 'development' }, 'production'), { logs: [], exits: [] });
+  assert.deepEqual(runB({ ...prod, APP_ENV: undefined }, undefined), { logs: [], exits: [] });
+  assert.deepEqual(runB({ NODE_ENV: 'production' }, ''), { logs: [], exits: [] });
+  assert.deepEqual(runB(prod, ''), { logs: [], exits: [] }); // CI：非生产构建 + 运行时 APP_ENV=production → 照常跑完整检查
+  assert.equal(appEnvMismatch({ NODE_ENV: 'production', APP_ENV: 'production' }, 'production'), null);
+});
+
+test('#323 next.config 把构建时的 APP_ENV 内联为 APP_ENV_AT_BUILD；env-check 直接读 process.env.APP_ENV_AT_BUILD（才会被内联）', () => {
+  assert.match(readFileSync('next.config.ts', 'utf8'), /APP_ENV_AT_BUILD: process\.env\.APP_ENV \?\? ''/);
+  assert.match(readFileSync('src/lib/server/startup/env-check.ts', 'utf8'), /=> process\.env\.APP_ENV_AT_BUILD;/);
 });

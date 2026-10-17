@@ -30,7 +30,8 @@ const nextConfig: NextConfig = {
   // 挂在 /api/health 的追踪上一起复制进 standalone；它用到的 @prisma/client、@node-rs/argon2 应用本身已被追踪。
   outputFileTracingIncludes: { '/api/health': ['./scripts/admin-create.mjs', './scripts/admin-create-lib.mjs'] },
   // #291：未设置时也要内联成常量（空字符串），否则构建产物里留着运行时的 process.env，mock 分支去不掉、mock 数据会被打包
-  env: { NEXT_PUBLIC_ADMIN_API: process.env.NEXT_PUBLIC_ADMIN_API ?? '', NEXT_PUBLIC_ADMIN_MAIL: process.env.NEXT_PUBLIC_ADMIN_MAIL ?? '' },
+  // #323：APP_ENV_AT_BUILD = 构建时的 APP_ENV（未设置为空字符串），启动时和运行时的 APP_ENV 比对（src/lib/server/startup/env-check.ts）
+  env: { NEXT_PUBLIC_ADMIN_API: process.env.NEXT_PUBLIC_ADMIN_API ?? '', NEXT_PUBLIC_ADMIN_MAIL: process.env.NEXT_PUBLIC_ADMIN_MAIL ?? '', APP_ENV_AT_BUILD: process.env.APP_ENV ?? '' },
   images: { formats: ['image/avif', 'image/webp'] },
   // IndexNow 密钥文件 /{key}.txt（Refs #74）。中间件的 matcher 不处理带点的路径，所以不会进多语言路由；
   // 功能关闭或文件名不对时，路由返回 404。
