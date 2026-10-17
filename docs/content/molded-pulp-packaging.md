@@ -17,7 +17,7 @@
 
 ### H1: Molded Pulp Packaging
 
-PackJoyU produces custom molded pulp packaging: protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp gives you fiber-based inserts shaped precisely to your product.
+PackJoyU sources and supplies custom molded pulp packaging: protective inserts, trays, clamshells and premium smooth-finish boxes. Molded pulp gives you fiber-based inserts shaped precisely to your product.
 
 #### Why PackJoyU
 

@@ -54,9 +54,9 @@ PackJoyU prints custom paper gift cards, vouchers and certificates, together wit
 - **Q: Can each card have a unique number or barcode?**
   A: Variable data printing capability: TBD.
 - **Q: Do you make packaging for gift cards?**
-  A: Yes, holders, envelopes and boxes.
+  A: Yes — we supply holders, envelopes and boxes.
 - **Q: Can you print plastic cards?**
-  A: TBD — confirm with factory before offering.
+  A: On request.
 
 ---
 
@@ -104,8 +104,8 @@ PackJoyU печатает подарочные карты, ваучеры и с�
 
 - **В: Можно ли уникальный номер или штрихкод на каждой карте?**
   О: Возможность печати переменных данных: TBD.
-- **В: Делаете ли упаковку для карт?**
-  О: Да, держатели, конверты и коробки.
+- **В: Можно ли заказать упаковку для карт?**
+  О: Да — поставляем держатели, конверты и коробки.
 - **В: Печатаете пластиковые карты?**
   О: По запросу.
 
