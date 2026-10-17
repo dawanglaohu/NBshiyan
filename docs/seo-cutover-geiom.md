@@ -129,6 +129,7 @@ proxy_set_header CF-Connecting-IP $remote_addr;   # 只信任 Cloudflare 来源�
 - `X-Edge-Auth` 由 nginx 注入，会覆盖客户端自己带的同名头。它的值不能出现在日志、仓库和聊天里。
 - `CF-Connecting-IP` 用 `$remote_addr` 显式设置，不读、不透传客户端带来的同名头。只有在「非 Cloudflare 来源 → 444」这条规则保留时，`$remote_addr` 才一定是 Cloudflare 节点，这条规则**不能删**。
 - **以最终 `nginx -t` 通过的文件为准。** 本文不写任何密钥值或源站 IP。
+- nginx 改动只限安全批准的 NBshiyan 站点配置，服务器上其他 nginx 配置一律不动。
 - 上线后自检：
   ```bash
   curl -sI $S/en | grep -ci localhost   # 应为 0，任何响应头里都不能有 localhost
@@ -203,7 +204,7 @@ location ^~ /api/health/ { return 404; }
 ### 2.9 Cloudflare / 爬虫
 
 - [ ] HTML 不被缓存：`curl -sI $S/en | grep -i cf-cache-status` → `DYNAMIC` 或 `BYPASS`，不能是 `HIT`。`/_next/static/*` 可以 `HIT`。
-- [ ] 爬虫不被挑战：Bot Fight Mode / WAF 放行已验证爬虫（Googlebot、YandexBot、bingbot）。以 GSC「网址检查 → 测试实际网址」和 Yandex「Проверка ответа сервера」返回 200 为准，不能只靠改 UA 的 curl。
+- [ ] 爬虫不被挑战：Bot Fight Mode / WAF 放行已验证爬虫（Googlebot、YandexBot、bingbot）。以 GSC「网址检查 → 测试实际网址」和 Yandex「Проверка ответа сервера」返回 200 为准，不能只靠改 UA 的 curl。这两项要等第 4 节的站点验证完成后才能用，所以放在第 4 节验证通过后补做；在那之前先看 Cloudflare Security Events 有没有拦截已验证爬虫。
 
 ## 3. 上线时开放索引的页面（SEO 单独开代码 PR）
 
@@ -224,35 +225,37 @@ location ^~ /api/health/ { return 404; }
 - [ ] 同一个 PR 里把它们加进 `src/lib/seo/sitemapEntries.ts` 的 `STATIC_PAGES`（en/ru 两种语言 = 16 个 URL），并更新文件顶部"不进 sitemap"的注释。noindex 和 sitemap 必须同时改，不能出现"在 sitemap 里但 noindex"。
 - [ ] 前提：这些页面的文案和图片已经不是占位，经 PM / Ryan 确认没有未确认说法。达不到就继续 noindex，不开放。
 - [ ] `/cases` **继续 noindex、不进 sitemap**，等有真实案例（Ryan 确认可公开）后再开。
-- [ ] 合并部署后重跑第 2.3 节，并在 GSC / Yandex 重新提交 sitemap。
+- [ ] 合并部署后重跑第 2.3 节；GSC / Yandex 验证已完成的话重新提交 sitemap，还没验证就等第 4 节做完后一起提交。
 
 以后的两个开关（不属于本次，按 `launch-runbook.md` §5）：隐私页 `PRIVACY_PAGE_COMPLETE`（`src/lib/legal/privacy.ts`）、品类页 `CATEGORY_PAGES_LIVE`（`src/lib/seo/categoryPages.ts`）。打开后都要重新提交 sitemap。
 
-## 4. 需要 Ryan 本人做的步骤
+## 4. 部署成功、验收通过后：需要 Ryan 本人做的步骤
 
-> 🔑 **以下只能由 Ryan 用自己的账号做**，在私聊里进行，不在群里做。机器人**不代 Ryan 登录**、**不保存他的账号或密码**、**不改 DNS**。机器人只负责告诉 Ryan 在哪里点、TXT 记录加在哪个主机名下。验证值由 Ryan 自己登录 GSC / Yandex 获取，私信发给运维，由运维和 `_dmarc` 同一批加 TXT。本文不写任何真实验证值。
+> ⏱ **顺序：** 第 1、2 节全部通过（部署成功、验收通过）以后才做本节。GSC / Yandex 验证**不挡上线**：上线不等验证值，验证值也不跟上线前的任何 DNS 变更一起加。sitemap 提交和「请求编入索引」都在验证通过之后。
+
+> 🔑 **以下只能由 Ryan 用自己的账号做**，在私聊里进行，不在群里做。机器人**不代 Ryan 登录**、**不保存他的账号或密码**、**不改 DNS**。机器人只负责告诉 Ryan 在哪里点、TXT 记录加在哪个主机名下。验证值由 Ryan 在验收通过后自己登录 GSC / Yandex 获取，私信发给运维，由运维作为一次**单独的** DNS 变更加 TXT。本文不写任何真实验证值。
 > DNS 记录只新增、不覆盖已有 TXT（SPF、DKIM、DMARC 等），同一主机名下可以有多条 TXT。
 
 ### 4.1 Google Search Console 🔑
 
 1. Ryan 登录 GSC → 添加资源 → 选「**网域**」→ 填 `geiom.com`（网域资源自动覆盖 https/http、www/裸域）。
-2. GSC 给出一条 TXT 记录（`google-site-verification=…`）。Ryan 把这个值**私信**发给运维，由运维在和 `_dmarc` 同一批 DNS 变更里给 `geiom.com`（`@`）新增这条 TXT（PM 已定）。值不发到群里。
+2. GSC 给出一条 TXT 记录（`google-site-verification=…`）。Ryan 把这个值**私信**发给运维，由运维单独做一次 DNS 变更，给 `geiom.com`（`@`）新增这条 TXT（Ryan 已定）。值不发到群里。
 3. 回 GSC 点验证。**验证通过后不要删这条 TXT**。
-4. 站点地图 → 提交 `https://geiom.com/sitemap.xml`，状态应为「成功」。
-5. 网址检查：`https://geiom.com/en`、`https://geiom.com/ru` → 「测试实际网址」应可编入索引 → 「请求编入索引」。可以再加 `/en/products`、`/ru/products`。
+4. 验证通过后：站点地图 → 提交 `https://geiom.com/sitemap.xml`，状态应为「成功」。
+5. 验证通过后：网址检查：`https://geiom.com/en`、`https://geiom.com/ru` → 「测试实际网址」应可编入索引 → 「请求编入索引」。可以再加 `/en/products`、`/ru/products`。
 
 ### 4.2 Yandex Webmaster 🔑
 
 1. Ryan 登录 Yandex Webmaster → 添加站点 `https://geiom.com`（和 `NEXT_PUBLIC_SITE_URL` 完全一致；Yandex 把 www 和裸域当成两个站，只加裸域）。
-2. 验证方式：**用 DNS TXT**。Yandex 给出 TXT（`yandex-verification: …`），Ryan 私信发给运维，运维在和 `_dmarc` 同一批 DNS 变更里给 `geiom.com` 新增；验证后不要删。
+2. 验证方式：**用 DNS TXT**。Yandex 给出 TXT（`yandex-verification: …`），Ryan 私信发给运维，运维单独做一次 DNS 变更给 `geiom.com` 新增；验证后不要删。
    - 代码也支持 meta 方式：`NEXT_PUBLIC_YANDEX_VERIFICATION` → `src/app/[locale]/layout.tsx` 的 `verification.yandex`，输出 `<meta name="yandex-verification">`。但它只在 `/en`、`/ru` 页面上；根路径 `/` 是 307 跳转，而 Yandex 的 meta 验证查首页、首页有跳转会失败（见 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §2 第 5 条）。另外改值要重新构建。所以首选 DNS TXT。
 3. 站点地区（可选）：按 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4 决定，不要为了审核虚构俄罗斯地址。
-4. Индексирование → Файлы Sitemap → 添加 `https://geiom.com/sitemap.xml`。
-5. 可选：Переобход страниц 提交 `/ru`、`/en`。
+4. 验证通过后：Индексирование → Файлы Sitemap → 添加 `https://geiom.com/sitemap.xml`。
+5. 验证通过后（可选）：Переобход страниц 提交 `/ru`、`/en`。
 
 ### 4.3 Bing Webmaster（可选）🔑
 
-- Ryan 登录 Bing Webmaster Tools →「从 Google Search Console 导入」，导入后自动验证，sitemap 一起导入，不需要额外 DNS 记录。
+- GSC 验证通过后，Ryan 登录 Bing Webmaster Tools →「从 Google Search Console 导入」，导入后自动验证，sitemap 一起导入，不需要额外 DNS 记录。
 - 代码也支持 `NEXT_PUBLIC_BING_VERIFICATION`（`msvalidate.01` meta），一般用不到。
 
 ### 4.4 IndexNow（不需要 Ryan 登录）
@@ -264,6 +267,7 @@ location ^~ /api/health/ { return 404; }
 ## 5. 上线后 1–7 天观察
 
 - [ ] **第 0 天（上线后 2 小时内）**：第 2 节全部重跑；Cloudflare Security Events 看有没有 Googlebot / YandexBot 被拦；容器日志看 5xx 和 `[indexnow]`。
+- [ ] **验收通过后**：Ryan 按第 4 节取 GSC / Yandex 验证值 → 运维单独加 TXT → 验证通过 → 提交 sitemap、请求编入索引 → 补做第 2.9 节的 GSC / Yandex 爬虫实测。下面 GSC / Yandex 的观察项从验证通过那天开始算。
 - [ ] **每天，GSC**：「网页 / 编入索引」里已编入和未编入的原因，重点看「软 404」「已抓取但未编入索引」「重复网页，用户未选定规范网页」「被 noindex 排除」（noindex 只应出现在 solutions/factory/cases/privacy/s 这类页面）；「站点地图」已读取、发现的 URL 数和 sitemap 实际条数一致；「抓取统计」里 404、5xx、主机问题。
 - [ ] **Core Web Vitals**：新站数据要几周才有；前 7 天先看 GSC「核心网页指标」有没有数据，没有就以 Lighthouse 为准。
 - [ ] **Yandex**：「Страницы в поиске」收录数和被剔除原因、「Диагностика」、「Статистика обхода」里的 404 / 不可达、sitemap 处理状态。
@@ -319,4 +323,4 @@ location ^~ /api/health/ { return 404; }
 
 无。
 
-已定：www / http 301 由 nginx 做（第 0、2.5 节）；转发头按安全批准的新版 nginx（第 2.4 节，以最终 `nginx -t` 的文件为准）；`/api/health` 对外 404（第 2.8 节）；`Link` 响应头已用 `alternateLinks: false` 关掉（第 2.4 节）；GSC / Yandex TXT 由 Ryan 取值、私信运维、和 `_dmarc` 同批添加（第 4 节）。
+已定：www / http 301 由 nginx 做（第 0、2.5 节）；转发头按安全批准的新版 nginx（第 2.4 节，以最终 `nginx -t` 的文件为准）；`/api/health` 对外 404（第 2.8 节）；`Link` 响应头已用 `alternateLinks: false` 关掉（第 2.4 节）；GSC / Yandex 验证在部署成功、验收通过后做，不挡上线：Ryan 取值、私信运维，运维单独做一次 DNS 变更加 TXT（第 4 节）。
