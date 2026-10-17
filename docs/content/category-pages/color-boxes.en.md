@@ -4,7 +4,7 @@
 # Custom Printed Boxes
 
 ## Intro
-PackJoyU makes custom printed folding cartons for retail products. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom printed folding cartons for retail products. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Cosmetics and personal care

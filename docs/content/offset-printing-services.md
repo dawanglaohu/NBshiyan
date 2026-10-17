@@ -17,7 +17,7 @@
 
 ### H1: Offset Printing Services
 
-PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, labels and other printed materials. Offset printing delivers sharp detail and consistent color across large runs, and with finishing options such as lamination, foil, die-cutting and binding, we take your project from press to packed cartons.
+PackJoyU arranges high-volume offset printing for boxes, catalogs, brochures, labels and other printed materials. Offset printing delivers sharp detail and consistent color across large runs, and with finishing options such as lamination, foil, die-cutting and binding, we coordinate your project from press to packed cartons.
 
 #### Why PackJoyU
 
@@ -54,7 +54,7 @@ PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, la
 - **Q: When is offset better than digital?**
   A: Typically for larger runs and strict color; break-even quantity TBD.
 - **Q: Can you print catalogs in Russian?**
-  A: Yes, we print from your supplied files in any language.
+  A: Yes, catalogs can be printed from your supplied files in any language.
 - **Q: Do you check files before printing?**
   A: Yes, prepress check and proof before the run.
 
@@ -66,7 +66,7 @@ PackJoyU provides high-volume offset printing for boxes, catalogs, brochures, la
 
 ### H1: Офсетная печать упаковки
 
-PackJoyU выполняет офсетную печать больших тиражей: коробки, каталоги, буклеты, этикетки и другая полиграфия. Офсет обеспечивает чёткую детализацию и стабильный цвет на больших тиражах, а благодаря постпечатной обработке — ламинации, фольге, высечке и переплёту — мы ведём проект от печати до упакованных коробов.
+PackJoyU организует офсетную печать больших тиражей: коробки, каталоги, буклеты, этикетки и другая полиграфия. Офсет обеспечивает чёткую детализацию и стабильный цвет на больших тиражах, а благодаря постпечатной обработке — ламинации, фольге, высечке и переплёту — мы сопровождаем проект от печати до упакованных коробов.
 
 #### Почему PackJoyU
 
@@ -105,7 +105,7 @@ PackJoyU выполняет офсетную печать больших тир�
 - **В: Когда офсет выгоднее цифры?**
   О: Обычно на больших тиражах и при строгих требованиях к цвету; точка окупаемости — TBD.
 - **В: Печатаете каталоги на русском?**
-  О: Да, печатаем по вашим файлам на любом языке.
+  О: Да, возможна печать по вашим файлам на любом языке.
 - **В: Проверяете файлы перед печатью?**
   О: Да, препресс-проверка и проба до тиража.
 

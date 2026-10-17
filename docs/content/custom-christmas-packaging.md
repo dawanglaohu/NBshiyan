@@ -17,7 +17,7 @@
 
 ### H1: Custom Christmas Packaging
 
-PackJoyU produces custom Christmas and holiday packaging for retailers, confectionery, cosmetics and corporate gifting: gift boxes, advent calendars, seasonal sleeves, bags and themed printed products. Holiday packaging is time-critical, so we help you plan structure, artwork and production early to arrive on shelf before the season starts.
+PackJoyU sources and supplies custom Christmas and holiday packaging for retailers, confectionery, cosmetics and corporate gifting: gift boxes, advent calendars, seasonal sleeves, bags and themed printed products. Holiday packaging is time-critical, so we help you plan structure, artwork and production early to arrive on shelf before the season starts.
 
 #### Why PackJoyU
 

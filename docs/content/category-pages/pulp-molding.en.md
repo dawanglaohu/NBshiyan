@@ -4,7 +4,7 @@
 # Molded Pulp Packaging
 
 ## Intro
-PackJoyU makes molded pulp trays, inserts and boxes shaped to your product. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies molded pulp trays, inserts and boxes shaped to your product. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Protective inserts for electronics

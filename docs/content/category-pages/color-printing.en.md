@@ -4,7 +4,7 @@
 # Packaging Printing
 
 ## Intro
-PackJoyU makes colour printing for packaging, labels and printed inserts. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU arranges colour printing for packaging, labels and printed inserts. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Printed packaging and sleeves

@@ -4,7 +4,7 @@
 # Custom Paper Cups
 
 ## Intro
-PackJoyU makes custom printed paper cups for coffee shops, events and brands. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom printed paper cups for coffee shops, events and brands. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Coffee shops and takeaway

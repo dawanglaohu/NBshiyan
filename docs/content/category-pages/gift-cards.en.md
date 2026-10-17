@@ -6,7 +6,7 @@
 # Custom Gift Cards
 
 ## Intro
-PackJoyU makes printed cards for brands (product type: {{待Ryan确认}}). Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies printed cards for brands (product type: {{待Ryan确认}}). Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Retail gift card packs

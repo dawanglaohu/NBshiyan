@@ -4,7 +4,7 @@
 # Custom Corrugated Boxes
 
 ## Intro
-PackJoyU makes custom corrugated boxes for shipping, e-commerce and retail. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom corrugated boxes for shipping, e-commerce and retail. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - E-commerce mailer boxes

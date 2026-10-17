@@ -56,7 +56,7 @@ PackJoyU makes rigid gift boxes for brands that want packaging customers keep: m
 - **Q: Can you make inserts for multiple items?**
   A: Yes, inserts are cut to your products. Send samples or dimensions.
 - **Q: Do you offer corporate gift box sets?**
-  A: Yes, we produce branded sets for corporate gifting programs.
+  A: Yes, we supply branded sets for corporate gifting programs.
 
 ---
 

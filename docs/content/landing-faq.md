@@ -601,7 +601,7 @@ Offset is usually more cost-effective for larger runs and gives consistent color
 
 <details id="faq-offset-printing-en-2"><summary>What can you print with offset?</summary>
 
-Typical items are boxes, catalogs, booklets and labels. What we print for your project: {{待Ryan确认}}.
+Typical items are boxes, catalogs, booklets and labels. What can be printed for your project: {{待Ryan确认}}.
 
 </details>
 
@@ -634,7 +634,7 @@ Production lead time: {{待Ryan确认}}, confirmed in your quote after artwork a
 
 <details id="faq-offset-printing-ru-2"><summary>Что можно напечатать офсетом?</summary>
 
-Обычно это коробки, каталоги, буклеты и этикетки. Что печатаем для вашего проекта — {{待Ryan确认}}.
+Обычно это коробки, каталоги, буклеты и этикетки. Что можно напечатать для вашего проекта — {{待Ryan确认}}.
 
 </details>
 
@@ -735,7 +735,7 @@ Our MOQ is {{待Ryan确认}}.
 
 <details id="faq-gift-cards-en-1"><summary>Do you print paper gift cards, plastic cards or greeting cards?</summary>
 
-Card types we print: {{待Ryan确认}}. (Wording "gift cards" vs "greeting cards" is pending Ryan, see #218 F16.)
+Card types that can be printed: {{待Ryan确认}}. (Wording "gift cards" vs "greeting cards" is pending Ryan, see #218 F16.)
 
 </details>
 

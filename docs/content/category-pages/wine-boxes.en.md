@@ -4,7 +4,7 @@
 # Custom Wine Boxes
 
 ## Intro
-PackJoyU makes custom wine boxes for wineries, importers and gift sets. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom wine boxes for wineries, importers and gift sets. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Single-bottle gift boxes

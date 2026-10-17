@@ -4,7 +4,7 @@
 # Custom Party Supplies
 
 ## Intro
-PackJoyU makes custom printed paper party supplies for retailers and event brands. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom printed paper party supplies for retailers and event brands. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Birthday and themed party sets
