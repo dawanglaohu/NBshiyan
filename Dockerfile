@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
 # PackJoyU / NBshiyan self-host image (Refs #74, deploy plan §11 v1.6).
 # Build:  see deploy/README.md. The build context is a clean checkout of a merged commit (never a dirty tree).
 #
