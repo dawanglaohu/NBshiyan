@@ -30,6 +30,7 @@ function inquiryDb(inqs: Inq[], logos: { id: string; path: string; inquiryId: st
     inquiryItem: { updateMany: async () => ({ count: 0 }), findMany: async () => [], update: async () => ({}) },
     inquiryNote: { updateMany: async () => ({ count: 0 }) },
     inquiryMessage: { updateMany: async () => ({ count: 0 }) },
+    mailMessage: { updateMany: async () => ({ count: 0 }), update: async () => ({}), findMany: async () => [], deleteMany: async () => ({ count: 0 }) },
     sampleRequest: { updateMany: async () => ({ count: 0 }) },
     logoUpload: {
       findMany: async (a: any) => logos.filter((l) => a.where.inquiryId.in.includes(l.inquiryId)).map(({ id, path }) => ({ id, path })),

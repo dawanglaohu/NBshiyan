@@ -157,9 +157,9 @@
 安全：
 - 所有变量 HTML 转义（含 `{ }`，单次替换，用户输入里的 `{{x}}` 不会被展开）；文本版去掉控制字符和双向控制符；主题、收件人、Reply-To 去掉 `\r\n` 并校验为单个地址。
 - 客户确认邮件主题只含编号，不回显留言；通知邮件也不含留言正文，只给后台链接 `{siteUrl}/admin/inquiries/{内部 id}`（只用环境变量里的站点地址，不取请求 Host，不带 token，正常登录后台）。
-- `RESEND_API_KEY` 只从环境变量读，建议用 Resend 的 Sending access key；请求只发往 `https://api.resend.com/emails`。
+- 发信走 Gmail SMTP（#74 §16，nodemailer）：`SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` 只从环境变量读；只允许 465（隐式 TLS）或 587（STARTTLS 强制），证书校验始终开启，nodemailer 日志关闭。
 - 自动回复：限流 key、咨询锁、数据库 24 小时判断都用规范化邮箱（小写、去 +后缀、Gmail 去点），同一人 24 小时 1 封；另加每 IP 24 小时 5 次。
-- 告警邮件只含错误类型和错误码（如 `ResendError` / `RESEND_503`），不含错误 message。
+- 告警邮件只含错误类型和错误码（如 `SmtpError` / `SMTP_535`），不含错误 message、SMTP 原始响应或凭据。
 - 发信失败不影响询盘提交：记日志并发后台告警。
 
 ## 存储与限流（部署配置）
