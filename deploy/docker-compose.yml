@@ -1,0 +1,181 @@
+# PackJoyU / NBshiyan self-host stack (Refs #74, deploy plan §11 v1.6). See deploy/README.md.
+#
+# Run ONLY like this (explicit --env-file, so compose never auto-reads an app .env for interpolation):
+#   docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file "$NBSHIYAN_COMPOSE_ENV" up -d
+# The compose env file holds only non-secret settings: NBSHIYAN_DATA_DIR, NBSHIYAN_APP_ENV_FILE, APP_TAG, MIGRATE_TAG.
+# Do NOT run `docker compose config`: it expands env_file and would print secrets.
+#
+# Isolation: own project name, own networks, own bind-mounted dirs under ${NBSHIYAN_DATA_DIR}.
+# The only published port is 127.0.0.1:3000 (consumed by the host's existing reverse proxy).
+# Memory caps (worst case ≈ 1.5 GiB; measured app RSS ≈ 165 MB idle):
+#   app 768m | postgres 384m | redis 96m | srh 192m | srh-tls 32m
+name: nbshiyan
+
+x-hardening: &hardening
+  read_only: true
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: ["ALL"]
+  restart: unless-stopped
+  labels: { com.nbshiyan.stack: "nbshiyan" }
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  app:
+    <<: *hardening
+    image: nbshiyan-app:${APP_TAG:?APP_TAG (git sha) is required}
+    user: "1001:1001"
+    # All secrets come only from this file at runtime (root:root 600 on the host). Overridable; no default secrets.
+    env_file:
+      - ${NBSHIYAN_APP_ENV_FILE:?NBSHIYAN_APP_ENV_FILE is required}
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=512
+      STORAGE_DRIVER: local                          # Ryan's decision: local storage (fix/deploy-readiness allows it)
+      UPLOAD_DIR: /data/uploads                      # absolute; the only writable bind mount; checked writable at start
+      NODE_EXTRA_CA_CERTS: /run/nbshiyan-ca/ca.crt   # trust the internal CA of srh-tls
+    ports:
+      - "127.0.0.1:3000:3000"
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /app/.next:size=256m,uid=1001,gid=1001,mode=0700
+    volumes:
+      - ${NBSHIYAN_DATA_DIR:?}/uploads:/data/uploads:rw      # host dir 750, owner 1001:1001; everything else is read_only
+      - ${NBSHIYAN_DATA_DIR:?}/internal-tls/ca.crt:/run/nbshiyan-ca/ca.crt:ro
+    networks: [edge, backend]
+    depends_on:
+      postgres: { condition: service_healthy }
+      srh-tls: { condition: service_started }
+    mem_limit: 768m
+    memswap_limit: 768m
+    cpus: 1.5
+    pids_limit: 256
+    healthcheck:
+      # /api/health returns only {"ok":true}. TEMPORARY: falls back to /robots.txt on 404 until fix/deploy-readiness is merged.
+      test: ["CMD", "node", "-e", "const b='http://127.0.0.1:3000';fetch(b+'/api/health').then(r=>r.status===404?fetch(b+'/robots.txt'):r).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+
+  postgres:
+    <<: *hardening
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    # The entrypoint starts as root, fixes ownership, then drops to uid 70. That needs exactly these caps:
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETUID, SETGID]
+    environment:
+      POSTGRES_DB: nbshiyan
+      POSTGRES_USER: nbshiyan
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    command: >-
+      postgres -c shared_buffers=64MB -c effective_cache_size=192MB -c work_mem=4MB
+      -c maintenance_work_mem=32MB -c max_connections=30
+      -c max_wal_size=256MB -c min_wal_size=64MB -c wal_keep_size=0
+      -c log_min_duration_statement=2000
+    secrets: [pg_password]
+    tmpfs:
+      - /tmp:size=32m
+      - /var/run/postgresql:size=1m,uid=70,gid=70
+    volumes:
+      - ${NBSHIYAN_DATA_DIR:?}/pgdata:/var/lib/postgresql/data      # host dir mode 700
+    networks: [backend]          # internal only. NO `ports:` — never add one.
+    shm_size: 64m
+    mem_limit: 384m
+    memswap_limit: 384m
+    pids_limit: 128
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nbshiyan -d nbshiyan -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    <<: *hardening
+    image: redis:7.4-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+    user: "999:1000"
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      # requirepass + maxmemory 48mb + allkeys-lru + no persistence; generated on the host (640 root:1000)
+      - ${NBSHIYAN_DATA_DIR:?}/secrets/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    tmpfs: ["/data:size=8m,uid=999,gid=1000"]
+    networks: [backend]
+    mem_limit: 96m
+    memswap_limit: 96m
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$(sed -n 's/^requirepass //p' /usr/local/etc/redis/redis.conf)\" redis-cli ping | grep -q PONG"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+  # SHORT-TERM (approved): Upstash-compatible REST proxy; the app only speaks Upstash REST (POST {url}/pipeline, Bearer).
+  # SRH_TOKEN and redis requirepass are separate random values. LONG-TERM: backend TCP Redis store PR → remove srh + srh-tls.
+  srh:
+    <<: *hardening
+    image: hiett/serverless-redis-http:0.0.10@sha256:65128347949bca511e448fd7238780d624573d74c22b79155a7563db19e9b678
+    env_file:
+      - ${NBSHIYAN_DATA_DIR:?}/secrets/srh.env       # SRH_MODE=env, SRH_TOKEN, SRH_CONNECTION_STRING (600)
+    tmpfs: ["/tmp:size=16m"]
+    networks: [backend]
+    depends_on:
+      redis: { condition: service_healthy }
+    mem_limit: 192m
+    memswap_limit: 192m
+    pids_limit: 128
+
+  # TLS in front of SRH. prod-env-check, ratelimit/index.ts and seo/indexnow.ts all require an https:// UPSTASH URL.
+  # The cert is signed by a private CA generated on the host (SAN DNS:redis-rest); only the app trusts that CA.
+  # Remove this and srh once a TCP redis store lands in the backend (see plan §11.4).
+  srh-tls:
+    <<: *hardening
+    image: nginxinc/nginx-unprivileged:1.27-alpine@sha256:65e3e85dbaed8ba248841d9d58a899b6197106c23cb0ff1a132b7bfe0547e4c0
+    volumes:
+      - ./srh-tls/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${NBSHIYAN_DATA_DIR:?}/internal-tls/redis-rest.crt:/etc/nginx/tls/tls.crt:ro
+      - ${NBSHIYAN_DATA_DIR:?}/internal-tls/redis-rest.key:/etc/nginx/tls/tls.key:ro   # 640 root:101
+    tmpfs: ["/tmp:size=8m"]
+    networks:
+      backend:
+        aliases: [redis-rest]
+    depends_on: [srh]
+    mem_limit: 32m
+    memswap_limit: 32m
+    pids_limit: 32
+
+  # One-off schema tool: prisma 6.19.3 CLI + prisma/schema.prisma only. Not started by `up`.
+  # deploy.sh runs it in order: diff --script (destructive check) → db push --skip-generate → diff --exit-code.
+  # Why deploy.sh ordering instead of `app.depends_on: migrate: service_completed_successfully`: a dependency in an
+  # inactive profile is either an error or gets auto-started depending on the compose version, and the review gate
+  # (stop when the diff is destructive) sits BETWEEN two migrate runs, which depends_on cannot express.
+  migrate:
+    image: nbshiyan-migrate:${MIGRATE_TAG:-${APP_TAG:?}}
+    profiles: ["tools"]
+    user: "1001:1001"
+    read_only: true
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    labels: { com.nbshiyan.stack: "nbshiyan" }
+    env_file:
+      - ${NBSHIYAN_DATA_DIR:?}/secrets/migrate.env   # DATABASE_URL only (600); never on argv, never printed
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    networks: [backend]
+    depends_on:
+      postgres: { condition: service_healthy }
+    mem_limit: 384m
+    pids_limit: 64
+
+networks:
+  edge:                  # published 127.0.0.1:3000 + egress (Turnstile / R2 / mail / Sanity / IndexNow)
+    driver: bridge
+    labels: { com.nbshiyan.stack: "nbshiyan" }
+  backend:               # no egress, nothing published
+    driver: bridge
+    internal: true
+    labels: { com.nbshiyan.stack: "nbshiyan" }
+
+secrets:
+  pg_password:
+    file: ${NBSHIYAN_DATA_DIR:?}/secrets/pg_password   # 400, owner uid 70
