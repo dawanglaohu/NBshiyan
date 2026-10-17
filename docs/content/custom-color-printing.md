@@ -7,7 +7,7 @@
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Packaging Printing Services | PackJoyU | Печать упаковки на заказ — полноцвет | PackJoyU |
+| title | Packaging Printing Services | PackJoyU | Полноцветная печать упаковки на заказ | PackJoyU |
 | description | Full-color CMYK and Pantone printing for packaging, labels and inserts on paper and board. Accurate color matching and fast proofs. Request a quote. | Полноцветная печать упаковки, этикеток и вкладышей на бумаге и картоне. Точная цветопередача CMYK и Pantone, быстрые пробы для брендов. Запросите расчёт. |
 | keyword | packaging printing | печать упаковки |
 
