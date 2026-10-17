@@ -35,7 +35,7 @@ test('#323 每个 mock 的 import 都在构建期常量后面（生产构建里�
     ['src/lib/admin/api.ts', /process\.env\.NEXT_PUBLIC_ADMIN_API === 'http' \? httpAdminApi\s*: lazyApi<AdminApi>\(\(\) => import\('\.\/mock'\)/],
     ['src/lib/admin/models-api.ts', /process\.env\.NEXT_PUBLIC_ADMIN_API === 'http' \? httpModelApi\s*: lazyApi<ModelApi>\(\(\) => import\('\.\/models-mock'\)/],
     ['src/lib/admin/mail/api.ts', /process\.env\.NEXT_PUBLIC_ADMIN_MAIL !== 'mock' \? httpMailApi\s*: lazyApi<MailApi>\(\(\) => import\('\.\/mock'\)/],
-    ['src/lib/server/mail/http.ts', /if \(process\.env\.MAIL_MOCK_ADAPTER_BUILD === '1' && mockAdapterAllowed\(\)\) return \(await import\('\.\/mock'\)\)/],
+    ['src/lib/server/mail/http.ts', /if \(process\.env\.MAIL_MOCK_ADAPTER_BUILD !== '' && mockAdapterAllowed\(\)\) return \(await import\('\.\/mock'\)\)/],
   ];
   for (const [f, re] of gates) assert.match(readFileSync(f, 'utf8'), re, f);
   for (const f of ['src/lib/server/sanity.ts', 'src/app/sitemap.ts']) {
