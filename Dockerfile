@@ -85,9 +85,13 @@ ARG PRISMA_VERSION=6.19.3
 WORKDIR /opt/migrate
 RUN npm install --no-audit --no-fund --no-save "prisma@${PRISMA_VERSION}" \
  && npx --no-install prisma version >/dev/null
-COPY --from=builder /app/prisma/schema.prisma ./prisma/schema.prisma
+# --chmod=644: COPY keeps the source mode, and a checkout made under umask 077 left it root-only 600 (migrate EACCES).
+COPY --from=builder --chmod=644 /app/prisma/schema.prisma ./prisma/schema.prisma
 USER 1001:1001
 ENV HOME=/tmp CHECKPOINT_DISABLE=1 PRISMA_HIDE_UPDATE_MESSAGE=1
+# Fail the build unless the runtime uid can read the schema and the prisma CLI (GNU find -readable = real access check).
+RUN bad=$(find /opt/migrate \( ! -readable -o \( -type d ! -executable \) \) -print 2>&1 | head -n 20) \
+ && if [ -n "$bad" ]; then echo "not readable by uid 1001:"; echo "$bad"; exit 1; fi
 ENTRYPOINT ["/usr/bin/tini", "--", "npx", "--no-install", "prisma"]
 CMD ["--help"]
 
@@ -118,6 +122,13 @@ LABEL org.opencontainers.image.source="https://github.com/dawanglaohu/NBshiyan" 
       org.opencontainers.image.revision="${GIT_SHA}" \
       com.nbshiyan.component="app"
 USER 1001:1001
+# Everything uid 1001 needs must be readable by it: standalone server + traced files, .next-dist (copied into the tmpfs
+# .next at start), .next/static, public/ (images, posters, .glb models, draco/basis decoders, fonts). Checked AS uid 1001
+# (GNU find -readable). /data/uploads must be owned by 1001 and writable (the host dir mounted over it is 700 1001:1001).
+RUN [ "$(id -u)" = 1001 ] && [ "$(stat -c %u /data/uploads)" = 1001 ] && [ -w /data/uploads ] \
+ && bad=$(find /app /usr/local/bin/nbshiyan-entrypoint -path /app/.next -prune -o \
+          \( ! -readable -o \( -type d ! -executable \) \) -print 2>&1 | head -n 20) \
+ && if [ -n "$bad" ]; then echo "not readable by uid 1001:"; echo "$bad"; exit 1; fi
 EXPOSE 3000
 # /api/health (PR #321): 200 {"ok":true} only if the DB answers SELECT 1 within 1.5 s, else 503 {"ok":false}; 429 above
 # 120/min per client (in-process limiter). In-container use only: nginx returns 404 for it externally. No fallback.
