@@ -173,8 +173,10 @@ trap 'rm -f "$pat"; rm -rf "$scan"; stop_builder' EXIT
 for img in "nbshiyan-app:$SHORT" "nbshiyan-migrate:$SHORT"; do
   rm -rf "${scan:?}"/*; cid=$(docker create "$img")
   docker export "$cid" | tar -x -C "$scan" --exclude='proc/*' --exclude='sys/*' --exclude='dev/*'; docker rm -f "$cid" >/dev/null
-  hits=0; [ -s "$pat" ] && hits=$(grep -rFla -f "$pat" "$scan" 2>/dev/null | wc -l)
-  keyfiles=$(find "$scan/app" "$scan/opt" \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) ! -name '.env.example' 2>/dev/null | wc -l)
+  # pipefail + errexit: grep exits 1 on ZERO hits (the good case) and find exits 1 if a dir is missing; without the
+  # `|| true` inside the pipeline the assignment fails and the script stops silently right after the build.
+  hits=0; if [ -s "$pat" ]; then hits=$( { grep -rFla -f "$pat" "$scan" 2>/dev/null || true; } | wc -l); fi
+  keyfiles=$( { find "$scan/app" "$scan/opt" \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) ! -name '.env.example' 2>/dev/null || true; } | wc -l)
   log "fs scan $img: $(wc -l < "$pat") secret values, hits=$hits, env/key files=$keyfiles"
   (( hits == 0 && keyfiles == 0 )) || leak=1
 done

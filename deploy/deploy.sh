@@ -102,7 +102,8 @@ post_checks() {
   ss -lntH | awk '{print $4}' | grep -qE '(:|\.)5432$' && { log "FAIL something listens on 5432 on the host"; ok=0; }
   ss -lntH | awk '{print $4}' | grep -qE '(:|\.)6379$' && { log "WARN 6379 listening on host (not ours unless published)"; }
   ss -lntH | awk '{print $4}' | grep -E ':3000$' | grep -vqE '^127\.0\.0\.1:3000$' && { log "FAIL 3000 bound beyond 127.0.0.1"; ok=0; }
-  dc ps --format '{{.Service}} {{.Publishers}}' | grep -vE '^app ' | grep -q '[0-9]->' && { log "FAIL a non-app service publishes a port"; ok=0; }
+  # {{.Ports}} renders "127.0.0.1:3000->3000/tcp"; {{.Publishers}} renders Go structs without "->", so the old check never fired.
+  dc ps --format '{{.Service}} {{.Ports}}' | grep -vE '^app ' | grep -q -- '->' && { log "FAIL a non-app service publishes a port"; ok=0; }
   h=$(curl -s http://127.0.0.1:3000/api/health); [ "$h" = '{"ok":true}' ] || { log "FAIL /api/health body is not {\"ok\":true}"; ok=0; }
   # effective HOSTNAME inside the running app (compose wins over env_file); 127.0.0.1 leaks localhost via x-middleware-rewrite
   dc exec -T app node -e 'process.exit(process.env.HOSTNAME==="0.0.0.0"?0:1)' 2>/dev/null || { log "FAIL app HOSTNAME is not 0.0.0.0"; ok=0; }
