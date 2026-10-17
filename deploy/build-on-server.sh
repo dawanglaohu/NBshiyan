@@ -130,7 +130,11 @@ docker buildx inspect --bootstrap "$BUILDER" >/dev/null
 # The running BuildKit must really have the mirrors (buildx re-serializes the toml, so check content, not the file hash).
 BK_CTR="buildx_buildkit_${BUILDER}0"
 bk_toml=$(docker exec "$BK_CTR" cat /etc/buildkit/buildkitd.toml 2>/dev/null) || die "cannot read buildkitd.toml in $BK_CTR"
-for m in "${BUILDKITD_MIRRORS[@]}"; do grep -qF "\"$m\"" <<<"$bk_toml" || die "builder config lacks docker.io mirror $m"; done
+# buildx (v0.34) writes TOML with single quotes ([registry.'docker.io'], mirrors = ['a', ...]); accept either quote style.
+grep -qE "^[[:space:]]*\[registry\.[\"']docker\.io[\"']\][[:space:]]*$" <<<"$bk_toml" || die "builder config lacks the [registry.docker.io] section"
+for m in "${BUILDKITD_MIRRORS[@]}"; do
+  grep -qE "^[[:space:]]*mirrors[[:space:]]*=.*[\"']${m//./\\.}[\"']" <<<"$bk_toml" || die "builder config lacks docker.io mirror $m"
+done
 log "builder ok: $BUILDER with docker.io mirrors (${#BUILDKITD_MIRRORS[@]})"
 
 # ---------- 5. build (runner + migrate), tagged by SHA ----------

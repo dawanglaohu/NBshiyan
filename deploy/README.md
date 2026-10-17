@@ -40,7 +40,8 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 - If the builder exists but was created with no or another config (no marker / different sha256), the script runs
   `docker buildx rm nbshiyan-builder` (**only this builder**, its cache goes with it) and recreates it. Nothing else is removed.
 - After bootstrap it reads `/etc/buildkit/buildkitd.toml` inside `buildx_buildkit_nbshiyan-builder0` and aborts unless all
-  three mirrors are there (content check; buildx re-serializes the toml, so the hash would differ).
+  three mirrors are there (content check; buildx re-serializes the toml with single quotes, e.g.
+  `[registry.'docker.io']` / `mirrors = ['docker.1ms.run', …]`, so the hash would differ; both quote styles are accepted).
 - The builder is stopped (`docker buildx stop nbshiyan-builder`) after every run, successful or not, so it holds no memory
   between builds. The next build restarts it; the cache (capped at `CACHE_KEEP`) is kept.
 
