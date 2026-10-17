@@ -92,7 +92,7 @@ Yes, you can approve a digital proof first, then a physical sample. Sample fee: 
 
 <details id="faq-corrugated-boxes-ru-5"><summary>Можно ли получить образец до заказа тиража?</summary>
 
-Да, сначала вы согласуете цифровую пробу, затем физический образец. Стоимость образца — {{待Ryan确认}}.
+Да, сначала вы согласуете цифровую пробу, затем — физический образец. Стоимость образца — {{待Ryan确认}}.
 
 </details>
 

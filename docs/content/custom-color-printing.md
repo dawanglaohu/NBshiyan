@@ -17,7 +17,7 @@
 
 ### H1: Packaging Printing Services
 
-PackJoyU offers full-color printing for packaging, labels, inserts and printed paper products. We print CMYK and Pantone spot colors on paper and board with careful color management and proofing, so your brand colors stay consistent across boxes, labels and marketing materials — and across repeat orders.
+PackJoyU arranges full-color printing for packaging, labels, inserts and printed paper products, printed to your design in CMYK and Pantone spot colors on paper and board with careful color management and proofing, so your brand colors stay consistent across boxes, labels and marketing materials — and across repeat orders.
 
 #### Why PackJoyU
 
@@ -66,13 +66,13 @@ PackJoyU offers full-color printing for packaging, labels, inserts and printed p
 
 ### H1: Печать упаковки на заказ
 
-PackJoyU выполняет полноцветную печать упаковки, этикеток, вкладышей и бумажной продукции. Печатаем CMYK и пантонами на бумаге и картоне с контролем цвета и цветопробой, чтобы фирменные цвета совпадали на коробках, этикетках и маркетинговых материалах — и от тиража к тиражу.
+PackJoyU организует полноцветную печать упаковки, этикеток, вкладышей и бумажной продукции по вашему макету. Печать в CMYK и пантонах на бумаге и картоне выполняется с контролем цвета и цветопробой, чтобы фирменные цвета совпадали на коробках, этикетках и маркетинговых материалах — и от тиража к тиражу.
 
 #### Почему PackJoyU
 
 - **Точный цвет** — CMYK и пантоны с цветопробой до тиража.
 - **Один поставщик** — Коробки, этикетки, вкладыши и листовки в одном цвете.
-- **Постпечатная обработка** — Лак, ламинация, фольга, высечка.
+- **Постпечатная обработка** — лак, ламинация, фольга, высечка.
 - **Отгрузка** — Упаковка и документы для вашей поставки.
 
 #### Характеристики и опции
