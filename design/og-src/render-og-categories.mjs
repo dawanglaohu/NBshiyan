@@ -6,10 +6,11 @@ import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import { tag } from './og-tagline.mjs';
 import { resolvePoster } from './og-assets.mjs';
+import { writeOgVersions } from './og-versions.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const R=process.cwd(), ts=fs.readFileSync(R+'/src/lib/seo/categoryMeta.ts','utf8');
 const cats=[...ts.matchAll(/key: '([\w-]+)',\s*en: \{ slug: '([\w-]+)'.*?ru: \{ slug: '([\w-]+)'/gs)].map(m=>({key:m[1],en:m[2],ru:m[3]}));
-if(cats.length!==12) throw new Error('expected 12 categories, got '+cats.length);
+if(cats.length!==11) throw new Error('expected 11 categories (eco-paper-cups removed, #296), got '+cats.length);
 // #188 H1s (EN / RU)
 const H1={'corrugated-boxes':['Custom Corrugated Boxes','Гофрокороба на заказ'],'color-boxes':['Custom Printed Boxes','Картонные коробки с печатью на заказ'],
 'gift-boxes':['Custom Gift Boxes','Подарочные коробки на заказ'],'pulp-molding':['Molded Pulp Packaging','Упаковка из формованной целлюлозы'],
@@ -52,3 +53,4 @@ for(const j of jobs){await pg.setContent(page(j));await pg.evaluate(()=>document
   let q=88,buf;do{buf=await pg.screenshot({type:'jpeg',quality:q});q-=6}while(buf.length>100*1024&&q>40);
   fs.writeFileSync(`${R}/public/og/${j.file}`,buf);out.push([j.file,j.title,buf.length,q+6,ok,font]);}
 await b.close();console.log(out.map(o=>o.join(' | ')).join('\n'));
+writeOgVersions(R);

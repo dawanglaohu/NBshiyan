@@ -1,7 +1,7 @@
 {
   "Meta": {
     "title": "Custom Packaging Supplier: Boxes & Cups | PackJoyU",
-    "description": "PackJoyU makes custom corrugated boxes, gift and wine boxes, molded pulp, custom paper cups, printed packaging for brands in North America, Europe and Australia.",
+    "description": "PackJoyU supplies custom corrugated boxes, gift and wine boxes, molded pulp, paper cups and printed packaging for brands in North America, Europe and Australia.",
     "home": "Home",
     "ogImageAlt": "PackJoyU custom packaging: boxes, paper cups and printing"
   },
@@ -415,6 +415,9 @@
     "metaTitle": "Custom Packaging Design | PackJoyU"
   },
   "NotFound": {
+    "meta": {
+      "title": "Page not found | PackJoyU"
+    },
     "code": "404",
     "title": "Page not found",
     "lead": "This box is empty. The page may have moved — try one of our product categories instead.",
