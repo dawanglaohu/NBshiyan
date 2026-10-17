@@ -2,7 +2,7 @@ import { createHmac, randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { hitRateLimit, rateLimitKeyHash } from '../security';
+import { hitRateLimit, rateLimitKeyHash, rateLimitSubject } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
@@ -20,9 +20,9 @@ export async function loginRateOk(ip: string | null, email: string) {
   const o = { onStoreError: 'closed' } as const;
   const e = rateLimitKeyHash(email.trim().toLowerCase());
   const [a, b, c] = await Promise.all([
-    hitRateLimit(`login:${ip ?? 'noip'}:${e}`, 5, 10 * 60_000, o),
+    hitRateLimit(`login:${rateLimitSubject(ip)}:${e}`, 5, 10 * 60_000, o),
     hitRateLimit(`login-acct:${e}`, 10, 10 * 60_000, o),
-    hitRateLimit(`login-ip:${ip ?? 'noip'}`, 30, 10 * 60_000, o),
+    hitRateLimit(`login-ip:${rateLimitSubject(ip)}`, 30, 10 * 60_000, o),
   ]);
   return a && b && c;
 }

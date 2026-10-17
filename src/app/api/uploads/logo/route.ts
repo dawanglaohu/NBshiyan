@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import sharp, { type OutputInfo } from 'sharp';
 import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
-import { clientIp, randomId, hitRateLimit } from '@/lib/server/security';
+import { clientIp, randomId, hitRateLimit, rateLimitSubject } from '@/lib/server/security';
 import { LOGO_BIND_TTL_MS, LOGO_MAX_BYTES, LOGO_MAX_DIM, sniffImage } from '@/lib/server/uploads';
 
 export const runtime = 'nodejs';
@@ -28,7 +28,7 @@ async function readLimited(req: Request, max: number): Promise<Buffer | null> {
 export async function POST(req: Request) {
   const ip = clientIp(req);
   // 每 IP 每小时 10 次；另有全站每小时 500 次总闸；拿不到 IP 的请求共用一个桶
-  const ipOk = await hitRateLimit(ip ? `logo:${ip}` : 'logo:noip:all', ip ? 10 : 50, 60 * 60_000);
+  const ipOk = await hitRateLimit(`logo:${rateLimitSubject(ip)}`, 10, 60 * 60_000);
   const globalOk = await hitRateLimit('logo:global', 500, 60 * 60_000);
   if (!ipOk || !globalOk) return err('rate_limited', 429);
 
