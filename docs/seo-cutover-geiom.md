@@ -91,11 +91,27 @@ for p in /en /ru /en/products /ru/products /en/contact; do echo "== $p"
 
 - canonical 指向自身，是 `https://geiom.com/...` 绝对地址（`src/i18n/alternates.ts` 生成相对路径，由 `metadataBase = SITE_URL` 补全）。
 - hreflang 有 `en`、`ru`、`x-default`，`x-default` 指向 en 版本。
-- next-intl 还会在响应头里发 `Link: <…>; rel="alternate"; hreflang=…`，这个头的域名取自**请求**（本地实测会跟随 `Host` / `X-Forwarded-Proto` / `X-Forwarded-Host`）。所以 nginx 必须把真实 Host 和 `X-Forwarded-Proto: https` 传给容器：
+- next-intl 还会在响应头里发 `Link: <…>; rel="alternate"; hreflang=…`，这个头的域名取自**请求**（本地实测会跟随 `Host` / `X-Forwarded-Proto` / `X-Forwarded-Host`）。所以 nginx 必须给容器传**固定值**，不能透传客户端发来的值（见下方「Host / Proto（已定）」）：
   ```bash
   curl -sI $S/en | grep -i '^link: <http'   # 应全是 https://geiom.com，不能是 http:// 或 localhost:3000
   ```
   注意：这个头里 `x-default` 是 `https://geiom.com/`（根路径），和 HTML 里的 `/en` 不同，见文末待确认。
+
+**Host / Proto（已定）**
+
+- 生产 nginx 的 443 server 只接受 `geiom.com`：Host 不是 `geiom.com` 的请求返回 **421**。
+- 转发给容器时写**固定值**，不透传客户端发来的 Host / Proto，这样 canonical、hreflang 和 `Link` 响应头都不会被伪造的头污染：
+  ```nginx
+  proxy_set_header Host geiom.com;
+  proxy_set_header X-Forwarded-Proto https;
+  ```
+- nginx 还要把 Cloudflare 的 `CF-Connecting-IP` 和 `X-Edge-Auth` 转给容器。少了这两个头，所有请求都会被当成不可信来源，落进最严的限流桶。
+- 具体配置以运维答复为准。本文不写任何密钥值或源站 IP。
+- 上线后自检：
+  ```bash
+  curl -sI -H 'Host: evil.example' $S/en | head -1   # 421（经 Cloudflare 测可能先被 CF 拦下，以运维的源站自检为准）
+  curl -sI $S/en | grep -i '^link: <http'            # 全是 https://geiom.com
+  ```
 
 ### 2.5 跳转
 
@@ -136,10 +152,19 @@ for p in /en /ru /en/products /ru/contact; do
 ### 2.8 /api/health 不对外
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' $S/api/health   # 404（nginx 对外直接 404；容器健康检查走 127.0.0.1）
+curl -s -o /dev/null -w '%{http_code}\n' $S/api/health        # 404
+curl -s -o /dev/null -w '%{http_code}\n' "$S/api/health?x=1"  # 404（带 query 也 404）
+curl -s -o /dev/null -w '%{http_code}\n' $S/api/health/       # 404（结尾 / 也 404）
 ```
 
-nginx 配置不在仓库里，由运维实现（**待确认** 上线后实测）。
+**已批准、待上线**：安全已批准，运维等 Ryan 同意后应用。nginx 对外直接返回 404：
+
+```nginx
+location = /api/health { return 404; }
+location ^~ /api/health/ { return 404; }
+```
+
+带 query string 或结尾 `/` 的请求也都是 404。容器自己的健康检查走 `127.0.0.1:3000`，不经过 nginx。具体配置以运维答复为准。
 
 ### 2.9 Cloudflare / 爬虫
 
@@ -259,7 +284,5 @@ nginx 配置不在仓库里，由运维实现（**待确认** 上线后实测）
 ## 待确认
 
 - www→裸域、http→https 的一跳 301 由 Cloudflare 规则还是 nginx 做（仓库里没有，运维 v1.6 确认）。
-- nginx 是否把 `Host` 和 `X-Forwarded-Proto: https` 传给容器（影响 next-intl `Link` 响应头里的域名，第 2.4 节）。
-- nginx 对外 `/api/health` 返回 404（PR #321 说明里写了，配置不在仓库）。
 - next-intl `Link` 响应头里的 `x-default` 指向根路径 `/`，HTML 里是 `/en`。不挡上线；如需统一，可在 `src/i18n/routing.ts` 设 `alternateLinks: false` 只保留 HTML hreflang（另开代码 PR）。
-- GSC / Yandex / Bing 账号由 Ryan 本人持有，TXT 由 Ryan 本人添加还是批准运维添加。
+- GSC / Yandex / Bing 账号由 Ryan 本人持有；验证 TXT 由 Ryan 本人在 Cloudflare 添加，还是 Ryan 批准后由运维走 DNS 批次流程添加。
