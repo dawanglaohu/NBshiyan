@@ -60,8 +60,8 @@ test('prefersReducedMotion reads the media query and tolerates missing/throwing 
 
 test('CookieConsent wiring: banner buttons restore as "banner", dialog paths as "dialog", focus honours preventScroll', () => {
   const src = readFileSync(new URL('../src/components/consent/CookieConsent.tsx', import.meta.url), 'utf8');
-  assert.match(src, /restoreFocus\(fromDialog \? 'dialog' : 'banner'\)/);
-  assert.match(src, /const close = \(\) => \{ setOpen\(false\); restoreFocus\('dialog'\); \}/);
+  assert.match(src, /restoreFocus\(consentCloseSource\(fromDialog \? 'dialog-save' : 'banner-choice', openedFromBanner\.current\)\)/);
+  assert.match(src, /const close = \(\) => \{ setOpen\(false\); restoreFocus\(consentCloseSource\('dialog-close', openedFromBanner\.current\)\); \}/);
   assert.match(src, /el\?\.focus\(preventScroll \? \{ preventScroll: true \} : undefined\)/);
   // 横幅按钮走 save(..., false)，设置面板走 save(c, true)
   assert.match(src, /onClick=\{\(\) => save\(\{ analytics: false, chat: false \}, false\)\}/);
