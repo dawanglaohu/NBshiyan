@@ -18,7 +18,7 @@ export function appEnvMismatch(env: Record<string, string | undefined>, built: s
   if (env.NODE_ENV !== 'production') return null;
   if (built === undefined || built === '') return null;
   if ((env.APP_ENV ?? '') === built) return null;
-  return 'APP_ENV 与构建时的值不一致（运行时必须和 build 时相同；生产镜像运行时没设 APP_ENV 会跳过启动检查）';
+  return 'APP_ENV mismatch or missing（运行时 APP_ENV 与构建时不一致或未设置）';
 }
 
 /**

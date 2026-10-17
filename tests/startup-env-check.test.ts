@@ -58,13 +58,14 @@ test('#323 APP_ENV 构建时内联：NODE_ENV=production 且运行时 APP_ENV �
   // 生产镜像、运行时没设 APP_ENV：以前整段跳过，现在拒绝启动
   const missing = runB({ ...prod, APP_ENV: undefined }, 'production');
   assert.deepEqual(missing.exits, [1]); assert.equal(missing.logs.length, 1);
-  assert.match(missing.logs[0], /- APP_ENV 与构建时的值不一致/);
+  assert.match(missing.logs[0], /^- APP_ENV mismatch or missing（运行时 APP_ENV 与构建时不一致或未设置）$/m);
   assert.equal((missing.logs[0].match(/^- /gm) ?? []).length, 1, 'only the mismatch is reported');
   assert.ok(!missing.logs[0].includes('production') && !missing.logs[0].includes(SECRET), 'no values in message');
   // 其他不一致：preview ↔ production、大小写不同
   for (const [rt, built] of [['preview', 'production'], ['Production', 'production'], ['production', 'preview']] as const) {
     const r = runB({ ...prod, APP_ENV: rt }, built);
-    assert.deepEqual(r.exits, [1], `${rt} vs ${built}`); assert.match(r.logs[0], /APP_ENV 与构建时的值不一致/);
+    assert.deepEqual(r.exits, [1], `${rt} vs ${built}`); assert.match(r.logs[0], /- APP_ENV mismatch or missing/);
+    for (const v of [rt, built]) assert.ok(!r.logs[0].includes(v), `value leaked: ${v}`);
   }
   // 一致：照常
   assert.deepEqual(runB(prod, 'production'), { logs: [], exits: [] });
