@@ -81,7 +81,7 @@ test('文章详情页专属分享图：/<locale>/articles/<slug>/og?v=<8 hex>，
 });
 
 test('文章专属图的回退：标题为空、slug 缺失或不合规时用通用 home 图', () => {
-  for (const doc of [undefined, null, {}, { slug: 'ok-slug' }, { slug: 'ok-slug', title: '   ' }, { title: 'T' }, { slug: '../x', title: 'T' }, { slug: 'UPPER', title: 'T' }, { slug: 'a/b', title: 'T' }, { slug: 'x'.repeat(97), title: 'T' }]) {
+  for (const doc of [undefined, null, {}, { slug: 'ok-slug' }, { slug: 'ok-slug', title: '   ' }, { title: 'T' }, { slug: '../x', title: 'T' }, { slug: 'UPPER', title: 'T' }, { slug: 'a/b', title: 'T' }, { slug: 'x'.repeat(121), title: 'T' }, { slug: 'ok-slug', title: '🎁 礼盒' }]) {
     assert.equal(articleOgImageUrl('en', doc), null, JSON.stringify(doc));
     const m = articleShareMeta('en', 'generic alt', doc);
     const img = (m.openGraph as { images: Img[] }).images[0];

@@ -26,9 +26,20 @@ export function textWidth(s: string, size: number): number {
   return (u / UPM) * size + Math.max(0, n - 1) * LETTER_SPACING_EM * size;
 }
 
-/** 规范空白；RU 单字母词和后一个词用不换行空格连起来 */
+/**
+ * 只保留内置字体（Manrope 子集）里有字形的字符，其余（emoji、中日韩文字等）直接去掉。
+ * 原因：Satori 遇到字体里没有的字形，会在运行时去 fonts.googleapis.com / jsDelivr 下载补充字体或 emoji 图，
+ * 这里先去掉，渲染时就不会有任何网络请求。字宽表就是字体的 cmap（design/og-src/og-article-font.py 生成）。
+ */
+export function ogSafeText(s: string): string {
+  let out = '';
+  for (const ch of s.normalize('NFC')) out += ch === ' ' || (ch !== NBSP && W[String(ch.codePointAt(0))] !== undefined) ? ch : /\s/u.test(ch) ? ' ' : '';
+  return out.replace(/\s+/g, ' ').trim();
+}
+
+/** 规范空白、去掉字体外字符；RU 单字母词和后一个词用不换行空格连起来 */
 export function tokens(title: string, locale: 'en' | 'ru'): string[] {
-  let t = title.normalize('NFC').replace(/[\u0000-\u001f\u007f\u200b-\u200d\u2028\u2029\ufeff]/g, ' ').replace(/\s+/g, ' ').trim();
+  let t = ogSafeText(title);
   if (locale === 'ru') {
     let prev;
     do { prev = t; t = t.replace(/(^|[\s\u00a0])([свикоуа])\s/giu, (_m, a: string, b: string) => a + b + NBSP); } while (t !== prev);
