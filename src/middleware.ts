@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 import { EXPIRED_RE, probeConfig, probeHeaders, probeShortlink, parseShortlink } from './lib/edge/shortlink';
 import { resolveClientIp } from './lib/edge/client-ip';
+import { relativizeInternalRedirect } from './lib/edge/redirect-location';
 
 const intl = createMiddleware(routing);
 const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private, no-store' };
@@ -38,7 +39,8 @@ export default async function middleware(req: NextRequest) {
     // 未过期、超时或出错：照常交给页面处理
     if (!sl.locale) return NextResponse.next();
   }
-  return intl(req);
+  // next-intl 的跳转地址基于 req.url（监听地址），把指向 localhost 等内部地址的 Location 改成相对路径
+  return relativizeInternalRedirect(intl(req));
 }
 
 // /admin、/api 和静态资源不走中间件；/s/<id> 只做过期检查，不走多语言路由
