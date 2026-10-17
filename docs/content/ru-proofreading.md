@@ -164,7 +164,7 @@
 | C-custom-color-printing-26 | `docs/content/custom-color-printing.md` | #188 | - **Q: How do you ensure color consistency?** | - **В: Как обеспечивается стабильность цвета?** |  |  |
 | C-custom-color-printing-27 | `docs/content/custom-color-printing.md` | #188 | A: Pantone references and proof approval before the run. | О: Пантонные эталоны и утверждение пробы до тиража. |  |  |
 | C-custom-color-printing-28 | `docs/content/custom-color-printing.md` | #188 | - **Q: Can you print labels and boxes together?** | - **В: Можно ли напечатать этикетки и коробки вместе?** |  |  |
-| C-custom-color-printing-29 | `docs/content/custom-color-printing.md` | #188 | A: Yes — we arrange printing of both in one order for matching color. | О: Да — организуем печать в одном заказе для совпадения цвета. |  |  |
+| C-custom-color-printing-29 | `docs/content/custom-color-printing.md` | #188 | A: Yes — we arrange printing of labels and boxes in one order so the colors match. | О: Да — организуем печать этикеток и коробок в одном заказе, чтобы цвета совпадали. |  |  |
 | C-custom-color-printing-kw-Транзакционные | `docs/content/custom-color-printing.md` | #188 |  | **Транзакционные (主页面)**: печать упаковки, полноцветная печать на картоне, печать этикеток на заказ, типография упаковка |  |  |
 | C-custom-color-printing-kw-Коммерческие | `docs/content/custom-color-printing.md` | #188 |  | **Коммерческие (主页面 + 小节)**: печать вкладышей, печать пантонами, печать на крафт картоне, печать бирок |  |  |
 | C-custom-color-printing-kw-Информационные | `docs/content/custom-color-printing.md` | #188 |  | **Информационные (博客文章)**: CMYK или Pantone, как подготовить файл к печати, что такое цветопроба |  |  |

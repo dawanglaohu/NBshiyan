@@ -56,7 +56,7 @@ PackJoyU arranges full-color printing for packaging, labels, inserts and printed
 - **Q: How do you ensure color consistency?**
   A: Pantone references and proof approval before the run.
 - **Q: Can you print labels and boxes together?**
-  A: Yes — we arrange printing of both in one order for matching color.
+  A: Yes — we arrange printing of labels and boxes in one order so the colors match.
 
 ---
 
@@ -107,7 +107,7 @@ PackJoyU организует полноцветную печать упаков
 - **В: Как обеспечивается стабильность цвета?**
   О: Пантонные эталоны и утверждение пробы до тиража.
 - **В: Можно ли напечатать этикетки и коробки вместе?**
-  О: Да — организуем печать в одном заказе для совпадения цвета.
+  О: Да — организуем печать этикеток и коробок в одном заказе, чтобы цвета совпадали.
 
 ---
 
