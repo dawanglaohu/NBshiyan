@@ -2,7 +2,7 @@
 // #104 首屏视频：封面图（next/image priority）先渲染，是 LCP 元素；空闲后才加载视频（preload="none"）
 // ≤767px 用 4:5 竖版素材（#115 portrait）：<picture>/<source media> 选封面，<video><source media> 选视频，桌面不下载竖版
 // 仅首次访问自动播放；有 暂停/播放 + 跳过 两个按钮（WCAG 2.2.2）；播完/跳过停在封面，不循环
-// #291 控件统一在左下（所有状态同一容器）；<1024 只显示图标（44px 点击区 + aria-label）
+// #291 控件统一在左下（所有状态同一容器），和品牌文字一组、间距 ≥24px；所有宽度只显示图标（44×44 + aria-label），不压产品
 // #291 品牌文字是 HTML 叠层（素材已无文字，#305）：始终显示在封面和视频上；alt 已含品牌和标语，所以 aria-hidden
 // #291 封面是视频最后一帧、视频从开箱镜头开始：视频真正开始播放（playing 事件）后再 300ms 交叉淡入
 import { getImageProps } from 'next/image';
@@ -11,6 +11,7 @@ import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, when
 
 export const PORTRAIT_MQ = '(max-width: 767px)';
 const DESKTOP_MQ = '(min-width: 768px)';
+const POSTER_SIZES = '1280px';
 
 type Labels = { brand: ReactNode; tagline: string; poster: string; skip: string; play: string; pause: string };
 
@@ -53,16 +54,18 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
 
   const active = state !== 'poster';
   // 桌面封面仍走 next/image 优化；竖版封面直接用 3D 产出的 AVIF/WebP（已是 1080x1350 小文件）
+  // #291 LCP：封面原始尺寸必须不小于视频（1280×720），否则 Chrome 会把 <video> 首帧当成更大的 LCP 候选。
+  // 所以 sizes 按封面原图宽度 1280px 写（srcset 选 w=1920 条目，优化器不放大，实际返回 1280 宽）；竖版封面与竖版视频同为 1080×1350
   const { props: { srcSet: desktopSrcSet, ...posterImg } } = getImageProps({
     className: 'hero-media-poster', src: '/video/hero-115-poster.59e587a1.webp', alt: labels.poster,
-    fill: true, priority: true, sizes: '50vw',
+    fill: true, priority: true, sizes: POSTER_SIZES,
   });
   return (
     <div className="hero-media" data-state={state}>
       <picture>
         <source media={PORTRAIT_MQ} type="image/avif" srcSet="/video/hero-115-portrait-poster.avif" />
         <source media={PORTRAIT_MQ} type="image/webp" srcSet="/video/hero-115-portrait-poster.webp" />
-        <source media={DESKTOP_MQ} srcSet={desktopSrcSet} sizes="50vw" />
+        <source media={DESKTOP_MQ} srcSet={desktopSrcSet} sizes={POSTER_SIZES} />
         {/* eslint-disable-next-line jsx-a11y/alt-text -- alt 来自 getImageProps */}
         <img {...posterImg} srcSet={desktopSrcSet} />
       </picture>
