@@ -7,7 +7,8 @@
 ## 0. 主域名
 
 - **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`，去掉结尾 `/`），不读请求的 Host。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
-- `www.geiom.com` 和 `http://` 一跳 301 到 `https://geiom.com` 不在仓库里，由 Cloudflare 重定向规则 / Always Use HTTPS 或 nginx 实现（**待确认**：运维 v1.6 用哪一层做）。
+- `www.geiom.com` 和 `http://` 的 301 **全部由 nginx 做**（运维已定）：http 裸域、http www、https www 都一跳 301 到 `https://geiom.com$request_uri`。Cloudflare 侧 Always Use HTTPS 关闭，没有 Redirect Rules，也没有 Page Rules。
+- ⚠️ 切换时**不要**在 Cloudflare 加重定向规则，**不要**打开 Always Use HTTPS，否则会和 nginx 的 301 叠成两跳或者循环。
 - 语言前缀：`src/i18n/routing.ts` 是 `locales: ['en', 'ru']`、`defaultLocale: 'en'`、`localePrefix: 'always'`，所有页面都在 `/en/...` 或 `/ru/...` 下。
 - geiom.com 之前是 Squarespace「Coming Soon」+ noindex，没有旧 URL 收录，不需要做旧地址 301 映射。
 
@@ -91,41 +92,51 @@ for p in /en /ru /en/products /ru/products /en/contact; do echo "== $p"
 
 - canonical 指向自身，是 `https://geiom.com/...` 绝对地址（`src/i18n/alternates.ts` 生成相对路径，由 `metadataBase = SITE_URL` 补全）。
 - hreflang 有 `en`、`ru`、`x-default`，`x-default` 指向 en 版本。
-- next-intl 还会在响应头里发 `Link: <…>; rel="alternate"; hreflang=…`，这个头的域名取自**请求**（本地实测会跟随 `Host` / `X-Forwarded-Proto` / `X-Forwarded-Host`）。所以 nginx 必须给容器传**固定值**，不能透传客户端发来的值（见下方「Host / Proto（已定）」）：
+- hreflang 只由 HTML 输出。`src/i18n/routing.ts` 设了 `alternateLinks: false`，next-intl 不再发 `Link: rel="alternate"; hreflang=…` 响应头（那个头的 x-default 指向 `/`，和 HTML 的 `/en` 不一致，域名还取自请求）：
   ```bash
-  curl -sI $S/en | grep -i '^link: <http'   # 应全是 https://geiom.com，不能是 http:// 或 localhost:3000
+  curl -sI $S/en | grep -i '^link:' | grep -ci hreflang   # 应为 0
   ```
-  注意：这个头里 `x-default` 是 `https://geiom.com/`（根路径），和 HTML 里的 `/en` 不同，见文末待确认。
 
-**Host / Proto（已定）**
+**转发头（nginx → 容器）**
 
-- 生产 nginx 的 443 server 只接受 `geiom.com`：Host 不是 `geiom.com` 的请求返回 **421**。
-- 转发给容器时写**固定值**，不透传客户端发来的 Host / Proto，这样 canonical、hreflang 和 `Link` 响应头都不会被伪造的头污染：
-  ```nginx
-  proxy_set_header Host geiom.com;
-  proxy_set_header X-Forwarded-Proto https;
-  ```
-- nginx 还要把 Cloudflare 的 `CF-Connecting-IP` 和 `X-Edge-Auth` 转给容器。少了这两个头，所有请求都会被当成不可信来源，落进最严的限流桶。
-- 具体配置以运维答复为准。本文不写任何密钥值或源站 IP。
+运维当前配置：
+
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto https;   # 固定值，不取客户端的
+```
+
+- Host / SNI 不是 `geiom.com` 的请求，443 server 直接返回 **421**，所以 `$host` 只会是 `geiom.com`。
+- `X-Forwarded-For` **不能**用 `$proxy_add_x_forwarded_for`（它会把客户端自己带的值拼进去）。
+- `CF-Connecting-IP` 和 `X-Edge-Auth` 在 nginx 里用 `proxy_set_header` **显式设置**，只信 Cloudflare 来的值。前提是「非 Cloudflare 来源 → 444」这条规则一直保留，不能删。客户端自己发的同名头绝不能进到容器里。少了这两个头，所有请求都会落进不可信、最严的限流桶。
+- `X-Edge-Auth` 的值不能出现在日志、仓库和聊天里。
+- **具体写法以运维答复为准，安全在 nginx diff 中核对。** 本文不写任何密钥值或源站 IP。
 - 上线后自检：
   ```bash
-  curl -sI -H 'Host: evil.example' $S/en | head -1   # 421（经 Cloudflare 测可能先被 CF 拦下，以运维的源站自检为准）
-  curl -sI $S/en | grep -i '^link: <http'            # 全是 https://geiom.com
+  curl -sI $S/en | grep -ci localhost   # 应为 0，任何响应头里都不能有 localhost
   ```
 
 ### 2.5 跳转
 
 ```bash
-curl -sI http://geiom.com/en      | grep -iE '^(HTTP|location)'   # 301 → https://geiom.com/en
-curl -sIL http://www.geiom.com/ru | grep -iE '^(HTTP|location)'   # 只有一个 301 → https://geiom.com/ru，然后 200
-curl -sIL https://www.geiom.com/ru | grep -iE '^(HTTP|location)'  # 同上，一跳
+curl -sIL 'http://geiom.com/en?a=1'      | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/en?a=1，然后 200
+curl -sIL 'http://www.geiom.com/ru?a=1'  | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/ru?a=1，然后 200
+curl -sIL 'https://www.geiom.com/ru?a=1' | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/ru?a=1，然后 200
+curl -sI https://geiom.com/ | grep -iE '^(HTTP|location)'              # 307，Location 是 /en 或 https://geiom.com/en，绝不能是 localhost
+curl -sI https://geiom.com/ | grep -ci localhost                       # 0
 curl -sI -H 'Accept-Language: ru' $S/ | grep -iE '^(HTTP|location)'  # 307 → /ru
 curl -sI -H 'Accept-Language: en' $S/ | grep -iE '^(HTTP|location)'  # 307 → /en
 curl -sI $S/en/products/ | grep -iE '^(HTTP|location)'            # 308 → /en/products（去掉结尾 /）
 ```
 
 - `/` 的跳转由 next-intl middleware 做：按 `NEXT_LOCALE` cookie / `Accept-Language` 选语言，状态码 **307**（本地实测）。根路径不进 sitemap，正常。
-- www / http 的 301 必须是**一跳**直接到 `https://geiom.com/<同路径>`，不能 www→http→https 两跳。
+- 三种（http 裸域、http www、https www）都必须是 nginx 的**一个** 301，直接到 `https://geiom.com$request_uri`（路径和 query 都保留），不能有链式跳转。
+- 根路径 Location（#321 standalone 检查的 P1-1）：代码侧由后端 PR `fix/redirect-location` 修，把 Location 改成相对的 `/en`。nginx 再兜底，只改写本地地址，**不是**通配所有域名的正则：
+  ```nginx
+  proxy_redirect ~^https?://(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:\d+)?(/.*)$ $3;
+  ```
+  验收：`curl -sI https://geiom.com/` 的 Location 是 `/en` 或 `https://geiom.com/en`，且没有任何响应头含 localhost。
 
 ### 2.6 404
 
@@ -152,19 +163,22 @@ for p in /en /ru /en/products /ru/contact; do
 ### 2.8 /api/health 不对外
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' $S/api/health        # 404
-curl -s -o /dev/null -w '%{http_code}\n' "$S/api/health?x=1"  # 404（带 query 也 404）
-curl -s -o /dev/null -w '%{http_code}\n' $S/api/health/       # 404（结尾 / 也 404）
+for u in /api/health '/api/health?x=1' /api/health/ /api/health/x; do
+  echo "$u $(curl -s -o /dev/null -w '%{http_code}' "$S$u")"; done   # 全部 404
+curl -s -o /dev/null -w '%{http_code}\n' $S/api/healthz           # 正常代理给应用（不是 nginx 的 404）
 ```
 
-**已批准、待上线**：安全已批准，运维等 Ryan 同意后应用。nginx 对外直接返回 404：
+**已批准，待上线**：安全已批准。运维在上线前把配置上到服务器，DNS 切换后再从外部复测一遍。
 
 ```nginx
 location = /api/health { return 404; }
 location ^~ /api/health/ { return 404; }
 ```
 
-带 query string 或结尾 `/` 的请求也都是 404。容器自己的健康检查走 `127.0.0.1:3000`，不经过 nginx。具体配置以运维答复为准。
+- 外部请求带 query string、结尾 `/`、子路径都是 404。
+- `/api/healthz` 不受影响，照常代理（`= /api/health` 是精确匹配，`^~ /api/health/` 要带 `/`）。
+- 容器自己的健康检查走 `127.0.0.1:3000`，不经过 nginx。
+- 具体配置以运维答复为准。
 
 ### 2.9 Cloudflare / 爬虫
 
@@ -196,13 +210,13 @@ location ^~ /api/health/ { return 404; }
 
 ## 4. 需要 Ryan 本人做的步骤
 
-> 🔑 **以下只能由 Ryan 用自己的账号做**，在私聊里进行，不在群里做。机器人**不代 Ryan 登录**、**不保存他的账号或密码**、**不改 DNS**。机器人只负责告诉 Ryan 在哪里点、TXT 记录加在哪个主机名下；验证用的值由 Ryan 自己从 GSC / Yandex 复制。本文不写任何真实验证值。
+> 🔑 **以下只能由 Ryan 用自己的账号做**，在私聊里进行，不在群里做。机器人**不代 Ryan 登录**、**不保存他的账号或密码**、**不改 DNS**。机器人只负责告诉 Ryan 在哪里点、TXT 记录加在哪个主机名下。验证值由 Ryan 自己登录 GSC / Yandex 获取，私信发给运维，由运维和 `_dmarc` 同一批加 TXT。本文不写任何真实验证值。
 > DNS 记录只新增、不覆盖已有 TXT（SPF、DKIM、DMARC 等），同一主机名下可以有多条 TXT。
 
 ### 4.1 Google Search Console 🔑
 
 1. Ryan 登录 GSC → 添加资源 → 选「**网域**」→ 填 `geiom.com`（网域资源自动覆盖 https/http、www/裸域）。
-2. GSC 给出一条 TXT 记录（`google-site-verification=…`）。由 **Ryan 本人**在 Cloudflare DNS 给 `geiom.com`（`@`）新增这条 TXT；或者 Ryan 明确批准后，由运维照 Ryan 给的值添加。
+2. GSC 给出一条 TXT 记录（`google-site-verification=…`）。Ryan 把这个值**私信**发给运维，由运维在和 `_dmarc` 同一批 DNS 变更里给 `geiom.com`（`@`）新增这条 TXT（PM 已定）。值不发到群里。
 3. 回 GSC 点验证。**验证通过后不要删这条 TXT**。
 4. 站点地图 → 提交 `https://geiom.com/sitemap.xml`，状态应为「成功」。
 5. 网址检查：`https://geiom.com/en`、`https://geiom.com/ru` → 「测试实际网址」应可编入索引 → 「请求编入索引」。可以再加 `/en/products`、`/ru/products`。
@@ -210,7 +224,7 @@ location ^~ /api/health/ { return 404; }
 ### 4.2 Yandex Webmaster 🔑
 
 1. Ryan 登录 Yandex Webmaster → 添加站点 `https://geiom.com`（和 `NEXT_PUBLIC_SITE_URL` 完全一致；Yandex 把 www 和裸域当成两个站，只加裸域）。
-2. 验证方式：**用 DNS TXT**。Yandex 给出 TXT（`yandex-verification: …`），由 Ryan 本人在 Cloudflare 给 `geiom.com` 新增，或批准运维添加；验证后不要删。
+2. 验证方式：**用 DNS TXT**。Yandex 给出 TXT（`yandex-verification: …`），Ryan 私信发给运维，运维在和 `_dmarc` 同一批 DNS 变更里给 `geiom.com` 新增；验证后不要删。
    - 代码也支持 meta 方式：`NEXT_PUBLIC_YANDEX_VERIFICATION` → `src/app/[locale]/layout.tsx` 的 `verification.yandex`，输出 `<meta name="yandex-verification">`。但它只在 `/en`、`/ru` 页面上；根路径 `/` 是 307 跳转，而 Yandex 的 meta 验证查首页、首页有跳转会失败（见 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §2 第 5 条）。另外改值要重新构建。所以首选 DNS TXT。
 3. 站点地区（可选）：按 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4 决定，不要为了审核虚构俄罗斯地址。
 4. Индексирование → Файлы Sitemap → 添加 `https://geiom.com/sitemap.xml`。
@@ -283,6 +297,6 @@ location ^~ /api/health/ { return 404; }
 
 ## 待确认
 
-- www→裸域、http→https 的一跳 301 由 Cloudflare 规则还是 nginx 做（仓库里没有，运维 v1.6 确认）。
-- next-intl `Link` 响应头里的 `x-default` 指向根路径 `/`，HTML 里是 `/en`。不挡上线；如需统一，可在 `src/i18n/routing.ts` 设 `alternateLinks: false` 只保留 HTML hreflang（另开代码 PR）。
-- GSC / Yandex / Bing 账号由 Ryan 本人持有；验证 TXT 由 Ryan 本人在 Cloudflare 添加，还是 Ryan 批准后由运维走 DNS 批次流程添加。
+- nginx 转发头（`Host`、`X-Forwarded-*`、`CF-Connecting-IP`、`X-Edge-Auth`）的最终写法以运维答复为准，安全在 nginx diff 中核对（第 2.4 节）。
+
+已定、不再待确认：www / http 301 由 nginx 做（第 0、2.5 节）；`/api/health` 对外 404（第 2.8 节）；`Link` 响应头已用 `alternateLinks: false` 关掉（第 2.4 节）；GSC / Yandex TXT 由 Ryan 取值、私信运维、和 `_dmarc` 同批添加（第 4 节）。
