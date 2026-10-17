@@ -22,6 +22,7 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `env.template` | every runtime variable, no values: who supplies it, whether it's a secret, whether prod requires it |
 | `init-secrets.sh` | one-time: creates data dirs and generates secrets on the host; never overwrites, never prints |
 | `build-on-server.sh` | pinned-SHA build in a memory-capped dedicated builder; disk/memory gates; leak checks; tag rotation |
+| `plan-check.sh`, `tests/plan-check.test.sh` | destructive-change gate for the schema plan (sourced by `deploy.sh`) and its tests (`bash deploy/tests/plan-check.test.sh`, no docker/DB needed) |
 | `deploy.sh` | pg_dump → schema plan + destructive check → `db push` → drift check → start → post-deploy checks → auto-rollback |
 | `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
 
@@ -31,15 +32,26 @@ The repo uses `prisma db push` and has no `prisma/migrations`. `prisma/sql/*.sql
 `deploy.sh up` runs these steps on the server, in this order:
 1. **Backup.** `pg_dump -Fc` of the NBshiyan DB.
 2. **Plan.** `prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script`
-   writes the plan to a local 600 file. The deploy **stops for full-stack review** if the plan contains any of these
-   (case-insensitive): `DROP`, `ALTER COLUMN … TYPE`, `RENAME`, `SET NOT NULL`, `TRUNCATE`/`DELETE`, or, on tables
-   that already exist, `CREATE UNIQUE INDEX`, `ADD CONSTRAINT` or `ADD COLUMN … NOT NULL` without `DEFAULT`.
+   writes the plan to a local 600 file. `plan-check.sh` parses it **by statement** (split on `;`, string literals and
+   `--` comments removed first), not by line. For `ALTER TABLE` on a table that already exists, it also checks each
+   `,`-separated clause on its own, with parentheses collapsed and quoted identifiers blanked, so `"isDefault"` or
+   `"default"` never counts as a `DEFAULT`. It is case-insensitive and fails closed. The deploy **stops for full-stack review** on:
+   - anywhere: `DROP`, `RENAME`, `TRUNCATE`, `DELETE FROM`, `ALTER … TYPE`, `SET NOT NULL`, or any statement it doesn't recognise;
+   - on tables that already exist (not `CREATE TABLE`d in the same plan): `CREATE UNIQUE INDEX`, `ADD CONSTRAINT` or an
+     inline key/`REFERENCES`/`CHECK`, or any clause with `NOT NULL` and no `DEFAULT`.
+
+   **Continuing after review:** rerun with `APPROVED_PLAN_SHA256=<sha256 printed by the aborted run>`. The deploy goes on
+   only if the newly generated plan has exactly that sha256. If the DB or the schema changed in between, the sha differs
+   and the deploy stops again. The approval opens only *our* gate: `db push` still runs without `--accept-data-loss`, so
+   prisma still refuses data-loss changes on its own. **Never run `prisma db push --accept-data-loss` (or any manual
+   prisma/psql DDL) by hand.** A change that loses data needs a backend-written, reviewed migration plan instead.
 3. **Push.** `prisma db push --skip-generate`, never with `--accept-data-loss`.
 4. **Drift check.** The same diff with `--exit-code` must return 0, otherwise the app is not started.
 
 How credentials and output are handled:
 - `DATABASE_URL` comes only from the migrate service's `env_file`. It is never on argv and never printed, and `--from-url` is never used.
-- `db push` output contains the DB host, port and name. It is redacted and kept in a local 600 log, which is never posted.
+- `db push` output and the stderr of both `migrate diff` runs contain the DB host, port and name. All of it goes through
+  `redact` into a local 600 log, which is never posted.
 
 The ordering lives in `deploy.sh` instead of `depends_on: service_completed_successfully`. A dependency in an inactive
 profile behaves differently across compose versions, and the review gate sits between two migrate runs.
@@ -59,7 +71,8 @@ account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRE
 
 ## Health endpoint
 `/api/health` (`{"ok":true}`) is for the container healthcheck only. The public nginx site returns `404` for it,
-because it shares the 120/min rate-limit bucket. After the DNS cutover, check that `/api/health`, `/api/health?x=1`, `/api/health/` and `/api/health/x` all return 404, while `/api/healthz` and other `/api/*` still reach the app (nginx: `location = /api/health` + `location ^~ /api/health/`).
+because it shares the 120/min rate-limit bucket. There is **no** `/robots.txt` fallback any more: the image requires
+fix/deploy-readiness, and `deploy.sh` treats a body other than `{"ok":true}` as a failed deploy (rollback). After the DNS cutover, check that `/api/health`, `/api/health?x=1`, `/api/health/` and `/api/health/x` all return 404, while `/api/healthz` and other `/api/*` still reach the app (nginx: `location = /api/health` + `location ^~ /api/health/`).
 
 ## Review notes
 - **Never run `docker compose config` for this project.** It prints the resolved `env_file` values, which are secrets.
@@ -67,7 +80,15 @@ because it shares the 120/min rate-limit bucket. After the DNS cutover, check th
 - The build carries no secrets: no secret `ARG`/`ENV`, no `.env` in the context. After every build, `build-on-server.sh`
   scans `docker history`, the image ENV and both image filesystems (including `/app/.next-dist`) for every secret
   value. The required result is 0 hits.
-- Redis REST is short-term: SRH plus the internal TLS proxy, on the `backend` network only, with no published ports,
+- Networks: `edge` (app egress + 127.0.0.1:3000), `backend` (internal: app, postgres, srh-tls as `redis-rest`, migrate),
+  `srh-net` (internal: **only** srh, srh-tls, redis). The app is not on `srh-net`, so it can't resolve or reach
+  `http://srh:80` or `redis:6379`. `deploy.sh` checks this after every start.
+- Host dirs: `uploads` 700 (uid 1001), `internal-tls` 700 root (docker bind-mounts single files from it), `secrets` 700 root.
+- `env.template` is not a `.env`. Every value line is plain `KEY=`, with comments on their own lines. `init-secrets.sh` treats
+  `KEY=`, `KEY=   ` and `KEY=  # note` as empty.
+- `deploy.sh` compares `EDGE_AUTH_SECRET` with the proxy include only if both are non-empty and at least 32 characters,
+  and compares sha256 hashes, never the values.
+- Redis REST is short-term: SRH plus the internal TLS proxy, with no published ports,
   TLS 1.3 only, and only `POST /pipeline` allowed. `SRH_TOKEN` and `requirepass` are separate random values. The private
   CA is name-constrained to `DNS:redis-rest` and its key is deleted right after signing. Long term, a backend TCP Redis
   store removes `srh` and `srh-tls`.

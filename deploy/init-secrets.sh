@@ -6,8 +6,8 @@ set -Eeuo pipefail; umask 077
 D="$NBSHIYAN_DATA_DIR"; S="$D/secrets"; T="$D/internal-tls"
 install -d -m 700 -o root -g root "$D" "$S" "$D/backup" "$D/migrate"
 install -d -m 700 -o 70 -g 70 "$D/pgdata"
-install -d -m 750 -o 1001 -g 1001 "$D/uploads"
-install -d -m 755 -o root -g root "$T"
+install -d -m 700 -o 1001 -g 1001 "$D/uploads"      # only the app (uid 1001) reads/writes uploads
+install -d -m 700 -o root -g root "$T"              # docker (root) bind-mounts single files from here; nobody else lists it
 grep -qE '^RESEND_API_KEY=' "${NBSHIYAN_APP_ENV_FILE:-$D/.env}" 2>/dev/null && echo "[init] NOTE: RESEND_API_KEY is obsolete since #315; remove it from the app env file"
 rnd() { openssl rand -base64 48 | tr -d '\n/+=' | cut -c1-48; }
 [ -f "$S/pg_password" ] || { rnd > "$S/pg_password"; chown 70:70 "$S/pg_password"; chmod 400 "$S/pg_password"; }
@@ -57,7 +57,13 @@ CNF
 fi
 # App env: append generated values only for keys that are missing or empty (never overwrite, never print)
 touch "$ENVF"; chmod 600 "$ENVF"; chown root:root "$ENVF"
-setkey() { grep -qE "^$1=.+" "$ENVF" && return 0; sed -i "/^$1=/d" "$ENVF"; printf '%s=%s\n' "$1" "$2" >> "$ENVF"; }
+# A value that is blank or only a comment (e.g. `KEY=   # note`, copied from a template) counts as EMPTY.
+EMPTY_RE='^[[:space:]]*(#.*)?$'
+setkey() {
+  local cur; cur=$(sed -n "s/^$1=//p" "$ENVF" | tail -n 1)
+  [[ "$cur" =~ $EMPTY_RE ]] || return 0
+  sed -i "/^$1=/d" "$ENVF"; printf '%s=%s\n' "$1" "$2" >> "$ENVF"
+}
 setkey DATABASE_URL "postgresql://nbshiyan:${PG}@postgres:5432/nbshiyan?schema=public"
 setkey AUTH_SECRET "$(openssl rand -base64 32)"
 setkey ADMIN_TOTP_KEY "$(openssl rand -base64 32)"
@@ -72,5 +78,5 @@ for kv in APP_ENV=production NODE_ENV=production NEXT_PUBLIC_SITE_URL=https://ge
           STORAGE_DRIVER=local UPLOAD_DIR=/data/uploads SHORTLINK_PROBE_ORIGIN=http://127.0.0.1:3000 \
           MAIL_SEND_ADAPTER=smtp SMTP_HOST=smtp.gmail.com SMTP_PORT=465 REPLY_DOMAIN=geiom.com \
           MAIL_DAILY_CAP=450 MAIL_DAILY_CAP_RESET=00:00 MAIL_RATE_ADMIN_PER_HOUR=30 MAIL_RATE_GLOBAL_PER_HOUR=200; do setkey "${kv%%=*}" "${kv#*=}"; done
-grep -qE '^EDGE_AUTH_SECRET=.{32,}' "$ENVF" || echo "[init] WARNING: EDGE_AUTH_SECRET missing or < 32 bytes in app env file"
-echo "[init] done. Keys still empty (Ryan supplies):"; grep -E '^[A-Z_]+=$' "$ENVF" | cut -d= -f1 | sed 's/^/  - /' || true
+grep -qE '^EDGE_AUTH_SECRET=[^#[:space:]]{32,}' "$ENVF" || echo "[init] WARNING: EDGE_AUTH_SECRET missing or < 32 bytes in app env file"
+echo "[init] done. Keys still empty (Ryan supplies):"; grep -E '^[A-Z0-9_]+=[[:space:]]*(#.*)?$' "$ENVF" | cut -d= -f1 | sed 's/^/  - /' || true

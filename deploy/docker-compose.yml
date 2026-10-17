@@ -41,7 +41,7 @@ services:
       - /tmp:size=64m,mode=1777
       - /app/.next:size=256m,uid=1001,gid=1001,mode=0700
     volumes:
-      - ${NBSHIYAN_DATA_DIR:?}/uploads:/data/uploads:rw      # host dir 750, owner 1001:1001; everything else is read_only
+      - ${NBSHIYAN_DATA_DIR:?}/uploads:/data/uploads:rw      # host dir 700, owner 1001:1001; everything else is read_only
       - ${NBSHIYAN_DATA_DIR:?}/internal-tls/ca.crt:/run/nbshiyan-ca/ca.crt:ro
     networks: [edge, backend]
     depends_on:
@@ -53,8 +53,8 @@ services:
     pids_limit: 256
     healthcheck:
       # /api/health returns only {"ok":true}; for this in-container check only. nginx must NOT proxy it (shares the
-      # 120/min rate-limit bucket): the site config returns 404 for it. TEMPORARY: falls back to /robots.txt on 404 until fix/deploy-readiness is merged.
-      test: ["CMD", "node", "-e", "const b='http://127.0.0.1:3000';fetch(b+'/api/health').then(r=>r.status===404?fetch(b+'/robots.txt'):r).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      # 120/min rate-limit bucket): the site config returns 404 for it. No fallback.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       start_period: 60s
@@ -102,7 +102,7 @@ services:
       # requirepass + maxmemory 48mb + allkeys-lru + no persistence; generated on the host (640 root:1000)
       - ${NBSHIYAN_DATA_DIR:?}/secrets/redis.conf:/usr/local/etc/redis/redis.conf:ro
     tmpfs: ["/data:size=8m,uid=999,gid=1000"]
-    networks: [backend]
+    networks: [srh-net]          # only srh talks to redis; the app cannot reach it
     mem_limit: 96m
     memswap_limit: 96m
     pids_limit: 64
@@ -120,7 +120,7 @@ services:
     env_file:
       - ${NBSHIYAN_DATA_DIR:?}/secrets/srh.env       # SRH_MODE=env, SRH_TOKEN, SRH_CONNECTION_STRING (600)
     tmpfs: ["/tmp:size=16m"]
-    networks: [backend]
+    networks: [srh-net]          # plain http :80 + token; reachable only from srh-tls, NOT from the app
     depends_on:
       redis: { condition: service_healthy }
     mem_limit: 192m
@@ -139,8 +139,9 @@ services:
       - ${NBSHIYAN_DATA_DIR:?}/internal-tls/redis-rest.key:/etc/nginx/tls/tls.key:ro   # 640 root:101
     tmpfs: ["/tmp:size=8m"]
     networks:
-      backend:
+      backend:                   # the app reaches only this: https://redis-rest:8443 (TLS 1.3, POST /pipeline)
         aliases: [redis-rest]
+      srh-net: {}                # upstream srh:80
     depends_on: [srh]
     mem_limit: 32m
     memswap_limit: 32m
@@ -172,7 +173,11 @@ networks:
   edge:                  # published 127.0.0.1:3000 + egress (Turnstile / R2 / mail / Sanity / IndexNow)
     driver: bridge
     labels: { com.nbshiyan.stack: "nbshiyan" }
-  backend:               # no egress, nothing published
+  backend:               # no egress, nothing published: app, postgres, srh-tls (redis-rest), migrate
+    driver: bridge
+    internal: true
+    labels: { com.nbshiyan.stack: "nbshiyan" }
+  srh-net:               # no egress, nothing published: ONLY srh, srh-tls, redis. The app is never attached here.
     driver: bridge
     internal: true
     labels: { com.nbshiyan.stack: "nbshiyan" }

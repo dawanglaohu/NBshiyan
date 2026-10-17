@@ -9,7 +9,7 @@ f="$B/nbshiyan-$kind-$(date +%Y%m%d-%H%M).dump"
 docker exec nbshiyan-postgres-1 sh -c 'PGPASSWORD="$(cat /run/secrets/pg_password)" exec pg_dump -U nbshiyan -h 127.0.0.1 -d nbshiyan -Fc -Z 6' > "$f.part"
 docker exec -i nbshiyan-postgres-1 pg_restore --list < "$f.part" >/dev/null   # validates the archive
 mv "$f.part" "$f"; chmod 600 "$f"
-prune() { ls -1t "$B"/nbshiyan-"$1"-*.dump 2>/dev/null | tail -n +$(( $2 + 1 )) | xargs -r rm -f; }
+prune() { find "$B" -maxdepth 1 -type f -name "nbshiyan-$1-*.dump" -printf '%T@ %p\n' | sort -rn | tail -n +$(( $2 + 1 )) | cut -d' ' -f2- | xargs -r -d '\n' rm -f; }
 prune daily 7; prune weekly 4; prune pre-deploy 3
 used=$(du -sm "$B" | cut -f1)
 echo "[backup] $(basename "$f") $(du -h "$f" | cut -f1); dir total ${used} MB"

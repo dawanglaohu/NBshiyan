@@ -111,8 +111,8 @@ LABEL org.opencontainers.image.source="https://github.com/dawanglaohu/NBshiyan" 
       com.nbshiyan.component="app"
 USER 1001:1001
 EXPOSE 3000
-# /api/health returns only {"ok":true}; in-container use only (nginx returns 404 for it externally). TEMPORARY fallback to /robots.txt on 404 (until fix/deploy-readiness is merged; remove after).
+# /api/health returns only {"ok":true}; in-container use only (nginx returns 404 for it externally). No fallback.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD ["node", "-e", "const b='http://127.0.0.1:3000';fetch(b+'/api/health').then(r=>r.status===404?fetch(b+'/robots.txt'):r).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["sh", "-c", "cp -a /app/.next-dist/. /app/.next/ && exec node server.js"]

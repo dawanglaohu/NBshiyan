@@ -2,6 +2,7 @@
 # Promote the :candidate images built by build-on-server.sh. DRAFT (plan §11 v1.6).
 #   deploy.sh up        pg_dump → schema plan (destructive check) → prisma db push → drift check (--exit-code) → start → checks
 #                       auto-rollback of the app on failed checks. prisma/sql/*.sql (incl. 74-mail-backend.sql) is never executed.
+#   APPROVED_PLAN_SHA256=<sha256 of the reviewed plan file> deploy.sh up   continue past the review gate for exactly that plan
 #   deploy.sh rollback  switch back to :previous (no schema rollback; schema changes are additive-only)
 set -Eeuo pipefail; umask 077
 : "${NBSHIYAN_DATA_DIR:?}"; D="$NBSHIYAN_DATA_DIR"
@@ -17,36 +18,20 @@ redact() { sed -E 's#(postgres(ql)?://)[^[:space:]"]*#\1<redacted>#Ig; s#(databa
 migrate() { APP_TAG=candidate MIGRATE_TAG=candidate dc --profile tools run --rm -T --no-deps migrate "$@"; }
 write_cenv() { printf 'NBSHIYAN_DATA_DIR=%s\nNBSHIYAN_APP_ENV_FILE=%s\nAPP_TAG=%s\n' "$D" "$ENVF" "$1" > "$CENV"; chmod 600 "$CENV"; }
 
-edge_match() {  # compare EDGE_AUTH_SECRET in the env file with the include: hashes only, never values
-  local a b
-  a=$(sed -n 's/^EDGE_AUTH_SECRET=//p' "$ENVF" | tr -d '"\n' | sha256sum | cut -c1-64)
-  b=$(grep -oE 'X-Edge-Auth[[:space:]]+"?[^";[:space:]]+' "$EDGE_INC" | sed -E 's/^X-Edge-Auth[[:space:]]+"?//' | tr -d '\n' | sha256sum | cut -c1-64)
-  [ "$a" = "$b" ]
+edge_match() {  # EDGE_AUTH_SECRET in the env file vs the include: both non-empty and >= 32 chars, then hashes only; never printed
+  local a b n
+  n=$(grep -c '^EDGE_AUTH_SECRET=' "$ENVF" || true); [ "$n" = 1 ] || return 1
+  a=$(sed -n 's/^EDGE_AUTH_SECRET=//p' "$ENVF" | tr -d '"\r\n')
+  b=$(grep -oE 'X-Edge-Auth[[:space:]]+"?[^";[:space:]]+' "$EDGE_INC" | sed -E 's/^X-Edge-Auth[[:space:]]+"?//' | tr -d '\r\n')
+  [ -n "$a" ] && [ -n "$b" ] && [ "${#a}" -ge 32 ] && [ "${#b}" -ge 32 ] || return 1
+  [ "$(printf '%s' "$a" | sha256sum | cut -c1-64)" = "$(printf '%s' "$b" | sha256sum | cut -c1-64)" ]
 }
 
 sha_ok() { [[ "$1" =~ ^[0-9a-f]{40}$ ]]; }
 
-# Destructive / risky statements in the schema plan → stop and wait for full-stack review. Case-insensitive.
-# CREATE UNIQUE INDEX, ADD CONSTRAINT and ADD COLUMN … NOT NULL (without DEFAULT) are only allowed on tables
-# that the same plan creates (they can fail or lock on existing data otherwise).
-plan_problems() {
-  local plan="$1" new_tables
-  grep -qiE '\bDROP\b'                               "$plan" && echo "DROP"
-  grep -qiE 'ALTER[[:space:]]+COLUMN[^;]*\bTYPE\b'   "$plan" && echo "ALTER COLUMN … TYPE"
-  grep -qiE '\bRENAME\b'                             "$plan" && echo "RENAME"
-  grep -qiE 'SET[[:space:]]+NOT[[:space:]]+NULL'     "$plan" && echo "SET NOT NULL"
-  grep -qiE '\bTRUNCATE\b|\bDELETE[[:space:]]+FROM\b' "$plan" && echo "TRUNCATE/DELETE"
-  new_tables=$(grep -ioE 'CREATE[[:space:]]+TABLE[[:space:]]+("?public"?\.)?"?[A-Za-z0-9_]+"?' "$plan" | sed -E 's/.*[." ]"?([A-Za-z0-9_]+)"?$/\1/' | sort -u)
-  while IFS= read -r t; do
-    [ -n "$t" ] || continue
-    grep -qxF "$t" <<<"$new_tables" || echo "CREATE UNIQUE INDEX on existing table $t"
-  done < <(grep -ioE 'CREATE[[:space:]]+UNIQUE[[:space:]]+INDEX[^;]*[[:space:]]ON[[:space:]]+("?public"?\.)?"?[A-Za-z0-9_]+"?' "$plan" | sed -E 's/.*[." ]"?([A-Za-z0-9_]+)"?$/\1/' | sort -u)
-  while IFS= read -r t; do
-    [ -n "$t" ] || continue
-    grep -qxF "$t" <<<"$new_tables" || echo "ALTER TABLE $t (existing): ADD CONSTRAINT / ADD COLUMN NOT NULL without DEFAULT"
-  done < <(grep -iE 'ALTER[[:space:]]+TABLE' "$plan" | grep -iE 'ADD[[:space:]]+CONSTRAINT|ADD[[:space:]]+COLUMN[^;,]*NOT[[:space:]]+NULL' | grep -viE 'DEFAULT' \
-           | grep -ioE 'ALTER[[:space:]]+TABLE[[:space:]]+("?public"?\.)?"?[A-Za-z0-9_]+"?' | sed -E 's/.*[." ]"?([A-Za-z0-9_]+)"?$/\1/' | sort -u)
-}
+# Destructive-change gate (statement/clause based, case-insensitive, fail closed). Tests: deploy/tests/plan-check.test.sh
+# shellcheck source=deploy/plan-check.sh
+. "$(dirname "$(readlink -f "$0")")/plan-check.sh"
 
 schema_sync() {   # 4 steps, all on the server; nothing leaves it
   local sha; sha=$(cat "$D/.candidate-sha"); sha_ok "$sha" || die "candidate sha invalid"
@@ -56,32 +41,45 @@ schema_sync() {   # 4 steps, all on the server; nothing leaves it
   "$D/src/deploy/backup-postgres.sh" pre-deploy || die "pre-deploy pg_dump failed"
   # (2) plan: DB (via datasource → DATABASE_URL from env_file) → schema.prisma, as SQL; review gate
   migrate migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script \
-    > "$plan.part" 2>>"$logf" || die "migrate diff failed (see $logf)"
+    > "$plan.part" 2> >(redact >>"$logf") || die "migrate diff failed (see $logf)"
   mv "$plan.part" "$plan"; chmod 600 "$plan"
-  probs=$(plan_problems "$plan" | sort -u)
+  local probs plan_sha; probs=$(plan_problems "$plan" | sort -u); plan_sha=$(sha256sum "$plan" | cut -c1-64)
   if [ -n "$probs" ]; then
-    log "schema plan needs review, NOT applied: $plan"; printf '%s\n' "$probs" | sed 's/^/  - /'
-    die "awaiting full-stack review of the schema plan"
+    log "schema plan needs review, NOT applied: $plan (sha256 $plan_sha)"; printf '%s\n' "$probs" | sed 's/^/  - /'
+    # Review gate: continue ONLY for the exact plan that was reviewed. Any change in the DB or schema → new sha → stop again.
+    # This never adds --accept-data-loss: prisma still refuses data-loss changes on its own.
+    if [ -n "${APPROVED_PLAN_SHA256:-}" ]; then
+      [[ "$APPROVED_PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]] || die "APPROVED_PLAN_SHA256 is not a 64-hex sha256"
+      [ "$APPROVED_PLAN_SHA256" = "$plan_sha" ] || die "APPROVED_PLAN_SHA256 does not match this plan; review the new plan"
+      log "plan approved by sha256 ($plan_sha), continuing"
+    else
+      die "awaiting full-stack review of the schema plan (then rerun with APPROVED_PLAN_SHA256=$plan_sha)"
+    fi
+  else
+    log "schema plan: $(grep -ciE '^[[:space:]]*(CREATE|ALTER)' "$plan") statements, additive only"
   fi
-  log "schema plan: $(grep -cE '^(CREATE|ALTER)' "$plan") statements, additive only"
   # (3) db push, never --accept-data-loss (prisma itself refuses data-loss changes without it)
   migrate db push --skip-generate --schema prisma/schema.prisma 2>&1 | redact >> "$logf"
   [ "${PIPESTATUS[0]}" = 0 ] || die "prisma db push failed (log kept locally: $logf)"
   # (4) drift must be zero before the app starts (exit 0 = no difference, 2 = difference, 1 = error)
   migrate migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code \
-    >/dev/null 2>>"$logf" || die "schema drift remains after db push; app NOT started"
+    >/dev/null 2> >(redact >>"$logf") || die "schema drift remains after db push; app NOT started"
   log "schema in sync (drift 0)"
 }
 
 post_checks() {
   local ok=1
-  for i in $(seq 1 30); do [ "$(docker inspect -f '{{.State.Health.Status}}' nbshiyan-app-1 2>/dev/null)" = healthy ] && break; sleep 4; done
+  for _ in $(seq 1 30); do [ "$(docker inspect -f '{{.State.Health.Status}}' nbshiyan-app-1 2>/dev/null)" = healthy ] && break; sleep 4; done
   [ "$(docker inspect -f '{{.State.Health.Status}}' nbshiyan-app-1)" = healthy ] || { log "FAIL app not healthy"; ok=0; }
   ss -lntH | awk '{print $4}' | grep -qE '(:|\.)5432$' && { log "FAIL something listens on 5432 on the host"; ok=0; }
   ss -lntH | awk '{print $4}' | grep -qE '(:|\.)6379$' && { log "WARN 6379 listening on host (not ours unless published)"; }
   ss -lntH | awk '{print $4}' | grep -E ':3000$' | grep -vqE '^127\.0\.0\.1:3000$' && { log "FAIL 3000 bound beyond 127.0.0.1"; ok=0; }
   dc ps --format '{{.Service}} {{.Publishers}}' | grep -vE '^app ' | grep -q '[0-9]->' && { log "FAIL a non-app service publishes a port"; ok=0; }
-  h=$(curl -s http://127.0.0.1:3000/api/health); [ "$h" = '{"ok":true}' ] || log "WARN /api/health body not {\"ok\":true} (expected until fix/deploy-readiness is merged)"
+  h=$(curl -s http://127.0.0.1:3000/api/health); [ "$h" = '{"ok":true}' ] || { log "FAIL /api/health body is not {\"ok\":true}"; ok=0; }
+  # srh-net isolation: the app must not resolve srh / redis (only redis-rest via srh-tls on backend)
+  for h2 in srh redis; do
+    dc exec -T app node -e "require('dns').lookup('$h2',e=>process.exit(e?0:1))" 2>/dev/null || { log "FAIL app can resolve $h2 (must be on srh-net only)"; ok=0; }
+  done
   for p in /en /ru /robots.txt /sitemap.xml; do
     c=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000$p"); [ "$c" = 200 ] || { log "FAIL $p → $c"; ok=0; }
   done
@@ -106,7 +104,7 @@ case "${1:-}" in
     docker image inspect nbshiyan-app:candidate >/dev/null || die "no candidate image; run build-on-server.sh"
     sha_ok "$(cat "$D/.candidate-sha" 2>/dev/null)" || die ".candidate-sha is not a 40-hex git sha"
     write_cenv candidate
-    dc up -d postgres redis srh srh-tls
+    dc up -d --wait postgres redis srh srh-tls
     schema_sync          # ordering replaces depends_on: service_completed_successfully (see compose comment)
     dc up -d --no-deps app
     if post_checks; then promote; write_cenv current; dc up -d --no-deps app; log "deployed $(cut -c1-12 "$D/.current-sha")"

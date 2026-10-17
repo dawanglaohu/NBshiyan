@@ -67,7 +67,7 @@ if [ -n "$DOCKERFILE_DIR" ]; then
 fi
 [ -f "$DF" ] && [ -f "$SRC/.dockerignore" ] || die "Dockerfile/.dockerignore missing"
 grep -q "$NODE_IMAGE_DIGEST" "$DF" || die "Dockerfile base image digest is not the reviewed one"
-grep -qE '^\.env$' "$SRC/.dockerignore" && grep -qE '^\.env\.\*$' "$SRC/.dockerignore" || die ".dockerignore must exclude .env*"
+{ grep -qE '^\.env$' "$SRC/.dockerignore" && grep -qE '^\.env\.\*$' "$SRC/.dockerignore"; } || die ".dockerignore must exclude .env*"
 if grep -nE '^\s*(ARG|ENV)\s+[A-Z_]*(SECRET|TOKEN|PASSWORD|_KEY|DATABASE_URL)' "$DF" | grep -vE 'NEXT_PUBLIC_|SITE_KEY'; then die "secret-like ARG/ENV in Dockerfile"; fi
 grep -nE '^\s*COPY\s+.*\.env' "$DF" && die "Dockerfile copies an env file"
 
@@ -123,15 +123,15 @@ done
 pat=$(mktemp -p /dev/shm nbs-pat.XXXXXX); scan=$(mktemp -d -p "$NBSHIYAN_DATA_DIR" .scan.XXXXXX)
 trap 'rm -f "$pat"; rm -rf "$scan"' EXIT
 { [ -f "$APP_ENV_FILE" ] && grep -E "^($SECRET_KEYS_RE)=" "$APP_ENV_FILE" | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
-  for f in "$NBSHIYAN_DATA_DIR/secrets/pg_password"; do [ -f "$f" ] && cat "$f"; done
+  [ -f "$NBSHIYAN_DATA_DIR/secrets/pg_password" ] && cat "$NBSHIYAN_DATA_DIR/secrets/pg_password"
   [ -f "$NBSHIYAN_DATA_DIR/secrets/srh.env" ] && sed -n 's/^SRH_TOKEN=//p' "$NBSHIYAN_DATA_DIR/secrets/srh.env"
   [ -f "$NBSHIYAN_DATA_DIR/secrets/redis.conf" ] && sed -n 's/^requirepass //p' "$NBSHIYAN_DATA_DIR/secrets/redis.conf"
 } 2>/dev/null | awk 'length >= 12' | sort -u > "$pat"
 [ -s "$pat" ] || log "WARNING: no secret values available yet (run init-secrets.sh first); value scan is vacuous"
 for img in "nbshiyan-app:$SHORT" "nbshiyan-migrate:$SHORT"; do
-  rm -rf "$scan"/*; cid=$(docker create "$img")
+  rm -rf "${scan:?}"/*; cid=$(docker create "$img")
   docker export "$cid" | tar -x -C "$scan" --exclude='proc/*' --exclude='sys/*' --exclude='dev/*'; docker rm -f "$cid" >/dev/null
-  hits=0; [ -s "$pat" ] && hits=$(grep -rFlI -f "$pat" "$scan" 2>/dev/null | wc -l)
+  hits=0; [ -s "$pat" ] && hits=$(grep -rFla -f "$pat" "$scan" 2>/dev/null | wc -l)
   keyfiles=$(find "$scan/app" "$scan/opt" \( -name '.env' -o -name '.env.*' -o -name '*.pem' -o -name '*.key' \) ! -name '.env.example' 2>/dev/null | wc -l)
   log "fs scan $img: $(wc -l < "$pat") secret values, hits=$hits, env/key files=$keyfiles"
   (( hits == 0 && keyfiles == 0 )) || leak=1
