@@ -35,19 +35,26 @@ export function assertContentMatchesKey(key: string, data: Buffer) {
 }
 
 const O_NOFOLLOW = fsConstants.O_NOFOLLOW ?? 0;
+/**
+ * #323：本地驱动单个文件读取上限。写入路径的上限远小于它（logo ≤ 2MB 重编码成 PNG，模型上传整个请求 ≤ 4MB），
+ * 超过就说明文件不是经接口写入的（被替换或损坏），直接报错（接口返回 500），不读进内存。
+ */
+export const STORAGE_READ_MAX_BYTES = 8 * 1024 * 1024;
 const badKey = () => new Error('bad storage key');
+const tooLarge = () => new Error('storage object too large');
 const isErr = (e: unknown, ...codes: string[]) => codes.includes((e as NodeJS.ErrnoException)?.code ?? '');
 
 /**
  * 本地磁盘（自建服务器上挂载的数据卷，STORAGE_DRIVER=local + UPLOAD_DIR）。
  * - 只写在 UPLOAD_DIR 下：key 先过 assertKey（服务端生成的随机 id，只允许 png/webp/glb），再 path.resolve + 前缀检查；
- * - 不跟随符号链接：根目录取 realpath，中间目录逐级 lstat，不是真实目录（含符号链接）一律拒绝；文件用 O_NOFOLLOW 打开，读之前 fstat 确认是普通文件；
+ * - 不跟随符号链接：根目录取 realpath，中间目录逐级 lstat，不是真实目录（含符号链接）一律拒绝；文件用 O_NOFOLLOW 打开，读之前 fstat 确认是普通文件、不超过 STORAGE_READ_MAX_BYTES；
  * - 写入 O_EXCL（不覆盖）、文件 0600、目录 0700；写入前校验文件头与扩展名一致；
  * - 这个目录从不被静态服务（不在 public/ 下，prod-env-check 也拒绝 public/、.next/ 下的目录），文件只经现有接口按原有权限和响应头提供。
  */
 export class LocalStorage implements PrivateStorage {
   private root: string;
-  constructor(root: string) { this.root = path.resolve(root); }
+  private maxReadBytes: number;
+  constructor(root: string, opts: { maxReadBytes?: number } = {}) { this.root = path.resolve(root); this.maxReadBytes = opts.maxReadBytes ?? STORAGE_READ_MAX_BYTES; }
 
   /** 返回 key 对应的绝对路径（保证在真实根目录内、中间目录都是真实目录）；create=false 且目录不存在时返回 null */
   private async target(key: string, create: boolean): Promise<string | null> {
@@ -90,8 +97,13 @@ export class LocalStorage implements PrivateStorage {
       throw e;
     }
     try {
-      if (!(await fh.stat()).isFile()) throw badKey();
-      return await fh.readFile();
+      const st = await fh.stat();
+      if (!st.isFile()) throw badKey();
+      // #323：读之前按 fstat 的大小拒绝超大文件（不把它整个读进内存）；读完再查一次，防止读的过程中文件变大
+      if (st.size > this.maxReadBytes) throw tooLarge();
+      const data = await fh.readFile();
+      if (data.length > this.maxReadBytes) throw tooLarge();
+      return data;
     } finally { await fh.close(); }
   }
 

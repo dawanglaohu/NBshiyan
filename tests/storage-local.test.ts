@@ -176,3 +176,26 @@ test('文件只经现有接口提供：每个读存储的接口都走 storedFile
   assert.doesNotMatch(cfg, /UPLOAD_DIR|storage\/uploads/);
   await assert.rejects(stat('public/storage'));
 });
+
+test('#323 本地驱动读文件前 fstat 判大小：超过上限直接报错、不读进内存；上限以内照常；默认上限高于所有写入上限', async () => {
+  const { STORAGE_READ_MAX_BYTES } = await import('../src/lib/server/storage');
+  const { LOGO_MAX_BYTES } = await import('../src/lib/server/uploads');
+  const { MODEL_UPLOAD_MAX_REQUEST_BYTES } = await import('../src/lib/server/models');
+  const { truncate } = await import('node:fs/promises');
+  assert.equal(STORAGE_READ_MAX_BYTES, 8 * 1024 * 1024);
+  assert.ok(STORAGE_READ_MAX_BYTES > LOGO_MAX_BYTES && STORAGE_READ_MAX_BYTES > MODEL_UPLOAD_MAX_REQUEST_BYTES);
+  await withDir(async (dir) => {
+    const small = new LocalStorage(dir, { maxReadBytes: PNG.length });
+    await small.put('logos/a.png', PNG);
+    assert.deepEqual(await small.get('logos/a.png'), PNG); // 正好等于上限：通过
+    await truncate(path.join(dir, 'logos/a.png'), PNG.length + 1);
+    await assert.rejects(small.get('logos/a.png'), /storage object too large/);
+    // 默认上限：稀疏文件超过 8MB → 拒绝（不会真的读 8MB）
+    const s = new LocalStorage(dir);
+    await s.put('logos/b.png', PNG);
+    assert.deepEqual(await s.get('logos/b.png'), PNG);
+    await truncate(path.join(dir, 'logos/b.png'), STORAGE_READ_MAX_BYTES + 1);
+    await assert.rejects(s.get('logos/b.png'), /storage object too large/);
+    assert.equal(await s.get('logos/missing.png'), null);
+  });
+});

@@ -108,3 +108,24 @@ test('只有 CLI，没有 HTTP 建首个管理员的接口；审计不含密码�
   assert.match(readFileSync('next.config.ts', 'utf8'), /outputFileTracingIncludes: \{ '\/api\/health': \['\.\/scripts\/admin-create\.mjs', '\.\/scripts\/admin-create-lib\.mjs'\] \}/);
   assert.equal(JSON.parse(readFileSync('package.json', 'utf8')).scripts['admin:create'], 'node scripts/admin-create.mjs');
 });
+
+test('#323 admin-create 的密码规则与 accounts.ts 一致：边界、空白、大小写、Unicode / 代理对、非字符串；accounts.ts 的规则本身仍是 12–200', async () => {
+  const email = 'Admin@Example.com';
+  const cases: unknown[] = [
+    'x'.repeat(12), 'x'.repeat(11), 'x'.repeat(199), 'x'.repeat(200), 'x'.repeat(201), ' '.repeat(12), `${' '.repeat(11)}x`,
+    'admin@example.com', 'ADMIN@EXAMPLE.COM', `  admin@example.com  `, `admin@example.com\t`, 'admin@example.co', 'admin@example.com!',
+    '😀'.repeat(6), '😀'.repeat(5) + 'x', '😀'.repeat(100), '😀'.repeat(100) + 'x', 'é'.repeat(12), 'e\u0301'.repeat(6),
+  ];
+  for (const pw of cases) assert.equal(passwordPolicyError(pw as string, email), appPolicy(pw as string, email), JSON.stringify(pw));
+  for (const e of ['a@b.de', 'ADMIN@EXAMPLE.COM', '']) for (const pw of ['a@b.de'.padEnd(12, ' '), 'admin@example.com', 'x'.repeat(12)])
+    assert.equal(passwordPolicyError(pw, e), appPolicy(pw, e), `${pw} / ${e}`);
+  // 非字符串：脚本拒绝；后台 zod 同样拒绝
+  for (const pw of [undefined, null, 123456789012, ['x'.repeat(12)]]) {
+    assert.equal(passwordPolicyError(pw as unknown as string, email), 'weak_password');
+    assert.equal(appPolicy(pw as unknown as string, email), 'weak_password');
+  }
+  const { Password } = await import('../src/lib/server/admin/accounts');
+  assert.equal(Password.safeParse('x'.repeat(12)).success, true); assert.equal(Password.safeParse('x'.repeat(11)).success, false);
+  assert.equal(Password.safeParse('x'.repeat(200)).success, true); assert.equal(Password.safeParse('x'.repeat(201)).success, false);
+  assert.match(MESSAGES.weak_password, /12–200/);
+});
