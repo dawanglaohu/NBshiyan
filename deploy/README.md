@@ -45,15 +45,21 @@ The ordering lives in `deploy.sh` instead of `depends_on: service_completed_succ
 profile behaves differently across compose versions, and the review gate sits between two migrate runs.
 
 ## First admin (after the first successful deploy)
-Run this on the server, as Ryan or with Ryan at the keyboard. The exact command name comes from backend PR
-`fix/deploy-readiness`; it is referred to below as `<admin-create>`.
+Run this on the server, as Ryan or with Ryan at the keyboard. The password is read from a **hidden prompt**: never
+pass it as an argument or an exported env var. The final steps follow runbook §4.1–4.3 once `fix/deploy-readiness` is merged.
 ```sh
-# interactive (TTY): asks for the password without echo; nothing goes into argv or shell history
-docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file "$NBSHIYAN_COMPOSE_ENV" exec -it app <admin-create> --email <admin email>
-# non-interactive (no TTY): password on stdin only, e.g. from a password manager pipe; never as an argument or exported env
-<password source> | docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file "$NBSHIYAN_COMPOSE_ENV" exec -T app <admin-create> --email <admin email> --password-stdin
+DC="docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file $NBSHIYAN_COMPOSE_ENV"
+# standalone image: there is no pnpm, so use the node form, inside the running app container (it has the env and the DB network)
+$DC exec -it app node scripts/admin-create.mjs
+# equivalent one-off container (does not publish ports):
+$DC run --rm -it --no-deps app node scripts/admin-create.mjs
 ```
-Then log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
+`pnpm admin:create` only works in a dev checkout with full dependencies, not in this image. After creating the
+account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
+
+## Health endpoint
+`/api/health` (`{"ok":true}`) is for the container healthcheck only. The public nginx site returns `404` for it,
+because it shares the 120/min rate-limit bucket. After the DNS cutover, check that `https://geiom.com/api/health` → 404.
 
 ## Review notes
 - **Never run `docker compose config` for this project.** It prints the resolved `env_file` values, which are secrets.

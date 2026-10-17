@@ -39,7 +39,9 @@ RUN --mount=type=cache,id=nbshiyan-pnpm-store,target=/pnpm/store \
 
 ############################ builder ############################
 FROM deps AS builder
-# Public build-time values only. Defaults = geiom.com production. Never pass a secret here.
+# Public build-time values only (fix/deploy-readiness: the build checks only NEXT_PUBLIC_* and the mock switches;
+# everything else is checked at startup). APP_ENV is public too and is required at build for the SEO headers.
+# Defaults = geiom.com production. Never pass a secret here.
 ARG APP_ENV=production
 ARG NEXT_PUBLIC_SITE_URL=https://geiom.com
 ARG NEXT_PUBLIC_ADMIN_API=http
@@ -96,6 +98,9 @@ ENV NODE_ENV=production HOME=/tmp PORT=3000 HOSTNAME=0.0.0.0 UPLOAD_DIR=/data/up
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+# First-admin script (fix/deploy-readiness): standalone has no pnpm, so it runs as `node scripts/admin-create.mjs`
+# (deps @prisma/client + @node-rs/argon2 are already in the traced standalone node_modules).
+COPY --from=builder /app/scripts/admin-create.mjs ./scripts/admin-create.mjs
 # ISR (/products 1m, /articles 1h), route cache and the image optimizer write under .next/ (verified locally),
 # but the root fs is read_only. So the build output is kept in .next-dist and copied into a tmpfs .next at start.
 RUN mv .next .next-dist && mkdir .next && chown 1001:1001 .next \
@@ -106,7 +111,7 @@ LABEL org.opencontainers.image.source="https://github.com/dawanglaohu/NBshiyan" 
       com.nbshiyan.component="app"
 USER 1001:1001
 EXPOSE 3000
-# /api/health returns only {"ok":true}. TEMPORARY fallback to /robots.txt on 404 (until fix/deploy-readiness is merged; remove after).
+# /api/health returns only {"ok":true}; in-container use only (nginx returns 404 for it externally). TEMPORARY fallback to /robots.txt on 404 (until fix/deploy-readiness is merged; remove after).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD ["node", "-e", "const b='http://127.0.0.1:3000';fetch(b+'/api/health').then(r=>r.status===404?fetch(b+'/robots.txt'):r).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 ENTRYPOINT ["/usr/bin/tini", "--"]

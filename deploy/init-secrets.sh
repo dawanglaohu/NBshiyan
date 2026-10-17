@@ -69,7 +69,7 @@ setkey MAIL_WEBHOOK_SECRET "$(openssl rand -base64 48 | tr -d '\n')"   # 48 rand
 setkey UPSTASH_REDIS_REST_TOKEN "$(sed -n 's/^SRH_TOKEN=//p' "$S/srh.env")"
 for kv in APP_ENV=production NODE_ENV=production NEXT_PUBLIC_SITE_URL=https://geiom.com AUTH_URL=https://geiom.com \
           NEXT_PUBLIC_ADMIN_API=http RATE_LIMIT_STORE=upstash UPSTASH_REDIS_REST_URL=https://redis-rest:8443 \
-          STORAGE_DRIVER=local UPLOAD_DIR=/data/uploads PROD_DATABASE_HOST=postgres SHORTLINK_PROBE_ORIGIN=http://127.0.0.1:3000 \
+          STORAGE_DRIVER=local UPLOAD_DIR=/data/uploads SHORTLINK_PROBE_ORIGIN=http://127.0.0.1:3000 \
           MAIL_SEND_ADAPTER=smtp SMTP_HOST=smtp.gmail.com SMTP_PORT=465 REPLY_DOMAIN=geiom.com \
           MAIL_DAILY_CAP=450 MAIL_DAILY_CAP_RESET=00:00 MAIL_RATE_ADMIN_PER_HOUR=30 MAIL_RATE_GLOBAL_PER_HOUR=200; do setkey "${kv%%=*}" "${kv#*=}"; done
 grep -qE '^EDGE_AUTH_SECRET=.{32,}' "$ENVF" || echo "[init] WARNING: EDGE_AUTH_SECRET missing or < 32 bytes in app env file"

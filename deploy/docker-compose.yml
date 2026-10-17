@@ -33,7 +33,7 @@ services:
       NODE_ENV: production
       NODE_OPTIONS: --max-old-space-size=512
       STORAGE_DRIVER: local                          # Ryan's decision: local storage (fix/deploy-readiness allows it)
-      UPLOAD_DIR: /data/uploads                      # absolute; the only writable bind mount; checked writable at start
+      UPLOAD_DIR: /data/uploads                      # absolute, writable, not under public/ or .next/; checked at start
       NODE_EXTRA_CA_CERTS: /run/nbshiyan-ca/ca.crt   # trust the internal CA of srh-tls
     ports:
       - "127.0.0.1:3000:3000"
@@ -52,7 +52,8 @@ services:
     cpus: 1.5
     pids_limit: 256
     healthcheck:
-      # /api/health returns only {"ok":true}. TEMPORARY: falls back to /robots.txt on 404 until fix/deploy-readiness is merged.
+      # /api/health returns only {"ok":true}; for this in-container check only. nginx must NOT proxy it (shares the
+      # 120/min rate-limit bucket): the site config returns 404 for it. TEMPORARY: falls back to /robots.txt on 404 until fix/deploy-readiness is merged.
       test: ["CMD", "node", "-e", "const b='http://127.0.0.1:3000';fetch(b+'/api/health').then(r=>r.status===404?fetch(b+'/robots.txt'):r).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
