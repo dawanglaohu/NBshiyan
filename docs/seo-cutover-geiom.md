@@ -112,12 +112,12 @@ proxy_set_header X-Forwarded-Proto https;     # 固定值
 proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
 proxy_set_header X-Real-IP "";                # 清空
 proxy_set_header X-Edge-Auth <由 nginx 注入，值不写在这里>;
-proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;  # 只在下面 444 规则保留时可信
+proxy_set_header CF-Connecting-IP $remote_addr;   # 只信任 Cloudflare 来源（前提：下面的 444 规则保留）
 ```
 
 - 443 的 `geiom.com` server 用精确的 `server_name geiom.com`，Host 不对直接返回 **421**。canonical、hreflang、Location 都不会被伪造的 Host 污染。
 - `X-Edge-Auth` 由 nginx 注入，会覆盖客户端自己带的同名头。它的值不能出现在日志、仓库和聊天里。
-- `CF-Connecting-IP` 只有在「非 Cloudflare 来源 → 444」这条规则保留时才可信，这条规则**不能删**。
+- `CF-Connecting-IP` 用 `$remote_addr` 显式设置，不读、不透传客户端带来的同名头。只有在「非 Cloudflare 来源 → 444」这条规则保留时，`$remote_addr` 才一定是 Cloudflare 节点，这条规则**不能删**。
 - **以最终 `nginx -t` 通过的文件为准。** 本文不写任何密钥值或源站 IP。
 - 上线后自检：
   ```bash
@@ -141,9 +141,11 @@ curl -sI $S/en/products/ | grep -iE '^(HTTP|location)'            # 308 → /en/
 - 三种（http 裸域、http www、https www）都必须是 nginx 的**一个** 301，直接到 `https://geiom.com$request_uri`（路径和 query 都保留），不能有链式跳转。
 - 根路径 Location（#321 standalone 检查的 P1-1）：代码侧由后端 PR `fix/root-redirect-location` 修，把 Location 改成相对的 `/en`。nginx 再兜底，只改写本地地址，**不是**通配所有域名的正则：
   ```nginx
-  proxy_redirect ~^https?://(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:\d+)?(/.*)$ $3;
+  proxy_redirect ~^https?://(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1?\])(?::[0-9]+)?(/.*)$ $1;
+  proxy_redirect http://geiom.com/ https://geiom.com/;
   ```
   注意：路径分组 `(/.*)` 必须是**必选**的，不能写成可选。否则 `http://localhost:3000` 会被改写成空的 Location。
+  第二条把容器返回的 `http://geiom.com/...` 绝对跳转改成 `https://`。以上两条照抄安全批准的版本，以最终 `nginx -t` 通过的文件为准。
   验收：`curl -sI https://geiom.com/` 的 Location 是 `/en` 或 `https://geiom.com/en`，且没有任何响应头含 localhost。
 
 ### 2.6 404
@@ -289,12 +291,12 @@ location ^~ /api/health/ { return 404; }
 
 ## 附录：切换前 DNS 快照（2026-10-15 00:17 PT，用于回滚）
 
-由运维执行，SEO 不改 DNS。下面是 Cloudflare / Google DoH 查到的**公网**结果（裸域 A/AAAA 是 Cloudflare 代理的公共 anycast 地址，不是源站）；面板里的代理目标以 Cloudflare 后台为准，源站地址不写进仓库。
+由运维执行，SEO 不改 DNS。下面是 Cloudflare 面板里记录的结构。裸域 A/AAAA 记录的值是**源站 IP**（开 Cloudflare 代理），不是公网查到的 Cloudflare 边缘地址：边缘地址填进 A 记录会让代理绕回 Cloudflare 自己。源站 IP 不写进仓库，由运维填写。
 
-| 主机 | 类型 | 当前公网值 | 备注 |
+| 主机 | 类型 | 记录值 | 备注 |
 |---|---|---|---|
-| `geiom.com` | A | `104.21.45.232`、`172.67.220.15` | Cloudflare 代理 |
-| `geiom.com` | AAAA | `2606:4700:3031::6815:2de8`、`2606:4700:3033::ac43:dc0f` | Cloudflare 代理 |
+| `geiom.com` | A | 源站 IP（不写进仓库，由运维填写） | Cloudflare 代理（橙云） |
+| `geiom.com` | AAAA | 源站 IPv6（如有；不写进仓库，由运维填写） | Cloudflare 代理（橙云） |
 | `geiom.com` | TXT | `v=spf1 include:_spf.mx.cloudflare.net ~all` | 现有 SPF，只新增不覆盖 |
 | `geiom.com` | MX | `route1/2/3.mx.cloudflare.net` | Cloudflare Email Routing，勿删 |
 | `cf2024-1._domainkey.geiom.com` | TXT | Cloudflare DKIM（已存在） | 勿删、勿覆盖 |
