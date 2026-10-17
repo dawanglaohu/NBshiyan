@@ -38,6 +38,7 @@ services:
       STORAGE_DRIVER: local                          # Ryan's decision: local storage (fix/deploy-readiness allows it)
       UPLOAD_DIR: /data/uploads                      # absolute, writable, not under public/ or .next/; checked at start
       NODE_EXTRA_CA_CERTS: /run/nbshiyan-ca/ca.crt   # trust the internal CA of srh-tls
+      NEXT_PUBLIC_ADMIN_MAIL: http                 # Ryan: enable admin mail this launch round (build-args must match before rebuild)
     ports:
       - "127.0.0.1:3000:3000"
     tmpfs:
