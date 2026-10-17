@@ -2,22 +2,26 @@
 // #104 首屏视频：封面图（next/image priority）先渲染，是 LCP 元素；空闲后才加载视频（preload="none"）
 // ≤767px 用 4:5 竖版素材（#115 portrait）：<picture>/<source media> 选封面，<video><source media> 选视频，桌面不下载竖版
 // 仅首次访问自动播放；有 暂停/播放 + 跳过 两个按钮（WCAG 2.2.2）；播完/跳过停在封面，不循环
-// #291 ≥1024 按钮在左下（与品牌文字间距 ≥24px）；<1024 只显示图标（44px 点击区 + aria-label），放右下避开品牌文字和礼盒
+// #291 控件统一在左下（所有状态同一容器）；<1024 只显示图标（44px 点击区 + aria-label）
+// #291 品牌文字是 HTML 叠层（素材已无文字，#305）：始终显示在封面和视频上；alt 已含品牌和标语，所以 aria-hidden
+// #291 封面是视频最后一帧、视频从开箱镜头开始：视频真正开始播放（playing 事件）后再 300ms 交叉淡入
 import { getImageProps } from 'next/image';
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useReducer, useRef, useState } from 'react';
 import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, whenIdle } from '@/lib/home/heroVideo';
 
 export const PORTRAIT_MQ = '(max-width: 767px)';
 const DESKTOP_MQ = '(min-width: 768px)';
 
-type Labels = { poster: string; skip: string; play: string; pause: string };
+type Labels = { brand: ReactNode; tagline: string; poster: string; skip: string; play: string; pause: string };
 
 export default function HeroVideo({ labels }: { labels: Labels }) {
   const [state, dispatch] = useReducer(heroReducer, 'poster');
   const [mounted, setMounted] = useState(false);
   const [canPlay, setCanPlay] = useState(false);
+  const [started, setStarted] = useState(false);
   const ref = useRef<HTMLVideoElement>(null);
   const autoRef = useRef(false);
+  const rewindRef = useRef(false);
 
   useEffect(() => {
     const env = readEnv();
@@ -34,13 +38,16 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
     if (!v) return;
     if (state === 'playing') {
       if (autoRef.current) { markSeen(readEnv().storage); autoRef.current = false; }
+      if (rewindRef.current) { rewindRef.current = false; try { v.currentTime = 0; } catch { /* ignore */ } }
       v.play().catch(() => dispatch('error'));
     } else if (state === 'paused') v.pause();
   }, [state, mounted]);
 
   const stop = (ev: 'skip' | 'ended' | 'error') => {
     const v = ref.current;
-    if (v) { v.pause(); try { v.currentTime = 0; } catch { /* ignore */ } }
+    // 不在这里回到第 0 帧：否则淡出的 300ms 里会闪一下开箱镜头；下次播放前再回到开头
+    if (v) { v.pause(); rewindRef.current = true; }
+    setStarted(false);
     dispatch(ev);
   };
 
@@ -61,7 +68,8 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
       </picture>
       {mounted && (
         <video ref={ref} className="hero-media-video" muted playsInline preload="none"
-          aria-hidden="true" tabIndex={-1} data-visible={active ? '1' : '0'}
+          aria-hidden="true" tabIndex={-1} data-visible={active && started ? '1' : '0'}
+          onPlaying={() => setStarted(true)}
           onEnded={() => stop('ended')} onError={(e) => { if (isFatalMediaError(e.target as Element, e.currentTarget)) stop('error'); }}>
           <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.webm" type="video/webm" />
           <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.mp4" type="video/mp4" />
@@ -69,6 +77,12 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
           <source src="/video/hero-115.c2be059f.mp4" type="video/mp4" />
         </video>
       )}
+      <p className="hero-brand" aria-hidden="true">
+        <span className="hero-brand-inner">
+          <span className="hero-brand-name">{labels.brand}</span>
+          <span className="hero-brand-tagline">{labels.tagline}</span>
+        </span>
+      </p>
       <div className="hero-media-ctrls">
         {active ? (
           <>
