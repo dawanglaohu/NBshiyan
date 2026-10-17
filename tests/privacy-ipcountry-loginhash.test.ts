@@ -13,6 +13,7 @@ test('anonymizeInquiriesTx also clears ipCountry', async () => {
     inquiry: { updateMany: rec('inquiry.updateMany'), update: rec('inquiry.update') },
     inquiryItem: { updateMany: rec('x'), update: rec('x'), findMany: async () => [] },
     inquiryMessage: { updateMany: rec('x') }, inquiryNote: { updateMany: rec('x') }, sampleRequest: { updateMany: rec('x') },
+    mailMessage: { updateMany: rec('x'), update: rec('x'), findMany: async () => [], deleteMany: rec('x') },
     logoUpload: { deleteMany: rec('x'), findMany: async () => [] },
   };
   await anonymizeInquiriesTx(db as never, ['i1']);

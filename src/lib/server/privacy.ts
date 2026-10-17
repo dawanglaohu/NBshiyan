@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from 'crypto';
+import { createHash, createHmac, randomBytes } from 'crypto';
 import { z } from 'zod';
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { normalizeEmail } from './sample';
@@ -88,6 +88,8 @@ export async function deleteCustomer(db: PrismaClient, email: string, storage: P
     const inquiryIds = (await tx.inquiry.findMany({ where: { contactId: { in: ids } }, select: { id: true } })).map((i) => i.id);
     await tx.contact.updateMany({ where: { id: { in: ids } }, data: anonymizedContact() as Prisma.ContactUpdateManyMutationInput });
     const logos = await anonymizeInquiriesTx(tx, inquiryIds);
+    // #74 M6：发件人是该客户的未归类 / 已忽略来信一并删除（按 fromHash 比对；没配 PRIVACY_HASH_SECRET 时没有 fromHash 可比）
+    if (privacyHashReady()) await tx.mailMessage.deleteMany({ where: { inquiryId: null, direction: 'INBOUND', fromHash: emailHash(email) } });
     return { contacts: ids.length, inquiries: inquiryIds.length, logos };
   }, { timeout: ANON_TX_TIMEOUT_MS });
   await deleteLogoFiles(out.logos, storage); // 文件删除在事务提交之后（删不掉只留无记录的私有孤儿文件）
@@ -103,6 +105,9 @@ export function stripLogoKeys(config: unknown): Prisma.InputJsonValue | typeof P
 
 /** 单批匿名化事务的超时（500 条一批实测见 launch-runbook.md） */
 export const ANON_TX_TIMEOUT_MS = 60_000;
+
+/** Message-ID 里常带对方邮箱或主机名：匿名化时换成不可逆哈希（保持唯一） */
+export const redactMsgId = (v: string | null) => (v == null || v.endsWith('@redacted.invalid>') ? v : `<${createHash('sha256').update(v).digest('hex')}@redacted.invalid>`);
 
 /**
  * 询盘级匿名化（手动删除和保留期到期 cron 共用），必须在调用方的交互式事务 tx 里执行：
@@ -121,6 +126,13 @@ export async function anonymizeInquiriesTx(tx: Prisma.TransactionClient, inquiry
   for (const it of items) await tx.inquiryItem.update({ where: { id: it.id }, data: { config: stripLogoKeys(it.config) } });
   await tx.inquiryMessage.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { subject: DELETED, bodyHtml: DELETED } });
   await tx.inquiryNote.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { body: DELETED } });
+  // #74 往来邮件（新表）：主题、正文、地址、References 清空，标记 redactedAt；messageId / inReplyTo 换成哈希（M6）。第 1 阶段没有存附件
+  await tx.mailMessage.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { subject: '', bodyHtml: '', bodyText: '', fromAddr: '', toAddr: '', references: null, fromHash: null, sendKey: null, idemKey: null, redactedAt: now } });
+  const mailIds = await tx.mailMessage.findMany({ where: { inquiryId: { in: inquiryIds }, OR: [{ messageId: { not: null } }, { inReplyTo: { not: null } }] }, select: { id: true, messageId: true, inReplyTo: true } });
+  for (const m of mailIds) {
+    if (m.messageId?.endsWith('@redacted.invalid>') && (!m.inReplyTo || m.inReplyTo.endsWith('@redacted.invalid>'))) continue;
+    await tx.mailMessage.update({ where: { id: m.id }, data: { messageId: redactMsgId(m.messageId), inReplyTo: redactMsgId(m.inReplyTo) } });
+  }
   await tx.sampleRequest.updateMany({ where: { inquiryId: { in: inquiryIds } }, data: { shippingAddress: Prisma.DbNull, normalizedEmail: null, trackingNo: null } });
   if (logos.length) await tx.logoUpload.deleteMany({ where: { id: { in: logos.map((l) => l.id) } } });
   return logos;

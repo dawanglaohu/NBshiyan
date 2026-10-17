@@ -32,7 +32,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <Link className="btn ghost" href="/products">{t('cta')}</Link>
           </div>
           </div>
-          <HeroVideo labels={{ poster: t('heroPosterAlt'), skip: t('heroVideoSkip'), play: t('heroVideoPlay'), pause: t('heroVideoPause') }} />
+          <HeroVideo labels={{ brand: t.rich('heroBrand', { accent: (c) => <i>{c}</i> }), tagline: t('heroTagline'), poster: t('heroPosterAlt'), skip: t('heroVideoSkip'), play: t('heroVideoPlay'), pause: t('heroVideoPause') }} />
         </div>
       </section>
 

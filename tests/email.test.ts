@@ -1,30 +1,33 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderEmail, summarizeItems, cleanText, safeGreetingName, looksLinky, replyTimeText, productName } from '../src/lib/server/email/render';
-import { sendMail, sendSafely, sendAdminAlert, customerAckMail, inquiryNotifyMail, errorSummary } from '../src/lib/server/mail';
+import { sendMail, sendSafely, sendAdminAlert, customerAckMail, inquiryNotifyMail, errorSummary, setMailTransportFactory } from '../src/lib/server/mail';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit';
 import { TEMPLATES } from '../src/lib/server/email/templates.generated';
 
-type Call = { url: string; headers: Record<string, string>; body: Record<string, unknown> };
+// mock SMTP：记录 nodemailer 的传输参数和每封信，不连网络（#74 §16：发信从 Resend 换成 Gmail SMTP）
+type Call = { opts: Record<string, any>; body: Record<string, any> };
 let calls: Call[] = [];
-let status = 200;
-const realFetch = globalThis.fetch;
-globalThis.fetch = (async (url: string, init: RequestInit) => {
-  calls.push({ url: String(url), headers: init.headers as Record<string, string>, body: JSON.parse(String(init.body)) });
-  return new Response('{}', { status });
-}) as typeof fetch;
-void realFetch;
+let failWith: Record<string, unknown> | null = null;
+setMailTransportFactory((opts) => ({
+  async sendMail(m) {
+    if (failWith && (m as { to?: unknown }).to !== 'sales@example.com') throw Object.assign(new Error('raw smtp response with secrets'), failWith);
+    calls.push({ opts: opts as Record<string, any>, body: m as Record<string, any> });
+    return {} as never;
+  },
+}));
 
 beforeEach(() => {
-  calls = []; status = 200;
+  calls = []; failWith = null;
   setRateLimitStore(new MemoryStore());
-  process.env.RESEND_API_KEY = 're_test_key';
+  Object.assign(process.env, { SMTP_HOST: 'smtp.example.test', SMTP_PORT: '587', SMTP_USER: 'fake-user@example.test', SMTP_PASS: 'fake-app-password' });
   process.env.MAIL_FROM = 'PackJoyU <no-reply@example.com>';
   process.env.INQUIRY_NOTIFY_EMAIL = 'sales@example.com';
   process.env.CONTACT_EMAIL = 'hello@example.com';
   process.env.CONTACT_WHATSAPP = '+8613800000000';
   process.env.CONTACT_REPLY_TIME = '12h';
   delete process.env.ADMIN_ALERT_EMAIL;
+  delete process.env.REPLY_DOMAIN;
 });
 
 const EVIL = '<script>alert(1)</script>\r\nBcc: x@evil.com {{siteUrl}}';
@@ -67,20 +70,32 @@ test('notify: risk block only below 40, admin link = SITE_URL + internal id, no 
   assert.ok(!/token|replyToken/i.test(low.html));
 });
 
-test('sendMail: Resend payload, CRLF stripped from subject/reply-to, bad address rejected', async () => {
+test('sendMail: SMTP (TLS enforced, logger off), CRLF stripped from subject/reply-to, bad address rejected', async () => {
   await sendMail({ to: 'a@example.com', subject: 'Hi\r\nBcc: x@evil.com', html: '<p>x</p>', text: 'x', replyTo: 'r@example.com' });
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, 'https://api.resend.com/emails');
-  assert.equal(calls[0].headers.Authorization, 'Bearer re_test_key');
+  const o = calls[0].opts;
+  assert.equal(o.port, 587); assert.equal(o.secure, false); assert.equal(o.requireTLS, true);
+  assert.equal(o.logger, false); assert.equal(o.debug, false);
+  assert.ok(!('rejectUnauthorized' in (o.tls ?? {})));
+  assert.deepEqual(calls[0].body.from, { name: 'PackJoyU', address: 'no-reply@example.com' });
   assert.equal(calls[0].body.subject, 'Hi Bcc: x@evil.com');
-  assert.equal(calls[0].body.reply_to, 'r@example.com');
+  assert.equal(calls[0].body.replyTo, 'r@example.com');
   assert.equal(calls[0].body.text, 'x');
   await assert.rejects(sendMail({ to: 'a@example.com', subject: 's', html: '', replyTo: 'r@example.com\r\nBcc: x@evil.com' }));
   await assert.rejects(sendMail({ to: 'a@example.com, b@example.com', subject: 's', html: '' }));
 });
 
-test('sendSafely: Resend failure returns false and sends one admin alert (deduped)', async () => {
-  status = 500;
+test('sendMail: no SMTP_* configured → dev log only; insecure port → SmtpError without sending', async () => {
+  for (const k of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS']) delete process.env[k];
+  await sendMail({ to: 'a@example.com', subject: 's', html: '' });
+  assert.equal(calls.length, 0);
+  Object.assign(process.env, { SMTP_HOST: 'smtp.example.test', SMTP_PORT: '25', SMTP_USER: 'u', SMTP_PASS: 'p' });
+  await assert.rejects(sendMail({ to: 'a@example.com', subject: 's', html: '' }), (e: Error & { code?: string }) => e.name === 'SmtpError' && e.code === 'SMTP_CONFIG_INSECURE_TLS');
+  assert.equal(calls.length, 0);
+});
+
+test('sendSafely: SMTP failure returns false and sends one admin alert (deduped)', async () => {
+  failWith = { responseCode: 451 };
   assert.equal(await sendSafely('inquiry-ack', { to: 'a@example.com', subject: 's', html: '' }), false);
   assert.equal(await sendSafely('inquiry-ack', { to: 'a@example.com', subject: 's', html: '' }), false);
   const alerts = calls.filter((c) => c.body.to === 'sales@example.com');
@@ -128,11 +143,11 @@ test('errorSummary: only name/code, never message', async () => {
   const e = Object.assign(new Error('connect postgres://user:pass@db/x failed'), { code: 'ECONNREFUSED' });
   assert.deepEqual(errorSummary(e), { 错误类型: 'Error', 错误码: 'ECONNREFUSED' });
   assert.ok(!JSON.stringify(errorSummary(e)).includes('pass'));
-  status = 503;
+  failWith = { responseCode: 503, response: '503 secret-detail', command: 'AUTH PLAIN c2VjcmV0' };
   await sendSafely('x', { to: 'a@example.com', subject: 's', html: '' });
   const alert = calls.find((c) => c.body.to === 'sales@example.com')!;
-  assert.match(String(alert.body.text), /RESEND_503/);
-  assert.ok(!String(alert.body.text).includes('resend 503'));
+  assert.match(String(alert.body.text), /SMTP_503/);
+  for (const leak of ['raw smtp response', 'secret-detail', 'c2VjcmV0', 'fake-app-password']) assert.ok(!String(alert.body.text).includes(leak), leak);
 });
 
 test('sample ack copy: no inquiry wording left, sample sentences, preheader/footer/labels', () => {
