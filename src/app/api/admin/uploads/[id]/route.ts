@@ -4,6 +4,7 @@ import { storage } from '@/lib/server/storage';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
 import { requireAdmin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { audit } from '@/lib/server/admin/audit';
+import { storedFileResponse } from '@/lib/server/file-response';
 
 export const runtime = 'nodejs';
 const noStore = { 'Cache-Control': 'private, no-store' };
@@ -21,14 +22,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const data = u && (await storage.get(u.path));
   if (!u || !data) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: noStore });
   await audit({ actorId: ctx.user.id, action: 'upload.view', target: u.id, ip: ctx.ip });
-  return new Response(new Uint8Array(data), {
-    headers: {
-      ...noStore,
-      'Content-Type': u.mime,
-      'Content-Length': String(data.length),
-      'Content-Disposition': `inline; filename="logo-${u.id}.png"`,
-      'X-Content-Type-Options': 'nosniff',
-      'Content-Security-Policy': "default-src 'none'; sandbox",
-    },
-  });
+  // Content-Type 由存储 key 决定（写入时按文件头检测），不用数据库里的 mime 字段
+  return storedFileResponse(data, u.path, `logo-${u.id}`, { access: 'private' });
 }
