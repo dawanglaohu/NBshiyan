@@ -17,7 +17,7 @@
 
 ### H1: Custom Party Supplies
 
-PackJoyU produces custom printed paper party supplies for retailers, party brands and event companies: plates, cups, napkins, banners and decorations in coordinated designs. We print your own collections or private-label themes for birthdays, weddings and seasonal holidays, packed retail-ready for store shelves or online marketplaces.
+PackJoyU sources and supplies custom printed paper party supplies for retailers, party brands and event companies: plates, cups, napkins, banners and decorations in coordinated designs. Your own collections or private-label themes for birthdays, weddings and seasonal holidays are printed to your design and packed retail-ready for store shelves or online marketplaces.
 
 #### Why PackJoyU
 
@@ -66,7 +66,7 @@ PackJoyU produces custom printed paper party supplies for retailers, party brand
 
 ### H1: Бумажная посуда для праздника оптом
 
-PackJoyU подбирает и поставляет бумажную праздничную продукцию с печатью для розничных сетей, брендов товаров для праздника и ивент-агентств: тарелки, стаканы, салфетки, гирлянды и декор в едином дизайне. Печатаем ваши коллекции или тематические серии под собственной торговой маркой для дней рождения, свадеб и сезонных праздников с упаковкой, готовой для полки или маркетплейса.
+PackJoyU подбирает и поставляет бумажную праздничную продукцию с печатью для розничных сетей, брендов товаров для праздника и ивент-агентств: тарелки, стаканы, салфетки, гирлянды и декор в едином дизайне. Ваши коллекции или тематические серии под собственной торговой маркой для дней рождения, свадеб и сезонных праздников печатаются по вашему макету и поставляются в упаковке, готовой для полки или маркетплейса.
 
 #### Почему PackJoyU
 

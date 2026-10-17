@@ -1,6 +1,6 @@
 # 上线前检查清单
 
-> 账号配置（Vercel、Cloudflare R2/Turnstile/DNS、Upstash、Postgres、Resend、Tawk.to、Sanity、站长平台）需要 Ryan 登录，在私聊里完成，详见 #74 和 [launch-infra.md](./launch-infra.md)。勾选完再切正式域名。
+> 账号配置（Vercel、Cloudflare R2/Turnstile/DNS、Upstash、Postgres、Gmail SMTP、Tawk.to、Sanity、站长平台）需要 Ryan 登录，在私聊里完成，详见 #74 和 [launch-infra.md](./launch-infra.md)。勾选完再切正式域名。
 
 ## 1. 安全响应头（`security-headers.ts`，由 `next.config.ts` 下发）
 
@@ -45,9 +45,11 @@
 
 - [ ] `STORAGE_DRIVER=r2`，R2 相关变量（账号、桶、访问密钥、公开地址）都已配置。
 - [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
-- [ ] `RESEND_API_KEY` 和发件地址已配置，发件域名已在 Resend 完成 DNS 验证。
+- [ ] 发信：免费 Gmail SMTP，From = Gmail 地址，Reply-To = geiom.com 地址；SMTP 账号和应用专用密码只放部署环境变量，不进仓库、不发群。不为发信新增任何 DNS 记录（不加 SPF `include:`、不加 DKIM）。收信仍走 Cloudflare Email Routing。
+- [ ] DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值。
-- [ ] `TRUSTED_PROXY_HOPS`：**部署在 Vercel 上不要设**，保持留空（Vercel 写入 `x-real-ip`）。只有自建、且前面是已知的反向代理链时才设成代理层数 N（1–10）。**配错（层数多设或前面没有那么多层代理）会让客户端伪造 `X-Forwarded-For`，绕过按 IP 的限流。** 和 `BEHIND_CLOUDFLARE=1` 同时设置时它会被忽略（Cloudflare 优先）。上线后抽查后台审计，ip 不应是 `unknown`。
+- [ ] `EDGE_AUTH_SECRET` 已设置，是至少 32 字节的随机值（例如 `openssl rand -hex 32`），nginx 里 `proxy_set_header X-Edge-Auth` 设成同一个值。只在运行时需要：构建机不用设（`next build` 不检查它，产物里也不会有这个值），`next start` 时没设或不足 32 字节会拒绝启动；设了但 nginx 没带头，所有请求都会进同一个严格限流桶（大量 429）。上线后抽查后台审计，ip 不应是 `unknown`。
+- [ ] 不要再设 `BEHIND_CLOUDFLARE` / `TRUSTED_PROXY_HOPS`（已废弃，不再读取）。
 - [ ] `PRIVACY_HASH_SECRET` 已配置，是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。生产环境没配应用会拒绝启动。它是审计日志里邮箱 HMAC 哈希的密钥，不要随意轮换，轮换后旧日志里的哈希就对不上了。
 - [ ] 生产环境**不能**设置 `ADMIN_SEED_TOTP_SECRET`。设置了的话，种子脚本会报错退出。
 - [ ] 数据保留天数等隐私政策定稿后再定，相关变量写在 `docs/data-retention.md`，隐私 PR 合并后补上。

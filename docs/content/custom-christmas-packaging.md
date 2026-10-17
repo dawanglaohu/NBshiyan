@@ -17,7 +17,7 @@
 
 ### H1: Custom Christmas Packaging
 
-PackJoyU produces custom Christmas and holiday packaging for retailers, confectionery, cosmetics and corporate gifting: gift boxes, advent calendars, seasonal sleeves, bags and themed printed products. Holiday packaging is time-critical, so we help you plan structure, artwork and production early to arrive on shelf before the season starts.
+PackJoyU sources and supplies custom Christmas and holiday packaging for retailers, confectionery, cosmetics and corporate gifting: gift boxes, advent calendars, seasonal sleeves, bags and themed printed products. Holiday packaging is time-critical, so we help you plan structure, artwork and production early to arrive on shelf before the season starts.
 
 #### Why PackJoyU
 
@@ -54,9 +54,9 @@ PackJoyU produces custom Christmas and holiday packaging for retailers, confecti
 - **Q: When should I order Christmas packaging?**
   A: As early as possible; the latest safe order date including shipping is TBD.
 - **Q: Do you make advent calendars?**
-  A: Yes, custom advent calendars with compartments.
+  A: Yes — we supply custom advent calendars with compartments.
 - **Q: Can you make corporate New Year gift sets?**
-  A: Yes, branded gift boxes with inserts.
+  A: Yes — we supply branded gift boxes with inserts.
 
 ---
 
@@ -104,10 +104,10 @@ PackJoyU подбирает и поставляет новогоднюю и пр
 
 - **В: Когда заказывать новогоднюю упаковку?**
   О: Как можно раньше; крайняя дата с учётом доставки — TBD.
-- **В: Делаете ли адвент-календари?**
-  О: Да, на заказ с ячейками.
-- **В: Делаете ли корпоративные новогодние наборы?**
-  О: Да, брендированные коробки с ложементами.
+- **В: Можно ли заказать адвент-календари?**
+  О: Да — поставляем адвент-календари на заказ с ячейками.
+- **В: Можно ли заказать корпоративные новогодние наборы?**
+  О: Да — поставляем брендированные коробки с ложементами.
 
 ---
 

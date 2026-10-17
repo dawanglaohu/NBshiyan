@@ -12,7 +12,7 @@
 2. Cloudflare R2：建私有桶 + 只限该桶的 API Token（第 1 节）
 3. Upstash Redis：建数据库，拿 REST URL/Token（第 2 节）
 4. 数据库（Postgres，如 Neon / Supabase / Vercel Postgres）：拿 `DATABASE_URL`
-5. Resend：验证发信域名，建**仅发送权限**的 API Key（第 3 节）
+5. 发信：Gmail SMTP，Ryan 在自己的 Gmail 账号里开应用专用密码（第 3 节）
 6. Cloudflare Turnstile：建正式站点，拿 site key / secret
 7. Tawk.to：拿 property ID / widget ID（英、俄）
 8. Vercel：导入仓库 dawanglaohu/NBshiyan，按第 4 节填全部环境变量，绑定域名
@@ -49,11 +49,14 @@ Ryan 操作：
 
 环境变量：`RATE_LIMIT_STORE=upstash`、`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`。
 
-## 3. Resend（询盘通知、自动回复）
+## 3. 发信：Gmail SMTP（询盘通知、自动回复）
 
-1. 登录 resend.com → Domains → Add domain（建议用子域，如 `mail.<正式域名>`），按提示在 DNS 加 SPF / DKIM（以及 DMARC `p=quarantine`）记录，等验证通过。
-2. API Keys → Create：Permission 选 **Sending access**，Domain 只选上面这个域名。**不要用 Full access**。
-3. `MAIL_FROM` 用已验证域名下的地址，如 `PackJoyU <noreply@mail.<域名>>`。
+Ryan 已确认：
+
+1. **发信**用免费 Gmail SMTP：From = Ryan 的 Gmail 地址，Reply-To = geiom.com 地址。Ryan 在自己的 Google 账号里开两步验证并生成应用专用密码，只填进部署环境变量；不提交到仓库，不发到群里，任何文档里都不写。
+2. **收信**仍走 Cloudflare Email Routing，MX 不改。
+3. **DNS**：信从 gmail.com 发出，geiom.com 的 SPF / DKIM / DMARC 不参与外发校验，所以不为发信新增 SPF `include:` 或 DKIM；现有 SPF `v=spf1 include:_spf.mx.cloudflare.net ~all` 保持。DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。
+4. 代码现状：`src/lib/server/mail.ts` 仍按 Resend 接口发信（`RESEND_API_KEY`），改成 SMTP 由后端另开 PR，SMTP 相关变量名在那个 PR 里定。
 
 ## 4. Vercel 项目与环境变量清单
 
@@ -73,8 +76,8 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 | `ADMIN_TOTP_KEY` | `openssl rand -base64 32`（32 字节 base64） | 2FA 密钥加密；**设置后不要更换**，换了已绑定的 2FA 全部失效 |
 | `CRON_SECRET` | `openssl rand -base64 32` | 定时任务鉴权，见第 5 节 |
 | `MIDDLEWARE_PROBE_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | middleware 探测短链状态（`HEAD /api/designs/:id`）时带在 `x-internal-probe` 头里，服务端据此信任 `x-probe-client-ip` 做分桶限流；不配置则探测按连接 IP 限流 |
-| `BEHIND_CLOUDFLARE` | 域名走 Cloudflare 代理时填 `1`，否则留空 | 决定是否信任 `CF-Connecting-IP` |
-| `TRUSTED_PROXY_HOPS` | **Vercel 上不要设**（Vercel 写入 `x-real-ip`）。只有自建且前面是已知的反向代理链时才填代理层数 N（1–10），在没有 `x-real-ip` 时从 `X-Forwarded-For` 右数第 N 个取客户端 IP（校验是合法 IP） | 默认不信任 `X-Forwarded-For`。配错会让客户端伪造 IP、绕过按 IP 限流。与 `BEHIND_CLOUDFLARE=1` 同时设置时被忽略。取不到 IP 时审计记 `unknown` |
+| `EDGE_AUTH_SECRET` | `openssl rand -hex 32`（≥ 32 字节） | geiom.com（Cloudflare → nginx → Next）取客户端 IP 用，**生产必填，只在运行时设**（`next build` 不需要也不检查；`next start` 时缺了拒绝启动；middleware 和 API 都在运行时读取，不会内联进构建产物）。nginx 每个反代的 location 都要加 `proxy_set_header X-Edge-Auth "<同一个值>";`（会覆盖客户端自己带的同名头）。只有这个头和密钥常量时间比较一致时才信任 `CF-Connecting-IP`（并校验是合法 IP）；没设、不足 32 字节、头不对或没带时，所有请求都按不可信来源进同一个 `untrusted` 限流桶，审计 ip 记 `unknown`。不读 `X-Real-IP` / `X-Forwarded-For`。值只放在服务器环境变量和 nginx 配置里，不要写进日志格式、不要提交、不要发群里 |
+| ~~`BEHIND_CLOUDFLARE`~~ / ~~`TRUSTED_PROXY_HOPS`~~ | 不要再设 | 已废弃，代码不再读取（设了只会在日志里提示一次）。客户端 IP 只由 `EDGE_AUTH_SECRET` + `CF-Connecting-IP` 决定 |
 | `RATE_LIMIT_STORE` | `upstash` | 生产必须，不能用 memory |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | |
 | `STORAGE_DRIVER` | `r2` | 生产必须（Vercel 文件系统不持久） |

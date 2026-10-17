@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
 import { DESIGN_ID_RE } from '@/lib/server/designs';
-import { clientIp, hitRateLimit, tooManyRequests } from '@/lib/server/security';
+import { clientIp, hitRateLimit, rateLimitSubject, tooManyRequests } from '@/lib/server/security';
 
 export const runtime = 'nodejs';
 const H = { 'Cache-Control': 'private, max-age=300', 'X-Robots-Tag': 'noindex, nofollow' };
@@ -10,7 +10,7 @@ const H = { 'Cache-Control': 'private, max-age=300', 'X-Robots-Tag': 'noindex, n
 /** 公开：方案里的 logo（服务端已用 sharp 重新编码为 PNG），持有短链接的人可见。不暴露上传 id。 */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ip = clientIp(req);
-  const ok = ip ? await hitRateLimit(`design-logo:${ip}`, 300) : await hitRateLimit('design-logo:noip:all', 3000);
+  const ok = await hitRateLimit(`design-logo:${rateLimitSubject(ip)}`, 300);
   if (!ok) return tooManyRequests(600);
   const { id } = await params;
   if (!DESIGN_ID_RE.test(id)) return NextResponse.json({ error: 'not_found' }, { status: 404, headers: H });
