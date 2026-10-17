@@ -55,7 +55,7 @@ P=https://staging.geiom.com   # 预览/staging（Cloudflare Access + noindex，�
 
 ## 3. DNS 变更与域名验证（只列清单，运维执行；SEO / 本清单作者不改 DNS）
 
-> 邮件通道现状（Ryan 已确认，现有配置不动）：**收信** = Cloudflare Email Routing → Worker（temp-mail / D1）；**发信** = 免费 Gmail SMTP，From 是 Gmail 地址，Reply-To 是 geiom.com 地址。信是从 gmail.com 发出的，geiom.com 的 SPF / DKIM / DMARC 管不到这些外发邮件，所以**不为发信加任何 DNS 记录**（不加 Gmail / Resend 的 SPF `include:`，不加新 DKIM）。没有自建 SMTP/IMAP，也没有 `mail.geiom.com` A 记录、bounce+ / VERP，本清单不要求、也不建议新增这类记录。SPF 保持 `v=spf1 include:_spf.mx.cloudflare.net ~all` 不变；一个域名只能有一条 DMARC。SMTP 账号和应用专用密码不写进任何文档。
+> 邮件通道现状（Ryan 已确认）：**收信** = Cloudflare Email Routing → Worker（temp-mail / D1）；**发信** = 免费 Gmail SMTP，From 是 Gmail 地址，Reply-To 是 geiom.com 地址。信是从 gmail.com 发出的，geiom.com 的 SPF / DKIM / DMARC 管不到这些外发邮件，所以**不为发信加任何 DNS 记录**（不加 Gmail / Resend 的 SPF `include:`，不加新 DKIM）。geiom.com 现有 DNS 记录不改（SPF / MX 保持）；唯一新增是 `_dmarc.geiom.com` TXT `v=DMARC1; p=none`，放进运维的 DNS 批次，只新增不改动现有记录，由安全和运维共同审，不单独添加（见 3.3）。没有自建 SMTP/IMAP，也没有 `mail.geiom.com` A 记录、bounce+ / VERP，本清单不要求、也不建议新增这类记录。SPF 保持 `v=spf1 include:_spf.mx.cloudflare.net ~all`；一个域名只能有一条 DMARC。SMTP 账号和应用专用密码不写进任何文档。
 
 ### 3.1 切换前 DNS 快照（备份，用于回滚）
 
@@ -67,7 +67,7 @@ P=https://staging.geiom.com   # 预览/staging（Cloudflare Access + noindex，�
 | `geiom.com` | AAAA | `2606:4700:3031::6815:2de8`、`2606:4700:3033::ac43:dc0f` | Cloudflare 代理 |
 | `www.geiom.com` | CNAME | （无） | 公网无 CNAME；A 解析到与裸域相同的 CF IP（可能是面板里的 proxied A，或 CNAME 已被展平/已删） |
 | `_domainconnect.geiom.com` | CNAME | （无） | 公网无记录（SOA only） |
-| `_dmarc.geiom.com` | TXT | （无 / NXDOMAIN） | **尚无 DMARC**，可新增 |
+| `_dmarc.geiom.com` | TXT | （无 / NXDOMAIN） | **尚无 DMARC**；上线时按 3.3 随运维 DNS 批次新增 |
 
 > 运维已在 Cloudflare 后台备份里确认：Squarespace 记录 = 4 条裸域 A、www CNAME、`_domainconnect` CNAME（公网查不到是因为被代理）。
 | `geiom.com` | TXT | `v=spf1 include:_spf.mx.cloudflare.net ~all` | 现有 SPF；只新增、不覆盖 |
@@ -93,26 +93,26 @@ dig @1.1.1.1 +short geiom.com MX
   - 裸域 `geiom.com` 的 **4 条 A**（Squarespace 源站；若面板里已是指向新源站 / 仅 CF 代理且无 Squarespace 目标，则跳过并报 PM/运维确认）；
   - `www` 的 **CNAME**（若仍指向 Squarespace / `ext-cust.squarespace.com` 等）；
   - `_domainconnect` 的 **CNAME**（Squarespace Domain Connect；公网当前已无，面板若仍有则删）。
-- [ ] **不动**：MX、现有 TXT（含 SPF、GSC/Yandex 验证）、DKIM（`cf2024-1._domainkey` 等）、Email Routing 相关记录、NS。不要为「自建邮件」去加 `mail.geiom.com` A、bounce+/VERP 或 SMTP/IMAP 主机名。
+- [ ] **现有记录不改**：MX、现有 TXT（含 SPF、GSC/Yandex 验证）、DKIM（`cf2024-1._domainkey` 等）、Email Routing 相关记录、NS。不要为「自建邮件」去加 `mail.geiom.com` A、bounce+/VERP 或 SMTP/IMAP 主机名。
 - [ ] 清理后把新的 A/AAAA（或 CNAME）指到本次 Docker+Caddy 源站，并保持 Cloudflare 代理策略与 ops-plan §7 一致（www→裸域 301 由 Cloudflare 重定向规则处理）。
 
-### 3.3 新增 DMARC（一个域名只能有一条）
+### 3.3 新增 DMARC（唯一新增的 DNS 记录；一个域名只能有一条）
 
 - [ ] **先查**：`dig @1.1.1.1 +short TXT _dmarc.geiom.com`（或面板搜 `_dmarc`）。当前公网为 **NXDOMAIN / 无记录**。
 - [ ] 若**已有** `_dmarc` TXT：**不要覆盖**；把现有值报给 PM 和运维，由他们决定是否改 `p=` / `rua=`。
-- [ ] 若**没有**，由运维新增一条：
+- [ ] 若**没有**：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审，不单独添加。批次里只有这一条新增：
   | 主机 | 类型 | 值 |
   |---|---|---|
   | `_dmarc.geiom.com`（或面板主机名 `_dmarc`） | TXT | `v=DMARC1; p=none` |
 - [ ] 先**不带 `rua`**。等 temp-mail 关掉匿名创建以后再加收报告地址，否则报告可能被抢注的地址收走。`p=none` 只监控，不拒信。
 - [ ] 验证：`dig @1.1.1.1 +short TXT _dmarc.geiom.com` 应只返回**一条** DMARC。
 
-### 3.4 发信 SPF / DKIM：不改
+### 3.4 发信 SPF / DKIM：现有记录不改，不为发信新增记录
 
 - [ ] 发信走 Gmail SMTP（From = Gmail 地址，Reply-To = geiom.com 地址），收件方按 gmail.com 的 SPF / DKIM / DMARC 校验，geiom.com 的记录不参与外发邮件。
 - [ ] **SPF 保持** `v=spf1 include:_spf.mx.cloudflare.net ~all`，不加 Gmail（`_spf.google.com`）或 Resend 的 `include:`，也不整段覆盖。
 - [ ] **DKIM 不新增**：已有 `cf2024-1._domainkey` 等记录保留，不覆盖。
-- [ ] **DMARC 只用 `p=none`**（见 3.3），不改成 `quarantine` / `reject`。
+- [ ] **DMARC 只用 `p=none`**：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审（见 3.3），不改成 `quarantine` / `reject`。
 - [ ] 验证：切换后 `dig @1.1.1.1 +short TXT geiom.com` 里的 SPF 仍是上面这一条，且只有一条 `v=spf1`。
 
 ### 3.5 GSC / Yandex 域名验证 TXT
@@ -150,4 +150,4 @@ dig @1.1.1.1 +short geiom.com MX
 - [ ] 每天：GSC「网页 / 编入索引」覆盖率、「站点地图」状态（已读取、已发现的 URL 数）、抓取统计（404、5xx、主机问题）；Yandex「Страницы в поиске」「Диагностика」「Статистика обхода」里的 404 / 不可达。
 - [ ] 检查 noindex 页（solutions/factory/cases）没有被收录、没有进 sitemap。
 - [ ] 出现以下任何一种情况立即报 SEO / 运维：生产出现 `X-Robots-Tag: noindex` 或 robots `Disallow: /`；www 有多跳；sitemap 里有 localhost / vercel.app 地址；爬虫被挑战。
-- [ ] 回滚：网站 A/AAAA（或 CNAME）按 3.1 备份切回（Vercel 或 Squarespace 源站，由运维决定，TBD）。**不要动** MX、SPF、DKIM、Email Routing、已有 DMARC、GSC/Yandex TXT。新站目前没有收录，短时间回滚不影响 SEO；回滚期间不要提交 sitemap 和 IndexNow。
+- [ ] 回滚：网站 A/AAAA（或 CNAME）按 3.1 备份切回（Vercel 或 Squarespace 源站，由运维决定，TBD）。**不要改** MX、SPF、DKIM、Email Routing、DMARC、GSC/Yandex TXT。新站目前没有收录，短时间回滚不影响 SEO；回滚期间不要提交 sitemap 和 IndexNow。
