@@ -1,0 +1,13 @@
+export function normalizeAccountEmail(raw: string): string;
+export function validEmail(email: unknown): boolean;
+export function passwordPolicyError(pw: unknown, email: string): 'weak_password' | null;
+export const ARGON: { memoryCost: number; timeCost: number; parallelism: number };
+export const PASSWORD_ENV: 'ADMIN_CREATE_PASSWORD';
+export const USAGE: string;
+export type ParsedArgs = { email: string; name: string; allowAdditionalAdmin: boolean; help: boolean; error?: undefined };
+export function parseArgs(argv: string[], env?: Record<string, string | undefined>): ParsedArgs | { error: string };
+export function passwordSource(o: { isTTY: boolean; envPassword: string | undefined }): 'tty' | 'env' | 'stdin';
+export function takeEnvPassword(env: Record<string, string | undefined>): string | undefined;
+export function firstLine(text: string): string;
+export function adminGateError(o: { existingAdmins: number; emailTaken: boolean; allowAdditionalAdmin: boolean }): 'email_taken' | 'admin_exists' | null;
+export const MESSAGES: Record<string, string>;
