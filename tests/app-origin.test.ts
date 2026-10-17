@@ -42,13 +42,47 @@ afterEach(() => { if (saved === undefined) delete process.env.APP_ORIGIN; else p
 // standalone 下 req.url 是监听地址 http://0.0.0.0:3000
 const post = (origin?: string) => new Request('http://0.0.0.0:3000/api/admin/x', { method: 'POST', headers: origin ? { origin } : {} });
 
-test('assertSameOrigin (logic unchanged): with APP_ORIGIN=https://geiom.com, Origin https://geiom.com passes; other origins 403; own listen origin still allowed', async () => {
+test('assertSameOrigin 非生产（本地 / CI）：与以前一样，APP_ORIGIN 和请求自身的 origin 都放行；其他 403', async () => {
   process.env.APP_ORIGIN = 'https://geiom.com';
   assert.equal(assertSameOrigin(post('https://geiom.com')), null);
-  const bad = assertSameOrigin(post('http://0.0.0.0:3000'));
-  // 现有逻辑：请求自身的 origin（req.url，standalone 下是 http://0.0.0.0:3000）也在允许列表里；按要求不改逻辑，这里如实记录
-  assert.equal(bad, null, 'request own origin is still allowed by the unchanged logic');
+  // 非生产：请求自身的 origin（req.url）仍在允许列表里（next dev / next start 在 localhost 上直接用）
+  assert.equal(assertSameOrigin(post('http://0.0.0.0:3000')), null, 'non-prod: request own origin allowed');
+  assert.equal(assertSameOrigin(post('http://0.0.0.0:3000'), { APP_ENV: 'preview', APP_ORIGIN: 'https://geiom.com' }), null);
+  assert.equal(assertSameOrigin(new Request('http://localhost:3000/api/admin/x', { method: 'POST', headers: { origin: 'http://localhost:3000' } }), {}), null);
   for (const o of ['http://localhost:3000', 'https://evil.example', 'null', undefined]) assert.equal(assertSameOrigin(post(o))?.status, 403, String(o));
+});
+
+test('#323 assertSameOrigin 生产（APP_ENV=production）：只认 APP_ORIGIN；监听地址 origin 即使等于 req.url 也 403；缺 Origin 照旧 403', async () => {
+  const PROD = { APP_ENV: 'production', NODE_ENV: 'production', APP_ORIGIN: 'https://geiom.com' };
+  assert.equal(assertSameOrigin(post('https://geiom.com'), PROD), null);
+  const bad = assertSameOrigin(post('http://0.0.0.0:3000'), PROD); // req.url 也是 http://0.0.0.0:3000
+  assert.equal(bad?.status, 403); assert.deepEqual(await bad!.json(), { error: 'forbidden_origin' }); assert.equal(bad!.headers.get('cache-control'), 'no-store');
+  for (const o of ['http://127.0.0.1:3000', 'http://localhost:3000', 'http://geiom.com', 'https://geiom.com:8443', 'https://www.geiom.com', 'https://geiom.com.evil.com', 'https://evil.example', 'null', '', undefined])
+    assert.equal(assertSameOrigin(post(o), PROD)?.status, 403, String(o));
+  // 请求 URL 就是正式域名时，正式域名照样放行（同一个 APP_ORIGIN），监听地址仍然拒绝
+  const onSite = (o: string) => new Request('https://geiom.com/api/admin/x', { method: 'DELETE', headers: { origin: o } });
+  assert.equal(assertSameOrigin(onSite('https://geiom.com'), PROD), null);
+  assert.equal(assertSameOrigin(onSite('http://0.0.0.0:3000'), PROD)?.status, 403);
+  // APP_ORIGIN 带末尾 / 时按 origin 规范化（与以前一样）
+  assert.equal(assertSameOrigin(post('https://geiom.com'), { ...PROD, APP_ORIGIN: 'https://geiom.com/' }), null);
+  // 生产缺 APP_ORIGIN 或无效：一律拒绝（不回落到请求自身的 origin）
+  for (const a of [undefined, '', 'not a url']) {
+    assert.equal(assertSameOrigin(post('http://0.0.0.0:3000'), { ...PROD, APP_ORIGIN: a })?.status, 403, String(a));
+    assert.equal(assertSameOrigin(post('https://geiom.com'), { ...PROD, APP_ORIGIN: a })?.status, 403, String(a));
+  }
+  // VERCEL_ENV=production 同样按生产处理（isProdEnvFrom）
+  assert.equal(assertSameOrigin(post('http://0.0.0.0:3000'), { VERCEL_ENV: 'production', APP_ORIGIN: 'https://geiom.com' })?.status, 403);
+  // GET / HEAD / OPTIONS 不检查（与以前一样）
+  for (const m of ['GET', 'HEAD', 'OPTIONS']) assert.equal(assertSameOrigin(new Request('http://0.0.0.0:3000/api/admin/x', { method: m }), PROD), null, m);
+});
+
+test('#323 assertSameOrigin 默认读 process.env：APP_ENV=production 时同样只认 APP_ORIGIN', () => {
+  const savedEnv = process.env.APP_ENV;
+  process.env.APP_ENV = 'production'; process.env.APP_ORIGIN = 'https://geiom.com';
+  try {
+    assert.equal(assertSameOrigin(post('https://geiom.com')), null);
+    assert.equal(assertSameOrigin(post('http://0.0.0.0:3000'))?.status, 403);
+  } finally { if (savedEnv === undefined) delete process.env.APP_ENV; else process.env.APP_ENV = savedEnv; }
 });
 
 test('assertSameOrigin without APP_ORIGIN rejects the real browser Origin under standalone (why APP_ORIGIN is required)', () => {
