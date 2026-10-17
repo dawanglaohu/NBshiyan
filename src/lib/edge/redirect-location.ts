@@ -1,7 +1,7 @@
 // standalone / next start 下 req.url 用的是监听地址（如 http://localhost:3000），
 // next-intl 用 new URL(path, req.url) 生成跳转，Location 就会指向内部地址。
-// 这里只把主机名是回环或监听地址的 Location 改成相对路径；其它绝对地址（包括 geiom.com）一律不动。
-// 判断只看 Location 自身，不读请求的 Host / X-Forwarded-Host，避免被伪造的头带成开放跳转。
+// 这里只把指向本站的 Location 改成相对路径。"本站"只由两样决定：回环/监听地址，以及 NEXT_PUBLIC_SITE_URL 的 origin。
+// 其它绝对地址一律不动。判断只看 Location 自身和配置，不读请求的 Host / X-Forwarded-Host，避免被伪造的头带成开放跳转。
 
 const IPV4_LOOPBACK = /^127(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 
@@ -11,11 +11,27 @@ export function isInternalHostname(hostname: string): boolean {
   return h === 'localhost' || IPV4_LOOPBACK.test(h) || h === '::1' || h === '0.0.0.0' || h === '::';
 }
 
+/** NEXT_PUBLIC_SITE_URL 的 origin（无效或非 http(s) 时为 null） */
+function siteOrigin(site: string | undefined): string | null {
+  if (!site?.trim()) return null;
+  try {
+    const u = new URL(site.trim());
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.origin : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 把开头连续的 / 和 \ 压成一个 /，保证结果不会被浏览器当成 //host 协议相对地址 */
+export function collapseLeadingSlashes(path: string): string {
+  return path.replace(/^[/\\]+/, '/') || '/';
+}
+
 /**
- * 如果 Location 是指向回环/监听地址的绝对 http(s) 地址，返回相对路径（pathname+search+hash，至少是 "/"）；
- * 否则返回 null，表示保持原样。
+ * 如果 Location 是指向本站（回环/监听地址，或与 NEXT_PUBLIC_SITE_URL 同 origin）的绝对 http(s) 地址，
+ * 返回相对路径（pathname+search+hash，至少是 "/"，开头只有一个 /）；否则返回 null，表示保持原样。
  */
-export function internalLocationToRelative(location: string): string | null {
+export function internalLocationToRelative(location: string, site: string | undefined = process.env.NEXT_PUBLIC_SITE_URL): string | null {
   // 已经是相对路径（但不是 // 开头的协议相对地址）就不用改
   if (!/^[a-z][a-z\d+.-]*:/i.test(location)) return null;
   let url: URL;
@@ -25,11 +41,9 @@ export function internalLocationToRelative(location: string): string | null {
     return null;
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
-  if (!isInternalHostname(url.hostname)) return null;
-  // WHATWG URL 对 http(s) 的 pathname 至少是 "/"，所以不会得到空的 Location；
-  // 再把开头多个斜杠压成一个，避免生成 //evil.com 这种协议相对地址
-  const path = url.pathname.replace(/^\/+/, '/') || '/';
-  return path + url.search + url.hash;
+  if (!isInternalHostname(url.hostname) && url.origin !== siteOrigin(site)) return null;
+  // WHATWG URL 对 http(s) 的 pathname 至少是 "/"，所以不会得到空的 Location
+  return collapseLeadingSlashes(url.pathname) + url.search + url.hash;
 }
 
 /** 3xx 且 Location 指向内部地址时，原地改写 Location；其它头（cookie、rewrite 等）保持不变 */

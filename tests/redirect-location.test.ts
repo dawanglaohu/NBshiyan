@@ -1,12 +1,18 @@
-import { test } from 'node:test';
+import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { NextRequest, NextResponse } from 'next/server';
 import middleware from '../src/middleware';
-import { internalLocationToRelative, isInternalHostname, relativizeInternalRedirect } from '../src/lib/edge/redirect-location';
+import { collapseLeadingSlashes, internalLocationToRelative, isInternalHostname, relativizeInternalRedirect } from '../src/lib/edge/redirect-location';
 
 // standalone / next start 下 req.url 是监听地址，next-intl 会生成 http://localhost:<port>/en 这样的 Location
 const run = (url: string, headers: Record<string, string> = {}) => middleware(new NextRequest(url, { headers }));
 const SPOOF = { host: 'evil.example', 'x-forwarded-host': 'evil.example', 'x-forwarded-proto': 'https' };
+// 相对 Location 必须正好以一个 / 开头，后面不是 / 或 \（否则浏览器会当成 //host）
+const SAME_SITE_RELATIVE = /^\/(?![/\\])/;
+const SITE = 'https://geiom.com';
+let savedSite: string | undefined;
+beforeEach(() => { savedSite = process.env.NEXT_PUBLIC_SITE_URL; delete process.env.NEXT_PUBLIC_SITE_URL; });
+afterEach(() => { if (savedSite === undefined) delete process.env.NEXT_PUBLIC_SITE_URL; else process.env.NEXT_PUBLIC_SITE_URL = savedSite; });
 
 test('internal hostnames: localhost, 127.0.0.0/8, ::1, 0.0.0.0, :: (case / trailing dot)', () => {
   for (const h of ['localhost', 'LOCALHOST', 'localhost.', '127.0.0.1', '127.1.2.3', '127.255.255.255', '[::1]', '::1', '0.0.0.0', '[::]'])
@@ -30,12 +36,34 @@ test('loopback Location without a path -> "/" (never empty)', () => {
   assert.equal(internalLocationToRelative('http://[::1]:3000#a'), '/#a');
 });
 
-test('never produces a protocol-relative Location', () => {
+test('never produces a protocol-relative Location: leading run of / and \\ collapses to one /', () => {
   assert.equal(internalLocationToRelative('http://localhost:3000//evil.com/x'), '/evil.com/x');
   assert.equal(internalLocationToRelative('http://localhost:3000///evil.com'), '/evil.com');
+  assert.equal(internalLocationToRelative('http://localhost:3000/\\evil.com/en'), '/evil.com/en');
+  assert.equal(internalLocationToRelative('http://localhost:3000\\/evil.com'), '/evil.com');
+  assert.equal(internalLocationToRelative('https://geiom.com//evil.com/en', SITE), '/evil.com/en');
+  for (const [i, o] of [['//evil.com/', '/evil.com/'], ['/\\evil.com', '/evil.com'], ['\\/evil.com', '/evil.com'], ['\\\\x', '/x'], ['/', '/'], ['', '/'], ['/en', '/en']])
+    assert.equal(collapseLeadingSlashes(i), o, JSON.stringify(i));
+  // 编码过的 %2F / %5C 只是路径里的普通字符，浏览器不会当成主机分隔符，保持原样
+  assert.equal(internalLocationToRelative('http://localhost:3000/en/%2F%2Fevil.com'), '/en/%2F%2Fevil.com');
+});
+
+test('NEXT_PUBLIC_SITE_URL origin counts as our own site; only exact origin matches', () => {
+  assert.equal(internalLocationToRelative('https://geiom.com/en?q=1', SITE), '/en?q=1');
+  assert.equal(internalLocationToRelative('https://geiom.com', SITE), '/');
+  assert.equal(internalLocationToRelative('https://geiom.com:443/ru', SITE + '/'), '/ru');
+  for (const loc of ['http://geiom.com/en', 'https://www.geiom.com/en', 'https://geiom.com:8443/en', 'https://geiom.com.evil.com/en', 'https://evil.com/geiom.com'])
+    assert.equal(internalLocationToRelative(loc, SITE), null, loc);
+  // SITE_URL 未设置 / 无效时，geiom.com 也保持绝对地址
+  assert.equal(internalLocationToRelative('https://geiom.com/en', undefined), null);
+  assert.equal(internalLocationToRelative('https://geiom.com/en', 'not a url'), null);
+  assert.equal(internalLocationToRelative('https://geiom.com/en', 'javascript:alert(1)'), null);
 });
 
 test('external / non-http / already-relative Locations are left unchanged', () => {
+  process.env.NEXT_PUBLIC_SITE_URL = SITE;
+  for (const loc of ['https://evil.example/en', 'http://localhost.evil.com/en', 'https://www.geiom.com/']) assert.equal(internalLocationToRelative(loc), null, loc);
+  delete process.env.NEXT_PUBLIC_SITE_URL;
   for (const loc of ['https://geiom.com/en', 'https://www.geiom.com/', 'https://evil.example/en', 'http://localhost.evil.com/en',
     '/en', '/en?q=1', '//localhost/en', 'mailto:a@localhost', 'ftp://localhost/x', 'not a url', 'http://'])
     assert.equal(internalLocationToRelative(loc), null, loc);
@@ -110,8 +138,29 @@ test('middleware: existing locale path -> no redirect', async () => {
   }
 });
 
-test('middleware: a request whose URL is a real host is left absolute (only loopback is rewritten)', async () => {
-  // 比如以后 req.url 本身就是 https://geiom.com/ ，Location 保持绝对地址不变
-  const r = await run('https://geiom.com/');
-  assert.equal(r.headers.get('location'), 'https://geiom.com/en');
+test('middleware: req.url on SITE_URL origin -> relative; any other real host stays absolute', async () => {
+  process.env.NEXT_PUBLIC_SITE_URL = SITE;
+  assert.equal((await run('https://geiom.com/')).headers.get('location'), '/en');
+  assert.equal((await run('https://staging.example/')).headers.get('location'), 'https://staging.example/en');
+  delete process.env.NEXT_PUBLIC_SITE_URL;
+  assert.equal((await run('https://geiom.com/')).headers.get('location'), 'https://geiom.com/en');
+});
+
+test('middleware: //evil.com, /\\evil.com, /%2F%2Fevil.com etc. -> same-site relative Location', async () => {
+  const cases: Array<[string, string]> = [
+    ['//evil.com', '/en/evil.com'], ['//evil.com/', '/en/evil.com'], ['/\\evil.com', '/en/evil.com'], ['/\\/evil.com', '/en/evil.com'],
+    ['///evil.com/x?y=1', '/en/evil.com/x?y=1'], ['/%2F%2Fevil.com', '/en/%2F%2Fevil.com'], ['/%5Cevil.com', '/en/%5Cevil.com'],
+  ];
+  for (const withSite of [false, true]) {
+    if (withSite) process.env.NEXT_PUBLIC_SITE_URL = SITE;
+    for (const [p, want] of cases) {
+      for (const h of [{}, SPOOF]) {
+        const r = await run(`http://localhost:3000${p}`, h);
+        const loc = r.headers.get('location') ?? '';
+        assert.equal(r.status, 307, p);
+        assert.match(loc, SAME_SITE_RELATIVE, `${p} -> ${loc}`);
+        assert.equal(loc, want, p);
+      }
+    }
+  }
 });
