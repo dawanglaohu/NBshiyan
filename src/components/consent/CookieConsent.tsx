@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { consentFocusTarget, type ConsentCloseSource } from '@/lib/a11y/focus';
+import { consentCloseSource, consentFocusTarget, type ConsentCloseSource } from '@/lib/a11y/focus';
 import { CONSENT_OPEN_EVENT, clearTawkData, getConsent, onConsent, setConsent, type Consent } from '@/lib/consent';
 
 const TOAST_KEY = 'pj-consent-toast';
@@ -21,6 +21,8 @@ export default function CookieConsent() {
   const [toast, setToast] = useState<Toast | null>(null);
   const prev = useRef<Consent | null>(null);
   const opener = useRef<HTMLElement | null>(null);
+  // 设置面板是不是从首访横幅上打开的（#307 P2：保存后横幅消失，焦点改去 <main>）
+  const openedFromBanner = useRef(false);
 
   useEffect(() => {
     prev.current = getConsent();
@@ -36,6 +38,7 @@ export default function CookieConsent() {
 
   const openSettings = useCallback((from?: HTMLElement | null) => {
     opener.current = from ?? null;
+    openedFromBanner.current = Boolean(from?.closest('.consent'));
     const c = getConsent();
     // 首访（还没选过）可选项全部默认关；从页脚重开时按已保存的选择预填
     setDraft({ analytics: c?.analytics === true, chat: c?.chat === true });
@@ -83,7 +86,7 @@ export default function CookieConsent() {
     setConsent(choice);
     if (chatWithdrawn) return;
     if (fromDialog || withdrawn) setToast(kind);
-    restoreFocus(fromDialog ? 'dialog' : 'banner');
+    restoreFocus(consentCloseSource(fromDialog ? 'dialog-save' : 'banner-choice', openedFromBanner.current));
   };
 
   const restoreFocus = (source: ConsentCloseSource) => {
@@ -100,7 +103,7 @@ export default function CookieConsent() {
       el?.focus(preventScroll ? { preventScroll: true } : undefined);
     }, 50);
   };
-  const close = () => { setOpen(false); restoreFocus('dialog'); };
+  const close = () => { setOpen(false); restoreFocus(consentCloseSource('dialog-close', openedFromBanner.current)); };
 
   return (
     <>
