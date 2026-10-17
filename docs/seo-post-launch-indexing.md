@@ -1,7 +1,7 @@
 # geiom.com 上线后：验证、提交和收录检查
 
 > 适用：**部署成功、验收通过以后**（[`seo-cutover-geiom.md`](./seo-cutover-geiom.md) 第 1、2 节全部通过）。本文不挡上线。
-> 依据代码：`origin/main` `19739db`。文中的 URL、规则和开关都按代码核对过，对应文件写在括号里。代码里查不到的事项标 **待 Ryan 决定**。
+> 依据代码：`origin/main` `19739db`。文中的 URL、规则和开关都按代码核对过，对应文件写在括号里。代码里查不到、需要拍板的事项都已由 PM 定下（2026-10-17），见第 2 节。
 > 本文不写任何源站 IP、密钥、`X-Edge-Auth` 的值或验证 TXT 的值。验证值一律写成 `{{待Ryan确认}}`。
 
 ```bash
@@ -35,9 +35,9 @@ S=https://geiom.com
    dig +short TXT geiom.com | grep -c yandex-verification   # ≥ 1
    ```
    - **为什么首选 DNS TXT**：代码也支持 meta 方式（`NEXT_PUBLIC_YANDEX_VERIFICATION` → `<meta name="yandex-verification">`），但这个标签只在 `/en`、`/ru` 页面上输出。根路径 `/` 会 307 跳到 `/en`，而 Yandex 的 meta 验证查首页，首页有跳转就会失败（[`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §2 第 5 条）。另外，改 meta 值要重新构建。
-3. **只加裸域 `https://geiom.com`。** Yandex 把 www 和裸域当成两个站，但 `www` 和 `http://` 都由 nginx 一跳 301 到 `https://geiom.com`（[`seo-cutover-geiom.md`](./seo-cutover-geiom.md) 第 0、2.5 节），主镜像由这个 301 决定，不需要另外设置。
-   - **待 Ryan 决定**：只有在 `https://www.geiom.com` 或 `http://` 版本已经被 Yandex 收录时，才需要把它也加进来、验证，再在 Indexing → Relocate site 提交搬迁（[`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §3）。新站一般不需要。
-4. **站点地区：待 Ryan 决定，可以不设。** 是否申请地区、选哪个地区由 Ryan 决定，要和网站上写明的服务范围、联系方式一致，不能为了通过审核编造地址或电话（[`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4）。地区要设在主地址 `https://geiom.com` 上。
+3. **只加一个站：`https://geiom.com`（PM 2026-10-17 已定）。** `https://www.geiom.com` 和 `http://` 版本**不单独添加**。Yandex 把 www 和裸域当成两个站，但 `www` 和 `http://` 都由 nginx 一跳 301 到 `https://geiom.com`（[`seo-cutover-geiom.md`](./seo-cutover-geiom.md) 第 0、2.5 节），主镜像由这个 301 决定，不需要另外设置。
+   - 上线后在 Indexing → Searchable pages 确认收录的都是 `https://geiom.com/...`。
+4. **站点地区：不设（PM 2026-10-17 已定）。** 目标用户是讲俄语的 B2B 采购，不是本地商家，所以不申请 Site region（[`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4）。Диагностика 里「没有设地区」的提示属于预期，不算问题。
 
 ## 3. 提交 sitemap 🔑（两边都验证通过之后）
 

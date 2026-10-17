@@ -261,7 +261,7 @@ location ^~ /api/health/ { return 404; }
 1. Ryan 登录 Yandex Webmaster → 添加站点 `https://geiom.com`（和 `NEXT_PUBLIC_SITE_URL` 完全一致；Yandex 把 www 和裸域当成两个站，只加裸域）。
 2. 验证方式：**用 DNS TXT**。Yandex 给出 TXT（`yandex-verification: …`），Ryan 私信发给运维，运维单独做一次 DNS 变更给 `geiom.com` 新增；验证后不要删。
    - 代码也支持 meta 方式：`NEXT_PUBLIC_YANDEX_VERIFICATION` → `src/app/[locale]/layout.tsx` 的 `verification.yandex`，输出 `<meta name="yandex-verification">`。但它只在 `/en`、`/ru` 页面上；根路径 `/` 是 307 跳转，而 Yandex 的 meta 验证查首页、首页有跳转会失败（见 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §2 第 5 条）。另外改值要重新构建。所以首选 DNS TXT。
-3. 站点地区（可选）：按 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4 决定，不要为了审核虚构俄罗斯地址。
+3. 站点地区：不设（PM 2026-10-17 已定，见 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4）。www / http 不单独添加。
 4. 验证通过后：Индексирование → Файлы Sitemap → 添加 `https://geiom.com/sitemap.xml`。
 5. 验证通过后（可选）：Переобход страниц 提交 `/ru`、`/en`。
 
