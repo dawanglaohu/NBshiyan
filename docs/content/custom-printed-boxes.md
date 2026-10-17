@@ -52,7 +52,7 @@ PackJoyU sources and supplies full-color printed paperboard boxes for cosmetics,
 ### FAQ（DRAFT — 待确认，暂不输出 FAQPage schema）
 
 - **Q: Can you match our Pantone colors?**
-  A: Yes, Pantone spot color printing is available, and we provide proofs for approval.
+  A: Yes, Pantone spot color printing is available; we provide a proof for approval before the production run.
 - **Q: Do you provide dielines?**
   A: Yes, we can supply a dieline for your product size so your designer can place artwork.
 - **Q: Can I get a physical sample first?**

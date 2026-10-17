@@ -56,7 +56,7 @@ PackJoyU prints custom paper gift cards, vouchers and certificates, together wit
 - **Q: Do you make packaging for gift cards?**
   A: Yes — we supply holders, envelopes and boxes.
 - **Q: Can you print plastic cards?**
-  A: TBD — confirm with factory before offering.
+  A: On request.
 
 ---
 

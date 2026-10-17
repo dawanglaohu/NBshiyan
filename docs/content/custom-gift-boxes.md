@@ -17,7 +17,7 @@
 
 ### H1: Custom Gift Boxes
 
-PackJoyU makes rigid gift boxes for brands that want packaging customers keep: magnetic-closure boxes, lid-and-base sets, drawer boxes and book-style cases with custom inserts. Each box is wrapped in specialty paper and finished with foil stamping, embossing or other details matched to your brand. We support corporate gifting, luxury retail, cosmetics, jewelry and seasonal collections.
+PackJoyU sources and supplies rigid gift boxes for brands that want packaging customers keep: magnetic-closure boxes, lid-and-base sets, drawer boxes and book-style cases with custom inserts. Each box is wrapped in specialty paper and finished with foil stamping, embossing or other details matched to your brand. We support corporate gifting, luxury retail, cosmetics, jewelry and seasonal collections.
 
 #### Why PackJoyU
 
