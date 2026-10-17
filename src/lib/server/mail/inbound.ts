@@ -19,6 +19,8 @@ export const WEBHOOK_MAX_BODY = Math.ceil(MAIL_MSG_MAX_BYTES * 1.4);
 export const WEBHOOK_RATE = { global: 600, perSource: 120, untrusted: 20, windowMs: 60_000 } as const;
 
 export const MAX_SKEW_SEC = 300;
+/** 签名防重放记录的保存时长：覆盖 ±5 分钟时间窗的两端 */
+export const WEBHOOK_REPLAY_WINDOW_MS = 2 * MAX_SKEW_SEC * 1000;
 const REMOTE_ID_RE = /^[A-Za-z0-9_.:-]{1,128}$/;
 
 /**
@@ -26,6 +28,16 @@ const REMOTE_ID_RE = /^[A-Za-z0-9_.:-]{1,128}$/;
  * 任何失败（缺头、格式错、不匹配、时间差 > 5 分钟）都只返回 false，调用方一律 401，不区分原因。
  */
 export type WebhookAuthHeaders = { timestamp: string | null; mailId: string | null; signature: string | null };
+export type WebhookAuthReason = 'missing_header' | 'bad_format' | 'expired' | 'bad_content_type' | 'bad_signature' | 'bad_body' | 'id_mismatch';
+
+
+/** 返回原因码（只用于日志；对外一律同一个 401 体）。null = 通过 */
+export function webhookHeaderProblem(h: WebhookAuthHeaders, nowMs = Date.now()): WebhookAuthReason | null {
+  const { timestamp, mailId, signature } = h;
+  if (!timestamp || !mailId || !signature) return 'missing_header';
+  if (!/^\d{9,11}$/.test(timestamp) || !REMOTE_ID_RE.test(mailId) || !/^[0-9a-f]{64}$/i.test(signature)) return 'bad_format';
+  return Math.abs(nowMs / 1000 - Number(timestamp)) <= MAX_SKEW_SEC ? null : 'expired';
+}
 
 /**
  * 读请求体之前的鉴权头检查（审查要求：头不对立即 401，不读不解析请求体）：
@@ -33,12 +45,13 @@ export type WebhookAuthHeaders = { timestamp: string | null; mailId: string | nu
  * HMAC 覆盖请求体，只能在读完（受上限约束的）请求体后再验，见 verifyWebhookSignature。
  */
 export function precheckWebhookHeaders(h: WebhookAuthHeaders, nowMs = Date.now()): boolean {
-  const { timestamp, mailId, signature } = h;
-  if (!timestamp || !mailId || !signature) return false;
-  if (!/^\d{9,11}$/.test(timestamp) || !REMOTE_ID_RE.test(mailId) || !/^[0-9a-f]{64}$/i.test(signature)) return false;
-  return Math.abs(nowMs / 1000 - Number(timestamp)) <= MAX_SKEW_SEC;
+  return webhookHeaderProblem(h, nowMs) === null;
 }
 
+/**
+ * HMAC-SHA256(MAIL_WEBHOOK_SECRET, timestamp + "." + mailId + "." + 原始请求体字节)，hex——backend-plan v4 §4.0 的 Worker 契约原样实现：
+ * 签名同时覆盖时间戳和请求体（还绑定邮件 id），改时间戳或体任一字节都验不过。常量时间比较。
+ */
 export function verifyWebhookSignature(h: WebhookAuthHeaders, rawBody: Buffer, secret: string, nowMs = Date.now()): boolean {
   if (!precheckWebhookHeaders(h, nowMs)) return false;
   const { timestamp, mailId, signature } = h as { timestamp: string; mailId: string; signature: string };
@@ -180,6 +193,11 @@ export async function ingestRaw(db: Db, remoteMailId: string, raw: Buffer, opts:
       const row = await db.mailMessage.create({ data: { direction: 'INBOUND', status: 'UNASSIGNED', remoteMailId, fromAddr: '', toAddr: '', subject: '', bodyHtml: '', bodyText: '', flags, receivedAt: now } });
       return { result: 'parse_error', id: row.id, inquiryId: null };
     } catch (e2) { if ((e2 as { code?: string })?.code === 'P2002') return { result: 'duplicate' }; throw e2; }
+  }
+  // 同一 Message-ID 已入库 → duplicate，不再匹配、不写库（Message-ID 唯一约束兜底并发）
+  if (p.messageId) {
+    const dup = await db.mailMessage.findUnique({ where: { messageId: p.messageId }, select: { id: true } });
+    if (dup) return { result: 'duplicate', id: dup.id };
   }
   const match = await matchInquiry(db, p, opts.replyDomain);
   let fromHash: string | null = null;

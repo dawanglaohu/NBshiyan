@@ -99,7 +99,7 @@ const SAFE_VAL = /^[A-Za-z0-9_.:-]{0,64}$/;
  * 邮件模块唯一的日志出口：只输出白名单键，值必须是短的安全字符串 / 数字 / 布尔。
  * 不接受 Error 对象、原始响应、地址、主题、正文；凭据永远进不了日志。
  */
-export function mailLog(level: 'info' | 'error', event: string, fields: Record<string, unknown> = {}) {
+export function mailLog(level: 'info' | 'warn' | 'error', event: string, fields: Record<string, unknown> = {}) {
   const safe: Record<string, string | number | boolean> = {};
   for (const [k, v] of Object.entries(fields)) {
     if (!SAFE_KEYS.has(k)) continue;
@@ -108,5 +108,5 @@ export function mailLog(level: 'info' | 'error', event: string, fields: Record<s
     else safe[k] = 'redacted';
   }
   const ev = SAFE_VAL.test(event) ? event : 'mail.event';
-  (level === 'error' ? console.error : console.info)(`[mail] ${ev}`, JSON.stringify(safe));
+  (level === 'error' ? console.error : level === 'warn' ? console.warn : console.info)(`[mail] ${ev}`, JSON.stringify(safe));
 }

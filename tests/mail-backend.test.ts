@@ -149,7 +149,7 @@ test('535：FAILED send_auth、不可重试、发一次运维告警；重试接�
   const r = await send(s);
   assert.deepEqual(r.body, { error: 'mail_failed', id: s.mails[0].id, reason: 'send_auth', retryable: false });
   assert.equal(s.mails[0].status, 'FAILED'); assert.equal(s.mails[0].errorCode, 'send_auth');
-  assert.deepEqual(s.alerts.map((a) => [a.key, a.lines]), [['mail-config:send_auth', { 原因: 'send_auth', 响应码: '535' }]]);
+  assert.deepEqual(s.alerts.map((a) => [a.key, a.lines]), [['mail-config:send_auth', { 错误码: '535', 时间: '2026-10-16T10:00:00.000Z' }]]);
   const rr = await retryMail(s.deps, { userId: 'admin1', messageId: s.mails[0].id, scope: {} });
   assert.deepEqual(rr.body, { error: 'not_retryable' });
   assert.equal(s.adapter.sent.length, 1);
@@ -251,4 +251,40 @@ test('发信关闭（SMTP 不全或开关不是 http）→ 409 sending_disabled�
   const s = setup({ env: { SMTP_PASS: '' } });
   assert.deepEqual((await send(s)).body, { error: 'sending_disabled' });
   assert.equal(s.mails.length, 0);
+});
+
+// —— 审查：send_auth 告警只含错误码和时间 ——
+test('send_auth 告警（经真实 sendAdminAlert 渲染成邮件）只含错误码和时间：无 SMTP_USER / SMTP_PASS / 服务器原始响应', async () => {
+  const { sendAdminAlert, setMailTransportFactory } = await import('../src/lib/server/mail');
+  const { setRateLimitStore, MemoryStore } = await import('../src/lib/server/ratelimit');
+  const { alertFields } = await import('../src/lib/server/mail/send');
+  setRateLimitStore(new MemoryStore());
+  const saved = { ...process.env };
+  Object.assign(process.env, ENV, { SMTP_PORT: '465', ADMIN_ALERT_EMAIL: 'ops@example.test' });
+  const outbox: { subject?: unknown; text?: unknown; html?: unknown }[] = [];
+  setMailTransportFactory((() => ({ sendMail: async (m: never) => { outbox.push(m); return {} as never; }, close: () => {} })) as never);
+  try {
+    const secretErr = Object.assign(new Error(`Invalid login: 535-5.7.8 Username and Password not accepted for ${FAKE_USER} ${FAKE_PASS}`), {
+      code: 'EAUTH', responseCode: 535, response: `535-5.7.8 Username and Password not accepted ${FAKE_USER} ${FAKE_PASS}`, command: 'AUTH PLAIN AGZha2UtdXNlcgBmYWtlLXBhc3M=',
+    });
+    const adapter = createSmtpAdapter((smtpBaseConfig(ENV) as { ok: true; cfg: never }).cfg, { createTransport: () => ({ sendMail: async () => { throw secretErr; } }) });
+    const s = setup({ adapter: adapter as never });
+    s.deps.alert = sendAdminAlert as never;
+    const r = await send(s);
+    assert.equal((r.body as { reason: string }).reason, 'send_auth');
+    assert.equal(outbox.length, 1, 'one ops alert');
+    const mail = JSON.stringify(outbox[0]);
+    assert.match(mail, /535/); assert.match(mail, /2026-10-16T10:00:00\.000Z/);
+    for (const leak of [FAKE_USER, FAKE_PASS, '5.7.8', 'Username', 'Password not accepted', 'Invalid login', 'AGZha2Ut', 'buyer@customer.example', 'Re: your inquiry']) {
+      assert.ok(!mail.includes(leak), `alert leaked: ${leak}`);
+    }
+    // 字段本身：只有这两项；错误码不是安全短码时换成 unknown
+    assert.deepEqual(Object.keys(alertFields('535', new Date(0))), ['错误码', '时间']);
+    assert.equal(alertFields(`535 ${FAKE_USER}`, new Date(0)).错误码, 'unknown');
+    assert.equal(alertFields(null, new Date(0)).错误码, 'unknown');
+  } finally {
+    setMailTransportFactory(undefined);
+    for (const k of Object.keys(process.env)) if (!(k in saved)) delete process.env[k];
+    Object.assign(process.env, saved);
+  }
 });

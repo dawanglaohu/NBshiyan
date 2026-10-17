@@ -4,7 +4,7 @@ import { escapeHtml, randomId } from '../security';
 import { findInquiryForReply } from '../privacy';
 import { extendInquiryRetention } from '../admin/inquiries';
 import { capWindow, dailyCap, MAX_RETRIES, parseMailbox, smtpConfig, type SmtpConfig } from './config';
-import { headerInjection, mailLog, type MailSendAdapter, type OutboundMail, type SendOutcome } from './adapter';
+import { headerInjection, mailLog, type MailSendAdapter, type OutboundMail, type SendOutcome, type SendFailReason } from './adapter';
 
 /**
  * #74 发信状态机（和发信商无关；适配器见 adapter.ts）。
@@ -124,6 +124,15 @@ function outbound(row: MailRow, cfg: SmtpConfig, replyToken: string): OutboundMa
   };
 }
 
+const ALERT_TITLE: Partial<Record<SendFailReason, string>> = {
+  send_auth: '邮件发信认证失败（需检查 SMTP 配置）', smtp_tls: '邮件发信 TLS 错误', provider_throttled: '邮件服务商限流 / 配额',
+};
+/** 告警正文：只有错误码（数字响应码或清洗过的错误码）和时间 */
+export function alertFields(code: string | null, at: Date): Record<string, string> {
+  const safe = code && /^[A-Z0-9_]{1,24}$/i.test(code) ? code : 'unknown';
+  return { 错误码: safe, 时间: at.toISOString() };
+}
+
 /** 交给适配器并落最终状态。只有在 reserveAndStart 返回 started 之后调用 */
 async function deliver(deps: Required<Pick<SendDeps, 'db' | 'adapter'>> & SendDeps, row: MailRow, cfg: SmtpConfig, replyToken: string, now: () => Date): Promise<SendResponse> {
   const mail = outbound(row, cfg, replyToken);
@@ -145,8 +154,9 @@ async function deliver(deps: Required<Pick<SendDeps, 'db' | 'adapter'>> & SendDe
   mailLog('error', 'mail.send_failed', { mailId: row.id, reason: res.reason, code: res.code ?? 'none', retryable: res.retryable });
   await deps.audit?.({ action: 'mail.send_fail', target: row.id, meta: { mailId: row.id, reason: res.reason } });
   if (res.alert) {
-    // 535 认证失败 / TLS 配置错误 / Gmail 配额：配置问题，发运维告警（同类 30 分钟一封，内容只有原因码和响应码）
-    await deps.alert?.('邮件发信配置错误', { 原因: res.reason, 响应码: res.code ?? '无' }, `mail-config:${res.reason}`).catch(() => {});
+    // 535 认证失败 / TLS 配置错误 / Gmail 配额：配置问题，发运维告警（同类 30 分钟一封）。
+    // 内容只有错误码和时间：不放 SMTP_USER / SMTP_PASS / 服务器原始响应 / 收件人 / 主题。
+    await deps.alert?.(ALERT_TITLE[res.reason] ?? '邮件发信配置错误', alertFields(res.code, now()), `mail-config:${res.reason}`).catch(() => {});
   }
   return { kind: 'failed', status: 502, body: { error: 'mail_failed', id: row.id, reason: res.reason, retryable: res.retryable } };
 }

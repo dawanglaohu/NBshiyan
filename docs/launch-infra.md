@@ -95,8 +95,8 @@ Ryan 操作：Vercel → Add New Project → 导入 GitHub 仓库 → Framework 
 | `MAIL_DAILY_CAP` | 默认 `450` | 询盘回复每日上限（免费 Gmail 约 500 封/天，余量留给自动回复和通知）；超出的信排队，下次重置后自动发送（`daily_cap_deferred`） |
 | `MAIL_DAILY_CAP_RESET` | 默认 `00:00` | 每日上限的重置时间（UTC，HH:MM） |
 | `MAIL_RATE_ADMIN_PER_HOUR` / `MAIL_RATE_GLOBAL_PER_HOUR` | 默认 `30` / `200` | 询盘回复按管理员 / 全站的每小时上限 |
-| `MAIL_WEBHOOK_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | 收信 webhook（`POST /api/mail/inbound-webhook`）的 HMAC 密钥，同一个值配到收信 Worker 的 Secret；不配则 webhook 不启用。不与其他密钥复用 |
-| `MAIL_SEND_ADAPTER` | 留空（= `smtp`） | 只有本地/预览可设 `mock`（不真的发信）；生产设 `mock` 会被配置自检拒绝 |
+| `MAIL_WEBHOOK_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | **生产必填**：收信 webhook（`POST /api/mail/inbound-webhook`）的 HMAC 密钥，同一个值配到收信 Worker 的 Secret。生产缺失或少于 32 字节 → 配置自检拒绝启动（非生产不配则 webhook 返回 404）。不与其他密钥复用 |
+| `MAIL_SEND_ADAPTER` | `smtp` | **生产必填且只能是 `smtp`**：未设置、`mock`、`log` 等任何其他值 → 配置自检拒绝启动。本地/预览可设 `mock`（不真的发信） |
 | `NEXT_PUBLIC_ADMIN_MAIL` | 后端上线后设 `http` | 邮件开关（#303）：不是 `http` 时所有 `/api/admin/mail/*`、发信接口和收信 webhook 都返回 404 |
 | `INQUIRY_NOTIFY_EMAIL` | Ryan 的询盘收件邮箱 | 待 Ryan 提供 |
 | `siteUrl` → `NEXT_PUBLIC_SITE_URL` | `https://<正式域名>`（不带结尾 `/`） | 邮件里后台链接、canonical、OG 都用它，**不读请求 Host 头** |

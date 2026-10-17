@@ -27,11 +27,13 @@ export function prodEnvProblems(env: Record<string, string | undefined>): string
 // #74 发信（§16 Gmail SMTP）：只报变量名和原因，不输出任何值
 function mailProblems(env: Record<string, string | undefined>): string[] {
   const out: string[] = [];
-  if (env.MAIL_SEND_ADAPTER && env.MAIL_SEND_ADAPTER !== 'smtp') out.push('MAIL_SEND_ADAPTER：生产环境只能用 smtp（不能用 mock）');
+  // 生产环境必须显式 MAIL_SEND_ADAPTER=smtp：未设置、mock、log 或其他任何值都拒绝启动
+  if ((env.MAIL_SEND_ADAPTER ?? '').trim() !== 'smtp') out.push('MAIL_SEND_ADAPTER：生产环境必须设置为 smtp（未设置 / mock / log 都不允许）');
   if (!dailyCapValid(env)) out.push('MAIL_DAILY_CAP 必须是 1–100000 的整数（默认 450）');
   if (env.MAIL_DAILY_CAP_RESET && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(env.MAIL_DAILY_CAP_RESET.trim())) out.push('MAIL_DAILY_CAP_RESET 必须是 HH:MM（UTC）');
   if (env.NODE_TLS_REJECT_UNAUTHORIZED === '0') out.push('NODE_TLS_REJECT_UNAUTHORIZED=0：不能关闭证书校验');
-  if (env.MAIL_WEBHOOK_SECRET && Buffer.byteLength(env.MAIL_WEBHOOK_SECRET) < 32) out.push('MAIL_WEBHOOK_SECRET 至少 32 字节');
+  // 收信 webhook 密钥：缺失或少于 32 字节都拒绝启动（与 config.webhookSecret 的运行时判断一致）
+  if (Buffer.byteLength(env.MAIL_WEBHOOK_SECRET ?? '') < 32) out.push('MAIL_WEBHOOK_SECRET：必须设置且至少 32 字节');
   // SMTP_* 缺失由 secretProblems 的必填项报；这里只查配了但不安全 / 不合规（端口、证书校验、From 用了 REPLY_DOMAIN）
   if (['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM'].every((k) => env[k]?.trim())) {
     const c = smtpBaseConfig({ ...env, NODE_TLS_REJECT_UNAUTHORIZED: undefined }); // 证书校验开关上面单独报

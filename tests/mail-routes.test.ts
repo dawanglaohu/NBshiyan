@@ -174,13 +174,17 @@ test('webhook：缺头 / 签名错 / 密钥错 / 时间差 > 5 分钟 / 头和�
   assert.equal((await routes.webhook.POST!(signed('w-2', RAW), P({}))).status, 404);
 });
 
-test('webhook：写库失败 → 503（Worker 重试）；之后同一封重推成功入库', async () => {
+test('webhook：写库失败 → 503（Worker 重试）；之后同一签名重推成功入库（防重放不丢信）', async () => {
   const orig = mem.db.$transaction;
   mem.db.$transaction = async () => { throw Object.assign(new Error('db down'), { name: 'PrismaClientInitializationError' }); };
-  const r = await routes.webhook.POST!(signed('w-9', RAW), P({}));
+  const first = signed('w-9', RAW);
+  const sameSig = new Request(first.url, { method: 'POST', headers: first.headers, body: await first.clone().text() });
+  const r = await routes.webhook.POST!(first, P({}));
   assert.equal(r.status, 503);
   mem.db.$transaction = orig;
-  assert.equal((await routes.webhook.POST!(signed('w-9', RAW), P({}))).status, 200);
+  // Worker 用同一签名重推：签名已见过但还没入库 → 照常处理，不因防重放丢信
+  const again = await routes.webhook.POST!(sameSig, P({}));
+  assert.deepEqual([again.status, await again.json()], [200, { ok: true }]);
   assert.equal(mem.mails.length, 1);
 });
 
@@ -274,4 +278,73 @@ test('webhook 限流：同一来源超过每分钟上限 → 429；拿不到可�
     assert.equal(un.filter((s) => s === 401).length, WEBHOOK_RATE.untrusted);
     assert.equal(un.at(-1), 429);
   } finally { delete process.env.BEHIND_CLOUDFLARE; }
+});
+
+// —— 审查：HMAC 覆盖时间戳 + 体；所有 401 相同、日志只记原因码；签名 / Message-ID 防重放 ——
+test('HMAC 覆盖时间戳和请求体：只改时间戳（仍在窗口内）或只改体 → 401', async () => {
+  const req = signed('w-ts', RAW);
+  const ts = Number(req.headers.get('x-geiom-timestamp'));
+  const h = new Headers(req.headers); h.set('x-geiom-timestamp', String(ts - 1));
+  const body = await req.text();
+  assert.equal((await routes.webhook.POST!(new Request(req.url, { method: 'POST', headers: h, body }), P({}))).status, 401);
+  assert.equal(mem.mails.length, 0);
+});
+
+test('所有 401 完全相同（状态 / 体 / 头）；日志只有原因码，不含请求内容', async () => {
+  const origWarn = console.warn; const logs: string[] = [];
+  console.warn = (...a: unknown[]) => { logs.push(a.map(String).join(' ')); };
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const good = signed('w-401', RAW);
+    const goodBody = await good.clone().text();
+    const withHeaders = (over: Record<string, string | null>, body = goodBody) => {
+      const h = new Headers(good.headers);
+      for (const [k, v] of Object.entries(over)) { if (v === null) h.delete(k); else h.set(k, v); }
+      h.set('content-length', String(Buffer.byteLength(body)));
+      return new Request(good.url, { method: 'POST', headers: h, body });
+    };
+    // 体不是合法 JSON / id 不一致：签名按篡改后的体重新算（证明是“签名通过之后”的失败也同样 401）
+    const resign = (body: string, id = 'w-401') => {
+      const ts = String(now);
+      const sig = createHmac('sha256', SECRET).update(`${ts}.${id}.${body}`).digest('hex');
+      return withHeaders({ 'x-geiom-timestamp': ts, 'x-geiom-mail-id': id, 'x-geiom-signature': sig }, body);
+    };
+    const cases: [string, Request][] = [
+      ['missing_header', withHeaders({ 'x-geiom-signature': null })],
+      ['bad_format', withHeaders({ 'x-geiom-signature': 'nothex' })],
+      ['expired', withHeaders({ 'x-geiom-timestamp': String(now - 600) })],
+      ['bad_content_type', withHeaders({ 'content-type': 'text/plain' })],
+      ['bad_signature', withHeaders({ 'x-geiom-signature': 'b'.repeat(64) })],
+      ['bad_body', resign('not json')],
+      ['id_mismatch', resign(JSON.stringify({ id: 'other', raw: RAW }))],
+    ];
+    const seen = new Set<string>();
+    for (const [reason, req] of cases) {
+      logs.length = 0;
+      const r = await routes.webhook.POST!(req, P({}));
+      const headers = [...r.headers.entries()].filter(([k]) => k !== 'date').sort();
+      seen.add(JSON.stringify([r.status, await r.text(), headers]));
+      assert.equal(logs.length, 1, reason);
+      assert.match(logs[0], new RegExp(`mail\\.webhook_unauthorized.*"reason":"${reason}"`));
+      for (const leak of ['buyer@customer.example', 'Re: quote', 'w-401', 'bbbb', 'not json']) assert.ok(!logs[0].includes(leak), `log leaked ${leak}`);
+    }
+    assert.equal(seen.size, 1, 'every 401 identical');
+    assert.deepEqual(JSON.parse([...seen][0])[0], 401);
+    assert.equal(mem.mails.length, 0);
+  } finally { console.warn = origWarn; }
+});
+
+test('防重放：同一签名请求再推一次 → 200 duplicate，不解析不写库；不同 Worker id 但同一 Message-ID → 200 duplicate，不写库', async () => {
+  let creates = 0;
+  const orig = mem.db.mailMessage.create;
+  mem.db.mailMessage.create = (async (a: never) => { creates++; return orig(a); }) as never;
+  const req = signed('w-rp', RAW);
+  const replay = new Request(req.url, { method: 'POST', headers: req.headers, body: await req.clone().text() });
+  assert.equal((await routes.webhook.POST!(req, P({}))).status, 200);
+  const r2 = await routes.webhook.POST!(replay, P({}));
+  assert.deepEqual([r2.status, await r2.json()], [200, { ok: true, duplicate: true }]);
+  const r3 = await routes.webhook.POST!(signed('w-rp-2', RAW), P({}));
+  assert.deepEqual([r3.status, await r3.json()], [200, { ok: true, duplicate: true }]);
+  assert.equal(creates, 1); assert.equal(mem.mails.length, 1);
+  mem.db.mailMessage.create = orig;
 });
