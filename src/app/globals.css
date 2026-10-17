@@ -71,6 +71,11 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .linkbtn{background:none;border:0;color:var(--accent-text);font:inherit;cursor:pointer;padding:4px}
 /* 询价向导 */
 .wizard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;max-width:720px}
+/* #307 成功卡片滚进可视区时不被吸顶页头挡住（手机端页头不吸顶） */
+.wizard-done{scroll-margin-top:calc(var(--header-h) + 16px)}
+@media (max-width:767px){.wizard-done{scroll-margin-top:16px}}
+/* #307 横幅关闭后焦点落在 <main>（tabindex=-1，仅程序聚焦）：不给整块内容画焦点环 */
+main[tabindex="-1"]:focus{outline:none}
 .steps{display:flex;gap:6px;margin-bottom:20px}.steps span{flex:1;height:6px;border-radius:3px;background:var(--line)}.steps .on{background:var(--accent)}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .field label,.field legend{font-weight:700;font-size:14px}
