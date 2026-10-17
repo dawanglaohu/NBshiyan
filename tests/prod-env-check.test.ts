@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { prodEnvProblems, assertProdEnv } from '../prod-env-check';
+import { prodEnvProblems, assertProdEnv, RUNTIME_ONLY } from '../prod-env-check';
 
 test('非生产环境（CI/预览/本地）不检查', () => {
   assert.deepEqual(prodEnvProblems({ CI: 'true', NODE_ENV: 'production', NEXT_PUBLIC_LOGO_UPLOAD_MOCK: '1' }), []);
@@ -21,7 +21,7 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
-  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 23); // #74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 23); // #74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）
   assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
 });
 
@@ -124,4 +124,44 @@ test('next.config runs the prod check per phase (build skips runtime-only secret
   const cfg = readFileSync('next.config.ts', 'utf8');
   assert.match(cfg, /assertProdEnv\(process\.env, phase === PHASE_PRODUCTION_BUILD \? 'build' : 'runtime'\)/);
   assert.doesNotMatch(cfg, /EDGE_AUTH_SECRET/);
+});
+
+const MAIL_RUNTIME = ['SMTP_USER', 'SMTP_PASS', 'MAIL_WEBHOOK_SECRET'] as const;
+test('#74 邮件密钥只在运行时检查：RUNTIME_ONLY 含 SMTP_USER / SMTP_PASS / MAIL_WEBHOOK_SECRET（不含 CRON_SECRET 等其他变量）', () => {
+  assert.deepEqual([...RUNTIME_ONLY].sort(), ['EDGE_AUTH_SECRET', ...MAIL_RUNTIME].sort());
+});
+
+test('#74 build 阶段：三个邮件密钥全部缺失 → 没有任何邮件密钥问题；MAIL_SEND_ADAPTER / SMTP 端口仍在构建时检查', () => {
+  const noSecrets = { ...prodFull, UPSTASH_REDIS_REST_TOKEN: 't', EDGE_AUTH_SECRET: undefined, SMTP_USER: undefined, SMTP_PASS: undefined, MAIL_WEBHOOK_SECRET: undefined };
+  assert.deepEqual(prodEnvProblems(noSecrets, 'build'), []);
+  assert.doesNotThrow(() => assertProdEnv(noSecrets, 'build'));
+  // 非密钥的邮件配置在构建时照样拒绝
+  assert.ok(prodEnvProblems({ ...noSecrets, MAIL_SEND_ADAPTER: 'mock' }, 'build').some((p) => p.startsWith('MAIL_SEND_ADAPTER')));
+  assert.ok(prodEnvProblems({ ...noSecrets, SMTP_PORT: '25' }, 'build').some((p) => p.includes('SMTP 发信配置无效')));
+  // 构建时也不会因为密钥“太短”报错（根本不看）
+  assert.deepEqual(prodEnvProblems({ ...noSecrets, MAIL_WEBHOOK_SECRET: 'short' }, 'build'), []);
+});
+
+test('#74 runtime 阶段：三个邮件密钥逐个缺失 → 各自单独报错，只报变量名，不含任何值', () => {
+  const full = { ...prodFull, UPSTASH_REDIS_REST_TOKEN: 't' };
+  assert.deepEqual(prodEnvProblems(full, 'runtime'), []);
+  const fakes: Record<string, string> = { SMTP_USER: 'fake-runtime-user-7f3a@example.test', SMTP_PASS: 'fake-runtime-pass-7f3a', MAIL_WEBHOOK_SECRET: 'fake-runtime-webhook-7f3a'.padEnd(40, 'q') };
+  const withFakes = { ...full, ...fakes };
+  for (const k of MAIL_RUNTIME) {
+    for (const missing of [undefined, '', '   ']) {
+      const env = { ...withFakes, [k]: missing };
+      const p = prodEnvProblems(env, 'runtime');
+      assert.equal(p.length, 1, `${k}=${JSON.stringify(missing)}: ${p}`);
+      assert.ok(p[0].startsWith(k), p[0]);
+      let msg = ''; try { assertProdEnv(env, 'runtime'); } catch (e) { msg = (e as Error).message; }
+      assert.match(msg, new RegExp(k));
+      for (const v of Object.values(fakes)) assert.ok(!msg.includes(v), `value leaked for ${k}`);
+    }
+  }
+  // webhook 密钥少于 32 字节在运行时拒绝
+  const short = prodEnvProblems({ ...withFakes, MAIL_WEBHOOK_SECRET: 'z'.repeat(31) }, 'runtime');
+  assert.deepEqual(short, ['MAIL_WEBHOOK_SECRET：必须设置且至少 32 字节']);
+  // 三个都缺 → 三条，一次性报出
+  const all = prodEnvProblems({ ...full, SMTP_USER: undefined, SMTP_PASS: undefined, MAIL_WEBHOOK_SECRET: undefined }, 'runtime');
+  assert.deepEqual(all.map((s) => s.split(/[ ：]/)[0]).sort(), [...MAIL_RUNTIME].sort());
 });
