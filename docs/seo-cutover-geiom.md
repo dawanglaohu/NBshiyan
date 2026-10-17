@@ -1,153 +1,310 @@
-# geiom.com 切换当天 SEO 检查清单（Vercel → Docker+Caddy+Cloudflare）
+# geiom.com 上线当天 SEO 清单
 
-> 依据：`origin/main` `78a515f`（未合入 #279 时）+ PR #279 `e6ba3bb`；`nbshiyan-ops-plan.md` §7。
-> 约定：主域 `https://geiom.com`（裸域），www/http 一跳 301 到裸域。DNS、GSC、Yandex 操作由 **运维 / Ryan** 执行，SEO 只抽查。
-> 现状：geiom.com 目前是 Squarespace「Coming Soon」+ noindex，没有已收录页面，所以没有旧 URL 要做 301 映射。
-> 本次切换**不改** noindex 页面：`/solutions`、`/factory`、6 个 solutions slug、`/cases` 继续 noindex，也不进 sitemap（上线时再单独改）。
+> 适用：自建服务器（standalone 镜像 + nginx，前面是 Cloudflare 代理）。部署流程以 [`launch-runbook.md`](../launch-runbook.md) §4–§5 和 PR #321（`fix/deploy-readiness`）为准；环境变量表见 [`launch-runbook.md`](../launch-runbook.md) §4、[`launch-infra.md`](./launch-infra.md)。本文只写 SEO 相关的检查和 Ryan 本人要做的步骤，不重复部署细节。
+> 依据代码：`origin/main` `5b79ec6`。文中的路径、变量名、robots 内容都按代码核对过；代码里查不到的（nginx / Cloudflare 规则等）标为 **待确认**。
+> 规则：本文和仓库里**不写源站 IP**、不写任何 token / 密钥 / 账号；不写 MOQ、交期、认证、环保、"工厂/制造商"之类未确认说法。
+
+## 0. 主域名
+
+- **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`，去掉结尾 `/`），不读请求的 Host。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
+- `www.geiom.com` 和 `http://` 的 301 **全部由 nginx 做**（运维已定）：http 裸域、http www、https www 都一跳 301 到 `https://geiom.com$request_uri`。Cloudflare 侧 Always Use HTTPS 关闭，没有 Redirect Rules，也没有 Page Rules。
+- ⚠️ 切换时**不要**在 Cloudflare 加重定向规则，**不要**打开 Always Use HTTPS，否则会和 nginx 的 301 叠成两跳或者循环。
+- 语言前缀：`src/i18n/routing.ts` 是 `locales: ['en', 'ru']`、`defaultLocale: 'en'`、`localePrefix: 'always'`，所有页面都在 `/en/...` 或 `/ru/...` 下。
+- geiom.com 之前是 Squarespace「Coming Soon」+ noindex，没有旧 URL 收录，不需要做旧地址 301 映射。
 
 ```bash
-S=https://geiom.com   # 正式
-P=https://staging.geiom.com   # 预览/staging（Cloudflare Access + noindex，永不提交 GSC/Yandex）
+S=https://geiom.com
 ```
 
-## 1. 切换前
+## 1. 上线前（构建）
 
-- [ ] **#279 已合并并部署**。没合并的话，`isProdEnv`、`next.config` 的 noindex 头、robots、IndexNow 都只认 `VERCEL_ENV`，自建服务器上会被当成非生产：整站 noindex，robots 全站 disallow，IndexNow 关闭。
-- [ ] 生产环境变量：`APP_ENV=production`、`NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）、`INDEXNOW_KEY`（8–128 位 `[a-zA-Z0-9-]`）。自建服务器用本地 Redis 做 IndexNow 去重：`RATE_LIMIT_STORE=redis`（不是 Upstash）。运维 PR1/PR2 会合入后，IndexNow 才同时接受 `upstash` 或 `redis`；在此之前缺兼容时 IndexNow 可能静默关闭。上线后由运维用日志确认 IndexNow 已启用。
-- [ ] **`APP_ENV` 和 `NEXT_PUBLIC_SITE_URL` 必须作为 Docker build-args 传入**（仅在容器运行时设置太晚）：`NEXT_PUBLIC_*` 在构建时写进代码，`next.config.ts` 的 `isProd` 也在构建时算。`SITE_URL` 缺省是 `http://localhost:3000`，漏传会导致 canonical / sitemap 指向 localhost。
-- [ ] staging 地址是 `staging.geiom.com`：前面挂 Cloudflare Access，不设 `APP_ENV=production`，`NEXT_PUBLIC_SITE_URL` 用 `https://staging.geiom.com`（ops-plan §7：staging 的 robots/sitemap 不指向正式域名）。整站 noindex，**永不**提交给 Search Console / Yandex。
-- [ ] 用一个「生产配置」的构建（`APP_ENV=production`、`NEXT_PUBLIC_SITE_URL=https://geiom.com`，在 staging 机器上跑、不对外）检查输出：
+这些值都是**构建时**写进产物的，只在运行时设置不起作用（`NEXT_PUBLIC_*` 会被内联；`next.config.ts` 里的 `isProd` 和 `src/app/robots.ts`、sitemap 也在构建时确定）。
+
+- [ ] 构建时 `APP_ENV=production`、`NODE_ENV=production`。`isProdEnvFrom()`（`src/lib/site.ts`）只认 `APP_ENV === 'production'`（过渡期另认 `VERCEL_ENV`）。没设 → `next.config.ts` 给全站加 `X-Robots-Tag: noindex, nofollow`，`robots.txt` 变成 `Disallow: /`，IndexNow 关闭。
+- [ ] **运行时** env_file 里也必须有 `APP_ENV=production`。启动检查（`src/instrumentation.ts` → `runStartupEnvCheck()`）只在 `APP_ENV=production` 时执行；没设就整段跳过，缺密钥、缺数据库也照样启动。
+  部署后由运维在服务器上确认启动检查确实跑了（只看变量名和退出码，不打印任何值）：
+  - 容器里 `APP_ENV` 是 `production`，例如 `docker compose exec <app> printenv APP_ENV`。
+  - 检查通过时没有日志输出，所以要做一次反向验证：用一次性容器、同一镜像、同一 env_file，故意让一项必填配置失效（比如 `UPLOAD_DIR` 指向不可写目录），应输出「生产环境配置检查未通过，拒绝启动」加变量名，并 exit 1。测完删掉这个容器，正式容器不动。
+- [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
+- [ ] 构建检查（`prod-env-check.ts`，`next build` 时执行）：
+  - 当前 main：`NEXT_PUBLIC_SITE_URL` 缺失或不是 `https://` 时构建失败。
+  - PR #321 合并后：另外拒绝 localhost / 127.x / ::1 / 0.0.0.0 / `*.localhost`。上线必须用合并了 #321 的 commit 构建。
+- [ ] 站长验证 meta（可选，见第 4 节）：`NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`、`NEXT_PUBLIC_YANDEX_VERIFICATION`、`NEXT_PUBLIC_BING_VERIFICATION` 也是 `NEXT_PUBLIC_*`，要用的话必须在**构建时**给，改值要重新构建。走 DNS TXT 验证就不用设。
+- [ ] standalone 镜像（`output: 'standalone'`，PR #321）：除 `.next/standalone/` 外，必须把 `public/` 复制到 `.next/standalone/public/`、`.next/static/` 复制到 `.next/standalone/.next/static/`（`launch-runbook.md` §4.1）。漏了会导致 OG 图、favicon、poster、JS/CSS 全部 404。安全已核对运维 Dockerfile 里有这两步。
+- [ ] 限流 / IndexNow 去重：上线用运维 v1.6 的本地 Redis + SRH（Upstash 兼容 REST），`RATE_LIMIT_STORE=upstash`，`UPSTASH_REDIS_REST_URL` 为 https。`src/lib/seo/indexnow.ts` 只在 `RATE_LIMIT_STORE=upstash`、URL 是 https、token 已设、生产环境、`INDEXNOW_KEY` 合法（8–128 位 `[a-zA-Z0-9-]`）时启用，缺一项就**静默关闭**。
+- [ ] 上线时 sitemap 里只会有（`src/lib/seo/sitemapEntries.ts`）：`/en`、`/ru`、`/{en,ru}/products`、`/{en,ru}/contact`；另外 Sanity 里有可索引文章时才有 `/{en,ru}/articles` 和文章详情。**不会有**：品类页（`CATEGORY_PAGES_LIVE = false`，`src/lib/seo/categoryPages.ts`，此时 `/products/<slug>` 一律 404）、隐私页（`PRIVACY_PAGE_COMPLETE = false`）、`/solutions`、`/factory`、`/cases`、`/s/*`、`/admin`、`/api`。
+
+## 2. 上线后立即自检
+
+DNS 生效、Cloudflare 代理打开后马上跑。也可以先跑仓库自带的两个只读脚本：`pnpm smoke --base https://geiom.com` 和 `pnpm seo:audit https://geiom.com`（**不要**加 `--ignore-env-noindex`），见 `launch-runbook.md` §5。
+
+### 2.1 没有 noindex
+
+```bash
+for p in /en /ru /en/products /ru/products /en/contact /ru/contact /robots.txt /sitemap.xml; do
+  printf '%s ' "$p"; curl -sI "$S$p" | grep -i '^x-robots-tag' || echo OK; done
+curl -s $S/en | grep -o '<meta name="robots"[^>]*'   # 应无输出
+curl -s $S/ru | grep -o '<meta name="robots"[^>]*'   # 应无输出
+```
+
+### 2.2 robots.txt
+
+```bash
+curl -sI $S/robots.txt | grep -iE '^(HTTP|content-type)'   # 200, text/plain
+curl -s $S/robots.txt
+```
+
+应**完全**等于（`src/app/robots.ts` 生产分支的输出，已本地核对）：
+
+```text
+User-Agent: *
+Allow: /
+Disallow: /admin
+Disallow: /*/admin
+Disallow: /s/
+Disallow: /*/s/
+Disallow: /api/
+
+Sitemap: https://geiom.com/sitemap.xml
+```
+
+如果看到 `Disallow: /`，说明构建时不是生产环境，按第 6 节处理。
+
+### 2.3 sitemap.xml
+
+```bash
+curl -sI $S/sitemap.xml | grep -iE '^(HTTP|content-type)'   # 200, application/xml
+curl -s $S/sitemap.xml | grep -o '<loc>[^<]*' | cut -c6- | sort -u
+curl -s $S/sitemap.xml | grep -Ec 'localhost|vercel\.app|http://|www\.geiom'   # 应为 0
+# 每个 URL：200、无 noindex、canonical 等于自身
+for u in $(curl -s $S/sitemap.xml | grep -o '<loc>[^<]*' | cut -c6-); do
+  c=$(curl -s -o /tmp/p -D /tmp/h -w '%{http_code}' "$u")
+  can=$(grep -o 'rel="canonical" href="[^"]*' /tmp/p | cut -d'"' -f4)
+  nx=$(grep -ci '^x-robots-tag' /tmp/h; grep -c '<meta name="robots"[^>]*noindex' /tmp/p)
+  [ "$c" = 200 ] && [ "$can" = "$u" ] && [ "$(echo $nx | tr -d ' 0')" = "" ] || echo "FAIL $c $u -> $can noindex=$nx"; done
+```
+
+- 所有地址以 `https://geiom.com/en` 或 `https://geiom.com/ru` 开头，en、ru 成对出现。
+- 不能出现 `/solutions`、`/factory`、`/cases`、`/privacy`、`/s/`、`/admin`、`/api`，也不能出现 `/products/<slug>`（品类页未上线）。
+
+### 2.4 canonical + hreflang
+
+```bash
+for p in /en /ru /en/products /ru/products /en/contact; do echo "== $p"
+  curl -s $S$p | grep -oE '<link rel="(canonical|alternate)"[^>]*>'; done
+```
+
+- canonical 指向自身，是 `https://geiom.com/...` 绝对地址（`src/i18n/alternates.ts` 生成相对路径，由 `metadataBase = SITE_URL` 补全）。
+- hreflang 有 `en`、`ru`、`x-default`，`x-default` 指向 en 版本。
+- hreflang 只由 HTML 输出。`src/i18n/routing.ts` 设了 `alternateLinks: false`，next-intl 不再发 `Link: rel="alternate"; hreflang=…` 响应头（那个头的 x-default 指向 `/`，和 HTML 的 `/en` 不一致，域名还取自请求）：
   ```bash
-  B=<该构建的内网地址 TBD>
-  curl -s $B/robots.txt                       # 应为 Allow: / + disallow admin,/s/,/api/ + Sitemap: https://geiom.com/sitemap.xml
-  curl -s $B/sitemap.xml | grep -o '<loc>[^<]*' | sort -u
-  curl -s $B/en | grep -oE '(rel="(canonical|alternate)"[^>]*|"(url|@id)":"[^"]*")'
-  curl -s $B/sitemap.xml $B/en $B/ru $B/robots.txt | grep -Ec 'localhost|vercel\.app|http://' # 应为 0
-  curl -sI $B/en | grep -i x-robots-tag      # 应无输出
+  curl -sI $S/en | grep -i '^link:' | grep -ci hreflang   # 应为 0
   ```
-- [ ] sitemap 里不出现 `/solutions`、`/factory`、`/cases`、`/admin`、`/s/`。
-- [ ] canonical 指向自身（`/en/...` 或 `/ru/...`）；hreflang 有 `en`、`ru`、`x-default`(=en)，都是 `https://geiom.com` 开头的绝对地址。
-- [ ] JSON-LD（`OrganizationJsonLd`）里的 `url`、`@id` 都是 `https://geiom.com/...`。
-- [ ] Cloudflare（ops-plan §7）：重定向规则 + Always HTTPS 做一跳 301；HTML 和 `/api/*` 设为 bypass；Bot Fight Mode / WAF / 挑战页放行已验证爬虫（Googlebot、YandexBot、bingbot）。
-- [ ] GSC / Yandex 的 TXT 记录提前加好（见第 3 节），这样切换当天就能验证。
 
-## 2. 切换后验证（DNS 生效后）
+**转发头（nginx → 容器）——已批准**
 
-- [ ] http→https，一跳：`curl -sI http://geiom.com/en | grep -iE '^(HTTP|location)'` → `301`，`location: https://geiom.com/en`
-- [ ] www→裸域，一跳：`curl -sIL http://www.geiom.com/ru | grep -iE '^(HTTP|location)'` → 只有**一个** 301 指向 `https://geiom.com/ru`，然后是 200。`https://www.geiom.com/ru` 同样检查。
-- [ ] 根路径：`curl -sI $S/ | grep -iE '^(HTTP|location)'` → next-intl 按语言跳到 `/en` 或 `/ru`（是 307 还是 308 待实测，TBD）。
-- [ ] 结尾斜杠：`curl -sI $S/en/products/` → 308 到 `/en/products`（Next 默认 `trailingSlash: false`）。
-- [ ] 真 404：`curl -s -o /dev/null -w '%{http_code}\n' $S/en/no-such-page` 和 `$S/no-such-page` → `404`（不能是 200 或跳首页）。
-- [ ] robots：`curl -sI $S/robots.txt` → 200、`content-type: text/plain`；`curl -s $S/robots.txt` 内容和第 1 节一致，**不是** `Disallow: /`。
-- [ ] sitemap：`curl -sI $S/sitemap.xml` → 200、`application/xml`。每个 URL 都返回 200，且 canonical 等于自身：
+安全已批准运维的新版 nginx，上线用的就是这一版。头部一律在 nginx 里用 `proxy_set_header` 显式设置，不透传客户端发来的值：
+
+```nginx
+proxy_set_header Host geiom.com;              # 固定值
+proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+proxy_set_header X-Forwarded-Proto https;     # 固定值
+proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+proxy_set_header X-Real-IP "";                # 清空
+proxy_set_header X-Edge-Auth <由 nginx 注入，值不写在这里>;
+proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;  # 只在下面 444 规则保留时可信
+```
+
+- 443 的 `geiom.com` server 用精确的 `server_name geiom.com`，Host 不对直接返回 **421**。canonical、hreflang、Location 都不会被伪造的 Host 污染。
+- `X-Edge-Auth` 由 nginx 注入，会覆盖客户端自己带的同名头。它的值不能出现在日志、仓库和聊天里。
+- `CF-Connecting-IP` 只有在「非 Cloudflare 来源 → 444」这条规则保留时才可信，这条规则**不能删**。
+- **以最终 `nginx -t` 通过的文件为准。** 本文不写任何密钥值或源站 IP。
+- 上线后自检：
   ```bash
-  for u in $(curl -s $S/sitemap.xml | grep -o '<loc>[^<]*' | cut -c6-); do
-    c=$(curl -s -o /tmp/p -w '%{http_code}' "$u"); can=$(grep -o 'rel="canonical" href="[^"]*' /tmp/p | cut -d'"' -f4)
-    [ "$c" = 200 ] && [ "$can" = "$u" ] || echo "FAIL $c $u -> $can"; done
+  curl -sI $S/en | grep -ci localhost   # 应为 0，任何响应头里都不能有 localhost
   ```
-- [ ] hreflang 互相指向：`curl -s $S/en/products | grep -o 'hreflang="[^"]*" href="[^"]*'`，再对 `/ru/products` 跑一遍。en↔ru 互指，`x-default` 指向 en。
-- [ ] JSON-LD：`curl -s $S/en | grep -o '"@id":"[^"]*"\|"url":"[^"]*"'` 全是 `https://geiom.com`。
-- [ ] 生产无 noindex：`for p in / /en /ru /en/products /ru/contact /sitemap.xml; do curl -sI $S$p | grep -i x-robots-tag; done` → 无输出。
-- [ ] 应保持 noindex 的页面：`curl -sI $S/en/solutions $S/en/factory $S/en/cases`（看 meta robots：`curl -s $S/en/cases | grep -o '<meta name="robots"[^>]*'`）；`/admin`、`/s/*` 带 `X-Robots-Tag: noindex, nofollow`。
-- [ ] 预览 `staging.geiom.com` 仍 noindex，且永不提交 GSC/Yandex：`curl -sI $P/en | grep -iE '^HTTP|x-robots-tag|cf-access'` → 未登录时被 Cloudflare Access 拦（302 到 Access 登录页 / 403），登录后响应带 `x-robots-tag: noindex, nofollow`；`curl -s $P/robots.txt`（登录后）→ `Disallow: /`。
-- [ ] HTML 不被 Cloudflare 缓存：`curl -sI $S/en | grep -i cf-cache-status` → `DYNAMIC` 或 `BYPASS`（不能是 `HIT`）。`/_next/static/*` 可以 `HIT`。
-- [ ] 爬虫不被拦：GSC「网址检查 → 测试实际网址」、Yandex「Проверка ответа сервера」都要返回 200，不能是挑战页。Cloudflare Security Events 里不能有 Googlebot / YandexBot 被拦（不能只靠伪造 UA 的 curl 来判断）。
 
-## 3. DNS 变更与域名验证（只列清单，运维执行；SEO / 本清单作者不改 DNS）
+### 2.5 跳转
 
-> 邮件通道现状（Ryan 已确认）：**收信** = Cloudflare Email Routing → Worker（temp-mail / D1）；**发信** = 免费 Gmail SMTP，From 是 Gmail 地址，Reply-To 是 geiom.com 地址。信是从 gmail.com 发出的，geiom.com 的 SPF / DKIM / DMARC 管不到这些外发邮件，所以**不为发信加任何 DNS 记录**（不加 Gmail / Resend 的 SPF `include:`，不加新 DKIM）。geiom.com 现有 DNS 记录不改（SPF / MX 保持）；唯一新增是 `_dmarc.geiom.com` TXT `v=DMARC1; p=none`，放进运维的 DNS 批次，只新增不改动现有记录，由安全和运维共同审，不单独添加（见 3.3）。没有自建 SMTP/IMAP，也没有 `mail.geiom.com` A 记录、bounce+ / VERP，本清单不要求、也不建议新增这类记录。SPF 保持 `v=spf1 include:_spf.mx.cloudflare.net ~all`；一个域名只能有一条 DMARC。SMTP 账号和应用专用密码不写进任何文档。
+```bash
+curl -sIL 'http://geiom.com/en?a=1'      | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/en?a=1，然后 200
+curl -sIL 'http://www.geiom.com/ru?a=1'  | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/ru?a=1，然后 200
+curl -sIL 'https://www.geiom.com/ru?a=1' | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/ru?a=1，然后 200
+curl -sI https://geiom.com/ | grep -iE '^(HTTP|location)'              # 307，Location 是 /en 或 https://geiom.com/en，绝不能是 localhost
+curl -sI https://geiom.com/ | grep -ci localhost                       # 0
+curl -sI -H 'Accept-Language: ru' $S/ | grep -iE '^(HTTP|location)'  # 307 → /ru
+curl -sI -H 'Accept-Language: en' $S/ | grep -iE '^(HTTP|location)'  # 307 → /en
+curl -sI $S/en/products/ | grep -iE '^(HTTP|location)'            # 308 → /en/products（去掉结尾 /）
+```
 
-### 3.1 切换前 DNS 快照（备份，用于回滚）
+- `/` 的跳转由 next-intl middleware 做：按 `NEXT_LOCALE` cookie / `Accept-Language` 选语言，状态码 **307**（本地实测）。根路径不进 sitemap，正常。
+- 三种（http 裸域、http www、https www）都必须是 nginx 的**一个** 301，直接到 `https://geiom.com$request_uri`（路径和 query 都保留），不能有链式跳转。
+- 根路径 Location（#321 standalone 检查的 P1-1）：代码侧由后端 PR `fix/root-redirect-location` 修，把 Location 改成相对的 `/en`。nginx 再兜底，只改写本地地址，**不是**通配所有域名的正则：
+  ```nginx
+  proxy_redirect ~^https?://(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:\d+)?(/.*)$ $3;
+  ```
+  注意：路径分组 `(/.*)` 必须是**必选**的，不能写成可选。否则 `http://localhost:3000` 会被改写成空的 Location。
+  验收：`curl -sI https://geiom.com/` 的 Location 是 `/en` 或 `https://geiom.com/en`，且没有任何响应头含 localhost。
 
-查询时间：2026-10-15 00:17 PT。本机 `dig` 被透明劫持（一律返回 `198.18.0.1`），以下为 Cloudflare / Google **DNS-over-HTTPS** 的公网结果；**Cloudflare 面板里橙色云代理的源站目标可能与公网 A 答案不同**，删 Squarespace 残留时以面板记录为准。
+### 2.6 404
 
-| 主机 | 类型 | 当前公网值（备份） | 备注 |
+```bash
+curl -s -o /tmp/p -w '%{http_code}\n' $S/en/no-such-page   # 404
+grep -o '<meta name="robots"[^>]*' /tmp/p                  # 含 noindex
+curl -s -o /dev/null -w '%{http_code}\n' $S/en/products/no-such   # 404
+curl -sI $S/no-such-page | grep -iE '^(HTTP|location)'     # 307 → /en/no-such-page（或 /ru/…），再跟进是 404
+```
+
+- `/{locale}/...` 未匹配路径由 `src/app/[locale]/[...rest]/page.tsx` → `notFound()`，`src/app/[locale]/not-found.tsx` 输出 noindex，真实 404，不跳首页。
+- 不带语言前缀的地址会先 307 到带前缀的地址，再 404，这是 next-intl 的行为，不算软 404。
+
+### 2.7 og:image
+
+```bash
+for p in /en /ru /en/products /ru/contact; do
+  for img in $(curl -s $S$p | grep -oE '<meta property="og:image" content="[^"]*' | cut -d'"' -f4); do
+    echo "$p $img $(curl -s -o /dev/null -w '%{http_code} %{content_type}' "$img")"; done; done
+```
+
+- 地址是 `https://geiom.com/og/<slug>-<locale>.jpg?v=<8 位>`（`src/lib/seo/pageMeta.ts`），返回 `200 image/jpeg`，en 页用 `-en.jpg`、ru 页用 `-ru.jpg`。
+
+### 2.8 /api/health 不对外
+
+```bash
+for u in /api/health '/api/health?x=1' /api/health/ /api/health/x; do
+  echo "$u $(curl -s -o /dev/null -w '%{http_code}' "$S$u")"; done   # 全部 404
+curl -s -o /dev/null -w '%{http_code}\n' $S/api/healthz           # 正常代理给应用（不是 nginx 的 404）
+```
+
+**已批准，待上线**：安全已批准。运维在上线前把配置上到服务器，DNS 切换后再从外部复测一遍。
+
+```nginx
+location = /api/health { return 404; }
+location ^~ /api/health/ { return 404; }
+```
+
+- 外部请求带 query string、结尾 `/`、子路径都是 404。
+- `/api/healthz` 不受影响，照常代理（`= /api/health` 是精确匹配，`^~ /api/health/` 要带 `/`）。
+- 容器自己的健康检查走 `127.0.0.1:3000`，不经过 nginx。
+- 具体配置以运维答复为准。
+
+### 2.9 Cloudflare / 爬虫
+
+- [ ] HTML 不被缓存：`curl -sI $S/en | grep -i cf-cache-status` → `DYNAMIC` 或 `BYPASS`，不能是 `HIT`。`/_next/static/*` 可以 `HIT`。
+- [ ] 爬虫不被挑战：Bot Fight Mode / WAF 放行已验证爬虫（Googlebot、YandexBot、bingbot）。以 GSC「网址检查 → 测试实际网址」和 Yandex「Проверка ответа сервера」返回 200 为准，不能只靠改 UA 的 curl。
+
+## 3. 上线时开放索引的页面（SEO 单独开代码 PR）
+
+**当前代码状态（`5b79ec6`）：还没开放。** 以下页面都是 noindex，也都不在 sitemap 里：
+
+| 页面 | 文件 | 现在的 robots |
+|---|---|---|
+| `/{en,ru}/solutions` | `src/app/[locale]/solutions/page.tsx` | `index: false, follow: true`（注释：文案/图片仍是占位） |
+| `/{en,ru}/solutions/<slug>` | `src/app/[locale]/solutions/[slug]/page.tsx` | `index: false, follow: true`；`dynamicParams = false`，只接受 `src/lib/solutions.ts` 的 `INDUSTRIES` |
+| `/{en,ru}/factory` | `src/app/[locale]/factory/page.tsx` | `index: false, follow: true` |
+| `/{en,ru}/cases` | `src/app/[locale]/cases/page.tsx` | `index: false, follow: false` |
+
+6 个 solutions slug（`INDUSTRIES`，en/ru 共用同一 slug）：`color-boxes`、`corrugated-boxes`、`paper-cups`、`party-supplies`、`wine-boxes`、`gift-boxes`。
+
+上线时由 SEO 单独开一个代码 PR（不在本文档 PR 里），一次做完：
+
+- [ ] 去掉 `/solutions`、`/factory`、6 个 `/solutions/<slug>` 的 `robots: { index: false, … }`。
+- [ ] 同一个 PR 里把它们加进 `src/lib/seo/sitemapEntries.ts` 的 `STATIC_PAGES`（en/ru 两种语言 = 16 个 URL），并更新文件顶部"不进 sitemap"的注释。noindex 和 sitemap 必须同时改，不能出现"在 sitemap 里但 noindex"。
+- [ ] 前提：这些页面的文案和图片已经不是占位，经 PM / Ryan 确认没有未确认说法。达不到就继续 noindex，不开放。
+- [ ] `/cases` **继续 noindex、不进 sitemap**，等有真实案例（Ryan 确认可公开）后再开。
+- [ ] 合并部署后重跑第 2.3 节，并在 GSC / Yandex 重新提交 sitemap。
+
+以后的两个开关（不属于本次，按 `launch-runbook.md` §5）：隐私页 `PRIVACY_PAGE_COMPLETE`（`src/lib/legal/privacy.ts`）、品类页 `CATEGORY_PAGES_LIVE`（`src/lib/seo/categoryPages.ts`）。打开后都要重新提交 sitemap。
+
+## 4. 需要 Ryan 本人做的步骤
+
+> 🔑 **以下只能由 Ryan 用自己的账号做**，在私聊里进行，不在群里做。机器人**不代 Ryan 登录**、**不保存他的账号或密码**、**不改 DNS**。机器人只负责告诉 Ryan 在哪里点、TXT 记录加在哪个主机名下。验证值由 Ryan 自己登录 GSC / Yandex 获取，私信发给运维，由运维和 `_dmarc` 同一批加 TXT。本文不写任何真实验证值。
+> DNS 记录只新增、不覆盖已有 TXT（SPF、DKIM、DMARC 等），同一主机名下可以有多条 TXT。
+
+### 4.1 Google Search Console 🔑
+
+1. Ryan 登录 GSC → 添加资源 → 选「**网域**」→ 填 `geiom.com`（网域资源自动覆盖 https/http、www/裸域）。
+2. GSC 给出一条 TXT 记录（`google-site-verification=…`）。Ryan 把这个值**私信**发给运维，由运维在和 `_dmarc` 同一批 DNS 变更里给 `geiom.com`（`@`）新增这条 TXT（PM 已定）。值不发到群里。
+3. 回 GSC 点验证。**验证通过后不要删这条 TXT**。
+4. 站点地图 → 提交 `https://geiom.com/sitemap.xml`，状态应为「成功」。
+5. 网址检查：`https://geiom.com/en`、`https://geiom.com/ru` → 「测试实际网址」应可编入索引 → 「请求编入索引」。可以再加 `/en/products`、`/ru/products`。
+
+### 4.2 Yandex Webmaster 🔑
+
+1. Ryan 登录 Yandex Webmaster → 添加站点 `https://geiom.com`（和 `NEXT_PUBLIC_SITE_URL` 完全一致；Yandex 把 www 和裸域当成两个站，只加裸域）。
+2. 验证方式：**用 DNS TXT**。Yandex 给出 TXT（`yandex-verification: …`），Ryan 私信发给运维，运维在和 `_dmarc` 同一批 DNS 变更里给 `geiom.com` 新增；验证后不要删。
+   - 代码也支持 meta 方式：`NEXT_PUBLIC_YANDEX_VERIFICATION` → `src/app/[locale]/layout.tsx` 的 `verification.yandex`，输出 `<meta name="yandex-verification">`。但它只在 `/en`、`/ru` 页面上；根路径 `/` 是 307 跳转，而 Yandex 的 meta 验证查首页、首页有跳转会失败（见 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §2 第 5 条）。另外改值要重新构建。所以首选 DNS TXT。
+3. 站点地区（可选）：按 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4 决定，不要为了审核虚构俄罗斯地址。
+4. Индексирование → Файлы Sitemap → 添加 `https://geiom.com/sitemap.xml`。
+5. 可选：Переобход страниц 提交 `/ru`、`/en`。
+
+### 4.3 Bing Webmaster（可选）🔑
+
+- Ryan 登录 Bing Webmaster Tools →「从 Google Search Console 导入」，导入后自动验证，sitemap 一起导入，不需要额外 DNS 记录。
+- 代码也支持 `NEXT_PUBLIC_BING_VERIFICATION`（`msvalidate.01` meta），一般用不到。
+
+### 4.4 IndexNow（不需要 Ryan 登录）
+
+- `INDEXNOW_KEY` 放服务器环境文件（`launch-runbook.md` §4，值由 Ryan 提供，不进仓库、不发群）。
+- 上线后：`curl -s -w '\n%{http_code}\n' $S/<key>.txt` 返回密钥本身和 200；随便写一个 `.txt` 文件名应返回 404（`next.config.ts` rewrite 到 `/api/indexnow-key/[file]`）。
+- 推送端点是 `https://yandex.com/indexnow`。现在 `INDEXNOW_LIVE_TYPES` 里 product / solution / article 都是 `live: false`，只有后台模型上架会推 `/en/products`、`/ru/products`；没有全站推送脚本，上线当天靠 sitemap。Google 不支持 IndexNow。
+
+## 5. 上线后 1–7 天观察
+
+- [ ] **第 0 天（上线后 2 小时内）**：第 2 节全部重跑；Cloudflare Security Events 看有没有 Googlebot / YandexBot 被拦；容器日志看 5xx 和 `[indexnow]`。
+- [ ] **每天，GSC**：「网页 / 编入索引」里已编入和未编入的原因，重点看「软 404」「已抓取但未编入索引」「重复网页，用户未选定规范网页」「被 noindex 排除」（noindex 只应出现在 solutions/factory/cases/privacy/s 这类页面）；「站点地图」已读取、发现的 URL 数和 sitemap 实际条数一致；「抓取统计」里 404、5xx、主机问题。
+- [ ] **Core Web Vitals**：新站数据要几周才有；前 7 天先看 GSC「核心网页指标」有没有数据，没有就以 Lighthouse 为准。
+- [ ] **Yandex**：「Страницы в поиске」收录数和被剔除原因、「Диагностика」、「Статистика обхода」里的 404 / 不可达、sitemap 处理状态。
+- [ ] **Lighthouse 生产复测**：对 `https://geiom.com/en`、`https://geiom.com/ru` 各跑手机和桌面：
+  ```bash
+  npx lighthouse https://geiom.com/en --only-categories=performance,seo --output=json --output-path=./lh-en-mobile.json
+  npx lighthouse https://geiom.com/en --preset=desktop --only-categories=performance,seo --output=json --output-path=./lh-en-desktop.json
+  # /ru 同样跑两次
+  ```
+  对照 `lighthouserc.json`（桌面：LCP ≤ 2000 ms、CLS ≤ 0.1、性能分 ≥ 0.9）和 `docs/launch-checklist.md` §5（桌面首屏 ≤ 2 秒、手机 ≤ 3 秒）。结果贴回群里。
+- [ ] **软 404 自查**：不存在的地址必须是真 404（第 2.6 节），`/products/<任意 slug>` 在品类页上线前是 404；过期分享链接 `/s/<id>` 是 410（`src/middleware.ts`）。GSC 报软 404 的 URL 逐个用 curl 看状态码。
+- [ ] 第 7 天在群里汇报一次：收录数、sitemap 状态、有无 noindex / 软 404 / 爬虫被拦。
+
+## 6. 回滚 / 应急
+
+### 6.1 生产误带 noindex
+
+**怎么发现**：第 2.1 节的命令有 `x-robots-tag: noindex`，或 `robots.txt` 是 `Disallow: /`，或页面 `<meta name="robots" content="noindex">`；GSC 网址检查显示「已被 noindex 排除」/「被 robots.txt 屏蔽」；`pnpm seo:audit https://geiom.com` 报 noindex。
+
+**原因和处理**：
+
+1. 全站 `X-Robots-Tag: noindex, nofollow` + `Disallow: /` → 构建时 `APP_ENV` 不是 `production`（这两项都在构建时确定，运行时补设没用）。用 `APP_ENV=production`、`NODE_ENV=production` **重新构建镜像**并部署。
+2. canonical / sitemap 指向 localhost 或其他域名 → 构建时 `NEXT_PUBLIC_SITE_URL` 不对，带正确值重新构建。
+3. 只有个别页面 noindex → 查该页 `generateMetadata` 里的 `robots`，或 Sanity 文档的 `seo.noindex`，按正常 PR 流程改。
+4. 修好后：Cloudflare 清一次缓存（运维）；重跑第 2 节；GSC 网址检查 `/en`、`/ru` 重新请求编入索引，重新提交 sitemap；Yandex 重新处理 sitemap（🔑 Ryan）。
+
+### 6.2 不该收录的页面被收录（例如 staging 或 `/cases`）
+
+- 先确认该页现在是 noindex 或 404，再由 Ryan 在 GSC「移除」里提交临时移除（🔑）。不要用 robots.txt 屏蔽已收录页面（屏蔽后爬虫看不到 noindex）。
+
+### 6.3 整站回滚
+
+- 网站按 `launch-runbook.md` §2「回滚：只回滚代码」（PR #321 合并后的版本）切回上一个已合并 SHA 的镜像，运维操作、Ryan 批准。DNS 回滚由运维按下面附录的备份处理。
+- 回滚期间不提交 sitemap、不手动推 IndexNow。**不要动** MX、SPF、DKIM、Email Routing、DMARC、GSC / Yandex 验证 TXT。
+
+## 附录：切换前 DNS 快照（2026-10-15 00:17 PT，用于回滚）
+
+由运维执行，SEO 不改 DNS。下面是 Cloudflare / Google DoH 查到的**公网**结果（裸域 A/AAAA 是 Cloudflare 代理的公共 anycast 地址，不是源站）；面板里的代理目标以 Cloudflare 后台为准，源站地址不写进仓库。
+
+| 主机 | 类型 | 当前公网值 | 备注 |
 |---|---|---|---|
-| `geiom.com` | A | `104.21.45.232`、`172.67.220.15` | Cloudflare 代理 anycast；面板里可能仍挂着 Squarespace 源站 A（待运维核对） |
+| `geiom.com` | A | `104.21.45.232`、`172.67.220.15` | Cloudflare 代理 |
 | `geiom.com` | AAAA | `2606:4700:3031::6815:2de8`、`2606:4700:3033::ac43:dc0f` | Cloudflare 代理 |
-| `www.geiom.com` | CNAME | （无） | 公网无 CNAME；A 解析到与裸域相同的 CF IP（可能是面板里的 proxied A，或 CNAME 已被展平/已删） |
-| `_domainconnect.geiom.com` | CNAME | （无） | 公网无记录（SOA only） |
-| `_dmarc.geiom.com` | TXT | （无 / NXDOMAIN） | **尚无 DMARC**；上线时按 3.3 随运维 DNS 批次新增 |
+| `geiom.com` | TXT | `v=spf1 include:_spf.mx.cloudflare.net ~all` | 现有 SPF，只新增不覆盖 |
+| `geiom.com` | MX | `route1/2/3.mx.cloudflare.net` | Cloudflare Email Routing，勿删 |
+| `cf2024-1._domainkey.geiom.com` | TXT | Cloudflare DKIM（已存在） | 勿删、勿覆盖 |
+| `_dmarc.geiom.com` | TXT | 无 | 上线时按运维 DNS 批次新增 `v=DMARC1; p=none` |
+| `geiom.com` | NS | `dorthy.ns.cloudflare.com`、`mitchell.ns.cloudflare.com` | 权威在 Cloudflare |
 
-> 运维已在 Cloudflare 后台备份里确认：Squarespace 记录 = 4 条裸域 A、www CNAME、`_domainconnect` CNAME（公网查不到是因为被代理）。
-| `geiom.com` | TXT | `v=spf1 include:_spf.mx.cloudflare.net ~all` | 现有 SPF；只新增、不覆盖 |
-| `geiom.com` | MX | `9 route2.mx.cloudflare.net.`、`41 route3.mx.cloudflare.net.`、`74 route1.mx.cloudflare.net.` | Cloudflare Email Routing；**勿删** |
-| `cf2024-1._domainkey.geiom.com` | TXT | `v=DKIM1; h=sha256; k=rsa; p=…`（Cloudflare Email DKIM，已存在） | Email Routing/Sending 相关；**勿删、勿覆盖** |
-| `geiom.com` | NS | `dorthy.ns.cloudflare.com.`、`mitchell.ns.cloudflare.com.` | 权威已在 Cloudflare |
+- 切换时只清理 Squarespace 残留（裸域 4 条 A、www CNAME、`_domainconnect` CNAME），其他记录不动。发信走 Gmail SMTP，不为发信新增 SPF `include:` 或 DKIM。详见 [`launch-infra.md`](./launch-infra.md)。
 
-复核命令（运维侧，优先用公网解析器或 DoH，避免本机劫持）：
+## 待确认
 
-```bash
-dig @1.1.1.1 +short geiom.com A
-dig @1.1.1.1 +short www.geiom.com CNAME
-dig @1.1.1.1 +short _domainconnect.geiom.com CNAME
-dig @1.1.1.1 +short _dmarc.geiom.com TXT
-dig @1.1.1.1 +short geiom.com TXT
-dig @1.1.1.1 +short geiom.com MX
-```
+无。
 
-### 3.2 切换时清理 Squarespace 残留（只删下列项）
-
-- [ ] **先备份**：在 Cloudflare DNS 面板导出/截图当前全部记录；对照上表记下将被删除的记录的完整值（含 TTL、代理状态）。
-- [ ] 清掉 Squarespace 留下的记录（**只删这几条**）：
-  - 裸域 `geiom.com` 的 **4 条 A**（Squarespace 源站；若面板里已是指向新源站 / 仅 CF 代理且无 Squarespace 目标，则跳过并报 PM/运维确认）；
-  - `www` 的 **CNAME**（若仍指向 Squarespace / `ext-cust.squarespace.com` 等）；
-  - `_domainconnect` 的 **CNAME**（Squarespace Domain Connect；公网当前已无，面板若仍有则删）。
-- [ ] **现有记录不改**：MX、现有 TXT（含 SPF、GSC/Yandex 验证）、DKIM（`cf2024-1._domainkey` 等）、Email Routing 相关记录、NS。不要为「自建邮件」去加 `mail.geiom.com` A、bounce+/VERP 或 SMTP/IMAP 主机名。
-- [ ] 清理后把新的 A/AAAA（或 CNAME）指到本次 Docker+Caddy 源站，并保持 Cloudflare 代理策略与 ops-plan §7 一致（www→裸域 301 由 Cloudflare 重定向规则处理）。
-
-### 3.3 新增 DMARC（唯一新增的 DNS 记录；一个域名只能有一条）
-
-- [ ] **先查**：`dig @1.1.1.1 +short TXT _dmarc.geiom.com`（或面板搜 `_dmarc`）。当前公网为 **NXDOMAIN / 无记录**。
-- [ ] 若**已有** `_dmarc` TXT：**不要覆盖**；把现有值报给 PM 和运维，由他们决定是否改 `p=` / `rua=`。
-- [ ] 若**没有**：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审，不单独添加。批次里只有这一条新增：
-  | 主机 | 类型 | 值 |
-  |---|---|---|
-  | `_dmarc.geiom.com`（或面板主机名 `_dmarc`） | TXT | `v=DMARC1; p=none` |
-- [ ] 先**不带 `rua`**。等 temp-mail 关掉匿名创建以后再加收报告地址，否则报告可能被抢注的地址收走。`p=none` 只监控，不拒信。
-- [ ] 验证：`dig @1.1.1.1 +short TXT _dmarc.geiom.com` 应只返回**一条** DMARC。
-
-### 3.4 发信 SPF / DKIM：现有记录不改，不为发信新增记录
-
-- [ ] 发信走 Gmail SMTP（From = Gmail 地址，Reply-To = geiom.com 地址），收件方按 gmail.com 的 SPF / DKIM / DMARC 校验，geiom.com 的记录不参与外发邮件。
-- [ ] **SPF 保持** `v=spf1 include:_spf.mx.cloudflare.net ~all`，不加 Gmail（`_spf.google.com`）或 Resend 的 `include:`，也不整段覆盖。
-- [ ] **DKIM 不新增**：已有 `cf2024-1._domainkey` 等记录保留，不覆盖。
-- [ ] **DMARC 只用 `p=none`**：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审（见 3.3），不改成 `quarantine` / `reject`。
-- [ ] 验证：切换后 `dig @1.1.1.1 +short TXT geiom.com` 里的 SPF 仍是上面这一条，且只有一条 `v=spf1`。
-
-### 3.5 GSC / Yandex 域名验证 TXT
-
-由 Ryan 拿到验证用的 TXT 记录后，交运维在 Cloudflare DNS 里**只新增、不覆盖**已有记录（SPF、DKIM、DMARC 等）；同一主机名 `@` 下可以有多条 TXT（DMARC 除外，见 3.3）。我们不代 Ryan 登录 GSC/Yandex，也不保存他的账号。
-
-| 用途 | 主机 | 类型 | 值 | 文档 |
-|---|---|---|---|---|
-| Google Search Console「网域」资源 | `geiom.com`（@） | TXT | `google-site-verification=<GSC 给的 token>` | https://support.google.com/webmasters/answer/9008080 |
-| Yandex Webmaster | `geiom.com`（@） | TXT | `yandex-verification: <Вебмастер 给的代码>` | https://yandex.com/support/webmaster/en/service/rights ；格式见 https://yandex.com/dev/webmaster/doc/en/concepts/verification |
-
-- [ ] 账号由 Ryan 本人持有（{{待Ryan确认}}）：由 Ryan 用自己的账号添加域名资源，拿到验证用的 TXT 记录，交给运维添加（只新增、不覆盖已有记录）。我们不代他登录，也不保存他的账号。
-- [ ] Yandex 要添加的网址是 `https://geiom.com`；带 www 和不带 www 在 Yandex 里算两个站，按我们的配置只加裸域。
-- [ ] 备选方法（不改 DNS 时）：Yandex 可以用 `<meta name="yandex-verification" content="…">` 或根目录的 `yandex_<code>.html`；GSC「网址前缀」资源可以用 meta 标签或 HTML 文件。走这条路需要改代码，另外开 PR（TBD）。
-- [ ] 验证：`dig @1.1.1.1 +short TXT geiom.com`（应同时看到 SPF + 验证 TXT；本机 dig 不可靠时用 DoH）。
-- [ ] Bing（可选）：在 Bing Webmaster Tools 里「从 GSC 导入」，不需要额外的 DNS 记录。
-
-## 4. 提交 sitemap、网址检查、IndexNow
-
-- [ ] GSC：网域资源验证通过 → 站点地图 → 提交 `https://geiom.com/sitemap.xml`。
-- [ ] GSC 网址检查：`https://geiom.com/en`、`/ru`、`/en/products`、`/ru/products` → 请求编入索引。
-- [ ] Yandex Webmaster：验证通过 → Индексирование → Файлы Sitemap → 添加 `https://geiom.com/sitemap.xml`；Переобход страниц 提交 `/ru`、`/en`、`/ru/products`。
-- [ ] IndexNow（按仓库实现，`src/lib/seo/indexnow.ts`）：
-  - 启用条件：生产环境（#279 后为 `APP_ENV`/`VERCEL_ENV`=production）+ `INDEXNOW_KEY` 格式合法 + 去重存储可用 + `NEXT_PUBLIC_SITE_URL` 是 https。缺任何一项都会**静默**关闭。
-  - 去重存储：自建服务器用本地 Redis（`RATE_LIMIT_STORE=redis`），**不是** Upstash。运维 PR1/PR2 会使 IndexNow 同时接受 `upstash` 或 `redis`；合入前若代码仍只认 Upstash，自建上 IndexNow 会静默关闭。另需配置好 `INDEXNOW_KEY`。上线后由运维查日志确认已启用（不应出现因 store/key 缺失而关闭的迹象）。
-  - 密钥文件：`https://geiom.com/<INDEXNOW_KEY>.txt`（next.config rewrite 到 `/api/indexnow-key/[file]`），内容就是密钥本身。检查：`curl -s -w '\n%{http_code}\n' $S/<KEY>.txt` → 返回密钥和 200；随便写一个文件名应返回 404。
-  - 推送端点写死为 `https://yandex.com/indexnow`（POST JSON：host/key/keyLocation/urlList），同一 URL 10 分钟去重。Yandex 和 Bing 通过 IndexNow 协议互相共享提交；**Google 不支持 IndexNow**，Google 只靠 sitemap 和 GSC。
-  - 触发：Sanity webhook `/api/sanity/revalidate`，以及后台模型上架 `/api/admin/models/[id]/publish`（推 `/en/products`、`/ru/products`）。product/solution/article 类型目前 `live: false`，所以现在只有模型上架会推。**没有「全站推送」脚本**，切换当天要靠 sitemap；想手动推一次的话由运维用密钥 POST（TBD）。
-  - 验证：上架或重新上架一个模型后，日志里不应出现 `[indexnow] errorSummary=…`，并由运维确认 IndexNow 已启用；Yandex Webmaster 里 IndexNow 的统计（TBD 实测）。
-  - 参考：https://www.indexnow.org/documentation 、https://yandex.com/support/webmaster/en/indexing-options/index-now
-
-## 5. 前 72 小时监控 / 回滚
-
-- [ ] 0–2 h：第 2 节全部重跑一遍；Cloudflare Security Events 看爬虫有没有被拦；应用日志看 5xx 和 `[indexnow]`。
-- [ ] 每天：GSC「网页 / 编入索引」覆盖率、「站点地图」状态（已读取、已发现的 URL 数）、抓取统计（404、5xx、主机问题）；Yandex「Страницы в поиске」「Диагностика」「Статистика обхода」里的 404 / 不可达。
-- [ ] 检查 noindex 页（solutions/factory/cases）没有被收录、没有进 sitemap。
-- [ ] 出现以下任何一种情况立即报 SEO / 运维：生产出现 `X-Robots-Tag: noindex` 或 robots `Disallow: /`；www 有多跳；sitemap 里有 localhost / vercel.app 地址；爬虫被挑战。
-- [ ] 回滚：网站 A/AAAA（或 CNAME）按 3.1 备份切回（Vercel 或 Squarespace 源站，由运维决定，TBD）。**不要改** MX、SPF、DKIM、Email Routing、DMARC、GSC/Yandex TXT。新站目前没有收录，短时间回滚不影响 SEO；回滚期间不要提交 sitemap 和 IndexNow。
+已定：www / http 301 由 nginx 做（第 0、2.5 节）；转发头按安全批准的新版 nginx（第 2.4 节，以最终 `nginx -t` 的文件为准）；`/api/health` 对外 404（第 2.8 节）；`Link` 响应头已用 `alternateLinks: false` 关掉（第 2.4 节）；GSC / Yandex TXT 由 Ryan 取值、私信运维、和 `_dmarc` 同批添加（第 4 节）。
