@@ -25,7 +25,7 @@ S=https://geiom.com
   部署后由运维在服务器上确认启动检查确实跑了（只看变量名和退出码，不打印任何值）：
   - 容器里 `APP_ENV` 是 `production`，例如 `docker compose exec <app> printenv APP_ENV`。
   - 检查通过时没有日志输出，所以要做一次反向验证：用一次性容器、同一镜像、同一 env_file，故意让一项必填配置失效（比如 `UPLOAD_DIR` 指向不可写目录），应输出「生产环境配置检查未通过，拒绝启动」加变量名，并 exit 1。测完删掉这个容器，正式容器不动。
-- [ ] **运行时** env_file 里必须有 `APP_ORIGIN=https://geiom.com`（不是可选项，不能留空）。后端 PR `fix/root-redirect-location` 加了启动检查，下面任一条不满足就 exit 1：
+- [ ] **运行时** env_file 里必须有 `APP_ORIGIN=https://geiom.com`（不是可选项，不能留空）。后端 PR #328（`fix/root-redirect-location`）加了启动检查，下面任一条不满足就 exit 1：
   - 必须设置，且是 `https://`；
   - 只能是 origin：不带 path、query、userinfo（结尾也不带 `/`）；
   - 主机不能是 IP 或 localhost；
@@ -33,6 +33,10 @@ S=https://geiom.com
   没设的话，standalone 会把自己的 origin 当成 `http://0.0.0.0:<port>`，后台的同源 POST（登录、改密码等）全部 403。部署后验证：
   - 容器里 `APP_ORIGIN` 是 `https://geiom.com`，例如 `docker compose exec <app> printenv APP_ORIGIN`。
   - 浏览器打开 `https://geiom.com/admin` 登录，登录 POST 成功、不是 403；登录后做一次后台里的改动类操作，也不能 403 `forbidden_origin`（见第 2 节）。
+  - #328 同时更新了 `deploy/env.template` 和 `deploy/init-secrets.sh`，生成的 env_file 会写入 `APP_ORIGIN=https://geiom.com`。部署前仍要核对实际 env_file 里的值。
+- [ ] **运行时** 生产容器必须保持 `HOSTNAME=0.0.0.0`。改成 `127.0.0.1` 的话，`/s/*` 的 rewrite 会在 `x-middleware-rewrite` 响应头里带出 localhost（这个问题 #328 之前就有）。部署后验证：
+  - 容器里 `HOSTNAME` 是 `0.0.0.0`，例如 `docker compose exec <app> printenv HOSTNAME`。
+  - 任何响应头里都不能出现 localhost，例如 `curl -sI $S/en | grep -ci localhost` 和 `curl -sI $S/s/<任意 id> | grep -ci localhost` 都应为 0（第 2.4、2.5 节）。
 - [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
 - [ ] 构建检查（`prod-env-check.ts`，`next build` 时执行）：
   - 当前 main：`NEXT_PUBLIC_SITE_URL` 缺失或不是 `https://` 时构建失败。
@@ -142,6 +146,10 @@ curl -sIL 'http://geiom.com/en?a=1'      | grep -iE '^(HTTP|location)'   # 一�
 curl -sIL 'http://www.geiom.com/ru?a=1'  | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/ru?a=1，然后 200
 curl -sIL 'https://www.geiom.com/ru?a=1' | grep -iE '^(HTTP|location)'   # 一个 301 → https://geiom.com/ru?a=1，然后 200
 curl -sI https://geiom.com/ | grep -iE '^(HTTP|location)'              # 307，Location 是 /en 或 https://geiom.com/en，绝不能是 localhost
+curl -sI 'https://geiom.com/?q=1' | grep -iE '^(HTTP|location)'        # 307 → /en?q=1
+curl -sI 'https://geiom.com//evil.com' | grep -iE '^(HTTP|location)'   # 308 → 站内 /evil.com（不是 //evil.com），再跟进是 404
+curl -sI 'https://geiom.com/\evil.com' | grep -iE '^(HTTP|location)'   # 308 → 站内 /evil.com，再跟进是 404
+curl -s -o /dev/null -w '%{http_code}\n' 'https://geiom.com/%2F%2Fevil.com'   # 404
 curl -sI https://geiom.com/ | grep -ci localhost                       # 0
 curl -sI -H 'Accept-Language: ru' $S/ | grep -iE '^(HTTP|location)'  # 307 → /ru
 curl -sI -H 'Accept-Language: en' $S/ | grep -iE '^(HTTP|location)'  # 307 → /en
@@ -150,7 +158,7 @@ curl -sI $S/en/products/ | grep -iE '^(HTTP|location)'            # 308 → /en/
 
 - `/` 的跳转由 next-intl middleware 做：按 `NEXT_LOCALE` cookie / `Accept-Language` 选语言，状态码 **307**（本地实测）。根路径不进 sitemap，正常。
 - 三种（http 裸域、http www、https www）都必须是 nginx 的**一个** 301，直接到 `https://geiom.com$request_uri`（路径和 query 都保留），不能有链式跳转。
-- 根路径 Location（#321 standalone 检查的 P1-1）：代码侧由后端 PR `fix/root-redirect-location` 修，把 Location 改成相对的 `/en`。nginx 再兜底，只改写本地地址，**不是**通配所有域名的正则：
+- 根路径 Location（#321 standalone 检查的 P1-1）：代码侧由后端 PR #328（`fix/root-redirect-location`）修，站内跳转的 Location 改成相对路径：`/` → 307 `/en`，`/?q=1` → 307 `/en?q=1`；`//evil.com`、`/\evil.com` → 308 到站内 `/evil.com` 再 404，不会变成开放跳转；`/%2F%2Fevil.com` 现在是 404（以前是 500）。nginx 再兜底，只改写本地地址，**不是**通配所有域名的正则：
   ```nginx
   proxy_redirect ~^https?://(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1?\])(?::[0-9]+)?(/.*)$ $1;
   proxy_redirect http://geiom.com/ https://geiom.com/;
@@ -166,10 +174,12 @@ curl -s -o /tmp/p -w '%{http_code}\n' $S/en/no-such-page   # 404
 grep -o '<meta name="robots"[^>]*' /tmp/p                  # 含 noindex
 curl -s -o /dev/null -w '%{http_code}\n' $S/en/products/no-such   # 404
 curl -sI $S/no-such-page | grep -iE '^(HTTP|location)'     # 307 → /en/no-such-page（或 /ru/…），再跟进是 404
+curl -sI https://geiom.com/nope.png | grep -i '^HTTP'      # 404，不能是 5xx
 ```
 
 - `/{locale}/...` 未匹配路径由 `src/app/[locale]/[...rest]/page.tsx` → `notFound()`，`src/app/[locale]/not-found.tsx` 输出 noindex，真实 404，不跳首页。
 - 不带语言前缀的地址会先 307 到带前缀的地址，再 404，这是 next-intl 的行为，不算软 404。
+- 不存在的带扩展名路径（如 `/nope.png`）和 `/%2F%2Fevil.com` 以前返回 500，已在 #328 修好，现在是 404。
 
 ### 2.7 og:image
 
