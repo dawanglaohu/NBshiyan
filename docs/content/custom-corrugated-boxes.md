@@ -17,7 +17,7 @@
 
 ### H1: Custom Corrugated Boxes
 
-PackJoyU sources and supplies custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. We print your logo and artwork directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. We work with importers, distributors and brands who need consistent quality across repeat orders.
+PackJoyU sources and supplies custom corrugated boxes for shipping, e-commerce and retail: mailer boxes, regular slotted cartons and display boxes made to your exact dimensions. Your logo and artwork are printed directly on the board, so your packaging protects the product in transit and still looks like your brand when it arrives. We work with importers, distributors and brands who need consistent quality across repeat orders.
 
 #### Why PackJoyU
 
@@ -66,7 +66,7 @@ PackJoyU sources and supplies custom corrugated boxes for shipping, e-commerce a
 
 ### H1: Гофрокороба на заказ
 
-PackJoyU подбирает и поставляет гофрокороба на заказ для доставки, интернет-торговли и розницы: почтовые коробки, четырёхклапанные короба и демонстрационную упаковку точно под ваши размеры. Мы наносим логотип и дизайн прямо на гофрокартон, поэтому коробка защищает товар при перевозке и при этом работает на узнаваемость бренда. Мы поставляем продукцию импортёрам, дистрибьюторам и брендам, которым важно стабильное качество от партии к партии.
+PackJoyU подбирает и поставляет гофрокороба на заказ для доставки, интернет-торговли и розницы: почтовые коробки, четырёхклапанные короба и демонстрационную упаковку точно под ваши размеры. Логотип и дизайн наносятся прямо на гофрокартон, поэтому коробка защищает товар при перевозке и при этом работает на узнаваемость бренда. Мы поставляем продукцию импортёрам, дистрибьюторам и брендам, которым важно стабильное качество от партии к партии.
 
 #### Почему PackJoyU
 

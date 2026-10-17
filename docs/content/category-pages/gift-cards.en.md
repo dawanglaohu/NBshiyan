@@ -6,7 +6,7 @@
 # Custom Gift Cards
 
 ## Intro
-PackJoyU makes printed cards for brands (product type: {{待Ryan确认}}). Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies printed cards for brands (product type: {{待Ryan确认}}). Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Retail gift card packs
@@ -25,7 +25,7 @@ Offset CMYK/Pantone; foil, spot UV and embossing can be discussed; edge painting
 1. **Send your brief** — product, size, quantity and artwork or a reference.
 2. **Quote** — we propose structure, material and printing; prices and terms are confirmed in writing.
 3. **Proof and sample** — digital proof first, then a physical sample if needed.
-4. **Production and inspection** — production starts after you approve the sample.
+4. **Production run and quality checks** — after you approve the sample, we arrange the production run and quality checks.
 5. **Packing and shipping** — shipping terms and destinations are confirmed in the quote.
 
 ## MOQ and lead times
