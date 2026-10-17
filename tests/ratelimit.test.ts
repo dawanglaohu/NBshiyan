@@ -174,14 +174,15 @@ test('spoofed CF-Connecting-IP / X-Forwarded-For without valid X-Edge-Auth all l
   const prev = process.env.EDGE_AUTH_SECRET;
   process.env.EDGE_AUTH_SECRET = 'edge-test-secret-0123456789abcdef-XYZ';
   try {
-    for (const h of [{ 'cf-connecting-ip': '1.1.1.1' }, { 'cf-connecting-ip': '2.2.2.2', 'x-edge-auth': 'wrong' }, { 'x-forwarded-for': '3.3.3.3' }, { 'x-real-ip': '4.4.4.4' }, {}])
+    const spoofed: Record<string, string>[] = [{ 'cf-connecting-ip': '1.1.1.1' }, { 'cf-connecting-ip': '2.2.2.2', 'x-edge-auth': 'wrong' }, { 'x-forwarded-for': '3.3.3.3' }, { 'x-real-ip': '4.4.4.4' }, {}];
+    for (const h of spoofed)
       await designGET(new Request('http://x/api/designs/!bad', { headers: h }), p).catch(() => {});
     const keys = r.keys.filter((k) => k.includes(':design-get:'));
     assert.equal(keys.length, 5);
     assert.equal(new Set(keys).size, 1);
     assert.match(keys[0], /:design-get:untrusted$/);
     // 带正确 X-Edge-Auth 时按 CF-Connecting-IP 分桶
-    await designGET(new Request('http://x/api/designs/!bad', { headers: { 'x-edge-auth': process.env.EDGE_AUTH_SECRET, 'cf-connecting-ip': '5.5.5.5' } }), p).catch(() => {});
+    await designGET(new Request('http://x/api/designs/!bad', { headers: { 'x-edge-auth': process.env.EDGE_AUTH_SECRET!, 'cf-connecting-ip': '5.5.5.5' } }), p).catch(() => {});
     assert.ok(r.keys.some((k) => k.endsWith(':design-get:5.5.5.5')));
   } finally { setRateLimitStore(undefined); if (prev === undefined) delete process.env.EDGE_AUTH_SECRET; else process.env.EDGE_AUTH_SECRET = prev; }
 });
