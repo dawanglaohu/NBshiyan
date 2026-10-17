@@ -25,6 +25,14 @@ S=https://geiom.com
   部署后由运维在服务器上确认启动检查确实跑了（只看变量名和退出码，不打印任何值）：
   - 容器里 `APP_ENV` 是 `production`，例如 `docker compose exec <app> printenv APP_ENV`。
   - 检查通过时没有日志输出，所以要做一次反向验证：用一次性容器、同一镜像、同一 env_file，故意让一项必填配置失效（比如 `UPLOAD_DIR` 指向不可写目录），应输出「生产环境配置检查未通过，拒绝启动」加变量名，并 exit 1。测完删掉这个容器，正式容器不动。
+- [ ] **运行时** env_file 里必须有 `APP_ORIGIN=https://geiom.com`（不是可选项，不能留空）。后端 PR `fix/root-redirect-location` 加了启动检查，下面任一条不满足就 exit 1：
+  - 必须设置，且是 `https://`；
+  - 只能是 origin：不带 path、query、userinfo（结尾也不带 `/`）；
+  - 主机不能是 IP 或 localhost；
+  - 按 origin 规范化后必须等于 `NEXT_PUBLIC_SITE_URL`。
+  没设的话，standalone 会把自己的 origin 当成 `http://0.0.0.0:<port>`，后台的同源 POST（登录、改密码等）全部 403。部署后验证：
+  - 容器里 `APP_ORIGIN` 是 `https://geiom.com`，例如 `docker compose exec <app> printenv APP_ORIGIN`。
+  - 浏览器打开 `https://geiom.com/admin` 登录，登录 POST 成功、不是 403；登录后做一次后台里的改动类操作，也不能 403 `forbidden_origin`（见第 2 节）。
 - [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
 - [ ] 构建检查（`prod-env-check.ts`，`next build` 时执行）：
   - 当前 main：`NEXT_PUBLIC_SITE_URL` 缺失或不是 `https://` 时构建失败。
@@ -37,6 +45,8 @@ S=https://geiom.com
 ## 2. 上线后立即自检
 
 DNS 生效、Cloudflare 代理打开后马上跑。也可以先跑仓库自带的两个只读脚本：`pnpm smoke --base https://geiom.com` 和 `pnpm seo:audit https://geiom.com`（**不要**加 `--ignore-env-noindex`），见 `launch-runbook.md` §5。
+
+- [ ] 后台登录：`https://geiom.com/admin` 登录的 POST 成功，不是 403（403 多半是运行时没设 `APP_ORIGIN=https://geiom.com`，见第 1 节）。由 Ryan 或运维用自己的后台账号测，账号密码不写进任何地方。
 
 ### 2.1 没有 noindex
 
