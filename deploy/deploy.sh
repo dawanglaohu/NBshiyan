@@ -60,6 +60,9 @@ sha_ok() { [[ "$1" =~ ^[0-9a-f]{40}$ ]]; }
 # Redirect/header smoke helpers (loc_bad, resp_code, resp_loc, root_redirect_ok). Tests: deploy/tests/smoke.test.sh
 # shellcheck source=deploy/smoke-lib.sh
 . "$(dirname "$(readlink -f "$0")")/smoke-lib.sh"
+# Runtime memory check (mem_ok: compose mem_limit of the services still to start + reserve). Tests: deploy/tests/mem-check.test.sh
+# shellcheck source=deploy/mem-check.sh
+. "$(dirname "$(readlink -f "$0")")/mem-check.sh"
 
 schema_sync() {   # 4 steps, all on the server; nothing leaves it
   local sha; sha=$(cat "$D/.candidate-sha"); sha_ok "$sha" || die "candidate sha invalid"
@@ -167,6 +170,7 @@ case "${1:-}" in
     edge_match || die "EDGE_AUTH_SECRET in env file does not match the include (hash compare)"
     docker image inspect nbshiyan-app:candidate >/dev/null || die "no candidate image; run build-on-server.sh"
     sha_ok "$(cat "$D/.candidate-sha" 2>/dev/null)" || die ".candidate-sha is not a 40-hex git sha"
+    mem_ok "$COMPOSE_FILE" || die "not enough available memory for the NBshiyan services (nothing started or changed)"
     write_cenv candidate
     dc up -d --wait postgres redis srh srh-tls
     schema_sync          # ordering replaces depends_on: service_completed_successfully (see compose comment)
