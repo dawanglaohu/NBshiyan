@@ -119,16 +119,16 @@ test('daily_cap_deferred：排队中（不算失败、无重试）；provider_th
   for (const status of ['QUEUED', 'SENDING', 'FAILED'] as const) assert.deepEqual(st({ status, errorCode: 'daily_cap_deferred', retryable: true }), { kind: 'deferred' });
   assert.equal(L.isDeferred({ status: 'SENT', errorCode: 'daily_cap_deferred' }), false);
   const p = st({ errorCode: 'provider_throttled', retryable: true, retryCount: 2 });
-  assert.ok(p.kind === 'failed' && p.canRetry && p.retryCount === 2 && /每小时/.test(p.text) && /稍后重试/.test(p.text));
+  assert.ok(p.kind === 'failed' && p.canRetry && p.retryCount === 2 && p.text === '邮件服务暂时繁忙，请稍后重试' && p.tone === 'warn');
   assert.ok((() => { const v = st({ errorCode: 'provider_throttled', retryable: true, retryCount: 5 }); return v.kind === 'failed' && v.retryLimit; })());
   for (const code of ['smtp_auth', 'smtp_tls']) { const v = st({ errorCode: code }); assert.ok(v.kind === 'failed' && v.text !== L.UNKNOWN_FAIL); }
 });
-test('deferredText：deferredUntil 按本地时区显示；缺失 → 下一个 UTC 零点', () => {
-  assert.equal(L.deferredText('2026-10-16T00:00:00Z', 0, 'America/Los_Angeles'), '今日发信已达上限，将在 10/15 17:00 后自动发送');
-  const now = Date.parse('2026-10-15T08:00:00Z');
+test('deferredHint：deferredUntil 按本地时区 + 时区缩写；缺失 / 无效 → 下一个 UTC 零点', () => {
+  const now = Date.parse('2026-10-15T12:00:00Z');
+  assert.equal(L.deferredHint('2026-10-16T00:00:00Z', now, 'America/Los_Angeles'), '今天发信已达上限，已排队，预计 10/15 17:00 PT 发出');
   assert.equal(L.nextUtcMidnight(now), '2026-10-16T00:00:00.000Z');
-  assert.equal(L.deferredText(null, now, 'UTC'), '今日发信已达上限，将在 10/16 00:00 后自动发送');
-  assert.equal(L.deferredText('garbage', now, 'UTC'), L.deferredText(undefined, now, 'UTC'));
+  assert.equal(L.deferredHint(null, now, 'UTC'), '今天发信已达上限，已排队，预计 10/16 00:00 UTC 发出');
+  assert.equal(L.deferredHint('garbage', now, 'UTC'), L.deferredHint(undefined, now, 'UTC'));
 });
 test('正文 iframe 高度：240px–70vh，键盘调整', () => {
   assert.equal(L.estimateHeight('x', 700), 240); assert.equal(L.estimateHeight('a\n'.repeat(200), 700), 700);

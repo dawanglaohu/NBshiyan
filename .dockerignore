@@ -1,0 +1,23 @@
+# Never send secrets, keys or VCS data into the build context
+.env
+.env.*
+!.env.example
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+**/id_rsa*
+.git
+.github
+node_modules
+.next
+storage
+deploy
+e2e
+tests
+playwright-report
+test-results
+reports
+design
+docs
+*.log

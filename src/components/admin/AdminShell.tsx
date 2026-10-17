@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminApi, usingMock } from '@/lib/admin/api';
 import UnassignedNav from './mail/UnassignedNav';
 import { mailEnabled, usingMailMock } from '@/lib/admin/mail/api';
+import { MailGateContext, useMailGateFetch } from './mail/MailGate';
 import { DRAWER_FOCUSABLE, DRAWER_MQ, drawerKeyAction } from '@/lib/admin/drawer';
 
 const NAV: { href: string; label: string; ready?: boolean }[] = [
@@ -19,6 +20,8 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
   const path = usePathname();
   const [newCount, setNewCount] = useState<number>();
   useEffect(() => { adminApi.listInquiries({ status: 'NEW', pageSize: 1 }).then((d) => setNewCount(d.total)).catch(() => {}); }, [path]);
+  // #74：进入后台时问一次服务端邮件开关；404（关闭）→ 各页面一开始就隐藏发信入口
+  const mailGate = useMailGateFetch();
 
   // #291 手机版（<768px）侧栏改成抽屉：菜单按钮 aria-expanded/aria-controls；打开后焦点进抽屉并在里面循环，
   // Esc / 点遮罩 / 切换页面关闭，关闭后焦点回到菜单按钮。桌面端侧栏常驻，菜单按钮隐藏。
@@ -52,7 +55,8 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
   const hidden = mobile && !open;
 
   return (
-    <div className="adm" data-nav={open ? 'open' : 'closed'}>
+    <MailGateContext.Provider value={mailGate}>
+    <div className="adm" data-nav={open ? 'open' : 'closed'} data-mail={mailGate.state}>
       <header className="adm-top">
         <button ref={toggleRef} type="button" className="adm-menu" aria-expanded={open} aria-controls="adm-nav" aria-label={open ? '关闭导航菜单' : '打开导航菜单'} onClick={() => (open ? close() : setOpen(true))}>
           <span aria-hidden="true">☰</span>
@@ -68,7 +72,7 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
               {n.label}{n.href === '/admin/inquiries' && newCount ? <span className="count" aria-label={`${newCount} 条新询盘`}>{newCount}</span> : null}
             </Link>
           : <a key={n.href} className="soon" role="link" aria-disabled="true" title="待开发">{n.label}</a>)}
-        {mailEnabled && role === 'ADMIN' && <UnassignedNav active={path.startsWith('/admin/mail')} />}
+        {mailEnabled && mailGate.state !== 'off' && role === 'ADMIN' && <UnassignedNav active={path.startsWith('/admin/mail')} />}
       </nav>
       <main className="adm-main">
         {usingMailMock && <div className="adm-mock" data-testid="mail-mock">邮件功能当前使用示例数据（NEXT_PUBLIC_ADMIN_MAIL=mock），发信不会真的发出。</div>}
@@ -76,5 +80,6 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
         {children}
       </main>
     </div>
+    </MailGateContext.Provider>
   );
 }
