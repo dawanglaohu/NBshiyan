@@ -67,8 +67,8 @@
 | PROD_DATABASE_HOST | 让初始化脚本拒绝连生产库 | — | 待确认 | Ryan |
 | CRON_SECRET | 定时任务鉴权 | 没设的话 cron 一律 401 | 是 | **Ryan** |
 | MIDDLEWARE_PROBE_SECRET | middleware 探测短链状态，≥ 32 字节 | — | 是 | **Ryan** |
-| BEHIND_CLOUDFLARE | 走 Cloudflare 代理时设成 1 | 空 | 否 | Ryan |
-| TRUSTED_PROXY_HOPS | 自建反代时从 X-Forwarded-For 取 IP | 空 | **Vercel 上不要设**；配错会让客户端伪造 IP、绕过按 IP 的限流；和 `BEHIND_CLOUDFLARE=1` 同时设置时被忽略 | — |
+| EDGE_AUTH_SECRET | nginx 用 `proxy_set_header X-Edge-Auth` 带上同一个值，头正确时才信任 CF-Connecting-IP；≥ 32 字节 | — | 是 | **Ryan**（值只给运维，不进群） |
+| ~~BEHIND_CLOUDFLARE~~ / ~~TRUSTED_PROXY_HOPS~~ | 已废弃，不再读取 | — | 不要设 | — |
 | RATE_LIMIT_STORE | `upstash` | memory | 是（必须是 upstash） | — |
 | UPSTASH_REDIS_REST_URL / _TOKEN | 限流存储 | — | 是 | **Ryan** |
 | STORAGE_DRIVER | `r2` | local | 是 | — |

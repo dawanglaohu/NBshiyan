@@ -1,11 +1,11 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import { securityHeaders } from './security-headers';
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import { assertProdEnv } from './prod-env-check';
 import { isProdEnvFrom } from './src/lib/site';
 import { seoMockEnabled } from './src/lib/seo/mock';
 
-assertProdEnv();
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const adminHeaders = [
@@ -44,4 +44,8 @@ const nextConfig: NextConfig = {
 // #291：SEO 审计 mock 开关在构建时内联成常量。正式部署或 APP_ENV/VERCEL_ENV 都未设时一律为空字符串，
 // sanity.ts / sitemap.ts 里的 import('./sanityMock') 分支就是死代码，生产包里没有 mock 文章和 mock chunk。
 nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '1' : '' };
-export default withNextIntl(nextConfig);
+// 生产配置检查：`next build` 时跳过只在运行时用的密钥（见 prod-env-check.ts 的 RUNTIME_ONLY），`next start` 时全部检查
+export default function config(phase: string) {
+  assertProdEnv(process.env, phase === PHASE_PRODUCTION_BUILD ? 'build' : 'runtime');
+  return withNextIntl(nextConfig);
+}

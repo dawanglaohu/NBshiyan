@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { prodEnvProblems, assertProdEnv } from '../prod-env-check';
 
 test('非生产环境（CI/预览/本地）不检查', () => {
@@ -20,7 +21,7 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
-  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 22); // #74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 23); // #74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）
   assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
 });
 
@@ -34,7 +35,7 @@ const prodFull = {
   TURNSTILE_SECRET_KEY: '0x4AAAAAAArealSecretKey', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey',
   SMTP_HOST: 'smtp.example.test', SMTP_PORT: '587', SMTP_USER: 'u@example.test', SMTP_PASS: SECRET, MAIL_FROM: 'a@b.com', INQUIRY_NOTIFY_EMAIL: 'c@d.com',
   MAIL_SEND_ADAPTER: 'smtp', MAIL_WEBHOOK_SECRET: SECRET,
-  NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', ADMIN_SEED_TOTP_SECRET: '',
+  NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', ADMIN_SEED_TOTP_SECRET: '', EDGE_AUTH_SECRET: SECRET,
 };
 
 test('#74 完整生产配置通过', () => {
@@ -103,4 +104,24 @@ test('#74 审查：MAIL_SEND_ADAPTER 必须是 smtp、MAIL_WEBHOOK_SECRET 必须
     assert.match(msg, /MAIL_WEBHOOK_SECRET/); assert.ok(!msg.includes('zzzz'));
   }
   assert.doesNotThrow(() => assertProdEnv({ ...prodFull, MAIL_WEBHOOK_SECRET: 'z'.repeat(32) }));
+});
+
+test('EDGE_AUTH_SECRET is runtime-only: build phase skips it, runtime / default require >= 32 bytes', () => {
+  const noEdge = { ...prodFull, UPSTASH_REDIS_REST_TOKEN: 't', EDGE_AUTH_SECRET: undefined };
+  assert.deepEqual(prodEnvProblems(noEdge, 'build'), []);
+  assert.doesNotThrow(() => assertProdEnv(noEdge, 'build'));
+  assert.deepEqual(prodEnvProblems(noEdge, 'runtime'), ['EDGE_AUTH_SECRET 未设置']);
+  assert.deepEqual(prodEnvProblems(noEdge), ['EDGE_AUTH_SECRET 未设置']);
+  assert.throws(() => assertProdEnv(noEdge, 'runtime'), /EDGE_AUTH_SECRET/);
+  const short = { ...noEdge, EDGE_AUTH_SECRET: 'short-edge-value' };
+  assert.equal(prodEnvProblems(short, 'runtime').length, 1);
+  let msg = ''; try { assertProdEnv(short, 'runtime'); } catch (e) { msg = (e as Error).message; }
+  assert.ok(msg.includes('EDGE_AUTH_SECRET') && !msg.includes('short-edge-value'));
+  assert.deepEqual(prodEnvProblems({ ...noEdge, EDGE_AUTH_SECRET: SECRET }, 'runtime'), []);
+});
+
+test('next.config runs the prod check per phase (build skips runtime-only secrets)', () => {
+  const cfg = readFileSync('next.config.ts', 'utf8');
+  assert.match(cfg, /assertProdEnv\(process\.env, phase === PHASE_PRODUCTION_BUILD \? 'build' : 'runtime'\)/);
+  assert.doesNotMatch(cfg, /EDGE_AUTH_SECRET/);
 });
