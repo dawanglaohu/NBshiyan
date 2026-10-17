@@ -52,9 +52,9 @@ export default function InquiryList() {
         <td><Link href={`/admin/inquiries/${r.id}`} onClick={(e) => e.stopPropagation()} tabIndex={-1}>{r.ref}</Link></td>
         <td>{isAnonymized(r) ? piiField(r, null) : r.contact.company ?? r.contact.email.split('@')[1]} · {r.contact.region}</td>
         <td>{r.products.length ? <>{productName(r.products[0].productSlug)}{r.products.length > 1 ? ` +${r.products.length - 1}` : ''}</> : r.itemCount ? `${r.itemCount} 个产品` : '—'}</td>
-        <td className={needsReview(r) ? 'warn' : undefined}>{r.trustScore}{needsReview(r) ? ' ⚠' : ''}</td>
+        <td className={needsReview(r) ? 'warn' : undefined} data-label="可信度">{r.trustScore}{needsReview(r) ? ' ⚠' : ''}</td>
         <td><StatusBadge status={r.status} />{isAnonymized(r) && <DeletedTag />}</td>
-        <td className="muted">{r.assignee?.name ?? '—'}</td>
+        <td className="muted" data-label="负责人">{r.assignee?.name ?? '—'}</td>
         <td className="muted" title={r.createdAt}>{relTime(r.createdAt)}</td>
       </tr>
     );
@@ -83,7 +83,7 @@ export default function InquiryList() {
         {sp.size > 0 && <button className="adm-btn" type="button" onClick={() => { setQ(''); router.replace('/admin/inquiries'); }}>清除筛选</button>}
       </form>
       <div className="adm-card">
-        <table>
+        <table className="adm-inq-table">
           <thead><tr><th>编号</th><th>公司 · 国家</th><th>产品</th><th>可信度</th><th>状态</th><th>负责人</th><th>时间</th></tr></thead>
           <tbody>
             {error && <tr><td colSpan={7} className="warn">{errorText(error)}{error === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</td></tr>}

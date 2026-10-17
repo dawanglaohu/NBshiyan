@@ -39,7 +39,19 @@ export function errorText(code: string, prefix = '加载失败') {
   if (code === 'forbidden') return '没有权限执行这个操作。';
   return `${prefix}：${code}`;
 }
-export const fmtDate = (iso: string) => new Date(iso).toLocaleString('zh-CN', { hour12: false });
+/**
+ * 后台统一时间格式（#291）：「2026/09/15 00:44」= YYYY/MM/DD HH:mm，月日补零、24 小时制、不显示秒。
+ * 默认按浏览器本地时区；timeZone 只给测试和需要固定时区的地方用。无效时间原样返回，不显示 "Invalid Date"。
+ */
+export function fmtDate(iso: string, timeZone?: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', ...(timeZone ? { timeZone } : {}),
+  }).formatToParts(d);
+  const v = (t: Intl.DateTimeFormatPartTypes) => parts.find((x) => x.type === t)?.value ?? '';
+  return `${v('year')}/${v('month')}/${v('day')} ${v('hour')}:${v('minute')}`;
+}
 
 /** Auth.js 默认登录页（Credentials：email、password、totp 或 recoveryCode），登录后回到当前页 */
 export const loginHref = () => adminLoginHref(typeof location === 'undefined' ? '/admin' : location.pathname + location.search);
