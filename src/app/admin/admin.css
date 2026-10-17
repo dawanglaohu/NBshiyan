@@ -78,3 +78,45 @@
 .adm-btn.sq{border-radius:10px;font-weight:700;font-size:12px}
 .adm-scan{color:var(--ok);font-weight:600}
 .adm-empty{display:flex;flex-direction:column;align-items:center;width:100%;max-width:40em;margin:0 auto;padding:48px 16px;text-align:center}.adm-empty h1{margin:0 0 8px}.adm-empty p{max-width:32em;margin:0 0 24px}.adm-empty .adm-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;text-decoration:none;border-color:var(--ink-2)}
+
+/* #291 UX 细节：空状态灰字；禁用的下拉框看得出是禁用的；回复区两个按钮一组（次要在左、主要在右） */
+.adm-empty-note{color:var(--ink-2);margin:0;font-size:13px}
+.adm select:disabled{background:var(--neutral-bg);color:var(--ink-2);border-color:var(--line);cursor:not-allowed;opacity:1}
+.adm-reply-actions{display:flex;gap:8px;margin-left:auto;align-items:center}
+/* #291 手机版（<768px）：侧栏改抽屉；询盘详情右栏堆到正文下方；列表行改成卡片，不横向滚动 */
+.adm-top,.adm-scrim,.adm-nav-close{display:none}
+@media (max-width:767px){
+  .adm{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
+  .adm-top{display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:30;background:#1C1C1C;color:#fff;padding:0 8px;min-height:56px}
+  .adm-top .brand{color:#fff;font-weight:800;font-size:16px}.adm-top .brand i{color:var(--accent);font-style:normal}.adm-top .brand small{color:#8C867C;font-weight:600;font-size:11px;margin-left:6px}
+  .adm-menu,.adm-nav-close{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border:0;border-radius:var(--r-sm);background:transparent;color:#fff;font:inherit;font-size:20px;cursor:pointer}
+  .adm-menu:focus-visible,.adm-nav-close:focus-visible,.adm-side a:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .adm-side{position:fixed;top:0;bottom:0;left:0;z-index:50;width:min(280px,85vw);overflow-y:auto;transform:translateX(-100%);visibility:hidden;transition:transform 200ms ease,visibility 0s linear 200ms;box-shadow:0 0 24px rgba(0,0,0,.35)}
+  .adm[data-nav=open] .adm-side{transform:none;visibility:visible;transition:transform 200ms ease}
+  .adm-side .brand{padding:12px 12px 16px}
+  .adm-nav-close{display:inline-flex;position:absolute;top:8px;right:8px}
+  .adm-side a{min-height:44px}
+  .adm-scrim{display:block;position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.45)}
+  .adm-main{padding:16px 12px}
+  .adm-card{overflow-x:auto}
+  .adm input[type=search]{min-width:0;flex:1 1 100%}
+  .adm-g2,.adm-detail{grid-template-columns:minmax(0,1fr)}
+  .adm-msg2{max-width:100%}
+  /* 询盘列表：每行一张卡片（编号+状态 / 公司·国家 / 产品 / 可信度·负责人·时间），表头只留给读屏 */
+  .adm-inq-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .adm-inq-table,.adm-inq-table tbody{display:block}
+  .adm-inq-table tr:not(.row){display:block}.adm-inq-table tr:not(.row) td{display:block;white-space:normal}
+  .adm-inq-table tr.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+  .adm-inq-table tr.row td{padding:0;border:0;white-space:normal;overflow-wrap:anywhere;min-width:0}
+  /* 第 1 行：编号（左）+ 状态（右上）；2–4 行：公司·国家 / 产品 / 可信度；最后一行：负责人（左）+ 时间（右） */
+  .adm-inq-table tr.row td:nth-child(1){grid-row:1;grid-column:1}
+  .adm-inq-table tr.row td:nth-child(5){grid-row:1;grid-column:2;text-align:right}
+  .adm-inq-table tr.row td:nth-child(2){grid-row:2;grid-column:1 / -1}
+  .adm-inq-table tr.row td:nth-child(3){grid-row:3;grid-column:1 / -1}
+  .adm-inq-table tr.row td:nth-child(4){grid-row:4;grid-column:1 / -1}
+  .adm-inq-table tr.row td:nth-child(6){grid-row:5;grid-column:1}
+  .adm-inq-table tr.row td:nth-child(7){grid-row:5;grid-column:2;text-align:right}
+  .adm-inq-table tr.row td[data-label]::before{content:attr(data-label) "\00a0";color:var(--ink-2);font-size:12px}
+  .adm-reply-actions{flex:1 1 100%;justify-content:space-between}
+}
+@media (max-width:767px) and (prefers-reduced-motion:reduce){.adm-side,.adm[data-nav=open] .adm-side{transition:none}}
