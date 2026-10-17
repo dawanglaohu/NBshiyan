@@ -6,7 +6,7 @@ import { View, Bounds, Center, OrbitControls, PerspectiveCamera, Environment, Co
 import SceneErrorBoundary from './SceneErrorBoundary';
 import { lightRig } from './lights';
 import ProductModel, { type BoxView, type AnimationClips, type ModelBounds } from './ProductModel';
-import { frameClosedBox, openDollyFactor, easeInOut, OPEN_DOLLY_MS } from '@/lib/three/framing';
+import { frameClosedBox, openFraming, easeInOut, OPEN_DOLLY_MS, type OpenView } from '@/lib/three/framing';
 
 export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
 
@@ -55,6 +55,7 @@ const FOV = 40;
  * - 只按合盖姿态取景：合盖时模型顶点（真实轮廓）投影后占画面高度 70%（目标 65–75%），四边至少留 1.08 倍余量；
  *   窄画面 / 扁平产品自动改按宽度放下（390 竖屏不会左右被切）；
  * - 开盖时镜头沿当前视线拉远，最多 10%、300ms 缓动，盖子仍可能稍微出画；合盖时在盖子落下前 300ms 拉回；
+ *   开盖后静止姿态在 10% 内放不下的产品（礼盒竖起的盒盖）放宽上限：按整条开合弧线取景（留 1.08 余量），合盖完成后再拉回；
  *   减少动态效果时直接跳到目标距离；
  * - 模型水平居中、底面落在 y=0；near/far 跟着模型尺寸走，OrbitControls 的缩放范围也按取景距离换算；
  * - 接触阴影按开盖全过程的底面尺寸缩放，开盖后盖子的阴影也不会被切。
@@ -75,22 +76,25 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
   // 顶点采样平移到取景坐标（和模型 group 同样的 offset）
   const shift = (a?: [number, number, number][]) => a?.map((p) => [p[0] + offset[0], p[1] + offset[1], p[2] + offset[2]] as [number, number, number]);
   // 取景只在包围盒 / 画面比例变化时重算（顶点采样最多几千个点，二分求距离）
-  const { f, dolly } = useMemo(() => {
-    if (!b) return { f: undefined, dolly: 1 };
+  const { f, openV } = useMemo(() => {
+    if (!b) return { f: undefined, openV: undefined };
     const fr = frameClosedBox([-size[0] / 2, 0, -size[2] / 2], [size[0] / 2, size[1], size[2] / 2], FOV, aspect, { points: shift(b.points?.closed) });
-    return { f: fr, dolly: openDollyFactor(fr, openMin, openMax, FOV, aspect, { points: shift(b.points?.open) }) };
+    return { f: fr, openV: openFraming(fr, openMin, openMax, FOV, aspect, { points: shift(b.points?.open), end: shift(b.points?.end) }) };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [b, aspect]);
-  // 当前镜头倍数（1 = 合盖取景距离），和动画状态
-  const zoom = useRef({ k: 1, from: 1, to: 1, t0: 0, dur: OPEN_DOLLY_MS });
-  const placeAt = (k: number) => {
-    if (!f) return;
+  // 镜头状态：当前 / 起点 / 终点（target + 距离），0…1 进度按 300ms 缓动
+  type Cam = { c: [number, number, number]; d: number };
+  const closedCam = (): Cam | undefined => (f ? { c: f.center, d: f.distance } : undefined);
+  const viewCam = (v: OpenView): Cam => ({ c: v.center, d: v.distance });
+  const zoom = useRef<{ cur?: Cam; from?: Cam; to?: Cam; t0: number; dur: number; done: boolean }>({ t0: 0, dur: OPEN_DOLLY_MS, done: true });
+  // 保持用户当前的观察方向，只改 target 和距离
+  const placeAt = (cam: Cam) => {
     const t = controls.current?.target;
-    const cx = t ? t.x : f.center[0], cy = t ? t.y : f.center[1], cz = t ? t.z : f.center[2];
+    const cx = t ? t.x : cam.c[0], cy = t ? t.y : cam.c[1], cz = t ? t.z : cam.c[2];
     const dx = camera.position.x - cx, dy = camera.position.y - cy, dz = camera.position.z - cz;
     const len = Math.hypot(dx, dy, dz) || 1;
-    const d = f.distance * k;
-    camera.position.set(cx + (dx / len) * d, cy + (dy / len) * d, cz + (dz / len) * d);
+    camera.position.set(cam.c[0] + (dx / len) * cam.d, cam.c[1] + (dy / len) * cam.d, cam.c[2] + (dz / len) * cam.d);
+    if (t) t.set(...cam.c);
   };
   useLayoutEffect(() => {
     if (!f) return;
@@ -100,35 +104,40 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
     camera.lookAt(...f.center);
     camera.updateProjectionMatrix();
     if (controls.current) { controls.current.target.set(...f.center); controls.current.update(); }
-    zoom.current.k = 1;
-    if (i.view === 'open') { zoom.current = { ...zoom.current, k: dolly, from: dolly, to: dolly }; placeAt(dolly); }
+    const start = i.view === 'open' && openV ? viewCam(openV) : closedCam()!;
+    zoom.current = { ...zoom.current, cur: start, from: start, to: start, done: true };
+    if (i.view === 'open') { placeAt(start); controls.current?.update(); }
     invalidate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [f?.distance, f?.center[1], camera, invalidate]);
   // 开 / 合盖时拉远 / 拉回镜头
   const lastView = useRef(i.view);
   useEffect(() => {
-    if (!f || lastView.current === i.view) return;
+    if (!f || !openV || lastView.current === i.view) return;
     lastView.current = i.view;
-    const to = i.view === 'open' ? dolly : 1;
+    const to = i.view === 'open' ? viewCam(openV) : closedCam()!;
     const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const z = zoom.current;
-    if (reduced) { z.k = z.from = z.to = to; placeAt(to); controls.current?.update(); invalidate(); return; }
-    // 合盖：等盖子快落下（片段最后 300ms）再拉回，避免盖子还开着时被切掉
-    const delay = i.view === 'open' ? 0 : Math.max(0, (b?.openDuration ?? 0) * 1000 - OPEN_DOLLY_MS);
-    z.from = z.k; z.to = to; z.t0 = performance.now() + delay;
+    if (reduced) { z.cur = z.from = z.to = to; z.done = true; placeAt(to); controls.current?.update(); invalidate(); return; }
+    // 合盖：一般在片段最后 300ms 拉回；放宽了上限的产品（盖子弧线很大）等盖子完全合上再拉回，避免中途被切
+    const dur = (b?.openDuration ?? 0) * 1000;
+    const delay = i.view === 'open' ? 0 : openV.extended ? dur : Math.max(0, dur - OPEN_DOLLY_MS);
+    z.from = z.cur ?? to; z.to = to; z.t0 = performance.now() + delay; z.done = false;
     invalidate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i.view, dolly]);
+  }, [i.view, openV]);
   useFrame(() => {
     const z = zoom.current;
-    if (z.k === z.to) return;
+    if (z.done || !z.from || !z.to) return;
     const now = performance.now();
     if (now >= z.t0) {
       const t = (now - z.t0) / z.dur;
-      z.k = t >= 1 ? z.to : z.from + (z.to - z.from) * easeInOut(t);
-      placeAt(z.k);
+      const k = t >= 1 ? 1 : easeInOut(t);
+      const a = z.from, bb = z.to;
+      z.cur = { c: [0, 1, 2].map((j) => a.c[j] + (bb.c[j] - a.c[j]) * k) as [number, number, number], d: a.d + (bb.d - a.d) * k };
+      placeAt(z.cur);
       controls.current?.update();
+      if (t >= 1) z.done = true;
     }
     invalidate();
   });

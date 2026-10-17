@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Box3, Mesh, BoxGeometry, Group, AnimationClip, VectorKeyframeTrack } from 'three';
-import { frameClosedBox, openDollyFactor, projectBox, projectPoints, closedPoseBox, sampleAnimatedPoints, samplePoints, hullPoints, easeInOut, FILL, MARGIN, OPEN_DOLLY_MAX, OPEN_DOLLY_MS } from '../src/lib/three/framing';
+import { frameClosedBox, openDollyFactor, openFraming, projectBox, projectPoints, closedPoseBox, sampleAnimatedPoints, samplePoints, hullPoints, easeInOut, FILL, MARGIN, OPEN_DOLLY_MAX, OPEN_DOLLY_MS } from '../src/lib/three/framing';
 import { readFileSync } from 'node:fs';
 
 type V3 = [number, number, number];
@@ -92,7 +92,7 @@ test('#291: 缓动两端固定、单调', () => {
 test('#291: 画廊用合盖取景 + 开盖拉远，并尊重减少动态效果', () => {
   const src = readFileSync('src/components/three/GalleryScene.tsx', 'utf8');
   assert.match(src, /frameClosedBox\(/);
-  assert.match(src, /openDollyFactor\(/);
+  assert.match(src, /openFraming\(/);
   assert.match(src, /prefers-reduced-motion: reduce/);
   assert.doesNotMatch(src, /frameBox\(/);
 });
@@ -135,4 +135,55 @@ test('#291: 凸包顶点取景和全部顶点结果一致', () => {
     const a = frameClosedBox(mn, mx, 40, aspect, { points: h }), b = frameClosedBox(mn, mx, 40, aspect, { points: pts });
     assert.ok(Math.abs(a.distance - b.distance) < 1e-9);
   }
+});
+
+// 开盖时盖子竖起来、整条弧线很高的模型（类似礼盒）和只稍微超出的模型
+function lidRig(lidTo: V3) {
+  const root = new Group();
+  root.add(new Mesh(new BoxGeometry(1, 0.4, 1)));
+  const lid = new Mesh(new BoxGeometry(1, 0.05, 1));
+  lid.name = 'Lid';
+  lid.position.set(0, 0.425, 0);
+  root.add(lid);
+  const clip = new AnimationClip('Open', 1, [new VectorKeyframeTrack('Lid.position', [0, 0.5, 1], [0, 0.425, 0, ...lidTo.map((v, i) => (v + [0, 0.425, 0][i]) / 2), ...lidTo] as number[])]);
+  return { root, clip };
+}
+
+test('#291 礼盒: 开盖末帧在 10% 内放不下时放宽上限，按整条弧线取景（留 1.08 余量）', () => {
+  const { root, clip } = lidRig([0, 1.6, -0.6]);
+  const pts = sampleAnimatedPoints(root, [clip]);
+  const closed = closedPoseBox(root, [clip]);
+  const mn: V3 = [closed.min.x, closed.min.y, closed.min.z], mx: V3 = [closed.max.x, closed.max.y, closed.max.z];
+  const f = frameClosedBox(mn, mx, 40, 4 / 3, { points: pts.closed });
+  const o = openFraming(f, [-0.5, 0, -1.1], [0.5, 1.65, 0.5], 40, 4 / 3, { points: pts.open, end: pts.end });
+  assert.equal(o.extended, true);
+  assert.ok(o.distance / f.distance > 1.1);
+  const e = projectPoints(pts.open, o.center, o.distance, 40, 4 / 3);
+  const m = 1 / 1.08 + 1e-6;
+  assert.ok(e.x0 >= -m && e.x1 <= m && e.y0 >= -m && e.y1 <= m);
+  // 合盖取景不变
+  const f2 = frameClosedBox(mn, mx, 40, 4 / 3, { points: pts.closed });
+  assert.equal(f2.distance, f.distance);
+});
+
+test('#291: 开盖末帧在 10% 内放得下时，开盖镜头和原来一样（target 不动，最多 10%）', () => {
+  const { root, clip } = lidRig([0, 0.15, 0]);
+  const pts = sampleAnimatedPoints(root, [clip]);
+  const closed = closedPoseBox(root, [clip]);
+  const mn: V3 = [closed.min.x, closed.min.y, closed.min.z], mx: V3 = [closed.max.x, closed.max.y, closed.max.z];
+  const f = frameClosedBox(mn, mx, 40, 4 / 3, { points: pts.closed });
+  const oMin: V3 = [-0.5, 0, -0.5], oMax: V3 = [0.5, 0.6, 0.5];
+  const o = openFraming(f, oMin, oMax, 40, 4 / 3, { points: pts.open, end: pts.end });
+  assert.equal(o.extended, false);
+  assert.deepEqual(o.center, f.center);
+  assert.equal(o.distance, f.distance * openDollyFactor(f, oMin, oMax, 40, 4 / 3, { points: pts.open }));
+  assert.ok(o.distance / f.distance <= 1.1 + 1e-9);
+});
+
+test('#291: 没有动画片段时开盖镜头 = 合盖镜头', () => {
+  const [mn, mx] = box(SHAPES.cube);
+  const f = frameClosedBox(mn, mx, 40, 4 / 3);
+  const o = openFraming(f, mn, mx, 40, 4 / 3, {});
+  assert.equal(o.extended, false);
+  assert.equal(o.distance, f.distance);
 });

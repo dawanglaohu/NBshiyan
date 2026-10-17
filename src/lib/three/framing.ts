@@ -135,6 +135,30 @@ export function openDollyFactor(closed: Pick<Framing, 'center' | 'distance'>, op
   return hi;
 }
 
+/** 开盖时的镜头：target（看向的点）和距离 */
+export type OpenView = { center: V3; distance: number; /** 是否放宽了 10% 上限 */ extended: boolean };
+
+/**
+ * 开盖时镜头怎么动（#291）：
+ * - 一般情况：target 不动，只沿视线拉远 openDollyFactor（最多 10%），和之前完全一样；开合中途盖子允许稍微出画。
+ * - 如果开盖后静止的姿态（end）在拉远 10% 后仍放不下（例如礼盒竖起来的盒盖），就放宽上限：
+ *   按盖子整条开合弧线（open）重新取景——四边留 1.08 余量、投影居中，只拉远不推近。
+ *   这样只有真正需要的产品才会超过 10%，其它产品的开盖表现不变。
+ */
+export function openFraming(closed: Pick<Framing, 'center' | 'distance'>, openMin: V3, openMax: V3, fovDeg: number, aspect: number, opts: { margin?: number; maxFactor?: number; dir?: V3; points?: V3[]; end?: V3[] } = {}): OpenView {
+  const margin = opts.margin ?? MARGIN, maxFactor = opts.maxFactor ?? OPEN_DOLLY_MAX, dir = opts.dir ?? VIEW_DIR;
+  const k = openDollyFactor(closed, openMin, openMax, fovDeg, aspect, { margin, maxFactor, dir, points: opts.points });
+  const normal: OpenView = { center: closed.center, distance: closed.distance * k, extended: false };
+  if (!opts.end?.length) return normal;
+  const endK = openDollyFactor(closed, openMin, openMax, fovDeg, aspect, { margin, maxFactor: maxFactor * 1.0001, dir, points: opts.end });
+  const e = projectPoints(opts.end, closed.center, closed.distance * endK, fovDeg, aspect, dir);
+  const m = 1 / margin + 1e-6;
+  if (e.x0 >= -m && e.x1 <= m && e.y0 >= -m && e.y1 <= m) return normal;
+  const fit = frameClosedBox(openMin, openMax, fovDeg, aspect, { fill: 1, margin, dir, points: opts.points });
+  if (fit.distance <= closed.distance) return normal;
+  return { center: fit.center, distance: fit.distance, extended: true };
+}
+
 /** 300ms 缓动（ease-in-out cubic），t 为 0…1 */
 export function easeInOut(t: number): number {
   const x = Math.min(1, Math.max(0, t));
@@ -231,28 +255,38 @@ export function hullPoints(points: V3[]): V3[] {
   }
 }
 
-/** 同时采样合盖首帧和开盖过程的顶点（只留凸包顶点）：closed 用于取景，open 用于算开盖拉远 */
-export function sampleAnimatedPoints(root: Object3D, clips: AnimationClip[], samples = 8, max = 60000): { closed: V3[]; open: V3[] } {
+/**
+ * 同时采样合盖首帧、开盖全过程和开盖末帧的顶点（只留凸包顶点）：
+ * closed 用于取景；open（含盖子整条开合弧线）和 end（开盖后静止的姿态）用于算开盖时的镜头（#291）。
+ */
+export function sampleAnimatedPoints(root: Object3D, clips: AnimationClip[], samples = 24, max = 60000): { closed: V3[]; open: V3[]; end: V3[] } {
   const r = sampleAnimatedPointsRaw(root, clips, samples, max);
   const closed = hullPoints(r.closed);
-  return { closed, open: r.open === r.closed ? closed : hullPoints(r.open) };
+  if (r.open === r.closed) return { closed, open: closed, end: closed };
+  return { closed, open: hullPoints(r.open), end: hullPoints(r.end) };
 }
 
-function sampleAnimatedPointsRaw(root: Object3D, clips: AnimationClip[], samples: number, max: number): { closed: V3[]; open: V3[] } {
+function sampleAnimatedPointsRaw(root: Object3D, clips: AnimationClip[], samples: number, max: number): { closed: V3[]; open: V3[]; end: V3[] } {
   const closed = samplePoints(root, max);
-  if (!clips.length) return { closed, open: closed };
+  if (!clips.length) return { closed, open: closed, end: closed };
   const open: V3[] = [];
+  let end: V3[] = [];
   const mixer = new AnimationMixer(root);
   for (const clip of clips) {
     const a = mixer.clipAction(clip);
     a.play();
     a.time = 0; mixer.update(0);
     closed.length = 0; for (const p of samplePoints(root, max)) closed.push(p);
-    for (let i = 1; i <= samples; i++) { a.time = (clip.duration * i) / samples; mixer.update(0); for (const p of hullPoints(samplePoints(root, max))) open.push(p); }
+    for (let i = 1; i <= samples; i++) {
+      a.time = (clip.duration * i) / samples; mixer.update(0);
+      const h = hullPoints(samplePoints(root, max));
+      for (const p of h) open.push(p);
+      if (i === samples) end = h;
+    }
     a.time = 0; mixer.update(0); a.stop(); mixer.uncacheAction(clip);
   }
   mixer.stopAllAction(); mixer.uncacheRoot(root); root.updateMatrixWorld(true);
-  return { closed, open: [...closed, ...open] };
+  return { closed, open: [...closed, ...open], end };
 }
 
 export function boxToTuple(b: Box3): { min: [number, number, number]; max: [number, number, number] } {
