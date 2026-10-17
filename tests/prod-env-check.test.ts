@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { prodEnvProblems, assertProdEnv, storageProblems, RUNTIME_ONLY } from '../prod-env-check';
+import { prodEnvProblems, assertProdEnv, storageProblems, RUNTIME_ONLY, publicSiteHostOk, PUBLIC_SITE_HOST_RE } from '../prod-env-check';
 
 test('非生产环境（CI/预览/本地）不检查', () => {
   assert.deepEqual(prodEnvProblems({ CI: 'true', NODE_ENV: 'production', NEXT_PUBLIC_LOGO_UPLOAD_MOCK: '1' }), []);
@@ -253,6 +253,28 @@ test('build 阶段：NEXT_PUBLIC_SITE_URL 缺失 / 非 https / 本机或回环�
     assert.equal(p.length, 1, `${site}: ${p}`); assert.match(p[0], re, String(site));
     assert.ok(site === undefined || site.length < 9 || !p[0].includes(site), 'value not echoed');
   }
-  for (const site of ['https://packjoyu.com', 'https://www.packjoyu.com/', 'https://localhost-shop.com', 'https://my.localhosting.ru'])
+  for (const site of ['https://packjoyu.com', 'https://www.packjoyu.com', 'https://localhost-shop.com', 'https://my.localhosting.ru', 'https://geiom.com', 'https://a-b.c-d.example'])
     assert.deepEqual(prodEnvProblems({ ...base, NEXT_PUBLIC_SITE_URL: site }, 'build'), [], site);
+});
+
+test('#323 publicSiteHostOk：IP 字面量（v4 / v6 / 带括号 / 十进制 / 十六进制 / 八进制）、userinfo、端口、路径、非规范写法一律拒绝', () => {
+  const bad = [
+    // IPv4（私网、回环、链路本地、未指定）及解析器会规范化成 IPv4 的写法
+    'https://10.0.0.1', 'https://192.168.1.10', 'https://169.254.169.254', 'https://172.16.0.1', 'https://8.8.8.8', 'https://127.0.0.1', 'https://0.0.0.0',
+    'https://2130706433', 'https://0x7f000001', 'https://0x7f.0.0.1', 'https://0177.0.0.1', 'https://017700000001', 'https://127.1', 'https://shop.0x10', 'https://a.123',
+    // IPv6
+    'https://[::1]', 'https://[::]', 'https://[::ffff:127.0.0.1]', 'https://[::ffff:7f00:1]', 'https://[fe80::1]', 'https://[2001:db8::1]',
+    // localhost 及畸形主机名
+    'https://localhost', 'https://localhost..', 'https://localhost.', 'https://app.localhost', 'https://geiom.com.', 'https://geiom..com', 'https://.geiom.com', 'https://geiom_com.ru', 'https://geiom',
+    // userinfo / 端口 / 路径 / 查询 / # / 末尾 / / 大写 / 默认端口 / 空白 / IDN（原值与 origin 不同）
+    'https://u@geiom.com', 'https://u:p@geiom.com', 'https://:@geiom.com', 'https://geiom.com:8443', 'https://geiom.com:443', 'https://geiom.com/', 'https://geiom.com/en',
+    'https://geiom.com?x=1', 'https://geiom.com#x', 'https://GEIOM.com', ' https://geiom.com', 'https://例子.com', 'https://geiom.com\\', 'https://geiom.com%2f',
+    // 非 https / 无效
+    'http://geiom.com', 'https://', 'https://%zz', 'not a url', '',
+  ];
+  for (const s of bad) assert.equal(publicSiteHostOk(s), false, JSON.stringify(s));
+  for (const s of ['https://geiom.com', 'https://www.geiom.com', 'https://packjoyu.example', 'https://xn--fsqu00a.com', 'https://a1.b2.c3', 'https://localhost-shop.com'])
+    assert.equal(publicSiteHostOk(s), true, s);
+  // 正则本身：至少两段，每段只允许小写字母、数字和 -
+  assert.equal(PUBLIC_SITE_HOST_RE.source, '^[a-z0-9-]+(\\.[a-z0-9-]+)+$');
 });

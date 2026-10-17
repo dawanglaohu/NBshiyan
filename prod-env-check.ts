@@ -53,17 +53,29 @@ function publicProblems(env: Record<string, string | undefined>): string[] {
   if (TEST_TURNSTILE_SITE_KEY.test(v('NEXT_PUBLIC_TURNSTILE_SITE_KEY'))) out.push('NEXT_PUBLIC_TURNSTILE_SITE_KEY 是 Cloudflare 测试 site key，生产必须用真实 key');
   const site = v('NEXT_PUBLIC_SITE_URL');
   if (site && !/^https:\/\//.test(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是 https 地址');
-  else if (site && !publicSiteHostOk(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是正式域名（不能是 localhost / 127.0.0.1 / ::1 / 0.0.0.0 / *.localhost，也不能是无效地址）');
+  else if (site && !publicSiteHostOk(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是正式域名的裸 origin（如 https://example.com：不能是 IP / localhost / *.localhost，不带端口、账号密码、路径或末尾 /）');
   return out;
 }
 
-/** 正式站点地址的主机名：不能是本机 / 回环 / 未指定地址（canonical、sitemap、邮件链接都用它，构建时内联） */
+/**
+ * 正式站点地址（canonical、sitemap、邮件链接都用它，构建时内联）。#323 收紧：
+ * - 原值必须正好是裸 origin：`new URL(v).origin === v`（不带路径、查询、#、末尾 /，主机名小写，不带默认端口）；
+ * - 不允许 userinfo、端口；
+ * - 主机名必须匹配 `^[a-z0-9-]+(\.[a-z0-9-]+)+$`（至少两段，不能有空段或末尾的点，所以 localhost、localhost.. 都不行）；
+ * - 一律拒绝 IP 字面量：IPv4（含 URL 解析器会规范化成点分的十进制 / 十六进制 / 八进制写法）、IPv6（含 [::ffff:127.0.0.1]）；
+ * - 拒绝 *.localhost。
+ */
+export const PUBLIC_SITE_HOST_RE = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 export function publicSiteHostOk(site: string): boolean {
-  let host: string;
-  try { host = new URL(site).hostname.toLowerCase().replace(/\.$/, ''); } catch { return false; }
-  if (!host) return false;
+  let u: URL;
+  try { u = new URL(site); } catch { return false; }
+  if (u.protocol !== 'https:' || u.origin === 'null' || u.origin !== site) return false;
+  if (u.username || u.password || u.port) return false;
+  const host = u.hostname;
+  if (host.startsWith('[') || host.includes(':')) return false; // IPv6 字面量
+  if (/^\d+(\.\d+){3}$/.test(host) || /(^|\.)(\d+|0x[0-9a-f]*)$/i.test(host)) return false; // IPv4 字面量（最后一段是数字的主机名会被当成 IPv4 解析）
+  if (!PUBLIC_SITE_HOST_RE.test(host)) return false;
   if (host === 'localhost' || host.endsWith('.localhost')) return false;
-  if (host === '0.0.0.0' || host === '[::1]' || host === '[::]' || /^127(\.\d{1,3}){3}$/.test(host)) return false;
   return true;
 }
 
