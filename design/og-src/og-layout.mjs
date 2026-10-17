@@ -57,11 +57,21 @@ export async function cropPoster(pg, file, { pad = 0.10, threshold = 20 } = {}) 
 }
 
 // <img> absolutely positioned so the product's centre is at (cx, cy) and its size is scaled by s.
+// No feather mask (OG light-edge fix, #319 P3): the tile's padding is the poster's own flat background and the page background is set to
+// that exact colour (productJob / products collage), so a hard tile edge is invisible. Root cause of the old fringe: the tile was feathered
+// with a CSS mask over a page of a different colour (light: #FBF8F2 tile on #FBF8F3). Chromium dithers the mask gradient (+-1 noise) and the
+// JPEG encoder (4:2:0, q88) rings on that noisy band, so a faint lighter frame showed around the tile, most visibly on wide products.
 export function placed(crop, s, cx, cy, extra = '') {
-  const w = crop.cw * s, h = crop.ch * s, f = ((crop.p / crop.cw) * 100 * 0.9).toFixed(2), g = ((crop.p / crop.ch) * 100 * 0.9).toFixed(2);
-  const mask = `linear-gradient(to right,transparent,#000 ${f}%,#000 ${100 - f}%,transparent),linear-gradient(to bottom,transparent,#000 ${g}%,#000 ${100 - g}%,transparent)`;
-  return { html: `<img class="art" src="${crop.url}" style="left:${(cx - w / 2).toFixed(1)}px;top:${(cy - h / 2).toFixed(1)}px;width:${w.toFixed(1)}px;height:${h.toFixed(1)}px;-webkit-mask-image:${mask};-webkit-mask-composite:source-in;mask-image:${mask};mask-composite:intersect;${extra}">`,
+  const w = crop.cw * s, h = crop.ch * s;
+  return { html: `<img class="art" src="${crop.url}" style="left:${(cx - w / 2).toFixed(1)}px;top:${(cy - h / 2).toFixed(1)}px;width:${w.toFixed(1)}px;height:${h.toFixed(1)}px;${extra}">`,
     box: [cx - (crop.pw * s) / 2, cy - (crop.ph * s) / 2, cx + (crop.pw * s) / 2, cy + (crop.ph * s) / 2] };
+}
+
+/** Background shared by all crops (every tile must match the page background exactly, see placed()). */
+export function sharedBg(crops) {
+  const set = [...new Set(crops.map((c) => c.bg))];
+  if (set.length !== 1) throw new Error('posters have different backgrounds: ' + set.join(' / '));
+  return set[0];
 }
 
 // One product, same visual size rule for every category/product image.
@@ -119,6 +129,30 @@ const FIT = () => {
   return { font: parseFloat(getComputedStyle(h).fontSize), lines: L.tops.length, widow: L.tops.length > 1 && L.last === 1, widowFixed, subWidow: P ? P.tops.length > 1 && P.last === 1 : false, lineEnds, ok: inSafe && noWordOverflow, textBox };
 };
 
+// Light-edge guard: along a 6 px band on both sides of every art tile edge, flat background in the final JPEG must be one colour:
+// spread (max - min, per channel) <= SEAM_MAX. "Flat background" = at least 16 px (one 4:2:0 JPEG block) away from anything that isn't background in a lossless PNG of the
+// same page (text, product, soft shadows), so JPEG ringing around glyphs/products doesn't count. The old feathered #FBF8F2 tiles on the #FBF8F3 page measured 3-5.
+export const SEAM_MAX = 2;
+async function seamCheck(pg, jpg, png) {
+  return pg.evaluate(async ({ jpg, png }) => {
+    const bg = getComputedStyle(document.body).backgroundColor.match(/\d+/g).map(Number);
+    const tiles = [...document.querySelectorAll('img.art')].map((e) => e.getBoundingClientRect());
+    const load = async (src) => { const img = new Image(); img.src = src; await img.decode(); const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0); return { d: x.getImageData(0, 0, c.width, c.height).data, w: c.width, h: c.height }; };
+    const J = await load(jpg), P = await load(png);
+    const dev = (I, px, py) => { const i = (py * I.w + px) * 4; return Math.max(Math.abs(I.d[i] - bg[0]), Math.abs(I.d[i + 1] - bg[1]), Math.abs(I.d[i + 2] - bg[2])); };
+    const R = 16, near = (px, py) => { for (let j = -R; j <= R; j++) for (let k = -R; k <= R; k++) { const X = px + k, Y = py + j; if (X >= 0 && Y >= 0 && X < P.w && Y < P.h && dev(P, X, Y) > 2) return true; } return false; };
+    // Spread (max - min per channel) of flat background across the band: a fringe is a step between tile interior, tile rim and page.
+    const lo = [255, 255, 255], hi = [0, 0, 0]; let n = 0, at = null;
+    const probe = (px, py) => { if (px < 0 || py < 0 || px >= J.w || py >= J.h - 12 || near(px, py)) return; n++; const i = (py * J.w + px) * 4;
+      for (let ch = 0; ch < 3; ch++) { const v = J.d[i + ch]; if (v < lo[ch]) lo[ch] = v; if (v > hi[ch]) { hi[ch] = v; at = [px, py]; } } };
+    for (const r of tiles) for (let k = -6; k <= 6; k++) {
+      for (let px = Math.round(r.left); px <= Math.round(r.right); px += 2) { probe(px, Math.round(r.top) + k); probe(px, Math.round(r.bottom) + k); }
+      for (let py = Math.round(r.top); py <= Math.round(r.bottom); py += 2) { probe(Math.round(r.left) + k, py); probe(Math.round(r.right) + k, py); }
+    }
+    return [n ? Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) : 0, at, n];
+  }, { jpg: 'data:image/jpeg;base64,' + jpg.toString('base64'), png: 'data:image/png;base64,' + png.toString('base64') });
+}
+
 export async function renderJobs(R, jobs) {
   const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: W, height: H } }); const out = [];
   for (const j of jobs) {
@@ -130,12 +164,14 @@ export async function renderJobs(R, jobs) {
     const clear = boxes.every((bx) => bx[0] >= m.textBox[2] + 16 && bx[0] >= 0 && bx[1] >= 0 && bx[2] <= W && bx[3] <= H - 10);
     const shortEnd = m.lineEnds.filter((w) => /^[свикоуа]$/iu.test(w));
     let q = 88, buf; do { buf = await pg.screenshot({ type: 'jpeg', quality: q }); q -= 6; } while (buf.length > 100 * 1024 && q > 40);
+    const [seam, seamAt, seamN] = j.art ? await seamCheck(pg, buf, await pg.screenshot({ type: 'png' })) : [0, null, 0];
+    if (process.env.OG_SEAM_DEBUG && j.art) console.log('seam', j.file, seam, seamAt, seamN);
     fs.writeFileSync(`${R}/public/og/${j.file}`, buf);
-    out.push({ file: j.file, title: j.title, kb: +(buf.length / 1024).toFixed(1), q: q + 6, ok: m.ok, font: m.font, lines: m.lines, widow: m.widow, widowFixed: m.widowFixed, subWidow: m.subWidow, badLineEnd: shortEnd, artClear: clear, art: j.artInfo || '', manrope: fam });
+    out.push({ file: j.file, title: j.title, kb: +(buf.length / 1024).toFixed(1), q: q + 6, ok: m.ok, font: m.font, lines: m.lines, widow: m.widow, widowFixed: m.widowFixed, subWidow: m.subWidow, badLineEnd: shortEnd, artClear: clear, seam, art: j.artInfo || '', manrope: fam });
   }
   await b.close();
   for (const o of out) console.log(Object.values(o).map((v) => (Array.isArray(v) ? v.join('/') || '-' : v)).join(' | '));
-  const bad = out.filter((o) => !o.ok || !o.artClear || o.badLineEnd.length || !o.manrope);
+  const bad = out.filter((o) => !o.ok || !o.artClear || o.badLineEnd.length || !o.manrope || o.seam > SEAM_MAX);
   if (bad.length) { console.error('CHECK FAILED: ' + bad.map((o) => o.file).join(', ')); process.exitCode = 1; }
   return out;
 }
