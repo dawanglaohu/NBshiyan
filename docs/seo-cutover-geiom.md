@@ -97,21 +97,24 @@ for p in /en /ru /en/products /ru/products /en/contact; do echo "== $p"
   curl -sI $S/en | grep -i '^link:' | grep -ci hreflang   # 应为 0
   ```
 
-**转发头（nginx → 容器）**
+**转发头（nginx → 容器）——已批准**
 
-运维当前配置：
+安全已批准运维的新版 nginx，上线用的就是这一版。头部一律在 nginx 里用 `proxy_set_header` 显式设置，不透传客户端发来的值：
 
 ```nginx
-proxy_set_header Host $host;
-proxy_set_header X-Forwarded-Host $host;
-proxy_set_header X-Forwarded-Proto https;   # 固定值，不取客户端的
+proxy_set_header Host geiom.com;              # 固定值
+proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+proxy_set_header X-Forwarded-Proto https;     # 固定值
+proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+proxy_set_header X-Real-IP "";                # 清空
+proxy_set_header X-Edge-Auth <由 nginx 注入，值不写在这里>;
+proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;  # 只在下面 444 规则保留时可信
 ```
 
-- Host / SNI 不是 `geiom.com` 的请求，443 server 直接返回 **421**，所以 `$host` 只会是 `geiom.com`。
-- `X-Forwarded-For` **不能**用 `$proxy_add_x_forwarded_for`（它会把客户端自己带的值拼进去）。
-- `CF-Connecting-IP` 和 `X-Edge-Auth` 在 nginx 里用 `proxy_set_header` **显式设置**，只信 Cloudflare 来的值。前提是「非 Cloudflare 来源 → 444」这条规则一直保留，不能删。客户端自己发的同名头绝不能进到容器里。少了这两个头，所有请求都会落进不可信、最严的限流桶。
-- `X-Edge-Auth` 的值不能出现在日志、仓库和聊天里。
-- **具体写法以运维答复为准，安全在 nginx diff 中核对。** 本文不写任何密钥值或源站 IP。
+- 443 的 `geiom.com` server 用精确的 `server_name geiom.com`，Host 不对直接返回 **421**。canonical、hreflang、Location 都不会被伪造的 Host 污染。
+- `X-Edge-Auth` 由 nginx 注入，会覆盖客户端自己带的同名头。它的值不能出现在日志、仓库和聊天里。
+- `CF-Connecting-IP` 只有在「非 Cloudflare 来源 → 444」这条规则保留时才可信，这条规则**不能删**。
+- **以最终 `nginx -t` 通过的文件为准。** 本文不写任何密钥值或源站 IP。
 - 上线后自检：
   ```bash
   curl -sI $S/en | grep -ci localhost   # 应为 0，任何响应头里都不能有 localhost
@@ -136,6 +139,7 @@ curl -sI $S/en/products/ | grep -iE '^(HTTP|location)'            # 308 → /en/
   ```nginx
   proxy_redirect ~^https?://(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:\d+)?(/.*)$ $3;
   ```
+  注意：路径分组 `(/.*)` 必须是**必选**的，不能写成可选。否则 `http://localhost:3000` 会被改写成空的 Location。
   验收：`curl -sI https://geiom.com/` 的 Location 是 `/en` 或 `https://geiom.com/en`，且没有任何响应头含 localhost。
 
 ### 2.6 404
@@ -297,6 +301,6 @@ location ^~ /api/health/ { return 404; }
 
 ## 待确认
 
-- nginx 转发头（`Host`、`X-Forwarded-*`、`CF-Connecting-IP`、`X-Edge-Auth`）的最终写法以运维答复为准，安全在 nginx diff 中核对（第 2.4 节）。
+无。
 
-已定、不再待确认：www / http 301 由 nginx 做（第 0、2.5 节）；`/api/health` 对外 404（第 2.8 节）；`Link` 响应头已用 `alternateLinks: false` 关掉（第 2.4 节）；GSC / Yandex TXT 由 Ryan 取值、私信运维、和 `_dmarc` 同批添加（第 4 节）。
+已定：www / http 301 由 nginx 做（第 0、2.5 节）；转发头按安全批准的新版 nginx（第 2.4 节，以最终 `nginx -t` 的文件为准）；`/api/health` 对外 404（第 2.8 节）；`Link` 响应头已用 `alternateLinks: false` 关掉（第 2.4 节）；GSC / Yandex TXT 由 Ryan 取值、私信运维、和 `_dmarc` 同批添加（第 4 节）。
