@@ -81,6 +81,8 @@
 
 /* #291 UX 细节：空状态灰字；禁用的下拉框看得出是禁用的；回复区两个按钮一组（次要在左、主要在右） */
 .adm-empty-note{color:var(--ink-2);margin:0;font-size:13px}
+/* #74：邮件开关关闭时替代回复区的一行灰色小字 */
+.adm-mail-off{color:var(--ink-2);font-size:13px;margin:0 0 16px}
 .adm select:disabled{background:var(--neutral-bg);color:var(--ink-2);border-color:var(--line);cursor:not-allowed;opacity:1}
 .adm-reply-actions{display:flex;gap:8px;margin-left:auto;align-items:center}
 /* #291 手机版（<768px）：侧栏改抽屉；询盘详情右栏堆到正文下方；列表行改成卡片，不横向滚动 */

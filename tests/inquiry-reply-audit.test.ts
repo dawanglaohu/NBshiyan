@@ -43,6 +43,8 @@ before(async () => {
   console.info = (...a: unknown[]) => { if (a[0] === '[mail:dev]') mailsSent++; else origInfo(...a); };
 });
 beforeEach(() => {
+  // 旧回信接口受发信开关控制（NEXT_PUBLIC_ADMIN_MAIL=http）；这里测开关打开时的原有行为
+  process.env.NEXT_PUBLIC_ADMIN_MAIL = 'http';
   for (const k of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS']) delete process.env[k];
   messages = []; mailsSent = 0; audits = [];
   inq = { id: INQ, status: 'NEW', assigneeId: null, anonymizedAt: null, retainUntil: new Date(Date.now() + 10 * DAY), replyToken: 'tok', ref: 'PJ-1', contact: { email: 'anna@example.com' } };
@@ -80,4 +82,27 @@ test('normal reply → 201, only inquiry.reply audit', async () => {
   const r = await reply.POST(req('/reply', 'POST', { subject: 'Hi', body: 'x' }), P);
   assert.equal(r.status, 201);
   assert.deepEqual(audits.map((x) => x.action), ['inquiry.reply']);
+});
+
+test('mail switch off → 404 not_found before auth; no mail, no DB write, no audit', async () => {
+  for (const v of [undefined, '', 'mock', 'off']) {
+    if (v === undefined) delete process.env.NEXT_PUBLIC_ADMIN_MAIL; else process.env.NEXT_PUBLIC_ADMIN_MAIL = v;
+    messages = []; mailsSent = 0; audits = [];
+    const before = JSON.stringify(inq);
+    let dbTouched = 0;
+    const orig = { ff: inquiryModel.findFirst, um: inquiryModel.updateMany };
+    inquiryModel.findFirst = async () => { dbTouched++; return orig.ff(); };
+    inquiryModel.updateMany = async (a) => { dbTouched++; return orig.um(a); };
+    try {
+      const r = await reply.POST(req('/reply', 'POST', { subject: 'Hi', body: 'x' }), P);
+      assert.equal(r.status, 404, String(v));
+      assert.deepEqual(await r.json(), { error: 'not_found' });
+      assert.equal(mailsSent, 0); assert.equal(messages.length, 0); assert.equal(audits.length, 0); assert.equal(dbTouched, 0);
+      assert.equal(JSON.stringify(inq), before);
+    } finally { inquiryModel.findFirst = orig.ff; inquiryModel.updateMany = orig.um; }
+  }
+  // 没登录也一样是 404（开关在鉴权之前）
+  delete process.env.NEXT_PUBLIC_ADMIN_MAIL;
+  const g = globalThis as { __testSession?: unknown }; const sess = g.__testSession; g.__testSession = null;
+  try { assert.equal((await reply.POST(req('/reply', 'POST', {}), P)).status, 404); } finally { g.__testSession = sess; }
 });

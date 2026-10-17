@@ -21,7 +21,7 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
-  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 23); // deploy-readiness：STORAGE_DRIVER 未设置只报一条（不再连带 4 个 R2_*）；#74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 24); // APP_ORIGIN 生产必填；deploy-readiness：STORAGE_DRIVER 未设置只报一条（不再连带 4 个 R2_*）；#74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）
   assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
 });
 
@@ -35,7 +35,7 @@ const prodFull = {
   TURNSTILE_SECRET_KEY: '0x4AAAAAAArealSecretKey', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey',
   SMTP_HOST: 'smtp.example.test', SMTP_PORT: '587', SMTP_USER: 'u@example.test', SMTP_PASS: SECRET, MAIL_FROM: 'a@b.com', INQUIRY_NOTIFY_EMAIL: 'c@d.com',
   MAIL_SEND_ADAPTER: 'smtp', MAIL_WEBHOOK_SECRET: SECRET,
-  NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', ADMIN_SEED_TOTP_SECRET: '', EDGE_AUTH_SECRET: SECRET,
+  NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', APP_ORIGIN: 'https://packjoyu.com', ADMIN_SEED_TOTP_SECRET: '', EDGE_AUTH_SECRET: SECRET,
 };
 
 test('#74 完整生产配置通过', () => {
