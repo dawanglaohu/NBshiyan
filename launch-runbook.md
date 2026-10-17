@@ -4,7 +4,13 @@
 
 ## 1. 部署顺序（硬性）
 
-1. **先** 对生产库执行 `prisma db push`，**再** 部署代码。顺序反过来的话，新代码读不到新列（例如登录缺 `User.lastLoginAt` 会报 Prisma P2022）。
+1. **先** 对生产库执行 `prisma db push`，**再** 部署代码。顺序反过来的话，新代码读不到新列（例如登录缺 `User.lastLoginAt` 会报 Prisma P2022）。首次部署和之后每次部署都按下面的顺序做，只在服务器上 `tools` profile 的一次性 migrate 容器里运行，不在 app 容器里跑：
+   1. **备份**：部署前先备份生产库。
+   2. **生成变更 SQL**：`prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script`（只读，不写库）。输出里只要出现 `DROP`、`ALTER … TYPE`、`RENAME` 或 `SET NOT NULL`，**立即停下**，等安全评审。
+   3. **执行**：`prisma db push`，**不加** `--accept-data-loss`。
+   4. **漂移检查**：同一条 diff 命令加 `--exit-code` 再跑一次，退出码必须是 0（无差异；2 = 有差异，1 = 出错）。不是 0 就不启动 app。
+   - `DATABASE_URL` 只从 `env_file` 注入（schema 里是 `env("DATABASE_URL")`），不写进命令参数，也不出现在任何输出、日志里。
+   - **不要**单独执行 `prisma/sql/74-mail-backend.sql`：它只是 #74 的 schema diff，供评审核对，`db push` 已经包含这些表。
 2. 生产库的 `db push` **只能是新增（additive-only）**：只加可为空的列、新表、新枚举、新索引。
    - 仓库用 `db push`，没有 migrations 目录。只能 Ryan 本人或部署流水线连生产库，其他人一律不连。
    - 执行前先看清 `db push` 打印的变更列表。出现任何删除列/表、改类型、加 NOT NULL 无默认值的提示，**立即停下**，不要加 `--accept-data-loss`，单独评审。
@@ -168,7 +174,7 @@ docker compose exec app node scripts/admin-create.mjs --email <管理员邮箱> 
 
 收到客户的删除请求时，除了后台 `POST /api/admin/privacy/delete`（数据库记录立即删除或匿名化）之外，还要做：
 1. **通知收件箱**：在 `INQUIRY_NOTIFY_EMAIL` 指向的收件箱里，按客户邮箱（和询盘编号 PJ-…）搜索，删除所有匹配的询盘通知邮件和往来邮件，并清空“已删除”文件夹。**必须在收到请求后 30 天内完成**（隐私页已承诺）。完成后在内部记录里写日期和处理人，不写客户邮箱明文。
-2. **Resend 日志**：Resend 后台保存的发信记录按 Resend 自己的保留期限过期，我们不手动删除；隐私页写的是“按服务商各自的保留期限删除”。
+2. **发信 Gmail 的“已发送邮件”**：#315 起发信走 Gmail SMTP，不再用 Resend，所以没有 Resend 后台日志要处理。经 Gmail SMTP 发出的信会存进发信账号的“已发送邮件”。收到删除请求后 30 天内，在发信账号的“已发送邮件”里按客户邮箱搜索，手动删除所有匹配的邮件，再到“已删除邮件”里把它们永久删除（不永久删除的话，Gmail 还会再保留 30 天）。只在客户提出删除请求时做，不做定期清理。
 3. 其他服务商日志（Vercel 请求日志等）同样按服务商保留期限处理。
 
 ## 8. 安全规则（长期有效）
