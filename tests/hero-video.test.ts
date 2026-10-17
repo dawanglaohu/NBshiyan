@@ -63,7 +63,7 @@ test('component markup: poster is high-priority img, video muted/playsInline/pre
   assert.match(css, /max-width:767px\)\{[^@]*\.hero-media\{aspect-ratio:4\/5\}\}/);
   assert.doesNotMatch(css, /object-position:10% 50%/);
   assert.match(css, /prefers-reduced-motion:reduce\)\{\.hero-media-video\{transition:none/);
-  assert.match(css, /\.hero-media-btn:focus-visible\{outline:2px solid #fff;outline-offset:3px/);
+  assert.match(css, /\.hero-media-btn:focus-visible\{outline:2px solid var\(--ink\);outline-offset:2px;box-shadow:0 0 0 2px #fff/);
   assert.match(css, /\.hero-media-btn\{[^}]*min-width:44px;min-height:44px/);
 });
 

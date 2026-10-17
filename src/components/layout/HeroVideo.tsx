@@ -11,7 +11,6 @@ import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, when
 
 export const PORTRAIT_MQ = '(max-width: 767px)';
 const DESKTOP_MQ = '(min-width: 768px)';
-const POSTER_SIZES = '1280px';
 
 type Labels = { brand: ReactNode; tagline: string; poster: string; skip: string; play: string; pause: string };
 
@@ -54,18 +53,19 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
 
   const active = state !== 'poster';
   // 桌面封面仍走 next/image 优化；竖版封面直接用 3D 产出的 AVIF/WebP（已是 1080x1350 小文件）
-  // #291 LCP：封面原始尺寸必须不小于视频（1280×720），否则 Chrome 会把 <video> 首帧当成更大的 LCP 候选。
-  // 所以 sizes 按封面原图宽度 1280px 写（srcset 选 w=1920 条目，优化器不放大，实际返回 1280 宽）；竖版封面与竖版视频同为 1080×1350
+  // #291 LCP：Chrome 把 <video> 首帧也算作 LCP 候选；视频和封面面积一样时，视频会因为取整（768 下 56292 vs 56225 px²）胜出，
+  // 抢走 LCP。所以 CSS 里让视频缩到 99%（.hero-media-video transform:scale(.99)），略小于封面；边缘是纯背景色，看不出来。
+  // 改 sizes 让封面原图更大试过，对 768 没帮助还多花流量，所以 sizes 保持 50vw
   const { props: { srcSet: desktopSrcSet, ...posterImg } } = getImageProps({
     className: 'hero-media-poster', src: '/video/hero-115-poster.59e587a1.webp', alt: labels.poster,
-    fill: true, priority: true, sizes: POSTER_SIZES,
+    fill: true, priority: true, sizes: '50vw',
   });
   return (
     <div className="hero-media" data-state={state}>
       <picture>
         <source media={PORTRAIT_MQ} type="image/avif" srcSet="/video/hero-115-portrait-poster.avif" />
         <source media={PORTRAIT_MQ} type="image/webp" srcSet="/video/hero-115-portrait-poster.webp" />
-        <source media={DESKTOP_MQ} srcSet={desktopSrcSet} sizes={POSTER_SIZES} />
+        <source media={DESKTOP_MQ} srcSet={desktopSrcSet} sizes="50vw" />
         {/* eslint-disable-next-line jsx-a11y/alt-text -- alt 来自 getImageProps */}
         <img {...posterImg} srcSet={desktopSrcSet} />
       </picture>
