@@ -54,10 +54,10 @@ async function main() {
   const args = parseArgs(process.argv.slice(2), process.env);
   if (args.error) fail(args.error);
   if (args.help) { console.log(USAGE); return; }
-  if (!process.env.DATABASE_URL) fail('no_database');
-
+  // #323：生产环境下 ADMIN_CREATE_PASSWORD 非空直接拒绝，先于 TTY 判断，也先于连库检查
   const src = passwordSource({ isTTY: !!process.stdin.isTTY, envPassword, production: isProductionEnv(process.env) });
   if (src === 'env_refused') fail('env_refused');
+  if (!process.env.DATABASE_URL) fail('no_database');
   let password;
   if (src === 'tty') {
     password = await readHidden('新管理员密码（不回显）：');

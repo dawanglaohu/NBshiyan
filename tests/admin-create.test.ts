@@ -41,7 +41,12 @@ test('密码来源：有 TTY → 终端；无 TTY → 环境变量，否则标�
   // 生产：环境变量路径拒绝（docker inspect 可见），终端和标准输入照常
   assert.equal(passwordSource({ isTTY: false, envPassword: PW, production: true }), 'env_refused');
   assert.equal(passwordSource({ isTTY: false, envPassword: '', production: true }), 'stdin');
-  assert.equal(passwordSource({ isTTY: true, envPassword: PW, production: true }), 'tty');
+  // #323：生产环境只要 ADMIN_CREATE_PASSWORD 非空就拒绝，先于 TTY 判断（以前有终端时静默忽略）
+  assert.equal(passwordSource({ isTTY: true, envPassword: PW, production: true }), 'env_refused');
+  assert.equal(passwordSource({ isTTY: true, envPassword: ' ', production: true }), 'env_refused');
+  assert.equal(passwordSource({ isTTY: true, envPassword: '', production: true }), 'tty');
+  assert.equal(passwordSource({ isTTY: true, envPassword: undefined, production: true }), 'tty');
+  assert.equal(passwordSource({ isTTY: true, envPassword: PW, production: false }), 'tty');
   assert.ok(isProductionEnv({ APP_ENV: 'production' })); assert.ok(!isProductionEnv({ NODE_ENV: 'production' }));
   const env: Record<string, string | undefined> = { ADMIN_CREATE_PASSWORD: PW, OTHER: '1' };
   assert.equal(takeEnvPassword(env), PW);
@@ -83,6 +88,9 @@ test('CLI：生产环境下 ADMIN_CREATE_PASSWORD 被拒绝 → 退出 1，不�
   assert.equal(r.code, 1); assert.match(r.out, /不接受 ADMIN_CREATE_PASSWORD/); assert.ok(!r.out.includes(PW));
   const r2 = run(['--email', 'a@example.com'], { APP_ENV: 'production', DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x' }, `${PW}\n`);
   assert.equal(r2.code, 1); assert.match(r2.out, /数据库操作失败/); assert.ok(!r2.out.includes(PW)); // 走到了连库这一步
+  // #323：没有 DATABASE_URL 时也先报 env_refused（先于其他任何检查）
+  const r3 = run(['--email', 'a@example.com'], { APP_ENV: 'production', ADMIN_CREATE_PASSWORD: PW });
+  assert.equal(r3.code, 1); assert.match(r3.out, /不接受 ADMIN_CREATE_PASSWORD/); assert.ok(!r3.out.includes(PW));
 });
 
 test('CLI：数据库不可达 → 退出 1，只给错误类型，不输出密码或连接串', () => {
