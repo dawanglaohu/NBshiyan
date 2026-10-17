@@ -11,7 +11,7 @@
 #     next.config.ts bakes `X-Robots-Tag: noindex` into routes-manifest unless APP_ENV=production, and
 #     canonical/hreflang/sitemap use NEXT_PUBLIC_SITE_URL. The same values are set again at runtime (env file).
 #   * Base image pinned by tag AND digest; the CI/ops script fails if the digest does not match.
-#   * Requires the backend PR fix/deploy-readiness (output: 'standalone', public-only build checks,
+#   * Requires the backend PR #321 fix/deploy-readiness (checked against bad9379: output: 'standalone', public-only build checks,
 #     src/instrumentation.ts startup check, /api/health, STORAGE_DRIVER=local). Before it is merged
 #     the COPY of .next/standalone below fails, so this Dockerfile cannot build an older commit by accident.
 #   * Schema: 由 db push 应用（不加 --accept-data-loss），由 deploy/deploy.sh 用 migrate 镜像执行，构建期不连任何数据库。
@@ -111,7 +111,8 @@ LABEL org.opencontainers.image.source="https://github.com/dawanglaohu/NBshiyan" 
       com.nbshiyan.component="app"
 USER 1001:1001
 EXPOSE 3000
-# /api/health returns only {"ok":true}; in-container use only (nginx returns 404 for it externally). No fallback.
+# /api/health (PR #321): 200 {"ok":true} only if the DB answers SELECT 1 within 1.5 s, else 503 {"ok":false}; 429 above
+# 120/min per client (in-process limiter). In-container use only: nginx returns 404 for it externally. No fallback.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 ENTRYPOINT ["/usr/bin/tini", "--"]

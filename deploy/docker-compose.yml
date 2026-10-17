@@ -52,8 +52,9 @@ services:
     cpus: 1.5
     pids_limit: 256
     healthcheck:
-      # /api/health returns only {"ok":true}; for this in-container check only. nginx must NOT proxy it (shares the
-      # 120/min rate-limit bucket): the site config returns 404 for it. No fallback.
+      # /api/health: 200 {"ok":true} only when postgres answers SELECT 1 (1.5 s timeout), else 503 {"ok":false}; own
+      # in-process limit 120/min per client. For this in-container check only: it runs a DB query per (coalesced) request,
+      # so nginx must NOT proxy it; the site config returns 404 for it. No fallback.
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s

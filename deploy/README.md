@@ -66,13 +66,23 @@ $DC exec -it app node scripts/admin-create.mjs --email <admin email>
 # equivalent one-off container (does not publish ports):
 $DC run --rm -it --no-deps app node scripts/admin-create.mjs --email <admin email>
 ```
+Options (#321): `--name <display name>`, plus `--allow-additional-admin`, needed for any admin after the first (otherwise it
+refuses with `admin_exists`). Any flag that looks like a password (`--password`, `-p`, …) is refused. With no TTY the
+script reads the first line of stdin. With `APP_ENV=production`, `ADMIN_CREATE_PASSWORD` is refused.
 `pnpm admin:seed` (the old create-admin with the `PROD_DATABASE_HOST` guard) is CI/local only: never run seed on the server. After creating the
 account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
 
 ## Health endpoint
-`/api/health` (`{"ok":true}`) is for the container healthcheck only. The public nginx site returns `404` for it,
-because it shares the 120/min rate-limit bucket. There is **no** `/robots.txt` fallback any more: the image requires
-fix/deploy-readiness, and `deploy.sh` treats a body other than `{"ok":true}` as a failed deploy (rollback). After the DNS cutover, check that `/api/health`, `/api/health?x=1`, `/api/health/` and `/api/health/x` all return 404, while `/api/healthz` and other `/api/*` still reach the app (nginx: `location = /api/health` + `location ^~ /api/health/`).
+`/api/health` (PR #321) returns:
+- `200 {"ok":true}` only when the DB answers `SELECT 1` within 1.5 s;
+- `503 {"ok":false}` otherwise;
+- `429` above 120 requests/min per client. This is its own in-process limiter, not Redis.
+
+It never returns a version or config. It is for the container healthcheck only, and it runs a DB query, so the public
+nginx site returns `404` for `/api/health` and `/api/health/…`. There is **no** `/robots.txt` fallback: the image requires
+#321, and `deploy.sh` treats any body other than `{"ok":true}` as a failed deploy, which triggers a rollback. After the
+DNS cutover, check that `/api/health`, `/api/health?x=1`, `/api/health/` and `/api/health/x` all return 404, while
+`/api/healthz` and other `/api/*` still reach the app (nginx: `location = /api/health` + `location ^~ /api/health/`).
 
 ## Review notes
 - **Never run `docker compose config` for this project.** It prints the resolved `env_file` values, which are secrets.

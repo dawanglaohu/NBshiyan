@@ -85,6 +85,18 @@ fi
 grep -q "^NEXT_PUBLIC_ADMIN_MAIL=mock" "$BUILD_ARGS_FILE" 2>/dev/null && die "NEXT_PUBLIC_ADMIN_MAIL=mock is not allowed"  # admin_mail_mock
 grep -q '^APP_ENV=production$' "$BUILD_ARGS_FILE" 2>/dev/null || BARGS+=(--build-arg APP_ENV=production)
 grep -q '^NEXT_PUBLIC_SITE_URL=' "$BUILD_ARGS_FILE" 2>/dev/null || BARGS+=(--build-arg NEXT_PUBLIC_SITE_URL=https://geiom.com)
+# Fail early on what prod-env-check's BUILD phase (fix/deploy-readiness) would reject anyway, after a long build:
+barg() { sed -n "s/^$1=//p" "$BUILD_ARGS_FILE" 2>/dev/null | tail -n 1 | sed -e 's/^"//' -e 's/"$//'; }
+site=$(barg NEXT_PUBLIC_SITE_URL); site=${site:-https://geiom.com}
+[[ "$site" =~ ^https://[^/]+ ]] || die "NEXT_PUBLIC_SITE_URL must be https"
+host=$(sed -E 's#^https://(\[[^]]*\]|[^/:]+).*#\1#' <<<"$site" | tr '[:upper:]' '[:lower:]'); host=${host%.}
+[[ "$host" =~ ^(localhost|.*\.localhost|0\.0\.0\.0|\[::1?\]|127(\.[0-9]{1,3}){3})$ ]] && die "NEXT_PUBLIC_SITE_URL must be the public domain, not a local/loopback host"
+tsk=$(barg NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+[ -n "$tsk" ] || die "NEXT_PUBLIC_TURNSTILE_SITE_KEY missing in build-args.env (public; required by the build check)"
+[[ "$tsk" =~ ^[123]x0{20,}[A-Z]{2}$ ]] && die "NEXT_PUBLIC_TURNSTILE_SITE_KEY is the Cloudflare test key"
+aapi=$(barg NEXT_PUBLIC_ADMIN_API); [ -z "$aapi" ] || [ "$aapi" = http ] || die "NEXT_PUBLIC_ADMIN_API must be http"
+env | grep -qE '^NEXT_PUBLIC_[A-Z_]*_MOCK=' && die "a NEXT_PUBLIC_*_MOCK variable is set in this shell"
+grep -qiE '^NEXT_PUBLIC_[A-Z_]*_MOCK=' "$BUILD_ARGS_FILE" 2>/dev/null && die "mock switches are not allowed in build-args.env"
 
 # ---------- 4. dedicated, memory-capped builder ----------
 if ! docker buildx inspect "$BUILDER" >/dev/null 2>&1; then
@@ -109,7 +121,7 @@ log "build time: $(( $(date +%s) - t0 ))s"
 # ---------- 6. leak checks (print counts only) ----------
 leak=0
 # Secret variable names (values must never be in an image). RESEND_API_KEY kept on purpose (obsolete since #315, must stay absent).
-SECRET_KEYS_RE='DATABASE_URL|AUTH_SECRET|ADMIN_TOTP_KEY|PRIVACY_HASH_SECRET|CRON_SECRET|MIDDLEWARE_PROBE_SECRET|EDGE_AUTH_SECRET|UPSTASH_REDIS_REST_TOKEN|SRH_TOKEN|SMTP_USER|SMTP_PASS|MAIL_WEBHOOK_SECRET|RESEND_API_KEY|R2_ACCESS_KEY_ID|R2_SECRET_ACCESS_KEY|TURNSTILE_SECRET_KEY|SANITY_API_READ_TOKEN|SANITY_WEBHOOK_SECRET|POSTGRES_PASSWORD|requirepass|[A-Z_]*(SECRET|TOKEN|PASSWORD)'
+SECRET_KEYS_RE='DATABASE_URL|AUTH_SECRET|ADMIN_TOTP_KEY|PRIVACY_HASH_SECRET|CRON_SECRET|MIDDLEWARE_PROBE_SECRET|EDGE_AUTH_SECRET|UPSTASH_REDIS_REST_TOKEN|SRH_TOKEN|SMTP_USER|SMTP_PASS|MAIL_WEBHOOK_SECRET|RESEND_API_KEY|R2_ACCESS_KEY_ID|R2_SECRET_ACCESS_KEY|TURNSTILE_SECRET_KEY|SANITY_API_READ_TOKEN|SANITY_REVALIDATE_SECRET|POSTGRES_PASSWORD|requirepass|[A-Z_]*(SECRET|TOKEN|PASSWORD)'
 for img in "nbshiyan-app:$SHORT" "nbshiyan-migrate:$SHORT"; do
   # 6a. image config env: only expected non-secret keys
   bad=$(docker image inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$img" | cut -d= -f1 | grep -vxE 'PATH|NODE_VERSION|YARN_VERSION|NEXT_TELEMETRY_DISABLED|PNPM_HOME|CI|NODE_ENV|HOME|PORT|HOSTNAME|UPLOAD_DIR|CHECKPOINT_DISABLE|PRISMA_HIDE_UPDATE_MESSAGE' || true)
