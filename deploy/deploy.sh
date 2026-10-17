@@ -35,6 +35,11 @@ env_prod_ok() {
       log "FAIL $k must be exactly 'production' (once) in the app env file"; return 1
     fi
   done
+  # APP_ORIGIN: standalone sees its own URL as http://0.0.0.0:3000, so admin same-origin checks (assertSameOrigin)
+  # reject every real POST with 403 unless APP_ORIGIN is the public origin.
+  if [ "$(grep -c '^APP_ORIGIN=' "$ENVF" || true)" != 1 ] || ! grep -qx 'APP_ORIGIN=https://geiom.com' "$ENVF"; then
+    log "FAIL APP_ORIGIN must be exactly 'https://geiom.com' (once) in the app env file"; return 1
+  fi
 }
 
 # Startup check must really fail closed (full-stack: exactly `run --rm --no-deps -e SMTP_PORT=25 app node server.js` on the
@@ -147,7 +152,7 @@ promote() {
 case "${1:-}" in
   up)
     [ -f "$ENVF" ] && [ "$(stat -c %a "$ENVF")" = 600 ] || die "app env file missing or not 600"
-    env_prod_ok || die "APP_ENV / NODE_ENV not production in the app env file (startup check would be skipped)"
+    env_prod_ok || die "APP_ENV / NODE_ENV not production, or APP_ORIGIN not https://geiom.com, in the app env file"
     edge_match || die "EDGE_AUTH_SECRET in env file does not match the include (hash compare)"
     docker image inspect nbshiyan-app:candidate >/dev/null || die "no candidate image; run build-on-server.sh"
     sha_ok "$(cat "$D/.candidate-sha" 2>/dev/null)" || die ".candidate-sha is not a 40-hex git sha"

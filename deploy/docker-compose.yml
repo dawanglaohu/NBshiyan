@@ -31,6 +31,7 @@ services:
       - ${NBSHIYAN_APP_ENV_FILE:?NBSHIYAN_APP_ENV_FILE is required}
     environment:
       NODE_ENV: production
+      APP_ORIGIN: https://geiom.com                  # admin same-origin check behind nginx (also forced in env file)
       APP_ENV: production                            # also required in the env file (deploy.sh checks); without it the startup check is skipped
       NODE_OPTIONS: --max-old-space-size=512
       STORAGE_DRIVER: local                          # Ryan's decision: local storage (fix/deploy-readiness allows it)
