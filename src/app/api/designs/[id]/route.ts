@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { lookupDesign, canonicalFor, designStatus, isDbUnavailable, errorSummary } from '@/lib/server/designs';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
-import { clientIp, hitRateLimit, tooManyRequests } from '@/lib/server/security';
+import { clientIp, hitRateLimit, rateLimitSubject, tooManyRequests } from '@/lib/server/security';
 import { probeClientIp } from '@/lib/server/probe';
 
 export const runtime = 'nodejs';
@@ -11,7 +11,7 @@ const NO_INDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'privat
 /** 公开读取方案：200 / 过期 410（带分类落地页链接）/ 不存在 404。按 IP 限流，降低枚举价值。 */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ip = clientIp(req);
-  const ok = ip ? await hitRateLimit(`design-get:${ip}`, 300) : await hitRateLimit('design-get:noip:all', 3000);
+  const ok = await hitRateLimit(`design-get:${rateLimitSubject(ip)}`, 300);
   if (!ok) return tooManyRequests(600);
   const { id } = await params;
   const r = await lookupDesign(id);
@@ -30,7 +30,7 @@ export async function HEAD(req: Request, { params }: { params: Promise<{ id: str
   const probeIp = probeClientIp(req);
   const ip = clientIp(req);
   const ok = probeIp ? await hitRateLimit(`design-head:probe:${probeIp}`, 600)
-    : ip ? await hitRateLimit(`design-head:${ip}`, 600) : await hitRateLimit('design-head:noip', 6000);
+    : await hitRateLimit(`design-head:${rateLimitSubject(ip)}`, 600);
   if (!ok) return new Response(null, { status: 429, headers: { 'Retry-After': '600', 'Cache-Control': 'no-store' } });
   const { id } = await params;
   let st: Awaited<ReturnType<typeof designStatus>>;
