@@ -67,3 +67,10 @@ Then log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` i
   store removes `srh` and `srh-tls`.
 - `MAIL_WEBHOOK_SECRET` is generated on the server and stored only in the app env file. It is not configured on the
   inbound Worker until Q7 is approved.
+
+## Rate-limit store notes
+- `RATE_LIMIT_STORE=upstash`, `UPSTASH_REDIS_REST_URL=https://redis-rest:8443`, `UPSTASH_REDIS_REST_TOKEN` = SRH token (written by `init-secrets.sh`). The prod check only requires the `https://` prefix, so the internal hostname is accepted.
+- `NODE_EXTRA_CA_CERTS` must be set in the app container environment before the process starts (it is, in compose); setting it at runtime has no effect.
+- `src/lib/seo/indexnow.ts` reuses the same Upstash variables for de-duplication; no extra config.
+- If SRH/srh-tls is down, routes follow their own `onStoreError`: some reject, some fall back to in-process counting. 429/503 on some endpoints in that state is expected, not a bug.
+- Long term: backend TCP Redis store (`REDIS_URL` with requirepass), then remove `srh` and `srh-tls`.
