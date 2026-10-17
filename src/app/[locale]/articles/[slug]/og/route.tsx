@@ -14,11 +14,13 @@ export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 type P = { params: Promise<{ locale: string; slug: string }> };
-const fallback = (locale: 'en' | 'ru') => new Response(null, { status: 302, headers: { Location: ogImageUrl(ARTICLE_OG_SLUG, locale), 'Cache-Control': 'public, max-age=300' } });
+// SEO：分享图本身不进索引，所有环境（含生产）、所有响应（200 / 302 回退 / 404）都带 noindex；robots.txt 不加 Disallow（社交爬虫要能抓到图）
+const OG_ROBOTS = { 'X-Robots-Tag': 'noindex' } as const;
+const fallback = (locale: 'en' | 'ru') => new Response(null, { status: 302, headers: { ...OG_ROBOTS, Location: ogImageUrl(ARTICLE_OG_SLUG, locale), 'Cache-Control': 'public, max-age=300' } });
 
 export async function GET(_req: Request, { params }: P) {
   const { locale: l, slug } = await params;
-  if (l !== 'en' && l !== 'ru') return new Response(null, { status: 404 });
+  if (l !== 'en' && l !== 'ru') return new Response(null, { status: 404, headers: OG_ROBOTS });
   const locale = l;
   try {
     const d = (await getDocBySlug('article', locale, slug)) as { title?: unknown } | null;
@@ -27,7 +29,7 @@ export async function GET(_req: Request, { params }: P) {
     const res = new ImageResponse(<ArticleOgImage title={title} locale={locale} />, { ...OG_ARTICLE, fonts: await articleOgFonts() });
     const png = await res.arrayBuffer();
     if (!png.byteLength) return fallback(locale);
-    return new Response(png, { status: 200, headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' } });
+    return new Response(png, { status: 200, headers: { ...OG_ROBOTS, 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400' } });
   } catch (e) {
     console.error('[article-og] render failed, falling back to generic image:', e instanceof Error ? e.message : 'unknown error');
     return fallback(locale);
