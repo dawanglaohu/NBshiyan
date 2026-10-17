@@ -46,7 +46,8 @@ CNF
   openssl x509 -req -in "$W/leaf.csr" -CA "$W/ca.crt" -CAkey "$W/ca.key" -set_serial "0x$(openssl rand -hex 16)" \
     -days 3650 -extfile "$W/leaf.ext" -out "$W/leaf.crt" 2>/dev/null
   openssl verify -CAfile "$W/ca.crt" "$W/leaf.crt" >/dev/null || { echo "[init] internal TLS verify failed" >&2; exit 1; }
-  openssl x509 -in "$W/ca.crt" -noout -ext nameConstraints | grep -q 'DNS:redis-rest' || { echo "[init] nameConstraints missing" >&2; exit 1; }
+  nc=$(openssl x509 -in "$W/ca.crt" -noout -ext nameConstraints 2>/dev/null || true)
+  grep -qF 'DNS:redis-rest' <<<"$nc" || { echo "[init] nameConstraints missing" >&2; exit 1; }
   # Delete the CA private key now (tmpfs, never written to disk outside /dev/shm)
   shred -u "$W/ca.key" 2>/dev/null || rm -f "$W/ca.key"
   install -m 644 -o root -g root "$W/ca.crt" "$T/ca.crt"
