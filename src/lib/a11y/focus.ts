@@ -27,6 +27,21 @@ export function consentFocusTarget(source: ConsentCloseSource, q: ConsentFocusLo
   return { el: q.opener ?? q.bannerSettings() ?? q.footerLink(), preventScroll: false };
 }
 
+export type ConsentCloseAction = 'banner-choice' | 'dialog-save' | 'dialog-close';
+
+/**
+ * 关闭同意界面时按哪条规则还原焦点（#307 P2）。
+ * - 横幅上直接接受/拒绝 → 'banner'（焦点到 <main>，不滚动）。
+ * - 首访从横幅打开设置面板再「保存」：保存后横幅和打开面板的按钮都没了 → 同样 'banner'，不再落到页脚链接把页面滚到底。
+ * - 从横幅打开再关闭（✕ / Esc / 点遮罩）：还没做选择，横幅会重新出现 → 'dialog'，焦点回到横幅上的「设置」。
+ * - 从页脚「Cookie settings」或提示条打开：一律 'dialog'，焦点还给打开它的按钮。
+ */
+export function consentCloseSource(action: ConsentCloseAction, openedFromBanner: boolean): ConsentCloseSource {
+  if (action === 'banner-choice') return 'banner';
+  if (action === 'dialog-save' && openedFromBanner) return 'banner';
+  return 'dialog';
+}
+
 /** 开了「减少动态效果」时不平滑滚动 */
 export function scrollBehaviorFor(reducedMotion: boolean): ScrollBehavior {
   return reducedMotion ? 'auto' : 'smooth';
