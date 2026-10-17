@@ -46,15 +46,15 @@ profile behaves differently across compose versions, and the review gate sits be
 
 ## First admin (after the first successful deploy)
 Run this on the server, as Ryan or with Ryan at the keyboard. The password is read from a **hidden prompt**: never
-pass it as an argument or an exported env var. The final steps follow runbook §4.1–4.3 once `fix/deploy-readiness` is merged.
+pass it as an argument, an exported env var, or `-e ADMIN_CREATE_PASSWORD` (it would show in `docker inspect`); a hidden prompt or stdin only. The final steps follow runbook §4.1–4.3 once `fix/deploy-readiness` is merged.
 ```sh
 DC="docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file $NBSHIYAN_COMPOSE_ENV"
 # standalone image: there is no pnpm, so use the node form, inside the running app container (it has the env and the DB network)
-$DC exec -it app node scripts/admin-create.mjs
+$DC exec -it app node scripts/admin-create.mjs --email <admin email>
 # equivalent one-off container (does not publish ports):
-$DC run --rm -it --no-deps app node scripts/admin-create.mjs
+$DC run --rm -it --no-deps app node scripts/admin-create.mjs --email <admin email>
 ```
-`pnpm admin:create` only works in a dev checkout with full dependencies, not in this image. After creating the
+`pnpm admin:seed` (the old create-admin with the `PROD_DATABASE_HOST` guard) is CI/local only: never run seed on the server. After creating the
 account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
 
 ## Health endpoint

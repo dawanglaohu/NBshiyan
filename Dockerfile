@@ -98,9 +98,9 @@ ENV NODE_ENV=production HOME=/tmp PORT=3000 HOSTNAME=0.0.0.0 UPLOAD_DIR=/data/up
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# First-admin script (fix/deploy-readiness): standalone has no pnpm, so it runs as `node scripts/admin-create.mjs`
-# (deps @prisma/client + @node-rs/argon2 are already in the traced standalone node_modules).
-COPY --from=builder /app/scripts/admin-create.mjs ./scripts/admin-create.mjs
+# First-admin script: scripts/admin-create.mjs + admin-create-lib.mjs are traced into standalone by
+# outputFileTracingIncludes (fix/deploy-readiness), so the standalone COPY above already ships them. Fail the build if not.
+RUN test -f scripts/admin-create.mjs && test -f scripts/admin-create-lib.mjs
 # ISR (/products 1m, /articles 1h), route cache and the image optimizer write under .next/ (verified locally),
 # but the root fs is read_only. So the build output is kept in .next-dist and copied into a tmpfs .next at start.
 RUN mv .next .next-dist && mkdir .next && chown 1001:1001 .next \
