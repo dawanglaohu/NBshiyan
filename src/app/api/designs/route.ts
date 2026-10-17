@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/server/db';
-import { randomId, hitRateLimit, clientIp, readBody, verifyTurnstile, tooManyRequests } from '@/lib/server/security';
+import { randomId, hitRateLimit, clientIp, rateLimitSubject, readBody, verifyTurnstile, tooManyRequests } from '@/lib/server/security';
 import { DesignBody, DESIGN_ID_LEN, DESIGN_MAX_BODY, DESIGN_MAX_CONFIG } from '@/lib/server/designs';
 import { retention } from '@/lib/server/retention';
 
@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 /** 公开：保存定制方案，返回短链接 /{locale}/s/:id。限流 + Turnstile + 白名单 schema + 体积上限，180 天后过期（被询盘引用后不过期）。 */
 export async function POST(req: Request) {
   const ip = clientIp(req);
-  const ok = ip ? await hitRateLimit(`design:${ip}`, 30) : await hitRateLimit('design:noip:all', 200);
+  const ok = await hitRateLimit(`design:${rateLimitSubject(ip)}`, 30);
   if (!ok) return tooManyRequests(600);
   const raw = await readBody(req, DESIGN_MAX_BODY);
   if (raw === null) return NextResponse.json({ error: 'too_large' }, { status: 413 });

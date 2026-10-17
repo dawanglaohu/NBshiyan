@@ -1,4 +1,5 @@
 import { categoryMeta } from '../seo/categoryMeta';
+import { isIpLiteral } from './client-ip';
 
 const CATEGORY_KEYS = new Set(categoryMeta.map((c) => c.key));
 // 中间件用：判断短链接是否过期（HEAD /api/designs/:id → 410）。Edge 运行时，不依赖 Node API。
@@ -29,9 +30,8 @@ export function probeConfig(env: Record<string, string | undefined>) {
 }
 
 /** 探测请求头：只有配置了 MIDDLEWARE_PROBE_SECRET 才带密钥和原始客户端 IP（API 校验密钥后按该 IP 限流）。 */
-const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
-const IPV6 = /^[0-9a-fA-F:.]{2,45}$/;
-export function isIp(s: string) { return s.length <= 45 && (IPV4.test(s) || (s.includes(':') && IPV6.test(s))); }
+/** IP 校验与 clientIp 共用（src/lib/edge/client-ip.ts） */
+export const isIp = isIpLiteral;
 
 /** 与 #177 约定：密钥 ≥32 字节才发送；客户端 IP 必须是合法 IP 且 ≤45 字符，否则两个头都不发。 */
 export function probeHeaders(secret: string | null, clientIp: string | null): Record<string, string> {

@@ -20,7 +20,7 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
-  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 17);
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 4 + 18);
   assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
 });
 
@@ -33,7 +33,7 @@ const prodFull = {
   ADMIN_TOTP_KEY: Buffer.alloc(32, 7).toString('base64'), PRIVACY_HASH_SECRET: SECRET, CRON_SECRET: SECRET,
   TURNSTILE_SECRET_KEY: '0x4AAAAAAArealSecretKey', NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAArealSiteKey',
   RESEND_API_KEY: 're_' + SECRET, MAIL_FROM: 'a@b.com', INQUIRY_NOTIFY_EMAIL: 'c@d.com',
-  NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', ADMIN_SEED_TOTP_SECRET: '',
+  NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', ADMIN_SEED_TOTP_SECRET: '', EDGE_AUTH_SECRET: SECRET,
 };
 
 test('#74 完整生产配置通过', () => {

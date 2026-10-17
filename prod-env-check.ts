@@ -38,6 +38,10 @@ function secretProblems(env: Record<string, string | undefined>): string[] {
   if (totp && Buffer.from(totp, 'base64').length !== 32) out.push('ADMIN_TOTP_KEY 必须是 base64 解码后 32 字节');
   const ph = env.PRIVACY_HASH_SECRET;
   if (ph && Buffer.byteLength(ph) < 32) out.push('PRIVACY_HASH_SECRET 至少 32 字节');
+  // geiom.com：nginx 用 X-Edge-Auth 带这个密钥，缺了所有请求都按不可信来源处理
+  if (!v('EDGE_AUTH_SECRET')) out.push('EDGE_AUTH_SECRET 未设置');
+  const edge = env.EDGE_AUTH_SECRET;
+  if (edge && Buffer.byteLength(edge) < 32) out.push('EDGE_AUTH_SECRET 至少 32 字节（否则所有请求都按不可信来源限流）');
   const cron = env.CRON_SECRET;
   if (cron && cron.length < 32) out.push('CRON_SECRET 至少 32 个字符');
   if (TEST_TURNSTILE_SECRET.test(v('TURNSTILE_SECRET_KEY'))) out.push('TURNSTILE_SECRET_KEY 是 Cloudflare 测试密钥，生产必须用真实密钥');
