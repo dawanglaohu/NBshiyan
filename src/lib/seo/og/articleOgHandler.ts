@@ -1,5 +1,6 @@
 import { ogImageUrl } from '@/lib/seo/pageMeta';
 import { ARTICLE_OG_SLUG, ARTICLE_OG_SLUG_RE, articleOgImageUrl } from '@/lib/seo/articleOg';
+import { isPublishedLocale } from '@/lib/server/published-locales';
 
 /**
  * 文章分享图 /<locale>/articles/<slug>/og 的处理逻辑。路由（src/app/[locale]/articles/[slug]/og/route.tsx）只把真实依赖传进来，
@@ -38,7 +39,8 @@ export const expectedArticleOgVersion = (locale: 'en' | 'ru', slug: string, doc:
 };
 
 export async function handleArticleOg(reqUrl: string, locale: string, slug: unknown, deps: ArticleOgDeps): Promise<Response> {
-  if (locale !== 'en' && locale !== 'ru') return notFound();
+  // #371：locale 按 PUBLISHED_LOCALES 白名单校验（路由不经过 middleware），不合规 404 no-store + noindex，不查 CMS
+  if (!isPublishedLocale(locale)) return notFound();
   if (typeof slug !== 'string' || !ARTICLE_OG_SLUG_RE.test(slug)) return notFound();
   const v = articleOgVersionParam(reqUrl);
   if (!v) return notFound();

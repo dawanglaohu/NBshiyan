@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  afterConfirm, afterEnroll, afterVoid, canFinish, CONFIRM_PATH, ENROLL_PATH, ENROLL_RESTART, ENROLL_VOID_FOOT, ENROLL_VOID_HINT, ENROLL_VOID_TEXT, errorText, isVoidCode, groupSecret, inProgress, INITIAL, isCompleteCode,
+  afterConfirm, afterEnroll, afterVoid, canFinish, codeCheck, CONFIRM_PATH, ENROLL_PATH, ENROLL_RESTART, ENROLL_VOID_FOOT, ENROLL_VOID_HINT, ENROLL_VOID_TEXT, errorText, isVoidCode, groupSecret, inProgress, INITIAL, isCompleteCode,
   normalizeCode, parseSecret, postEnroll, recoveryFilename, recoveryTxt, SIGNIN_HREF, STEPS, stepStatus, waitLeft,
   type EnrollState, type Step,
 } from '@/lib/admin/enroll';
@@ -58,6 +58,9 @@ export default function EnrollWizard() {
 
   // 第 3 步：确认后 30 秒倒计时（确认用掉的码登录时再用会失败并计入锁定次数）
   const left = Math.ceil(waitLeft(s, now) / 1000);
+  // 验证码框下方的红字：超过 6 位时提示「请输入 6 位数字验证码」，优先于接口返回的验证码错误；不足 6 位不提示
+  const codeLen = codeCheck(code);
+  const codeErr = codeLen === 'long' ? 'code_incomplete' : error?.at === 'code' ? error.code : null;
   useEffect(() => {
     if (s.step !== 3 || s.confirmedAt === null) return;
     const t = window.setInterval(() => setNow(Date.now()), 1000);
@@ -84,7 +87,8 @@ export default function EnrollWizard() {
   const confirm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy) return;
-    if (!isCompleteCode(code)) { setError({ code: 'code_incomplete', at: 'code' }); return; }
+    // 不是正好 6 位数字就不发请求（按钮已禁用；这里再挡一次回车提交）
+    if (codeCheck(code) !== 'ok' || !isCompleteCode(code)) return;
     setBusy(true); setError(null);
     const r = await postEnroll<{ recoveryCodes: string[] }>(CONFIRM_PATH, { email: email.trim(), password, totp: code });
     setBusy(false);
@@ -190,16 +194,16 @@ export default function EnrollWizard() {
             <div className="en-f">
               <label htmlFor="en-otp">6 位验证码</label>
               <input
-                id="en-otp" className="en-otp" type="text" name="totp" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required
-                value={code} aria-invalid={error?.at === 'code' ? true : undefined}
-                aria-describedby={error?.at === 'code' ? 'en-otp-e en-otp-h' : 'en-otp-h'}
+                id="en-otp" className="en-otp" type="text" name="totp" inputMode="numeric" autoComplete="one-time-code" required
+                value={code} aria-invalid={codeErr ? true : undefined}
+                aria-describedby={codeErr ? 'en-otp-e en-otp-h' : 'en-otp-h'}
                 onChange={(e) => setCode(normalizeCode(e.target.value))}
                 onPaste={(e) => { e.preventDefault(); setCode(normalizeCode(e.clipboardData.getData('text'))); }}
               />
-              {error?.at === 'code' && <p className="en-ferr" id="en-otp-e" role="alert">{errorText(error.code)}</p>}
+              {codeErr && <p className="en-ferr" id="en-otp-e" role="alert">{errorText(codeErr)}</p>}
               <p className="en-hint" id="en-otp-h">每个验证码只能用一次。刚用过或刚报错，请等 App 换下一个码（约 30 秒）再输入。</p>
             </div>
-            <button className="en-btn" type="submit" disabled={busy}>{busy ? '确认中…' : '确认绑定'}</button>
+            <button className="en-btn" type="submit" disabled={busy || codeLen !== 'ok'}>{busy ? '确认中…' : '确认绑定'}</button>
             <p className="en-foot">二维码只在本页显示一次，请勿截图分享。离开本页需要重新从第 1 步开始，原二维码作废。</p>
           </form>
         )}

@@ -50,8 +50,44 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   const input = page.getByLabel('6 位验证码');
   await expect(input).toHaveAttribute('inputmode', 'numeric');
   await expect(input).toHaveAttribute('autocomplete', 'one-time-code');
-  await expect(input).toHaveAttribute('maxlength', '6');
+  // 不能有 maxlength：浏览器会先按原始字符截断，「751 940」会丢最后一位；只保留 6 位数字由 normalizeCode 负责
+  await expect(input).not.toHaveAttribute('maxlength', /.*/);
   await expect(page.getByRole('button', { name: /重新生成/ })).toHaveCount(0);
+  // 粘贴 / 输入的格式：只留数字；正好 6 位才能提交；超过 6 位不截断，提示并禁止提交（PM / UX / 全栈）
+  const submit = page.getByRole('button', { name: '确认绑定' });
+  const lenErr = page.locator('#en-otp-e');
+  const paste = (text: string) => input.evaluate((el, t) => {
+    const dt = new DataTransfer(); dt.setData('text/plain', t);
+    el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+  }, text);
+  for (const raw of ['751 940', '751-940', ' 751940 ']) {
+    await input.fill('');
+    await paste(raw);
+    await expect(input, `paste ${JSON.stringify(raw)}`).toHaveValue('751940');
+    await expect(submit).toBeEnabled();
+    await expect(lenErr).toHaveCount(0);
+  }
+  const confirms: string[] = [];
+  page.on('request', (r) => { if (r.url().includes('/enroll/confirm')) confirms.push(r.url()); });
+  await input.fill('');
+  await input.pressSequentially('75194'); // 不足 6 位：只禁用提交，不提示
+  await expect(submit).toBeDisabled();
+  await expect(lenErr).toHaveCount(0);
+  await input.pressSequentially('01'); // 输入到 7 位
+  await expect(input).toHaveValue('7519401');
+  await expect(lenErr).toHaveText('请输入 6 位数字验证码');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(submit).toBeDisabled();
+  await input.press('Enter');
+  await input.fill('');
+  await paste('751 940 1'); // 粘贴 7 位
+  await expect(input).toHaveValue('7519401');
+  await expect(lenErr).toHaveText('请输入 6 位数字验证码');
+  await expect(submit).toBeDisabled();
+  await input.press('Enter');
+  await page.waitForTimeout(300);
+  expect(confirms).toEqual([]); // 没有发出 confirm 请求
+  await input.fill('');
   // 错码 → 输入框下方红字、输入保留
   const wrong = authenticator.generate(secret) === '000000' ? '111111' : '000000';
   await input.fill(wrong);
@@ -105,12 +141,6 @@ test('#347 待确认密钥 10 分钟内不能被覆盖：再次 enroll → 429 r
   expect(again.status()).toBe(429);
   expect((await again.json()).error).toBe('rate_limited');
   const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(first) } });
-  expect(ok.status()).toBe(200);
-  expect((await ok.json()).recoveryCodes).toHaveLength(10);
-});
-  expect(old.status()).toBe(401);
-  expect((await old.json()).error).toBe('bad_totp');
-  const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(second) } });
   expect(ok.status()).toBe(200);
   expect((await ok.json()).recoveryCodes).toHaveLength(10);
 });

@@ -13,6 +13,7 @@ import { handleArticleOg } from '@/lib/seo/og/articleOgHandler';
 //   （只取 ogImageUrl 的 path + query，不含主机名），能通过 #328 的同站跳转检查和 deploy/smoke-lib.sh 的 loc_bad。
 // - 缓存：200 → public, max-age=31536000, immutable；302 / 404 → no-store。路由本身不做 ISR（force-dynamic），
 //   响应头完全由这里决定；CMS 数据仍按 sanityFetch 的 revalidate 缓存。
+// - 不经过 middleware（matcher 已排除），不会下发 NEXT_LOCALE cookie；locale 由这里按 PUBLISHED_LOCALES 白名单校验，不合规 404 no-store + noindex。
 // - 标题只作为 JSX 文本子节点交给 Satori（不解析 HTML），不进任何响应头。
 // - 渲染只走 renderArticleOgPng（src/lib/seo/og/renderArticleOg.tsx，唯一入口）：字体只读仓库里的 src/assets/og-fonts，
 //   标题先去掉字体外的字符（ogSafeText），Satori 不会去网上补字体或 emoji。
@@ -26,6 +27,7 @@ type P = { params: Promise<{ locale: string; slug: string }> };
 
 export async function GET(req: Request, { params }: P) {
   const { locale, slug } = await params;
+  // 本路由不经过 middleware（见 src/middleware.ts matcher），locale 只按 PUBLISHED_LOCALES 白名单放行（handleArticleOg 第一步），在查 CMS 之前
   return handleArticleOg(req.url, locale, slug, {
     getDoc: (l, s) => getDocBySlug('article', l, s),
     render: (title, l) => renderArticleOgPng(title, l),
