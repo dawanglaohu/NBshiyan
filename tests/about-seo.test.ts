@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {
   ABOUT_DESCRIPTION_MAX,
   aboutDescription,
+  ABOUT_OG_TEMPLATE_VERSION,
   aboutOgImageUrl,
+  aboutOgVersion,
   aboutSitemapEntries,
   buildAboutMetadata,
   buildOrganizationJsonLd,
@@ -12,7 +14,8 @@ import {
   truncateCodePoints
 } from '../src/lib/seo/about';
 import * as aboutModule from '../src/lib/seo/about';
-import { articleOgVersion } from '../src/lib/seo/articleOg';
+import crypto from 'node:crypto';
+import { articleOgImageUrl, articleOgVersion } from '../src/lib/seo/articleOg';
 import { ORGANIZATION_DEFAULTS } from '../src/lib/seo/organization-defaults';
 import type { AboutContent } from '../src/lib/server/site-settings';
 
@@ -83,7 +86,7 @@ test('og image: #354 article template at /<locale>/about/og?v=…, never uploade
     content: content('en', { images: [{ id: 'abc', w: 1600, h: 1200, alt: 'x', caption: '', src: { sm: '/media/abc-800.webp', lg: '/media/abc-1600.webp' } }] })
   });
   const img = ogImg(m);
-  assert.equal(img.url, `${ORIGIN}/en/about/og?v=${articleOgVersion('en', 'About PackJoyU')}`);
+  assert.equal(img.url, `${ORIGIN}/en/about/og?v=${aboutOgVersion('en', 'About PackJoyU')}`);
   assert.match(img.url, /\?v=[0-9a-f]{8}$/);
   assert.deepEqual([img.width, img.height, img.alt], [1200, 630, 'About PackJoyU | PackJoyU']);
   assert.doesNotMatch(JSON.stringify(m), /\/media\//);
@@ -163,4 +166,27 @@ test("serializeJsonLd escapes '<' so </script> cannot break out", () => {
   assert.equal(s.includes('<'), false);
   assert.match(s, /\\u003c\/script>/);
   assert.equal((JSON.parse(s) as { name: string }).name, '</script><script>alert(1)</script>');
+});
+
+test('about OG v uses its own template version; article OG URLs unchanged', () => {
+  assert.equal(ABOUT_OG_TEMPLATE_VERSION, 'about-1');
+  const sha8 = (s: string) => crypto.createHash('sha256').update(s).digest('hex').slice(0, 8);
+  assert.equal(aboutOgVersion('en', ' About PackJoyU '), sha8('about-1\nen\nAbout PackJoyU\n'));
+  assert.equal(aboutOgVersion('ru', 'О нас', ' О компании '), sha8('about-1\nru\nО нас\nО компании'));
+  // 文章 OG：改动前在 cb439c0/d4e2f93 上记录的值
+  assert.equal(articleOgVersion('en', 'Custom Gift Boxes Guide'), '1cafb4ae');
+  assert.equal(articleOgVersion('ru', 'Гофрокороб'), '789cc75f');
+  const u = new URL(articleOgImageUrl('en', { slug: 'custom-gift-boxes-guide', title: 'Custom Gift Boxes Guide' })!);
+  assert.equal(u.pathname + u.search, '/en/articles/custom-gift-boxes-guide/og?v=1cafb4ae');
+  // about 的 v 和文章的不同；标题、语言变了 v 都变
+  assert.notEqual(aboutOgVersion('en', 'Custom Gift Boxes Guide'), articleOgVersion('en', 'Custom Gift Boxes Guide'));
+  assert.notEqual(aboutOgVersion('en', 'About PackJoyU'), aboutOgVersion('en', 'About us'));
+  assert.notEqual(aboutOgVersion('en', 'About PackJoyU'), aboutOgVersion('ru', 'About PackJoyU'));
+  assert.notEqual(aboutOgImageUrl(ORIGIN, 'en', 'About PackJoyU'), aboutOgImageUrl(ORIGIN, 'en', 'About us'));
+  // 角标（导航 About 文案）变了 v 也变
+  assert.notEqual(aboutOgVersion('en', 'About PackJoyU', 'About'), aboutOgVersion('en', 'About PackJoyU', 'About us'));
+  assert.notEqual(aboutOgVersion('ru', 'О нас', 'О компании'), aboutOgVersion('ru', 'О нас'));
+  const m = (badge: string) => ogImg(buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['ru'], origin: ORIGIN, ogBadge: badge })).url;
+  assert.equal(m('О компании'), `${ORIGIN}/ru/about/og?v=${aboutOgVersion('ru', 'About PackJoyU', 'О компании')}`);
+  assert.notEqual(m('О компании'), m('О нас'));
 });

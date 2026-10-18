@@ -1,7 +1,7 @@
+import crypto from 'node:crypto';
 import type { Metadata, MetadataRoute } from 'next';
 import type { AboutContent, OrganizationSettings } from '../server/site-settings';
 import { withXDefault } from './hreflang';
-import { articleOgVersion } from './articleOg';
 import { ogSafeText } from './og/articleOgLayout';
 import { ORGANIZATION_DEFAULTS } from './organization-defaults';
 import ogVersions from '../../data/og-versions.json';
@@ -70,16 +70,31 @@ export function homeOgImageUrl(origin: string, locale: string): string {
   return `${trimOrigin(origin)}/og/${file}${v ? `?v=${v}` : ''}`;
 }
 
+/** about 分享图模板版本：about 版去掉了文章模板的「Article」角标等改动时只改这里，不影响 articleOgVersion 和任何文章 OG 地址 */
+export const ABOUT_OG_TEMPLATE_VERSION = 'about-1';
+
 /**
- * about 分享图：沿用 #354 的文章 OG 模板（1200×630，标题 + 品牌），地址 /<locale>/about/og?v=<sha8>，
- * v 用 articleOgVersion（模板版本 + 语言 + 标题），标题改了社交平台会重新抓图。不用后台上传的照片。
+ * about 分享图的 v：sha256(about 模板版本 + 语言 + 标题 + 角标) 前 8 位，和 articleOgVersion 同一种算法但版本号独立。
+ * 角标 = 导航 About 的文案（i18n `Nav.about`，en「About」/ ru «О компании»），改了导航文案图片也会刷新。
+ */
+export function aboutOgVersion(locale: 'en' | 'ru', title: string, badge?: string): string {
+  return crypto
+    .createHash('sha256')
+    .update(`${ABOUT_OG_TEMPLATE_VERSION}\n${locale}\n${title.trim()}\n${badge?.trim() ?? ''}`)
+    .digest('hex')
+    .slice(0, 8);
+}
+
+/**
+ * about 分享图：基于 #354 的文章 OG 模板（1200×630，标题 + 品牌），地址 /<locale>/about/og?v=<sha8>，
+ * v 用 aboutOgVersion（about 模板版本 + 语言 + 标题 + 角标），标题或导航文案改了社交平台会重新抓图。不用后台上传的照片。
  * 标题为空或没有字体能画的字符时返回 null，调用方用首页通用图（和文章页同一回退）。
  * 注意：对应的路由 src/app/[locale]/about/og/route.tsx 还不存在，接入 metadata 时要同一个 PR 加上。
  */
-export function aboutOgImageUrl(origin: string, locale: 'en' | 'ru', title: string | null | undefined): string | null {
+export function aboutOgImageUrl(origin: string, locale: 'en' | 'ru', title: string | null | undefined, badge?: string): string | null {
   const t = title?.trim();
   if (!t || !ogSafeText(t)) return null;
-  return `${aboutUrl(origin, locale)}/og?v=${articleOgVersion(locale, t)}`;
+  return `${aboutUrl(origin, locale)}/og?v=${aboutOgVersion(locale, t, badge)}`;
 }
 
 export function buildAboutMetadata(opts: {
@@ -88,6 +103,8 @@ export function buildAboutMetadata(opts: {
   /** getPublishedAboutLocales() 的结果 */
   publishedLocales: readonly string[];
   origin: string;
+  /** 分享图角标：传 t('Nav.about')，进 v 的哈希 */
+  ogBadge?: string;
   /** 回退到首页通用图时的 alt（调用方传 Meta.ogImageAlt）；不传就用标题 */
   fallbackOgAlt?: string;
 }): Metadata {
@@ -98,7 +115,7 @@ export function buildAboutMetadata(opts: {
   const title = content.title.trim();
   const description = aboutDescription(content);
   const url = aboutUrl(origin, locale);
-  const own = aboutOgImageUrl(origin, locale, title);
+  const own = aboutOgImageUrl(origin, locale, title, opts.ogBadge);
   const image = own
     ? { url: own, width: OG_W, height: OG_H, alt: `${title} | PackJoyU` }
     : { url: homeOgImageUrl(origin, locale), width: OG_W, height: OG_H, alt: opts.fallbackOgAlt ?? title };
