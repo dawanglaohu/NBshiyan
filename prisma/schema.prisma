@@ -80,6 +80,8 @@ model User {
   enrollIssuedAt   DateTime? // #347 绑定窗口起点：重置 2FA 时写入；为空时用 createdAt。起点 + 72 小时后 enroll/confirm 一律拒绝，需管理员重置 2FA
   totpPendingUntil DateTime? // #347/#348 待确认密钥的有效期，同时是再次 enroll 的冷却截止时间（期间不能覆盖待确认密钥）
   totpEnrollFails  Int       @default(0) // #348 当前待确认密钥上、密码已通过时的错码次数；达到上限作废密钥，发新密钥或绑定成功时清零
+  enrollTokenHash      String? // #347 方案 A 一次性绑定令牌的 sha256（hex），不存明文。签发（建号 / 重置 2FA / CLI）时覆盖，旧令牌立即失效；confirm 成功时清空
+  enrollTokenExpiresAt DateTime? // #347 令牌截止时间 = min(签发后 24 小时, 72 小时绑定窗口截止)；为空或已过期时 enroll/confirm 一律 401 bad_credentials
   inquiries      Inquiry[] @relation("Assignee")
   createdAt      DateTime  @default(now())
 }

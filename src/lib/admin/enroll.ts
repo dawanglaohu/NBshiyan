@@ -9,6 +9,21 @@ export const CONFIRM_PATH = '/api/auth-admin/enroll/confirm';
 /** 绑定完成后去登录。回跳地址写死 /admin，不读 URL 里的任何 callback / redirect 参数 */
 export const SIGNIN_HREF = '/api/auth/signin?callbackUrl=%2Fadmin';
 export const ENROLL_PAGE = '/admin-enroll';
+/** #347 方案 A：绑定链接里的一次性令牌参数名（/admin-enroll#t=<令牌>，放在 fragment 里，浏览器不会发给服务器） */
+export const ENROLL_TOKEN_PARAM = 't';
+
+/**
+ * #347：从地址栏的 #fragment 里取一次性绑定令牌，并给出去掉 t 之后的地址（页面打开后立即 history.replaceState，令牌只留在内存里）。
+ * 令牌格式不对时 token 为 null（仍然从地址栏去掉）。查询参数原样保留；fragment 里的其他键保留。
+ */
+export function takeEnrollToken(loc: { pathname: string; search: string; hash: string }): { token: string | null; cleanUrl: string | null } {
+  const h = new URLSearchParams(loc.hash.replace(/^#/, ''));
+  if (!h.has(ENROLL_TOKEN_PARAM)) return { token: null, cleanUrl: null };
+  const raw = h.get(ENROLL_TOKEN_PARAM) ?? '';
+  h.delete(ENROLL_TOKEN_PARAM);
+  const rest = h.toString();
+  return { token: /^[A-Za-z0-9_-]{43}$/.test(raw) ? raw : null, cleanUrl: `${loc.pathname}${loc.search}${rest ? `#${rest}` : ''}` };
+}
 
 export const STEPS = ['账号验证', '扫码并确认', '保存恢复码'] as const;
 /** 1：邮箱 + 初始密码；2：扫码并输入验证码；3：保存恢复码 → 去登录 */
@@ -117,3 +132,7 @@ export const stepStatus = (current: Step, n: Step): 'done' | 'current' | 'todo' 
 /** 下载的恢复码 .txt：按 UX 稿，10 行，每行一个码（CRLF，记事本也能正常显示） */
 export const recoveryTxt = (codes: readonly string[]): string => codes.map((c) => `${c}\r\n`).join('');
 export const recoveryFilename = 'packjoyu-admin-recovery-codes.txt';
+
+/** 后台「重置 2FA」确认框（#347）：「之前发出的绑定链接会立即失效」+「同时会解除这个账号的登录锁定」 */
+export const RESET_2FA_CONFIRM = (email: string) =>
+  `重置 ${email} 的 2FA？对方会立即退出登录，需要用新的绑定链接重新绑定。之前发出的绑定链接会立即失效，同时会解除这个账号的登录锁定。`;

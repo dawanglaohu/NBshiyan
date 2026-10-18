@@ -98,9 +98,13 @@ Options (#321): `--name <display name>`, plus `--allow-additional-admin`, needed
 refuses with `admin_exists`). Any flag that looks like a password (`--password`, `-p`, …) is refused. With no TTY the
 script reads the first line of stdin. With `APP_ENV=production`, `ADMIN_CREATE_PASSWORD` is refused.
 `pnpm admin:seed` (the old create-admin with the `PROD_DATABASE_HOST` guard) is CI/local only: never run seed on the server. After creating the
-account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
+account, open the one-time enroll link and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
+#347: when stdout is a terminal (`exec -it`), admin-create issues a one-time enroll token in the same transaction and prints
+three lines once — the link `<NEXT_PUBLIC_SITE_URL>/admin-enroll#t=<token>`, `有效至 <date time> PT`, and the "private message only"
+reminder. Send the link only to that person, never to a group chat or ticket. Without a terminal it issues no token and
+prints no link; reissue from a terminal with the reset script below or an ADMIN "Reset 2FA". `NEXT_PUBLIC_SITE_URL` must be https.
 
-## Reset the initial password of an unbound ADMIN (queue ②, until #347's one-time enroll token ships)
+## Reset the initial password of an unbound ADMIN (queue ②; issues a #347 one-time enroll link)
 For an ADMIN who has **not** bound 2FA yet (lost initial password, or stuck half-way through enroll). Run it on the
 server, as Ryan or with Ryan at the keyboard; it ships in the image like admin-create. The new password comes only from a
 **hidden prompt** (typed twice) or the first line of stdin. Arguments that look like a password are refused;
@@ -115,6 +119,11 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   unless `--clear-pending-enroll` is given; the flag clears the pending state and reopens the 72 h window (same fields as an ADMIN 2FA reset).
 - One transaction: new argon2id hash (same parameters as login), all sessions revoked (`sessionVersion`+1), lockout cleared,
   audit `user.password_reset` (+ `user.pending_enroll_cleared`) with actor `cli` and the user id only (no password, hash, secret or email).
+- #347: **stdout must be a terminal** (`exec -it`); otherwise it refuses with exit 2 before reading the password or touching
+  the DB (so the stdin-password form no longer works). In the same transaction it always issues a new one-time enroll token
+  (the old link stops working; with or without `--clear-pending-enroll`), audit `auth.enroll_token_issued` (source `cli`, no token),
+  and prints the link / `有效至 … PT` (+ `已按账号绑定截止时间缩短` when capped by the 72 h window) / private-message reminder once.
+  `NEXT_PUBLIC_SITE_URL` must be an https origin (exit 1 otherwise, nothing changed).
 - After commit it deletes only the account-scoped rate-limit keys whose names it can compute: `login-acct:<e>`,
   `login:untrusted:<e>` and `enroll-confirm:untrusted:<e>`, current and previous window (Upstash only; one DEL, no SCAN/KEYS).
   `login-ip` and real-IP buckets (`login:<ip>:<e>`, `enroll-confirm:<ip>:<e>`) are left alone and expire within 10 minutes.

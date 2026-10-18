@@ -45,8 +45,9 @@ export const enrollIpRateOk = (route: 'enroll' | 'confirm', ip: string | null) =
   hitRateLimit(`enroll-ip:${route}:${rateLimitSubject(ip)}`, ENROLL_IP_LIMIT, ENROLL_IP_WINDOW_MS, { onStoreError: 'closed' });
 
 /** confirm 的 IP+账号桶：密码已正确、验码之前计一次（原子 hit），返回是否仍在上限内。邮箱 HMAC 后进 key，存储故障时拒绝。 */
+export const enrollConfirmKey = (ip: string | null, email: string) => `enroll-confirm:${rateLimitSubject(ip)}:${rateLimitKeyHash(email.trim().toLowerCase())}`;
 export const enrollConfirmRateOk = (ip: string | null, email: string) =>
-  hitRateLimit(`enroll-confirm:${rateLimitSubject(ip)}:${rateLimitKeyHash(email.trim().toLowerCase())}`, ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS, { onStoreError: 'closed' });
+  hitRateLimit(enrollConfirmKey(ip, email), ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS, { onStoreError: 'closed' });
 
 /** 发新的待确认密钥时要写的字段 */
 export const pendingSecretData = (encryptedSecret: string, now = Date.now()) => ({

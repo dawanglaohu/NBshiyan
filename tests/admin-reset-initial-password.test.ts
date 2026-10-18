@@ -7,6 +7,7 @@ import {
   ARGON, CLEAR_FLAG, ENROLL_CONFIRM_WINDOW_MS, ENROLL_WINDOW_MS, LOGIN_WINDOW_MS, MESSAGES, UNTRUSTED, VIA, accountOnlyRateKeys, decide, hasPendingEnroll, parseArgs,
   rateKeysToDelete, rateLimitEnv, rateLimitKeyHash, runReset, stripPasswordEnv, upstashKey, type ResetUser,
 } from '../scripts/admin-reset-initial-password-lib.mjs';
+import { newEnrollToken, hashEnrollToken, type Issued } from '../scripts/enroll-token-lib.mjs';
 import { verifySecret } from '../src/lib/server/admin/crypto';
 import { rateLimitEnv as appEnv, rateLimitKeyHash as appKeyHash, rateLimitSubject, UNTRUSTED as APP_UNTRUSTED } from '../src/lib/server/security';
 import { UpstashStore } from '../src/lib/server/ratelimit/index';
@@ -18,11 +19,12 @@ const NOW = Date.UTC(2026, 9, 18, 13, 0, 0);
 const EMAIL = 'ryan@example.com';
 const SECRET = 'v1.ENCRYPTED-PENDING-SECRET.tag.ct';
 
-function user(over: Partial<ResetUser> & { sessionVersion?: number; failedLogins?: number; lockedUntil?: Date | null; passwordHash?: string; recoveryCodes?: string[] } = {}) {
+function user(over: Partial<ResetUser> & { enrollTokenHash?: string | null; enrollTokenExpiresAt?: Date | null; sessionVersion?: number; failedLogins?: number; lockedUntil?: Date | null; passwordHash?: string; recoveryCodes?: string[] } = {}) {
   return {
     id: 'cuid_admin_1', email: EMAIL, role: 'ADMIN', disabled: false, totpEnabled: false, totpSecret: null, totpLastStep: null,
     enrollIssuedAt: null, totpPendingUntil: null, totpEnrollFails: 0, createdAt: new Date(NOW - 2 * H),
     sessionVersion: 3, failedLogins: 4, lockedUntil: new Date(NOW + 5 * 60_000), passwordHash: 'OLD-HASH', recoveryCodes: [] as string[],
+    enrollTokenHash: null as string | null, enrollTokenExpiresAt: null as Date | null,
     ...over,
   };
 }
@@ -82,13 +84,16 @@ function fakeFetch(ok = true) {
   return { f, calls };
 }
 
-async function run(rows: Row[], o: { argv?: string[]; env?: Record<string, string | undefined>; pw?: string | { error: string }; db?: ReturnType<typeof fakeDb>; fetchOk?: boolean } = {}) {
+async function run(rows: Row[], o: { argv?: string[]; env?: Record<string, string | undefined>; pw?: string | { error: string }; db?: ReturnType<typeof fakeDb>; fetchOk?: boolean; tty?: boolean } = {}) {
   const fdb = o.db ?? fakeDb(rows);
   const ff = fakeFetch(o.fetchOk ?? true);
   let out = '', err = '', pwReads = 0, hashed = '';
+  const issued: Issued[] = [];
   const code = await runReset({
     argv: o.argv ?? ['--email', EMAIL],
-    env: { DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x', ...(o.env ?? {}) },
+    env: { DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x', NEXT_PUBLIC_SITE_URL: 'https://geiom.com', ...(o.env ?? {}) },
+    stdoutIsTTY: o.tty ?? true,
+    issueToken: (now: number, start: number) => { const t = newEnrollToken(now, start); issued.push(t); return t; },
     readPassword: async () => { pwReads++; return o.pw ?? PW; },
     db: async () => fdb.db,
     hash: async (p) => (hashed = await argonHash(p, ARGON)),
@@ -99,7 +104,13 @@ async function run(rows: Row[], o: { argv?: string[]; env?: Record<string, strin
   const all = out + err + JSON.stringify(fdb.audits) + JSON.stringify(ff.calls.map((c) => c.body));
   // 任何输出、审计、发给 Redis 的命令里都不能出现密码、哈希、待确认密钥或邮箱明文
   for (const s of [PW, SECRET, EMAIL, ...(hashed ? [hashed] : [])]) assert.ok(!all.includes(s), `leaked ${s === PW ? 'password' : s === SECRET ? 'secret' : s === EMAIL ? 'email' : 'hash'}`);
-  return { code, out, err, pwReads, hashed, fdb, ff };
+  // #347：令牌只出现在 stdout 一次；不进 stderr、审计、发给 Redis 的命令
+  for (const t of issued) {
+    assert.equal(out.split(t.token).length - 1, code === 0 ? 1 : 0, 'token printed exactly once on stdout, and only on success');
+    const elsewhere = err + JSON.stringify(fdb.audits) + JSON.stringify(ff.calls.map((c) => c.body));
+    assert.ok(!elsewhere.includes(t.token) && !elsewhere.includes(t.data.enrollTokenHash), 'token / hash leaked outside stdout');
+  }
+  return { code, out, err, pwReads, hashed, fdb, ff, issued };
 }
 
 // ---------------- 与应用代码一致 ----------------
@@ -121,7 +132,8 @@ test('常量、限流 key 推导、argon2 参数与应用代码一致', async ()
   // loginKeys().ipAcct = login:<rateLimitSubject(ip)>:<e>；enrollConfirmRateOk = enroll-confirm:<rateLimitSubject(ip)>:<rateLimitKeyHash(email.trim().toLowerCase())>
   assert.match(login, /ipAcct: `login:\$\{rateLimitSubject\(ip\)\}:\$\{e\}`/);
   const eg = readFileSync('src/lib/server/admin/enroll-guard.ts', 'utf8');
-  assert.match(eg, /`enroll-confirm:\$\{rateLimitSubject\(ip\)\}:\$\{rateLimitKeyHash\(email\.trim\(\)\.toLowerCase\(\)\)\}`, ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS/);
+  assert.match(eg, /enrollConfirmKey = \(ip: string \| null, email: string\) => `enroll-confirm:\$\{rateLimitSubject\(ip\)\}:\$\{rateLimitKeyHash\(email\.trim\(\)\.toLowerCase\(\)\)\}`;/);
+  assert.match(eg, /hitRateLimit\(enrollConfirmKey\(ip, email\), ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS/);
   const e0 = appKeyHash('ryan@example.com', {});
   assert.deepEqual(accountOnlyRateKeys(' Ryan@Example.com ', {}), [
     { key: `login-acct:${e0}`, windowMs: LOGIN_WINDOW_MS },
@@ -250,7 +262,11 @@ test('带 --clear-pending-enroll：同一事务里改密码、清待确认状态
   // 可以从头绑定：窗口打开、不在冷却期、没有可确认的旧密钥（下一次 enroll 会发新密钥）
   assert.ok(guard.enrollWindowOpen(row, NOW)); assert.ok(!guard.enrollCoolingDown(row, NOW)); assert.ok(!guard.pendingSecretUsable(row, NOW));
   // 审计：actor=cli、目标 id；没有密码、哈希、密钥、邮箱（run() 里已统一检查）
-  assert.deepEqual(r.fdb.audits.map((a) => a.action), ['user.password_reset', 'user.pending_enroll_cleared']);
+  assert.deepEqual(r.fdb.audits.map((a) => a.action), ['user.password_reset', 'user.pending_enroll_cleared', 'auth.enroll_token_issued']);
+  // #347：同一次 update 里写了新令牌哈希；clearPending 重新打开窗口 → 24 小时、不截短
+  assert.equal(r.issued.length, 1);
+  assert.equal(row.enrollTokenHash, hashEnrollToken(r.issued[0].token)); assert.equal(row.enrollTokenExpiresAt?.getTime(), NOW + 24 * H);
+  assert.deepEqual(r.fdb.audits[2].meta, { actor: 'cli', source: 'cli', via: VIA, truncated: false });
   for (const a of r.fdb.audits) { assert.equal(a.actorId, null); assert.equal(a.target, 'cuid_admin_1'); assert.equal((a.meta as { actor: string }).actor, 'cli'); assert.equal((a.meta as { via: string }).via, VIA); }
   for (const a of r.fdb.audits) for (const k of [...Object.keys(a), ...Object.keys(a.meta as object)]) assert.doesNotMatch(k, /hash|secret|password|email|totp/i, k);
   // 限流：提交后只 DEL login-acct:<e> 当前窗口，一条命令，不 SCAN/KEYS，不碰 login-ip / login:<ip>:<e> / enroll-confirm
@@ -278,7 +294,8 @@ test('没有待确认状态的新账号：不带参数即可，只写 password_r
   const r = await run([user()], { argv: ['--id', 'cuid_admin_1'] });
   assert.equal(r.code, 0, r.err);
   const row = r.fdb.rows[0];
-  assert.deepEqual(r.fdb.audits.map((a) => a.action), ['user.password_reset']);
+  assert.deepEqual(r.fdb.audits.map((a) => a.action), ['user.password_reset', 'auth.enroll_token_issued']);
+  assert.equal(row.enrollTokenHash, hashEnrollToken(r.issued[0].token)); // 不带参数也签发
   assert.equal(row.enrollIssuedAt, null); assert.equal(row.sessionVersion, 4); assert.ok(await verifySecret(row.passwordHash, PW));
   assert.equal(r.ff.calls.length, 0); assert.match(r.out, /rate_limit=skipped_memory/);
 });
@@ -308,6 +325,49 @@ test('事务里写审计失败：整体回滚（密码、会话、绑定字段�
   const row = fdb.rows[0];
   assert.equal(row.passwordHash, 'OLD-HASH'); assert.equal(row.sessionVersion, 3); assert.equal(row.totpSecret, SECRET);
   assert.equal(fdb.audits.length, 0); assert.equal(r.ff.calls.length, 0);
+  assert.equal(row.enrollTokenHash, null, 'token hash rolled back too');
+});
+
+test('#347 stdout 不是终端 → 退出 2，读密码、连库之前就拒绝，什么都不改、不签发', async () => {
+  let dbOpened = 0;
+  const fdb = fakeDb([user()]);
+  const r = await run([], { tty: false, db: { ...fdb, db: new Proxy(fdb.db, { get: (o, k) => { dbOpened++; return (o as never)[k]; } }) } as never });
+  assert.equal(r.code, 2); assert.match(r.err, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m); assert.equal(r.pwReads, 0); assert.equal(dbOpened, 0);
+  assert.equal(r.issued.length, 0); assert.equal(fdb.rows[0].passwordHash, 'OLD-HASH');
+});
+
+test('#347 NEXT_PUBLIC_SITE_URL 不合格（http 生产、带路径、缺失）→ 退出 1，读密码、连库之前拒绝', async () => {
+  for (const env of [{ NEXT_PUBLIC_SITE_URL: 'http://geiom.com' }, { NEXT_PUBLIC_SITE_URL: 'http://localhost:3000', APP_ENV: 'production' }, { NEXT_PUBLIC_SITE_URL: 'https://geiom.com/x' }, { NEXT_PUBLIC_SITE_URL: '' }]) {
+    const r = await run([user()], { env });
+    assert.equal(r.code, 1, JSON.stringify(env)); assert.match(r.err, /NEXT_PUBLIC_SITE_URL 不合格/); assert.equal(r.pwReads, 0); assert.equal(r.fdb.log.txs, 0);
+  }
+});
+
+test('#347 终端输出三行：链接（#t= fragment）/ 有效至 PT（窗口截短时追加一句）/ 只私信给本人；重新签发覆盖旧令牌', async () => {
+  // 不带参数、窗口从 createdAt 起已过 60 小时 → 令牌只剩 12 小时，截短
+  const old = newEnrollToken(NOW - H, NOW - 60 * H);
+  const r = await run([user({ createdAt: new Date(NOW - 60 * H), ...old.data })]);
+  assert.equal(r.code, 0, r.err);
+  const t = r.issued[0];
+  assert.equal(t.expiresAt.getTime(), NOW + 12 * H); assert.equal(t.expiresTruncated, true);
+  const lines = r.out.trimEnd().split('\n').slice(-3);
+  assert.equal(lines[0], `https://geiom.com/admin-enroll#t=${t.token}`);
+  assert.match(lines[1], /^有效至 \d{4}-\d{2}-\d{2} \d{2}:\d{2} PT 已按账号绑定截止时间缩短$/);
+  assert.equal(lines[2], '只私信发给本人，不要贴到群里或工单里');
+  const row = r.fdb.rows[0] as Record<string, unknown>;
+  assert.notEqual(row.enrollTokenHash, old.data.enrollTokenHash); assert.equal(row.enrollTokenHash, hashEnrollToken(t.token));
+  assert.ok(!r.out.includes(old.token));
+});
+
+test('#347 数据库打不开 → 退出 1，只给错误类型，不签发、不打印链接', async () => {
+  let out = '', err = '';
+  const code = await runReset({
+    argv: ['--email', EMAIL], env: { DATABASE_URL: 'set', NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, stdoutIsTTY: true,
+    readPassword: async () => PW, db: async () => { throw Object.assign(new Error(`connect failed postgresql://u:dbpass-SHOULD-NOT-LEAK@h/x ${EMAIL}`), { name: 'PrismaClientInitializationError' }); },
+    hash: async () => 'H', fetchImpl: (async () => { throw new Error('x'); }) as never, out: (s) => { out += s; }, err: (s) => { err += s; },
+  });
+  assert.equal(code, 1); assert.match(err, /数据库操作失败.*（PrismaClientInitializationError）/);
+  for (const s of ['dbpass-SHOULD-NOT-LEAK', EMAIL, '#t=']) assert.ok(!(out + err).includes(s), s);
 });
 
 test('读完密码后、加锁之前账号被并发绑定了 2FA：锁内重新判定后拒绝，什么都不写', async () => {
@@ -330,13 +390,15 @@ test('CLI：命令行带密码 → 退出 2，不回显；环境变量密码被�
   const a = cli(['--email', EMAIL, '--password', PW], { DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x' });
   assert.equal(a.code, 2); assert.match(a.out, /命令行参数/); assert.ok(!a.out.includes(PW));
   const b = cli(['--email', EMAIL], { ADMIN_RESET_PASSWORD: PW, ADMIN_CREATE_PASSWORD: PW });
-  assert.equal(b.code, 1); assert.match(b.out, /已忽略并删除环境变量 ADMIN_RESET_PASSWORD, ADMIN_CREATE_PASSWORD/); assert.match(b.out, /DATABASE_URL 未设置/);
+  // #347：子进程的 stdout 是管道（不是终端）→ 先报 stdout_not_tty（退出 2），不读密码、不连库
+  assert.equal(b.code, 2); assert.match(b.out, /已忽略并删除环境变量 ADMIN_RESET_PASSWORD, ADMIN_CREATE_PASSWORD/); assert.match(b.out, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m);
   assert.ok(!b.out.includes(PW));
 });
 
-test('CLI：数据库不可达 → 退出 1，只给错误类型，不输出密码、邮箱或连接串', () => {
-  const r = cli(['--email', EMAIL], { DATABASE_URL: 'postgresql://dbuser:dbpass-SHOULD-NOT-LEAK@127.0.0.1:1/x', ADMIN_RESET_PASSWORD: PW }, `${PW}\n`);
-  assert.equal(r.code, 1); assert.match(r.out, /数据库操作失败/);
+test('CLI：stdout 不是终端（管道 / 重定向）→ 退出 2，不读标准输入的密码、不连库，不输出密码、邮箱或连接串', () => {
+  // 数据库不可达的路径改由上面的 runReset 单测覆盖（子进程拿不到终端）
+  const r = cli(['--email', EMAIL], { DATABASE_URL: 'postgresql://dbuser:dbpass-SHOULD-NOT-LEAK@127.0.0.1:1/x', ADMIN_RESET_PASSWORD: PW, NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, `${PW}\n`);
+  assert.equal(r.code, 2); assert.match(r.out, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m); assert.doesNotMatch(r.out, /数据库操作失败/);
   for (const s of [PW, 'dbpass-SHOULD-NOT-LEAK', 'dbuser', EMAIL]) assert.ok(!r.out.includes(s), s);
 });
 
@@ -351,6 +413,7 @@ test('只有 CLI；会进 standalone 产物；源码里没有 SCAN/KEYS、没有
   assert.doesNotMatch(lib, /`login-ip:|`enroll-ip:/);
   assert.doesNotMatch(lib.slice(lib.indexOf('export function accountOnlyRateKeys')), /`login:\$\{(?!UNTRUSTED)|`enroll-confirm:\$\{(?!UNTRUSTED)/);
   assert.match(readFileSync('next.config.ts', 'utf8'), /'\.\/scripts\/admin-reset-initial-password\.mjs', '\.\/scripts\/admin-reset-initial-password-lib\.mjs'/);
+  assert.match(readFileSync('next.config.ts', 'utf8'), /'\.\/scripts\/enroll-token-lib\.mjs'/); // #347 reset 脚本 import 了它
   assert.match(readFileSync('Dockerfile', 'utf8'), /test -f scripts\/admin-reset-initial-password\.mjs && test -f scripts\/admin-reset-initial-password-lib\.mjs/);
   assert.equal(JSON.parse(readFileSync('package.json', 'utf8')).scripts['admin:reset-initial-password'], 'node scripts/admin-reset-initial-password.mjs');
 });

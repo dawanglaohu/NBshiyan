@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   afterConfirm, afterEnroll, afterVoid, canFinish, codeCheck, CONFIRM_PATH, ENROLL_PATH, ENROLL_RESTART, ENROLL_VOID_FOOT, ENROLL_VOID_HINT, ENROLL_VOID_TEXT, errorText, isVoidCode, groupSecret, inProgress, INITIAL, isCompleteCode,
-  normalizeCode, parseSecret, postEnroll, recoveryFilename, recoveryTxt, SIGNIN_HREF, STEPS, stepStatus, waitLeft,
+  normalizeCode, parseSecret, postEnroll, recoveryFilename, recoveryTxt, SIGNIN_HREF, STEPS, stepStatus, takeEnrollToken, waitLeft,
   type EnrollState, type Step,
 } from '@/lib/admin/enroll';
 import { qrSvgDataUrl } from '@/lib/admin/enroll-qr';
@@ -14,6 +14,8 @@ const TITLES: Record<Step, string> = { 1: '绑定两步验证', 2: '扫码并确
  * P1：新管理员首次绑定 2FA（UX 稿 spec §6：账号验证 → 扫码并确认 → 保存恢复码）。
  * 密码、otpauth URI、恢复码只放在 React state 里：不写 URL、不写浏览器本地存储、不打日志；
  * 去登录、页面隐藏（pagehide）、卸载时都清掉。
+ * #347 方案 A（后端 PR 里的最小改动，完整的页面状态和文案由前端后续 PR 按 UX spec 做）：打开时从 #t= 读一次性绑定令牌，
+ * 立即 history.replaceState 去掉，令牌只放在内存（ref）里，随 enroll / confirm 一起提交；确认成功或去登录时清掉。
  */
 export default function EnrollWizard() {
   const [s, setS] = useState<EnrollState>(INITIAL);
@@ -28,6 +30,16 @@ export default function EnrollWizard() {
   const heading = useRef<HTMLHeadingElement>(null);
   const first = useRef(true);
   const leaving = useRef(false);
+  const enrollToken = useRef<string | null>(null);
+
+  // #347：读出地址栏里的令牌后马上去掉（不进历史记录、Referer、截图），StrictMode 下第二次执行时地址栏已经没有 t，不覆盖
+  useEffect(() => {
+    const { token, cleanUrl } = takeEnrollToken(window.location);
+    if (cleanUrl === null) return;
+    enrollToken.current = token;
+    window.history.replaceState(window.history.state, '', cleanUrl);
+  }, []);
+  const withToken = (body: Record<string, string>) => (enrollToken.current ? { ...body, token: enrollToken.current } : body);
 
   const secret = useMemo(() => parseSecret(s.otpauthUri), [s.otpauthUri]);
   const qr = useMemo(() => (s.otpauthUri ? qrSvgDataUrl(s.otpauthUri) : null), [s.otpauthUri]);
@@ -76,7 +88,7 @@ export default function EnrollWizard() {
     e.preventDefault();
     if (busy) return;
     setBusy(true); setError(null);
-    const r = await postEnroll<{ otpauthUri: string }>(ENROLL_PATH, { email: email.trim(), password });
+    const r = await postEnroll<{ otpauthUri: string }>(ENROLL_PATH, withToken({ email: email.trim(), password }));
     setBusy(false);
     if (!r.ok) { setError({ code: r.code, at: 'top' }); return; }
     if (!parseSecret(r.data.otpauthUri)) { setError({ code: 'unknown', at: 'top' }); return; }
@@ -90,7 +102,7 @@ export default function EnrollWizard() {
     // 不是正好 6 位数字就不发请求（按钮已禁用；这里再挡一次回车提交）
     if (codeCheck(code) !== 'ok' || !isCompleteCode(code)) return;
     setBusy(true); setError(null);
-    const r = await postEnroll<{ recoveryCodes: string[] }>(CONFIRM_PATH, { email: email.trim(), password, totp: code });
+    const r = await postEnroll<{ recoveryCodes: string[] }>(CONFIRM_PATH, withToken({ email: email.trim(), password, totp: code }));
     setBusy(false);
     // 出错不清空输入框；验证码类错误显示在输入框下方，其他在顶部
     // #350 失败过多、绑定作废：清掉验证码和二维码，只留「重新开始绑定」（错误码待后端定，见 ENROLL_VOID_CODES）
@@ -99,6 +111,7 @@ export default function EnrollWizard() {
     if (!Array.isArray(r.data.recoveryCodes) || r.data.recoveryCodes.length === 0) { setError({ code: 'unknown', at: 'top' }); return; }
     const t = Date.now();
     setPassword(''); setCode(''); setNow(t);
+    enrollToken.current = null; // 令牌已被后端消耗
     setS((p) => afterConfirm(p, r.data.recoveryCodes, t));
   };
 
@@ -124,6 +137,7 @@ export default function EnrollWizard() {
   const goSignin = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!ready) { e.preventDefault(); return; }
     leaving.current = true;
+    enrollToken.current = null;
     wipe(); setEmail('');
   };
 

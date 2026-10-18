@@ -1,3 +1,4 @@
+import type { Issued } from './enroll-token-lib.mjs';
 export const ARGON: { memoryCost: number; timeCost: number; parallelism: number };
 export function firstLine(text: string): string;
 export const ENROLL_WINDOW_MS: number;
@@ -21,7 +22,8 @@ export function hasPendingEnroll(u: Partial<ResetUser>): boolean;
 export type Plan = { clearPending: boolean; hadPending?: boolean; windowWasOpen?: boolean };
 export function decide(u: ResetUser | null | undefined, o: { clearPendingEnroll: boolean; now: number }): string | Plan;
 export function resetData(passwordHash: string, plan: Plan, now: number): Record<string, unknown>;
-export function auditEntries(userId: string, plan: Plan): { actorId: null; target: string; ip: null; action: string; meta: Record<string, unknown> }[];
+export function auditEntries(userId: string, plan: Plan, issued?: Issued): { actorId: null; target: string; ip: null; action: string; meta: Record<string, unknown> }[];
+export function windowStartAfter(u: Pick<ResetUser, 'enrollIssuedAt' | 'createdAt'>, plan: Plan, now: number): number;
 export function rateLimitEnv(env: Record<string, string | undefined>): string;
 export function rateLimitKeyHash(value: string, env: Record<string, string | undefined>): string;
 export const ENROLL_CONFIRM_WINDOW_MS: number;
@@ -44,4 +46,8 @@ export function runReset(o: {
   now?: () => number;
   out: (s: string) => void;
   err: (s: string) => void;
+  /** #347：stdout 是不是终端；不是 true 就拒绝运行（退出 2） */
+  stdoutIsTTY?: boolean;
+  /** #347：签发令牌（默认 enroll-token-lib newEnrollToken） */
+  issueToken?: (now: number, windowStart: number) => Issued;
 }): Promise<number>;
