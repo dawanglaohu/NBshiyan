@@ -30,10 +30,11 @@ export const FIELD_LABEL: Record<DraftField, string> = { title: '标题', summar
 
 /** 固定文案（与稿件逐字一致；{x} 是占位） */
 export const SETTINGS_TEXT = {
-  crumb: '站点设置 / 公司介绍',
+  crumb: '站点设置 / 关于我们', // spec §9：面包屑跟分区名「关于我们」/「组织信息」
   h1: '公司介绍（/about 页）',
   lastEdited: '最近修改：',
-  preview: (l: string) => `在新窗口预览 ${l.toUpperCase()} ↗`,
+  preview: '查看前台已发布页 ↗', // UX 定稿：只打开已发布的前台页（没有草稿预览）
+  unpublished: '尚未发布，前台不可见',
   visibility: '前台显示',
   visibilityOn: (ls: string[]) => `已开启 · 只显示内容完整的语言（当前：${ls.length ? ls.map((l) => l.toUpperCase()).join('、') : '无'}）。关闭后 /about 全部返回 404，导航、页脚入口和 sitemap 一起移除。`,
   visibilityOff: '已关闭 · /about 返回 404，导航、页脚入口和 sitemap 都不显示。已填写的内容会保留。',
@@ -55,6 +56,7 @@ export const SETTINGS_TEXT = {
   checkBody: '正文（≥ 50 字）',
   checkStats: (n: number) => `数据条（选填）· ${n} 条`,
   checkHome: '首页区块标题 + 简介',
+  bodyShort: (min: number) => `正文不到 ${min} 字，这个语言的 /about 前台不会显示（可以先保存草稿）。`,
   localeStatus: '各语言前台状态',
   shown: '显示',
   hidden: (why: string) => `隐藏 · ${why}`,
@@ -69,6 +71,9 @@ export const SETTINGS_TEXT = {
   conflictRefresh: '刷新',
   conflictConfirmTitle: '未保存的修改将丢弃',
   conflictConfirmOk: '丢弃并刷新',
+  // UX #373 P3-2：冲突期间保存栏的说明（稿件 settings-conflict）和禁用「保存」的 title
+  conflictBar: '内容冲突，刷新后才能保存',
+  conflictSaveTitle: '内容冲突，请先刷新',
   leave: '有未保存的修改，确定离开？',
   linkLabel: '链接地址',
   linkOk: '确定',
@@ -94,11 +99,46 @@ export const SETTINGS_TEXT = {
  * 「完整」直接调用后端的 isAboutContentComplete（about-rules.ts，纯函数），不另写规则；按「已保存」的内容判断。
  */
 export type Completeness = { state: 'complete' | 'partial' | 'empty'; label: string };
+/**
+ * 缺什么（UX #373 验收 P2-2：标签上写清楚「缺标题」「缺正文」，不只写「内容不完整」）。
+ * 规则和 isAboutContentComplete 一致：标题 2–80 字、正文纯文本 50–6000 字。
+ */
+export function missingParts(d: Pick<AboutDraft, 'title' | 'bodyHtml'>): ('title' | 'body')[] {
+  const out: ('title' | 'body')[] = [];
+  const t = countChars(d.title.trim());
+  if (t < ABOUT_LIMITS.titleMin || t > ABOUT_LIMITS.titleMax) out.push('title');
+  const b = countChars(aboutBodyText(d.bodyHtml));
+  if (b < ABOUT_LIMITS.bodyTextMin || b > ABOUT_LIMITS.bodyTextMax) out.push('body');
+  return out;
+}
+const MISSING_LABEL = { title: '标题', body: '正文' } as const;
 export function draftCompleteness(d: AboutDraft): Completeness {
   const empty = !d.title.trim() && !plainText(d.bodyHtml) && !d.summary.trim() && d.stats.length === 0 && !d.homeHeading.trim() && !d.homeIntro.trim();
   if (empty) return { state: 'empty', label: '未填写' };
   if (isAboutContentComplete({ title: d.title, bodyHtml: d.bodyHtml, images: [] })) return { state: 'complete', label: '完整' };
-  return { state: 'partial', label: '内容不完整' };
+  const miss = missingParts(d);
+  return { state: 'partial', label: miss.length ? `缺${miss.map((m) => MISSING_LABEL[m]).join('、')}` : '内容不完整' };
+}
+
+/**
+ * 右栏「<语言> 完整度」清单（稿件 settings-desktop 的 .ss-chk）：按当前草稿实时算。
+ * state：ok ✓ / missing !（必填没满足）/ optional –（选填）。图片替代文字一项等 PublicAsset 接入后再加。
+ */
+export type ChecklistItem = { key: 'title' | 'body' | 'stats' | 'home'; label: string; state: 'ok' | 'missing' | 'optional' };
+export function draftChecklist(d: AboutDraft): ChecklistItem[] {
+  const miss = missingParts(d);
+  const homeOk = !!d.homeHeading.trim() && !!d.homeIntro.trim();
+  return [
+    { key: 'title', label: SETTINGS_TEXT.checkTitle, state: miss.includes('title') ? 'missing' : 'ok' },
+    { key: 'body', label: SETTINGS_TEXT.checkBody, state: miss.includes('body') ? 'missing' : 'ok' },
+    { key: 'stats', label: SETTINGS_TEXT.checkStats(d.stats.length), state: 'optional' },
+    { key: 'home', label: SETTINGS_TEXT.checkHome, state: homeOk ? 'ok' : 'optional' },
+  ];
+}
+/** 正文有字但不到 50 字：不阻止保存，但字段下方说明该语言前台不会显示 */
+export function bodyTooShortNote(d: AboutDraft): string | null {
+  const n = countChars(aboutBodyText(d.bodyHtml));
+  return n > 0 && n < ABOUT_LIMITS.bodyTextMin ? SETTINGS_TEXT.bodyShort(ABOUT_LIMITS.bodyTextMin) : null;
 }
 
 /**
@@ -156,6 +196,18 @@ export { isAllowedAboutHref };
 /** 保存 / 开关的错误文案（409 不走这里，见 conflictStep）；其他沿用后台 errorText() */
 export const settingsErrorText = (code: string): string => errorText(code, '保存失败');
 
+/** 后端 issue 转成一行文字（顶部错误条用） */
+export const issueLine = (i: { path?: unknown; message?: unknown }): string => {
+  const path = typeof i.path === 'string' ? i.path : ''; const msg = typeof i.message === 'string' ? i.message : '';
+  return path ? `${path}：${msg}` : msg || '（未说明）';
+};
+/**
+ * 顶部错误条文案（about 和组织信息共用）：对不上字段的 issue、或 400 / 422 没带 issues，都必须显示在这里，不能悄悄丢掉。
+ * rest 是对不上字段的 issue 文字；为空时只显示错误码对应的文案。
+ */
+export const issuesAlertText = (code: string, rest: readonly string[] = []): string =>
+  rest.length ? `${settingsErrorText(code)}（${rest.join('；')}）` : settingsErrorText(code);
+
 // ───────────────────────── 接口层 ─────────────────────────
 /**
  * 失败时 code 是后端的 error 字段原样（例如 'invalid'、'too_large'、'version_conflict'）。
@@ -165,7 +217,7 @@ export const settingsErrorText = (code: string): string => errorText(code, '保�
  */
 export type SaveResult =
   | { ok: true; data: AboutSettingsData }
-  | { ok: false; code: string; currentVersion?: number; saved?: AboutSettingsData };
+  | { ok: false; code: string; currentVersion?: number; saved?: AboutSettingsData; issues?: string[] };
 export const VERSION_CONFLICT = 'version_conflict' as const;
 export const isVersionConflict = (r: SaveResult): boolean => !r.ok && r.code === VERSION_CONFLICT;
 

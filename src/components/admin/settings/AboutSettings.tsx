@@ -1,11 +1,13 @@
 'use client';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
-  aboutSettingsApi, canSave, conflictStep, dirtyFields, dirtySummary, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
+  aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref, issuesAlertText,
   isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
 } from '@/lib/admin/site-settings';
+import ConfirmDialog from './ConfirmDialog';
+import SettingsSections from './SettingsSections';
 import './settings.css';
 
 type Notice = { kind: 'ok' | 'err'; text: string } | null;
@@ -45,16 +47,33 @@ function BodyEditor({ initial, dir, onChange, invalid, describedBy }: { initial:
     document.execCommand('createLink', false, link.trim());
     setLink(null); emit();
   };
-  const tools: [string, string, () => void][] = [
-    ['H2', '二级标题', () => cmd('formatBlock', '<h2>')], ['H3', '三级标题', () => cmd('formatBlock', '<h3>')],
-    ['B', '加粗', () => cmd('bold')], ['I', '斜体', () => cmd('italic')], ['🔗', '链接', openLink],
-    ['• ≡', '项目符号列表', () => cmd('insertUnorderedList')], ['1. ≡', '编号列表', () => cmd('insertOrderedList')],
-    ['Tx', '清除格式', () => { cmd('removeFormat'); cmd('unlink'); cmd('formatBlock', '<p>'); }],
+  // UX #373 P3-3：平的、分组的工具栏（稿件 .ss-tb）：H2 H3 | B I 链接 | 列表 | 清除格式；加粗 / 斜体按选区显示 aria-pressed
+  const [pressed, setPressed] = useState({ bold: false, italic: false });
+  useEffect(() => {
+    const h = () => {
+      const sel = window.getSelection();
+      if (!sel || !ref.current?.contains(sel.anchorNode)) return;
+      setPressed({ bold: document.queryCommandState('bold'), italic: document.queryCommandState('italic') });
+    };
+    document.addEventListener('selectionchange', h);
+    return () => document.removeEventListener('selectionchange', h);
+  }, []);
+  type Tool = { label: React.ReactNode; name: string; fn: () => void; pressed?: boolean };
+  const groups: Tool[][] = [
+    [{ label: 'H2', name: '二级标题', fn: () => cmd('formatBlock', '<h2>') }, { label: 'H3', name: '三级标题', fn: () => cmd('formatBlock', '<h3>') }],
+    [{ label: <b>B</b>, name: '加粗', fn: () => cmd('bold'), pressed: pressed.bold }, { label: <i>I</i>, name: '斜体', fn: () => cmd('italic'), pressed: pressed.italic }, { label: '🔗', name: '链接', fn: openLink }],
+    [{ label: '• ≡', name: '项目符号列表', fn: () => cmd('insertUnorderedList') }, { label: '1. ≡', name: '编号列表', fn: () => cmd('insertOrderedList') }],
+    [{ label: 'Tx', name: '清除格式', fn: () => { cmd('removeFormat'); cmd('unlink'); cmd('formatBlock', '<p>'); } }],
   ];
   return (
     <div className={`st-editor${invalid ? ' bad' : ''}`}>
       <div className="st-tools" role="toolbar" aria-label="正文格式">
-        {tools.map(([label, name, fn]) => <button key={name} type="button" className="adm-btn sq" aria-label={name} title={name} onMouseDown={(e) => e.preventDefault()} onClick={fn}>{label}</button>)}
+        {groups.map((g, gi) => (
+          <Fragment key={gi}>
+            {gi > 0 && <span className="sep" aria-hidden="true" />}
+            {g.map((t) => <button key={t.name} type="button" className="st-tb-btn" aria-label={t.name} title={t.name} aria-pressed={t.pressed === undefined ? undefined : t.pressed} onMouseDown={(e) => e.preventDefault()} onClick={t.fn}>{t.label}</button>)}
+          </Fragment>
+        ))}
       </div>
       {link !== null && (
         <div className="st-link">
@@ -132,7 +151,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
       step('conflict');
       return;
     }
-    setNotice({ kind: 'err', text: settingsErrorText(r.code) });
+    setNotice({ kind: 'err', text: issuesAlertText(r.code, r.ok ? [] : r.issues ?? []) });
   };
 
   const discard = () => { if (!saved) return; setDraft(structuredClone(saved.locales)); setEpoch((n) => n + 1); };
@@ -145,7 +164,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
     setBusy(false);
     if (r.ok) { setSaved((p) => (p ? { ...p, enabled: r.data.enabled, enabledVersion: r.data.enabledVersion } : r.data)); return; }
     if (isVersionConflict(r)) { step('conflict'); return; }
-    setNotice({ kind: 'err', text: settingsErrorText(r.code) });
+    setNotice({ kind: 'err', text: issuesAlertText(r.code, r.ok ? [] : r.issues ?? []) });
   };
 
   /** 冲突后「刷新」→ 确认「未保存的修改将丢弃」→ 读最新内容和版本号，丢弃本地修改 */
@@ -195,9 +214,17 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   return (
     <div className="st-page">
       <p className="st-crumb">{T.crumb}</p>
-      <h1>{T.h1}</h1>
-      {d.updatedAt && <p className="st-audit">{T.lastEdited}{d.updatedByName ?? '—'} · <AdminTime iso={d.updatedAt} /></p>}
-      {/* TODO(backend #350)：「在新窗口预览 EN ↗」需要草稿预览接口，接口上线后再加 */}
+      <SettingsSections current="about" />
+      <div className="st-hd">
+        <div>
+          <h1>{T.h1}</h1>
+          {d.updatedAt && <p className="st-audit">{T.lastEdited}{d.updatedByName ?? '—'} · <AdminTime iso={d.updatedAt} /></p>}
+        </div>
+        {/* UX 定稿：只在当前语言前台可见（开关开 + 已上线 + 已保存的内容完整）时给链接；否则灰字说明，不放死链接 */}
+        {shownLocales.includes(tab)
+          ? <a className="adm-btn st-preview" href={`/${tab}/about`} target="_blank" rel="noopener">{T.preview}</a>
+          : <span className="st-unpub">{T.unpublished}</span>}
+      </div>
       {notice?.kind === 'ok' && <p className="st-ok" role="status">{notice.text}</p>}
       {notice?.kind === 'err' && <p className="st-err" role="alert">{notice.text}</p>}
       {conflict !== 'none' && (
@@ -234,8 +261,9 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
               {field('summary', T.summaryLabel)}
               <div className="st-f">
                 <div className="st-lab"><span id="st-body-l">正文<b aria-hidden="true"> *</b></span><Counter id="st-body-c" {...bodyC} /></div>
-                <BodyEditor key={`${tab}-${epoch}`} initial={d.bodyHtml} dir={dir} invalid={!!errors.bodyHtml} describedBy={`st-body-c st-body-h${errors.bodyHtml ? ' st-body-e' : ''}`} onChange={(html) => set('bodyHtml', html)} />
+                <BodyEditor key={`${tab}-${epoch}`} initial={d.bodyHtml} dir={dir} invalid={!!errors.bodyHtml} describedBy={`st-body-c st-body-h${errors.bodyHtml ? ' st-body-e' : bodyTooShortNote(d) ? ' st-body-s' : ''}`} onChange={(html) => set('bodyHtml', html)} />
                 <p id="st-body-h" className="st-hint">{T.bodyHint}</p>
+                {!errors.bodyHtml && bodyTooShortNote(d) && <p id="st-body-s" className="st-warn">{bodyTooShortNote(d)}</p>}
                 {errors.bodyHtml && <p id="st-body-e" className="st-ferr">{errors.bodyHtml}</p>}
               </div>
 
@@ -266,6 +294,15 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
         </div>
 
         <aside className="st-side">
+          <section className="adm-card st-card" aria-labelledby="st-chk-h">
+            <h2 id="st-chk-h">{T.checklist(tab)}</h2>
+            <ul className="st-chk">
+              {draftChecklist(d).map((c) => (
+                <li key={c.key}><span className={`i ${c.state}`} aria-hidden="true">{c.state === 'ok' ? '✓' : c.state === 'missing' ? '!' : '–'}</span>
+                  <span>{c.label}<span className="sr-only">{c.state === 'ok' ? '（已满足）' : c.state === 'missing' ? '（未满足）' : '（选填）'}</span></span></li>
+              ))}
+            </ul>
+          </section>
           <section className="adm-card st-card">
             <h2>{T.localeStatus}</h2>
             <ul className="st-status">
@@ -282,9 +319,9 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
 
       {dirty && (
         <div className="st-bar" role="region" aria-label="保存">
-          <span>{T.dirty}<small>（{summary}）</small></span>
-          <button type="button" className="adm-btn" disabled={busy} onClick={discard}>{T.discard}</button>
-          <button type="button" className="adm-btn primary" disabled={!saveAllowed} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
+          <span>{T.dirty}{conflict !== 'none' ? <small> · {T.conflictBar}</small> : <small>（{summary}）</small>}</span>
+          <button type="button" className="adm-btn" disabled={busy || conflict !== 'none'} onClick={discard}>{T.discard}</button>
+          <button type="button" className="adm-btn primary" disabled={!saveAllowed} title={conflict !== 'none' ? T.conflictSaveTitle : undefined} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
         </div>
       )}
 
@@ -314,29 +351,6 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
           {dirty && <p className="st-warn">{T.unsavedNotPublished}</p>}
         </ConfirmDialog>
       )}
-    </div>
-  );
-}
-
-function ConfirmDialog({ title, children, confirmLabel, danger, onCancel, onConfirm }: { title: string; children: React.ReactNode; confirmLabel: string; danger?: boolean; onCancel: () => void; onConfirm: () => void }) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    cancelRef.current?.focus();
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onCancel(); } };
-    document.addEventListener('keydown', k);
-    return () => { document.removeEventListener('keydown', k); prev?.focus(); };
-  }, [onCancel]);
-  return (
-    <div className="st-mask">
-      <div className="st-dialog" role="alertdialog" aria-modal="true" aria-labelledby="st-dlg-h" aria-describedby="st-dlg-b">
-        <h2 id="st-dlg-h">{title}</h2>
-        <div id="st-dlg-b">{children}</div>
-        <div className="st-dlg-btns">
-          <button ref={cancelRef} type="button" className="adm-btn" onClick={onCancel}>{T.cancel}</button>
-          <button type="button" className={`adm-btn primary${danger ? ' danger' : ''}`} onClick={onConfirm}>{confirmLabel}</button>
-        </div>
-      </div>
     </div>
   );
 }

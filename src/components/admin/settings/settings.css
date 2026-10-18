@@ -3,14 +3,17 @@
 .st-page h1{font-size:24px;margin:4px 0 6px}
 .st-crumb,.st-audit,.st-hint{font-size:13px;color:var(--ink-2);margin:4px 0}
 .st-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;margin-top:16px;align-items:start}
-.st-main{display:flex;flex-direction:column;gap:16px;min-width:0}
+.st-main,.st-side{display:flex;flex-direction:column;gap:16px;min-width:0} /* 右栏两张卡片之间留 16px（P2-2 加了完整度清单） */
 .st-card{padding:16px 20px;overflow:visible}
 .st-card h2{font-size:16px;margin:0 0 8px}
 .st-vis{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.st-switch{width:44px;height:26px;border-radius:13px;border:1px solid var(--line);background:var(--line);position:relative;cursor:pointer;padding:0}
-.st-switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
-.st-switch[aria-checked="true"]{background:#1E8E5A;border-color:#1E8E5A}
-.st-switch[aria-checked="true"] i{left:20px}
+.st-switch{width:52px;height:44px;border:0;background:transparent;padding:0;display:grid;place-items:center;cursor:pointer;flex:none} /* UX #373 P2-3：点击区域 52×44，轨道 44×26（稿件 .ss-sw） */
+.st-switch i{width:44px;height:26px;border-radius:999px;background:#8C857B;position:relative;display:block}
+.st-switch i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+.st-switch[aria-checked="true"] i{background:#1E8E5A}
+.st-switch[aria-checked="true"] i::after{transform:translateX(18px)}
+.st-switch:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px;border-radius:8px}
+.st-switch:disabled{opacity:.5;cursor:default}
 .st-tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin:-4px -4px 16px}
 .st-tabs [role=tab]{font:inherit;font-weight:700;background:none;border:0;border-bottom:2px solid transparent;padding:10px 12px;cursor:pointer;white-space:nowrap;color:var(--ink);display:flex;align-items:center;gap:6px}
 .st-tabs [aria-selected="true"]{border-bottom-color:var(--accent-text);color:var(--accent-text)}
@@ -24,10 +27,17 @@
 .st-count{font-size:12px;color:var(--ink-2);font-weight:500}.st-count.bad{color:#C0392B;font-weight:700}
 .st-ferr{color:#C0392B;font-size:13px;margin:4px 0 0}
 .st-editor{border:1px solid var(--line);border-radius:8px;background:#fff}
-.st-tools{display:flex;gap:4px;flex-wrap:wrap;padding:6px;border-bottom:1px solid var(--line)}
+.st-tools{display:flex;gap:2px;flex-wrap:wrap;padding:4px;border-bottom:1px solid var(--line);background:#FCFAF6;border-radius:8px 8px 0 0}
+/* UX #373 P3-3：平的分组工具栏（稿件 .ss-tb） */
+.st-tb-btn{font:inherit;font-size:13px;min-width:34px;height:32px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;color:var(--ink)}
+.st-tb-btn:hover{background:#F1EDE6}
+.st-tb-btn[aria-pressed="true"]{background:#EFEDEA;border-color:var(--line)}
+.st-tb-btn:focus-visible{outline:2px solid var(--accent-text);outline-offset:1px}
+.st-tools .sep{width:1px;background:var(--line);margin:4px}
 .st-rich{min-height:200px;padding:10px 12px;outline:none;line-height:1.6}
 .st-rich:focus-visible{box-shadow:inset 0 0 0 2px var(--accent-text)}
 .st-rich ul,.st-rich ol{padding-inline-start:1.4em}
+.st-rich a{color:var(--accent-text)} /* UX #373 P3-1：编辑器里的链接用 --accent-text，不用浏览器默认蓝 */
 .st-link{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;border-bottom:1px solid var(--line)}
 .st-link input{flex:1 1 220px;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
 .st-link .st-ferr{flex-basis:100%}
@@ -45,11 +55,44 @@
 .st-dialog{background:#fff;border-radius:12px;padding:20px 24px;max-width:480px;width:100%}
 .st-dialog h2{margin:0 0 8px;font-size:18px}
 .st-dlg-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.st-bar .adm-btn.primary:disabled{background:var(--line);border-color:var(--line);color:var(--ink-2);opacity:1;cursor:not-allowed} /* UX #373 P3-2：禁用的「保存」是灰色，不是淡珊瑚色 */
 .adm-btn.primary.danger{background:#C0392B;border-color:#C0392B;color:#fff}
+/* UX #373 P2-2：标题行 + 预览按钮；右栏完整度清单（稿件 .ss-chk） */
+.st-hd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.st-preview{text-decoration:none;display:inline-flex;align-items:center}
+.st-unpub{font-size:13px;color:var(--ink-2);padding:8px 0}
+.st-chk{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.5}
+.st-chk li{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}.st-chk li:last-child{border:0}
+.st-chk .i{width:18px;height:18px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800}
+.st-chk .ok{background:#E6F4EC;color:#1E8E5A}.st-chk .missing{background:#FBEAE8;color:#C0392B}.st-chk .optional{background:#EFEDEA;color:#6F6A63}
+.st-page .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 @media (max-width:767px){
+  /* UX #373 P2-3：390 下所有按钮、输入框、标签页、工具栏按钮的点击区域 ≥ 44px */
+  .st-page .adm-btn{min-height:44px}
+  .st-page .adm-btn.sq{min-width:44px}
+  .st-f input,.st-f select,.st-link input{min-height:44px}
+  .st-tb-btn{min-width:44px;height:44px}
+  .st-tabs [role=tab]{min-height:44px}
+  .st-sections a{min-height:44px;display:inline-flex;align-items:center}
   .st-page{padding:16px;padding-bottom:110px}
+  .st-hd{flex-direction:column;align-items:flex-start;gap:6px}
   .st-grid{grid-template-columns:1fr}
   .st-side{order:-1}
   .st-stat{grid-template-columns:90px 1fr auto}
   .st-stat .st-up{display:none}
 }
+/* #350 spec §9：分区导航「关于我们」「组织信息」+ 组织信息单栏（最大宽 760px） */
+.st-sections{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:4px 0 12px}
+.st-sections a{font-weight:700;padding:8px 12px;border-bottom:2px solid transparent;color:var(--ink);text-decoration:none}
+.st-sections a[aria-current="page"]{border-bottom-color:var(--accent);color:var(--ink)}
+.st-orgcol{max-width:760px;display:flex;flex-direction:column;gap:16px;margin-top:16px}
+.st-note{background:#E8F0FA;color:#1F4E8C;font-weight:600;font-size:13px;border-radius:8px;padding:10px 12px;margin:0}
+.st-pub{display:inline-block;margin-inline-start:6px;padding:0 6px;border-radius:4px;background:#FFF3C4;color:#8A6500;font-size:11px;font-weight:600;vertical-align:1px}
+.st-count.warn{color:#8A6500;font-weight:700}
+.st-lab-full{width:100%;padding:0}
+.st-f select{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.st-f input.st-year{max-width:160px}
+.st-same{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-bottom:6px}
+.st-same .st-ferr,.st-same .st-hint{grid-column:1/-1;margin:0}
+.st-same-add{display:flex;align-items:center;gap:8px;margin-top:4px}
+.st-f input.st-ro{background:#F2EFEA;color:var(--ink-2)}
