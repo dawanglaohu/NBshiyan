@@ -144,16 +144,22 @@ export type OpenView = { center: V3; distance: number; /** 是否放宽了 10% �
  * - 如果开盖后静止的姿态（end）在拉远 10% 后仍放不下（例如礼盒竖起来的盒盖），就放宽上限：
  *   按盖子整条开合弧线（open）重新取景——四边留 1.08 余量、投影居中，只拉远不推近。
  *   这样只有真正需要的产品才会超过 10%，其它产品的开盖表现不变。
+ * - fitArc=true 的产品（酒盒）：开合途中的弧线在 10% 内放不下（盖子中途从顶部出画）也走上面的整条弧线取景。
+ *   默认关闭：瓦楞盒的翻盖中途也略出画，但按要求保持原样。
  */
-export function openFraming(closed: Pick<Framing, 'center' | 'distance'>, openMin: V3, openMax: V3, fovDeg: number, aspect: number, opts: { margin?: number; maxFactor?: number; dir?: V3; points?: V3[]; end?: V3[] } = {}): OpenView {
+export function openFraming(closed: Pick<Framing, 'center' | 'distance'>, openMin: V3, openMax: V3, fovDeg: number, aspect: number, opts: { margin?: number; maxFactor?: number; dir?: V3; points?: V3[]; end?: V3[]; fitArc?: boolean } = {}): OpenView {
   const margin = opts.margin ?? MARGIN, maxFactor = opts.maxFactor ?? OPEN_DOLLY_MAX, dir = opts.dir ?? VIEW_DIR;
   const k = openDollyFactor(closed, openMin, openMax, fovDeg, aspect, { margin, maxFactor, dir, points: opts.points });
   const normal: OpenView = { center: closed.center, distance: closed.distance * k, extended: false };
-  if (!opts.end?.length) return normal;
-  const endK = openDollyFactor(closed, openMin, openMax, fovDeg, aspect, { margin, maxFactor: maxFactor * 1.0001, dir, points: opts.end });
-  const e = projectPoints(opts.end, closed.center, closed.distance * endK, fovDeg, aspect, dir);
   const m = 1 / margin + 1e-6;
-  if (e.x0 >= -m && e.x1 <= m && e.y0 >= -m && e.y1 <= m) return normal;
+  const inside = (e: ScreenExtents) => e.x0 >= -m && e.x1 <= m && e.y0 >= -m && e.y1 <= m;
+  // fitArc（逐产品开启，目前只有酒盒）：开合途中（不只是开盖后静止）盖子出画也按整条弧线取景
+  const arcOut = !!opts.fitArc && !!opts.points?.length && !inside(projectPoints(opts.points, closed.center, closed.distance * k, fovDeg, aspect, dir));
+  if (!arcOut) {
+    if (!opts.end?.length) return normal;
+    const endK = openDollyFactor(closed, openMin, openMax, fovDeg, aspect, { margin, maxFactor: maxFactor * 1.0001, dir, points: opts.end });
+    if (inside(projectPoints(opts.end, closed.center, closed.distance * endK, fovDeg, aspect, dir))) return normal;
+  }
   const fit = frameClosedBox(openMin, openMax, fovDeg, aspect, { fill: 1, margin, dir, points: opts.points });
   if (fit.distance <= closed.distance) return normal;
   return { center: fit.center, distance: fit.distance, extended: true };
