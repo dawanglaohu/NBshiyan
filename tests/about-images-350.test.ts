@@ -403,6 +403,7 @@ test('UX 复审：上移 / 下移 / 删除第 N 张图片；删除用后台通�
   assert.equal(IMAGES_TEXT.checkAltMissing(2), '图片替代文字 · 2 张缺失');
   assert.match(read('../src/components/admin/settings/AboutSettings.tsx'), /aria-label=\{`删除第 \$\{i \+ 1\} 条`\}[^\n]*>✕<\/button>/, '沿用数据条删除按钮的 ✕');
   assert.match(css, /@media \(max-width:639px\)\{\s*\.st-im-grid\{grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(css, /\.st-chk,\.st-im\{word-spacing:\.25em\}/, '空格在 12px 下要看得出来');
   // 所有「N 张」：数字前后都有空格
   for (const m of lib.matchAll(/`[^`]*\$\{[^}]+\}[^`]*张[^`]*`/g)) assert.match(m[0], /\} 张/, m[0]);
 });

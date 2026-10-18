@@ -1,5 +1,8 @@
 /* #350 关于我们 · 图片列表（稿件 settings-desktop 的 .ss-imgs / .ss-img / .ss-up；settings-link-upload-error 的红框）。类名都带 st-im- 前缀 */
 .st-im .st-ferr{font-weight:600}
+/* UX 复审（P3）：12px 下 Manrope 的空格只有约 2px，「1 张缺失」「已上传 6 张」看起来像没空格；词间距加宽（文案本身就带空格） */
+.st-chk,.st-im{word-spacing:.25em}
+.st-im input{word-spacing:normal}
 .st-im-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .st-im-card{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);overflow:hidden;min-width:0}
 .st-im-card.bad{border-color:#C0392B}

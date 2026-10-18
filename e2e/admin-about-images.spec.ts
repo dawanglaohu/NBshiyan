@@ -83,6 +83,8 @@ test('图片列表：上传、替代文字必填、各种被拒、429 保留文�
   const chk = page.locator('section[aria-labelledby="st-chk-h"] li').last();
   await expect(chk).toContainText('图片替代文字 · 1 张缺失');
   await expect(chk.locator('.i')).toHaveClass(/missing/);
+  // 「1 张」之间的空格在 12px 下也看得出来（≥ 4px）
+  expect(await chk.evaluate((li) => { const cs = getComputedStyle(li); const c = document.createElement('canvas').getContext('2d')!; c.font = `${cs.fontSize} ${cs.fontFamily}`; return c.measureText(' ').width + parseFloat(cs.wordSpacing); })).toBeGreaterThanOrEqual(4);
   await cards.first().getByLabel(/替代文字（EN）/).fill('Sample alt 1');
   await expect(saveBtn(page)).toBeEnabled();
   await expect(chk).toHaveText(/^✓图片替代文字（已满足）$/);
