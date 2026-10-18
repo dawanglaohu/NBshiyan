@@ -140,7 +140,10 @@ test('takeReady：按选择顺序，前面的还在上传就等；失败的不�
 test('AboutImages 接线：上传成功先标 done，由 effect 按 takeReady 的顺序入列（不在完成回调里直接 addImage）', () => {
   const src = read('../src/components/admin/settings/AboutImages.tsx');
   assert.match(src, /patch\(key, \{ state: 'done', progress: 100, ctrl: undefined, asset: r\.asset, deduplicated: r\.deduplicated \}\)/);
-  assert.match(src, /const \{ ready, rest \} = takeReady\(tiles\);/);
+  assert.match(src, /const \{ ready \} = takeReady\(tiles\);/);
+  // 函数式更新，只去掉已入列的（不能用快照整份覆盖：会吞掉同时到达的 patch）
+  assert.match(src, /setTiles\(\(ts\) => ts\.filter\(\(t\) => !done\.has\(t\.key\)\)\);/);
+  assert.doesNotMatch(src, /setTiles\(rest\)/);
   assert.match(src, /ready\.reduce\(\(acc, t\) => addImage\(acc, itemFromAsset\(t\.asset!\)\), prev\)/);
   assert.equal((src.match(/addImage\(prev, itemFromAsset\(r\.asset\)\)/g) ?? []).length, 0);
 });

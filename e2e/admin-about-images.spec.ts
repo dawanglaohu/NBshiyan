@@ -497,7 +497,7 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
     await expect(cards).toHaveCount(0);
     await expect(cards).toHaveCount(3, { timeout: 10_000 });
     const dims = await cards.locator('.th img').evaluateAll((els) => els.map((e) => `${e.getAttribute('width')}x${e.getAttribute('height')}`));
-    expect(dims).toEqual(['800x600', '800x500', '750x600']);
+    expect(dims).toEqual(['800x600', '800x500', '800x640']); // 1500×1200 → sm 长边 800
     await page.unroute(`**${S}/assets`);
   });
   test('UX #379 P3 ②：等 429 重试的文件不占名额（5 张 + 1 个等重试 → 5 / 6、没有「已达上限」、还能加）；满 6 张时重试禁用并说明', async ({ page }) => {

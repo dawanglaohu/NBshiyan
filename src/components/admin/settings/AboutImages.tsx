@@ -78,9 +78,11 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
 
   // 按选择顺序入列：排在前面的都传完（或失败）了才把后面已传完的放进列表
   useEffect(() => {
-    const { ready, rest } = takeReady(tiles);
+    const { ready } = takeReady(tiles);
     if (!ready.length) return;
-    setTiles(rest);
+    // 用函数式更新只去掉已入列的：effect 和上传回调的 patch 之间可能插进别的更新，不能整份覆盖成快照
+    const done = new Set(ready.map((t) => t.key));
+    setTiles((ts) => ts.filter((t) => !done.has(t.key)));
     // 200 deduplicated：同一张图传过，后端复用已有记录；已经在列表里（或这一批前面已经加过）就不重复加
     const seen = new Set(itemsRef.current.map((x) => x.id));
     let dup = false;
