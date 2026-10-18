@@ -15,11 +15,13 @@ import {
   MEDIA_FILE_RE, PUBLIC_ASSET_SIZES,
 } from '../src/lib/server/public-assets';
 import {
-  handleUploadAsset, handleListAssets, handleDeleteAsset, AUDIT_ASSET_UPLOAD, AUDIT_ASSET_DELETE,
+  handleUploadAsset, handleListAssets, handleDeleteAsset, AUDIT_ASSET_UPLOAD, AUDIT_ASSET_DELETE, ASSET_UPLOAD_RATE,
   type PublicAssetDeps, type PublicAssetRow, type PublicAssetRepo,
 } from '../src/lib/server/public-assets-admin';
 import { handleMedia, parseMediaFile, MEDIA_CACHE_CONTROL } from '../src/lib/server/public-assets-media';
 import { LocalStorage } from '../src/lib/server/storage';
+import { enforceAdminRateLimit, enforceAdminUserRateLimit } from '../src/lib/server/admin-guard';
+import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 import { FILE_CSP } from '../src/lib/server/file-response';
 import {
   handlePutAboutImages, handlePutAboutLocale, handleGetAbout, type SiteSettingsDeps, type SiteSettingsStore, type CasResult,
@@ -83,7 +85,7 @@ function memRepo() {
 }
 
 let idSeq = 0;
-async function assetDeps(over: Partial<PublicAssetDeps> & { user?: User | null; originOk?: boolean; limited?: boolean; settings?: Record<string, unknown> } = {}) {
+async function assetDeps(over: Partial<PublicAssetDeps> & { user?: User | null; originOk?: boolean; limited?: boolean; userLimited?: boolean; settings?: Record<string, unknown> } = {}) {
   const dir = await mkdtemp(path.join(tmpdir(), 'pa-'));
   const local = new LocalStorage(dir);
   const calls = { order: [] as string[], audit: [] as Parameters<PublicAssetDeps['audit']>[0][], puts: [] as { key: string; type?: string; data: Buffer }[], deletes: [] as string[], revalidate: 0 };
@@ -99,6 +101,7 @@ async function assetDeps(over: Partial<PublicAssetDeps> & { user?: User | null; 
     },
     assertSameOrigin() { calls.order.push('origin'); return over.originOk === false ? new Response(JSON.stringify({ error: 'forbidden_origin' }), { status: 403 }) : null; },
     async enforceAdminRateLimit() { calls.order.push('rate'); return over.limited ? new Response(JSON.stringify({ error: 'rate_limited' }), { status: 429 }) : null; },
+    async enforceAdminUserRateLimit() { calls.order.push('user_rate'); return over.userLimited ? new Response(JSON.stringify({ error: 'rate_limited' }), { status: 429 }) : null; },
     storage: {
       async put(key, data, type) { calls.puts.push({ key, type, data }); await local.put(key, data); },
       async delete(key) { calls.deletes.push(key); await local.delete(key); },
@@ -265,13 +268,56 @@ test('上传鉴权：未登录 401、SALES / EDITOR 403，鉴权在所有检查�
 });
 
 test('上传：同源失败 403、限流 429 → 不处理、不写存储', async () => {
-  for (const over of [{ originOk: false }, { limited: true }]) {
+  for (const over of [{ originOk: false }, { limited: true }, { userLimited: true }]) {
     const t = await assetDeps(over);
     const r = await handleUploadAsset(uploadReq(await solid(1600, 1200)), t.d);
     assert.equal(r.status, over.originOk === false ? 403 : 429);
     assert.equal(t.calls.puts.length, 0);
     await t.cleanup();
   }
+});
+
+test('上传按管理员限流（真实限流器 + 内存存储）：同一管理员 1 分钟内第 21 次 → 429 rate_limited + Retry-After: 60；另一个管理员（同一 IP）不受影响；不读请求体', async () => {
+  setRateLimitStore(new MemoryStore());
+  try {
+    let current: User = admin;
+    const admin2 = { id: 'u_admin2', name: 'A2', role: 'ADMIN' } as User;
+    const t = await assetDeps({ enforceAdminRateLimit, enforceAdminUserRateLimit });
+    t.d.requireAdmin = async () => ({ user: current, ip: null });
+    // 请求体不是 multipart（400 invalid）：只看限流计数，不跑图片处理
+    const req = () => new Request('http://localhost/api/admin/site-settings/assets', {
+      method: 'POST', headers: { origin: 'http://localhost', 'content-type': 'application/json' },
+      body: '{}',
+    });
+    assert.equal(ASSET_UPLOAD_RATE, 20);
+    for (let i = 1; i <= ASSET_UPLOAD_RATE; i++) assert.equal((await handleUploadAsset(req(), t.d)).status, 400, `#${i}`);
+    const q = req();
+    const r = await handleUploadAsset(q, t.d);
+    assert.equal(r.status, 429);
+    assert.deepEqual(await r.json(), { error: 'rate_limited' });
+    assert.equal(r.headers.get('retry-after'), '60');
+    assert.equal(r.headers.get('cache-control'), 'no-store');
+    assert.equal(q.bodyUsed, false, '429 时不读请求体');
+    current = admin2;
+    for (let i = 1; i <= ASSET_UPLOAD_RATE; i++) assert.equal((await handleUploadAsset(req(), t.d)).status, 400, `admin2 #${i}`);
+    assert.equal((await handleUploadAsset(req(), t.d)).status, 429);
+    current = admin;
+    assert.equal((await handleUploadAsset(req(), t.d)).status, 429);
+    // 列表不受上传限流影响
+    assert.equal((await handleListAssets(new Request('http://localhost/x'), t.d)).status, 200);
+    await t.cleanup();
+  } finally { setRateLimitStore(undefined); }
+});
+
+test('按管理员限流的 key 只用 user id，和按 IP 的 key 分开；共享 deps 用真实 enforceAdminUserRateLimit；存储故障 → 429', async () => {
+  const src = readFileSync('src/lib/server/admin-guard.ts', 'utf8');
+  assert.match(src, /hitRateLimit\(`admin:\$\{key\}:user:\$\{userId\}`, limit, 60_000, \{ onStoreError: 'closed' \}\)/);
+  assert.match(readFileSync('src/lib/server/public-assets-admin.ts', 'utf8'), /enforceAdminUserRateLimit\(ctx\.user\.id, 'site_assets\.upload', ASSET_UPLOAD_RATE\)/);
+  assert.match(readFileSync('src/lib/server/public-assets-deps.ts', 'utf8'), /^  enforceAdminUserRateLimit,$/m);
+  setRateLimitStore({ hit: async () => { throw new Error('upstash 503'); } });
+  const err = console.error; console.error = () => {};
+  try { assert.equal((await enforceAdminUserRateLimit('u_x', 'site_assets.upload', 20))?.status, 429); }
+  finally { console.error = err; setRateLimitStore(undefined); }
 });
 
 test('上传成功：201，返回 id、两种尺寸宽高和 URL；存储只有 WebP（原图不落盘），key 只含服务端 id；审计 site.asset.upload', async () => {

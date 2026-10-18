@@ -11,12 +11,14 @@ import { sniffImage } from './uploads';
 
 /**
  * #350 PublicAsset 后台接口（上传 / 列表 / 删除）。路由文件只负责接线并传入 requireAdmin，逻辑在这里，依赖可注入，测试不连库。
- * 顺序：requireAdmin(['ADMIN']) → assertSameOrigin（改动类）→ enforceAdminRateLimit → 读请求体 → 处理 → 写存储 → 写库 → 审计。
+ * 顺序：requireAdmin(['ADMIN']) → assertSameOrigin（改动类）→ enforceAdminRateLimit（按 IP）→ 上传另按管理员 enforceAdminUserRateLimit → 读请求体 → 处理 → 写存储 → 写库 → 审计。
  */
 export const PUBLIC_ASSET_ROLES: Role[] = ['ADMIN']; // SALES / EDITOR 403
 export const AUDIT_ASSET_UPLOAD = 'site.asset.upload';
 export const AUDIT_ASSET_DELETE = 'site.asset.delete';
-export const ASSET_UPLOAD_RATE = 20; // 每 IP 每分钟
+/** 上传：每个管理员（user id）每分钟 20 次（全栈）；同一 IP 再兜底每分钟 120 次（默认值），同一出口 IP 的多个管理员互不挤占 */
+export const ASSET_UPLOAD_RATE = 20;
+export const ASSET_UPLOAD_IP_RATE = 120;
 const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 const err = (error: string, status: number, extra: Record<string, unknown> = {}) => NextResponse.json({ error, ...extra }, { status, headers: NO_STORE });
 
@@ -63,6 +65,7 @@ export type PublicAssetDeps = {
   requireAdmin(req: Request, roles: Role[]): Promise<{ user: User; ip: string | null } | Response>;
   assertSameOrigin(req: Request): Response | null;
   enforceAdminRateLimit(req: Request, key: string, limit?: number): Promise<Response | null>;
+  enforceAdminUserRateLimit(userId: string, key: string, limit?: number): Promise<Response | null>;
   storage: Pick<PrivateStorage, 'put' | 'delete'>;
   repo: PublicAssetRepo;
   settings: Pick<SiteSettingsStore, 'readMany'>;
@@ -94,7 +97,9 @@ const STATUS = { file_too_large: 413, unsupported_type: 415, image_too_small: 42
 export async function handleUploadAsset(req: Request, d: PublicAssetDeps): Promise<Response> {
   const ctx = await d.requireAdmin(req, PUBLIC_ASSET_ROLES);
   if (ctx instanceof Response) return ctx;
-  const blocked = d.assertSameOrigin(req) ?? (await d.enforceAdminRateLimit(req, 'site_assets.upload', ASSET_UPLOAD_RATE));
+  const blocked = d.assertSameOrigin(req)
+    ?? (await d.enforceAdminRateLimit(req, 'site_assets.upload', ASSET_UPLOAD_IP_RATE))
+    ?? (await d.enforceAdminUserRateLimit(ctx.user.id, 'site_assets.upload', ASSET_UPLOAD_RATE));
   if (blocked) return blocked;
   const f = await readUploadFile(req);
   if (!f.ok) return err(f.error, f.status);

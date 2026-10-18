@@ -1,5 +1,5 @@
 import { prisma } from './db';
-import { assertSameOrigin, enforceAdminRateLimit } from './auth';
+import { assertSameOrigin, enforceAdminRateLimit, enforceAdminUserRateLimit } from './auth';
 import { audit } from './admin/audit';
 import { storage } from './storage';
 import { randomId } from './security';
@@ -15,6 +15,7 @@ export const publicAssetRepo = prismaPublicAssetRepo(prisma);
 export const publicAssetDeps: Omit<PublicAssetDeps, 'requireAdmin'> = {
   assertSameOrigin: (req) => assertSameOrigin(req),
   enforceAdminRateLimit,
+  enforceAdminUserRateLimit,
   storage,
   repo: publicAssetRepo,
   settings: prismaSiteSettingsStore(prisma),
