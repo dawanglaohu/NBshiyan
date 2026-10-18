@@ -106,7 +106,8 @@ export default function EnrollWizard() {
     const a = document.createElement('a');
     a.href = url; a.download = recoveryFilename; a.rel = 'noopener';
     document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
+    // 延后释放：同步 revoke 在个别浏览器里会让下载失败（与 MailParts 一致）
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
     say('已下载恢复码文件');
   };
 

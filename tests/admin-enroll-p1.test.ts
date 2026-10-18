@@ -136,6 +136,7 @@ test('P1 enroll: no storage / logging / innerHTML / external URLs; download revo
   assert.equal(SIGNIN_HREF, '/api/auth/signin?callbackUrl=%2Fadmin');
   const dl = ui.slice(ui.indexOf('const download'), ui.indexOf('const goto'));
   assert.ok(dl.indexOf('new Blob(') > 0 && dl.indexOf('a.click()') > dl.indexOf('createObjectURL') && dl.indexOf('revokeObjectURL(url)') > dl.indexOf('a.click()'), dl);
+  assert.match(dl, /setTimeout\(\(\) => URL\.revokeObjectURL\(url\), 10_000\)/, 'revoke must be deferred (#353 P2)');
   // 敏感数据清理：完成、pagehide、卸载
   assert.match(ui, /addEventListener\('pagehide', wipe\)/);
   assert.match(ui, /return \(\) => \{ window\.removeEventListener\('pagehide', wipe\); wipe\(\); \}/);
