@@ -9,6 +9,7 @@ import { sendSafely, inquiryNotifyMail, customerAckMail } from '@/lib/server/mai
 import { summarizeItems } from '@/lib/server/email/render';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
 import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl, InquiryItemConfig } from '@/lib/server/designs';
+import { PublishedLocaleSchema } from '@/lib/server/published-locales';
 import { normalizeEmail, ShippingAddress, SAMPLE_MAX_ITEMS, SAMPLE_EMAIL_WINDOW_DAYS, SAMPLE_IP_LIMIT, sampleRecentResponse } from '@/lib/server/sample';
 
 class LogoInvalid extends Error {}
@@ -18,7 +19,7 @@ const CART_MAX_ITEMS = 20;
 
 const Body = z.object({
   source: z.enum(['FORM', 'WIZARD', 'CART', 'CUSTOMIZER', 'SAMPLE']),
-  locale: z.enum(['en', 'ru']),
+  locale: PublishedLocaleSchema, // 只收已发布语言；DB 枚举里预留的语言（es/de/fr/ja/hi/ar）在这里 400
   contact: z.object({
     name: z.string().trim().min(1).max(100),
     email: z.string().trim().email().max(200),
