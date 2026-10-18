@@ -66,7 +66,8 @@ export function processPublicImage(input: Buffer): Promise<ProcessResult> {
   if (!type) return Promise.resolve({ ok: false, error: 'unsupported_type' });
   return serialize(async (): Promise<ProcessResult> => {
     try {
-      const meta = await sharp(input, OPTS).metadata();
+      // metadata() 只读文件头，不解码像素；这里关掉 limitInputPixels，才能自己判断并返回 image_too_large_dimensions。真正解码（encode）仍带 OPTS 的上限
+      const meta = await sharp(input, { ...OPTS, limitInputPixels: false }).metadata();
       if (meta.format !== SHARP_FORMAT[type]) return { ok: false, error: 'unsupported_type' };
       if ((meta.pages ?? 1) > 1) return { ok: false, error: 'unsupported_type' };
       if (!meta.width || !meta.height) return { ok: false, error: 'processing_failed' };
