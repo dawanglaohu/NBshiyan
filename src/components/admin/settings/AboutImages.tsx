@@ -153,14 +153,14 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
           <div key={t.key} role="listitem" className="st-im-up" aria-busy="true">
             <b role="status">{T.uploading(t.progress)}</b>
             <div className="bar" role="progressbar" aria-label={`上传 ${t.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={t.progress}><i style={{ width: `${t.progress}%` }} /></div>
-            <span className="nm">{t.name} · {fmtBytes(t.size)}</span>
+            <span className="nm">{t.name} · <span className="sz">{fmtBytes(t.size)}</span></span>
             <button type="button" className="adm-btn" onClick={() => t.ctrl?.abort()}>{T.cancel}</button>
           </div>
         ) : (
           <div key={t.key} role="listitem" className="st-im-up bad">
             <div role="alert">
               <b>{T.notUploaded}</b>
-              <span className="nm">{t.name} · {fmtBytes(t.size)}</span>
+              <span className="nm">{t.name} · <span className="sz">{fmtBytes(t.size)}</span></span>
               <span>{t.message}</span>
             </div>
             <div className="btns">
@@ -180,10 +180,9 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
             <span>{T.addRule}</span>
             <span>{T.addRule2(left)}</span>
           </label>
-        ) : (
-          <div role="listitem" className="st-im-up full"><b>{T.full}</b></div>
-        )}
+        ) : null}
       </div>
+      {left === 0 && <p className="st-hint st-im-full">{T.full}</p>}
       {notice && <p className="st-hint" role="status">{notice}</p>}
       {errs.missing.length > 0 && <p className="st-ferr" role="alert">{T.missingSummary(errs.missing.length)}</p>}
       {others.map(([l, n]) => <p key={l} className="st-ferr">{T.missingOther(l, n)}</p>)}
