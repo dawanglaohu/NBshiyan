@@ -9,6 +9,7 @@ import { sendAdminAlert } from '@/lib/server/mail';
 import { defaultAdapter, enforceMailRateLimit, mailSwitchGate, sendResponse } from '@/lib/server/mail/http';
 import { sendingEnabled } from '@/lib/server/mail/config';
 import { sendInquiryMail } from '@/lib/server/mail/send';
+import { loadThreadPage, parseThreadQuery } from '@/lib/server/mail/thread';
 
 export const runtime = 'nodejs';
 
@@ -33,6 +34,27 @@ function invalid(issues: z.ZodIssue[]) {
     else fields[f] = 'bad_format';
   }
   return NextResponse.json({ error: 'invalid', fields, ...(Object.keys(limits).length ? { limits } : {}) }, { status: 400, headers: noStore });
+}
+
+/**
+ * 8.3 往来邮件列表（#340）：{ anonymizedAt, items, nextCursor }，?limit（默认 20，1–50）&cursor=<不透明游标>。
+ * 顺序：邮件开关 → 鉴权（ADMIN / SALES）→ id → 查询参数（非法 400）→ 按 id + 权限范围查询盘。
+ * 不存在、不在 SALES 权限范围内、已匿名化 → 一律 404 not_found（不 403，不暴露存在性）；因此 200 时 anonymizedAt 恒为 null。
+ * 只读请求不做同源校验（assertSameOrigin 对 GET 本来就直接放行）。
+ */
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const off = mailSwitchGate();
+  if (off) return off;
+  const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
+  if (ctx instanceof Response) return ctx;
+  const { id } = await params;
+  if (!ID_RE.test(id)) return jsonErr('not_found', 404);
+  const q = parseThreadQuery(new URL(req.url).searchParams);
+  if (!q.ok) return NextResponse.json({ error: 'invalid', fields: q.fields }, { status: 400, headers: noStore });
+  const inq = await prisma.inquiry.findFirst({ where: { AND: [{ id }, inquiryScope(ctx.user)] }, select: { id: true, anonymizedAt: true } });
+  if (!inq || inq.anonymizedAt) return jsonErr('not_found', 404);
+  const page = await loadThreadPage(prisma, inq.id, q.limit, q.cursor);
+  return NextResponse.json(page, { headers: noStore });
 }
 
 /** 8.1 发送回复（§16 Gmail SMTP；§17 每日上限 → 202 QUEUED + deferredUntil） */
