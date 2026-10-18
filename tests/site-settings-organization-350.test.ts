@@ -122,3 +122,11 @@ test('路由文件存在且只接线', () => {
   assert.match(src, /handleGetOrganization\(req, siteSettingsDeps\)/);
   assert.match(src, /handlePutOrganization\(req, siteSettingsDeps\)/);
 });
+
+test('#367 review P3：logo 站内路径拒绝点段；写入和读出用同一个邮箱规则', async () => {
+  const { safeOrgUrl, ORG_EMAIL_RE } = await import('../src/lib/server/site-settings-model');
+  for (const s of ['/a/../logo.png', '/./logo.png', '/%2e%2e/logo.png', '/a/%2E/logo.png']) assert.equal(safeOrgUrl(s, true), null, s);
+  assert.equal(safeOrgUrl('/images/logo.v2.png', true), '/images/logo.v2.png');
+  assert.ok(ORG_EMAIL_RE.test('sales@example.com'));
+  assert.ok(!ORG_EMAIL_RE.test('a"b@example.com'));
+});

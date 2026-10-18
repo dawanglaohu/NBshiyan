@@ -67,3 +67,19 @@ test('回归：不合格链接后面的合格链接闭合标签仍是 </a>（不
   assert.ok(!out.includes('span') && !out.includes('javascript'), out);
   assert.equal((out.match(/<a /g) ?? []).length, (out.match(/<\/a>/g) ?? []).length, out);
 });
+
+test('#367 review P1：含点段的站内路径规范化后不能变成 //host，整个链接去掉只留文字', () => {
+  for (const h of ['/a/..//evil.com', '/.//evil.com', '/%2e//evil.com', '/a/%2e%2e//evil.com', '/%2E%2E//evil.com', '/./x', '/a/../b']) {
+    assert.equal(safeAboutHref(h), null, h);
+    const out = sanitizeAboutHtml(`<p><a href="${h}">t</a></p>`);
+    assert.equal(out, '<p>t</p>', h);
+    assert.ok(!out.includes('<a'), h);
+  }
+  assert.equal(safeAboutHref('/en/about?x=1#top'), '/en/about?x=1#top');
+  assert.equal(safeAboutHref('/en/products.v2'), '/en/products.v2');
+});
+
+test('#367 review P3：mailto 只允许 subject 参数', () => {
+  assert.equal(safeAboutHref('mailto:sales@example.com?subject=Hi'), 'mailto:sales@example.com?subject=Hi');
+  for (const h of ['mailto:sales@example.com?bcc=x@example.com', 'mailto:sales@example.com?subject=a&cc=x@example.com', 'mailto:sales@example.com?body=x', 'mailto:sales@example.com?BCC=x@example.com']) assert.equal(safeAboutHref(h), null, h);
+});

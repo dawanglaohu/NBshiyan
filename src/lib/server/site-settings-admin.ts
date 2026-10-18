@@ -6,7 +6,7 @@ import { cleanPlainText, sanitizeAboutHtml } from './sanitize-about';
 import { aboutBodyText, countChars } from '@/lib/site-settings/about-rules';
 import {
   ABOUT_ENABLED_KEY, ABOUT_LIMITS as L, IMAGE_ID_RE, aboutKey, parseStoredAbout, parseStoredEnabled, storedVersion,
-  ORGANIZATION_KEY, ORG_LIMITS as OL, ORG_TEXT_FIELDS, ORG_TELEPHONE_RE, isValidFoundingDate, parseStoredOrganization, safeOrgUrl,
+  ORGANIZATION_KEY, ORG_EMAIL_RE, ORG_LIMITS as OL, ORG_TEXT_FIELDS, ORG_TELEPHONE_RE, isValidFoundingDate, parseStoredOrganization, safeOrgUrl,
   type StoredAbout, type StoredEnabled, type OrganizationFields, type StoredOrganization,
 } from './site-settings-model';
 
@@ -238,7 +238,7 @@ export const OrganizationPutInput = z.object({
   legalName: optText(OL.legalNameMax),
   description: optText(OL.descriptionMax),
   logo: optText(OL.urlMax),
-  email: z.union([z.literal(''), z.string().trim().max(OL.emailMax).email()]).optional(),
+  email: z.union([z.literal(''), z.string().trim().max(OL.emailMax).regex(ORG_EMAIL_RE)]).optional(),
   telephone: optText(OL.telephoneMax),
   address: optText(OL.addressMax), // 单行纯文本，换行会被去掉
   foundingDate: optText(10),

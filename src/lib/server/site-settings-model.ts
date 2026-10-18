@@ -1,4 +1,4 @@
-import { cleanPlainText, sanitizeAboutHtml } from './sanitize-about';
+import { cleanPlainText, hasDotSegment, sanitizeAboutHtml } from './sanitize-about';
 import { ABOUT_LIMITS, isAboutContentComplete } from '@/lib/site-settings/about-rules';
 
 /**
@@ -109,7 +109,7 @@ export function isValidFoundingDate(s: string, now = new Date()): boolean {
 export function safeOrgUrl(raw: string, allowSitePath = false): string | null {
   const s = raw.trim();
   if (!s || [...s].length > ORG_LIMITS.urlMax || /[\s\\\u0000-\u001f\u007f]/.test(s)) return null;
-  if (allowSitePath && s.startsWith('/')) return s.startsWith('//') || /%2f|%5c/i.test(s.slice(0, 4)) ? null : s;
+  if (allowSitePath && s.startsWith('/')) return s.startsWith('//') || /%2f|%5c/i.test(s.slice(0, 4)) || hasDotSegment(s) ? null : s;
   try {
     const u = new URL(s);
     if (u.protocol !== 'https:' || u.username || u.password || !u.hostname) return null;
