@@ -44,12 +44,13 @@ export const publicAssetKey = (id: string, size: PublicAssetSize | 'one', now: D
 const OPTS = { limitInputPixels: PUBLIC_ASSET_MAX_PIXELS, failOn: 'error', animated: false, sequentialRead: true } as const;
 const SHARP_FORMAT = { jpeg: 'jpeg', png: 'png', webp: 'webp' } as const;
 
-// libvips 线程池只开 1 个（服务器空闲内存不到 3GB）；加上下面的 serialize()，同一时间只处理一张图。注意这是进程级设置，对本进程其他 sharp 调用同样生效
-sharp.concurrency(1);
-
-/** 同一进程里一次只处理一张（大图解码占内存，避免并发上传叠加） */
+/**
+ * 同一进程里一次只处理一张（大图解码占内存，避免并发上传叠加）：前一张处理完（成功或失败）才开始下一张。
+ * 不调 sharp.concurrency()：它只管单张图用几个线程，不管同时几张，且是进程级设置，会拖慢 Logo、海报。
+ * 导出仅供测试。
+ */
 let queue: Promise<unknown> = Promise.resolve();
-function serialize<T>(fn: () => Promise<T>): Promise<T> {
+export function serialize<T>(fn: () => Promise<T>): Promise<T> {
   const run = queue.then(fn, fn);
   queue = run.catch(() => {});
   return run;

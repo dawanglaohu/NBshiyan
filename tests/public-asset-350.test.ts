@@ -11,7 +11,7 @@ import sharp from 'sharp';
 import type { Role, User } from '@prisma/client';
 import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match';
 import {
-  processPublicImage, readUploadFile, PUBLIC_ASSET_MAX_BYTES, PUBLIC_ASSET_MAX_REQUEST_BYTES, PUBLIC_ASSET_MAX_PIXELS, publicAssetUrl,
+  processPublicImage, serialize, readUploadFile, PUBLIC_ASSET_MAX_BYTES, PUBLIC_ASSET_MAX_REQUEST_BYTES, PUBLIC_ASSET_MAX_PIXELS, publicAssetUrl,
   MEDIA_FILE_RE, PUBLIC_ASSET_SIZES,
 } from '../src/lib/server/public-assets';
 import {
@@ -199,9 +199,24 @@ test('解压炸弹：像素数超过 60,000,000 → image_too_large_dimensions�
   }
 });
 
-test('sharp 线程池：import public-assets 后 sharp.concurrency() === 1', () => {
-  assert.equal(sharp.concurrency(), 1);
-  assert.match(readFileSync('src/lib/server/public-assets.ts', 'utf8'), /^sharp\.concurrency\(1\);$/m);
+test('不设 sharp.concurrency：只靠队列串行，不改进程级线程池', () => {
+  assert.doesNotMatch(readFileSync('src/lib/server/public-assets.ts', 'utf8'), /^\s*sharp\.concurrency\(/m);
+});
+
+test('队列：两个任务同时进来，第二个要等第一个处理完才开始；第一个失败也不卡住第二个', async () => {
+  for (const fail of [false, true]) {
+    const log: string[] = [];
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    const first = serialize(async () => { log.push('1 start'); await gate; log.push('1 end'); if (fail) throw new Error('x'); return 1; });
+    const second = serialize(async () => { log.push('2 start'); return 2; });
+    await new Promise((r) => setTimeout(r, 20));
+    assert.deepEqual(log, ['1 start'], '第一个没结束前第二个不能开始');
+    release();
+    if (fail) await assert.rejects(first); else assert.equal(await first, 1);
+    assert.equal(await second, 2);
+    assert.deepEqual(log, ['1 start', '1 end', '2 start']);
+  }
 });
 
 test('同一时间只处理一张：并发调用 processPublicImage 按顺序串行执行', async () => {
