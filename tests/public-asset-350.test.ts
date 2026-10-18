@@ -109,6 +109,18 @@ async function assetDeps(over: Partial<PublicAssetDeps> & { user?: User | null; 
     },
     repo: mem.repo,
     settings: { async readMany(keys) { return Object.fromEntries(keys.filter((k) => k in settings).map((k) => [k, structuredClone(settings[k])])); } },
+    // 锁内读 about.images：读当前的 d.settings（用例里会替换），软删除走同一个内存库
+    aboutImagesLock: {
+      async run(fn) {
+        const raw = await d.settings.readMany(['about.images']);
+        return fn({
+          current: raw['about.images'] ?? null,
+          liveAssets: async (ids) => d.repo.findLive(ids),
+          markAssetDeleted: (id, by, at) => d.repo.markDeleted(id, by, at),
+          writeAboutImages: async () => { throw new Error('not used'); },
+        });
+      },
+    },
     async audit(e) { calls.audit.push(e); },
     revalidate() { calls.revalidate++; },
     newId: () => `Asset${String(++idSeq).padStart(19, '0')}`,
@@ -529,6 +541,16 @@ function siteDeps(user: User | null = admin) {
     revalidate() { calls.revalidate++; },
     async userNames() { return {}; },
     async liveAssets(ids) { return ids.flatMap((i) => (live.has(i) ? [live.get(i)!] : [])); },
+    aboutImagesLock: {
+      async run(fn) {
+        return fn({
+          current: 'about.images' in mem.data ? structuredClone(mem.data['about.images']) : null,
+          liveAssets: (ids) => d.liveAssets(ids),
+          markAssetDeleted: async () => null,
+          writeAboutImages: async (v) => { mem.data['about.images'] = structuredClone(v); },
+        });
+      },
+    },
     now: () => NOW,
   };
   return { d, mem, calls };
