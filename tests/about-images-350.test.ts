@@ -314,11 +314,11 @@ test('前台 srcset：w 描述符取 sm.w / lg.w 实际宽度（竖图不是 800
 });
 
 test('前台 <img>：srcset、sizes、width、height、alt 都在；缺 sm / lg 宽高的不渲染', () => {
-  const html = renderToStaticMarkup(React.createElement(AboutFigure, { img: pub({ w: 600, h: 800 }, { w: 1200, h: 1600 }), sizes: ABOUT_IMAGE_SIZES }));
+  const html = renderToStaticMarkup(React.createElement(AboutFigure, { img: pub({ w: 600, h: 800 }, { w: 1200, h: 1600 }), sizes: ABOUT_IMAGE_SIZES.rest }));
   assert.match(html, /srcSet="\/media\/asset0+1-800\.webp 600w, \/media\/asset0+1-1600\.webp 1200w"/);
   assert.match(html, /width="1200"/); assert.match(html, /height="1600"/);
   assert.match(html, /alt="Factory floor"/);
-  assert.match(html, /sizes="\(min-width: 1024px\) 50vw, 100vw"/);
+  assert.match(html, /sizes="\(min-width: 768px\) 33vw, 50vw"/); // spec v1.0.10 按布局（见 admin-p3-350.test.ts）
   assert.equal(visibleImages([{ ...pub({ w: 0, h: 0 }, { w: 1600, h: 1200 }) }]).length, 0);
   assert.doesNotMatch(read('../src/components/about/AboutParts.tsx'), /800w, \$\{img\.src\.lg\} 1600w/, '不再写死 800w / 1600w');
 });

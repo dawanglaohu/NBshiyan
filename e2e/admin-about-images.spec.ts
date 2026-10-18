@@ -76,6 +76,12 @@ function pngHeader(w: number, h: number) {
 }
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
+/** 假的上传成功响应（只在 page.route 里用，不经过服务端、不占上传限速） */
+const fakeAsset = (id: string) => ({
+  id, width: 1600, height: 1200, bytes: 2000, createdAt: new Date().toISOString(), inUse: false, warnings: [],
+  sm: { url: `/media/${id}-800.webp`, width: 800, height: 600, bytes: 1000 }, lg: { url: `/media/${id}-1600.webp`, width: 1600, height: 1200, bytes: 2000 },
+});
+const TINY_JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
 const fileInput = (page: Page) => page.locator('.st-im input[type=file]');
 const pick = (page: Page, name: string, mimeType: string, buffer: Buffer) => fileInput(page).setInputFiles({ name, mimeType, buffer });
 const saveBtn = (page: Page) => page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
@@ -106,6 +112,9 @@ test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片�
     await expect(area.getByText('1 张图片缺少替代文字，补齐后才能保存。')).toBeVisible();
     await expect(page.getByRole('region', { name: '保存' })).toContainText('图片列表');
     await expect(saveBtn(page)).toBeDisabled();
+    // UX #379 P3 ③：保存栏第二行写明为什么不能保存，「保存」按钮关联这句
+    await expect(page.locator('.st-bar-why')).toHaveText('1 张图片缺少替代文字');
+    await expect(saveBtn(page)).toHaveAttribute('aria-describedby', 'st-bar-why');
     // 右栏完整度清单最后一项：!「图片替代文字 · 1 张缺失」→ 填了以后 ✓
     const chk = page.locator('section[aria-labelledby="st-chk-h"] li').last();
     await expect(chk).toContainText('图片替代文字 · 1 张缺失');
@@ -114,6 +123,7 @@ test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片�
     expect(await chk.evaluate((li) => { const cs = getComputedStyle(li); const c = document.createElement('canvas').getContext('2d')!; c.font = `${cs.fontSize} ${cs.fontFamily}`; return c.measureText(' ').width + parseFloat(cs.wordSpacing); })).toBeGreaterThanOrEqual(4);
     await cards.first().getByLabel(/替代文字（EN）/).fill('Sample alt 1');
     await expect(saveBtn(page)).toBeEnabled();
+    await expect(page.locator('.st-bar-why')).toHaveCount(0);
     await expect(chk).toHaveText(/^✓图片替代文字（已满足）$/);
 
     // 小图：能传，但提示
@@ -188,7 +198,20 @@ test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片�
     await expect(im).toHaveAttribute('width', '1200');
     await expect(im).toHaveAttribute('height', '900');
     await expect(im).toHaveAttribute('alt', /Sample alt/);
-    await expect(imgs.first()).toHaveAttribute('sizes', '(min-width: 1024px) 50vw, 100vw');
+    // spec v1.0.10 + SEO P3：sizes 按布局（断点 768px）；第 1 张不懒加载，其余 lazy
+    await expect(imgs.first()).toHaveAttribute('sizes', '(min-width: 768px) 66vw, 100vw');
+    await expect(imgs.first()).toHaveAttribute('loading', 'eager');
+    for (let i = 1; i < 6; i++) {
+      await expect(imgs.nth(i)).toHaveAttribute('sizes', '(min-width: 768px) 33vw, 50vw');
+      await expect(imgs.nth(i)).toHaveAttribute('loading', 'lazy');
+    }
+    // 统一 4:3 居中裁切：容器 4:3、img cover + center；img 的 width / height 仍是文件实际尺寸（上面 1200×900）
+    for (const w of [1440, 390]) {
+      await page.setViewportSize({ width: w, height: 900 });
+      const r = await page.locator('.ab-imgs .ab-fig-box').evaluateAll((els) => els.map((e) => { const b = e.getBoundingClientRect(); const cs = getComputedStyle(e.querySelector('img')!); return { ratio: b.width / b.height, fit: cs.objectFit, pos: cs.objectPosition }; }));
+      expect(r).toHaveLength(6);
+      for (const x of r) { expect(Math.abs(x.ratio - 4 / 3)).toBeLessThan(0.02); expect(x.fit).toBe('cover'); expect(x.pos).toBe('50% 50%'); }
+    }
   });
 
   test('图片库：在用的图不能删（asset_in_use）；移除并保存后可以删，先确认；409 走关于页的冲突流程', async ({ page }) => {
@@ -445,5 +468,175 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
       await box.fill('short');
       await expect(cnt).toBeHidden();
     }
+  });
+  test('UX #378 P3 ②：390 下正文编辑器工具栏一行（不换行，放不下的横向滑），按钮 44×44；1440 也是一行、不滚动', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    for (const w of [390, 1440]) {
+      await page.setViewportSize({ width: w, height: 900 });
+      await page.goto('/admin/settings');
+      const bar = page.getByRole('toolbar', { name: '正文格式' });
+      await expect(bar).toBeVisible();
+      const m = await bar.evaluate((el) => {
+        const btns = [...el.querySelectorAll('button')].map((b) => b.getBoundingClientRect());
+        return { tops: new Set(btns.map((r) => Math.round(r.top))).size, minH: Math.min(...btns.map((r) => r.height)), minW: Math.min(...btns.map((r) => r.width)), overflow: el.scrollWidth - el.clientWidth, n: btns.length };
+      });
+      expect(m.n).toBe(8);
+      expect(m.tops).toBe(1); // 一行
+      // spec v1.0.11：常用按钮在前
+      expect(await bar.getByRole('button').evaluateAll((bs) => bs.map((b) => b.getAttribute('aria-label')))).toEqual(['加粗', '链接', '二级标题', '项目符号列表', '斜体', '三级标题', '编号列表', '清除格式']);
+      await expect(bar.getByRole('button', { name: '链接' }).locator('svg')).toHaveCount(1);
+      const wrap = page.locator('.st-tools-wrap');
+      if (w === 390) {
+        // spec v1.0.11：开头只有右侧渐隐；滚到中间两侧都有；滚到末尾只有左侧
+        await expect(wrap).toHaveClass(/fade-r/);
+        await expect(wrap).not.toHaveClass(/fade-l/);
+        await bar.evaluate((el) => { el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2; });
+        await expect(wrap).toHaveClass(/fade-l/);
+        await expect(wrap).toHaveClass(/fade-r/);
+        await bar.evaluate((el) => { el.scrollLeft = 0; });
+        await expect(wrap).not.toHaveClass(/fade-l/);
+        expect(m.minH).toBeGreaterThanOrEqual(44);
+        expect(m.minW).toBeGreaterThanOrEqual(44);
+        // 最后一个按钮滑得到：键盘 Tab 到它时工具栏会滚过去，按钮整个露出来
+        const last = bar.getByRole('button', { name: '清除格式' });
+        await last.focus();
+        const vis = await last.evaluate((b) => { const r = b.getBoundingClientRect(), p = b.parentElement!.getBoundingClientRect(); return r.left >= p.left - 1 && r.right <= p.right + 1; });
+        expect(vis).toBe(true);
+        await expect(wrap).toHaveClass(/fade-l/);
+        await expect(wrap).not.toHaveClass(/fade-r/);
+      } else {
+        expect(m.overflow).toBeLessThanOrEqual(0);
+        await expect(wrap).not.toHaveClass(/fade-[lr]/);
+      }
+    }
+  });
+  test('UX #379 P3 ①：一次选多张时按选择的顺序进列表（第 1 张最后传完也排第 1）', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    // 第 1 个 POST 晚 2 秒放行：第 2、3 张先传完
+    let first = true;
+    await page.route(`**${S}/assets`, async (route) => {
+      if (route.request().method() === 'POST' && first) { first = false; await new Promise((r) => setTimeout(r, 2000)); }
+      await route.fallback();
+    });
+    // 三张尺寸不同（卡片 img 的 width / height = sm 实际宽高），用来认顺序
+    await fileInput(page).setInputFiles([
+      { name: 'one.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [200, 40, 40]) },
+      { name: 'two.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1000, [40, 200, 40]) },
+      { name: 'three.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1500, 1200, [40, 40, 200]) },
+    ]);
+    const cards = area.locator('.st-im-card');
+    // 第 2、3 张传完了但第 1 张还没：先不入列（仍在上传区）
+    await expect(area.locator('.st-im-up[aria-busy="true"]')).toHaveCount(3);
+    await expect(cards).toHaveCount(0);
+    await expect(cards).toHaveCount(3, { timeout: 10_000 });
+    const dims = await cards.locator('.th img').evaluateAll((els) => els.map((e) => `${e.getAttribute('width')}x${e.getAttribute('height')}`));
+    expect(dims).toEqual(['800x600', '800x500', '800x640']); // 1500×1200 → sm 长边 800
+    await page.unroute(`**${S}/assets`);
+  });
+  test('UX #379 P3 ②：等 429 重试的文件不占名额（5 张 + 1 个等重试 → 5 / 6、没有「已达上限」、还能加）；满 6 张时重试禁用并说明', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    // 上传全部用假响应：不经过服务端（不占每分钟 20 次的上传限速）
+    let n = 0; let limited = false;
+    await page.route(`**${S}/assets`, (route) => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      if (limited) return route.fulfill({ status: 429, headers: { 'Retry-After': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'rate_limited' }) });
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(fakeAsset(`fakeasset${String(++n).padStart(15, '0')}`)) });
+    });
+    const cards = area.locator('.st-im-card');
+    await fileInput(page).setInputFiles([1, 2, 3, 4, 5].map((i) => ({ name: `p${i}.jpg`, mimeType: 'image/jpeg', buffer: TINY_JPEG })));
+    await expect(cards).toHaveCount(5);
+    limited = true;
+    await pick(page, 'retry.jpg', 'image/jpeg', TINY_JPEG);
+    const tile = area.locator('.st-im-up.bad').filter({ hasText: 'retry.jpg' });
+    await expect(tile).toContainText('上传太频繁，请稍后再试');
+    await expect(area.locator('.st-count').first()).toHaveText('5 / 6');
+    await expect(area.getByText('已达上限：最多 6 张')).toHaveCount(0);
+    await expect(fileInput(page)).toHaveCount(1);
+    await expect(area.getByText('还可加 1 张')).toBeVisible();
+    // 再传一张占满 6 张：「已达上限」、上传区隐藏；等重试的那张重试禁用并说明原因
+    limited = false;
+    await pick(page, 'six.jpg', 'image/jpeg', TINY_JPEG);
+    await expect(cards).toHaveCount(6);
+    await expect(area.getByText('已达上限：最多 6 张')).toBeVisible();
+    await expect(fileInput(page)).toHaveCount(0);
+    await expect(tile).toContainText('已有 6 张，移除一张后才能重试');
+    await page.waitForTimeout(1200); // 过了 Retry-After 也不能重试
+    await expect(tile.getByRole('button', { name: '重试' })).toBeDisabled();
+    // 移除一张 → 可以重试，重试成功回到 6 张
+    await cards.nth(5).getByRole('button', { name: '删除第 6 张图片' }).click();
+    await expect(cards).toHaveCount(5);
+    await expect(tile).not.toContainText('已有 6 张');
+    await tile.getByRole('button', { name: '重试' }).click();
+    await expect(cards).toHaveCount(6);
+    await expect(area.locator('.st-im-up.bad')).toHaveCount(0);
+    await page.unroute(`**${S}/assets`);
+  });
+  test('spec v1.0.10：后台卡片缩略图 4:3 裁切（1440 / 390）；竖图卡片下黄色提示，不阻止保存', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    // 假响应：一张横图、一张竖图（lg 1200×1600），不经过服务端
+    let n = 0;
+    await page.route(`**${S}/assets`, (route) => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      const id = `fakeportrait${String(++n).padStart(12, '0')}`;
+      const a = fakeAsset(id);
+      const body = n === 2 ? { ...a, width: 1200, height: 1600, sm: { ...a.sm, width: 600, height: 800 }, lg: { ...a.lg, width: 1200, height: 1600 } } : a;
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(body) });
+    });
+    await fileInput(page).setInputFiles([{ name: 'wide.jpg', mimeType: 'image/jpeg', buffer: TINY_JPEG }, { name: 'tall.jpg', mimeType: 'image/jpeg', buffer: TINY_JPEG }]);
+    const cards = area.locator('.st-im-card');
+    await expect(cards).toHaveCount(2);
+    const note = '竖图在前台会裁成 4:3 横图显示，建议上传横图';
+    await expect(cards.nth(0).getByText(note)).toHaveCount(0);
+    await expect(cards.nth(1).getByText(note)).toBeVisible();
+    await expect(cards.nth(1).locator('.st-im-portrait')).toHaveCSS('color', 'rgb(138, 101, 0)');
+    for (const w of [1440, 390]) {
+      await page.setViewportSize({ width: w, height: 900 });
+      for (const i of [0, 1]) {
+        const th = (await cards.nth(i).locator('.th').boundingBox())!;
+        expect(Math.abs(th.width / th.height - 4 / 3)).toBeLessThan(0.02);
+        await expect(cards.nth(i).locator('.th img')).toHaveCSS('object-fit', 'cover');
+      }
+    }
+    // 不阻止保存：填了替代文字就能点「保存」（这里不真的保存：假图片不在库里）
+    for (const i of [0, 1]) await cards.nth(i).getByLabel(/替代文字（EN）/).fill(`Alt ${i}`);
+    await expect(saveBtn(page)).toBeEnabled();
+    await page.unroute(`**${S}/assets`);
+  });
+  test('UX #379 P2：确认框的焦点锁在框内（Tab / Shift+Tab 循环、点到框外再 Tab 也回到框内），Esc 关闭后焦点回到「删除」', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    await fileInput(page).setInputFiles({ name: 'a.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [120, 60, 30]) });
+    await expect(area.locator('.st-im-card')).toHaveCount(1);
+    await area.getByText(/图片库（已上传 1 张）/).click();
+    const del = area.locator('.st-im-libl li').first().getByRole('button', { name: '删除' });
+    await del.click(); // 草稿里加了、还没保存：不在「已保存」列表里，可以删 → 弹确认
+    const dlg = page.getByRole('alertdialog', { name: '删除这张图片？' });
+    const cancel = dlg.getByRole('button', { name: '取消' });
+    const ok = dlg.getByRole('button', { name: '删除' });
+    await expect(cancel).toBeFocused();
+    for (const [key, el] of [['Tab', ok], ['Tab', cancel], ['Tab', ok], ['Shift+Tab', cancel], ['Shift+Tab', ok], ['Shift+Tab', cancel]] as const) {
+      await page.keyboard.press(key);
+      await expect(el).toBeFocused();
+    }
+    // 点遮罩（焦点落到 body）后再按 Tab：回到框内第一个
+    await page.mouse.click(4, 4);
+    await page.keyboard.press('Tab');
+    await expect(cancel).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await expect(del).toBeFocused();
+    await expect(area.locator('.st-im-libl li')).toHaveCount(1); // Esc = 取消，没删
   });
 });
