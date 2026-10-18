@@ -77,6 +77,9 @@ model User {
   lockedUntil    DateTime?
   lastLoginAt    DateTime? // 最近一次成功登录（#95 账号管理页显示）
   reactivatedAt  DateTime? // ADMIN 重新启用的时间；闲置天数从 max(lastLoginAt, reactivatedAt, createdAt) 起算（retention cron）
+  enrollIssuedAt   DateTime? // #347 绑定窗口起点：重置 2FA 时写入；为空时用 createdAt。起点 + 72 小时后 enroll/confirm 一律拒绝，需管理员重置 2FA
+  totpPendingUntil DateTime? // #347/#348 待确认密钥的有效期，同时是再次 enroll 的冷却截止时间（期间不能覆盖待确认密钥）
+  totpEnrollFails  Int       @default(0) // #348 当前待确认密钥上、密码已通过时的错码次数；达到上限作废密钥，发新密钥或绑定成功时清零
   inquiries      Inquiry[] @relation("Assignee")
   createdAt      DateTime  @default(now())
 }
