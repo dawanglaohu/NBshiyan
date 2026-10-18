@@ -212,17 +212,20 @@ curl -sIL 'https://www.geiom.com/ru?a=1' | grep -iE '^(HTTP|location)'     # 一
 
 ```bash
 A=<sitemap 里的一篇文章路径，例如 /en/articles/xxx>
-curl -sI "$S$A/og" | grep -iE '^(HTTP|content-type|x-robots-tag)'
-#   200；Content-Type: image/…；X-Robots-Tag 含 noindex
-for l in en ru; do curl -sI "$S/$l/articles/__no-such-article__/og" | grep -iE '^(HTTP|location|x-robots-tag|cache-control)'; done
-#   302；Location: https://geiom.com/og/home-$l.jpg；X-Robots-Tag 含 noindex；Cache-Control 含 no-store
+OG=$(curl -s "$S$A" | grep -Eo '<meta property="og:image" content="[^"]+"' | sed -E 's/.*content="([^"]+)"/\1/; s/&amp;/\&/g')
+curl -sI "$OG" | grep -iE '^(HTTP|content-type|x-robots-tag|cache-control)'
+#   200；Content-Type: image/…；X-Robots-Tag 含 noindex；Cache-Control: public, max-age=31536000, immutable（#350：v 必须等于当前标题的版本）
+curl -sI "$S$A/og" | grep -iE '^(HTTP|cache-control)'          # 不带 v
+curl -sI "$S$A/og?v=00000000" | grep -iE '^(HTTP|cache-control)' # v 不对
+for l in en ru; do curl -sI "$S/$l/articles/__no-such-article__/og?v=00000000" | grep -iE '^(HTTP|location|x-robots-tag|cache-control)'; done
+#   以上三类都是 404；Cache-Control 含 no-store；X-Robots-Tag 含 noindex；没有 Location
 curl -s "$S$A" | grep -Eo '<meta (property|name)="(og:image|og:image:width|og:image:height|twitter:image)"[^>]*>'
 #   只有一个 og:image，等于 https://geiom.com$A/og（可以带 ?v=）；twitter:image 和它相同；宽 1200，高 630
 curl -s $S/sitemap.xml | grep -Ec '/og(/|<|\?)'   # 0：sitemap 里不能有任何 /og URL
 ```
 
 - **PASS**：上面每一条都和注释一致。
-- **FAIL**：og:image 有多个，或者还指向首页兜底图；`/og` 返回 HTML 或没有 noindex；不存在的 slug 返回 500、404，或者跳到别的域名；sitemap 里出现 `/og`。
+- **FAIL**：og:image 有多个，或者还指向首页兜底图；`/og` 返回 HTML 或没有 noindex；不带 v / v 不对 / 不存在的 slug 返回 200、500，或者跳到别的域名；sitemap 里出现 `/og`。
 
 ## 5. 第 1、3、7 天的收录检查 🔑（GSC / Yandex 部分由 Ryan 看）
 

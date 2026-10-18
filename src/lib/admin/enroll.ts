@@ -13,7 +13,8 @@ export const ENROLL_PAGE = '/admin-enroll';
 export const STEPS = ['账号验证', '扫码并确认', '保存恢复码'] as const;
 /** 1：邮箱 + 初始密码；2：扫码并输入验证码；3：保存恢复码 → 去登录 */
 export type Step = 1 | 2 | 3;
-export type EnrollState = { step: Step; otpauthUri: string | null; recoveryCodes: string[] | null; saved: boolean; confirmedAt: number | null };
+/** voided：第 2 步验证失败过多、后端已让这次待绑定的密钥失效（#350 稿件 enroll-step2-void），只能重新开始 */
+export type EnrollState = { step: Step; otpauthUri: string | null; recoveryCodes: string[] | null; saved: boolean; confirmedAt: number | null; voided: boolean };
 /** 确认用掉的验证码在登录时再用会失败，而且计入账号锁定次数：确认成功后至少等 30 秒（换下一个码）才能去登录 */
 export const NEXT_CODE_WAIT_MS = 30_000;
 
@@ -28,6 +29,18 @@ export const ERROR_TEXT: Record<string, string> = {
   code_incomplete: '请输入 6 位数字验证码',
 };
 export const errorText = (code: string | undefined | null): string => (code && ERROR_TEXT[code]) || '操作失败，请稍后再试；如果一直失败，请联系运维';
+
+/**
+ * #350「绑定已作废、重新开始」（稿件 enroll-step2-void）：验证码失败次数过多后，后端让这次待绑定的密钥失效，
+ * 返回 HTTP 401 `{ error: 'enroll_reset' }`（后端已定）。`bad_credentials`（密码错）和 429 `rate_limited` 不变。
+ * 文案不透露账号是否存在，也不显示密钥或验证码。
+ */
+export const ENROLL_VOID_CODES: readonly string[] = ['enroll_reset'];
+export const ENROLL_VOID_TEXT = '验证失败次数过多，此绑定已作废，请重新开始绑定';
+export const ENROLL_VOID_HINT = '二维码和密钥已失效，不能再使用。请回到第 1 步，重新输入邮箱和初始密码，获取新的二维码。';
+export const ENROLL_VOID_FOOT = '身份验证器 App 里刚添加的旧条目可以删除。';
+export const ENROLL_RESTART = '重新开始绑定';
+export const isVoidCode = (code: string | null | undefined, codes: readonly string[] = ENROLL_VOID_CODES): boolean => !!code && codes.includes(code);
 
 /** 只允许本站的两个 enroll 接口（相对路径），防止误把密码 / URI 发到任何外部地址 */
 export function assertEnrollPath(path: string): string {
@@ -83,18 +96,21 @@ export const codeCheck = (code: string): CodeCheck => (code.length === CODE_LEN 
 export const isCompleteCode = (v: string): boolean => /^\d{6}$/.test(v);
 
 /** 不能跳步：1→2 只能由 enroll 接口成功触发，2→3 只能由 confirm 接口成功触发，没有返回、没有「重新生成」 */
-export const INITIAL: EnrollState = { step: 1, otpauthUri: null, recoveryCodes: null, saved: false, confirmedAt: null };
+export const INITIAL: EnrollState = { step: 1, otpauthUri: null, recoveryCodes: null, saved: false, confirmedAt: null, voided: false };
 export const afterEnroll = (s: EnrollState, otpauthUri: string): EnrollState =>
   s.step === 1 && parseSecret(otpauthUri) ? { ...s, step: 2, otpauthUri } : s;
 export const afterConfirm = (s: EnrollState, codes: string[], now: number): EnrollState =>
-  s.step === 2 && codes.length > 0 ? { step: 3, otpauthUri: null, recoveryCodes: codes, saved: false, confirmedAt: now } : s;
+  s.step === 2 && !s.voided && codes.length > 0 ? { step: 3, otpauthUri: null, recoveryCodes: codes, saved: false, confirmedAt: now, voided: false } : s;
+/** 绑定作废：只在第 2 步发生；丢掉 otpauth URI（二维码、密钥不再显示），之后只能 restart 回第 1 步 */
+export const afterVoid = (s: EnrollState): EnrollState => (s.step === 2 ? { ...INITIAL, step: 2, voided: true } : s);
 /** 还要等多少毫秒才能去登录（确认成功后 30 秒） */
 export const waitLeft = (s: EnrollState, now: number): number =>
   s.confirmedAt === null ? NEXT_CODE_WAIT_MS : Math.max(0, s.confirmedAt + NEXT_CODE_WAIT_MS - now);
 /** 「去登录」可用：第 3 步、勾了「我已保存恢复码」、确认后已过 30 秒 */
 export const canFinish = (s: EnrollState, now: number): boolean => s.step === 3 && s.saved && !!s.recoveryCodes?.length && waitLeft(s, now) === 0;
 /** 正在绑定中（离开页面要提醒）：已经拿到密钥、还没去登录 */
-export const inProgress = (s: EnrollState): boolean => s.step >= 2;
+/** 作废后没有可丢失的进度，离开不再提醒 */
+export const inProgress = (s: EnrollState): boolean => s.step >= 2 && !s.voided;
 /** 进度条：第几步的状态 */
 export const stepStatus = (current: Step, n: Step): 'done' | 'current' | 'todo' => (current > n ? 'done' : current === n ? 'current' : 'todo');
 
