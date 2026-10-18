@@ -65,7 +65,9 @@ test('AdminTime renders <time dateTime={iso} title={fmtDate(iso)}>; admin screen
 test('detail empty states and disabled drawer items', () => {
   const d = readFileSync(new URL('../src/components/admin/InquiryDetail.tsx', import.meta.url), 'utf8');
   assert.match(d, /const EMPTY_TEXT = '暂无记录'/);
-  assert.match(d, /\{inq\.history\.length === 0 && <EmptyNote \/>\}/);
+  // #331：操作历史改成单独组件（接 /history），空列表同样显示灰色「暂无记录」
+  assert.match(d, /<InquiryHistory inquiryId=\{inq\.id\} refreshKey=\{historyKey\} \/>/);
+  assert.match(readFileSync(new URL('../src/components/admin/InquiryHistory.tsx', import.meta.url), 'utf8'), /<p className="adm-empty-note" data-testid="empty-note">\{HISTORY_TEXT\.empty\}<\/p>/);
   assert.match(d, /\{!inq\.message && \(threadMode \|\| inq\.messages\.length === 0\) && <EmptyNote \/>\}/);
   assert.match(d, /<div className="adm-reply-actions">/);
   assert.match(d, /\{anon && inq\.notes\.length === 0 && <EmptyNote \/>\}/);
