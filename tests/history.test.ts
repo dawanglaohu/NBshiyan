@@ -22,7 +22,7 @@ test('history newest first, includes pre-assignment entries, actor name/role onl
   assert.equal(h[3].summary, '分配给 小李');
   assert.equal(h[2].summary, '状态：新询盘 → 已报价');
   assert.deepEqual(h[1].actor, { name: '小李', role: 'SALES' });
-  for (const e of h) assert.deepEqual(Object.keys(e).sort(), ['actor', 'at', 'cursor', 'summary', 'type']);
+  for (const e of h) assert.deepEqual(Object.keys(e).sort(), ['actor', 'actorKind', 'at', 'cursor', 'summary', 'type']);
   assert.ok(!JSON.stringify(h).includes('"u2"'));
 });
 
