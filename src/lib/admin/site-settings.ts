@@ -122,7 +122,7 @@ export function draftCompleteness(d: AboutDraft): Completeness {
 
 /**
  * 右栏「<语言> 完整度」清单（稿件 settings-desktop 的 .ss-chk）：按当前草稿实时算。
- * state：ok ✓ / missing !（必填没满足）/ optional –（选填）。图片替代文字一项等 PublicAsset 接入后再加。
+ * state：ok ✓ / missing !（必填没满足）/ optional –（选填）。图片替代文字一项见 about-images.ts 的 imageAltChecklistItem。
  */
 export type ChecklistItem = { key: 'title' | 'body' | 'stats' | 'home'; label: string; state: 'ok' | 'missing' | 'optional' };
 export function draftChecklist(d: AboutDraft): ChecklistItem[] {
@@ -194,7 +194,14 @@ export function dirtySummary(saved: Record<string, AboutDraft>, draft: Record<st
 export { isAllowedAboutHref };
 
 /** 保存 / 开关的错误文案（409 不走这里，见 conflictStep）；其他沿用后台 errorText() */
-export const settingsErrorText = (code: string): string => errorText(code, '保存失败');
+// #350 图片列表带来的新错误码（保存 / 开关的顶部错误条，经 issuesAlertText 也走这里）；其他沿用 errorText()
+const SETTINGS_ERR: Record<string, string> = {
+  unknown_asset: '列表里有图片已经被删除，请移除后再保存',
+  network: '网络错误，请检查网络后重试',
+  invalid_locale: '这个语言还不支持，请刷新页面后重试',
+};
+export const settingsErrorText = (code: string): string =>
+  (Object.prototype.hasOwnProperty.call(SETTINGS_ERR, code) ? SETTINGS_ERR[code] : null) ?? errorText(code, '保存失败');
 
 /** 后端 issue 转成一行文字（顶部错误条用） */
 export const issueLine = (i: { path?: unknown; message?: unknown }): string => {

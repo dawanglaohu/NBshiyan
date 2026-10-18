@@ -49,9 +49,24 @@ export function visibleStats(stats: readonly AboutStat[] | null | undefined): Ab
   return (stats ?? []).filter((s) => filled(s?.value) && filled(s?.label)).slice(0, ABOUT_LIMITS.statsMax);
 }
 
-/** 图片：必须有 id、宽高和替代文字；最多 6 张 */
+const dimsOk = (d: { w: number; h: number } | null | undefined) => !!d && d.w > 0 && d.h > 0;
+/** 图片：必须有 id、两种尺寸的宽高、地址和替代文字；最多 6 张 */
 export function visibleImages(images: readonly AboutImage[] | null | undefined): AboutImage[] {
-  return (images ?? []).filter((i) => filled(i?.id) && filled(i?.alt) && filled(i?.src?.sm) && filled(i?.src?.lg) && i.w > 0 && i.h > 0).slice(0, ABOUT_LIMITS.imagesMax);
+  return (images ?? []).filter((i) => filled(i?.id) && filled(i?.alt) && filled(i?.src?.sm) && filled(i?.src?.lg) && i.w > 0 && i.h > 0 && dimsOk(i.sm) && dimsOk(i.lg)).slice(0, ABOUT_LIMITS.imagesMax);
+}
+
+/**
+ * 前台 <img> 的 srcset / width / height（#374 合入后改用 sm / lg 各自的实际宽高）。
+ * URL 里的 800 / 1600 是名义长边，不是实际宽度：竖图 lg 可能是 1200×1600，所以 w 描述符取 sm.w / lg.w，不能写死 800w / 1600w。
+ * sm 和 lg 是同一个文件（长边 ≤ 800，两个地址相同）时只写一档。width / height 用 lg（和后端 w / h 一致），只用来占位比例。
+ */
+export function aboutImageAttrs(img: Pick<AboutImage, 'src' | 'sm' | 'lg'>): { src: string; srcSet: string; width: number; height: number } {
+  const one = img.src.sm === img.src.lg || img.sm.w >= img.lg.w;
+  return {
+    src: img.src.sm,
+    srcSet: one ? `${img.src.lg} ${img.lg.w}w` : `${img.src.sm} ${img.sm.w}w, ${img.src.lg} ${img.lg.w}w`,
+    width: img.lg.w, height: img.lg.h,
+  };
 }
 
 /*
