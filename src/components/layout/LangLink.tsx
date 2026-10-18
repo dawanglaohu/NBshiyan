@@ -4,7 +4,6 @@ import { usePathname as useRawPathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import { menuSwitchTarget, type Loc } from '@/lib/i18n/localeSwitch';
-import { isBlockedLocalePath } from '@/lib/edge/locale-gate';
 import { PUBLISHED_LOCALES, DEFAULT_PUBLISHED_LOCALE, isPublishedLocale } from '@/i18n/published-locales';
 import { LOCALE_META } from '@/i18n/locale-meta';
 import { useLocaleAlternates } from './LocaleAlternates';
@@ -44,7 +43,7 @@ export function useLangTargets(): { current: Loc; targets: LangTarget[] } {
       if (!isPlainClick(e)) return;
       // 点击时再读一次，覆盖 Next 路由 pushState 改了 hash/query 但没触发事件的情况
       e.preventDefault();
-      if (to === current && !isBlockedLocalePath(raw ?? '')) return;
+      if (to === current && menuSwitchTarget(raw, pathname, current, to, alts, '') !== '/' ) return;
       router.push(menuSwitchTarget(raw, pathname, current, to, alts, suffix()), { locale: to });
     }
   }));

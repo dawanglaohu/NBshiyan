@@ -75,6 +75,7 @@ export function langSwitchTarget(pathname: string, from: Loc, to: Loc, alternate
  * 不拿 /ja 当路径拼出 /ru/ja 这种链接。
  */
 export function menuSwitchTarget(rawPathname: string | null | undefined, pathname: string, from: Loc, to: Loc, alternates: LocaleAlternates | null | undefined, suffix: string): string {
-  if (isBlockedLocalePath(rawPathname ?? '')) return '/';
+  // 服务端渲染时看到的是 rewrite 后的 /en/locale-unavailable，客户端看到的是地址栏的 /ja：两种都按 404 页处理，避免 hydration 不一致
+  if (isBlockedLocalePath(rawPathname ?? '') || /^\/locale-unavailable\/?$/.test(pathname)) return '/';
   return langSwitchTarget(pathname, from, to, alternates, suffix);
 }

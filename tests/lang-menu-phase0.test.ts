@@ -69,6 +69,8 @@ test('on the unpublished-locale 404 page every item goes to that locale home (/e
       assert.equal(menuSwitchTarget(raw, p, 'en', 'en', null, ''), '/', `${raw} ${p} → en`);
     }
   }
+  // SSR：地址栏路径拿到的是 rewrite 后的地址
+  assert.equal(menuSwitchTarget('/en/locale-unavailable', '/locale-unavailable', 'en', 'ru', null, ''), '/');
   // 正常页面不受影响
   assert.equal(menuSwitchTarget('/en/contact', '/contact', 'en', 'ru', null, '?x=1'), '/contact?x=1');
   assert.equal(menuSwitchTarget('/en/products/nope', '/products/nope', 'en', 'ru', null, ''), '/products');
