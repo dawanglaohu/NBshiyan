@@ -136,9 +136,9 @@ test('图片列表：上传、替代文字必填、各种被拒、429 保留文�
   await expect(fileInput(page)).toHaveCount(0);
   for (let i = 1; i < 6; i++) await cards.nth(i).getByLabel(/替代文字（EN）/).fill(`Sample alt ${i + 1}`);
 
-  // 排序：第 1 张右移
+  // 排序：第 1 张下移（宽屏是 →）
   const firstSrc = await cards.nth(0).locator('img').getAttribute('src');
-  await cards.nth(0).getByRole('button', { name: '右移第 1 张' }).click();
+  await cards.nth(0).getByRole('button', { name: '下移第 1 张图片' }).click();
   expect(await cards.nth(1).locator('img').getAttribute('src')).toBe(firstSrc);
 
   await saveBtn(page).click();
@@ -197,7 +197,7 @@ test('图片库：在用的图不能删（asset_in_use）；移除并保存后�
   expect((await del409.json()).error).toBe('asset_in_use');
 
   // 从关于页移除第 2 张并保存 → 图库里那张可以删：确认框文案、取消 / 红色删除
-  await cards.nth(1).getByRole('button', { name: '从关于页移除（第 2 张）' }).click();
+  await cards.nth(1).getByRole('button', { name: '删除第 2 张图片' }).click();
   await expect(cards).toHaveCount(1);
   await saveBtn(page).click();
   await savedOk(page);
@@ -227,7 +227,7 @@ test('图片库：在用的图不能删（asset_in_use）；移除并保存后�
   expect(other.status()).toBe(200);
   let imagePuts = 0;
   page.on('request', (r) => { if (r.method() === 'PUT' && r.url().endsWith('/about/images')) imagePuts++; });
-  await cards.nth(0).getByRole('button', { name: '从关于页移除（第 1 张）' }).click();
+  await cards.nth(0).getByRole('button', { name: '删除第 1 张图片' }).click();
   await area.getByText(/图片库/).first().isVisible();
   await libItems.first().getByRole('button', { name: '加入关于页' }).click(); // 再加回来 → 列表和已保存一样，但文字改了
   await area.locator('input[type=file]').setInputFiles({ name: 'c.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [60, 120, 30]) });
@@ -244,4 +244,50 @@ test('图片库：在用的图不能删（asset_in_use）；移除并保存后�
   await expect(banner).toHaveCount(0);
   await expect(cards).toHaveCount(0);
   await expect(area.locator('.st-count').first()).toHaveText('0 / 6');
+});
+
+test('UX 复审：<640px 单列卡片、输入框占满宽度；1440 多列；删除用 ✕，上移 / 下移 / 删除第 N 张图片的 aria-label；控件 ≥ 44px', async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginFreshAdmin(page);
+  await reset(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/admin/settings');
+  const area = page.locator('.st-im');
+  await area.locator('input[type=file]').setInputFiles([
+    { name: 'a.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [120, 60, 30]) },
+    { name: 'b.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [30, 60, 120]) },
+  ]);
+  const cards = area.locator('.st-im-card');
+  await expect(cards).toHaveCount(2);
+  const grid = (await area.locator('.st-im-grid').boundingBox())!;
+  const [c0, c1] = [(await cards.nth(0).boundingBox())!, (await cards.nth(1).boundingBox())!];
+  expect(c0.x).toBe(c1.x); // 单列：上下排
+  expect(c1.y).toBeGreaterThan(c0.y + c0.height - 1);
+  expect(Math.abs(c0.width - grid.width)).toBeLessThanOrEqual(1);
+  for (const name of [/替代文字（EN）/, /图片说明/]) {
+    const input = cards.first().getByLabel(name);
+    const ib = (await input.boundingBox())!;
+    expect(ib.width).toBeGreaterThan(c0.width - 32); // 输入框占满卡片（减去内边距）
+    expect(ib.height).toBeGreaterThanOrEqual(44);
+  }
+  // 占位「≤80 字，显示在图片下方」放得下：用同样字体量一下文字宽度
+  const fits = await cards.first().getByLabel(/图片说明/).evaluate((el: HTMLInputElement) => {
+    const cs = getComputedStyle(el); const ctx = document.createElement('canvas').getContext('2d')!;
+    ctx.font = `${cs.fontSize} ${cs.fontFamily}`;
+    return ctx.measureText(el.placeholder).width <= el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  });
+  expect(fits).toBe(true);
+  const up = cards.nth(1).getByRole('button', { name: '上移第 2 张图片' });
+  const down = cards.nth(0).getByRole('button', { name: '下移第 1 张图片' });
+  const del = cards.nth(0).getByRole('button', { name: '删除第 1 张图片' });
+  for (const b of [up, down, del]) { const bb = (await b.boundingBox())!; expect(bb.width).toBeGreaterThanOrEqual(44); expect(bb.height).toBeGreaterThanOrEqual(44); }
+  await expect(del).toHaveText('✕');
+  await expect(down).toHaveText(/↓/);
+  await expect(area.getByText('🗑')).toHaveCount(0);
+  // 1440：保持多列
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const [d0, d1] = [(await cards.nth(0).boundingBox())!, (await cards.nth(1).boundingBox())!];
+  expect(d1.x).toBeGreaterThan(d0.x + d0.width - 1);
+  expect(d1.y).toBe(d0.y);
+  await expect(cards.nth(0).getByRole('button', { name: '下移第 1 张图片' })).toHaveText(/→/);
 });

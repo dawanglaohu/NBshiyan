@@ -57,6 +57,10 @@ export const IMAGES_TEXT = {
   small: '图片较小，大屏上可能不够清晰',
   duplicate: '这张图已经在列表里了',
   left: '左移', right: '右移',
+  // UX 复审（P3）：读屏用「上移 / 下移 / 删除第 N 张图片」（列表顺序 = 前台顺序；窄屏单列时也是上下）
+  moveUpAria: (n: number) => `上移第 ${n} 张图片`,
+  moveDownAria: (n: number) => `下移第 ${n} 张图片`,
+  removeAria: (n: number) => `删除第 ${n} 张图片`,
   remove: '从关于页移除',
   library: (n: number) => `图片库（已上传 ${n} 张）`,
   libraryHint: '从关于页移除的图片还留在图片库里，可以重新加入；没被关于页使用的图片才能删除。',

@@ -16,6 +16,8 @@
 .st-im-card .acts{display:flex;gap:4px;margin-top:6px}.st-im-card .acts .sp{flex:1}
 .st-im-ico{font:inherit;font-size:12px;width:32px;height:32px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;color:var(--ink-2)}
 .st-im-ico:disabled{opacity:.4;cursor:default}
+.st-im-ico .v{display:none}
+.st-im-rm:not(:disabled):hover{color:#B42318;border-color:#E9B8B2}
 .st-im-ico:focus-visible,.st-im-up.add:focus-within{outline:2px solid var(--accent-text);outline-offset:2px}
 .st-im-up{border:2px dashed #D7CFC2;border-radius:var(--r-sm);background:#FBF9F5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:12px;color:var(--ink-2);font-size:12px;min-height:180px;min-width:0;overflow-wrap:anywhere}
 .st-im-up b{color:var(--ink);font-size:13px}
@@ -52,4 +54,15 @@
   .st-im-libl img{width:72px;height:54px}
   .st-im-libl .btns{grid-column:1/-1;justify-content:stretch}
   .st-im-libl .btns .adm-btn{flex:1}
+}
+/* UX 复审（P2）：<640px 单列卡片，输入框占满卡片宽度（占位文字、长替代文字不被截断）；箭头换成 ↑ ↓ */
+@media (max-width:639px){
+  .st-im-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  .st-im-card .th{aspect-ratio:auto;height:180px}
+  .st-im-card .bd{padding:10px 12px 12px}
+  .st-im-card .bd label{font-size:12px}
+  .st-im-card .acts{gap:8px}
+  .st-im-ico .h{display:none}
+  .st-im-ico .v{display:inline}
+  .st-im-up{min-height:120px}
 }

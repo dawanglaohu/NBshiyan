@@ -143,10 +143,11 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
                 {capE && <p id={`${id}-cap-e`} className="st-ferr">{capE}</p>}
                 {small && <p className="st-warn st-im-small">{T.small}</p>}
                 <div className="acts">
-                  <button type="button" className="st-im-ico" aria-label={`${T.left}第 ${n} 张`} title={T.left} disabled={disabled || i === 0} onClick={() => setItems((p) => moveImage(p, i, -1))}>←</button>
-                  <button type="button" className="st-im-ico" aria-label={`${T.right}第 ${n} 张`} title={T.right} disabled={disabled || i === items.length - 1} onClick={() => setItems((p) => moveImage(p, i, 1))}>→</button>
+                  {/* 箭头：宽屏多列时 ← →，<640px 单列时 ↑ ↓（CSS 切换）；删除用后台通用的 ✕（同数据条、组织信息的删除按钮） */}
+                  <button type="button" className="st-im-ico" aria-label={T.moveUpAria(n)} title={T.left} disabled={disabled || i === 0} onClick={() => setItems((p) => moveImage(p, i, -1))}><span className="h" aria-hidden="true">←</span><span className="v" aria-hidden="true">↑</span></button>
+                  <button type="button" className="st-im-ico" aria-label={T.moveDownAria(n)} title={T.right} disabled={disabled || i === items.length - 1} onClick={() => setItems((p) => moveImage(p, i, 1))}><span className="h" aria-hidden="true">→</span><span className="v" aria-hidden="true">↓</span></button>
                   <span className="sp" />
-                  <button type="button" className="st-im-ico" aria-label={`${T.remove}（第 ${n} 张）`} title={T.remove} disabled={disabled} onClick={() => setItems((p) => removeImage(p, it.id))}><span aria-hidden="true">🗑</span></button>
+                  <button type="button" className="st-im-ico st-im-rm" aria-label={T.removeAria(n)} title={T.remove} disabled={disabled} onClick={() => setItems((p) => removeImage(p, it.id))}><span aria-hidden="true">✕</span></button>
                 </div>
               </div>
             </div>

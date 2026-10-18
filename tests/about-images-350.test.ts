@@ -5,7 +5,7 @@ import * as React from 'react';
 (globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
-  IMAGES_MAX, addImage, anyImageErrors, createAboutImagesApi, imageAltChecklistItem, imageErrorText, imageIssueText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
+  IMAGES_MAX, IMAGES_TEXT, addImage, anyImageErrors, createAboutImagesApi, imageAltChecklistItem, imageErrorText, imageIssueText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
   precheckFile, pruneImageMeta, retryAfterMs, saveAboutWithImages, slotsLeft, uploadAboutImage, uploadOutcome, withImageAltCompleteness, withImagesDirty,
   type AboutImageItem, type AboutImagesState, type XhrLike,
 } from '../src/lib/admin/about-images';
@@ -387,4 +387,22 @@ test('错误文案：图片带来的新错误码都是中文（经 settingsError
     assert.equal(r.ok, false);
     assert.deepEqual((r as unknown as Record<string, string[]>)[key], ['图片的替代文字超出上限（最多 125 字）', 'title：x'], key);
   }
+});
+
+test('UX 复审：上移 / 下移 / 删除第 N 张图片；删除用后台通用的 ✕（不用 🗑）；<640px 单列；「N 张」数字和量词之间有空格', () => {
+  const src = read('../src/components/admin/settings/AboutImages.tsx');
+  const css = read('../src/components/admin/settings/about-images.css');
+  const lib = read('../src/lib/admin/about-images.ts');
+  assert.match(src, /aria-label=\{T\.moveUpAria\(n\)\}/);
+  assert.match(src, /aria-label=\{T\.moveDownAria\(n\)\}/);
+  assert.match(src, /aria-label=\{T\.removeAria\(n\)\}[^\n]*<span aria-hidden="true">✕<\/span><\/button>/);
+  assert.doesNotMatch(src + lib, /🗑/u);
+  assert.equal(IMAGES_TEXT.moveUpAria(3), '上移第 3 张图片');
+  assert.equal(IMAGES_TEXT.moveDownAria(3), '下移第 3 张图片');
+  assert.equal(IMAGES_TEXT.removeAria(3), '删除第 3 张图片');
+  assert.equal(IMAGES_TEXT.checkAltMissing(2), '图片替代文字 · 2 张缺失');
+  assert.match(read('../src/components/admin/settings/AboutSettings.tsx'), /aria-label=\{`删除第 \$\{i \+ 1\} 条`\}[^\n]*>✕<\/button>/, '沿用数据条删除按钮的 ✕');
+  assert.match(css, /@media \(max-width:639px\)\{\s*\.st-im-grid\{grid-template-columns:minmax\(0,1fr\)/);
+  // 所有「N 张」：数字前后都有空格
+  for (const m of lib.matchAll(/`[^`]*\$\{[^}]+\}[^`]*张[^`]*`/g)) assert.match(m[0], /\} 张/, m[0]);
 });
