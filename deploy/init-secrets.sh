@@ -46,7 +46,8 @@ CNF
   openssl x509 -req -in "$W/leaf.csr" -CA "$W/ca.crt" -CAkey "$W/ca.key" -set_serial "0x$(openssl rand -hex 16)" \
     -days 3650 -extfile "$W/leaf.ext" -out "$W/leaf.crt" 2>/dev/null
   openssl verify -CAfile "$W/ca.crt" "$W/leaf.crt" >/dev/null || { echo "[init] internal TLS verify failed" >&2; exit 1; }
-  openssl x509 -in "$W/ca.crt" -noout -ext nameConstraints | grep -q 'DNS:redis-rest' || { echo "[init] nameConstraints missing" >&2; exit 1; }
+  nc=$(openssl x509 -in "$W/ca.crt" -noout -ext nameConstraints 2>/dev/null || true)
+  { grep -qi 'permitted' <<<"$nc" && grep -qF 'DNS:redis-rest' <<<"$nc"; } || { echo "[init] nameConstraints missing" >&2; exit 1; }
   # Delete the CA private key now (tmpfs, never written to disk outside /dev/shm)
   shred -u "$W/ca.key" 2>/dev/null || rm -f "$W/ca.key"
   install -m 644 -o root -g root "$W/ca.crt" "$T/ca.crt"
@@ -76,7 +77,9 @@ setkey UPSTASH_REDIS_REST_TOKEN "$(sed -n 's/^SRH_TOKEN=//p' "$S/srh.env")"
 # APP_ENV / NODE_ENV are FORCED (not just filled when empty): without APP_ENV=production at runtime the startup check
 # in src/instrumentation.ts is skipped entirely. Non-secret, so overwriting is safe.
 for k in APP_ENV NODE_ENV; do sed -i "/^$k=/d" "$ENVF"; printf '%s=production\n' "$k" >> "$ENVF"; done
-for kv in NEXT_PUBLIC_SITE_URL=https://geiom.com AUTH_URL=https://geiom.com APP_ORIGIN=https://geiom.com \
+# APP_ORIGIN is FORCED too: without it admin same-origin checks 403 every POST behind nginx (req.url is http://0.0.0.0:3000).
+sed -i '/^APP_ORIGIN=/d' "$ENVF"; printf 'APP_ORIGIN=https://geiom.com\n' >> "$ENVF"
+for kv in NEXT_PUBLIC_SITE_URL=https://geiom.com AUTH_URL=https://geiom.com \
           NEXT_PUBLIC_ADMIN_API=http RATE_LIMIT_STORE=upstash UPSTASH_REDIS_REST_URL=https://redis-rest:8443 \
           STORAGE_DRIVER=local UPLOAD_DIR=/data/uploads SHORTLINK_PROBE_ORIGIN=http://127.0.0.1:3000 \
           MAIL_SEND_ADAPTER=smtp SMTP_HOST=smtp.gmail.com SMTP_PORT=465 REPLY_DOMAIN=geiom.com \
