@@ -183,10 +183,10 @@ test('EXIF 方向先转正（Orientation=6 的 2000×1000 → 竖图 800×1600�
   assert.ok(bottom[2] > 200 && bottom[0] < 60, `bottom=${bottom}`);
 });
 
-test('解压炸弹：像素数超过 40,000,000 → processing_failed（只读文件头就拒绝）', async () => {
+test('解压炸弹：像素数超过 40,000,000 → image_too_large_dimensions（只读文件头就拒绝）', async () => {
   assert.equal(PUBLIC_ASSET_MAX_PIXELS, 40_000_000);
   for (const [w, h] of [[50_000, 50_000], [8000, 5001], [40_001, 1000]]) {
-    assert.deepEqual(await processPublicImage(pngHeaderOnly(w, h)), { ok: false, error: 'processing_failed' }, `${w}x${h}`);
+    assert.deepEqual(await processPublicImage(pngHeaderOnly(w, h)), { ok: false, error: 'image_too_large_dimensions' }, `${w}x${h}`);
   }
 });
 
@@ -303,12 +303,12 @@ test('上传：声明的 Content-Type / 文件名不算数——PNG 内容冒充
   await t.cleanup();
 });
 
-test('上传错误码：image_too_small 422、processing_failed 422（含像素上限）、file_too_large 413；warnings image_small', async () => {
+test('上传错误码：image_too_small 422、image_too_large_dimensions 422、processing_failed 422、file_too_large 413；warnings image_small', async () => {
   const t = await assetDeps();
   const small = await body(await handleUploadAsset(uploadReq(await solid(700, 500)), t.d));
   assert.deepEqual([small.status, small.json], [422, { error: 'image_too_small' }]);
   const bomb = await body(await handleUploadAsset(uploadReq(pngHeaderOnly(20_000, 20_000), { type: 'image/png' }), t.d));
-  assert.deepEqual([bomb.status, bomb.json], [422, { error: 'processing_failed' }]);
+  assert.deepEqual([bomb.status, bomb.json], [422, { error: 'image_too_large_dimensions' }]);
   const huge = Buffer.alloc(PUBLIC_ASSET_MAX_BYTES + 1); huge.set([0xff, 0xd8, 0xff]);
   const big = await body(await handleUploadAsset(uploadReq(huge), t.d));
   assert.deepEqual([big.status, big.json], [413, { error: 'file_too_large' }]);

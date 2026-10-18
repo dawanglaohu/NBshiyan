@@ -24,7 +24,7 @@ export const PUBLIC_ASSET_KIND = 'about';
 export const PUBLIC_ASSET_ID_RE = /^[A-Za-z0-9]{24}$/;
 export const WEBP_QUALITY = 82;
 
-export type PublicAssetError = 'file_too_large' | 'unsupported_type' | 'image_too_small' | 'processing_failed';
+export type PublicAssetError = 'file_too_large' | 'unsupported_type' | 'image_too_small' | 'image_too_large_dimensions' | 'processing_failed';
 export type PublicAssetWarning = 'image_small';
 export type Rendition = { data: Buffer; width: number; height: number };
 export type ProcessResult =
@@ -70,7 +70,7 @@ export function processPublicImage(input: Buffer): Promise<ProcessResult> {
       if (meta.format !== SHARP_FORMAT[type]) return { ok: false, error: 'unsupported_type' };
       if ((meta.pages ?? 1) > 1) return { ok: false, error: 'unsupported_type' };
       if (!meta.width || !meta.height) return { ok: false, error: 'processing_failed' };
-      if (meta.width * meta.height > PUBLIC_ASSET_MAX_PIXELS) return { ok: false, error: 'processing_failed' };
+      if (meta.width * meta.height > PUBLIC_ASSET_MAX_PIXELS) return { ok: false, error: 'image_too_large_dimensions' };
       const longEdge = Math.max(meta.width, meta.height); // 旋转不改变长边
       if (longEdge < PUBLIC_ASSET_MIN_LONG_EDGE) return { ok: false, error: 'image_too_small' };
       const lg = await encode(input, PUBLIC_ASSET_SIZES.lg);

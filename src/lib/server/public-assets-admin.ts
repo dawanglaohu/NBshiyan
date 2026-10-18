@@ -88,7 +88,7 @@ export const assetView = (r: PublicAssetRow): PublicAssetView => ({
 });
 const warningsFor = (r: Pick<PublicAssetRow, 'lgWidth' | 'lgHeight'>): PublicAssetWarning[] => (Math.max(r.lgWidth, r.lgHeight) < PUBLIC_ASSET_SIZES.lg ? ['image_small'] : []);
 
-const STATUS = { file_too_large: 413, unsupported_type: 415, image_too_small: 422, processing_failed: 422 } as const;
+const STATUS = { file_too_large: 413, unsupported_type: 415, image_too_small: 422, image_too_large_dimensions: 422, processing_failed: 422 } as const;
 
 /** POST /api/admin/site-settings/assets（multipart，字段 file） */
 export async function handleUploadAsset(req: Request, d: PublicAssetDeps): Promise<Response> {
