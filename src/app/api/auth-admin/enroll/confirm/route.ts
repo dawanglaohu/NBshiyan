@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
 import { clientIp, readBody } from '@/lib/server/security';
-import { checkPassword, checkSecondFactor, hashCodes, newRecoveryCodes } from '@/lib/server/admin/login';
+import { checkPassword, checkSecondFactor, hashCodes, newRecoveryCodes, refundLoginRate } from '@/lib/server/admin/login';
 import { audit } from '@/lib/server/admin/audit';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
-import { enrollIpRateOk, enrollWindowOpen, pendingSecretUsable, recordBadEnrollTotp } from '@/lib/server/admin/enroll-guard';
+import { enrollConfirmRateOk, enrollIpRateOk, enrollWindowOpen, pendingSecretUsable, recordBadEnrollTotp } from '@/lib/server/admin/enroll-guard';
 
 export const runtime = 'nodejs';
 const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200), password: z.string().min(1).max(200), totp: z.string().regex(/^\d{6}$/) });
@@ -16,6 +16,8 @@ const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200),
  * #348：密码正确但码错，按账号计数；同一个待确认密钥错满 5 次就作废，返回 401 enroll_reset（之后再 confirm 也是 enroll_reset），
  * 冷却 10 分钟后可重新 enroll（冷却期内 enroll 返回 429 rate_limited）。密码错不计入这个计数。
  * 新错误码 enroll_reset 只有密码正确才会出现，不泄露账号是否存在；#353 页面暂时显示通用兜底文案。
+ * 限流（P2）：同源 → 按 IP 总上限（不退）→ 解析 → checkPassword（原子计入登录桶）→ 密码正确就退回 IP+账号、单账号两个登录桶
+ * → 验码前原子计入 enroll-confirm（IP+账号 10 次/10 分钟，超了 429）。详见 enroll-guard.ts。
  */
 export async function POST(req: Request) {
   const bad = assertSameOrigin(req);
@@ -28,7 +30,9 @@ export async function POST(req: Request) {
   if (!p.success) return jsonErr('invalid', 400);
   const user = await checkPassword(p.data.email, p.data.password, ip);
   if (user === 'rate_limited') return jsonErr('rate_limited', 429);
-  if (typeof user === 'string' || user.totpEnabled) return jsonErr('bad_credentials', 401);
+  if (typeof user === 'string') return jsonErr('bad_credentials', 401);
+  await refundLoginRate(ip, p.data.email); // 密码正确：退回登录桶（单 IP 桶不退）
+  if (user.totpEnabled) return jsonErr('bad_credentials', 401);
   // 以下分支都已通过密码校验
   if (!enrollWindowOpen(user)) {
     await audit({ actorId: user.id, action: 'auth.totp_enroll_blocked', target: user.id, meta: { reason: 'window_expired' }, ip });
@@ -40,6 +44,7 @@ export async function POST(req: Request) {
     return jsonErr('bad_credentials', 401); // 从没调过 enroll（与原来一致）
   }
   if (!pendingSecretUsable(user)) return jsonErr('bad_totp', 401); // 待确认密钥已过期（或是加固前留下的），需重新 enroll
+  if (!(await enrollConfirmRateOk(ip, p.data.email))) return jsonErr('rate_limited', 429);
   if (!(await checkSecondFactor(user, p.data.totp, undefined))) {
     return (await recordBadEnrollTotp(user, ip)) ? jsonErr('enroll_reset', 401) : jsonErr('bad_totp', 401);
   }
