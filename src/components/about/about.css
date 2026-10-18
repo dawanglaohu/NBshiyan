@@ -15,7 +15,9 @@
 .ab-imgs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .ab-imgs .ab-fig:first-child{grid-column:span 2;grid-row:span 2}
 .ab-fig{margin:0}
-.ab-fig img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r-md);display:block}
+/* UX spec v1.0.10：统一 4:3 居中裁切（容器定比例，img cover；img 的 width / height 仍是文件实际尺寸，不会 CLS），存储的文件不裁 */
+.ab-fig-box{aspect-ratio:4/3;overflow:hidden;border-radius:var(--r-md);background:var(--placeholder)}
+.ab-fig-box img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .ab-fig figcaption{font-size:14px;color:var(--ink-2);margin-top:8px}
 /* 首页区块 */
 .ab-home{border-bottom:1px solid var(--line)}

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AboutDraft } from '@/lib/admin/site-settings';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
-  ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
+  ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isPortrait, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
   inFlightCount, precheckFile, removeImage, slotsLeft, takeReady, uploadAboutImage, type AboutImageItem, type LibraryAsset,
 } from '@/lib/admin/about-images';
 import ConfirmDialog from './ConfirmDialog';
@@ -141,7 +141,7 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
       <div className="st-im-grid" role="list" aria-labelledby="st-im-l">
         {items.map((it, i) => {
           const n = i + 1; const id = `st-im-${it.id}`;
-          const altE = errs.alt[it.id]; const capE = errs.caption[it.id]; const small = isSmallImage(it.lg);
+          const altE = errs.alt[it.id]; const capE = errs.caption[it.id]; const small = isSmallImage(it.lg); const portrait = isPortrait(it.lg);
           return (
             <div key={it.id} role="listitem" className={`st-im-card${altE ? ' bad' : ''}`}>
               <div className="th">
@@ -159,6 +159,7 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
                   errorId={capE ? `${id}-cap-e` : undefined} onChange={(v) => onMeta(it.id, 'caption', v)} />
                 {capE && <p id={`${id}-cap-e`} className="st-ferr">{capE}</p>}
                 {small && <p className="st-warn st-im-small">{T.small}</p>}
+                {portrait && <p className="st-warn st-im-portrait">{T.portrait}</p>}
                 <div className="acts">
                   {/* 箭头：宽屏多列时 ← →，<640px 单列时 ↑ ↓（CSS 切换）；删除用后台通用的 ✕（同数据条、组织信息的删除按钮） */}
                   <button type="button" className="st-im-ico" aria-label={T.moveUpAria(n)} title={T.left} disabled={disabled || i === 0} onClick={() => setItems((p) => moveImage(p, i, -1))}><span className="h" aria-hidden="true">←</span><span className="v" aria-hidden="true">↑</span></button>

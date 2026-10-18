@@ -4,8 +4,12 @@ import { readFileSync } from 'node:fs';
 import { nextTrapFocus, FOCUSABLE_SELECTOR } from '../src/lib/admin/focus-trap';
 import { draftErrors, emptyDraft, humanIssueLine, mapAboutServerIssues, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
-import { IMAGES_TEXT, inFlightCount, missingAltImages, slotsLeft, takeReady } from '../src/lib/admin/about-images';
+import { IMAGES_TEXT, inFlightCount, isPortrait, missingAltImages, slotsLeft, takeReady } from '../src/lib/admin/about-images';
 import { ABOUT_LIMITS } from '../src/lib/site-settings/about-rules';
+import * as React from 'react';
+(globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
+import { renderToStaticMarkup } from 'react-dom/server';
+import { AboutFigure, ABOUT_IMAGE_SIZES, HOME_IMAGE_SIZES, aboutImageSizes } from '../src/components/about/AboutParts';
 
 // #350 部署后的前端 P3 小 PR（UX #378 / #379 遗留 + spec v1.0.10 + SEO）
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -192,4 +196,46 @@ test('保存栏接线：缺替代文字时第二行先写原因，「保存」�
   assert.match(ui, /<small>\{missingAlt > 0 && <span id="st-bar-why" className="st-bar-why">\{IMAGES_TEXT\.barMissing\(missingAlt\)\}<\/span>\}（\{summary\}）<\/small>/);
   assert.match(ui, /conflict !== 'none' \? <small>\{T\.conflictBar\}<\/small>/);
   assert.match(ui, /aria-describedby=\{conflict === 'none' && missingAlt > 0 \? 'st-bar-why' : undefined\}/);
+});
+
+// ───────── ⑧ spec v1.0.10 + SEO：4:3 裁切、竖图提示、sizes、首图不懒加载 ─────────
+const img = (w: number, h: number) => ({ id: 'asset0000000000000000001', w, h, alt: 'Factory floor', caption: '', sm: { w: w / 2, h: h / 2 }, lg: { w, h }, src: { sm: '/media/a-800.webp', lg: '/media/a-1600.webp' } });
+test('前台：容器 4:3 + object-fit cover / center；img 的 width / height 是文件实际尺寸（竖图也不改）；lazy=false → eager', () => {
+  const css = read('../src/components/about/about.css');
+  assert.ok(css.includes('.ab-fig-box{aspect-ratio:4/3;overflow:hidden;'));
+  assert.ok(css.includes('.ab-fig-box img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}'));
+  assert.doesNotMatch(css, /\.ab-fig img\{[^}]*aspect-ratio/); // 比例不在 img 上
+  const tall = renderToStaticMarkup(React.createElement(AboutFigure, { img: img(1200, 1600), sizes: ABOUT_IMAGE_SIZES.lead, lazy: false }));
+  assert.match(tall, /<div class="ab-fig-box"><img /);
+  assert.match(tall, /width="1200"/); assert.match(tall, /height="1600"/);
+  assert.match(tall, /loading="eager"/);
+  assert.match(renderToStaticMarkup(React.createElement(AboutFigure, { img: img(1600, 1200), sizes: ABOUT_IMAGE_SIZES.rest })), /loading="lazy"/);
+});
+
+test('sizes 按布局（断点 = about.css 的 768px）：/about 第 1 张 66vw / 100vw，其余 33vw / 50vw；首页 25vw / 78vw', () => {
+  assert.equal(aboutImageSizes(0), '(min-width: 768px) 66vw, 100vw');
+  for (const i of [1, 2, 5]) assert.equal(aboutImageSizes(i), '(min-width: 768px) 33vw, 50vw');
+  assert.equal(HOME_IMAGE_SIZES, '(min-width: 768px) 25vw, 78vw');
+  const css = read('../src/components/about/about.css');
+  assert.match(css, /@media \(max-width:767px\)\{[^@]*\.ab-imgs\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/); // 手机 2 列
+  assert.match(css, /\.ab-imgs \.ab-fig:first-child\{grid-column:span 2;grid-row:span 2\}/); // 桌面首图 2×2
+  const page = read('../src/app/[locale]/about/page.tsx');
+  assert.match(page, /images\.map\(\(img, i\) => <AboutFigure key=\{img\.id\} img=\{img\} sizes=\{aboutImageSizes\(i\)\} lazy=\{i > 0\} \/>\)/);
+  assert.match(read('../src/components/about/AboutHomeBlock.tsx'), /sizes=\{HOME_IMAGE_SIZES\}/);
+});
+
+test('后台：卡片缩略图各宽度都 4:3 cover（去掉 <640px 固定 180px 高）；竖图（h > w）提示，不进校验', () => {
+  const css = read('../src/components/admin/settings/about-images.css');
+  assert.ok(css.includes('.st-im-card .th{aspect-ratio:4/3;'));
+  assert.ok(css.includes('.st-im-card .th img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}'));
+  assert.doesNotMatch(css, /\.st-im-card \.th\{aspect-ratio:auto/);
+  assert.equal(isPortrait({ w: 1200, h: 1600 }), true);
+  assert.equal(isPortrait({ w: 1600, h: 1600 }), false);
+  assert.equal(isPortrait({ w: 1600, h: 1200 }), false);
+  assert.equal(IMAGES_TEXT.portrait, '竖图在前台会裁成 4:3 横图显示，建议上传横图');
+  const src = read('../src/components/admin/settings/AboutImages.tsx');
+  assert.match(src, /\{portrait && <p className="st-warn st-im-portrait">\{T\.portrait\}<\/p>\}/);
+  const lib = read('../src/lib/admin/about-images.ts');
+  const check = lib.slice(lib.indexOf('export function localeImageErrors'), lib.indexOf('export const COUNTER_AT'));
+  assert.ok(check.length > 100 && !check.includes('isPortrait'), '校验（阻止保存）里不看竖图');
 });

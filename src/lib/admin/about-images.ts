@@ -58,6 +58,7 @@ export const IMAGES_TEXT = {
   retryFull: `已有 ${ABOUT_LIMITS.imagesMax} 张，移除一张后才能重试`,
   dismiss: '关闭',
   small: '图片较小，大屏上可能不够清晰',
+  portrait: '竖图在前台会裁成 4:3 横图显示，建议上传横图', // spec v1.0.10
   duplicate: '这张图已经在列表里了',
   left: '左移', right: '右移',
   // UX 复审（P3）：读屏用「上移 / 下移 / 删除第 N 张图片」（列表顺序 = 前台顺序；窄屏单列时也是上下）
@@ -165,6 +166,8 @@ export const fmtBytes = (n: number): string => (n >= 1024 * 1024 ? `${(n / 1024 
 /** 长边 < 1600：大屏可能不够清晰（和后端 warningsFor 同一条规则） */
 export const isSmallImage = (lg: Dims): boolean => Math.max(lg.w, lg.h) < LG_EDGE;
 
+/** 竖图（高 > 宽）：前台统一 4:3 横向裁切，会裁掉上下（spec v1.0.10，只提示、不阻止保存） */
+export const isPortrait = (d: Dims): boolean => d.h > d.w;
 export const itemFromAsset = (a: LibraryAsset): AboutImageItem => ({
   id: a.id, sm: { w: a.sm.width, h: a.sm.height }, lg: { w: a.lg.width, h: a.lg.height }, src: { sm: a.sm.url, lg: a.lg.url },
 });

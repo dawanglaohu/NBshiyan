@@ -7,7 +7,7 @@
 .st-im-card{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);overflow:hidden;min-width:0}
 .st-im-card.bad{border-color:#C0392B}
 .st-im-card .th{aspect-ratio:4/3;background:repeating-linear-gradient(45deg,#F3EFE8 0 10px,#fff 10px 20px);position:relative}
-.st-im-card .th img{width:100%;height:100%;object-fit:cover;display:block}
+.st-im-card .th img{width:100%;height:100%;object-fit:cover;object-position:center;display:block} /* spec v1.0.10：和前台同样 4:3 居中裁切 */
 .st-im-card .th .n{position:absolute;top:6px;left:6px;background:#1C1C1C;color:#fff;border-radius:999px;font-size:11px;font-weight:600;padding:0 7px;line-height:18px}
 .st-im-card .bd{padding:8px}
 .st-im-card .bd label{font-size:11px;font-weight:700;display:block;margin:6px 0 4px}
@@ -46,7 +46,7 @@
 .st-im-lib summary{cursor:pointer;font-weight:600;font-size:14px;min-height:32px;display:flex;align-items:center}
 .st-im-libl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .st-im-libl li{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px;border:1px solid var(--line);border-radius:var(--r-sm)}
-.st-im-libl img{width:96px;height:72px;object-fit:cover;border-radius:6px;display:block}
+.st-im-libl img{width:96px;height:72px;object-fit:cover;object-position:center;border-radius:6px;display:block}
 .st-im-libl .meta{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--ink-2);min-width:0}
 .st-im-libl .meta .st-ferr,.st-im-libl .meta .st-warn{font-size:12px;margin:0}
 .st-im-libl .chip{align-self:flex-start;background:#E6F4EC;color:#145C3B;border-radius:4px;padding:0 6px;font-size:11px;font-weight:600}
@@ -70,7 +70,7 @@
 /* UX 复审（P2）：<640px 单列卡片，输入框占满卡片宽度（占位文字、长替代文字不被截断）；箭头换成 ↑ ↓ */
 @media (max-width:639px){
   .st-im-grid{grid-template-columns:minmax(0,1fr);gap:12px}
-  .st-im-card .th{aspect-ratio:auto;height:180px}
+  /* spec v1.0.10：单列时缩略图也保持 4:3（原来固定 180px 高，和前台裁切不一致） */
   .st-im-card .bd{padding:10px 12px 12px}
   .st-im-card .bd label{font-size:12px}
   .st-im-card .acts{gap:8px}
@@ -80,3 +80,4 @@
 }
 /* UX #379 P3 ②：等 429 重试的文件不占名额；列表已满 6 张时重试禁用，并说明原因 */
 .st-im-up .st-im-rfull{flex-basis:100%;font-size:12px}
+.st-im-card .st-im-portrait{background:#FFF3C4;border-radius:4px;padding:4px 6px} /* spec v1.0.10：竖图提示（黄色提示样式，不阻止保存） */

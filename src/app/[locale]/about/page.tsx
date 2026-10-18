@@ -8,7 +8,7 @@ import { getAboutContent, getPublishedAboutLocales } from '@/lib/server/site-set
 import { buildAboutMetadata } from '@/lib/seo/about';
 import { SITE_URL } from '@/lib/site';
 import { isAboutVisible } from '@/lib/about/visibility';
-import { ABOUT_IMAGE_SIZES, AboutFigure, AboutStats } from '@/components/about/AboutParts';
+import { AboutFigure, AboutStats, aboutImageSizes } from '@/components/about/AboutParts';
 import { CtaBand } from '@/components/sections/ui';
 import '@/components/sections/sections.css';
 import '@/components/about/about.css';
@@ -77,7 +77,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         <section className="sx sx-block" aria-labelledby="ab-imgs-h">
           <h2 id="ab-imgs-h" className="sx-h">{t('imagesTitle')}</h2>
           <div className="ab-imgs">
-            {images.map((img) => <AboutFigure key={img.id} img={img} sizes={ABOUT_IMAGE_SIZES} />)}
+            {/* 第 1 张（2×2）不懒加载：正文很短时它就在首屏 */}
+            {images.map((img, i) => <AboutFigure key={img.id} img={img} sizes={aboutImageSizes(i)} lazy={i > 0} />)}
           </div>
         </section>
       )}

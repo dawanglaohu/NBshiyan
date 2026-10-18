@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { ABOUT_HOME_IMAGES, homeBlockVisible, visibleImages, visibleStats, type AboutContent } from '@/lib/about/model';
-import { ABOUT_IMAGE_SIZES, AboutFigure, AboutStats } from './AboutParts';
+import { AboutFigure, AboutStats, HOME_IMAGE_SIZES } from './AboutParts';
 import { Button } from '@/components/sections/ui';
 import '@/components/sections/sections.css';
 import './about.css';
@@ -29,7 +29,7 @@ export default async function AboutHomeBlock({ content, aboutVisible }: { conten
         </div>
         {images.length > 0 && (
           <div className="ab-home-imgs">
-            {images.map((img) => <AboutFigure key={img.id} img={img} sizes={ABOUT_IMAGE_SIZES} />)}
+            {images.map((img) => <AboutFigure key={img.id} img={img} sizes={HOME_IMAGE_SIZES} />)}
           </div>
         )}
       </div>

@@ -198,7 +198,20 @@ test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片�
     await expect(im).toHaveAttribute('width', '1200');
     await expect(im).toHaveAttribute('height', '900');
     await expect(im).toHaveAttribute('alt', /Sample alt/);
-    await expect(imgs.first()).toHaveAttribute('sizes', '(min-width: 1024px) 50vw, 100vw');
+    // spec v1.0.10 + SEO P3：sizes 按布局（断点 768px）；第 1 张不懒加载，其余 lazy
+    await expect(imgs.first()).toHaveAttribute('sizes', '(min-width: 768px) 66vw, 100vw');
+    await expect(imgs.first()).toHaveAttribute('loading', 'eager');
+    for (let i = 1; i < 6; i++) {
+      await expect(imgs.nth(i)).toHaveAttribute('sizes', '(min-width: 768px) 33vw, 50vw');
+      await expect(imgs.nth(i)).toHaveAttribute('loading', 'lazy');
+    }
+    // 统一 4:3 居中裁切：容器 4:3、img cover + center；img 的 width / height 仍是文件实际尺寸（上面 1200×900）
+    for (const w of [1440, 390]) {
+      await page.setViewportSize({ width: w, height: 900 });
+      const r = await page.locator('.ab-imgs .ab-fig-box').evaluateAll((els) => els.map((e) => { const b = e.getBoundingClientRect(); const cs = getComputedStyle(e.querySelector('img')!); return { ratio: b.width / b.height, fit: cs.objectFit, pos: cs.objectPosition }; }));
+      expect(r).toHaveLength(6);
+      for (const x of r) { expect(Math.abs(x.ratio - 4 / 3)).toBeLessThan(0.02); expect(x.fit).toBe('cover'); expect(x.pos).toBe('50% 50%'); }
+    }
   });
 
   test('图片库：在用的图不能删（asset_in_use）；移除并保存后可以删，先确认；409 走关于页的冲突流程', async ({ page }) => {
@@ -539,6 +552,40 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
     await tile.getByRole('button', { name: '重试' }).click();
     await expect(cards).toHaveCount(6);
     await expect(area.locator('.st-im-up.bad')).toHaveCount(0);
+    await page.unroute(`**${S}/assets`);
+  });
+  test('spec v1.0.10：后台卡片缩略图 4:3 裁切（1440 / 390）；竖图卡片下黄色提示，不阻止保存', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    // 假响应：一张横图、一张竖图（lg 1200×1600），不经过服务端
+    let n = 0;
+    await page.route(`**${S}/assets`, (route) => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      const id = `fakeportrait${String(++n).padStart(12, '0')}`;
+      const a = fakeAsset(id);
+      const body = n === 2 ? { ...a, width: 1200, height: 1600, sm: { ...a.sm, width: 600, height: 800 }, lg: { ...a.lg, width: 1200, height: 1600 } } : a;
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(body) });
+    });
+    await fileInput(page).setInputFiles([{ name: 'wide.jpg', mimeType: 'image/jpeg', buffer: TINY_JPEG }, { name: 'tall.jpg', mimeType: 'image/jpeg', buffer: TINY_JPEG }]);
+    const cards = area.locator('.st-im-card');
+    await expect(cards).toHaveCount(2);
+    const note = '竖图在前台会裁成 4:3 横图显示，建议上传横图';
+    await expect(cards.nth(0).getByText(note)).toHaveCount(0);
+    await expect(cards.nth(1).getByText(note)).toBeVisible();
+    await expect(cards.nth(1).locator('.st-im-portrait')).toHaveCSS('color', 'rgb(138, 101, 0)');
+    for (const w of [1440, 390]) {
+      await page.setViewportSize({ width: w, height: 900 });
+      for (const i of [0, 1]) {
+        const th = (await cards.nth(i).locator('.th').boundingBox())!;
+        expect(Math.abs(th.width / th.height - 4 / 3)).toBeLessThan(0.02);
+        await expect(cards.nth(i).locator('.th img')).toHaveCSS('object-fit', 'cover');
+      }
+    }
+    // 不阻止保存：填了替代文字就能点「保存」（这里不真的保存：假图片不在库里）
+    for (const i of [0, 1]) await cards.nth(i).getByLabel(/替代文字（EN）/).fill(`Alt ${i}`);
+    await expect(saveBtn(page)).toBeEnabled();
     await page.unroute(`**${S}/assets`);
   });
   test('UX #379 P2：确认框的焦点锁在框内（Tab / Shift+Tab 循环、点到框外再 Tab 也回到框内），Esc 关闭后焦点回到「删除」', async ({ page }) => {
