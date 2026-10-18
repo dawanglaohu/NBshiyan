@@ -5,6 +5,7 @@ import {
   ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
   precheckFile, removeImage, slotsLeft, uploadAboutImage, type AboutImageItem, type LibraryAsset,
 } from '@/lib/admin/about-images';
+import ConfirmDialog from './ConfirmDialog';
 import './about-images.css';
 
 /**
@@ -34,6 +35,8 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
   const [libError, setLibError] = useState<string | null>(null);
   const [assetErr, setAssetErr] = useState<Record<string, string>>({});
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  // ConfirmDialog 的 effect 依赖 onCancel：用稳定引用，避免每次重渲染都把焦点拉回「取消」
+  const closeConfirm = useCallback(() => setConfirmId(null), []);
   const [notice, setNotice] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const fileRef = useRef<HTMLInputElement>(null);
@@ -217,31 +220,11 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
         </ul>
       </details>
 
-      {confirmId && <DeleteDialog onCancel={() => setConfirmId(null)} onConfirm={doDelete} />}
-    </div>
-  );
-}
-
-/** 删除确认（role=alertdialog，Esc / 取消退出，打开时焦点在「取消」；样式沿用 settings.css 的 .st-dialog） */
-function DeleteDialog({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: () => void }) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    cancelRef.current?.focus();
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onCancel(); } };
-    document.addEventListener('keydown', k);
-    return () => { document.removeEventListener('keydown', k); prev?.focus(); };
-  }, [onCancel]);
-  return (
-    <div className="st-mask">
-      <div className="st-dialog" role="alertdialog" aria-modal="true" aria-labelledby="st-im-dlg-h" aria-describedby="st-im-dlg-b">
-        <h2 id="st-im-dlg-h">{T.deleteTitle}</h2>
-        <p id="st-im-dlg-b">{T.deleteBody}</p>
-        <div className="st-dlg-btns">
-          <button ref={cancelRef} type="button" className="adm-btn" onClick={onCancel}>{T.cancel}</button>
-          <button type="button" className="adm-btn primary danger" onClick={onConfirm}>{T.delete}</button>
-        </div>
-      </div>
+      {confirmId && (
+        <ConfirmDialog title={T.deleteTitle} confirmLabel={T.delete} danger onCancel={closeConfirm} onConfirm={doDelete}>
+          <p>{T.deleteBody}</p>
+        </ConfirmDialog>
+      )}
     </div>
   );
 }
