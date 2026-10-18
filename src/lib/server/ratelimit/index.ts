@@ -14,6 +14,11 @@ export interface RateLimitStore {
    * key 不存在或窗口已过期时什么都不做，不新建 key、不动过期时间。
    */
   refund(key: string, windowMs: number): Promise<void>;
+  /**
+   * 删掉这些 key 的计数（当前窗口和上一个窗口），用于后台重置 2FA 后解除账号锁定（#347）。出错 throw，由 clearRateLimits 处理。
+   * 可选：没实现的存储（测试替身）视为失败。
+   */
+  clear?(entries: { key: string; windowMs: number }[]): Promise<void>;
 }
 
 export class MemoryStore implements RateLimitStore {
@@ -36,6 +41,9 @@ export class MemoryStore implements RateLimitStore {
     live.pop(); // 去掉最近的一次
     this.hits.set(key, live);
   }
+  async clear(entries: { key: string; windowMs: number }[]) {
+    for (const { key } of entries) this.hits.delete(key); // 内存里不分窗口，整个 key 删掉
+  }
   /** 清掉长时间没有请求的 key，防止内存无限增长 */
   private sweep(now: number) {
     for (const [k, v] of this.hits) if (!v.length || now - v[v.length - 1] > 24 * 3600_000) this.hits.delete(k);
@@ -51,7 +59,7 @@ export const REFUND_LUA = "local v = tonumber(redis.call('GET', KEYS[1])) if v a
 
 export class UpstashStore implements RateLimitStore {
   constructor(private url: string, private token: string, private timeoutMs = 1500, private prefix = 'rl:') {}
-  private keyOf(key: string, windowMs: number) { return `${this.prefix}${key}:${Math.floor(Date.now() / windowMs)}`; }
+  private keyOf(key: string, windowMs: number, offset = 0) { return `${this.prefix}${key}:${Math.floor(Date.now() / windowMs) + offset}`; }
   private async pipeline(cmds: string[][]) {
     const r = await fetch(`${this.url.replace(/\/$/, '')}/pipeline`, {
       method: 'POST',
@@ -76,6 +84,12 @@ export class UpstashStore implements RateLimitStore {
   /** 条件 DECR 同一个 `rl:<key>:<窗口序号>`（见 REFUND_LUA）。出错 throw，由 refundRateLimit 忽略。 */
   async refund(key: string, windowMs: number) {
     await this.pipeline([['EVAL', REFUND_LUA, '1', this.keyOf(key, windowMs)]]);
+  }
+  /** 一次 pipeline：每个 key 的当前窗口、上一个窗口各一个 DEL（按名字删，不 SCAN / KEYS）。任何一条出错都 throw。 */
+  async clear(entries: { key: string; windowMs: number }[]) {
+    const keys = entries.flatMap(({ key, windowMs }) => [this.keyOf(key, windowMs), this.keyOf(key, windowMs, -1)]);
+    const j = await this.pipeline(keys.map((k) => ['DEL', k]));
+    if (j.length !== keys.length || j.some((x) => x?.error)) throw new Error('upstash bad response');
   }
 }
 

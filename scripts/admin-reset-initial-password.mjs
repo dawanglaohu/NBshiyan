@@ -5,7 +5,8 @@
 // 密码：终端里交互输入（不回显，输两次）；没有终端时读标准输入第一行。不接受命令行参数和环境变量（ADMIN_RESET_PASSWORD 等会被删除、从不读取）。
 // 密码绝不进日志、异常信息或审计记录。规则与后台改密码相同（12–200 位，不能等于邮箱），哈希与登录校验同一套 argon2id 参数。
 // TOTP 已启用一律拒绝；有未完成的绑定或绑定窗口已关闭时需加 --clear-pending-enroll。
-// 退出码：0 成功；1 运行错误；2 参数错误；3 账号状态不允许。
+// #347：成功后在终端显示一次 2FA 绑定链接；标准输出不是终端时拒绝运行（退出码 2），所以必须用 exec -it。
+// 退出码：0 成功；1 运行错误；2 参数错误 / 标准输出不是终端；3 账号状态不允许。
 // 依赖只有 @prisma/client 和 @node-rs/argon2（应用本身就用，standalone 产物里都有）。
 import { ARGON, MESSAGES, firstLine, runReset, stripPasswordEnv } from './admin-reset-initial-password-lib.mjs';
 
@@ -64,5 +65,6 @@ const code = await runReset({
   fetchImpl: (...a) => fetch(...a),
   out: (s) => process.stdout.write(s),
   err: (s) => process.stderr.write(s),
+  stdoutIsTTY: !!process.stdout.isTTY,
 }).catch((e) => { process.stderr.write(`${MESSAGES.db_error}（${e?.name ?? 'Error'}）\n`); return 1; });
 process.exitCode = code;

@@ -1,5 +1,6 @@
 import { test, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { authenticator } from 'otplib';
 import { setRateLimitStore, MemoryStore, type RateLimitStore } from '../src/lib/server/ratelimit/index';
 import { hashSecret } from '../src/lib/server/admin/crypto';
@@ -11,6 +12,9 @@ import type * as Sec from '../src/lib/server/security';
 const PASSWORD = 'correct-horse-battery-staple';
 const EMAIL = 'owner@example.test';
 const EDGE = 'e'.repeat(40);
+// #347 方案 A：测试用的一次性绑定令牌（假值，43 字符 base64url）；库里只放它的 sha256。post() 默认把它放进请求体
+const TOKEN = 'T'.repeat(43);
+const TOKEN_HASH = createHash('sha256').update(TOKEN).digest('hex');
 Object.assign(process.env, { APP_ENV: 'test', ADMIN_TOTP_KEY: Buffer.alloc(32, 7).toString('base64'), EDGE_AUTH_SECRET: EDGE });
 delete process.env.ADMIN_ALERT_EMAIL; delete process.env.INQUIRY_NOTIFY_EMAIL;
 
@@ -23,10 +27,11 @@ const match = (u: Row, where: Record<string, unknown>): boolean => Object.entrie
   if (v === null) return u[k] === null || u[k] === undefined;
   if (v instanceof Date) return (u[k] as Date)?.getTime() === v.getTime();
   if (typeof v === 'object') {
-    const c = v as { lt?: number | Date; lte?: number | Date };
+    const c = v as { lt?: number | Date; lte?: number | Date; gt?: number | Date };
     const x = u[k] as number | Date | null; if (x === null || x === undefined) return false;
     if (c.lt !== undefined && !(+x < +c.lt)) return false;
     if (c.lte !== undefined && !(+x <= +c.lte)) return false;
+    if (c.gt !== undefined && !(+x > +c.gt)) return false;
     return true;
   }
   return u[k] === v;
@@ -66,7 +71,8 @@ let hash = '';
 const newUser = (over: Partial<Row> = {}): Row => ({
   id: 'u_owner', email: EMAIL, name: 'Owner', passwordHash: hash, role: 'SALES', totpSecret: null, totpEnabled: false, totpLastStep: null,
   recoveryCodes: [], sessionVersion: 0, disabled: false, failedLogins: 0, lockedUntil: null, lastLoginAt: null, reactivatedAt: null,
-  enrollIssuedAt: null, totpPendingUntil: null, totpEnrollFails: 0, createdAt: new Date(), ...over,
+  enrollIssuedAt: null, totpPendingUntil: null, totpEnrollFails: 0,
+  enrollTokenHash: TOKEN_HASH, enrollTokenExpiresAt: new Date(Date.now() + 3_600_000), createdAt: new Date(), ...over,
 });
 const owner = () => users.find((u) => u.id === 'u_owner')!;
 
@@ -92,8 +98,10 @@ before(async () => {
 });
 beforeEach(() => { store = new CountingStore(); setRateLimitStore(store); users = [newUser()]; audits = []; lookups = 0; });
 
+/** 对象请求体默认带上 TOKEN；显式写了 token 键（包括 undefined）的保持原样 */
+const withToken = (body: unknown) => (body && typeof body === 'object' && !Array.isArray(body) && !('token' in body) ? { ...body, token: TOKEN } : body);
 const post = (path: string, body: unknown, ip = IP) => new Request(`http://localhost${path}`, {
-  method: 'POST', body: JSON.stringify(body),
+  method: 'POST', body: JSON.stringify(withToken(body)),
   headers: { 'content-type': 'application/json', 'x-edge-auth': EDGE, 'cf-connecting-ip': ip, origin: 'http://localhost' },
 });
 const call = async (r: Promise<Response>) => { const res = await r; return { status: res.status, body: await res.json() as Record<string, unknown> }; };

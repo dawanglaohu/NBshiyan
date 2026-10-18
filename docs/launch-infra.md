@@ -210,7 +210,7 @@ APP_TAG=candidate docker compose -p nbshiyan -f deploy/docker-compose.yml --env-
 
 ### 7.2 未绑定 2FA 的 ADMIN 重设初始密码
 
-`docker compose exec -it app node scripts/admin-reset-initial-password.mjs --email <邮箱> [--clear-pending-enroll]`（或 `--id <账号 id>`；等同 `pnpm admin:reset-initial-password`）。只用于还没绑定 2FA 的 ADMIN（#347 一次性绑定令牌上线前的临时办法）。新密码只从终端（不回显，输两次）或标准输入第一行读，不接受命令行参数和环境变量；密码只由 Ryan 本人输入，或私信给本人，不发群里。2FA 已启用、不是 ADMIN、已停用一律拒绝（退出码 3）。有未完成的绑定或 72 小时绑定窗口已关闭时必须加 `--clear-pending-enroll`，它会清掉待确认状态并重新打开绑定窗口。改密码、清待确认状态、所有会话失效、解除锁定、写审计（`user.password_reset`，必要时加 `user.pending_enroll_cleared`，只记 actor=cli 和账号 id）在同一个事务里。提交后只清这个账号能直接算出名字的限流 key：`login-acct:<e>`、`login:untrusted:<e>`、`enroll-confirm:untrusted:<e>`，当前和上一个窗口（按 key 名直接删，不 SCAN/KEYS）；`login-ip` 和真实 IP 的桶不清。详见 deploy/README.md。
+`docker compose exec -it app node scripts/admin-reset-initial-password.mjs --email <邮箱> [--clear-pending-enroll]`（或 `--id <账号 id>`；等同 `pnpm admin:reset-initial-password`）。只用于还没绑定 2FA 的 ADMIN。#347：必须在终端里运行（stdout 不是终端时退出 2、什么都不改，所以不能再用标准输入读密码）；同一事务里签发新的一次性绑定令牌，成功后在终端显示一次链接、有效期和「只私信发给本人」，旧链接立即失效。新密码只从终端（不回显，输两次）或标准输入第一行读，不接受命令行参数和环境变量；密码只由 Ryan 本人输入，或私信给本人，不发群里。2FA 已启用、不是 ADMIN、已停用一律拒绝（退出码 3）。有未完成的绑定或 72 小时绑定窗口已关闭时必须加 `--clear-pending-enroll`，它会清掉待确认状态并重新打开绑定窗口。改密码、清待确认状态、所有会话失效、解除锁定、写审计（`user.password_reset`，必要时加 `user.pending_enroll_cleared`，只记 actor=cli 和账号 id）在同一个事务里。提交后只清这个账号能直接算出名字的限流 key：`login-acct:<e>`、`login:untrusted:<e>`、`enroll-confirm:untrusted:<e>`，当前和上一个窗口（按 key 名直接删，不 SCAN/KEYS）；`login-ip` 和真实 IP 的桶不清。详见 deploy/README.md。
 
 ## 8. CSP 说明（Tawk.to 等第三方）
 
