@@ -77,7 +77,7 @@ test('point 4: admin branch and shortlink/expired checks still run first (no ear
 });
 
 test('next-intl detection only picks published locales: / with Accept-Language ja or cookie ja → /en', async () => {
-  for (const h of [{ 'accept-language': 'ja-JP,ja;q=0.9' }, { cookie: 'NEXT_LOCALE=ja' }, { 'accept-language': 'ar' }]) {
+  for (const h of [{ 'accept-language': 'ja-JP,ja;q=0.9' }, { cookie: 'NEXT_LOCALE=ja' }, { 'accept-language': 'ar' }] as Record<string, string>[]) {
     const res = await middleware(req('/', h));
     assert.equal(locPath(res), '/en', JSON.stringify(h));
   }
