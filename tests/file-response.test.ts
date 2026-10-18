@@ -67,3 +67,60 @@ test('4 个输出存储文件的接口都用 storedFileResponse，不再自己�
   for (const p of ['/api/admin/uploads/abc', '/api/admin/models/m1/file', '/api/designs/d1/logo', '/api/models/m1/glb']) assert.ok(!ex.test(p), p);
   for (const p of ['/en', '/api/health', '/api/admin/models', '/api/designs/d1', '/api/models']) assert.ok(ex.test(p), p);
 });
+
+test('#323 fileRoute：401 / 403 / 404 / 429 / 500 响应也带 FILE_CSP + nosniff，状态码、正文和其他头不变；抛错 → 500 internal，不回显异常', async () => {
+  const { fileRoute, withFileSecurityHeaders } = await import('../src/lib/server/file-response');
+  const { NextResponse } = await import('next/server');
+  const cases: [number, () => Response][] = [
+    [401, () => NextResponse.json({ error: 'unauthorized' }, { status: 401, headers: { 'Cache-Control': 'no-store' } })],
+    [403, () => NextResponse.json({ error: 'forbidden' }, { status: 403 })],
+    [404, () => new Response('not found', { status: 404, headers: { 'Cache-Control': 'no-store', 'Content-Security-Policy': 'default-src *' } })],
+    [429, () => NextResponse.json({ error: 'rate_limited' }, { status: 429, headers: { 'Retry-After': '600' } })],
+    [500, () => new Response('x', { status: 500 })],
+  ];
+  for (const [status, make] of cases) {
+    const ref = make();
+    const r = await fileRoute(async () => make())(new Request('http://x/'), {});
+    assert.equal(r.status, status);
+    assert.equal(r.headers.get('content-security-policy'), FILE_CSP, String(status));
+    assert.equal(r.headers.get('x-content-type-options'), 'nosniff', String(status));
+    for (const k of ['cache-control', 'retry-after', 'content-type']) assert.equal(r.headers.get(k), ref.headers.get(k), `${status} ${k}`);
+    assert.equal(await r.text(), await ref.text());
+  }
+  const orig = console.error; const logged: unknown[] = [];
+  console.error = (...a: unknown[]) => { logged.push(a); };
+  try {
+    const r = await fileRoute(async () => { throw new Error('db exploded SECRET-XYZ'); })(new Request('http://x/'), {});
+    assert.equal(r.status, 500); assert.deepEqual(await r.json(), { error: 'internal' });
+    assert.equal(r.headers.get('content-security-policy'), FILE_CSP); assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(r.headers.get('cache-control'), PRIVATE_NO_STORE);
+    assert.equal(logged.length, 1);
+  } finally { console.error = orig; }
+  // 成功的文件响应经过包装后头不变
+  const ok = await fileRoute(async () => storedFileResponse(Buffer.from('abc'), 'a.png', 'i', PRIV))(new Request('http://x/'), {});
+  assert.equal(ok.headers.get('content-type'), 'image/png'); assert.equal(ok.headers.get('content-security-policy'), FILE_CSP); assert.equal(await ok.text(), 'abc');
+  assert.equal(withFileSecurityHeaders(new Response(null, { status: 204 })).headers.get('content-security-policy'), FILE_CSP);
+});
+
+test('#323 4 个文件接口的 GET 都是 fileRoute(...) 包起来的', () => {
+  for (const f of ['src/app/api/admin/uploads/[id]/route.ts', 'src/app/api/designs/[id]/logo/route.ts', 'src/app/api/models/[id]/[variant]/route.ts', 'src/app/api/admin/models/[id]/file/route.ts']) {
+    const src = readFileSync(f, 'utf8');
+    assert.match(src, /^export const GET = fileRoute\(async \(/m, f);
+    assert.doesNotMatch(src, /export (async )?function GET/, f);
+  }
+});
+
+test('#323 真实路由：公开模型 / 方案 logo 的 404 带 FILE_CSP + nosniff', async () => {
+  const { GET: modelGET } = await import('../src/app/api/models/[id]/[variant]/route');
+  const { GET: logoGET } = await import('../src/app/api/designs/[id]/logo/route');
+  const rs = [
+    await modelGET(new Request('http://x/api/models/BAD/glb'), { params: Promise.resolve({ id: 'BAD', variant: 'glb' }) }),
+    await modelGET(new Request('http://x/api/models/x/zzz'), { params: Promise.resolve({ id: 'a'.repeat(25), variant: 'zzz' }) }),
+    await logoGET(new Request('http://x/api/designs/!/logo'), { params: Promise.resolve({ id: '!' }) }),
+  ];
+  for (const r of rs) {
+    assert.equal(r.status, 404);
+    assert.equal(r.headers.get('content-security-policy'), FILE_CSP);
+    assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
+  }
+});
