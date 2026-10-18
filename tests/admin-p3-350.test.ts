@@ -77,13 +77,12 @@ test('顶部错误条（端到端）：about 保存 400 带对不上字段的 is
 });
 
 // ───────── ③ UX #378 P3 ②：390 下编辑器工具栏一行 ─────────
-test('工具栏 390：不换行（nowrap + 横向滚动、隐藏滚动条），按钮高度仍 44px；桌面规则不变', () => {
+test('工具栏 390：不换行（nowrap + 横向滚动），按钮仍 44×44（UX #373 P2-3）；桌面规则不变', () => {
   const css = read('../src/components/admin/settings/settings.css');
   const mobile = css.slice(css.indexOf('@media (max-width:767px)'));
-  for (const rule of ['.st-tools{flex-wrap:nowrap;gap:0;overflow-x:auto;', 'scrollbar-width:none}', '.st-tools::-webkit-scrollbar{display:none}', '.st-tb-btn{min-width:32px;height:44px;padding:0 2px;flex:none}']) assert.ok(mobile.includes(rule), rule);
+  for (const rule of ['.st-tools{flex-wrap:nowrap;gap:0;overflow-x:auto;', '.st-tb-btn{min-width:44px;height:44px}', '.st-tools .st-tb-btn{flex:none}']) assert.ok(mobile.includes(rule), rule);
+  assert.doesNotMatch(mobile, /\.st-tb-btn\{min-width:(?!44px)/); // 不再缩窄到 44 以下
   assert.match(css, /\.st-tools\{display:flex;gap:2px;flex-wrap:wrap;padding:4px;/); // ≥768 不变
-  // 8 个按钮 + 3 条分隔线放进 390 的编辑器（实测工具栏内容区 282px：390 − 页面 16×2 − 卡片 20×2 − 边框 2 − 工具栏 4×2 − 后台布局）
-  assert.ok(8 * 32 + 3 * (1 + 4) <= 282);
 });
 
 // ───────── ④ UX #378 P3 ③：后端 too_long →「超出上限：n / max」 ─────────

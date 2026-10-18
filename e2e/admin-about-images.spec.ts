@@ -469,7 +469,7 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
       await expect(cnt).toBeHidden();
     }
   });
-  test('UX #378 P3 ②：390 下正文编辑器工具栏一行（不换行、不出滚动条），按钮高 44px；1440 也是一行', async ({ page }) => {
+  test('UX #378 P3 ②：390 下正文编辑器工具栏一行（不换行，放不下的横向滑），按钮 44×44；1440 也是一行、不滚动', async ({ page }) => {
     test.setTimeout(60_000);
     await reset(page);
     for (const w of [390, 1440]) {
@@ -479,12 +479,19 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
       await expect(bar).toBeVisible();
       const m = await bar.evaluate((el) => {
         const btns = [...el.querySelectorAll('button')].map((b) => b.getBoundingClientRect());
-        return { tops: new Set(btns.map((r) => Math.round(r.top))).size, minH: Math.min(...btns.map((r) => r.height)), overflow: el.scrollWidth - el.clientWidth, n: btns.length };
+        return { tops: new Set(btns.map((r) => Math.round(r.top))).size, minH: Math.min(...btns.map((r) => r.height)), minW: Math.min(...btns.map((r) => r.width)), overflow: el.scrollWidth - el.clientWidth, n: btns.length };
       });
       expect(m.n).toBe(8);
       expect(m.tops).toBe(1); // 一行
-      expect(m.overflow).toBeLessThanOrEqual(0); // 390 正好放下，不需要滚动
-      if (w === 390) expect(m.minH).toBeGreaterThanOrEqual(44);
+      if (w === 390) {
+        expect(m.minH).toBeGreaterThanOrEqual(44);
+        expect(m.minW).toBeGreaterThanOrEqual(44);
+        // 最后一个按钮滑得到：键盘 Tab 到它时工具栏会滚过去，按钮整个露出来
+        const last = bar.getByRole('button', { name: '清除格式' });
+        await last.focus();
+        const vis = await last.evaluate((b) => { const r = b.getBoundingClientRect(), p = b.parentElement!.getBoundingClientRect(); return r.left >= p.left - 1 && r.right <= p.right + 1; });
+        expect(vis).toBe(true);
+      } else expect(m.overflow).toBeLessThanOrEqual(0);
     }
   });
   test('UX #379 P3 ①：一次选多张时按选择的顺序进列表（第 1 张最后传完也排第 1）', async ({ page }) => {
