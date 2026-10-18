@@ -193,3 +193,19 @@ test('真仓库：间接引入（多跳）也没有，而且所有本地路径�
   assert.deepEqual(findings.map((f) => f.chain.map(rel).join(' -> ')), [],
     'about.ts 只给服务端用：客户端组件请改为由服务端组件算好数据再传 props');
 });
+
+// OrganizationJsonLd.tsx（全站 Organization JSON-LD）现在是 async 服务端组件，读 src/lib/server/site-settings.ts（prisma）。
+// 同样不许被任何 'use client' 文件直接或间接 import。
+for (const target of [path.join(SRC, 'components', 'seo', 'OrganizationJsonLd.tsx'), path.join(SRC, 'lib', 'server', 'site-settings.ts')]) {
+  test(`真仓库：没有 "use client" 文件（直接或多跳）import ${rel(target)}`, () => {
+    const alias = aliasRoot();
+    assert.ok(fsHost.isFile(target), `${rel(target)} 不存在了？请同步这条测试`);
+    const files = walk(SRC);
+    const clients = files.filter((f) => isClientFile(f, fsHost.read(f)));
+    for (const direct of [true, false]) {
+      const { findings, unresolved } = findClientImports(clients, target, fsHost, alias, { direct });
+      assert.deepEqual(unresolved, []);
+      assert.deepEqual(findings.map((f) => f.chain.map(rel).join(' -> ')), [], `${rel(target)} 只给服务端用`);
+    }
+  });
+}
