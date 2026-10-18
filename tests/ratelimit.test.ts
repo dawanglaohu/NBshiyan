@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MemoryStore, UpstashStore, createRateLimitStore } from '../src/lib/server/ratelimit/index';
+import { MemoryStore, REFUND_LUA, UpstashStore, createRateLimitStore } from '../src/lib/server/ratelimit/index';
 import { mockServer } from './helpers';
 import { MemoryStore as MS, setRateLimitStore, type RateLimitStore } from '../src/lib/server/ratelimit/index';
-import { hitRateLimit, rateLimitEnv, rateLimitKeyHash, resetRateLimitLogThrottle } from '../src/lib/server/security';
+import { hitRateLimit, rateLimitEnv, rateLimitKeyHash, refundRateLimit, resetRateLimitLogThrottle } from '../src/lib/server/security';
 import { loginRateOk } from '../src/lib/server/admin/login';
 import { enforceAdminRateLimit } from '../src/lib/server/admin-guard';
 import { POST as rumPOST } from '../src/app/api/rum/route';
@@ -79,8 +79,8 @@ test('factory: env selection and validation', () => {
 });
 
 // ---- #74：按路由的故障模式、环境前缀、邮箱 HMAC、noip ----
-const failing: RateLimitStore = { hit: async () => { throw new Error('down'); } };
-const recording = () => { const keys: string[] = []; const m = new MS(); return { keys, store: { hit: (k: string, l: number, w: number) => { keys.push(k); return m.hit(k, l, w); } } as RateLimitStore }; };
+const failing: RateLimitStore = { hit: async () => { throw new Error('down'); }, refund: async () => { throw new Error('down'); } };
+const recording = () => { const keys: string[] = []; const m = new MS(); return { keys, store: { hit: (k: string, l: number, w: number) => { keys.push(k); return m.hit(k, l, w); }, refund: (k: string, w: number) => m.refund(k, w) } as RateLimitStore }; };
 async function quiet<T>(f: () => Promise<T>) { const e = console.error; console.error = () => {}; try { return await f(); } finally { console.error = e; } }
 
 test('hitRateLimit: store error -> closed denies, open allows, local counts in memory (default)', async () => {
@@ -205,7 +205,7 @@ test('store-failure logs contain no raw email, IP or key', async () => {
   const cap = (...a: unknown[]) => { logs.push(a.map(String).join(' ')); };
   console.error = cap; console.warn = cap; console.log = cap;
   // 让错误信息本身带上 key，确认也不会被打出来
-  setRateLimitStore({ hit: async (k: string) => { throw new Error(`boom ${k}`); } });
+  setRateLimitStore({ hit: async (k: string) => { throw new Error(`boom ${k}`); }, refund: async (k: string) => { throw new Error(`boom ${k}`); } });
   try {
     resetRateLimitLogThrottle();
     await hitRateLimit('inq:email:x@leak.com:192.0.2.5', 1, 60_000);
@@ -216,4 +216,103 @@ test('store-failure logs contain no raw email, IP or key', async () => {
   assert.ok(logs.length >= 2, 'expected log lines');
   const all = logs.join('\n');
   for (const s of ['203.0.113.77', '198.51.100.9', '192.0.2.5', 'leak.com', 'victim', 'example.com', 'login:', 'rum:', 'inq:']) assert.ok(!all.toLowerCase().includes(s), `log leaked ${s}: ${all}`);
+});
+
+// ---- P2 enroll 作废：refund（退回一次 hit）----
+async function withClock<T>(f: (set: (t: number) => void) => Promise<T>) {
+  const real = Date.now; let now = 1_000_000; Date.now = () => now;
+  try { return await f((t) => { now = t; }); } finally { Date.now = real; }
+}
+
+test('memory refund: removes the latest hit, floors at 0, no-op on missing/expired key', async () => {
+  await withClock(async (set) => {
+    const s = new MemoryStore();
+    await s.refund('none', 1000); // 不存在：不报错
+    await s.hit('r', 2, 1000); await s.hit('r', 2, 1000);
+    assert.equal(await s.hit('r', 2, 1000), false, 'full');
+    await s.refund('r', 1000); await s.refund('r', 1000);
+    assert.equal(await s.hit('r', 2, 1000), true, 'room again after refunds');
+    for (let i = 0; i < 5; i++) await s.refund('r', 1000); // 退到 0 以下也不会变成负数
+    assert.deepEqual([await s.hit('r', 2, 1000), await s.hit('r', 2, 1000), await s.hit('r', 2, 1000)], [true, true, false], 'floored at 0');
+    set(1_000_000 + 5000); // 窗口过期
+    await s.refund('r', 1000);
+    assert.deepEqual([await s.hit('r', 1, 1000), await s.hit('r', 1, 1000)], [true, false], 'after expiry: refund no-op, fresh count starts at 1');
+  });
+});
+
+/** 很小的 Redis 模拟：INCR、PEXPIRE NX、按 TTL 过期，EVAL 只认 REFUND_LUA（按脚本语义执行：存在且 > 0 才 DECR，不碰 TTL） */
+function fakeRedis() {
+  const kv = new Map<string, { v: number; exp: number | null }>();
+  let now = 0;
+  const live = (k: string) => { const e = kv.get(k); if (e && e.exp !== null && e.exp <= now) { kv.delete(k); return undefined; } return e; };
+  const run = (c: string[]): unknown => {
+    if (c[0] === 'INCR') { const e = live(c[1]) ?? { v: 0, exp: null }; e.v++; kv.set(c[1], e); return e.v; }
+    if (c[0] === 'PEXPIRE') { const e = live(c[1]); if (!e || (c[3] === 'NX' && e.exp !== null)) return 0; e.exp = now + Number(c[2]); return 1; }
+    if (c[0] === 'EVAL') { assert.equal(c[1], REFUND_LUA); assert.equal(c[2], '1'); const e = live(c[3]); if (e && e.v > 0) return --e.v; return 0; }
+    throw new Error('unexpected ' + c[0]);
+  };
+  return { kv, live, tick: (ms: number) => { now += ms; }, handler: (r: { body: Buffer }, res: import('node:http').ServerResponse) => {
+    const cmds = JSON.parse(r.body.toString()) as string[][];
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify(cmds.map((c) => ({ result: run(c) }))));
+  } };
+}
+
+test('upstash refund: conditional DECR via EVAL on the same rl:<key>:<window> key hit INCRs; script never touches TTL', async () => {
+  assert.match(REFUND_LUA, /GET/); assert.match(REFUND_LUA, /v > 0/); assert.match(REFUND_LUA, /DECR/);
+  assert.doesNotMatch(REFUND_LUA, /EXPIRE|PERSIST|SET|TTL|INCR/i);
+  const r = fakeRedis();
+  const srv = await mockServer(r.handler);
+  try {
+    const s = new UpstashStore(srv.url, 'tok');
+    await s.hit('login:k', 5, 60_000); await s.hit('login:k', 5, 60_000);
+    await s.refund('login:k', 60_000);
+    const incr = JSON.parse(srv.reqs[0].body.toString()) as string[][];
+    const ev = JSON.parse(srv.reqs[2].body.toString()) as string[][];
+    assert.deepEqual(ev, [['EVAL', REFUND_LUA, '1', incr[0][1]]], 'same key as INCR');
+    assert.equal(srv.reqs[2].headers.authorization, 'Bearer tok');
+    const k = incr[0][1];
+    assert.equal(r.live(k)!.v, 1); const ttl = r.live(k)!.exp;
+    await s.refund('login:k', 60_000); await s.refund('login:k', 60_000);
+    assert.equal(r.live(k)!.v, 0, 'floored at 0'); assert.equal(r.live(k)!.exp, ttl, 'TTL untouched');
+  } finally { await srv.close(); }
+});
+
+test('upstash refund after key expiry does not recreate the key; next hit counts 1 and sets a TTL', async () => {
+  const r = fakeRedis();
+  const srv = await mockServer(r.handler);
+  try {
+    const s = new UpstashStore(srv.url, 'tok');
+    await s.hit('k2', 5, 60_000);
+    const k = (JSON.parse(srv.reqs[0].body.toString()) as string[][])[0][1];
+    r.tick(60_000); // key 过期（同一个窗口序号的 key，在 Redis 里按 TTL 消失）
+    assert.equal(r.live(k), undefined);
+    await s.refund('k2', 60_000);
+    assert.equal(r.kv.has(k), false, 'refund did not create the key');
+    await s.hit('k2', 5, 60_000);
+    assert.equal(r.live(k)!.v, 1); assert.notEqual(r.live(k)!.exp, null, 'TTL set by PEXPIRE NX');
+  } finally { await srv.close(); }
+});
+
+test('upstash refund: errors throw from the store; refundRateLimit swallows them silently', async () => {
+  const down = await mockServer((_r, res) => { res.statusCode = 503; res.end('down'); });
+  try { await assert.rejects(new UpstashStore(down.url, 't').refund('k', 60_000), /upstash 503/); } finally { await down.close(); }
+  const bad = await mockServer((_r, res) => { res.end(JSON.stringify([{ error: 'NOSCRIPT' }])); });
+  try { await assert.rejects(new UpstashStore(bad.url, 't').refund('k', 60_000), /bad response/); } finally { await bad.close(); }
+  setRateLimitStore(failing);
+  const logs: unknown[] = []; const e = console.error; console.error = (...a: unknown[]) => { logs.push(a); };
+  try { await refundRateLimit('x', 60_000); } finally { console.error = e; setRateLimitStore(undefined); }
+  assert.deepEqual(logs, []);
+});
+
+test('refundRateLimit: same env prefix as hitRateLimit, gives one hit back', async () => {
+  const m = new MS(); const keys: string[] = [];
+  setRateLimitStore({ hit: (k, l, w) => m.hit(k, l, w), refund: (k, w) => { keys.push(k); return m.refund(k, w); } });
+  try {
+    assert.equal(await hitRateLimit('rf:a', 1, 60_000), true);
+    await refundRateLimit('rf:a', 60_000);
+    assert.equal(keys[0], `${rateLimitEnv()}:rf:a`);
+    assert.equal(await hitRateLimit('rf:a', 1, 60_000), true, 'refunded slot reused');
+    assert.equal(await hitRateLimit('rf:a', 1, 60_000), false);
+  } finally { setRateLimitStore(undefined); }
 });

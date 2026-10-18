@@ -385,7 +385,7 @@ test('按管理员限流的 key 只用 user id，和按 IP 的 key 分开；共�
   assert.match(src, /hitRateLimit\(`admin:\$\{key\}:user:\$\{userId\}`, limit, 60_000, \{ onStoreError: 'closed' \}\)/);
   assert.match(readFileSync('src/lib/server/public-assets-admin.ts', 'utf8'), /enforceAdminUserRateLimit\(ctx\.user\.id, 'site_assets\.upload', ASSET_UPLOAD_RATE\)/);
   assert.match(readFileSync('src/lib/server/public-assets-deps.ts', 'utf8'), /^  enforceAdminUserRateLimit,$/m);
-  setRateLimitStore({ hit: async () => { throw new Error('upstash 503'); } });
+  setRateLimitStore({ hit: async () => { throw new Error('upstash 503'); }, refund: async () => {} });
   const err = console.error; console.error = () => {};
   try { assert.equal((await enforceAdminUserRateLimit('u_x', 'site_assets.upload', 20))?.status, 429); }
   finally { console.error = err; setRateLimitStore(undefined); }

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { authenticator } from 'otplib';
 import { prisma } from '@/lib/server/db';
 import { clientIp, readBody } from '@/lib/server/security';
-import { checkPassword } from '@/lib/server/admin/login';
+import { checkPassword, refundLoginRate } from '@/lib/server/admin/login';
 import { encrypt } from '@/lib/server/admin/crypto';
 import { audit } from '@/lib/server/admin/audit';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
@@ -16,7 +16,7 @@ const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200),
 /**
  * 第一步：用邮箱+密码换取 otpauth URI。仅限尚未开启 2FA、且还在绑定窗口内的账号（#347）。
  * 待确认密钥 10 分钟内有效，这期间不能再次 enroll（返回 429，不会覆盖正在扫的密钥）；过期后再调会换新密钥，旧的作废。
- * 顺序：同源检查 → 限流（本接口按 IP 单独计数，再加 checkPassword 里的登录限流）→ 校验 → 鉴权。
+ * 顺序：同源检查 → 限流（本接口按 IP 单独计数，不退回；再加 checkPassword 里的登录限流，密码正确后退回 IP+账号、单账号两个桶）→ 校验 → 鉴权。
  */
 export async function POST(req: Request) {
   const bad = assertSameOrigin(req);
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
   const user = await checkPassword(p.data.email, p.data.password, ip);
   if (user === 'rate_limited') return jsonErr('rate_limited', 429);
   if (typeof user === 'string') return jsonErr('bad_credentials', 401);
+  await refundLoginRate(ip, p.data.email); // 密码正确：退回登录桶（单 IP 桶不退）
   if (user.totpEnabled) return jsonErr('bad_credentials', 401); // 已开启的不能重新绑定，统一报错
   // 以下分支都已通过密码校验，不会向不知道密码的人暴露账号是否存在
   if (!enrollWindowOpen(user)) {
