@@ -291,10 +291,11 @@ test('UX #375 P2：390 下在页面底部保存触发 409，冲突横幅滚进�
   const banner = page.locator('.st-conflict[role=alert]');
   await expect(banner).toBeVisible();
   await expect(banner).toBeFocused();
-  // smooth scroll 可能还在动，轮询到横幅进入视口
+  // smooth scroll 可能还在动，轮询到横幅完整露出：不能被 390 下 sticky 的顶栏 .adm-top 挡住
   await expect.poll(async () => banner.evaluate((el) => {
     const r = el.getBoundingClientRect();
     const vh = window.innerHeight || document.documentElement.clientHeight;
-    return r.top >= -1 && r.top < vh && r.bottom > 0;
+    const top = document.querySelector('.adm-top')?.getBoundingClientRect().bottom ?? 0;
+    return r.top >= top - 1 && r.bottom <= vh;
   }), { timeout: 3000 }).toBe(true);
 });
