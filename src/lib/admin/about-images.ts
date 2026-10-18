@@ -225,6 +225,12 @@ export function localeImageErrors(d: AboutDraft | undefined, ids: readonly strin
   }
   return e;
 }
+/** UX 条件 2：剩 ≤ 10 字时在框右下角显示「n/上限」（n = 当前字数，按 code point，和后端 countChars 一致）；否则 null */
+export const COUNTER_AT = 10;
+export function charCounter(value: string, max: number): string | null {
+  const n = countChars(value);
+  return max - n <= COUNTER_AT ? `${n}/${max}` : null;
+}
 export const hasImageErrors = (e: LocaleImageErrors): boolean => Object.keys(e.alt).length > 0 || Object.keys(e.caption).length > 0;
 export function anyImageErrors(drafts: Record<string, AboutDraft>, locales: readonly string[], ids: readonly string[]): boolean {
   return ids.length > IMAGES_MAX || locales.some((l) => hasImageErrors(localeImageErrors(drafts[l], ids)));

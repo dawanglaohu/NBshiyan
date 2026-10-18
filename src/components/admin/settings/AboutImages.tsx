@@ -1,11 +1,13 @@
 'use client';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AboutDraft } from '@/lib/admin/site-settings';
+import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
   ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
   precheckFile, removeImage, slotsLeft, uploadAboutImage, type AboutImageItem, type LibraryAsset,
 } from '@/lib/admin/about-images';
 import ConfirmDialog from './ConfirmDialog';
+import ImageTextField from './ImageTextField';
 import './about-images.css';
 
 /**
@@ -28,8 +30,6 @@ type Props = {
 };
 
 let tileSeq = 0;
-const oneLine = (v: string) => v.replace(/[\r\n]+/g, ' ');
-const noEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) e.preventDefault(); };
 
 export default function AboutImages({ tab, locales, dir, items, setItems, savedIds, drafts, onMeta, disabled }: Props) {
   const [tiles, setTiles] = useState<Tile[]>([]);
@@ -136,11 +136,11 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
               </div>
               <div className="bd">
                 <label htmlFor={`${id}-alt`}>{T.alt(tab)}<b aria-hidden="true"> *</b><span className="sr-only">（第 {n} 张）</span></label>
-                <ImageTextField id={`${id}-alt`} dir={dir} value={meta[it.id]?.alt ?? ''} placeholder={T.altPlaceholder} required
+                <ImageTextField id={`${id}-alt`} dir={dir} value={meta[it.id]?.alt ?? ''} placeholder={T.altPlaceholder} max={ABOUT_LIMITS.imageAltMax} required
                   errorId={altE ? `${id}-alt-e` : undefined} onChange={(v) => onMeta(it.id, 'alt', v)} />
                 {altE && <p id={`${id}-alt-e`} className="st-ferr">{altE}</p>}
                 <label htmlFor={`${id}-cap`}>{T.caption}<span className="sr-only">（第 {n} 张）</span></label>
-                <ImageTextField id={`${id}-cap`} dir={dir} value={meta[it.id]?.caption ?? ''} placeholder={T.captionPlaceholder}
+                <ImageTextField id={`${id}-cap`} dir={dir} value={meta[it.id]?.caption ?? ''} placeholder={T.captionPlaceholder} max={ABOUT_LIMITS.imageCaptionMax}
                   errorId={capE ? `${id}-cap-e` : undefined} onChange={(v) => onMeta(it.id, 'caption', v)} />
                 {capE && <p id={`${id}-cap-e`} className="st-ferr">{capE}</p>}
                 {small && <p className="st-warn st-im-small">{T.small}</p>}
@@ -230,29 +230,4 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
       )}
     </div>
   );
-}
-
-/**
- * 替代文字 / 说明的输入框：一行纯文本，但显示成 1–4 行自动长高的多行框（UX 同意的偏差 10）。
- * - 支持 field-sizing: content 的浏览器由 CSS 长高；不支持的用 JS 按 scrollHeight 设高度。两种都由 CSS 的 min-height / max-height 卡在 1–4 行，超过 4 行在框内滚动。
- * - 回车不换行；粘贴进来的换行换成空格。
- */
-export function ImageTextField({ id, dir, value, placeholder, required, errorId, onChange }: {
-  id: string; dir: 'ltr' | 'rtl'; value: string; placeholder: string; required?: boolean; errorId?: string; onChange: (v: string) => void;
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  useLayoutEffect(() => { autoGrowFallback(ref.current); }, [value]);
-  return (
-    <textarea ref={ref} id={id} rows={1} dir={dir} value={value} placeholder={placeholder} aria-required={required || undefined}
-      aria-invalid={errorId ? true : undefined} aria-describedby={errorId} onKeyDown={noEnter} onChange={(e) => onChange(oneLine(e.target.value))} />
-  );
-}
-
-/** 不支持 field-sizing 的浏览器：高度 = 内容高度，再由 CSS max-height（4 行）封顶、min-height（1 行）兜底 */
-export function autoGrowFallback(el: HTMLTextAreaElement | null): void {
-  if (!el || (typeof CSS !== 'undefined' && CSS.supports?.('field-sizing', 'content'))) return;
-  el.style.height = 'auto';
-  const cs = getComputedStyle(el);
-  const borders = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
-  el.style.height = `${el.scrollHeight + borders}px`;
 }

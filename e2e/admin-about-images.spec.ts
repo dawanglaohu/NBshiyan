@@ -354,3 +354,41 @@ for (const mode of ['field-sizing', 'JS 兜底'] as const) for (const w of [1440
     }
   });
 }
+
+test('UX 条件 2：maxLength 125 / 80；剩 ≤ 10 字时框内右下角显示「n/上限」，aria-live polite、aria-describedby 关联', async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginFreshAdmin(page);
+  await reset(page);
+  await page.goto('/admin/settings');
+  const area = page.locator('.st-im');
+  await fileInput(page).setInputFiles({ name: 'a.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [120, 60, 30]) });
+  const card = area.locator('.st-im-card').first();
+  await expect(card).toBeVisible();
+  for (const [label, max] of [[/替代文字（EN）/, 125], [/图片说明/, 80]] as const) {
+    const box = card.getByLabel(label);
+    const id = await box.getAttribute('id');
+    const cnt = page.locator(`[id="${id}-cnt"]`);
+    await expect(box).toHaveAttribute('maxlength', String(max));
+    await expect(cnt).toHaveAttribute('aria-live', 'polite');
+    await box.fill('a'.repeat(max - 11)); // 剩 11 字：不显示
+    await expect(cnt).toBeHidden();
+    expect(await box.getAttribute('aria-describedby') ?? '').not.toContain(`${id}-cnt`);
+    await box.pressSequentially('b'); // 剩 10 字：显示
+    await expect(cnt).toBeVisible();
+    await expect(cnt).toHaveText(`${max - 10}/${max}`);
+    await expect(box).toHaveAttribute('aria-describedby', new RegExp(`${id}-cnt`));
+    // 在框里的右下角
+    const [b, c] = [(await box.boundingBox())!, (await cnt.boundingBox())!];
+    expect(c.x + c.width).toBeLessThanOrEqual(b.x + b.width);
+    expect(c.x + c.width).toBeGreaterThan(b.x + b.width - 16);
+    expect(c.y + c.height).toBeLessThanOrEqual(b.y + b.height);
+    expect(c.y + c.height).toBeGreaterThan(b.y + b.height - 12);
+    // 打满后再打也进不去（maxlength 硬上限）
+    await box.pressSequentially('c'.repeat(15));
+    await expect(box).toHaveValue(new RegExp(`^.{${max}}$`));
+    await expect(cnt).toHaveText(`${max}/${max}`);
+    await expect(cnt).toHaveClass(/at-max/);
+    await box.fill('short');
+    await expect(cnt).toBeHidden();
+  }
+});

@@ -5,7 +5,7 @@ import * as React from 'react';
 (globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
-  IMAGES_MAX, IMAGES_TEXT, addImage, anyImageErrors, createAboutImagesApi, imageAltChecklistItem, imageErrorText, imageIssueText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
+  COUNTER_AT, IMAGES_MAX, IMAGES_TEXT, addImage, charCounter, anyImageErrors, createAboutImagesApi, imageAltChecklistItem, imageErrorText, imageIssueText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
   precheckFile, pruneImageMeta, retryAfterMs, saveAboutWithImages, slotsLeft, uploadAboutImage, uploadOutcome, withImageAltCompleteness, withImagesDirty,
   type AboutImageItem, type AboutImagesState, type XhrLike,
 } from '../src/lib/admin/about-images';
@@ -13,6 +13,7 @@ import { createAboutSettingsApi, draftFromView } from '../src/lib/admin/site-set
 import { dirtySummary, draftCompleteness, emptyDraft, issuesAlertText, settingsErrorText, type AboutDraft, type AboutSettingsData } from '../src/lib/admin/site-settings';
 import { aboutImageAttrs, visibleImages } from '../src/lib/about/model';
 import { AboutFigure, ABOUT_IMAGE_SIZES } from '../src/components/about/AboutParts';
+import ImageTextField from '../src/components/admin/settings/ImageTextField';
 import { AboutImagesPutInput, AboutPutInput } from '../src/lib/server/site-settings-admin';
 
 // #350 后台图片列表（PublicAsset #374）：错误文案、6 张上限、imageMeta 剪枝、保存顺序和 409、前台 srcset 用 sm / lg 实际宽高
@@ -404,9 +405,10 @@ test('UX 复审：上移 / 下移 / 删除第 N 张图片；删除用后台通�
   assert.match(read('../src/components/admin/settings/AboutSettings.tsx'), /aria-label=\{`删除第 \$\{i \+ 1\} 条`\}[^\n]*>✕<\/button>/, '沿用数据条删除按钮的 ✕');
   // 替代文字 / 说明：自动长高的多行框，长文字不截断；换行换成空格
   assert.equal((src.match(/<ImageTextField id=\{`\$\{id\}-(alt|cap)`\}/g) ?? []).length, 2);
-  assert.match(src, /<textarea ref=\{ref\} id=\{id\} rows=\{1\}/);
+  const field = read('../src/components/admin/settings/ImageTextField.tsx');
+  assert.match(field, /<textarea ref=\{ref\} id=\{id\} rows=\{1\}/);
   assert.match(css, /field-sizing:content/);
-  assert.match(src, /const oneLine = \(v: string\) => v\.replace\(\/\[\\r\\n\]\+\/g, ' '\)/);
+  assert.match(field, /const oneLine = \(v: string\) => v\.replace\(\/\[\\r\\n\]\+\/g, ' '\)/);
   assert.match(css, /@media \(max-width:639px\)\{\s*\.st-im-grid\{grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css, /\.st-chk,\.st-im\{word-spacing:\.25em\}/, '空格在 12px 下要看得出来');
   // 所有「N 张」：数字前后都有空格
@@ -425,7 +427,33 @@ test('UX 条件 1：替代文字 / 说明 1–4 行，超过 4 行框内滚动�
   assert.match(css, /textarea\{--rows-pad:22px;min-height:max\(44px,calc\(1\.4em \+ var\(--rows-pad\)\)\)/); // 手机：10+10 + 1+1，且 ≥ 44px
   assert.doesNotMatch(css, /textarea\[aria-invalid="true"\]\{[^}]*border-width/, '出错时不加粗边框，否则第 4 行会被挤掉一点');
   // 兜底：按 scrollHeight + 边框设高度，max-height 封顶
-  const src = read('../src/components/admin/settings/AboutImages.tsx');
+  const src = read('../src/components/admin/settings/ImageTextField.tsx');
   assert.match(src, /CSS\.supports\?\.\('field-sizing', 'content'\)\)\) return;/);
   assert.match(src, /el\.style\.height = `\$\{el\.scrollHeight \+ borders\}px`/);
+});
+
+test('UX 条件 2：maxLength 125 / 80；剩 ≤ 10 字时右下角「n/上限」，aria-live polite + aria-describedby', () => {
+  assert.equal(COUNTER_AT, 10);
+  assert.equal(charCounter('x'.repeat(114), 125), null);
+  assert.equal(charCounter('x'.repeat(115), 125), '115/125');
+  assert.equal(charCounter('x'.repeat(125), 125), '125/125');
+  assert.equal(charCounter('x'.repeat(69), 80), null);
+  assert.equal(charCounter('x'.repeat(70), 80), '70/80');
+  assert.equal(charCounter('😀'.repeat(115), 125), '115/125', '按 code point 计数，和后端 countChars 一致');
+  const html = (value: string, max: number, errorId?: string) => renderToStaticMarkup(React.createElement(ImageTextField, { id: 'f', dir: 'ltr', value, placeholder: 'p', max, errorId, onChange: () => {} }));
+  const quiet = html('x'.repeat(114), 125);
+  assert.match(quiet, /maxLength="125"|maxlength="125"/);
+  assert.match(quiet, /<span id="f-cnt" class="st-im-cnt" aria-live="polite"><\/span>/, '计数区一直在（空），读屏才能读到后来的变化');
+  assert.doesNotMatch(quiet, /aria-describedby/);
+  const near = html('x'.repeat(116), 125, 'f-e');
+  assert.match(near, /aria-describedby="f-e f-cnt"/);
+  assert.match(near, /class="has-cnt"/);
+  assert.match(near, /<span id="f-cnt" class="st-im-cnt" aria-live="polite">116\/125<\/span>/);
+  assert.match(html('x'.repeat(80), 80), /class="st-im-cnt at-max" aria-live="polite">80\/80</);
+  assert.match(html('', 80), /maxLength="80"|maxlength="80"/);
+  const src = read('../src/components/admin/settings/AboutImages.tsx');
+  assert.match(src, /max=\{ABOUT_LIMITS\.imageAltMax\} required/);
+  assert.match(src, /max=\{ABOUT_LIMITS\.imageCaptionMax\}/);
+  const css = read('../src/components/admin/settings/about-images.css');
+  assert.match(css, /\.st-im-cnt\{position:absolute;right:8px;bottom:5px/);
 });

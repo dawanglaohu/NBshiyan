@@ -15,6 +15,12 @@
 .st-im-card .bd label b{color:#C0392B}
 /* 替代文字 / 说明：1–4 行（UX 同意的偏差 10）。选择器多带一层 .st-im，压过 settings.css 的 .st-f textarea（它在后面加载，会把 line-height 重置成 normal）。--rows-pad = 上下内边距 + 边框；超过 4 行在框内滚动；不能拖动改大小 */
 .st-im .st-im-card textarea{--rows-pad:14px;display:block;width:100%;box-sizing:border-box;font:inherit;font-size:12px;line-height:1.4;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;resize:none;overflow-x:hidden;overflow-y:auto;field-sizing:content;min-height:calc(1.4em + var(--rows-pad));max-height:calc(4 * 1.4em + var(--rows-pad));overflow-wrap:anywhere}
+/* UX 条件 2：剩 ≤ 10 字时框内右下角「n/上限」；显示时给文字让出右边的位置 */
+.st-im-fld{position:relative}
+.st-im .st-im-card textarea.has-cnt{padding-right:52px}
+.st-im-cnt{position:absolute;right:8px;bottom:5px;font-size:11px;line-height:1;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums;pointer-events:none;background:#fff;padding:1px 2px;border-radius:3px}
+.st-im-cnt:empty{display:none}
+.st-im-cnt.at-max{color:#B42318}
 /* 不支持 field-sizing 时由 JS（autoGrowFallback）按内容设高度，min / max 同上 */
 .st-im .st-im-card textarea[aria-invalid="true"]{border-color:#C0392B;box-shadow:0 0 0 .5px #C0392B} /* 不加粗边框：保持 4 行的高度计算 */
 .st-im-card .st-ferr,.st-im-card .st-warn{font-size:11px;margin:4px 0 0}
@@ -50,6 +56,7 @@
 @media (max-width:767px){
   .st-im-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   /* UX #373 P2-3：390 下点击区域 ≥ 44px（稿件 32px 的图标按钮和 30px 左右的输入框在手机上放大） */
+  .st-im-cnt{font-size:12px;bottom:8px;right:10px}
   .st-im .st-im-card textarea{--rows-pad:22px;min-height:max(44px,calc(1.4em + var(--rows-pad)));font-size:14px;padding:10px}
   .st-im-ico{width:44px;height:44px;font-size:14px}
   .st-im-card .acts{gap:2px}
