@@ -12,6 +12,7 @@ process.env.APP_ENV = 'test';
 (globalThis as { React?: typeof React }).React = React;
 
 const ROUTE = 'src/app/[locale]/articles/[slug]/og/route.tsx';
+const HANDLER = 'src/lib/seo/og/articleOgHandler.ts';
 const RENDER = 'src/lib/seo/og/renderArticleOg.tsx';
 // 伪造的请求头：路由不能用到其中任何值
 const EVIL = { host: 'evil.example', 'x-forwarded-host': 'evil.example', 'x-forwarded-proto': 'http', forwarded: 'host=evil.example' };
@@ -72,9 +73,9 @@ test('#350 v 校验：缺 v、v 不对、v 格式不对、文章不存在 → 40
     assert.equal(r.headers.get('cache-control'), 'no-store');
   }
   // 源码顺序：v 校验在查 CMS 之前（缺 v 不查库），版本比对在渲染之前
-  const src = fs.readFileSync(ROUTE, 'utf8').replace(/^\s*\/\/.*$/gm, '');
-  assert.ok(src.indexOf('if (!v) return notFound()') < src.indexOf('getDocBySlug('));
-  assert.ok(src.indexOf('articleOgVersion(locale, title) !== v') < src.indexOf('renderArticleOgPng('));
+  const src = fs.readFileSync(HANDLER, 'utf8').replace(/^\s*\/\/.*$/gm, '');
+  assert.ok(src.indexOf('if (!v) return notFound()') < src.indexOf('deps.getDoc('));
+  assert.ok(src.indexOf('expected !== v) return notFound()') < src.indexOf('deps.render('));
 });
 
 test('302 回退（v 正确但渲染不出来）：Location 仍是相对路径 /og/home-<l>.jpg?v=…，过 loc_bad 和 #328 检查', async () => {
@@ -87,7 +88,7 @@ test('302 回退（v 正确但渲染不出来）：Location 仍是相对路径 /
     assert.ok(isSafeRelativeLocation(loc));
     assert.equal(sameSiteRedirectPath(loc), null);
   }
-  assert.match(fs.readFileSync(ROUTE, 'utf8'), /Location: u\.pathname \+ u\.search/);
+  assert.match(fs.readFileSync(HANDLER, 'utf8'), /Location: u\.pathname \+ u\.search/);
 });
 
 test('slug 白名单 ^[a-z0-9-]{1,120}$ 在查 CMS 之前：不合规一律 404 no-store，不渲染', async () => {
@@ -103,8 +104,8 @@ test('slug 白名单 ^[a-z0-9-]{1,120}$ 在查 CMS 之前：不合规一律 404 
     assert.equal(r.status, 404, l);
     assert.equal(r.headers.get('cache-control'), 'no-store');
   }
-  const src = fs.readFileSync(ROUTE, 'utf8');
-  const check = src.indexOf('ARTICLE_OG_SLUG_RE.test(slug)'), lookup = src.indexOf('getDocBySlug(');
+  const src = fs.readFileSync(HANDLER, 'utf8');
+  const check = src.indexOf('ARTICLE_OG_SLUG_RE.test(slug)'), lookup = src.indexOf('deps.getDoc(');
   assert.ok(check > 0 && lookup > check, 'slug is validated before the CMS lookup');
   const { ARTICLE_OG_SLUG_RE } = await import('../src/lib/seo/articleOg');
   assert.equal(ARTICLE_OG_SLUG_RE.source, '^[a-z0-9-]{1,120}$');
@@ -124,7 +125,10 @@ test('渲染不发任何网络请求：字体只读本地文件；emoji / 中文
 test('唯一渲染入口：路由只通过 renderArticleOgPng 渲染，字符过滤在入口里', () => {
   const route = fs.readFileSync(ROUTE, 'utf8').replace(/^\s*\/\/.*$/gm, '');
   assert.match(route, /from '@\/lib\/seo\/og\/renderArticleOg'/);
-  assert.match(route, /renderArticleOgPng\(title, locale\)/);
+  assert.match(route, /render: \(title, l\) => renderArticleOgPng\(title, l\)/);
+  assert.match(route, /getDoc: \(l, s\) => getDocBySlug\('article', l, s\)/);
+  const handler = fs.readFileSync(HANDLER, 'utf8').replace(/^\s*\/\/.*$/gm, '');
+  assert.doesNotMatch(handler, /ImageResponse|ArticleOgImage|articleOgFonts|ogSafeText/);
   // 路由里不能自己构造 ImageResponse、读字体或直接用模板，否则就会绕过入口里的过滤
   assert.doesNotMatch(route, /ImageResponse|ArticleOgImage|articleOgFonts|ogSafeText/);
   const entry = fs.readFileSync(RENDER, 'utf8');
@@ -176,14 +180,17 @@ test('断网渲染：屏蔽 fetch 和所有 TCP/TLS 连接后，入口照常出�
 });
 
 test('noindex 只在接口里设置（不依赖环境、不靠 middleware），robots.txt 不加分享图的 Disallow', () => {
-  const r = fs.readFileSync(ROUTE, 'utf8');
+  const r = fs.readFileSync(HANDLER, 'utf8');
   assert.match(r, /const OG_ROBOTS = \{ 'X-Robots-Tag': 'noindex' \} as const;/);
   // #350：请求里只读 URL 的查询参数 v（一处），不读请求头 / Host / 其他参数
   const code = r.replace(/^\s*\/\/.*$/gm, '');
   assert.doesNotMatch(code, /isProd|APP_ENV|headers\.get|req\.(headers|nextUrl)/);
-  assert.equal((code.match(/req\.url/g) ?? []).length, 1);
-  assert.match(code, /new URL\(req\.url\)\.searchParams\.get\('v'\)/);
+  assert.equal((code.match(/new URL\(reqUrl\)/g) ?? []).length, 1);
+  assert.match(code, /new URL\(reqUrl\)\.searchParams\.get\('v'\)/);
   assert.doesNotMatch(code, /searchParams\.get\('(?!v')/);
+  const route = fs.readFileSync(ROUTE, 'utf8').replace(/^\s*\/\/.*$/gm, '');
+  assert.equal((route.match(/req\.url/g) ?? []).length, 1, 'route only passes req.url to the handler');
+  assert.doesNotMatch(route, /headers|nextUrl|searchParams/);
   const mw = fs.readFileSync('src/middleware.ts', 'utf8');
   assert.doesNotMatch(mw, /articles|\/og/);
   const robots = fs.readFileSync('src/app/robots.ts', 'utf8');
@@ -201,4 +208,71 @@ test('sitemap 不含分享图接口：静态页 + 品类 + mock 文章的所有�
   assert.ok(urls.some((u) => /\/articles\/mock-/.test(u)), 'mock articles are in the sitemap');
   for (const u of urls) assert.doesNotMatch(u, /\/og(\?|$)/, u);
   assert.doesNotMatch(fs.readFileSync('src/app/sitemap.ts', 'utf8') + fs.readFileSync('src/lib/seo/sitemapEntries.ts', 'utf8'), /\/og\b/);
+});
+
+// ───────── #350 安全复核点 ─────────
+test('#350 v 格式不对（长度 / 字符集）时根本不查 CMS、不渲染；格式对才查', async () => {
+  const { handleArticleOg } = await import('../src/lib/seo/og/articleOgHandler');
+  const calls = { getDoc: 0, render: 0 };
+  const deps = {
+    getDoc: async () => { calls.getDoc++; return { slug: 'mock-article-packaging-guide', title: MOCK[0][2] }; },
+    render: async () => { calls.render++; return new Uint8Array([1]).buffer; },
+  };
+  for (const q of ['', '?v=', '?v=1234567', '?v=123456789', '?v=ABCDEF12', '?v=1234567g', '?v=%20a1b2c3d4', '?v=a1b2c3d4%00', '?x=a1b2c3d4']) {
+    const r = await handleArticleOg(`http://evil.example/en/articles/mock-article-packaging-guide/og${q}`, 'en', 'mock-article-packaging-guide', deps);
+    assert.equal(r.status, 404, q);
+    assert.equal(r.headers.get('cache-control'), 'no-store');
+  }
+  assert.deepEqual(calls, { getDoc: 0, render: 0 }, 'no CMS lookup for malformed v');
+  const r = await handleArticleOg(`http://x/en/articles/s/og?v=00000000`, 'en', 'mock-article-packaging-guide', deps);
+  assert.equal(r.status, 404);
+  assert.deepEqual(calls, { getDoc: 1, render: 0 }, 'well-formed but wrong v: looked up, not rendered');
+  const ok = await handleArticleOg(`http://x/en/articles/s/og?v=${await ver('en', MOCK[0][2])}`, 'en', 'mock-article-packaging-guide', deps);
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get('cache-control'), 'public, max-age=31536000, immutable');
+  assert.deepEqual(calls, { getDoc: 2, render: 1 });
+});
+
+test('#350 页面 og:image 的 v == 路由期望的 v（同一个函数、同一组参数）', async () => {
+  // 页面：cmsPages.tsx detailMetadata 用 getDocBySlug(type, locale, slug) 取文档，再把 { slug: d.slug ?? slug, title: d.title } 交给 articleShareMeta。
+  // （detailMetadata 里有 getTranslations，测试环境跑不了，所以按同样的参数直接调 articleShareMeta，并锁住 cmsPages 的调用写法）
+  const cms = fs.readFileSync('src/components/cms/cmsPages.tsx', 'utf8');
+  assert.match(cms, /const d = \(await getDocBySlug\(type, loc\(locale\), slug\)\) as Doc \| null;/);
+  assert.match(cms, /shareMeta\(type, locale, \{ slug: d\.slug \?\? slug, title: d\.title \}\)/);
+  assert.match(cms, /return articleShareMeta\(loc\(locale\), t\('ogImageAlt'\), doc\);/);
+  const { articleShareMeta } = await import('../src/lib/seo/articleOg');
+  const { expectedArticleOgVersion } = await import('../src/lib/seo/og/articleOgHandler');
+  const { getDocBySlug } = await import('../src/lib/server/sanity');
+  for (const [l, slug] of MOCK) {
+    const d = (await getDocBySlug('article', l, slug)) as { slug?: string; title?: string };
+    const meta = articleShareMeta(l, 'alt', { slug: d.slug ?? slug, title: d.title });
+    const images = (meta.openGraph as { images?: { url: string }[] } | undefined)?.images ?? [];
+    const pageV = new URL(images[0].url).searchParams.get('v');
+    assert.match(images[0].url, new RegExp(`/${l}/articles/${slug}/og\\?v=`));
+    // 路由：同一份文档（路由也是 getDocBySlug('article', locale, slug)）
+    const routeV = expectedArticleOgVersion(l, slug, d);
+    assert.ok(pageV && routeV);
+    assert.equal(pageV, routeV, slug);
+    // 路由按这个 v 真的返回 200
+    const r = await call(l, slug, `v=${pageV}`);
+    assert.equal(r.status, 200);
+  }
+});
+
+test('#350 文章分享图的 v 和图都不受 badge 参数影响（articleOgVersion 固定值 + 默认角标）', async () => {
+  const { articleOgVersion } = await import('../src/lib/seo/articleOg');
+  assert.equal(articleOgVersion('en', 'Custom Gift Boxes Guide'), '1cafb4ae');
+  assert.equal(articleOgVersion('ru', 'Гофрокороб'), '789cc75f');
+  const { renderArticleOgPng } = await import('../src/lib/seo/og/renderArticleOg');
+  const { LABEL } = await import('../src/lib/seo/og/ArticleOgImage');
+  assert.deepEqual(LABEL, { en: 'Article', ru: 'Статья' });
+  for (const [l, , title] of MOCK) {
+    const a = Buffer.from((await renderArticleOgPng(title, l))!);
+    const b = Buffer.from((await renderArticleOgPng(title, l, { badge: LABEL[l] }))!);
+    const c = Buffer.from((await renderArticleOgPng(title, l, { badge: 'О компании' }))!);
+    assert.ok(a.equals(b), 'default badge == explicit Article/Статья');
+    assert.ok(!a.equals(c), 'a different badge changes the image');
+  }
+  // 路由不传 badge
+  assert.doesNotMatch(fs.readFileSync(ROUTE, 'utf8') + fs.readFileSync(HANDLER, 'utf8'), /badge/);
 });

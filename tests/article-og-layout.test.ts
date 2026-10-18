@@ -65,10 +65,12 @@ test('分享图模板和接口：不写任何业务承诺；接口出错时回�
   assert.match(tpl, /Article/);
   assert.match(tpl, /Статья/);
   assert.match(tpl, /geiom\.com/);
-  const r = fs.readFileSync('src/app/[locale]/articles/[slug]/og/route.tsx', 'utf8');
+  // #350：路由逻辑搬到 articleOgHandler.ts（依赖注入），两处一起检查
+  const r = fs.readFileSync('src/app/[locale]/articles/[slug]/og/route.tsx', 'utf8') + fs.readFileSync('src/lib/seo/og/articleOgHandler.ts', 'utf8');
   assert.match(r, /ogImageUrl\(ARTICLE_OG_SLUG, locale\)/);
   assert.match(r, /status: 302/);
-  assert.match(r, /await renderArticleOgPng\(/);
+  assert.match(r, /renderArticleOgPng\(title, l\)/);
+  assert.match(r, /await deps\.render\(/);
   assert.match(fs.readFileSync('src/lib/seo/og/renderArticleOg.tsx', 'utf8'), /await res\.arrayBuffer\(\)/);
   assert.match(r, /catch \(e\)/);
   assert.match(fs.readFileSync('next.config.ts', 'utf8'), /'\/\[locale\]\/articles\/\[slug\]\/og': \['\.\/src\/assets\/og-fonts\/\*\.ttf'\]/);

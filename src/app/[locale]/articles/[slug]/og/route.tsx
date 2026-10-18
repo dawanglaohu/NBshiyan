@@ -1,7 +1,6 @@
 import { getDocBySlug } from '@/lib/server/sanity';
-import { ogImageUrl } from '@/lib/seo/pageMeta';
 import { renderArticleOgPng } from '@/lib/seo/og/renderArticleOg';
-import { ARTICLE_OG_SLUG, ARTICLE_OG_SLUG_RE, articleOgVersion } from '@/lib/seo/articleOg';
+import { handleArticleOg } from '@/lib/seo/og/articleOgHandler';
 
 // 文章专属分享图 /<locale>/articles/<slug>/og（1200×630 PNG）。og:image 由 src/lib/seo/articleOg.ts 输出（带 ?v=，这里不读）。
 // 安全要求（全栈/安全审）：
@@ -18,40 +17,17 @@ import { ARTICLE_OG_SLUG, ARTICLE_OG_SLUG_RE, articleOgVersion } from '@/lib/seo
 // - 渲染只走 renderArticleOgPng（src/lib/seo/og/renderArticleOg.tsx，唯一入口）：字体只读仓库里的 src/assets/og-fonts，
 //   标题先去掉字体外的字符（ogSafeText），Satori 不会去网上补字体或 emoji。
 // - X-Robots-Tag: noindex 在这里设置（所有环境、所有响应），不靠 middleware；robots.txt 不加 Disallow（社交爬虫要能抓到图）。
+// 逻辑在 src/lib/seo/og/articleOgHandler.ts（依赖注入，便于测试「v 格式不对时不查 CMS」）；这里只接真实依赖。
 // 渲染结果先完整读进内存再返回：ImageResponse 是流式的，不读完的话渲染错误会在 200 之后才出现，回退不了。
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 type P = { params: Promise<{ locale: string; slug: string }> };
-const OG_ROBOTS = { 'X-Robots-Tag': 'noindex' } as const;
-const NO_STORE = { ...OG_ROBOTS, 'Cache-Control': 'no-store' } as const;
-const notFound = () => new Response(null, { status: 404, headers: NO_STORE });
-const fallback = (locale: 'en' | 'ru') => {
-  const u = new URL(ogImageUrl(ARTICLE_OG_SLUG, locale));
-  return new Response(null, { status: 302, headers: { ...NO_STORE, Location: u.pathname + u.search } });
-};
-
-/** 只读查询参数 v（其他参数一律忽略）；不是 8 位小写十六进制就当没有 */
-const versionParam = (req: Request): string | null => {
-  const v = new URL(req.url).searchParams.get('v');
-  return v && /^[0-9a-f]{8}$/.test(v) ? v : null;
-};
 
 export async function GET(req: Request, { params }: P) {
   const { locale, slug } = await params;
-  if (locale !== 'en' && locale !== 'ru') return notFound();
-  if (typeof slug !== 'string' || !ARTICLE_OG_SLUG_RE.test(slug)) return notFound();
-  const v = versionParam(req);
-  if (!v) return notFound();
-  try {
-    const d = (await getDocBySlug('article', locale, slug)) as { title?: unknown } | null;
-    const title = typeof d?.title === 'string' ? d.title : '';
-    if (!title.trim() || articleOgVersion(locale, title) !== v) return notFound();
-    const png = await renderArticleOgPng(title, locale);
-    if (!png) return fallback(locale);
-    return new Response(png, { status: 200, headers: { ...OG_ROBOTS, 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=31536000, immutable' } });
-  } catch (e) {
-    console.error('[article-og] render failed, falling back to generic image:', e instanceof Error ? e.message : 'unknown error');
-    return fallback(locale);
-  }
+  return handleArticleOg(req.url, locale, slug, {
+    getDoc: (l, s) => getDocBySlug('article', l, s),
+    render: (title, l) => renderArticleOgPng(title, l),
+  });
 }
