@@ -75,6 +75,6 @@ test('InquiryWizard success card: labelled by its heading; #308 moved focus to t
   assert.match(src, /<h2 ref=\{doneTitleRef\} id="iq-done-title" tabIndex=\{-1\}/);
   assert.match(src, /doneTitleRef\.current\?\.focus\(\{ preventScroll: true \}\);\s*doneRef\.current\?\.scrollIntoView\(\{ block: 'start', behavior: scrollBehaviorFor\(prefersReducedMotion\(window\)\) \}\)/);
   const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
-  assert.match(css, /\.wizard-done,\.iq-step,\.wizard \.alert\.err,[^{]*\{scroll-margin-top:calc\(var\(--iq-nav-h\) \+ 16px\)\}/);
+  assert.match(css, /\.wizard-done,\.iq-step,\.wizard \.alert\.err,[^{]*\{scroll-margin-top:calc\(var\(--header-h\) \+ 16px\)\}/);
   assert.match(css, /main\[tabindex="-1"\]:focus\{outline:none\}/);
 });
