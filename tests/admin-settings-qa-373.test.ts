@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
-import { issuesAlertText, bodyTooShortNote, draftChecklist, draftCompleteness, emptyDraft, missingParts, SETTINGS_TEXT, type AboutDraft } from '../src/lib/admin/site-settings';
+import { bodyTooShortNote, draftChecklist, draftCompleteness, emptyDraft, mapAboutServerIssues, missingParts, saveFailureView, SETTINGS_TEXT, type AboutDraft } from '../src/lib/admin/site-settings';
 
 // UX #373 视觉验收（issue #350 评论 6247346735）对 /admin/settings 的修正
 const d = (o: Partial<AboutDraft>): AboutDraft => ({ ...emptyDraft(), ...o });
@@ -76,16 +76,49 @@ test('P2-3 390 下点击区域 ≥ 44px：按钮、输入框、下拉、标签�
   assert.match(css, /\.st-switch\{width:52px;height:44px;/);
 });
 
-test('关于我们也用同一个错误条：400 / 422 的 issues 带到 alert 里，没 issues 时显示错误码文案', async () => {
-  const bodies = [{ status: 400, body: { error: 'invalid', issues: [{ path: 'home.title', message: 'max 60 chars' }] } }, { status: 422, body: {} }];
+test('关于页 400 / 422：能对上字段的进字段下方，对不上的进顶部错误条（复用 saveFailureView）', async () => {
+  const bodies = [
+    { status: 400, body: { error: 'invalid', issues: [{ path: 'home.title', message: 'max 60 chars' }] } },
+    { status: 400, body: { error: 'invalid', issues: [{ path: 'capacity', message: 'Unrecognized key' }] } },
+    { status: 422, body: {} },
+  ];
   let n = 0;
   const api = createAboutSettingsApi(async () => { const r = bodies[n++]; return new Response(JSON.stringify(r.body), { status: r.status }); });
   const base = { enabled: false, enabledVersion: 0, locales: { en: emptyDraft() } };
   const r1 = await api.save({ en: d({ title: 'About' }) }, base);
   assert.ok(!r1.ok);
-  assert.equal(issuesAlertText(r1.code, r1.issues), '参数不正确，请检查后重试。（home.title：max 60 chars）');
+  assert.deepEqual(r1.ok ? null : r1.fieldErrors, { homeHeading: '超出上限（最多 60 字）' });
+  assert.equal(saveFailureView(r1 as Extract<typeof r1, { ok: false }>).alert, null);
   const r2 = await api.save({ en: d({ title: 'About' }) }, base);
   assert.ok(!r2.ok);
-  assert.equal(issuesAlertText(r2.code, r2.issues), '保存失败：http_422');
-  assert.equal((about.match(/issuesAlertText\(r\.code, r\.ok \? \[\] : r\.issues \?\? \[\]\)/g) ?? []).length, 2);
+  const v2 = saveFailureView(r2 as Extract<typeof r2, { ok: false }>);
+  assert.deepEqual(v2.fieldErrors, {});
+  assert.equal(v2.alert, '参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  const r3 = await api.save({ en: d({ title: 'About' }) }, base);
+  assert.ok(!r3.ok);
+  assert.equal(saveFailureView(r3 as Extract<typeof r3, { ok: false }>).alert, '保存失败：http_422');
+  assert.match(about, /saveFailureView\(r\)/);
+});
+
+test('mapAboutServerIssues：title / bodyHtml / stats.N / home.* 对到 DraftField，其余进 rest', () => {
+  const m = mapAboutServerIssues([
+    { path: 'title', message: 'too_short' },
+    { path: 'bodyHtml', message: 'too_long' },
+    { path: 'stats.0', message: 'empty' },
+    { path: 'home.title', message: 'max 60 chars' },
+    { path: 'home.intro', message: 'max 200 chars' },
+    { path: 'summary', message: 'max 160 chars' },
+    { path: 'imageMeta.x.alt', message: 'max 120' },
+    { path: 'enabled', message: 'required' },
+    { path: '', message: 'boom' },
+  ]);
+  assert.deepEqual(m.fields, {
+    title: '标题至少 2 个字',
+    bodyHtml: '正文超出字数上限',
+    stats: '数值和说明都要填写',
+    homeHeading: '超出上限（最多 60 字）',
+    homeIntro: '超出上限（最多 200 字）',
+    summary: '超出上限（最多 160 字）',
+  });
+  assert.deepEqual(m.rest, ['imageMeta.x.alt：max 120', 'enabled：required', 'boom']);
 });

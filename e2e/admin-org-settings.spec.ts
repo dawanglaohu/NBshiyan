@@ -200,27 +200,62 @@ test('UX #373 P2-3：390 宽度下「关于我们」和「组织信息」的按�
     .filter((el) => (el as HTMLElement).offsetParent !== null)
     .map((el) => { const r = el.getBoundingClientRect(); return { el: `${el.tagName.toLowerCase()} ${el.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 12) ?? ''}`, w: Math.round(r.width), h: Math.round(r.height) }; })
     .filter((x) => x.h < 44 || (x.w < 44 && !x.el.startsWith('input'))));
-  // UX #375 P2：保存栏按钮不换行（高度 < 50、宽度 > 高度 → 不是「保/存」竖排）
-  const barButtons = async () => page.evaluate(() => [...document.querySelectorAll('.st-bar .adm-btn')]
-    .map((el) => { const r = el.getBoundingClientRect(); return { text: el.textContent?.trim(), w: Math.round(r.width), h: Math.round(r.height) }; }));
   await page.goto('/admin/settings');
   await page.getByRole('heading', { level: 1 }).waitFor();
   await page.locator('#st-title').fill('About sample');
   await page.getByRole('button', { name: '＋ 添加一条' }).click();
   expect(await page.locator('.st-page button:visible').count()).toBeGreaterThan(10); // 确认真的量到了按钮
   expect(await small()).toEqual([]);
-  const aboutBar = await barButtons();
-  expect(aboutBar.length).toBe(2);
-  for (const b of aboutBar) { expect(b.h, b.text).toBeLessThan(50); expect(b.h, b.text).toBeGreaterThanOrEqual(44); expect(b.w, b.text).toBeGreaterThan(b.h); }
-  expect(aboutBar.map((b) => b.text)).toEqual(['放弃修改', '保存']);
   await page.goto('/admin/settings?section=org');
   await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
   await page.getByRole('button', { name: '＋ 添加链接' }).click();
   expect(await small()).toEqual([]);
-  const orgBar = await barButtons();
-  expect(orgBar.length).toBe(2);
-  for (const b of orgBar) { expect(b.h, b.text).toBeLessThan(50); expect(b.h, b.text).toBeGreaterThanOrEqual(44); expect(b.w, b.text).toBeGreaterThan(b.h); }
-  expect(orgBar.map((b) => b.text)).toEqual(['放弃修改', '保存']);
+});
+
+test('UX #375 P2：390 下保存栏「放弃修改」「保存」不换行、不竖排（关于我们 + 组织信息）', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginFreshAdmin(page);
+  const barButtons = async () => page.evaluate(() => [...document.querySelectorAll('.st-bar .adm-btn')]
+    .map((el) => { const r = el.getBoundingClientRect(); return { text: el.textContent?.trim(), w: Math.round(r.width), h: Math.round(r.height) }; }));
+  const assertBar = async () => {
+    const btns = await barButtons();
+    expect(btns.length).toBe(2);
+    for (const b of btns) { expect(b.h, b.text).toBeLessThan(50); expect(b.h, b.text).toBeGreaterThanOrEqual(44); expect(b.w, b.text).toBeGreaterThan(b.h); }
+    expect(btns.map((b) => b.text)).toEqual(['放弃修改', '保存']);
+  };
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.locator('#st-title').fill('About sample');
+  await assertBar();
+  await page.goto('/admin/settings?section=org');
+  await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
+  await page.getByLabel('公司注册全称').fill('示例文字 Sample Co., Ltd.');
+  await assertBar();
+});
+
+test('UX #375 P2：关于我们 400 字段错误显示在字段下方并 aria-invalid；对不上的进顶部错误条', async ({ page }) => {
+  test.setTimeout(60_000);
+  await loginFreshAdmin(page);
+  const ABOUT = '/api/admin/site-settings/about';
+  const replies = [
+    { status: 400, json: { error: 'invalid', issues: [{ path: 'title', message: 'too_short' }] } },
+    { status: 400, json: { error: 'invalid', issues: [{ path: 'capacity', message: 'Unrecognized key' }] } },
+  ];
+  await page.route(`**/api/admin/site-settings/about/**`, (r) => {
+    if (r.request().method() === 'PUT' && !r.request().url().endsWith('/enabled')) return r.fulfill(replies.shift()!);
+    return r.fallback();
+  });
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.locator('#st-title').fill('About sample title');
+  const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
+  await save.click();
+  await expect(page.locator('#st-title')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#st-title-e')).toHaveText('标题至少 2 个字');
+  await expect(page.locator('.st-page [role=alert]')).toHaveCount(0);
+  await save.click();
+  await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
 });
 
 test('组织信息：未登录不能读接口，页面跳登录', async ({ request }) => {

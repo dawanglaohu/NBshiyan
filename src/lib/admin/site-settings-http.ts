@@ -1,4 +1,4 @@
-import { issueLine, type AboutDraft, type AboutSettingsApi, type AboutSettingsData, type SaveResult } from './site-settings';
+import { mapAboutServerIssues, type AboutDraft, type AboutSettingsApi, type AboutSettingsData, type SaveResult } from './site-settings';
 
 /**
  * #350 后台「公司介绍」接口（后端 #367，仅 ADMIN，同源 cookie）：
@@ -35,7 +35,7 @@ export const putBody = (d: AboutDraft) => ({
 });
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
-type Fail = { ok: false; code: string; currentVersion?: number; issues?: string[] };
+type Fail = Extract<SaveResult, { ok: false }>;
 
 async function send(f: Fetch, path: string, init?: RequestInit): Promise<{ ok: true; body: unknown } | Fail> {
   let res: Response;
@@ -46,9 +46,11 @@ async function send(f: Fetch, path: string, init?: RequestInit): Promise<{ ok: t
   if (res.ok) return { ok: true, body };
   if (res.status === 401) return { ok: false, code: 'unauthorized' };
   const code = typeof body.error === 'string' && body.error ? body.error : `http_${res.status}`;
-  // 400 / 422 的 issues 原样带给页面，放进顶部错误条（about 还没有逐字段映射，但不能丢）
+  // 400 / 422：能对上字段的进 fieldErrors，对不上的进 rest（顶部错误条）；和 organization 同一套 saveFailureView
   if ((res.status === 400 || res.status === 422) && Array.isArray(body.issues) && body.issues.length) {
-    return { ok: false, code, issues: (body.issues as { path?: unknown; message?: unknown }[]).map(issueLine) };
+    const raw = (body.issues as { path?: unknown; message?: unknown }[]).map((i) => ({ path: typeof i.path === 'string' ? i.path : '', message: typeof i.message === 'string' ? i.message : '' }));
+    const m = mapAboutServerIssues(raw);
+    return { ok: false, code, fieldErrors: m.fields, rest: m.rest };
   }
   return code === 'version_conflict' && typeof body.currentVersion === 'number' ? { ok: false, code, currentVersion: body.currentVersion } : { ok: false, code };
 }

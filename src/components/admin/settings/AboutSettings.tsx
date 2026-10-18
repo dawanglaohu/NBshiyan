@@ -3,8 +3,8 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
-  aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref, issuesAlertText,
-  isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
+  aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
+  isVersionConflict, saveFailureView, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutFieldErrors, type AboutSettingsData, type ConflictEvent, type ConflictPhase, type DraftField,
 } from '@/lib/admin/site-settings';
 import ConfirmDialog from './ConfirmDialog';
 import SettingsSections from './SettingsSections';
@@ -100,6 +100,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const [tab, setTab] = useState(locales[0]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  const [serverErr, setServerErr] = useState<AboutFieldErrors>({});
   const [confirm, setConfirm] = useState<null | boolean>(null);
   const [epoch, setEpoch] = useState(0); // 放弃修改 / 冲突后刷新时重建编辑器
   const [conflict, setConflict] = useState<ConflictPhase>('none');
@@ -115,8 +116,9 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const savedLocales = useMemo(() => saved?.locales ?? {}, [saved]);
   const summary = useMemo(() => dirtySummary(savedLocales, draft), [savedLocales, draft]);
   const dirty = summary.length > 0;
-  const errors = draftErrors(d);
-  const anyErrors = locales.some((l) => Object.keys(draftErrors(draft[l] ?? emptyDraft())).length > 0);
+  const clientErr = draftErrors(d);
+  const errors: AboutFieldErrors = { ...clientErr, ...serverErr }; // 后端字段错误优先盖住前端检查
+  const anyErrors = locales.some((l) => Object.keys(draftErrors(draft[l] ?? emptyDraft())).length > 0); // 后端字段错误不挡再保存（同组织信息）
   const dir: 'ltr' | 'rtl' = tab === 'ar' ? 'rtl' : 'ltr';
 
   // 离开页面提醒（路由内跳转由浏览器 beforeunload 覆盖刷新 / 关闭；后台内链接切换另见 TODO）
@@ -133,17 +135,22 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
     return () => window.clearTimeout(t);
   }, [notice]);
 
-  const set = useCallback(<K extends keyof AboutDraft>(k: K, v: AboutDraft[K]) => setDraft((p) => ({ ...p, [tab]: { ...(p[tab] ?? emptyDraft()), [k]: v } })), [tab]);
+  const set = useCallback(<K extends keyof AboutDraft>(k: K, v: AboutDraft[K]) => {
+    setDraft((p) => ({ ...p, [tab]: { ...(p[tab] ?? emptyDraft()), [k]: v } }));
+    if ((['title', 'summary', 'bodyHtml', 'stats', 'homeHeading', 'homeIntro'] as DraftField[]).includes(k as DraftField)) {
+      setServerErr((p) => { if (!(k in p)) return p; const n = { ...p }; delete n[k as DraftField]; return n; });
+    }
+  }, [tab]);
 
   const saveAllowed = canSave({ busy, dirty, anyErrors, conflict });
   const save = async () => {
     if (!canSave({ busy, dirty, anyErrors, conflict: conflictRef.current })) return;
     const changes = Object.fromEntries(locales.filter((l) => draft[l] && dirtyFields(savedLocales[l] ?? emptyDraft(), draft[l]).length).map((l) => [l, draft[l]]));
-    setBusy(true); setNotice(null);
+    setBusy(true); setNotice(null); setServerErr({});
     if (!saved) return;
     const r = await aboutSettingsApi.save(changes, saved);
     setBusy(false);
-    if (r.ok) { setSaved(r.data); setDraft(structuredClone(r.data.locales)); setNotice({ kind: 'ok', text: T.saved(Object.keys(changes)) }); return; }
+    if (r.ok) { setSaved(r.data); setDraft(structuredClone(r.data.locales)); setServerErr({}); setNotice({ kind: 'ok', text: T.saved(Object.keys(changes)) }); return; }
     if (isVersionConflict(r)) {
       // 409：编辑器里的文字原样保留（不清空、不覆盖），保存被禁用；只能点「刷新」→ 确认后读最新内容。绝不拿 409 返回的新版本号自动重交。
       // 冲突前已保存成功的语言只更新「已保存」基线，不动草稿
@@ -151,20 +158,35 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
       step('conflict');
       return;
     }
-    setNotice({ kind: 'err', text: issuesAlertText(r.code, r.ok ? [] : r.issues ?? []) });
+    const v = saveFailureView(r);
+    setServerErr(v.fieldErrors);
+    if (v.alert) setNotice({ kind: 'err', text: v.alert });
+    // 焦点移到第一个出错的字段（和组织信息一样）
+    const order: DraftField[] = ['title', 'summary', 'bodyHtml', 'stats', 'homeHeading', 'homeIntro'];
+    const first = order.find((k) => v.fieldErrors[k]);
+    if (first) {
+      window.requestAnimationFrame(() => {
+        const el = first === 'bodyHtml' ? document.querySelector<HTMLElement>('.st-rich')
+          : first === 'stats' ? document.querySelector<HTMLElement>('.st-stats input')
+          : document.getElementById(`st-${first}`);
+        el?.focus();
+      });
+    }
   };
 
-  const discard = () => { if (!saved) return; setDraft(structuredClone(saved.locales)); setEpoch((n) => n + 1); };
+  const discard = () => { if (!saved) return; setDraft(structuredClone(saved.locales)); setEpoch((n) => n + 1); setServerErr({}); };
 
   const applyToggle = async (to: boolean) => {
     setConfirm(null);
     if (writesBlocked(conflictRef.current)) return;
-    setBusy(true); setNotice(null);
+    setBusy(true); setNotice(null); setServerErr({});
     const r = await aboutSettingsApi.setEnabled(to, saved?.enabledVersion ?? null);
     setBusy(false);
     if (r.ok) { setSaved((p) => (p ? { ...p, enabled: r.data.enabled, enabledVersion: r.data.enabledVersion } : r.data)); return; }
     if (isVersionConflict(r)) { step('conflict'); return; }
-    setNotice({ kind: 'err', text: issuesAlertText(r.code, r.ok ? [] : r.issues ?? []) });
+    const v = saveFailureView(r);
+    if (v.alert) setNotice({ kind: 'err', text: v.alert });
+    else if (Object.keys(v.fieldErrors).length) setNotice({ kind: 'err', text: settingsErrorText(r.code) }); // enabled 路径通常对不上字段
   };
 
   /** 冲突后「刷新」→ 确认「未保存的修改将丢弃」→ 读最新内容和版本号，丢弃本地修改 */
@@ -172,7 +194,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
     if (!step('confirm').reload) return;
     try {
       const fresh = await aboutSettingsApi.load(locales);
-      setSaved(fresh); setDraft(structuredClone(fresh.locales)); setEpoch((n) => n + 1); setNotice(null);
+      setSaved(fresh); setDraft(structuredClone(fresh.locales)); setEpoch((n) => n + 1); setServerErr({}); setNotice(null);
       step('reloaded');
     } catch (e) {
       step('reload_failed');

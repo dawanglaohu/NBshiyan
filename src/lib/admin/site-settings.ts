@@ -215,11 +215,52 @@ export const issuesAlertText = (code: string, rest: readonly string[] = []): str
  * 绝不拿它自动重新提交——用户必须先刷新、拿到最新内容后重新编辑。
  * saved：多语言保存时，冲突前已经成功保存的语言（每个语言单独 PUT），页面把它们标为已保存。
  */
+export type AboutFieldErrors = Partial<Record<DraftField, string>>;
 export type SaveResult =
   | { ok: true; data: AboutSettingsData }
-  | { ok: false; code: string; currentVersion?: number; saved?: AboutSettingsData; issues?: string[] };
+  | { ok: false; code: string; currentVersion?: number; saved?: AboutSettingsData; fieldErrors?: AboutFieldErrors; rest?: string[] };
 export const VERSION_CONFLICT = 'version_conflict' as const;
 export const isVersionConflict = (r: SaveResult): boolean => !r.ok && r.code === VERSION_CONFLICT;
+
+/** 后端 about PUT 的 issue.path → 界面 DraftField（home.title→homeHeading，stats.N→stats）。对不上的进 rest，走顶部错误条。 */
+export function mapAboutServerIssues(issues: { path: string; message: string }[]): { fields: AboutFieldErrors; rest: string[] } {
+  const fields: AboutFieldErrors = {}; const rest: string[] = [];
+  for (const i of issues) {
+    const path = String(i.path ?? ''); const msg = String(i.message ?? '');
+    const f = aboutIssueField(path);
+    if (!f) { rest.push(issueLine(i)); continue; }
+    fields[f] ??= aboutIssueText(f, msg);
+  }
+  return { fields, rest };
+}
+function aboutIssueField(path: string): DraftField | null {
+  if (path === 'title' || path === 'summary' || path === 'bodyHtml' || path === 'stats') return path;
+  if (path.startsWith('stats.')) return 'stats';
+  if (path === 'home.title') return 'homeHeading';
+  if (path === 'home.intro') return 'homeIntro';
+  return null; // imageMeta / enabled / expectedVersion / 未知字段 → rest
+}
+function aboutIssueText(f: DraftField, msg: string): string {
+  if (msg === 'too_short' && f === 'title') return `标题至少 ${ABOUT_LIMITS.titleMin} 个字`;
+  if (msg === 'too_long' && f === 'bodyHtml') return '正文超出字数上限';
+  if (msg === 'empty' && f === 'stats') return SETTINGS_TEXT.statPairError;
+  const m = /max (\d+)/i.exec(msg);
+  if (m) return `超出上限（最多 ${m[1]} 字）`;
+  return '内容不符合要求，请检查';
+}
+
+/**
+ * 保存失败时页面怎么显示（about 和组织信息共用）：能对上字段的放字段下方；
+ * 对不上字段的 issue、或 400 / 422 没带 issues、其他错误，一律进顶部错误条。409 不走这里。
+ */
+export function saveFailureView<F extends Record<string, string>>(
+  r: { code: string; fieldErrors?: F; rest?: string[] },
+): { fieldErrors: F; alert: string | null } {
+  const fieldErrors = (r.fieldErrors ?? {}) as F;
+  const rest = r.rest ?? [];
+  if (rest.length) return { fieldErrors, alert: issuesAlertText(r.code, rest) };
+  return { fieldErrors, alert: Object.keys(fieldErrors).length ? null : issuesAlertText(r.code) };
+}
 
 /**
  * 409 冲突状态（PM 定稿）：
