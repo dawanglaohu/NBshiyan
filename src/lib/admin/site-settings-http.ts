@@ -1,4 +1,4 @@
-import type { AboutDraft, AboutSettingsApi, AboutSettingsData, SaveResult } from './site-settings';
+import { issueLine, type AboutDraft, type AboutSettingsApi, type AboutSettingsData, type SaveResult } from './site-settings';
 
 /**
  * #350 后台「公司介绍」接口（后端 #367，仅 ADMIN，同源 cookie）：
@@ -35,17 +35,21 @@ export const putBody = (d: AboutDraft) => ({
 });
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
-type Fail = { ok: false; code: string; currentVersion?: number };
+type Fail = { ok: false; code: string; currentVersion?: number; issues?: string[] };
 
 async function send(f: Fetch, path: string, init?: RequestInit): Promise<{ ok: true; body: unknown } | Fail> {
   let res: Response;
   try {
     res = await f(path, { credentials: 'same-origin', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, ...init });
   } catch { return { ok: false, code: 'network' }; }
-  const body = await res.json().catch(() => ({})) as { error?: unknown; currentVersion?: unknown };
+  const body = await res.json().catch(() => ({})) as { error?: unknown; currentVersion?: unknown; issues?: unknown };
   if (res.ok) return { ok: true, body };
   if (res.status === 401) return { ok: false, code: 'unauthorized' };
   const code = typeof body.error === 'string' && body.error ? body.error : `http_${res.status}`;
+  // 400 / 422 的 issues 原样带给页面，放进顶部错误条（about 还没有逐字段映射，但不能丢）
+  if ((res.status === 400 || res.status === 422) && Array.isArray(body.issues) && body.issues.length) {
+    return { ok: false, code, issues: (body.issues as { path?: unknown; message?: unknown }[]).map(issueLine) };
+  }
   return code === 'version_conflict' && typeof body.currentVersion === 'number' ? { ok: false, code, currentVersion: body.currentVersion } : { ok: false, code };
 }
 
