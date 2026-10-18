@@ -6,7 +6,7 @@ import { checkPassword, checkSecondFactor, hashCodes, newRecoveryCodes } from '@
 import { audit } from '@/lib/server/admin/audit';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
-import { enrollConfirmRateOk, enrollIpRateOk, enrollWindowOpen, hitEnrollConfirmRate, pendingSecretUsable, recordBadEnrollTotp } from '@/lib/server/admin/enroll-guard';
+import { enrollIpRateOk, enrollWindowOpen, pendingSecretUsable, recordBadEnrollTotp } from '@/lib/server/admin/enroll-guard';
 
 export const runtime = 'nodejs';
 const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200), password: z.string().min(1).max(200), totp: z.string().regex(/^\d{6}$/) });
@@ -16,8 +16,6 @@ const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200),
  * #348：密码正确但码错，按账号计数；同一个待确认密钥错满 5 次就作废，返回 401 enroll_reset（之后再 confirm 也是 enroll_reset），
  * 冷却 10 分钟后可重新 enroll（冷却期内 enroll 返回 429 rate_limited）。密码错不计入这个计数。
  * 新错误码 enroll_reset 只有密码正确才会出现，不泄露账号是否存在；#353 页面暂时显示通用兜底文案。
- * 限流（P2，全栈方案）：按 IP 的总上限每次都计数；enroll-confirm（IP+账号）桶和登录桶都先只读检查，满了 429、不验密码；
- * 密码错只计入登录桶（和登录接口合计 5 次），密码对、码错只计入 enroll-confirm 桶和上面的作废计数。
  */
 export async function POST(req: Request) {
   const bad = assertSameOrigin(req);
@@ -28,7 +26,6 @@ export async function POST(req: Request) {
   let json: unknown = null; try { json = JSON.parse(raw ?? ''); } catch {}
   const p = Body.safeParse(json);
   if (!p.success) return jsonErr('invalid', 400);
-  if (!(await enrollConfirmRateOk(ip, p.data.email))) return jsonErr('rate_limited', 429);
   const user = await checkPassword(p.data.email, p.data.password, ip);
   if (user === 'rate_limited') return jsonErr('rate_limited', 429);
   if (typeof user === 'string' || user.totpEnabled) return jsonErr('bad_credentials', 401);
@@ -44,7 +41,6 @@ export async function POST(req: Request) {
   }
   if (!pendingSecretUsable(user)) return jsonErr('bad_totp', 401); // 待确认密钥已过期（或是加固前留下的），需重新 enroll
   if (!(await checkSecondFactor(user, p.data.totp, undefined))) {
-    await hitEnrollConfirmRate(ip, p.data.email);
     return (await recordBadEnrollTotp(user, ip)) ? jsonErr('enroll_reset', 401) : jsonErr('bad_totp', 401);
   }
   const codes = newRecoveryCodes();

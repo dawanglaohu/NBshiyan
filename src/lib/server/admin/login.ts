@@ -2,7 +2,7 @@ import { createHmac, randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { hitRateLimit, peekRateLimit, rateLimitKeyHash, rateLimitSubject } from '../security';
+import { hitRateLimit, rateLimitKeyHash, rateLimitSubject } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
@@ -14,30 +14,17 @@ export const LOCK_MS = 15 * 60_000;
 
 export type CheckFail = 'rate_limited' | 'bad_credentials' | 'locked' | 'totp_required' | 'totp_not_enrolled';
 
-/**
- * 登录限流的三个桶（10 分钟窗口）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。
- * 只统计「密码校验失败」的次数（账号不存在/已禁用，或密码错），密码正确不计数（P2 enroll 作废）：
- * - checkPassword 进来先用 loginRateOk 只读检查（peek），任一桶已满就直接 rate_limited，不查用户、不验密码；
- * - 只有密码校验失败时才用 hitLoginRate 计数（三个桶各 +1）。
- * 登录、enroll、enroll confirm 三处都走 checkPassword，共用同一组桶：交替在登录和 confirm 输错密码，合计第 6 次就 429。
- * 存储故障时拒绝（closed）；邮箱先 trim+小写再 HMAC，key 里不存明文。
- */
-const LOGIN_WINDOW_MS = 10 * 60_000;
-const loginBuckets = (ip: string | null, email: string) => {
-  const e = rateLimitKeyHash(email.trim().toLowerCase());
-  return [[`login:${rateLimitSubject(ip)}:${e}`, 5], [`login-acct:${e}`, 10], [`login-ip:${rateLimitSubject(ip)}`, 30]] as const;
-};
-const closed = { onStoreError: 'closed' } as const;
-
-/** 只读检查三个登录桶是否都还没满（不计数）。 */
+/** 登录/2FA 限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。 */
 export async function loginRateOk(ip: string | null, email: string) {
-  const r = await Promise.all(loginBuckets(ip, email).map(([k, n]) => peekRateLimit(k, n, LOGIN_WINDOW_MS, closed)));
-  return r.every(Boolean);
-}
-
-/** 记一次密码校验失败（三个桶各计一次）。只在密码校验失败时调用。 */
-export async function hitLoginRate(ip: string | null, email: string) {
-  await Promise.all(loginBuckets(ip, email).map(([k, n]) => hitRateLimit(k, n, LOGIN_WINDOW_MS, closed)));
+  // 限流存储故障时拒绝（closed）；邮箱先 trim+小写再 HMAC，key 里不存明文
+  const o = { onStoreError: 'closed' } as const;
+  const e = rateLimitKeyHash(email.trim().toLowerCase());
+  const [a, b, c] = await Promise.all([
+    hitRateLimit(`login:${rateLimitSubject(ip)}:${e}`, 5, 10 * 60_000, o),
+    hitRateLimit(`login-acct:${e}`, 10, 10 * 60_000, o),
+    hitRateLimit(`login-ip:${rateLimitSubject(ip)}`, 30, 10 * 60_000, o),
+  ]);
+  return a && b && c;
 }
 
 /**
@@ -70,17 +57,13 @@ async function fail(user: User | null, email: string, ip: string | null, reason:
   await audit({ actorId: user?.id ?? null, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason }, ip });
 }
 
-/**
- * 校验邮箱和密码，并检查锁定。成功返回 user。
- * 限流：先只读检查登录桶（满了直接 rate_limited，不查用户、不验密码）；密码校验失败（账号不存在/禁用、密码错）才计数，密码正确不计数。
- * 账号锁定（fail → failedLogins，满 MAX_FAILS 锁 LOCK_MS）不变。
- */
+/** 校验邮箱和密码，并检查锁定。成功返回 user。 */
 export async function checkPassword(email: string, password: string, ip: string | null): Promise<User | CheckFail> {
   if (!(await loginRateOk(ip, email))) { await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || user.disabled) { await burnVerify(password); await hitLoginRate(ip, email); await fail(null, email, ip, 'bad_credentials'); return 'bad_credentials'; }
+  if (!user || user.disabled) { await burnVerify(password); await fail(null, email, ip, 'bad_credentials'); return 'bad_credentials'; }
   if (user.lockedUntil && user.lockedUntil > new Date()) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'locked' }, ip }); return 'locked'; }
-  if (!(await verifySecret(user.passwordHash, password))) { await hitLoginRate(ip, email); await fail(user, email, ip, 'bad_password'); return 'bad_credentials'; }
+  if (!(await verifySecret(user.passwordHash, password))) { await fail(user, email, ip, 'bad_password'); return 'bad_credentials'; }
   return user;
 }
 
@@ -116,8 +99,7 @@ export async function authorizeLogin(input: { email: string; password: string; t
   const user = await checkPassword(email, input.password, ip);
   if (typeof user === 'string') return null;
   if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
-  // 登录时密码对、第二因素错：照旧计入登录桶（和改动前一致），防止在登录接口上猜 TOTP/恢复码
-  if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await hitLoginRate(ip, email); await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
+  if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
   await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: 'auth.login_success', target: user.id, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
   return user;

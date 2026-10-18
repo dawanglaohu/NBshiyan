@@ -1,6 +1,6 @@
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { hitRateLimit, peekRateLimit, rateLimitKeyHash, rateLimitSubject } from '../security';
+import { hitRateLimit, rateLimitSubject } from '../security';
 import { audit } from './audit';
 
 /**
@@ -14,22 +14,14 @@ import { audit } from './audit';
  * - confirm 时密码正确但 6 位码错 → totpEnrollFails+1。同一个待确认密钥上错满 5 次 → 作废密钥（totpSecret 清空），
  *   返回 401 enroll_reset（新错误码，只在密码正确时出现）；之后 confirm 也返回 enroll_reset，直到重新 enroll。
  *   作废后冷却 10 分钟（totpPendingUntil = now+10min），期间 enroll 返回 429 rate_limited，之后可以重新 enroll 拿新密钥。
- * - 密码错的请求不计入、也不会作废密钥：否则不知道密码的人也能反复作废别人的待确认密钥（定向骚扰）。密码错仍按原来的登录锁定处理。
+ * - 密码错的请求不计入、也不会作废密钥：否则不知道密码的人也能反复作废别人的待确认密钥（定向骚扰）。密码错仍按原来的登录限流和锁定处理。
  * - 绑定成功或发新密钥时清零。审计不记邮箱明文、密钥和验证码。
- *
- * P2「作废状态到不了」的限流计数（全栈方案）：
- * - 登录限流桶（login:<ip>:<账号> 5 次/10 分钟等，见 login.ts）只统计密码错；checkPassword 进来先只读检查，满了直接 429、不验密码。
- *   所以密码对、码错不会再先撞上登录限流，第 5 次错码一定返回 enroll_reset。confirm 里密码错照样计入登录桶（和登录接口合计）。
- * - 密码对、码错另记一个桶 enroll-confirm:<ip>:<账号>（ENROLL_CONFIRM_LIMIT 次/10 分钟），在验密码之前只读检查；它比 ENROLL_MAX_BAD_TOTP 宽，不会抢在作废之前 429。
- * - enrollIpRateOk 按 IP 的总上限（ENROLL_IP_LIMIT 次/10 分钟）仍然每次请求都计数。
  */
 export const ENROLL_WINDOW_MS = 72 * 3_600_000;
 export const ENROLL_PENDING_MS = 10 * 60_000;
 export const ENROLL_MAX_BAD_TOTP = 5;
 export const ENROLL_IP_LIMIT = 20;
 export const ENROLL_IP_WINDOW_MS = 10 * 60_000;
-export const ENROLL_CONFIRM_LIMIT = 10;
-export const ENROLL_CONFIRM_WINDOW_MS = 10 * 60_000;
 
 type EnrollUser = Pick<User, 'createdAt' | 'enrollIssuedAt' | 'totpPendingUntil' | 'totpSecret'>;
 
@@ -43,15 +35,6 @@ export const pendingSecretUsable = (u: EnrollUser, now = Date.now()) => !!u.totp
 /** 两个绑定接口单独的按 IP 限流（与登录限流分开计数），在解析请求体之前调用。存储故障时拒绝。 */
 export const enrollIpRateOk = (route: 'enroll' | 'confirm', ip: string | null) =>
   hitRateLimit(`enroll-ip:${route}:${rateLimitSubject(ip)}`, ENROLL_IP_LIMIT, ENROLL_IP_WINDOW_MS, { onStoreError: 'closed' });
-
-/** confirm 的「密码对、码错」桶（IP+账号，邮箱 HMAC 后进 key）。存储故障时拒绝。 */
-const enrollConfirmKey = (ip: string | null, email: string) => `enroll-confirm:${rateLimitSubject(ip)}:${rateLimitKeyHash(email.trim().toLowerCase())}`;
-/** 只读检查：这个桶还没满（不计数）。在验密码之前调用。 */
-export const enrollConfirmRateOk = (ip: string | null, email: string) =>
-  peekRateLimit(enrollConfirmKey(ip, email), ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS, { onStoreError: 'closed' });
-/** 记一次「密码对、码错」。只在这种情况调用。 */
-export const hitEnrollConfirmRate = (ip: string | null, email: string) =>
-  hitRateLimit(enrollConfirmKey(ip, email), ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS, { onStoreError: 'closed' });
 
 /** 发新的待确认密钥时要写的字段 */
 export const pendingSecretData = (encryptedSecret: string, now = Date.now()) => ({
