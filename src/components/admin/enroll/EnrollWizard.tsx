@@ -14,7 +14,7 @@ const TITLES: Record<Step, string> = { 1: '绑定两步验证', 2: '扫码并确
  * P1：新管理员首次绑定 2FA（UX 稿 spec §6：账号验证 → 扫码并确认 → 保存恢复码）。
  * 密码、otpauth URI、恢复码只放在 React state 里：不写 URL、不写浏览器本地存储、不打日志；
  * 去登录、页面隐藏（pagehide）、卸载时都清掉。
- * #347 方案 A（后端 PR 里的最小改动，完整的页面状态和文案由前端后续 PR 按 UX spec 做）：打开时从 ?t= 读一次性绑定令牌，
+ * #347 方案 A（后端 PR 里的最小改动，完整的页面状态和文案由前端后续 PR 按 UX spec 做）：打开时从 #t= 读一次性绑定令牌，
  * 立即 history.replaceState 去掉，令牌只放在内存（ref）里，随 enroll / confirm 一起提交；确认成功或去登录时清掉。
  */
 export default function EnrollWizard() {

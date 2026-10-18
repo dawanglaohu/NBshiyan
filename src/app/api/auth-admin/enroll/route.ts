@@ -9,7 +9,7 @@ import { audit } from '@/lib/server/admin/audit';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
 import { enrollCoolingDown, enrollIpRateOk, enrollWindowOpen, pendingSecretData } from '@/lib/server/admin/enroll-guard';
-import { auditTokenRejected, checkEnrollToken } from '@/lib/server/admin/enroll-token';
+import { checkEnrollToken, rejectEnrollToken } from '@/lib/server/admin/enroll-token';
 
 export const runtime = 'nodejs';
 const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200), password: z.string().min(1).max(200), token: z.string().max(200).optional() });
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   if (user === 'rate_limited') return jsonErr('rate_limited', 429);
   if (typeof user === 'string') return jsonErr('bad_credentials', 401);
   const tk = checkEnrollToken(user, p.data.token);
-  if (tk !== 'ok') { await auditTokenRejected(user.id, 'enroll', tk, ip); return jsonErr('bad_credentials', 401); } // 不退登录桶，见上
+  if (tk !== 'ok') { await rejectEnrollToken(user, p.data.email, 'enroll', tk, ip); return jsonErr('bad_credentials', 401); } // 不退登录桶，见上
   await refundLoginRate(ip, p.data.email); // 密码和令牌都正确：退回登录桶（单 IP 桶不退）
   if (user.totpEnabled) return jsonErr('bad_credentials', 401); // 已开启的不能重新绑定，统一报错
   // 以下分支都已通过密码校验，不会向不知道密码的人暴露账号是否存在

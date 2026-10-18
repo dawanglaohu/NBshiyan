@@ -1,9 +1,10 @@
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import type { User } from '@prisma/client';
-import { SITE_URL } from '@/lib/site';
+import { isProdEnvFrom } from '@/lib/site';
 import { ENROLL_PAGE } from '@/lib/admin/enroll';
 import { ENROLL_WINDOW_MS } from './enroll-guard';
 import { audit } from './audit';
+import { recordFailedLogin } from './login';
 
 /**
  * #347 方案 A：一次性绑定令牌（只知道初始密码不能开始或完成 2FA 绑定）。
@@ -43,11 +44,27 @@ export function newEnrollToken(u: Partial<WindowUser> = {}, now = Date.now()): I
   return { token, data: { enrollTokenHash: hashEnrollToken(token), enrollTokenExpiresAt: expiresAt }, expiresAt, expiresTruncated: windowEnd < ttlEnd };
 }
 
-/** 绑定页链接（绝对地址，SITE_URL 与后台邮件链接同一来源）。令牌放在 ?t=，页面打开后立即用 history.replaceState 去掉 */
-export const enrollLink = (token: string, base = SITE_URL) => `${base.replace(/\/$/, '')}${ENROLL_PAGE}?t=${encodeURIComponent(token)}`;
+/**
+ * 绑定链接的站点前缀：只取 NEXT_PUBLIC_SITE_URL（构建时内联，与后台邮件链接同一来源），从不用请求的 Host。不合格返回 null，签发接口在写库之前就 500 拒绝。
+ * 必须是裸 origin（无账号密码、路径、查询、fragment）；https，或非生产（APP_ENV/VERCEL_ENV 不是 production）下的 http://localhost / http://127.0.0.1。
+ * 与 scripts/enroll-token-lib.mjs enrollLinkBase 相同（单测对比）。生产启动时 prod-env-check 也要求 https 正式域名。
+ */
+export function enrollLinkBase(env: Record<string, string | undefined> = { NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL, APP_ENV: process.env.APP_ENV, VERCEL_ENV: process.env.VERCEL_ENV }): string | null {
+  const raw = String(env.NEXT_PUBLIC_SITE_URL ?? '').trim();
+  let u: URL;
+  try { u = new URL(raw); } catch { return null; }
+  if (u.username || u.password || u.search || u.hash || (u.pathname !== '/' && u.pathname !== '')) return null;
+  if (raw.replace(/\/$/, '') !== u.origin) return null;
+  if (u.protocol === 'https:') return u.origin;
+  if (u.protocol === 'http:' && !isProdEnvFrom(env) && (u.hostname === 'localhost' || u.hostname === '127.0.0.1')) return u.origin;
+  return null;
+}
 
-/** 签发接口响应里追加的字段：只在这一次响应里出现 */
-export const issueResponse = (t: IssuedEnrollToken) => ({ enrollLink: enrollLink(t.token), expiresAt: t.expiresAt.toISOString(), expiresTruncated: t.expiresTruncated });
+/** 绑定页链接。令牌放在 fragment（#t=）：浏览器不会把它发给服务器，不进访问日志、CDN 日志和 Referer；页面打开后立即 replaceState 去掉 */
+export const enrollLink = (token: string, base: string) => `${base}${ENROLL_PAGE}#t=${encodeURIComponent(token)}`;
+
+/** 签发接口响应里追加的字段：只在这一次响应里出现。base 必须来自 enrollLinkBase() */
+export const issueResponse = (t: IssuedEnrollToken, base: string) => ({ enrollLink: enrollLink(t.token, base), expiresAt: t.expiresAt.toISOString(), expiresTruncated: t.expiresTruncated });
 
 export type EnrollTokenCheck = 'ok' | 'missing' | 'invalid' | 'expired';
 
@@ -69,7 +86,21 @@ export function checkEnrollToken(u: TokenUser, token: string | undefined | null,
 export const auditTokenIssued = (actorId: string | null, targetId: string, source: 'admin_create' | 'admin_reset_2fa' | 'self_reset_2fa', ip: string | null, truncated: boolean) =>
   audit({ actorId, action: 'auth.enroll_token_issued', target: targetId, meta: { source, truncated }, ip });
 
-/** 审计：拒绝。密码已通过才会走到这里；reason 只有 missing / invalid / expired */
-export const auditTokenRejected = (userId: string, route: 'enroll' | 'confirm', reason: Exclude<EnrollTokenCheck, 'ok'>, ip: string | null) =>
-  audit({ actorId: userId, action: 'auth.enroll_token_rejected', target: userId, meta: { reason, route }, ip });
+/**
+ * 密码正确、令牌不对时是否也计入 failedLogins（与错密码一样，满 5 次锁 15 分钟）。
+ * 待定（PM 要和错密码完全一致；全栈担心锁定 DoS）：现在为 false，只占登录限流、不退桶、不计锁定次数。要改只改这一行。
+ */
+export const WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN = false;
+
+/**
+ * 令牌不对时的统一处理（enroll、confirm 共用）：审计 auth.enroll_token_rejected（reason 只有 missing / invalid / expired），
+ * 开关打开时再按错密码的路径计入 failedLogins / 锁定（recordFailedLogin，审计 reason=bad_enroll_token）。调用方随后返回 401 bad_credentials，不退登录桶。
+ */
+export async function rejectEnrollToken(
+  user: User, email: string, route: 'enroll' | 'confirm', reason: Exclude<EnrollTokenCheck, 'ok'>, ip: string | null,
+  countsAsFailedLogin = WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN,
+) {
+  await audit({ actorId: user.id, action: 'auth.enroll_token_rejected', target: user.id, meta: { reason, route }, ip });
+  if (countsAsFailedLogin) await recordFailedLogin(user, email, ip, 'bad_enroll_token');
+}
 

@@ -59,6 +59,9 @@ export async function revokeSessions(userId: string) {
   await prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
 }
 
+/** 登录类失败：计入 failedLogins（满 MAX_FAILS 锁定并告警）+ 审计 auth.login_fail。checkPassword 的错密码分支和 #347 的令牌错开关共用 */
+export async function recordFailedLogin(user: User | null, email: string, ip: string | null, reason: string) { return fail(user, email, ip, reason); }
+
 async function fail(user: User | null, email: string, ip: string | null, reason: string) {
   if (user) {
     const n = user.failedLogins + 1;

@@ -6,7 +6,7 @@ import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { reauth, reset2faData } from '@/lib/server/admin/accounts';
-import { auditTokenIssued, issueResponse, newEnrollToken } from '@/lib/server/admin/enroll-token';
+import { auditTokenIssued, enrollLinkBase, issueResponse, newEnrollToken } from '@/lib/server/admin/enroll-token';
 
 export const runtime = 'nodejs';
 const Body = z.object({
@@ -26,6 +26,8 @@ export async function POST(req: Request) {
   if (json === TOO_LARGE) return jsonErr('too_large', 413);
   const p = Body.safeParse(json);
   if (!p.success) return jsonErr('invalid', 400);
+  const base = enrollLinkBase(); // #347：站点地址不合格时不重置（在 reauth 之前，不消耗失败次数）
+  if (!base) return jsonErr('site_url_invalid', 500);
   const r = await reauth(ctx.user, p.data.currentPassword, p.data.totp, p.data.recoveryCode, ctx.ip, 'account.2fa_reset');
   if (r !== 'ok') return jsonErr(r, r === 'locked' ? 423 : 401);
   const now = new Date();
@@ -33,5 +35,5 @@ export async function POST(req: Request) {
   await prisma.user.update({ where: { id: ctx.user.id }, data: { ...reset2faData(now), ...t.data } }); // 含 sessionVersion+1 = revokeSessions
   await audit({ actorId: ctx.user.id, action: 'account.2fa_reset', target: ctx.user.id, meta: { via: p.data.totp ? 'totp' : 'recovery_code' }, ip: ctx.ip });
   await auditTokenIssued(ctx.user.id, ctx.user.id, 'self_reset_2fa', ctx.ip, t.expiresTruncated);
-  return NextResponse.json({ ok: true, reenrollRequired: true, ...issueResponse(t) }, { headers: noStore });
+  return NextResponse.json({ ok: true, reenrollRequired: true, ...issueResponse(t, base) }, { headers: noStore });
 }

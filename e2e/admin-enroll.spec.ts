@@ -13,7 +13,7 @@ function freshAccount(tag: string) {
     stdio: 'pipe',
     env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: PASSWORD, ADMIN_SEED_NAME: 'E2E enroll', ADMIN_SEED_ROLE: 'SALES', ADMIN_SEED_TOTP_SECRET: '' },
   });
-  const token = /[?&]t=([A-Za-z0-9_-]{43})/.exec(String(out))?.[1];
+  const token = /#t=([A-Za-z0-9_-]{43})/.exec(String(out))?.[1];
   if (!token) throw new Error('create-admin.mjs 没有输出绑定链接');
   return { email, token };
 }
@@ -23,14 +23,14 @@ const secretOf = (uri: string) => new URL(uri).searchParams.get('secret')!;
 test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保存恢复码 → 去登录', async ({ page, external }) => {
   test.setTimeout(90_000);
   const { email, token } = freshAccount('ui');
-  const res = await page.goto(`/admin-enroll?t=${token}`);
+  const res = await page.goto(`/admin-enroll#t=${token}`);
   expect(res!.status()).toBe(200);
   expect(res!.headers()['cache-control']).toContain('no-store');
   expect(res!.headers()['x-robots-tag']).toContain('noindex');
   expect(res!.headers()['x-robots-tag']).toContain('nofollow');
   expect(res!.headers()['referrer-policy']).toBe('no-referrer'); // #347：带令牌的地址不能经 Referer 外泄
   expect(new URL(page.url()).pathname).toBe('/admin-enroll'); // 没有被加语言前缀，也没被重定向到登录
-  await expect.poll(() => new URL(page.url()).search).toBe(''); // #347：令牌已从地址栏去掉（replaceState）
+  await expect.poll(() => new URL(page.url()).hash).toBe(''); // #347：令牌（#t= fragment）已从地址栏去掉（replaceState）
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   await expect(page.locator('[aria-current="step"]')).toContainText('账号验证');
 
