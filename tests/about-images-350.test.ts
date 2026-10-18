@@ -262,6 +262,7 @@ test('接口层：一次 GET /about 同时拿到文字和图片列表；列表�
   assert.equal(data.enabledVersion, 2);
   assert.deepEqual(data.locales.en, draftFromView(null));
   assert.deepEqual(images, { version: 3, items: [{ id: ID(1), sm: { w: 600, h: 800 }, lg: { w: 1200, h: 1600 }, src: { sm: `/media/${ID(1)}-800.webp`, lg: `/media/${ID(1)}-1600.webp` } }] });
+  assert.deepEqual(await api.loadImages(), images, '409 刷新用的只读图片列表');
   const lib = await api.listAssets();
   assert.equal(lib.length, 1); assert.equal(lib[0].inUse, true);
   assert.deepEqual(await api.deleteAsset(ID(1)), { ok: false, code: 'asset_in_use' });

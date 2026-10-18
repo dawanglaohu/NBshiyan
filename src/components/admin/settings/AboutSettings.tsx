@@ -165,7 +165,9 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const confirmRefresh = async () => {
     if (!step('confirm').reload) return;
     try {
-      await loadAll(); setEpoch((n) => n + 1); setNotice(null);
+      const [fresh, images] = await Promise.all([aboutSettingsApi.load(locales), aboutImagesApi.loadImages()]);
+      setSaved(fresh); setDraft(structuredClone(fresh.locales)); setImgSaved(images); setImgDraft(images.items);
+      setEpoch((n) => n + 1); setNotice(null);
       step('reloaded');
     } catch (e) {
       step('reload_failed');

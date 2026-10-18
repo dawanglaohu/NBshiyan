@@ -315,6 +315,12 @@ export function createAboutImagesApi(f: Fetch) {
         images: imagesStateFrom(b.images),
       };
     },
+    /** 只读图片列表（409 刷新时和 aboutSettingsApi.load 配合用） */
+    async loadImages(): Promise<AboutImagesState> {
+      const r = await call(f, ABOUT);
+      if (!r.ok) throw new Error(r.code);
+      return imagesStateFrom((r.body as { images?: unknown }).images);
+    },
     async listAssets(): Promise<LibraryAsset[]> {
       const r = await call(f, ASSETS);
       if (!r.ok) throw new Error(r.code);
