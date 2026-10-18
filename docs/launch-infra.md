@@ -194,6 +194,20 @@ Ryan 操作：
 
 自建部署后在服务器上执行 `docker compose exec app node scripts/admin-create.mjs --email <邮箱> --name "<显示名>"`（等同 `pnpm admin:create`），密码在终端交互输入、不回显；没有终端时只从标准输入读取。密码绝不放在命令行参数或环境变量里（生产下脚本会拒绝环境变量方式）。已有管理员时需显式 `--allow-additional-admin`；邮箱已存在直接失败。只有命令行，没有 HTTP 接口。建好后登录后台立即绑定 2FA。详见 launch-runbook.md 第 4.3 节。`pnpm admin:seed`（旧的环境变量建号脚本）只用于测试 / 本地 / CI。
 
+### 7.1 部署 #361 前：统计未绑定 2FA 的 ADMIN
+
+#361 上线后，绑定窗口从 `enrollIssuedAt`（重置 2FA 时写入）或 `createdAt` 起算 72 小时，过了就不能再自己绑定，只能由另一个 ADMIN 重置 2FA。部署前用镜像里自带的只读脚本统计（规则与 `src/lib/server/admin/enroll-guard.ts` 相同）：
+
+```sh
+APP_TAG=candidate docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file $NBSHIYAN_COMPOSE_ENV run --rm -T --no-deps app node scripts/admin-2fa-audit.mjs
+```
+
+- 用 candidate 镜像跑一次性容器（当前线上镜像里还没有这个脚本）；用应用自己的 `DATABASE_URL` 和 `@prisma/client`，不开端口，不接受任何参数。只调用 `count`，不写库。
+- 输出恰好两行，只有数字：`admins=<n>`（未停用的 ADMIN 数）、`unbound_over_72h=<n>`（其中未绑定 2FA 且窗口已过的数）。不输出邮箱、id、名字。
+- #361 的 db push 之前库里还没有 `enrollIssuedAt` 列，脚本自动只按 `createdAt` 统计，结果与部署后一致。
+- 出错时 stderr 只有 `error=audit_failed`，退出码 1；带参数时 `error=no_args_accepted`，退出码 2。
+- 只报两个数字。如果 `unbound_over_72h` 大于 0 且等于 `admins`，先绑定 2FA 再部署（或部署后马上由另一个 ADMIN 重置）。详见 deploy/README.md「2FA audit」。
+
 ## 8. CSP 说明（Tawk.to 等第三方）
 
 当前 `security-headers.ts` 已放行 Tawk.to 和 Turnstile 所需的最小范围，**无需再加**：
