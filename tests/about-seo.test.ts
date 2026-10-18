@@ -1,5 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import React, { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import JsonLd from '../src/components/seo/JsonLd';
+(globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换（同 admin-mail-ui.test.ts）
 import {
   ABOUT_DESCRIPTION_MAX,
   aboutDescription,
@@ -10,13 +15,13 @@ import {
   buildAboutMetadata,
   buildOrganizationJsonLd,
   htmlToPlainText,
-  serializeJsonLd,
   truncateCodePoints
 } from '../src/lib/seo/about';
 import * as aboutModule from '../src/lib/seo/about';
 import crypto from 'node:crypto';
 import { articleOgImageUrl, articleOgVersion } from '../src/lib/seo/articleOg';
 import { ORGANIZATION_DEFAULTS } from '../src/lib/seo/organization-defaults';
+import { SITE_URL } from '../src/lib/site';
 import type { AboutContent } from '../src/lib/server/site-settings';
 
 const ORIGIN = 'https://example.test';
@@ -161,11 +166,22 @@ test('Organization JSON-LD: settings override defaults; empty fields omitted; in
   assert.deepEqual([full.email, full.telephone, full.address, full.foundingDate, full.legalName], ['sales@example.test', '+00 0000', 'Sample address, Line 1', '2000', 'Sample Co.']);
 });
 
-test("serializeJsonLd escapes '<' so </script> cannot break out", () => {
-  const s = serializeJsonLd(buildOrganizationJsonLd({ name: '</script><script>alert(1)</script>', url: ORIGIN, sameAs: [] }, ORIGIN));
-  assert.equal(s.includes('<'), false);
-  assert.match(s, /\\u003c\/script>/);
-  assert.equal((JSON.parse(s) as { name: string }).name, '</script><script>alert(1)</script>');
+test('Organization builder returns a plain object; no script/serialization in the SEO helper', () => {
+  assert.equal('serializeJsonLd' in aboutModule, false);
+  const o = buildOrganizationJsonLd({ name: '</script><script>alert(1)</script>', url: ORIGIN, sameAs: [] }, ORIGIN);
+  assert.equal(Object.getPrototypeOf(o), Object.prototype);
+  assert.equal(o.name, '</script><script>alert(1)</script>'); // 原样保留，由组件转义
+  const src = readFileSync('src/lib/seo/about.ts', 'utf8');
+  assert.doesNotMatch(src, /<script|dangerouslySetInnerHTML|JSON\.stringify|u003c/);
+});
+
+test("JsonLd component escapes '<' when rendering builder output", () => {
+  const html = renderToStaticMarkup(createElement(JsonLd, { data: buildOrganizationJsonLd({ name: '</script><script>alert(1)</script>', url: ORIGIN, sameAs: [] }, ORIGIN) }));
+  assert.match(html, /^<script type="application\/ld\+json">/);
+  const inner = html.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, '');
+  assert.equal(inner.includes('<'), false);
+  assert.match(inner, /\\u003c\/script>/);
+  assert.equal((JSON.parse(inner) as { name: string }).name, '</script><script>alert(1)</script>');
 });
 
 test('about OG v uses its own template version; article OG URLs unchanged', () => {
@@ -189,4 +205,11 @@ test('about OG v uses its own template version; article OG URLs unchanged', () =
   const m = (badge: string) => ogImg(buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['ru'], origin: ORIGIN, ogBadge: badge })).url;
   assert.equal(m('О компании'), `${ORIGIN}/ru/about/og?v=${aboutOgVersion('ru', 'About PackJoyU', 'О компании')}`);
   assert.notEqual(m('О компании'), m('О нас'));
+});
+
+test('Organization JSON-LD: origin defaults to SITE_URL, @id matches OrganizationJsonLd.tsx', () => {
+  const o = buildOrganizationJsonLd({ name: 'PackJoyU', url: SITE_URL, sameAs: [] });
+  assert.equal(o['@id'], `${SITE_URL}/#organization`);
+  assert.equal(o.url, SITE_URL);
+  assert.match(readFileSync('src/components/seo/OrganizationJsonLd.tsx', 'utf8'), /'@id': `\$\{SITE_URL\}\/#organization`/);
 });
