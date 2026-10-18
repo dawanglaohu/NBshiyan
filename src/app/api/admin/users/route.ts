@@ -7,6 +7,7 @@ import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { hashPassword, passwordPolicyError, publicUser } from '@/lib/server/admin/accounts';
 import { normalizeAccountEmail } from '@/lib/server/admin/user-policy';
+import { auditTokenIssued, issueResponse, newEnrollToken } from '@/lib/server/admin/enroll-token';
 
 export const runtime = 'nodejs';
 
@@ -38,7 +39,10 @@ const Create = z.object({
   password: z.string().max(200), // 初始密码，线下告知；对方登录前须先绑定 2FA
 }).strict();
 
-/** 新建账号（仅 ADMIN） */
+/**
+ * 新建账号（仅 ADMIN）。#347 方案 A：同时签发一次性绑定令牌，响应体里多返回一次 enrollLink / expiresAt / expiresTruncated，
+ * 之后任何接口都拿不到这个链接（库里只有哈希）。链接只给本人私信，不进日志、审计、URL。
+ */
 export async function POST(req: Request) {
   const ctx = await requireAdmin(req, ['ADMIN']);
   if (ctx instanceof Response) return ctx;
@@ -51,7 +55,11 @@ export async function POST(req: Request) {
   const policy = passwordPolicyError(p.data.password, p.data.email);
   if (policy) return jsonErr(policy, 422);
   if (await prisma.user.findUnique({ where: { email: p.data.email }, select: { id: true } })) return jsonErr('email_taken', 409);
-  const u = await prisma.user.create({ data: { email: p.data.email, name: p.data.name, role: p.data.role, passwordHash: await hashPassword(p.data.password) } });
+  const now = new Date();
+  const t = newEnrollToken({ enrollIssuedAt: now }, now.getTime());
+  // enrollIssuedAt 与令牌同一时刻：72 小时窗口和 24 小时令牌从同一起点算
+  const u = await prisma.user.create({ data: { email: p.data.email, name: p.data.name, role: p.data.role, passwordHash: await hashPassword(p.data.password), enrollIssuedAt: now, ...t.data } });
   await audit({ actorId: ctx.user.id, action: 'user.create', target: u.id, meta: { changes: { role: { from: null, to: u.role }, disabled: { from: null, to: false } } }, ip: ctx.ip });
-  return NextResponse.json(publicUser(u), { status: 201, headers: noStore });
+  await auditTokenIssued(ctx.user.id, u.id, 'admin_create', ctx.ip, t.expiresTruncated);
+  return NextResponse.json({ ...publicUser(u), ...issueResponse(t) }, { status: 201, headers: noStore });
 }

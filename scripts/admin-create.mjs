@@ -7,7 +7,9 @@
 // 密码绝不进命令行参数、日志、异常信息或审计记录。规则与后台新建账号相同（12–200 位，不能等于邮箱）。
 // 邮箱已存在 → 失败，不覆盖；已有管理员 → 失败，除非加 --allow-additional-admin。
 // 建好的账号 totpEnabled=false：首次登录前照常走 2FA 绑定流程（与后台新建账号相同）。
+// #347 方案 A：同时签发一次性绑定令牌，成功后在 stdout 打印一次绑定链接（只给运行脚本的人；24 小时内有效），不进审计。
 // 依赖只有 @prisma/client 和 @node-rs/argon2（应用本身就用，standalone 产物里都有）。
+import { enrollLink, newEnrollToken } from './enroll-token-lib.mjs';
 import { ARGON, MESSAGES, USAGE, adminGateError, firstLine, isProductionEnv, parseArgs, passwordPolicyError, passwordSource, takeEnvPassword } from './admin-create-lib.mjs';
 
 // 第一件事：把环境变量里的密码取出并从 process.env 删除
@@ -82,13 +84,18 @@ async function main() {
       ]);
       const gate = adminGateError({ existingAdmins, emailTaken: !!taken, allowAdditionalAdmin: args.allowAdditionalAdmin });
       if (gate) return { gate };
-      const u = await tx.user.create({ data: { email: args.email, name: args.name, role: 'ADMIN', passwordHash }, select: { id: true } });
-      // 审计：只记录角色和来源，不含密码、哈希或邮箱
+      const now = new Date();
+      const t = newEnrollToken(now.getTime());
+      const u = await tx.user.create({ data: { email: args.email, name: args.name, role: 'ADMIN', passwordHash, enrollIssuedAt: now, ...t.data }, select: { id: true } });
+      // 审计：只记录角色和来源，不含密码、哈希、邮箱或绑定令牌
       await tx.auditLog.create({ data: { actorId: null, action: 'user.create', target: u.id, meta: { role: 'ADMIN', via: 'cli:admin-create', additional: existingAdmins > 0 } } });
-      return { id: u.id };
+      await tx.auditLog.create({ data: { actorId: null, action: 'auth.enroll_token_issued', target: u.id, meta: { source: 'cli', truncated: t.expiresTruncated } } });
+      return { id: u.id, token: t.token, expiresAt: t.expiresAt };
     });
     if (result.gate) fail(result.gate);
-    console.log(`已创建管理员 ${args.email}（id ${result.id}）。首次登录需先绑定 2FA。`);
+    console.log(`已创建管理员 ${args.email}（id ${result.id}）。首次登录需先用下面的一次性链接绑定 2FA。`);
+    // 绑定链接只打印这一次（stdout，给运行脚本的人），有效期见下；只私信发给本人，不要贴进群聊、工单或日志
+    console.log(`绑定链接（只显示一次，有效至 ${result.expiresAt.toISOString()}）：${enrollLink(result.token, process.env)}`);
   } catch (e) {
     // 不输出底层异常信息（可能带连接串等），只给错误类型 / Prisma 错误码
     const code = typeof e?.code === 'string' && /^P\d{4}$/.test(e.code) ? e.code : e?.name ?? 'Error';

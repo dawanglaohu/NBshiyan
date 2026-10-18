@@ -1,12 +1,13 @@
 // 测试 / 本地 / CI 建号（pnpm admin:seed）。生产首个管理员请用 scripts/admin-create.mjs（pnpm admin:create）。
 // 凭据只从环境变量读，不要写进仓库或 shell 历史文件。
 // 用法：ADMIN_SEED_EMAIL=... ADMIN_SEED_NAME=... ADMIN_SEED_PASSWORD=... pnpm admin:seed
-// 创建后需先走 /api/auth-admin/enroll 绑定 2FA 才能登录。
+// 创建后需先走 /api/auth-admin/enroll 绑定 2FA 才能登录。#347：没有预置 2FA 时签发一次性绑定令牌，stdout 打印一次绑定链接（e2e 从这里拿令牌）。
 // 仅 CI / 本地：设置 ADMIN_SEED_TOTP_SECRET（base32）会直接写入加密后的 TOTP 密钥并启用 2FA，跳过绑定。
 //   生产环境（NODE_ENV=production 或 APP_ENV=production）设置了该变量直接报错退出。
 import { createCipheriv, randomBytes } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { hash } from '@node-rs/argon2';
+import { enrollLink, newEnrollToken } from './enroll-token-lib.mjs';
 
 // 拒绝对生产库运行：PROD_DATABASE_HOST 是逗号分隔的生产库主机名（支持 *.example.com 通配），
 // DATABASE_URL 的主机命中任意一个就退出。生产库只能走正式流程建号。
@@ -55,8 +56,12 @@ const prisma = new PrismaClient();
 const exists = await prisma.user.findUnique({ where: { email } });
 if (exists) { console.error(`${email} 已存在，未修改`); process.exit(1); }
 const totp = totpSeed ? { totpSecret: encryptTotp(totpSeed), totpEnabled: true } : {};
-const u = await prisma.user.create({ data: { email, name, role, passwordHash: await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1 }), ...totp } });
-// 审计只记录是否预置了 2FA，不记录密钥
+const now = new Date();
+const tk = totpSeed ? null : newEnrollToken(now.getTime());
+const u = await prisma.user.create({ data: { email, name, role, passwordHash: await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1 }), ...totp, ...(tk ? { enrollIssuedAt: now, ...tk.data } : {}) } });
+// 审计只记录是否预置了 2FA，不记录密钥或绑定令牌
 await prisma.auditLog.create({ data: { action: 'user.create', target: u.id, meta: { via: 'seed-script', role, totpPreset: !!totpSeed } } });
-console.log(`已创建 ${role} ${email}（id ${u.id}）${totpSeed ? '，已预置 2FA（仅限非生产）' : '，请先绑定 2FA'}`);
+if (tk) await prisma.auditLog.create({ data: { action: 'auth.enroll_token_issued', target: u.id, meta: { source: 'cli', truncated: tk.expiresTruncated } } });
+console.log(`已创建 ${role} ${email}（id ${u.id}）${totpSeed ? '，已预置 2FA（仅限非生产）' : '，请先用下面的一次性链接绑定 2FA'}`);
+if (tk) console.log(`绑定链接（只显示一次，有效至 ${tk.expiresAt.toISOString()}）：${enrollLink(tk.token, process.env)}`);
 await prisma.$disconnect();
