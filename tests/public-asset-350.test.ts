@@ -136,6 +136,38 @@ test('判型只看 magic bytes：SVG / GIF / HEIC / 随机字节 → unsupported
   assert.equal((await processPublicImage(mixed)).ok, false);
 });
 
+/** 列出 RIFF/WEBP 的顶层 chunk（ANMF 的帧数据在 chunk 内部，不展开） */
+function webpChunks(b: Buffer) {
+  assert.equal(b.subarray(0, 4).toString('latin1'), 'RIFF');
+  assert.equal(b.subarray(8, 12).toString('latin1'), 'WEBP');
+  const out: { type: string; data: Buffer }[] = [];
+  for (let o = 12; o + 8 <= b.length;) {
+    const len = b.readUInt32LE(o + 4);
+    out.push({ type: b.subarray(o, o + 4).toString('latin1'), data: b.subarray(o + 8, o + 8 + len) });
+    o += 8 + len + (len & 1);
+  }
+  return out;
+}
+
+test('多帧（动图）WebP → unsupported_type：两帧 1600×1200（长边够、像素不超限，只会因为多帧被拒）', async () => {
+  const frame = (bg: string) => sharp({ create: { width: 1600, height: 1200, channels: 3, background: bg } }).png().toBuffer();
+  // libwebp 编出的真动图：VP8X（带动画标志）+ ANIM + 两个 ANMF
+  const anim = await sharp([await frame('#ff0000'), await frame('#0000ff')], { join: { animated: true } }).webp().toBuffer();
+  const chunks = webpChunks(anim);
+  assert.equal(chunks[0].type, 'VP8X');
+  assert.ok(chunks[0].data[0] & 0x02, 'VP8X 动画标志');
+  assert.ok(chunks.some((c) => c.type === 'ANIM'));
+  assert.equal(chunks.filter((c) => c.type === 'ANMF').length, 2);
+  const meta = await sharp(anim).metadata();
+  assert.equal(meta.format, 'webp');
+  assert.equal(meta.pages, 2);
+  assert.equal(meta.width, 1600);
+  assert.equal(meta.height, 1200);
+  assert.deepEqual(await processPublicImage(anim), { ok: false, error: 'unsupported_type' });
+  // 对照：同尺寸的单帧 WebP 能通过，说明拒绝的原因只是多帧
+  assert.equal((await processPublicImage(await sharp(await frame('#ff0000')).webp().toBuffer())).ok, true);
+});
+
 test('按长边出两种尺寸：横图 sm 长边 800 / lg 长边 1600；竖图同样按长边（高度）；输出都是 WebP', async () => {
   const land = await processPublicImage(await solid(4000, 2000));
   assert.ok(land.ok);
