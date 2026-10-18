@@ -101,6 +101,24 @@ export async function hitRateLimit(key: string, limit = 5, windowMs = 10 * 60_00
   }
 }
 
+/**
+ * 限流只读检查：不计数，返回再计一次是否仍在上限内（本窗口已有次数 < limit）。key 前缀、存储和 hitRateLimit 完全一样，读的是同一个计数。
+ * 用于「先看满没满，失败了才计数」的场景（登录密码校验）。存储出错时按 opts.onStoreError 处理：closed 当作已满，open 放行，local 看本实例内存计数。
+ */
+export async function peekRateLimit(key: string, limit = 5, windowMs = 10 * 60_000, opts: RateLimitOpts = {}): Promise<boolean> {
+  const k = `${rateLimitEnv()}:${key}`;
+  try {
+    return await rateLimitStore().peek(k, limit, windowMs);
+  } catch (e) {
+    const mode = opts.onStoreError ?? 'local';
+    const now = Date.now();
+    if (now - lastStoreErrorLog > 10_000) { lastStoreErrorLog = now; console.error(`[ratelimit] store unavailable (${mode}):`, safeStoreError(e)); }
+    if (mode === 'closed') return false;
+    if (mode === 'open') return true;
+    return localFallback.peek(k, limit, windowMs);
+  }
+}
+
 /** 去掉换行，防止邮件头注入 */
 export const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim();
 export const escapeHtml = (s: string) =>
