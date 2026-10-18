@@ -55,6 +55,8 @@ function deps(over: Partial<SiteSettingsDeps> & { user?: User | null; originOk?:
     async audit(e) { calls.audit.push(e); },
     revalidate() { calls.revalidate++; },
     async userNames(ids) { return Object.fromEntries(ids.filter((i) => i === admin.id).map((i) => [i, admin.name])); },
+    // #350 图片 PR：默认把请求里的 id 都当作未删除的 PublicAsset（图片相关用例见 tests/public-asset-350.test.ts）
+    async liveAssets(ids) { return ids.map((id) => ({ id, smWidth: 800, smHeight: 600, lgWidth: 1600, lgHeight: 1200 })); },
     now: () => new Date('2026-10-17T22:30:00-07:00'),
     ...over,
   };

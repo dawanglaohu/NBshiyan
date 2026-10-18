@@ -89,7 +89,7 @@ test('metadata: locale not in publishedLocales (switch off / no content) → noi
 test('og image: #354 article template at /<locale>/about/og?v=…, never uploaded photos', () => {
   const m = buildAboutMetadata({
     locale: 'en', origin: ORIGIN, publishedLocales: ['en'],
-    content: content('en', { images: [{ id: 'abc', w: 1600, h: 1200, alt: 'x', caption: '', src: { sm: '/media/abc-800.webp', lg: '/media/abc-1600.webp' } }] })
+    content: content('en', { images: [{ id: 'abc', w: 1600, h: 1200, alt: 'x', caption: '', sm: { w: 800, h: 600 }, lg: { w: 1600, h: 1200 }, src: { sm: '/media/abc-800.webp', lg: '/media/abc-1600.webp' } }] })
   });
   const img = ogImg(m);
   assert.equal(img.url, `${ORIGIN}/en/about/og?v=${aboutOgVersion('en', 'About PackJoyU')}`);

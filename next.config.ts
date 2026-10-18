@@ -14,15 +14,15 @@ const adminHeaders = [
   { key: 'Referrer-Policy', value: 'no-referrer' }
 ];
 const isProd = isProdEnvFrom();
-// 输出存储文件的接口（logo、模型）：CSP 由 src/lib/server/file-response.ts 设置
-const FILE_ROUTE_SOURCES = ['/api/admin/uploads/:path*', '/api/admin/models/:id/file', '/api/designs/:id/logo', '/api/models/:id/:variant'];
-const FILE_ROUTE_EXCLUDE = 'api/admin/uploads(?:/|$)|api/admin/models/[^/]+/file$|api/designs/[^/]+/logo$|api/models/[^/]+/[^/]+$';
+// 输出存储文件的接口（logo、模型、#350 公开图片 /media/<id>-<w>.webp）：CSP 由 src/lib/server/file-response.ts 设置
+const FILE_ROUTE_SOURCES = ['/api/admin/uploads/:path*', '/api/admin/models/:id/file', '/api/designs/:id/logo', '/api/models/:id/:variant', '/media/:file'];
+const FILE_ROUTE_EXCLUDE = 'api/admin/uploads(?:/|$)|api/admin/models/[^/]+/file$|api/designs/[^/]+/logo$|api/models/[^/]+/[^/]+$|media/[^/]+$';
 
 // #323：mock 源文件（src/lib/**/mock.ts、sanityMock.ts、models-mock.ts 等）
 const MOCK_SOURCE_GLOBS = ['./src/lib/**/mock.ts', './src/lib/**/*Mock.ts', './src/lib/**/*-mock.ts'];
 
-// 带点路径兜底 404 时跳过的前缀（这些前缀有自己的路由或 404 处理）
-const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s)(?:/|$)';
+// 带点路径兜底 404 时跳过的前缀（这些前缀有自己的路由或 404 处理；media = #350 公开图片 /media/<id>-<w>.webp）
+const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s|media)(?:/|$)';
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,

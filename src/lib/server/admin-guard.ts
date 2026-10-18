@@ -51,8 +51,20 @@ export async function enforceAdminRateLimit(req: Request, key: string, limit = 1
   const ip = rateLimitSubject(clientIp(req));
   // 存储故障时拒绝（已登录用户，影响面小）
   if (await hitRateLimit(`admin:${key}:${ip}`, limit, 60_000, { onStoreError: 'closed' })) return null;
-  return NextResponse.json(
-    { error: 'rate_limited' },
-    { status: 429, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store' } }
-  );
+  return rateLimited();
 }
+
+/**
+ * 按「key + 管理员 user id」计数，每分钟 limit 次（#350 图片上传：同一 IP 后面的多个管理员互不影响）。
+ * 必须在 requireAdmin 通过之后调用，userId 只用 session 里的 user.id（服务端 cuid），不用请求里的任何值。
+ * 存储故障时同样拒绝；超限返回和 enforceAdminRateLimit 完全一样的 429。
+ */
+export async function enforceAdminUserRateLimit(userId: string, key: string, limit = 120): Promise<NextResponse | null> {
+  if (await hitRateLimit(`admin:${key}:user:${userId}`, limit, 60_000, { onStoreError: 'closed' })) return null;
+  return rateLimited();
+}
+
+const rateLimited = () => NextResponse.json(
+  { error: 'rate_limited' },
+  { status: 429, headers: { 'Retry-After': '60', 'Cache-Control': 'no-store' } }
+);

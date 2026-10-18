@@ -24,5 +24,6 @@ export const siteSettingsDeps: Omit<SiteSettingsDeps, 'requireAdmin'> = {
   audit: (e) => audit(e),
   revalidate: revalidateSiteSettings,
   userNames: async (ids) => Object.fromEntries((await prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } })).map((u) => [u.id, u.name])),
+  liveAssets: (ids) => (ids.length ? prisma.publicAsset.findMany({ where: { id: { in: ids }, deletedAt: null }, select: { id: true, smWidth: true, smHeight: true, lgWidth: true, lgHeight: true } }) : Promise.resolve([])),
   now: () => new Date(),
 };
