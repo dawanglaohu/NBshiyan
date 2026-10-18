@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
@@ -47,16 +47,33 @@ function BodyEditor({ initial, dir, onChange, invalid, describedBy }: { initial:
     document.execCommand('createLink', false, link.trim());
     setLink(null); emit();
   };
-  const tools: [string, string, () => void][] = [
-    ['H2', '二级标题', () => cmd('formatBlock', '<h2>')], ['H3', '三级标题', () => cmd('formatBlock', '<h3>')],
-    ['B', '加粗', () => cmd('bold')], ['I', '斜体', () => cmd('italic')], ['🔗', '链接', openLink],
-    ['• ≡', '项目符号列表', () => cmd('insertUnorderedList')], ['1. ≡', '编号列表', () => cmd('insertOrderedList')],
-    ['Tx', '清除格式', () => { cmd('removeFormat'); cmd('unlink'); cmd('formatBlock', '<p>'); }],
+  // UX #373 P3-3：平的、分组的工具栏（稿件 .ss-tb）：H2 H3 | B I 链接 | 列表 | 清除格式；加粗 / 斜体按选区显示 aria-pressed
+  const [pressed, setPressed] = useState({ bold: false, italic: false });
+  useEffect(() => {
+    const h = () => {
+      const sel = window.getSelection();
+      if (!sel || !ref.current?.contains(sel.anchorNode)) return;
+      setPressed({ bold: document.queryCommandState('bold'), italic: document.queryCommandState('italic') });
+    };
+    document.addEventListener('selectionchange', h);
+    return () => document.removeEventListener('selectionchange', h);
+  }, []);
+  type Tool = { label: React.ReactNode; name: string; fn: () => void; pressed?: boolean };
+  const groups: Tool[][] = [
+    [{ label: 'H2', name: '二级标题', fn: () => cmd('formatBlock', '<h2>') }, { label: 'H3', name: '三级标题', fn: () => cmd('formatBlock', '<h3>') }],
+    [{ label: <b>B</b>, name: '加粗', fn: () => cmd('bold'), pressed: pressed.bold }, { label: <i>I</i>, name: '斜体', fn: () => cmd('italic'), pressed: pressed.italic }, { label: '🔗', name: '链接', fn: openLink }],
+    [{ label: '• ≡', name: '项目符号列表', fn: () => cmd('insertUnorderedList') }, { label: '1. ≡', name: '编号列表', fn: () => cmd('insertOrderedList') }],
+    [{ label: 'Tx', name: '清除格式', fn: () => { cmd('removeFormat'); cmd('unlink'); cmd('formatBlock', '<p>'); } }],
   ];
   return (
     <div className={`st-editor${invalid ? ' bad' : ''}`}>
       <div className="st-tools" role="toolbar" aria-label="正文格式">
-        {tools.map(([label, name, fn]) => <button key={name} type="button" className="adm-btn sq" aria-label={name} title={name} onMouseDown={(e) => e.preventDefault()} onClick={fn}>{label}</button>)}
+        {groups.map((g, gi) => (
+          <Fragment key={gi}>
+            {gi > 0 && <span className="sep" aria-hidden="true" />}
+            {g.map((t) => <button key={t.name} type="button" className="st-tb-btn" aria-label={t.name} title={t.name} aria-pressed={t.pressed === undefined ? undefined : t.pressed} onMouseDown={(e) => e.preventDefault()} onClick={t.fn}>{t.label}</button>)}
+          </Fragment>
+        ))}
       </div>
       {link !== null && (
         <div className="st-link">

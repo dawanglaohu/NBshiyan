@@ -50,3 +50,11 @@ test('P3-2 冲突期间保存栏：「有未保存的修改 · 内容冲突，�
   }
   assert.match(css, /\.st-bar \.adm-btn\.primary:disabled\{background:var\(--line\);border-color:var\(--line\);color:var\(--ink-2\);opacity:1/);
 });
+
+test('P3-3 工具栏：平的按钮（没有 adm-btn 边框方块），四组之间有分隔线，加粗 / 斜体有 aria-pressed', () => {
+  assert.doesNotMatch(about, /className="adm-btn sq" aria-label=\{name\}/);
+  assert.match(about, /className="st-tb-btn"/);
+  assert.match(about, /<span className="sep" aria-hidden="true" \/>/);
+  assert.match(css, /\.st-tb-btn\{font:inherit;font-size:13px;min-width:34px;height:32px;border:1px solid transparent;border-radius:6px;background:none/);
+  assert.match(css, /\.st-tools\{display:flex;gap:2px;flex-wrap:wrap;padding:4px;border-bottom:1px solid var\(--line\);background:#FCFAF6/);
+});

@@ -24,7 +24,13 @@
 .st-count{font-size:12px;color:var(--ink-2);font-weight:500}.st-count.bad{color:#C0392B;font-weight:700}
 .st-ferr{color:#C0392B;font-size:13px;margin:4px 0 0}
 .st-editor{border:1px solid var(--line);border-radius:8px;background:#fff}
-.st-tools{display:flex;gap:4px;flex-wrap:wrap;padding:6px;border-bottom:1px solid var(--line)}
+.st-tools{display:flex;gap:2px;flex-wrap:wrap;padding:4px;border-bottom:1px solid var(--line);background:#FCFAF6;border-radius:8px 8px 0 0}
+/* UX #373 P3-3：平的分组工具栏（稿件 .ss-tb） */
+.st-tb-btn{font:inherit;font-size:13px;min-width:34px;height:32px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;color:var(--ink)}
+.st-tb-btn:hover{background:#F1EDE6}
+.st-tb-btn[aria-pressed="true"]{background:#EFEDEA;border-color:var(--line)}
+.st-tb-btn:focus-visible{outline:2px solid var(--accent-text);outline-offset:1px}
+.st-tools .sep{width:1px;background:var(--line);margin:4px}
 .st-rich{min-height:200px;padding:10px 12px;outline:none;line-height:1.6}
 .st-rich:focus-visible{box-shadow:inset 0 0 0 2px var(--accent-text)}
 .st-rich ul,.st-rich ol{padding-inline-start:1.4em}
