@@ -35,3 +35,7 @@ test('P2-2「在新窗口预览 EN ↗」：target=_blank + rel=noopener，指�
   assert.match(about, /href=\{`\/\$\{tab\}\/about`\} target="_blank" rel="noopener"/);
   assert.equal(SETTINGS_TEXT.preview('en'), '在新窗口预览 EN ↗');
 });
+
+test('P3-1 编辑器链接颜色用 --accent-text', () => {
+  assert.match(css, /\.st-rich a\{color:var\(--accent-text\)\}/);
+});
