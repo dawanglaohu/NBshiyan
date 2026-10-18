@@ -11,7 +11,7 @@ import sharp from 'sharp';
 import type { Role, User } from '@prisma/client';
 import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match';
 import {
-  processPublicImage, serialize, readUploadFile, PUBLIC_ASSET_MAX_BYTES, PUBLIC_ASSET_MAX_REQUEST_BYTES, PUBLIC_ASSET_MAX_PIXELS, publicAssetUrl,
+  processPublicImage, serialize, isAnimatedPng, readUploadFile, PUBLIC_ASSET_MAX_BYTES, PUBLIC_ASSET_MAX_REQUEST_BYTES, PUBLIC_ASSET_MAX_PIXELS, publicAssetUrl,
   MEDIA_FILE_RE, PUBLIC_ASSET_SIZES,
 } from '../src/lib/server/public-assets';
 import {
@@ -148,6 +148,29 @@ function webpChunks(b: Buffer) {
   }
   return out;
 }
+
+function pngChunk(type: string, data: Buffer) {
+  const t = Buffer.from(type, 'latin1'); const len = Buffer.alloc(4); len.writeUInt32BE(data.length); const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(Buffer.concat([t, data])) >>> 0);
+  return Buffer.concat([len, t, data, crc]);
+}
+/** 在普通 PNG 的 IHDR 后插入 acTL（2 帧）→ APNG 文件头 */
+function withAcTL(png: Buffer) {
+  const ihdrEnd = 8 + 12 + png.readUInt32BE(8);
+  const ac = Buffer.alloc(8); ac.writeUInt32BE(2, 0); ac.writeUInt32BE(0, 4);
+  return Buffer.concat([png.subarray(0, ihdrEnd), pngChunk('acTL', ac), png.subarray(ihdrEnd)]);
+}
+
+test('APNG（动图 PNG）→ unsupported_type；同一张图不带 acTL 照常通过；IDAT 之后的 acTL 不算', async () => {
+  const png = await sharp({ create: { width: 1600, height: 1200, channels: 3, background: '#c33' } }).png().toBuffer();
+  assert.equal(isAnimatedPng(png), false);
+  const apng = withAcTL(png);
+  assert.equal(isAnimatedPng(apng), true);
+  assert.deepEqual(await processPublicImage(apng), { ok: false, error: 'unsupported_type' });
+  assert.equal((await processPublicImage(png)).ok, true);
+  const iend = png.length - 12;
+  assert.equal(isAnimatedPng(Buffer.concat([png.subarray(0, iend), pngChunk('acTL', Buffer.alloc(8)), png.subarray(iend)])), false);
+  assert.equal(isAnimatedPng(png.subarray(0, 20)), false, '截断的文件不报错');
+});
 
 test('多帧（动图）WebP → unsupported_type：两帧 1600×1200（长边够、像素不超限，只会因为多帧被拒）', async () => {
   const frame = (bg: string) => sharp({ create: { width: 1600, height: 1200, channels: 3, background: bg } }).png().toBuffer();

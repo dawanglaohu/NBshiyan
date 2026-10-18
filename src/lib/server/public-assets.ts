@@ -65,10 +65,27 @@ async function encode(input: Buffer, longEdge: number): Promise<Rendition> {
   return { data, width: info.width, height: info.height };
 }
 
+/**
+ * APNG（动图 PNG）：sharp 把它当普通 PNG、pages 为空，只会转成静态默认帧，所以单独查。
+ * 按 PNG 结构从签名后逐块读：IDAT 之前出现 acTL 就是 APNG；遇到 IDAT / IEND 或结构不完整就停。只读块头，不解码。
+ */
+export function isAnimatedPng(input: Buffer): boolean {
+  let off = 8;
+  while (off + 8 <= input.length) {
+    const len = input.readUInt32BE(off);
+    const type = input.toString('latin1', off + 4, off + 8);
+    if (type === 'acTL') return true;
+    if (type === 'IDAT' || type === 'IEND') return false;
+    off += 12 + len;
+  }
+  return false;
+}
+
 export function processPublicImage(input: Buffer): Promise<ProcessResult> {
   if (input.length > PUBLIC_ASSET_MAX_BYTES) return Promise.resolve({ ok: false, error: 'file_too_large' });
   const type = sniffImage(input);
   if (!type) return Promise.resolve({ ok: false, error: 'unsupported_type' });
+  if (type === 'png' && isAnimatedPng(input)) return Promise.resolve({ ok: false, error: 'unsupported_type' });
   return serialize(async (): Promise<ProcessResult> => {
     try {
       // metadata() 只读文件头，不解码像素；这里关掉 limitInputPixels，才能自己判断并返回 image_too_large_dimensions。真正解码（encode）仍带 OPTS 的上限
