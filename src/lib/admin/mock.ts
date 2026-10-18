@@ -1,5 +1,6 @@
 import type { AdminApi, AdminUser, AdminUsersResponse, InquiryDetail, InquiryStatus, InquirySummary } from './types';
 import { REVIEW_THRESHOLD, STATUS_LABEL, usersFromResponse } from './types';
+import { historyPageFrom, HISTORY_MAX_LIMIT, HISTORY_PAGE_SIZE, type HistoryItem, type HistoryType } from './history';
 
 // 示例数据，仅用于后台页面开发；接入真实接口后不再使用
 const users: AdminUser[] = [{ id: 'u1', name: '业务员 A', email: 'sales-a@packjoyu.example', role: 'SALES' }, { id: 'u2', name: '业务员 B', email: 'sales-b@packjoyu.example', role: 'SALES' }];
@@ -11,8 +12,14 @@ const COMPANIES: [string, string, string][] = [
   ['Bloom Co', 'AU', 'sam@bloom.co'], ['Nordic Tea AB', 'SE', 'lena@nordictea.se'], ['Maison Vin', 'FR', 'paul@maisonvin.fr']
 ];
 const STATUSES: InquiryStatus[] = ['NEW', 'FOLLOWING', 'NEW', 'QUOTED', 'WON', 'INVALID'];
+/** mock 内部记录：详情 + 时间线（时间线只通过 getHistory 下发，与真实接口一致） */
+type Row = InquiryDetail & { history: HistoryItem[] };
+const ME = { name: '我', role: 'ADMIN' };
+const ADMIN = { name: '管理员', role: 'ADMIN' };
+let seq = 0;
+const ev = (type: HistoryType, at: string, actor: HistoryItem['actor'], summary: string): HistoryItem => ({ type, at, actor, summary, cursor: `mock-${++seq}` });
 
-function make(i: number): InquiryDetail {
+function make(i: number): Row {
   const [company, region, email] = COMPANIES[i % COMPANIES.length];
   const slug = PRODUCTS[i % PRODUCTS.length];
   const score = [86, 72, 31, 64, 91, 18][i % 6] - (i >= 6 ? 3 : 0);
@@ -41,25 +48,29 @@ function make(i: number): InquiryDetail {
     attachments: i % 3 === 0 ? [{ id: 'a1', kind: 'file', filename: 'artwork-v2.png', mime: 'image/png', sizeBytes: 1_258_291, scan: 'clean' }] : [],
     logoUploadId: i % 2 === 0 ? `mockLogo${String(i).padStart(16, '0')}` : undefined,
     history: [
-      { id: 'h1', at: createdAt, action: '询盘创建' },
-      ...(assignee ? [{ id: 'h2', at: ago(8 + i * 350), actor: '管理员', action: `分配给 ${assignee.name}` }] : [])
+      ev('created', createdAt, null, `客户提交询盘（${(['WIZARD', 'FORM', 'CART', 'CUSTOMIZER', 'SAMPLE'] as const)[i % 5]}）`),
+      ev('inbound', createdAt, null, '收到客户来信：首次询盘'),
+      ...(assignee ? [ev('assignment', ago(8 + i * 350), ADMIN, `分配给 ${assignee.name}`)] : []),
+      ...(status !== 'NEW' ? [ev('reply', ago(5 + i * 300), assignee ? { name: assignee.name, role: assignee.role } : null, '已回复客户：Re: Quote')] : []),
+      // 第 2 条示例询盘有 14 条状态往返，用来看「加载更早记录（剩 N 条）」
+      ...(i === 1 ? Array.from({ length: 14 }, (_, k) => ev('status', ago(6 + k * 3), ADMIN, k % 2 ? '状态：新询盘 → 跟进中' : '状态：跟进中 → 新询盘')) : [])
     ]
   };
 }
 
 /** 已匿名化示例（保留期到期 cron 处理后的样子）：PII 为 [deleted] / 空，邮箱为 deleted+随机@invalid.invalid */
-function makeAnonymized(): InquiryDetail {
+function makeAnonymized(): Row {
   const base = make(23);
   return {
     ...base, id: 'inq_anon_1', status: 'WON', assignee: users[0], createdAt: ago(60 * 24 * 760), anonymizedAt: ago(60 * 24 * 30),
     contact: { name: '[deleted]', email: 'deleted+k3j9q2x7@invalid.invalid', company: '[deleted]', phone: undefined, region: 'DE' }, ipCountry: null,
     message: undefined, attribution: undefined, trustReasons: [], logoUploadId: undefined, attachments: [], notes: [{ id: 'n1', author: '业务员 A', body: '[deleted]', createdAt: ago(60 * 24 * 700) }],
     messages: [{ id: 'm1', direction: 'INBOUND', subject: '[deleted]', bodyHtml: '[deleted]', createdAt: ago(60 * 24 * 760) }],
-    history: [{ id: 'h1', at: ago(60 * 24 * 760), action: '询盘创建' }, { id: 'h2', at: ago(60 * 24 * 30), actor: '系统', action: '按数据保留政策匿名化' }],
+    history: [ev('created', ago(60 * 24 * 760), null, '客户提交询盘（FORM）'), ev('inbound', ago(60 * 24 * 760), null, '收到客户来信：[deleted]')],
   };
 }
-const db: InquiryDetail[] = [...Array.from({ length: 23 }, (_, i) => make(i)), makeAnonymized()];
-const summary = ({ id, ref, status, source, locale, contact, products, trustScore, assignee, createdAt, anonymizedAt }: InquiryDetail): InquirySummary =>
+const db: Row[] = [...Array.from({ length: 23 }, (_, i) => make(i)), makeAnonymized()];
+const summary = ({ id, ref, status, source, locale, contact, products, trustScore, assignee, createdAt, anonymizedAt }: Row): InquirySummary =>
   ({ id, ref, status, source, locale, contact: { name: contact.name, email: contact.email, company: contact.company, region: contact.region }, products, trustScore, assignee, createdAt, anonymizedAt });
 const delay = <T,>(v: T) => new Promise<T>((r) => setTimeout(() => r(structuredClone(v)), 120));
 
@@ -84,17 +95,22 @@ export const mockAdminApi: AdminApi = {
     const pageSize = q.pageSize ?? 10, page = Math.max(1, q.page ?? 1);
     return delay({ items: rows.slice((page - 1) * pageSize, page * pageSize).map(summary), total: rows.length, page, pageSize });
   },
-  async getInquiry(id) { return delay(db.find((r) => r.id === id) ?? null); },
+  async getInquiry(id) {
+    const r = db.find((x) => x.id === id);
+    if (!r) return delay(null);
+    const { history: _h, ...detail } = r; void _h;
+    return delay<InquiryDetail>(detail);
+  },
   async updateInquiry(id, patch) {
     const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found'); if (r.anonymizedAt) throw new Error('anonymized');
-    if (patch.status && patch.status !== r.status) { r.history.push({ id: `h${Date.now()}`, at: new Date().toISOString(), actor: '我', action: `状态改为「${STATUS_LABEL[patch.status]}」` }); r.status = patch.status; }
-    if (patch.assigneeId !== undefined) { r.assignee = users.find((u) => u.id === patch.assigneeId); r.history.push({ id: `h${Date.now()}a`, at: new Date().toISOString(), actor: '我', action: r.assignee ? `分配给 ${r.assignee.name}` : '取消分配' }); }
+    if (patch.status && patch.status !== r.status) { r.history.push(ev('status', new Date().toISOString(), ME, `状态：${STATUS_LABEL[r.status]} → ${STATUS_LABEL[patch.status]}`)); r.status = patch.status; }
+    if (patch.assigneeId !== undefined && (patch.assigneeId ?? undefined) !== r.assignee?.id) { r.assignee = users.find((u) => u.id === patch.assigneeId); r.history.push(ev('assignment', new Date().toISOString(), ME, r.assignee ? `分配给 ${r.assignee.name}` : '取消分配')); }
     return delay({ id: r.id, status: r.status, assigneeId: r.assignee?.id ?? null, updatedAt: new Date().toISOString() });
   },
   async reply(id, { subject, body }) {
     const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found'); if (r.anonymizedAt) throw new Error('anonymized');
     const m = { id: `m${Date.now()}`, direction: 'OUTBOUND' as const, subject, bodyHtml: textToHtml(body), author: '我', createdAt: new Date().toISOString() };
-    r.messages.push(m); r.history.push({ id: `h${Date.now()}r`, at: m.createdAt, actor: '我', action: '发送回复' });
+    r.messages.push(m); r.history.push(ev('reply', m.createdAt, ME, `已回复客户：${subject.slice(0, 80)}`));
     return delay(m);
   },
   async addNote(id, body) {
@@ -103,6 +119,15 @@ export const mockAdminApi: AdminApi = {
     r.notes.push(n); return delay(n);
   },
   async listUsers() { const res: AdminUsersResponse = { items: users }; return usersFromResponse(await delay(res)); },
+  // 与真实接口一致：新的在前；before = 上一页最后一条的 cursor；不认识的游标 → bad_cursor；不存在 → not_found
+  async getHistory(id, q = {}) {
+    const r = db.find((x) => x.id === id); if (!r) throw new Error('not_found');
+    const all = r.history.slice().sort((a, b) => b.at.localeCompare(a.at) || b.cursor.localeCompare(a.cursor, 'en', { numeric: true }));
+    let start = 0;
+    if (q.before) { start = all.findIndex((x) => x.cursor === q.before) + 1; if (start === 0) throw new Error('bad_cursor'); }
+    const limit = Math.min(HISTORY_MAX_LIMIT, Math.max(1, q.limit ?? HISTORY_PAGE_SIZE));
+    return historyPageFrom(await delay({ items: all.slice(start, start + limit), total: all.length }));
+  },
   async logoPreview() {
     // 示例 Logo（SVG data URL），真实接口返回重新编码后的 PNG
     const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><rect width="200" height="100" rx="12" fill="#fff"/><circle cx="50" cy="50" r="28" fill="#D4AF6A"/><text x="90" y="60" font-family="Arial" font-size="26" font-weight="700" fill="#1C1C1C">ACME</text></svg>';

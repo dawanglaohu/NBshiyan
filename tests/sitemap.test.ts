@@ -31,7 +31,7 @@ test('category pages use each locale slug and cross-link', () => {
 
 test('noindex / placeholder paths never appear', () => {
   const s = buildSitemap({ ...opts, includeCategories: true });
-  for (const e of s) assert.doesNotMatch(new URL(e.url).pathname, /\/(privacy|s|industries|factory|case-studies|admin|api)(\/|$)/);
+  for (const e of s) assert.doesNotMatch(new URL(e.url).pathname, /\/(privacy|s|solutions|industries|factory|cases|case-studies|admin|api)(\/|$)/);
 });
 
 import { buildCmsEntries } from '../src/lib/seo/sitemapEntries';
@@ -80,4 +80,28 @@ test('cms: list page omitted when a locale only has noindex docs (#207)', () => 
   const s = buildCmsEntries({ ...cms, docs: [{ slug: { en: 'a' } }, { noindex: true, slug: { ru: 'b' } }] });
   assert.ok(s.some((e) => e.url === 'https://example.com/en/articles'));
   assert.ok(!s.some((e) => e.url.startsWith('https://example.com/ru/')));
+});
+
+test('cms: x-default only when the en version exists (matches page HTML docAlternates)', () => {
+  const s = buildCmsEntries({ ...cms, docs: [{ slug: { ru: 'tolko-ru' } }, { slug: { en: 'both', ru: 'oba' } }] });
+  const ruOnly = s.find((e) => e.url === 'https://example.com/ru/articles/tolko-ru')!;
+  assert.deepEqual(ruOnly.alternates!.languages, { ru: 'https://example.com/ru/articles/tolko-ru' });
+  const oba = s.find((e) => e.url === 'https://example.com/ru/articles/oba')!;
+  assert.equal((oba.alternates!.languages as Record<string, string>)['x-default'], 'https://example.com/en/articles/both');
+});
+
+test('cms: list page alternates only cross-link indexable list pages', () => {
+  // both locales indexable → en/ru/x-default
+  const both = buildCmsEntries({ ...cms, docs: [{ slug: { en: 'a', ru: 'a-ru' } }] });
+  const bothRu = both.find((e) => e.url === 'https://example.com/ru/articles')!;
+  assert.deepEqual(bothRu.alternates!.languages, { en: 'https://example.com/en/articles', ru: 'https://example.com/ru/articles', 'x-default': 'https://example.com/en/articles' });
+  // only en indexable → en list does not point to the noindex ru list
+  const enOnly = buildCmsEntries({ ...cms, docs: [{ slug: { en: 'a' } }, { noindex: true, slug: { ru: 'b' } }] });
+  const enList = enOnly.find((e) => e.url === 'https://example.com/en/articles')!;
+  assert.deepEqual(enList.alternates!.languages, { en: 'https://example.com/en/articles', 'x-default': 'https://example.com/en/articles' });
+  // only ru indexable → ru list alone, no x-default (en list is noindex)
+  const ruOnly = buildCmsEntries({ ...cms, docs: [{ slug: { ru: 'b' } }] });
+  const ruList = ruOnly.find((e) => e.url === 'https://example.com/ru/articles')!;
+  assert.deepEqual(ruList.alternates!.languages, { ru: 'https://example.com/ru/articles' });
+  assert.ok(!ruOnly.some((e) => e.url === 'https://example.com/en/articles'));
 });

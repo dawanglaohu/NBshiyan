@@ -1,5 +1,6 @@
 import type { AdminApi, AdminUser, AdminUsersResponse, InquiryDetail, InquiryMessage, InquiryNote, InquirySummary, Page, TrustReason } from './types';
 import { usersFromResponse } from './types';
+import { historyPageFrom, historyQuery } from './history';
 
 // 真实实现：对应 docs/API.md「后台接口」（/api/admin/*，需登录）。
 // 鉴权由 /admin 的登录保护负责，这里用同源 cookie（credentials: 'same-origin'）。
@@ -50,8 +51,8 @@ function detail(r: Raw, list: AdminUser[]): InquiryDetail {
     trustReasons: arr<TrustReason>(r.trustReasons).filter((x) => x && typeof x.label === 'string'),
     messages: arr<InquiryMessage>(r.messages).map((m) => ({ ...m, author: m.author ?? who(m.authorId) })),
     notes: arr<InquiryNote>(r.notes).map((n) => ({ ...n, author: n.author ?? who(n.authorId) ?? '' })),
-    // 后端暂无附件列表和操作历史（审计日志不下发），先显示为空
-    attachments: arr(r.attachments), history: arr(r.history),
+    // 后端暂无附件列表，先显示为空；操作历史走单独的 /history 接口（#331）
+    attachments: arr(r.attachments),
     logoUploadId: (r.logoUploadId as string | null) ?? undefined
   };
 }
@@ -73,5 +74,7 @@ export const httpAdminApi: AdminApi = {
   addNote: (id, body) => call(`/inquiries/${encodeURIComponent(id)}/notes`, { method: 'POST', body: JSON.stringify({ body }) }),
   listUsers: () => users(),
   // 同源 cookie 鉴权，可直接用于 <img src>；无权限或不存在时图片加载失败（404），由页面显示占位
-  logoPreview: async (uploadId) => `/api/admin/uploads/${encodeURIComponent(uploadId)}`
+  logoPreview: async (uploadId) => `/api/admin/uploads/${encodeURIComponent(uploadId)}`,
+  // #331：时间线不缓存（接口本身 no-store）；404 不在这里转成 null，由时间线显示「加载失败」
+  getHistory: async (id, q) => historyPageFrom(await call<unknown>(`/inquiries/${encodeURIComponent(id)}/history?${historyQuery(q)}`, { cache: 'no-store' }))
 };
