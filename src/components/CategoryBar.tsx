@@ -5,6 +5,18 @@ import { useEffect, useRef, useState } from 'react';
 export default function CategoryBar({ items, label }: { items: { slug: string; name: string }[]; label: string }) {
   const [active, setActive] = useState(items[0]?.slug);
   const navRef = useRef<HTMLElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  // 把分类条的实际高度写进 --catbar-h，卡片的 scroll-margin-top 用它（CSS 里有兜底值）；字体加载、换语言后高度变了会跟着更新
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const root = document.documentElement;
+    const upd = () => root.style.setProperty('--catbar-h', `${wrap.getBoundingClientRect().height}px`);
+    upd();
+    const ro = new ResizeObserver(upd);
+    ro.observe(wrap);
+    return () => { ro.disconnect(); root.style.removeProperty('--catbar-h'); };
+  }, []);
   useEffect(() => {
     const io = new IntersectionObserver((entries) => {
       const hit = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
@@ -42,7 +54,7 @@ export default function CategoryBar({ items, label }: { items: { slug: string; n
     setActive(slug);
   };
   return (
-    <div className={`catbar-wrap${edges.l ? ' can-l' : ''}${edges.r ? ' can-r' : ''}`}>
+    <div ref={wrapRef} className={`catbar-wrap${edges.l ? ' can-l' : ''}${edges.r ? ' can-r' : ''}`}>
       <button type="button" className="catbar-arrow l" tabIndex={-1} aria-hidden="true" onClick={() => page(-1)}>‹</button>
       <nav ref={navRef} className="catbar" aria-label={label}>
         {items.map((i) => (
