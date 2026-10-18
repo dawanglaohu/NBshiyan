@@ -3,8 +3,9 @@ import { categoryMeta, type CategoryMeta } from './categoryMeta';
 import { PRIVACY_PAGE_COMPLETE, PRIVACY_PATH } from '../legal/privacy';
 import { listLanguages, withXDefault } from './hreflang';
 export { CATEGORY_PAGES_LIVE } from './categoryPages';
+import type { PublishedLocale } from '@/i18n/published-locales';
 
-type Locale = 'en' | 'ru';
+type Locale = PublishedLocale;
 type Freq = 'weekly' | 'monthly';
 /** 一个页面在各语言下的路径（不含 /{locale} 前缀），例如 { en: '/products/custom-gift-boxes', ru: '/products/podarochnye-korobki' } */
 type Page = { paths: Record<Locale, string>; priority: number; changeFrequency: Freq };

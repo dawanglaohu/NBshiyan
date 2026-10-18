@@ -1,4 +1,5 @@
 import { isProdEnvFrom } from '../site';
+import { PUBLISHED_LOCALES } from '@/i18n/published-locales';
 // IndexNow（Yandex / Bing）推送。Refs #74。
 // 只在生产环境、并且 INDEXNOW_KEY 格式合法时启用；否则所有函数都是空操作。
 // 端点写死；URL 只用 NEXT_PUBLIC_SITE_URL 拼接，绝不使用 webhook 里的主机名。
@@ -11,7 +12,8 @@ export const DEDUPE_MS = 10 * 60_000;
 const TIMEOUT_MS = 3_000;
 const MAX_URLS = 10_000;
 const SLUG_RE = /^[a-z0-9-]{1,96}$/;
-const LOCALES = ['en', 'ru'] as const;
+const LOCALES = PUBLISHED_LOCALES;
+const PATH_RE = new RegExp(`^/(${LOCALES.join('|')})(/[a-z0-9-]+)*$`);
 
 type Env = Record<string, string | undefined>;
 
@@ -93,7 +95,7 @@ export async function submitIndexNow(paths: string[], deps: IndexNowDeps = {}): 
     if (!store) return 0;
     const urls: string[] = [];
     for (const p of [...new Set(paths)]) {
-      if (!/^\/(en|ru)(\/[a-z0-9-]+)*$/.test(p)) continue;
+      if (!PATH_RE.test(p)) continue;
       const url = `${site}${p}`;
       if (await store.hit(url, 1, DEDUPE_MS)) urls.push(url);
       if (urls.length >= MAX_URLS) break;

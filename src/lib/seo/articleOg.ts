@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import type { Metadata } from 'next';
 import { ogImageUrl, OG_WIDTH, OG_HEIGHT } from '@/lib/seo/pageMeta';
 import { SITE_URL } from '@/lib/site';
+import { ogLocales } from '@/i18n/locale-meta';
 import { ARTICLE_OG_TEMPLATE_VERSION, ogSafeText } from '@/lib/seo/og/articleOgLayout';
 
 // 文章分享图。
@@ -40,8 +41,7 @@ export function articleShareMeta(locale: 'en' | 'ru', alt: string, doc?: Article
     openGraph: {
       type: 'website',
       siteName: 'PackJoyU',
-      locale: locale === 'ru' ? 'ru_RU' : 'en_US',
-      alternateLocale: locale === 'ru' ? ['en_US'] : ['ru_RU'],
+      ...ogLocales(locale),
       images: [image]
     },
     twitter: { card: 'summary_large_image', images: [image] }

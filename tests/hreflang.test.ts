@@ -26,7 +26,7 @@ test('listLanguages: only indexable locales; x-default only if en indexable', ()
 
 test('cmsPages uses the shared hreflang helpers (HTML and sitemap stay consistent)', () => {
   const src = readFileSync(new URL('../src/components/cms/cmsPages.tsx', import.meta.url), 'utf8');
-  assert.match(src, /withXDefault\(languages, routing\.defaultLocale\)/);
+  assert.match(src, /withXDefault\(languages, (routing\.defaultLocale|DEFAULT_PUBLISHED_LOCALE)\)/);
   assert.match(src, /listLanguages\(\{/);
   assert.doesNotMatch(src, /alternates: alternatesFor\(locale, base\)/);
   const sm = readFileSync(new URL('../src/lib/seo/sitemapEntries.ts', import.meta.url), 'utf8');

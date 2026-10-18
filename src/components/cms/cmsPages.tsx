@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
-import { routing } from '@/i18n/routing';
+import { PUBLISHED_LOCALES, DEFAULT_PUBLISHED_LOCALE } from '@/i18n/published-locales';
 import { listLanguages, withXDefault } from '@/lib/seo/hreflang';
 import { getDocBySlug, getDocs, type DocType, type Locale } from '@/lib/server/sanity';
 import PortableText from './PortableText';
@@ -39,10 +39,10 @@ async function shareMeta(type: DocType, locale: string, doc?: ArticleOgSource): 
 export function listMetadata(type: DocType, base: string) {
   return async ({ params }: P): Promise<Metadata> => {
     const { locale } = await params;
-    const counts = await Promise.all(routing.locales.map(async (l) => [l, (await getDocs(type, l))?.length ?? 0] as const));
+    const counts = await Promise.all(PUBLISHED_LOCALES.map(async (l) => [l, (await getDocs(type, l))?.length ?? 0] as const));
     const indexable = counts.filter(([, n]) => n > 0).map(([l]) => l);
     // hreflang 只互指可索引（非空态）的列表页；当前页是 noindex 空态时不输出 hreflang（规则见 lib/seo/hreflang）
-    const languages = listLanguages({ current: loc(locale), locales: routing.locales, indexable, defaultLocale: routing.defaultLocale, href: (l) => `/${l}${base}` });
+    const languages = listLanguages({ current: loc(locale), locales: PUBLISHED_LOCALES, indexable, defaultLocale: DEFAULT_PUBLISHED_LOCALE, href: (l) => `/${l}${base}` });
     const alternates = { canonical: alternatesFor(locale, base).canonical, ...(Object.keys(languages).length ? { languages } : {}) };
     return { title: (META_TITLES[type] ?? TITLES[type])[loc(locale)], alternates, ...(indexable.includes(loc(locale)) ? {} : { robots: { index: false, follow: true } }), ...(await shareMeta(type, locale)) };
   };
@@ -92,8 +92,8 @@ export function detailMetadata(type: DocType, base: string) {
 function docAlternates(locale: string, base: string, slug: string, alt?: Doc['alt']) {
   const a = alternatesFor(locale, `${base}/${slug}`);
   const languages: Record<string, string> = {};
-  for (const l of ['en', 'ru'] as const) { const s = l === locale ? slug : alt?.[l]; if (s) languages[l] = `/${l}${base}/${s}`; }
-  return { canonical: a.canonical, languages: withXDefault(languages, routing.defaultLocale) };
+  for (const l of PUBLISHED_LOCALES) { const s = l === locale ? slug : alt?.[l]; if (s) languages[l] = `/${l}${base}/${s}`; }
+  return { canonical: a.canonical, languages: withXDefault(languages, DEFAULT_PUBLISHED_LOCALE) };
 }
 
 export function DetailPage(type: DocType, base: string) {
