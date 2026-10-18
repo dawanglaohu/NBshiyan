@@ -88,7 +88,7 @@ async function assetDeps(over: Partial<PublicAssetDeps> & { user?: User | null; 
   const calls = { order: [] as string[], audit: [] as Parameters<PublicAssetDeps['audit']>[0][], puts: [] as { key: string; type?: string; data: Buffer }[], deletes: [] as string[], revalidate: 0 };
   const mem = memRepo();
   const user = over.user === undefined ? admin : over.user;
-  const settings = over.settings ?? {};
+  const settings: Record<string, unknown> = over.settings ?? {};
   const d: PublicAssetDeps = {
     async requireAdmin(_req, roles: Role[]) {
       calls.order.push('auth');
