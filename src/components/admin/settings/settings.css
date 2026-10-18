@@ -78,12 +78,12 @@
   .st-page .adm-btn{min-height:44px}
   .st-page .adm-btn.sq{min-width:44px}
   .st-f input,.st-f select,.st-link input{min-height:44px}
-  /* UX #378 P3 ②：390 下工具栏一行放下（原来 8 个 44px 宽按钮折成两行）。高度仍 44px；宽度收到 36px、去掉按钮间距、分隔线两侧 2px。
+  /* UX #378 P3 ②：390 下工具栏一行放下（原来 8 个 44px 宽按钮折成两行）。高度仍 44px；宽度收到 32px、去掉按钮间距、分隔线两侧 2px。
      更窄的屏放不下时横向滚动，不显示滚动条（不再换行） */
   .st-tools{flex-wrap:nowrap;gap:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
   .st-tools::-webkit-scrollbar{display:none}
   .st-tools .sep{flex:none;margin:6px 2px}
-  .st-tb-btn{min-width:36px;height:44px;padding:0 4px;flex:none}
+  .st-tb-btn{min-width:32px;height:44px;padding:0 2px;flex:none}
   .st-tabs [role=tab]{min-height:44px}
   .st-sections a{min-height:44px;display:inline-flex;align-items:center}
   .st-page{padding:16px;padding-bottom:110px}

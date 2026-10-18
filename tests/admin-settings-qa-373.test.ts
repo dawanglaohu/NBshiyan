@@ -70,7 +70,7 @@ test('P3-3 工具栏：平的按钮（没有 adm-btn 边框方块），四组之
 
 test('P2-3 390 下点击区域 ≥ 44px：按钮、输入框、下拉、标签页、分区链接、工具栏、开关', () => {
   const mobile = css.slice(css.indexOf('@media (max-width:767px)'));
-  for (const rule of ['.st-page .adm-btn{min-height:44px}', '.st-page .adm-btn.sq{min-width:44px}', '.st-f input,.st-f select,.st-link input{min-height:44px}', '.st-tb-btn{min-width:36px;height:44px;padding:0 4px;flex:none}', '.st-tabs [role=tab]{min-height:44px}', '.st-sections a{min-height:44px']) {
+  for (const rule of ['.st-page .adm-btn{min-height:44px}', '.st-page .adm-btn.sq{min-width:44px}', '.st-f input,.st-f select,.st-link input{min-height:44px}', '.st-tb-btn{min-width:32px;height:44px;padding:0 2px;flex:none}', '.st-tabs [role=tab]{min-height:44px}', '.st-sections a{min-height:44px']) {
     assert.ok(mobile.includes(rule), rule);
   }
   assert.match(css, /\.st-switch\{width:52px;height:44px;/);
