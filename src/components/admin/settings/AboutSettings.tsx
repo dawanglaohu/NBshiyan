@@ -8,7 +8,7 @@ import {
 } from '@/lib/admin/site-settings';
 import ConfirmDialog from './ConfirmDialog';
 import SettingsSections from './SettingsSections';
-import { aboutImagesApi, anyImageErrors, metaChanged, saveAboutWithImages, setMeta, withImagesDirty, type AboutImageItem, type AboutImagesState } from '@/lib/admin/about-images';
+import { aboutImagesApi, anyImageErrors, imageAltChecklistItem, metaChanged, saveAboutWithImages, setMeta, withImageAltCompleteness, withImagesDirty, type AboutImageItem, type AboutImagesState } from '@/lib/admin/about-images';
 import AboutImages from './AboutImages';
 import './settings.css';
 
@@ -203,7 +203,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   };
 
   // 前台状态：开关开 + 该语言完整 + 已上线。完整与否以后端结果为准（TODO(backend #350)：接口返回 complete）
-  const comp = (l: string) => draftCompleteness(savedLocales[l] ?? emptyDraft());
+  const comp = (l: string) => withImageAltCompleteness(draftCompleteness(savedLocales[l] ?? emptyDraft()), savedLocales[l], imgSaved.items.map((i) => i.id));
   const shownLocales = saved?.enabled ? locales.filter((l) => publishedLocales.includes(l) && comp(l).state === 'complete') : [];
 
   if (!saved) return <div className="st-page"><p>{notice?.text ?? '加载中…'}</p></div>;
@@ -312,7 +312,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
           <section className="adm-card st-card" aria-labelledby="st-chk-h">
             <h2 id="st-chk-h">{T.checklist(tab)}</h2>
             <ul className="st-chk">
-              {draftChecklist(d).map((c) => (
+              {[...draftChecklist(d), imageAltChecklistItem(d, imgDraft.map((i) => i.id))].map((c) => (
                 <li key={c.key}><span className={`i ${c.state}`} aria-hidden="true">{c.state === 'ok' ? '✓' : c.state === 'missing' ? '!' : '–'}</span>
                   <span>{c.label}<span className="sr-only">{c.state === 'ok' ? '（已满足）' : c.state === 'missing' ? '（未满足）' : '（选填）'}</span></span></li>
               ))}

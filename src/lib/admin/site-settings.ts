@@ -122,7 +122,7 @@ export function draftCompleteness(d: AboutDraft): Completeness {
 
 /**
  * 右栏「<语言> 完整度」清单（稿件 settings-desktop 的 .ss-chk）：按当前草稿实时算。
- * state：ok ✓ / missing !（必填没满足）/ optional –（选填）。图片替代文字一项等 PublicAsset 接入后再加。
+ * state：ok ✓ / missing !（必填没满足）/ optional –（选填）。图片替代文字一项见 about-images.ts 的 imageAltChecklistItem。
  */
 export type ChecklistItem = { key: 'title' | 'body' | 'stats' | 'home'; label: string; state: 'ok' | 'missing' | 'optional' };
 export function draftChecklist(d: AboutDraft): ChecklistItem[] {

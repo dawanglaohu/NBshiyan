@@ -5,12 +5,12 @@ import * as React from 'react';
 (globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
-  IMAGES_MAX, addImage, anyImageErrors, createAboutImagesApi, imageErrorText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
-  precheckFile, pruneImageMeta, retryAfterMs, saveAboutWithImages, slotsLeft, uploadAboutImage, uploadOutcome, withImagesDirty,
+  IMAGES_MAX, addImage, anyImageErrors, createAboutImagesApi, imageAltChecklistItem, imageErrorText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
+  precheckFile, pruneImageMeta, retryAfterMs, saveAboutWithImages, slotsLeft, uploadAboutImage, uploadOutcome, withImageAltCompleteness, withImagesDirty,
   type AboutImageItem, type AboutImagesState, type XhrLike,
 } from '../src/lib/admin/about-images';
 import { createAboutSettingsApi, draftFromView } from '../src/lib/admin/site-settings-http';
-import { dirtySummary, emptyDraft, type AboutDraft, type AboutSettingsData } from '../src/lib/admin/site-settings';
+import { dirtySummary, draftCompleteness, emptyDraft, type AboutDraft, type AboutSettingsData } from '../src/lib/admin/site-settings';
 import { aboutImageAttrs, visibleImages } from '../src/lib/about/model';
 import { AboutFigure, ABOUT_IMAGE_SIZES } from '../src/components/about/AboutParts';
 import { AboutImagesPutInput, AboutPutInput } from '../src/lib/server/site-settings-admin';
@@ -335,4 +335,26 @@ test('后台组件：替代文字必填、按语言；上传区常驻规则文�
   assert.match(src, /savedIds\.includes\(id\)\) \{ setAssetErr/);
   assert.match(src, /accept=\{ACCEPT\}/);
   assert.match(read('../src/components/admin/settings/AboutSettings.tsx'), /<AboutImages /);
+});
+
+test('完整度：右栏「图片替代文字」一项（无图 – / N 张缺失 ! / 都填 ✓），语言标签「缺…」也算上图片替代文字', () => {
+  const ids = [ID(1), ID(2), ID(3)];
+  const body = 'x'.repeat(60);
+  const full: AboutDraft = { ...emptyDraft(), title: 'About us', bodyHtml: `<p>${body}</p>`, imageMeta: { [ID(1)]: { alt: 'a', caption: '' }, [ID(2)]: { alt: '  ', caption: 'c' } } };
+  assert.deepEqual(imageAltChecklistItem(full, []), { key: 'imageAlt', label: '图片替代文字（暂无图片）', state: 'optional' });
+  assert.deepEqual(imageAltChecklistItem(full, ids), { key: 'imageAlt', label: '图片替代文字 · 2 张缺失', state: 'missing' });
+  assert.deepEqual(imageAltChecklistItem(full, [ID(1)]), { key: 'imageAlt', label: '图片替代文字', state: 'ok' });
+  // 空语言在清单里也显示缺（清单是完整度，不是保存校验）
+  assert.equal(imageAltChecklistItem(emptyDraft(), [ID(1)]).state, 'missing');
+  // 标签
+  assert.equal(draftCompleteness(full).state, 'complete');
+  assert.deepEqual(withImageAltCompleteness(draftCompleteness(full), full, ids), { state: 'partial', label: '缺图片替代文字' });
+  assert.deepEqual(withImageAltCompleteness(draftCompleteness(full), full, [ID(1)]), { state: 'complete', label: '完整' });
+  const noBody = { ...full, bodyHtml: '' };
+  assert.equal(withImageAltCompleteness(draftCompleteness(noBody), noBody, ids).label, `${draftCompleteness(noBody).label}、图片替代文字`);
+  assert.deepEqual(withImageAltCompleteness(draftCompleteness(emptyDraft()), emptyDraft(), ids), { state: 'empty', label: '未填写' });
+  // 接线：清单最后一项、标签 / 前台状态都走 withImageAltCompleteness（按已保存的列表）
+  const ui = read('../src/components/admin/settings/AboutSettings.tsx');
+  assert.match(ui, /\[\.\.\.draftChecklist\(d\), imageAltChecklistItem\(d, imgDraft\.map\(\(i\) => i\.id\)\)\]/);
+  assert.match(ui, /const comp = \(l: string\) => withImageAltCompleteness\(draftCompleteness\(savedLocales\[l\] \?\? emptyDraft\(\)\), savedLocales\[l\], imgSaved\.items\.map/);
 });

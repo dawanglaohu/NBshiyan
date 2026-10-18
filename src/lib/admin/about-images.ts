@@ -10,7 +10,7 @@
  */
 import { ABOUT_LIMITS, countChars } from '@/lib/site-settings/about-rules';
 import { errorText } from '@/components/admin/format';
-import { dirtyFields, draftCompleteness, emptyDraft, type AboutDraft, type AboutSettingsApi, type AboutSettingsData, type SaveResult } from './site-settings';
+import { dirtyFields, draftCompleteness, emptyDraft, type AboutDraft, type AboutSettingsApi, type AboutSettingsData, type Completeness, type SaveResult } from './site-settings';
 import { draftFromView } from './site-settings-http';
 
 export type Dims = { w: number; h: number };
@@ -69,6 +69,10 @@ export const IMAGES_TEXT = {
   deleteBody: '删除后，旧的图片链接可能仍能访问一段时间',
   dirtyList: '图片列表',
   dirtyMeta: '图片文字',
+  // 右栏完整度清单（稿件 settings-desktop 的 .ss-chk 最后一项）和语言标签上的「缺…」
+  checkAlt: '图片替代文字',
+  checkAltMissing: (n: number) => `图片替代文字 · ${n} 张缺失`,
+  checkAltNone: '图片替代文字（暂无图片）',
 } as const;
 
 /** 上传 / 删除 / 保存图片列表的错误码 → 后台文案（v1.0.7 表 + v1.0.8 修订；其余沿用 errorText） */
@@ -214,6 +218,23 @@ export function localeImageErrors(d: AboutDraft | undefined, ids: readonly strin
 export const hasImageErrors = (e: LocaleImageErrors): boolean => Object.keys(e.alt).length > 0 || Object.keys(e.caption).length > 0;
 export function anyImageErrors(drafts: Record<string, AboutDraft>, locales: readonly string[], ids: readonly string[]): boolean {
   return ids.length > IMAGES_MAX || locales.some((l) => hasImageErrors(localeImageErrors(drafts[l], ids)));
+}
+
+// ───────── 完整度（spec §1：「完成」要求所有图片都有替代文字；前台缺 alt 的语言 404） ─────────
+export const missingAltCount = (d: AboutDraft | undefined, ids: readonly string[]): number =>
+  ids.filter((id) => !(d?.imageMeta?.[id]?.alt ?? '').trim()).length;
+/** 右栏完整度清单的「图片替代文字」一项：没图 –（选填）；有缺 !（N 张缺失）；都填了 ✓。按完整度显示，空语言也算缺 */
+export type ImageAltCheck = { key: 'imageAlt'; label: string; state: 'ok' | 'missing' | 'optional' };
+export function imageAltChecklistItem(d: AboutDraft | undefined, ids: readonly string[]): ImageAltCheck {
+  if (!ids.length) return { key: 'imageAlt', label: IMAGES_TEXT.checkAltNone, state: 'optional' };
+  const n = missingAltCount(d, ids);
+  return n ? { key: 'imageAlt', label: IMAGES_TEXT.checkAltMissing(n), state: 'missing' } : { key: 'imageAlt', label: IMAGES_TEXT.checkAlt, state: 'ok' };
+}
+/** 语言标签 / 前台状态的完整度再算上图片替代文字：完整 → 「缺图片替代文字」；「缺正文」→「缺正文、图片替代文字」；未填写不变 */
+export function withImageAltCompleteness(c: Completeness, d: AboutDraft | undefined, ids: readonly string[]): Completeness {
+  if (c.state === 'empty' || missingAltCount(d, ids) === 0) return c;
+  const label = c.state === 'complete' ? `缺${IMAGES_TEXT.checkAlt}` : c.label.startsWith('缺') ? `${c.label}、${IMAGES_TEXT.checkAlt}` : c.label;
+  return { state: 'partial', label };
 }
 
 /**
