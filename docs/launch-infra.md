@@ -212,15 +212,15 @@ APP_TAG=candidate docker compose -p nbshiyan -f deploy/docker-compose.yml --env-
 
 当前 `security-headers.ts` 已放行 Tawk.to 和 Turnstile 所需的最小范围，**无需再加**：
 
-- `script-src`: `https://embed.tawk.to https://*.tawk.to https://challenges.cloudflare.com`
+- `script-src`: `https://embed.tawk.to https://*.tawk.to https://challenges.cloudflare.com https://static.cloudflareinsights.com`（#346，CF Web Analytics）
 - `style-src`: `https://*.tawk.to`
 - `font-src`: `https://*.tawk.to`
-- `connect-src`: `https://*.tawk.to wss://*.tawk.to`
+- `connect-src`: `https://*.tawk.to wss://*.tawk.to https://cloudflareinsights.com`（#346）
 - `frame-src`: `https://*.tawk.to https://challenges.cloudflare.com`
 
 上传文件存服务器本地磁盘，只经本站接口（同源，`'self'`）提供，这些接口自己返回 `default-src 'none'; sandbox`（全站 CSP 对它们排除）；可选的 R2 驱动也是服务器端签名请求，浏览器不直连。Upstash 只在服务器端调用；发信是服务器经 Gmail SMTP 发出，收信走 Cloudflare Email Routing，浏览器都不直连，**都不需要加进 CSP**。
 
-`security-headers.ts` 的 `connect-src` 里现有的 `https://*.r2.dev` 和 `https://*.vercel-insights.com` 在当前方案下都用不到（不开 R2 公开地址；自建部署没有 Vercel Analytics，仓库也没有引用它），后续单独提交去掉（改的是 src，不在文档提交里做）。Tawk.to 只在用户同意 Cookie 后加载。
+`https://*.r2.dev` 和 `https://*.vercel-insights.com` 已在 #346 从 `connect-src` 去掉（不开 R2 公开地址；自建部署没有 Vercel Analytics）。Tawk.to 只在用户同意 Cookie 后加载。
 
 ## 9. 上线验收
 
