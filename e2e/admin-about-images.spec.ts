@@ -446,4 +446,31 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
       await expect(cnt).toBeHidden();
     }
   });
+  test('UX #379 P2：确认框的焦点锁在框内（Tab / Shift+Tab 循环、点到框外再 Tab 也回到框内），Esc 关闭后焦点回到「删除」', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    await fileInput(page).setInputFiles({ name: 'a.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [120, 60, 30]) });
+    await expect(area.locator('.st-im-card')).toHaveCount(1);
+    await area.getByText(/图片库（已上传 1 张）/).click();
+    const del = area.locator('.st-im-libl li').first().getByRole('button', { name: '删除' });
+    await del.click(); // 草稿里加了、还没保存：不在「已保存」列表里，可以删 → 弹确认
+    const dlg = page.getByRole('alertdialog', { name: '删除这张图片？' });
+    const cancel = dlg.getByRole('button', { name: '取消' });
+    const ok = dlg.getByRole('button', { name: '删除' });
+    await expect(cancel).toBeFocused();
+    for (const [key, el] of [['Tab', ok], ['Tab', cancel], ['Tab', ok], ['Shift+Tab', cancel], ['Shift+Tab', ok], ['Shift+Tab', cancel]] as const) {
+      await page.keyboard.press(key);
+      await expect(el).toBeFocused();
+    }
+    // 点遮罩（焦点落到 body）后再按 Tab：回到框内第一个
+    await page.mouse.click(4, 4);
+    await page.keyboard.press('Tab');
+    await expect(cancel).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dlg).toHaveCount(0);
+    await expect(del).toBeFocused();
+    await expect(area.locator('.st-im-libl li')).toHaveCount(1); // Esc = 取消，没删
+  });
 });
