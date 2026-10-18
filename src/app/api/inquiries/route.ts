@@ -5,7 +5,7 @@ import { randomId, hitRateLimit, rateLimitKeyHash, verifyTurnstile, clientIp, ra
 import { trustedCountry } from '@/lib/edge/client-ip';
 import { retention } from '@/lib/server/retention';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
-import { sendSafely, inquiryNotifyMail, customerAckMail } from '@/lib/server/mail';
+import { sendSafely, inquiryNotifyMail, customerAckMail, logNotification } from '@/lib/server/mail';
 import { summarizeItems } from '@/lib/server/email/render';
 import { LOGO_ID_RE } from '@/lib/server/uploads';
 import { DESIGN_ID_RE, liveDesignIds, designIdFromShareUrl, InquiryItemConfig } from '@/lib/server/designs';
@@ -146,11 +146,16 @@ export async function POST(req: Request) {
   // 邮件：失败不影响提交（sendSafely 记日志 + 后台告警）。模板变量全部转义；不回显留言；后台链接只用 SITE_URL + 内部 id
   const notify = process.env.INQUIRY_NOTIFY_EMAIL;
   const vars = { name: b.contact.name, company: b.contact.company, ...summarizeItems(b.items), inquiryId: ref, locale: b.locale };
+  // 每次尝试（含跳过）都写一行 mail.notification 结构化日志：只有对外编号、类型、结果、Message-ID 哈希前缀 / 跳过原因
   try {
     await Promise.allSettled([
-      notify && sendSafely('inquiry-notify', { to: notify, ...inquiryNotifyMail({ ...vars, adminId: inquiry.id, score: trust.score }) }),
+      notify
+        ? sendSafely('inquiry-notify', { to: notify, ...inquiryNotifyMail({ ...vars, adminId: inquiry.id, score: trust.score }) }, { ref, type: 'notify' })
+        : logNotification({ ref, type: 'notify' }, { skipped: 'no_recipient' }),
       // 自动回复只发给可信询盘；同一邮箱 24 小时 1 封（数据库）+ 按邮箱和 IP 限流，防止被当作发信跳板
-      trust.score >= REVIEW_THRESHOLD && sendAutoReplyOnce(inquiry.id, email, ip, b.source === 'SAMPLE' ? 'sample' : 'inquiry', { ...vars, ...summarizeItems(b.items, b.locale) }),
+      trust.score >= REVIEW_THRESHOLD
+        ? sendAutoReplyOnce(inquiry.id, ref, email, ip, b.source === 'SAMPLE' ? 'sample' : 'inquiry', { ...vars, ...summarizeItems(b.items, b.locale) })
+        : logNotification({ ref, type: 'auto_receipt' }, { skipped: 'low_trust' }),
     ]);
   } catch (e) { console.error('[mail] unexpected', (e as Error).message); }
 
@@ -161,19 +166,28 @@ export async function POST(req: Request) {
  * 自动回复限制存在数据库里：多实例、重启都不会失效。
  * 在事务里按邮箱加 Postgres 事务级咨询锁，同一邮箱的并发请求排队判断，只有一条能抢到。
  */
-async function sendAutoReplyOnce(inquiryId: string, email: string, ip: string | null, kind: 'inquiry' | 'sample', vars: Parameters<typeof customerAckMail>[1]) {
+async function sendAutoReplyOnce(inquiryId: string, ref: string, email: string, ip: string | null, kind: 'inquiry' | 'sample', vars: Parameters<typeof customerAckMail>[1]) {
+  const log = { ref, type: 'auto_receipt' as const };
   // 限流 key、咨询锁、数据库 24 小时判断都用规范化邮箱（去 +后缀、Gmail 去点），别名不能绕过
   const key = normalizeEmail(email);
   const [emailOk, ipOk] = await Promise.all([hitRateLimit(`autoreply:e:${rateLimitKeyHash(key)}`, 1, 86_400_000, { onStoreError: 'closed' }), hitRateLimit(`autoreply:ip:${rateLimitSubject(ip)}`, 5, 86_400_000, { onStoreError: 'closed' })]);
-  if (!emailOk || !ipOk) return;
+  if (!emailOk || !ipOk) { logNotification(log, { skipped: 'rate_limited' }); return; }
   const since = new Date(Date.now() - 86_400_000);
-  const claimed = await prisma.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'autoreply:' + key}))`;
-    // 24 小时内同一规范化邮箱发过自动回复就不再发（Contact.normalizedEmail 精确匹配，有索引）
-    const recent = await tx.inquiry.findFirst({ where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { normalizedEmail: key } }, select: { id: true } });
-    if (recent) return false;
-    const r = await tx.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
-    return r.count === 1;
-  });
-  if (claimed) await sendSafely(`${kind}-ack`, { to: email, ...customerAckMail(kind, vars) });
+  let claimed: boolean;
+  try {
+    claimed = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'autoreply:' + key}))`;
+      // 24 小时内同一规范化邮箱发过自动回复就不再发（Contact.normalizedEmail 精确匹配，有索引）
+      const recent = await tx.inquiry.findFirst({ where: { id: { not: inquiryId }, autoReplyAt: { gte: since }, contact: { normalizedEmail: key } }, select: { id: true } });
+      if (recent) return false;
+      const r = await tx.inquiry.updateMany({ where: { id: inquiryId, autoReplyAt: null }, data: { autoReplyAt: new Date() } });
+      return r.count === 1;
+    });
+  } catch (e) {
+    // 24 小时判断的事务失败：这次不发，也要留一行日志（只有错误类型）
+    logNotification(log, { ok: false, code: 'precheck_failed' });
+    throw e;
+  }
+  if (!claimed) { logNotification(log, { skipped: 'already_sent_24h' }); return; }
+  await sendSafely(`${kind}-ack`, { to: email, ...customerAckMail(kind, vars) }, log);
 }
