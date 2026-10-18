@@ -112,6 +112,9 @@ test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片�
     await expect(area.getByText('1 张图片缺少替代文字，补齐后才能保存。')).toBeVisible();
     await expect(page.getByRole('region', { name: '保存' })).toContainText('图片列表');
     await expect(saveBtn(page)).toBeDisabled();
+    // UX #379 P3 ③：保存栏第二行写明为什么不能保存，「保存」按钮关联这句
+    await expect(page.locator('.st-bar-why')).toHaveText('1 张图片缺少替代文字');
+    await expect(saveBtn(page)).toHaveAttribute('aria-describedby', 'st-bar-why');
     // 右栏完整度清单最后一项：!「图片替代文字 · 1 张缺失」→ 填了以后 ✓
     const chk = page.locator('section[aria-labelledby="st-chk-h"] li').last();
     await expect(chk).toContainText('图片替代文字 · 1 张缺失');
@@ -120,6 +123,7 @@ test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片�
     expect(await chk.evaluate((li) => { const cs = getComputedStyle(li); const c = document.createElement('canvas').getContext('2d')!; c.font = `${cs.fontSize} ${cs.fontFamily}`; return c.measureText(' ').width + parseFloat(cs.wordSpacing); })).toBeGreaterThanOrEqual(4);
     await cards.first().getByLabel(/替代文字（EN）/).fill('Sample alt 1');
     await expect(saveBtn(page)).toBeEnabled();
+    await expect(page.locator('.st-bar-why')).toHaveCount(0);
     await expect(chk).toHaveText(/^✓图片替代文字（已满足）$/);
 
     // 小图：能传，但提示

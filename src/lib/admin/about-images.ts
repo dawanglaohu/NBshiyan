@@ -44,6 +44,8 @@ export const IMAGES_TEXT = {
   tooLong: (n: number, max: number) => `超出上限：${n} / ${max}`,
   missingSummary: (n: number) => `${n} 张图片缺少替代文字，补齐后才能保存。`,
   missingOther: (l: string, n: number) => `${l.toUpperCase()}：${n} 张图片缺少替代文字`,
+  // UX #379 P3 ③：保存栏第二行说明为什么不能保存
+  barMissing: (n: number) => `${n} 张图片缺少替代文字`,
   add: '＋ 添加图片',
   addRule: 'JPG / PNG / WebP，单张 ≤ 10 MB',
   addRule2: (left: number) => `上传后统一转为 WebP · 建议长边 ≥ 1600 px · 还可加 ${left} 张`,
@@ -251,6 +253,10 @@ export const COUNTER_AT = 10;
 export function charCounter(value: string, max: number): string | null {
   const n = countChars(value);
   return max - n <= COUNTER_AT ? `${n}/${max}` : null;
+}
+/** 保存栏用：各语言里缺替代文字的图片（按图去重，同一张图两种语言都缺只算 1 张）。只算「必填」的语言，同 localeImageErrors */
+export function missingAltImages(drafts: Record<string, AboutDraft>, locales: readonly string[], ids: readonly string[]): number {
+  return new Set(locales.flatMap((l) => localeImageErrors(drafts[l], ids).missing)).size;
 }
 export const hasImageErrors = (e: LocaleImageErrors): boolean => Object.keys(e.alt).length > 0 || Object.keys(e.caption).length > 0;
 export function anyImageErrors(drafts: Record<string, AboutDraft>, locales: readonly string[], ids: readonly string[]): boolean {

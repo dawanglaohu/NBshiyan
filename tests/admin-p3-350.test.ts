@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { nextTrapFocus, FOCUSABLE_SELECTOR } from '../src/lib/admin/focus-trap';
 import { draftErrors, emptyDraft, humanIssueLine, mapAboutServerIssues, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
-import { IMAGES_TEXT, inFlightCount, slotsLeft, takeReady } from '../src/lib/admin/about-images';
+import { IMAGES_TEXT, inFlightCount, missingAltImages, slotsLeft, takeReady } from '../src/lib/admin/about-images';
 import { ABOUT_LIMITS } from '../src/lib/site-settings/about-rules';
 
 // #350 部署后的前端 P3 小 PR（UX #378 / #379 遗留 + spec v1.0.10 + SEO）
@@ -164,4 +164,29 @@ test('AboutImages 接线：「已达上限」只看列表张数；上传区按�
   assert.match(src, /<span className="st-count">\{items\.length\} \/ \{IMAGES_MAX\}<\/span>/);
   assert.match(src, /disabled=\{\(!!t\.retryAt && t\.retryAt > now\) \|\| left === 0\}/);
   assert.doesNotMatch(src, /t\.state === 'uploading' \|\| t\.file/);
+});
+
+// ───────── ⑦ UX #379 P3 ③：保存栏第二行「n 张图片缺少替代文字」 ─────────
+test('missingAltImages：按图去重、只算有内容（必填）的语言；文案', () => {
+  const ID = (n: number) => `asset${String(n).padStart(19, '0')}`;
+  const ids = [ID(1), ID(2), ID(3)];
+  const full = { ...emptyDraft(), title: 'About us', bodyHtml: `<p>${'x'.repeat(60)}</p>` };
+  const drafts = {
+    en: { ...full, imageMeta: { [ID(1)]: { alt: 'a', caption: '' } } }, // 缺 2、3
+    ru: { ...full, imageMeta: { [ID(1)]: { alt: 'a', caption: '' }, [ID(2)]: { alt: 'b', caption: '' } } }, // 缺 3
+    de: emptyDraft(), // 没内容：不要求
+  };
+  assert.equal(missingAltImages(drafts, ['en', 'ru', 'de'], ids), 2);
+  assert.equal(missingAltImages(drafts, ['ru'], ids), 1);
+  assert.equal(missingAltImages(drafts, ['de'], ids), 0);
+  assert.equal(missingAltImages(drafts, ['en'], []), 0);
+  assert.equal(IMAGES_TEXT.barMissing(2), '2 张图片缺少替代文字');
+});
+
+test('保存栏接线：缺替代文字时第二行先写原因，「保存」按钮 aria-describedby 指向它；冲突时仍显示冲突说明', () => {
+  const ui = read('../src/components/admin/settings/AboutSettings.tsx');
+  assert.match(ui, /const missingAlt = missingAltImages\(draft, locales, imgDraft\.map\(\(i\) => i\.id\)\);/);
+  assert.match(ui, /<small>\{missingAlt > 0 && <span id="st-bar-why" className="st-bar-why">\{IMAGES_TEXT\.barMissing\(missingAlt\)\}<\/span>\}（\{summary\}）<\/small>/);
+  assert.match(ui, /conflict !== 'none' \? <small>\{T\.conflictBar\}<\/small>/);
+  assert.match(ui, /aria-describedby=\{conflict === 'none' && missingAlt > 0 \? 'st-bar-why' : undefined\}/);
 });

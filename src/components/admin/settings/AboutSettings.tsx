@@ -8,7 +8,7 @@ import {
 } from '@/lib/admin/site-settings';
 import ConfirmDialog from './ConfirmDialog';
 import SettingsSections from './SettingsSections';
-import { aboutImagesApi, anyImageErrors, imageAltChecklistItem, metaChanged, saveAboutWithImages, setMeta, withImageAltCompleteness, withImagesDirty, type AboutImageItem, type AboutImagesState } from '@/lib/admin/about-images';
+import { IMAGES_TEXT, aboutImagesApi, anyImageErrors, imageAltChecklistItem, metaChanged, missingAltImages, saveAboutWithImages, setMeta, withImageAltCompleteness, withImagesDirty, type AboutImageItem, type AboutImagesState } from '@/lib/admin/about-images';
 import AboutImages from './AboutImages';
 import './settings.css';
 
@@ -135,6 +135,8 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const errors: AboutFieldErrors = { ...clientErr, ...serverErr }; // 后端字段错误优先盖住前端检查
   const anyErrors = locales.some((l) => Object.keys(draftErrors(draft[l] ?? emptyDraft())).length > 0) || anyImageErrors(draft, locales, imgDraft.map((i) => i.id)); // 后端字段错误不挡再保存（同组织信息）
   const dir: 'ltr' | 'rtl' = tab === 'ar' ? 'rtl' : 'ltr';
+  // UX #379 P3 ③：缺替代文字挡住保存时，保存栏第二行写明原因
+  const missingAlt = missingAltImages(draft, locales, imgDraft.map((i) => i.id));
 
   // 离开页面提醒（路由内跳转由浏览器 beforeunload 覆盖刷新 / 关闭；后台内链接切换另见 TODO）
   useEffect(() => {
@@ -362,9 +364,9 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
 
       {dirty && (
         <div className="st-bar" role="region" aria-label="保存">
-          <span className="st-bar-msg">{T.dirty}{conflict !== 'none' ? <small>{T.conflictBar}</small> : <small>（{summary}）</small>}</span>
+          <span className="st-bar-msg">{T.dirty}{conflict !== 'none' ? <small>{T.conflictBar}</small> : <small>{missingAlt > 0 && <span id="st-bar-why" className="st-bar-why">{IMAGES_TEXT.barMissing(missingAlt)}</span>}（{summary}）</small>}</span>
           <button type="button" className="adm-btn" disabled={busy || conflict !== 'none'} onClick={discard}>{T.discard}</button>
-          <button type="button" className="adm-btn primary" disabled={!saveAllowed} title={conflict !== 'none' ? T.conflictSaveTitle : undefined} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
+          <button type="button" className="adm-btn primary" disabled={!saveAllowed} title={conflict !== 'none' ? T.conflictSaveTitle : undefined} aria-describedby={conflict === 'none' && missingAlt > 0 ? 'st-bar-why' : undefined} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
         </div>
       )}
 
