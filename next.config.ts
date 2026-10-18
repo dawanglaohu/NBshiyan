@@ -76,6 +76,8 @@ const nextConfig: NextConfig = {
 nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '1' : '', MAIL_MOCK_ADAPTER_BUILD: isProd ? '' : '1' };
 // 文章分享图 /[locale]/articles/[slug]/og 的字体：route 里用 process.cwd() 读，追踪不到，手动带进 standalone
 nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/articles/[slug]/og': ['./src/assets/og-fonts/*.ttf'] };
+// #350 /about 分享图复用同一模板和字体
+nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/about/og': ['./src/assets/og-fonts/*.ttf'] };
 // 生产配置检查：`next build` 时跳过只在运行时用的密钥（见 prod-env-check.ts 的 RUNTIME_ONLY），`next start` 时全部检查
 export default function config(phase: string) {
   assertProdEnv(process.env, phase === PHASE_PRODUCTION_BUILD ? 'build' : 'runtime');

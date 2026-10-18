@@ -85,6 +85,6 @@ test('#367 review P3：mailto 只允许 subject 参数', () => {
 });
 
 test('#350 前端用例：mailto subject 只能一个，解码后不能含换行', () => {
-  for (const h of ['mailto:hi@example.com?subject=a%0D%0ABcc:x@evil.com', 'mailto:hi@example.com?subject=a%0Ab', 'mailto:hi@example.com?subject=a&subject=b', 'mailto:hi@example.com?Subject=a&subject=b']) assert.equal(safeAboutHref(h), null, h);
+  for (const h of ['mailto:hi@example.com?subject=a%0D%0ABcc:x@evil.com', 'mailto:hi@example.com?subject=a%0Ab', 'mailto:hi@example.com?subject=a%09b', 'mailto:hi@example.com?subject=a%00b', 'mailto:hi@example.com?subject=a%7Fb', 'mailto:hi@example.com?subject=a&subject=b', 'mailto:hi@example.com?Subject=a&subject=b']) assert.equal(safeAboutHref(h), null, h);
   assert.equal(safeAboutHref('mailto:hi@example.com?subject=Quote%20request'), 'mailto:hi@example.com?subject=Quote%20request');
 });

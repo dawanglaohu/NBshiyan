@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   afterConfirm, afterEnroll, assertEnrollPath, canFinish, CONFIRM_PATH, ENROLL_PAGE, ENROLL_PATH, ERROR_TEXT, errorText, groupSecret,
-  inProgress, INITIAL, isCompleteCode, NEXT_CODE_WAIT_MS, normalizeCode, parseSecret, postEnroll, recoveryTxt, SIGNIN_HREF, stepStatus, waitLeft, type EnrollState,
+  codeCheck, CODE_LEN, inProgress, INITIAL, isCompleteCode, NEXT_CODE_WAIT_MS, normalizeCode, parseSecret, postEnroll, recoveryTxt, SIGNIN_HREF, stepStatus, waitLeft, type EnrollState,
 } from '../src/lib/admin/enroll';
 import { qrSvgDataUrl } from '../src/lib/admin/enroll-qr';
 
@@ -37,11 +37,27 @@ test('P1 enroll: secret parsed from otpauth URI and grouped by 4', () => {
   assert.equal(groupSecret('ABCDEF'), 'ABCD EF');
 });
 
-test('P1 enroll: code input keeps digits only (paste with spaces / dashes), max 6', () => {
+test('P1 enroll: code input keeps digits only (paste with spaces / dashes); >6 digits kept and flagged, not truncated', () => {
   assert.equal(normalizeCode(' 123 456 '), '123456');
   assert.equal(normalizeCode('123-456'), '123456');
-  assert.equal(normalizeCode('1234567'), '123456');
   assert.equal(normalizeCode('12a3'), '123');
+  // e2e/admin-enroll.spec.ts 的场景 + PM 要求的用例
+  assert.equal(normalizeCode('751 940'), '751940');
+  assert.equal(normalizeCode('751-940'), '751940');
+  assert.equal(normalizeCode(' 751940 '), '751940');
+  assert.equal(normalizeCode('751\u00a0940\n'), '751940');
+  assert.equal(normalizeCode('７５１ ９４０'), '751940'); // 全角数字转半角
+  assert.equal(normalizeCode('٧٥١٩٤٠'), ''); // 其他文字的数字不接受（后端只认 ASCII 0-9）
+  assert.equal(normalizeCode(''), '');
+  // 超过 6 位：不截断，全部保留，交给 codeCheck 判 long
+  assert.equal(normalizeCode('7519401'), '7519401');
+  assert.equal(normalizeCode('751 940 1234'), '7519401234');
+  assert.equal(codeCheck(normalizeCode('751 940')), 'ok');
+  assert.equal(codeCheck(normalizeCode(' 751940 ')), 'ok');
+  assert.equal(codeCheck(normalizeCode('7519401')), 'long');
+  assert.equal(codeCheck(normalizeCode('75194')), 'short');
+  assert.equal(codeCheck(''), 'short');
+  assert.equal(CODE_LEN, 6);
   assert.ok(isCompleteCode('012345'));
   assert.ok(!isCompleteCode('12345'));
   assert.ok(!isCompleteCode('12345a'));
@@ -159,7 +175,13 @@ test('P1 enroll: no storage / logging / innerHTML / external URLs; download revo
   assert.match(ui, /autoComplete="current-password"/);
   assert.match(ui, /aria-disabled=\{ready \? undefined : true\}/);
   assert.match(ui, /width=\{216\} height=\{216\}/);
-  assert.match(ui, /maxLength=\{6\}/);
+  // 验证码框不能用 maxLength：浏览器会按原始字符截断，「751 940」会丢最后一位；长度由 normalizeCode 限制
+  assert.doesNotMatch(ui.slice(ui.indexOf('id="en-otp"'), ui.indexOf('/>', ui.indexOf('id="en-otp"'))), /maxLength/);
+  assert.match(ui, /onChange=\{\(e\) => setCode\(normalizeCode\(e\.target\.value\)\)\}/);
+  // 不是正好 6 位就禁用提交；超过 6 位时输入框下方提示
+  assert.match(ui, /disabled=\{busy \|\| codeLen !== 'ok'\}/);
+  assert.match(ui, /codeLen === 'long' \? 'code_incomplete'/);
+  assert.match(ui, /codeCheck\(code\) !== 'ok' \|\| !isCompleteCode\(code\)\) return;/);
 });
 
 test('P1 enroll: page lives outside /admin, noindex + no-store, no locale prefix, robots covers it', () => {
@@ -184,4 +206,34 @@ test('P1 enroll: page lives outside /admin, noindex + no-store, no locale prefix
   const users = read('../src/components/admin/users/UsersAdmin.tsx');
   assert.match(users, /!u\.totpEnabled && <><br \/><a href=\{ENROLL_PAGE\}/);
   assert.doesNotMatch(users, /enroll-qr/);
+});
+
+test('#350 enroll_reset（401）：绑定作废 → 清掉二维码 / 密钥，「重新开始绑定」回到第 1 步；文案不透露账号是否存在', async () => {
+  const m = await import('../src/lib/admin/enroll');
+  assert.ok(m.isVoidCode('enroll_reset'));
+  for (const c of ['bad_credentials', 'bad_totp', 'rate_limited', 'invalid', 'forbidden_origin', undefined, null, ''])
+    assert.equal(m.isVoidCode(c as string), false, String(c));
+  // 其他码保持原文案
+  assert.equal(m.errorText('bad_credentials'), '邮箱或密码错误，或该账号已绑定');
+  assert.equal(m.errorText('bad_totp'), '验证码不正确或已过期');
+  assert.equal(m.errorText('rate_limited'), '尝试过多，请稍后再试');
+  // 作废：只在第 2 步发生，丢掉 otpauth URI，离开不再提醒，不能再确认
+  let s = m.afterEnroll(m.INITIAL, URI);
+  s = m.afterVoid(s);
+  assert.equal(s.voided, true);
+  assert.equal(s.otpauthUri, null);
+  assert.equal(m.parseSecret(s.otpauthUri), null);
+  assert.equal(m.inProgress(s), false);
+  assert.equal(m.afterConfirm(s, CODES, 0), s, 'voided binding cannot be confirmed');
+  assert.equal(m.afterVoid(m.INITIAL), m.INITIAL, 'void only applies on step 2');
+  // 「重新开始绑定」= 回到初始状态（第 1 步）
+  const wiz = read('../src/components/admin/enroll/EnrollWizard.tsx');
+  assert.match(wiz, /const restart = \(\) => \{ setError\(null\); setShowPw\(false\); wipe\(\); setEmail\(''\); \}/);
+  assert.match(wiz, /const wipe = useCallback\(\(\) => \{ setPassword\(''\); setCode\(''\); setS\(INITIAL\); \}/);
+  assert.match(wiz, /isVoidCode\(r\.code\)\) \{ setCode\(''\); setS\(\(p\) => afterVoid\(p\)\)/);
+  assert.equal(m.INITIAL.step, 1);
+  // 文案（PM 定稿，集中在常量里）
+  assert.equal(m.ENROLL_VOID_TEXT, '验证失败次数过多，此绑定已作废，请重新开始绑定');
+  assert.equal(m.ENROLL_RESTART, '重新开始绑定');
+  for (const t of [m.ENROLL_VOID_TEXT, m.ENROLL_VOID_HINT, m.ENROLL_VOID_FOOT]) assert.doesNotMatch(t, /不存在|未注册|账号存在|exist/i);
 });

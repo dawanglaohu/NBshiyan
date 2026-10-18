@@ -8,18 +8,23 @@ export const LABEL = { en: 'Article', ru: 'Статья' } as const;
 export const DOMAIN = 'geiom.com';
 const PAD_X = 72;
 
-export function ArticleOgImage({ title, locale }: { title: string; locale: 'en' | 'ru' }) {
+/**
+ * badge：右上角标签文字。不传 = 文章默认 LABEL[locale]（文章输出逐字节不变）；传空字符串 = 不画标签。
+ * #350 about 页传导航 About 的文案（Nav.about），调用方已过 ogSafeText。
+ */
+export function ArticleOgImage({ title, locale, badge }: { title: string; locale: 'en' | 'ru'; badge?: string }) {
   const fit = fitTitle(title, locale);
+  const label = badge === undefined ? LABEL[locale] : badge;
   return (
     <div style={{ width: OG_ARTICLE.width, height: OG_ARTICLE.height, display: 'flex', flexDirection: 'column', background: BRAND.bg, color: BRAND.ink, fontFamily: 'Manrope', position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `56px ${PAD_X}px 0` }}>
         <div style={{ display: 'flex', fontSize: 36, fontWeight: 800, letterSpacing: '-0.01em' }}>
           <span>Pack</span><span style={{ color: BRAND.accent }}>Joy</span><span>U</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', height: 44, padding: '0 20px', borderRadius: 22, border: `2px solid ${BRAND.line}`, fontSize: 22, fontWeight: 600, color: BRAND.ink2, letterSpacing: '0.02em' }}>
+        {label ? <div style={{ display: 'flex', alignItems: 'center', height: 44, padding: '0 20px', borderRadius: 22, border: `2px solid ${BRAND.line}`, fontSize: 22, fontWeight: 600, color: BRAND.ink2, letterSpacing: '0.02em' }}>
           <div style={{ width: 10, height: 10, borderRadius: 5, background: BRAND.accent, marginRight: 12 }} />
-          {LABEL[locale]}
-        </div>
+          {label}
+        </div> : null}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1, padding: `0 ${PAD_X}px` }}>
         <div style={{ width: 90, height: 8, borderRadius: 4, background: BRAND.accent, marginBottom: 30 }} />
