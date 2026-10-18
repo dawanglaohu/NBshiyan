@@ -37,7 +37,7 @@ test('只认已发布语言：预留语言（ja/es…）即使库里有内容也
   const r = reader({ 'about.enabled': true, 'about.ja': about(), 'about.es': about(), 'about.ru': about() });
   assert.equal(await r.getAboutContent('ja' as never), null);
   assert.deepEqual(await r.getPublishedAboutLocales(), ['ru']);
-  assert.deepEqual(PUBLIC_SETTING_KEYS, ['about.enabled', 'about.en', 'about.ru', 'site.organization']);
+  assert.deepEqual(PUBLIC_SETTING_KEYS, ['about.enabled', 'about.images', 'about.en', 'about.ru', 'site.organization']);
 });
 
 test('读出时再净化：库里被改坏的正文和纯文本字段也不会带出脚本、事件属性或危险链接', async () => {

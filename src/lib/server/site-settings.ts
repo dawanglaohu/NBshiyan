@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/site';
 import { PUBLISHED_LOCALES, isPublishedLocale, type PublishedLocale } from './published-locales';
 import { errorSummary } from './admin/audit';
 import {
-  ABOUT_ENABLED_KEY, ORGANIZATION_FALLBACK_NAME, ORGANIZATION_KEY, ORG_TEXT_FIELDS, SITE_SETTINGS_TAG,
+  ABOUT_ENABLED_KEY, ABOUT_IMAGES_KEY, mediaUrl, parseStoredAboutImages, ORGANIZATION_FALLBACK_NAME, ORGANIZATION_KEY, ORG_TEXT_FIELDS, SITE_SETTINGS_TAG,
   aboutKey, parseStoredAbout, parseStoredEnabled, parseStoredOrganization,
 } from './site-settings-model';
 import { resolvePublishedAboutLocales } from '@/lib/site-settings/about-rules';
@@ -16,7 +16,8 @@ import { resolvePublishedAboutLocales } from '@/lib/site-settings/about-rules';
  * - 「完整 / 已发布」只用 src/lib/site-settings/about-rules.ts 的 isAboutContentComplete / resolvePublishedAboutLocales：
  *   开关关闭、语言不在 PUBLISHED_LOCALES、内容缺失或不完整 → getAboutContent 返回 null。
  * - 读库失败按「关闭」处理并打日志（不带内容），页面走 404 而不是 500；失败结果不进缓存。
- * - images 本 PR 固定 []，图片上传（PublicAsset）另开 PR。
+ * - images：`about.images`（PublicAsset，各语言共用的顺序和宽高快照）+ 该语言 imageMeta 里的 alt / 说明。
+ *   缺 alt 的图片照样返回（alt 为空串），由 isAboutContentComplete 判为不完整 → 该语言不发布。w / h 是 lg 尺寸。
  */
 export type AboutStat = { label: string; value: string };
 export type AboutImage = { id: string; w: number; h: number; alt: string; caption: string; src: { sm: string; lg: string } };
@@ -53,7 +54,11 @@ export function createSiteSettingsReader(load: () => Promise<RawSettings>) {
   const contentFrom = (raw: RawSettings, locale: PublishedLocale): AboutContent | null => {
     const s = parseStoredAbout(raw[aboutKey(locale)]);
     if (!s) return null;
-    return { locale, title: s.title, summary: s.summary, bodyHtml: s.bodyHtml, stats: s.stats, images: [], home: { ...s.home }, updatedAt: s.updatedAt };
+    const images: AboutImage[] = parseStoredAboutImages(raw[ABOUT_IMAGES_KEY]).items.map((i) => ({
+      id: i.id, w: i.lg.w, h: i.lg.h, alt: s.imageMeta[i.id]?.alt ?? '', caption: s.imageMeta[i.id]?.caption ?? '',
+      src: { sm: mediaUrl(i.id, i.sm.w), lg: mediaUrl(i.id, i.lg.w) },
+    }));
+    return { locale, title: s.title, summary: s.summary, bodyHtml: s.bodyHtml, stats: s.stats, images, home: { ...s.home }, updatedAt: s.updatedAt };
   };
   const published = (raw: RawSettings, contents: Partial<Record<PublishedLocale, AboutContent | null>>) =>
     resolvePublishedAboutLocales({ enabled: parseStoredEnabled(raw[ABOUT_ENABLED_KEY]).enabled, contents });
@@ -77,15 +82,15 @@ export function createSiteSettingsReader(load: () => Promise<RawSettings>) {
   };
 }
 
-/** 只读已发布语言的键 + 组织信息：预留语言的草稿不会进前台缓存 */
-export const PUBLIC_SETTING_KEYS = [ABOUT_ENABLED_KEY, ...PUBLISHED_LOCALES.map(aboutKey), ORGANIZATION_KEY];
+/** 只读已发布语言的键 + 图片列表 + 组织信息：预留语言的草稿不会进前台缓存 */
+export const PUBLIC_SETTING_KEYS = [ABOUT_ENABLED_KEY, ABOUT_IMAGES_KEY, ...PUBLISHED_LOCALES.map(aboutKey), ORGANIZATION_KEY];
 
 const loadPublicSettingsCached = unstable_cache(
   async (): Promise<RawSettings> => {
     const rows = await prisma.siteSetting.findMany({ where: { key: { in: PUBLIC_SETTING_KEYS } } });
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   },
-  ['site-settings:public:v2'], { tags: [SITE_SETTINGS_TAG], revalidate: 60 },
+  ['site-settings:public:v3'], { tags: [SITE_SETTINGS_TAG], revalidate: 60 },
 );
 
 const reader = createSiteSettingsReader(loadPublicSettingsCached);
