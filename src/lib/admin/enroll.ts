@@ -67,8 +67,19 @@ export function parseSecret(uri: string | null | undefined): string | null {
 /** 密钥按 4 位分组显示，方便手动输入（身份验证器 App 会忽略空格） */
 export const groupSecret = (s: string, size = 4): string => (s.match(new RegExp(`.{1,${size}}`, 'g')) ?? []).join(' ');
 
-/** 验证码输入：粘贴的「123 456」「123-456」都只留数字，最多 6 位 */
-export const normalizeCode = (v: string): string => v.replace(/\D+/g, '').slice(0, 6);
+/**
+ * 验证码输入：粘贴 / 自动填充 / 输入的「123 456」「123-456」「 123456 」都只留数字。
+ * 全角数字（中文输入法全角模式下的「１２３４５６」）先转成半角再保留；其他字符一律丢弃。
+ * 超过 6 位不截断（UX + 全栈：静默截断会让用户以为粘对了），交给 codeCheck 判成 'long'，页面提示并禁止提交。
+ * 以后要改回「只留前 6 位」，在这一行末尾加 `.slice(0, CODE_LEN)` 即可。
+ * 输入框上不设 maxLength：浏览器会先按原始字符数截断（「751 940」被截成「751 94」），丢掉最后一位。
+ */
+export const CODE_LEN = 6;
+export const normalizeCode = (v: string): string =>
+  v.replace(/[\uFF10-\uFF19]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0)).replace(/\D+/g, '');
+/** 'ok' 正好 6 位可以提交；'short' 不足 6 位（只禁用提交，不提示）；'long' 超过 6 位（提示 + 禁用提交） */
+export type CodeCheck = 'ok' | 'short' | 'long';
+export const codeCheck = (code: string): CodeCheck => (code.length === CODE_LEN ? 'ok' : code.length < CODE_LEN ? 'short' : 'long');
 export const isCompleteCode = (v: string): boolean => /^\d{6}$/.test(v);
 
 /** 不能跳步：1→2 只能由 enroll 接口成功触发，2→3 只能由 confirm 接口成功触发，没有返回、没有「重新生成」 */
