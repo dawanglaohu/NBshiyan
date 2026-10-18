@@ -125,7 +125,7 @@ test('CSP：tawk 只放行 *.tawk.to，脚本/连接/框架没有通配 https:',
     expect(srcs, d).not.toContain('*');
     expect(srcs.some((s) => /^(https?|wss?):\/\/\*\.to$|tawk\.to\.|\*tawk/i.test(s)), d).toBe(false);
   }
-  expect(dir('script-src').filter((s) => /^https?:\/\//.test(s)).sort()).toEqual(['https://*.tawk.to', 'https://challenges.cloudflare.com', 'https://embed.tawk.to']);
+  expect(dir('script-src').filter((s) => /^https?:\/\//.test(s)).sort()).toEqual(['https://*.tawk.to', 'https://challenges.cloudflare.com', 'https://embed.tawk.to', 'https://static.cloudflareinsights.com']); // #346：CF Web Analytics beacon
   expect(dir('connect-src')).toContain('wss://*.tawk.to');
   expect(dir('frame-src')).toContain('https://*.tawk.to');
 });
