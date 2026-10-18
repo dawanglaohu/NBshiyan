@@ -100,6 +100,30 @@ script reads the first line of stdin. With `APP_ENV=production`, `ADMIN_CREATE_P
 `pnpm admin:seed` (the old create-admin with the `PROD_DATABASE_HOST` guard) is CI/local only: never run seed on the server. After creating the
 account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
 
+## 2FA audit (deploy gate for #361, before `deploy.sh up`)
+#361 closes the 2FA enroll window 72 h after `enrollIssuedAt` (set by an ADMIN 2FA reset) or, if empty, `createdAt`.
+An ADMIN still unbound after that can no longer enroll and needs another ADMIN to reset 2FA. Before promoting a candidate
+that contains #361, count them with the read-only script that ships in the image (same window rule as
+`src/lib/server/admin/enroll-guard.ts`). Run it in a one-off container of the **candidate** image (the running `:current`
+image predates the script); it uses the app's own `DATABASE_URL` from the env file and `@prisma/client`, publishes no port
+and takes no arguments:
+```sh
+DC="docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file $NBSHIYAN_COMPOSE_ENV"
+APP_TAG=candidate $DC run --rm -T --no-deps app node scripts/admin-2fa-audit.mjs
+# (once the image is current, inside the running container: $DC exec -T app node scripts/admin-2fa-audit.mjs)
+```
+Output is exactly two lines, numbers only (never an email, id or name):
+```
+admins=<n>
+unbound_over_72h=<n>
+```
+`admins` = enabled (not disabled) ADMIN accounts; `unbound_over_72h` = those with 2FA not bound and the 72 h window closed.
+Before the #361 `db push` the `enrollIssuedAt` column does not exist yet; the script then counts on `createdAt` only, which
+is exactly what #361 will see after the push (the new column starts empty). On any failure it prints only
+`error=audit_failed` to stderr and exits 1 (no error text, query or connection string); any argument → `error=no_args_accepted`, exit 2.
+Report only the two numbers. If `unbound_over_72h` > 0 and it equals `admins`, nobody could reset them after the deploy:
+bind 2FA first (or have another ADMIN reset it right after the deploy), then deploy.
+
 ## Health endpoint
 `/api/health` (PR #321) returns:
 - `200 {"ok":true}` only when the DB answers `SELECT 1` within 1.5 s;
