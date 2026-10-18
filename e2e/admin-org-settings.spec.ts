@@ -277,17 +277,24 @@ test('UX #375 P2：390 下在页面底部保存触发 409，冲突横幅滚进�
   });
   await page.goto('/admin/settings?section=org');
   await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
-  // 填一长段地址把页面撑高，再滚到底部点保存
-  await page.locator('#st-org-address').fill('示例地址 '.repeat(80));
+  // 改一个合法字段让保存条出现；多填几项把页面撑高，再滚到底部点保存
+  await page.getByLabel('公司注册全称').fill('示例文字 Sample Co., Ltd.');
+  await page.getByLabel('一句话介绍（英文）').fill('Sample description for scroll test.');
+  for (let i = 1; i <= 6; i++) {
+    await page.getByRole('button', { name: '＋ 添加链接' }).click();
+    await page.getByLabel(`社交主页链接（第 ${i} 条）`).fill(`https://example.com/sample-${i}`);
+  }
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
+  await expect(save).toBeEnabled();
   await save.click();
   const banner = page.locator('.st-conflict[role=alert]');
   await expect(banner).toBeVisible();
   await expect(banner).toBeFocused();
-  const inView = await banner.evaluate((el) => {
+  // smooth scroll 可能还在动，轮询到横幅进入视口
+  await expect.poll(async () => banner.evaluate((el) => {
     const r = el.getBoundingClientRect();
-    return r.top >= 0 && r.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 1;
-  });
-  expect(inView).toBe(true);
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    return r.top >= -1 && r.top < vh && r.bottom > 0;
+  }), { timeout: 3000 }).toBe(true);
 });
