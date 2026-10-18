@@ -1,5 +1,5 @@
 // #74 邮件界面的纯逻辑与文案（不依赖 DOM / React，便于单测）。文案依据 ux-spec.md（A/B/C 节）与 backend-plan v4 §8、§15。
-import type { MailError, SendStatus, ThreadItem } from './types';
+import type { MailError, SendStatus, ThreadItem, ThreadPage } from './types';
 import { KNOWN_FLAGS } from './types';
 import { futureTime } from '@/components/admin/format';
 
@@ -151,9 +151,55 @@ export function sendErrorText(e: Pick<MailError, 'code' | 'body'>): { text: stri
 
 // —— 限流（429，windowSec 固定 3600 → 「本小时」）——
 export const fmtCountdown = (sec: number) => { const s = Math.max(0, Math.ceil(sec)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
-export function rateLimitText(scope: string | undefined, limit: number | undefined, countdown: string): string {
+/** kept：回复框里现在确实有内容才说「内容已保留在输入框里」（#340：不能在空输入框旁边说已保留） */
+export function rateLimitText(scope: string | undefined, limit: number | undefined, countdown: string, kept = true): string {
   if (scope === 'global') return `全站本小时的发信量已达上限（${limit ?? '—'} 封），为保护域名信誉暂停发送。${countdown} 后可以再发。`;
-  return `你本小时已发 ${limit ?? '—'} 封，达到上限。${countdown} 后可以再发。内容已保留在输入框里。`;
+  return `你本小时已发 ${limit ?? '—'} 封，达到上限。${countdown} 后可以再发。${kept ? DRAFT_KEPT : ''}`;
+}
+export const DRAFT_KEPT = '内容已保留在输入框里。';
+
+/**
+ * #340 UX 定稿：重试卡片上的 429。重试卡片没有输入框（服务端按已存的原文重发），所以不说「内容已保留在输入框里」。
+ * 时间按 #322 规则（futureTime：MM/DD HH:mm + 时区缩写，跨年补年份）；向上取整到分钟，免得显示的时间早于真正可重试的时间。
+ */
+export function retryRateText(until: number, now = Date.now(), timeZone?: string): string {
+  const at = futureTime(new Date(Math.ceil(until / 60_000) * 60_000).toISOString(), { now, timeZone }) ?? '稍后';
+  return `发送太频繁，${at} 后可重试；重试会重新发送原邮件，无需重填。`;
+}
+
+/** #340 UX：往来邮件加载失败（404 以外的任何错误）时的错误条 */
+export const THREAD_LOAD_FAILED = '邮件记录加载失败';
+
+/**
+ * #340：后端这一轮会返回 source:'legacy' 的旧记录、内容为空的 redacted 行，字段可能缺省。
+ * 统一补默认值，组件里不用到处判断（不改接口调用，只整理返回的数据）。
+ */
+type WireItem = Partial<ThreadItem> & { id: string };
+export function normalizeThread(raw: { anonymizedAt?: string | null; items?: WireItem[] | null; nextCursor?: string | null; linksExpireAt?: string | null }): ThreadPage {
+  return {
+    anonymizedAt: raw.anonymizedAt ?? null,
+    nextCursor: raw.nextCursor ?? null,
+    ...(raw.linksExpireAt !== undefined ? { linksExpireAt: raw.linksExpireAt } : {}),
+    items: (raw.items ?? []).map((m) => ({
+      direction: 'INBOUND', status: m.direction === 'OUTBOUND' ? 'SENT' : 'RECEIVED', deliveryStatus: 'unknown', bouncedAt: null, retryCount: 0, maxRetries: 5,
+      from: null, to: null, authorName: null, subject: null, bodyHtml: null, bodyText: null, hasRemoteImages: false, senderVerified: null,
+      errorCode: null, retryable: false, createdAt: m.receivedAt ?? m.sentAt ?? new Date(0).toISOString(), sentAt: null, receivedAt: null,
+      ...m,
+      source: m.source === 'legacy' ? 'legacy' : 'mail',
+      redacted: m.redacted === true,
+      flags: Array.isArray(m.flags) ? m.flags : [],
+      attachments: Array.isArray(m.attachments) ? m.attachments : []
+    }) as ThreadItem)
+  };
+}
+
+/**
+ * #340：发信失败后回复框的主题 / 正文怎么处理（纯函数）。
+ * 只有服务端已经接受（201 / 202，或 502 mail_failed 但已排队 daily_cap_deferred）才清空；
+ * 其他一切失败（429、provider_throttled 等 mail_failed、409、5xx、网络错误……）都保留，并恢复成发送前的快照。
+ */
+export function draftAfterSendError(e: Pick<MailError, 'code' | 'body'>): 'keep' | 'clear' {
+  return e.code === 'mail_failed' && e.body.reason === DEFERRED_REASON && !!e.body.id ? 'clear' : 'keep';
 }
 
 // —— 429 倒计时：按钮在 Retry-After 之前禁用，到点重新可用 ——

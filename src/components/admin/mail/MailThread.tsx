@@ -5,8 +5,9 @@ import { mailApi, MailError, type SendStatus, type ThreadItem, type ThreadPage }
 import {
   ANON_THREAD, authorText, DEFAULT_POLL_MS, DEFERRED_REASON, deferredHint, BACKGROUND_SENDING, BODY_MAX, bodyCounter, DELETED, FORM_UNKNOWN, invalidFieldText, MAYBE_DELIVERED, MAYBE_DELIVERED_HINT,
   NOT_RETRYABLE, oneLineSubject, outboundView, replySubject, RETRY_LIMIT_HINT, retryCountText, sendErrorText, SENDING_DISABLED, SENDING_DISABLED_HINT,
-  showUnverified, SUBJECT_MAX, subjectText, UNCONFIRMED, QUEUED_TAG, retryButton
+  showUnverified, SUBJECT_MAX, subjectText, UNCONFIRMED, QUEUED_TAG, retryButton, retryRateText, THREAD_LOAD_FAILED, normalizeThread, draftAfterSendError
 } from '@/lib/admin/mail/logic';
+import { MAIL_ATTACHMENTS_LIVE } from '@/lib/admin/mail/features';
 import { browserVisibility, startSendPoll } from '@/lib/admin/mail/poller';
 import { AttachmentCard, CopyBody, FlagChips, MailBody, RateText, Unverified, useCountdown, useRevealOnChange } from './MailParts';
 import { useMailGate } from './MailGate';
@@ -32,10 +33,13 @@ export default function MailThread({ inquiryId, recipient, onAnonymized, onSendA
   const [retrying, setRetrying] = useState<string>();
   const stops = useRef<(() => void)[]>([]);
 
+  const [reloading, setReloading] = useState(false);
+  // #340：404 → 收起整个邮件区（原行为）；其他任何错误（405 / 5xx / 网络 / 未知）→ 错误条 +「重试」，回复框照常显示，已加载的记录不清空
   const load = useCallback(async () => {
-    try { setPage(await mailApi.getThread(inquiryId)); setLoadErr(undefined); }
+    try { setPage(normalizeThread(await mailApi.getThread(inquiryId))); setLoadErr(undefined); }
     catch (e) { const c = e instanceof MailError ? e.code : 'unknown'; if (c === 'not_found') setPage(null); else setLoadErr(c); }
   }, [inquiryId]);
+  const reload = async () => { setReloading(true); try { await load(); } finally { setReloading(false); } };
   useEffect(() => { void load(); }, [load]);
   useEffect(() => () => stops.current.forEach((s) => s()), []);
 
@@ -72,26 +76,47 @@ export default function MailThread({ inquiryId, recipient, onAnonymized, onSendA
     } finally { setRetrying(undefined); }
   };
 
-  if (page === undefined) return <section className="adm-sec ml"><h2>往来邮件</h2><p className="muted">{loadErr ? `加载失败：${loadErr}` : '加载中…'}</p></section>;
-  if (page === null) return null;
-  const anon = !!page.anonymizedAt;
+  return <MailThreadView page={page} loadErr={loadErr} reloading={reloading} onReload={reload} cfg={cfg} inquiryId={inquiryId} recipient={recipient}
+    live={live} itemNote={itemNote} retrying={retrying} focusId={focusId} onRetry={retry} onSent={load} onFailedItem={setFocusId} onSendAccepted={onSendAccepted} poll={poll}
+    onAnonymized={() => { onAnonymized?.(); void load(); }} />;
+}
+
+type LiveState = Partial<SendStatus> & { unconfirmed?: boolean; background?: boolean };
+/** 纯展示部分（状态都从外面传进来），便于在测试里直接渲染各种加载结果 */
+export function MailThreadView({ page, loadErr, reloading, onReload, cfg, inquiryId, recipient, live, itemNote, retrying, focusId, onRetry, onSent, onFailedItem, onSendAccepted, poll, onAnonymized }: {
+  page: ThreadPage | null | undefined; loadErr?: string; reloading: boolean; onReload: () => void; cfg?: { sendingEnabled: boolean }; inquiryId: string; recipient: string;
+  live: Record<string, LiveState>; itemNote: Record<string, ItemNote>; retrying?: string; focusId?: string; onRetry: (m: ThreadItem) => void;
+  onSent: () => Promise<void> | void; onFailedItem: (id: string) => void; onSendAccepted?: () => void; poll: (id: string, ms: number, deferred?: boolean, deferredUntil?: string | null) => void; onAnonymized: () => void;
+}) {
+  if (page === null) return null; // 404：询盘没有邮件记录 / 不在权限内 → 整块不显示（原行为）
+  const items = page?.items ?? [];
+  const anon = !!page?.anonymizedAt;
+  const errBar = loadErr ? (
+    <div className="ml-status err" role="alert" data-testid="thread-load-error" data-code={loadErr}>
+      <span className="t">⚠ {THREAD_LOAD_FAILED}</span>
+      <button type="button" className="ml-btn" disabled={reloading} onClick={onReload}>{reloading ? '重试中…' : '重试'}</button>
+    </div>
+  ) : null;
   // 回复默认接最近一封客户本人的来信（跳过自动回复 / 退信）
-  const lastInbound = [...page.items].reverse().find((m) => m.direction === 'INBOUND' && !m.redacted && m.source === 'mail' && !m.flags.includes('auto') && !m.flags.includes('bounce'));
+  const lastInbound = [...items].reverse().find((m) => m.direction === 'INBOUND' && !m.redacted && m.source === 'mail' && !m.flags.includes('auto') && !m.flags.includes('bounce'));
   // 延后发送（daily_cap_deferred）可能等到明天，不挡新的回复
   const pollingNow = Object.values(live).some((s) => s.status === 'SENDING' && !s.unconfirmed && s.errorCode !== DEFERRED_REASON);
 
   return (
     <>
       <section className="adm-sec ml" aria-label="往来邮件">
-        <h2>往来邮件 <span className="muted">{page.items.length} 封</span></h2>
+        <h2>往来邮件{page && <> <span className="muted">{items.length} 封</span></>}</h2>
+        {errBar}
+        {!page && !loadErr && <p className="muted">加载中…</p>}
         {anon && <div className="ml-banner" role="note" data-testid="mail-anon-notice">ⓘ {ANON_THREAD}</div>}
-        <div className="ml-thread">
-          {page.items.map((m) => <Bubble key={m.id} m={m} canSend={cfg?.sendingEnabled !== false} live={live[m.id]} note={itemNote[m.id]} retrying={retrying === m.id} reveal={focusId === m.id} onRetry={() => retry(m)} />)}
-          {!page.items.length && <p className="muted">还没有往来邮件。</p>}
-        </div>
+        {page && <div className="ml-thread">
+          {items.map((m) => <Bubble key={m.id} m={m} canSend={cfg?.sendingEnabled !== false} live={live[m.id]} note={itemNote[m.id]} retrying={retrying === m.id} reveal={focusId === m.id} onRetry={() => onRetry(m)} />)}
+          {!items.length && <p className="muted">还没有往来邮件。</p>}
+        </div>}
       </section>
-      {!anon && cfg && <Composer inquiryId={inquiryId} recipient={recipient} defaultSubject={replySubject(lastInbound?.subject)} inReplyToId={lastInbound?.id}
-        sendingEnabled={cfg.sendingEnabled} pollingNow={pollingNow} onSent={load} onFailedItem={setFocusId} onAccepted={onSendAccepted} onBackground={poll} onAnonymized={() => { onAnonymized?.(); void load(); }} />}
+      {/* 加载失败时回复框照常显示（主题默认空，由管理员填写；收件人仍是服务端给的询盘联系人） */}
+      {!anon && cfg && (page || loadErr) && <Composer inquiryId={inquiryId} recipient={recipient} defaultSubject={replySubject(lastInbound?.subject)} inReplyToId={lastInbound?.id}
+        sendingEnabled={cfg.sendingEnabled} pollingNow={pollingNow} onSent={onSent} onFailedItem={onFailedItem} onAccepted={onSendAccepted} onBackground={poll} onAnonymized={onAnonymized} />}
     </>
   );
 }
@@ -118,7 +143,7 @@ function Bubble({ m, canSend, live, note, retrying, reveal, onRetry }: { m: Thre
         ? <div className="ml-deleted" data-testid="deleted-body">{DELETED}</div>
         : <>
             <MailBody html={m.bodyHtml} text={m.bodyText} hasRemoteImages={m.hasRemoteImages} title={`邮件正文：${subject ?? ''}`} />
-            {m.attachments.map((a) => <AttachmentCard key={a.id} a={a} />)}
+            {MAIL_ATTACHMENTS_LIVE && m.attachments.filter((a) => a.downloadUrl).map((a) => <AttachmentCard key={a.id} a={a} />)}
           </>}
       {out && m.source === 'mail' && !m.redacted && <OutStatus s={s} canSend={canSend} bodyText={m.bodyText} note={note} retrying={retrying} reveal={reveal} onRetry={onRetry} />}
     </article>
@@ -152,7 +177,8 @@ function OutStatus({ s, canSend, bodyText, note, retrying, reveal, onRetry }: { 
       {btn.show && <button type="button" className="ml-btn" disabled={btn.disabled} title={canSend ? undefined : SENDING_DISABLED} onClick={onRetry}>{retrying ? '重试中…' : '重试'}</button>}
       {(v.retryLimit || !v.canRetry) && <CopyBody text={bodyText} />}
       {note && 'text' in note && <span className="t">{note.text}</span>}
-      {limited && <span className="t" data-testid="rate-limited"><RateText scope={rate!.scope} limit={rate!.limit} left={left} /></span>}
+      {/* #340：重试卡片没有输入框，服务端按原文重发 → 用重试专用文案（不说「已保留在输入框里」） */}
+      {limited && <span className="t" data-testid="rate-limited">{retryRateText(rate!.until)}</span>}
     </div>
   );
 }
@@ -163,6 +189,8 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
   onSent: () => Promise<void> | void; onFailedItem: (id: string) => void; onAccepted?: () => void; onBackground: (id: string, ms: number, deferred?: boolean, deferredUntil?: string | null) => void; onAnonymized: () => void;
 }) {
   const [subject, setSubject] = useState(defaultSubject);
+  // #340：往来记录加载失败时回复框先以空主题出现；之后「重试」加载成功，主题还空着就补上默认的「Re: …」（不覆盖已填写的）
+  useEffect(() => { if (defaultSubject) setSubject((s) => s || defaultSubject); }, [defaultSubject]);
   const [body, setBody] = useState('');
   const [fieldErr, setFieldErr] = useState<FieldErrs>({});
   const [formErr, setFormErr] = useState<{ text: string; tone: 'neutral' | 'error' }>();
@@ -191,6 +219,8 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
     if (errs.subject) return subjRef.current?.focus();
     if (errs.body) return bodyRef.current?.focus();
     key.current ??= uuid(); // 同一份内容重复提交用同一个 Idempotency-Key
+    // #340：发送前的快照。只有服务端接受（201 / 202 / 已排队）才清空；任何失败都把主题和正文恢复成快照
+    const snap = { subject, body };
     setBusy(true);
     try {
       const r = await mailApi.send(inquiryId, { subject: subject.trim(), body, ...(inReplyToId ? { inReplyToId } : {}) }, key.current);
@@ -211,9 +241,11 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
       } else if (err.code === 'rate_limited') {
         setRate({ scope: err.body.scope, limit: err.body.limit, until: Date.now() + (err.body.retryAfterSec ?? 60) * 1000 });
       } else if (err.code === 'mail_failed') {
-        // 失败的信已作为 FAILED 记录出现在往来记录里（带重试 / 可能已送达），回复框清空
-        key.current = undefined; setBody('');
-        const queued = err.body.reason === DEFERRED_REASON && !!err.body.id;
+        // 失败的信已作为 FAILED 记录出现在往来记录里（带重试 / 可能已送达）。#340 UX：回复框保留主题和正文（已排队的除外）；
+        // 下次点「发送」是一封新信（新的 Idempotency-Key），往来记录里那封用它自己的「重试」
+        key.current = undefined;
+        const queued = draftAfterSendError(err) === 'clear';
+        if (queued) setBody('');
         if (queued) onBackground(err.body.id!, DEFAULT_POLL_MS, true, err.body.deferredUntil ?? null);
         else if (err.body.id) onFailedItem(err.body.id);
         await onSent();
@@ -223,6 +255,7 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
         if (t.at === 'body') setFieldErr({ body: t.text }); else setFormErr(t);
         if (err.code === 'anonymized') onAnonymized();
       }
+      if (draftAfterSendError(err) === 'keep') { setSubject((s) => s || snap.subject); setBody((b) => b || snap.body); }
     } finally { setBusy(false); }
   };
 
@@ -248,7 +281,7 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
       </div>
       <div ref={hintRef} className="ml-hints">
         {formErr && <div className={`ml-status${formErr.tone === 'error' ? ' err' : ''}`} role={formErr.tone === 'error' ? 'alert' : 'status'}>{formErr.tone === 'error' ? '⚠ ' : 'ⓘ '}{formErr.text}</div>}
-        {limited && <div className="ml-status ml-warn" role="status" data-testid="rate-limited">ⓘ <RateText scope={rate!.scope} limit={rate!.limit} left={left} /></div>}
+        {limited && <div className="ml-status ml-warn" role="status" data-testid="rate-limited">ⓘ <RateText scope={rate!.scope} limit={rate!.limit} left={left} kept={!!body.trim()} /></div>}
         {deferred && <div className="ml-status ml-warn" role="status" data-testid="deferred-hint"><span className="ml-pill strong">{QUEUED_TAG}</span><span className="t">{deferredHint(deferred.until)}</span></div>}
         {sentAt !== undefined && <div className="ml-status ok" role="status">✓ 已发送{sentAt ? <> · <AdminTime iso={sentAt} /></> : null}</div>}
       </div>
