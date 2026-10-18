@@ -55,6 +55,8 @@ export const SETTINGS_TEXT = {
   checkBody: '正文（≥ 50 字）',
   checkStats: (n: number) => `数据条（选填）· ${n} 条`,
   checkHome: '首页区块标题 + 简介',
+  bodyShort: (min: number) => `正文不到 ${min} 字，这个语言的 /about 前台不会显示（可以先保存草稿）。`,
+  previewNote: '预览的是已保存并已上线的前台页面；未保存的修改、未上线或不完整的语言看不到。',
   localeStatus: '各语言前台状态',
   shown: '显示',
   hidden: (why: string) => `隐藏 · ${why}`,
@@ -94,11 +96,46 @@ export const SETTINGS_TEXT = {
  * 「完整」直接调用后端的 isAboutContentComplete（about-rules.ts，纯函数），不另写规则；按「已保存」的内容判断。
  */
 export type Completeness = { state: 'complete' | 'partial' | 'empty'; label: string };
+/**
+ * 缺什么（UX #373 验收 P2-2：标签上写清楚「缺标题」「缺正文」，不只写「内容不完整」）。
+ * 规则和 isAboutContentComplete 一致：标题 2–80 字、正文纯文本 50–6000 字。
+ */
+export function missingParts(d: Pick<AboutDraft, 'title' | 'bodyHtml'>): ('title' | 'body')[] {
+  const out: ('title' | 'body')[] = [];
+  const t = countChars(d.title.trim());
+  if (t < ABOUT_LIMITS.titleMin || t > ABOUT_LIMITS.titleMax) out.push('title');
+  const b = countChars(aboutBodyText(d.bodyHtml));
+  if (b < ABOUT_LIMITS.bodyTextMin || b > ABOUT_LIMITS.bodyTextMax) out.push('body');
+  return out;
+}
+const MISSING_LABEL = { title: '标题', body: '正文' } as const;
 export function draftCompleteness(d: AboutDraft): Completeness {
   const empty = !d.title.trim() && !plainText(d.bodyHtml) && !d.summary.trim() && d.stats.length === 0 && !d.homeHeading.trim() && !d.homeIntro.trim();
   if (empty) return { state: 'empty', label: '未填写' };
   if (isAboutContentComplete({ title: d.title, bodyHtml: d.bodyHtml, images: [] })) return { state: 'complete', label: '完整' };
-  return { state: 'partial', label: '内容不完整' };
+  const miss = missingParts(d);
+  return { state: 'partial', label: miss.length ? `缺${miss.map((m) => MISSING_LABEL[m]).join('、')}` : '内容不完整' };
+}
+
+/**
+ * 右栏「<语言> 完整度」清单（稿件 settings-desktop 的 .ss-chk）：按当前草稿实时算。
+ * state：ok ✓ / missing !（必填没满足）/ optional –（选填）。图片替代文字一项等 PublicAsset 接入后再加。
+ */
+export type ChecklistItem = { key: 'title' | 'body' | 'stats' | 'home'; label: string; state: 'ok' | 'missing' | 'optional' };
+export function draftChecklist(d: AboutDraft): ChecklistItem[] {
+  const miss = missingParts(d);
+  const homeOk = !!d.homeHeading.trim() && !!d.homeIntro.trim();
+  return [
+    { key: 'title', label: SETTINGS_TEXT.checkTitle, state: miss.includes('title') ? 'missing' : 'ok' },
+    { key: 'body', label: SETTINGS_TEXT.checkBody, state: miss.includes('body') ? 'missing' : 'ok' },
+    { key: 'stats', label: SETTINGS_TEXT.checkStats(d.stats.length), state: 'optional' },
+    { key: 'home', label: SETTINGS_TEXT.checkHome, state: homeOk ? 'ok' : 'optional' },
+  ];
+}
+/** 正文有字但不到 50 字：不阻止保存，但字段下方说明该语言前台不会显示 */
+export function bodyTooShortNote(d: AboutDraft): string | null {
+  const n = countChars(aboutBodyText(d.bodyHtml));
+  return n > 0 && n < ABOUT_LIMITS.bodyTextMin ? SETTINGS_TEXT.bodyShort(ABOUT_LIMITS.bodyTextMin) : null;
 }
 
 /**

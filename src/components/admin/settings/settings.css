@@ -46,8 +46,18 @@
 .st-dialog h2{margin:0 0 8px;font-size:18px}
 .st-dlg-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 .adm-btn.primary.danger{background:#C0392B;border-color:#C0392B;color:#fff}
+/* UX #373 P2-2：标题行 + 预览按钮；右栏完整度清单（稿件 .ss-chk） */
+.st-hd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.st-preview{text-decoration:none;display:inline-flex;align-items:center}
+.st-chk{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.5}
+.st-chk li{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}.st-chk li:last-child{border:0}
+.st-chk .i{width:18px;height:18px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800}
+.st-chk .ok{background:#E6F4EC;color:#1E8E5A}.st-chk .missing{background:#FBEAE8;color:#C0392B}.st-chk .optional{background:#EFEDEA;color:#6F6A63}
+.st-page .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 @media (max-width:767px){
   .st-page{padding:16px;padding-bottom:110px}
+  .st-hd{flex-direction:column;align-items:flex-start;gap:6px}
+  .st-preview{display:none}
   .st-grid{grid-template-columns:1fr}
   .st-side{order:-1}
   .st-stat{grid-template-columns:90px 1fr auto}

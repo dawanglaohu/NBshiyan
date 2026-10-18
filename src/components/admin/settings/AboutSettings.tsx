@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
-  aboutSettingsApi, canSave, conflictStep, dirtyFields, dirtySummary, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
+  aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
   isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
 } from '@/lib/admin/site-settings';
 import ConfirmDialog from './ConfirmDialog';
@@ -198,9 +198,14 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
     <div className="st-page">
       <p className="st-crumb">{T.crumb}</p>
       <SettingsSections current="about" />
-      <h1>{T.h1}</h1>
-      {d.updatedAt && <p className="st-audit">{T.lastEdited}{d.updatedByName ?? '—'} · <AdminTime iso={d.updatedAt} /></p>}
-      {/* TODO(backend #350)：「在新窗口预览 EN ↗」需要草稿预览接口，接口上线后再加 */}
+      <div className="st-hd">
+        <div>
+          <h1>{T.h1}</h1>
+          {d.updatedAt && <p className="st-audit">{T.lastEdited}{d.updatedByName ?? '—'} · <AdminTime iso={d.updatedAt} /></p>}
+        </div>
+        {/* UX #373 P2-2：「在新窗口预览 EN ↗」。还没有草稿预览接口，先打开当前语言的前台页（已保存、已上线的内容），title 里写明 */}
+        <a className="adm-btn st-preview" href={`/${tab}/about`} target="_blank" rel="noopener" title={T.previewNote}>{T.preview(tab)}</a>
+      </div>
       {notice?.kind === 'ok' && <p className="st-ok" role="status">{notice.text}</p>}
       {notice?.kind === 'err' && <p className="st-err" role="alert">{notice.text}</p>}
       {conflict !== 'none' && (
@@ -237,8 +242,9 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
               {field('summary', T.summaryLabel)}
               <div className="st-f">
                 <div className="st-lab"><span id="st-body-l">正文<b aria-hidden="true"> *</b></span><Counter id="st-body-c" {...bodyC} /></div>
-                <BodyEditor key={`${tab}-${epoch}`} initial={d.bodyHtml} dir={dir} invalid={!!errors.bodyHtml} describedBy={`st-body-c st-body-h${errors.bodyHtml ? ' st-body-e' : ''}`} onChange={(html) => set('bodyHtml', html)} />
+                <BodyEditor key={`${tab}-${epoch}`} initial={d.bodyHtml} dir={dir} invalid={!!errors.bodyHtml} describedBy={`st-body-c st-body-h${errors.bodyHtml ? ' st-body-e' : bodyTooShortNote(d) ? ' st-body-s' : ''}`} onChange={(html) => set('bodyHtml', html)} />
                 <p id="st-body-h" className="st-hint">{T.bodyHint}</p>
+                {!errors.bodyHtml && bodyTooShortNote(d) && <p id="st-body-s" className="st-warn">{bodyTooShortNote(d)}</p>}
                 {errors.bodyHtml && <p id="st-body-e" className="st-ferr">{errors.bodyHtml}</p>}
               </div>
 
@@ -269,6 +275,15 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
         </div>
 
         <aside className="st-side">
+          <section className="adm-card st-card" aria-labelledby="st-chk-h">
+            <h2 id="st-chk-h">{T.checklist(tab)}</h2>
+            <ul className="st-chk">
+              {draftChecklist(d).map((c) => (
+                <li key={c.key}><span className={`i ${c.state}`} aria-hidden="true">{c.state === 'ok' ? '✓' : c.state === 'missing' ? '!' : '–'}</span>
+                  <span>{c.label}<span className="sr-only">{c.state === 'ok' ? '（已满足）' : c.state === 'missing' ? '（未满足）' : '（选填）'}</span></span></li>
+              ))}
+            </ul>
+          </section>
           <section className="adm-card st-card">
             <h2>{T.localeStatus}</h2>
             <ul className="st-status">
