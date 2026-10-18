@@ -22,7 +22,7 @@ import crypto from 'node:crypto';
 import { articleOgImageUrl, articleOgVersion } from '../src/lib/seo/articleOg';
 import { ORGANIZATION_DEFAULTS } from '../src/lib/seo/organization-defaults';
 import { SITE_URL } from '../src/lib/site';
-import { parseStoredOrganization } from '../src/lib/server/site-settings-model';
+import { isValidFoundingDate, parseStoredOrganization } from '../src/lib/server/site-settings-model';
 import type { AboutContent } from '../src/lib/server/site-settings';
 
 const ORIGIN = 'https://example.test';
@@ -235,4 +235,18 @@ test('Organization JSON-LD (#367): values the backend stores are never dropped (
   // 后端也会拒的值，这里同样丢掉
   const bad = buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: ['https://user:pw@x.example/'], logo: '/%2fevil', email: 'a@b' }, ORIGIN);
   for (const k of ['sameAs', 'logo', 'email']) assert.equal(k in bad, false, k);
+});
+
+test('Organization JSON-LD (#367): foundingDate uses backend isValidFoundingDate (one rule)', () => {
+  const fd = (v: string) => buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], foundingDate: v }, ORIGIN).foundingDate;
+  for (const ok of ['2000', '2000-01-31', ' 1999-12-31 ']) {
+    assert.equal(isValidFoundingDate(ok.trim()), true, ok);
+    assert.equal(fd(ok), ok.trim(), ok);
+  }
+  // 后端拒绝的：YYYY-MM、不存在的日期、1800 年以前、未来年份、乱写
+  const future = String(new Date().getUTCFullYear() + 1);
+  for (const bad of ['2000-01', '2001-02-29', '1799', future, 'soon']) {
+    assert.equal(isValidFoundingDate(bad), false, bad);
+    assert.equal(fd(bad), undefined, bad);
+  }
 });

@@ -6,7 +6,7 @@ import { ogSafeText } from './og/articleOgLayout';
 import { ORGANIZATION_DEFAULTS } from './organization-defaults';
 import { SITE_URL } from '../site';
 import { ABOUT_LIMITS, aboutBodyText, countChars } from '../site-settings/about-rules';
-import { ORG_EMAIL_RE, safeOrgUrl } from '../server/site-settings-model';
+import { ORG_EMAIL_RE, isValidFoundingDate, safeOrgUrl } from '../server/site-settings-model';
 import ogVersions from '../../data/og-versions.json';
 
 // /[locale]/about 的 SEO 规则（#350）。全部是纯函数：数据由调用方从 site-settings 读好再传进来，这里不查库。
@@ -173,7 +173,7 @@ function logoUrl(u: string | undefined, origin: string): string | undefined {
  * - @type 保持 Organization，@id = <origin>/#organization（WebSite.publisher 指向它）。origin 默认 SITE_URL（NEXT_PUBLIC_SITE_URL），
  *   与 OrganizationJsonLd.tsx 和后端 getOrganizationSettings().url 同一来源；只在测试里显式传别的值。
  * - alternateName / description 为空时用 ORGANIZATION_DEFAULTS；后台填了以后台为准。传入已套过默认值的设置，输出相同。
- * - 其他字段没填就不输出；email 用后端 ORG_EMAIL_RE，logo / sameAs 用后端 safeOrgUrl（site-settings-model.ts），sameAs 去重。
+ * - 其他字段没填就不输出；email 用后端 ORG_EMAIL_RE，foundingDate 用后端 isValidFoundingDate，logo / sameAs 用后端 safeOrgUrl（site-settings-model.ts），sameAs 去重。
  * - 产能、面积、人数、认证、交期这类数字不在输入里，这里也绝不补。
  * - 只返回普通对象；输出到页面和 '<' 转义只由现有的 JsonLd.tsx / OrganizationJsonLd.tsx 负责（安全审要求）。
  */
@@ -200,6 +200,6 @@ export function buildOrganizationJsonLd(settings: Partial<OrganizationSettings> 
   const sameAs = [...new Set((s.sameAs ?? []).map((u) => (typeof u === 'string' ? safeOrgUrl(u) : null)).filter((u): u is string => !!u))];
   if (sameAs.length) out.sameAs = sameAs;
   const fd = clean(s.foundingDate);
-  put('foundingDate', fd && /^\d{4}(-\d{2}(-\d{2})?)?$/.test(fd) ? fd : undefined);
+  put('foundingDate', fd && isValidFoundingDate(fd) ? fd : undefined);
   return out;
 }
