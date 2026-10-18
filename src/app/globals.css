@@ -117,6 +117,9 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 /* --header-h = 吸顶导航 header.site 的实际高度：生产构建实测 768–1920px（EN/RU）都是 73px（padding 14px×2 + 44px 语言/按钮行 + 1px 下边框）；
    ≤767px 导航不吸顶（position:static），用到它的地方在下面的媒体查询里各自改成不含页头的值 */
 :root{--header-h:73px}
+/* --catbar-h = 分类条 .catbar-wrap 的实际高度（border-box）。运行时由 CategoryBar 用 ResizeObserver 写到 <html> 上（字体加载、EN/RU、换行都会跟着更新）；
+   这里的值是 JS 生效前的兜底（例如带 #锚点直接打开页面），按下面的 CSS 推出来：.catbar 上下 padding 10px×2 + 链接 14px×行高 1.55 + 链接 padding 6px×2 + 链接边框 1px×2 + 外层下边框 1px = 56.7px */
+:root{--catbar-h:calc(10px * 2 + 14px * 1.55 + 6px * 2 + 1px * 2 + 1px)}
 .catbar-wrap{position:sticky;top:var(--header-h);z-index:15;margin-bottom:16px;background:var(--bg);border-bottom:1px solid var(--line)}
 .catbar{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 0;scroll-behavior:smooth}
 .catbar-wrap::before,.catbar-wrap::after{content:"";position:absolute;top:0;bottom:0;width:48px;pointer-events:none;opacity:0;transition:opacity var(--dur)}
@@ -128,8 +131,9 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 .catbar::-webkit-scrollbar{display:none}
 .catbar a{flex:none;white-space:nowrap;padding:6px 14px;border-radius:var(--r-pill);border:1px solid var(--line);text-decoration:none;font-size:14px;background:var(--surface)}
 .catbar a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.card{scroll-margin-top:calc(var(--header-h) + 64px)}
-@media (max-width:767px){header.site{position:static}.catbar-wrap{top:0}.card{scroll-margin-top:64px}}
+/* 锚点落点：卡片顶在分类条下沿下方 16px。≥768 页头 + 分类条都吸顶；≤767 页头不吸顶，只算分类条 */
+.card{scroll-margin-top:calc(var(--header-h) + var(--catbar-h) + 16px)}
+@media (max-width:767px){header.site{position:static}.catbar-wrap{top:0}.card{scroll-margin-top:calc(var(--catbar-h) + 16px)}}
 .card .desc{margin:0;font-size:14px;line-height:1.5;color:var(--ink-2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
 .card.theme-premium .desc,.card.theme-premium .specs{color:color-mix(in srgb,var(--premium-ink) 70%,transparent)}
 /* #65 首页主图、品类缩略图、页脚 */
