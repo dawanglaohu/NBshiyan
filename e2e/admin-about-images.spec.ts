@@ -1,0 +1,242 @@
+import { execFileSync } from 'node:child_process';
+import { authenticator } from 'otplib';
+import sharp from 'sharp';
+import { test, expect } from './fixtures';
+import { BASE } from '../playwright.config';
+import type { Page } from '@playwright/test';
+
+// #350 /admin/settings「关于我们 · 图片列表」：真实页面 + 真实接口（#374 PublicAsset），仅 E2E 测试库。
+// 每个测试新建一个 ADMIN（scripts/create-admin.mjs，ADMIN_SEED_TOTP_SECRET 只在非生产可用），按管理员的上传限速互不影响。
+const PASSWORD = 'e2e-img-Passw0rd!';
+const TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'; // 测试用假密钥
+const origin = { Origin: BASE };
+const S = '/api/admin/site-settings';
+
+async function loginFreshAdmin(page: Page) {
+  const email = `e2e-img-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
+  execFileSync('node', ['scripts/create-admin.mjs'], {
+    stdio: 'pipe',
+    env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: PASSWORD, ADMIN_SEED_NAME: 'E2E img', ADMIN_SEED_ROLE: 'ADMIN', ADMIN_SEED_TOTP_SECRET: TOTP },
+  });
+  const csrf = (await (await page.request.get('/api/auth/csrf')).json()).csrfToken as string;
+  const ok = await page.request.post('/api/auth/callback/credentials', { headers: origin, form: { csrfToken: csrf, email, password: PASSWORD, totp: authenticator.generate(TOTP) }, maxRedirects: 0 });
+  expect(ok.headers()['location'] ?? '').not.toContain('error');
+}
+
+/** 从干净状态开始：清空列表、删掉图库里的图、en 填完整内容（无图）、开关打开 */
+async function reset(page: Page) {
+  const about = await (await page.request.get(`${S}/about`)).json();
+  expect((await page.request.put(`${S}/about/images`, { headers: origin, data: { expectedVersion: about.images.version, ids: [] } })).status()).toBe(200);
+  const lib = await (await page.request.get(`${S}/assets`)).json();
+  for (const a of lib.assets) expect((await page.request.delete(`${S}/assets/${a.id}`, { headers: origin })).status()).toBe(200);
+  const en = about.locales.en;
+  const put = await page.request.put(`${S}/about/en`, { headers: origin, data: {
+    expectedVersion: en?.version ?? 0, title: 'About PackJoyU (sample)', summary: '', bodyHtml: `<p>${'Sample text for the about page. '.repeat(4)}</p>`,
+    stats: [], home: { title: '', intro: '' }, imageMeta: {},
+  } });
+  expect(put.status()).toBe(200);
+  const ru = about.locales.ru;
+  if (ru) {
+    expect((await page.request.put(`${S}/about/ru`, { headers: origin, data: { expectedVersion: ru.version, title: '', summary: '', bodyHtml: '', stats: [], home: { title: '', intro: '' }, imageMeta: {} } })).status()).toBe(200);
+  }
+  expect((await page.request.put(`${S}/about/enabled`, { headers: origin, data: { enabled: true, expectedVersion: about.enabledMeta.version } })).status()).toBe(200);
+}
+
+const jpeg = (w: number, h: number, rgb: [number, number, number]) => sharp({ create: { width: w, height: h, channels: 3, background: { r: rgb[0], g: rgb[1], b: rgb[2] } } }).jpeg({ quality: 80 }).toBuffer();
+/** 只有 PNG 头（IHDR 宽高）没有像素数据：后端只读文件头就判像素超限 */
+function pngHeader(w: number, h: number) {
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
+  const chunk = (type: string, data: Buffer) => { const len = Buffer.alloc(4); len.writeUInt32BE(data.length); return Buffer.concat([len, Buffer.from(type), data, Buffer.alloc(4)]); };
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IDAT', Buffer.alloc(16)), chunk('IEND', Buffer.alloc(0))]);
+}
+const GIF = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+
+const fileInput = (page: Page) => page.locator('.st-im input[type=file]');
+const pick = (page: Page, name: string, mimeType: string, buffer: Buffer) => fileInput(page).setInputFiles({ name, mimeType, buffer });
+const saveBtn = (page: Page) => page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
+const savedOk = (page: Page) => expect(page.getByRole('status').filter({ hasText: '✓ 已保存' })).toBeVisible();
+
+test('图片列表：上传、替代文字必填、各种被拒、429 保留文件、去重、6 张上限、排序保存、前台 srcset', async ({ page }) => {
+  test.setTimeout(150_000);
+  await loginFreshAdmin(page);
+  await reset(page);
+  const posts: string[] = [];
+  page.on('request', (r) => { if (r.method() === 'POST' && r.url().endsWith(`${S}/assets`)) posts.push(r.url()); });
+
+  await page.goto('/admin/settings');
+  const area = page.locator('.st-im');
+  await expect(area.getByText('图片列表（选填，/about 与首页共用）')).toBeVisible();
+  await expect(area.locator('.st-count').first()).toHaveText('0 / 6');
+  await expect(area.getByText('JPG / PNG / WebP，单张 ≤ 10 MB')).toBeVisible();
+  await expect(area.getByText('上传后统一转为 WebP · 建议长边 ≥ 1600 px · 还可加 6 张')).toBeVisible();
+
+  // 正常上传 → 卡片；en 有内容，替代文字必填，保存禁用
+  await pick(page, 'factory-1.jpg', 'image/jpeg', await jpeg(1600, 1200, [200, 120, 80]));
+  const cards = area.locator('.st-im-card');
+  await expect(cards).toHaveCount(1);
+  await expect(area.locator('.st-count').first()).toHaveText('1 / 6');
+  await expect(cards.first().getByText('请填写替代文字')).toBeVisible();
+  await expect(area.getByText('1 张图片缺少替代文字，补齐后才能保存。')).toBeVisible();
+  await expect(page.getByRole('region', { name: '保存' })).toContainText('图片列表');
+  await expect(saveBtn(page)).toBeDisabled();
+  await cards.first().getByLabel(/替代文字（EN）/).fill('Sample alt 1');
+  await expect(saveBtn(page)).toBeEnabled();
+
+  // 小图：能传，但提示
+  await pick(page, 'small.jpg', 'image/jpeg', await jpeg(1200, 900, [90, 140, 200]));
+  await expect(cards).toHaveCount(2);
+  await expect(cards.nth(1).getByText('图片较小，大屏上可能不够清晰')).toBeVisible();
+
+  // 被拒：长边 < 800（422）、GIF 改成 png 类型（服务端 magic bytes → 415）、损坏（422）、像素超限（422）、>10 MB（前端拦住，不发请求）
+  const errTile = (name: string) => area.locator('.st-im-up.bad').filter({ hasText: name });
+  await pick(page, 'tiny.jpg', 'image/jpeg', await jpeg(600, 400, [10, 10, 10]));
+  await expect(errTile('tiny.jpg')).toContainText('图片太小，长边至少 800 像素');
+  await expect(errTile('tiny.jpg')).toContainText('未上传');
+  await pick(page, 'fake.png', 'image/png', GIF);
+  await expect(errTile('fake.png')).toContainText('仅支持 JPG、PNG、WebP 静态图片');
+  await pick(page, 'broken.png', 'image/png', Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64, 7)]));
+  await expect(errTile('broken.png')).toContainText('图片处理失败，请换一张重试');
+  await pick(page, 'huge-mp.png', 'image/png', pngHeader(8000, 8000));
+  await expect(errTile('huge-mp.png')).toContainText('图片像素过大（超过 6000 万），请缩小后再上传');
+  const before = posts.length;
+  await pick(page, 'big.jpg', 'image/jpeg', Buffer.alloc(10 * 1024 * 1024 + 1, 1));
+  await expect(errTile('big.jpg')).toContainText('图片不能超过 10MB');
+  await expect(errTile('big.jpg')).toContainText('10.0 MB');
+  expect(posts.length).toBe(before);
+  for (const n of ['tiny.jpg', 'fake.png', 'broken.png', 'huge-mp.png', 'big.jpg']) await errTile(n).getByRole('button', { name: '关闭' }).click();
+  await expect(area.locator('.st-im-up.bad')).toHaveCount(0);
+
+  // 429：文案 + 保留文件，Retry-After 之后才能重试，重试成功
+  let limited = true;
+  await page.route(`**${S}/assets`, (route) => (limited && route.request().method() === 'POST'
+    ? route.fulfill({ status: 429, headers: { 'Retry-After': '2', 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'rate_limited' }) })
+    : route.fallback()));
+  await pick(page, 'retry.jpg', 'image/jpeg', await jpeg(1600, 1200, [30, 160, 90]));
+  await expect(errTile('retry.jpg')).toContainText('上传太频繁，请稍后再试');
+  await expect(errTile('retry.jpg').getByRole('button', { name: /秒后可重试/ })).toBeDisabled();
+  limited = false;
+  await errTile('retry.jpg').getByRole('button', { name: '重试' }).click({ timeout: 6000 });
+  await expect(cards).toHaveCount(3);
+  await page.unroute(`**${S}/assets`);
+
+  // 同一张图再传：200 deduplicated，不重复加
+  await pick(page, 'factory-1-again.jpg', 'image/jpeg', await jpeg(1600, 1200, [200, 120, 80]));
+  await expect(area.getByText('这张图已经在列表里了')).toBeVisible();
+  await expect(cards).toHaveCount(3);
+
+  // 加到 6 张：上传区变成「已达上限」
+  for (const [i, c] of ([[4, [250, 0, 0]], [5, [0, 250, 0]], [6, [0, 0, 250]]] as const)) await pick(page, `f${i}.jpg`, 'image/jpeg', await jpeg(1600, 1200, [...c]));
+  await expect(cards).toHaveCount(6);
+  await expect(area.getByText('已达上限：最多 6 张')).toBeVisible();
+  await expect(fileInput(page)).toHaveCount(0);
+  for (let i = 1; i < 6; i++) await cards.nth(i).getByLabel(/替代文字（EN）/).fill(`Sample alt ${i + 1}`);
+
+  // 排序：第 1 张右移
+  const firstSrc = await cards.nth(0).locator('img').getAttribute('src');
+  await cards.nth(0).getByRole('button', { name: '右移第 1 张' }).click();
+  expect(await cards.nth(1).locator('img').getAttribute('src')).toBe(firstSrc);
+
+  await saveBtn(page).click();
+  await savedOk(page);
+  const about = await (await page.request.get(`${S}/about`)).json();
+  expect(about.images.items).toHaveLength(6);
+  expect(`/media/${about.images.items[1].id}-800.webp`).toBe(firstSrc);
+  expect(Object.keys(about.locales.en.imageMeta).sort()).toEqual(about.images.items.map((i: { id: string }) => i.id).sort());
+  expect(about.locales.en.imageMeta[about.images.items[1].id].alt).toBe('Sample alt 1');
+
+  // 前台：6 张都在，srcset 的 w 描述符 = sm / lg 实际宽度，width / height = lg，有 alt
+  await page.goto('/en/about');
+  const imgs = page.locator('.ab-imgs img');
+  await expect(imgs).toHaveCount(6);
+  const smallItem = about.images.items.find((i: { lg: { w: number } }) => i.lg.w === 1200);
+  const im = page.locator(`.ab-imgs img[src="/media/${smallItem.id}-800.webp"]`);
+  await expect(im).toHaveAttribute('srcset', `/media/${smallItem.id}-800.webp 800w, /media/${smallItem.id}-1600.webp 1200w`);
+  await expect(im).toHaveAttribute('width', '1200');
+  await expect(im).toHaveAttribute('height', '900');
+  await expect(im).toHaveAttribute('alt', /Sample alt/);
+  await expect(imgs.first()).toHaveAttribute('sizes', '(min-width: 1024px) 50vw, 100vw');
+});
+
+test('图片库：在用的图不能删（asset_in_use）；移除并保存后可以删，先确认；409 走关于页的冲突流程', async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginFreshAdmin(page);
+  await reset(page);
+  await page.goto('/admin/settings');
+  const area = page.locator('.st-im');
+  await area.locator('input[type=file]').setInputFiles([
+    { name: 'a.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [120, 60, 30]) },
+    { name: 'b.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [30, 60, 120]) },
+  ]);
+  const cards = area.locator('.st-im-card');
+  await expect(cards).toHaveCount(2);
+  await cards.nth(0).getByLabel(/替代文字（EN）/).fill('Alt A');
+  await cards.nth(1).getByLabel(/替代文字（EN）/).fill('Alt B');
+  await saveBtn(page).click();
+  await savedOk(page);
+
+  // 在用：点删除直接提示，不弹确认、不发 DELETE
+  let deletes = 0;
+  page.on('request', (r) => { if (r.method() === 'DELETE') deletes++; });
+  await area.getByText(/图片库（已上传 2 张）/).click();
+  const libItems = area.locator('.st-im-libl li');
+  await expect(libItems).toHaveCount(2);
+  await libItems.first().getByRole('button', { name: '删除' }).click();
+  await expect(libItems.first().getByRole('alert')).toHaveText('这张图正在关于页使用，请先从关于页移除');
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  expect(deletes).toBe(0);
+
+  // 服务端同样拦：直接调接口 409 asset_in_use
+  const about0 = await (await page.request.get(`${S}/about`)).json();
+  const del409 = await page.request.delete(`${S}/assets/${about0.images.items[0].id}`, { headers: origin });
+  expect(del409.status()).toBe(409);
+  expect((await del409.json()).error).toBe('asset_in_use');
+
+  // 从关于页移除第 2 张并保存 → 图库里那张可以删：确认框文案、取消 / 红色删除
+  await cards.nth(1).getByRole('button', { name: '从关于页移除（第 2 张）' }).click();
+  await expect(cards).toHaveCount(1);
+  await saveBtn(page).click();
+  await savedOk(page);
+  const removedId = about0.images.items[1].id;
+  const target = libItems.filter({ has: page.locator(`img[src="/media/${removedId}-800.webp"]`) });
+  await expect(target.getByText('关于页使用中')).toHaveCount(0);
+  await target.getByRole('button', { name: '删除' }).click();
+  const dlg = page.getByRole('alertdialog', { name: '删除这张图片？' });
+  await expect(dlg).toContainText('删除后，旧的图片链接可能仍能访问一段时间');
+  await expect(dlg.getByRole('button', { name: '取消' })).toBeFocused();
+  await expect(dlg.getByRole('button', { name: '删除' })).toHaveCSS('background-color', 'rgb(192, 57, 43)');
+  await dlg.getByRole('button', { name: '取消' }).click();
+  await expect(libItems).toHaveCount(2);
+  await target.getByRole('button', { name: '删除' }).click();
+  await dlg.getByRole('button', { name: '删除' }).click();
+  await expect(libItems).toHaveCount(1);
+  expect((await page.request.get(`/media/${removedId}-1600.webp`)).status()).toBe(404);
+  // 删掉的图在库里留下的旧文字会被剪掉：接着改 en 文字能正常保存（不会 400 unknown_asset）
+  await cards.nth(0).getByLabel(/替代文字（EN）/).fill('Alt A2');
+  await saveBtn(page).click();
+  await savedOk(page);
+  const about1 = await (await page.request.get(`${S}/about`)).json();
+  expect(Object.keys(about1.locales.en.imageMeta)).toEqual([about0.images.items[0].id]);
+
+  // 409：别人先改了图片列表 → 我保存时冲突横幅 + 刷新；草稿保留、保存禁用、只发一次 PUT images
+  const other = await page.request.put(`${S}/about/images`, { headers: origin, data: { expectedVersion: about1.images.version, ids: [] } });
+  expect(other.status()).toBe(200);
+  let imagePuts = 0;
+  page.on('request', (r) => { if (r.method() === 'PUT' && r.url().endsWith('/about/images')) imagePuts++; });
+  await cards.nth(0).getByRole('button', { name: '从关于页移除（第 1 张）' }).click();
+  await area.getByText(/图片库/).first().isVisible();
+  await libItems.first().getByRole('button', { name: '加入关于页' }).click(); // 再加回来 → 列表和已保存一样，但文字改了
+  await area.locator('input[type=file]').setInputFiles({ name: 'c.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [60, 120, 30]) });
+  await expect(cards).toHaveCount(2);
+  await cards.nth(1).getByLabel(/替代文字（EN）/).fill('Alt C');
+  await saveBtn(page).click();
+  const banner = page.getByRole('alert').filter({ hasText: '内容已被他人修改，请刷新后重新编辑' });
+  await expect(banner).toBeVisible();
+  await expect(cards).toHaveCount(2);
+  await expect(saveBtn(page)).toBeDisabled();
+  expect(imagePuts).toBe(1);
+  await banner.getByRole('button', { name: '刷新' }).click();
+  await page.getByRole('alertdialog', { name: '未保存的修改将丢弃' }).getByRole('button', { name: '丢弃并刷新' }).click();
+  await expect(banner).toHaveCount(0);
+  await expect(cards).toHaveCount(0);
+  await expect(area.locator('.st-count').first()).toHaveText('0 / 6');
+});
