@@ -56,6 +56,7 @@ beforeEach(() => {
   setRateLimitStore(new MemoryStore());
   process.env.PRIVACY_HASH_SECRET = 's'.repeat(32);
   delete process.env.VERCEL_ENV;
+  delete process.env.APP_ORIGIN;
 });
 
 for (const [name, handle, body] of ROUTES) {
@@ -88,6 +89,7 @@ for (const [name, handle, body] of ROUTES) {
     const { d, calls, audits } = deps();
     delete process.env.PRIVACY_HASH_SECRET;
     process.env.VERCEL_ENV = 'production';
+    process.env.APP_ORIGIN = ORIGIN; // #323：生产环境同源检查只认 APP_ORIGIN
     const r = await handle(req(name, body), d);
     assert.equal(r.status, 503);
     assert.equal((await r.json()).error, 'privacy_hash_secret_missing');

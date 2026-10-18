@@ -36,3 +36,30 @@ export function storedFileHeaders(key: string, id: string, bytes: number, access
 export function storedFileResponse(data: Buffer, key: string, id: string, access: FileAccess, extra: Record<string, string> = {}): Response {
   return new Response(new Uint8Array(data), { headers: { ...extra, ...storedFileHeaders(key, id, data.length, access) } });
 }
+
+/**
+ * #323：文件接口的非文件响应（401 / 403 / 404 / 429 / 500 等）也带 FILE_CSP 和 nosniff。
+ * next.config 把这 4 个接口排除出了全站 CSP，以前这些错误响应完全没有 CSP。
+ * 只补（覆盖）这两个头，状态码、正文和其他头不变。
+ */
+export function withFileSecurityHeaders(res: Response): Response {
+  const headers = new Headers(res.headers);
+  headers.set('Content-Security-Policy', FILE_CSP);
+  headers.set('X-Content-Type-Options', 'nosniff');
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+/**
+ * 4 个输出存储文件的接口统一用它包住 handler：返回的每个响应都经 withFileSecurityHeaders；
+ * handler 抛错时返回 500 {error:'internal'}（no-store，同样带 FILE_CSP + nosniff），不把异常信息返回给客户端。
+ */
+export function fileRoute<C>(handler: (req: Request, ctx: C) => Promise<Response>): (req: Request, ctx: C) => Promise<Response> {
+  return async (req, ctx) => {
+    let res: Response;
+    try { res = await handler(req, ctx); } catch (e) {
+      console.error('file route error', e);
+      res = new Response(JSON.stringify({ error: 'internal' }), { status: 500, headers: { 'Content-Type': 'application/json', 'Cache-Control': PRIVATE_NO_STORE } });
+    }
+    return withFileSecurityHeaders(res);
+  };
+}

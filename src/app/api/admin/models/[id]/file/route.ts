@@ -2,14 +2,15 @@ import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
 import { requireAdmin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr } from '@/lib/server/admin/guard';
-import { storedFileResponse } from '@/lib/server/file-response';
+import { fileRoute, storedFileResponse } from '@/lib/server/file-response';
 import { ID_RE } from '@/lib/server/admin/inquiries';
 
 export const runtime = 'nodejs';
 const VARIANTS = ['glb', 'lod', 'poster'] as const;
 
 /** 第 3 步：预览。后台加载未上架的模型文件：?variant=glb|lod|poster */
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+// #323：fileRoute 让 401 / 404 / 429 / 500 等错误响应也带 FILE_CSP + nosniff
+export const GET = fileRoute(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireAdmin(req, ['ADMIN', 'EDITOR']);
   if (ctx instanceof Response) return ctx;
   const limited = await enforceAdminRateLimit(req, 'model.file', 240);
@@ -22,4 +23,4 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const data = key ? await storage.get(key) : null;
   if (!data) return jsonErr('not_found', 404);
   return storedFileResponse(data, key!, `${id}-${variant}`, { access: 'private' });
-}
+});
