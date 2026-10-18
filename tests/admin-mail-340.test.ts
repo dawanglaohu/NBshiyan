@@ -88,7 +88,7 @@ test('#340 composer: subject + body survive 429 and every other failure; cleared
   const comp = c.slice(c.indexOf('function Composer'));
   assert.match(comp, /const snap = \{ subject, body \};/);
   assert.match(comp, /if \(draftAfterSendError\(err\) === 'keep'\) \{ setSubject\(\(s\) => s \|\| snap\.subject\); setBody\(\(b\) => b \|\| snap\.body\); \}/);
-  assert.equal((comp.match(/setBody\(''\)/g) ?? []).length, 2);
+  assert.equal((comp.match(/setBody\(''\)/g) ?? []).length, 3, '成功、已排队、卡片重试成功且草稿没改过（见下面的测试）');
   assert.match(comp, /key\.current = undefined; setBody\(''\);\s*if \(r\.kind === 'sending'\)/, '成功（201/202）后清空');
   assert.match(comp, /const queued = draftAfterSendError\(err\) === 'clear';\s*if \(queued\) setBody\(''\);/, '已排队清空，其他 mail_failed 保留');
   assert.doesNotMatch(comp, /setSubject\(''\)/);
@@ -141,8 +141,8 @@ test('#340 normalizeThread: legacy + redacted rows with missing fields render wi
 });
 
 // —— 5. PM：失败卡片上「重试 / 发送」的区别说明 ——
-test('#340 failed card hint: exact copy, muted (not role=alert), only on failed cards that show 「重试」', () => {
-  assert.equal(L.RETRY_VS_SEND_HINT, '点『重试』会重发这封邮件；再点『发送』会另发一封新邮件');
+test('#340 failed card hint (UX final copy): exact copy, muted (not role=alert), only on failed cards that show 「重试」', () => {
+  assert.equal(L.RETRY_VS_SEND_HINT, '发送失败。点「重试」重发这封；如需修改，请在下方编辑后发送新邮件。');
   const out = (id: string, o: Record<string, unknown>) => ({ id, source: 'mail', direction: 'OUTBOUND', subject: 'Re: hi', bodyText: 'body', createdAt: '2026-10-17T00:00:00Z', ...o }) as never;
   const page = L.normalizeThread({ items: [
     out('f1', { status: 'FAILED', errorCode: 'provider_throttled', retryable: true, retryCount: 1 }),
@@ -156,7 +156,7 @@ test('#340 failed card hint: exact copy, muted (not role=alert), only on failed 
   const h = view({ page });
   const cards = h.split('<article').slice(1);
   const byId = Object.fromEntries(cards.map((c) => [c.match(/data-id="([^"]+)"/)![1], c]));
-  const hint = '<span class="ml-note ml-retry-hint" data-testid="retry-hint">点『重试』会重发这封邮件；再点『发送』会另发一封新邮件</span>';
+  const hint = '<span class="ml-note ml-retry-hint" data-testid="retry-hint">发送失败。点「重试」重发这封；如需修改，请在下方编辑后发送新邮件。</span>';
   for (const id of Object.keys(byId)) {
     const hasRetry = /<button type="button" class="ml-btn"[^>]*>重试<\/button>/.test(byId[id]);
     assert.equal(byId[id].includes(hint), hasRetry, `${id}: hint iff 重试 button`);
@@ -166,4 +166,43 @@ test('#340 failed card hint: exact copy, muted (not role=alert), only on failed 
   assert.equal((h.match(/data-testid="retry-hint"/g) ?? []).length, cards.filter((c) => c.includes(hint)).length);
   assert.doesNotMatch(hint, /role=/);
   assert.match(readFileSync(new URL('../src/app/admin/mail.css', import.meta.url), 'utf8'), /\.ml-note\{font-size:13px;color:var\(--ink-2\)\}/);
+});
+
+// —— 6. 卡片「重试」成功后回复框草稿 ——
+test('#340 card retry success: unchanged draft (same subject + body as the failed mail) → clear body; edited → keep', () => {
+  const failed = { subject: 'Re: Quote for gift boxes', bodyText: 'Hello Anna,\nprice attached.' };
+  assert.equal(L.draftAfterCardRetry({ subject: 'Re: Quote for gift boxes', body: 'Hello Anna,\nprice attached.' }, failed), 'clear');
+  assert.equal(L.draftAfterCardRetry({ subject: '  Re: Quote for gift boxes ', body: 'Hello Anna,\nprice attached.\n' }, failed), 'clear', '只差首尾空白（发送时会 trim）算没改');
+  assert.equal(L.draftAfterCardRetry({ subject: 'Re: Quote for gift boxes', body: 'Hello Anna,\nprice attached. Thanks!' }, failed), 'keep', '正文改过');
+  assert.equal(L.draftAfterCardRetry({ subject: 'Re: Quote — updated', body: 'Hello Anna,\nprice attached.' }, failed), 'keep', '主题改过');
+  assert.equal(L.draftAfterCardRetry({ subject: 'Re: Quote for gift boxes', body: '' }, failed), 'keep', '已经是空的：不用动');
+  assert.equal(L.draftAfterCardRetry({ subject: '', body: 'x' }, { subject: null, bodyText: null }), 'keep');
+  // 接线：只在 retry 成功（await 之后、没抛错）时通知回复框；回复框清空正文、不动主题
+  const c = src('components/admin/mail/MailThread.tsx');
+  const retry = c.slice(c.indexOf('const retry = async'), c.indexOf('} finally { setRetrying(undefined); }'));
+  const ok = retry.slice(0, retry.indexOf('} catch'));
+  assert.match(ok, /const r = await mailApi\.retry\(m\.id, uuid\(\)\);\s*setRetried\(\(p\) => \(\{ subject: m\.subject, bodyText: m\.bodyText, n: \(p\?\.n \?\? 0\) \+ 1 \}\)\);/);
+  assert.doesNotMatch(retry.slice(retry.indexOf('} catch')), /setRetried/, '重试失败不清空');
+  const comp = c.slice(c.indexOf('function Composer'));
+  assert.match(comp, /if \(draftAfterCardRetry\(draftRef\.current, retried\) === 'clear'\) \{ setBody\(''\); key\.current = undefined; \}/);
+  assert.doesNotMatch(comp, /setSubject\(''\)/);
+  assert.match(c, /<Composer retried=\{retried\}/);
+});
+test('#340 card retry: POST /api/admin/mail/:mid/retry for that message only; never calls send', async () => {
+  const calls: { url: string; method?: string; body?: unknown; key?: string | null }[] = [];
+  const g = globalThis as { fetch: typeof fetch };
+  const orig = g.fetch;
+  g.fetch = (async (u: string | URL, init?: RequestInit) => {
+    calls.push({ url: String(u), method: init?.method, body: init?.body, key: new Headers(init?.headers).get('Idempotency-Key') });
+    return new Response(JSON.stringify({ id: 'cmfailed0001', pollAfterMs: 5000 }), { status: 202 });
+  }) as typeof fetch;
+  try {
+    const r = await httpMailApi.retry('cmfailed0001', 'k-1');
+    assert.deepEqual(calls, [{ url: '/api/admin/mail/cmfailed0001/retry', method: 'POST', body: '{}', key: 'k-1' }], '空请求体：服务端按库里的原文重发同一封');
+    assert.equal(r.kind, 'sending'); assert.equal(r.id, 'cmfailed0001');
+  } finally { g.fetch = orig; }
+  const c = src('components/admin/mail/MailThread.tsx');
+  const retry = c.slice(c.indexOf('const retry = async'), c.indexOf('} finally { setRetrying(undefined); }'));
+  assert.match(retry, /mailApi\.retry\(m\.id, uuid\(\)\)/);
+  assert.doesNotMatch(retry, /mailApi\.send|key\.current/, '不调 send，也不碰回复框的 Idempotency-Key');
 });

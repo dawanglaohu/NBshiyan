@@ -5,7 +5,7 @@ import { mailApi, MailError, type SendStatus, type ThreadItem, type ThreadPage }
 import {
   ANON_THREAD, authorText, DEFAULT_POLL_MS, DEFERRED_REASON, deferredHint, BACKGROUND_SENDING, BODY_MAX, bodyCounter, DELETED, FORM_UNKNOWN, invalidFieldText, MAYBE_DELIVERED, MAYBE_DELIVERED_HINT,
   NOT_RETRYABLE, oneLineSubject, outboundView, replySubject, RETRY_LIMIT_HINT, retryCountText, sendErrorText, SENDING_DISABLED, SENDING_DISABLED_HINT,
-  showUnverified, SUBJECT_MAX, subjectText, UNCONFIRMED, QUEUED_TAG, retryButton, retryRateText, RETRY_VS_SEND_HINT, THREAD_LOAD_FAILED, normalizeThread, draftAfterSendError
+  showUnverified, SUBJECT_MAX, subjectText, UNCONFIRMED, QUEUED_TAG, retryButton, retryRateText, RETRY_VS_SEND_HINT, draftAfterCardRetry, THREAD_LOAD_FAILED, normalizeThread, draftAfterSendError
 } from '@/lib/admin/mail/logic';
 import { MAIL_ATTACHMENTS_LIVE } from '@/lib/admin/mail/features';
 import { browserVisibility, startSendPoll } from '@/lib/admin/mail/poller';
@@ -31,6 +31,8 @@ export default function MailThread({ inquiryId, recipient, onAnonymized, onSendA
   const [live, setLive] = useState<Record<string, Partial<SendStatus> & { unconfirmed?: boolean; background?: boolean }>>({});
   const [itemNote, setItemNote] = useState<Record<string, ItemNote>>({});
   const [retrying, setRetrying] = useState<string>();
+  /** #340：卡片「重试」成功后通知回复框——草稿和这封失败邮件一模一样就清空正文（判断在回复框里做，见 draftAfterCardRetry） */
+  const [retried, setRetried] = useState<{ subject: string | null; bodyText: string | null; n: number }>();
   const stops = useRef<(() => void)[]>([]);
 
   const [reloading, setReloading] = useState(false);
@@ -61,7 +63,9 @@ export default function MailThread({ inquiryId, recipient, onAnonymized, onSendA
   const retry = async (m: ThreadItem) => {
     setRetrying(m.id); setFocusId(m.id); setItemNote((n) => { const c = { ...n }; delete c[m.id]; return c; });
     try {
+      // 卡片重试只调 POST /mail/:mid/retry（服务端按库里的原文重发同一封），不调 send、不新建邮件；uuid 只是这次请求的 Idempotency-Key
       const r = await mailApi.retry(m.id, uuid());
+      setRetried((p) => ({ subject: m.subject, bodyText: m.bodyText, n: (p?.n ?? 0) + 1 }));
       if (r.kind === 'sending') poll(r.id, r.pollAfterMs, r.deferred, r.deferredUntil ?? null);
       await load();
     } catch (e) {
@@ -76,15 +80,15 @@ export default function MailThread({ inquiryId, recipient, onAnonymized, onSendA
     } finally { setRetrying(undefined); }
   };
 
-  return <MailThreadView page={page} loadErr={loadErr} reloading={reloading} onReload={reload} cfg={cfg} inquiryId={inquiryId} recipient={recipient}
+  return <MailThreadView retried={retried} page={page} loadErr={loadErr} reloading={reloading} onReload={reload} cfg={cfg} inquiryId={inquiryId} recipient={recipient}
     live={live} itemNote={itemNote} retrying={retrying} focusId={focusId} onRetry={retry} onSent={load} onFailedItem={setFocusId} onSendAccepted={onSendAccepted} poll={poll}
     onAnonymized={() => { onAnonymized?.(); void load(); }} />;
 }
 
 type LiveState = Partial<SendStatus> & { unconfirmed?: boolean; background?: boolean };
 /** 纯展示部分（状态都从外面传进来），便于在测试里直接渲染各种加载结果 */
-export function MailThreadView({ page, loadErr, reloading, onReload, cfg, inquiryId, recipient, live, itemNote, retrying, focusId, onRetry, onSent, onFailedItem, onSendAccepted, poll, onAnonymized }: {
-  page: ThreadPage | null | undefined; loadErr?: string; reloading: boolean; onReload: () => void; cfg?: { sendingEnabled: boolean }; inquiryId: string; recipient: string;
+export function MailThreadView({ retried, page, loadErr, reloading, onReload, cfg, inquiryId, recipient, live, itemNote, retrying, focusId, onRetry, onSent, onFailedItem, onSendAccepted, poll, onAnonymized }: {
+  retried?: { subject: string | null; bodyText: string | null; n: number }; page: ThreadPage | null | undefined; loadErr?: string; reloading: boolean; onReload: () => void; cfg?: { sendingEnabled: boolean }; inquiryId: string; recipient: string;
   live: Record<string, LiveState>; itemNote: Record<string, ItemNote>; retrying?: string; focusId?: string; onRetry: (m: ThreadItem) => void;
   onSent: () => Promise<void> | void; onFailedItem: (id: string) => void; onSendAccepted?: () => void; poll: (id: string, ms: number, deferred?: boolean, deferredUntil?: string | null) => void; onAnonymized: () => void;
 }) {
@@ -115,7 +119,7 @@ export function MailThreadView({ page, loadErr, reloading, onReload, cfg, inquir
         </div>}
       </section>
       {/* 加载失败时回复框照常显示（主题默认空，由管理员填写；收件人仍是服务端给的询盘联系人） */}
-      {!anon && cfg && (page || loadErr) && <Composer inquiryId={inquiryId} recipient={recipient} defaultSubject={replySubject(lastInbound?.subject)} inReplyToId={lastInbound?.id}
+      {!anon && cfg && (page || loadErr) && <Composer retried={retried} inquiryId={inquiryId} recipient={recipient} defaultSubject={replySubject(lastInbound?.subject)} inReplyToId={lastInbound?.id}
         sendingEnabled={cfg.sendingEnabled} pollingNow={pollingNow} onSent={onSent} onFailedItem={onFailedItem} onAccepted={onSendAccepted} onBackground={poll} onAnonymized={onAnonymized} />}
     </>
   );
@@ -185,7 +189,8 @@ function OutStatus({ s, canSend, bodyText, note, retrying, reveal, onRetry }: { 
 }
 
 type FieldErrs = Partial<Record<'subject' | 'body', string>>;
-function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEnabled, pollingNow, onSent, onFailedItem, onAccepted, onBackground, onAnonymized }: {
+function Composer({ retried, inquiryId, recipient, defaultSubject, inReplyToId, sendingEnabled, pollingNow, onSent, onFailedItem, onAccepted, onBackground, onAnonymized }: {
+  retried?: { subject: string | null; bodyText: string | null; n: number };
   inquiryId: string; recipient: string; defaultSubject: string; inReplyToId?: string; sendingEnabled: boolean; pollingNow: boolean;
   onSent: () => Promise<void> | void; onFailedItem: (id: string) => void; onAccepted?: () => void; onBackground: (id: string, ms: number, deferred?: boolean, deferredUntil?: string | null) => void; onAnonymized: () => void;
 }) {
@@ -203,6 +208,12 @@ function Composer({ inquiryId, recipient, defaultSubject, inReplyToId, sendingEn
   const hintRef = useRef<HTMLDivElement>(null);
   const key = useRef<string>(undefined);
   const subjRef = useRef<HTMLInputElement>(null); const bodyRef = useRef<HTMLTextAreaElement>(null);
+  // #340：失败卡片「重试」成功 → 草稿没改过就清空正文（和发送成功一样，主题不动）；改过就保留
+  const draftRef = useRef({ subject, body }); draftRef.current = { subject, body };
+  useEffect(() => {
+    if (!retried) return;
+    if (draftAfterCardRetry(draftRef.current, retried) === 'clear') { setBody(''); key.current = undefined; }
+  }, [retried]);
   const left = useCountdown(rate?.until);
   const len = [...body].length;
   const counter = bodyCounter(len);

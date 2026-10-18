@@ -71,8 +71,18 @@ export const isDeferred = (m: { status?: string; errorCode?: string | null }) =>
 export const MAYBE_DELIVERED_HINT = '发送过程中连接中断，无法确认对方是否收到。为免重复，系统不会自动重发；如需确认，请换其他方式联系客户。';
 export const RETRY_LIMIT_HINT = '这封邮件已重试 5 次仍未发出。请复制内容重新编写发送，或联系管理员检查邮箱设置。';
 export const NOT_RETRYABLE = '这封邮件不能重试，请重新编写发送。';
-/** #340 PM：失败卡片上有「重试」按钮时的说明（正文同时保留在回复框里，两个按钮的区别要讲清楚） */
-export const RETRY_VS_SEND_HINT = '点『重试』会重发这封邮件；再点『发送』会另发一封新邮件';
+/** #340 UX 定稿：失败卡片上有「重试」按钮时的说明（正文同时保留在回复框里，两个按钮的区别要讲清楚） */
+export const RETRY_VS_SEND_HINT = '发送失败。点「重试」重发这封；如需修改，请在下方编辑后发送新邮件。';
+
+/**
+ * #340：失败卡片「重试」成功后，回复框里的草稿怎么处理（纯函数）。
+ * 回复框的主题和正文都和这封失败邮件一样（没改过）→ 清空正文（主题照旧不清空，和普通发送成功一致），免得再点「发送」重复发一封；
+ * 改过任何一处 → 保留。比较时两边都去掉首尾空白：发送时主题本来就 trim，服务端也会 trim 正文。
+ */
+export function draftAfterCardRetry(draft: { subject: string; body: string }, failed: { subject: string | null; bodyText: string | null }): 'clear' | 'keep' {
+  if (!draft.body.trim()) return 'keep';
+  return draft.subject.trim() === (failed.subject ?? '').trim() && draft.body.trim() === (failed.bodyText ?? '').trim() ? 'clear' : 'keep';
+}
 export const UNCONFIRMED = '状态未确认，请刷新页面查看。';
 export const BACKGROUND_SENDING = '发送较慢，已转到后台继续发送（最多约 2 分钟），完成后这里会更新。';
 export const ANON_JUST_NOW = '该询盘刚刚被匿名化，不能再发送。页面已刷新。';
