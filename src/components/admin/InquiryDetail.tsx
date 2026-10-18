@@ -11,6 +11,7 @@ import StatusBadge from './StatusBadge';
 import { AnonTag, DeletedBody, AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, LockedStatus, statusConflictText } from './anonymized';
 import { errorText, loginHref, fmtDate, productName } from './format';
 import AdminTime from './AdminTime';
+import InquiryHistory from './InquiryHistory';
 
 /** 去掉所有 HTML 标签，只显示纯文本 */
 // 服务端存的是转义后的 HTML（换行为 <br>）：先还原换行、去标签，再解码实体，整体按纯文本显示
@@ -41,6 +42,9 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   const canSend = showSendEntry(gate);
   /** 邮件开关打开时旧往来记录合并进 MailThread；关闭时仍在这里显示 */
   const threadMode = mailEnabled && !mailOff;
+  // #331：回复、改状态、改分配之后让「操作历史」重新拉第一页（不轮询）
+  const [historyKey, setHistoryKey] = useState(0);
+  const refreshHistory = () => setHistoryKey((k) => k + 1);
 
   useEffect(() => {
     adminApi.getInquiry(id).then(setInq).catch((e) => setErr(String(e.message ?? e)));
@@ -61,11 +65,12 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
     setBusy(true); setErr(undefined); setStatusErr(undefined);
     try { await adminApi.updateInquiry(id, { status }); }
     catch (e) { const code = String((e as Error).message ?? e); const t = statusConflictText(code); if (t) setStatusErr(t); else setErr(code); }
-    finally { try { setInq(await adminApi.getInquiry(id)); } catch { /* 保留原数据 */ } setBusy(false); }
+    finally { try { setInq(await adminApi.getInquiry(id)); } catch { /* 保留原数据 */ } setBusy(false); refreshHistory(); }
   };
-  const run = async (fn: () => Promise<unknown>) => {
+  /** history：操作完成后（成功或失败都）刷新操作历史第一页；加备注不进时间线，传 false */
+  const run = async (fn: () => Promise<unknown>, history = true) => {
     setBusy(true); setErr(undefined);
-    try { await fn(); setInq(await adminApi.getInquiry(id)); } catch (e) { setErr(String((e as Error).message ?? e)); } finally { setBusy(false); }
+    try { await fn(); setInq(await adminApi.getInquiry(id)); } catch (e) { setErr(String((e as Error).message ?? e)); } finally { setBusy(false); if (history) refreshHistory(); }
   };
 
   // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
@@ -129,7 +134,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
 
           {mailOff && !anon && <MailOffNote />}
           {mailEnabled && canSend && <MailThread inquiryId={inq.id} recipient={anon ? '' : `${c.name} <${c.email}>`}
-            onSendAccepted={inq.status === 'NEW' ? () => run(() => adminApi.updateInquiry(inq.id, { status: 'FOLLOWING' })) : undefined}
+            onSendAccepted={inq.status === 'NEW' ? () => run(() => adminApi.updateInquiry(inq.id, { status: 'FOLLOWING' })) : refreshHistory}
             onAnonymized={() => { void adminApi.getInquiry(id).then(setInq).catch(() => {}); }} />}
           {ctl.showReply && !mailEnabled && canSend && <section className="adm-sec">
             <h2>回复客户 <span className="muted">将以{LANG[inq.locale]}发送</span></h2>
@@ -155,19 +160,13 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
             <h2>内部备注 <span className="muted">{anon ? '只读' : '仅团队可见'}</span></h2>
             {anon && inq.notes.length === 0 && <EmptyNote />}
             {inq.notes.map((n) => <p key={n.id} style={{ margin: '0 0 8px' }}><b>{n.author}</b> <AdminTime iso={n.createdAt} className="muted" /><br />{anon ? <DeletedBody /> : n.body}</p>)}
-            {!anon && <form onSubmit={(e) => { e.preventDefault(); if (note.trim()) run(async () => { await adminApi.addNote(inq.id, note.trim()); setNote(''); }); }}>
+            {!anon && <form onSubmit={(e) => { e.preventDefault(); if (note.trim()) run(async () => { await adminApi.addNote(inq.id, note.trim()); setNote(''); }, false); }}>
               <textarea rows={2} style={{ width: '100%' }} value={note} onChange={(e) => setNote(e.target.value)} placeholder="@同事 …" aria-label="内部备注" />
               <button className="adm-btn sq" disabled={busy || !note.trim()} style={{ marginTop: 6 }}>添加备注</button>
             </form>}
           </section>
 
-          <section className="adm-sec">
-            <h2>操作历史</h2>
-            {inq.history.length === 0 && <EmptyNote />}
-            <ul className="adm-hist">
-              {[...inq.history].reverse().map((h) => <li key={h.id}><AdminTime iso={h.at} className="muted" /> · {h.actor ? `${h.actor}：` : ''}{h.action}</li>)}
-            </ul>
-          </section>
+          <InquiryHistory inquiryId={inq.id} refreshKey={historyKey} />
         </div>
 
         <aside>

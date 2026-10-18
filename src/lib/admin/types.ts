@@ -1,5 +1,6 @@
 // 后台询盘数据类型：与 prisma/schema.prisma 和 docs/API.md「后台接口」对齐。
 // 接口返回 JSON，日期为 ISO 字符串。
+import type { HistoryPage } from './history';
 export type InquiryStatus = 'NEW' | 'FOLLOWING' | 'QUOTED' | 'WON' | 'INVALID';
 export type InquirySource = 'FORM' | 'WIZARD' | 'CART' | 'CUSTOMIZER' | 'SAMPLE';
 export type Locale = 'en' | 'ru';
@@ -23,7 +24,6 @@ export type InquiryMessage = { id: string; direction: 'INBOUND' | 'OUTBOUND'; su
 export type InquiryNote = { id: string; authorId?: string; author: string; body: string; createdAt: string };
 /** Logo 只在后台经鉴权接口查看；这里只有元数据，预览地址由鉴权接口提供（接入前为占位） */
 export type InquiryAttachment = { id: string; kind: 'logo' | 'file'; filename: string; mime: string; sizeBytes: number; scan?: 'clean' | 'pending' | 'infected'; downloadUrl?: string };
-export type HistoryEvent = { id: string; at: string; actor?: string; action: string };
 
 export type InquirySummary = {
   id: string; ref: string; status: InquiryStatus; source: InquirySource; locale: Locale;
@@ -39,7 +39,7 @@ export type InquiryDetail = InquirySummary & {
   contact: Contact; message?: string; items: InquiryItem[]; trustReasons: TrustReason[];
   attribution?: { page?: string; utm?: Record<string, string> };
   ipCountry?: string | null; messages: InquiryMessage[]; notes: InquiryNote[];
-  attachments: InquiryAttachment[]; history: HistoryEvent[];
+  attachments: InquiryAttachment[];
   /** 客户上传的 Logo（#59）；预览走鉴权接口 GET /api/admin/uploads/:id */
   logoUploadId?: string;
 };
@@ -66,6 +66,8 @@ export interface AdminApi {
   listUsers(): Promise<AdminUser[]>;
   /** 返回可直接用于 <img src> 的地址（blob: 或 data:），调用方用完后 revoke */
   logoPreview(uploadId: string): Promise<string>;
+  /** #331：GET /inquiries/:id/history?limit&before → { items, total }（新的在前）；不存在 / 无权 404 → 抛 not_found，非法游标 → 抛 bad_cursor */
+  getHistory(id: string, q?: { limit?: number; before?: string }): Promise<HistoryPage>;
 }
 
 /** Wire shape of GET /api/admin/users; a bare array is tolerated for older backends. */
