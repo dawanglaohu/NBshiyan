@@ -183,11 +183,27 @@ test('EXIF 方向先转正（Orientation=6 的 2000×1000 → 竖图 800×1600�
   assert.ok(bottom[2] > 200 && bottom[0] < 60, `bottom=${bottom}`);
 });
 
-test('解压炸弹：像素数超过 40,000,000 → image_too_large_dimensions（只读文件头就拒绝）', async () => {
-  assert.equal(PUBLIC_ASSET_MAX_PIXELS, 40_000_000);
-  for (const [w, h] of [[50_000, 50_000], [8000, 5001], [40_001, 1000]]) {
+test('解压炸弹：像素数超过 60,000,000 → image_too_large_dimensions（只读文件头就拒绝）', async () => {
+  assert.equal(PUBLIC_ASSET_MAX_PIXELS, 60_000_000);
+  for (const [w, h] of [[50_000, 50_000], [8000, 7501], [60_001, 1000]]) {
     assert.deepEqual(await processPublicImage(pngHeaderOnly(w, h)), { ok: false, error: 'image_too_large_dimensions' }, `${w}x${h}`);
   }
+  // 正好 6000 万、以及 5000 万（手机实拍）不算超限：只有文件头没有像素数据，解码失败 → processing_failed，而不是 image_too_large_dimensions
+  for (const [w, h] of [[10_000, 6000], [8165, 6124]]) {
+    assert.deepEqual(await processPublicImage(pngHeaderOnly(w, h)), { ok: false, error: 'processing_failed' }, `${w}x${h}`);
+  }
+});
+
+test('sharp 线程池：import public-assets 后 sharp.concurrency() === 1', () => {
+  assert.equal(sharp.concurrency(), 1);
+  assert.match(readFileSync('src/lib/server/public-assets.ts', 'utf8'), /^sharp\.concurrency\(1\);$/m);
+});
+
+test('同一时间只处理一张：并发调用 processPublicImage 按顺序串行执行', async () => {
+  const imgs = await Promise.all([solid(1700, 1000), solid(1800, 1000), solid(1900, 1000)]);
+  const done: number[] = [];
+  await Promise.all(imgs.map((b, i) => processPublicImage(b).then((r) => { assert.equal(r.ok, true); done.push(i); })));
+  assert.deepEqual(done, [0, 1, 2]);
 });
 
 test('10 MB：超过上限的字节直接 file_too_large', async () => {

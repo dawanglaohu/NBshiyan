@@ -6,7 +6,7 @@ import { mediaUrl } from './site-settings-model';
 /**
  * #350 PublicAsset 图片处理（纯逻辑，不连库、不碰存储，测试直接调用）。
  * - 只认 magic bytes：JPEG / PNG / WebP；扩展名、文件名、客户端 Content-Type 一律不看。HEIC、GIF、SVG、AVIF、TIFF 等全部 unsupported_type。
- * - sharp 先读文件头：格式必须和 magic bytes 一致；多帧（动图 WebP / APNG）拒绝；像素数 > 40,000,000（解压炸弹）在解码前拒绝，
+ * - sharp 先读文件头：格式必须和 magic bytes 一致；多帧（动图 WebP / APNG）拒绝；像素数 > 60,000,000（解压炸弹；全栈定的上限，5000 万像素手机实拍可传）在解码前拒绝，
  *   sharp 自身也带 limitInputPixels 兜底。
  * - 先按 EXIF 方向旋转（.rotate()），再重新编码成 WebP；sharp 默认不写任何元数据（EXIF / GPS / XMP / ICC 都不保留，转成 sRGB）。
  * - 两种尺寸按「长边」：sm 长边 800、lg 长边 1600，保持比例、不裁切、不放大。长边 < 800 拒绝（image_too_small）；
@@ -16,7 +16,7 @@ import { mediaUrl } from './site-settings-model';
 export const PUBLIC_ASSET_MAX_BYTES = 10 * 1024 * 1024;
 /** 整个 multipart 请求体的上限：文件 10 MB + 表单边界和字段头的余量 */
 export const PUBLIC_ASSET_MAX_REQUEST_BYTES = PUBLIC_ASSET_MAX_BYTES + 64 * 1024;
-export const PUBLIC_ASSET_MAX_PIXELS = 40_000_000;
+export const PUBLIC_ASSET_MAX_PIXELS = 60_000_000;
 export const PUBLIC_ASSET_MIN_LONG_EDGE = 800;
 export const PUBLIC_ASSET_SIZES = { sm: 800, lg: 1600 } as const;
 export type PublicAssetSize = keyof typeof PUBLIC_ASSET_SIZES;
@@ -42,6 +42,9 @@ export const publicAssetKey = (id: string, size: PublicAssetSize | 'one', now: D
 
 const OPTS = { limitInputPixels: PUBLIC_ASSET_MAX_PIXELS, failOn: 'error', animated: false, sequentialRead: true } as const;
 const SHARP_FORMAT = { jpeg: 'jpeg', png: 'png', webp: 'webp' } as const;
+
+// libvips 线程池只开 1 个（服务器空闲内存不到 3GB）；加上下面的 serialize()，同一时间只处理一张图。注意这是进程级设置，对本进程其他 sharp 调用同样生效
+sharp.concurrency(1);
 
 /** 同一进程里一次只处理一张（大图解码占内存，避免并发上传叠加） */
 let queue: Promise<unknown> = Promise.resolve();
