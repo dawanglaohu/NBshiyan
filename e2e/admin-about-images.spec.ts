@@ -23,23 +23,31 @@ async function loginFreshAdmin(page: Page) {
   expect(ok.headers()['location'] ?? '').not.toContain('error');
 }
 
-/** 从干净状态开始：清空列表、删掉图库里的图、en 填完整内容（无图）、开关打开 */
+/**
+ * 从干净状态开始：清空列表、删掉图库里的图、en 填完整内容（无图）、ru 清空、开关打开。
+ * 已经是目标状态的就不发 PUT：site_settings.update 按 IP 每分钟 30 次，整个 e2e 共用一个 IP。
+ */
+const EN_BODY = `<p>${'Sample text for the about page. '.repeat(4)}</p>`;
 async function reset(page: Page) {
   const about = await (await page.request.get(`${S}/about`)).json();
-  expect((await page.request.put(`${S}/about/images`, { headers: origin, data: { expectedVersion: about.images.version, ids: [] } })).status()).toBe(200);
+  if (about.images.items.length) expect((await page.request.put(`${S}/about/images`, { headers: origin, data: { expectedVersion: about.images.version, ids: [] } })).status()).toBe(200);
   const lib = await (await page.request.get(`${S}/assets`)).json();
   for (const a of lib.assets) expect((await page.request.delete(`${S}/assets/${a.id}`, { headers: origin })).status()).toBe(200);
   const en = about.locales.en;
-  const put = await page.request.put(`${S}/about/en`, { headers: origin, data: {
-    expectedVersion: en?.version ?? 0, title: 'About PackJoyU (sample)', summary: '', bodyHtml: `<p>${'Sample text for the about page. '.repeat(4)}</p>`,
-    stats: [], home: { title: '', intro: '' }, imageMeta: {},
-  } });
-  expect(put.status()).toBe(200);
+  const enClean = en && en.title === 'About PackJoyU (sample)' && !en.summary && en.bodyHtml === EN_BODY && !en.stats?.length && !en.home?.title && !en.home?.intro && !Object.keys(en.imageMeta ?? {}).length;
+  if (!enClean) {
+    const put = await page.request.put(`${S}/about/en`, { headers: origin, data: {
+      expectedVersion: en?.version ?? 0, title: 'About PackJoyU (sample)', summary: '', bodyHtml: EN_BODY,
+      stats: [], home: { title: '', intro: '' }, imageMeta: {},
+    } });
+    expect(put.status()).toBe(200);
+  }
   const ru = about.locales.ru;
-  if (ru) {
+  const ruClean = !ru || (!ru.title && !ru.summary && !ru.bodyHtml && !ru.stats?.length && !ru.home?.title && !ru.home?.intro && !Object.keys(ru.imageMeta ?? {}).length);
+  if (!ruClean) {
     expect((await page.request.put(`${S}/about/ru`, { headers: origin, data: { expectedVersion: ru.version, title: '', summary: '', bodyHtml: '', stats: [], home: { title: '', intro: '' }, imageMeta: {} } })).status()).toBe(200);
   }
-  expect((await page.request.put(`${S}/about/enabled`, { headers: origin, data: { enabled: true, expectedVersion: about.enabledMeta.version } })).status()).toBe(200);
+  if (!about.enabled) expect((await page.request.put(`${S}/about/enabled`, { headers: origin, data: { enabled: true, expectedVersion: about.enabledMeta.version } })).status()).toBe(200);
 }
 
 const jpeg = (w: number, h: number, rgb: [number, number, number]) => sharp({ create: { width: w, height: h, channels: 3, background: { r: rgb[0], g: rgb[1], b: rgb[2] } } }).jpeg({ quality: 80 }).toBuffer();
