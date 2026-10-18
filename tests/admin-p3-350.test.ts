@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { nextTrapFocus, FOCUSABLE_SELECTOR } from '../src/lib/admin/focus-trap';
+import { emptyDraft, humanIssueLine, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
+import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
 
 // #350 部署后的前端 P3 小 PR（UX #378 / #379 遗留 + spec v1.0.10 + SEO）
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -36,4 +38,34 @@ test('ConfirmDialog：保留原有行为（alertdialog + 标题 / 正文关联�
   assert.match(dlg, /prev\?\.focus\(\); \};\n  \}, \[\]\);/);
   // AboutImages 仍然传稳定的 closeConfirm
   assert.match(read('../src/components/admin/settings/AboutImages.tsx'), /const closeConfirm = useCallback\(\(\) => setConfirmId\(null\), \[\]\)/);
+});
+
+// ───────── ② UX #378 P3 ①：顶部错误条不显示后端字段路径 ─────────
+test('顶部错误条：认识的路径换成中文字段名，认不出的去掉前缀；message 换成中文；中文行原样、重复的合并', () => {
+  assert.equal(humanIssueLine('bodyHtml：too_long'), '正文：超出上限');
+  assert.equal(humanIssueLine('home.title：max 60 chars'), '区块标题：超出上限（最多 60 字）');
+  assert.equal(humanIssueLine('stats.2.label：max 40 chars'), '数据条：超出上限（最多 40 字）');
+  assert.equal(humanIssueLine('imageMeta.x：max 125 chars'), '图片文字：超出上限（最多 125 字）');
+  assert.equal(humanIssueLine('imageMeta.abc.alt：max 125 chars'), '图片的替代文字：超出上限（最多 125 字）');
+  assert.equal(humanIssueLine('imageMeta：max 6 images'), '图片文字：最多 6 张');
+  assert.equal(humanIssueLine('bodyHtml：max 30720 bytes'), '正文：内容太长（最多 30 KB）');
+  assert.equal(humanIssueLine('expectedVersion：Required'), '版本号：必填');
+  assert.equal(humanIssueLine('capacity：Unrecognized key'), '包含不支持的字段');
+  assert.equal(humanIssueLine('foo.bar：Expected string, received number'), '不符合要求');
+  assert.equal(humanIssueLine('Unrecognized key(s) in object: capacity'), '包含不支持的字段');
+  assert.equal(humanIssueLine('第 2 张图片的替代文字超出上限（最多 125 字）'), '第 2 张图片的替代文字超出上限（最多 125 字）');
+  assert.equal(humanIssueLine('（未说明）'), '（未说明）');
+  assert.equal(issuePathLabel('nope'), null);
+  const alert = issuesAlertText('invalid', ['imageMeta.x：too_long', 'bodyHtml：too_long', 'a：bad', 'b：bad']);
+  assert.equal(alert, '参数不正确，请检查后重试。（图片文字：超出上限；正文：超出上限；不符合要求）');
+  for (const raw of ['imageMeta.', 'bodyHtml：', 'a：', 'too_long', 'bad']) assert.ok(!alert.includes(raw), raw);
+});
+
+test('顶部错误条（端到端）：about 保存 400 带对不上字段的 issue → saveFailureView 里没有原始路径', async () => {
+  const f = (async () => new Response(JSON.stringify({ error: 'invalid', issues: [{ path: 'imageMeta', message: 'max 6 images' }, { path: 'weird.path', message: 'Invalid input' }] }), { status: 400 })) as unknown as typeof fetch;
+  const api = createAboutSettingsApi(f);
+  const r = await api.save({ en: { ...emptyDraft(), title: 'About' } }, { enabled: false, enabledVersion: 0, locales: { en: emptyDraft() } });
+  assert.ok(!r.ok);
+  const v = saveFailureView(r as Extract<typeof r, { ok: false }>);
+  assert.equal(v.alert, '参数不正确，请检查后重试。（图片文字：最多 6 张；不符合要求）');
 });

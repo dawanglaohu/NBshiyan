@@ -203,17 +203,65 @@ const SETTINGS_ERR: Record<string, string> = {
 export const settingsErrorText = (code: string): string =>
   (Object.prototype.hasOwnProperty.call(SETTINGS_ERR, code) ? SETTINGS_ERR[code] : null) ?? errorText(code, '保存失败');
 
-/** 后端 issue 转成一行文字（顶部错误条用） */
+/**
+ * 后端 issue 转成一行「path：message」（内部格式，rest 里存的就是它；imageIssueText 按这个格式改写 imageMeta 的行）。
+ * 不直接显示：顶部错误条经 issuesAlertText → humanIssueLine 换成中文，不出现后端的字段路径和原始 message。
+ */
 export const issueLine = (i: { path?: unknown; message?: unknown }): string => {
   const path = typeof i.path === 'string' ? i.path : ''; const msg = typeof i.message === 'string' ? i.message : '';
   return path ? `${path}：${msg}` : msg || '（未说明）';
 };
+
+/** UX #378 P3 ①：后端字段路径 → 中文字段名（顶部错误条用）。认不出的路径返回 null，显示时去掉前缀 */
+const ISSUE_PATH_LABEL: Record<string, string> = {
+  ...FIELD_LABEL,
+  home: '首页区块', 'home.title': FIELD_LABEL.homeHeading, 'home.intro': FIELD_LABEL.homeIntro,
+  imageMeta: '图片文字', images: '图片列表', ids: '图片列表',
+  enabled: '前台显示', expectedVersion: '版本号',
+};
+export function issuePathLabel(path: string): string | null {
+  const has = (k: string) => Object.prototype.hasOwnProperty.call(ISSUE_PATH_LABEL, k);
+  if (has(path)) return ISSUE_PATH_LABEL[path];
+  const img = /^imageMeta\.[^.]+\.(alt|caption)$/.exec(path);
+  if (img) return img[1] === 'alt' ? '图片的替代文字' : '图片说明';
+  const head = path.split('.', 1)[0];
+  return has(head) ? ISSUE_PATH_LABEL[head] : null;
+}
+/** 后端 issue 的 message（zod 文案 / 自定义码）→ 中文；认不出的统一「不符合要求」，不显示英文原文 */
+export function issueMessageText(msg: string): string {
+  const m = msg.trim();
+  let x: RegExpExecArray | null;
+  if ((x = /^max (\d+) chars?$/i.exec(m))) return `超出上限（最多 ${x[1]} 字）`;
+  if ((x = /^max (\d+) bytes?$/i.exec(m))) return `内容太长（最多 ${Math.floor(Number(x[1]) / 1024)} KB）`;
+  if ((x = /^max (\d+) images?$/i.exec(m))) return `最多 ${x[1]} 张`;
+  const known: Record<string, string> = {
+    too_long: '超出上限', too_short: '太短', empty: '不能为空', required: '必填', duplicate: '有重复',
+    invalid_url: '链接格式不正确', invalid_telephone: '电话格式不正确', invalid_date: '日期格式不正确',
+  };
+  const k = m.toLowerCase();
+  if (Object.prototype.hasOwnProperty.call(known, k)) return known[k];
+  if (/unrecognized key/i.test(m)) return '包含不支持的字段';
+  return '不符合要求';
+}
+const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
+/**
+ * rest 里的一行 → 顶部错误条里显示的文字：「path：message」→「中文字段名：中文说明」，认不出的路径去掉前缀；
+ * 已经是中文的行（imageIssueText 改写过的「第 N 张图片…」、「（未说明）」）原样保留。
+ */
+export function humanIssueLine(line: string): string {
+  const m = /^([A-Za-z][\w.-]*)：([\s\S]*)$/.exec(line);
+  if (m) {
+    const label = issuePathLabel(m[1]); const text = issueMessageText(m[2]);
+    return label ? `${label}：${text}` : text;
+  }
+  return CJK.test(line) ? line : issueMessageText(line);
+}
 /**
  * 顶部错误条文案（about 和组织信息共用）：对不上字段的 issue、或 400 / 422 没带 issues，都必须显示在这里，不能悄悄丢掉。
- * rest 是对不上字段的 issue 文字；为空时只显示错误码对应的文案。
+ * rest 是对不上字段的 issue（issueLine 格式），显示前经 humanIssueLine 换成中文并去重；为空时只显示错误码对应的文案。
  */
 export const issuesAlertText = (code: string, rest: readonly string[] = []): string =>
-  rest.length ? `${settingsErrorText(code)}（${rest.join('；')}）` : settingsErrorText(code);
+  rest.length ? `${settingsErrorText(code)}（${[...new Set(rest.map(humanIssueLine))].join('；')}）` : settingsErrorText(code);
 
 // ───────────────────────── 接口层 ─────────────────────────
 /**

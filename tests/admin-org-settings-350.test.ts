@@ -260,10 +260,10 @@ test('错误条：对不上字段的 issue、400 / 422 没带 issues 都进顶�
   const fail = async () => { const r = await api.save(d, 0); assert.ok(!r.ok); return saveFailureView(r as Extract<typeof r, { ok: false }>); };
   const a = await fail();
   assert.equal(a.fieldErrors.email, '邮箱格式不正确');
-  assert.equal(a.alert, '参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  assert.equal(a.alert, '参数不正确，请检查后重试。（包含不支持的字段）'); // UX #378 P3 ①：认不出的路径去掉前缀
   const b = await fail();
   assert.deepEqual(b.fieldErrors, {});
-  assert.equal(b.alert, '参数不正确，请检查后重试。（expectedVersion：Required）');
+  assert.equal(b.alert, '参数不正确，请检查后重试。（版本号：必填）');
   assert.equal((await fail()).alert, '参数不正确，请检查后重试。'); // 400 没带 issues
   assert.equal((await fail()).alert, '保存失败：http_422'); // 422 没 body
   assert.equal((await fail()).alert, '参数不正确，请检查后重试。'); // 422 issues 为空
