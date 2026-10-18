@@ -403,11 +403,29 @@ test('UX 复审：上移 / 下移 / 删除第 N 张图片；删除用后台通�
   assert.equal(IMAGES_TEXT.checkAltMissing(2), '图片替代文字 · 2 张缺失');
   assert.match(read('../src/components/admin/settings/AboutSettings.tsx'), /aria-label=\{`删除第 \$\{i \+ 1\} 条`\}[^\n]*>✕<\/button>/, '沿用数据条删除按钮的 ✕');
   // 替代文字 / 说明：自动长高的多行框，长文字不截断；换行换成空格
-  assert.equal((src.match(/<textarea id=\{`\$\{id\}-(alt|cap)`\} rows=\{1\}/g) ?? []).length, 2);
+  assert.equal((src.match(/<ImageTextField id=\{`\$\{id\}-(alt|cap)`\}/g) ?? []).length, 2);
+  assert.match(src, /<textarea ref=\{ref\} id=\{id\} rows=\{1\}/);
   assert.match(css, /field-sizing:content/);
   assert.match(src, /const oneLine = \(v: string\) => v\.replace\(\/\[\\r\\n\]\+\/g, ' '\)/);
   assert.match(css, /@media \(max-width:639px\)\{\s*\.st-im-grid\{grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css, /\.st-chk,\.st-im\{word-spacing:\.25em\}/, '空格在 12px 下要看得出来');
   // 所有「N 张」：数字前后都有空格
   for (const m of lib.matchAll(/`[^`]*\$\{[^}]+\}[^`]*张[^`]*`/g)) assert.match(m[0], /\} 张/, m[0]);
+});
+
+test('UX 条件 1：替代文字 / 说明 1–4 行，超过 4 行框内滚动，不能拖动；不支持 field-sizing 时 JS 兜底，同样 1–4 行', () => {
+  const css = read('../src/components/admin/settings/about-images.css');
+  const rule = /\.st-im-card textarea\{([^}]*)\}/.exec(css)![1];
+  assert.match(rule, /resize:none/);
+  assert.match(rule, /line-height:1\.4/);
+  assert.match(rule, /min-height:calc\(1\.4em \+ var\(--rows-pad\)\)/);
+  assert.match(rule, /max-height:calc\(4 \* 1\.4em \+ var\(--rows-pad\)\)/);
+  assert.match(rule, /overflow-y:auto/);
+  assert.match(rule, /--rows-pad:14px/); // 6+6 内边距 + 1+1 边框
+  assert.match(css, /textarea\{--rows-pad:22px;min-height:max\(44px,calc\(1\.4em \+ var\(--rows-pad\)\)\)/); // 手机：10+10 + 1+1，且 ≥ 44px
+  assert.doesNotMatch(css, /textarea\[aria-invalid="true"\]\{[^}]*border-width/, '出错时不加粗边框，否则第 4 行会被挤掉一点');
+  // 兜底：按 scrollHeight + 边框设高度，max-height 封顶
+  const src = read('../src/components/admin/settings/AboutImages.tsx');
+  assert.match(src, /CSS\.supports\?\.\('field-sizing', 'content'\)\)\) return;/);
+  assert.match(src, /el\.style\.height = `\$\{el\.scrollHeight \+ borders\}px`/);
 });

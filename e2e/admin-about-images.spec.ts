@@ -301,3 +301,48 @@ test('UX 复审：<640px 单列卡片、输入框占满宽度；1440 多列；�
   expect(d1.y).toBe(d0.y);
   await expect(cards.nth(0).getByRole('button', { name: '下移第 1 张图片' })).toHaveText(/→/);
 });
+
+// 量高度（在浏览器里算）：1 行 / 4 行的 border-box 高度 = 行高 × 行数 + 上下内边距 + 边框
+const measure = (box: import('@playwright/test').Locator) => box.evaluate((el) => {
+  const cs = getComputedStyle(el); const extra = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  const lh = parseFloat(cs.lineHeight);
+  return { h: el.getBoundingClientRect().height, one: lh + extra, four: 4 * lh + extra, scroll: el.scrollHeight > el.clientHeight + 1, oy: cs.overflowY };
+});
+const LONG_CJK = '工厂生产线上的工人正在检查印好的瓦楞纸箱，'.repeat(6).slice(0, 120);
+
+for (const mode of ['field-sizing', 'JS 兜底'] as const) for (const w of [1440, 390]) {
+  test(`UX 条件 1：替代文字 / 说明 1–4 行，超过 4 行框内滚动，不能拖动（${mode}，${w}）`, async ({ page }) => {
+    test.setTimeout(90_000);
+    if (mode === 'JS 兜底') {
+      // 模拟不支持 field-sizing 的浏览器：CSS.supports 报不支持，并让 CSS 的 field-sizing 不生效
+      await page.addInitScript(() => { const orig = CSS.supports.bind(CSS); CSS.supports = ((a: string, b?: string) => (a === 'field-sizing' ? false : b === undefined ? orig(a) : orig(a, b))) as typeof CSS.supports; });
+    }
+    await page.setViewportSize({ width: w, height: 900 });
+    await loginFreshAdmin(page);
+    await reset(page);
+    await page.goto('/admin/settings');
+    if (mode === 'JS 兜底') await page.addStyleTag({ content: '.st-im-card textarea{field-sizing:fixed !important}' });
+    const area = page.locator('.st-im');
+    await fileInput(page).setInputFiles({ name: 'a.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [120, 60, 30]) });
+    await expect(area.locator('.st-im-card')).toHaveCount(1);
+    for (const label of [/替代文字（EN）/, /图片说明/]) {
+      const box = area.locator('.st-im-card').first().getByLabel(label);
+      await expect(box).toHaveCSS('resize', 'none');
+      const one = await measure(box);
+      expect(one.h).toBeGreaterThanOrEqual(one.one - 1); // 空的时候 1 行（手机上再保证 ≥ 44px）
+      expect(one.h).toBeLessThanOrEqual(Math.max(one.one, w === 390 ? 44 : 0) + 1);
+      expect(one.scroll).toBe(false);
+      await box.fill('Two rows of text '.repeat(3)); // 2–3 行：跟着长高、不滚动
+      const mid = await measure(box);
+      expect(mid.h).toBeGreaterThan(one.h + 5);
+      expect(mid.scroll).toBe(false);
+      await box.fill(label.source.includes('说明') ? LONG_CJK.slice(0, 80) : LONG_CJK); // 超过 4 行：停在 4 行，框内滚动
+      const big = await measure(box);
+      expect(Math.abs(big.h - big.four)).toBeLessThanOrEqual(1);
+      expect(big.scroll).toBe(true);
+      expect(big.oy).toBe('auto');
+      await box.fill('');
+      expect(Math.abs((await box.boundingBox())!.height - one.h)).toBeLessThanOrEqual(1); // 清空后回到 1 行
+    }
+  });
+}
