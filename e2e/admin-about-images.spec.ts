@@ -246,6 +246,8 @@ test('图片库：在用的图不能删（asset_in_use）；移除并保存后�
   await saveBtn(page).click();
   const banner = page.getByRole('alert').filter({ hasText: '内容已被他人修改，请刷新后重新编辑' });
   await expect(banner).toBeVisible();
+  await expect(banner).toBeFocused(); // #378 revealAlert：横幅滚进视野并聚焦
+  await expect(banner).toBeInViewport();
   await expect(cards).toHaveCount(2);
   await expect(saveBtn(page)).toBeDisabled();
   expect(imagePuts).toBe(1);
@@ -254,6 +256,40 @@ test('图片库：在用的图不能删（asset_in_use）；移除并保存后�
   await expect(banner).toHaveCount(0);
   await expect(cards).toHaveCount(0);
   await expect(area.locator('.st-count').first()).toHaveText('0 / 6');
+});
+
+test('合 #378 后：imageMeta 的字段错误和 unknown_asset 都进顶部错误条（中文），错误条滚进视野并聚焦', async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginFreshAdmin(page);
+  await reset(page);
+  await page.goto('/admin/settings');
+  const area = page.locator('.st-im');
+  await fileInput(page).setInputFiles({ name: 'a.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [120, 60, 30]) });
+  const cards = area.locator('.st-im-card');
+  await expect(cards).toHaveCount(1);
+  await cards.first().getByLabel(/替代文字（EN）/).fill('Alt A');
+  const lib = await (await page.request.get(`${S}/assets`)).json();
+  const id = lib.assets[0].id as string;
+  const alertBar = page.locator('.st-page p[role=alert].st-err');
+
+  // ① 后端 400 imageMeta issue（前端有 maxlength，正常走不到，这里拦截 PUT 模拟）→ 顶部错误条「第 1 张图片的替代文字…」，不显示 path
+  await page.route('**/api/admin/site-settings/about/en', (route) => (route.request().method() === 'PUT'
+    ? route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'invalid', issues: [{ path: `imageMeta.${id}.alt`, message: 'max 125 chars' }] }) })
+    : route.fallback()));
+  await saveBtn(page).click();
+  await expect(alertBar).toHaveText('参数不正确，请检查后重试。（第 1 张图片的替代文字超出上限（最多 125 字））');
+  await expect(alertBar).toBeFocused();
+  await expect(alertBar).toBeInViewport();
+  await page.unroute('**/api/admin/site-settings/about/en');
+
+  // ② 图片在保存前被删了（别的窗口删的）→ 后端 400 unknown_asset → 中文，不出现裸错误码
+  expect((await page.request.delete(`${S}/assets/${id}`, { headers: origin })).status()).toBe(200);
+  await cards.first().getByLabel(/替代文字（EN）/).fill('Alt A2');
+  await saveBtn(page).click();
+  await expect(alertBar).toHaveText('列表里有图片已经被删除，请移除后再保存');
+  await expect(alertBar).toBeFocused();
+  await expect(page.locator('.st-page')).not.toContainText('unknown_asset');
+  await expect(cards).toHaveCount(1); // 草稿还在
 });
 
 test('UX 复审：<640px 单列卡片、输入框占满宽度；1440 多列；删除用 ✕，上移 / 下移 / 删除第 N 张图片的 aria-label；控件 ≥ 44px', async ({ page }) => {

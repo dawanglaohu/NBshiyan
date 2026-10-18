@@ -10,7 +10,7 @@ import {
   type AboutImageItem, type AboutImagesState, type XhrLike,
 } from '../src/lib/admin/about-images';
 import { createAboutSettingsApi, draftFromView } from '../src/lib/admin/site-settings-http';
-import { dirtySummary, draftCompleteness, emptyDraft, issuesAlertText, settingsErrorText, type AboutDraft, type AboutSettingsData } from '../src/lib/admin/site-settings';
+import { dirtySummary, draftCompleteness, emptyDraft, issuesAlertText, saveFailureView, settingsErrorText, type AboutDraft, type AboutSettingsData } from '../src/lib/admin/site-settings';
 import { aboutImageAttrs, visibleImages } from '../src/lib/about/model';
 import { AboutFigure, ABOUT_IMAGE_SIZES } from '../src/components/about/AboutParts';
 import ImageTextField from '../src/components/admin/settings/ImageTextField';
@@ -456,4 +456,28 @@ test('UX 条件 2：maxLength 125 / 80；剩 ≤ 10 字时右下角「n/上限�
   assert.match(src, /max=\{ABOUT_LIMITS\.imageCaptionMax\}/);
   const css = read('../src/components/admin/settings/about-images.css');
   assert.match(css, /\.st-im-cnt\{position:absolute;right:8px;bottom:5px/);
+});
+
+test('合 #378 后：后端 imageMeta issue → rest（不是字段错误）→ saveAboutWithImages 改写 → saveFailureView 顶部错误条；unknown_asset 中文', async () => {
+  const saved: AboutSettingsData = { enabled: true, enabledVersion: 1, locales: { en: { ...emptyDraft(), title: 'T', version: 1 } as AboutDraft } };
+  const item: AboutImageItem = { id: ID(1), sm: { w: 800, h: 600 }, lg: { w: 1600, h: 1200 }, src: { sm: `/media/${ID(1)}-800.webp`, lg: `/media/${ID(1)}-1600.webp` } };
+  const draft = { en: { ...saved.locales.en, imageMeta: { [ID(1)]: { alt: 'a', caption: '' } } } };
+  const run = async (status: number, body: unknown) => {
+    const f = (async () => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })) as unknown as typeof fetch;
+    const r = await saveAboutWithImages({ locales: ['en'], draft, saved, savedImages: { version: 1, items: [item] }, draftImages: [item], api: createAboutSettingsApi(f), putImages: async () => { throw new Error('not called'); } });
+    assert.equal(r.ok, false);
+    return saveFailureView(r as Parameters<typeof saveFailureView>[0]);
+  };
+  const v1 = await run(400, { error: 'invalid', issues: [{ path: `imageMeta.${ID(1)}.alt`, message: 'max 125 chars' }, { path: 'title', message: 'too_short' }] });
+  assert.deepEqual(Object.keys(v1.fieldErrors), ['title'], 'title 仍对到字段下方');
+  assert.equal(v1.alert, '参数不正确，请检查后重试。（第 1 张图片的替代文字超出上限（最多 125 字））');
+  const v2 = await run(400, { error: 'unknown_asset', ids: [ID(1)] });
+  assert.deepEqual(v2, { fieldErrors: {}, alert: '列表里有图片已经被删除，请移除后再保存' });
+  // 接线：409 走 step('conflict') → revealAlert(横幅)；错误条 revealAlert；字段聚焦 focusField
+  const ui = read('../src/components/admin/settings/AboutSettings.tsx');
+  assert.match(ui, /useEffect\(\(\) => \{ if \(conflict === 'conflict'\) revealAlert\(conflictBannerRef\.current\); \}, \[conflict\]\);/);
+  assert.match(ui, /useEffect\(\(\) => \{ if \(notice\?\.kind === 'err'\) revealAlert\(errAlertRef\.current\); \}, \[notice\]\);/);
+  assert.match(ui, /const r = await saveAboutWithImages\([\s\S]*?const v = saveFailureView\(r\);\s*setServerErr\(v\.fieldErrors\);/);
+  assert.match(ui, /focusField\(el\);/);
+  assert.match(ui, /anyImageErrors\(draft, locales, imgDraft\.map/);
 });
