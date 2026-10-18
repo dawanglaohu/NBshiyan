@@ -93,7 +93,7 @@ export function classifySmtpError(e: unknown): Extract<SendOutcome, { ok: false 
   return out('unknown_delivery', false);
 }
 
-const SAFE_KEYS = new Set(['mailId', 'reason', 'code', 'retryable', 'status', 'count', 'cap', 'kind', 'error']);
+const SAFE_KEYS = new Set(['mailId', 'reason', 'code', 'retryable', 'status', 'count', 'cap', 'kind', 'error', 'inquiry', 'type', 'ok', 'skipped', 'msgIdHash']);
 const SAFE_VAL = /^[A-Za-z0-9_.:-]{0,64}$/;
 /**
  * 邮件模块唯一的日志出口：只输出白名单键，值必须是短的安全字符串 / 数字 / 布尔。
