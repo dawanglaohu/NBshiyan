@@ -153,7 +153,32 @@ function runtimeSecretProblems(env: Record<string, string | undefined>): string[
   for (const k of ['SMTP_USER', 'SMTP_PASS']) if (!env[k]?.trim()) out.push(`${k} 未设置`);
   // 收信 webhook 密钥：缺失或少于 32 字节都拒绝启动（与 config.webhookSecret 的运行时判断一致）
   if (Buffer.byteLength(env.MAIL_WEBHOOK_SECRET ?? '') < 32) out.push('MAIL_WEBHOOK_SECRET：必须设置且至少 32 字节');
+  out.push(...appOriginProblems(env));
   return out;
+}
+
+/**
+ * APP_ORIGIN（后台 assertSameOrigin 的对外 origin）：生产必填。standalone 下请求自身的 origin 是监听地址
+ * （http://0.0.0.0:<端口>），不设 APP_ORIGIN 时浏览器的 Origin: https://<正式域名> 会被 403。
+ * 必须是裸 https origin（路径只能是空或 /，不带查询、#、账号密码，不能是 IP 或 localhost），
+ * 并且按 new URL().origin 规范化后等于 NEXT_PUBLIC_SITE_URL 的 origin。只报变量名和原因，不输出值。
+ */
+export function appOriginProblems(env: Record<string, string | undefined>): string[] {
+  const raw = env.APP_ORIGIN?.trim() ?? '';
+  if (!raw) return ['APP_ORIGIN 未设置（生产必填，等于 NEXT_PUBLIC_SITE_URL 的 origin，否则后台改动请求会被 403）'];
+  let u: URL;
+  try { u = new URL(raw); } catch { return ['APP_ORIGIN 不是有效地址']; }
+  const host = u.hostname.toLowerCase().replace(/\.$/, '');
+  if (u.protocol !== 'https:') return ['APP_ORIGIN 必须是 https 地址'];
+  if ((u.pathname !== '/' && u.pathname !== '') || u.search || u.hash || raw.includes('?') || raw.includes('#') || u.username || u.password)
+    return ['APP_ORIGIN 必须是裸 origin（不带路径、查询、#、账号密码）'];
+  if (host === 'localhost' || host.endsWith('.localhost') || /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.startsWith('['))
+    return ['APP_ORIGIN 不能是 IP 或 localhost'];
+  // NEXT_PUBLIC_SITE_URL 本身缺失或不是 https 时由 publicProblems 单独报，这里不重复报
+  let site: URL | null = null;
+  try { site = new URL(env.NEXT_PUBLIC_SITE_URL?.trim() ?? ''); } catch { /* 同上 */ }
+  if (site?.protocol === 'https:' && site.origin !== u.origin) return ['APP_ORIGIN 必须与 NEXT_PUBLIC_SITE_URL 的 origin 一致'];
+  return [];
 }
 
 export function assertProdEnv(env: Record<string, string | undefined> = process.env, phase: EnvCheckPhase = 'any', deps: EnvCheckDeps = {}) {

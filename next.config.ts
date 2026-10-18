@@ -18,6 +18,9 @@ const isProd = isProdEnvFrom();
 const FILE_ROUTE_SOURCES = ['/api/admin/uploads/:path*', '/api/admin/models/:id/file', '/api/designs/:id/logo', '/api/models/:id/:variant'];
 const FILE_ROUTE_EXCLUDE = 'api/admin/uploads(?:/|$)|api/admin/models/[^/]+/file$|api/designs/[^/]+/logo$|api/models/[^/]+/[^/]+$';
 
+// 带点路径兜底 404 时跳过的前缀（这些前缀有自己的路由或 404 处理）
+const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s)(?:/|$)';
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // 自建部署：服务器上 docker build，运行 .next/standalone/server.js（Vercel 忽略此项）。
@@ -31,8 +34,15 @@ const nextConfig: NextConfig = {
   images: { formats: ['image/avif', 'image/webp'] },
   // IndexNow 密钥文件 /{key}.txt（Refs #74）。中间件的 matcher 不处理带点的路径，所以不会进多语言路由；
   // 功能关闭或文件名不对时，路由返回 404。
+  // 其它带点、又不是真实文件的路径（/nope.png、/manifest.webmanifest、/%2F%2Fevil.com）同样不进 middleware，
+  // 会被当成 [locale] 段渲染；locale 无效时 next-intl 去读 headers()，静态页运行时转动态，返回 500。
+  // 这些 rewrite 在 public 文件和静态路由之后、动态路由之前生效（afterFiles），所以真实文件不受影响；
+  // 统一改到 /en/ 下不存在的路径，由 [locale]/[...rest] 给出本地化的 404。en/ru、api、admin、_next、s 开头的不动。
   async rewrites() {
-    return [{ source: '/:file([a-zA-Z0-9-]{8,128}\\.txt)', destination: '/api/indexnow-key/:file' }];
+    return [
+      { source: '/:file([a-zA-Z0-9-]{8,128}\\.txt)', destination: '/api/indexnow-key/:file' },
+      { source: `/:path((?!${NO_DOT_REWRITE}).*\\..*)`, destination: '/en/__not-found' }
+    ];
   },
   async headers() {
     const headers = [

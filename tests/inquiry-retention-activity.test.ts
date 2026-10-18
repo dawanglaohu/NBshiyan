@@ -42,6 +42,7 @@ before(async () => {
   console.info = (...a: unknown[]) => { if (a[0] === '[mail:dev]') mailsSent++; else origInfo(...a); };
 });
 beforeEach(() => {
+  process.env.NEXT_PUBLIC_ADMIN_MAIL = 'http'; // 旧回信接口受发信开关控制；这里测开关打开时的行为
   for (const k of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS']) delete process.env[k];
   messages = []; mailsSent = 0;
   inq = { id: INQ, status: 'NEW', assigneeId: null, anonymizedAt: null, retainUntil: new Date(Date.now() + 10 * DAY), replyToken: 'tok', ref: 'PJ-1', contact: { email: 'anna@example.com' } };

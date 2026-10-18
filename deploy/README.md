@@ -9,10 +9,21 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
   `SANITY_PROJECT_ID/DATASET`). All server-side secrets are read at runtime from the env file given by
   `NBSHIYAN_APP_ENV_FILE` (root 600). `src/instrumentation.ts` re-runs the production env check at start and exits if anything is missing.
 - **Build input:** a full 40-character commit SHA that is already merged into `main`, never a branch name.
-- **Base images** are pinned by tag and digest.
+- **Base images** are pinned by tag and digest, and so is the Dockerfile syntax frontend
+  (`docker/dockerfile:1.7@sha256:a57df69d…a33e`, the 1.7 = 1.7.1 index). `build-on-server.sh` refuses any other first line.
+- **Registry mirrors (builder only):** the server cannot reach `registry-1.docker.io`. dockerd uses its own
+  `registry-mirrors`, but the dedicated `docker-container` builder runs its own BuildKit and ignores them, so it is created
+  with the reviewed `deploy/buildkitd.toml` (the same three docker.io mirrors). Mirrors never weaken integrity: everything
+  the build pulls is pinned by digest and BuildKit verifies content digests.
 - **Cleanup is scoped to NBshiyan:** only its own buildx builder cache and its own images (`nbshiyan-app`,
   `nbshiyan-migrate`; keep `:current` and `:previous`). Never `docker system/image/volume prune`.
 - **Never run `docker compose config`.** It expands `env_file` and would print secrets.
+- **Checkout permissions:** `build-on-server.sh` keeps umask 077 globally (logs, scan dir, pattern file, markers) but clones,
+  checks out and cleans `$NBSHIYAN_DATA_DIR/src` in a `( umask 022; … )` subshell, repairs an older 077 checkout to at most
+  644/755 (`.git` excluded) and then aborts unless every checked-out file is other-readable and nothing is group/other-writable.
+  Reason: non-root containers read it (migrate uid 1001 via COPY, srh-tls uid 101 via the `nginx.conf` bind mount). The
+  Dockerfile also checks, as uid 1001, that everything under `/app` and `/opt/migrate` is readable. Secrets and keys are
+  never in the checkout and keep their own modes (`.env` 600, `redis-rest.key` 640 root:101, `pg_password` 400 uid 70).
 
 ## Files
 | file | purpose |
@@ -21,11 +32,27 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `docker-compose.yml` | stack definition and hardening (read_only, cap_drop ALL, no-new-privileges, pids/mem limits) |
 | `env.template` | every runtime variable, no values: who supplies it, whether it's a secret, whether prod requires it |
 | `init-secrets.sh` | one-time: creates data dirs and generates secrets on the host; never overwrites, never prints |
-| `build-on-server.sh` | pinned-SHA build in a memory-capped dedicated builder; disk/memory gates; leak checks; tag rotation |
+| `build-on-server.sh` | pinned-SHA build in a memory-capped dedicated builder; disk/memory gates; leak checks; tag rotation; stops the builder when done |
+| `buildkitd.toml` | reviewed BuildKit config of `nbshiyan-builder`: docker.io mirrors only. Its sha256 is pinned in `build-on-server.sh` |
 | `plan-check.sh`, `tests/plan-check.test.sh` | destructive-change gate for the schema plan (sourced by `deploy.sh`) and its tests (`bash deploy/tests/plan-check.test.sh`, no docker/DB needed) |
-| `smoke-lib.sh`, `tests/smoke.test.sh` | redirect/header smoke rules (`loc_bad`, `root_redirect_ok`) used by `deploy.sh`, and their tests |
+| `smoke-lib.sh`, `tests/smoke.test.sh` | redirect/header smoke rules (`loc_bad`, `hdr_leak`, `root_redirect_ok`) used by `deploy.sh`, and their tests |
+| `env-check.sh`, `tests/env-check.test.sh` | `env_prod_ok` (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL, HOSTNAME) and the compose `HOSTNAME` check, sourced by `deploy.sh`, and their tests |
 | `deploy.sh` | pg_dump → schema plan + destructive check → `db push` → drift check → start → post-deploy checks → auto-rollback |
+| `build-offbox.sh`, `tests/build-offbox.test.sh` | build both images OFF the server (fresh clone at the pinned SHA, explicit `--platform`, same pins, public build args only), secret-free pre-checks, `docker save` → `.tar.zst` + `.sha256` + `.manifest` (expected IDs) |
+| `import-and-scan.sh`, `tests/import-scan.test.sh` | ON the server: `sha256sum -c`, tar content check (only our two tags) → `docker load` → IDs / platform / revision label → leak scan with the server's secrets → production build checks → only then `:candidate` + `.candidate-sha`; the transferred files are always removed |
+| `mem-check.sh`, `tests/mem-check.test.sh` | `mem_ok` (sourced by `deploy.sh up` before anything starts): MemAvailable ≥ compose `mem_limit` of the services that still have to start (+ migrate next to a running app) + `MEM_RESERVE_MB` (256) |
 | `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
+
+## Builder (`nbshiyan-builder`)
+- Created by `build-on-server.sh` with `--buildkitd-config deploy/buildkitd.toml` (from the pinned checkout; the script
+  checks its sha256 first). The sha256 the builder was created with is kept in `$NBSHIYAN_DATA_DIR/.builder-config-sha256` (600).
+- If the builder exists but was created with no or another config (no marker / different sha256), the script runs
+  `docker buildx rm nbshiyan-builder` (**only this builder**, its cache goes with it) and recreates it. Nothing else is removed.
+- After bootstrap it reads `/etc/buildkit/buildkitd.toml` inside `buildx_buildkit_nbshiyan-builder0` and aborts unless all
+  three mirrors are there (content check; buildx re-serializes the toml with single quotes, e.g.
+  `[registry.'docker.io']` / `mirrors = ['docker.1ms.run', …]`, so the hash would differ; both quote styles are accepted).
+- The builder is stopped (`docker buildx stop nbshiyan-builder`) after every run, successful or not, so it holds no memory
+  between builds. The next build restarts it; the cache (capped at `CACHE_KEEP`) is kept.
 
 ## Schema changes (final: `prisma db push`)
 The repo uses `prisma db push` and has no `prisma/migrations`. `prisma/sql/*.sql` files, including
@@ -119,21 +146,31 @@ curl -sI https://geiom.com/          # 307/308, Location: /en or https://geiom.c
 curl -sI https://geiom.com/ru        # 200, or a redirect that stays on https://geiom.com
 curl -sI https://geiom.com/admin     # redirect to the sign-in page on geiom.com (proxy_redirect regex rewrites localhost/127.0.0.1/0.0.0.0 targets)
 for u in / /ru /admin; do curl -sI "https://geiom.com$u" | grep -qi localhost && echo "FAIL $u header mentions localhost"; done
-curl -sI 'https://geiom.com//evil.com/'      # Location must not start with // and must not point at evil.com
-curl -sI 'https://geiom.com/%2F%2Fevil.com'  # same
-curl -sI 'https://geiom.com/\evil.com'       # same
+curl -sI 'https://geiom.com//evil.com'       # 308, Location /evil.com (on site; relative or https://geiom.com/...)
+curl -sI 'https://geiom.com//evil.com/'      # 308, Location /evil.com/
+curl -sI 'https://geiom.com/\evil.com'       # 308, Location /evil.com
+curl -sI 'https://geiom.com/%2F%2Fevil.com'  # 404
+curl -sI 'https://geiom.com/%5C%5Cevil.com'  # 404
+curl -sI https://geiom.com/s/nbshiyan-smoke-probe | grep -qiE 'localhost|127\.0\.0\.1|0\.0\.0\.0' && echo "FAIL /s/ rewrite leaks"
 for u in /api/health '/api/health?x=1' /api/health/ /api/health/x; do curl -s -o /dev/null -w "%{http_code} $u\n" "https://geiom.com$u"; done   # all 404
 curl -s -o /dev/null -w '%{http_code}\n' https://geiom.com/api/healthz   # reaches the app (its 404 page, not nginx's)
 ```
 Rules, the same as `smoke-lib.sh`. In `deploy.sh`, any of these fails the deploy and triggers a rollback:
-- Any **5xx** on `/`, `/ru`, `/admin` or the three `evil.com` probes is a FAIL.
+- Any **5xx** on `/`, `/ru`, `/admin`, `/s/nbshiyan-smoke-probe` or the five `evil.com` probes is a FAIL. Expected from the
+  app (backend PR #328): `/` → 307 `/en`; `//evil.com`, `//evil.com/`, `/\evil.com` → 308 to on-site `/evil.com[/]`;
+  `/%2F%2Fevil.com`, `/%5C%5Cevil.com` → 404. Without a DB `/api/health` is 503 (expected; the healthcheck then fails).
 - `/` must be a **3xx**. At app level (`deploy.sh`, 127.0.0.1:3000) the Location must be **exactly `/en`**. On the public
   post-DNS check, `/en` or `https://geiom.com/en` are both accepted.
-- A Location is a FAIL if it starts with two slashes or backslashes in any mix (`//`, `/\`, `\/`, `\\`), starts with `\`,
-  or mentions `evil.com` without being a plain same-site relative path (`/x…`). `/evil.com/` is fine: it's a path on geiom.com.
-- No response header may contain `localhost`. Local observation on PR #321 (bad9379): with `HOSTNAME=127.0.0.1`, `/` answers
+- `loc_bad` is an allow-list: a Location passes only if it is empty, a same-site path (`/` or `/x…` with the second char
+  not `/` or `\`), or `https://geiom.com` optionally followed by such a path. Anything else fails: any backslash, any
+  whitespace/control char, `//` / `/\` prefixes (also after `https://geiom.com`), other hosts, ports, schemes, userinfo.
+  `/evil.com/` and `https://geiom.com/evil.com/` are fine: they're paths on geiom.com.
+- No response header (including `x-middleware-rewrite`) may contain `localhost`, `127.0.0.1` or `0.0.0.0`. Local observation on PR #321 (bad9379): with `HOSTNAME=127.0.0.1`, `/` answers
 `Location: https://localhost:<port>/en`, so the nginx `proxy_redirect` regex is needed, and compose keeps
-`HOSTNAME=0.0.0.0`. `/%2F%2Fevil.com` answers **500** from the app (reported to the backend; it is not a redirect).
+`HOSTNAME=0.0.0.0`. With `HOSTNAME=127.0.0.1` the `/s/*` rewrite also leaks localhost in `x-middleware-rewrite`, so
+compose hardcodes `HOSTNAME: "0.0.0.0"` for `app`, `env_prod_ok` fails if compose doesn't or if the env file sets HOSTNAME
+to anything else, and post-checks verify the running container's HOSTNAME. `/%2F%2Fevil.com` answered **500** on bad9379;
+fixed in backend PR #328 (now 404).
 
 ## Review notes
 - The schema plan gate (`plan-check.sh`) refuses an empty or unreadable plan. Prisma's no-diff output is `-- This is an empty migration.`, which passes.
@@ -168,3 +205,38 @@ Rules, the same as `smoke-lib.sh`. In `deploy.sh`, any of these fails the deploy
 - `src/lib/seo/indexnow.ts` reuses the same Upstash variables for de-duplication; no extra config.
 - If SRH/srh-tls is down, routes follow their own `onStoreError`: some reject, some fall back to in-process counting. 429/503 on some endpoints in that state is expected, not a bug.
 - Long term: backend TCP Redis store (`REDIS_URL` with requirepass), then remove `srh` and `srh-tls`.
+
+## APP_ORIGIN (required)
+`APP_ORIGIN=https://geiom.com` must be in the app env file exactly once and equal the `NEXT_PUBLIC_SITE_URL` origin. It is not a secret. standalone sees its own origin as `http://0.0.0.0:<port>`, so without it the admin same-origin check rejects every browser POST with 403 (2FA binding included). `init-secrets.sh` forces it, compose also sets it, `deploy.sh` (`env_prod_ok`) aborts if it's missing, duplicated or different, and the app's startup check (fix/root-redirect-location) exits 1 in production if it's missing, not https, or not the SITE_URL origin.
+
+## Off-box build (server memory too tight for `next build`)
+`build-on-server.sh` stays the default. When its memory gate keeps failing, the images are built on a separate build host
+and only imported on the server. `deploy.sh up` is the same in both paths (backup → plan → `db push` → drift → start →
+checks → auto-rollback); it never builds.
+1. **Build host** (has docker + buildx, holds NO production secret):
+   `PIN_SHA=<40-hex> PLATFORM=<server: docker version -f '{{.Server.Os}}/{{.Server.Arch}}'> BUILD_ARGS_FILE=<600 file> OUT_DIR=<dir> deploy/build-offbox.sh`.
+   The build-args file is the server's `build-args.env`, copied verbatim (600 on the build host, deleted after the build).
+   Only the keys present in it are passed; every other ARG keeps its Dockerfile default. Values must be unquoted and LF
+   only (a quote or `\r` would be baked into the bundle). Required: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the **site** key;
+   the secret key never leaves the server). `APP_ENV` / `NEXT_PUBLIC_SITE_URL`, if present, must be `production` /
+   `https://geiom.com`. The sha256 of the effective value of every public ARG is written as a
+   `com.nbshiyan.buildarg.<KEY>` label. The script clones fresh, checks HEAD / clean
+   tree / no `.env*` or key files, the base-image and syntax digests, the `buildkitd.toml` sha256, that every Dockerfile
+   `ARG` is on the public list, builds on BuildKit v0.34.0 (same digest as the server builder), checks platform, revision
+   label, ENV keys, history and key files, then writes `nbshiyan-images-<sha12>.tar.zst`, `.sha256` and `.manifest`.
+2. **Transfer** the three files to the server (any channel; integrity comes from the sha256 and the manifest IDs).
+3. **Server**, from the checkout at the same SHA (`$NBSHIYAN_DATA_DIR/src`, umask-022 checkout, reviewed hashes):
+   `NBSHIYAN_DATA_DIR=<dir> PIN_SHA=<40-hex> IMPORT_DIR=<dir> deploy/import-and-scan.sh`. Every step fails closed and prints
+   PASS/FAIL only. Expected IDs: classic image store → config digest, containerd image store → manifest digest (both are in
+   the manifest and both are checked against the tar before load). Production checks on the app image: `https://geiom.com`
+   in the build output; no site-wide `noindex` rule in `routes-manifest.json` (= `APP_ENV=production` at build); no
+   `//localhost`, `//127.0.0.1`, `//0.0.0.0` URL in the client bundle, prerendered pages or build manifests (server JS chunks
+   are excluded: Next.js framework code there has dev/test fallbacks such as `http://localhost:${PORT}`; runtime headers are
+   covered by `deploy.sh`'s `hdr_leak`); no Turnstile test key; exactly one baked site key whose sha256 equals the value in
+   `build-args.env`. Build args: `build-args.env` format (public keys only, once each, unquoted, LF), the required keys,
+   and for **every** public ARG the effective value (file value if present, else the Dockerfile default) = the image's
+   `com.nbshiyan.buildarg.<KEY>` label by sha256 (both images); `NEXT_PUBLIC_ADMIN_API` / `NEXT_PUBLIC_ADMIN_MAIL` also
+   against the inlined next.config `env`; every non-empty `NEXT_PUBLIC_*` value of 8+ chars must be literally in the build
+   output; `MAIL_MOCK_ADAPTER_BUILD` must be empty or unset. No quote stripping anywhere. Only after all of that are `:candidate` and `.candidate-sha` set (and our old images rotated as in
+   `build-on-server.sh` step 7).
+4. `deploy.sh up` as usual.

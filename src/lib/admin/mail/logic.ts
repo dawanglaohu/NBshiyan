@@ -1,6 +1,7 @@
 // #74 邮件界面的纯逻辑与文案（不依赖 DOM / React，便于单测）。文案依据 ux-spec.md（A/B/C 节）与 backend-plan v4 §8、§15。
-import type { MailError, SendStatus, ThreadItem } from './types';
+import type { MailError, SendStatus, ThreadItem, ThreadPage } from './types';
 import { KNOWN_FLAGS } from './types';
+import { futureTime } from '@/components/admin/format';
 
 export const BODY_MAX = 20000;
 export const BODY_WARN = 19000;
@@ -39,15 +40,19 @@ export const authorText = (m: Pick<ThreadItem, 'direction' | 'authorName' | 'fro
 export const showUnverified = (m: { senderVerified?: boolean | null; redacted?: boolean }) => !m.redacted && m.senderVerified === false;
 
 // —— 发送失败原因（8.1 表；v3 smtp_* 旧码保留文案兼容）——
+/** #74 UX：send_auth 只说「配置有误、已通知运维」，不显示服务端细节（最多显示错误码） */
+export const SEND_AUTH_TEXT = '发信配置有误，已通知运维';
+/** #74 UX：服务商限流是暂时的，用黄色提示（不是红色错误）：role=status，不打断读屏 */
+const WARN_REASONS = new Set(['provider_throttled']);
 const REASON: Record<string, { text: string; retryable: boolean }> = {
   send_unavailable: { text: '邮件服务暂时无法连接，这封信没有发出。内容已保存，可以重试。', retryable: true },
-  provider_throttled: { text: '发信服务商限流（每小时发送量已达上限），这封信没有发出。内容已保存，请稍后重试。', retryable: true },
-  send_auth: { text: '发信账号验证未通过，请联系管理员检查邮箱设置。', retryable: false },
+  provider_throttled: { text: '邮件服务暂时繁忙，请稍后重试', retryable: true },
+  send_auth: { text: SEND_AUTH_TEXT, retryable: false },
   recipient_rejected: { text: '对方邮箱拒收，地址可能无效或已停用。请通过其他方式联系客户。', retryable: false },
   message_rejected: { text: '邮件内容被服务器拒收（可能被判为垃圾邮件）。请修改内容后重新发送。', retryable: false },
   smtp_timeout: { text: '连接邮件服务器超时。内容已保存，可以重试。', retryable: true },
   smtp_unavailable: { text: '邮件服务器暂时无法连接。内容已保存，可以重试。', retryable: true },
-  smtp_auth: { text: '发信账号验证未通过，请联系管理员检查邮箱设置。', retryable: false },
+  smtp_auth: { text: SEND_AUTH_TEXT, retryable: false },
   smtp_tls: { text: '与邮件服务器的安全连接失败，请联系管理员。', retryable: false }
 };
 export const UNKNOWN_FAIL = '发送失败（未知原因）。请稍后重新编写发送；多次失败请联系管理员。';
@@ -56,16 +61,28 @@ export const MAYBE_DELIVERED = '可能已送达';
 export const DEFERRED_REASON = 'daily_cap_deferred';
 /** 下一个 UTC 零点（deferredUntil 缺失时的兜底） */
 export const nextUtcMidnight = (now = Date.now()) => { const d = new Date(now); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1)).toISOString(); };
-/** 「今日发信已达上限，将在 {time} 后自动发送」，time 按管理员本地时区显示 */
-export function deferredText(until?: string | null, now = Date.now(), timeZone?: string): string {
+/** #74 UX：每日上限排队的状态标签 + 发送按钮下面的提示；预计时间按管理员本地时区 + 时区缩写（「10/18 00:00 PT」） */
+export const QUEUED_TAG = '已排队';
+export function deferredHint(until?: string | null, now = Date.now(), timeZone?: string): string {
   const t = until && !Number.isNaN(Date.parse(until)) ? until : nextUtcMidnight(now);
-  const time = new Date(t).toLocaleString('zh-CN', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', ...(timeZone ? { timeZone } : {}) });
-  return `今日发信已达上限，将在 ${time} 后自动发送`;
+  return `今天发信已达上限，已排队，预计 ${futureTime(t, { now, timeZone })} 发出`;
 }
 export const isDeferred = (m: { status?: string; errorCode?: string | null }) => m.status !== 'SENT' && m.errorCode === DEFERRED_REASON;
 export const MAYBE_DELIVERED_HINT = '发送过程中连接中断，无法确认对方是否收到。为免重复，系统不会自动重发；如需确认，请换其他方式联系客户。';
 export const RETRY_LIMIT_HINT = '这封邮件已重试 5 次仍未发出。请复制内容重新编写发送，或联系管理员检查邮箱设置。';
 export const NOT_RETRYABLE = '这封邮件不能重试，请重新编写发送。';
+/** #340 UX 定稿：失败卡片上有「重试」按钮时的说明（正文同时保留在回复框里，两个按钮的区别要讲清楚） */
+export const RETRY_VS_SEND_HINT = '发送失败。点「重试」重发这封；如需修改，请在下方编辑后发送新邮件。';
+
+/**
+ * #340：失败卡片「重试」成功后，回复框里的草稿怎么处理（纯函数）。
+ * 回复框的主题和正文都和这封失败邮件一样（没改过）→ 清空正文（主题照旧不清空，和普通发送成功一致），免得再点「发送」重复发一封；
+ * 改过任何一处 → 保留。比较时两边都去掉首尾空白：发送时主题本来就 trim，服务端也会 trim 正文。
+ */
+export function draftAfterCardRetry(draft: { subject: string; body: string }, failed: { subject: string | null; bodyText: string | null }): 'clear' | 'keep' {
+  if (!draft.body.trim()) return 'keep';
+  return draft.subject.trim() === (failed.subject ?? '').trim() && draft.body.trim() === (failed.bodyText ?? '').trim() ? 'clear' : 'keep';
+}
 export const UNCONFIRMED = '状态未确认，请刷新页面查看。';
 export const BACKGROUND_SENDING = '发送较慢，已转到后台继续发送（最多约 2 分钟），完成后这里会更新。';
 export const ANON_JUST_NOW = '该询盘刚刚被匿名化，不能再发送。页面已刷新。';
@@ -73,7 +90,7 @@ export const ANON_JUST_NOW = '该询盘刚刚被匿名化，不能再发送。�
 export type OutboundView =
   | { kind: 'sending' } | { kind: 'sent'; at: string | null } | { kind: 'deferred' }
   | { kind: 'maybe_delivered' }
-  | { kind: 'failed'; text: string; canRetry: boolean; retryLimit: boolean; retryCount: number };
+  | { kind: 'failed'; text: string; canRetry: boolean; retryLimit: boolean; retryCount: number; tone: 'warn' | 'error'; code: string | null };
 
 /** 出站条目 / 8.3a 状态 → 界面状态。不认识的 reason 一律当 unknown：不可重试（忽略接口给的 retryable）。 */
 export function outboundView(m: { status: SendStatus['status'] | 'RECEIVED' | 'QUEUED' } & Pick<SendStatus, 'errorCode' | 'retryable' | 'retryCount' | 'sentAt'> & { maxRetries?: number }): OutboundView {
@@ -85,7 +102,8 @@ export function outboundView(m: { status: SendStatus['status'] | 'RECEIVED' | 'Q
   const max = m.maxRetries ?? MAX_RETRIES;
   const retryableReason = !!r?.retryable && m.retryable;
   const retryLimit = retryableReason && m.retryCount >= max;
-  return { kind: 'failed', text: r?.text ?? UNKNOWN_FAIL, canRetry: retryableReason && !retryLimit, retryLimit, retryCount: m.retryCount };
+  const tone = !retryLimit && m.errorCode && WARN_REASONS.has(m.errorCode) ? 'warn' : 'error';
+  return { kind: 'failed', text: r?.text ?? UNKNOWN_FAIL, canRetry: retryableReason && !retryLimit, retryLimit, retryCount: m.retryCount, tone, code: r ? m.errorCode : null };
 }
 /** 「已重试 n/5」：n≥1 才显示，n=4 加剩余次数 */
 export function retryCountText(n: number, max = MAX_RETRIES): { text: string; last: boolean } | null {
@@ -145,9 +163,73 @@ export function sendErrorText(e: Pick<MailError, 'code' | 'body'>): { text: stri
 
 // —— 限流（429，windowSec 固定 3600 → 「本小时」）——
 export const fmtCountdown = (sec: number) => { const s = Math.max(0, Math.ceil(sec)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
-export function rateLimitText(scope: string | undefined, limit: number | undefined, countdown: string): string {
+/** kept：回复框里现在确实有内容才说「内容已保留在输入框里」（#340：不能在空输入框旁边说已保留） */
+export function rateLimitText(scope: string | undefined, limit: number | undefined, countdown: string, kept = true): string {
   if (scope === 'global') return `全站本小时的发信量已达上限（${limit ?? '—'} 封），为保护域名信誉暂停发送。${countdown} 后可以再发。`;
-  return `你本小时已发 ${limit ?? '—'} 封，达到上限。${countdown} 后可以再发。内容已保留在输入框里。`;
+  return `你本小时已发 ${limit ?? '—'} 封，达到上限。${countdown} 后可以再发。${kept ? DRAFT_KEPT : ''}`;
+}
+export const DRAFT_KEPT = '内容已保留在输入框里。';
+
+/**
+ * #340 UX 定稿：重试卡片上的 429。重试卡片没有输入框（服务端按已存的原文重发），所以不说「内容已保留在输入框里」。
+ * 时间按 #322 规则（futureTime：MM/DD HH:mm + 时区缩写，跨年补年份）；向上取整到分钟，免得显示的时间早于真正可重试的时间。
+ */
+export function retryRateText(until: number, now = Date.now(), timeZone?: string): string {
+  const at = futureTime(new Date(Math.ceil(until / 60_000) * 60_000).toISOString(), { now, timeZone }) ?? '稍后';
+  return `发送太频繁，${at} 后可重试；重试会重新发送原邮件，无需重填。`;
+}
+
+/** #340 UX：往来邮件加载失败（404 以外的任何错误）时的错误条 */
+export const THREAD_LOAD_FAILED = '邮件记录加载失败';
+
+/**
+ * #340：后端这一轮会返回 source:'legacy' 的旧记录、内容为空的 redacted 行，字段可能缺省。
+ * 统一补默认值，组件里不用到处判断（不改接口调用，只整理返回的数据）。
+ */
+type WireItem = Partial<ThreadItem> & { id: string };
+export function normalizeThread(raw: { anonymizedAt?: string | null; items?: WireItem[] | null; nextCursor?: string | null; linksExpireAt?: string | null }): ThreadPage {
+  return {
+    anonymizedAt: raw.anonymizedAt ?? null,
+    nextCursor: raw.nextCursor ?? null,
+    ...(raw.linksExpireAt !== undefined ? { linksExpireAt: raw.linksExpireAt } : {}),
+    items: (raw.items ?? []).map((m) => ({
+      direction: 'INBOUND', status: m.direction === 'OUTBOUND' ? 'SENT' : 'RECEIVED', deliveryStatus: 'unknown', bouncedAt: null, retryCount: 0, maxRetries: 5,
+      from: null, to: null, authorName: null, subject: null, bodyHtml: null, bodyText: null, hasRemoteImages: false, senderVerified: null,
+      errorCode: null, retryable: false, createdAt: m.receivedAt ?? m.sentAt ?? new Date(0).toISOString(), sentAt: null, receivedAt: null,
+      ...m,
+      source: m.source === 'legacy' ? 'legacy' : 'mail',
+      redacted: m.redacted === true,
+      flags: Array.isArray(m.flags) ? m.flags : [],
+      attachments: Array.isArray(m.attachments) ? m.attachments : []
+    }) as ThreadItem)
+  };
+}
+
+/**
+ * #340：发信失败后回复框的主题 / 正文怎么处理（纯函数）。
+ * 只有服务端已经接受（201 / 202，或 502 mail_failed 但已排队 daily_cap_deferred）才清空；
+ * 其他一切失败（429、provider_throttled 等 mail_failed、409、5xx、网络错误……）都保留，并恢复成发送前的快照。
+ */
+export function draftAfterSendError(e: Pick<MailError, 'code' | 'body'>): 'keep' | 'clear' {
+  return e.code === 'mail_failed' && e.body.reason === DEFERRED_REASON && !!e.body.id ? 'clear' : 'keep';
+}
+
+// —— 429 倒计时：按钮在 Retry-After 之前禁用，到点重新可用 ——
+type Clock = { now: () => number; setInterval: (f: () => void, ms: number) => unknown; clearInterval: (t: never) => void };
+const realClock: Clock = { now: () => Date.now(), setInterval: (f, ms) => setInterval(f, ms), clearInterval: (t) => clearInterval(t) };
+export const secondsLeft = (until: number | undefined, now: number) => (until ? Math.max(0, Math.ceil((until - now) / 1000)) : 0);
+/** 每秒回调剩余秒数，到 0 回调一次 0 并停止；返回停止函数 */
+export function startCountdown(until: number, onTick: (left: number) => void, clock: Clock = realClock): () => void {
+  let t: unknown;
+  const stop = () => { if (t !== undefined) { clock.clearInterval(t as never); t = undefined; } };
+  const tick = () => { const left = secondsLeft(until, clock.now()); onTick(left); if (left <= 0) stop(); };
+  tick();
+  if (secondsLeft(until, clock.now()) > 0) t = clock.setInterval(tick, 1000);
+  return stop;
+}
+/** 失败卡片上的「重试」按钮：能重试才显示；限流倒计时中、正在重试、发信未开通时禁用 */
+export function retryButton(o: { canRetry: boolean; rateLeft: number; retrying: boolean; canSend: boolean }): { show: boolean; disabled: boolean } {
+  return { show: o.canRetry, disabled: o.rateLeft > 0 || o.retrying || !o.canSend };
 }
 
 // —— 未归类 ——

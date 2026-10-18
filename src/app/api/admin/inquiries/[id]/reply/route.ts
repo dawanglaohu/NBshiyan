@@ -7,6 +7,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { ID_RE, inquiryScope, readJson, extendInquiryRetention, TOO_LARGE } from '@/lib/server/admin/inquiries';
 import { audit } from '@/lib/server/admin/audit';
+import { mailSwitchGate } from '@/lib/server/mail/http';
 
 export const runtime = 'nodejs';
 const Body = z.object({ subject: z.string().trim().min(1).max(200), body: z.string().trim().min(1).max(20_000) }).strict();
@@ -15,6 +16,7 @@ const Body = z.object({ subject: z.string().trim().min(1).max(200), body: z.stri
 const textToHtml = (t: string) => t.split(/\r?\n/).map(escapeHtml).join('<br>');
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const gated = mailSwitchGate(); if (gated) return gated;
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
   const blocked = assertSameOrigin(req) ?? (await enforceAdminRateLimit(req, 'inquiry.reply', 20));

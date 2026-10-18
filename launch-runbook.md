@@ -65,7 +65,7 @@
 | DATABASE_URL | Postgres（带 sslmode=require） | — | 是 | **Ryan** |
 | AUTH_SECRET | Auth.js 会话签名 | — | 是 | **Ryan**（随机生成） |
 | AUTH_URL | 正式域名 | — | 是 | Ryan |
-| APP_ORIGIN | 后台 Origin 校验用的对外域名 | 空 | 否 | — |
+| APP_ORIGIN | 后台 Origin 校验用的对外 origin；生产必填，等于 NEXT_PUBLIC_SITE_URL 的 origin（`https://geiom.com`），否则启动检查失败、后台改动请求 403 | `https://geiom.com` | 是（生产） | — |
 | ADMIN_TOTP_KEY | 2FA 密钥加密（设好以后不要换） | — | 是 | **Ryan** |
 | ADMIN_ALERT_EMAIL | 后台告警（发信失败、定时任务失败、账号锁定）的收件人；同类告警 30 分钟最多 1 封 | 没设就发给 `INQUIRY_NOTIFY_EMAIL` | 否 | 由 Ryan 提供 |
 | ADMIN_SEED_EMAIL / _NAME / _PASSWORD / _ROLE | 测试 / 本地 / CI 的建号脚本（`pnpm admin:seed`），生产不用 | — | 否 | — |

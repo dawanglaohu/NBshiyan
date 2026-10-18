@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Fake docker for deploy/tests/import-scan.test.sh. State lives in $FD (images/<repo>:<tag>/{id,os,rev,stack,env,hist}).
+# Scenario in $SCEN (comma list): containerd (Id = manifest digest), wrong_id, wrong_rev, load_foreign, env_key, hist_secret.
+echo "docker $*" >> "$FD/calls.log"
+has() { [[ ",$SCEN," == *",$1,"* ]]; }
+img() { printf '%s/images/%s' "$FD" "$1"; }
+case "$1 $2" in
+  "version -f") echo linux/amd64; exit 0 ;;
+  "info -f") echo "$FD/dockerroot"; exit 0 ;;
+esac
+case "$1" in
+  load)
+    t=$(mktemp -d); tar -x -C "$t" || { rm -rf "$t"; echo "invalid tar" >&2; exit 1; }
+    tags=$(grep -oE '"RepoTags":\[[^]]*\]' "$t/manifest.json" | grep -oE '"[^"]+"' | grep -v RepoTags | tr -d '"')
+    for ref in $tags; do
+      d=$(img "$ref"); mkdir -p "$d"
+      cfg=$(tr '{' '\n' < "$t/manifest.json" | grep -F "\"$ref\"" | grep -oE 'blobs/sha256/[0-9a-f]{64}' | head -n 1)
+      if has containerd; then
+        id=$(sed 's/},{"mediaType"/}\n{"mediaType"/g' "$t/index.json" | grep -F "library/$ref\"" | grep -oE 'sha256:[0-9a-f]{64}' | head -n 1)
+      else id="sha256:${cfg##*/}"; fi
+      has wrong_id && id="sha256:$(printf x | sha256sum | cut -c1-64)"
+      echo "$id" > "$d/id"; echo linux/amd64 > "$d/os"; echo nbshiyan > "$d/stack"
+      sed -nE 's/.*"org.opencontainers.image.revision":"([0-9a-f]+)".*/\1/p' "$t/$cfg" > "$d/rev"
+      has wrong_rev && echo 0000000000000000000000000000000000000000 > "$d/rev"
+      printf 'PATH=/usr/bin\nNODE_ENV=production\nHOME=/tmp\n' > "$d/env"; has env_key && echo "AUTH_SECRET=x" >> "$d/env"
+      printf 'RUN apt-get update\nCOPY . .\n' > "$d/hist"; has hist_secret && echo "ENV SMTP_PASS=abc" >> "$d/hist"
+      repo=${ref%%:*}; echo "$repo" > "$d/repo"
+      [ -f "$FD/buildarg-labels" ] && cp "$FD/buildarg-labels" "$d/labels"
+      echo "Loaded image: $ref"
+    done
+    has load_foreign && echo "Loaded image: alpine:latest"
+    rm -rf "$t"; exit 0 ;;
+  image)
+    case "$2" in
+      inspect)
+        if [ "$3" = -f ]; then f="$4"; ref="$5"; else f=""; ref="$3"; fi
+        d=$(img "$ref"); [ -d "$d" ] || exit 1
+        case "$f" in
+          "{{.Id}}") cat "$d/id" ;;
+          "{{.Os}}/{{.Architecture}}") cat "$d/os" ;;
+          *revision*) cat "$d/rev" ;;
+          *com.nbshiyan.stack*) cat "$d/stack" ;;
+          *com.nbshiyan.buildarg.*) k=${f#*com.nbshiyan.buildarg.}; k=${k%%\"*}; sed -n "s/^$k=//p" "$d/labels" 2>/dev/null ;;
+          *Config.Env*) cat "$d/env" ;;
+          "") echo "[]" ;;
+          *) echo "fake docker: unhandled inspect format $f" >&2; exit 99 ;;
+        esac; exit 0 ;;
+      ls) repo="$3"; for d in "$FD"/images/"$repo":*; do [ -d "$d" ] && basename "$d"; done; exit 0 ;;
+      rm) shift 2; for r in "$@"; do rm -rf "$(img "$r")"; done; exit 0 ;;
+    esac ;;
+  tag) mkdir -p "$(img "$3")"; cp -a "$(img "$2")/." "$(img "$3")/"; exit 0 ;;
+  history) cat "$(img "${!#}")/hist"; exit 0 ;;
+  create) d=$(img "$2"); [ -d "$d" ] || exit 1; cat "$d/repo"; exit 0 ;;
+  export) tar -C "$FD/fs/$2" -c . ; exit 0 ;;
+  rm) exit 0 ;;
+esac
+echo "fake docker: unhandled: $*" >&2; exit 99

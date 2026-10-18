@@ -22,10 +22,16 @@
 .ml-att .ico{width:32px;height:32px;border-radius:6px;background:var(--navy);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;flex:none}
 .ml-att .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ml-att .sz{color:var(--ink-2);font-size:12px}.ml-att .dl{color:var(--accent-text);font-weight:600}
 .ml-note{font-size:13px;color:var(--ink-2)}
+.ml-retry-hint{flex-basis:100%} /* #340：失败卡片「重试 / 发送」说明单独一行 */
 .ml-status{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:13px;border:1px solid var(--line-strong);background:var(--neutral-bg);color:var(--ink)}
 .ml-status .t{flex:1 1 220px;min-width:0}
 .ml-status.err{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
 .ml-status.ok{background:var(--surface)}
+/* #74：暂时性的问题（服务商繁忙 / 限流 / 每日上限排队）用黄色，不用红色 */
+.ml-status.ml-warn{background:var(--warnb);border-color:var(--warn);color:var(--ink)}
+.ml-code{display:block;margin-top:4px;font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;opacity:.85}
+.ml-hints{scroll-margin:16px}.ml-hints:empty{display:none}
+.ml-status{scroll-margin:16px}
 .ml-rc{font-size:12px;color:var(--ink-2)}.ml-rc.last{color:var(--accent-text);font-weight:600}
 .ml-btn{white-space:nowrap;min-height:44px;min-width:44px;padding:0 16px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
 .ml-btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
