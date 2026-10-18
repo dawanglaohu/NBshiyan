@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { categoryMeta, type CategoryMeta } from './categoryMeta';
 import { PRIVACY_PAGE_COMPLETE, PRIVACY_PATH } from '../legal/privacy';
+import { listLanguages, withXDefault } from './hreflang';
 export { CATEGORY_PAGES_LIVE } from './categoryPages';
 
 type Locale = 'en' | 'ru';
@@ -10,7 +11,7 @@ type Page = { paths: Record<Locale, string>; priority: number; changeFrequency: 
 
 /**
  * 只列可索引的公开页面。以下页面带 noindex 或仍是占位，故意不进 sitemap：
- * /privacy（PRIVACY_PAGE_COMPLETE=false 时，与 noindex 同一开关）、/s/*（分享短链）、/industries、/factory、/case-studies（占位）、/admin、/api。
+ * /privacy（PRIVACY_PAGE_COMPLETE=false 时，与 noindex 同一开关）、/s/*（分享短链）、/solutions、/factory、/cases（占位）、/admin、/api。
  * 新页面上线且去掉 noindex 后再加进来。
  */
 export const STATIC_PAGES: Page[] = [
@@ -64,8 +65,8 @@ export const CMS_SECTIONS = [
 
 /**
  * 详情页：每种语言只在该语言 slug 存在时输出（否则详情页 404），alternates 只互指存在的语言，
- * x-default 优先 en；seo.noindex 的文档整篇跳过。lastModified 取文档的 _updatedAt。
- * 列表页：该语言至少有一篇可索引文档时才输出（与 #207 的 listQuery 一致：noindex 文档不计），否则不输出。
+ * x-default 只在 en 版本存在时输出（指向 en，规则见 ./hreflang，与页面 HTML 一致）；seo.noindex 的文档整篇跳过。lastModified 取文档的 _updatedAt。
+ * 列表页：该语言至少有一篇可索引文档时才输出（与 #207 的 listQuery 一致：noindex 文档不计），否则不输出；alternates 只互指输出了的语言。
  */
 export function buildCmsEntries(opts: {
   siteUrl: string;
@@ -87,20 +88,18 @@ export function buildCmsEntries(opts: {
     for (const l of have) if (lm && (!listLatest.get(l) || listLatest.get(l)! < lm)) listLatest.set(l, lm);
     for (const l of have) if (!listLatest.has(l)) listLatest.set(l, opts.now ?? new Date());
     const url = (l: Locale) => `${site}/${l}${opts.base}/${d.slug[l]}`;
-    const languages = {
-      ...Object.fromEntries(have.map((l) => [l, url(l)])),
-      'x-default': url(have.includes(opts.defaultLocale) ? opts.defaultLocale : have[0])
-    };
+    const languages = withXDefault(Object.fromEntries(have.map((l) => [l, url(l)])), opts.defaultLocale);
     for (const l of have) out.push({ url: url(l), ...(lm ? { lastModified: lm } : {}), changeFrequency: 'monthly', priority: 0.6, alternates: { languages } });
   }
-  // 列表页：#199 的 alternatesFor 两种语言都互指，这里只输出可索引的语言
+  // 列表页：只输出可索引的语言，alternates 也只互指这些语言（与 cmsPages 的 listMetadata 同一规则）
   const listUrl = (l: Locale) => `${site}/${l}${opts.base}`;
-  const listLangs = {
-    ...Object.fromEntries(opts.locales.map((l) => [l, listUrl(l)])),
-    'x-default': listUrl(opts.defaultLocale)
-  };
-  const lists: MetadataRoute.Sitemap = opts.locales
-    .filter((l) => listLatest.has(l))
-    .map((l) => ({ url: listUrl(l), lastModified: listLatest.get(l), changeFrequency: 'weekly', priority: 0.7, alternates: { languages: listLangs } }));
+  const indexable = opts.locales.filter((l) => listLatest.has(l));
+  const lists: MetadataRoute.Sitemap = indexable.map((l) => ({
+    url: listUrl(l),
+    lastModified: listLatest.get(l),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+    alternates: { languages: listLanguages({ current: l, locales: opts.locales, indexable, defaultLocale: opts.defaultLocale, href: listUrl }) }
+  }));
   return [...lists, ...out];
 }
