@@ -134,6 +134,26 @@ test('组织信息：分区导航、占位不预填、计数器、社交主页�
   await expect(page.getByRole('navigation', { name: '站点设置分区' }).getByRole('link', { name: '关于我们' })).toHaveAttribute('aria-current', 'page');
 });
 
+test('UX #373 P2-3：390 宽度下「关于我们」和「组织信息」的按钮、输入框、标签页点击区域都 ≥ 44px', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginFreshAdmin(page);
+  const small = async () => page.evaluate(() => [...document.querySelectorAll('.st-page button, .st-page input, .st-page select, .st-page [role=tab], .st-sections a, .st-page [role=switch]')]
+    .filter((el) => (el as HTMLElement).offsetParent !== null)
+    .map((el) => { const r = el.getBoundingClientRect(); return { el: `${el.tagName.toLowerCase()} ${el.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 12) ?? ''}`, w: Math.round(r.width), h: Math.round(r.height) }; })
+    .filter((x) => x.h < 44 || (x.w < 44 && !x.el.startsWith('input'))));
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.locator('#st-title').fill('About sample');
+  await page.getByRole('button', { name: '＋ 添加一条' }).click();
+  expect(await page.locator('.st-page button:visible').count()).toBeGreaterThan(10); // 确认真的量到了按钮
+  expect(await small()).toEqual([]);
+  await page.goto('/admin/settings?section=org');
+  await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
+  await page.getByRole('button', { name: '＋ 添加链接' }).click();
+  expect(await small()).toEqual([]);
+});
+
 test('组织信息：未登录不能读接口，页面跳登录', async ({ request }) => {
   expect((await request.get(API)).status()).toBe(401);
   const r = await request.get('/admin/settings?section=org', { maxRedirects: 0 });
