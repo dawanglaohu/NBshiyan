@@ -1,3 +1,5 @@
+// 仅限服务端使用。这一轮不加 server-only 依赖（#350 PM 定），改由 tests/about-client-guard.test.ts 守住：
+// 任何 "use client" 文件直接（必须项）或间接（附加项）import 本文件，测试都会失败。
 import crypto from 'node:crypto';
 import type { Metadata, MetadataRoute } from 'next';
 import type { AboutContent, OrganizationSettings } from '../server/site-settings';
