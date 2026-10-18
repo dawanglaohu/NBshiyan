@@ -51,7 +51,7 @@ export const ORG_FIELD_TEXT: Record<OrgField, { label: string; hint: string; pub
   email: { label: '对外联系邮箱', hint: '会公开出现在网页代码里', public: true },
   telephone: { label: '对外电话', hint: '带国家区号，例如 +86…', public: true },
   address: { label: '地址', hint: '一行纯文本，会公开', public: true },
-  foundingDate: { label: '成立时间', hint: '年份，或年和月' },
+  foundingDate: { label: '成立时间', hint: '填年份，例如 2012' }, // UX 定稿：只填年份（替换字段说明 v1.0 的「年份，或年和月」）
   logo: { label: 'Logo 地址', hint: '站内路径或 https 链接' },
   sameAs: { label: '社交主页', hint: '每行一个 https 链接' },
 };
@@ -69,10 +69,6 @@ export const ORG_TEXT = {
   sameAsDuplicate: '和上面的链接重复，保存时会自动去掉',
   sameAsRemove: (n: number) => `删除第 ${n} 条链接`,
   sameAsItem: (n: number) => `社交主页链接（第 ${n} 条）`,
-  year: '年',
-  month: '月（可选）',
-  /** 后端 #367 只收 YYYY 或 YYYY-MM-DD，不收 YYYY-MM；在后端支持之前月份只读（见 FOUNDING_MONTH_SUPPORTED） */
-  monthPending: '月份暂时不能单独保存（等后端支持「年-月」），目前只保存年份。',
   conflictConfirmBody: '刷新后会载入最新的内容和版本，页面上未保存的修改会丢失。需要保留的话，请先复制再刷新。',
 } as const;
 
@@ -145,26 +141,22 @@ export function sameAsPayload(rows: string[]): { list: string[]; rowOf: number[]
 
 // ───────────────────────── 成立时间 ─────────────────────────
 /**
- * 后端 isValidFoundingDate 只认 YYYY 或 YYYY-MM-DD（真实日期，1800 至今）。界面是「年」+「月（可选）」两个下拉。
- * 后端还不收 YYYY-MM，所以月份暂时只读：库里已有的 YYYY-MM-DD 原样保留（不改年份就原样提交，不编造日），改了年份就只存年份。
+ * UX 定稿：只有一个「年份」输入框，保存为 YYYY（后端 isValidFoundingDate：YYYY 或 YYYY-MM-DD，1800 至今）。
+ * 库里已有 YYYY-MM-DD（例如以前用接口直接写入的）：输入框只显示年份；不改这个字段就原样提交（不丢日期、不编造日期），
+ * 改了输入框（哪怕改回同一年）就按输入的 YYYY 保存。
  */
-export const FOUNDING_MONTH_SUPPORTED = false;
-export function parseFoundingDate(s: string): { year: string; month: string } {
-  const m = /^(\d{4})(?:-(\d{2}))?/.exec(s);
-  return m ? { year: m[1], month: m[2] ?? '' } : { year: '', month: '' };
+const FULL_DATE_RE = /^(\d{4})-\d{2}-\d{2}$/;
+/** 输入框里显示的值：完整日期只显示年份，其他原样 */
+export const foundingYearInput = (stored: string): string => FULL_DATE_RE.exec(stored)?.[1] ?? stored;
+/** 年份是否合格（空 = 不填，合格） */
+export function isValidFoundingYear(s: string, now = new Date()): boolean {
+  const t = s.trim();
+  if (!t) return true;
+  if (FULL_DATE_RE.test(t)) return true; // 未改动的旧值，交给后端判断
+  if (!/^\d{4}$/.test(t)) return false;
+  const y = Number(t);
+  return y >= FOUNDING_YEAR_MIN && y <= now.getFullYear();
 }
-export function composeFoundingDate(prev: string, year: string, month: string): string {
-  if (!year) return '';
-  const p = parseFoundingDate(prev);
-  if (p.year === year && p.month === month) return prev; // 没改：原样保留（包括后端存的 YYYY-MM-DD）
-  if (month && FOUNDING_MONTH_SUPPORTED) return `${year}-${month}`;
-  return year;
-}
-export const foundingYears = (now = new Date()): string[] => {
-  const out: string[] = [];
-  for (let y = now.getFullYear(); y >= FOUNDING_YEAR_MIN; y--) out.push(String(y));
-  return out;
-};
 
 // ───────────────────────── 校验 ─────────────────────────
 export const ORG_ERR = {
@@ -175,6 +167,7 @@ export const ORG_ERR = {
   sameAs: '仅支持 https:// 链接',
   sameAsMax: `最多 ${ORG_LIMITS.sameAsMax} 条`,
   date: '成立时间不正确',
+  year: `请填 4 位年份（${FOUNDING_YEAR_MIN} 年至今）`,
   generic: '内容不符合要求，请检查',
 } as const;
 
@@ -193,6 +186,7 @@ export function orgDraftErrors(d: OrgDraft): OrgErrors {
   const tel = d.telephone.trim();
   if (!e.telephone && tel && !ORG_TELEPHONE_RE.test(tel)) e.telephone = ORG_ERR.telephone;
   if (!e.logo && d.logo.trim() && !normalizeOrgUrl(d.logo, true)) e.logo = ORG_ERR.logo;
+  if (!e.foundingDate && !isValidFoundingYear(d.foundingDate)) e.foundingDate = ORG_ERR.year;
   if (d.sameAs.length > ORG_LIMITS.sameAsMax) e.sameAs = ORG_ERR.sameAsMax;
   sameAsRows(d.sameAs).forEach((r, i) => { if (r.state === 'invalid') e[`sameAs.${i}`] = ORG_ERR.sameAs; });
   return e;

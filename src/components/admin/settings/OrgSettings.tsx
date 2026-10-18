@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
 import { canSave, conflictStep, SETTINGS_TEXT as T, type ConflictEvent, type ConflictPhase } from '@/lib/admin/site-settings';
 import {
-  canAddSameAs, composeFoundingDate, descriptionCounter, emptyOrgDraft, FOUNDING_MONTH_SUPPORTED, foundingYears, isOrgConflict, ORG_FIELD_TEXT, ORG_GROUPS,
-  ORG_LIMITS, ORG_PLACEHOLDER, ORG_TEXT, orgDirtyFields, orgDirtySummary, orgDraftErrors, orgErrorText, orgSettingsApi, parseFoundingDate, sameAsRows,
+  canAddSameAs, descriptionCounter, emptyOrgDraft, foundingYearInput, isOrgConflict, ORG_FIELD_TEXT, ORG_GROUPS,
+  ORG_LIMITS, ORG_PLACEHOLDER, ORG_TEXT, orgDirtyFields, orgDirtySummary, orgDraftErrors, orgErrorText, orgSettingsApi, sameAsRows,
   type OrgData, type OrgDraft, type OrgErrors, type OrgSettingsApi, type OrgTextField,
 } from '@/lib/admin/org-settings';
 import ConfirmDialog from './ConfirmDialog';
@@ -13,7 +13,6 @@ import './settings.css';
 
 type Notice = { kind: 'ok' | 'err'; text: string } | null;
 type Props = { siteUrl: string; descriptionPlaceholder: string; api?: OrgSettingsApi };
-const MONTHS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 
 /**
  * #350 站点设置 ·「组织信息」（字段说明 v1.0、spec §9；稿件 settings-org-*）。单栏，三组：基本信息 / 联系方式 / 其他 + 只读网站地址。
@@ -30,7 +29,6 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
   const [conflict, setConflict] = useState<ConflictPhase>('none');
   const conflictRef = useRef<ConflictPhase>('none');
   const step = (e: ConflictEvent) => { const r = conflictStep(conflictRef.current, e); conflictRef.current = r.next; setConflict(r.next); return r; };
-  const years = useMemo(() => foundingYears(), []);
 
   useEffect(() => {
     api.load().then((d) => { setSaved(d); setDraft(structuredClone(d.draft)); }).catch((e: Error) => setNotice({ kind: 'err', text: orgErrorText(e.message) }));
@@ -125,26 +123,19 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
     );
   };
 
-  const fd = parseFoundingDate(draft.foundingDate);
+  // 成立时间：只填年份（UX 定稿）。已存的 YYYY-MM-DD 只显示年份，不改就原样保存；一改就存输入的 YYYY
+  const dateId = fieldId('foundingDate');
   const dateErr = errOf('foundingDate');
   const dateField = (
-    <fieldset className="st-f" key="foundingDate" aria-describedby={`${fieldId('foundingDate')}-h${dateErr ? ` ${fieldId('foundingDate')}-e` : ''}`}>
-      <legend className="st-lab">{ORG_FIELD_TEXT.foundingDate.label}</legend>
-      <div className="st-date">
-        <select id={fieldId('foundingDate')} aria-label={ORG_TEXT.year} value={fd.year} aria-invalid={dateErr ? true : undefined}
-          onChange={(e) => set('foundingDate', composeFoundingDate(draft.foundingDate, e.target.value, e.target.value === fd.year ? fd.month : ''))}>
-          <option value="">{ORG_TEXT.year}</option>
-          {years.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <select aria-label={ORG_TEXT.month} value={fd.month} disabled={!FOUNDING_MONTH_SUPPORTED || !fd.year}
-          onChange={(e) => set('foundingDate', composeFoundingDate(draft.foundingDate, fd.year, e.target.value))}>
-          <option value="">{ORG_TEXT.month}</option>
-          {MONTHS.map((m) => <option key={m} value={m}>{Number(m)} 月</option>)}
-        </select>
-      </div>
-      {dateErr && <p id={`${fieldId('foundingDate')}-e`} className="st-ferr">{dateErr}</p>}
-      <p id={`${fieldId('foundingDate')}-h`} className="st-hint">{ORG_FIELD_TEXT.foundingDate.hint}{!FOUNDING_MONTH_SUPPORTED && <><br />{ORG_TEXT.monthPending}</>}</p>
-    </fieldset>
+    <div className="st-f" key="foundingDate">
+      <div className="st-lab"><label htmlFor={dateId}>{ORG_FIELD_TEXT.foundingDate.label}</label></div>
+      <input id={dateId} className="st-year" type="text" inputMode="numeric" autoComplete="off" maxLength={4} dir="ltr"
+        value={foundingYearInput(draft.foundingDate)} aria-invalid={dateErr ? true : undefined}
+        aria-describedby={`${dateErr ? `${dateId}-e ` : ''}${dateId}-h`}
+        onChange={(e) => set('foundingDate', e.target.value.trim())} onBlur={() => touch('foundingDate')} />
+      {dateErr && <p id={`${dateId}-e`} className="st-ferr">{dateErr}</p>}
+      <p id={`${dateId}-h`} className="st-hint">{ORG_FIELD_TEXT.foundingDate.hint}</p>
+    </div>
   );
 
   const rows = sameAsRows(draft.sameAs);

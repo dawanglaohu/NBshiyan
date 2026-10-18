@@ -69,6 +69,17 @@ test('组织信息：分区导航、占位不预填、计数器、社交主页�
   await email.fill('example@example.com');
   await expect(page.getByText('邮箱格式不正确')).toHaveCount(0);
 
+  // 成立时间：只有年份输入框（UX 定稿），没有月份
+  const year = page.getByLabel('成立时间');
+  await expect(page.getByText('填年份，例如 2012')).toBeVisible();
+  await expect(page.locator('.st-orgcol select')).toHaveCount(0);
+  await year.fill('1799');
+  await year.blur();
+  await expect(page.getByText('请填 4 位年份（1800 年至今）')).toBeVisible();
+  await expect(save).toBeDisabled();
+  await year.fill('2012');
+  await expect(page.getByText('请填 4 位年份（1800 年至今）')).toHaveCount(0);
+
   // 社交主页：最多 10 条，满了「添加链接」禁用 +「最多 10 条」
   const add = page.getByRole('button', { name: '＋ 添加链接' });
   for (let i = 1; i <= 10; i++) {
@@ -91,6 +102,7 @@ test('组织信息：分区导航、占位不预填、计数器、社交主页�
   expect(after.legalName).toBe('示例文字 Sample Co., Ltd.');
   expect(after.email).toBe('example@example.com');
   expect(after.sameAs).toHaveLength(8);
+  expect(after.foundingDate).toBe('2012');
 
   // 别人先保存（版本 +1）→ 我这边保存 409：输入保留、横幅 +「刷新」、保存禁用、只发一次 PUT
   const other = await page.request.put(API, { headers: origin, data: { expectedVersion: after.version, legalName: 'Other Co.', sameAs: [] } });

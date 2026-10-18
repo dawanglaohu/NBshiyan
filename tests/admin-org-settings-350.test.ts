@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  canAddSameAs, composeFoundingDate, countChars, createOrgSettingsApi, descriptionCounter, emptyOrgDraft, foundingYears, FOUNDING_YEAR_MIN, mapServerIssues,
+  canAddSameAs, countChars, createOrgSettingsApi, descriptionCounter, emptyOrgDraft, foundingYearInput, FOUNDING_YEAR_MIN, isValidFoundingYear, mapServerIssues,
   normalizeOrgUrl, ORG_EMAIL_RE as C_EMAIL, ORG_ERR, ORG_FIELD_TEXT, ORG_LIMITS as C_LIMITS, ORG_PLACEHOLDER, ORG_TELEPHONE_RE as C_TEL, ORG_TEXT, ORG_TEXT_FIELDS as C_FIELDS,
-  orgDirtySummary, orgDraftErrors, orgFromView, orgPutBody, parseFoundingDate, sameAsPayload, sameAsRows, type OrgDraft,
+  orgDirtySummary, orgDraftErrors, orgFromView, orgPutBody, sameAsPayload, sameAsRows, type OrgDraft,
 } from '../src/lib/admin/org-settings';
 import { canSave, conflictStep, SETTINGS_TEXT, type ConflictPhase } from '../src/lib/admin/site-settings';
 import { ORG_EMAIL_RE, ORG_LIMITS, ORG_TELEPHONE_RE, ORG_TEXT_FIELDS, isValidFoundingDate, safeOrgUrl } from '../src/lib/server/site-settings-model';
@@ -192,15 +192,30 @@ test('save 成功：用返回的 content 作为新基线（新 version）；400 
   assert.ok(!rl.ok && rl.code === 'rate_limited' && !rl.fieldErrors);
 });
 
-test('成立时间：年 / 年月；后端只收 YYYY 或 YYYY-MM-DD，不改就原样保留，改了年份只存年份（不编造日期）', () => {
-  assert.deepEqual(parseFoundingDate('2005-06-15'), { year: '2005', month: '06' });
-  assert.equal(composeFoundingDate('2005-06-15', '2005', '06'), '2005-06-15');
-  assert.equal(composeFoundingDate('2005-06-15', '2006', ''), '2006');
-  assert.equal(composeFoundingDate('', '2006', '03'), '2006'); // 月份暂不可保存（FOUNDING_MONTH_SUPPORTED=false）
-  assert.equal(composeFoundingDate('2006', '', ''), '');
-  const ys = foundingYears(new Date('2026-10-18T00:00:00Z'));
-  assert.equal(ys[0], '2026'); assert.equal(ys.at(-1), '1800');
-  for (const y of [ys[0], ys.at(-1)!]) assert.equal(isValidFoundingDate(composeFoundingDate('', y, '')), true);
+test('成立时间（UX 定稿）：只填年份，保存 YYYY；已存的 YYYY-MM-DD 显示年份，不改原样提交，改了就存 YYYY', () => {
+  assert.equal(ORG_FIELD_TEXT.foundingDate.hint, '填年份，例如 2012');
+  assert.equal(foundingYearInput('2005-06-15'), '2005');
+  assert.equal(foundingYearInput('2005'), '2005');
+  assert.equal(foundingYearInput(''), '');
+  // 没动这个字段：PUT 里原样是 YYYY-MM-DD，后端照收
+  const keep = orgPutBody(draft({ foundingDate: '2005-06-15' }), 1).body;
+  assert.equal(keep.foundingDate, '2005-06-15');
+  assert.deepEqual(issuesOf(keep), []);
+  // 改了（输入框 onChange 写入输入的年份）：存 YYYY
+  const edited = orgPutBody(draft({ foundingDate: '2006' }), 1).body;
+  assert.equal(edited.foundingDate, '2006');
+  assert.deepEqual(issuesOf(edited), []);
+  const now = new Date('2026-10-18T00:00:00Z');
+  for (const ok of ['', '1800', '2012', '2026', '2005-06-15']) assert.equal(isValidFoundingYear(ok, now), true, ok);
+  for (const bad of ['1799', '2027', '12', '20a2', '2012-06', '２０１２']) assert.equal(isValidFoundingYear(bad, now), false, bad);
+  assert.equal(orgDraftErrors(draft({ foundingDate: '2012-06' })).foundingDate, ORG_ERR.year);
+  assert.equal(orgDraftErrors(draft({ foundingDate: '2012' })).foundingDate, undefined);
+  // 前端判断和后端一致
+  for (const y of ['1799', '1800', '2012', String(new Date().getFullYear() + 1)]) {
+    assert.equal(isValidFoundingYear(y), isValidFoundingDate(y), y);
+  }
+  const src = readFileSync('src/components/admin/settings/OrgSettings.tsx', 'utf8') + readFileSync('src/lib/admin/org-settings.ts', 'utf8');
+  assert.doesNotMatch(src, /FOUNDING_MONTH_SUPPORTED|月（可选）|<select/);
 });
 
 test('文案照字段说明 v1.0；邮箱 / 电话 / 地址标「公开」；占位和默认值里没有数字，也没有数字类字段', () => {

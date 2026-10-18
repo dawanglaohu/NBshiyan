@@ -91,7 +91,7 @@
 .st-count.warn{color:#8A6500;font-weight:700}
 .st-lab-full{width:100%;padding:0}
 .st-f select{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
-.st-date{display:flex;gap:8px;flex-wrap:wrap}
+.st-f input.st-year{max-width:160px}
 .st-same{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-bottom:6px}
 .st-same .st-ferr,.st-same .st-hint{grid-column:1/-1;margin:0}
 .st-same-add{display:flex;align-items:center;gap:8px;margin-top:4px}
