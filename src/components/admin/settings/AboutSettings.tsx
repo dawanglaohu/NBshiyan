@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
-import { ABOUT_LIMITS } from '@/lib/about/model';
+import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
   aboutSettingsApi, canSave, conflictStep, dirtyFields, dirtySummary, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
   isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
@@ -27,7 +27,7 @@ function BodyEditor({ initial, dir, onChange, invalid, describedBy }: { initial:
   const range = useRef<Range | null>(null);
   const [link, setLink] = useState<string | null>(null);
   // 只在挂载（切换语言时按 key 重建）时写入一次初始内容；之后由浏览器维护，避免 React 打断光标。
-  // initial 是从后台接口读回来的、已由服务端净化过的 HTML（STUB 阶段恒为空字符串）
+  // initial 是从后台接口读回来的、已由服务端净化过的 HTML
   useEffect(() => { if (ref.current) ref.current.innerHTML = initial; }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const emit = () => onChange(normalizeEditorHtml(ref.current?.innerHTML ?? ''));
   const cmd = (c: string, v?: string) => { ref.current?.focus(); document.execCommand(c, false, v); emit(); };
@@ -121,7 +121,8 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
     if (!canSave({ busy, dirty, anyErrors, conflict: conflictRef.current })) return;
     const changes = Object.fromEntries(locales.filter((l) => draft[l] && dirtyFields(savedLocales[l] ?? emptyDraft(), draft[l]).length).map((l) => [l, draft[l]]));
     setBusy(true); setNotice(null);
-    const r = await aboutSettingsApi.save(changes);
+    if (!saved) return;
+    const r = await aboutSettingsApi.save(changes, saved);
     setBusy(false);
     if (r.ok) { setSaved(r.data); setDraft(structuredClone(r.data.locales)); setNotice({ kind: 'ok', text: T.saved(Object.keys(changes)) }); return; }
     if (isVersionConflict(r)) {

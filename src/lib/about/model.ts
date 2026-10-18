@@ -1,4 +1,5 @@
 import type { AboutContent, AboutImage, AboutStat } from '@/lib/server/site-settings';
+import { ABOUT_LIMITS, countChars } from '@/lib/site-settings/about-rules';
 
 /**
  * #350 需求 A：/about、首页区块、导航入口、后台站点设置共用的数据形状和纯逻辑（客户端、服务端都可以 import）。
@@ -15,26 +16,15 @@ import type { AboutContent, AboutImage, AboutStat } from '@/lib/server/site-sett
  */
 export type { AboutContent, AboutImage, AboutStat };
 
-/** 字段限制（spec §3）。字数一律按去掉 HTML 后的字符数 */
-export const ABOUT_LIMITS = {
-  titleMin: 2,
-  titleMax: 80,
-  summaryMax: 160,
-  bodyMin: 50,
-  bodyMax: 6000,
-  bodyHtmlBytesMax: 30 * 1024,
-  statsMax: 4,
-  statValueMax: 12,
-  statLabelMax: 40,
-  imagesMax: 6,
-  imageAltMax: 125,
-  imageCaptionMax: 80,
-  imageBytesMax: 10 * 1024 * 1024,
-  homeHeadingMax: 60,
-  homeIntroMax: 300,
-  /** 首页区块只取前 4 张图 */
-  homeImages: 4,
-} as const;
+/**
+ * 字段上限：唯一来源是后端的 src/lib/site-settings/about-rules.ts（ABOUT_LIMITS，纯模块，客户端也能 import），这里只 re-export。
+ * 字数一律按 code point（countChars）。下面两个是前台 / 上传的展示常量，不属于保存规则。
+ */
+export { ABOUT_LIMITS, countChars };
+/** 首页区块只取前 4 张图 */
+export const ABOUT_HOME_IMAGES = 4;
+/** 图片上传单张上限（PublicAsset PR 用；本 PR 没有上传） */
+export const ABOUT_IMAGE_BYTES_MAX = 10 * 1024 * 1024;
 
 /** 只用于计数和摘要：去标签、解常见实体、合并空白。不是净化器，不能用来决定是否安全 */
 export function plainText(html: string | null | undefined): string {
@@ -50,7 +40,7 @@ export function plainText(html: string | null | undefined): string {
 }
 
 /** 按 Unicode 码点计字数（俄语、中文、emoji 都算 1） */
-export const charCount = (s: string | null | undefined): number => (s ? [...s].length : 0);
+export const charCount = (s: string | null | undefined): number => (s ? countChars(s) : 0);
 
 const filled = (s: string | null | undefined): s is string => typeof s === 'string' && s.trim().length > 0;
 

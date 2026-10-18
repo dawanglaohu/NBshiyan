@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { ABOUT_LIMITS, homeBlockVisible, visibleImages, visibleStats, type AboutContent } from '@/lib/about/model';
+import { ABOUT_HOME_IMAGES, homeBlockVisible, visibleImages, visibleStats, type AboutContent } from '@/lib/about/model';
 import { ABOUT_IMAGE_SIZES, AboutFigure, AboutStats } from './AboutParts';
 import { Button } from '@/components/sections/ui';
 import '@/components/sections/sections.css';
@@ -14,7 +14,7 @@ export default async function AboutHomeBlock({ content, aboutVisible }: { conten
   if (!content || !homeBlockVisible(content, aboutVisible)) return null;
   const t = await getTranslations('About.home');
   const stats = visibleStats(content.stats);
-  const images = visibleImages(content.images).slice(0, ABOUT_LIMITS.homeImages);
+  const images = visibleImages(content.images).slice(0, ABOUT_HOME_IMAGES);
   return (
     <section className="ab-home" aria-labelledby="ab-home-h">
       <div className="sx sx-block">

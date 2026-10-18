@@ -101,7 +101,7 @@ test('#350 后台：计数按去 HTML 后的字符数；超上限阻止保存；
   assert.equal(plainText('<p>a<strong>b</strong></p><p>c&amp;d</p>'), 'ab c&d');
   assert.equal(charCount('ёж😀'), 3);
   const d = { ...emptyDraft(), title: 'x'.repeat(81), bodyHtml: `<p>${'я'.repeat(60)}</p>` };
-  assert.deepEqual(fieldCount('bodyHtml', d), { n: 60, max: ABOUT_LIMITS.bodyMax, min: ABOUT_LIMITS.bodyMin });
+  assert.deepEqual(fieldCount('bodyHtml', d), { n: 60, max: ABOUT_LIMITS.bodyTextMax, min: ABOUT_LIMITS.bodyTextMin });
   assert.ok(draftErrors(d).title);
   assert.equal(draftErrors({ ...emptyDraft(), stats: [{ label: 'L', value: '' }] }).stats, SETTINGS_TEXT.statPairError);
   assert.deepEqual(draftErrors({ ...emptyDraft(), stats: [{ label: 'L', value: 'V' }] }), {});
@@ -114,16 +114,12 @@ test('#350 后台：未保存修改的摘要；完整度只区分空 / 有内容
   assert.equal(dirtySummary({ en: a, ru: a }, { en: b, ru: a }), 'EN：正文、数据条');
   assert.equal(draftCompleteness(a).state, 'empty');
   assert.equal(draftCompleteness(b).state, 'partial');
-  assert.equal(draftCompleteness(b, { complete: true }).state, 'complete');
+  assert.equal(draftCompleteness({ ...b, title: 'О нас', bodyHtml: `<p>${'я'.repeat(50)}</p>` }).state, 'complete');
 });
 
-test('#350 后台接口桩：不假装保存成功；文案与稿件一致', async () => {
-  assert.deepEqual(await aboutSettingsApi.save({}), { ok: false, code: 'not_ready' });
-  assert.deepEqual(await aboutSettingsApi.setEnabled(true, null), { ok: false, code: 'not_ready' });
-  const d = await aboutSettingsApi.load(['en', 'ru']);
-  assert.equal(d.enabled, false);
-  assert.deepEqual(Object.keys(d.locales), ['en', 'ru']);
-  assert.match(settingsErrorText('not_ready'), /接口还没上线/);
+test('#350 后台接口：文案与稿件一致', async () => {
+  assert.equal(typeof aboutSettingsApi.load, 'function');
+  assert.equal(settingsErrorText('too_large').length > 0, true);
   assert.equal(SETTINGS_TEXT.saved(['en']), '✓ 已保存 EN。前台约 1 分钟内生效。');
   assert.equal(SETTINGS_TEXT.linkError, '仅支持 https://、mailto: 或站内路径 /…');
   assert.equal(SETTINGS_TEXT.conflict, '内容已被他人修改，请刷新后重新编辑');

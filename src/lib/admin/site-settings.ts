@@ -2,7 +2,8 @@
  * #350 后台「站点设置 · 公司介绍」的数据形状、纯逻辑和接口层（UX spec v1.0 §3；稿件 settings-*）。
  * 页面只依赖这里导出的东西；文案集中在 SETTINGS_TEXT，方便 UX 对稿。
  */
-import { ABOUT_LIMITS, charCount, isAllowedAboutHref, plainText, type AboutStat } from '@/lib/about/model';
+import { isAllowedAboutHref, plainText, type AboutStat } from '@/lib/about/model';
+import { ABOUT_LIMITS, aboutBodyText, countChars, isAboutContentComplete } from '@/lib/site-settings/about-rules';
 import { errorText } from '@/components/admin/format';
 
 /** 每个语言一份草稿（about.<locale> JSON 的可编辑部分）。图片列表等 PublicAsset PR，本 PR 不做 */
@@ -14,6 +15,8 @@ export type AboutDraft = {
   homeHeading: string;
   homeIntro: string;
   version: number | null;
+  /** 图片说明（后端 imageMeta）：本 PR 不编辑，但 PUT 是整份替换，读回来的值要原样带回去，不能被清空 */
+  imageMeta?: Record<string, { alt: string; caption: string }>;
   updatedAt: string | null;
   updatedByName: string | null;
 };
@@ -84,36 +87,38 @@ export const SETTINGS_TEXT = {
   onConfirm: '开启显示',
   cancel: '取消',
   unsavedNotPublished: '未保存的修改不会一起发布。',
-  notReady: '站点设置接口还没上线（等后端 #350），现在的修改无法保存。',
 } as const;
 
 /**
  * 标签上的圆点（spec §3）：绿=完整（前台显示），黄=有内容但不完整，灰=未填写。
- * 「完整」怎么判由后端 about-rules.ts 决定（TODO(backend #350)：接口返回每个语言的 complete / missing，前端只显示）。
- * 前端只区分「未填写」和「有内容」；后端没给结果前，有内容的一律显示黄色「待校验」，不自己推断。
+ * 「完整」直接调用后端的 isAboutContentComplete（about-rules.ts，纯函数），不另写规则；按「已保存」的内容判断。
  */
 export type Completeness = { state: 'complete' | 'partial' | 'empty'; label: string };
-export function draftCompleteness(d: AboutDraft, server?: { complete: boolean; missingLabel?: string } | null): Completeness {
+export function draftCompleteness(d: AboutDraft): Completeness {
   const empty = !d.title.trim() && !plainText(d.bodyHtml) && !d.summary.trim() && d.stats.length === 0 && !d.homeHeading.trim() && !d.homeIntro.trim();
   if (empty) return { state: 'empty', label: '未填写' };
-  if (server?.complete) return { state: 'complete', label: '完整' };
-  return { state: 'partial', label: server?.missingLabel || '待校验' };
+  if (isAboutContentComplete({ title: d.title, bodyHtml: d.bodyHtml, images: [] })) return { state: 'complete', label: '完整' };
+  return { state: 'partial', label: '内容不完整' };
 }
 
-/** 字段的计数（去 HTML 后的字符数）和上限 */
+/**
+ * 字段的计数和上限：上限、计数方法都来自后端 about-rules.ts（ABOUT_LIMITS、countChars 按 code point、正文用 aboutBodyText 转纯文本）。
+ * min 只用于提示（标题 ≥2、正文 ≥50 是「完整」规则，决定前台是否显示），保存草稿时后端只卡上限（外加「标题非空时 ≥2 字」）。
+ */
 export function fieldCount(field: Exclude<DraftField, 'stats'>, d: AboutDraft): { n: number; max: number; min?: number } {
   switch (field) {
-    case 'title': return { n: charCount(d.title.trim()), max: ABOUT_LIMITS.titleMax, min: ABOUT_LIMITS.titleMin };
-    case 'summary': return { n: charCount(d.summary.trim()), max: ABOUT_LIMITS.summaryMax };
-    case 'bodyHtml': return { n: charCount(plainText(d.bodyHtml)), max: ABOUT_LIMITS.bodyMax, min: ABOUT_LIMITS.bodyMin };
-    case 'homeHeading': return { n: charCount(d.homeHeading.trim()), max: ABOUT_LIMITS.homeHeadingMax };
-    case 'homeIntro': return { n: charCount(d.homeIntro.trim()), max: ABOUT_LIMITS.homeIntroMax };
+    case 'title': return { n: countChars(d.title.trim()), max: ABOUT_LIMITS.titleMax, min: ABOUT_LIMITS.titleMin };
+    case 'summary': return { n: countChars(d.summary.trim()), max: ABOUT_LIMITS.summaryMax };
+    case 'bodyHtml': return { n: countChars(aboutBodyText(d.bodyHtml)), max: ABOUT_LIMITS.bodyTextMax, min: ABOUT_LIMITS.bodyTextMin };
+    case 'homeHeading': return { n: countChars(d.homeHeading.trim()), max: ABOUT_LIMITS.homeTitleMax };
+    case 'homeIntro': return { n: countChars(d.homeIntro.trim()), max: ABOUT_LIMITS.homeIntroMax };
   }
 }
 
 /**
- * 阻止保存的校验错误：超上限、正文 HTML 超 30 KB、数据条只填了一半或超长。
- * 标题/正文过短不阻止保存（允许先存草稿），只让该语言前台不显示（完整度圆点会提示）。
+ * 阻止保存的校验错误（= 后端 PUT 会 400 的情况）：超上限、正文 HTML 超 30 KB、数据条只填了一半或超长、
+ * 标题非空但不到 2 字（后端 normalizeAboutInput 的 too_short）。
+ * 标题为空、正文不到 50 字不阻止保存（允许先存草稿），只让该语言前台不显示（完整度圆点会提示）。
  */
 export function draftErrors(d: AboutDraft): Partial<Record<DraftField, string>> {
   const e: Partial<Record<DraftField, string>> = {};
@@ -121,10 +126,12 @@ export function draftErrors(d: AboutDraft): Partial<Record<DraftField, string>> 
     const { n, max } = fieldCount(f, d);
     if (n > max) e[f] = `超出上限：${n} / ${max}`;
   }
-  if (!e.bodyHtml && new TextEncoder().encode(d.bodyHtml).length > ABOUT_LIMITS.bodyHtmlBytesMax) e.bodyHtml = '正文格式太复杂（HTML 超过 30 KB），请删减后再保存';
+  const t = countChars(d.title.trim());
+  if (!e.title && t > 0 && t < ABOUT_LIMITS.titleMin) e.title = `标题至少 ${ABOUT_LIMITS.titleMin} 个字`;
+  if (!e.bodyHtml && new TextEncoder().encode(d.bodyHtml).length > ABOUT_LIMITS.bodyHtmlBytes) e.bodyHtml = '正文格式太复杂（HTML 超过 30 KB），请删减后再保存';
   if (d.stats.length > ABOUT_LIMITS.statsMax) e.stats = `最多 ${ABOUT_LIMITS.statsMax} 条`;
   else if (d.stats.some((s) => !s.value.trim() !== !s.label.trim())) e.stats = SETTINGS_TEXT.statPairError;
-  else if (d.stats.some((s) => charCount(s.value) > ABOUT_LIMITS.statValueMax || charCount(s.label) > ABOUT_LIMITS.statLabelMax)) e.stats = '数值 ≤12 字，说明 ≤40 字';
+  else if (d.stats.some((s) => countChars(s.value) > ABOUT_LIMITS.statValueMax || countChars(s.label) > ABOUT_LIMITS.statLabelMax)) e.stats = `数值 ≤${ABOUT_LIMITS.statValueMax} 字，说明 ≤${ABOUT_LIMITS.statLabelMax} 字`;
   return e;
 }
 
@@ -147,7 +154,7 @@ export function dirtySummary(saved: Record<string, AboutDraft>, draft: Record<st
 export { isAllowedAboutHref };
 
 /** 保存 / 开关的错误文案（409 不走这里，见 conflictStep）；其他沿用后台 errorText() */
-export const settingsErrorText = (code: string): string => (code === 'not_ready' ? SETTINGS_TEXT.notReady : errorText(code, '保存失败'));
+export const settingsErrorText = (code: string): string => errorText(code, '保存失败');
 
 // ───────────────────────── 接口层 ─────────────────────────
 /**
@@ -188,19 +195,14 @@ export const canSave = (o: { busy: boolean; dirty: boolean; anyErrors: boolean; 
   !o.busy && o.dirty && !o.anyErrors && !writesBlocked(o.conflict);
 export type AboutSettingsApi = {
   load(locales: readonly string[]): Promise<AboutSettingsData>;
-  /** 一次请求保存所有改过的语言；每个语言带当前 version，不一致后端返回 409 */
-  save(changes: Record<string, AboutDraft>): Promise<SaveResult>;
+  /**
+   * 保存所有改过的语言：每个语言单独 PUT /api/admin/site-settings/about/<locale>，带读取时的 version（expectedVersion）。
+   * 按顺序保存，遇到 409 立即停止，已成功的语言放在 saved 里。base = 当前已保存的数据（拼出完整结果用）。
+   */
+  save(changes: Record<string, AboutDraft>, base: AboutSettingsData): Promise<SaveResult>;
   /** 开关单独保存、单独记审计（site.about.visibility）；带读取时的 enabledVersion，不一致 409 */
   setEnabled(enabled: boolean, expectedVersion: number | null): Promise<SaveResult>;
 };
 
-/**
- * STUB — TODO(backend #350)：后台站点设置接口还没上线（路径和请求体请后端在 PR 里贴签名后再接）。
- * 现在：读取返回「全部为空、开关关闭」；保存和开关都返回 not_ready，页面显示「接口还没上线」，不会假装保存成功。
- */
-export const ABOUT_SETTINGS_API_STUB = true as const;
-export const aboutSettingsApi: AboutSettingsApi = {
-  async load(locales) { return { enabled: false, enabledVersion: null, locales: Object.fromEntries(locales.map((l) => [l, emptyDraft()])) }; },
-  async save() { return { ok: false, code: 'not_ready' }; },
-  async setEnabled() { return { ok: false, code: 'not_ready' }; },
-};
+/** 真实接口：src/lib/admin/site-settings-http.ts（#367 的 /api/admin/site-settings/about*） */
+export { aboutSettingsApi } from './site-settings-http';
