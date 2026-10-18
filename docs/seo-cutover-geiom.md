@@ -10,7 +10,7 @@
 - `www.geiom.com` 和 `http://` 的 301 **全部由 nginx 做**（运维已定）：http 裸域、http www、https www 都一跳 301 到 `https://geiom.com$request_uri`。Cloudflare 侧 Always Use HTTPS 关闭，没有 Redirect Rules，也没有 Page Rules。
 - ⚠️ 切换时**不要**在 Cloudflare 加重定向规则，**不要**打开 Always Use HTTPS，否则会和 nginx 的 301 叠成两跳或者循环。
 - nginx 的 `:80` server **只做** `return 301 https://geiom.com$request_uri;`，不反代到容器（PM 2026-10-17 已定）。
-- 如果要加 HSTS：只用较短的 `max-age`，**不加** `preload`（PM 2026-10-17 已定）。
+- HSTS：`max-age` 1 年，**不含**子域（不加 `includeSubDomains`），**不加** `preload`（全栈与运维定、PM 2026-10-17 确认，随 nginx v5 / #341 上线；替代此前「较短 max-age」的口径）。只保留一份，应用和 nginx 不能各加一条。
 - Cloudflare 代理（橙云）**必须开**：源站只接受带正确 `X-Edge-Auth` 的请求，这个头由 Cloudflare 注入（见第 2.4 节）。
 - 语言前缀：`src/i18n/routing.ts` 是 `locales: ['en', 'ru']`、`defaultLocale: 'en'`、`localePrefix: 'always'`，所有页面都在 `/en/...` 或 `/ru/...` 下。
 - geiom.com 之前是 Squarespace「Coming Soon」+ noindex，没有旧 URL 收录，不需要做旧地址 301 映射。
