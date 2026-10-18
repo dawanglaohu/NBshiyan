@@ -238,3 +238,38 @@ test('后台：卡片缩略图各宽度都 4:3 cover（去掉 <640px 固定 180p
   const check = lib.slice(lib.indexOf('export function localeImageErrors'), lib.indexOf('export const COUNTER_AT'));
   assert.ok(check.length > 100 && !check.includes('isPortrait'), '校验（阻止保存）里不看竖图');
 });
+
+// ───────── UX spec v1.0.11：工具栏渐隐、链接线性图标、常用按钮在前、正文说明不提内部函数 ─────────
+test('spec v1.0.11 工具栏：两侧 24px 渐隐只在还有藏着按钮的一侧出现；Tab 时留 24px 不被挡；≥768 规则不变', () => {
+  const css = read('../src/components/admin/settings/settings.css');
+  const about = read('../src/components/admin/settings/AboutSettings.tsx');
+  assert.match(css, /\.st-tools-wrap\{position:relative\}/);
+  assert.match(css, /\.st-tools-wrap::before,\.st-tools-wrap::after\{[^}]*width:24px;pointer-events:none;opacity:0/);
+  assert.match(css, /\.st-tools-wrap\.fade-l::before,\.st-tools-wrap\.fade-r::after\{opacity:1\}/);
+  const mobile = css.slice(css.indexOf('@media (max-width:767px)'));
+  assert.ok(mobile.includes('scroll-padding-inline:24px'));
+  assert.match(about, /st-tools-wrap\$\{fade\.start \? ' fade-l' : ''\}\$\{fade\.end \? ' fade-r' : ''\}/);
+  assert.match(about, /el\.addEventListener\('scroll', update, \{ passive: true \}\)/);
+});
+
+test('spec v1.0.11 工具栏顺序：加粗、链接、H2、项目符号列表在前，然后斜体、H3、编号列表、清除格式', () => {
+  const about = read('../src/components/admin/settings/AboutSettings.tsx');
+  const g = about.slice(about.indexOf('const groups: Tool[][]'), about.indexOf('const fade = useScrollFade'));
+  const names = [...g.matchAll(/name: '([^']+)'/g)].map((m) => m[1]);
+  assert.deepEqual(names, ['加粗', '链接', '二级标题', '项目符号列表', '斜体', '三级标题', '编号列表', '清除格式']);
+});
+
+test('spec v1.0.11 链接按钮：线性 SVG 图标（currentColor），不用 🔗 emoji；按钮名仍是「链接」', () => {
+  const about = read('../src/components/admin/settings/AboutSettings.tsx');
+  assert.ok(!about.includes('🔗'));
+  assert.match(about, /\{ label: <LinkIcon \/>, name: '链接', fn: openLink \}/);
+  const ico = about.slice(about.indexOf('function LinkIcon'), about.indexOf('function useScrollFade'));
+  assert.match(ico, /fill="none" stroke="currentColor"/);
+  assert.match(ico, /aria-hidden="true"/);
+});
+
+test('spec v1.0.11 正文说明：不把内部函数名给管理员看', async () => {
+  const { SETTINGS_TEXT } = await import('../src/lib/admin/site-settings');
+  assert.ok(SETTINGS_TEXT.bodyHint.endsWith('保存时会自动去掉不安全的内容。'));
+  assert.ok(!/sanitize|服务端/i.test(SETTINGS_TEXT.bodyHint));
+});

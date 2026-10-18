@@ -483,7 +483,19 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
       });
       expect(m.n).toBe(8);
       expect(m.tops).toBe(1); // 一行
+      // spec v1.0.11：常用按钮在前
+      expect(await bar.getByRole('button').evaluateAll((bs) => bs.map((b) => b.getAttribute('aria-label')))).toEqual(['加粗', '链接', '二级标题', '项目符号列表', '斜体', '三级标题', '编号列表', '清除格式']);
+      await expect(bar.getByRole('button', { name: '链接' }).locator('svg')).toHaveCount(1);
+      const wrap = page.locator('.st-tools-wrap');
       if (w === 390) {
+        // spec v1.0.11：开头只有右侧渐隐；滚到中间两侧都有；滚到末尾只有左侧
+        await expect(wrap).toHaveClass(/fade-r/);
+        await expect(wrap).not.toHaveClass(/fade-l/);
+        await bar.evaluate((el) => { el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2; });
+        await expect(wrap).toHaveClass(/fade-l/);
+        await expect(wrap).toHaveClass(/fade-r/);
+        await bar.evaluate((el) => { el.scrollLeft = 0; });
+        await expect(wrap).not.toHaveClass(/fade-l/);
         expect(m.minH).toBeGreaterThanOrEqual(44);
         expect(m.minW).toBeGreaterThanOrEqual(44);
         // 最后一个按钮滑得到：键盘 Tab 到它时工具栏会滚过去，按钮整个露出来
@@ -491,7 +503,12 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
         await last.focus();
         const vis = await last.evaluate((b) => { const r = b.getBoundingClientRect(), p = b.parentElement!.getBoundingClientRect(); return r.left >= p.left - 1 && r.right <= p.right + 1; });
         expect(vis).toBe(true);
-      } else expect(m.overflow).toBeLessThanOrEqual(0);
+        await expect(wrap).toHaveClass(/fade-l/);
+        await expect(wrap).not.toHaveClass(/fade-r/);
+      } else {
+        expect(m.overflow).toBeLessThanOrEqual(0);
+        await expect(wrap).not.toHaveClass(/fade-[lr]/);
+      }
     }
   });
   test('UX #379 P3 ①：一次选多张时按选择的顺序进列表（第 1 张最后传完也排第 1）', async ({ page }) => {

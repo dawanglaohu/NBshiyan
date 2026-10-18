@@ -40,7 +40,7 @@ export const SETTINGS_TEXT = {
   visibilityOff: '已关闭 · /about 返回 404，导航、页脚入口和 sitemap 都不显示。已填写的内容会保留。',
   titleHint: '显示为页面 H1，也作为默认 meta 标题。',
   summaryLabel: '摘要（选填，用于搜索结果描述）',
-  bodyHint: '粘贴时自动去掉颜色、字号、图片和表格；只保留标题（H2/H3）、加粗、斜体、链接、列表。保存时服务端用 sanitizeAboutHtml 净化。',
+  bodyHint: '粘贴时自动去掉颜色、字号、图片和表格；只保留标题（H2/H3）、加粗、斜体、链接、列表。保存时会自动去掉不安全的内容。',
   statsLabel: '数据条（选填）',
   statValue: '数值 ≤12 字',
   statLabel: '说明 ≤40 字',

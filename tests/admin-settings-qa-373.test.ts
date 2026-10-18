@@ -60,7 +60,7 @@ test('P3-2 冲突期间保存栏：状态文字两行（冲突文案在第二行
   assert.match(css, /\.st-bar \.adm-btn\{white-space:nowrap;flex-shrink:0;min-height:44px\}/);
 });
 
-test('P3-3 工具栏：平的按钮（没有 adm-btn 边框方块），四组之间有分隔线，加粗 / 斜体有 aria-pressed', () => {
+test('P3-3 工具栏：平的按钮（没有 adm-btn 边框方块），组之间有分隔线（spec v1.0.11 起分三组），加粗 / 斜体有 aria-pressed', () => {
   assert.doesNotMatch(about, /className="adm-btn sq" aria-label=\{name\}/);
   assert.match(about, /className="st-tb-btn"/);
   assert.match(about, /<span className="sep" aria-hidden="true" \/>/);

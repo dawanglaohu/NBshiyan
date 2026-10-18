@@ -34,6 +34,13 @@
 .st-tb-btn[aria-pressed="true"]{background:#EFEDEA;border-color:var(--line)}
 .st-tb-btn:focus-visible{outline:2px solid var(--accent-text);outline-offset:1px}
 .st-tools .sep{width:1px;background:var(--line);margin:4px}
+.st-tb-ico{display:block;margin:auto} /* 链接按钮的线性图标，颜色跟按钮文字（currentColor） */
+/* UX spec v1.0.11：工具栏横向滚动时，还有藏着按钮的一侧显示 24px 渐隐（≥768 一行放得下，不会出现） */
+.st-tools-wrap{position:relative}
+.st-tools-wrap::before,.st-tools-wrap::after{content:"";position:absolute;top:0;bottom:1px;width:24px;pointer-events:none;opacity:0;transition:opacity .15s}
+.st-tools-wrap::before{left:0;border-top-left-radius:8px;background:linear-gradient(to right,#FCFAF6,rgba(252,250,246,0))}
+.st-tools-wrap::after{right:0;border-top-right-radius:8px;background:linear-gradient(to left,#FCFAF6,rgba(252,250,246,0))}
+.st-tools-wrap.fade-l::before,.st-tools-wrap.fade-r::after{opacity:1}
 .st-rich{min-height:200px;padding:10px 12px;outline:none;line-height:1.6}
 .st-rich:focus-visible{box-shadow:inset 0 0 0 2px var(--accent-text)}
 .st-rich ul,.st-rich ol{padding-inline-start:1.4em}
@@ -80,7 +87,8 @@
   .st-f input,.st-f select,.st-link input{min-height:44px}
   /* UX #378 P3 ②：390 下工具栏只占一行（原来 8 个按钮折成两行）。按钮仍是 44×44（UX #373 P2-3 要求宽高都 ≥ 44），
      8 × 44 放不进 282px 的内容区，所以不换行、横向滚动：最后两个按钮露出一半提示能滑，滚动条用细的 */
-  .st-tools{flex-wrap:nowrap;gap:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+  .st-tools{flex-wrap:nowrap;gap:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scroll-padding-inline:24px}
+  /* Tab 到被渐隐盖住的按钮时，浏览器把它滚进来，并留出 24px 不被渐隐挡住（scroll-padding-inline） */
   .st-tools .sep{flex:none;margin:6px 2px}
   .st-tb-btn{min-width:44px;height:44px}
   .st-tools .st-tb-btn{flex:none}

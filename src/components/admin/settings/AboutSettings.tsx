@@ -25,6 +25,39 @@ function Counter({ n, max, min, id }: { n: number; max: number; min?: number; id
   return <span id={id} className={`st-count${bad ? ' bad' : ''}`}>{n.toLocaleString('en-US')} / {max.toLocaleString('en-US')}</span>;
 }
 
+/** 工具栏「链接」图标：线性图标（stroke=currentColor），和按钮文字同色；名称由按钮的 aria-label「链接」给出 */
+function LinkIcon() {
+  return (
+    <svg className="st-tb-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+/** UX spec v1.0.11：横向滚动的工具栏，哪一侧还有藏着的按钮就在哪一侧显示 24px 渐隐；滚到头那一侧就不显示 */
+function useScrollFade<E extends HTMLElement>() {
+  const ref = useRef<E>(null);
+  const [state, setState] = useState({ start: false, end: false });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => {
+      const max = el.scrollWidth - el.clientWidth;
+      const x = Math.abs(el.scrollLeft); // rtl 下 scrollLeft 是负数
+      const next = { start: max > 1 && x > 1, end: max > 1 && x < max - 1 };
+      setState((p) => (p.start === next.start && p.end === next.end ? p : next));
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+    ro?.observe(el);
+    window.addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); ro?.disconnect(); window.removeEventListener('resize', update); };
+  }, []);
+  return { ref, ...state };
+}
+
 /** 富文本编辑器：工具栏只有 H2、H3、加粗、斜体、链接、项目符号、编号、清除格式（= sanitizeAboutHtml 白名单） */
 function BodyEditor({ initial, dir, onChange, invalid, describedBy }: { initial: string; dir: 'ltr' | 'rtl'; onChange: (html: string) => void; invalid: boolean; describedBy: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -49,7 +82,7 @@ function BodyEditor({ initial, dir, onChange, invalid, describedBy }: { initial:
     document.execCommand('createLink', false, link.trim());
     setLink(null); emit();
   };
-  // UX #373 P3-3：平的、分组的工具栏（稿件 .ss-tb）：H2 H3 | B I 链接 | 列表 | 清除格式；加粗 / 斜体按选区显示 aria-pressed
+  // UX #373 P3-3：平的、分组的工具栏（稿件 .ss-tb）；分组见下面 groups（spec v1.0.11 的顺序）；加粗 / 斜体按选区显示 aria-pressed
   const [pressed, setPressed] = useState({ bold: false, italic: false });
   useEffect(() => {
     const h = () => {
@@ -61,21 +94,24 @@ function BodyEditor({ initial, dir, onChange, invalid, describedBy }: { initial:
     return () => document.removeEventListener('selectionchange', h);
   }, []);
   type Tool = { label: React.ReactNode; name: string; fn: () => void; pressed?: boolean };
+  // UX spec v1.0.11：常用的放前面——加粗、链接、H2、项目符号列表，然后是斜体、H3、编号列表，最后清除格式
   const groups: Tool[][] = [
-    [{ label: 'H2', name: '二级标题', fn: () => cmd('formatBlock', '<h2>') }, { label: 'H3', name: '三级标题', fn: () => cmd('formatBlock', '<h3>') }],
-    [{ label: <b>B</b>, name: '加粗', fn: () => cmd('bold'), pressed: pressed.bold }, { label: <i>I</i>, name: '斜体', fn: () => cmd('italic'), pressed: pressed.italic }, { label: '🔗', name: '链接', fn: openLink }],
-    [{ label: '• ≡', name: '项目符号列表', fn: () => cmd('insertUnorderedList') }, { label: '1. ≡', name: '编号列表', fn: () => cmd('insertOrderedList') }],
+    [{ label: <b>B</b>, name: '加粗', fn: () => cmd('bold'), pressed: pressed.bold }, { label: <LinkIcon />, name: '链接', fn: openLink }, { label: 'H2', name: '二级标题', fn: () => cmd('formatBlock', '<h2>') }, { label: '• ≡', name: '项目符号列表', fn: () => cmd('insertUnorderedList') }],
+    [{ label: <i>I</i>, name: '斜体', fn: () => cmd('italic'), pressed: pressed.italic }, { label: 'H3', name: '三级标题', fn: () => cmd('formatBlock', '<h3>') }, { label: '1. ≡', name: '编号列表', fn: () => cmd('insertOrderedList') }],
     [{ label: 'Tx', name: '清除格式', fn: () => { cmd('removeFormat'); cmd('unlink'); cmd('formatBlock', '<p>'); } }],
   ];
+  const fade = useScrollFade<HTMLDivElement>();
   return (
     <div className={`st-editor${invalid ? ' bad' : ''}`}>
-      <div className="st-tools" role="toolbar" aria-label="正文格式">
+      <div className={`st-tools-wrap${fade.start ? ' fade-l' : ''}${fade.end ? ' fade-r' : ''}`}>
+      <div ref={fade.ref} className="st-tools" role="toolbar" aria-label="正文格式">
         {groups.map((g, gi) => (
           <Fragment key={gi}>
             {gi > 0 && <span className="sep" aria-hidden="true" />}
             {g.map((t) => <button key={t.name} type="button" className="st-tb-btn" aria-label={t.name} title={t.name} aria-pressed={t.pressed === undefined ? undefined : t.pressed} onMouseDown={(e) => e.preventDefault()} onClick={t.fn}>{t.label}</button>)}
           </Fragment>
         ))}
+      </div>
       </div>
       {link !== null && (
         <div className="st-link">
