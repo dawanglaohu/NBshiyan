@@ -159,9 +159,9 @@ test('组织信息：对不上字段的 400 issue、422 没带 issues，都显�
   await page.getByLabel('公司注册全称').fill('示例文字 Sample Co., Ltd.');
   const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
   await save.click();
-  await expect(page.getByRole('alert')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
   await save.click();
-  await expect(page.getByRole('alert')).toHaveText('保存失败：http_422');
+  await expect(page.locator('.st-page [role=alert]')).toHaveText('保存失败：http_422');
   await expect(page.getByLabel('公司注册全称')).toHaveValue('示例文字 Sample Co., Ltd.');
 });
 
