@@ -79,8 +79,13 @@ test('图片列表：上传、替代文字必填、各种被拒、429 保留文�
   await expect(area.getByText('1 张图片缺少替代文字，补齐后才能保存。')).toBeVisible();
   await expect(page.getByRole('region', { name: '保存' })).toContainText('图片列表');
   await expect(saveBtn(page)).toBeDisabled();
+  // 右栏完整度清单最后一项：!「图片替代文字 · 1 张缺失」→ 填了以后 ✓
+  const chk = page.locator('section[aria-labelledby="st-chk-h"] li').last();
+  await expect(chk).toContainText('图片替代文字 · 1 张缺失');
+  await expect(chk.locator('.i')).toHaveClass(/missing/);
   await cards.first().getByLabel(/替代文字（EN）/).fill('Sample alt 1');
   await expect(saveBtn(page)).toBeEnabled();
+  await expect(chk).toHaveText(/^✓图片替代文字（已满足）$/);
 
   // 小图：能传，但提示
   await pick(page, 'small.jpg', 'image/jpeg', await jpeg(1200, 900, [90, 140, 200]));
