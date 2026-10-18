@@ -28,6 +28,8 @@ type Props = {
 };
 
 let tileSeq = 0;
+const oneLine = (v: string) => v.replace(/[\r\n]+/g, ' ');
+const noEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) e.preventDefault(); };
 
 export default function AboutImages({ tab, locales, dir, items, setItems, savedIds, drafts, onMeta, disabled }: Props) {
   const [tiles, setTiles] = useState<Tile[]>([]);
@@ -134,12 +136,13 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
               </div>
               <div className="bd">
                 <label htmlFor={`${id}-alt`}>{T.alt(tab)}<b aria-hidden="true"> *</b><span className="sr-only">（第 {n} 张）</span></label>
-                <input id={`${id}-alt`} type="text" dir={dir} value={meta[it.id]?.alt ?? ''} placeholder={T.altPlaceholder} aria-required="true"
-                  aria-invalid={altE ? true : undefined} aria-describedby={altE ? `${id}-alt-e` : undefined} onChange={(e) => onMeta(it.id, 'alt', e.target.value)} />
+                {/* 多行自动长高（field-sizing: content），长替代文字整段看得到；内容是一行纯文本，换行键 / 粘贴的换行都换成空格 */}
+                <textarea id={`${id}-alt`} rows={1} dir={dir} value={meta[it.id]?.alt ?? ''} placeholder={T.altPlaceholder} aria-required="true"
+                  aria-invalid={altE ? true : undefined} aria-describedby={altE ? `${id}-alt-e` : undefined} onKeyDown={noEnter} onChange={(e) => onMeta(it.id, 'alt', oneLine(e.target.value))} />
                 {altE && <p id={`${id}-alt-e`} className="st-ferr">{altE}</p>}
                 <label htmlFor={`${id}-cap`}>{T.caption}<span className="sr-only">（第 {n} 张）</span></label>
-                <input id={`${id}-cap`} type="text" dir={dir} value={meta[it.id]?.caption ?? ''} placeholder={T.captionPlaceholder}
-                  aria-invalid={capE ? true : undefined} aria-describedby={capE ? `${id}-cap-e` : undefined} onChange={(e) => onMeta(it.id, 'caption', e.target.value)} />
+                <textarea id={`${id}-cap`} rows={1} dir={dir} value={meta[it.id]?.caption ?? ''} placeholder={T.captionPlaceholder}
+                  aria-invalid={capE ? true : undefined} aria-describedby={capE ? `${id}-cap-e` : undefined} onKeyDown={noEnter} onChange={(e) => onMeta(it.id, 'caption', oneLine(e.target.value))} />
                 {capE && <p id={`${id}-cap-e`} className="st-ferr">{capE}</p>}
                 {small && <p className="st-warn st-im-small">{T.small}</p>}
                 <div className="acts">

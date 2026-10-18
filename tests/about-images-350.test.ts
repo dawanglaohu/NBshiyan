@@ -402,6 +402,10 @@ test('UX 复审：上移 / 下移 / 删除第 N 张图片；删除用后台通�
   assert.equal(IMAGES_TEXT.removeAria(3), '删除第 3 张图片');
   assert.equal(IMAGES_TEXT.checkAltMissing(2), '图片替代文字 · 2 张缺失');
   assert.match(read('../src/components/admin/settings/AboutSettings.tsx'), /aria-label=\{`删除第 \$\{i \+ 1\} 条`\}[^\n]*>✕<\/button>/, '沿用数据条删除按钮的 ✕');
+  // 替代文字 / 说明：自动长高的多行框，长文字不截断；换行换成空格
+  assert.equal((src.match(/<textarea id=\{`\$\{id\}-(alt|cap)`\} rows=\{1\}/g) ?? []).length, 2);
+  assert.match(css, /field-sizing:content/);
+  assert.match(src, /const oneLine = \(v: string\) => v\.replace\(\/\[\\r\\n\]\+\/g, ' '\)/);
   assert.match(css, /@media \(max-width:639px\)\{\s*\.st-im-grid\{grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css, /\.st-chk,\.st-im\{word-spacing:\.25em\}/, '空格在 12px 下要看得出来');
   // 所有「N 张」：数字前后都有空格

@@ -2,7 +2,7 @@
 .st-im .st-ferr{font-weight:600}
 /* UX 复审（P3）：12px 下 Manrope 的空格只有约 2px，「1 张缺失」「已上传 6 张」看起来像没空格；词间距加宽（文案本身就带空格） */
 .st-chk,.st-im{word-spacing:.25em}
-.st-im input{word-spacing:normal}
+.st-im input,.st-im textarea{word-spacing:normal}
 .st-im-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .st-im-card{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);overflow:hidden;min-width:0}
 .st-im-card.bad{border-color:#C0392B}
@@ -13,8 +13,9 @@
 .st-im-card .bd label{font-size:11px;font-weight:700;display:block;margin:6px 0 4px}
 .st-im-card .bd label:first-child{margin-top:0}
 .st-im-card .bd label b{color:#C0392B}
-.st-im-card input{width:100%;box-sizing:border-box;font:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
-.st-im-card input[aria-invalid="true"]{border-color:#C0392B;border-width:1.5px}
+.st-im-card textarea{display:block;width:100%;box-sizing:border-box;font:inherit;font-size:12px;line-height:1.4;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;resize:none;overflow:hidden;field-sizing:content;min-height:calc(1.4em + 14px);overflow-wrap:anywhere}
+@supports not (field-sizing:content){.st-im-card textarea{overflow:auto;min-height:calc(2.8em + 14px)}} /* 不支持自动长高的浏览器：两行高、可滚动 */
+.st-im-card textarea[aria-invalid="true"]{border-color:#C0392B;border-width:1.5px}
 .st-im-card .st-ferr,.st-im-card .st-warn{font-size:11px;margin:4px 0 0}
 .st-im-card .acts{display:flex;gap:4px;margin-top:6px}.st-im-card .acts .sp{flex:1}
 .st-im-ico{font:inherit;font-size:12px;width:32px;height:32px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;color:var(--ink-2)}
@@ -48,7 +49,7 @@
 @media (max-width:767px){
   .st-im-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   /* UX #373 P2-3：390 下点击区域 ≥ 44px（稿件 32px 的图标按钮和 30px 左右的输入框在手机上放大） */
-  .st-im-card input{min-height:44px;font-size:14px}
+  .st-im-card textarea{min-height:44px;font-size:14px;padding:10px}
   .st-im-ico{width:44px;height:44px;font-size:14px}
   .st-im-card .acts{gap:2px}
   .st-im .adm-btn{min-height:44px}

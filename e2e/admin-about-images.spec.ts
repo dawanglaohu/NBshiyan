@@ -279,6 +279,14 @@ test('UX 复审：<640px 单列卡片、输入框占满宽度；1440 多列；�
     return ctx.measureText(el.placeholder).width <= el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   });
   expect(fits).toBe(true);
+  // 长替代文字整段可见：自动长高、不出滚动、不截断；回车不换行
+  const alt = cards.first().getByLabel(/替代文字（EN）/);
+  const h1 = (await alt.boundingBox())!.height;
+  await alt.fill('Corrugated box production line with workers checking the printed cartons before packing them for shipment');
+  await alt.press('Enter');
+  await expect(alt).toHaveValue(/shipment$/);
+  expect((await alt.boundingBox())!.height).toBeGreaterThan(h1);
+  expect(await alt.evaluate((el) => el.scrollHeight <= el.clientHeight + 1 && el.scrollWidth <= el.clientWidth + 1)).toBe(true);
   const up = cards.nth(1).getByRole('button', { name: '上移第 2 张图片' });
   const down = cards.nth(0).getByRole('button', { name: '下移第 1 张图片' });
   const del = cards.nth(0).getByRole('button', { name: '删除第 1 张图片' });
