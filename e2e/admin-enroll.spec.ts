@@ -16,8 +16,6 @@ function freshAccount(tag: string) {
 }
 const origin = { Origin: BASE };
 const secretOf = (uri: string) => new URL(uri).searchParams.get('secret')!;
-/** 两个密钥的当前验证码是否不同；两个密钥同一时刻撞码的概率约 1e-6，撞了就跳过 */
-const differs = (a: string, b: string) => authenticator.generate(a) !== authenticator.generate(b);
 
 test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保存恢复码 → 去登录', async ({ page, external }) => {
   test.setTimeout(90_000);
@@ -100,13 +98,16 @@ test('已绑定的账号再调 enroll → 401 bad_credentials', async ({ request
   expect((await again.json()).error).toBe('bad_credentials');
 });
 
-test('再次 enroll 后旧的待确认密钥作废：用旧密钥的码确认 → 401 bad_totp，新密钥可以', async ({ request }) => {
+test('#347 待确认密钥 10 分钟内不能被覆盖：再次 enroll → 429 rate_limited，第一次的密钥仍可确认', async ({ request }) => {
   const email = freshAccount('rotate');
   const first = secretOf((await (await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } })).json()).otpauthUri);
-  const second = secretOf((await (await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } })).json()).otpauthUri);
-  expect(second).not.toBe(first);
-  test.skip(!differs(first, second), '两个密钥当前验证码相同（概率约百万分之一）');
-  const old = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(first) } });
+  const again = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } });
+  expect(again.status()).toBe(429);
+  expect((await again.json()).error).toBe('rate_limited');
+  const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(first) } });
+  expect(ok.status()).toBe(200);
+  expect((await ok.json()).recoveryCodes).toHaveLength(10);
+});
   expect(old.status()).toBe(401);
   expect((await old.json()).error).toBe('bad_totp');
   const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(second) } });
