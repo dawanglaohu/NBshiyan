@@ -12,6 +12,7 @@ process.env.APP_ENV = 'test';
 (globalThis as { React?: typeof React }).React = React;
 
 const ROUTE = 'src/app/[locale]/articles/[slug]/og/route.tsx';
+const RENDER = 'src/lib/seo/og/renderArticleOg.tsx';
 // 伪造的请求头：路由不能用到其中任何值
 const EVIL = { host: 'evil.example', 'x-forwarded-host': 'evil.example', 'x-forwarded-proto': 'http', forwarded: 'host=evil.example' };
 const call = async (locale: string, slug: string) => {
@@ -82,28 +83,68 @@ test('slug 白名单 ^[a-z0-9-]{1,120}$ 在查 CMS 之前：不合规一律 404 
 });
 
 test('渲染不发任何网络请求：字体只读本地文件；emoji / 中文等字体外字符先被去掉；标题只当纯文本', async () => {
-  const { ImageResponse } = await import('next/og');
-  const { ArticleOgImage } = await import('../src/lib/seo/og/ArticleOgImage');
-  const { articleOgFonts } = await import('../src/lib/seo/og/articleOgFonts');
-  const { ogSafeText, fitTitle } = await import('../src/lib/seo/og/articleOgLayout');
+  const { fitTitle, ogSafeText } = await import('../src/lib/seo/og/articleOgLayout');
   assert.equal(ogSafeText('🎁 Gift 礼盒 box — «Коробка» ✨'), 'Gift box — «Коробка»');
   assert.equal(ogSafeText('<img src=x onerror=alert(1)>'), '<img src=x onerror=alert(1)>');
-  const realFetch = globalThis.fetch;
-  let fetched = 0;
-  globalThis.fetch = (async () => { fetched++; throw new Error('network blocked in test'); }) as typeof fetch;
-  try {
-    for (const title of ['🎁 Подарочные коробки 礼盒 ✨', '<img src=x onerror=alert(1)><b>bold</b>']) {
-      const r = new ImageResponse(React.createElement(ArticleOgImage, { title: ogSafeText(title), locale: 'ru' }), { width: 1200, height: 630, fonts: await articleOgFonts() });
-      const png = Buffer.from(await r.arrayBuffer());
-      assert.equal(png.readUInt32BE(0), 0x89504e47);
-    }
-  } finally { globalThis.fetch = realFetch; }
-  assert.equal(fetched, 0);
   // HTML 当文字原样排版，不会被解析
   assert.deepEqual(fitTitle('<b>bold</b>', 'en').lines, ['<b>bold</b>']);
-  const files = [ROUTE, 'src/lib/seo/og/ArticleOgImage.tsx', 'src/lib/seo/og/articleOgFonts.ts', 'src/lib/seo/og/articleOgLayout.ts'].map((f) => fs.readFileSync(f, 'utf8')).join('\n');
+  const files = [ROUTE, RENDER, 'src/lib/seo/og/ArticleOgImage.tsx', 'src/lib/seo/og/articleOgFonts.ts', 'src/lib/seo/og/articleOgLayout.ts'].map((f) => fs.readFileSync(f, 'utf8')).join('\n');
   assert.doesNotMatch(files, /dangerouslySetInnerHTML|innerHTML|fetch\(|https?:\/\/(?!localhost)/);
   assert.match(fs.readFileSync('src/lib/seo/og/articleOgFonts.ts', 'utf8'), /readFile\(path\.join\(DIR, 'Manrope-ExtraBold\.ttf'\)\)/);
+});
+
+test('唯一渲染入口：路由只通过 renderArticleOgPng 渲染，字符过滤在入口里', () => {
+  const route = fs.readFileSync(ROUTE, 'utf8').replace(/^\s*\/\/.*$/gm, '');
+  assert.match(route, /from '@\/lib\/seo\/og\/renderArticleOg'/);
+  assert.match(route, /renderArticleOgPng\(d\?\.title, locale\)/);
+  // 路由里不能自己构造 ImageResponse、读字体或直接用模板，否则就会绕过入口里的过滤
+  assert.doesNotMatch(route, /ImageResponse|ArticleOgImage|articleOgFonts|ogSafeText/);
+  const entry = fs.readFileSync(RENDER, 'utf8');
+  assert.equal((entry.match(/new ImageResponse\(/g) ?? []).length, 1);
+  assert.ok(entry.indexOf('ogSafeText(rawTitle)') > 0 && entry.indexOf('ogSafeText(rawTitle)') < entry.indexOf('new ImageResponse('), 'filter runs before render');
+  // 仓库里别处也不能再起一个文章分享图的渲染入口
+  const others = execFileSync('git', ['grep', '--untracked', '-l', 'ArticleOgImage', '--', 'src']).toString().trim().split('\n').sort();
+  assert.deepEqual(others, ['src/lib/seo/og/ArticleOgImage.tsx', RENDER].sort());
+});
+
+test('断网渲染：屏蔽 fetch 和所有 TCP/TLS 连接后，入口照常出图（含 emoji / 中文 / HTML 标题），零网络请求', async () => {
+  const net = (await import('node:net')).default;
+  const tls = (await import('node:tls')).default;
+  const { renderArticleOgPng } = await import('../src/lib/seo/og/renderArticleOg');
+  const attempts: string[] = [];
+  const realFetch = globalThis.fetch;
+  const realConnect = net.Socket.prototype.connect;
+  const realTlsConnect = tls.connect;
+  globalThis.fetch = (async (u: unknown) => { attempts.push(`fetch ${String(u)}`); throw new Error('network blocked in test'); }) as typeof fetch;
+  net.Socket.prototype.connect = function (this: unknown, ...a: unknown[]) { attempts.push(`net.connect ${JSON.stringify(a[0])}`); throw new Error('network blocked in test'); } as never;
+  (tls as { connect: unknown }).connect = (...a: unknown[]) => { attempts.push(`tls.connect ${JSON.stringify(a[0])}`); throw new Error('network blocked in test'); };
+  try {
+    for (const [title, l] of [['🎁 Подарочные коробки 礼盒 ✨', 'ru'], ['<img src=x onerror=alert(1)><b>bold</b>', 'en'], ['Custom Gift Boxes 🎄 圣诞', 'en']] as const) {
+      const png = await renderArticleOgPng(title, l);
+      assert.ok(png, title);
+      const b = Buffer.from(png);
+      assert.equal(b.readUInt32BE(0), 0x89504e47);
+      assert.deepEqual([b.readUInt32BE(16), b.readUInt32BE(20)], [1200, 630]);
+    }
+    // 过滤后为空（全是字体外字符）或不是字符串：不渲染，返回 null 让路由回退
+    for (const t of ['🎁✨', '礼盒', '', '   ', null, undefined, 42]) assert.equal(await renderArticleOgPng(t, 'en'), null, String(t));
+    assert.deepEqual(attempts, []);
+    // 对照：绕过入口、直接把 emoji / 中文交给 Satori，会去网上补字体 → 被拦截并记录。证明上面的「零请求」不是拦截失效。
+    const { ImageResponse } = await import('next/og');
+    const { articleOgFonts } = await import('../src/lib/seo/og/articleOgFonts');
+    const realError = console.error;
+    console.error = () => {};
+    try {
+      await new ImageResponse(React.createElement('div', { style: { display: 'flex', fontFamily: 'Manrope', fontSize: 60 } }, '🎁 礼盒 Gift'), { width: 1200, height: 630, fonts: await articleOgFonts() }).arrayBuffer();
+    } catch { /* 拦截后渲染失败是预期的 */ } finally { console.error = realError; }
+    assert.ok(attempts.length > 0, 'control: unfiltered render must try the network');
+    attempts.length = 0;
+  } finally {
+    globalThis.fetch = realFetch;
+    net.Socket.prototype.connect = realConnect;
+    (tls as { connect: unknown }).connect = realTlsConnect;
+  }
+  assert.deepEqual(attempts, []);
 });
 
 test('noindex 只在接口里设置（不依赖环境、不靠 middleware），robots.txt 不加分享图的 Disallow', () => {

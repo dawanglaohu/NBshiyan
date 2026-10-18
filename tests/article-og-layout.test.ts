@@ -68,7 +68,8 @@ test('分享图模板和接口：不写任何业务承诺；接口出错时回�
   const r = fs.readFileSync('src/app/[locale]/articles/[slug]/og/route.tsx', 'utf8');
   assert.match(r, /ogImageUrl\(ARTICLE_OG_SLUG, locale\)/);
   assert.match(r, /status: 302/);
-  assert.match(r, /await res\.arrayBuffer\(\)/);
+  assert.match(r, /await renderArticleOgPng\(/);
+  assert.match(fs.readFileSync('src/lib/seo/og/renderArticleOg.tsx', 'utf8'), /await res\.arrayBuffer\(\)/);
   assert.match(r, /catch \(e\)/);
   assert.match(fs.readFileSync('next.config.ts', 'utf8'), /'\/\[locale\]\/articles\/\[slug\]\/og': \['\.\/src\/assets\/og-fonts\/\*\.ttf'\]/);
 });

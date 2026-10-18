@@ -1,9 +1,6 @@
-import { ImageResponse } from 'next/og';
 import { getDocBySlug } from '@/lib/server/sanity';
 import { ogImageUrl } from '@/lib/seo/pageMeta';
-import { ArticleOgImage } from '@/lib/seo/og/ArticleOgImage';
-import { articleOgFonts } from '@/lib/seo/og/articleOgFonts';
-import { OG_ARTICLE, ogSafeText } from '@/lib/seo/og/articleOgLayout';
+import { renderArticleOgPng } from '@/lib/seo/og/renderArticleOg';
 import { ARTICLE_OG_SLUG, ARTICLE_OG_SLUG_RE } from '@/lib/seo/articleOg';
 
 // 文章专属分享图 /<locale>/articles/<slug>/og（1200×630 PNG）。og:image 由 src/lib/seo/articleOg.ts 输出（带 ?v=，这里不读）。
@@ -15,7 +12,8 @@ import { ARTICLE_OG_SLUG, ARTICLE_OG_SLUG_RE } from '@/lib/seo/articleOg';
 // - 缓存：200 → public, max-age=86400, s-maxage=604800；302 / 404 → no-store。路由本身不做 ISR（force-dynamic），
 //   响应头完全由这里决定；CMS 数据仍按 sanityFetch 的 revalidate 缓存。
 // - 标题只作为 JSX 文本子节点交给 Satori（不解析 HTML），不进任何响应头。
-// - 字体只读仓库里的 src/assets/og-fonts（articleOgFonts）；标题先去掉字体外的字符（ogSafeText），Satori 不会去网上补字体或 emoji。
+// - 渲染只走 renderArticleOgPng（src/lib/seo/og/renderArticleOg.tsx，唯一入口）：字体只读仓库里的 src/assets/og-fonts，
+//   标题先去掉字体外的字符（ogSafeText），Satori 不会去网上补字体或 emoji。
 // - X-Robots-Tag: noindex 在这里设置（所有环境、所有响应），不靠 middleware；robots.txt 不加 Disallow（社交爬虫要能抓到图）。
 // 渲染结果先完整读进内存再返回：ImageResponse 是流式的，不读完的话渲染错误会在 200 之后才出现，回退不了。
 export const runtime = 'nodejs';
@@ -36,11 +34,8 @@ export async function GET(_req: Request, { params }: P) {
   if (typeof slug !== 'string' || !ARTICLE_OG_SLUG_RE.test(slug)) return notFound();
   try {
     const d = (await getDocBySlug('article', locale, slug)) as { title?: unknown } | null;
-    const title = typeof d?.title === 'string' ? ogSafeText(d.title) : '';
-    if (!title) return fallback(locale);
-    const res = new ImageResponse(<ArticleOgImage title={title} locale={locale} />, { ...OG_ARTICLE, fonts: await articleOgFonts() });
-    const png = await res.arrayBuffer();
-    if (!png.byteLength) return fallback(locale);
+    const png = await renderArticleOgPng(d?.title, locale);
+    if (!png) return fallback(locale);
     return new Response(png, { status: 200, headers: { ...OG_ROBOTS, 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400, s-maxage=604800' } });
   } catch (e) {
     console.error('[article-og] render failed, falling back to generic image:', e instanceof Error ? e.message : 'unknown error');
