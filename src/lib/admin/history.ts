@@ -2,8 +2,18 @@
 // 这里只放纯逻辑（类型、参数、响应整理、状态机、文案），页面在 components/admin/InquiryHistory.tsx。
 
 export type HistoryType = 'created' | 'status' | 'assignment' | 'reply' | 'inbound';
-/** 接口返回的一条记录：summary 由后端拼好（中文、已脱敏），前端原样显示 */
-export type HistoryItem = { type: HistoryType; at: string; actor: { name: string; role: string } | null; summary: string; cursor: string };
+/**
+ * 「谁做的」（#362 起后端返回）：customer 客户（actor = { name: 净化后的客户名, role: null }）、user 现有账号（{ name, role }）、
+ * deleted_user 账号已删除（actor = null）、system 自动操作（actor = null）。
+ */
+export type ActorKind = 'customer' | 'user' | 'deleted_user' | 'system';
+export const ACTOR_KINDS: readonly ActorKind[] = ['customer', 'user', 'deleted_user', 'system'];
+export type HistoryActor = { name: string; role: string | null };
+/**
+ * 接口返回的一条记录：summary、actor.name 由后端拼好（中文、已净化、实体已解码成普通字符），前端只当 React 文本原样显示，
+ * 不再解码、不走 innerHTML。actorKind 可选：#362 部署前的旧响应没有这个字段，按旧规则显示。
+ */
+export type HistoryItem = { type: HistoryType; at: string; actorKind?: ActorKind; actor: HistoryActor | null; summary: string; cursor: string };
 export type HistoryPage = { items: HistoryItem[]; total: number };
 
 /** 每页 10 条（接口默认 10、最多 50） */
@@ -27,13 +37,29 @@ export const loadMoreText = (left: number) => `加载更早记录（剩 ${left} 
 export const HISTORY_ICON: Record<HistoryType, string> = { created: '📝', status: '🔄', assignment: '👤', reply: '📤', inbound: '📥' };
 export const ROLE_TEXT: Record<string, string> = { ADMIN: '管理员', SALES: '业务员', EDITOR: '编辑' };
 
-/** 「姓名 · 角色」；来信一律显示「客户」；没有 actor（系统产生，或账号已删除）显示「系统」 */
-export function actorText(item: Pick<HistoryItem, 'type' | 'actor'>): string {
-  if (item.type === 'inbound') return '客户';
-  if (!item.actor) return '系统';
-  const role = Object.prototype.hasOwnProperty.call(ROLE_TEXT, item.actor.role) ? ROLE_TEXT[item.actor.role] : item.actor.role;
-  return role ? `${item.actor.name} · ${role}` : item.actor.name;
+export const ACTOR_TEXT = { customer: '客户', system: '系统', deletedUser: '已删除的账号' } as const;
+
+const roleText = (role: string | null): string =>
+  !role ? '' : Object.prototype.hasOwnProperty.call(ROLE_TEXT, role) ? ROLE_TEXT[role] : role;
+const nameRole = (a: HistoryActor) => { const r = roleText(a.role); return r ? `${a.name} · ${r}` : a.name; };
+
+/**
+ * 操作人显示，只按 actorKind 决定（前端不自己拼名字）：
+ * customer →「客户 · 客户名」；user →「姓名 · 角色」（role 为 null 只显示姓名）；deleted_user →「已删除的账号」（灰色）；system →「系统」。
+ * 没有 actorKind（#362 之前的旧响应）或取值不认识 → 旧规则：来信「客户」，actor 为 null「系统」，否则「姓名 · 角色」。
+ */
+export function actorView(item: Pick<HistoryItem, 'type' | 'actor' | 'actorKind'>): { text: string; gone?: true } {
+  switch (item.actorKind) {
+    case 'customer': return { text: item.actor?.name ? `${ACTOR_TEXT.customer} · ${item.actor.name}` : ACTOR_TEXT.customer };
+    case 'deleted_user': return { text: ACTOR_TEXT.deletedUser, gone: true };
+    case 'system': return { text: ACTOR_TEXT.system };
+    case 'user': if (item.actor) return { text: nameRole(item.actor) }; break;
+  }
+  if (item.type === 'inbound') return { text: ACTOR_TEXT.customer };
+  if (!item.actor) return { text: ACTOR_TEXT.system };
+  return { text: nameRole(item.actor) };
 }
+export const actorText = (item: Pick<HistoryItem, 'type' | 'actor' | 'actorKind'>): string => actorView(item).text;
 
 /** 查询串：limit 夹在 1..50；before 为空时不带 */
 export function historyQuery(o: { limit?: number; before?: string } = {}): string {
@@ -51,7 +77,12 @@ export function historyPageFrom(raw: unknown): HistoryPage {
     const i = x as Partial<HistoryItem> | null;
     return !!i && typeof i.type === 'string' && TYPES.has(i.type) && typeof i.at === 'string' && typeof i.summary === 'string' && typeof i.cursor === 'string' && i.cursor.length > 0
       && (i.actor === null || i.actor === undefined || (typeof i.actor === 'object' && typeof i.actor.name === 'string'));
-  }).map((i) => ({ ...i, actor: i.actor && typeof i.actor === 'object' ? { name: i.actor.name, role: typeof i.actor.role === 'string' ? i.actor.role : '' } : null }));
+  }).map((i) => {
+    // 只留认识的字段；actorKind 不认识就当没有（走旧规则），role 不是字符串一律 null
+    const kind = typeof i.actorKind === 'string' && (ACTOR_KINDS as readonly string[]).includes(i.actorKind) ? i.actorKind : undefined;
+    const actor = i.actor && typeof i.actor === 'object' ? { name: i.actor.name, role: typeof i.actor.role === 'string' && i.actor.role ? i.actor.role : null } : null;
+    return { type: i.type, at: i.at, ...(kind ? { actorKind: kind } : {}), actor, summary: i.summary, cursor: i.cursor };
+  });
   const total = typeof r.total === 'number' && Number.isFinite(r.total) ? Math.max(r.total, items.length) : items.length;
   return { items, total };
 }
