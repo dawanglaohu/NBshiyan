@@ -213,11 +213,3 @@ test('Organization JSON-LD: origin defaults to SITE_URL, @id matches Organizatio
   assert.equal(o.url, SITE_URL);
   assert.match(readFileSync('src/components/seo/OrganizationJsonLd.tsx', 'utf8'), /'@id': `\$\{SITE_URL\}\/#organization`/);
 });
-
-test("about.ts is server-only (a client component importing it fails the Next build)", () => {
-  const src = readFileSync('src/lib/seo/about.ts', 'utf8');
-  assert.match(src, /^import 'server-only';\n/);
-  const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { dependencies: Record<string, string>; scripts: Record<string, string> };
-  assert.equal(pkg.dependencies['server-only'], '0.0.1');
-  assert.match(pkg.scripts.test, /--import \.\/tests\/setup\/server-only\.mjs/);
-});

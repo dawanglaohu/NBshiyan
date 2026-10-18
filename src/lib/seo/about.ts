@@ -1,4 +1,3 @@
-import 'server-only';
 import crypto from 'node:crypto';
 import type { Metadata, MetadataRoute } from 'next';
 import type { AboutContent, OrganizationSettings } from '../server/site-settings';

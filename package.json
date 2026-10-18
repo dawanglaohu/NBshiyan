@@ -10,7 +10,7 @@
     "postinstall": "prisma generate",
     "admin:create": "node scripts/admin-create.mjs",
     "admin:seed": "node scripts/create-admin.mjs",
-    "test": "node --import tsx --import ./tests/setup/server-only.mjs --test tests/*.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "smoke": "node --import tsx scripts/smoke.ts",
     "email:build": "node scripts/build-email-templates.mjs",
     "test:e2e": "playwright test",
@@ -35,7 +35,6 @@
     "react": "~19.3.0",
     "react-dom": "~19.3.0",
     "sanitize-html": "^2.18.1",
-    "server-only": "0.0.1",
     "sharp": "^0.35.5",
     "three": "^0.186.1",
     "zod": "^3.25.76"
