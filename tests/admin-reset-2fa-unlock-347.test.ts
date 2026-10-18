@@ -234,3 +234,34 @@ test('admin UI: Reset 2FA confirm copy has both sentences; link panel only in co
   assert.match(ui, /`\/\$\{u\.id\}\/reset-2fa`, \{ method: 'POST' \}/);
   assert.ok(!/localStorage|sessionStorage|console\.|history\./.test(ui));
 });
+
+test('reset-2fa responses are never cacheable: Cache-Control no-store on 200 (with link) and on every error path', async () => {
+  const cc = (r: Response) => r.headers.get('cache-control') ?? '';
+  const ok = await resetR.POST(resetReq(), P('ulocked00000000000000000'));
+  assert.equal(ok.status, 200); assert.match(cc(ok), /(^|[\s,])no-store($|[\s,])/); assert.match(cc(ok), /private/);
+  const bad: [Response, number][] = [];
+  bad.push([await resetR.POST(resetReq(), P('nosuchuser000000000000000')), 404]);
+  bad.push([await resetR.POST(resetReq(), P('BAD')), 404]);
+  bad.push([await resetR.POST(new Request('http://localhost/api/admin/users/aone0000000000000000000000/reset-2fa', { method: 'POST', headers: { origin: 'http://localhost' } }), P('aone0000000000000000000000')), 409]);
+  bad.push([await resetR.POST(resetReq('https://evil.example'), P('ulocked00000000000000000')), 403]);
+  const site = process.env.NEXT_PUBLIC_SITE_URL; process.env.NEXT_PUBLIC_SITE_URL = 'http://geiom.com';
+  try { bad.push([await resetR.POST(resetReq(), P('ulocked00000000000000000')), 500]); } finally { process.env.NEXT_PUBLIC_SITE_URL = site; }
+  g.__testSession = { user: { id: 'sone0000000000000000000000' }, sv: 1 }; bad.push([await resetR.POST(resetReq(), P('ulocked00000000000000000')), 403]);
+  g.__testSession = null; bad.push([await resetR.POST(resetReq(), P('ulocked00000000000000000')), 401]);
+  for (const [r, status] of bad) { assert.equal(r.status, status); assert.match(cc(r), /no-store/, `${status} no-store`); }
+  // 路由里显式带 noStore（不依赖 next.config / middleware 的后台头）
+  assert.match(readFileSync('src/app/api/admin/users/[id]/reset-2fa/route.ts', 'utf8'), /NextResponse\.json\(\{ \.\.\.publicUser\(u\), \.\.\.issueResponse\(t, base\) \}, \{ headers: noStore \}\)/);
+});
+
+test('admin UI one-time link: only in React state; cleared on 「我已复制」; never stored, logged, put in the URL or error state', () => {
+  const ui = readFileSync('src/components/admin/users/UsersAdmin.tsx', 'utf8');
+  const sets = ui.match(/setIssued\([^)]*\)/g) ?? [];
+  // 只有两处：拿到响应时放进 state、「我已复制」时清空
+  assert.deepEqual(sets.map((x) => x.startsWith('setIssued(null)') ? 'clear' : 'set'), ['set', 'clear']);
+  assert.match(ui, /<button className="adm-btn" onClick=\{\(\) => setIssued\(null\)\}>我已复制<\/button>/);
+  // 面板只有这一个关闭入口（没有别的 ✕ / onClose / Escape 路径会留下链接）
+  assert.ok(!/onClose|onKeyDown|Escape|✕/.test(ui));
+  assert.ok(!/localStorage|sessionStorage|console\.|history\.|location\.|Sentry|captureException|reportError/.test(ui));
+  // 错误提示只来自错误码，不会把响应体（含链接）放进去
+  assert.ok(!/setErr\([^)]*enrollLink/.test(ui)); assert.ok(!/enrollLink[^\n]*throw/.test(ui));
+});
