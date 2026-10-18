@@ -100,9 +100,10 @@ test('#308 CSS: chips ≥44px, ✓ + heavier border when checked, 2 columns ≤7
 test('#308 UX review: scroll-margin on summary + every field = measured nav height (73px) + 16px (16px when nav is static ≤767)', () => {
   const sel = '.wizard-done,.iq-step,.wizard .alert.err,.wizard .field,.wizard .field :is(input,select,textarea),.iq-consent,.iq-consent input';
   const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  assert.match(css, new RegExp(esc + '\\{scroll-margin-top:calc\\(var\\(--iq-nav-h\\) \\+ 16px\\)\\}'));
+  assert.match(css, new RegExp(esc + '\\{scroll-margin-top:calc\\(var\\(--header-h\\) \\+ 16px\\)\\}'));
   assert.match(css, new RegExp('@media \\(max-width:767px\\)\\{' + esc + '\\{scroll-margin-top:16px\\}\\}'));
-  assert.match(css, /\.wizard\{--iq-nav-h:73px\}/); // 实测吸顶导航 73px（≥768）
+  assert.match(css, /:root\{--header-h:73px\}/); // 全局变量 = 实测吸顶导航 73px（≥768）
+  assert.doesNotMatch(css, /--iq-nav-h/); // 只留一个来源
   assert.match(css, /@media \(max-width:767px\)\{header\.site\{position:static\}/);
 });
 
