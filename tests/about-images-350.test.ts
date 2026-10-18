@@ -5,12 +5,12 @@ import * as React from 'react';
 (globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
-  IMAGES_MAX, addImage, anyImageErrors, createAboutImagesApi, imageAltChecklistItem, imageErrorText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
+  IMAGES_MAX, addImage, anyImageErrors, createAboutImagesApi, imageAltChecklistItem, imageErrorText, imageIssueText, imagesStateFrom, isSmallImage, localeImageErrors, metaChanged, moveImage,
   precheckFile, pruneImageMeta, retryAfterMs, saveAboutWithImages, slotsLeft, uploadAboutImage, uploadOutcome, withImageAltCompleteness, withImagesDirty,
   type AboutImageItem, type AboutImagesState, type XhrLike,
 } from '../src/lib/admin/about-images';
 import { createAboutSettingsApi, draftFromView } from '../src/lib/admin/site-settings-http';
-import { dirtySummary, draftCompleteness, emptyDraft, type AboutDraft, type AboutSettingsData } from '../src/lib/admin/site-settings';
+import { dirtySummary, draftCompleteness, emptyDraft, issuesAlertText, settingsErrorText, type AboutDraft, type AboutSettingsData } from '../src/lib/admin/site-settings';
 import { aboutImageAttrs, visibleImages } from '../src/lib/about/model';
 import { AboutFigure, ABOUT_IMAGE_SIZES } from '../src/components/about/AboutParts';
 import { AboutImagesPutInput, AboutPutInput } from '../src/lib/server/site-settings-admin';
@@ -357,4 +357,34 @@ test('完整度：右栏「图片替代文字」一项（无图 – / N 张缺�
   const ui = read('../src/components/admin/settings/AboutSettings.tsx');
   assert.match(ui, /\[\.\.\.draftChecklist\(d\), imageAltChecklistItem\(d, imgDraft\.map\(\(i\) => i\.id\)\)\]/);
   assert.match(ui, /const comp = \(l: string\) => withImageAltCompleteness\(draftCompleteness\(savedLocales\[l\] \?\? emptyDraft\(\)\), savedLocales\[l\], imgSaved\.items\.map/);
+});
+
+test('错误文案：图片带来的新错误码都是中文（经 settingsErrorText / issuesAlertText），imageMeta issue 换成「第 N 张图片…」', async () => {
+  assert.equal(settingsErrorText('unknown_asset'), '列表里有图片已经被删除，请移除后再保存');
+  assert.equal(issuesAlertText('unknown_asset'), '列表里有图片已经被删除，请移除后再保存');
+  assert.equal(settingsErrorText('network'), '网络错误，请检查网络后重试');
+  assert.equal(settingsErrorText('invalid_locale'), '这个语言还不支持，请刷新页面后重试');
+  assert.equal(settingsErrorText('invalid'), '参数不正确，请检查后重试。');
+  assert.equal(settingsErrorText('http_422'), '保存失败：http_422', '#373 / #375 的既有约定不变');
+  for (const c of ['unknown_asset', 'network', 'missing_file', 'asset_in_use', 'not_found', 'file_too_large', 'rate_limited', 'http_502', 'http_404']) {
+    assert.doesNotMatch(imageErrorText(c), /[a-z]+_[a-z0-9]+/, c);
+  }
+  assert.equal(imageErrorText('http_502'), '上传失败：服务器出错（HTTP 502），请稍后重试');
+  const ids = [ID(1), ID(2)];
+  assert.equal(imageIssueText(`imageMeta.${ID(2)}.alt：max 125 chars`, ids), '第 2 张图片的替代文字超出上限（最多 125 字）');
+  assert.equal(imageIssueText(`imageMeta.${ID(9)}.caption：bad`, ids), '图片的说明不符合要求，请检查');
+  assert.equal(imageIssueText('imageMeta：too many', ids), '图片的文字不符合要求，请检查');
+  assert.equal(imageIssueText('summary：max 300 chars', ids), 'summary：max 300 chars');
+  // saveAboutWithImages 失败时把 issues / rest 都换掉
+  const saved: AboutSettingsData = { enabled: true, enabledVersion: 1, locales: { en: { ...emptyDraft(), version: 1 } as AboutDraft } };
+  const draft = { en: { ...saved.locales.en, title: 'New title' } };
+  for (const key of ['issues', 'rest']) {
+    const r = await saveAboutWithImages({
+      locales: ['en'], draft, saved, savedImages: { version: 1, items: [] }, draftImages: [],
+      api: { save: async () => ({ ok: false, code: 'invalid', [key]: [`imageMeta.${ID(1)}.alt：max 125 chars`, 'title：x'] }) as never },
+      putImages: async () => { throw new Error('not called'); },
+    });
+    assert.equal(r.ok, false);
+    assert.deepEqual((r as unknown as Record<string, string[]>)[key], ['图片的替代文字超出上限（最多 125 字）', 'title：x'], key);
+  }
 });

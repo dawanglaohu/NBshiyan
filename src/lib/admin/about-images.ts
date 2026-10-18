@@ -88,8 +88,14 @@ const UPLOAD_ERR: Record<string, string> = {
   not_found: '这张图已经被删除了',
   unknown_asset: '列表里有图片已经被删除，请移除后再保存',
   network: '网络错误，请检查网络后重试',
+  missing_file: '没有收到图片文件，请重新选择',
 };
-export const imageErrorText = (code: string, prefix = '上传失败'): string => UPLOAD_ERR[code] ?? errorText(code, prefix);
+export const imageErrorText = (code: string, prefix = '上传失败'): string => {
+  if (Object.prototype.hasOwnProperty.call(UPLOAD_ERR, code)) return UPLOAD_ERR[code];
+  const http = /^http_(\d{3})$/.exec(code); // 前置层返回的非 JSON 错误：不显示裸错误码
+  if (http) return Number(http[1]) >= 500 ? `${prefix}：服务器出错（HTTP ${http[1]}），请稍后重试` : `${prefix}（HTTP ${http[1]}），请刷新页面后重试`;
+  return errorText(code, prefix);
+};
 
 /** 状态码 → 错误码（nginx 等前置层返回的 413 / 429 可能不是 JSON） */
 const STATUS_CODE: Record<number, string> = { 413: 'file_too_large', 415: 'unsupported_type', 429: 'rate_limited' };
@@ -267,11 +273,34 @@ export type SaveAllResult =
  *   已发布的语言不会因为缺 alt 掉成 404。并集超过 6 张时退回只带新列表（短暂窗口，见 PR 正文）。
  * - 任何一步 409 / 出错就停（不自动重发），已经保存成功的部分放在 saved / images 里，页面只更新「已保存」基线。
  */
-export async function saveAboutWithImages(o: {
+type SaveAllInput = {
   locales: readonly string[]; draft: Record<string, AboutDraft>; saved: AboutSettingsData;
   savedImages: AboutImagesState; draftImages: readonly AboutImageItem[];
   api: Pick<AboutSettingsApi, 'save'>; putImages: (expectedVersion: number, ids: string[]) => Promise<ImagesPutResult>;
-}): Promise<SaveAllResult> {
+};
+export async function saveAboutWithImages(o: SaveAllInput): Promise<SaveAllResult> {
+  const r = await saveAll(o);
+  if (r.ok) return r;
+  // 顶部错误条里的 imageMeta issue（「imageMeta.<id>.alt：max 125 chars」）换成「第 N 张图片的替代文字…」。
+  // issues（现在）/ rest（之后的 saveFailureView）都是 issueLine 字符串，两种都处理
+  const ids = o.draftImages.map((i) => i.id);
+  const out: Record<string, unknown> = { ...r };
+  for (const k of ['issues', 'rest']) if (Array.isArray(out[k])) out[k] = (out[k] as string[]).map((l) => imageIssueText(l, ids));
+  return out as SaveAllResult;
+}
+
+/** 后端 imageMeta issue（issueLine 格式「path：message」）→ 可读文案；其他行原样返回 */
+export function imageIssueText(line: string, ids: readonly string[]): string {
+  const m = /^imageMeta(?:\.([A-Za-z0-9]+))?(?:\.(alt|caption))?：(.*)$/.exec(line);
+  if (!m) return line;
+  const n = m[1] ? ids.indexOf(m[1]) + 1 : 0;
+  const who = n > 0 ? `第 ${n} 张图片` : '图片';
+  const field = m[2] === 'alt' ? '替代文字' : m[2] === 'caption' ? '说明' : '文字';
+  const max = /max (\d+)/i.exec(m[3]);
+  return `${who}的${field}${max ? `超出上限（最多 ${max[1]} 字）` : '不符合要求，请检查'}`;
+}
+
+async function saveAll(o: SaveAllInput): Promise<SaveAllResult> {
   const newIds = o.draftImages.map((i) => i.id);
   const oldIds = o.savedImages.items.map((i) => i.id);
   const listChanged = !sameIds(o.savedImages.items, o.draftImages);
