@@ -54,7 +54,7 @@ export function statusBody(r: Pick<MailRow, 'id' | 'status' | 'errorCode' | 'ret
 }
 
 export type SendResponse =
-  | { kind: 'sent'; status: 201; body: { id: string; status: 'SENT'; messageId: string | null; sentAt: string | null; retryCount: number; maxRetries: number } }
+  | { kind: 'sent'; status: 201; body: { id: string; status: 'SENT'; sentAt: string | null; retryCount: number; maxRetries: number } }
   | { kind: 'deferred'; status: 202; body: { id: string; status: 'QUEUED'; errorCode: 'daily_cap_deferred'; deferredUntil: string } }
   | { kind: 'sending'; status: 202; body: { id: string; status: 'SENDING'; pollAfterMs: number } }
   | { kind: 'failed'; status: 502; body: { error: 'mail_failed'; id: string; reason: string; retryable: boolean } }
@@ -148,7 +148,7 @@ async function deliver(deps: Required<Pick<SendDeps, 'db' | 'adapter'>> & SendDe
     await db.mailMessage.update({ where: { id: row.id }, data: { status: 'SENT', sentAt, errorCode: null, retryable: false, lockedUntil: null } });
     if (row.inquiryId) await extendInquiryRetention(db, row.inquiryId).catch(() => false);
     mailLog('info', 'mail.sent', { mailId: row.id });
-    return { kind: 'sent', status: 201, body: { id: row.id, status: 'SENT', messageId: row.messageId, sentAt: sentAt.toISOString(), retryCount: row.retryCount, maxRetries: MAX_RETRIES } };
+    return { kind: 'sent', status: 201, body: { id: row.id, status: 'SENT', sentAt: sentAt.toISOString(), retryCount: row.retryCount, maxRetries: MAX_RETRIES } };
   }
   await db.mailMessage.update({ where: { id: row.id }, data: { status: 'FAILED', errorCode: res.reason, retryable: res.retryable, lockedUntil: null } });
   mailLog('error', 'mail.send_failed', { mailId: row.id, reason: res.reason, code: res.code ?? 'none', retryable: res.retryable });
@@ -173,7 +173,7 @@ async function afterReserve(deps: SendDeps, r: Awaited<ReturnType<typeof reserve
 
 /** 已存在的信按当前状态回给客户端（幂等重放 / 并发） */
 export function responseFor(row: MailRow): SendResponse {
-  if (row.status === 'SENT') return { kind: 'sent', status: 201, body: { id: row.id, status: 'SENT', messageId: row.messageId, sentAt: row.sentAt?.toISOString() ?? null, retryCount: row.retryCount, maxRetries: MAX_RETRIES } };
+  if (row.status === 'SENT') return { kind: 'sent', status: 201, body: { id: row.id, status: 'SENT', sentAt: row.sentAt?.toISOString() ?? null, retryCount: row.retryCount, maxRetries: MAX_RETRIES } };
   if (row.status === 'QUEUED' && row.errorCode === 'daily_cap_deferred') return { kind: 'deferred', status: 202, body: { id: row.id, status: 'QUEUED', errorCode: 'daily_cap_deferred', deferredUntil: row.deferredUntil?.toISOString() ?? '' } };
   if (row.status === 'FAILED') return { kind: 'failed', status: 502, body: { error: 'mail_failed', id: row.id, reason: row.errorCode ?? 'unknown', retryable: row.retryable } };
   return { kind: 'sending', status: 202, body: { id: row.id, status: 'SENDING', pollAfterMs: 5000 } };
