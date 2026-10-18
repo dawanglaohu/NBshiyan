@@ -9,7 +9,7 @@ import { useLangTargets } from './LangLink';
  * - 按钮：地球图标 + 当前语言缩写（EN/RU），aria-label 是当前语言全称，aria-haspopup / aria-expanded / aria-controls。
  *   本期不新增文案键（RU 文案需要母语审核），列表用 aria-labelledby 指向按钮。
  * - 列表：母语名称、不用国旗；当前语言排第一并打勾（aria-current），每项带 lang / hrefLang / dir（ar 为 rtl，按 LOCALE_META 统一处理）。
- * - 键盘：Enter/Space/↓ 打开并聚焦第一项，↑ 打开并聚焦最后一项；列表内 ↑↓ 循环、Home/End；Esc 关闭并把焦点还给按钮；Tab 移出即关闭；点外面关闭。
+ * - 键盘：Enter/Space/↓ 打开并聚焦第一项（= 当前语言），↑ 打开并聚焦最后一项；列表内 ↑↓ 循环、Home/End；Esc 关闭并把焦点还给按钮；Tab 移出即关闭；点外面关闭并把焦点还给按钮。
  * - 样式全部走 CSS class（globals.css 的 .lang-menu），不用 style 属性。
  */
 export default function LangMenu({ className }: { className?: string }) {
@@ -34,10 +34,11 @@ export default function LangMenu({ className }: { className?: string }) {
     const els = items();
     if (pendingFocus.current) (pendingFocus.current === 'last' ? els[els.length - 1] : els[0])?.focus();
     pendingFocus.current = null;
-    const onDown = (e: PointerEvent) => { if (!rootRef.current?.contains(e.target as Node)) setOpen(false); };
+    // 点外面：关闭并把焦点还给按钮（点到的是别的可聚焦元素时，浏览器随后会把焦点移过去）
+    const onDown = (e: PointerEvent) => { if (!rootRef.current?.contains(e.target as Node)) close(true); };
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
-  }, [open]);
+  }, [open, close]);
 
   const openWith = (focus: 'first' | 'last' | null) => { pendingFocus.current = focus; setOpen(true); };
 
