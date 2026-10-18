@@ -30,7 +30,7 @@ export const FIELD_LABEL: Record<DraftField, string> = { title: '标题', summar
 
 /** 固定文案（与稿件逐字一致；{x} 是占位） */
 export const SETTINGS_TEXT = {
-  crumb: '站点设置 / 公司介绍',
+  crumb: '站点设置 / 关于我们', // spec §9：面包屑跟分区名「关于我们」/「组织信息」
   h1: '公司介绍（/about 页）',
   lastEdited: '最近修改：',
   preview: (l: string) => `在新窗口预览 ${l.toUpperCase()} ↗`,

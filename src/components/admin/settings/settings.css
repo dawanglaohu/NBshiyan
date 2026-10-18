@@ -53,3 +53,18 @@
   .st-stat{grid-template-columns:90px 1fr auto}
   .st-stat .st-up{display:none}
 }
+/* #350 spec §9：分区导航「关于我们」「组织信息」+ 组织信息单栏（最大宽 760px） */
+.st-sections{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:4px 0 12px}
+.st-sections a{font-weight:700;padding:8px 12px;border-bottom:2px solid transparent;color:var(--ink);text-decoration:none}
+.st-sections a[aria-current="page"]{border-bottom-color:var(--accent);color:var(--ink)}
+.st-orgcol{max-width:760px;display:flex;flex-direction:column;gap:16px;margin-top:16px}
+.st-note{background:#E8F0FA;color:#1F4E8C;font-weight:600;font-size:13px;border-radius:8px;padding:10px 12px;margin:0}
+.st-pub{display:inline-block;margin-inline-start:6px;padding:0 6px;border-radius:4px;background:#FFF3C4;color:#8A6500;font-size:11px;font-weight:600;vertical-align:1px}
+.st-count.warn{color:#8A6500;font-weight:700}
+.st-lab-full{width:100%;padding:0}
+.st-f select{font:inherit;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.st-date{display:flex;gap:8px;flex-wrap:wrap}
+.st-same{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-bottom:6px}
+.st-same .st-ferr,.st-same .st-hint{grid-column:1/-1;margin:0}
+.st-same-add{display:flex;align-items:center;gap:8px;margin-top:4px}
+.st-f input.st-ro{background:#F2EFEA;color:var(--ink-2)}

@@ -6,6 +6,8 @@ import {
   aboutSettingsApi, canSave, conflictStep, dirtyFields, dirtySummary, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
   isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
 } from '@/lib/admin/site-settings';
+import ConfirmDialog from './ConfirmDialog';
+import SettingsSections from './SettingsSections';
 import './settings.css';
 
 type Notice = { kind: 'ok' | 'err'; text: string } | null;
@@ -195,6 +197,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   return (
     <div className="st-page">
       <p className="st-crumb">{T.crumb}</p>
+      <SettingsSections current="about" />
       <h1>{T.h1}</h1>
       {d.updatedAt && <p className="st-audit">{T.lastEdited}{d.updatedByName ?? '—'} · <AdminTime iso={d.updatedAt} /></p>}
       {/* TODO(backend #350)：「在新窗口预览 EN ↗」需要草稿预览接口，接口上线后再加 */}
@@ -314,29 +317,6 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
           {dirty && <p className="st-warn">{T.unsavedNotPublished}</p>}
         </ConfirmDialog>
       )}
-    </div>
-  );
-}
-
-function ConfirmDialog({ title, children, confirmLabel, danger, onCancel, onConfirm }: { title: string; children: React.ReactNode; confirmLabel: string; danger?: boolean; onCancel: () => void; onConfirm: () => void }) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    cancelRef.current?.focus();
-    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); onCancel(); } };
-    document.addEventListener('keydown', k);
-    return () => { document.removeEventListener('keydown', k); prev?.focus(); };
-  }, [onCancel]);
-  return (
-    <div className="st-mask">
-      <div className="st-dialog" role="alertdialog" aria-modal="true" aria-labelledby="st-dlg-h" aria-describedby="st-dlg-b">
-        <h2 id="st-dlg-h">{title}</h2>
-        <div id="st-dlg-b">{children}</div>
-        <div className="st-dlg-btns">
-          <button ref={cancelRef} type="button" className="adm-btn" onClick={onCancel}>{T.cancel}</button>
-          <button type="button" className={`adm-btn primary${danger ? ' danger' : ''}`} onClick={onConfirm}>{confirmLabel}</button>
-        </div>
-      </div>
     </div>
   );
 }
