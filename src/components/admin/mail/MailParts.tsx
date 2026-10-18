@@ -118,7 +118,7 @@ export function useRevealOnChange(ref: React.RefObject<HTMLElement | null>, key:
 }
 
 /** 429 文案：倒计时插在句中原位（「00:42 后可以再发」），倒计时本身 aria-live=off，不每秒打断读屏 */
-export function RateText({ scope, limit, left }: { scope?: string; limit?: number; left: number }) {
-  const [before, after = ''] = rateLimitText(scope, limit, '\u0000').split('\u0000');
+export function RateText({ scope, limit, left, kept = true }: { scope?: string; limit?: number; left: number; kept?: boolean }) {
+  const [before, after = ''] = rateLimitText(scope, limit, '\u0000', kept).split('\u0000');
   return <>{before}<span aria-live="off">{fmtCountdown(left)}</span>{after}</>;
 }
