@@ -1,4 +1,4 @@
-import type { AboutImage, AboutStat } from '@/lib/about/model';
+import { aboutImageAttrs, type AboutImage, type AboutStat } from '@/lib/about/model';
 
 // #350 /about 和首页区块共用的数据条、图片。只渲染后台填的内容；空数组时调用方整块不渲染。
 
@@ -20,13 +20,14 @@ export function AboutStats({ stats, className = '' }: { stats: AboutStat[]; clas
 export const ABOUT_IMAGE_SIZES = '(min-width: 1024px) 50vw, 100vw';
 
 export function AboutFigure({ img, sizes, lazy = true }: { img: AboutImage; sizes: string; lazy?: boolean }) {
+  const a = aboutImageAttrs(img);
   return (
     <figure className="ab-fig">
-      {/* PublicAsset 两种尺寸：sm 800w、lg 1600w（后端已定）；/media 已是重新编码好的 WebP，不再走 next/image */}
+      {/* PublicAsset 两种尺寸：srcset 的 w 描述符和 width / height 用 sm / lg 的实际宽高（URL 里的 800 / 1600 是名义长边）；/media 已是重新编码好的 WebP，不再走 next/image */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={img.src.sm} srcSet={`${img.src.sm} 800w, ${img.src.lg} 1600w`}
-        sizes={sizes} width={img.w} height={img.h} alt={img.alt}
+        src={a.src} srcSet={a.srcSet}
+        sizes={sizes} width={a.width} height={a.height} alt={img.alt}
         loading={lazy ? 'lazy' : undefined} decoding="async"
       />
       {img.caption?.trim() ? <figcaption>{img.caption}</figcaption> : null}
