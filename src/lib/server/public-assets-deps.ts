@@ -5,6 +5,7 @@ import { storage } from './storage';
 import { randomId } from './security';
 import { prismaSiteSettingsStore } from './site-settings-admin';
 import { revalidateSiteSettings } from './site-settings-admin-deps';
+import { prismaAboutImagesLock } from './about-images-lock';
 import { prismaPublicAssetRepo, type PublicAssetDeps } from './public-assets-admin';
 
 /**
@@ -19,6 +20,7 @@ export const publicAssetDeps: Omit<PublicAssetDeps, 'requireAdmin'> = {
   storage,
   repo: publicAssetRepo,
   settings: prismaSiteSettingsStore(prisma),
+  aboutImagesLock: prismaAboutImagesLock(prisma),
   audit: (e) => audit(e),
   revalidate: revalidateSiteSettings,
   newId: () => randomId(24),

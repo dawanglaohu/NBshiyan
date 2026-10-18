@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { Prisma, Role, User } from '@prisma/client';
 import type { PrivateStorage } from './storage';
 import type { SiteSettingsStore } from './site-settings-admin';
+import type { AboutImagesLock } from './about-images-lock';
 import { ABOUT_IMAGES_KEY, parseStoredAboutImages } from './site-settings-model';
 import {
   PUBLIC_ASSET_ID_RE, PUBLIC_ASSET_KIND, PUBLIC_ASSET_SIZES, processPublicImage, publicAssetKey, publicAssetUrl, readUploadFile, sha256Hex,
@@ -68,7 +69,10 @@ export type PublicAssetDeps = {
   enforceAdminUserRateLimit(userId: string, key: string, limit?: number): Promise<Response | null>;
   storage: Pick<PrivateStorage, 'put' | 'delete'>;
   repo: PublicAssetRepo;
+  /** 只给列表的 inUse 提示用（不加锁）；删除时的引用检查走 aboutImagesLock */
   settings: Pick<SiteSettingsStore, 'readMany'>;
+  /** about.images 引用锁：删除时在锁内查引用并软删除（和保存 about.images 互斥），见 about-images-lock.ts */
+  aboutImagesLock: AboutImagesLock;
   audit(e: { actorId: string; action: string; target: string; meta: Prisma.InputJsonValue; ip: string | null }): Promise<void>;
   revalidate(): void;
   newId(): string;
@@ -138,9 +142,10 @@ export async function handleUploadAsset(req: Request, d: PublicAssetDeps): Promi
 }
 
 /** 哪些地方引用了这张图：目前只有 about.images（各语言 imageMeta 里的 alt 不算引用） */
+const idsIn = (aboutImages: unknown) => new Set(parseStoredAboutImages(aboutImages).items.map((i) => i.id));
 async function referencedIds(d: PublicAssetDeps): Promise<Set<string>> {
   const raw = await d.settings.readMany([ABOUT_IMAGES_KEY]);
-  return new Set(parseStoredAboutImages(raw[ABOUT_IMAGES_KEY]).items.map((i) => i.id));
+  return idsIn(raw[ABOUT_IMAGES_KEY]);
 }
 
 /** GET /api/admin/site-settings/assets：未删除的图片（最新的在前，最多 200 张），带 inUse */
@@ -153,7 +158,7 @@ export async function handleListAssets(req: Request, d: PublicAssetDeps): Promis
   return NextResponse.json({ assets: rows.map((r) => ({ ...assetView(r), warnings: warningsFor(r), inUse: used.has(r.id) })) }, { headers: NO_STORE });
 }
 
-/** DELETE /api/admin/site-settings/assets/[id]：只能删未被 about.images 引用的图片；软删除记录 + 删除文件 */
+/** DELETE /api/admin/site-settings/assets/[id]：只能删未被 about.images 引用的图片；锁内查引用 + 软删除，提交后删除文件 */
 export async function handleDeleteAsset(req: Request, id: string, d: PublicAssetDeps): Promise<Response> {
   const ctx = await d.requireAdmin(req, PUBLIC_ASSET_ROLES);
   if (ctx instanceof Response) return ctx;
@@ -162,10 +167,15 @@ export async function handleDeleteAsset(req: Request, id: string, d: PublicAsset
   if (!PUBLIC_ASSET_ID_RE.test(id)) return err('not_found', 404);
   const [live] = await d.repo.findLive([id]);
   if (!live) return err('not_found', 404);
-  if ((await referencedIds(d)).has(id)) return err('asset_in_use', 409, { usedBy: [ABOUT_IMAGES_KEY] });
-  const row = await d.repo.markDeleted(id, ctx.user.id, d.now());
+  // 查引用和软删除在同一个事务、同一把 about.images 锁下（保存 about.images 也拿这把锁），中间插不进一次保存
+  const r = await d.aboutImagesLock.run(async (tx) => {
+    if (idsIn(tx.current).has(id)) return 'in_use' as const;
+    return tx.markAssetDeleted(id, ctx.user.id, d.now());
+  });
+  if (r === 'in_use') return err('asset_in_use', 409, { usedBy: [ABOUT_IMAGES_KEY] });
+  const row = r;
   if (!row) return err('not_found', 404);
-  // 文件删不掉不影响结果：记录已标记删除，公开地址已经 404
+  // 事务已提交，再删文件；文件删不掉不影响结果：记录已标记删除，公开地址已经 404
   for (const k of new Set([row.smKey, row.lgKey])) await d.storage.delete(k).catch((e) => console.error('[public-asset] storage delete failed', { id, name: (e as Error)?.name }));
   await d.audit({ actorId: ctx.user.id, action: AUDIT_ASSET_DELETE, target: id, meta: { kind: row.kind }, ip: ctx.ip });
   d.revalidate();

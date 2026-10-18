@@ -10,6 +10,7 @@ import {
   ORGANIZATION_KEY, ORG_EMAIL_RE, ORG_LIMITS as OL, ORG_TEXT_FIELDS, ORG_TELEPHONE_RE, isValidFoundingDate, parseStoredOrganization, safeOrgUrl,
   type StoredAbout, type StoredEnabled, type OrganizationFields, type StoredOrganization,
 } from './site-settings-model';
+import type { AboutImagesLock } from './about-images-lock';
 
 /**
  * #350 站点设置后台接口（about 文字部分）。路由文件只负责接线，逻辑在这里，依赖可注入，测试不连库。
@@ -146,8 +147,10 @@ export type SiteSettingsDeps = {
   audit(e: { actorId: string; action: string; target: string; meta: Prisma.InputJsonValue; ip: string | null }): Promise<void>;
   revalidate(): void;
   userNames(ids: string[]): Promise<Record<string, string>>;
-  /** 未删除的 PublicAsset（只返回存在且未删除的那些）；about 图片列表和 imageMeta 保存前用它拒绝未知 / 已删除的 id */
+  /** 未删除的 PublicAsset（只返回存在且未删除的那些）；imageMeta 保存前用它拒绝未知 / 已删除的 id */
   liveAssets(ids: string[]): Promise<LiveAsset[]>;
+  /** about.images 引用锁：保存图片列表时在锁内查 id 并写入（和删除图片互斥），见 about-images-lock.ts */
+  aboutImagesLock: AboutImagesLock;
   now(): Date;
 };
 export type LiveAsset = { id: string; smWidth: number; smHeight: number; lgWidth: number; lgHeight: number };
@@ -253,6 +256,7 @@ export async function handlePutAboutEnabled(req: Request, d: SiteSettingsDeps): 
 /**
  * PUT /api/admin/site-settings/about/images：图片列表（顺序 + 每张的两种尺寸宽高快照），各语言共用，带 expectedVersion，冲突 409。
  * 每个 id 必须是未删除的 PublicAsset，否则 400 unknown_asset（列出 ids）。alt / 说明按语言在 about/[locale] 的 imageMeta 里保存。
+ * 查 id、比对 version、写入都在 aboutImagesLock.run() 的同一个事务里（和 handleDeleteAsset 互斥）。
  */
 export async function handlePutAboutImages(req: Request, d: SiteSettingsDeps): Promise<Response> {
   const ctx = await d.requireAdmin(req, SITE_SETTINGS_ROLES);
@@ -263,14 +267,22 @@ export async function handlePutAboutImages(req: Request, d: SiteSettingsDeps): P
   if (json === TOO_LARGE) return err('too_large', 413);
   const p = AboutImagesPutInput.safeParse(json);
   if (!p.success) return invalid(zodIssues(p.error));
-  const { unknown, live } = await unknownAssets(d, p.data.ids);
-  if (unknown.length) return err('unknown_asset', 400, { ids: unknown });
-  const items = p.data.ids.map((id) => { const a = live.get(id)!; return { id, sm: { w: a.smWidth, h: a.smHeight }, lg: { w: a.lgWidth, h: a.lgHeight } }; });
-  const r = await d.store.compareAndSet(ABOUT_IMAGES_KEY, p.data.expectedVersion, (cur) => {
-    if (cur !== null && JSON.stringify(parseStoredAboutImages(cur).items) === JSON.stringify(items)) return null;
-    const next: StoredAboutImages = { items, version: storedVersion(cur) + 1, updatedAt: d.now().toISOString(), updatedBy: ctx.user.id };
-    return next as unknown as Prisma.InputJsonValue;
+  // 查 id 和写入在同一个事务、同一把 about.images 锁下（删除图片也拿这把锁），不会引用一张刚被删掉的图
+  const ids = p.data.ids;
+  const r = await d.aboutImagesLock.run(async (tx): Promise<CasResult | { status: 'unknown_asset'; ids: string[] }> => {
+    const live = new Map((ids.length ? await tx.liveAssets(ids) : []).map((a) => [a.id, a]));
+    const unknown = ids.filter((i) => !live.has(i));
+    if (unknown.length) return { status: 'unknown_asset', ids: unknown };
+    const cur = tx.current;
+    const v = storedVersion(cur);
+    if (v !== p.data.expectedVersion) return { status: 'conflict', currentVersion: v };
+    const items = ids.map((id) => { const a = live.get(id)!; return { id, sm: { w: a.smWidth, h: a.smHeight }, lg: { w: a.lgWidth, h: a.lgHeight } }; });
+    if (cur !== null && JSON.stringify(parseStoredAboutImages(cur).items) === JSON.stringify(items)) return { status: 'ok', value: cur, changed: false };
+    const next: StoredAboutImages = { items, version: v + 1, updatedAt: d.now().toISOString(), updatedBy: ctx.user.id };
+    await tx.writeAboutImages(next as unknown as Prisma.InputJsonValue);
+    return { status: 'ok', value: next, changed: true };
   });
+  if (r.status === 'unknown_asset') return err('unknown_asset', 400, { ids: r.ids });
   if (r.status === 'conflict') return err('version_conflict', 409, { currentVersion: r.currentVersion });
   const saved = parseStoredAboutImages(r.value);
   if (r.changed) {
