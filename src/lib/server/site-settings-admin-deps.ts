@@ -5,6 +5,7 @@ import { audit } from './admin/audit';
 import { readJson } from './admin/inquiries';
 import { prismaSiteSettingsStore, type SiteSettingsDeps } from './site-settings-admin';
 import { SITE_SETTINGS_TAG } from './site-settings-model';
+import { prismaAboutImagesLock } from './about-images-lock';
 
 /** 每次成功写入后：刷新 site-settings 缓存标签和 sitemap（页面另有 revalidate 60 兜底） */
 export function revalidateSiteSettings() {
@@ -25,5 +26,6 @@ export const siteSettingsDeps: Omit<SiteSettingsDeps, 'requireAdmin'> = {
   revalidate: revalidateSiteSettings,
   userNames: async (ids) => Object.fromEntries((await prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true } })).map((u) => [u.id, u.name])),
   liveAssets: (ids) => (ids.length ? prisma.publicAsset.findMany({ where: { id: { in: ids }, deletedAt: null }, select: { id: true, smWidth: true, smHeight: true, lgWidth: true, lgHeight: true } }) : Promise.resolve([])),
+  aboutImagesLock: prismaAboutImagesLock(prisma),
   now: () => new Date(),
 };
