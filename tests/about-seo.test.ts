@@ -176,12 +176,12 @@ test('Organization builder returns a plain object; no script/serialization in th
   assert.doesNotMatch(src, /<script|dangerouslySetInnerHTML|JSON\.stringify|u003c/);
 });
 
-test("JsonLd component escapes '<' when rendering builder output", () => {
+test("JsonLd component escapes '<' (and '>') when rendering builder output", () => {
   const html = renderToStaticMarkup(createElement(JsonLd, { data: buildOrganizationJsonLd({ name: '</script><script>alert(1)</script>', url: ORIGIN, sameAs: [] }, ORIGIN) }));
   assert.match(html, /^<script type="application\/ld\+json">/);
   const inner = html.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, '');
   assert.equal(inner.includes('<'), false);
-  assert.match(inner, /\\u003c\/script>/);
+  assert.match(inner, /\\u003c\/script\\u003e/); // JsonLd.tsx 也转义 > & U+2028 U+2029（见 organization-jsonld.test.ts）
   assert.equal((JSON.parse(inner) as { name: string }).name, '</script><script>alert(1)</script>');
 });
 
@@ -212,7 +212,9 @@ test('Organization JSON-LD: origin defaults to SITE_URL, @id matches Organizatio
   const o = buildOrganizationJsonLd({ name: 'PackJoyU', url: SITE_URL, sameAs: [] });
   assert.equal(o['@id'], `${SITE_URL}/#organization`);
   assert.equal(o.url, SITE_URL);
-  assert.match(readFileSync('src/components/seo/OrganizationJsonLd.tsx', 'utf8'), /'@id': `\$\{SITE_URL\}\/#organization`/);
+  // OrganizationJsonLd.tsx 现在直接用 buildOrganizationJsonLd 生成 Organization 节点（见 tests/organization-jsonld.test.ts）
+  assert.match(readFileSync('src/components/seo/OrganizationJsonLd.tsx', 'utf8'), /buildOrganizationJsonLd\(settings, origin\)/);
+  assert.match(readFileSync('src/components/seo/OrganizationJsonLd.tsx', 'utf8'), /publisher: \{ '@id': `\$\{origin\}\/#organization` \}/);
 });
 
 test('Organization JSON-LD (#367): values the backend stores are never dropped (ORG_EMAIL_RE / safeOrgUrl reused)', () => {

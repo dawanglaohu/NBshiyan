@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
-import { canSave, conflictStep, SETTINGS_TEXT as T, type ConflictEvent, type ConflictPhase } from '@/lib/admin/site-settings';
+import { canSave, conflictStep, focusField, revealAlert, SETTINGS_TEXT as T, type ConflictEvent, type ConflictPhase } from '@/lib/admin/site-settings';
 import {
   canAddSameAs, descriptionCounter, emptyOrgDraft, foundingYearInput, isOrgConflict, ORG_FIELD_TEXT, ORG_GROUPS,
   ORG_LIMITS, ORG_PLACEHOLDER, ORG_TEXT, orgDirtyFields, orgDirtySummary, orgDraftErrors, orgErrorText, orgSettingsApi, sameAsRows, saveFailureView,
@@ -29,6 +29,12 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
   const [conflict, setConflict] = useState<ConflictPhase>('none');
   const conflictRef = useRef<ConflictPhase>('none');
   const step = (e: ConflictEvent) => { const r = conflictStep(conflictRef.current, e); conflictRef.current = r.next; setConflict(r.next); return r; };
+  const conflictBannerRef = useRef<HTMLDivElement>(null);
+  const errAlertRef = useRef<HTMLParagraphElement>(null);
+
+  // UX #375 P2：冲突横幅 / 顶部错误条出现时滚进视野并聚焦
+  useEffect(() => { if (conflict === 'conflict') revealAlert(conflictBannerRef.current); }, [conflict]);
+  useEffect(() => { if (notice?.kind === 'err') revealAlert(errAlertRef.current); }, [notice]);
 
   useEffect(() => {
     api.load().then((d) => { setSaved(d); setDraft(structuredClone(d.draft)); }).catch((e: Error) => setNotice({ kind: 'err', text: orgErrorText(e.message) }));
@@ -77,7 +83,7 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
     if (v.alert) setNotice({ kind: 'err', text: v.alert });
     // 焦点移到第一个出错的字段
     const first = [...ORG_GROUPS.flatMap((g) => g.fields)].flatMap((f) => (f === 'sameAs' ? draft.sameAs.map((_, i) => `sameAs.${i}`).concat('sameAs') : [f])).find((k) => v.fieldErrors[k as keyof OrgErrors]);
-    if (first) window.requestAnimationFrame(() => document.getElementById(fieldId(first))?.focus());
+    if (first) window.requestAnimationFrame(() => focusField(document.getElementById(fieldId(first))));
   };
 
   const discard = () => { if (!saved) return; setDraft(structuredClone(saved.draft)); setServerErr({}); setTouched(new Set()); };
@@ -172,9 +178,9 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
       <h1>{ORG_TEXT.h1}</h1>
       {saved.updatedAt && <p className="st-audit">{T.lastEdited}{saved.updatedByName ?? '—'} · <AdminTime iso={saved.updatedAt} /></p>}
       {notice?.kind === 'ok' && <p className="st-ok" role="status">{notice.text}</p>}
-      {notice?.kind === 'err' && <p className="st-err" role="alert">{notice.text}</p>}
+      {notice?.kind === 'err' && <p ref={errAlertRef} className="st-err" role="alert" tabIndex={-1}>{notice.text}</p>}
       {conflict !== 'none' && (
-        <div className="st-err st-conflict" role="alert">
+        <div ref={conflictBannerRef} className="st-err st-conflict" role="alert" tabIndex={-1}>
           <span>{T.conflict}</span>
           <button type="button" className="adm-btn" disabled={conflict === 'loading'} aria-busy={conflict === 'loading' || undefined} onClick={() => step('refresh')}>{T.conflictRefresh}</button>
         </div>
@@ -199,7 +205,7 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
 
       {dirty && (
         <div className="st-bar" role="region" aria-label="保存">
-          <span>{T.dirty}{conflict !== 'none' ? <small> · {T.conflictBar}</small> : summary && <small>（{summary}）</small>}</span>
+          <span className="st-bar-msg">{T.dirty}{conflict !== 'none' ? <small>{T.conflictBar}</small> : summary && <small>（{summary}）</small>}</span>
           <button type="button" className="adm-btn" disabled={busy || conflict !== 'none'} onClick={discard}>{T.discard}</button>
           <button type="button" className="adm-btn primary" disabled={!saveAllowed} title={conflict !== 'none' ? T.conflictSaveTitle : undefined} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
         </div>
