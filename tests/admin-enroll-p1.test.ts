@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   afterConfirm, afterEnroll, assertEnrollPath, canFinish, CONFIRM_PATH, ENROLL_PAGE, ENROLL_PATH, ERROR_TEXT, errorText, groupSecret,
-  inProgress, INITIAL, isCompleteCode, NEXT_CODE_WAIT_MS, normalizeCode, parseSecret, postEnroll, recoveryTxt, SIGNIN_HREF, stepStatus, waitLeft, type EnrollState,
+  codeCheck, CODE_LEN, inProgress, INITIAL, isCompleteCode, NEXT_CODE_WAIT_MS, normalizeCode, parseSecret, postEnroll, recoveryTxt, SIGNIN_HREF, stepStatus, waitLeft, type EnrollState,
 } from '../src/lib/admin/enroll';
 import { qrSvgDataUrl } from '../src/lib/admin/enroll-qr';
 
@@ -37,11 +37,27 @@ test('P1 enroll: secret parsed from otpauth URI and grouped by 4', () => {
   assert.equal(groupSecret('ABCDEF'), 'ABCD EF');
 });
 
-test('P1 enroll: code input keeps digits only (paste with spaces / dashes), max 6', () => {
+test('P1 enroll: code input keeps digits only (paste with spaces / dashes); >6 digits kept and flagged, not truncated', () => {
   assert.equal(normalizeCode(' 123 456 '), '123456');
   assert.equal(normalizeCode('123-456'), '123456');
-  assert.equal(normalizeCode('1234567'), '123456');
   assert.equal(normalizeCode('12a3'), '123');
+  // e2e/admin-enroll.spec.ts 的场景 + PM 要求的用例
+  assert.equal(normalizeCode('751 940'), '751940');
+  assert.equal(normalizeCode('751-940'), '751940');
+  assert.equal(normalizeCode(' 751940 '), '751940');
+  assert.equal(normalizeCode('751\u00a0940\n'), '751940');
+  assert.equal(normalizeCode('７５１ ９４０'), '751940'); // 全角数字转半角
+  assert.equal(normalizeCode('٧٥١٩٤٠'), ''); // 其他文字的数字不接受（后端只认 ASCII 0-9）
+  assert.equal(normalizeCode(''), '');
+  // 超过 6 位：不截断，全部保留，交给 codeCheck 判 long
+  assert.equal(normalizeCode('7519401'), '7519401');
+  assert.equal(normalizeCode('751 940 1234'), '7519401234');
+  assert.equal(codeCheck(normalizeCode('751 940')), 'ok');
+  assert.equal(codeCheck(normalizeCode(' 751940 ')), 'ok');
+  assert.equal(codeCheck(normalizeCode('7519401')), 'long');
+  assert.equal(codeCheck(normalizeCode('75194')), 'short');
+  assert.equal(codeCheck(''), 'short');
+  assert.equal(CODE_LEN, 6);
   assert.ok(isCompleteCode('012345'));
   assert.ok(!isCompleteCode('12345'));
   assert.ok(!isCompleteCode('12345a'));
@@ -159,7 +175,13 @@ test('P1 enroll: no storage / logging / innerHTML / external URLs; download revo
   assert.match(ui, /autoComplete="current-password"/);
   assert.match(ui, /aria-disabled=\{ready \? undefined : true\}/);
   assert.match(ui, /width=\{216\} height=\{216\}/);
-  assert.match(ui, /maxLength=\{6\}/);
+  // 验证码框不能用 maxLength：浏览器会按原始字符截断，「751 940」会丢最后一位；长度由 normalizeCode 限制
+  assert.doesNotMatch(ui.slice(ui.indexOf('id="en-otp"'), ui.indexOf('/>', ui.indexOf('id="en-otp"'))), /maxLength/);
+  assert.match(ui, /onChange=\{\(e\) => setCode\(normalizeCode\(e\.target\.value\)\)\}/);
+  // 不是正好 6 位就禁用提交；超过 6 位时输入框下方提示
+  assert.match(ui, /disabled=\{busy \|\| codeLen !== 'ok'\}/);
+  assert.match(ui, /codeLen === 'long' \? 'code_incomplete'/);
+  assert.match(ui, /codeCheck\(code\) !== 'ok' \|\| !isCompleteCode\(code\)\) return;/);
 });
 
 test('P1 enroll: page lives outside /admin, noindex + no-store, no locale prefix, robots covers it', () => {
