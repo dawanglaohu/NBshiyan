@@ -130,3 +130,11 @@
   .adm-reply-actions{flex:1 1 100%;justify-content:space-between}
 }
 @media (max-width:767px) and (prefers-reduced-motion:reduce){.adm-side,.adm[data-nav=open] .adm-side{transition:none}}
+/* #347 一次性绑定链接面板 */
+.adm-enroll-link{max-width:720px;margin:12px 0}
+.adm-enroll-link:focus{outline:none}.adm-enroll-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.adm-enroll-link-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.adm-enroll-link-row input{flex:1 1 auto;min-width:0}
+.adm-enroll-link-exp{margin:0 0 4px}
+.adm-enroll-link-warn{margin:8px 0 12px;color:var(--warn-c);font-weight:600}
+@media (max-width:767px){.adm-enroll-link-row{flex-direction:column;align-items:stretch}}

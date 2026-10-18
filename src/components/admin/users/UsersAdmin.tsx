@@ -1,6 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { errorText } from '@/components/admin/format';
+import EnrollLinkPanel from './EnrollLinkPanel';
+import { panelReducer, pickEnrollLink, type PanelState } from '@/lib/admin/enroll-link';
 import AdminTime from '@/components/admin/AdminTime';
 import { ENROLL_PAGE } from '@/lib/admin/enroll';
 
@@ -27,6 +29,13 @@ export default function UsersAdmin() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ email: '', name: '', role: 'SALES' as Role, password: '' });
+  // #347 新建账号返回的一次性绑定链接：只在这个 state 里，「我已复制」后置 null；后端没返回链接时什么都不多显示
+  const [linkPanel, setLinkPanel] = useState<PanelState>(null);
+  const create = () => run(async () => {
+    const issued = pickEnrollLink(await api<unknown>('', { method: 'POST', body: JSON.stringify(form) }));
+    if (issued) setLinkPanel((s) => panelReducer(s, { type: 'issued', issued, email: form.email }));
+    setForm({ email: '', name: '', role: 'SALES', password: '' });
+  });
 
   const load = useCallback(() => api<{ items: U[] }>('?all=1').then((d) => setItems(d.items)).catch((e: Error) => setErr(msg(e.message))), []);
   useEffect(() => { load(); }, [load]);
@@ -41,7 +50,7 @@ export default function UsersAdmin() {
     <>
       <h1>账号权限</h1>
       {err && <p role="alert" className="adm-msg">{err}</p>}
-      <form className="adm-card" onSubmit={(e) => { e.preventDefault(); run(async () => { await api('', { method: 'POST', body: JSON.stringify(form) }); setForm({ email: '', name: '', role: 'SALES', password: '' }); }); }}>
+      <form className="adm-card" onSubmit={(e) => { e.preventDefault(); create(); }}>
         <h2>新建账号</h2>
         <label>邮箱 <input type="email" required maxLength={200} autoComplete="off" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>{' '}
         <label>姓名 <input required maxLength={100} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>{' '}
@@ -50,6 +59,7 @@ export default function UsersAdmin() {
         <button className="adm-btn" disabled={busy}>创建</button>
         <p className="spec-meta">初始密码请通过安全渠道只告知本人；对方首次登录前必须先打开 <a href={ENROLL_PAGE}>{ENROLL_PAGE}</a>，用邮箱和初始密码绑定 2FA，拿到初始密码后请立即绑定。2FA 被重置的账号也在这个页面重新绑定。</p>
       </form>
+      {linkPanel && <EnrollLinkPanel issued={linkPanel.issued} email={linkPanel.email} onDismiss={() => setLinkPanel((s) => panelReducer(s, { type: 'dismiss' }))} />}
       <table className="adm-card" style={{ width: '100%' }}>
         <thead><tr><th>邮箱</th><th>姓名</th><th>角色</th><th>状态</th><th>最近登录</th><th>操作</th></tr></thead>
         <tbody>
