@@ -39,3 +39,14 @@ test('P2-2「在新窗口预览 EN ↗」：target=_blank + rel=noopener，指�
 test('P3-1 编辑器链接颜色用 --accent-text', () => {
   assert.match(css, /\.st-rich a\{color:var\(--accent-text\)\}/);
 });
+
+test('P3-2 冲突期间保存栏：「有未保存的修改 · 内容冲突，刷新后才能保存」，保存灰色禁用，放弃修改也禁用（about 和组织信息都一样）', () => {
+  assert.equal(SETTINGS_TEXT.conflictBar, '内容冲突，刷新后才能保存');
+  for (const f of ['AboutSettings.tsx', 'OrgSettings.tsx']) {
+    const src = readFileSync(`src/components/admin/settings/${f}`, 'utf8');
+    assert.match(src, /conflict !== 'none' \? <small> · \{T\.conflictBar\}<\/small>/, f);
+    assert.match(src, /disabled=\{busy \|\| conflict !== 'none'\} onClick=\{discard\}/, f);
+    assert.match(src, /title=\{conflict !== 'none' \? T\.conflictSaveTitle : undefined\}/, f);
+  }
+  assert.match(css, /\.st-bar \.adm-btn\.primary:disabled\{background:var\(--line\);border-color:var\(--line\);color:var\(--ink-2\);opacity:1/);
+});

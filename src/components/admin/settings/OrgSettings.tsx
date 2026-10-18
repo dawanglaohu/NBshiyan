@@ -211,9 +211,9 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
 
       {dirty && (
         <div className="st-bar" role="region" aria-label="保存">
-          <span>{T.dirty}{summary && <small>（{summary}）</small>}</span>
-          <button type="button" className="adm-btn" disabled={busy} onClick={discard}>{T.discard}</button>
-          <button type="button" className="adm-btn primary" disabled={!saveAllowed} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
+          <span>{T.dirty}{conflict !== 'none' ? <small> · {T.conflictBar}</small> : summary && <small>（{summary}）</small>}</span>
+          <button type="button" className="adm-btn" disabled={busy || conflict !== 'none'} onClick={discard}>{T.discard}</button>
+          <button type="button" className="adm-btn primary" disabled={!saveAllowed} title={conflict !== 'none' ? T.conflictSaveTitle : undefined} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
         </div>
       )}
 

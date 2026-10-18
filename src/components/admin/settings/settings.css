@@ -46,6 +46,7 @@
 .st-dialog{background:#fff;border-radius:12px;padding:20px 24px;max-width:480px;width:100%}
 .st-dialog h2{margin:0 0 8px;font-size:18px}
 .st-dlg-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.st-bar .adm-btn.primary:disabled{background:var(--line);border-color:var(--line);color:var(--ink-2);opacity:1;cursor:not-allowed} /* UX #373 P3-2：禁用的「保存」是灰色，不是淡珊瑚色 */
 .adm-btn.primary.danger{background:#C0392B;border-color:#C0392B;color:#fff}
 /* UX #373 P2-2：标题行 + 预览按钮；右栏完整度清单（稿件 .ss-chk） */
 .st-hd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;justify-content:space-between}

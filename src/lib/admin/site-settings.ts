@@ -71,6 +71,9 @@ export const SETTINGS_TEXT = {
   conflictRefresh: '刷新',
   conflictConfirmTitle: '未保存的修改将丢弃',
   conflictConfirmOk: '丢弃并刷新',
+  // UX #373 P3-2：冲突期间保存栏的说明（稿件 settings-conflict）和禁用「保存」的 title
+  conflictBar: '内容冲突，刷新后才能保存',
+  conflictSaveTitle: '内容冲突，请先刷新',
   leave: '有未保存的修改，确定离开？',
   linkLabel: '链接地址',
   linkOk: '确定',
