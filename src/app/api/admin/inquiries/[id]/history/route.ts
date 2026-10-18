@@ -4,7 +4,7 @@ import { prisma } from '@/lib/server/db';
 import { requireAdmin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { ID_RE, inquiryScope } from '@/lib/server/admin/inquiries';
-import { buildHistory, pageHistory, HISTORY_DEFAULT_LIMIT, HISTORY_MAX_LIMIT } from '@/lib/server/admin/history';
+import { buildHistory, pageHistory, HISTORY_DEFAULT_LIMIT, HISTORY_MAX_LIMIT, HISTORY_MAIL_SELECT, HISTORY_MAIL_STATUSES, type MailHistoryRow } from '@/lib/server/admin/history';
 
 export const runtime = 'nodejs';
 const Q = z.object({
@@ -12,7 +12,11 @@ const Q = z.object({
   before: z.string().max(200).optional(),
 }).strict();
 
-/** 询盘时间线：{ items, total }，新的在前，?limit（默认 10，最多 50）&before=<cursor>。SALES 只能看分配给自己的询盘（含分配前的记录）。 */
+/**
+ * 询盘时间线：{ items, total }，新的在前，?limit（默认 10，最多 50）&before=<cursor>。SALES 只能看分配给自己的询盘（含分配前的记录）。
+ * 每条 { type, at, actorKind, actor, summary, cursor }（字段白名单在 buildHistory 里逐个拼出）。往来邮件 = 旧表 InquiryMessage + #74 新表 MailMessage；
+ * 新表只读 HISTORY_MAIL_SELECT 里的列（不读正文、地址、Message-ID、sendKey）。客户名只从这里返回（已净化，已匿名化为 [deleted]）。
+ */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireAdmin(req, ['ADMIN', 'SALES']);
   if (ctx instanceof Response) return ctx;
@@ -24,8 +28,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (!q.success) return NextResponse.json({ error: 'invalid', issues: q.error.flatten() }, { status: 400, headers: noStore });
   const inq = await prisma.inquiry.findFirst({
     where: { AND: [{ id }, inquiryScope(ctx.user)] },
-    select: { id: true, createdAt: true, source: true, sample: { select: { shippingAddress: true } },
-      messages: { select: { id: true, direction: true, subject: true, authorId: true, createdAt: true }, take: 1000 } },
+    select: { id: true, createdAt: true, source: true, anonymizedAt: true, contact: { select: { name: true } }, sample: { select: { shippingAddress: true } },
+      messages: { select: { id: true, direction: true, subject: true, authorId: true, createdAt: true }, take: 1000 },
+      mailMessages: { where: { status: { in: [...HISTORY_MAIL_STATUSES] } }, select: HISTORY_MAIL_SELECT, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 1000 } },
   });
   if (!inq) return jsonErr('not_found', 404);
   const audits = await prisma.auditLog.findMany({ where: { target: id, action: 'inquiry.update' }, take: 1000, select: { id: true, action: true, actorId: true, meta: true, createdAt: true } });
@@ -36,8 +41,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (aid) userIds.add(aid);
   }
   for (const m of inq.messages) if (m.authorId) userIds.add(m.authorId);
+  for (const m of inq.mailMessages) if (m.authorId) userIds.add(m.authorId);
   const users = await prisma.user.findMany({ where: { id: { in: [...userIds] } }, select: { id: true, name: true, role: true } });
-  const page = pageHistory(buildHistory(inq, audits, inq.messages, users, inq.sample?.shippingAddress), q.data.limit, q.data.before);
+  const meta = { id: inq.id, createdAt: inq.createdAt, source: inq.source, anonymizedAt: inq.anonymizedAt, customerName: inq.contact?.name ?? null };
+  const page = pageHistory(buildHistory(meta, audits, inq.messages, users, inq.sample?.shippingAddress, inq.mailMessages as MailHistoryRow[]), q.data.limit, q.data.before);
   if (!page) return jsonErr('bad_cursor', 400);
   return NextResponse.json(page, { headers: noStore });
 }
