@@ -52,6 +52,13 @@ enum ModelStatus {
 enum Locale {
   en
   ru
+  // 多语言第 0 期预留（只追加，不改名、不删、不调顺序）。线上是否开放由 src/lib/server/published-locales.ts 决定，未发布语言接口一律 400。
+  es
+  de
+  fr
+  ja
+  hi
+  ar
 }
 
 model User {

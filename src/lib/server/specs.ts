@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { Prisma, type CategorySpec, type Incoterm } from '@prisma/client';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { isHttpsUrl, normalizeUrlSchemeHost } from '@/lib/admin/spec-form';
+import { isPublishedLocale, type PublishedLocale } from './published-locales';
 
 /** 品类 key 以 categoryMeta.ts 为准 */
 export const CATEGORY_KEYS: readonly string[] = categoryMeta.map((c) => c.key);
@@ -10,7 +11,7 @@ export const SPECS_TAG = 'category-specs';
 export const PUBLIC_CACHE = { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' };
 export const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'] as const satisfies readonly Incoterm[];
 export const CURRENCIES = ['USD', 'EUR', 'CNY', 'RUB'] as const;
-export type SpecLocale = 'en' | 'ru';
+export type SpecLocale = PublishedLocale;
 
 const text = (max: number) => z.string().trim().max(max);
 const Localized = (max: number) => z.object({ en: text(max).optional(), ru: text(max).optional() }).strict();
@@ -131,4 +132,5 @@ export function publicView(category: string, r: Row | null, locale: SpecLocale) 
 }
 
 export const hasPublicFields = (v: Record<string, unknown>) => Object.keys(v).length > 1;
-export const parseLocale = (s: string | null): SpecLocale | null => (s === null || s === 'en' ? 'en' : s === 'ru' ? 'ru' : null);
+/** 缺省为 en；只接受已发布语言，其它（含 DB 枚举里预留的语言）返回 null → 路由 400 */
+export const parseLocale = (s: string | null): SpecLocale | null => (s === null ? 'en' : isPublishedLocale(s) ? s : null);

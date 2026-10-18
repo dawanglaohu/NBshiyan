@@ -5,6 +5,7 @@ import { LOGO_ID_RE } from './uploads';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categorySlugs } from '@/lib/seo/categorySlugs';
 import { SITE_URL } from '@/lib/site';
+import { PublishedLocaleSchema, toPublishedLocale, type PublishedLocale } from './published-locales';
 
 /** 新方案 id 16 位（约 93 bit），旧数据 10 位 */
 export const DESIGN_ID_LEN = 16;
@@ -48,7 +49,7 @@ export const DesignConfig = z.object({
 export const DesignBody = z.object({
   productSlug: z.string().regex(/^[a-z0-9-]{1,80}$/),
   category: z.string().refine((k) => CATEGORY_KEYS.has(k), 'unknown_category').optional(),
-  locale: z.enum(['en', 'ru']).default('en'),
+  locale: PublishedLocaleSchema.default('en'),
   config: DesignConfig,
   logoUploadId: z.string().regex(LOGO_ID_RE).optional(),
   turnstileToken: z.string().max(4096).optional(),
@@ -56,8 +57,8 @@ export const DesignBody = z.object({
 
 const notExpired = (now = new Date()) => ({ OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] });
 
-export type PublicDesign = { id: string; productSlug: string; category: string | null; locale: 'en' | 'ru'; config: unknown; expiresAt: Date | null; createdAt: Date; hasLogo: boolean };
-export type DesignLookup = { state: 'ok'; design: PublicDesign } | { state: 'expired'; category: string | null; locale: 'en' | 'ru' } | { state: 'missing' };
+export type PublicDesign = { id: string; productSlug: string; category: string | null; locale: PublishedLocale; config: unknown; expiresAt: Date | null; createdAt: Date; hasLogo: boolean };
+export type DesignLookup = { state: 'ok'; design: PublicDesign } | { state: 'expired'; category: string | null; locale: PublishedLocale } | { state: 'missing' };
 
 /** 公开读取。过期的方案保留 retention.designGraceDays 天以返回 410 和分类页链接，之后删除（404）。
  *  不返回 logoUploadId（防止被别人拿去绑定询盘），只返回 hasLogo。方案不可修改。 */
@@ -68,9 +69,9 @@ export async function lookupDesign(id: string, now = new Date()): Promise<Design
     select: { id: true, productSlug: true, category: true, locale: true, config: true, logoUploadId: true, expiresAt: true, createdAt: true },
   });
   if (!d) return { state: 'missing' };
-  if (d.expiresAt && d.expiresAt <= now) return { state: 'expired', category: d.category, locale: d.locale };
+  if (d.expiresAt && d.expiresAt <= now) return { state: 'expired', category: d.category, locale: toPublishedLocale(d.locale) };
   const { logoUploadId, ...rest } = d;
-  return { state: 'ok', design: { ...rest, hasLogo: !!logoUploadId } };
+  return { state: 'ok', design: { ...rest, locale: toPublishedLocale(rest.locale), hasLogo: !!logoUploadId } };
 }
 
 /** 数据库/连接类错误（区别于“查不到”）：Prisma 初始化失败、P1001/P1002/P1008/P1017/P2024、Rust panic，或底层网络错误码 */
@@ -126,7 +127,7 @@ export async function cleanupExpiredDesigns(now = new Date(), deadline = NO_DEAD
 }
 
 /** /s/:id 的 canonical：指向对应分类落地页（按方案语言取 slug）；没有分类时指向产品总页 */
-export function canonicalFor(d: { locale: 'en' | 'ru'; category: string | null }) {
+export function canonicalFor(d: { locale: PublishedLocale; category: string | null }) {
   const slug = d.category ? categorySlugs(d.category)?.[d.locale] : null;
   return `${SITE_URL}/${d.locale}/products${slug ? `/${slug}` : ''}`;
 }
