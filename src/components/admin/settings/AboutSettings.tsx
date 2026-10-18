@@ -3,7 +3,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
-  aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
+  aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref, issuesAlertText,
   isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
 } from '@/lib/admin/site-settings';
 import ConfirmDialog from './ConfirmDialog';
@@ -151,7 +151,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
       step('conflict');
       return;
     }
-    setNotice({ kind: 'err', text: settingsErrorText(r.code) });
+    setNotice({ kind: 'err', text: issuesAlertText(r.code, r.ok ? [] : r.issues ?? []) });
   };
 
   const discard = () => { if (!saved) return; setDraft(structuredClone(saved.locales)); setEpoch((n) => n + 1); };
@@ -164,7 +164,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
     setBusy(false);
     if (r.ok) { setSaved((p) => (p ? { ...p, enabled: r.data.enabled, enabledVersion: r.data.enabledVersion } : r.data)); return; }
     if (isVersionConflict(r)) { step('conflict'); return; }
-    setNotice({ kind: 'err', text: settingsErrorText(r.code) });
+    setNotice({ kind: 'err', text: issuesAlertText(r.code, r.ok ? [] : r.issues ?? []) });
   };
 
   /** 冲突后「刷新」→ 确认「未保存的修改将丢弃」→ 读最新内容和版本号，丢弃本地修改 */

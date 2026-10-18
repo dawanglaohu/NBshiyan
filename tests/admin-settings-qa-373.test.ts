@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { bodyTooShortNote, draftChecklist, draftCompleteness, emptyDraft, missingParts, SETTINGS_TEXT, type AboutDraft } from '../src/lib/admin/site-settings';
+import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
+import { issuesAlertText, bodyTooShortNote, draftChecklist, draftCompleteness, emptyDraft, missingParts, SETTINGS_TEXT, type AboutDraft } from '../src/lib/admin/site-settings';
 
 // UX #373 视觉验收（issue #350 评论 6247346735）对 /admin/settings 的修正
 const d = (o: Partial<AboutDraft>): AboutDraft => ({ ...emptyDraft(), ...o });
@@ -68,4 +69,18 @@ test('P2-3 390 下点击区域 ≥ 44px：按钮、输入框、下拉、标签�
     assert.ok(mobile.includes(rule), rule);
   }
   assert.match(css, /\.st-switch\{width:52px;height:44px;/);
+});
+
+test('关于我们也用同一个错误条：400 / 422 的 issues 带到 alert 里，没 issues 时显示错误码文案', async () => {
+  const bodies = [{ status: 400, body: { error: 'invalid', issues: [{ path: 'home.title', message: 'max 60 chars' }] } }, { status: 422, body: {} }];
+  let n = 0;
+  const api = createAboutSettingsApi(async () => { const r = bodies[n++]; return new Response(JSON.stringify(r.body), { status: r.status }); });
+  const base = { enabled: false, enabledVersion: 0, locales: { en: emptyDraft() } };
+  const r1 = await api.save({ en: d({ title: 'About' }) }, base);
+  assert.ok(!r1.ok);
+  assert.equal(issuesAlertText(r1.code, r1.issues), '参数不正确，请检查后重试。（home.title：max 60 chars）');
+  const r2 = await api.save({ en: d({ title: 'About' }) }, base);
+  assert.ok(!r2.ok);
+  assert.equal(issuesAlertText(r2.code, r2.issues), '保存失败：http_422');
+  assert.equal((about.match(/issuesAlertText\(r\.code, r\.ok \? \[\] : r\.issues \?\? \[\]\)/g) ?? []).length, 2);
 });

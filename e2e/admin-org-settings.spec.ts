@@ -146,6 +146,25 @@ test('组织信息：分区导航、占位不预填、计数器、社交主页�
   await expect(page.getByRole('navigation', { name: '站点设置分区' }).getByRole('link', { name: '关于我们' })).toHaveAttribute('aria-current', 'page');
 });
 
+test('组织信息：对不上字段的 400 issue、422 没带 issues，都显示在顶部错误条', async ({ page }) => {
+  test.setTimeout(60_000);
+  await loginFreshAdmin(page);
+  const replies = [
+    { status: 400, json: { error: 'invalid', issues: [{ path: 'capacity', message: 'Unrecognized key' }] } },
+    { status: 422, json: {} },
+  ];
+  await page.route(`**${API}`, (r) => (r.request().method() === 'PUT' ? r.fulfill(replies.shift()!) : r.fallback()));
+  await page.goto('/admin/settings?section=org');
+  await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
+  await page.getByLabel('公司注册全称').fill('示例文字 Sample Co., Ltd.');
+  const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
+  await save.click();
+  await expect(page.getByRole('alert')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  await save.click();
+  await expect(page.getByRole('alert')).toHaveText('保存失败：http_422');
+  await expect(page.getByLabel('公司注册全称')).toHaveValue('示例文字 Sample Co., Ltd.');
+});
+
 test('关于我们：当前语言前台不可见时不给链接，显示灰字「尚未发布，前台不可见」；可见时「查看前台已发布页 ↗」新窗口打开', async ({ page }) => {
   test.setTimeout(60_000);
   await loginFreshAdmin(page);

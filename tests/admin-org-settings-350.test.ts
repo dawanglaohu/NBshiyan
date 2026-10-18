@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   canAddSameAs, countChars, createOrgSettingsApi, descriptionCounter, emptyOrgDraft, foundingYearInput, FOUNDING_YEAR_MIN, isValidFoundingYear, mapServerIssues,
   normalizeOrgUrl, ORG_EMAIL_RE as C_EMAIL, ORG_ERR, ORG_FIELD_TEXT, ORG_LIMITS as C_LIMITS, ORG_PLACEHOLDER, ORG_TELEPHONE_RE as C_TEL, ORG_TEXT, ORG_TEXT_FIELDS as C_FIELDS,
-  orgDirtySummary, orgDraftErrors, orgFromView, orgPutBody, sameAsPayload, sameAsRows, type OrgDraft,
+  orgDirtySummary, orgDraftErrors, orgFromView, orgPutBody, sameAsPayload, saveFailureView, sameAsRows, type OrgDraft,
 } from '../src/lib/admin/org-settings';
 import { canSave, conflictStep, SETTINGS_TEXT, type ConflictPhase } from '../src/lib/admin/site-settings';
 import { ORG_EMAIL_RE, ORG_LIMITS, ORG_TELEPHONE_RE, ORG_TEXT_FIELDS, isValidFoundingDate, safeOrgUrl } from '../src/lib/server/site-settings-model';
@@ -245,4 +245,29 @@ test('组织信息组件是 use client，只调同源 /api/admin/site-settings/o
   assert.ok(specs(src).includes('@/lib/admin/org-settings'));
   const page = readFileSync('src/app/admin/settings/page.tsx', 'utf8');
   assert.ok(page.indexOf("await enforceAdminPage(['ADMIN']") < page.indexOf('sectionFrom('), '先做 ADMIN 页面检查，再看分区');
+});
+
+test('错误条：对不上字段的 issue、400 / 422 没带 issues 都进顶部 alert，不会悄悄丢掉；能对上的只放字段下方', async () => {
+  const { api } = fake([
+    () => ({ status: 400, body: { error: 'invalid', issues: [{ path: 'capacity', message: 'Unrecognized key' }, { path: 'email', message: 'Invalid' }] } }),
+    () => ({ status: 400, body: { error: 'invalid', issues: [{ path: 'expectedVersion', message: 'Required' }] } }),
+    () => ({ status: 400, body: { error: 'invalid' } }),
+    () => ({ status: 422, body: {} }),
+    () => ({ status: 422, body: { error: 'invalid', issues: [] } }),
+    () => ({ status: 400, body: { error: 'invalid', issues: [{ path: 'telephone', message: 'invalid_telephone' }] } }),
+  ]);
+  const d = emptyOrgDraft();
+  const fail = async () => { const r = await api.save(d, 0); assert.ok(!r.ok); return saveFailureView(r as Extract<typeof r, { ok: false }>); };
+  const a = await fail();
+  assert.equal(a.fieldErrors.email, '邮箱格式不正确');
+  assert.equal(a.alert, '参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  const b = await fail();
+  assert.deepEqual(b.fieldErrors, {});
+  assert.equal(b.alert, '参数不正确，请检查后重试。（expectedVersion：Required）');
+  assert.equal((await fail()).alert, '参数不正确，请检查后重试。'); // 400 没带 issues
+  assert.equal((await fail()).alert, '保存失败：http_422'); // 422 没 body
+  assert.equal((await fail()).alert, '参数不正确，请检查后重试。'); // 422 issues 为空
+  const f = await fail();
+  assert.equal(f.alert, null);
+  assert.equal(f.fieldErrors.telephone, ORG_ERR.telephone);
 });

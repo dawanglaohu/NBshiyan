@@ -10,7 +10,7 @@
  * - 409 冲突沿用 about 的 conflictStep / canSave / writesBlocked（site-settings.ts），文案也共用 SETTINGS_TEXT。
  */
 import { countChars } from '@/lib/site-settings/about-rules';
-import { settingsErrorText, VERSION_CONFLICT } from './site-settings';
+import { issueLine, issuesAlertText, settingsErrorText, VERSION_CONFLICT } from './site-settings';
 
 export { countChars };
 
@@ -219,7 +219,7 @@ export function mapServerIssues(issues: { path: string; message: string }[], row
       fields[f] ??= text;
       continue;
     }
-    rest.push(i.path ? `${i.path}: ${msg}` : msg);
+    rest.push(issueLine(i));
   }
   return { fields, rest };
 }
@@ -282,7 +282,7 @@ export function createOrgSettingsApi(f: Fetch) {
       if (r.ok) return { ok: true, data: orgFromView(((r.body as { content?: View }).content ?? {}) as View) };
       const code = codeOf(r);
       if (code === VERSION_CONFLICT) return { ok: false, code, ...(typeof r.body.currentVersion === 'number' ? { currentVersion: r.body.currentVersion } : {}) };
-      if ((r.status === 400 || r.status === 422) && Array.isArray(r.body.issues)) {
+      if ((r.status === 400 || r.status === 422) && Array.isArray(r.body.issues) && r.body.issues.length) {
         const m = mapServerIssues(r.body.issues as { path: string; message: string }[], rowOf);
         return { ok: false, code, fieldErrors: m.fields, rest: m.rest };
       }
@@ -291,5 +291,16 @@ export function createOrgSettingsApi(f: Fetch) {
   };
 }
 export type OrgSettingsApi = ReturnType<typeof createOrgSettingsApi>;
+
+/**
+ * 保存失败时页面怎么显示：能对上字段的放字段下方；对不上字段的 issue、400 / 422 没带 issues、其他错误，
+ * 一律进顶部错误条（alert），不会悄悄丢掉。409 不走这里（conflictStep）。
+ */
+export function saveFailureView(r: Extract<OrgSaveResult, { ok: false }>): { fieldErrors: OrgErrors; alert: string | null } {
+  const fieldErrors = r.fieldErrors ?? {};
+  const rest = r.rest ?? [];
+  if (rest.length) return { fieldErrors, alert: issuesAlertText(r.code, rest) };
+  return { fieldErrors, alert: Object.keys(fieldErrors).length ? null : issuesAlertText(r.code) };
+}
 export const orgSettingsApi: OrgSettingsApi = createOrgSettingsApi((input, init) => fetch(input, init));
 export const orgErrorText = settingsErrorText;

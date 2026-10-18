@@ -4,7 +4,7 @@ import AdminTime from '@/components/admin/AdminTime';
 import { canSave, conflictStep, SETTINGS_TEXT as T, type ConflictEvent, type ConflictPhase } from '@/lib/admin/site-settings';
 import {
   canAddSameAs, descriptionCounter, emptyOrgDraft, foundingYearInput, isOrgConflict, ORG_FIELD_TEXT, ORG_GROUPS,
-  ORG_LIMITS, ORG_PLACEHOLDER, ORG_TEXT, orgDirtyFields, orgDirtySummary, orgDraftErrors, orgErrorText, orgSettingsApi, sameAsRows,
+  ORG_LIMITS, ORG_PLACEHOLDER, ORG_TEXT, orgDirtyFields, orgDirtySummary, orgDraftErrors, orgErrorText, orgSettingsApi, sameAsRows, saveFailureView,
   type OrgData, type OrgDraft, type OrgErrors, type OrgSettingsApi, type OrgTextField,
 } from '@/lib/admin/org-settings';
 import ConfirmDialog from './ConfirmDialog';
@@ -72,15 +72,12 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
     setBusy(false);
     if (r.ok) { setSaved(r.data); setDraft(structuredClone(r.data.draft)); setServerErr({}); setTouched(new Set()); setNotice({ kind: 'ok', text: `✓ ${ORG_TEXT.saved}` }); return; }
     if (isOrgConflict(r)) { step('conflict'); return; } // 409：输入原样保留，保存禁用；只能「刷新」
-    if (r.fieldErrors && Object.keys(r.fieldErrors).length) {
-      setServerErr(r.fieldErrors);
-      // 焦点移到第一个出错的字段
-      const first = [...ORG_GROUPS.flatMap((g) => g.fields)].flatMap((f) => (f === 'sameAs' ? draft.sameAs.map((_, i) => `sameAs.${i}`).concat('sameAs') : [f])).find((k) => r.fieldErrors![k as keyof OrgErrors]);
-      if (first) window.requestAnimationFrame(() => document.getElementById(fieldId(first))?.focus());
-      if (r.rest?.length) setNotice({ kind: 'err', text: orgErrorText(r.code) });
-      return;
-    }
-    setNotice({ kind: 'err', text: orgErrorText(r.code) });
+    const v = saveFailureView(r);
+    setServerErr(v.fieldErrors);
+    if (v.alert) setNotice({ kind: 'err', text: v.alert });
+    // 焦点移到第一个出错的字段
+    const first = [...ORG_GROUPS.flatMap((g) => g.fields)].flatMap((f) => (f === 'sameAs' ? draft.sameAs.map((_, i) => `sameAs.${i}`).concat('sameAs') : [f])).find((k) => v.fieldErrors[k as keyof OrgErrors]);
+    if (first) window.requestAnimationFrame(() => document.getElementById(fieldId(first))?.focus());
   };
 
   const discard = () => { if (!saved) return; setDraft(structuredClone(saved.draft)); setServerErr({}); setTouched(new Set()); };

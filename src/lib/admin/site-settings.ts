@@ -196,6 +196,18 @@ export { isAllowedAboutHref };
 /** 保存 / 开关的错误文案（409 不走这里，见 conflictStep）；其他沿用后台 errorText() */
 export const settingsErrorText = (code: string): string => errorText(code, '保存失败');
 
+/** 后端 issue 转成一行文字（顶部错误条用） */
+export const issueLine = (i: { path?: unknown; message?: unknown }): string => {
+  const path = typeof i.path === 'string' ? i.path : ''; const msg = typeof i.message === 'string' ? i.message : '';
+  return path ? `${path}：${msg}` : msg || '（未说明）';
+};
+/**
+ * 顶部错误条文案（about 和组织信息共用）：对不上字段的 issue、或 400 / 422 没带 issues，都必须显示在这里，不能悄悄丢掉。
+ * rest 是对不上字段的 issue 文字；为空时只显示错误码对应的文案。
+ */
+export const issuesAlertText = (code: string, rest: readonly string[] = []): string =>
+  rest.length ? `${settingsErrorText(code)}（${rest.join('；')}）` : settingsErrorText(code);
+
 // ───────────────────────── 接口层 ─────────────────────────
 /**
  * 失败时 code 是后端的 error 字段原样（例如 'invalid'、'too_large'、'version_conflict'）。
@@ -205,7 +217,7 @@ export const settingsErrorText = (code: string): string => errorText(code, '保�
  */
 export type SaveResult =
   | { ok: true; data: AboutSettingsData }
-  | { ok: false; code: string; currentVersion?: number; saved?: AboutSettingsData };
+  | { ok: false; code: string; currentVersion?: number; saved?: AboutSettingsData; issues?: string[] };
 export const VERSION_CONFLICT = 'version_conflict' as const;
 export const isVersionConflict = (r: SaveResult): boolean => !r.ok && r.code === VERSION_CONFLICT;
 
