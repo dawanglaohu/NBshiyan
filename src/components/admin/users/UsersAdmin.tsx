@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { errorText } from '@/components/admin/format';
 import AdminTime from '@/components/admin/AdminTime';
+import { ENROLL_PAGE } from '@/lib/admin/enroll';
 
 type Role = 'ADMIN' | 'SALES' | 'EDITOR';
 type U = { id: string; email: string; name: string; role: Role; disabled: boolean; totpEnabled: boolean; locked: boolean; createdAt: string; lastLoginAt: string | null };
@@ -47,7 +48,7 @@ export default function UsersAdmin() {
         <label>角色 <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })}>{ROLES.map((r) => <option key={r}>{r}</option>)}</select></label>{' '}
         <label>初始密码 <input type="password" required minLength={12} maxLength={200} autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>{' '}
         <button className="adm-btn" disabled={busy}>创建</button>
-        <p className="spec-meta">初始密码请线下告知；对方首次登录前必须绑定 2FA。</p>
+        <p className="spec-meta">初始密码请通过安全渠道只告知本人；对方首次登录前必须先打开 <a href={ENROLL_PAGE}>{ENROLL_PAGE}</a>，用邮箱和初始密码绑定 2FA，拿到初始密码后请立即绑定。2FA 被重置的账号也在这个页面重新绑定。</p>
       </form>
       <table className="adm-card" style={{ width: '100%' }}>
         <thead><tr><th>邮箱</th><th>姓名</th><th>角色</th><th>状态</th><th>最近登录</th><th>操作</th></tr></thead>
@@ -56,7 +57,10 @@ export default function UsersAdmin() {
             <tr key={u.id}>
               <td>{u.email}</td><td>{u.name}</td>
               <td><select aria-label={`${u.email} 的角色`} value={u.role} disabled={busy} onChange={(e) => patch(u.id, { role: e.target.value })}>{ROLES.map((r) => <option key={r}>{r}</option>)}</select></td>
-              <td>{u.disabled ? '已停用' : u.locked ? '已锁定' : !u.totpEnabled ? '待绑定 2FA' : '正常'}</td>
+              <td>
+                {u.disabled ? '已停用' : u.locked ? '已锁定' : !u.totpEnabled ? '待绑定 2FA' : '正常'}
+                {!u.disabled && !u.totpEnabled && <><br /><a href={ENROLL_PAGE} className="spec-meta" title="把这个链接和初始密码分别发给本人，在该页面绑定身份验证器 App 后才能登录">绑定页：{ENROLL_PAGE}</a></>}
+              </td>
               <td>{u.lastLoginAt ? <AdminTime iso={u.lastLoginAt} /> : '—'}</td>
               <td>
                 <button className="adm-btn" disabled={busy} onClick={() => { if (u.disabled || confirm(`停用 ${u.email}？对方会立即退出登录。`)) patch(u.id, { disabled: !u.disabled }); }}>{u.disabled ? '启用' : '停用'}</button>
