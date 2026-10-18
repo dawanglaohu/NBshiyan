@@ -446,6 +446,24 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
       await expect(cnt).toBeHidden();
     }
   });
+  test('UX #378 P3 ②：390 下正文编辑器工具栏一行（不换行、不出滚动条），按钮高 44px；1440 也是一行', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    for (const w of [390, 1440]) {
+      await page.setViewportSize({ width: w, height: 900 });
+      await page.goto('/admin/settings');
+      const bar = page.getByRole('toolbar', { name: '正文格式' });
+      await expect(bar).toBeVisible();
+      const m = await bar.evaluate((el) => {
+        const btns = [...el.querySelectorAll('button')].map((b) => b.getBoundingClientRect());
+        return { tops: new Set(btns.map((r) => Math.round(r.top))).size, minH: Math.min(...btns.map((r) => r.height)), overflow: el.scrollWidth - el.clientWidth, n: btns.length };
+      });
+      expect(m.n).toBe(8);
+      expect(m.tops).toBe(1); // 一行
+      expect(m.overflow).toBeLessThanOrEqual(0); // 390 正好放下，不需要滚动
+      if (w === 390) expect(m.minH).toBeGreaterThanOrEqual(44);
+    }
+  });
   test('UX #379 P2：确认框的焦点锁在框内（Tab / Shift+Tab 循环、点到框外再 Tab 也回到框内），Esc 关闭后焦点回到「删除」', async ({ page }) => {
     test.setTimeout(60_000);
     await reset(page);

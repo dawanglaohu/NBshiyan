@@ -69,3 +69,13 @@ test('顶部错误条（端到端）：about 保存 400 带对不上字段的 is
   const v = saveFailureView(r as Extract<typeof r, { ok: false }>);
   assert.equal(v.alert, '参数不正确，请检查后重试。（图片文字：最多 6 张；不符合要求）');
 });
+
+// ───────── ③ UX #378 P3 ②：390 下编辑器工具栏一行 ─────────
+test('工具栏 390：不换行（nowrap + 横向滚动、隐藏滚动条），按钮高度仍 44px；桌面规则不变', () => {
+  const css = read('../src/components/admin/settings/settings.css');
+  const mobile = css.slice(css.indexOf('@media (max-width:767px)'));
+  for (const rule of ['.st-tools{flex-wrap:nowrap;gap:0;overflow-x:auto;', 'scrollbar-width:none}', '.st-tools::-webkit-scrollbar{display:none}', '.st-tb-btn{min-width:36px;height:44px;padding:0 4px;flex:none}']) assert.ok(mobile.includes(rule), rule);
+  assert.match(css, /\.st-tools\{display:flex;gap:2px;flex-wrap:wrap;padding:4px;/); // ≥768 不变
+  // 8 个按钮 + 3 条分隔线放进 390 的编辑器（390 − 页面 16×2 − 卡片 20×2 − 边框 2 − 工具栏 4×2 = 308px）
+  assert.ok(8 * 36 + 3 * (1 + 4) <= 308);
+});
