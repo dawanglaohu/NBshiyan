@@ -187,3 +187,55 @@ test('#291: 没有动画片段时开盖镜头 = 合盖镜头', () => {
   assert.equal(o.extended, false);
   assert.equal(o.distance, f.distance);
 });
+
+// 酒盒式：盖子中途抬得很高（中途出画），开盖后静止的姿态只略高于盒身（10% 内放得下）
+function arcRig() {
+  const root = new Group();
+  root.add(new Mesh(new BoxGeometry(0.5, 1, 0.5)));
+  const lid = new Mesh(new BoxGeometry(0.5, 0.05, 0.5));
+  lid.name = 'Lid';
+  lid.position.set(0, 1.025, 0);
+  root.add(lid);
+  const clip = new AnimationClip('Open', 1, [new VectorKeyframeTrack('Lid.position', [0, 0.5, 1], [0, 1.025, 0, 0.3, 2.2, 0, 0.55, 1.03, 0])]);
+  return { root, clip };
+}
+
+test('#291 酒盒: fitArc 时开合途中盖子出画也按整条弧线取景；不开时和原来一样', () => {
+  const { root, clip } = arcRig();
+  const pts = sampleAnimatedPoints(root, [clip]);
+  const closed = closedPoseBox(root, [clip]);
+  const mn: V3 = [closed.min.x, closed.min.y, closed.min.z], mx: V3 = [closed.max.x, closed.max.y, closed.max.z];
+  const f = frameClosedBox(mn, mx, 40, 4 / 3, { points: pts.closed });
+  const oMin: V3 = [-0.25, -0.5, -0.25], oMax: V3 = [0.8, 2.23, 0.25];
+  const m = 1 / 1.08 + 1e-6;
+  const inside = (e: { x0: number; x1: number; y0: number; y1: number }) => e.x0 >= -m && e.x1 <= m && e.y0 >= -m && e.y1 <= m;
+  // 前提：末帧在 10% 内放得下，中途弧线放不下
+  const plain = openFraming(f, oMin, oMax, 40, 4 / 3, { points: pts.open, end: pts.end });
+  assert.equal(plain.extended, false);
+  assert.ok(!inside(projectPoints(pts.open, plain.center, plain.distance, 40, 4 / 3)));
+  // 默认（瓦楞盒等）：原样，target 不动，最多 10%
+  assert.deepEqual(plain.center, f.center);
+  assert.ok(plain.distance / f.distance <= 1.1 + 1e-9);
+  // fitArc（酒盒）：整条弧线落在 1.08 余量内，只拉远不推近
+  const o = openFraming(f, oMin, oMax, 40, 4 / 3, { points: pts.open, end: pts.end, fitArc: true });
+  assert.equal(o.extended, true);
+  assert.ok(o.distance > f.distance);
+  assert.ok(inside(projectPoints(pts.open, o.center, o.distance, 40, 4 / 3)));
+});
+
+test('#291: fitArc 对整条弧线本来就放得下的产品没有影响', () => {
+  const { root, clip } = lidRig([0, 0.15, 0]);
+  const pts = sampleAnimatedPoints(root, [clip]);
+  const closed = closedPoseBox(root, [clip]);
+  const mn: V3 = [closed.min.x, closed.min.y, closed.min.z], mx: V3 = [closed.max.x, closed.max.y, closed.max.z];
+  const f = frameClosedBox(mn, mx, 40, 4 / 3, { points: pts.closed });
+  const oMin: V3 = [-0.5, 0, -0.5], oMax: V3 = [0.5, 0.6, 0.5];
+  assert.deepEqual(openFraming(f, oMin, oMax, 40, 4 / 3, { points: pts.open, end: pts.end, fitArc: true }), openFraming(f, oMin, oMax, 40, 4 / 3, { points: pts.open, end: pts.end }));
+});
+
+test('#291: 只有酒盒开启 fitArc（礼盒、瓦楞盒保持原样）', () => {
+  const src = readFileSync('src/components/three/ProductGallery.tsx', 'utf8');
+  assert.match(src, /FIT_ARC = new Set\(\['wine-boxes'\]\)/);
+  assert.match(src, /fitArc: FIT_ARC\.has\(p\.slug\)/);
+  assert.match(readFileSync('src/components/three/GalleryScene.tsx', 'utf8'), /fitArc: i\.fitArc/);
+});

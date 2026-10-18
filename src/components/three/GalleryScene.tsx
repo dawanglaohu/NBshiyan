@@ -8,7 +8,7 @@ import { lightRig } from './lights';
 import ProductModel, { type BoxView, type AnimationClips, type ModelBounds } from './ProductModel';
 import { frameClosedBox, openFraming, easeInOut, OPEN_DOLLY_MS, type OpenView } from '@/lib/three/framing';
 
-export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
+export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; /** 开合途中按整条弧线取景（openFraming fitArc） */ fitArc?: boolean; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
 
 // 整页只用一个 WebGL 画布，用 View 切分到每张卡片，避免超出浏览器的画布数量上限
 // frameloop="demand" 只在 invalidate 时出帧：View 按卡片位置裁剪，页面滚动、尺寸变化、卡片增减后都要重新出一帧，
@@ -79,9 +79,9 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
   const { f, openV } = useMemo(() => {
     if (!b) return { f: undefined, openV: undefined };
     const fr = frameClosedBox([-size[0] / 2, 0, -size[2] / 2], [size[0] / 2, size[1], size[2] / 2], FOV, aspect, { points: shift(b.points?.closed) });
-    return { f: fr, openV: openFraming(fr, openMin, openMax, FOV, aspect, { points: shift(b.points?.open), end: shift(b.points?.end) }) };
+    return { f: fr, openV: openFraming(fr, openMin, openMax, FOV, aspect, { points: shift(b.points?.open), end: shift(b.points?.end), fitArc: i.fitArc }) };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [b, aspect]);
+  }, [b, aspect, i.fitArc]);
   // 镜头状态：当前 / 起点 / 终点（target + 距离），0…1 进度按 300ms 缓动
   type Cam = { c: [number, number, number]; d: number };
   const closedCam = (): Cam | undefined => (f ? { c: f.center, d: f.distance } : undefined);
