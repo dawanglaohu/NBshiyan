@@ -14,7 +14,7 @@ import {
   aboutSitemapEntries,
   buildAboutMetadata,
   buildOrganizationJsonLd,
-  htmlToPlainText,
+  aboutPlainText,
   truncateCodePoints
 } from '../src/lib/seo/about';
 import * as aboutModule from '../src/lib/seo/about';
@@ -22,6 +22,7 @@ import crypto from 'node:crypto';
 import { articleOgImageUrl, articleOgVersion } from '../src/lib/seo/articleOg';
 import { ORGANIZATION_DEFAULTS } from '../src/lib/seo/organization-defaults';
 import { SITE_URL } from '../src/lib/site';
+import { parseStoredOrganization } from '../src/lib/server/site-settings-model';
 import type { AboutContent } from '../src/lib/server/site-settings';
 
 const ORIGIN = 'https://example.test';
@@ -56,7 +57,7 @@ test('truncate never splits a surrogate pair', () => {
   const t = truncateCodePoints('😀'.repeat(200), 160);
   assert.equal(Array.from(t).length, 160);
   assert.doesNotMatch(t, /[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
-  assert.equal(htmlToPlainText('<p>x</p>\n\n<p>y</p>'), 'x y');
+  assert.equal(aboutPlainText('<p>x</p>\n\n<p>y</p>'), 'x y');
 });
 
 test('metadata: single published locale → canonical, self hreflang, no x-default', () => {
@@ -212,4 +213,26 @@ test('Organization JSON-LD: origin defaults to SITE_URL, @id matches Organizatio
   assert.equal(o['@id'], `${SITE_URL}/#organization`);
   assert.equal(o.url, SITE_URL);
   assert.match(readFileSync('src/components/seo/OrganizationJsonLd.tsx', 'utf8'), /'@id': `\$\{SITE_URL\}\/#organization`/);
+});
+
+test('Organization JSON-LD (#367): values the backend stores are never dropped (ORG_EMAIL_RE / safeOrgUrl reused)', () => {
+  const stored = parseStoredOrganization({
+    version: 1, name: 'PackJoyU', email: "o'brien+sales@sub.example.test", telephone: '+00 (000) 000-00',
+    logo: '/brand/logo.png', address: 'Sample address, Line 1', foundingDate: '2000-01-31',
+    sameAs: ['https://vk.com/sample', 'https://t.me/sample', 'https://vk.com/sample']
+  });
+  assert.ok(stored);
+  const { version: _v, updatedAt: _u, updatedBy: _b, ...fields } = stored!;
+  void _v; void _u; void _b;
+  const o = buildOrganizationJsonLd({ ...fields, name: fields.name ?? 'PackJoyU', url: ORIGIN }, ORIGIN);
+  for (const k of ['email', 'telephone', 'address', 'foundingDate'] as const) {
+    assert.ok(fields[k], `backend kept ${k}`);
+    assert.equal(o[k], fields[k], k);
+  }
+  assert.equal(fields.sameAs.length, 2);
+  assert.equal(o.logo, `${ORIGIN}/brand/logo.png`);
+  assert.deepEqual(o.sameAs, fields.sameAs);
+  // 后端也会拒的值，这里同样丢掉
+  const bad = buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: ['https://user:pw@x.example/'], logo: '/%2fevil', email: 'a@b' }, ORIGIN);
+  for (const k of ['sameAs', 'logo', 'email']) assert.equal(k in bad, false, k);
 });

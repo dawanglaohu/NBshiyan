@@ -5,6 +5,8 @@ import { withXDefault } from './hreflang';
 import { ogSafeText } from './og/articleOgLayout';
 import { ORGANIZATION_DEFAULTS } from './organization-defaults';
 import { SITE_URL } from '../site';
+import { ABOUT_LIMITS, aboutBodyText, countChars } from '../site-settings/about-rules';
+import { ORG_EMAIL_RE, safeOrgUrl } from '../server/site-settings-model';
 import ogVersions from '../../data/og-versions.json';
 
 // /[locale]/about 的 SEO 规则（#350）。全部是纯函数：数据由调用方从 site-settings 读好再传进来，这里不查库。
@@ -13,7 +15,8 @@ import ogVersions from '../../data/og-versions.json';
 //   canonical / hreflang / sitemap 都只列这些语言；只有一种语言时不出 x-default。
 
 export const ABOUT_PATH = '/about';
-export const ABOUT_DESCRIPTION_MAX = 160;
+/** = ABOUT_LIMITS.summaryMax（160，spec 字段限制） */
+export const ABOUT_DESCRIPTION_MAX = ABOUT_LIMITS.summaryMax;
 const DEFAULT_LOCALE = 'en';
 const OG_W = 1200;
 const OG_H = 630;
@@ -22,38 +25,21 @@ const OG_LOCALE: Record<string, string> = { en: 'en_US', ru: 'ru_RU' };
 const trimOrigin = (origin: string) => origin.replace(/\/+$/, '');
 export const aboutUrl = (origin: string, locale: string) => `${trimOrigin(origin)}/${locale}${ABOUT_PATH}`;
 
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" };
-
-/** HTML → 纯文本：块级结束和 <br> 变空格，去掉标签，解常见实体，压缩空白 */
-export function htmlToPlainText(html: string): string {
-  return html
-    .replace(/<(br|\/p|\/h[1-6]|\/li|\/ul|\/ol)\b[^>]*>/gi, ' ')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&(#\d+|#x[0-9a-f]+|[a-z]+\d*);/gi, (m, e: string) => {
-      const k = e.toLowerCase();
-      if (k in ENTITIES) return ENTITIES[k];
-      if (k.startsWith('#x')) return safeCodePoint(parseInt(k.slice(2), 16)) ?? m;
-      if (k.startsWith('#')) return safeCodePoint(parseInt(k.slice(1), 10)) ?? m;
-      return m;
-    })
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function safeCodePoint(n: number): string | undefined {
-  return Number.isInteger(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : undefined;
-}
+/**
+ * meta description 用的纯文本：后端 about-rules.ts 的 aboutBodyText（和完整性计数同一份转换）再把换行、nbsp 等空白压成单个空格。
+ * 字数按 Unicode code point（countChars），与后端一致。
+ */
+export const aboutPlainText = (bodyHtml: string): string => aboutBodyText(bodyHtml).replace(/\s+/g, ' ').trim();
 
 /** 按码点截断（不会切开代理对），截断后去掉末尾空白 */
 export function truncateCodePoints(text: string, max: number): string {
-  const cps = Array.from(text);
-  return cps.length <= max ? text : cps.slice(0, max).join('').trimEnd();
+  return countChars(text) <= max ? text : [...text].slice(0, max).join('').trimEnd();
 }
 
 export function aboutDescription(content: Pick<AboutContent, 'summary' | 'bodyHtml'>): string {
   const summary = content.summary?.replace(/\s+/g, ' ').trim();
   if (summary) return summary;
-  return truncateCodePoints(htmlToPlainText(content.bodyHtml ?? ''), ABOUT_DESCRIPTION_MAX);
+  return truncateCodePoints(aboutPlainText(content.bodyHtml ?? ''), ABOUT_DESCRIPTION_MAX);
 }
 
 /** hreflang：只列显示中的语言；只有一种语言时不输出 x-default，多于一种时按 withXDefault（en 存在才有，指向 en） */
@@ -175,12 +161,11 @@ const clean = (v: unknown): string | undefined => (typeof v === 'string' && v.tr
 const isHttps = (u: string) => {
   try { return new URL(u).protocol === 'https:'; } catch { return false; }
 };
-/** https 绝对地址原样；以 / 开头（不是 // 或 /\）的站内路径补成绝对地址；其他丢弃 */
-function absUrl(u: string | undefined, origin: string): string | undefined {
-  if (!u) return undefined;
-  if (isHttps(u)) return u;
-  if (u.startsWith('/') && !u.startsWith('//') && !u.startsWith('/\\')) return `${trimOrigin(origin)}${u}`;
-  return undefined;
+/** logo：用后端的 safeOrgUrl(raw, true)（与入库、读出同一校验，存进去的值不会在这里被丢掉）；站内路径补成绝对地址 */
+function logoUrl(u: string | undefined, origin: string): string | undefined {
+  const ok = u ? safeOrgUrl(u, true) : null;
+  if (!ok) return undefined;
+  return ok.startsWith('/') ? `${trimOrigin(origin)}${ok}` : ok;
 }
 
 /**
@@ -188,7 +173,7 @@ function absUrl(u: string | undefined, origin: string): string | undefined {
  * - @type 保持 Organization，@id = <origin>/#organization（WebSite.publisher 指向它）。origin 默认 SITE_URL（NEXT_PUBLIC_SITE_URL），
  *   与 OrganizationJsonLd.tsx 和后端 getOrganizationSettings().url 同一来源；只在测试里显式传别的值。
  * - alternateName / description 为空时用 ORGANIZATION_DEFAULTS；后台填了以后台为准。传入已套过默认值的设置，输出相同。
- * - 其他字段没填就不输出；logo 只收 https 或站内路径，sameAs 只收 https 并去重。
+ * - 其他字段没填就不输出；email 用后端 ORG_EMAIL_RE，logo / sameAs 用后端 safeOrgUrl（site-settings-model.ts），sameAs 去重。
  * - 产能、面积、人数、认证、交期这类数字不在输入里，这里也绝不补。
  * - 只返回普通对象；输出到页面和 '<' 转义只由现有的 JsonLd.tsx / OrganizationJsonLd.tsx 负责（安全审要求）。
  */
@@ -207,12 +192,12 @@ export function buildOrganizationJsonLd(settings: Partial<OrganizationSettings> 
   };
   const put = (k: string, v: unknown) => { if (v !== undefined) out[k] = v; };
   put('legalName', clean(s.legalName));
-  put('logo', absUrl(clean(s.logo), site));
+  put('logo', logoUrl(clean(s.logo), site));
   const email = clean(s.email);
-  put('email', email && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) ? email : undefined);
+  put('email', email && ORG_EMAIL_RE.test(email) ? email : undefined);
   put('telephone', clean(s.telephone));
   put('address', clean(s.address));
-  const sameAs = [...new Set((s.sameAs ?? []).map(clean).filter((u): u is string => !!u && isHttps(u)))];
+  const sameAs = [...new Set((s.sameAs ?? []).map((u) => (typeof u === 'string' ? safeOrgUrl(u) : null)).filter((u): u is string => !!u))];
   if (sameAs.length) out.sameAs = sameAs;
   const fd = clean(s.foundingDate);
   put('foundingDate', fd && /^\d{4}(-\d{2}(-\d{2})?)?$/.test(fd) ? fd : undefined);
