@@ -4,7 +4,7 @@ import type { AboutDraft } from '@/lib/admin/site-settings';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
   ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
-  precheckFile, removeImage, slotsLeft, takeReady, uploadAboutImage, type AboutImageItem, type LibraryAsset,
+  inFlightCount, precheckFile, removeImage, slotsLeft, takeReady, uploadAboutImage, type AboutImageItem, type LibraryAsset,
 } from '@/lib/admin/about-images';
 import ConfirmDialog from './ConfirmDialog';
 import ImageTextField from './ImageTextField';
@@ -74,7 +74,7 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
       patch(key, { state: 'error', message: r.message, ctrl: undefined, ...(r.code === 'rate_limited' ? { retryAt: Date.now() + (r.retryAfterMs ?? 60_000) } : { file: null }) });
       setNow(Date.now());
     });
-  }, [setItems]);
+  }, []);
 
   // 按选择顺序入列：排在前面的都传完（或失败）了才把后面已传完的放进列表
   useEffect(() => {
@@ -89,8 +89,9 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
     setItems((prev) => ready.reduce((acc, t) => addImage(acc, itemFromAsset(t.asset!)), prev));
   }, [tiles, setItems]);
 
-  const uploading = tiles.filter((t) => t.state === 'uploading' || t.file).length;
-  const left = slotsLeft(items, uploading);
+  // UX #379 P3 ②：等 429 重试的不占名额；「已达上限」只看列表里实际的张数（计数也是）
+  const left = slotsLeft(items, inFlightCount(tiles));
+  const full = items.length >= IMAGES_MAX;
 
   const onFiles = (list: FileList | null) => {
     const files = [...(list ?? [])];
@@ -182,8 +183,9 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
               <span>{t.message}</span>
             </div>
             <div className="btns">
+              {t.file && left === 0 && <span className="st-im-rfull">{T.retryFull}</span>}
               {t.file && (
-                <button type="button" className="adm-btn" disabled={!!t.retryAt && t.retryAt > now} onClick={() => t.file && start(t.key, t.file)}>
+                <button type="button" className="adm-btn" disabled={(!!t.retryAt && t.retryAt > now) || left === 0} onClick={() => t.file && left > 0 && start(t.key, t.file)}>
                   {t.retryAt && t.retryAt > now ? T.retryIn(Math.ceil((t.retryAt - now) / 1000)) : T.retry}
                 </button>
               )}
@@ -200,7 +202,7 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
           </label>
         ) : null}
       </div>
-      {left === 0 && <p className="st-hint st-im-full">{T.full}</p>}
+      {full && <p className="st-hint st-im-full">{T.full}</p>}
       {notice && <p className="st-hint" role="status">{notice}</p>}
       {errs.missing.length > 0 && <p className="st-ferr" role="alert">{T.missingSummary(errs.missing.length)}</p>}
       {others.map(([l, n]) => <p key={l} className="st-ferr">{T.missingOther(l, n)}</p>)}

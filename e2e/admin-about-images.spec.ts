@@ -76,6 +76,12 @@ function pngHeader(w: number, h: number) {
 }
 const GIF = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
+/** 假的上传成功响应（只在 page.route 里用，不经过服务端、不占上传限速） */
+const fakeAsset = (id: string) => ({
+  id, width: 1600, height: 1200, bytes: 2000, createdAt: new Date().toISOString(), inUse: false, warnings: [],
+  sm: { url: `/media/${id}-800.webp`, width: 800, height: 600, bytes: 1000 }, lg: { url: `/media/${id}-1600.webp`, width: 1600, height: 1200, bytes: 2000 },
+});
+const TINY_JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
 const fileInput = (page: Page) => page.locator('.st-im input[type=file]');
 const pick = (page: Page, name: string, mimeType: string, buffer: Buffer) => fileInput(page).setInputFiles({ name, mimeType, buffer });
 const saveBtn = (page: Page) => page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
@@ -488,6 +494,47 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
     await expect(cards).toHaveCount(3, { timeout: 10_000 });
     const dims = await cards.locator('.th img').evaluateAll((els) => els.map((e) => `${e.getAttribute('width')}x${e.getAttribute('height')}`));
     expect(dims).toEqual(['800x600', '800x500', '750x600']);
+    await page.unroute(`**${S}/assets`);
+  });
+  test('UX #379 P3 ②：等 429 重试的文件不占名额（5 张 + 1 个等重试 → 5 / 6、没有「已达上限」、还能加）；满 6 张时重试禁用并说明', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    // 上传全部用假响应：不经过服务端（不占每分钟 20 次的上传限速）
+    let n = 0; let limited = false;
+    await page.route(`**${S}/assets`, (route) => {
+      if (route.request().method() !== 'POST') return route.fallback();
+      if (limited) return route.fulfill({ status: 429, headers: { 'Retry-After': '1', 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'rate_limited' }) });
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(fakeAsset(`fakeasset${String(++n).padStart(15, '0')}`)) });
+    });
+    const cards = area.locator('.st-im-card');
+    await fileInput(page).setInputFiles([1, 2, 3, 4, 5].map((i) => ({ name: `p${i}.jpg`, mimeType: 'image/jpeg', buffer: TINY_JPEG })));
+    await expect(cards).toHaveCount(5);
+    limited = true;
+    await pick(page, 'retry.jpg', 'image/jpeg', TINY_JPEG);
+    const tile = area.locator('.st-im-up.bad').filter({ hasText: 'retry.jpg' });
+    await expect(tile).toContainText('上传太频繁，请稍后再试');
+    await expect(area.locator('.st-count').first()).toHaveText('5 / 6');
+    await expect(area.getByText('已达上限：最多 6 张')).toHaveCount(0);
+    await expect(fileInput(page)).toHaveCount(1);
+    await expect(area.getByText('还可加 1 张')).toBeVisible();
+    // 再传一张占满 6 张：「已达上限」、上传区隐藏；等重试的那张重试禁用并说明原因
+    limited = false;
+    await pick(page, 'six.jpg', 'image/jpeg', TINY_JPEG);
+    await expect(cards).toHaveCount(6);
+    await expect(area.getByText('已达上限：最多 6 张')).toBeVisible();
+    await expect(fileInput(page)).toHaveCount(0);
+    await expect(tile).toContainText('已有 6 张，移除一张后才能重试');
+    await page.waitForTimeout(1200); // 过了 Retry-After 也不能重试
+    await expect(tile.getByRole('button', { name: '重试' })).toBeDisabled();
+    // 移除一张 → 可以重试，重试成功回到 6 张
+    await cards.nth(5).getByRole('button', { name: '删除第 6 张图片' }).click();
+    await expect(cards).toHaveCount(5);
+    await expect(tile).not.toContainText('已有 6 张');
+    await tile.getByRole('button', { name: '重试' }).click();
+    await expect(cards).toHaveCount(6);
+    await expect(area.locator('.st-im-up.bad')).toHaveCount(0);
     await page.unroute(`**${S}/assets`);
   });
   test('UX #379 P2：确认框的焦点锁在框内（Tab / Shift+Tab 循环、点到框外再 Tab 也回到框内），Esc 关闭后焦点回到「删除」', async ({ page }) => {

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { nextTrapFocus, FOCUSABLE_SELECTOR } from '../src/lib/admin/focus-trap';
 import { draftErrors, emptyDraft, humanIssueLine, mapAboutServerIssues, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
-import { takeReady } from '../src/lib/admin/about-images';
+import { IMAGES_TEXT, inFlightCount, slotsLeft, takeReady } from '../src/lib/admin/about-images';
 import { ABOUT_LIMITS } from '../src/lib/site-settings/about-rules';
 
 // #350 部署后的前端 P3 小 PR（UX #378 / #379 遗留 + spec v1.0.10 + SEO）
@@ -143,4 +143,25 @@ test('AboutImages 接线：上传成功先标 done，由 effect 按 takeReady �
   assert.match(src, /const \{ ready, rest \} = takeReady\(tiles\);/);
   assert.match(src, /ready\.reduce\(\(acc, t\) => addImage\(acc, itemFromAsset\(t\.asset!\)\), prev\)/);
   assert.equal((src.match(/addImage\(prev, itemFromAsset\(r\.asset\)\)/g) ?? []).length, 0);
+});
+
+// ───────── ⑥ UX #379 P3 ②：等 429 重试的不占 6 张名额 ─────────
+test('inFlightCount：正在传 + 传完等入列的占名额；失败的（含等 429 重试）不占', () => {
+  const five = [1, 2, 3, 4, 5];
+  const tiles = [{ state: 'error' }]; // 等 429 重试（保留了文件）
+  assert.equal(inFlightCount(tiles), 0);
+  assert.equal(slotsLeft(five, inFlightCount(tiles)), 1); // 5 张 + 1 个等重试：还能加 1 张，不是「已达上限」
+  assert.equal(inFlightCount([{ state: 'uploading' }, { state: 'done' }, { state: 'error' }]), 2);
+  assert.equal(slotsLeft(five, inFlightCount([{ state: 'uploading' }])), 0);
+  assert.equal(IMAGES_TEXT.retryFull, '已有 6 张，移除一张后才能重试');
+});
+
+test('AboutImages 接线：「已达上限」只看列表张数；上传区按占名额的上传隐藏；没名额时禁用重试', () => {
+  const src = read('../src/components/admin/settings/AboutImages.tsx');
+  assert.match(src, /const left = slotsLeft\(items, inFlightCount\(tiles\)\);/);
+  assert.match(src, /const full = items\.length >= IMAGES_MAX;/);
+  assert.match(src, /\{full && <p className="st-hint st-im-full">\{T\.full\}<\/p>\}/);
+  assert.match(src, /<span className="st-count">\{items\.length\} \/ \{IMAGES_MAX\}<\/span>/);
+  assert.match(src, /disabled=\{\(!!t\.retryAt && t\.retryAt > now\) \|\| left === 0\}/);
+  assert.doesNotMatch(src, /t\.state === 'uploading' \|\| t\.file/);
 });

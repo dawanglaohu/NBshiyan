@@ -78,3 +78,5 @@
   .st-im-ico .v{display:inline}
   .st-im-up{min-height:120px}
 }
+/* UX #379 P3 ②：等 429 重试的文件不占名额；列表已满 6 张时重试禁用，并说明原因 */
+.st-im-up .st-im-rfull{flex-basis:100%;font-size:12px}

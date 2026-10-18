@@ -53,6 +53,7 @@ export const IMAGES_TEXT = {
   notUploaded: '未上传',
   retry: '重试',
   retryIn: (s: number) => `${s} 秒后可重试`,
+  retryFull: `已有 ${ABOUT_LIMITS.imagesMax} 张，移除一张后才能重试`,
   dismiss: '关闭',
   small: '图片较小，大屏上可能不够清晰',
   duplicate: '这张图已经在列表里了',
@@ -167,7 +168,12 @@ export const itemFromAsset = (a: LibraryAsset): AboutImageItem => ({
 });
 
 // ───────── 6 张上限、排序 ─────────
-/** 还能加几张：列表 + 正在上传的都算 */
+/**
+ * UX #379 P3 ②：占名额的上传 = 正在传的 + 已传完等入列的。失败的（包括等 429 重试、保留了文件的）不占：
+ * 列表 5 张 + 1 个等重试时计数 5 / 6、不显示「已达上限」、上传区还在（还可加 1 张）。重试时没名额了就禁用重试。
+ */
+export const inFlightCount = (tiles: readonly { state: string }[]): number => tiles.filter((t) => t.state === 'uploading' || t.state === 'done').length;
+/** 还能加几张：列表 + 占名额的上传（inFlightCount）都算 */
 export const slotsLeft = (items: readonly unknown[], uploading = 0): number => Math.max(0, IMAGES_MAX - items.length - uploading);
 /** 加到列表末尾：已在列表里或已满 6 张时原样返回 */
 export function addImage(items: readonly AboutImageItem[], it: AboutImageItem): AboutImageItem[] {
