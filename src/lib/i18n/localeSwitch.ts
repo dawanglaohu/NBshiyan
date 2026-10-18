@@ -1,7 +1,11 @@
 import { categoryMeta, type CategoryMeta } from '../seo/categoryMeta';
 import { CATEGORY_PAGES_LIVE } from '../seo/categoryPages';
+import { PUBLISHED_LOCALES, type PublishedLocale } from '@/i18n/published-locales';
 
-export type Loc = 'en' | 'ru';
+/** 语言切换只在已发布语言之间进行（清单见 src/i18n/published-locales.ts） */
+export type Loc = PublishedLocale;
+const LOC_ALT = PUBLISHED_LOCALES.join('|');
+const PREFIX_RE = new RegExp(`^/(${LOC_ALT})(?=/|$)`);
 /** 页面声明的各语言对应路径（不含 /{locale} 前缀）；null 表示该语言没有对应页面 */
 export type LocaleAlternates = Partial<Record<Loc, string | null>>;
 
@@ -16,7 +20,7 @@ const DETAIL_SECTIONS = ['/products', '/articles', '/solutions'] as const;
  * 4. 普通页面（路径各语言相同）→ 原路径。
  */
 export function switchPath(pathname: string, from: Loc, to: Loc, alternates?: LocaleAlternates | null, meta: CategoryMeta[] = categoryMeta, live: boolean = CATEGORY_PAGES_LIVE): string {
-  const path = (pathname.replace(/^\/(en|ru)(?=\/|$)/, '') || '/').replace(/\/+$/, '') || '/';
+  const path = (pathname.replace(PREFIX_RE, '') || '/').replace(/\/+$/, '') || '/';
   const section = DETAIL_SECTIONS.find((s) => path.startsWith(s + '/'));
   if (alternates && to in alternates) {
     const alt = alternates[to];
@@ -27,15 +31,15 @@ export function switchPath(pathname: string, from: Loc, to: Loc, alternates?: Lo
   let slug: string;
   try { slug = decodeURIComponent(path.slice(section.length + 1).split('/')[0]); } catch { return '/'; } // 非法 % 编码 → 目标语言首页
   if (section === '/products' && live) { // 品类落地页未上线时目标页也不存在，回退到列表页
-    const c = meta.find((m) => m[from].slug === slug);
-    if (c) return `/products/${c[to].slug}`;
+    const c = meta.find((m) => m[from]?.slug === slug);
+    if (c?.[to]?.slug) return `/products/${c[to].slug}`; // 目标语言没有 slug 时回退到列表页
   }
   return section;
 }
 
-const SAFE_RE = /^\/(en|ru)(\/[A-Za-z0-9\-._~%/]*)?$/;
+const SAFE_RE = new RegExp(`^/(${LOC_ALT})(/[A-Za-z0-9\\-._~%/]*)?$`);
 
-/** 只接受站内相对路径 /en、/ru、/en/…、/ru/…；协议相对 //x、反斜杠、编码后的 // 或 \\ 一律回退到目标语言首页 */
+/** 只接受站内相对路径 /{已发布语言}、/{已发布语言}/…；协议相对 //x、反斜杠、编码后的 // 或 \\ 一律回退到目标语言首页 */
 export function safeLocaleHref(href: string, to: Loc): string {
   const home = `/${to}`;
   if (typeof href !== 'string' || !SAFE_RE.test(href) || href.includes('//')) return home;

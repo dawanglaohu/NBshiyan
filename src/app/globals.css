@@ -320,3 +320,19 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 /* #291 焦点环：深色外环（--ink 在浅色画面上 ≥3:1）+ 内侧白环（压在深色礼盒上也看得见） */
 .hero-media-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 2px #fff}
 @media (max-width:767px){.hero:has(.hero-media){min-height:0}.hero-media{aspect-ratio:4/5}}
+/* 多语言第 0 期：语言下拉（UX 规格：地球图标 + EN/RU，母语名称，无国旗，当前语言在最前并打勾；手机端每行 44px） */
+.lang-menu{position:relative;display:inline-flex}
+header.site .lang-btn{gap:6px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:transparent;color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+header.site .lang-btn:hover{border-color:var(--accent)}
+.lang-btn:focus-visible,.lang-item:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+.lang-globe{flex:none}
+.lang-caret{flex:none;transition:transform var(--dur) var(--ease)}
+.lang-menu[data-open] .lang-caret{transform:rotate(180deg)}
+.lang-list{position:absolute;top:calc(100% + 6px);inset-inline-end:0;z-index:30;min-width:180px;margin:0;padding:6px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow)}
+.lang-list[hidden]{display:none}
+.lang-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px;padding:0 12px;border-radius:6px;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+.lang-item:hover,.lang-item:focus-visible{background:var(--bg)}
+.lang-item.is-current{color:var(--accent-text)}
+.lang-check{flex:none}
+@media (max-width:767px){.lang-item{min-height:44px}.lang-list{min-width:200px}}
+@media (prefers-reduced-motion:reduce){.lang-caret{transition:none}}

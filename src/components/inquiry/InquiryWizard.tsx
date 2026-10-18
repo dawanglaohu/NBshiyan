@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { DEFAULT_PUBLISHED_LOCALE, isPublishedLocale, type PublishedLocale } from '@/i18n/published-locales';
 import { products } from '@/data/products';
 import { useQuote } from '@/components/quote/QuoteProvider';
 import { QUOTE_MAX_ITEMS, isOverQuoteLimit } from '@/lib/quote/list';
@@ -191,7 +192,8 @@ export default function InquiryWizard() {
     const c = (v: string) => v.trim() || undefined;
     const body = {
       source: fromQuote ? 'CART' : 'WIZARD',
-      locale,
+      // 接口只接受已发布语言（#360）；页面语言一定是已发布的，这里再收窄一次，类型上也是 PublishedLocale
+      locale: (isPublishedLocale(locale) ? locale : DEFAULT_PUBLISHED_LOCALE) satisfies PublishedLocale,
       contact: { name: c(contact.name), email: c(contact.email), company: c(contact.company), phone: c(contact.phone), region: c(contact.region) },
       message: message.trim() || undefined,
       items: selected.map((productSlug) => ({ productSlug, ...(quantity ? { quantity } : {}), ...(Object.keys(config).length ? { config } : {}) })),

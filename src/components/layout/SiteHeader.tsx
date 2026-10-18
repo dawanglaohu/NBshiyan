@@ -2,14 +2,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import { useLangSwitch } from './LangLink';
+import LangMenu from './LangMenu';
 
 // 站点头部：桌面端一行链接；手机端只留 Logo + 语言切换 + 菜单按钮，链接收进抽屉（#63）
 export default function SiteHeader() {
   const t = useTranslations('Nav');
   const pathname = usePathname();
-  const langSw = useLangSwitch();
-  const other = langSw.other;
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -45,20 +43,17 @@ export default function SiteHeader() {
       <Link href="/contact">{t('contact')}</Link>
     </>
   );
-  const lang = (
-    <Link href={langSw.href} locale={other} onClick={langSw.onClick} className="lang" hrefLang={other} aria-label={t('switchLang')}>{other.toUpperCase()}</Link>
-  );
 
   return (
     <header className="site">
       <Link href="/" className="logo">Pack<i>Joy</i>U</Link>
       <nav className="nav-desktop" aria-label={t('main')}>
         {links}
-        {lang}
+        <LangMenu />
         <Link href="/contact" className="btn sm">{t('quote')}</Link>
       </nav>
       <div className="nav-mobile">
-        {lang}
+        <LangMenu />
         <button ref={btnRef} type="button" className="menu-btn" aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? t('closeMenu') : t('openMenu')} onClick={() => setOpen((o) => !o)}>
           <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
         </button>
