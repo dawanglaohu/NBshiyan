@@ -22,7 +22,8 @@ import { handleMedia, parseMediaFile, MEDIA_CACHE_CONTROL } from '../src/lib/ser
 import { LocalStorage } from '../src/lib/server/storage';
 import { enforceAdminRateLimit, enforceAdminUserRateLimit } from '../src/lib/server/admin-guard';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
-import { FILE_CSP } from '../src/lib/server/file-response';
+import { FILE_CSP, fileRoute } from '../src/lib/server/file-response';
+import { securityHeaders } from '../security-headers';
 import {
   handlePutAboutImages, handlePutAboutLocale, handleGetAbout, type SiteSettingsDeps, type SiteSettingsStore, type CasResult,
 } from '../src/lib/server/site-settings-admin';
@@ -582,6 +583,44 @@ test('/media 文件名白名单：w 只能是 800 / 1600（名义长边，竖图
   assert.deepEqual(parseMediaFile(`${id}-1600.webp`), { id, size: 'lg' });
   assert.equal(parseMediaFile(123), null);
   await t.cleanup();
+});
+
+test('/media 可被收录：200 不带 X-Robots-Tag（经 fileRoute 包装后也没有）；404 仍是 no-store；正式环境 robots.txt 不 Disallow /media/', async () => {
+  const t = await assetDeps();
+  const a = (await body(await handleUploadAsset(uploadReq(await solid(2400, 1800)), t.d))).json;
+  const md = { findLive: async (id: string) => { const r = t.mem.rows.get(id); return r && !r.deletedAt ? r : null; }, storage: t.local };
+  const GET = fileRoute(async (_req: Request, f: string) => handleMedia(f, md));
+  for (const w of [800, 1600]) {
+    const r = await GET(new Request(`http://localhost/media/${a.id}-${w}.webp`), `${a.id}-${w}.webp`);
+    assert.equal(r.status, 200);
+    assert.equal(r.headers.get('x-robots-tag'), null);
+    assert.equal(r.headers.get('cache-control'), MEDIA_CACHE_CONTROL);
+  }
+  const nfr = await GET(new Request('http://localhost/media/x'), `${a.id}-801.webp`);
+  assert.deepEqual([nfr.status, nfr.headers.get('cache-control')], [404, 'no-store']);
+  await t.cleanup();
+  // 全站安全头里没有 X-Robots-Tag；next.config 里带 X-Robots-Tag 的只有：非正式环境全站、后台路径、/s/
+  assert.ok(!securityHeaders.some((h) => h.key.toLowerCase() === 'x-robots-tag'));
+  const cfg = readFileSync('next.config.ts', 'utf8');
+  assert.match(cfg, /\.\.\.\(isProd \? \[\] : \[\{ source: '\/:path\*', headers: \[\{ key: 'X-Robots-Tag', value: 'noindex, nofollow' \}\] \}\]\),/);
+  const robotsSources = [...cfg.matchAll(/\{ source: '([^']+)', headers: \[\{ key: 'X-Robots-Tag'/g)].map((m) => m[1]);
+  assert.deepEqual(robotsSources, ['/:path*', '/s/:path*']);
+  const adminSources = /\.\.\.\[([^\]]+)\]\.map\(\(source\) => \(\{ source, headers: adminHeaders \}\)\)/.exec(cfg)![1];
+  assert.doesNotMatch(adminSources, /media/);
+  // 正式环境 robots.txt：没有任何 Disallow 规则能匹配 /media/<id>-<w>.webp
+  const prev = { APP_ENV: process.env.APP_ENV, VERCEL_ENV: process.env.VERCEL_ENV };
+  process.env.APP_ENV = 'production';
+  try {
+    const { default: robots } = await import('../src/app/robots');
+    const rules = robots().rules as { disallow?: string | string[] };
+    const dis = ([] as string[]).concat(rules.disallow ?? []);
+    assert.ok(dis.length > 0);
+    const blocks = (p: string) => dis.some((d) => new RegExp('^' + d.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')).test(p));
+    assert.equal(blocks(`/media/${'A'.repeat(24)}-1600.webp`), false);
+    assert.equal(blocks('/api/x'), true); assert.equal(blocks('/admin'), true);
+  } finally {
+    for (const [k, v] of Object.entries(prev)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+  }
 });
 
 test('/media 路由接线：fileRoute 包住 GET；不经过 i18n 中间件（不会下发 NEXT_LOCALE）；不被带点路径兜底 rewrite；不套全站 CSP', () => {
