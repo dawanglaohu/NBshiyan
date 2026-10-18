@@ -10,7 +10,13 @@
 // - 改密码、清待确认字段、会话全部失效（sessionVersion+1）、解除锁定、写审计（user.password_reset，必要时 user.pending_enroll_cleared）在同一个事务里。
 // - 提交之后再清这个账号的限流计数：只清 key 名能只凭账号算出来的 login-acct:<e>、login:untrusted:<e>、enroll-confirm:untrusted:<e>
 //   （当前和上一个窗口）。login-ip、真实 IP 的 login:<ip>:<e>、enroll-confirm:<ip>:<e> 不清，也不用 SCAN/KEYS 去找，10 分钟窗口后自己过期。
+// - #347 方案 A：每次都在同一个事务里签发新的一次性绑定令牌（覆盖旧的，旧链接立即失效；加不加 --clear-pending-enroll 都签发），
+//   审计 auth.enroll_token_issued（source 'cli'，不含令牌）。链接只打印到终端一次（链接 / 有效至 / 只私信给本人三行）。
+//   stdout 不是终端（重定向、管道、exec -T）时在读密码、连库之前就拒绝（退出码 2），什么都不改：链接不能落进文件或日志，
+//   也不能“签发了却没人看见”。所以本脚本现在必须在终端里运行（docker compose exec -it），标准输入读密码的方式随之不可用。
+//   NEXT_PUBLIC_SITE_URL 不合格（https；非生产可用 http://localhost）时同样在任何修改之前拒绝（退出码 1）。
 import { createHmac } from 'node:crypto';
+import { enrollLinkBase, issuedAudit, linkLines, newEnrollToken } from './enroll-token-lib.mjs';
 import { ARGON, firstLine, normalizeAccountEmail, passwordPolicyError, validEmail } from './admin-create-lib.mjs';
 
 export { ARGON, firstLine };
@@ -29,6 +35,7 @@ export const USAGE = [
   '  只用于还没绑定 2FA 的 ADMIN。新密码在终端里交互输入（不回显，输两次）；没有终端时从标准输入读第一行。',
   '  密码绝不能放在命令行参数或环境变量里（环境变量会被忽略）。',
   '  有待确认的 2FA 绑定或绑定窗口已关闭时，必须加 --clear-pending-enroll：清掉待确认状态并重新打开 72 小时绑定窗口。',
+  '  成功后在终端显示一次 2FA 绑定链接（#347）；标准输出必须是终端（docker compose exec -it），否则拒绝运行。',
 ].join('\n');
 
 /** 错误码 → 面向运维的提示。只有固定文案，从不包含密码、哈希、邮箱或底层异常信息 */
@@ -49,6 +56,8 @@ export const MESSAGES = {
   pending_enroll: '这个账号有未完成的 2FA 绑定（待确认密钥、错码计数或冷却期）。如确认要清掉并重新开始绑定，请加 --clear-pending-enroll 再运行。未做任何修改。',
   enroll_window_closed: '这个账号的 72 小时绑定窗口已关闭，只改密码也无法绑定。如确认要重新打开绑定窗口，请加 --clear-pending-enroll 再运行。未做任何修改。',
   no_database: 'DATABASE_URL 未设置。',
+  stdout_not_tty: '标准输出不是终端：本脚本会显示一次性 2FA 绑定链接，不能写进文件、管道或日志。请在终端里运行（docker compose exec -it …），未做任何修改。',
+  site_url_invalid: 'NEXT_PUBLIC_SITE_URL 不合格（必须是 https 裸 origin；非生产可用 http://localhost），无法生成绑定链接，未做任何修改。',
   db_error: '数据库操作失败（详细原因未输出，以免带出敏感信息；请检查 DATABASE_URL 和数据库是否可达）。',
   aborted: '已取消。',
 };
@@ -56,7 +65,7 @@ export const MESSAGES = {
 /** 退出码：0 成功；1 运行错误（数据库、读不到密码、密码不合规）；2 参数错误；3 账号状态不允许（拒绝） */
 export const EXIT = { ok: 0, error: 1, usage: 2, refused: 3 };
 const EXIT_OF = {
-  password_in_argv: 2, unknown_arg: 2, no_target: 2, both_targets: 2, invalid_email: 2, invalid_id: 2,
+  password_in_argv: 2, unknown_arg: 2, stdout_not_tty: 2, no_target: 2, both_targets: 2, invalid_email: 2, invalid_id: 2,
   not_found: 3, not_admin: 3, disabled: 3, totp_enabled: 3, pending_enroll: 3, enroll_window_closed: 3,
 };
 export const exitCodeOf = (code) => EXIT_OF[code] ?? 1;
@@ -136,13 +145,17 @@ export function resetData(passwordHash, { clearPending }, now) {
   };
 }
 
-/** 审计记录：actor=cli（actorId 为空）、目标账号 id、时间（createdAt 由库填）。不含密码、哈希、密钥、邮箱 */
-export function auditEntries(userId, plan) {
+/** 审计记录：actor=cli（actorId 为空）、目标账号 id、时间（createdAt 由库填）。不含密码、哈希、密钥、邮箱、绑定令牌 */
+export function auditEntries(userId, plan, issued) {
   const base = { actorId: null, target: userId, ip: null };
   const out = [{ ...base, action: 'user.password_reset', meta: { actor: 'cli', via: VIA } }];
   if (plan.clearPending) out.push({ ...base, action: 'user.pending_enroll_cleared', meta: { actor: 'cli', via: VIA, hadPending: !!plan.hadPending, windowReopened: true } });
+  if (issued) out.push({ ...issuedAudit(userId), meta: { actor: 'cli', source: 'cli', via: VIA, truncated: issued.expiresTruncated } });
   return out;
 }
+
+/** #347：这次重置后的绑定窗口起点（clearPending 时重新开始 = now，否则沿用 enrollIssuedAt ?? createdAt），令牌有效期按它截短 */
+export const windowStartAfter = (u, plan, now) => (plan.clearPending ? now : (u.enrollIssuedAt ?? u.createdAt).getTime());
 
 // ---- 限流 key（与 src/lib/server/security.ts、login.ts、ratelimit/index.ts 一致，测试逐一对比） ----
 
@@ -236,13 +249,19 @@ export function safeErrorCode(e) {
  * @param o.fetchImpl      清 Upstash 限流用的 fetch
  * @param o.now            () => 毫秒时间戳
  * @param o.out / o.err    写 stdout / stderr
+ * @param o.stdoutIsTTY    stdout 是不是终端（#347：不是就拒绝运行；测试里注入）
+ * @param o.issueToken     (now, windowStart) => 令牌（默认 enroll-token-lib newEnrollToken；测试里可注入固定值）
  * @returns 退出码
  */
-export async function runReset({ argv, env, readPassword, db, hash, fetchImpl, now = () => Date.now(), out, err }) {
+export async function runReset({ argv, env, readPassword, db, hash, fetchImpl, now = () => Date.now(), out, err, stdoutIsTTY, issueToken = newEnrollToken }) {
   const fail = (code) => { err(`${MESSAGES[code] ?? MESSAGES.db_error}\n`); return exitCodeOf(code); };
   const args = parseArgs(argv);
   if (args.error) return fail(args.error);
   if (args.help) { out(`${USAGE}\n`); return EXIT.ok; }
+  // #347：先于读密码、连库：stdout 必须是终端，站点地址必须合格
+  if (stdoutIsTTY !== true) return fail('stdout_not_tty');
+  const linkBase = enrollLinkBase(env);
+  if (!linkBase) return fail('site_url_invalid');
   if (!env.DATABASE_URL) return fail('no_database');
 
   let client;
@@ -269,9 +288,10 @@ export async function runReset({ argv, env, readPassword, db, hash, fetchImpl, n
       const t = now();
       const plan = decide(u, { clearPendingEnroll: args.clearPendingEnroll, now: t });
       if (typeof plan === 'string') return { refused: plan };
-      await tx.user.update({ where: { id: u.id }, data: resetData(passwordHash, plan, t), select: { id: true } });
-      for (const data of auditEntries(u.id, plan)) await tx.auditLog.create({ data });
-      return { id: u.id, email: u.email, plan };
+      const issued = issueToken(t, windowStartAfter(u, plan, t)); // #347：同一事务里覆盖旧令牌
+      await tx.user.update({ where: { id: u.id }, data: { ...resetData(passwordHash, plan, t), ...issued.data }, select: { id: true } });
+      for (const data of auditEntries(u.id, plan, issued)) await tx.auditLog.create({ data });
+      return { id: u.id, email: u.email, plan, issued };
     });
     if (result.refused) return fail(result.refused);
 
@@ -280,7 +300,9 @@ export async function runReset({ argv, env, readPassword, db, hash, fetchImpl, n
     if (result.plan.clearPending) out('已清掉未完成的 2FA 绑定，72 小时绑定窗口重新开始计时。\n');
     out(`rate_limit=${rl}\n`);
     if (rl === 'failed') err('提示：清这个账号的限流计数失败（密码已改好），最多 10 分钟后自动过期。\n');
-    out('下一步：用新密码登录 /admin，立即绑定 2FA。\n');
+    out('下一步：把下面的绑定链接和新密码分别私信给本人，对方打开链接立即绑定 2FA（之前发出的绑定链接已失效）。\n');
+    out(linkLines(result.issued, linkBase)); // 只打印这一次、只到终端
+    result.issued = undefined;
     return EXIT.ok;
   } catch (e) {
     err(`${MESSAGES.db_error}（${safeErrorCode(e)}）\n`);
