@@ -3,24 +3,34 @@ import assert from 'node:assert/strict';
 import {
   ABOUT_DESCRIPTION_MAX,
   aboutDescription,
+  aboutOgImageUrl,
   aboutSitemapEntries,
   buildAboutMetadata,
   buildOrganizationJsonLd,
   htmlToPlainText,
-  resolvePublishedAboutLocales,
   serializeJsonLd,
   truncateCodePoints
 } from '../src/lib/seo/about';
-import type { AboutContent, AboutLocaleSetting } from '../src/lib/server/site-settings';
+import * as aboutModule from '../src/lib/seo/about';
+import { articleOgVersion } from '../src/lib/seo/articleOg';
+import { ORGANIZATION_DEFAULTS } from '../src/lib/seo/organization-defaults';
+import type { AboutContent } from '../src/lib/server/site-settings';
 
 const ORIGIN = 'https://example.test';
 const LONG_BODY = `<h2>Who we are</h2><p>${'Sample text about the company. '.repeat(12)}</p><ul><li>Item one</li></ul>`;
+const DEFAULT_DESC =
+  'PackJoyU is a custom packaging manufacturer with its own factory, making printed corrugated and gift boxes, molded pulp and paper cups, from sample to bulk.';
 
-const setting = (over: Partial<AboutLocaleSetting> = {}): AboutLocaleSetting => ({
-  version: 1, title: 'About PackJoyU', bodyHtml: LONG_BODY, ...over
+const content = (locale: 'en' | 'ru', over: Partial<AboutContent> = {}): AboutContent => ({
+  locale, title: 'About PackJoyU', summary: '', bodyHtml: LONG_BODY, stats: [], images: [],
+  home: { title: '', intro: '' }, updatedAt: '2026-10-17T00:00:00Z', ...over
 });
-const content = (locale: string, over: Partial<AboutContent> = {}): AboutContent => ({
-  version: 1, locale, title: 'About PackJoyU', bodyHtml: LONG_BODY, images: [], ...over
+type Img = { url: string; width: number; height: number; alt: string };
+const ogImg = (m: ReturnType<typeof buildAboutMetadata>) => (m.openGraph?.images as Img[])[0];
+
+test('own published-locale rules are not duplicated here (backend about-rules.ts owns them)', () => {
+  assert.equal('resolvePublishedAboutLocales' in aboutModule, false);
+  assert.equal('isAboutComplete' in aboutModule, false);
 });
 
 test('description: summary wins; empty summary → body plain text, first 160 code points', () => {
@@ -28,15 +38,14 @@ test('description: summary wins; empty summary → body plain text, first 160 co
   assert.equal(aboutDescription({ summary: '  Short  summary ', bodyHtml: LONG_BODY }), 'Short summary');
   const d = aboutDescription({ summary: '   ', bodyHtml: LONG_BODY });
   assert.ok(Array.from(d).length <= 160);
+  assert.ok(Array.from(d).length >= 150, d);
   assert.ok(d.startsWith('Who we are Sample text about the company.'), d);
-  assert.doesNotMatch(d, /[<>]/);
-  assert.doesNotMatch(d, /\s{2,}|\s$/);
-  assert.equal(aboutDescription({ bodyHtml: '<p>a&amp;b&nbsp;c<br>d</p><p>e</p>' }), 'a&b c d e');
+  assert.doesNotMatch(d, /[<>]|\s{2,}|\s$/);
+  assert.equal(aboutDescription({ summary: '', bodyHtml: '<p>a&amp;b&nbsp;c<br>d</p><p>e</p>' }), 'a&b c d e');
 });
 
 test('truncate never splits a surrogate pair', () => {
-  const s = '😀'.repeat(200);
-  const t = truncateCodePoints(s, 160);
+  const t = truncateCodePoints('😀'.repeat(200), 160);
   assert.equal(Array.from(t).length, 160);
   assert.doesNotMatch(t, /[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
   assert.equal(htmlToPlainText('<p>x</p>\n\n<p>y</p>'), 'x y');
@@ -46,56 +55,49 @@ test('metadata: single published locale → canonical, self hreflang, no x-defau
   const m = buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['ru'], origin: ORIGIN });
   assert.equal(m.alternates?.canonical, `${ORIGIN}/ru/about`);
   assert.deepEqual(m.alternates?.languages, { ru: `${ORIGIN}/ru/about` });
-  assert.deepEqual((m.title as { absolute: string }).absolute, 'About PackJoyU');
+  assert.equal((m.title as { absolute: string }).absolute, 'About PackJoyU');
+  assert.equal(m.robots, undefined);
 });
 
 test('metadata: en + ru → both listed, x-default = en', () => {
   const m = buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['en', 'ru'], origin: `${ORIGIN}/` });
-  assert.deepEqual(m.alternates?.languages, {
-    en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about`
-  });
+  assert.deepEqual(m.alternates?.languages, { en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about` });
   assert.equal(m.alternates?.canonical, `${ORIGIN}/ru/about`);
 });
 
-test('metadata: >1 locale but no en → no x-default (withXDefault rule)', () => {
-  const m = buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['ru', 'ja'], origin: ORIGIN });
-  assert.equal((m.alternates?.languages as Record<string, string>)['x-default'], undefined);
+test('metadata: locale not in publishedLocales (switch off / no content) → noindex, no canonical/hreflang', () => {
+  for (const m of [
+    buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['en'], origin: ORIGIN }),
+    buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: [], origin: ORIGIN }),
+    buildAboutMetadata({ locale: 'en', content: null, publishedLocales: ['en'], origin: ORIGIN })
+  ]) {
+    assert.equal(m.alternates, undefined);
+    assert.equal(m.openGraph, undefined);
+    assert.deepEqual(m.robots, { index: false, follow: false });
+  }
 });
 
-test('metadata: locale not displayed → noindex, no canonical/hreflang', () => {
-  const m = buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['en'], origin: ORIGIN });
-  assert.equal(m.alternates, undefined);
-  assert.deepEqual(m.robots, { index: false, follow: false });
-  const n = buildAboutMetadata({ locale: 'en', content: null, publishedLocales: ['en'], origin: ORIGIN });
-  assert.equal(n.alternates, undefined);
-});
-
-test('metadata: og image = first about image, else home OG fallback', () => {
-  const withImg = buildAboutMetadata({
+test('og image: #354 article template at /<locale>/about/og?v=…, never uploaded photos', () => {
+  const m = buildAboutMetadata({
     locale: 'en', origin: ORIGIN, publishedLocales: ['en'],
-    content: content('en', { images: [{ id: 'abc', width: 1600, height: 1200, alt: 'Our production line' }] })
+    content: content('en', { images: [{ id: 'abc', w: 1600, h: 1200, alt: 'x', caption: '', src: { sm: '/media/abc-800.webp', lg: '/media/abc-1600.webp' } }] })
   });
-  const img = (withImg.openGraph?.images as { url: string; alt: string }[])[0];
-  assert.equal(img.url, `${ORIGIN}/media/abc-1600.webp`);
-  assert.equal(img.alt, 'Our production line');
-  const noImg = buildAboutMetadata({ locale: 'ru', origin: ORIGIN, publishedLocales: ['ru'], content: content('ru'), fallbackOgAlt: 'alt' });
-  const f = (noImg.openGraph?.images as { url: string }[])[0];
-  assert.match(f.url, /^https:\/\/example\.test\/og\/home-ru\.jpg(\?v=[0-9a-f]{8})?$/);
-  const ja = buildAboutMetadata({ locale: 'ja', origin: ORIGIN, publishedLocales: ['ja'], content: content('ja') });
-  assert.match((ja.openGraph?.images as { url: string }[])[0].url, /\/og\/home-en\.jpg/);
+  const img = ogImg(m);
+  assert.equal(img.url, `${ORIGIN}/en/about/og?v=${articleOgVersion('en', 'About PackJoyU')}`);
+  assert.match(img.url, /\?v=[0-9a-f]{8}$/);
+  assert.deepEqual([img.width, img.height, img.alt], [1200, 630, 'About PackJoyU | PackJoyU']);
+  assert.doesNotMatch(JSON.stringify(m), /\/media\//);
+  assert.deepEqual((m.twitter as { images: Img[] }).images[0], img);
+  // 标题变了 v 也变
+  assert.notEqual(aboutOgImageUrl(ORIGIN, 'en', 'About us'), img.url);
 });
 
-test('published locales: disabled switch excludes all; missing/incomplete content excluded; order follows site locales', () => {
-  const settings = { en: setting(), ru: setting() };
-  assert.deepEqual(resolvePublishedAboutLocales({ enabled: false, siteLocales: ['en', 'ru'], settings }), []);
-  assert.deepEqual(resolvePublishedAboutLocales({ enabled: true, siteLocales: ['ru', 'en'], settings }), ['ru', 'en']);
-  assert.deepEqual(resolvePublishedAboutLocales({ enabled: true, siteLocales: ['en', 'ru'], settings: { en: setting() } }), ['en']);
-  assert.deepEqual(resolvePublishedAboutLocales({ enabled: true, siteLocales: ['en', 'ru'], settings: { en: setting(), ru: null } }), ['en']);
-  // 标题为空 / 正文太短 / 图片缺 alt 都算未完成
-  for (const bad of [setting({ title: ' ' }), setting({ bodyHtml: '<p>too short</p>' }), setting({ images: [{ id: 'x', alt: ' ' }] })])
-    assert.deepEqual(resolvePublishedAboutLocales({ enabled: true, siteLocales: ['en', 'ru'], settings: { en: setting(), ru: bad } }), ['en']);
-  // 设置里有内容但语言未上线：不出现
-  assert.deepEqual(resolvePublishedAboutLocales({ enabled: true, siteLocales: ['en'], settings: { en: setting(), ja: setting() } }), ['en']);
+test('og image: title with no renderable glyphs → home OG fallback', () => {
+  assert.equal(aboutOgImageUrl(ORIGIN, 'ru', '   '), null);
+  const m = buildAboutMetadata({ locale: 'ru', origin: ORIGIN, publishedLocales: ['ru'], content: content('ru', { title: '关于我们' }), fallbackOgAlt: 'alt' });
+  const img = ogImg(m);
+  assert.match(img.url, /^https:\/\/example\.test\/og\/home-ru\.jpg(\?v=[0-9a-f]{8})?$/);
+  assert.equal(img.alt, 'alt');
 });
 
 test('sitemap: [] when none; entries share the same hreflang rule', () => {
@@ -112,32 +114,52 @@ test('sitemap: [] when none; entries share the same hreflang rule', () => {
   for (const e of two) assert.deepEqual(e.alternates?.languages, { en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about` });
 });
 
-test('Organization JSON-LD: empty settings → minimal fallback', () => {
-  const expected = { '@context': 'https://schema.org', '@type': 'Organization', '@id': `${ORIGIN}/#organization`, name: 'PackJoyU', url: ORIGIN };
-  assert.deepEqual(buildOrganizationJsonLd({}, ORIGIN), expected);
-  assert.deepEqual(buildOrganizationJsonLd(null, `${ORIGIN}/`), expected);
+test('ORGANIZATION_DEFAULTS: exact text, no numbers', () => {
+  assert.equal(ORGANIZATION_DEFAULTS.description, DEFAULT_DESC);
+  assert.equal(ORGANIZATION_DEFAULTS.description.length, 156);
+  assert.equal(ORGANIZATION_DEFAULTS.alternateName, '保乐优');
+  assert.doesNotMatch(ORGANIZATION_DEFAULTS.description, /\d|supplier/i);
+  assert.deepEqual(Object.keys(ORGANIZATION_DEFAULTS).sort(), ['alternateName', 'description']);
 });
 
-test('Organization JSON-LD: only filled fields; invalid values dropped; no invented facts', () => {
+test('Organization JSON-LD: stub settings → name/url + defaults only', () => {
+  const expected = {
+    '@context': 'https://schema.org', '@type': 'Organization', '@id': `${ORIGIN}/#organization`,
+    name: 'PackJoyU', url: ORIGIN, alternateName: '保乐优', description: DEFAULT_DESC
+  };
+  assert.deepEqual(buildOrganizationJsonLd({ name: 'PackJoyU', url: 'http://localhost:3000', sameAs: [] }, ORIGIN), expected);
+  assert.deepEqual(buildOrganizationJsonLd(null, `${ORIGIN}/`), expected);
+  assert.deepEqual(buildOrganizationJsonLd({ name: ' ', url: '', sameAs: [] }, ORIGIN), expected);
+});
+
+test('Organization JSON-LD: already-defaulted settings give the same output (idempotent)', () => {
+  const raw = { name: 'PackJoyU', url: ORIGIN, sameAs: [] };
+  assert.deepEqual(buildOrganizationJsonLd({ ...ORGANIZATION_DEFAULTS, ...raw }, ORIGIN), buildOrganizationJsonLd(raw, ORIGIN));
+});
+
+test('Organization JSON-LD: settings override defaults; empty fields omitted; invalid values dropped', () => {
   const o = buildOrganizationJsonLd({
-    name: 'PackJoyU', legalName: '  ', description: 'Custom packaging manufacturer', logo: '/logo.png',
+    name: 'PackJoyU', url: ORIGIN, alternateName: 'ПакДжойЮ', description: 'Own text', legalName: '  ', logo: '/logo.png',
     email: 'not-an-email', telephone: '', address: { addressCountry: 'CN', streetAddress: ' ' },
     sameAs: ['https://x.example/p', 'http://insecure.example', 'javascript:alert(1)', '', 'https://x.example/p'],
     foundingDate: 'soon'
   }, ORIGIN);
   assert.deepEqual(o, {
     '@context': 'https://schema.org', '@type': 'Organization', '@id': `${ORIGIN}/#organization`,
-    name: 'PackJoyU', url: ORIGIN, description: 'Custom packaging manufacturer', logo: `${ORIGIN}/logo.png`,
+    name: 'PackJoyU', url: ORIGIN, alternateName: 'ПакДжойЮ', description: 'Own text', logo: `${ORIGIN}/logo.png`,
     address: { '@type': 'PostalAddress', addressCountry: 'CN' }, sameAs: ['https://x.example/p']
   });
+  for (const k of ['legalName', 'email', 'telephone', 'foundingDate']) assert.equal(k in o, false, k);
   const json = JSON.stringify(o);
-  for (const k of ['numberOfEmployees', 'hasCredential', 'award', 'areaServed', 'capacity', 'leadTime'])
-    assert.equal(json.includes(k), false, k);
-  assert.equal(buildOrganizationJsonLd({ logo: '//evil.example/x.png' }, ORIGIN).logo, undefined);
+  for (const k of ['numberOfEmployees', 'hasCredential', 'award', 'capacity', 'leadTime']) assert.equal(json.includes(k), false, k);
+  assert.equal(buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], logo: '//evil.example/x.png' }, ORIGIN).logo, undefined);
+  assert.equal(buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], logo: '/\\evil.example' }, ORIGIN).logo, undefined);
+  const full = buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], email: 'sales@example.test', telephone: '+00 0000', address: 'Sample address', foundingDate: '2000', legalName: 'Sample Co.' }, ORIGIN);
+  assert.deepEqual([full.email, full.telephone, full.address, full.foundingDate, full.legalName], ['sales@example.test', '+00 0000', 'Sample address', '2000', 'Sample Co.']);
 });
 
 test("serializeJsonLd escapes '<' so </script> cannot break out", () => {
-  const s = serializeJsonLd(buildOrganizationJsonLd({ name: '</script><script>alert(1)</script>' }, ORIGIN));
+  const s = serializeJsonLd(buildOrganizationJsonLd({ name: '</script><script>alert(1)</script>', url: ORIGIN, sameAs: [] }, ORIGIN));
   assert.equal(s.includes('<'), false);
   assert.match(s, /\\u003c\/script>/);
   assert.equal((JSON.parse(s) as { name: string }).name, '</script><script>alert(1)</script>');

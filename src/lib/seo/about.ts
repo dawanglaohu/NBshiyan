@@ -1,20 +1,22 @@
 import type { Metadata, MetadataRoute } from 'next';
-import type { AboutContent, AboutLocaleSetting, OrganizationSettings } from '../server/site-settings';
+import type { AboutContent, OrganizationSettings } from '../server/site-settings';
 import { withXDefault } from './hreflang';
+import { articleOgVersion } from './articleOg';
+import { ogSafeText } from './og/articleOgLayout';
+import { ORGANIZATION_DEFAULTS } from './organization-defaults';
 import ogVersions from '../../data/og-versions.json';
 
 // /[locale]/about 的 SEO 规则（#350）。全部是纯函数：数据由调用方从 site-settings 读好再传进来，这里不查库。
-// 规则和 spec §1 / §2 一致：meta title = 标题；description = 摘要，没填就取正文纯文本前 160 字；
-// canonical 和 hreflang 只列出显示中的语言（开关开着 + 内容完整 + 已上线），sitemap 用同一套语言。
+// - meta title = 标题；description = 摘要，没填就取正文纯文本前 160 字（spec §2）。
+// - 显示中的语言由后端 getPublishedAboutLocales() 决定（规则在后端 about-rules.ts），这里只吃这个列表：
+//   canonical / hreflang / sitemap 都只列这些语言；只有一种语言时不出 x-default。
 
 export const ABOUT_PATH = '/about';
 export const ABOUT_DESCRIPTION_MAX = 160;
 const DEFAULT_LOCALE = 'en';
-const OG_LOCALE: Record<string, string> = {
-  en: 'en_US', ru: 'ru_RU', es: 'es_ES', de: 'de_DE', fr: 'fr_FR', ja: 'ja_JP', hi: 'hi_IN', ar: 'ar_AR'
-};
 const OG_W = 1200;
 const OG_H = 630;
+const OG_LOCALE: Record<string, string> = { en: 'en_US', ru: 'ru_RU' };
 
 const trimOrigin = (origin: string) => origin.replace(/\/+$/, '');
 export const aboutUrl = (origin: string, locale: string) => `${trimOrigin(origin)}/${locale}${ABOUT_PATH}`;
@@ -47,32 +49,10 @@ export function truncateCodePoints(text: string, max: number): string {
   return cps.length <= max ? text : cps.slice(0, max).join('').trimEnd();
 }
 
-export function aboutDescription(content: Pick<AboutLocaleSetting, 'summary' | 'bodyHtml'>): string {
+export function aboutDescription(content: Pick<AboutContent, 'summary' | 'bodyHtml'>): string {
   const summary = content.summary?.replace(/\s+/g, ' ').trim();
   if (summary) return summary;
   return truncateCodePoints(htmlToPlainText(content.bodyHtml ?? ''), ABOUT_DESCRIPTION_MAX);
-}
-
-/** spec §1「完成」：标题 2–80 字，正文纯文本 50–6000 字，已上传的图片都有 alt */
-export function isAboutComplete(s: AboutLocaleSetting | null | undefined): boolean {
-  if (!s) return false;
-  const titleLen = Array.from(s.title?.trim() ?? '').length;
-  const bodyLen = Array.from(htmlToPlainText(s.bodyHtml ?? '')).length;
-  const altsOk = (s.images ?? []).every((i) => (i.alt ?? '').trim().length > 0);
-  return titleLen >= 2 && titleLen <= 80 && bodyLen >= 50 && bodyLen <= 6000 && altsOk;
-}
-
-/**
- * 显示中的语言：开关开着 + 该语言内容完整 + 已上线，顺序跟 siteLocales（即 PUBLISHED_LOCALES / routing.locales）。
- * 后端的 getPublishedAboutLocales 可以直接复用这条规则。
- */
-export function resolvePublishedAboutLocales<L extends string>(opts: {
-  enabled: boolean;
-  siteLocales: readonly L[];
-  settings: Partial<Record<string, AboutLocaleSetting | null>>;
-}): L[] {
-  if (!opts.enabled) return [];
-  return opts.siteLocales.filter((l) => isAboutComplete(opts.settings[l]));
 }
 
 /** hreflang：只列显示中的语言；只有一种语言时不输出 x-default，多于一种时按 withXDefault（en 存在才有，指向 en） */
@@ -83,23 +63,32 @@ export function aboutLanguages(publishedLocales: readonly string[], origin: stri
 }
 
 const OG_VERSIONS: Record<string, string> = ogVersions;
-/** 首页分享图（现有 /og/home-<locale>.jpg，没有该语言就用 en），带 ?v= 版本 */
+/** 首页通用分享图 /og/home-<locale>.jpg?v=…（与 pageMeta.ogImageUrl('home', locale) 同一地址，只是 origin 由参数传入） */
 export function homeOgImageUrl(origin: string, locale: string): string {
   const file = OG_VERSIONS[`home-${locale}.jpg`] ? `home-${locale}.jpg` : `home-${DEFAULT_LOCALE}.jpg`;
   const v = OG_VERSIONS[file];
   return `${trimOrigin(origin)}/og/${file}${v ? `?v=${v}` : ''}`;
 }
 
-/** 图片公开地址 `/media/<id>-<w>.webp`（#350 §7 答复 4），w 用后台记录的宽度 */
-export const aboutImageUrl = (origin: string, img: { id: string; width: number }) =>
-  `${trimOrigin(origin)}/media/${encodeURIComponent(img.id)}-${img.width}.webp`;
+/**
+ * about 分享图：沿用 #354 的文章 OG 模板（1200×630，标题 + 品牌），地址 /<locale>/about/og?v=<sha8>，
+ * v 用 articleOgVersion（模板版本 + 语言 + 标题），标题改了社交平台会重新抓图。不用后台上传的照片。
+ * 标题为空或没有字体能画的字符时返回 null，调用方用首页通用图（和文章页同一回退）。
+ * 注意：对应的路由 src/app/[locale]/about/og/route.tsx 还不存在，接入 metadata 时要同一个 PR 加上。
+ */
+export function aboutOgImageUrl(origin: string, locale: 'en' | 'ru', title: string | null | undefined): string | null {
+  const t = title?.trim();
+  if (!t || !ogSafeText(t)) return null;
+  return `${aboutUrl(origin, locale)}/og?v=${articleOgVersion(locale, t)}`;
+}
 
 export function buildAboutMetadata(opts: {
-  locale: string;
+  locale: 'en' | 'ru';
   content: AboutContent | null;
+  /** getPublishedAboutLocales() 的结果 */
   publishedLocales: readonly string[];
   origin: string;
-  /** 没有 about 图片时首页分享图的 alt（调用方传 Meta.ogImageAlt）；不传就用标题 */
+  /** 回退到首页通用图时的 alt（调用方传 Meta.ogImageAlt）；不传就用标题 */
   fallbackOgAlt?: string;
 }): Metadata {
   const { locale, content, origin } = opts;
@@ -109,9 +98,9 @@ export function buildAboutMetadata(opts: {
   const title = content.title.trim();
   const description = aboutDescription(content);
   const url = aboutUrl(origin, locale);
-  const first = content.images?.[0];
-  const image = first
-    ? { url: aboutImageUrl(origin, first), width: first.width, height: first.height, alt: first.alt }
+  const own = aboutOgImageUrl(origin, locale, title);
+  const image = own
+    ? { url: own, width: OG_W, height: OG_H, alt: `${title} | PackJoyU` }
     : { url: homeOgImageUrl(origin, locale), width: OG_W, height: OG_H, alt: opts.fallbackOgAlt ?? title };
   const ogLocale = (l: string) => OG_LOCALE[l] ?? l;
 
@@ -134,11 +123,11 @@ export function buildAboutMetadata(opts: {
   };
 }
 
-/** sitemap 条目：规则同 buildAboutMetadata；没有显示中的语言时返回 [] */
+/** sitemap 条目：语言列表同 buildAboutMetadata；没有显示中的语言时返回 [] */
 export function aboutSitemapEntries(opts: {
   publishedLocales: readonly string[];
   origin: string;
-  /** 统一时间，或按语言取 about.<locale> 的 updatedAt */
+  /** 统一时间，或按语言取 AboutContent.updatedAt */
   lastModified?: Date | Partial<Record<string, Date | string | undefined>>;
 }): MetadataRoute.Sitemap {
   if (opts.publishedLocales.length === 0) return [];
@@ -177,29 +166,34 @@ function absUrl(u: string | undefined, origin: string): string | undefined {
 }
 
 /**
- * Organization JSON-LD：@type 保持 Organization，只输出后台填了的字段。
- * 没有任何字段时退回 { name: 'PackJoyU', url: origin }。
- * 产能、面积、人数、认证、交期这类数字不在输入里，这里也绝不补默认值。
+ * Organization JSON-LD（输入 = getOrganizationSettings() 的返回值）。
+ * - @type 保持 Organization，@id = <origin>/#organization（WebSite.publisher 指向它）。
+ * - alternateName / description 为空时用 ORGANIZATION_DEFAULTS；后台填了以后台为准。传入已套过默认值的设置，输出相同。
+ * - 其他字段没填就不输出；logo 只收 https 或站内路径，sameAs 只收 https 并去重。
+ * - 产能、面积、人数、认证、交期这类数字不在输入里，这里也绝不补。
  */
-export function buildOrganizationJsonLd(settings: OrganizationSettings | null | undefined, origin: string): Record<string, unknown> {
+export function buildOrganizationJsonLd(settings: Partial<OrganizationSettings> | null | undefined, origin: string): Record<string, unknown> {
   const s = settings ?? {};
   const site = trimOrigin(origin);
+  const settingsUrl = clean(s.url);
   const out: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': `${site}/#organization`,
     name: clean(s.name) ?? 'PackJoyU',
-    url: site
+    url: settingsUrl && isHttps(settingsUrl) ? settingsUrl.replace(/\/+$/, '') : site,
+    alternateName: clean(s.alternateName) ?? ORGANIZATION_DEFAULTS.alternateName,
+    description: clean(s.description) ?? ORGANIZATION_DEFAULTS.description
   };
   const put = (k: string, v: unknown) => { if (v !== undefined) out[k] = v; };
-  put('alternateName', clean(s.alternateName));
   put('legalName', clean(s.legalName));
-  put('description', clean(s.description));
   put('logo', absUrl(clean(s.logo), site));
   const email = clean(s.email);
   put('email', email && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) ? email : undefined);
   put('telephone', clean(s.telephone));
-  if (s.address) {
+  if (typeof s.address === 'string') {
+    put('address', clean(s.address));
+  } else if (s.address) {
     const addr: Record<string, string> = {};
     for (const k of ['streetAddress', 'addressLocality', 'addressRegion', 'postalCode', 'addressCountry'] as const) {
       const v = clean(s.address[k]);

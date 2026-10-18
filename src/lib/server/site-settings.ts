@@ -1,72 +1,60 @@
-// TODO(后端接入): stub until backend PR —— 后端 PR 合入后整文件以后端实现为准，这里只定类型和函数名（#350 §7 答复 1/2/5）。
-// 存储（SiteSetting 表，不加列）：`about.enabled` 开关；`about.<locale>` 每语言一个 JSON（含 version，冲突 409）；
-// `about.images` 图片文件各语言共用（id、宽高），alt 和说明按图片 id 写在各语言 JSON 里。
-// 三个读取函数共用缓存标签 `site-settings`，页面 revalidate 60 兜底。
+// 仅限服务端使用（读 SiteSetting 表）。仓库没有 `server-only` 依赖，所以这里不 import，只靠目录约定 src/lib/server。
+// TODO(后端接入): stub until backend PR —— 签名按后端在群里贴的版本（#350），函数体由后端 PR 替换。
+// 完整性 / 已发布规则在后端的 src/lib/site-settings/about-rules.ts，这里不复制。
+import type { PublishedLocale } from './published-locales';
+import { SITE_URL } from '../site';
 
-/** `about.images` 里的一张图（各语言共用） */
-export type AboutImageFile = { id: string; width: number; height: number };
+/** 三个读取函数共用的缓存标签；保存后刷新它和 sitemap，页面 revalidate 60 兜底 */
+export const SITE_SETTINGS_CACHE_TAG = 'site-settings';
 
-/** `about.<locale>` JSON。字段名取自 spec v1 §7 原始问题 1（后端答复采纳），以后端 PR 为准 */
-export type AboutLocaleSetting = {
-  version: number;
+export type AboutStat = { label: string; value: string };
+export type AboutImage = { id: string; w: number; h: number; alt: string; caption: string; src: { sm: string; lg: string } };
+export type AboutContent = {
+  locale: PublishedLocale;
   title: string;
-  /** meta description，≤160，选填 */
-  summary?: string;
-  /** 已经 sanitizeAboutHtml 净化过的 HTML */
+  summary: string;
+  /** 已经 sanitizeAboutHtml 净化过 */
   bodyHtml: string;
-  /** 关键数字：只来自后台，最多 4 个，没填就不显示 */
-  stats?: { value: string; label: string }[];
-  /** 按图片 id 写的 alt / 说明 */
-  images?: { id: string; alt: string; caption?: string }[];
-  homeHeading?: string;
-  homeIntro?: string;
-  updatedAt?: string;
-  updatedById?: string;
+  stats: AboutStat[];
+  images: AboutImage[];
+  home: { title: string; intro: string };
+  updatedAt: string;
 };
 
-/** 前台用：某语言的 about 内容，图片已和 `about.images` 合并好宽高 */
-export type AboutContent = Omit<AboutLocaleSetting, 'images'> & {
-  locale: string;
-  images: (AboutImageFile & { alt: string; caption?: string })[];
+export type OrganizationAddress = {
+  streetAddress?: string;
+  addressLocality?: string;
+  addressRegion?: string;
+  postalCode?: string;
+  addressCountry?: string;
 };
 
-/**
- * Organization JSON-LD 用的公司信息。spec 没有列具体字段，以下全部选填，空的不输出。
- * 产能、面积、人数、认证、交期这类数字不在这里，也不能由代码补默认值。
- */
+/** 产能、面积、人数、认证、交期不在这里，也不能由代码补默认值 */
 export type OrganizationSettings = {
-  name?: string;
+  name: string;
+  url: string;
+  logo?: string;
+  description?: string;
+  sameAs: string[];
   alternateName?: string;
   legalName?: string;
-  description?: string;
-  /** https 绝对地址或以 / 开头的站内路径 */
-  logo?: string;
   email?: string;
   telephone?: string;
-  address?: {
-    streetAddress?: string;
-    addressLocality?: string;
-    addressRegion?: string;
-    postalCode?: string;
-    addressCountry?: string;
-  };
-  /** 只收 https 链接 */
-  sameAs?: string[];
-  /** YYYY 或 YYYY-MM-DD */
+  /** 后端还没定是一行文字还是分字段，两种都接受 */
+  address?: string | OrganizationAddress;
   foundingDate?: string;
 };
 
-/** 开关关闭、该语言未完成或未发布时返回 null（页面据此 404） */
-export async function getAboutContent(locale: string): Promise<AboutContent | null> {
+/** 开关关闭或该语言没有内容时返回 null */
+export async function getAboutContent(locale: PublishedLocale): Promise<AboutContent | null> {
   void locale;
-  return null;
+  return null; // TODO(后端接入)
 }
 
-/** 开关开着、内容完整、而且已上线的语言，按 routing.locales 的顺序 */
-export async function getPublishedAboutLocales(): Promise<string[]> {
-  return [];
+export async function getPublishedAboutLocales(): Promise<PublishedLocale[]> {
+  return []; // TODO(后端接入)
 }
 
 export async function getOrganizationSettings(): Promise<OrganizationSettings> {
-  return {};
+  return { name: 'PackJoyU', url: SITE_URL, sameAs: [] }; // TODO(后端接入)
 }
