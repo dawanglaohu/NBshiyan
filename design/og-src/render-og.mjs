@@ -15,10 +15,10 @@ const HOME={en:{title:'Custom printed packaging',sub:'From sample to bulk order'
 const heroBg=`<img class="bg" src="${b64(R+'/public/video/'+heroSrc[1])}">`;
 const DARK=['gift-boxes','wine-boxes'];
 // Category art: poster cropped to the product's bounding box (+10%), same visual size rule for every category image (og-layout.mjs).
-// Dark posters: the page background is the poster's own background colour, so no tile edge shows.
+// Page background = the poster's own background colour (dark and light), so no tile edge or light fringe shows (og-layout.mjs placed()).
 export const productJob=(file,title,sub,locale,key,poster)=>({file,title,sub,locale,dark:DARK.includes(key),
   prepare:async pg=>{const c=await cropPoster(pg,poster);const a=productArt(c);
-    return {art:a.html,boxes:[a.box],bgColor:DARK.includes(key)?c.bg:undefined,artInfo:`${a.wide?'wide w':'tall h'}=${Math.round(a.size)}`};}});
+    return {art:a.html,boxes:[a.box],bgColor:c.bg,artInfo:`${a.wide?'wide w':'tall h'}=${Math.round(a.size)}`};}});
 const jobs=[];
 for(const l of ['en','ru']){
   jobs.push({file:`home-${l}.jpg`,title:HOME[l].title,sub:HOME[l].sub,locale:l,full:heroBg,bgColor:'#FAF7F2',textW:540});

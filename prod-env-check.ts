@@ -1,4 +1,4 @@
-import { accessSync, constants as fsConstants, statSync } from 'fs';
+import { accessSync, constants as fsConstants, realpathSync, statSync } from 'fs';
 import path from 'path';
 import { isProdEnvFrom } from './src/lib/site';
 import { dailyCapValid, smtpBaseConfig } from './src/lib/server/mail/config';
@@ -26,6 +26,8 @@ export type EnvCheckDeps = {
   dirProblem?: (dir: string) => string | null;
   /** 应用根目录（standalone 下就是 server.js 所在目录），用来拒绝 public/、.next/ 下的上传目录 */
   cwd?: string;
+  /** #323：解析符号链接（默认 fs.realpathSync），比较 public/、.next/ 前缀前先取真实路径 */
+  realpath?: (p: string) => string;
 };
 
 export function prodEnvProblems(env: Record<string, string | undefined>, phase: EnvCheckPhase = 'any', deps: EnvCheckDeps = {}): string[] {
@@ -53,24 +55,36 @@ function publicProblems(env: Record<string, string | undefined>): string[] {
   if (TEST_TURNSTILE_SITE_KEY.test(v('NEXT_PUBLIC_TURNSTILE_SITE_KEY'))) out.push('NEXT_PUBLIC_TURNSTILE_SITE_KEY 是 Cloudflare 测试 site key，生产必须用真实 key');
   const site = v('NEXT_PUBLIC_SITE_URL');
   if (site && !/^https:\/\//.test(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是 https 地址');
-  else if (site && !publicSiteHostOk(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是正式域名（不能是 localhost / 127.0.0.1 / ::1 / 0.0.0.0 / *.localhost，也不能是无效地址）');
+  else if (site && !publicSiteHostOk(site)) out.push('NEXT_PUBLIC_SITE_URL 必须是正式域名的裸 origin（如 https://example.com：不能是 IP / localhost / *.localhost，不带端口、账号密码、路径或末尾 /）');
   return out;
 }
 
-/** 正式站点地址的主机名：不能是本机 / 回环 / 未指定地址（canonical、sitemap、邮件链接都用它，构建时内联） */
+/**
+ * 正式站点地址（canonical、sitemap、邮件链接都用它，构建时内联）。#323 收紧：
+ * - 原值必须正好是裸 origin：`new URL(v).origin === v`（不带路径、查询、#、末尾 /，主机名小写，不带默认端口）；
+ * - 不允许 userinfo、端口；
+ * - 主机名必须匹配 `^[a-z0-9-]+(\.[a-z0-9-]+)+$`（至少两段，不能有空段或末尾的点，所以 localhost、localhost.. 都不行）；
+ * - 一律拒绝 IP 字面量：IPv4（含 URL 解析器会规范化成点分的十进制 / 十六进制 / 八进制写法）、IPv6（含 [::ffff:127.0.0.1]）；
+ * - 拒绝 *.localhost。
+ */
+export const PUBLIC_SITE_HOST_RE = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 export function publicSiteHostOk(site: string): boolean {
-  let host: string;
-  try { host = new URL(site).hostname.toLowerCase().replace(/\.$/, ''); } catch { return false; }
-  if (!host) return false;
+  let u: URL;
+  try { u = new URL(site); } catch { return false; }
+  if (u.protocol !== 'https:' || u.origin === 'null' || u.origin !== site) return false;
+  if (u.username || u.password || u.port) return false;
+  const host = u.hostname;
+  if (host.startsWith('[') || host.includes(':')) return false; // IPv6 字面量
+  if (/^\d+(\.\d+){3}$/.test(host) || /(^|\.)(\d+|0x[0-9a-f]*)$/i.test(host)) return false; // IPv4 字面量（最后一段是数字的主机名会被当成 IPv4 解析）
+  if (!PUBLIC_SITE_HOST_RE.test(host)) return false;
   if (host === 'localhost' || host.endsWith('.localhost')) return false;
-  if (host === '0.0.0.0' || host === '[::1]' || host === '[::]' || /^127(\.\d{1,3}){3}$/.test(host)) return false;
   return true;
 }
 
 /**
  * 私有文件存储（只在 runtime 检查）：
  * - r2：R2_ACCOUNT_ID、R2_ACCESS_KEY_ID、R2_SECRET_ACCESS_KEY、R2_BUCKET 必填（与之前一致）
- * - local：UPLOAD_DIR 必须是规范的绝对路径（不能是 /、不能含 ..），不能在 public/ 或 .next/ 下（否则可能被静态服务），必须存在且可读写
+ * - local：UPLOAD_DIR 必须是规范的绝对路径（不能是 /、不能含 ..），realpath 之后也不能在 public/ 或 .next/ 下（否则可能被静态服务），必须存在且可读写
  * 只报变量名和原因，不输出路径或任何值。
  */
 export function storageProblems(env: Record<string, string | undefined>, deps: EnvCheckDeps = {}): string[] {
@@ -83,9 +97,17 @@ export function storageProblems(env: Record<string, string | undefined>, deps: E
   const norm = path.posix.normalize(dir).replace(/\/+$/, '');
   if (!norm || norm === '/' || dir.split('/').includes('..') || norm !== dir.replace(/\/+$/, '')) return ['UPLOAD_DIR 必须是规范的绝对路径（不能是 /，不能含 . 或 .. 段）'];
   const cwd = path.resolve(deps.cwd ?? process.cwd());
-  for (const pub of ['public', '.next']) {
-    const p = path.join(cwd, pub);
-    if (norm === p || norm.startsWith(p + '/')) return [`UPLOAD_DIR 不能在应用的 ${pub}/ 目录下（会被静态服务）`];
+  // #323：先 realpath 再比前缀（UPLOAD_DIR 或它的上级是指向 public/、.next/ 的符号链接时，按字面路径比较会漏掉）。
+  // 应用目录本身也取 realpath。目录不存在时 realpath 失败，退回字面路径，后面的 dirProblem 会报“不存在”。
+  const real = deps.realpath ?? realpathSync;
+  const resolve = (p: string) => { try { return real(p); } catch { return p; } };
+  const dirs = [...new Set([norm, resolve(norm)])];
+  for (const root of [...new Set([cwd, resolve(cwd)])]) {
+    for (const pub of ['public', '.next']) {
+      const p = path.join(root, pub);
+      const pubs = [...new Set([p, resolve(p)])];
+      if (dirs.some((d) => pubs.some((q) => d === q || d.startsWith(q + '/')))) return [`UPLOAD_DIR 不能在应用的 ${pub}/ 目录下（会被静态服务）`];
+    }
   }
   const fsProblem = (deps.dirProblem ?? defaultDirProblem)(norm);
   return fsProblem ? [`UPLOAD_DIR ${fsProblem}`] : [];

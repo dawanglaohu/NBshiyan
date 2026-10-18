@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { prodEnvProblems, assertProdEnv, storageProblems, RUNTIME_ONLY } from '../prod-env-check';
+import { prodEnvProblems, assertProdEnv, storageProblems, RUNTIME_ONLY, publicSiteHostOk, PUBLIC_SITE_HOST_RE } from '../prod-env-check';
 
 test('非生产环境（CI/预览/本地）不检查', () => {
   assert.deepEqual(prodEnvProblems({ CI: 'true', NODE_ENV: 'production', NEXT_PUBLIC_LOGO_UPLOAD_MOCK: '1' }), []);
@@ -253,6 +253,62 @@ test('build 阶段：NEXT_PUBLIC_SITE_URL 缺失 / 非 https / 本机或回环�
     assert.equal(p.length, 1, `${site}: ${p}`); assert.match(p[0], re, String(site));
     assert.ok(site === undefined || site.length < 9 || !p[0].includes(site), 'value not echoed');
   }
-  for (const site of ['https://packjoyu.com', 'https://www.packjoyu.com/', 'https://localhost-shop.com', 'https://my.localhosting.ru'])
+  for (const site of ['https://packjoyu.com', 'https://www.packjoyu.com', 'https://localhost-shop.com', 'https://my.localhosting.ru', 'https://geiom.com', 'https://a-b.c-d.example'])
     assert.deepEqual(prodEnvProblems({ ...base, NEXT_PUBLIC_SITE_URL: site }, 'build'), [], site);
+});
+
+test('#323 publicSiteHostOk：IP 字面量（v4 / v6 / 带括号 / 十进制 / 十六进制 / 八进制）、userinfo、端口、路径、非规范写法一律拒绝', () => {
+  const bad = [
+    // IPv4（私网、回环、链路本地、未指定）及解析器会规范化成 IPv4 的写法
+    'https://10.0.0.1', 'https://192.168.1.10', 'https://169.254.169.254', 'https://172.16.0.1', 'https://8.8.8.8', 'https://127.0.0.1', 'https://0.0.0.0',
+    'https://2130706433', 'https://0x7f000001', 'https://0x7f.0.0.1', 'https://0177.0.0.1', 'https://017700000001', 'https://127.1', 'https://shop.0x10', 'https://a.123',
+    // IPv6
+    'https://[::1]', 'https://[::]', 'https://[::ffff:127.0.0.1]', 'https://[::ffff:7f00:1]', 'https://[fe80::1]', 'https://[2001:db8::1]',
+    // localhost 及畸形主机名
+    'https://localhost', 'https://localhost..', 'https://localhost.', 'https://app.localhost', 'https://geiom.com.', 'https://geiom..com', 'https://.geiom.com', 'https://geiom_com.ru', 'https://geiom',
+    // userinfo / 端口 / 路径 / 查询 / # / 末尾 / / 大写 / 默认端口 / 空白 / IDN（原值与 origin 不同）
+    'https://u@geiom.com', 'https://u:p@geiom.com', 'https://:@geiom.com', 'https://geiom.com:8443', 'https://geiom.com:443', 'https://geiom.com/', 'https://geiom.com/en',
+    'https://geiom.com?x=1', 'https://geiom.com#x', 'https://GEIOM.com', ' https://geiom.com', 'https://例子.com', 'https://geiom.com\\', 'https://geiom.com%2f',
+    // 非 https / 无效
+    'http://geiom.com', 'https://', 'https://%zz', 'not a url', '',
+  ];
+  for (const s of bad) assert.equal(publicSiteHostOk(s), false, JSON.stringify(s));
+  for (const s of ['https://geiom.com', 'https://www.geiom.com', 'https://packjoyu.example', 'https://xn--fsqu00a.com', 'https://a1.b2.c3', 'https://localhost-shop.com'])
+    assert.equal(publicSiteHostOk(s), true, s);
+  // 正则本身：至少两段，每段只允许小写字母、数字和 -
+  assert.equal(PUBLIC_SITE_HOST_RE.source, '^[a-z0-9-]+(\\.[a-z0-9-]+)+$');
+});
+
+test('#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径', async () => {
+  const { mkdtempSync, mkdirSync, symlinkSync, rmSync, realpathSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const base = realpathSync(mkdtempSync(join(tmpdir(), 'upl-real-')));
+  try {
+    const app = join(base, 'app');
+    for (const d of ['public/uploads', '.next/cache/u']) mkdirSync(join(app, d), { recursive: true });
+    mkdirSync(join(base, 'data', 'uploads'), { recursive: true });
+    symlinkSync(join(app, 'public', 'uploads'), join(base, 'link-pub'));
+    symlinkSync(join(app, '.next', 'cache'), join(base, 'link-next'));
+    symlinkSync(join(app, 'public'), join(base, 'link-parent'));
+    symlinkSync(join(base, 'data', 'uploads'), join(base, 'link-ok'));
+    symlinkSync(app, join(base, 'app-link'));
+    const cases: [string, string, RegExp][] = [
+      [join(base, 'link-pub'), app, /public\//],
+      [join(base, 'link-next', 'u'), app, /\.next\//],
+      [join(base, 'link-parent', 'uploads'), app, /public\//],
+      // 应用目录本身经符号链接访问（cwd 是链接）：真实路径照样比对
+      [join(app, 'public', 'uploads'), join(base, 'app-link'), /public\//],
+    ];
+    for (const [dir, cwd, re] of cases) {
+      const p = storageProblems(localEnv({ UPLOAD_DIR: dir }), { cwd });
+      assert.equal(p.length, 1, dir); assert.match(p[0], re, dir); assert.ok(!p[0].includes(base), 'path leaked');
+    }
+    // 指向数据卷的符号链接、真实的数据卷目录：照常通过
+    assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'link-ok') }), { cwd: app }), []);
+    assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'data', 'uploads') }), { cwd: app }), []);
+    // 注入的 realpath 生效；realpath 抛错（目录不存在）时退回字面路径，由 dirProblem 报“不存在”
+    assert.match(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: okDir, realpath: (p) => (p === '/data/uploads' ? '/app/public/x' : p) })[0], /public\//);
+    assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: () => '不存在或当前用户不可读写', realpath: () => { throw new Error('ENOENT'); } }), ['UPLOAD_DIR 不存在或当前用户不可读写']);
+  } finally { rmSync(base, { recursive: true, force: true }); }
 });

@@ -14,6 +14,8 @@ export const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 const HOVER_ZOOM_MS = 500;
 // 支持“合盖 / 开盖 / 展开刀模”切换的品类
 const VIEW_SLUGS = new Set(['gift-boxes', 'wine-boxes', 'corrugated-boxes']);
+/** 开合途中按整条盖子弧线取景的产品（盖子中途会从顶部出画）；礼盒开盖后静止就放不下，本来就走这条路 */
+export const FIT_ARC = new Set(['wine-boxes']);
 const VIEWS: BoxView[] = ['closed', 'open', 'dieline'];
 
 // three.js 只在客户端按需加载，不进首屏包
@@ -151,7 +153,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
         eventSource={rootRef}
         onReady={onReady}
         onError={onError}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, dark: PREMIUM.has(p.slug), track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), track: tracks[i] }))}
       /></SceneErrorBoundary>)}
     </div>
   );
