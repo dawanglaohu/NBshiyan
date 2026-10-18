@@ -107,9 +107,11 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 # First-admin script: scripts/admin-create.mjs + admin-create-lib.mjs are traced into standalone by
 # outputFileTracingIncludes (fix/deploy-readiness), so the standalone COPY above already ships them. Fail the build if not.
-# Same for the read-only #361 deploy-gate count script scripts/admin-2fa-audit*.mjs (deploy/README.md "2FA audit").
+# Same for the read-only #361 deploy-gate count script scripts/admin-2fa-audit*.mjs (deploy/README.md "2FA audit")
+# and the unbound-ADMIN initial password reset scripts/admin-reset-initial-password*.mjs (deploy/README.md).
 RUN test -f scripts/admin-create.mjs && test -f scripts/admin-create-lib.mjs \
- && test -f scripts/admin-2fa-audit.mjs && test -f scripts/admin-2fa-audit-lib.mjs
+ && test -f scripts/admin-2fa-audit.mjs && test -f scripts/admin-2fa-audit-lib.mjs \
+ && test -f scripts/admin-reset-initial-password.mjs && test -f scripts/admin-reset-initial-password-lib.mjs
 # ISR (/products 1m, /articles 1h), route cache and the image optimizer write under .next/ (verified locally),
 # but the root fs is read_only. So the build output is kept in .next-dist and copied into a tmpfs .next at start.
 RUN mv .next .next-dist && mkdir .next && chown 1001:1001 .next \
