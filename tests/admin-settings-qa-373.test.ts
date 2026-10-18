@@ -60,7 +60,7 @@ test('P3-2 冲突期间保存栏：状态文字两行（冲突文案在第二行
   assert.match(css, /\.st-bar \.adm-btn\{white-space:nowrap;flex-shrink:0;min-height:44px\}/);
 });
 
-test('P3-3 工具栏：平的按钮（没有 adm-btn 边框方块），四组之间有分隔线，加粗 / 斜体有 aria-pressed', () => {
+test('P3-3 工具栏：平的按钮（没有 adm-btn 边框方块），组之间有分隔线（spec v1.0.11 起分三组），加粗 / 斜体有 aria-pressed', () => {
   assert.doesNotMatch(about, /className="adm-btn sq" aria-label=\{name\}/);
   assert.match(about, /className="st-tb-btn"/);
   assert.match(about, /<span className="sep" aria-hidden="true" \/>/);
@@ -93,7 +93,7 @@ test('关于页 400 / 422：能对上字段的进字段下方，对不上的进�
   assert.ok(!r2.ok);
   const v2 = saveFailureView(r2 as Extract<typeof r2, { ok: false }>);
   assert.deepEqual(v2.fieldErrors, {});
-  assert.equal(v2.alert, '参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  assert.equal(v2.alert, '参数不正确，请检查后重试。（包含不支持的字段）'); // UX #378 P3 ①：不显示后端字段路径
   const r3 = await api.save({ en: d({ title: 'About' }) }, base);
   assert.ok(!r3.ok);
   assert.equal(saveFailureView(r3 as Extract<typeof r3, { ok: false }>).alert, '保存失败：http_422');
@@ -114,7 +114,7 @@ test('mapAboutServerIssues：title / bodyHtml / stats.N / home.* 对到 DraftFie
   ]);
   assert.deepEqual(m.fields, {
     title: '标题至少 2 个字',
-    bodyHtml: '正文超出字数上限',
+    bodyHtml: '超出上限（最多 6000 字）', // UX #378 P3 ③：没传草稿时退回上限；传了草稿见 admin-p3-350.test.ts
     stats: '数值和说明都要填写',
     homeHeading: '超出上限（最多 60 字）',
     homeIntro: '超出上限（最多 200 字）',

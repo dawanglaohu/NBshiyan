@@ -159,7 +159,7 @@ test('组织信息：对不上字段的 400 issue、422 没带 issues，都显�
   await page.getByLabel('公司注册全称').fill('示例文字 Sample Co., Ltd.');
   const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
   await save.click();
-  await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（包含不支持的字段）'); // UX #378 P3 ①：不显示后端字段路径
   await save.click();
   await expect(page.locator('.st-page [role=alert]')).toHaveText('保存失败：http_422');
   await expect(page.getByLabel('公司注册全称')).toHaveValue('示例文字 Sample Co., Ltd.');
@@ -255,7 +255,7 @@ test('UX #375 P2：关于我们 400 字段错误显示在字段下方并 aria-in
   await expect(page.locator('#st-title-e')).toHaveText('标题至少 2 个字');
   await expect(page.locator('.st-page [role=alert]')).toHaveCount(0);
   await save.click();
-  await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
+  await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（包含不支持的字段）'); // UX #378 P3 ①：不显示后端字段路径
 });
 
 test('390 下关于我们 400 字段错误：焦点到字段，字段和错误文字都露在顶栏和底部保存栏之间', async ({ page }) => {

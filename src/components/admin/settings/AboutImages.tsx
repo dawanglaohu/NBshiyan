@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AboutDraft } from '@/lib/admin/site-settings';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
-  ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
-  precheckFile, removeImage, slotsLeft, uploadAboutImage, type AboutImageItem, type LibraryAsset,
+  ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isPortrait, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
+  inFlightCount, precheckFile, removeImage, slotsLeft, takeReady, uploadAboutImage, type AboutImageItem, type LibraryAsset,
 } from '@/lib/admin/about-images';
 import ConfirmDialog from './ConfirmDialog';
 import ImageTextField from './ImageTextField';
@@ -17,7 +17,8 @@ import './about-images.css';
  * - 图片库：已上传的图片（GET /assets）。可以重新加入关于页；没被关于页使用的才能删除（先确认；在用时 409 asset_in_use）。
  * 列表和文字都只改草稿，点保存条的「保存」才提交（见 saveAboutWithImages）。上传和删除是立即生效的（文件操作，不带版本号）。
  */
-type Tile = { key: number; name: string; size: number; file: File | null; state: 'uploading' | 'error'; progress: number; message?: string; retryAt?: number; ctrl?: AbortController };
+/** done：已传完、等前面选的图传完再按选择顺序入列（见 takeReady） */
+type Tile = { key: number; name: string; size: number; file: File | null; state: 'uploading' | 'done' | 'error'; progress: number; message?: string; retryAt?: number; ctrl?: AbortController; asset?: LibraryAsset; deduplicated?: boolean };
 
 type Props = {
   tab: string; locales: readonly string[]; dir: 'ltr' | 'rtl';
@@ -63,11 +64,9 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
     setTiles((ts) => ts.map((t) => (t.key === key ? { ...t, state: 'uploading', progress: 0, message: undefined, retryAt: undefined, ctrl } : t)));
     uploadAboutImage(file, { signal: ctrl.signal, onProgress: (p) => patch(key, { progress: p }) }).then((r) => {
       if (r.ok) {
-        patch(key, null);
+        // 不直接入列：标成 done，由下面的 effect 按选择顺序入列（UX #379 P3 ①）
+        patch(key, { state: 'done', progress: 100, ctrl: undefined, asset: r.asset, deduplicated: r.deduplicated });
         setLibrary((lib) => (lib && !lib.some((a) => a.id === r.asset.id) ? [r.asset, ...lib] : lib));
-        // 200 deduplicated：同一张图传过，后端复用已有记录；已经在列表里就不重复加
-        setNotice(r.deduplicated && itemsRef.current.some((x) => x.id === r.asset.id) ? T.duplicate : null);
-        setItems((prev) => addImage(prev, itemFromAsset(r.asset)));
         return;
       }
       if (r.code === 'aborted') { patch(key, null); return; }
@@ -75,10 +74,26 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
       patch(key, { state: 'error', message: r.message, ctrl: undefined, ...(r.code === 'rate_limited' ? { retryAt: Date.now() + (r.retryAfterMs ?? 60_000) } : { file: null }) });
       setNow(Date.now());
     });
-  }, [setItems]);
+  }, []);
 
-  const uploading = tiles.filter((t) => t.state === 'uploading' || t.file).length;
-  const left = slotsLeft(items, uploading);
+  // 按选择顺序入列：排在前面的都传完（或失败）了才把后面已传完的放进列表
+  useEffect(() => {
+    const { ready } = takeReady(tiles);
+    if (!ready.length) return;
+    // 用函数式更新只去掉已入列的：effect 和上传回调的 patch 之间可能插进别的更新，不能整份覆盖成快照
+    const done = new Set(ready.map((t) => t.key));
+    setTiles((ts) => ts.filter((t) => !done.has(t.key)));
+    // 200 deduplicated：同一张图传过，后端复用已有记录；已经在列表里（或这一批前面已经加过）就不重复加
+    const seen = new Set(itemsRef.current.map((x) => x.id));
+    let dup = false;
+    for (const t of ready) { if (t.deduplicated && seen.has(t.asset!.id)) dup = true; seen.add(t.asset!.id); }
+    setNotice(dup ? T.duplicate : null);
+    setItems((prev) => ready.reduce((acc, t) => addImage(acc, itemFromAsset(t.asset!)), prev));
+  }, [tiles, setItems]);
+
+  // UX #379 P3 ②：等 429 重试的不占名额；「已达上限」只看列表里实际的张数（计数也是）
+  const left = slotsLeft(items, inFlightCount(tiles));
+  const full = items.length >= IMAGES_MAX;
 
   const onFiles = (list: FileList | null) => {
     const files = [...(list ?? [])];
@@ -126,7 +141,7 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
       <div className="st-im-grid" role="list" aria-labelledby="st-im-l">
         {items.map((it, i) => {
           const n = i + 1; const id = `st-im-${it.id}`;
-          const altE = errs.alt[it.id]; const capE = errs.caption[it.id]; const small = isSmallImage(it.lg);
+          const altE = errs.alt[it.id]; const capE = errs.caption[it.id]; const small = isSmallImage(it.lg); const portrait = isPortrait(it.lg);
           return (
             <div key={it.id} role="listitem" className={`st-im-card${altE ? ' bad' : ''}`}>
               <div className="th">
@@ -144,6 +159,7 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
                   errorId={capE ? `${id}-cap-e` : undefined} onChange={(v) => onMeta(it.id, 'caption', v)} />
                 {capE && <p id={`${id}-cap-e`} className="st-ferr">{capE}</p>}
                 {small && <p className="st-warn st-im-small">{T.small}</p>}
+                {portrait && <p className="st-warn st-im-portrait">{T.portrait}</p>}
                 <div className="acts">
                   {/* 箭头：宽屏多列时 ← →，<640px 单列时 ↑ ↓（CSS 切换）；删除用后台通用的 ✕（同数据条、组织信息的删除按钮） */}
                   <button type="button" className="st-im-ico" aria-label={T.moveUpAria(n)} title={T.left} disabled={disabled || i === 0} onClick={() => setItems((p) => moveImage(p, i, -1))}><span className="h" aria-hidden="true">←</span><span className="v" aria-hidden="true">↑</span></button>
@@ -155,12 +171,12 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
             </div>
           );
         })}
-        {tiles.map((t) => (t.state === 'uploading' ? (
+        {tiles.map((t) => (t.state !== 'error' ? (
           <div key={t.key} role="listitem" className="st-im-up" aria-busy="true">
             <b role="status">{T.uploading(t.progress)}</b>
             <div className="bar" role="progressbar" aria-label={`上传 ${t.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={t.progress}><i style={{ width: `${t.progress}%` }} /></div>
             <span className="nm">{t.name} · <span className="sz">{fmtBytes(t.size)}</span></span>
-            <button type="button" className="adm-btn" onClick={() => t.ctrl?.abort()}>{T.cancel}</button>
+            <button type="button" className="adm-btn" onClick={() => (t.ctrl ? t.ctrl.abort() : patch(t.key, null))}>{T.cancel}</button>
           </div>
         ) : (
           <div key={t.key} role="listitem" className="st-im-up bad">
@@ -170,8 +186,9 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
               <span>{t.message}</span>
             </div>
             <div className="btns">
+              {t.file && left === 0 && <span className="st-im-rfull">{T.retryFull}</span>}
               {t.file && (
-                <button type="button" className="adm-btn" disabled={!!t.retryAt && t.retryAt > now} onClick={() => t.file && start(t.key, t.file)}>
+                <button type="button" className="adm-btn" disabled={(!!t.retryAt && t.retryAt > now) || left === 0} onClick={() => t.file && left > 0 && start(t.key, t.file)}>
                   {t.retryAt && t.retryAt > now ? T.retryIn(Math.ceil((t.retryAt - now) / 1000)) : T.retry}
                 </button>
               )}
@@ -188,7 +205,7 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
           </label>
         ) : null}
       </div>
-      {left === 0 && <p className="st-hint st-im-full">{T.full}</p>}
+      {full && <p className="st-hint st-im-full">{T.full}</p>}
       {notice && <p className="st-hint" role="status">{notice}</p>}
       {errs.missing.length > 0 && <p className="st-ferr" role="alert">{T.missingSummary(errs.missing.length)}</p>}
       {others.map(([l, n]) => <p key={l} className="st-ferr">{T.missingOther(l, n)}</p>)}

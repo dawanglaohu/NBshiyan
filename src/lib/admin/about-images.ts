@@ -44,6 +44,8 @@ export const IMAGES_TEXT = {
   tooLong: (n: number, max: number) => `超出上限：${n} / ${max}`,
   missingSummary: (n: number) => `${n} 张图片缺少替代文字，补齐后才能保存。`,
   missingOther: (l: string, n: number) => `${l.toUpperCase()}：${n} 张图片缺少替代文字`,
+  // UX #379 P3 ③：保存栏第二行说明为什么不能保存
+  barMissing: (n: number) => `${n} 张图片缺少替代文字`,
   add: '＋ 添加图片',
   addRule: 'JPG / PNG / WebP，单张 ≤ 10 MB',
   addRule2: (left: number) => `上传后统一转为 WebP · 建议长边 ≥ 1600 px · 还可加 ${left} 张`,
@@ -53,8 +55,10 @@ export const IMAGES_TEXT = {
   notUploaded: '未上传',
   retry: '重试',
   retryIn: (s: number) => `${s} 秒后可重试`,
+  retryFull: `已有 ${ABOUT_LIMITS.imagesMax} 张，移除一张后才能重试`,
   dismiss: '关闭',
   small: '图片较小，大屏上可能不够清晰',
+  portrait: '竖图在前台会裁成 4:3 横图显示，建议上传横图', // spec v1.0.10
   duplicate: '这张图已经在列表里了',
   left: '左移', right: '右移',
   // UX 复审（P3）：读屏用「上移 / 下移 / 删除第 N 张图片」（列表顺序 = 前台顺序；窄屏单列时也是上下）
@@ -162,12 +166,19 @@ export const fmtBytes = (n: number): string => (n >= 1024 * 1024 ? `${(n / 1024 
 /** 长边 < 1600：大屏可能不够清晰（和后端 warningsFor 同一条规则） */
 export const isSmallImage = (lg: Dims): boolean => Math.max(lg.w, lg.h) < LG_EDGE;
 
+/** 竖图（高 > 宽）：前台统一 4:3 横向裁切，会裁掉上下（spec v1.0.10，只提示、不阻止保存） */
+export const isPortrait = (d: Dims): boolean => d.h > d.w;
 export const itemFromAsset = (a: LibraryAsset): AboutImageItem => ({
   id: a.id, sm: { w: a.sm.width, h: a.sm.height }, lg: { w: a.lg.width, h: a.lg.height }, src: { sm: a.sm.url, lg: a.lg.url },
 });
 
 // ───────── 6 张上限、排序 ─────────
-/** 还能加几张：列表 + 正在上传的都算 */
+/**
+ * UX #379 P3 ②：占名额的上传 = 正在传的 + 已传完等入列的。失败的（包括等 429 重试、保留了文件的）不占：
+ * 列表 5 张 + 1 个等重试时计数 5 / 6、不显示「已达上限」、上传区还在（还可加 1 张）。重试时没名额了就禁用重试。
+ */
+export const inFlightCount = (tiles: readonly { state: string }[]): number => tiles.filter((t) => t.state === 'uploading' || t.state === 'done').length;
+/** 还能加几张：列表 + 占名额的上传（inFlightCount）都算 */
 export const slotsLeft = (items: readonly unknown[], uploading = 0): number => Math.max(0, IMAGES_MAX - items.length - uploading);
 /** 加到列表末尾：已在列表里或已满 6 张时原样返回 */
 export function addImage(items: readonly AboutImageItem[], it: AboutImageItem): AboutImageItem[] {
@@ -179,6 +190,21 @@ export function moveImage<T>(items: readonly T[], i: number, dir: -1 | 1): T[] {
   if (i < 0 || i >= items.length || j < 0 || j >= items.length) return [...items];
   const n = [...items]; [n[i], n[j]] = [n[j], n[i]];
   return n;
+}
+/**
+ * UX #379 P3 ①：一次选多张时按「选择的顺序」进列表，不按上传完成的先后。
+ * tiles 按选择顺序排（新选的追加在后面）。从头往后：已传完（done）的依次取出入列；遇到还在上传的就停，
+ * 它后面已传完的先等着（仍显示在上传区）；失败的（含等 429 重试的）不挡后面的——重试成功后排在当时列表的最后。
+ */
+export function takeReady<T extends { state: string }>(tiles: readonly T[]): { ready: T[]; rest: T[] } {
+  const ready: T[] = []; const rest: T[] = [];
+  let blocked = false;
+  for (const t of tiles) {
+    if (t.state === 'done' && !blocked) { ready.push(t); continue; }
+    if (t.state === 'uploading') blocked = true;
+    rest.push(t);
+  }
+  return { ready, rest };
 }
 export const removeImage = (items: readonly AboutImageItem[], id: string): AboutImageItem[] => items.filter((x) => x.id !== id);
 export const sameIds = (a: readonly { id: string }[], b: readonly { id: string }[]): boolean => a.length === b.length && a.every((x, i) => x.id === b[i].id);
@@ -230,6 +256,10 @@ export const COUNTER_AT = 10;
 export function charCounter(value: string, max: number): string | null {
   const n = countChars(value);
   return max - n <= COUNTER_AT ? `${n}/${max}` : null;
+}
+/** 保存栏用：各语言里缺替代文字的图片（按图去重，同一张图两种语言都缺只算 1 张）。只算「必填」的语言，同 localeImageErrors */
+export function missingAltImages(drafts: Record<string, AboutDraft>, locales: readonly string[], ids: readonly string[]): number {
+  return new Set(locales.flatMap((l) => localeImageErrors(drafts[l], ids).missing)).size;
 }
 export const hasImageErrors = (e: LocaleImageErrors): boolean => Object.keys(e.alt).length > 0 || Object.keys(e.caption).length > 0;
 export function anyImageErrors(drafts: Record<string, AboutDraft>, locales: readonly string[], ids: readonly string[]): boolean {

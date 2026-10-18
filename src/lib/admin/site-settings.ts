@@ -40,7 +40,7 @@ export const SETTINGS_TEXT = {
   visibilityOff: '已关闭 · /about 返回 404，导航、页脚入口和 sitemap 都不显示。已填写的内容会保留。',
   titleHint: '显示为页面 H1，也作为默认 meta 标题。',
   summaryLabel: '摘要（选填，用于搜索结果描述）',
-  bodyHint: '粘贴时自动去掉颜色、字号、图片和表格；只保留标题（H2/H3）、加粗、斜体、链接、列表。保存时服务端用 sanitizeAboutHtml 净化。',
+  bodyHint: '粘贴时自动去掉颜色、字号、图片和表格；只保留标题（H2/H3）、加粗、斜体、链接、列表。保存时会自动去掉不安全的内容。',
   statsLabel: '数据条（选填）',
   statValue: '数值 ≤12 字',
   statLabel: '说明 ≤40 字',
@@ -160,15 +160,18 @@ export function fieldCount(field: Exclude<DraftField, 'stats'>, d: AboutDraft): 
  * 标题非空但不到 2 字（后端 normalizeAboutInput 的 too_short）。
  * 标题为空、正文不到 50 字不阻止保存（允许先存草稿），只让该语言前台不显示（完整度圆点会提示）。
  */
+const BODY_HTML_TOO_BIG = '正文格式太复杂（HTML 超过 30 KB），请删减后再保存';
+/** 超上限的字段错误（前端校验和后端 too_long 共用同一句） */
+export const tooLongText = (n: number, max: number) => `超出上限：${n} / ${max}`;
 export function draftErrors(d: AboutDraft): Partial<Record<DraftField, string>> {
   const e: Partial<Record<DraftField, string>> = {};
   for (const f of ['title', 'summary', 'bodyHtml', 'homeHeading', 'homeIntro'] as const) {
     const { n, max } = fieldCount(f, d);
-    if (n > max) e[f] = `超出上限：${n} / ${max}`;
+    if (n > max) e[f] = tooLongText(n, max);
   }
   const t = countChars(d.title.trim());
   if (!e.title && t > 0 && t < ABOUT_LIMITS.titleMin) e.title = `标题至少 ${ABOUT_LIMITS.titleMin} 个字`;
-  if (!e.bodyHtml && new TextEncoder().encode(d.bodyHtml).length > ABOUT_LIMITS.bodyHtmlBytes) e.bodyHtml = '正文格式太复杂（HTML 超过 30 KB），请删减后再保存';
+  if (!e.bodyHtml && new TextEncoder().encode(d.bodyHtml).length > ABOUT_LIMITS.bodyHtmlBytes) e.bodyHtml = BODY_HTML_TOO_BIG;
   if (d.stats.length > ABOUT_LIMITS.statsMax) e.stats = `最多 ${ABOUT_LIMITS.statsMax} 条`;
   else if (d.stats.some((s) => !s.value.trim() !== !s.label.trim())) e.stats = SETTINGS_TEXT.statPairError;
   else if (d.stats.some((s) => countChars(s.value) > ABOUT_LIMITS.statValueMax || countChars(s.label) > ABOUT_LIMITS.statLabelMax)) e.stats = `数值 ≤${ABOUT_LIMITS.statValueMax} 字，说明 ≤${ABOUT_LIMITS.statLabelMax} 字`;
@@ -203,17 +206,65 @@ const SETTINGS_ERR: Record<string, string> = {
 export const settingsErrorText = (code: string): string =>
   (Object.prototype.hasOwnProperty.call(SETTINGS_ERR, code) ? SETTINGS_ERR[code] : null) ?? errorText(code, '保存失败');
 
-/** 后端 issue 转成一行文字（顶部错误条用） */
+/**
+ * 后端 issue 转成一行「path：message」（内部格式，rest 里存的就是它；imageIssueText 按这个格式改写 imageMeta 的行）。
+ * 不直接显示：顶部错误条经 issuesAlertText → humanIssueLine 换成中文，不出现后端的字段路径和原始 message。
+ */
 export const issueLine = (i: { path?: unknown; message?: unknown }): string => {
   const path = typeof i.path === 'string' ? i.path : ''; const msg = typeof i.message === 'string' ? i.message : '';
   return path ? `${path}：${msg}` : msg || '（未说明）';
 };
+
+/** UX #378 P3 ①：后端字段路径 → 中文字段名（顶部错误条用）。认不出的路径返回 null，显示时去掉前缀 */
+const ISSUE_PATH_LABEL: Record<string, string> = {
+  ...FIELD_LABEL,
+  home: '首页区块', 'home.title': FIELD_LABEL.homeHeading, 'home.intro': FIELD_LABEL.homeIntro,
+  imageMeta: '图片文字', images: '图片列表', ids: '图片列表',
+  enabled: '前台显示', expectedVersion: '版本号',
+};
+export function issuePathLabel(path: string): string | null {
+  const has = (k: string) => Object.prototype.hasOwnProperty.call(ISSUE_PATH_LABEL, k);
+  if (has(path)) return ISSUE_PATH_LABEL[path];
+  const img = /^imageMeta\.[^.]+\.(alt|caption)$/.exec(path);
+  if (img) return img[1] === 'alt' ? '图片的替代文字' : '图片说明';
+  const head = path.split('.', 1)[0];
+  return has(head) ? ISSUE_PATH_LABEL[head] : null;
+}
+/** 后端 issue 的 message（zod 文案 / 自定义码）→ 中文；认不出的统一「不符合要求」，不显示英文原文 */
+export function issueMessageText(msg: string): string {
+  const m = msg.trim();
+  let x: RegExpExecArray | null;
+  if ((x = /^max (\d+) chars?$/i.exec(m))) return `超出上限（最多 ${x[1]} 字）`;
+  if ((x = /^max (\d+) bytes?$/i.exec(m))) return `内容太长（最多 ${Math.floor(Number(x[1]) / 1024)} KB）`;
+  if ((x = /^max (\d+) images?$/i.exec(m))) return `最多 ${x[1]} 张`;
+  const known: Record<string, string> = {
+    too_long: '超出上限', too_short: '太短', empty: '不能为空', required: '必填', duplicate: '有重复',
+    invalid_url: '链接格式不正确', invalid_telephone: '电话格式不正确', invalid_date: '日期格式不正确',
+  };
+  const k = m.toLowerCase();
+  if (Object.prototype.hasOwnProperty.call(known, k)) return known[k];
+  if (/unrecognized key/i.test(m)) return '包含不支持的字段';
+  return '不符合要求';
+}
+const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
+/**
+ * rest 里的一行 → 顶部错误条里显示的文字：「path：message」→「中文字段名：中文说明」，认不出的路径去掉前缀；
+ * 已经是中文的行（imageIssueText 改写过的「第 N 张图片…」、「（未说明）」）原样保留。
+ */
+export function humanIssueLine(line: string): string {
+  const m = /^([A-Za-z][\w.-]*)：([\s\S]*)$/.exec(line);
+  if (m) {
+    const label = issuePathLabel(m[1]); const text = issueMessageText(m[2]);
+    return label ? `${label}：${text}` : text;
+  }
+  return CJK.test(line) ? line : issueMessageText(line);
+}
 /**
  * 顶部错误条文案（about 和组织信息共用）：对不上字段的 issue、或 400 / 422 没带 issues，都必须显示在这里，不能悄悄丢掉。
- * rest 是对不上字段的 issue 文字；为空时只显示错误码对应的文案。
+ * rest 是对不上字段的 issue（issueLine 格式），显示前经 humanIssueLine 换成中文并去重；为空时只显示错误码对应的文案。
  */
 export const issuesAlertText = (code: string, rest: readonly string[] = []): string =>
-  rest.length ? `${settingsErrorText(code)}（${rest.join('；')}）` : settingsErrorText(code);
+  rest.length ? `${settingsErrorText(code)}（${[...new Set(rest.map(humanIssueLine))].join('；')}）` : settingsErrorText(code);
 
 // ───────────────────────── 接口层 ─────────────────────────
 /**
@@ -229,14 +280,18 @@ export type SaveResult =
 export const VERSION_CONFLICT = 'version_conflict' as const;
 export const isVersionConflict = (r: SaveResult): boolean => !r.ok && r.code === VERSION_CONFLICT;
 
-/** 后端 about PUT 的 issue.path → 界面 DraftField（home.title→homeHeading，stats.N→stats）。对不上的进 rest，走顶部错误条。 */
-export function mapAboutServerIssues(issues: { path: string; message: string }[]): { fields: AboutFieldErrors; rest: string[] } {
+/**
+ * 后端 about PUT 的 issue.path → 界面 DraftField（home.title→homeHeading，stats.N→stats）。对不上的进 rest，走顶部错误条。
+ * draft = 这次提交的那个语言的草稿：后端只回 { path, message: 'too_long' }（不带 max 和当前长度，PM 定：后端不改），
+ * 前端用同一份 ABOUT_LIMITS 和当前内容算出「超出上限：n / max」，和前端校验同一句。
+ */
+export function mapAboutServerIssues(issues: { path: string; message: string }[], draft?: AboutDraft): { fields: AboutFieldErrors; rest: string[] } {
   const fields: AboutFieldErrors = {}; const rest: string[] = [];
   for (const i of issues) {
     const path = String(i.path ?? ''); const msg = String(i.message ?? '');
     const f = aboutIssueField(path);
     if (!f) { rest.push(issueLine(i)); continue; }
-    fields[f] ??= aboutIssueText(f, msg);
+    fields[f] ??= aboutIssueText(f, msg, draft);
   }
   return { fields, rest };
 }
@@ -247,14 +302,24 @@ function aboutIssueField(path: string): DraftField | null {
   if (path === 'home.intro') return 'homeIntro';
   return null; // imageMeta / enabled / expectedVersion / 未知字段 → rest
 }
-function aboutIssueText(f: DraftField, msg: string): string {
+function aboutIssueText(f: DraftField, msg: string, draft?: AboutDraft): string {
   if (msg === 'too_short' && f === 'title') return `标题至少 ${ABOUT_LIMITS.titleMin} 个字`;
-  if (msg === 'too_long' && f === 'bodyHtml') return '正文超出字数上限';
   if (msg === 'empty' && f === 'stats') return SETTINGS_TEXT.statPairError;
+  if (f === 'bodyHtml' && /^max \d+ bytes?$/i.test(msg)) return BODY_HTML_TOO_BIG; // HTML 超 30 KB（不是字数）
   const m = /max (\d+)/i.exec(msg);
+  // UX #378 P3 ③：too_long（正文纯文本超 6000 字）和 zod 的「max N chars」都写成「超出上限：n / max」。
+  // n 按前端计数（fieldCount：code point、正文转纯文本）算；万一前后端计数不一致（n 没超），退回「超出上限（最多 max 字）」，不显示自相矛盾的数字
+  if (f !== 'stats' && (msg === 'too_long' || m)) {
+    const c = draft ? fieldCount(f, draft) : null;
+    if (c && c.n > c.max) return tooLongText(c.n, c.max);
+    return `超出上限（最多 ${m ? m[1] : FIELD_MAX[f]} 字）`;
+  }
   if (m) return `超出上限（最多 ${m[1]} 字）`;
   return '内容不符合要求，请检查';
 }
+const FIELD_MAX: Record<Exclude<DraftField, 'stats'>, number> = {
+  title: ABOUT_LIMITS.titleMax, summary: ABOUT_LIMITS.summaryMax, bodyHtml: ABOUT_LIMITS.bodyTextMax, homeHeading: ABOUT_LIMITS.homeTitleMax, homeIntro: ABOUT_LIMITS.homeIntroMax,
+};
 
 /**
  * 保存失败时页面怎么显示（about 和组织信息共用）：能对上字段的放字段下方；
