@@ -160,15 +160,18 @@ export function fieldCount(field: Exclude<DraftField, 'stats'>, d: AboutDraft): 
  * 标题非空但不到 2 字（后端 normalizeAboutInput 的 too_short）。
  * 标题为空、正文不到 50 字不阻止保存（允许先存草稿），只让该语言前台不显示（完整度圆点会提示）。
  */
+const BODY_HTML_TOO_BIG = '正文格式太复杂（HTML 超过 30 KB），请删减后再保存';
+/** 超上限的字段错误（前端校验和后端 too_long 共用同一句） */
+export const tooLongText = (n: number, max: number) => `超出上限：${n} / ${max}`;
 export function draftErrors(d: AboutDraft): Partial<Record<DraftField, string>> {
   const e: Partial<Record<DraftField, string>> = {};
   for (const f of ['title', 'summary', 'bodyHtml', 'homeHeading', 'homeIntro'] as const) {
     const { n, max } = fieldCount(f, d);
-    if (n > max) e[f] = `超出上限：${n} / ${max}`;
+    if (n > max) e[f] = tooLongText(n, max);
   }
   const t = countChars(d.title.trim());
   if (!e.title && t > 0 && t < ABOUT_LIMITS.titleMin) e.title = `标题至少 ${ABOUT_LIMITS.titleMin} 个字`;
-  if (!e.bodyHtml && new TextEncoder().encode(d.bodyHtml).length > ABOUT_LIMITS.bodyHtmlBytes) e.bodyHtml = '正文格式太复杂（HTML 超过 30 KB），请删减后再保存';
+  if (!e.bodyHtml && new TextEncoder().encode(d.bodyHtml).length > ABOUT_LIMITS.bodyHtmlBytes) e.bodyHtml = BODY_HTML_TOO_BIG;
   if (d.stats.length > ABOUT_LIMITS.statsMax) e.stats = `最多 ${ABOUT_LIMITS.statsMax} 条`;
   else if (d.stats.some((s) => !s.value.trim() !== !s.label.trim())) e.stats = SETTINGS_TEXT.statPairError;
   else if (d.stats.some((s) => countChars(s.value) > ABOUT_LIMITS.statValueMax || countChars(s.label) > ABOUT_LIMITS.statLabelMax)) e.stats = `数值 ≤${ABOUT_LIMITS.statValueMax} 字，说明 ≤${ABOUT_LIMITS.statLabelMax} 字`;
@@ -277,14 +280,18 @@ export type SaveResult =
 export const VERSION_CONFLICT = 'version_conflict' as const;
 export const isVersionConflict = (r: SaveResult): boolean => !r.ok && r.code === VERSION_CONFLICT;
 
-/** 后端 about PUT 的 issue.path → 界面 DraftField（home.title→homeHeading，stats.N→stats）。对不上的进 rest，走顶部错误条。 */
-export function mapAboutServerIssues(issues: { path: string; message: string }[]): { fields: AboutFieldErrors; rest: string[] } {
+/**
+ * 后端 about PUT 的 issue.path → 界面 DraftField（home.title→homeHeading，stats.N→stats）。对不上的进 rest，走顶部错误条。
+ * draft = 这次提交的那个语言的草稿：后端只回 { path, message: 'too_long' }（不带 max 和当前长度，PM 定：后端不改），
+ * 前端用同一份 ABOUT_LIMITS 和当前内容算出「超出上限：n / max」，和前端校验同一句。
+ */
+export function mapAboutServerIssues(issues: { path: string; message: string }[], draft?: AboutDraft): { fields: AboutFieldErrors; rest: string[] } {
   const fields: AboutFieldErrors = {}; const rest: string[] = [];
   for (const i of issues) {
     const path = String(i.path ?? ''); const msg = String(i.message ?? '');
     const f = aboutIssueField(path);
     if (!f) { rest.push(issueLine(i)); continue; }
-    fields[f] ??= aboutIssueText(f, msg);
+    fields[f] ??= aboutIssueText(f, msg, draft);
   }
   return { fields, rest };
 }
@@ -295,14 +302,24 @@ function aboutIssueField(path: string): DraftField | null {
   if (path === 'home.intro') return 'homeIntro';
   return null; // imageMeta / enabled / expectedVersion / 未知字段 → rest
 }
-function aboutIssueText(f: DraftField, msg: string): string {
+function aboutIssueText(f: DraftField, msg: string, draft?: AboutDraft): string {
   if (msg === 'too_short' && f === 'title') return `标题至少 ${ABOUT_LIMITS.titleMin} 个字`;
-  if (msg === 'too_long' && f === 'bodyHtml') return '正文超出字数上限';
   if (msg === 'empty' && f === 'stats') return SETTINGS_TEXT.statPairError;
+  if (f === 'bodyHtml' && /^max \d+ bytes?$/i.test(msg)) return BODY_HTML_TOO_BIG; // HTML 超 30 KB（不是字数）
   const m = /max (\d+)/i.exec(msg);
+  // UX #378 P3 ③：too_long（正文纯文本超 6000 字）和 zod 的「max N chars」都写成「超出上限：n / max」。
+  // n 按前端计数（fieldCount：code point、正文转纯文本）算；万一前后端计数不一致（n 没超），退回「超出上限（最多 max 字）」，不显示自相矛盾的数字
+  if (f !== 'stats' && (msg === 'too_long' || m)) {
+    const c = draft ? fieldCount(f, draft) : null;
+    if (c && c.n > c.max) return tooLongText(c.n, c.max);
+    return `超出上限（最多 ${m ? m[1] : FIELD_MAX[f]} 字）`;
+  }
   if (m) return `超出上限（最多 ${m[1]} 字）`;
   return '内容不符合要求，请检查';
 }
+const FIELD_MAX: Record<Exclude<DraftField, 'stats'>, number> = {
+  title: ABOUT_LIMITS.titleMax, summary: ABOUT_LIMITS.summaryMax, bodyHtml: ABOUT_LIMITS.bodyTextMax, homeHeading: ABOUT_LIMITS.homeTitleMax, homeIntro: ABOUT_LIMITS.homeIntroMax,
+};
 
 /**
  * 保存失败时页面怎么显示（about 和组织信息共用）：能对上字段的放字段下方；

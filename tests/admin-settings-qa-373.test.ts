@@ -114,7 +114,7 @@ test('mapAboutServerIssues：title / bodyHtml / stats.N / home.* 对到 DraftFie
   ]);
   assert.deepEqual(m.fields, {
     title: '标题至少 2 个字',
-    bodyHtml: '正文超出字数上限',
+    bodyHtml: '超出上限（最多 6000 字）', // UX #378 P3 ③：没传草稿时退回上限；传了草稿见 admin-p3-350.test.ts
     stats: '数值和说明都要填写',
     homeHeading: '超出上限（最多 60 字）',
     homeIntro: '超出上限（最多 200 字）',

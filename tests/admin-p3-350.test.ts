@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { nextTrapFocus, FOCUSABLE_SELECTOR } from '../src/lib/admin/focus-trap';
-import { emptyDraft, humanIssueLine, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
+import { draftErrors, emptyDraft, humanIssueLine, mapAboutServerIssues, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
+import { ABOUT_LIMITS } from '../src/lib/site-settings/about-rules';
 
 // #350 部署后的前端 P3 小 PR（UX #378 / #379 遗留 + spec v1.0.10 + SEO）
 const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
@@ -78,4 +79,40 @@ test('工具栏 390：不换行（nowrap + 横向滚动、隐藏滚动条），�
   assert.match(css, /\.st-tools\{display:flex;gap:2px;flex-wrap:wrap;padding:4px;/); // ≥768 不变
   // 8 个按钮 + 3 条分隔线放进 390 的编辑器（390 − 页面 16×2 − 卡片 20×2 − 边框 2 − 工具栏 4×2 = 308px）
   assert.ok(8 * 36 + 3 * (1 + 4) <= 308);
+});
+
+// ───────── ④ UX #378 P3 ③：后端 too_long →「超出上限：n / max」 ─────────
+test('后端 too_long：用本地 ABOUT_LIMITS 和当前内容算「超出上限：n / max」，和前端校验同一句', () => {
+  const over = { ...emptyDraft(), bodyHtml: `<p>${'字'.repeat(ABOUT_LIMITS.bodyTextMax + 1)}</p>`, homeIntro: 'x'.repeat(ABOUT_LIMITS.homeIntroMax + 5), title: '标'.repeat(81) };
+  const m = mapAboutServerIssues([
+    { path: 'bodyHtml', message: 'too_long' },
+    { path: 'home.intro', message: `max ${ABOUT_LIMITS.homeIntroMax} chars` },
+    { path: 'title', message: 'too_long' },
+  ], over);
+  assert.deepEqual(m.fields, { bodyHtml: '超出上限：6001 / 6000', homeIntro: '超出上限：305 / 300', title: '超出上限：81 / 80' });
+  // 和前端校验同一句
+  const client = draftErrors(over);
+  assert.equal(client.bodyHtml, m.fields.bodyHtml);
+  assert.equal(client.homeIntro, m.fields.homeIntro);
+  assert.equal(client.title, m.fields.title);
+  assert.deepEqual(m.rest, []);
+});
+
+test('后端 too_long 但前端计数没超（前后端计数不一致）：不显示自相矛盾的数字，退回「超出上限（最多 max 字）」；HTML 超 30 KB 用前端同一句', () => {
+  const ok = { ...emptyDraft(), bodyHtml: '<p>short body</p>' };
+  assert.deepEqual(mapAboutServerIssues([{ path: 'bodyHtml', message: 'too_long' }], ok).fields, { bodyHtml: '超出上限（最多 6000 字）' });
+  assert.deepEqual(mapAboutServerIssues([{ path: 'summary', message: 'too_long' }]).fields, { summary: '超出上限（最多 160 字）' });
+  assert.deepEqual(mapAboutServerIssues([{ path: 'bodyHtml', message: 'max 30720 bytes' }], ok).fields, { bodyHtml: '正文格式太复杂（HTML 超过 30 KB），请删减后再保存' });
+  // 都不是「内容不符合要求，请检查」
+  for (const v of Object.values(mapAboutServerIssues([{ path: 'homeHeading', message: 'too_long' }, { path: 'home.title', message: 'too_long' }], ok).fields)) assert.notEqual(v, '内容不符合要求，请检查');
+});
+
+test('后端 too_long（接口层）：save 把这次提交的那个语言的草稿传给映射，字段下方显示「超出上限：n / max」', async () => {
+  const over = { ...emptyDraft(), title: 'About', bodyHtml: `<p>${'a'.repeat(6010)}</p>` };
+  const f = (async () => new Response(JSON.stringify({ error: 'invalid', issues: [{ path: 'bodyHtml', message: 'too_long' }] }), { status: 400 })) as unknown as typeof fetch;
+  const r = await createAboutSettingsApi(f).save({ en: over }, { enabled: false, enabledVersion: 0, locales: { en: emptyDraft() } });
+  assert.ok(!r.ok);
+  const v = saveFailureView(r as Extract<typeof r, { ok: false }>);
+  assert.deepEqual(v, { fieldErrors: { bodyHtml: '超出上限：6010 / 6000' }, alert: null });
+  assert.match(read('../src/lib/admin/site-settings-http.ts'), /JSON\.stringify\(putBody\(d\)\) \}, d\);/);
 });

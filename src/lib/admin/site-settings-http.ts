@@ -37,7 +37,7 @@ export const putBody = (d: AboutDraft) => ({
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 type Fail = Extract<SaveResult, { ok: false }>;
 
-async function send(f: Fetch, path: string, init?: RequestInit): Promise<{ ok: true; body: unknown } | Fail> {
+async function send(f: Fetch, path: string, init?: RequestInit, draft?: AboutDraft): Promise<{ ok: true; body: unknown } | Fail> {
   let res: Response;
   try {
     res = await f(path, { credentials: 'same-origin', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, ...init });
@@ -49,7 +49,7 @@ async function send(f: Fetch, path: string, init?: RequestInit): Promise<{ ok: t
   // 400 / 422：能对上字段的进 fieldErrors，对不上的进 rest（顶部错误条）；和 organization 同一套 saveFailureView
   if ((res.status === 400 || res.status === 422) && Array.isArray(body.issues) && body.issues.length) {
     const raw = (body.issues as { path?: unknown; message?: unknown }[]).map((i) => ({ path: typeof i.path === 'string' ? i.path : '', message: typeof i.message === 'string' ? i.message : '' }));
-    const m = mapAboutServerIssues(raw);
+    const m = mapAboutServerIssues(raw, draft); // too_long →「超出上限：n / max」按这次提交的草稿算
     return { ok: false, code, fieldErrors: m.fields, rest: m.rest };
   }
   return code === 'version_conflict' && typeof body.currentVersion === 'number' ? { ok: false, code, currentVersion: body.currentVersion } : { ok: false, code };
@@ -66,7 +66,7 @@ export function createAboutSettingsApi(f: Fetch): AboutSettingsApi {
     async save(changes, base) {
       let data: AboutSettingsData = { ...base, locales: { ...base.locales } };
       for (const [l, d] of Object.entries(changes)) {
-        const r = await send(f, `${BASE}/${encodeURIComponent(l)}`, { method: 'PUT', body: JSON.stringify(putBody(d)) });
+        const r = await send(f, `${BASE}/${encodeURIComponent(l)}`, { method: 'PUT', body: JSON.stringify(putBody(d)) }, d);
         if (!r.ok) {
           const done = Object.keys(changes).indexOf(l) > 0;
           return { ...r, ...(done ? { saved: data } : {}) } satisfies SaveResult;
