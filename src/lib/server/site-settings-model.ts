@@ -138,3 +138,52 @@ export function parseStoredOrganization(v: unknown): StoredOrganization | null {
   out.sameAs = [...new Set(sameAs.map((x) => safeOrgUrl(str(x))).filter((x): x is string => !!x))].slice(0, ORG_LIMITS.sameAsMax);
   return out;
 }
+
+// ---------- about 图片列表（PublicAsset，#350 图片 PR） ----------
+/**
+ * `about.images`：图片文件各语言共用，按顺序存 PublicAsset id 和保存时的两种尺寸宽高（快照，前台不用再查表）：
+ * { version, items: [{ id, sm: { w, h }, lg: { w, h } }], updatedAt, updatedBy }。
+ * 替代文字和说明按语言存在 `about.<locale>` 的 imageMeta[id] 里。保存时后端确认每个 id 都是未删除的 PublicAsset。
+ * 被 about.images 引用的图片不能删除（409 asset_in_use）。
+ */
+export const ABOUT_IMAGES_KEY = 'about.images';
+export type AboutImageDims = { w: number; h: number };
+export type StoredAboutImage = { id: string; sm: AboutImageDims; lg: AboutImageDims };
+export type StoredAboutImages = { version: number; items: StoredAboutImage[]; updatedAt: string | null; updatedBy: string | null };
+const ASSET_ID_RE = /^[A-Za-z0-9]{24}$/;
+const dims = (v: unknown): AboutImageDims | null => {
+  if (!isObj(v)) return null;
+  const w = int(v.w); const h = int(v.h);
+  return w > 0 && h > 0 && w <= 16383 && h <= 16383 ? { w, h } : null;
+};
+
+/** 读出时只取认识的字段；id 格式不对、宽高缺失、重复的条目丢掉；最多 ABOUT_LIMITS.imagesMax 张 */
+export function parseStoredAboutImages(v: unknown): StoredAboutImages {
+  const empty: StoredAboutImages = { version: 0, items: [], updatedAt: null, updatedBy: null };
+  if (!isObj(v)) return empty;
+  const seen = new Set<string>();
+  const items: StoredAboutImage[] = [];
+  for (const it of Array.isArray(v.items) ? v.items : []) {
+    if (!isObj(it) || typeof it.id !== 'string' || !ASSET_ID_RE.test(it.id) || seen.has(it.id)) continue;
+    const sm = dims(it.sm); const lg = dims(it.lg);
+    if (!sm || !lg) continue;
+    seen.add(it.id);
+    items.push({ id: it.id, sm, lg });
+    if (items.length >= ABOUT_LIMITS.imagesMax) break;
+  }
+  return { version: int(v.version), items, updatedAt: typeof v.updatedAt === 'string' ? v.updatedAt : null, updatedBy: typeof v.updatedBy === 'string' ? v.updatedBy : null };
+}
+
+/** PublicAsset 两种尺寸的名义长边（public-assets.ts 的 PUBLIC_ASSET_SIZES 就是它；这里不 import sharp） */
+export const MEDIA_SIZES = { sm: 800, lg: 1600 } as const;
+export type MediaSize = keyof typeof MEDIA_SIZES;
+/**
+ * 公开地址 /media/<id>-<w>.webp：w 是尺寸的名义长边（sm → 800、lg → 1600），只有这两个值；
+ * 不是实际输出宽度（竖图 lg 实际可能是 1200×1600）。实际宽高看各尺寸的 width / height 字段。
+ */
+export const mediaUrl = (id: string, size: MediaSize) => `/media/${id}-${MEDIA_SIZES[size]}.webp`;
+/** 两种尺寸的地址；长边 ≤ 800 时 sm、lg 是同一个文件（宽高相同），两个都给 lg 的地址，浏览器 / CDN 只缓存一份 */
+export const mediaSrc = (id: string, sm: AboutImageDims, lg: AboutImageDims) => {
+  const same = sm.w === lg.w && sm.h === lg.h;
+  return { sm: mediaUrl(id, same ? 'lg' : 'sm'), lg: mediaUrl(id, 'lg') };
+};

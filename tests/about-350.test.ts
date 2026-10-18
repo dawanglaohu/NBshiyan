@@ -11,7 +11,7 @@ const content = (over: Partial<AboutContent> = {}): AboutContent => ({
   locale: 'en', title: 'Sample title', summary: '', bodyHtml: '<p>Sample text</p>', stats: [], images: [],
   home: { title: 'Sample heading', intro: 'Sample intro' }, updatedAt: '2026-10-17T00:00:00Z', ...over,
 });
-const img = (id: string, alt = 'alt') => ({ id, w: 1600, h: 1200, alt, caption: '', src: { sm: `/media/${id}-800.webp`, lg: `/media/${id}-1600.webp` } });
+const img = (id: string, alt = 'alt') => ({ id, w: 1600, h: 1200, alt, caption: '', sm: { w: 800, h: 600 }, lg: { w: 1600, h: 1200 }, src: { sm: `/media/${id}-800.webp`, lg: `/media/${id}-1600.webp` } });
 
 // ───────── 空字段隐藏 ─────────
 test('#350 数据条：两项都填才显示；空 / 半填的条目去掉；最多 4 条；空数组 → 整块不渲染', () => {
