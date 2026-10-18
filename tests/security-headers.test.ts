@@ -1,4 +1,4 @@
-// #339：全站安全响应头的关键值（CSP 白名单；HSTS 只由 nginx 发）。
+// #339：全站安全响应头的关键值（CSP 白名单；HSTS 与 nginx v5 同值）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { securityHeaders } from '../security-headers';
@@ -6,8 +6,8 @@ import { securityHeaders } from '../security-headers';
 const get = (k: string) => securityHeaders.find((h) => h.key === k)?.value ?? '';
 const directive = (name: string) => get('Content-Security-Policy').split(';').map((d) => d.trim()).find((d) => d.startsWith(name + ' ')) ?? '';
 
-test('app 不发 HSTS（唯一来源是 nginx）', () => {
-  assert.ok(!securityHeaders.some((h) => h.key.toLowerCase() === 'strict-transport-security'));
+test('HSTS 与 nginx v5 同值：1 年，不含子域、不加 preload', () => {
+  assert.equal(get('Strict-Transport-Security'), 'max-age=31536000');
 });
 
 test('CSP 放行 Cloudflare Insights beacon', () => {
