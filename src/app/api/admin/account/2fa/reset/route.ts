@@ -5,7 +5,7 @@ import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/ser
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { audit } from '@/lib/server/admin/audit';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { reauth, RESET_2FA } from '@/lib/server/admin/accounts';
+import { reauth, reset2faData } from '@/lib/server/admin/accounts';
 
 export const runtime = 'nodejs';
 const Body = z.object({
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   if (!p.success) return jsonErr('invalid', 400);
   const r = await reauth(ctx.user, p.data.currentPassword, p.data.totp, p.data.recoveryCode, ctx.ip, 'account.2fa_reset');
   if (r !== 'ok') return jsonErr(r, r === 'locked' ? 423 : 401);
-  await prisma.user.update({ where: { id: ctx.user.id }, data: RESET_2FA }); // 含 sessionVersion+1 = revokeSessions
+  await prisma.user.update({ where: { id: ctx.user.id }, data: reset2faData() }); // 含 sessionVersion+1 = revokeSessions
   await audit({ actorId: ctx.user.id, action: 'account.2fa_reset', target: ctx.user.id, meta: { via: p.data.totp ? 'totp' : 'recovery_code' }, ip: ctx.ip });
   return NextResponse.json({ ok: true, reenrollRequired: true }, { headers: noStore });
 }
