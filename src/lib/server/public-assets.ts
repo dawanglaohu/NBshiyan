@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 import sharp from 'sharp';
 import { sniffImage } from './uploads';
-import { mediaUrl } from './site-settings-model';
+import { MEDIA_SIZES, mediaUrl } from './site-settings-model';
 
 /**
  * #350 PublicAsset 图片处理（纯逻辑，不连库、不碰存储，测试直接调用）。
@@ -18,7 +18,7 @@ export const PUBLIC_ASSET_MAX_BYTES = 10 * 1024 * 1024;
 export const PUBLIC_ASSET_MAX_REQUEST_BYTES = PUBLIC_ASSET_MAX_BYTES + 64 * 1024;
 export const PUBLIC_ASSET_MAX_PIXELS = 60_000_000;
 export const PUBLIC_ASSET_MIN_LONG_EDGE = 800;
-export const PUBLIC_ASSET_SIZES = { sm: 800, lg: 1600 } as const;
+export const PUBLIC_ASSET_SIZES = MEDIA_SIZES;
 export type PublicAssetSize = keyof typeof PUBLIC_ASSET_SIZES;
 export const PUBLIC_ASSET_KIND = 'about';
 export const PUBLIC_ASSET_ID_RE = /^[A-Za-z0-9]{24}$/;
@@ -33,9 +33,10 @@ export type ProcessResult =
 
 export const sha256Hex = (b: Buffer) => createHash('sha256').update(b).digest('hex');
 
-/** 公开地址：/media/<id>-<w>.webp（w = 该尺寸实际输出宽度） */
+/** 公开地址：/media/<id>-<w>.webp（w = 尺寸的名义长边，只有 800 / 1600，见 mediaUrl） */
 export const publicAssetUrl = mediaUrl;
-export const MEDIA_FILE_RE = /^([A-Za-z0-9]{24})-([1-9][0-9]{0,4})\.webp$/;
+/** 公开文件名：id 和生成格式（PUBLIC_ASSET_ID_RE）完全一致，w 只能是 PUBLIC_ASSET_SIZES 的值（800 | 1600）；其余一律不匹配 */
+export const MEDIA_FILE_RE = /^([A-Za-z0-9]{24})-(800|1600)\.webp$/;
 
 /** 存储 key：只用服务端生成的 id 和年月，不含任何用户输入 */
 export const publicAssetKey = (id: string, size: PublicAssetSize | 'one', now: Date) => `public-assets/${now.toISOString().slice(0, 7)}/${id}-${size}.webp`;

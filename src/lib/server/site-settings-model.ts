@@ -174,5 +174,16 @@ export function parseStoredAboutImages(v: unknown): StoredAboutImages {
   return { version: int(v.version), items, updatedAt: typeof v.updatedAt === 'string' ? v.updatedAt : null, updatedBy: typeof v.updatedBy === 'string' ? v.updatedBy : null };
 }
 
-/** 公开地址 /media/<id>-<w>.webp（和 public-assets.ts 的 publicAssetUrl 一致；这里不 import sharp） */
-export const mediaUrl = (id: string, w: number) => `/media/${id}-${w}.webp`;
+/** PublicAsset 两种尺寸的名义长边（public-assets.ts 的 PUBLIC_ASSET_SIZES 就是它；这里不 import sharp） */
+export const MEDIA_SIZES = { sm: 800, lg: 1600 } as const;
+export type MediaSize = keyof typeof MEDIA_SIZES;
+/**
+ * 公开地址 /media/<id>-<w>.webp：w 是尺寸的名义长边（sm → 800、lg → 1600），只有这两个值；
+ * 不是实际输出宽度（竖图 lg 实际可能是 1200×1600）。实际宽高看各尺寸的 width / height 字段。
+ */
+export const mediaUrl = (id: string, size: MediaSize) => `/media/${id}-${MEDIA_SIZES[size]}.webp`;
+/** 两种尺寸的地址；长边 ≤ 800 时 sm、lg 是同一个文件（宽高相同），两个都给 lg 的地址，浏览器 / CDN 只缓存一份 */
+export const mediaSrc = (id: string, sm: AboutImageDims, lg: AboutImageDims) => {
+  const same = sm.w === lg.w && sm.h === lg.h;
+  return { sm: mediaUrl(id, same ? 'lg' : 'sm'), lg: mediaUrl(id, 'lg') };
+};

@@ -12,12 +12,13 @@ import type { Role, User } from '@prisma/client';
 import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match';
 import {
   processPublicImage, readUploadFile, PUBLIC_ASSET_MAX_BYTES, PUBLIC_ASSET_MAX_REQUEST_BYTES, PUBLIC_ASSET_MAX_PIXELS, publicAssetUrl,
+  MEDIA_FILE_RE, PUBLIC_ASSET_SIZES,
 } from '../src/lib/server/public-assets';
 import {
   handleUploadAsset, handleListAssets, handleDeleteAsset, AUDIT_ASSET_UPLOAD, AUDIT_ASSET_DELETE,
   type PublicAssetDeps, type PublicAssetRow, type PublicAssetRepo,
 } from '../src/lib/server/public-assets-admin';
-import { handleMedia, MEDIA_CACHE_CONTROL } from '../src/lib/server/public-assets-media';
+import { handleMedia, parseMediaFile, MEDIA_CACHE_CONTROL } from '../src/lib/server/public-assets-media';
 import { LocalStorage } from '../src/lib/server/storage';
 import { FILE_CSP } from '../src/lib/server/file-response';
 import {
@@ -283,7 +284,7 @@ test('上传成功：201，返回 id、两种尺寸宽高和 URL；存储只有 
   assert.match(a.id, /^[A-Za-z0-9]{24}$/);
   assert.deepEqual([a.width, a.height], [1067, 1600]);
   assert.deepEqual([a.lg.width, a.lg.height, a.sm.width, a.sm.height], [1067, 1600, 533, 800]);
-  assert.equal(a.lg.url, `/media/${a.id}-1067.webp`); assert.equal(a.sm.url, `/media/${a.id}-533.webp`);
+  assert.equal(a.lg.url, `/media/${a.id}-1600.webp`); assert.equal(a.sm.url, `/media/${a.id}-800.webp`); // URL 里是名义长边，实际宽高看 width / height
   assert.deepEqual(a.warnings, []); assert.equal(a.deduplicated, false);
   assert.equal(t.calls.puts.length, 2);
   for (const p of t.calls.puts) {
@@ -333,7 +334,7 @@ test('上传错误码：image_too_small 422、image_too_large_dimensions 422、p
   assert.deepEqual([mid.json.lg.width, mid.json.lg.height, mid.json.sm.width, mid.json.sm.height], [1000, 1200, 667, 800]);
   // 长边正好 800：只存一份文件，sm / lg 同一个 URL
   const one = await body(await handleUploadAsset(uploadReq(await solid(800, 600)), t.d));
-  assert.equal(one.status, 201); assert.equal(one.json.sm.url, one.json.lg.url);
+  assert.equal(one.status, 201); assert.equal(one.json.sm.url, one.json.lg.url); assert.equal(one.json.lg.url, `/media/${one.json.id}-1600.webp`);
   assert.equal(t.calls.puts.filter((p) => p.key.includes(one.json.id)).length, 1);
   await t.cleanup();
 });
@@ -437,7 +438,7 @@ test('about/images：合法 id 按顺序保存宽高快照和 URL，带 version�
   const r = await body(await handlePutAboutImages(putJson('/x', { expectedVersion: 0, ids: [LIVE2, LIVE] }), d));
   assert.equal(r.status, 200); assert.equal(r.json.changed, true);
   assert.deepEqual(r.json.images.items.map((i: { id: string }) => i.id), [LIVE2, LIVE]);
-  assert.deepEqual(r.json.images.items[0], { id: LIVE2, sm: { w: 600, h: 800 }, lg: { w: 1200, h: 1600 }, src: { sm: `/media/${LIVE2}-600.webp`, lg: `/media/${LIVE2}-1200.webp` } });
+  assert.deepEqual(r.json.images.items[0], { id: LIVE2, sm: { w: 600, h: 800 }, lg: { w: 1200, h: 1600 }, src: { sm: `/media/${LIVE2}-800.webp`, lg: `/media/${LIVE2}-1600.webp` } });
   assert.equal((mem.data['about.images'] as { version: number }).version, 1);
   assert.equal(calls.revalidate, 1);
   assert.equal((await handlePutAboutImages(putJson('/x', { expectedVersion: 0, ids: [LIVE] }), d)).status, 409);
@@ -461,8 +462,8 @@ test('前台读取：images = about.images 顺序 + 该语言 alt / 说明；有
   }));
   const en = await reader.getAboutContent('en');
   assert.deepEqual(en!.images, [
-    { id: LIVE2, w: 1200, h: 1600, alt: 'Press', caption: '', src: { sm: publicAssetUrl(LIVE2, 600), lg: publicAssetUrl(LIVE2, 1200) } },
-    { id: LIVE, w: 1600, h: 1200, alt: 'Line', caption: 'Cap', src: { sm: publicAssetUrl(LIVE, 800), lg: publicAssetUrl(LIVE, 1600) } },
+    { id: LIVE2, w: 1200, h: 1600, alt: 'Press', caption: '', src: { sm: publicAssetUrl(LIVE2, 'sm'), lg: publicAssetUrl(LIVE2, 'lg') } },
+    { id: LIVE, w: 1600, h: 1200, alt: 'Line', caption: 'Cap', src: { sm: publicAssetUrl(LIVE, 'sm'), lg: publicAssetUrl(LIVE, 'lg') } },
   ]);
   assert.equal(await reader.getAboutContent('ru'), null);
   assert.deepEqual(await reader.getPublishedAboutLocales(), ['en']);
@@ -492,6 +493,48 @@ test('/media/<id>-<w>.webp：WebP + immutable 长缓存 + nosniff + CSP，没有
   }
   t.mem.rows.get(a.id)!.deletedAt = NOW;
   assert.equal((await handleMedia(`${a.id}-1600.webp`, md)).status, 404);
+  await t.cleanup();
+});
+
+test('/media 文件名白名单：w 只能是 800 / 1600（名义长边，竖图也一样），id 必须是生成格式；路径穿越、编码、多余后缀一律 404 且不查库、不读存储', async () => {
+  assert.equal(String(MEDIA_FILE_RE), String(/^([A-Za-z0-9]{24})-(800|1600)\.webp$/));
+  assert.deepEqual(Object.values(PUBLIC_ASSET_SIZES), [800, 1600]);
+  const t = await assetDeps();
+  // 竖图：lg 实际 1200×1600、sm 600×800，URL 仍是 -1600 / -800
+  const a = (await body(await handleUploadAsset(uploadReq(await solid(1500, 2000)), t.d))).json;
+  assert.deepEqual([a.lg.url, a.lg.width, a.lg.height, a.sm.url, a.sm.width, a.sm.height], [`/media/${a.id}-1600.webp`, 1200, 1600, `/media/${a.id}-800.webp`, 600, 800]);
+  const seen = { find: [] as string[], get: [] as string[] };
+  const md = {
+    findLive: async (id: string) => { seen.find.push(id); const r = t.mem.rows.get(id); return r && !r.deletedAt ? r : null; },
+    storage: { get: async (k: string) => { seen.get.push(k); return t.local.get(k); } },
+  };
+  for (const [w, size] of [[1600, [1200, 1600]], [800, [600, 800]]] as const) {
+    const r = await handleMedia(`${a.id}-${w}.webp`, md);
+    assert.equal(r.status, 200);
+    const m = await sharp(Buffer.from(await r.arrayBuffer())).metadata();
+    assert.deepEqual([m.width, m.height], size);
+  }
+  assert.deepEqual(seen.get, [t.mem.rows.get(a.id)!.lgKey, t.mem.rows.get(a.id)!.smKey]);
+  seen.find.length = 0; seen.get.length = 0;
+  const id = a.id as string;
+  const bad = [
+    `../${id}-1600.webp`, `..%2F${id}-1600.webp`, `%2e%2e/${id}-1600.webp`, `%2e%2e%2f${id}-1600.webp`, `..\\${id}-1600.webp`,
+    `${id}-1600.webp/../x`, `${id}%2F..%2F-1600.webp`, `${id}/-1600.webp`, `public-assets/2026-10/${id}-lg.webp`, `${id}-lg.webp`, `${id}-sm.webp`,
+    `${id}-801.webp`, `${id}-0800.webp`, `${id}-08000.webp`, `${id}-1600.0.webp`, `${id}-1200.webp`, `${id}-600.webp`, `${id}-0.webp`, `${id}--800.webp`, `${id}-+800.webp`,
+    `${id}-1600.webp.png`, `${id}-1600.webpx`, `${id}-1600.webp?x=1`, `${id}-1600.webp%00`, `${id}-1600.webp\n`, `${id}-1600.WEBP`, ` ${id}-1600.webp`, `${id}-1600.webp `,
+    `${id}x-1600.webp`, `${id.slice(1)}-1600.webp`, `${id.slice(0, 23)}_-1600.webp`, `${id.slice(0, 23)}.-1600.webp`, '', '.', '..', `${'A'.repeat(24)}-1600.webp`.repeat(3),
+  ];
+  for (const f of bad) {
+    const r = await handleMedia(f, md);
+    assert.equal(r.status, 404, JSON.stringify(f)); assert.equal(r.headers.get('cache-control'), 'no-store');
+    assert.equal(parseMediaFile(f), null, JSON.stringify(f));
+  }
+  // 格式正确但不存在的 id 会查库（返回 404），格式不对的一个都没查过库、读过存储
+  assert.deepEqual(seen.find, [], 'invalid names must not reach findLive');
+  assert.deepEqual(seen.get, []);
+  assert.deepEqual(parseMediaFile(`${id}-800.webp`), { id, size: 'sm' });
+  assert.deepEqual(parseMediaFile(`${id}-1600.webp`), { id, size: 'lg' });
+  assert.equal(parseMediaFile(123), null);
   await t.cleanup();
 });
 

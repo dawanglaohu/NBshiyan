@@ -82,8 +82,8 @@ export type PublicAssetView = {
 };
 export const assetView = (r: PublicAssetRow): PublicAssetView => ({
   id: r.id, kind: r.kind, width: r.lgWidth, height: r.lgHeight,
-  sm: { url: publicAssetUrl(r.id, r.smWidth), width: r.smWidth, height: r.smHeight, bytes: r.smBytes },
-  lg: { url: publicAssetUrl(r.id, r.lgWidth), width: r.lgWidth, height: r.lgHeight, bytes: r.lgBytes },
+  sm: { url: publicAssetUrl(r.id, r.smKey === r.lgKey ? 'lg' : 'sm'), width: r.smWidth, height: r.smHeight, bytes: r.smBytes },
+  lg: { url: publicAssetUrl(r.id, 'lg'), width: r.lgWidth, height: r.lgHeight, bytes: r.lgBytes },
   bytes: r.bytes, createdAt: r.createdAt.toISOString(),
 });
 const warningsFor = (r: Pick<PublicAssetRow, 'lgWidth' | 'lgHeight'>): PublicAssetWarning[] => (Math.max(r.lgWidth, r.lgHeight) < PUBLIC_ASSET_SIZES.lg ? ['image_small'] : []);

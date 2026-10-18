@@ -6,7 +6,7 @@ import { cleanPlainText, sanitizeAboutHtml } from './sanitize-about';
 import { aboutBodyText, countChars } from '@/lib/site-settings/about-rules';
 import {
   ABOUT_ENABLED_KEY, ABOUT_LIMITS as L, IMAGE_ID_RE, aboutKey, parseStoredAbout, parseStoredEnabled, storedVersion,
-  ABOUT_IMAGES_KEY, mediaUrl, parseStoredAboutImages, type StoredAboutImages,
+  ABOUT_IMAGES_KEY, mediaSrc, parseStoredAboutImages, type StoredAboutImages,
   ORGANIZATION_KEY, ORG_EMAIL_RE, ORG_LIMITS as OL, ORG_TEXT_FIELDS, ORG_TELEPHONE_RE, isValidFoundingDate, parseStoredOrganization, safeOrgUrl,
   type StoredAbout, type StoredEnabled, type OrganizationFields, type StoredOrganization,
 } from './site-settings-model';
@@ -161,7 +161,7 @@ async function unknownAssets(d: SiteSettingsDeps, ids: string[]): Promise<{ unkn
 
 export type AdminAboutImagesView = StoredAboutImages & { items: (StoredAboutImages['items'][number] & { src: { sm: string; lg: string } })[] };
 export const aboutImagesView = (s: StoredAboutImages): AdminAboutImagesView => ({
-  ...s, items: s.items.map((i) => ({ ...i, src: { sm: mediaUrl(i.id, i.sm.w), lg: mediaUrl(i.id, i.lg.w) } })),
+  ...s, items: s.items.map((i) => ({ ...i, src: mediaSrc(i.id, i.sm, i.lg) })),
 });
 const TOO_LARGE = Symbol.for('too_large');
 

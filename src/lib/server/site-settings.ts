@@ -4,7 +4,7 @@ import { SITE_URL } from '@/lib/site';
 import { PUBLISHED_LOCALES, isPublishedLocale, type PublishedLocale } from './published-locales';
 import { errorSummary } from './admin/audit';
 import {
-  ABOUT_ENABLED_KEY, ABOUT_IMAGES_KEY, mediaUrl, parseStoredAboutImages, ORGANIZATION_FALLBACK_NAME, ORGANIZATION_KEY, ORG_TEXT_FIELDS, SITE_SETTINGS_TAG,
+  ABOUT_ENABLED_KEY, ABOUT_IMAGES_KEY, mediaSrc, parseStoredAboutImages, ORGANIZATION_FALLBACK_NAME, ORGANIZATION_KEY, ORG_TEXT_FIELDS, SITE_SETTINGS_TAG,
   aboutKey, parseStoredAbout, parseStoredEnabled, parseStoredOrganization,
 } from './site-settings-model';
 import { resolvePublishedAboutLocales } from '@/lib/site-settings/about-rules';
@@ -56,7 +56,7 @@ export function createSiteSettingsReader(load: () => Promise<RawSettings>) {
     if (!s) return null;
     const images: AboutImage[] = parseStoredAboutImages(raw[ABOUT_IMAGES_KEY]).items.map((i) => ({
       id: i.id, w: i.lg.w, h: i.lg.h, alt: s.imageMeta[i.id]?.alt ?? '', caption: s.imageMeta[i.id]?.caption ?? '',
-      src: { sm: mediaUrl(i.id, i.sm.w), lg: mediaUrl(i.id, i.lg.w) },
+      src: mediaSrc(i.id, i.sm, i.lg),
     }));
     return { locale, title: s.title, summary: s.summary, bodyHtml: s.bodyHtml, stats: s.stats, images, home: { ...s.home }, updatedAt: s.updatedAt };
   };
