@@ -4,7 +4,9 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { visibleImages, visibleStats } from '@/lib/about/model';
 import { isPublishedLocale } from '@/lib/server/published-locales';
-import { getAboutContent } from '@/lib/server/site-settings';
+import { getAboutContent, getPublishedAboutLocales } from '@/lib/server/site-settings';
+import { buildAboutMetadata } from '@/lib/seo/about';
+import { SITE_URL } from '@/lib/site';
 import { isAboutVisible } from '@/lib/about/visibility';
 import { ABOUT_IMAGE_SIZES, AboutFigure, AboutStats } from '@/components/about/AboutParts';
 import { CtaBand } from '@/components/sections/ui';
@@ -26,11 +28,16 @@ async function load(locale: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
-  const c = await load(locale);
-  if (!c) return {};
-  // TODO(SEO #350)：换成 SEO 的 buildAboutMetadata（src/lib/seo/about.ts，SEO 的 PR 合并后接入，含 og:image /<locale>/about/og?v=…）。
-  // meta / canonical / hreflang / og:image 的规则归 SEO，这里只放最小占位，不自己定规则。读取函数现在是桩，不会走到这里。
-  return { title: c.title };
+  if (locale !== 'en' && locale !== 'ru') return {};
+  const [content, publishedLocales, t, nav] = await Promise.all([
+    load(locale),
+    getPublishedAboutLocales(),
+    getTranslations({ locale, namespace: 'Meta' }),
+    getTranslations({ locale, namespace: 'Nav' }),
+  ]);
+  // meta / canonical / hreflang / og:image（/<locale>/about/og?v=…）的规则都归 SEO：src/lib/seo/about.ts
+  // ogBadge = Nav.about，和 og 路由画的角标、校验 v 用的是同一个值
+  return buildAboutMetadata({ locale, content, publishedLocales, origin: SITE_URL, fallbackOgAlt: t('ogImageAlt'), ogBadge: nav('about') });
 }
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -54,7 +61,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <h1>{c.title}</h1>
         </div>
       </section>
-      {/* 安全（全栈）：bodyHtml 只来自读取函数——后端 sanitizeAboutHtml 入库净化、读取时再净化一次。前端不自建净化器；STUB 恒为 null，不会走到这里 */}
+      {/* 安全（全栈）：bodyHtml 只来自读取函数——后端 sanitizeAboutHtml 入库净化、读取时再净化一次。前端不自建净化器 */}
       <section className="sx sx-block">
         <div className="ab-body" dangerouslySetInnerHTML={{ __html: c.bodyHtml }} />
       </section>
