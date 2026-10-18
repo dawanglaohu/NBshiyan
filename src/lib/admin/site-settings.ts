@@ -271,6 +271,14 @@ export function revealAlert(el: HTMLElement | null): void {
   el.focus({ preventScroll: true });
 }
 
+/** 400/422 后把焦点移到第一个出错的字段：先 preventScroll 再滚到视口中间。直接 focus() 在 390 下会把字段停在底部 sticky 保存栏后面、错误文字落在屏外。 */
+export function focusField(el: HTMLElement | null): void {
+  if (!el) return;
+  const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.focus({ preventScroll: true });
+  el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+}
+
 /**
  * 409 冲突状态（PM 定稿）：
  * - none → 保存 / 开关返回 version_conflict → conflict：显示「内容已被他人修改，请刷新后重新编辑」+「刷新」；

@@ -258,6 +258,31 @@ test('UX #375 P2：关于我们 400 字段错误显示在字段下方并 aria-in
   await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
 });
 
+test('390 下关于我们 400 字段错误：焦点到字段，字段和错误文字都露在顶栏和底部保存栏之间', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginFreshAdmin(page);
+  await page.route(`**/api/admin/site-settings/about/**`, (r) => {
+    if (r.request().method() === 'PUT' && !r.request().url().endsWith('/enabled')) {
+      return r.fulfill({ status: 400, json: { error: 'invalid', issues: [{ path: 'title', message: 'too_short' }] } });
+    }
+    return r.fallback();
+  });
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.locator('#st-title').fill('About sample title');
+  await page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' }).click();
+  await expect(page.locator('#st-title')).toBeFocused();
+  await expect(page.locator('#st-title-e')).toHaveText('标题至少 2 个字');
+  await expect.poll(async () => page.evaluate(() => {
+    const f = document.getElementById('st-title')!.getBoundingClientRect();
+    const e = document.getElementById('st-title-e')!.getBoundingClientRect();
+    const top = document.querySelector('.adm-top')?.getBoundingClientRect().bottom ?? 0;
+    const bar = document.querySelector('.st-bar')?.getBoundingClientRect().top ?? window.innerHeight;
+    return f.top >= top - 1 && e.bottom <= bar + 1;
+  }), { timeout: 3000 }).toBe(true);
+});
+
 test('组织信息：未登录不能读接口，页面跳登录', async ({ request }) => {
   expect((await request.get(API)).status()).toBe(401);
   const r = await request.get('/admin/settings?section=org', { maxRedirects: 0 });

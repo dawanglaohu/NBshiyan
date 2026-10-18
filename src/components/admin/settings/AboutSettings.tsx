@@ -4,7 +4,7 @@ import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
   aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
-  isVersionConflict, revealAlert, saveFailureView, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutFieldErrors, type AboutSettingsData, type ConflictEvent, type ConflictPhase, type DraftField,
+  focusField, isVersionConflict, revealAlert, saveFailureView, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutFieldErrors, type AboutSettingsData, type ConflictEvent, type ConflictPhase, type DraftField,
 } from '@/lib/admin/site-settings';
 import ConfirmDialog from './ConfirmDialog';
 import SettingsSections from './SettingsSections';
@@ -175,7 +175,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
         const el = first === 'bodyHtml' ? document.querySelector<HTMLElement>('.st-rich')
           : first === 'stats' ? document.querySelector<HTMLElement>('.st-stats input')
           : document.getElementById(`st-${first}`);
-        el?.focus();
+        focusField(el);
       });
     }
   };

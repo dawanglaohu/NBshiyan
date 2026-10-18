@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
-import { canSave, conflictStep, revealAlert, SETTINGS_TEXT as T, type ConflictEvent, type ConflictPhase } from '@/lib/admin/site-settings';
+import { canSave, conflictStep, focusField, revealAlert, SETTINGS_TEXT as T, type ConflictEvent, type ConflictPhase } from '@/lib/admin/site-settings';
 import {
   canAddSameAs, descriptionCounter, emptyOrgDraft, foundingYearInput, isOrgConflict, ORG_FIELD_TEXT, ORG_GROUPS,
   ORG_LIMITS, ORG_PLACEHOLDER, ORG_TEXT, orgDirtyFields, orgDirtySummary, orgDraftErrors, orgErrorText, orgSettingsApi, sameAsRows, saveFailureView,
@@ -83,7 +83,7 @@ export default function OrgSettings({ siteUrl, descriptionPlaceholder, api = org
     if (v.alert) setNotice({ kind: 'err', text: v.alert });
     // 焦点移到第一个出错的字段
     const first = [...ORG_GROUPS.flatMap((g) => g.fields)].flatMap((f) => (f === 'sameAs' ? draft.sameAs.map((_, i) => `sameAs.${i}`).concat('sameAs') : [f])).find((k) => v.fieldErrors[k as keyof OrgErrors]);
-    if (first) window.requestAnimationFrame(() => document.getElementById(fieldId(first))?.focus());
+    if (first) window.requestAnimationFrame(() => focusField(document.getElementById(fieldId(first))));
   };
 
   const discard = () => { if (!saved) return; setDraft(structuredClone(saved.draft)); setServerErr({}); setTouched(new Set()); };

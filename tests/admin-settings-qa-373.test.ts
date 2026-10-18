@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
-import { bodyTooShortNote, draftChecklist, draftCompleteness, emptyDraft, mapAboutServerIssues, missingParts, revealAlert, saveFailureView, SETTINGS_TEXT, type AboutDraft } from '../src/lib/admin/site-settings';
+import { bodyTooShortNote, draftChecklist, draftCompleteness, emptyDraft, mapAboutServerIssues, focusField, missingParts, revealAlert, saveFailureView, SETTINGS_TEXT, type AboutDraft } from '../src/lib/admin/site-settings';
 
 // UX #373 视觉验收（issue #350 评论 6247346735）对 /admin/settings 的修正
 const d = (o: Partial<AboutDraft>): AboutDraft => ({ ...emptyDraft(), ...o });
@@ -125,6 +125,8 @@ test('mapAboutServerIssues：title / bodyHtml / stats.N / home.* 对到 DraftFie
 
 test('UX #375 P2：revealAlert 滚到 block:start，尊重 prefers-reduced-motion；about 和组织信息都挂了冲突横幅 / 错误条 ref', () => {
   assert.equal(typeof revealAlert, 'function');
+  assert.equal(typeof focusField, 'function');
+  assert.match(readFileSync('src/lib/admin/site-settings.ts', 'utf8'), /scrollIntoView\(\{ block: 'center'/);
   assert.match(readFileSync('src/lib/admin/site-settings.ts', 'utf8'), /scrollIntoView\(\{ block: 'start'/);
   assert.match(readFileSync('src/lib/admin/site-settings.ts', 'utf8'), /prefers-reduced-motion: reduce/);
   assert.match(readFileSync('src/lib/admin/site-settings.ts', 'utf8'), /focus\(\{ preventScroll: true \}\)/);
@@ -134,6 +136,7 @@ test('UX #375 P2：revealAlert 滚到 block:start，尊重 prefers-reduced-motio
     assert.match(src, /errAlertRef/, f);
     assert.match(src, /revealAlert\(conflictBannerRef/, f);
     assert.match(src, /revealAlert\(errAlertRef/, f);
+    assert.match(src, /focusField\(/, f); // 400/422 字段聚焦不用裸 focus()，390 下不停在保存栏后面
     assert.doesNotMatch(src, /st-bar[\s\S]*冲突刷新|保存栏[\s\S]*刷新/, f); // 保存栏不加「刷新」
   }
 });
