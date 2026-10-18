@@ -1,44 +1,21 @@
-import { execFileSync } from 'node:child_process';
-import { authenticator } from 'otplib';
 import sharp from 'sharp';
 import { test, expect } from './fixtures';
+import { useSharedAdmin } from './shared-admin';
 import { BASE } from '../playwright.config';
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 // #350 /admin/settings「关于我们 · 图片列表」：真实页面 + 真实接口（#374 PublicAsset），仅 E2E 测试库。
 // 每组新建一个 ADMIN、只登录一次（scripts/create-admin.mjs，ADMIN_SEED_TOTP_SECRET 只在非生产可用），见 useSharedAdmin。
 const PASSWORD = 'e2e-img-Passw0rd!';
-const TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'; // 测试用假密钥
 const origin = { Origin: BASE };
 const S = '/api/admin/site-settings';
 
 /**
- * 每组只登录一次：beforeAll 新建一个 ADMIN、用独立的 request context 登录一次，存下 storageState（会话 cookie），
- * 组里每个测试开始前把 cookie 放进自己的 page context（page.request 和页面共用），不再重新登录。
- * 为什么：单 IP 登录桶 30 次 / 10 分钟（#376 起 enroll / confirm 也算、而且不退），整套 e2e 1 个 worker 共用一个 IP，
- * 原来每个测试登录一次（9 次）会把后面 admin.spec.ts 的登录挤爆（CredentialsSignin）。
+ * 每组只登录一次，见 ./shared-admin.ts。
  * 分两组两个账号：图片上传按管理员每分钟 20 次（ASSET_UPLOAD_RATE），整个文件约 22 次上传、跑完不到一分钟，一个账号会撞上限。
- * 不用 serial：某个测试失败不会连带跳过同组其他测试；失败后 Playwright 换 worker 会重跑 beforeAll，多登录一次（只在出错时）。
  * 每个测试仍然自己 reset()（清列表、删图库、内容回到基线），互不依赖。
  */
-function useSharedAdmin(tag: string) {
-  let state: Awaited<ReturnType<APIRequestContext['storageState']>>;
-  test.beforeAll(async ({ playwright }) => {
-    const email = `e2e-img-${tag}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
-    execFileSync('node', ['scripts/create-admin.mjs'], {
-      stdio: 'pipe',
-      env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: PASSWORD, ADMIN_SEED_NAME: `E2E img ${tag}`, ADMIN_SEED_ROLE: 'ADMIN', ADMIN_SEED_TOTP_SECRET: TOTP },
-    });
-    const req = await playwright.request.newContext({ baseURL: BASE });
-    const csrf = (await (await req.get('/api/auth/csrf')).json()).csrfToken as string;
-    const ok = await req.post('/api/auth/callback/credentials', { headers: origin, form: { csrfToken: csrf, email, password: PASSWORD, totp: authenticator.generate(TOTP) }, maxRedirects: 0 });
-    expect(ok.headers()['location'] ?? '').not.toContain('error');
-    expect((await req.get(`${S}/about`)).status()).toBe(200);
-    state = await req.storageState();
-    await req.dispose();
-  });
-  test.beforeEach(async ({ page }) => { await page.context().addCookies(state.cookies); });
-}
+const useImgAdmin = (tag: string) => useSharedAdmin({ emailPrefix: `e2e-img-${tag}`, name: `E2E img ${tag}`, password: PASSWORD, probe: `${S}/about` });
 
 /**
  * 从干净状态开始：清空列表、删掉图库里的图、en 填完整内容（无图）、ru 清空、开关打开。
@@ -88,7 +65,7 @@ const saveBtn = (page: Page) => page.getByRole('region', { name: '保存' }).get
 const savedOk = (page: Page) => expect(page.getByRole('status').filter({ hasText: '✓ 已保存' })).toBeVisible();
 
 test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片库删除和 409、合 #378 后的错误条', () => {
-  useSharedAdmin('a');
+  useImgAdmin('a');
 
   test('图片列表：上传、替代文字必填、各种被拒、429 保留文件、去重、6 张上限、排序保存、前台 srcset', async ({ page }) => {
     test.setTimeout(150_000);
@@ -334,7 +311,7 @@ test.describe('账号 A：上传 / 被拒 / 429 / 6 张上限 / 排序、图片�
 });
 
 test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行、计数', () => {
-  useSharedAdmin('b');
+  useImgAdmin('b');
 
   test('UX 复审：<640px 单列卡片、输入框占满宽度；1440 多列；删除用 ✕，上移 / 下移 / 删除第 N 张图片的 aria-label；控件 ≥ 44px', async ({ page }) => {
     test.setTimeout(90_000);
