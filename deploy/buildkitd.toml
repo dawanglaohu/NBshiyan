@@ -1,0 +1,8 @@
+# BuildKit daemon config for the dedicated builder `nbshiyan-builder` (deploy/build-on-server.sh). Reviewed file:
+# build-on-server.sh pins its sha256 and recreates ONLY nbshiyan-builder when the builder was made with another config.
+# Why: the server cannot reach registry-1.docker.io. dockerd uses its own registry-mirrors, but a docker-container
+# builder runs its own BuildKit, which ignores the daemon config. These are the same three mirrors as the host daemon.
+# Integrity does not depend on the mirrors: every image the build pulls is pinned by digest (Dockerfile syntax
+# frontend, NODE_IMAGE), and BuildKit verifies content digests. Docker Hub stays the last fallback.
+[registry."docker.io"]
+  mirrors = ["docker.1ms.run", "docker.m.daocloud.io", "docker.xuanyuan.me"]

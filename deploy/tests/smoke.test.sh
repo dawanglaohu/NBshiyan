@@ -83,4 +83,14 @@ t not root_redirect_ok 307 https://geiom.com/en app
 t not root_redirect_ok 200 /en app
 t not root_redirect_ok 307 https://localhost:3000/en public
 t not root_redirect_ok 307 /en/ app
+# --- asset paths pulled out of the /en HTML (static js + public/ image/poster/model) ---
+h='<link rel="preload" as="script" href="/_next/static/chunks/webpack-1a2b3c.js"/><script src="/_next/static/chunks/main-app-9f.js" async></script><img src="/images/posters/custom-color-boxes.e554de64.webp" alt=""/>'
+t [ "$(static_js_path "$h")" = /_next/static/chunks/webpack-1a2b3c.js ]
+t [ "$(public_asset_path "$h")" = /images/posters/custom-color-boxes.e554de64.webp ]
+t [ "$(public_asset_path '<model-viewer src="/models/gift-box.glb">')" = /models/gift-box.glb ]
+t [ -z "$(static_js_path '<html>no scripts</html>')" ]
+t [ -z "$(public_asset_path '<img src="https://evil.com/images/x.webp">')" ]   # same-site paths only
+big=$(yes '<div class="card"><p>filler</p></div>' | head -c 300000 || true)
+t [ "$(static_js_path "<head><script src=\"/_next/static/chunks/a.js\"></script></head>$big")" = /_next/static/chunks/a.js ]
+t [ -f "$here/../../public/icon-192.png" ]   # deploy.sh fallback asset exists in public/
 echo "smoke: $pass passed, $fail failed"; (( fail == 0 ))

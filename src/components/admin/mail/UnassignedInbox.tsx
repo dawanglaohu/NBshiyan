@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { mailApi, MailError, type AssignLookup, type UnassignedDetail, type UnassignedPage } from '@/lib/admin/mail/api';
 import { ALREADY_HANDLED, ASSIGN_HINT, assignErrorText, DELETED, expiresText, fmtCountdown, REF_RE, showUnverified, subjectText, UNVERIFIED } from '@/lib/admin/mail/logic';
+import { MAIL_ATTACHMENTS_LIVE } from '@/lib/admin/mail/features';
 import { AttachmentCard, FlagBanners, FlagChips, MailBody, Unverified, useCountdown } from './MailParts';
 import AdminTime from '../AdminTime';
 
@@ -98,7 +99,7 @@ function Detail({ d, onIgnore, onUnignore, onAssigned, onHandled }: { d: Unassig
       {subj !== null && <div className={`ml-subj${subj === d.subject ? '' : ' ph'}`}>{subj}</div>}
       {d.redacted ? <div className="ml-deleted">{DELETED}</div> : <>
         <MailBody html={d.bodyHtml} text={d.bodyText} hasRemoteImages={d.hasRemoteImages} title={`邮件正文：${subj ?? ''}`} />
-        {d.attachments.map((a) => <AttachmentCard key={a.id} a={a} />)}
+        {MAIL_ATTACHMENTS_LIVE && d.attachments.filter((a) => a.downloadUrl).map((a) => <AttachmentCard key={a.id} a={a} />)}
       </>}
       {d.status === 'UNASSIGNED' ? <Assign d={d} onIgnore={onIgnore} onAssigned={onAssigned} onHandled={onHandled} />
         : <div className="ml-row" style={{ marginTop: 16 }}><button type="button" className="ml-btn" onClick={onUnignore}>移回待处理</button></div>}
