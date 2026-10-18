@@ -70,14 +70,20 @@ test('slug 白名单 ^[a-z0-9-]{1,120}$ 在查 CMS 之前：不合规一律 404 
     assert.equal(r.headers.get('x-robots-tag'), 'noindex');
     assert.equal(r.headers.get('location'), null);
   }
-  for (const l of ['de', 'EN', '']) {
+  for (const l of ['de', 'ja', 'es', 'EN', 'en-US', '', 'zz-garbage', '..', '%2e%2e']) {
     const r = await call(l, 'mock-article-packaging-guide');
     assert.equal(r.status, 404, l);
     assert.equal(r.headers.get('cache-control'), 'no-store');
+    assert.equal(r.headers.get('x-robots-tag'), 'noindex');
+    assert.equal(r.headers.get('set-cookie'), null);
   }
   const src = fs.readFileSync(ROUTE, 'utf8');
   const check = src.indexOf('ARTICLE_OG_SLUG_RE.test(slug)'), lookup = src.indexOf('getDocBySlug(');
   assert.ok(check > 0 && lookup > check, 'slug is validated before the CMS lookup');
+  // 路由不经过 middleware：locale 按 PUBLISHED_LOCALES 白名单（不是格式检查），也在查 CMS 之前
+  const localeCheck = src.indexOf('if (!isPublishedLocale(locale)) return notFound();');
+  assert.ok(localeCheck > 0 && lookup > localeCheck, 'locale allowlist runs before the CMS lookup');
+  assert.match(src, /from '@\/lib\/server\/published-locales'/);
   const { ARTICLE_OG_SLUG_RE } = await import('../src/lib/seo/articleOg');
   assert.equal(ARTICLE_OG_SLUG_RE.source, '^[a-z0-9-]{1,120}$');
 });
@@ -152,8 +158,9 @@ test('noindex 只在接口里设置（不依赖环境、不靠 middleware），r
   assert.match(r, /const OG_ROBOTS = \{ 'X-Robots-Tag': 'noindex' \} as const;/);
   assert.doesNotMatch(r.replace(/^\s*\/\/.*$/gm, ''), /isProd|APP_ENV|headers\.get|req\.(url|headers|nextUrl)/);
   assert.match(r, /GET\(_req: Request/);
-  const mw = fs.readFileSync('src/middleware.ts', 'utf8');
-  assert.doesNotMatch(mw, /articles|\/og/);
+  // middleware 只在 matcher 里排除分享图路径（tests/og-middleware-matcher.test.ts），处理逻辑里不碰 articles / og
+  const mw = fs.readFileSync('src/middleware.ts', 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/^export const config = .*$/m, '');
+  assert.doesNotMatch(mw, /articles|\/og|\bog\b/);
   const robots = fs.readFileSync('src/app/robots.ts', 'utf8');
   assert.doesNotMatch(robots, /\/og|articles/);
 });
