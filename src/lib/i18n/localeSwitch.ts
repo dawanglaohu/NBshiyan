@@ -1,6 +1,7 @@
 import { categoryMeta, type CategoryMeta } from '../seo/categoryMeta';
 import { CATEGORY_PAGES_LIVE } from '../seo/categoryPages';
 import { PUBLISHED_LOCALES, type PublishedLocale } from '@/i18n/published-locales';
+import { isBlockedLocalePath } from '../edge/locale-gate';
 
 /** 语言切换只在已发布语言之间进行（清单见 src/i18n/published-locales.ts） */
 export type Loc = PublishedLocale;
@@ -65,4 +66,15 @@ export function langSwitchTarget(pathname: string, from: Loc, to: Loc, alternate
   const target = full.slice(3) || '/';
   const tail = /^[?#]/.test(suffix) ? suffix : '';
   return target === pathname ? target + tail : target;
+}
+
+/**
+ * 语言下拉 / 页脚链接用的目标（不含 locale 前缀）。
+ * rawPathname = 浏览器地址栏的路径（next/navigation 的 usePathname，不受 middleware rewrite 影响）。
+ * 在未发布语言的 404 页上（地址栏是 /ja、/EN/…，内容由 rewrite 渲染），一律去目标语言首页（/en、/ru），
+ * 不拿 /ja 当路径拼出 /ru/ja 这种链接。
+ */
+export function menuSwitchTarget(rawPathname: string | null | undefined, pathname: string, from: Loc, to: Loc, alternates: LocaleAlternates | null | undefined, suffix: string): string {
+  if (isBlockedLocalePath(rawPathname ?? '')) return '/';
+  return langSwitchTarget(pathname, from, to, alternates, suffix);
 }

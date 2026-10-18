@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { switchPath, safeLocaleHref, langSwitchTarget } from '../src/lib/i18n/localeSwitch';
+import { switchPath, safeLocaleHref, langSwitchTarget, menuSwitchTarget } from '../src/lib/i18n/localeSwitch';
 import type { CategoryMeta } from '../src/lib/seo/categoryMeta';
 
 // 多语言第 0 期：语言下拉（UX 规格）+ 切换逻辑按已发布语言泛化
@@ -41,8 +41,9 @@ test('CSP: no style attribute, classes only; 44px rows on mobile', () => {
 
 test('header uses the dropdown in desktop and mobile; slug-mapping logic reused (langSwitchTarget)', () => {
   assert.equal((header.match(/<LangMenu \/>/g) ?? []).length, 2);
-  assert.match(hook, /langSwitchTarget\(pathname, current, to, alts, tail\)/);
-  assert.match(hook, /router\.push\(langSwitchTarget\(pathname, current, to, alts, suffix\(\)\), \{ locale: to \}\)/);
+  assert.match(hook, /menuSwitchTarget\(raw, pathname, current, to, alts, tail\)/);
+  assert.match(hook, /router\.push\(menuSwitchTarget\(raw, pathname, current, to, alts, suffix\(\)\), \{ locale: to \}\)/);
+  assert.match(hook, /const raw = useRawPathname\(\);/);
 });
 
 test('switch logic unchanged for en/ru; missing target slug falls back to list page', () => {
@@ -58,4 +59,17 @@ test('switch logic unchanged for en/ru; missing target slug falls back to list p
 test('inquiry wizard posts a PublishedLocale', () => {
   const src = readFileSync('src/components/inquiry/InquiryWizard.tsx', 'utf8');
   assert.match(src, /locale: \(isPublishedLocale\(locale\) \? locale : DEFAULT_PUBLISHED_LOCALE\) satisfies PublishedLocale/);
+});
+
+test('on the unpublished-locale 404 page every item goes to that locale home (/en, /ru), never /ru/ja', () => {
+  for (const raw of ['/ja', '/ja/', '/ja/products', '/EN', '/en-US/contact', '/xx']) {
+    // next-intl 在 rewrite 后的页面上看到的 pathname 可能是 /ja 或 /locale-unavailable，两种都要回首页
+    for (const p of [raw, '/locale-unavailable', '/ja']) {
+      assert.equal(menuSwitchTarget(raw, p, 'en', 'ru', null, '?x=1#h'), '/', `${raw} ${p} → ru`);
+      assert.equal(menuSwitchTarget(raw, p, 'en', 'en', null, ''), '/', `${raw} ${p} → en`);
+    }
+  }
+  // 正常页面不受影响
+  assert.equal(menuSwitchTarget('/en/contact', '/contact', 'en', 'ru', null, '?x=1'), '/contact?x=1');
+  assert.equal(menuSwitchTarget('/en/products/nope', '/products/nope', 'en', 'ru', null, ''), '/products');
 });

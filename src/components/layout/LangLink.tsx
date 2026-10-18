@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { usePathname as useRawPathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
-import { langSwitchTarget, type Loc } from '@/lib/i18n/localeSwitch';
+import { menuSwitchTarget, type Loc } from '@/lib/i18n/localeSwitch';
+import { isBlockedLocalePath } from '@/lib/edge/locale-gate';
 import { PUBLISHED_LOCALES, DEFAULT_PUBLISHED_LOCALE, isPublishedLocale } from '@/i18n/published-locales';
 import { LOCALE_META } from '@/i18n/locale-meta';
 import { useLocaleAlternates } from './LocaleAlternates';
@@ -19,9 +21,11 @@ export type LangTarget = { locale: Loc; href: string; onClick: (e: React.MouseEv
  * 返回顺序：当前语言在最前，其余按 PUBLISHED_LOCALES 顺序。
  */
 export function useLangTargets(): { current: Loc; targets: LangTarget[] } {
-  const raw = useLocale();
-  const current: Loc = isPublishedLocale(raw) ? raw : DEFAULT_PUBLISHED_LOCALE;
+  const rawLocale = useLocale();
+  const current: Loc = isPublishedLocale(rawLocale) ? rawLocale : DEFAULT_PUBLISHED_LOCALE;
   const pathname = usePathname();
+  // 地址栏的真实路径：未发布语言的 404 页（rewrite）上它是 /ja…，此时各项都指向对应语言首页
+  const raw = useRawPathname();
   const router = useRouter();
   const alts = useLocaleAlternates(pathname);
   const [tail, setTail] = useState('');
@@ -35,13 +39,13 @@ export function useLangTargets(): { current: Loc; targets: LangTarget[] } {
   const order = [current, ...PUBLISHED_LOCALES.filter((l) => l !== current)];
   const targets = order.map((to) => ({
     locale: to,
-    href: langSwitchTarget(pathname, current, to, alts, tail),
+    href: menuSwitchTarget(raw, pathname, current, to, alts, tail),
     onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (!isPlainClick(e)) return;
       // 点击时再读一次，覆盖 Next 路由 pushState 改了 hash/query 但没触发事件的情况
       e.preventDefault();
-      if (to === current) return;
-      router.push(langSwitchTarget(pathname, current, to, alts, suffix()), { locale: to });
+      if (to === current && !isBlockedLocalePath(raw ?? '')) return;
+      router.push(menuSwitchTarget(raw, pathname, current, to, alts, suffix()), { locale: to });
     }
   }));
   return { current, targets };
