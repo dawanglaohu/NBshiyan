@@ -132,7 +132,8 @@ test('常量、限流 key 推导、argon2 参数与应用代码一致', async ()
   // loginKeys().ipAcct = login:<rateLimitSubject(ip)>:<e>；enrollConfirmRateOk = enroll-confirm:<rateLimitSubject(ip)>:<rateLimitKeyHash(email.trim().toLowerCase())>
   assert.match(login, /ipAcct: `login:\$\{rateLimitSubject\(ip\)\}:\$\{e\}`/);
   const eg = readFileSync('src/lib/server/admin/enroll-guard.ts', 'utf8');
-  assert.match(eg, /`enroll-confirm:\$\{rateLimitSubject\(ip\)\}:\$\{rateLimitKeyHash\(email\.trim\(\)\.toLowerCase\(\)\)\}`, ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS/);
+  assert.match(eg, /enrollConfirmKey = \(ip: string \| null, email: string\) => `enroll-confirm:\$\{rateLimitSubject\(ip\)\}:\$\{rateLimitKeyHash\(email\.trim\(\)\.toLowerCase\(\)\)\}`;/);
+  assert.match(eg, /hitRateLimit\(enrollConfirmKey\(ip, email\), ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS/);
   const e0 = appKeyHash('ryan@example.com', {});
   assert.deepEqual(accountOnlyRateKeys(' Ryan@Example.com ', {}), [
     { key: `login-acct:${e0}`, windowMs: LOGIN_WINDOW_MS },

@@ -330,7 +330,9 @@ test('issue points: create / admin reset-2fa / self reset-2fa write the hash in 
     assert.equal(src.split('newEnrollToken(').length - 1, 1, f);
     assert.match(src, /\.\.\.t\.data/, `${f}: hash written with the account change`);
     assert.match(src, new RegExp(`auditTokenIssued\\([^)]*'${source}'`), f);
-    assert.ok(!/console\.|t\.token/.test(src), `${f}: token never logged or used directly`);
+    // 唯一允许的日志：后台重置 2FA 提交后删限流 key 失败（只有账号 id，不含令牌、邮箱）
+    const logs = src.replace("console.warn(`[admin] users.reset_2fa target=${id} rate_limit=failed`)", '');
+    assert.ok(!/console\.|t\.token/.test(logs), `${f}: token never logged or used directly`);
     assert.ok(src.indexOf('requireAdmin(') < src.indexOf('newEnrollToken('), `${f}: issued only after the guard`);
   }
   // 其它接口（列表、PATCH）不返回链接；publicUser 不含令牌字段

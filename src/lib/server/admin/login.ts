@@ -19,8 +19,8 @@ export type CheckFail = 'rate_limited' | 'bad_credentials' | 'locked' | 'totp_re
  * 每次调用都原子计数（hit），不先查后计，并发请求也不会超过上限。登录接口每次都计、不退回。
  * enroll 两个接口在密码正确后调 refundLoginRate 退回 IP+账号、单账号两个桶（单 IP 桶不退），所以只有密码错才占这两个桶的额度。
  */
-const LOGIN_WINDOW_MS = 10 * 60_000;
-const loginKeys = (ip: string | null, email: string) => {
+export const LOGIN_WINDOW_MS = 10 * 60_000;
+export const loginKeys = (ip: string | null, email: string) => {
   const e = rateLimitKeyHash(email.trim().toLowerCase());
   return { ipAcct: `login:${rateLimitSubject(ip)}:${e}`, acct: `login-acct:${e}`, ip: `login-ip:${rateLimitSubject(ip)}` };
 };

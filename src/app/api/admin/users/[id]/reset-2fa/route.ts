@@ -5,11 +5,15 @@ import { audit } from '@/lib/server/admin/audit';
 import { ID_RE } from '@/lib/server/admin/inquiries';
 import { guardResponse, mutateUser, publicUser, reset2faData } from '@/lib/server/admin/accounts';
 import { auditTokenIssued, enrollLinkBase, issueResponse, newEnrollToken } from '@/lib/server/admin/enroll-token';
+import { clearAccountRateLimits } from '@/lib/server/admin/account-rate-limits';
 
 export const runtime = 'nodejs';
 
 /** 管理员重置他人 2FA（对方丢了手机和恢复码）。清空密钥和恢复码、对方所有会话失效、重新打开 72 小时绑定窗口（#347）；对方需重新 enroll。不能对自己用（自己走 /api/admin/account/2fa/reset）。
- * #347 方案 A：同一次写入里签发新的一次性绑定令牌（覆盖旧哈希，之前发出的链接立即失效），响应体里返回一次 enrollLink。 */
+ * #347 方案 A：同一次写入里签发新的一次性绑定令牌（覆盖旧哈希，之前发出的链接立即失效），响应体里返回一次 enrollLink。
+ * 同一次写入里还解除登录锁定（failedLogins=0、lockedUntil=null，与 reset 脚本一致），审计 user.reset_2fa 的 meta.unlocked =
+ * 重置前账号处于锁定中或 failedLogins>0（即确实清掉了什么）。提交之后再删账号的 3 个限流 key（当前 + 上一个窗口，不碰 login-ip）；
+ * 删除失败不回滚重置，只记 rate_limit=failed。 */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireAdmin(req, ['ADMIN']);
   if (ctx instanceof Response) return ctx;
@@ -22,9 +26,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const now = new Date();
     const t = newEnrollToken({ enrollIssuedAt: now }, now.getTime());
-    const u = await mutateUser(ctx.user, id, {}, (tx) => tx.user.update({ where: { id }, data: { ...reset2faData(now), ...t.data } }));
-    await audit({ actorId: ctx.user.id, action: 'user.reset_2fa', target: id, ip: ctx.ip });
+    let unlocked = false;
+    const u = await mutateUser(ctx.user, id, {}, (tx, before) => {
+      unlocked = before.failedLogins > 0 || !!(before.lockedUntil && before.lockedUntil > now);
+      return tx.user.update({ where: { id }, data: { ...reset2faData(now), ...t.data, failedLogins: 0, lockedUntil: null } });
+    });
+    await audit({ actorId: ctx.user.id, action: 'user.reset_2fa', target: id, meta: { unlocked }, ip: ctx.ip });
     await auditTokenIssued(ctx.user.id, id, 'admin_reset_2fa', ctx.ip, t.expiresTruncated);
+    // 提交之后：失败不回滚、不报错给前端，只记结果（不含 key、邮箱）
+    if ((await clearAccountRateLimits(u.email)) === 'failed') console.warn(`[admin] users.reset_2fa target=${id} rate_limit=failed`);
     return NextResponse.json({ ...publicUser(u), ...issueResponse(t, base) }, { headers: noStore });
   } catch (e) { return guardResponse(e); }
 }

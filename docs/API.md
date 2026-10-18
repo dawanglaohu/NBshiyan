@@ -137,7 +137,7 @@
 - `GET /api/admin/users?all=1` → `{ items: [{ id, email, name, role, disabled, totpEnabled, locked, createdAt }] }`（不带 `all` 时是分配下拉框用的精简列表，见上）。
 - `POST /api/admin/users` `{ email, name, role: ADMIN|SALES|EDITOR, password }` → 201。新账号需先绑定 2FA 才能登录。409 `email_taken`，422 `weak_password`。
 - `PATCH /api/admin/users/:id` `{ role?, disabled?, name?, unlock?: true }` → 用户对象。停用或改为 EDITOR 时取消其名下询盘的分配。
-- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码，或新账号 72 小时内没绑定（绑定窗口过期）；重新打开 72 小时绑定窗口，对方需重新绑定。
+- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码，或新账号 72 小时内没绑定（绑定窗口过期）；重新打开 72 小时绑定窗口，对方需重新绑定。#347：同一次写入里签发新的一次性绑定令牌（响应多 `enrollLink`、`expiresAt`、`expiresTruncated`，旧链接失效）、会话失效，并**解除登录锁定**（`failedLogins=0`、`lockedUntil=null`）；审计 `user.reset_2fa` meta `{ unlocked }`（重置前锁定中或 `failedLogins>0` 为 true）。提交后删掉该账号的 3 个限流 key（`login-acct`、`login:untrusted`、`enroll-confirm:untrusted`，当前 + 上一个窗口），不碰 `login-ip`；删除失败不回滚，只记日志 `rate_limit=failed`。
 - `DELETE /api/admin/users/:id` → 204。名下询盘取消分配；审计记录保留。
 - 保护规则：不能修改/停用/删除/重置自己（409 `cannot_modify_self`，自己用上面的自助接口）；不能让系统里没有有效管理员（role=ADMIN 且未停用），否则 409 `last_admin`。账号变更在事务里用 advisory lock 串行执行，防止两个管理员同时互相停用。
 

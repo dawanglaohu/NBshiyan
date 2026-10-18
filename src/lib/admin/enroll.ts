@@ -132,3 +132,7 @@ export const stepStatus = (current: Step, n: Step): 'done' | 'current' | 'todo' 
 /** 下载的恢复码 .txt：按 UX 稿，10 行，每行一个码（CRLF，记事本也能正常显示） */
 export const recoveryTxt = (codes: readonly string[]): string => codes.map((c) => `${c}\r\n`).join('');
 export const recoveryFilename = 'packjoyu-admin-recovery-codes.txt';
+
+/** 后台「重置 2FA」确认框（#347）：「之前发出的绑定链接会立即失效」+「同时会解除这个账号的登录锁定」 */
+export const RESET_2FA_CONFIRM = (email: string) =>
+  `重置 ${email} 的 2FA？对方会立即退出登录，需要用新的绑定链接重新绑定。之前发出的绑定链接会立即失效，同时会解除这个账号的登录锁定。`;

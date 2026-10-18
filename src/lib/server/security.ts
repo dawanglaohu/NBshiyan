@@ -109,6 +109,16 @@ export async function refundRateLimit(key: string, windowMs = 10 * 60_000): Prom
   try { await rateLimitStore().refund(`${rateLimitEnv()}:${key}`, windowMs); } catch { /* 忽略：计数保留 */ }
 }
 
+/**
+ * 删掉一组限流 key（自动加环境前缀，与 hitRateLimit 相同）。不 throw：返回 'cleared' | 'failed'，调用方只记结果，
+ * 失败时计数照旧在窗口结束后过期（偏严）。日志不输出 key。
+ */
+export async function clearRateLimits(entries: { key: string; windowMs: number }[]): Promise<'cleared' | 'failed'> {
+  const store = rateLimitStore();
+  if (!store.clear) return 'failed';
+  try { await store.clear(entries.map((e) => ({ key: `${rateLimitEnv()}:${e.key}`, windowMs: e.windowMs }))); return 'cleared'; } catch { return 'failed'; }
+}
+
 /** 去掉换行，防止邮件头注入 */
 export const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim();
 export const escapeHtml = (s: string) =>

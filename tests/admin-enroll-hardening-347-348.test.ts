@@ -223,7 +223,7 @@ test('#347 enrollment window: 72h after createdAt (or last 2FA reset) enroll/con
   assert.equal((await enroll()).status, 200);
   assert.equal(enrollWindowOpen({ createdAt: new Date(0), enrollIssuedAt: new Date(), totpPendingUntil: null, totpSecret: null }), true);
   for (const f of ['src/app/api/admin/users/[id]/reset-2fa/route.ts', 'src/app/api/admin/account/2fa/reset/route.ts'])
-    assert.match(readFileSync(f, 'utf8'), /data: \{ \.\.\.reset2faData\(now\), \.\.\.t\.data \}/, f);
+    assert.match(readFileSync(f, 'utf8'), /data: \{ \.\.\.reset2faData\(now\), \.\.\.t\.data(, failedLogins: 0, lockedUntil: null)? \}/, f);
 });
 
 test('per-IP limit on both routes (separate bucket), checked after same-origin and before body validation', async () => {
