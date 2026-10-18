@@ -34,11 +34,16 @@ export default function LangMenu({ className }: { className?: string }) {
     const els = items();
     if (pendingFocus.current) (pendingFocus.current === 'last' ? els[els.length - 1] : els[0])?.focus();
     pendingFocus.current = null;
-    // 点外面：关闭并把焦点还给按钮（点到的是别的可聚焦元素时，浏览器随后会把焦点移过去）
-    const onDown = (e: PointerEvent) => { if (!rootRef.current?.contains(e.target as Node)) close(true); };
+    // 点外面：关闭并把焦点还给按钮。浏览器在 mousedown 时才移动焦点，所以下一个 tick 再判断：
+    // 点到别的可聚焦元素（链接、输入框）就让焦点留在那里，否则（焦点落到 body）还给按钮
+    const onDown = (e: PointerEvent) => {
+      if (rootRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+      setTimeout(() => { const a = document.activeElement; if (!a || a === document.body || rootRef.current?.contains(a)) btnRef.current?.focus(); }, 0);
+    };
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
-  }, [open, close]);
+  }, [open]);
 
   const openWith = (focus: 'first' | 'last' | null) => { pendingFocus.current = focus; setOpen(true); };
 

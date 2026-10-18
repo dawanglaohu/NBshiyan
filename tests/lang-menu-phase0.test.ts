@@ -77,7 +77,8 @@ test('on the unpublished-locale 404 page every item goes to that locale home (/e
 });
 
 test('outside click closes and returns focus to the trigger; first item = current language gets focus on open', () => {
-  assert.match(menu, /if \(!rootRef\.current\?\.contains\(e\.target as Node\)\) close\(true\);/);
+  assert.match(menu, /if \(rootRef\.current\?\.contains\(e\.target as Node\)\) return;\n\s*setOpen\(false\);/);
+  assert.match(menu, /a === document\.body[^\n]*btnRef\.current\?\.focus\(\)/);
   assert.match(menu, /pendingFocus\.current === 'last' \? els\[els\.length - 1\] : els\[0\]/);
   assert.match(hook, /const order = \[current, /);
 });
