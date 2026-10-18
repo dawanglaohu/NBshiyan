@@ -119,8 +119,9 @@ test('路由文件存在且只接线', () => {
   const p = 'src/app/api/admin/site-settings/organization/route.ts';
   assert.ok(existsSync(p));
   const src = readFileSync(p, 'utf8');
-  assert.match(src, /handleGetOrganization\(req, siteSettingsDeps\)/);
-  assert.match(src, /handlePutOrganization\(req, siteSettingsDeps\)/);
+  assert.match(src, /handleGetOrganization\(req, deps\)/);
+  assert.match(src, /handlePutOrganization\(req, deps\)/);
+  assert.match(src, /=> requireAdmin\(req, roles\)/);
 });
 
 test('#367 review P3：logo 站内路径拒绝点段；写入和读出用同一个邮箱规则', async () => {

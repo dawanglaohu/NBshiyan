@@ -1,6 +1,6 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { prisma } from './db';
-import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from './auth';
+import { assertSameOrigin, enforceAdminRateLimit } from './auth';
 import { audit } from './admin/audit';
 import { readJson } from './admin/inquiries';
 import { prismaSiteSettingsStore, type SiteSettingsDeps } from './site-settings-admin';
@@ -12,8 +12,11 @@ export function revalidateSiteSettings() {
   revalidatePath('/sitemap.xml');
 }
 
-export const siteSettingsDeps: SiteSettingsDeps = {
-  requireAdmin,
+/**
+ * 不含 requireAdmin：鉴权由每个 route.ts 自己 import 并传入（`{ ...siteSettingsDeps, requireAdmin: (r, roles) => requireAdmin(r, roles) }`），
+ * 这样 scripts/check-admin-guard.mjs 在 route 文件里能看到真实的鉴权调用，漏传时 tsc 也会报错。
+ */
+export const siteSettingsDeps: Omit<SiteSettingsDeps, 'requireAdmin'> = {
   assertSameOrigin: (req) => assertSameOrigin(req),
   enforceAdminRateLimit,
   readJson,

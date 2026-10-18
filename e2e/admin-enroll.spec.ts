@@ -108,9 +108,3 @@ test('#347 待确认密钥 10 分钟内不能被覆盖：再次 enroll → 429 r
   expect(ok.status()).toBe(200);
   expect((await ok.json()).recoveryCodes).toHaveLength(10);
 });
-  expect(old.status()).toBe(401);
-  expect((await old.json()).error).toBe('bad_totp');
-  const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(second) } });
-  expect(ok.status()).toBe(200);
-  expect((await ok.json()).recoveryCodes).toHaveLength(10);
-});

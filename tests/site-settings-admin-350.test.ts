@@ -220,7 +220,12 @@ test('Prisma 存储：事务内 SELECT … FOR UPDATE 锁行；并发新建的�
   assert.match(src, /SELECT "value"::text AS "value" FROM "SiteSetting" WHERE "key" = \$\{key\} FOR UPDATE/);
   assert.match(src, /e\.code === 'P2002'[\s\S]{0,200}status: 'conflict'/);
   for (const f of ['src/app/api/admin/site-settings/about/route.ts', 'src/app/api/admin/site-settings/about/[locale]/route.ts', 'src/app/api/admin/site-settings/about/enabled/route.ts'])
-    assert.match(readFileSync(f, 'utf8'), /siteSettingsDeps\)/, f);
+  {
+    const src = readFileSync(f, 'utf8');
+    assert.match(src, /, deps\)/, f);
+    assert.match(src, /requireAdmin: \(req: Request, roles[^)]*\) => requireAdmin\(req, roles\)/, f); // 鉴权在 route 文件里传入（CI check-admin-guard 也靠它）
+  }
+  assert.doesNotMatch(readFileSync('src/lib/server/site-settings-admin-deps.ts', 'utf8'), /^\s*requireAdmin,/m);
   assert.match(readFileSync('src/lib/server/site-settings-admin-deps.ts', 'utf8'), /revalidateTag\(SITE_SETTINGS_TAG\);\s*revalidatePath\('\/sitemap\.xml'\);/);
 });
 
