@@ -101,6 +101,14 @@ export async function hitRateLimit(key: string, limit = 5, windowMs = 10 * 60_00
   }
 }
 
+/**
+ * 退回一次 hitRateLimit（同一个 key 和 windowMs，同样加环境前缀）。计数最低到 0，key 不存在/窗口已过期时什么都不做。
+ * 存储出错时直接忽略：不重试、不抛错、不记日志，计数保留（偏严）。不退本地兜底计数（存储正常时 hit 也没用它）。
+ */
+export async function refundRateLimit(key: string, windowMs = 10 * 60_000): Promise<void> {
+  try { await rateLimitStore().refund(`${rateLimitEnv()}:${key}`, windowMs); } catch { /* 忽略：计数保留 */ }
+}
+
 /** 去掉换行，防止邮件头注入 */
 export const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim();
 export const escapeHtml = (s: string) =>

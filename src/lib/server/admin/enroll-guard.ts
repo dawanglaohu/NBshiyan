@@ -1,6 +1,6 @@
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { hitRateLimit, rateLimitSubject } from '../security';
+import { hitRateLimit, rateLimitKeyHash, rateLimitSubject } from '../security';
 import { audit } from './audit';
 
 /**
@@ -16,12 +16,20 @@ import { audit } from './audit';
  *   作废后冷却 10 分钟（totpPendingUntil = now+10min），期间 enroll 返回 429 rate_limited，之后可以重新 enroll 拿新密钥。
  * - 密码错的请求不计入、也不会作废密钥：否则不知道密码的人也能反复作废别人的待确认密钥（定向骚扰）。密码错仍按原来的登录限流和锁定处理。
  * - 绑定成功或发新密钥时清零。审计不记邮箱明文、密钥和验证码。
+ *
+ * P2「作废状态到不了」的限流计数（全栈方案，全部原子 hit，不先查后计）：
+ * - enrollIpRateOk 按 IP 的总上限（ENROLL_IP_LIMIT 次/10 分钟）每次请求都计，不退回。
+ * - checkPassword 照常原子计入登录桶（IP+账号 5 次等，见 login.ts）；密码正确后用 refundLoginRate 退回 IP+账号、单账号两个桶（单 IP 桶不退）。
+ *   所以密码对、码错不会先撞上登录限流，第 5 次错码一定返回 enroll_reset；密码错照常占登录桶，和登录接口合计。
+ * - confirm 里密码正确后、验码之前原子计入 enroll-confirm:<ip>:<账号>（ENROLL_CONFIRM_LIMIT 次/10 分钟），超了 429。它比 ENROLL_MAX_BAD_TOTP 宽，不会抢在作废之前 429。
  */
 export const ENROLL_WINDOW_MS = 72 * 3_600_000;
 export const ENROLL_PENDING_MS = 10 * 60_000;
 export const ENROLL_MAX_BAD_TOTP = 5;
 export const ENROLL_IP_LIMIT = 20;
 export const ENROLL_IP_WINDOW_MS = 10 * 60_000;
+export const ENROLL_CONFIRM_LIMIT = 10;
+export const ENROLL_CONFIRM_WINDOW_MS = 10 * 60_000;
 
 type EnrollUser = Pick<User, 'createdAt' | 'enrollIssuedAt' | 'totpPendingUntil' | 'totpSecret'>;
 
@@ -35,6 +43,10 @@ export const pendingSecretUsable = (u: EnrollUser, now = Date.now()) => !!u.totp
 /** 两个绑定接口单独的按 IP 限流（与登录限流分开计数），在解析请求体之前调用。存储故障时拒绝。 */
 export const enrollIpRateOk = (route: 'enroll' | 'confirm', ip: string | null) =>
   hitRateLimit(`enroll-ip:${route}:${rateLimitSubject(ip)}`, ENROLL_IP_LIMIT, ENROLL_IP_WINDOW_MS, { onStoreError: 'closed' });
+
+/** confirm 的 IP+账号桶：密码已正确、验码之前计一次（原子 hit），返回是否仍在上限内。邮箱 HMAC 后进 key，存储故障时拒绝。 */
+export const enrollConfirmRateOk = (ip: string | null, email: string) =>
+  hitRateLimit(`enroll-confirm:${rateLimitSubject(ip)}:${rateLimitKeyHash(email.trim().toLowerCase())}`, ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS, { onStoreError: 'closed' });
 
 /** 发新的待确认密钥时要写的字段 */
 export const pendingSecretData = (encryptedSecret: string, now = Date.now()) => ({
