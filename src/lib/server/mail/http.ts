@@ -30,9 +30,14 @@ export async function enforceMailRateLimit(userId: string): Promise<Response | n
   return null;
 }
 
-/** 生产发信适配器：SMTP；非生产且 MAIL_SEND_ADAPTER=mock 时用 mock（动态 import，生产包里不会走到） */
+/**
+ * 生产发信适配器：SMTP；非生产且 MAIL_SEND_ADAPTER=mock 时用 mock。
+ * #323：条件先看构建时常量 MAIL_MOCK_ADAPTER_BUILD（next.config 内联：生产构建为空字符串 → `'' !== ''` 恒为 false），
+ * 生产构建里这个分支是死代码，import('./mock') 不会被打包；非生产构建（'1'）和不经 Next 打包的单测（undefined）
+ * 再按运行时的 mockAdapterAllowed() 判断（与以前一样）。
+ */
 export async function defaultAdapter(): Promise<MailSendAdapter | null> {
-  if (mockAdapterAllowed()) return (await import('./mock')).createMockAdapter();
+  if (process.env.MAIL_MOCK_ADAPTER_BUILD !== '' && mockAdapterAllowed()) return (await import('./mock')).createMockAdapter();
   const c = smtpConfig();
   return c.ok ? createSmtpAdapter(c.cfg) : null;
 }

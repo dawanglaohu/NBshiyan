@@ -57,12 +57,16 @@ export function parseArgs(argv, env = {}) {
 }
 
 /**
- * 决定密码来源：有终端（TTY）→ 交互输入；没有终端 → 环境变量（仅 CI，生产返回 'env_refused'），否则标准输入第一行。
+ * 决定密码来源：生产环境只要 ADMIN_CREATE_PASSWORD 非空就返回 'env_refused'（#323：先于 TTY 判断，有终端也不静默忽略，
+ * 因为值已经出现在 docker inspect / shell 历史里，应当让运维知道并清掉）；
+ * 其余：有终端（TTY）→ 交互输入；没有终端 → 环境变量（仅 CI / 本地），否则标准输入第一行。
  * 环境变量在脚本启动时就已读出并删除（见 takeEnvPassword），这里只拿读出的值。
  */
 export function passwordSource({ isTTY, envPassword, production = false }) {
+  const hasEnv = typeof envPassword === 'string' && envPassword.length > 0;
+  if (production && hasEnv) return 'env_refused';
   if (isTTY) return 'tty';
-  if (typeof envPassword === 'string' && envPassword.length) return production ? 'env_refused' : 'env';
+  if (hasEnv) return 'env';
   return 'stdin';
 }
 
@@ -95,7 +99,7 @@ export function adminGateError({ existingAdmins, emailTaken, allowAdditionalAdmi
 /** 错误码 → 面向运维的提示。只有固定文案，从不包含密码、哈希或底层异常信息 */
 export const MESSAGES = {
   password_in_argv: '密码不能通过命令行参数传入（会留在 shell 历史和进程列表里）。请在终端交互输入，或通过标准输入提供。',
-  env_refused: '生产环境（APP_ENV=production）不接受 ADMIN_CREATE_PASSWORD（环境变量会出现在 docker inspect / shell 历史里）。请在终端交互输入，或通过标准输入提供。',
+  env_refused: '生产环境（APP_ENV=production）不接受 ADMIN_CREATE_PASSWORD（环境变量会出现在 docker inspect / shell 历史里），有终端时也一样。请先去掉这个变量，再在终端交互输入，或通过标准输入提供。',
   unknown_arg: `参数无法识别。\n${USAGE}`,
   invalid_email: '邮箱无效（--email 或 ADMIN_CREATE_EMAIL）。',
   invalid_name: '显示名最多 100 个字符。',

@@ -41,7 +41,12 @@ test('密码来源：有 TTY → 终端；无 TTY → 环境变量，否则标�
   // 生产：环境变量路径拒绝（docker inspect 可见），终端和标准输入照常
   assert.equal(passwordSource({ isTTY: false, envPassword: PW, production: true }), 'env_refused');
   assert.equal(passwordSource({ isTTY: false, envPassword: '', production: true }), 'stdin');
-  assert.equal(passwordSource({ isTTY: true, envPassword: PW, production: true }), 'tty');
+  // #323：生产环境只要 ADMIN_CREATE_PASSWORD 非空就拒绝，先于 TTY 判断（以前有终端时静默忽略）
+  assert.equal(passwordSource({ isTTY: true, envPassword: PW, production: true }), 'env_refused');
+  assert.equal(passwordSource({ isTTY: true, envPassword: ' ', production: true }), 'env_refused');
+  assert.equal(passwordSource({ isTTY: true, envPassword: '', production: true }), 'tty');
+  assert.equal(passwordSource({ isTTY: true, envPassword: undefined, production: true }), 'tty');
+  assert.equal(passwordSource({ isTTY: true, envPassword: PW, production: false }), 'tty');
   assert.ok(isProductionEnv({ APP_ENV: 'production' })); assert.ok(!isProductionEnv({ NODE_ENV: 'production' }));
   const env: Record<string, string | undefined> = { ADMIN_CREATE_PASSWORD: PW, OTHER: '1' };
   assert.equal(takeEnvPassword(env), PW);
@@ -83,6 +88,9 @@ test('CLI：生产环境下 ADMIN_CREATE_PASSWORD 被拒绝 → 退出 1，不�
   assert.equal(r.code, 1); assert.match(r.out, /不接受 ADMIN_CREATE_PASSWORD/); assert.ok(!r.out.includes(PW));
   const r2 = run(['--email', 'a@example.com'], { APP_ENV: 'production', DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x' }, `${PW}\n`);
   assert.equal(r2.code, 1); assert.match(r2.out, /数据库操作失败/); assert.ok(!r2.out.includes(PW)); // 走到了连库这一步
+  // #323：没有 DATABASE_URL 时也先报 env_refused（先于其他任何检查）
+  const r3 = run(['--email', 'a@example.com'], { APP_ENV: 'production', ADMIN_CREATE_PASSWORD: PW });
+  assert.equal(r3.code, 1); assert.match(r3.out, /不接受 ADMIN_CREATE_PASSWORD/); assert.ok(!r3.out.includes(PW));
 });
 
 test('CLI：数据库不可达 → 退出 1，只给错误类型，不输出密码或连接串', () => {
@@ -99,4 +107,25 @@ test('只有 CLI，没有 HTTP 建首个管理员的接口；审计不含密码�
   assert.ok(!existsSync('src/app/api/admin/bootstrap') && !existsSync('src/app/api/setup'));
   assert.match(readFileSync('next.config.ts', 'utf8'), /outputFileTracingIncludes: \{ '\/api\/health': \['\.\/scripts\/admin-create\.mjs', '\.\/scripts\/admin-create-lib\.mjs'\] \}/);
   assert.equal(JSON.parse(readFileSync('package.json', 'utf8')).scripts['admin:create'], 'node scripts/admin-create.mjs');
+});
+
+test('#323 admin-create 的密码规则与 accounts.ts 一致：边界、空白、大小写、Unicode / 代理对、非字符串；accounts.ts 的规则本身仍是 12–200', async () => {
+  const email = 'Admin@Example.com';
+  const cases: unknown[] = [
+    'x'.repeat(12), 'x'.repeat(11), 'x'.repeat(199), 'x'.repeat(200), 'x'.repeat(201), ' '.repeat(12), `${' '.repeat(11)}x`,
+    'admin@example.com', 'ADMIN@EXAMPLE.COM', `  admin@example.com  `, `admin@example.com\t`, 'admin@example.co', 'admin@example.com!',
+    '😀'.repeat(6), '😀'.repeat(5) + 'x', '😀'.repeat(100), '😀'.repeat(100) + 'x', 'é'.repeat(12), 'e\u0301'.repeat(6),
+  ];
+  for (const pw of cases) assert.equal(passwordPolicyError(pw as string, email), appPolicy(pw as string, email), JSON.stringify(pw));
+  for (const e of ['a@b.de', 'ADMIN@EXAMPLE.COM', '']) for (const pw of ['a@b.de'.padEnd(12, ' '), 'admin@example.com', 'x'.repeat(12)])
+    assert.equal(passwordPolicyError(pw, e), appPolicy(pw, e), `${pw} / ${e}`);
+  // 非字符串：脚本拒绝；后台 zod 同样拒绝
+  for (const pw of [undefined, null, 123456789012, ['x'.repeat(12)]]) {
+    assert.equal(passwordPolicyError(pw as unknown as string, email), 'weak_password');
+    assert.equal(appPolicy(pw as unknown as string, email), 'weak_password');
+  }
+  const { Password } = await import('../src/lib/server/admin/accounts');
+  assert.equal(Password.safeParse('x'.repeat(12)).success, true); assert.equal(Password.safeParse('x'.repeat(11)).success, false);
+  assert.equal(Password.safeParse('x'.repeat(200)).success, true); assert.equal(Password.safeParse('x'.repeat(201)).success, false);
+  assert.match(MESSAGES.weak_password, /12–200/);
 });
