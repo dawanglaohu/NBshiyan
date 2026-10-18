@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import {
-  ARGON, CLEAR_FLAG, ENROLL_WINDOW_MS, LOGIN_WINDOW_MS, MESSAGES, VIA, accountOnlyRateKeys, decide, hasPendingEnroll, parseArgs,
-  rateLimitEnv, rateLimitKeyHash, runReset, stripPasswordEnv, upstashKey, type ResetUser,
+  ARGON, CLEAR_FLAG, ENROLL_CONFIRM_WINDOW_MS, ENROLL_WINDOW_MS, LOGIN_WINDOW_MS, MESSAGES, UNTRUSTED, VIA, accountOnlyRateKeys, decide, hasPendingEnroll, parseArgs,
+  rateKeysToDelete, rateLimitEnv, rateLimitKeyHash, runReset, stripPasswordEnv, upstashKey, type ResetUser,
 } from '../scripts/admin-reset-initial-password-lib.mjs';
 import { verifySecret } from '../src/lib/server/admin/crypto';
-import { rateLimitEnv as appEnv, rateLimitKeyHash as appKeyHash } from '../src/lib/server/security';
+import { rateLimitEnv as appEnv, rateLimitKeyHash as appKeyHash, rateLimitSubject, UNTRUSTED as APP_UNTRUSTED } from '../src/lib/server/security';
 import { UpstashStore } from '../src/lib/server/ratelimit/index';
 import { hash as argonHash } from '@node-rs/argon2';
 
@@ -116,20 +116,39 @@ test('常量、限流 key 推导、argon2 参数与应用代码一致', async ()
     assert.equal(rateLimitEnv(env), appEnv(env));
     for (const v of ['ryan@example.com', 'a@b.de', '']) assert.equal(rateLimitKeyHash(v, env), appKeyHash(v, env));
   }
-  assert.deepEqual(accountOnlyRateKeys(' Ryan@Example.com ', {}), [`login-acct:${appKeyHash('ryan@example.com', {})}`]);
+  assert.equal(guard.ENROLL_CONFIRM_WINDOW_MS, ENROLL_CONFIRM_WINDOW_MS);
+  assert.equal(UNTRUSTED, APP_UNTRUSTED); assert.equal(rateLimitSubject(null), UNTRUSTED);
+  // loginKeys().ipAcct = login:<rateLimitSubject(ip)>:<e>；enrollConfirmRateOk = enroll-confirm:<rateLimitSubject(ip)>:<rateLimitKeyHash(email.trim().toLowerCase())>
+  assert.match(login, /ipAcct: `login:\$\{rateLimitSubject\(ip\)\}:\$\{e\}`/);
+  const eg = readFileSync('src/lib/server/admin/enroll-guard.ts', 'utf8');
+  assert.match(eg, /`enroll-confirm:\$\{rateLimitSubject\(ip\)\}:\$\{rateLimitKeyHash\(email\.trim\(\)\.toLowerCase\(\)\)\}`, ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS/);
+  const e0 = appKeyHash('ryan@example.com', {});
+  assert.deepEqual(accountOnlyRateKeys(' Ryan@Example.com ', {}), [
+    { key: `login-acct:${e0}`, windowMs: LOGIN_WINDOW_MS },
+    { key: `login:untrusted:${e0}`, windowMs: LOGIN_WINDOW_MS },
+    { key: `enroll-confirm:untrusted:${e0}`, windowMs: ENROLL_CONFIRM_WINDOW_MS },
+  ]);
   assert.match(readFileSync('src/lib/server/admin/crypto.ts', 'utf8'), new RegExp(`memoryCost: ${ARGON.memoryCost}, timeCost: ${ARGON.timeCost}, parallelism: ${ARGON.parallelism}`));
 });
 
-test('Upstash 实际 key 与 hitRateLimit → UpstashStore.hit 计数用的 key 完全相同', async () => {
+test('Upstash 实际 key 与 hitRateLimit → UpstashStore.hit 计数用的 key 完全相同（三个账号 key，固定窗口带序号）', async () => {
   const env = { APP_ENV: 'production', AUTH_SECRET: 'k' };
-  const key = accountOnlyRateKeys(EMAIL, env)[0];
   const realFetch = globalThis.fetch; const realNow = Date.now;
   let sent: string[][] = [];
   globalThis.fetch = (async (_u: string, init: { body: string }) => { sent = JSON.parse(init.body); return new Response(JSON.stringify([{ result: 1 }, { result: 1 }])); }) as typeof fetch;
   Date.now = () => NOW;
-  try { await new UpstashStore('https://x.example', 't').hit(`${appEnv(env)}:${key}`, 10, LOGIN_WINDOW_MS); } finally { globalThis.fetch = realFetch; Date.now = realNow; }
-  assert.equal(sent[0][0], 'INCR');
-  assert.equal(sent[0][1], upstashKey(key, env, NOW));
+  try {
+    for (const { key, windowMs } of accountOnlyRateKeys(EMAIL, env)) {
+      await new UpstashStore('https://x.example', 't').hit(`${appEnv(env)}:${key}`, 10, windowMs);
+      assert.equal(sent[0][0], 'INCR');
+      assert.equal(sent[0][1], upstashKey(key, env, NOW, windowMs));
+      // 上一个窗口：时间往回拨一个窗口，hit 用的 key 就是 offset=-1
+      Date.now = () => NOW - windowMs;
+      await new UpstashStore('https://x.example', 't').hit(`${appEnv(env)}:${key}`, 10, windowMs);
+      assert.equal(sent[0][1], upstashKey(key, env, NOW, windowMs, -1));
+      Date.now = () => NOW;
+    }
+  } finally { globalThis.fetch = realFetch; Date.now = realNow; }
 });
 
 test('哈希与登录校验（checkPassword → verifySecret）兼容', async () => {
@@ -238,8 +257,19 @@ test('带 --clear-pending-enroll：同一事务里改密码、清待确认状态
   assert.equal(r.ff.calls.length, 1);
   assert.equal(r.ff.calls[0].url, 'https://r.example/pipeline'); assert.equal(r.ff.calls[0].auth, 'Bearer tok');
   const env = { AUTH_SECRET: 'a', APP_ENV: 'production' };
-  assert.deepEqual(r.ff.calls[0].body, [['DEL', `rl:production:login-acct:${appKeyHash(EMAIL, env)}:${Math.floor(NOW / LOGIN_WINDOW_MS)}`]]);
-  assert.doesNotMatch(JSON.stringify(r.ff.calls), /SCAN|KEYS|login-ip|login:|enroll-confirm/);
+  // 删除的 key 恰好是这 6 个（3 个账号 key × 当前 / 上一个窗口），一条 pipeline 里全是 DEL
+  const e = appKeyHash(EMAIL, env), w = Math.floor(NOW / LOGIN_WINDOW_MS), cw = Math.floor(NOW / ENROLL_CONFIRM_WINDOW_MS);
+  const expected = [
+    `rl:production:login-acct:${e}:${w}`, `rl:production:login-acct:${e}:${w - 1}`,
+    `rl:production:login:untrusted:${e}:${w}`, `rl:production:login:untrusted:${e}:${w - 1}`,
+    `rl:production:enroll-confirm:untrusted:${e}:${cw}`, `rl:production:enroll-confirm:untrusted:${e}:${cw - 1}`,
+  ];
+  assert.deepEqual(r.ff.calls[0].body, expected.map((k) => ['DEL', k]));
+  assert.deepEqual(rateKeysToDelete(EMAIL, env, NOW), expected);
+  const sentText = JSON.stringify(r.ff.calls);
+  assert.doesNotMatch(sentText, /SCAN|KEYS|login-ip|enroll-ip/);
+  // 没有任何真实 IP 的桶：login:/enroll-confirm: 后面只能是 untrusted
+  for (const [, k] of r.ff.calls[0].body as string[][]) assert.match(k, /^rl:production:(login-acct|login:untrusted|enroll-confirm:untrusted):/);
   assert.match(r.out, /rate_limit=cleared/); assert.match(r.out, /72 小时绑定窗口重新开始/);
   assert.ok(r.out.includes('cuid_admin_1'));
 });
@@ -318,7 +348,8 @@ test('只有 CLI；会进 standalone 产物；源码里没有 SCAN/KEYS、没有
     assert.doesNotMatch(src, /console\./);
     assert.doesNotMatch(src, /process\.env\.ADMIN_(RESET|CREATE)_PASSWORD/);
   }
-  assert.doesNotMatch(lib.slice(lib.indexOf('export function accountOnlyRateKeys')), /`login-ip:|`login:\$|`enroll-confirm:/);
+  assert.doesNotMatch(lib, /`login-ip:|`enroll-ip:/);
+  assert.doesNotMatch(lib.slice(lib.indexOf('export function accountOnlyRateKeys')), /`login:\$\{(?!UNTRUSTED)|`enroll-confirm:\$\{(?!UNTRUSTED)/);
   assert.match(readFileSync('next.config.ts', 'utf8'), /'\.\/scripts\/admin-reset-initial-password\.mjs', '\.\/scripts\/admin-reset-initial-password-lib\.mjs'/);
   assert.match(readFileSync('Dockerfile', 'utf8'), /test -f scripts\/admin-reset-initial-password\.mjs && test -f scripts\/admin-reset-initial-password-lib\.mjs/);
   assert.equal(JSON.parse(readFileSync('package.json', 'utf8')).scripts['admin:reset-initial-password'], 'node scripts/admin-reset-initial-password.mjs');

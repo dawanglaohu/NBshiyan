@@ -115,8 +115,9 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   unless `--clear-pending-enroll` is given; the flag clears the pending state and reopens the 72 h window (same fields as an ADMIN 2FA reset).
 - One transaction: new argon2id hash (same parameters as login), all sessions revoked (`sessionVersion`+1), lockout cleared,
   audit `user.password_reset` (+ `user.pending_enroll_cleared`) with actor `cli` and the user id only (no password, hash, secret or email).
-- After commit it deletes only the `login-acct:<hash>` rate-limit key of the current window (Upstash only; computed by name, no SCAN/KEYS).
-  Per-IP buckets (`login-ip`, `login:<ip>:<e>`, `enroll-confirm:<ip>:<e>`) are left alone and expire within 10 minutes.
+- After commit it deletes only the account-scoped rate-limit keys whose names it can compute: `login-acct:<e>`,
+  `login:untrusted:<e>` and `enroll-confirm:untrusted:<e>`, current and previous window (Upstash only; one DEL, no SCAN/KEYS).
+  `login-ip` and real-IP buckets (`login:<ip>:<e>`, `enroll-confirm:<ip>:<e>`) are left alone and expire within 10 minutes.
 - Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments, 3 refused. Output shows the user id only.
 
 ## 2FA audit (deploy gate for #361, before `deploy.sh up`)

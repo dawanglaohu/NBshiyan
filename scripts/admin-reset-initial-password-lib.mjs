@@ -8,8 +8,8 @@
 // - 有待确认的绑定（待确认密钥 / enrollIssuedAt / totpPendingUntil / totpEnrollFails 非默认值）或绑定窗口已关闭时，
 //   必须显式加 --clear-pending-enroll，否则拒绝（退出码非 0）。加了以后清掉待确认状态，并重新打开 72 小时绑定窗口（与后台重置 2FA 的 reset2faData 一致）。
 // - 改密码、清待确认字段、会话全部失效（sessionVersion+1）、解除锁定、写审计（user.password_reset，必要时 user.pending_enroll_cleared）在同一个事务里。
-// - 提交之后再清这个账号的限流计数：只清 key 名能只凭账号算出来的 login-acct:<e>。login-ip:<ip>、login:<ip>:<e>、enroll-confirm:<ip>:<e> 需要 IP，不清，
-//   也不用 SCAN/KEYS 去找，10 分钟窗口后自己过期。
+// - 提交之后再清这个账号的限流计数：只清 key 名能只凭账号算出来的 login-acct:<e>、login:untrusted:<e>、enroll-confirm:untrusted:<e>
+//   （当前和上一个窗口）。login-ip、真实 IP 的 login:<ip>:<e>、enroll-confirm:<ip>:<e> 不清，也不用 SCAN/KEYS 去找，10 分钟窗口后自己过期。
 import { createHmac } from 'node:crypto';
 import { ARGON, firstLine, normalizeAccountEmail, passwordPolicyError, validEmail } from './admin-create-lib.mjs';
 
@@ -156,13 +156,36 @@ export function rateLimitKeyHash(value, env) {
   const k = createHmac('sha256', base).update('ratelimit-email-v1').digest();
   return createHmac('sha256', k).update(value).digest('base64url').slice(0, 32);
 }
-/** 只凭账号就能算出的限流 key（不含环境前缀）：login.ts loginKeys 里的 acct。需要 IP 的 key 一律不在这里。 */
+/** 必须等于 src/lib/server/admin/enroll-guard.ts 的 ENROLL_CONFIRM_WINDOW_MS */
+export const ENROLL_CONFIRM_WINDOW_MS = 10 * 60_000;
+/** 必须等于 src/lib/edge/client-ip.ts 的 UNTRUSTED：rateLimitSubject(null)，所有不可信来源共用这个“IP” */
+export const UNTRUSTED = 'untrusted';
+
+/**
+ * 只凭账号就能算出名字的限流 key（不含环境前缀），以及各自的窗口长度：
+ * - login-acct:<e>                 login.ts loginKeys().acct
+ * - login:untrusted:<e>            login.ts loginKeys().ipAcct，ip=null（不可信来源共用的桶，仍然只属于这个账号）
+ * - enroll-confirm:untrusted:<e>   enroll-guard.ts enrollConfirmRateOk，ip=null
+ * <e> = rateLimitKeyHash(email.trim().toLowerCase())。真实 IP 的 login:<ip>:<e>、enroll-confirm:<ip>:<e> 和所有 login-ip / enroll-ip 一律不在这里。
+ */
 export function accountOnlyRateKeys(email, env) {
-  return [`login-acct:${rateLimitKeyHash(email.trim().toLowerCase(), env)}`];
+  const e = rateLimitKeyHash(email.trim().toLowerCase(), env);
+  return [
+    { key: `login-acct:${e}`, windowMs: LOGIN_WINDOW_MS },
+    { key: `login:${UNTRUSTED}:${e}`, windowMs: LOGIN_WINDOW_MS },
+    { key: `enroll-confirm:${UNTRUSTED}:${e}`, windowMs: ENROLL_CONFIRM_WINDOW_MS },
+  ];
 }
-/** Upstash 里的实际 key：= UpstashStore.keyOf(`${rateLimitEnv()}:${key}`, LOGIN_WINDOW_MS) */
-export function upstashKey(key, env, now) {
-  return `rl:${rateLimitEnv(env)}:${key}:${Math.floor(now / LOGIN_WINDOW_MS)}`;
+/**
+ * Upstash 里的实际 key：= UpstashStore.keyOf(`${rateLimitEnv()}:${key}`, windowMs) = rl:<env>:<key>:<floor(now/windowMs)>。
+ * 固定窗口、key 带窗口序号；offset=-1 是上一个窗口。
+ */
+export function upstashKey(key, env, now, windowMs = LOGIN_WINDOW_MS, offset = 0) {
+  return `rl:${rateLimitEnv(env)}:${key}:${Math.floor(now / windowMs) + offset}`;
+}
+/** 要 DEL 的完整 key 列表：每个账号 key 的当前窗口和上一个窗口 */
+export function rateKeysToDelete(email, env, now) {
+  return accountOnlyRateKeys(email, env).flatMap(({ key, windowMs }) => [upstashKey(key, env, now, windowMs, 0), upstashKey(key, env, now, windowMs, -1)]);
 }
 
 /**
@@ -176,7 +199,7 @@ export async function clearAccountRateLimits({ email, env, now, fetchImpl }) {
   if (kind !== 'upstash') return 'skipped_memory';
   const url = env.UPSTASH_REDIS_REST_URL, token = env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return 'failed';
-  const keys = accountOnlyRateKeys(email, env).map((k) => upstashKey(k, env, now));
+  const keys = rateKeysToDelete(email, env, now);
   try {
     const r = await fetchImpl(`${url.replace(/\/$/, '')}/pipeline`, {
       method: 'POST',

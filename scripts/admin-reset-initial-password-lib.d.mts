@@ -24,8 +24,11 @@ export function resetData(passwordHash: string, plan: Plan, now: number): Record
 export function auditEntries(userId: string, plan: Plan): { actorId: null; target: string; ip: null; action: string; meta: Record<string, unknown> }[];
 export function rateLimitEnv(env: Record<string, string | undefined>): string;
 export function rateLimitKeyHash(value: string, env: Record<string, string | undefined>): string;
-export function accountOnlyRateKeys(email: string, env: Record<string, string | undefined>): string[];
-export function upstashKey(key: string, env: Record<string, string | undefined>, now: number): string;
+export const ENROLL_CONFIRM_WINDOW_MS: number;
+export const UNTRUSTED: 'untrusted';
+export function accountOnlyRateKeys(email: string, env: Record<string, string | undefined>): { key: string; windowMs: number }[];
+export function upstashKey(key: string, env: Record<string, string | undefined>, now: number, windowMs?: number, offset?: number): string;
+export function rateKeysToDelete(email: string, env: Record<string, string | undefined>, now: number): string[];
 type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }) => Promise<{ ok: boolean; json(): Promise<unknown> }>;
 export function clearAccountRateLimits(o: { email: string; env: Record<string, string | undefined>; now: number; fetchImpl: FetchLike }): Promise<'cleared' | 'skipped_memory' | 'failed'>;
 export function safeErrorCode(e: unknown): string;
