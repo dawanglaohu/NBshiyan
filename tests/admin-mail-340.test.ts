@@ -139,3 +139,31 @@ test('#340 normalizeThread: legacy + redacted rows with missing fields render wi
   assert.doesNotMatch(h, /ml-att/, '附件卡片关闭');
   assert.deepEqual(L.normalizeThread({}).items, []);
 });
+
+// —— 5. PM：失败卡片上「重试 / 发送」的区别说明 ——
+test('#340 failed card hint: exact copy, muted (not role=alert), only on failed cards that show 「重试」', () => {
+  assert.equal(L.RETRY_VS_SEND_HINT, '点『重试』会重发这封邮件；再点『发送』会另发一封新邮件');
+  const out = (id: string, o: Record<string, unknown>) => ({ id, source: 'mail', direction: 'OUTBOUND', subject: 'Re: hi', bodyText: 'body', createdAt: '2026-10-17T00:00:00Z', ...o }) as never;
+  const page = L.normalizeThread({ items: [
+    out('f1', { status: 'FAILED', errorCode: 'provider_throttled', retryable: true, retryCount: 1 }),
+    out('f2', { status: 'FAILED', errorCode: 'send_auth', retryable: true, retryCount: 0 }),
+    out('n1', { status: 'FAILED', errorCode: 'provider_throttled', retryable: false, retryCount: 0 }),
+    out('l1', { status: 'FAILED', errorCode: 'provider_throttled', retryable: true, retryCount: 5, maxRetries: 5 }),
+    out('s1', { status: 'SENT', sentAt: '2026-10-17T00:01:00Z' }),
+    out('p1', { status: 'SENDING' }),
+    { id: 'i1', direction: 'INBOUND', subject: 'hi', bodyText: 'x', createdAt: '2026-10-16T00:00:00Z' } as never
+  ] });
+  const h = view({ page });
+  const cards = h.split('<article').slice(1);
+  const byId = Object.fromEntries(cards.map((c) => [c.match(/data-id="([^"]+)"/)![1], c]));
+  const hint = '<span class="ml-note ml-retry-hint" data-testid="retry-hint">点『重试』会重发这封邮件；再点『发送』会另发一封新邮件</span>';
+  for (const id of Object.keys(byId)) {
+    const hasRetry = /<button type="button" class="ml-btn"[^>]*>重试<\/button>/.test(byId[id]);
+    assert.equal(byId[id].includes(hint), hasRetry, `${id}: hint iff 重试 button`);
+  }
+  assert.ok(byId.f1.includes(hint), 'retryable failed card has the hint');
+  for (const id of ['n1', 'l1', 's1', 'p1', 'i1']) assert.ok(!byId[id].includes('retry-hint'), id);
+  assert.equal((h.match(/data-testid="retry-hint"/g) ?? []).length, cards.filter((c) => c.includes(hint)).length);
+  assert.doesNotMatch(hint, /role=/);
+  assert.match(readFileSync(new URL('../src/app/admin/mail.css', import.meta.url), 'utf8'), /\.ml-note\{font-size:13px;color:var\(--ink-2\)\}/);
+});

@@ -5,7 +5,7 @@ import { mailApi, MailError, type SendStatus, type ThreadItem, type ThreadPage }
 import {
   ANON_THREAD, authorText, DEFAULT_POLL_MS, DEFERRED_REASON, deferredHint, BACKGROUND_SENDING, BODY_MAX, bodyCounter, DELETED, FORM_UNKNOWN, invalidFieldText, MAYBE_DELIVERED, MAYBE_DELIVERED_HINT,
   NOT_RETRYABLE, oneLineSubject, outboundView, replySubject, RETRY_LIMIT_HINT, retryCountText, sendErrorText, SENDING_DISABLED, SENDING_DISABLED_HINT,
-  showUnverified, SUBJECT_MAX, subjectText, UNCONFIRMED, QUEUED_TAG, retryButton, retryRateText, THREAD_LOAD_FAILED, normalizeThread, draftAfterSendError
+  showUnverified, SUBJECT_MAX, subjectText, UNCONFIRMED, QUEUED_TAG, retryButton, retryRateText, RETRY_VS_SEND_HINT, THREAD_LOAD_FAILED, normalizeThread, draftAfterSendError
 } from '@/lib/admin/mail/logic';
 import { MAIL_ATTACHMENTS_LIVE } from '@/lib/admin/mail/features';
 import { browserVisibility, startSendPoll } from '@/lib/admin/mail/poller';
@@ -175,6 +175,7 @@ function OutStatus({ s, canSend, bodyText, note, retrying, reveal, onRetry }: { 
         {v.code === 'send_auth' && <span className="ml-code">错误代码：{v.code}</span>}</span>
       {rc && !v.retryLimit && <span className={`ml-rc${rc.last ? ' last' : ''}`}>{rc.text}</span>}
       {btn.show && <button type="button" className="ml-btn" disabled={btn.disabled} title={canSend ? undefined : SENDING_DISABLED} onClick={onRetry}>{retrying ? '重试中…' : '重试'}</button>}
+      {btn.show && <span className="ml-note ml-retry-hint" data-testid="retry-hint">{RETRY_VS_SEND_HINT}</span>}
       {(v.retryLimit || !v.canRetry) && <CopyBody text={bodyText} />}
       {note && 'text' in note && <span className="t">{note.text}</span>}
       {/* #340：重试卡片没有输入框，服务端按原文重发 → 用重试专用文案（不说「已保留在输入框里」） */}

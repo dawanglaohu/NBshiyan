@@ -71,6 +71,8 @@ export const isDeferred = (m: { status?: string; errorCode?: string | null }) =>
 export const MAYBE_DELIVERED_HINT = '发送过程中连接中断，无法确认对方是否收到。为免重复，系统不会自动重发；如需确认，请换其他方式联系客户。';
 export const RETRY_LIMIT_HINT = '这封邮件已重试 5 次仍未发出。请复制内容重新编写发送，或联系管理员检查邮箱设置。';
 export const NOT_RETRYABLE = '这封邮件不能重试，请重新编写发送。';
+/** #340 PM：失败卡片上有「重试」按钮时的说明（正文同时保留在回复框里，两个按钮的区别要讲清楚） */
+export const RETRY_VS_SEND_HINT = '点『重试』会重发这封邮件；再点『发送』会另发一封新邮件';
 export const UNCONFIRMED = '状态未确认，请刷新页面查看。';
 export const BACKGROUND_SENDING = '发送较慢，已转到后台继续发送（最多约 2 分钟），完成后这里会更新。';
 export const ANON_JUST_NOW = '该询盘刚刚被匿名化，不能再发送。页面已刷新。';
