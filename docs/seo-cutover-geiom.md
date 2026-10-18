@@ -6,9 +6,12 @@
 
 ## 0. 主域名
 
-- **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`，去掉结尾 `/`），不读请求的 Host。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
+- **主域名是裸域 `https://geiom.com`**（不带 www）。代码里所有绝对地址（canonical、hreflang、sitemap、robots 的 `Sitemap:`、OG 图、JSON-LD）只来自构建时的 `NEXT_PUBLIC_SITE_URL`（`src/lib/site.ts` 的 `SITE_URL`），不读请求的 Host。`NEXT_PUBLIC_SITE_URL` 必须等于 `https://geiom.com`（部署要求，运维 `deploy.sh` 校验）；代码会拒绝末尾 `/`、端口、路径、IP/localhost 和非 https：构建失败，运行时也会拒绝启动；域名由 `APP_ORIGIN` 锁定，必须等于它的 origin。所以"哪个是主域"由 `NEXT_PUBLIC_SITE_URL=https://geiom.com` 决定；代码里没有 www 判断。
 - `www.geiom.com` 和 `http://` 的 301 **全部由 nginx 做**（运维已定）：http 裸域、http www、https www 都一跳 301 到 `https://geiom.com$request_uri`。Cloudflare 侧 Always Use HTTPS 关闭，没有 Redirect Rules，也没有 Page Rules。
 - ⚠️ 切换时**不要**在 Cloudflare 加重定向规则，**不要**打开 Always Use HTTPS，否则会和 nginx 的 301 叠成两跳或者循环。
+- nginx 的 `:80` server **只做** `return 301 https://geiom.com$request_uri;`，不反代到容器（PM 2026-10-17 已定）。
+- HSTS：`max-age` 1 年，**不含**子域（不加 `includeSubDomains`），**不加** `preload`（全栈与运维定、PM 2026-10-17 确认，随 nginx v5 / #341 上线；替代此前「较短 max-age」的口径）。**nginx 是唯一发出方**（PM 2026-10-17 定）：应用保留自己的 HSTS 不删；nginx v5 用 `proxy_hide_header Strict-Transport-Security` 在这一层盖掉应用那份，再用 `add_header Strict-Transport-Security "max-age=31536000" always` 发一份，所以响应里（含 401/404/5xx）始终只有一条。v5 上线前由应用那份兜底，任何部署顺序都不会出现缺 HSTS 的空档。冒烟里「401 响应每个头只出现一次」的检查也覆盖 HSTS。
+- Cloudflare 代理（橙云）**必须开**：源站只接受带正确 `X-Edge-Auth` 的请求，这个头由 Cloudflare 注入（见第 2.4 节）。
 - 语言前缀：`src/i18n/routing.ts` 是 `locales: ['en', 'ru']`、`defaultLocale: 'en'`、`localePrefix: 'always'`，所有页面都在 `/en/...` 或 `/ru/...` 下。
 - geiom.com 之前是 Squarespace「Coming Soon」+ noindex，没有旧 URL 收录，不需要做旧地址 301 映射。
 
@@ -21,8 +24,9 @@ S=https://geiom.com
 这些值都是**构建时**写进产物的，只在运行时设置不起作用（`NEXT_PUBLIC_*` 会被内联；`next.config.ts` 里的 `isProd` 和 `src/app/robots.ts`、sitemap 也在构建时确定）。
 
 - [ ] 构建时 `APP_ENV=production`、`NODE_ENV=production`。`isProdEnvFrom()`（`src/lib/site.ts`）只认 `APP_ENV === 'production'`（过渡期另认 `VERCEL_ENV`）。没设 → `next.config.ts` 给全站加 `X-Robots-Tag: noindex, nofollow`，`robots.txt` 变成 `Disallow: /`，IndexNow 关闭。
-- [ ] **运行时** env_file 里也必须有 `APP_ENV=production`。启动检查（`src/instrumentation.ts` → `runStartupEnvCheck()`）只在 `APP_ENV=production` 时执行；没设就整段跳过，缺密钥、缺数据库也照样启动。
+- [ ] **运行时** env_file 里也必须有 `APP_ENV=production`。#323（`fix/321-hardening`）起，生产构建的镜像在运行时 `APP_ENV` 没设、或者和构建时的值不一致时**拒绝启动（exit 1）**，不会再跳过启动检查（`src/instrumentation.ts` → `runStartupEnvCheck()`）。运维的 compose 里已经把 `APP_ENV=production` 写死。
   部署后由运维在服务器上确认启动检查确实跑了（只看变量名和退出码，不打印任何值）：
+  - ⚠️ **不要**直接跑不带参数的 `printenv`、`env` 或 `docker compose config`：它们会把所有变量连同密钥一起打印出来（屏幕、终端记录、日志）。只能按单个变量查，例如 `printenv APP_ORIGIN`，而且只查本文列出的非密钥变量。是否通过以 `deploy.sh` 检查的退出码为准，单变量查看只作辅助。
   - 容器里 `APP_ENV` 是 `production`，例如 `docker compose exec <app> printenv APP_ENV`。
   - 检查通过时没有日志输出，所以要做一次反向验证：用一次性容器、同一镜像、同一 env_file，故意让一项必填配置失效（比如 `UPLOAD_DIR` 指向不可写目录），应输出「生产环境配置检查未通过，拒绝启动」加变量名，并 exit 1。测完删掉这个容器，正式容器不动。
 - [ ] **运行时** env_file 里必须有 `APP_ORIGIN=https://geiom.com`（不是可选项，不能留空）。后端 PR #328（`fix/root-redirect-location`）加了启动检查，下面任一条不满足就 exit 1：
@@ -37,10 +41,10 @@ S=https://geiom.com
 - [ ] **运行时** 生产容器必须保持 `HOSTNAME=0.0.0.0`。改成 `127.0.0.1` 的话，`/s/*` 的 rewrite 会在 `x-middleware-rewrite` 响应头里带出 localhost（这个问题 #328 之前就有）。第二个原因：`HOSTNAME=127.0.0.1` 时，#328 的跳转修复可能生成简写地址 `127.0.1`，而 nginx 兜底的 `proxy_redirect`（第 2.5 节）只匹配完整的 `127.0.0.1`，会漏掉。运维已在 compose 里写死 `HOSTNAME=0.0.0.0`，`deploy.sh` 也会检查这一项（`ops/app-origin-required`）。部署后验证：
   - 容器里 `HOSTNAME` 是 `0.0.0.0`，例如 `docker compose exec <app> printenv HOSTNAME`。
   - 任何响应头里都不能出现 localhost，例如 `curl -sI $S/en | grep -ci localhost` 和 `curl -sI $S/s/<任意 id> | grep -ci localhost` 都应为 0（第 2.4、2.5 节）。
-- [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`（不带结尾 `/`）。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
+- [ ] 构建时 `NEXT_PUBLIC_SITE_URL=https://geiom.com`：必须等于 `https://geiom.com`（部署要求，运维 `deploy.sh` 校验）；代码会拒绝末尾 `/`、端口、路径、IP/localhost 和非 https：构建失败，运行时也会拒绝启动；域名由 `APP_ORIGIN` 锁定，必须等于它的 origin。缺省值是 `http://localhost:3000`，漏传会让 canonical / sitemap / OG 全部指向 localhost。
 - [ ] 构建检查（`prod-env-check.ts`，`next build` 时执行）：
-  - 当前 main：`NEXT_PUBLIC_SITE_URL` 缺失或不是 `https://` 时构建失败。
-  - PR #321 合并后：另外拒绝 localhost / 127.x / ::1 / 0.0.0.0 / `*.localhost`。上线必须用合并了 #321 的 commit 构建。
+  - `APP_ENV=production` 时，`NEXT_PUBLIC_SITE_URL` 缺失、不是 https 裸 origin（带末尾 `/`、端口、路径），或者是 IP / localhost，`next build` 都会失败；#323 起 standalone 启动时再检查一次，不通过就 exit 1。
+  - 代码不比对具体域名：`https://geiom.com` 这个值由运维 `deploy.sh` 校验，代码里锁定域名的是 `APP_ORIGIN`（见上面的 `APP_ORIGIN` 一项）。
 - [ ] 站长验证 meta（可选，见第 4 节）：`NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`、`NEXT_PUBLIC_YANDEX_VERIFICATION`、`NEXT_PUBLIC_BING_VERIFICATION` 也是 `NEXT_PUBLIC_*`，要用的话必须在**构建时**给，改值要重新构建。走 DNS TXT 验证就不用设。
 - [ ] standalone 镜像（`output: 'standalone'`，PR #321）：除 `.next/standalone/` 外，必须把 `public/` 复制到 `.next/standalone/public/`、`.next/static/` 复制到 `.next/standalone/.next/static/`（`launch-runbook.md` §4.1）。漏了会导致 OG 图、favicon、poster、JS/CSS 全部 404。安全已核对运维 Dockerfile 里有这两步。
 - [ ] 限流 / IndexNow 去重：上线用运维 v1.6 的本地 Redis + SRH（Upstash 兼容 REST），`RATE_LIMIT_STORE=upstash`，`UPSTASH_REDIS_REST_URL` 为 https。`src/lib/seo/indexnow.ts` 只在 `RATE_LIMIT_STORE=upstash`、URL 是 https、token 已设、生产环境、`INDEXNOW_KEY` 合法（8–128 位 `[a-zA-Z0-9-]`）时启用，缺一项就**静默关闭**。
@@ -89,7 +93,7 @@ Sitemap: https://geiom.com/sitemap.xml
 ```bash
 curl -sI $S/sitemap.xml | grep -iE '^(HTTP|content-type)'   # 200, application/xml
 curl -s $S/sitemap.xml | grep -o '<loc>[^<]*' | cut -c6- | sort -u
-curl -s $S/sitemap.xml | grep -Ec 'localhost|vercel\.app|http://|www\.geiom'   # 应为 0
+curl -s $S/sitemap.xml | grep -Eo '(<loc>|href=")[^<"]+' | grep -Ec 'localhost|vercel\.app|http://|www\.geiom'   # 应为 0（只看 loc 和 href；整份文件 grep 会命中 xmlns 里的 http://www.sitemaps.org）
 # 每个 URL：200、无 noindex、canonical 等于自身
 for u in $(curl -s $S/sitemap.xml | grep -o '<loc>[^<]*' | cut -c6-); do
   c=$(curl -s -o /tmp/p -D /tmp/h -w '%{http_code}' "$u")
@@ -115,9 +119,22 @@ for p in /en /ru /en/products /ru/products /en/contact; do echo "== $p"
   curl -sI $S/en | grep -i '^link:' | grep -ci hreflang   # 应为 0
   ```
 
-**转发头（nginx → 容器）——已批准**
+**边缘鉴权和转发头（Cloudflare → nginx → 容器）——安全 + PM 2026-10-17 04:03 PT 已定**
 
-安全已批准运维的新版 nginx，上线用的就是这一版。头部一律在 nginx 里用 `proxy_set_header` 显式设置，不透传客户端发来的值：
+- **Cloudflare 注入 `X-Edge-Auth`**：橙云必须开，由 Cloudflare Transform Rule 给每个请求加上 `X-Edge-Auth`。
+- **nginx 在所有 location 上校验它**（包括 `/api/`、`/_next/`、`/og`）：不对或缺失 → 403 / 444。Host 不是 `geiom.com` → 落到 `default_server`，返回 444。不经过 Cloudflare、直接连源站又不带这个头的请求，都必须被拒绝。
+- **校验通过后，nginx 用服务器上的值覆盖 `X-Edge-Auth` 再转给容器**（同一个值，从服务器上的文件或环境变量读，**绝不进仓库**）。不是清空：应用（`src/lib/edge/client-ip.ts`）会再校验一次，校验通过才信任 `CF-Connecting-IP` 和 `cf-ipcountry`。
+- **顺序**：nginx **先**校验 `X-Edge-Auth`。校验失败直接 403 / 444，根本走不到下面的转发步骤。
+- **`CF-Connecting-IP` 原样转发**：`$http_cf_connecting_ip`（安全 + PM 2026-10-17 决定）。
+  - **为什么安全**：nginx 只放行 `X-Edge-Auth` 正确的请求，这些请求一定经过了 Cloudflare，而 Cloudflare 会覆盖客户端自己带的 `CF-Connecting-IP`，所以转发下去的值可信。
+  - **为什么不用 `real_ip` 模块加 Cloudflare IP 段**：漏掉一段 IP 时会静默出错（不报错），而且要长期同步 Cloudflare 的 IP 列表。这个方案没有采用。
+  - **应用再校验一次**（已在 main，#311，`src/lib/edge/client-ip.ts` 的 `resolveClientIp()`）：
+    1. 先校验 `X-Edge-Auth`（常量时间比较）。不对 → `{ ip: null, trusted: false }`。
+    2. 再用 `validIp()` 校验 `CF-Connecting-IP`：先 trim，必须是单个合法的 IPv4 或 IPv6，不带端口、方括号、zone id，也不能是逗号分隔的列表，最长 45 个字符。IPv4 用正则判断，IPv6 用 `new URL` 解析判断。这段代码要在 Edge 运行时跑，没有 `node:net`，所以不用 `net.isIP`。
+    3. 格式不对 → `{ ip: null, trusted: false }`，限流 key 用统一的 `untrusted`，绝不拿这个头的值当 key。
+    4. `EDGE_AUTH_SECRET` 没设或者不足 32 字节时，**所有**请求都按不可信处理（fail-closed）。`cf-ipcountry` 也只在 `X-Edge-Auth` 正确时才信任（`trustedCountry()`）。
+- **ufw 不变**（Ryan 决定）：源站防护靠 `X-Edge-Auth`，不靠防火墙白名单。
+- 其余头仍在 nginx 里用 `proxy_set_header` 显式设置：
 
 ```nginx
 proxy_set_header Host geiom.com;              # 固定值
@@ -125,13 +142,13 @@ proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
 proxy_set_header X-Forwarded-Proto https;     # 固定值
 proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
 proxy_set_header X-Real-IP "";                # 清空
-proxy_set_header X-Edge-Auth <由 nginx 注入，值不写在这里>;
-proxy_set_header CF-Connecting-IP $remote_addr;   # 只信任 Cloudflare 来源（前提：下面的 444 规则保留）
+proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
 ```
 
-- 443 的 `geiom.com` server 用精确的 `server_name geiom.com`，Host 不对直接返回 **421**。canonical、hreflang、Location 都不会被伪造的 Host 污染。
-- `X-Edge-Auth` 由 nginx 注入，会覆盖客户端自己带的同名头。它的值不能出现在日志、仓库和聊天里。
-- `CF-Connecting-IP` 用 `$remote_addr` 显式设置，不读、不透传客户端带来的同名头。只有在「非 Cloudflare 来源 → 444」这条规则保留时，`$remote_addr` 才一定是 Cloudflare 节点，这条规则**不能删**。
+- 443 的 `geiom.com` server 用精确的 `server_name geiom.com`，Host 不对的请求落到 `default_server`，返回 **444**。canonical、hreflang、Location 都不会被伪造的 Host 污染。
+- `X-Edge-Auth` 和 `EDGE_AUTH_SECRET` 的值不能出现在日志、仓库和聊天里。
+- `CF-Connecting-IP` 可信的前提是：`X-Edge-Auth` 校验覆盖**所有** location。任何一个 location 漏了校验，客户端就能伪造 `CF-Connecting-IP`。
 - **以最终 `nginx -t` 通过的文件为准。** 本文不写任何密钥值或源站 IP。
 - nginx 改动只限安全批准的 NBshiyan 站点配置，服务器上其他 nginx 配置一律不动。
 - 上线后自检：
@@ -216,6 +233,9 @@ location ^~ /api/health/ { return 404; }
 
 - [ ] HTML 不被缓存：`curl -sI $S/en | grep -i cf-cache-status` → `DYNAMIC` 或 `BYPASS`，不能是 `HIT`。`/_next/static/*` 可以 `HIT`。
 - [ ] 爬虫不被挑战：Bot Fight Mode / WAF 放行已验证爬虫（Googlebot、YandexBot、bingbot）。以 GSC「网址检查 → 测试实际网址」和 Yandex「Проверка ответа сервера」返回 200 为准，不能只靠改 UA 的 curl。这两项要等第 4 节的站点验证完成后才能用，所以放在第 4 节验证通过后补做；在那之前先看 Cloudflare Security Events 有没有拦截已验证爬虫。
+- [ ] **直连源站被拒绝**（外部冒烟，由运维从服务器外部做，只记 PASS / FAIL，不记录、不发送任何 IP 或响应内容）：不经过 Cloudflare、直接连源站、不带 `X-Edge-Auth` 的请求，对 `/`、`/en`、`/api/`、`/_next/`、`/og` 都不能拿到正常内容（应为 403 或连接被关闭）。拿到 200 就是 FAIL。
+- [ ] **`:80` 只跳转**：`curl -sI http://geiom.com/en?a=1` 是一个 301 到 `https://geiom.com/en?a=1`，响应里没有应用的内容（第 2.5 节）。
+- [ ] **询盘限流按客户端，不是全站一个桶**（外部冒烟；**必须等 Transform Rule 和 nginx v5 都生效后再跑**。在那之前应用收不到正确的 `X-Edge-Auth`，所有访客都算 `untrusted`、共用一个桶，DNS 刚切完就跑会误判 FAIL；这段时间也尽量不要对外宣传）：从同一个客户端经 `https://geiom.com` 连续提交几次询盘，应在达到上限后被限流（429）；换一个网络的客户端提交仍然正常。随后由运维看容器日志：不能出现成批的 `untrusted` 限流记录（`src/lib/edge/client-ip.ts` 把不可信请求放进同一个 `untrusted` 桶；成批出现说明 `X-Edge-Auth` 覆盖或 `CF-Connecting-IP` 转发没生效）。日志里只看有没有这类记录，不把 IP 或请求内容发到群里。测试询盘要能区分，测完由运维或 Ryan 清理。
 
 ## 3. 上线时开放索引的页面（SEO 单独开代码 PR）
 
@@ -260,7 +280,7 @@ location ^~ /api/health/ { return 404; }
 1. Ryan 登录 Yandex Webmaster → 添加站点 `https://geiom.com`（和 `NEXT_PUBLIC_SITE_URL` 完全一致；Yandex 把 www 和裸域当成两个站，只加裸域）。
 2. 验证方式：**用 DNS TXT**。Yandex 给出 TXT（`yandex-verification: …`），Ryan 私信发给运维，运维单独做一次 DNS 变更给 `geiom.com` 新增；验证后不要删。
    - 代码也支持 meta 方式：`NEXT_PUBLIC_YANDEX_VERIFICATION` → `src/app/[locale]/layout.tsx` 的 `verification.yandex`，输出 `<meta name="yandex-verification">`。但它只在 `/en`、`/ru` 页面上；根路径 `/` 是 307 跳转，而 Yandex 的 meta 验证查首页、首页有跳转会失败（见 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §2 第 5 条）。另外改值要重新构建。所以首选 DNS TXT。
-3. 站点地区（可选）：按 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4 决定，不要为了审核虚构俄罗斯地址。
+3. 站点地区：不设（PM 2026-10-17 已定，见 [`yandex-webmaster-setup.md`](./yandex-webmaster-setup.md) §4）。www / http 不单独添加。
 4. 验证通过后：Индексирование → Файлы Sitemap → 添加 `https://geiom.com/sitemap.xml`。
 5. 验证通过后（可选）：Переобход страниц 提交 `/ru`、`/en`。
 
