@@ -212,8 +212,115 @@ test('UX #373 P2-3：390 宽度下「关于我们」和「组织信息」的按�
   expect(await small()).toEqual([]);
 });
 
+test('UX #375 P2：390 下保存栏「放弃修改」「保存」不换行、不竖排（关于我们 + 组织信息）', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginFreshAdmin(page);
+  const barButtons = async () => page.evaluate(() => [...document.querySelectorAll('.st-bar .adm-btn')]
+    .map((el) => { const r = el.getBoundingClientRect(); return { text: el.textContent?.trim(), w: Math.round(r.width), h: Math.round(r.height) }; }));
+  const assertBar = async () => {
+    const btns = await barButtons();
+    expect(btns.length).toBe(2);
+    for (const b of btns) { expect(b.h, b.text).toBeLessThan(50); expect(b.h, b.text).toBeGreaterThanOrEqual(44); expect(b.w, b.text).toBeGreaterThan(b.h); }
+    expect(btns.map((b) => b.text)).toEqual(['放弃修改', '保存']);
+  };
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.locator('#st-title').fill('About sample');
+  await assertBar();
+  await page.goto('/admin/settings?section=org');
+  await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
+  await page.getByLabel('公司注册全称').fill('示例文字 Sample Co., Ltd.');
+  await assertBar();
+});
+
+test('UX #375 P2：关于我们 400 字段错误显示在字段下方并 aria-invalid；对不上的进顶部错误条', async ({ page }) => {
+  test.setTimeout(60_000);
+  await loginFreshAdmin(page);
+  const ABOUT = '/api/admin/site-settings/about';
+  const replies = [
+    { status: 400, json: { error: 'invalid', issues: [{ path: 'title', message: 'too_short' }] } },
+    { status: 400, json: { error: 'invalid', issues: [{ path: 'capacity', message: 'Unrecognized key' }] } },
+  ];
+  await page.route(`**/api/admin/site-settings/about/**`, (r) => {
+    if (r.request().method() === 'PUT' && !r.request().url().endsWith('/enabled')) return r.fulfill(replies.shift()!);
+    return r.fallback();
+  });
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.locator('#st-title').fill('About sample title');
+  const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
+  await save.click();
+  await expect(page.locator('#st-title')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#st-title-e')).toHaveText('标题至少 2 个字');
+  await expect(page.locator('.st-page [role=alert]')).toHaveCount(0);
+  await save.click();
+  await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（capacity：Unrecognized key）');
+});
+
+test('390 下关于我们 400 字段错误：焦点到字段，字段和错误文字都露在顶栏和底部保存栏之间', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginFreshAdmin(page);
+  await page.route(`**/api/admin/site-settings/about/**`, (r) => {
+    if (r.request().method() === 'PUT' && !r.request().url().endsWith('/enabled')) {
+      return r.fulfill({ status: 400, json: { error: 'invalid', issues: [{ path: 'title', message: 'too_short' }] } });
+    }
+    return r.fallback();
+  });
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await page.locator('#st-title').fill('About sample title');
+  await page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' }).click();
+  await expect(page.locator('#st-title')).toBeFocused();
+  await expect(page.locator('#st-title-e')).toHaveText('标题至少 2 个字');
+  await expect.poll(async () => page.evaluate(() => {
+    const f = document.getElementById('st-title')!.getBoundingClientRect();
+    const e = document.getElementById('st-title-e')!.getBoundingClientRect();
+    const top = document.querySelector('.adm-top')?.getBoundingClientRect().bottom ?? 0;
+    const bar = document.querySelector('.st-bar')?.getBoundingClientRect().top ?? window.innerHeight;
+    return f.top >= top - 1 && e.bottom <= bar + 1;
+  }), { timeout: 3000 }).toBe(true);
+});
+
 test('组织信息：未登录不能读接口，页面跳登录', async ({ request }) => {
   expect((await request.get(API)).status()).toBe(401);
   const r = await request.get('/admin/settings?section=org', { maxRedirects: 0 });
   expect([302, 303, 307, 308]).toContain(r.status());
+});
+
+test('UX #375 P2：390 下在页面底部保存触发 409，冲突横幅滚进视野并聚焦', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginFreshAdmin(page);
+  const API = '/api/admin/site-settings/organization';
+  await page.route(`**${API}`, async (route) => {
+    if (route.request().method() === 'PUT') {
+      return route.fulfill({ status: 409, json: { error: 'version_conflict', currentVersion: 99 } });
+    }
+    return route.fallback();
+  });
+  await page.goto('/admin/settings?section=org');
+  await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
+  // 改一个合法字段让保存条出现；多填几项把页面撑高，再滚到底部点保存
+  await page.getByLabel('公司注册全称').fill('示例文字 Sample Co., Ltd.');
+  await page.getByLabel('一句话介绍（英文）').fill('Sample description for scroll test.');
+  for (let i = 1; i <= 6; i++) {
+    await page.getByRole('button', { name: '＋ 添加链接' }).click();
+    await page.getByLabel(`社交主页链接（第 ${i} 条）`).fill(`https://example.com/sample-${i}`);
+  }
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
+  await expect(save).toBeEnabled();
+  await save.click();
+  const banner = page.locator('.st-conflict[role=alert]');
+  await expect(banner).toBeVisible();
+  await expect(banner).toBeFocused();
+  // smooth scroll 可能还在动，轮询到横幅完整露出：不能被 390 下 sticky 的顶栏 .adm-top 挡住
+  await expect.poll(async () => banner.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    const top = document.querySelector('.adm-top')?.getBoundingClientRect().bottom ?? 0;
+    return r.top >= top - 1 && r.bottom <= vh;
+  }), { timeout: 3000 }).toBe(true);
 });
