@@ -534,6 +534,17 @@
     },
     "cta": "Have a project in mind? Tell us about it."
   },
+  "About": {
+    "crumbLabel": "Breadcrumb",
+    "eyebrow": "About PackJoyU",
+    "statsTitle": "At a glance",
+    "imagesTitle": "Our factory",
+    "ctaTitle": "Have a packaging project in mind?",
+    "home": {
+      "eyebrow": "Our factory",
+      "more": "Learn more about us"
+    }
+  },
   "Cases": {
     "meta": {
       "title": "Packaging Case Studies | PackJoyU",

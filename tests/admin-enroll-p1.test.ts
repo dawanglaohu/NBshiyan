@@ -185,3 +185,33 @@ test('P1 enroll: page lives outside /admin, noindex + no-store, no locale prefix
   assert.match(users, /!u\.totpEnabled && <><br \/><a href=\{ENROLL_PAGE\}/);
   assert.doesNotMatch(users, /enroll-qr/);
 });
+
+test('#350 enroll_reset（401）：绑定作废 → 清掉二维码 / 密钥，「重新开始绑定」回到第 1 步；文案不透露账号是否存在', async () => {
+  const m = await import('../src/lib/admin/enroll');
+  assert.ok(m.isVoidCode('enroll_reset'));
+  for (const c of ['bad_credentials', 'bad_totp', 'rate_limited', 'invalid', 'forbidden_origin', undefined, null, ''])
+    assert.equal(m.isVoidCode(c as string), false, String(c));
+  // 其他码保持原文案
+  assert.equal(m.errorText('bad_credentials'), '邮箱或密码错误，或该账号已绑定');
+  assert.equal(m.errorText('bad_totp'), '验证码不正确或已过期');
+  assert.equal(m.errorText('rate_limited'), '尝试过多，请稍后再试');
+  // 作废：只在第 2 步发生，丢掉 otpauth URI，离开不再提醒，不能再确认
+  let s = m.afterEnroll(m.INITIAL, URI);
+  s = m.afterVoid(s);
+  assert.equal(s.voided, true);
+  assert.equal(s.otpauthUri, null);
+  assert.equal(m.parseSecret(s.otpauthUri), null);
+  assert.equal(m.inProgress(s), false);
+  assert.equal(m.afterConfirm(s, CODES, 0), s, 'voided binding cannot be confirmed');
+  assert.equal(m.afterVoid(m.INITIAL), m.INITIAL, 'void only applies on step 2');
+  // 「重新开始绑定」= 回到初始状态（第 1 步）
+  const wiz = read('../src/components/admin/enroll/EnrollWizard.tsx');
+  assert.match(wiz, /const restart = \(\) => \{ setError\(null\); setShowPw\(false\); wipe\(\); setEmail\(''\); \}/);
+  assert.match(wiz, /const wipe = useCallback\(\(\) => \{ setPassword\(''\); setCode\(''\); setS\(INITIAL\); \}/);
+  assert.match(wiz, /isVoidCode\(r\.code\)\) \{ setCode\(''\); setS\(\(p\) => afterVoid\(p\)\)/);
+  assert.equal(m.INITIAL.step, 1);
+  // 文案（PM 定稿，集中在常量里）
+  assert.equal(m.ENROLL_VOID_TEXT, '验证失败次数过多，此绑定已作废，请重新开始绑定');
+  assert.equal(m.ENROLL_RESTART, '重新开始绑定');
+  for (const t of [m.ENROLL_VOID_TEXT, m.ENROLL_VOID_HINT, m.ENROLL_VOID_FOOT]) assert.doesNotMatch(t, /不存在|未注册|账号存在|exist/i);
+});

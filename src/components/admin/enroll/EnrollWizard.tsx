@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  afterConfirm, afterEnroll, canFinish, CONFIRM_PATH, ENROLL_PATH, errorText, groupSecret, inProgress, INITIAL, isCompleteCode,
+  afterConfirm, afterEnroll, afterVoid, canFinish, CONFIRM_PATH, ENROLL_PATH, ENROLL_RESTART, ENROLL_VOID_FOOT, ENROLL_VOID_HINT, ENROLL_VOID_TEXT, errorText, isVoidCode, groupSecret, inProgress, INITIAL, isCompleteCode,
   normalizeCode, parseSecret, postEnroll, recoveryFilename, recoveryTxt, SIGNIN_HREF, STEPS, stepStatus, waitLeft,
   type EnrollState, type Step,
 } from '@/lib/admin/enroll';
@@ -89,6 +89,8 @@ export default function EnrollWizard() {
     const r = await postEnroll<{ recoveryCodes: string[] }>(CONFIRM_PATH, { email: email.trim(), password, totp: code });
     setBusy(false);
     // 出错不清空输入框；验证码类错误显示在输入框下方，其他在顶部
+    // #350 失败过多、绑定作废：清掉验证码和二维码，只留「重新开始绑定」（错误码待后端定，见 ENROLL_VOID_CODES）
+    if (!r.ok && isVoidCode(r.code)) { setCode(''); setS((p) => afterVoid(p)); return; }
     if (!r.ok) { setError({ code: r.code, at: r.code === 'bad_totp' || r.code === 'invalid' ? 'code' : 'top' }); return; }
     if (!Array.isArray(r.data.recoveryCodes) || r.data.recoveryCodes.length === 0) { setError({ code: 'unknown', at: 'top' }); return; }
     const t = Date.now();
@@ -110,6 +112,9 @@ export default function EnrollWizard() {
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
     say('已下载恢复码文件');
   };
+
+  // 重新开始：回到第 1 步，清空内存里的邮箱、密码和验证码
+  const restart = () => { setError(null); setShowPw(false); wipe(); setEmail(''); };
 
   // 去登录：回跳地址写死（SIGNIN_HREF），先清掉内存里的密码、密钥和恢复码
   const goSignin = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -157,7 +162,16 @@ export default function EnrollWizard() {
           </form>
         )}
 
-        {s.step === 2 && qr && secret && (
+        {s.step === 2 && s.voided && (
+          <div>
+            <div className="en-err" role="alert">{ENROLL_VOID_TEXT}</div>
+            <p className="en-lead">{ENROLL_VOID_HINT}</p>
+            <button className="en-btn" type="button" onClick={restart}>{ENROLL_RESTART}</button>
+            <p className="en-foot">{ENROLL_VOID_FOOT}</p>
+          </div>
+        )}
+
+        {s.step === 2 && !s.voided && qr && secret && (
           <form onSubmit={confirm}>
             <p className="en-lead">用手机上的身份验证器 App 扫描下方二维码，然后输入 App 显示的 6 位验证码。</p>
             {topErr}

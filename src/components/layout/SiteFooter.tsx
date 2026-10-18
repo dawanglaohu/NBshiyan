@@ -5,7 +5,8 @@ import LangLink from './LangLink';
 import CookieSettingsLink from '@/components/consent/CookieSettingsLink';
 
 // 站点页脚（#65）：公司、品类、联系、隐私政策、语言切换
-export default async function SiteFooter() {
+// #350 aboutVisible：显示规则同导航（服务端 layout 传入）
+export default async function SiteFooter({ aboutVisible = false }: { aboutVisible?: boolean }) {
   const t = await getTranslations('Footer');
   const nav = await getTranslations('Nav');
   const names = await getTranslations('Products.names');
@@ -28,6 +29,7 @@ export default async function SiteFooter() {
       </div>
       <div className="container bottom">
         <span>© {new Date().getFullYear()} PackJoyU</span>
+        {aboutVisible && <Link href="/about">{nav('about')}</Link>}
         <Link href="/privacy">{t('privacy')}</Link>
         <CookieSettingsLink label={t('cookieSettings')} />
         <LangLink label={t('otherLang')} />
