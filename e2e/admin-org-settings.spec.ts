@@ -200,16 +200,27 @@ test('UX #373 P2-3：390 宽度下「关于我们」和「组织信息」的按�
     .filter((el) => (el as HTMLElement).offsetParent !== null)
     .map((el) => { const r = el.getBoundingClientRect(); return { el: `${el.tagName.toLowerCase()} ${el.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 12) ?? ''}`, w: Math.round(r.width), h: Math.round(r.height) }; })
     .filter((x) => x.h < 44 || (x.w < 44 && !x.el.startsWith('input'))));
+  // UX #375 P2：保存栏按钮不换行（高度 < 50、宽度 > 高度 → 不是「保/存」竖排）
+  const barButtons = async () => page.evaluate(() => [...document.querySelectorAll('.st-bar .adm-btn')]
+    .map((el) => { const r = el.getBoundingClientRect(); return { text: el.textContent?.trim(), w: Math.round(r.width), h: Math.round(r.height) }; }));
   await page.goto('/admin/settings');
   await page.getByRole('heading', { level: 1 }).waitFor();
   await page.locator('#st-title').fill('About sample');
   await page.getByRole('button', { name: '＋ 添加一条' }).click();
   expect(await page.locator('.st-page button:visible').count()).toBeGreaterThan(10); // 确认真的量到了按钮
   expect(await small()).toEqual([]);
+  const aboutBar = await barButtons();
+  expect(aboutBar.length).toBe(2);
+  for (const b of aboutBar) { expect(b.h, b.text).toBeLessThan(50); expect(b.h, b.text).toBeGreaterThanOrEqual(44); expect(b.w, b.text).toBeGreaterThan(b.h); }
+  expect(aboutBar.map((b) => b.text)).toEqual(['放弃修改', '保存']);
   await page.goto('/admin/settings?section=org');
   await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
   await page.getByRole('button', { name: '＋ 添加链接' }).click();
   expect(await small()).toEqual([]);
+  const orgBar = await barButtons();
+  expect(orgBar.length).toBe(2);
+  for (const b of orgBar) { expect(b.h, b.text).toBeLessThan(50); expect(b.h, b.text).toBeGreaterThanOrEqual(44); expect(b.w, b.text).toBeGreaterThan(b.h); }
+  expect(orgBar.map((b) => b.text)).toEqual(['放弃修改', '保存']);
 });
 
 test('组织信息：未登录不能读接口，页面跳登录', async ({ request }) => {

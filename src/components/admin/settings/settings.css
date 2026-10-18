@@ -50,7 +50,10 @@
 .st-conflict{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
 .st-warn{color:#8A6500;font-size:13px}
 .st-bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 24px calc(12px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);z-index:20}
-.st-bar span{margin-right:auto;font-weight:600}.st-bar small{font-weight:400;color:var(--ink-2)}
+/* UX #375 P2：390 下按钮不换行、不挤成竖排；左边状态文字最多两行 */
+.st-bar-msg{flex:1;min-width:0;margin-right:auto;font-weight:600;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.st-bar-msg small{display:block;font-weight:400;color:var(--ink-2)}
+.st-bar .adm-btn{white-space:nowrap;flex-shrink:0;min-height:44px}
 .st-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:30;padding:16px}
 .st-dialog{background:#fff;border-radius:12px;padding:20px 24px;max-width:480px;width:100%}
 .st-dialog h2{margin:0 0 8px;font-size:18px}

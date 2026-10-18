@@ -319,7 +319,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
 
       {dirty && (
         <div className="st-bar" role="region" aria-label="保存">
-          <span>{T.dirty}{conflict !== 'none' ? <small> · {T.conflictBar}</small> : <small>（{summary}）</small>}</span>
+          <span className="st-bar-msg">{T.dirty}{conflict !== 'none' ? <small>{T.conflictBar}</small> : <small>（{summary}）</small>}</span>
           <button type="button" className="adm-btn" disabled={busy || conflict !== 'none'} onClick={discard}>{T.discard}</button>
           <button type="button" className="adm-btn primary" disabled={!saveAllowed} title={conflict !== 'none' ? T.conflictSaveTitle : undefined} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
         </div>

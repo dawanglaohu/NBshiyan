@@ -44,15 +44,20 @@ test('P3-1 编辑器链接颜色用 --accent-text', () => {
   assert.match(css, /\.st-rich a\{color:var\(--accent-text\)\}/);
 });
 
-test('P3-2 冲突期间保存栏：「有未保存的修改 · 内容冲突，刷新后才能保存」，保存灰色禁用，放弃修改也禁用（about 和组织信息都一样）', () => {
+test('P3-2 冲突期间保存栏：状态文字两行（冲突文案在第二行），保存灰色禁用，放弃修改也禁用（about 和组织信息都一样）', () => {
   assert.equal(SETTINGS_TEXT.conflictBar, '内容冲突，刷新后才能保存');
   for (const f of ['AboutSettings.tsx', 'OrgSettings.tsx']) {
     const src = readFileSync(`src/components/admin/settings/${f}`, 'utf8');
-    assert.match(src, /conflict !== 'none' \? <small> · \{T\.conflictBar\}<\/small>/, f);
+    assert.match(src, /className="st-bar-msg"/, f);
+    assert.match(src, /conflict !== 'none' \? <small>\{T\.conflictBar\}<\/small>/, f);
+    assert.doesNotMatch(src, /<small> · \{T\.conflictBar\}/, f);
     assert.match(src, /disabled=\{busy \|\| conflict !== 'none'\} onClick=\{discard\}/, f);
     assert.match(src, /title=\{conflict !== 'none' \? T\.conflictSaveTitle : undefined\}/, f);
   }
   assert.match(css, /\.st-bar \.adm-btn\.primary:disabled\{background:var\(--line\);border-color:var\(--line\);color:var\(--ink-2\);opacity:1/);
+  assert.match(css, /\.st-bar-msg\{flex:1;min-width:0/);
+  assert.match(css, /-webkit-line-clamp:2/);
+  assert.match(css, /\.st-bar \.adm-btn\{white-space:nowrap;flex-shrink:0;min-height:44px\}/);
 });
 
 test('P3-3 工具栏：平的按钮（没有 adm-btn 边框方块），四组之间有分隔线，加粗 / 斜体有 aria-pressed', () => {
