@@ -4,6 +4,7 @@ import type { AboutContent, OrganizationSettings } from '../server/site-settings
 import { withXDefault } from './hreflang';
 import { ogSafeText } from './og/articleOgLayout';
 import { ORGANIZATION_DEFAULTS } from './organization-defaults';
+import { SITE_URL } from '../site';
 import ogVersions from '../../data/og-versions.json';
 
 // /[locale]/about 的 SEO 规则（#350）。全部是纯函数：数据由调用方从 site-settings 读好再传进来，这里不查库。
@@ -184,12 +185,14 @@ function absUrl(u: string | undefined, origin: string): string | undefined {
 
 /**
  * Organization JSON-LD（输入 = getOrganizationSettings() 的返回值）。
- * - @type 保持 Organization，@id = <origin>/#organization（WebSite.publisher 指向它）。
+ * - @type 保持 Organization，@id = <origin>/#organization（WebSite.publisher 指向它）。origin 默认 SITE_URL（NEXT_PUBLIC_SITE_URL），
+ *   与 OrganizationJsonLd.tsx 和后端 getOrganizationSettings().url 同一来源；只在测试里显式传别的值。
  * - alternateName / description 为空时用 ORGANIZATION_DEFAULTS；后台填了以后台为准。传入已套过默认值的设置，输出相同。
  * - 其他字段没填就不输出；logo 只收 https 或站内路径，sameAs 只收 https 并去重。
  * - 产能、面积、人数、认证、交期这类数字不在输入里，这里也绝不补。
+ * - 只返回普通对象；输出到页面和 '<' 转义只由现有的 JsonLd.tsx / OrganizationJsonLd.tsx 负责（安全审要求）。
  */
-export function buildOrganizationJsonLd(settings: Partial<OrganizationSettings> | null | undefined, origin: string): Record<string, unknown> {
+export function buildOrganizationJsonLd(settings: Partial<OrganizationSettings> | null | undefined, origin: string = SITE_URL): Record<string, unknown> {
   const s = settings ?? {};
   const site = trimOrigin(origin);
   const settingsUrl = clean(s.url);
@@ -214,9 +217,4 @@ export function buildOrganizationJsonLd(settings: Partial<OrganizationSettings> 
   const fd = clean(s.foundingDate);
   put('foundingDate', fd && /^\d{4}(-\d{2}(-\d{2})?)?$/.test(fd) ? fd : undefined);
   return out;
-}
-
-/** <script type="application/ld+json"> 的内容：'<' 转成 \u003c，防止提前闭合 script；U+2028/2029 也转义 */
-export function serializeJsonLd(data: unknown): string {
-  return JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 }
