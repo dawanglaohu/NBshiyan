@@ -37,6 +37,8 @@ export async function reauth(user: User, password: string, totp: string | undefi
 
 /** 清空 2FA 并让会话失效；用户下次需重新走 /api/auth-admin/enroll */
 export const RESET_2FA: Prisma.UserUpdateInput = { totpEnabled: false, totpSecret: null, totpLastStep: null, recoveryCodes: [], sessionVersion: { increment: 1 } };
+/** 重置 2FA 时实际写入的字段：RESET_2FA + 重新打开 72 小时绑定窗口（#347）、清掉待确认状态和错码计数（#348） */
+export const reset2faData = (now = new Date()): Prisma.UserUpdateInput => ({ ...RESET_2FA, enrollIssuedAt: now, totpPendingUntil: null, totpEnrollFails: 0 });
 
 /** 认后端 last-admin.ts 抛出的类型化错误（name LastAdminError 或 code 'last_admin'） */
 export const isLastAdminError = (e: unknown) => e instanceof Error && (e.name === 'LastAdminError' || (e as { code?: unknown }).code === 'last_admin');

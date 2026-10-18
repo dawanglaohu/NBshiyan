@@ -8,15 +8,21 @@ import { encrypt } from '@/lib/server/admin/crypto';
 import { audit } from '@/lib/server/admin/audit';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
+import { enrollCoolingDown, enrollIpRateOk, enrollWindowOpen, pendingSecretData } from '@/lib/server/admin/enroll-guard';
 
 export const runtime = 'nodejs';
 const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200), password: z.string().min(1).max(200) });
 
-/** 第一步：用邮箱+密码换取 otpauth URI。仅限尚未开启 2FA 的账号；每次调用都会换新密钥，旧的作废。 */
+/**
+ * 第一步：用邮箱+密码换取 otpauth URI。仅限尚未开启 2FA、且还在绑定窗口内的账号（#347）。
+ * 待确认密钥 10 分钟内有效，这期间不能再次 enroll（返回 429，不会覆盖正在扫的密钥）；过期后再调会换新密钥，旧的作废。
+ * 顺序：同源检查 → 限流（本接口按 IP 单独计数，再加 checkPassword 里的登录限流）→ 校验 → 鉴权。
+ */
 export async function POST(req: Request) {
   const bad = assertSameOrigin(req);
   if (bad) return bad;
   const ip = clientIp(req);
+  if (!(await enrollIpRateOk('enroll', ip))) return jsonErr('rate_limited', 429);
   const raw = await readBody(req, 4_000);
   let json: unknown = null; try { json = JSON.parse(raw ?? ''); } catch {}
   const p = Body.safeParse(json);
@@ -25,8 +31,26 @@ export async function POST(req: Request) {
   if (user === 'rate_limited') return jsonErr('rate_limited', 429);
   if (typeof user === 'string') return jsonErr('bad_credentials', 401);
   if (user.totpEnabled) return jsonErr('bad_credentials', 401); // 已开启的不能重新绑定，统一报错
+  // 以下分支都已通过密码校验，不会向不知道密码的人暴露账号是否存在
+  if (!enrollWindowOpen(user)) {
+    await audit({ actorId: user.id, action: 'auth.totp_enroll_blocked', target: user.id, meta: { reason: 'window_expired' }, ip });
+    return jsonErr('bad_credentials', 401);
+  }
+  const now = Date.now();
+  if (enrollCoolingDown(user, now)) {
+    await audit({ actorId: user.id, action: 'auth.totp_enroll_blocked', target: user.id, meta: { reason: user.totpSecret ? 'pending' : 'cooldown' }, ip });
+    return jsonErr('rate_limited', 429);
+  }
   const secret = authenticator.generateSecret(20);
-  await prisma.user.update({ where: { id: user.id }, data: { totpSecret: encrypt(secret), totpLastStep: null } });
+  // 条件更新：两个并发 enroll 只有一个能拿到密钥
+  const r = await prisma.user.updateMany({
+    where: { id: user.id, totpEnabled: false, OR: [{ totpPendingUntil: null }, { totpPendingUntil: { lte: new Date(now) } }] },
+    data: pendingSecretData(encrypt(secret), now),
+  });
+  if (r.count !== 1) {
+    await audit({ actorId: user.id, action: 'auth.totp_enroll_blocked', target: user.id, meta: { reason: 'pending' }, ip });
+    return jsonErr('rate_limited', 429);
+  }
   await audit({ actorId: user.id, action: 'auth.totp_enroll_start', ip });
   const otpauthUri = authenticator.keyuri(user.email, 'PackJoyU Admin', secret);
   return NextResponse.json({ otpauthUri }, { headers: noStore });
