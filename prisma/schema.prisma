@@ -262,6 +262,31 @@ model LogoUpload {
   @@index([inquiryId, createdAt])
 }
 
+// #350 about / 首页图片（公开资源）。只有 ADMIN 能上传；原图按 magic bytes 判型（jpg/png/webp），sharp 去掉 EXIF/GPS 等元数据，
+// 重新编码成两种宽度的 WebP（sm 800、lg 1600，不放大），存 STORAGE_DRIVER 对应的存储（local: UPLOAD_DIR 下 public-assets/），原图不保存。
+// 公开地址 /media/<id>-<w>.webp（immutable）。不参与 24 小时清理；只能删除未被 about.images 引用的图片（软删除 + 删文件）。
+model PublicAsset {
+  id        String    @id // 随机 24 位字母数字，不可递增
+  kind      String    @default("about") // 用途，目前只有 about
+  smKey     String // 存储 key（服务端生成，.webp）；原图不宽于 800 时与 lgKey 相同
+  smWidth   Int
+  smHeight  Int
+  smBytes   Int
+  lgKey     String
+  lgWidth   Int
+  lgHeight  Int
+  lgBytes   Int
+  bytes     Int // 上传原图大小（字节）
+  sha256    String // 上传原图的 sha256（hex），同一张图重复上传时复用已有记录
+  createdBy String? // User.id（不建外键，和 AuditLog.actorId 一样，删用户不影响图片）
+  createdAt DateTime  @default(now())
+  deletedAt DateTime? // 软删除：公开地址立即 404，文件同时删除
+  deletedBy String?
+
+  @@index([kind, deletedAt, createdAt])
+  @@index([sha256])
+}
+
 // 国际贸易术语（Incoterms 2020）
 enum Incoterm {
   EXW

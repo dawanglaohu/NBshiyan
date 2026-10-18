@@ -6,6 +6,7 @@ import { cleanPlainText, sanitizeAboutHtml } from './sanitize-about';
 import { aboutBodyText, countChars } from '@/lib/site-settings/about-rules';
 import {
   ABOUT_ENABLED_KEY, ABOUT_LIMITS as L, IMAGE_ID_RE, aboutKey, parseStoredAbout, parseStoredEnabled, storedVersion,
+  ABOUT_IMAGES_KEY, mediaSrc, parseStoredAboutImages, type StoredAboutImages,
   ORGANIZATION_KEY, ORG_EMAIL_RE, ORG_LIMITS as OL, ORG_TEXT_FIELDS, ORG_TELEPHONE_RE, isValidFoundingDate, parseStoredOrganization, safeOrgUrl,
   type StoredAbout, type StoredEnabled, type OrganizationFields, type StoredOrganization,
 } from './site-settings-model';
@@ -42,6 +43,13 @@ export const AboutPutInput = z.object({
     .refine((m) => Object.keys(m).length <= L.imagesMax, { message: `max ${L.imagesMax} images` }).default({}),
 }).strict();
 export type AboutPutInput = z.infer<typeof AboutPutInput>;
+
+/** PUT /about/images 请求体：图片顺序（各语言共用），每项是 PublicAsset id；不能重复，最多 ABOUT_LIMITS.imagesMax 张 */
+export const ASSET_ID_RE = /^[A-Za-z0-9]{24}$/;
+export const AboutImagesPutInput = z.object({
+  expectedVersion: z.number().int().min(0),
+  ids: z.array(z.string().regex(ASSET_ID_RE)).max(L.imagesMax).refine((a) => new Set(a).size === a.length, { message: 'duplicate' }),
+}).strict();
 
 export const EnabledPutInput = z.object({ enabled: z.boolean(), expectedVersion: z.number().int().min(0).optional() }).strict();
 
@@ -138,8 +146,23 @@ export type SiteSettingsDeps = {
   audit(e: { actorId: string; action: string; target: string; meta: Prisma.InputJsonValue; ip: string | null }): Promise<void>;
   revalidate(): void;
   userNames(ids: string[]): Promise<Record<string, string>>;
+  /** 未删除的 PublicAsset（只返回存在且未删除的那些）；about 图片列表和 imageMeta 保存前用它拒绝未知 / 已删除的 id */
+  liveAssets(ids: string[]): Promise<LiveAsset[]>;
   now(): Date;
 };
+export type LiveAsset = { id: string; smWidth: number; smHeight: number; lgWidth: number; lgHeight: number };
+
+/** 返回不存在或已删除的 id（保持请求里的顺序）；空列表不查库 */
+async function unknownAssets(d: SiteSettingsDeps, ids: string[]): Promise<{ unknown: string[]; live: Map<string, LiveAsset> }> {
+  if (!ids.length) return { unknown: [], live: new Map() };
+  const live = new Map((await d.liveAssets(ids)).map((a) => [a.id, a]));
+  return { unknown: ids.filter((i) => !live.has(i)), live };
+}
+
+export type AdminAboutImagesView = StoredAboutImages & { items: (StoredAboutImages['items'][number] & { src: { sm: string; lg: string } })[] };
+export const aboutImagesView = (s: StoredAboutImages): AdminAboutImagesView => ({
+  ...s, items: s.items.map((i) => ({ ...i, src: mediaSrc(i.id, i.sm, i.lg) })),
+});
 const TOO_LARGE = Symbol.for('too_large');
 
 const zodIssues = (e: z.ZodError) => e.issues.map((i) => ({ path: i.path.join('.'), message: i.message }));
@@ -154,7 +177,7 @@ export async function handleGetAbout(req: Request, d: SiteSettingsDeps): Promise
   const limited = await d.enforceAdminRateLimit(req, 'site_settings.view');
   if (limited) return limited;
   const locales = [...routing.locales];
-  const raw = await d.store.readMany([ABOUT_ENABLED_KEY, ...locales.map(aboutKey)]);
+  const raw = await d.store.readMany([ABOUT_ENABLED_KEY, ABOUT_IMAGES_KEY, ...locales.map(aboutKey)]);
   const enabled = parseStoredEnabled(raw[ABOUT_ENABLED_KEY]);
   const stored = Object.fromEntries(locales.map((l) => [l, parseStoredAbout(raw[aboutKey(l)])])) as Record<string, StoredAbout | null>;
   const ids = [...new Set([enabled.updatedBy, ...Object.values(stored).map((s) => s?.updatedBy)].filter((x): x is string => !!x))];
@@ -163,6 +186,7 @@ export async function handleGetAbout(req: Request, d: SiteSettingsDeps): Promise
     enabled: enabled.enabled,
     enabledMeta: { version: enabled.version, updatedAt: enabled.updatedAt, updatedBy: enabled.updatedBy, updatedByName: enabled.updatedBy ? names[enabled.updatedBy] ?? null : null },
     locales: Object.fromEntries(locales.map((l) => [l, stored[l] ? adminView(stored[l]!, names) : null])),
+    images: aboutImagesView(parseStoredAboutImages(raw[ABOUT_IMAGES_KEY])),
   }, { headers: NO_STORE });
 }
 
@@ -179,6 +203,9 @@ export async function handlePutAboutLocale(req: Request, locale: string, d: Site
   if (!p.success) return invalid(zodIssues(p.error));
   const n = normalizeAboutInput(p.data);
   if (!n.ok) return invalid(n.issues);
+  // imageMeta 的键必须是未删除的 PublicAsset id
+  const { unknown } = await unknownAssets(d, Object.keys(n.fields.imageMeta));
+  if (unknown.length) return err('unknown_asset', 400, { ids: unknown });
   const key = aboutKey(locale);
   let fields: string[] = [];
   const r = await d.store.compareAndSet(key, p.data.expectedVersion, (cur) => {
@@ -221,6 +248,36 @@ export async function handlePutAboutEnabled(req: Request, d: SiteSettingsDeps): 
     d.revalidate();
   }
   return NextResponse.json({ enabled: saved.enabled, version: saved.version, changed: r.changed, updatedAt: saved.updatedAt }, { headers: NO_STORE });
+}
+
+/**
+ * PUT /api/admin/site-settings/about/images：图片列表（顺序 + 每张的两种尺寸宽高快照），各语言共用，带 expectedVersion，冲突 409。
+ * 每个 id 必须是未删除的 PublicAsset，否则 400 unknown_asset（列出 ids）。alt / 说明按语言在 about/[locale] 的 imageMeta 里保存。
+ */
+export async function handlePutAboutImages(req: Request, d: SiteSettingsDeps): Promise<Response> {
+  const ctx = await d.requireAdmin(req, SITE_SETTINGS_ROLES);
+  if (ctx instanceof Response) return ctx;
+  const blocked = d.assertSameOrigin(req) ?? (await d.enforceAdminRateLimit(req, 'site_settings.update', 30));
+  if (blocked) return blocked;
+  const json = await d.readJson(req, 4 * 1024);
+  if (json === TOO_LARGE) return err('too_large', 413);
+  const p = AboutImagesPutInput.safeParse(json);
+  if (!p.success) return invalid(zodIssues(p.error));
+  const { unknown, live } = await unknownAssets(d, p.data.ids);
+  if (unknown.length) return err('unknown_asset', 400, { ids: unknown });
+  const items = p.data.ids.map((id) => { const a = live.get(id)!; return { id, sm: { w: a.smWidth, h: a.smHeight }, lg: { w: a.lgWidth, h: a.lgHeight } }; });
+  const r = await d.store.compareAndSet(ABOUT_IMAGES_KEY, p.data.expectedVersion, (cur) => {
+    if (cur !== null && JSON.stringify(parseStoredAboutImages(cur).items) === JSON.stringify(items)) return null;
+    const next: StoredAboutImages = { items, version: storedVersion(cur) + 1, updatedAt: d.now().toISOString(), updatedBy: ctx.user.id };
+    return next as unknown as Prisma.InputJsonValue;
+  });
+  if (r.status === 'conflict') return err('version_conflict', 409, { currentVersion: r.currentVersion });
+  const saved = parseStoredAboutImages(r.value);
+  if (r.changed) {
+    await d.audit({ actorId: ctx.user.id, action: AUDIT_ABOUT_UPDATE, target: ABOUT_IMAGES_KEY, meta: { fields: ['images'], count: saved.items.length, version: saved.version }, ip: ctx.ip });
+    d.revalidate();
+  }
+  return NextResponse.json({ changed: r.changed, images: aboutImagesView(saved) }, { headers: NO_STORE });
 }
 
 // ---------- 组织信息 ----------
