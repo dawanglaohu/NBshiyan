@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { MemoryStore, UpstashStore, createRateLimitStore } from '../src/lib/server/ratelimit/index';
 import { mockServer } from './helpers';
 import { MemoryStore as MS, setRateLimitStore, type RateLimitStore } from '../src/lib/server/ratelimit/index';
-import { hitRateLimit, rateLimitEnv, rateLimitKeyHash, resetRateLimitLogThrottle } from '../src/lib/server/security';
+import { hitRateLimit, peekRateLimit, rateLimitEnv, rateLimitKeyHash, resetRateLimitLogThrottle } from '../src/lib/server/security';
 import { loginRateOk } from '../src/lib/server/admin/login';
 import { enforceAdminRateLimit } from '../src/lib/server/admin-guard';
 import { POST as rumPOST } from '../src/app/api/rum/route';
@@ -79,8 +79,8 @@ test('factory: env selection and validation', () => {
 });
 
 // ---- #74：按路由的故障模式、环境前缀、邮箱 HMAC、noip ----
-const failing: RateLimitStore = { hit: async () => { throw new Error('down'); } };
-const recording = () => { const keys: string[] = []; const m = new MS(); return { keys, store: { hit: (k: string, l: number, w: number) => { keys.push(k); return m.hit(k, l, w); } } as RateLimitStore }; };
+const failing: RateLimitStore = { hit: async () => { throw new Error('down'); }, peek: async () => { throw new Error('down'); } };
+const recording = () => { const keys: string[] = []; const m = new MS(); return { keys, store: { hit: (k: string, l: number, w: number) => { keys.push(k); return m.hit(k, l, w); }, peek: (k: string, l: number, w: number) => { keys.push(k); return m.peek(k, l, w); } } as RateLimitStore }; };
 async function quiet<T>(f: () => Promise<T>) { const e = console.error; console.error = () => {}; try { return await f(); } finally { console.error = e; } }
 
 test('hitRateLimit: store error -> closed denies, open allows, local counts in memory (default)', async () => {
@@ -205,7 +205,7 @@ test('store-failure logs contain no raw email, IP or key', async () => {
   const cap = (...a: unknown[]) => { logs.push(a.map(String).join(' ')); };
   console.error = cap; console.warn = cap; console.log = cap;
   // 让错误信息本身带上 key，确认也不会被打出来
-  setRateLimitStore({ hit: async (k: string) => { throw new Error(`boom ${k}`); } });
+  setRateLimitStore({ hit: async (k: string) => { throw new Error(`boom ${k}`); }, peek: async (k: string) => { throw new Error(`boom ${k}`); } });
   try {
     resetRateLimitLogThrottle();
     await hitRateLimit('inq:email:x@leak.com:192.0.2.5', 1, 60_000);
@@ -216,4 +216,68 @@ test('store-failure logs contain no raw email, IP or key', async () => {
   assert.ok(logs.length >= 2, 'expected log lines');
   const all = logs.join('\n');
   for (const s of ['203.0.113.77', '198.51.100.9', '192.0.2.5', 'leak.com', 'victim', 'example.com', 'login:', 'rum:', 'inq:']) assert.ok(!all.toLowerCase().includes(s), `log leaked ${s}: ${all}`);
+});
+
+// ---- P2 enroll 作废：只读 peek ----
+test('memory peek: read-only, true while count < limit, never increments', async () => {
+  const s = new MemoryStore();
+  for (let i = 0; i < 10; i++) assert.equal(await s.peek('p', 2, 60_000), true);
+  assert.equal(await s.hit('p', 2, 60_000), true, 'first hit still allowed after 10 peeks');
+  assert.equal(await s.peek('p', 2, 60_000), true);
+  assert.equal(await s.hit('p', 2, 60_000), true);
+  assert.equal(await s.peek('p', 2, 60_000), false, 'full after limit hits');
+  assert.equal(await s.peek('p', 2, 60_000), false);
+});
+
+test('memory peek: window expires', async () => {
+  const s = new MemoryStore();
+  await s.hit('pw', 1, 50);
+  assert.equal(await s.peek('pw', 1, 50), false);
+  await new Promise((r) => setTimeout(r, 60));
+  assert.equal(await s.peek('pw', 1, 50), true);
+});
+
+test('upstash peek: GETs the same key hit INCRs, missing key = 0, errors throw', async () => {
+  const counts = new Map<string, number>();
+  const srv = await mockServer((r, res) => {
+    const cmds = JSON.parse(r.body.toString()) as string[][];
+    const [op, k] = cmds[0];
+    if (op === 'INCR') counts.set(k, (counts.get(k) ?? 0) + 1);
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify(op === 'INCR' ? [{ result: counts.get(k) }, { result: 1 }] : [{ result: counts.has(k) ? String(counts.get(k)) : null }]));
+  });
+  try {
+    const s = new UpstashStore(srv.url, 'tok');
+    assert.equal(await s.peek('login:k', 2, 60_000), true);
+    await s.hit('login:k', 2, 60_000);
+    assert.equal(await s.peek('login:k', 2, 60_000), true);
+    await s.hit('login:k', 2, 60_000);
+    assert.equal(await s.peek('login:k', 2, 60_000), false);
+    const get = JSON.parse(srv.reqs[0].body.toString());
+    const incr = JSON.parse(srv.reqs[1].body.toString());
+    assert.deepEqual(get, [['GET', incr[0][1]]], 'same key format as hit');
+    assert.equal(counts.get(incr[0][1]), 2, 'peeks did not increment');
+  } finally { await srv.close(); }
+  const bad = await mockServer((_r, res) => { res.end(JSON.stringify([{ error: 'WRONGPASS' }])); });
+  try { await assert.rejects(new UpstashStore(bad.url, 't').peek('k', 1, 60_000), /bad response/); } finally { await bad.close(); }
+  const down = await mockServer((_r, res) => { res.statusCode = 503; res.end('down'); });
+  try { await assert.rejects(new UpstashStore(down.url, 't').peek('k', 1, 60_000), /upstash 503/); } finally { await down.close(); }
+});
+
+test('peekRateLimit: store error -> closed denies, open allows, local reads memory; healthy store does not count', async () => {
+  setRateLimitStore(failing);
+  try {
+    await quiet(async () => {
+      assert.equal(await peekRateLimit('pk:c', 100, 60_000, { onStoreError: 'closed' }), false);
+      assert.equal(await peekRateLimit('pk:o', 1, 60_000, { onStoreError: 'open' }), true);
+      assert.equal(await peekRateLimit('pk:l', 1, 60_000, { onStoreError: 'local' }), true);
+      assert.equal(await loginRateOk('1.2.3.4', 'a@b.com'), false, 'login peek is closed');
+    });
+  } finally { setRateLimitStore(undefined); }
+  const r = recording(); setRateLimitStore(r.store);
+  try {
+    for (let i = 0; i < 5; i++) assert.equal(await peekRateLimit('pk:h', 1, 60_000, { onStoreError: 'closed' }), true);
+    assert.equal(r.keys[0], `${rateLimitEnv()}:pk:h`, 'same env prefix as hitRateLimit');
+    assert.equal(await hitRateLimit('pk:h', 1, 60_000), true, 'peeks did not consume');
+  } finally { setRateLimitStore(undefined); }
 });

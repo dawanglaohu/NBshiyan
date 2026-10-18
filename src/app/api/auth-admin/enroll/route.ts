@@ -16,7 +16,7 @@ const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200),
 /**
  * 第一步：用邮箱+密码换取 otpauth URI。仅限尚未开启 2FA、且还在绑定窗口内的账号（#347）。
  * 待确认密钥 10 分钟内有效，这期间不能再次 enroll（返回 429，不会覆盖正在扫的密钥）；过期后再调会换新密钥，旧的作废。
- * 顺序：同源检查 → 限流（本接口按 IP 单独计数，再加 checkPassword 里的登录限流）→ 校验 → 鉴权。
+ * 顺序：同源检查 → 限流（本接口按 IP 单独计数，每次都计；再加 checkPassword 里的登录限流：先只读检查，只有密码错才计数）→ 校验 → 鉴权。
  */
 export async function POST(req: Request) {
   const bad = assertSameOrigin(req);
