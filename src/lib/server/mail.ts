@@ -1,11 +1,14 @@
 import { headerSafe, renderAlert, renderEmail, safeGreetingName, type EmailVars } from './email/render';
+import { createHash } from 'node:crypto';
 import nodemailer from 'nodemailer';
 import { hitRateLimit } from './security';
 import { smtpBaseConfig } from './mail/config';
 import { smtpTransportOptions, type CreateTransport } from './mail/smtp';
-import { redactedError } from './mail/adapter';
+import { redactedError, mailLog } from './mail/adapter';
 
 type Mail = { to: string; subject: string; html: string; text?: string; replyTo?: string };
+/** sendMail 结果：sent 带 SMTP 返回的 Message-ID（可能为空）；SMTP 没配（开发环境）时 skipped */
+export type SendMailResult = { sent: true; messageId: string | null } | { sent: false; skipped: 'mail_disabled' };
 
 const EMAIL_RE = /^[^\s@<>"',;:\\]+@[^\s@<>"',;:\\]+\.[^\s@<>"',;:\\]+$/;
 /** 收件人 / Reply-To：去掉 \r\n 和控制字符，再校验是单个地址 */
@@ -24,23 +27,26 @@ export function setMailTransportFactory(f: CreateTransport | undefined) { transp
  * SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / MAIL_FROM 只从环境变量读；TLS 强制（465 或 587+STARTTLS），证书校验开启，nodemailer 日志关闭。
  * SMTP_* 都没配时只在控制台记录（开发环境）。失败抛 SmtpError，只带错误码（如 SMTP_535、SMTP_ECONNECTION），不带原始响应或凭据。
  */
-export async function sendMail(m: Mail) {
+export async function sendMail(m: Mail): Promise<SendMailResult> {
   const to = addr(m.to);
   const replyTo = m.replyTo ? addr(m.replyTo) : undefined;
   const subject = headerSafe(m.subject);
   const c = smtpBaseConfig();
   if (!c.ok) {
-    if (c.error === 'missing') { console.info('[mail:dev]', to, subject); return; }
+    // 开发环境：只记一行「已跳过」，不打印收件人和主题
+    if (c.error === 'missing') { console.info('[mail:dev]', 'skipped: smtp not configured'); return { sent: false, skipped: 'mail_disabled' }; }
     throw Object.assign(new Error('smtp config invalid'), { name: 'SmtpError', code: `SMTP_CONFIG_${c.error.toUpperCase()}` });
   }
   const create = transportFactory ?? ((o: Parameters<CreateTransport>[0]) => nodemailer.createTransport(o));
   const t = create(smtpTransportOptions(c.cfg));
   try {
-    await t.sendMail({
+    const info = await t.sendMail({
       from: { name: c.cfg.from.name, address: c.cfg.from.address }, to, subject, html: m.html,
       ...(m.text ? { text: m.text } : {}), ...(replyTo ? { replyTo } : {}),
       disableFileAccess: true, disableUrlAccess: true,
     });
+    const id = (info as { messageId?: unknown } | undefined)?.messageId;
+    return { sent: true, messageId: typeof id === 'string' && id ? id : null };
   } catch (e) {
     throw Object.assign(new Error('smtp send failed'), { name: 'SmtpError', code: `SMTP_${redactedError(e)}` });
   } finally {
@@ -67,10 +73,36 @@ export function customerAckMail(kind: 'inquiry' | 'sample', v: EmailVars) {
   return renderEmail(`${kind === 'sample' ? 'sample-ack' : 'inquiry-ack'}.${v.locale}`, v);
 }
 
-/** 发信失败不影响主流程：记录日志并发后台告警 */
-export async function sendSafely(label: string, m: Mail) {
-  try { await sendMail(m); return true; } catch (e) {
+/** 询盘业务通知（发给销售）和客户自动确认信 */
+export type NotificationType = 'notify' | 'auto_receipt';
+/** 跳过原因分类（只有这几种固定值） */
+export type NotificationSkip = 'mail_disabled' | 'no_recipient' | 'low_trust' | 'rate_limited' | 'already_sent_24h';
+export type NotificationLog = { ref: string; type: NotificationType };
+
+/** SMTP Message-ID 的 sha256 十六进制前 16 位：可以和发信商后台 / 收件箱里的原信头对账，日志里不出现原值 */
+export const messageIdHash = (id: string) => createHash('sha256').update(id).digest('hex').slice(0, 16);
+
+/**
+ * 每次通知信尝试一行结构化日志（运维排查 PJ-2610-JES8VU 这类「没有日志」的情况）：
+ * `[mail] mail.notification {"inquiry":"PJ-2610-XXXXXX","type":"notify","ok":true,"msgIdHash":"…"}`
+ * 只有询盘对外编号、类型、结果、Message-ID 哈希前缀、跳过原因、错误码；不记收件人、主题、正文、sendKey。
+ */
+export function logNotification(n: NotificationLog, r: { ok: true; messageId: string | null } | { ok: false; code: string } | { skipped: NotificationSkip }) {
+  const base = { inquiry: n.ref, type: n.type };
+  if ('skipped' in r) return mailLog('info', 'mail.notification', { ...base, ok: false, skipped: r.skipped });
+  if (r.ok) return mailLog('info', 'mail.notification', { ...base, ok: true, msgIdHash: r.messageId ? messageIdHash(r.messageId) : 'none' });
+  return mailLog('error', 'mail.notification', { ...base, ok: false, code: r.code });
+}
+
+/** 发信失败不影响主流程：记录日志并发后台告警。带 log 时每次尝试都写一行 mail.notification */
+export async function sendSafely(label: string, m: Mail, log?: NotificationLog) {
+  try {
+    const r = await sendMail(m);
+    if (log) logNotification(log, r.sent ? { ok: true, messageId: r.messageId } : { skipped: r.skipped });
+    return r.sent;
+  } catch (e) {
     console.error(`[mail] ${label} failed`, (e as Error).message);
+    if (log) logNotification(log, { ok: false, code: errorSummary(e).错误码 });
     await sendAdminAlert('邮件发送失败', { 类型: label, ...errorSummary(e) }, `mail-fail:${label}`);
     return false;
   }

@@ -16,7 +16,7 @@ const users: Record<string, Record<string, unknown>> = {
 };
 for (const u of Object.values(users)) Object.assign(u, { disabled: false, totpEnabled: true, lockedUntil: null, sessionVersion: 1 });
 const inquiry = { id: INQ, assigneeId: 's1', replyToken: 'secret', createdAt: new Date('2026-01-01'), source: 'web', sample: null,
-  contact: null, items: [], messages: [], notes: [], assignee: null, logoUploads: [], status: 'NEW' };
+  contact: null, items: [], messages: [], mailMessages: [], notes: [], assignee: null, logoUploads: [], status: 'NEW' };
 
 // 按 where 真实过滤：{ AND: [{ id }, inquiryScope(user)] }
 function matches(where: { AND?: Record<string, unknown>[] }) {
