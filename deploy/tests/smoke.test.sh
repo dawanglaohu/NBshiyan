@@ -26,11 +26,54 @@ t good '/evil.com/'          # same-site relative path (what Next returns for //
 t good '/evil.com'
 t good '/ru'
 t good ''                    # no Location (e.g. 200/404)
+# --- allow-list: anything not provably on https://geiom.com is bad ---
+t bad 'https://attacker.net/'
+t bad 'https://geiom.com.evil.com/'
+t bad 'https://geiom.com@evil.com/'
+t bad 'https://geiom.com:8443/en'
+t bad 'https://geiom.comevil.com'
+t bad 'http://geiom.com/en'
+t bad 'https://geiom.com//evil.com'
+t bad 'https://geiom.com/\evil.com'
+t bad 'https://geiom.com\evil.com'
+t bad '//geiom.com/en'
+t bad '/en\evil'
+t bad $'/\t/evil.com'
+t bad $'/\n/evil.com'
+t bad '/ /evil.com'
+t bad 'javascript:alert(1)'
+t bad 'en'
+t bad 'http://localhost:3000/en'
+t bad 'http://0.0.0.0:3000/en'
+# --- backend #328 expected Locations (// and /\ probes → 308 on-site), relative or absolute geiom.com ---
+t good '/'
+t good 'https://geiom.com'
+t good 'https://geiom.com/'
+t good 'https://geiom.com/evil.com'
+t good 'https://geiom.com/evil.com/'
+t good '/en/products?x=1'
+t good '/%2F%2Fevil.com'      # encoded slashes in a path stay on site
+# --- header leak scan (x-middleware-rewrite included) ---
+leak() { hdr_leak "$1"; }
+t leak $'HTTP/1.1 200 OK\r\nx-middleware-rewrite: http://localhost:3000/s/abc\r\n'
+t leak $'HTTP/1.1 200 OK\r\nx-middleware-rewrite: http://127.0.0.1:3000/s/abc\r\n'
+t leak $'HTTP/1.1 307 Temporary Redirect\r\nlocation: http://0.0.0.0:3000/en\r\n'
+t leak $'HTTP/1.1 200 OK\r\nX-Foo: LOCALHOST\r\n'
+t not leak $'HTTP/1.1 200 OK\r\nx-middleware-rewrite: /s/abc\r\ncontent-type: text/html\r\n'
+t not leak $'HTTP/1.1 308 Permanent Redirect\r\nlocation: /evil.com/\r\n'
+t not leak $'HTTP/1.1 200 OK\r\nx-version: 10.0.0.0\r\n'
 # --- status / Location parsing ---
 r=$'HTTP/1.1 307 Temporary Redirect\r\nlocation: /en\r\nx: y\r\n'
 t [ "$(resp_code "$r")" = 307 ]
 t [ "$(resp_loc "$r")" = /en ]
 t [ "$(resp_code $'HTTP/2 500 \r\n')" = 500 ]
+r=$'HTTP/1.1 308 Permanent Redirect\r\nLocation: /evil.com/\r\n'
+t [ "$(resp_code "$r")" = 308 ]
+t good "$(resp_loc "$r")"
+r=$'HTTP/1.1 404 Not Found\r\ncontent-type: text/html\r\n'
+t [ "$(resp_code "$r")" = 404 ]
+t [ -z "$(resp_loc "$r")" ]
+t good "$(resp_loc "$r")" 
 # --- root redirect rule ---
 t root_redirect_ok 307 /en app
 t root_redirect_ok 308 /en app
@@ -40,4 +83,14 @@ t not root_redirect_ok 307 https://geiom.com/en app
 t not root_redirect_ok 200 /en app
 t not root_redirect_ok 307 https://localhost:3000/en public
 t not root_redirect_ok 307 /en/ app
+# --- asset paths pulled out of the /en HTML (static js + public/ image/poster/model) ---
+h='<link rel="preload" as="script" href="/_next/static/chunks/webpack-1a2b3c.js"/><script src="/_next/static/chunks/main-app-9f.js" async></script><img src="/images/posters/custom-color-boxes.e554de64.webp" alt=""/>'
+t [ "$(static_js_path "$h")" = /_next/static/chunks/webpack-1a2b3c.js ]
+t [ "$(public_asset_path "$h")" = /images/posters/custom-color-boxes.e554de64.webp ]
+t [ "$(public_asset_path '<model-viewer src="/models/gift-box.glb">')" = /models/gift-box.glb ]
+t [ -z "$(static_js_path '<html>no scripts</html>')" ]
+t [ -z "$(public_asset_path '<img src="https://evil.com/images/x.webp">')" ]   # same-site paths only
+big=$(yes '<div class="card"><p>filler</p></div>' | head -c 300000 || true)
+t [ "$(static_js_path "<head><script src=\"/_next/static/chunks/a.js\"></script></head>$big")" = /_next/static/chunks/a.js ]
+t [ -f "$here/../../public/icon-192.png" ]   # deploy.sh fallback asset exists in public/
 echo "smoke: $pass passed, $fail failed"; (( fail == 0 ))

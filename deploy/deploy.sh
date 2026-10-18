@@ -27,15 +27,9 @@ edge_match() {  # EDGE_AUTH_SECRET in the env file vs the include: both non-empt
   [ "$(printf '%s' "$a" | sha256sum | cut -c1-64)" = "$(printf '%s' "$b" | sha256sum | cut -c1-64)" ]
 }
 
-# APP_ENV and NODE_ENV must each appear exactly once in the env file, as "production". Only those lines are read.
-env_prod_ok() {
-  local k
-  for k in APP_ENV NODE_ENV; do
-    if [ "$(grep -c "^$k=" "$ENVF" || true)" != 1 ] || ! grep -qx "$k=production" "$ENVF"; then
-      log "FAIL $k must be exactly 'production' (once) in the app env file"; return 1
-    fi
-  done
-}
+# env_prod_ok / compose_hostname_ok (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL, HOSTNAME). Tests: deploy/tests/env-check.test.sh
+# shellcheck source=deploy/env-check.sh
+. "$(dirname "$(readlink -f "$0")")/env-check.sh"
 
 # Startup check must really fail closed (full-stack: exactly `run --rm --no-deps -e SMTP_PORT=25 app node server.js` on the
 # candidate). SMTP_PORT=25 is a non-secret invalid value; no secret is blanked or passed with -e. Must exit 1, name SMTP_PORT,
@@ -66,6 +60,9 @@ sha_ok() { [[ "$1" =~ ^[0-9a-f]{40}$ ]]; }
 # Redirect/header smoke helpers (loc_bad, resp_code, resp_loc, root_redirect_ok). Tests: deploy/tests/smoke.test.sh
 # shellcheck source=deploy/smoke-lib.sh
 . "$(dirname "$(readlink -f "$0")")/smoke-lib.sh"
+# Runtime memory check (mem_ok: compose mem_limit of the services still to start + reserve). Tests: deploy/tests/mem-check.test.sh
+# shellcheck source=deploy/mem-check.sh
+. "$(dirname "$(readlink -f "$0")")/mem-check.sh"
 
 schema_sync() {   # 4 steps, all on the server; nothing leaves it
   local sha; sha=$(cat "$D/.candidate-sha"); sha_ok "$sha" || die "candidate sha invalid"
@@ -93,8 +90,10 @@ schema_sync() {   # 4 steps, all on the server; nothing leaves it
     log "schema plan: $(grep -ciE '^[[:space:]]*(CREATE|ALTER)' "$plan") statements, additive only"
   fi
   # (3) db push, never --accept-data-loss (prisma itself refuses data-loss changes without it)
-  migrate db push --skip-generate --schema prisma/schema.prisma 2>&1 | redact >> "$logf"
-  [ "${PIPESTATUS[0]}" = 0 ] || die "prisma db push failed (log kept locally: $logf)"
+  # In an `if !` so a failed push reaches die (a bare failing pipeline under errexit+pipefail exits silently).
+  if ! migrate db push --skip-generate --schema prisma/schema.prisma 2>&1 | redact >> "$logf"; then
+    die "prisma db push failed (log kept locally: $logf)"
+  fi
   # (4) drift must be zero before the app starts (exit 0 = no difference, 2 = difference, 1 = error)
   migrate migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code \
     >/dev/null 2> >(redact >>"$logf") || die "schema drift remains after db push; app NOT started"
@@ -105,11 +104,19 @@ post_checks() {
   local ok=1
   for _ in $(seq 1 30); do [ "$(docker inspect -f '{{.State.Health.Status}}' nbshiyan-app-1 2>/dev/null)" = healthy ] && break; sleep 4; done
   [ "$(docker inspect -f '{{.State.Health.Status}}' nbshiyan-app-1)" = healthy ] || { log "FAIL app not healthy"; ok=0; }
-  ss -lntH | awk '{print $4}' | grep -qE '(:|\.)5432$' && { log "FAIL something listens on 5432 on the host"; ok=0; }
-  ss -lntH | awk '{print $4}' | grep -qE '(:|\.)6379$' && { log "WARN 6379 listening on host (not ours unless published)"; }
-  ss -lntH | awk '{print $4}' | grep -E ':3000$' | grep -vqE '^127\.0\.0\.1:3000$' && { log "FAIL 3000 bound beyond 127.0.0.1"; ok=0; }
-  dc ps --format '{{.Service}} {{.Publishers}}' | grep -vE '^app ' | grep -q '[0-9]->' && { log "FAIL a non-app service publishes a port"; ok=0; }
+  # Never `producer | grep -q` under pipefail: grep -q exits on the first match, the producer gets SIGPIPE and the
+  # pipeline returns non-zero, so a hit reads as "no hit" (fail-open) or a good match as FAIL. Capture, then grep the var.
+  local ports pubs body hdrs
+  ports=$(ss -lntH | awk '{print $4}') || { log "FAIL ss -lntH failed"; ok=0; }
+  grep -qE '(:|\.)5432$' <<<"$ports" && { log "FAIL something listens on 5432 on the host"; ok=0; }
+  grep -qE '(:|\.)6379$' <<<"$ports" && { log "WARN 6379 listening on host (not ours unless published)"; }
+  [ -n "$(grep -E ':3000$' <<<"$ports" | grep -vE '^127\.0\.0\.1:3000$' || true)" ] && { log "FAIL 3000 bound beyond 127.0.0.1"; ok=0; }
+  # {{.Ports}} renders "127.0.0.1:3000->3000/tcp"; {{.Publishers}} renders Go structs without "->", so the old check never fired.
+  pubs=$(dc ps --format '{{.Service}} {{.Ports}}') || { log "FAIL docker compose ps failed"; ok=0; }
+  [ -n "$(grep -vE '^app ' <<<"$pubs" | grep -F -- '->' || true)" ] && { log "FAIL a non-app service publishes a port"; ok=0; }
   h=$(curl -s http://127.0.0.1:3000/api/health); [ "$h" = '{"ok":true}' ] || { log "FAIL /api/health body is not {\"ok\":true}"; ok=0; }
+  # effective HOSTNAME inside the running app (compose wins over env_file); 127.0.0.1 leaks localhost via x-middleware-rewrite
+  dc exec -T app node -e 'process.exit(process.env.HOSTNAME==="0.0.0.0"?0:1)' 2>/dev/null || { log "FAIL app HOSTNAME is not 0.0.0.0"; ok=0; }
   # srh-net isolation: the app must not resolve srh / redis (only redis-rest via srh-tls on backend)
   for h2 in srh redis; do
     dc exec -T app node -e "require('dns').lookup('$h2',e=>process.exit(e?0:1))" 2>/dev/null || { log "FAIL app can resolve $h2 (must be on srh-net only)"; ok=0; }
@@ -117,18 +124,30 @@ post_checks() {
   for p in /en /ru /robots.txt /sitemap.xml; do
     c=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000$p"); [ "$c" = 200 ] || { log "FAIL $p → $c"; ok=0; }
   done
-  curl -sI http://127.0.0.1:3000/en | grep -qi '^x-robots-tag:.*noindex' && { log "FAIL /en carries noindex (APP_ENV not production at build?)"; ok=0; }
-  curl -s http://127.0.0.1:3000/en | grep -q '<link rel="canonical" href="https://geiom.com/en"' || { log "FAIL canonical is not https://geiom.com/en"; ok=0; }
+  hdrs=$(curl -sI --max-time 10 http://127.0.0.1:3000/en) || { log "FAIL curl -I /en failed"; ok=0; }
+  robots_noindex "$hdrs" && { log "FAIL /en carries noindex (APP_ENV not production at build?)"; ok=0; }
+  body=$(curl -s --max-time 10 http://127.0.0.1:3000/en) || { log "FAIL curl /en failed"; ok=0; }
+  canonical_ok "$body" || { log "FAIL canonical is not https://geiom.com/en"; ok=0; }
+  # The runtime uid must be able to read .next/static and public/ (a root-only checkout broke this before). PASS/FAIL only.
+  local js asset c2
+  js=$(static_js_path "$body")
+  if [ -n "$js" ]; then c2=$(curl -s -o /dev/null --max-time 10 -w '%{http_code}' "http://127.0.0.1:3000$js")
+  else c2=none; fi
+  if [ "$c2" = 200 ]; then log "PASS /_next/static js referenced by /en → 200"; else log "FAIL /_next/static js referenced by /en → $c2"; ok=0; fi
+  asset=$(public_asset_path "$body"); asset=${asset:-/icon-192.png}
+  c2=$(curl -s -o /dev/null --max-time 10 -w '%{http_code}' "http://127.0.0.1:3000$asset")
+  if [ "$c2" = 200 ]; then log "PASS public/ asset (image/poster/model) → 200"; else log "FAIL public/ asset → $c2"; ok=0; fi
   edge_match || { log "FAIL EDGE_AUTH_SECRET differs from the reverse-proxy include (hash compare)"; ok=0; }
   # Redirect headers as the proxy sees them (HOSTNAME=0.0.0.0 → Next emits relative Location). Any 5xx = FAIL;
-  # no header may mention localhost; `/` must be 3xx with Location exactly `/en` (app-level rule);
-  # open-redirect probes: see loc_bad in smoke-lib.sh.
+  # no header (x-middleware-rewrite included; /s/* is the rewrite path) may mention localhost / 127.0.0.1 / 0.0.0.0;
+  # `/` must be 3xx with Location exactly `/en` (app-level rule); every Location must stay on site (loc_bad, smoke-lib.sh).
+  # Expected (backend #328): // and /\ probes → 308 to on-site /evil.com[/]; %2F%2F / %5C%5C probes → 404.
   local resp code loc hdr=(-H 'Host: geiom.com' -H 'X-Forwarded-Proto: https' -H 'X-Forwarded-Host: geiom.com')
-  for p in / /ru /admin '//evil.com/' '/%2F%2Fevil.com' '/\evil.com'; do
+  for p in / /ru /admin /s/nbshiyan-smoke-probe '//evil.com' '//evil.com/' '/%2F%2Fevil.com' '/%5C%5Cevil.com' '/\evil.com'; do
     resp=$(curl -sI --max-time 10 "${hdr[@]}" "http://127.0.0.1:3000$p"); code=$(resp_code "$resp"); loc=$(resp_loc "$resp")
     [[ "$code" =~ ^[0-9]{3}$ ]] || { log "FAIL $p: no HTTP status"; ok=0; continue; }
     [[ "$code" == 5* ]] && { log "FAIL $p → $code"; ok=0; }
-    grep -qi localhost <<<"$resp" && { log "FAIL a response header of $p contains localhost"; ok=0; }
+    hdr_leak "$resp" && { log "FAIL a response header of $p contains localhost / 127.0.0.1 / 0.0.0.0"; ok=0; }
     [ "$p" = / ] && ! root_redirect_ok "$code" "$loc" app && { log "FAIL / → $code Location '$loc' (want 3xx, exactly /en)"; ok=0; }
     loc_bad "$loc" && { log "FAIL open redirect: $p → $loc"; ok=0; }
   done
@@ -147,10 +166,11 @@ promote() {
 case "${1:-}" in
   up)
     [ -f "$ENVF" ] && [ "$(stat -c %a "$ENVF")" = 600 ] || die "app env file missing or not 600"
-    env_prod_ok || die "APP_ENV / NODE_ENV not production in the app env file (startup check would be skipped)"
+    env_prod_ok || die "app env / compose check failed (APP_ENV, NODE_ENV, APP_ORIGIN, NEXT_PUBLIC_SITE_URL or HOSTNAME; see FAIL above)"
     edge_match || die "EDGE_AUTH_SECRET in env file does not match the include (hash compare)"
     docker image inspect nbshiyan-app:candidate >/dev/null || die "no candidate image; run build-on-server.sh"
     sha_ok "$(cat "$D/.candidate-sha" 2>/dev/null)" || die ".candidate-sha is not a 40-hex git sha"
+    mem_ok "$COMPOSE_FILE" || die "not enough available memory for the NBshiyan services (nothing started or changed)"
     write_cenv candidate
     dc up -d --wait postgres redis srh srh-tls
     schema_sync          # ordering replaces depends_on: service_completed_successfully (see compose comment)

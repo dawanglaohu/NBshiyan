@@ -23,6 +23,7 @@
     "cta": "Explore products in 3D",
     "ctaQuote": "Get a quote",
     "entryTitle": "Find your packaging",
+    "entryAll": "All products",
     "premiumTitle": "Premium gift & wine boxes",
     "premiumText": "Rigid boxes with foil stamping, magnetic closures and custom inserts — made to be unboxed on camera.",
     "ctaBandTitle": "Have a project in mind?",
@@ -228,7 +229,7 @@
       "CA": "Canada",
       "ZZ": "Other"
     },
-    "consent": "I agree that PackJoyU may process my data to answer this request, as described in the privacy policy.",
+    "consent": "I agree that PackJoyU may process my data to answer this request, as described in the <link>privacy policy</link>.",
     "back": "Back",
     "next": "Next",
     "submit": "Send request",
@@ -271,7 +272,16 @@
         "server": "We couldn't upload your logo just now. Please try again later."
       }
     },
-    "overLimit": "Your list has {n} items; the limit is {max}. Remove some to submit."
+    "overLimit": "Your list has {n} items; the limit is {max}. Remove some to submit.",
+    "newTab": "(opens in new tab)",
+    "validation": {
+      "summary": "Please check these fields:",
+      "name": "Enter your name.",
+      "emailRequired": "Enter your business email.",
+      "emailInvalid": "Enter a valid email address, e.g. name@company.com.",
+      "region": "Select your country.",
+      "consent": "Tick the box to agree to data processing."
+    }
   },
   "Views": {
     "label": "Box view",
