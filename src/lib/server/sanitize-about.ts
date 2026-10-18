@@ -15,6 +15,12 @@ export const ABOUT_LINK_REL = 'noopener noreferrer';
 // C0/C1 控制字符、各种空白、零宽字符和 BOM：浏览器解析 URL 时会忽略其中一部分，判断前统一去掉
 const STRIP_IN_URL = /[\u0000-\u0020\u007f-\u00a0\u1680\u180e\u2000-\u200f\u2028\u2029\u202f\u205f\u2060\u3000\ufeff]/g;
 
+/** 路径里有 `.` 或 `..` 段（百分号解码后判断），URL 规范化后可能变成 `//host`，一律拒绝 */
+export function hasDotSegment(path: string): boolean {
+  const p = path.split(/[?#]/, 1)[0];
+  return p.split('/').some((seg) => { const d = percentDecode(seg).replace(STRIP_IN_URL, ''); return d === '.' || d === '..'; });
+}
+
 function percentDecode(s: string): string {
   let cur = s;
   for (let i = 0; i < 3; i++) {
@@ -34,10 +40,14 @@ export function safeAboutHref(raw: string): string | null {
     // 站内路径：`//host` 和 `/\host` 会被浏览器当成协议相对地址；百分号解码后再查一遍；路径里不允许反斜杠
     const dec = percentDecode(v).replace(STRIP_IN_URL, '');
     if (v[1] === '/' || v[1] === '\\' || dec[1] === '/' || dec[1] === '\\' || v.includes('\\') || dec.includes('\\')) return null;
+    if (hasDotSegment(v)) return null;
     try {
       const u = new URL(v, 'https://site.invalid');
       if (u.origin !== 'https://site.invalid') return null;
-      return u.pathname + u.search + u.hash;
+      const out = u.pathname + u.search + u.hash;
+      // 规范化之后再查一次：不能变成协议相对地址
+      if (out[1] === '/' || out[1] === '\\' || percentDecode(out)[1] === '/' || percentDecode(out)[1] === '\\') return null;
+      return out;
     } catch { return null; }
   }
   const lower = v.toLowerCase();
@@ -52,6 +62,8 @@ export function safeAboutHref(raw: string): string | null {
     try {
       const u = new URL(v);
       if (u.protocol !== 'mailto:' || u.pathname.length < 3 || !u.pathname.includes('@')) return null;
+      // 只允许 subject 参数（不允许 cc / bcc / body 等）
+      if ([...u.searchParams.keys()].some((k) => k.toLowerCase() !== 'subject')) return null;
       return u.href;
     } catch { return null; }
   }
