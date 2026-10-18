@@ -1,5 +1,6 @@
 import type { MailApi, MailErrorBody, SendResult, SendStatus } from './types';
 import { MailError } from './types';
+import { MAIL_ATTACHMENTS_LIVE, UNASSIGNED_MAIL_LIVE } from './features';
 
 // 真实实现：backend-plan v4 §8（/api/admin/* 下的邮件接口，同源 cookie 鉴权；写操作服务端另做 assertSameOrigin）。
 // 后端接口上线前不会被调用（见 api.ts），接入时只需设置 NEXT_PUBLIC_ADMIN_API=http。
@@ -49,26 +50,32 @@ async function post(path: string, body: unknown, key: string): Promise<SendResul
   return toSendResult(res.status, await res.json());
 }
 
+/** #340：未归类接口在 UNASSIGNED_MAIL_LIVE 关闭时一律不发请求，直接按 404 处理 */
+const unassignedOff = () => Promise.reject(new MailError('not_found', 404));
+const gated = <A extends unknown[], R>(f: (...a: A) => Promise<R>) => (...a: A): Promise<R> => (UNASSIGNED_MAIL_LIVE ? f(...a) : unassignedOff());
+/** #340：附件接口同理，MAIL_ATTACHMENTS_LIVE 关闭时不发请求 */
+const attGated = <A extends unknown[], R>(f: (...a: A) => Promise<R>) => (...a: A): Promise<R> => (MAIL_ATTACHMENTS_LIVE ? f(...a) : unassignedOff());
+
 export const httpMailApi: MailApi = {
   getConfig: () => json('/mail/config'),
   getThread: (id, cursor) => json(`/inquiries/${enc(id)}/mail?${q({ cursor, limit: '50' })}`),
   send: (id, body, key) => post(`/inquiries/${enc(id)}/mail`, body, key),
   retry: (mid, key) => post(`/mail/${enc(mid)}/retry`, {}, key),
   status: (mid) => json<SendStatus>(`/mail/${enc(mid)}/status`),
-  refreshLinks: (ids) => json('/mail/attachments/links', { method: 'POST', body: JSON.stringify({ ids }) }),
-  async download(url) {
+  refreshLinks: attGated((ids: string[]) => json('/mail/attachments/links', { method: 'POST', body: JSON.stringify({ ids }) })),
+  download: attGated(async (url: string) => {
     // 只允许同源的附件接口地址（downloadUrl 由服务端签发）
     const u = new URL(url, location.origin);
     if (u.origin !== location.origin || !u.pathname.startsWith('/api/admin/mail/attachments/')) throw new MailError('unknown', 0);
     const res = await fetch(u, { credentials: 'same-origin' });
     if (!res.ok) throw toMailError(res.status, await res.json().catch(() => ({})));
     return res.blob();
-  },
-  unassignedCount: () => json('/mail/unassigned/count'),
-  listUnassigned: (status, cursor) => json(`/mail/unassigned?${q({ status, cursor, limit: '50' })}`),
-  getUnassigned: (id) => json(`/mail/${enc(id)}`),
-  assignLookup: (ref) => json(`/mail/assign-lookup?${q({ ref })}`),
-  assign: (id, inquiryRef) => json(`/mail/${enc(id)}/assign`, { method: 'POST', body: JSON.stringify({ inquiryRef }) }),
-  ignore: (id) => json(`/mail/${enc(id)}/ignore`, { method: 'POST', body: '{}' }),
-  unignore: (id) => json(`/mail/${enc(id)}/ignore`, { method: 'DELETE' })
+  }),
+  unassignedCount: gated(() => json('/mail/unassigned/count')),
+  listUnassigned: gated((status, cursor) => json(`/mail/unassigned?${q({ status, cursor, limit: '50' })}`)),
+  getUnassigned: gated((id) => json(`/mail/${enc(id)}`)),
+  assignLookup: gated((ref) => json(`/mail/assign-lookup?${q({ ref })}`)),
+  assign: gated((id, inquiryRef) => json(`/mail/${enc(id)}/assign`, { method: 'POST', body: JSON.stringify({ inquiryRef }) })),
+  ignore: gated((id) => json(`/mail/${enc(id)}/ignore`, { method: 'POST', body: '{}' })),
+  unignore: gated((id) => json(`/mail/${enc(id)}/ignore`, { method: 'DELETE' }))
 };

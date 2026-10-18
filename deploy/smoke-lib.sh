@@ -19,6 +19,18 @@ loc_bad() {
 #   (localhost, 127.0.0.1, 0.0.0.0), e.g. x-middleware-rewrite: http://localhost:3000/... when HOSTNAME=127.0.0.1.
 hdr_leak() { grep -qiE 'localhost|(^|[^0-9])127\.0\.0\.1|(^|[^0-9])0\.0\.0\.0' <<<"$1"; }
 
+# robots_noindex <raw curl -sI output> → 0 when an x-robots-tag header carries noindex
+robots_noindex() { grep -qiE '^x-robots-tag:.*noindex' <<<"$1"; }
+# canonical_ok <html> → 0 when the page has the production canonical for /en. Takes the body as a value: never
+#   `curl | grep -q` (pages > 64 KB: grep -q exits early, curl gets SIGPIPE, pipefail turns a match into a FAIL).
+canonical_ok() { grep -qF '<link rel="canonical" href="https://geiom.com/en"' <<<"$1"; }
+
+# static_js_path <html> → first same-site /_next/static/….js path referenced by the page (empty if none)
+static_js_path() { grep -oE '/_next/static/[A-Za-z0-9._~/-]+\.js' <<<"$1" | head -n 1 || true; }
+# public_asset_path <html> → first same-site product image / poster / model under public/ that the page references
+#   (/images/… or /models/…, image or .glb). Empty if none; deploy.sh then falls back to /icon-192.png (also public/).
+public_asset_path() { grep -oE '"/(images|models)/[A-Za-z0-9._~/-]+\.(webp|avif|png|jpe?g|svg|glb)"' <<<"$1" | head -n 1 | tr -d '"' || true; }
+
 # resp_code <raw curl -sI output> → HTTP status code of the first status line
 resp_code() { sed -n '1s/^HTTP\/[0-9.]*[[:space:]]\{1,\}\([0-9]\{3\}\).*/\1/p' <<<"$1" | tr -d '\r'; }
 # resp_loc <raw curl -sI output> → Location header value (CR stripped)

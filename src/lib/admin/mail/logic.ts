@@ -1,5 +1,5 @@
 // #74 邮件界面的纯逻辑与文案（不依赖 DOM / React，便于单测）。文案依据 ux-spec.md（A/B/C 节）与 backend-plan v4 §8、§15。
-import type { MailError, SendStatus, ThreadItem } from './types';
+import type { MailError, SendStatus, ThreadItem, ThreadPage } from './types';
 import { KNOWN_FLAGS } from './types';
 import { futureTime } from '@/components/admin/format';
 
@@ -71,6 +71,18 @@ export const isDeferred = (m: { status?: string; errorCode?: string | null }) =>
 export const MAYBE_DELIVERED_HINT = '发送过程中连接中断，无法确认对方是否收到。为免重复，系统不会自动重发；如需确认，请换其他方式联系客户。';
 export const RETRY_LIMIT_HINT = '这封邮件已重试 5 次仍未发出。请复制内容重新编写发送，或联系管理员检查邮箱设置。';
 export const NOT_RETRYABLE = '这封邮件不能重试，请重新编写发送。';
+/** #340 UX 定稿：失败卡片上有「重试」按钮时的说明（正文同时保留在回复框里，两个按钮的区别要讲清楚） */
+export const RETRY_VS_SEND_HINT = '发送失败。点「重试」重发这封；如需修改，请在下方编辑后发送新邮件。';
+
+/**
+ * #340：失败卡片「重试」成功后，回复框里的草稿怎么处理（纯函数）。
+ * 回复框的主题和正文都和这封失败邮件一样（没改过）→ 清空正文（主题照旧不清空，和普通发送成功一致），免得再点「发送」重复发一封；
+ * 改过任何一处 → 保留。比较时两边都去掉首尾空白：发送时主题本来就 trim，服务端也会 trim 正文。
+ */
+export function draftAfterCardRetry(draft: { subject: string; body: string }, failed: { subject: string | null; bodyText: string | null }): 'clear' | 'keep' {
+  if (!draft.body.trim()) return 'keep';
+  return draft.subject.trim() === (failed.subject ?? '').trim() && draft.body.trim() === (failed.bodyText ?? '').trim() ? 'clear' : 'keep';
+}
 export const UNCONFIRMED = '状态未确认，请刷新页面查看。';
 export const BACKGROUND_SENDING = '发送较慢，已转到后台继续发送（最多约 2 分钟），完成后这里会更新。';
 export const ANON_JUST_NOW = '该询盘刚刚被匿名化，不能再发送。页面已刷新。';
@@ -151,9 +163,55 @@ export function sendErrorText(e: Pick<MailError, 'code' | 'body'>): { text: stri
 
 // —— 限流（429，windowSec 固定 3600 → 「本小时」）——
 export const fmtCountdown = (sec: number) => { const s = Math.max(0, Math.ceil(sec)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
-export function rateLimitText(scope: string | undefined, limit: number | undefined, countdown: string): string {
+/** kept：回复框里现在确实有内容才说「内容已保留在输入框里」（#340：不能在空输入框旁边说已保留） */
+export function rateLimitText(scope: string | undefined, limit: number | undefined, countdown: string, kept = true): string {
   if (scope === 'global') return `全站本小时的发信量已达上限（${limit ?? '—'} 封），为保护域名信誉暂停发送。${countdown} 后可以再发。`;
-  return `你本小时已发 ${limit ?? '—'} 封，达到上限。${countdown} 后可以再发。内容已保留在输入框里。`;
+  return `你本小时已发 ${limit ?? '—'} 封，达到上限。${countdown} 后可以再发。${kept ? DRAFT_KEPT : ''}`;
+}
+export const DRAFT_KEPT = '内容已保留在输入框里。';
+
+/**
+ * #340 UX 定稿：重试卡片上的 429。重试卡片没有输入框（服务端按已存的原文重发），所以不说「内容已保留在输入框里」。
+ * 时间按 #322 规则（futureTime：MM/DD HH:mm + 时区缩写，跨年补年份）；向上取整到分钟，免得显示的时间早于真正可重试的时间。
+ */
+export function retryRateText(until: number, now = Date.now(), timeZone?: string): string {
+  const at = futureTime(new Date(Math.ceil(until / 60_000) * 60_000).toISOString(), { now, timeZone }) ?? '稍后';
+  return `发送太频繁，${at} 后可重试；重试会重新发送原邮件，无需重填。`;
+}
+
+/** #340 UX：往来邮件加载失败（404 以外的任何错误）时的错误条 */
+export const THREAD_LOAD_FAILED = '邮件记录加载失败';
+
+/**
+ * #340：后端这一轮会返回 source:'legacy' 的旧记录、内容为空的 redacted 行，字段可能缺省。
+ * 统一补默认值，组件里不用到处判断（不改接口调用，只整理返回的数据）。
+ */
+type WireItem = Partial<ThreadItem> & { id: string };
+export function normalizeThread(raw: { anonymizedAt?: string | null; items?: WireItem[] | null; nextCursor?: string | null; linksExpireAt?: string | null }): ThreadPage {
+  return {
+    anonymizedAt: raw.anonymizedAt ?? null,
+    nextCursor: raw.nextCursor ?? null,
+    ...(raw.linksExpireAt !== undefined ? { linksExpireAt: raw.linksExpireAt } : {}),
+    items: (raw.items ?? []).map((m) => ({
+      direction: 'INBOUND', status: m.direction === 'OUTBOUND' ? 'SENT' : 'RECEIVED', deliveryStatus: 'unknown', bouncedAt: null, retryCount: 0, maxRetries: 5,
+      from: null, to: null, authorName: null, subject: null, bodyHtml: null, bodyText: null, hasRemoteImages: false, senderVerified: null,
+      errorCode: null, retryable: false, createdAt: m.receivedAt ?? m.sentAt ?? new Date(0).toISOString(), sentAt: null, receivedAt: null,
+      ...m,
+      source: m.source === 'legacy' ? 'legacy' : 'mail',
+      redacted: m.redacted === true,
+      flags: Array.isArray(m.flags) ? m.flags : [],
+      attachments: Array.isArray(m.attachments) ? m.attachments : []
+    }) as ThreadItem)
+  };
+}
+
+/**
+ * #340：发信失败后回复框的主题 / 正文怎么处理（纯函数）。
+ * 只有服务端已经接受（201 / 202，或 502 mail_failed 但已排队 daily_cap_deferred）才清空；
+ * 其他一切失败（429、provider_throttled 等 mail_failed、409、5xx、网络错误……）都保留，并恢复成发送前的快照。
+ */
+export function draftAfterSendError(e: Pick<MailError, 'code' | 'body'>): 'keep' | 'clear' {
+  return e.code === 'mail_failed' && e.body.reason === DEFERRED_REASON && !!e.body.id ? 'clear' : 'keep';
 }
 
 // —— 429 倒计时：按钮在 Retry-After 之前禁用，到点重新可用 ——

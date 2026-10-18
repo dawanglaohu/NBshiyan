@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminApi, usingMock } from '@/lib/admin/api';
 import UnassignedNav from './mail/UnassignedNav';
+import { UNASSIGNED_MAIL_LIVE } from '@/lib/admin/mail/features';
 import { mailEnabled, usingMailMock } from '@/lib/admin/mail/api';
 import { MailGateContext, useMailGateFetch } from './mail/MailGate';
 import { DRAWER_FOCUSABLE, DRAWER_MQ, drawerKeyAction } from '@/lib/admin/drawer';
@@ -72,7 +73,7 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
               {n.label}{n.href === '/admin/inquiries' && newCount ? <span className="count" aria-label={`${newCount} 条新询盘`}>{newCount}</span> : null}
             </Link>
           : <a key={n.href} className="soon" role="link" aria-disabled="true" title="待开发">{n.label}</a>)}
-        {mailEnabled && mailGate.state !== 'off' && role === 'ADMIN' && <UnassignedNav active={path.startsWith('/admin/mail')} />}
+        {UNASSIGNED_MAIL_LIVE && mailEnabled && mailGate.state !== 'off' && role === 'ADMIN' && <UnassignedNav active={path.startsWith('/admin/mail')} />}
       </nav>
       <main className="adm-main">
         {usingMailMock && <div className="adm-mock" data-testid="mail-mock">邮件功能当前使用示例数据（NEXT_PUBLIC_ADMIN_MAIL=mock），发信不会真的发出。</div>}
