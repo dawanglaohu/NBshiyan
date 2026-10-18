@@ -331,7 +331,7 @@ test('#347 stdout 不是终端 → 退出 2，读密码、连库之前就拒绝�
   let dbOpened = 0;
   const fdb = fakeDb([user()]);
   const r = await run([], { tty: false, db: { ...fdb, db: new Proxy(fdb.db, { get: (o, k) => { dbOpened++; return (o as never)[k]; } }) } as never });
-  assert.equal(r.code, 2); assert.match(r.err, /标准输出不是终端/); assert.equal(r.pwReads, 0); assert.equal(dbOpened, 0);
+  assert.equal(r.code, 2); assert.match(r.err, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m); assert.equal(r.pwReads, 0); assert.equal(dbOpened, 0);
   assert.equal(r.issued.length, 0); assert.equal(fdb.rows[0].passwordHash, 'OLD-HASH');
 });
 
@@ -390,14 +390,14 @@ test('CLI：命令行带密码 → 退出 2，不回显；环境变量密码被�
   assert.equal(a.code, 2); assert.match(a.out, /命令行参数/); assert.ok(!a.out.includes(PW));
   const b = cli(['--email', EMAIL], { ADMIN_RESET_PASSWORD: PW, ADMIN_CREATE_PASSWORD: PW });
   // #347：子进程的 stdout 是管道（不是终端）→ 先报 stdout_not_tty（退出 2），不读密码、不连库
-  assert.equal(b.code, 2); assert.match(b.out, /已忽略并删除环境变量 ADMIN_RESET_PASSWORD, ADMIN_CREATE_PASSWORD/); assert.match(b.out, /标准输出不是终端/);
+  assert.equal(b.code, 2); assert.match(b.out, /已忽略并删除环境变量 ADMIN_RESET_PASSWORD, ADMIN_CREATE_PASSWORD/); assert.match(b.out, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m);
   assert.ok(!b.out.includes(PW));
 });
 
 test('CLI：stdout 不是终端（管道 / 重定向）→ 退出 2，不读标准输入的密码、不连库，不输出密码、邮箱或连接串', () => {
   // 数据库不可达的路径改由上面的 runReset 单测覆盖（子进程拿不到终端）
   const r = cli(['--email', EMAIL], { DATABASE_URL: 'postgresql://dbuser:dbpass-SHOULD-NOT-LEAK@127.0.0.1:1/x', ADMIN_RESET_PASSWORD: PW, NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, `${PW}\n`);
-  assert.equal(r.code, 2); assert.match(r.out, /标准输出不是终端/); assert.doesNotMatch(r.out, /数据库操作失败/);
+  assert.equal(r.code, 2); assert.match(r.out, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m); assert.doesNotMatch(r.out, /数据库操作失败/);
   for (const s of [PW, 'dbpass-SHOULD-NOT-LEAK', 'dbuser', EMAIL]) assert.ok(!r.out.includes(s), s);
 });
 

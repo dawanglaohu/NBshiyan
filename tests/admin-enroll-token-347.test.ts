@@ -189,22 +189,43 @@ test('password only (no token) can neither enroll nor confirm: same 401 bad_cred
   assert.deepEqual(rejected(), [{ reason: 'missing', route: 'enroll' }, { reason: 'missing', route: 'enroll' }, { reason: 'missing', route: 'confirm' }]);
 });
 
-test('lockout switch: wrong token does NOT count toward failedLogins now (WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN=false); flipping it uses the wrong-password path', async () => {
-  assert.equal(T.WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN, false);
-  for (let i = 0; i < 3; i++) assert.deepEqual(await enroll(otherToken()), BAD);
-  for (let i = 0; i < 3; i++) assert.deepEqual(await confirm(undefined, '123456'), BAD);
-  assert.equal(owner().failedLogins, 0); assert.equal(owner().lockedUntil, null);
-  // 开关打开时（只改那一行）：和错密码同一个函数 recordFailedLogin，满 5 次锁 15 分钟
-  for (let i = 0; i < 5; i++) await T.rejectEnrollToken(owner() as never, EMAIL, 'enroll', 'invalid', '198.51.100.9', true);
-  assert.equal(owner().failedLogins, 0); assert.ok((owner().lockedUntil as Date).getTime() > Date.now());
-  assert.ok(audits.some((a) => a.action === 'auth.lockout'));
+test('lockout (PM final): correct password + wrong/missing/expired token counts like a wrong password on enroll AND confirm; 5 → locked 15 min', async () => {
+  assert.equal(T.WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN, true);
+  assert.deepEqual(await enroll(otherToken()), BAD);
+  assert.equal(owner().failedLogins, 1);
+  assert.deepEqual(await confirm(undefined, '123456'), BAD);
+  assert.equal(owner().failedLogins, 2);
+  assert.deepEqual(await enroll(''), BAD);
+  assert.deepEqual(await confirm(otherToken(), '123456'), BAD);
+  assert.equal(owner().failedLogins, 4); assert.equal(owner().lockedUntil, null);
+  assert.deepEqual(await enroll(otherToken()), BAD); // 第 5 次 → 锁定
+  assert.equal(owner().failedLogins, 0);
+  const until = (owner().lockedUntil as Date).getTime();
+  assert.ok(until > Date.now() + 14 * 60_000 && until <= Date.now() + 15 * 60_000);
+  assert.equal(audits.filter((a) => a.action === 'auth.lockout').length, 1);
   assert.equal(audits.filter((a) => a.action === 'auth.login_fail' && (a.meta as { reason: string }).reason === 'bad_enroll_token').length, 5);
-  // 两个接口都走同一个 helper，开关只有一处
+  assert.deepEqual(rejected().map((r) => r.route), ['enroll', 'confirm', 'enroll', 'confirm', 'enroll']);
+  // 锁定期间：正确密码 + 正确令牌也是同一个 401 bad_credentials（与登录锁定一样不区分），不发密钥、不消耗令牌、不再加次数
+  assert.deepEqual(await enroll(token), BAD);
+  assert.deepEqual(await confirm(token, '123456'), BAD);
+  assert.equal(owner().totpSecret, null); assert.ok(owner().enrollTokenHash);
+  assert.equal(owner().failedLogins, 0); assert.equal(audits.filter((a) => a.action === 'auth.lockout').length, 1);
+  assert.equal(audits.filter((a) => a.action === 'auth.login_fail' && (a.meta as { reason: string }).reason === 'locked').length, 2);
+  // 过期令牌同样计入
+  apply(owner(), { lockedUntil: null, failedLogins: 0 });
+  apply(owner(), { enrollTokenExpiresAt: new Date(Date.now() - 1000) });
+  assert.deepEqual(await enroll(token), BAD);
+  assert.equal(owner().failedLogins, 1);
+  // 开关只有一处，两个接口都走同一个 helper，helper 与错密码同一个 fail()
   for (const f of ['src/app/api/auth-admin/enroll/route.ts', 'src/app/api/auth-admin/enroll/confirm/route.ts'])
     assert.match(readFileSync(f, 'utf8'), /if \(tk !== 'ok'\) \{ await rejectEnrollToken\(user, p\.data\.email, '(enroll|confirm)', tk, ip\); return jsonErr\('bad_credentials', 401\); \}/, f);
   assert.equal(readFileSync('src/lib/server/admin/enroll-token.ts', 'utf8').split('WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN = ').length - 1, 1);
   const login = readFileSync('src/lib/server/admin/login.ts', 'utf8');
   assert.match(login, /export async function recordFailedLogin\(user: User \| null, email: string, ip: string \| null, reason: string\) \{ return fail\(user, email, ip, reason\); \}/);
+  // 关掉开关（只改那一行）时 helper 不计次数
+  apply(owner(), { failedLogins: 0 });
+  await T.rejectEnrollToken(owner() as never, EMAIL, 'enroll', 'invalid', '198.51.100.9', false);
+  assert.equal(owner().failedLogins, 0);
 });
 
 test('wrong / expired token → 401 bad_credentials on both routes; audit reason invalid / expired', async () => {
@@ -238,6 +259,9 @@ test('without the token, wrong TOTP spam cannot void the owner\'s pending secret
   for (let i = 0; i < 8; i++) assert.deepEqual(await confirm(undefined, wrongCode(s)), BAD);
   assert.equal(owner().totpEnrollFails, 0);
   assert.ok(owner().totpSecret);
+  // 令牌错计入锁定（PM 已定）：第 5 次起账号锁 15 分钟，但待确认密钥不作废
+  assert.ok((owner().lockedUntil as Date).getTime() > Date.now());
+  apply(owner(), { lockedUntil: null, failedLogins: 0 }); // 锁定过期后
   assert.equal((await confirm(token, authenticator.generate(s))).status, 200);
 });
 

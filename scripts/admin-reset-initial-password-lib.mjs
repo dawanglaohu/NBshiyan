@@ -56,7 +56,7 @@ export const MESSAGES = {
   pending_enroll: '这个账号有未完成的 2FA 绑定（待确认密钥、错码计数或冷却期）。如确认要清掉并重新开始绑定，请加 --clear-pending-enroll 再运行。未做任何修改。',
   enroll_window_closed: '这个账号的 72 小时绑定窗口已关闭，只改密码也无法绑定。如确认要重新打开绑定窗口，请加 --clear-pending-enroll 再运行。未做任何修改。',
   no_database: 'DATABASE_URL 未设置。',
-  stdout_not_tty: '标准输出不是终端：本脚本会显示一次性 2FA 绑定链接，不能写进文件、管道或日志。请在终端里运行（docker compose exec -it …），未做任何修改。',
+  stdout_not_tty: '没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行', // UX v1.0.3 原文
   site_url_invalid: 'NEXT_PUBLIC_SITE_URL 不合格（必须是 https 裸 origin；非生产可用 http://localhost），无法生成绑定链接，未做任何修改。',
   db_error: '数据库操作失败（详细原因未输出，以免带出敏感信息；请检查 DATABASE_URL 和数据库是否可达）。',
   aborted: '已取消。',

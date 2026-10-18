@@ -88,13 +88,14 @@ export const auditTokenIssued = (actorId: string | null, targetId: string, sourc
 
 /**
  * 密码正确、令牌不对时是否也计入 failedLogins（与错密码一样，满 5 次锁 15 分钟）。
- * 待定（PM 要和错密码完全一致；全栈担心锁定 DoS）：现在为 false，只占登录限流、不退桶、不计锁定次数。要改只改这一行。
+ * 已定（PM 定、全栈同意）：计入，enroll 和 confirm 都与错密码完全一样（failedLogins+1，满 5 次锁 15 分钟、告警，审计 reason=bad_enroll_token）。
+ * 要关掉只改这一行。
  */
-export const WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN = false;
+export const WRONG_TOKEN_COUNTS_AS_FAILED_LOGIN = true;
 
 /**
  * 令牌不对时的统一处理（enroll、confirm 共用）：审计 auth.enroll_token_rejected（reason 只有 missing / invalid / expired），
- * 开关打开时再按错密码的路径计入 failedLogins / 锁定（recordFailedLogin，审计 reason=bad_enroll_token）。调用方随后返回 401 bad_credentials，不退登录桶。
+ * 开关打开时（现在打开）再按错密码的路径计入 failedLogins / 锁定（recordFailedLogin，审计 reason=bad_enroll_token）。调用方随后返回 401 bad_credentials，不退登录桶。
  */
 export async function rejectEnrollToken(
   user: User, email: string, route: 'enroll' | 'confirm', reason: Exclude<EnrollTokenCheck, 'ok'>, ip: string | null,
