@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/about/model';
 import {
-  aboutSettingsApi, dirtyFields, dirtySummary, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
-  SETTINGS_TEXT as T, settingsErrorText, type AboutDraft, type AboutSettingsData,
+  aboutSettingsApi, canSave, conflictStep, dirtyFields, dirtySummary, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
+  isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
 } from '@/lib/admin/site-settings';
 import './settings.css';
 
@@ -82,7 +82,10 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [confirm, setConfirm] = useState<null | boolean>(null);
-  const [epoch, setEpoch] = useState(0); // 放弃修改后重建编辑器
+  const [epoch, setEpoch] = useState(0); // 放弃修改 / 冲突后刷新时重建编辑器
+  const [conflict, setConflict] = useState<ConflictPhase>('none');
+  const conflictRef = useRef<ConflictPhase>('none');
+  const step = (e: ConflictEvent) => { const r = conflictStep(conflictRef.current, e); conflictRef.current = r.next; setConflict(r.next); return r; };
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
@@ -113,16 +116,19 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
 
   const set = useCallback(<K extends keyof AboutDraft>(k: K, v: AboutDraft[K]) => setDraft((p) => ({ ...p, [tab]: { ...(p[tab] ?? emptyDraft()), [k]: v } })), [tab]);
 
+  const saveAllowed = canSave({ busy, dirty, anyErrors, conflict });
   const save = async () => {
-    if (busy || !dirty || anyErrors) return;
+    if (!canSave({ busy, dirty, anyErrors, conflict: conflictRef.current })) return;
     const changes = Object.fromEntries(locales.filter((l) => draft[l] && dirtyFields(savedLocales[l] ?? emptyDraft(), draft[l]).length).map((l) => [l, draft[l]]));
     setBusy(true); setNotice(null);
     const r = await aboutSettingsApi.save(changes);
     setBusy(false);
     if (r.ok) { setSaved(r.data); setDraft(structuredClone(r.data.locales)); setNotice({ kind: 'ok', text: T.saved(Object.keys(changes)) }); return; }
-    // 409：保留当前编辑内容，不覆盖对方版本
-    if (r.code === 'conflict' || r.code === 'version_conflict') {
-      setNotice({ kind: 'err', text: r.conflict?.by && r.conflict.at ? T.conflict(r.conflict.by, new Date(r.conflict.at).toLocaleString('zh-CN')) : T.conflictUnknown });
+    if (isVersionConflict(r)) {
+      // 409：编辑器里的文字原样保留（不清空、不覆盖），保存被禁用；只能点「刷新」→ 确认后读最新内容。绝不拿 409 返回的新版本号自动重交。
+      // 冲突前已保存成功的语言只更新「已保存」基线，不动草稿
+      if (r.saved) setSaved(r.saved);
+      step('conflict');
       return;
     }
     setNotice({ kind: 'err', text: settingsErrorText(r.code) });
@@ -131,11 +137,27 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const discard = () => { if (!saved) return; setDraft(structuredClone(saved.locales)); setEpoch((n) => n + 1); };
 
   const applyToggle = async (to: boolean) => {
-    setConfirm(null); setBusy(true); setNotice(null);
-    const r = await aboutSettingsApi.setEnabled(to);
+    setConfirm(null);
+    if (writesBlocked(conflictRef.current)) return;
+    setBusy(true); setNotice(null);
+    const r = await aboutSettingsApi.setEnabled(to, saved?.enabledVersion ?? null);
     setBusy(false);
-    if (r.ok) { setSaved((p) => (p ? { ...p, enabled: r.data.enabled } : r.data)); return; }
+    if (r.ok) { setSaved((p) => (p ? { ...p, enabled: r.data.enabled, enabledVersion: r.data.enabledVersion } : r.data)); return; }
+    if (isVersionConflict(r)) { step('conflict'); return; }
     setNotice({ kind: 'err', text: settingsErrorText(r.code) });
+  };
+
+  /** 冲突后「刷新」→ 确认「未保存的修改将丢弃」→ 读最新内容和版本号，丢弃本地修改 */
+  const confirmRefresh = async () => {
+    if (!step('confirm').reload) return;
+    try {
+      const fresh = await aboutSettingsApi.load(locales);
+      setSaved(fresh); setDraft(structuredClone(fresh.locales)); setEpoch((n) => n + 1); setNotice(null);
+      step('reloaded');
+    } catch (e) {
+      step('reload_failed');
+      setNotice({ kind: 'err', text: settingsErrorText(e instanceof Error ? e.message : 'unknown') });
+    }
   };
 
   const onTabKey = (e: React.KeyboardEvent, i: number) => {
@@ -177,13 +199,19 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
       {/* TODO(backend #350)：「在新窗口预览 EN ↗」需要草稿预览接口，接口上线后再加 */}
       {notice?.kind === 'ok' && <p className="st-ok" role="status">{notice.text}</p>}
       {notice?.kind === 'err' && <p className="st-err" role="alert">{notice.text}</p>}
+      {conflict !== 'none' && (
+        <div className="st-err st-conflict" role="alert">
+          <span>{T.conflict}</span>
+          <button type="button" className="adm-btn" disabled={conflict === 'loading'} aria-busy={conflict === 'loading' || undefined} onClick={() => step('refresh')}>{T.conflictRefresh}</button>
+        </div>
+      )}
 
       <div className="st-grid">
         <div className="st-main">
           <section className="adm-card st-card" aria-labelledby="st-vis-h">
             <div className="st-vis">
               <h2 id="st-vis-h">{T.visibility}</h2>
-              <button type="button" role="switch" aria-checked={saved.enabled} aria-labelledby="st-vis-h" className="st-switch" disabled={busy} onClick={() => setConfirm(!saved.enabled)}><i aria-hidden="true" /></button>
+              <button type="button" role="switch" aria-checked={saved.enabled} aria-labelledby="st-vis-h" className="st-switch" disabled={busy || writesBlocked(conflict)} onClick={() => setConfirm(!saved.enabled)}><i aria-hidden="true" /></button>
             </div>
             <p className="st-hint">{saved.enabled ? T.visibilityOn(shownLocales) : T.visibilityOff}</p>
           </section>
@@ -255,8 +283,14 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
         <div className="st-bar" role="region" aria-label="保存">
           <span>{T.dirty}<small>（{summary}）</small></span>
           <button type="button" className="adm-btn" disabled={busy} onClick={discard}>{T.discard}</button>
-          <button type="button" className="adm-btn primary" disabled={busy || anyErrors} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
+          <button type="button" className="adm-btn primary" disabled={!saveAllowed} aria-busy={busy || undefined} onClick={save}>{busy ? T.saving : T.save}</button>
         </div>
+      )}
+
+      {conflict === 'confirm' && (
+        <ConfirmDialog title={T.conflictConfirmTitle} confirmLabel={T.conflictConfirmOk} danger onCancel={() => step('cancel')} onConfirm={confirmRefresh}>
+          {dirty && <p>{summary}</p>}
+        </ConfirmDialog>
       )}
 
       {confirm !== null && (

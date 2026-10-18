@@ -17,7 +17,8 @@ export type AboutDraft = {
   updatedAt: string | null;
   updatedByName: string | null;
 };
-export type AboutSettingsData = { enabled: boolean; locales: Record<string, AboutDraft> };
+/** enabledVersion：开关的版本号（about.enabled 的 version），切换时作为 expectedVersion 发回，不一致 409 */
+export type AboutSettingsData = { enabled: boolean; enabledVersion: number | null; locales: Record<string, AboutDraft> };
 export type DraftField = 'title' | 'summary' | 'bodyHtml' | 'stats' | 'homeHeading' | 'homeIntro';
 
 export const emptyDraft = (): AboutDraft => ({ title: '', summary: '', bodyHtml: '', stats: [], homeHeading: '', homeIntro: '', version: null, updatedAt: null, updatedByName: null });
@@ -60,8 +61,11 @@ export const SETTINGS_TEXT = {
   save: '保存',
   saving: '保存中…',
   saved: (ls: string[]) => `✓ 已保存 ${ls.map((l) => l.toUpperCase()).join('、')}。前台约 1 分钟内生效。`,
-  conflict: (who: string, when: string) => `保存失败（409）：内容已被其他管理员修改（${who} · ${when}）。你的修改仍保留在页面上，没有覆盖对方的版本。请复制你的修改，刷新后再合并保存。`,
-  conflictUnknown: '保存失败（409）：内容已被其他管理员修改。你的修改仍保留在页面上，没有覆盖对方的版本。请复制你的修改，刷新后再合并保存。',
+  // 409 version_conflict（PM 定稿）：保存和开关共用同一条提示 + 「刷新」按钮；点刷新先确认「未保存的修改将丢弃」
+  conflict: '内容已被他人修改，请刷新后重新编辑',
+  conflictRefresh: '刷新',
+  conflictConfirmTitle: '未保存的修改将丢弃',
+  conflictConfirmOk: '丢弃并刷新',
   leave: '有未保存的修改，确定离开？',
   linkLabel: '链接地址',
   linkOk: '确定',
@@ -142,17 +146,52 @@ export function dirtySummary(saved: Record<string, AboutDraft>, draft: Record<st
 
 export { isAllowedAboutHref };
 
-/** 保存 / 开关的错误文案：409 用稿件文案；其他沿用后台 errorText() */
+/** 保存 / 开关的错误文案（409 不走这里，见 conflictStep）；其他沿用后台 errorText() */
 export const settingsErrorText = (code: string): string => (code === 'not_ready' ? SETTINGS_TEXT.notReady : errorText(code, '保存失败'));
 
 // ───────────────────────── 接口层 ─────────────────────────
-export type SaveResult = { ok: true; data: AboutSettingsData } | { ok: false; code: string; conflict?: { by: string | null; at: string | null } };
+/**
+ * 失败时 code 是后端的 error 字段原样（例如 'invalid'、'too_large'、'version_conflict'）。
+ * 409 只有一个 code：'version_conflict'（body { error: 'version_conflict', currentVersion }）。currentVersion 只用于展示 / 日志，
+ * 绝不拿它自动重新提交——用户必须先刷新、拿到最新内容后重新编辑。
+ * saved：多语言保存时，冲突前已经成功保存的语言（每个语言单独 PUT），页面把它们标为已保存。
+ */
+export type SaveResult =
+  | { ok: true; data: AboutSettingsData }
+  | { ok: false; code: string; currentVersion?: number; saved?: AboutSettingsData };
+export const VERSION_CONFLICT = 'version_conflict' as const;
+export const isVersionConflict = (r: SaveResult): boolean => !r.ok && r.code === VERSION_CONFLICT;
+
+/**
+ * 409 冲突状态（PM 定稿）：
+ * - none → 保存 / 开关返回 version_conflict → conflict：显示「内容已被他人修改，请刷新后重新编辑」+「刷新」；
+ *   编辑器里的文字原样保留（可以复制、可以继续改），但「保存」和开关都禁用，不会带旧版本号再提交。
+ * - conflict → 点「刷新」→ confirm：确认框「未保存的修改将丢弃」
+ *   - 取消 → 回到 conflict（仍然不能保存，文字还在）
+ *   - 确认 → loading：重新读取最新内容和版本号，丢弃本地修改（不合并、不重新提交旧输入）
+ * - loading → 读取成功 → none；读取失败 → conflict（可以再点刷新）
+ */
+export type ConflictPhase = 'none' | 'conflict' | 'confirm' | 'loading';
+export type ConflictEvent = 'conflict' | 'refresh' | 'cancel' | 'confirm' | 'reloaded' | 'reload_failed';
+export function conflictStep(s: ConflictPhase, e: ConflictEvent): { next: ConflictPhase; reload: boolean } {
+  if (e === 'conflict') return { next: 'conflict', reload: false };
+  if (s === 'conflict' && e === 'refresh') return { next: 'confirm', reload: false };
+  if (s === 'confirm' && e === 'cancel') return { next: 'conflict', reload: false };
+  if (s === 'confirm' && e === 'confirm') return { next: 'loading', reload: true };
+  if (s === 'loading' && e === 'reloaded') return { next: 'none', reload: false };
+  if (s === 'loading' && e === 'reload_failed') return { next: 'conflict', reload: false };
+  return { next: s, reload: false };
+}
+/** 冲突没解决前（conflict / confirm / loading）不能保存、不能切开关 */
+export const writesBlocked = (s: ConflictPhase): boolean => s !== 'none';
+export const canSave = (o: { busy: boolean; dirty: boolean; anyErrors: boolean; conflict: ConflictPhase }): boolean =>
+  !o.busy && o.dirty && !o.anyErrors && !writesBlocked(o.conflict);
 export type AboutSettingsApi = {
   load(locales: readonly string[]): Promise<AboutSettingsData>;
   /** 一次请求保存所有改过的语言；每个语言带当前 version，不一致后端返回 409 */
   save(changes: Record<string, AboutDraft>): Promise<SaveResult>;
-  /** 开关单独保存、单独记审计（site.about.visibility） */
-  setEnabled(enabled: boolean): Promise<SaveResult>;
+  /** 开关单独保存、单独记审计（site.about.visibility）；带读取时的 enabledVersion，不一致 409 */
+  setEnabled(enabled: boolean, expectedVersion: number | null): Promise<SaveResult>;
 };
 
 /**
@@ -161,7 +200,7 @@ export type AboutSettingsApi = {
  */
 export const ABOUT_SETTINGS_API_STUB = true as const;
 export const aboutSettingsApi: AboutSettingsApi = {
-  async load(locales) { return { enabled: false, locales: Object.fromEntries(locales.map((l) => [l, emptyDraft()])) }; },
+  async load(locales) { return { enabled: false, enabledVersion: null, locales: Object.fromEntries(locales.map((l) => [l, emptyDraft()])) }; },
   async save() { return { ok: false, code: 'not_ready' }; },
   async setEnabled() { return { ok: false, code: 'not_ready' }; },
 };

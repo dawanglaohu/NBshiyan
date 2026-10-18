@@ -76,19 +76,67 @@ export function homeBlockVisible(c: AboutContent | null | undefined, aboutVisibl
 }
 
 /**
- * 编辑器链接框的即时校验（spec §3「链接规则」）：只允许 https:、mailto: 和以单个 / 开头的站内路径；
- * 以 // 或 /\ 开头的一律拒绝；http:、javascript: 等其他协议都不行。
+ * 编辑器链接框的即时校验（spec §3「链接规则」，对齐后端 #367 sanitize-about.ts 的 safeAboutHref）：
+ * - https:：必须是 https://host…，不能带账号密码（user:pw@）
+ * - mailto:：必须有 @；查询参数只允许 subject（cc / bcc / body / 其他一律拒绝），subject 解码后不能有换行等控制字符
+ * - 站内路径：以单个 / 开头；不能以 // 或 /\ 开头，路径里不能有反斜杠；百分号解码后（最多 3 层）再查一遍；
+ *   路径里有点段（. / .. 及其 %2e 编码）一律拒绝——规范化后可能变成 //evil.com（如 /a/..//evil.com）
+ * - 空白、Tab、换行、控制字符、零宽字符一律拒绝（后端是先去掉再判断；编辑器直接不让填，更严）
+ * - http:、javascript:、data:、相对路径等其他一律拒绝
  * 这只是前端提示，不替代服务端的 sanitizeAboutHtml（后端入库、出库各净化一次）。
- * TODO(backend #350)：sanitizeAboutHtml 落地后，两边的 href 规则用同一份测试用例对齐（tests/about-model.test.ts）。
+ * 用例清单：tests/about-link-cases.json（后端可以拿同一份跑 sanitizeAboutHtml）。
  */
-export function isAllowedAboutHref(raw: string): boolean {
-  const v = raw.trim();
-  if (!v || /[\s\u0000-\u001f\u007f]/.test(v)) return false;
-  if (v.startsWith('/')) return !(v.startsWith('//') || v.startsWith('/\\'));
-  if (/^https:\/\/[^/\\\s]/i.test(v)) {
-    try { return new URL(v).protocol === 'https:'; } catch { return false; }
+// eslint-disable-next-line no-control-regex
+const BAD_URL_CHARS = /[\s\u0000-\u001f\u007f-\u00a0\u1680\u180e\u2000-\u200f\u2028\u2029\u202f\u205f\u2060\u3000\ufeff]/;
+
+function percentDecode(s: string): string | null {
+  let cur = s;
+  for (let i = 0; i < 3; i++) {
+    let next: string;
+    try { next = decodeURIComponent(cur); } catch { return null; }
+    if (next === cur) return cur;
+    cur = next;
   }
-  if (/^mailto:[^\s]+$/i.test(v)) return true;
-  return false;
+  return /%[0-9a-f]{2}/i.test(cur) ? null : cur; // 编码超过 3 层：拒绝
 }
 
+function isAllowedSitePath(v: string): boolean {
+  const path = v.split(/[?#]/, 1)[0];
+  const dec = percentDecode(v);
+  const decPath = percentDecode(path);
+  if (dec === null || decPath === null) return false;
+  for (const x of [v, dec]) {
+    if (!x.startsWith('/') || x[1] === '/' || x[1] === '\\' || x.includes('\\') || BAD_URL_CHARS.test(x)) return false;
+  }
+  if (decPath.split('/').some((seg) => seg === '.' || seg === '..')) return false;
+  try { return new URL(v, 'https://site.invalid').origin === 'https://site.invalid'; } catch { return false; }
+}
+
+function isAllowedMailto(v: string): boolean {
+  let u: URL;
+  try { u = new URL(v); } catch { return false; }
+  if (u.protocol !== 'mailto:' || u.pathname.length < 3 || !u.pathname.includes('@') || u.hash) return false;
+  const addr = percentDecode(u.pathname);
+  if (addr === null || BAD_URL_CHARS.test(addr) || /[?&]/.test(addr)) return false;
+  if (!u.search) return true;
+  const keys = [...u.searchParams.keys()];
+  if (keys.length !== 1 || keys[0].toLowerCase() !== 'subject') return false;
+  // eslint-disable-next-line no-control-regex
+  return !/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(u.searchParams.get(keys[0]) ?? '');
+}
+
+export function isAllowedAboutHref(raw: string): boolean {
+  const v = raw.trim();
+  if (!v || BAD_URL_CHARS.test(v)) return false;
+  if (v.startsWith('/')) return isAllowedSitePath(v);
+  const lower = v.toLowerCase();
+  if (lower.startsWith('https:')) {
+    if (!/^https:\/\/[^/\\]/i.test(v)) return false;
+    try {
+      const u = new URL(v);
+      return u.protocol === 'https:' && !!u.hostname && !u.username && !u.password;
+    } catch { return false; }
+  }
+  if (lower.startsWith('mailto:')) return isAllowedMailto(v);
+  return false;
+}

@@ -86,12 +86,14 @@ test('#350 About 文案键：en / ru 两边完全一致且非空；没有任何�
 });
 
 // ───────── 链接规则 ─────────
-test('#350 编辑器链接框：只允许 https:、mailto:、以单个 / 开头的站内路径', () => {
-  for (const ok of ['https://example.com', 'HTTPS://example.com/a?b=1', 'mailto:hi@example.com', '/contact', '/en/products#gift-boxes', '/'])
-    assert.equal(isAllowedAboutHref(ok), true, ok);
-  for (const bad of ['', ' ', 'http://example.com', '//evil.com', '/\\evil.com', 'javascript:alert(1)', 'JaVaScRiPt:alert(1)', 'data:text/html,x',
-    'https:/evil', 'https://', 'contact', 'ftp://x', 'https://exa mple.com', '/a\nb', 'vbscript:x', 'mailto:'])
-    assert.equal(isAllowedAboutHref(bad), false, JSON.stringify(bad));
+test('#350 编辑器链接框：用例清单 tests/about-link-cases.json（和后端 sanitizeAboutHtml 共用）全部通过', () => {
+  const { cases } = JSON.parse(read('./about-link-cases.json')) as { cases: { input: string; expected: 'allow' | 'reject'; note: string }[] };
+  assert.ok(cases.length >= 60);
+  for (const c of cases) assert.equal(isAllowedAboutHref(c.input), c.expected === 'allow', `${JSON.stringify(c.input)} (${c.note})`);
+  // PM / 安全复核点：这些必须在清单里而且是 reject
+  for (const must of ['/a/..//evil.com', '/.//evil.com', '/%2e//evil.com', '/a/%2e%2e//evil.com', 'https://user:pw@example.com', 'mailto:hi@example.com?bcc=x@evil.com', 'mailto:hi@example.com?cc=x@evil.com', 'mailto:hi@example.com?body=hello'])
+    assert.equal(cases.find((c) => c.input === must)?.expected, 'reject', must);
+  assert.equal(cases.find((c) => c.input === 'mailto:hi@example.com?subject=Hello')?.expected, 'allow');
 });
 
 // ───────── 后台 ─────────
@@ -117,16 +119,70 @@ test('#350 后台：未保存修改的摘要；完整度只区分空 / 有内容
 
 test('#350 后台接口桩：不假装保存成功；文案与稿件一致', async () => {
   assert.deepEqual(await aboutSettingsApi.save({}), { ok: false, code: 'not_ready' });
-  assert.deepEqual(await aboutSettingsApi.setEnabled(true), { ok: false, code: 'not_ready' });
+  assert.deepEqual(await aboutSettingsApi.setEnabled(true, null), { ok: false, code: 'not_ready' });
   const d = await aboutSettingsApi.load(['en', 'ru']);
   assert.equal(d.enabled, false);
   assert.deepEqual(Object.keys(d.locales), ['en', 'ru']);
   assert.match(settingsErrorText('not_ready'), /接口还没上线/);
   assert.equal(SETTINGS_TEXT.saved(['en']), '✓ 已保存 EN。前台约 1 分钟内生效。');
   assert.equal(SETTINGS_TEXT.linkError, '仅支持 https://、mailto: 或站内路径 /…');
-  assert.match(SETTINGS_TEXT.conflict('王', '5 分钟前'), /^保存失败（409）：内容已被其他管理员修改（王 · 5 分钟前）。你的修改仍保留在页面上，没有覆盖对方的版本。/);
+  assert.equal(SETTINGS_TEXT.conflict, '内容已被他人修改，请刷新后重新编辑');
   // 站点设置只给 ADMIN：页面 enforceAdminPage(['ADMIN'])，侧栏 adminOnly
   assert.match(read('../src/app/admin/settings/page.tsx'), /enforceAdminPage\(\['ADMIN'\], '\/admin\/settings'\)/);
   assert.match(read('../src/components/admin/AdminShell.tsx'), /'\/admin\/settings', label: '站点设置', ready: true, adminOnly: true/);
   assert.match(read('../src/components/admin/AdminShell.tsx'), /NAV\.filter\(\(n\) => !n\.adminOnly \|\| role === 'ADMIN'\)/);
+});
+
+// ───────── 409 version_conflict（PM 定稿） ─────────
+test('#350 409：只认 version_conflict；文案 + 刷新；冲突期间不能保存 / 切开关', async () => {
+  const { conflictStep, canSave, writesBlocked, isVersionConflict, SETTINGS_TEXT: T } = await import('../src/lib/admin/site-settings');
+  assert.equal(T.conflict, '内容已被他人修改，请刷新后重新编辑');
+  assert.equal(T.conflictRefresh, '刷新');
+  assert.equal(T.conflictConfirmTitle, '未保存的修改将丢弃');
+  assert.equal(T.conflictConfirmOk, '丢弃并刷新');
+  assert.equal(T.cancel, '取消');
+  assert.equal(isVersionConflict({ ok: false, code: 'version_conflict', currentVersion: 7 }), true);
+  assert.equal(isVersionConflict({ ok: false, code: 'conflict' }), false, 'old guessed code is gone');
+  const base = { busy: false, dirty: true, anyErrors: false };
+  assert.equal(canSave({ ...base, conflict: 'none' }), true);
+  for (const c of ['conflict', 'confirm', 'loading'] as const) {
+    assert.equal(canSave({ ...base, conflict: c }), false, c);
+    assert.equal(writesBlocked(c), true, c);
+  }
+  assert.deepEqual(conflictStep('none', 'conflict'), { next: 'conflict', reload: false });
+  // 在冲突里再点保存 / 确认之外的事件都不会触发读取
+  assert.deepEqual(conflictStep('conflict', 'confirm'), { next: 'conflict', reload: false });
+  assert.deepEqual(conflictStep('none', 'refresh'), { next: 'none', reload: false });
+});
+
+test('#350 409：点刷新 → 确认框；取消 = 仍是冲突、不读取、文字保留；确认 = 读最新内容 + 版本，丢弃本地修改，不重新提交', async () => {
+  const { conflictStep, canSave } = await import('../src/lib/admin/site-settings');
+  // 取消路径
+  let s = conflictStep('none', 'conflict').next;
+  s = conflictStep(s, 'refresh').next;
+  assert.equal(s, 'confirm');
+  const cancel = conflictStep(s, 'cancel');
+  assert.deepEqual(cancel, { next: 'conflict', reload: false });
+  assert.equal(canSave({ busy: false, dirty: true, anyErrors: false, conflict: cancel.next }), false, 'still blocked after cancel');
+  // 确认路径
+  s = conflictStep(cancel.next, 'refresh').next;
+  const ok = conflictStep(s, 'confirm');
+  assert.deepEqual(ok, { next: 'loading', reload: true });
+  assert.deepEqual(conflictStep(ok.next, 'reloaded'), { next: 'none', reload: false });
+  assert.deepEqual(conflictStep(ok.next, 'reload_failed'), { next: 'conflict', reload: false });
+  // 组件接线：409 不清空草稿、不带 currentVersion 重交；刷新确认后才 load，并用服务端内容覆盖草稿
+  const ui = read('../src/components/admin/settings/AboutSettings.tsx');
+  const onConflict = ui.slice(ui.indexOf('if (isVersionConflict(r)) {'), ui.indexOf("step('conflict');") + 20);
+  assert.doesNotMatch(onConflict, /setDraft|aboutSettingsApi\.save|currentVersion/);
+  assert.doesNotMatch(ui, /currentVersion/);
+  const refresh = ui.slice(ui.indexOf('const confirmRefresh'), ui.indexOf('const onTabKey'));
+  assert.match(refresh, /if \(!step\('confirm'\)\.reload\) return;/);
+  assert.match(refresh, /aboutSettingsApi\.load\(locales\)/);
+  assert.match(refresh, /setDraft\(structuredClone\(fresh\.locales\)\)/);
+  assert.doesNotMatch(refresh, /\.save\(|setEnabled\(/);
+  assert.match(ui, /title=\{T\.conflictConfirmTitle\} confirmLabel=\{T\.conflictConfirmOk\} danger onCancel=\{\(\) => step\('cancel'\)\} onConfirm=\{confirmRefresh\}/);
+  assert.match(ui, /disabled=\{!saveAllowed\}/);
+  assert.match(ui, /disabled=\{busy \|\| writesBlocked\(conflict\)\}/);
+  assert.match(ui, /if \(!canSave\(\{ busy, dirty, anyErrors, conflict: conflictRef\.current \}\)\) return;/);
+  assert.match(ui, /if \(writesBlocked\(conflictRef\.current\)\) return;/);
 });

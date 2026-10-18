@@ -1,0 +1,350 @@
+{
+  "description": "#350 about 正文链接用例：编辑器 isAllowedAboutHref（src/lib/about/model.ts）和后端 sanitizeAboutHtml / safeAboutHref 应给出相同的 allow / reject。expected=allow 表示保留 <a href>，reject 表示去掉链接只留文字。note 里写了 editor-strict 的是编辑器比后端当前实现更严的地方，请后端确认是否对齐。",
+  "cases": [
+    {
+      "input": "https://example.com",
+      "expected": "allow",
+      "note": "https"
+    },
+    {
+      "input": "HTTPS://example.com/a?b=1",
+      "expected": "allow",
+      "note": "https, case-insensitive scheme"
+    },
+    {
+      "input": "https://example.com/a?b=1#c",
+      "expected": "allow",
+      "note": "https with query+hash"
+    },
+    {
+      "input": " https://ok.example ",
+      "expected": "allow",
+      "note": "surrounding spaces trimmed"
+    },
+    {
+      "input": "https://пример.рф/о-нас",
+      "expected": "allow",
+      "note": "IDN host + unicode path"
+    },
+    {
+      "input": "https://user:pw@example.com",
+      "expected": "reject",
+      "note": "https with userinfo"
+    },
+    {
+      "input": "https://user@example.com",
+      "expected": "reject",
+      "note": "https with username only"
+    },
+    {
+      "input": "https://:pw@example.com",
+      "expected": "reject",
+      "note": "https with password only"
+    },
+    {
+      "input": "https://",
+      "expected": "reject",
+      "note": "https without host"
+    },
+    {
+      "input": "https:/evil.com",
+      "expected": "reject",
+      "note": "https with single slash (editor-strict: backend URL() would normalise to https://evil.com/)"
+    },
+    {
+      "input": "https:evil.com",
+      "expected": "reject",
+      "note": "https without slashes (editor-strict)"
+    },
+    {
+      "input": "https://exa mple.com",
+      "expected": "reject",
+      "note": "space in host (editor-strict: backend d58449e strips whitespace/control chars or lets URL() normalise, then allows)"
+    },
+    {
+      "input": "https://example.com/\ta",
+      "expected": "reject",
+      "note": "tab inside (editor-strict: backend d58449e strips whitespace/control chars or lets URL() normalise, then allows)"
+    },
+    {
+      "input": "https://example.com/a\nb",
+      "expected": "reject",
+      "note": "newline inside (editor-strict: backend d58449e strips whitespace/control chars or lets URL() normalise, then allows)"
+    },
+    {
+      "input": "https://example.com/​a",
+      "expected": "reject",
+      "note": "zero-width space (editor-strict: backend d58449e strips whitespace/control chars or lets URL() normalise, then allows)"
+    },
+    {
+      "input": "https:\\\\evil.com",
+      "expected": "reject",
+      "note": "backslashes instead of slashes (editor-strict: backend d58449e strips whitespace/control chars or lets URL() normalise, then allows)"
+    },
+    {
+      "input": "http://example.com",
+      "expected": "reject",
+      "note": "http"
+    },
+    {
+      "input": "javascript:alert(1)",
+      "expected": "reject",
+      "note": "javascript"
+    },
+    {
+      "input": "JaVaScRiPt:alert(1)",
+      "expected": "reject",
+      "note": "javascript mixed case"
+    },
+    {
+      "input": "java\tscript:alert(1)",
+      "expected": "reject",
+      "note": "javascript with tab"
+    },
+    {
+      "input": "data:text/html,x",
+      "expected": "reject",
+      "note": "data"
+    },
+    {
+      "input": "vbscript:x",
+      "expected": "reject",
+      "note": "vbscript"
+    },
+    {
+      "input": "ftp://x",
+      "expected": "reject",
+      "note": "ftp"
+    },
+    {
+      "input": "contact",
+      "expected": "reject",
+      "note": "relative path"
+    },
+    {
+      "input": "#top",
+      "expected": "reject",
+      "note": "fragment only"
+    },
+    {
+      "input": "?q=1",
+      "expected": "reject",
+      "note": "query only"
+    },
+    {
+      "input": "",
+      "expected": "reject",
+      "note": "empty"
+    },
+    {
+      "input": " ",
+      "expected": "reject",
+      "note": "blank"
+    },
+    {
+      "input": "mailto:hi@example.com",
+      "expected": "allow",
+      "note": "mailto"
+    },
+    {
+      "input": "MAILTO:hi@example.com",
+      "expected": "allow",
+      "note": "mailto case-insensitive scheme"
+    },
+    {
+      "input": "mailto:hi@example.com?subject=Hello",
+      "expected": "allow",
+      "note": "mailto subject only"
+    },
+    {
+      "input": "mailto:hi@example.com?subject=%D0%97%D0%B0%D0%BF%D1%80%D0%BE%D1%81",
+      "expected": "allow",
+      "note": "mailto subject percent-encoded RU"
+    },
+    {
+      "input": "mailto:",
+      "expected": "reject",
+      "note": "mailto empty"
+    },
+    {
+      "input": "mailto:hi",
+      "expected": "reject",
+      "note": "mailto without @"
+    },
+    {
+      "input": "mailto:hi@example.com?cc=x@evil.com",
+      "expected": "reject",
+      "note": "mailto cc"
+    },
+    {
+      "input": "mailto:hi@example.com?bcc=x@evil.com",
+      "expected": "reject",
+      "note": "mailto bcc"
+    },
+    {
+      "input": "mailto:hi@example.com?body=hello",
+      "expected": "reject",
+      "note": "mailto body"
+    },
+    {
+      "input": "mailto:hi@example.com?subject=a&body=b",
+      "expected": "reject",
+      "note": "mailto subject+body"
+    },
+    {
+      "input": "mailto:hi@example.com?subject=a&cc=x@evil.com",
+      "expected": "reject",
+      "note": "mailto subject+cc"
+    },
+    {
+      "input": "mailto:hi@example.com?%62cc=x@evil.com",
+      "expected": "reject",
+      "note": "mailto percent-encoded bcc key"
+    },
+    {
+      "input": "mailto:hi@example.com?CC=x@evil.com",
+      "expected": "reject",
+      "note": "mailto CC uppercase"
+    },
+    {
+      "input": "mailto:hi@example.com?to=x@evil.com",
+      "expected": "reject",
+      "note": "mailto to param"
+    },
+    {
+      "input": "mailto:hi@example.com?subject=a%0D%0ABcc:x@evil.com",
+      "expected": "reject",
+      "note": "mailto subject with CRLF header injection"
+    },
+    {
+      "input": "mailto:hi@example.com?subject=a&subject=b",
+      "expected": "reject",
+      "note": "mailto duplicate subject"
+    },
+    {
+      "input": "/",
+      "expected": "allow",
+      "note": "root"
+    },
+    {
+      "input": "/contact",
+      "expected": "allow",
+      "note": "site path"
+    },
+    {
+      "input": "/en/products?x=1",
+      "expected": "allow",
+      "note": "site path + query"
+    },
+    {
+      "input": "/en/products#gift-boxes",
+      "expected": "allow",
+      "note": "site path + hash"
+    },
+    {
+      "input": "/ru/о-компании",
+      "expected": "allow",
+      "note": "unicode path"
+    },
+    {
+      "input": "//evil.com",
+      "expected": "reject",
+      "note": "protocol-relative"
+    },
+    {
+      "input": "/\\evil.com",
+      "expected": "reject",
+      "note": "slash-backslash"
+    },
+    {
+      "input": "\\\\evil.com",
+      "expected": "reject",
+      "note": "double backslash"
+    },
+    {
+      "input": " //evil.com",
+      "expected": "reject",
+      "note": "protocol-relative with leading space"
+    },
+    {
+      "input": "/%2F%2Fevil.com",
+      "expected": "reject",
+      "note": "encoded //"
+    },
+    {
+      "input": "/%2f/evil.com",
+      "expected": "reject",
+      "note": "encoded / then /"
+    },
+    {
+      "input": "/%5Cevil.com",
+      "expected": "reject",
+      "note": "encoded backslash"
+    },
+    {
+      "input": "/\t/evil.com",
+      "expected": "reject",
+      "note": "tab between slashes"
+    },
+    {
+      "input": "%2F%2Fevil.com",
+      "expected": "reject",
+      "note": "encoded // without leading slash"
+    },
+    {
+      "input": "/a\\b",
+      "expected": "reject",
+      "note": "backslash inside path"
+    },
+    {
+      "input": "/a\nb",
+      "expected": "reject",
+      "note": "newline inside path (editor-strict: backend d58449e strips whitespace/control chars or lets URL() normalise, then allows)"
+    },
+    {
+      "input": "/a/..//evil.com",
+      "expected": "reject",
+      "note": "dot-dot segment normalising to //evil.com"
+    },
+    {
+      "input": "/.//evil.com",
+      "expected": "reject",
+      "note": "dot segment normalising to //evil.com"
+    },
+    {
+      "input": "/%2e//evil.com",
+      "expected": "reject",
+      "note": "encoded dot segment"
+    },
+    {
+      "input": "/a/%2e%2e//evil.com",
+      "expected": "reject",
+      "note": "encoded dot-dot segment"
+    },
+    {
+      "input": "/a/../b",
+      "expected": "reject",
+      "note": "any dot-dot segment (editor-strict)"
+    },
+    {
+      "input": "/./a",
+      "expected": "reject",
+      "note": "any dot segment (editor-strict)"
+    },
+    {
+      "input": "/%2E%2E/%2E%2E//evil.com",
+      "expected": "reject",
+      "note": "uppercase encoded dot-dot"
+    },
+    {
+      "input": "/%252e%252e//evil.com",
+      "expected": "reject",
+      "note": "double-encoded dot-dot"
+    },
+    {
+      "input": "/a.b/c..d",
+      "expected": "allow",
+      "note": "dots inside a segment are fine"
+    }
+  ]
+}

@@ -37,6 +37,7 @@
 .st-status .on{color:#1E8E5A;font-weight:600}.st-status .off{color:var(--ink-2)}
 .st-ok{background:#E6F4EC;color:#145C3B;border-radius:8px;padding:10px 12px}
 .st-err{background:#FBEAE8;color:#8E2A1F;border-radius:8px;padding:10px 12px}
+.st-conflict{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
 .st-warn{color:#8A6500;font-size:13px}
 .st-bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:12px 24px calc(12px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);z-index:20}
 .st-bar span{margin-right:auto;font-weight:600}.st-bar small{font-weight:400;color:var(--ink-2)}
