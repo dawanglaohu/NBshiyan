@@ -64,9 +64,9 @@ export function safeAboutHref(raw: string): string | null {
       if (u.protocol !== 'mailto:' || u.pathname.length < 3 || !u.pathname.includes('@')) return null;
       // 只允许 subject 参数（不允许 cc / bcc / body 等）
       if ([...u.searchParams.keys()].some((k) => k.toLowerCase() !== 'subject')) return null;
-      // subject 最多一个，解码后不能含 CR / LF（部分邮件客户端会把它当成新的邮件头）
+      // subject 最多一个，解码后不能含任何控制字符（含 CR / LF）（部分邮件客户端会把它当成新的邮件头）
       const keys = [...u.searchParams.keys()];
-      if (keys.length > 1 || [...u.searchParams.values()].some((v) => /[\r\n]/.test(v))) return null;
+      if (keys.length > 1 || [...u.searchParams.values()].some((v) => /[\u0000-\u001f\u007f]/.test(v))) return null;
       return u.href;
     } catch { return null; }
   }
