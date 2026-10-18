@@ -146,6 +146,33 @@ test('组织信息：分区导航、占位不预填、计数器、社交主页�
   await expect(page.getByRole('navigation', { name: '站点设置分区' }).getByRole('link', { name: '关于我们' })).toHaveAttribute('aria-current', 'page');
 });
 
+test('关于我们：当前语言前台不可见时不给链接，显示灰字「尚未发布，前台不可见」；可见时「查看前台已发布页 ↗」新窗口打开', async ({ page }) => {
+  test.setTimeout(60_000);
+  await loginFreshAdmin(page);
+  const v = (o: Record<string, unknown>) => ({ version: 1, title: '', summary: '', bodyHtml: '', stats: [], home: { title: '', intro: '' }, imageMeta: {}, updatedAt: '2026-10-17T20:00:00.000Z', updatedBy: null, updatedByName: null, ...o });
+  let enabled = false;
+  await page.route('**/api/admin/site-settings/about', (r) => r.fulfill({ json: { enabled, enabledMeta: { version: 1 }, locales: {
+    en: v({ title: 'Sample title', bodyHtml: `<p>${'Sample text. '.repeat(6)}</p>` }), ru: v({ title: 'Пример', bodyHtml: '<p>Коротко.</p>' }),
+  } } }));
+  // 开关关闭：EN 内容完整也不可见
+  await page.goto('/admin/settings');
+  await page.getByRole('heading', { level: 1 }).waitFor();
+  await expect(page.getByText('尚未发布，前台不可见')).toBeVisible();
+  await expect(page.getByRole('link', { name: '查看前台已发布页 ↗' })).toHaveCount(0);
+  // 开关开启：EN 可见 → 链接；RU 缺正文 → 灰字
+  enabled = true;
+  await page.reload();
+  const link = page.getByRole('link', { name: '查看前台已发布页 ↗' });
+  await expect(link).toHaveAttribute('href', '/en/about');
+  await expect(link).toHaveAttribute('target', '_blank');
+  await expect(link).toHaveAttribute('rel', 'noopener');
+  expect(await link.getAttribute('title')).toBeNull();
+  await expect(page.getByText('尚未发布，前台不可见')).toHaveCount(0);
+  await page.getByRole('tab', { name: /RU/ }).click();
+  await expect(link).toHaveCount(0);
+  await expect(page.getByText('尚未发布，前台不可见')).toBeVisible();
+});
+
 test('UX #373 P2-3：390 宽度下「关于我们」和「组织信息」的按钮、输入框、标签页点击区域都 ≥ 44px', async ({ page }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 390, height: 844 });

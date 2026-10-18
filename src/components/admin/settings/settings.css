@@ -60,6 +60,7 @@
 /* UX #373 P2-2：标题行 + 预览按钮；右栏完整度清单（稿件 .ss-chk） */
 .st-hd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;justify-content:space-between}
 .st-preview{text-decoration:none;display:inline-flex;align-items:center}
+.st-unpub{font-size:13px;color:var(--ink-2);padding:8px 0}
 .st-chk{list-style:none;margin:0;padding:0;font-size:12px;line-height:1.5}
 .st-chk li{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}.st-chk li:last-child{border:0}
 .st-chk .i{width:18px;height:18px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800}
@@ -75,7 +76,6 @@
   .st-sections a{min-height:44px;display:inline-flex;align-items:center}
   .st-page{padding:16px;padding-bottom:110px}
   .st-hd{flex-direction:column;align-items:flex-start;gap:6px}
-  .st-preview{display:none}
   .st-grid{grid-template-columns:1fr}
   .st-side{order:-1}
   .st-stat{grid-template-columns:90px 1fr auto}

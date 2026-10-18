@@ -220,8 +220,10 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
           <h1>{T.h1}</h1>
           {d.updatedAt && <p className="st-audit">{T.lastEdited}{d.updatedByName ?? '—'} · <AdminTime iso={d.updatedAt} /></p>}
         </div>
-        {/* UX #373 P2-2：「在新窗口预览 EN ↗」。还没有草稿预览接口，先打开当前语言的前台页（已保存、已上线的内容），title 里写明 */}
-        <a className="adm-btn st-preview" href={`/${tab}/about`} target="_blank" rel="noopener" title={T.previewNote}>{T.preview(tab)}</a>
+        {/* UX 定稿：只在当前语言前台可见（开关开 + 已上线 + 已保存的内容完整）时给链接；否则灰字说明，不放死链接 */}
+        {shownLocales.includes(tab)
+          ? <a className="adm-btn st-preview" href={`/${tab}/about`} target="_blank" rel="noopener">{T.preview}</a>
+          : <span className="st-unpub">{T.unpublished}</span>}
       </div>
       {notice?.kind === 'ok' && <p className="st-ok" role="status">{notice.text}</p>}
       {notice?.kind === 'err' && <p className="st-err" role="alert">{notice.text}</p>}

@@ -33,7 +33,8 @@ export const SETTINGS_TEXT = {
   crumb: '站点设置 / 关于我们', // spec §9：面包屑跟分区名「关于我们」/「组织信息」
   h1: '公司介绍（/about 页）',
   lastEdited: '最近修改：',
-  preview: (l: string) => `在新窗口预览 ${l.toUpperCase()} ↗`,
+  preview: '查看前台已发布页 ↗', // UX 定稿：只打开已发布的前台页（没有草稿预览）
+  unpublished: '尚未发布，前台不可见',
   visibility: '前台显示',
   visibilityOn: (ls: string[]) => `已开启 · 只显示内容完整的语言（当前：${ls.length ? ls.map((l) => l.toUpperCase()).join('、') : '无'}）。关闭后 /about 全部返回 404，导航、页脚入口和 sitemap 一起移除。`,
   visibilityOff: '已关闭 · /about 返回 404，导航、页脚入口和 sitemap 都不显示。已填写的内容会保留。',
@@ -56,7 +57,6 @@ export const SETTINGS_TEXT = {
   checkStats: (n: number) => `数据条（选填）· ${n} 条`,
   checkHome: '首页区块标题 + 简介',
   bodyShort: (min: number) => `正文不到 ${min} 字，这个语言的 /about 前台不会显示（可以先保存草稿）。`,
-  previewNote: '预览的是已保存并已上线的前台页面；未保存的修改、未上线或不完整的语言看不到。',
   localeStatus: '各语言前台状态',
   shown: '显示',
   hidden: (why: string) => `隐藏 · ${why}`,

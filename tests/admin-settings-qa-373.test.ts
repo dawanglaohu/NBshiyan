@@ -31,9 +31,12 @@ test('P2-2 正文 1–49 字：字段下方说明前台不会显示（不阻止�
   assert.equal(bodyTooShortNote(d({ bodyHtml: long })), null);
 });
 
-test('P2-2「在新窗口预览 EN ↗」：target=_blank + rel=noopener，指向当前语言', () => {
-  assert.match(about, /href=\{`\/\$\{tab\}\/about`\} target="_blank" rel="noopener"/);
-  assert.equal(SETTINGS_TEXT.preview('en'), '在新窗口预览 EN ↗');
+test('前台链接（UX 定稿）：「查看前台已发布页 ↗」只在当前语言前台可见时出现（target=_blank rel=noopener，无 title）；否则灰字「尚未发布，前台不可见」', () => {
+  assert.equal(SETTINGS_TEXT.preview, '查看前台已发布页 ↗');
+  assert.equal(SETTINGS_TEXT.unpublished, '尚未发布，前台不可见');
+  assert.match(about, /\{shownLocales\.includes\(tab\)\s*\? <a className="adm-btn st-preview" href=\{`\/\$\{tab\}\/about`\} target="_blank" rel="noopener">\{T\.preview\}<\/a>\s*: <span className="st-unpub">\{T\.unpublished\}<\/span>\}/);
+  assert.doesNotMatch(about, /previewNote|在新窗口预览/);
+  assert.match(css, /\.st-unpub\{font-size:13px;color:var\(--ink-2\)/);
 });
 
 test('P3-1 编辑器链接颜色用 --accent-text', () => {
