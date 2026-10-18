@@ -6,6 +6,8 @@ import {
   aboutSettingsApi, canSave, conflictStep, dirtyFields, dirtySummary, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
   isVersionConflict, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutSettingsData, type ConflictEvent, type ConflictPhase,
 } from '@/lib/admin/site-settings';
+import { aboutImagesApi, anyImageErrors, metaChanged, saveAboutWithImages, setMeta, withImagesDirty, type AboutImageItem, type AboutImagesState } from '@/lib/admin/about-images';
+import AboutImages from './AboutImages';
 import './settings.css';
 
 type Notice = { kind: 'ok' | 'err'; text: string } | null;
@@ -87,17 +89,24 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const conflictRef = useRef<ConflictPhase>('none');
   const step = (e: ConflictEvent) => { const r = conflictStep(conflictRef.current, e); conflictRef.current = r.next; setConflict(r.next); return r; };
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  // 图片列表（各语言共用，about.images，单独的 version）：已保存 / 草稿
+  const [imgSaved, setImgSaved] = useState<AboutImagesState>({ version: 0, items: [] });
+  const [imgDraft, setImgDraft] = useState<AboutImageItem[]>([]);
+  const loadAll = useCallback(async () => {
+    const { data, images } = await aboutImagesApi.loadWithImages(locales);
+    setSaved(data); setDraft(structuredClone(data.locales)); setImgSaved(images); setImgDraft(images.items);
+  }, [locales]);
 
   useEffect(() => {
-    aboutSettingsApi.load(locales).then((d) => { setSaved(d); setDraft(structuredClone(d.locales)); }).catch((e: Error) => setNotice({ kind: 'err', text: settingsErrorText(e.message) }));
-  }, [locales]);
+    loadAll().catch((e: Error) => setNotice({ kind: 'err', text: settingsErrorText(e.message) }));
+  }, [loadAll]);
 
   const d = draft[tab] ?? emptyDraft();
   const savedLocales = useMemo(() => saved?.locales ?? {}, [saved]);
-  const summary = useMemo(() => dirtySummary(savedLocales, draft), [savedLocales, draft]);
+  const summary = useMemo(() => withImagesDirty(dirtySummary(savedLocales, draft), savedLocales, draft, imgSaved.items, imgDraft), [savedLocales, draft, imgSaved, imgDraft]);
   const dirty = summary.length > 0;
   const errors = draftErrors(d);
-  const anyErrors = locales.some((l) => Object.keys(draftErrors(draft[l] ?? emptyDraft())).length > 0);
+  const anyErrors = locales.some((l) => Object.keys(draftErrors(draft[l] ?? emptyDraft())).length > 0) || anyImageErrors(draft, locales, imgDraft.map((i) => i.id));
   const dir: 'ltr' | 'rtl' = tab === 'ar' ? 'rtl' : 'ltr';
 
   // 离开页面提醒（路由内跳转由浏览器 beforeunload 覆盖刷新 / 关闭；后台内链接切换另见 TODO）
@@ -119,12 +128,16 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const saveAllowed = canSave({ busy, dirty, anyErrors, conflict });
   const save = async () => {
     if (!canSave({ busy, dirty, anyErrors, conflict: conflictRef.current })) return;
-    const changes = Object.fromEntries(locales.filter((l) => draft[l] && dirtyFields(savedLocales[l] ?? emptyDraft(), draft[l]).length).map((l) => [l, draft[l]]));
-    setBusy(true); setNotice(null);
     if (!saved) return;
-    const r = await aboutSettingsApi.save(changes, saved);
+    const ids = imgDraft.map((i) => i.id);
+    const edited = locales.filter((l) => draft[l] && (dirtyFields(savedLocales[l] ?? emptyDraft(), draft[l]).length > 0 || metaChanged(savedLocales[l], draft[l], ids)));
+    const changed = edited.length ? edited : locales.filter((l) => draft[l]); // 只改了（共用的）图片列表：列出全部语言
+    setBusy(true); setNotice(null);
+    // 文字 + 图片文字 + 图片列表一起保存（顺序和失败时的处理见 saveAboutWithImages）
+    const r = await saveAboutWithImages({ locales, draft, saved, savedImages: imgSaved, draftImages: imgDraft, api: aboutSettingsApi, putImages: aboutImagesApi.putImages });
     setBusy(false);
-    if (r.ok) { setSaved(r.data); setDraft(structuredClone(r.data.locales)); setNotice({ kind: 'ok', text: T.saved(Object.keys(changes)) }); return; }
+    if (!r.ok && r.images) setImgSaved(r.images);
+    if (r.ok) { setSaved(r.data); setDraft(structuredClone(r.data.locales)); setImgSaved(r.images); setImgDraft(r.images.items); setNotice({ kind: 'ok', text: T.saved(changed) }); return; }
     if (isVersionConflict(r)) {
       // 409：编辑器里的文字原样保留（不清空、不覆盖），保存被禁用；只能点「刷新」→ 确认后读最新内容。绝不拿 409 返回的新版本号自动重交。
       // 冲突前已保存成功的语言只更新「已保存」基线，不动草稿
@@ -135,7 +148,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
     setNotice({ kind: 'err', text: settingsErrorText(r.code) });
   };
 
-  const discard = () => { if (!saved) return; setDraft(structuredClone(saved.locales)); setEpoch((n) => n + 1); };
+  const discard = () => { if (!saved) return; setDraft(structuredClone(saved.locales)); setImgDraft(imgSaved.items); setEpoch((n) => n + 1); };
 
   const applyToggle = async (to: boolean) => {
     setConfirm(null);
@@ -152,8 +165,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const confirmRefresh = async () => {
     if (!step('confirm').reload) return;
     try {
-      const fresh = await aboutSettingsApi.load(locales);
-      setSaved(fresh); setDraft(structuredClone(fresh.locales)); setEpoch((n) => n + 1); setNotice(null);
+      await loadAll(); setEpoch((n) => n + 1); setNotice(null);
       step('reloaded');
     } catch (e) {
       step('reload_failed');
@@ -253,7 +265,8 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
                 <p className="st-hint">{T.statHint}</p>
                 {errors.stats && <p className="st-ferr" role="alert">{errors.stats}</p>}
               </fieldset>
-              {/* 图片列表等 PublicAsset PR（安全审）后另开 PR 接入：JPG / PNG / WebP，单张 ≤ 10 MB（413 file_too_large） */}
+              <AboutImages tab={tab} locales={locales} dir={dir} items={imgDraft} setItems={setImgDraft} savedIds={imgSaved.items.map((i) => i.id)} drafts={draft} disabled={busy}
+                onMeta={(id, f, v) => set('imageMeta', setMeta(d.imageMeta, id, f, v))} />
             </div>
           </section>
 
