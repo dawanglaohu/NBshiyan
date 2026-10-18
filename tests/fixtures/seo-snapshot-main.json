@@ -1,0 +1,670 @@
+{
+  "sitemapRoute": [
+    {
+      "url": "http://localhost:3000/en",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 1,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en",
+          "ru": "http://localhost:3000/ru",
+          "x-default": "http://localhost:3000/en"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 1,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en",
+          "ru": "http://localhost:3000/ru",
+          "x-default": "http://localhost:3000/en"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.9,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products",
+          "ru": "http://localhost:3000/ru/products",
+          "x-default": "http://localhost:3000/en/products"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.9,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products",
+          "ru": "http://localhost:3000/ru/products",
+          "x-default": "http://localhost:3000/en/products"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/contact",
+      "lastModified": "T",
+      "changeFrequency": "monthly",
+      "priority": 0.7,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/contact",
+          "ru": "http://localhost:3000/ru/contact",
+          "x-default": "http://localhost:3000/en/contact"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/contact",
+      "lastModified": "T",
+      "changeFrequency": "monthly",
+      "priority": 0.7,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/contact",
+          "ru": "http://localhost:3000/ru/contact",
+          "x-default": "http://localhost:3000/en/contact"
+        }
+      }
+    }
+  ],
+  "sitemapWithCategories": [
+    {
+      "url": "https://geiom.com/en",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 1,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en",
+          "ru": "https://geiom.com/ru",
+          "x-default": "https://geiom.com/en"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 1,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en",
+          "ru": "https://geiom.com/ru",
+          "x-default": "https://geiom.com/en"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.9,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products",
+          "ru": "https://geiom.com/ru/products",
+          "x-default": "https://geiom.com/en/products"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.9,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products",
+          "ru": "https://geiom.com/ru/products",
+          "x-default": "https://geiom.com/en/products"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/contact",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "monthly",
+      "priority": 0.7,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/contact",
+          "ru": "https://geiom.com/ru/contact",
+          "x-default": "https://geiom.com/en/contact"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/contact",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "monthly",
+      "priority": 0.7,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/contact",
+          "ru": "https://geiom.com/ru/contact",
+          "x-default": "https://geiom.com/en/contact"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-corrugated-boxes",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-corrugated-boxes",
+          "ru": "https://geiom.com/ru/products/gofrokorobki",
+          "x-default": "https://geiom.com/en/products/custom-corrugated-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/gofrokorobki",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-corrugated-boxes",
+          "ru": "https://geiom.com/ru/products/gofrokorobki",
+          "x-default": "https://geiom.com/en/products/custom-corrugated-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-printed-boxes",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-printed-boxes",
+          "ru": "https://geiom.com/ru/products/tsvetnye-korobki",
+          "x-default": "https://geiom.com/en/products/custom-printed-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/tsvetnye-korobki",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-printed-boxes",
+          "ru": "https://geiom.com/ru/products/tsvetnye-korobki",
+          "x-default": "https://geiom.com/en/products/custom-printed-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-gift-boxes",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-gift-boxes",
+          "ru": "https://geiom.com/ru/products/podarochnye-korobki",
+          "x-default": "https://geiom.com/en/products/custom-gift-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/podarochnye-korobki",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-gift-boxes",
+          "ru": "https://geiom.com/ru/products/podarochnye-korobki",
+          "x-default": "https://geiom.com/en/products/custom-gift-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/molded-pulp-packaging",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/molded-pulp-packaging",
+          "ru": "https://geiom.com/ru/products/izdeliya-iz-tsellyulozy",
+          "x-default": "https://geiom.com/en/products/molded-pulp-packaging"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/izdeliya-iz-tsellyulozy",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/molded-pulp-packaging",
+          "ru": "https://geiom.com/ru/products/izdeliya-iz-tsellyulozy",
+          "x-default": "https://geiom.com/en/products/molded-pulp-packaging"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-paper-cups",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-paper-cups",
+          "ru": "https://geiom.com/ru/products/bumazhnye-stakany",
+          "x-default": "https://geiom.com/en/products/custom-paper-cups"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/bumazhnye-stakany",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-paper-cups",
+          "ru": "https://geiom.com/ru/products/bumazhnye-stakany",
+          "x-default": "https://geiom.com/en/products/custom-paper-cups"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-party-supplies",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-party-supplies",
+          "ru": "https://geiom.com/ru/products/tovary-dlya-prazdnikov",
+          "x-default": "https://geiom.com/en/products/custom-party-supplies"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/tovary-dlya-prazdnikov",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-party-supplies",
+          "ru": "https://geiom.com/ru/products/tovary-dlya-prazdnikov",
+          "x-default": "https://geiom.com/en/products/custom-party-supplies"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-wine-boxes",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-wine-boxes",
+          "ru": "https://geiom.com/ru/products/upakovka-dlya-vina",
+          "x-default": "https://geiom.com/en/products/custom-wine-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/upakovka-dlya-vina",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-wine-boxes",
+          "ru": "https://geiom.com/ru/products/upakovka-dlya-vina",
+          "x-default": "https://geiom.com/en/products/custom-wine-boxes"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-color-printing",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-color-printing",
+          "ru": "https://geiom.com/ru/products/tsvetnaya-pechat",
+          "x-default": "https://geiom.com/en/products/custom-color-printing"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/tsvetnaya-pechat",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-color-printing",
+          "ru": "https://geiom.com/ru/products/tsvetnaya-pechat",
+          "x-default": "https://geiom.com/en/products/custom-color-printing"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/offset-printing-services",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/offset-printing-services",
+          "ru": "https://geiom.com/ru/products/ofsetnaya-pechat",
+          "x-default": "https://geiom.com/en/products/offset-printing-services"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/ofsetnaya-pechat",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/offset-printing-services",
+          "ru": "https://geiom.com/ru/products/ofsetnaya-pechat",
+          "x-default": "https://geiom.com/en/products/offset-printing-services"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-gift-cards",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-gift-cards",
+          "ru": "https://geiom.com/ru/products/podarochnye-karty",
+          "x-default": "https://geiom.com/en/products/custom-gift-cards"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/podarochnye-karty",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-gift-cards",
+          "ru": "https://geiom.com/ru/products/podarochnye-karty",
+          "x-default": "https://geiom.com/en/products/custom-gift-cards"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/products/custom-christmas-packaging",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-christmas-packaging",
+          "ru": "https://geiom.com/ru/products/novogodnyaya-upakovka",
+          "x-default": "https://geiom.com/en/products/custom-christmas-packaging"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/products/novogodnyaya-upakovka",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/products/custom-christmas-packaging",
+          "ru": "https://geiom.com/ru/products/novogodnyaya-upakovka",
+          "x-default": "https://geiom.com/en/products/custom-christmas-packaging"
+        }
+      }
+    }
+  ],
+  "cmsEntries": [
+    {
+      "url": "https://geiom.com/en/articles",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.7,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/articles",
+          "ru": "https://geiom.com/ru/articles",
+          "x-default": "https://geiom.com/en/articles"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/articles",
+      "lastModified": "2026-01-01T00:00:00.000Z",
+      "changeFrequency": "weekly",
+      "priority": 0.7,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/articles",
+          "ru": "https://geiom.com/ru/articles",
+          "x-default": "https://geiom.com/en/articles"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/articles/mock-article-packaging-guide",
+      "changeFrequency": "monthly",
+      "priority": 0.6,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/articles/mock-article-packaging-guide",
+          "ru": "https://geiom.com/ru/articles/mock-statya-o-upakovke",
+          "x-default": "https://geiom.com/en/articles/mock-article-packaging-guide"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/articles/mock-statya-o-upakovke",
+      "changeFrequency": "monthly",
+      "priority": 0.6,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/articles/mock-article-packaging-guide",
+          "ru": "https://geiom.com/ru/articles/mock-statya-o-upakovke",
+          "x-default": "https://geiom.com/en/articles/mock-article-packaging-guide"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/en/articles/mock-article-long-title",
+      "changeFrequency": "monthly",
+      "priority": 0.6,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/articles/mock-article-long-title",
+          "ru": "https://geiom.com/ru/articles/mock-statya-dlinnyy-zagolovok",
+          "x-default": "https://geiom.com/en/articles/mock-article-long-title"
+        }
+      }
+    },
+    {
+      "url": "https://geiom.com/ru/articles/mock-statya-dlinnyy-zagolovok",
+      "changeFrequency": "monthly",
+      "priority": 0.6,
+      "alternates": {
+        "languages": {
+          "en": "https://geiom.com/en/articles/mock-article-long-title",
+          "ru": "https://geiom.com/ru/articles/mock-statya-dlinnyy-zagolovok",
+          "x-default": "https://geiom.com/en/articles/mock-article-long-title"
+        }
+      }
+    }
+  ],
+  "hreflang": {
+    "en": {
+      "canonical": "/en",
+      "languages": {
+        "en": "/en",
+        "ru": "/ru",
+        "x-default": "/en"
+      }
+    },
+    "en/products": {
+      "canonical": "/en/products",
+      "languages": {
+        "en": "/en/products",
+        "ru": "/ru/products",
+        "x-default": "/en/products"
+      }
+    },
+    "en/contact": {
+      "canonical": "/en/contact",
+      "languages": {
+        "en": "/en/contact",
+        "ru": "/ru/contact",
+        "x-default": "/en/contact"
+      }
+    },
+    "en/privacy": {
+      "canonical": "/en/privacy",
+      "languages": {
+        "en": "/en/privacy",
+        "ru": "/ru/privacy",
+        "x-default": "/en/privacy"
+      }
+    },
+    "en/solutions": {
+      "canonical": "/en/solutions",
+      "languages": {
+        "en": "/en/solutions",
+        "ru": "/ru/solutions",
+        "x-default": "/en/solutions"
+      }
+    },
+    "en/solutions/color-boxes": {
+      "canonical": "/en/solutions/color-boxes",
+      "languages": {
+        "en": "/en/solutions/color-boxes",
+        "ru": "/ru/solutions/color-boxes",
+        "x-default": "/en/solutions/color-boxes"
+      }
+    },
+    "en/factory": {
+      "canonical": "/en/factory",
+      "languages": {
+        "en": "/en/factory",
+        "ru": "/ru/factory",
+        "x-default": "/en/factory"
+      }
+    },
+    "en/cases": {
+      "canonical": "/en/cases",
+      "languages": {
+        "en": "/en/cases",
+        "ru": "/ru/cases",
+        "x-default": "/en/cases"
+      }
+    },
+    "en/articles": {
+      "canonical": "/en/articles",
+      "languages": {
+        "en": "/en/articles",
+        "ru": "/ru/articles",
+        "x-default": "/en/articles"
+      }
+    },
+    "ru": {
+      "canonical": "/ru",
+      "languages": {
+        "en": "/en",
+        "ru": "/ru",
+        "x-default": "/en"
+      }
+    },
+    "ru/products": {
+      "canonical": "/ru/products",
+      "languages": {
+        "en": "/en/products",
+        "ru": "/ru/products",
+        "x-default": "/en/products"
+      }
+    },
+    "ru/contact": {
+      "canonical": "/ru/contact",
+      "languages": {
+        "en": "/en/contact",
+        "ru": "/ru/contact",
+        "x-default": "/en/contact"
+      }
+    },
+    "ru/privacy": {
+      "canonical": "/ru/privacy",
+      "languages": {
+        "en": "/en/privacy",
+        "ru": "/ru/privacy",
+        "x-default": "/en/privacy"
+      }
+    },
+    "ru/solutions": {
+      "canonical": "/ru/solutions",
+      "languages": {
+        "en": "/en/solutions",
+        "ru": "/ru/solutions",
+        "x-default": "/en/solutions"
+      }
+    },
+    "ru/solutions/color-boxes": {
+      "canonical": "/ru/solutions/color-boxes",
+      "languages": {
+        "en": "/en/solutions/color-boxes",
+        "ru": "/ru/solutions/color-boxes",
+        "x-default": "/en/solutions/color-boxes"
+      }
+    },
+    "ru/factory": {
+      "canonical": "/ru/factory",
+      "languages": {
+        "en": "/en/factory",
+        "ru": "/ru/factory",
+        "x-default": "/en/factory"
+      }
+    },
+    "ru/cases": {
+      "canonical": "/ru/cases",
+      "languages": {
+        "en": "/en/cases",
+        "ru": "/ru/cases",
+        "x-default": "/en/cases"
+      }
+    },
+    "ru/articles": {
+      "canonical": "/ru/articles",
+      "languages": {
+        "en": "/en/articles",
+        "ru": "/ru/articles",
+        "x-default": "/en/articles"
+      }
+    }
+  }
+}

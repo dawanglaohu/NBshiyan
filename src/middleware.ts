@@ -2,7 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 import { PUBLISHED_LOCALES } from './i18n/published-locales';
-import { isBlockedLocalePath } from './lib/edge/locale-gate';
+import { isBlockedLocalePath, LOCALE_GATE_REWRITE } from './lib/edge/locale-gate';
 import { EXPIRED_RE, probeConfig, probeHeaders, probeShortlink, parseShortlink } from './lib/edge/shortlink';
 import { resolveClientIp } from './lib/edge/client-ip';
 import { rewriteSameSiteRedirect } from './lib/edge/redirect-location';
@@ -43,8 +43,8 @@ export default async function middleware(req: NextRequest) {
     if (!sl.locale) return NextResponse.next();
   }
   // 多语言第 0 期：未发布 / 未知 / 非规范写法的语言前缀 → 404 + noindex，不跳转（白名单见 lib/edge/locale-gate.ts）。
-  // rewrite 到 /en/__not-found 渲染站内 404 页（与 next.config 带点路径兜底同一目标），URL 不变，页面安全头照常由 next.config headers() 加上
-  if (isBlockedLocalePath(pathname)) return NextResponse.rewrite(new URL('/en/__not-found', req.url), { status: 404, headers: NOINDEX });
+  // rewrite 到内部路径渲染带头部页脚的英文 404 页，URL 不变；页面安全头照常由 next.config headers() 加上
+  if (isBlockedLocalePath(pathname)) return NextResponse.rewrite(new URL(LOCALE_GATE_REWRITE, req.url), { status: 404, headers: NOINDEX });
   // next-intl 的跳转地址基于 req.url（监听地址）：指向本站的 Location 改成监听 origin + 路径，由路由层输出相对 Location（/en）
   return rewriteSameSiteRedirect(req.nextUrl, intl(req));
 }

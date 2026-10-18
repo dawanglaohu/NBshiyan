@@ -16,7 +16,8 @@ const BLOCKED = [
   '/ja', '/ja/', '/es/products', '/de/contact', '/fr', '/hi/products/x', '/ar', '/ja/s/abcdefghij12', '/es/s/expired', // 预留语言
   '/xx', '/zz/products', '/zh', '/cn', // 未知代码
   '/EN', '/Ru', '/eN/products', '/RU/contact', // 大小写变体
-  '/en-US', '/en-us/products', '/ru-RU', '/en_US', '/zh-Hant-TW' // 地区变体
+  '/en-US', '/en-us/products', '/ru-RU', '/en_US', '/zh-Hant-TW', // 地区变体
+  '/en/__locale-unavailable', '/ru/__locale-unavailable' // 内部 404 路径直接访问也是 404
 ];
 
 test('point 2/5: reserved, unknown, case and region variants → 404 + X-Robots-Tag noindex, no redirect', async () => {
@@ -27,7 +28,7 @@ test('point 2/5: reserved, unknown, case and region variants → 404 + X-Robots-
     assert.equal(res.headers.get('location'), null, `${p} must not redirect`);
     assert.match(res.headers.get('x-robots-tag') ?? '', /noindex/, p);
     // rewrite 到站内 404 页，目标固定，不带任何请求里的路径
-    assert.equal(new URL(rewriteTarget(res)!).pathname, '/en/__not-found', p);
+    assert.equal(new URL(rewriteTarget(res)!).pathname, '/en/__locale-unavailable', p);
   }
 });
 
@@ -83,4 +84,16 @@ test('next-intl detection only picks published locales: / with Accept-Language j
   }
   const ru = await middleware(req('/', { 'accept-language': 'ru-RU,ru;q=0.9' }));
   assert.equal(locPath(ru), '/ru');
+});
+
+test('gate 404 page: English 404 styling, primary button → /en, «Русский» text link, no canonical / hreflang', () => {
+  const page = readFileSync('src/app/[locale]/[...rest]/page.tsx', 'utf8');
+  const view = readFileSync('src/app/[locale]/[...rest]/LocaleUnavailable.tsx', 'utf8');
+  assert.match(page, /robots: \{ index: false, follow: true \}/);
+  assert.doesNotMatch(page + view, /alternates|canonical:/);
+  assert.match(page, /notFound\(\);/); // 其他未匹配路径仍走原来的 not-found.tsx
+  assert.match(view, /className="container nf nf-locale"/);
+  assert.match(view, /<Link className="btn" href="\/" locale=\{DEFAULT_PUBLISHED_LOCALE\}/);
+  assert.match(view, /PUBLISHED_LOCALES\.filter\(\(l\) => l !== DEFAULT_PUBLISHED_LOCALE\)/);
+  assert.match(view, /LOCALE_META\[l\]\.nativeName/);
 });

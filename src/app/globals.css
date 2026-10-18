@@ -336,3 +336,6 @@ header.site .lang-btn:hover{border-color:var(--accent)}
 .lang-check{flex:none}
 @media (max-width:767px){.lang-item{min-height:44px}.lang-list{min-width:200px}}
 @media (prefers-reduced-motion:reduce){.lang-caret{transition:none}}
+/* 多语言第 0 期：未发布语言 404 页的其他语言文字链接 */
+.nf-langs{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0 0}
+.nf-langs a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent-text);font-weight:700;text-decoration:underline;text-underline-offset:3px}
