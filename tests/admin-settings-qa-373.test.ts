@@ -45,7 +45,7 @@ test('P3-1 编辑器链接颜色用 --accent-text', () => {
 });
 
 test('P3-2 冲突期间保存栏：状态文字两行（冲突文案在第二行），保存灰色禁用，放弃修改也禁用（about 和组织信息都一样）', () => {
-  assert.equal(SETTINGS_TEXT.conflictBar, '内容冲突，刷新后才能保存');
+  assert.equal(SETTINGS_TEXT.conflictBar, '内容冲突，请在上方提示条中刷新');
   for (const f of ['AboutSettings.tsx', 'OrgSettings.tsx']) {
     const src = readFileSync(`src/components/admin/settings/${f}`, 'utf8');
     assert.match(src, /className="st-bar-msg"/, f);
