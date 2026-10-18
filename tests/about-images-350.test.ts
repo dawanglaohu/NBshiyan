@@ -327,8 +327,11 @@ test('后台组件：替代文字必填、按语言；上传区常驻规则文�
   const src = read('../src/components/admin/settings/AboutImages.tsx');
   const lib = read('../src/lib/admin/about-images.ts');
   for (const s of ['JPG / PNG / WebP，单张 ≤ 10 MB', '删除后，旧的图片链接可能仍能访问一段时间', '图片较小，大屏上可能不够清晰', '描述图片内容，≤125 字', '≤80 字，显示在图片下方']) assert.ok(lib.includes(s), s);
-  assert.match(src, /role="alertdialog"/);
-  assert.match(src, /adm-btn primary danger/);
+  // 删除确认用 #375 共用的 ConfirmDialog（role=alertdialog、焦点在「取消」、danger = 红色按钮）
+  assert.match(src, /<ConfirmDialog title=\{T\.deleteTitle\} confirmLabel=\{T\.delete\} danger onCancel=\{closeConfirm\} onConfirm=\{doDelete\}>/);
+  assert.doesNotMatch(src, /function DeleteDialog/);
+  const dlg = read('../src/components/admin/settings/ConfirmDialog.tsx');
+  assert.match(dlg, /role="alertdialog"/); assert.match(dlg, /primary\$\{danger \? ' danger' : ''\}/);
   assert.match(src, /savedIds\.includes\(id\)\) \{ setAssetErr/);
   assert.match(src, /accept=\{ACCEPT\}/);
   assert.match(read('../src/components/admin/settings/AboutSettings.tsx'), /<AboutImages /);
