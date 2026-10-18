@@ -100,6 +100,25 @@ script reads the first line of stdin. With `APP_ENV=production`, `ADMIN_CREATE_P
 `pnpm admin:seed` (the old create-admin with the `PROD_DATABASE_HOST` guard) is CI/local only: never run seed on the server. After creating the
 account, log in at `/admin` and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
 
+## Reset the initial password of an unbound ADMIN (queue ②, until #347's one-time enroll token ships)
+For an ADMIN who has **not** bound 2FA yet (lost initial password, or stuck half-way through enroll). Run it on the
+server, as Ryan or with Ryan at the keyboard; it ships in the image like admin-create. The new password comes only from a
+**hidden prompt** (typed twice) or the first line of stdin. Arguments that look like a password are refused;
+`ADMIN_RESET_PASSWORD` / `ADMIN_CREATE_PASSWORD` are deleted at start-up and never read. Never post the password in a group chat.
+```sh
+DC="docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file $NBSHIYAN_COMPOSE_ENV"
+$DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin email>            # or --id <user id>
+$DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin email> --clear-pending-enroll
+```
+- Refused (exit 3, nothing changed): not found, role is not ADMIN, account disabled, **2FA already enabled (no flag bypasses this)**.
+- A pending enroll (pending secret, cooldown, wrong-code count, `enrollIssuedAt` set) or a closed 72 h enroll window is refused
+  unless `--clear-pending-enroll` is given; the flag clears the pending state and reopens the 72 h window (same fields as an ADMIN 2FA reset).
+- One transaction: new argon2id hash (same parameters as login), all sessions revoked (`sessionVersion`+1), lockout cleared,
+  audit `user.password_reset` (+ `user.pending_enroll_cleared`) with actor `cli` and the user id only (no password, hash, secret or email).
+- After commit it deletes only the `login-acct:<hash>` rate-limit key of the current window (Upstash only; computed by name, no SCAN/KEYS).
+  Per-IP buckets (`login-ip`, `login:<ip>:<e>`, `enroll-confirm:<ip>:<e>`) are left alone and expire within 10 minutes.
+- Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments, 3 refused. Output shows the user id only.
+
 ## 2FA audit (deploy gate for #361, before `deploy.sh up`)
 #361 closes the 2FA enroll window 72 h after `enrollIssuedAt` (set by an ADMIN 2FA reset) or, if empty, `createdAt`.
 An ADMIN still unbound after that can no longer enroll and needs another ADMIN to reset 2FA. Before promoting a candidate
