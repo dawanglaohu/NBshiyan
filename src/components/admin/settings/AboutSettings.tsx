@@ -135,7 +135,7 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const errors: AboutFieldErrors = { ...clientErr, ...serverErr }; // 后端字段错误优先盖住前端检查
   const anyErrors = locales.some((l) => Object.keys(draftErrors(draft[l] ?? emptyDraft())).length > 0) || anyImageErrors(draft, locales, imgDraft.map((i) => i.id)); // 后端字段错误不挡再保存（同组织信息）
   const dir: 'ltr' | 'rtl' = tab === 'ar' ? 'rtl' : 'ltr';
-  // UX #379 P3 ③：缺替代文字挡住保存时，保存栏第二行写明原因
+  // UX #379 P3 ③：缺替代文字挡住保存时，底部保存条第二行写明原因
   const missingAlt = missingAltImages(draft, locales, imgDraft.map((i) => i.id));
 
   // 离开页面提醒（路由内跳转由浏览器 beforeunload 覆盖刷新 / 关闭；后台内链接切换另见 TODO）
