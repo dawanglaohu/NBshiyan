@@ -1,6 +1,6 @@
 import type { AdminApi, AdminUser, AdminUsersResponse, InquiryDetail, InquiryStatus, InquirySummary } from './types';
 import { REVIEW_THRESHOLD, STATUS_LABEL, usersFromResponse } from './types';
-import { historyPageFrom, HISTORY_MAX_LIMIT, HISTORY_PAGE_SIZE, type HistoryItem, type HistoryType } from './history';
+import { historyPageFrom, HISTORY_MAX_LIMIT, HISTORY_PAGE_SIZE, type ActorKind, type HistoryItem, type HistoryType } from './history';
 
 // 示例数据，仅用于后台页面开发；接入真实接口后不再使用
 const users: AdminUser[] = [{ id: 'u1', name: '业务员 A', email: 'sales-a@packjoyu.example', role: 'SALES' }, { id: 'u2', name: '业务员 B', email: 'sales-b@packjoyu.example', role: 'SALES' }];
@@ -17,7 +17,13 @@ type Row = InquiryDetail & { history: HistoryItem[] };
 const ME = { name: '我', role: 'ADMIN' };
 const ADMIN = { name: '管理员', role: 'ADMIN' };
 let seq = 0;
-const ev = (type: HistoryType, at: string, actor: HistoryItem['actor'], summary: string): HistoryItem => ({ type, at, actor, summary, cursor: `mock-${++seq}` });
+/** 与 #362 一致：actor 为 null 时 actorKind 默认 system；客户条目用 cust()，已删除账号用 GONE */
+const ev = (type: HistoryType, at: string, actor: HistoryItem['actor'], summary: string, actorKind: ActorKind = actor ? (actor.role === null ? 'customer' : 'user') : 'system'): HistoryItem =>
+  ({ type, at, actorKind, actor, summary, cursor: `mock-${++seq}` });
+const cust = (name: string) => ({ name, role: null });
+const GONE = 'deleted_user' as const;
+
+const CONTACT_NAMES = ['Anna Weber', 'Иван Петров', 'J. Smith', 'Sam Lee', 'Lena Berg', 'Paul Martin'];
 
 function make(i: number): Row {
   const [company, region, email] = COMPANIES[i % COMPANIES.length];
@@ -30,7 +36,7 @@ function make(i: number): Row {
   return {
     id: `inq_${i + 1}`, ref: `PJ-2610-${(1_234_567 + i * 7919).toString(36).toUpperCase().slice(-6)}`,
     status, source: (['WIZARD', 'FORM', 'CART', 'CUSTOMIZER', 'SAMPLE'] as const)[i % 5], locale,
-    contact: { name: ['Anna Weber', 'Иван Петров', 'J. Smith', 'Sam Lee', 'Lena Berg', 'Paul Martin'][i % 6], email, company: company || undefined, phone: i % 2 ? '+49 30 1234567' : undefined, region },
+    contact: { name: CONTACT_NAMES[i % 6], email, company: company || undefined, phone: i % 2 ? '+49 30 1234567' : undefined, region },
     products: [{ productSlug: slug, quantity: 5000 * ((i % 3) + 1) }, ...(i % 4 === 0 ? [{ productSlug: 'gift-boxes', quantity: 2000 }] : [])],
     trustScore: score, assignee, createdAt,
     message: locale === 'ru' ? 'Здравствуйте! Нужны коробки с логотипом, тираж 5000. Срок — 4 недели.' : 'Hi, we need custom printed boxes with our logo, 5,000 pcs. See https://acme.example/brand for brand colors.',
@@ -48,10 +54,12 @@ function make(i: number): Row {
     attachments: i % 3 === 0 ? [{ id: 'a1', kind: 'file', filename: 'artwork-v2.png', mime: 'image/png', sizeBytes: 1_258_291, scan: 'clean' }] : [],
     logoUploadId: i % 2 === 0 ? `mockLogo${String(i).padStart(16, '0')}` : undefined,
     history: [
-      ev('created', createdAt, null, `客户提交询盘（${(['WIZARD', 'FORM', 'CART', 'CUSTOMIZER', 'SAMPLE'] as const)[i % 5]}）`),
-      ev('inbound', createdAt, null, '收到客户来信：首次询盘'),
+      ev('created', createdAt, cust(CONTACT_NAMES[i % 6]), `客户提交询盘（${(['WIZARD', 'FORM', 'CART', 'CUSTOMIZER', 'SAMPLE'] as const)[i % 5]}）`),
+      ev('inbound', createdAt, cust(CONTACT_NAMES[i % 6]), '收到客户来信：首次询盘'),
       ...(assignee ? [ev('assignment', ago(8 + i * 350), ADMIN, `分配给 ${assignee.name}`)] : []),
       ...(status !== 'NEW' ? [ev('reply', ago(5 + i * 300), assignee ? { name: assignee.name, role: assignee.role } : null, '已回复客户：Re: Quote')] : []),
+      // 第 3 条示例询盘：一条操作人账号已删除的状态变更
+      ...(i === 2 ? [ev('status', ago(7 + i * 320), null, '状态：新询盘 → 跟进中', GONE)] : []),
       // 第 2 条示例询盘有 14 条状态往返，用来看「加载更早记录（剩 N 条）」
       ...(i === 1 ? Array.from({ length: 14 }, (_, k) => ev('status', ago(6 + k * 3), ADMIN, k % 2 ? '状态：新询盘 → 跟进中' : '状态：跟进中 → 新询盘')) : [])
     ]
@@ -66,7 +74,7 @@ function makeAnonymized(): Row {
     contact: { name: '[deleted]', email: 'deleted+k3j9q2x7@invalid.invalid', company: '[deleted]', phone: undefined, region: 'DE' }, ipCountry: null,
     message: undefined, attribution: undefined, trustReasons: [], logoUploadId: undefined, attachments: [], notes: [{ id: 'n1', author: '业务员 A', body: '[deleted]', createdAt: ago(60 * 24 * 700) }],
     messages: [{ id: 'm1', direction: 'INBOUND', subject: '[deleted]', bodyHtml: '[deleted]', createdAt: ago(60 * 24 * 760) }],
-    history: [ev('created', ago(60 * 24 * 760), null, '客户提交询盘（FORM）'), ev('inbound', ago(60 * 24 * 760), null, '收到客户来信：[deleted]')],
+    history: [ev('created', ago(60 * 24 * 760), cust('[deleted]'), '客户提交询盘（FORM）'), ev('inbound', ago(60 * 24 * 760), cust('[deleted]'), '收到客户来信：[deleted]')],
   };
 }
 const db: Row[] = [...Array.from({ length: 23 }, (_, i) => make(i)), makeAnonymized()];

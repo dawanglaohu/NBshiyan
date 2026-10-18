@@ -89,12 +89,16 @@
 - 创建账号：`ADMIN_SEED_EMAIL=… ADMIN_SEED_NAME=… ADMIN_SEED_PASSWORD=… [ADMIN_SEED_ROLE=SALES] pnpm admin:seed`（测试 / 本地 / CI；密码 ≥12 位，argon2id 哈希；凭据只走环境变量）。
 - 生产首个管理员：`node scripts/admin-create.mjs --email … [--name …]`（`pnpm admin:create`；镜像里 `docker compose exec app node scripts/admin-create.mjs …`）。密码只从终端（不回显）或标准输入读，不进命令行参数；`ADMIN_CREATE_PASSWORD` 只给 CI 用，`APP_ENV=production` 时拒绝；已有管理员时需 `--allow-additional-admin`；邮箱已存在直接失败；写一条 `user.create` 审计（不含密码）。
 - 绑定 2FA（账号未开 2FA 前不能登录，两步都要同源 `Origin`；接口在 `/api/auth-admin/` 下，不在 `/api/admin/` 下，因为这是登录前流程）：
-  1. `POST /api/auth-admin/enroll` `{ email, password }` → `{ otpauthUri }`（每次调用换新密钥；已开启的账号返回 401）。
-  2. `POST /api/auth-admin/enroll/confirm` `{ email, password, totp }` → `{ recoveryCodes: [10 个] }`，只返回这一次，服务端只存哈希。
+  1. `POST /api/auth-admin/enroll` `{ email, password }` → `{ otpauthUri }`。已开启的账号返回 401 `bad_credentials`。待确认密钥 10 分钟内有效，有效期内再调返回 429 `rate_limited`（不会覆盖正在扫的密钥），过期后再调换新密钥、旧的作废（#347）。
+  2. `POST /api/auth-admin/enroll/confirm` `{ email, password, totp }` → `{ recoveryCodes: [10 个] }`，只返回这一次，服务端只存哈希。码错 401 `bad_totp`；待确认密钥已过期 401 `bad_totp`（需重新 enroll）。
+  - 绑定窗口（#347）：账号创建（或最近一次重置 2FA）起 72 小时内才能 enroll/confirm，过期返回 401 `bad_credentials`，需 ADMIN 重置 2FA（`POST /api/admin/users/:id/reset-2fa`）重新打开窗口。
+  - 按账号的错码上限（#348）：只统计密码正确、6 位码错的 confirm（不管 IP）。同一个待确认密钥错满 5 次即作废，返回 401 `enroll_reset`（之后 confirm 也返回 `enroll_reset`，直到重新 enroll）；作废后冷却 10 分钟，期间 enroll 返回 429 `rate_limited`。密码错的请求不计入、不作废密钥（仍按下面的登录防爆破处理）。绑定成功或发新密钥时清零。
+  - `bad_totp` / `rate_limited` / `enroll_reset` 这几种区分只有密码正确才看得到；密码错或账号不存在一律 401 `bad_credentials`。
+  - 两个接口各自另有按 IP 的限流：每 IP 10 分钟 20 次（在同源检查之后、解析请求体之前），超限 429 `rate_limited`。
 - 登录：Auth.js 标准流程，`GET /api/auth/csrf` 取 token，再 `POST /api/auth/callback/credentials`（表单字段 `csrfToken, email, password, totp` 或 `recoveryCode`）。任何一步失败统一返回 `CredentialsSignin`，不区分原因。
 - 会话：JWT，2 小时有效；cookie HttpOnly、SameSite=Lax，生产强制 Secure（`__Secure-` 前缀）。每次请求核对 `User.sessionVersion`、禁用、2FA 状态，不一致即失效（改密码/重置 2FA 时调用 `revokeSessions()`）。
 - 防爆破：10 分钟内 IP+账号 5 次、单账号 10 次、单 IP 30 次；同一账号连续 5 次失败锁定 15 分钟。TOTP 同一时间步只能用一次，恢复码用后作废。
-- 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enabled`，不记密码、验证码、token。
+- 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enroll_blocked(reason: pending|cooldown|window_expired) / auth.totp_enroll_fail / auth.totp_enroll_voided / auth.totp_enabled`，不记密码、验证码、密钥、token，邮箱只记 HMAC。
 
 ## 后台接口（`/api/admin/*`）
 每个路由先调用 `requireAdmin(req, roles)`（`src/lib/server/auth.ts`，只管登录、会话、角色）：未登录（或锁定、会话失效、未开 2FA）401 `unauthorized`，账号已停用 403 `account_disabled`（与未登录区分，重新登录也无效），角色不符 403 `forbidden`。后台页面用同一规则（`checkAdminSession`）。之后改动类请求调用 `assertSameOrigin(req)`（`Origin` 必须等于请求 origin 或 `APP_ORIGIN`，否则 403 `forbidden_origin`；生产必须设置 `APP_ORIGIN` = `NEXT_PUBLIC_SITE_URL` 的 origin，standalone 下请求 origin 是监听地址），所有请求调用 `await enforceAdminRateLimit(req, key)`（按接口+IP，默认每分钟 120 次，超限 429 `rate_limited`）。CI 的 `check-admin-guard` 会检查每个路由都调了鉴权。响应都带 `Cache-Control: private, no-store`；每个操作写 AuditLog（只记 id、状态变化，不记邮件正文和搜索词）。
@@ -113,7 +117,8 @@
   - `assignee`：`me` | `none`（未分配）| 用户 id。SALES 无论传什么都只看到自己的
   - `items[]`：`{ id, ref, status, source, locale, trustScore, ipCountry, createdAt, assigneeId, contact: { name, email, company, region }, _count: { items, messages } }`。参数非法返回 400 `invalid`。
 - `GET /api/admin/inquiries/:id` → 询盘全部字段（不含 `replyToken`）+ `contact, items, messages, notes, sample, assignee, logoUploads: [{ id, width, height, bytes, createdAt }]`，以及 `anonymizedAt`、`logoUploadId`（第一个 logo 的 id，没有为 `null`）、`canRevealAddress`。
-- `GET /api/admin/inquiries/:id/history?limit=10&before=<cursor>` → `{ items: [{ type: created|status|assignment|reply|inbound, at, actor: { name, role } | null, summary, cursor }], total }`。新的在前；`limit` 默认 10、最多 50；下一页把最后一条的 `cursor` 传给 `before`，非法游标 400 `bad_cursor`。数据来自询盘创建时间、审计里的状态/分配变更和往来邮件记录；`summary` 里的邮件主题截到 80 字，出现的收货地址片段（街道、城市、州、邮编）替换成 `***`；不含正文、附件、IP 和用户 id。SALES 只能看分配给自己的询盘，但能看到该询盘的完整时间线（包括分配前的记录）。
+- `GET /api/admin/inquiries/:id/history?limit=10&before=<cursor>` → `{ items: [{ type: created|status|assignment|reply|inbound, at, actorKind: customer|user|deleted_user|system, actor: { name, role } | { name, role: null } | null, summary, cursor }], total }`。新的在前；`limit` 默认 10、最多 50；下一页把最后一条的 `cursor` 传给 `before`，非法游标 400 `bad_cursor`（游标格式不变，新表记录的 key 前缀是 `mm:`）。数据来自询盘创建时间、审计里的状态/分配变更、旧表 `InquiryMessage` 和 #74 新表 `MailMessage`（只取 QUEUED/SENDING/SENT/FAILED/RECEIVED；出站按状态写「已回复客户 / 回复客户（发送失败）/（排队待发）/（发送中）」）。`actorKind`：创建和来信是 `customer`（`actor = { name: 客户名, role: null }`）；现有账号 `user`（`{ name, role }`）；账号已删除 `deleted_user`（`actor: null`）；没有操作人的自动操作 `system`（`actor: null`）。邮件主题和客户名按 §18 转纯文本（去标签、去控制/双向字符），邮箱换成 `***@***`、收货地址片段（街道、城市、州、邮编）换成 `***`，截到 80 字；询盘已匿名化时客户名和主题都是 `[deleted]`。不含正文、附件、对方邮箱、Message-ID、IP 和用户 id；新旧两表之间没有关联字段，不去重。SALES 只能看分配给自己的询盘，但能看到该询盘的完整时间线（包括分配前的记录）。
+- `POST /api/admin/inquiries/:id/mail`、`POST /api/admin/mail/:id/retry` 成功 201 → `{ id, status: "SENT", sentAt, retryCount, maxRetries }`（#344：不再返回 `messageId`）。
 - `GET /api/admin/uploads/:id` → logo 图片（PNG）。`Content-Disposition: inline`、`X-Content-Type-Options: nosniff`、`Cache-Control: private, no-store`，带会话 cookie 直接用作 `<img src>`。ADMIN 都能看；SALES 只能看分配给自己的询盘上的 logo，其他一律 404。
 - `PATCH /api/admin/inquiries/:id` `{ status?, assigneeId? }`（`assigneeId` 仅 ADMIN，可为 `null`）→ `{ id, status, assigneeId, updatedAt }`。询盘已匿名化返回 409 `anonymized`；`status` 有变化时 `retainUntil` 顺延到 now + `INQUIRY_RETAIN_DAYS`。
 - `POST /api/admin/inquiries/:id/reply` `{ subject ≤200, body ≤20000 纯文本 }` → 201 新的 `InquiryMessage`。正文全部转义、换行转 `<br>`，主题去换行；配置 `REPLY_DOMAIN` 后 Reply-To 为 `reply+<token>@域名`。发信失败返回 502 `mail_failed`，不入库。询盘已匿名化返回 409 `anonymized`（不发信）；成功时 `retainUntil` 顺延到 now + `INQUIRY_RETAIN_DAYS`。
@@ -131,7 +136,7 @@
 - `GET /api/admin/users?all=1` → `{ items: [{ id, email, name, role, disabled, totpEnabled, locked, createdAt }] }`（不带 `all` 时是分配下拉框用的精简列表，见上）。
 - `POST /api/admin/users` `{ email, name, role: ADMIN|SALES|EDITOR, password }` → 201。新账号需先绑定 2FA 才能登录。409 `email_taken`，422 `weak_password`。
 - `PATCH /api/admin/users/:id` `{ role?, disabled?, name?, unlock?: true }` → 用户对象。停用或改为 EDITOR 时取消其名下询盘的分配。
-- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码；对方需重新绑定。
+- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码，或新账号 72 小时内没绑定（绑定窗口过期）；重新打开 72 小时绑定窗口，对方需重新绑定。
 - `DELETE /api/admin/users/:id` → 204。名下询盘取消分配；审计记录保留。
 - 保护规则：不能修改/停用/删除/重置自己（409 `cannot_modify_self`，自己用上面的自助接口）；不能让系统里没有有效管理员（role=ADMIN 且未停用），否则 409 `last_admin`。账号变更在事务里用 advisory lock 串行执行，防止两个管理员同时互相停用。
 

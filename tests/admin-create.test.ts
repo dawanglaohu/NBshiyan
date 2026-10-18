@@ -105,7 +105,7 @@ test('只有 CLI，没有 HTTP 建首个管理员的接口；审计不含密码�
   assert.doesNotMatch(src.slice(src.indexOf('auditLog.create'), src.indexOf('auditLog.create') + 200), /password|passwordHash|email/i);
   assert.doesNotMatch(src, /console\.(log|error)\([^)]*password/i);
   assert.ok(!existsSync('src/app/api/admin/bootstrap') && !existsSync('src/app/api/setup'));
-  assert.match(readFileSync('next.config.ts', 'utf8'), /outputFileTracingIncludes: \{ '\/api\/health': \['\.\/scripts\/admin-create\.mjs', '\.\/scripts\/admin-create-lib\.mjs'\] \}/);
+  assert.match(readFileSync('next.config.ts', 'utf8'), /outputFileTracingIncludes: \{ '\/api\/health': \['\.\/scripts\/admin-create\.mjs', '\.\/scripts\/admin-create-lib\.mjs'[^\]]*\] \}/);
   assert.equal(JSON.parse(readFileSync('package.json', 'utf8')).scripts['admin:create'], 'node scripts/admin-create.mjs');
 });
 

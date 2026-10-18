@@ -194,19 +194,33 @@ Ryan 操作：
 
 自建部署后在服务器上执行 `docker compose exec app node scripts/admin-create.mjs --email <邮箱> --name "<显示名>"`（等同 `pnpm admin:create`），密码在终端交互输入、不回显；没有终端时只从标准输入读取。密码绝不放在命令行参数或环境变量里（生产下脚本会拒绝环境变量方式）。已有管理员时需显式 `--allow-additional-admin`；邮箱已存在直接失败。只有命令行，没有 HTTP 接口。建好后登录后台立即绑定 2FA。详见 launch-runbook.md 第 4.3 节。`pnpm admin:seed`（旧的环境变量建号脚本）只用于测试 / 本地 / CI。
 
+### 7.1 部署 #361 前：统计未绑定 2FA 的 ADMIN
+
+#361 上线后，绑定窗口从 `enrollIssuedAt`（重置 2FA 时写入）或 `createdAt` 起算 72 小时，过了就不能再自己绑定，只能由另一个 ADMIN 重置 2FA。部署前用镜像里自带的只读脚本统计（规则与 `src/lib/server/admin/enroll-guard.ts` 相同）：
+
+```sh
+APP_TAG=candidate docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file $NBSHIYAN_COMPOSE_ENV run --rm -T --no-deps app node scripts/admin-2fa-audit.mjs
+```
+
+- 用 candidate 镜像跑一次性容器（当前线上镜像里还没有这个脚本）；用应用自己的 `DATABASE_URL` 和 `@prisma/client`，不开端口，不接受任何参数。只调用 `count`，不写库。
+- 输出恰好两行，只有数字：`admins=<n>`（未停用的 ADMIN 数）、`unbound_over_72h=<n>`（其中未绑定 2FA 且窗口已过的数）。不输出邮箱、id、名字。
+- #361 的 db push 之前库里还没有 `enrollIssuedAt` 列，脚本自动只按 `createdAt` 统计，结果与部署后一致。
+- 出错时 stderr 只有 `error=audit_failed`，退出码 1；带参数时 `error=no_args_accepted`，退出码 2。
+- 只报两个数字。如果 `unbound_over_72h` 大于 0 且等于 `admins`，先绑定 2FA 再部署（或部署后马上由另一个 ADMIN 重置）。详见 deploy/README.md「2FA audit」。
+
 ## 8. CSP 说明（Tawk.to 等第三方）
 
 当前 `security-headers.ts` 已放行 Tawk.to 和 Turnstile 所需的最小范围，**无需再加**：
 
-- `script-src`: `https://embed.tawk.to https://*.tawk.to https://challenges.cloudflare.com`
+- `script-src`: `https://embed.tawk.to https://*.tawk.to https://challenges.cloudflare.com https://static.cloudflareinsights.com`（#346，CF Web Analytics）
 - `style-src`: `https://*.tawk.to`
 - `font-src`: `https://*.tawk.to`
-- `connect-src`: `https://*.tawk.to wss://*.tawk.to`
+- `connect-src`: `https://*.tawk.to wss://*.tawk.to https://cloudflareinsights.com`（#346）
 - `frame-src`: `https://*.tawk.to https://challenges.cloudflare.com`
 
 上传文件存服务器本地磁盘，只经本站接口（同源，`'self'`）提供，这些接口自己返回 `default-src 'none'; sandbox`（全站 CSP 对它们排除）；可选的 R2 驱动也是服务器端签名请求，浏览器不直连。Upstash 只在服务器端调用；发信是服务器经 Gmail SMTP 发出，收信走 Cloudflare Email Routing，浏览器都不直连，**都不需要加进 CSP**。
 
-`security-headers.ts` 的 `connect-src` 里现有的 `https://*.r2.dev` 和 `https://*.vercel-insights.com` 在当前方案下都用不到（不开 R2 公开地址；自建部署没有 Vercel Analytics，仓库也没有引用它），后续单独提交去掉（改的是 src，不在文档提交里做）。Tawk.to 只在用户同意 Cookie 后加载。
+`https://*.r2.dev` 和 `https://*.vercel-insights.com` 已在 #346 从 `connect-src` 去掉（不开 R2 公开地址；自建部署没有 Vercel Analytics）。Tawk.to 只在用户同意 Cookie 后加载。
 
 ## 9. 上线验收
 
