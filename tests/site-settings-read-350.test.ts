@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createSiteSettingsReader, DEFAULT_ORGANIZATION, PUBLIC_SETTING_KEYS } from '../src/lib/server/site-settings';
+import { createSiteSettingsReader, PUBLIC_SETTING_KEYS } from '../src/lib/server/site-settings';
 import { SITE_URL } from '../src/lib/site';
 
 // #350 前台读取：开关 / 完整内容 / 已发布语言过滤 / 读出再净化 / 缓存标签
@@ -37,7 +37,7 @@ test('只认已发布语言：预留语言（ja/es…）即使库里有内容也
   const r = reader({ 'about.enabled': true, 'about.ja': about(), 'about.es': about(), 'about.ru': about() });
   assert.equal(await r.getAboutContent('ja' as never), null);
   assert.deepEqual(await r.getPublishedAboutLocales(), ['ru']);
-  assert.deepEqual(PUBLIC_SETTING_KEYS, ['about.enabled', 'about.en', 'about.ru']);
+  assert.deepEqual(PUBLIC_SETTING_KEYS, ['about.enabled', 'about.en', 'about.ru', 'site.organization']);
 });
 
 test('读出时再净化：库里被改坏的正文和纯文本字段也不会带出脚本、事件属性或危险链接', async () => {
@@ -62,22 +62,41 @@ test('读库失败按关闭处理（null / []），不抛错', async () => {
   assert.ok(!JSON.stringify(errs).includes('secret-host'));
 });
 
-test('getOrganizationSettings：后台没有设置时返回现在 JSON-LD 写死的值，不编任何数字', async () => {
-  const o = await reader({}).getOrganizationSettings();
-  assert.deepEqual(o, { name: 'PackJoyU', url: SITE_URL, description: DEFAULT_ORGANIZATION.description, sameAs: [] });
-  const jsonLd = readFileSync('src/components/seo/OrganizationJsonLd.tsx', 'utf8');
-  assert.ok(jsonLd.includes(`name: '${o.name}'`) && jsonLd.includes(`description: '${o.description}'`));
-  assert.ok(!/\d/.test(o.description ?? ''));
+test('getOrganizationSettings：后台没设置时只有 name（站点名）+ url + sameAs []，没有任何默认文案', async () => {
+  assert.deepEqual(await reader({}).getOrganizationSettings(), { name: 'PackJoyU', url: SITE_URL, sameAs: [] });
+  const src = readFileSync('src/lib/server/site-settings.ts', 'utf8') + readFileSync('src/lib/server/site-settings-model.ts', 'utf8');
+  assert.ok(!src.includes('保乐优') && !/supplier|manufacturer/i.test(src), '默认值在 SEO 的 organization-defaults.ts，不在后端');
+});
+
+test('getOrganizationSettings：只返回后台存了的字段；读出时再校验，不合格字段丢掉', async () => {
+  const o = await reader({ 'site.organization': {
+    version: 3, name: 'PackJoyU Ltd', alternateName: '<b>保乐优</b>', description: 'Custom packaging', legalName: '', email: 'not-an-email',
+    telephone: '+86 755 0000 0000', address: 'Line 1\nLine 2', foundingDate: '2999', logo: 'javascript:alert(1)',
+    sameAs: ['https://www.linkedin.com/company/x', 'http://insecure.example', 'https://www.linkedin.com/company/x'], capacity: '999', updatedBy: 'u1',
+  } }).getOrganizationSettings();
+  assert.deepEqual(o, {
+    name: 'PackJoyU Ltd', url: SITE_URL, sameAs: ['https://www.linkedin.com/company/x'],
+    alternateName: '保乐优', description: 'Custom packaging', telephone: '+86 755 0000 0000', address: 'Line 1 Line 2',
+  });
+  assert.ok(!('capacity' in o) && !('version' in o) && !('updatedBy' in o));
+  const full = await reader({ 'site.organization': { email: 'hi@example.com', foundingDate: '2015-03-01', logo: '/brand/logo.png', legalName: 'X Co.' } }).getOrganizationSettings();
+  assert.deepEqual(full, { name: 'PackJoyU', url: SITE_URL, sameAs: [], email: 'hi@example.com', foundingDate: '2015-03-01', logo: '/brand/logo.png', legalName: 'X Co.' });
+});
+
+test('getOrganizationSettings：读库失败时降级为 name + url，不抛错', async () => {
+  const r = createSiteSettingsReader(async () => { throw new Error('boom'); });
+  const orig = console.error; console.error = () => {};
+  try { assert.deepEqual(await r.getOrganizationSettings(), { name: 'PackJoyU', url: SITE_URL, sameAs: [] }); } finally { console.error = orig; }
 });
 
 test('缓存：三个函数都走 unstable_cache，标签 site-settings，revalidate 60；签名和交接一致', () => {
   const src = readFileSync('src/lib/server/site-settings.ts', 'utf8');
-  assert.equal(src.match(/unstable_cache\(/g)?.length, 2);
-  assert.equal(src.match(/\{ tags: \[SITE_SETTINGS_TAG\], revalidate: 60 \}/g)?.length, 2);
-  assert.match(src, /createSiteSettingsReader\(loadPublicSettingsCached, loadOrganizationCached\)/);
+  assert.equal(src.match(/unstable_cache\(/g)?.length, 1);
+  assert.equal(src.match(/\{ tags: \[SITE_SETTINGS_TAG\], revalidate: 60 \}/g)?.length, 1);
+  assert.match(src, /createSiteSettingsReader\(loadPublicSettingsCached\)/);
   assert.match(src, /export function getAboutContent\(locale: PublishedLocale\): Promise<AboutContent \| null>/);
   assert.match(src, /export function getPublishedAboutLocales\(\): Promise<PublishedLocale\[\]>/);
   assert.match(src, /export function getOrganizationSettings\(\): Promise<OrganizationSettings>/);
-  assert.match(src, /export type OrganizationSettings = \{ name: string; url: string; logo\?: string; description\?: string; sameAs: string\[\] \}/);
+  assert.match(src, /name: string; url: string; logo\?: string; description\?: string; sameAs: string\[\];\n  alternateName\?: string; legalName\?: string; email\?: string; telephone\?: string; address\?: string; foundingDate\?: string;/);
   assert.match(readFileSync('src/lib/server/site-settings-model.ts', 'utf8'), /SITE_SETTINGS_TAG = 'site-settings'/);
 });

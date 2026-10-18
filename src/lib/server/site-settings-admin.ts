@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Prisma, type Role, type User } from '@prisma/client';
 import { routing } from '@/i18n/routing';
-import { aboutHtmlToText, cleanPlainText, sanitizeAboutHtml } from './sanitize-about';
+import { cleanPlainText, sanitizeAboutHtml } from './sanitize-about';
+import { aboutBodyText, countChars } from '@/lib/site-settings/about-rules';
 import {
   ABOUT_ENABLED_KEY, ABOUT_LIMITS as L, IMAGE_ID_RE, aboutKey, parseStoredAbout, parseStoredEnabled, storedVersion,
-  type StoredAbout, type StoredEnabled,
+  ORGANIZATION_KEY, ORG_LIMITS as OL, ORG_TEXT_FIELDS, ORG_TELEPHONE_RE, isValidFoundingDate, parseStoredOrganization, safeOrgUrl,
+  type StoredAbout, type StoredEnabled, type OrganizationFields, type StoredOrganization,
 } from './site-settings-model';
 
 /**
@@ -16,6 +18,7 @@ export const SITE_SETTINGS_ROLES: Role[] = ['ADMIN']; // SALES / EDITOR 403
 export const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 export const AUDIT_ABOUT_UPDATE = 'site.about.update';
 export const AUDIT_ABOUT_VISIBILITY = 'site.about.visibility';
+export const AUDIT_ORGANIZATION_UPDATE = 'site.organization.update';
 export const MAX_BODY_BYTES = 64 * 1024;
 
 const err = (error: string, status: number, extra: Record<string, unknown> = {}) => NextResponse.json({ error, ...extra }, { status, headers: NO_STORE });
@@ -24,7 +27,8 @@ const invalid = (issues: { path: string; message: string }[]) => err('invalid', 
 export const isSiteLocale = (v: string): boolean => (routing.locales as readonly string[]).includes(v);
 
 const bytes = (s: string) => Buffer.byteLength(s, 'utf8');
-const text = (max: number) => z.string().max(max);
+// 字数按 code point（和 about-rules.ts 一致）
+const text = (max: number) => z.string().refine((s) => countChars(s) <= max, { message: `max ${max} chars` });
 
 /** PUT /about/[locale] 请求体：整份替换该语言内容。多余字段一律 400（.strict）。长度按定稿 v1.0。 */
 export const AboutPutInput = z.object({
@@ -32,7 +36,7 @@ export const AboutPutInput = z.object({
   title: text(L.titleMax),
   summary: text(L.summaryMax).default(''),
   bodyHtml: z.string().refine((s) => bytes(s) <= L.bodyHtmlBytes, { message: `max ${L.bodyHtmlBytes} bytes` }),
-  stats: z.array(z.object({ label: z.string().min(1).max(L.statLabelMax), value: z.string().min(1).max(L.statValueMax) }).strict()).max(L.statsMax).default([]),
+  stats: z.array(z.object({ label: text(L.statLabelMax).refine((s) => s.length > 0, { message: 'empty' }), value: text(L.statValueMax).refine((s) => s.length > 0, { message: 'empty' }) }).strict()).max(L.statsMax).default([]),
   home: z.object({ title: text(L.homeTitleMax), intro: text(L.homeIntroMax) }).strict().default({ title: '', intro: '' }),
   imageMeta: z.record(z.string().regex(IMAGE_ID_RE), z.object({ alt: text(L.imageAltMax), caption: text(L.imageCaptionMax).default('') }).strict())
     .refine((m) => Object.keys(m).length <= L.imagesMax, { message: `max ${L.imagesMax} images` }).default({}),
@@ -44,13 +48,16 @@ export const EnabledPutInput = z.object({ enabled: z.boolean(), expectedVersion:
 export type AboutFields = Omit<StoredAbout, 'version' | 'updatedAt' | 'updatedBy'>;
 export const ABOUT_FIELDS = ['title', 'summary', 'bodyHtml', 'stats', 'home', 'imageMeta'] as const;
 
-/** 净化 + 第二道校验（净化后的纯文本长度、标题最少 2 字、关键数字不能被清空） */
+/**
+ * 净化 + 第二道校验（净化后的纯文本长度、标题最少 2 字、关键数字不能被清空）。
+ * 保存只看上限（ABOUT_LIMITS），允许存不完整的草稿（标题可空、正文可 <50 字）；「完整」只决定前台是否显示，规则在 about-rules.ts。
+ */
 export function normalizeAboutInput(i: AboutPutInput): { ok: true; fields: AboutFields } | { ok: false; issues: { path: string; message: string }[] } {
   const issues: { path: string; message: string }[] = [];
   const title = cleanPlainText(i.title);
-  if (title.length > 0 && title.length < L.titleMin) issues.push({ path: 'title', message: 'too_short' });
+  if (countChars(title) > 0 && countChars(title) < L.titleMin) issues.push({ path: 'title', message: 'too_short' });
   const bodyHtml = sanitizeAboutHtml(i.bodyHtml);
-  if (aboutHtmlToText(bodyHtml).length > L.bodyTextMax) issues.push({ path: 'bodyHtml', message: 'too_long' });
+  if (countChars(aboutBodyText(bodyHtml)) > L.bodyTextMax) issues.push({ path: 'bodyHtml', message: 'too_long' });
   const stats = i.stats.map((s, n) => {
     const out = { label: cleanPlainText(s.label), value: cleanPlainText(s.value) };
     if (!out.label || !out.value) issues.push({ path: `stats.${n}`, message: 'empty' });
@@ -214,4 +221,105 @@ export async function handlePutAboutEnabled(req: Request, d: SiteSettingsDeps): 
     d.revalidate();
   }
   return NextResponse.json({ enabled: saved.enabled, version: saved.version, changed: r.changed, updatedAt: saved.updatedAt }, { headers: NO_STORE });
+}
+
+// ---------- 组织信息 ----------
+/** 可选纯文本字段：空串 / 只有空白 = 不设置（不存、不返回） */
+const optText = (max: number) => text(max).optional();
+
+/**
+ * PUT /api/admin/site-settings/organization 请求体：整份替换。.strict()，多余字段 400。
+ * 没有产能、面积、人数、认证、交期这类字段，也没有默认值（默认值由 SEO 的 buildOrganizationJsonLd 补）。
+ */
+export const OrganizationPutInput = z.object({
+  expectedVersion: z.number().int().min(0),
+  name: optText(OL.nameMax),
+  alternateName: optText(OL.alternateNameMax),
+  legalName: optText(OL.legalNameMax),
+  description: optText(OL.descriptionMax),
+  logo: optText(OL.urlMax),
+  email: z.union([z.literal(''), z.string().trim().max(OL.emailMax).email()]).optional(),
+  telephone: optText(OL.telephoneMax),
+  address: optText(OL.addressMax), // 单行纯文本，换行会被去掉
+  foundingDate: optText(10),
+  sameAs: z.array(z.string().max(OL.urlMax)).max(OL.sameAsMax).default([]),
+}).strict();
+export type OrganizationPutInput = z.infer<typeof OrganizationPutInput>;
+
+export function normalizeOrganizationInput(i: OrganizationPutInput): { ok: true; fields: OrganizationFields } | { ok: false; issues: { path: string; message: string }[] } {
+  const issues: { path: string; message: string }[] = [];
+  const fields: OrganizationFields = { sameAs: [] };
+  for (const f of ORG_TEXT_FIELDS) {
+    const raw = i[f];
+    if (raw === undefined) continue;
+    if (f === 'logo') {
+      if (!raw.trim()) continue;
+      const u = safeOrgUrl(raw, true);
+      if (!u) issues.push({ path: 'logo', message: 'invalid_url' }); else fields.logo = u;
+      continue;
+    }
+    const t = cleanPlainText(raw);
+    if (!t) continue;
+    if (f === 'telephone' && !ORG_TELEPHONE_RE.test(t)) { issues.push({ path: f, message: 'invalid_telephone' }); continue; }
+    if (f === 'foundingDate' && !isValidFoundingDate(t)) { issues.push({ path: f, message: 'invalid_date' }); continue; }
+    fields[f] = t;
+  }
+  const seen = new Set<string>();
+  i.sameAs.forEach((raw, n) => {
+    if (!raw.trim()) return;
+    const u = safeOrgUrl(raw);
+    if (!u) { issues.push({ path: `sameAs.${n}`, message: 'invalid_url' }); return; }
+    if (!seen.has(u)) { seen.add(u); fields.sameAs.push(u); }
+  });
+  if (issues.length) return { ok: false, issues };
+  return { ok: true, fields };
+}
+
+const ORG_FIELDS = [...ORG_TEXT_FIELDS, 'sameAs'] as const;
+export function changedOrganizationFields(before: StoredOrganization | null, after: OrganizationFields): string[] {
+  return ORG_FIELDS.filter((f) => JSON.stringify(before?.[f] ?? (f === 'sameAs' ? [] : null)) !== JSON.stringify(after[f] ?? (f === 'sameAs' ? [] : null)));
+}
+
+
+/** GET /api/admin/site-settings/organization：只返回后台存过的值（没有默认值），没存过时 version 0 */
+export async function handleGetOrganization(req: Request, d: SiteSettingsDeps): Promise<Response> {
+  const ctx = await d.requireAdmin(req, SITE_SETTINGS_ROLES);
+  if (ctx instanceof Response) return ctx;
+  const limited = await d.enforceAdminRateLimit(req, 'site_settings.view');
+  if (limited) return limited;
+  const raw = await d.store.readMany([ORGANIZATION_KEY]);
+  const s = parseStoredOrganization(raw[ORGANIZATION_KEY]);
+  if (!s) return NextResponse.json({ version: 0, sameAs: [], updatedAt: null, updatedBy: null, updatedByName: null }, { headers: NO_STORE });
+  const names = s.updatedBy ? await d.userNames([s.updatedBy]) : {};
+  return NextResponse.json({ ...s, updatedByName: s.updatedBy ? names[s.updatedBy] ?? null : null }, { headers: NO_STORE });
+}
+
+/** PUT /api/admin/site-settings/organization */
+export async function handlePutOrganization(req: Request, d: SiteSettingsDeps): Promise<Response> {
+  const ctx = await d.requireAdmin(req, SITE_SETTINGS_ROLES);
+  if (ctx instanceof Response) return ctx;
+  const blocked = d.assertSameOrigin(req) ?? (await d.enforceAdminRateLimit(req, 'site_settings.update', 30));
+  if (blocked) return blocked;
+  const json = await d.readJson(req, 16 * 1024);
+  if (json === TOO_LARGE) return err('too_large', 413);
+  const p = OrganizationPutInput.safeParse(json);
+  if (!p.success) return invalid(zodIssues(p.error));
+  const n = normalizeOrganizationInput(p.data);
+  if (!n.ok) return invalid(n.issues);
+  let fields: string[] = [];
+  const r = await d.store.compareAndSet(ORGANIZATION_KEY, p.data.expectedVersion, (cur) => {
+    const before = parseStoredOrganization(cur);
+    fields = changedOrganizationFields(before, n.fields);
+    if (before && fields.length === 0) return null;
+    const next: StoredOrganization = { ...n.fields, version: storedVersion(cur) + 1, updatedAt: d.now().toISOString(), updatedBy: ctx.user.id };
+    return next as unknown as Prisma.InputJsonValue;
+  });
+  if (r.status === 'conflict') return err('version_conflict', 409, { currentVersion: r.currentVersion });
+  const saved = parseStoredOrganization(r.value)!;
+  if (r.changed) {
+    // 只记字段名，不记内容（邮箱、电话、地址都不进审计）
+    await d.audit({ actorId: ctx.user.id, action: AUDIT_ORGANIZATION_UPDATE, target: ORGANIZATION_KEY, meta: { fields, version: saved.version }, ip: ctx.ip });
+    d.revalidate();
+  }
+  return NextResponse.json({ changed: r.changed, content: { ...saved, updatedByName: saved.updatedBy === ctx.user.id ? ctx.user.name : null } }, { headers: NO_STORE });
 }
