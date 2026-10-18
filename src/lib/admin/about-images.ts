@@ -180,6 +180,21 @@ export function moveImage<T>(items: readonly T[], i: number, dir: -1 | 1): T[] {
   const n = [...items]; [n[i], n[j]] = [n[j], n[i]];
   return n;
 }
+/**
+ * UX #379 P3 ①：一次选多张时按「选择的顺序」进列表，不按上传完成的先后。
+ * tiles 按选择顺序排（新选的追加在后面）。从头往后：已传完（done）的依次取出入列；遇到还在上传的就停，
+ * 它后面已传完的先等着（仍显示在上传区）；失败的（含等 429 重试的）不挡后面的——重试成功后排在当时列表的最后。
+ */
+export function takeReady<T extends { state: string }>(tiles: readonly T[]): { ready: T[]; rest: T[] } {
+  const ready: T[] = []; const rest: T[] = [];
+  let blocked = false;
+  for (const t of tiles) {
+    if (t.state === 'done' && !blocked) { ready.push(t); continue; }
+    if (t.state === 'uploading') blocked = true;
+    rest.push(t);
+  }
+  return { ready, rest };
+}
 export const removeImage = (items: readonly AboutImageItem[], id: string): AboutImageItem[] => items.filter((x) => x.id !== id);
 export const sameIds = (a: readonly { id: string }[], b: readonly { id: string }[]): boolean => a.length === b.length && a.every((x, i) => x.id === b[i].id);
 

@@ -464,6 +464,32 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
       if (w === 390) expect(m.minH).toBeGreaterThanOrEqual(44);
     }
   });
+  test('UX #379 P3 ①：一次选多张时按选择的顺序进列表（第 1 张最后传完也排第 1）', async ({ page }) => {
+    test.setTimeout(60_000);
+    await reset(page);
+    await page.goto('/admin/settings');
+    const area = page.locator('.st-im');
+    // 第 1 个 POST 晚 2 秒放行：第 2、3 张先传完
+    let first = true;
+    await page.route(`**${S}/assets`, async (route) => {
+      if (route.request().method() === 'POST' && first) { first = false; await new Promise((r) => setTimeout(r, 2000)); }
+      await route.fallback();
+    });
+    // 三张尺寸不同（卡片 img 的 width / height = sm 实际宽高），用来认顺序
+    await fileInput(page).setInputFiles([
+      { name: 'one.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1200, [200, 40, 40]) },
+      { name: 'two.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1600, 1000, [40, 200, 40]) },
+      { name: 'three.jpg', mimeType: 'image/jpeg', buffer: await jpeg(1500, 1200, [40, 40, 200]) },
+    ]);
+    const cards = area.locator('.st-im-card');
+    // 第 2、3 张传完了但第 1 张还没：先不入列（仍在上传区）
+    await expect(area.locator('.st-im-up[aria-busy="true"]')).toHaveCount(3);
+    await expect(cards).toHaveCount(0);
+    await expect(cards).toHaveCount(3, { timeout: 10_000 });
+    const dims = await cards.locator('.th img').evaluateAll((els) => els.map((e) => `${e.getAttribute('width')}x${e.getAttribute('height')}`));
+    expect(dims).toEqual(['800x600', '800x500', '750x600']);
+    await page.unroute(`**${S}/assets`);
+  });
   test('UX #379 P2：确认框的焦点锁在框内（Tab / Shift+Tab 循环、点到框外再 Tab 也回到框内），Esc 关闭后焦点回到「删除」', async ({ page }) => {
     test.setTimeout(60_000);
     await reset(page);

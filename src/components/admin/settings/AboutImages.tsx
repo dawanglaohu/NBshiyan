@@ -4,7 +4,7 @@ import type { AboutDraft } from '@/lib/admin/site-settings';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
   ACCEPT, IMAGES_MAX, IMAGES_TEXT as T, aboutImagesApi, addImage, fmtBytes, imageErrorText, isSmallImage, itemFromAsset, localeImageErrors, moveImage,
-  precheckFile, removeImage, slotsLeft, uploadAboutImage, type AboutImageItem, type LibraryAsset,
+  precheckFile, removeImage, slotsLeft, takeReady, uploadAboutImage, type AboutImageItem, type LibraryAsset,
 } from '@/lib/admin/about-images';
 import ConfirmDialog from './ConfirmDialog';
 import ImageTextField from './ImageTextField';
@@ -17,7 +17,8 @@ import './about-images.css';
  * - 图片库：已上传的图片（GET /assets）。可以重新加入关于页；没被关于页使用的才能删除（先确认；在用时 409 asset_in_use）。
  * 列表和文字都只改草稿，点保存条的「保存」才提交（见 saveAboutWithImages）。上传和删除是立即生效的（文件操作，不带版本号）。
  */
-type Tile = { key: number; name: string; size: number; file: File | null; state: 'uploading' | 'error'; progress: number; message?: string; retryAt?: number; ctrl?: AbortController };
+/** done：已传完、等前面选的图传完再按选择顺序入列（见 takeReady） */
+type Tile = { key: number; name: string; size: number; file: File | null; state: 'uploading' | 'done' | 'error'; progress: number; message?: string; retryAt?: number; ctrl?: AbortController; asset?: LibraryAsset; deduplicated?: boolean };
 
 type Props = {
   tab: string; locales: readonly string[]; dir: 'ltr' | 'rtl';
@@ -63,11 +64,9 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
     setTiles((ts) => ts.map((t) => (t.key === key ? { ...t, state: 'uploading', progress: 0, message: undefined, retryAt: undefined, ctrl } : t)));
     uploadAboutImage(file, { signal: ctrl.signal, onProgress: (p) => patch(key, { progress: p }) }).then((r) => {
       if (r.ok) {
-        patch(key, null);
+        // 不直接入列：标成 done，由下面的 effect 按选择顺序入列（UX #379 P3 ①）
+        patch(key, { state: 'done', progress: 100, ctrl: undefined, asset: r.asset, deduplicated: r.deduplicated });
         setLibrary((lib) => (lib && !lib.some((a) => a.id === r.asset.id) ? [r.asset, ...lib] : lib));
-        // 200 deduplicated：同一张图传过，后端复用已有记录；已经在列表里就不重复加
-        setNotice(r.deduplicated && itemsRef.current.some((x) => x.id === r.asset.id) ? T.duplicate : null);
-        setItems((prev) => addImage(prev, itemFromAsset(r.asset)));
         return;
       }
       if (r.code === 'aborted') { patch(key, null); return; }
@@ -76,6 +75,19 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
       setNow(Date.now());
     });
   }, [setItems]);
+
+  // 按选择顺序入列：排在前面的都传完（或失败）了才把后面已传完的放进列表
+  useEffect(() => {
+    const { ready, rest } = takeReady(tiles);
+    if (!ready.length) return;
+    setTiles(rest);
+    // 200 deduplicated：同一张图传过，后端复用已有记录；已经在列表里（或这一批前面已经加过）就不重复加
+    const seen = new Set(itemsRef.current.map((x) => x.id));
+    let dup = false;
+    for (const t of ready) { if (t.deduplicated && seen.has(t.asset!.id)) dup = true; seen.add(t.asset!.id); }
+    setNotice(dup ? T.duplicate : null);
+    setItems((prev) => ready.reduce((acc, t) => addImage(acc, itemFromAsset(t.asset!)), prev));
+  }, [tiles, setItems]);
 
   const uploading = tiles.filter((t) => t.state === 'uploading' || t.file).length;
   const left = slotsLeft(items, uploading);
@@ -155,12 +167,12 @@ export default function AboutImages({ tab, locales, dir, items, setItems, savedI
             </div>
           );
         })}
-        {tiles.map((t) => (t.state === 'uploading' ? (
+        {tiles.map((t) => (t.state !== 'error' ? (
           <div key={t.key} role="listitem" className="st-im-up" aria-busy="true">
             <b role="status">{T.uploading(t.progress)}</b>
             <div className="bar" role="progressbar" aria-label={`上传 ${t.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={t.progress}><i style={{ width: `${t.progress}%` }} /></div>
             <span className="nm">{t.name} · <span className="sz">{fmtBytes(t.size)}</span></span>
-            <button type="button" className="adm-btn" onClick={() => t.ctrl?.abort()}>{T.cancel}</button>
+            <button type="button" className="adm-btn" onClick={() => (t.ctrl ? t.ctrl.abort() : patch(t.key, null))}>{T.cancel}</button>
           </div>
         ) : (
           <div key={t.key} role="listitem" className="st-im-up bad">

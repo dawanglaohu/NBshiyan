@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { nextTrapFocus, FOCUSABLE_SELECTOR } from '../src/lib/admin/focus-trap';
 import { draftErrors, emptyDraft, humanIssueLine, mapAboutServerIssues, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
+import { takeReady } from '../src/lib/admin/about-images';
 import { ABOUT_LIMITS } from '../src/lib/site-settings/about-rules';
 
 // #350 部署后的前端 P3 小 PR（UX #378 / #379 遗留 + spec v1.0.10 + SEO）
@@ -115,4 +116,31 @@ test('后端 too_long（接口层）：save 把这次提交的那个语言的草
   const v = saveFailureView(r as Extract<typeof r, { ok: false }>);
   assert.deepEqual(v, { fieldErrors: { bodyHtml: '超出上限：6010 / 6000' }, alert: null });
   assert.match(read('../src/lib/admin/site-settings-http.ts'), /JSON\.stringify\(putBody\(d\)\) \}, d\);/);
+});
+
+// ───────── ⑤ UX #379 P3 ①：多选时按选择顺序入列 ─────────
+test('takeReady：按选择顺序，前面的还在上传就等；失败的不挡后面的', () => {
+  const t = (key: number, state: 'uploading' | 'done' | 'error') => ({ key, state });
+  const keys = (xs: { key: number }[]) => xs.map((x) => x.key);
+  // 2、3 先传完，1 还在传：都不入列
+  let r = takeReady([t(1, 'uploading'), t(2, 'done'), t(3, 'done')]);
+  assert.deepEqual([keys(r.ready), keys(r.rest)], [[], [1, 2, 3]]);
+  // 1 传完：1、2、3 按顺序一起入列
+  r = takeReady([t(1, 'done'), t(2, 'done'), t(3, 'done')]);
+  assert.deepEqual([keys(r.ready), keys(r.rest)], [[1, 2, 3], []]);
+  // 1 完成、2 在传、3 完成：只取 1
+  r = takeReady([t(1, 'done'), t(2, 'uploading'), t(3, 'done')]);
+  assert.deepEqual([keys(r.ready), keys(r.rest)], [[1], [2, 3]]);
+  // 1 失败（被拒 / 等 429 重试）：不挡 2、3
+  r = takeReady([t(1, 'error'), t(2, 'done'), t(3, 'done')]);
+  assert.deepEqual([keys(r.ready), keys(r.rest)], [[2, 3], [1]]);
+  assert.deepEqual(takeReady([]), { ready: [], rest: [] });
+});
+
+test('AboutImages 接线：上传成功先标 done，由 effect 按 takeReady 的顺序入列（不在完成回调里直接 addImage）', () => {
+  const src = read('../src/components/admin/settings/AboutImages.tsx');
+  assert.match(src, /patch\(key, \{ state: 'done', progress: 100, ctrl: undefined, asset: r\.asset, deduplicated: r\.deduplicated \}\)/);
+  assert.match(src, /const \{ ready, rest \} = takeReady\(tiles\);/);
+  assert.match(src, /ready\.reduce\(\(acc, t\) => addImage\(acc, itemFromAsset\(t\.asset!\)\), prev\)/);
+  assert.equal((src.match(/addImage\(prev, itemFromAsset\(r\.asset\)\)/g) ?? []).length, 0);
 });
