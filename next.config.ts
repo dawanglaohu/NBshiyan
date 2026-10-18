@@ -73,6 +73,8 @@ const nextConfig: NextConfig = {
 // #323：发信 mock 适配器同理：生产构建（APP_ENV/VERCEL_ENV=production）内联为空字符串，mail/http.ts 里的 import('./mock') 是死代码；
 // 非生产构建为 '1'，运行时仍由 mockAdapterAllowed()（MAIL_SEND_ADAPTER=mock 且显式非生产 APP_ENV）决定。
 nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '1' : '', MAIL_MOCK_ADAPTER_BUILD: isProd ? '' : '1' };
+// 文章分享图 /[locale]/articles/[slug]/og 的字体：route 里用 process.cwd() 读，追踪不到，手动带进 standalone
+nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/articles/[slug]/og': ['./src/assets/og-fonts/*.ttf'] };
 // 生产配置检查：`next build` 时跳过只在运行时用的密钥（见 prod-env-check.ts 的 RUNTIME_ONLY），`next start` 时全部检查
 export default function config(phase: string) {
   assertProdEnv(process.env, phase === PHASE_PRODUCTION_BUILD ? 'build' : 'runtime');
