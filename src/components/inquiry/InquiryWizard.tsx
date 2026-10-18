@@ -6,7 +6,9 @@ import { useQuote } from '@/components/quote/QuoteProvider';
 import { QUOTE_MAX_ITEMS, isOverQuoteLimit } from '@/lib/quote/list';
 import LogoUploadField from './LogoUploadField';
 import { LOGO_TTL_MS, type LogoUpload } from '@/lib/client/logoUpload';
-import { prefersReducedMotion, revealAndFocus } from '@/lib/a11y/focus';
+import { prefersReducedMotion, scrollBehaviorFor } from '@/lib/a11y/focus';
+import { Link } from '@/i18n/navigation';
+import { CONTACT_FIELDS, errorId, FIELD_ID, firstError, revalidate, validateContact, type ContactErrors, type ContactField } from '@/lib/inquiry/validate';
 
 const QTY = [{ k: '1k', v: 1000 }, { k: '5k', v: 5000 }, { k: '10k', v: 10000 }, { k: '50k', v: 50000 }, { k: 'unsure', v: undefined }] as const;
 const MATERIALS = ['corrugated', 'paperboard', 'kraft', 'pulp', 'unsure'] as const;
@@ -22,6 +24,21 @@ type TurnstileApi = {
 const getTurnstile = () => (window as unknown as { turnstile?: TurnstileApi }).turnstile;
 
 const RETRYABLE = new Set(['retry', 'network']);
+
+/** 焦点移过去（不额外滚动），再滚到最近的可视位置（已在视口内就不动；scroll-margin 避开顶部导航）；减少动态效果时瞬间滚动 */
+/** 错误汇总里的链接：把整个字段块（含标签）滚到顶部导航下方（scroll-margin-top），再把焦点给控件 */
+function focusField(f: ContactField) {
+  const el = document.getElementById(FIELD_ID[f]);
+  if (!el) return;
+  el.focus({ preventScroll: true });
+  (el.closest('.field, .iq-consent') ?? el).scrollIntoView({ block: 'start', behavior: scrollBehaviorFor(prefersReducedMotion(window)) });
+}
+
+function revealNearest(el: HTMLElement | null) {
+  if (!el) return;
+  el.focus({ preventScroll: true });
+  el.scrollIntoView({ block: 'nearest', behavior: scrollBehaviorFor(prefersReducedMotion(window)) });
+}
 type Result = { ok: true; ref: string } | { ok: false; code: string };
 
 export default function InquiryWizard() {
@@ -49,17 +66,44 @@ export default function InquiryWizard() {
   const formRef = useRef<HTMLFormElement>(null);
   // #307 提交成功后表单整块换成成功卡片：390 下卡片会落在可视区上方、焦点掉到 body。
   // 卡片渲染后滚进可视区并把焦点移过去（读屏会播报）；减少动态效果时不平滑滚动
+  // #308 P2-2：焦点改放到成功卡片的标题（tabIndex=-1），卡片照旧滚进可视区
   const doneRef = useRef<HTMLDivElement>(null);
+  const doneTitleRef = useRef<HTMLHeadingElement>(null);
   const succeeded = result?.ok === true;
   useEffect(() => {
-    if (succeeded) revealAndFocus(doneRef.current, prefersReducedMotion(window));
+    if (!succeeded) return;
+    doneTitleRef.current?.focus({ preventScroll: true });
+    doneRef.current?.scrollIntoView({ block: 'start', behavior: scrollBehaviorFor(prefersReducedMotion(window)) });
   }, [succeeded]);
+  // #308 P2-1：换步骤后焦点到「Step n of 3」这一行（tabIndex=-1，读屏会念），首次渲染不动焦点
+  const stepRef = useRef<HTMLParagraphElement>(null);
+  const stepMounted = useRef(false);
+  useEffect(() => {
+    if (!stepMounted.current) { stepMounted.current = true; return; }
+    revealNearest(stepRef.current);
+  }, [step]);
+  // #308 P2-2：提交失败后焦点到错误框（role=alert，tabIndex=-1）；错误框下面就是提交按钮
+  const errRef = useRef<HTMLDivElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  const failed = result && !result.ok ? result : null;
+  useEffect(() => {
+    if (failed) revealNearest(errRef.current);
+  }, [failed]);
+  // #308 P2-3：第 3 步自定义校验。点提交才开始显示；之后改对的字段当场去掉错误
+  const [errs, setErrs] = useState<ContactErrors>({});
+  // #308 UX 复核：校验失败后焦点到顶部错误汇总（tabIndex=-1），每次失败的提交都重新移焦点
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const [invalidAttempt, setInvalidAttempt] = useState(0);
+  useEffect(() => {
+    if (invalidAttempt) revealNearest(summaryRef.current);
+  }, [invalidAttempt]);
   const [wait, setWait] = useState(0);
   useEffect(() => {
     if (wait <= 0) return;
     const id = setTimeout(() => setWait((w) => w - 1), 1000);
     return () => clearTimeout(id);
   }, [wait]);
+  useEffect(() => { setErrs((e) => revalidate(e, contact)); }, [contact]);
   const prefilled = useRef(false);
   const prevQuote = useRef<string[]>([]);
 
@@ -125,7 +169,13 @@ export default function InquiryWizard() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step < 2) { setStep(step + 1); return; }
+    // busy / 503 倒计时期间按钮只是 aria-disabled（不用原生 disabled，焦点不会掉），这里拦住重复提交
+    if (busy || wait > 0) return;
     if (awaitingCheck) return;
+    const invalid = validateContact(contact);
+    setErrs(invalid);
+    const first = firstError(invalid);
+    if (first) { setInvalidAttempt((n) => n + 1); return; }
     if (overLimit) return; // never auto-trim: user must remove items first
     const fd = new FormData(e.currentTarget);
     const quantity = QTY.find((q) => q.k === qty)?.v;
@@ -150,6 +200,8 @@ export default function InquiryWizard() {
       turnstileToken: turnstileToken || opt('cf-turnstile-response'),
       ...(logo ? { logoUploadId: logo.uploadId } : {})
     };
+    // 从错误框里的「重试」提交时，错误框马上会被替换：先把焦点交给提交按钮，不让它掉到 <body>
+    if (errRef.current?.contains(document.activeElement)) submitRef.current?.focus();
     setBusy(true); setResult(null);
     try {
       const res = await fetch('/api/inquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -182,8 +234,8 @@ export default function InquiryWizard() {
 
   if (result?.ok) {
     return (
-      <div ref={doneRef} className="wizard wizard-done" role="status" tabIndex={-1} aria-labelledby="iq-done-title">
-        <h2 id="iq-done-title" style={{ marginTop: 0 }}>{t('success.title')}</h2>
+      <div ref={doneRef} className="wizard wizard-done" role="status" aria-labelledby="iq-done-title">
+        <h2 ref={doneTitleRef} id="iq-done-title" tabIndex={-1} style={{ marginTop: 0 }}>{t('success.title')}</h2>
         <p>{t('success.ref')} <strong>{result.ref}</strong></p>
         {t('success.reply') ? <p>{t('success.reply')}</p> : null}
       </div>
@@ -198,10 +250,15 @@ export default function InquiryWizard() {
     </div>
   );
 
+  // 当帧就按当前输入重算（不用等 effect 同步 errs），改对的那一刻错误就消失
+  const shownErrs = revalidate(errs, contact);
+  const invalidProps = (f: ContactField) => (shownErrs[f] ? { 'aria-invalid': true as const, 'aria-describedby': errorId(f) } : {});
+  const fieldErr = (f: ContactField) => (shownErrs[f] ? <p id={errorId(f)} className="iq-err"><span aria-hidden="true">⚠ </span>{t(`validation.${shownErrs[f]!}`)}</p> : null);
+
   return (
-    <form ref={formRef} className="wizard" onSubmit={submit} noValidate={step < 2}>
+    <form ref={formRef} className="wizard" onSubmit={submit} noValidate>
       <div className="steps" aria-hidden="true">{[0, 1, 2].map((i) => <span key={i} className={i <= step ? 'on' : ''} />)}</div>
-      <p style={{ color: 'var(--ink-2)', marginTop: 0 }}>{t('stepOf', { n: step + 1, total: 3 })} · {t(`steps.${step}`)}</p>
+      <p ref={stepRef} className="iq-step" tabIndex={-1}>{t('stepOf', { n: step + 1, total: 3 })} · {t(`steps.${step}`)}</p>
 
       {step === 0 && (
         <>
@@ -229,29 +286,43 @@ export default function InquiryWizard() {
 
       {step === 2 && (
         <>
-          <div className="field"><label htmlFor="iq-name">{t('name')} *</label><input id="iq-name" name="name" value={contact.name} onChange={setC('name')} required maxLength={100} autoComplete="name" /></div>
-          <div className="field"><label htmlFor="iq-email">{t('email')} *</label><input id="iq-email" name="email" value={contact.email} onChange={setC('email')} type="email" required maxLength={200} autoComplete="email" /></div>
+          {firstError(shownErrs) && (
+            <div ref={summaryRef} className="alert err iq-summary" role="alert" tabIndex={-1}>
+              <p><span aria-hidden="true">⚠ </span>{t('validation.summary')}</p>
+              <ul>{CONTACT_FIELDS.filter((f) => shownErrs[f]).map((f) => (
+                <li key={f}><a href={`#${FIELD_ID[f]}`} onClick={(e) => { e.preventDefault(); focusField(f); }}>{t(`validation.${shownErrs[f]!}`)}</a></li>
+              ))}</ul>
+            </div>
+          )}
+          <div className="field"><label htmlFor="iq-name">{t('name')} *</label><input id="iq-name" name="name" value={contact.name} onChange={setC('name')} required maxLength={100} autoComplete="name" {...invalidProps('name')} />{fieldErr('name')}</div>
+          <div className="field"><label htmlFor="iq-email">{t('email')} *</label><input id="iq-email" name="email" value={contact.email} onChange={setC('email')} type="email" required maxLength={200} autoComplete="email" {...invalidProps('email')} />{fieldErr('email')}</div>
           <div className="field"><label htmlFor="iq-company">{t('company')}</label><input id="iq-company" name="company" value={contact.company} onChange={setC('company')} maxLength={200} autoComplete="organization" /></div>
           <div className="field"><label htmlFor="iq-phone">{t('phone')}</label><input id="iq-phone" name="phone" value={contact.phone} onChange={setC('phone')} maxLength={40} autoComplete="tel" /></div>
           <div className="field">
             <label htmlFor="iq-region">{t('country')} *</label>
-            <select id="iq-region" name="region" required value={contact.region} onChange={setC('region')}>
+            <select id="iq-region" name="region" required value={contact.region} onChange={setC('region')} {...invalidProps('region')}>
               <option value="" disabled>{t('countryPh')}</option>
               {COUNTRIES.map((c) => <option key={c} value={c}>{t(`countries.${c}`)}</option>)}
             </select>
+            {fieldErr('region')}
           </div>
           {/* 诱饵字段：真人看不到，机器人填了会被服务端静默丢弃 */}
           <div className="hp" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" defaultValue="" /></label></div>
-          <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 16 }}>
-            <input type="checkbox" name="consent" required checked={contact.consent} onChange={(e) => { const v = e.target.checked; setContact((c) => ({ ...c, consent: v })); }} /> <span>{t('consent')}</span>
-          </label>
+          <div className="iq-consent">
+            <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <input id="iq-consent" type="checkbox" name="consent" required checked={contact.consent} onChange={(e) => { const v = e.target.checked; setContact((c) => ({ ...c, consent: v })); }} {...invalidProps('consent')} />{' '}
+              {/* #308 P2-4：隐私政策是真链接。填写内容只在页面内存里，同一标签页跳走再回来会清空，所以按 UX 的备选方案在新标签页打开，并只给读屏念「在新标签页打开」 */}
+              <span>{t.rich('consent', { link: (c) => <Link href="/privacy" target="_blank" rel="noopener" className="iq-link">{c}<span className="sr-only"> {t('newTab')}</span></Link> })}</span>
+            </label>
+            {fieldErr('consent')}
+          </div>
           {SITE_KEY && <div ref={turnstileRef} className="cf-turnstile" style={{ marginBottom: 16 }} />}
         </>
       )}
 
       {result && !result.ok && (
-        <div className="alert err" role="alert">
-          {t(`errors.${result.code}`)}
+        <div ref={errRef} className="alert err" role="alert" tabIndex={-1}>
+          <span aria-hidden="true">⚠ </span>{t(`errors.${result.code}`)}
           {result.code === 'logo_invalid' && !logo && <LogoUploadField id="iq-logo-re" value={logo} onChange={(v) => { setLogo(v); if (v) { setLogoNotice(undefined); setResult(null); } }} />}
           {RETRYABLE.has(result.code) && (
             <> <button type="button" className="btn ghost" disabled={busy || wait > 0} onClick={() => formRef.current?.requestSubmit()}>{wait > 0 ? t('retryIn', { s: wait }) : t('retry')}</button></>
@@ -260,9 +331,9 @@ export default function InquiryWizard() {
       )}
 
       {overLimit && <p id="iq-over" className="quote-notice" role="status" aria-live="polite">{t('overLimit', { max: QUOTE_MAX_ITEMS, n: selected.length })}</p>}
-      <div className="row">
+      <div className="row iq-actions">
         {step > 0 ? <button type="button" className="btn ghost" onClick={() => setStep(step - 1)}>{t('back')}</button> : <span />}
-        <button type="submit" className="btn" disabled={busy || awaitingCheck || (step === 2 && overLimit)} aria-disabled={busy || awaitingCheck || (step === 2 && overLimit) || undefined} aria-describedby={[overLimit ? 'iq-over' : '', awaitingCheck ? 'iq-check-hint' : ''].filter(Boolean).join(' ') || undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
+        <button ref={submitRef} type="submit" className="btn" disabled={awaitingCheck || (step === 2 && overLimit)} aria-disabled={busy || (step === 2 && wait > 0) || awaitingCheck || (step === 2 && overLimit) || undefined} aria-describedby={[overLimit ? 'iq-over' : '', awaitingCheck ? 'iq-check-hint' : ''].filter(Boolean).join(' ') || undefined}>{step < 2 ? t('next') : busy ? t('sending') : t('submit')}</button>
       </div>
       {awaitingCheck && <p id="iq-check-hint" className="hint" role="status" style={{ fontSize: 13, opacity: 0.75, margin: '8px 0 0', textAlign: 'right' }}>{t('checking')}</p>}
     </form>
