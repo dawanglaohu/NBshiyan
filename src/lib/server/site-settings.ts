@@ -20,7 +20,15 @@ import { resolvePublishedAboutLocales } from '@/lib/site-settings/about-rules';
  *   缺 alt 的图片照样返回（alt 为空串），由 isAboutContentComplete 判为不完整 → 该语言不发布。w / h 是 lg 尺寸。
  */
 export type AboutStat = { label: string; value: string };
-export type AboutImage = { id: string; w: number; h: number; alt: string; caption: string; src: { sm: string; lg: string } };
+/**
+ * 前台 about 图片：w / h = lg 实际宽高（兼容旧字段）；sm / lg = 各尺寸实际输出宽高（保存 about.images 时的快照），给 <img width height> 和 srcset 用。
+ * src 里 URL 的数字是名义长边（800 / 1600），不是实际宽度。alt / caption 是当前语言的（about.<locale>.imageMeta）。
+ */
+export type AboutImage = {
+  id: string; w: number; h: number; alt: string; caption: string;
+  sm: { w: number; h: number }; lg: { w: number; h: number };
+  src: { sm: string; lg: string };
+};
 export type AboutContent = {
   locale: PublishedLocale; title: string; summary: string; bodyHtml: string; // bodyHtml 已净化
   stats: AboutStat[]; images: AboutImage[];
@@ -56,6 +64,7 @@ export function createSiteSettingsReader(load: () => Promise<RawSettings>) {
     if (!s) return null;
     const images: AboutImage[] = parseStoredAboutImages(raw[ABOUT_IMAGES_KEY]).items.map((i) => ({
       id: i.id, w: i.lg.w, h: i.lg.h, alt: s.imageMeta[i.id]?.alt ?? '', caption: s.imageMeta[i.id]?.caption ?? '',
+      sm: { ...i.sm }, lg: { ...i.lg },
       src: mediaSrc(i.id, i.sm, i.lg),
     }));
     return { locale, title: s.title, summary: s.summary, bodyHtml: s.bodyHtml, stats: s.stats, images, home: { ...s.home }, updatedAt: s.updatedAt };

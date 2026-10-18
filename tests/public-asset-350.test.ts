@@ -509,11 +509,20 @@ test('前台读取：images = about.images 顺序 + 该语言 alt / 说明；有
   }));
   const en = await reader.getAboutContent('en');
   assert.deepEqual(en!.images, [
-    { id: LIVE2, w: 1200, h: 1600, alt: 'Press', caption: '', src: { sm: publicAssetUrl(LIVE2, 'sm'), lg: publicAssetUrl(LIVE2, 'lg') } },
-    { id: LIVE, w: 1600, h: 1200, alt: 'Line', caption: 'Cap', src: { sm: publicAssetUrl(LIVE, 'sm'), lg: publicAssetUrl(LIVE, 'lg') } },
+    { id: LIVE2, w: 1200, h: 1600, alt: 'Press', caption: '', sm: { w: 600, h: 800 }, lg: { w: 1200, h: 1600 }, src: { sm: `/media/${LIVE2}-800.webp`, lg: `/media/${LIVE2}-1600.webp` } },
+    { id: LIVE, w: 1600, h: 1200, alt: 'Line', caption: 'Cap', sm: { w: 800, h: 600 }, lg: { w: 1600, h: 1200 }, src: { sm: publicAssetUrl(LIVE, 'sm'), lg: publicAssetUrl(LIVE, 'lg') } },
   ]);
   assert.equal(await reader.getAboutContent('ru'), null);
   assert.deepEqual(await reader.getPublishedAboutLocales(), ['en']);
+});
+
+test('前台读取：长边 ≤ 800（sm、lg 同一个文件、宽高相同）→ src.sm 和 src.lg 都是 -1600 地址，sm / lg 宽高照实给', async () => {
+  const reader = createSiteSettingsReader(async () => ({
+    'about.enabled': true, 'about.images': { version: 1, items: [{ id: LIVE, sm: { w: 800, h: 600 }, lg: { w: 800, h: 600 } }] },
+    'about.en': { version: 1, title: 'About us', summary: '', bodyHtml: BODY, stats: [], home: { title: '', intro: '' }, imageMeta: { [LIVE]: { alt: 'Line', caption: '' } }, updatedAt: 't', updatedBy: null },
+  }));
+  const [img] = (await reader.getAboutContent('en'))!.images;
+  assert.deepEqual(img, { id: LIVE, w: 800, h: 600, alt: 'Line', caption: '', sm: { w: 800, h: 600 }, lg: { w: 800, h: 600 }, src: { sm: `/media/${LIVE}-1600.webp`, lg: `/media/${LIVE}-1600.webp` } });
 });
 
 // ================= 公开路由 =================
