@@ -262,6 +262,15 @@ export function saveFailureView<F extends Record<string, string>>(
   return { fieldErrors, alert: Object.keys(fieldErrors).length ? null : issuesAlertText(r.code) };
 }
 
+/** UX #375 P2：冲突横幅 / 顶部错误条滚进视野并聚焦。尊重 prefers-reduced-motion；focus 用 preventScroll，避免再抖一次。 */
+export function revealAlert(el: HTMLElement | null): void {
+  if (!el) return;
+  const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+  if (el.tabIndex < 0) el.tabIndex = -1;
+  el.focus({ preventScroll: true });
+}
+
 /**
  * 409 冲突状态（PM 定稿）：
  * - none → 保存 / 开关返回 version_conflict → conflict：显示「内容已被他人修改，请刷新后重新编辑」+「刷新」；

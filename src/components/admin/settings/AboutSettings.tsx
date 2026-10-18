@@ -4,7 +4,7 @@ import AdminTime from '@/components/admin/AdminTime';
 import { ABOUT_LIMITS } from '@/lib/site-settings/about-rules';
 import {
   aboutSettingsApi, bodyTooShortNote, canSave, conflictStep, dirtyFields, dirtySummary, draftChecklist, draftCompleteness, draftErrors, emptyDraft, fieldCount, isAllowedAboutHref,
-  isVersionConflict, saveFailureView, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutFieldErrors, type AboutSettingsData, type ConflictEvent, type ConflictPhase, type DraftField,
+  isVersionConflict, revealAlert, saveFailureView, SETTINGS_TEXT as T, settingsErrorText, writesBlocked, type AboutDraft, type AboutFieldErrors, type AboutSettingsData, type ConflictEvent, type ConflictPhase, type DraftField,
 } from '@/lib/admin/site-settings';
 import ConfirmDialog from './ConfirmDialog';
 import SettingsSections from './SettingsSections';
@@ -107,6 +107,12 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
   const conflictRef = useRef<ConflictPhase>('none');
   const step = (e: ConflictEvent) => { const r = conflictStep(conflictRef.current, e); conflictRef.current = r.next; setConflict(r.next); return r; };
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const conflictBannerRef = useRef<HTMLDivElement>(null);
+  const errAlertRef = useRef<HTMLParagraphElement>(null);
+
+  // UX #375 P2：冲突横幅 / 顶部错误条出现时滚进视野并聚焦（保存点在页面下方时尤其需要）
+  useEffect(() => { if (conflict === 'conflict') revealAlert(conflictBannerRef.current); }, [conflict]);
+  useEffect(() => { if (notice?.kind === 'err') revealAlert(errAlertRef.current); }, [notice]);
 
   useEffect(() => {
     aboutSettingsApi.load(locales).then((d) => { setSaved(d); setDraft(structuredClone(d.locales)); }).catch((e: Error) => setNotice({ kind: 'err', text: settingsErrorText(e.message) }));
@@ -248,9 +254,9 @@ export default function AboutSettings({ locales, publishedLocales }: Props) {
           : <span className="st-unpub">{T.unpublished}</span>}
       </div>
       {notice?.kind === 'ok' && <p className="st-ok" role="status">{notice.text}</p>}
-      {notice?.kind === 'err' && <p className="st-err" role="alert">{notice.text}</p>}
+      {notice?.kind === 'err' && <p ref={errAlertRef} className="st-err" role="alert" tabIndex={-1}>{notice.text}</p>}
       {conflict !== 'none' && (
-        <div className="st-err st-conflict" role="alert">
+        <div ref={conflictBannerRef} className="st-err st-conflict" role="alert" tabIndex={-1}>
           <span>{T.conflict}</span>
           <button type="button" className="adm-btn" disabled={conflict === 'loading'} aria-busy={conflict === 'loading' || undefined} onClick={() => step('refresh')}>{T.conflictRefresh}</button>
         </div>

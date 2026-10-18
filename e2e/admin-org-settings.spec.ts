@@ -263,3 +263,31 @@ test('组织信息：未登录不能读接口，页面跳登录', async ({ reque
   const r = await request.get('/admin/settings?section=org', { maxRedirects: 0 });
   expect([302, 303, 307, 308]).toContain(r.status());
 });
+
+test('UX #375 P2：390 下在页面底部保存触发 409，冲突横幅滚进视野并聚焦', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginFreshAdmin(page);
+  const API = '/api/admin/site-settings/organization';
+  await page.route(`**${API}`, async (route) => {
+    if (route.request().method() === 'PUT') {
+      return route.fulfill({ status: 409, json: { error: 'version_conflict', currentVersion: 99 } });
+    }
+    return route.fallback();
+  });
+  await page.goto('/admin/settings?section=org');
+  await page.getByRole('heading', { level: 1, name: '组织信息' }).waitFor();
+  // 填一长段地址把页面撑高，再滚到底部点保存
+  await page.locator('#st-org-address').fill('示例地址 '.repeat(80));
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const save = page.getByRole('region', { name: '保存' }).getByRole('button', { name: '保存' });
+  await save.click();
+  const banner = page.locator('.st-conflict[role=alert]');
+  await expect(banner).toBeVisible();
+  await expect(banner).toBeFocused();
+  const inView = await banner.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= (window.innerHeight || document.documentElement.clientHeight) + 1;
+  });
+  expect(inView).toBe(true);
+});
