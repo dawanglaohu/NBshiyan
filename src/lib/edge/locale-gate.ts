@@ -14,14 +14,11 @@ const LOCALE_LIKE_RE = /^[a-z]{2}(?:[-_][a-z0-9]{2,8})*$/i;
 /** 首段是 2 个字母、但不是语言代码的站内路径（保持原行为，交给 next-intl）。新增这类顶层路由时加在这里并补测试 */
 export const NON_LOCALE_TOP_SEGMENTS: ReadonlySet<string> = new Set(['og']);
 
-/** 被拦下的请求 rewrite 到这个内部路径（[locale]/[...rest] 渲染带头部页脚的英文 404 页），URL 不变、不跳转 */
-export const LOCALE_GATE_SEGMENT = '__locale-unavailable';
-export const LOCALE_GATE_REWRITE = `/en/${LOCALE_GATE_SEGMENT}`;
-const GATE_DIRECT_RE = new RegExp(`^/[^/]+/${LOCALE_GATE_SEGMENT}/?$`);
+/** 被拦下的请求 rewrite 到这个路径：src/app/[locale]/locale-unavailable 永远 notFound()，由同目录 not-found.tsx 渲染带头部页脚的英文 404 页。URL 不变、不跳转 */
+export const LOCALE_GATE_REWRITE = '/en/locale-unavailable';
 
-/** true = 这个页面路径要直接 404（未发布 / 未知 / 非规范写法的语言前缀；直接访问内部 404 路径也一样 404） */
+/** true = 这个页面路径要直接 404（未发布 / 未知 / 非规范写法的语言前缀） */
 export function isBlockedLocalePath(pathname: string): boolean {
-  if (GATE_DIRECT_RE.test(pathname)) return true;
   const seg = pathname.split('/')[1] ?? '';
   if (!LOCALE_LIKE_RE.test(seg) || NON_LOCALE_TOP_SEGMENTS.has(seg.toLowerCase())) return false;
   return !isPublishedLocale(seg);
