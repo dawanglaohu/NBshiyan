@@ -21,14 +21,6 @@ export type AboutContent = {
   updatedAt: string;
 };
 
-export type OrganizationAddress = {
-  streetAddress?: string;
-  addressLocality?: string;
-  addressRegion?: string;
-  postalCode?: string;
-  addressCountry?: string;
-};
-
 /** 产能、面积、人数、认证、交期不在这里，也不能由代码补默认值 */
 export type OrganizationSettings = {
   name: string;
@@ -40,8 +32,8 @@ export type OrganizationSettings = {
   legalName?: string;
   email?: string;
   telephone?: string;
-  /** 后端还没定是一行文字还是分字段，两种都接受 */
-  address?: string | OrganizationAddress;
+  /** 一行纯文本（PM 定） */
+  address?: string;
   foundingDate?: string;
 };
 
