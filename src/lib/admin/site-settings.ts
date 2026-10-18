@@ -253,13 +253,13 @@ function aboutIssueText(f: DraftField, msg: string): string {
  * 保存失败时页面怎么显示（about 和组织信息共用）：能对上字段的放字段下方；
  * 对不上字段的 issue、或 400 / 422 没带 issues、其他错误，一律进顶部错误条。409 不走这里。
  */
-export function saveFailureView<F extends Record<string, string>>(
+export function saveFailureView<F extends object>(
   r: { code: string; fieldErrors?: F; rest?: string[] },
 ): { fieldErrors: F; alert: string | null } {
   const fieldErrors = (r.fieldErrors ?? {}) as F;
   const rest = r.rest ?? [];
   if (rest.length) return { fieldErrors, alert: issuesAlertText(r.code, rest) };
-  return { fieldErrors, alert: Object.keys(fieldErrors).length ? null : issuesAlertText(r.code) };
+  return { fieldErrors, alert: Object.keys(fieldErrors as object).length ? null : issuesAlertText(r.code) };
 }
 
 /** UX #375 P2：冲突横幅 / 顶部错误条滚进视野并聚焦。尊重 prefers-reduced-motion；focus 用 preventScroll，避免再抖一次。 */
