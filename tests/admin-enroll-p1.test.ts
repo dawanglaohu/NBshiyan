@@ -202,9 +202,10 @@ test('P1 enroll: page lives outside /admin, noindex + no-store, no locale prefix
   assert.match(read('../src/app/robots.ts'), /disallow: \['\/admin',/);
   assert.equal(ENROLL_PAGE, '/admin-enroll');
   assert.ok(ENROLL_PAGE.startsWith('/admin'), 'robots Disallow: /admin is a prefix match');
-  // 入口：账号权限页的「待绑定 2FA」
+  // 入口：#347 起只能从一次性绑定链接打开（UX v1.0.6），账号权限页「待绑定 2FA」下面只写「等本人打开绑定链接」，不再链到 /admin-enroll
   const users = read('../src/components/admin/users/UsersAdmin.tsx');
-  assert.match(users, /!u\.totpEnabled && <><br \/><a href=\{ENROLL_PAGE\}/);
+  assert.match(users, /!u\.totpEnabled && <><br \/><span className="adm-sub">等本人打开绑定链接<\/span><\/>/);
+  assert.doesNotMatch(users, /href=\{ENROLL_PAGE\}/);
   assert.doesNotMatch(users, /enroll-qr/);
 });
 
