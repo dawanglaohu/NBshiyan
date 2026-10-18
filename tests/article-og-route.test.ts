@@ -15,10 +15,16 @@ const ROUTE = 'src/app/[locale]/articles/[slug]/og/route.tsx';
 const RENDER = 'src/lib/seo/og/renderArticleOg.tsx';
 // 伪造的请求头：路由不能用到其中任何值
 const EVIL = { host: 'evil.example', 'x-forwarded-host': 'evil.example', 'x-forwarded-proto': 'http', forwarded: 'host=evil.example' };
-const call = async (locale: string, slug: string) => {
+// #350：路由只认查询参数 v（= articleOgVersion(locale, 当前标题)）；query 传 undefined 表示不带 v
+const call = async (locale: string, slug: string, query?: string) => {
   const { GET } = await import('../src/app/[locale]/articles/[slug]/og/route');
-  return GET(new Request(`http://evil.example/${locale}/articles/${encodeURIComponent(slug)}/og?v=<script>`, { headers: EVIL }), { params: Promise.resolve({ locale, slug }) });
+  const qs = query === undefined ? '' : `?${query}`;
+  return GET(new Request(`http://evil.example/${locale}/articles/${encodeURIComponent(slug)}/og${qs}`, { headers: EVIL }), { params: Promise.resolve({ locale, slug }) });
 };
+const MOCK = [['en', 'mock-article-packaging-guide', 'Mock Article: Packaging Guide Layout Test'], ['ru', 'mock-statya-o-upakovke', 'Тестовая статья: проверка макета']] as const;
+const ver = async (l: 'en' | 'ru', title: string) => (await import('../src/lib/seo/articleOg')).articleOgVersion(l, title);
+/** 正确的 v，外加会被忽略的干扰参数 */
+const goodQuery = async (l: 'en' | 'ru', title: string) => `title=${encodeURIComponent('<script>evil</script>')}&v=${await ver(l, title)}&slug=..%2F..&locale=de`;
 /** deploy/smoke-lib.sh 的 loc_bad（运维 smoke 用的同一个函数）：返回 true 表示 Location 不安全 */
 const locBad = (loc: string) => {
   try { execFileSync('bash', ['-c', '. deploy/smoke-lib.sh && loc_bad "$1"', '_', loc]); return true; } catch { return false; }
@@ -30,12 +36,12 @@ test('loc_bad 本身可用（对照）', () => {
   assert.equal(locBad('/og/home-en.jpg?v=7086247a'), false);
 });
 
-test('200：PNG 1200×630，Cache-Control public, max-age=86400, s-maxage=604800，noindex，标题不进响应头', async () => {
-  for (const [l, slug, title] of [['en', 'mock-article-packaging-guide', 'Mock Article'], ['ru', 'mock-statya-o-upakovke', 'Тестовая статья']] as const) {
-    const r = await call(l, slug);
+test('200（v 正确，其他参数忽略）：PNG 1200×630，Cache-Control public, max-age=31536000, immutable，noindex，标题不进响应头', async () => {
+  for (const [l, slug, title] of MOCK) {
+    const r = await call(l, slug, await goodQuery(l, title));
     assert.equal(r.status, 200, slug);
     assert.equal(r.headers.get('content-type'), 'image/png');
-    assert.equal(r.headers.get('cache-control'), 'public, max-age=86400, s-maxage=604800');
+    assert.equal(r.headers.get('cache-control'), 'public, max-age=31536000, immutable');
     assert.equal(r.headers.get('x-robots-tag'), 'noindex');
     assert.equal(r.headers.get('location'), null);
     assert.ok(!headerValues(r).includes(title), 'title must not appear in headers');
@@ -46,32 +52,54 @@ test('200：PNG 1200×630，Cache-Control public, max-age=86400, s-maxage=604800
   }
 });
 
-test('302 回退：相对 Location /og/home-<l>.jpg?v=<8 hex>，不用 Host / X-Forwarded-Host，过 loc_bad 和 #328 检查；no-store + noindex', async () => {
+test('#350 v 校验：缺 v、v 不对、v 格式不对、文章不存在 → 404 no-store + noindex，不渲染、不跳转', async () => {
+  for (const [l, slug, title] of MOCK) {
+    const good = await ver(l, title);
+    const wrong = good.replace(/^./, (c) => (c === '0' ? '1' : '0'));
+    for (const q of [undefined, '', 'v=', `v=${wrong}`, `v=${good.toUpperCase()}`, `v=${good}0`, `v=00000000&v=${good}`, `x=${good}`]) {
+      const r = await call(l, slug, q);
+      assert.equal(r.status, 404, `${slug} ${q}`);
+      assert.equal(r.headers.get('cache-control'), 'no-store');
+      assert.equal(r.headers.get('x-robots-tag'), 'noindex');
+      assert.equal(r.headers.get('location'), null);
+      assert.equal(r.headers.get('content-type'), null, 'no image rendered');
+    }
+  }
+  // 文章不存在：任何 v 都对不上 → 404（以前是 302 回退通用图）
   for (const [l, slug] of [['en', 'does-not-exist'], ['ru', 'net-takoy-stati'], ['en', 'x'.repeat(120)]] as const) {
-    const r = await call(l, slug);
-    assert.equal(r.status, 302, slug);
-    const loc = r.headers.get('location') ?? '';
+    const r = await call(l, slug, `v=${await ver(l, 'does-not-exist')}`);
+    assert.equal(r.status, 404, slug);
+    assert.equal(r.headers.get('cache-control'), 'no-store');
+  }
+  // 源码顺序：v 校验在查 CMS 之前（缺 v 不查库），版本比对在渲染之前
+  const src = fs.readFileSync(ROUTE, 'utf8').replace(/^\s*\/\/.*$/gm, '');
+  assert.ok(src.indexOf('if (!v) return notFound()') < src.indexOf('getDocBySlug('));
+  assert.ok(src.indexOf('articleOgVersion(locale, title) !== v') < src.indexOf('renderArticleOgPng('));
+});
+
+test('302 回退（v 正确但渲染不出来）：Location 仍是相对路径 /og/home-<l>.jpg?v=…，过 loc_bad 和 #328 检查', async () => {
+  const { ogImageUrl } = await import('../src/lib/seo/pageMeta');
+  for (const l of ['en', 'ru'] as const) {
+    const u = new URL(ogImageUrl('home', l));
+    const loc = u.pathname + u.search;
     assert.match(loc, new RegExp(`^/og/home-${l}\\.jpg\\?v=[0-9a-f]{8}$`));
     assert.equal(locBad(loc), false, loc);
     assert.ok(isSafeRelativeLocation(loc));
-    // #328 的改写只处理绝对地址，相对 Location 原样保留
     assert.equal(sameSiteRedirectPath(loc), null);
-    assert.equal(r.headers.get('cache-control'), 'no-store');
-    assert.equal(r.headers.get('x-robots-tag'), 'noindex');
-    assert.doesNotMatch(headerValues(r), /evil/i);
   }
+  assert.match(fs.readFileSync(ROUTE, 'utf8'), /Location: u\.pathname \+ u\.search/);
 });
 
 test('slug 白名单 ^[a-z0-9-]{1,120}$ 在查 CMS 之前：不合规一律 404 no-store，不渲染', async () => {
   for (const slug of ['', 'UPPER', 'a/b', '../etc', '..', 'a b', 'a_b', 'a.b', '%2e%2e', 'статья', 'x'.repeat(121), 'mock-article-packaging-guide\n', '<script>']) {
-    const r = await call('en', slug);
+    const r = await call('en', slug, await goodQuery('en', MOCK[0][2]));
     assert.equal(r.status, 404, JSON.stringify(slug));
     assert.equal(r.headers.get('cache-control'), 'no-store');
     assert.equal(r.headers.get('x-robots-tag'), 'noindex');
     assert.equal(r.headers.get('location'), null);
   }
   for (const l of ['de', 'EN', '']) {
-    const r = await call(l, 'mock-article-packaging-guide');
+    const r = await call(l, 'mock-article-packaging-guide', await goodQuery('en', MOCK[0][2]));
     assert.equal(r.status, 404, l);
     assert.equal(r.headers.get('cache-control'), 'no-store');
   }
@@ -96,7 +124,7 @@ test('渲染不发任何网络请求：字体只读本地文件；emoji / 中文
 test('唯一渲染入口：路由只通过 renderArticleOgPng 渲染，字符过滤在入口里', () => {
   const route = fs.readFileSync(ROUTE, 'utf8').replace(/^\s*\/\/.*$/gm, '');
   assert.match(route, /from '@\/lib\/seo\/og\/renderArticleOg'/);
-  assert.match(route, /renderArticleOgPng\(d\?\.title, locale\)/);
+  assert.match(route, /renderArticleOgPng\(title, locale\)/);
   // 路由里不能自己构造 ImageResponse、读字体或直接用模板，否则就会绕过入口里的过滤
   assert.doesNotMatch(route, /ImageResponse|ArticleOgImage|articleOgFonts|ogSafeText/);
   const entry = fs.readFileSync(RENDER, 'utf8');
@@ -150,8 +178,12 @@ test('断网渲染：屏蔽 fetch 和所有 TCP/TLS 连接后，入口照常出�
 test('noindex 只在接口里设置（不依赖环境、不靠 middleware），robots.txt 不加分享图的 Disallow', () => {
   const r = fs.readFileSync(ROUTE, 'utf8');
   assert.match(r, /const OG_ROBOTS = \{ 'X-Robots-Tag': 'noindex' \} as const;/);
-  assert.doesNotMatch(r.replace(/^\s*\/\/.*$/gm, ''), /isProd|APP_ENV|headers\.get|req\.(url|headers|nextUrl)/);
-  assert.match(r, /GET\(_req: Request/);
+  // #350：请求里只读 URL 的查询参数 v（一处），不读请求头 / Host / 其他参数
+  const code = r.replace(/^\s*\/\/.*$/gm, '');
+  assert.doesNotMatch(code, /isProd|APP_ENV|headers\.get|req\.(headers|nextUrl)/);
+  assert.equal((code.match(/req\.url/g) ?? []).length, 1);
+  assert.match(code, /new URL\(req\.url\)\.searchParams\.get\('v'\)/);
+  assert.doesNotMatch(code, /searchParams\.get\('(?!v')/);
   const mw = fs.readFileSync('src/middleware.ts', 'utf8');
   assert.doesNotMatch(mw, /articles|\/og/);
   const robots = fs.readFileSync('src/app/robots.ts', 'utf8');
