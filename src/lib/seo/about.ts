@@ -191,16 +191,7 @@ export function buildOrganizationJsonLd(settings: Partial<OrganizationSettings> 
   const email = clean(s.email);
   put('email', email && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) ? email : undefined);
   put('telephone', clean(s.telephone));
-  if (typeof s.address === 'string') {
-    put('address', clean(s.address));
-  } else if (s.address) {
-    const addr: Record<string, string> = {};
-    for (const k of ['streetAddress', 'addressLocality', 'addressRegion', 'postalCode', 'addressCountry'] as const) {
-      const v = clean(s.address[k]);
-      if (v) addr[k] = v;
-    }
-    if (Object.keys(addr).length) out.address = { '@type': 'PostalAddress', ...addr };
-  }
+  put('address', clean(s.address));
   const sameAs = [...new Set((s.sameAs ?? []).map(clean).filter((u): u is string => !!u && isHttps(u)))];
   if (sameAs.length) out.sameAs = sameAs;
   const fd = clean(s.foundingDate);

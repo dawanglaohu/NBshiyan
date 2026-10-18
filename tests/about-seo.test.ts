@@ -140,22 +140,22 @@ test('Organization JSON-LD: already-defaulted settings give the same output (ide
 test('Organization JSON-LD: settings override defaults; empty fields omitted; invalid values dropped', () => {
   const o = buildOrganizationJsonLd({
     name: 'PackJoyU', url: ORIGIN, alternateName: 'ПакДжойЮ', description: 'Own text', legalName: '  ', logo: '/logo.png',
-    email: 'not-an-email', telephone: '', address: { addressCountry: 'CN', streetAddress: ' ' },
+    email: 'not-an-email', telephone: '', address: '   ',
     sameAs: ['https://x.example/p', 'http://insecure.example', 'javascript:alert(1)', '', 'https://x.example/p'],
     foundingDate: 'soon'
   }, ORIGIN);
   assert.deepEqual(o, {
     '@context': 'https://schema.org', '@type': 'Organization', '@id': `${ORIGIN}/#organization`,
     name: 'PackJoyU', url: ORIGIN, alternateName: 'ПакДжойЮ', description: 'Own text', logo: `${ORIGIN}/logo.png`,
-    address: { '@type': 'PostalAddress', addressCountry: 'CN' }, sameAs: ['https://x.example/p']
+    sameAs: ['https://x.example/p']
   });
-  for (const k of ['legalName', 'email', 'telephone', 'foundingDate']) assert.equal(k in o, false, k);
+  for (const k of ['legalName', 'email', 'telephone', 'address', 'foundingDate']) assert.equal(k in o, false, k);
   const json = JSON.stringify(o);
   for (const k of ['numberOfEmployees', 'hasCredential', 'award', 'capacity', 'leadTime']) assert.equal(json.includes(k), false, k);
   assert.equal(buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], logo: '//evil.example/x.png' }, ORIGIN).logo, undefined);
   assert.equal(buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], logo: '/\\evil.example' }, ORIGIN).logo, undefined);
-  const full = buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], email: 'sales@example.test', telephone: '+00 0000', address: 'Sample address', foundingDate: '2000', legalName: 'Sample Co.' }, ORIGIN);
-  assert.deepEqual([full.email, full.telephone, full.address, full.foundingDate, full.legalName], ['sales@example.test', '+00 0000', 'Sample address', '2000', 'Sample Co.']);
+  const full = buildOrganizationJsonLd({ name: 'P', url: ORIGIN, sameAs: [], email: 'sales@example.test', telephone: '+00 0000', address: '  Sample address, Line 1  ', foundingDate: '2000', legalName: 'Sample Co.' }, ORIGIN);
+  assert.deepEqual([full.email, full.telephone, full.address, full.foundingDate, full.legalName], ['sales@example.test', '+00 0000', 'Sample address, Line 1', '2000', 'Sample Co.']);
 });
 
 test("serializeJsonLd escapes '<' so </script> cannot break out", () => {
