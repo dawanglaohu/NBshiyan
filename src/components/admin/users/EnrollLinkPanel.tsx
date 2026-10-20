@@ -43,7 +43,7 @@ export default function EnrollLinkPanel({ issued, email, onDismiss }: Props) {
     <>
       <EnrollLinkPanelView issued={issued} email={email} copied={copied} hasCopied={hasCopied} onCopy={onCopy} onDismiss={onDismiss} boxRef={box} panelRef={panel} />
       {pending && (
-        <ConfirmDialog title={PANEL_TEXT.leave} confirmLabel={PANEL_TEXT.leaveOk} onCancel={() => setPending(null)} onConfirm={leave}>{null}</ConfirmDialog>
+        <ConfirmDialog title={PANEL_TEXT.leave} confirmLabel={PANEL_TEXT.leaveOk} onCancel={() => setPending(null)} onConfirm={leave} danger>{null}</ConfirmDialog>
       )}
     </>
   );

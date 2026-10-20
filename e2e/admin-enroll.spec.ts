@@ -33,6 +33,7 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   await expect.poll(() => new URL(page.url()).hash).toBe(''); // #347：令牌（#t= fragment）已从地址栏去掉（replaceState）
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   await expect(page.locator('[aria-current="step"]')).toContainText('账号验证');
+  await expect(page.getByTestId('enroll-keep-hint')).toHaveText('请在这个页面完成绑定，不要刷新或关闭'); // #347 UX v1.0：有令牌时的灰色提示
 
   // 第 1 步：密码错 → bad_credentials 文案（顶部 role=alert）
   await page.getByLabel('邮箱').fill(email);
@@ -40,7 +41,12 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   await page.getByRole('button', { name: '显示密码' }).click();
   await expect(page.getByLabel('初始密码')).toHaveAttribute('type', 'text');
   await page.getByRole('button', { name: '下一步' }).click();
-  await expect(page.getByRole('main').getByRole('alert')).toHaveText('邮箱或密码错误，或该账号已绑定');
+  // #347 UX v1.0.4：401 统一文案；保留邮箱、清空密码并聚焦，不标红单个字段
+  await expect(page.getByRole('main').getByRole('alert')).toHaveText('链接无效或已过期、邮箱或密码不正确，或尝试次数过多。请稍后重试；仍然不行的话，请联系管理员重新发送绑定链接。');
+  await expect(page.getByLabel('邮箱')).toHaveValue(email);
+  await expect(page.getByLabel('初始密码')).toHaveValue('');
+  await expect(page.getByLabel('初始密码')).toBeFocused();
+  await expect(page.locator('[aria-invalid="true"]')).toHaveCount(0);
   await page.getByLabel('初始密码').fill(PASSWORD);
   await page.getByRole('button', { name: '下一步' }).click();
 
@@ -126,6 +132,24 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   await go.click();
   await page.waitForURL(/\/api\/auth\/signin/);
+});
+
+test('#347 没有 #t= 令牌（直接打开或刷新后）→「需要绑定链接」页，不显示表单，不发任何请求', async ({ page, external }) => {
+  const calls: string[] = [];
+  page.on('request', (r) => { if (r.url().includes('/api/auth-admin/')) calls.push(r.url()); });
+  await page.goto('/admin-enroll');
+  await expect(page.getByRole('heading', { level: 1, name: '需要绑定链接' })).toBeVisible();
+  await expect(page.getByText('这个页面只能从管理员发给你的绑定链接打开。如果你刚刚刷新了页面，请重新点开那个链接；链接失效的话请联系管理员重新发送。')).toBeVisible();
+  await expect(page.getByRole('link', { name: '去登录' })).toHaveAttribute('href', '/api/auth/signin?callbackUrl=%2Fadmin');
+  await expect(page.getByLabel('初始密码')).toHaveCount(0);
+  // 带令牌打开后刷新：令牌已从地址栏去掉，刷新后同样是「需要绑定链接」
+  await page.goto('/admin-enroll#t=' + 'A'.repeat(43));
+  await expect(page.getByLabel('初始密码')).toBeVisible();
+  await expect.poll(() => new URL(page.url()).hash).toBe('');
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: '需要绑定链接' })).toBeVisible();
+  expect(calls).toEqual([]);
+  expect(external.urls).toEqual([]);
 });
 
 test('已绑定的账号再调 enroll → 401 bad_credentials（#347：确认成功后令牌已用掉）', async ({ request }) => {

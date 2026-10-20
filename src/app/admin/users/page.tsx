@@ -1,4 +1,5 @@
 import { enforceAdminPage } from '@/lib/server/admin/page-access';
+import { checkAdminSession } from '@/lib/server/admin/guard';
 import UsersAdmin from '@/components/admin/users/UsersAdmin';
 // #347 绑定链接面板的离开确认复用站点设置的 ConfirmDialog，需要它的 .st-mask / .st-dialog 样式
 import '@/components/admin/settings/settings.css';
@@ -8,5 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   await enforceAdminPage(['ADMIN'], '/admin/users');
-  return <UsersAdmin />;
+  // #347：自己那一行不显示「重置 2FA」，需要知道当前账号 id（只传 id，不传其他会话信息）
+  const c = await checkAdminSession(['ADMIN']);
+  return <UsersAdmin selfId={c.ok ? c.user.id : undefined} />;
 }

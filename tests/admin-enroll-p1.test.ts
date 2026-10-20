@@ -14,7 +14,7 @@ const CODES = Array.from({ length: 10 }, (_, i) => `abcdef012${i}`);
 
 test('P1 enroll: every backend error code maps to the UX spec §6 copy', () => {
   for (const c of ['bad_credentials', 'bad_totp', 'invalid', 'rate_limited', 'forbidden_origin']) assert.ok(ERROR_TEXT[c], c);
-  assert.equal(errorText('bad_credentials'), '邮箱或密码错误，或该账号已绑定');
+  assert.equal(errorText('bad_credentials'), '链接无效或已过期、邮箱或密码不正确，或尝试次数过多。请稍后重试；仍然不行的话，请联系管理员重新发送绑定链接。');
   assert.equal(errorText('bad_totp'), '验证码不正确或已过期');
   assert.equal(errorText('rate_limited'), '尝试过多，请稍后再试');
   assert.equal(errorText('invalid'), '请求无效，请刷新页面重试');
@@ -215,7 +215,7 @@ test('#350 enroll_reset（401）：绑定作废 → 清掉二维码 / 密钥，�
   for (const c of ['bad_credentials', 'bad_totp', 'rate_limited', 'invalid', 'forbidden_origin', undefined, null, ''])
     assert.equal(m.isVoidCode(c as string), false, String(c));
   // 其他码保持原文案
-  assert.equal(m.errorText('bad_credentials'), '邮箱或密码错误，或该账号已绑定');
+  assert.equal(m.errorText('bad_credentials'), '链接无效或已过期、邮箱或密码不正确，或尝试次数过多。请稍后重试；仍然不行的话，请联系管理员重新发送绑定链接。');
   assert.equal(m.errorText('bad_totp'), '验证码不正确或已过期');
   assert.equal(m.errorText('rate_limited'), '尝试过多，请稍后再试');
   // 作废：只在第 2 步发生，丢掉 otpauth URI，离开不再提醒，不能再确认

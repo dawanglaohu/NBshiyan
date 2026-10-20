@@ -147,3 +147,8 @@
   .adm-user-form label input,.adm-user-form label select{display:block;width:100%;margin-top:4px}
   .adm-user-form > .adm-btn{display:block;width:100%;min-height:44px}
 }
+/* #347 UX：页面级错误条用后台的错误样式（红底红边）；危险操作按钮（描边红字） */
+.adm-msg.err{background:var(--errb);border-color:#F3B5B0;color:var(--err);font-weight:600}
+.adm-btn.danger{border-color:#E8A49E;color:var(--err)}
+.adm-btn.danger:hover{background:var(--errb)}
+.adm-btn.adm-row-last{margin-left:12px}

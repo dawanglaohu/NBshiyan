@@ -16,6 +16,16 @@ export const ENROLL_TOKEN_PARAM = 't';
  * #347：从地址栏的 #fragment 里取一次性绑定令牌，并给出去掉 t 之后的地址（页面打开后立即 history.replaceState，令牌只留在内存里）。
  * 令牌格式不对时 token 为 null（仍然从地址栏去掉）。查询参数原样保留；fragment 里的其他键保留。
  */
+/** #347 UX v1.0：地址里没有 #t=（直接打开或刷新过）时的「需要绑定链接」页 */
+export const NO_TOKEN_TITLE = '需要绑定链接';
+export const NO_TOKEN_BODY = '这个页面只能从管理员发给你的绑定链接打开。如果你刚刚刷新了页面，请重新点开那个链接；链接失效的话请联系管理员重新发送。';
+export const NO_TOKEN_SIGNIN = '去登录';
+/** 有令牌时表单上方的灰色提示（刷新后令牌就没了） */
+export const KEEP_PAGE_HINT = '请在这个页面完成绑定，不要刷新或关闭';
+/** 页面打开时的令牌状态：unknown = 还没读地址栏（服务端渲染 / 首帧）；none = hash 里没有 t；present = 有 t（格式不对也算，提交时后端回 401） */
+export type TokenState = 'unknown' | 'none' | 'present';
+export const tokenStateOf = (cleanUrl: string | null): TokenState => (cleanUrl === null ? 'none' : 'present');
+
 export function takeEnrollToken(loc: { pathname: string; search: string; hash: string }): { token: string | null; cleanUrl: string | null } {
   const h = new URLSearchParams(loc.hash.replace(/^#/, ''));
   if (!h.has(ENROLL_TOKEN_PARAM)) return { token: null, cleanUrl: null };
@@ -35,7 +45,8 @@ export const NEXT_CODE_WAIT_MS = 30_000;
 
 /** 错误文案按 UX 稿（spec §6）；forbidden_origin 多一句联系运维（APP_ORIGIN 配错时刷新没用） */
 export const ERROR_TEXT: Record<string, string> = {
-  bad_credentials: '邮箱或密码错误，或该账号已绑定',
+  // #347 UX v1.0.4：令牌缺失 / 错误 / 过期 / 已用、密码错、锁定中，后端都回同一个 401，文案也不区分
+  bad_credentials: '链接无效或已过期、邮箱或密码不正确，或尝试次数过多。请稍后重试；仍然不行的话，请联系管理员重新发送绑定链接。',
   bad_totp: '验证码不正确或已过期',
   invalid: '请求无效，请刷新页面重试',
   rate_limited: '尝试过多，请稍后再试',

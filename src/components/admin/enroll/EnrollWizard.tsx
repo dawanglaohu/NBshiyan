@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   afterConfirm, afterEnroll, afterVoid, canFinish, codeCheck, CONFIRM_PATH, ENROLL_PATH, ENROLL_RESTART, ENROLL_VOID_FOOT, ENROLL_VOID_HINT, ENROLL_VOID_TEXT, errorText, isVoidCode, groupSecret, inProgress, INITIAL, isCompleteCode,
-  normalizeCode, parseSecret, postEnroll, recoveryFilename, recoveryTxt, SIGNIN_HREF, STEPS, stepStatus, takeEnrollToken, waitLeft,
-  type EnrollState, type Step,
+  KEEP_PAGE_HINT, NO_TOKEN_BODY, NO_TOKEN_SIGNIN, NO_TOKEN_TITLE, normalizeCode, parseSecret, postEnroll, recoveryFilename, recoveryTxt, SIGNIN_HREF, STEPS, stepStatus,
+  takeEnrollToken, tokenStateOf, waitLeft, type EnrollState, type Step, type TokenState,
 } from '@/lib/admin/enroll';
 import { qrSvgDataUrl } from '@/lib/admin/enroll-qr';
 
@@ -14,8 +14,9 @@ const TITLES: Record<Step, string> = { 1: '绑定两步验证', 2: '扫码并确
  * P1：新管理员首次绑定 2FA（UX 稿 spec §6：账号验证 → 扫码并确认 → 保存恢复码）。
  * 密码、otpauth URI、恢复码只放在 React state 里：不写 URL、不写浏览器本地存储、不打日志；
  * 去登录、页面隐藏（pagehide）、卸载时都清掉。
- * #347 方案 A（后端 PR 里的最小改动，完整的页面状态和文案由前端后续 PR 按 UX spec 做）：打开时从 #t= 读一次性绑定令牌，
- * 立即 history.replaceState 去掉，令牌只放在内存（ref）里，随 enroll / confirm 一起提交；确认成功或去登录时清掉。
+ * #347 方案 A：打开时从 #t= 读一次性绑定令牌，立即 history.replaceState 去掉，令牌只放在内存（ref）里，随 enroll / confirm 一起提交；
+ * 确认成功或去登录时清掉。UX spec v1.0–v1.0.4：hash 里没有 t →「需要绑定链接」页；有 t → 表单上方灰色「不要刷新或关闭」提示；
+ * 401 bad_credentials 统一文案（不区分令牌 / 密码 / 锁定），保留邮箱、清空密码并聚焦，不标红单个字段。
  */
 export default function EnrollWizard() {
   const [s, setS] = useState<EnrollState>(INITIAL);
@@ -31,13 +32,22 @@ export default function EnrollWizard() {
   const first = useRef(true);
   const leaving = useRef(false);
   const enrollToken = useRef<string | null>(null);
+  const tokenRead = useRef(false);
+  const pwInput = useRef<HTMLInputElement>(null);
+  const focusPw = useRef(false);
+  const [tok, setTok] = useState<TokenState>('unknown');
 
   // #347：读出地址栏里的令牌后马上去掉（不进历史记录、Referer、截图），StrictMode 下第二次执行时地址栏已经没有 t，不覆盖
+  // 只读一次（ref 标记）：StrictMode 第二次执行时地址栏已经没有 t，不能因此切成「需要绑定链接」
   useEffect(() => {
+    if (tokenRead.current) return;
+    tokenRead.current = true;
     const { token, cleanUrl } = takeEnrollToken(window.location);
-    if (cleanUrl === null) return;
-    enrollToken.current = token;
-    window.history.replaceState(window.history.state, '', cleanUrl);
+    if (cleanUrl !== null) {
+      enrollToken.current = token;
+      window.history.replaceState(window.history.state, '', cleanUrl);
+    }
+    setTok(tokenStateOf(cleanUrl));
   }, []);
   const withToken = (body: Record<string, string>) => (enrollToken.current ? { ...body, token: enrollToken.current } : body);
 
@@ -68,6 +78,12 @@ export default function EnrollWizard() {
     return () => { window.removeEventListener('pagehide', wipe); wipe(); };
   }, [wipe]);
 
+  useEffect(() => {
+    if (!focusPw.current || error?.code !== 'bad_credentials') return;
+    focusPw.current = false;
+    pwInput.current?.focus();
+  }, [error]);
+
   // 第 3 步：确认后 30 秒倒计时（确认用掉的码登录时再用会失败并计入锁定次数）
   const left = Math.ceil(waitLeft(s, now) / 1000);
   // 验证码框下方的红字：超过 6 位时提示「请输入 6 位数字验证码」，优先于接口返回的验证码错误；不足 6 位不提示
@@ -90,7 +106,11 @@ export default function EnrollWizard() {
     setBusy(true); setError(null);
     const r = await postEnroll<{ otpauthUri: string }>(ENROLL_PATH, withToken({ email: email.trim(), password }));
     setBusy(false);
-    if (!r.ok) { setError({ code: r.code, at: 'top' }); return; }
+    if (!r.ok) {
+      // 401 统一文案：保留邮箱、清空密码并聚焦（下面的 effect 在渲染后聚焦）
+      if (r.code === 'bad_credentials') { setPassword(''); setShowPw(false); focusPw.current = true; }
+      setError({ code: r.code, at: 'top' }); return;
+    }
     if (!parseSecret(r.data.otpauthUri)) { setError({ code: 'unknown', at: 'top' }); return; }
     setShowPw(false);
     setS((p) => afterEnroll(p, r.data.otpauthUri));
@@ -142,6 +162,20 @@ export default function EnrollWizard() {
   };
 
   const topErr = error?.at === 'top' ? <div className="en-err" role="alert">{errorText(error.code)}</div> : null;
+  // 首帧（服务端渲染、还没读地址栏）只渲染空卡片，避免先闪一下「需要绑定链接」或表单
+  if (tok === 'unknown') return <main className="en-wrap"><div className="en-card" aria-busy="true" /></main>;
+  if (tok === 'none' && s.step === 1) {
+    return (
+      <main className="en-wrap">
+        <div className="en-card" data-testid="enroll-no-token">
+          <h1 ref={heading} tabIndex={-1}>{NO_TOKEN_TITLE}</h1>
+          <p className="en-lead">{NO_TOKEN_BODY}</p>
+          <a className="en-btn ghost" href={SIGNIN_HREF}>{NO_TOKEN_SIGNIN}</a>
+        </div>
+      </main>
+    );
+  }
+  const keepHint = s.step < 3 && !s.voided ? <p className="en-keep" data-testid="enroll-keep-hint">{KEEP_PAGE_HINT}</p> : null;
   return (
     <main className="en-wrap">
       <div className="en-card">
@@ -162,6 +196,7 @@ export default function EnrollWizard() {
 
         {s.step === 1 && (
           <form onSubmit={start}>
+            {keepHint}
             <p className="en-lead">第一次登录后台前需要完成绑定。请输入管理员发给你的邮箱和初始密码。</p>
             {topErr}
             <div className="en-f">
@@ -171,7 +206,7 @@ export default function EnrollWizard() {
             <div className="en-f">
               <label htmlFor="en-pw">初始密码</label>
               <div className="en-pw">
-                <input id="en-pw" type={showPw ? 'text' : 'password'} name="password" required maxLength={200} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input ref={pwInput} id="en-pw" type={showPw ? 'text' : 'password'} name="password" required maxLength={200} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 <button type="button" className="en-link" aria-pressed={showPw} aria-controls="en-pw" aria-label={showPw ? '隐藏密码' : '显示密码'} onClick={() => setShowPw((v) => !v)}>{showPw ? '隐藏' : '显示'}</button>
               </div>
             </div>
@@ -191,6 +226,7 @@ export default function EnrollWizard() {
 
         {s.step === 2 && !s.voided && qr && secret && (
           <form onSubmit={confirm}>
+            {keepHint}
             <p className="en-lead">用手机上的身份验证器 App 扫描下方二维码，然后输入 App 显示的 6 位验证码。</p>
             {topErr}
             <div className="en-qr">
