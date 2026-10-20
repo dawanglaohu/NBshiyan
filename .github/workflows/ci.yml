@@ -57,8 +57,8 @@ jobs:
       AUTH_TRUST_HOST: 'true'
       ADMIN_TOTP_KEY: ZTJlLW9ubHktdG90cC1rZXktMzItYnl0ZXMtMDAwMDA=
       NEXT_PUBLIC_SITE_URL: http://localhost:3100
-      # standalone 下 req.url 是监听地址（http://0.0.0.0:3100），assertSameOrigin 只认
-      # APP_ORIGIN，缺它所有改数据的后台请求一律 403
+      # standalone 的 req.url 使用监听地址（http://0.0.0.0:3100），与浏览器的 localhost Origin 不同。
+      # 显式配置 APP_ORIGIN，让后台写请求通过既有同源校验。
       APP_ORIGIN: http://localhost:3100
       NEXT_PUBLIC_ADMIN_API: http
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
