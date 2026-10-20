@@ -1,0 +1,77 @@
+"""Negative cases for evidence mismatches and release holds; originals stay read-only."""
+
+import copy
+import importlib.util
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+SPEC = importlib.util.spec_from_file_location('static_media', Path(__file__).with_name('verify-static-media.py'))
+CHECK = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(CHECK)
+
+
+class StaticMediaChecks(unittest.TestCase):
+    def setUp(self):
+        self.manifest = copy.deepcopy(CHECK.read('brand-static-media.json'))
+        self.identity = copy.deepcopy(CHECK.read('video-identity.json'))
+        self.production = copy.deepcopy(CHECK.read('production-record.json'))
+
+    def test_master_hash_and_path_cannot_disagree_with_audit(self):
+        original_read = CHECK.read
+        for key, value in [('sha256', '0' * 64), ('path', 'public/brand/missing-master.svg')]:
+            with self.subTest(key=key):
+                manifest = copy.deepcopy(self.manifest)
+                manifest['logoMaster'][key] = value
+                with patch.object(CHECK, 'read', side_effect=lambda name:
+                                  manifest if name == 'brand-static-media.json' else original_read(name)):
+                    with self.assertRaisesRegex(ValueError, f'Master {key} differs'):
+                        CHECK.verify()
+
+    def test_missing_release_file_is_rejected_even_when_listed(self):
+        original_read = CHECK.read
+        self.manifest['releaseFiles'] = ['public/brand/missing-release.mp4']
+        with patch.object(CHECK, 'read', side_effect=lambda name:
+                          self.manifest if name == 'brand-static-media.json' else original_read(name)):
+            with self.assertRaisesRegex(ValueError, 'Missing evidence'):
+                CHECK.verify()
+
+    def test_missing_production_stays_blocked(self):
+        blockers = CHECK.release_blockers(self.manifest, self.identity, self.production)
+        self.assertIn('PRODUCTION_NOT_COMPLETE', blockers)
+        self.assertIn('JPG_REPLACEMENT_NOT_VERIFIED', blockers)
+        self.assertIn('VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED', blockers)
+
+    def test_identity_records_match_original_and_registered_frame(self):
+        original_read = CHECK.read
+        cases = [
+            ('source-hash', lambda value: value.update(originalSha256='0' * 64), 'Identity source hash differs'),
+            ('frame-time', lambda value: value['observations'][2]['evidence'][0].update(atMs=8000),
+             'Identity frame atMs differs'),
+            ('poster-hash', lambda value: value['posterCandidate'].update(sha256='0' * 64), 'Hash mismatch'),
+        ]
+        for name, mutate, error in cases:
+            with self.subTest(case=name):
+                identity = copy.deepcopy(self.identity)
+                mutate(identity)
+                with patch.object(CHECK, 'read', side_effect=lambda filename:
+                                  identity if filename == 'video-identity.json' else original_read(filename)):
+                    with self.assertRaisesRegex(ValueError, error):
+                        CHECK.verify()
+
+    def test_equipment_marks_do_not_become_corporate_identity(self):
+        self.identity['corporateAuthorship']['identity'] = 'OWN_VERIFIED'
+        self.identity['observations'] = [
+            {'role': 'equipment', 'identity': 'THIRD_PARTY'},
+            {'role': 'equipment', 'identity': 'UNKNOWN'},
+        ]
+        blockers = CHECK.release_blockers(self.manifest, self.identity, self.production)
+        self.assertNotIn('VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED', blockers)
+        self.assertNotIn('NON_EQUIPMENT_IDENTITY_NOT_VERIFIED', blockers)
+        self.identity['observations'].append({'role': 'product_brand', 'identity': 'UNKNOWN'})
+        self.assertIn('NON_EQUIPMENT_IDENTITY_NOT_VERIFIED',
+                      CHECK.release_blockers(self.manifest, self.identity, self.production))
+
+
+if __name__ == '__main__':
+    unittest.main()

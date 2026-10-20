@@ -1,0 +1,27 @@
+{
+  "checks": [
+    {
+      "tool": "mcp__cua_repl.js",
+      "call": "await cua.getState()",
+      "result": "success",
+      "browserKinds": [
+        "Chrome",
+        "IAB",
+        "MCP Apps"
+      ],
+      "dotPresent": false,
+      "nativeAppsExposedByCua": false
+    },
+    {
+      "tool": "mcp__node_repl__js",
+      "call": "@oai/sky import; sky.list_apps()",
+      "result": "success",
+      "helperReachable": true,
+      "dotOrGraphicsEditorListed": false
+    }
+  ],
+  "dotReachable": false,
+  "remoteSoftwareOperations": [],
+  "statement": "No GPT Dot invocation, graphics-editor operation, remote output or remote production verification occurred. Local helper availability does not provide a remote Dot session.",
+  "checkedOn": "2026-10-20"
+}

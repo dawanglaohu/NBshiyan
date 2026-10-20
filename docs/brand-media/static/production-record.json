@@ -1,0 +1,72 @@
+{
+  "task": "M1-T3",
+  "taskStatus": "incomplete",
+  "releaseAllowed": false,
+  "operations": [
+    {
+      "id": "current-master",
+      "status": "executed_verified",
+      "tool": "Existing Python fontTools 4.63.0; local Next development server; Playwright Chrome 155.0.8059.79",
+      "outputs": [
+        "public/brand/packjoyu-logo-master.svg",
+        "docs/brand-media/static/logo-source-audit.json"
+      ],
+      "verification": "Source/header Latin WOFF2 and committed TTF glyph outlines/advance/kerning equal; browser positions/styles checked."
+    },
+    {
+      "id": "source-decode-and-identity",
+      "status": "executed_release_held",
+      "tool": "OpenCV 5.0.0 FFMPEG decoder and MP4 atom inspection; full-frame thumbnail sweep and original-resolution evidence review",
+      "outputs": [
+        "docs/brand-media/static/video-identity.json",
+        "docs/brand-media/static/evidence/all-frame-coverage.json"
+      ],
+      "verification": "735 frames decoded; unresolved identities and provenance prevent release."
+    },
+    {
+      "id": "airship-and-factory-replacement",
+      "status": "not_executed",
+      "tool": "GPT Dot graphics software unavailable",
+      "outputs": [],
+      "remainingTask": "Import verified master into authorized graphics software; replace both complete old logos with surface perspective; export JPG copy; inspect each occurrence; preserve original."
+    },
+    {
+      "id": "video-compressed-release-copy",
+      "status": "not_executed",
+      "outputs": [],
+      "remainingTask": "Resolve source corporate identity and product relationship, record actual authorized software export of the complete uncut timeline, decode output and verify duration/audio policy; keep original unchanged."
+    },
+    {
+      "id": "video-poster-release-copy",
+      "status": "not_executed",
+      "outputs": [],
+      "remainingTask": "After identity clearance, export semantic poster from documented original frame in available authorized software; record output hash/dimensions and visual review. Current 4500ms extraction is evidence only."
+    }
+  ],
+  "dotEvidencePath": "docs/brand-media/static/tool-availability.json",
+  "unmodifiedSources": [
+    {
+      "path": "C:\\Users\\admin\\Desktop\\banner1_1654824049643.jpg",
+      "bytes": 658714,
+      "sha256": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "width": 1920,
+      "height": 1000,
+      "frames": 1
+    },
+    {
+      "path": "C:\\Users\\admin\\Desktop\\video2.mp4",
+      "bytes": 8051146,
+      "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "width": 1920,
+      "height": 1080,
+      "fps": 60.0,
+      "reportedFrameCount": 735,
+      "decodedFrameCount": 735,
+      "durationMs": 12250.0,
+      "backend": "OpenCV 5.0.0"
+    }
+  ],
+  "originalHashCheck": "Read before inspection and again after all local extraction; SHA256 equal. No original is copied into public/brand.",
+  "guiChange": false,
+  "gifEvidence": "Not applicable: no product GUI behavior changed; Dot software workflow is not executed."
+}

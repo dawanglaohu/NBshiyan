@@ -1,0 +1,53 @@
+{
+  "task": "M1-T3",
+  "baseCommit": "7b7ab1c51e1b013c754b7d6fd2305c587f46afba",
+  "checkedOn": "2026-10-20",
+  "integrity": "pass",
+  "releaseAllowed": false,
+  "taskStatus": "incomplete",
+  "checks": [
+    {
+      "command": "master exporter default check",
+      "result": "pass",
+      "masterSha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099"
+    },
+    {
+      "command": "verify-static-media.py --originals-root C:/Users/admin/Desktop",
+      "result": "pass",
+      "imageFilesChecked": 24,
+      "sourceDecodedFrames": 735,
+      "reproducedEvidenceFrames": 7
+    },
+    {
+      "command": "python -B -m unittest discover -s docs/brand-media/static -p test_*.py -v",
+      "result": "pass",
+      "tests": 5
+    },
+    {
+      "command": "verify-static-media.py --require-release",
+      "result": "expected_release_hold",
+      "nativeExitCode": 2
+    },
+    {
+      "command": "npx --yes pnpm@10.34.6 lint",
+      "result": "pass_with_existing_warnings",
+      "nativeExitCode": 0
+    },
+    {
+      "command": "node --check and targeted eslint capture-logo-evidence.mjs",
+      "result": "pass"
+    },
+    {
+      "command": "independent verification subagent, read-only",
+      "result": "pass_for_existing_evidence_only",
+      "negativeMutationsRejected": 8
+    }
+  ],
+  "notExecuted": [
+    "GPT Dot graphics editing",
+    "branded JPG export",
+    "compressed video release export",
+    "poster release export",
+    "whole application build/DB/e2e"
+  ]
+}

@@ -1,0 +1,336 @@
+{
+  "task": "M1-T3",
+  "taskStatus": "incomplete",
+  "releaseAllowed": false,
+  "releaseFiles": [],
+  "logoMaster": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "viewBox": "0 0 9268 1920",
+    "format": "SVG; eight outlined paths; no text/font/script/external references/metadata",
+    "status": "verified",
+    "sourceFiles": [
+      {
+        "path": "src/components/layout/SiteHeader.tsx",
+        "sha256": "c69df839ef3c35ba26edc5d37e3df46945fb05b77beaf7e3fca5f1d0c2ec4ce4"
+      },
+      {
+        "path": "src/app/globals.css",
+        "sha256": "c4028af37aa3b2f321b8992b4b7ce02daf1a79774c5615304f549d028061e468"
+      },
+      {
+        "path": "src/app/[locale]/layout.tsx",
+        "sha256": "87d0befc92a6882692e6c960b2901461bcf83918135dd339ba92c32922b01e56"
+      },
+      {
+        "path": "src/styles/tokens.css",
+        "sha256": "ffbbf35f8cc0f623d12f46f5c85ff35b616aa431fe4a755d6d9f492fb214249f"
+      },
+      {
+        "path": "src/app/icon.svg",
+        "sha256": "56bdc4a29ae508300bc6b1d0e3fa1bfa4f8d9cdacbe9c294154cfce46261a17c"
+      },
+      {
+        "path": "src/assets/og-fonts/Manrope-ExtraBold.ttf",
+        "sha256": "27846657e08671d0a5de532c0aacf70ea69dd55319ea48c113dd26210a6482a8"
+      },
+      {
+        "path": "src/assets/og-fonts/OFL.txt",
+        "sha256": "4b8929f05a122b7abb9059501dc7dc4df86f8c97d5a1769d60d82cf2d2795dde"
+      },
+      {
+        "path": "design/og-src/og-article-font.py",
+        "sha256": "2c7e8b13d18fe4b8d15b116d6006ded6b022c6f79387f2e481944c5dd74644d1"
+      },
+      {
+        "path": "docs/brand-media/static/evidence/current-header.json",
+        "sha256": "2dfcc55a9c77b6eb2cd716d3754ec304fced8c95730e88bf63f8cc92881525c6"
+      },
+      {
+        "path": "docs/brand-media/static/evidence/current-manrope-latin.woff2",
+        "sha256": "e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f"
+      }
+    ],
+    "font": {
+      "path": "src/assets/og-fonts/Manrope-ExtraBold.ttf",
+      "weight": 800,
+      "unitsPerEm": 2000,
+      "version": "Version 4.504",
+      "webfontSha256": "e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f",
+      "browserFontUrl": "http://localhost:3123/_next/static/media/4c9affa5bc8f420e-s.p.woff2",
+      "exactOutlineAdvanceKerningMatch": true
+    },
+    "styleSources": {
+      "wordmark": "src/components/layout/SiteHeader.tsx:56",
+      "weightSizeJoyStyle": "src/app/globals.css:14",
+      "mainColorCascade": "src/app/globals.css:330; src/styles/tokens.css:29",
+      "joyColor": "src/styles/tokens.css:6",
+      "fontFamily": "src/app/[locale]/layout.tsx:20,57; src/app/globals.css:8"
+    },
+    "auditPath": "docs/brand-media/static/logo-source-audit.json"
+  },
+  "originals": [
+    {
+      "path": "C:/Users/admin/Desktop/banner1_1654824049643.jpg",
+      "bytes": 658714,
+      "sha256": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "width": 1920,
+      "height": 1000,
+      "frames": 1,
+      "sha256Before": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "sha256After": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468"
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video2.mp4",
+      "bytes": 8051146,
+      "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "width": 1920,
+      "height": 1080,
+      "fps": 60.0,
+      "reportedFrameCount": 735,
+      "decodedFrameCount": 735,
+      "durationMs": 12250.0,
+      "backend": "OpenCV 5.0.0",
+      "sha256Before": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "sha256After": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f"
+    }
+  ],
+  "jpgReplacements": [
+    {
+      "id": "JPG-01",
+      "location": "飞艇下部中文旧标",
+      "originalText": "合兴包装",
+      "sourcePixelBounds": [
+        521,
+        99,
+        550,
+        110
+      ],
+      "beforeEvidencePath": "docs/brand-media/static/evidence/jpg-airship.png",
+      "replacementLogoPath": "public/brand/packjoyu-logo-master.svg",
+      "status": "not_executed",
+      "afterPath": null,
+      "oldLogoAbsentVerified": false
+    },
+    {
+      "id": "JPG-02",
+      "location": "工厂墙面完整红灰几何图形及深蓝字母",
+      "originalText": "HXPP",
+      "sourcePixelBounds": [
+        1202,
+        647,
+        1265,
+        684
+      ],
+      "beforeEvidencePath": "docs/brand-media/static/evidence/jpg-factory.png",
+      "replacementLogoPath": "public/brand/packjoyu-logo-master.svg",
+      "status": "not_executed",
+      "afterPath": null,
+      "oldLogoAbsentVerified": false
+    }
+  ],
+  "videoIdentityPath": "docs/brand-media/static/video-identity.json",
+  "productionRecordPath": "docs/brand-media/static/production-record.json",
+  "files": [
+    {
+      "path": "docs/brand-media/static/evidence/all-01.jpg",
+      "sha256": "fb46b7febad1e532e7e5af4319201d5fb2e991426b119636a363572e8535aa43",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-02.jpg",
+      "sha256": "28e7da586833d2558ea571c500f22a78517d18bf43ecf06a584ae7d0fd2f76dd",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-03.jpg",
+      "sha256": "5cff413ed905624679fcaecaeb2da52b306a1d14906a85e31f4d8f244ce9a040",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-04.jpg",
+      "sha256": "4d2688d5134ef43a47a2f5980b3ba61f21be2db780c814530a90f7943c9e7c64",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-05.jpg",
+      "sha256": "2da67758aefd6fcd958e48df5639f5dd8fc78b6937b8af9a8337ec118d750413",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-06.jpg",
+      "sha256": "bb133231a86ee23e3940131b41b9e559f9b9c579e0e654923cd3e5d33c3f2672",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-07.jpg",
+      "sha256": "9c66c42fd969149ec22b4e84306deb5cee20be64234786d3b5187b09f1d27541",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-08.jpg",
+      "sha256": "71d5765dd24ab506828f2b40620de94ff4610b91a3044bb00b893af558bffbe5",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-09.jpg",
+      "sha256": "bb0583d5dff4577e045d35b36f86b3aa73016baeaba0a8d41b5920a4f9737a32",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-10.jpg",
+      "sha256": "ebb0a4f5284c930a78c3bc2500a13999300ac882daad39c43ed1723bb2bdf043",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-11.jpg",
+      "sha256": "c15d724815ef5714e79a2b22f60668bc36e4787a7664a153a8d9eb411d7052bd",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-12.jpg",
+      "sha256": "1eb32d1aa34e8d2bdc4238d6dee02884e681b75937651f761412f5ab3eed6d4b",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/current-header.png",
+      "sha256": "9af566833c91fd59b48c7631575d617095297e1d88486ad81e72df1f686954bc",
+      "width": 1440,
+      "height": 73,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/jpg-airship.png",
+      "sha256": "e45a2d5c1d3fafc0ca3ceddb407c57791477cc093a33fd5caf03f418f8ca7f55",
+      "width": 1050,
+      "height": 420,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/jpg-factory.png",
+      "sha256": "2d3d4375001eba6cbe7b5aa4687a624ff0572bde826f7b780951873584ffa047",
+      "width": 480,
+      "height": 330,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/logo-master-browser.png",
+      "sha256": "30db39f66e8b8c12615a6c09d65d1dbd2a27c47255143dbeb3f940a3032ee7c7",
+      "width": 1000,
+      "height": 250,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0000.jpg",
+      "sha256": "29bd36ed2a77d3b5c2118110b3cd70646f93733706d93d2daf829012fef0718b",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0180.jpg",
+      "sha256": "9f86ee053cec5f9fef7acb429c1d593a2010137888d3073bf9b6a7fd5e65d8d7",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0270.jpg",
+      "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0483.jpg",
+      "sha256": "f7c9e5eb73ee522e0db60923a59ff5afa4ca39076dfb10fa63945659444647e9",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0510.jpg",
+      "sha256": "00d8beeaf2c4ffd1e1e022610689ebc22c52e7ce036ab391c2bcb3064bb6ad00",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0600.jpg",
+      "sha256": "7700d874314686f0fddf35632f8d4ba9850d0c7d4dcd6c605e69ba9974541a12",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0734.jpg",
+      "sha256": "fa60340b92b761a1fd7bb676681a8e753eef81fcd2f30db50cbe95e4b5dc0835",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "public/brand/packjoyu-logo-master.svg",
+      "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+      "width": 927,
+      "height": 192,
+      "role": "verified_logo_master",
+      "dimensionsFrom": "Sharp 0.35.5 full raster decode at intrinsic SVG size",
+      "releaseAllowed": true
+    }
+  ],
+  "missingDeliverables": [
+    "branded_jpg_release_copy",
+    "video_compressed_release_copy",
+    "video_poster_release_copy",
+    "actual_remote_software_production_records"
+  ],
+  "completionRule": "Missing release copies or actual production records keep M1-T3 incomplete. Evidence is not a substitute for finished media."
+}
