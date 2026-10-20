@@ -76,7 +76,8 @@
     },
     "M1-T3": {
       "provides": [
-        "brand-static-media"
+        "brand-static-media",
+        "brand-logo-master"
       ],
       "requires": [
         {
@@ -161,6 +162,10 @@
         {
           "task": "M1-T4",
           "capability": "home-media"
+        },
+        {
+          "task": "M1-T9",
+          "capability": "company-visual-assets"
         }
       ],
       "stage": "integration",
@@ -174,7 +179,8 @@
         "messages/en.json",
         "messages/ru.json",
         "docs/brand-content/",
-        "e2e/company-content.spec.ts"
+        "e2e/company-content.spec.ts",
+        "src/lib/brand/company-media.ts"
       ],
       "sections": [
         1,
@@ -201,6 +207,10 @@
         {
           "task": "M1-T3",
           "capability": "brand-static-media"
+        },
+        {
+          "task": "M1-T3",
+          "capability": "brand-logo-master"
         }
       ],
       "stage": "integration",
@@ -3418,6 +3428,26 @@
         {
           "task": "M7-T8",
           "capability": "provenance-acceptance"
+        },
+        {
+          "task": "M3-T21",
+          "capability": "legacy-inquiries-ui"
+        },
+        {
+          "task": "M3-T22",
+          "capability": "legacy-unassigned-ui"
+        },
+        {
+          "task": "M3-T23",
+          "capability": "legacy-model-admin-ui"
+        },
+        {
+          "task": "M3-T24",
+          "capability": "legacy-specs-ui"
+        },
+        {
+          "task": "M3-T25",
+          "capability": "legacy-settings-users-ui"
         }
       ],
       "stage": "integration",
@@ -3438,6 +3468,271 @@
         10,
         14,
         16,
+        17,
+        18
+      ]
+    },
+    "M1-T9": {
+      "provides": [
+        "company-visual-assets"
+      ],
+      "requires": [
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        },
+        {
+          "task": "M1-T3",
+          "capability": "brand-logo-master"
+        }
+      ],
+      "supportPaths": [],
+      "stage": "primitive",
+      "wiring": [],
+      "outputPaths": [
+        "public/brand/company/",
+        "docs/brand-content/source/",
+        "docs/brand-content/company-visuals.json"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        11,
+        14,
+        17,
+        18
+      ],
+      "integrationTask": "M1-T5"
+    },
+    "M3-T21": {
+      "provides": [
+        "legacy-inquiries-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-inquiries-visual.spec.ts",
+        "tests/admin-legacy-inquiries-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/InquiryList.tsx",
+        "src/components/admin/InquiryDetail.tsx",
+        "src/components/admin/InquiryHistory.tsx",
+        "src/components/admin/InquiryNotFound.tsx",
+        "src/components/admin/StatusBadge.tsx",
+        "src/components/admin/DateRange.tsx",
+        "src/components/admin/anonymized.tsx",
+        "src/components/admin/mail/MailThread.tsx",
+        "src/components/admin/mail/MailParts.tsx",
+        "src/app/admin/admin.css",
+        "src/app/admin/mail.css"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T22": {
+      "provides": [
+        "legacy-unassigned-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        },
+        {
+          "task": "M3-T21",
+          "capability": "legacy-inquiries-ui"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-unassigned-gate.spec.ts",
+        "tests/admin-legacy-unassigned-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/mail/UnassignedInbox.tsx",
+        "src/components/admin/mail/UnassignedNav.tsx",
+        "src/app/admin/mail.css"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T23": {
+      "provides": [
+        "legacy-model-admin-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-model-visual.spec.ts",
+        "tests/admin-legacy-model-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/models/ModelUpload.tsx",
+        "src/components/admin/models/ModelPreview.tsx",
+        "src/components/admin/models/models.css"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T24": {
+      "provides": [
+        "legacy-specs-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-specs-visual.spec.ts",
+        "tests/admin-legacy-specs-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/specs/SpecEditor.tsx",
+        "src/components/admin/specs/specs.css",
+        "src/app/admin/specs/page.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T25": {
+      "provides": [
+        "legacy-settings-users-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        },
+        {
+          "task": "M3-T9",
+          "capability": "target-recovery-ui"
+        },
+        {
+          "task": "M5-T10",
+          "capability": "analytics-settings-ui"
+        },
+        {
+          "task": "M1-T5",
+          "capability": "company-content"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-settings-users-visual.spec.ts",
+        "tests/admin-legacy-settings-users-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/settings/settings.css",
+        "src/components/admin/settings/about-images.css",
+        "src/components/admin/settings/AboutSettings.tsx",
+        "src/components/admin/settings/OrgSettings.tsx",
+        "src/components/admin/settings/AboutImages.tsx",
+        "src/components/admin/settings/ImageTextField.tsx",
+        "src/components/admin/settings/ConfirmDialog.tsx",
+        "src/components/admin/settings/SettingsSections.tsx",
+        "src/components/admin/users/UsersAdmin.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
         17,
         18
       ]

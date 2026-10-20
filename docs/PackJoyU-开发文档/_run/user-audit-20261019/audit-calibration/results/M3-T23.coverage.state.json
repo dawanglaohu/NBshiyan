@@ -1,0 +1,10 @@
+{
+  "acceptance": "1) Actual ADMIN/EDITOR signs in, clicks 3D Models to /admin/models/new, then its breadcrumb to /admin/models still redirects to /new. Do not implement a new model list. In isolation, upload a synthetic actual GLB/poster through POST /api/admin/models, use existing GET/PATCH /api/admin/models/[id] and POST process/publish, and retain size limits, READY checks and explicit publish confirmation. 2) Replace old models.css/ModelUpload/ModelPreview visual values using the shared token source without removing actual GLB preview or existing preview themes. Preserve upload, processing, failed checks, preview and confirmation actions, named file input and cancel-to-inquiries. Read 07/11/12 and only minimalist-flat. At 1920x1080, 1440x900 and 390x844 record actual HTTP/GLB interaction GIFs, computed 2px borders, zero radius, no shadow/gradient, accent #b45700, D1-D6 and overflow; form is left aligned with density7/gutter16/gap16/pad16, 44px touch targets and all loading/empty/error/success/disabled/focus states. E-108.",
+  "edges": {
+    "E-108": {
+      "scene": "Visual upgrade of existing model administration",
+      "trigger": "An operator enters the actual GLB upload workflow through admin navigation or the /admin/models breadcrumb.",
+      "expect": "Preserve /models to /new redirect, upload/check/READY/publish-confirmation rules and existing preview functions; add no model-list business. Actual HTTP/GLB/GIF and density evidence at three viewports proves all controls remain usable in the unique locked style."
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "acceptance": "1) Actual ADMIN/EDITOR clicks Product specifications to /admin/specs; the SSR list comes from categoryMeta. Click an existing category to /admin/specs/[category] and GET /api/admin/specs/[category], then return through All categories. Unknown category and SALES retain original 404/403, with no new category or PDP. 2) Use the actual Save control to PUT original field names for English/Russian materials, dimensions, MOQ, lead time, fees and certifications. In an isolated synthetic record, subsequent GET matches the save; invalid fields preserve draft and visible associated errors. Do not remove fields or truncate necessary labels to pass density. Change only specs styles and necessary class/native semantics, consuming M1 components. Read 07/11/12 and only minimalist-flat. At 1920x1080, 1440x900 and 390x844 capture actual service GIFs, computed 2px border, zero radius, no shadow/gradient, accent #b45700, D1-D6/overflow and 44px targets. Listing is work, editor is left-aligned form, density7/gutter16/gap16/pad16; all loading/empty/error/success/disabled/focus states. E-109.",
+  "edges": {
+    "E-109": {
+      "scene": "Visual consistency of the existing specification listing and editor",
+      "trigger": "ADMIN or EDITOR selects an existing category through the specification listing and edits, validates and saves its fields.",
+      "expect": "Preserve SSR category data, original GET/PUT protocol and permissions. Required bilingual fields, labels, validation messages and Save remain visible and keyboard usable. Three-viewport density/overflow/real-GIF and post-save GET evidence proves the style migration removes no function."
+    }
+  }
+}

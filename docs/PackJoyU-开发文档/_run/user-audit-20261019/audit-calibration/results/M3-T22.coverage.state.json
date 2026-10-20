@@ -1,0 +1,10 @@
+{
+  "acceptance": "1) Preserve UNASSIGNED_MAIL_LIVE=false and MAIL_ATTACHMENTS_LIVE=false. In an actual authenticated ADMIN browser, existing inquiry navigation renders no Unassigned mail link; direct /admin/mail/unassigned returns 404, and network logs contain no unassigned/assign-lookup/assign/ignore/attachment calls. Add no backend and do not use sample data as a real inbox. 2) Replace dedicated hard-coded palettes, 8/12/999px radii and 1px borders in existing components/selectors using only section 11 minimalist-flat values. Retain callbacks and their existing states without enabling unavailable actions. Mark isolated component-state assertions as component evidence. 3) At 1920x1080, 1440x900 and 390x844 record a real-service GIF of existing navigation and gated direct access, plus zero-request assertions. For components not rendered because of the gate, computed style/D1-D6/overflow are explicitly gate-off/not-rendered, never pass. Reuse T21 actual visible shared-mail-control density/GIF evidence and verify component states with 2px borders, zero radius, one accent and 44px targets; read 07/11/12, do not open the gate to manufacture evidence. E-107.",
+  "edges": {
+    "E-107": {
+      "scene": "Visual migration of a disabled legacy mail feature",
+      "trigger": "An admin style upgrade runs while the unassigned-mail backend is absent and UNASSIGNED_MAIL_LIVE=false.",
+      "expect": "Keep its navigation absent, actual route 404 and related requests at zero. Migrate existing component styles using explicitly component-layer evidence. Not-rendered GUI/density checks are gate-off/not-rendered. Do not enable the feature or add endpoints to obtain a passing screenshot."
+    }
+  }
+}

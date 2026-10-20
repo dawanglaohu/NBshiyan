@@ -1,0 +1,724 @@
+[
+  {
+    "id": "M3-T21.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-106": {
+        "p": 0.85,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-106=yes(0.85)",
+    "usage": {
+      "input_tokens": 786,
+      "output_tokens": 25
+    }
+  },
+  {
+    "id": "M3-T21.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.58,
+        "level": "more than two days, should be split",
+        "confidence": 0.67,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=no(0.21) frontend=yes(0.88) objective=unsure(0.43) defers=no(0.28) needs_gif=yes(0.92) needs_judgment=unsure(0.59) size=more than two days, should be split(medium 0.67)",
+    "usage": {
+      "input_tokens": 1004,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T22.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-107": {
+        "p": 0.91,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-107=yes(0.91)",
+    "usage": {
+      "input_tokens": 769,
+      "output_tokens": 25
+    }
+  },
+  {
+    "id": "M3-T22.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.08,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 2.73,
+        "level": "two days",
+        "confidence": 0.4,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.08) frontend=yes(0.96) objective=unsure(0.50) defers=no(0.24) needs_gif=yes(0.93) needs_judgment=yes(0.71) size=two days(low 0.40)",
+    "usage": {
+      "input_tokens": 980,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T23.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-108": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-108=yes(0.94)",
+    "usage": {
+      "input_tokens": 744,
+      "output_tokens": 25
+    }
+  },
+  {
+    "id": "M3-T23.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.23,
+        "level": "more than two days, should be split",
+        "confidence": 0.38,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.19) frontend=yes(0.86) objective=unsure(0.40) defers=no(0.26) needs_gif=yes(0.90) needs_judgment=unsure(0.41) size=more than two days, should be split(low 0.38)",
+    "usage": {
+      "input_tokens": 958,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T24.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-109": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-109=yes(0.93)",
+    "usage": {
+      "input_tokens": 758,
+      "output_tokens": 25
+    }
+  },
+  {
+    "id": "M3-T24.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.24,
+        "level": "more than two days, should be split",
+        "confidence": 0.38,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.30) frontend=yes(0.90) objective=no(0.32) defers=no(0.17) needs_gif=yes(0.90) needs_judgment=unsure(0.41) size=more than two days, should be split(low 0.38)",
+    "usage": {
+      "input_tokens": 964,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T25.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-110": {
+        "p": 0.87,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-110=yes(0.87)",
+    "usage": {
+      "input_tokens": 844,
+      "output_tokens": 25
+    }
+  },
+  {
+    "id": "M3-T25.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.54,
+        "level": "more than two days, should be split",
+        "confidence": 0.63,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=no(0.22) frontend=yes(0.95) objective=unsure(0.39) defers=no(0.18) needs_gif=yes(0.69) needs_judgment=unsure(0.48) size=more than two days, should be split(medium 0.63)",
+    "usage": {
+      "input_tokens": 1043,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "E-106.edge",
+    "status": "ok",
+    "template": "edge",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "severity": {
+        "score": 0.19,
+        "level": "cosmetic or a confusing message only",
+        "confidence": 0.71,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.74,
+        "level": "routine, many users will hit it",
+        "confidence": 0.59,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.27,
+        "band": "low",
+        "probabilities": {
+          "M1": 0.25,
+          "M2": 0.01,
+          "M3": 0.27,
+          "M4": 0.03,
+          "M5": 0.0,
+          "M6": 0.36,
+          "M7": 0.06,
+          "unclear": 0.02
+        }
+      }
+    },
+    "line": "edge: severity=cosmetic or a confusing message only(medium 0.71) likelihood=routine, many users will hit it(medium 0.59) executable=unsure(0.38) owner=M6(low 0.27)",
+    "usage": {
+      "input_tokens": 1048,
+      "output_tokens": 129
+    }
+  },
+  {
+    "id": "E-107.edge",
+    "status": "ok",
+    "template": "edge",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "severity": {
+        "score": 0.83,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.52,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 0.24,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.66,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.01,
+          "M2": 0.0,
+          "M3": 0.99,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.52) likelihood=rare, needs deliberate misuse(medium 0.66) executable=unsure(0.64) owner=M3(high 0.99)",
+    "usage": {
+      "input_tokens": 1060,
+      "output_tokens": 129
+    }
+  },
+  {
+    "id": "E-108.edge",
+    "status": "ok",
+    "template": "edge",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "severity": {
+        "score": 1.09,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.1,
+        "level": "occasional",
+        "confidence": 0.82,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.01,
+          "M3": 0.98,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.85) likelihood=occasional(high 0.82) executable=unsure(0.55) owner=M3(high 0.98)",
+    "usage": {
+      "input_tokens": 1050,
+      "output_tokens": 129
+    }
+  },
+  {
+    "id": "E-109.edge",
+    "status": "ok",
+    "template": "edge",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "severity": {
+        "score": 1.62,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.43,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.22,
+        "level": "occasional",
+        "confidence": 0.66,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.43) likelihood=occasional(medium 0.66) executable=unsure(0.58) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1054,
+      "output_tokens": 129
+    }
+  },
+  {
+    "id": "E-110.edge",
+    "status": "ok",
+    "template": "edge",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "severity": {
+        "score": 1.71,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.55,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.01,
+        "level": "occasional",
+        "confidence": 0.77,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.99,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.55) likelihood=occasional(high 0.77) executable=unsure(0.36) owner=M3(high 0.99)",
+    "usage": {
+      "input_tokens": 1072,
+      "output_tokens": 129
+    }
+  },
+  {
+    "id": "E111.edge",
+    "status": "ok",
+    "template": "edge",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "severity": {
+        "score": 1.02,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.76,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.14,
+        "level": "occasional",
+        "confidence": 0.34,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.99,
+          "unclear": 0.01
+        }
+      }
+    },
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.76) likelihood=occasional(low 0.34) executable=yes(0.69) owner=M1(high 0.98)",
+    "usage": {
+      "input_tokens": 815,
+      "output_tokens": 81
+    }
+  },
+  {
+    "id": "M1-T5.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-27": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-28": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-29": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "covered_E-111": {
+        "p": 0.84,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-27=yes(0.96) covered_E-28=yes(0.94) covered_E-29=yes(0.70) covered_E-111=yes(0.84)",
+    "usage": {
+      "input_tokens": 1502,
+      "output_tokens": 85
+    }
+  },
+  {
+    "id": "M1-T5.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.73,
+        "level": "more than two days, should be split",
+        "confidence": 0.77,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.59) frontend=yes(0.83) objective=unsure(0.41) defers=no(0.33) needs_gif=yes(0.78) needs_judgment=yes(0.80) size=more than two days, should be split(high 0.77)",
+    "usage": {
+      "input_tokens": 1144,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T9.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-27": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-28": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-29": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-111": {
+        "p": 0.83,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-27=yes(0.95) covered_E-28=yes(0.96) covered_E-29=yes(0.93) covered_E-111=yes(0.83)",
+    "usage": {
+      "input_tokens": 1444,
+      "output_tokens": 85
+    }
+  },
+  {
+    "id": "M1-T9.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.12,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 2.59,
+        "level": "two days",
+        "confidence": 0.29,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.12) frontend=no(0.23) objective=no(0.29) defers=yes(0.73) needs_gif=unsure(0.50) needs_judgment=yes(0.80) size=two days(low 0.29)",
+    "usage": {
+      "input_tokens": 1090,
+      "output_tokens": 122
+    }
+  }
+]

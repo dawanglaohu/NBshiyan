@@ -27,7 +27,7 @@
         "layout": "沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。",
         "tier": "page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。",
         "ui": "沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。",
-        "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中16个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
+        "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中23个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
         "state": "仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。",
         "api": "新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。",
         "utils": "无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。",
@@ -102,7 +102,7 @@
       ]
     },
     "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层",
-    "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。",
+    "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。",
     "design": {
       "register": "brand",
       "style": "`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。",
@@ -157,7 +157,8 @@
         "messages/en.json",
         "messages/ru.json",
         "docs/brand-content/",
-        "e2e/company-content.spec.ts"
+        "e2e/company-content.spec.ts",
+        "src/lib/brand/company-media.ts"
       ],
       "M1-T6": [
         "public/brand/",
@@ -542,6 +543,50 @@
       "M7-T9": [
         "docs/acceptance/delivery/",
         "e2e/delivery-smoke.spec.ts"
+      ],
+      "M1-T9": [
+        "public/brand/company/",
+        "docs/brand-content/source/",
+        "docs/brand-content/company-visuals.json"
+      ],
+      "M3-T21": [
+        "src/components/admin/InquiryList.tsx",
+        "src/components/admin/InquiryDetail.tsx",
+        "src/components/admin/InquiryHistory.tsx",
+        "src/components/admin/InquiryNotFound.tsx",
+        "src/components/admin/StatusBadge.tsx",
+        "src/components/admin/DateRange.tsx",
+        "src/components/admin/anonymized.tsx",
+        "src/components/admin/mail/MailThread.tsx",
+        "src/components/admin/mail/MailParts.tsx",
+        "src/app/admin/admin.css",
+        "src/app/admin/mail.css"
+      ],
+      "M3-T22": [
+        "src/components/admin/mail/UnassignedInbox.tsx",
+        "src/components/admin/mail/UnassignedNav.tsx",
+        "src/app/admin/mail.css"
+      ],
+      "M3-T23": [
+        "src/components/admin/models/ModelUpload.tsx",
+        "src/components/admin/models/ModelPreview.tsx",
+        "src/components/admin/models/models.css"
+      ],
+      "M3-T24": [
+        "src/components/admin/specs/SpecEditor.tsx",
+        "src/components/admin/specs/specs.css",
+        "src/app/admin/specs/page.tsx"
+      ],
+      "M3-T25": [
+        "src/components/admin/settings/settings.css",
+        "src/components/admin/settings/about-images.css",
+        "src/components/admin/settings/AboutSettings.tsx",
+        "src/components/admin/settings/OrgSettings.tsx",
+        "src/components/admin/settings/AboutImages.tsx",
+        "src/components/admin/settings/ImageTextField.tsx",
+        "src/components/admin/settings/ConfirmDialog.tsx",
+        "src/components/admin/settings/SettingsSections.tsx",
+        "src/components/admin/users/UsersAdmin.tsx"
       ]
     },
     "taskSkills": {
@@ -695,12 +740,12 @@
         {
           "name": "stylekit",
           "when": "实施/审查本卡UI及集成时",
-          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。 本卡验收范围为壳导航、外框、活动和退出；如旧内层未迁移据实列出，完整页视觉和密度由M3-T21至T25及M7-T9完成，不在壳任务冒称全后台通过。"
         },
         {
           "name": "record-browser-gif",
           "when": "验收真实页面交互时",
-          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。 本卡验收范围为壳导航、外框、活动和退出；如旧内层未迁移据实列出，完整页视觉和密度由M3-T21至T25及M7-T9完成，不在壳任务冒称全后台通过。"
         }
       ],
       "M3-T8": [
@@ -953,6 +998,73 @@
           "name": "record-browser-gif",
           "when": "验收真实页面交互时",
           "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T21": [
+        {
+          "name": "stylekit",
+          "when": "实施与审查视觉迁移时",
+          "why": "必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "真实可见入口验收时",
+          "why": "真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。"
+        }
+      ],
+      "M3-T22": [
+        {
+          "name": "stylekit",
+          "when": "实施与审查视觉迁移时",
+          "why": "必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "真实可见入口验收时",
+          "why": "真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。"
+        }
+      ],
+      "M3-T23": [
+        {
+          "name": "stylekit",
+          "when": "实施与审查视觉迁移时",
+          "why": "必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "真实可见入口验收时",
+          "why": "真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。"
+        }
+      ],
+      "M3-T24": [
+        {
+          "name": "stylekit",
+          "when": "实施与审查视觉迁移时",
+          "why": "必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "真实可见入口验收时",
+          "why": "真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。"
+        }
+      ],
+      "M3-T25": [
+        {
+          "name": "stylekit",
+          "when": "实施与审查视觉迁移时",
+          "why": "必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "真实可见入口验收时",
+          "why": "真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。"
+        }
+      ],
+      "M1-T9": [
+        {
+          "name": "computer-use:computer-use",
+          "when": "授权GPT Dot素材制作通道可达时",
+          "why": "只用现有授权远程软件与同一brand-logo-master制作所需图稿；实际调用/软件/工程/Web成品逐件留证。缺产物不得落地，不新购软件或重建GLB。"
         }
       ]
     }

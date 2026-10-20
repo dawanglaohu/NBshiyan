@@ -1,0 +1,24 @@
+{
+  "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449",
+  "tasks": 84,
+  "edges": 111,
+  "routeModes": 23,
+  "routeRows07": [
+    23,
+    23
+  ],
+  "notes": 202,
+  "implemented": 0,
+  "review": {
+    "block": 0,
+    "warn": 28
+  },
+  "styleSpecSHA256": "4e4d407b9365a8543b2d5d39daa72f953984786b9fb7c83fcd393f005dea0914",
+  "promptCalibration": {
+    "currentHashMatched": 84,
+    "errors": 0,
+    "hardNegative": 0
+  },
+  "maxImplementationPromptChars": 16014,
+  "contractReviewScope": "84 current contracts; 78 baseline rows and public propagation checked, six added tasks deeply checked; no product implementation verdict"
+}

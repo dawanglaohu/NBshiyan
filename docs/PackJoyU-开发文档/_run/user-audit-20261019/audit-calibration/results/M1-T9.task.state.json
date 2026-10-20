@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Produce independently redrawn company-block artwork and editable native projects",
+    "input": "Reference PDF organization/product themes, verifiable company-owned facts, the current PackJoyU wordmark, and the user-authorized GPT Dot remote-software production channel",
+    "output": "company-visual-assets; only one or two independently redrawn website company-block illustrations, editable native software projects, Web images/en-ru alt/dimensions, hashes, and truthful production manifest",
+    "accept": "1) Select only one or two introduction/product-theme illustrations for website company blocks. Before production, map each reference PDF page/theme to verifiable company-owned facts or a product schematic with no unsupported hard corporate claims, then to an independently redrawn illustration. Refer only to organization and themes; do not redraw the whole 25-page catalogue. Unsupported YUHAO certifications, capacity, scale, real factories, equipment, and certificates must not enter artwork (E-27, E-111). 2) For each item deliver an editable native software project that opens, a decodable Web publication image, positive integer dimensions, and en/ru alt metadata. Store projects in docs/brand-content/source/ and Web exports in public/brand/company/; do not mix the two. The manifest docs/brand-content/company-visuals.json records software name/version, relative project/export paths and SHA-256 hashes, reference themes/factual evidence, and the logo file SHA-256. Use the same current PackJoyU wordmark, not a candidate logo; do not wait for the user to revisit candidates (E-28, E-111). 3) First inspect the authorized GPT Dot remote-software channel. Only actual invocation permits a performed claim; retain call, software-operation, project, and export evidence. Mark each unavailable or unperformed item unperformed. Any missing editable project or Web output keeps that item incomplete; a plan, screenshot, or fabricated invocation is not delivery (E-29, E-111). 4) This task delivers assets and their manifest only; it does not claim that pages are connected. M1-T5 consumes company-visual-assets and verifies homepage/about entries, actual loading, and dimensions. T9 cannot replace T5 integration acceptance (E-111)."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

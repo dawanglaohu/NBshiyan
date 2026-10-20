@@ -77,7 +77,7 @@
     {
       "code": "T19",
       "level": "INFO",
-      "msg": "边界覆盖率 100%（105 条边界，105 条被任务直接覆盖）",
+      "msg": "边界覆盖率 100%（111 条边界，111 条被任务直接覆盖）",
       "where": null
     },
     {
@@ -92,11 +92,65 @@
     {
       "code": "H12",
       "level": "WARN",
+      "msg": "M1-T9 疑似接线任务未列注册点（命中：页面）",
+      "taskIds": [
+        "M1-T9"
+      ],
+      "where": "M1-T9"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
       "msg": "M2-T4 疑似接线任务未列注册点（命中：事件）",
       "taskIds": [
         "M2-T4"
       ],
       "where": "M2-T4"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T21 疑似接线任务未列注册点（命中：/api/、服务、迁移）",
+      "taskIds": [
+        "M3-T21"
+      ],
+      "where": "M3-T21"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T22 疑似接线任务未列注册点（命中：服务、迁移、页面）",
+      "taskIds": [
+        "M3-T22"
+      ],
+      "where": "M3-T22"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T23 疑似接线任务未列注册点（命中：/api/、服务、迁移）",
+      "taskIds": [
+        "M3-T23"
+      ],
+      "where": "M3-T23"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T24 疑似接线任务未列注册点（命中：/api/、接口、服务、端点、迁移、页面）",
+      "taskIds": [
+        "M3-T24"
+      ],
+      "where": "M3-T24"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T25 疑似接线任务未列注册点（命中：/api/、服务、路由、迁移）",
+      "taskIds": [
+        "M3-T25"
+      ],
+      "where": "M3-T25"
     },
     {
       "code": "H12",
@@ -164,13 +218,13 @@
     {
       "code": "H12",
       "level": "WARN",
-      "msg": "M7-T9 疑似接线任务未列注册点（命中：事件、接口）",
+      "msg": "M7-T9 疑似接线任务未列注册点（命中：事件、接口、页面）",
       "taskIds": [
         "M7-T9"
       ],
       "where": "M7-T9"
     }
   ],
-  "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
-  "warn": 22
+  "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449",
+  "warn": 28
 }

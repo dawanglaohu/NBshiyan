@@ -1,0 +1,44 @@
+{
+  "status": "ok",
+  "template": "edge",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "severity": {
+      "score": 0.19,
+      "level": "cosmetic or a confusing message only",
+      "confidence": 0.71,
+      "band": "medium"
+    },
+    "likelihood": {
+      "score": 1.74,
+      "level": "routine, many users will hit it",
+      "confidence": 0.59,
+      "band": "medium"
+    },
+    "executable": {
+      "p": 0.38,
+      "verdict": "unsure"
+    },
+    "owner": {
+      "choice": "M6",
+      "confidence": 0.27,
+      "band": "low",
+      "probabilities": {
+        "M1": 0.25,
+        "M2": 0.01,
+        "M3": 0.27,
+        "M4": 0.03,
+        "M5": 0.0,
+        "M6": 0.36,
+        "M7": 0.06,
+        "unclear": 0.02
+      }
+    }
+  },
+  "line": "edge: severity=cosmetic or a confusing message only(medium 0.71) likelihood=routine, many users will hit it(medium 0.59) executable=unsure(0.38) owner=M6(low 0.27)",
+  "usage": {
+    "input_tokens": 1048,
+    "output_tokens": 129
+  }
+}

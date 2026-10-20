@@ -1,0 +1,24 @@
+S1 exit=0
+S1 关卡通过，已记入 _run/stage.json；下一阶段：done
+六阶段全部完成。按 SKILL.md 第 9 步交付；交付里「怎么开工」之前先报这一行。
+
+S2 exit=0
+S2 关卡通过，已记入 _run/stage.json；下一阶段：done
+六阶段全部完成。按 SKILL.md 第 9 步交付；交付里「怎么开工」之前先报这一行。
+
+S3 exit=0
+S3 关卡通过，已记入 _run/stage.json；下一阶段：done
+六阶段全部完成。按 SKILL.md 第 9 步交付；交付里「怎么开工」之前先报这一行。
+
+S4 exit=0
+S4 关卡通过，已记入 _run/stage.json；下一阶段：done
+六阶段全部完成。按 SKILL.md 第 9 步交付；交付里「怎么开工」之前先报这一行。
+
+S5 exit=0
+接线提示（不阻断）：H12 16 条，H13 0 条；review.py 查看明细
+S5 关卡通过，已记入 _run/stage.json；下一阶段：done
+六阶段全部完成。按 SKILL.md 第 9 步交付；交付里「怎么开工」之前先报这一行。
+
+S6 exit=0
+S6 关卡通过，已记入 _run/stage.json；下一阶段：done
+六阶段全部完成。按 SKILL.md 第 9 步交付；交付里「怎么开工」之前先报这一行。

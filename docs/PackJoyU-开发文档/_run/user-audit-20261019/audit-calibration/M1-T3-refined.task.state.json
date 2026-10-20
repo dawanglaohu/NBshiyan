@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Create rebranded JPG and video poster copies and export the current logo master",
+    "input": "Original JPG and video, existing PackJoyU SiteHeader wordmark, existing style/font and icon.svg, media provenance register",
+    "output": "brand-static-media plus brand-logo-master: decoded publication copies, a semantically matching video poster, a time-indexed video identity inventory, and the checked public/brand/packjoyu-logo-master.svg with source/export hashes",
+    "accept": "1) Originals retain their SHA256 and exports decode. List each old JPG mark on the blimp and factory wall and replace it fully with the existing PackJoyU mark; the poster is a frame of the video with a verifiable time. Inventory company signatures, title/end cards and watermarks throughout the video with timestamps. If a company signature conflicts with verified PackJoyU identity or lacks evidence, exclude that publication copy and report it. Equipment manufacturer marks in a real scene are recorded as equipment, not automatically treated as the publishing company identity or erased. Never modify the original video or silently start a re-edit. 2) Use the current PackJoyU wordmark even if candidate designs differ; record the logo file hash, never use an unapproved candidate or wait for a new visual approval. E-28. 3) Actual GPT Dot creation requires call, software operation, output and artifact-verification evidence; unreachable tooling leaves the item unperformed and incomplete, never a fabricated success. E-29. 4) First verify the existing SiteHeader wordmark, its style/font and icon.svg sources, then export an importable current full-wordmark master. Record source/export SHA256 and compare glyphs, proportions and colors with the current identity. Do not design a new logo or change sources; SVG has no script, external reference or private metadata. T6 and T9 use this same checked master. 5) docs/brand-media/brand-static-media.json records every export path, sha256, width and height; recomputed hashes and decoded dimensions equal the manifest exactly. logoMaster records each source file path/hash, export path/hash/viewBox and source font/style; rereading the actual files matches the recorded values. video-identity.json records each company signature/title/end-card/watermark with fromMs/toMs within zero and original duration, exact visible text or mark, extracted-frame SHA256, ownership status OWN_VERIFIED/THIRD_PARTY/UNKNOWN and evidence path; the extracted frame and evidence files open. THIRD_PARTY company identity or UNKNOWN sets releaseAllowed=false and prevents T4 from claiming publication passed. Equipment marks use role=equipment and never substitute the company identity. Missing an export or actual creation evidence keeps T3 incomplete; an inventory or unperformed note is not a finished asset."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

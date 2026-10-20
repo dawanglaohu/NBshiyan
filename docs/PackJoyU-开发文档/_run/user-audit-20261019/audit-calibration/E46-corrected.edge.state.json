@@ -1,0 +1,12 @@
+{
+  "edge": {
+    "scene": "Consent-gated product and 3D event collection",
+    "trigger": "Only a product route is visited, a visible viewport or active interaction actually starts loading a GLB, or loading fails",
+    "expect": "Record product navigation and actual model attempts separately. A route visit with no model attempt emits no start. Visible automatic loading and active interaction that really start a GLB both create a viewId/start without an extra activation click. Report actual terminal success or failure for server-approved products; failure, poster and FoldBox are not successful GLB loads."
+  },
+  "modules": {
+    "M2": "Actual viewer loading and interaction producers",
+    "M5": "Consent admission and canonical analytics event collection",
+    "M6": "Read-only metric presentation"
+  }
+}

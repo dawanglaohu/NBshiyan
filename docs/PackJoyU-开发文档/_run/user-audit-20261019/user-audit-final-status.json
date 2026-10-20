@@ -1,0 +1,543 @@
+{
+  "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449",
+  "stale": [],
+  "runtimeDrift": [],
+  "tasks": {
+    "M1-T1": {
+      "ready": true,
+      "contractHash": "dfc62222209dae5ca31f6e7f37560a46e00fbdafeabb642a641df195a045c082",
+      "blockers": [],
+      "reasons": []
+    },
+    "M1-T2": {
+      "ready": true,
+      "contractHash": "bb38ef3235779285b0f4eba3465cc390a8e1e1dca366aef627f832cd2f5f2b27",
+      "blockers": [],
+      "reasons": []
+    },
+    "M1-T3": {
+      "ready": true,
+      "contractHash": "9b2e774c5244ba3e5a6dbe4885aee82d8590cc3860af309c9afb71debbdd7c45",
+      "blockers": [],
+      "reasons": []
+    },
+    "M1-T4": {
+      "ready": true,
+      "contractHash": "cad95ee4d90a08bd6d58377c59bb903203f93bf3c4f3e5f82d8541dcf5742f63",
+      "blockers": [],
+      "reasons": []
+    },
+    "M1-T5": {
+      "ready": true,
+      "contractHash": "18602e1a4b760a19c3907ba9e87adbb43d37e40bbd27e92767f9eca031d27653",
+      "blockers": [],
+      "reasons": []
+    },
+    "M1-T6": {
+      "ready": true,
+      "contractHash": "691581997291a604ef43d7dc92396b7a88d11613aad981db6d3efd4e2246b0fc",
+      "blockers": [],
+      "reasons": []
+    },
+    "M1-T7": {
+      "ready": true,
+      "contractHash": "24601d54530f85a389eb7640aaf7be307594c840be92dfb5c2067cd94acb3dec",
+      "blockers": [],
+      "reasons": []
+    },
+    "M1-T8": {
+      "ready": true,
+      "contractHash": "33226da898db6e2c97233a892fca44136e33b507dd89db84af2ba1780351b5da",
+      "blockers": [],
+      "reasons": [
+        "M1-T8 疑似接线任务未列注册点（命中：服务）"
+      ]
+    },
+    "M1-T9": {
+      "ready": true,
+      "contractHash": "cfbb864e7b6fe26da72f2e5c455c45150ad1a66bcea7c8d430e807c391ce94d4",
+      "blockers": [],
+      "reasons": [
+        "M1-T9 疑似接线任务未列注册点（命中：页面）"
+      ]
+    },
+    "M2-T1": {
+      "ready": true,
+      "contractHash": "254e83f0019b049b345c86b45b709d4dbdec12ec52befd8c2edc5537e2181f12",
+      "blockers": [],
+      "reasons": []
+    },
+    "M2-T2": {
+      "ready": true,
+      "contractHash": "db5496aa3318271f599fc699b61f3e977257b55ce5c9da88159a5decabcd40cf",
+      "blockers": [],
+      "reasons": []
+    },
+    "M2-T3": {
+      "ready": true,
+      "contractHash": "e31fee07971fc666d73025123ad21f1ad1a00013ae8c2389173018530d5c4e33",
+      "blockers": [],
+      "reasons": []
+    },
+    "M2-T4": {
+      "ready": true,
+      "contractHash": "8562b88d79589ceb28cb83d066c7cc81d0cc2094e93269013d83c3760d044928",
+      "blockers": [],
+      "reasons": [
+        "M2-T4 疑似接线任务未列注册点（命中：事件）"
+      ]
+    },
+    "M2-T5": {
+      "ready": true,
+      "contractHash": "7c5d44acecac01ace5cd8edfee4e4f55b04b362bc0deab3d959d4486f2de0eac",
+      "blockers": [],
+      "reasons": []
+    },
+    "M2-T6": {
+      "ready": true,
+      "contractHash": "938ca9b47ca1a045b011bd985ada4d9b0c9bf4b295ec53ff6bc46c4ba63cad70",
+      "blockers": [],
+      "reasons": []
+    },
+    "M2-T7": {
+      "ready": true,
+      "contractHash": "b11d5d39be5560adfcbc8a8845e3d0a6450ed9a71fea009997c4022279c354c1",
+      "blockers": [],
+      "reasons": []
+    },
+    "M2-T8": {
+      "ready": true,
+      "contractHash": "e1292b6cee1650bd9a7bfa44c88db5274c2c27b9b88b06f9c1dbad0dce63ece2",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T1": {
+      "ready": true,
+      "contractHash": "69d01d231fca33d2d3e373e11826aacfdb27bfd6383c53d78cfbeb25cae4a095",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T10": {
+      "ready": true,
+      "contractHash": "fdc7cdfde2db9ce18df74f81b21c53acfde522ac522a177372bb181d8ddcd30f",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T11": {
+      "ready": true,
+      "contractHash": "fd75184855a1d1714cfa622496736bf87e1b738332c7b5861112ad3736a837ce",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T12": {
+      "ready": true,
+      "contractHash": "5c91dd2fb4ca3e64aaaf967d34ca7cc53ff17c3cf2bfc0b527a5240e83c34d70",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T13": {
+      "ready": true,
+      "contractHash": "e14d639ebdd5395d8d10b35a66ec8f8d85b31034ddf9ba7c2b8fd8c3d4eeda28",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T14": {
+      "ready": true,
+      "contractHash": "bdc54fc6b618e70494ca951e6bc4f7b6d589f672bbb91c9c4c8ea09f8e0cc326",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T15": {
+      "ready": true,
+      "contractHash": "1a7a002dcb54c2195dd10429b1a3833bb49bed343610d6694e1030f7011ec316",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T16": {
+      "ready": true,
+      "contractHash": "dbf77f97b7229614baeb448dcfeb3a7bfb82960af564636a7c32420927086cbc",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T17": {
+      "ready": true,
+      "contractHash": "63fdc0371bd8e6c1df204f2184999faf5442e824be83f16afd27808aa5d53b58",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T18": {
+      "ready": true,
+      "contractHash": "ac4dca4cd9473e63205ad26951e06d3e8ef246b1bc8acf0747465538b37424ad",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T19": {
+      "ready": true,
+      "contractHash": "8dd9dcea9fe1be6837c7f58a0ba3620e75d1d44c7f7f941ed61dd4ba06e1079d",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T2": {
+      "ready": true,
+      "contractHash": "f8d8f685de8aaf4091eb136771f8d811ea27acf92a4b321acfdf52af1b73efd3",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T20": {
+      "ready": true,
+      "contractHash": "ae105ed957c01c7e77b499f6150b12684a2a14b132661ff8d47e7546300261ac",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T21": {
+      "ready": true,
+      "contractHash": "e38bf2eabbfab4aa04efd0e6178400a36996fcb094bd94d94223fa5c0aa89615",
+      "blockers": [],
+      "reasons": [
+        "M3-T21 疑似接线任务未列注册点（命中：/api/、服务、迁移）"
+      ]
+    },
+    "M3-T22": {
+      "ready": true,
+      "contractHash": "c47fc860fe1e6538b130dd545044aca3ffe6db92d3c6bfd05e558bf608fae675",
+      "blockers": [],
+      "reasons": [
+        "M3-T22 疑似接线任务未列注册点（命中：服务、迁移、页面）"
+      ]
+    },
+    "M3-T23": {
+      "ready": true,
+      "contractHash": "54ebc8b8ee51d5e1fdc84fdfad62960d85fe94531c28067197cc078f01f45ce3",
+      "blockers": [],
+      "reasons": [
+        "M3-T23 疑似接线任务未列注册点（命中：/api/、服务、迁移）"
+      ]
+    },
+    "M3-T24": {
+      "ready": true,
+      "contractHash": "fd7e6a524db9da2055fbe7ed457b3dc7773e9e74f006b6bed829e5e7d0638738",
+      "blockers": [],
+      "reasons": [
+        "M3-T24 疑似接线任务未列注册点（命中：/api/、接口、服务、端点、迁移、页面）"
+      ]
+    },
+    "M3-T25": {
+      "ready": true,
+      "contractHash": "94ea5f495cb4d05f18e65d2d73b561721764af181244d8cdb456758674107a45",
+      "blockers": [],
+      "reasons": [
+        "M3-T25 疑似接线任务未列注册点（命中：/api/、服务、路由、迁移）"
+      ]
+    },
+    "M3-T3": {
+      "ready": true,
+      "contractHash": "a1616cead36662f82e516ed1c7108ca5908fe5b390690c5172b3fdd539dda00b",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T4": {
+      "ready": true,
+      "contractHash": "3b3e51c3783660392b4f5a7138fce8adf86545b37dc11ebd42eab7099375549d",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T5": {
+      "ready": true,
+      "contractHash": "b3a603e0ee7f8f415a687be05bcae1942b3c13737a550f376d3c8d267a0636c2",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T6": {
+      "ready": true,
+      "contractHash": "7f0e37d7ac67cb2139d5cc0b6534c5eaf1d93dec14ee381c4e1d12e2a3f67397",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T7": {
+      "ready": true,
+      "contractHash": "4b993efe9a902ea865837f3e5d7036d7a0f16e29446041c7e26f641f44776cd3",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T8": {
+      "ready": true,
+      "contractHash": "ba4710a27b9d24b69191d16328e7cac29cf2242e0a05a3c3c0a927ac165b179f",
+      "blockers": [],
+      "reasons": []
+    },
+    "M3-T9": {
+      "ready": true,
+      "contractHash": "4524e25ee9a96a4f189cfe16b3291f6c0c3bf0fc04d42a0fb1713fd9552076b5",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T1": {
+      "ready": true,
+      "contractHash": "3807caa3309379ea9223eeea7204a0977c153e867874f4b0432184092812c398",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T10": {
+      "ready": true,
+      "contractHash": "6d56cb0ad6562f2a8dd29d31bc54ac362a2b03e20220626cd9637c2b763e52be",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T11": {
+      "ready": true,
+      "contractHash": "740f8b3fa6ea8d8d0dd3a7e8911899ac881d40df5a44f2c907a48325620f740d",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T12": {
+      "ready": true,
+      "contractHash": "5dbb051b6e15f2be1cce86e02079b6c1532c990baf4f0a33a5a7d7c3dc5add39",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T13": {
+      "ready": true,
+      "contractHash": "4653ec94e26481a47fcbaa95d66c49a1bb792bcf7555e93a8e6ddd8aeb3a0d38",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T14": {
+      "ready": true,
+      "contractHash": "38ec1f9462a23ccca45969ef4b123fb18225e697e5b900562ae07a0d39d7548a",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T15": {
+      "ready": true,
+      "contractHash": "4c30b7aa81841bd172cebb321fa81441a77b42044b2414e8b3cb84a9635c648f",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T2": {
+      "ready": true,
+      "contractHash": "9f871a279d9f38b1489dfcc0fa0d8ea95f2ad3b217289e5394c6937979ce009d",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T3": {
+      "ready": true,
+      "contractHash": "45e5206d26df350c4cee31344dbfc620e9a46f77fafee19a2c16caf3b3fe14f7",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T4": {
+      "ready": true,
+      "contractHash": "22d1194dce0584f3eeec672c5d3bd77ca6cb93fbeb71e1508b4abd3a6c2c6216",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T5": {
+      "ready": true,
+      "contractHash": "f45baffbc50ae2aec0e5ee3863139d1ef357b7690242614eb15d07e615f824c5",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T6": {
+      "ready": true,
+      "contractHash": "10875638b83e2df7d99c39901b10f59f11d2f2623577f8cf4183908f264d5b72",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T7": {
+      "ready": true,
+      "contractHash": "b17043e1120be899025254cf9fa32476fab355410c63bece5986fbf983e16098",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T8": {
+      "ready": true,
+      "contractHash": "7ed8d9ccbc23f590660db85514182a16996a9365582f45f59adaa088c6725db6",
+      "blockers": [],
+      "reasons": []
+    },
+    "M4-T9": {
+      "ready": true,
+      "contractHash": "9dc1531baa535db44cea77b5679da0500acaee2fd573995467a110c293b7e0db",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T1": {
+      "ready": true,
+      "contractHash": "fbf9c935ffa38101ef922101c603334180f4bb958ed7cc5530da9c07ed77dc72",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T10": {
+      "ready": true,
+      "contractHash": "ef1f619c64de87373dd947f3a762e699c0a1585eb1fe4b6239efd01d793a866d",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T11": {
+      "ready": true,
+      "contractHash": "add8552aa56f1a4bc9ad7c52026fe31bc1bce409e20b657967be1ff6b79cdb83",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T2": {
+      "ready": true,
+      "contractHash": "857351952b75597dabfa2bf6f3d0c3207c562f8b4fdd90d519f398ec1111d4a4",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T3": {
+      "ready": true,
+      "contractHash": "075a3ed0579f9210ee95a0f79052ce04402c842fca1c47cb852b857583e6c3a1",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T4": {
+      "ready": true,
+      "contractHash": "510ba2d1b6531cc106b9917a06db09ba93a70b7cdcd5fa19243b65c2446e7edb",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T5": {
+      "ready": true,
+      "contractHash": "0eb373e42e6a2731479d6fd519aaf95f3b9fbbe5b3374d1d75bfb6d98e2857f8",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T6": {
+      "ready": true,
+      "contractHash": "9eb0b7f56402245a83fc48556537a4a0b7256f985f84fa4c33a09352e8038907",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T7": {
+      "ready": true,
+      "contractHash": "9bd9f34af8deaaa8b5b6d1e1ddda755c1b61c9ff23ca7586a6dfd515f06f5823",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T8": {
+      "ready": true,
+      "contractHash": "de987849abd29fe629ce931b26cfb9721a9501ba1fe5daac6fbbc4b5145d4ce4",
+      "blockers": [],
+      "reasons": []
+    },
+    "M5-T9": {
+      "ready": true,
+      "contractHash": "a9e230e36c4a4958d38c81851199735b0832c96328bc8fb8887c197b7e6c4b08",
+      "blockers": [],
+      "reasons": [
+        "M5-T9 疑似接线任务未列注册点（命中：事件、服务）"
+      ]
+    },
+    "M6-T1": {
+      "ready": true,
+      "contractHash": "4ffcc79605e17699a26615981047009e469a9baad99ca89040c37d96f1a98d57",
+      "blockers": [],
+      "reasons": []
+    },
+    "M6-T2": {
+      "ready": true,
+      "contractHash": "69262ad55bd83523a7d8213013fa60ec632164c6b2e18a8c7e05d7956a9a1c37",
+      "blockers": [],
+      "reasons": []
+    },
+    "M6-T3": {
+      "ready": true,
+      "contractHash": "de511ee2529f6499eeec27c9bc6471e83647cf8141fc57b46056dbfb2b9b4e03",
+      "blockers": [],
+      "reasons": []
+    },
+    "M6-T4": {
+      "ready": true,
+      "contractHash": "073d0a1a76b9909ec6026a6ddfeb5395d6627567e932aaac7d54f0df8d49c77b",
+      "blockers": [],
+      "reasons": []
+    },
+    "M6-T5": {
+      "ready": true,
+      "contractHash": "2d0a141946431b3c731fda96e9746788967af29645920908af02f1aef939b9d2",
+      "blockers": [],
+      "reasons": []
+    },
+    "M6-T6": {
+      "ready": true,
+      "contractHash": "6eedb95b5c5152347d6a7c6cf174ce7a33cd0b67bebc37cec4fb71e530610bc8",
+      "blockers": [],
+      "reasons": []
+    },
+    "M6-T7": {
+      "ready": true,
+      "contractHash": "1a00573a955f12e27c9bbfc2aea108fc3e0931aa87fc9ebd6c6e29dc3fd512e7",
+      "blockers": [],
+      "reasons": [
+        "M6-T7 疑似接线任务未列注册点（命中：事件、页面）"
+      ]
+    },
+    "M7-T1": {
+      "ready": true,
+      "contractHash": "c1c63657e6d073e79073508fcc4b65b8ea8f7bcab0a065a9035e8250c688199e",
+      "blockers": [],
+      "reasons": []
+    },
+    "M7-T2": {
+      "ready": true,
+      "contractHash": "ffebdfbe4c02885c1472cc9d477351c48acdfc204323a5c8420f83fca10eb539",
+      "blockers": [],
+      "reasons": [
+        "M7-T2 疑似接线任务未列注册点（命中：/api/）"
+      ]
+    },
+    "M7-T3": {
+      "ready": true,
+      "contractHash": "1ebaa936f062660c1163f56c1877ae2b86d3d85fd7a76e4a373f47d1a371bd22",
+      "blockers": [],
+      "reasons": [
+        "M7-T3 疑似接线任务未列注册点（命中：页面）"
+      ]
+    },
+    "M7-T4": {
+      "ready": true,
+      "contractHash": "117f20c4f3c30e440bd35c02085e3dbb05e087b40b0f8e74048b729b28bbf8fc",
+      "blockers": [],
+      "reasons": [
+        "M7-T4 疑似接线任务未列注册点（命中：/api/）"
+      ]
+    },
+    "M7-T5": {
+      "ready": true,
+      "contractHash": "141c539ab3f664ab87142a5224299c42d1789afe01aa90a7fe6b187b8ca8819d",
+      "blockers": [],
+      "reasons": [
+        "M7-T5 疑似接线任务未列注册点（命中：/api/、服务）"
+      ]
+    },
+    "M7-T6": {
+      "ready": true,
+      "contractHash": "0cd907a18c069b115a5749b5ec59b4e6eef3448443d15c0bcdf7c39b08b7bcde",
+      "blockers": [],
+      "reasons": [
+        "M7-T6 疑似接线任务未列注册点（命中：/api/）"
+      ]
+    },
+    "M7-T7": {
+      "ready": true,
+      "contractHash": "68d0bfabb88e14b8e5ab6de0d07bb2f93c39dee8634e3261cbfdb8306b715ef5",
+      "blockers": [],
+      "reasons": []
+    },
+    "M7-T8": {
+      "ready": true,
+      "contractHash": "4dd907335b37318fe4beb2359e8bb7fd87e37725b4156a188a97d561870f90ef",
+      "blockers": [],
+      "reasons": []
+    },
+    "M7-T9": {
+      "ready": true,
+      "contractHash": "1df0863e8613c39626c90cbea06b4392f85c9ae1de98493b900ddf4e24727523",
+      "blockers": [],
+      "reasons": [
+        "M7-T9 疑似接线任务未列注册点（命中：事件、接口、页面）"
+      ]
+    }
+  }
+}
