@@ -7,7 +7,7 @@ import { seoSnapshot } from './fixtures/seo-snapshot';
 // 基准 seo-snapshot-main.json 由同一个生成器在 origin/main（c9d3ce1）上生成；不要为了让测试通过而重新生成它。
 test('sitemap + hreflang output byte-identical to main (c9d3ce1)', async () => {
   const now = JSON.stringify(await seoSnapshot(), null, 2) + '\n';
-  assert.equal(now, readFileSync('tests/fixtures/seo-snapshot-main.json', 'utf8'));
+  assert.equal(now, readFileSync('tests/fixtures/seo-snapshot-main.json', 'utf8').replace(/\r\n/g, '\n'));
 });
 
 test('no unpublished locale anywhere in sitemap / hreflang output', async () => {
