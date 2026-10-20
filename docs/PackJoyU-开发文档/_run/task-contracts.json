@@ -12,7 +12,9 @@
         "buildPipeline",
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "playwright.config.ts"
+      ],
       "outputPaths": [
         "src/styles/tokens.css",
         "src/styles/motion-tokens.css",
