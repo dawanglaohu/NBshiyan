@@ -224,7 +224,7 @@ header.site nav a[aria-current="page"]:not(.btn){color:var(--accent-text);font-w
 
 /* #148 方案 B（Ryan 确认）：深色区金色按钮保留 #D4AF6A 底，文字用深色 --on-accent #121214（9.03:1）；hover 变浅 #E2C285（10.95:1），不加深 */
 .theme-premium .btn:not(.ghost){color:var(--on-accent)}
-.theme-premium .btn:focus-visible{outline-color:var(--gold)} /* 深色区焦点环用金色，对 #121214 为 9.03:1 */
+/* 深色区焦点环由文件末尾的 M1-T1 规则统一给白色 outline；这里不再单独指定颜色 */
 .theme-premium .btn:not(.ghost):hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 
 /* #195 本地化 404 */
@@ -345,9 +345,11 @@ body{background:var(--pj-bg);color:var(--pj-fg);font-size:var(--pj-body-size);li
 .entry a{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius)}
 .entry a:hover{border-color:var(--pj-accent)}
 .entry a img{border-radius:var(--pj-radius)}
-/* 焦点环：强调色 outline + 2px offset（11 节组件表）。黑底区域由上面的 .theme-premium/.cta-band 规则反白 */
+/* 焦点环：浅色区 2px 强调色 outline + 2px offset；深色区（.theme-premium/.cta-band）反白，
+   强调色落在深底上对比不足，改用 --pj-bg 的白色 outline。offset 两处一致，环不压住控件边界。 */
 :focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
-.btn:focus-visible,.theme-premium .btn:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.btn:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.theme-premium .btn:focus-visible,.cta-band .btn:focus-visible{outline:var(--pj-focus-width) solid var(--pj-bg);outline-offset:var(--pj-focus-offset)}
 /* Cookie 同意条的按钮/链接与左下浮钮接同一批 token。
    强调色只用于明确操作反馈；这里不改布局与尺寸，只改颜色、边界宽度、圆角。 */
 .consent{border:var(--pj-border-width) solid var(--pj-border);border-left:var(--pj-border-width) solid var(--pj-accent);border-radius:var(--pj-radius);box-shadow:none}
