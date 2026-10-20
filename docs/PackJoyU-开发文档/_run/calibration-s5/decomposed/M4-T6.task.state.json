@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire the operator inbox and read-only conversation page",
+    "input": "M4 operator read APIs, M3 admin shell, and completed seq polling components.",
+    "output": "Read containers for /admin/chat and /admin/chat/[id], real unread navigation/pagination/states; human-send controls are added by M4-T14.",
+    "accept": "1) Entry: admin Human conversations (admin-chat-link) -> /admin/chat -> actual row chat-thread-link-{id} -> /admin/chat/[id]. Data sources: GET /api/admin/chat/conversations and id GET/POST read. Clicking a real persisted conversation reads body/author. Only displayed messages are marked read; undisplayed new seq stays unread. Filtered/page snapshots are not treated as increment logs (E-31, E-34, E-79). 2) Reuse the 3s/hidden/backoff/single-in-flight component. Changing thread cancels old requests and late responses cannot overwrite. ADMIN/SALES may read. EDITOR sees no entry and direct API access returns 403. After a signed-in operator becomes EDITOR, next poll/send test requests have no body or write; UI clears the thread/stops timers. Visitor modifications of threadId/seq/email still grant no access (E-32, E-76, E-77, E-78). 3) Query failure is not a successful empty-items state. Show original actual failed/unknown/disabled notifications without changing message received. Do not promise operator online/read states (E-35, E-41). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

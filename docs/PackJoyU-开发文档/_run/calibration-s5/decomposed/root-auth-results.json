@@ -1,0 +1,4296 @@
+[
+  {
+    "id": "M1-T1.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.09,
+        "level": "two days",
+        "confidence": 0.52,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=yes(0.72) frontend=yes(0.77) objective=unsure(0.55) defers=no(0.32) needs_gif=unsure(0.62) needs_judgment=unsure(0.53) size=two days(medium 0.52)",
+    "usage": {
+      "input_tokens": 826,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T2.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-95": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-95=yes(0.97)",
+    "usage": {
+      "input_tokens": 527,
+      "output_tokens": 24
+    }
+  },
+  {
+    "id": "M1-T2.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.12,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.81,
+        "level": "two days",
+        "confidence": 0.48,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.44) frontend=no(0.16) objective=unsure(0.60) defers=no(0.29) needs_gif=no(0.12) needs_judgment=unsure(0.53) size=two days(low 0.48)",
+    "usage": {
+      "input_tokens": 761,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T3.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-28": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-29": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-28=yes(0.97) covered_E-29=yes(0.97)",
+    "usage": {
+      "input_tokens": 788,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M1-T3.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 2.4,
+        "level": "two days",
+        "confidence": 0.12,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.16) frontend=no(0.17) objective=unsure(0.45) defers=unsure(0.64) needs_gif=unsure(0.51) needs_judgment=yes(0.69) size=two days(low 0.12)",
+    "usage": {
+      "input_tokens": 868,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T4.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-21": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-22": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-23": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-24": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-25": {
+        "p": 0.96,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-21=yes(0.93) covered_E-22=yes(0.96) covered_E-23=yes(0.96) covered_E-24=yes(0.97) covered_E-25=yes(0.96)",
+    "usage": {
+      "input_tokens": 1331,
+      "output_tokens": 104
+    }
+  },
+  {
+    "id": "M1-T4.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.3,
+        "level": "two days",
+        "confidence": 0.33,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.53) frontend=yes(0.93) objective=unsure(0.44) defers=no(0.24) needs_gif=yes(0.77) needs_judgment=unsure(0.39) size=two days(low 0.33)",
+    "usage": {
+      "input_tokens": 908,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T5.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-27": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-28": {
+        "p": 0.96,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-27=yes(0.97) covered_E-28=yes(0.96)",
+    "usage": {
+      "input_tokens": 793,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M1-T5.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.62,
+        "level": "more than two days, should be split",
+        "confidence": 0.68,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.40) frontend=yes(0.65) objective=unsure(0.43) defers=unsure(0.44) needs_gif=yes(0.78) needs_judgment=yes(0.80) size=more than two days, should be split(medium 0.68)",
+    "usage": {
+      "input_tokens": 862,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T6.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-26": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-30": {
+        "p": 0.91,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-26=yes(0.95) covered_E-30=yes(0.91)",
+    "usage": {
+      "input_tokens": 876,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M1-T6.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.14,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.27,
+        "level": "more than two days, should be split",
+        "confidence": 0.38,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.16) frontend=no(0.14) objective=unsure(0.39) defers=unsure(0.42) needs_gif=no(0.32) needs_judgment=yes(0.65) size=more than two days, should be split(low 0.38)",
+    "usage": {
+      "input_tokens": 867,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T7.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.27,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.25,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.22,
+        "level": "more than two days, should be split",
+        "confidence": 0.37,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.22) frontend=yes(0.97) objective=unsure(0.61) defers=no(0.27) needs_gif=no(0.25) needs_judgment=no(0.28) size=more than two days, should be split(low 0.37)",
+    "usage": {
+      "input_tokens": 778,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M1-T8.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.62,
+        "level": "more than two days, should be split",
+        "confidence": 0.69,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.51) frontend=yes(0.81) objective=unsure(0.46) defers=no(0.31) needs_gif=unsure(0.41) needs_judgment=no(0.34) size=more than two days, should be split(medium 0.69)",
+    "usage": {
+      "input_tokens": 810,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T1.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-104": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "covered_E-97": {
+        "p": 0.87,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-104=unsure(0.53) covered_E-97=yes(0.87)",
+    "usage": {
+      "input_tokens": 814,
+      "output_tokens": 45
+    }
+  },
+  {
+    "id": "M2-T1.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.49,
+        "level": "two days",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.29) frontend=yes(0.90) objective=unsure(0.36) defers=no(0.34) needs_gif=yes(0.74) needs_judgment=no(0.23) size=two days(low 0.43)",
+    "usage": {
+      "input_tokens": 824,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T2.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-97": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "covered_E-98": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-99": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-100": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-97=yes(0.85) covered_E-98=yes(0.95) covered_E-99=yes(0.79) covered_E-100=yes(0.97)",
+    "usage": {
+      "input_tokens": 1050,
+      "output_tokens": 85
+    }
+  },
+  {
+    "id": "M2-T2.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.72,
+        "level": "two days",
+        "confidence": 0.52,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=no(0.18) frontend=yes(0.96) objective=unsure(0.41) defers=no(0.19) needs_gif=yes(0.71) needs_judgment=no(0.16) size=two days(medium 0.52)",
+    "usage": {
+      "input_tokens": 792,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T3.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-101": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-102": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-104": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-101=yes(0.92) covered_E-102=yes(0.96) covered_E-104=yes(0.95)",
+    "usage": {
+      "input_tokens": 1038,
+      "output_tokens": 67
+    }
+  },
+  {
+    "id": "M2-T3.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.19,
+        "level": "two days",
+        "confidence": 0.48,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.16) frontend=yes(0.95) objective=unsure(0.52) defers=no(0.24) needs_gif=unsure(0.54) needs_judgment=no(0.18) size=two days(low 0.48)",
+    "usage": {
+      "input_tokens": 839,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T4.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.67,
+        "level": "two days",
+        "confidence": 0.46,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.24) frontend=no(0.33) objective=unsure(0.61) defers=unsure(0.59) needs_gif=no(0.15) needs_judgment=unsure(0.36) size=two days(low 0.46)",
+    "usage": {
+      "input_tokens": 782,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T5.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.06,
+        "level": "one and a half days",
+        "confidence": 0.44,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.41) frontend=yes(0.87) objective=unsure(0.60) defers=no(0.35) needs_gif=yes(0.85) needs_judgment=no(0.23) size=one and a half days(low 0.44)",
+    "usage": {
+      "input_tokens": 768,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T6.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.64,
+        "level": "two days",
+        "confidence": 0.55,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=no(0.28) frontend=yes(0.94) objective=unsure(0.50) defers=yes(0.93) needs_gif=yes(0.75) needs_judgment=no(0.21) size=two days(medium 0.55)",
+    "usage": {
+      "input_tokens": 748,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T7.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-42": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-46": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-103": {
+        "p": 0.98,
+        "verdict": "yes"
+      },
+      "covered_E-63": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-42=yes(0.96) covered_E-46=yes(0.93) covered_E-103=yes(0.98) covered_E-63=yes(0.95)",
+    "usage": {
+      "input_tokens": 1234,
+      "output_tokens": 85
+    }
+  },
+  {
+    "id": "M2-T7.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "objective": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "defers": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.8,
+        "level": "more than two days, should be split",
+        "confidence": 0.84,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.55) frontend=unsure(0.55) objective=yes(0.71) defers=no(0.26) needs_gif=yes(0.66) needs_judgment=no(0.31) size=more than two days, should be split(high 0.84)",
+    "usage": {
+      "input_tokens": 875,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M2-T8.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-16": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-31": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-37": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-40": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-16=yes(0.78) covered_E-31=yes(0.83) covered_E-37=yes(0.97) covered_E-40=yes(0.94)",
+    "usage": {
+      "input_tokens": 1048,
+      "output_tokens": 84
+    }
+  },
+  {
+    "id": "M2-T8.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "objective": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "defers": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.6,
+        "level": "more than two days, should be split",
+        "confidence": 0.68,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=no(0.35) frontend=unsure(0.59) objective=yes(0.65) defers=no(0.34) needs_gif=yes(0.80) needs_judgment=unsure(0.38) size=more than two days, should be split(medium 0.68)",
+    "usage": {
+      "input_tokens": 814,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T1.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-01": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "covered_E-02": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "covered_E-03": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "covered_E-69": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "covered_E-70": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-01=unsure(0.57) covered_E-02=yes(0.81) covered_E-03=yes(0.65) covered_E-69=yes(0.80) covered_E-70=yes(0.92)",
+    "usage": {
+      "input_tokens": 1296,
+      "output_tokens": 104
+    }
+  },
+  {
+    "id": "M3-T1.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.08,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.56,
+        "level": "more than two days, should be split",
+        "confidence": 0.62,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.60) frontend=no(0.08) objective=unsure(0.60) defers=unsure(0.50) needs_gif=unsure(0.46) needs_judgment=unsure(0.60) size=more than two days, should be split(medium 0.62)",
+    "usage": {
+      "input_tokens": 879,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T10.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-05": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-08": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-10": {
+        "p": 0.62,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-05=yes(0.77) covered_E-08=yes(0.79) covered_E-10=unsure(0.62)",
+    "usage": {
+      "input_tokens": 1116,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M3-T10.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.19,
+        "level": "more than two days, should be split",
+        "confidence": 0.35,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.50) frontend=yes(0.89) objective=unsure(0.44) defers=unsure(0.46) needs_gif=yes(0.91) needs_judgment=yes(0.66) size=more than two days, should be split(low 0.35)",
+    "usage": {
+      "input_tokens": 972,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T11.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-10": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "covered_E-11": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-12": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-14": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-15": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-75": {
+        "p": 0.28,
+        "verdict": "no"
+      }
+    },
+    "line": "coverage: covered_E-10=unsure(0.53) covered_E-11=yes(0.77) covered_E-12=yes(0.78) covered_E-14=yes(0.93) covered_E-15=yes(0.79) covered_E-75=no(0.28)",
+    "usage": {
+      "input_tokens": 1712,
+      "output_tokens": 124
+    }
+  },
+  {
+    "id": "M3-T11.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.81,
+        "level": "more than two days, should be split",
+        "confidence": 0.86,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.57) frontend=yes(0.89) objective=no(0.30) defers=unsure(0.42) needs_gif=yes(0.89) needs_judgment=unsure(0.52) size=more than two days, should be split(high 0.86)",
+    "usage": {
+      "input_tokens": 1010,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T12.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-06": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-07": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-09": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-72": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-73": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "covered_E-74": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "covered_E-75": {
+        "p": 0.91,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-06=yes(0.79) covered_E-07=yes(0.91) covered_E-09=yes(0.78) covered_E-72=yes(0.87) covered_E-73=unsure(0.61) covered_E-74=yes(0.85) covered_E-75=yes(0.91)",
+    "usage": {
+      "input_tokens": 1883,
+      "output_tokens": 144
+    }
+  },
+  {
+    "id": "M3-T12.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.85,
+        "level": "more than two days, should be split",
+        "confidence": 0.88,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.38) frontend=yes(0.87) objective=no(0.35) defers=unsure(0.56) needs_gif=yes(0.89) needs_judgment=yes(0.67) size=more than two days, should be split(high 0.88)",
+    "usage": {
+      "input_tokens": 1055,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T13.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-03": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "covered_E-73": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "covered_E-74": {
+        "p": 0.72,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-03=unsure(0.55) covered_E-73=unsure(0.58) covered_E-74=yes(0.72)",
+    "usage": {
+      "input_tokens": 1058,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M3-T13.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.27,
+        "level": "more than two days, should be split",
+        "confidence": 0.41,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.24) frontend=yes(0.87) objective=no(0.31) defers=unsure(0.40) needs_gif=yes(0.92) needs_judgment=unsure(0.60) size=more than two days, should be split(low 0.41)",
+    "usage": {
+      "input_tokens": 943,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T14.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-70": {
+        "p": 0.16,
+        "verdict": "no"
+      }
+    },
+    "line": "coverage: covered_E-70=no(0.16)",
+    "usage": {
+      "input_tokens": 581,
+      "output_tokens": 24
+    }
+  },
+  {
+    "id": "M3-T14.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.04,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.85,
+        "level": "two days",
+        "confidence": 0.59,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=yes(0.82) frontend=no(0.04) objective=unsure(0.45) defers=no(0.35) needs_gif=unsure(0.44) needs_judgment=no(0.29) size=two days(medium 0.59)",
+    "usage": {
+      "input_tokens": 836,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T15.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-01": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "covered_E-02": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-03": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "covered_E-04": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-68": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-69": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-70": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "covered_E-71": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-95": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-01=yes(0.76) covered_E-02=yes(0.90) covered_E-03=unsure(0.48) covered_E-04=yes(0.94) covered_E-68=yes(0.88) covered_E-69=yes(0.87) covered_E-70=unsure(0.36) covered_E-71=yes(0.93) covered_E-95=yes(0.93)",
+    "usage": {
+      "input_tokens": 2068,
+      "output_tokens": 184
+    }
+  },
+  {
+    "id": "M3-T15.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.22,
+        "level": "more than two days, should be split",
+        "confidence": 0.36,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.22) frontend=no(0.16) objective=unsure(0.56) defers=unsure(0.37) needs_gif=yes(0.81) needs_judgment=unsure(0.60) size=more than two days, should be split(low 0.36)",
+    "usage": {
+      "input_tokens": 956,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T16.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-03": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "covered_E-06": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-07": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-08": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-73": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-74": {
+        "p": 0.86,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-03=unsure(0.49) covered_E-06=yes(0.92) covered_E-07=yes(0.90) covered_E-08=yes(0.93) covered_E-73=yes(0.83) covered_E-74=yes(0.86)",
+    "usage": {
+      "input_tokens": 1586,
+      "output_tokens": 124
+    }
+  },
+  {
+    "id": "M3-T16.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.3,
+        "level": "more than two days, should be split",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.23) frontend=no(0.05) objective=unsure(0.61) defers=yes(0.69) needs_gif=unsure(0.46) needs_judgment=yes(0.68) size=more than two days, should be split(low 0.43)",
+    "usage": {
+      "input_tokens": 918,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T17.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-03": {
+        "p": 0.47,
+        "verdict": "unsure"
+      },
+      "covered_E-70": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "covered_E-73": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "covered_E-74": {
+        "p": 0.68,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-03=unsure(0.47) covered_E-70=unsure(0.59) covered_E-73=unsure(0.55) covered_E-74=yes(0.68)",
+    "usage": {
+      "input_tokens": 1125,
+      "output_tokens": 84
+    }
+  },
+  {
+    "id": "M3-T17.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.08,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.01,
+        "level": "two days",
+        "confidence": 0.56,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.54) frontend=no(0.08) objective=unsure(0.48) defers=unsure(0.57) needs_gif=unsure(0.56) needs_judgment=unsure(0.37) size=two days(medium 0.56)",
+    "usage": {
+      "input_tokens": 834,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T18.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-12": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-75": {
+        "p": 0.45,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-12=yes(0.92) covered_E-75=unsure(0.45)",
+    "usage": {
+      "input_tokens": 824,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M3-T18.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.03,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 2.32,
+        "level": "two days",
+        "confidence": 0.27,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.15) frontend=no(0.03) objective=unsure(0.42) defers=unsure(0.43) needs_gif=unsure(0.37) needs_judgment=yes(0.71) size=two days(low 0.27)",
+    "usage": {
+      "input_tokens": 837,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T19.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-10": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "covered_E-11": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-14": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-75": {
+        "p": 0.3,
+        "verdict": "no"
+      }
+    },
+    "line": "coverage: covered_E-10=unsure(0.45) covered_E-11=yes(0.91) covered_E-14=yes(0.91) covered_E-75=no(0.30)",
+    "usage": {
+      "input_tokens": 1222,
+      "output_tokens": 84
+    }
+  },
+  {
+    "id": "M3-T19.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.06,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.89,
+        "level": "two days",
+        "confidence": 0.48,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.46) frontend=no(0.06) objective=unsure(0.49) defers=unsure(0.53) needs_gif=no(0.32) needs_judgment=unsure(0.62) size=two days(low 0.48)",
+    "usage": {
+      "input_tokens": 877,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T2.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-05": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-06": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "covered_E-08": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-72": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-96": {
+        "p": 0.96,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-05=yes(0.86) covered_E-06=yes(0.66) covered_E-08=yes(0.78) covered_E-72=yes(0.87) covered_E-96=yes(0.96)",
+    "usage": {
+      "input_tokens": 1445,
+      "output_tokens": 104
+    }
+  },
+  {
+    "id": "M3-T2.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.01,
+        "level": "two days",
+        "confidence": 0.54,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.37) frontend=no(0.05) objective=unsure(0.59) defers=unsure(0.56) needs_gif=unsure(0.42) needs_judgment=unsure(0.63) size=two days(medium 0.54)",
+    "usage": {
+      "input_tokens": 951,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T20.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-14": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "covered_E-73": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "covered_E-75": {
+        "p": 0.88,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-14=unsure(0.37) covered_E-73=no(0.26) covered_E-75=yes(0.88)",
+    "usage": {
+      "input_tokens": 1005,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M3-T20.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.13,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.04,
+        "level": "two days",
+        "confidence": 0.55,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=no(0.34) frontend=no(0.13) objective=unsure(0.41) defers=unsure(0.56) needs_gif=unsure(0.62) needs_judgment=unsure(0.43) size=two days(medium 0.55)",
+    "usage": {
+      "input_tokens": 815,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T3.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-72": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-73": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "covered_E-74": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "covered_E-75": {
+        "p": 0.81,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-72=yes(0.92) covered_E-73=unsure(0.58) covered_E-74=yes(0.84) covered_E-75=yes(0.81)",
+    "usage": {
+      "input_tokens": 1206,
+      "output_tokens": 84
+    }
+  },
+  {
+    "id": "M3-T3.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.06,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.08,
+        "level": "two days",
+        "confidence": 0.5,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.42) frontend=no(0.06) objective=unsure(0.62) defers=yes(0.75) needs_gif=unsure(0.46) needs_judgment=yes(0.73) size=two days(medium 0.50)",
+    "usage": {
+      "input_tokens": 884,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T4.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-13": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-73": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "covered_E-74": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "covered_E-75": {
+        "p": 0.75,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-13=yes(0.83) covered_E-73=unsure(0.39) covered_E-74=no(0.23) covered_E-75=yes(0.75)",
+    "usage": {
+      "input_tokens": 1151,
+      "output_tokens": 84
+    }
+  },
+  {
+    "id": "M3-T4.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.07,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.71,
+        "level": "two days",
+        "confidence": 0.38,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.51) frontend=no(0.07) objective=unsure(0.63) defers=unsure(0.62) needs_gif=unsure(0.54) needs_judgment=unsure(0.43) size=two days(low 0.38)",
+    "usage": {
+      "input_tokens": 859,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T5.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-08": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "covered_E-14": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "covered_E-15": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-08=yes(0.74) covered_E-14=yes(0.67) covered_E-15=yes(0.92)",
+    "usage": {
+      "input_tokens": 1050,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M3-T5.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.3,
+        "level": "more than two days, should be split",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.28) frontend=no(0.05) objective=no(0.33) defers=unsure(0.63) needs_gif=unsure(0.40) needs_judgment=yes(0.72) size=more than two days, should be split(low 0.43)",
+    "usage": {
+      "input_tokens": 881,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T6.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-09": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "covered_E-95": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-96": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-09=yes(0.66) covered_E-95=yes(0.97) covered_E-96=yes(0.97)",
+    "usage": {
+      "input_tokens": 1160,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M3-T6.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.25,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.85,
+        "level": "two days",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=yes(0.82) frontend=yes(0.80) objective=unsure(0.53) defers=no(0.25) needs_gif=yes(0.90) needs_judgment=unsure(0.53) size=two days(low 0.43)",
+    "usage": {
+      "input_tokens": 1018,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T7.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-03": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "covered_E-68": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-70": {
+        "p": 0.64,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-03=unsure(0.53) covered_E-68=yes(0.89) covered_E-70=unsure(0.64)",
+    "usage": {
+      "input_tokens": 1095,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M3-T7.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.66,
+        "level": "more than two days, should be split",
+        "confidence": 0.71,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.40) frontend=yes(0.84) objective=unsure(0.40) defers=yes(0.79) needs_gif=yes(0.89) needs_judgment=unsure(0.38) size=more than two days, should be split(medium 0.71)",
+    "usage": {
+      "input_tokens": 986,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T8.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-03": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "covered_E-70": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "covered_E-73": {
+        "p": 0.77,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-03=no(0.15) covered_E-70=unsure(0.58) covered_E-73=yes(0.77)",
+    "usage": {
+      "input_tokens": 1098,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M3-T8.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.91,
+        "level": "two days",
+        "confidence": 0.47,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.29) frontend=yes(0.91) objective=unsure(0.44) defers=no(0.35) needs_gif=yes(0.89) needs_judgment=unsure(0.44) size=two days(low 0.47)",
+    "usage": {
+      "input_tokens": 975,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M3-T9.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-13": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "covered_E-73": {
+        "p": 0.42,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-13=yes(0.75) covered_E-73=unsure(0.42)",
+    "usage": {
+      "input_tokens": 907,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M3-T9.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.06,
+        "level": "two days",
+        "confidence": 0.46,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.46) frontend=yes(0.86) objective=unsure(0.41) defers=no(0.29) needs_gif=yes(0.90) needs_judgment=unsure(0.36) size=two days(low 0.46)",
+    "usage": {
+      "input_tokens": 981,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T1.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-18": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-19": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "covered_E-31": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-39": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-40": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-90": {
+        "p": 0.86,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-18=yes(0.94) covered_E-19=no(0.24) covered_E-31=yes(0.77) covered_E-39=yes(0.93) covered_E-40=yes(0.95) covered_E-90=yes(0.86)",
+    "usage": {
+      "input_tokens": 1454,
+      "output_tokens": 124
+    }
+  },
+  {
+    "id": "M4-T1.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.06,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.44,
+        "level": "more than two days, should be split",
+        "confidence": 0.54,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.53) frontend=no(0.06) objective=unsure(0.57) defers=yes(0.68) needs_gif=no(0.31) needs_judgment=yes(0.76) size=more than two days, should be split(medium 0.54)",
+    "usage": {
+      "input_tokens": 890,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T10.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-18": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-33": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "covered_E-37": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-78": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "covered_E-86": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "covered_E-90": {
+        "p": 0.8,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-18=yes(0.93) covered_E-33=unsure(0.48) covered_E-37=yes(0.77) covered_E-78=unsure(0.60) covered_E-86=unsure(0.59) covered_E-90=yes(0.80)",
+    "usage": {
+      "input_tokens": 1441,
+      "output_tokens": 124
+    }
+  },
+  {
+    "id": "M4-T10.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.45,
+        "level": "more than two days, should be split",
+        "confidence": 0.55,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.54) frontend=no(0.05) objective=unsure(0.56) defers=unsure(0.59) needs_gif=no(0.34) needs_judgment=unsure(0.49) size=more than two days, should be split(medium 0.55)",
+    "usage": {
+      "input_tokens": 830,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T11.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-16": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "covered_E-31": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "covered_E-32": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-33": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-78": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-16=yes(0.80) covered_E-31=yes(0.72) covered_E-32=yes(0.78) covered_E-33=yes(0.97) covered_E-78=yes(0.95)",
+    "usage": {
+      "input_tokens": 1305,
+      "output_tokens": 104
+    }
+  },
+  {
+    "id": "M4-T11.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.09,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "defers": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.55,
+        "level": "two days",
+        "confidence": 0.36,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.33) frontend=no(0.09) objective=yes(0.66) defers=unsure(0.64) needs_gif=unsure(0.64) needs_judgment=unsure(0.53) size=two days(low 0.36)",
+    "usage": {
+      "input_tokens": 853,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T12.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-35": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "covered_E-41": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "covered_E-94": {
+        "p": 0.56,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-35=unsure(0.59) covered_E-41=unsure(0.49) covered_E-94=unsure(0.56)",
+    "usage": {
+      "input_tokens": 962,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M4-T12.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.04,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.51,
+        "level": "two days",
+        "confidence": 0.35,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=yes(0.80) frontend=no(0.04) objective=unsure(0.45) defers=unsure(0.46) needs_gif=unsure(0.63) needs_judgment=no(0.24) size=two days(low 0.35)",
+    "usage": {
+      "input_tokens": 809,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T13.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-86": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-87": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-88": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-89": {
+        "p": 0.45,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-86=yes(0.97) covered_E-87=yes(0.96) covered_E-88=yes(0.79) covered_E-89=unsure(0.45)",
+    "usage": {
+      "input_tokens": 1246,
+      "output_tokens": 84
+    }
+  },
+  {
+    "id": "M4-T13.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.06,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.58,
+        "level": "more than two days, should be split",
+        "confidence": 0.66,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=no(0.28) frontend=no(0.06) objective=unsure(0.46) defers=unsure(0.61) needs_gif=unsure(0.37) needs_judgment=yes(0.74) size=more than two days, should be split(medium 0.66)",
+    "usage": {
+      "input_tokens": 914,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T14.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-16": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "covered_E-31": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "covered_E-32": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "covered_E-33": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "covered_E-35": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-41": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "covered_E-78": {
+        "p": 0.46,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-16=yes(0.76) covered_E-31=yes(0.75) covered_E-32=no(0.33) covered_E-33=yes(0.76) covered_E-35=yes(0.91) covered_E-41=yes(0.70) covered_E-78=unsure(0.46)",
+    "usage": {
+      "input_tokens": 1785,
+      "output_tokens": 144
+    }
+  },
+  {
+    "id": "M4-T14.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.8,
+        "level": "more than two days, should be split",
+        "confidence": 0.83,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=no(0.28) frontend=yes(0.78) objective=unsure(0.52) defers=no(0.35) needs_gif=yes(0.90) needs_judgment=unsure(0.53) size=more than two days, should be split(high 0.83)",
+    "usage": {
+      "input_tokens": 1002,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T15.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-20": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-40": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-89": {
+        "p": 0.14,
+        "verdict": "no"
+      }
+    },
+    "line": "coverage: covered_E-20=yes(0.77) covered_E-40=yes(0.95) covered_E-89=no(0.14)",
+    "usage": {
+      "input_tokens": 1058,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M4-T15.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.12,
+        "level": "more than two days, should be split",
+        "confidence": 0.27,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.42) frontend=yes(0.93) objective=unsure(0.39) defers=unsure(0.39) needs_gif=yes(0.87) needs_judgment=unsure(0.45) size=more than two days, should be split(low 0.27)",
+    "usage": {
+      "input_tokens": 969,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T2.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-19": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-34": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-77": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "covered_E-79": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "covered_E-85": {
+        "p": 0.7,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-19=yes(0.90) covered_E-34=yes(0.90) covered_E-77=unsure(0.43) covered_E-79=unsure(0.59) covered_E-85=yes(0.70)",
+    "usage": {
+      "input_tokens": 1288,
+      "output_tokens": 104
+    }
+  },
+  {
+    "id": "M4-T2.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.14,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.62,
+        "level": "two days",
+        "confidence": 0.44,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.32) frontend=no(0.14) objective=unsure(0.52) defers=yes(0.76) needs_gif=unsure(0.56) needs_judgment=unsure(0.45) size=two days(low 0.44)",
+    "usage": {
+      "input_tokens": 850,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T3.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-19": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-32": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-34": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-35": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-41": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-77": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "covered_E-78": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "covered_E-79": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "covered_E-86": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "covered_E-89": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-19=yes(0.77) covered_E-32=yes(0.92) covered_E-34=yes(0.82) covered_E-35=yes(0.91) covered_E-41=yes(0.83) covered_E-77=no(0.35) covered_E-78=yes(0.69) covered_E-79=unsure(0.39) covered_E-86=unsure(0.60) covered_E-89=yes(0.93)",
+    "usage": {
+      "input_tokens": 2227,
+      "output_tokens": 204
+    }
+  },
+  {
+    "id": "M4-T3.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.11,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.6,
+        "level": "two days",
+        "confidence": 0.37,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.31) frontend=no(0.11) objective=unsure(0.60) defers=unsure(0.48) needs_gif=unsure(0.63) needs_judgment=unsure(0.61) size=two days(low 0.37)",
+    "usage": {
+      "input_tokens": 914,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T4.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-35": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "covered_E-41": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "covered_E-90": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-91": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-92": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-93": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-94": {
+        "p": 0.73,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-35=yes(0.68) covered_E-41=yes(0.69) covered_E-90=yes(0.94) covered_E-91=yes(0.87) covered_E-92=yes(0.93) covered_E-93=yes(0.92) covered_E-94=yes(0.73)",
+    "usage": {
+      "input_tokens": 1822,
+      "output_tokens": 144
+    }
+  },
+  {
+    "id": "M4-T4.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.03,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.27,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.24,
+        "level": "more than two days, should be split",
+        "confidence": 0.38,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=yes(0.88) frontend=no(0.03) objective=unsure(0.44) defers=no(0.27) needs_gif=no(0.33) needs_judgment=no(0.32) size=more than two days, should be split(low 0.38)",
+    "usage": {
+      "input_tokens": 932,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T5.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-17": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "covered_E-31": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-36": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-38": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "covered_E-39": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-40": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-85": {
+        "p": 0.46,
+        "verdict": "unsure"
+      }
+    },
+    "line": "coverage: covered_E-17=unsure(0.63) covered_E-31=yes(0.89) covered_E-36=yes(0.94) covered_E-38=unsure(0.51) covered_E-39=yes(0.90) covered_E-40=yes(0.97) covered_E-85=unsure(0.46)",
+    "usage": {
+      "input_tokens": 1824,
+      "output_tokens": 144
+    }
+  },
+  {
+    "id": "M4-T5.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.82,
+        "level": "more than two days, should be split",
+        "confidence": 0.87,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.48) frontend=yes(0.85) objective=unsure(0.40) defers=yes(0.95) needs_gif=yes(0.89) needs_judgment=no(0.31) size=more than two days, should be split(high 0.87)",
+    "usage": {
+      "input_tokens": 1057,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T6.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-31": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "covered_E-32": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-34": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-35": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-41": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "covered_E-76": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-77": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "covered_E-78": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-79": {
+        "p": 0.78,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-31=unsure(0.44) covered_E-32=yes(0.90) covered_E-34=yes(0.90) covered_E-35=yes(0.87) covered_E-41=yes(0.68) covered_E-76=yes(0.83) covered_E-77=yes(0.76) covered_E-78=yes(0.90) covered_E-79=yes(0.78)",
+    "usage": {
+      "input_tokens": 2226,
+      "output_tokens": 184
+    }
+  },
+  {
+    "id": "M4-T6.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.06,
+        "level": "two days",
+        "confidence": 0.49,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.49) frontend=yes(0.93) objective=unsure(0.44) defers=yes(0.95) needs_gif=yes(0.90) needs_judgment=unsure(0.60) size=two days(low 0.49)",
+    "usage": {
+      "input_tokens": 1076,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T7.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-85": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "covered_E-86": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-88": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-89": {
+        "p": 0.28,
+        "verdict": "no"
+      }
+    },
+    "line": "coverage: covered_E-85=unsure(0.39) covered_E-86=yes(0.93) covered_E-88=yes(0.92) covered_E-89=no(0.28)",
+    "usage": {
+      "input_tokens": 1219,
+      "output_tokens": 84
+    }
+  },
+  {
+    "id": "M4-T7.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.32,
+        "level": "more than two days, should be split",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=yes(0.73) frontend=no(0.05) objective=unsure(0.58) defers=unsure(0.54) needs_gif=unsure(0.41) needs_judgment=no(0.30) size=more than two days, should be split(low 0.43)",
+    "usage": {
+      "input_tokens": 852,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T8.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-40": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-85": {
+        "p": 0.96,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-40=yes(0.91) covered_E-85=yes(0.96)",
+    "usage": {
+      "input_tokens": 772,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M4-T8.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.1,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.06,
+        "level": "two days",
+        "confidence": 0.53,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.42) frontend=no(0.10) objective=unsure(0.53) defers=unsure(0.43) needs_gif=unsure(0.42) needs_judgment=unsure(0.43) size=two days(medium 0.53)",
+    "usage": {
+      "input_tokens": 839,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M4-T9.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-18": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "covered_E-37": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-38": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-76": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "covered_E-77": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-78": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-79": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "covered_E-85": {
+        "p": 0.67,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-18=yes(0.68) covered_E-37=yes(0.79) covered_E-38=yes(0.86) covered_E-76=yes(0.96) covered_E-77=yes(0.94) covered_E-78=yes(0.97) covered_E-79=no(0.28) covered_E-85=yes(0.67)",
+    "usage": {
+      "input_tokens": 2032,
+      "output_tokens": 164
+    }
+  },
+  {
+    "id": "M4-T9.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.53,
+        "level": "more than two days, should be split",
+        "confidence": 0.63,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.50) frontend=yes(0.91) objective=unsure(0.46) defers=unsure(0.38) needs_gif=yes(0.90) needs_judgment=unsure(0.62) size=more than two days, should be split(medium 0.63)",
+    "usage": {
+      "input_tokens": 1116,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T1.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.04,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.29,
+        "level": "more than two days, should be split",
+        "confidence": 0.41,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.31) frontend=no(0.04) objective=unsure(0.61) defers=yes(0.92) needs_gif=no(0.32) needs_judgment=no(0.26) size=more than two days, should be split(low 0.41)",
+    "usage": {
+      "input_tokens": 776,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T10.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-59": {
+        "p": 0.96,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-59=yes(0.96)",
+    "usage": {
+      "input_tokens": 609,
+      "output_tokens": 24
+    }
+  },
+  {
+    "id": "M5-T10.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.47,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.32,
+        "level": "two days",
+        "confidence": 0.22,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.22) frontend=yes(0.89) objective=unsure(0.47) defers=yes(0.88) needs_gif=yes(0.84) needs_judgment=unsure(0.46) size=two days(low 0.22)",
+    "usage": {
+      "input_tokens": 829,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T11.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-48": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-82": {
+        "p": 0.89,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-48=yes(0.91) covered_E-82=yes(0.89)",
+    "usage": {
+      "input_tokens": 910,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M5-T11.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.07,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.58,
+        "level": "more than two days, should be split",
+        "confidence": 0.66,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=yes(0.76) frontend=no(0.07) objective=unsure(0.39) defers=unsure(0.53) needs_gif=unsure(0.37) needs_judgment=no(0.33) size=more than two days, should be split(medium 0.66)",
+    "usage": {
+      "input_tokens": 868,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T2.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.03,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "defers": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.21,
+        "level": "one and a half days",
+        "confidence": 0.46,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.59) frontend=no(0.03) objective=yes(0.67) defers=yes(0.92) needs_gif=no(0.18) needs_judgment=unsure(0.50) size=one and a half days(low 0.46)",
+    "usage": {
+      "input_tokens": 772,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T3.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-80": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-81": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "covered_E-82": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-83": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "covered_E-56": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-57": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-58": {
+        "p": 0.84,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-80=yes(0.93) covered_E-81=yes(0.75) covered_E-82=yes(0.91) covered_E-83=yes(0.75) covered_E-56=yes(0.90) covered_E-57=yes(0.82) covered_E-58=yes(0.84)",
+    "usage": {
+      "input_tokens": 1746,
+      "output_tokens": 144
+    }
+  },
+  {
+    "id": "M5-T3.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.03,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.25,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.9,
+        "level": "more than two days, should be split",
+        "confidence": 0.93,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.64) frontend=no(0.03) objective=unsure(0.43) defers=yes(0.82) needs_gif=no(0.29) needs_judgment=no(0.25) size=more than two days, should be split(high 0.93)",
+    "usage": {
+      "input_tokens": 913,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T4.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-58": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-59": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-58=yes(0.92) covered_E-59=yes(0.97)",
+    "usage": {
+      "input_tokens": 757,
+      "output_tokens": 44
+    }
+  },
+  {
+    "id": "M5-T4.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.06,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.89,
+        "level": "two days",
+        "confidence": 0.54,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=yes(0.67) frontend=no(0.06) objective=unsure(0.62) defers=unsure(0.49) needs_gif=unsure(0.58) needs_judgment=unsure(0.63) size=two days(medium 0.54)",
+    "usage": {
+      "input_tokens": 800,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T5.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.07,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "defers": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.84,
+        "level": "two days",
+        "confidence": 0.49,
+        "band": "low"
+      }
+    },
+    "line": "task: is_wiring=no(0.23) frontend=no(0.07) objective=yes(0.66) defers=yes(0.85) needs_gif=no(0.22) needs_judgment=no(0.23) size=two days(low 0.49)",
+    "usage": {
+      "input_tokens": 767,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T6.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "defers": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.75,
+        "level": "more than two days, should be split",
+        "confidence": 0.79,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=yes(0.70) frontend=no(0.15) objective=yes(0.69) defers=yes(0.89) needs_gif=unsure(0.38) needs_judgment=unsure(0.60) size=more than two days, should be split(high 0.79)",
+    "usage": {
+      "input_tokens": 854,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T7.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-42": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-43": {
+        "p": 0.98,
+        "verdict": "yes"
+      },
+      "covered_E-45": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-42=yes(0.97) covered_E-43=yes(0.98) covered_E-45=yes(0.97)",
+    "usage": {
+      "input_tokens": 1114,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M5-T7.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.47,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.92,
+        "level": "more than two days, should be split",
+        "confidence": 0.93,
+        "band": "high"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.50) frontend=yes(0.86) objective=no(0.32) defers=no(0.32) needs_gif=yes(0.82) needs_judgment=unsure(0.47) size=more than two days, should be split(high 0.93)",
+    "usage": {
+      "input_tokens": 1033,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T8.coverage",
+    "status": "ok",
+    "template": "coverage",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "covered_E-81": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "covered_E-84": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-44": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    },
+    "line": "coverage: covered_E-81=yes(0.68) covered_E-84=yes(0.94) covered_E-44=yes(0.97)",
+    "usage": {
+      "input_tokens": 996,
+      "output_tokens": 64
+    }
+  },
+  {
+    "id": "M5-T8.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.41,
+        "level": "more than two days, should be split",
+        "confidence": 0.52,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=yes(0.87) frontend=no(0.05) objective=unsure(0.43) defers=no(0.35) needs_gif=yes(0.65) needs_judgment=unsure(0.44) size=more than two days, should be split(medium 0.52)",
+    "usage": {
+      "input_tokens": 884,
+      "output_tokens": 122
+    }
+  },
+  {
+    "id": "M5-T9.task",
+    "status": "ok",
+    "template": "task",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.08,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.54,
+        "level": "more than two days, should be split",
+        "confidence": 0.62,
+        "band": "medium"
+      }
+    },
+    "line": "task: is_wiring=unsure(0.50) frontend=no(0.08) objective=unsure(0.63) defers=yes(0.93) needs_gif=unsure(0.40) needs_judgment=unsure(0.60) size=more than two days, should be split(medium 0.62)",
+    "usage": {
+      "input_tokens": 776,
+      "output_tokens": 122
+    }
+  }
+]

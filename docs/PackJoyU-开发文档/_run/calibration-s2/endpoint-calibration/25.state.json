@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "GET",
+    "path": "/api/admin/chat/conversations/[id]",
+    "params": "afterSeq=0 and limit=50, maximum 100.",
+    "returns": "AdminChatSyncDTO. Message bodies according to authorization; contains no visitor cookie or token.",
+    "permission": "ADMIN/SALES."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "ADMIN and SALES share the human chat inbox. EDITOR cannot access it. Backend chat authorization uses a currently valid Auth.js account and device; message author and own read cursor come from that current session, not from client-supplied user IDs. This does not change the existing SALES inquiry assignment scope. Read authorized message bodies in ascending conversation seq only. CLOSED is still readable. Never return the visitor secret cookie/token. No status writes, activity touches, or notifications."
+}

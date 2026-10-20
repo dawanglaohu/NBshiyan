@@ -1,0 +1,10 @@
+{
+  "acceptance": "1) Build and start the real standalone service, then click the product entry in the home-page header; computed style must read the black/white and accent colors, 2px borders and 0 border radius from section 11, and a real GET /api/models must return the published source. 2) Actual WebVitals must produce POST /api/rum; verify its 204 response and redacted logs, and run the real-browser smoke test in CI; with reduced motion, the home page must retain a still frame and an explicit play entry (E-22). 3) Bring the locally reviewed documents into this task's PR as its baseline; subsequent tasks must branch from the main branch after this PR lands, without losing the documents.",
+  "edges": {
+    "E-22": {
+      "scene": "Home-page video, JPG and GIF loading and controls",
+      "trigger": "The user enables reduced motion, video decoding fails, or loading times out",
+      "expect": "Show the JPG by default and provide an explicit user play entry; do not continuously force playback."
+    }
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Use Intl/IANA to compute left-closed/right-open UTC boundaries from local midnight to the next midnight. Test 23/25-hour DST, unique midnight membership and two browser time-zone inputs not changing the site day. 2) In isolated PostgreSQL, current-role ADMIN changes valid timezone/revision through version CAS and records pending recomputation; invalid IANA/stale version/non-ADMIN are rejected without changing the original. Preserve UTC events without rewriting them. M5-T4 completes HTTP wiring.",
+  "edges": {}
+}

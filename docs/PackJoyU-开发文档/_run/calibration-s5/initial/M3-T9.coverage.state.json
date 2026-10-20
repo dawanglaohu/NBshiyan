@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Entry: admin Account permissions (admin-users-link) -> /admin/users, then an actual target row's Authorize recovery (user-authorize-recovery-{id}). Data source: the existing user list, POST /api/admin/account/reauth, and POST /api/admin/account/recovery-authorizations. The click sends a target grant and authorization request in order. Assert that the target's factors are not directly rewritten, the permit is shown once, and source/target audit records exist (E-13). 2) Do not authorize the authorizer's own row. Direct self-authorization, EDITOR/SALES requests, and the old bodyless reset-2fa all fail. An unknown outcome does not reissue a permit. Explain that a single administrator without materials must contact the OS owner; the web page does not create OS authority (E-12, E-13). 3) At 1920x1080/1440x900/390x844, check D1-D6 with work/density7/gutter16/gap16/pad16. Include keyboard, secret-memory cleanup, and real-click GIF evidence. Existing user creation/deletion/role operations keep their original contracts.",
+  "edges": {
+    "E-12": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "The authenticator and all recovery codes are lost, and no second administrator exists.",
+      "expect": "Only a server owner with operating-system administrative authority may run a local recovery command to issue a one-time credential for an explicitly identified target account. Record the actor, time, and target; do not write the plaintext credential to the audit log."
+    },
+    "E-13": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Another administrator authorizes recovery on someone else's behalf.",
+      "expect": "The authorizer must authenticate again. An already open admin page or a visitor email request alone cannot authorize resetting another account."
+    }
+  }
+}

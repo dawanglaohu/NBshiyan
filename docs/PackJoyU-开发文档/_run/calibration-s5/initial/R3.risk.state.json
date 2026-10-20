@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Authorized remote media tooling is unavailable or GIF compositing exceeds the task size",
+    "impact": "Publication media may take longer than one task estimate",
+    "mitigation": "Probe the authorized GPT Dot software channel and retain real evidence. If unavailable mark not executed. Keep the media task open; split within settled scope if it exceeds two days.",
+    "trigger": "Tool is unreachable or no frame-correct publication copy can be delivered in two days"
+  }
+}

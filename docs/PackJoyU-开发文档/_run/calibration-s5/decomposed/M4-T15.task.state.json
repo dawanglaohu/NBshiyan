@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Remove Tawk wiring and explain necessary human consultation",
+    "input": "Existing useTawk/FloatingActions/CookieConsent and en/ru privacy copy; first-party necessary-chat and optional-analytics rules.",
+    "output": "Runtime wiring with zero Tawk requests; visible contact/privacy explanations, independent chat switch, and preserved inquiry/email entries.",
+    "accept": "1) Entry: public FloatingActions contact control (floating-human-contact) -> /[locale]/contact; footer Privacy policy -> /[locale]/privacy. Data source: existing InquiryWizard and local Privacy messages; no analytics API is needed. Visit both after declining analytics and observe zero Tawk requests/analytics IDs. Cookie settings distinguish necessary human contact from optional analytics (E-40). 2) With the separate chat switch off, existing inquiry submission/email links remain clickable. Do not buy capacity automatically or call the old 2.7GB snapshot current capacity. Privacy copy explains seven-day/30-day cookies and the 90-day design default while actual cleanup remains disabled; existing inquiry retention stays unchanged (E-20, E-89). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

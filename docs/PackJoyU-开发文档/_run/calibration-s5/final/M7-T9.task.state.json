@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Accept the existing distribution scripts and isolated backup/restore chain",
+    "input": "Reviewed-version existing Docker/standalone distribution scripts, section 17/18 acceptance methods and final acceptance reports",
+    "output": "delivery-acceptance: actual isolated build/import/schema/restore results and the final delivery inventory",
+    "accept": "1) Only in isolation, run the existing build-offbox/import-and-scan and deploy-script flow and verify image manifest/SHA/platform. Record exact versions, commands and results for backup, Prisma diff, plan-check, db push without accept-data-loss, zero drift, standalone startup, and home computed-style/real-request/event smoke. Do not add a hosting platform or change the distribution scheme. 2) Restore a real backup into disposable PostgreSQL and read it through the app; verify old-image compatibility/rollback and credential invalidation. Read-only checks must show actual backup-completion/restore-verification metadata matching ops-report/stats. If no verifiable backup source exists, it must be not_connected; file presence or scheduled time cannot masquerade as successful backup or recoverability. Do not add a backup platform or upload backup contents (E-65). 3) Collect same-head visitor/session/recovery/analytics/operations evidence and unresolved items. Distribution artifacts exclude protected backups and secrets; no automatic production merge/deployment/cleanup or purchase."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

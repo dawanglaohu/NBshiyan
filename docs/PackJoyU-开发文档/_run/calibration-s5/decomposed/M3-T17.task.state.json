@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Provide owner-scoped device lists and target revocation APIs",
+    "input": "M3-T1 device facts and M3-T3 fresh grants.",
+    "output": "GET /api/admin/account/devices, POST /api/admin/account/devices/[id]/revoke, and POST /api/admin/account/logout-all.",
+    "accept": "1) Caller/wiring point: real handlers -> device-management service. Lists are owner-only with stable cursor ordering and no sid credential in DTOs. Reject another owner's device target. Consume a target-bound DEVICE_REVOKE grant once in the action transaction; the old cookie receives 401 on the next GET account (E-03, E-70, E-73). 2) logout-all consumes LOGOUT_ALL and, under the User lock, increments sv/revokes every device/audits and clears the cookie. At most one concurrent use of the same grant succeeds; cross-device/expired/old-sv grants cause no change. Repeated final-state reads agree; do not automatically replay authorization (E-03, E-74)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

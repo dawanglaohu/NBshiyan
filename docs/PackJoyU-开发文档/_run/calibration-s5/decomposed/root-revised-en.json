@@ -1,0 +1,218 @@
+[
+  {
+    "id": "M1-T1",
+    "module": "M1",
+    "title": "Wire eight core brand variables and a real smoke test of existing paths",
+    "input": "The existing home page, GET /api/models and WebVitals/RUM; core variables in section 11; the locally reviewed specification branch",
+    "output": "Eight core visual-base variables; runnable-smoke; an implementation PR carrying the reviewed documentation baseline and a CI smoke test",
+    "accept": "1) Wire only eight core tokens into the existing home page: background, foreground, accent color, border width, border radius, base font size, body line height and focus color; do not create new pages or business controls. Build/start the real standalone service, follow the header product link to the products page, verify each computed style equals section 11, and verify GET /api/models returns the published source. 2) Actual home-page WebVitals must trigger POST /api/rum; verify 204 and redacted logs. CI starts the same service and runs this browser smoke test. 3) Bring the locally reviewed documents into main through this PR; subsequent tasks branch from that landed baseline."
+  },
+  {
+    "id": "M1-T2",
+    "module": "M1",
+    "title": "Export shared schemas and DTOs for the new domains",
+    "input": "Field contracts in sections 06/09/10, the existing Auth.js error protocol and the visual-base baseline",
+    "output": "contract-types; account/recovery/chat/analytics/ops/errors schemas and public index exports",
+    "accept": "1) Establish strict Zod request/response schemas by checking every field against section 10; derive types only from schemas, make the public index consumable by independent TypeScript code, and reject unknown or out-of-bound fields. 2) LoginMode accepts only password/totp; missing rememberDevice, boolean false and literal false parse as false, while other invalid values are rejected. (E-95)."
+  },
+  {
+    "id": "M1-T3",
+    "module": "M1",
+    "title": "Produce a rebranded JPG and video-poster publication copies",
+    "input": "The original desktop JPG/video, the current PackJoyU wordmark, and provenance/original-hash records",
+    "output": "brand-static-media; a rebranded JPG, a semantically matching video poster and compressed video copy, hashes and a comparison checklist",
+    "accept": "1) Original JPG/video hashes remain unchanged and all output files decode. List every old-logo location on the JPG blimp and factory wall, replace each completely with the current PackJoyU wordmark, and verify no old logo remains at each listed location. Extract the video poster from its own footage and record a verifiable frame time. 2) Even when a candidate design differs from the online wordmark, use the current PackJoyU wordmark and record the logo file hash. Do not wait for the user to revisit candidate images or treat a candidate as an approved new logo (E-28). 3) When GPT Dot is reachable and actually produces the assets, retain invocation, software-operation, output-file and finished-output check records. When unreachable, record not yet executed/the implementation task for each item, do not mark that item finished, and do not falsely claim successful invocation (E-29)."
+  },
+  {
+    "id": "M1-T4",
+    "module": "M1",
+    "title": "Wire the home-page video and a separate JPG/GIF scene",
+    "input": "brand-media, visual-components, client-api-foundation and the existing home-page SSR layout",
+    "output": "home-media; video and a separate brand scene in the existing home page/public shell",
+    "accept": "1) Click wordmark home-link to /[locale], products-link to products and contact-link to contact, and verify the SSR source and GET /api/models. The 12.27-second video has muted/playsinline and clickable play/pause controls. With autoplay blocked, retain its poster/play entry; decoding failure or reduced motion shows a semantic JPG without forcing continuous playback (E-21, E-22). 2) Put the city JPG/GIF after products. Network assertions show no GIF download before approaching within 300px of the viewport, and loading only afterward. Pause clicks, leaving the viewport and backgrounding the page switch to a same-size still; restored visibility does not override the user pause (E-23, E-24). 3) At 1440/1920/390, measure media aspect ratios against sources and verify its DOM rectangles do not intersect clickable rectangles for navigation/body/3D operating areas. The rendered complete source image corners and main subject remain within the container; do not pass by removing the subject or controls. Retain a real GIF of button actions (E-25)."
+  },
+  {
+    "id": "M1-T5",
+    "module": "M1",
+    "title": "Publish verifiable company-owned content and its entries",
+    "input": "Verifiable company-owned materials, the PDF as a structural reference, and existing SiteSetting/Sanity/publication switches",
+    "output": "company-content; about content/a fact-comparison table and compatible contact/privacy entries",
+    "accept": "1) For every public hard corporate fact, create a page-field to company-owned evidence file/page mapping. YUHAO certifications/capacity/factory scale lacking company-owned evidence must appear in neither final copy nor images. Use the PDF only for structure/product themes; automated searches plus per-field comparison must find no renamed appropriation (E-27). 2) The final logo hash equals the current PackJoyU wordmark; do not use a candidate new logo or wait for the user to revisit candidates. PDF instructions are not execution authorization (E-28). 3) In a real browser click about-link to /[locale]/about and footer contact/privacy to their respective routes; en/ru switching retains the corresponding page. With the publication switch off, retain 404; with it on, SSR SiteSetting/Sanity matches the fact table. Retain navigation evidence for every changed page."
+  },
+  {
+    "id": "M1-T6",
+    "module": "M1",
+    "title": "Replace GIF branding frame by frame and verify the publication-media set",
+    "input": "The original 361-frame GIF, brand-static-media, the current wordmark and the original timeline",
+    "output": "brand-media; a rebranded GIF, same-size pause frame, frame-by-frame branding/timing report and publishable set",
+    "accept": "1) Preserve original JPG/GIF hashes. List old-brand appearances, perspective changes, transitions and reappearances after occlusion across all 361 frames, and cover each completely with PackJoyU. Also recheck the JPG old-logo locations from T3; the first/last frames and all listed locations must contain no old or missed logo (E-26). 2) Compare every frame presentation time/order and the total 30.08-second loop against the original timeline; all must match. Overlay comparison must show no newly introduced misalignment or jitter. Any failure marks the copy unfinished and excludes it from publication, while preserving originals for rollback (E-30). 3) Output a decodable GIF, a same-size paused still and hashes. Record GPT Dot production evidence or per-item not-yet-executed status according to T3 actual tool availability; do not falsely report completion."
+  },
+  {
+    "id": "M1-T7",
+    "module": "M1",
+    "title": "Complete shared visual variables and native UI wrappers",
+    "input": "The eight core visual-base variables and the complete component/state specification in section 11",
+    "output": "visual-components; the complete single token source and native Button/Input/Dialog/Status wrappers",
+    "accept": "1) Extend only the same tokens.css, without a second set of color/font/spacing variables. Button/Input/Dialog/Status must use section 11 heights, 2px borders, 0 border radius and disabled/busy/error/focus values; Class/variable-reference and native-semantics assertions must match every state; M1-T4 verifies actual computed styles in integration. 2) Wrapper components contain no fetch, Prisma, identity, cookie or business-role decisions. Automated tests cover keyboard focus and dialog focus restoration; public and admin clients import the same export."
+  },
+  {
+    "id": "M1-T8",
+    "module": "M1",
+    "title": "Wire unified fetch cancellation and error adapters",
+    "input": "contract-types, the method-specific retry rules in section 10, and the existing Auth.js/old error protocols",
+    "output": "client-api-foundation; cancellation at 15s, DTO parsing, old-error compatibility and server-side HTTP error mapping",
+    "accept": "1) Use a real local HTTP server to test delays, 400/401/403/409/429/503 and old {error} responses. Cancellation at 15s and on unmount must terminate in-flight requests; fieldErrors retain only controlled fields, and unknown exceptions must not echo stack/message. 2) Ordinary GET and same-key chat/analytics retries follow section 10. Unknown results for one-time reauth/recovery/cron requests are not automatically replayed. Business components obtain request/error adapters only through the unified export, and the original Auth.js envelope remains unchanged."
+  },
+  {
+    "id": "M2-T1",
+    "module": "M2",
+    "title": "Enlarge product-card viewports and simplify their information areas",
+    "input": "The existing ProductGallery/Scene, GET /api/models and the layout in section 11",
+    "output": "Adaptive large 560px cards and separate model/action areas",
+    "accept": "1) Entry: the home-page products-link leads to /[locale]/products; the data sources are GET /api/models and actual model URLs; PC cards have a 560px minimum and viewport clamp(360px,28vw,440px), without overflow at width 390; names, necessary specifications and inquiry controls must be distinguishable, and actions must remain after repeated descriptions are removed (E-104). 2) Titles and buttons must have independent links; dragging inside the Canvas must neither navigate nor submit; the list category-link must enter the existing /[locale]/products/[slug] under the publication switch and return to the 3D catalog, without expanding it into a complete PDP (E-97)."
+  },
+  {
+    "id": "M2-T2",
+    "module": "M2",
+    "title": "Correct direct model dragging and wheel focus",
+    "input": "The existing real GLB assets and OrbitControls, and D20",
+    "output": "Cancellable, precise pointer/focus control",
+    "accept": "1) A direct pointer-down in the product-card model viewport must capture the current model; hover must stop autorotation without geometrically scaling the card; ordinary wheel input scrolls the page, and only Ctrl/Cmd+wheel on a focused model or zoom controls zoom the model, without first forcing activation (E-97, E-98, E-99). 2) pointercancel/blur/Escape/unmount must all release control; subsequent manipulation must target the correct model without leaving the page locked; the user's pause takes priority over hiding/showing recovery; preserve tests that fail before the modification and pass afterward (E-100)."
+  },
+  {
+    "id": "M2-T3",
+    "module": "M2",
+    "title": "Wire model keyboard/touch and reset controls",
+    "input": "model-pointer, each product initial camera/zoom bounds and the existing large cards",
+    "output": "model-accessibility; keyboard/single-finger/two-finger/reset controls with 44px targets",
+    "accept": "1) Tab reaches each named control with visible focus; direction/zoom/reset provide the same functions as the mouse. Escape exits to its source control without trapping Tab or automatically following product links (E-101). 2) Separately test single-finger model drag, two-finger zoom within min/max and text-area page scroll; takeover stays within the model area, no gesture submits an inquiry, and each measured hit target is at least 44 CSS px (E-102). 3) After arbitrary rotation/zoom, reset equals that product initial camera/bounds. At 1440/1920 and narrow sizes the complete model is visible, names/key controls meet section 11 font sizes, and specifications/inquiry remain visible; do not eliminate clipping by deleting content (E-104)."
+  },
+  {
+    "id": "M2-T4",
+    "module": "M2",
+    "title": "Define pure lifecycle rules for model analytics events",
+    "input": "The event allowlist and navigationId/viewId/durationMs constraints in contract-types",
+    "output": "model-event-rules; pure functions for start/terminal deduplication and cancellation/retry transitions",
+    "accept": "1) Recorded input sequences verify at most one success/failure per viewId, timeout as failure, no GLB success from poster/FoldBox, and a new viewId for a retried new attempt. Functions read no DOM/env/cookie and perform no fetch. 2) Output events must pass the shared M1 schema; durationMs comes from the injected monotonic-clock difference, product/navigation associations are preserved, and out-of-order/duplicate terminals do not overwrite the decided terminal. M2-T7 consumes these rules in the real-browser producer."
+  },
+  {
+    "id": "M2-T5",
+    "module": "M2",
+    "title": "Connect product context to the existing inquiry form",
+    "input": "model-fallback, the existing InquiryWizard and POST /api/inquiries protocol",
+    "output": "product-inquiry; the context chain from product cards to contact-page inquiries",
+    "accept": "1) Click product-card inquire-product to /[locale]/contact. A real POST /api/inquiries carries a server-recognized productSlug and persists a real Inquiry identifier; form product/specifications equal the source card, without changing the old inquiry protocol. 2) Use that entry separately in en/ru and at narrow width 390. Model dragging/keyboard control before submission produces no inquiry POST; names, specifications and inquiry entries remain visible and can complete submission. Retain one real-path GIF."
+  },
+  {
+    "id": "M2-T6",
+    "module": "M2",
+    "title": "Wire real-model failures and poster fallback",
+    "input": "model-accessibility, the corresponding product posters and actual GLB sources",
+    "output": "model-fallback; static fallback/retry entries for GLB/WebGL/context failures",
+    "accept": "1) Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display. Show the corresponding product poster and clickable retry/inquiry; do not retry indefinitely or substitute another product image. 2) Retry establishes a new actual loading attempt; unmount cancels old listeners/loading callbacks. Presentation state emits only a load-result callback, without creating analytics success events in this task; M2-T7 completes metrics integration."
+  },
+  {
+    "id": "M2-T7",
+    "module": "M2",
+    "title": "Wire actual GLB lifecycles into analytics ingestion",
+    "input": "model-event-rules, model-fallback, analytics-ingest and analytics-consent-ui",
+    "output": "model-events; producer wiring for page/product visits and real GLB start/terminal events",
+    "accept": "1) After real-browser product-card GLB initiation, POST /api/analytics/events separately persists product visits, model_view_start and success/failure. Entering a product page without opening 3D produces no start. Without consent/with analytics rejected, models remain usable and no analytics request occurs (E-42, E-46). 2) Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display. Corresponding product fallback/retry/inquiry stay usable, posters/demonstrations send no GLB success, each viewId has at most one terminal kind, and new actual retries use new viewIds under the rules (E-103). 3) Verify associations and actual durationMs for two success/failure/timeout attempts and cancellation on card switching. The denominator includes only real starts after consent; timeout is failure, mean duration carries samples and is null with no samples, and rejected samples are not added (E-63)."
+  },
+  {
+    "id": "M2-T8",
+    "module": "M2",
+    "title": "Connect product consultation through human receipt and reply",
+    "input": "product-inquiry, chat-visitor-ui, chat-operator-ui and model-events",
+    "output": "product-contact; the visitor/operator human-consultation chain with product context",
+    "accept": "1) Product-card chat-product opens the window. POST /api/chat/conversations must persist the same productSlug/stable message identifier before showing received. The real operator inbox can read it and a human replies; the visitor receives that same reply. Network traffic contains no AI-reply endpoint or automatically generated reply (E-16, E-31). 2) Rejected analytics does not prevent consultation or create analytics IDs/third-party chat scripts. After submission timeout/lost response, retry with the same clientMessageId and return the original receipt; the inbox/notification each contain one item. Preserve the current-tab draft and retain real GIFs for en/ru/390 paths (E-37, E-40)."
+  },
+  {
+    "id": "M5-T1",
+    "module": "M5",
+    "title": "Establish JobState lease/generation repository primitives",
+    "input": "contract-types, JobState in section 09 and database-time/conditional-update rules",
+    "output": "job-leases; JobState schema, atomic acquisition/renewal/completion and safe status reads",
+    "accept": "1) In real isolated PostgreSQL, concurrent acquisition of the same key yields only one success; after a 90s lease, a new generation can acquire it. Completion by an old owner/generation is rejected and cannot overwrite new results. 2) summary accepts only allowlisted counts/times/versions; lastSucceededAt advances only on successful commit, and failure retains the old successful time. There is no arbitrary-script execution capability. M5-T8 wires this primitive into real jobs at the production composition point."
+  },
+  {
+    "id": "M5-T2",
+    "module": "M5",
+    "title": "Wire the server-side signed analytics-consent cookie",
+    "input": "contract-types, current M3 HTTP protections and consent-cookie rules in section 09",
+    "output": "analytics-consent-api; POST /api/analytics/consent and consent-signature verification",
+    "accept": "1) A real HTTP POST /api/analytics/consent parses a strict Boolean after exact-origin/rate-limit checks. Initial true signs a random ID plus version/original expiry cookie; repeated true with a valid same-version cookie preserves its original ID/expiry. false/repeated false clears the cookie without generating identity. 2) Forged signatures, expired cookies and missing cookies fail consent validation; responses contain no raw IP/email/body. This task implements backend admission only; M5-T7 integrates UI withdrawal and stopping producers."
+  },
+  {
+    "id": "M5-T3",
+    "module": "M5",
+    "title": "Recompute daily aggregates from consistent snapshots and atomically replace them",
+    "input": "analytics-ingest, job-leases, analytics-settings-domain and complete raw-coverage boundaries",
+    "output": "analytics-aggregate; AnalyticsDaily daily/product aggregation services and watermark publication",
+    "accept": "1) In real PostgreSQL count the same duplicate event once. Aggregation fixes a RepeatableRead snapshot/cutoff; newly arriving events wait for the next round. Deduplicate by navigationId and replace the whole target-day group plus watermark in one transaction; process interruption retains the previous group (E-80, E-81). 2) Reject commits by an old generation or timezoneRevision. Recompute only days whose dayStart is not earlier than complete raw coverage; late events within 48h recompute that day. Outside coverage preserve the old complete values and return partial/unavailable with their original definition, without extending raw retention or reducing counts from fragments (E-82, E-83). 3) Aggregate left-closed/right-open site-IANA days, including 23/25-hour DST and unique midnight membership. Time-zone changes recompute only still-retained events; beyond 30 days retain original labels/unavailable-recomputation state (E-56, E-57, E-58). M5-T8 wires this service into real five-minute scheduling."
+  },
+  {
+    "id": "M5-T4",
+    "module": "M5",
+    "title": "Wire time-zone-settings HTTP and recomputation-coverage queries",
+    "input": "analytics-settings-domain, analytics-aggregate-runtime and the existing ADMIN guard",
+    "output": "analytics-settings-api; GET/PATCH /api/admin/settings/analytics",
+    "accept": "1) Real HTTP GET returns current version/timezone/revision/recomputableFrom, and PATCH carries expectedVersion. An ADMIN change to a valid IANA time zone commits the new revision, pending recomputation and audit together; the next real job recomputes only complete coverage while older ranges retain original labels/partial (E-58). 2) Nonexistent IANA, stale version and direct SALES/EDITOR/unauthenticated requests are rejected with the original configuration entirely unchanged, without fallback to browser time zone (E-59). Existing about/org settings stay unchanged and responses pass section 10 schemas."
+  },
+  {
+    "id": "M5-T5",
+    "module": "M5",
+    "title": "Implement an analytics-retention candidate/coverage planner",
+    "input": "receivedAt/expiresAt rules, analytics-aggregate coverage and section 09 retention parameters",
+    "output": "analytics-retention-plan; pure cutoff calculation and a read-only candidate repository",
+    "accept": "1) With an injected clock verify receivedAt plus 30 days, 13-calendar-month expiresAt boundaries and equality-at-expiry. Read-only queries return candidate IDs/counts without deleting data or exporting browserHash/business PII. 2) The planner also returns the start of complete raw coverage/non-recomputable natural days; partially cleaned days cannot be marked recomputable. M5-T11 consumes this output and integrates real transactions/production-authorization gates."
+  },
+  {
+    "id": "M5-T6",
+    "module": "M5",
+    "title": "Persist strictly allowlisted analytics events",
+    "input": "analytics-consent-api, shared event schemas and the published-product source",
+    "output": "analytics-ingest; AnalyticsEvent and POST /api/analytics/events",
+    "accept": "1) Through real HTTP with a valid signed-consent cookie send page_view/product_view/model_view_start/model_load_success/model_load_failure/chat_start. Individually validate required navigationId/viewId/productSlug and the published-product allowlist. Schema rejects unknown kinds/oversized fields/sensitive URLs; the event database contains no IP/fingerprint/email/body. 2) Real PostgreSQL stores only one row for repeated eventId/semanticKey with the same payload and returns 409 for differing payloads. The same viewId has only one success/failure terminal; page events and start/terminal records are stored separately, and failure does not write success. Reject timestamps outside -48h/+5min. 3) After consent-cookie withdrawal requests return 403 and event-row count does not change. M2-T7 wires the real-model client producer; M5-T7 wires browser consent and ordinary-page producers."
+  },
+  {
+    "id": "M5-T7",
+    "module": "M5",
+    "title": "Wire consent UI, page events and privacy explanations",
+    "input": "analytics-consent-api, analytics-ingest, client-api-foundation and the existing footer preferences entry; the public time zone from analytics-settings-domain and existing en/ru privacy copy",
+    "output": "analytics-consent-ui and analytics-page-events; serialized consent writes and page producers; analytics-privacy-copy privacy-page and anonymous-browser/retention explanations",
+    "accept": "1) Open controls through footer analytics-preferences in a real browser. Without consent/with rejection, do not generate/store analytics IDs or send events, while pages/3D remain usable. After consent, a completed real navigation produces page_view and retries with the same navigationId do not duplicate it (E-42). 2) Withdrawal immediately stops collection, clears local analytics IDs/pending queues and does not backfill withdrawn-period visits. If false is selected while true is in flight, serialize cookie clearing according to the latest intent; out-of-order responses cannot reopen collection (E-43). 3) Use only section 11 minimalist-flat and sections 07/12 wiring. At 1920x1080/1440x900/390x844 retain actual-request GIF/computed-style evidence; keyboard and 44px touch targets remain usable. 4) In a real browser use footer privacy-link to /[locale]/privacy. Corresponding en/ru content explicitly states Number of anonymous browsers that consented to analytics. Isolated tests separately change device contexts, clear identifiers and switch browsers, verifying that a new browserHash can form while recording only whether it differs, not its raw value. Do not claim unique real-person or cross-device identification (E-45). 5) Explain necessary chat cookies, analytics consent, default dry-run and actual retention-authorization boundaries separately. Preserve the existing noindex/completeness rules. Show the site-IANA time zone and raw/aggregate query ranges consistently with backend configuration reads."
+  },
+  {
+    "id": "M5-T8",
+    "module": "M5",
+    "title": "Register the aggregation job and wire real five-minute cron",
+    "input": "job-leases, analytics-aggregate and shared M3 HTTP protections",
+    "output": "job-foundation and analytics-aggregate-runtime; a fixed registry, POST /api/admin/cron/operations and real cron",
+    "accept": "1) composition registers only the implemented analytics-aggregate; deploy/cron.nbshiyan calls POST /api/admin/cron/operations every five minutes. Validate fixed keys/Bearer credentials in constant time; reject unknown keys/missing credentials and permit no arbitrary scripts. 2) Real scheduling executes after restart and commits JobState/watermark, with batch at most 500, a 55s deadline and no old-generation overwrite. Stopped cron/failure preserves the last successful watermark and exposes safe NEVER/FAILED/stale-value state; route existence/manual invocation does not justify claiming just updated (E-81, E-84). 3) After real-browser consent, complete two same-day page visits in the same browser and refresh/retry the same eventId. After the actual job UV stays 1, genuine new visits increase PV and duplicate events do not increase counts (E-44). Dashboard GET does not trigger jobs; M4 registers notification/mail jobs, without future-service imports or empty implementations."
+  },
+  {
+    "id": "M5-T9",
+    "module": "M5",
+    "title": "Establish versioned IANA time-zone and natural-day repository rules",
+    "input": "Existing SiteSetting CAS and section 09 timezoneRevision/UTC-event rules",
+    "output": "analytics-settings-domain; time-zone validation, version CAS and local-day UTC-boundary services",
+    "accept": "1) Use Intl/IANA to compute left-closed/right-open UTC boundaries from local midnight to the next midnight. Test 23/25-hour DST, unique midnight membership and two browser time-zone inputs not changing the site day. 2) In isolated PostgreSQL, current-role ADMIN changes valid timezone/revision through version CAS and records pending recomputation; invalid IANA/stale version/non-ADMIN are rejected without changing the original. Preserve UTC events without rewriting them. M5-T4 completes HTTP wiring."
+  },
+  {
+    "id": "M5-T10",
+    "module": "M5",
+    "title": "Present the ADMIN time-zone form and save feedback",
+    "input": "analytics-settings-api, admin-shell-profile-ui and visual-components",
+    "output": "analytics-settings-ui; the analytics-section form in admin settings",
+    "accept": "1) In a real browser click settings-link to the analytics section of /admin/settings. After GET, clicking Save sends expectedVersion through PATCH and displays the server new revision/recomputableFrom and partial recomputation. Invalid-IANA field errors do not clear the old value; non-ADMIN cannot enter and direct API calls return 403 (E-59). 2) Label the common site-IANA time zone; two browser time zones see the same setting, this task verifies only the settings page, while M6 integration verifies common labels on charts/exports. At 1920x1080/1440x900/390x844 run form D1-D6/overflow checks, retain real-request GIF/computed-style evidence and consume the single style in section 11."
+  },
+  {
+    "id": "M5-T11",
+    "module": "M5",
+    "title": "Register the default-dry-run analytics-retention job",
+    "input": "analytics-retention-plan, job-foundation and explicit retention-authorization gates",
+    "output": "analytics-retention; a fixed daily job, candidate/actual counts and authorization rejection",
+    "accept": "1) Fixed operations analytics-retention leads to the implemented service and actual registry/daily-cron registration. Default to dryRun with actual cleanup off; without separate explicit production-retention authorization, reject enable/delete requests, delete zero and return only candidate counts. 2) Using only isolated PostgreSQL data, verify the expired set/counts/removal of identifiers for receivedAt 30 days and aggregates 13 calendar months. Show query coverage, do not reconstruct expired details, and do not extend deletion authority to backups/existing data (E-48). 3) After cleanup call the existing aggregation service: recompute only dayStart at or after complete raw coverage, including 48h-late events still inside complete coverage. For partially cleaned days preserve old complete aggregates and return partial/unavailable with the original definition; do not replace from fragments or extend retention (E-82). Reject old lease generations and do not touch production/recovery/backup data."
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Issue target-scoped restricted recovery permits and consume recovery credentials",
+    "input": "M3-T3 fresh grants; existing recovery-code hashes and OS initial-password CLI guards; section 09/10 permit/start, User lock order, and restricted-cookie protocols.",
+    "output": "AdminRecoveryPermit/AdminRecoverySession; POST /api/admin/account/recovery-authorizations, POST /api/admin/users/[id]/reset-2fa, and POST /api/auth-admin/recovery/start; a local server-owner recovery CLI supporting TTY preauthorization of password changes.",
+    "accept": "1) Caller/wiring point: an ADMIN handler consumes a target-bound RECOVERY_AUTHORIZE grant to issue a 15-minute permit. The target cannot be the authorizer. Reject the old unverified reset-2fa request. Recovery start locks User before reading and consuming the current recovery-code list; concurrent uses of two different codes must not resurrect a consumed code (E-11, E-13). 2) The start transaction revokes old devices/recovery sessions, increments sv, and sets a ten-minute HttpOnly restricted cookie while keeping the original valid TOTP/password. Any admin API request with that cookie is rejected; an account/email alone cannot obtain recovery authority (E-10, E-11, E-14). 3) The local CLI with OS authority issues the same kind of permit only for an explicit target and reason. Hidden, confirmed TTY input of a new password stores only a preauthorized hash; HTTP cannot write pendingPasswordHash. Audit records contain no secrets. Preserve the old initial-password CLI's ADMIN/unenrolled/enabled/TTY guards, and use isolated accounts to verify the full authorization input without a second administrator (E-12, E-75)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

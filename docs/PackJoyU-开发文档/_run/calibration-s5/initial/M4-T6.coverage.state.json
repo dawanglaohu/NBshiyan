@@ -1,0 +1,60 @@
+{
+  "acceptance": "1) Entry: admin Human conversations (admin-chat-link) -> /admin/chat; an actual conversation row (chat-thread-link-{id}) -> /admin/chat/[id]. Data source: GET /api/admin/chat/conversations and its id-specific incremental GET. Send reply (operator-chat-send) -> POST messages; displayed messages -> POST read; Close conversation (operator-chat-close) -> PATCH with expectedVersion. Click each control and assert actual requests plus a visitor-side reply from the real human author (E-16, E-31, E-32, E-33). 2) Visible 3s snapshot/seq polling, hidden pause, maximum-30s backoff, catch-up deduplication, and cancellation on switching threads pass out-of-order/page-insertion tests. Undisplayed new messages remain unread. Notification failure/unknown is shown separately without retracting received. EDITOR cannot see the entry, while direct-page/API access still rejects it (E-34, E-35, E-41, E-76, E-77, E-78, E-79). 3) Check the minimalist-flat workspace at 1920x1080/1440x900/390x844 under work/density7/gutter16/gap16/pad16 for D1-D6. Test one/two/many conversations, empty/failure/old-value states, keyboard, and focus. Attach GIFs of the real ADMIN/SALES and visitor two-sided flow.",
+  "edges": {
+    "E-16": {
+      "scene": "Online chat implementation route",
+      "trigger": "A visitor sends the first message while an operator is online.",
+      "expect": "Persist the conversation and message before showing a received state. The operator inbox can read it and send a human reply; do not generate an automated AI answer."
+    },
+    "E-31": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A visitor submits a message and server-side persistence succeeds.",
+      "expect": "Return stable conversation and message identifiers and show Received, with the conversation readable in the operator inbox. If the database write fails, retain a retry-pending state and do not show Received or read by an operator."
+    },
+    "E-32": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "The requester is unauthenticated, an EDITOR, an account whose privileges were revoked, or a visitor guessing someone else's conversation identifier.",
+      "expect": "Directly request the read and reply endpoints for each of these cases and verify no content is returned and no write occurs. Return data to ADMIN/SALES only under current authorization; hiding a button is not authorization evidence."
+    },
+    "E-33": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "Two authorized people reply concurrently, or a visitor repeats the same client message identifier.",
+      "expect": "Order by server seq and show the actual author. The same clientMessageId and payload in the same conversation produce only one message, one outbox item, and one unread increment. Persist each concurrent human reply; a later response must not overwrite an earlier saved reply."
+    },
+    "E-34": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A new message arrives while the inbox is refreshed or paginated.",
+      "expect": "Apply the defined seq cursor and read MAX rules: insert messages between pages and verify that each message ID in the completed range appears exactly once. Advance read only to the seq actually confirmed by the user; newly arrived higher-seq messages remain unread."
+    },
+    "E-35": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "An email notification fails or is not connected.",
+      "expect": "Represent the actual notification state using the defined queued/sending/sent/failed states or their existing DTO mapping. Notification failure after a message is saved changes only that notification state, not the message's received state or the inbox's ability to process it. An unconnected source must not display Sent."
+    },
+    "E-41": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A message has been saved but an operator reply or notification fails to send.",
+      "expect": "Keep the received result and inbox pending-work state. Separately show the real sending failure; do not pretend that the visitor has been contacted."
+    },
+    "E-76": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "The chat/inbox is visible and requests succeed.",
+      "expect": "Use a normal interval of three seconds. Pause while the tab is hidden; when visible again, immediately catch up from the confirmed seq. Slow networks or repeated failures use bounded backoff up to 30 seconds. No round may accumulate unbounded in-flight requests."
+    },
+    "E-77": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "There are multiple tabs, retries, out-of-order responses, or new messages inserted between pages.",
+      "expect": "Merge and deduplicate by stable server seq and message identifier. Advance the cursor only through the fully received range. A late old response must not move the cursor backward, overwrite a newer reply, or skip messages on an omitted page."
+    },
+    "E-78": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "A visitor session expires or is revoked, or an operator loses chat permission after previously holding ADMIN/SALES.",
+      "expect": "Perform server-side authorization on the next poll and send, and stop returning conversation content. Changing threadId, seq, or email cannot read another consultation."
+    },
+    "E-79": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "The network recovers after an interruption, or the operator inbox has many unread messages.",
+      "expect": "Bind bounded pages to the established pagination cap, verify that no request exceeds it, and continuously fill seq gaps. Polling updates only the confirmed-receipt cursor, not the user's read position, and must not create an operator-online or read promise."
+    }
+  }
+}

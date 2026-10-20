@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Reverify the cross-domain visitor media, product and consultation chain",
+    "input": "Public publication copies and the real product/inquiry/visitor-and-operator chat chains",
+    "output": "The visitor-chain acceptance report, real GIF recordings and a provenance list",
+    "accept": "1) Starting from the en/ru home pages, click products and manipulate a real GLB, then enter the contact page for inquiry/chat; the operator replies through the inbox and the visitor receives the reply; verify the same productSlug/message ID and no duplicates after failure/timeout retries (E-16, E-18, E-31, E-37, E-40). 2) Originals must remain unchanged; fully check branding/timing across 361 frames and regress media pause/hidden/reduced-motion behavior, with no control occlusion at 1440/1920/390; if GPT Dot is unavailable, the report must identify media work not yet performed and prevent claiming the assets are finished (E-21, E-24, E-26, E-29, E-30, E-104)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

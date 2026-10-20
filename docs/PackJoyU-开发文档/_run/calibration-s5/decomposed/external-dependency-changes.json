@@ -1,0 +1,118 @@
+{
+  "changedExternalRequires": [
+    {
+      "consumer": "M3-T6",
+      "capability": "client-api-foundation",
+      "fromTask": "M1-T2",
+      "toTask": "M1-T8"
+    },
+    {
+      "consumer": "M4-T1",
+      "capability": "job-foundation",
+      "fromTask": "M5-T1",
+      "toTask": "M5-T8"
+    },
+    {
+      "consumer": "M4-T4",
+      "capability": "job-foundation",
+      "fromTask": "M5-T1",
+      "toTask": "M5-T8"
+    },
+    {
+      "consumer": "M4-T5",
+      "capability": "client-api-foundation",
+      "fromTask": "M1-T2",
+      "toTask": "M1-T8"
+    },
+    {
+      "consumer": "M4-T7",
+      "capability": "job-foundation",
+      "fromTask": "M5-T1",
+      "toTask": "M5-T8"
+    },
+    {
+      "consumer": "M6-T1",
+      "capability": "model-events",
+      "fromTask": "M2-T4",
+      "toTask": "M2-T7"
+    },
+    {
+      "consumer": "M6-T3",
+      "capability": "job-foundation",
+      "fromTask": "M5-T1",
+      "toTask": "M5-T8"
+    },
+    {
+      "consumer": "M7-T1",
+      "capability": "product-contact",
+      "fromTask": "M2-T5",
+      "toTask": "M2-T8"
+    },
+    {
+      "consumer": "M7-T2",
+      "capability": "analytics-settings-ui",
+      "fromTask": "M5-T4",
+      "toTask": "M5-T10"
+    },
+    {
+      "consumer": "M7-T3",
+      "capability": "analytics-retention",
+      "fromTask": "M5-T5",
+      "toTask": "M5-T11"
+    }
+  ],
+  "providerMoves": [
+    {
+      "capability": "client-api-foundation",
+      "fromTask": "M1-T2",
+      "toTask": "M1-T8"
+    },
+    {
+      "capability": "brand-media",
+      "fromTask": "M1-T3",
+      "toTask": "M1-T6"
+    },
+    {
+      "capability": "model-fallback",
+      "fromTask": "M2-T3",
+      "toTask": "M2-T6"
+    },
+    {
+      "capability": "model-events",
+      "fromTask": "M2-T4",
+      "toTask": "M2-T7"
+    },
+    {
+      "capability": "product-contact",
+      "fromTask": "M2-T5",
+      "toTask": "M2-T8"
+    },
+    {
+      "capability": "job-foundation",
+      "fromTask": "M5-T1",
+      "toTask": "M5-T8"
+    },
+    {
+      "capability": "analytics-ingest",
+      "fromTask": "M5-T2",
+      "toTask": "M5-T6"
+    },
+    {
+      "capability": "analytics-settings-ui",
+      "fromTask": "M5-T4",
+      "toTask": "M5-T10"
+    },
+    {
+      "capability": "analytics-retention",
+      "fromTask": "M5-T5",
+      "toTask": "M5-T11"
+    }
+  ],
+  "notes": [
+    "Update requires.task and corresponding direct dependencies.",
+    "M5-T8 provides usable job-foundation; M5-T1 is job-leases only.",
+    "M5-T10 provides analytics-settings-ui.",
+    "M2-T8 requires the final chat-visitor-ui and chat-operator-ui providers; root must resolve external M4 splits.",
+    "Primitive tasks intentionally do not cite an entire cross-layer edge they do not fulfill. Full behavior citations remain on integration owners."
+  ]
+}

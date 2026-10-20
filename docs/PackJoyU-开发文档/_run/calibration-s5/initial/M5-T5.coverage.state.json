@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Caller the fixed operations analytics-retention leads to the service; isolated data must verify the expired set for 30-day raw data/13-calendar-month aggregates and removal of identifiers; do not reconstruct expired detail, and include coverage in the statistics (E-48, E-82). 2) Actual cleanup must be disabled by default with dryRun=true; without separate explicit retention authorization, reject requests for actual deletion and delete zero records; this task must not touch production/recovery/backup data, and must provide transaction/lease concurrency evidence (E-48, E-81).",
+  "edges": {
+    "E-48": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "Raw events exceed 30 days or aggregates exceed 13 months",
+      "expect": "Following section 09, express retention boundaries as receivedAt plus 30 days and expiresAt after 13 calendar months for identity-free aggregates, and show query coverage. Cleanup runs only with separate explicit production-retention authorization and explicit enablement; default to dry-run/actual cleanup disabled, and reject actual deletion without authorization. Isolated tests must verify the expired target set, counts, removal of identifiers and no reconstruction of expired details, without expanding authority to delete backups or existing data."
+    },
+    "E-82": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Raw events are inserted within the allowed late-arrival window",
+      "expect": "Explicitly recompute only natural days whose dayStart is not earlier than the start of complete raw-data coverage. Beyond that range, retain the original aggregates and return partial/unavailable plus their original definition/coverage; do not replace old complete counts with post-cleanup fragments. The late window remains 48h under section 09 without extending raw retention."
+    },
+    "E-81": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+      "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+    }
+  }
+}

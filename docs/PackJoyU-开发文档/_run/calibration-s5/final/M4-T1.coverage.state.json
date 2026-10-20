@@ -1,0 +1,30 @@
+{
+  "acceptance": "1) Caller/wiring point: real POST conversations -> cookie-scoped service -> conversation/first message/seq/messageId-unique outbox in one transaction. Return persistent invariant id/seq/receivedAt only after success. Database failure leaves no partial records. The same UUID/payload returns the original result; changed payload returns 409. Concurrency yields one message and one notification (E-18, E-31, E-90). 2) Enforce 16KiB before strict-schema parsing. Body is plain text of 1..4000 code points. Omitted/blank email can send; after trim, over 254 characters, CRLF/display names/invalid format produce field errors. Identity comes from the cookie; another session cannot be associated. Declining analytics still permits receipt without creating an analytics identity (E-39, E-40).",
+  "edges": {
+    "E-18": {
+      "scene": "Online chat implementation route",
+      "trigger": "The same message is submitted repeatedly because of retries.",
+      "expect": "Deduplicate by the client message identifier so the inbox contains one message and notifications are not triggered repeatedly."
+    },
+    "E-31": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A visitor submits a message and server-side persistence succeeds.",
+      "expect": "Return stable conversation and message identifiers and show Received, with the conversation readable in the operator inbox. If the database write fails, retain a retry-pending state and do not show Received or read by an operator."
+    },
+    "E-39": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "The visitor voluntarily supplies a blank email, an invalid format, or overlong contact details.",
+      "expect": "Mirror section 10: email is optional; when supplied, trim it, limit it to 254 characters, accept one valid mailbox, and reject display names and CRLF. Treat blank as omitted. Invalid or overlong values return field errors and retain the original message in the current tab. Do not elevate the email to verified identity or a delivery guarantee."
+    },
+    "E-40": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A visitor declines analytics but actively opens first-party human chat.",
+      "expect": "Allow the necessary consultation without creating an analytics identifier or loading a third-party chat script. Handle the necessary chat session separately from analytics consent."
+    },
+    "E-90": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "The process stops immediately after saving a message, or a client resends the same message following a timeout.",
+      "expect": "Save the message and an outbox record unique by messageId in the same database transaction. Notifications for committed messages can continue after restart; a message-idempotency hit cannot create a second notification."
+    }
+  }
+}

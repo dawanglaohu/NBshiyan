@@ -1,0 +1,41 @@
+{
+  "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+  "inputs": {
+    "00-概览/01-概述与目标.md": "cd657edc3345dc32af66d1afac0ca886aa454135dad25f8bdab4f2bd088549ea",
+    "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
+    "00-概览/03-术语表.md": "109a7e160bb749cfffe4f34a41e399cb984b424071d3e19a90e047b89584eec9",
+    "01-约束/04-开发条件.md": "5e2665f8c2325943bfe9e675f913b808b2452ae7acee35b5a1807c7013c2613d",
+    "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
+    "02-设计/06-系统架构与模块划分.md": "92660e91e9af1315f7078c7ba185b1e2f004cbc274649c8ed5b3c9cb19fd008c",
+    "02-设计/07-前端架构.md": "687978d92c8911d7158490ce3a1bb50a360a2599be29d1946e08115e5472f685",
+    "02-设计/08-后端架构.md": "6469262b1467cab742ca877ce020eb7f03cb6fdd661fb47d946344e13e43c6d1",
+    "02-设计/09-数据模型.md": "1afb9e5a49e16a3e1bfcc4ea8f7a9defc583856ade9fe54e91b9fd169d47cc9d",
+    "02-设计/10-接口约定.md": "220bcd8a5dc837ee555d6327ab6ae531308ea69cc23c2c620dadc9c8de2d9c51",
+    "02-设计/11-UI.md": "fa0cf6fd865df69f04610d81faad468d151e0c87ad4b40c739e71d61955f85d0",
+    "02-设计/12-UX.md": "3652bc8b0be90230dcd5543cbdd6a89e4af2bcbcd63d134fb088e20584dd2793",
+    "03-质量/13-边界问题与异常处理.md": "c3ca88548d046b7359bb5c516a77c2ae3945980203d9249177ff98e298c7e65d",
+    "03-质量/14-安全与权限.md": "236bd6455958db631f8f2eea06ca94b98eeab803c4f97025a5100602976f3017",
+    "03-质量/15-性能与容量假设.md": "b21c864f8ff074c4c2b031673cc4faed529f1c6a1030167ad9eb757a0eca7fc4",
+    "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
+    "03-质量/17-测试策略.md": "82ca5b258bbe9c80b4f128905b3cb840813ab91b33a456f678fbc2e912cdff4d",
+    "04-执行/18-部署与运维.md": "482f0293c676c55a2af802a6605bdd3f6af22623d3f2b3057135d61a6206cb8d",
+    "04-执行/19-模块任务拆分.md": "140f7974917d349a8ad88c99f838f4e7cc06e957774b9cb297d0a0319f0514a8",
+    "04-执行/20-里程碑与交付顺序.md": "830aed66bbaeef61edb1afd42222ca3000f505583836ba1331c21cd79c3f12c7",
+    "04-执行/21-风险与未决事项.md": "4cd19bb069b91826f5dabf234847326357e3aa06bf248ede9264617c878d8e66",
+    "05-附录/22-决策记录.md": "c141bae90c9ef77eff64c9aeef32eaad6ffdff517980769a832ee0c17abf0c7f",
+    "05-附录/23-变更记录.md": "3f988e9cfe0b87e8f1037290f277555b57a252ae866a4fe57d9340b2f68db1c9",
+    "05-附录/24-参考资料.md": "298fb334b1ea4bba7e6b7bf3a2384eb0cb16ab5f7650e342432b66b9cfb9c9cd",
+    "README.md": "6e4e64b826a7966592fbeec55246c8d919a123bb393e87408e6761067c210dd0",
+    "_run/presentation.json": "40e46eba40cec0db320d3a5bda255415a50e2cec4a4c2164f18b7e8ba20e6aab",
+    "_run/task-contracts.json": "1cf3fa4afb04e6b5b9354d112040642c5f081161a12f6ba0b122c477ba4c2600"
+  },
+  "products": {
+    "_MOC.md": "6ebde0f894df1f9f8f619d709198f93a5e3620fee219428fbd089edd293d8805",
+    "_run/dispatch.json": "915f2910728e227b14d595b81e4ac17bf2bcb136666b5fc2313048e81fdce22c",
+    "_run/review.json": "97a2100ce4900e840fb9d788bd7d2d2e2130dd4d1eb13a2093b35542a12e1804",
+    "docs-data.js": "f65284ea19c1e5189e161fb52f4bf3019175d803aada32bbb126ac88abf97572",
+    "index.html": "c2cf9fe3690df28397802d648289f8d4f6d177c2015bded0e9de786bd5cee8b1"
+  },
+  "schemaVersion": 1,
+  "sourceVersion": "cb86b087aec6d6f374b17a22d39d75730ffcbbea2f95f9c20fd36adc40d80e35"
+}

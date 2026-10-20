@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Tab reaches each named control with visible focus; direction/zoom/reset provide the same functions as the mouse. Escape exits to its source control without trapping Tab or automatically following product links (E-101). 2) Separately test single-finger model drag, two-finger zoom within min/max and text-area page scroll; takeover stays within the model area, no gesture submits an inquiry, and each measured hit target is at least 44 CSS px (E-102). 3) After arbitrary rotation/zoom, reset equals that product initial camera/bounds. At 1440/1920 and narrow sizes the complete model is visible, names/key controls meet section 11 font sizes, and specifications/inquiry remain visible; do not eliminate clipping by deleting content (E-104).",
+  "edges": {
+    "E-101": {
+      "scene": "Keyboard model viewing",
+      "trigger": "The keyboard focuses the model-control area, then uses direction/zoom/reset controls",
+      "expect": "Every control has a distinguishable name, visible focus and equivalent functionality. Escape leaves operation and returns focus to its source control; do not trap Tab or automatically follow a product link."
+    },
+    "E-102": {
+      "scene": "Touchscreen gestures",
+      "trigger": "A finger drags in the model viewport, two fingers zoom, or a finger swipes in the card's text area",
+      "expect": "Separately verify single-finger model drag, two-finger zoom and text-area swiping: only the model operating area takes over dragging, zoom stays within the product's defined min/max, and text/page scrolling remains available. Measure every control's hit target as at least 44 CSS px; no gesture may submit an inquiry."
+    },
+    "E-104": {
+      "scene": "Product reset and presentation",
+      "trigger": "Reset is clicked after arbitrary rotation/zoom, or the product is viewed at PC 1440/1920 and narrow-screen sizes",
+      "expect": "Use the product's existing initial camera/zoom bounds as the baseline; after arbitrary manipulation, reset returns to those values. At 1440/1920 and narrow screens, check that the whole model is visible and names/key actions are distinguishable. After removing repeated bottom descriptions, specifications and inquiry entries must remain visible and usable; do not eliminate clipping by deleting content."
+    }
+  }
+}

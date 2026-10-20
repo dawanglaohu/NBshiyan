@@ -1,0 +1,70 @@
+{
+  "acceptance": "1) Trace real consented visits/GLB/messages through cron aggregation to the dashboard; individually verify metrics across same-day time zones/DST/late events/recomputation/source interruption; actual cleanup without authorization must delete zero records (E-42, E-48, E-56, E-61, E-63, E-64, E-65, E-67, E-81, E-88). 2) In an isolated environment, execute schema-first diff verification, build/start/browser smoke, cron restart and a backup-restore drill, retaining exact commands/results/versions; for each reused recovery PR verify head/checks/provenance/permissions, and without bot approval do not claim it is mergeable; do not automatically merge, deploy or purchase new services (E-20, E-29, E-94).",
+  "edges": {
+    "E-42": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "The user has not allowed analytics or has rejected it",
+      "expect": "Do not create/store analytics identifiers or send analytics events; the site and 3D functions remain usable. The dashboard must clearly cover only consented browsers and must not turn missing nonconsented samples into a whole-site visitor count."
+    },
+    "E-48": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "Raw events exceed 30 days or aggregates exceed 13 months",
+      "expect": "Following section 09, express retention boundaries as receivedAt plus 30 days and expiresAt after 13 calendar months for identity-free aggregates, and show query coverage. Cleanup runs only with separate explicit production-retention authorization and explicit enablement; default to dry-run/actual cleanup disabled, and reject actual deletion without authorization. Isolated tests must verify the expired target set, counts, removal of identifiers and no reconstruction of expired details, without expanding authority to delete backups or existing data."
+    },
+    "E-56": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "A statistics day encounters a daylight-saving transition",
+      "expect": "Use an IANA time-zone library to compute UTC boundaries from local midnight to the next local midnight, allowing 23-hour or 25-hour days. Do not add a fixed 24 hours or double-count overlapping instants."
+    },
+    "E-61": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "This round accepts today's consented visitors, PV, product attribution and 3D view/load metrics",
+      "expect": "List evidence of one real product-action round: consent, actual page/product visits, actual GLB start/terminal, a committed real five-minute job, and dashboard reads of real daily/product aggregates. Verify today's consented browsers, PV, attribution and 3D metrics individually. Core sources must not be passed using not connected or fixed values."
+    },
+    "E-63": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "3D loading succeeds, fails, times out or has no samples",
+      "expect": "Use the established section 09 definition: the denominator is actual model_view_start after consent; at most one success/failure terminal exists for the same viewId, and timeout is failure. Compute mean duration from valid terminal durationMs samples and include samples; no samples gives null, while zero success with samples gives 0%. Do not add nonconsented samples to the denominator."
+    },
+    "E-64": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "API or mail metrics are connected to actual result sources",
+      "expect": "Show redacted, explicitly defined error rates and notification-failure counts. Record mail failures from actual send attempts; do not equate queuing, invoking the send function or receiving an ordinary inquiry with successful delivery."
+    },
+    "E-65": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Storage health or backups lack a verifiable source",
+      "expect": "Show only not connected and source state. Once connected, show actual check/completion times; do not use ordinary file uploads, successful page queries or scheduled times to fake backup success, and do not silently add a backup platform or paid service."
+    },
+    "E-67": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Any additional source is interrupted or has no data",
+      "expect": "That card independently shows error, stale value, unknown or not connected. Other actual metrics remain queryable, preventing one auxiliary source from taking down the entire dashboard."
+    },
+    "E-81": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+      "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+    },
+    "E-88": {
+      "scene": "Chat-credential and data-retention deadlines",
+      "trigger": "This round's documents are generated or an implementer receives a dispatched task",
+      "expect": "Add a testable authorization-only gate: actual production cleanup is off by default and dry-run is the default mode. Without separate explicit retention-policy authorization, enabling or requesting actual deletion must be rejected and the deletion count must be 0; candidate counts/disabled state may be returned. Documents, task dispatch, model results and proxy decisions cannot serve as authorization. Verify only with isolated data and do not touch existing production/recovery/backup data."
+    },
+    "E-20": {
+      "scene": "Online-chat implementation approach",
+      "trigger": "Pre-release resource measurements show insufficient resources",
+      "expect": "Retain an independent switch that can disable chat while preserving the existing contact entry. Record capacity evidence and limitations; do not claim that approximately 2.7 GB of free memory in an old snapshot is current available capacity, and do not automatically purchase expansion."
+    },
+    "E-29": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "The GPT Dot tool is reachable and actually performs remote-software production",
+      "expect": "Retain invocation records, software-operation evidence and output-file evidence, then check the finished deliverables. When the tool is unreachable, record Not yet executed and the specific implementation task for each item; do not falsely claim invocation or asset replacement is complete."
+    },
+    "E-94": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "An account without chat permissions calls an outbox/notification entry, or the SMTP adapter can send only the existing inquiry format",
+      "expect": "Separately verify that unauthorized calls are rejected and chat-notifications uses an independent restricted adapter without expanding the old mail UI. deploy/cron.nbshiyan must actually contain minute-by-minute registration, and committed outbox items must be consumed after restart, not merely by manual calls or future empty registrations. M4 registers it upon delivery; M7 only performs final acceptance."
+    }
+  }
+}

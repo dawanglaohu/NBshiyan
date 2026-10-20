@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Recorded input sequences verify at most one success/failure per viewId, timeout as failure, no GLB success from poster/FoldBox, and a new viewId for a retried new attempt. Functions read no DOM/env/cookie and perform no fetch. 2) Output events must pass the shared M1 schema; durationMs comes from the injected monotonic-clock difference, product/navigation associations are preserved, and out-of-order/duplicate terminals do not overwrite the decided terminal. M2-T7 consumes these rules in the real-browser producer.",
+  "edges": {}
+}

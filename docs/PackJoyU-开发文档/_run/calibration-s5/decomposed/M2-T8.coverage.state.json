@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) Product-card chat-product opens the window. POST /api/chat/conversations must persist the same productSlug/stable message identifier before showing received. The real operator inbox can read it and a human replies; the visitor receives that same reply. Network traffic contains no AI-reply endpoint or automatically generated reply (E-16, E-31). 2) Rejected analytics does not prevent consultation or create analytics IDs/third-party chat scripts. After submission timeout/lost response, retry with the same clientMessageId and return the original receipt; the inbox/notification each contain one item. Preserve the current-tab draft and retain real GIFs for en/ru/390 paths (E-37, E-40).",
+  "edges": {
+    "E-16": {
+      "scene": "Online-chat implementation approach",
+      "trigger": "A visitor sends the first message while an operator is online",
+      "expect": "Report received only after persisting the conversation and message; the operator inbox can read it and a human can reply. Do not generate an AI automatic reply."
+    },
+    "E-31": {
+      "scene": "C-01 Human-chat inbox and reply entries",
+      "trigger": "A visitor submits a message and server-side persistence succeeds",
+      "expect": "Return stable conversation/message identifiers and display Received; the operator inbox must be able to read it. On database-write failure, preserve it for retry and do not show received or read by support."
+    },
+    "E-37": {
+      "scene": "C-02 Offline messages and send-failure recovery",
+      "trigger": "Submission times out or the response is lost, leaving actual persistence unknown",
+      "expect": "Show awaiting confirmation or retryable; retry using the original client message identifier and return the original receipt result, without duplicate inbox items or notifications."
+    },
+    "E-40": {
+      "scene": "C-02 Offline messages and send-failure recovery",
+      "trigger": "A visitor rejects analytics but actively opens first-party human chat",
+      "expect": "Allow the necessary consultation without creating analytics identifiers or loading third-party chat scripts; handle necessary chat sessions separately from analytics consent."
+    }
+  }
+}

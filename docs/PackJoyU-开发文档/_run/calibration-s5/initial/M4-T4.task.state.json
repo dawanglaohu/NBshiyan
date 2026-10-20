@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register the durable notification outbox and wire once-per-minute consumption",
+    "input": "M4 atomic ChatNotification outbox; M5 job-foundation/operations entry point; existing safe SMTP adapter, mail-queue triggers, and deployment cron.",
+    "output": "Fixed chat-notifications job, leases/generations, and stable Message-ID; backward-compatible optional messageId for SMTP; consumer registered through POST /api/admin/cron/operations and actual once-per-minute scheduling for existing POST /api/admin/cron/mail-queue.",
+    "accept": "1) Caller/wiring point: deploy/cron.nbshiyan sends once-per-minute POST to Bearer-protected operations(chat-notifications) -> registry -> composed service -> dedicated SMTP adapter. After actual message persistence, a process restart, and a real scheduled trigger, the outbox is consumed. An unauthorized session cannot trigger it. The actual old mail-queue POST schedule preserves the existing mail gate and protocol (E-90, E-94). 2) Concurrent-worker lease CAS/generation checks prevent old writes; SMTP runs outside transactions with a 20s deadline. Acceptance followed by interruption -> UNKNOWN -> bounded at-least-once retries with the same stable Message-ID, capped at three attempts and backoff of 1m/5m/30m. Unreachable/temporarily rejecting/unconfigured SMTP states are accurate. Possible duplicates are not labeled exactly-once (E-91, E-92, E-93). 3) Notifications contain only the receipt fact and protected admin link, without body/email/token. Missing configuration yields DISABLED; failure/unknown does not change message received or the inbox. JobState summaries contain only counts/times/safe error codes, and an HTTP-trigger timeout does not automatically replay the trigger (E-35, E-41, E-93)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

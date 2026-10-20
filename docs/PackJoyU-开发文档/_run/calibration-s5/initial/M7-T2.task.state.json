@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Reverify persistent admin login and the restricted recovery chain",
+    "input": "Wired account pages/CLI/devices/recovery authorizations and real browsers",
+    "output": "Cross-path security evidence, anti-fabrication checks and a permission report",
+    "accept": "1) Use a real browser for login, close/reopen, refresh, SSR and logout; verify the 2h and 7d/30d boundaries and server-side revocation rejection through direct HTTP; ordinary recoveryCode must fail while independent recovery succeeds, and old factors must be revoked only when the new factor is confirmed (E-01, E-02, E-03, E-04, E-14, E-15, E-69, E-70, E-71, E-96). 2) Provide evidence for direct ADMIN/SALES/EDITOR privilege violations, replay/concurrent grant and recovery-code tests, and single-administrator OS-restricted recovery; do not inject authentication into browser storage; provide UI density checks at three viewports and real GIF recordings (E-08, E-10, E-11, E-72, E-73, E-74, E-75)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

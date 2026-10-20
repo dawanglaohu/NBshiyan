@@ -1,0 +1,90 @@
+{
+  "acceptance": "1) Use a real browser for login, close/reopen, refresh, SSR and logout; verify the 2h and 7d/30d boundaries and server-side revocation rejection through direct HTTP; ordinary recoveryCode must fail while independent recovery succeeds, and old factors must be revoked only when the new factor is confirmed (E-01, E-02, E-03, E-04, E-14, E-15, E-69, E-70, E-71, E-96). 2) Provide evidence for direct ADMIN/SALES/EDITOR privilege violations, replay/concurrent grant and recovery-code tests, and single-administrator OS-restricted recovery; do not inject authentication into browser storage; provide UI density checks at three viewports and real GIF recordings (E-08, E-10, E-11, E-72, E-73, E-74, E-75).",
+  "edges": {
+    "E-01": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "Remember this device is not selected",
+      "expect": "Retain the current refreshable two-hour session policy; do not describe it as a fixed forced logout after two hours. When selected, even continuous activity must not exceed the absolute 30-day limit measured from issuance."
+    },
+    "E-02": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "A remembered device has had no valid server-side activity for more than seven days",
+      "expect": "Require reauthentication on the next protected request; refreshing the JWT cannot resurrect an expired session."
+    },
+    "E-03": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "The password is changed, the authenticator is reset, the account is disabled, or Log out all devices is executed",
+      "expect": "The server revokes the account's old credentials and rejects old JWTs even before their expiry. Ordinary logout must at least revoke the current device session and clear the local login state."
+    },
+    "E-04": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "The browser is closed, a tab is restored, or the browser is reopened",
+      "expect": "Add testable branches: after closing and reopening the browser, actual unexpired and unrevoked credentials are handled under the existing policy; protected requests with expired or revoked credentials are rejected. Tests must not assume that closing the browser destroys the Cookie."
+    },
+    "E-14": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "Recovery is interrupted or reset credentials expire",
+      "expect": "Explicitly reject access to the protected admin area using restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid binding remains. A valid restricted cookie can reenter the same enroll flow; after expiry, restart through the recovery-code/authorization paths already defined in section 10, without exchanging it for a full admin session."
+    },
+    "E-15": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "The new authenticator passes verification and recovery is committed",
+      "expect": "Revoke old sessions, the old binding and old recovery credentials; generate new recovery codes and explicitly display them once. Old devices must no longer be able to access the admin area."
+    },
+    "E-69": {
+      "scene": "Device-session integration with Auth.js deadlines",
+      "trigger": "A normal session reaches two hours since its last valid activity, or a remembered device reaches either seven days idle or the absolute 30-day limit since initial issuance",
+      "expect": "The server rejects authorization and clears cookies in writable responses. JWT and Set-Cookie expiry must not exceed the device's actual permitted deadline; refresh cannot extend the absolute limit."
+    },
+    "E-70": {
+      "scene": "Device-session integration with Auth.js deadlines",
+      "trigger": "The cookie/JWT is still valid but the device is revoked, the account disabled, the credential version changed, or server-side validation unavailable",
+      "expect": "Protected requests must not be allowed on the cookie alone; request-scoped query deduplication must not become a cross-request cache that ignores revocation."
+    },
+    "E-71": {
+      "scene": "Device-session integration with Auth.js deadlines",
+      "trigger": "Initial login, refresh, SSR and logout follow different Auth.js paths",
+      "expect": "Pin the same actual beta version and verify JWT/Set-Cookie deadlines and revocation on all four real paths. When SSR cannot write a cookie, do not claim browser persistence has renewed; logout must also revoke the device record."
+    },
+    "E-96": {
+      "scene": "Login-mode enum and account privacy",
+      "trigger": "mode is unknown, totp mode has not been enabled by the account owner, or ordinary Credentials carries a nonempty recoveryCode",
+      "expect": "List each invalid mode, owner-unenabled totp mode and ordinary Credentials with nonempty recoveryCode; all must follow the same generic Auth.js failure result, issue no admin session and not distinguish account existence in the response. Valid password/totp modes verify only their respective method; test using the established rate-limit/error protocol while preserving valid-user login."
+    },
+    "E-08": {
+      "scene": "C-03 Authenticator enrollment and the default-passwordless switch",
+      "trigger": "The enrollment code is incorrect, expired, submitted repeatedly, or switching occurs concurrently",
+      "expect": "Test the four triggers separately and recheck the pending enrollment record, expiry and current credential version in the final transaction. Incorrect/expired/replayed requests do not commit; at most one of two concurrent switches succeeds; a query after failure must still find at least one verified login method. Follow section 09 without inventing another login method."
+    },
+    "E-10": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "Ordinary login",
+      "expect": "Do not display recovery codes as mandatory; provide a separate Cannot use the authenticator entry into recovery. Merely entering an account name or email must not grant reset permission."
+    },
+    "E-11": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "An account identifier and a valid one-time recovery code are used",
+      "expect": "Atomically consume the recovery code and issue restricted, short-lived reenrollment credentials that can only bind a new authenticator. Full admin permission is unavailable until the new code is correctly verified; only one concurrent use of the same recovery code succeeds."
+    },
+    "E-72": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "The same TOTP time step has been consumed by login, another sensitive operation or concurrent requests",
+      "expect": "Atomically consume the account's authenticator time step; later requests cannot issue another ActionGrant. The client may wait for the next code to retry; do not reintroduce recovery codes into ordinary login."
+    },
+    "E-73": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "Two requests concurrently use the same ActionGrant, or a password-change authorization is used to disable the authenticator",
+      "expect": "Within the sensitive-change transaction, verify and consume the authorization once against its action, device, account and credential version. Only one matching request succeeds; a mismatched purpose is rejected and cannot perform the change."
+    },
+    "E-74": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "More than five minutes have passed since authorization issuance, the device is revoked, password/authenticator changes, or account permissions become invalid",
+      "expect": "The old authorization is immediately invalid. Fresh-verification authorization cannot be transferred across devices and cannot extend the original device session."
+    },
+    "E-75": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "The user forgot the current password but can still use enabled passwordless login",
+      "expect": "Point D3 to the restricted-recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless login stays unchanged; missing the current password prevents issuing an ordinary ActionGrant for sensitive settings. Reject direct requests relying only on a logged-in session or one TOTP, with no change; restricted recovery only allows a new binding and is audited."
+    }
+  }
+}

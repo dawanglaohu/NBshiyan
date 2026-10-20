@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Save synthetic inquiries/messages through real POST /api/inquiries and POST /api/chat/conversations, then GET /api/admin/stats with business sources and verify stable business-ID counts. Retrying the same message UUID and rejected spam do not increase counts; DTOs contain no email/body (E-62). 2) ADMIN/SALES use the existing inquiry scope for read-only queries. A statistics-query failure cannot roll back or block consultation saving; M4 never imports M6 to produce counts. Unauthenticated callers and EDITOR are refused direct business-source access (E-62, E-66).",
+  "edges": {
+    "E-62": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Inquiries or chat are successfully persisted, retried repeatedly, or spam submissions are rejected",
+      "expect": "Explicitly derive business counts from stable, successfully persisted inquiry/conversation/message identifiers. Retries with the same identifier and rejected spam do not increase counts. M6 only reads sources; result DTOs must not contain personal fields such as email or body, and business writes must not be required to wait for the dashboard."
+    },
+    "E-66": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "SALES, EDITOR or an unauthenticated user directly accesses an operations API or export address",
+      "expect": "Directly test the section 09/10 source matrix: ADMIN has all sources, SALES has business aggregates under the existing scope, and EDITOR has public traffic/products/3D. Direct requests for sensitive system sources return 403; mixed-source responses are filtered before querying and contain no hidden counts."
+    }
+  }
+}

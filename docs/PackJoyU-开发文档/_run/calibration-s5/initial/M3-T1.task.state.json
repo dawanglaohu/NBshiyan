@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire device sessions, current authorization, and activity renewal",
+    "input": "Existing Auth.js Credentials, JWT/sv, requireAdmin/page gates; M1 visual-base, runnable-smoke, contract-types, and client-api-foundation; expiry, error, and redacted-counter protocols from sections 09/10.",
+    "output": "AdminDeviceSession and ApiDailyCounter schema additions; Auth.js sid/expiry/sign-out adapter; GET /api/admin/account and POST /api/admin/account/session/activity; shared HTTP error/configuration/counter producers and real HTTP concurrency regressions.",
+    "accept": "1) Caller/wiring point: an actual sign-in through existing Credentials -> src/auth.ts -> device service. Real Auth.js session, SSR, protected GET /api/admin/account, and signOut all check the current User/sv/sid/lock/expiry; reject old JWTs without sid, and atomically revoke the current device on sign-out (E-03, E-70, E-71). 2) Verify ordinary two-hour sliding expiry, remembered seven-day idle/30-day absolute boundaries, and equality-at-expiry using real HTTP and a controlled clock. Activity first checks validity and then uses CAS. Actual Set-Cookie/JWT deadlines cannot exceed the device deadline; racing revocation cannot revive it. An actual browser closed and reopened with unexpired credentials remains usable (E-01, E-02, E-04, E-68, E-69). 3) Absent/boolean false/literal false rememberDevice all use the ordinary policy; reject invalid values. The real activity endpoint accepts only same-origin requests and is not automatically replayed. Session reads and polling do not touch activity. New APIs record redacted request/5xx counters at their final response, and counter failure does not change the business response (E-95, E-68)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

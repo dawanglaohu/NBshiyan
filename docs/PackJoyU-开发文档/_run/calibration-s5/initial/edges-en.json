@@ -1,0 +1,377 @@
+{
+  "E-01": {
+    "scene": "Session persistence and remembered-device deadlines",
+    "trigger": "Remember this device is not selected",
+    "expect": "Retain the current refreshable two-hour session policy; do not describe it as a fixed forced logout after two hours. When selected, even continuous activity must not exceed the absolute 30-day limit measured from issuance."
+  },
+  "E-02": {
+    "scene": "Session persistence and remembered-device deadlines",
+    "trigger": "A remembered device has had no valid server-side activity for more than seven days",
+    "expect": "Require reauthentication on the next protected request; refreshing the JWT cannot resurrect an expired session."
+  },
+  "E-03": {
+    "scene": "Session persistence and remembered-device deadlines",
+    "trigger": "The password is changed, the authenticator is reset, the account is disabled, or Log out all devices is executed",
+    "expect": "The server revokes the account's old credentials and rejects old JWTs even before their expiry. Ordinary logout must at least revoke the current device session and clear the local login state."
+  },
+  "E-04": {
+    "scene": "Session persistence and remembered-device deadlines",
+    "trigger": "The browser is closed, a tab is restored, or the browser is reopened",
+    "expect": "Add testable branches: after closing and reopening the browser, actual unexpired and unrevoked credentials are handled under the existing policy; protected requests with expired or revoked credentials are rejected. Tests must not assume that closing the browser destroys the Cookie."
+  },
+  "E-08": {
+    "scene": "C-03 Authenticator enrollment and the default-passwordless switch",
+    "trigger": "The enrollment code is incorrect, expired, submitted repeatedly, or switching occurs concurrently",
+    "expect": "Test the four triggers separately and recheck the pending enrollment record, expiry and current credential version in the final transaction. Incorrect/expired/replayed requests do not commit; at most one of two concurrent switches succeeds; a query after failure must still find at least one verified login method. Follow section 09 without inventing another login method."
+  },
+  "E-10": {
+    "scene": "C-04 Lost-authenticator and single-administrator recovery",
+    "trigger": "Ordinary login",
+    "expect": "Do not display recovery codes as mandatory; provide a separate Cannot use the authenticator entry into recovery. Merely entering an account name or email must not grant reset permission."
+  },
+  "E-11": {
+    "scene": "C-04 Lost-authenticator and single-administrator recovery",
+    "trigger": "An account identifier and a valid one-time recovery code are used",
+    "expect": "Atomically consume the recovery code and issue restricted, short-lived reenrollment credentials that can only bind a new authenticator. Full admin permission is unavailable until the new code is correctly verified; only one concurrent use of the same recovery code succeeds."
+  },
+  "E-14": {
+    "scene": "C-04 Lost-authenticator and single-administrator recovery",
+    "trigger": "Recovery is interrupted or reset credentials expire",
+    "expect": "Explicitly reject access to the protected admin area using restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid binding remains. A valid restricted cookie can reenter the same enroll flow; after expiry, restart through the recovery-code/authorization paths already defined in section 10, without exchanging it for a full admin session."
+  },
+  "E-15": {
+    "scene": "C-04 Lost-authenticator and single-administrator recovery",
+    "trigger": "The new authenticator passes verification and recovery is committed",
+    "expect": "Revoke old sessions, the old binding and old recovery credentials; generate new recovery codes and explicitly display them once. Old devices must no longer be able to access the admin area."
+  },
+  "E-16": {
+    "scene": "Online-chat implementation approach",
+    "trigger": "A visitor sends the first message while an operator is online",
+    "expect": "Report received only after persisting the conversation and message; the operator inbox can read it and a human can reply. Do not generate an AI automatic reply."
+  },
+  "E-18": {
+    "scene": "Online-chat implementation approach",
+    "trigger": "The same message is submitted repeatedly because of retries",
+    "expect": "Deduplicate using the client message identifier; show only one inbox item and do not trigger duplicate notifications."
+  },
+  "E-20": {
+    "scene": "Online-chat implementation approach",
+    "trigger": "Pre-release resource measurements show insufficient resources",
+    "expect": "Retain an independent switch that can disable chat while preserving the existing contact entry. Record capacity evidence and limitations; do not claim that approximately 2.7 GB of free memory in an old snapshot is current available capacity, and do not automatically purchase expansion."
+  },
+  "E-21": {
+    "scene": "Home-page video, JPG and GIF loading and controls",
+    "trigger": "A normal initial-viewport visit",
+    "expect": "Present the 12.27-second video muted and inline, with operable play/pause controls and a JPG poster. If autoplay is blocked, retain the poster and an explicit play entry."
+  },
+  "E-22": {
+    "scene": "Home-page video, JPG and GIF loading and controls",
+    "trigger": "The user enables reduced motion, video decoding fails, or loading times out",
+    "expect": "Show the JPG by default and provide an explicit user play entry; do not continuously force playback."
+  },
+  "E-23": {
+    "scene": "Home-page video, JPG and GIF loading and controls",
+    "trigger": "The 30.08-second GIF scene section has not yet approached the viewport",
+    "expect": "Do not download the entire GIF early; load it when it enters the visible range and provide a Pause control that switches to a still frame of identical dimensions."
+  },
+  "E-24": {
+    "scene": "Home-page video, JPG and GIF loading and controls",
+    "trigger": "The user pauses, the section leaves the viewport, or the page enters the background",
+    "expect": "Preserve an explicit paused state; restoring visibility must not override the user's pause choice."
+  },
+  "E-25": {
+    "scene": "Home-page video, JPG and GIF loading and controls",
+    "trigger": "A mobile device or narrower window is used",
+    "expect": "Explicitly check the predefined PC 1440/1920 and narrow-screen acceptance sizes: the container aspect ratio must match the asset; media must not cover the visible clickable areas of navigation, body content or PC 3D controls; after cropping, the original image's main subject must remain visible. Do not pass by deleting the subject or operating area."
+  },
+  "E-26": {
+    "scene": "Own-logo and reference-PDF factual boundaries",
+    "trigger": "An old brand remains in the JPG, in any GIF frame or on any perspective plane",
+    "expect": "Preserve the originals; track and remove the old brand frame by frame in publication copies and replace it with the PackJoyU logo. Check sampled first/last frames, transitions and reappearances after occlusion; do not merely change the cover or blur the old logo."
+  },
+  "E-27": {
+    "scene": "Own-logo and reference-PDF factual boundaries",
+    "trigger": "The PDF contains YUHAO certifications, capacity, factory scale or other hard figures not verified as belonging to PackJoyU",
+    "expect": "Do not rename and publish them as the company's own facts; use only the content organization and product categories as references, and fill the relevant corporate fields only with verifiable company-owned materials."
+  },
+  "E-28": {
+    "scene": "Own-logo and reference-PDF factual boundaries",
+    "trigger": "A candidate design differs from the current online wordmark",
+    "expect": "Continue production using the current PackJoyU wordmark in this round; waiting for the user to revisit candidate images is not an implementation or acceptance prerequisite."
+  },
+  "E-29": {
+    "scene": "Own-logo and reference-PDF factual boundaries",
+    "trigger": "The GPT Dot tool is reachable and actually performs remote-software production",
+    "expect": "Retain invocation records, software-operation evidence and output-file evidence, then check the finished deliverables. When the tool is unreachable, record Not yet executed and the specific implementation task for each item; do not falsely claim invocation or asset replacement is complete."
+  },
+  "E-30": {
+    "scene": "Own-logo and reference-PDF factual boundaries",
+    "trigger": "The replaced GIF cannot preserve the original timing, visual stability or correct brand coverage",
+    "expect": "Compare the publication copy frame by frame against the original GIF timeline: frame presentation times, order and total loop duration must remain unchanged. PackJoyU must fully cover each old-brand appearance, perspective change, transition and reappearance after occlusion, without newly introduced misalignment, missed logos or jitter. If any check fails, continue repairing that publication copy, mark the file unfinished and exclude it from published deliverables; always preserve the original JPG/GIF for rollback."
+  },
+  "E-31": {
+    "scene": "C-01 Human-chat inbox and reply entries",
+    "trigger": "A visitor submits a message and server-side persistence succeeds",
+    "expect": "Return stable conversation/message identifiers and display Received; the operator inbox must be able to read it. On database-write failure, preserve it for retry and do not show received or read by support."
+  },
+  "E-37": {
+    "scene": "C-02 Offline messages and send-failure recovery",
+    "trigger": "Submission times out or the response is lost, leaving actual persistence unknown",
+    "expect": "Show awaiting confirmation or retryable; retry using the original client message identifier and return the original receipt result, without duplicate inbox items or notifications."
+  },
+  "E-40": {
+    "scene": "C-02 Offline messages and send-failure recovery",
+    "trigger": "A visitor rejects analytics but actively opens first-party human chat",
+    "expect": "Allow the necessary consultation without creating analytics identifiers or loading third-party chat scripts; handle necessary chat sessions separately from analytics consent."
+  },
+  "E-42": {
+    "scene": "C-05 Analytics collection, deduplication and retention",
+    "trigger": "The user has not allowed analytics or has rejected it",
+    "expect": "Do not create/store analytics identifiers or send analytics events; the site and 3D functions remain usable. The dashboard must clearly cover only consented browsers and must not turn missing nonconsented samples into a whole-site visitor count."
+  },
+  "E-43": {
+    "scene": "C-05 Analytics collection, deduplication and retention",
+    "trigger": "The user withdraws analytics consent",
+    "expect": "Stop collection, discard unsent analytics events and clear local analytics identifiers. Do not send visits from the withdrawn-consent period afterward."
+  },
+  "E-44": {
+    "scene": "C-05 Analytics collection, deduplication and retention",
+    "trigger": "The same consented browser refreshes or retries the same event",
+    "expect": "Deduplicate consented visitors for that day by browser identifier, and do not count the same event ID twice. A genuine new page visit may increase PV; refreshes do not increase UV."
+  },
+  "E-45": {
+    "scene": "C-05 Analytics collection, deduplication and retention",
+    "trigger": "The same person switches devices, clears identifiers or uses another browser",
+    "expect": "State Number of anonymous browsers that consented to analytics in the visitor definition/help. Separately test device switching, identifier clearing and browser switching, each of which can create a new browserHash. Do not claim unique real-person or cross-device identification."
+  },
+  "E-46": {
+    "scene": "C-05 Analytics collection, deduplication and retention",
+    "trigger": "A product page is entered without opening 3D, or loading fails after opening it",
+    "expect": "Record product-page visits, 3D-view starts, load successes and failures separately, bound to server-recognized product identifiers. Failures do not count as load successes."
+  },
+  "E-47": {
+    "scene": "C-05 Analytics collection, deduplication and retention",
+    "trigger": "The client forges a product, sends oversized fields or arbitrary event kinds, or replays events",
+    "expect": "The server validates allowlists, field lengths and product validity, limits abusive submission and rejects abnormal records. Analytics records must not store raw IP, cross-site fingerprints, email, chat body text or full URLs containing sensitive query parameters."
+  },
+  "E-48": {
+    "scene": "C-05 Analytics collection, deduplication and retention",
+    "trigger": "Raw events exceed 30 days or aggregates exceed 13 months",
+    "expect": "Following section 09, express retention boundaries as receivedAt plus 30 days and expiresAt after 13 calendar months for identity-free aggregates, and show query coverage. Cleanup runs only with separate explicit production-retention authorization and explicit enablement; default to dry-run/actual cleanup disabled, and reject actual deletion without authorization. Isolated tests must verify the expired target set, counts, removal of identifiers and no reconstruction of expired details, without expanding authority to delete backups or existing data."
+  },
+  "E-49": {
+    "scene": "C-06 Dashboard data times and exception states",
+    "trigger": "The source is connected, its query succeeds and the selected day truly has zero qualifying events",
+    "expect": "Show the value 0, the successful-query time and the consented-statistics scope. Do not falsely report query failure or not connected."
+  },
+  "E-50": {
+    "scene": "C-06 Dashboard data times and exception states",
+    "trigger": "First activation, an unconnected source, or no queryable data yet",
+    "expect": "Distinguish no data from not connected and identify the source. Do not use 0 to masquerade as actual statistics, and do not classify no events today alone as collection failure."
+  },
+  "E-51": {
+    "scene": "C-06 Dashboard data times and exception states",
+    "trigger": "The query fails and a previous successful snapshot exists",
+    "expect": "Preserve the old value and prominently mark its original time, the current failure and a retry entry. Do not refresh the timestamp to make the old value appear newly updated."
+  },
+  "E-52": {
+    "scene": "C-06 Dashboard data times and exception states",
+    "trigger": "The query fails and no successful snapshot exists",
+    "expect": "Show an error and retry, without generating a default 0 or demo numbers. Errors shown to business roles must not expose credentials, stacks or connection strings."
+  },
+  "E-53": {
+    "scene": "C-06 Dashboard data times and exception states",
+    "trigger": "Different panel sources have different update rates or failure states",
+    "expect": "Each metric retains its own data time and state; successful overall page refresh does not overwrite partial failures."
+  },
+  "E-54": {
+    "scene": "C-06 Dashboard data times and exception states",
+    "trigger": "The query succeeds but health of the event-ingestion chain cannot yet be demonstrated",
+    "expect": "Report only actually observed configuration, most recent receipt and query states. Show unknown or the last known time, without inferring end-to-end health from lack of traffic."
+  },
+  "E-55": {
+    "scene": "Site time zone for today's statistics and historical recomputation",
+    "trigger": "Two operators with different browser or operating-system time zones view the same day",
+    "expect": "Use the same site time zone and day interval; metric definitions and values must not change with the viewer's location. Label charts and exports with the site time zone."
+  },
+  "E-56": {
+    "scene": "Site time zone for today's statistics and historical recomputation",
+    "trigger": "A statistics day encounters a daylight-saving transition",
+    "expect": "Use an IANA time-zone library to compute UTC boundaries from local midnight to the next local midnight, allowing 23-hour or 25-hour days. Do not add a fixed 24 hours or double-count overlapping instants."
+  },
+  "E-57": {
+    "scene": "Site time zone for today's statistics and historical recomputation",
+    "trigger": "An event occurs exactly at midnight or a query spans midnight",
+    "expect": "Use a left-closed/right-open interval; a single query fixes one consistent site time zone, date and boundaries. A midnight event belongs to exactly one natural day."
+  },
+  "E-58": {
+    "scene": "Site time zone for today's statistics and historical recomputation",
+    "trigger": "ADMIN changes the time zone to a valid one",
+    "expect": "Preserve UTC event times, mark recomputation state and reaggregate only still-retained events. Older aggregates beyond the 30-day raw-retention period must preserve the original time-zone label or explicitly state that recomputation is unavailable; do not silently stitch them into a uniform-definition trend."
+  },
+  "E-59": {
+    "scene": "Site time zone for today's statistics and historical recomputation",
+    "trigger": "An invalid IANA time zone is supplied or an unauthorized role attempts a change",
+    "expect": "Reject the save and retain the previous valid configuration; do not silently fall back to the viewer's local time zone."
+  },
+  "E-60": {
+    "scene": "Site time zone for today's statistics and historical recomputation",
+    "trigger": "The browser uploads future or clearly expired event timestamps",
+    "expect": "Directly use the established section 09 rule now-48h <= occurredAt <= now+5min: reject out-of-range events, and include accepted future events in aggregation only after their actual time. Handle closed historical intervals according to complete raw coverage and the established late window; arbitrary client timestamps must not contaminate future days or closed intervals."
+  },
+  "E-61": {
+    "scene": "Additional operations metrics and role permissions",
+    "trigger": "This round accepts today's consented visitors, PV, product attribution and 3D view/load metrics",
+    "expect": "List evidence of one real product-action round: consent, actual page/product visits, actual GLB start/terminal, a committed real five-minute job, and dashboard reads of real daily/product aggregates. Verify today's consented browsers, PV, attribution and 3D metrics individually. Core sources must not be passed using not connected or fixed values."
+  },
+  "E-62": {
+    "scene": "Additional operations metrics and role permissions",
+    "trigger": "Inquiries or chat are successfully persisted, retried repeatedly, or spam submissions are rejected",
+    "expect": "Explicitly derive business counts from stable, successfully persisted inquiry/conversation/message identifiers. Retries with the same identifier and rejected spam do not increase counts. M6 only reads sources; result DTOs must not contain personal fields such as email or body, and business writes must not be required to wait for the dashboard."
+  },
+  "E-63": {
+    "scene": "Additional operations metrics and role permissions",
+    "trigger": "3D loading succeeds, fails, times out or has no samples",
+    "expect": "Use the established section 09 definition: the denominator is actual model_view_start after consent; at most one success/failure terminal exists for the same viewId, and timeout is failure. Compute mean duration from valid terminal durationMs samples and include samples; no samples gives null, while zero success with samples gives 0%. Do not add nonconsented samples to the denominator."
+  },
+  "E-64": {
+    "scene": "Additional operations metrics and role permissions",
+    "trigger": "API or mail metrics are connected to actual result sources",
+    "expect": "Show redacted, explicitly defined error rates and notification-failure counts. Record mail failures from actual send attempts; do not equate queuing, invoking the send function or receiving an ordinary inquiry with successful delivery."
+  },
+  "E-65": {
+    "scene": "Additional operations metrics and role permissions",
+    "trigger": "Storage health or backups lack a verifiable source",
+    "expect": "Show only not connected and source state. Once connected, show actual check/completion times; do not use ordinary file uploads, successful page queries or scheduled times to fake backup success, and do not silently add a backup platform or paid service."
+  },
+  "E-66": {
+    "scene": "Additional operations metrics and role permissions",
+    "trigger": "SALES, EDITOR or an unauthenticated user directly accesses an operations API or export address",
+    "expect": "Directly test the section 09/10 source matrix: ADMIN has all sources, SALES has business aggregates under the existing scope, and EDITOR has public traffic/products/3D. Direct requests for sensitive system sources return 403; mixed-source responses are filtered before querying and contain no hidden counts."
+  },
+  "E-67": {
+    "scene": "Additional operations metrics and role permissions",
+    "trigger": "Any additional source is interrupted or has no data",
+    "expect": "That card independently shows error, stale value, unknown or not connected. Other actual metrics remain queryable, preventing one auxiliary source from taking down the entire dashboard."
+  },
+  "E-69": {
+    "scene": "Device-session integration with Auth.js deadlines",
+    "trigger": "A normal session reaches two hours since its last valid activity, or a remembered device reaches either seven days idle or the absolute 30-day limit since initial issuance",
+    "expect": "The server rejects authorization and clears cookies in writable responses. JWT and Set-Cookie expiry must not exceed the device's actual permitted deadline; refresh cannot extend the absolute limit."
+  },
+  "E-70": {
+    "scene": "Device-session integration with Auth.js deadlines",
+    "trigger": "The cookie/JWT is still valid but the device is revoked, the account disabled, the credential version changed, or server-side validation unavailable",
+    "expect": "Protected requests must not be allowed on the cookie alone; request-scoped query deduplication must not become a cross-request cache that ignores revocation."
+  },
+  "E-71": {
+    "scene": "Device-session integration with Auth.js deadlines",
+    "trigger": "Initial login, refresh, SSR and logout follow different Auth.js paths",
+    "expect": "Pin the same actual beta version and verify JWT/Set-Cookie deadlines and revocation on all four real paths. When SSR cannot write a cookie, do not claim browser persistence has renewed; logout must also revoke the device record."
+  },
+  "E-72": {
+    "scene": "Fresh self-verification for sensitive settings",
+    "trigger": "The same TOTP time step has been consumed by login, another sensitive operation or concurrent requests",
+    "expect": "Atomically consume the account's authenticator time step; later requests cannot issue another ActionGrant. The client may wait for the next code to retry; do not reintroduce recovery codes into ordinary login."
+  },
+  "E-73": {
+    "scene": "Fresh self-verification for sensitive settings",
+    "trigger": "Two requests concurrently use the same ActionGrant, or a password-change authorization is used to disable the authenticator",
+    "expect": "Within the sensitive-change transaction, verify and consume the authorization once against its action, device, account and credential version. Only one matching request succeeds; a mismatched purpose is rejected and cannot perform the change."
+  },
+  "E-74": {
+    "scene": "Fresh self-verification for sensitive settings",
+    "trigger": "More than five minutes have passed since authorization issuance, the device is revoked, password/authenticator changes, or account permissions become invalid",
+    "expect": "The old authorization is immediately invalid. Fresh-verification authorization cannot be transferred across devices and cannot extend the original device session."
+  },
+  "E-75": {
+    "scene": "Fresh self-verification for sensitive settings",
+    "trigger": "The user forgot the current password but can still use enabled passwordless login",
+    "expect": "Point D3 to the restricted-recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless login stays unchanged; missing the current password prevents issuing an ordinary ActionGrant for sensitive settings. Reject direct requests relying only on a logged-in session or one TOTP, with no change; restricted recovery only allows a new binding and is audited."
+  },
+  "E-80": {
+    "scene": "Analytics aggregation and watermark publication",
+    "trigger": "The same event is retried, or new events arrive while an aggregate read is in progress",
+    "expect": "Persist ingestion idempotently by unique event identifier. Aggregation fixes a consistent source snapshot and watermark and publishes only results covered by that snapshot; new events wait for the next round, without repeatedly adding them to already-published counts."
+  },
+  "E-81": {
+    "scene": "Analytics aggregation and watermark publication",
+    "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+    "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+  },
+  "E-82": {
+    "scene": "Analytics aggregation and watermark publication",
+    "trigger": "Raw events are inserted within the allowed late-arrival window",
+    "expect": "Explicitly recompute only natural days whose dayStart is not earlier than the start of complete raw-data coverage. Beyond that range, retain the original aggregates and return partial/unavailable plus their original definition/coverage; do not replace old complete counts with post-cleanup fragments. The late window remains 48h under section 09 without extending raw retention."
+  },
+  "E-83": {
+    "scene": "Analytics aggregation and watermark publication",
+    "trigger": "A site-time-zone change and a job occur concurrently",
+    "expect": "Results carry timezoneRevision; old generations cannot overwrite new-time-zone results. Recompute only within the raw-retention range, without faking restored data or silently changing cleared portions to zero."
+  },
+  "E-84": {
+    "scene": "Analytics aggregation and watermark publication",
+    "trigger": "An aggregation entry exists but cron is not registered, cron stops or its latest run fails",
+    "expect": "Do not claim connected or just updated; show the actual last successful watermark and stale-value state. The implementation task must include real five-minute schedule registration and evidence of execution after restart, rather than verifying only manual API invocation."
+  },
+  "E-88": {
+    "scene": "Chat-credential and data-retention deadlines",
+    "trigger": "This round's documents are generated or an implementer receives a dispatched task",
+    "expect": "Add a testable authorization-only gate: actual production cleanup is off by default and dry-run is the default mode. Without separate explicit retention-policy authorization, enabling or requesting actual deletion must be rejected and the deletion count must be 0; candidate counts/disabled state may be returned. Documents, task dispatch, model results and proxy decisions cannot serve as authorization. Verify only with isolated data and do not touch existing production/recovery/backup data."
+  },
+  "E-94": {
+    "scene": "Durable chat-notification queue",
+    "trigger": "An account without chat permissions calls an outbox/notification entry, or the SMTP adapter can send only the existing inquiry format",
+    "expect": "Separately verify that unauthorized calls are rejected and chat-notifications uses an independent restricted adapter without expanding the old mail UI. deploy/cron.nbshiyan must actually contain minute-by-minute registration, and committed outbox items must be consumed after restart, not merely by manual calls or future empty registrations. M4 registers it upon delivery; M7 only performs final acceptance."
+  },
+  "E-95": {
+    "scene": "Login remember-device field",
+    "trigger": "Auth.js form rememberDevice is literal false, missing or boolean false",
+    "expect": "Explicitly parse it as false and use the normal two-hour policy. Do not use Boolean or unconstrained coercion to turn it into remembered-device mode; reject other invalid values."
+  },
+  "E-96": {
+    "scene": "Login-mode enum and account privacy",
+    "trigger": "mode is unknown, totp mode has not been enabled by the account owner, or ordinary Credentials carries a nonempty recoveryCode",
+    "expect": "List each invalid mode, owner-unenabled totp mode and ordinary Credentials with nonempty recoveryCode; all must follow the same generic Auth.js failure result, issue no admin session and not distinguish account existence in the response. Valid password/totp modes verify only their respective method; test using the established rate-limit/error protocol while preserving valid-user login."
+  },
+  "E-97": {
+    "scene": "Model-drag ownership",
+    "trigger": "On PC, pointer-down and dragging start within a visible model viewport, then the pointer crosses into other cards",
+    "expect": "Only the initial model obtains pointer capture and rotates. Do not trigger card navigation or switch to another model; cards do not geometrically hover-scale."
+  },
+  "E-98": {
+    "scene": "Page scrolling and zoom",
+    "trigger": "The pointer passes over a model while an ordinary mouse wheel or trackpad scroll is used",
+    "expect": "The page continues to scroll normally. Only Ctrl/Cmd+wheel on a focused model or explicit zoom buttons change the model camera; release all wheel interception after leaving control."
+  },
+  "E-99": {
+    "scene": "Autorotation and user intent",
+    "trigger": "Hover, manual control has started, the user explicitly pauses, the model leaves the viewport or the page returns to the foreground",
+    "expect": "Pause autorotation during hover/manual control; restored visibility does not override the user's pause. Reduced motion defaults to static presentation while allowing explicit operation."
+  },
+  "E-100": {
+    "scene": "Loss of focus and cancellation",
+    "trigger": "pointercancel, window blur, Escape, card unmount or page navigation",
+    "expect": "Release pointer capture, listeners and interaction state. Leave no residual wheel interception or continuous rotation; the next entry can start normally."
+  },
+  "E-101": {
+    "scene": "Keyboard model viewing",
+    "trigger": "The keyboard focuses the model-control area, then uses direction/zoom/reset controls",
+    "expect": "Every control has a distinguishable name, visible focus and equivalent functionality. Escape leaves operation and returns focus to its source control; do not trap Tab or automatically follow a product link."
+  },
+  "E-102": {
+    "scene": "Touchscreen gestures",
+    "trigger": "A finger drags in the model viewport, two fingers zoom, or a finger swipes in the card's text area",
+    "expect": "Separately verify single-finger model drag, two-finger zoom and text-area swiping: only the model operating area takes over dragging, zoom stays within the product's defined min/max, and text/page scrolling remains available. Measure every control's hit target as at least 44 CSS px; no gesture may submit an inquiry."
+  },
+  "E-103": {
+    "scene": "Real-model failures and metrics",
+    "trigger": "GLB download fails, WebGL is unsupported, context is lost, or only a poster/FoldBox demonstration can be shown",
+    "expect": "Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display; check the corresponding product static fallback, retry and inquiry. Each viewId has at most one terminal event; neither poster nor procedural demonstration sends GLB success. If a real-model retry creates a new attempt, follow the established viewId rules."
+  },
+  "E-104": {
+    "scene": "Product reset and presentation",
+    "trigger": "Reset is clicked after arbitrary rotation/zoom, or the product is viewed at PC 1440/1920 and narrow-screen sizes",
+    "expect": "Use the product's existing initial camera/zoom bounds as the baseline; after arbitrary manipulation, reset returns to those values. At 1440/1920 and narrow screens, check that the whole model is visible and names/key actions are distinguishable. After removing repeated bottom descriptions, specifications and inquiry entries must remain visible and usable; do not eliminate clipping by deleting content."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Present the ADMIN time-zone form and save feedback",
+    "input": "analytics-settings-api, admin-shell-profile-ui and visual-components",
+    "output": "analytics-settings-ui; the analytics-section form in admin settings",
+    "accept": "1) In a real browser click settings-link to the analytics section of /admin/settings. After GET, clicking Save sends expectedVersion through PATCH and displays the server new revision/recomputableFrom and partial recomputation. Invalid-IANA field errors do not clear the old value; non-ADMIN cannot enter and direct API calls return 403 (E-59). 2) Label the common site-IANA time zone; two browser time zones see the same setting, this task verifies only the settings page, while M6 integration verifies common labels on charts/exports. At 1920x1080/1440x900/390x844 run form D1-D6/overflow checks, retain real-request GIF/computed-style evidence and consume the single style in section 11."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

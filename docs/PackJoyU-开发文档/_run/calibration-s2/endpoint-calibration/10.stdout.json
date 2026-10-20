@@ -1,0 +1,40 @@
+{
+  "status": "ok",
+  "template": "endpoint",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "permission": {
+      "choice": "authenticated_self",
+      "confidence": 0.66,
+      "band": "medium",
+      "probabilities": {
+        "anonymous": 0.21,
+        "visitor_session": 0.0,
+        "authenticated_self": 0.7,
+        "EDITOR": 0.0,
+        "SALES": 0.01,
+        "ADMIN": 0.02,
+        "cron": 0.01,
+        "public": 0.05
+      }
+    },
+    "mutating": {
+      "p": 0.87,
+      "verdict": "yes"
+    },
+    "idempotent": {
+      "p": 0.19,
+      "verdict": "no"
+    },
+    "declared_ok": {
+      "p": 0.59,
+      "verdict": "unsure"
+    }
+  },
+  "line": "endpoint: permission=authenticated_self(medium 0.66) mutating=yes(0.87) idempotent=no(0.19) declared_ok=unsure(0.59)",
+  "usage": {
+    "input_tokens": 1001,
+    "output_tokens": 132
+  }
+}

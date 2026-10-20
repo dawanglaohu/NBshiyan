@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Caller/wiring point: real POST start -> lock User and reread current recoveryCodes/permit -> consume, increment sv, revoke old sid/recovery sessions, create a ten-minute restricted session, and audit in one transaction. One code succeeds once under concurrency; different concurrent codes do not resurrect a used one. Reject email alone and old credentials (E-10, E-11). 2) The restricted cookie uses only Path=/api/auth-admin/recovery with Secure/HttpOnly/SameSite=Strict. It cannot request admin APIs, obtain an Auth.js session, or carry ADMIN role. Keep the original valid TOTP/password/defaultMode. Interruption/expiry commits no new factor. Transfer a SERVER_OWNER permit's preauthorized hash into the session only inside the server transaction; HTTP body cannot supply it (E-14).",
+  "edges": {
+    "E-10": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "An ordinary sign-in is performed.",
+      "expect": "Do not show a recovery code as required. A separate Cannot use your authenticator entry opens recovery. Supplying only an account identifier or email address cannot grant reset authority."
+    },
+    "E-11": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "An account identifier and a valid one-time recovery code are submitted.",
+      "expect": "Atomically consume the recovery code and issue restricted, short-lived re-enrollment credentials. These allow only enrollment of a new authenticator; they cannot grant full admin access before a new code is correctly verified. Concurrent uses of the same recovery code succeed only once."
+    },
+    "E-14": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Recovery is interrupted or the reset credential expires.",
+      "expect": "Explicitly reject protected admin access with restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid enrollment remains intact. A valid restricted cookie may re-enter the same enroll operation; once invalid, restart through the recovery-code or authorization path defined in section 10. Restricted credentials cannot be exchanged for a full admin session."
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) Caller authorized business/mail/http sources in GET /api/admin/stats leads to read-only adapters; count by durable and immutable business identifiers, without increments for retries/rejected spam; results must contain no email/body, and saving business data must not wait for the dashboard (E-62). 2) Mail must reflect actual attempt/sent/failed states rather than queuing; HTTP must claim coverage only for actually instrumented routes, while unconnected sources show not_connected; a source failure must independently retain its old time or show an error when no old value exists (E-51, E-52, E-53, E-54, E-64, E-67).",
+  "edges": {
+    "E-62": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Inquiries or chat are successfully persisted, retried repeatedly, or spam submissions are rejected",
+      "expect": "Explicitly derive business counts from stable, successfully persisted inquiry/conversation/message identifiers. Retries with the same identifier and rejected spam do not increase counts. M6 only reads sources; result DTOs must not contain personal fields such as email or body, and business writes must not be required to wait for the dashboard."
+    },
+    "E-51": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The query fails and a previous successful snapshot exists",
+      "expect": "Preserve the old value and prominently mark its original time, the current failure and a retry entry. Do not refresh the timestamp to make the old value appear newly updated."
+    },
+    "E-52": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The query fails and no successful snapshot exists",
+      "expect": "Show an error and retry, without generating a default 0 or demo numbers. Errors shown to business roles must not expose credentials, stacks or connection strings."
+    },
+    "E-53": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "Different panel sources have different update rates or failure states",
+      "expect": "Each metric retains its own data time and state; successful overall page refresh does not overwrite partial failures."
+    },
+    "E-54": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The query succeeds but health of the event-ingestion chain cannot yet be demonstrated",
+      "expect": "Report only actually observed configuration, most recent receipt and query states. Show unknown or the last known time, without inferring end-to-end health from lack of traffic."
+    },
+    "E-64": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "API or mail metrics are connected to actual result sources",
+      "expect": "Show redacted, explicitly defined error rates and notification-failure counts. Record mail failures from actual send attempts; do not equate queuing, invoking the send function or receiving an ordinary inquiry with successful delivery."
+    },
+    "E-67": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Any additional source is interrupted or has no data",
+      "expect": "That card independently shows error, stale value, unknown or not connected. Other actual metrics remain queryable, preventing one auxiliary source from taking down the entire dashboard."
+    }
+  }
+}

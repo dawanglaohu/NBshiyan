@@ -1,0 +1,261 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/auth/[...nextauth]",
+    "input": "Auth.js既有协议；Credentials的mode=password或totp、rememberDevice；缺mode沿旧password+totp；非空recoveryCode日常明确拒绝",
+    "output": "Auth.js原redirect/CSRF/session协议；session可增sid非凭据摘要与effectiveExpiresAt",
+    "permissions": "Auth.js，失败不透露账号方式"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/[...nextauth]",
+    "input": "Auth.js既有协议；Credentials的mode=password或totp、rememberDevice；缺mode沿旧password+totp；非空recoveryCode日常明确拒绝",
+    "output": "Auth.js原redirect/CSRF/session协议；session可增sid非凭据摘要与effectiveExpiresAt",
+    "permissions": "Auth.js，失败不透露账号方式"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth-admin/enroll",
+    "input": "现有email/password/token",
+    "output": "既有{otpauthUri}，只修最终当前token/sv CAS",
+    "permissions": "现有一次性绑定凭据"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth-admin/enroll/confirm",
+    "input": "现有email/password/token/totp",
+    "output": "既有{recoveryCodes}",
+    "permissions": "现有绑定窗口及单次新码"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/account/password",
+    "input": "newPassword、PASSWORD actionGrant；兼容旧currentPassword+totp时也在同一最终事务执行相同新鲜验证；非空recoveryCode拒绝",
+    "output": "既有{ok:true,reauthRequired:true}",
+    "permissions": "当前本人、同源、当前密码+新TOTP新鲜验证，撤销全部会话"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/account/2fa/reset",
+    "input": "TOTP_RESET actionGrant；兼容旧currentPassword+totp也执行相同规则；恢复码不得走此捷径",
+    "output": "既有ok/reenrollRequired/enrollLink字段；设受限恢复cookie，链接转受限重绑页",
+    "permissions": "本人新鲜验证；最终新绑定前原有效因素保留，临时重绑记录受限"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/users/[id]/reset-2fa",
+    "input": "RECOVERY_AUTHORIZE actionGrant(target=id)、reason",
+    "output": "受限RecoveryPermitDTO；旧UI迁移消费一次性permit，无无验证直重置旁路",
+    "permissions": "ADMIN、不能自己、同源；旧无body直接重置请求拒绝"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/account",
+    "input": "无",
+    "output": "AccountDTO：id/name/email/role/passwordlessEnabled/totpEnabled、当前设备摘要（含effectiveExpiresAt/absoluteExpiresAt）",
+    "permissions": "当前有效后台账号，ADMIN/SALES/EDITOR"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/account/session/activity",
+    "input": "空对象；真实前台活动节流调用",
+    "output": "SessionActivityDTO：effectiveExpiresAt、absoluteExpiresAt；真实Set-Cookie刷新",
+    "permissions": "当前有效设备、同源、任一后台角色"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/account/reauth",
+    "input": "purpose、targetId?、totp；还要password",
+    "output": "ActionGrantDTO：token、purpose、expiresAt",
+    "permissions": "当前有效设备、同源；本人purpose可用，RECOVERY_AUTHORIZE仅ADMIN且target他人，DEVICE_REVOKE仅本人设备"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/admin/account/login-mode",
+    "input": "passwordlessEnabled、actionGrant",
+    "output": "AccountModeDTO：passwordlessEnabled、changedAt；成功撤销旧会话后重新登录",
+    "permissions": "本人，当前已绑定TOTP，LOGIN_MODE单用途grant"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/account/devices",
+    "input": "cursor?、limit≤50",
+    "output": "DevicePageDTO，仅当前账号设备，标current/expiry/revoked",
+    "permissions": "当前有效后台账号"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/account/devices/[id]/revoke",
+    "input": "actionGrant(DEVICE_REVOKE,target=id)",
+    "output": "DeviceRevokeDTO：id、revokedAt；重复相同结果",
+    "permissions": "当前账号自己的设备，当前sid可撤销自身"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/account/logout-all",
+    "input": "actionGrant(LOGOUT_ALL)",
+    "output": "SignedOutDTO；清Auth.js cookie",
+    "permissions": "当前有效后台账号；sv+设备撤销原子"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/account/recovery-authorizations",
+    "input": "targetUserId、reason、actionGrant",
+    "output": "RecoveryPermitDTO：token、expiresAt，只返回一次",
+    "permissions": "ADMIN、RECOVERY_AUTHORIZE且target绑定，不能自授权"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth-admin/recovery/start",
+    "input": "email、credentialKind RECOVERY_CODE/PERMIT、credential",
+    "output": "RecoveryStateDTO：restricted、expiresAt，并设受限HttpOnly cookie",
+    "permissions": "独立恢复凭据；非后台session"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth-admin/recovery/enroll",
+    "input": "空对象",
+    "output": "RecoveryEnrollDTO：首次生成pending；重复返回同一otpauthUri及原expiresAt，不旋转或续时",
+    "permissions": "仅有效受限恢复cookie"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth-admin/recovery/confirm",
+    "input": "totp",
+    "output": "RecoveryCompleteDTO：completed、recoveryCodes，清受限cookie；不直接发ADMIN权限",
+    "permissions": "仅有效受限session与新TOTP"
+  },
+  {
+    "method": "POST",
+    "path": "/api/chat/session",
+    "input": "locale en/ru；仅主动联系",
+    "output": "ChatSessionDTO：available、expiresAt；设必要cookie",
+    "permissions": "精确同源+限流；不依赖分析同意"
+  },
+  {
+    "method": "POST",
+    "path": "/api/chat/conversations",
+    "input": "clientConversationId、clientMessageId、locale、bodyText、email?、productSlug?、sourcePath?",
+    "output": "ConversationReceivedDTO：conversationId、message、receivedAt、duplicate",
+    "permissions": "有效访客cookie且同源"
+  },
+  {
+    "method": "GET",
+    "path": "/api/chat/conversations/[id]",
+    "input": "afterSeq=0、limit=50(max100)",
+    "output": "ChatSyncDTO：conversation、messages、lastSeq、nextAfterSeq、hasMore、read",
+    "permissions": "仅自己的有效访客cookie"
+  },
+  {
+    "method": "POST",
+    "path": "/api/chat/conversations/[id]/messages",
+    "input": "clientMessageId、bodyText",
+    "output": "MessageReceivedDTO：message、receivedAt、duplicate",
+    "permissions": "仅自己、OPEN、同源"
+  },
+  {
+    "method": "POST",
+    "path": "/api/chat/conversations/[id]/read",
+    "input": "lastReadSeq",
+    "output": "ReadDTO：lastReadSeq",
+    "permissions": "仅自己的访客cookie、同源，单调推进"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/chat/conversations",
+    "input": "status?、cursor?、limit=25(max100)、unreadOnly?",
+    "output": "ChatSummaryPageDTO与本人未读总数",
+    "permissions": "ADMIN/SALES共享聊天范围；EDITOR拒绝"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/chat/conversations/[id]",
+    "input": "afterSeq=0、limit=50(max100)",
+    "output": "AdminChatSyncDTO（正文按授权，不含访客cookie/token）",
+    "permissions": "ADMIN/SALES"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/chat/conversations/[id]/messages",
+    "input": "clientMessageId、bodyText",
+    "output": "MessageReceivedDTO；author由session确定",
+    "permissions": "ADMIN/SALES、OPEN、同源"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/chat/conversations/[id]/read",
+    "input": "lastReadSeq",
+    "output": "ReadDTO",
+    "permissions": "ADMIN/SALES且仅改自己的游标、同源"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/admin/chat/conversations/[id]",
+    "input": "status=CLOSED、expectedVersion",
+    "output": "ChatStatusDTO：status、version、updatedAt",
+    "permissions": "ADMIN/SALES、同源，CAS"
+  },
+  {
+    "method": "POST",
+    "path": "/api/analytics/consent",
+    "input": "analytics Boolean、consentVersion",
+    "output": "ConsentDTO：analytics、expiresAt；有效同意重复true保留原ID/原期限，false重复清cookie",
+    "permissions": "同源，无需登录，禁止跟踪拒绝者"
+  },
+  {
+    "method": "POST",
+    "path": "/api/analytics/events",
+    "input": "events[1..20]：eventId/kind/occurredAt/locale及种类所需navigationId/viewId/productSlug/path",
+    "output": "AnalyticsReceiptDTO：acceptedIds、duplicateIds、receivedAt",
+    "permissions": "有效分析同意cookie、同源；没有同意返回403不落事件"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/settings/analytics",
+    "input": "无",
+    "output": "AnalyticsSettingsDTO：version/timezone/timezoneRevision/recomputableFrom",
+    "permissions": "ADMIN"
+  },
+  {
+    "method": "PATCH",
+    "path": "/api/admin/settings/analytics",
+    "input": "timezone、expectedVersion",
+    "output": "AnalyticsSettingsDTO与rebuildScheduled",
+    "permissions": "ADMIN、同源，CAS并审计"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/stats",
+    "input": "from/to本地日、productSlug?、timezoneRevision?、sources?",
+    "output": "StatsDTO：授权来源列表/指标/coverage/真实数据时间，分源状态",
+    "permissions": "ADMIN全部；SALES业务范围；EDITOR公开流量和3D"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/cron/operations",
+    "input": "jobKey固定白名单；dryRun?仅保留任务",
+    "output": "JobResultDTO：jobKey/status/counts/finishedAt",
+    "permissions": "Bearer CRON_SECRET、常量时间校验，无任意job/代码"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/cron/mail-queue",
+    "input": "既有协议",
+    "output": "既有stale/sent/failed/deferred/dropped计数",
+    "permissions": "先既有邮件开关，再Bearer CRON_SECRET；本轮补真实调度"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/cron/mail-queue",
+    "input": "既有协议",
+    "output": "既有stale/sent/failed/deferred/dropped计数",
+    "permissions": "先既有邮件开关，再Bearer CRON_SECRET；本轮补真实调度"
+  },
+  {
+    "method": "POST",
+    "path": "/api/internal/ops-report",
+    "input": "source STORAGE/BACKUP、measuredAt、status、严格白名单values/safeErrorCode",
+    "output": "OpsReportReceiptDTO：accepted、measuredAt",
+    "permissions": "Bearer CRON_SECRET；受控服务器报告脚本，不接session/任意路径"
+  }
+]

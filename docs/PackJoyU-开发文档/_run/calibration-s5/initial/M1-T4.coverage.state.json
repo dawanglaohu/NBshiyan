@@ -1,0 +1,30 @@
+{
+  "acceptance": "1) Entries: the home-page wordmark home-link leads to /[locale], and the home-page products-link/contact-link lead to products/contact respectively; the data sources are the SSR content in section 10 and GET /api/models. Show the 12.27-second video muted and inline; if autoplay is blocked, retain an explicit play entry; on failure or reduced motion use a still frame semantically matching the video (E-21, E-22). 2) Place the city JPG/GIF after the product section; load the GIF only within 300px of the viewport; switch to a still frame when paused, hidden or in a background tab, and do not override the user's pause when visibility returns; at 1440/1920/390 the media must not cover navigation/model controls and must preserve the main subject (E-23, E-24, E-25); actual button clicks must change playback state, and retain a GIF recording.",
+  "edges": {
+    "E-21": {
+      "scene": "Home-page video, JPG and GIF loading and controls",
+      "trigger": "A normal initial-viewport visit",
+      "expect": "Present the 12.27-second video muted and inline, with operable play/pause controls and a JPG poster. If autoplay is blocked, retain the poster and an explicit play entry."
+    },
+    "E-22": {
+      "scene": "Home-page video, JPG and GIF loading and controls",
+      "trigger": "The user enables reduced motion, video decoding fails, or loading times out",
+      "expect": "Show the JPG by default and provide an explicit user play entry; do not continuously force playback."
+    },
+    "E-23": {
+      "scene": "Home-page video, JPG and GIF loading and controls",
+      "trigger": "The 30.08-second GIF scene section has not yet approached the viewport",
+      "expect": "Do not download the entire GIF early; load it when it enters the visible range and provide a Pause control that switches to a still frame of identical dimensions."
+    },
+    "E-24": {
+      "scene": "Home-page video, JPG and GIF loading and controls",
+      "trigger": "The user pauses, the section leaves the viewport, or the page enters the background",
+      "expect": "Preserve an explicit paused state; restoring visibility must not override the user's pause choice."
+    },
+    "E-25": {
+      "scene": "Home-page video, JPG and GIF loading and controls",
+      "trigger": "A mobile device or narrower window is used",
+      "expect": "Explicitly check the predefined PC 1440/1920 and narrow-screen acceptance sizes: the container aspect ratio must match the asset; media must not cover the visible clickable areas of navigation, body content or PC 3D controls; after cropping, the original image's main subject must remain visible. Do not pass by deleting the subject or operating area."
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Compare every new field in section 10 against the strict Zod schema; parse LoginMode and rememberDevice exactly (E-95, E-96), with no unknown fields passing through. 2) Boundary tests must cover client cancellation at 15s, compatibility with the old error format, controlled error mapping and server-side HTTP mapping; retries must strictly follow the methods in section 10, and business components must import from the unified export.",
+  "edges": {
+    "E-95": {
+      "scene": "Login remember-device field",
+      "trigger": "Auth.js form rememberDevice is literal false, missing or boolean false",
+      "expect": "Explicitly parse it as false and use the normal two-hour policy. Do not use Boolean or unconstrained coercion to turn it into remembered-device mode; reject other invalid values."
+    },
+    "E-96": {
+      "scene": "Login-mode enum and account privacy",
+      "trigger": "mode is unknown, totp mode has not been enabled by the account owner, or ordinary Credentials carries a nonempty recoveryCode",
+      "expect": "List each invalid mode, owner-unenabled totp mode and ordinary Credentials with nonempty recoveryCode; all must follow the same generic Auth.js failure result, issue no admin session and not distinguish account existence in the response. Valid password/totp modes verify only their respective method; test using the established rate-limit/error protocol while preserving valid-user login."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Create necessary visitor credentials and atomically receive the first consultation",
+    "input": "M3 shared HTTP guards/configuration/counters; M1 shared schemas; M5 job-foundation; section 09 chat entities and section 10 public visitor-cookie/first-message rules.",
+    "output": "ChatVisitorSession/Conversation/Message/ReadCursor/Notification schema; POST /api/chat/session and POST /api/chat/conversations; creation service committing message, seq, and notification outbox together.",
+    "accept": "1) Caller/wiring point: public App Router handlers -> composition.chat service. Real HTTP issues the seven-day idle/30-day absolute necessary cookie only for active contact; absent cookies do not recover old consultations. Return durable and unchanging id/seq/receivedAt only after the new conversation, first message, and messageId-unique outbox commit together. Same UUID/payload retries return the original result; changed payload returns 409 (E-16, E-18, E-31, E-85, E-90). 2) Exact Origin checks, size limiting before strict-schema parsing, and layered rate limits apply. email is optional; reject invalid/overlong/CRLF email. bodyText is plain text of 1..4000 code points. Store only a token hash; cookies contain no PII and do not depend on analytics consent. Another visitor's cookie cannot create or associate with someone else's thread (E-19, E-39, E-40). 3) A failed write leaves no partial conversation or outbox. Real PostgreSQL concurrency yields only one first message/notification. Successful consultation exchange advances 90-day retention; session polling does not. SMTP configuration does not affect received (E-18, E-86, E-90)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

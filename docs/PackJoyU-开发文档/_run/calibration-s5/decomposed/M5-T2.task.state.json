@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire the server-side signed analytics-consent cookie",
+    "input": "contract-types, current M3 HTTP protections and consent-cookie rules in section 09",
+    "output": "analytics-consent-api; POST /api/analytics/consent and consent-signature verification",
+    "accept": "1) A real HTTP POST /api/analytics/consent parses a strict Boolean after exact-origin/rate-limit checks. Initial true signs a random ID plus version/original expiry cookie; repeated true with a valid same-version cookie preserves its original ID/expiry. false/repeated false clears the cookie without generating identity. 2) Forged signatures, expired cookies and missing cookies fail consent validation; responses contain no raw IP/email/body. This task implements backend admission only; M5-T7 integrates UI withdrawal and stopping producers."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

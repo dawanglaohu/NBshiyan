@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Preserve original JPG/GIF hashes. List old-brand appearances, perspective changes, transitions and reappearances after occlusion across all 361 frames, and cover each completely with PackJoyU. Also recheck the JPG old-logo locations from T3; the first/last frames and all listed locations must contain no old or missed logo (E-26). 2) Compare every frame presentation time/order and the total 30.08-second loop against the original timeline; all must match. Overlay comparison must show no newly introduced misalignment or jitter. Any failure marks the copy unfinished and excludes it from publication, while preserving originals for rollback (E-30). 3) Output a decodable GIF, a same-size paused still and hashes. Record GPT Dot production evidence or per-item not-yet-executed status according to T3 actual tool availability; do not falsely report completion.",
+  "edges": {
+    "E-26": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "An old brand remains in the JPG, in any GIF frame or on any perspective plane",
+      "expect": "Preserve the originals; track and remove the old brand frame by frame in publication copies and replace it with the PackJoyU logo. Check sampled first/last frames, transitions and reappearances after occlusion; do not merely change the cover or blur the old logo."
+    },
+    "E-30": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "The replaced GIF cannot preserve the original timing, visual stability or correct brand coverage",
+      "expect": "Compare the publication copy frame by frame against the original GIF timeline: frame presentation times, order and total loop duration must remain unchanged. PackJoyU must fully cover each old-brand appearance, perspective change, transition and reappearance after occlusion, without newly introduced misalignment, missed logos or jitter. If any check fails, continue repairing that publication copy, mark the file unfinished and exclude it from published deliverables; always preserve the original JPG/GIF for rollback."
+    }
+  }
+}

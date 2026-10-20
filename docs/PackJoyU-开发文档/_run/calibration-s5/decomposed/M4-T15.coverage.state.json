@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Entry: public FloatingActions contact control (floating-human-contact) -> /[locale]/contact; footer Privacy policy -> /[locale]/privacy. Data source: existing InquiryWizard and local Privacy messages; no analytics API is needed. Visit both after declining analytics and observe zero Tawk requests/analytics IDs. Cookie settings distinguish necessary human contact from optional analytics (E-40). 2) With the separate chat switch off, existing inquiry submission/email links remain clickable. Do not buy capacity automatically or call the old 2.7GB snapshot current capacity. Privacy copy explains seven-day/30-day cookies and the 90-day design default while actual cleanup remains disabled; existing inquiry retention stays unchanged (E-20, E-89). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px.",
+  "edges": {
+    "E-20": {
+      "scene": "Online chat implementation route",
+      "trigger": "Resource measurements before release are insufficient.",
+      "expect": "Keep a separate switch that can disable chat while preserving the existing contact entry point. Record capacity evidence and limits; do not claim that a snapshot of about 2.7 GB of free memory equals currently available capacity, and do not automatically buy additional capacity."
+    },
+    "E-40": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A visitor declines analytics but actively opens first-party human chat.",
+      "expect": "Allow the necessary consultation without creating an analytics identifier or loading a third-party chat script. Handle the necessary chat session separately from analytics consent."
+    },
+    "E-89": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "A chat cookie becomes invalid while the messages are still within 90 days.",
+      "expect": "Immediately block the visitor's historical access. Operators can still process retained consultations under existing ADMIN/SALES authorization. Do not implicitly change the existing 730-day inquiry, 30-day/13-month analytics, or backup policies."
+    }
+  }
+}

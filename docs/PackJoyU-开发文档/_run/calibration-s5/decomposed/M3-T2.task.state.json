@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Validate sign-in modes and atomically consume the current authenticator time step",
+    "input": "M3-T1 real device sign-in and current-authorization chain; existing enroll/token/confirm and TOTP utilities; the single LoginMode schema owned by M1-T2.",
+    "output": "Credentials password/totp modes and rejection of recovery codes; User.passwordlessEnabled default false; TOTP CAS against current secret/sv/step; current-token/expiry CAS for POST /api/auth-admin/enroll and POST /api/auth-admin/enroll/confirm.",
+    "accept": "1) Caller/wiring point: real Auth.js Credentials -> authorizeLogin. For an enabled account, totp mode checks only the account and code; password mode checks the current password and code. Unknown mode, totp without enablement, nonempty recoveryCode, and unknown accounts all produce the same generic failure and no device row (E-06, E-96). 2) Atomically consume the current secret/sv/step; at most one sign-in/concurrent request succeeds for one time step. An old-secret code cannot succeed across a racing reset. Preserve all six digits including leading zeros and retain existing rate limits (E-72, E-08). 3) An unenrolled account must complete initial enrollment with the existing one-time token. Real enroll/confirm recheck tokenhash/expiry/sv/pendingSecret in the final transaction; incorrect, expired, and concurrent confirmations do not commit. passwordlessEnabled remains false until confirmation (E-05, E-08)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

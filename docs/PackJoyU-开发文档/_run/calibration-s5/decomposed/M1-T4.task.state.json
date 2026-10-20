@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire the home-page video and a separate JPG/GIF scene",
+    "input": "brand-media, visual-components, client-api-foundation and the existing home-page SSR layout",
+    "output": "home-media; video and a separate brand scene in the existing home page/public shell",
+    "accept": "1) Click wordmark home-link to /[locale], products-link to products and contact-link to contact, and verify the SSR source and GET /api/models. The 12.27-second video has muted/playsinline and clickable play/pause controls. With autoplay blocked, retain its poster/play entry; decoding failure or reduced motion shows a semantic JPG without forcing continuous playback (E-21, E-22). 2) Put the city JPG/GIF after products. Network assertions show no GIF download before approaching within 300px of the viewport, and loading only afterward. Pause clicks, leaving the viewport and backgrounding the page switch to a same-size still; restored visibility does not override the user pause (E-23, E-24). 3) At 1440/1920/390, measure media aspect ratios against sources and verify its DOM rectangles do not intersect clickable rectangles for navigation/body/3D operating areas. The rendered complete source image corners and main subject remain within the container; do not pass by removing the subject or controls. Retain a real GIF of button actions (E-25)."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

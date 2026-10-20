@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) With an injected clock verify receivedAt plus 30 days, 13-calendar-month expiresAt boundaries and equality-at-expiry. Read-only queries return candidate IDs/counts without deleting data or exporting browserHash/business PII. 2) The planner also returns the start of complete raw coverage/non-recomputable natural days; partially cleaned days cannot be marked recomputable. M5-T11 consumes this output and integrates real transactions/production-authorization gates.",
+  "edges": {}
+}

@@ -1,0 +1,12 @@
+{
+  "changedTasks": [
+    "M5-T6",
+    "M5-T7",
+    "M5-T8"
+  ],
+  "sourceBeforeSha256": "12ea5a84e8bfc26ea5202943b4a63501ba1fe382fc3ce65ed9f1caf0ebde8820",
+  "sourceAfterSha256": "8945fb8e2e7a9a95194a3b7387501e892662cfc5a29254f474a766f9aaeb8bc3",
+  "stateFiles": 6,
+  "modelCallsPerformed": false,
+  "previousRemediationEvidenceModified": false
+}

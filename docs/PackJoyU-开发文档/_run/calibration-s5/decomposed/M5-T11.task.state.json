@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register the default-dry-run analytics-retention job",
+    "input": "analytics-retention-plan, job-foundation and explicit retention-authorization gates",
+    "output": "analytics-retention; a fixed daily job, candidate/actual counts and authorization rejection",
+    "accept": "1) Fixed operations analytics-retention leads to the implemented service and actual registry/daily-cron registration. Default to dryRun with actual cleanup off; without separate explicit production-retention authorization, reject enable/delete requests, delete zero and return only candidate counts. 2) Using only isolated PostgreSQL data, verify the expired set/counts/removal of identifiers for receivedAt 30 days and aggregates 13 calendar months. Show query coverage, do not reconstruct expired details, and do not extend deletion authority to backups/existing data (E-48). 3) After cleanup call the existing aggregation service: recompute only dayStart at or after complete raw coverage, including 48h-late events still inside complete coverage. For partially cleaned days preserve old complete aggregates and return partial/unavailable with the original definition; do not replace from fragments or extend retention (E-82). Reject old lease generations and do not touch production/recovery/backup data."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

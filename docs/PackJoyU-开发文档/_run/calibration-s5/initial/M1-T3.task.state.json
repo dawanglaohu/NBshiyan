@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Produce publication copies of media carrying the company's own brand",
+    "input": "The original desktop JPG/GIF/video files, the current PackJoyU wordmark and the asset provenance register",
+    "output": "Publishable JPG/GIF still frames and video posters/compressed copies, hashes and a frame-by-frame verification report",
+    "accept": "1) The original file hashes must remain unchanged; replace the old logo in the JPG and every old-logo appearance, perspective and reappearance after occlusion across all 361 GIF frames with the company's own wordmark; frame presentation times, order and the 30.08-second loop must remain unchanged; any missed logo or newly introduced misalignment excludes the publication copy from finished deliverables (E-26, E-28, E-30). 2) When GPT Dot is available, retain evidence of remote software operations and files; when unavailable, explicitly record the unperformed work and its asset task; finished deliverables must have provenance/comparison evidence and a usable poster, without claiming the invocation succeeded (E-29)."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

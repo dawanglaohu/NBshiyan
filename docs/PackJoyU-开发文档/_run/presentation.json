@@ -1,0 +1,1020 @@
+{
+  "project": "PackJoyU 网站改版与运营能力升级",
+  "handoff": {
+    "repo": "NBshiyan",
+    "docsPath": "docs/PackJoyU-开发文档",
+    "mainBranch": "main",
+    "architecture": {
+      "shared": {
+        "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+        "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+        "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。",
+        "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。"
+      },
+      "backend": {
+        "layout": "src/app/api/**/route.ts保留路由、src/auth.ts保留Auth.js组合；src/lib/server/admin/{device-session,action-grant,recovery}.ts属M3，chat/属M4，analytics/属M5，ops/属M6，jobs/放固定作业；src/lib/contracts/放新契约，prisma/schema.prisma仍是数据源；禁止另建应用或迁移无关旧模块。",
+        "layers": "新路径route→service→repo单向；route收发HTTP和调用守卫，service管业务/事务，repo接显式Prisma依赖执行查询；M6只读M4/M5查询，禁止repo反调service、service返回NextResponse、客户端导入server、统计或聊天反调看板；未改旧路径不强制重分层。",
+        "data": "复用db.ts唯一PrismaClient；新查询集中模块repo，锁/聚合用Prisma.sql参数化，禁止service拼SQL及拼接queryRawUnsafe；每实例connection_limit=5、pool_timeout=10s，总连接不超过数据库可用额度；schema只经现有deploy.sh备份/diff/plan-check/db push/零drift，禁止accept-data-loss、删改旧列或把prisma/sql参考计划当已执行迁移。",
+        "middleware": "后台新入口按requestId/脱敏计时→requireAdmin(当前User/sv/sid/角色)→写操作精确同源→await限流→限体/Zod strict→service→HTTP错误映射；公开聊天先同源/限流再cookie范围校验，恢复先限流再凭据，cron仅Bearer；既有邮件gate仍最先；禁止仅靠layout鉴权、漏await、日志含验证码/token/正文/email。",
+        "tx": "仅service或顶层use-case开事务，嵌套调用复用tx，禁止事务内SMTP/HTTP/文件IO与嵌套事务；一次性凭据核销+动作、恢复核销+sv/设备撤销+受限session、消息+seq+出箱均原子；敏感写最终重查账号/设备/授权；固定User→Device→Grant锁序，聚合整组原子替换并核作业代次，禁止先报成功再补关键写。",
+        "utils": "contracts及lib/chat/rules.ts、lib/analytics/rules.ts只放无IO的schema/枚举/纯转换；授权、同意准入、时钟、cookie、加密、存储与通知留server；禁止将带请求/状态的业务判断塞入utils或从纯模块读env。",
+        "errors": "新AppError仅含受控code/fieldErrors，service抛领域错误，repo只转已识别唯一冲突；仅server/http/errors.ts映射新HTTP，未知错误脱敏记录；Auth.js CredentialsSignin、旧{error}/邮件状态/rum空体保持协议；禁止全库换信封或外泄Prisma/SMTP原始异常。",
+        "config": "server/config.ts首次Node运行组合时集中读env、Zod验证并冻结，沿instrumentation.ts与startup/env-check.ts生产检查；测试显式传配置；环境改动需重启，站点时区从版本化SiteSetting按同一revision读取；禁止业务散读新增env、构建内联秘密或静默热改安全策略。",
+        "di": "不加DI库；server/composition.ts组装createService({repo,config,clock,tokenCrypto,mailer})供route使用；仅Prisma、冻结配置与无请求状态服务可为进程级对象；禁止全局当前用户/恢复凭据/消息/计数和以Map代替跨实例事实；依赖测试显式注入。",
+        "jobs": "jobs/registry.ts固定注册聊天通知、5min分析聚合、分析/聊天保留、运维采样及既有mail-queue包装，deploy/cron.nbshiyan真实调度；复用service/repo，持久租约+代次、batch≤500、截止55s；ChatNotification与消息同事务，SMTP事务外且稳定Message-ID/至少一次有界重试；禁止setInterval、after承担持久交付、看板GET跑作业或只写接口不接调度。"
+      },
+      "frontend": {
+        "layout": "沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。",
+        "tier": "page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。",
+        "ui": "沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。",
+        "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中16个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
+        "state": "仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。",
+        "api": "新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。",
+        "utils": "无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。",
+        "errors": "严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。",
+        "env": "客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。",
+        "build": "沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。"
+      }
+    },
+    "wiring": {
+      "backendRoutes": [
+        "src/auth.ts",
+        "src/app/api/auth/",
+        "src/app/api/auth-admin/",
+        "src/app/api/admin/account/",
+        "src/app/api/admin/users/",
+        "src/app/api/chat/",
+        "src/app/api/admin/chat/",
+        "src/app/api/analytics/",
+        "src/app/api/admin/settings/analytics/route.ts",
+        "src/app/api/admin/stats/route.ts",
+        "src/app/api/admin/cron/operations/route.ts",
+        "src/app/api/admin/cron/mail-queue/route.ts",
+        "src/app/api/internal/ops-report/route.ts"
+      ],
+      "container": [
+        "src/lib/server/composition.ts",
+        "src/lib/server/db.ts",
+        "src/auth.ts"
+      ],
+      "sharedTypes": [
+        "src/lib/contracts/index.ts",
+        "src/types/next-auth.d.ts"
+      ],
+      "eventKinds": [
+        "src/lib/contracts/analytics.ts",
+        "src/lib/contracts/chat.ts"
+      ],
+      "migrations": [
+        "prisma/schema.prisma",
+        "deploy/deploy.sh"
+      ],
+      "jobs": [
+        "src/lib/server/jobs/registry.ts",
+        "deploy/cron.nbshiyan"
+      ],
+      "buildPipeline": [
+        "package.json",
+        "next.config.ts",
+        "eslint.config.mjs",
+        "tsconfig.json",
+        "prod-env-check.ts",
+        "src/instrumentation.ts",
+        "src/styles/tokens.css",
+        "src/styles/motion-tokens.css"
+      ],
+      "frontendRoutes": [
+        "src/lib/navigation/routes.ts",
+        "src/i18n/routing.ts",
+        "src/i18n/navigation.ts",
+        "src/components/layout/SiteHeader.tsx",
+        "src/components/layout/SiteFooter.tsx",
+        "src/components/admin/AdminShell.tsx",
+        "src/app/",
+        "src/app/admin-login/",
+        "src/app/admin-enroll/",
+        "src/app/admin-recovery/",
+        "src/app/admin/account/",
+        "src/app/admin/chat/",
+        "src/app/admin/stats/",
+        "src/app/admin/settings/",
+        "src/app/admin/users/"
+      ]
+    },
+    "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层",
+    "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。",
+    "design": {
+      "register": "brand",
+      "style": "`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。",
+      "palette": "`background #ffffff`用于页面、表单和模型工具条；`foreground #000000`用于正文与数值；`border #000000`用于2px边界；`inverse #000000 / on-inverse #ffffff`用于主按钮及反色区；`accent #b45700 / on-accent #ffffff`用于当前入口、聚焦边界、错误/警示文字与明确操作反馈。强调色取自目录允许列表，不叠加第二色板。状态含义同时用文字、图形或边框样式表达，不靠颜色区分。正文不使用半透明黑；必要的次要层级用字号、字重和位置表达。",
+      "type": "display/body/utility沿用项目现有Manrope的`--font-sans`（既有latin/cyrillic配置），后台未持有该变量时回退`Arial, Helvetica, sans-serif`；数值/时间使用`ui-monospace, SFMono-Regular, Consolas, monospace`，不新增下载字体。英文/俄文正文16px/24px、400；后台表格14px/20px、400，标签14px/20px、600，辅助文案14px/20px、400；按钮14px/20px、600。前台hero为桌面64px/68px、窄屏36px/40px、700；前台h1为48px/52px→32px/36px，h2为36px/40px→28px/32px，h3为24px/28px→20px/24px；后台h1固定28px/32px、700，h2固定20px/24px、700。标题tracking=-0.02em，正文tracking=0；俄语不强制大写、不截断必要标签，字体缺字时落系统栈。",
+      "layout": "前台以“清楚标题 + 有边界的真实媒体/产品区 + 直接联系入口”组织，标题不压在动态画面上；后台以固定导航、紧凑标题/筛选和铺满可用宽度的工作区组织。全站4px基础刻度、2px实线、0圆角、0阴影；只有媒体自身有透视与3D，UI不借位移、缩放或渐变制造层次。",
+      "signature": "保留现用PackJoyU字标的形状和比例，以2px黑线框住大幅产品/媒体视口，交互通过黑白反转与#b45700边界提示完成；让包装轮廓和操作空间成为识别点，不重画字标、不做几何hover缩放。",
+      "avoid": "目录dontList原样：\n\n- `Do not use any shadows shadow-*`\n- `Do not use gradients bg-gradient-*`\n- `Do not use colors with opacity below 0.5`\n- `Do not mix different border-radius values`\n- `Do not use gray text (unless intentional)`\n- `Do not use pattern backgrounds`\n\n项目执行：不使用阴影、渐变、玻璃模糊、花纹背景、低透明度禁用态、混合圆角或无意灰字；不使用hover位移/缩放、长于75ms的UI装饰过渡、全卡链接覆盖模型、重复底部介绍、首屏并发下载全部媒体。字标不变形、不描成另一套图形，参考站素材和PDF企业事实不直接移植。",
+      "tokens": ":root{--pj-bg:#ffffff;--pj-fg:#000000;--pj-border:#000000;--pj-inverse:#000000;--pj-on-inverse:#ffffff;--pj-accent:#b45700;--pj-on-accent:#ffffff;--pj-radius:0px;--pj-border-width:2px;--pj-shadow:none;--pj-opacity:1;--pj-space-unit:4px;--pj-admin-gutter:16px;--pj-admin-block-gap:16px;--pj-admin-card-pad:16px;--pj-admin-row-height:40px;--pj-admin-control-height:36px;--pj-touch-target:44px;--pj-feedback-duration:75ms;--pj-inversion-duration:0ms;}",
+      "components": "Button/Input桌面高36px、触屏44px；Button横padding12px，2px黑边、0圆角；focus为2px强调色+2px offset，黑底白outline。disabled用原生属性、虚线黑边、opacity1和原因。loading保留文字与尺寸；Table行40px；Dialog≤520px、焦点闭环/Escape/返回触发点。静态卡无整卡hover，模型/多动作卡只反馈实际控件。所有状态及统计0/无数据/未接入/失败/旧值/部分覆盖按11组件表；无颜色单独传义、无自动消失结果替代。",
+      "spacing": {
+        "publicBrand": "桌面≥1024 gutter24/gap48/pad24，窄屏16/32/16；产品grid auto-fit minmax(min(100%,560px),1fr)，gap16，PC模型高clamp(360px,28vw,440px)，窄屏4:3且≥240px。",
+        "adminProduct": "DENSITY7项目适配：所有屏幕gutter16/gap16/pad16；row40/control36，触屏44。work无max-width铺满；form左对齐minmax(0,800px)+320px旁栏，宽度不足折叠；card≤520px，rail224px。局部空/错/加载左上pad16，无撑高。",
+        "acceptance": "所有后台UI任务显式测D1–D6及overflow：1920×1080、1440×900、390×844；work fill≥.85，form fill≥.55且左边距≤gutter+24；gap≤24/pad≤20，无空网格轨道/横向大空白>15%/body横溢出。详11；主register=brand不能豁免后台。"
+      }
+    },
+    "frontendModules": [
+      "M1",
+      "M2",
+      "M6"
+    ],
+    "branchPrefix": "task/",
+    "promptBudget": 20000,
+    "taskPaths": {
+      "M1-T1": [
+        "src/styles/tokens.css",
+        "src/styles/motion-tokens.css",
+        ".github/workflows/ci.yml",
+        "e2e/brand-smoke.spec.ts",
+        "docs/PackJoyU-开发文档/",
+        "AGENTS.md",
+        "CLAUDE.md"
+      ],
+      "M1-T2": [
+        "src/lib/contracts/",
+        "tests/contracts-foundation.test.ts"
+      ],
+      "M1-T3": [
+        "public/brand/",
+        "docs/brand-media/static/"
+      ],
+      "M1-T4": [
+        "src/components/layout/",
+        "src/app/",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/home-media.spec.ts"
+      ],
+      "M1-T5": [
+        "src/components/about/",
+        "src/app/",
+        "messages/en.json",
+        "messages/ru.json",
+        "docs/brand-content/",
+        "e2e/company-content.spec.ts"
+      ],
+      "M1-T6": [
+        "public/brand/",
+        "docs/brand-media/animation/"
+      ],
+      "M1-T7": [
+        "src/styles/tokens.css",
+        "src/components/ui/",
+        "tests/ui-primitives.test.ts"
+      ],
+      "M1-T8": [
+        "src/lib/client/api.ts",
+        "src/lib/client/api-errors.ts",
+        "src/lib/server/http/errors.ts",
+        "tests/client-api-foundation.http.test.ts"
+      ],
+      "M2-T1": [
+        "src/components/three/ProductGallery.tsx",
+        "src/components/three/GalleryScene.tsx",
+        "src/app/",
+        "e2e/product-cards.spec.ts"
+      ],
+      "M2-T2": [
+        "src/components/three/",
+        "src/lib/three/",
+        "e2e/model-pointer.spec.ts"
+      ],
+      "M2-T3": [
+        "src/components/three/",
+        "src/lib/three/",
+        "e2e/model-accessibility.spec.ts"
+      ],
+      "M2-T4": [
+        "src/lib/analytics/model-events.ts",
+        "tests/model-event-rules.test.ts"
+      ],
+      "M2-T5": [
+        "src/components/inquiry/",
+        "src/components/quote/",
+        "src/components/three/ProductGallery.tsx",
+        "src/app/",
+        "e2e/product-inquiry.spec.ts"
+      ],
+      "M2-T6": [
+        "src/components/three/",
+        "src/lib/three/",
+        "e2e/model-fallback.spec.ts"
+      ],
+      "M2-T7": [
+        "src/components/three/",
+        "src/components/analytics/",
+        "e2e/model-events.spec.ts"
+      ],
+      "M2-T8": [
+        "src/components/chat/",
+        "src/components/three/ProductGallery.tsx",
+        "e2e/product-contact.spec.ts"
+      ],
+      "M3-T1": [
+        "src/auth.ts",
+        "src/lib/server/admin/device-session.ts",
+        "src/lib/server/admin/device-repo.ts",
+        "src/lib/server/admin/guard.ts",
+        "src/lib/server/admin/layout-gate.ts",
+        "src/lib/server/admin/page-access.ts"
+      ],
+      "M3-T2": [
+        "src/auth.ts",
+        "src/lib/server/admin/login.ts",
+        "src/lib/server/admin/enroll-token.ts",
+        "src/lib/server/admin/enroll-guard.ts",
+        "src/app/api/auth-admin/enroll/route.ts",
+        "src/app/api/auth-admin/enroll/confirm/route.ts"
+      ],
+      "M3-T3": [
+        "src/lib/server/admin/action-grant.ts",
+        "src/app/api/admin/account/reauth/route.ts"
+      ],
+      "M3-T4": [
+        "src/lib/server/admin/recovery-authorizations.ts",
+        "src/app/api/admin/account/recovery-authorizations/route.ts",
+        "src/app/api/admin/users/"
+      ],
+      "M3-T5": [
+        "src/lib/server/admin/recovery-enrollment.ts",
+        "src/app/api/auth-admin/recovery/enroll/route.ts",
+        "src/app/api/auth-admin/recovery/confirm/route.ts"
+      ],
+      "M3-T6": [
+        "src/app/admin-login/",
+        "src/components/admin/auth/LoginForm.tsx"
+      ],
+      "M3-T7": [
+        "src/components/admin/AdminShell.tsx",
+        "src/components/admin/auth/AdminSessionActivity.tsx",
+        "src/app/admin/admin.css",
+        "src/app/admin/layout.tsx"
+      ],
+      "M3-T8": [
+        "src/app/admin/account/devices/",
+        "src/components/admin/account/DevicesContainer.tsx",
+        "src/components/admin/account/DeviceRow.tsx"
+      ],
+      "M3-T9": [
+        "src/components/admin/users/UsersAdmin.tsx",
+        "src/components/admin/users/RecoveryPermitResult.tsx"
+      ],
+      "M3-T10": [
+        "src/app/admin-enroll/",
+        "src/components/admin/enroll/EnrollWizard.tsx"
+      ],
+      "M3-T11": [
+        "src/app/admin-recovery/",
+        "src/components/admin/auth/RecoveryWizard.tsx",
+        "src/lib/client/recovery.ts"
+      ],
+      "M3-T12": [
+        "src/app/admin/account/page.tsx",
+        "src/components/admin/account/AccountContainer.tsx",
+        "src/components/admin/account/ReauthDialog.tsx",
+        "src/lib/client/account.ts"
+      ],
+      "M3-T13": [
+        "src/components/admin/account/SignOutAllDevices.tsx"
+      ],
+      "M3-T14": [
+        "src/lib/server/config.ts",
+        "src/lib/server/http/errors.ts",
+        "src/lib/server/http/metrics.ts",
+        "src/app/api/admin/account/route.ts"
+      ],
+      "M3-T15": [
+        "src/lib/server/admin/session-expiry.ts",
+        "src/app/api/admin/account/session/activity/route.ts"
+      ],
+      "M3-T16": [
+        "src/lib/server/admin/account-security.ts",
+        "src/app/api/admin/account/login-mode/route.ts",
+        "src/app/api/admin/account/password/route.ts"
+      ],
+      "M3-T17": [
+        "src/lib/server/admin/device-management.ts",
+        "src/app/api/admin/account/devices/",
+        "src/app/api/admin/account/logout-all/route.ts"
+      ],
+      "M3-T18": [
+        "scripts/admin-authorize-recovery.mjs",
+        "src/lib/server/admin/owner-recovery.ts"
+      ],
+      "M3-T19": [
+        "src/lib/server/admin/recovery-start.ts",
+        "src/app/api/auth-admin/recovery/start/route.ts"
+      ],
+      "M3-T20": [
+        "src/app/api/admin/account/2fa/reset/route.ts",
+        "src/lib/server/admin/self-rebind.ts"
+      ],
+      "M4-T1": [
+        "src/lib/server/chat/conversation-service.ts",
+        "src/lib/server/chat/repo.ts",
+        "src/lib/chat/rules.ts",
+        "src/app/api/chat/conversations/route.ts"
+      ],
+      "M4-T2": [
+        "src/lib/server/chat/read-cursor.ts",
+        "src/lib/server/chat/visitor-read.ts",
+        "src/app/api/chat/conversations/"
+      ],
+      "M4-T3": [
+        "src/lib/server/chat/operator-read.ts",
+        "src/lib/server/chat/inbox-repo.ts",
+        "src/app/api/admin/chat/conversations/"
+      ],
+      "M4-T4": [
+        "src/lib/server/chat/notification-service.ts",
+        "src/lib/server/chat/notification-repo.ts",
+        "src/lib/server/chat/notification-mailer.ts",
+        "src/lib/server/mail/smtp.ts"
+      ],
+      "M4-T5": [
+        "src/components/chat/ContactChatEntry.tsx",
+        "src/components/chat/ChatContainer.tsx",
+        "src/components/chat/Composer.tsx",
+        "src/components/chat/MessageList.tsx",
+        "src/lib/client/chat.ts"
+      ],
+      "M4-T6": [
+        "src/app/admin/chat/",
+        "src/components/admin/chat/InboxContainer.tsx",
+        "src/components/admin/chat/ThreadContainer.tsx"
+      ],
+      "M4-T7": [
+        "src/lib/server/chat/retention-candidates.ts",
+        "src/lib/server/chat/retention-policy.ts"
+      ],
+      "M4-T8": [
+        "src/lib/server/chat/visitor-session.ts",
+        "src/app/api/chat/session/route.ts"
+      ],
+      "M4-T9": [
+        "src/lib/client/chat-poller.ts",
+        "src/lib/client/chat-retry.ts"
+      ],
+      "M4-T10": [
+        "src/lib/server/chat/message-service.ts"
+      ],
+      "M4-T11": [
+        "src/lib/server/chat/operator-write.ts"
+      ],
+      "M4-T12": [
+        "src/app/api/admin/cron/mail-queue/route.ts"
+      ],
+      "M4-T13": [
+        "src/lib/server/chat/retention-service.ts",
+        "src/lib/server/chat/retention-repo.ts"
+      ],
+      "M4-T14": [
+        "src/components/admin/chat/OperatorReplyComposer.tsx",
+        "src/components/admin/chat/CloseConversation.tsx"
+      ],
+      "M4-T15": [
+        "src/components/chat/useTawk.ts",
+        "src/components/quote/FloatingActions.tsx",
+        "src/components/consent/CookieConsent.tsx",
+        "src/lib/consent.ts",
+        "src/lib/client/consent.ts"
+      ],
+      "M5-T1": [
+        "src/lib/server/jobs/lease-repo.ts",
+        "src/lib/server/jobs/types.ts",
+        "prisma/schema.prisma",
+        "tests/job-leases.db.test.ts"
+      ],
+      "M5-T2": [
+        "src/lib/server/analytics/consent.ts",
+        "src/app/api/analytics/consent/route.ts",
+        "tests/analytics-consent.http.test.ts"
+      ],
+      "M5-T3": [
+        "src/lib/server/analytics/aggregate.ts",
+        "src/lib/server/analytics/aggregate-repo.ts",
+        "prisma/schema.prisma",
+        "tests/analytics-aggregate.db.test.ts"
+      ],
+      "M5-T4": [
+        "src/app/api/admin/settings/analytics/route.ts",
+        "src/lib/server/composition.ts",
+        "tests/analytics-settings.http.test.ts"
+      ],
+      "M5-T5": [
+        "src/lib/server/analytics/retention-plan.ts",
+        "tests/analytics-retention-plan.test.ts"
+      ],
+      "M5-T6": [
+        "src/lib/server/analytics/ingest.ts",
+        "src/lib/server/analytics/event-repo.ts",
+        "src/app/api/analytics/events/route.ts",
+        "prisma/schema.prisma",
+        "tests/analytics-ingest.http.db.test.ts"
+      ],
+      "M5-T7": [
+        "src/lib/client/analytics.ts",
+        "src/components/consent/",
+        "src/components/analytics/",
+        "e2e/analytics-consent.spec.ts",
+        "src/app/",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/privacy-analytics.spec.ts"
+      ],
+      "M5-T8": [
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "src/app/api/admin/cron/operations/route.ts",
+        "deploy/cron.nbshiyan",
+        "deploy/deploy.sh",
+        "tests/jobs-runtime.http.test.ts"
+      ],
+      "M5-T9": [
+        "src/lib/server/analytics/settings.ts",
+        "src/lib/server/analytics/settings-repo.ts",
+        "src/lib/analytics/day-boundaries.ts",
+        "tests/analytics-settings.db.test.ts",
+        "tests/analytics-day-boundaries.test.ts"
+      ],
+      "M5-T10": [
+        "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
+        "src/app/admin/settings/",
+        "e2e/analytics-settings.spec.ts"
+      ],
+      "M5-T11": [
+        "src/lib/server/analytics/retention.ts",
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "deploy/cron.nbshiyan",
+        "tests/analytics-retention.db.test.ts"
+      ],
+      "M6-T1": [
+        "src/lib/server/ops/stats-query.ts",
+        "src/lib/server/ops/source-dto.ts",
+        "tests/stats-query.db.test.ts"
+      ],
+      "M6-T2": [
+        "src/lib/server/ops/business-source.ts",
+        "src/lib/server/composition.ts",
+        "tests/stats-business.test.ts",
+        "e2e/stats-business-api.spec.ts"
+      ],
+      "M6-T3": [
+        "src/lib/server/ops/ops-report.ts",
+        "src/lib/server/ops/ops-sample.ts",
+        "src/app/api/internal/ops-report/",
+        "src/lib/server/composition.ts",
+        "deploy/ops-report.py",
+        "deploy/cron.nbshiyan",
+        "tests/ops-report.test.ts"
+      ],
+      "M6-T4": [
+        "src/components/admin/stats/StatsContainer.tsx",
+        "src/components/admin/stats/StatsFilters.tsx",
+        "src/lib/client/ops.ts",
+        "src/app/admin/stats/",
+        "src/components/admin/AdminShell.tsx",
+        "e2e/stats-page.spec.ts"
+      ],
+      "M6-T5": [
+        "src/lib/server/ops/reliability-source.ts",
+        "src/lib/server/composition.ts",
+        "tests/stats-reliability.test.ts",
+        "e2e/stats-reliability-api.spec.ts"
+      ],
+      "M6-T6": [
+        "src/app/api/admin/stats/",
+        "src/lib/server/ops/stats-service.ts",
+        "src/lib/server/composition.ts",
+        "tests/stats-route.test.ts",
+        "e2e/stats-core-api.spec.ts"
+      ],
+      "M6-T7": [
+        "src/components/admin/stats/SourceCard.tsx",
+        "src/components/admin/stats/StatsContainer.tsx",
+        "src/components/admin/stats/StatsTrend.tsx",
+        "e2e/stats-source-states.spec.ts"
+      ],
+      "M7-T1": [
+        "e2e/visitor-media-integration.spec.ts",
+        "docs/acceptance/visitor-media/"
+      ],
+      "M7-T2": [
+        "e2e/admin-session-integration.spec.ts",
+        "tests/admin-session-http-integration.test.ts",
+        "docs/acceptance/admin-session/"
+      ],
+      "M7-T3": [
+        "e2e/analytics-integration.spec.ts",
+        "tests/analytics-time-integration.db.test.ts",
+        "docs/acceptance/analytics/"
+      ],
+      "M7-T4": [
+        "e2e/visitor-consultation-integration.spec.ts",
+        "docs/acceptance/consultation/"
+      ],
+      "M7-T5": [
+        "e2e/admin-recovery-integration.spec.ts",
+        "tests/admin-recovery-concurrency.db.test.ts",
+        "docs/acceptance/admin-recovery/"
+      ],
+      "M7-T6": [
+        "e2e/admin-fresh-auth-integration.spec.ts",
+        "tests/admin-action-grant-concurrency.db.test.ts",
+        "docs/acceptance/admin-fresh-auth/"
+      ],
+      "M7-T7": [
+        "e2e/operations-sources-integration.spec.ts",
+        "tests/chat-notification-restart.integration.test.ts",
+        "docs/acceptance/operations/"
+      ],
+      "M7-T8": [
+        "docs/acceptance/provenance/"
+      ],
+      "M7-T9": [
+        "docs/acceptance/delivery/",
+        "e2e/delivery-smoke.spec.ts"
+      ]
+    },
+    "taskSkills": {
+      "M1-T1": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M1-T3": [
+        {
+          "name": "computer-use:computer-use",
+          "when": "授权GPT Dot远程软件通道可达时",
+          "why": "实际软件操作和输出逐项留证，不可达明确尚未执行；原件不变，发布副本未通过不作成品。"
+        }
+      ],
+      "M1-T4": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M1-T5": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M1-T6": [
+        {
+          "name": "computer-use:computer-use",
+          "when": "授权GPT Dot远程软件通道可达时",
+          "why": "实际软件操作和输出逐项留证，不可达明确尚未执行；原件不变，发布副本未通过不作成品。"
+        }
+      ],
+      "M2-T1": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M2-T2": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M2-T3": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M2-T5": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M2-T6": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M2-T7": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M2-T8": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T6": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T7": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T8": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T9": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T10": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T11": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T12": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M3-T13": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M4-T5": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M4-T6": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M4-T9": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M4-T14": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M4-T15": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M5-T7": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M5-T10": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M6-T4": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M6-T7": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M7-T1": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M7-T2": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M7-T3": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M7-T4": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M7-T5": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ],
+      "M7-T6": [
+        {
+          "name": "stylekit",
+          "when": "实施/审查本卡UI及集成时",
+          "why": "消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。"
+        },
+        {
+          "name": "record-browser-gif",
+          "when": "验收真实页面交互时",
+          "why": "真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。"
+        }
+      ]
+    }
+  },
+  "frontendModules": [
+    "M1",
+    "M2",
+    "M6"
+  ],
+  "lead": "以大幅媒体和可直接操作的3D呈现PackJoyU产品；后台围绕可靠登录、人工咨询与真实统计组织。先交付可运行骨架，再按能力依赖接通会话、咨询、事件与看板；每批落地后先收口。",
+  "highlights": {
+    "tasks": [
+      "M1-T1",
+      "M3-T1",
+      "M5-T8",
+      "M6-T7"
+    ],
+    "modules": [
+      "M3",
+      "M5"
+    ],
+    "edges": [
+      "E-03",
+      "E-61",
+      "E-105"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "metrics"
+    },
+    {
+      "type": "modulemap",
+      "note": "M1唯一拥有视觉值；M3提供身份，M5提供作业基础；M4/M6追加各自作业，M7只做终验。"
+    },
+    {
+      "type": "taskdag",
+      "note": "原语与集成任务分开；依赖按实际能力提供方，第一项含真实运行链。"
+    },
+    {
+      "type": "edgematrix",
+      "note": "105条边界均有完整集成任务；原语不虚报跨层覆盖。"
+    },
+    {
+      "type": "evolution",
+      "note": "20项决定保留低置信、审题缺陷及高代价标记。"
+    },
+    {
+      "type": "milestones"
+    },
+    {
+      "type": "risks",
+      "note": "容量未实测、媒体通道与估时仍有不确定性；实际删除需另行授权。"
+    },
+    {
+      "type": "handoff",
+      "note": "全部任务尚未落地；M1-T1先将本地规格带入首个实施PR。"
+    },
+    {
+      "type": "endpoints"
+    },
+    {
+      "type": "terms"
+    }
+  ]
+}

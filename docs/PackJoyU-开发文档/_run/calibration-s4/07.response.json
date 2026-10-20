@@ -1,0 +1,44 @@
+{
+  "status": "ok",
+  "template": "edge",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "severity": {
+      "score": 1.37,
+      "level": "a feature degrades or a user is blocked until retry",
+      "confidence": 0.43,
+      "band": "low"
+    },
+    "likelihood": {
+      "score": 0.57,
+      "level": "occasional",
+      "confidence": 0.28,
+      "band": "low"
+    },
+    "executable": {
+      "p": 0.72,
+      "verdict": "yes"
+    },
+    "owner": {
+      "choice": "M3",
+      "confidence": 1.0,
+      "band": "high",
+      "probabilities": {
+        "M1": 0.0,
+        "M2": 0.0,
+        "M3": 1.0,
+        "M4": 0.0,
+        "M5": 0.0,
+        "M6": 0.0,
+        "M7": 0.0,
+        "unclear": 0.0
+      }
+    }
+  },
+  "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.43) likelihood=occasional(low 0.28) executable=yes(0.72) owner=M3(high 1.00)",
+  "usage": {
+    "input_tokens": 1141,
+    "output_tokens": 129
+  }
+}

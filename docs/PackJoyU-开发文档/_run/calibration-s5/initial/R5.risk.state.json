@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Consent coverage or timezone/aggregation may distort metrics",
+    "impact": "Browser counts may be misrepresented as people and historical trends corrupted; D9/16 have high reversal cost",
+    "mitigation": "Use consented anonymous browsers only. Preserve UTC events, recompute complete retained ranges only, display data watermark and timezone revision, and test DST and late arrivals in isolation.",
+    "trigger": "An event is stored without consent, missing samples become zero, or incomplete raw history replaces a full aggregate"
+  }
+}

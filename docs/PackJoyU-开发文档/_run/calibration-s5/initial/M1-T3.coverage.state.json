@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) The original file hashes must remain unchanged; replace the old logo in the JPG and every old-logo appearance, perspective and reappearance after occlusion across all 361 GIF frames with the company's own wordmark; frame presentation times, order and the 30.08-second loop must remain unchanged; any missed logo or newly introduced misalignment excludes the publication copy from finished deliverables (E-26, E-28, E-30). 2) When GPT Dot is available, retain evidence of remote software operations and files; when unavailable, explicitly record the unperformed work and its asset task; finished deliverables must have provenance/comparison evidence and a usable poster, without claiming the invocation succeeded (E-29).",
+  "edges": {
+    "E-26": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "An old brand remains in the JPG, in any GIF frame or on any perspective plane",
+      "expect": "Preserve the originals; track and remove the old brand frame by frame in publication copies and replace it with the PackJoyU logo. Check sampled first/last frames, transitions and reappearances after occlusion; do not merely change the cover or blur the old logo."
+    },
+    "E-28": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "A candidate design differs from the current online wordmark",
+      "expect": "Continue production using the current PackJoyU wordmark in this round; waiting for the user to revisit candidate images is not an implementation or acceptance prerequisite."
+    },
+    "E-30": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "The replaced GIF cannot preserve the original timing, visual stability or correct brand coverage",
+      "expect": "Compare the publication copy frame by frame against the original GIF timeline: frame presentation times, order and total loop duration must remain unchanged. PackJoyU must fully cover each old-brand appearance, perspective change, transition and reappearance after occlusion, without newly introduced misalignment, missed logos or jitter. If any check fails, continue repairing that publication copy, mark the file unfinished and exclude it from published deliverables; always preserve the original JPG/GIF for rollback."
+    },
+    "E-29": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "The GPT Dot tool is reachable and actually performs remote-software production",
+      "expect": "Retain invocation records, software-operation evidence and output-file evidence, then check the finished deliverables. When the tool is unreachable, record Not yet executed and the specific implementation task for each item; do not falsely claim invocation or asset replacement is complete."
+    }
+  }
+}

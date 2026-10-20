@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register chat retention candidates with real cleanup rejected by default",
+    "input": "Chat activity/retainUntil, M5 fixed jobs, and separate authorization for production cleanup.",
+    "output": "Daily chat-retention cron, read-only candidate counts, policy version, default dry-run, and authorization gate.",
+    "accept": "1) Caller/wiring point: real daily cron POST /api/admin/cron/operations(jobKey=chat-retention) -> registry -> candidate query. Without separate retention authorization or with the switch disabled, only dry-run occurs; real deletion requests reject with deletedCount=0. Documentation/model/dispatch is not authorization. In an isolated database, before/after row-content hashes are unchanged (E-88). 2) Query candidates by 90-day retainUntil. Seven-day/30-day cookie expiry must not select still-retained content early. Reads/polling/notifications do not extend the deadline. Results contain only counts/safe times, not body/email. Do not query existing 730-day inquiries/analytics/backups as cleanup targets (E-85, E-86)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

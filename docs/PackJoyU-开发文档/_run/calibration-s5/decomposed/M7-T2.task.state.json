@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Finally verify real session persistence and revocation across paths",
+    "input": "Device/API/UI capabilities, the locked Auth.js version and section 17 real-session checks",
+    "output": "session-acceptance: initial login/activity refresh/SSR/sign-out and browser-reopen evidence",
+    "accept": "1) Log in for real and verify the activity-sliding two-hour policy for rememberDevice=false. Actual POST /api/admin/account/session/activity writes a renewed Set-Cookie; read-only SSR never claims renewal. HTTP boundary tests reject equality/expiry at seven idle days and the 30-day absolute limit for remembered devices; continuous activity cannot exceed 30 days (E-01, E-02, E-69, E-71). 2) An unexpired remembered cookie restores access after closing/reopening the same browser. After actual password change, authenticator reset, logout-all, device revocation, account disablement or sv change, the next real protected request rejects the old cookie and refresh cannot revive it. Ordinary Auth.js signOut revokes sid; unavailable database checks deny access. Invalid mode, unenabled totp and nonempty ordinary recoveryCode yield generic login failure (E-03, E-04, E-70, E-96)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

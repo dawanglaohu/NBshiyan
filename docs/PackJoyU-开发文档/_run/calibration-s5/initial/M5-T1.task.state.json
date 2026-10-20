@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Establish durable job leases and the scheduling entry",
+    "input": "contract-types, the current permission foundation and the existing cron/mail switches",
+    "output": "job-foundation, JobState, the fixed registry and POST /api/admin/cron/operations scheduling",
+    "accept": "1) Caller deploy/cron.nbshiyan leads to POST /api/admin/cron/operations; reject missing/incorrect Bearer credentials, use a fixed jobKey allowlist, and permit only one commit under concurrent lease+generation processing; batch must be at most 500 with a recoverable 55s deadline (E-81). 2) Register actual cron for the existing mail-queue wrapper under the original switches and Bearer requirements; after restart, actual scheduling must execute and leave JobState; dashboard GET must not trigger jobs; verify the schema-first diff plan without deleting old columns (E-64)."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

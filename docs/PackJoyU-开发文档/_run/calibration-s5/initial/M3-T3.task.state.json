@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Issue fresh grants and wire the account owner's sensitive changes",
+    "input": "M3-T1 current-device guards and M3-T2 current TOTP consumption; section 09/10 ActionGrant single-use, target, sv, and expiry constraints.",
+    "output": "AdminActionGrant; POST /api/admin/account/reauth, POST /api/admin/account/password, PATCH /api/admin/account/login-mode, GET /api/admin/account/devices, POST /api/admin/account/devices/[id]/revoke, and POST /api/admin/account/logout-all.",
+    "accept": "1) Caller/wiring point: each declared App Router handler -> composed action-grant/account service. Only the current password plus the next unused TOTP can return a five-minute single-use grant. Reject cross-purpose/device/target use, expiry, old sv, or a revoked device. Even a valid passwordless session cannot directly issue a grant when its user has forgotten the password (E-72, E-73, E-74, E-75). 2) Under real PostgreSQL concurrency, grant consumption, password/mode/device changes, and audit commit in one transaction, with at most one matching write succeeding. A switch cannot remove all usable sign-in methods. Password change, mode switch, and sign-out-all invalidate old devices without deleting the confirmed TOTP (E-03, E-06, E-07, E-08). 3) Device GET returns only the account owner's safe summaries; specified-device revocation validates ownership of its target. Ordinary signOut requires no fresh verification, while other-device/all-device actions require their own grants. After response loss, verify using safe reads rather than replaying a one-time write (E-03, E-73, E-74)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

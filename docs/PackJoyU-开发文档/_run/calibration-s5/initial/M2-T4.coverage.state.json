@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) The entry is a real GLB load from a product card, triggering POST /api/analytics/events; without consent it must remain operable with no analytics requests, and a product-page visit must not masquerade as a 3D start (E-42, E-46). 2) Each viewId must have only one success/failure terminal event; timeouts and failures must carry actual durationMs, and static fallback must not report success; verify event associations separately for two attempts and for cancellation when switching cards (E-63, E-103).",
+  "edges": {
+    "E-42": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "The user has not allowed analytics or has rejected it",
+      "expect": "Do not create/store analytics identifiers or send analytics events; the site and 3D functions remain usable. The dashboard must clearly cover only consented browsers and must not turn missing nonconsented samples into a whole-site visitor count."
+    },
+    "E-46": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "A product page is entered without opening 3D, or loading fails after opening it",
+      "expect": "Record product-page visits, 3D-view starts, load successes and failures separately, bound to server-recognized product identifiers. Failures do not count as load successes."
+    },
+    "E-63": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "3D loading succeeds, fails, times out or has no samples",
+      "expect": "Use the established section 09 definition: the denominator is actual model_view_start after consent; at most one success/failure terminal exists for the same viewId, and timeout is failure. Compute mean duration from valid terminal durationMs samples and include samples; no samples gives null, while zero success with samples gives 0%. Do not add nonconsented samples to the denominator."
+    },
+    "E-103": {
+      "scene": "Real-model failures and metrics",
+      "trigger": "GLB download fails, WebGL is unsupported, context is lost, or only a poster/FoldBox demonstration can be shown",
+      "expect": "Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display; check the corresponding product static fallback, retry and inquiry. Each viewId has at most one terminal event; neither poster nor procedural demonstration sends GLB success. If a real-model retry creates a new attempt, follow the established viewId rules."
+    }
+  }
+}
