@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) Entry: the public footer's Administrator sign-in (footer-admin-login) -> /admin-login; initial enrollment (login-enroll) -> /admin-enroll; Cannot use your authenticator (login-recovery) -> /admin-recovery. Data source: Auth.js GET/POST /api/auth/[...nextauth], POST /api/auth-admin/enroll and enroll/confirm, recovery/start/enroll/confirm. Click and submit each control, asserting actual requests and successful/failing responses. The ordinary passwordless-default form has no required password/recoveryCode. Its mode copy explicitly states Account + authenticator code (E-05, E-09, E-10, E-95, E-96). 2) Successful sign-in returns only to a safe same-site path visible to the current role. Successful recovery shows materials once and returns to sign-in. Resolve timeouts under section 10; secrets remain only in memory and are cleared on pagehide. A restricted cookie cannot enter admin (E-14, E-15). 3) minimalist-flat consumes the unique tokens; real computed styles match section 11. Run the D1-D6 probe at 1920x1080/1440x900/390x844 with card, density7/gutter16/gap16/pad16; attach real-flow GIFs. Keyboard focus, error association, and 44px touch controls pass.",
+  "edges": {
+    "E-05": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "The account has not yet enrolled an authenticator.",
+      "expect": "Continue through an existing usable sign-in method into enrollment. Enable passwordless-default sign-in only after the new authenticator has been correctly verified; do not enable it for all accounts in bulk."
+    },
+    "E-09": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "The interface retains the user's term 2FA.",
+      "expect": "Explain that the current passwordless mode is Account + authenticator code. An account identifier is not an independent authentication factor; do not claim the security level of two independent factors."
+    },
+    "E-10": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "An ordinary sign-in is performed.",
+      "expect": "Do not show a recovery code as required. A separate Cannot use your authenticator entry opens recovery. Supplying only an account identifier or email address cannot grant reset authority."
+    },
+    "E-14": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Recovery is interrupted or the reset credential expires.",
+      "expect": "Explicitly reject protected admin access with restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid enrollment remains intact. A valid restricted cookie may re-enter the same enroll operation; once invalid, restart through the recovery-code or authorization path defined in section 10. Restricted credentials cannot be exchanged for a full admin session."
+    },
+    "E-15": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "The new authenticator is verified and recovery is committed.",
+      "expect": "Revoke the old sessions, old enrollment, and old recovery credentials. Generate new recovery codes and explicitly show them once; old devices cannot continue accessing the admin area afterward."
+    },
+    "E-95": {
+      "scene": "The Remember this device sign-in field",
+      "trigger": "The Auth.js form rememberDevice value is the literal false, absent, or boolean false.",
+      "expect": "Explicitly parse it as false and use the ordinary two-hour policy. Do not turn it into a remembered device through Boolean or unconstrained coercion. Reject other invalid values."
+    },
+    "E-96": {
+      "scene": "Sign-in-mode enumeration and account privacy",
+      "trigger": "mode is unknown, totp mode was not enabled by the account owner, or ordinary Credentials carries a nonempty recoveryCode.",
+      "expect": "Test each invalid mode, totp without owner enablement, and a nonempty recoveryCode on ordinary Credentials. They must all produce the same generic Auth.js failure, issue no admin session, and return no account-existence distinction. Valid password/totp requests validate only their respective mode. Test the established rate-limit/error protocol and retain sign-in for valid users."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Recompute daily aggregates from consistent snapshots and atomically replace them",
+    "input": "analytics-ingest, job-leases, analytics-settings-domain and complete raw-coverage boundaries",
+    "output": "analytics-aggregate; AnalyticsDaily daily/product aggregation services and watermark publication",
+    "accept": "1) In real PostgreSQL count the same duplicate event once. Aggregation fixes a RepeatableRead snapshot/cutoff; newly arriving events wait for the next round. Deduplicate by navigationId and replace the whole target-day group plus watermark in one transaction; process interruption retains the previous group (E-80, E-81). 2) Reject commits by an old generation or timezoneRevision. Recompute only days whose dayStart is not earlier than complete raw coverage; late events within 48h recompute that day. Outside coverage preserve the old complete values and return partial/unavailable with their original definition, without extending raw retention or reducing counts from fragments (E-82, E-83). 3) Aggregate left-closed/right-open site-IANA days, including 23/25-hour DST and unique midnight membership. Time-zone changes recompute only still-retained events; beyond 30 days retain original labels/unavailable-recomputation state (E-56, E-57, E-58). M5-T8 wires this service into real five-minute scheduling."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

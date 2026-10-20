@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) In real PostgreSQL count the same duplicate event once. Aggregation fixes a RepeatableRead snapshot/cutoff; newly arriving events wait for the next round. Deduplicate by navigationId and replace the whole target-day group plus watermark in one transaction; process interruption retains the previous group (E-80, E-81). 2) Reject commits by an old generation or timezoneRevision. Recompute only days whose dayStart is not earlier than complete raw coverage; late events within 48h recompute that day. Outside coverage preserve the old complete values and return partial/unavailable with their original definition, without extending raw retention or reducing counts from fragments (E-82, E-83). 3) Aggregate left-closed/right-open site-IANA days, including 23/25-hour DST and unique midnight membership. Time-zone changes recompute only still-retained events; beyond 30 days retain original labels/unavailable-recomputation state (E-56, E-57, E-58). M5-T8 wires this service into real five-minute scheduling.",
+  "edges": {
+    "E-80": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "The same event is retried, or new events arrive while an aggregate read is in progress",
+      "expect": "Persist ingestion idempotently by unique event identifier. Aggregation fixes a consistent source snapshot and watermark and publishes only results covered by that snapshot; new events wait for the next round, without repeatedly adding them to already-published counts."
+    },
+    "E-81": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+      "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+    },
+    "E-82": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Raw events are inserted within the allowed late-arrival window",
+      "expect": "Explicitly recompute only natural days whose dayStart is not earlier than the start of complete raw-data coverage. Beyond that range, retain the original aggregates and return partial/unavailable plus their original definition/coverage; do not replace old complete counts with post-cleanup fragments. The late window remains 48h under section 09 without extending raw retention."
+    },
+    "E-83": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "A site-time-zone change and a job occur concurrently",
+      "expect": "Results carry timezoneRevision; old generations cannot overwrite new-time-zone results. Recompute only within the raw-retention range, without faking restored data or silently changing cleared portions to zero."
+    },
+    "E-56": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "A statistics day encounters a daylight-saving transition",
+      "expect": "Use an IANA time-zone library to compute UTC boundaries from local midnight to the next local midnight, allowing 23-hour or 25-hour days. Do not add a fixed 24 hours or double-count overlapping instants."
+    },
+    "E-57": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "An event occurs exactly at midnight or a query spans midnight",
+      "expect": "Use a left-closed/right-open interval; a single query fixes one consistent site time zone, date and boundaries. A midnight event belongs to exactly one natural day."
+    },
+    "E-58": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "ADMIN changes the time zone to a valid one",
+      "expect": "Preserve UTC event times, mark recomputation state and reaggregate only still-retained events. Older aggregates beyond the 30-day raw-retention period must preserve the original time-zone label or explicitly state that recomputation is unavailable; do not silently stitch them into a uniform-definition trend."
+    }
+  }
+}

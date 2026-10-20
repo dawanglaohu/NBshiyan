@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Update the admin shell and wire personal security settings",
+    "input": "M3-T3 account-owner sensitive APIs, M3-T5 SELF_REAUTH, and M3-T6 account client; existing AdminShell/page access; section 11 admin DENSITY7 specification.",
+    "output": "Unified AdminShell; /admin/account, AccountContainer/ReauthDialog, actual-activity reporting; personal sign-in mode/password/re-enrollment controls and role-based navigation.",
+    "accept": "1) Entry: the admin account menu's Personal information (admin-account-link) -> /admin/account. Data source: GET /api/admin/account. Clicking login-mode-toggle first sends POST reauth then PATCH login-mode; change-password first reauth then POST password; change-authenticator first reauth then POST 2fa/reset -> Continue setup enters /admin-recovery. Each button test asserts purpose/target and the real change/re-authentication. The ordinary passwordless form does not gain a password field (E-06, E-07, E-09, E-72, E-73, E-75). 2) AdminSessionActivity sends POST /api/admin/account/session/activity only after actual visible user activity, throttled to 15 minutes; page polling does not renew the session. A 401 clears this account's snapshots and in-flight requests. An expired grant returns to identity verification. Safely read back unknown sensitive-write outcomes (E-68, E-70, E-74). 3) The shell's current-role navigation agrees with page gates, and tokens have one source. On the real service at 1920x1080/1440x900/390x844, check D1-D6 using form, density7/gutter16/gap16/pad16. Include control-click, focus, and real-flow GIF evidence."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

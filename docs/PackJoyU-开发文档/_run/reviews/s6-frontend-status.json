@@ -1,0 +1,632 @@
+{
+  "M1-T1": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T1": {
+          "ready": false,
+          "contractHash": "bcd296d1ab1b7f07e5a79a89542ea6468e271913124d3921ff65e93353677a4a",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T1.evidence-template.json"
+    }
+  },
+  "M1-T2": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T2": {
+          "ready": false,
+          "contractHash": "143675d7111844a2dcc5c89f12817090f877085b96ecd0eca79ac20d39b79cc9",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T2.evidence-template.json"
+    }
+  },
+  "M1-T3": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T3": {
+          "ready": false,
+          "contractHash": "75a7f99b621fd2b3631e2e0a4f248aba734fc14949abe0655295744119680407",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T3.evidence-template.json"
+    }
+  },
+  "M1-T4": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T4": {
+          "ready": false,
+          "contractHash": "fc9344aea65e04403552581481146cc3c2c46756c9846d8a6c4991bc43091b3a",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T4.evidence-template.json"
+    }
+  },
+  "M1-T5": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T5": {
+          "ready": false,
+          "contractHash": "889d063628f0dd4f57e02c7098f97824b3da8bba93ca5e3c0a70643abafd5e17",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T5.evidence-template.json"
+    }
+  },
+  "M1-T6": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T6": {
+          "ready": false,
+          "contractHash": "77494e09972d66f3b1a46da6111dcd5b1c635e61b8cd40e9c827b692f5286244",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T6.evidence-template.json"
+    }
+  },
+  "M1-T7": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T7": {
+          "ready": false,
+          "contractHash": "442fd0de2ee0b330f68d24d6aa7b5910bb4c44d36536502b5d661592e59b88e4",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T7.evidence-template.json"
+    }
+  },
+  "M1-T8": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M1-T8": {
+          "ready": false,
+          "contractHash": "d3b415ab4d7885f0d47d58c475c1f1eb0ba15702ff91062910fd433aef101075",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程",
+            "M1-T8 疑似接线任务未列注册点（命中：服务）"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T8.evidence-template.json"
+    }
+  },
+  "M2-T1": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T1": {
+          "ready": false,
+          "contractHash": "6b85e2d7e4c7ac2a345273d03b6bad6c31e1f8c94e5afb09c3b4cee1e7bb7207",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T1.evidence-template.json"
+    }
+  },
+  "M2-T2": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T2": {
+          "ready": false,
+          "contractHash": "df893a28535f6904d6ced1bd146d398782ba35d8d1caeee04878e24bce869316",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T2.evidence-template.json"
+    }
+  },
+  "M2-T3": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T3": {
+          "ready": false,
+          "contractHash": "c9edc37fa00b1bc2f678650d3f79c26d652cce6e664cded685296efeb364d465",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T3.evidence-template.json"
+    }
+  },
+  "M2-T4": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T4": {
+          "ready": false,
+          "contractHash": "4b26b6dd5066da3cc0169412f71d361f1eae5d01ad0af2b484592018c1fe464b",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程",
+            "M2-T4 疑似接线任务未列注册点（命中：事件）"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T4.evidence-template.json"
+    }
+  },
+  "M2-T5": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T5": {
+          "ready": false,
+          "contractHash": "4cb9cf33b2ce1b0646cc0227556d1b2707861685567c875245ccc1eef29d34e1",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T5.evidence-template.json"
+    }
+  },
+  "M2-T6": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T6": {
+          "ready": false,
+          "contractHash": "6d9ece08c0b76b8ccd13aa7a25b25eba44b31fe3051195662accc593e14f1e62",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T6.evidence-template.json"
+    }
+  },
+  "M2-T7": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T7": {
+          "ready": false,
+          "contractHash": "ba8845fab2828dfbe0699bfd6926137d9eb4e97df0a05c4a898e133291de6dfc",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T7.evidence-template.json"
+    }
+  },
+  "M2-T8": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M2-T8": {
+          "ready": false,
+          "contractHash": "2d1566dc361ae832df2d0864bf9e79cec3e1345f546b207e412fd36aa57ed7ae",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M2-T8.evidence-template.json"
+    }
+  },
+  "M3-T6": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T6": {
+          "ready": false,
+          "contractHash": "988a9e9cfa516216ee0436241ecb6f598b67866dadbe70acf50317998be7c98e",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T6.evidence-template.json"
+    }
+  },
+  "M3-T7": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T7": {
+          "ready": false,
+          "contractHash": "578b49d1ba723d5a1e100c49652f2c9706235b360963b341cabe3b867e31535c",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T7.evidence-template.json"
+    }
+  },
+  "M3-T8": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T8": {
+          "ready": false,
+          "contractHash": "e67232aec82fe1aff60a35d366c1f5a5d499f91aa247686a45bd4c7d536f6424",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T8.evidence-template.json"
+    }
+  },
+  "M3-T9": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T9": {
+          "ready": false,
+          "contractHash": "112f4e0a1717190d69c3d56355bcf17798e0f41d188430fd725167d8d38bb242",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T9.evidence-template.json"
+    }
+  },
+  "M3-T10": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T10": {
+          "ready": false,
+          "contractHash": "45b6b7dbd76433482a82f519929a6b7e7876c96d4747e19d1b42dcb83cc799c0",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T10.evidence-template.json"
+    }
+  },
+  "M3-T11": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T11": {
+          "ready": false,
+          "contractHash": "8dc5f2ed4aeae6dc524787f6b244179ed54b03b279c55a142b281199d3b33235",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T11.evidence-template.json"
+    }
+  },
+  "M3-T12": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T12": {
+          "ready": false,
+          "contractHash": "f7803f3d7a58a35223f71a06d8af1d1d7d322ddb85d25ba70106fc3539f7d9dc",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T12.evidence-template.json"
+    }
+  },
+  "M3-T13": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M3-T13": {
+          "ready": false,
+          "contractHash": "9bc0f68675255f24aadef6b327d7d5a5ba40af44acf6bd9bb7451d0177642133",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T13.evidence-template.json"
+    }
+  },
+  "M4-T5": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M4-T5": {
+          "ready": false,
+          "contractHash": "9fe72ae4786e8ec4b458c337797c60fe61839e7e843a972a10814161dba753dc",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T5.evidence-template.json"
+    }
+  },
+  "M4-T6": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M4-T6": {
+          "ready": false,
+          "contractHash": "c61b28819ace690ce9d0777ec13be865d512482b22acaf08580ca703087d11ff",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T6.evidence-template.json"
+    }
+  },
+  "M4-T9": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M4-T9": {
+          "ready": false,
+          "contractHash": "7a7c4e80754af69a17a0db101d4737d732d625925cdc9f6c1a2aab1bc78caf3d",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T9.evidence-template.json"
+    }
+  },
+  "M4-T14": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M4-T14": {
+          "ready": false,
+          "contractHash": "2e8e86bd33c4130818364afd3d2964359fcc73ee44dfb59f486e5f6d7d412ae0",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T14.evidence-template.json"
+    }
+  },
+  "M4-T15": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M4-T15": {
+          "ready": false,
+          "contractHash": "321b2ea91500279ad4d6acbccf31a083716cc1cb2a9ff7f48c7d6bb541cdda92",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T15.evidence-template.json"
+    }
+  },
+  "M5-T7": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M5-T7": {
+          "ready": false,
+          "contractHash": "98bab5e45466def8bbae14fff5a3a3f9d6970fc5785573ff62f23a76cf78a6ce",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T7.evidence-template.json"
+    }
+  },
+  "M5-T10": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M5-T10": {
+          "ready": false,
+          "contractHash": "efa05b2a43fbb9fcd4c40cf18683148f6548806564b8b7f04d240dec47cbabb6",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T10.evidence-template.json"
+    }
+  },
+  "M6-T4": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M6-T4": {
+          "ready": false,
+          "contractHash": "3a4d23eb23a1114880fb30c959b1f15126c558dfa256fea1e05fd2930a6e42dc",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T4.evidence-template.json"
+    }
+  },
+  "M6-T7": {
+    "exitCode": 1,
+    "status": {
+      "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+      "stale": [],
+      "runtimeDrift": [],
+      "tasks": {
+        "M6-T7": {
+          "ready": false,
+          "contractHash": "12c35bc751be37d9af22f31a58df35b75533bf3bad89b4904675099e741e8c28",
+          "blockers": [],
+          "reasons": [
+            "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程",
+            "M6-T7 疑似接线任务未列注册点（命中：事件、页面）"
+          ]
+        }
+      },
+      "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T7.evidence-template.json"
+    }
+  }
+}

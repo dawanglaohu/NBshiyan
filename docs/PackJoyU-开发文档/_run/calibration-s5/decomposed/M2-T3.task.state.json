@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire model keyboard/touch and reset controls",
+    "input": "model-pointer, each product initial camera/zoom bounds and the existing large cards",
+    "output": "model-accessibility; keyboard/single-finger/two-finger/reset controls with 44px targets",
+    "accept": "1) Tab reaches each named control with visible focus; direction/zoom/reset provide the same functions as the mouse. Escape exits to its source control without trapping Tab or automatically following product links (E-101). 2) Separately test single-finger model drag, two-finger zoom within min/max and text-area page scroll; takeover stays within the model area, no gesture submits an inquiry, and each measured hit target is at least 44 CSS px (E-102). 3) After arbitrary rotation/zoom, reset equals that product initial camera/bounds. At 1440/1920 and narrow sizes the complete model is visible, names/key controls meet section 11 font sizes, and specifications/inquiry remain visible; do not eliminate clipping by deleting content (E-104)."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

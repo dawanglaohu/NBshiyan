@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Real HTTP GET returns current version/timezone/revision/recomputableFrom, and PATCH carries expectedVersion. An ADMIN change to a valid IANA time zone commits the new revision, pending recomputation and audit together; the next real job recomputes only complete coverage while older ranges retain original labels/partial (E-58). 2) Nonexistent IANA, stale version and direct SALES/EDITOR/unauthenticated requests are rejected with the original configuration entirely unchanged, without fallback to browser time zone (E-59). Existing about/org settings stay unchanged and responses pass section 10 schemas.",
+  "edges": {
+    "E-58": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "ADMIN changes the time zone to a valid one",
+      "expect": "Preserve UTC event times, mark recomputation state and reaggregate only still-retained events. Older aggregates beyond the 30-day raw-retention period must preserve the original time-zone label or explicitly state that recomputation is unavailable; do not silently stitch them into a uniform-definition trend."
+    },
+    "E-59": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "An invalid IANA time zone is supplied or an unauthorized role attempts a change",
+      "expect": "Reject the save and retain the previous valid configuration; do not silently fall back to the viewer's local time zone."
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "id": "M7-T3",
+  "row": {
+    "line": 82,
+    "title": "终验同意到分析看板及统计日界线",
+    "deps": [
+      "M5-T5",
+      "M5-T4",
+      "M6-T7",
+      "M2-T4",
+      "M5-T11",
+      "M5-T10",
+      "M2-T7"
+    ],
+    "input": "analytics-ingest/aggregate/retention、真实产品event与最终stats-ui",
+    "output": "analytics-acceptance；真实采集聚合、时区与保留授权链报告",
+    "acceptance": "1) 从真实同意控件→真实页面/产品/GLB start与唯一终态→计划聚合提交→/admin/stats读取同productSlug/viewId来源；拒绝或撤回不采集，成功率只用授权start，真实失败/超时不算success，无样本null且均值带samples（E-42、E-61、E-63）。2) 专用PG与HTTP链覆盖DST23/25小时、午夜、48h迟到、同revision快照以及旧租约晚提交被拒；时区改变不拼接超原始覆盖趋势；原始30d/聚合13月候选边界可测，生产无保留授权时请求真实清理被拒且删除0（E-48、E-56、E-81、E-88）。",
+    "days": "2d"
+  },
+  "contract": {
+    "provides": [
+      "analytics-acceptance"
+    ],
+    "requires": [
+      {
+        "task": "M5-T11",
+        "capability": "analytics-retention"
+      },
+      {
+        "task": "M5-T10",
+        "capability": "analytics-settings-ui"
+      },
+      {
+        "task": "M6-T7",
+        "capability": "stats-ui"
+      },
+      {
+        "task": "M2-T7",
+        "capability": "model-events"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "e2e/analytics-integration.spec.ts",
+      "tests/analytics-time-integration.db.test.ts",
+      "docs/acceptance/analytics/"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "20a63ccb0854024b64f638f6166ceb28d75c56d00ba851c9228075ce74e0d097",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M7　集成验收与交付：负责访客跨模块完整路径、后台权限与恢复路径、统计和可靠性完整链路的真实集成验收及交付证据收口；核对本轮复用的恢复来源，不重做 S1 已完成的取回和来源审计，也不自动合并恢复草稿。\n13: - 输入：analytics-ingest/aggregate/retention、真实产品event与最终stats-ui\n14: - 产出：analytics-acceptance；真实采集聚合、时区与保留授权链报告\n15: - 预估：2 人天　｜　前置：M5-T5　实现分析保留候选与覆盖边界计划器；M5-T4　接通时区设置HTTP与重算范围查询；M6-T7　完成看板逐源状态与故障呈现；M2-T4　定义模型分析事件生命周期纯规则；M5-T11　注册默认dry-run的分析保留任务；M5-T10　呈现ADMIN时区表单与保存反馈；M2-T7　把真实GLB生命周期接入分析采集（已落地）\n16: 任务契约版本：20a63ccb0854024b64f638f6166ceb28d75c56d00ba851c9228075ce74e0d097；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M7-T3.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M7.md　模块职责与已有代码位置\n24: - docs/PackJoyU-开发文档/图谱/边界/ 下的 E-42.md、E-48.md、E-56.md、E-61.md、E-63.md、E-81.md、E-88.md　本任务要兜的边界\n25: \n26: ## 验收标准（验收的唯一依据，逐条都要满足）\n27: 1) 从真实同意控件→真实页面/产品/GLB start与唯一终态→计划聚合提交→/admin/stats读取同productSlug/viewId来源\n28: 拒绝或撤回不采集，成功率只用授权start，真实失败/超时不算success，无样本null且均值带samples（E-42、E-61、E-63）。2) 专用PG与HTTP链覆盖DST23/25小时、午夜、48h迟到、同revision快照以及旧租约晚提交被拒\n29: 时区改变不拼接超原始覆盖趋势\n30: 原始30d/聚合13月候选边界可测，生产无保留授权时请求真实清理被拒且删除0（E-48、E-56、E-81、E-88）。\n31: \n32: ## 必须处理的边界\n33: - E-42　C-05 分析采集、去重与保留期\n34:   触发：用户尚未允许或拒绝分析　期望：不生成或保存分析标识、不发分析事件，网站与 3D 功能仍可用；看板明确只覆盖授权浏览器，不将缺失授权样本补成全站人数。\n35: - E-48　C-05 分析采集、去重与保留期\n36:   触发：原始事件超过 30 天或聚合超过 13 个月　期望：沿09节把保留边界写成 receivedAt+30天及无身份聚合 expiresAt 的13个自然月，并显示查询覆盖范围；清理只在另有明确生产保留授权且显式启用时执行，默认 dry-run/关闭真实清理，无授权请求拒绝实际删除；隔离测试验证过期目标集合、计数、去标识及不重建已过期明细，不扩大备份或已有数据删除权限。\n37: - E-56　今日统计的站点时区与历史重算\n38:   触发：统计日遇到夏令时切换　期望：使用 IANA 时区库计算本地午夜到次日本地午夜的 UTC 边界，允许一天为 23 或 25 小时，不固定加 24 小时或重复计算重叠时刻。\n39: - E-61　运维指标扩展及角色权限\n40:   触发：本轮验收今日授权访客、PV、产品归因与 3D 查看/加载指标　期望：列出一轮真实产品动作证据：同意→实际页面/产品访问→实际 GLB start/terminal→真实五分钟作业提交→看板读取真实日/产品聚合，逐项核今日授权浏览器、PV、归因和3D指标。核心来源不得以未接入或固定值交差。\n41: - E-63　运维指标扩展及角色权限\n42:   触发：3D 加载有成功、失败、超时或没有样本　期望：引用09节既定口径：分母为获同意后真实 model_view_start；同 viewId 最多一个 success/failure 终态，超时记 failure；终态 durationMs 的有效样本算平均耗时并带 samples，无样本为 null，零成功且有样本才为0%，拒绝分析样本不补分母。\n43: - E-81　分析聚合与水位发布\n44:   触发：两个调度实例重叠，或旧任务超时后晚于新任务提交　期望：使用数据库互斥或带代次的租约及提交校验，旧任务不能覆盖新结果；一次事务替换整组目标日数据并提交 watermark，进程中断保留上次完整结果。\n45: - E-88　聊天凭据及数据保留期限\n46:   触发：本轮文档被生成或实施者拿到派发任务　期望：新增纯授权门禁的可测表述：生产真实清理默认关闭且 dry-run 为默认模式；不存在另行明确的保留策略授权时，启用或请求真实删除必须拒绝且删除计数为0，可返回候选计数/未启用状态。文档、任务派发、模型或代理结论均不能充当授权。只用隔离数据验证，不触碰生产/恢复/备份现有数据。\n47: \n48: ## 只改这些路径\n49: - docs/acceptance/analytics/\n50: - e2e/analytics-integration.spec.ts\n51: - tests/analytics-time-integration.db.test.ts\n52: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n53: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n54: \n\n92: ## 本项目约定\n93: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n94: "
+}

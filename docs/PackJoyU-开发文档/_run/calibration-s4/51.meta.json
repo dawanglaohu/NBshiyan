@@ -1,0 +1,17 @@
+{
+  "started": "2026-10-20T04:09:00.347645+00:00",
+  "finished": "2026-10-20T04:09:01.301474+00:00",
+  "exit_code": 0,
+  "command": [
+    "D:\\Program Files\\Python313\\python.exe",
+    "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\typesafe_ask.py",
+    "--log",
+    "D:\\xiangmu\\.codex-plans\\NBshiyan-docs-s2-s6\\edge-calibration\\51.jsonl",
+    "--label",
+    "S4-E-51",
+    "run",
+    "edge",
+    "--state",
+    "D:\\xiangmu\\.codex-plans\\NBshiyan-docs-s2-s6\\edge-calibration\\51.state.json"
+  ]
+}

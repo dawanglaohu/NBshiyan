@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register storage/backup reports and operations sampling",
+    "input": "JobState, controlled server scripts and existing backup metadata",
+    "output": "The ops-sample job, POST /api/internal/ops-report and a read-only reporting script",
+    "accept": "1) Caller controlled deployment script leads to POST /api/internal/ops-report, with strict Bearer/allowlist/time-range checks; send only space counters/backup-completion metadata, without sending contents or allowing arbitrary path reads; show not connected when no verifiable source exists (E-65, E-66). 2) Actually register ops-sample in registry/cron and show real measuredAt/lastSucceededAt; stopping reports must not fake freshness, auxiliary exceptions must not block core stats, and unobserved chains must not show healthy (E-54, E-64, E-67)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

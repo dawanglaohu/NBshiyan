@@ -1,0 +1,55 @@
+{
+  "acceptance": "1) Caller/wiring point: real admin-read handlers -> requireAdmin(ADMIN/SALES) -> inbox service. Direct reads by unauthenticated/EDITOR/revoked accounts or visitors return no body content. Recheck current role every time, independently of hidden buttons (E-19, E-32, E-78). 2) List snapshots use updatedAt/id cursors, body pages use seq with max100, and inserted messages are completely returned once. One operator's read MAX does not affect another's cursor; undisplayed new seq remains unread. Independently return actual queued/sending/sent/failed/unknown/disabled notification states without changing received (E-34, E-35, E-77, E-79). 3) GET/read/notifications do not extend 90 days. Cookie expiry yields visitor 401 while ADMIN/SALES still read retained consultations. Notification failure does not prevent inbox handling (E-41, E-86, E-89).",
+  "edges": {
+    "E-19": {
+      "scene": "Online chat implementation route",
+      "trigger": "A visitor guesses another conversation identifier, or an unauthorized admin account accesses the inbox.",
+      "expect": "Reject reads and replies. A visitor may access only their own conversation using their own unguessable session credential."
+    },
+    "E-32": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "The requester is unauthenticated, an EDITOR, an account whose privileges were revoked, or a visitor guessing someone else's conversation identifier.",
+      "expect": "Directly request the read and reply endpoints for each of these cases and verify no content is returned and no write occurs. Return data to ADMIN/SALES only under current authorization; hiding a button is not authorization evidence."
+    },
+    "E-34": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A new message arrives while the inbox is refreshed or paginated.",
+      "expect": "Apply the defined seq cursor and read MAX rules: insert messages between pages and verify that each message ID in the completed range appears exactly once. Advance read only to the seq actually confirmed by the user; newly arrived higher-seq messages remain unread."
+    },
+    "E-35": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "An email notification fails or is not connected.",
+      "expect": "Represent the actual notification state using the defined queued/sending/sent/failed states or their existing DTO mapping. Notification failure after a message is saved changes only that notification state, not the message's received state or the inbox's ability to process it. An unconnected source must not display Sent."
+    },
+    "E-41": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A message has been saved but an operator reply or notification fails to send.",
+      "expect": "Keep the received result and inbox pending-work state. Separately show the real sending failure; do not pretend that the visitor has been contacted."
+    },
+    "E-77": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "There are multiple tabs, retries, out-of-order responses, or new messages inserted between pages.",
+      "expect": "Merge and deduplicate by stable server seq and message identifier. Advance the cursor only through the fully received range. A late old response must not move the cursor backward, overwrite a newer reply, or skip messages on an omitted page."
+    },
+    "E-78": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "A visitor session expires or is revoked, or an operator loses chat permission after previously holding ADMIN/SALES.",
+      "expect": "Perform server-side authorization on the next poll and send, and stop returning conversation content. Changing threadId, seq, or email cannot read another consultation."
+    },
+    "E-79": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "The network recovers after an interruption, or the operator inbox has many unread messages.",
+      "expect": "Bind bounded pages to the established pagination cap, verify that no request exceeds it, and continuously fill seq gaps. Polling updates only the confirmed-receipt cursor, not the user's read position, and must not create an operator-online or read promise."
+    },
+    "E-86": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "A hidden tab still polls, or a visit merely refreshes without successfully sending or receiving a consultation message.",
+      "expect": "These behaviors do not postpone the 90-day retention deadline for messages/email. Consultation activity means successfully persisted visitor messages or human replies; notification retries, delivery receipts, and read-state updates do not count as new consultation activity."
+    },
+    "E-89": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "A chat cookie becomes invalid while the messages are still within 90 days.",
+      "expect": "Immediately block the visitor's historical access. Operators can still process retained consultations under existing ADMIN/SALES authorization. Do not implicitly change the existing 730-day inquiry, 30-day/13-month analytics, or backup policies."
+    }
+  }
+}

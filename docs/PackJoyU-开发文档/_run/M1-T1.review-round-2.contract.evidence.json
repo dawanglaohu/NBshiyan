@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T1": {
+      "contractHash": "c05fc8a5fb6198a932bfc715de2ea8141001fd67da51a5392672405a08673733",
+      "verdict": "pass",
+      "evidence": [
+        "第2轮只复核第1轮R1/R2及直接回归；19节与当前派发包、06/07/11/12/13/17的既定验收、前置能力、有效路径与阶段均未改变。M1-T1仍为无前置integration，提供visual-base/runnable-smoke；playwright.config.ts在已验证supportPaths内。",
+        "R1接线：playwright.config.ts:38-45统一启动.next/standalone/server.js并记录stdout；ci.yml:82-99准备静态资源，保留真实PostgreSQL与全套e2e并核RUM日志；brand-smoke.spec.ts:132不跳过接口200，:140以可见同意和真实浏览器导航核204与同次新增日志，未替换应用请求。",
+        "R2接线：globals.css:350-352浅色accent、深色白色2px outline与2px offset；brand-smoke.spec.ts:185通过真实Tab核premium主按钮/ghost/CTA及浅色对照。未增加新页面、业务控件、目录fetch或DTO。",
+        "本轮独立使用项目正式Playwright配置，在专用本机PostgreSQL测试库及新启动的真实standalone上复跑5项品牌冒烟，5通过/0失败/0跳过；同服务stdout核得5条v4浏览器指标与1条独立HTTP正例，只有白名单字段且无邮箱。定向focus/RUM规则16通过，lint通过。构建产物的生产输入与eae84f7相同；后续原提交只改文档与裁决记录。",
+        "本轮复核新增J6，原A-D全部保留：judgments.jsonl:934，status=ok，model=jev-1.13.0，pick=A high0.99，adopt=take(A)。保留standalone CI；指定安全App必须对最终精确HEAD真实APPROVED。当前gate未满足，不伪造审查、不改闸门、不运行--landed或声称已合并。",
+        "此pass只登记任务契约语义复核。R1/R2实现验收已通过，但仓库合并仍受真实安全App批准约束；任务笔记持久记录review，不标done。"
+      ]
+    }
+  }
+}

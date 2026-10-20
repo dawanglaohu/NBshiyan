@@ -1,0 +1,30 @@
+{
+  "acceptance": "1) Trigger real POST /api/admin/account/reauth from profile actions. Only current password plus an unused TOTP yields a five-minute grant. Concurrent use of one TOTP step yields at most one grant, and concurrent use of one grant yields at most one mutation. Wrong purpose/target/device, expired or revoked grants are denied with unchanged state (E-72, E-73, E-74). 2) Through real enrollment/mode-switch entries, submit wrong, expired and replayed codes and two concurrent switches. The final transaction rechecks pending state/deadline/sv; errors cannot commit and at most one concurrent switch succeeds. At least one verified login method remains after failure (E-08). 3) A passwordless-enabled user who forgot the current password can still log in with email+totp for nonsensitive work. A session alone or TOTP alone cannot obtain a normal grant through reauth or directly mutate sensitive settings. The UI points to independent limited recovery; that path only permits new-factor binding with audit, and HTTP cannot write pendingPasswordHash (E-75).",
+  "edges": {
+    "E-72": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "The same TOTP time step has been consumed by login, another sensitive operation or concurrent requests",
+      "expect": "Atomically consume the account's authenticator time step; later requests cannot issue another ActionGrant. The client may wait for the next code to retry; do not reintroduce recovery codes into ordinary login."
+    },
+    "E-73": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "Two requests concurrently use the same ActionGrant, or a password-change authorization is used to disable the authenticator",
+      "expect": "Within the sensitive-change transaction, verify and consume the authorization once against its action, device, account and credential version. Only one matching request succeeds; a mismatched purpose is rejected and cannot perform the change."
+    },
+    "E-74": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "More than five minutes have passed since authorization issuance, the device is revoked, password/authenticator changes, or account permissions become invalid",
+      "expect": "The old authorization is immediately invalid. Fresh-verification authorization cannot be transferred across devices and cannot extend the original device session."
+    },
+    "E-08": {
+      "scene": "C-03 Authenticator enrollment and the default-passwordless switch",
+      "trigger": "The enrollment code is incorrect, expired, submitted repeatedly, or switching occurs concurrently",
+      "expect": "Test the four triggers separately and recheck the pending enrollment record, expiry and current credential version in the final transaction. Incorrect/expired/replayed requests do not commit; at most one of two concurrent switches succeeds; a query after failure must still find at least one verified login method. Follow section 09 without inventing another login method."
+    },
+    "E-75": {
+      "scene": "Fresh self-verification for sensitive settings",
+      "trigger": "The user forgot the current password but can still use enabled passwordless login",
+      "expect": "Point D3 to the restricted-recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless login stays unchanged; missing the current password prevents issuing an ordinary ActionGrant for sensitive settings. Reject direct requests relying only on a logged-in session or one TOTP, with no change; restricted recovery only allows a new binding and is audited."
+    }
+  }
+}

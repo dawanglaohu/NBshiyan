@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) Entry: admin settings-link leads to the analytics section of /admin/settings; the data sources are GET/PATCH /api/admin/settings/analytics; clicking Save must send expectedVersion and show the actual new revision/recomputation range; invalid IANA input or direct non-ADMIN requests must not change the original value (E-58, E-59). 2) Entry: footer privacy-link leads to /[locale]/privacy; explain the scope of consented anonymous browsers and separation of necessary chat cookies from analytics; show the site time zone/coverage period on the page, with admin D1-D6 checks at all three viewports and a GIF recording of the requests (E-45, E-55).",
+  "edges": {
+    "E-58": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "ADMIN changes the time zone to a valid one",
+      "expect": "Preserve UTC event times, mark recomputation state and reaggregate only still-retained events. Older aggregates beyond the 30-day raw-retention period must preserve the original time-zone label or explicitly state that recomputation is unavailable; do not silently stitch them into a uniform-definition trend."
+    },
+    "E-59": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "An invalid IANA time zone is supplied or an unauthorized role attempts a change",
+      "expect": "Reject the save and retain the previous valid configuration; do not silently fall back to the viewer's local time zone."
+    },
+    "E-45": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "The same person switches devices, clears identifiers or uses another browser",
+      "expect": "State Number of anonymous browsers that consented to analytics in the visitor definition/help. Separately test device switching, identifier clearing and browser switching, each of which can create a new browserHash. Do not claim unique real-person or cross-device identification."
+    },
+    "E-55": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "Two operators with different browser or operating-system time zones view the same day",
+      "expect": "Use the same site time zone and day interval; metric definitions and values must not change with the viewer's location. Label charts and exports with the site time zone."
+    }
+  }
+}

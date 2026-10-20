@@ -1,0 +1,17 @@
+{
+  "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+  "stale": [],
+  "runtimeDrift": [],
+  "tasks": {
+    "M7-T9": {
+      "ready": false,
+      "contractHash": "5a763cf070499edaeaf2d0b4a9c1f3e27c7a8ba83eab7c39b0cc056f9789c65e",
+      "blockers": [],
+      "reasons": [
+        "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程",
+        "M7-T9 疑似接线任务未列注册点（命中：事件、接口）"
+      ]
+    }
+  },
+  "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M7-T9.evidence-template.json"
+}

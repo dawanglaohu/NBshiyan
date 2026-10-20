@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Provide human inbox and reply APIs authorized by the current role",
+    "input": "M4 stable-seq messages/outbox and M3 current admin authorization; section 09/10 ADMIN/SALES shared chat scope, per-operator read cursors, and close CAS.",
+    "output": "GET /api/admin/chat/conversations, GET /api/admin/chat/conversations/[id], POST /api/admin/chat/conversations/[id]/messages, POST /api/admin/chat/conversations/[id]/read, and PATCH /api/admin/chat/conversations/[id]; real unread and notification-state DTOs.",
+    "accept": "1) Caller/wiring point: admin chat handlers -> requireAdmin(ADMIN/SALES) -> operator service. Unauthenticated/EDITOR/revoked accounts receive no body content and cause no changes on reads or writes; visitors cannot use admin endpoints. author comes from server identity (E-16, E-19, E-32, E-78). 2) Concurrent replies from two people preserve each real author and unique seq. Each operator's read MAX cannot exceed an actual seq. Pagination/new messages lose no page; snapshot refresh is not presented as a message-increment log. Only a matching expectedVersion wins a close race, and writes after closure return 409 (E-33, E-34, E-77, E-79). 3) Queries return actual queued/sending/sent/failed/unknown/disabled notification outcomes. Notification failures do not retract received. Cookie expiry does not stop authorized operators reading consultations within 90 days. Reads, queries, and notifications do not renew content retention (E-35, E-41, E-86, E-89)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

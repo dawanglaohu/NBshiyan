@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) Tab must reach the specific controls, with keyboard rotation/zoom/reset and Escape available; a single finger operates the model, two fingers zoom within bounds, and the page scrolls in the text area; targets must be at least 44px and must not trigger an inquiry (E-101, E-102). 2) Individually test GLB failure, unsupported WebGL, context lost, and poster-only or FoldBox-only display; each must give a static fallback with inquiry and retry available; reset must return to the initial camera with the complete model visible; posters/procedural demonstrations must not count as successful GLB loads (E-103, E-104).",
+  "edges": {
+    "E-101": {
+      "scene": "Keyboard model viewing",
+      "trigger": "The keyboard focuses the model-control area, then uses direction/zoom/reset controls",
+      "expect": "Every control has a distinguishable name, visible focus and equivalent functionality. Escape leaves operation and returns focus to its source control; do not trap Tab or automatically follow a product link."
+    },
+    "E-102": {
+      "scene": "Touchscreen gestures",
+      "trigger": "A finger drags in the model viewport, two fingers zoom, or a finger swipes in the card's text area",
+      "expect": "Separately verify single-finger model drag, two-finger zoom and text-area swiping: only the model operating area takes over dragging, zoom stays within the product's defined min/max, and text/page scrolling remains available. Measure every control's hit target as at least 44 CSS px; no gesture may submit an inquiry."
+    },
+    "E-103": {
+      "scene": "Real-model failures and metrics",
+      "trigger": "GLB download fails, WebGL is unsupported, context is lost, or only a poster/FoldBox demonstration can be shown",
+      "expect": "Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display; check the corresponding product static fallback, retry and inquiry. Each viewId has at most one terminal event; neither poster nor procedural demonstration sends GLB success. If a real-model retry creates a new attempt, follow the established viewId rules."
+    },
+    "E-104": {
+      "scene": "Product reset and presentation",
+      "trigger": "Reset is clicked after arbitrary rotation/zoom, or the product is viewed at PC 1440/1920 and narrow-screen sizes",
+      "expect": "Use the product's existing initial camera/zoom bounds as the baseline; after arbitrary manipulation, reset returns to those values. At 1440/1920 and narrow screens, check that the whole model is visible and names/key actions are distinguishable. After removing repeated bottom descriptions, specifications and inquiry entries must remain visible and usable; do not eliminate clipping by deleting content."
+    }
+  }
+}

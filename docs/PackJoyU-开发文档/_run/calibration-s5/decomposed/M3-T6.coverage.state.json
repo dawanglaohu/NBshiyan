@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Entry: public-footer Administrator sign-in (footer-admin-login) -> /admin-login. Data source: Auth.js GET/POST /api/auth/[...nextauth]. Clicking login-submit sends actual CSRF/Credentials requests and verifies the cookie plus GET account. totp sends only email/totp; password mode adds a current-password field. The interface explains that the account is not a second factor (E-09). 2) Real form requests with unchecked/absent rememberDevice or literal false create remembered=false devices; only checked true creates true. Invalid values issue no session (E-95). 3) Separately submit unknown mode, an account without enabled totp mode, nonempty recoveryCode, and nonexistent account to Credentials. Assert the same generic failure, no new device, and no account distinction. Valid password/totp requests each succeed. No ordinary recovery-code field exists; reject external or current-role-inaccessible return paths (E-96). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px.",
+  "edges": {
+    "E-09": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "The interface retains the user's term 2FA.",
+      "expect": "Explain that the current passwordless mode is Account + authenticator code. An account identifier is not an independent authentication factor; do not claim the security level of two independent factors."
+    },
+    "E-95": {
+      "scene": "The Remember this device sign-in field",
+      "trigger": "The Auth.js form rememberDevice value is the literal false, absent, or boolean false.",
+      "expect": "Explicitly parse it as false and use the ordinary two-hour policy. Do not turn it into a remembered device through Boolean or unconstrained coercion. Reject other invalid values."
+    },
+    "E-96": {
+      "scene": "Sign-in-mode enumeration and account privacy",
+      "trigger": "mode is unknown, totp mode was not enabled by the account owner, or ordinary Credentials carries a nonempty recoveryCode.",
+      "expect": "Test each invalid mode, totp without owner enablement, and a nonempty recoveryCode on ordinary Credentials. They must all produce the same generic Auth.js failure, issue no admin session, and return no account-existence distinction. Valid password/totp requests validate only their respective mode. Test the established rate-limit/error protocol and retain sign-in for valid users."
+    }
+  }
+}

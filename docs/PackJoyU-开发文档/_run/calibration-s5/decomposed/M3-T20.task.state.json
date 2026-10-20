@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Connect account-owner authenticator replacement to restricted re-enrollment",
+    "input": "M3-T3 TOTP_RESET grants and M3-T5 restricted re-enrollment.",
+    "output": "SELF_REAUTH restricted sessions and compatible legacy responses from POST /api/admin/account/2fa/reset.",
+    "accept": "1) Caller/wiring point: real 2fa/reset -> current device plus transactional TOTP_RESET consumption -> SELF_REAUTH restricted cookie/enrollLink. The compatible currentPassword+totp path has equal strength and rejects recoveryCode. Keep the original factor until final confirm; a restricted-cookie admin request returns 401 (E-14, E-73). 2) Without the current password, passwordless-session/TOTP-only grant issuance or direct reset rejects without a factor change. A valid owner grant permits restricted enroll/confirm and audited new enrollment. A forgotten password requires separate OS-owner preauthorization, not a self-chosen HTTP password (E-75)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

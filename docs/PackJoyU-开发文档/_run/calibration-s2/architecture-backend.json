@@ -1,0 +1,20 @@
+{
+  "shared": {
+    "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+    "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+    "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。",
+    "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。"
+  },
+  "backend": {
+    "layout": "src/app/api/**/route.ts保留路由、src/auth.ts保留Auth.js组合；src/lib/server/admin/{device-session,action-grant,recovery}.ts属M3，chat/属M4，analytics/属M5，ops/属M6，jobs/放固定作业；src/lib/contracts/放新契约，prisma/schema.prisma仍是数据源；禁止另建应用或迁移无关旧模块。",
+    "layers": "新路径route→service→repo单向；route收发HTTP和调用守卫，service管业务/事务，repo接显式Prisma依赖执行查询；M6只读M4/M5查询，禁止repo反调service、service返回NextResponse、客户端导入server、统计或聊天反调看板；未改旧路径不强制重分层。",
+    "data": "复用db.ts唯一PrismaClient；新查询集中模块repo，锁/聚合用Prisma.sql参数化，禁止service拼SQL及拼接queryRawUnsafe；每实例connection_limit=5、pool_timeout=10s，总连接不超过数据库可用额度；schema只经现有deploy.sh备份/diff/plan-check/db push/零drift，禁止accept-data-loss、删改旧列或把prisma/sql参考计划当已执行迁移。",
+    "middleware": "后台新入口按requestId/脱敏计时→requireAdmin(当前User/sv/sid/角色)→写操作精确同源→await限流→限体/Zod strict→service→HTTP错误映射；公开聊天先同源/限流再cookie范围校验，恢复先限流再凭据，cron仅Bearer；既有邮件gate仍最先；禁止仅靠layout鉴权、漏await、日志含验证码/token/正文/email。",
+    "tx": "仅service或顶层use-case开事务，嵌套调用复用tx，禁止事务内SMTP/HTTP/文件IO与嵌套事务；一次性凭据核销+动作、恢复核销+sv/设备撤销+受限session、消息+seq+出箱均原子；敏感写最终重查账号/设备/授权；固定User→Device→Grant锁序，聚合整组原子替换并核作业代次，禁止先报成功再补关键写。",
+    "utils": "contracts及lib/chat/rules.ts、lib/analytics/rules.ts只放无IO的schema/枚举/纯转换；授权、同意准入、时钟、cookie、加密、存储与通知留server；禁止将带请求/状态的业务判断塞入utils或从纯模块读env。",
+    "errors": "新AppError仅含受控code/fieldErrors，service抛领域错误，repo只转已识别唯一冲突；仅server/http/errors.ts映射新HTTP，未知错误脱敏记录；Auth.js CredentialsSignin、旧{error}/邮件状态/rum空体保持协议；禁止全库换信封或外泄Prisma/SMTP原始异常。",
+    "config": "server/config.ts首次Node运行组合时集中读env、Zod验证并冻结，沿instrumentation.ts与startup/env-check.ts生产检查；测试显式传配置；环境改动需重启，站点时区从版本化SiteSetting按同一revision读取；禁止业务散读新增env、构建内联秘密或静默热改安全策略。",
+    "di": "不加DI库；server/composition.ts组装createService({repo,config,clock,tokenCrypto,mailer})供route使用；仅Prisma、冻结配置与无请求状态服务可为进程级对象；禁止全局当前用户/恢复凭据/消息/计数和以Map代替跨实例事实；依赖测试显式注入。",
+    "jobs": "jobs/registry.ts固定注册聊天通知、5min分析聚合、分析/聊天保留、运维采样及既有mail-queue包装，deploy/cron.nbshiyan真实调度；复用service/repo，持久租约+代次、batch≤500、截止55s；ChatNotification与消息同事务，SMTP事务外且稳定Message-ID/至少一次有界重试；禁止setInterval、after承担持久交付、看板GET跑作业或只写接口不接调度。"
+  }
+}

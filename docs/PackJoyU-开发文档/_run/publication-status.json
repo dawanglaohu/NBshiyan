@@ -1,0 +1,300 @@
+{
+  "checkedAt": "2026-10-20T02:29:06.522612+00:00",
+  "notMergedOrDeployed": true,
+  "pullRequests": [
+    {
+      "baseRefName": "main",
+      "headRefName": "recovery/seo-content-drafts",
+      "headRefOid": "df58d08c9a590f55f1ae5d4a3bf0bd303fa21227",
+      "isDraft": true,
+      "number": 386,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:11:13Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357123351/job/118414364359",
+          "name": "build-and-audit",
+          "startedAt": "2026-10-20T02:06:39Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:06:43Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357123430/job/118414364806",
+          "name": "gate",
+          "startedAt": "2026-10-20T02:06:39Z",
+          "status": "COMPLETED",
+          "workflowName": "security-review"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:11:48Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357123351/job/118414364149",
+          "name": "e2e",
+          "startedAt": "2026-10-20T02:06:40Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        }
+      ],
+      "title": "docs: 恢复 SEO 文章和运维文档草稿",
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/386"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "publish/recovered-jsonld-security-20261019",
+      "headRefOid": "b8b4990236230984d17b2050199dbad6dcf62e39",
+      "isDraft": true,
+      "number": 387,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:10:20Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357150934/job/118414455039",
+          "name": "build-and-audit",
+          "startedAt": "2026-10-20T02:06:58Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:07:01Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357150946/job/118414455086",
+          "name": "gate",
+          "startedAt": "2026-10-20T02:06:58Z",
+          "status": "COMPLETED",
+          "workflowName": "security-review"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:11:45Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357150934/job/118414455090",
+          "name": "e2e",
+          "startedAt": "2026-10-20T02:06:58Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        }
+      ],
+      "title": "fix(seo): recover JSON-LD URL safety follow-ups",
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/387"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "recovery/admin-enroll-347",
+      "headRefOid": "222016a4cef8d74fe5831ecccc8d566aae909b2a",
+      "isDraft": true,
+      "number": 388,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:21:57Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358127789/job/118417630750",
+          "name": "build-and-audit",
+          "startedAt": "2026-10-20T02:17:46Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:17:50Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358127827/job/118417630739",
+          "name": "gate",
+          "startedAt": "2026-10-20T02:17:46Z",
+          "status": "COMPLETED",
+          "workflowName": "security-review"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:21:38Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358127789/job/118417630998",
+          "name": "e2e",
+          "startedAt": "2026-10-20T02:17:46Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        }
+      ],
+      "title": "feat(admin): recover complete one-time enrollment link frontend",
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/388"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "recovery/indexnow-shared-endpoint",
+      "headRefOid": "aff2f8d9a93afb6929e9601aae24b50e504eda0f",
+      "isDraft": true,
+      "number": 389,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:16:11Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357632058/job/118416012774",
+          "name": "build-and-audit",
+          "startedAt": "2026-10-20T02:12:13Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:12:16Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357631993/job/118416012354",
+          "name": "gate",
+          "startedAt": "2026-10-20T02:12:12Z",
+          "status": "COMPLETED",
+          "workflowName": "security-review"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:17:21Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39357632058/job/118416012604",
+          "name": "e2e",
+          "startedAt": "2026-10-20T02:12:13Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        }
+      ],
+      "title": "feat(seo): 恢复可选 IndexNow 全局端点后续",
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/389"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "recovery/translation-source-drafts",
+      "headRefOid": "362c0c148664792113c6c1f0e3895ab6de5b6ba5",
+      "isDraft": true,
+      "number": 390,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:21:57Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358133837/job/118417651153",
+          "name": "build-and-audit",
+          "startedAt": "2026-10-20T02:17:50Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:17:55Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358133801/job/118417650759",
+          "name": "gate",
+          "startedAt": "2026-10-20T02:17:50Z",
+          "status": "COMPLETED",
+          "workflowName": "security-review"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:22:09Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358133837/job/118417650920",
+          "name": "e2e",
+          "startedAt": "2026-10-20T02:17:51Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        }
+      ],
+      "title": "docs(i18n): recover unpublished six-language source drafts",
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/390"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "recovery/i18n-phase0",
+      "headRefOid": "a6fcbbd8789c97840ff470a59389dadc6dc18b20",
+      "isDraft": true,
+      "number": 391,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:19:08Z",
+          "conclusion": "FAILURE",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358239656/job/118417998625",
+          "name": "gate",
+          "startedAt": "2026-10-20T02:19:03Z",
+          "status": "COMPLETED",
+          "workflowName": "security-review"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:23:14Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358239664/job/118417998891",
+          "name": "build-and-audit",
+          "startedAt": "2026-10-20T02:19:03Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:23:43Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358239664/job/118417998583",
+          "name": "e2e",
+          "startedAt": "2026-10-20T02:19:03Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        }
+      ],
+      "title": "恢复 i18n phase0 与品类语言切换接线（Draft）",
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/391"
+    },
+    {
+      "baseRefName": "main",
+      "headRefName": "publish/recovered-sanity-signatures-20261019",
+      "headRefOid": "2422c7b88d11b35ae56d90b3b418a8aebec0fec7",
+      "isDraft": true,
+      "number": 392,
+      "state": "OPEN",
+      "statusCheckRollup": [
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:22:43Z",
+          "conclusion": "FAILURE",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358563681/job/118419057054",
+          "name": "gate",
+          "startedAt": "2026-10-20T02:22:39Z",
+          "status": "COMPLETED",
+          "workflowName": "security-review"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:26:41Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358563615/job/118419057196",
+          "name": "build-and-audit",
+          "startedAt": "2026-10-20T02:22:39Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        },
+        {
+          "__typename": "CheckRun",
+          "completedAt": "2026-10-20T02:27:16Z",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39358563615/job/118419057123",
+          "name": "e2e",
+          "startedAt": "2026-10-20T02:22:38Z",
+          "status": "COMPLETED",
+          "workflowName": "CI"
+        }
+      ],
+      "title": "sec(sanity): recover signed webhook migration",
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/392"
+    }
+  ]
+}

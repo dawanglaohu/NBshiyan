@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Close out distribution/restore rehearsal and provenance inventory",
+    "input": "All final acceptance reports, existing deploy scripts, actual main/head checks and recovery sources reused in this round",
+    "output": "delivery-acceptance: exact-version distribution artifacts, schema/restore rehearsal and unresolved-item inventory",
+    "accept": "1) Only in isolation, use reviewed-SHA artifacts to execute backup, Prisma diff, plan-check, db push without accept-data-loss, zero drift, standalone startup and a home computed-style/real-request/event smoke. Restore an actual backup into disposable PostgreSQL and read it through the app. Record actual old-image compatibility/rollback and credential-revocation results; listing a backup file alone is insufficient. 2) Collect exact heads, commands, statuses, trace/GIF evidence and open items from the five acceptance themes. Live-check head/check/provenance/permissions for every recovery PR reused this round; missing bot approval is not merge-ready. Keep unfinished media/external dependencies visible and never automatically merge, deploy, delete production data or purchase a service."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

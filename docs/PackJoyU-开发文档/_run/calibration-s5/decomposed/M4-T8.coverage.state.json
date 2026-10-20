@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Caller/wiring point: real POST /api/chat/session -> visitor-session. Only active contact creates a random 256-bit token/hashed database record with Secure/HttpOnly/SameSite=Lax/Path=/api/chat and no Domain/PII. Missing/declined analytics does not block it; ordinary web GETs issue no chat cookie (E-40). 2) Enforce seven idle days/30 absolute days from first issuance; equality/revocation rejects. Check validity before touch. Reuse a valid cookie. Without one, unknown outcomes do not loop automatic creation; the same email cannot restore an old session. Apply exact Origin and limits of 10/10min per cookie and 20/10min per IP-HMAC (E-85).",
+  "edges": {
+    "E-40": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A visitor declines analytics but actively opens first-party human chat.",
+      "expect": "Allow the necessary consultation without creating an analytics identifier or loading a third-party chat script. Handle the necessary chat session separately from analytics consent."
+    },
+    "E-85": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "The cookie reaches seven idle days or 30 days since issuance, or is revoked.",
+      "expect": "The server rejects access to the old conversation using that credential; the browser may start a new consultation. Re-entering the same email alone cannot restore the old conversation. Neither the cookie nor any frontend copy stores PII."
+    }
+  }
+}

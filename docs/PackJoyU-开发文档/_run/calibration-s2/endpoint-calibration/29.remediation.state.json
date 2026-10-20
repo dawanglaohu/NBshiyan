@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "POST",
+    "path": "/api/analytics/consent",
+    "params": "analytics Boolean, consentVersion.",
+    "returns": "ConsentDTO: analytics and expiresAt. Repeated true with an existing valid signed cookie for the same consent version retains the same browser ID, grantedAt, and original expiry. Repeated false clears the cookie without creating an identity.",
+    "permission": "Same origin, no sign-in required, do not track those who decline."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "Anonymous same-origin consent operation independent of the necessary chat cookie. Use the existing pj-consent UI. Only explicit analytics consent allows an anonymous signed pj_analytics cookie with consentVersion/grantedAt/expiry, at most one year. For repeated true under an existing valid same-version cookie, retain the identical browser ID and original times; do not rotate or renew the identity. Repeated false clears the cookie and creates no identity. A fresh ID is issued only after withdrawal followed by explicit renewed consent, or an initial/expired credential issuance. Collection and locally queued analytics stop immediately on withdrawal. Serialize consent writes and follow the latest user intent: if false is selected while true is in flight, remain stopped and send false after the earlier call settles; an old true response cannot resume tracking. At most one identical network retry is allowed for the existing-valid-cookie true or repeated-false branches. Initial issuance with an unknown result is not automatically looped and no events are emitted before confirmed consent. The requested effect is consent state and identity continuity, not incidental logging or response timestamps. No browser ID to third parties, no tracking those who decline, no login requirement."
+}

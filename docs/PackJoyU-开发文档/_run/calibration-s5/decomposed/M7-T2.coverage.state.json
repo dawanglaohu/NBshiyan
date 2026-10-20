@@ -1,0 +1,45 @@
+{
+  "acceptance": "1) Log in for real and verify the activity-sliding two-hour policy for rememberDevice=false. Actual POST /api/admin/account/session/activity writes a renewed Set-Cookie; read-only SSR never claims renewal. HTTP boundary tests reject equality/expiry at seven idle days and the 30-day absolute limit for remembered devices; continuous activity cannot exceed 30 days (E-01, E-02, E-69, E-71). 2) An unexpired remembered cookie restores access after closing/reopening the same browser. After actual password change, authenticator reset, logout-all, device revocation, account disablement or sv change, the next real protected request rejects the old cookie and refresh cannot revive it. Ordinary Auth.js signOut revokes sid; unavailable database checks deny access. Invalid mode, unenabled totp and nonempty ordinary recoveryCode yield generic login failure (E-03, E-04, E-70, E-96).",
+  "edges": {
+    "E-01": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "Remember this device is not selected",
+      "expect": "Retain the current refreshable two-hour session policy; do not describe it as a fixed forced logout after two hours. When selected, even continuous activity must not exceed the absolute 30-day limit measured from issuance."
+    },
+    "E-02": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "A remembered device has had no valid server-side activity for more than seven days",
+      "expect": "Require reauthentication on the next protected request; refreshing the JWT cannot resurrect an expired session."
+    },
+    "E-69": {
+      "scene": "Device-session integration with Auth.js deadlines",
+      "trigger": "A normal session reaches two hours since its last valid activity, or a remembered device reaches either seven days idle or the absolute 30-day limit since initial issuance",
+      "expect": "The server rejects authorization and clears cookies in writable responses. JWT and Set-Cookie expiry must not exceed the device's actual permitted deadline; refresh cannot extend the absolute limit."
+    },
+    "E-71": {
+      "scene": "Device-session integration with Auth.js deadlines",
+      "trigger": "Initial login, refresh, SSR and logout follow different Auth.js paths",
+      "expect": "Pin the same actual beta version and verify JWT/Set-Cookie deadlines and revocation on all four real paths. When SSR cannot write a cookie, do not claim browser persistence has renewed; logout must also revoke the device record."
+    },
+    "E-03": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "The password is changed, the authenticator is reset, the account is disabled, or Log out all devices is executed",
+      "expect": "The server revokes the account's old credentials and rejects old JWTs even before their expiry. Ordinary logout must at least revoke the current device session and clear the local login state."
+    },
+    "E-04": {
+      "scene": "Session persistence and remembered-device deadlines",
+      "trigger": "The browser is closed, a tab is restored, or the browser is reopened",
+      "expect": "Add testable branches: after closing and reopening the browser, actual unexpired and unrevoked credentials are handled under the existing policy; protected requests with expired or revoked credentials are rejected. Tests must not assume that closing the browser destroys the Cookie."
+    },
+    "E-70": {
+      "scene": "Device-session integration with Auth.js deadlines",
+      "trigger": "The cookie/JWT is still valid but the device is revoked, the account disabled, the credential version changed, or server-side validation unavailable",
+      "expect": "Protected requests must not be allowed on the cookie alone; request-scoped query deduplication must not become a cross-request cache that ignores revocation."
+    },
+    "E-96": {
+      "scene": "Login-mode enum and account privacy",
+      "trigger": "mode is unknown, totp mode has not been enabled by the account owner, or ordinary Credentials carries a nonempty recoveryCode",
+      "expect": "List each invalid mode, owner-unenabled totp mode and ordinary Credentials with nonempty recoveryCode; all must follow the same generic Auth.js failure result, issue no admin session and not distinguish account existence in the response. Valid password/totp modes verify only their respective method; test using the established rate-limit/error protocol while preserving valid-user login."
+    }
+  }
+}

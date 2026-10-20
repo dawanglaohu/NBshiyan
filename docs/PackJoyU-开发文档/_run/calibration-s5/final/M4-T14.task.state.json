@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire human replies and closure in a real two-sided conversation",
+    "input": "M4-T6 actual inbox pages, M4-T11 human-write APIs, M4-T9 visitor synchronization, and notification job.",
+    "output": "OperatorReplyComposer/close controls and a real actionable visitor-to-operator-to-visitor loop.",
+    "accept": "1) Entry: visitor contact-window Send -> received; operator admin Human conversations -> actual row -> Send reply (operator-chat-send). Data sources: POST /api/admin/chat/conversations/[id]/messages and both parties' GETs. Clicking send actually saves author/body; visitor polling displays the same human message, with no AI-generated reply. Database persistence failure produces no received state (E-16, E-31). 2) Two real operators replying concurrently retain both seq/author values. Clicking Close conversation (operator-chat-close) sends PATCH expectedVersion. On conflict read current state without automatic overwrite; closed sends from either party get 409. The next send after revocation gets 403 and creates no row. Notification failure changes only notification state (E-33, E-35, E-41, E-78). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

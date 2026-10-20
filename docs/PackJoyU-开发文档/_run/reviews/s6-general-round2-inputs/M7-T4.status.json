@@ -1,0 +1,17 @@
+{
+  "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+  "stale": [],
+  "runtimeDrift": [],
+  "tasks": {
+    "M7-T4": {
+      "ready": false,
+      "contractHash": "77922c54511c533c60161f4662e627c3628c1c9e376524dcb5e4f2059e58172f",
+      "blockers": [],
+      "reasons": [
+        "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程",
+        "M7-T4 疑似接线任务未列注册点（命中：/api/）"
+      ]
+    }
+  },
+  "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M7-T4.evidence-template.json"
+}

@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Original JPG/video hashes remain unchanged and all output files decode. List every old-logo location on the JPG blimp and factory wall, replace each completely with the current PackJoyU wordmark, and verify no old logo remains at each listed location. Extract the video poster from its own footage and record a verifiable frame time. 2) Even when a candidate design differs from the online wordmark, use the current PackJoyU wordmark and record the logo file hash. Do not wait for the user to revisit candidate images or treat a candidate as an approved new logo (E-28). 3) When GPT Dot is reachable and actually produces the assets, retain invocation, software-operation, output-file and finished-output check records. When unreachable, record not yet executed/the implementation task for each item, do not mark that item finished, and do not falsely claim successful invocation (E-29).",
+  "edges": {
+    "E-28": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "A candidate design differs from the current online wordmark",
+      "expect": "Continue production using the current PackJoyU wordmark in this round; waiting for the user to revisit candidate images is not an implementation or acceptance prerequisite."
+    },
+    "E-29": {
+      "scene": "Own-logo and reference-PDF factual boundaries",
+      "trigger": "The GPT Dot tool is reachable and actually performs remote-software production",
+      "expect": "Retain invocation records, software-operation evidence and output-file evidence, then check the finished deliverables. When the tool is unreachable, record Not yet executed and the specific implementation task for each item; do not falsely claim invocation or asset replacement is complete."
+    }
+  }
+}

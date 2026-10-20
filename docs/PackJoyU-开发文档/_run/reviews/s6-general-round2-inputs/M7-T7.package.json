@@ -1,0 +1,60 @@
+{
+  "id": "M7-T7",
+  "row": {
+    "line": 86,
+    "title": "终验运维来源与通知重启消费",
+    "deps": [
+      "M6-T7",
+      "M4-T4",
+      "M5-T1",
+      "M5-T8"
+    ],
+    "input": "stats-reliability/ops-sources、真实cron与独立聊天SMTP适配器",
+    "output": "operations-acceptance；来源异常及真实通知调度报告",
+    "acceptance": "1) 隔离SMTP接收真实聊天通知，核attempt/sent/failed/unknown与HTTP计数的明确覆盖；停止单辅助来源后stats保留原成功时间/旧值或未接入且核心继续可读，未验证备份不标可恢复（E-64、E-65、E-67）。2) 直接以未登录/EDITOR会话调用人工通知相关受保护入口被拒，cron仅Bearer；chat-notifications独立受限适配器不扩旧mail UI，实际cron每分钟登记，保存消息后重启并等待计划消费持久出箱；不能只手动调HTTP或写空注册，保存received不受通知失败回滚（E-94）。",
+    "days": "1.5d"
+  },
+  "contract": {
+    "provides": [
+      "operations-acceptance"
+    ],
+    "requires": [
+      {
+        "task": "M6-T7",
+        "capability": "stats-ui"
+      },
+      {
+        "task": "M4-T4",
+        "capability": "chat-notification-job"
+      },
+      {
+        "task": "M5-T8",
+        "capability": "job-foundation"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "e2e/operations-sources-integration.spec.ts",
+      "tests/chat-notification-restart.integration.test.ts",
+      "docs/acceptance/operations/"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "a13c7d2add33349d066bb00f2e9bb28c60ef1f131439e3568b66ec64ca91dd5e",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M7　集成验收与交付：负责访客跨模块完整路径、后台权限与恢复路径、统计和可靠性完整链路的真实集成验收及交付证据收口；核对本轮复用的恢复来源，不重做 S1 已完成的取回和来源审计，也不自动合并恢复草稿。\n13: - 输入：stats-reliability/ops-sources、真实cron与独立聊天SMTP适配器\n14: - 产出：operations-acceptance；来源异常及真实通知调度报告\n15: - 预估：1.5 人天　｜　前置：M6-T7　完成看板逐源状态与故障呈现；M4-T4　消费持久聊天通知并注册每分钟作业；M5-T1　建立JobState租约与代次仓储原语；M5-T8　注册聚合作业并接通真实5分钟cron（已落地）\n16: 任务契约版本：a13c7d2add33349d066bb00f2e9bb28c60ef1f131439e3568b66ec64ca91dd5e；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M7-T7.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M7.md　模块职责与已有代码位置\n24: - docs/PackJoyU-开发文档/图谱/边界/ 下的 E-64.md、E-65.md、E-67.md、E-94.md　本任务要兜的边界\n25: \n26: ## 验收标准（验收的唯一依据，逐条都要满足）\n27: 1) 隔离SMTP接收真实聊天通知，核attempt/sent/failed/unknown与HTTP计数的明确覆盖\n28: 停止单辅助来源后stats保留原成功时间/旧值或未接入且核心继续可读，未验证备份不标可恢复（E-64、E-65、E-67）。2) 直接以未登录/EDITOR会话调用人工通知相关受保护入口被拒，cron仅Bearer\n29: chat-notifications独立受限适配器不扩旧mail UI，实际cron每分钟登记，保存消息后重启并等待计划消费持久出箱\n30: 不能只手动调HTTP或写空注册，保存received不受通知失败回滚（E-94）。\n31: \n32: ## 必须处理的边界\n33: - E-64　运维指标扩展及角色权限\n34:   触发：接口或邮件已接真实结果来源　期望：展示脱敏且口径明确的错误率与通知失败计数，邮件失败按真实发送尝试记录，不把排队、已调用发送函数或普通询盘收件等同于成功投递。\n35: - E-65　运维指标扩展及角色权限\n36:   触发：存储健康或备份没有可验证来源　期望：仅显示未接入及来源状态；接通后显示真实检查/完成时间，不以普通文件上传、页面查询成功或计划时间假装备份成功，也不暗中新增备份平台或付费服务。\n37: - E-67　运维指标扩展及角色权限\n38:   触发：任一附加来源中断或无数据　期望：该卡独立显示错误、旧值、未知或未接入；其他真实指标仍可查询，避免单个辅助来源拖垮整张看板。\n39: - E-94　聊天通知持久队列\n40:   触发：出箱/通知接口被无聊天权限角色调用，或 SMTP 适配器仅能发送既有询盘格式　期望：分别验无权限调用拒绝、chat-notifications 使用独立受限适配器且不扩展旧 mail UI；deploy/cron.nbshiyan 确有每分钟注册，重启后实际消费已提交出箱，不能只有手工调用或未来空注册。M4随交付注册，M7仅最终验收。\n41: \n42: ## 只改这些路径\n43: - docs/acceptance/operations/\n44: - e2e/operations-sources-integration.spec.ts\n45: - tests/chat-notification-restart.integration.test.ts\n46: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n47: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n48: \n\n84: ## 本项目约定\n85: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n86: "
+}

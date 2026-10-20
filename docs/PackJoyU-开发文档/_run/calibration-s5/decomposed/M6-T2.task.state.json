@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Connect read-only inquiry and chat business counts",
+    "input": "stats-core, real Inquiry/ChatConversation/ChatMessage records and existing SALES scope",
+    "output": "stats-business: a business-source adapter for the statistics entry",
+    "accept": "1) Save synthetic inquiries/messages through real POST /api/inquiries and POST /api/chat/conversations, then GET /api/admin/stats with business sources and verify stable business-ID counts. Retrying the same message UUID and rejected spam do not increase counts; DTOs contain no email/body (E-62). 2) ADMIN/SALES use the existing inquiry scope for read-only queries. A statistics-query failure cannot roll back or block consultation saving; M4 never imports M6 to produce counts. Unauthenticated callers and EDITOR are refused direct business-source access (E-62, E-66)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Present a per-source business and operations dashboard",
+    "input": "stats-core/business/ops-sources, the admin shell and the density in section 11",
+    "output": "The stats page/trends/source states reachable from admin navigation",
+    "accept": "1) Entry: successful login leads to /admin/stats, and admin stats-link leads to the same route; the data source is GET /api/admin/stats; clicks on date/product/refresh must send real requests; core traffic/3D sources must be available, with role-based filtering and scope explanations (E-61, E-63, E-66). 2) Test successful zero, no samples, not connected, query failure without an old value, query failure with an old value, partial failures and partial recomputation; old values must retain their original dataThrough without refreshing their time; each source's time and time zone must be visible (E-49, E-50, E-51, E-52, E-53, E-54, E-67); retain a real GIF and three-viewport D1-D6 checks."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

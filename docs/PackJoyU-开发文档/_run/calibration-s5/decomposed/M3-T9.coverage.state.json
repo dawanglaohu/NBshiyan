@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Entry: admin Account permissions (admin-users-link) -> /admin/users -> an actual other-user row's Authorize recovery (user-authorize-recovery-{id}). Data sources: the existing user list, POST /api/admin/account/reauth, and POST /api/admin/account/recovery-authorizations. Reuse the completed dialog; a click actually sends target-grant and permit requests in order. Target factors stay unchanged, token displays once, and audit has actor/source/target (E-13). 2) The self row has no authorization control. Direct self/EDITOR/SALES/old-bodyless-reset requests reject. Cancellation sends no request; an unknown result does not reissue. Closing the result clears secrets; existing user creation/deletion/role contracts stay intact (E-73). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px.",
+  "edges": {
+    "E-13": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Another administrator authorizes recovery on someone else's behalf.",
+      "expect": "The authorizer must authenticate again. An already open admin page or a visitor email request alone cannot authorize resetting another account."
+    },
+    "E-73": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "Two requests use the same ActionGrant concurrently, or a password-change grant is used to disable the authenticator.",
+      "expect": "Within the sensitive-change transaction, validate and consume the grant once against the action, device, account, and credential version. Only one matching request succeeds; reject a mismatched purpose without executing the change."
+    }
+  }
+}

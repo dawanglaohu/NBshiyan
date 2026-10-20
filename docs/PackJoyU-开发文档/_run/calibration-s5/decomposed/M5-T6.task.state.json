@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Persist strictly allowlisted analytics events",
+    "input": "analytics-consent-api, shared event schemas and the published-product source",
+    "output": "analytics-ingest; AnalyticsEvent and POST /api/analytics/events",
+    "accept": "1) Through real HTTP with a valid signed-consent cookie send page_view/product_view/model_view_start/model_load_success/model_load_failure/chat_start. Individually validate required navigationId/viewId/productSlug and the published-product allowlist. Schema rejects unknown kinds/oversized fields/sensitive URLs; the event database contains no IP/fingerprint/email/body. 2) Real PostgreSQL stores only one row for repeated eventId/semanticKey with the same payload and returns 409 for differing payloads. The same viewId has only one success/failure terminal; page events and start/terminal records are stored separately, and failure does not write success. Reject timestamps outside -48h/+5min. 3) After consent-cookie withdrawal requests return 403 and event-row count does not change. M2-T7 wires the real-model client producer; M5-T7 wires browser consent and ordinary-page producers."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

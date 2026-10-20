@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Fixed operations analytics-retention leads to the implemented service and actual registry/daily-cron registration. Default to dryRun with actual cleanup off; without separate explicit production-retention authorization, reject enable/delete requests, delete zero and return only candidate counts. 2) Using only isolated PostgreSQL data, verify the expired set/counts/removal of identifiers for receivedAt 30 days and aggregates 13 calendar months. Show query coverage, do not reconstruct expired details, and do not extend deletion authority to backups/existing data (E-48). 3) After cleanup call the existing aggregation service: recompute only dayStart at or after complete raw coverage, including 48h-late events still inside complete coverage. For partially cleaned days preserve old complete aggregates and return partial/unavailable with the original definition; do not replace from fragments or extend retention (E-82). Reject old lease generations and do not touch production/recovery/backup data.",
+  "edges": {
+    "E-48": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "Raw events exceed 30 days or aggregates exceed 13 months",
+      "expect": "Following section 09, express retention boundaries as receivedAt plus 30 days and expiresAt after 13 calendar months for identity-free aggregates, and show query coverage. Cleanup runs only with separate explicit production-retention authorization and explicit enablement; default to dry-run/actual cleanup disabled, and reject actual deletion without authorization. Isolated tests must verify the expired target set, counts, removal of identifiers and no reconstruction of expired details, without expanding authority to delete backups or existing data."
+    },
+    "E-82": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Raw events are inserted within the allowed late-arrival window",
+      "expect": "Explicitly recompute only natural days whose dayStart is not earlier than the start of complete raw-data coverage. Beyond that range, retain the original aggregates and return partial/unavailable plus their original definition/coverage; do not replace old complete counts with post-cleanup fragments. The late window remains 48h under section 09 without extending raw retention."
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "status": "ok",
+  "template": "risk",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "impact": {
+      "score": 0.86,
+      "level": "a milestone slips or a module is reworked",
+      "confidence": 0.76,
+      "band": "high"
+    },
+    "likelihood": {
+      "score": 1.63,
+      "level": "likely",
+      "confidence": 0.44,
+      "band": "low"
+    },
+    "mitigation_concrete": {
+      "p": 0.93,
+      "verdict": "yes"
+    },
+    "needs_owner": {
+      "p": 0.12,
+      "verdict": "no"
+    }
+  },
+  "line": "risk: impact=a milestone slips or a module is reworked(high 0.76) likelihood=likely(low 0.44) mitigation_concrete=yes(0.93) needs_owner=no(0.12)",
+  "usage": {
+    "input_tokens": 568,
+    "output_tokens": 70
+  }
+}

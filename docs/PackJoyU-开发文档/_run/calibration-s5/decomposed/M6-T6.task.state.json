@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Connect the role-restricted real statistics HTTP entry",
+    "input": "stats-query-rules, current requireAdmin and scope, and the section 10 GET stats contract",
+    "output": "stats-core: GET /api/admin/stats and its production composition registration",
+    "accept": "1) After real login, GET /api/admin/stats calls the route and ops queries over actual aggregates; verify HTTP status, DTO and data times. After consent, real page/product visits, actual GLB start/terminal and a committed registered five-minute job, verify today's consented browsers, PV, product attribution and 3D counts individually; core sources cannot return fixed values or not_connected (E-61). 2) Unauthenticated requests return 401. ADMIN has all sources, SALES has its existing business scope, EDITOR has only public traffic/products/3D. Direct requests for sensitive system sources return 403; mixed-source requests are filtered before querying and contain no hidden counts (E-66). 3) A valid time-zone change returns the current revision and rebuild state. Recompute only fully retained coverage; history older than 30 days keeps its original label or explicitly reports unavailable recomputation, never stitched trends. Different browser time zones get one site-day definition (E-55, E-58)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Entry: the home-page products-link leads to /[locale]/products; the data sources are GET /api/models and actual model URLs; PC cards have a 560px minimum and viewport clamp(360px,28vw,440px), without overflow at width 390; names, necessary specifications and inquiry controls must be distinguishable, and actions must remain after repeated descriptions are removed (E-104). 2) Titles and buttons must have independent links; dragging inside the Canvas must neither navigate nor submit; the list category-link must enter the existing /[locale]/products/[slug] under the publication switch and return to the 3D catalog, without expanding it into a complete PDP (E-97).",
+  "edges": {
+    "E-104": {
+      "scene": "Product reset and presentation",
+      "trigger": "Reset is clicked after arbitrary rotation/zoom, or the product is viewed at PC 1440/1920 and narrow-screen sizes",
+      "expect": "Use the product's existing initial camera/zoom bounds as the baseline; after arbitrary manipulation, reset returns to those values. At 1440/1920 and narrow screens, check that the whole model is visible and names/key actions are distinguishable. After removing repeated bottom descriptions, specifications and inquiry entries must remain visible and usable; do not eliminate clipping by deleting content."
+    },
+    "E-97": {
+      "scene": "Model-drag ownership",
+      "trigger": "On PC, pointer-down and dragging start within a visible model viewport, then the pointer crosses into other cards",
+      "expect": "Only the initial model obtains pointer capture and rotates. Do not trigger card navigation or switch to another model; cards do not geometrically hover-scale."
+    }
+  }
+}

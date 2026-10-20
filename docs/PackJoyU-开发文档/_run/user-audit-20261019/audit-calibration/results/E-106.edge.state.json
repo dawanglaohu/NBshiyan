@@ -1,0 +1,16 @@
+{
+  "edge": {
+    "scene": "Visual consistency of existing inquiry screens",
+    "trigger": "An operator opens the original inquiry list/detail or its anonymized, loading, error, or mail-status sections.",
+    "expect": "The same locked minimalist-flat values replace old CSS and inline visuals. Actual scope, APIs and anonymization restrictions remain unchanged. Real list-to-detail actions have three-viewport computed-style, density and GIF evidence; redacted sensitive data remains hidden."
+  },
+  "modules": {
+    "M1": "Owns brand/public experience, media, company facts and the unique shared visual token/component source.",
+    "M2": "Owns public product cards, existing GLB viewing interactions, accessible controls and model event producers.",
+    "M3": "Owns admin access/accounts and the admin shell; consumes M1 visuals and migrates existing admin interfaces without changing business APIs.",
+    "M4": "Owns first-party human consultation, inbox/replies and its notification jobs, not legacy mail feature activation.",
+    "M5": "Owns consent, event ingestion, aggregation, timezone, retention policy and job foundation.",
+    "M6": "Owns real business/operations dashboard queries, source status and role restrictions.",
+    "M7": "Owns final actual integration and delivery evidence; creates no prerequisite foundation."
+  }
+}

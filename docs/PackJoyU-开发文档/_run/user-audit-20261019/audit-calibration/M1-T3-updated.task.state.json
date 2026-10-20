@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Create rebranded JPG and video poster copies and export the current logo master",
+    "input": "Original JPG and video, existing PackJoyU SiteHeader wordmark, existing style/font and icon.svg, media provenance register",
+    "output": "brand-static-media plus brand-logo-master: decoded publication copies, a semantically matching video poster, a time-indexed video identity inventory, and the checked public/brand/packjoyu-logo-master.svg with source/export hashes",
+    "accept": "1) Originals retain their SHA256 and exports decode. List each old JPG mark on the blimp and factory wall and replace it fully with the existing PackJoyU mark; the poster is a frame of the video with a verifiable time. Inventory company names, logos, title/end cards and watermarks throughout the video with timestamps. If identity cannot be verified or a third-party identity is present, exclude that publication copy and report it; never modify the original video or silently start a re-edit. 2) Use the current PackJoyU wordmark even if candidate designs differ; record the logo file hash, never use an unapproved candidate or wait for a new visual approval. E-28. 3) Actual GPT Dot creation requires call, software operation, output and artifact-verification evidence; unreachable tooling leaves the item unperformed and incomplete, never a fabricated success. E-29. 4) First verify the existing SiteHeader wordmark, its style/font and icon.svg sources, then export an importable current full-wordmark master. Record source/export SHA256 and compare glyphs, proportions and colors with the current identity. Do not design a new logo or change sources; SVG has no script, external reference or private metadata. T6 and T9 use this same checked master."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

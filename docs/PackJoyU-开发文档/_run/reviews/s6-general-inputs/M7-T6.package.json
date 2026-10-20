@@ -1,0 +1,58 @@
+{
+  "id": "M7-T6",
+  "row": {
+    "line": 85,
+    "title": "终验新鲜本人授权与忘密码隔离",
+    "deps": [
+      "M3-T7",
+      "M3-T9",
+      "M3-T12",
+      "M3-T13"
+    ],
+    "input": "reauth-dialog、单用途ActionGrant、安全变更与受限恢复入口",
+    "output": "fresh-auth-acceptance；新鲜授权/并发核销/无现密码负例报告",
+    "acceptance": "1) 从真实个人信息操作发POST /api/admin/account/reauth，当前密码+新TOTP才得5min grant；同TOTP步并发最多一成功，同grant并发最多一变更，跨purpose/target/device、过期或撤销后变更均拒且状态未变（E-72、E-73、E-74）。2) 用真实绑定/模式切换入口分别提交错码、过期码、重放与两次并发切换，最终事务重查pending/期限/sv且错误不提交、并发最多一成功，失败后仍有至少一种已验证方式（E-08）。3) 已启用无密码且忘现密码者可正常email+totp登录处理非敏感业务；仅会话或仅TOTP请求reauth及直接敏感变更均被拒且不签普通grant，界面引导独立受限恢复；受限路径只允许新绑定并有审计，HTTP不能写pendingPasswordHash（E-75）。",
+    "days": "1.5d"
+  },
+  "contract": {
+    "provides": [
+      "fresh-auth-acceptance"
+    ],
+    "requires": [
+      {
+        "task": "M3-T12",
+        "capability": "reauth-dialog"
+      },
+      {
+        "task": "M3-T9",
+        "capability": "target-recovery-ui"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "e2e/admin-fresh-auth-integration.spec.ts",
+      "tests/admin-action-grant-concurrency.db.test.ts",
+      "docs/acceptance/admin-fresh-auth/"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "91c348c928dd44c8b8dbc46b2e0f481fe64620938e154bcb287565d3c34962f1",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M7　集成验收与交付：负责访客跨模块完整路径、后台权限与恢复路径、统计和可靠性完整链路的真实集成验收及交付证据收口；核对本轮复用的恢复来源，不重做 S1 已完成的取回和来源审计，也不自动合并恢复草稿。\n13: - 输入：reauth-dialog、单用途ActionGrant、安全变更与受限恢复入口\n14: - 产出：fresh-auth-acceptance；新鲜授权/并发核销/无现密码负例报告\n15: - 预估：1.5 人天　｜　前置：M3-T7　统一后台外壳并只上报真实活动；M3-T9　在账号行复用验证对话框授权恢复；M3-T12　接通个人安全页与共享新鲜验证对话框；M3-T13　接通退出全部设备确认与结果核实（已落地）\n16: 任务契约版本：91c348c928dd44c8b8dbc46b2e0f481fe64620938e154bcb287565d3c34962f1；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M7-T6.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M7.md　模块职责与已有代码位置\n24: - docs/PackJoyU-开发文档/图谱/边界/ 下的 E-08.md、E-72.md、E-73.md、E-74.md、E-75.md　本任务要兜的边界\n25: \n26: ## 验收标准（验收的唯一依据，逐条都要满足）\n27: 1) 从真实个人信息操作发POST /api/admin/account/reauth，当前密码+新TOTP才得5min grant\n28: 同TOTP步并发最多一成功，同grant并发最多一变更，跨purpose/target/device、过期或撤销后变更均拒且状态未变（E-72、E-73、E-74）。2) 用真实绑定/模式切换入口分别提交错码、过期码、重放与两次并发切换，最终事务重查pending/期限/sv且错误不提交、并发最多一成功，失败后仍有至少一种已验证方式（E-08）。3) 已启用无密码且忘现密码者可正常email+totp登录处理非敏感业务\n29: 仅会话或仅TOTP请求reauth及直接敏感变更均被拒且不签普通grant，界面引导独立受限恢复\n30: 受限路径只允许新绑定并有审计，HTTP不能写pendingPasswordHash（E-75）。\n31: \n32: ## 必须处理的边界\n33: - E-08　C-03 验证器绑定与无密码默认开关\n34:   触发：绑定码错误、已过期、重复提交或并发切换　期望：把四种触发分别测试，并在最终事务复核待绑定记录、有效期和当前凭证版本；错误/过期/重放不提交，两个并发切换最多一个成功，失败后查询仍存在至少一种已验证登录方式。沿09节规则，不另造登录方式。\n35: - E-72　敏感设置的新鲜本人验证\n36:   触发：同一 TOTP 时间步已被登录、其他敏感操作或并发请求消费　期望：原子消费账号的验证器时间步，后来的请求不能再次发放 ActionGrant；客户端可等待下一验证码重试，不把恢复码重新加入日常登录。\n37: - E-73　敏感设置的新鲜本人验证\n38:   触发：两次请求并发使用同一 ActionGrant，或把改密码授权用于关闭验证器　期望：在敏感变更事务内按动作、设备、账号及凭证版本校验并一次性消费授权，只有一个匹配请求成功，目的不符请求拒绝且不能执行变更。\n39: - E-74　敏感设置的新鲜本人验证\n40:   触发：授权签发后超过 5 分钟、设备撤销、密码/验证器变更或账号权限失效　期望：旧授权立即无效；授权的新鲜验证不得跨设备移用，也不能延长原设备会话期限。\n41: - E-75　敏感设置的新鲜本人验证\n42:   触发：用户忘记现密码但仍能使用启用后的无密码登录　期望：把“D3”指向09/10节已定义受限恢复路径和一次性 permit/restricted cookie；普通无密码登录不改，敏感设置缺当前密码时不得签发普通 ActionGrant，仅凭已登录会话或一枚TOTP的直接请求拒绝并无变更，受限恢复只可新绑定且审计。\n43: \n44: ## 相关契约（照它实现，改要走文档补丁）\n45: | POST | /api/admin/account/reauth | purpose、targetId?、totp；还要password | ActionGrantDTO：token、purpose、expiresAt | 当前有效设备、同源；本人purpose可用，RECOVERY_AUTHORIZE仅ADMIN且target他人，DEVICE_REVOKE仅本人设备 |\n46: | POST /api/admin/account/reauth | 消费当前TOTP时间步并发单用途5min grant，秘密只返一次 | 不重放旧TOTP/请求；网络或429/503后保持未获得授权状态 | 先用GET /api/admin/account确认设备仍有效；丢失grant不能读回。待下一枚未使用TOTP、用户明确重做现密码验证后才新发，旧未知grant按原期限失效，不能用会话存在代替验证 |\n47: \n48: ## 只改这些路径\n49: - docs/acceptance/admin-fresh-auth/\n50: - e2e/admin-fresh-auth-integration.spec.ts\n51: - tests/admin-action-grant-concurrency.db.test.ts\n52: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n53: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n54: \n\n92: ## 本项目约定\n93: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n94: "
+}

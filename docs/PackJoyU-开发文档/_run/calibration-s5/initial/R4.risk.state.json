@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Passwordless and retention defaults need later review",
+    "impact": "D8/9/12/17/18 are low confidence and affect security, consultation and metric meaning",
+    "mitigation": "Implement the twenty decisions and edges. Never force-enable passwordless or call account plus TOTP two factors. Keep retention configurable and real production cleanup off by default.",
+    "trigger": "Business facts disagree with the defaults or passwordless is enabled without the account owner"
+  }
+}

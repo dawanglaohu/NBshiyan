@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Export shared schemas and DTOs for the new domains",
+    "input": "Field contracts in sections 06/09/10, the existing Auth.js error protocol and the visual-base baseline",
+    "output": "contract-types; account/recovery/chat/analytics/ops/errors schemas and public index exports",
+    "accept": "1) Establish strict Zod request/response schemas by checking every field against section 10; derive types only from schemas, make the public index consumable by independent TypeScript code, and reject unknown or out-of-bound fields. 2) LoginMode accepts only password/totp; missing rememberDevice, boolean false and literal false parse as false, while other invalid values are rejected. (E-95)."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "status": "ok",
+  "template": "coverage",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "covered_E-08": {
+      "p": 0.44,
+      "verdict": "unsure"
+    },
+    "covered_E-14": {
+      "p": 0.8,
+      "verdict": "yes"
+    },
+    "covered_E-15": {
+      "p": 0.86,
+      "verdict": "yes"
+    },
+    "covered_E-73": {
+      "p": 0.45,
+      "verdict": "unsure"
+    },
+    "covered_E-75": {
+      "p": 0.47,
+      "verdict": "unsure"
+    }
+  },
+  "line": "coverage: covered_E-08=unsure(0.44) covered_E-14=yes(0.80) covered_E-15=yes(0.86) covered_E-73=unsure(0.45) covered_E-75=unsure(0.47)",
+  "usage": {
+    "input_tokens": 1495,
+    "output_tokens": 104
+  }
+}

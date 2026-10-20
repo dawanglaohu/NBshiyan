@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Query real consented-traffic and 3D aggregates",
+    "input": "analytics-aggregate, model-events and the role/source matrix",
+    "output": "The stats-core API and source DTOs; GET /api/admin/stats",
+    "accept": "1) Caller dashboard request leads to stats route and ops service reading actual aggregates; after consent, a visit, GLB activity and a five-minute job, verify today's anonymous browsers/PV/products/3D individually; successful zero results, null with no samples, denominators/terminal states/mean-duration samples must be correct (E-49, E-50, E-61, E-63). 2) ADMIN has all sources, SALES business sources and EDITOR public traffic/3D; unauthorized sources must be rejected or filtered before querying and must not include hidden counts; time-zone changes/expired coverage must have explicit revision/dataThrough rather than stitched trends (E-55, E-58, E-66)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

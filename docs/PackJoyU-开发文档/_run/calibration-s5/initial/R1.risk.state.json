@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Recovery/session concurrency may allow takeover or lockout",
+    "impact": "Administrative access or availability is harmed; D3 is low confidence with high cost",
+    "mitigation": "Enforce section09/10 lock order, credential version and one-time consumption. Verify using real browser and isolated OS CLI recovery. Revoke old factors only on final confirmation.",
+    "trigger": "Any concurrency, expiry or replay test fails; block the affected task"
+  }
+}

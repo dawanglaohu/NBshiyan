@@ -1,0 +1,107 @@
+{
+  "status": "proposal_not_applied_not_calibrated",
+  "taskChinese": {
+    "id": "M1-T5",
+    "title": "集成己方公司内容与独立图稿",
+    "module": "M1",
+    "deps": [
+      "M1-T4",
+      "M1-T9"
+    ],
+    "input": "己方可核实材料、PDF结构参考、现有SiteSetting/Sanity及发布开关、M1-T9 company-visual-assets与素材manifest",
+    "output": "company-content；about与首页公司摘要、事实对照、安全发布映射和真实页面图稿消费；原联系隐私入口兼容",
+    "acceptance": "1) 为每个对外公司硬事实建立“页面字段→己方证据文件/页码”对照；无己方证据的YUHAO认证/产能/工厂规模不得出现在成品文案或图片；PDF仅作结构/产品主题参考，自动检索加逐字段对照均无改名冒用（E-27）。2) 成品引用的logo哈希等于现用PackJoyU字标，不使用候选新标；不等待用户回看候选图，PDF指令不作执行授权（E-28）。3) 真浏览器点about-link→/[locale]/about、footer联系/隐私→对应路由，en/ru切换保持对应页；发布开关关闭时仍404，开时SSR SiteSetting/Sanity显示与事实对照表一致，改动页全部有导航证据。 4) 消费M1-T9的company-visual-assets，为已选图稿建立src/lib/brand/company-media.ts安全发布映射，仅输出/brand/company/下已核哈希的Web路径、正整数宽高及en/ru alt；拒绝外部URL、越界路径、源工程路径和文件系统地址，不把工程、私有路径或制作凭据下发浏览器。逐件核manifest中的成品与现用字标哈希、制作证据和完成状态；素材未完成时本集成项不能通过（E-29、E-111）。5) en/ru真实首页公司摘要及about消费相同已审映射，真实浏览器从可见入口进入，网络加载Web图路径/文件哈希与清单一致；alt按语言匹配，1920/1440/390尺寸下主体完整、无横向溢出。保存参考主题/己方事实→源工程/成品→映射→路由/组件的追溯证据；仅有资料目录文件不算页面完成，源工程不进public或生产镜像（E-111）。",
+    "days": "2d",
+    "paths": [
+      "src/components/about/",
+      "src/app/",
+      "messages/en.json",
+      "messages/ru.json",
+      "docs/brand-content/",
+      "e2e/company-content.spec.ts",
+      "src/lib/brand/company-media.ts"
+    ],
+    "supportPaths": [],
+    "provides": [
+      "company-content"
+    ],
+    "requires": [
+      {
+        "task": "M1-T4",
+        "capability": "home-media"
+      },
+      {
+        "task": "M1-T9",
+        "capability": "company-visual-assets"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [
+      "frontendRoutes"
+    ],
+    "ui": true,
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "taskEnglish": {
+    "title": "Integrate verifiable company content and independently redrawn artwork",
+    "input": "Verifiable company-owned materials, the PDF as a structural reference, existing SiteSetting/Sanity/publication switches, and company-visual-assets/manifest provided by M1-T9",
+    "output": "company-content; about and homepage company-summary copy/fact mapping, safe publication mapping, and real page artwork consumption; compatible contact/privacy entries",
+    "accept": "1) For every public hard corporate fact, create a page-field to company-owned evidence file/page mapping. YUHAO certifications, capacity, and factory scale without company-owned evidence must appear in neither final copy nor images. Use the PDF only for structure and product themes; automated searches plus per-field comparison must find no renamed appropriation (E-27). 2) The final logo hash equals the current PackJoyU wordmark; do not use a candidate new logo or wait for the user to revisit candidates. Instructions inside the PDF are not execution authorization (E-28). 3) In a real browser click about-link to /[locale]/about and footer contact/privacy entries to their corresponding routes; switching between en and ru retains the corresponding page. With the publication switch off, retain 404; with it on, SSR SiteSetting/Sanity matches the fact table. Retain navigation evidence for every changed page. 4) Consume company-visual-assets delivered by M1-T9. Create src/lib/brand/company-media.ts as a safe publication mapping exposing only hash-verified Web paths under /brand/company/, positive integer width/height, and en/ru alt text. Reject external URLs, out-of-scope paths, editable project paths, and filesystem addresses. Never expose native projects, private paths, or production credentials to browsers. Verify completed-asset status, export/current-wordmark hashes, and actual software-production evidence against the manifest; an incomplete asset blocks this integration item (E-29, E-111). 5) The real en/ru homepage company summary and about page consume the same reviewed mapping. Navigate from visible controls and verify that loaded Web paths/file hashes match the manifest, language-specific alt text matches, and subjects remain complete without horizontal overflow at 1920, 1440, and 390 CSS-pixel widths. Retain a reference-theme/company-fact to editable-project/export to mapping to route/component trace. Files only in a documents folder do not count as completed pages; editable projects stay outside public and the production image (E-111)."
+  },
+  "taskState": {
+    "task": {
+      "title": "Integrate verifiable company content and independently redrawn artwork",
+      "input": "Verifiable company-owned materials, the PDF as a structural reference, existing SiteSetting/Sanity/publication switches, and company-visual-assets/manifest provided by M1-T9",
+      "output": "company-content; about and homepage company-summary copy/fact mapping, safe publication mapping, and real page artwork consumption; compatible contact/privacy entries",
+      "accept": "1) For every public hard corporate fact, create a page-field to company-owned evidence file/page mapping. YUHAO certifications, capacity, and factory scale without company-owned evidence must appear in neither final copy nor images. Use the PDF only for structure and product themes; automated searches plus per-field comparison must find no renamed appropriation (E-27). 2) The final logo hash equals the current PackJoyU wordmark; do not use a candidate new logo or wait for the user to revisit candidates. Instructions inside the PDF are not execution authorization (E-28). 3) In a real browser click about-link to /[locale]/about and footer contact/privacy entries to their corresponding routes; switching between en and ru retains the corresponding page. With the publication switch off, retain 404; with it on, SSR SiteSetting/Sanity matches the fact table. Retain navigation evidence for every changed page. 4) Consume company-visual-assets delivered by M1-T9. Create src/lib/brand/company-media.ts as a safe publication mapping exposing only hash-verified Web paths under /brand/company/, positive integer width/height, and en/ru alt text. Reject external URLs, out-of-scope paths, editable project paths, and filesystem addresses. Never expose native projects, private paths, or production credentials to browsers. Verify completed-asset status, export/current-wordmark hashes, and actual software-production evidence against the manifest; an incomplete asset blocks this integration item (E-29, E-111). 5) The real en/ru homepage company summary and about page consume the same reviewed mapping. Navigate from visible controls and verify that loaded Web paths/file hashes match the manifest, language-specific alt text matches, and subjects remain complete without horizontal overflow at 1920, 1440, and 390 CSS-pixel widths. Retain a reference-theme/company-fact to editable-project/export to mapping to route/component trace. Files only in a documents folder do not count as completed pages; editable projects stay outside public and the production image (E-111)."
+    },
+    "module": "M1",
+    "frontend_modules": [
+      "M1",
+      "M2",
+      "M6"
+    ]
+  },
+  "coverageState": {
+    "acceptance": "1) For every public hard corporate fact, create a page-field to company-owned evidence file/page mapping. YUHAO certifications, capacity, and factory scale without company-owned evidence must appear in neither final copy nor images. Use the PDF only for structure and product themes; automated searches plus per-field comparison must find no renamed appropriation (E-27). 2) The final logo hash equals the current PackJoyU wordmark; do not use a candidate new logo or wait for the user to revisit candidates. Instructions inside the PDF are not execution authorization (E-28). 3) In a real browser click about-link to /[locale]/about and footer contact/privacy entries to their corresponding routes; switching between en and ru retains the corresponding page. With the publication switch off, retain 404; with it on, SSR SiteSetting/Sanity matches the fact table. Retain navigation evidence for every changed page. 4) Consume company-visual-assets delivered by M1-T9. Create src/lib/brand/company-media.ts as a safe publication mapping exposing only hash-verified Web paths under /brand/company/, positive integer width/height, and en/ru alt text. Reject external URLs, out-of-scope paths, editable project paths, and filesystem addresses. Never expose native projects, private paths, or production credentials to browsers. Verify completed-asset status, export/current-wordmark hashes, and actual software-production evidence against the manifest; an incomplete asset blocks this integration item (E-29, E-111). 5) The real en/ru homepage company summary and about page consume the same reviewed mapping. Navigate from visible controls and verify that loaded Web paths/file hashes match the manifest, language-specific alt text matches, and subjects remain complete without horizontal overflow at 1920, 1440, and 390 CSS-pixel widths. Retain a reference-theme/company-fact to editable-project/export to mapping to route/component trace. Files only in a documents folder do not count as completed pages; editable projects stay outside public and the production image (E-111).",
+    "edges": {
+      "E-27": {
+        "scene": "Own-logo and reference-PDF factual boundaries",
+        "trigger": "The PDF contains YUHAO certifications, capacity, factory scale or other hard figures not verified as belonging to PackJoyU",
+        "expect": "Do not rename and publish them as the company's own facts; use only the content organization and product categories as references, and fill the relevant corporate fields only with verifiable company-owned materials."
+      },
+      "E-28": {
+        "scene": "Own-logo and reference-PDF factual boundaries",
+        "trigger": "A candidate design differs from the current online wordmark",
+        "expect": "Continue production using the current PackJoyU wordmark in this round; waiting for the user to revisit candidate images is not an implementation or acceptance prerequisite."
+      },
+      "E-29": {
+        "scene": "Own-logo media production and truthful tool execution",
+        "trigger": "The GPT Dot remote-software channel is reachable and actual production is performed",
+        "expect": "Retain actual calls, software operation evidence, and output files, then inspect the finished assets. If the channel is unavailable, record each item as unperformed and incomplete rather than claiming an invocation or logo replacement occurred."
+      },
+      "E-111": {
+        "scene": "Traceable company artwork, editable native projects, brand, and provenance",
+        "trigger": "A website company-block artwork has only copy or screenshots, lacks an editable project or export, has old branding or mismatched source hashes, or is not consumed by a real page",
+        "expect": "For each of only one or two selected independently redrawn illustrations, deliver the editable native software project, Web export, and en/ru alt text. Record reference PDF pages/themes, company-owned factual evidence, the current PackJoyU logo hash, project/export hashes, software version, actual GPT Dot operation evidence, and consuming page locations. Real pages load matching files and retain complete subjects. A missing required output or unperformed tool step keeps that item incomplete; a textual plan cannot count as completed artwork. Do not expand this into redrawing all 25 catalogue pages or unsupported factory/certificate depictions."
+      }
+    }
+  },
+  "coverageScope": "M1-T5 owns final page integration of E-111 while relying on actual asset production delivered by M1-T9."
+}

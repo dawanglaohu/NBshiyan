@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire redacted business and notification count sources",
+    "input": "Persisted inquiries/chat/ChatNotification and real request counters",
+    "output": "stats-business and explicitly scoped notification/HTTP-error sources",
+    "accept": "1) Caller authorized business/mail/http sources in GET /api/admin/stats leads to read-only adapters; count by durable and immutable business identifiers, without increments for retries/rejected spam; results must contain no email/body, and saving business data must not wait for the dashboard (E-62). 2) Mail must reflect actual attempt/sent/failed states rather than queuing; HTTP must claim coverage only for actually instrumented routes, while unconnected sources show not_connected; a source failure must independently retain its old time or show an error when no old value exists (E-51, E-52, E-53, E-54, E-64, E-67)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

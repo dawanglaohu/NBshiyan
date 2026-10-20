@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire new API configuration, error mapping, and redacted counters",
+    "input": "M1-T2 shared error codes/DTOs; existing security, SiteSetting, and startup checks; section 09/10 fixed routeId and counter-failure boundaries.",
+    "output": "Shared server/config and HTTP error/counter adapters; ApiDailyCounter schema; GET /api/admin/account returns real data through the existing current-account guard.",
+    "accept": "1) Caller/wiring point: GET /api/admin/account -> existing requireAdmin -> account DTO -> final-response counter. An actual HTTP request produces one requestCount in isolated PostgreSQL; a controlled 5xx increments errorCount without request body/IP/account data. Counter-store failure leaves the original business status and body unchanged. 2) New configuration is parsed centrally with Zod; startup rejects missing required values and safe errors contain no raw exception. routeId is a fixed whitelist. Site dates use existing settings or initial UTC/revision1 without importing M5/M6 services. Existing endpoint envelopes stay intact (E-70)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) Use the real consent control, actual page/product visits and GLB start/one terminal, a scheduled committed aggregate and /admin/stats reads tied to the same productSlug/viewId. Refusal/withdrawal prevents collection. Success rate uses only consented starts; actual failure/timeout is not success; no samples gives null and mean duration includes samples (E-42, E-61, E-63). 2) Dedicated PostgreSQL plus HTTP tests cover 23/25-hour DST days, midnight, 48-hour lateness, same-revision snapshots and refusal of an old lease committing late. A time-zone change cannot stitch trends beyond raw coverage. Raw-30-day/aggregate-13-month candidate boundaries are testable; without explicit production retention authorization, an actual-cleanup request is refused with zero deletions (E-48, E-56, E-81, E-88).",
+  "edges": {
+    "E-42": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "The user has not allowed analytics or has rejected it",
+      "expect": "Do not create/store analytics identifiers or send analytics events; the site and 3D functions remain usable. The dashboard must clearly cover only consented browsers and must not turn missing nonconsented samples into a whole-site visitor count."
+    },
+    "E-61": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "This round accepts today's consented visitors, PV, product attribution and 3D view/load metrics",
+      "expect": "List evidence of one real product-action round: consent, actual page/product visits, actual GLB start/terminal, a committed real five-minute job, and dashboard reads of real daily/product aggregates. Verify today's consented browsers, PV, attribution and 3D metrics individually. Core sources must not be passed using not connected or fixed values."
+    },
+    "E-63": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "3D loading succeeds, fails, times out or has no samples",
+      "expect": "Use the established section 09 definition: the denominator is actual model_view_start after consent; at most one success/failure terminal exists for the same viewId, and timeout is failure. Compute mean duration from valid terminal durationMs samples and include samples; no samples gives null, while zero success with samples gives 0%. Do not add nonconsented samples to the denominator."
+    },
+    "E-48": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "Raw events exceed 30 days or aggregates exceed 13 months",
+      "expect": "Following section 09, express retention boundaries as receivedAt plus 30 days and expiresAt after 13 calendar months for identity-free aggregates, and show query coverage. Cleanup runs only with separate explicit production-retention authorization and explicit enablement; default to dry-run/actual cleanup disabled, and reject actual deletion without authorization. Isolated tests must verify the expired target set, counts, removal of identifiers and no reconstruction of expired details, without expanding authority to delete backups or existing data."
+    },
+    "E-56": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "A statistics day encounters a daylight-saving transition",
+      "expect": "Use an IANA time-zone library to compute UTC boundaries from local midnight to the next local midnight, allowing 23-hour or 25-hour days. Do not add a fixed 24 hours or double-count overlapping instants."
+    },
+    "E-81": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+      "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+    },
+    "E-88": {
+      "scene": "Chat-credential and data-retention deadlines",
+      "trigger": "This round's documents are generated or an implementer receives a dispatched task",
+      "expect": "Add a testable authorization-only gate: actual production cleanup is off by default and dry-run is the default mode. Without separate explicit retention-policy authorization, enabling or requesting actual deletion must be rejected and the deletion count must be 0; candidate counts/disabled state may be returned. Documents, task dispatch, model results and proxy decisions cannot serve as authorization. Verify only with isolated data and do not touch existing production/recovery/backup data."
+    }
+  }
+}

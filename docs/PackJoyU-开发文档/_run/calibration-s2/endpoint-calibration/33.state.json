@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "GET",
+    "path": "/api/admin/stats",
+    "params": "from/to in local calendar days, optional productSlug/timezoneRevision/sources.",
+    "returns": "StatsDTO: authorized source list, metrics, coverage, actual data time, and separate status for each source.",
+    "permission": "ADMIN all sources; SALES business scope; EDITOR public traffic and 3D."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "Read-only dashboard. ADMIN may request traffic/3D/inquiries/chat/API errors/mail/storage/backup. SALES may request traffic/3D, inquiry counts under existing sales scope, and shared chat counts. EDITOR may request only public traffic and product/3D aggregates. Apply role/source filters server-side before querying; lower-privilege DTOs omit hidden sources and counts, and direct requests for system sources return 403. Inquiry counts come from Inquiry under scope, chat from ChatConversation/ChatMessage/ChatNotification, mail from MailMessage and actual outbox state, traffic from AnalyticsDaily and real aggregation state. API coverage is only the newly wired API final-response counters, never a claimed whole-site error rate. Storage/backup are controlled reports containing only metrics and real completion/verification times, not paths or contents. Per-source states are ok/zero/no_data/not_connected/query_failed/stale with value number/null, timezone/revision, dataThrough, queriedAt, lastSucceededAt, coverage. A failed source is not zero and does not block other sources. GET never writes state, collects data, sends mail, or runs backup."
+}

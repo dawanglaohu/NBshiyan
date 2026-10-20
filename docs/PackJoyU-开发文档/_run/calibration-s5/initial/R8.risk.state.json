@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Recovered PRs or the local specification baseline are absent from the implementation trunk",
+    "impact": "New worktrees lack inputs or reuse unreviewed security changes",
+    "mitigation": "M1-T1 includes the reviewed local spec in its first PR; later tasks start from the landed main. Recheck recovered PR head, checks and required approval individually; never merge or deploy automatically.",
+    "trigger": "The spec is absent from origin/main or a reused PR lacks current evidence or required security approval"
+  }
+}

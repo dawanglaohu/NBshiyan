@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Complete per-source dashboard states and failure presentation",
+    "input": "stats-base-ui, business/reliability/ops sources and section 10 state DTOs",
+    "output": "stats-ui: SourceCard states, independent timestamps, trend coverage and safe refresh",
+    "accept": "1) From actual GET responses at /admin/stats, verify successful zero, no_data, not_connected, query_failed without prior values, stale with prior values, one-source failure and partial rebuild coverage. Every source preserves original dataThrough/lastSucceededAt; failed refresh never advances old data time and other metrics remain readable (E-49, E-50, E-51, E-52, E-53, E-67). 2) When a query succeeds but the event-reception chain has no evidence, show only actually observed configuration/recent reception/query results and unknown or last-known times. Zero traffic must not create a healthy heartbeat or a whole-chain healthy badge (E-54). 3) At all three viewport sizes, recheck D1-D6, readable time/source labels and keyboard refresh, and save a real GIF. Manual refresh only GETs stats; it never triggers cron, backup or mail."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

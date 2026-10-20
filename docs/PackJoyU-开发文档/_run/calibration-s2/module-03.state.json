@@ -1,0 +1,12 @@
+{
+  "capability": "Restyle public pages using the peer site as a reference; integrate controllable muted homepage video, JPG/GIF, reduced motion, visibility-based loading and media error fallback.",
+  "modules": {
+    "M1": "Brand and public experience: existing PackJoyU wordmark, verifiable company content, branded JPG/GIF derivatives, homepage media and public pages; sole owner of shared public/admin visual tokens; no admin permissions/shell. No module dependencies.",
+    "M2": "Product and 3D: large product cards/list/detail, direct model controls, input conflicts, touch/keyboard access, image fallback, product-context inquiry entry. Depends on M1,M4,M5.",
+    "M3": "Admin access and accounts: login page and admin shell, personal settings, persistent device sessions, verified passwordless authenticator mode, session revocation and separate restricted account recovery. Consumes M1 tokens; depends on M1.",
+    "M4": "First-party human consultation: necessary visitor conversations, durable messages, offline contact, ADMIN/SALES inbox, replies, unread, memory-only unsent drafts, idempotent retries and actual notification results. Depends on M1,M3,M5; never waits for dashboard.",
+    "M5": "Consent and analytics ledger: analysis consent, anonymous browser/event IDs, validation/deduplication, site IANA time zone, daily/product aggregation, retention and recomputation boundaries, real visitor and 3D metrics. Depends on M3; never calls M6.",
+    "M6": "Business/operations dashboard: role-scoped queries and source status for analytics, consultation, interface errors, mail, storage and backups; zero/no data/not connected/failure/stale distinctions. Depends on M1,M3,M4,M5.",
+    "M7": "Integrated acceptance and delivery: real cross-module visitor/admin/recovery/analytics journeys and delivery evidence; trace reused unpublished draft provenance without redoing the completed S1 recovery/audit or automatically merging those drafts. Depends on M1,M2,M3,M4,M5,M6."
+  }
+}

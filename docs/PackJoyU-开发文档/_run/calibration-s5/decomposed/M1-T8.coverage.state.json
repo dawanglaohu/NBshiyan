@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Use a real local HTTP server to test delays, 400/401/403/409/429/503 and old {error} responses. Cancellation at 15s and on unmount must terminate in-flight requests; fieldErrors retain only controlled fields, and unknown exceptions must not echo stack/message. 2) Ordinary GET and same-key chat/analytics retries follow section 10. Unknown results for one-time reauth/recovery/cron requests are not automatically replayed. Business components obtain request/error adapters only through the unified export, and the original Auth.js envelope remains unchanged.",
+  "edges": {}
+}

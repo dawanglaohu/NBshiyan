@@ -1,0 +1,50 @@
+{
+  "acceptance": "1) Caller/wiring point: an actual sign-in through existing Credentials -> src/auth.ts -> device service. Real Auth.js session, SSR, protected GET /api/admin/account, and signOut all check the current User/sv/sid/lock/expiry; reject old JWTs without sid, and atomically revoke the current device on sign-out (E-03, E-70, E-71). 2) Verify ordinary two-hour sliding expiry, remembered seven-day idle/30-day absolute boundaries, and equality-at-expiry using real HTTP and a controlled clock. Activity first checks validity and then uses CAS. Actual Set-Cookie/JWT deadlines cannot exceed the device deadline; racing revocation cannot revive it. An actual browser closed and reopened with unexpired credentials remains usable (E-01, E-02, E-04, E-68, E-69). 3) Absent/boolean false/literal false rememberDevice all use the ordinary policy; reject invalid values. The real activity endpoint accepts only same-origin requests and is not automatically replayed. Session reads and polling do not touch activity. New APIs record redacted request/5xx counters at their final response, and counter failure does not change the business response (E-95, E-68).",
+  "edges": {
+    "E-01": {
+      "scene": "Session persistence and remembered-device lifetime",
+      "trigger": "Remember this device is not selected.",
+      "expect": "Keep the existing refreshable two-hour session policy; do not rewrite it as a fixed forced logout after two hours. When selected, even continuously active use cannot exceed the absolute limit of 30 days measured from issuance."
+    },
+    "E-02": {
+      "scene": "Session persistence and remembered-device lifetime",
+      "trigger": "A remembered device has had no valid server-side activity for more than seven days.",
+      "expect": "Require authentication again on the next protected request. Refreshing a JWT cannot revive an expired session."
+    },
+    "E-03": {
+      "scene": "Session persistence and remembered-device lifetime",
+      "trigger": "The password is changed, the authenticator is reset, the account is disabled, or Sign out all devices is executed.",
+      "expect": "Revoke the account's old credentials on the server; reject old JWTs even if they have not expired. Ordinary Sign out must at least revoke the current device session and clear the local signed-in state."
+    },
+    "E-04": {
+      "scene": "Session persistence and remembered-device lifetime",
+      "trigger": "The browser closes, a tab is restored, or the browser is reopened.",
+      "expect": "Test the additional branches explicitly: after closing and reopening the browser, handle real unexpired and unrevoked credentials under the existing policy; reject protected requests made with expired or revoked credentials. Tests must not assume that closing a browser destroys its cookies."
+    },
+    "E-68": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "The same device refreshes concurrently, or refresh and revocation race.",
+      "expect": "Use database time and conditional updates to check active status, credential version, and current deadlines. Sliding activity time may only advance monotonically. Refresh after revocation or expiry must not revive the session."
+    },
+    "E-69": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "An ordinary session reaches two hours since its last valid activity, or a remembered device reaches either seven idle days or the absolute deadline of 30 days since first issuance.",
+      "expect": "Reject authorization on the server and clear cookies in responses that can write them. Both JWT and Set-Cookie expiry must remain within that device's actual allowed deadline; refresh cannot extend the absolute limit."
+    },
+    "E-70": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "The cookie/JWT is still valid, but the device was revoked, the account was disabled, the credential version changed, or server-side validation is unavailable.",
+      "expect": "A protected request cannot be authorized by its cookie alone. Request-scoped query deduplication must not become a cross-request cache that ignores revocation."
+    },
+    "E-71": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "Initial sign-in, refresh, SSR, and sign-out take different Auth.js paths.",
+      "expect": "Pin the same actual beta version and verify JWT expiry, Set-Cookie expiry, and revocation through all four real paths. If SSR cannot write a cookie, do not claim browser persistence was renewed. Sign-out must also revoke the device record."
+    },
+    "E-95": {
+      "scene": "The Remember this device sign-in field",
+      "trigger": "The Auth.js form rememberDevice value is the literal false, absent, or boolean false.",
+      "expect": "Explicitly parse it as false and use the ordinary two-hour policy. Do not turn it into a remembered device through Boolean or unconstrained coercion. Reject other invalid values."
+    }
+  }
+}

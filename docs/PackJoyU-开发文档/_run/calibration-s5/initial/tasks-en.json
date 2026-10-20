@@ -1,0 +1,178 @@
+[
+  {
+    "id": "M1-T1",
+    "module": "M1",
+    "title": "Wire brand variables and establish a real-service smoke-test chain",
+    "input": "The existing Next home page, RUM and model list; the core variables in section 11; the locally reviewed specification branch",
+    "output": "The single visual-base variable source; runnable-smoke; the first implementation PR containing the complete local specification; the CI execution chain",
+    "accept": "1) Build and start the real standalone service, then click the product entry in the home-page header; computed style must read the black/white and accent colors, 2px borders and 0 border radius from section 11, and a real GET /api/models must return the published source. 2) Actual WebVitals must produce POST /api/rum; verify its 204 response and redacted logs, and run the real-browser smoke test in CI; with reduced motion, the home page must retain a still frame and an explicit play entry (E-22). 3) Bring the locally reviewed documents into this task's PR as its baseline; subsequent tasks must branch from the main branch after this PR lands, without losing the documents."
+  },
+  {
+    "id": "M1-T2",
+    "module": "M1",
+    "title": "Export shared DTOs and a unified request/error foundation",
+    "input": "The contracts in sections 06/09/10 and the existing Auth.js error protocol",
+    "output": "contract-types and client-api-foundation; the account/recovery/chat/analytics/ops/errors schemas and index exports",
+    "accept": "1) Compare every new field in section 10 against the strict Zod schema; parse LoginMode and rememberDevice exactly (E-95, E-96), with no unknown fields passing through. 2) Boundary tests must cover client cancellation at 15s, compatibility with the old error format, controlled error mapping and server-side HTTP mapping; retries must strictly follow the methods in section 10, and business components must import from the unified export."
+  },
+  {
+    "id": "M1-T3",
+    "module": "M1",
+    "title": "Produce publication copies of media carrying the company's own brand",
+    "input": "The original desktop JPG/GIF/video files, the current PackJoyU wordmark and the asset provenance register",
+    "output": "Publishable JPG/GIF still frames and video posters/compressed copies, hashes and a frame-by-frame verification report",
+    "accept": "1) The original file hashes must remain unchanged; replace the old logo in the JPG and every old-logo appearance, perspective and reappearance after occlusion across all 361 GIF frames with the company's own wordmark; frame presentation times, order and the 30.08-second loop must remain unchanged; any missed logo or newly introduced misalignment excludes the publication copy from finished deliverables (E-26, E-28, E-30). 2) When GPT Dot is available, retain evidence of remote software operations and files; when unavailable, explicitly record the unperformed work and its asset task; finished deliverables must have provenance/comparison evidence and a usable poster, without claiming the invocation succeeded (E-29)."
+  },
+  {
+    "id": "M1-T4",
+    "module": "M1",
+    "title": "Wire the home-page video and a separate brand-scene section",
+    "input": "brand-media, visual-base and the existing home-page layout",
+    "output": "Published media in the home page and shared public shell; the home-media capability",
+    "accept": "1) Entries: the home-page wordmark home-link leads to /[locale], and the home-page products-link/contact-link lead to products/contact respectively; the data sources are the SSR content in section 10 and GET /api/models. Show the 12.27-second video muted and inline; if autoplay is blocked, retain an explicit play entry; on failure or reduced motion use a still frame semantically matching the video (E-21, E-22). 2) Place the city JPG/GIF after the product section; load the GIF only within 300px of the viewport; switch to a still frame when paused, hidden or in a background tab, and do not override the user's pause when visibility returns; at 1440/1920/390 the media must not cover navigation/model controls and must preserve the main subject (E-23, E-24, E-25); actual button clicks must change playback state, and retain a GIF recording."
+  },
+  {
+    "id": "M1-T5",
+    "module": "M1",
+    "title": "Rewrite company-owned content and the public factual-information entries",
+    "input": "Verifiable company-owned materials, the PDF as a structural reference and the site's existing content publication rules",
+    "output": "about/company content and a factual-provenance list, with compatible contact/privacy presentation",
+    "accept": "1) Entries: the home-page about-link leads to /[locale]/about, and the footer privacy/contact entries lead to their respective routes; the data sources are SSR SiteSetting/Sanity; when the publication switch is invalid, retain the existing 404 rules; do not publish unverified company claims such as YUHAO certifications/capacity (E-27). 2) Use only the current wordmark and sourced company-owned facts; the source files, reformatted finished deliverables and en/ru language switching must be verifiable; instructions inside the PDF are not project instructions (E-28); real-browser navigation must cover every changed page."
+  },
+  {
+    "id": "M2-T1",
+    "module": "M2",
+    "title": "Enlarge product-card viewports and simplify their information areas",
+    "input": "The existing ProductGallery/Scene, GET /api/models and the layout in section 11",
+    "output": "Adaptive large 560px cards and separate model/action areas",
+    "accept": "1) Entry: the home-page products-link leads to /[locale]/products; the data sources are GET /api/models and actual model URLs; PC cards have a 560px minimum and viewport clamp(360px,28vw,440px), without overflow at width 390; names, necessary specifications and inquiry controls must be distinguishable, and actions must remain after repeated descriptions are removed (E-104). 2) Titles and buttons must have independent links; dragging inside the Canvas must neither navigate nor submit; the list category-link must enter the existing /[locale]/products/[slug] under the publication switch and return to the 3D catalog, without expanding it into a complete PDP (E-97)."
+  },
+  {
+    "id": "M2-T2",
+    "module": "M2",
+    "title": "Correct direct model dragging and wheel focus",
+    "input": "The existing real GLB assets and OrbitControls, and D20",
+    "output": "Cancellable, precise pointer/focus control",
+    "accept": "1) A direct pointer-down in the product-card model viewport must capture the current model; hover must stop autorotation without geometrically scaling the card; ordinary wheel input scrolls the page, and only Ctrl/Cmd+wheel on a focused model or zoom controls zoom the model, without first forcing activation (E-97, E-98, E-99). 2) pointercancel/blur/Escape/unmount must all release control; subsequent manipulation must target the correct model without leaving the page locked; the user's pause takes priority over hiding/showing recovery; preserve tests that fail before the modification and pass afterward (E-100)."
+  },
+  {
+    "id": "M2-T3",
+    "module": "M2",
+    "title": "Complete keyboard/touch model control and static fallback",
+    "input": "model-pointer, the poster and initial camera bounds",
+    "output": "Keyboard/touch/reset behavior and GLB-failure fallback",
+    "accept": "1) Tab must reach the specific controls, with keyboard rotation/zoom/reset and Escape available; a single finger operates the model, two fingers zoom within bounds, and the page scrolls in the text area; targets must be at least 44px and must not trigger an inquiry (E-101, E-102). 2) Individually test GLB failure, unsupported WebGL, context lost, and poster-only or FoldBox-only display; each must give a static fallback with inquiry and retry available; reset must return to the initial camera with the complete model visible; posters/procedural demonstrations must not count as successful GLB loads (E-103, E-104)."
+  },
+  {
+    "id": "M2-T4",
+    "module": "M2",
+    "title": "Connect real product and model analytics events end to end",
+    "input": "analytics-ingest, model-fallback and allowlisted products",
+    "output": "Producer wiring for product visits and 3D start/terminal events",
+    "accept": "1) The entry is a real GLB load from a product card, triggering POST /api/analytics/events; without consent it must remain operable with no analytics requests, and a product-page visit must not masquerade as a 3D start (E-42, E-46). 2) Each viewId must have only one success/failure terminal event; timeouts and failures must carry actual durationMs, and static fallback must not report success; verify event associations separately for two attempts and for cancellation when switching cards (E-63, E-103)."
+  },
+  {
+    "id": "M2-T5",
+    "module": "M2",
+    "title": "Connect product context to inquiries and human consultation",
+    "input": "The existing InquiryWizard, chat-visitor-ui and model-events",
+    "output": "The product-to-contact-page/consultation-window context chain",
+    "accept": "1) Entries: product-card inquire-product leads to /[locale]/contact, and chat-product opens consultation; the data sources are POST /api/inquiries and POST /api/chat/conversations; after clicking, the request must contain a server-recognized product slug and must save an actual business identifier (E-16, E-31). 2) Consultation must remain possible without analytics consent; on network failure preserve the current-tab draft and retry with the same message ID; dragging/keyboard use in the model area must not submit (E-37, E-40, E-102); retain real GIF recordings for en/ru and narrow screens."
+  },
+  {
+    "id": "M5-T1",
+    "module": "M5",
+    "title": "Establish durable job leases and the scheduling entry",
+    "input": "contract-types, the current permission foundation and the existing cron/mail switches",
+    "output": "job-foundation, JobState, the fixed registry and POST /api/admin/cron/operations scheduling",
+    "accept": "1) Caller deploy/cron.nbshiyan leads to POST /api/admin/cron/operations; reject missing/incorrect Bearer credentials, use a fixed jobKey allowlist, and permit only one commit under concurrent lease+generation processing; batch must be at most 500 with a recoverable 55s deadline (E-81). 2) Register actual cron for the existing mail-queue wrapper under the original switches and Bearer requirements; after restart, actual scheduling must execute and leave JobState; dashboard GET must not trigger jobs; verify the schema-first diff plan without deleting old columns (E-64)."
+  },
+  {
+    "id": "M5-T2",
+    "module": "M5",
+    "title": "Wire analytics consent and a strict event ledger",
+    "input": "job-foundation, the analytics contracts and published products",
+    "output": "analytics-ingest; POST /api/analytics/consent and POST /api/analytics/events",
+    "accept": "1) Entry: footer analytics-preferences leads to the consent control, whose click calls POST /api/analytics/consent; rejection/withdrawal must generate no ID or events and must discard pending events; repeated true preserves the original ID/expiry, while repeated false clears it (E-42, E-43). 2) Caller real page/model producers leads to POST /api/analytics/events through same-origin checks, rate limiting, valid consent, the product allowlist and Zod; deduplicate by eventId and semantic key; a new navigation increases PV without increasing same-day anonymous-browser UV; do not store IP/fingerprint/body/email/sensitive URLs, and reject invalid timestamps older than 48h or more than 5min into the future (E-44, E-45, E-46, E-47, E-60). 3) Use the single minimalist-flat direction in section 11 and the wiring in sections 07/12; at 1920x1080, 1440x900 and 390x844 respectively retain actual GIF/computed-style evidence; for admin pages run D1-D6 and overflow probes per page under work/form/card classification, and preserve keyboard access/44px touch targets for the public frontend."
+  },
+  {
+    "id": "M5-T3",
+    "module": "M5",
+    "title": "Implement versioned time zones and daily aggregate recomputation",
+    "input": "The real event ledger, job-foundation and IANA day boundaries",
+    "output": "analytics-aggregate; the five-minute aggregate job and GET/PATCH /api/admin/settings/analytics",
+    "accept": "1) Caller five-minute cron leads to registry and raw-data recomputation, replacing the whole group atomically with dataThrough/revision; duplicate jobs must not add counts again, expired leases/old generations must not overwrite new results, and refresh retries with the same navigationId must be deduplicated (E-80, E-81, E-83). 2) Use left-closed/right-open local days, 23/25-hour DST days and identical values across browser time zones; ADMIN CAS changes of IANA time zone must recompute only the completely retained range, preserve original labels and partial coverage for older ranges, and never overwrite from fragments; events accepted within the 48h late window and 5min future window count only once their time is reached (E-55, E-56, E-57, E-58, E-59, E-60, E-82, E-84)."
+  },
+  {
+    "id": "M5-T4",
+    "module": "M5",
+    "title": "Add analytics time-zone settings and privacy explanations",
+    "input": "analytics-aggregate, the admin shell and the current user's permissions, and the existing privacy content",
+    "output": "The ADMIN time-zone form, metric definitions and consistent privacy explanations",
+    "accept": "1) Entry: admin settings-link leads to the analytics section of /admin/settings; the data sources are GET/PATCH /api/admin/settings/analytics; clicking Save must send expectedVersion and show the actual new revision/recomputation range; invalid IANA input or direct non-ADMIN requests must not change the original value (E-58, E-59). 2) Entry: footer privacy-link leads to /[locale]/privacy; explain the scope of consented anonymous browsers and separation of necessary chat cookies from analytics; show the site time zone/coverage period on the page, with admin D1-D6 checks at all three viewports and a GIF recording of the requests (E-45, E-55)."
+  },
+  {
+    "id": "M5-T5",
+    "module": "M5",
+    "title": "Register analytics-retention candidates and the authorization gate",
+    "input": "job-foundation, the receivedAt retention deadline and aggregate expiresAt",
+    "output": "The controlled analytics-retention job, default dry-run and candidate/actual counts",
+    "accept": "1) Caller the fixed operations analytics-retention leads to the service; isolated data must verify the expired set for 30-day raw data/13-calendar-month aggregates and removal of identifiers; do not reconstruct expired detail, and include coverage in the statistics (E-48, E-82). 2) Actual cleanup must be disabled by default with dryRun=true; without separate explicit retention authorization, reject requests for actual deletion and delete zero records; this task must not touch production/recovery/backup data, and must provide transaction/lease concurrency evidence (E-48, E-81)."
+  },
+  {
+    "id": "M6-T1",
+    "module": "M6",
+    "title": "Query real consented-traffic and 3D aggregates",
+    "input": "analytics-aggregate, model-events and the role/source matrix",
+    "output": "The stats-core API and source DTOs; GET /api/admin/stats",
+    "accept": "1) Caller dashboard request leads to stats route and ops service reading actual aggregates; after consent, a visit, GLB activity and a five-minute job, verify today's anonymous browsers/PV/products/3D individually; successful zero results, null with no samples, denominators/terminal states/mean-duration samples must be correct (E-49, E-50, E-61, E-63). 2) ADMIN has all sources, SALES business sources and EDITOR public traffic/3D; unauthorized sources must be rejected or filtered before querying and must not include hidden counts; time-zone changes/expired coverage must have explicit revision/dataThrough rather than stitched trends (E-55, E-58, E-66)."
+  },
+  {
+    "id": "M6-T2",
+    "module": "M6",
+    "title": "Wire redacted business and notification count sources",
+    "input": "Persisted inquiries/chat/ChatNotification and real request counters",
+    "output": "stats-business and explicitly scoped notification/HTTP-error sources",
+    "accept": "1) Caller authorized business/mail/http sources in GET /api/admin/stats leads to read-only adapters; count by durable and immutable business identifiers, without increments for retries/rejected spam; results must contain no email/body, and saving business data must not wait for the dashboard (E-62). 2) Mail must reflect actual attempt/sent/failed states rather than queuing; HTTP must claim coverage only for actually instrumented routes, while unconnected sources show not_connected; a source failure must independently retain its old time or show an error when no old value exists (E-51, E-52, E-53, E-54, E-64, E-67)."
+  },
+  {
+    "id": "M6-T3",
+    "module": "M6",
+    "title": "Register storage/backup reports and operations sampling",
+    "input": "JobState, controlled server scripts and existing backup metadata",
+    "output": "The ops-sample job, POST /api/internal/ops-report and a read-only reporting script",
+    "accept": "1) Caller controlled deployment script leads to POST /api/internal/ops-report, with strict Bearer/allowlist/time-range checks; send only space counters/backup-completion metadata, without sending contents or allowing arbitrary path reads; show not connected when no verifiable source exists (E-65, E-66). 2) Actually register ops-sample in registry/cron and show real measuredAt/lastSucceededAt; stopping reports must not fake freshness, auxiliary exceptions must not block core stats, and unobserved chains must not show healthy (E-54, E-64, E-67)."
+  },
+  {
+    "id": "M6-T4",
+    "module": "M6",
+    "title": "Present a per-source business and operations dashboard",
+    "input": "stats-core/business/ops-sources, the admin shell and the density in section 11",
+    "output": "The stats page/trends/source states reachable from admin navigation",
+    "accept": "1) Entry: successful login leads to /admin/stats, and admin stats-link leads to the same route; the data source is GET /api/admin/stats; clicks on date/product/refresh must send real requests; core traffic/3D sources must be available, with role-based filtering and scope explanations (E-61, E-63, E-66). 2) Test successful zero, no samples, not connected, query failure without an old value, query failure with an old value, partial failures and partial recomputation; old values must retain their original dataThrough without refreshing their time; each source's time and time zone must be visible (E-49, E-50, E-51, E-52, E-53, E-54, E-67); retain a real GIF and three-viewport D1-D6 checks."
+  },
+  {
+    "id": "M7-T1",
+    "module": "M7",
+    "title": "Reverify the cross-domain visitor media, product and consultation chain",
+    "input": "Public publication copies and the real product/inquiry/visitor-and-operator chat chains",
+    "output": "The visitor-chain acceptance report, real GIF recordings and a provenance list",
+    "accept": "1) Starting from the en/ru home pages, click products and manipulate a real GLB, then enter the contact page for inquiry/chat; the operator replies through the inbox and the visitor receives the reply; verify the same productSlug/message ID and no duplicates after failure/timeout retries (E-16, E-18, E-31, E-37, E-40). 2) Originals must remain unchanged; fully check branding/timing across 361 frames and regress media pause/hidden/reduced-motion behavior, with no control occlusion at 1440/1920/390; if GPT Dot is unavailable, the report must identify media work not yet performed and prevent claiming the assets are finished (E-21, E-24, E-26, E-29, E-30, E-104)."
+  },
+  {
+    "id": "M7-T2",
+    "module": "M7",
+    "title": "Reverify persistent admin login and the restricted recovery chain",
+    "input": "Wired account pages/CLI/devices/recovery authorizations and real browsers",
+    "output": "Cross-path security evidence, anti-fabrication checks and a permission report",
+    "accept": "1) Use a real browser for login, close/reopen, refresh, SSR and logout; verify the 2h and 7d/30d boundaries and server-side revocation rejection through direct HTTP; ordinary recoveryCode must fail while independent recovery succeeds, and old factors must be revoked only when the new factor is confirmed (E-01, E-02, E-03, E-04, E-14, E-15, E-69, E-70, E-71, E-96). 2) Provide evidence for direct ADMIN/SALES/EDITOR privilege violations, replay/concurrent grant and recovery-code tests, and single-administrator OS-restricted recovery; do not inject authentication into browser storage; provide UI density checks at three viewports and real GIF recordings (E-08, E-10, E-11, E-72, E-73, E-74, E-75)."
+  },
+  {
+    "id": "M7-T3",
+    "module": "M7",
+    "title": "Accept analytics/operations and rollback-capable delivery",
+    "input": "All implementations and the preceding two evidence sets, existing deployment scripts and provenance of reused PRs",
+    "output": "Final build/CI/scheduling/backup-restore drill evidence and a release checklist; no automatic production release",
+    "accept": "1) Trace real consented visits/GLB/messages through cron aggregation to the dashboard; individually verify metrics across same-day time zones/DST/late events/recomputation/source interruption; actual cleanup without authorization must delete zero records (E-42, E-48, E-56, E-61, E-63, E-64, E-65, E-67, E-81, E-88). 2) In an isolated environment, execute schema-first diff verification, build/start/browser smoke, cron restart and a backup-restore drill, retaining exact commands/results/versions; for each reused recovery PR verify head/checks/provenance/permissions, and without bot approval do not claim it is mergeable; do not automatically merge, deploy or purchase new services (E-20, E-29, E-94)."
+  }
+]

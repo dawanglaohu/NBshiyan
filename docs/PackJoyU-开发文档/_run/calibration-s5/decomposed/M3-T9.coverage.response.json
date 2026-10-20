@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "template": "coverage",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "covered_E-13": {
+      "p": 0.75,
+      "verdict": "yes"
+    },
+    "covered_E-73": {
+      "p": 0.42,
+      "verdict": "unsure"
+    }
+  },
+  "line": "coverage: covered_E-13=yes(0.75) covered_E-73=unsure(0.42)",
+  "usage": {
+    "input_tokens": 907,
+    "output_tokens": 44
+  }
+}

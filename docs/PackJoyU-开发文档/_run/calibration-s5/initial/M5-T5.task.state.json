@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register analytics-retention candidates and the authorization gate",
+    "input": "job-foundation, the receivedAt retention deadline and aggregate expiresAt",
+    "output": "The controlled analytics-retention job, default dry-run and candidate/actual counts",
+    "accept": "1) Caller the fixed operations analytics-retention leads to the service; isolated data must verify the expired set for 30-day raw data/13-calendar-month aggregates and removal of identifiers; do not reconstruct expired detail, and include coverage in the statistics (E-48, E-82). 2) Actual cleanup must be disabled by default with dryRun=true; without separate explicit retention authorization, reject requests for actual deletion and delete zero records; this task must not touch production/recovery/backup data, and must provide transaction/lease concurrency evidence (E-48, E-81)."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

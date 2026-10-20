@@ -1,0 +1,49 @@
+{
+  "id": "M2-T4",
+  "row": {
+    "line": 22,
+    "title": "定义模型分析事件生命周期纯规则",
+    "deps": [
+      "M1-T2"
+    ],
+    "input": "contract-types中的事件白名单、navigationId/viewId与durationMs约束",
+    "output": "model-event-rules；start/terminal去重及取消/重试转换的纯函数",
+    "acceptance": "1) 录制输入序列验证每viewId最多一个success/failure，timeout为failure，poster/FoldBox不产生GLB success，重试新尝试使用新viewId；函数不读DOM/env/cookie且不fetch。2) 事件输出必须通过M1共享schema；durationMs取注入单调时钟差，产品/导航关联原样保留，乱序/重复终态不覆盖已定终态；真实浏览器生产者由M2-T7消费。",
+    "days": "1d"
+  },
+  "contract": {
+    "provides": [
+      "model-event-rules"
+    ],
+    "requires": [
+      {
+        "task": "M1-T2",
+        "capability": "contract-types"
+      }
+    ],
+    "stage": "primitive",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "src/lib/analytics/model-events.ts",
+      "tests/model-event-rules.test.ts"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      14,
+      16,
+      17,
+      18
+    ],
+    "integrationTask": "M2-T7"
+  },
+  "contractHash": "31cefa667944267afd16e80718daaf1f29960bce132a0da5d5ac4ed85009176f",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M2　产品与 3D：负责产品列表、卡片和详情中的产品表达、直接模型操控、输入冲突处理、触屏与键盘查看、图片回退及带产品上下文的询盘入口。\n13: - 输入：contract-types中的事件白名单、navigationId/viewId与durationMs约束\n14: - 产出：model-event-rules；start/terminal去重及取消/重试转换的纯函数\n15: - 预估：1 人天　｜　前置：M1-T2　导出新增领域共享schema与DTO（已落地）\n16: 任务契约版本：31cefa667944267afd16e80718daaf1f29960bce132a0da5d5ac4ed85009176f；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的前端开发工程师。架构在 07 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M2-T4.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M2.md　模块职责与已有代码位置\n24: \n25: ## 验收标准（验收的唯一依据，逐条都要满足）\n26: 1) 录制输入序列验证每viewId最多一个success/failure，timeout为failure，poster/FoldBox不产生GLB success，重试新尝试使用新viewId\n27: 函数不读DOM/env/cookie且不fetch。2) 事件输出必须通过M1共享schema\n28: durationMs取注入单调时钟差，产品/导航关联原样保留，乱序/重复终态不覆盖已定终态\n29: 真实浏览器生产者由M2-T7消费。\n30: \n31: ## 必须处理的边界\n32: （验收标准没挂边界编号。仍按常识处理空输入、失败路径、重复提交。）\n33: \n34: ## 只改这些路径\n35: - src/lib/analytics/model-events.ts\n36: - tests/model-event-rules.test.ts\n37: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n38: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n39: \n\n84: ## 本项目约定\n85: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n86: "
+}

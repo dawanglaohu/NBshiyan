@@ -1,0 +1,93 @@
+{
+  "status": "proposal_revised_after_real_calibration_not_applied",
+  "taskChinese": {
+    "id": "M1-T9",
+    "title": "制作公司区块独立图稿与可编辑源工程",
+    "module": "M1",
+    "deps": [
+      "M1-T1"
+    ],
+    "input": "参考PDF组织/产品主题、己方可证事实、现用PackJoyU字标与用户已授权GPT Dot远程软件制作",
+    "output": "company-visual-assets；网站公司区块选定1–2幅独立重绘图稿、可编辑软件源工程、Web图/enru alt与尺寸、哈希及真实制作清单",
+    "acceptance": "1) 实际交付1–2幅网站公司区块独立重绘图稿，每幅均有“参考PDF页码/主题→己方可证事实或不含企业硬事实的产品示意”对照。只借鉴组织和产品主题，原PDF/JPG/GIF/视频与现用logo原文件SHA-256保持不变；YUHAO认证/产能/规模及无己方依据的真实厂房、设备、证照不出现在图中，不要求重画25页整本（E-27、E-111）。2) 每幅必须同时存在docs/brand-content/source/内的可编辑软件源工程及public/brand/company/内的Web图。用对应软件实际打开每个工程，能选择并编辑至少一个独立图形或文字对象，保留对象/图层面板与一次可撤回编辑的记录，关闭时不覆盖已登记源件；只有平面截图不算可编辑工程。实际解码每幅Web图并测得正整数宽高。docs/brand-content/company-visuals.json每幅都含source.path/source.sha256、web.path/web.sha256/width/height、alt.en/alt.ru、参考主题/事实依据；逐文件计算的SHA-256须与manifest逐字相同，解码宽高须逐值相同，en/ru alt均为非空且对应实际画面（E-111）。3) manifest登记现用PackJoyU logo master文件路径与SHA-256，读取该实际文件计算值须逐字匹配；图稿使用同一master而非候选新标，制作记录列明引用/导入该master的对象。原logo不修改，成品与源工程均无旧品牌或候选标；不等待用户回看候选图（E-28、E-111）。4) 必须提供可核对的实际GPT Dot调用/软件操作记录：对应调用或会话标识、软件名称版本、打开工程与导出Web文件的记录，记录中的文件逐件对应manifest路径和SHA-256；最后重新打开源工程、解码Web图并复算全部哈希，全部通过才交company-visual-assets。Dot不可达、软件步骤未执行或任一图稿/源工程/Web图/必要记录缺失时，本任务保持未完成，不能仅交尚未执行状态、计划或截图就提交为已完成或落地（E-29、E-111）。5) 本卡完整交付的边界是已核验的素材集合与manifest，不输出页面完成声明；E-111的首页/about实际消费及浏览器证据由M1-T5集成验收，T9不得伪造页面证据。源工程和工具私有记录不进入public或生产镜像（E-111）。",
+    "days": "1.5d",
+    "paths": [
+      "public/brand/company/",
+      "docs/brand-content/source/",
+      "docs/brand-content/company-visuals.json"
+    ],
+    "supportPaths": [],
+    "provides": [
+      "company-visual-assets"
+    ],
+    "requires": [
+      {
+        "task": "M1-T1",
+        "capability": "visual-base"
+      }
+    ],
+    "stage": "primitive",
+    "integrationTask": "M1-T5",
+    "wiring": [],
+    "ui": false,
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      11,
+      13,
+      14,
+      17,
+      18
+    ]
+  },
+  "taskEnglish": {
+    "title": "Produce independently redrawn company-block artwork and editable native projects",
+    "input": "Reference PDF organization/product themes, verifiable company-owned facts, the current PackJoyU wordmark, and the user-authorized GPT Dot remote-software production channel",
+    "output": "company-visual-assets; only one or two independently redrawn website company-block illustrations, editable native software projects, Web images/en-ru alt/dimensions, hashes, and truthful production manifest",
+    "accept": "1) Actually deliver one or two independently redrawn illustrations for website company blocks. Each has a reference-PDF-page/theme to verifiable company-owned facts or a product schematic containing no hard corporate claims mapping. Borrow only organization and product themes. SHA-256 hashes of the original PDF/JPG/GIF/video and current logo file remain unchanged. No YUHAO certifications/capacity/scale or unsupported actual factories, equipment, or certificates appear in artwork. Redrawing the full 25-page catalogue is not required (E-27, E-111). 2) Every illustration must have both an editable native project under docs/brand-content/source/ and a Web image under public/brand/company/. Actually open every project in its corresponding software, select and edit at least one independent graphic or text object, and retain object/layer-panel and reversible-edit evidence; close without overwriting the registered source file. A flattened screenshot alone is not an editable project. Actually decode every Web image and measure its positive integer width and height. Each item in docs/brand-content/company-visuals.json includes source.path/source.sha256, web.path/web.sha256/width/height, nonempty alt.en/alt.ru describing the actual image, and reference-theme/factual-evidence mappings. Recompute SHA-256 for each actual file and require exact string equality with its manifest value; measured dimensions equal manifest values individually (E-111). 3) The manifest records the actual current PackJoyU logo master file path and SHA-256. Hash that file and require exact equality. Artwork uses that same master, not a candidate logo; production records identify the linked/imported master object. The original logo file is unchanged; project and export contain no old branding or candidate logo. Do not wait for the user to revisit candidate images (E-28, E-111). 4) Provide verifiable actual GPT Dot invocation and software-operation records: the corresponding invocation/session identifier, software name/version, project-opening and Web-export records. Referenced files correspond item by item to manifest paths and SHA-256 hashes. Before delivery reopen projects, decode Web images, and recompute all file hashes; deliver company-visual-assets only when every check passes. If Dot is unreachable, a software step is unperformed, or any required illustration/project/Web image/record is absent, this task remains incomplete. An unperformed-status record, plan, or screenshot alone cannot justify completed delivery or landing (E-29, E-111). 5) The completed boundary of this task is the fully verified asset collection and manifest, not a page-completion claim. M1-T5 owns homepage/about consumption and real-browser integration evidence for shared E-111; T9 must not fabricate page evidence. Native projects and private tool records stay outside public and the production image (E-111)."
+  },
+  "taskState": {
+    "task": {
+      "title": "Produce independently redrawn company-block artwork and editable native projects",
+      "input": "Reference PDF organization/product themes, verifiable company-owned facts, the current PackJoyU wordmark, and the user-authorized GPT Dot remote-software production channel",
+      "output": "company-visual-assets; only one or two independently redrawn website company-block illustrations, editable native software projects, Web images/en-ru alt/dimensions, hashes, and truthful production manifest",
+      "accept": "1) Actually deliver one or two independently redrawn illustrations for website company blocks. Each has a reference-PDF-page/theme to verifiable company-owned facts or a product schematic containing no hard corporate claims mapping. Borrow only organization and product themes. SHA-256 hashes of the original PDF/JPG/GIF/video and current logo file remain unchanged. No YUHAO certifications/capacity/scale or unsupported actual factories, equipment, or certificates appear in artwork. Redrawing the full 25-page catalogue is not required (E-27, E-111). 2) Every illustration must have both an editable native project under docs/brand-content/source/ and a Web image under public/brand/company/. Actually open every project in its corresponding software, select and edit at least one independent graphic or text object, and retain object/layer-panel and reversible-edit evidence; close without overwriting the registered source file. A flattened screenshot alone is not an editable project. Actually decode every Web image and measure its positive integer width and height. Each item in docs/brand-content/company-visuals.json includes source.path/source.sha256, web.path/web.sha256/width/height, nonempty alt.en/alt.ru describing the actual image, and reference-theme/factual-evidence mappings. Recompute SHA-256 for each actual file and require exact string equality with its manifest value; measured dimensions equal manifest values individually (E-111). 3) The manifest records the actual current PackJoyU logo master file path and SHA-256. Hash that file and require exact equality. Artwork uses that same master, not a candidate logo; production records identify the linked/imported master object. The original logo file is unchanged; project and export contain no old branding or candidate logo. Do not wait for the user to revisit candidate images (E-28, E-111). 4) Provide verifiable actual GPT Dot invocation and software-operation records: the corresponding invocation/session identifier, software name/version, project-opening and Web-export records. Referenced files correspond item by item to manifest paths and SHA-256 hashes. Before delivery reopen projects, decode Web images, and recompute all file hashes; deliver company-visual-assets only when every check passes. If Dot is unreachable, a software step is unperformed, or any required illustration/project/Web image/record is absent, this task remains incomplete. An unperformed-status record, plan, or screenshot alone cannot justify completed delivery or landing (E-29, E-111). 5) The completed boundary of this task is the fully verified asset collection and manifest, not a page-completion claim. M1-T5 owns homepage/about consumption and real-browser integration evidence for shared E-111; T9 must not fabricate page evidence. Native projects and private tool records stay outside public and the production image (E-111)."
+    },
+    "module": "M1",
+    "frontend_modules": [
+      "M1",
+      "M2",
+      "M6"
+    ]
+  },
+  "coverageState": {
+    "acceptance": "1) Actually deliver one or two independently redrawn illustrations for website company blocks. Each has a reference-PDF-page/theme to verifiable company-owned facts or a product schematic containing no hard corporate claims mapping. Borrow only organization and product themes. SHA-256 hashes of the original PDF/JPG/GIF/video and current logo file remain unchanged. No YUHAO certifications/capacity/scale or unsupported actual factories, equipment, or certificates appear in artwork. Redrawing the full 25-page catalogue is not required (E-27, E-111). 2) Every illustration must have both an editable native project under docs/brand-content/source/ and a Web image under public/brand/company/. Actually open every project in its corresponding software, select and edit at least one independent graphic or text object, and retain object/layer-panel and reversible-edit evidence; close without overwriting the registered source file. A flattened screenshot alone is not an editable project. Actually decode every Web image and measure its positive integer width and height. Each item in docs/brand-content/company-visuals.json includes source.path/source.sha256, web.path/web.sha256/width/height, nonempty alt.en/alt.ru describing the actual image, and reference-theme/factual-evidence mappings. Recompute SHA-256 for each actual file and require exact string equality with its manifest value; measured dimensions equal manifest values individually (E-111). 3) The manifest records the actual current PackJoyU logo master file path and SHA-256. Hash that file and require exact equality. Artwork uses that same master, not a candidate logo; production records identify the linked/imported master object. The original logo file is unchanged; project and export contain no old branding or candidate logo. Do not wait for the user to revisit candidate images (E-28, E-111). 4) Provide verifiable actual GPT Dot invocation and software-operation records: the corresponding invocation/session identifier, software name/version, project-opening and Web-export records. Referenced files correspond item by item to manifest paths and SHA-256 hashes. Before delivery reopen projects, decode Web images, and recompute all file hashes; deliver company-visual-assets only when every check passes. If Dot is unreachable, a software step is unperformed, or any required illustration/project/Web image/record is absent, this task remains incomplete. An unperformed-status record, plan, or screenshot alone cannot justify completed delivery or landing (E-29, E-111). 5) The completed boundary of this task is the fully verified asset collection and manifest, not a page-completion claim. M1-T5 owns homepage/about consumption and real-browser integration evidence for shared E-111; T9 must not fabricate page evidence. Native projects and private tool records stay outside public and the production image (E-111).",
+    "edges": {
+      "E-27": {
+        "scene": "Own-logo and reference-PDF factual boundaries",
+        "trigger": "The PDF contains YUHAO certifications, capacity, factory scale or other hard figures not verified as belonging to PackJoyU",
+        "expect": "Do not rename and publish them as the company's own facts; use only the content organization and product categories as references, and fill the relevant corporate fields only with verifiable company-owned materials."
+      },
+      "E-28": {
+        "scene": "Own-logo and reference-PDF factual boundaries",
+        "trigger": "A candidate design differs from the current online wordmark",
+        "expect": "Continue production using the current PackJoyU wordmark in this round; waiting for the user to revisit candidate images is not an implementation or acceptance prerequisite."
+      },
+      "E-29": {
+        "scene": "Own-logo media production and truthful tool execution",
+        "trigger": "The GPT Dot remote-software channel is reachable and actual production is performed",
+        "expect": "Retain actual calls, software operation evidence, and output files, then inspect the finished assets. If the channel is unavailable, record each item as unperformed and incomplete rather than claiming an invocation or logo replacement occurred."
+      },
+      "E-111": {
+        "scene": "Traceable company artwork, editable native projects, brand, and provenance",
+        "trigger": "A website company-block artwork has only copy or screenshots, lacks an editable project or export, has old branding or mismatched source hashes, or is not consumed by a real page",
+        "expect": "For each of only one or two selected independently redrawn illustrations, deliver the editable native software project, Web export, and en/ru alt text. Record reference PDF pages/themes, company-owned factual evidence, the current PackJoyU logo hash, project/export hashes, software version, actual GPT Dot operation evidence, and consuming page locations. Real pages load matching files and retain complete subjects. A missing required output or unperformed tool step keeps that item incomplete; a textual plan cannot count as completed artwork. Do not expand this into redrawing all 25 catalogue pages or unsupported factory/certificate depictions."
+      }
+    }
+  },
+  "coverageScope": "T9 owns complete production and verification of all required assets in this card. The full shared E-111 also requires page consumption owned by M1-T5; preserve an honest partial-coverage result for the primitive rather than claiming browser completion.",
+  "calibrationBasis": "Parent reported real Jev calibration: objective=no 0.29 and defers=yes 0.73; this revision supplies observable artifact, editability, decode, exact-path/hash, logo-master, and actual-tool-evidence checks. No fabricated rerun result."
+}

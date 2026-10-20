@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Save real human replies and close consultations",
+    "input": "M4-T3 operator authorization/reads and M4-T10 message append.",
+    "output": "POST /api/admin/chat/conversations/[id]/messages and PATCH /api/admin/chat/conversations/[id]; current authors and close CAS.",
+    "accept": "1) Caller/wiring point: real ADMIN/SALES message handler -> current identity -> shared append. author comes from the session. Two concurrent people retain unique seq and their actual authors; same-UUID/payload retries create one message. Ignore client-claimed authors (E-33). 2) After a visitor POST persists, an operator GET actually reads it; after an operator POST replies, visitor GET reads the same body/author. No AI automatic reply is generated. received follows persistence (E-16, E-31). 3) Close uses expectedVersion CAS; only a matching contender succeeds. Closed visitor/operator sends return 409. After permission revocation, the next poll/send returns no body and causes no write. Modified threadId/seq/email cannot read someone else (E-32, E-78)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

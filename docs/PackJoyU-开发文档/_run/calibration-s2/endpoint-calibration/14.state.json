@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "POST",
+    "path": "/api/admin/account/logout-all",
+    "params": "actionGrant with purpose LOGOUT_ALL.",
+    "returns": "SignedOutDTO. Clear the Auth.js cookie.",
+    "permission": "A currently valid backend account. Increment sv and revoke devices atomically."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "Fresh grants require the current password and an unused TOTP from the actual current secret and step. Grants are single-use, five minutes, bound to user/device/sv/purpose/target; consumption and the final sensitive action occur in one transaction with a current User+Device+Grant recheck. A backend session or TOTP alone cannot authorize these operations. Under a User row lock, increment sessionVersion and revoke all device sessions atomically, then clear the Auth.js cookie. One-time grant consumption must not be automatically retried."
+}

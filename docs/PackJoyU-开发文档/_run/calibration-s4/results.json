@@ -1,0 +1,5098 @@
+[
+  {
+    "id": "E-01",
+    "scene": "会话持久化与记住设备期限",
+    "trigger": "未选“记住此设备”",
+    "expect": "保留当前 2 小时会刷新的会话策略，不误写成固定 2 小时强制退出；选中后连续活跃也不能突破从签发起算的 30 天绝对上限。",
+    "owner": "M3",
+    "stem": "01",
+    "model": "jev-1.13.0",
+    "state_sha256": "79d35705a979745e",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.52) likelihood=routine, many users will hit it(low 0.02) executable=yes(0.73) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1135,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.14,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.52,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.35,
+        "level": "routine, many users will hit it",
+        "confidence": 0.02,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-02",
+    "scene": "会话持久化与记住设备期限",
+    "trigger": "已记住的设备超过 7 天无有效服务端活动",
+    "expect": "下次受保护请求要求重新验证，刷新 JWT 不能复活已过期会话。",
+    "owner": "M3",
+    "stem": "02",
+    "model": "jev-1.13.0",
+    "state_sha256": "1f4ae005ee601f67",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.97) likelihood=routine, many users will hit it(low 0.32) executable=yes(0.77) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1124,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.54,
+        "level": "routine, many users will hit it",
+        "confidence": 0.32,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-03",
+    "scene": "会话持久化与记住设备期限",
+    "trigger": "改密、重置验证器、禁用账号或执行“退出所有设备”",
+    "expect": "服务端撤销该账号旧凭证，旧 JWT 即使尚未到期也被拒绝；普通“退出”至少撤销当前设备会话并清除本地登录状态。",
+    "owner": "M3",
+    "stem": "03",
+    "model": "jev-1.13.0",
+    "state_sha256": "66823e74d3d76ea8",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(high 0.82) executable=yes(0.81) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1146,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.02,
+        "level": "occasional",
+        "confidence": 0.82,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-04",
+    "scene": "会话持久化与记住设备期限",
+    "trigger": "浏览器关闭、恢复标签页或重新打开",
+    "expect": "仅按真实凭证、服务端撤销和到期状态判定，不承诺关闭浏览器必然立即删除会话 Cookie。",
+    "owner": "M3",
+    "stem": "04",
+    "model": "jev-1.13.0",
+    "state_sha256": "4ec76019a86d3149",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.85) likelihood=routine, many users will hit it(high 0.94) executable=unsure(0.54) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1127,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.89,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.96,
+        "level": "routine, many users will hit it",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-05",
+    "scene": "C-03 验证器绑定与无密码默认开关",
+    "trigger": "账号尚未绑定验证器",
+    "expect": "继续使用现有可用登录方式并进入绑定流程；只有正确验证新验证器后才能启用无密码默认登录，不批量强开。",
+    "owner": "M3",
+    "stem": "05",
+    "model": "jev-1.13.0",
+    "state_sha256": "fd22d8cc91d0e863",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.85) likelihood=routine, many users will hit it(medium 0.62) executable=yes(0.68) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1139,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.9,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.76,
+        "level": "routine, many users will hit it",
+        "confidence": 0.62,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-06",
+    "scene": "C-03 验证器绑定与无密码默认开关",
+    "trigger": "已绑定账号本人通过新鲜验证启用开关",
+    "expect": "日常登录仅要求邮箱或账号与验证器码，恢复码作为独立恢复入口，密码不再是此模式的必填项。",
+    "owner": "M3",
+    "stem": "06",
+    "model": "jev-1.13.0",
+    "state_sha256": "45883e8f1995d418",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.55) likelihood=occasional(medium 0.73) executable=yes(0.75) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1148,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.29,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.55,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.13,
+        "level": "occasional",
+        "confidence": 0.73,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-07",
+    "scene": "C-03 验证器绑定与无密码默认开关",
+    "trigger": "关闭无密码开关或解绑验证器会使账号失去所有可用登录方式",
+    "expect": "拒绝该次变更，先完成可用密码或替代方式的设置与验证，再原子提交切换。",
+    "owner": "M3",
+    "stem": "07",
+    "model": "jev-1.13.0",
+    "state_sha256": "e792f991177d5e69",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.43) likelihood=occasional(low 0.28) executable=yes(0.72) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1141,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.37,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.43,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.57,
+        "level": "occasional",
+        "confidence": 0.28,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-08",
+    "scene": "C-03 验证器绑定与无密码默认开关",
+    "trigger": "绑定码错误、已过期、重复提交或并发切换",
+    "expect": "不启用、不覆盖有效绑定，最终状态始终保留至少一种经过验证的登录方式。",
+    "owner": "M3",
+    "stem": "08",
+    "model": "jev-1.13.0",
+    "state_sha256": "61afb16c324436d7",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.95) likelihood=occasional(medium 0.52) executable=unsure(0.63) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1135,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.97,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.95,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.72,
+        "level": "occasional",
+        "confidence": 0.52,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-09",
+    "scene": "C-03 验证器绑定与无密码默认开关",
+    "trigger": "界面沿用用户称呼“2FA”",
+    "expect": "说明当前无密码模式是“账号 + 验证器码”；账号标识不是独立因素，不宣称其具备两个独立因素的安全等级。",
+    "owner": "M3",
+    "stem": "09",
+    "model": "jev-1.13.0",
+    "state_sha256": "1f2363d2d284ef4c",
+    "line": "edge: severity=cosmetic or a confusing message only(low 0.39) likelihood=occasional(low 0.32) executable=yes(0.79) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1143,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.41,
+        "level": "cosmetic or a confusing message only",
+        "confidence": 0.39,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.19,
+        "level": "occasional",
+        "confidence": 0.32,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-10",
+    "scene": "C-04 验证器丢失与单管理员恢复",
+    "trigger": "正常登录",
+    "expect": "不显示为必填恢复码，单独“无法使用验证器”进入恢复流程；仅填写账号或邮箱不能获得重置权限。",
+    "owner": "M3",
+    "stem": "10",
+    "model": "jev-1.13.0",
+    "state_sha256": "3be2c7966370c02d",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.98) likelihood=routine, many users will hit it(high 0.94) executable=yes(0.82) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1131,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.98,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.96,
+        "level": "routine, many users will hit it",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-11",
+    "scene": "C-04 验证器丢失与单管理员恢复",
+    "trigger": "使用账号与有效一次性恢复码",
+    "expect": "原子核销恢复码并签发受限、短时重绑定凭据，只能绑定新验证器，正确验证新码前不能获得完整后台权限；同一恢复码并发使用仅一次成功。",
+    "owner": "M3",
+    "stem": "11",
+    "model": "jev-1.13.0",
+    "state_sha256": "5223cd6bad83bbf9",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(low 0.34) executable=yes(0.75) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1162,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.56,
+        "level": "occasional",
+        "confidence": 0.34,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-12",
+    "scene": "C-04 验证器丢失与单管理员恢复",
+    "trigger": "验证器与全部恢复码同时丢失且没有第二管理员",
+    "expect": "仅允许具有服务器操作系统管理权限的所有者执行本地恢复命令，为明确目标账号生成一次性凭据，记录操作者、时间和目标，不把凭据明文写入审计日志。",
+    "owner": "M3",
+    "stem": "12",
+    "model": "jev-1.13.0",
+    "state_sha256": "c87757f74c287a61",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.98) likelihood=rare, needs deliberate misuse(high 0.79) executable=yes(0.66) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1160,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.99,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.98,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.14,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.79,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-13",
+    "scene": "C-04 验证器丢失与单管理员恢复",
+    "trigger": "另一管理员代为授权恢复",
+    "expect": "授权方必须重新验证，不能仅凭已打开后台页面或访客邮件请求重置其他账号。",
+    "owner": "M3",
+    "stem": "13",
+    "model": "jev-1.13.0",
+    "state_sha256": "f09b84dfd622d83b",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=rare, needs deliberate misuse(low 0.31) executable=yes(0.66) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1128,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.46,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.31,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-14",
+    "scene": "C-04 验证器丢失与单管理员恢复",
+    "trigger": "恢复中断或重置凭据过期",
+    "expect": "受限凭据不能进入后台，未完成的新绑定不替换原有效绑定；可使用剩余恢复码或已定义的授权路径重新发起。",
+    "owner": "M3",
+    "stem": "14",
+    "model": "jev-1.13.0",
+    "state_sha256": "8626671c4ea1c3a7",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.91) likelihood=occasional(low 0.41) executable=unsure(0.57) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1140,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.94,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.91,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.63,
+        "level": "occasional",
+        "confidence": 0.41,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-15",
+    "scene": "C-04 验证器丢失与单管理员恢复",
+    "trigger": "新验证器完成校验并提交恢复",
+    "expect": "撤销旧会话、旧绑定与旧恢复凭据，生成新的恢复码并明确展示一次，后续旧设备不能继续访问。",
+    "owner": "M3",
+    "stem": "15",
+    "model": "jev-1.13.0",
+    "state_sha256": "386f0d6989de7c02",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(low 0.47) executable=yes(0.73) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1139,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.69,
+        "level": "occasional",
+        "confidence": 0.47,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-16",
+    "scene": "在线聊天实现路线",
+    "trigger": "访客首次发消息且运营在线",
+    "expect": "持久化会话和消息后给出已接收状态，运营收件箱可读取并人工回复，不生成 AI 自动答复。",
+    "owner": "M4",
+    "stem": "16",
+    "model": "jev-1.13.0",
+    "state_sha256": "9415cc5f45ca8705",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.52) likelihood=routine, many users will hit it(low 0.47) executable=yes(0.73) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1122,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.67,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.52,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.64,
+        "level": "routine, many users will hit it",
+        "confidence": 0.47,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-17",
+    "scene": "在线聊天实现路线",
+    "trigger": "没有在线运营、服务暂时不可达或网络中断",
+    "expect": "明确显示离线留言或待重试状态，持久化成功后才承诺收件；失败不伪装已送达。",
+    "owner": "M4",
+    "stem": "17",
+    "model": "jev-1.13.0",
+    "state_sha256": "9132d736a71a436c",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.28) likelihood=occasional(medium 0.70) executable=yes(0.80) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1129,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.53,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.28,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.18,
+        "level": "occasional",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-18",
+    "scene": "在线聊天实现路线",
+    "trigger": "同一消息因重试重复提交",
+    "expect": "按客户端消息标识去重，收件箱只出现一条，不重复触发通知。",
+    "owner": "M4",
+    "stem": "18",
+    "model": "jev-1.13.0",
+    "state_sha256": "22e75c03919514d8",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.80) likelihood=occasional(high 0.79) executable=yes(0.85) owner=M4(high 0.97)",
+    "usage": {
+      "input_tokens": 1117,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.02,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.8,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.02,
+        "level": "occasional",
+        "confidence": 0.79,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.97,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.97,
+          "M5": 0.03,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-19",
+    "scene": "在线聊天实现路线",
+    "trigger": "访客猜测其他会话标识或非授权后台账号访问收件箱",
+    "expect": "拒绝读取和回复；访客只能使用自己的不可猜会话凭据访问本人会话。",
+    "owner": "M4",
+    "stem": "19",
+    "model": "jev-1.13.0",
+    "state_sha256": "ee10e465063cc7d4",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=rare, needs deliberate misuse(high 0.98) executable=yes(0.74) owner=M4(high 0.98)",
+    "usage": {
+      "input_tokens": 1120,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.01,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.98,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.02,
+          "M4": 0.98,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-20",
+    "scene": "在线聊天实现路线",
+    "trigger": "上线前资源实测不足",
+    "expect": "保持独立开关可关闭聊天并保留现有联系入口，记录容量证据和限制，不声称快照剩余约 2.7 GB 内存等于当前可用容量，也不自动购买扩容。",
+    "owner": "M4",
+    "stem": "20",
+    "model": "jev-1.13.0",
+    "state_sha256": "894f9f56814de911",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.35) likelihood=occasional(medium 0.62) executable=yes(0.72) owner=M4(medium 0.69)",
+    "usage": {
+      "input_tokens": 1139,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.58,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.35,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.77,
+        "level": "occasional",
+        "confidence": 0.62,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.69,
+        "band": "medium",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.01,
+          "M4": 0.73,
+          "M5": 0.0,
+          "M6": 0.05,
+          "M7": 0.2,
+          "unclear": 0.01
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-21",
+    "scene": "主页视频、JPG、GIF加载与控制",
+    "trigger": "首屏正常访问",
+    "expect": "12.27 秒视频以静音行内方式展示并提供可操作的播放/暂停控件，JPG 作为海报；若自动播放被阻止则保留海报和主动播放入口。",
+    "owner": "M1",
+    "stem": "21",
+    "model": "jev-1.13.0",
+    "state_sha256": "e052a709ecb808b7",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.56) likelihood=routine, many users will hit it(high 1.00) executable=yes(0.79) owner=M1(high 1.00)",
+    "usage": {
+      "input_tokens": 1140,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.72,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.56,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 2.0,
+        "level": "routine, many users will hit it",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 1.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-22",
+    "scene": "主页视频、JPG、GIF加载与控制",
+    "trigger": "用户开启减少动态效果、视频解码失败或加载超时",
+    "expect": "默认展示 JPG，提供用户主动播放入口，不持续强制播放。",
+    "owner": "M1",
+    "stem": "22",
+    "model": "jev-1.13.0",
+    "state_sha256": "0778df37a19b8889",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.94) likelihood=occasional(medium 0.74) executable=yes(0.77) owner=M1(high 0.99)",
+    "usage": {
+      "input_tokens": 1126,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.96,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.11,
+        "level": "occasional",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.99,
+          "M2": 0.01,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-23",
+    "scene": "主页视频、JPG、GIF加载与控制",
+    "trigger": "30.08 秒 GIF 场景模块尚未接近可视区",
+    "expect": "不提前下载整段 GIF；进入可视范围后加载，并提供“暂停”切换到同尺寸静帧的控制。",
+    "owner": "M1",
+    "stem": "23",
+    "model": "jev-1.13.0",
+    "state_sha256": "860c3a3e50f2f566",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.74) likelihood=routine, many users will hit it(medium 0.71) executable=yes(0.78) owner=M1(high 1.00)",
+    "usage": {
+      "input_tokens": 1140,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.83,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.81,
+        "level": "routine, many users will hit it",
+        "confidence": 0.71,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 1.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-24",
+    "scene": "主页视频、JPG、GIF加载与控制",
+    "trigger": "用户暂停、模块离开视区或页面转到后台",
+    "expect": "保持明确暂停状态，恢复可见时不擅自覆盖用户的暂停选择。",
+    "owner": "M1",
+    "stem": "24",
+    "model": "jev-1.13.0",
+    "state_sha256": "f51520ec044483df",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.37) likelihood=routine, many users will hit it(high 0.82) executable=yes(0.81) owner=M1(high 0.99)",
+    "usage": {
+      "input_tokens": 1131,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.6,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.37,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.88,
+        "level": "routine, many users will hit it",
+        "confidence": 0.82,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.99,
+          "M2": 0.01,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-25",
+    "scene": "主页视频、JPG、GIF加载与控制",
+    "trigger": "移动端或较窄窗口",
+    "expect": "媒体容器保持宽高比且不覆盖导航和内容，原图保留可辨识主体；不得用媒体遮挡 PC 的 3D 操作区域。",
+    "owner": "M1",
+    "stem": "25",
+    "model": "jev-1.13.0",
+    "state_sha256": "ff212721d1d5684d",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.78) likelihood=routine, many users will hit it(high 0.83) executable=unsure(0.50) owner=M1(high 0.97)",
+    "usage": {
+      "input_tokens": 1131,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.85,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.78,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.89,
+        "level": "routine, many users will hit it",
+        "confidence": 0.83,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 0.97,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.97,
+          "M2": 0.03,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-26",
+    "scene": "自己的Logo与参考PDF事实边界",
+    "trigger": "JPG 或 GIF 任一帧、任一透视平面存在旧品牌",
+    "expect": "保留原件，对发布副本逐帧跟踪清理并以 PackJoyU 标识替换，抽帧核查首尾帧、转场和遮挡恢复处，不只改封面或模糊旧 logo。",
+    "owner": "M1",
+    "stem": "26",
+    "model": "jev-1.13.0",
+    "state_sha256": "8e555393c121c407",
+    "line": "edge: severity=cosmetic or a confusing message only(low 0.37) likelihood=occasional(low 0.19) executable=yes(0.73) owner=M1(high 1.00)",
+    "usage": {
+      "input_tokens": 1162,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.42,
+        "level": "cosmetic or a confusing message only",
+        "confidence": 0.37,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.74,
+        "level": "occasional",
+        "confidence": 0.19,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 1.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-27",
+    "scene": "自己的Logo与参考PDF事实边界",
+    "trigger": "PDF 出现 YUHAO 认证、产能、工厂规模或其他无法证实属于 PackJoyU 的硬数据",
+    "expect": "不将其改名发布为自己的事实，仅参考内容组织与产品种类，相关企业字段只用可核实的己方材料填写。",
+    "owner": "M1",
+    "stem": "27",
+    "model": "jev-1.13.0",
+    "state_sha256": "497d6a9032ab6884",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.29) likelihood=rare, needs deliberate misuse(medium 0.50) executable=yes(0.65) owner=M6(low 0.39)",
+    "usage": {
+      "input_tokens": 1152,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.53,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.29,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.32,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.5,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.39,
+        "band": "low",
+        "probabilities": {
+          "M1": 0.38,
+          "M2": 0.01,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.47000000000000003,
+          "M7": 0.13,
+          "unclear": 0.01
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-28",
+    "scene": "自己的Logo与参考PDF事实边界",
+    "trigger": "候选设计与当前线上字标不一致",
+    "expect": "本轮使用当前 PackJoyU 字标继续制作，不以等用户回看候选图作为实施或验收前置。",
+    "owner": "M1",
+    "stem": "28",
+    "model": "jev-1.13.0",
+    "state_sha256": "13bd392eadc2553c",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.68) likelihood=occasional(medium 0.53) executable=yes(0.71) owner=M1(high 1.00)",
+    "usage": {
+      "input_tokens": 1131,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.81,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.68,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 0.74,
+        "level": "occasional",
+        "confidence": 0.53,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 1.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-29",
+    "scene": "自己的Logo与参考PDF事实边界",
+    "trigger": "GPT Dot 工具可达并实际执行远程软件制作",
+    "expect": "留存调用记录、软件操作与输出文件证据，再检查成品；工具不可达时逐项登记“尚未执行”和具体实施任务，不冒称已调用或已完成素材替换。",
+    "owner": "M1",
+    "stem": "29",
+    "model": "jev-1.13.0",
+    "state_sha256": "92a60d5f973a69b0",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.70) likelihood=occasional(low 0.20) executable=yes(0.69) owner=M7(high 0.85)",
+    "usage": {
+      "input_tokens": 1151,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.8,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 0.9,
+        "level": "occasional",
+        "confidence": 0.2,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M7",
+        "confidence": 0.85,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.08,
+          "M2": 0.01,
+          "M3": 0.01,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.87,
+          "unclear": 0.03
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-30",
+    "scene": "自己的Logo与参考PDF事实边界",
+    "trigger": "替换后的 GIF 不能保持原时序、画面稳定或正确品牌覆盖",
+    "expect": "继续修复发布副本，未通过质量核查的文件不作为已完成成品；原始 JPG/GIF 始终保留用于回退。",
+    "owner": "M1",
+    "stem": "30",
+    "model": "jev-1.13.0",
+    "state_sha256": "2140c3d6be97521f",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.47) likelihood=occasional(low 0.27) executable=no(0.32) owner=M1(high 0.97)",
+    "usage": {
+      "input_tokens": 1133,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.93,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.47,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.53,
+        "level": "occasional",
+        "confidence": 0.27,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "owner": {
+        "choice": "M1",
+        "confidence": 0.97,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.97,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.03,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-31",
+    "scene": "C-01 人工聊天收件与回复入口",
+    "trigger": "访客提交消息且服务端持久化成功",
+    "expect": "返回稳定的会话与消息标识并显示“已接收”，运营收件箱能读取；数据库写入失败则保留待重试，不显示已接收或客服已读。",
+    "owner": "M4",
+    "stem": "31",
+    "model": "jev-1.13.0",
+    "state_sha256": "5500e6345e1089c4",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.74) likelihood=routine, many users will hit it(medium 0.74) executable=yes(0.72) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1138,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.15,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.82,
+        "level": "routine, many users will hit it",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-32",
+    "scene": "C-01 人工聊天收件与回复入口",
+    "trigger": "未登录、EDITOR、已被撤销权限的账号或访客猜测他人会话标识",
+    "expect": "服务端拒绝读取和回复；ADMIN/SALES 依当前权限访问，访客凭不可猜凭据仅访问本人会话。",
+    "owner": "M4",
+    "stem": "32",
+    "model": "jev-1.13.0",
+    "state_sha256": "594facd9610a0fac",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=rare, needs deliberate misuse(high 0.97) executable=unsure(0.64) owner=M4(high 0.93)",
+    "usage": {
+      "input_tokens": 1149,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.03,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.93,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.06,
+          "M4": 0.94,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-33",
+    "scene": "C-01 人工聊天收件与回复入口",
+    "trigger": "两名有权限人员并发回复或访客重复发送相同客户端消息标识",
+    "expect": "按服务端确定顺序展示真实发送者，重复消息只持久化一次，未读计数不重复增加。",
+    "owner": "M4",
+    "stem": "33",
+    "model": "jev-1.13.0",
+    "state_sha256": "3cccfe347adb821d",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.64) likelihood=occasional(high 0.76) executable=unsure(0.60) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1130,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.89,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.64,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 0.98,
+        "level": "occasional",
+        "confidence": 0.76,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-34",
+    "scene": "C-01 人工聊天收件与回复入口",
+    "trigger": "刷新收件箱或翻页时又收到新消息",
+    "expect": "游标分页不漏单或重复，按用户已读位置计算未读，读取会话不把随后新到消息提前标记已读。",
+    "owner": "M4",
+    "stem": "34",
+    "model": "jev-1.13.0",
+    "state_sha256": "488714d7d3142844",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.29) likelihood=routine, many users will hit it(high 0.76) executable=unsure(0.64) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1132,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.54,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.29,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.83,
+        "level": "routine, many users will hit it",
+        "confidence": 0.76,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-35",
+    "scene": "C-01 人工聊天收件与回复入口",
+    "trigger": "邮件提醒失败或未接通",
+    "expect": "会话仍可在收件箱处理，显示真实通知状态，不把邮件已发或已投递当作聊天收件成功的前置或证明。",
+    "owner": "M4",
+    "stem": "35",
+    "model": "jev-1.13.0",
+    "state_sha256": "3b90d4097f82ddc2",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.88) likelihood=occasional(medium 0.74) executable=unsure(0.63) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1130,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.04,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.88,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.07,
+        "level": "occasional",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-36",
+    "scene": "C-02 离线留言与发送失败恢复",
+    "trigger": "客服离线而服务端可达",
+    "expect": "明确显示离线留言，不显示有人在线；成功保存后显示“已接收，等待人工处理”，不承诺即时回复。",
+    "owner": "M4",
+    "stem": "36",
+    "model": "jev-1.13.0",
+    "state_sha256": "cecdb88bb55d0608",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.49) likelihood=occasional(low 0.32) executable=yes(0.81) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1132,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.74,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.49,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.43,
+        "level": "occasional",
+        "confidence": 0.32,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-37",
+    "scene": "C-02 离线留言与发送失败恢复",
+    "trigger": "提交超时或响应丢失、实际保存状态未知",
+    "expect": "显示待确认或可重试，以原客户端消息标识重试并返回原收件结果，收件箱与通知不产生重复项。",
+    "owner": "M4",
+    "stem": "37",
+    "model": "jev-1.13.0",
+    "state_sha256": "caf049f4e809cf8c",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.59) likelihood=occasional(high 0.94) executable=yes(0.70) owner=M4(high 0.95)",
+    "usage": {
+      "input_tokens": 1136,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.73,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.59,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 0.98,
+        "level": "occasional",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.95,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.96,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.04,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-38",
+    "scene": "C-02 离线留言与发送失败恢复",
+    "trigger": "网络中断且尚未保存",
+    "expect": "消息与可选邮箱只留在当前标签页内存，可重试并提供现有联系邮箱入口；刷新、关闭或崩溃后不承诺恢复草稿，也不写入 localStorage 或日志。",
+    "owner": "M4",
+    "stem": "38",
+    "model": "jev-1.13.0",
+    "state_sha256": "7db87efae04a456d",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.74) likelihood=occasional(medium 0.74) executable=yes(0.73) owner=M4(high 1.00)",
+    "usage": {
+      "input_tokens": 1153,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.82,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 0.85,
+        "level": "occasional",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 1.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-39",
+    "scene": "C-02 离线留言与发送失败恢复",
+    "trigger": "访客主动提供空邮箱、非法格式或超长联系方式",
+    "expect": "邮箱可不填，填写时按有界格式校验并保留原消息待更正，不把未经验证的邮箱当作已验证身份或保证回信可达。",
+    "owner": "M4",
+    "stem": "39",
+    "model": "jev-1.13.0",
+    "state_sha256": "bd67f69cd0a1594f",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.59) likelihood=occasional(high 0.83) executable=unsure(0.56) owner=M4(high 0.99)",
+    "usage": {
+      "input_tokens": 1145,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.25,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.59,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.01,
+        "level": "occasional",
+        "confidence": 0.83,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.99,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-40",
+    "scene": "C-02 离线留言与发送失败恢复",
+    "trigger": "访客拒绝分析但主动打开第一方人工聊天",
+    "expect": "允许完成必要咨询，不创建分析标识或加载第三方聊天脚本，聊天必要会话与分析同意分开处理。",
+    "owner": "M4",
+    "stem": "40",
+    "model": "jev-1.13.0",
+    "state_sha256": "d3bf2c4e6cfe14fd",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.74) likelihood=occasional(medium 0.74) executable=yes(0.65) owner=M4(high 0.90)",
+    "usage": {
+      "input_tokens": 1130,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.82,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.12,
+        "level": "occasional",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.9,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.91,
+          "M5": 0.02,
+          "M6": 0.0,
+          "M7": 0.07,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-41",
+    "scene": "C-02 离线留言与发送失败恢复",
+    "trigger": "留言已保存但客服回信或通知发送失败",
+    "expect": "保留已接收结果及收件箱待处理状态，单独呈现真实发送失败，不假装已联系到访客。",
+    "owner": "M4",
+    "stem": "41",
+    "model": "jev-1.13.0",
+    "state_sha256": "a982384d407f4592",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.25) likelihood=occasional(high 0.93) executable=yes(0.74) owner=M4(high 0.99)",
+    "usage": {
+      "input_tokens": 1134,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.4,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.25,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.99,
+        "level": "occasional",
+        "confidence": 0.93,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.99,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-42",
+    "scene": "C-05 分析采集、去重与保留期",
+    "trigger": "用户尚未允许或拒绝分析",
+    "expect": "不生成或保存分析标识、不发分析事件，网站与 3D 功能仍可用；看板明确只覆盖授权浏览器，不将缺失授权样本补成全站人数。",
+    "owner": "M5",
+    "stem": "42",
+    "model": "jev-1.13.0",
+    "state_sha256": "c5224df884b6715c",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.91) likelihood=routine, many users will hit it(medium 0.74) executable=yes(0.78) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1149,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.93,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.91,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.82,
+        "level": "routine, many users will hit it",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-43",
+    "scene": "C-05 分析采集、去重与保留期",
+    "trigger": "用户撤回分析同意",
+    "expect": "停止采集，丢弃尚未发送的分析事件并清除本地分析标识；不能事后补发撤回期间的访问。",
+    "owner": "M5",
+    "stem": "43",
+    "model": "jev-1.13.0",
+    "state_sha256": "a214603bb016cfd7",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(high 0.82) executable=yes(0.75) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1128,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.99,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.94,
+        "level": "occasional",
+        "confidence": 0.82,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-44",
+    "scene": "C-05 分析采集、去重与保留期",
+    "trigger": "同一授权浏览器刷新或重试同一事件",
+    "expect": "当日授权访客按浏览器标识去重，同一事件 ID 不重复计数；真实的新页面访问可增加 PV，UV 不随刷新增加。",
+    "owner": "M5",
+    "stem": "44",
+    "model": "jev-1.13.0",
+    "state_sha256": "1a95307ac147a025",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.70) likelihood=routine, many users will hit it(high 0.80) executable=yes(0.70) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1145,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.79,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.87,
+        "level": "routine, many users will hit it",
+        "confidence": 0.8,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-45",
+    "scene": "C-05 分析采集、去重与保留期",
+    "trigger": "同一人换设备、清除标识或使用不同浏览器",
+    "expect": "可能计为多个授权访客，界面与指标定义明确这是匿名浏览器数，不声称识别唯一真人或跨设备身份。",
+    "owner": "M5",
+    "stem": "45",
+    "model": "jev-1.13.0",
+    "state_sha256": "f3919f73b0ee17cf",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.49) likelihood=routine, many users will hit it(low 0.46) executable=unsure(0.58) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1139,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.67,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.49,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.65,
+        "level": "routine, many users will hit it",
+        "confidence": 0.46,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-46",
+    "scene": "C-05 分析采集、去重与保留期",
+    "trigger": "进入产品页但未打开 3D，或打开后加载失败",
+    "expect": "产品页访问、3D 查看发起、加载成功及失败分别记录，绑定服务端认可的产品标识，失败不算加载成功。",
+    "owner": "M5",
+    "stem": "46",
+    "model": "jev-1.13.0",
+    "state_sha256": "d9b9dc98ecb39b5b",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.56) likelihood=routine, many users will hit it(low 0.32) executable=yes(0.73) owner=M5(high 0.90)",
+    "usage": {
+      "input_tokens": 1150,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.71,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.56,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.54,
+        "level": "routine, many users will hit it",
+        "confidence": 0.32,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.9,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.09,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.91,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-47",
+    "scene": "C-05 分析采集、去重与保留期",
+    "trigger": "客户端伪造产品、超长字段、任意事件类型或重放事件",
+    "expect": "服务端按白名单、字段长度与产品有效性校验并限制滥发，拒绝异常记录；分析记录不存原始 IP、跨站指纹、邮箱、聊天正文或含敏感查询参数的完整 URL。",
+    "owner": "M5",
+    "stem": "47",
+    "model": "jev-1.13.0",
+    "state_sha256": "93acc6b6be136b5c",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.97) likelihood=rare, needs deliberate misuse(high 0.97) executable=yes(0.66) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1163,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.03,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-48",
+    "scene": "C-05 分析采集、去重与保留期",
+    "trigger": "原始事件超过 30 天或聚合超过 13 个月",
+    "expect": "按保留策略清理，并显示可查询范围；汇总不继续保留浏览器标识，不用已过期事件重建更早精确明细。",
+    "owner": "M5",
+    "stem": "48",
+    "model": "jev-1.13.0",
+    "state_sha256": "9aea76a489d72d3c",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.70) likelihood=routine, many users will hit it(medium 0.53) executable=unsure(0.55) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1142,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.8,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.68,
+        "level": "routine, many users will hit it",
+        "confidence": 0.53,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-49",
+    "scene": "C-06 看板数据时间与异常状态",
+    "trigger": "数据源已接通、查询成功且所选日确有 0 条符合口径的事件",
+    "expect": "展示数值 0、查询成功时间及授权统计范围，不伪报查询失败或尚未接入。",
+    "owner": "M6",
+    "stem": "49",
+    "model": "jev-1.13.0",
+    "state_sha256": "554776ecf3c6b1fd",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.35) likelihood=occasional(low 0.43) executable=yes(0.79) owner=M6(high 1.00)",
+    "usage": {
+      "input_tokens": 1141,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.57,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.35,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.34,
+        "level": "occasional",
+        "confidence": 0.43,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 1.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-50",
+    "scene": "C-06 看板数据时间与异常状态",
+    "trigger": "首次启用、数据源未接通或尚无可查询数据",
+    "expect": "分别显示尚无数据或未接入及具体来源，不以 0 冒充真实统计，不把“今日无事件”单独判作采集故障。",
+    "owner": "M6",
+    "stem": "50",
+    "model": "jev-1.13.0",
+    "state_sha256": "ec7e89d7463ad087",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.37) likelihood=occasional(low 0.28) executable=yes(0.75) owner=M6(high 1.00)",
+    "usage": {
+      "input_tokens": 1143,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.64,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.37,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.45,
+        "level": "occasional",
+        "confidence": 0.28,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 1.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-51",
+    "scene": "C-06 看板数据时间与异常状态",
+    "trigger": "查询失败且已有上次成功快照",
+    "expect": "保留旧值并显著标注旧值时间、当前失败及重试入口；不能刷新时间后让旧值看似刚更新。",
+    "owner": "M6",
+    "stem": "51",
+    "model": "jev-1.13.0",
+    "state_sha256": "6b13f43e88b48f30",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.64) likelihood=occasional(high 0.93) executable=yes(0.77) owner=M6(high 1.00)",
+    "usage": {
+      "input_tokens": 1132,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.02,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.64,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.03,
+        "level": "occasional",
+        "confidence": 0.93,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 1.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-52",
+    "scene": "C-06 看板数据时间与异常状态",
+    "trigger": "查询失败且没有成功快照",
+    "expect": "显示错误与重试，不生成默认 0 或演示数字；错误信息不向业务角色暴露凭据、堆栈或连接串。",
+    "owner": "M6",
+    "stem": "52",
+    "model": "jev-1.13.0",
+    "state_sha256": "5a79cf1617d86368",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.41) likelihood=occasional(high 0.88) executable=yes(0.74) owner=M6(high 1.00)",
+    "usage": {
+      "input_tokens": 1129,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.35,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.41,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.93,
+        "level": "occasional",
+        "confidence": 0.88,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 1.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-53",
+    "scene": "C-06 看板数据时间与异常状态",
+    "trigger": "面板内不同来源的更新速度或失败状态不同",
+    "expect": "每个指标保留自己的数据时间与状态，页面总刷新成功不覆盖局部失败。",
+    "owner": "M6",
+    "stem": "53",
+    "model": "jev-1.13.0",
+    "state_sha256": "747b976aafedafcc",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(medium 0.51) likelihood=routine, many users will hit it(medium 0.69) executable=yes(0.72) owner=M6(high 1.00)",
+    "usage": {
+      "input_tokens": 1125,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.25,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.51,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.79,
+        "level": "routine, many users will hit it",
+        "confidence": 0.69,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 1.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-54",
+    "scene": "C-06 看板数据时间与异常状态",
+    "trigger": "查询成功但事件接收链路健康尚无法实证",
+    "expect": "仅报告实际观测到的配置、最近接收和查询状态，显示未知或最后已知时间，不从无流量推断全链路健康。",
+    "owner": "M6",
+    "stem": "54",
+    "model": "jev-1.13.0",
+    "state_sha256": "f137479593f38843",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.30) likelihood=occasional(medium 0.51) executable=yes(0.75) owner=M6(high 0.98)",
+    "usage": {
+      "input_tokens": 1143,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.77,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.3,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.25,
+        "level": "occasional",
+        "confidence": 0.51,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.98,
+          "M7": 0.02,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-55",
+    "scene": "今日统计的站点时区与历史重算",
+    "trigger": "浏览器或操作系统时区不同的两名运营查看同一日",
+    "expect": "使用同一站点时区与同一日区间，数值口径不因查看者位置改变，图表及导出标出站点时区。",
+    "owner": "M5",
+    "stem": "55",
+    "model": "jev-1.13.0",
+    "state_sha256": "ab9835469018c952",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.43) likelihood=routine, many users will hit it(medium 0.62) executable=yes(0.74) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1134,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.22,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.43,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.75,
+        "level": "routine, many users will hit it",
+        "confidence": 0.62,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-56",
+    "scene": "今日统计的站点时区与历史重算",
+    "trigger": "统计日遇到夏令时切换",
+    "expect": "使用 IANA 时区库计算本地午夜到次日本地午夜的 UTC 边界，允许一天为 23 或 25 小时，不固定加 24 小时或重复计算重叠时刻。",
+    "owner": "M5",
+    "stem": "56",
+    "model": "jev-1.13.0",
+    "state_sha256": "59ce5f0d1c4b6644",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.70) likelihood=occasional(medium 0.70) executable=yes(0.76) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1147,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.81,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.16,
+        "level": "occasional",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-57",
+    "scene": "今日统计的站点时区与历史重算",
+    "trigger": "事件恰好位于午夜或查询横跨午夜",
+    "expect": "采用左闭右开区间，单次查询确定一致的站点时区、日期和边界，午夜事件仅归属一个自然日。",
+    "owner": "M5",
+    "stem": "57",
+    "model": "jev-1.13.0",
+    "state_sha256": "3184b611bf5888e3",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.73) likelihood=routine, many users will hit it(low 0.35) executable=yes(0.74) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1136,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.82,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.73,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.57,
+        "level": "routine, many users will hit it",
+        "confidence": 0.35,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-58",
+    "scene": "今日统计的站点时区与历史重算",
+    "trigger": "ADMIN 修改有效时区",
+    "expect": "保留 UTC 事件时间，标记重算状态，只按仍保留的事件重聚合；已超出 30 天原始保留期的旧聚合保留原时区标签或明确不可重算，不能静默拼成统一口径趋势。",
+    "owner": "M5",
+    "stem": "58",
+    "model": "jev-1.13.0",
+    "state_sha256": "94b8e7dbbce2388f",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.82) likelihood=occasional(low 0.46) executable=yes(0.65) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1158,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.89,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.82,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.64,
+        "level": "occasional",
+        "confidence": 0.46,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-59",
+    "scene": "今日统计的站点时区与历史重算",
+    "trigger": "输入不存在的 IANA 时区或无权限角色尝试修改",
+    "expect": "拒绝保存并保留上一个有效配置，不能悄悄回退到查看者本地时区。",
+    "owner": "M5",
+    "stem": "59",
+    "model": "jev-1.13.0",
+    "state_sha256": "080579fe63eaaf45",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.85) likelihood=rare, needs deliberate misuse(high 0.93) executable=yes(0.87) owner=M5(high 0.99)",
+    "usage": {
+      "input_tokens": 1127,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.89,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.05,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.93,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.01,
+          "M4": 0.0,
+          "M5": 0.99,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-60",
+    "scene": "今日统计的站点时区与历史重算",
+    "trigger": "浏览器上传未来或明显过期的事件时间",
+    "expect": "服务端按受控事件时间规则校验，不让任意客户端时间把事件写入未来日或污染已关闭的统计区间。",
+    "owner": "M5",
+    "stem": "60",
+    "model": "jev-1.13.0",
+    "state_sha256": "3609aeb6ec90bda8",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.97) likelihood=rare, needs deliberate misuse(high 0.83) executable=unsure(0.49) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1131,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.11,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.83,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-61",
+    "scene": "运维指标扩展及角色权限",
+    "trigger": "本轮验收今日授权访客、PV、产品归因与 3D 查看/加载指标",
+    "expect": "必须通过真实采集到聚合的产品链路产出数据，不能用“未接入”、固定值或日志截图替代用户点名的核心指标。",
+    "owner": "M6",
+    "stem": "61",
+    "model": "jev-1.13.0",
+    "state_sha256": "e47871cf8b7fe1b3",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.71) likelihood=routine, many users will hit it(low 0.49) executable=unsure(0.50) owner=M6(high 0.77)",
+    "usage": {
+      "input_tokens": 1139,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.81,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.71,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.66,
+        "level": "routine, many users will hit it",
+        "confidence": 0.49,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.77,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.15,
+          "M6": 0.8,
+          "M7": 0.05,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-62",
+    "scene": "运维指标扩展及角色权限",
+    "trigger": "询盘或聊天被成功持久化、重复重试或垃圾提交被拒绝",
+    "expect": "仅对真实成功的业务发起按稳定标识计数，失败及重复不虚增，趋势不输出邮箱、聊天正文或其他个人内容。",
+    "owner": "M6",
+    "stem": "62",
+    "model": "jev-1.13.0",
+    "state_sha256": "4684445500f917a8",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.67) likelihood=routine, many users will hit it(medium 0.70) executable=unsure(0.57) owner=M5(medium 0.55)",
+    "usage": {
+      "input_tokens": 1138,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.77,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.67,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.81,
+        "level": "routine, many users will hit it",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.55,
+        "band": "medium",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.02,
+          "M5": 0.61,
+          "M6": 0.37,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-63",
+    "scene": "运维指标扩展及角色权限",
+    "trigger": "3D 加载有成功、失败、超时或没有样本",
+    "expect": "按定义一致的真实加载尝试计算成功率与耗时，区分无样本和 0% 成功率，不把拒绝分析的未采集访问补入分母。",
+    "owner": "M6",
+    "stem": "63",
+    "model": "jev-1.13.0",
+    "state_sha256": "9dbafe50ed10a0ef",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.31) likelihood=routine, many users will hit it(low 0.41) executable=unsure(0.56) owner=M6(high 0.76)",
+    "usage": {
+      "input_tokens": 1141,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.53,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.31,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.62,
+        "level": "routine, many users will hit it",
+        "confidence": 0.41,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.76,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.05,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.15,
+          "M6": 0.79,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-64",
+    "scene": "运维指标扩展及角色权限",
+    "trigger": "接口或邮件已接真实结果来源",
+    "expect": "展示脱敏且口径明确的错误率与通知失败计数，邮件失败按真实发送尝试记录，不把排队、已调用发送函数或普通询盘收件等同于成功投递。",
+    "owner": "M6",
+    "stem": "64",
+    "model": "jev-1.13.0",
+    "state_sha256": "60f666abeecadb62",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.46) likelihood=routine, many users will hit it(low 0.39) executable=yes(0.67) owner=M6(high 0.87)",
+    "usage": {
+      "input_tokens": 1140,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.64,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.46,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.6,
+        "level": "routine, many users will hit it",
+        "confidence": 0.39,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.87,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.89,
+          "M7": 0.11,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-65",
+    "scene": "运维指标扩展及角色权限",
+    "trigger": "存储健康或备份没有可验证来源",
+    "expect": "仅显示未接入及来源状态；接通后显示真实检查/完成时间，不以普通文件上传、页面查询成功或计划时间假装备份成功，也不暗中新增备份平台或付费服务。",
+    "owner": "M6",
+    "stem": "65",
+    "model": "jev-1.13.0",
+    "state_sha256": "34da4a0d2a93e8a6",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.17) likelihood=rare, needs deliberate misuse(low 0.38) executable=yes(0.77) owner=M6(high 0.98)",
+    "usage": {
+      "input_tokens": 1145,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.45,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.17,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.4,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.38,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.98,
+          "M7": 0.02,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-66",
+    "scene": "运维指标扩展及角色权限",
+    "trigger": "SALES、EDITOR 或未登录用户直接访问运维接口或导出地址",
+    "expect": "服务端按权限裁剪并拒绝敏感项，SALES 只见授权业务聚合，EDITOR 不获得运维敏感项，不能只隐藏前端菜单。",
+    "owner": "M6",
+    "stem": "66",
+    "model": "jev-1.13.0",
+    "state_sha256": "ef3ee744b202da27",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=rare, needs deliberate misuse(medium 0.62) executable=unsure(0.51) owner=M6(high 0.91)",
+    "usage": {
+      "input_tokens": 1142,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.24,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.62,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.91,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.08,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.92,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-67",
+    "scene": "运维指标扩展及角色权限",
+    "trigger": "任一附加来源中断或无数据",
+    "expect": "该卡独立显示错误、旧值、未知或未接入；其他真实指标仍可查询，避免单个辅助来源拖垮整张看板。",
+    "owner": "M6",
+    "stem": "67",
+    "model": "jev-1.13.0",
+    "state_sha256": "b6f230fb4f80f55e",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.94) likelihood=occasional(high 0.80) executable=yes(0.77) owner=M6(high 0.98)",
+    "usage": {
+      "input_tokens": 1127,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.02,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.09,
+        "level": "occasional",
+        "confidence": 0.8,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M6",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.98,
+          "M7": 0.02,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-68",
+    "scene": "设备会话与Auth.js期限接合",
+    "trigger": "同一设备同时刷新，或刷新与撤销并发",
+    "expect": "服务端以数据库时间和条件更新检查 active、凭证版本及当前期限，滑动时间只单调前进；撤销或过期后的刷新不得复活会话。",
+    "owner": "M3",
+    "stem": "68",
+    "model": "jev-1.13.0",
+    "state_sha256": "410fceccc53f8c1c",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(low 0.47) executable=yes(0.72) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1147,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.85,
+        "level": "occasional",
+        "confidence": 0.47,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-69",
+    "scene": "设备会话与Auth.js期限接合",
+    "trigger": "普通会话距上次有效活动达到 2 小时，或记住设备达到 7 天闲置/首次签发起 30 天绝对期限中的任一项",
+    "expect": "服务端拒绝授权并清理可写响应中的 cookie；JWT 和 Set-Cookie 到期时间均不得越过该设备实际允许期限，刷新不能延长绝对上限。",
+    "owner": "M3",
+    "stem": "69",
+    "model": "jev-1.13.0",
+    "state_sha256": "8df178b0f2652c76",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.97) likelihood=routine, many users will hit it(low 0.49) executable=yes(0.72) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1159,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.67,
+        "level": "routine, many users will hit it",
+        "confidence": 0.49,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-70",
+    "scene": "设备会话与Auth.js期限接合",
+    "trigger": "cookie/JWT 仍有效，但设备已撤销、账号禁用、凭证版本变化或服务端校验不可用",
+    "expect": "受保护请求不得仅凭 cookie 放行；在请求范围内去重查询不能演变成跨请求忽略撤销的缓存。",
+    "owner": "M3",
+    "stem": "70",
+    "model": "jev-1.13.0",
+    "state_sha256": "e4608a59689ac509",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(medium 0.70) executable=yes(0.68) owner=M3(high 0.98)",
+    "usage": {
+      "input_tokens": 1147,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.02,
+        "level": "occasional",
+        "confidence": 0.7,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.98,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.02,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-71",
+    "scene": "设备会话与Auth.js期限接合",
+    "trigger": "初登、刷新、SSR 与退出走到不同 Auth.js 路径",
+    "expect": "锁定同一实际 beta 版本，对四条真实路径验证 JWT 与 Set-Cookie 期限及撤销；SSR 无法写 cookie 时不得宣称浏览器持久化已续期，退出必须同步撤销设备记录。",
+    "owner": "M3",
+    "stem": "71",
+    "model": "jev-1.13.0",
+    "state_sha256": "5b775522606e9a9d",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.97) likelihood=routine, many users will hit it(high 0.83) executable=yes(0.65) owner=M3(high 0.99)",
+    "usage": {
+      "input_tokens": 1154,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.89,
+        "level": "routine, many users will hit it",
+        "confidence": 0.83,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.99,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-72",
+    "scene": "敏感设置的新鲜本人验证",
+    "trigger": "同一 TOTP 时间步已被登录、其他敏感操作或并发请求消费",
+    "expect": "原子消费账号的验证器时间步，后来的请求不能再次发放 ActionGrant；客户端可等待下一验证码重试，不把恢复码重新加入日常登录。",
+    "owner": "M3",
+    "stem": "72",
+    "model": "jev-1.13.0",
+    "state_sha256": "e4717b0457329788",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.94) likelihood=occasional(medium 0.58) executable=yes(0.69) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1157,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.96,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.84,
+        "level": "occasional",
+        "confidence": 0.58,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-73",
+    "scene": "敏感设置的新鲜本人验证",
+    "trigger": "两次请求并发使用同一 ActionGrant，或把改密码授权用于关闭验证器",
+    "expect": "在敏感变更事务内按动作、设备、账号及凭证版本校验并一次性消费授权，只有一个匹配请求成功，目的不符请求拒绝且不能执行变更。",
+    "owner": "M3",
+    "stem": "73",
+    "model": "jev-1.13.0",
+    "state_sha256": "8d845cd0594a045b",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=rare, needs deliberate misuse(medium 0.67) executable=yes(0.68) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1155,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.22,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.67,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-74",
+    "scene": "敏感设置的新鲜本人验证",
+    "trigger": "授权签发后超过 5 分钟、设备撤销、密码/验证器变更或账号权限失效",
+    "expect": "旧授权立即无效；授权的新鲜验证不得跨设备移用，也不能延长原设备会话期限。",
+    "owner": "M3",
+    "stem": "74",
+    "model": "jev-1.13.0",
+    "state_sha256": "824c73dcfe8466d3",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(medium 0.52) executable=yes(0.70) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1145,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.22,
+        "level": "occasional",
+        "confidence": 0.52,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-75",
+    "scene": "敏感设置的新鲜本人验证",
+    "trigger": "用户忘记现密码但仍能使用启用后的无密码登录",
+    "expect": "继续允许普通登录和非敏感操作；敏感设置走 D3 的独立受限恢复及审计流程，不能以当前会话存在或一枚 TOTP 绕过该流程。",
+    "owner": "M3",
+    "stem": "75",
+    "model": "jev-1.13.0",
+    "state_sha256": "d10709315c941563",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.94) likelihood=occasional(high 0.85) executable=unsure(0.55) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1143,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.96,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.94,
+        "level": "occasional",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-76",
+    "scene": "人工聊天同步机制",
+    "trigger": "聊天/收件箱可见且请求成功",
+    "expect": "以 3 秒为正常间隔；标签页隐藏时暂停，恢复可见立即从已确认 seq 补齐；慢网或连续失败采用有界退避，间隔最多 30 秒，任一轮不能叠加无限在途请求。",
+    "owner": "M4",
+    "stem": "76",
+    "model": "jev-1.13.0",
+    "state_sha256": "dd2750e52e731fae",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.90) likelihood=routine, many users will hit it(high 0.88) executable=yes(0.72) owner=M4(high 0.99)",
+    "usage": {
+      "input_tokens": 1148,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.06,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.9,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.91,
+        "level": "routine, many users will hit it",
+        "confidence": 0.88,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.99,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-77",
+    "scene": "人工聊天同步机制",
+    "trigger": "多个标签页、重试、响应乱序或跨分页期间又插入新消息",
+    "expect": "以服务端稳定 seq 和消息标识合并去重，游标只推进到已完整接收的范围；后返回的旧响应不能倒退游标、覆盖新回复或把漏页消息跳过。",
+    "owner": "M4",
+    "stem": "77",
+    "model": "jev-1.13.0",
+    "state_sha256": "a3e5442f8554eca2",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.69) likelihood=occasional(low 0.23) executable=yes(0.70) owner=M4(high 0.99)",
+    "usage": {
+      "input_tokens": 1147,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.79,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.69,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.47,
+        "level": "occasional",
+        "confidence": 0.23,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.99,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-78",
+    "scene": "人工聊天同步机制",
+    "trigger": "访客会话到期/撤销，或运营角色从 ADMIN/SALES 变为无聊天权限",
+    "expect": "下一次轮询和发送均做服务端鉴权并停止返回会话内容；修改 threadId、seq 或邮箱不能读取其他咨询。",
+    "owner": "M4",
+    "stem": "78",
+    "model": "jev-1.13.0",
+    "state_sha256": "83039825be6bc211",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(low 0.35) executable=yes(0.76) owner=M4(high 0.97)",
+    "usage": {
+      "input_tokens": 1137,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.36,
+        "level": "occasional",
+        "confidence": 0.35,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.97,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.03,
+          "M4": 0.97,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-79",
+    "scene": "人工聊天同步机制",
+    "trigger": "网络中断后恢复或运营收件箱尚有很多未读",
+    "expect": "按有界页逐步补齐，持久化收件结果与“已读”分离；仅后台轮询到消息不得冒充客服已经阅读或在线。",
+    "owner": "M4",
+    "stem": "79",
+    "model": "jev-1.13.0",
+    "state_sha256": "87275c34858a90ae",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.25) likelihood=occasional(medium 0.59) executable=unsure(0.51) owner=M4(high 0.99)",
+    "usage": {
+      "input_tokens": 1133,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.49,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.25,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.25,
+        "level": "occasional",
+        "confidence": 0.59,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.99,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-80",
+    "scene": "分析聚合与水位发布",
+    "trigger": "同一事件重试，或一次聚合读取期间新事件到达",
+    "expect": "采集以唯一事件标识幂等落库；聚合固定一致的来源快照及 watermark，只发布该快照覆盖的结果，新事件留给下一轮，不在已发布计数上重复滚加。",
+    "owner": "M5",
+    "stem": "80",
+    "model": "jev-1.13.0",
+    "state_sha256": "fa2fcd1839971c7a",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.91) likelihood=routine, many users will hit it(low 0.34) executable=yes(0.73) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1148,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.93,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.91,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.57,
+        "level": "routine, many users will hit it",
+        "confidence": 0.34,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-81",
+    "scene": "分析聚合与水位发布",
+    "trigger": "两个调度实例重叠，或旧任务超时后晚于新任务提交",
+    "expect": "使用数据库互斥或带代次的租约及提交校验，旧任务不能覆盖新结果；一次事务替换整组目标日数据并提交 watermark，进程中断保留上次完整结果。",
+    "owner": "M5",
+    "stem": "81",
+    "model": "jev-1.13.0",
+    "state_sha256": "f7f3874093846222",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.97) likelihood=occasional(medium 0.53) executable=yes(0.71) owner=M5(high 0.98)",
+    "usage": {
+      "input_tokens": 1146,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.75,
+        "level": "occasional",
+        "confidence": 0.53,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.98,
+          "M6": 0.01,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-82",
+    "scene": "分析聚合与水位发布",
+    "trigger": "原始事件在允许迟到范围内入库",
+    "expect": "下轮重算对应日；超出完整原始数据可用范围的日期不得以残余事件重算成偏小计数，已存在的历史聚合和覆盖范围须保留并明确其口径。",
+    "owner": "M5",
+    "stem": "82",
+    "model": "jev-1.13.0",
+    "state_sha256": "ff4eb15c5b2ed229",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.61) likelihood=routine, many users will hit it(high 0.85) executable=unsure(0.44) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1144,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.74,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.61,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.89,
+        "level": "routine, many users will hit it",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-83",
+    "scene": "分析聚合与水位发布",
+    "trigger": "站点时区变更与作业并发",
+    "expect": "结果携带 timezoneRevision，旧代次不得覆盖新时区结果；仅在原始保留范围内重算，原始已清除部分不伪造恢复或静默改为零。",
+    "owner": "M5",
+    "stem": "83",
+    "model": "jev-1.13.0",
+    "state_sha256": "1313f42e80235d34",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.95) likelihood=occasional(low 0.28) executable=yes(0.69) owner=M5(high 1.00)",
+    "usage": {
+      "input_tokens": 1142,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.97,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.95,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.57,
+        "level": "occasional",
+        "confidence": 0.28,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 1.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-84",
+    "scene": "分析聚合与水位发布",
+    "trigger": "聚合入口存在但 cron 未注册、cron 停止或最近运行失败",
+    "expect": "不宣称已接入或刚更新，展示真实最近成功 watermark 与旧值状态；实施任务必须包含真实五分钟调度注册及重启后运行证据，不能只验证手动调用接口。",
+    "owner": "M5",
+    "stem": "84",
+    "model": "jev-1.13.0",
+    "state_sha256": "45b5e6099fba2f78",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.46) likelihood=occasional(low 0.34) executable=yes(0.72) owner=M5(low 0.41)",
+    "usage": {
+      "input_tokens": 1145,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.78,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.46,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.58,
+        "level": "occasional",
+        "confidence": 0.34,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.41,
+        "band": "low",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.48,
+          "M6": 0.44,
+          "M7": 0.08,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-85",
+    "scene": "聊天凭据及数据保留期限",
+    "trigger": "cookie 闲置达到 7 天、签发达到 30 天绝对上限或被撤销",
+    "expect": "服务端拒绝该凭据访问旧会话，浏览器可建立新咨询；仅填写相同邮箱不能找回旧会话，cookie 与其前端副本均不存 PII。",
+    "owner": "M4",
+    "stem": "85",
+    "model": "jev-1.13.0",
+    "state_sha256": "c5499b017938a7e9",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.90) likelihood=routine, many users will hit it(low 0.43) executable=yes(0.71) owner=M4(medium 0.50)",
+    "usage": {
+      "input_tokens": 1149,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.92,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.9,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.62,
+        "level": "routine, many users will hit it",
+        "confidence": 0.43,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.5,
+        "band": "medium",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.38,
+          "M4": 0.56,
+          "M5": 0.04,
+          "M6": 0.0,
+          "M7": 0.02,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-86",
+    "scene": "聊天凭据及数据保留期限",
+    "trigger": "隐藏标签页仍有轮询，或仅刷新访问但没有成功收发咨询消息",
+    "expect": "这些行为不推迟消息/邮箱的 90 天保留截止；咨询活动以成功保存的访客消息或人工回复为准，不把通知重试、投递回执或读状态更新当作新咨询。",
+    "owner": "M4",
+    "stem": "86",
+    "model": "jev-1.13.0",
+    "state_sha256": "08756e1eb651fde1",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.71) likelihood=occasional(low 0.44) executable=yes(0.84) owner=M5(high 0.76)",
+    "usage": {
+      "input_tokens": 1150,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.81,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.71,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.13,
+        "level": "occasional",
+        "confidence": 0.44,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.76,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.21,
+          "M5": 0.79,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-87",
+    "scene": "聊天凭据及数据保留期限",
+    "trigger": "保留清理与新的成功收发消息并发",
+    "expect": "清理执行事务重新检查最后咨询活动和当前策略版本；有新咨询则跳过旧截止，不能按扫描时的旧时间清除刚恢复沟通的内容。",
+    "owner": "M4",
+    "stem": "87",
+    "model": "jev-1.13.0",
+    "state_sha256": "719ed53dd37b1a79",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.91) likelihood=occasional(low 0.35) executable=yes(0.67) owner=M5(high 0.98)",
+    "usage": {
+      "input_tokens": 1136,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.93,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.91,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.31,
+        "level": "occasional",
+        "confidence": 0.35,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.02,
+          "M5": 0.98,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-88",
+    "scene": "聊天凭据及数据保留期限",
+    "trigger": "本轮文档被生成或实施者拿到派发任务",
+    "expect": "只获得设计、实现和隔离测试该策略的范围，不获得执行任何生产、恢复或备份数据不可逆删除的授权；真实部署启用清理与已有数据处理必须具备另行明确的保留策略授权，不能把代理裁决当作授权。",
+    "owner": "M4",
+    "stem": "88",
+    "model": "jev-1.13.0",
+    "state_sha256": "0a2e204c0921ba67",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=occasional(low 0.47) executable=unsure(0.57) owner=M5(medium 0.70)",
+    "usage": {
+      "input_tokens": 1157,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.99,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.06,
+        "level": "occasional",
+        "confidence": 0.47,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M5",
+        "confidence": 0.7,
+        "band": "medium",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.04,
+          "M4": 0.04,
+          "M5": 0.74,
+          "M6": 0.0,
+          "M7": 0.14,
+          "unclear": 0.04
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-89",
+    "scene": "聊天凭据及数据保留期限",
+    "trigger": "聊天 cookie 失效但消息尚未到 90 天",
+    "expect": "访客历史访问立即受阻，运营仍依现有 ADMIN/SALES 权限处理保留中的咨询；不连带改变既有询盘 730 天、分析 30 天/13 个月或备份策略。",
+    "owner": "M4",
+    "stem": "89",
+    "model": "jev-1.13.0",
+    "state_sha256": "f343b3d109465fdc",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.79) likelihood=routine, many users will hit it(medium 0.62) executable=yes(0.75) owner=M4(high 0.99)",
+    "usage": {
+      "input_tokens": 1149,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.86,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.79,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.76,
+        "level": "routine, many users will hit it",
+        "confidence": 0.62,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.99,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-90",
+    "scene": "聊天通知持久队列",
+    "trigger": "保存消息后进程立即中断，或客户端因超时重发同一消息",
+    "expect": "在同一数据库事务内保存消息及 messageId 唯一的出箱记录；已提交消息可在重启后继续通知，消息幂等命中不能新增第二条通知。",
+    "owner": "M4",
+    "stem": "90",
+    "model": "jev-1.13.0",
+    "state_sha256": "63432c141ba2aabf",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.31) likelihood=occasional(medium 0.74) executable=yes(0.76) owner=M4(high 0.94)",
+    "usage": {
+      "input_tokens": 1147,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.44,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.31,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.94,
+        "level": "occasional",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.94,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.95,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.05,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-91",
+    "scene": "聊天通知持久队列",
+    "trigger": "多个 cron worker 并发领取，或领取者崩溃直到租约到期",
+    "expect": "原子领取并携带租约/代次提交状态；过期工作可重新领取，旧 worker 不能覆盖新租约的处理结果，通知失败不得撤回已经成功保存的聊天消息。",
+    "owner": "M4",
+    "stem": "91",
+    "model": "jev-1.13.0",
+    "state_sha256": "4eba19b4fb63b15d",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.85) likelihood=occasional(medium 0.64) executable=yes(0.65) owner=M4(medium 0.70)",
+    "usage": {
+      "input_tokens": 1144,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.89,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.92,
+        "level": "occasional",
+        "confidence": 0.64,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M4",
+        "confidence": 0.7,
+        "band": "medium",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.74,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.26,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-92",
+    "scene": "聊天通知持久队列",
+    "trigger": "SMTP 已接收但发送进程在写回成功状态前中断",
+    "expect": "按至少一次投递处理可能的重复，复用稳定 Message-ID 以尽量减少重复；界面只称消息已收件和通知状态，不宣称精确一次送达或客服已读。",
+    "owner": "M4",
+    "stem": "92",
+    "model": "jev-1.13.0",
+    "state_sha256": "5926e1f3da775260",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.34) likelihood=occasional(high 0.78) executable=unsure(0.49) owner=M7(high 0.85)",
+    "usage": {
+      "input_tokens": 1143,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.42,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.34,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.89,
+        "level": "occasional",
+        "confidence": 0.78,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M7",
+        "confidence": 0.85,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.13,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.87,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-93",
+    "scene": "聊天通知持久队列",
+    "trigger": "SMTP 不可达、配置缺失或暂时拒绝",
+    "expect": "记录有界重试及脱敏错误，通知 cron 依持久状态恢复；不得把 Next after 当成持久队列，不在错误或运维计数中泄漏主动邮箱和消息正文。",
+    "owner": "M4",
+    "stem": "93",
+    "model": "jev-1.13.0",
+    "state_sha256": "e631625cff022e05",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.43) likelihood=occasional(medium 0.74) executable=unsure(0.57) owner=M7(medium 0.61)",
+    "usage": {
+      "input_tokens": 1139,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.63,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.43,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 0.85,
+        "level": "occasional",
+        "confidence": 0.74,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M7",
+        "confidence": 0.61,
+        "band": "medium",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.0,
+          "M4": 0.34,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.66,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-94",
+    "scene": "聊天通知持久队列",
+    "trigger": "出箱/通知接口被无聊天权限角色调用，或 SMTP 适配器仅能发送既有询盘格式",
+    "expect": "服务端拒绝越权；新通知任务使用独立受限入口和已验证的适配契约，不借 chatMessageId 扩散到原邮件 UI；cron 模板必须实际注册该任务并验证重启后消费。",
+    "owner": "M4",
+    "stem": "94",
+    "model": "jev-1.13.0",
+    "state_sha256": "e9e4cf23860232e4",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 1.00) likelihood=rare, needs deliberate misuse(medium 0.73) executable=unsure(0.60) owner=M7(medium 0.59)",
+    "usage": {
+      "input_tokens": 1159,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 2.0,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 1.0,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 0.18,
+        "level": "rare, needs deliberate misuse",
+        "confidence": 0.73,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M7",
+        "confidence": 0.59,
+        "band": "medium",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 0.02,
+          "M4": 0.34,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.64,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-95",
+    "scene": "登录记住设备字段",
+    "trigger": "Auth.js表单rememberDevice为字面false、缺值或布尔false",
+    "expect": "明确解析为false并使用普通2小时策略；不能用Boolean或无约束coerce变成记住设备；其他非法值拒绝",
+    "owner": "M3",
+    "stem": "95",
+    "model": "jev-1.13.0",
+    "state_sha256": "942e8443e275ef7d",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(medium 0.69) likelihood=routine, many users will hit it(low 0.30) executable=yes(0.79) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1141,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.78,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.69,
+        "band": "medium"
+      },
+      "likelihood": {
+        "score": 1.54,
+        "level": "routine, many users will hit it",
+        "confidence": 0.3,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-96",
+    "scene": "登录方式枚举与账号隐私",
+    "trigger": "mode未知、totp模式未获账号本人启用或普通Credentials携非空recoveryCode",
+    "expect": "沿Auth.js通用登录失败，不发后台会话、不公开账号是否存在及登录方式；有效password/totp模式仅校验其相应条件",
+    "owner": "M3",
+    "stem": "96",
+    "model": "jev-1.13.0",
+    "state_sha256": "3dd8cba219483abc",
+    "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(high 0.97) likelihood=occasional(low 0.27) executable=unsure(0.62) owner=M3(high 1.00)",
+    "usage": {
+      "input_tokens": 1147,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.98,
+        "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.14,
+        "level": "occasional",
+        "confidence": 0.27,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M3",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.0,
+          "M3": 1.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": true
+  },
+  {
+    "id": "E-97",
+    "scene": "模型拖动所有权",
+    "trigger": "PC在可见模型视口内pointer-down并拖动，随后指针跨到其他卡片",
+    "expect": "仅起始模型获得pointer capture并旋转；不触发卡片导航，不切换另一个模型，几何卡片不做hover scale",
+    "owner": "M2",
+    "stem": "97",
+    "model": "jev-1.13.0",
+    "state_sha256": "4b58aa08b9487574",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.88) likelihood=occasional(low 0.34) executable=yes(0.81) owner=M2(high 1.00)",
+    "usage": {
+      "input_tokens": 1129,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.94,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.88,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.0,
+        "level": "occasional",
+        "confidence": 0.34,
+        "band": "low"
+      },
+      "executable": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 1.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-98",
+    "scene": "页面滚动与缩放",
+    "trigger": "指针经过模型并滚普通鼠标滚轮或触控板",
+    "expect": "页面仍正常滚动；只有聚焦模型的Ctrl/Cmd+wheel或明确缩放按钮改变模型相机，退出后释放所有滚轮拦截",
+    "owner": "M2",
+    "stem": "98",
+    "model": "jev-1.13.0",
+    "state_sha256": "c6fb49f3a7b4babb",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.90) likelihood=routine, many users will hit it(high 0.85) executable=yes(0.83) owner=M2(high 1.00)",
+    "usage": {
+      "input_tokens": 1134,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.94,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.9,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.89,
+        "level": "routine, many users will hit it",
+        "confidence": 0.85,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 1.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-99",
+    "scene": "自动旋转与用户意图",
+    "trigger": "悬停、已开始手动操控、用户显式暂停、离开视区或恢复前台",
+    "expect": "悬停/手控时暂停自动旋转；用户暂停不被重新可见覆盖；减少动态效果默认静态且可主动操作",
+    "owner": "M2",
+    "stem": "99",
+    "model": "jev-1.13.0",
+    "state_sha256": "cc537a90db3f0775",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(low 0.49) likelihood=routine, many users will hit it(high 0.82) executable=yes(0.75) owner=M2(high 0.91)",
+    "usage": {
+      "input_tokens": 1137,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.66,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.49,
+        "band": "low"
+      },
+      "likelihood": {
+        "score": 1.87,
+        "level": "routine, many users will hit it",
+        "confidence": 0.82,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 0.91,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.07,
+          "M2": 0.92,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.01
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-100",
+    "scene": "失焦与取消",
+    "trigger": "pointercancel、窗口失焦、Escape、卡片卸载或切换页面",
+    "expect": "释放pointer capture、监听和交互状态；无遗留滚轮拦截或持续旋转，下一次进入可正常开始",
+    "owner": "M2",
+    "stem": "100",
+    "model": "jev-1.13.0",
+    "state_sha256": "a79999d476ece5f3",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.83) likelihood=routine, many users will hit it(medium 0.66) executable=yes(0.70) owner=M2(high 0.97)",
+    "usage": {
+      "input_tokens": 1128,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.09,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.83,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.76,
+        "level": "routine, many users will hit it",
+        "confidence": 0.66,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 0.97,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.97,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.02
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-101",
+    "scene": "键盘模型查看",
+    "trigger": "键盘聚焦模型控制区后使用方向/缩放/复位控件",
+    "expect": "所有控件有可辨名称、可见焦点和相同功能；Escape离开操作返回来源控件，不锁住Tab或自动跳产品链接",
+    "owner": "M2",
+    "stem": "101",
+    "model": "jev-1.13.0",
+    "state_sha256": "50008f5e51ae405d",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.97) likelihood=occasional(medium 0.53) executable=yes(0.70) owner=M2(high 1.00)",
+    "usage": {
+      "input_tokens": 1137,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.99,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.97,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.29,
+        "level": "occasional",
+        "confidence": 0.53,
+        "band": "medium"
+      },
+      "executable": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 1.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-102",
+    "scene": "触屏手势",
+    "trigger": "手指在模型视口拖动/双指缩放或在卡片文字区域滑动",
+    "expect": "单指模型拖动只在操作区接管，双指缩放有边界；文字/页面仍可滚，控件目标至少44px且不误提交询盘",
+    "owner": "M2",
+    "stem": "102",
+    "model": "jev-1.13.0",
+    "state_sha256": "8e3aac49a13ee36b",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.93) likelihood=routine, many users will hit it(high 0.90) executable=unsure(0.64) owner=M2(high 1.00)",
+    "usage": {
+      "input_tokens": 1145,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.03,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.93,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.93,
+        "level": "routine, many users will hit it",
+        "confidence": 0.9,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 1.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-103",
+    "scene": "真实模型失败与统计",
+    "trigger": "GLB下载失败、WebGL不支持、context lost或只能展示海报/FoldBox演示",
+    "expect": "展示相应产品静态回退与重试/询盘；不把海报/程序化演示算GLB加载成功，同viewId只报一次终态",
+    "owner": "M2",
+    "stem": "103",
+    "model": "jev-1.13.0",
+    "state_sha256": "1fc32420920fb445",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.94) likelihood=occasional(high 0.78) executable=unsure(0.60) owner=M2(high 0.98)",
+    "usage": {
+      "input_tokens": 1148,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 1.02,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.94,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.08,
+        "level": "occasional",
+        "confidence": 0.78,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 0.98,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.01,
+          "M6": 0.0,
+          "M7": 0.01,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  },
+  {
+    "id": "E-104",
+    "scene": "产品复位与显示",
+    "trigger": "任意旋转/缩放后点复位，或PC 1440/1920和窄屏查看",
+    "expect": "恢复该产品初始相机与缩放边界；模型不被裁切，名称/关键操作清晰，取消底部重复介绍不删规格与询盘入口",
+    "owner": "M2",
+    "stem": "104",
+    "model": "jev-1.13.0",
+    "state_sha256": "c6f0b42de689f67e",
+    "line": "edge: severity=a feature degrades or a user is blocked until retry(high 0.76) likelihood=routine, many users will hit it(high 0.78) executable=unsure(0.62) owner=M2(high 1.00)",
+    "usage": {
+      "input_tokens": 1152,
+      "output_tokens": 129
+    },
+    "verdicts": {
+      "severity": {
+        "score": 0.84,
+        "level": "a feature degrades or a user is blocked until retry",
+        "confidence": 0.76,
+        "band": "high"
+      },
+      "likelihood": {
+        "score": 1.84,
+        "level": "routine, many users will hit it",
+        "confidence": 0.78,
+        "band": "high"
+      },
+      "executable": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "owner": {
+        "choice": "M2",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "M1": 0.0,
+          "M2": 1.0,
+          "M3": 0.0,
+          "M4": 0.0,
+          "M5": 0.0,
+          "M6": 0.0,
+          "M7": 0.0,
+          "unclear": 0.0
+        }
+      }
+    },
+    "high_priority": false
+  }
+]

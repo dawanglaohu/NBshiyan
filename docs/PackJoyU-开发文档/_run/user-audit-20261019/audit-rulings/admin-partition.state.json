@@ -1,0 +1,12 @@
+{
+  "requirement": "Restyle the current public website and the whole existing admin console consistently. Preserve existing business rules, permissions, feature gates, routes and APIs. The user requested a second check for omissions after the specification; this is a local documentation correction, not production execution or publication. No paid service, data deletion, new business feature, or external commitment is involved.",
+  "task": {
+    "title": "Assign the omitted legacy admin visual migration",
+    "accept": "Every existing enabled admin screen has an owner for the saved minimalist-flat visual style, desktop density and narrow-screen regression; closed feature gates and redirects stay closed or redirect. Tasks target 0.5-2 person-days."
+  },
+  "conflict": "The shell and new pages have tasks, but seven existing route patterns and old settings/users controls still contain independent CSS and inline styles outside those task scopes. The existing 1-day shell task cannot silently absorb all pages.",
+  "options": {
+    "A": "Add five bounded domain tasks: inquiries list/detail; gated unassigned mail; models redirect/new; specifications index/editor; existing settings/users controls. Each reuses the shared tokens and shell, tests only its domain, and is a prerequisite of final delivery.",
+    "B": "Add three bounded surface tasks: migrate common legacy form/table styles; migrate inquiry/mail domain exceptions; verify all legacy route visual and business regressions. Explicit dependencies serialize shared CSS changes; each keeps the same 0.5-2 day target and final delivery prerequisites."
+  }
+}

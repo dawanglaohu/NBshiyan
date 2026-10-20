@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Enlarge product-card viewports and simplify their information areas",
+    "input": "The existing ProductGallery/Scene, GET /api/models and the layout in section 11",
+    "output": "Adaptive large 560px cards and separate model/action areas",
+    "accept": "1) Entry: the home-page products-link leads to /[locale]/products; the data sources are GET /api/models and actual model URLs; PC cards have a 560px minimum and viewport clamp(360px,28vw,440px), without overflow at width 390; names, necessary specifications and inquiry controls must be distinguishable, and actions must remain after repeated descriptions are removed (E-104). 2) Titles and buttons must have independent links; dragging inside the Canvas must neither navigate nor submit; the list category-link must enter the existing /[locale]/products/[slug] under the publication switch and return to the 3D catalog, without expanding it into a complete PDP (E-97)."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) Entry: home Request a quote -> /[locale]/contact -> Contact a person (contact-human-chat). Opening sends POST /api/chat/session. Send message (chat-send) calls POST /api/chat/conversations or its messages endpoint. Data source also includes GET /api/chat/conversations/[id]. Actual clicks assert id/seq/receivedAt; do not display received before success (E-31). 2) When the service is reachable but unstaffed, show Offline message without an online indicator. After persistence show Received, awaiting human handling with no instant-reply promise. Blank/omitted email can send; invalid/overlong email errors retain the message. Closing an unsent draft does not persist it (E-17, E-36, E-38, E-39). 3) Cookie 401/404 or a closed thread stops old submissions and shows an explicit Start a new conversation button. Do not automatically send the old draft into a new conversation. Declining analytics still permits consultation and loads no third-party scripts (E-40, E-85). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px.",
+  "edges": {
+    "E-17": {
+      "scene": "Online chat implementation route",
+      "trigger": "No operator is online, the service is temporarily unreachable, or the network disconnects.",
+      "expect": "Explicitly show an offline-message or retry-pending state. Promise receipt only after successful persistence; do not disguise failure as delivery."
+    },
+    "E-31": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A visitor submits a message and server-side persistence succeeds.",
+      "expect": "Return stable conversation and message identifiers and show Received, with the conversation readable in the operator inbox. If the database write fails, retain a retry-pending state and do not show Received or read by an operator."
+    },
+    "E-36": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "No operator is online but the server is reachable.",
+      "expect": "Explicitly show an offline-message option without indicating someone is online. After saving succeeds, show Received, awaiting human handling, without promising an immediate reply."
+    },
+    "E-38": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "The network disconnects before persistence.",
+      "expect": "Keep the message and optional email only in the current tab's memory. Allow retries and offer the existing contact-email entry point. Do not promise draft recovery after refresh, closure, or a crash, and do not write the draft to localStorage or logs."
+    },
+    "E-39": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "The visitor voluntarily supplies a blank email, an invalid format, or overlong contact details.",
+      "expect": "Mirror section 10: email is optional; when supplied, trim it, limit it to 254 characters, accept one valid mailbox, and reject display names and CRLF. Treat blank as omitted. Invalid or overlong values return field errors and retain the original message in the current tab. Do not elevate the email to verified identity or a delivery guarantee."
+    },
+    "E-40": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A visitor declines analytics but actively opens first-party human chat.",
+      "expect": "Allow the necessary consultation without creating an analytics identifier or loading a third-party chat script. Handle the necessary chat session separately from analytics consent."
+    },
+    "E-85": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "The cookie reaches seven idle days or 30 days since issuance, or is revoked.",
+      "expect": "The server rejects access to the old conversation using that credential; the browser may start a new consultation. Re-entering the same email alone cannot restore the old conversation. Neither the cookie nor any frontend copy stores PII."
+    }
+  }
+}

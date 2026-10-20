@@ -1,0 +1,1 @@
+{"ts": "2026-10-19T21:45:08", "template": "coverage", "model": "jev-1.13.0", "state_sha256": "329e0d3d2c843394", "label": "S5-final-M3-T19.coverage", "verdicts": {"covered_E-10": {"p": 0.61, "verdict": "unsure"}, "covered_E-11": {"p": 0.9, "verdict": "yes"}, "covered_E-14": {"p": 0.89, "verdict": "yes"}}, "usage": {"input_tokens": 1008, "output_tokens": 64}}

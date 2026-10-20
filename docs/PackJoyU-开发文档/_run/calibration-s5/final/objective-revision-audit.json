@@ -1,0 +1,15 @@
+{
+  "sourceBeforeSha256": "bfeee9aa54c455bfa49c009db08b42cb27c7045abfe96d67a17ed70177fccf01",
+  "sourceAfterSha256": "170c5792d07f94a5c43eeba3176fb735e2d38d2c00177d0a04f9b0471227d5e2",
+  "changedTaskIds": [
+    "M3-T5",
+    "M3-T11",
+    "M3-T12",
+    "M3-T13"
+  ],
+  "unchangedTaskCount": 31,
+  "stateCount": 8,
+  "ascii": true,
+  "originalRemediationEvidenceUntouched": true,
+  "TypeSafeExecuted": false
+}

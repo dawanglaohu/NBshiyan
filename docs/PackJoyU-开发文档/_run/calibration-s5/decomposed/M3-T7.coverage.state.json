@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Entry: after successful sign-in, use the existing shell on an admin page currently accessible to the role. Data source: GET /api/admin/account. Clicking admin-signout executes actual Auth.js signOut; a copied old cookie then gets 401 from GET account. Menu role data comes from the server. A 401 immediately clears this account's content and cancels in-flight requests (E-03, E-70). 2) POST /api/admin/account/session/activity follows only actual mouse/keyboard/route activity on a visible page, at most once per 15 minutes. Polling, hidden pages, and parameterless session reads send no activity. Blur/unmount remove listeners; assert actual expiry writes and racing revocation through the T15 endpoint (E-68). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px.",
+  "edges": {
+    "E-03": {
+      "scene": "Session persistence and remembered-device lifetime",
+      "trigger": "The password is changed, the authenticator is reset, the account is disabled, or Sign out all devices is executed.",
+      "expect": "Revoke the account's old credentials on the server; reject old JWTs even if they have not expired. Ordinary Sign out must at least revoke the current device session and clear the local signed-in state."
+    },
+    "E-68": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "The same device refreshes concurrently, or refresh and revocation race.",
+      "expect": "Use database time and conditional updates to check active status, credential version, and current deadlines. Sliding activity time may only advance monotonically. Refresh after revocation or expiry must not revive the session."
+    },
+    "E-70": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "The cookie/JWT is still valid, but the device was revoked, the account was disabled, the credential version changed, or server-side validation is unavailable.",
+      "expect": "A protected request cannot be authorized by its cookie alone. Request-scoped query deduplication must not become a cross-request cache that ignores revocation."
+    }
+  }
+}

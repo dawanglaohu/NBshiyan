@@ -1,0 +1,60 @@
+{
+  "id": "M5-T2",
+  "row": {
+    "line": 63,
+    "title": "接通服务端分析同意签名cookie",
+    "deps": [
+      "M1-T2",
+      "M3-T1",
+      "M3-T14"
+    ],
+    "input": "contract-types、M3当前HTTP防护与09节同意cookie规则",
+    "output": "analytics-consent-api；POST /api/analytics/consent及同意验签服务",
+    "acceptance": "1) 真实HTTP POST /api/analytics/consent在精确同源/限流后解析strict Boolean；首次true签随机ID与版本/原期限cookie，已有有效同版本true响应保留原ID/期限；false/重复false清cookie且不生成身份。2) 伪签名、过期或缺cookie均不能通过同意验证，响应无原始IP/邮箱/正文；此任务只实现后端准入，UI撤回与生产者停采由M5-T7集成。",
+    "days": "1d"
+  },
+  "contract": {
+    "provides": [
+      "analytics-consent-api"
+    ],
+    "requires": [
+      {
+        "task": "M1-T2",
+        "capability": "contract-types"
+      },
+      {
+        "task": "M3-T14",
+        "capability": "http-guards-metrics"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [
+      "backendRoutes",
+      "container"
+    ],
+    "supportPaths": [
+      "src/lib/server/composition.ts"
+    ],
+    "outputPaths": [
+      "src/lib/server/analytics/consent.ts",
+      "src/app/api/analytics/consent/route.ts",
+      "tests/analytics-consent.http.test.ts"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "de8752b6e2e67a8e725089a4078e6cb65636d199fb2038664bcd6d524f1a54cb",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M5　同意与统计账本：负责分析同意、匿名浏览器与事件标识、采集准入和去重、站点统计时区设置、日与产品聚合、原始与聚合保留及可重算边界，产出真实访问和 3D 统计。\n13: - 输入：contract-types、M3当前HTTP防护与09节同意cookie规则\n14: - 产出：analytics-consent-api；POST /api/analytics/consent及同意验签服务\n15: - 预估：1 人天　｜　前置：M1-T2　导出新增领域共享schema与DTO；M3-T1　将真实Auth.js会话绑定当前设备与权限；M3-T14　接通新API配置、错误映射与脱敏计数（已落地）\n16: 任务契约版本：de8752b6e2e67a8e725089a4078e6cb65636d199fb2038664bcd6d524f1a54cb；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M5-T2.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M5.md　模块职责与已有代码位置\n24: \n25: ## 验收标准（验收的唯一依据，逐条都要满足）\n26: 1) 真实HTTP POST /api/analytics/consent在精确同源/限流后解析strict Boolean\n27: 首次true签随机ID与版本/原期限cookie，已有有效同版本true响应保留原ID/期限\n28: false/重复false清cookie且不生成身份。2) 伪签名、过期或缺cookie均不能通过同意验证，响应无原始IP/邮箱/正文\n29: 此任务只实现后端准入，UI撤回与生产者停采由M5-T7集成。\n30: \n31: ## 必须处理的边界\n32: （验收标准没挂边界编号。仍按常识处理空输入、失败路径、重复提交。）\n33: \n34: ## 接线要求（做完必须从入口可达）\n35: - backendRoutes：src/auth.ts、src/app/api/auth/、src/app/api/auth-admin/、src/app/api/admin/account/、src/app/api/admin/users/、src/app/api/chat/、src/app/api/admin/chat/、src/app/api/analytics/、src/app/api/admin/settings/analytics/route.ts、src/app/api/admin/stats/route.ts、src/app/api/admin/cron/operations/route.ts、src/app/api/admin/cron/mail-queue/route.ts、src/app/api/internal/ops-report/route.ts；路由已注册并返回真实数据\n36: - container：src/lib/server/composition.ts、src/lib/server/db.ts、src/auth.ts；service 已注册并被路由或 job 调用\n37: \n38: ## 相关契约（照它实现，改要走文档补丁）\n39: | POST | /api/analytics/consent | analytics Boolean、consentVersion | ConsentDTO：analytics、expiresAt；有效同意重复true保留原ID/原期限，false重复清cookie | 同源，无需登录，禁止跟踪拒绝者 |\n40: | POST /api/analytics/consent | 同版本true且已有有效签名cookie：保留同browserId、grantedAt、expiresAt；false重复清cookie，不产生身份。撤回后再次同意、首次同意或既有凭据已失效才新ID | 有效cookie上的同体true或重复false可最多一次有界重试；首次/失效签发结果未知时不自动循环签发，确认前停采；429等Retry-After，503保持停采 | 串行处理同意写，保留最新意图；true在途时若用户选false，立即停采并清待发，待该请求结束后发false，旧true不能成为恢复采集理由。重复true不换ID/不续期；无cookie未确认签发不发送事件，避免给未使用身份计UV |\n41: \n42: ## 只改这些路径\n43: - src/app/api/admin/account/\n44: - src/app/api/admin/chat/\n45: - src/app/api/admin/cron/mail-queue/route.ts\n46: - src/app/api/admin/cron/operations/route.ts\n47: - src/app/api/admin/settings/analytics/route.ts\n48: - src/app/api/admin/stats/route.ts\n49: - src/app/api/admin/users/\n50: - src/app/api/analytics/\n51: - src/app/api/analytics/consent/route.ts\n52: - src/app/api/auth-admin/\n53: - src/app/api/auth/\n54: - src/app/api/chat/\n55: - src/app/api/internal/ops-report/route.ts\n56: - src/auth.ts\n57: - src/lib/server/analytics/consent.ts\n58: - src/lib/server/composition.ts\n59: - src/lib/server/db.ts\n60: - tests/analytics-consent.http.test.ts\n61: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n62: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。M1-T1、M1-T4、M1-T5、M2-T1、M2-T2、M2-T3、M2-T5、M2-T6、M2-T7、M2-T8、M3-T1、M3-T2、M3-T3、M3-T4、M3-T5、M3-T6、M3-T7、M3-T8、M3-T9、M3-T10、M3-T11、M3-T12、M3-T13、M3-T14、M3-T15、M3-T16、M3-T17、M3-T19、M3-T20、M4-T1、M4-T2、M4-T3、M4-T4、M4-T5、M4-T6、M4-T7、M4-T8、M4-T9、M4-T10、M4-T11、M4-T12、M4-T13、M4-T14、M4-T15、M5-T4、M5-T6、M5-T7、M5-T8、M5-T10、M5-T11、M6-T2、M6-T3、M6-T4、M6-T5、M6-T6 也会碰这些路径，别动其中的公共结构（共享类型、路由表、全局配置），必须动就在回报里单列。\n63: \n\n99: ## 本项目约定\n100: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n101: "
+}

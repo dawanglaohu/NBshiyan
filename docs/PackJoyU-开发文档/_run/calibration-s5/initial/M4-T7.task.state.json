@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register chat retention with dry-run as the default",
+    "input": "M4 entities/send-receive activity and M5 fixed-job foundation; section 09/10 independent cookie lifetime, 90-day body policy, and real-deletion authorization boundary.",
+    "output": "Fixed chat-retention job, real daily cron, policy version/authorization gate/candidate counts; expired-content anonymization and empty-session reclamation services with isolated concurrency tests.",
+    "accept": "1) Caller/wiring point: daily cron -> POST /api/admin/cron/operations(chat-retention) -> registry -> retention service. Default dry-run returns candidates/not-enabled. Without separate explicit retention authorization, reject enabling or requesting real deletion and keep the deletion count at zero. All tests use isolated data (E-88). 2) In isolated authorized-policy tests, count 90 days from the last successfully saved visitor message or human reply. Queries/read/polling/notifications do not renew it. The cleanup transaction re-reads lastActivityAt/retainUntil/policyVersion; a competing successful new message causes the old candidate to be skipped. Anonymization clears body/email/sensitive context and prevents further writes to the old thread (E-86, E-87). 3) Seven-day/30-day cookie expiry only rejects visitor access; it must not clear messages still within 90 days, which authorized operators can still read. The VisitorSession foreign key uses Restrict. Reclaim empty sessions only after all their consultations are anonymized. Do not touch existing 730-day inquiries, analytics, or recovered backups (E-85, E-89)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

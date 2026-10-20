@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) An isolated SMTP receiver accepts actual chat notifications. Verify attempt/sent/failed/unknown outcomes and explicit HTTP-count coverage. Stop one auxiliary source: stats keeps original success times/stale values or not_connected, while core remains readable. An unverified backup is never labeled recoverable (E-64, E-65, E-67). 2) Direct requests to protected notification-related entries from unauthenticated/EDITOR sessions are refused; cron accepts only Bearer. chat-notifications uses a dedicated limited adapter without extending the old mail UI. Verify an actual every-minute cron registration, save a message, restart and wait for scheduled persistent-outbox consumption. A manual HTTP call or empty registration is insufficient; notification failure cannot roll back received (E-94).",
+  "edges": {
+    "E-64": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "API or mail metrics are connected to actual result sources",
+      "expect": "Show redacted, explicitly defined error rates and notification-failure counts. Record mail failures from actual send attempts; do not equate queuing, invoking the send function or receiving an ordinary inquiry with successful delivery."
+    },
+    "E-65": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Storage health or backups lack a verifiable source",
+      "expect": "Show only not connected and source state. Once connected, show actual check/completion times; do not use ordinary file uploads, successful page queries or scheduled times to fake backup success, and do not silently add a backup platform or paid service."
+    },
+    "E-67": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Any additional source is interrupted or has no data",
+      "expect": "That card independently shows error, stale value, unknown or not connected. Other actual metrics remain queryable, preventing one auxiliary source from taking down the entire dashboard."
+    },
+    "E-94": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "An account without chat permissions calls an outbox/notification entry, or the SMTP adapter can send only the existing inquiry format",
+      "expect": "Separately verify that unauthorized calls are rejected and chat-notifications uses an independent restricted adapter without expanding the old mail UI. deploy/cron.nbshiyan must actually contain minute-by-minute registration, and committed outbox items must be consumed after restart, not merely by manual calls or future empty registrations. M4 registers it upon delivery; M7 only performs final acceptance."
+    }
+  }
+}

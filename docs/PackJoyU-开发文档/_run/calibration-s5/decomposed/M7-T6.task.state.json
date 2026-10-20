@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Finally verify fresh self-authorization and forgotten-password isolation",
+    "input": "reauth-dialog, single-purpose ActionGrant, security mutations and the limited-recovery entry",
+    "output": "fresh-auth-acceptance: fresh authorization/concurrent consumption/missing-current-password negative evidence",
+    "accept": "1) Trigger real POST /api/admin/account/reauth from profile actions. Only current password plus an unused TOTP yields a five-minute grant. Concurrent use of one TOTP step yields at most one grant, and concurrent use of one grant yields at most one mutation. Wrong purpose/target/device, expired or revoked grants are denied with unchanged state (E-72, E-73, E-74). 2) Through real enrollment/mode-switch entries, submit wrong, expired and replayed codes and two concurrent switches. The final transaction rechecks pending state/deadline/sv; errors cannot commit and at most one concurrent switch succeeds. At least one verified login method remains after failure (E-08). 3) A passwordless-enabled user who forgot the current password can still log in with email+totp for nonsensitive work. A session alone or TOTP alone cannot obtain a normal grant through reauth or directly mutate sensitive settings. The UI points to independent limited recovery; that path only permits new-factor binding with audit, and HTTP cannot write pendingPasswordHash (E-75)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

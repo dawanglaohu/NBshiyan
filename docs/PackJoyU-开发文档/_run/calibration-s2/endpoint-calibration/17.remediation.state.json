@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "POST",
+    "path": "/api/auth-admin/recovery/enroll",
+    "params": "An empty object.",
+    "returns": "RecoveryEnrollDTO. On first entry generate one encrypted pending secret and its URI. For the same valid restricted session, sv, and unexpired pending state, return the same otpauthUri and the original expiresAt, without rotating or extending either deadline.",
+    "permission": "Only a valid restricted recovery cookie."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "This is an anonymous caller holding an endpoint-specific restricted recovery credential, not a normal authenticated backend session and not visitor_session. Its dedicated cookie is Secure/HttpOnly/SameSite=Strict/Path=/api/auth-admin/recovery with no Domain, stores a hash server-side, lasts ten minutes, and is accepted only by recovery/enroll and recovery/confirm. These writes require exact Origin. It has no ADMIN/SALES/EDITOR privilege and cannot become a backend session through a callback URL. Generate a new encrypted pendingSecret for RESTRICTED -> ENROLLING. Preserve the original effective factor/password/default mode until final confirmation. Failure/expiry revokes restricted state; no binding bypass. First entry atomically creates a pending secret only if none exists. A repeat with the same still-valid restricted cookie/session/current sv and unexpired pending state returns the same URI and the original expiry. Logging, audit or response timing is incidental and is not the requested effect. Do not rotate or extend the pending secret or recovery session on reentry. An expired pending state ends this recovery flow; a new independent authorization is required. On one network failure the client may make at most one identical reentry within that same current window; 429 waits, 503 never causes secret rotation. A completed/revoked/expired session is rejected. Confirm remains one-time: a lost successful response does not return recovery codes again; use the new authenticator next unused step for normal login, and obtain new recovery material only through a newly authorized restricted reenrollment."
+}

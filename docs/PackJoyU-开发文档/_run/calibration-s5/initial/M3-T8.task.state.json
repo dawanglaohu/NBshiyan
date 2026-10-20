@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire the account owner's device list and per-device sign-out controls",
+    "input": "M3-T3 device APIs and M3-T7 admin shell/ReauthDialog; section 09/10 device-expiry and target-binding rules.",
+    "output": "/admin/account/devices, DevicesContainer/DeviceRow, cursor pagination, specified-device revocation, and sign-out-all UI.",
+    "accept": "1) Entry: personal information's Signed-in devices (account-devices-link) -> /admin/account/devices. Data source: GET /api/admin/account/devices; current/expiry/revoked states come from the DTO. Click device-revoke-{id} -> reauth(DEVICE_REVOKE,target=id) -> POST /api/admin/account/devices/[id]/revoke. Click devices-signout-all -> reauth(LOGOUT_ALL) -> POST logout-all. Assert that the revoked real browser's old cookie fails protected requests (E-03, E-70). 2) Pagination lists only the owner's devices and uses deduplication that remains persistent and unchanged. Revoking the current device clears sensitive content and returns to /admin-login. Ordinary signOut retains server-side revocation. Device GET must not extend idle expiry. Real close/reopen and 2h/7d/30d boundaries pass against the actual service (E-01, E-02, E-04, E-68, E-69, E-71). 3) At 1920x1080/1440x900/390x844, measure the minimalist-flat workspace under work/density7/gutter16/gap16/pad16 for D1-D6. One/two/many rows create no empty tracks; 44px action targets and keyboard focus pass, with a GIF attached."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) Entry: admin Personal information (admin-account-link) -> /admin/account. Data source: GET /api/admin/account. login-mode-toggle sends POST reauth(LOGIN_MODE) before PATCH login-mode; actual totp sign-in with the next code then needs no password. Reject removing all methods, and display the old value after 409 (E-06, E-07, E-09). 2) change-password uses a PASSWORD grant with POST password. change-authenticator uses a TOTP_RESET grant with POST 2fa/reset, then the visible Continue setup control enters /admin-recovery. Each click asserts real purpose/target/body and persisted outcomes. An already-used code step prompts waiting for the next code; five-minute expiry or wrong-purpose grants do not submit (E-72, E-73, E-74). 3) A user who forgot the current password can still work through totp sign-in, but sensitive controls offer no session-only/TOTP-only substitute. Recovery uses only the independent restricted page. Clear password/TOTP when verification ends; grants remain memory-only and unknown responses do not replay (E-75). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px.",
+  "edges": {
+    "E-06": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "The owner of an enrolled account enables the toggle after fresh identity verification.",
+      "expect": "Ordinary sign-in requires only an email address or account identifier and an authenticator code. Recovery codes belong to a separate recovery entry point; a password is no longer required for this mode."
+    },
+    "E-07": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "Disabling passwordless mode or unbinding the authenticator would leave the account with no usable sign-in method.",
+      "expect": "Reject the change. First finish setting up and verifying a usable password or alternative method, and then commit the switch atomically."
+    },
+    "E-09": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "The interface retains the user's term 2FA.",
+      "expect": "Explain that the current passwordless mode is Account + authenticator code. An account identifier is not an independent authentication factor; do not claim the security level of two independent factors."
+    },
+    "E-72": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The same TOTP time step has already been consumed by sign-in, another sensitive operation, or a concurrent request.",
+      "expect": "Atomically consume the account's authenticator time step so later requests cannot issue another ActionGrant. The client may wait for the next code and retry; do not reintroduce recovery codes into ordinary sign-in."
+    },
+    "E-73": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "Two requests use the same ActionGrant concurrently, or a password-change grant is used to disable the authenticator.",
+      "expect": "Within the sensitive-change transaction, validate and consume the grant once against the action, device, account, and credential version. Only one matching request succeeds; reject a mismatched purpose without executing the change."
+    },
+    "E-74": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "More than five minutes have elapsed since grant issuance, the device is revoked, the password/authenticator changes, or the account's permission becomes invalid.",
+      "expect": "The old grant immediately becomes invalid. Fresh-verification grants cannot be transferred between devices and cannot extend the original device-session lifetime."
+    },
+    "E-75": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The user forgets the current password but can still use previously enabled passwordless sign-in.",
+      "expect": "Resolve D3 through the restricted recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless sign-in remains unchanged. Without the current password, sensitive settings cannot issue an ordinary ActionGrant: reject direct requests based solely on a signed-in session or one TOTP without a change. Restricted recovery permits only new enrollment and is audited."
+    }
+  }
+}

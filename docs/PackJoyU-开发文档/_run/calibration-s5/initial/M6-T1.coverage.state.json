@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) Caller dashboard request leads to stats route and ops service reading actual aggregates; after consent, a visit, GLB activity and a five-minute job, verify today's anonymous browsers/PV/products/3D individually; successful zero results, null with no samples, denominators/terminal states/mean-duration samples must be correct (E-49, E-50, E-61, E-63). 2) ADMIN has all sources, SALES business sources and EDITOR public traffic/3D; unauthorized sources must be rejected or filtered before querying and must not include hidden counts; time-zone changes/expired coverage must have explicit revision/dataThrough rather than stitched trends (E-55, E-58, E-66).",
+  "edges": {
+    "E-49": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The source is connected, its query succeeds and the selected day truly has zero qualifying events",
+      "expect": "Show the value 0, the successful-query time and the consented-statistics scope. Do not falsely report query failure or not connected."
+    },
+    "E-50": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "First activation, an unconnected source, or no queryable data yet",
+      "expect": "Distinguish no data from not connected and identify the source. Do not use 0 to masquerade as actual statistics, and do not classify no events today alone as collection failure."
+    },
+    "E-61": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "This round accepts today's consented visitors, PV, product attribution and 3D view/load metrics",
+      "expect": "List evidence of one real product-action round: consent, actual page/product visits, actual GLB start/terminal, a committed real five-minute job, and dashboard reads of real daily/product aggregates. Verify today's consented browsers, PV, attribution and 3D metrics individually. Core sources must not be passed using not connected or fixed values."
+    },
+    "E-63": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "3D loading succeeds, fails, times out or has no samples",
+      "expect": "Use the established section 09 definition: the denominator is actual model_view_start after consent; at most one success/failure terminal exists for the same viewId, and timeout is failure. Compute mean duration from valid terminal durationMs samples and include samples; no samples gives null, while zero success with samples gives 0%. Do not add nonconsented samples to the denominator."
+    },
+    "E-55": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "Two operators with different browser or operating-system time zones view the same day",
+      "expect": "Use the same site time zone and day interval; metric definitions and values must not change with the viewer's location. Label charts and exports with the site time zone."
+    },
+    "E-58": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "ADMIN changes the time zone to a valid one",
+      "expect": "Preserve UTC event times, mark recomputation state and reaggregate only still-retained events. Older aggregates beyond the 30-day raw-retention period must preserve the original time-zone label or explicitly state that recomputation is unavailable; do not silently stitch them into a uniform-definition trend."
+    },
+    "E-66": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "SALES, EDITOR or an unauthenticated user directly accesses an operations API or export address",
+      "expect": "Directly test the section 09/10 source matrix: ADMIN has all sources, SALES has business aggregates under the existing scope, and EDITOR has public traffic/products/3D. Direct requests for sensitive system sources return 403; mixed-source responses are filtered before querying and contain no hidden counts."
+    }
+  }
+}

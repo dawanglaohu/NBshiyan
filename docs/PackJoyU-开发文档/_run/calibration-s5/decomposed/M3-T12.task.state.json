@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire personal security and the shared fresh-verification dialog",
+    "input": "M3 sensitive-write backends, M3-T7 shell, M3-T11 restricted page, and client-api-foundation.",
+    "output": "/admin/account, AccountContainer/ReauthDialog, domain account clients, and personal mode/password/re-enrollment controls.",
+    "accept": "1) Entry: admin Personal information (admin-account-link) -> /admin/account. Data source: GET /api/admin/account. login-mode-toggle sends POST reauth(LOGIN_MODE) before PATCH login-mode; actual totp sign-in with the next code then needs no password. Reject removing all methods, and display the old value after 409 (E-06, E-07, E-09). 2) change-password uses a PASSWORD grant with POST password. change-authenticator uses a TOTP_RESET grant with POST 2fa/reset, then the visible Continue setup control enters /admin-recovery. Each click asserts real purpose/target/body and persisted outcomes. An already-used code step prompts waiting for the next code; five-minute expiry or wrong-purpose grants do not submit (E-72, E-73, E-74). 3) A user who forgot the current password can still work through totp sign-in, but sensitive controls offer no session-only/TOTP-only substitute. Recovery uses only the independent restricted page. Clear password/TOTP when verification ends; grants remain memory-only and unknown responses do not replay (E-75). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Connect HTTP and mail reliability sources",
+    "input": "stats-core, real ApiDailyCounter from M3, and MailMessage/ChatNotification states",
+    "output": "stats-reliability: HTTP and notification count adapters with explicit coverage",
+    "accept": "1) Produce real 2xx/5xx responses from instrumented APIs, then GET /api/admin/stats with the http source. The denominator is actual requestCount from the same scope and errors are 5xx. The coverage label names only this round's instrumented routes; no denominator gives null and an unconnected source gives not_connected. Never claim a whole-site error rate (E-64). 2) Run real notification jobs to produce queued/sending/sent/failed/unknown outcomes. Mail counts follow actual attempts/SMTP acceptance, not queuing or consultation received. If one source query fails, retain its original success time/value or report failure without a previous value; other sources still succeed (E-51, E-52, E-53, E-64, E-67)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

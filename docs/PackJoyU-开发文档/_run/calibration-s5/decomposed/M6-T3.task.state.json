@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register storage/backup reports and operations sampling",
+    "input": "job-foundation, a controlled server script, existing backup metadata and the section 10 report contract",
+    "output": "ops-sources: ops-sample, POST /api/internal/ops-report and a read-only report script",
+    "accept": "1) A controlled deploy script makes real POST /api/internal/ops-report with strict Bearer authentication and field allowlists. Only space counts and backup completion/verification metadata are allowed; reject arbitrary paths and contents. The same source+measuredAt and payload is idempotent, a different payload at the same time returns 409, and an older time cannot replace new values. Unverifiable sources are not_connected. Direct SALES/EDITOR GET stats requests for STORAGE/BACKUP return 403 without counts, and an admin session cannot replace report Bearer authentication (E-65, E-66). 2) Register ops-sample in registry, composition and actual cron every 15 minutes; it runs on schedule after restart. Stats reads real measuredAt/lastSucceededAt; stopping reports preserves original time/stale values, and no restore verification means no recoverable claim. Auxiliary failure does not block core statistics (E-64, E-67)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "status": "ok",
+  "template": "task",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "is_wiring": {
+      "p": 0.59,
+      "verdict": "unsure"
+    },
+    "frontend": {
+      "p": 0.37,
+      "verdict": "unsure"
+    },
+    "objective": {
+      "p": 0.32,
+      "verdict": "no"
+    },
+    "defers": {
+      "p": 0.5,
+      "verdict": "unsure"
+    },
+    "needs_gif": {
+      "p": 0.43,
+      "verdict": "unsure"
+    },
+    "needs_judgment": {
+      "p": 0.56,
+      "verdict": "unsure"
+    },
+    "size": {
+      "score": 3.76,
+      "level": "more than two days, should be split",
+      "confidence": 0.8,
+      "band": "high"
+    }
+  },
+  "line": "task: is_wiring=unsure(0.59) frontend=unsure(0.37) objective=no(0.32) defers=unsure(0.50) needs_gif=unsure(0.43) needs_judgment=unsure(0.56) size=more than two days, should be split(high 0.80)",
+  "usage": {
+    "input_tokens": 946,
+    "output_tokens": 122
+  }
+}
