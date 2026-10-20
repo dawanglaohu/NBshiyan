@@ -5,7 +5,8 @@ import { Link, usePathname } from '@/i18n/navigation';
 import LangMenu from './LangMenu';
 
 // 站点头部：桌面端一行链接；手机端只留 Logo + 语言切换 + 菜单按钮，链接收进抽屉（#63）
-export default function SiteHeader() {
+// #350 aboutVisible：由服务端 layout 按站点设置传入（当前语言的 /about 是否显示），隐藏时直接不渲染入口，避免先出现再消失
+export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: boolean }) {
   const t = useTranslations('Nav');
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function SiteHeader() {
     <>
       <Link href="/">{t('home')}</Link>
       <Link href="/products">{t('products')}</Link>
+      {aboutVisible && <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined}>{t('about')}</Link>}
       <Link href="/contact">{t('contact')}</Link>
     </>
   );

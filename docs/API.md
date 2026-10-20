@@ -87,7 +87,8 @@
 
 ## 后台登录（Auth.js v5，Credentials + 强制 TOTP）
 - 创建账号：`ADMIN_SEED_EMAIL=… ADMIN_SEED_NAME=… ADMIN_SEED_PASSWORD=… [ADMIN_SEED_ROLE=SALES] pnpm admin:seed`（测试 / 本地 / CI；密码 ≥12 位，argon2id 哈希；凭据只走环境变量）。
-- 生产首个管理员：`node scripts/admin-create.mjs --email … [--name …]`（`pnpm admin:create`；镜像里 `docker compose exec app node scripts/admin-create.mjs …`）。密码只从终端（不回显）或标准输入读，不进命令行参数；`ADMIN_CREATE_PASSWORD` 只给 CI 用，`APP_ENV=production` 时拒绝；已有管理员时需 `--allow-additional-admin`；邮箱已存在直接失败；写一条 `user.create` 审计（不含密码）。
+- 生产首个管理员：`node scripts/admin-create.mjs --email … [--name …]`（`pnpm admin:create`；镜像里 `docker compose exec app node scripts/admin-create.mjs …`）。密码只从终端（不回显）或标准输入读，不进命令行参数；`ADMIN_CREATE_PASSWORD` 只给 CI 用，`APP_ENV=production` 时拒绝；已有管理员时需 `--allow-additional-admin`；邮箱已存在直接失败；写一条 `user.create` 审计（不含密码）。#347：stdout 是终端时同一事务里签发一次性绑定令牌，在终端打印一次链接（`/admin-enroll#t=…`）和有效期，审计 `auth.enroll_token_issued`（source cli，不含令牌）；不是终端时不签发、不打印。
+- 未绑定 2FA 的 ADMIN 重设初始密码：`node scripts/admin-reset-initial-password.mjs (--email … | --id …) [--clear-pending-enroll]`（`pnpm admin:reset-initial-password`）。只有命令行；密码只从终端或标准输入读；TOTP 已启用、非 ADMIN、已停用一律拒绝；有未完成的绑定或绑定窗口已关闭时需加参数；同一事务里改密码、会话失效、写 `user.password_reset`（+ `user.pending_enroll_cleared`）审计（不含密码、哈希、密钥、邮箱）。#347：同一事务里总是签发新的一次性绑定令牌（审计 `auth.enroll_token_issued`），只在终端打印一次链接；stdout 不是终端时退出 2、什么都不改。
 - 绑定 2FA（账号未开 2FA 前不能登录，两步都要同源 `Origin`；接口在 `/api/auth-admin/` 下，不在 `/api/admin/` 下，因为这是登录前流程）：
   1. `POST /api/auth-admin/enroll` `{ email, password }` → `{ otpauthUri }`。已开启的账号返回 401 `bad_credentials`。待确认密钥 10 分钟内有效，有效期内再调返回 429 `rate_limited`（不会覆盖正在扫的密钥），过期后再调换新密钥、旧的作废（#347）。
   2. `POST /api/auth-admin/enroll/confirm` `{ email, password, totp }` → `{ recoveryCodes: [10 个] }`，只返回这一次，服务端只存哈希。码错 401 `bad_totp`；待确认密钥已过期 401 `bad_totp`（需重新 enroll）。
@@ -136,7 +137,7 @@
 - `GET /api/admin/users?all=1` → `{ items: [{ id, email, name, role, disabled, totpEnabled, locked, createdAt }] }`（不带 `all` 时是分配下拉框用的精简列表，见上）。
 - `POST /api/admin/users` `{ email, name, role: ADMIN|SALES|EDITOR, password }` → 201。新账号需先绑定 2FA 才能登录。409 `email_taken`，422 `weak_password`。
 - `PATCH /api/admin/users/:id` `{ role?, disabled?, name?, unlock?: true }` → 用户对象。停用或改为 EDITOR 时取消其名下询盘的分配。
-- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码，或新账号 72 小时内没绑定（绑定窗口过期）；重新打开 72 小时绑定窗口，对方需重新绑定。
+- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码，或新账号 72 小时内没绑定（绑定窗口过期）；重新打开 72 小时绑定窗口，对方需重新绑定。#347：同一次写入里签发新的一次性绑定令牌（响应多 `enrollLink`、`expiresAt`、`expiresTruncated`，旧链接失效）、会话失效，并**解除登录锁定**（`failedLogins=0`、`lockedUntil=null`）；审计 `user.reset_2fa` meta `{ unlocked }`（重置前锁定中或 `failedLogins>0` 为 true）。提交后删掉该账号的 3 个限流 key（`login-acct`、`login:untrusted`、`enroll-confirm:untrusted`，当前 + 上一个窗口），不碰 `login-ip`；删除失败不回滚，只记日志 `rate_limit=failed`。
 - `DELETE /api/admin/users/:id` → 204。名下询盘取消分配；审计记录保留。
 - 保护规则：不能修改/停用/删除/重置自己（409 `cannot_modify_self`，自己用上面的自助接口）；不能让系统里没有有效管理员（role=ADMIN 且未停用），否则 409 `last_admin`。账号变更在事务里用 advisory lock 串行执行，防止两个管理员同时互相停用。
 

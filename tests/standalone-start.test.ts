@@ -5,6 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
 import { existsSync, mkdtempSync, rmSync, chmodSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -24,8 +25,29 @@ const FAKE = {
 const SECRET_VALUES = Object.entries(FAKE).filter(([k]) => /SECRET|PASS|TOKEN|DATABASE_URL|TOTP/.test(k)).map(([, v]) => v);
 
 type Run = { code: number | null; out: string; ready: boolean; port: number };
-function start(env: Record<string, string | undefined>, onReady?: (port: number) => Promise<void>): Promise<Run> {
-  const port = 3400 + Math.floor(Math.random() * 500);
+/** 向系统要一个空闲端口（listen 0 再关掉），不再随机挑 3400–3899，避免和别的进程撞端口 */
+function freePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const s = createServer();
+    s.once('error', reject);
+    s.listen(0, '127.0.0.1', () => { const a = s.address(); const p = typeof a === 'object' && a ? a.port : 0; s.close(() => resolve(p)); });
+  });
+}
+/**
+ * 「Ready in」只说明 Next 打印了日志，不保证端口已经能接请求、instrumentation 已经跑完。
+ * 这里轮询到真的能连上（任何 HTTP 状态都算连上）为止：每 250ms 一次，最多 15 秒；连不上就抛错，由调用方让测试失败。
+ */
+export async function waitForHttp(url: string, timeoutMs = 15_000, intervalMs = 250): Promise<void> {
+  const until = Date.now() + timeoutMs;
+  let last: unknown;
+  while (Date.now() < until) {
+    try { const r = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(2_000) }); await r.arrayBuffer(); return; } catch (e) { last = e; }
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  throw new Error(`not reachable within ${timeoutMs}ms: ${(last as Error)?.name ?? 'unknown'}`);
+}
+async function start(env: Record<string, string | undefined>, onReady?: (port: number) => Promise<void>): Promise<Run> {
+  const port = await freePort();
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [SERVER], {
       cwd: path.dirname(SERVER),
@@ -38,7 +60,10 @@ function start(env: Record<string, string | undefined>, onReady?: (port: number)
       out += b.toString();
       if (!ready && /Ready in/.test(out)) {
         ready = true;
-        (onReady ? onReady(port) : Promise.resolve()).finally(() => process.kill(child.pid!, 'SIGTERM')); // 只按 PID 停自己的进程
+        // 只有传了 onReady（要发请求的用例）才轮询；失败场景不需要。轮询失败时把错误交给 reject，测试直接失败
+        (onReady ? waitForHttp(`http://127.0.0.1:${port}/api/health`).then(() => onReady(port)) : Promise.resolve())
+          .catch((e) => { clearTimeout(timer); reject(new Error(`${(e as Error).message}; output:\n${out}`)); })
+          .finally(() => process.kill(child.pid!, 'SIGTERM')); // 只按 PID 停自己的进程
       }
     };
     child.stdout.on('data', onData); child.stderr.on('data', onData);

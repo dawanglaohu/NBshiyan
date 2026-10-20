@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { adminApi } from '@/lib/admin/api';
 import {
-  actorText, HISTORY_ICON, HISTORY_PAGE_SIZE, HISTORY_TEXT, historyErrorText, historyReducer, initialHistory, loadMoreText, nextCursor, rateLimited, remaining,
+  actorView, HISTORY_ICON, HISTORY_PAGE_SIZE, HISTORY_TEXT, historyErrorText, historyReducer, initialHistory, loadMoreText, nextCursor, rateLimited, remaining,
   type HistoryItem, type HistoryState,
 } from '@/lib/admin/history';
 import { loginHref } from './format';
@@ -83,13 +83,15 @@ export function HistoryView({ s, limited, onRetry, onMore }: { s: HistoryState; 
   );
 }
 
+/** summary、操作人都只作为 React 文本输出（后端已转纯文本、实体已解码），不用 innerHTML、不再解码 */
 export function HistoryRow({ item }: { item: HistoryItem }) {
+  const who = actorView(item);
   return (
     <li className={`adm-tl-row ${item.type}`}>
       <span className="adm-tl-ic" aria-hidden="true">{HISTORY_ICON[item.type]}</span>
       <div className="adm-tl-body">
         <div className="adm-tl-sum">{item.summary}</div>
-        <div className="muted adm-tl-meta">{actorText(item)} · <AdminTime iso={item.at} /></div>
+        <div className="muted adm-tl-meta">{who.gone ? <span className="adm-tl-gone" data-testid="actor-gone">{who.text}</span> : who.text} · <AdminTime iso={item.at} /></div>
       </div>
     </li>
   );

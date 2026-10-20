@@ -80,6 +80,8 @@ model User {
   enrollIssuedAt   DateTime? // #347 绑定窗口起点：重置 2FA 时写入；为空时用 createdAt。起点 + 72 小时后 enroll/confirm 一律拒绝，需管理员重置 2FA
   totpPendingUntil DateTime? // #347/#348 待确认密钥的有效期，同时是再次 enroll 的冷却截止时间（期间不能覆盖待确认密钥）
   totpEnrollFails  Int       @default(0) // #348 当前待确认密钥上、密码已通过时的错码次数；达到上限作废密钥，发新密钥或绑定成功时清零
+  enrollTokenHash      String? // #347 方案 A 一次性绑定令牌的 sha256（hex），不存明文。签发（建号 / 重置 2FA / CLI）时覆盖，旧令牌立即失效；confirm 成功时清空
+  enrollTokenExpiresAt DateTime? // #347 令牌截止时间 = min(签发后 24 小时, 72 小时绑定窗口截止)；为空或已过期时 enroll/confirm 一律 401 bad_credentials
   inquiries      Inquiry[] @relation("Assignee")
   createdAt      DateTime  @default(now())
 }
@@ -260,6 +262,31 @@ model LogoUpload {
   designs   SharedDesign[] // 被未过期方案引用时不清理
 
   @@index([inquiryId, createdAt])
+}
+
+// #350 about / 首页图片（公开资源）。只有 ADMIN 能上传；原图按 magic bytes 判型（jpg/png/webp），sharp 去掉 EXIF/GPS 等元数据，
+// 重新编码成两种宽度的 WebP（sm 800、lg 1600，不放大），存 STORAGE_DRIVER 对应的存储（local: UPLOAD_DIR 下 public-assets/），原图不保存。
+// 公开地址 /media/<id>-<w>.webp（immutable）。不参与 24 小时清理；只能删除未被 about.images 引用的图片（软删除 + 删文件）。
+model PublicAsset {
+  id        String    @id // 随机 24 位字母数字，不可递增
+  kind      String    @default("about") // 用途，目前只有 about
+  smKey     String // 存储 key（服务端生成，.webp）；原图不宽于 800 时与 lgKey 相同
+  smWidth   Int
+  smHeight  Int
+  smBytes   Int
+  lgKey     String
+  lgWidth   Int
+  lgHeight  Int
+  lgBytes   Int
+  bytes     Int // 上传原图大小（字节）
+  sha256    String // 上传原图的 sha256（hex），同一张图重复上传时复用已有记录
+  createdBy String? // User.id（不建外键，和 AuditLog.actorId 一样，删用户不影响图片）
+  createdAt DateTime  @default(now())
+  deletedAt DateTime? // 软删除：公开地址立即 404，文件同时删除
+  deletedBy String?
+
+  @@index([kind, deletedAt, createdAt])
+  @@index([sha256])
 }
 
 // 国际贸易术语（Incoterms 2020）

@@ -15,6 +15,7 @@ import SiteFooter from '@/components/layout/SiteFooter';
 import FloatingActions from '@/components/quote/FloatingActions';
 import CookieConsent from '@/components/consent/CookieConsent';
 import WebVitals from '@/components/analytics/WebVitals';
+import { isAboutVisible } from '@/lib/about/visibility';
 import '../globals.css';
 
 // 只加载拉丁和西里尔子集，控制字体体积
@@ -53,6 +54,8 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   setRequestLocale(locale);
   // Privacy 文案只在服务端渲染（含 {{待Ryan确认}} 占位符），不下发到客户端
   const messages = clientMessages((await getMessages()) as Record<string, unknown>);
+  // #350 导航、页脚的 About 入口：服务端判断后作为 prop 传下去（SiteHeader 是客户端组件）
+  const aboutVisible = await isAboutVisible(locale);
   return (
     <html lang={locale} dir={localeDir(locale)} className={manrope.variable}>
       <body>
@@ -60,9 +63,9 @@ export default async function LocaleLayout({ children, params }: { children: Rea
         <WebVitals />
         <NextIntlClientProvider messages={messages as Parameters<typeof NextIntlClientProvider>[0]['messages']}>
           <QuoteProvider>
-            <SiteHeader />
+            <SiteHeader aboutVisible={aboutVisible} />
             {children}
-            <SiteFooter />
+            <SiteFooter aboutVisible={aboutVisible} />
             <FloatingActions />
             <CookieConsent />
           </QuoteProvider>

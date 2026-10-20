@@ -71,9 +71,9 @@ test('routes: requireAdmin → assertSameOrigin → awaited rate limit → zod; 
 
 test('publicUser exposes no password hash, TOTP secret or recovery codes', async () => {
   const { publicUser } = await import('../src/lib/server/admin/accounts');
-  const u = publicUser({ id: 'u', email: 'e@x.com', name: 'n', passwordHash: 'H', role: 'ADMIN', totpSecret: 'S', totpEnabled: true, totpLastStep: 1, recoveryCodes: ['R'], sessionVersion: 3, disabled: false, failedLogins: 0, lockedUntil: null, lastLoginAt: new Date(0), reactivatedAt: null, enrollIssuedAt: null, totpPendingUntil: null, totpEnrollFails: 0, createdAt: new Date(0) });
+  const u = publicUser({ id: 'u', email: 'e@x.com', name: 'n', passwordHash: 'H', role: 'ADMIN', totpSecret: 'S', totpEnabled: true, totpLastStep: 1, recoveryCodes: ['R'], sessionVersion: 3, disabled: false, failedLogins: 0, lockedUntil: null, lastLoginAt: new Date(0), reactivatedAt: null, enrollIssuedAt: null, totpPendingUntil: null, totpEnrollFails: 0, enrollTokenHash: 'TH', enrollTokenExpiresAt: null, createdAt: new Date(0) });
   const s = JSON.stringify(u);
-  for (const bad of ['"H"', '"S"', '"R"', 'passwordHash', 'totpSecret', 'recoveryCodes', 'sessionVersion']) assert.ok(!s.includes(bad), bad);
+  for (const bad of ['"H"', '"S"', '"R"', '"TH"', 'enrollToken', 'passwordHash', 'totpSecret', 'recoveryCodes', 'sessionVersion']) assert.ok(!s.includes(bad), bad);
   assert.equal(u.lastLoginAt?.toISOString(), new Date(0).toISOString());
 });
 

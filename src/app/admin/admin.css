@@ -56,7 +56,8 @@
 .adm-hist{list-style:none;margin:0;padding:0}.adm-hist li{padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
 /* #331 操作历史时间线：竖向 <ol>，新的在前；图标 + 摘要 + 「姓名 · 角色 · 时间」 */
 .adm-tl .adm-tl-row{display:flex;gap:10px;align-items:flex-start}
-.adm-tl-ic{flex:0 0 22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;line-height:1}
+.adm-tl-ic{flex:0 0 22px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:13px;line-height:1}
+.adm-tl-gone{color:var(--ink-2);font-style:italic}
 .adm-tl-body{min-width:0;flex:1}.adm-tl-sum{overflow-wrap:anywhere}.adm-tl-meta{font-size:12px;margin-top:2px}
 .adm-tl-skel .adm-tl-ic,.adm-tl-skel i{background:var(--line);border-radius:var(--r-sm)}
 .adm-tl-skel i{display:block;height:10px;margin:4px 0}.adm-tl-skel i:first-child{width:70%}.adm-tl-skel i+i{width:40%}

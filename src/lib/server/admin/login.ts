@@ -2,7 +2,7 @@ import { createHmac, randomBytes } from 'crypto';
 import { authenticator } from 'otplib';
 import type { User } from '@prisma/client';
 import { prisma } from '../db';
-import { hitRateLimit, rateLimitKeyHash, rateLimitSubject } from '../security';
+import { hitRateLimit, rateLimitKeyHash, rateLimitSubject, refundRateLimit } from '../security';
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
@@ -14,17 +14,35 @@ export const LOCK_MS = 15 * 60_000;
 
 export type CheckFail = 'rate_limited' | 'bad_credentials' | 'locked' | 'totp_required' | 'totp_not_enrolled';
 
-/** 登录/2FA 限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。 */
+/**
+ * 登录/2FA 限流（10 分钟窗口，三个桶都计数）：IP+账号 5 次、单账号 10 次（防换 IP 爆破）、单 IP 30 次（防撞库）。
+ * 每次调用都原子计数（hit），不先查后计，并发请求也不会超过上限。登录接口每次都计、不退回。
+ * enroll 两个接口在密码正确后调 refundLoginRate 退回 IP+账号、单账号两个桶（单 IP 桶不退），所以只有密码错才占这两个桶的额度。
+ */
+export const LOGIN_WINDOW_MS = 10 * 60_000;
+export const loginKeys = (ip: string | null, email: string) => {
+  const e = rateLimitKeyHash(email.trim().toLowerCase());
+  return { ipAcct: `login:${rateLimitSubject(ip)}:${e}`, acct: `login-acct:${e}`, ip: `login-ip:${rateLimitSubject(ip)}` };
+};
 export async function loginRateOk(ip: string | null, email: string) {
   // 限流存储故障时拒绝（closed）；邮箱先 trim+小写再 HMAC，key 里不存明文
   const o = { onStoreError: 'closed' } as const;
-  const e = rateLimitKeyHash(email.trim().toLowerCase());
+  const k = loginKeys(ip, email);
   const [a, b, c] = await Promise.all([
-    hitRateLimit(`login:${rateLimitSubject(ip)}:${e}`, 5, 10 * 60_000, o),
-    hitRateLimit(`login-acct:${e}`, 10, 10 * 60_000, o),
-    hitRateLimit(`login-ip:${rateLimitSubject(ip)}`, 30, 10 * 60_000, o),
+    hitRateLimit(k.ipAcct, 5, LOGIN_WINDOW_MS, o),
+    hitRateLimit(k.acct, 10, LOGIN_WINDOW_MS, o),
+    hitRateLimit(k.ip, 30, LOGIN_WINDOW_MS, o),
   ]);
   return a && b && c;
+}
+
+/**
+ * 只给 enroll / enroll confirm 用：checkPassword 返回 user（密码正确）后，退回这次计的 IP+账号、单账号两个桶。
+ * 单 IP 桶（login-ip）不退。存储出错时忽略（计数保留）。登录接口不调用。
+ */
+export async function refundLoginRate(ip: string | null, email: string) {
+  const k = loginKeys(ip, email);
+  await Promise.all([refundRateLimit(k.ipAcct, LOGIN_WINDOW_MS), refundRateLimit(k.acct, LOGIN_WINDOW_MS)]);
 }
 
 /**
@@ -40,6 +58,9 @@ export function auditEmailHash(email: string, env: Record<string, string | undef
 export async function revokeSessions(userId: string) {
   await prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
 }
+
+/** 登录类失败：计入 failedLogins（满 MAX_FAILS 锁定并告警）+ 审计 auth.login_fail。checkPassword 的错密码分支和 #347 的令牌错开关共用 */
+export async function recordFailedLogin(user: User | null, email: string, ip: string | null, reason: string) { return fail(user, email, ip, reason); }
 
 async function fail(user: User | null, email: string, ip: string | null, reason: string) {
   if (user) {

@@ -5,26 +5,32 @@ import { BASE } from '../playwright.config';
 
 // P1：/admin-enroll 首次绑定 2FA。每个用例新建一个未绑定的账号（scripts/create-admin.mjs，仅 E2E 测试库），
 // 每个账号的密码校验次数控制在共享限流（同一 IP+账号 10 分钟 5 次）以内。
+// #347 方案 A：create-admin.mjs 新建未绑定账号时在 stdout 打印一次性绑定链接，这里从输出里取令牌（不额外登录）。
 const PASSWORD = 'e2e-enroll-Passw0rd!';
 function freshAccount(tag: string) {
   const email = `e2e-enroll-${tag}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
-  execFileSync('node', ['scripts/create-admin.mjs'], {
+  const out = execFileSync('node', ['scripts/create-admin.mjs'], {
     stdio: 'pipe',
     env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: PASSWORD, ADMIN_SEED_NAME: 'E2E enroll', ADMIN_SEED_ROLE: 'SALES', ADMIN_SEED_TOTP_SECRET: '' },
   });
-  return email;
+  const token = /#t=([A-Za-z0-9_-]{43})/.exec(String(out))?.[1];
+  if (!token) throw new Error('create-admin.mjs 没有输出绑定链接');
+  return { email, token };
 }
 const origin = { Origin: BASE };
 const secretOf = (uri: string) => new URL(uri).searchParams.get('secret')!;
 
 test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保存恢复码 → 去登录', async ({ page, external }) => {
   test.setTimeout(90_000);
-  const email = freshAccount('ui');
-  const res = await page.goto('/admin-enroll');
+  const { email, token } = freshAccount('ui');
+  const res = await page.goto(`/admin-enroll#t=${token}`);
   expect(res!.status()).toBe(200);
   expect(res!.headers()['cache-control']).toContain('no-store');
   expect(res!.headers()['x-robots-tag']).toContain('noindex');
+  expect(res!.headers()['x-robots-tag']).toContain('nofollow');
+  expect(res!.headers()['referrer-policy']).toBe('no-referrer'); // #347：带令牌的地址不能经 Referer 外泄
   expect(new URL(page.url()).pathname).toBe('/admin-enroll'); // 没有被加语言前缀，也没被重定向到登录
+  await expect.poll(() => new URL(page.url()).hash).toBe(''); // #347：令牌（#t= fragment）已从地址栏去掉（replaceState）
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   await expect(page.locator('[aria-current="step"]')).toContainText('账号验证');
 
@@ -50,8 +56,44 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   const input = page.getByLabel('6 位验证码');
   await expect(input).toHaveAttribute('inputmode', 'numeric');
   await expect(input).toHaveAttribute('autocomplete', 'one-time-code');
-  await expect(input).toHaveAttribute('maxlength', '6');
+  // 不能有 maxlength：浏览器会先按原始字符截断，「751 940」会丢最后一位；只保留 6 位数字由 normalizeCode 负责
+  await expect(input).not.toHaveAttribute('maxlength', /.*/);
   await expect(page.getByRole('button', { name: /重新生成/ })).toHaveCount(0);
+  // 粘贴 / 输入的格式：只留数字；正好 6 位才能提交；超过 6 位不截断，提示并禁止提交（PM / UX / 全栈）
+  const submit = page.getByRole('button', { name: '确认绑定' });
+  const lenErr = page.locator('#en-otp-e');
+  const paste = (text: string) => input.evaluate((el, t) => {
+    const dt = new DataTransfer(); dt.setData('text/plain', t);
+    el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+  }, text);
+  for (const raw of ['751 940', '751-940', ' 751940 ']) {
+    await input.fill('');
+    await paste(raw);
+    await expect(input, `paste ${JSON.stringify(raw)}`).toHaveValue('751940');
+    await expect(submit).toBeEnabled();
+    await expect(lenErr).toHaveCount(0);
+  }
+  const confirms: string[] = [];
+  page.on('request', (r) => { if (r.url().includes('/enroll/confirm')) confirms.push(r.url()); });
+  await input.fill('');
+  await input.pressSequentially('75194'); // 不足 6 位：只禁用提交，不提示
+  await expect(submit).toBeDisabled();
+  await expect(lenErr).toHaveCount(0);
+  await input.pressSequentially('01'); // 输入到 7 位
+  await expect(input).toHaveValue('7519401');
+  await expect(lenErr).toHaveText('请输入 6 位数字验证码');
+  await expect(input).toHaveAttribute('aria-invalid', 'true');
+  await expect(submit).toBeDisabled();
+  await input.press('Enter');
+  await input.fill('');
+  await paste('751 940 1'); // 粘贴 7 位
+  await expect(input).toHaveValue('7519401');
+  await expect(lenErr).toHaveText('请输入 6 位数字验证码');
+  await expect(submit).toBeDisabled();
+  await input.press('Enter');
+  await page.waitForTimeout(300);
+  expect(confirms).toEqual([]); // 没有发出 confirm 请求
+  await input.fill('');
   // 错码 → 输入框下方红字、输入保留
   const wrong = authenticator.generate(secret) === '000000' ? '111111' : '000000';
   await input.fill(wrong);
@@ -86,31 +128,28 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   await page.waitForURL(/\/api\/auth\/signin/);
 });
 
-test('已绑定的账号再调 enroll → 401 bad_credentials', async ({ request }) => {
-  const email = freshAccount('enrolled');
-  const en = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } });
+test('已绑定的账号再调 enroll → 401 bad_credentials（#347：确认成功后令牌已用掉）', async ({ request }) => {
+  const { email, token } = freshAccount('enrolled');
+  const en = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD, token } });
   expect(en.status()).toBe(200);
   const secret = secretOf((await en.json()).otpauthUri);
-  const c = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(secret) } });
+  const c = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(secret), token } });
   expect(c.status()).toBe(200);
-  const again = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } });
+  const again = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD, token } });
   expect(again.status()).toBe(401);
   expect((await again.json()).error).toBe('bad_credentials');
 });
 
-test('#347 待确认密钥 10 分钟内不能被覆盖：再次 enroll → 429 rate_limited，第一次的密钥仍可确认', async ({ request }) => {
-  const email = freshAccount('rotate');
-  const first = secretOf((await (await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } })).json()).otpauthUri);
-  const again = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } });
+test('#347 只有初始密码没有令牌 → 401；待确认密钥 10 分钟内不能被覆盖：再次 enroll → 429 rate_limited，第一次的密钥仍可确认', async ({ request }) => {
+  const { email, token } = freshAccount('rotate');
+  const noToken = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD } });
+  expect(noToken.status()).toBe(401);
+  expect((await noToken.json()).error).toBe('bad_credentials');
+  const first = secretOf((await (await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD, token } })).json()).otpauthUri);
+  const again = await request.post('/api/auth-admin/enroll', { headers: origin, data: { email, password: PASSWORD, token } });
   expect(again.status()).toBe(429);
   expect((await again.json()).error).toBe('rate_limited');
-  const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(first) } });
-  expect(ok.status()).toBe(200);
-  expect((await ok.json()).recoveryCodes).toHaveLength(10);
-});
-  expect(old.status()).toBe(401);
-  expect((await old.json()).error).toBe('bad_totp');
-  const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(second) } });
+  const ok = await request.post('/api/auth-admin/enroll/confirm', { headers: origin, data: { email, password: PASSWORD, totp: authenticator.generate(first), token } });
   expect(ok.status()).toBe(200);
   expect((await ok.json()).recoveryCodes).toHaveLength(10);
 });

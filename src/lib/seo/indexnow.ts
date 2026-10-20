@@ -26,7 +26,7 @@ export function indexNowDedupeStore(env: Env = process.env): RateLimitStore | nu
   if (env.RATE_LIMIT_STORE !== 'upstash' || !url?.startsWith('https://') || !token) return null;
   const s = new UpstashStore(url, token, 1500, 'indexnow:');
   // Upstash 出错时按「已推过」处理（不推送），和之前的行为一致
-  return { hit: (k, l, w) => s.hit(k, l, w).catch(() => false) };
+  return { hit: (k, l, w) => s.hit(k, l, w).catch(() => false), refund: (k, w) => s.refund(k, w).catch(() => {}) };
 }
 
 /** 返回可用的密钥；未设置、格式不对或不是生产环境时返回 null（功能整体关闭）。 */

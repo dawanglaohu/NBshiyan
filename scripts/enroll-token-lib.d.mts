@@ -1,0 +1,13 @@
+export const ENROLL_TOKEN_TTL_MS: number;
+export const ENROLL_WINDOW_MS: number;
+export const ENROLL_PAGE: '/admin-enroll';
+export const PRIVATE_HINT: string;
+export const TRUNCATED_HINT: string;
+export type Issued = { token: string; data: { enrollTokenHash: string; enrollTokenExpiresAt: Date }; expiresAt: Date; expiresTruncated: boolean };
+export function hashEnrollToken(token: string): string;
+export function newEnrollToken(now?: number, windowStart?: number): Issued;
+export function enrollLinkBase(env?: Record<string, string | undefined>): string | null;
+export function enrollLink(token: string, base: string): string;
+export function formatPt(date: Date): string;
+export function linkLines(issued: Issued, base: string): string;
+export function issuedAudit(userId: string): { actorId: null; action: 'auth.enroll_token_issued'; target: string; ip: null };

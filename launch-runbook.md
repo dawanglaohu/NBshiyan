@@ -136,7 +136,7 @@
 docker compose exec app node scripts/admin-create.mjs --email <管理员邮箱> --name "<显示名>"
 ```
 
-- 密码在终端里交互输入两次，不回显。没有终端时（如 `docker compose exec -T app node scripts/admin-create.mjs … < 只有自己可读的文件`）从标准输入读第一行，用完删掉那个文件。**密码绝不放在命令行参数或环境变量里**：命令行参数脚本直接拒绝；生产（`APP_ENV=production`）下环境变量方式也直接拒绝（环境变量会出现在 `docker inspect` 和 shell 历史里）。
+- 密码在终端里交互输入两次，不回显。没有终端时（如 `docker compose exec -T app node scripts/admin-create.mjs … < 只有自己可读的文件`）从标准输入读第一行，用完删掉那个文件（#347：没有终端时不会签发、显示绑定链接，之后需在终端里用 reset 脚本或后台「重置 2FA」签发）。**密码绝不放在命令行参数或环境变量里**：命令行参数脚本直接拒绝；生产（`APP_ENV=production`）下环境变量方式也直接拒绝（环境变量会出现在 `docker inspect` 和 shell 历史里）。
 - 密码规则与后台新建账号相同（12–200 位，不能等于邮箱）。邮箱已存在 → 失败，不覆盖。已经有管理员 → 失败，除非显式加 `--allow-additional-admin`；日常加人走后台「账号管理」。
 - 建好的账号未绑定 2FA，首次登录前照常走 2FA 绑定流程。审计里写一条 `user.create`（`via: cli:admin-create`），不含密码、哈希或邮箱。
 

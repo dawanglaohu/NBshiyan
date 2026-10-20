@@ -14,15 +14,15 @@ const adminHeaders = [
   { key: 'Referrer-Policy', value: 'no-referrer' }
 ];
 const isProd = isProdEnvFrom();
-// 输出存储文件的接口（logo、模型）：CSP 由 src/lib/server/file-response.ts 设置
-const FILE_ROUTE_SOURCES = ['/api/admin/uploads/:path*', '/api/admin/models/:id/file', '/api/designs/:id/logo', '/api/models/:id/:variant'];
-const FILE_ROUTE_EXCLUDE = 'api/admin/uploads(?:/|$)|api/admin/models/[^/]+/file$|api/designs/[^/]+/logo$|api/models/[^/]+/[^/]+$';
+// 输出存储文件的接口（logo、模型、#350 公开图片 /media/<id>-<w>.webp）：CSP 由 src/lib/server/file-response.ts 设置
+const FILE_ROUTE_SOURCES = ['/api/admin/uploads/:path*', '/api/admin/models/:id/file', '/api/designs/:id/logo', '/api/models/:id/:variant', '/media/:file'];
+const FILE_ROUTE_EXCLUDE = 'api/admin/uploads(?:/|$)|api/admin/models/[^/]+/file$|api/designs/[^/]+/logo$|api/models/[^/]+/[^/]+$|media/[^/]+$';
 
 // #323：mock 源文件（src/lib/**/mock.ts、sanityMock.ts、models-mock.ts 等）
 const MOCK_SOURCE_GLOBS = ['./src/lib/**/mock.ts', './src/lib/**/*Mock.ts', './src/lib/**/*-mock.ts'];
 
-// 带点路径兜底 404 时跳过的前缀（这些前缀有自己的路由或 404 处理）
-const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s)(?:/|$)';
+// 带点路径兜底 404 时跳过的前缀（这些前缀有自己的路由或 404 处理；media = #350 公开图片 /media/<id>-<w>.webp）
+const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s|media)(?:/|$)';
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -31,7 +31,10 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // 建首个管理员的 CLI（docker compose exec app node scripts/admin-create.mjs）不被任何页面 import，
   // 挂在 /api/health 的追踪上一起复制进 standalone；它用到的 @prisma/client、@node-rs/argon2 应用本身已被追踪。
-  outputFileTracingIncludes: { '/api/health': ['./scripts/admin-create.mjs', './scripts/admin-create-lib.mjs'] },
+  // #361 部署门禁的只读统计脚本 admin-2fa-audit（只用 @prisma/client）同样挂在这里。
+  // 队列 ② 未绑定 2FA 的 ADMIN 重设初始密码脚本 admin-reset-initial-password（@prisma/client、@node-rs/argon2，import 了 admin-create-lib）也一样。
+  // #347：admin-create / admin-reset-initial-password 签发绑定令牌用的 enroll-token-lib 也要带上。
+  outputFileTracingIncludes: { '/api/health': ['./scripts/admin-create.mjs', './scripts/admin-create-lib.mjs', './scripts/enroll-token-lib.mjs', './scripts/admin-2fa-audit.mjs', './scripts/admin-2fa-audit-lib.mjs', './scripts/admin-reset-initial-password.mjs', './scripts/admin-reset-initial-password-lib.mjs'] },
   // #323：mock 源文件不进 standalone 产物。生产构建里 mock 分支已被构建期常量消掉（见文件末尾和 src/lib/admin/*api.ts），
   // 但文件追踪（nft）按源码文本看到 import('./mock') 仍会把 .ts 原文件复制进 .next/standalone/src。任何构建的运行时都不读这些原文件
   // （非生产构建里 mock 被打包进 chunk），所以对所有路由一律排除。不用 .dockerignore（mock 被业务代码 import，排除源码会让构建失败）。
@@ -75,6 +78,8 @@ const nextConfig: NextConfig = {
 nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '1' : '', MAIL_MOCK_ADAPTER_BUILD: isProd ? '' : '1' };
 // 文章分享图 /[locale]/articles/[slug]/og 的字体：route 里用 process.cwd() 读，追踪不到，手动带进 standalone
 nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/articles/[slug]/og': ['./src/assets/og-fonts/*.ttf'] };
+// #350 /about 分享图复用同一模板和字体
+nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/about/og': ['./src/assets/og-fonts/*.ttf'] };
 // 生产配置检查：`next build` 时跳过只在运行时用的密钥（见 prod-env-check.ts 的 RUNTIME_ONLY），`next start` 时全部检查
 export default function config(phase: string) {
   assertProdEnv(process.env, phase === PHASE_PRODUCTION_BUILD ? 'build' : 'runtime');

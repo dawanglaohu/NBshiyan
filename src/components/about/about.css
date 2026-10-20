@@ -1,0 +1,43 @@
+/* #350 /about 页和首页「公司实力」区块（UX spec v1.0 §2、§4）。只用 tokens.css 变量 */
+.ab-hero{background:linear-gradient(120deg,var(--surface),var(--tint-accent))}
+.ab-hero h1{font-size:var(--fs-display);line-height:1.08;max-width:16em;margin:0;text-wrap:balance;overflow-wrap:anywhere;hyphens:auto}
+.ab-body{max-width:720px;font-size:17px;line-height:1.7;overflow-wrap:anywhere;hyphens:auto}
+.ab-body h2{font-size:24px;line-height:1.25;margin:1.6em 0 .5em}
+.ab-body h3{font-size:19px;line-height:1.3;margin:1.4em 0 .4em}
+.ab-body a{color:var(--accent-text);text-decoration:underline}
+.ab-body ul,.ab-body ol{padding-inline-start:1.4em}
+.ab-stats{background:var(--surface)}
+.ab-stats-list{display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr));gap:20px;margin:0}
+.ab-stats-list[data-count="1"]{--n:1}.ab-stats-list[data-count="2"]{--n:2}.ab-stats-list[data-count="3"]{--n:3}
+.ab-stats-list .sx-kpi{display:flex;flex-direction:column-reverse;gap:4px}
+.ab-stats-list dd{margin:0;font-size:40px;font-weight:800;line-height:1.1;overflow-wrap:anywhere}
+.ab-stats-list dt{font-size:14px;color:var(--ink-2)}
+.ab-imgs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ab-imgs .ab-fig:first-child{grid-column:span 2;grid-row:span 2}
+.ab-fig{margin:0}
+/* UX spec v1.0.10：统一 4:3 居中裁切（容器定比例，img cover；img 的 width / height 仍是文件实际尺寸，不会 CLS），存储的文件不裁 */
+.ab-fig-box{aspect-ratio:4/3;overflow:hidden;border-radius:var(--r-md);background:var(--placeholder)}
+.ab-fig-box img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.ab-fig figcaption{font-size:14px;color:var(--ink-2);margin-top:8px}
+/* 首页区块 */
+.ab-home{border-bottom:1px solid var(--line)}
+.ab-home-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:start}
+.ab-home-grid.is-single{grid-template-columns:1fr}
+.ab-home-grid.is-single .sx-lead{max-width:720px}
+.ab-home .ab-stats-list{--n:2}
+.ab-home-imgs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:40px}
+.ab-home .sx-actions{margin-top:24px}
+@media (max-width:1023px){
+  .ab-home-grid{grid-template-columns:1fr;gap:32px}
+}
+@media (max-width:767px){
+  .ab-hero h1{font-size:34px}
+  .ab-body{font-size:16px}
+  .ab-stats-list{--n:2!important}
+  .ab-stats-list dd{font-size:30px}
+  .ab-imgs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ab-imgs .ab-fig:first-child{grid-column:1/-1;grid-row:auto}
+  .ab-home-imgs{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px}
+  .ab-home-imgs .ab-fig{flex:0 0 78%;scroll-snap-align:start}
+  .ab-home .sx-actions .sx-btn,.ab-cta .sx-btn{width:100%;justify-content:center}
+}

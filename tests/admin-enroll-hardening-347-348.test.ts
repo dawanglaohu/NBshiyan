@@ -1,6 +1,7 @@
 import { test, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { authenticator } from 'otplib';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit/index';
 import { hashSecret } from '../src/lib/server/admin/crypto';
@@ -10,6 +11,9 @@ import type * as Guard from '../src/lib/server/admin/enroll-guard';
 const PASSWORD = 'correct-horse-battery-staple';
 const EMAIL = 'owner@example.test';
 const EDGE = 'e'.repeat(40); // 假的 EDGE_AUTH_SECRET，只为了让测试能模拟不同客户端 IP
+// #347 方案 A：测试用的一次性绑定令牌（假值，43 字符 base64url）；库里只放它的 sha256。post() 默认把它放进请求体
+const TOKEN = 'T'.repeat(43);
+const TOKEN_HASH = createHash('sha256').update(TOKEN).digest('hex');
 Object.assign(process.env, { APP_ENV: 'test', ADMIN_TOTP_KEY: Buffer.alloc(32, 7).toString('base64'), EDGE_AUTH_SECRET: EDGE });
 delete process.env.ADMIN_ALERT_EMAIL; delete process.env.INQUIRY_NOTIFY_EMAIL;
 
@@ -21,10 +25,11 @@ const match = (u: Row, where: Record<string, unknown>): boolean => Object.entrie
   if (v === null) return u[k] === null || u[k] === undefined;
   if (v instanceof Date) return (u[k] as Date)?.getTime() === v.getTime();
   if (typeof v === 'object') {
-    const c = v as { lt?: number | Date; lte?: number | Date };
+    const c = v as { lt?: number | Date; lte?: number | Date; gt?: number | Date };
     const x = u[k] as number | Date | null; if (x === null || x === undefined) return false;
     if (c.lt !== undefined && !(+x < +c.lt)) return false;
     if (c.lte !== undefined && !(+x <= +c.lte)) return false;
+    if (c.gt !== undefined && !(+x > +c.gt)) return false;
     return true;
   }
   return u[k] === v;
@@ -52,7 +57,8 @@ let hash = '';
 const newUser = (over: Partial<Row> = {}): Row => ({
   id: 'u_owner', email: EMAIL, name: 'Owner', passwordHash: hash, role: 'SALES', totpSecret: null, totpEnabled: false, totpLastStep: null,
   recoveryCodes: [], sessionVersion: 0, disabled: false, failedLogins: 0, lockedUntil: null, lastLoginAt: null, reactivatedAt: null,
-  enrollIssuedAt: null, totpPendingUntil: null, totpEnrollFails: 0, createdAt: new Date(), ...over,
+  enrollIssuedAt: null, totpPendingUntil: null, totpEnrollFails: 0,
+  enrollTokenHash: TOKEN_HASH, enrollTokenExpiresAt: new Date(Date.now() + 3_600_000), createdAt: new Date(), ...over,
 });
 const owner = () => users.find((u) => u.id === 'u_owner')!;
 
@@ -73,8 +79,10 @@ beforeEach(() => { setRateLimitStore(new MemoryStore()); users = [newUser()]; au
 
 let ipN = 0;
 const freshIp = () => `198.51.100.${(++ipN % 250) + 1}`; // 每次换一个 IP（文档保留段）
+/** 对象请求体默认带上 TOKEN；显式写了 token 键（包括 undefined）的保持原样 */
+const withToken = (body: unknown) => (body && typeof body === 'object' && !Array.isArray(body) && !('token' in body) ? { ...body, token: TOKEN } : body);
 const post = (path: string, body: unknown, ip = freshIp(), origin: string | null = 'http://localhost') => new Request(`http://localhost${path}`, {
-  method: 'POST', body: JSON.stringify(body),
+  method: 'POST', body: JSON.stringify(withToken(body)),
   headers: { 'content-type': 'application/json', 'x-edge-auth': EDGE, 'cf-connecting-ip': ip, ...(origin ? { origin } : {}) },
 });
 const call = async (r: Promise<Response>) => { const res = await r; return { status: res.status, body: await res.json() as Record<string, unknown> }; };
@@ -215,7 +223,7 @@ test('#347 enrollment window: 72h after createdAt (or last 2FA reset) enroll/con
   assert.equal((await enroll()).status, 200);
   assert.equal(enrollWindowOpen({ createdAt: new Date(0), enrollIssuedAt: new Date(), totpPendingUntil: null, totpSecret: null }), true);
   for (const f of ['src/app/api/admin/users/[id]/reset-2fa/route.ts', 'src/app/api/admin/account/2fa/reset/route.ts'])
-    assert.match(readFileSync(f, 'utf8'), /data: reset2faData\(\)/, f);
+    assert.match(readFileSync(f, 'utf8'), /data: \{ \.\.\.reset2faData\(now\), \.\.\.t\.data(, failedLogins: 0, lockedUntil: null)? \}/, f);
 });
 
 test('per-IP limit on both routes (separate bucket), checked after same-origin and before body validation', async () => {

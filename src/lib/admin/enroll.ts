@@ -9,11 +9,27 @@ export const CONFIRM_PATH = '/api/auth-admin/enroll/confirm';
 /** 绑定完成后去登录。回跳地址写死 /admin，不读 URL 里的任何 callback / redirect 参数 */
 export const SIGNIN_HREF = '/api/auth/signin?callbackUrl=%2Fadmin';
 export const ENROLL_PAGE = '/admin-enroll';
+/** #347 方案 A：绑定链接里的一次性令牌参数名（/admin-enroll#t=<令牌>，放在 fragment 里，浏览器不会发给服务器） */
+export const ENROLL_TOKEN_PARAM = 't';
+
+/**
+ * #347：从地址栏的 #fragment 里取一次性绑定令牌，并给出去掉 t 之后的地址（页面打开后立即 history.replaceState，令牌只留在内存里）。
+ * 令牌格式不对时 token 为 null（仍然从地址栏去掉）。查询参数原样保留；fragment 里的其他键保留。
+ */
+export function takeEnrollToken(loc: { pathname: string; search: string; hash: string }): { token: string | null; cleanUrl: string | null } {
+  const h = new URLSearchParams(loc.hash.replace(/^#/, ''));
+  if (!h.has(ENROLL_TOKEN_PARAM)) return { token: null, cleanUrl: null };
+  const raw = h.get(ENROLL_TOKEN_PARAM) ?? '';
+  h.delete(ENROLL_TOKEN_PARAM);
+  const rest = h.toString();
+  return { token: /^[A-Za-z0-9_-]{43}$/.test(raw) ? raw : null, cleanUrl: `${loc.pathname}${loc.search}${rest ? `#${rest}` : ''}` };
+}
 
 export const STEPS = ['账号验证', '扫码并确认', '保存恢复码'] as const;
 /** 1：邮箱 + 初始密码；2：扫码并输入验证码；3：保存恢复码 → 去登录 */
 export type Step = 1 | 2 | 3;
-export type EnrollState = { step: Step; otpauthUri: string | null; recoveryCodes: string[] | null; saved: boolean; confirmedAt: number | null };
+/** voided：第 2 步验证失败过多、后端已让这次待绑定的密钥失效（#350 稿件 enroll-step2-void），只能重新开始 */
+export type EnrollState = { step: Step; otpauthUri: string | null; recoveryCodes: string[] | null; saved: boolean; confirmedAt: number | null; voided: boolean };
 /** 确认用掉的验证码在登录时再用会失败，而且计入账号锁定次数：确认成功后至少等 30 秒（换下一个码）才能去登录 */
 export const NEXT_CODE_WAIT_MS = 30_000;
 
@@ -28,6 +44,18 @@ export const ERROR_TEXT: Record<string, string> = {
   code_incomplete: '请输入 6 位数字验证码',
 };
 export const errorText = (code: string | undefined | null): string => (code && ERROR_TEXT[code]) || '操作失败，请稍后再试；如果一直失败，请联系运维';
+
+/**
+ * #350「绑定已作废、重新开始」（稿件 enroll-step2-void）：验证码失败次数过多后，后端让这次待绑定的密钥失效，
+ * 返回 HTTP 401 `{ error: 'enroll_reset' }`（后端已定）。`bad_credentials`（密码错）和 429 `rate_limited` 不变。
+ * 文案不透露账号是否存在，也不显示密钥或验证码。
+ */
+export const ENROLL_VOID_CODES: readonly string[] = ['enroll_reset'];
+export const ENROLL_VOID_TEXT = '验证失败次数过多，此绑定已作废，请重新开始绑定';
+export const ENROLL_VOID_HINT = '二维码和密钥已失效，不能再使用。请回到第 1 步，重新输入邮箱和初始密码，获取新的二维码。';
+export const ENROLL_VOID_FOOT = '身份验证器 App 里刚添加的旧条目可以删除。';
+export const ENROLL_RESTART = '重新开始绑定';
+export const isVoidCode = (code: string | null | undefined, codes: readonly string[] = ENROLL_VOID_CODES): boolean => !!code && codes.includes(code);
 
 /** 只允许本站的两个 enroll 接口（相对路径），防止误把密码 / URI 发到任何外部地址 */
 export function assertEnrollPath(path: string): string {
@@ -67,26 +95,44 @@ export function parseSecret(uri: string | null | undefined): string | null {
 /** 密钥按 4 位分组显示，方便手动输入（身份验证器 App 会忽略空格） */
 export const groupSecret = (s: string, size = 4): string => (s.match(new RegExp(`.{1,${size}}`, 'g')) ?? []).join(' ');
 
-/** 验证码输入：粘贴的「123 456」「123-456」都只留数字，最多 6 位 */
-export const normalizeCode = (v: string): string => v.replace(/\D+/g, '').slice(0, 6);
+/**
+ * 验证码输入：粘贴 / 自动填充 / 输入的「123 456」「123-456」「 123456 」都只留数字。
+ * 全角数字（中文输入法全角模式下的「１２３４５６」）先转成半角再保留；其他字符一律丢弃。
+ * 超过 6 位不截断（UX + 全栈：静默截断会让用户以为粘对了），交给 codeCheck 判成 'long'，页面提示并禁止提交。
+ * 以后要改回「只留前 6 位」，在这一行末尾加 `.slice(0, CODE_LEN)` 即可。
+ * 输入框上不设 maxLength：浏览器会先按原始字符数截断（「751 940」被截成「751 94」），丢掉最后一位。
+ */
+export const CODE_LEN = 6;
+export const normalizeCode = (v: string): string =>
+  v.replace(/[\uFF10-\uFF19]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0)).replace(/\D+/g, '');
+/** 'ok' 正好 6 位可以提交；'short' 不足 6 位（只禁用提交，不提示）；'long' 超过 6 位（提示 + 禁用提交） */
+export type CodeCheck = 'ok' | 'short' | 'long';
+export const codeCheck = (code: string): CodeCheck => (code.length === CODE_LEN ? 'ok' : code.length < CODE_LEN ? 'short' : 'long');
 export const isCompleteCode = (v: string): boolean => /^\d{6}$/.test(v);
 
 /** 不能跳步：1→2 只能由 enroll 接口成功触发，2→3 只能由 confirm 接口成功触发，没有返回、没有「重新生成」 */
-export const INITIAL: EnrollState = { step: 1, otpauthUri: null, recoveryCodes: null, saved: false, confirmedAt: null };
+export const INITIAL: EnrollState = { step: 1, otpauthUri: null, recoveryCodes: null, saved: false, confirmedAt: null, voided: false };
 export const afterEnroll = (s: EnrollState, otpauthUri: string): EnrollState =>
   s.step === 1 && parseSecret(otpauthUri) ? { ...s, step: 2, otpauthUri } : s;
 export const afterConfirm = (s: EnrollState, codes: string[], now: number): EnrollState =>
-  s.step === 2 && codes.length > 0 ? { step: 3, otpauthUri: null, recoveryCodes: codes, saved: false, confirmedAt: now } : s;
+  s.step === 2 && !s.voided && codes.length > 0 ? { step: 3, otpauthUri: null, recoveryCodes: codes, saved: false, confirmedAt: now, voided: false } : s;
+/** 绑定作废：只在第 2 步发生；丢掉 otpauth URI（二维码、密钥不再显示），之后只能 restart 回第 1 步 */
+export const afterVoid = (s: EnrollState): EnrollState => (s.step === 2 ? { ...INITIAL, step: 2, voided: true } : s);
 /** 还要等多少毫秒才能去登录（确认成功后 30 秒） */
 export const waitLeft = (s: EnrollState, now: number): number =>
   s.confirmedAt === null ? NEXT_CODE_WAIT_MS : Math.max(0, s.confirmedAt + NEXT_CODE_WAIT_MS - now);
 /** 「去登录」可用：第 3 步、勾了「我已保存恢复码」、确认后已过 30 秒 */
 export const canFinish = (s: EnrollState, now: number): boolean => s.step === 3 && s.saved && !!s.recoveryCodes?.length && waitLeft(s, now) === 0;
 /** 正在绑定中（离开页面要提醒）：已经拿到密钥、还没去登录 */
-export const inProgress = (s: EnrollState): boolean => s.step >= 2;
+/** 作废后没有可丢失的进度，离开不再提醒 */
+export const inProgress = (s: EnrollState): boolean => s.step >= 2 && !s.voided;
 /** 进度条：第几步的状态 */
 export const stepStatus = (current: Step, n: Step): 'done' | 'current' | 'todo' => (current > n ? 'done' : current === n ? 'current' : 'todo');
 
 /** 下载的恢复码 .txt：按 UX 稿，10 行，每行一个码（CRLF，记事本也能正常显示） */
 export const recoveryTxt = (codes: readonly string[]): string => codes.map((c) => `${c}\r\n`).join('');
 export const recoveryFilename = 'packjoyu-admin-recovery-codes.txt';
+
+/** 后台「重置 2FA」确认框（#347）：「之前发出的绑定链接会立即失效」+「同时会解除这个账号的登录锁定」 */
+export const RESET_2FA_CONFIRM = (email: string) =>
+  `重置 ${email} 的 2FA？对方会立即退出登录，需要用新的绑定链接重新绑定。之前发出的绑定链接会立即失效，同时会解除这个账号的登录锁定。`;

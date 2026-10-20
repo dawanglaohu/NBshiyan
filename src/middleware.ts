@@ -53,4 +53,6 @@ export default async function middleware(req: NextRequest) {
 }
 
 // /admin、/api 和静态资源不走中间件；/s/<id> 只做过期检查，不走多语言路由
-export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|.*\\..*).*)', '/s/:id', '/admin', '/admin/:path*'] };
+// 分享图接口不走中间件（否则 next-intl 会下发 NEXT_LOCALE cookie）：只排除这两个确切形状，locale 由路由自己按 PUBLISHED_LOCALES 校验
+//   /<seg>/articles/<seg>/og、/<seg>/about/og（最后一段恰好是 og）。不按「最后一段是 og」泛排除，slug 叫 og 的普通页面照常走中间件。
+export const config = { matcher: ['/((?!api|admin|s/|_next|_vercel|models|images|[^/]+/articles/[^/]+/og/?$|[^/]+/about/og/?$|.*\\..*).*)', '/s/:id', '/admin', '/admin/:path*'] };

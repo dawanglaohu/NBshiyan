@@ -4,9 +4,15 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { categoryProducts as products } from '@/data/categories';
 import HeroVideo from '@/components/layout/HeroVideo';
+import AboutHomeBlock from '@/components/about/AboutHomeBlock';
+import { getAboutContent } from '@/lib/server/site-settings';
+import { isAboutVisible } from '@/lib/about/visibility';
+import { isPublishedLocale } from '@/lib/server/published-locales';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 // Home stats row (capacity / sampling / eco / certs) removed — all unconfirmed; section hidden
+// #350：首屏下方的「公司实力」区块只读后台站点设置（数字只来自后台，没填不显示）；读取函数缓存标签 site-settings，这里 60 秒兜底
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -19,6 +25,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   setRequestLocale(locale);
   const t = await getTranslations('Home');
   const names = await getTranslations('Products.names');
+  const aboutVisible = await isAboutVisible(locale);
+  const about = aboutVisible && isPublishedLocale(locale) ? await getAboutContent(locale) : null;
   // TODO: 空闲时把主图替换成 3D 盒子
   return (
     <main>
@@ -36,6 +44,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
+      <AboutHomeBlock content={about} aboutVisible={aboutVisible} />
 
       <section className="block container" aria-labelledby="entry-h">
         <h2 id="entry-h">{t('entryTitle')}</h2>
