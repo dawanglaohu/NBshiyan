@@ -360,3 +360,11 @@ body{background:var(--pj-bg);color:var(--pj-fg);font-size:var(--pj-body-size);li
 .consent .consent-actions button.consent-set:hover,.cs-foot .consent-set:hover{background:var(--pj-fg);border-color:var(--pj-fg);color:var(--pj-bg)}
 .fab .toggle{background:var(--pj-accent);color:#ffffff}
 .fab .badge{background:var(--pj-accent);color:#ffffff}
+/* 深色入口卡底色 #121214，黑边对比约 1.1:1，边界看不见。深色底改用 --pj-bg 白边，焦点环同色。 */
+.entry a.theme-premium{border-color:var(--pj-bg)}
+.entry a.theme-premium:hover{border-color:var(--pj-accent)}
+.entry a.theme-premium:focus-visible{outline:var(--pj-focus-width) solid var(--pj-bg);outline-offset:var(--pj-focus-offset)}
+/* 产品卡对齐 11 节：2px 实线、0 圆角、无阴影。深色卡边线用 --pj-bg。 */
+.card{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:none}
+.card.theme-premium{border-color:var(--pj-bg)}
+.card.theme-premium :focus-visible{outline-color:var(--pj-bg)}
