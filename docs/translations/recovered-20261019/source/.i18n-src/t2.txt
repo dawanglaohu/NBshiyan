@@ -1,0 +1,122 @@
+Inquiry.stepOf ||| Paso {n} de {total} ||| Schritt {n} von {total} ||| Étape {n} sur {total}
+Inquiry.steps.0 ||| Productos y cantidad ||| Produkte & Menge ||| Produits et quantité
+Inquiry.steps.1 ||| Tamaño, material y plazo ||| Größe, Material & Zeitrahmen ||| Format, matière et calendrier
+Inquiry.steps.2 ||| Datos de contacto ||| Kontaktdaten ||| Coordonnées
+Inquiry.products ||| ¿Qué productos le interesan? ||| Welche Produkte interessieren Sie? ||| Quels produits vous intéressent ?
+Inquiry.quantity ||| Cantidad por pedido ||| Menge pro Auftrag ||| Quantité par commande
+Inquiry.qty.1k ||| ~1.000 ||| ~1.000 ||| ~1 000
+Inquiry.qty.5k ||| ~5.000 ||| ~5.000 ||| ~5 000
+Inquiry.qty.10k ||| ~10.000 ||| ~10.000 ||| ~10 000
+Inquiry.qty.50k ||| 50.000+ ||| 50.000+ ||| 50 000+
+Inquiry.qty.unsure ||| No estoy seguro ||| Noch unklar ||| Je ne sais pas
+Inquiry.size ||| Tamaño (L × An × Al) ||| Größe (L × B × H) ||| Dimensions (L × l × H)
+Inquiry.sizePh ||| p. ej., 30 × 20 × 10 cm, o «no estoy seguro» ||| z. B. 30 × 20 × 10 cm oder „noch unklar“ ||| p. ex. 30 × 20 × 10 cm, ou « je ne sais pas »
+Inquiry.material ||| Material ||| Material ||| Matière
+Inquiry.materials.corrugated ||| Cartón ondulado ||| Wellpappe ||| Carton ondulé
+Inquiry.materials.paperboard ||| Cartoncillo ||| Karton ||| Carton compact
+Inquiry.materials.kraft ||| Papel kraft ||| Kraftpapier ||| Papier kraft
+Inquiry.materials.pulp ||| Pulpa moldeada ||| Formfaserguss ||| Pulpe moulée
+Inquiry.materials.unsure ||| No estoy seguro ||| Noch unklar ||| Je ne sais pas
+Inquiry.timeline ||| ¿Para cuándo lo necesita? ||| Wann benötigen Sie es? ||| Pour quand en avez-vous besoin ?
+Inquiry.timelines.2w ||| En menos de 2 semanas ||| Innerhalb von 2 Wochen ||| Sous 2 semaines
+Inquiry.timelines.1m ||| En menos de un mes ||| Innerhalb eines Monats ||| Sous un mois
+Inquiry.timelines.2m ||| 1–2 meses ||| 1–2 Monate ||| 1 à 2 mois
+Inquiry.timelines.unsure ||| No estoy seguro ||| Noch unklar ||| Je ne sais pas
+Inquiry.message ||| ¿Algo más? (opcional) ||| Noch etwas? (optional) ||| Autre chose ? (facultatif)
+Inquiry.name ||| Nombre ||| Name ||| Nom
+Inquiry.email ||| Correo electrónico profesional ||| Geschäftliche E-Mail ||| E-mail professionnel
+Inquiry.company ||| Empresa ||| Unternehmen ||| Entreprise
+Inquiry.phone ||| Teléfono / WhatsApp ||| Telefon / WhatsApp ||| Téléphone / WhatsApp
+Inquiry.country ||| País ||| Land ||| Pays
+Inquiry.countryPh ||| Seleccione un país ||| Land auswählen ||| Sélectionnez un pays
+Inquiry.countries.US ||| Estados Unidos ||| Vereinigte Staaten ||| États-Unis
+Inquiry.countries.GB ||| Reino Unido ||| Vereinigtes Königreich ||| Royaume-Uni
+Inquiry.countries.DE ||| Alemania ||| Deutschland ||| Allemagne
+Inquiry.countries.FR ||| Francia ||| Frankreich ||| France
+Inquiry.countries.IT ||| Italia ||| Italien ||| Italie
+Inquiry.countries.ES ||| España ||| Spanien ||| Espagne
+Inquiry.countries.NL ||| Países Bajos ||| Niederlande ||| Pays-Bas
+Inquiry.countries.PL ||| Polonia ||| Polen ||| Pologne
+Inquiry.countries.RU ||| Rusia ||| Russland ||| Russie
+Inquiry.countries.KZ ||| Kazajistán ||| Kasachstan ||| Kazakhstan
+Inquiry.countries.BY ||| Bielorrusia ||| Belarus ||| Biélorussie
+Inquiry.countries.UZ ||| Uzbekistán ||| Usbekistan ||| Ouzbékistan
+Inquiry.countries.AE ||| Emiratos Árabes Unidos ||| Vereinigte Arabische Emirate ||| Émirats arabes unis
+Inquiry.countries.SA ||| Arabia Saudí ||| Saudi-Arabien ||| Arabie saoudite
+Inquiry.countries.AU ||| Australia ||| Australien ||| Australie
+Inquiry.countries.CA ||| Canadá ||| Kanada ||| Canada
+Inquiry.countries.ZZ ||| Otro ||| Anderes Land ||| Autre
+Inquiry.consent ||| Acepto que PackJoyU trate mis datos para responder a esta solicitud, tal como se describe en la <link>política de privacidad</link>. ||| Ich bin damit einverstanden, dass PackJoyU meine Daten zur Beantwortung dieser Anfrage verarbeitet, wie in der <link>Datenschutzerklärung</link> beschrieben. ||| J’accepte que PackJoyU traite mes données pour répondre à cette demande, comme décrit dans la <link>politique de confidentialité</link>.
+Inquiry.back ||| Atrás ||| Zurück ||| Retour
+Inquiry.next ||| Siguiente ||| Weiter ||| Suivant
+Inquiry.submit ||| Enviar solicitud ||| Anfrage senden ||| Envoyer la demande
+Inquiry.sending ||| Enviando… ||| Wird gesendet … ||| Envoi en cours…
+Inquiry.checking ||| Completando la verificación de seguridad… ||| Sicherheitsprüfung läuft … ||| Vérification de sécurité en cours…
+Inquiry.success.title ||| Gracias: ¡hemos recibido su solicitud! ||| Vielen Dank – Ihre Anfrage ist eingegangen! ||| Merci, votre demande a bien été reçue !
+Inquiry.success.ref ||| Su número de solicitud: ||| Ihre Anfragenummer: ||| Votre numéro de demande :
+Inquiry.success.reply ||| Un especialista en embalaje le responderá por correo electrónico. ||| Ein Verpackungsspezialist antwortet Ihnen per E-Mail. ||| Un spécialiste de l’emballage vous répondra par e-mail.
+Inquiry.errors.unavailable ||| Las solicitudes en línea no están disponibles temporalmente. Vuelva a intentarlo más tarde. ||| Online-Anfragen sind vorübergehend nicht möglich. Bitte versuchen Sie es später erneut. ||| Les demandes en ligne sont temporairement indisponibles. Veuillez réessayer plus tard.
+Inquiry.errors.rate ||| Demasiadas solicitudes. Espere unos minutos y vuelva a intentarlo. ||| Zu viele Anfragen. Bitte warten Sie einige Minuten und versuchen Sie es erneut. ||| Trop de demandes. Veuillez patienter quelques minutes et réessayer.
+Inquiry.errors.invalid ||| Revise su nombre, correo electrónico y país, y vuelva a intentarlo. ||| Bitte prüfen Sie Name, E-Mail und Land und versuchen Sie es erneut. ||| Veuillez vérifier votre nom, votre e-mail et votre pays, puis réessayer.
+Inquiry.errors.captcha ||| La verificación de seguridad ha fallado. Vuelva a intentarlo. ||| Die Sicherheitsprüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut. ||| La vérification de sécurité a échoué. Veuillez réessayer.
+Inquiry.errors.server ||| Se ha producido un error por nuestra parte. Vuelva a intentarlo más tarde. ||| Bei uns ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut. ||| Une erreur s’est produite de notre côté. Veuillez réessayer plus tard.
+Inquiry.errors.network ||| Error de red. Compruebe su conexión y vuelva a intentarlo. ||| Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut. ||| Erreur réseau. Vérifiez votre connexion et réessayez.
+Inquiry.errors.retry ||| No hemos podido completar la verificación de seguridad en este momento. Sus datos se conservan: vuelva a intentarlo en unos instantes. ||| Die Sicherheitsprüfung konnte gerade nicht abgeschlossen werden. Ihre Angaben bleiben erhalten – bitte versuchen Sie es gleich noch einmal. ||| La vérification de sécurité n’a pas pu aboutir pour le moment. Vos informations sont conservées : réessayez dans un instant.
+Inquiry.errors.logo_invalid ||| La carga de su logotipo ha caducado o ya no es válida. Vuelva a subir el logotipo; el resto de sus datos se conserva. ||| Ihr Logo-Upload ist abgelaufen oder nicht mehr gültig. Bitte laden Sie Ihr Logo erneut hoch – Ihre übrigen Angaben bleiben erhalten. ||| Le téléversement de votre logo a expiré ou n’est plus valide. Veuillez téléverser à nouveau votre logo ; vos autres informations sont conservées.
+Inquiry.retry ||| Reintentar ||| Erneut versuchen ||| Réessayer
+Inquiry.retryIn ||| Reintentar en {s} s ||| Erneut versuchen in {s} s ||| Réessayer dans {s} s
+Inquiry.logoNote ||| ¿Tiene un logotipo vectorial (PDF/AI)? Envíelo como archivo adjunto al responder a nuestro correo sobre su solicitud. ||| Sie haben ein Vektorlogo (PDF/AI)? Senden Sie es als Anhang, wenn Sie auf unsere E-Mail zu Ihrer Anfrage antworten. ||| Vous avez un logo vectoriel (PDF/AI) ? Joignez-le en répondant à notre e-mail concernant votre demande.
+Inquiry.logo.label ||| Logotipo (opcional) ||| Logo (optional) ||| Logo (facultatif)
+Inquiry.logo.hint ||| PNG, JPEG o WebP, hasta 2 MB. ||| PNG, JPEG oder WebP, bis 2 MB. ||| PNG, JPEG ou WebP, 2 Mo maximum.
+Inquiry.logo.uploading ||| Subiendo… ||| Wird hochgeladen … ||| Téléversement…
+Inquiry.logo.uploaded ||| Logotipo subido ||| Logo hochgeladen ||| Logo téléversé
+Inquiry.logo.remove ||| Quitar ||| Entfernen ||| Retirer
+Inquiry.logo.choose ||| Elegir archivo ||| Datei auswählen ||| Choisir un fichier
+Inquiry.logo.none ||| Ningún archivo seleccionado ||| Keine Datei ausgewählt ||| Aucun fichier choisi
+Inquiry.logo.expired ||| La carga de su logotipo ha caducado. Vuelva a subirlo. ||| Ihr Logo-Upload ist abgelaufen. Bitte laden Sie es erneut hoch. ||| Le téléversement de votre logo a expiré. Veuillez le téléverser à nouveau.
+Inquiry.logo.errors.type ||| Elija una imagen PNG, JPEG o WebP. ||| Bitte wählen Sie ein PNG-, JPEG- oder WebP-Bild. ||| Veuillez choisir une image PNG, JPEG ou WebP.
+Inquiry.logo.errors.size ||| Este archivo supera los 2 MB. Elija una imagen más pequeña. ||| Diese Datei ist größer als 2 MB. Bitte wählen Sie ein kleineres Bild. ||| Ce fichier dépasse 2 Mo. Veuillez choisir une image plus légère.
+Inquiry.logo.errors.dimensions ||| Esta imagen es demasiado grande (máx. 4096 × 4096 px). Redúzcala y vuelva a intentarlo. ||| Dieses Bild ist zu groß (max. 4096 × 4096 px). Bitte verkleinern Sie es und versuchen Sie es erneut. ||| Cette image est trop grande (4096 × 4096 px maximum). Redimensionnez-la et réessayez.
+Inquiry.logo.errors.corrupt ||| No hemos podido leer esta imagen. Pruebe con otro archivo. ||| Dieses Bild konnte nicht gelesen werden. Bitte versuchen Sie eine andere Datei. ||| Impossible de lire cette image. Essayez un autre fichier.
+Inquiry.logo.errors.rate ||| Demasiadas cargas. Espere un poco y vuelva a intentarlo. ||| Zu viele Uploads. Bitte warten Sie etwas und versuchen Sie es erneut. ||| Trop de téléversements. Patientez un moment et réessayez.
+Inquiry.logo.errors.network ||| Error de red. Compruebe su conexión y vuelva a intentarlo. ||| Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut. ||| Erreur réseau. Vérifiez votre connexion et réessayez.
+Inquiry.logo.errors.server ||| No hemos podido subir su logotipo en este momento. Vuelva a intentarlo más tarde. ||| Ihr Logo konnte gerade nicht hochgeladen werden. Bitte versuchen Sie es später erneut. ||| Impossible de téléverser votre logo pour le moment. Veuillez réessayer plus tard.
+Inquiry.overLimit ||| Su lista tiene {n} artículos; el límite es {max}. Quite algunos para enviarla. ||| Ihre Liste enthält {n} Artikel; das Limit liegt bei {max}. Entfernen Sie einige, um sie abzusenden. ||| Votre liste contient {n} articles ; la limite est de {max}. Retirez-en pour l’envoyer.
+Inquiry.newTab ||| (se abre en una pestaña nueva) ||| (öffnet in neuem Tab) ||| (s’ouvre dans un nouvel onglet)
+Inquiry.validation.summary ||| Revise estos campos: ||| Bitte prüfen Sie diese Felder: ||| Veuillez vérifier ces champs :
+Inquiry.validation.name ||| Indique su nombre. ||| Bitte geben Sie Ihren Namen ein. ||| Indiquez votre nom.
+Inquiry.validation.emailRequired ||| Indique su correo electrónico profesional. ||| Bitte geben Sie Ihre geschäftliche E-Mail-Adresse ein. ||| Indiquez votre e-mail professionnel.
+Inquiry.validation.emailInvalid ||| Introduzca un correo electrónico válido, p. ej., name@company.com. ||| Bitte geben Sie eine gültige E-Mail-Adresse ein, z. B. name@company.com. ||| Saisissez une adresse e-mail valide, p. ex. name@company.com.
+Inquiry.validation.region ||| Seleccione su país. ||| Bitte wählen Sie Ihr Land. ||| Sélectionnez votre pays.
+Inquiry.validation.consent ||| Marque la casilla para aceptar el tratamiento de datos. ||| Bitte bestätigen Sie die Einwilligung zur Datenverarbeitung. ||| Cochez la case pour accepter le traitement des données.
+Views.label ||| Vista de la caja ||| Ansicht der Schachtel ||| Vue de la boîte
+Views.closed ||| Cerrada ||| Geschlossen ||| Fermée
+Views.open ||| Abierta ||| Geöffnet ||| Ouverte
+Views.dieline ||| Troquel (plano) ||| Stanzkontur ||| Plan de découpe
+Consent.label ||| Consentimiento de cookies ||| Cookie-Einwilligung ||| Consentement aux cookies
+Consent.text ||| Usamos cookies esenciales para el funcionamiento del sitio. Con su permiso, también usamos analítica y chat en vivo. ||| Wir verwenden notwendige Cookies, um diese Website zu betreiben. Mit Ihrer Einwilligung nutzen wir zusätzlich Analyse und Live-Chat. ||| Nous utilisons des cookies essentiels au fonctionnement du site. Avec votre accord, nous utilisons aussi des outils d’analyse et un chat en direct.
+Consent.policy ||| Política de privacidad ||| Datenschutzerklärung ||| Politique de confidentialité
+Consent.accept ||| Aceptar todo ||| Alle akzeptieren ||| Tout accepter
+Consent.reject ||| Rechazar todo ||| Alle ablehnen ||| Tout refuser
+Consent.settings ||| Configuración ||| Einstellungen ||| Paramètres
+Consent.title ||| Configuración de cookies ||| Cookie-Einstellungen ||| Paramètres des cookies
+Consent.lead ||| Elija qué cookies podemos usar. Puede cambiarlo en cualquier momento en «Configuración de cookies», al pie de la página. ||| Wählen Sie, welche Cookies wir verwenden dürfen. Sie können dies jederzeit über „Cookie-Einstellungen“ in der Fußzeile ändern. ||| Choisissez les cookies que nous pouvons utiliser. Vous pouvez modifier ce choix à tout moment via « Paramètres des cookies » en bas de page.
+Consent.necessary ||| Necesarias ||| Notwendig ||| Nécessaires
+Consent.necessaryDesc ||| Idioma, seguridad (Turnstile), lista de presupuesto y esta elección. Siempre activas. ||| Sprache, Sicherheit (Turnstile), Anfrageliste und diese Auswahl. Immer aktiv. ||| Langue, sécurité (Turnstile), liste de devis et ce choix. Toujours actifs.
+Consent.alwaysOn ||| Siempre activas ||| Immer aktiv ||| Toujours actifs
+Consent.analytics ||| Analítica ||| Analyse ||| Mesure d’audience
+Consent.analyticsDesc ||| Estadísticas anónimas de velocidad y uso de las páginas (web vitals) para mejorar el sitio. ||| Anonyme Statistiken zu Ladezeit und Nutzung (Web Vitals), um die Website zu verbessern. ||| Statistiques anonymes de performance et d’utilisation (Web Vitals) pour améliorer le site.
+Consent.chat ||| Chat en vivo (Tawk.to) ||| Live-Chat (Tawk.to) ||| Chat en direct (Tawk.to)
+Consent.chatDesc ||| Carga el widget de chat de Tawk.to, que instala sus propias cookies. ||| Lädt das Chat-Widget von Tawk.to, das eigene Cookies setzt. ||| Charge le widget de chat Tawk.to, qui dépose ses propres cookies.
+Consent.save ||| Guardar selección ||| Auswahl speichern ||| Enregistrer mes choix
+Consent.close ||| Cerrar ||| Schließen ||| Fermer
+Consent.saved ||| Se ha guardado su selección de cookies. ||| Ihre Cookie-Auswahl wurde gespeichert. ||| Vos choix de cookies ont été enregistrés.
+Consent.withdrawn ||| Consentimiento retirado. La analítica y el chat están desactivados. ||| Einwilligung widerrufen. Analyse und Chat sind deaktiviert. ||| Consentement retiré. La mesure d’audience et le chat sont désactivés.
+Consent.change ||| Cambiar ||| Ändern ||| Modifier
+Footer.about ||| Embalaje de papel e impresión a medida, desde la muestra hasta el pedido en volumen. ||| Individuelle Papierverpackungen und Druck – vom Muster bis zur Serienbestellung. ||| Emballages papier et impression sur mesure, de l’échantillon à la commande en volume.
+Footer.categories ||| Productos ||| Produkte ||| Produits
+Footer.contact ||| Contacto ||| Kontakt ||| Contact
+Footer.contactText ||| Cuéntenos su proyecto: un especialista en embalaje le responderá por correo electrónico. ||| Erzählen Sie uns von Ihrem Projekt – ein Verpackungsspezialist antwortet Ihnen per E-Mail. ||| Parlez-nous de votre projet : un spécialiste de l’emballage vous répondra par e-mail.
+Footer.privacy ||| Política de privacidad ||| Datenschutzerklärung ||| Politique de confidentialité
+Footer.otherLang ||| English ||| English ||| English
+Footer.cookieSettings ||| Configuración de cookies ||| Cookie-Einstellungen ||| Paramètres des cookies

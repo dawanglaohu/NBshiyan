@@ -1,0 +1,124 @@
+Meta.title ||| مورد تغليف مخصص: علب وأكواب | PackJoyU
+Meta.description ||| توفّر PackJoyU علب الكرتون المموج وعلب الهدايا والنبيذ وقوالب اللب الورقي والأكواب الورقية والتغليف المطبوع حسب الطلب للعلامات التجارية في أمريكا الشمالية وأوروبا وأستراليا.
+Meta.home ||| الرئيسية
+Meta.ogImageAlt ||| تغليف PackJoyU المخصص: علب وأكواب ورقية وطباعة
+Nav.home ||| الرئيسية
+Nav.products ||| المنتجات ثلاثية الأبعاد
+Nav.about ||| من نحن
+Nav.contact ||| تواصل معنا
+Nav.quote ||| اطلب عرض سعر
+Nav.menu ||| القائمة
+Nav.main ||| التنقل الرئيسي
+Nav.openMenu ||| فتح القائمة
+Nav.closeMenu ||| إغلاق القائمة
+Nav.switchLang ||| English version
+Home.headline ||| تغليف يبعث على البهجة
+Home.sub ||| تغليف ورقي وطباعة حسب الطلب، من العيّنة إلى الإنتاج بالجملة — استكشف كل منتج بتقنية ثلاثية الأبعاد.
+Home.cta ||| استكشف المنتجات ثلاثية الأبعاد
+Home.ctaQuote ||| اطلب عرض سعر
+Home.entryTitle ||| اعثر على التغليف المناسب
+Home.premiumTitle ||| علب هدايا ونبيذ فاخرة
+Home.premiumText ||| علب صلبة بختم الرقائق المعدنية وإغلاق مغناطيسي وحشوات داخلية مخصصة — مصممة لتجربة فتح تستحق التصوير.
+Home.ctaBandTitle ||| هل لديك مشروع في ذهنك؟
+Home.ctaBandText ||| أخبرنا بما تحتاجه، وسيرد عليك أحد متخصصي التغليف عبر البريد الإلكتروني.
+Home.heroLabel ||| مجموعة من علب PackJoyU المخصصة وكوب ورقي
+Home.heroBrand ||| Pack<accent>Joy</accent>U
+Home.heroTagline ||| تغليف مطبوع حسب الطلب
+Home.heroVideoSkip ||| تخطي الفيديو
+Home.heroVideoPlay ||| تشغيل الفيديو
+Home.heroVideoPause ||| إيقاف الفيديو مؤقتًا
+Home.heroPosterAlt ||| تغليف PackJoyU المطبوع حسب الطلب: علبة شحن بيضاء بشعار مرجاني، وعلبة سوداء طويلة بشريط ذهبي، وعلبة هدايا سوداء بحواف ذهبية ومشبك، وكوب ورقي أبيض، وعلبة صغيرة بطباعة متدرجة الألوان
+Products.title ||| منتجاتنا بتقنية ثلاثية الأبعاد
+Products.hint ||| اسحب للتدوير، ومرّر أو اقرص للتكبير والتصغير.
+Products.tapToRotate ||| انقر للتدوير
+Products.dragToRotate ||| اسحب للتدوير
+Products.loading ||| جارٍ تحميل النموذج ثلاثي الأبعاد…
+Products.addToQuote ||| أضف إلى عرض السعر
+Products.details ||| التفاصيل
+Products.names.corrugated-boxes ||| علب الكرتون المموج
+Products.names.color-boxes ||| علب ملونة مطبوعة
+Products.names.gift-boxes ||| علب الهدايا
+Products.names.pulp-molding ||| قوالب اللب الورقي
+Products.names.paper-cups ||| الأكواب الورقية
+Products.names.party-supplies ||| مستلزمات الحفلات
+Products.names.wine-boxes ||| علب النبيذ
+Products.names.color-printing ||| الطباعة الملونة
+Products.names.offset-printing ||| طباعة الأوفست
+Products.names.eco-paper-cups ||| أكواب قهوة مطبوعة
+Products.names.gift-cards ||| بطاقات تهنئة
+Products.names.christmas-merchandise ||| منتجات عيد الميلاد
+Products.done ||| تم
+Products.categories ||| فئات المنتجات
+Products.metaTitle ||| منتجات تغليف مخصصة ثلاثية الأبعاد: علب وأكواب | PackJoyU
+Products.metaDescription ||| استكشف 12 فئة من التغليف المخصص بتقنية ثلاثية الأبعاد: علب الكرتون المموج، وعلب الهدايا والنبيذ، وقوالب اللب الورقي، والأكواب الورقية، والطباعة. اطلب عرض سعر من PackJoyU.
+Products.desc.corrugated-boxes ||| علب شحن وعلب بريدية من الكرتون المموج حسب الطلب، بجدار مفرد أو مزدوج، مطبوعة بعلامتك التجارية.
+Products.desc.color-boxes ||| علب كرتون قابلة للطي وعلب منتجات للبيع بالتجزئة مطبوعة بالألوان الكاملة لمستحضرات التجميل والأغذية والإلكترونيات.
+Products.desc.gift-boxes ||| علب هدايا صلبة ومغناطيسية حسب الطلب بختم الرقائق المعدنية والنقش البارز وحشوات داخلية مفصّلة.
+Products.desc.pulp-molding ||| صواني وحشوات من اللب الورقي المقولب.
+Products.desc.paper-cups ||| أكواب ورقية مطبوعة حسب الطلب للقهوة والشاي والمشروبات الباردة، بجدار مفرد أو مزدوج.
+Products.desc.party-supplies ||| أدوات مائدة ورقية مطبوعة للحفلات: أطباق وأكواب ومناديل وزينة للفعاليات والبيع بالتجزئة.
+Products.desc.wine-boxes ||| علب حسب الطلب للنبيذ والمشروبات الروحية لزجاجة واحدة أو أكثر، بتشطيبات فاخرة وحشوات داخلية.
+Products.desc.color-printing ||| طباعة CMYK والألوان الخاصة للتغليف والملصقات والمواد التسويقية.
+Products.desc.offset-printing ||| طباعة أوفست للعلب والكتالوجات والكتيبات بألوان ثابتة في الكميات الكبيرة.
+Products.desc.eco-paper-cups ||| أكواب ورقية مطبوعة بشعارك؛ تُؤكَّد خيارات الطلاء مع كل طلب.
+Products.desc.gift-cards ||| بطاقات تهنئة مطبوعة حسب الطلب وتغليف للبطاقات للبيع بالتجزئة والعروض الترويجية.
+Products.desc.christmas-merchandise ||| علب هدايا عيد الميلاد وعلب أسطوانية وتقاويم المجيء وتغليف موسمي يُصنع حسب الطلب.
+Products.alt ||| {name}: تغليف مخصص من PackJoyU
+Products.specs.corrugated-boxes[0] ||| جدار مفرد ومزدوج (تموج E/B/C)
+Products.specs.corrugated-boxes[1] ||| طباعة فلكسو أو رقمية حتى 4 ألوان
+Products.specs.corrugated-boxes[2] ||| تُؤكَّد الكميات مع كل طلب
+Products.specs.color-boxes[0] ||| كرتون SBS أو كرافت بوزن 300–400 gsm
+Products.specs.color-boxes[1] ||| CMYK + بانتون، تغليف حراري مطفي/لامع
+Products.specs.color-boxes[2] ||| تُؤكَّد الكميات مع كل طلب
+Products.specs.gift-boxes[0] ||| كرتون رمادي صلب بسماكة 1.5–2.5 mm
+Products.specs.gift-boxes[1] ||| ختم الرقائق المعدنية، نقش بارز، غطاء مغناطيسي
+Products.specs.gift-boxes[2] ||| حشوات EVA أو ورقية حسب الطلب
+Products.specs.pulp-molding[0] ||| لب ورقي مقولب
+Products.specs.pulp-molding[1] ||| تجاويف مخصصة بشكل منتجك
+Products.specs.pulp-molding[2] ||| خيارات المواد عند الطلب
+Products.specs.paper-cups[0] ||| أحجام متعددة، بجدار مفرد أو مزدوج
+Products.specs.paper-cups[1] ||| طلاءات للمشروبات الساخنة والباردة
+Products.specs.paper-cups[2] ||| تُؤكَّد الكميات مع كل طلب
+Products.specs.party-supplies[0] ||| أطباق، أكواب، مناديل، لافتات
+Products.specs.party-supplies[1] ||| تصاميم مطبوعة حسب الطلب
+Products.specs.party-supplies[2] ||| عبوات جاهزة للبيع بالتجزئة
+Products.specs.wine-boxes[0] ||| مقاسات لزجاجة أو زجاجتين أو 3 زجاجات
+Products.specs.wine-boxes[1] ||| رقائق معدنية، طلاء UV موضعي، إغلاق مغناطيسي
+Products.specs.wine-boxes[2] ||| حشوات مفصّلة لشحن آمن
+Products.specs.color-printing[0] ||| CMYK + ألوان خاصة
+Products.specs.color-printing[1] ||| ملصقات، أغلفة، نشرات
+Products.specs.color-printing[2] ||| بروفة ألوان قبل الإنتاج
+Products.specs.offset-printing[0] ||| طباعة أوفست CMYK وبانتون
+Products.specs.offset-printing[1] ||| كتالوجات، كتيبات، علب كرتون
+Products.specs.offset-printing[2] ||| ألوان ثابتة في الكميات الكبيرة
+Products.specs.eco-paper-cups[0] ||| تُؤكَّد خيارات الطلاء مع كل طلب
+Products.specs.eco-paper-cups[1] ||| خيارات المواد عند الطلب
+Products.specs.gift-cards[0] ||| ورق بطاقات بوزن 350–600 gsm
+Products.specs.gift-cards[1] ||| رقائق معدنية، نقش بارز، أشكال مقصوصة
+Products.specs.gift-cards[2] ||| مظاريف وحوامل بطاقات
+Products.specs.christmas-merchandise[0] ||| علب هدايا، علب أسطوانية، تقاويم المجيء
+Products.specs.christmas-merchandise[1] ||| تشطيبات موسمية بالرقائق المعدنية واللمعان
+Products.specs.christmas-merchandise[2] ||| اطلب قبل سبتمبر لموسم الربع الرابع
+Products.learnMore ||| اعرف المزيد
+Products.specsLabel ||| المواصفات الرئيسية
+Products.empty ||| لم تُنشر أي نماذج ثلاثية الأبعاد بعد. يُرجى العودة قريبًا أو التواصل معنا لطلب عيّنات.
+Products.ogImageAlt ||| PackJoyU: منتجاتنا بتقنية ثلاثية الأبعاد: علب كرتون مموج وعلب هدايا ونبيذ حسب الطلب
+Admin.title ||| لوحة الإدارة
+Quote.title ||| قائمة عرض السعر
+Quote.add ||| أضف إلى عرض السعر
+Quote.added ||| في عرض السعر ✓
+Quote.remove ||| إزالة
+Quote.empty ||| قائمة عرض السعر فارغة. أضف منتجات من الكتالوج ثلاثي الأبعاد.
+Quote.continue ||| متابعة إلى الطلب
+Quote.browse ||| تصفّح الكتالوج ثلاثي الأبعاد
+Quote.close ||| إغلاق
+Quote.full ||| قائمة عرض السعر ممتلئة (الحد الأقصى: {max}). أزل عنصرًا لإضافة آخر.
+Fab.quote ||| قائمة عرض السعر
+Fab.chat ||| تواصل معنا
+Fab.top ||| العودة إلى الأعلى
+Fab.menu ||| إجراءات سريعة
+Contact.metaTitle ||| اطلب عرض سعر للتغليف | PackJoyU
+Contact.metaDescription ||| أخبرنا عن مشروع التغليف الخاص بك واطلب عرض سعر من PackJoyU.
+Contact.title ||| اطلب عرض سعر
+Contact.intro ||| ثلاث خطوات قصيرة. بيانات التواصل فقط مطلوبة — اختر «غير متأكد» لأي شيء لم تحدده بعد.
+Contact.ogImageAlt ||| PackJoyU: اطلب عرض سعر للتغليف المخصص

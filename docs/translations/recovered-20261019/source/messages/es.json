@@ -1,0 +1,551 @@
+{
+  "Meta": {
+    "title": "Proveedor de embalaje a medida: cajas y vasos | PackJoyU",
+    "description": "Cajas de cartón ondulado, de regalo y para vino, pulpa moldeada, vasos de papel y embalaje impreso a medida para marcas de Norteamérica, Europa y Australia.",
+    "home": "Inicio",
+    "ogImageAlt": "Embalaje personalizado PackJoyU: cajas, vasos de papel e impresión"
+  },
+  "Nav": {
+    "home": "Inicio",
+    "products": "Productos en 3D",
+    "about": "Quiénes somos",
+    "contact": "Contacto",
+    "quote": "Solicitar presupuesto",
+    "menu": "Menú",
+    "main": "Navegación principal",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "switchLang": "English version"
+  },
+  "Home": {
+    "headline": "Embalaje que despierta alegría",
+    "sub": "Embalaje de papel e impresión a medida, desde la muestra hasta el pedido en volumen. Descubra cada producto en 3D.",
+    "cta": "Ver productos en 3D",
+    "ctaQuote": "Solicitar presupuesto",
+    "entryTitle": "Encuentre su embalaje",
+    "premiumTitle": "Cajas premium para regalo y vino",
+    "premiumText": "Cajas rígidas con estampado en caliente, cierre magnético e interiores a medida, pensadas para el unboxing en cámara.",
+    "ctaBandTitle": "¿Tiene un proyecto en mente?",
+    "ctaBandText": "Cuéntenos qué necesita: un especialista en embalaje le responderá por correo electrónico.",
+    "heroLabel": "Pila de cajas personalizadas PackJoyU y un vaso de papel",
+    "heroBrand": "Pack<accent>Joy</accent>U",
+    "heroTagline": "Embalaje impreso a medida",
+    "heroVideoSkip": "Saltar vídeo",
+    "heroVideoPlay": "Reproducir vídeo",
+    "heroVideoPause": "Pausar vídeo",
+    "heroPosterAlt": "Embalaje impreso a medida PackJoyU: caja postal blanca con logotipo coral, caja alta negra con banda dorada, caja de regalo negra con ribete y cierre dorados, vaso de papel blanco y caja pequeña con impresión en degradado"
+  },
+  "Products": {
+    "title": "Nuestros productos en 3D",
+    "hint": "Arrastre para girar; desplace o pellizque para hacer zoom.",
+    "tapToRotate": "Toque para girar",
+    "dragToRotate": "Arrastre para girar",
+    "loading": "Cargando modelo 3D…",
+    "addToQuote": "Añadir al presupuesto",
+    "details": "Detalles",
+    "names": {
+      "corrugated-boxes": "Cajas de cartón ondulado",
+      "color-boxes": "Cajas impresas",
+      "gift-boxes": "Cajas de regalo",
+      "pulp-molding": "Pulpa moldeada",
+      "paper-cups": "Vasos de papel",
+      "party-supplies": "Artículos para fiestas",
+      "wine-boxes": "Cajas para vino",
+      "color-printing": "Impresión a color",
+      "offset-printing": "Impresión offset",
+      "eco-paper-cups": "Vasos de café impresos",
+      "gift-cards": "Tarjetas de felicitación",
+      "christmas-merchandise": "Embalaje navideño"
+    },
+    "done": "Listo",
+    "categories": "Categorías de productos",
+    "metaTitle": "Productos de embalaje en 3D: cajas y vasos | PackJoyU",
+    "metaDescription": "Descubra en 3D nuestra amplia gama de embalaje a medida: cajas de cartón ondulado, de regalo y para vino, pulpa moldeada, vasos de papel e impresión.",
+    "desc": {
+      "corrugated-boxes": "Cajas de cartón ondulado para envío y cajas postales a medida, en canal simple o doble, impresas con su marca.",
+      "color-boxes": "Estuches plegables y cajas de producto impresos a todo color para cosmética, alimentación y electrónica.",
+      "gift-boxes": "Cajas de regalo rígidas y magnéticas a medida, con estampado en caliente, relieve e interiores ajustados.",
+      "pulp-molding": "Bandejas e interiores de pulpa moldeada.",
+      "paper-cups": "Vasos de papel impresos a medida para café, té y bebidas frías, de pared simple o doble.",
+      "party-supplies": "Vajilla de papel impresa para fiestas: platos, vasos, servilletas y decoración para eventos y retail.",
+      "wine-boxes": "Cajas a medida para vino y licores, para una o varias botellas, con acabados premium e interiores.",
+      "color-printing": "Impresión en CMYK y tintas directas para embalaje, etiquetas y material de marketing.",
+      "offset-printing": "Impresión offset para cajas, catálogos y folletos, con color constante en grandes tiradas.",
+      "eco-paper-cups": "Vasos de papel impresos con su logotipo; las opciones de recubrimiento se confirman en cada pedido.",
+      "gift-cards": "Tarjetas de felicitación y embalaje para tarjetas impresos a medida para retail y promociones.",
+      "christmas-merchandise": "Cajas de regalo navideñas, tubos, calendarios de Adviento y embalaje de temporada hechos por encargo."
+    },
+    "alt": "{name}: embalaje a medida de PackJoyU",
+    "specs": {
+      "corrugated-boxes": [
+        "Canal simple y doble (onda E/B/C)",
+        "Impresión flexográfica o digital de hasta 4 colores",
+        "Cantidades confirmadas en cada pedido"
+      ],
+      "color-boxes": [
+        "Cartón SBS o kraft de 300–400 g/m²",
+        "CMYK + Pantone, laminado mate/brillo",
+        "Cantidades confirmadas en cada pedido"
+      ],
+      "gift-boxes": [
+        "Cartón gris rígido de 1,5–2,5 mm",
+        "Estampado en caliente, relieve, tapa magnética",
+        "Interiores a medida de EVA o papel"
+      ],
+      "pulp-molding": [
+        "Pulpa moldeada",
+        "Alvéolos a medida según la forma de su producto",
+        "Opciones de material bajo consulta"
+      ],
+      "paper-cups": [
+        "Varias capacidades, pared simple o doble",
+        "Recubrimientos para bebidas calientes y frías",
+        "Cantidades confirmadas en cada pedido"
+      ],
+      "party-supplies": [
+        "Platos, vasos, servilletas, guirnaldas",
+        "Diseños impresos a medida",
+        "Packs listos para la venta"
+      ],
+      "wine-boxes": [
+        "Formatos para 1, 2 o 3 botellas",
+        "Estampado, barniz UV selectivo, cierres magnéticos",
+        "Interiores ajustados para un envío seguro"
+      ],
+      "color-printing": [
+        "CMYK + tintas directas",
+        "Etiquetas, fajas, folletos",
+        "Prueba de color antes de producción"
+      ],
+      "offset-printing": [
+        "Impresión offset en CMYK y Pantone",
+        "Catálogos, folletos, estuches",
+        "Color constante en grandes tiradas"
+      ],
+      "eco-paper-cups": [
+        "Opciones de recubrimiento confirmadas en cada pedido",
+        "Opciones de material bajo consulta"
+      ],
+      "gift-cards": [
+        "Cartulina de 350–600 g/m²",
+        "Estampado, relieve, troquelados especiales",
+        "Sobres y portatarjetas"
+      ],
+      "christmas-merchandise": [
+        "Cajas de regalo, tubos, calendarios de Adviento",
+        "Acabados de temporada con estampado y purpurina",
+        "Pedidos antes de septiembre para el 4.º trimestre"
+      ]
+    },
+    "learnMore": "Más información",
+    "specsLabel": "Especificaciones clave",
+    "empty": "Todavía no hay modelos 3D publicados. Vuelva pronto o contáctenos para solicitar muestras.",
+    "ogImageAlt": "PackJoyU: nuestros productos en 3D: cajas de cartón ondulado, de regalo y para vino a medida"
+  },
+  "Admin": {
+    "title": "Administración"
+  },
+  "Quote": {
+    "title": "Lista de presupuesto",
+    "add": "Añadir al presupuesto",
+    "added": "En el presupuesto ✓",
+    "remove": "Quitar",
+    "empty": "Su lista de presupuesto está vacía. Añada productos desde el catálogo 3D.",
+    "continue": "Continuar con la solicitud",
+    "browse": "Ver catálogo 3D",
+    "close": "Cerrar",
+    "full": "Su lista de presupuesto está llena ({max} artículos). Quite uno para añadir otro."
+  },
+  "Fab": {
+    "quote": "Lista de presupuesto",
+    "chat": "Contáctenos",
+    "top": "Volver arriba",
+    "menu": "Acciones rápidas"
+  },
+  "Contact": {
+    "metaTitle": "Solicitar presupuesto de embalaje | PackJoyU",
+    "metaDescription": "Cuéntenos su proyecto de embalaje y solicite un presupuesto a PackJoyU.",
+    "title": "Solicitar presupuesto",
+    "intro": "Tres pasos breves. Solo son obligatorios sus datos de contacto: elija «No estoy seguro» en lo que aún no haya decidido.",
+    "ogImageAlt": "PackJoyU: solicite un presupuesto de embalaje a medida"
+  },
+  "Inquiry": {
+    "stepOf": "Paso {n} de {total}",
+    "steps": {
+      "0": "Productos y cantidad",
+      "1": "Tamaño, material y plazo",
+      "2": "Datos de contacto"
+    },
+    "products": "¿Qué productos le interesan?",
+    "quantity": "Cantidad por pedido",
+    "qty": {
+      "1k": "~1.000",
+      "5k": "~5.000",
+      "10k": "~10.000",
+      "50k": "50.000+",
+      "unsure": "No estoy seguro"
+    },
+    "size": "Tamaño (L × An × Al)",
+    "sizePh": "p. ej., 30 × 20 × 10 cm, o «no estoy seguro»",
+    "material": "Material",
+    "materials": {
+      "corrugated": "Cartón ondulado",
+      "paperboard": "Cartoncillo",
+      "kraft": "Papel kraft",
+      "pulp": "Pulpa moldeada",
+      "unsure": "No estoy seguro"
+    },
+    "timeline": "¿Para cuándo lo necesita?",
+    "timelines": {
+      "2w": "En menos de 2 semanas",
+      "1m": "En menos de un mes",
+      "2m": "1–2 meses",
+      "unsure": "No estoy seguro"
+    },
+    "message": "¿Algo más? (opcional)",
+    "name": "Nombre",
+    "email": "Correo electrónico profesional",
+    "company": "Empresa",
+    "phone": "Teléfono / WhatsApp",
+    "country": "País",
+    "countryPh": "Seleccione un país",
+    "countries": {
+      "US": "Estados Unidos",
+      "GB": "Reino Unido",
+      "DE": "Alemania",
+      "FR": "Francia",
+      "IT": "Italia",
+      "ES": "España",
+      "NL": "Países Bajos",
+      "PL": "Polonia",
+      "RU": "Rusia",
+      "KZ": "Kazajistán",
+      "BY": "Bielorrusia",
+      "UZ": "Uzbekistán",
+      "AE": "Emiratos Árabes Unidos",
+      "SA": "Arabia Saudí",
+      "AU": "Australia",
+      "CA": "Canadá",
+      "ZZ": "Otro"
+    },
+    "consent": "Acepto que PackJoyU trate mis datos para responder a esta solicitud, tal como se describe en la <link>política de privacidad</link>.",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar solicitud",
+    "sending": "Enviando…",
+    "checking": "Completando la verificación de seguridad…",
+    "success": {
+      "title": "Gracias: ¡hemos recibido su solicitud!",
+      "ref": "Su número de solicitud:",
+      "reply": "Un especialista en embalaje le responderá por correo electrónico."
+    },
+    "errors": {
+      "unavailable": "Las solicitudes en línea no están disponibles temporalmente. Vuelva a intentarlo más tarde.",
+      "rate": "Demasiadas solicitudes. Espere unos minutos y vuelva a intentarlo.",
+      "invalid": "Revise su nombre, correo electrónico y país, y vuelva a intentarlo.",
+      "captcha": "La verificación de seguridad ha fallado. Vuelva a intentarlo.",
+      "server": "Se ha producido un error por nuestra parte. Vuelva a intentarlo más tarde.",
+      "network": "Error de red. Compruebe su conexión y vuelva a intentarlo.",
+      "retry": "No hemos podido completar la verificación de seguridad en este momento. Sus datos se conservan: vuelva a intentarlo en unos instantes.",
+      "logo_invalid": "La carga de su logotipo ha caducado o ya no es válida. Vuelva a subir el logotipo; el resto de sus datos se conserva."
+    },
+    "retry": "Reintentar",
+    "retryIn": "Reintentar en {s} s",
+    "logoNote": "¿Tiene un logotipo vectorial (PDF/AI)? Envíelo como archivo adjunto al responder a nuestro correo sobre su solicitud.",
+    "logo": {
+      "label": "Logotipo (opcional)",
+      "hint": "PNG, JPEG o WebP, hasta 2 MB.",
+      "uploading": "Subiendo…",
+      "uploaded": "Logotipo subido",
+      "remove": "Quitar",
+      "choose": "Elegir archivo",
+      "none": "Ningún archivo seleccionado",
+      "expired": "La carga de su logotipo ha caducado. Vuelva a subirlo.",
+      "errors": {
+        "type": "Elija una imagen PNG, JPEG o WebP.",
+        "size": "Este archivo supera los 2 MB. Elija una imagen más pequeña.",
+        "dimensions": "Esta imagen es demasiado grande (máx. 4096 × 4096 px). Redúzcala y vuelva a intentarlo.",
+        "corrupt": "No hemos podido leer esta imagen. Pruebe con otro archivo.",
+        "rate": "Demasiadas cargas. Espere un poco y vuelva a intentarlo.",
+        "network": "Error de red. Compruebe su conexión y vuelva a intentarlo.",
+        "server": "No hemos podido subir su logotipo en este momento. Vuelva a intentarlo más tarde."
+      }
+    },
+    "overLimit": "Su lista tiene {n} artículos; el límite es {max}. Quite algunos para enviarla.",
+    "newTab": "(se abre en una pestaña nueva)",
+    "validation": {
+      "summary": "Revise estos campos:",
+      "name": "Indique su nombre.",
+      "emailRequired": "Indique su correo electrónico profesional.",
+      "emailInvalid": "Introduzca un correo electrónico válido, p. ej., name@company.com.",
+      "region": "Seleccione su país.",
+      "consent": "Marque la casilla para aceptar el tratamiento de datos."
+    }
+  },
+  "Views": {
+    "label": "Vista de la caja",
+    "closed": "Cerrada",
+    "open": "Abierta",
+    "dieline": "Troquel (plano)"
+  },
+  "Consent": {
+    "label": "Consentimiento de cookies",
+    "text": "Usamos cookies esenciales para el funcionamiento del sitio. Con su permiso, también usamos analítica y chat en vivo.",
+    "policy": "Política de privacidad",
+    "accept": "Aceptar todo",
+    "reject": "Rechazar todo",
+    "settings": "Configuración",
+    "title": "Configuración de cookies",
+    "lead": "Elija qué cookies podemos usar. Puede cambiarlo en cualquier momento en «Configuración de cookies», al pie de la página.",
+    "necessary": "Necesarias",
+    "necessaryDesc": "Idioma, seguridad (Turnstile), lista de presupuesto y esta elección. Siempre activas.",
+    "alwaysOn": "Siempre activas",
+    "analytics": "Analítica",
+    "analyticsDesc": "Estadísticas anónimas de velocidad y uso de las páginas (web vitals) para mejorar el sitio.",
+    "chat": "Chat en vivo (Tawk.to)",
+    "chatDesc": "Carga el widget de chat de Tawk.to, que instala sus propias cookies.",
+    "save": "Guardar selección",
+    "close": "Cerrar",
+    "saved": "Se ha guardado su selección de cookies.",
+    "withdrawn": "Consentimiento retirado. La analítica y el chat están desactivados.",
+    "change": "Cambiar"
+  },
+  "Footer": {
+    "about": "Embalaje de papel e impresión a medida, desde la muestra hasta el pedido en volumen.",
+    "categories": "Productos",
+    "contact": "Contacto",
+    "contactText": "Cuéntenos su proyecto: un especialista en embalaje le responderá por correo electrónico.",
+    "privacy": "Política de privacidad",
+    "otherLang": "English",
+    "cookieSettings": "Configuración de cookies"
+  },
+  "Privacy": {
+    "metaTitle": "Política de privacidad: datos que recopilamos | PackJoyU",
+    "title": "Política de privacidad",
+    "metaDescription": "Cómo PackJoyU recopila, usa y protege los datos personales de solicitudes de presupuesto, pedidos de muestras, chat y cookies, y cómo ejercer sus derechos.",
+    "intro": "Esta página explica qué datos personales recopila PackJoyU a través de este sitio web, para qué y durante cuánto tiempo los conservamos.",
+    "contactLink": "Contáctenos a través del formulario de solicitud",
+    "sections": {
+      "collected": {
+        "title": "Datos que recopilamos",
+        "items": [
+          "Consultas y solicitudes de presupuesto: su nombre, correo electrónico, empresa, teléfono, país y mensaje, además de los productos y opciones que elija.",
+          "Solicitudes de muestras: lo anterior más su dirección de envío.",
+          "Logotipos que sube en el configurador o en el formulario de solicitud. Un logotipo puede subirse antes de que envíe la solicitud.",
+          "Diseños personalizados compartidos que crea en el configurador 3D.",
+          "Datos de procedencia y campaña que su navegador envía con una solicitud: la página de la que viene, las palabras clave de búsqueda y los parámetros UTM.",
+          "Datos técnicos: su dirección IP y, si permite la analítica, métricas anónimas de rendimiento de las páginas. Usamos la dirección IP para limitar la frecuencia de solicitudes y proteger el sitio frente a abusos, la enviamos a nuestro proveedor de verificación de seguridad para comprobar que no es un bot y la registramos en los registros de seguridad (auditoría) de administración. Junto con la solicitud también guardamos el país derivado de su dirección IP para ayudar a detectar spam."
+        ]
+      },
+      "purpose": {
+        "title": "Para qué los usamos",
+        "items": [
+          "Para responder a consultas, preparar presupuestos y enviar muestras.",
+          "Para proteger el sitio frente al spam y los abusos (verificación de seguridad y límites de solicitudes).",
+          "Solo con su consentimiento: para medir el rendimiento del sitio y ofrecer chat en vivo."
+        ]
+      },
+      "retention": {
+        "title": "Cuánto tiempo los conservamos",
+        "items": {
+          "designs": "Los diseños personalizados compartidos caducan a los 180 días (el enlace devuelve entonces «410 Gone») y se eliminan 90 días después.",
+          "designsInquiry": "Los diseños adjuntos a una solicitud se conservan mientras se conserve esa solicitud y se anonimizan o eliminan junto con ella.",
+          "logos": "Los logotipos no adjuntos a una solicitud suelen eliminarse en las 48 horas siguientes a su carga (pueden eliminarse a partir de las 24 horas y la limpieza se ejecuta a diario), salvo los logotipos que sigan usándose en un diseño guardado no caducado.",
+          "sampleEmail": "En las solicitudes de muestras (una por correo electrónico cada 30 días), el correo usado para este límite se borra a los 30 días.",
+          "rateLimit": "Los contadores de límite de solicitudes usan su dirección IP y una versión cifrada mediante hash (no legible) de su correo electrónico, y caducan al terminar su periodo de límite, como máximo a los 30 días.",
+          "audit": "Los registros de seguridad (auditoría) de administración, incluidas las direcciones IP, se eliminan a los 365 días.",
+          "adminSessions": "Las sesiones de administración finalizan tras 2 horas de inactividad.",
+          "inquiries": "Las solicitudes se anonimizan 2 años después de la última actividad en la solicitud (nuestra respuesta o un cambio de estado): eliminamos o anonimizamos los datos de contacto, los mensajes, la dirección de envío, la correspondencia por correo electrónico, los logotipos subidos y su configuración, las notas internas del personal sobre la solicitud, los datos de procedencia enviados por el navegador y los números de seguimiento de envío de muestras; solo se conservan estadísticas no personales.",
+          "inquiriesContact": "Los datos de contacto se conservan mientras ese contacto tenga solicitudes que no se hayan anonimizado.",
+          "onRequest": "Si lo solicita, eliminamos o anonimizamos los datos de contacto, los mensajes, la dirección de envío, la correspondencia por correo electrónico, los logotipos subidos y su configuración, las notas internas del personal sobre la solicitud, los datos de procedencia enviados por el navegador y los números de seguimiento de envío de muestras; solo se conservan estadísticas no personales. Los registros de nuestra base de datos se eliminan o anonimizan de inmediato.",
+          "deletionCopies": "Las copias de los correos de notificación de solicitudes en nuestro buzón de empresa se eliminan manualmente en los 30 días siguientes a su solicitud. Los registros de nuestros proveedores de servicios (por ejemplo, de entrega de correo y de alojamiento) se eliminan según el periodo de conservación de cada proveedor.",
+          "oldReplies": "Las respuestas a correos antiguos sobre una solicitud anonimizada no se añaden a ella.",
+          "exports": "Las exportaciones de datos se le entregan como archivo; no se guarda ninguna copia en el servidor.",
+          "cleanup": "Una limpieza automática se ejecuta una vez al día."
+        }
+      },
+      "cookies": {
+        "title": "Cookies, almacenamiento local y consentimiento",
+        "items": [
+          "Su elección se guarda en el localStorage de su navegador con la clave pj-consent, no en una cookie. Registra si ha permitido la analítica y el chat, y cuándo.",
+          "La analítica (métricas anónimas de rendimiento) solo se carga después de que la permita.",
+          "El chat en vivo (Tawk.to) solo se carga después de que lo permita.",
+          "Su elección caduca a los 12 meses y volvemos a preguntarle.",
+          "Puede cambiar o retirar su consentimiento en cualquier momento en «Configuración de cookies», al pie de la página. Tras retirarlo, la analítica y el chat dejan de cargarse; al retirar el chat también se borran de su navegador los datos del proveedor del chat."
+        ]
+      },
+      "chat": {
+        "title": "Chat en vivo (Tawk.to)",
+        "items": [
+          "El chat en vivo lo proporciona Tawk.to y solo se carga si usted lo permite.",
+          "Cuando se carga, Tawk.to recibe sus mensajes y los datos técnicos necesarios para el funcionamiento del chat, y guarda sus propios datos en su navegador.",
+          "El chat nunca se carga en nuestras páginas de administración."
+        ]
+      },
+      "processors": {
+        "title": "Proveedores de servicios",
+        "text": [
+          "Trabajamos con proveedores de servicios de las siguientes categorías. Algunos pueden tratar datos fuera de su país. No vendemos sus datos."
+        ],
+        "items": [
+          "Alojamiento web",
+          "Verificación de seguridad (protección contra bots) y almacenamiento de archivos",
+          "Almacenamiento de límites de solicitudes",
+          "Envío de correo electrónico",
+          "Base de datos",
+          "Chat en vivo (solo con su consentimiento)"
+        ]
+      },
+      "contact": {
+        "title": "Contacto y sus derechos",
+        "text": [
+          "Puede solicitarnos el acceso, la exportación, la rectificación o la supresión de sus datos.",
+          "Correo electrónico: {{待Ryan确认}}"
+        ]
+      },
+      "company": {
+        "title": "Responsable del tratamiento",
+        "text": [
+          "Responsable del tratamiento: {{待Ryan确认}}"
+        ]
+      }
+    },
+    "ogImageAlt": "PackJoyU: política de privacidad"
+  },
+  "DesignExpired": {
+    "metaTitle": "Diseño caducado | PackJoyU",
+    "title": "Este diseño ha caducado",
+    "text": "Este diseño ha caducado. Vuelva a personalizarlo.",
+    "backToCategory": "Personalizar de nuevo: {category}",
+    "backToProducts": "Ver productos y volver a personalizar",
+    "quote": "Solicitar presupuesto"
+  },
+  "DesignShared": {
+    "metaTitle": "Diseño de embalaje personalizado | PackJoyU"
+  },
+  "NotFound": {
+    "meta": {
+      "title": "Página no encontrada | PackJoyU"
+    },
+    "code": "404",
+    "title": "Página no encontrada",
+    "lead": "Esta caja está vacía. Es posible que la página se haya movido: pruebe con una de nuestras categorías de productos.",
+    "home": "Volver al inicio",
+    "quote": "Solicitar presupuesto",
+    "browse": "Ver productos"
+  },
+  "Solutions": {
+    "meta": {
+      "title": "Soluciones de embalaje por sector | PackJoyU",
+      "description": "Cajas, vasos e interiores a medida para su sector, adaptados a cómo se envía y se vende su producto. Cuéntenos su producto y solicite presupuesto."
+    },
+    "eyebrow": "Soluciones por sector",
+    "title": "Embalaje pensado para su sector",
+    "lead": "Cajas, vasos e interiores a medida, con especificaciones adaptadas a cómo se envía y se vende su producto.",
+    "more": "Ver solución",
+    "premium": {
+      "eyebrow": "Cajas para vino y regalo",
+      "title": "Acabados premium, por encargo",
+      "lead": "Cajas rígidas para vino y regalo diseñadas en torno a su botella o producto, con el acabado y la experiencia de apertura que usted elija.",
+      "imageAlt": {
+        "wine": "Caja para vino a medida",
+        "gift": "Caja de regalo a medida"
+      }
+    },
+    "empty": "Estamos actualizando las soluciones. Cuéntenos qué necesita.",
+    "cta": "¿No sabe qué caja le conviene? Envíenos su producto.",
+    "detail": {
+      "crumb": "Soluciones por sector",
+      "lead": "Embalaje a medida para {industryGen}, con especificaciones adaptadas a cómo se envía y se vende su producto.",
+      "metaTitle": "{industry}: embalaje a medida | PackJoyU",
+      "metaDescription": "Embalaje a medida para {industryGen}, adaptado a cómo se envía y se vende su producto. Cuéntenos su producto y solicite presupuesto.",
+      "cta": "Cuéntenos su producto y le propondremos una opción adecuada."
+    },
+    "industries": {
+      "color-boxes": {
+        "name": "Productos de retail",
+        "title": "Embalaje para productos de retail",
+        "industryGen": "productos de retail"
+      },
+      "corrugated-boxes": {
+        "name": "E-commerce y envíos",
+        "title": "Embalaje para e-commerce y envíos",
+        "industryGen": "e-commerce y envíos"
+      },
+      "paper-cups": {
+        "name": "Cafeterías",
+        "title": "Embalaje para cafeterías",
+        "industryGen": "cafeterías"
+      },
+      "party-supplies": {
+        "name": "Fiestas y eventos",
+        "title": "Embalaje para fiestas y eventos",
+        "industryGen": "fiestas y eventos"
+      },
+      "wine-boxes": {
+        "name": "Vinos y licores",
+        "title": "Embalaje para vinos y licores",
+        "industryGen": "vinos y licores"
+      },
+      "gift-boxes": {
+        "name": "Regalos y regalos de empresa",
+        "title": "Embalaje para regalos y regalos de empresa",
+        "industryGen": "regalos y regalos de empresa"
+      }
+    }
+  },
+  "Factory": {
+    "meta": {
+      "title": "Cómo trabajamos: del presupuesto al envío | PackJoyU",
+      "description": "Cómo funciona un pedido de embalaje a medida con PackJoyU: briefing y troquel, muestra, impresión, troquelado y montaje, control de calidad y envío."
+    },
+    "eyebrow": "Cómo trabajamos",
+    "title": "Del briefing al embalaje terminado",
+    "lead": "Vea cómo avanza su pedido, paso a paso, desde el primer troquel hasta el envío.",
+    "steps": {
+      "title": "Del presupuesto al envío",
+      "1": {
+        "title": "Briefing y troquel",
+        "desc": "Usted nos cuenta su producto, cantidades y diseño, y acordamos la estructura de la caja y un troquel a medida."
+      },
+      "2": {
+        "title": "Muestra",
+        "desc": "Se elabora una muestra a partir del troquel acordado para que compruebe tamaño, ajuste e impresión antes de la tirada."
+      },
+      "3": {
+        "title": "Impresión",
+        "desc": "Una vez aprobada la muestra, su diseño se imprime en el material elegido."
+      },
+      "4": {
+        "title": "Troquelado y montaje",
+        "desc": "Los pliegos impresos se troquelan, se pliegan y se montan, con interiores donde su diseño los necesite."
+      },
+      "5": {
+        "title": "Control y envío",
+        "desc": "El embalaje terminado se coteja con la muestra aprobada, se empaqueta y se prepara para el envío."
+      }
+    },
+    "stepImageAlt": {
+      "print": "Impresión",
+      "dieCut": "Troquelado",
+      "qc": "Control de calidad",
+      "warehouse": "Almacén"
+    },
+    "cta": "¿Tiene un proyecto en mente? Cuéntenoslo."
+  },
+  "Cases": {
+    "meta": {
+      "title": "Casos de embalaje | PackJoyU",
+      "description": "Proyectos de embalaje a medida de PackJoyU. Pronto publicaremos casos. Cuéntenos su producto y hablaremos del embalaje adecuado."
+    },
+    "eyebrow": "Casos",
+    "title": "Cajas que hemos fabricado",
+    "lead": "Pronto publicaremos casos. Mientras tanto, cuéntenos su proyecto.",
+    "comingSoon": "Casos próximamente.",
+    "filtersLabel": "Filtrar por sector",
+    "all": "Todos",
+    "empty": "Aún no hay casos en esta categoría.",
+    "showAll": "Ver todos",
+    "cta": "¿Tiene un proyecto en mente? Cuéntenoslo."
+  }
+}

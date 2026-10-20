@@ -1,0 +1,20 @@
+Subject: Wir haben Ihre Anfrage #{{inquiryId}} erhalten
+
+Guten Tag {{name}},
+
+vielen Dank für Ihre Nachricht an PackJoyU. {{#reply}}Wir haben Ihre Anfrage erhalten; ein Verpackungsspezialist antwortet Ihnen innerhalb von {{replyTime}}.{{/reply}}{{^reply}}Wir haben Ihre Anfrage erhalten; ein Verpackungsspezialist antwortet Ihnen per E-Mail.{{/reply}}
+
+Ihre Anfrage
+Referenz: #{{inquiryId}}
+Unternehmen: {{company}}
+Produkt: {{product}}
+Menge: {{quantity}}
+
+Bitte behalten Sie die Referenznummer im Betreff, wenn Sie auf diese E-Mail antworten.
+
+Unsere Produkte ansehen: {{siteUrl}}/{{locale}}/products
+
+Sie möchten uns schneller erreichen? Schreiben Sie an {{contactEmail}} oder per WhatsApp an {{whatsapp}}.
+
+--
+Sie erhalten diese E-Mail, weil Sie auf {{siteUrl}} eine Anfrage gesendet haben. PackJoyU · Individuelle Papierverpackungen und Druck.
