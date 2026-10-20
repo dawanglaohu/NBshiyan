@@ -1,0 +1,59 @@
+{
+  "id": "M7-T5",
+  "row": {
+    "line": 84,
+    "title": "终验受限恢复与单管理员兜底",
+    "deps": [
+      "M7-T6",
+      "M3-T9",
+      "M3-T11",
+      "M3-T18",
+      "M3-T20"
+    ],
+    "input": "已交付恢复向导/OS-owner CLI、一次性码和受限cookie协议",
+    "output": "admin-acceptance；恢复并发、不可越权及本地兜底证据",
+    "acceptance": "1) 从独立恢复入口POST /api/auth-admin/recovery/start→enroll→confirm；同码、不同码并发核销不复活已用码，restricted cookie不能访问后台；中断/过期保留旧有效因素，重入返回同URI/期限，新确认才替换因素且必须普通登录（E-10、E-11、E-14）。2) 无第二管理员且恢复码丢失时，隔离服务器OS-owner实际TTY CLI明确target/reason生成permit，隐藏密码预授权只在新TOTP最终确认提交且审计；旧首次绑定reset脚本guard不放宽，匿名浏览器不能签permit/改密码；最终confirm撤销旧会话/旧绑定/旧恢复材料、新恢复码仅展示一次，旧设备下一请求被拒（E-15）。",
+    "days": "2d"
+  },
+  "contract": {
+    "provides": [
+      "admin-acceptance"
+    ],
+    "requires": [
+      {
+        "task": "M7-T6",
+        "capability": "fresh-auth-acceptance"
+      },
+      {
+        "task": "M3-T9",
+        "capability": "target-recovery-ui"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "e2e/admin-recovery-integration.spec.ts",
+      "tests/admin-recovery-concurrency.db.test.ts",
+      "docs/acceptance/admin-recovery/"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "f17a8051e422b47ee15acd66184e7a02f0508069f611ec2c24074f28d53373d5",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M7　集成验收与交付：负责访客跨模块完整路径、后台权限与恢复路径、统计和可靠性完整链路的真实集成验收及交付证据收口；核对本轮复用的恢复来源，不重做 S1 已完成的取回和来源审计，也不自动合并恢复草稿。\n13: - 输入：已交付恢复向导/OS-owner CLI、一次性码和受限cookie协议\n14: - 产出：admin-acceptance；恢复并发、不可越权及本地兜底证据\n15: - 预估：2 人天　｜　前置：M7-T6　终验新鲜本人授权与忘密码隔离；M3-T9　在账号行复用验证对话框授权恢复；M3-T11　接通独立恢复及受限重绑向导；M3-T18　提供受OS权限保护的本地恢复预授权CLI；M3-T20　将本人换验证器接入受限重绑（已落地）\n16: 任务契约版本：f17a8051e422b47ee15acd66184e7a02f0508069f611ec2c24074f28d53373d5；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M7-T5.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M7.md　模块职责与已有代码位置\n24: - docs/PackJoyU-开发文档/图谱/边界/ 下的 E-10.md、E-11.md、E-14.md、E-15.md　本任务要兜的边界\n25: \n26: ## 验收标准（验收的唯一依据，逐条都要满足）\n27: 1) 从独立恢复入口POST /api/auth-admin/recovery/start→enroll→confirm\n28: 同码、不同码并发核销不复活已用码，restricted cookie不能访问后台\n29: 中断/过期保留旧有效因素，重入返回同URI/期限，新确认才替换因素且必须普通登录（E-10、E-11、E-14）。2) 无第二管理员且恢复码丢失时，隔离服务器OS-owner实际TTY CLI明确target/reason生成permit，隐藏密码预授权只在新TOTP最终确认提交且审计\n30: 旧首次绑定reset脚本guard不放宽，匿名浏览器不能签permit/改密码\n31: 最终confirm撤销旧会话/旧绑定/旧恢复材料、新恢复码仅展示一次，旧设备下一请求被拒（E-15）。\n32: \n33: ## 必须处理的边界\n34: - E-10　C-04 验证器丢失与单管理员恢复\n35:   触发：正常登录　期望：不显示为必填恢复码，单独“无法使用验证器”进入恢复流程；仅填写账号或邮箱不能获得重置权限。\n36: - E-11　C-04 验证器丢失与单管理员恢复\n37:   触发：使用账号与有效一次性恢复码　期望：原子核销恢复码并签发受限、短时重绑定凭据，只能绑定新验证器，正确验证新码前不能获得完整后台权限；同一恢复码并发使用仅一次成功。\n38: - E-14　C-04 验证器丢失与单管理员恢复\n39:   触发：恢复中断或重置凭据过期　期望：明确 restricted 凭据访问受保护后台必须拒绝；中断或过期不提交待绑定新因素，原有效绑定保持；持有效 restricted cookie 可重入同一 enroll，失效则按10节已定义恢复码/授权路径重启，不能换取完整后台会话。\n40: - E-15　C-04 验证器丢失与单管理员恢复\n41:   触发：新验证器完成校验并提交恢复　期望：撤销旧会话、旧绑定与旧恢复凭据，生成新的恢复码并明确展示一次，后续旧设备不能继续访问。\n42: \n43: ## 相关契约（照它实现，改要走文档补丁）\n44: | POST | /api/auth-admin/recovery/start | email、credentialKind RECOVERY_CODE/PERMIT、credential | RecoveryStateDTO：restricted、expiresAt，并设受限HttpOnly cookie | 独立恢复凭据；非后台session |\n45: | POST /api/auth-admin/recovery/start | 一次性核销恢复码/permit，撤销旧设备并签受限cookie；旧有效绑定/密码保留到新码确认 | 不自动重放原恢复码/permit；超时不得直接消耗另一枚码 | 回受限页调用下行可重入enroll：若浏览器已收到有效restricted cookie可继续同一流程；没有有效cookie才取得新恢复凭据或授权，已核销秘密/先前cookie不能重返，不能换完整后台session |\n46: \n47: ## 只改这些路径\n48: - docs/acceptance/admin-recovery/\n49: - e2e/admin-recovery-integration.spec.ts\n50: - tests/admin-recovery-concurrency.db.test.ts\n51: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n52: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n53: \n\n91: ## 本项目约定\n92: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n93: "
+}

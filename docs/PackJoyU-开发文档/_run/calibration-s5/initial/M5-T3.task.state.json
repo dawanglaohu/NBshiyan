@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Implement versioned time zones and daily aggregate recomputation",
+    "input": "The real event ledger, job-foundation and IANA day boundaries",
+    "output": "analytics-aggregate; the five-minute aggregate job and GET/PATCH /api/admin/settings/analytics",
+    "accept": "1) Caller five-minute cron leads to registry and raw-data recomputation, replacing the whole group atomically with dataThrough/revision; duplicate jobs must not add counts again, expired leases/old generations must not overwrite new results, and refresh retries with the same navigationId must be deduplicated (E-80, E-81, E-83). 2) Use left-closed/right-open local days, 23/25-hour DST days and identical values across browser time zones; ADMIN CAS changes of IANA time zone must recompute only the completely retained range, preserve original labels and partial coverage for older ranges, and never overwrite from fragments; events accepted within the 48h late window and 5min future window count only once their time is reached (E-55, E-56, E-57, E-58, E-59, E-60, E-82, E-84)."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Caller/wiring point: real daily cron POST /api/admin/cron/operations(jobKey=chat-retention) -> registry -> candidate query. Without separate retention authorization or with the switch disabled, only dry-run occurs; real deletion requests reject with deletedCount=0. Documentation/model/dispatch is not authorization. In an isolated database, before/after row-content hashes are unchanged (E-88). 2) Query candidates by 90-day retainUntil. Seven-day/30-day cookie expiry must not select still-retained content early. Reads/polling/notifications do not extend the deadline. Results contain only counts/safe times, not body/email. Do not query existing 730-day inquiries/analytics/backups as cleanup targets (E-85, E-86).",
+  "edges": {
+    "E-85": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "The cookie reaches seven idle days or 30 days since issuance, or is revoked.",
+      "expect": "The server rejects access to the old conversation using that credential; the browser may start a new consultation. Re-entering the same email alone cannot restore the old conversation. Neither the cookie nor any frontend copy stores PII."
+    },
+    "E-86": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "A hidden tab still polls, or a visit merely refreshes without successfully sending or receiving a consultation message.",
+      "expect": "These behaviors do not postpone the 90-day retention deadline for messages/email. Consultation activity means successfully persisted visitor messages or human replies; notification retries, delivery receipts, and read-state updates do not count as new consultation activity."
+    },
+    "E-88": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "This documentation is generated or an implementer receives a dispatched task.",
+      "expect": "Make the authorization gate testable: real production cleanup is disabled by default and dry-run is the default mode. Without separate explicit authorization of the retention policy, reject enabling or requesting real deletion, keep deletedCount at zero, and optionally return candidate counts or a not-enabled status. Documentation, task dispatch, a model, or a proxy verdict cannot serve as authorization. Validate only with isolated data; do not touch existing production, recovered, or backup data."
+    }
+  }
+}

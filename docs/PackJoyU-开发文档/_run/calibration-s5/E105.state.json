@@ -1,0 +1,10 @@
+{
+  "edge": {
+    "scene": "Recovered candidate code provenance and publication boundaries",
+    "trigger": "A reused candidate lacks exact provenance, current required security approval, or matches a different HEAD from the record",
+    "expect": "Check the actual head, base, checks and required approvals individually. If any evidence is missing, do not label it ready to merge or deployed, and do not merge or deploy automatically. Exclude protected backups and secrets from publication copies. Preserve traceable provenance and unmet items."
+  },
+  "modules": {
+    "M7": "Final cross-module acceptance and delivery evidence, including safe reuse provenance; no prerequisite runtime foundations."
+  }
+}

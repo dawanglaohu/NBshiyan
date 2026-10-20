@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Export shared DTOs and a unified request/error foundation",
+    "input": "The contracts in sections 06/09/10 and the existing Auth.js error protocol",
+    "output": "contract-types and client-api-foundation; the account/recovery/chat/analytics/ops/errors schemas and index exports",
+    "accept": "1) Compare every new field in section 10 against the strict Zod schema; parse LoginMode and rememberDevice exactly (E-95, E-96), with no unknown fields passing through. 2) Boundary tests must cover client cancellation at 15s, compatibility with the old error format, controlled error mapping and server-side HTTP mapping; retries must strictly follow the methods in section 10, and business components must import from the unified export."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

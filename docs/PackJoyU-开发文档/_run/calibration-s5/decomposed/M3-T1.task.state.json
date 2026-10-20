@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Bind real Auth.js sessions to the current device and authorization",
+    "input": "Existing Credentials, JWT/sv, and requireAdmin/page gates; M3-T14 shared HTTP layer; M1-T2 contracts.",
+    "output": "AdminDeviceSession; sid adapters for Auth.js sign-in/read/ordinary signOut; current-device summaries on GET /api/admin/account and current-authorization guards.",
+    "accept": "1) Caller/wiring point: real Credentials -> src/auth.ts -> device service. Real HTTP sign-in creates sid owned by the current user/sv. GET /api/admin/account and Auth.js session/SSR check User existence, disabled, lockedUntil, totpEnabled, role, sv, sid ownership/revokedAt/deadlines. Reject old JWTs without sid and unavailable database validation; read role only from current database state (E-70). 2) Ordinary initial expiry is two hours; remembered expiry is seven idle days and an absolute 30 days after issuance. Equality at a deadline rejects. Ordinary Auth.js signOut revokes sid server-side before clearing its cookie; a copied old cookie receives 401 from GET account. Authorization cannot be cached across requests (E-01, E-02, E-03, E-69)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

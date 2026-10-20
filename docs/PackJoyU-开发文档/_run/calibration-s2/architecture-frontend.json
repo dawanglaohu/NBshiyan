@@ -1,0 +1,14 @@
+{
+  "frontend": {
+    "layout": "沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。",
+    "tier": "page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。",
+    "ui": "沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在S2选择slug/色值，S3统一写现有token文件。",
+    "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中16个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
+    "state": "仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。",
+    "api": "新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。",
+    "utils": "无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。",
+    "errors": "严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。",
+    "env": "客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。",
+    "build": "沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。"
+  }
+}

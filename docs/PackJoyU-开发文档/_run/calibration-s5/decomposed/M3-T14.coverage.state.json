@@ -1,0 +1,10 @@
+{
+  "acceptance": "1) Caller/wiring point: GET /api/admin/account -> existing requireAdmin -> account DTO -> final-response counter. An actual HTTP request produces one requestCount in isolated PostgreSQL; a controlled 5xx increments errorCount without request body/IP/account data. Counter-store failure leaves the original business status and body unchanged. 2) New configuration is parsed centrally with Zod; startup rejects missing required values and safe errors contain no raw exception. routeId is a fixed whitelist. Site dates use existing settings or initial UTC/revision1 without importing M5/M6 services. Existing endpoint envelopes stay intact (E-70).",
+  "edges": {
+    "E-70": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "The cookie/JWT is still valid, but the device was revoked, the account was disabled, the credential version changed, or server-side validation is unavailable.",
+      "expect": "A protected request cannot be authorized by its cookie alone. Request-scoped query deduplication must not become a cross-request cache that ignores revocation."
+    }
+  }
+}

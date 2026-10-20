@@ -1,0 +1,601 @@
+{
+  "source_sha256": {
+    "_run/endpoints-contract.json": "2bc35697eb1ea5d2257501945b08d4956144325ec8b712f7b528f4a6650b832e",
+    "02-设计/10-接口约定.md": "9abb2896d34266ad6a18fdcc8e6c51388f162d5dff4f1f929ef23a1aadb9f4d4",
+    "02-设计/09-数据模型.md": "4345e5a499b56d45622cfe8a70922a51a01a745c7b0b13e515e4d861c3649f63"
+  },
+  "endpoints": [
+    {
+      "index": 1,
+      "method": "GET",
+      "path": "/api/auth/[...nextauth]",
+      "source_table_line": 15,
+      "state": "01.state.json",
+      "log": "01.jsonl",
+      "stdout": "01.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/auth/[...nextauth]",
+        "input": "Auth.js既有协议；Credentials新增mode与rememberDevice，可保留旧password+totp请求；非空recoveryCode日常明确拒绝",
+        "output": "Auth.js原redirect/CSRF/session协议；session可增sid非凭据摘要与effectiveExpiresAt",
+        "permissions": "Auth.js，失败不透露账号方式"
+      }
+    },
+    {
+      "index": 2,
+      "method": "POST",
+      "path": "/api/auth/[...nextauth]",
+      "source_table_line": 15,
+      "state": "02.state.json",
+      "log": "02.jsonl",
+      "stdout": "02.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/auth/[...nextauth]",
+        "input": "Auth.js既有协议；Credentials新增mode与rememberDevice，可保留旧password+totp请求；非空recoveryCode日常明确拒绝",
+        "output": "Auth.js原redirect/CSRF/session协议；session可增sid非凭据摘要与effectiveExpiresAt",
+        "permissions": "Auth.js，失败不透露账号方式"
+      }
+    },
+    {
+      "index": 3,
+      "method": "POST",
+      "path": "/api/auth-admin/enroll",
+      "source_table_line": 16,
+      "state": "03.state.json",
+      "log": "03.jsonl",
+      "stdout": "03.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/auth-admin/enroll",
+        "input": "现有email/password/token",
+        "output": "既有{otpauthUri}，只修最终当前token/sv CAS",
+        "permissions": "现有一次性绑定凭据"
+      }
+    },
+    {
+      "index": 4,
+      "method": "POST",
+      "path": "/api/auth-admin/enroll/confirm",
+      "source_table_line": 17,
+      "state": "04.state.json",
+      "log": "04.jsonl",
+      "stdout": "04.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/auth-admin/enroll/confirm",
+        "input": "现有email/password/token/totp",
+        "output": "既有{recoveryCodes}",
+        "permissions": "现有绑定窗口及单次新码"
+      }
+    },
+    {
+      "index": 5,
+      "method": "POST",
+      "path": "/api/admin/account/password",
+      "source_table_line": 18,
+      "state": "05.state.json",
+      "log": "05.jsonl",
+      "stdout": "05.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/account/password",
+        "input": "newPassword、PASSWORD actionGrant；兼容旧currentPassword+totp时也在同一最终事务执行相同新鲜验证；非空recoveryCode拒绝",
+        "output": "既有{ok:true,reauthRequired:true}",
+        "permissions": "当前本人、同源、当前密码+新TOTP新鲜验证，撤销全部会话"
+      }
+    },
+    {
+      "index": 6,
+      "method": "POST",
+      "path": "/api/admin/account/2fa/reset",
+      "source_table_line": 19,
+      "state": "06.state.json",
+      "log": "06.jsonl",
+      "stdout": "06.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/account/2fa/reset",
+        "input": "TOTP_RESET actionGrant；兼容旧currentPassword+totp也执行相同规则；恢复码不得走此捷径",
+        "output": "既有ok/reenrollRequired/enrollLink字段；设受限恢复cookie，链接转受限重绑页",
+        "permissions": "本人新鲜验证；最终新绑定前原有效因素保留，临时重绑记录受限"
+      }
+    },
+    {
+      "index": 7,
+      "method": "POST",
+      "path": "/api/admin/users/[id]/reset-2fa",
+      "source_table_line": 20,
+      "state": "07.state.json",
+      "log": "07.jsonl",
+      "stdout": "07.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/users/[id]/reset-2fa",
+        "input": "RECOVERY_AUTHORIZE actionGrant(target=id)、reason",
+        "output": "受限RecoveryPermitDTO；旧UI迁移消费一次性permit，无无验证直重置旁路",
+        "permissions": "ADMIN、不能自己、同源；旧无body直接重置请求拒绝"
+      }
+    },
+    {
+      "index": 8,
+      "method": "GET",
+      "path": "/api/admin/account",
+      "source_table_line": 21,
+      "state": "08.state.json",
+      "log": "08.jsonl",
+      "stdout": "08.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/admin/account",
+        "input": "无",
+        "output": "AccountDTO：id/name/email/role/passwordlessEnabled/totpEnabled、当前设备摘要",
+        "permissions": "当前有效后台账号，ADMIN/SALES/EDITOR"
+      }
+    },
+    {
+      "index": 9,
+      "method": "POST",
+      "path": "/api/admin/account/session/activity",
+      "source_table_line": 22,
+      "state": "09.state.json",
+      "log": "09.jsonl",
+      "stdout": "09.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/account/session/activity",
+        "input": "空对象；真实前台活动节流调用",
+        "output": "SessionActivityDTO：effectiveExpiresAt、absoluteExpiresAt；真实Set-Cookie刷新",
+        "permissions": "当前有效设备、同源、任一后台角色"
+      }
+    },
+    {
+      "index": 10,
+      "method": "POST",
+      "path": "/api/admin/account/reauth",
+      "source_table_line": 23,
+      "state": "10.state.json",
+      "log": "10.jsonl",
+      "stdout": "10.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/account/reauth",
+        "input": "purpose、targetId?、totp；还要password",
+        "output": "ActionGrantDTO：token、purpose、expiresAt",
+        "permissions": "当前有效设备、同源；target规则由purpose决定"
+      }
+    },
+    {
+      "index": 11,
+      "method": "PATCH",
+      "path": "/api/admin/account/login-mode",
+      "source_table_line": 24,
+      "state": "11.state.json",
+      "log": "11.jsonl",
+      "stdout": "11.stdout.json",
+      "source": {
+        "method": "PATCH",
+        "path": "/api/admin/account/login-mode",
+        "input": "passwordlessEnabled、actionGrant",
+        "output": "AccountModeDTO：passwordlessEnabled、changedAt；成功撤销旧会话后重新登录",
+        "permissions": "本人，当前已绑定TOTP，LOGIN_MODE单用途grant"
+      }
+    },
+    {
+      "index": 12,
+      "method": "GET",
+      "path": "/api/admin/account/devices",
+      "source_table_line": 25,
+      "state": "12.state.json",
+      "log": "12.jsonl",
+      "stdout": "12.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/admin/account/devices",
+        "input": "cursor?、limit≤50",
+        "output": "CursorPage<DeviceDTO>，仅当前账号设备，标current/expiry/revoked",
+        "permissions": "当前有效后台账号"
+      }
+    },
+    {
+      "index": 13,
+      "method": "POST",
+      "path": "/api/admin/account/devices/[id]/revoke",
+      "source_table_line": 26,
+      "state": "13.state.json",
+      "log": "13.jsonl",
+      "stdout": "13.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/account/devices/[id]/revoke",
+        "input": "actionGrant(DEVICE_REVOKE,target=id)",
+        "output": "DeviceRevokeDTO：id、revokedAt；重复相同结果",
+        "permissions": "当前账号自己的设备，当前sid可撤销自身"
+      }
+    },
+    {
+      "index": 14,
+      "method": "POST",
+      "path": "/api/admin/account/logout-all",
+      "source_table_line": 27,
+      "state": "14.state.json",
+      "log": "14.jsonl",
+      "stdout": "14.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/account/logout-all",
+        "input": "actionGrant(LOGOUT_ALL)",
+        "output": "SignedOutDTO；清Auth.js cookie",
+        "permissions": "当前有效后台账号；sv+设备撤销原子"
+      }
+    },
+    {
+      "index": 15,
+      "method": "POST",
+      "path": "/api/admin/account/recovery-authorizations",
+      "source_table_line": 28,
+      "state": "15.state.json",
+      "log": "15.jsonl",
+      "stdout": "15.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/account/recovery-authorizations",
+        "input": "targetUserId、reason、actionGrant",
+        "output": "RecoveryPermitDTO：token、expiresAt，只返回一次",
+        "permissions": "ADMIN、RECOVERY_AUTHORIZE且target绑定，不能自授权"
+      }
+    },
+    {
+      "index": 16,
+      "method": "POST",
+      "path": "/api/auth-admin/recovery/start",
+      "source_table_line": 29,
+      "state": "16.state.json",
+      "log": "16.jsonl",
+      "stdout": "16.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/auth-admin/recovery/start",
+        "input": "email、credentialKind RECOVERY_CODE/PERMIT、credential",
+        "output": "RecoveryStateDTO：restricted、expiresAt，并设受限HttpOnly cookie",
+        "permissions": "独立恢复凭据；非后台session"
+      }
+    },
+    {
+      "index": 17,
+      "method": "POST",
+      "path": "/api/auth-admin/recovery/enroll",
+      "source_table_line": 30,
+      "state": "17.state.json",
+      "log": "17.jsonl",
+      "stdout": "17.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/auth-admin/recovery/enroll",
+        "input": "空对象",
+        "output": "RecoveryEnrollDTO：otpauthUri、expiresAt",
+        "permissions": "仅有效受限恢复cookie"
+      }
+    },
+    {
+      "index": 18,
+      "method": "POST",
+      "path": "/api/auth-admin/recovery/confirm",
+      "source_table_line": 31,
+      "state": "18.state.json",
+      "log": "18.jsonl",
+      "stdout": "18.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/auth-admin/recovery/confirm",
+        "input": "totp",
+        "output": "RecoveryCompleteDTO：completed、recoveryCodes，清受限cookie；不直接发ADMIN权限",
+        "permissions": "仅有效受限session与新TOTP"
+      }
+    },
+    {
+      "index": 19,
+      "method": "POST",
+      "path": "/api/chat/session",
+      "source_table_line": 32,
+      "state": "19.state.json",
+      "log": "19.jsonl",
+      "stdout": "19.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/chat/session",
+        "input": "locale en/ru；仅主动联系",
+        "output": "ChatSessionDTO：available、expiresAt；设必要cookie",
+        "permissions": "精确同源+限流；不依赖分析同意"
+      }
+    },
+    {
+      "index": 20,
+      "method": "POST",
+      "path": "/api/chat/conversations",
+      "source_table_line": 33,
+      "state": "20.state.json",
+      "log": "20.jsonl",
+      "stdout": "20.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/chat/conversations",
+        "input": "clientConversationId、clientMessageId、locale、bodyText、email?、productSlug?、sourcePath?",
+        "output": "ConversationReceivedDTO：conversationId、message、receivedAt、duplicate",
+        "permissions": "有效访客cookie且同源"
+      }
+    },
+    {
+      "index": 21,
+      "method": "GET",
+      "path": "/api/chat/conversations/[id]",
+      "source_table_line": 34,
+      "state": "21.state.json",
+      "log": "21.jsonl",
+      "stdout": "21.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/chat/conversations/[id]",
+        "input": "afterSeq=0、limit=50(max100)",
+        "output": "ChatSyncDTO：conversation、messages、lastSeq、nextAfterSeq、hasMore、read",
+        "permissions": "仅自己的有效访客cookie"
+      }
+    },
+    {
+      "index": 22,
+      "method": "POST",
+      "path": "/api/chat/conversations/[id]/messages",
+      "source_table_line": 35,
+      "state": "22.state.json",
+      "log": "22.jsonl",
+      "stdout": "22.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/chat/conversations/[id]/messages",
+        "input": "clientMessageId、bodyText",
+        "output": "MessageReceivedDTO：message、receivedAt、duplicate",
+        "permissions": "仅自己、OPEN、同源"
+      }
+    },
+    {
+      "index": 23,
+      "method": "POST",
+      "path": "/api/chat/conversations/[id]/read",
+      "source_table_line": 36,
+      "state": "23.state.json",
+      "log": "23.jsonl",
+      "stdout": "23.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/chat/conversations/[id]/read",
+        "input": "lastReadSeq",
+        "output": "ReadDTO：lastReadSeq",
+        "permissions": "仅自己的访客cookie、同源，单调推进"
+      }
+    },
+    {
+      "index": 24,
+      "method": "GET",
+      "path": "/api/admin/chat/conversations",
+      "source_table_line": 37,
+      "state": "24.state.json",
+      "log": "24.jsonl",
+      "stdout": "24.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/admin/chat/conversations",
+        "input": "status?、cursor?、limit=25(max100)、unreadOnly?",
+        "output": "CursorPage<ChatSummaryDTO>与本人未读总数",
+        "permissions": "ADMIN/SALES共享聊天范围；EDITOR拒绝"
+      }
+    },
+    {
+      "index": 25,
+      "method": "GET",
+      "path": "/api/admin/chat/conversations/[id]",
+      "source_table_line": 38,
+      "state": "25.state.json",
+      "log": "25.jsonl",
+      "stdout": "25.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/admin/chat/conversations/[id]",
+        "input": "afterSeq=0、limit=50(max100)",
+        "output": "AdminChatSyncDTO（正文按授权，不含访客cookie/token）",
+        "permissions": "ADMIN/SALES"
+      }
+    },
+    {
+      "index": 26,
+      "method": "POST",
+      "path": "/api/admin/chat/conversations/[id]/messages",
+      "source_table_line": 39,
+      "state": "26.state.json",
+      "log": "26.jsonl",
+      "stdout": "26.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/chat/conversations/[id]/messages",
+        "input": "clientMessageId、bodyText",
+        "output": "MessageReceivedDTO；author由session确定",
+        "permissions": "ADMIN/SALES、OPEN、同源"
+      }
+    },
+    {
+      "index": 27,
+      "method": "POST",
+      "path": "/api/admin/chat/conversations/[id]/read",
+      "source_table_line": 40,
+      "state": "27.state.json",
+      "log": "27.jsonl",
+      "stdout": "27.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/chat/conversations/[id]/read",
+        "input": "lastReadSeq",
+        "output": "ReadDTO",
+        "permissions": "ADMIN/SALES且仅改自己的游标、同源"
+      }
+    },
+    {
+      "index": 28,
+      "method": "PATCH",
+      "path": "/api/admin/chat/conversations/[id]",
+      "source_table_line": 38,
+      "state": "28.state.json",
+      "log": "28.jsonl",
+      "stdout": "28.stdout.json",
+      "source": {
+        "method": "PATCH",
+        "path": "/api/admin/chat/conversations/[id]",
+        "input": "status=CLOSED、expectedVersion",
+        "output": "ChatStatusDTO：status、version、updatedAt",
+        "permissions": "ADMIN/SALES、同源，CAS"
+      }
+    },
+    {
+      "index": 29,
+      "method": "POST",
+      "path": "/api/analytics/consent",
+      "source_table_line": 42,
+      "state": "29.state.json",
+      "log": "29.jsonl",
+      "stdout": "29.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/analytics/consent",
+        "input": "analytics Boolean、consentVersion",
+        "output": "ConsentDTO：analytics、expiresAt；同意签匿名cookie/撤回清cookie",
+        "permissions": "同源，无需登录，禁止跟踪拒绝者"
+      }
+    },
+    {
+      "index": 30,
+      "method": "POST",
+      "path": "/api/analytics/events",
+      "source_table_line": 43,
+      "state": "30.state.json",
+      "log": "30.jsonl",
+      "stdout": "30.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/analytics/events",
+        "input": "events[1..20]：eventId/kind/occurredAt/locale及种类所需navigationId/viewId/productSlug/path",
+        "output": "AnalyticsReceiptDTO：acceptedIds、duplicateIds、receivedAt",
+        "permissions": "有效分析同意cookie、同源；没有同意返回403不落事件"
+      }
+    },
+    {
+      "index": 31,
+      "method": "GET",
+      "path": "/api/admin/settings/analytics",
+      "source_table_line": 44,
+      "state": "31.state.json",
+      "log": "31.jsonl",
+      "stdout": "31.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/admin/settings/analytics",
+        "input": "无",
+        "output": "AnalyticsSettingsDTO：version/timezone/timezoneRevision/recomputableFrom",
+        "permissions": "ADMIN"
+      }
+    },
+    {
+      "index": 32,
+      "method": "PATCH",
+      "path": "/api/admin/settings/analytics",
+      "source_table_line": 44,
+      "state": "32.state.json",
+      "log": "32.jsonl",
+      "stdout": "32.stdout.json",
+      "source": {
+        "method": "PATCH",
+        "path": "/api/admin/settings/analytics",
+        "input": "timezone、expectedVersion",
+        "output": "AnalyticsSettingsDTO与rebuildScheduled",
+        "permissions": "ADMIN、同源，CAS并审计"
+      }
+    },
+    {
+      "index": 33,
+      "method": "GET",
+      "path": "/api/admin/stats",
+      "source_table_line": 46,
+      "state": "33.state.json",
+      "log": "33.jsonl",
+      "stdout": "33.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/admin/stats",
+        "input": "from/to本地日、productSlug?、timezoneRevision?、sources?",
+        "output": "StatsDTO：授权来源列表/指标/coverage/真实数据时间，分源状态",
+        "permissions": "ADMIN全部；SALES业务范围；EDITOR公开流量和3D"
+      }
+    },
+    {
+      "index": 34,
+      "method": "POST",
+      "path": "/api/admin/cron/operations",
+      "source_table_line": 47,
+      "state": "34.state.json",
+      "log": "34.jsonl",
+      "stdout": "34.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/cron/operations",
+        "input": "jobKey固定白名单；dryRun?仅保留任务",
+        "output": "JobResultDTO：jobKey/status/counts/finishedAt",
+        "permissions": "Bearer CRON_SECRET、常量时间校验，无任意job/代码"
+      }
+    },
+    {
+      "index": 35,
+      "method": "GET",
+      "path": "/api/admin/cron/mail-queue",
+      "source_table_line": 48,
+      "state": "35.state.json",
+      "log": "35.jsonl",
+      "stdout": "35.stdout.json",
+      "source": {
+        "method": "GET",
+        "path": "/api/admin/cron/mail-queue",
+        "input": "既有协议",
+        "output": "既有stale/sent/failed/deferred/dropped计数",
+        "permissions": "先既有邮件开关，再Bearer CRON_SECRET；本轮补真实调度"
+      }
+    },
+    {
+      "index": 36,
+      "method": "POST",
+      "path": "/api/admin/cron/mail-queue",
+      "source_table_line": 48,
+      "state": "36.state.json",
+      "log": "36.jsonl",
+      "stdout": "36.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/admin/cron/mail-queue",
+        "input": "既有协议",
+        "output": "既有stale/sent/failed/deferred/dropped计数",
+        "permissions": "先既有邮件开关，再Bearer CRON_SECRET；本轮补真实调度"
+      }
+    },
+    {
+      "index": 37,
+      "method": "POST",
+      "path": "/api/internal/ops-report",
+      "source_table_line": 49,
+      "state": "37.state.json",
+      "log": "37.jsonl",
+      "stdout": "37.stdout.json",
+      "source": {
+        "method": "POST",
+        "path": "/api/internal/ops-report",
+        "input": "source STORAGE/BACKUP、measuredAt、status、严格白名单values/safeErrorCode",
+        "output": "OpsReportReceiptDTO：accepted、measuredAt",
+        "permissions": "Bearer CRON_SECRET；受控服务器报告脚本，不接session/任意路径"
+      }
+    }
+  ]
+}

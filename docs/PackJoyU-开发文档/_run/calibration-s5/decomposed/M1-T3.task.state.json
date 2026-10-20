@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Produce a rebranded JPG and video-poster publication copies",
+    "input": "The original desktop JPG/video, the current PackJoyU wordmark, and provenance/original-hash records",
+    "output": "brand-static-media; a rebranded JPG, a semantically matching video poster and compressed video copy, hashes and a comparison checklist",
+    "accept": "1) Original JPG/video hashes remain unchanged and all output files decode. List every old-logo location on the JPG blimp and factory wall, replace each completely with the current PackJoyU wordmark, and verify no old logo remains at each listed location. Extract the video poster from its own footage and record a verifiable frame time. 2) Even when a candidate design differs from the online wordmark, use the current PackJoyU wordmark and record the logo file hash. Do not wait for the user to revisit candidate images or treat a candidate as an approved new logo (E-28). 3) When GPT Dot is reachable and actually produces the assets, retain invocation, software-operation, output-file and finished-output check records. When unreachable, record not yet executed/the implementation task for each item, do not mark that item finished, and do not falsely claim successful invocation (E-29)."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

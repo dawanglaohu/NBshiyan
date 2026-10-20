@@ -1,0 +1,132 @@
+{
+  "status": "split_proposal_not_applied_not_calibrated",
+  "adoptedSplitFromParent": "Real Jev adjudicate chose A, confidence low 0.26: separate M1-T9 1.5d production primitive, M1-T5 2d page integration. No new model-asset task.",
+  "tasks": [
+    {
+      "id": "M1-T9",
+      "title": "制作公司区块独立图稿与可编辑源工程",
+      "module": "M1",
+      "deps": [
+        "M1-T1"
+      ],
+      "input": "参考PDF组织/产品主题、己方可证事实、现用PackJoyU字标与用户已授权GPT Dot远程软件制作",
+      "output": "company-visual-assets；网站公司区块选定1–2幅独立重绘图稿、可编辑软件源工程、Web图/enru alt与尺寸、哈希及真实制作清单",
+      "acceptance": "1) 仅为网站公司区块选定1–2幅介绍/产品主题图，制作前登记“参考PDF页码/主题→己方可证事实或不含硬事实的产品示意→独立重绘图稿”清单。仅参考组织和主题，不重绘25页整本目录；没有己方依据的YUHAO认证/产能/规模、厂房、设备及证照均不进入图稿（E-27、E-111）。2) 每件交付可打开编辑的软件源工程、可解码Web发布图、正整数尺寸与en/ru alt元数据；源工程存docs/brand-content/source/，Web图存public/brand/company/，两者不能混放。docs/brand-content/company-visuals.json逐件记录软件名称/版本、源工程/导出相对路径及SHA-256、参考主题/事实依据、标识文件SHA-256；标识必须等于现用PackJoyU字标，不用候选新标、不等待用户回看候选图（E-28、E-111）。3) 先探测用户已授权GPT Dot远程软件制作通道；仅实际调用后保留调用、软件操作和源工程/导出证据。不可达或未执行时逐件登记尚未执行，缺源工程或Web成品均保持该项未完成；文字计划、截图和伪造调用不算交付（E-29、E-111）。4) 本卡仅交素材与清单，不宣称页面已接通；company-visual-assets由M1-T5实际消费并验首页/about入口、加载和尺寸，T9不能代替T5的集成验收（E-111）。",
+      "days": "1.5d",
+      "paths": [
+        "public/brand/company/",
+        "docs/brand-content/source/",
+        "docs/brand-content/company-visuals.json"
+      ],
+      "supportPaths": [],
+      "provides": [
+        "company-visual-assets"
+      ],
+      "requires": [
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        }
+      ],
+      "stage": "primitive",
+      "integrationTask": "M1-T5",
+      "wiring": [],
+      "ui": false,
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        11,
+        13,
+        14,
+        17,
+        18
+      ]
+    },
+    {
+      "id": "M1-T5",
+      "title": "集成己方公司内容与独立图稿",
+      "module": "M1",
+      "deps": [
+        "M1-T4",
+        "M1-T9"
+      ],
+      "input": "己方可核实材料、PDF结构参考、现有SiteSetting/Sanity及发布开关、M1-T9 company-visual-assets与素材manifest",
+      "output": "company-content；about与首页公司摘要、事实对照、安全发布映射和真实页面图稿消费；原联系隐私入口兼容",
+      "acceptance": "1) 为每个对外公司硬事实建立“页面字段→己方证据文件/页码”对照；无己方证据的YUHAO认证/产能/工厂规模不得出现在成品文案或图片；PDF仅作结构/产品主题参考，自动检索加逐字段对照均无改名冒用（E-27）。2) 成品引用的logo哈希等于现用PackJoyU字标，不使用候选新标；不等待用户回看候选图，PDF指令不作执行授权（E-28）。3) 真浏览器点about-link→/[locale]/about、footer联系/隐私→对应路由，en/ru切换保持对应页；发布开关关闭时仍404，开时SSR SiteSetting/Sanity显示与事实对照表一致，改动页全部有导航证据。 4) 消费M1-T9的company-visual-assets，为已选图稿建立src/lib/brand/company-media.ts安全发布映射，仅输出/brand/company/下已核哈希的Web路径、正整数宽高及en/ru alt；拒绝外部URL、越界路径、源工程路径和文件系统地址，不把工程、私有路径或制作凭据下发浏览器。逐件核manifest中的成品与现用字标哈希、制作证据和完成状态；素材未完成时本集成项不能通过（E-29、E-111）。5) en/ru真实首页公司摘要及about消费相同已审映射，真实浏览器从可见入口进入，网络加载Web图路径/文件哈希与清单一致；alt按语言匹配，1920/1440/390尺寸下主体完整、无横向溢出。保存参考主题/己方事实→源工程/成品→映射→路由/组件的追溯证据；仅有资料目录文件不算页面完成，源工程不进public或生产镜像（E-111）。",
+      "days": "2d",
+      "paths": [
+        "src/components/about/",
+        "src/app/",
+        "messages/en.json",
+        "messages/ru.json",
+        "docs/brand-content/",
+        "e2e/company-content.spec.ts",
+        "src/lib/brand/company-media.ts"
+      ],
+      "supportPaths": [],
+      "provides": [
+        "company-content"
+      ],
+      "requires": [
+        {
+          "task": "M1-T4",
+          "capability": "home-media"
+        },
+        {
+          "task": "M1-T9",
+          "capability": "company-visual-assets"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "ui": true,
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        16,
+        17,
+        18
+      ]
+    }
+  ],
+  "edge": {
+    "id": "E-111",
+    "cn": {
+      "scene": "公司图稿、可编辑源工程及品牌来源可追溯",
+      "trigger": "网站公司区块的图稿只有文本/截图、缺可编辑工程/发布文件、旧品牌或来源哈希不符，或未被实际网页消费",
+      "expect": "逐件交付选定1–2幅独立重绘图稿的可编辑软件源工程、Web发布图与en/ru alt；登记参考PDF页码/主题、己方事实依据、当前PackJoyU标识哈希、源工程/导出哈希、软件版本、实际Dot操作记录及网页引用位置。真实页面加载匹配图稿并保持主体完整；缺任一必需产物或工具未执行时该项保持未完成，不以文字计划冒充完成；不扩大为25页整本目录或无依据的厂房/证照绘制。",
+      "module": "M1"
+    },
+    "en": {
+      "scene": "Traceable company artwork, editable native projects, brand, and provenance",
+      "trigger": "A website company-block artwork has only copy or screenshots, lacks an editable project or export, has old branding or mismatched source hashes, or is not consumed by a real page",
+      "expect": "For each of only one or two selected independently redrawn illustrations, deliver the editable native software project, Web export, and en/ru alt text. Record reference PDF pages/themes, company-owned factual evidence, the current PackJoyU logo hash, project/export hashes, software version, actual GPT Dot operation evidence, and consuming page locations. Real pages load matching files and retain complete subjects. A missing required output or unperformed tool step keeps that item incomplete; a textual plan cannot count as completed artwork. Do not expand this into redrawing all 25 catalogue pages or unsupported factory/certificate depictions."
+    }
+  },
+  "files": [
+    "M1-T9.proposal.json",
+    "M1-T9.task.state.json",
+    "M1-T9.coverage.state.json",
+    "M1-T5.proposal.json",
+    "M1-T5.task.state.json",
+    "M1-T5.coverage.state.json",
+    "E111.edge.state.json"
+  ],
+  "videoPolicy": "M1-T3 only inventories all visible names/logos across the whole video with timestamps. Third-party identities block publication of that candidate and are reported for authorized disposition; this patch does not authorize automatic recutting, obscuring, or rebranding the video.",
+  "executionBoundary": "GPT Dot is for the already-authorized brand illustrations and JPG/GIF work, not default rebuilding, retexturing, or re-exporting the existing GLB models."
+}

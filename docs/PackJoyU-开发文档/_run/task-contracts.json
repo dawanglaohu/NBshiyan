@@ -1,0 +1,3741 @@
+{
+  "schemaVersion": 1,
+  "tasks": {
+    "M1-T1": {
+      "provides": [
+        "visual-base",
+        "runnable-smoke"
+      ],
+      "requires": [],
+      "stage": "integration",
+      "wiring": [
+        "buildPipeline",
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/styles/tokens.css",
+        "src/styles/motion-tokens.css",
+        ".github/workflows/ci.yml",
+        "e2e/brand-smoke.spec.ts",
+        "docs/PackJoyU-开发文档/",
+        "AGENTS.md",
+        "CLAUDE.md"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M1-T2": {
+      "provides": [
+        "contract-types"
+      ],
+      "requires": [
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [
+        "sharedTypes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/contracts/",
+        "tests/contracts-foundation.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M3-T1"
+    },
+    "M1-T3": {
+      "provides": [
+        "brand-static-media",
+        "brand-logo-master"
+      ],
+      "requires": [
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "public/brand/",
+        "docs/brand-media/static/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M1-T4": {
+      "provides": [
+        "home-media"
+      ],
+      "requires": [
+        {
+          "task": "M1-T6",
+          "capability": "brand-media"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/layout/",
+        "src/app/",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/home-media.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M1-T5": {
+      "provides": [
+        "company-content"
+      ],
+      "requires": [
+        {
+          "task": "M1-T4",
+          "capability": "home-media"
+        },
+        {
+          "task": "M1-T9",
+          "capability": "company-visual-assets"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/about/",
+        "src/app/",
+        "messages/en.json",
+        "messages/ru.json",
+        "docs/brand-content/",
+        "e2e/company-content.spec.ts",
+        "src/lib/brand/company-media.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M1-T6": {
+      "provides": [
+        "brand-media"
+      ],
+      "requires": [
+        {
+          "task": "M1-T3",
+          "capability": "brand-static-media"
+        },
+        {
+          "task": "M1-T3",
+          "capability": "brand-logo-master"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "public/brand/",
+        "docs/brand-media/animation/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M1-T7": {
+      "provides": [
+        "visual-components"
+      ],
+      "requires": [
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/styles/tokens.css",
+        "src/components/ui/",
+        "tests/ui-primitives.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M1-T4"
+    },
+    "M1-T8": {
+      "provides": [
+        "client-api-foundation"
+      ],
+      "requires": [
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/client/api.ts",
+        "src/lib/client/api-errors.ts",
+        "tests/client-api-foundation.http.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M3-T7"
+    },
+    "M2-T1": {
+      "provides": [
+        "product-cards"
+      ],
+      "requires": [
+        {
+          "task": "M1-T4",
+          "capability": "home-media"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/three/ProductGallery.tsx",
+        "src/components/three/GalleryScene.tsx",
+        "src/app/",
+        "e2e/product-cards.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M2-T2": {
+      "provides": [
+        "model-pointer"
+      ],
+      "requires": [
+        {
+          "task": "M2-T1",
+          "capability": "product-cards"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/three/",
+        "src/lib/three/",
+        "e2e/model-pointer.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M2-T3": {
+      "provides": [
+        "model-accessibility"
+      ],
+      "requires": [
+        {
+          "task": "M2-T2",
+          "capability": "model-pointer"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/three/",
+        "src/lib/three/",
+        "e2e/model-accessibility.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M2-T4": {
+      "provides": [
+        "model-event-rules"
+      ],
+      "requires": [
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/analytics/model-events.ts",
+        "tests/model-event-rules.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M2-T7"
+    },
+    "M2-T5": {
+      "provides": [
+        "product-inquiry"
+      ],
+      "requires": [
+        {
+          "task": "M2-T6",
+          "capability": "model-fallback"
+        },
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/inquiry/",
+        "src/components/quote/",
+        "src/components/three/ProductGallery.tsx",
+        "src/app/",
+        "e2e/product-inquiry.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M2-T6": {
+      "provides": [
+        "model-fallback"
+      ],
+      "requires": [
+        {
+          "task": "M2-T3",
+          "capability": "model-accessibility"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/three/",
+        "src/lib/three/",
+        "e2e/model-fallback.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M2-T7": {
+      "provides": [
+        "model-events"
+      ],
+      "requires": [
+        {
+          "task": "M2-T4",
+          "capability": "model-event-rules"
+        },
+        {
+          "task": "M2-T6",
+          "capability": "model-fallback"
+        },
+        {
+          "task": "M5-T6",
+          "capability": "analytics-ingest"
+        },
+        {
+          "task": "M5-T7",
+          "capability": "analytics-consent-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "eventKinds",
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/three/",
+        "src/components/analytics/",
+        "e2e/model-events.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M2-T8": {
+      "provides": [
+        "product-contact"
+      ],
+      "requires": [
+        {
+          "task": "M2-T5",
+          "capability": "product-inquiry"
+        },
+        {
+          "task": "M2-T7",
+          "capability": "model-events"
+        },
+        {
+          "task": "M4-T5",
+          "capability": "chat-visitor-ui"
+        },
+        {
+          "task": "M4-T6",
+          "capability": "chat-operator-ui"
+        },
+        {
+          "task": "M4-T14",
+          "capability": "chat-human-roundtrip-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/chat/",
+        "src/components/three/ProductGallery.tsx",
+        "e2e/product-contact.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T1": {
+      "provides": [
+        "admin-device-sessions",
+        "current-admin-permissions"
+      ],
+      "requires": [
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        },
+        {
+          "task": "M3-T14",
+          "capability": "http-guards-metrics"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/admin/login.ts",
+        "src/lib/server/admin/accounts.ts",
+        "src/lib/server/composition.ts",
+        "src/types/next-auth.d.ts",
+        "src/app/api/admin/account/route.ts",
+        "tests/admin-device-session.db.test.ts",
+        "tests/admin-device-guard.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/auth.ts",
+        "src/lib/server/admin/device-session.ts",
+        "src/lib/server/admin/device-repo.ts",
+        "src/lib/server/admin/guard.ts",
+        "src/lib/server/admin/layout-gate.ts",
+        "src/lib/server/admin/page-access.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T2": {
+      "provides": [
+        "admin-login-modes",
+        "current-totp-consumption",
+        "first-enrollment"
+      ],
+      "requires": [
+        {
+          "task": "M3-T1",
+          "capability": "admin-device-sessions"
+        },
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/admin/crypto.ts",
+        "tests/admin-login-mode.db.test.ts",
+        "tests/admin-enroll-current-state.db.test.ts",
+        "e2e/admin-credentials-modes.spec.ts"
+      ],
+      "outputPaths": [
+        "src/auth.ts",
+        "src/lib/server/admin/login.ts",
+        "src/lib/server/admin/enroll-token.ts",
+        "src/lib/server/admin/enroll-guard.ts",
+        "src/app/api/auth-admin/enroll/route.ts",
+        "src/app/api/auth-admin/enroll/confirm/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T3": {
+      "provides": [
+        "admin-fresh-grants"
+      ],
+      "requires": [
+        {
+          "task": "M3-T2",
+          "capability": "current-totp-consumption"
+        },
+        {
+          "task": "M3-T1",
+          "capability": "current-admin-permissions"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/composition.ts",
+        "tests/admin-action-grant.db.test.ts",
+        "tests/admin-reauth.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/admin/action-grant.ts",
+        "src/app/api/admin/account/reauth/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T4": {
+      "provides": [
+        "targeted-recovery-authorizations"
+      ],
+      "requires": [
+        {
+          "task": "M3-T3",
+          "capability": "admin-fresh-grants"
+        },
+        {
+          "task": "M3-T1",
+          "capability": "current-admin-permissions"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/admin/recovery-repo.ts",
+        "src/lib/server/admin/audit.ts",
+        "src/lib/server/composition.ts",
+        "tests/admin-recovery-authorizations.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/admin/recovery-authorizations.ts",
+        "src/app/api/admin/account/recovery-authorizations/route.ts",
+        "src/app/api/admin/users/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T5": {
+      "provides": [
+        "limited-recovery-completion"
+      ],
+      "requires": [
+        {
+          "task": "M3-T19",
+          "capability": "limited-recovery-start"
+        },
+        {
+          "task": "M3-T2",
+          "capability": "current-totp-consumption"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/admin/recovery-repo.ts",
+        "src/lib/server/admin/audit.ts",
+        "src/lib/server/composition.ts",
+        "tests/admin-recovery-confirm.db.test.ts",
+        "tests/admin-recovery-reentry.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/admin/recovery-enrollment.ts",
+        "src/app/api/auth-admin/recovery/enroll/route.ts",
+        "src/app/api/auth-admin/recovery/confirm/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T6": {
+      "provides": [
+        "admin-auth-ui"
+      ],
+      "requires": [
+        {
+          "task": "M3-T2",
+          "capability": "admin-login-modes"
+        },
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        },
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M6-T4",
+          "capability": "stats-base-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/auth.ts",
+        "next.config.ts",
+        "src/lib/admin/safe-callback.ts",
+        "src/lib/navigation/routes.ts",
+        "src/components/layout/SiteFooter.tsx",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-login-ui.spec.ts"
+      ],
+      "outputPaths": [
+        "src/app/admin-login/",
+        "src/components/admin/auth/LoginForm.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T7": {
+      "provides": [
+        "admin-shell-profile-ui",
+        "admin-shell"
+      ],
+      "requires": [
+        {
+          "task": "M3-T15",
+          "capability": "admin-session-activity"
+        },
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T2",
+          "capability": "admin-login-modes"
+        },
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/lib/client/account.ts",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-shell-activity.spec.ts"
+      ],
+      "outputPaths": [
+        "src/components/admin/AdminShell.tsx",
+        "src/components/admin/auth/AdminSessionActivity.tsx",
+        "src/app/admin/admin.css",
+        "src/app/admin/layout.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T8": {
+      "provides": [
+        "device-management-ui"
+      ],
+      "requires": [
+        {
+          "task": "M3-T12",
+          "capability": "reauth-dialog"
+        },
+        {
+          "task": "M3-T17",
+          "capability": "device-management-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/lib/client/account.ts",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-device-list-revoke.spec.ts"
+      ],
+      "outputPaths": [
+        "src/app/admin/account/devices/",
+        "src/components/admin/account/DevicesContainer.tsx",
+        "src/components/admin/account/DeviceRow.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T9": {
+      "provides": [
+        "target-recovery-ui"
+      ],
+      "requires": [
+        {
+          "task": "M3-T12",
+          "capability": "reauth-dialog"
+        },
+        {
+          "task": "M3-T4",
+          "capability": "targeted-recovery-authorizations"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/app/admin/users/page.tsx",
+        "src/lib/admin/api.ts",
+        "src/lib/client/account.ts",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-target-recovery.spec.ts"
+      ],
+      "outputPaths": [
+        "src/components/admin/users/UsersAdmin.tsx",
+        "src/components/admin/users/RecoveryPermitResult.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T10": {
+      "provides": [
+        "first-enrollment-ui"
+      ],
+      "requires": [
+        {
+          "task": "M3-T6",
+          "capability": "admin-auth-ui"
+        },
+        {
+          "task": "M3-T2",
+          "capability": "first-enrollment"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/components/admin/auth/LoginForm.tsx",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-enrollment-ui.spec.ts"
+      ],
+      "outputPaths": [
+        "src/app/admin-enroll/",
+        "src/components/admin/enroll/EnrollWizard.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T11": {
+      "provides": [
+        "recovery-ui"
+      ],
+      "requires": [
+        {
+          "task": "M3-T6",
+          "capability": "admin-auth-ui"
+        },
+        {
+          "task": "M3-T5",
+          "capability": "limited-recovery-completion"
+        },
+        {
+          "task": "M3-T18",
+          "capability": "os-owner-recovery-cli"
+        },
+        {
+          "task": "M3-T20",
+          "capability": "self-rebind-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/components/admin/auth/LoginForm.tsx",
+        "next.config.ts",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-recovery-ui.spec.ts"
+      ],
+      "outputPaths": [
+        "src/app/admin-recovery/",
+        "src/components/admin/auth/RecoveryWizard.tsx",
+        "src/lib/client/recovery.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T12": {
+      "provides": [
+        "account-security-ui",
+        "reauth-dialog"
+      ],
+      "requires": [
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        },
+        {
+          "task": "M3-T16",
+          "capability": "account-security-mutations"
+        },
+        {
+          "task": "M3-T20",
+          "capability": "self-rebind-api"
+        },
+        {
+          "task": "M3-T11",
+          "capability": "recovery-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/components/admin/AdminShell.tsx",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-personal-security.spec.ts"
+      ],
+      "outputPaths": [
+        "src/app/admin/account/page.tsx",
+        "src/components/admin/account/AccountContainer.tsx",
+        "src/components/admin/account/ReauthDialog.tsx",
+        "src/lib/client/account.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T13": {
+      "provides": [
+        "signout-all-ui"
+      ],
+      "requires": [
+        {
+          "task": "M3-T8",
+          "capability": "device-management-ui"
+        },
+        {
+          "task": "M3-T12",
+          "capability": "reauth-dialog"
+        },
+        {
+          "task": "M3-T17",
+          "capability": "device-management-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/components/admin/account/DevicesContainer.tsx",
+        "src/lib/client/account.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/admin-signout-all.spec.ts"
+      ],
+      "outputPaths": [
+        "src/components/admin/account/SignOutAllDevices.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T14": {
+      "provides": [
+        "http-guards-metrics"
+      ],
+      "requires": [
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/composition.ts",
+        "prod-env-check.ts",
+        "src/instrumentation.ts",
+        "tests/admin-http-metrics.test.ts",
+        "tests/admin-config.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/config.ts",
+        "src/lib/server/http/errors.ts",
+        "src/lib/server/http/metrics.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M3-T1"
+    },
+    "M3-T15": {
+      "provides": [
+        "admin-session-activity"
+      ],
+      "requires": [
+        {
+          "task": "M3-T1",
+          "capability": "admin-device-sessions"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/auth.ts",
+        "src/lib/server/admin/device-session.ts",
+        "src/lib/server/composition.ts",
+        "tests/admin-session-activity.http.test.ts",
+        "e2e/admin-device-lifecycle.spec.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/admin/session-expiry.ts",
+        "src/app/api/admin/account/session/activity/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T16": {
+      "provides": [
+        "account-security-mutations"
+      ],
+      "requires": [
+        {
+          "task": "M3-T3",
+          "capability": "admin-fresh-grants"
+        },
+        {
+          "task": "M3-T2",
+          "capability": "admin-login-modes"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/admin/account-repo.ts",
+        "src/lib/server/admin/audit.ts",
+        "src/lib/server/composition.ts",
+        "tests/admin-account-mode-password.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/admin/account-security.ts",
+        "src/app/api/admin/account/login-mode/route.ts",
+        "src/app/api/admin/account/password/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T17": {
+      "provides": [
+        "device-management-api"
+      ],
+      "requires": [
+        {
+          "task": "M3-T3",
+          "capability": "admin-fresh-grants"
+        },
+        {
+          "task": "M3-T1",
+          "capability": "admin-device-sessions"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/admin/device-repo.ts",
+        "src/lib/server/admin/audit.ts",
+        "src/lib/server/composition.ts",
+        "tests/admin-device-management.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/admin/device-management.ts",
+        "src/app/api/admin/account/devices/",
+        "src/app/api/admin/account/logout-all/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T18": {
+      "provides": [
+        "os-owner-recovery-cli"
+      ],
+      "requires": [
+        {
+          "task": "M3-T4",
+          "capability": "targeted-recovery-authorizations"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [
+        "src/lib/server/admin/recovery-repo.ts",
+        "src/lib/server/admin/crypto.ts",
+        "scripts/admin-reset-initial-password.mjs",
+        "tests/admin-owner-recovery-cli.test.ts"
+      ],
+      "outputPaths": [
+        "scripts/admin-authorize-recovery.mjs",
+        "src/lib/server/admin/owner-recovery.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T19": {
+      "provides": [
+        "limited-recovery-start"
+      ],
+      "requires": [
+        {
+          "task": "M3-T4",
+          "capability": "targeted-recovery-authorizations"
+        },
+        {
+          "task": "M3-T1",
+          "capability": "admin-device-sessions"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/admin/recovery-repo.ts",
+        "src/lib/server/admin/audit.ts",
+        "src/lib/server/composition.ts",
+        "tests/admin-recovery-start.db.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/admin/recovery-start.ts",
+        "src/app/api/auth-admin/recovery/start/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M3-T20": {
+      "provides": [
+        "self-rebind-api"
+      ],
+      "requires": [
+        {
+          "task": "M3-T5",
+          "capability": "limited-recovery-completion"
+        },
+        {
+          "task": "M3-T3",
+          "capability": "admin-fresh-grants"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/admin/recovery-repo.ts",
+        "src/lib/server/composition.ts",
+        "tests/admin-self-rebind.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/app/api/admin/account/2fa/reset/route.ts",
+        "src/lib/server/admin/self-rebind.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T1": {
+      "provides": [
+        "chat-first-message-api",
+        "chat-atomic-outbox"
+      ],
+      "requires": [
+        {
+          "task": "M4-T8",
+          "capability": "chat-visitor-session"
+        },
+        {
+          "task": "M5-T8",
+          "capability": "job-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/composition.ts",
+        "tests/chat-first-message.db.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/conversation-service.ts",
+        "src/lib/server/chat/repo.ts",
+        "src/lib/chat/rules.ts",
+        "src/app/api/chat/conversations/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T2": {
+      "provides": [
+        "chat-visitor-sync-api"
+      ],
+      "requires": [
+        {
+          "task": "M4-T1",
+          "capability": "chat-first-message-api"
+        },
+        {
+          "task": "M4-T8",
+          "capability": "chat-visitor-session"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/chat/repo.ts",
+        "src/lib/server/composition.ts",
+        "tests/chat-visitor-read.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/read-cursor.ts",
+        "src/lib/server/chat/visitor-read.ts",
+        "src/app/api/chat/conversations/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T3": {
+      "provides": [
+        "chat-operator-api"
+      ],
+      "requires": [
+        {
+          "task": "M4-T2",
+          "capability": "chat-visitor-sync-api"
+        },
+        {
+          "task": "M3-T1",
+          "capability": "current-admin-permissions"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/chat/read-cursor.ts",
+        "src/lib/server/composition.ts",
+        "tests/chat-operator-read.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/operator-read.ts",
+        "src/lib/server/chat/inbox-repo.ts",
+        "src/app/api/admin/chat/conversations/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T4": {
+      "provides": [
+        "chat-notification-job"
+      ],
+      "requires": [
+        {
+          "task": "M4-T1",
+          "capability": "chat-atomic-outbox"
+        },
+        {
+          "task": "M5-T8",
+          "capability": "job-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "jobs",
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "src/app/api/admin/cron/operations/route.ts",
+        "deploy/cron.nbshiyan",
+        "src/lib/server/config.ts",
+        "prod-env-check.ts",
+        "tests/chat-notification-worker.db.test.ts",
+        "tests/chat-notification-smtp.integration.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/notification-service.ts",
+        "src/lib/server/chat/notification-repo.ts",
+        "src/lib/server/chat/notification-mailer.ts",
+        "src/lib/server/mail/smtp.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T5": {
+      "provides": [
+        "chat-visitor-ui"
+      ],
+      "requires": [
+        {
+          "task": "M4-T10",
+          "capability": "chat-visitor-append-api"
+        },
+        {
+          "task": "M4-T15",
+          "capability": "chat-consent-migration"
+        },
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
+        },
+        {
+          "task": "M5-T6",
+          "capability": "analytics-ingest"
+        },
+        {
+          "task": "M5-T7",
+          "capability": "analytics-consent-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes",
+        "eventKinds"
+      ],
+      "supportPaths": [
+        "src/components/inquiry/InquiryWizard.tsx",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/chat-visitor-composer.spec.ts"
+      ],
+      "outputPaths": [
+        "src/components/chat/ContactChatEntry.tsx",
+        "src/components/chat/ChatContainer.tsx",
+        "src/components/chat/Composer.tsx",
+        "src/components/chat/MessageList.tsx",
+        "src/lib/client/chat.ts",
+        "e2e/chat-start-analytics.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T6": {
+      "provides": [
+        "chat-operator-ui"
+      ],
+      "requires": [
+        {
+          "task": "M4-T3",
+          "capability": "chat-operator-api"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        },
+        {
+          "task": "M4-T9",
+          "capability": "chat-sync-retry-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/components/admin/AdminShell.tsx",
+        "src/lib/client/chat.ts",
+        "src/lib/client/chat-poller.ts",
+        "src/lib/server/admin/page-access.ts",
+        "src/lib/navigation/routes.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/chat-operator-inbox.spec.ts"
+      ],
+      "outputPaths": [
+        "src/app/admin/chat/",
+        "src/components/admin/chat/InboxContainer.tsx",
+        "src/components/admin/chat/ThreadContainer.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T7": {
+      "provides": [
+        "chat-retention-dryrun-job"
+      ],
+      "requires": [
+        {
+          "task": "M4-T3",
+          "capability": "chat-operator-api"
+        },
+        {
+          "task": "M5-T8",
+          "capability": "job-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "jobs",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "src/lib/server/config.ts",
+        "prod-env-check.ts",
+        "deploy/cron.nbshiyan",
+        "tests/chat-retention-dryrun.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/retention-candidates.ts",
+        "src/lib/server/chat/retention-policy.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T8": {
+      "provides": [
+        "chat-visitor-session"
+      ],
+      "requires": [
+        {
+          "task": "M3-T14",
+          "capability": "http-guards-metrics"
+        },
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "prisma/schema.prisma",
+        "src/lib/server/config.ts",
+        "src/lib/server/composition.ts",
+        "prod-env-check.ts",
+        "tests/chat-session.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/visitor-session.ts",
+        "src/app/api/chat/session/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T9": {
+      "provides": [
+        "chat-sync-retry-ui"
+      ],
+      "requires": [
+        {
+          "task": "M4-T5",
+          "capability": "chat-visitor-ui"
+        },
+        {
+          "task": "M4-T11",
+          "capability": "chat-operator-write-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/components/chat/ChatContainer.tsx",
+        "src/lib/client/chat.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/chat-polling-network.spec.ts"
+      ],
+      "outputPaths": [
+        "src/lib/client/chat-poller.ts",
+        "src/lib/client/chat-retry.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T10": {
+      "provides": [
+        "chat-visitor-append-api"
+      ],
+      "requires": [
+        {
+          "task": "M4-T2",
+          "capability": "chat-visitor-sync-api"
+        },
+        {
+          "task": "M4-T1",
+          "capability": "chat-atomic-outbox"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/app/api/chat/conversations/",
+        "src/lib/server/chat/repo.ts",
+        "src/lib/server/composition.ts",
+        "tests/chat-visitor-append.db.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/message-service.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T11": {
+      "provides": [
+        "chat-operator-write-api"
+      ],
+      "requires": [
+        {
+          "task": "M4-T3",
+          "capability": "chat-operator-api"
+        },
+        {
+          "task": "M4-T10",
+          "capability": "chat-visitor-append-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/app/api/admin/chat/conversations/",
+        "src/lib/server/chat/message-service.ts",
+        "src/lib/server/composition.ts",
+        "tests/chat-operator-write.http.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/operator-write.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T12": {
+      "provides": [
+        "mail-queue-real-schedule"
+      ],
+      "requires": [
+        {
+          "task": "M5-T8",
+          "capability": "job-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "jobs",
+        "backendRoutes"
+      ],
+      "supportPaths": [
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "deploy/cron.nbshiyan",
+        "tests/mail-queue-schedule.integration.test.ts"
+      ],
+      "outputPaths": [
+        "src/app/api/admin/cron/mail-queue/route.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T13": {
+      "provides": [
+        "chat-authorized-retention"
+      ],
+      "requires": [
+        {
+          "task": "M4-T7",
+          "capability": "chat-retention-dryrun-job"
+        },
+        {
+          "task": "M4-T11",
+          "capability": "chat-operator-write-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "jobs",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/chat/retention-policy.ts",
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "tests/chat-retention-concurrency.db.test.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/chat/retention-service.ts",
+        "src/lib/server/chat/retention-repo.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T14": {
+      "provides": [
+        "chat-human-roundtrip-ui"
+      ],
+      "requires": [
+        {
+          "task": "M4-T6",
+          "capability": "chat-operator-ui"
+        },
+        {
+          "task": "M4-T11",
+          "capability": "chat-operator-write-api"
+        },
+        {
+          "task": "M4-T4",
+          "capability": "chat-notification-job"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/components/admin/chat/ThreadContainer.tsx",
+        "src/lib/client/chat.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/chat-human-roundtrip.spec.ts"
+      ],
+      "outputPaths": [
+        "src/components/admin/chat/OperatorReplyComposer.tsx",
+        "src/components/admin/chat/CloseConversation.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M4-T15": {
+      "provides": [
+        "chat-consent-migration"
+      ],
+      "requires": [
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
+        },
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [
+        "src/lib/legal/privacy.ts",
+        "src/lib/chat/adminPath.ts",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/chat-consent-migration.spec.ts",
+        "e2e/tawk.spec.ts"
+      ],
+      "outputPaths": [
+        "src/components/chat/useTawk.ts",
+        "src/components/quote/FloatingActions.tsx",
+        "src/components/consent/CookieConsent.tsx",
+        "src/lib/consent.ts",
+        "src/lib/client/consent.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M5-T1": {
+      "provides": [
+        "job-leases"
+      ],
+      "requires": [
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [
+        "migrations"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/jobs/lease-repo.ts",
+        "src/lib/server/jobs/types.ts",
+        "prisma/schema.prisma",
+        "tests/job-leases.db.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M5-T8"
+    },
+    "M5-T2": {
+      "provides": [
+        "analytics-consent-api"
+      ],
+      "requires": [
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        },
+        {
+          "task": "M3-T14",
+          "capability": "http-guards-metrics"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [
+        "src/lib/server/composition.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/analytics/consent.ts",
+        "src/app/api/analytics/consent/route.ts",
+        "tests/analytics-consent.http.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M5-T3": {
+      "provides": [
+        "analytics-aggregate"
+      ],
+      "requires": [
+        {
+          "task": "M5-T6",
+          "capability": "analytics-ingest"
+        },
+        {
+          "task": "M5-T1",
+          "capability": "job-leases"
+        },
+        {
+          "task": "M5-T9",
+          "capability": "analytics-settings-domain"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [
+        "migrations"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/analytics/aggregate.ts",
+        "src/lib/server/analytics/aggregate-repo.ts",
+        "prisma/schema.prisma",
+        "tests/analytics-aggregate.db.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M5-T8"
+    },
+    "M5-T4": {
+      "provides": [
+        "analytics-settings-api"
+      ],
+      "requires": [
+        {
+          "task": "M5-T9",
+          "capability": "analytics-settings-domain"
+        },
+        {
+          "task": "M5-T8",
+          "capability": "analytics-aggregate-runtime"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/app/api/admin/settings/analytics/route.ts",
+        "src/lib/server/composition.ts",
+        "tests/analytics-settings.http.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M5-T5": {
+      "provides": [
+        "analytics-retention-plan"
+      ],
+      "requires": [
+        {
+          "task": "M5-T3",
+          "capability": "analytics-aggregate"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/analytics/retention-plan.ts",
+        "tests/analytics-retention-plan.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M5-T11"
+    },
+    "M5-T6": {
+      "provides": [
+        "analytics-ingest"
+      ],
+      "requires": [
+        {
+          "task": "M5-T2",
+          "capability": "analytics-consent-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container",
+        "eventKinds",
+        "migrations"
+      ],
+      "supportPaths": [
+        "src/lib/server/composition.ts"
+      ],
+      "outputPaths": [
+        "src/lib/server/analytics/ingest.ts",
+        "src/lib/server/analytics/event-repo.ts",
+        "src/app/api/analytics/events/route.ts",
+        "prisma/schema.prisma",
+        "tests/analytics-ingest.http.db.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M5-T7": {
+      "provides": [
+        "analytics-consent-ui",
+        "analytics-page-events",
+        "analytics-privacy-copy"
+      ],
+      "requires": [
+        {
+          "task": "M5-T2",
+          "capability": "analytics-consent-api"
+        },
+        {
+          "task": "M5-T6",
+          "capability": "analytics-ingest"
+        },
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M5-T9",
+          "capability": "analytics-settings-domain"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes",
+        "eventKinds"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/client/analytics.ts",
+        "src/components/consent/",
+        "src/components/analytics/",
+        "e2e/analytics-consent.spec.ts",
+        "src/app/",
+        "messages/en.json",
+        "messages/ru.json",
+        "e2e/privacy-analytics.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M5-T8": {
+      "provides": [
+        "job-foundation",
+        "analytics-aggregate-runtime"
+      ],
+      "requires": [
+        {
+          "task": "M5-T1",
+          "capability": "job-leases"
+        },
+        {
+          "task": "M5-T3",
+          "capability": "analytics-aggregate"
+        },
+        {
+          "task": "M3-T14",
+          "capability": "http-guards-metrics"
+        },
+        {
+          "task": "M5-T7",
+          "capability": "analytics-page-events"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container",
+        "jobs",
+        "migrations"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "src/app/api/admin/cron/operations/route.ts",
+        "deploy/cron.nbshiyan",
+        "deploy/deploy.sh",
+        "tests/jobs-runtime.http.test.ts",
+        "e2e/analytics-job-runtime.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M5-T9": {
+      "provides": [
+        "analytics-settings-domain"
+      ],
+      "requires": [
+        {
+          "task": "M1-T2",
+          "capability": "contract-types"
+        },
+        {
+          "task": "M3-T1",
+          "capability": "current-admin-permissions"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/analytics/settings.ts",
+        "src/lib/server/analytics/settings-repo.ts",
+        "src/lib/analytics/day-boundaries.ts",
+        "tests/analytics-settings.db.test.ts",
+        "tests/analytics-day-boundaries.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M5-T4"
+    },
+    "M5-T10": {
+      "provides": [
+        "analytics-settings-ui"
+      ],
+      "requires": [
+        {
+          "task": "M5-T4",
+          "capability": "analytics-settings-api"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell-profile-ui"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
+        "src/app/admin/settings/",
+        "e2e/analytics-settings.spec.ts",
+        "src/lib/client/ops.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M5-T11": {
+      "provides": [
+        "analytics-retention"
+      ],
+      "requires": [
+        {
+          "task": "M5-T5",
+          "capability": "analytics-retention-plan"
+        },
+        {
+          "task": "M5-T8",
+          "capability": "job-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "jobs",
+        "container"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/analytics/retention.ts",
+        "src/lib/server/jobs/registry.ts",
+        "src/lib/server/composition.ts",
+        "deploy/cron.nbshiyan",
+        "tests/analytics-retention.db.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M6-T1": {
+      "provides": [
+        "stats-query-rules"
+      ],
+      "requires": [
+        {
+          "task": "M5-T3",
+          "capability": "analytics-aggregate"
+        },
+        {
+          "task": "M2-T7",
+          "capability": "model-events"
+        }
+      ],
+      "stage": "primitive",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/ops/stats-query.ts",
+        "src/lib/server/ops/source-dto.ts",
+        "tests/stats-query.db.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ],
+      "integrationTask": "M6-T6"
+    },
+    "M6-T2": {
+      "provides": [
+        "stats-business"
+      ],
+      "requires": [
+        {
+          "task": "M6-T6",
+          "capability": "stats-core"
+        },
+        {
+          "task": "M4-T4",
+          "capability": "chat-notification-job"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "container"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/ops/business-source.ts",
+        "src/lib/server/composition.ts",
+        "tests/stats-business.test.ts",
+        "e2e/stats-business-api.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M6-T3": {
+      "provides": [
+        "ops-sources"
+      ],
+      "requires": [
+        {
+          "task": "M6-T6",
+          "capability": "stats-core"
+        },
+        {
+          "task": "M5-T8",
+          "capability": "job-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container",
+        "jobs"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/ops/ops-report.ts",
+        "src/lib/server/ops/ops-sample.ts",
+        "src/app/api/internal/ops-report/",
+        "src/lib/server/composition.ts",
+        "deploy/ops-report.py",
+        "deploy/cron.nbshiyan",
+        "tests/ops-report.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M6-T4": {
+      "provides": [
+        "stats-base-ui"
+      ],
+      "requires": [
+        {
+          "task": "M6-T6",
+          "capability": "stats-core"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell-profile-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "frontendRoutes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/admin/stats/StatsContainer.tsx",
+        "src/components/admin/stats/StatsFilters.tsx",
+        "src/lib/client/ops.ts",
+        "src/app/admin/stats/",
+        "src/components/admin/AdminShell.tsx",
+        "e2e/stats-page.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M6-T5": {
+      "provides": [
+        "stats-reliability"
+      ],
+      "requires": [
+        {
+          "task": "M6-T6",
+          "capability": "stats-core"
+        },
+        {
+          "task": "M4-T4",
+          "capability": "chat-notification-job"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "container"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/lib/server/ops/reliability-source.ts",
+        "src/lib/server/composition.ts",
+        "tests/stats-reliability.test.ts",
+        "e2e/stats-reliability-api.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M6-T6": {
+      "provides": [
+        "stats-core"
+      ],
+      "requires": [
+        {
+          "task": "M6-T1",
+          "capability": "stats-query-rules"
+        },
+        {
+          "task": "M5-T4",
+          "capability": "analytics-settings-api"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "backendRoutes",
+        "container"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/app/api/admin/stats/",
+        "src/lib/server/ops/stats-service.ts",
+        "src/lib/server/composition.ts",
+        "tests/stats-route.test.ts",
+        "e2e/stats-core-api.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M6-T7": {
+      "provides": [
+        "stats-ui"
+      ],
+      "requires": [
+        {
+          "task": "M6-T4",
+          "capability": "stats-base-ui"
+        },
+        {
+          "task": "M6-T2",
+          "capability": "stats-business"
+        },
+        {
+          "task": "M6-T5",
+          "capability": "stats-reliability"
+        },
+        {
+          "task": "M6-T3",
+          "capability": "ops-sources"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "src/components/admin/stats/SourceCard.tsx",
+        "src/components/admin/stats/StatsContainer.tsx",
+        "src/components/admin/stats/StatsTrend.tsx",
+        "e2e/stats-source-states.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T1": {
+      "provides": [
+        "visitor-media-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M1-T5",
+          "capability": "company-content"
+        },
+        {
+          "task": "M2-T8",
+          "capability": "product-contact"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "e2e/visitor-media-integration.spec.ts",
+        "docs/acceptance/visitor-media/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T2": {
+      "provides": [
+        "session-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M3-T8",
+          "capability": "device-management-ui"
+        },
+        {
+          "task": "M3-T6",
+          "capability": "admin-auth-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "e2e/admin-session-integration.spec.ts",
+        "tests/admin-session-http-integration.test.ts",
+        "docs/acceptance/admin-session/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T3": {
+      "provides": [
+        "analytics-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M5-T11",
+          "capability": "analytics-retention"
+        },
+        {
+          "task": "M5-T10",
+          "capability": "analytics-settings-ui"
+        },
+        {
+          "task": "M6-T7",
+          "capability": "stats-ui"
+        },
+        {
+          "task": "M2-T7",
+          "capability": "model-events"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "e2e/analytics-integration.spec.ts",
+        "tests/analytics-time-integration.db.test.ts",
+        "docs/acceptance/analytics/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T4": {
+      "provides": [
+        "visitor-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M7-T1",
+          "capability": "visitor-media-acceptance"
+        },
+        {
+          "task": "M4-T6",
+          "capability": "chat-operator-ui"
+        },
+        {
+          "task": "M4-T7",
+          "capability": "chat-retention-dryrun-job"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "e2e/visitor-consultation-integration.spec.ts",
+        "docs/acceptance/consultation/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T5": {
+      "provides": [
+        "admin-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M7-T6",
+          "capability": "fresh-auth-acceptance"
+        },
+        {
+          "task": "M3-T9",
+          "capability": "target-recovery-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "e2e/admin-recovery-integration.spec.ts",
+        "tests/admin-recovery-concurrency.db.test.ts",
+        "docs/acceptance/admin-recovery/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T6": {
+      "provides": [
+        "fresh-auth-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M3-T12",
+          "capability": "reauth-dialog"
+        },
+        {
+          "task": "M3-T9",
+          "capability": "target-recovery-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "e2e/admin-fresh-auth-integration.spec.ts",
+        "tests/admin-action-grant-concurrency.db.test.ts",
+        "docs/acceptance/admin-fresh-auth/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T7": {
+      "provides": [
+        "operations-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M6-T7",
+          "capability": "stats-ui"
+        },
+        {
+          "task": "M4-T4",
+          "capability": "chat-notification-job"
+        },
+        {
+          "task": "M5-T8",
+          "capability": "job-foundation"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "e2e/operations-sources-integration.spec.ts",
+        "tests/chat-notification-restart.integration.test.ts",
+        "docs/acceptance/operations/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T8": {
+      "provides": [
+        "provenance-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M7-T4",
+          "capability": "visitor-acceptance"
+        },
+        {
+          "task": "M7-T2",
+          "capability": "session-acceptance"
+        },
+        {
+          "task": "M7-T5",
+          "capability": "admin-acceptance"
+        },
+        {
+          "task": "M7-T3",
+          "capability": "analytics-acceptance"
+        },
+        {
+          "task": "M7-T7",
+          "capability": "operations-acceptance"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "docs/acceptance/provenance/"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M7-T9": {
+      "provides": [
+        "delivery-acceptance"
+      ],
+      "requires": [
+        {
+          "task": "M7-T8",
+          "capability": "provenance-acceptance"
+        },
+        {
+          "task": "M3-T21",
+          "capability": "legacy-inquiries-ui"
+        },
+        {
+          "task": "M3-T22",
+          "capability": "legacy-unassigned-ui"
+        },
+        {
+          "task": "M3-T23",
+          "capability": "legacy-model-admin-ui"
+        },
+        {
+          "task": "M3-T24",
+          "capability": "legacy-specs-ui"
+        },
+        {
+          "task": "M3-T25",
+          "capability": "legacy-settings-users-ui"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "supportPaths": [],
+      "outputPaths": [
+        "docs/acceptance/delivery/",
+        "e2e/delivery-smoke.spec.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
+    "M1-T9": {
+      "provides": [
+        "company-visual-assets"
+      ],
+      "requires": [
+        {
+          "task": "M1-T1",
+          "capability": "visual-base"
+        },
+        {
+          "task": "M1-T3",
+          "capability": "brand-logo-master"
+        }
+      ],
+      "supportPaths": [],
+      "stage": "primitive",
+      "wiring": [],
+      "outputPaths": [
+        "public/brand/company/",
+        "docs/brand-content/source/",
+        "docs/brand-content/company-visuals.json"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        11,
+        14,
+        17,
+        18
+      ],
+      "integrationTask": "M1-T5"
+    },
+    "M3-T21": {
+      "provides": [
+        "legacy-inquiries-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-inquiries-visual.spec.ts",
+        "tests/admin-legacy-inquiries-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/InquiryList.tsx",
+        "src/components/admin/InquiryDetail.tsx",
+        "src/components/admin/InquiryHistory.tsx",
+        "src/components/admin/InquiryNotFound.tsx",
+        "src/components/admin/StatusBadge.tsx",
+        "src/components/admin/DateRange.tsx",
+        "src/components/admin/anonymized.tsx",
+        "src/components/admin/mail/MailThread.tsx",
+        "src/components/admin/mail/MailParts.tsx",
+        "src/app/admin/admin.css",
+        "src/app/admin/mail.css"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T22": {
+      "provides": [
+        "legacy-unassigned-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        },
+        {
+          "task": "M3-T21",
+          "capability": "legacy-inquiries-ui"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-unassigned-gate.spec.ts",
+        "tests/admin-legacy-unassigned-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/mail/UnassignedInbox.tsx",
+        "src/components/admin/mail/UnassignedNav.tsx",
+        "src/app/admin/mail.css"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T23": {
+      "provides": [
+        "legacy-model-admin-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-model-visual.spec.ts",
+        "tests/admin-legacy-model-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/models/ModelUpload.tsx",
+        "src/components/admin/models/ModelPreview.tsx",
+        "src/components/admin/models/models.css"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T24": {
+      "provides": [
+        "legacy-specs-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-specs-visual.spec.ts",
+        "tests/admin-legacy-specs-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/specs/SpecEditor.tsx",
+        "src/components/admin/specs/specs.css",
+        "src/app/admin/specs/page.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    },
+    "M3-T25": {
+      "provides": [
+        "legacy-settings-users-ui"
+      ],
+      "requires": [
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T7",
+          "capability": "admin-shell"
+        },
+        {
+          "task": "M3-T9",
+          "capability": "target-recovery-ui"
+        },
+        {
+          "task": "M5-T10",
+          "capability": "analytics-settings-ui"
+        },
+        {
+          "task": "M1-T5",
+          "capability": "company-content"
+        }
+      ],
+      "supportPaths": [
+        "e2e/admin-legacy-settings-users-visual.spec.ts",
+        "tests/admin-legacy-settings-users-style.test.ts"
+      ],
+      "stage": "integration",
+      "wiring": [],
+      "outputPaths": [
+        "src/components/admin/settings/settings.css",
+        "src/components/admin/settings/about-images.css",
+        "src/components/admin/settings/AboutSettings.tsx",
+        "src/components/admin/settings/OrgSettings.tsx",
+        "src/components/admin/settings/AboutImages.tsx",
+        "src/components/admin/settings/ImageTextField.tsx",
+        "src/components/admin/settings/ConfirmDialog.tsx",
+        "src/components/admin/settings/SettingsSections.tsx",
+        "src/components/admin/users/UsersAdmin.tsx"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        12,
+        14,
+        17,
+        18
+      ]
+    }
+  }
+}

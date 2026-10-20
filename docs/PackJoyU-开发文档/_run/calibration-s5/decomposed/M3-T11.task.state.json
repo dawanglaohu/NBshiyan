@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire the independent recovery and restricted re-enrollment wizard",
+    "input": "Real start/enroll/confirm, the OS-owner CLI, and SELF_REAUTH; M3-T6 sign-in form.",
+    "output": "Safe /admin-recovery root layout, RecoveryWizard, recovery client, and a sign-in recovery entry.",
+    "accept": "1) Entry: Cannot use your authenticator (login-recovery) on /admin-login -> /admin-recovery. Data sources: POST /api/auth-admin/recovery/start/enroll/confirm. Submit an isolated recovery code or OS permit to actual start. Continue the original pending flow with its restricted cookie, which cannot GET admin. Reentry after interruption keeps the URI/deadline unchanged. Expiry requests new authorization without prematurely deleting the original valid factor (E-10, E-11, E-14). 2) Clicking recovery-confirm submits a real new TOTP once and displays new recovery codes. Return to login and actually sign in at the next time step. Old devices/factors reject. Unknown response outcomes do not automatically confirm or retrieve old codes. Without materials, explain OS-owner recovery while the page grants no authority. No password/hash body fields exist; clear memory-only secrets (E-12, E-15, E-75). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

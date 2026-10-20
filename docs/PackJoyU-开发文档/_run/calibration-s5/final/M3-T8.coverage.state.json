@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Entry: personal-page Signed-in devices (account-devices-link) -> /admin/account/devices. Data source: GET /api/admin/account/devices. One/two/many pages contain only owner rows, current/expiry/revoked states come from DTOs, and each paged ID appears once. GET does not renew activity (E-70). 2) Clicking device-revoke-{id} reuses ReauthDialog -> POST reauth(DEVICE_REVOKE,target=id) -> POST /api/admin/account/devices/[id]/revoke. Assert the target device's next GET account gets 401 while other unrevoked devices remain valid. Revoking the current device clears the screen and returns to login. Cross-target or consumed grants change nothing (E-73). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px.",
+  "edges": {
+    "E-70": {
+      "scene": "Device-session integration with Auth.js expiry",
+      "trigger": "The cookie/JWT is still valid, but the device was revoked, the account was disabled, the credential version changed, or server-side validation is unavailable.",
+      "expect": "A protected request cannot be authorized by its cookie alone. Request-scoped query deduplication must not become a cross-request cache that ignores revocation."
+    },
+    "E-73": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "Two requests use the same ActionGrant concurrently, or a password-change grant is used to disable the authenticator.",
+      "expect": "Within the sensitive-change transaction, validate and consume the grant once against the action, device, account, and credential version. Only one matching request succeeds; reject a mismatched purpose without executing the change."
+    }
+  }
+}

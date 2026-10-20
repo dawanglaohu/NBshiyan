@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire unified sign-in, initial enrollment, and the independent recovery wizard",
+    "input": "M1 visual-base, contract-types/client-api-foundation; M3 actual Auth.js, initial-enrollment, and restricted-recovery APIs; section 11/12 single-card layout, input, and unknown-outcome interactions.",
+    "output": "Real forms and safe root layouts for /admin-login, /admin-enroll, and /admin-recovery; Auth.js pages.signIn registration; account/recovery clients and GIFs of the real flow.",
+    "accept": "1) Entry: the public footer's Administrator sign-in (footer-admin-login) -> /admin-login; initial enrollment (login-enroll) -> /admin-enroll; Cannot use your authenticator (login-recovery) -> /admin-recovery. Data source: Auth.js GET/POST /api/auth/[...nextauth], POST /api/auth-admin/enroll and enroll/confirm, recovery/start/enroll/confirm. Click and submit each control, asserting actual requests and successful/failing responses. The ordinary passwordless-default form has no required password/recoveryCode. Its mode copy explicitly states Account + authenticator code (E-05, E-09, E-10, E-95, E-96). 2) Successful sign-in returns only to a safe same-site path visible to the current role. Successful recovery shows materials once and returns to sign-in. Resolve timeouts under section 10; secrets remain only in memory and are cleared on pagehide. A restricted cookie cannot enter admin (E-14, E-15). 3) minimalist-flat consumes the unique tokens; real computed styles match section 11. Run the D1-D6 probe at 1920x1080/1440x900/390x844 with card, density7/gutter16/gap16/pad16; attach real-flow GIFs. Keyboard focus, error association, and 44px touch controls pass."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

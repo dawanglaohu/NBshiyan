@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Issue target-scoped administrator recovery permits",
+    "input": "M3-T3 target-scoped fresh grants/current authorization; section 09/10 15-minute permit and audit protocol.",
+    "output": "AdminRecoveryPermit; POST /api/admin/account/recovery-authorizations and its compatible alias POST /api/admin/users/[id]/reset-2fa.",
+    "accept": "1) Caller/wiring point: real ADMIN handler -> recovery-authorizations. Current password plus a new TOTP obtains RECOVERY_AUTHORIZE bound to another target before a 15-minute permit is issued. The target cannot be self. Old bodyless direct reset, session-only requests, visitor email requests, SALES, and EDITOR all reject without changing target factors (E-13). 2) The permit is a random 256-bit value, stored only as a hash and returned once. Grant consumption and target/source/reason audit commit together. Reusing a grant issues no second permit; logs contain no plaintext permit, and response loss does not automatically issue another. An ordinary passwordless session cannot use this path to omit the current password (E-73, E-74, E-75)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

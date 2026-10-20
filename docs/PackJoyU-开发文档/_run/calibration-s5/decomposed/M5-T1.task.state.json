@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Establish JobState lease/generation repository primitives",
+    "input": "contract-types, JobState in section 09 and database-time/conditional-update rules",
+    "output": "job-leases; JobState schema, atomic acquisition/renewal/completion and safe status reads",
+    "accept": "1) In real isolated PostgreSQL, concurrent acquisition of the same key yields only one success; after a 90s lease, a new generation can acquire it. Completion by an old owner/generation is rejected and cannot overwrite new results. 2) summary accepts only allowlisted counts/times/versions; lastSucceededAt advances only on successful commit, and failure retains the old successful time. There is no arbitrary-script execution capability. M5-T8 wires this primitive into real jobs at the production composition point."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

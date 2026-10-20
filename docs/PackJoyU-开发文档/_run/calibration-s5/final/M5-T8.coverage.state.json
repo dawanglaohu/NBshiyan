@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) composition registers only the implemented analytics-aggregate; deploy/cron.nbshiyan calls POST /api/admin/cron/operations every five minutes. Validate fixed keys/Bearer credentials in constant time; reject unknown keys/missing credentials and permit no arbitrary scripts. 2) Real scheduling executes after restart and commits JobState/watermark, with batch at most 500, a 55s deadline and no old-generation overwrite. Stopped cron/failure preserves the last successful watermark and exposes safe NEVER/FAILED/stale-value state; route existence/manual invocation does not justify claiming just updated (E-81, E-84). 3) After browser consent, complete two same-day page visits in the same browser and refresh/retry the same eventId. After the actual job UV stays 1, genuine new visits increase PV and duplicate events do not increase counts (E-44). Dashboard GET does not trigger jobs; M4 registers notification/mail jobs, without future-service imports or empty implementations. 4) In an isolated service with a controlled clock, use the event HTTP entry to submit now-48h-1ms, now-48h, now+5min and now+5min+1ms separately. The two out-of-range inputs return event_time_out_of_range without records, while both exact boundaries can be admitted. An admitted future event is excluded until the actual aggregation-job clock reaches its occurredAt, and counted only afterward. Events arriving within 48h recompute only their day when complete raw coverage remains; arbitrary client timestamps cannot contaminate closed/out-of-window history. Beyond complete coverage preserve the original aggregate and mark partial/unavailable, without reducing counts from fragments or fabricating future days (E-60).",
+  "edges": {
+    "E-81": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+      "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+    },
+    "E-84": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "An aggregation entry exists but cron is not registered, cron stops or its latest run fails",
+      "expect": "Do not claim connected or just updated; show the actual last successful watermark and stale-value state. The implementation task must include real five-minute schedule registration and evidence of execution after restart, rather than verifying only manual API invocation."
+    },
+    "E-44": {
+      "scene": "C-05 Analytics collection, deduplication and retention",
+      "trigger": "The same consented browser refreshes or retries the same event",
+      "expect": "Deduplicate consented visitors for that day by browser identifier, and do not count the same event ID twice. A genuine new page visit may increase PV; refreshes do not increase UV."
+    },
+    "E-60": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "The browser uploads future or clearly expired event timestamps",
+      "expect": "Directly use the established section 09 rule now-48h <= occurredAt <= now+5min: reject out-of-range events, and include accepted future events in aggregation only after their actual time. Handle closed historical intervals according to complete raw coverage and the established late window; arbitrary client timestamps must not contaminate future days or closed intervals."
+    }
+  }
+}

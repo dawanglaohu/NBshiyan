@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) From actual GET responses at /admin/stats, verify successful zero, no_data, not_connected, query_failed without prior values, stale with prior values, one-source failure and partial rebuild coverage. Every source preserves original dataThrough/lastSucceededAt; failed refresh never advances old data time and other metrics remain readable (E-49, E-50, E-51, E-52, E-53, E-67). 2) When a query succeeds but the event-reception chain has no evidence, show only actually observed configuration/recent reception/query results and unknown or last-known times. Zero traffic must not create a healthy heartbeat or a whole-chain healthy badge (E-54). 3) At all three viewport sizes, recheck D1-D6, readable time/source labels and keyboard refresh, and save a real GIF. Manual refresh only GETs stats; it never triggers cron, backup or mail.",
+  "edges": {
+    "E-49": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The source is connected, its query succeeds and the selected day truly has zero qualifying events",
+      "expect": "Show the value 0, the successful-query time and the consented-statistics scope. Do not falsely report query failure or not connected."
+    },
+    "E-50": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "First activation, an unconnected source, or no queryable data yet",
+      "expect": "Distinguish no data from not connected and identify the source. Do not use 0 to masquerade as actual statistics, and do not classify no events today alone as collection failure."
+    },
+    "E-51": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The query fails and a previous successful snapshot exists",
+      "expect": "Preserve the old value and prominently mark its original time, the current failure and a retry entry. Do not refresh the timestamp to make the old value appear newly updated."
+    },
+    "E-52": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The query fails and no successful snapshot exists",
+      "expect": "Show an error and retry, without generating a default 0 or demo numbers. Errors shown to business roles must not expose credentials, stacks or connection strings."
+    },
+    "E-53": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "Different panel sources have different update rates or failure states",
+      "expect": "Each metric retains its own data time and state; successful overall page refresh does not overwrite partial failures."
+    },
+    "E-67": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Any additional source is interrupted or has no data",
+      "expect": "That card independently shows error, stale value, unknown or not connected. Other actual metrics remain queryable, preventing one auxiliary source from taking down the entire dashboard."
+    },
+    "E-54": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The query succeeds but health of the event-ingestion chain cannot yet be demonstrated",
+      "expect": "Report only actually observed configuration, most recent receipt and query states. Show unknown or the last known time, without inferring end-to-end health from lack of traffic."
+    }
+  }
+}

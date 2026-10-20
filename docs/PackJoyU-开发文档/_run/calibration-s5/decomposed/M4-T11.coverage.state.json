@@ -1,0 +1,30 @@
+{
+  "acceptance": "1) Caller/wiring point: real ADMIN/SALES message handler -> current identity -> shared append. author comes from the session. Two concurrent people retain unique seq and their actual authors; same-UUID/payload retries create one message. Ignore client-claimed authors (E-33). 2) After a visitor POST persists, an operator GET actually reads it; after an operator POST replies, visitor GET reads the same body/author. No AI automatic reply is generated. received follows persistence (E-16, E-31). 3) Close uses expectedVersion CAS; only a matching contender succeeds. Closed visitor/operator sends return 409. After permission revocation, the next poll/send returns no body and causes no write. Modified threadId/seq/email cannot read someone else (E-32, E-78).",
+  "edges": {
+    "E-16": {
+      "scene": "Online chat implementation route",
+      "trigger": "A visitor sends the first message while an operator is online.",
+      "expect": "Persist the conversation and message before showing a received state. The operator inbox can read it and send a human reply; do not generate an automated AI answer."
+    },
+    "E-31": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A visitor submits a message and server-side persistence succeeds.",
+      "expect": "Return stable conversation and message identifiers and show Received, with the conversation readable in the operator inbox. If the database write fails, retain a retry-pending state and do not show Received or read by an operator."
+    },
+    "E-32": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "The requester is unauthenticated, an EDITOR, an account whose privileges were revoked, or a visitor guessing someone else's conversation identifier.",
+      "expect": "Directly request the read and reply endpoints for each of these cases and verify no content is returned and no write occurs. Return data to ADMIN/SALES only under current authorization; hiding a button is not authorization evidence."
+    },
+    "E-33": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "Two authorized people reply concurrently, or a visitor repeats the same client message identifier.",
+      "expect": "Order by server seq and show the actual author. The same clientMessageId and payload in the same conversation produce only one message, one outbox item, and one unread increment. Persist each concurrent human reply; a later response must not overwrite an earlier saved reply."
+    },
+    "E-78": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "A visitor session expires or is revoked, or an operator loses chat permission after previously holding ADMIN/SALES.",
+      "expect": "Perform server-side authorization on the next poll and send, and stop returning conversation content. Changing threadId, seq, or email cannot read another consultation."
+    }
+  }
+}

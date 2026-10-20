@@ -1,0 +1,16 @@
+{
+  "edge": {
+    "scene": "Complete visual upgrade of legacy settings and user management",
+    "trigger": "ADMIN edits or saves original about/org/image settings, refreshes a version conflict, or uses existing account and recovery-authorization controls.",
+    "expect": "Keep original fields, image/version rules and user-management restrictions, plus completed recovery/timezone functionality. Every control uses minimalist-flat. Actual click-to-original-HTTP-to-stored-result, computed-style, D1-D6/overflow and GIF evidence at three viewports is required; changing only the shell cannot count as completion."
+  },
+  "modules": {
+    "M1": "Owns brand/public experience, media, company facts and the unique shared visual token/component source.",
+    "M2": "Owns public product cards, existing GLB viewing interactions, accessible controls and model event producers.",
+    "M3": "Owns admin access/accounts and the admin shell; consumes M1 visuals and migrates existing admin interfaces without changing business APIs.",
+    "M4": "Owns first-party human consultation, inbox/replies and its notification jobs, not legacy mail feature activation.",
+    "M5": "Owns consent, event ingestion, aggregation, timezone, retention policy and job foundation.",
+    "M6": "Owns real business/operations dashboard queries, source status and role restrictions.",
+    "M7": "Owns final actual integration and delivery evidence; creates no prerequisite foundation."
+  }
+}

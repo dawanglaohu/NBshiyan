@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire the home-page video and a separate brand-scene section",
+    "input": "brand-media, visual-base and the existing home-page layout",
+    "output": "Published media in the home page and shared public shell; the home-media capability",
+    "accept": "1) Entries: the home-page wordmark home-link leads to /[locale], and the home-page products-link/contact-link lead to products/contact respectively; the data sources are the SSR content in section 10 and GET /api/models. Show the 12.27-second video muted and inline; if autoplay is blocked, retain an explicit play entry; on failure or reduced motion use a still frame semantically matching the video (E-21, E-22). 2) Place the city JPG/GIF after the product section; load the GIF only within 300px of the viewport; switch to a still frame when paused, hidden or in a background tab, and do not override the user's pause when visibility returns; at 1440/1920/390 the media must not cover navigation/model controls and must preserve the main subject (E-23, E-24, E-25); actual button clicks must change playback state, and retain a GIF recording."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

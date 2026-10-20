@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Only in isolation, use reviewed-SHA artifacts to execute backup, Prisma diff, plan-check, db push without accept-data-loss, zero drift, standalone startup and a home computed-style/real-request/event smoke. Restore an actual backup into disposable PostgreSQL and read it through the app. Record actual old-image compatibility/rollback and credential-revocation results; listing a backup file alone is insufficient. 2) Collect exact heads, commands, statuses, trace/GIF evidence and open items from the five acceptance themes. Live-check head/check/provenance/permissions for every recovery PR reused this round; missing bot approval is not merge-ready. Keep unfinished media/external dependencies visible and never automatically merge, deploy, delete production data or purchase a service.",
+  "edges": {}
+}

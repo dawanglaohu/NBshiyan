@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display. Show the corresponding product poster and clickable retry/inquiry; do not retry indefinitely or substitute another product image. 2) Retry establishes a new actual loading attempt; unmount cancels old listeners/loading callbacks. Presentation state emits only a load-result callback, without creating analytics success events in this task; M2-T7 completes metrics integration.",
+  "edges": {}
+}

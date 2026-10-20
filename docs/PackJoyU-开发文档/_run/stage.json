@@ -1,0 +1,30 @@
+{
+  "next": "done",
+  "schemaVersion": 1,
+  "stages": {
+    "S1": {
+      "done": "2026-10-20T06:57:29+00:00",
+      "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449"
+    },
+    "S2": {
+      "done": "2026-10-20T06:57:30+00:00",
+      "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449"
+    },
+    "S3": {
+      "done": "2026-10-20T06:57:31+00:00",
+      "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449"
+    },
+    "S4": {
+      "done": "2026-10-20T06:57:31+00:00",
+      "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449"
+    },
+    "S5": {
+      "done": "2026-10-20T06:57:32+00:00",
+      "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449"
+    },
+    "S6": {
+      "done": "2026-10-20T06:57:32+00:00",
+      "sourceVersion": "2697c0caee1c56852e2e721cd6b63f5a64629a9041b6eb2bd32b89209284e449"
+    }
+  }
+}

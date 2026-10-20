@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Deliver the navigable core statistics dashboard page",
+    "input": "stats-core, the admin shell, section 07 page entries and section 11 style/density",
+    "output": "stats-base-ui: admin stats-link, date/product/refresh controls and core metrics page",
+    "accept": "1) After real login, click stats-link in the admin shell to /admin/stats. Date/product/refresh controls make actual GET /api/admin/stats requests and render corresponding core DTOs. Consented browsers/PV/products/3D have real sources, and sample counts/time-zone labels are visible (E-61, E-63). 2) ADMIN/SALES/EDITOR pages show only authorized sources; direct unauthorized requests still return 403 without hidden counts. Record a real-session GIF and density=7/gutter16/gap16/pad16 reports at 1920x1080, 1440x900 and 390x844; work surfaces meet D1-D6 and mobile retains actual n/a results (E-66)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

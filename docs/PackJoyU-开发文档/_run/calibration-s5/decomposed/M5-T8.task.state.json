@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Register the aggregation job and wire real five-minute cron",
+    "input": "job-leases, analytics-aggregate and shared M3 HTTP protections",
+    "output": "job-foundation and analytics-aggregate-runtime; a fixed registry, POST /api/admin/cron/operations and real cron",
+    "accept": "1) composition registers only the implemented analytics-aggregate; deploy/cron.nbshiyan calls POST /api/admin/cron/operations every five minutes. Validate fixed keys/Bearer credentials in constant time; reject unknown keys/missing credentials and permit no arbitrary scripts. 2) Real scheduling executes after restart and commits JobState/watermark, with batch at most 500, a 55s deadline and no old-generation overwrite. Stopped cron/failure preserves the last successful watermark and exposes safe NEVER/FAILED/stale-value state; route existence/manual invocation does not justify claiming just updated (E-81, E-84). 3) After real-browser consent, complete two same-day page visits in the same browser and refresh/retry the same eventId. After the actual job UV stays 1, genuine new visits increase PV and duplicate events do not increase counts (E-44). Dashboard GET does not trigger jobs; M4 registers notification/mail jobs, without future-service imports or empty implementations."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

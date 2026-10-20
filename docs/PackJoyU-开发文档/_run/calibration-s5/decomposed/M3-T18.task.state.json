@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Provide an OS-authorized local recovery preauthorization CLI",
+    "input": "M3-T4 permit persistence rules and existing initial-password script guards/Argon parameters.",
+    "output": "scripts/admin-authorize-recovery.mjs with explicit target/role/reason, hidden TTY password preauthorization, and safe audit.",
+    "accept": "1) The real CLI runs only under OS administrative authority and issues a 15-minute one-time permit for explicit target, current role, and reason. Reject non-TTY or unidentified targets without records. Output the credential once; audit only actor/target/source/time/reason without secrets. An isolated account with no second administrator and no recovery codes obtains a valid permit (E-12). 2) Optional password reset takes hidden, confirmed TTY input and writes only pendingPasswordHash under existing Argon rules; the original password/TOTP remain unchanged at this point. Keep the original initial-password script's ADMIN/unenrolled/enabled/TTY guards; do not clear factors first to bypass them. HTTP cannot submit pendingPasswordHash (E-75)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

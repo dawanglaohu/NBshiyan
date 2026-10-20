@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire analytics consent and a strict event ledger",
+    "input": "job-foundation, the analytics contracts and published products",
+    "output": "analytics-ingest; POST /api/analytics/consent and POST /api/analytics/events",
+    "accept": "1) Entry: footer analytics-preferences leads to the consent control, whose click calls POST /api/analytics/consent; rejection/withdrawal must generate no ID or events and must discard pending events; repeated true preserves the original ID/expiry, while repeated false clears it (E-42, E-43). 2) Caller real page/model producers leads to POST /api/analytics/events through same-origin checks, rate limiting, valid consent, the product allowlist and Zod; deduplicate by eventId and semantic key; a new navigation increases PV without increasing same-day anonymous-browser UV; do not store IP/fingerprint/body/email/sensitive URLs, and reject invalid timestamps older than 48h or more than 5min into the future (E-44, E-45, E-46, E-47, E-60). 3) Use the single minimalist-flat direction in section 11 and the wiring in sections 07/12; at 1920x1080, 1440x900 and 390x844 respectively retain actual GIF/computed-style evidence; for admin pages run D1-D6 and overflow probes per page under work/form/card classification, and preserve keyboard access/44px touch targets for the public frontend."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

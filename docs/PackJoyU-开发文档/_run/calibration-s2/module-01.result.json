@@ -1,0 +1,36 @@
+{
+  "status": "ok",
+  "template": "module",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "owner": {
+      "choice": "M7",
+      "confidence": 1.0,
+      "band": "high",
+      "probabilities": {
+        "M1": 0.0,
+        "M2": 0.0,
+        "M3": 0.0,
+        "M4": 0.0,
+        "M5": 0.0,
+        "M6": 0.0,
+        "M7": 1.0,
+        "none": 0.0
+      }
+    },
+    "spans": {
+      "p": 0.87,
+      "verdict": "yes"
+    },
+    "cycle_risk": {
+      "p": 0.31,
+      "verdict": "no"
+    }
+  },
+  "line": "module: owner=M7(high 1.00) spans=yes(0.87) cycle_risk=no(0.31)",
+  "usage": {
+    "input_tokens": 1296,
+    "output_tokens": 117
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire restricted reentrant enrollment and final one-time confirmation",
+    "input": "M3-T19 real restricted sessions; section 09/10 pending/confirm states and current TOTP CAS.",
+    "output": "POST /api/auth-admin/recovery/enroll and POST /api/auth-admin/recovery/confirm; reentry and atomic publication of the new factor.",
+    "accept": "1) Caller/wiring point: real restricted handlers -> recovery-enrollment service. Encrypt pendingSecret on first entry; reentry within the original window returns the same URI/original expiresAt without rotation or extension. Wrong/expired/repeated confirms and two concurrent confirms check current token/sv/secret/step and commit at most once. The old valid method remains usable before a failing attempt (E-08, E-14). 2) After a real confirm with a new unused TOTP, publish secret/new recovery-code hashes, increment sv, revoke old devices/recovery credentials, consume the session, and clear the cookie in one transaction. Return recovery codes once. Change password simultaneously only for a SERVER_OWNER-preauthorized hash; HTTP accepts only totp. Unknown outcomes do not replay; actual ordinary sign-in at the next time step verifies the result. Old factors/devices reject (E-15)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

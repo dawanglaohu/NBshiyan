@@ -1,0 +1,1776 @@
+{
+  "scope": {
+    "kind": "read-only current source inventory",
+    "sourceRoot": "D:/xiangmu/NBshiyan-docs-s2-s6",
+    "sourceHead": "971b5b46faa0c468fc85372773de612bebd51c3c",
+    "date": "2026-10-19",
+    "productImplementation": false,
+    "checksExecuted": false,
+    "excluded": [
+      ".env and real secrets",
+      "databases",
+      "production backups",
+      ".git/codex-reading",
+      "unmerged restoration PR source"
+    ],
+    "statusVocabulary": {
+      "existing": "Present in current source, not a runtime or acceptance verdict",
+      "pending": "Explicit placeholder or missing wiring observed in current source; upstream spec decides authorized work"
+    }
+  },
+  "stack": {
+    "manifest": "package.json",
+    "lock": "pnpm-lock.yaml",
+    "lockfileVersion": "9.0",
+    "coreVersions": {
+      "next": {
+        "declared": "~15.5.27",
+        "resolved": "15.5.27"
+      },
+      "react": {
+        "declared": "~19.3.0",
+        "resolved": "19.3.0"
+      },
+      "react-dom": {
+        "declared": "~19.3.0",
+        "resolved": "19.3.0"
+      },
+      "next-auth": {
+        "declared": "5.0.0-beta.32",
+        "resolved": "5.0.0-beta.32"
+      },
+      "next-intl": {
+        "declared": "^4.3.9",
+        "resolved": "4.14.9"
+      },
+      "prisma": {
+        "declared": "^6.19.3",
+        "resolved": "6.19.3"
+      },
+      "@prisma/client": {
+        "declared": "^6.19.3",
+        "resolved": "6.19.3"
+      },
+      "@react-three/fiber": {
+        "declared": "^9.3.0",
+        "resolved": "9.8.1"
+      },
+      "@react-three/drei": {
+        "declared": "^10.7.6",
+        "resolved": "10.7.9"
+      },
+      "three": {
+        "declared": "^0.186.1",
+        "resolved": "0.186.1"
+      },
+      "@needle-tools/gltf-progressive": {
+        "declared": "3.6.1",
+        "resolved": "3.6.1"
+      },
+      "typescript": {
+        "declared": "^5.9.2",
+        "resolved": "5.9.3"
+      },
+      "@playwright/test": {
+        "declared": "^1.64.0",
+        "resolved": "1.64.0"
+      },
+      "zod": {
+        "declared": "^3.25.76",
+        "resolved": "3.25.76"
+      }
+    },
+    "runtime": {
+      "ciNode": "22",
+      "ciPnpm": "10",
+      "dockerNode": "22-bookworm-slim (digest pinned)",
+      "dockerPnpm": "10.34.6",
+      "packageEngines": null
+    },
+    "progressivePatch": "patches/@needle-tools__gltf-progressive@3.6.1.patch"
+  },
+  "entrypoints": {
+    "publicLayout": "src/app/[locale]/layout.tsx",
+    "middleware": "src/middleware.ts",
+    "adminLayout": "src/app/admin/layout.tsx",
+    "auth": "src/auth.ts",
+    "nextAuthHandler": "src/app/api/auth/[...nextauth]/route.ts",
+    "publishedLocales": [
+      "en",
+      "ru"
+    ],
+    "reservedDatabaseLocales": [
+      "es",
+      "de",
+      "fr",
+      "ja",
+      "hi",
+      "ar"
+    ],
+    "routing": "src/i18n/routing.ts",
+    "pageRoutes": [
+      {
+        "path": "/[locale]/[...rest]",
+        "file": "src/app/[locale]/[...rest]/page.tsx"
+      },
+      {
+        "path": "/[locale]/about",
+        "file": "src/app/[locale]/about/page.tsx"
+      },
+      {
+        "path": "/[locale]/articles/[slug]",
+        "file": "src/app/[locale]/articles/[slug]/page.tsx"
+      },
+      {
+        "path": "/[locale]/articles",
+        "file": "src/app/[locale]/articles/page.tsx"
+      },
+      {
+        "path": "/[locale]/cases",
+        "file": "src/app/[locale]/cases/page.tsx"
+      },
+      {
+        "path": "/[locale]/contact",
+        "file": "src/app/[locale]/contact/page.tsx"
+      },
+      {
+        "path": "/[locale]/factory",
+        "file": "src/app/[locale]/factory/page.tsx"
+      },
+      {
+        "path": "/[locale]",
+        "file": "src/app/[locale]/page.tsx"
+      },
+      {
+        "path": "/[locale]/privacy",
+        "file": "src/app/[locale]/privacy/page.tsx"
+      },
+      {
+        "path": "/[locale]/products/[slug]",
+        "file": "src/app/[locale]/products/[slug]/page.tsx"
+      },
+      {
+        "path": "/[locale]/products",
+        "file": "src/app/[locale]/products/page.tsx"
+      },
+      {
+        "path": "/[locale]/s/[id]",
+        "file": "src/app/[locale]/s/[id]/page.tsx"
+      },
+      {
+        "path": "/[locale]/s/expired",
+        "file": "src/app/[locale]/s/expired/page.tsx"
+      },
+      {
+        "path": "/[locale]/s/unavailable",
+        "file": "src/app/[locale]/s/unavailable/page.tsx"
+      },
+      {
+        "path": "/[locale]/solutions/[slug]",
+        "file": "src/app/[locale]/solutions/[slug]/page.tsx"
+      },
+      {
+        "path": "/[locale]/solutions",
+        "file": "src/app/[locale]/solutions/page.tsx"
+      },
+      {
+        "path": "/admin-enroll",
+        "file": "src/app/admin-enroll/page.tsx"
+      },
+      {
+        "path": "/admin/inquiries/[id]",
+        "file": "src/app/admin/inquiries/[id]/page.tsx"
+      },
+      {
+        "path": "/admin/inquiries",
+        "file": "src/app/admin/inquiries/page.tsx"
+      },
+      {
+        "path": "/admin/mail/unassigned",
+        "file": "src/app/admin/mail/unassigned/page.tsx"
+      },
+      {
+        "path": "/admin/models/new",
+        "file": "src/app/admin/models/new/page.tsx"
+      },
+      {
+        "path": "/admin/models",
+        "file": "src/app/admin/models/page.tsx"
+      },
+      {
+        "path": "/admin",
+        "file": "src/app/admin/page.tsx"
+      },
+      {
+        "path": "/admin/settings",
+        "file": "src/app/admin/settings/page.tsx"
+      },
+      {
+        "path": "/admin/specs/[category]",
+        "file": "src/app/admin/specs/[category]/page.tsx"
+      },
+      {
+        "path": "/admin/specs",
+        "file": "src/app/admin/specs/page.tsx"
+      },
+      {
+        "path": "/admin/users",
+        "file": "src/app/admin/users/page.tsx"
+      }
+    ],
+    "routeHandlers": [
+      {
+        "path": "/[locale]/about/og",
+        "file": "src/app/[locale]/about/og/route.tsx",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/[locale]/articles/[slug]/og",
+        "file": "src/app/[locale]/articles/[slug]/og/route.tsx",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/account/2fa/reset",
+        "file": "src/app/api/admin/account/2fa/reset/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/account/password",
+        "file": "src/app/api/admin/account/password/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/cron/cleanup-uploads",
+        "file": "src/app/api/admin/cron/cleanup-uploads/route.ts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": true,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/cron/mail-queue",
+        "file": "src/app/api/admin/cron/mail-queue/route.ts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": true,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/inquiries/[id]/history",
+        "file": "src/app/api/admin/inquiries/[id]/history/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/inquiries/[id]/mail",
+        "file": "src/app/api/admin/inquiries/[id]/mail/route.ts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/inquiries/[id]/notes",
+        "file": "src/app/api/admin/inquiries/[id]/notes/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/inquiries/[id]/reply",
+        "file": "src/app/api/admin/inquiries/[id]/reply/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/inquiries/[id]",
+        "file": "src/app/api/admin/inquiries/[id]/route.ts",
+        "methods": [
+          "GET",
+          "PATCH"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/inquiries",
+        "file": "src/app/api/admin/inquiries/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/mail/[messageId]/retry",
+        "file": "src/app/api/admin/mail/[messageId]/retry/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/mail/[messageId]/status",
+        "file": "src/app/api/admin/mail/[messageId]/status/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/mail/config",
+        "file": "src/app/api/admin/mail/config/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/models/[id]/file",
+        "file": "src/app/api/admin/models/[id]/file/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/models/[id]/process",
+        "file": "src/app/api/admin/models/[id]/process/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/models/[id]/publish",
+        "file": "src/app/api/admin/models/[id]/publish/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/models/[id]",
+        "file": "src/app/api/admin/models/[id]/route.ts",
+        "methods": [
+          "GET",
+          "PATCH",
+          "DELETE"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/models",
+        "file": "src/app/api/admin/models/route.ts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/privacy/delete",
+        "file": "src/app/api/admin/privacy/delete/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/privacy/export",
+        "file": "src/app/api/admin/privacy/export/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/samples/[id]/address",
+        "file": "src/app/api/admin/samples/[id]/address/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/site-settings/about/[locale]",
+        "file": "src/app/api/admin/site-settings/about/[locale]/route.ts",
+        "methods": [
+          "PUT"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/site-settings/about/enabled",
+        "file": "src/app/api/admin/site-settings/about/enabled/route.ts",
+        "methods": [
+          "PUT"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/site-settings/about/images",
+        "file": "src/app/api/admin/site-settings/about/images/route.ts",
+        "methods": [
+          "PUT"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/site-settings/about",
+        "file": "src/app/api/admin/site-settings/about/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/site-settings/assets/[id]",
+        "file": "src/app/api/admin/site-settings/assets/[id]/route.ts",
+        "methods": [
+          "DELETE"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/site-settings/assets",
+        "file": "src/app/api/admin/site-settings/assets/route.ts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/site-settings/organization",
+        "file": "src/app/api/admin/site-settings/organization/route.ts",
+        "methods": [
+          "GET",
+          "PUT"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/specs/[category]",
+        "file": "src/app/api/admin/specs/[category]/route.ts",
+        "methods": [
+          "GET",
+          "PUT"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/uploads/[id]",
+        "file": "src/app/api/admin/uploads/[id]/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": false,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/users/[id]/reset-2fa",
+        "file": "src/app/api/admin/users/[id]/reset-2fa/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/users/[id]",
+        "file": "src/app/api/admin/users/[id]/route.ts",
+        "methods": [
+          "PATCH",
+          "DELETE"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/admin/users",
+        "file": "src/app/api/admin/users/route.ts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": true,
+          "sameOrigin": true,
+          "rateLimit": true,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/auth-admin/enroll/confirm",
+        "file": "src/app/api/auth-admin/enroll/confirm/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": true,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/auth-admin/enroll",
+        "file": "src/app/api/auth-admin/enroll/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": true,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/auth/[...nextauth]",
+        "file": "src/app/api/auth/[...nextauth]/route.ts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/designs/[id]/logo",
+        "file": "src/app/api/designs/[id]/logo/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/designs/[id]",
+        "file": "src/app/api/designs/[id]/route.ts",
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/designs",
+        "file": "src/app/api/designs/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/health",
+        "file": "src/app/api/health/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/indexnow-key/[file]",
+        "file": "src/app/api/indexnow-key/[file]/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/inquiries",
+        "file": "src/app/api/inquiries/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/mail/inbound-webhook",
+        "file": "src/app/api/mail/inbound-webhook/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/models/[id]/[variant]",
+        "file": "src/app/api/models/[id]/[variant]/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/models",
+        "file": "src/app/api/models/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/rum",
+        "file": "src/app/api/rum/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/sanity/revalidate",
+        "file": "src/app/api/sanity/revalidate/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/specs/[category]",
+        "file": "src/app/api/specs/[category]/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/specs",
+        "file": "src/app/api/specs/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/api/uploads/logo",
+        "file": "src/app/api/uploads/logo/route.ts",
+        "methods": [
+          "POST"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": false
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      },
+      {
+        "path": "/media/[file]",
+        "file": "src/app/media/[file]/route.ts",
+        "methods": [
+          "GET"
+        ],
+        "guardMentions": {
+          "requireAdmin": false,
+          "sameOrigin": false,
+          "rateLimit": false,
+          "cronSecret": false,
+          "delegatedHandler": true
+        },
+        "note": "Static mention inventory only; helper wiring requires following the cited handler."
+      }
+    ]
+  },
+  "auth": {
+    "existing": true,
+    "provider": "NextAuth Credentials",
+    "loginFields": [
+      "email",
+      "password",
+      "totp (optional 6 digits)",
+      "recoveryCode (optional)"
+    ],
+    "authorizeSuccess": {
+      "fields": [
+        "id",
+        "email",
+        "name",
+        "role",
+        "sv"
+      ],
+      "note": "Internal Credentials authorize return; not a custom REST envelope"
+    },
+    "session": {
+      "strategy": "jwt",
+      "maxAgeSeconds": 7200,
+      "updateAgeSeconds": 900,
+      "fields": "NextAuth session spread + top-level sv + user spread/id/role",
+      "revalidatedAgainst": "User.sessionVersion, disabled, totpEnabled, role; requireAdmin also checks lockedUntil"
+    },
+    "apiGuard": {
+      "entry": "src/lib/server/auth.ts",
+      "implementation": "src/lib/server/admin/guard.ts",
+      "success": "{ user: User, ip: string | null } (internal context)",
+      "failureEnvelope": "{ error: string }",
+      "failures": [
+        {
+          "reason": "unauthenticated",
+          "http": 401,
+          "error": "unauthorized"
+        },
+        {
+          "reason": "disabled",
+          "http": 403,
+          "error": "account_disabled"
+        },
+        {
+          "reason": "forbidden",
+          "http": 403,
+          "error": "forbidden"
+        }
+      ],
+      "cacheControl": "private, no-store",
+      "defaultRoles": [
+        "ADMIN"
+      ],
+      "writeOrder": "requireAdmin -> assertSameOrigin -> await enforceAdminRateLimit",
+      "originFailure": {
+        "http": 403,
+        "body": {
+          "error": "forbidden_origin"
+        }
+      },
+      "rateLimitFailure": {
+        "http": 429,
+        "body": {
+          "error": "rate_limited"
+        },
+        "retryAfterSeconds": 60
+      }
+    },
+    "pageGuard": {
+      "files": [
+        "src/lib/server/admin/layout-gate.ts",
+        "src/lib/server/admin/page-access.ts",
+        "src/lib/admin/safe-callback.ts"
+      ],
+      "unauthenticated": "Redirect /api/auth/signin?callbackUrl=<safe relative path>",
+      "disabledOrForbidden": "notFound() / 404",
+      "roleMapCaveat": "ADMIN_ROUTE_ROLES contains permission prefixes that do not necessarily correspond to implemented page routes"
+    },
+    "enroll": {
+      "page": "/admin-enroll",
+      "issue": "/api/auth-admin/enroll",
+      "issueSuccess": "{ otpauthUri }",
+      "confirm": "/api/auth-admin/enroll/confirm",
+      "confirmSuccess": "{ recoveryCodes }",
+      "failures": "{ error } with invalid / bad_credentials / bad_totp / enroll_reset / rate_limited; no custom {ok,data} wrapper"
+    },
+    "evidence": [
+      {
+        "file": "src/auth.ts",
+        "line": 15
+      },
+      {
+        "file": "src/auth.ts",
+        "line": 32
+      },
+      {
+        "file": "src/auth.ts",
+        "line": 46
+      },
+      {
+        "file": "src/lib/server/admin/guard.ts",
+        "line": 47
+      },
+      {
+        "file": "src/lib/server/admin/guard.ts",
+        "line": 50
+      },
+      {
+        "file": "src/lib/server/admin-guard.ts",
+        "line": 25
+      },
+      {
+        "file": "src/lib/admin/safe-callback.ts",
+        "line": 18
+      }
+    ]
+  },
+  "settings": {
+    "existing": true,
+    "storage": {
+      "model": "SiteSetting",
+      "fields": "key String @id; value Json"
+    },
+    "adminPage": "/admin/settings",
+    "sections": [
+      {
+        "id": "about",
+        "url": "/admin/settings",
+        "component": "src/components/admin/settings/AboutSettings.tsx"
+      },
+      {
+        "id": "org",
+        "url": "/admin/settings?section=org",
+        "component": "src/components/admin/settings/OrgSettings.tsx"
+      }
+    ],
+    "keys": [
+      "about.enabled",
+      "about.<locale>",
+      "about.images",
+      "site.organization"
+    ],
+    "apiPrefix": "/api/admin/site-settings",
+    "apiFiles": [
+      "src/app/api/admin/site-settings/about/[locale]/route.ts",
+      "src/app/api/admin/site-settings/about/enabled/route.ts",
+      "src/app/api/admin/site-settings/about/images/route.ts",
+      "src/app/api/admin/site-settings/about/route.ts",
+      "src/app/api/admin/site-settings/assets/[id]/route.ts",
+      "src/app/api/admin/site-settings/assets/route.ts",
+      "src/app/api/admin/site-settings/organization/route.ts"
+    ],
+    "serverFiles": [
+      "src/lib/server/site-settings-model.ts",
+      "src/lib/server/site-settings-admin.ts",
+      "src/lib/server/site-settings-admin-deps.ts",
+      "src/lib/server/site-settings.ts",
+      "src/lib/server/public-assets-admin.ts"
+    ],
+    "saveSemantics": "ADMIN only; version CAS in transaction (SELECT FOR UPDATE), conflict 409, audit, cache invalidation; current about/org partition has independent version values",
+    "publicRead": "unstable_cache tag site-settings, revalidate 60 seconds; write invalidates tag and sitemap; about visibility also needs enabled + published locale + completeness; DB read failure closes about visibility",
+    "mailConfig": "Environment variables in src/lib/server/mail/config.ts; /api/admin/mail/config returns {sendingEnabled} only, no write API",
+    "evidence": [
+      {
+        "file": "prisma/schema.prisma",
+        "line": 231
+      },
+      {
+        "file": "src/components/admin/settings/SettingsSections.tsx",
+        "line": 6
+      },
+      {
+        "file": "src/lib/server/site-settings-admin.ts",
+        "line": 114
+      },
+      {
+        "file": "src/lib/server/site-settings.ts",
+        "line": 97
+      },
+      {
+        "file": "src/lib/server/site-settings-admin-deps.ts",
+        "line": 11
+      }
+    ]
+  },
+  "jobsAndCron": {
+    "existing": true,
+    "generalJobsModelPresent": false,
+    "generalJobsPagePresent": false,
+    "generalJobsApiPresent": false,
+    "schedulerTemplate": "deploy/cron.nbshiyan",
+    "templateTimezone": "server local time",
+    "scheduled": [
+      {
+        "schedule": "30 4 * * *",
+        "action": "deploy/backup-postgres.sh daily"
+      },
+      {
+        "schedule": "0 3 * * *",
+        "action": "GET /api/admin/cron/cleanup-uploads inside app container"
+      }
+    ],
+    "cleanup": {
+      "route": "src/app/api/admin/cron/cleanup-uploads/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "Authorization Bearer CRON_SECRET; timing-safe comparison via secretMatches",
+      "maxDurationSeconds": 300,
+      "dryRun": "RETENTION_DRY_RUN=1 (count only)",
+      "concurrency": "Postgres advisory lock; 409 cleanup_running if held",
+      "steps": [
+        "expired shared designs",
+        "orphan logos",
+        "sample email counters",
+        "expired inquiry anonymization",
+        "inactive user disable",
+        "old audit logs"
+      ],
+      "configFile": "src/lib/server/retention.ts",
+      "configNames": [
+        "DESIGN_TTL_DAYS",
+        "DESIGN_GRACE_DAYS",
+        "AUDIT_RETAIN_DAYS",
+        "SAMPLE_COUNTER_RETAIN_DAYS",
+        "INQUIRY_RETAIN_DAYS",
+        "RETENTION_MAX_PER_RUN",
+        "RETENTION_RUN_DEADLINE_MS"
+      ]
+    },
+    "mailQueue": {
+      "route": "src/app/api/admin/cron/mail-queue/route.ts",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "Authorization Bearer CRON_SECRET",
+      "apiSwitch": "NEXT_PUBLIC_ADMIN_MAIL=http (otherwise 404 before auth)",
+      "processing": "Expired SENDING leases and due daily-cap deferrals",
+      "configuration": [
+        "MAIL_DAILY_CAP",
+        "MAIL_DAILY_CAP_RESET (UTC HH:MM)",
+        "MAIL_RATE_ADMIN_PER_HOUR",
+        "MAIL_RATE_GLOBAL_PER_HOUR"
+      ],
+      "scheduledInTemplate": false
+    },
+    "modelProcessing": {
+      "route": "src/app/api/admin/models/[id]/process/route.ts",
+      "service": "src/lib/server/model-service.ts",
+      "mode": "await processModel(id) in request, sets PROCESSING -> READY/FAILED; no general job worker shown"
+    },
+    "evidence": [
+      {
+        "file": "deploy/cron.nbshiyan",
+        "line": 6
+      },
+      {
+        "file": "deploy/cron.nbshiyan",
+        "line": 7
+      },
+      {
+        "file": "src/app/api/admin/cron/mail-queue/route.ts",
+        "line": 16
+      },
+      {
+        "file": "src/app/api/admin/cron/cleanup-uploads/route.ts",
+        "line": 28
+      },
+      {
+        "file": "src/lib/server/model-service.ts",
+        "line": 7
+      }
+    ]
+  },
+  "schema": {
+    "file": "prisma/schema.prisma",
+    "database": "PostgreSQL",
+    "models": [
+      "User",
+      "Contact",
+      "Inquiry",
+      "InquiryItem",
+      "InquiryMessage",
+      "InquiryNote",
+      "SampleRequest",
+      "SharedDesign",
+      "Model3D",
+      "SiteSetting",
+      "AuditLog",
+      "LogoUpload",
+      "PublicAsset",
+      "CategorySpec",
+      "MailMessage"
+    ],
+    "enums": [
+      "Role",
+      "InquiryStatus",
+      "InquirySource",
+      "MessageDirection",
+      "SampleStatus",
+      "ModelStatus",
+      "Locale",
+      "Incoterm",
+      "MailDirection",
+      "MailStatus",
+      "DeliveryStatus"
+    ],
+    "contentOwnership": "Schema states product/article content is in Sanity; operational data in PostgreSQL",
+    "migration": {
+      "migrationsDirectoryPresent": false,
+      "sqlFiles": [
+        "prisma/sql/2fa-enroll-hardening.sql",
+        "prisma/sql/347-enroll-token.sql",
+        "prisma/sql/350-public-asset.sql",
+        "prisma/sql/74-mail-backend.sql",
+        "prisma/sql/locale-enum-values.sql"
+      ],
+      "productionFlow": "deploy/deploy.sh: pre-deploy backup -> prisma migrate diff --script -> destructive-plan gate -> prisma db push --skip-generate -> prisma migrate diff --exit-code -> app start -> smoke -> app rollback on failure",
+      "acceptDataLossUsed": false,
+      "sqlFilesExecutedByDeploy": false,
+      "ciSetup": "pnpm prisma db push --skip-generate",
+      "warning": "SQL reference files are not migrations executed by deploy. No new migration framework selected by this report."
+    },
+    "evidence": [
+      {
+        "file": "deploy/README.md",
+        "line": 58
+      },
+      {
+        "file": "deploy/deploy.sh",
+        "line": 94
+      },
+      {
+        "file": "Dockerfile",
+        "line": 82
+      }
+    ]
+  },
+  "productAnd3D": {
+    "existing": true,
+    "catalogPage": "src/app/[locale]/products/page.tsx",
+    "catalogComposer": "src/lib/catalog/catalog.ts",
+    "dataSources": [
+      "src/data/products.ts",
+      "src/data/categories.ts",
+      "src/lib/server/published-models.ts",
+      "src/lib/server/specs-public.ts"
+    ],
+    "gallery": "src/components/three/ProductGallery.tsx",
+    "scene": "src/components/three/GalleryScene.tsx",
+    "model": "src/components/three/ProductModel.tsx",
+    "foldFallback": "src/components/three/FoldBox.tsx",
+    "modelCache": "src/components/three/modelCache.ts",
+    "adminUpload": "src/components/admin/models/ModelUpload.tsx",
+    "adminPreview": "src/components/admin/models/ModelPreview.tsx",
+    "controls": {
+      "rotation": "OrbitControls, enabled for active card; pan disabled",
+      "zoom": "Desktop hover 500ms or pointer down enables wheel zoom; coarse pointer has enter/done interaction",
+      "views": "closed/open/dieline on gift-boxes, wine-boxes, corrugated-boxes",
+      "load": "Client dynamic scene; first interaction or idle fallback arms; IntersectionObserver rootMargin 200px",
+      "rendering": "Single Canvas + drei View; frameloop demand",
+      "fallback": "Poster on failed model/scene; procedural FoldBox where view/animation not supplied",
+      "motion": "Reduced motion handling in ProductModel, GalleryScene, FoldBox",
+      "progressive": "Needle gltf-progressive with changed event invalidation and patched dependency"
+    },
+    "evidence": [
+      {
+        "file": "src/components/three/ProductGallery.tsx",
+        "line": 14
+      },
+      {
+        "file": "src/components/three/ProductGallery.tsx",
+        "line": 16
+      },
+      {
+        "file": "src/components/three/GalleryScene.tsx",
+        "line": 161
+      },
+      {
+        "file": "src/components/three/ProductModel.tsx",
+        "line": 133
+      },
+      {
+        "file": "src/components/three/FoldBox.tsx",
+        "line": 6
+      }
+    ]
+  },
+  "inquiryAndConsent": {
+    "existing": true,
+    "inquiryPage": "src/app/[locale]/contact/page.tsx",
+    "inquiryWizard": "src/components/inquiry/InquiryWizard.tsx",
+    "inquiryEndpoint": "/api/inquiries",
+    "quote": [
+      "src/components/quote/QuoteProvider.tsx",
+      "src/components/quote/FloatingActions.tsx",
+      "src/components/quote/AddToQuoteButton.tsx"
+    ],
+    "upload": "src/components/inquiry/LogoUploadField.tsx",
+    "consent": [
+      "src/components/consent/CookieConsent.tsx",
+      "src/components/consent/CookieSettingsLink.tsx",
+      "src/lib/consent.ts",
+      "src/lib/client/consent.ts"
+    ],
+    "consentStorage": "localStorage pj-consent; v2 {v,analytics,chat,ts}; changes via pj:consent and storage events",
+    "chat": "src/components/chat/useTawk.ts; consent + configured IDs + interaction/idle; excludes admin",
+    "analytics": "src/components/analytics/WebVitals.tsx; consent controlled",
+    "evidence": [
+      {
+        "file": "src/components/inquiry/InquiryWizard.tsx",
+        "line": 207
+      },
+      {
+        "file": "src/lib/consent.ts",
+        "line": 3
+      },
+      {
+        "file": "src/app/[locale]/layout.tsx",
+        "line": 67
+      }
+    ]
+  },
+  "pendingFacts": [
+    {
+      "status": "placeholder",
+      "path": "src/app/[locale]/s/[id]/page.tsx",
+      "fact": "Valid shared design currently renders title, productSlug and category link; comment explicitly says 3D preview awaits frontend integration.",
+      "evidence": {
+        "file": "src/app/[locale]/s/[id]/page.tsx",
+        "line": 24
+      }
+    },
+    {
+      "status": "minimalExistingPage",
+      "path": "src/app/[locale]/products/[slug]/page.tsx",
+      "fact": "Category detail page currently renders breadcrumb JSON-LD, title and 3D catalog link; do not describe as completed rich product/detail experience.",
+      "evidence": {
+        "file": "src/app/[locale]/products/[slug]/page.tsx",
+        "line": 37
+      }
+    },
+    {
+      "status": "missingWiring",
+      "path": "deploy/cron.nbshiyan",
+      "fact": "Mail queue route exists but no mail-queue invocation in this template; other external schedulers were not inspected."
+    },
+    {
+      "status": "notImplementedAsGeneralFeature",
+      "fact": "No general Job model, /admin/jobs page, or /api/admin/jobs route in current inspected tree. Role-map /admin/content, /admin/stats, /admin/samples entries alone do not prove those pages exist."
+    }
+  ],
+  "verification": {
+    "executionStatus": "not run; source inventory task only",
+    "packageScripts": {
+      "dev": "next dev",
+      "build": "next build",
+      "start": "next start",
+      "lint": "next lint && pnpm run lint:ru-yo",
+      "lint:ru-yo": "node scripts/lint-ru-yo.mjs",
+      "postinstall": "prisma generate",
+      "admin:create": "node scripts/admin-create.mjs",
+      "admin:seed": "node scripts/create-admin.mjs",
+      "admin:2fa-audit": "node scripts/admin-2fa-audit.mjs",
+      "admin:reset-initial-password": "node scripts/admin-reset-initial-password.mjs",
+      "test": "node --import tsx --test tests/*.test.ts",
+      "smoke": "node --import tsx scripts/smoke.ts",
+      "email:build": "node scripts/build-email-templates.mjs",
+      "test:e2e": "playwright test",
+      "seo:audit": "tsx scripts/seo-audit.ts"
+    },
+    "ciFiles": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/security-review.yml"
+    ],
+    "unitTestCount": 148,
+    "unitTestFiles": [
+      "tests/about-350.test.ts",
+      "tests/about-client-guard.test.ts",
+      "tests/about-images-350.test.ts",
+      "tests/about-og-route.test.ts",
+      "tests/about-rules-350.test.ts",
+      "tests/about-seo.test.ts",
+      "tests/about-settings-api-367.test.ts",
+      "tests/admin-2fa-audit.test.ts",
+      "tests/admin-anonymized-ui.test.ts",
+      "tests/admin-create.test.ts",
+      "tests/admin-enroll-hardening-347-348.test.ts",
+      "tests/admin-enroll-p1.test.ts",
+      "tests/admin-enroll-token-347.test.ts",
+      "tests/admin-enroll-void-ratelimit.test.ts",
+      "tests/admin-history-actor-kind.test.ts",
+      "tests/admin-inquiry-history-331.test.ts",
+      "tests/admin-inquiry-page-404.test.ts",
+      "tests/admin-layout-guard.test.ts",
+      "tests/admin-mail-340.test.ts",
+      "tests/admin-mail-http.test.ts",
+      "tests/admin-mail-logic.test.ts",
+      "tests/admin-mail-poller.test.ts",
+      "tests/admin-mail-states-74.test.ts",
+      "tests/admin-mail-ui.test.ts",
+      "tests/admin-mobile-291.test.ts",
+      "tests/admin-org-settings-350.test.ts",
+      "tests/admin-p3-350.test.ts",
+      "tests/admin-page-gate.test.ts",
+      "tests/admin-product-label.test.ts",
+      "tests/admin-reset-2fa-unlock-347.test.ts",
+      "tests/admin-reset-initial-password.db.test.ts",
+      "tests/admin-reset-initial-password.test.ts",
+      "tests/admin-settings-qa-373.test.ts",
+      "tests/admin-time-291.test.ts",
+      "tests/admin-users-last-admin.test.ts",
+      "tests/admin-users.test.ts",
+      "tests/anonymize-security.test.ts",
+      "tests/app-env.test.ts",
+      "tests/app-origin.test.ts",
+      "tests/article-og-layout.test.ts",
+      "tests/article-og-meta.test.ts",
+      "tests/article-og-route.test.ts",
+      "tests/asset-delete-race-350.test.ts",
+      "tests/catalog.test.ts",
+      "tests/catbar-card-spacing.test.ts",
+      "tests/category-nav-195.test.ts",
+      "tests/category-og.test.ts",
+      "tests/cert-url-userinfo.test.ts",
+      "tests/cleanup-lock.db.test.ts",
+      "tests/client-ip.test.ts",
+      "tests/cookie-settings-focus-307p2.test.ts",
+      "tests/cron-cleanup-alert.test.ts",
+      "tests/dark-rim-172.test.ts",
+      "tests/designs.test.ts",
+      "tests/dotted-path-404.test.ts",
+      "tests/email.test.ts",
+      "tests/file-response.test.ts",
+      "tests/focus-307.test.ts",
+      "tests/framing-291.test.ts",
+      "tests/health.test.ts",
+      "tests/hero-video.test.ts",
+      "tests/history-mail-74.test.ts",
+      "tests/history.test.ts",
+      "tests/home-advantages.test.ts",
+      "tests/home-entry-grid-308.test.ts",
+      "tests/hreflang.test.ts",
+      "tests/indexnow-key-route.test.ts",
+      "tests/indexnow.test.ts",
+      "tests/inquiry-a11y-308.test.ts",
+      "tests/inquiry-assign.test.ts",
+      "tests/inquiry-authz.test.ts",
+      "tests/inquiry-reply-audit.test.ts",
+      "tests/inquiry-retention-activity.test.ts",
+      "tests/last-admin.db.test.ts",
+      "tests/last-admin.test.ts",
+      "tests/launch-runbook.test.ts",
+      "tests/lint-ru-yo.test.ts",
+      "tests/locale-enum-values.test.ts",
+      "tests/locale-switch-category.test.ts",
+      "tests/locale-switch-docs.test.ts",
+      "tests/locale-switch.test.ts",
+      "tests/mail-backend.test.ts",
+      "tests/mail-inbound.test.ts",
+      "tests/mail-notification-log.test.ts",
+      "tests/mail-routes.test.ts",
+      "tests/mail-sanitize.test.ts",
+      "tests/mail-send-201-344.test.ts",
+      "tests/mail-thread.test.ts",
+      "tests/mock-dynamic-import.test.ts",
+      "tests/model-upload-limit.test.ts",
+      "tests/not-found-meta.test.ts",
+      "tests/og-middleware-matcher.test.ts",
+      "tests/og-title-clamp-350.test.ts",
+      "tests/og-versions.test.ts",
+      "tests/organization-jsonld.test.ts",
+      "tests/portable-text.test.ts",
+      "tests/privacy-ipcountry-loginhash.test.ts",
+      "tests/privacy-placeholder.test.ts",
+      "tests/privacy-routes.test.ts",
+      "tests/privacy.test.ts",
+      "tests/probe.test.ts",
+      "tests/prod-env-check.test.ts",
+      "tests/prod-mocks-strip.test.ts",
+      "tests/product-gallery-172.test.ts",
+      "tests/public-asset-350.test.ts",
+      "tests/quote-list.test.ts",
+      "tests/ratelimit.test.ts",
+      "tests/redirect-location.test.ts",
+      "tests/retention-dry-run.test.ts",
+      "tests/retention-enforce.test.ts",
+      "tests/routing-alternate-links.test.ts",
+      "tests/rum-route.test.ts",
+      "tests/rum.test.ts",
+      "tests/s-unavailable.test.ts",
+      "tests/sample-address.test.ts",
+      "tests/sample.test.ts",
+      "tests/sanitize-about-350.test.ts",
+      "tests/sanity-import.test.ts",
+      "tests/sanity.test.ts",
+      "tests/security-headers.test.ts",
+      "tests/seed-guard.test.ts",
+      "tests/seo-audit.test.ts",
+      "tests/seo-jsonld.test.ts",
+      "tests/seo-mock-gating.test.ts",
+      "tests/seo-templates.test.ts",
+      "tests/session-check.test.ts",
+      "tests/shortlink.test.ts",
+      "tests/site-settings-admin-350.test.ts",
+      "tests/site-settings-organization-350.test.ts",
+      "tests/site-settings-read-350.test.ts",
+      "tests/site-settings-routes-350.test.ts",
+      "tests/sitemap.test.ts",
+      "tests/smoke.test.ts",
+      "tests/solutions-industry.test.ts",
+      "tests/spec-form.test.ts",
+      "tests/specs-cache-hit.test.ts",
+      "tests/specs-routes.test.ts",
+      "tests/specs-text-plain-data.test.ts",
+      "tests/specs.test.ts",
+      "tests/standalone-start.test.ts",
+      "tests/startup-env-check.test.ts",
+      "tests/storage-local.test.ts",
+      "tests/storage.test.ts",
+      "tests/tawk-admin.test.ts",
+      "tests/turnstile-url.test.ts",
+      "tests/unconfirmed-claims-content.test.ts",
+      "tests/unconfirmed-claims.test.ts",
+      "tests/url-scheme-normalize.test.ts"
+    ],
+    "e2eFiles": [
+      "e2e/admin-about-images.spec.ts",
+      "e2e/admin-enroll.spec.ts",
+      "e2e/admin-org-settings.spec.ts",
+      "e2e/admin.spec.ts",
+      "e2e/consent.spec.ts",
+      "e2e/i18n.spec.ts",
+      "e2e/inquiry.spec.ts",
+      "e2e/lod-upgrade.spec.ts",
+      "e2e/og-middleware.spec.ts",
+      "e2e/seo.spec.ts",
+      "e2e/shortlink-unavailable.spec.ts",
+      "e2e/tawk.spec.ts"
+    ],
+    "e2eConfig": {
+      "file": "playwright.config.ts",
+      "baseUrl": "http://localhost:${E2E_PORT ?? 3100}",
+      "workers": 1,
+      "retries": 0,
+      "browser": "chromium",
+      "server": "pnpm start -p <port> (requires build), plus e2e/turnstile-mock.mjs on 3999",
+      "globalSetup": "e2e/global-setup.ts creates test admin; requires dedicated test DATABASE_URL"
+    },
+    "commands": [
+      {
+        "command": "pnpm install --frozen-lockfile",
+        "purpose": "Lockfile dependency install; postinstall runs prisma generate"
+      },
+      {
+        "command": "pnpm test",
+        "purpose": "tests/*.test.ts via node --import tsx --test; DB tests can skip without env"
+      },
+      {
+        "command": "pnpm build",
+        "purpose": "Next production build; CI build check"
+      },
+      {
+        "command": "pnpm lint",
+        "purpose": "Declared next lint + Russian ё policy; not included in current ci.yml and not verified here"
+      },
+      {
+        "command": "node scripts/check-admin-guard.mjs",
+        "purpose": "Static admin API guard gate"
+      },
+      {
+        "command": "node scripts/check-model-size.mjs && node scripts/check-model-refs.mjs",
+        "purpose": "Static model size and references"
+      },
+      {
+        "command": "pnpm audit --audit-level high --prod",
+        "purpose": "Current CI dependency security gate"
+      },
+      {
+        "command": "pnpm exec playwright install --with-deps chromium; pnpm build; pnpm test:e2e",
+        "purpose": "Real Next server, dedicated test PostgreSQL prepared by pnpm prisma db push --skip-generate; external calls intercepted by suite"
+      },
+      {
+        "command": "STANDALONE_TEST=1 node --import tsx --test tests/standalone-start.test.ts",
+        "purpose": "POSIX CI syntax after build; opt-in standalone startup checks using fake values"
+      },
+      {
+        "command": "bash deploy/tests/<name>.test.sh",
+        "purpose": "Deploy static/helper tests; see deployTestFiles"
+      },
+      {
+        "command": "pnpm smoke --base <isolated-test-origin>",
+        "purpose": "HTTP deployment smoke checks; see scripts/smoke.ts"
+      },
+      {
+        "command": "pnpm seo:audit",
+        "purpose": "Declared SEO audit script; see scripts/seo-audit.ts"
+      }
+    ],
+    "deployTestFiles": [
+      "deploy/tests/build-offbox.test.sh",
+      "deploy/tests/dockerfile-lint.test.sh",
+      "deploy/tests/env-check.test.sh",
+      "deploy/tests/import-scan.test.sh",
+      "deploy/tests/mem-check.test.sh",
+      "deploy/tests/perms.test.sh",
+      "deploy/tests/pipefail-lint.test.sh",
+      "deploy/tests/plan-check.test.sh",
+      "deploy/tests/smoke.test.sh"
+    ],
+    "conditionalDbTests": [
+      {
+        "file": "tests/cleanup-lock.db.test.ts",
+        "enable": "DATABASE_URL starts with postgres; uses transaction advisory lock"
+      },
+      {
+        "file": "tests/last-admin.db.test.ts",
+        "enable": "DATABASE_URL; independent schema"
+      },
+      {
+        "file": "tests/admin-reset-initial-password.db.test.ts",
+        "enable": "ADMIN_RESET_TEST_DATABASE_URL only; intentionally ignores DATABASE_URL"
+      }
+    ],
+    "lighthouse": {
+      "config": "lighthouserc.json",
+      "urls": [
+        "/en",
+        "/en/products"
+      ],
+      "runs": 3,
+      "LCPmaxMs": 2000,
+      "CLSmax": 0.1,
+      "performanceMin": 0.9
+    },
+    "caveats": [
+      "No runtime, browser, test, deployment or live DB validation performed by this task.",
+      "Source inventory must not be cited as acceptance evidence.",
+      "Current CI does not run the declared pnpm lint script.",
+      "Existing tests and fixture-driven E2E do not demonstrate future real-provider or production acceptance."
+    ]
+  }
+}

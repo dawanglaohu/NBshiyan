@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) Caller deploy/cron.nbshiyan leads to POST /api/admin/cron/operations; reject missing/incorrect Bearer credentials, use a fixed jobKey allowlist, and permit only one commit under concurrent lease+generation processing; batch must be at most 500 with a recoverable 55s deadline (E-81). 2) Register actual cron for the existing mail-queue wrapper under the original switches and Bearer requirements; after restart, actual scheduling must execute and leave JobState; dashboard GET must not trigger jobs; verify the schema-first diff plan without deleting old columns (E-64).",
+  "edges": {
+    "E-81": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+      "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+    },
+    "E-64": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "API or mail metrics are connected to actual result sources",
+      "expect": "Show redacted, explicitly defined error rates and notification-failure counts. Record mail failures from actual send attempts; do not equate queuing, invoking the send function or receiving an ordinary inquiry with successful delivery."
+    }
+  }
+}

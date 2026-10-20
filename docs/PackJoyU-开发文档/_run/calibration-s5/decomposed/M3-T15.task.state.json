@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Write session deadlines from real activity and verify four Auth.js paths",
+    "input": "M3-T1 devices/current authorization; locked Auth.js beta; section 09/10 activity CAS and JWT/Set-Cookie expiry.",
+    "output": "POST /api/admin/account/session/activity and the Auth.js expiry adapter; real-browser evidence for initial sign-in/activity/SSR/signOut and close/reopen.",
+    "accept": "1) Caller/wiring point: real current-device POST activity -> validity CAS -> JWT/Set-Cookie on the actual Response. Ordinary sessions slide by two hours; remembered sessions have seven idle days and an absolute 30 days from first issuance. Equality at a boundary returns 401 without touching activity. Concurrent refresh advances lastActivityAt only monotonically; when revocation commits first, a late refresh returns 401. Expired sessions cannot revive (E-01, E-02, E-68, E-69). 2) On the same locked beta, exercise initial sign-in, activity refresh, SSR, and Auth.js signOut through real HTTP/browser paths and record JWT/Set-Cookie deadlines and revocation results. SSR without a writable response does not claim cookie renewal. Close/reopen preserves usable unexpired credentials; expired/revoked copied cookies reject (E-03, E-04, E-70, E-71). 3) Auth.js session/GET account reads and background polling leave lastActivityAt unchanged. Activity timeouts do not replay automatically; safe GET verifies effectiveExpiresAt. false/absent remembered values use ordinary expiry (E-95)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

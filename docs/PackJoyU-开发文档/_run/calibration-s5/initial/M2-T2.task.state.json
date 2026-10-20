@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Correct direct model dragging and wheel focus",
+    "input": "The existing real GLB assets and OrbitControls, and D20",
+    "output": "Cancellable, precise pointer/focus control",
+    "accept": "1) A direct pointer-down in the product-card model viewport must capture the current model; hover must stop autorotation without geometrically scaling the card; ordinary wheel input scrolls the page, and only Ctrl/Cmd+wheel on a focused model or zoom controls zoom the model, without first forcing activation (E-97, E-98, E-99). 2) pointercancel/blur/Escape/unmount must all release control; subsequent manipulation must target the correct model without leaving the page locked; the user's pause takes priority over hiding/showing recovery; preserve tests that fail before the modification and pass afterward (E-100)."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

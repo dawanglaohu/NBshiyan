@@ -1,0 +1,30 @@
+{
+  "acceptance": "1) Caller/wiring point: real GET/read handlers -> cookie-scoped repository. Owner-only access; afterSeq ascending with max100. Inserts between pages still produce each caught-up ID once. Read MAX neither exceeds lastSeq nor regresses; polling only acknowledges receipt, not user reading. Guessed ID/seq/email grants no access (E-19, E-34, E-77, E-79). 2) First persist a real first message through the completed POST conversations endpoint, then record retainUntil/lastActivityAt. Repeated GET/POST read leaves the 90-day deadline unchanged. Reuse M4-T8 expiry prerequisites; an expired-cookie request gets 401 while retained message records and bodies remain unchanged (E-85).",
+  "edges": {
+    "E-19": {
+      "scene": "Online chat implementation route",
+      "trigger": "A visitor guesses another conversation identifier, or an unauthorized admin account accesses the inbox.",
+      "expect": "Reject reads and replies. A visitor may access only their own conversation using their own unguessable session credential."
+    },
+    "E-34": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A new message arrives while the inbox is refreshed or paginated.",
+      "expect": "Apply the defined seq cursor and read MAX rules: insert messages between pages and verify that each message ID in the completed range appears exactly once. Advance read only to the seq actually confirmed by the user; newly arrived higher-seq messages remain unread."
+    },
+    "E-77": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "There are multiple tabs, retries, out-of-order responses, or new messages inserted between pages.",
+      "expect": "Merge and deduplicate by stable server seq and message identifier. Advance the cursor only through the fully received range. A late old response must not move the cursor backward, overwrite a newer reply, or skip messages on an omitted page."
+    },
+    "E-79": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "The network recovers after an interruption, or the operator inbox has many unread messages.",
+      "expect": "Bind bounded pages to the established pagination cap, verify that no request exceeds it, and continuously fill seq gaps. Polling updates only the confirmed-receipt cursor, not the user's read position, and must not create an operator-online or read promise."
+    },
+    "E-85": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "The cookie reaches seven idle days or 30 days since issuance, or is revoked.",
+      "expect": "The server rejects access to the old conversation using that credential; the browser may start a new consultation. Re-entering the same email alone cannot restore the old conversation. Neither the cookie nor any frontend copy stores PII."
+    }
+  }
+}

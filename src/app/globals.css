@@ -322,3 +322,39 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 /* #291 焦点环：深色外环（--ink 在浅色画面上 ≥3:1）+ 内侧白环（压在深色礼盒上也看得见） */
 .hero-media-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 2px #fff}
 @media (max-width:767px){.hero:has(.hero-media){min-height:0}.hero-media{aspect-ratio:4/5}}
+
+/* ---- M1-T1：8 个核心 --pj-* token 接到现有首页选择器上 ----
+   规则写在文件末尾：与上方 .btn/.entry a/.hero/:focus-visible 同特异性，靠后出现赢得层叠。
+   上方那些旧规则被 tests/catbar-card-spacing.test.ts 与 tests/home-entry-grid-308.test.ts 逐字锁定，
+   删改会直接红；要统一到 token，先改对应测试。 */
+body{background:var(--pj-bg);color:var(--pj-fg);font-size:var(--pj-body-size);line-height:var(--pj-body-line)}
+/* 首屏背景用 --pj-bg 纯色，不叠渐变（11 节 Avoid） */
+.hero{background:var(--pj-bg)}
+/* 主按钮：11 节固定态 = 黑底白字、2px 黑边、0 圆角；hover 黑白反转；active 强调底白字 */
+.btn{background:var(--pj-fg);border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);color:var(--pj-bg)}
+.btn:hover{background:var(--pj-bg);border-color:var(--pj-border);color:var(--pj-fg)}
+.btn:not(.ghost):active{background:var(--pj-accent);border-color:var(--pj-accent);color:#ffffff;box-shadow:none}
+.btn.ghost{background:var(--pj-bg);border:var(--pj-border-width) solid var(--pj-border);color:var(--pj-fg)}
+.btn.ghost:hover{background:var(--pj-fg);border-color:var(--pj-fg);color:var(--pj-bg)}
+/* 深色区（礼盒/酒盒 band）与强调底 band 里不叠第二套色：按钮一律反白，靠边界和反色区分 */
+/* 选择器必须带 :not(.ghost)：文件上方 .theme-premium .btn:not(.ghost) 特异性更高，只写 .theme-premium .btn 压不住 */
+.theme-premium .btn:not(.ghost),.cta-band .btn:not(.ghost){background:var(--pj-bg);border:var(--pj-border-width) solid var(--pj-bg);color:var(--pj-fg)}
+.theme-premium .btn:not(.ghost):hover,.cta-band .btn:not(.ghost):hover{background:var(--pj-fg);border-color:var(--pj-bg);color:var(--pj-bg)}
+.theme-premium .btn.ghost,.cta-band .btn.ghost{background:transparent;border:var(--pj-border-width) solid var(--pj-bg);color:var(--pj-bg)}
+/* 首页产品入口卡：2px 黑边、0 圆角；hover 用强调色边界提示，不做位移/缩放 */
+.entry a{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius)}
+.entry a:hover{border-color:var(--pj-accent)}
+.entry a img{border-radius:var(--pj-radius)}
+/* 焦点环：强调色 outline + 2px offset（11 节组件表）。黑底区域由上面的 .theme-premium/.cta-band 规则反白 */
+:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.btn:focus-visible,.theme-premium .btn:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+/* Cookie 同意条的按钮/链接与左下浮钮接同一批 token。
+   强调色只用于明确操作反馈；这里不改布局与尺寸，只改颜色、边界宽度、圆角。 */
+.consent{border:var(--pj-border-width) solid var(--pj-border);border-left:var(--pj-border-width) solid var(--pj-accent);border-radius:var(--pj-radius);box-shadow:none}
+.consent a,.cs-lead a,.cs-cat em{color:var(--pj-accent)}
+.consent .consent-actions button.consent-main,.cs-foot .consent-main{background:var(--pj-accent);border:var(--pj-border-width) solid var(--pj-accent);color:#ffffff;border-radius:var(--pj-radius)}
+.consent .consent-actions button.consent-main:hover,.cs-foot .consent-main:hover{background:var(--pj-fg);border-color:var(--pj-fg);color:var(--pj-bg)}
+.consent .consent-actions button.consent-set,.cs-foot .consent-set{background:var(--pj-bg);border:var(--pj-border-width) solid var(--pj-border);color:var(--pj-fg);border-radius:var(--pj-radius)}
+.consent .consent-actions button.consent-set:hover,.cs-foot .consent-set:hover{background:var(--pj-fg);border-color:var(--pj-fg);color:var(--pj-bg)}
+.fab .toggle{background:var(--pj-accent);color:#ffffff}
+.fab .badge{background:var(--pj-accent);color:#ffffff}

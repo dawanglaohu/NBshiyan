@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Create a necessary cookie only for active contact",
+    "input": "Shared HTTP/config and ChatSessionDTO; section 09/10 necessary-session/same-origin/expiry rules.",
+    "output": "ChatVisitorSession; POST /api/chat/session and cookie validation/bounded touch.",
+    "accept": "1) Caller/wiring point: real POST /api/chat/session -> visitor-session. Only active contact creates a random 256-bit token/hashed database record with Secure/HttpOnly/SameSite=Lax/Path=/api/chat and no Domain/PII. Missing/declined analytics does not block it; ordinary web GETs issue no chat cookie (E-40). 2) Enforce seven idle days/30 absolute days from first issuance; equality/revocation rejects. Check validity before touch. Reuse a valid cookie. Without one, unknown outcomes do not loop automatic creation; the same email cannot restore an old session. Apply exact Origin and limits of 10/10min per cookie and 20/10min per IP-HMAC (E-85)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

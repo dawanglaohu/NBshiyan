@@ -1,0 +1,33 @@
+{
+  "status": "ok",
+  "template": "risk",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "impact": {
+      "score": 0.42,
+      "level": "minor rework inside one task",
+      "confidence": 0.37,
+      "band": "low"
+    },
+    "likelihood": {
+      "score": 1.02,
+      "level": "plausible",
+      "confidence": 0.85,
+      "band": "high"
+    },
+    "mitigation_concrete": {
+      "p": 0.91,
+      "verdict": "yes"
+    },
+    "needs_owner": {
+      "p": 0.28,
+      "verdict": "no"
+    }
+  },
+  "line": "risk: impact=minor rework inside one task(low 0.37) likelihood=plausible(high 0.85) mitigation_concrete=yes(0.91) needs_owner=no(0.28)",
+  "usage": {
+    "input_tokens": 555,
+    "output_tokens": 70
+  }
+}

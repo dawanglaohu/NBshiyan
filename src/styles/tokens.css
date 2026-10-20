@@ -17,3 +17,22 @@
 }
 .theme-premium{ --bg:var(--premium-bg); --surface:#1D1D22; --stage-bg:#1D1D22; --placeholder:#26262C; --ink:var(--premium-ink); --ink-2:#B9AF9C; --line:#2E2C28; --accent:var(--gold); --accent-press:#B8934F; --on-accent:#121214; --accent-hover:#E2C285; --accent-text:var(--gold); }
 @media (prefers-reduced-motion:reduce){ :root{ --dur:0ms } }
+
+/* ---- 视觉基线：11 节核心变量（唯一视觉源，前后台与领域控件都从这里取值） ----
+   背景 --pj-bg、前景 --pj-fg、强调 --pj-accent、边界宽度 --pj-border-width、圆角 --pj-radius、
+   基础字号 --pj-body-size、正文行高 --pj-body-line；焦点颜色复用 --pj-accent，
+   --pj-focus-width / --pj-focus-offset 是焦点那条 token 的几何部分（11 节组件表：2px 强调色 outline + 2px offset）。
+   其余 token（inverse/on-accent/字号梯度/间距）归 [[M1-T7]]，同文件追加。
+   legacy 变量（--bg、--ink、--accent、--r- 系列、--fs- 系列）仍被 admin.css、mail.css 与既有测试消费，不得删除或改值。 */
+:root{
+  --pj-bg:#ffffff;
+  --pj-fg:#000000;
+  --pj-border:#000000;
+  --pj-accent:#b45700;
+  --pj-border-width:2px;
+  --pj-radius:0px;
+  --pj-body-size:16px;
+  --pj-body-line:24px;
+  --pj-focus-width:2px;
+  --pj-focus-offset:2px;
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Atomically consume a recovery code or permit into a restricted session",
+    "input": "M3-T4 permits and M3-T1 device revocation; existing recovery-code hashes; section 09/10 start lock order.",
+    "output": "AdminRecoverySession; POST /api/auth-admin/recovery/start and a restricted HttpOnly cookie.",
+    "accept": "1) Caller/wiring point: real POST start -> lock User and reread current recoveryCodes/permit -> consume, increment sv, revoke old sid/recovery sessions, create a ten-minute restricted session, and audit in one transaction. One code succeeds once under concurrency; different concurrent codes do not resurrect a used one. Reject email alone and old credentials (E-10, E-11). 2) The restricted cookie uses only Path=/api/auth-admin/recovery with Secure/HttpOnly/SameSite=Strict. It cannot request admin APIs, obtain an Auth.js session, or carry ADMIN role. Keep the original valid TOTP/password/defaultMode. Interruption/expiry commits no new factor. Transfer a SERVER_OWNER permit's preauthorized hash into the session only inside the server transaction; HTTP body cannot supply it (E-14, E-75)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

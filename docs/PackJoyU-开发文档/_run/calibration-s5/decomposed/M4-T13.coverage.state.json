@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) Caller/wiring point: existing chat-retention -> currently authorized policy branch -> transaction rereading lastActivityAt/retainUntil/policyVersion. Execute only on isolated authorized data. New successful exchange after scanning causes an old candidate to be skipped. An unchanged expired target has body/email/sensitive context anonymized and further replies disabled (E-87). 2) Reuse M4-T9 hidden-poll/offline and M4-T4 notification-retry prerequisites, adding only retainUntil assertions: repeated refresh GET, hidden-tab polling, read, and SMTP notification retries/receipts leave the 90-day deadline unchanged; only successfully saved visitor messages or human replies advance it. Cookie expiry does not cascade-delete content. Foreign keys use Restrict and empty sessions are reclaimed only after every consultation is anonymized. Without explicit authorization, real writes still reject with deletedCount zero. Existing inquiry/analytics/recovered/backup data is unchanged (E-86, E-88, E-89).",
+  "edges": {
+    "E-86": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "A hidden tab still polls, or a visit merely refreshes without successfully sending or receiving a consultation message.",
+      "expect": "These behaviors do not postpone the 90-day retention deadline for messages/email. Consultation activity means successfully persisted visitor messages or human replies; notification retries, delivery receipts, and read-state updates do not count as new consultation activity."
+    },
+    "E-87": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "Retention cleanup races with newly successful message sending or receiving.",
+      "expect": "The cleanup execution transaction rechecks the latest consultation activity and current policy version. If new consultation activity exists, skip the old deadline; do not erase recently resumed communication using a timestamp captured during the earlier scan."
+    },
+    "E-88": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "This documentation is generated or an implementer receives a dispatched task.",
+      "expect": "Make the authorization gate testable: real production cleanup is disabled by default and dry-run is the default mode. Without separate explicit authorization of the retention policy, reject enabling or requesting real deletion, keep deletedCount at zero, and optionally return candidate counts or a not-enabled status. Documentation, task dispatch, a model, or a proxy verdict cannot serve as authorization. Validate only with isolated data; do not touch existing production, recovered, or backup data."
+    },
+    "E-89": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "A chat cookie becomes invalid while the messages are still within 90 days.",
+      "expect": "Immediately block the visitor's historical access. Operators can still process retained consultations under existing ADMIN/SALES authorization. Do not implicitly change the existing 730-day inquiry, 30-day/13-month analytics, or backup policies."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Read visitor message pages and advance read position monotonically",
+    "input": "M4-T1 durable seq messages and M4-T8 necessary cookies; section 09/10 pagination/read MAX.",
+    "output": "GET /api/chat/conversations/[id] and POST /api/chat/conversations/[id]/read with visitor scope/stable pagination.",
+    "accept": "1) Caller/wiring point: real GET/read handlers -> cookie-scoped repository. Owner-only access; afterSeq ascending with max100. Inserts between pages still produce each caught-up ID once. Read MAX neither exceeds lastSeq nor regresses; polling only acknowledges receipt, not user reading. Guessed ID/seq/email grants no access (E-19, E-34, E-77, E-79). 2) First persist a real first message through the completed POST conversations endpoint, then record retainUntil/lastActivityAt. Repeated GET/POST read leaves the 90-day deadline unchanged. Reuse M4-T8 expiry prerequisites; an expired-cookie request gets 401 while retained message records and bodies remain unchanged (E-85)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

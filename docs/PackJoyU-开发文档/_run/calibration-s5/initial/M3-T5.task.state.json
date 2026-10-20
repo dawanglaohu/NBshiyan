@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Atomically confirm restricted new factors while preserving interrupted recovery",
+    "input": "M3-T4 restricted sessions/authorization sources and OS preauthorization; M3-T2 initial-enrollment/TOTP rules; M3-T3 account-owner TOTP_RESET grants.",
+    "output": "POST /api/auth-admin/recovery/enroll, POST /api/auth-admin/recovery/confirm, and POST /api/admin/account/2fa/reset; SELF_REAUTH restricted re-enrollment; final one-time response containing new recovery codes.",
+    "accept": "1) Caller/wiring point: recovery handlers -> restricted-recovery service; validate restricted-cookie hash/sv/expiry. Re-entering an active pending enrollment returns the same URI and original expiresAt without rotation or extension. Reject after five wrong codes, expiry, or revocation; the original valid factor and password remain usable through the original sign-in method (E-08, E-14). 2) confirm atomically commits the new factor and recovery-code hashes against current pendingSecret, unused step, restricted session, and sv; it revokes old devices again and consumes the session. Only an OS-preauthorized hash can also change the password, and HTTP accepts only totp. Return successful codes once; repeated confirm cannot retrieve or recommit them (E-15, E-75). 3) Account-owner 2fa/reset requires a fresh TOTP_RESET grant or equally strong compatible verification. Create a SELF_REAUTH restricted session before re-enrollment; do not clear the old factor before final confirmation. Unknown outcomes do not automatically retry confirm. A real ordinary sign-in during the next time step proves the final state (E-14, E-15, E-73)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

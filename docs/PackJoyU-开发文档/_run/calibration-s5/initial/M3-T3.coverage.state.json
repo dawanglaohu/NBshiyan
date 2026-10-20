@@ -1,0 +1,45 @@
+{
+  "acceptance": "1) Caller/wiring point: each declared App Router handler -> composed action-grant/account service. Only the current password plus the next unused TOTP can return a five-minute single-use grant. Reject cross-purpose/device/target use, expiry, old sv, or a revoked device. Even a valid passwordless session cannot directly issue a grant when its user has forgotten the password (E-72, E-73, E-74, E-75). 2) Under real PostgreSQL concurrency, grant consumption, password/mode/device changes, and audit commit in one transaction, with at most one matching write succeeding. A switch cannot remove all usable sign-in methods. Password change, mode switch, and sign-out-all invalidate old devices without deleting the confirmed TOTP (E-03, E-06, E-07, E-08). 3) Device GET returns only the account owner's safe summaries; specified-device revocation validates ownership of its target. Ordinary signOut requires no fresh verification, while other-device/all-device actions require their own grants. After response loss, verify using safe reads rather than replaying a one-time write (E-03, E-73, E-74).",
+  "edges": {
+    "E-03": {
+      "scene": "Session persistence and remembered-device lifetime",
+      "trigger": "The password is changed, the authenticator is reset, the account is disabled, or Sign out all devices is executed.",
+      "expect": "Revoke the account's old credentials on the server; reject old JWTs even if they have not expired. Ordinary Sign out must at least revoke the current device session and clear the local signed-in state."
+    },
+    "E-06": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "The owner of an enrolled account enables the toggle after fresh identity verification.",
+      "expect": "Ordinary sign-in requires only an email address or account identifier and an authenticator code. Recovery codes belong to a separate recovery entry point; a password is no longer required for this mode."
+    },
+    "E-07": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "Disabling passwordless mode or unbinding the authenticator would leave the account with no usable sign-in method.",
+      "expect": "Reject the change. First finish setting up and verifying a usable password or alternative method, and then commit the switch atomically."
+    },
+    "E-08": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "An enrollment code is wrong or expired, a submission is repeated, or switches occur concurrently.",
+      "expect": "Test all four triggers separately. In the final transaction, recheck the pending enrollment record, validity period, and current credential version. Do not commit wrong, expired, or replayed submissions; at most one of two concurrent switches succeeds. After a failure, querying the account must still show at least one verified sign-in method. Follow section 09 without inventing another sign-in method."
+    },
+    "E-72": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The same TOTP time step has already been consumed by sign-in, another sensitive operation, or a concurrent request.",
+      "expect": "Atomically consume the account's authenticator time step so later requests cannot issue another ActionGrant. The client may wait for the next code and retry; do not reintroduce recovery codes into ordinary sign-in."
+    },
+    "E-73": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "Two requests use the same ActionGrant concurrently, or a password-change grant is used to disable the authenticator.",
+      "expect": "Within the sensitive-change transaction, validate and consume the grant once against the action, device, account, and credential version. Only one matching request succeeds; reject a mismatched purpose without executing the change."
+    },
+    "E-74": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "More than five minutes have elapsed since grant issuance, the device is revoked, the password/authenticator changes, or the account's permission becomes invalid.",
+      "expect": "The old grant immediately becomes invalid. Fresh-verification grants cannot be transferred between devices and cannot extend the original device-session lifetime."
+    },
+    "E-75": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The user forgets the current password but can still use previously enabled passwordless sign-in.",
+      "expect": "Resolve D3 through the restricted recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless sign-in remains unchanged. Without the current password, sensitive settings cannot issue an ordinary ActionGrant: reject direct requests based solely on a signed-in session or one TOTP without a change. Restricted recovery permits only new enrollment and is audited."
+    }
+  }
+}

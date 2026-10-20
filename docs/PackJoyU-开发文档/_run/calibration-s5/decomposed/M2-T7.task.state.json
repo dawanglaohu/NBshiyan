@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire actual GLB lifecycles into analytics ingestion",
+    "input": "model-event-rules, model-fallback, analytics-ingest and analytics-consent-ui",
+    "output": "model-events; producer wiring for page/product visits and real GLB start/terminal events",
+    "accept": "1) After real-browser product-card GLB initiation, POST /api/analytics/events separately persists product visits, model_view_start and success/failure. Entering a product page without opening 3D produces no start. Without consent/with analytics rejected, models remain usable and no analytics request occurs (E-42, E-46). 2) Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display. Corresponding product fallback/retry/inquiry stay usable, posters/demonstrations send no GLB success, each viewId has at most one terminal kind, and new actual retries use new viewIds under the rules (E-103). 3) Verify associations and actual durationMs for two success/failure/timeout attempts and cancellation on card switching. The denominator includes only real starts after consent; timeout is failure, mean duration carries samples and is null with no samples, and rejected samples are not added (E-63)."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

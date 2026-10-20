@@ -1,0 +1,49 @@
+{
+  "id": "M5-T5",
+  "row": {
+    "line": 66,
+    "title": "实现分析保留候选与覆盖边界计划器",
+    "deps": [
+      "M5-T3"
+    ],
+    "input": "receivedAt/expiresAt规则、analytics-aggregate覆盖范围与09节保留参数",
+    "output": "analytics-retention-plan；纯截止计算及只读候选仓储",
+    "acceptance": "1) 注入时钟验证receivedAt+30天与13自然月expiresAt边界和等号到期；只读查询返回候选ID/数量，不执行删除，不含browserHash导出或业务PII。2) 计划器同时返回完整原始覆盖起点/不可重算自然日，部分清理日不得被标可重算；输出由M5-T11消费，真实事务/生产授权门禁由其集成。",
+    "days": "0.5d"
+  },
+  "contract": {
+    "provides": [
+      "analytics-retention-plan"
+    ],
+    "requires": [
+      {
+        "task": "M5-T3",
+        "capability": "analytics-aggregate"
+      }
+    ],
+    "stage": "primitive",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "src/lib/server/analytics/retention-plan.ts",
+      "tests/analytics-retention-plan.test.ts"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      14,
+      16,
+      17,
+      18
+    ],
+    "integrationTask": "M5-T11"
+  },
+  "contractHash": "65e9e1859a9b1b2f454df45828c91637a6a0aaab8ddbc1bfc7604d80b2fef57f",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M5　同意与统计账本：负责分析同意、匿名浏览器与事件标识、采集准入和去重、站点统计时区设置、日与产品聚合、原始与聚合保留及可重算边界，产出真实访问和 3D 统计。\n13: - 输入：receivedAt/expiresAt规则、analytics-aggregate覆盖范围与09节保留参数\n14: - 产出：analytics-retention-plan；纯截止计算及只读候选仓储\n15: - 预估：0.5 人天　｜　前置：M5-T3　以一致快照重算并原子替换日聚合（已落地）\n16: 任务契约版本：65e9e1859a9b1b2f454df45828c91637a6a0aaab8ddbc1bfc7604d80b2fef57f；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M5-T5.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M5.md　模块职责与已有代码位置\n24: \n25: ## 验收标准（验收的唯一依据，逐条都要满足）\n26: 1) 注入时钟验证receivedAt+30天与13自然月expiresAt边界和等号到期\n27: 只读查询返回候选ID/数量，不执行删除，不含browserHash导出或业务PII。2) 计划器同时返回完整原始覆盖起点/不可重算自然日，部分清理日不得被标可重算\n28: 输出由M5-T11消费，真实事务/生产授权门禁由其集成。\n29: \n30: ## 必须处理的边界\n31: （验收标准没挂边界编号。仍按常识处理空输入、失败路径、重复提交。）\n32: \n33: ## 只改这些路径\n34: - src/lib/server/analytics/retention-plan.ts\n35: - tests/analytics-retention-plan.test.ts\n36: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n37: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n38: \n\n74: ## 本项目约定\n75: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n76: "
+}

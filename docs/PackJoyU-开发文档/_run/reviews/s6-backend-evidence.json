@@ -1,0 +1,2646 @@
+{
+  "scope": "task-contract",
+  "reviewer": "S6 backend contract reviewer",
+  "round": 1,
+  "tasks": {
+    "M1-T2": {
+      "contractHash": "143675d7111844a2dcc5c89f12817090f877085b96ecd0eca79ac20d39b79cc9",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:12、_run/task-contracts.json:42与最终_run/dispatch.json tasks.M1-T2.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：contract-types；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M1-T1\", \"capability\": \"visual-base\"}]；下游：M1-T8:contract-types,M2-T4:contract-types,M3-T1:contract-types,M3-T2:contract-types,M3-T14:contract-types,M4-T8:contract-types,M5-T1:contract-types,M5-T2:contract-types,M5-T9:contract-types。",
+        "接线/测试owner：wiring=sharedTypes，按06注册表核对实际提示词有效范围；本任务测试落点=tests/contracts-foundation.test.ts；stage=primitive，完整集成owner=M1-T8且其前置闭包包含本原语。",
+        "共享DTO以06节唯一Zod/index出口及10节字段为源；Boolean/API字段与Auth.js字符串rememberDevice解析分支可区分。只验schema及独立TS消费，M1-T8明确依赖并承担适配集成，未要求本原语先交未实现UI。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T2.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 12,
+        "contractLine": 42,
+        "dispatchPromptSha256": "667a41530c2aa805346e720b4758e3617b28186fb1f9a8a9c32c21297feffa72",
+        "provides": [
+          "contract-types"
+        ],
+        "requires": [
+          {
+            "task": "M1-T1",
+            "capability": "visual-base"
+          }
+        ],
+        "stage": "primitive",
+        "integrationTask": "M1-T8",
+        "testPaths": [
+          "tests/contracts-foundation.test.ts"
+        ],
+        "wiring": [
+          "sharedTypes"
+        ]
+      }
+    },
+    "M3-T1": {
+      "contractHash": "a8cc121dca18aded213d0f325ee7842da45f3efbd23cbadadabbb0005e403da9",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:27、_run/task-contracts.json:620与最终_run/dispatch.json tasks.M3-T1.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：admin-device-sessions,current-admin-permissions；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}, {\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}]；下游：M3-T2:admin-device-sessions,M3-T3:current-admin-permissions,M3-T4:current-admin-permissions,M3-T15:admin-device-sessions,M3-T17:admin-device-sessions,M3-T19:admin-device-sessions,M4-T3:current-admin-permissions,M5-T9:current-admin-permissions。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-device-session.db.test.ts,tests/admin-device-guard.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "当前User/disabled/lockedUntil/totpEnabled/sv/sid/期限均在实际guard重读，普通signOut撤sid与Cookie；接口设备摘要由本任务创建，前置T14完整AccountDTO的前置反转另列B2，须先纠正其阶段。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T1.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 27,
+        "contractLine": 620,
+        "dispatchPromptSha256": "262c2d724677d566bd5d1c1fdfd328fb3d5c465c8c30f6358244f0fae8651ba3",
+        "provides": [
+          "admin-device-sessions",
+          "current-admin-permissions"
+        ],
+        "requires": [
+          {
+            "task": "M1-T2",
+            "capability": "contract-types"
+          },
+          {
+            "task": "M3-T14",
+            "capability": "http-guards-metrics"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-device-session.db.test.ts",
+          "tests/admin-device-guard.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T2": {
+      "contractHash": "7f4677feee83d0f377414518fb47509803a6d25865416a58026cdcc98f330c14",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:28、_run/task-contracts.json:673与最终_run/dispatch.json tasks.M3-T2.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：admin-login-modes,current-totp-consumption,first-enrollment；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}, {\"task\": \"M1-T2\", \"capability\": \"contract-types\"}]；下游：M3-T3:current-totp-consumption,M3-T5:current-totp-consumption,M3-T6:admin-login-modes,M3-T10:first-enrollment,M3-T16:admin-login-modes。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-login-mode.db.test.ts,tests/admin-enroll-current-state.db.test.ts,e2e/admin-credentials-modes.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "mode枚举/非空恢复码/未知账号均通用失败；TOTP CAS匹配当前secret/sv/step，首次enroll确认匹配当前tokenhash/expiry/pending，schema范围含User默认false增量，HTTP与DB竞争测试均有owner。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T2.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 28,
+        "contractLine": 673,
+        "dispatchPromptSha256": "0d04ec3b078cb6cdc2250222ff0d1731202ede6b12619e20b9b7ae557034b9d4",
+        "provides": [
+          "admin-login-modes",
+          "current-totp-consumption",
+          "first-enrollment"
+        ],
+        "requires": [
+          {
+            "task": "M3-T1",
+            "capability": "admin-device-sessions"
+          },
+          {
+            "task": "M1-T2",
+            "capability": "contract-types"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-login-mode.db.test.ts",
+          "tests/admin-enroll-current-state.db.test.ts",
+          "e2e/admin-credentials-modes.spec.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T3": {
+      "contractHash": "35a9391d3feb3e61a31bc283d9ae0148080acef6fa8564d0385f4012176f0b5d",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:29、_run/task-contracts.json:724与最终_run/dispatch.json tasks.M3-T3.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：admin-fresh-grants；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T2\", \"capability\": \"current-totp-consumption\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}]；下游：M3-T4:admin-fresh-grants,M3-T16:admin-fresh-grants,M3-T17:admin-fresh-grants,M3-T20:admin-fresh-grants。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-action-grant.db.test.ts,tests/admin-reauth.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "reauth真实handler接当前设备与当前密码/未用TOTP，token仅一次响应/hash入库；目的/设备/目标/版本/5min核销条件在明确事务消费者测试，并由T4/T16/T17/T20等实际变更消费；忘密无密码会话不能签grant。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T3.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 29,
+        "contractLine": 724,
+        "dispatchPromptSha256": "5bf724065aff9bc16e6453731c8ffc5a90fe744a8c54b8d8c910ed7392209528",
+        "provides": [
+          "admin-fresh-grants"
+        ],
+        "requires": [
+          {
+            "task": "M3-T2",
+            "capability": "current-totp-consumption"
+          },
+          {
+            "task": "M3-T1",
+            "capability": "current-admin-permissions"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-action-grant.db.test.ts",
+          "tests/admin-reauth.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T4": {
+      "contractHash": "535596fd4ee91dbe8f442477482fb5f07772779077714f2904c9eee2d9acb835",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:30、_run/task-contracts.json:768与最终_run/dispatch.json tasks.M3-T4.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：targeted-recovery-authorizations；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}]；下游：M3-T9:targeted-recovery-authorizations,M3-T18:targeted-recovery-authorizations,M3-T19:targeted-recovery-authorizations。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-recovery-authorizations.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "ADMIN他人target的15min permit与grant消费/审计同事务，旧无body重置请求拒绝；目标原有效因素不被提前覆盖，T19是permit实际消费方，UI T9只一次显示秘密。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T4.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 30,
+        "contractLine": 768,
+        "dispatchPromptSha256": "3d4886a4cf4733aeb2ec6bc9ae062fb73f5a1a53cf874d139c4646ac0b11d0bf",
+        "provides": [
+          "targeted-recovery-authorizations"
+        ],
+        "requires": [
+          {
+            "task": "M3-T3",
+            "capability": "admin-fresh-grants"
+          },
+          {
+            "task": "M3-T1",
+            "capability": "current-admin-permissions"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-recovery-authorizations.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T5": {
+      "contractHash": "75911964125c5b91666e711cbba6c7e0294d6eed7fb7de90876dde671cdd6f6e",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:31、_run/task-contracts.json:814与最终_run/dispatch.json tasks.M3-T5.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：limited-recovery-completion；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T19\", \"capability\": \"limited-recovery-start\"}, {\"task\": \"M3-T2\", \"capability\": \"current-totp-consumption\"}]；下游：M3-T11:limited-recovery-completion,M3-T20:limited-recovery-completion。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-recovery-confirm.db.test.ts,tests/admin-recovery-reentry.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "有效restricted-cookie的enroll重入同URI/原期限；confirm最终事务重验secret/sv/step，完成后新恢复码只返一次并撤旧设备。SERVER_OWNER预授权hash只在该提交生效，HTTP额外密码字段400，不能升级受限身份为后台。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T5.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 31,
+        "contractLine": 814,
+        "dispatchPromptSha256": "8fb8ea192608e2453beb8df27b9f8a80ef6e1e3d713070179171c65a9b3d1993",
+        "provides": [
+          "limited-recovery-completion"
+        ],
+        "requires": [
+          {
+            "task": "M3-T19",
+            "capability": "limited-recovery-start"
+          },
+          {
+            "task": "M3-T2",
+            "capability": "current-totp-consumption"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-recovery-confirm.db.test.ts",
+          "tests/admin-recovery-reentry.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T6": {
+      "contractHash": "988a9e9cfa516216ee0436241ecb6f598b67866dadbe70acf50317998be7c98e",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:32、_run/task-contracts.json:860与最终_run/dispatch.json tasks.M3-T6.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：admin-auth-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T2\", \"capability\": \"admin-login-modes\"}, {\"task\": \"M1-T1\", \"capability\": \"visual-base\"}, {\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}]；下游：M3-T7:admin-auth-ui,M3-T10:admin-auth-ui,M3-T11:admin-auth-ui,M7-T2:admin-auth-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-login-ui.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "UI请求沿Auth.js原CSRF/Credentials协议，password与totp各自字段来自M1契约；next.config/safe-callback/auth.ts在scope，异常mode/恢复码通用失败与remembered false有真实接口断言。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T6.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 32,
+        "contractLine": 860,
+        "dispatchPromptSha256": "f5c6b12d4b0b12dcaa7a0301273f502d3c5be14986862fe29a0329dab0ff20c9",
+        "provides": [
+          "admin-auth-ui"
+        ],
+        "requires": [
+          {
+            "task": "M3-T2",
+            "capability": "admin-login-modes"
+          },
+          {
+            "task": "M1-T1",
+            "capability": "visual-base"
+          },
+          {
+            "task": "M1-T8",
+            "capability": "client-api-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-login-ui.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T7": {
+      "contractHash": "578b49d1ba723d5a1e100c49652f2c9706235b360963b341cabe3b867e31535c",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:33、_run/task-contracts.json:913与最终_run/dispatch.json tasks.M3-T7.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：admin-shell-profile-ui,admin-shell；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T6\", \"capability\": \"admin-auth-ui\"}, {\"task\": \"M3-T15\", \"capability\": \"admin-session-activity\"}, {\"task\": \"M1-T1\", \"capability\": \"visual-base\"}]；下游：M3-T12:admin-shell,M4-T6:admin-shell,M5-T10:admin-shell-profile-ui,M6-T4:admin-shell-profile-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-shell-activity.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "后台壳只读当前account，前台真实活动节流调用T15，后台轮询不伪续期，401取消在途清内容；profile-ui旧cap名实际仅外壳别名，个人安全表单明确归T12，不混成已实现个人页。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T7.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 33,
+        "contractLine": 913,
+        "dispatchPromptSha256": "e1d49853527c3b31685948aa2d315344989cb4b5935aa0169fc3c93b28a51d52",
+        "provides": [
+          "admin-shell-profile-ui",
+          "admin-shell"
+        ],
+        "requires": [
+          {
+            "task": "M3-T6",
+            "capability": "admin-auth-ui"
+          },
+          {
+            "task": "M3-T15",
+            "capability": "admin-session-activity"
+          },
+          {
+            "task": "M1-T1",
+            "capability": "visual-base"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-shell-activity.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T8": {
+      "contractHash": "e67232aec82fe1aff60a35d366c1f5a5d499f91aa247686a45bd4c7d536f6424",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:34、_run/task-contracts.json:966与最终_run/dispatch.json tasks.M3-T8.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：device-management-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T12\", \"capability\": \"reauth-dialog\"}, {\"task\": \"M3-T17\", \"capability\": \"device-management-api\"}]；下游：M3-T13:device-management-ui,M7-T2:device-management-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-device-list-revoke.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "Devices页面读取T17安全摘要、仅本人游标，撤销先由T12对话框获得target绑定grant再调T17；其他设备/当前设备结果均有明确HTTP状态断言。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T8.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 34,
+        "contractLine": 966,
+        "dispatchPromptSha256": "a1072b223ba62ee8ec1aa9b05c3a2cde99a48104b8d2e653c80bbabb3aa9725f",
+        "provides": [
+          "device-management-ui"
+        ],
+        "requires": [
+          {
+            "task": "M3-T12",
+            "capability": "reauth-dialog"
+          },
+          {
+            "task": "M3-T17",
+            "capability": "device-management-api"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-device-list-revoke.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T9": {
+      "contractHash": "112f4e0a1717190d69c3d56355bcf17798e0f41d188430fd725167d8d38bb242",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:35、_run/task-contracts.json:1013与最终_run/dispatch.json tasks.M3-T9.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：target-recovery-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T12\", \"capability\": \"reauth-dialog\"}, {\"task\": \"M3-T4\", \"capability\": \"targeted-recovery-authorizations\"}]；下游：M7-T5:target-recovery-ui,M7-T6:target-recovery-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-target-recovery.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "他人账号行复用T12对话框，T4为permit provider；自己/SALES/EDITOR/旧直接reset拒绝，临时结果区关闭清秘密，不修改既有账号增删角色协议。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T9.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 35,
+        "contractLine": 1013,
+        "dispatchPromptSha256": "a9797f52a000b248e4c0a6bb30646b408c072635ec93ccb5eb8ea82a92942126",
+        "provides": [
+          "target-recovery-ui"
+        ],
+        "requires": [
+          {
+            "task": "M3-T12",
+            "capability": "reauth-dialog"
+          },
+          {
+            "task": "M3-T4",
+            "capability": "targeted-recovery-authorizations"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-target-recovery.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T10": {
+      "contractHash": "45b6b7dbd76433482a82f519929a6b7e7876c96d4747e19d1b42dcb83cc799c0",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:36、_run/task-contracts.json:1061与最终_run/dispatch.json tasks.M3-T10.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：first-enrollment-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T6\", \"capability\": \"admin-auth-ui\"}, {\"task\": \"M3-T2\", \"capability\": \"first-enrollment\"}]；下游：本任务为集成终端，无显式新能力消费者。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-enrollment-ui.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "真实首次token绑定只用既有enroll/confirm接口，URI/恢复码一次展示与清URL/存储禁写明确；确认码不能同时间步立即再登录，T2提供安全CAS，UI不承担重写认证。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T10.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 36,
+        "contractLine": 1061,
+        "dispatchPromptSha256": "bd48a3584ac12bc721c92925a2bbb16c99e009d195843cb63d0d183f427c7570",
+        "provides": [
+          "first-enrollment-ui"
+        ],
+        "requires": [
+          {
+            "task": "M3-T6",
+            "capability": "admin-auth-ui"
+          },
+          {
+            "task": "M3-T2",
+            "capability": "first-enrollment"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-enrollment-ui.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T11": {
+      "contractHash": "8dc5f2ed4aeae6dc524787f6b244179ed54b03b279c55a142b281199d3b33235",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:37、_run/task-contracts.json:1107与最终_run/dispatch.json tasks.M3-T11.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：recovery-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T6\", \"capability\": \"admin-auth-ui\"}, {\"task\": \"M3-T5\", \"capability\": \"limited-recovery-completion\"}, {\"task\": \"M3-T18\", \"capability\": \"os-owner-recovery-cli\"}, {\"task\": \"M3-T20\", \"capability\": \"self-rebind-api\"}]；下游：M3-T12:recovery-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-recovery-ui.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "独立recovery root layout和start/enroll/confirm field/response与10节相合，受限cookie单独请求admin401；超时不重发confirm，页面退出清恢复材料，CLI/Self-rebind均有前置provider。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T11.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 37,
+        "contractLine": 1107,
+        "dispatchPromptSha256": "9f3088052e81f6d815e05146bc709d78ee367507c6fe2c6a4b7c25bbace8cfe2",
+        "provides": [
+          "recovery-ui"
+        ],
+        "requires": [
+          {
+            "task": "M3-T6",
+            "capability": "admin-auth-ui"
+          },
+          {
+            "task": "M3-T5",
+            "capability": "limited-recovery-completion"
+          },
+          {
+            "task": "M3-T18",
+            "capability": "os-owner-recovery-cli"
+          },
+          {
+            "task": "M3-T20",
+            "capability": "self-rebind-api"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-recovery-ui.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T12": {
+      "contractHash": "f7803f3d7a58a35223f71a06d8af1d1d7d322ddb85d25ba70106fc3539f7d9dc",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:38、_run/task-contracts.json:1163与最终_run/dispatch.json tasks.M3-T12.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：account-security-ui,reauth-dialog；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T7\", \"capability\": \"admin-shell\"}, {\"task\": \"M3-T16\", \"capability\": \"account-security-mutations\"}, {\"task\": \"M3-T20\", \"capability\": \"self-rebind-api\"}, {\"task\": \"M3-T11\", \"capability\": \"recovery-ui\"}]；下游：M3-T8:reauth-dialog,M3-T9:reauth-dialog,M3-T13:reauth-dialog,M7-T6:reauth-dialog。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-personal-security.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "reauth-dialog输出token仅内存，purpose与目标动作逐字段相配；mode/password/reset均调用已交T16/T20，成功撤销后回login，409恢复旧值，失败无后续敏感写。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T12.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 38,
+        "contractLine": 1163,
+        "dispatchPromptSha256": "2b5054c3cfa2d39a755862512b12f8e26d5687acd0892df68f4845616358386f",
+        "provides": [
+          "account-security-ui",
+          "reauth-dialog"
+        ],
+        "requires": [
+          {
+            "task": "M3-T7",
+            "capability": "admin-shell"
+          },
+          {
+            "task": "M3-T16",
+            "capability": "account-security-mutations"
+          },
+          {
+            "task": "M3-T20",
+            "capability": "self-rebind-api"
+          },
+          {
+            "task": "M3-T11",
+            "capability": "recovery-ui"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-personal-security.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T13": {
+      "contractHash": "9bc0f68675255f24aadef6b327d7d5a5ba40af44acf6bd9bb7451d0177642133",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:39、_run/task-contracts.json:1220与最终_run/dispatch.json tasks.M3-T13.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：signout-all-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T8\", \"capability\": \"device-management-ui\"}, {\"task\": \"M3-T12\", \"capability\": \"reauth-dialog\"}, {\"task\": \"M3-T17\", \"capability\": \"device-management-api\"}]；下游：本任务为集成终端，无显式新能力消费者。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/admin-signout-all.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "取消确认不发reauth/logout-all，确认只用LOGOUT_ALL grant；结果未知仅GET核实，两浏览器旧cookie401，普通signOut不被加入现密码验证；依赖T8/T12/T17闭合。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T13.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 39,
+        "contractLine": 1220,
+        "dispatchPromptSha256": "f91fec7d2b7406f9057fb2a258ef03cb2fbe773a520db906cfcbc53224d5a689",
+        "provides": [
+          "signout-all-ui"
+        ],
+        "requires": [
+          {
+            "task": "M3-T8",
+            "capability": "device-management-ui"
+          },
+          {
+            "task": "M3-T12",
+            "capability": "reauth-dialog"
+          },
+          {
+            "task": "M3-T17",
+            "capability": "device-management-api"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/admin-signout-all.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M3-T14": {
+      "contractHash": "f9479234d86b058bc1ab5b26dd27823e9256d02b8edc136978e267346a6d3d9d",
+      "verdict": "revise",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:40、_run/task-contracts.json:1269与最终_run/dispatch.json tasks.M3-T14.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：http-guards-metrics；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}]；下游：M3-T1:http-guards-metrics,M4-T8:http-guards-metrics,M5-T2:http-guards-metrics,M5-T8:http-guards-metrics。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-http-metrics.test.ts,tests/admin-config.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "存在B2：完整AccountDTO的真实GET provider被安排在设备基础前；此任务应为HTTP/config/counter原语，并把真实account和计数接线验收留给T1。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T14.evidence-template.json"
+      },
+      "blockerIds": [
+        "B2"
+      ],
+      "reviewMetadata": {
+        "taskLine": 40,
+        "contractLine": 1269,
+        "dispatchPromptSha256": "16e631cad9315888bb3ab002f1bad3249c4c87bc3199cd9becb08b679f801350",
+        "provides": [
+          "http-guards-metrics"
+        ],
+        "requires": [
+          {
+            "task": "M1-T2",
+            "capability": "contract-types"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-http-metrics.test.ts",
+          "tests/admin-config.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T15": {
+      "contractHash": "98f5abc3802913fc716571d6a8ecc79e165f699cef8235f4490b2d3f52e87307",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:41、_run/task-contracts.json:1313与最终_run/dispatch.json tasks.M3-T15.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：admin-session-activity；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}]；下游：M3-T7:admin-session-activity。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-session-activity.http.test.ts,e2e/admin-device-lifecycle.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "实际activity的CAS与JWT/Set-Cookie同Response写回，SSR不能写则只读；2h/7d/30d及等号、竞争撤销均有测试owner，读session/account不touch，旧Cookie不能复活。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T15.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 41,
+        "contractLine": 1313,
+        "dispatchPromptSha256": "a81f37a0e6c85c2e66796272bc9c85c1bdf90dfd5c4ccd9fcc5d2dc2e80260b8",
+        "provides": [
+          "admin-session-activity"
+        ],
+        "requires": [
+          {
+            "task": "M3-T1",
+            "capability": "admin-device-sessions"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-session-activity.http.test.ts",
+          "e2e/admin-device-lifecycle.spec.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T16": {
+      "contractHash": "dc186ecd4358ee0d6bd71f31e73ddfc603e352f0feb2a4d114e1a816d447b2b7",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:42、_run/task-contracts.json:1354与最终_run/dispatch.json tasks.M3-T16.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：account-security-mutations；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}, {\"task\": \"M3-T2\", \"capability\": \"admin-login-modes\"}]；下游：M3-T12:account-security-mutations。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-account-mode-password.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "LOGIN_MODE/PASSWORD用途不同，grant核销+安全动作+sv撤销+审计为同一最终事务；回查当前User/device，旧currentPassword+totp兼容路径执行同强度，恢复码捷径拒绝。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T16.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 42,
+        "contractLine": 1354,
+        "dispatchPromptSha256": "6019c39d144ede96fe74acfe92e3cc638f9f1e54d67f94fd76639ebc4d884d43",
+        "provides": [
+          "account-security-mutations"
+        ],
+        "requires": [
+          {
+            "task": "M3-T3",
+            "capability": "admin-fresh-grants"
+          },
+          {
+            "task": "M3-T2",
+            "capability": "admin-login-modes"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-account-mode-password.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T17": {
+      "contractHash": "31bfd12a4e7b8e8f7081ba873fa3544f4b07b56ba84acdeda9715b383fd05044",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:43、_run/task-contracts.json:1399与最终_run/dispatch.json tasks.M3-T17.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：device-management-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}, {\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}]；下游：M3-T8:device-management-api,M3-T13:device-management-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-device-management.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "列表不暴露sid凭据，DEVICE_REVOKE只核本人目标设备；logout-all User锁下sv/设备/审计原子，授权重放不因最终状态幂等而被允许，API/provider与测试范围齐。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T17.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 43,
+        "contractLine": 1399,
+        "dispatchPromptSha256": "43c1a6a66e7155075969bc661d0d8bf988cd943407da531429d2e09334ddff22",
+        "provides": [
+          "device-management-api"
+        ],
+        "requires": [
+          {
+            "task": "M3-T3",
+            "capability": "admin-fresh-grants"
+          },
+          {
+            "task": "M3-T1",
+            "capability": "admin-device-sessions"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-device-management.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T18": {
+      "contractHash": "0035c3193e660581fac5e81287ac7da92499ad5810a8e45d23de0e86e1fce286",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:44、_run/task-contracts.json:1444与最终_run/dispatch.json tasks.M3-T18.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：os-owner-recovery-cli；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T4\", \"capability\": \"targeted-recovery-authorizations\"}]；下游：M3-T11:os-owner-recovery-cli。",
+        "接线/测试owner：wiring=，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-owner-recovery-cli.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "OS-owner CLI为本地授权入口，TTY、明确target/role/reason、一次permit输出及无密审计有合同；预授权hash不先改原因素，原首次密码脚本guard保留，HTTP无同权限入口。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T18.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 44,
+        "contractLine": 1444,
+        "dispatchPromptSha256": "93710feadc26fb6750bb3bafcb1683f3ffa4e19941d67ca964c844f7c3961a28",
+        "provides": [
+          "os-owner-recovery-cli"
+        ],
+        "requires": [
+          {
+            "task": "M3-T4",
+            "capability": "targeted-recovery-authorizations"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-owner-recovery-cli.test.ts"
+        ],
+        "wiring": []
+      }
+    },
+    "M3-T19": {
+      "contractHash": "28c71a34b182d370ac5004ab35ac405506631f293c4b90a6cc0ca707b22772b1",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:45、_run/task-contracts.json:1481与最终_run/dispatch.json tasks.M3-T19.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：limited-recovery-start；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T4\", \"capability\": \"targeted-recovery-authorizations\"}, {\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}]；下游：M3-T5:limited-recovery-start。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-recovery-start.db.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "User锁后重读恢复码数组，防不同码并发复活；核销/递增sv/旧会话撤销/10min restricted记录/审计同事务，cookie路径及权限隔离明确，原有效密码/因素在最终确认前保留。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T19.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 45,
+        "contractLine": 1481,
+        "dispatchPromptSha256": "3f57461e0210587aa526808ca0750fc7579384f5d841f48eba00fdf9f61fc009",
+        "provides": [
+          "limited-recovery-start"
+        ],
+        "requires": [
+          {
+            "task": "M3-T4",
+            "capability": "targeted-recovery-authorizations"
+          },
+          {
+            "task": "M3-T1",
+            "capability": "admin-device-sessions"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-recovery-start.db.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M3-T20": {
+      "contractHash": "6ec94801b651a37101c8c3a32b5ef2acf9f5309a59619501efcb5e04ec2996e6",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:46、_run/task-contracts.json:1526与最终_run/dispatch.json tasks.M3-T20.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：self-rebind-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T5\", \"capability\": \"limited-recovery-completion\"}, {\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}]；下游：M3-T11:self-rebind-api,M3-T12:self-rebind-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/admin-self-rebind.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "TOTP_RESET新鲜grant消费后只给SELF_REAUTH受限cookie；T5提供最终新绑定；旧密码+totp与新grant同强度，无当前密码不能以会话/TOTP替代，HTTP不能任意设新密码。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T20.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 46,
+        "contractLine": 1526,
+        "dispatchPromptSha256": "cef0dcdf662bcae70d72eb271813a5ed1df6be74716543a84faf543aac811917",
+        "provides": [
+          "self-rebind-api"
+        ],
+        "requires": [
+          {
+            "task": "M3-T5",
+            "capability": "limited-recovery-completion"
+          },
+          {
+            "task": "M3-T3",
+            "capability": "admin-fresh-grants"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/admin-self-rebind.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T1": {
+      "contractHash": "cf9dff2aa9d8e20dc613225a0f705ffb1c90feb312a47d7d325ff18fd33a739f",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:47、_run/task-contracts.json:1569与最终_run/dispatch.json tasks.M4-T1.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-first-message-api,chat-atomic-outbox；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T8\", \"capability\": \"chat-visitor-session\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}]；下游：M4-T2:chat-first-message-api,M4-T4:chat-atomic-outbox,M4-T10:chat-atomic-outbox。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-first-message.db.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "首会话+首消息+seq+唯一出箱原子提交才received，cookie为身份、client UUID为幂等标识，邮箱纯联系方式非找回身份；写失败无半记录，通知后续消费不倒置收件。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T1.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 47,
+        "contractLine": 1569,
+        "dispatchPromptSha256": "237425e1b669008f5aae3577357a62f08b13b1c36522c0dfbfbd9d59a2a47e90",
+        "provides": [
+          "chat-first-message-api",
+          "chat-atomic-outbox"
+        ],
+        "requires": [
+          {
+            "task": "M4-T8",
+            "capability": "chat-visitor-session"
+          },
+          {
+            "task": "M5-T8",
+            "capability": "job-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-first-message.db.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T2": {
+      "contractHash": "88bc77fcdda7d3dfa26421851a505bb8aeefec57088089641ac0893c533d7144",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:48、_run/task-contracts.json:1615与最终_run/dispatch.json tasks.M4-T2.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-visitor-sync-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T1\", \"capability\": \"chat-first-message-api\"}, {\"task\": \"M4-T8\", \"capability\": \"chat-visitor-session\"}]；下游：M4-T3:chat-visitor-sync-api,M4-T10:chat-visitor-sync-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-visitor-read.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "访客cookie范围和有界afterSeq读取、read MAX不越lastSeq，GET/read不touch内容90d；过期401不删除期内正文，读位置与收件游标分开。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T2.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 48,
+        "contractLine": 1615,
+        "dispatchPromptSha256": "f9dd033a3c7bb94a36e13c66bf0f6165cebb43e23430d3dbf9ab0e6f3b792535",
+        "provides": [
+          "chat-visitor-sync-api"
+        ],
+        "requires": [
+          {
+            "task": "M4-T1",
+            "capability": "chat-first-message-api"
+          },
+          {
+            "task": "M4-T8",
+            "capability": "chat-visitor-session"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-visitor-read.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T3": {
+      "contractHash": "0fc0b5f372503b9ae89bbf0363edb58b5fdfa11f8bf6c78a9efd69d365fffe04",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:49、_run/task-contracts.json:1659与最终_run/dispatch.json tasks.M4-T3.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-operator-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T2\", \"capability\": \"chat-visitor-sync-api\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}]；下游：M4-T6:chat-operator-api,M4-T7:chat-operator-api,M4-T11:chat-operator-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-operator-read.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "ADMIN/SALES当前角色每次重验，EDITOR/访客拒绝；inbox快照分页与消息seq分页不同，本人read不改其他运营，通知真实状态与received分离。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T3.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 49,
+        "contractLine": 1659,
+        "dispatchPromptSha256": "a132084fa4e4887733553a130dfdd654dd5c30716cab56441934d8bea82eb18c",
+        "provides": [
+          "chat-operator-api"
+        ],
+        "requires": [
+          {
+            "task": "M4-T2",
+            "capability": "chat-visitor-sync-api"
+          },
+          {
+            "task": "M3-T1",
+            "capability": "current-admin-permissions"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-operator-read.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T4": {
+      "contractHash": "d1d33c0d8443c85524496637d5e6c69ab90a02ae5f6ce9745256544824e42ccc",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:50、_run/task-contracts.json:1703与最终_run/dispatch.json tasks.M4-T4.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-notification-job；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T1\", \"capability\": \"chat-atomic-outbox\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}]；下游：M4-T14:chat-notification-job,M6-T2:chat-notification-job,M6-T5:chat-notification-job,M7-T7:chat-notification-job。",
+        "接线/测试owner：wiring=jobs,backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-notification-worker.db.test.ts,tests/chat-notification-smtp.integration.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "固定chat-notifications registry/composition/每分钟cron都在有效范围；消息出箱唯一，SMTP事务外20s，leaseVersion阻旧worker、UNKNOWN至少一次及稳定Message-ID有持久测试；缺SMTP为DISABLED。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T4.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 50,
+        "contractLine": 1703,
+        "dispatchPromptSha256": "f610c436c496196dc83e33beb879acc86cf2f531ff0dd56fb1ee3e9a2d9923e8",
+        "provides": [
+          "chat-notification-job"
+        ],
+        "requires": [
+          {
+            "task": "M4-T1",
+            "capability": "chat-atomic-outbox"
+          },
+          {
+            "task": "M5-T8",
+            "capability": "job-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-notification-worker.db.test.ts",
+          "tests/chat-notification-smtp.integration.test.ts"
+        ],
+        "wiring": [
+          "jobs",
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T5": {
+      "contractHash": "9fe72ae4786e8ec4b458c337797c60fe61839e7e843a972a10814161dba753dc",
+      "verdict": "revise",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:51、_run/task-contracts.json:1754与最终_run/dispatch.json tasks.M4-T5.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-visitor-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T10\", \"capability\": \"chat-visitor-append-api\"}, {\"task\": \"M4-T15\", \"capability\": \"chat-consent-migration\"}, {\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}]；下游：M2-T8:chat-visitor-ui,M4-T9:chat-visitor-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/chat-visitor-composer.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "访客composer实际调用既有cookie/会话/追加API，成功前无received，离线/邮箱错误保留内存草稿；另有B5：06/09已定chat_start匿名生产者未在此或其他产品任务落定，ingest接受kind不代替生产。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T5.evidence-template.json"
+      },
+      "blockerIds": [
+        "B5"
+      ],
+      "reviewMetadata": {
+        "taskLine": 51,
+        "contractLine": 1754,
+        "dispatchPromptSha256": "68fb99d74da98040dae1b3f261b50ee81815dba8ea42d69ad624cb7a9884ef08",
+        "provides": [
+          "chat-visitor-ui"
+        ],
+        "requires": [
+          {
+            "task": "M4-T10",
+            "capability": "chat-visitor-append-api"
+          },
+          {
+            "task": "M4-T15",
+            "capability": "chat-consent-migration"
+          },
+          {
+            "task": "M1-T8",
+            "capability": "client-api-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/chat-visitor-composer.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M4-T6": {
+      "contractHash": "c61b28819ace690ce9d0777ec13be865d512482b22acaf08580ca703087d11ff",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:52、_run/task-contracts.json:1807与最终_run/dispatch.json tasks.M4-T6.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-operator-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T3\", \"capability\": \"chat-operator-api\"}, {\"task\": \"M3-T7\", \"capability\": \"admin-shell\"}, {\"task\": \"M4-T9\", \"capability\": \"chat-sync-retry-ui\"}]；下游：M2-T8:chat-operator-ui,M4-T14:chat-operator-ui,M7-T4:chat-operator-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/chat-operator-inbox.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "该任务仅运营read页面，正文来自T3且轮询来自T9；明确人工发送由T14添加。它自身读UI合同可行，不能被M2-T8误当完整双向回复provider（B1）。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T6.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 52,
+        "contractLine": 1807,
+        "dispatchPromptSha256": "61d361b6446d2b7535980736a0c4a4177b5bbf7e599bc16c1ce2895ecff9418e",
+        "provides": [
+          "chat-operator-ui"
+        ],
+        "requires": [
+          {
+            "task": "M4-T3",
+            "capability": "chat-operator-api"
+          },
+          {
+            "task": "M3-T7",
+            "capability": "admin-shell"
+          },
+          {
+            "task": "M4-T9",
+            "capability": "chat-sync-retry-ui"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/chat-operator-inbox.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M4-T7": {
+      "contractHash": "b7ffdda8752dcbb0e18bd39483d27f9eaf5dcbab81444e59e87b313c831f58fd",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:53、_run/task-contracts.json:1861与最终_run/dispatch.json tasks.M4-T7.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-retention-dryrun-job；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T3\", \"capability\": \"chat-operator-api\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}]；下游：M4-T13:chat-retention-dryrun-job,M7-T4:chat-retention-dryrun-job。",
+        "接线/测试owner：wiring=jobs,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-retention-dryrun.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "daily chat-retention默认只读候选与dry-run、无授权deletedCount0；不把cookie失效作为删除90d内容依据，实际匿名化分支明确归T13。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T7.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 53,
+        "contractLine": 1861,
+        "dispatchPromptSha256": "578b8dc41b89d1c4b39188e30f95e678812f41008ad794ed6f1b4d5ce39ddf76",
+        "provides": [
+          "chat-retention-dryrun-job"
+        ],
+        "requires": [
+          {
+            "task": "M4-T3",
+            "capability": "chat-operator-api"
+          },
+          {
+            "task": "M5-T8",
+            "capability": "job-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-retention-dryrun.http.test.ts"
+        ],
+        "wiring": [
+          "jobs",
+          "container"
+        ]
+      }
+    },
+    "M4-T8": {
+      "contractHash": "174c6ce87a53ddd6546038216a05719e3298cfed19aff4c572924c1fbf84d919",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:54、_run/task-contracts.json:1907与最终_run/dispatch.json tasks.M4-T8.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-visitor-session；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}, {\"task\": \"M1-T2\", \"capability\": \"contract-types\"}]；下游：M4-T1:chat-visitor-session,M4-T2:chat-visitor-session。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-session.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "主动联系才签cookie，随机token/hash、不依赖analytics；7d/30d及先判有效再touch有实际HTTP owner，同邮箱不恢复旧身份，轮询不会刷新必要凭据。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T8.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 54,
+        "contractLine": 1907,
+        "dispatchPromptSha256": "ae4f717822f84ac34c8b800d0dfef7a030f95981651abba24ef0105ef1a76c68",
+        "provides": [
+          "chat-visitor-session"
+        ],
+        "requires": [
+          {
+            "task": "M3-T14",
+            "capability": "http-guards-metrics"
+          },
+          {
+            "task": "M1-T2",
+            "capability": "contract-types"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-session.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T9": {
+      "contractHash": "7a7c4e80754af69a17a0db101d4737d732d625925cdc9f6c1a2aab1bc78caf3d",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:55、_run/task-contracts.json:1952与最终_run/dispatch.json tasks.M4-T9.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-sync-retry-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T5\", \"capability\": \"chat-visitor-ui\"}, {\"task\": \"M4-T11\", \"capability\": \"chat-operator-write-api\"}]；下游：M4-T6:chat-sync-retry-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/chat-polling-network.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "实际ChatContainer消费poller与retry，不只导出工具；3s/hidden/30s上限/单在途/seq不退，超时保原key、失权停止，后台权限负例由T11当前guard提供。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T9.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 55,
+        "contractLine": 1952,
+        "dispatchPromptSha256": "1a164b013b810010392ec6f146bb2a7e52694976008ad3d301368ae07a04df67",
+        "provides": [
+          "chat-sync-retry-ui"
+        ],
+        "requires": [
+          {
+            "task": "M4-T5",
+            "capability": "chat-visitor-ui"
+          },
+          {
+            "task": "M4-T11",
+            "capability": "chat-operator-write-api"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/chat-polling-network.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M4-T10": {
+      "contractHash": "ab7a13e4d603429c0256ebf7d7c20be713b26f7a8edd3753869c705ece80c546",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:56、_run/task-contracts.json:1998与最终_run/dispatch.json tasks.M4-T10.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-visitor-append-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T2\", \"capability\": \"chat-visitor-sync-api\"}, {\"task\": \"M4-T1\", \"capability\": \"chat-atomic-outbox\"}]；下游：M4-T5:chat-visitor-append-api,M4-T11:chat-visitor-append-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-visitor-append.db.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "实际访客追加事务处理seq/消息/出箱/90d期限，同key重试不重发通知或延长期限；closed/anonymized拒绝，访客身份不能由email或threadId替代。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T10.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 56,
+        "contractLine": 1998,
+        "dispatchPromptSha256": "57672f3bb4aa1cd35345c84069548ff0f23426ee045ee07366cd8b4d4eb33356",
+        "provides": [
+          "chat-visitor-append-api"
+        ],
+        "requires": [
+          {
+            "task": "M4-T2",
+            "capability": "chat-visitor-sync-api"
+          },
+          {
+            "task": "M4-T1",
+            "capability": "chat-atomic-outbox"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-visitor-append.db.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T11": {
+      "contractHash": "545d217e4a43691b85c2f37a7ea854fbe330ec60e5532cb074ca5751b3937684",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:57、_run/task-contracts.json:2041与最终_run/dispatch.json tasks.M4-T11.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-operator-write-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T3\", \"capability\": \"chat-operator-api\"}, {\"task\": \"M4-T10\", \"capability\": \"chat-visitor-append-api\"}]；下游：M4-T9:chat-operator-write-api,M4-T13:chat-operator-write-api,M4-T14:chat-operator-write-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-operator-write.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "运营作者来自当前session，双人并发独立seq，close用版本CAS；真实访客HTTP收件→人工HTTP回复→访客GET为非AI闭环，界面发送控件另归T14。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T11.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 57,
+        "contractLine": 2041,
+        "dispatchPromptSha256": "271b6dd61f70011099dd37932482ef3c1c0b53c1a74d72b5bb4c28dabf491a78",
+        "provides": [
+          "chat-operator-write-api"
+        ],
+        "requires": [
+          {
+            "task": "M4-T3",
+            "capability": "chat-operator-api"
+          },
+          {
+            "task": "M4-T10",
+            "capability": "chat-visitor-append-api"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-operator-write.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M4-T12": {
+      "contractHash": "75fa620b65c3dd800914cc228c5175234ce374db049f1f455d7c9b2ad562e523",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:58、_run/task-contracts.json:2084与最终_run/dispatch.json tasks.M4-T12.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：mail-queue-real-schedule；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}]；下游：本任务为集成终端，无显式新能力消费者。",
+        "接线/测试owner：wiring=jobs,backendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=tests/mail-queue-schedule.integration.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "旧mail-queue真实POST每分钟调度与GET兼容入口共享租约摘要，原mail gate/Bearer/unknown_delivery及响应字段保留，HTTP超时不以换方法探测或重复发信。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T12.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 58,
+        "contractLine": 2084,
+        "dispatchPromptSha256": "275304d3df3ddcdcc80734b93d2d705f6bd9c8c2ae856b4b8ba047daa4282765",
+        "provides": [
+          "mail-queue-real-schedule"
+        ],
+        "requires": [
+          {
+            "task": "M5-T8",
+            "capability": "job-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/mail-queue-schedule.integration.test.ts"
+        ],
+        "wiring": [
+          "jobs",
+          "backendRoutes"
+        ]
+      }
+    },
+    "M4-T13": {
+      "contractHash": "292e8a3be53ad08886f71e1a461dfad9ffcdc7a4723013df5201bf43ce9efb76",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:59、_run/task-contracts.json:2123与最终_run/dispatch.json tasks.M4-T13.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-authorized-retention；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T7\", \"capability\": \"chat-retention-dryrun-job\"}, {\"task\": \"M4-T11\", \"capability\": \"chat-operator-write-api\"}]；下游：本任务为集成终端，无显式新能力消费者。",
+        "接线/测试owner：wiring=jobs,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/chat-retention-concurrency.db.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "已有daily job接当前授权分支，最终事务重读activity/retainUntil/policyVersion，新消息竞争跳过旧候选；只在隔离授权数据验匿名化，默认生产dry-run与FK Restrict避免凭据到期级联删内容。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T13.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 59,
+        "contractLine": 2123,
+        "dispatchPromptSha256": "1dca8c1d04bcc7ac6d0571f04782f4bade15d29618fc54f3e960fddeeb12956e",
+        "provides": [
+          "chat-authorized-retention"
+        ],
+        "requires": [
+          {
+            "task": "M4-T7",
+            "capability": "chat-retention-dryrun-job"
+          },
+          {
+            "task": "M4-T11",
+            "capability": "chat-operator-write-api"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/chat-retention-concurrency.db.test.ts"
+        ],
+        "wiring": [
+          "jobs",
+          "container"
+        ]
+      }
+    },
+    "M4-T14": {
+      "contractHash": "2e8e86bd33c4130818364afd3d2964359fcc73ee44dfb59f486e5f6d7d412ae0",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:60、_run/task-contracts.json:2167与最终_run/dispatch.json tasks.M4-T14.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-human-roundtrip-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M4-T6\", \"capability\": \"chat-operator-ui\"}, {\"task\": \"M4-T11\", \"capability\": \"chat-operator-write-api\"}, {\"task\": \"M4-T4\", \"capability\": \"chat-notification-job\"}]；下游：本任务为集成终端，无显式新能力消费者。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/chat-human-roundtrip.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "实际双端UI Send reply/Close消费T11，依赖只读T6/同步T9/通知T4，作者/seq/关闭冲突/撤权403均明确；完整human-roundtrip-ui唯一provider。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T14.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 60,
+        "contractLine": 2167,
+        "dispatchPromptSha256": "b5529ffa11f971ec38a1ae11a0fea655dfccbd30cd09ce5eff5bd24445389e5e",
+        "provides": [
+          "chat-human-roundtrip-ui"
+        ],
+        "requires": [
+          {
+            "task": "M4-T6",
+            "capability": "chat-operator-ui"
+          },
+          {
+            "task": "M4-T11",
+            "capability": "chat-operator-write-api"
+          },
+          {
+            "task": "M4-T4",
+            "capability": "chat-notification-job"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/chat-human-roundtrip.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M4-T15": {
+      "contractHash": "321b2ea91500279ad4d6acbccf31a083716cc1cb2a9ff7f48c7d6bb541cdda92",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:61、_run/task-contracts.json:2217与最终_run/dispatch.json tasks.M4-T15.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：chat-consent-migration；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}, {\"task\": \"M1-T1\", \"capability\": \"visual-base\"}]；下游：M4-T5:chat-consent-migration。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/chat-consent-migration.spec.ts,e2e/tawk.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "移除Tawk实际接线并保留contact/privacy可见入口、必要聊天与可选分析分开；独立chat开关关闭仍可用旧询盘/邮箱，不把历史容量快照或默认90d当真实资源或删除授权。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T15.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 61,
+        "contractLine": 2217,
+        "dispatchPromptSha256": "4054da757efeb602b450b48b57d248646c1f2f849278c48f8e236622967964c4",
+        "provides": [
+          "chat-consent-migration"
+        ],
+        "requires": [
+          {
+            "task": "M1-T8",
+            "capability": "client-api-foundation"
+          },
+          {
+            "task": "M1-T1",
+            "capability": "visual-base"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/chat-consent-migration.spec.ts",
+          "e2e/tawk.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M5-T1": {
+      "contractHash": "8aad14a50e1d4aa97c926f6fe6f8291b250847c41db9dae8b93936d13d0da836",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:62、_run/task-contracts.json:2267与最终_run/dispatch.json tasks.M5-T1.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：job-leases；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}]；下游：M5-T3:job-leases,M5-T8:job-leases。",
+        "接线/测试owner：wiring=migrations，按06注册表核对实际提示词有效范围；本任务测试落点=tests/job-leases.db.test.ts；stage=primitive，完整集成owner=M5-T8且其前置闭包包含本原语。",
+        "仅JobState租约仓储原语，真实PG并发owner/generation/90s/成功时间单调；无任意脚本能力，T8明确依赖并提供真实注册/调度，不提前要求未交UI。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T1.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 62,
+        "contractLine": 2267,
+        "dispatchPromptSha256": "a24c9952a0a5c6f4f01fbcce8f43cec7dbb8c3c1eec5446912c5d97b940ec54c",
+        "provides": [
+          "job-leases"
+        ],
+        "requires": [
+          {
+            "task": "M1-T2",
+            "capability": "contract-types"
+          }
+        ],
+        "stage": "primitive",
+        "integrationTask": "M5-T8",
+        "testPaths": [
+          "tests/job-leases.db.test.ts"
+        ],
+        "wiring": [
+          "migrations"
+        ]
+      }
+    },
+    "M5-T2": {
+      "contractHash": "de8752b6e2e67a8e725089a4078e6cb65636d199fb2038664bcd6d524f1a54cb",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:63、_run/task-contracts.json:2304与最终_run/dispatch.json tasks.M5-T2.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-consent-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}, {\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}]；下游：M5-T6:analytics-consent-api,M5-T7:analytics-consent-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/analytics-consent.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "签名consent cookie首次/有效重复true/重复false语义与10节一致，同源限流及strict Boolean明确；无cookie/伪签名不可准入，客户端停采由T7负责。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T2.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 63,
+        "contractLine": 2304,
+        "dispatchPromptSha256": "79b3b0f63f0648d816005184ab33204124fb101cc925b15c95a28d68b037477d",
+        "provides": [
+          "analytics-consent-api"
+        ],
+        "requires": [
+          {
+            "task": "M1-T2",
+            "capability": "contract-types"
+          },
+          {
+            "task": "M3-T14",
+            "capability": "http-guards-metrics"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/analytics-consent.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M5-T3": {
+      "contractHash": "00c0c477c8a1c3b421ea7fbed95a8a64806a134abc3f29a6c55d439882e83205",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:64、_run/task-contracts.json:2346与最终_run/dispatch.json tasks.M5-T3.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-aggregate；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T6\", \"capability\": \"analytics-ingest\"}, {\"task\": \"M5-T1\", \"capability\": \"job-leases\"}, {\"task\": \"M5-T9\", \"capability\": \"analytics-settings-domain\"}]；下游：M5-T5:analytics-aggregate,M5-T8:analytics-aggregate,M6-T1:analytics-aggregate。",
+        "接线/测试owner：wiring=migrations，按06注册表核对实际提示词有效范围；本任务测试落点=tests/analytics-aggregate.db.test.ts；stage=primitive，完整集成owner=M5-T8且其前置闭包包含本原语。",
+        "RepeatableRead快照/cutoff、整组替换、水位和当前revision提交复核一致，完整原始覆盖外保留旧值/partial而不用残片；是服务/DB原语，T8闭合实际5分钟运行。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T3.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 64,
+        "contractLine": 2346,
+        "dispatchPromptSha256": "33979781eb991d79f8453122c93af55ab9e7d5b9bf30e8a4a40f098a0e14121e",
+        "provides": [
+          "analytics-aggregate"
+        ],
+        "requires": [
+          {
+            "task": "M5-T6",
+            "capability": "analytics-ingest"
+          },
+          {
+            "task": "M5-T1",
+            "capability": "job-leases"
+          },
+          {
+            "task": "M5-T9",
+            "capability": "analytics-settings-domain"
+          }
+        ],
+        "stage": "primitive",
+        "integrationTask": "M5-T8",
+        "testPaths": [
+          "tests/analytics-aggregate.db.test.ts"
+        ],
+        "wiring": [
+          "migrations"
+        ]
+      }
+    },
+    "M5-T4": {
+      "contractHash": "ee57ffaf994c38890f4e4caa312ccd1f93e6eda6c66fa1175e5d86a9d1f3778d",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:65、_run/task-contracts.json:2391与最终_run/dispatch.json tasks.M5-T4.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-settings-api；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T9\", \"capability\": \"analytics-settings-domain\"}, {\"task\": \"M5-T8\", \"capability\": \"analytics-aggregate-runtime\"}]；下游：M5-T10:analytics-settings-api。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/analytics-settings.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "GET/PATCH时区API消费T9 domain与T8 runtime，ADMIN CAS/审计/重算待办、非法IANA和旧version不改变值；只重算完整保留范围，旧about/org不动。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T4.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 65,
+        "contractLine": 2391,
+        "dispatchPromptSha256": "914bd0973f8990858a0ed812492790d1a055561ca8131cfd7e7cad602ffba774",
+        "provides": [
+          "analytics-settings-api"
+        ],
+        "requires": [
+          {
+            "task": "M5-T9",
+            "capability": "analytics-settings-domain"
+          },
+          {
+            "task": "M5-T8",
+            "capability": "analytics-aggregate-runtime"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/analytics-settings.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    },
+    "M5-T5": {
+      "contractHash": "65e9e1859a9b1b2f454df45828c91637a6a0aaab8ddbc1bfc7604d80b2fef57f",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:66、_run/task-contracts.json:2431与最终_run/dispatch.json tasks.M5-T5.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-retention-plan；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T3\", \"capability\": \"analytics-aggregate\"}]；下游：M5-T11:analytics-retention-plan。",
+        "接线/测试owner：wiring=，按06注册表核对实际提示词有效范围；本任务测试落点=tests/analytics-retention-plan.test.ts；stage=primitive，完整集成owner=M5-T11且其前置闭包包含本原语。",
+        "只读候选/截止计划器不执行删除，不把30d原始覆盖断点后的部分日标可重算；T11明确依赖并承担授权、registry与真实事务，原语无需虚报完整HTTP链。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T5.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 66,
+        "contractLine": 2431,
+        "dispatchPromptSha256": "69490b01e01b73c1684f24a038fe6894eb9d2b11d0757e9eb1207bf10057acc5",
+        "provides": [
+          "analytics-retention-plan"
+        ],
+        "requires": [
+          {
+            "task": "M5-T3",
+            "capability": "analytics-aggregate"
+          }
+        ],
+        "stage": "primitive",
+        "integrationTask": "M5-T11",
+        "testPaths": [
+          "tests/analytics-retention-plan.test.ts"
+        ],
+        "wiring": []
+      }
+    },
+    "M5-T6": {
+      "contractHash": "21e006c0ca9c238f065ebb48b97cba9b56aa6e56372b0bc3a426107689c7f587",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:67、_run/task-contracts.json:2464与最终_run/dispatch.json tasks.M5-T6.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-ingest；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T2\", \"capability\": \"analytics-consent-api\"}]；下游：M2-T7:analytics-ingest,M5-T3:analytics-ingest,M5-T7:analytics-ingest。",
+        "接线/测试owner：wiring=backendRoutes,container,eventKinds,migrations，按06注册表核对实际提示词有效范围；本任务测试落点=tests/analytics-ingest.http.db.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "strict事件种类/产品/长度/PII与120/300事件额度可逐项判定；eventId+semanticKey重试和terminal互斥对应唯一键；模型生产者明确M2T7，UI同意生产者T7，后端自己不伪造浏览器同意。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T6.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 67,
+        "contractLine": 2464,
+        "dispatchPromptSha256": "f6c1f5a0e9b439c4a6c6d2a92bc8e62782257222c9e67c452745f6a2e2bab546",
+        "provides": [
+          "analytics-ingest"
+        ],
+        "requires": [
+          {
+            "task": "M5-T2",
+            "capability": "analytics-consent-api"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/analytics-ingest.http.db.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container",
+          "eventKinds",
+          "migrations"
+        ]
+      }
+    },
+    "M5-T7": {
+      "contractHash": "98bab5e45466def8bbae14fff5a3a3f9d6970fc5785573ff62f23a76cf78a6ce",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:68、_run/task-contracts.json:2506与最终_run/dispatch.json tasks.M5-T7.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-consent-ui,analytics-page-events,analytics-privacy-copy；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T2\", \"capability\": \"analytics-consent-api\"}, {\"task\": \"M5-T6\", \"capability\": \"analytics-ingest\"}, {\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}, {\"task\": \"M1-T7\", \"capability\": \"visual-components\"}, {\"task\": \"M5-T9\", \"capability\": \"analytics-settings-domain\"}]；下游：M2-T7:analytics-consent-ui,M5-T8:analytics-page-events。",
+        "接线/测试owner：wiring=frontendRoutes,eventKinds，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/analytics-consent.spec.ts,e2e/privacy-analytics.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "实际偏好DOM、有效cookie、events0/acceptedIds、断网队列清0、串行false最后/不补发已明确；隐私7/30/90/30/13数值及IANA来源是配置，数据可查而不输出browserHash原值。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T7.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 68,
+        "contractLine": 2506,
+        "dispatchPromptSha256": "b0192c7badce20a303884e109fe253e89ada8bbe89287ad207f78ba9116296d4",
+        "provides": [
+          "analytics-consent-ui",
+          "analytics-page-events",
+          "analytics-privacy-copy"
+        ],
+        "requires": [
+          {
+            "task": "M5-T2",
+            "capability": "analytics-consent-api"
+          },
+          {
+            "task": "M5-T6",
+            "capability": "analytics-ingest"
+          },
+          {
+            "task": "M1-T8",
+            "capability": "client-api-foundation"
+          },
+          {
+            "task": "M1-T7",
+            "capability": "visual-components"
+          },
+          {
+            "task": "M5-T9",
+            "capability": "analytics-settings-domain"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/analytics-consent.spec.ts",
+          "e2e/privacy-analytics.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes",
+          "eventKinds"
+        ]
+      }
+    },
+    "M5-T8": {
+      "contractHash": "9c9b5a4c260a73b2e9e5c0a77ff9b155b836d9c3a5dc97d0ba5e449480b2dd08",
+      "verdict": "revise",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:69、_run/task-contracts.json:2567与最终_run/dispatch.json tasks.M5-T8.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：job-foundation,analytics-aggregate-runtime；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T1\", \"capability\": \"job-leases\"}, {\"task\": \"M5-T3\", \"capability\": \"analytics-aggregate\"}, {\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}, {\"task\": \"M5-T7\", \"capability\": \"analytics-page-events\"}]；下游：M4-T1:job-foundation,M4-T4:job-foundation,M4-T7:job-foundation,M4-T12:job-foundation,M5-T4:analytics-aggregate-runtime,M5-T11:job-foundation,M6-T3:job-foundation,M7-T7:job-foundation。",
+        "接线/测试owner：wiring=backendRoutes,container,jobs,migrations，按06注册表核对实际提示词有效范围；本任务测试落点=tests/jobs-runtime.http.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "固定registry/operations/cron/cutoff运行规则与T1/T3一致，实际5分钟重启证据和±48h/+5min受控时钟有明确协议；B4需补浏览器验收的e2e测试有效路径。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T8.evidence-template.json"
+      },
+      "blockerIds": [
+        "B4"
+      ],
+      "reviewMetadata": {
+        "taskLine": 69,
+        "contractLine": 2567,
+        "dispatchPromptSha256": "80a5c8df48a0e65c784802e9a5d3f435e999ebc9e1f203e5cf0b3f3b35b3772e",
+        "provides": [
+          "job-foundation",
+          "analytics-aggregate-runtime"
+        ],
+        "requires": [
+          {
+            "task": "M5-T1",
+            "capability": "job-leases"
+          },
+          {
+            "task": "M5-T3",
+            "capability": "analytics-aggregate"
+          },
+          {
+            "task": "M3-T14",
+            "capability": "http-guards-metrics"
+          },
+          {
+            "task": "M5-T7",
+            "capability": "analytics-page-events"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/jobs-runtime.http.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container",
+          "jobs",
+          "migrations"
+        ]
+      }
+    },
+    "M5-T9": {
+      "contractHash": "e1c43ee360affefefddd2c3bfa121488e8123d86c974846b5e6c81e2276afce0",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:70、_run/task-contracts.json:2621与最终_run/dispatch.json tasks.M5-T9.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-settings-domain；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}]；下游：M5-T3:analytics-settings-domain,M5-T4:analytics-settings-domain,M5-T7:analytics-settings-domain。",
+        "接线/测试owner：wiring=，按06注册表核对实际提示词有效范围；本任务测试落点=tests/analytics-settings.db.test.ts,tests/analytics-day-boundaries.test.ts；stage=primitive，完整集成owner=M5-T4且其前置闭包包含本原语。",
+        "仅版本化IANA/边界/domain primitive，23/25h/午夜及当前ADMIN CAS有独立DB/纯规则测试，HTTP消费方T4显式依赖；命中服务/事件词的H12不等于缺路由。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T9.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 70,
+        "contractLine": 2621,
+        "dispatchPromptSha256": "e5cc5e19a3fb5a1b1b077bcad4809f1a028944bed931225d5edaede1296b9f1a",
+        "provides": [
+          "analytics-settings-domain"
+        ],
+        "requires": [
+          {
+            "task": "M1-T2",
+            "capability": "contract-types"
+          },
+          {
+            "task": "M3-T1",
+            "capability": "current-admin-permissions"
+          }
+        ],
+        "stage": "primitive",
+        "integrationTask": "M5-T4",
+        "testPaths": [
+          "tests/analytics-settings.db.test.ts",
+          "tests/analytics-day-boundaries.test.ts"
+        ],
+        "wiring": []
+      }
+    },
+    "M5-T10": {
+      "contractHash": "efa05b2a43fbb9fcd4c40cf18683148f6548806564b8b7f04d240dec47cbabb6",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:71、_run/task-contracts.json:2661与最终_run/dispatch.json tasks.M5-T10.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-settings-ui；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T4\", \"capability\": \"analytics-settings-api\"}, {\"task\": \"M3-T7\", \"capability\": \"admin-shell-profile-ui\"}, {\"task\": \"M1-T7\", \"capability\": \"visual-components\"}]；下游：M7-T3:analytics-settings-ui。",
+        "接线/测试owner：wiring=frontendRoutes，按06注册表核对实际提示词有效范围；本任务测试落点=e2e/analytics-settings.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "只增加ADMIN设置UI，GET/PATCH均由T4现成provider提供，非法IANA不改原配置，computed/density/GIF验收沿11，不在本卡重新实现domain或聚合。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T10.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 71,
+        "contractLine": 2661,
+        "dispatchPromptSha256": "47ed6642774c4e37eb6d3cb002cf51776f3a08717c2a8ad9ff2d73eeff45ae46",
+        "provides": [
+          "analytics-settings-ui"
+        ],
+        "requires": [
+          {
+            "task": "M5-T4",
+            "capability": "analytics-settings-api"
+          },
+          {
+            "task": "M3-T7",
+            "capability": "admin-shell-profile-ui"
+          },
+          {
+            "task": "M1-T7",
+            "capability": "visual-components"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "e2e/analytics-settings.spec.ts"
+        ],
+        "wiring": [
+          "frontendRoutes"
+        ]
+      }
+    },
+    "M5-T11": {
+      "contractHash": "e024b4114bd986af701fac168a40bbae9503f029ca8900afc44c3a20e403e340",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:72、_run/task-contracts.json:2706与最终_run/dispatch.json tasks.M5-T11.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：analytics-retention；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T5\", \"capability\": \"analytics-retention-plan\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}]；下游：M7-T3:analytics-retention。",
+        "接线/测试owner：wiring=jobs,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/analytics-retention.db.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "实际daily retention注册消费T5/T8，默认dry-run+授权拒绝、30d/13月集合及覆盖断点可测，清理后聚合不以残片替换原值，不把文档当生产删除授权。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T11.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 72,
+        "contractLine": 2706,
+        "dispatchPromptSha256": "db96d657b84a43fb1369c942d7a2b7371c0127eb968729be2edba39bb188fbf7",
+        "provides": [
+          "analytics-retention"
+        ],
+        "requires": [
+          {
+            "task": "M5-T5",
+            "capability": "analytics-retention-plan"
+          },
+          {
+            "task": "M5-T8",
+            "capability": "job-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/analytics-retention.db.test.ts"
+        ],
+        "wiring": [
+          "jobs",
+          "container"
+        ]
+      }
+    },
+    "M6-T1": {
+      "contractHash": "b3d9fd16b156a5272e4ca4573b6f48a0a0303d3b7017803df59dd2cc768e4c0a",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:73、_run/task-contracts.json:2748与最终_run/dispatch.json tasks.M6-T1.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：stats-query-rules；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M5-T3\", \"capability\": \"analytics-aggregate\"}, {\"task\": \"M2-T7\", \"capability\": \"model-events\"}]；下游：M6-T6:stats-query-rules。",
+        "接线/测试owner：wiring=，按06注册表核对实际提示词有效范围；本任务测试落点=tests/stats-query.db.test.ts；stage=primitive，完整集成owner=M6-T6且其前置闭包包含本原语。",
+        "只读StatsSourceDTO/聚合查询primitive，zero/no_data/not_connected及样本null/0%区分，不能累加产品UV冒充全站；T6显式依赖并提供实际stats HTTP。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T1.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 73,
+        "contractLine": 2748,
+        "dispatchPromptSha256": "5d6aa86dd28e207246278106c299554d3b09e80e541d4995cb28fc5c9fc81239",
+        "provides": [
+          "stats-query-rules"
+        ],
+        "requires": [
+          {
+            "task": "M5-T3",
+            "capability": "analytics-aggregate"
+          },
+          {
+            "task": "M2-T7",
+            "capability": "model-events"
+          }
+        ],
+        "stage": "primitive",
+        "integrationTask": "M6-T6",
+        "testPaths": [
+          "tests/stats-query.db.test.ts"
+        ],
+        "wiring": []
+      }
+    },
+    "M6-T2": {
+      "contractHash": "bfe0b0cd720c748f9fbe9442313c1b222eee61e9fec154ba3983c513cd5f5ac5",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:74、_run/task-contracts.json:2786与最终_run/dispatch.json tasks.M6-T2.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：stats-business；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M6-T6\", \"capability\": \"stats-core\"}, {\"task\": \"M4-T4\", \"capability\": \"chat-notification-job\"}]；下游：M6-T7:stats-business。",
+        "接线/测试owner：wiring=container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/stats-business.test.ts,e2e/stats-business-api.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "由真实Inquiry/Chat HTTP产生业务事实再读稳定ID计数，SALES既有scope和EDITOR拒绝在查询前，业务保存不反调M6；查询适配器在composition范围内。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T2.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 74,
+        "contractLine": 2786,
+        "dispatchPromptSha256": "8fd751cf89a697ca6eeb34dfa0758a5540a56777c70cb4ecafe33f524c8fdd5a",
+        "provides": [
+          "stats-business"
+        ],
+        "requires": [
+          {
+            "task": "M6-T6",
+            "capability": "stats-core"
+          },
+          {
+            "task": "M4-T4",
+            "capability": "chat-notification-job"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/stats-business.test.ts",
+          "e2e/stats-business-api.spec.ts"
+        ],
+        "wiring": [
+          "container"
+        ]
+      }
+    },
+    "M6-T3": {
+      "contractHash": "064b46eaa26b3092bfd452a3ffc63fc08001f88819c404a28a3e286f3420d360",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:75、_run/task-contracts.json:2826与最终_run/dispatch.json tasks.M6-T3.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：ops-sources；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M6-T6\", \"capability\": \"stats-core\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}]；下游：M6-T7:ops-sources。",
+        "接线/测试owner：wiring=backendRoutes,container,jobs，按06注册表核对实际提示词有效范围；本任务测试落点=tests/ops-report.test.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "真实受控ops-report Bearer/白名单/时间CAS，不接任意路径/内容；15min ops-sample registry/composition/cron俱在范围，备份无验证不能显示可恢复，敏感来源角色拒绝。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T3.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 75,
+        "contractLine": 2826,
+        "dispatchPromptSha256": "e7e1562f080ac407821449875cb7234668783319499f1d49c40ee006d756ab00",
+        "provides": [
+          "ops-sources"
+        ],
+        "requires": [
+          {
+            "task": "M6-T6",
+            "capability": "stats-core"
+          },
+          {
+            "task": "M5-T8",
+            "capability": "job-foundation"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/ops-report.test.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container",
+          "jobs"
+        ]
+      }
+    },
+    "M6-T5": {
+      "contractHash": "6956f23a4cd243035191ecb16ea8e614d695ab50c475d2c21e9859a7070684e7",
+      "verdict": "pass",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:77、_run/task-contracts.json:2915与最终_run/dispatch.json tasks.M6-T5.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：stats-reliability；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M6-T6\", \"capability\": \"stats-core\"}, {\"task\": \"M4-T4\", \"capability\": \"chat-notification-job\"}]；下游：M6-T7:stats-reliability。",
+        "接线/测试owner：wiring=container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/stats-reliability.test.ts,e2e/stats-reliability-api.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "真实已接线2xx/5xx计数以同范围分母与coverage解释，不宣称全站；通知真实queued/SMTP accepted/failed/unknown不同，源失败保留旧时间而不拖其他来源。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T5.evidence-template.json"
+      },
+      "blockerIds": [],
+      "reviewMetadata": {
+        "taskLine": 77,
+        "contractLine": 2915,
+        "dispatchPromptSha256": "bdc33d268b402d471f267038374264fde4d1158642865226d116ab19dbbb6132",
+        "provides": [
+          "stats-reliability"
+        ],
+        "requires": [
+          {
+            "task": "M6-T6",
+            "capability": "stats-core"
+          },
+          {
+            "task": "M4-T4",
+            "capability": "chat-notification-job"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/stats-reliability.test.ts",
+          "e2e/stats-reliability-api.spec.ts"
+        ],
+        "wiring": [
+          "container"
+        ]
+      }
+    },
+    "M6-T6": {
+      "contractHash": "5e6a1258a4283022d4249975601059d76d86dc2effbcd43baacdf434d38c0010",
+      "verdict": "revise",
+      "evidence": [
+        "文档契约审查：04-执行/19-模块任务拆分.md:78、_run/task-contracts.json:2955与最终_run/dispatch.json tasks.M6-T6.implementation逐条核对；验收分句全部存在，提示词内contractHash与status当前值相同；本项不表示产品代码或功能已通过。",
+        "提供/消费：stats-core；已核requires能力由各声明owner提供且在真实前置闭包：[{\"task\": \"M6-T1\", \"capability\": \"stats-query-rules\"}]；下游：M6-T2:stats-core,M6-T3:stats-core,M6-T4:stats-core,M6-T5:stats-core。",
+        "接线/测试owner：wiring=backendRoutes,container，按06注册表核对实际提示词有效范围；本任务测试落点=tests/stats-route.test.ts,e2e/stats-core-api.spec.ts；stage=integration，只对本卡明确实现的HTTP/CLI/页面/作业要求集成，不用未来功能占验收。",
+        "B3：统计HTTP要求已注册五分钟作业与变时区后的完整覆盖，但前置闭包仅到T3/T9原语，缺M5-T4 settings HTTP/T8 runtime；需补实际provider方可执行该集成验收。",
+        "共享安全/数据条件按02-设计/08-后端架构.md层/事务/错误/配置与02-设计/09-数据模型.md:39-73及02-设计/10-接口约定.md:13-51、73-86、98-122复核：未引入运行时AI/key或第二数据库，受限凭据不等于后台会话，秘密不入输出，schema-first与生产清理授权边界未由文档自动解除。"
+      ],
+      "statusEvidence": {
+        "returncode": 1,
+        "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+        "stale": [],
+        "runtimeDrift": [],
+        "blockers": [],
+        "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T6.evidence-template.json"
+      },
+      "blockerIds": [
+        "B3"
+      ],
+      "reviewMetadata": {
+        "taskLine": 78,
+        "contractLine": 2955,
+        "dispatchPromptSha256": "b2df3b9fb0fa406df67043fb29f26b05c406dff209cfd546846161a69571e8d3",
+        "provides": [
+          "stats-core"
+        ],
+        "requires": [
+          {
+            "task": "M6-T1",
+            "capability": "stats-query-rules"
+          }
+        ],
+        "stage": "integration",
+        "integrationTask": null,
+        "testPaths": [
+          "tests/stats-route.test.ts",
+          "e2e/stats-core-api.spec.ts"
+        ],
+        "wiring": [
+          "backendRoutes",
+          "container"
+        ]
+      }
+    }
+  },
+  "functionalityAcceptance": "not performed; documentation-contract review only",
+  "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+  "blockingFindings": [
+    {
+      "id": "B1",
+      "tasks": [
+        "M2-T8"
+      ],
+      "locations": [
+        "04-执行/19-模块任务拆分.md:26",
+        "04-执行/19-模块任务拆分.md:52",
+        "04-执行/19-模块任务拆分.md:60"
+      ],
+      "problem": "M2-T8人工回复验收缺实际发送UI provider，M4-T6只读，M4-T14未在其闭包。",
+      "correction": "M2-T8增加M4-T14依赖及chat-human-roundtrip-ui requires，保留已有访客/模型前置。"
+    },
+    {
+      "id": "B2",
+      "tasks": [
+        "M3-T14",
+        "M3-T1"
+      ],
+      "locations": [
+        "04-执行/19-模块任务拆分.md:40",
+        "04-执行/19-模块任务拆分.md:27",
+        "04-执行/19-模块任务拆分.md:28",
+        "02-设计/10-接口约定.md:22"
+      ],
+      "problem": "T14先宣称完整AccountDTO真实GET；设备sid/期限由其下游T1创建，passwordlessEnabled默认字段由T2声明，基础provider存在语义前置反转。",
+      "correction": "T14改HTTP/config/metrics primitive且integrationTask=T1，把真实AccountDTO/响应计数归T1；必要User默认字段与T1 schema增量一并明确，T2消费。"
+    },
+    {
+      "id": "B3",
+      "tasks": [
+        "M6-T6"
+      ],
+      "locations": [
+        "04-执行/19-模块任务拆分.md:78",
+        "04-执行/19-模块任务拆分.md:65",
+        "04-执行/19-模块任务拆分.md:69"
+      ],
+      "problem": "M6-T6实际五分钟作业和切时区HTTP验收的闭包缺M5-T4和M5-T8，只有domain/aggregate原语。",
+      "correction": "增加M5-T4 analytics-settings-api前置/requires（其闭包包含T8 runtime），使真实作业及配置HTTP可用。"
+    },
+    {
+      "id": "B4",
+      "tasks": [
+        "M5-T8"
+      ],
+      "locations": [
+        "04-执行/19-模块任务拆分.md:69",
+        "03-质量/17-测试策略.md:28"
+      ],
+      "problem": "浏览器同意/页面到实际cron的新增验收只列tests/jobs-runtime.http.test.ts，没有17节Playwright e2e/测试owner路径。",
+      "correction": "有效范围补e2e/analytics-job-runtime.spec.ts，复用T7已验同意步骤，仅新增runtime关联断言。"
+    },
+    {
+      "id": "B5",
+      "tasks": [
+        "M4-T5"
+      ],
+      "locations": [
+        "02-设计/06-系统架构与模块划分.md:29",
+        "02-设计/09-数据模型.md:26",
+        "02-设计/09-数据模型.md:68",
+        "04-执行/19-模块任务拆分.md:51",
+        "04-执行/19-模块任务拆分.md:67"
+      ],
+      "problem": "chat_start/chatStarts及M4→M5匿名发起是已定契约，但只有ingest收该kind，没有产品入口生产者owner。",
+      "correction": "在已有ChatContainer成功首条收件后明确同意门控chat_start生产与重试去重、消费analytics能力及eventKinds接线；明确种类必需字段，禁止email/body/凭据外传。"
+    }
+  ],
+  "warningReview": {
+    "H12Count": 10,
+    "H13Count": 0,
+    "items": [
+      {
+        "task": "M1-T8",
+        "verdict": "false-positive",
+        "evidence": "误报：服务一词命中；现有HTTP/error适配直接导出/import，无新路由或DI注册；消费者T14/T1及各客户端已有明确依赖。"
+      },
+      {
+        "task": "M2-T4",
+        "verdict": "false-positive",
+        "evidence": "误报：纯model事件规则，primitive→M2-T7，事件生产接线由T7承担，非本卡漏注册。"
+      },
+      {
+        "task": "M5-T9",
+        "verdict": "false-positive",
+        "evidence": "误报：IANA/settings domain primitive→M5-T4，既定服务/事件文字不是实际HTTP注册，本卡不交新路由。"
+      },
+      {
+        "task": "M6-T7",
+        "verdict": "false-positive",
+        "evidence": "误报：在已有T4 stats页面消费各源状态，不新增路由；前置含T4/T2/T5/T3，现成页面注册不重复。"
+      },
+      {
+        "task": "M7-T2",
+        "verdict": "false-positive",
+        "evidence": "误报：真实会话验收只调用已有API，不新增handler/provider。"
+      },
+      {
+        "task": "M7-T3",
+        "verdict": "false-positive",
+        "evidence": "误报：统计端到端终验只消费现成事件/页面/作业，不创建页面或注册。"
+      },
+      {
+        "task": "M7-T4",
+        "verdict": "false-positive",
+        "evidence": "误报：询盘聊天终验只调用已有API及开关，实际回复provider T14在闭包。"
+      },
+      {
+        "task": "M7-T5",
+        "verdict": "false-positive",
+        "evidence": "误报：恢复终验调用既有受限接口/CLI，未新增恢复旁路。"
+      },
+      {
+        "task": "M7-T6",
+        "verdict": "false-positive",
+        "evidence": "误报：新鲜授权终验复用已有reauth/动作，不新增服务或路由。"
+      },
+      {
+        "task": "M7-T9",
+        "verdict": "false-positive",
+        "evidence": "误报：运行既有分发/备份恢复脚本并比对ops，不新增事件或HTTP provider。"
+      }
+    ],
+    "semanticCaveat": "H12/H13机械结果不识别B1/B3/B5等实际提供方缺口；10项提醒本身不阻断。"
+  },
+  "nonBlocking": [
+    "calibration-s5保留initial/decomposed/final，size仍有more-than-two-days/unsure；已一次实质拆分，按本卡实际实现和前置复用审，不将分数或未实施代码变成文档阻断。",
+    "78份prompt真实lint中placeholder/asks_user/contradiction无yes、scope_clear无no；仍有72个unsure输出，不宣称所有判断均yes/no确定。",
+    "wiring注册表会把对应整类路径保守加入support有效范围，实际prompt已包含；可能降低并行度，但任务验收与禁止越界条款仍限制业务改动，不是遗漏注册。",
+    "本项目约定中的primitive阶段说明重复一次，属可定点清理的文案重复，不造成阶段冲突。"
+  ],
+  "verdict": "revise",
+  "summary": {
+    "reviewedTasks": 52,
+    "pass": 48,
+    "revise": 4,
+    "crossScopeBlockers": 1,
+    "productFunctionTestsRun": false,
+    "sourceEdits": false,
+    "verifyRun": false,
+    "typeSafeCallsRun": false
+  },
+  "sourceDigests": {
+    "02-设计/06-系统架构与模块划分.md": "d4baf1bf6142d4a0a3c2d7f74f49d793126287da485d016ece4a108bddeadb27",
+    "02-设计/08-后端架构.md": "5f9abf2c44a8f9445ffcf2cb060db180708a4f3287716771c82eafdf734b1bc6",
+    "02-设计/09-数据模型.md": "2e57be719f66abac84461ded82a891bcb793d05f8b79ac5ce7f49ec60d225ac9",
+    "02-设计/10-接口约定.md": "09b6f98e8a1a930a97b8f7418d4884833331fe8d338b63f43703a71afd4bafaf",
+    "03-质量/13-边界问题与异常处理.md": "d82ea22ab829aa8515bde1f636d42cd70efba6439141e048621a29576116187f",
+    "03-质量/17-测试策略.md": "d0c608d0be9d8150043457b8e496627911b039c61c936dc64cf6944f91245622",
+    "04-执行/19-模块任务拆分.md": "a567a9c306afd8b99b2d385344336e22938e665ee00fb93a86f9f72b4a0376c0",
+    "_run/task-contracts.json": "49ac9d74fbbb8d27e9b50d4dff07bed8ba9c3e08dacd42d4f2285e503488d0e5",
+    "_run/dispatch.json": "16b6d57e4fb558b5a529e6cd0258c44f8e4f8f62c9fa4ec946227690d617391a"
+  }
+}

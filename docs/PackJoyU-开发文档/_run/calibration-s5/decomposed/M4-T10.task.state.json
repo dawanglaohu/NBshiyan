@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Idempotently append visitor messages and update consultation retention",
+    "input": "M4 durable conversations/seq/outbox and read/read-cursor APIs.",
+    "output": "POST /api/chat/conversations/[id]/messages and a reusable message-append service.",
+    "accept": "1) Caller/wiring point: real POST messages -> cookie-scope/OPEN checks -> row-locked seq/message/outbox/90-day deadline in one transaction. Same clientMessageId/payload returns the original id/seq with one notification; changed payload returns 409. closed/anonymized rejects; failed writes change nothing (E-18, E-33, E-90). 2) Drop the HTTP response after successful persistence, then retry the original UUID/payload and receive the same receipt. Only the initial commit advances 90 days; reads/notifications do not. Expired/revoked credentials or another person's id/email cannot read or write (E-37, E-78, E-86)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

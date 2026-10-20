@@ -1,0 +1,16 @@
+{
+  "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+  "stale": [],
+  "runtimeDrift": [],
+  "tasks": {
+    "M1-T1": {
+      "ready": false,
+      "contractHash": "eef4a0e7b72cc65b7248a21191020c7297b0dc2a63bd92844cacf196120f1fcc",
+      "blockers": [],
+      "reasons": [
+        "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程"
+      ]
+    }
+  },
+  "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T1.evidence-template.json"
+}

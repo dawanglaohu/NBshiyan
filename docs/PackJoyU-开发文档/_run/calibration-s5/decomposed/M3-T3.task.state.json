@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Issue one-time fresh identity grants",
+    "input": "M3-T2 current secret/sv/step consumption and M3-T1 valid devices; section 09/10 purpose/target/five-minute rules.",
+    "output": "AdminActionGrant and POST /api/admin/account/reauth, with a composed service consuming current identity.",
+    "accept": "1) Caller/wiring point: real POST reauth -> current-device guard -> current password and unused TOTP -> a one-time 256-bit token response with only its hash stored. If sign-in or another sensitive request already consumed the same step, issue no further grant (E-72). 2) In one database transaction, a test consumer checks purpose/target/user/sid/sv/expiresAt/usedAt. Reuse, cross-purpose/device use, equality at five minutes, and revoked devices cannot consume successfully. Actual reauth reads current permission; only ADMIN may request RECOVERY_AUTHORIZE for another account (E-73, E-74). 3) For a real account that can still sign in passwordlessly but has forgotten its current password, session-only or TOTP-only reauth returns 401 and leaves grant count unchanged; ordinary totp sign-in still works afterward. Restricted recovery issues no ordinary grant (E-75)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

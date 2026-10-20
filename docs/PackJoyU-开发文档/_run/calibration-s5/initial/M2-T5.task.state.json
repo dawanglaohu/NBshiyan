@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Connect product context to inquiries and human consultation",
+    "input": "The existing InquiryWizard, chat-visitor-ui and model-events",
+    "output": "The product-to-contact-page/consultation-window context chain",
+    "accept": "1) Entries: product-card inquire-product leads to /[locale]/contact, and chat-product opens consultation; the data sources are POST /api/inquiries and POST /api/chat/conversations; after clicking, the request must contain a server-recognized product slug and must save an actual business identifier (E-16, E-31). 2) Consultation must remain possible without analytics consent; on network failure preserve the current-tab draft and retry with the same message ID; dragging/keyboard use in the model area must not submit (E-37, E-40, E-102); retain real GIF recordings for en/ru and narrow screens."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

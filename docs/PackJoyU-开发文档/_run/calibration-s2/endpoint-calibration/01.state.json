@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "GET",
+    "path": "/api/auth/[...nextauth]",
+    "params": "The existing Auth.js protocol. Credentials adds mode and rememberDevice; the old password+totp request may be retained. A nonempty recoveryCode is explicitly rejected for routine sign-in.",
+    "returns": "The original Auth.js redirect/CSRF/session protocol. The session may add a non-credential sid summary and effectiveExpiresAt.",
+    "permission": "Auth.js controls authorization. Failure does not disclose the account sign-in mode."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "Keep the existing Auth.js protocol, not a unified JSON success envelope: CSRF, redirect, cookie, CredentialsSignin, and session shapes remain Auth.js-owned. Sign-in uses POST and same-origin/CSRF checks; GET session reads session or null and does not extend real-activity time. Successful routine credentials verification creates a new AdminDeviceSession transactionally. A normal signOut revokes its sid on the server. Password+totp or, only for enabled and already enrolled valid accounts, email+totp is permitted; recovery codes are excluded. All sign-in failures remain the generic Auth.js failure and cannot enumerate accounts or sign-in modes. The client cannot submit role/sid/sv/remembered through session.update."
+}

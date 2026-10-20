@@ -1,0 +1,12 @@
+{
+  "requirement": "Use the supplied company-background PDF only as a reference, adapt and independently redraw the needed content for the PackJoyU website with our existing logo. Authorized GPT Dot remote software may make the visuals. Publish only facts verified as PackJoyU, retain originals and editable sources. This correction defines local future task ownership; it does not make or publish assets now, buy services, delete data or authorize external claims.",
+  "task": {
+    "title": "Complete the missing PDF-derived company visual deliverables",
+    "accept": "The selected one or two website company visuals have an editable software source, web publication copy, own logo, provenance hashes and English/Russian alt text; actual software work has evidence, and the site really consumes the outputs. Do not redraw all 25 catalog pages or invent factories/certificates."
+  },
+  "conflict": "M1-T5 currently owns factual copy and website routing only, while the approved requirement also says independently redraw the selected company content. No current task owns the software project or graphics output.",
+  "options": {
+    "A": "Add a 1.5-day asset producer M1-T9 with editable sources and checked web copies; make existing M1-T5 the website integration consumer and keep all its fact, logo and navigation checks, with a 2-day target. The producer is primitive and names M1-T5 as its integration task.",
+    "B": "Keep one M1-T5 task with a 2-day target, adding one simple independently drawn visual, editable source and site consumption to its existing factual-copy and navigation deliverables. It retains all original checks and uses actual software evidence."
+  }
+}

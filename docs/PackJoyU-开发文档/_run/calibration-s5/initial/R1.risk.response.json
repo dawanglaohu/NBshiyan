@@ -1,0 +1,33 @@
+{
+  "status": "ok",
+  "template": "risk",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "impact": {
+      "score": 1.88,
+      "level": "the delivered product fails its purpose or exposes data",
+      "confidence": 0.83,
+      "band": "high"
+    },
+    "likelihood": {
+      "score": 1.16,
+      "level": "plausible",
+      "confidence": 0.67,
+      "band": "medium"
+    },
+    "mitigation_concrete": {
+      "p": 0.94,
+      "verdict": "yes"
+    },
+    "needs_owner": {
+      "p": 0.13,
+      "verdict": "no"
+    }
+  },
+  "line": "risk: impact=the delivered product fails its purpose or exposes data(high 0.83) likelihood=plausible(medium 0.67) mitigation_concrete=yes(0.94) needs_owner=no(0.13)",
+  "usage": {
+    "input_tokens": 558,
+    "output_tokens": 70
+  }
+}

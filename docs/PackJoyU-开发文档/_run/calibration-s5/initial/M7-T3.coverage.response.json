@@ -1,0 +1,65 @@
+{
+  "status": "ok",
+  "template": "coverage",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "covered_E-42": {
+      "p": 0.72,
+      "verdict": "yes"
+    },
+    "covered_E-48": {
+      "p": 0.67,
+      "verdict": "yes"
+    },
+    "covered_E-56": {
+      "p": 0.79,
+      "verdict": "yes"
+    },
+    "covered_E-61": {
+      "p": 0.78,
+      "verdict": "yes"
+    },
+    "covered_E-63": {
+      "p": 0.5,
+      "verdict": "unsure"
+    },
+    "covered_E-64": {
+      "p": 0.42,
+      "verdict": "unsure"
+    },
+    "covered_E-65": {
+      "p": 0.54,
+      "verdict": "unsure"
+    },
+    "covered_E-67": {
+      "p": 0.57,
+      "verdict": "unsure"
+    },
+    "covered_E-81": {
+      "p": 0.52,
+      "verdict": "unsure"
+    },
+    "covered_E-88": {
+      "p": 0.74,
+      "verdict": "yes"
+    },
+    "covered_E-20": {
+      "p": 0.32,
+      "verdict": "no"
+    },
+    "covered_E-29": {
+      "p": 0.33,
+      "verdict": "no"
+    },
+    "covered_E-94": {
+      "p": 0.23,
+      "verdict": "no"
+    }
+  },
+  "line": "coverage: covered_E-42=yes(0.72) covered_E-48=yes(0.67) covered_E-56=yes(0.79) covered_E-61=yes(0.78) covered_E-63=unsure(0.50) covered_E-64=unsure(0.42) covered_E-65=unsure(0.54) covered_E-67=unsure(0.57) covered_E-81=unsure(0.52) covered_E-88=yes(0.74) covered_E-20=no(0.32) covered_E-29=no(0.33) covered_E-94=no(0.23)",
+  "usage": {
+    "input_tokens": 2860,
+    "output_tokens": 264
+  }
+}

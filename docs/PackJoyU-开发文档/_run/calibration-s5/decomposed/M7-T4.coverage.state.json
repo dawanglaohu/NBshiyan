@@ -1,0 +1,35 @@
+{
+  "acceptance": "1) Use the visible product contact entry to submit real POST /api/inquiries and POST /api/chat/conversations; verify productSlug/stable message IDs. ADMIN/SALES replies through the inbox and the visitor receives it through seq synchronization. Network failure preserves the current-tab draft, retrying the same UUID creates only one message, receipt remains independent from notification failure, and refusing analytics still allows consultation (E-16, E-18, E-31, E-37, E-40). 2) In the isolated target environment, measure memory/concurrency/latency with chat on and off and record limitations. If insufficient, actually disable the independent chat availability switch while retaining visible existing contact/inquiry entries; show unavailable, never fake online. Do not treat the old roughly 2.7GB snapshot as current capacity or purchase expansion automatically (E-20).",
+  "edges": {
+    "E-16": {
+      "scene": "Online-chat implementation approach",
+      "trigger": "A visitor sends the first message while an operator is online",
+      "expect": "Report received only after persisting the conversation and message; the operator inbox can read it and a human can reply. Do not generate an AI automatic reply."
+    },
+    "E-18": {
+      "scene": "Online-chat implementation approach",
+      "trigger": "The same message is submitted repeatedly because of retries",
+      "expect": "Deduplicate using the client message identifier; show only one inbox item and do not trigger duplicate notifications."
+    },
+    "E-31": {
+      "scene": "C-01 Human-chat inbox and reply entries",
+      "trigger": "A visitor submits a message and server-side persistence succeeds",
+      "expect": "Return stable conversation/message identifiers and display Received; the operator inbox must be able to read it. On database-write failure, preserve it for retry and do not show received or read by support."
+    },
+    "E-37": {
+      "scene": "C-02 Offline messages and send-failure recovery",
+      "trigger": "Submission times out or the response is lost, leaving actual persistence unknown",
+      "expect": "Show awaiting confirmation or retryable; retry using the original client message identifier and return the original receipt result, without duplicate inbox items or notifications."
+    },
+    "E-40": {
+      "scene": "C-02 Offline messages and send-failure recovery",
+      "trigger": "A visitor rejects analytics but actively opens first-party human chat",
+      "expect": "Allow the necessary consultation without creating analytics identifiers or loading third-party chat scripts; handle necessary chat sessions separately from analytics consent."
+    },
+    "E-20": {
+      "scene": "Online-chat implementation approach",
+      "trigger": "Pre-release resource measurements show insufficient resources",
+      "expect": "Retain an independent switch that can disable chat while preserving the existing contact entry. Record capacity evidence and limitations; do not claim that approximately 2.7 GB of free memory in an old snapshot is current available capacity, and do not automatically purchase expansion."
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "edge": {
+    "scene": "Session persistence and remember-device deadlines",
+    "trigger": "Remember this device is not selected",
+    "expect": "Keep the current refreshing two-hour session policy; do not misstate it as forced logout after a fixed two hours. When selected, even continuous activity must not exceed the absolute 30-day limit measured from issuance."
+  },
+  "modules": {
+    "M1": "Brand/public UX: PackJoyU wordmark, verified content, JPG/GIF copies, home media/pages; sole visual tokens owner.",
+    "M2": "Products/3D: lists/cards/details, direct model input, touch/keyboard, image fallback, contextual inquiry.",
+    "M3": "Admin access/accounts: login/shell/settings, device sessions, authenticator/mode, revocation/restricted recovery.",
+    "M4": "First-party human chat: visitor session, messages/offline, ADMIN/SALES inbox/replies, unread/draft/retry, receipt/notification.",
+    "M5": "Consent/statistics ledger: anonymous IDs/events, admission/dedup, site timezone, daily/product aggregates, retention/recompute.",
+    "M6": "Business/ops dashboard: role-filtered real sources; distinguish data time, zero/no-data/unconnected/error/stale.",
+    "M7": "Integration/delivery: real cross-module visitor/admin/recovery/statistics/reliability acceptance evidence; safe recovered-source reuse."
+  }
+}

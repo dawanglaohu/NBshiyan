@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire eight core brand variables and a real smoke test of existing paths",
+    "input": "The existing home page, GET /api/models and WebVitals/RUM; core variables in section 11; the locally reviewed specification branch",
+    "output": "Eight core visual-base variables; runnable-smoke; an implementation PR carrying the reviewed documentation baseline and a CI smoke test",
+    "accept": "1) Wire only eight core tokens into the existing home page: background, foreground, accent color, border width, border radius, base font size, body line height and focus color; do not create new pages or business controls. Build/start the real standalone service, follow the header product link to the products page, verify each computed style equals section 11, and verify GET /api/models returns the published source. 2) Actual home-page WebVitals must trigger POST /api/rum; verify 204 and redacted logs. CI starts the same service and runs this browser smoke test. 3) Bring the locally reviewed documents into main through this PR; subsequent tasks branch from that landed baseline."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

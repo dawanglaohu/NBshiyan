@@ -1,0 +1,16 @@
+{
+  "edge": {
+    "scene": "C-01 human-chat receipt and reply entry",
+    "trigger": "New messages arrive while the inbox refreshes or pages",
+    "expect": "Cursor pagination neither misses nor duplicates records. Compute unread counts from the user's read position; reading a conversation does not prematurely mark subsequently arriving messages as read."
+  },
+  "modules": {
+    "M1": "Brand/public UX: PackJoyU wordmark, verified content, JPG/GIF copies, home media/pages; sole visual tokens owner.",
+    "M2": "Products/3D: lists/cards/details, direct model input, touch/keyboard, image fallback, contextual inquiry.",
+    "M3": "Admin access/accounts: login/shell/settings, device sessions, authenticator/mode, revocation/restricted recovery.",
+    "M4": "First-party human chat: visitor session, messages/offline, ADMIN/SALES inbox/replies, unread/draft/retry, receipt/notification.",
+    "M5": "Consent/statistics ledger: anonymous IDs/events, admission/dedup, site timezone, daily/product aggregates, retention/recompute.",
+    "M6": "Business/ops dashboard: role-filtered real sources; distinguish data time, zero/no-data/unconnected/error/stale.",
+    "M7": "Integration/delivery: real cross-module visitor/admin/recovery/statistics/reliability acceptance evidence; safe recovered-source reuse."
+  }
+}

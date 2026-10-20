@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Catalog state coverage or task visual guidance is incomplete",
+    "impact": "D19 is low confidence; public and admin style or density may drift",
+    "mitigation": "Use the single saved minimalist-flat source and section11 adaptations. Specify missing states and StyleKit/GIF/D1-D6 for every mixed-module UI task. Do not inject conflicting catalog CSS wholesale.",
+    "trigger": "A state is missing, slug is searched again, admin inherits brand spacing, or density/real GIF evidence is missing"
+  }
+}

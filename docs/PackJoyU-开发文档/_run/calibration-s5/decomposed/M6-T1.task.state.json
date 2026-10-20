@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Define statistics query scope and core source DTOs",
+    "input": "Real AnalyticsDaily and JobState structures, section 09 source matrix and section 10 StatsDTO",
+    "output": "stats-query-rules: core source DTOs and read-only aggregate query rules; M6-T6 connects them to HTTP",
+    "accept": "1) In dedicated PostgreSQL, read AnalyticsDaily using one timezoneRevision and half-open day interval. A successful covered result with actual zero returns zero with successful-query time and consented coverage; an uncovered interval returns no_data/null, and missing source configuration or an unconnected job returns not_connected. Never sum product UV to obtain site UV (E-49, E-50). 2) Compute rates and mean duration from actual modelStarts/successes/failures/duration samples: no samples gives null, zero successes with samples gives 0%, valid terminal samples define the mean, and only consented starts enter the denominator. Viewers in different time zones get the same site day and values (E-55, E-63)."
+  },
+  "module": "M6",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

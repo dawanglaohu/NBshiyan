@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Finally verify consent-to-dashboard analytics and statistical day boundaries",
+    "input": "analytics-ingest/aggregate/retention, real product events and final stats-ui",
+    "output": "analytics-acceptance: real ingestion/aggregation, time-zone and retention-authorization evidence",
+    "accept": "1) Use the real consent control, actual page/product visits and GLB start/one terminal, a scheduled committed aggregate and /admin/stats reads tied to the same productSlug/viewId. Refusal/withdrawal prevents collection. Success rate uses only consented starts; actual failure/timeout is not success; no samples gives null and mean duration includes samples (E-42, E-61, E-63). 2) Dedicated PostgreSQL plus HTTP tests cover 23/25-hour DST days, midnight, 48-hour lateness, same-revision snapshots and refusal of an old lease committing late. A time-zone change cannot stitch trends beyond raw coverage. Raw-30-day/aggregate-13-month candidate boundaries are testable; without explicit production retention authorization, an actual-cleanup request is refused with zero deletions (E-48, E-56, E-81, E-88)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

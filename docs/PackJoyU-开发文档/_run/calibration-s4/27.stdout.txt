@@ -1,0 +1,44 @@
+{
+  "status": "ok",
+  "template": "edge",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "severity": {
+      "score": 1.53,
+      "level": "data is lost or corrupted, money moves wrongly, or a permission is bypassed",
+      "confidence": 0.29,
+      "band": "low"
+    },
+    "likelihood": {
+      "score": 0.32,
+      "level": "rare, needs deliberate misuse",
+      "confidence": 0.5,
+      "band": "medium"
+    },
+    "executable": {
+      "p": 0.65,
+      "verdict": "yes"
+    },
+    "owner": {
+      "choice": "M6",
+      "confidence": 0.39,
+      "band": "low",
+      "probabilities": {
+        "M1": 0.38,
+        "M2": 0.01,
+        "M3": 0.0,
+        "M4": 0.0,
+        "M5": 0.0,
+        "M6": 0.47000000000000003,
+        "M7": 0.13,
+        "unclear": 0.01
+      }
+    }
+  },
+  "line": "edge: severity=data is lost or corrupted, money moves wrongly, or a permission is bypassed(low 0.29) likelihood=rare, needs deliberate misuse(medium 0.50) executable=yes(0.65) owner=M6(low 0.39)",
+  "usage": {
+    "input_tokens": 1152,
+    "output_tokens": 129
+  }
+}

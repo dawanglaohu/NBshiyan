@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Atomically save a first consultation message and unique notification outbox",
+    "input": "M4-T8 real necessary cookies, M5 job foundation, and section 09/10 message/conversation/outbox constraints.",
+    "output": "ChatConversation/Message/ReadCursor/Notification schema; POST /api/chat/conversations and durable first-message service.",
+    "accept": "1) Caller/wiring point: real POST conversations -> cookie-scoped service -> conversation/first message/seq/messageId-unique outbox in one transaction. Return persistent invariant id/seq/receivedAt only after success. Database failure leaves no partial records. The same UUID/payload returns the original result; changed payload returns 409. Concurrency yields one message and one notification (E-18, E-31, E-90). 2) Enforce 16KiB before strict-schema parsing. Body is plain text of 1..4000 code points. Omitted/blank email can send; after trim, over 254 characters, CRLF/display names/invalid format produce field errors. Identity comes from the cookie; another session cannot be associated. Declining analytics still permits receipt without creating an analytics identity (E-39, E-40)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

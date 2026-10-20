@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Reference-company facts or branding are published as our own",
+    "impact": "Public claims may mislead; D6 has high reversal cost",
+    "mitigation": "Publish only verified PackJoyU facts. Preserve originals and check every old mark in publication copies; exclude failing copies.",
+    "trigger": "Unclear provenance, a missed old mark, or an unsupported company fact"
+  }
+}
