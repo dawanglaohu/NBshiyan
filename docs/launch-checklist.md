@@ -72,7 +72,7 @@
 - [ ] 生产环境的 `NEXT_PUBLIC_SITE_URL` 填正式的 https 域名，canonical、hreflang 和 sitemap 的网址都从它来。
 - [ ] 上线后确认生产页面没有 noindex（meta 和 `X-Robots-Tag` 都要查），`robots.txt` 没有禁止抓取全站。
 - [ ] 填好 `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`、`NEXT_PUBLIC_YANDEX_VERIFICATION`、`NEXT_PUBLIC_BING_VERIFICATION`，然后去 Google Search Console、Yandex Webmaster 和 Bing Webmaster 提交 sitemap。这一步要 Ryan 在私聊里登录，见 #74。
-- [ ] IndexNow：生产环境设 `INDEXNOW_KEY`（8–128 位，只用 `a-zA-Z0-9-`），并且已经用 Upstash 做去重。上线后打开 `https://<域名>/<key>.txt`，应该返回 200 和密钥纯文本，其他 `.txt` 地址返回 404。等品类页或文章页上线后，再把 `src/lib/seo/indexnow.ts` 里 `INDEXNOW_LIVE_TYPES` 对应的类型改成 `live: true`。
+- [ ] IndexNow：生产环境设 `INDEXNOW_KEY`（8–128 位，只用 `a-zA-Z0-9-`），并且已经用 Upstash 做去重。推送端点是 `https://api.indexnow.org/indexnow`，一次推送 Bing 和 Yandex 都会收到，不用分别推。上线后打开 `https://<域名>/<key>.txt`，应该返回 200 和密钥纯文本，其他 `.txt` 地址返回 404。等品类页或文章页上线后，再把 `src/lib/seo/indexnow.ts` 里 `INDEXNOW_LIVE_TYPES` 对应的类型改成 `live: true`。
 
 ## 7. 设计
 
