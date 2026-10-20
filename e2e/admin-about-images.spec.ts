@@ -560,13 +560,14 @@ test.describe('账号 B：UX 复审（单列 / ✕ / aria-label）、1–4 行�
     await reset(page);
     await page.goto('/admin/settings');
     const area = page.locator('.st-im');
-    // 假响应：一张横图、一张竖图（lg 1200×1600），不经过服务端
-    let n = 0;
+    // 假响应：wide.jpg 横图、tall.jpg 竖图（lg 1200×1600），不经过服务端。
+    // 两张同时走 XHR，完成顺序不等于选择顺序，不能用到达计数决定谁是竖图。
     await page.route(`**${S}/assets`, (route) => {
       if (route.request().method() !== 'POST') return route.fallback();
-      const id = `fakeportrait${String(++n).padStart(12, '0')}`;
-      const a = fakeAsset(id);
-      const body = n === 2 ? { ...a, width: 1200, height: 1600, sm: { ...a.sm, width: 600, height: 800 }, lg: { ...a.lg, width: 1200, height: 1600 } } : a;
+      const raw = route.request().postDataBuffer()?.toString('latin1') ?? '';
+      const tall = raw.includes('tall.jpg');
+      const a = fakeAsset(tall ? 'fakeportrait200000000000' : 'fakeportrait100000000000');
+      const body = tall ? { ...a, width: 1200, height: 1600, sm: { ...a.sm, width: 600, height: 800 }, lg: { ...a.lg, width: 1200, height: 1600 } } : a;
       return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify(body) });
     });
     await fileInput(page).setInputFiles([{ name: 'wide.jpg', mimeType: 'image/jpeg', buffer: TINY_JPEG }, { name: 'tall.jpg', mimeType: 'image/jpeg', buffer: TINY_JPEG }]);
