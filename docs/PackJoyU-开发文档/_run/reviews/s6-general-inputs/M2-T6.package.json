@@ -1,0 +1,53 @@
+{
+  "id": "M2-T6",
+  "row": {
+    "line": 24,
+    "title": "接通真实模型失败与海报回退",
+    "deps": [
+      "M2-T3"
+    ],
+    "input": "model-accessibility、对应产品poster与真实GLB来源",
+    "output": "model-fallback；GLB/WebGL/context失败的静态回退和重试入口",
+    "acceptance": "1) 分别注入GLB下载失败、WebGL不支持、context lost和仅poster/FoldBox，显示对应产品海报及可点击重试/询盘；不无限重试、不把其他产品图片充当回退。2) 重试建立新的实际加载尝试，卸载取消旧监听/加载回调；纯展示状态只上报加载结果回调，不在本任务创建分析成功事件，统计完整集成由M2-T7完成。",
+    "days": "1d"
+  },
+  "contract": {
+    "provides": [
+      "model-fallback"
+    ],
+    "requires": [
+      {
+        "task": "M2-T3",
+        "capability": "model-accessibility"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [
+      "frontendRoutes"
+    ],
+    "supportPaths": [],
+    "outputPaths": [
+      "src/components/three/",
+      "src/lib/three/",
+      "e2e/model-fallback.spec.ts"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "6d9ece08c0b76b8ccd13aa7a25b25eba44b31fe3051195662accc593e14f1e62",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M2　产品与 3D：负责产品列表、卡片和详情中的产品表达、直接模型操控、输入冲突处理、触屏与键盘查看、图片回退及带产品上下文的询盘入口。\n13: - 输入：model-accessibility、对应产品poster与真实GLB来源\n14: - 产出：model-fallback；GLB/WebGL/context失败的静态回退和重试入口\n15: - 预估：1 人天　｜　前置：M2-T3　接通模型键盘触屏与复位控件（已落地）\n16: 任务契约版本：6d9ece08c0b76b8ccd13aa7a25b25eba44b31fe3051195662accc593e14f1e62；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的前端开发工程师。架构在 07 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M2-T6.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M2.md　模块职责与已有代码位置\n24: \n25: ## 验收标准（验收的唯一依据，逐条都要满足）\n26: 1) 分别注入GLB下载失败、WebGL不支持、context lost和仅poster/FoldBox，显示对应产品海报及可点击重试/询盘\n27: 不无限重试、不把其他产品图片充当回退。2) 重试建立新的实际加载尝试，卸载取消旧监听/加载回调\n28: 纯展示状态只上报加载结果回调，不在本任务创建分析成功事件，统计完整集成由M2-T7完成。\n29: \n30: ## 必须处理的边界\n31: （验收标准没挂边界编号。仍按常识处理空输入、失败路径、重复提交。）\n32: \n33: ## 接线要求（做完必须从入口可达）\n34: - frontendRoutes：src/lib/navigation/routes.ts、src/i18n/routing.ts、src/i18n/navigation.ts、src/components/layout/SiteHeader.tsx、src/components/layout/SiteFooter.tsx、src/components/admin/AdminShell.tsx、src/app/、src/app/admin-login/、src/app/admin-enroll/、src/app/admin-recovery/、src/app/admin/account/、src/app/admin/chat/、src/app/admin/stats/、src/app/admin/settings/、src/app/admin/users/；页面已挂进装配件可导航，且从首页经可见控件点击可达（只调 navigateTo、page.goto 或直接改 hash 不算）\n35: \n36: ## 只改这些路径\n37: - e2e/model-fallback.spec.ts\n38: - src/app/\n39: - src/app/admin-enroll/\n40: - src/app/admin-login/\n41: - src/app/admin-recovery/\n42: - src/app/admin/account/\n43: - src/app/admin/chat/\n44: - src/app/admin/settings/\n45: - src/app/admin/stats/\n46: - src/app/admin/users/\n47: - src/components/admin/AdminShell.tsx\n48: - src/components/layout/SiteFooter.tsx\n49: - src/components/layout/SiteHeader.tsx\n50: - src/components/three/\n51: - src/i18n/navigation.ts\n52: - src/i18n/routing.ts\n53: - src/lib/navigation/routes.ts\n54: - src/lib/three/\n55: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n56: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。M1-T1、M1-T4、M1-T5、M2-T1、M2-T2、M2-T3、M2-T5、M2-T7、M2-T8、M3-T1、M3-T2、M3-T3、M3-T4、M3-T5、M3-T6、M3-T7、M3-T8、M3-T9、M3-T10、M3-T11、M3-T12、M3-T13、M3-T14、M3-T15、M3-T16、M3-T17、M3-T19、M3-T20、M4-T1、M4-T2、M4-T3、M4-T4、M4-T5、M4-T6、M4-T8、M4-T9、M4-T10、M4-T11、M4-T12、M4-T14、M4-T15、M5-T2、M5-T4、M5-T6、M5-T7、M5-T8、M5-T10、M6-T3、M6-T4、M6-T6 也会碰这些路径，别动其中的公共结构（共享类型、路由表、全局配置），必须动就在回报里单列。\n57: \n\n104: ## 本项目约定\n105: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n106: "
+}

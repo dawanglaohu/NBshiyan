@@ -1,0 +1,63 @@
+{
+  "id": "M7-T4",
+  "row": {
+    "line": 83,
+    "title": "终验询盘聊天闭环与容量降级",
+    "deps": [
+      "M7-T1",
+      "M4-T6",
+      "M4-T7",
+      "M4-T14",
+      "M4-T12",
+      "M4-T13"
+    ],
+    "input": "product-contact、访客/运营聊天和现有联系渠道、独立可用性开关",
+    "output": "visitor-acceptance；带产品上下文的询盘/聊天收发及容量边界报告",
+    "acceptance": "1) 从产品可见联系入口提交真实POST /api/inquiries及POST /api/chat/conversations，核productSlug/持久且不变消息ID；ADMIN/SALES从收件箱回复，访客seq同步收到；网络失败保留当前标签草稿，同UUID重试仅一消息；收件与通知失败独立，拒分析也可咨询（E-16、E-18、E-31、E-37、E-40）。2) 在隔离目标环境实测聊天开启前后内存/并发/延迟并记录限制；不足时实际关闭独立聊天可用性开关并保留可见原联系/询盘入口，前端显示不可用而非虚假在线；不使用旧约2.7GB快照当当前容量，不自动购买扩容（E-20）。",
+    "days": "1.5d"
+  },
+  "contract": {
+    "provides": [
+      "visitor-acceptance"
+    ],
+    "requires": [
+      {
+        "task": "M7-T1",
+        "capability": "visitor-media-acceptance"
+      },
+      {
+        "task": "M4-T6",
+        "capability": "chat-operator-ui"
+      },
+      {
+        "task": "M4-T7",
+        "capability": "chat-retention-dryrun-job"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "e2e/visitor-consultation-integration.spec.ts",
+      "docs/acceptance/consultation/"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "85cbb15b9a162bc1a1ee5185dde44b5ff2df1e333a119be0d99e43f5c7b6089e",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M7　集成验收与交付：负责访客跨模块完整路径、后台权限与恢复路径、统计和可靠性完整链路的真实集成验收及交付证据收口；核对本轮复用的恢复来源，不重做 S1 已完成的取回和来源审计，也不自动合并恢复草稿。\n13: - 输入：product-contact、访客/运营聊天和现有联系渠道、独立可用性开关\n14: - 产出：visitor-acceptance；带产品上下文的询盘/聊天收发及容量边界报告\n15: - 预估：1.5 人天　｜　前置：M7-T1　终验公开媒体与3D访客路径；M4-T6　接通运营收件箱和只读会话页；M4-T7　注册聊天保留候选与默认拒绝真实清理；M4-T14　在真实双端会话接通人工回复与关闭；M4-T12　注册既有邮件队列真实POST调度；M4-T13　在隔离授权策略下原子匿名化过期咨询（已落地）\n16: 任务契约版本：85cbb15b9a162bc1a1ee5185dde44b5ff2df1e333a119be0d99e43f5c7b6089e；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M7-T4.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M7.md　模块职责与已有代码位置\n24: - docs/PackJoyU-开发文档/图谱/边界/ 下的 E-16.md、E-18.md、E-20.md、E-31.md、E-37.md、E-40.md　本任务要兜的边界\n25: \n26: ## 验收标准（验收的唯一依据，逐条都要满足）\n27: 1) 从产品可见联系入口提交真实POST /api/inquiries及POST /api/chat/conversations，核productSlug/持久且不变消息ID\n28: ADMIN/SALES从收件箱回复，访客seq同步收到\n29: 网络失败保留当前标签草稿，同UUID重试仅一消息\n30: 收件与通知失败独立，拒分析也可咨询（E-16、E-18、E-31、E-37、E-40）。2) 在隔离目标环境实测聊天开启前后内存/并发/延迟并记录限制\n31: 不足时实际关闭独立聊天可用性开关并保留可见原联系/询盘入口，前端显示不可用而非虚假在线\n32: 不使用旧约2.7GB快照当当前容量，不自动购买扩容（E-20）。\n33: \n34: ## 必须处理的边界\n35: - E-16　在线聊天实现路线\n36:   触发：访客首次发消息且运营在线　期望：持久化会话和消息后给出已接收状态，运营收件箱可读取并人工回复，不生成 AI 自动答复。\n37: - E-18　在线聊天实现路线\n38:   触发：同一消息因重试重复提交　期望：按客户端消息标识去重，收件箱只出现一条，不重复触发通知。\n39: - E-20　在线聊天实现路线\n40:   触发：上线前资源实测不足　期望：保持独立开关可关闭聊天并保留现有联系入口，记录容量证据和限制，不声称快照剩余约 2.7 GB 内存等于当前可用容量，也不自动购买扩容。\n41: - E-31　C-01 人工聊天收件与回复入口\n42:   触发：访客提交消息且服务端持久化成功　期望：返回稳定的会话与消息标识并显示“已接收”，运营收件箱能读取；数据库写入失败则保留待重试，不显示已接收或客服已读。\n43: - E-37　C-02 离线留言与发送失败恢复\n44:   触发：提交超时或响应丢失、实际保存状态未知　期望：显示待确认或可重试，以原客户端消息标识重试并返回原收件结果，收件箱与通知不产生重复项。\n45: - E-40　C-02 离线留言与发送失败恢复\n46:   触发：访客拒绝分析但主动打开第一方人工聊天　期望：允许完成必要咨询，不创建分析标识或加载第三方聊天脚本，聊天必要会话与分析同意分开处理。\n47: \n48: ## 相关契约（照它实现，改要走文档补丁）\n49: | POST | /api/chat/conversations | clientConversationId、clientMessageId、locale、bodyText、email?、productSlug?、sourcePath? | ConversationReceivedDTO：conversationId、message、receivedAt、duplicate | 有效访客cookie且同源 |\n50: \n51: ## 只改这些路径\n52: - docs/acceptance/consultation/\n53: - e2e/visitor-consultation-integration.spec.ts\n54: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n55: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n56: \n\n94: ## 本项目约定\n95: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n96: "
+}

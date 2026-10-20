@@ -72,7 +72,7 @@
         17,
         18
       ],
-      "integrationTask": "M1-T8"
+      "integrationTask": "M3-T1"
     },
     "M1-T3": {
       "provides": [
@@ -249,9 +249,12 @@
         4,
         5,
         6,
+        7,
         8,
         9,
         10,
+        11,
+        12,
         14,
         16,
         17,
@@ -269,13 +272,12 @@
           "capability": "contract-types"
         }
       ],
-      "stage": "integration",
+      "stage": "primitive",
       "wiring": [],
       "supportPaths": [],
       "outputPaths": [
         "src/lib/client/api.ts",
         "src/lib/client/api-errors.ts",
-        "src/lib/server/http/errors.ts",
         "tests/client-api-foundation.http.test.ts"
       ],
       "sections": [
@@ -291,7 +293,8 @@
         16,
         17,
         18
-      ]
+      ],
+      "integrationTask": "M3-T7"
     },
     "M2-T1": {
       "provides": [
@@ -588,6 +591,10 @@
         {
           "task": "M4-T6",
           "capability": "chat-operator-ui"
+        },
+        {
+          "task": "M4-T14",
+          "capability": "chat-human-roundtrip-ui"
         }
       ],
       "stage": "integration",
@@ -873,6 +880,14 @@
         {
           "task": "M1-T8",
           "capability": "client-api-foundation"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M6-T4",
+          "capability": "stats-base-ui"
         }
       ],
       "stage": "integration",
@@ -917,16 +932,24 @@
       ],
       "requires": [
         {
-          "task": "M3-T6",
-          "capability": "admin-auth-ui"
-        },
-        {
           "task": "M3-T15",
           "capability": "admin-session-activity"
         },
         {
           "task": "M1-T1",
           "capability": "visual-base"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
+        },
+        {
+          "task": "M3-T2",
+          "capability": "admin-login-modes"
+        },
+        {
+          "task": "M1-T8",
+          "capability": "client-api-foundation"
         }
       ],
       "stage": "integration",
@@ -1276,11 +1299,8 @@
           "capability": "contract-types"
         }
       ],
-      "stage": "integration",
-      "wiring": [
-        "backendRoutes",
-        "container"
-      ],
+      "stage": "primitive",
+      "wiring": [],
       "supportPaths": [
         "prisma/schema.prisma",
         "src/lib/server/composition.ts",
@@ -1292,8 +1312,7 @@
       "outputPaths": [
         "src/lib/server/config.ts",
         "src/lib/server/http/errors.ts",
-        "src/lib/server/http/metrics.ts",
-        "src/app/api/admin/account/route.ts"
+        "src/lib/server/http/metrics.ts"
       ],
       "sections": [
         1,
@@ -1308,7 +1327,8 @@
         16,
         17,
         18
-      ]
+      ],
+      "integrationTask": "M3-T1"
     },
     "M3-T15": {
       "provides": [
@@ -1767,11 +1787,20 @@
         {
           "task": "M1-T8",
           "capability": "client-api-foundation"
+        },
+        {
+          "task": "M5-T6",
+          "capability": "analytics-ingest"
+        },
+        {
+          "task": "M5-T7",
+          "capability": "analytics-consent-ui"
         }
       ],
       "stage": "integration",
       "wiring": [
-        "frontendRoutes"
+        "frontendRoutes",
+        "eventKinds"
       ],
       "supportPaths": [
         "src/components/inquiry/InquiryWizard.tsx",
@@ -1785,7 +1814,8 @@
         "src/components/chat/ChatContainer.tsx",
         "src/components/chat/Composer.tsx",
         "src/components/chat/MessageList.tsx",
-        "src/lib/client/chat.ts"
+        "src/lib/client/chat.ts",
+        "e2e/chat-start-analytics.spec.ts"
       ],
       "sections": [
         1,
@@ -2226,6 +2256,10 @@
         {
           "task": "M1-T1",
           "capability": "visual-base"
+        },
+        {
+          "task": "M1-T7",
+          "capability": "visual-components"
         }
       ],
       "stage": "integration",
@@ -2601,7 +2635,8 @@
         "src/app/api/admin/cron/operations/route.ts",
         "deploy/cron.nbshiyan",
         "deploy/deploy.sh",
-        "tests/jobs-runtime.http.test.ts"
+        "tests/jobs-runtime.http.test.ts",
+        "e2e/analytics-job-runtime.spec.ts"
       ],
       "sections": [
         1,
@@ -2684,7 +2719,8 @@
       "outputPaths": [
         "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
         "src/app/admin/settings/",
-        "e2e/analytics-settings.spec.ts"
+        "e2e/analytics-settings.spec.ts",
+        "src/lib/client/ops.ts"
       ],
       "sections": [
         1,
@@ -2960,6 +2996,10 @@
         {
           "task": "M6-T1",
           "capability": "stats-query-rules"
+        },
+        {
+          "task": "M5-T4",
+          "capability": "analytics-settings-api"
         }
       ],
       "stage": "integration",

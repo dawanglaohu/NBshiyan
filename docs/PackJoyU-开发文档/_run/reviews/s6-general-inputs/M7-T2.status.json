@@ -1,0 +1,17 @@
+{
+  "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+  "stale": [],
+  "runtimeDrift": [],
+  "tasks": {
+    "M7-T2": {
+      "ready": false,
+      "contractHash": "1ae3856b474695a72c627ede71717fbca4a5a3e6c5e25ac0cbc3410cb6c5f285",
+      "blockers": [],
+      "reasons": [
+        "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程",
+        "M7-T2 疑似接线任务未列注册点（命中：/api/）"
+      ]
+    }
+  },
+  "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M7-T2.evidence-template.json"
+}

@@ -1,0 +1,2116 @@
+{
+  "M1-T1": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "eef4a0e7b72cc65b7248a21191020c7297b0dc2a63bd92844cacf196120f1fcc",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:11、_run/task-contracts.json:tasks.M1-T1、_run/dispatch.json:tasks.M1-T1.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "04-执行/19-模块任务拆分.md:11 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M1-T1.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M1-T1.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M1-T2": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "fc0e8a639ad18c806256f0387194266adae031484d110ce8c4c03accb766ace9",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M1-T2。本轮以04-执行/19-模块任务拆分.md:12、_run/task-contracts.json tasks.M1-T2和最终_run/dispatch.json tasks.M1-T2.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"contract-types\"], \"requires\": [{\"task\": \"M1-T1\", \"capability\": \"visual-base\"}], \"stage\": \"primitive\", \"integrationTask\": \"M3-T1\", \"wiring\": [\"sharedTypes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "M1-T2只交共享schema/DTO原语；integrationTask已改M3-T1且T1前置含本卡，实际HTTP consumer替代另一个client原语。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:12、_run/task-contracts.json:tasks.M1-T2、_run/dispatch.json:tasks.M1-T2.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F04关闭：仍是primitive，integrationTask已从库卡M1-T8改为真实Auth.js/GET account消费者M3-T1；后者依赖本卡、返回完整AccountDTO及真实最终响应计数。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "0f7cf7da229d59574dec5f2c614f49e8be1ab079e95ccfe5549404a492f4b64a",
+      "integrationTask": "M3-T1",
+      "priorContractHash": "143675d7111844a2dcc5c89f12817090f877085b96ecd0eca79ac20d39b79cc9",
+      "stage": "primitive",
+      "taskLine": 12,
+      "testPaths": [
+        "tests/contracts-foundation.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M1-T2.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M1-T3": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "bac30c30cd2c4881643f2701a3c54767c027a9cd1b95416fb2898a3c37756887",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:13、_run/task-contracts.json:tasks.M1-T3、_run/dispatch.json:tasks.M1-T3.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M1-T4": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "01a6cb233aa7a24d6519aa3c7b3077748fb0a48894734f302a7a01feb66e0aa2",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:14、_run/task-contracts.json:tasks.M1-T4、_run/dispatch.json:tasks.M1-T4.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M1-T5": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "b3032cca257fb1f925a335c4556666c31683f647544718e0cfa8b1afbc1cc1d0",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:15、_run/task-contracts.json:tasks.M1-T5、_run/dispatch.json:tasks.M1-T5.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M1-T6": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "bca304092b8b633e65f7153084ca46a0395ba660760fcfdc09e68f410239bedf",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:16、_run/task-contracts.json:tasks.M1-T6、_run/dispatch.json:tasks.M1-T6.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M1-T7": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "8dfccbe83d5c5fc9b55e8042eb0d36ac68b76e3fc3be606a02b6318f4cee5675",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:17、_run/task-contracts.json:tasks.M1-T7、_run/dispatch.json:tasks.M1-T7.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "必要传播已核：sections新增07/11/12，完整token/原生UI状态依据进入契约hash；primitive->M1-T4及其前置关系未变，不把原语测试改称完整界面证据。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M1-T8": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "c318a5d33e757f934eb1c08cb5f8a6177f32a251aba087dd9d31da0f7775b797",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:18、_run/task-contracts.json:tasks.M1-T8、_run/dispatch.json:tasks.M1-T8.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F04关闭：stage=primitive、integrationTask=M3-T7。生产account GET/activity客户端由T7先交且明确消费统一client基础；本卡不再宣称生产caller或拥有server/http/errors.ts，后者只由M3-T14实现。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T1": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "cb59e2e7f25a82f61de9edde490f60697be51fbf2f2e7718e6d1d83a3b58c58d",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:19、_run/task-contracts.json:tasks.M2-T1、_run/dispatch.json:tasks.M2-T1.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F06关闭：局部卡宽/视口、名称规格、独立链接、不导航/不提交和品类开关承诺保留；E97/E104整条覆盖标签已移除。完整指针/复位要求仍在T2/T3，当前实际prompt不再通过“必须处理边界”逼T1先做后继。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T2": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "2e115fd41d162ff2bdc580db5d8209ac2171b41b0608e0343f2623fc0adf110f",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:20、_run/task-contracts.json:tasks.M2-T2、_run/dispatch.json:tasks.M2-T2.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T3": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "63cad123504a4aa12e38a8e9ce269a40bf7c36dceecdbaadbc264363d817aec5",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:21、_run/task-contracts.json:tasks.M2-T3、_run/dispatch.json:tasks.M2-T3.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T4": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "31cefa667944267afd16e80718daaf1f29960bce132a0da5d5ac4ed85009176f",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:22、_run/task-contracts.json:tasks.M2-T4、_run/dispatch.json:tasks.M2-T4.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T5": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "fe8c96c4c47c627454a4db1a6266ca282e5c0e5933b15a9378d8f09122228d80",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:23、_run/task-contracts.json:tasks.M2-T5、_run/dispatch.json:tasks.M2-T5.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T6": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "0e56217da209e8654c333a799cd4118b2771c2c84e064b45ad9873371a48bf64",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:24、_run/task-contracts.json:tasks.M2-T6、_run/dispatch.json:tasks.M2-T6.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T7": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "4beab52a78e56e1b6ad7c288a79ea0f41909b51bb3af4117ea9a77a7dee81ebe",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:25、_run/task-contracts.json:tasks.M2-T7、_run/dispatch.json:tasks.M2-T7.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M2-T8": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "a0de6bfb1a0ec66a29fca3568efa6c33b2a87f4eeeeaa94904ccaa11ea359ebe",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:26、_run/task-contracts.json:tasks.M2-T8、_run/dispatch.json:tasks.M2-T8.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F01关闭：deps和requires均新增M4-T14/chat-human-roundtrip-ui，人工回复UI与写API都在前置闭包；本卡仍只做产品上下文接线和既有双端路径，不重造运营回复控件。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M3-T1": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "58172161385199fd71b9e67f80035a3678afcdbecb9a26b42b020072a9b285c3",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T1。本轮以04-执行/19-模块任务拆分.md:27、_run/task-contracts.json tasks.M3-T1和最终_run/dispatch.json tasks.M3-T1.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"admin-device-sessions\", \"current-admin-permissions\"], \"requires\": [{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}, {\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "完整AccountDTO与真实最终响应计数归本卡；User.passwordlessEnabled schema在本卡先加默认false，设备摘要由本卡真实sid/期限提供；T14只提供适配原语，消除字段/接口前置反转。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "e6d9f1ce961c44dd46cef72131a7db2b9cddf3ef4ae4f7eaf2ce2cb066bcc1d5",
+      "integrationTask": null,
+      "priorContractHash": "a8cc121dca18aded213d0f325ee7842da45f3efbd23cbadadabbb0005e403da9",
+      "stage": "integration",
+      "taskLine": 27,
+      "testPaths": [
+        "tests/admin-device-session.db.test.ts",
+        "tests/admin-device-guard.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T1.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T10": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "96a806bd138dababf6a55e0b7e31ef0bbe45bf7fea9768ea9b5174b18a62da4b",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T10。本轮以04-执行/19-模块任务拆分.md:36、_run/task-contracts.json tasks.M3-T10和最终_run/dispatch.json tasks.M3-T10.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"first-enrollment-ui\"], \"requires\": [{\"task\": \"M3-T6\", \"capability\": \"admin-auth-ui\"}, {\"task\": \"M3-T2\", \"capability\": \"first-enrollment\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:36、_run/task-contracts.json:tasks.M3-T10、_run/dispatch.json:tasks.M3-T10.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03/F05继承修正已核：登录页及真实默认目标先存在，完整视觉基础继承；首次绑定仍只消费既有enroll/confirm，保留token/URI/恢复码内存与下一步验证码登录。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "e18445dbf30c9f32efa594809bea0d91c6a623549b52bec9bb70a18013488a96",
+      "integrationTask": null,
+      "priorContractHash": "45b6b7dbd76433482a82f519929a6b7e7876c96d4747e19d1b42dcb83cc799c0",
+      "stage": "integration",
+      "taskLine": 36,
+      "testPaths": [
+        "e2e/admin-enrollment-ui.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T10.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T11": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "b36ebca18517493afbf550999c7d4c8cbd81ea135dc84c89cf728c174f14fc2d",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T11。本轮以04-执行/19-模块任务拆分.md:37、_run/task-contracts.json tasks.M3-T11和最终_run/dispatch.json tasks.M3-T11.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"recovery-ui\"], \"requires\": [{\"task\": \"M3-T6\", \"capability\": \"admin-auth-ui\"}, {\"task\": \"M3-T5\", \"capability\": \"limited-recovery-completion\"}, {\"task\": \"M3-T18\", \"capability\": \"os-owner-recovery-cli\"}, {\"task\": \"M3-T20\", \"capability\": \"self-rebind-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:37、_run/task-contracts.json:tasks.M3-T11、_run/dispatch.json:tasks.M3-T11.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03/F05继承修正已核：恢复UI的旧有start/enroll/confirm/OS CLI/SELF_REAUTH前置未变，T6先具备真实默认stats目标和完整视觉基础；restricted与一次性材料、结果未知不重放条款未削弱。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "7334b4b94bf89d17f67c76257cb38fccc0cfadc653d1d0ee6bfe4cef366a9ba8",
+      "integrationTask": null,
+      "priorContractHash": "8dc5f2ed4aeae6dc524787f6b244179ed54b03b279c55a142b281199d3b33235",
+      "stage": "integration",
+      "taskLine": 37,
+      "testPaths": [
+        "e2e/admin-recovery-ui.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T11.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T12": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "9e3176e800fa748938d9ecb71f58083f1eaa7553bcdfcd5be4ad7a34828be4cb",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T12。本轮以04-执行/19-模块任务拆分.md:38、_run/task-contracts.json tasks.M3-T12和最终_run/dispatch.json tasks.M3-T12.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"account-security-ui\", \"reauth-dialog\"], \"requires\": [{\"task\": \"M3-T7\", \"capability\": \"admin-shell\"}, {\"task\": \"M3-T16\", \"capability\": \"account-security-mutations\"}, {\"task\": \"M3-T20\", \"capability\": \"self-rebind-api\"}, {\"task\": \"M3-T11\", \"capability\": \"recovery-ui\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:38、_run/task-contracts.json:tasks.M3-T12、_run/dispatch.json:tasks.M3-T12.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03/F05继承修正已核：完整控件/登录目标/壳客户端均在前置闭包，个人页只追加其领域account方法；purpose/target/body、模式/password/reset响应、401回登录与只安全GET核实条款保留。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "eeb0db118721f3825c1ca4d1dea7dc151ed1579604302a3ac55f7aa5b886c9ea",
+      "integrationTask": null,
+      "priorContractHash": "f7803f3d7a58a35223f71a06d8af1d1d7d322ddb85d25ba70106fc3539f7d9dc",
+      "stage": "integration",
+      "taskLine": 38,
+      "testPaths": [
+        "e2e/admin-personal-security.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T12.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T13": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "866d83d17947eb820dd6ee8db644bc26d0c406d78a714005c994be5d8464d101",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T13。本轮以04-执行/19-模块任务拆分.md:39、_run/task-contracts.json tasks.M3-T13和最终_run/dispatch.json tasks.M3-T13.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"signout-all-ui\"], \"requires\": [{\"task\": \"M3-T8\", \"capability\": \"device-management-ui\"}, {\"task\": \"M3-T12\", \"capability\": \"reauth-dialog\"}, {\"task\": \"M3-T17\", \"capability\": \"device-management-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:39、_run/task-contracts.json:tasks.M3-T13、_run/dispatch.json:tasks.M3-T13.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03/F05继承修正已核：设备页、ReauthDialog和真实默认login目标先完成；LOGOUT_ALL取消/确认、SignedOutDTO、同名认证cookie清除、双浏览器401与两种未知结果断言保留。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "8f98c84badbed49bf62005a56b16d1c4bc4339aec1c18d60747120101fd2d8c5",
+      "integrationTask": null,
+      "priorContractHash": "9bc0f68675255f24aadef6b327d7d5a5ba40af44acf6bd9bb7451d0177642133",
+      "stage": "integration",
+      "taskLine": 39,
+      "testPaths": [
+        "e2e/admin-signout-all.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T13.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T14": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "a194b137db5a31fd477c776c5e58cc333ce21c77668fdecbd911d0dbb079b16c",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T14。本轮以04-执行/19-模块任务拆分.md:40、_run/task-contracts.json tasks.M3-T14和最终_run/dispatch.json tasks.M3-T14.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"http-guards-metrics\"], \"requires\": [{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}], \"stage\": \"primitive\", \"integrationTask\": \"M3-T1\", \"wiring\": []}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "现为HTTP/config/counter primitive，生产集成owner=M3-T1且其前置闭包含本卡；仅原语DB/受控结果测试，不先交AccountDTO。唯一服务端HTTP错误映射在本卡，client原语不重复拥有。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "8df399a9d69e9f767d0127fd4d77d930370cb02ed5ad64ab24e3519df772be75",
+      "integrationTask": "M3-T1",
+      "priorContractHash": "f9479234d86b058bc1ab5b26dd27823e9256d02b8edc136978e267346a6d3d9d",
+      "stage": "primitive",
+      "taskLine": 40,
+      "testPaths": [
+        "tests/admin-http-metrics.test.ts",
+        "tests/admin-config.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T14.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T15": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "cb4b881a019e03f97c81a9db3cc56311464d24fd795d2871a2a33934cf422f4c",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T15。本轮以04-执行/19-模块任务拆分.md:41、_run/task-contracts.json tasks.M3-T15和最终_run/dispatch.json tasks.M3-T15.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"admin-session-activity\"], \"requires\": [{\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "570b2dd963f1cc02aa3a1df068ca8a8cf1494ec71069a17937f20c1d6de4e7c2",
+      "integrationTask": null,
+      "priorContractHash": "98f5abc3802913fc716571d6a8ecc79e165f699cef8235f4490b2d3f52e87307",
+      "stage": "integration",
+      "taskLine": 41,
+      "testPaths": [
+        "tests/admin-session-activity.http.test.ts",
+        "e2e/admin-device-lifecycle.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T15.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T16": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "5ea3c3fbd81f96ebf22fa0a7b7f325ead4445bde7e83550d8ec644936d4ddc69",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T16。本轮以04-执行/19-模块任务拆分.md:42、_run/task-contracts.json tasks.M3-T16和最终_run/dispatch.json tasks.M3-T16.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"account-security-mutations\"], \"requires\": [{\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}, {\"task\": \"M3-T2\", \"capability\": \"admin-login-modes\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "698aa6e6ddcfc1712eeaf00e0c38ab16477bf1beb30fe3d4564c9717f20debef",
+      "integrationTask": null,
+      "priorContractHash": "dc186ecd4358ee0d6bd71f31e73ddfc603e352f0feb2a4d114e1a816d447b2b7",
+      "stage": "integration",
+      "taskLine": 42,
+      "testPaths": [
+        "tests/admin-account-mode-password.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T16.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T17": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "455c5b958ff372262c2f5c569dc4314001121242913f2380e9327a566dd6095a",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T17。本轮以04-执行/19-模块任务拆分.md:43、_run/task-contracts.json tasks.M3-T17和最终_run/dispatch.json tasks.M3-T17.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"device-management-api\"], \"requires\": [{\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}, {\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "a620f5d6fdfff3db205dddf614c52003bf54b4467210108ffb4985f98579469a",
+      "integrationTask": null,
+      "priorContractHash": "31bfd12a4e7b8e8f7081ba873fa3544f4b07b56ba84acdeda9715b383fd05044",
+      "stage": "integration",
+      "taskLine": 43,
+      "testPaths": [
+        "tests/admin-device-management.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T17.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T18": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "9b1d724524eb7b0049b1f571ec18d9e7c0718333ab1b5463a699425242daee17",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T18。本轮以04-执行/19-模块任务拆分.md:44、_run/task-contracts.json tasks.M3-T18和最终_run/dispatch.json tasks.M3-T18.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"os-owner-recovery-cli\"], \"requires\": [{\"task\": \"M3-T4\", \"capability\": \"targeted-recovery-authorizations\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": []}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "ab1c660dd51baba5995f9784bab9615461aae6217ace9e3d372e5eb11c631a77",
+      "integrationTask": null,
+      "priorContractHash": "0035c3193e660581fac5e81287ac7da92499ad5810a8e45d23de0e86e1fce286",
+      "stage": "integration",
+      "taskLine": 44,
+      "testPaths": [
+        "tests/admin-owner-recovery-cli.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T18.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T19": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "d68e50559b822834126ac3f8112c8a72aecbaf622701fb2e8280ec7cf3812a58",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T19。本轮以04-执行/19-模块任务拆分.md:45、_run/task-contracts.json tasks.M3-T19和最终_run/dispatch.json tasks.M3-T19.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"limited-recovery-start\"], \"requires\": [{\"task\": \"M3-T4\", \"capability\": \"targeted-recovery-authorizations\"}, {\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "4284d9a322a9fa4520929c8bb23878fb664c5e97d5a5fa1cba3ba8e88cf6af9d",
+      "integrationTask": null,
+      "priorContractHash": "28c71a34b182d370ac5004ab35ac405506631f293c4b90a6cc0ca707b22772b1",
+      "stage": "integration",
+      "taskLine": 45,
+      "testPaths": [
+        "tests/admin-recovery-start.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T19.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T2": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "8cb0629eba3be9d26cbde369f35d1fba9f7af4c998d2321051d4f691d1f0274b",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T2。本轮以04-执行/19-模块任务拆分.md:28、_run/task-contracts.json tasks.M3-T2和最终_run/dispatch.json tasks.M3-T2.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"admin-login-modes\", \"current-totp-consumption\", \"first-enrollment\"], \"requires\": [{\"task\": \"M3-T1\", \"capability\": \"admin-device-sessions\"}, {\"task\": \"M1-T2\", \"capability\": \"contract-types\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "明确消费T1已建默认false字段，不重复声明独立schema提供方；原mode/TOTP/enroll最终CAS安全要求未削弱。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "cae799a8fdc335060fc08336e3c1d3afd79d00b27605b479b2c933819a6d6cc1",
+      "integrationTask": null,
+      "priorContractHash": "7f4677feee83d0f377414518fb47509803a6d25865416a58026cdcc98f330c14",
+      "stage": "integration",
+      "taskLine": 28,
+      "testPaths": [
+        "tests/admin-login-mode.db.test.ts",
+        "tests/admin-enroll-current-state.db.test.ts",
+        "e2e/admin-credentials-modes.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T2.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T20": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "639a57c5c29adb9a7b6b44c38c624d91bac92534e1da343c24c0e2d737802b2f",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T20。本轮以04-执行/19-模块任务拆分.md:46、_run/task-contracts.json tasks.M3-T20和最终_run/dispatch.json tasks.M3-T20.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"self-rebind-api\"], \"requires\": [{\"task\": \"M3-T5\", \"capability\": \"limited-recovery-completion\"}, {\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "007a2b31db93b4bed8fda134519b6cf8631744603c21098c60ef8497aaa23535",
+      "integrationTask": null,
+      "priorContractHash": "6ec94801b651a37101c8c3a32b5ef2acf9f5309a59619501efcb5e04ec2996e6",
+      "stage": "integration",
+      "taskLine": 46,
+      "testPaths": [
+        "tests/admin-self-rebind.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T20.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T3": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "bc1e46082034566f0d1689b94981e9916230f96defdb9f83d4dbc25dedea9844",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T3。本轮以04-执行/19-模块任务拆分.md:29、_run/task-contracts.json tasks.M3-T3和最终_run/dispatch.json tasks.M3-T3.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"admin-fresh-grants\"], \"requires\": [{\"task\": \"M3-T2\", \"capability\": \"current-totp-consumption\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "f0f9c1ebeea166e7ec80377c2a6f2e86a4bd454973afa655fd4230334a746f4b",
+      "integrationTask": null,
+      "priorContractHash": "35a9391d3feb3e61a31bc283d9ae0148080acef6fa8564d0385f4012176f0b5d",
+      "stage": "integration",
+      "taskLine": 29,
+      "testPaths": [
+        "tests/admin-action-grant.db.test.ts",
+        "tests/admin-reauth.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T3.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T4": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "ba6c3828dc1ef882eb769f0e7ca1bb30c164f5c98c1aa17e9c49ea35404ce3ae",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T4。本轮以04-执行/19-模块任务拆分.md:30、_run/task-contracts.json tasks.M3-T4和最终_run/dispatch.json tasks.M3-T4.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"targeted-recovery-authorizations\"], \"requires\": [{\"task\": \"M3-T3\", \"capability\": \"admin-fresh-grants\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "c627fe0afc9fa130a4ffdb9a18d2543bcc656786d3208b1a3183ab7953bfd508",
+      "integrationTask": null,
+      "priorContractHash": "535596fd4ee91dbe8f442477482fb5f07772779077714f2904c9eee2d9acb835",
+      "stage": "integration",
+      "taskLine": 30,
+      "testPaths": [
+        "tests/admin-recovery-authorizations.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T4.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T5": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "a6297fffcb153b5fb6614dde1eefcf7d3bdf726b5aa2523a0a36aaa68961bc98",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T5。本轮以04-执行/19-模块任务拆分.md:31、_run/task-contracts.json tasks.M3-T5和最终_run/dispatch.json tasks.M3-T5.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"limited-recovery-completion\"], \"requires\": [{\"task\": \"M3-T19\", \"capability\": \"limited-recovery-start\"}, {\"task\": \"M3-T2\", \"capability\": \"current-totp-consumption\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "50375bc5dad6bb0687803eee7d3c8532fabedd64a396f853ba65558efab385af",
+      "integrationTask": null,
+      "priorContractHash": "75911964125c5b91666e711cbba6c7e0294d6eed7fb7de90876dde671cdd6f6e",
+      "stage": "integration",
+      "taskLine": 31,
+      "testPaths": [
+        "tests/admin-recovery-confirm.db.test.ts",
+        "tests/admin-recovery-reentry.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T5.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T6": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "90b66f0b2f034572c4f96713f659e578b5c781b5388f5e770f5779f2b84b8276",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T6。本轮以04-执行/19-模块任务拆分.md:32、_run/task-contracts.json tasks.M3-T6和最终_run/dispatch.json tasks.M3-T6.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"admin-auth-ui\"], \"requires\": [{\"task\": \"M3-T2\", \"capability\": \"admin-login-modes\"}, {\"task\": \"M1-T1\", \"capability\": \"visual-base\"}, {\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}, {\"task\": \"M1-T7\", \"capability\": \"visual-components\"}, {\"task\": \"M6-T4\", \"capability\": \"stats-base-ui\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "前置新增M1完整视觉组件及M6-T4已存在stats页面；默认/admin回跳验真实GET stats与可见核心看板；password字段按Auth.js协议提交，不要求未交页面先存在。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:32、_run/task-contracts.json:tasks.M3-T6、_run/dispatch.json:tasks.M3-T6.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03/F05关闭：显式requires M1-T7/visual-components与M6-T4/stats-base-ui。默认空/admin现在必须实际到已存在/admin/stats，GET stats和可见核心看板均断言，404/只变URL不算成功。密码控件提交字段明确是Auth.js password。T7及account GET/activity客户端已在前置链。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "0dfd2f0fa2d14205486dd1ec4645eea6139dae684596a123bcdb3733a38da917",
+      "integrationTask": null,
+      "priorContractHash": "988a9e9cfa516216ee0436241ecb6f598b67866dadbe70acf50317998be7c98e",
+      "stage": "integration",
+      "taskLine": 32,
+      "testPaths": [
+        "e2e/admin-login-ui.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T6.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T7": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "4711e43e9db9d85032bdbfca6128fa7748f708bea58f720c0b84a11202f0b92e",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T7。本轮以04-执行/19-模块任务拆分.md:33、_run/task-contracts.json tasks.M3-T7和最终_run/dispatch.json tasks.M3-T7.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"admin-shell-profile-ui\", \"admin-shell\"], \"requires\": [{\"task\": \"M3-T15\", \"capability\": \"admin-session-activity\"}, {\"task\": \"M1-T1\", \"capability\": \"visual-base\"}, {\"task\": \"M1-T7\", \"capability\": \"visual-components\"}, {\"task\": \"M3-T2\", \"capability\": \"admin-login-modes\"}, {\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "先用既有/api/auth/signin进入当前可访问后台页，不注册后继T6；本卡先提供account/activity客户端，T7→M6-T4→T6为验收执行顺序，无后端反调看板服务或循环。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:33、_run/task-contracts.json:tasks.M3-T7、_run/dispatch.json:tasks.M3-T7.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03/F05关闭：移除T6/admin-auth-ui依赖，改用现有/api/auth/signin真实密码+TOTP进入当前角色既有页面；依赖T2/T15/完整visual-components/client基础。本卡首先提供account.ts GET/activity，后继只追加；UI/GIF/密度仍保留，T7->M6T4->T6图无环。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "6e3a269ee6301d1c5063014c1fba9805c330923cd485337ce65f9a0eb6c1eb6e",
+      "integrationTask": null,
+      "priorContractHash": "578b49d1ba723d5a1e100c49652f2c9706235b360963b341cabe3b867e31535c",
+      "stage": "integration",
+      "taskLine": 33,
+      "testPaths": [
+        "e2e/admin-shell-activity.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T7.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T8": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "f0c36bb31241257fa2e0615a8ff93967589be2b8208b6c4647e28fc7641b8b8c",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T8。本轮以04-执行/19-模块任务拆分.md:34、_run/task-contracts.json tasks.M3-T8和最终_run/dispatch.json tasks.M3-T8.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"device-management-ui\"], \"requires\": [{\"task\": \"M3-T12\", \"capability\": \"reauth-dialog\"}, {\"task\": \"M3-T17\", \"capability\": \"device-management-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:34、_run/task-contracts.json:tasks.M3-T8、_run/dispatch.json:tasks.M3-T8.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03继承修正已核：M1-T7已在ReauthDialog/个人页/新登录前置闭包；指定设备点击和目标grant/401断言未减，客户端及e2e范围未新增隐式提供方。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "9e9c2d0c67752c4f26552d6d34ed7e375c20a14546ad702f58e18233a210e6e4",
+      "integrationTask": null,
+      "priorContractHash": "e67232aec82fe1aff60a35d366c1f5a5d499f91aa247686a45bd4c7d536f6424",
+      "stage": "integration",
+      "taskLine": 34,
+      "testPaths": [
+        "e2e/admin-device-list-revoke.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T8.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M3-T9": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "4ac0bdc861bb494d77df2eb93f31730227808ef5b5a97b58606a37529ec764de",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M3-T9。本轮以04-执行/19-模块任务拆分.md:35、_run/task-contracts.json tasks.M3-T9和最终_run/dispatch.json tasks.M3-T9.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"target-recovery-ui\"], \"requires\": [{\"task\": \"M3-T12\", \"capability\": \"reauth-dialog\"}, {\"task\": \"M3-T4\", \"capability\": \"targeted-recovery-authorizations\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:35、_run/task-contracts.json:tasks.M3-T9、_run/dispatch.json:tasks.M3-T9.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03继承修正已核：完整visual-components和当前ReauthDialog在闭包；账号行恢复授权仍调用目标reauth/permit、不自授权或直接覆盖因素，一次性材料/未知不重签承诺保留。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "6e4d1fc657d82321ddad96684804801854dc5efb254afc86ce5b7a53a1b9c7c9",
+      "integrationTask": null,
+      "priorContractHash": "112f4e0a1717190d69c3d56355bcf17798e0f41d188430fd725167d8d38bb242",
+      "stage": "integration",
+      "taskLine": 35,
+      "testPaths": [
+        "e2e/admin-target-recovery.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M3-T9.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T1": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "d71c4f67a21427013b408670f23e168ca153aecade21e66d359170e3e6ff6d4f",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T1。本轮以04-执行/19-模块任务拆分.md:47、_run/task-contracts.json tasks.M4-T1和最终_run/dispatch.json tasks.M4-T1.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-first-message-api\", \"chat-atomic-outbox\"], \"requires\": [{\"task\": \"M4-T8\", \"capability\": \"chat-visitor-session\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "a930177a0a517ee744769f0b90ad921d41780b029cd4fc1b94c8bd04ae5a5282",
+      "integrationTask": null,
+      "priorContractHash": "cf9dff2aa9d8e20dc613225a0f705ffb1c90feb312a47d7d325ff18fd33a739f",
+      "stage": "integration",
+      "taskLine": 47,
+      "testPaths": [
+        "tests/chat-first-message.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T1.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T10": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "a3fe298864f764ee9ef50075f9cde21a5118a812b7468acf181b70efb43d4fdf",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T10。本轮以04-执行/19-模块任务拆分.md:56、_run/task-contracts.json tasks.M4-T10和最终_run/dispatch.json tasks.M4-T10.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-visitor-append-api\"], \"requires\": [{\"task\": \"M4-T2\", \"capability\": \"chat-visitor-sync-api\"}, {\"task\": \"M4-T1\", \"capability\": \"chat-atomic-outbox\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "135a38c142e2a960b59c678223a8e2578b6f20889fa8f8dcea615a921d1cae06",
+      "integrationTask": null,
+      "priorContractHash": "ab7a13e4d603429c0256ebf7d7c20be713b26f7a8edd3753869c705ece80c546",
+      "stage": "integration",
+      "taskLine": 56,
+      "testPaths": [
+        "tests/chat-visitor-append.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T10.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T11": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "6f5617541c16a66e8a4ccb3b6f905dc7c641eef10322d84c26120a38acd73f1c",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T11。本轮以04-执行/19-模块任务拆分.md:57、_run/task-contracts.json tasks.M4-T11和最终_run/dispatch.json tasks.M4-T11.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-operator-write-api\"], \"requires\": [{\"task\": \"M4-T3\", \"capability\": \"chat-operator-api\"}, {\"task\": \"M4-T10\", \"capability\": \"chat-visitor-append-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "ee480849217ce58b9227a3d20e87b7ffada6d96e7f9b731a1b673e8d4b063823",
+      "integrationTask": null,
+      "priorContractHash": "545d217e4a43691b85c2f37a7ea854fbe330ec60e5532cb074ca5751b3937684",
+      "stage": "integration",
+      "taskLine": 57,
+      "testPaths": [
+        "tests/chat-operator-write.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T11.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T12": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "7d9d6364523cf0eb17fe251732a56cec9e873ba2fad3f588f539a202dcd64d9d",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T12。本轮以04-执行/19-模块任务拆分.md:58、_run/task-contracts.json tasks.M4-T12和最终_run/dispatch.json tasks.M4-T12.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"mail-queue-real-schedule\"], \"requires\": [{\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"jobs\", \"backendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "35dfce67a23f48ee40ad4aff619858ba62783c49ea7a7b9230fe0d80353b61ef",
+      "integrationTask": null,
+      "priorContractHash": "75fa620b65c3dd800914cc228c5175234ce374db049f1f455d7c9b2ad562e523",
+      "stage": "integration",
+      "taskLine": 58,
+      "testPaths": [
+        "tests/mail-queue-schedule.integration.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T12.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T13": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "25ac577f7b76ab2a733dab574db2964acc2e8826cd7669e3ffee5202bc590b49",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T13。本轮以04-执行/19-模块任务拆分.md:59、_run/task-contracts.json tasks.M4-T13和最终_run/dispatch.json tasks.M4-T13.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-authorized-retention\"], \"requires\": [{\"task\": \"M4-T7\", \"capability\": \"chat-retention-dryrun-job\"}, {\"task\": \"M4-T11\", \"capability\": \"chat-operator-write-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"jobs\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "553c3c5f8301367fbb884f184ddc14643cca65580e4766e47eb39745ec00c797",
+      "integrationTask": null,
+      "priorContractHash": "292e8a3be53ad08886f71e1a461dfad9ffcdc7a4723013df5201bf43ce9efb76",
+      "stage": "integration",
+      "taskLine": 59,
+      "testPaths": [
+        "tests/chat-retention-concurrency.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T13.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T14": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "fce19303f24d0f84db57bd870448d17c404848aaf9e7369a0af73507ebe4d698",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T14。本轮以04-执行/19-模块任务拆分.md:60、_run/task-contracts.json tasks.M4-T14和最终_run/dispatch.json tasks.M4-T14.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-human-roundtrip-ui\"], \"requires\": [{\"task\": \"M4-T6\", \"capability\": \"chat-operator-ui\"}, {\"task\": \"M4-T11\", \"capability\": \"chat-operator-write-api\"}, {\"task\": \"M4-T4\", \"capability\": \"chat-notification-job\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:60、_run/task-contracts.json:tasks.M4-T14、_run/dispatch.json:tasks.M4-T14.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "9fa4a358af74e279b7fca35c3f0acb32622a41bddc91024c08f9546076a249ac",
+      "integrationTask": null,
+      "priorContractHash": "2e8e86bd33c4130818364afd3d2964359fcc73ee44dfb59f486e5f6d7d412ae0",
+      "stage": "integration",
+      "taskLine": 60,
+      "testPaths": [
+        "e2e/chat-human-roundtrip.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T14.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T15": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "b0d9079f28150e8f16598d30421516da104a90ca7954a4748baeb7ff7b96bfbd",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T15。本轮以04-执行/19-模块任务拆分.md:61、_run/task-contracts.json tasks.M4-T15和最终_run/dispatch.json tasks.M4-T15.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-consent-migration\"], \"requires\": [{\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}, {\"task\": \"M1-T1\", \"capability\": \"visual-base\"}, {\"task\": \"M1-T7\", \"capability\": \"visual-components\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:61、_run/task-contracts.json:tasks.M4-T15、_run/dispatch.json:tasks.M4-T15.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F03关闭：新增M1-T7/visual-components前置，必要聊天/可选分析既有控件不需自行重造状态或token；Tawk零请求、保留联系与真实清理未启用承诺保留。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "1fa379ac08b3e0f64796f8cc0057767a9483e3b74ce8b2f4ab6db1744cefb1a3",
+      "integrationTask": null,
+      "priorContractHash": "321b2ea91500279ad4d6acbccf31a083716cc1cb2a9ff7f48c7d6bb541cdda92",
+      "stage": "integration",
+      "taskLine": 61,
+      "testPaths": [
+        "e2e/chat-consent-migration.spec.ts",
+        "e2e/tawk.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T15.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T2": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "275e00d25b007acf23e6d322651579f935f42e938a7b97effbc735120ba9147a",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T2。本轮以04-执行/19-模块任务拆分.md:48、_run/task-contracts.json tasks.M4-T2和最终_run/dispatch.json tasks.M4-T2.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-visitor-sync-api\"], \"requires\": [{\"task\": \"M4-T1\", \"capability\": \"chat-first-message-api\"}, {\"task\": \"M4-T8\", \"capability\": \"chat-visitor-session\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "5cc48ce6eb57904621bd2e5e0ca8600a77a76522b78a7d9a7c221bedf002a21c",
+      "integrationTask": null,
+      "priorContractHash": "88bc77fcdda7d3dfa26421851a505bb8aeefec57088089641ac0893c533d7144",
+      "stage": "integration",
+      "taskLine": 48,
+      "testPaths": [
+        "tests/chat-visitor-read.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T2.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T3": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "c4a6c91eb13cfa6b3e815c8aa2b556eb0d2382a3778d5beb7bdff7ab7bd7f295",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T3。本轮以04-执行/19-模块任务拆分.md:49、_run/task-contracts.json tasks.M4-T3和最终_run/dispatch.json tasks.M4-T3.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-operator-api\"], \"requires\": [{\"task\": \"M4-T2\", \"capability\": \"chat-visitor-sync-api\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "5586834d659abc1343a29c8c773636b95e0f55f5831e02a36922ee71489a4fb0",
+      "integrationTask": null,
+      "priorContractHash": "0fc0b5f372503b9ae89bbf0363edb58b5fdfa11f8bf6c78a9efd69d365fffe04",
+      "stage": "integration",
+      "taskLine": 49,
+      "testPaths": [
+        "tests/chat-operator-read.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T3.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T4": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "3c708c3878ac9c05a5d742b67452f946086ad5f79ea955825935be1ee0cd8149",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T4。本轮以04-执行/19-模块任务拆分.md:50、_run/task-contracts.json tasks.M4-T4和最终_run/dispatch.json tasks.M4-T4.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-notification-job\"], \"requires\": [{\"task\": \"M4-T1\", \"capability\": \"chat-atomic-outbox\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"jobs\", \"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "79610c304079748e10091711d76804175b506547e57af092c7bb032215625e6c",
+      "integrationTask": null,
+      "priorContractHash": "d1d33c0d8443c85524496637d5e6c69ab90a02ae5f6ce9745256544824e42ccc",
+      "stage": "integration",
+      "taskLine": 50,
+      "testPaths": [
+        "tests/chat-notification-worker.db.test.ts",
+        "tests/chat-notification-smtp.integration.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T4.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T5": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "7caede542e06a6a27badf4472784ba2a9c4559b76fe579a2b19a59fe7a8b821c",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T5。本轮以04-执行/19-模块任务拆分.md:51、_run/task-contracts.json tasks.M4-T5和最终_run/dispatch.json tasks.M4-T5.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-visitor-ui\"], \"requires\": [{\"task\": \"M4-T10\", \"capability\": \"chat-visitor-append-api\"}, {\"task\": \"M4-T15\", \"capability\": \"chat-consent-migration\"}, {\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}, {\"task\": \"M5-T6\", \"capability\": \"analytics-ingest\"}, {\"task\": \"M5-T7\", \"capability\": \"analytics-consent-ui\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\", \"eventKinds\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "新增成功首消息且当时同意后的chat_start生产者，明确消费M5-T6/T7并有eventKinds及e2e测试落点；09/10导航语义键、required locale/navigationId等字段与禁会话ID/PII一致，失败/仅打开/回复/后补同意均不补发，必要业务保存不等待分析。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:51、_run/task-contracts.json:tasks.M4-T5、_run/dispatch.json:tasks.M4-T5.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "新增chat_start差异通过：首次新咨询成功收件且当时已同意，复用M5队列/navigationId，随机eventId、occurredAt、可选已发布productSlug/净化path；回调/响应重试复用ID。失败/仅打开/回复/拒绝/撤回/后补同意不发历史，事件无email/body/conversationId/messageId/cookie。09:186和10:170同口径，M5-T6/T7及其T8/T3实际聚合在闭包，e2e/chat-start-analytics.spec.ts已入scope。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "0512cbf098d89efe3c6fcadfc6e4d47000629f1f60fbe85df27df4689ae5918b",
+      "integrationTask": null,
+      "priorContractHash": "9fe72ae4786e8ec4b458c337797c60fe61839e7e843a972a10814161dba753dc",
+      "stage": "integration",
+      "taskLine": 51,
+      "testPaths": [
+        "e2e/chat-start-analytics.spec.ts",
+        "e2e/chat-visitor-composer.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T5.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T6": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "f174b947a7ebaf31b39b50190489108624633b0ea6eb228202c87d45826236cd",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T6。本轮以04-执行/19-模块任务拆分.md:52、_run/task-contracts.json tasks.M4-T6和最终_run/dispatch.json tasks.M4-T6.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-operator-ui\"], \"requires\": [{\"task\": \"M4-T3\", \"capability\": \"chat-operator-api\"}, {\"task\": \"M3-T7\", \"capability\": \"admin-shell\"}, {\"task\": \"M4-T9\", \"capability\": \"chat-sync-retry-ui\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "自身仍是只读运营UI；M2-T8现已明确依赖M4-T14实际发送UI，首轮跨消费者误用缺口已消除。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:52、_run/task-contracts.json:tasks.M4-T6、_run/dispatch.json:tasks.M4-T6.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "33cb31f6de1049339d8b324fdd46e89a79cbaa36bd270ed1df309822df88d46d",
+      "integrationTask": null,
+      "priorContractHash": "c61b28819ace690ce9d0777ec13be865d512482b22acaf08580ca703087d11ff",
+      "stage": "integration",
+      "taskLine": 52,
+      "testPaths": [
+        "e2e/chat-operator-inbox.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T6.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T7": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "5efc424fe51b85299f6ed22c98967a0b07fb6549292d05169f06d8f98778f655",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T7。本轮以04-执行/19-模块任务拆分.md:53、_run/task-contracts.json tasks.M4-T7和最终_run/dispatch.json tasks.M4-T7.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-retention-dryrun-job\"], \"requires\": [{\"task\": \"M4-T3\", \"capability\": \"chat-operator-api\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"jobs\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "cfac82628539a448e8b403e3d72919e90def3a0755fa755d4afea2a7680af9b1",
+      "integrationTask": null,
+      "priorContractHash": "b7ffdda8752dcbb0e18bd39483d27f9eaf5dcbab81444e59e87b313c831f58fd",
+      "stage": "integration",
+      "taskLine": 53,
+      "testPaths": [
+        "tests/chat-retention-dryrun.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T7.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T8": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "027abd8d86ef8add8df62f776b67fee2c32a45a6f27a8e7c0f348d3c8f10b1e0",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T8。本轮以04-执行/19-模块任务拆分.md:54、_run/task-contracts.json tasks.M4-T8和最终_run/dispatch.json tasks.M4-T8.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-visitor-session\"], \"requires\": [{\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}, {\"task\": \"M1-T2\", \"capability\": \"contract-types\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "307b3f0fe83d14b930a0c4060ed60d924854ed232f54fc9d7bb92bce32e927c2",
+      "integrationTask": null,
+      "priorContractHash": "174c6ce87a53ddd6546038216a05719e3298cfed19aff4c572924c1fbf84d919",
+      "stage": "integration",
+      "taskLine": 54,
+      "testPaths": [
+        "tests/chat-session.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T8.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M4-T9": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "9b4aa7d3c61d8767f885490eab194feed892c69bd30629640b20fa32aea8da30",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M4-T9。本轮以04-执行/19-模块任务拆分.md:55、_run/task-contracts.json tasks.M4-T9和最终_run/dispatch.json tasks.M4-T9.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"chat-sync-retry-ui\"], \"requires\": [{\"task\": \"M4-T5\", \"capability\": \"chat-visitor-ui\"}, {\"task\": \"M4-T11\", \"capability\": \"chat-operator-write-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:55、_run/task-contracts.json:tasks.M4-T9、_run/dispatch.json:tasks.M4-T9.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "5c247f9d66475f24da9457de38a943863b53ac433168b5fb6db883c4816edac3",
+      "integrationTask": null,
+      "priorContractHash": "7a7c4e80754af69a17a0db101d4737d732d625925cdc9f6c1a2aab1bc78caf3d",
+      "stage": "integration",
+      "taskLine": 55,
+      "testPaths": [
+        "e2e/chat-polling-network.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M4-T9.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T1": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "f3ee876950a291f2266858e82c35b95a1a151e7ed10381661408edc95e22b708",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T1。本轮以04-执行/19-模块任务拆分.md:62、_run/task-contracts.json tasks.M5-T1和最终_run/dispatch.json tasks.M5-T1.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"job-leases\"], \"requires\": [{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}], \"stage\": \"primitive\", \"integrationTask\": \"M5-T8\", \"wiring\": [\"migrations\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "eb41c4053505bda578de006264deefbffb1e4580f3bcc9bd406646e55a1af8d3",
+      "integrationTask": "M5-T8",
+      "priorContractHash": "8aad14a50e1d4aa97c926f6fe6f8291b250847c41db9dae8b93936d13d0da836",
+      "stage": "primitive",
+      "taskLine": 62,
+      "testPaths": [
+        "tests/job-leases.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T1.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T10": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "9dd4dbc8b52426c218e4fedc7e19a28a910f2d351347fb321cdeb613c233f73f",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T10。本轮以04-执行/19-模块任务拆分.md:71、_run/task-contracts.json tasks.M5-T10和最终_run/dispatch.json tasks.M5-T10.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-settings-ui\"], \"requires\": [{\"task\": \"M5-T4\", \"capability\": \"analytics-settings-api\"}, {\"task\": \"M3-T7\", \"capability\": \"admin-shell-profile-ui\"}, {\"task\": \"M1-T7\", \"capability\": \"visual-components\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:71、_run/task-contracts.json:tasks.M5-T10、_run/dispatch.json:tasks.M5-T10.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F02关闭：src/lib/client/ops.ts已列入taskPaths/output范围。产出限定本卡只增加settings/analytics GET/PATCH方法、M6-T4追加stats方法，使用统一M1-T8，展示件不直fetch；当前shell及完整视觉基础闭包有效。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "d8c13bc84bd678d39fe40d172efd475b6925bfeff1c03268949aab2a5cbe6574",
+      "integrationTask": null,
+      "priorContractHash": "efa05b2a43fbb9fcd4c40cf18683148f6548806564b8b7f04d240dec47cbabb6",
+      "stage": "integration",
+      "taskLine": 71,
+      "testPaths": [
+        "e2e/analytics-settings.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T10.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T11": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "e244b0aebc65a6b92a320cc1298f4b2301ae71165702daba247c265c3fe6def6",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T11。本轮以04-执行/19-模块任务拆分.md:72、_run/task-contracts.json tasks.M5-T11和最终_run/dispatch.json tasks.M5-T11.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-retention\"], \"requires\": [{\"task\": \"M5-T5\", \"capability\": \"analytics-retention-plan\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"jobs\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "78fbe515d86b39cc5ab3d57819021b0a2fd2e1f3d6d41074fe73b3f278fef474",
+      "integrationTask": null,
+      "priorContractHash": "e024b4114bd986af701fac168a40bbae9503f029ca8900afc44c3a20e403e340",
+      "stage": "integration",
+      "taskLine": 72,
+      "testPaths": [
+        "tests/analytics-retention.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T11.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T2": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "8a3be33c96f240da2e27f32efd1ec71a1843ef399628202b5267d84ffb4f0fe4",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T2。本轮以04-执行/19-模块任务拆分.md:63、_run/task-contracts.json tasks.M5-T2和最终_run/dispatch.json tasks.M5-T2.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-consent-api\"], \"requires\": [{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}, {\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "3cc8a9342833f90dfce281319c7621c6dd7e0cdcd1531c3e157d5076cf7487b4",
+      "integrationTask": null,
+      "priorContractHash": "de8752b6e2e67a8e725089a4078e6cb65636d199fb2038664bcd6d524f1a54cb",
+      "stage": "integration",
+      "taskLine": 63,
+      "testPaths": [
+        "tests/analytics-consent.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T2.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T3": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "2ec1fe3da583c8af86195f2ab955088476af23a0341ab3c4e49f9f9611046fe8",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T3。本轮以04-执行/19-模块任务拆分.md:64、_run/task-contracts.json tasks.M5-T3和最终_run/dispatch.json tasks.M5-T3.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-aggregate\"], \"requires\": [{\"task\": \"M5-T6\", \"capability\": \"analytics-ingest\"}, {\"task\": \"M5-T1\", \"capability\": \"job-leases\"}, {\"task\": \"M5-T9\", \"capability\": \"analytics-settings-domain\"}], \"stage\": \"primitive\", \"integrationTask\": \"M5-T8\", \"wiring\": [\"migrations\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "281cd5ae8ebb406df6bf83af854f51edc7f09de006d8184938a27a78bd4bc357",
+      "integrationTask": "M5-T8",
+      "priorContractHash": "00c0c477c8a1c3b421ea7fbed95a8a64806a134abc3f29a6c55d439882e83205",
+      "stage": "primitive",
+      "taskLine": 64,
+      "testPaths": [
+        "tests/analytics-aggregate.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T3.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T4": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "5252e547ae64e0e783c997fad3c80e67889aeefbc76cc686d935ba346e56b0bd",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T4。本轮以04-执行/19-模块任务拆分.md:65、_run/task-contracts.json tasks.M5-T4和最终_run/dispatch.json tasks.M5-T4.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-settings-api\"], \"requires\": [{\"task\": \"M5-T9\", \"capability\": \"analytics-settings-domain\"}, {\"task\": \"M5-T8\", \"capability\": \"analytics-aggregate-runtime\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "6b142b35a7d7cee10332449ae16fd5dcf1039bc7257b828deab242619e91e3f0",
+      "integrationTask": null,
+      "priorContractHash": "ee57ffaf994c38890f4e4caa312ccd1f93e6eda6c66fa1175e5d86a9d1f3778d",
+      "stage": "integration",
+      "taskLine": 65,
+      "testPaths": [
+        "tests/analytics-settings.http.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T4.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T5": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "e6b6af32b371765053e48dfeaac9f635252eb34882ab494ffc9f314783bb5f97",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T5。本轮以04-执行/19-模块任务拆分.md:66、_run/task-contracts.json tasks.M5-T5和最终_run/dispatch.json tasks.M5-T5.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-retention-plan\"], \"requires\": [{\"task\": \"M5-T3\", \"capability\": \"analytics-aggregate\"}], \"stage\": \"primitive\", \"integrationTask\": \"M5-T11\", \"wiring\": []}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "5060ff98f2c54ce7ab3fa954311ef90f9b124718dbb1f44bdac4664babf63f81",
+      "integrationTask": "M5-T11",
+      "priorContractHash": "65e9e1859a9b1b2f454df45828c91637a6a0aaab8ddbc1bfc7604d80b2fef57f",
+      "stage": "primitive",
+      "taskLine": 66,
+      "testPaths": [
+        "tests/analytics-retention-plan.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T5.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T6": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "e12c66f91029b692d1aa3e4cf4099ccbe2e2ff5ad89b8d6e162c305e3d3aacbb",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T6。本轮以04-执行/19-模块任务拆分.md:67、_run/task-contracts.json tasks.M5-T6和最终_run/dispatch.json tasks.M5-T6.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-ingest\"], \"requires\": [{\"task\": \"M5-T2\", \"capability\": \"analytics-consent-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\", \"eventKinds\", \"migrations\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "88860d0286b29847b8c9be9d4673978b11c3f7dc3ab12cc7c4d2f14482a45d4f",
+      "integrationTask": null,
+      "priorContractHash": "21e006c0ca9c238f065ebb48b97cba9b56aa6e56372b0bc3a426107689c7f587",
+      "stage": "integration",
+      "taskLine": 67,
+      "testPaths": [
+        "tests/analytics-ingest.http.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T6.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T7": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "551878db78246f377e86fe56e80ea89585701ba68e881f52ca3784cc9c018962",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T7。本轮以04-执行/19-模块任务拆分.md:68、_run/task-contracts.json tasks.M5-T7和最终_run/dispatch.json tasks.M5-T7.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-consent-ui\", \"analytics-page-events\", \"analytics-privacy-copy\"], \"requires\": [{\"task\": \"M5-T2\", \"capability\": \"analytics-consent-api\"}, {\"task\": \"M5-T6\", \"capability\": \"analytics-ingest\"}, {\"task\": \"M1-T8\", \"capability\": \"client-api-foundation\"}, {\"task\": \"M1-T7\", \"capability\": \"visual-components\"}, {\"task\": \"M5-T9\", \"capability\": \"analytics-settings-domain\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"frontendRoutes\", \"eventKinds\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。",
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:68、_run/task-contracts.json:tasks.M5-T7、_run/dispatch.json:tasks.M5-T7.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "56466fe79bb7089bff7b0f7c3218466ff86fa8194681af4e13d97b63e80cb378",
+      "integrationTask": null,
+      "priorContractHash": "98bab5e45466def8bbae14fff5a3a3f9d6970fc5785573ff62f23a76cf78a6ce",
+      "stage": "integration",
+      "taskLine": 68,
+      "testPaths": [
+        "e2e/analytics-consent.spec.ts",
+        "e2e/privacy-analytics.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T7.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T8": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "2f4a67541ce90247c115d8b1a4d042b82ec1af1671039aaa7cadfb49e3d3cd81",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T8。本轮以04-执行/19-模块任务拆分.md:69、_run/task-contracts.json tasks.M5-T8和最终_run/dispatch.json tasks.M5-T8.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"job-foundation\", \"analytics-aggregate-runtime\"], \"requires\": [{\"task\": \"M5-T1\", \"capability\": \"job-leases\"}, {\"task\": \"M5-T3\", \"capability\": \"analytics-aggregate\"}, {\"task\": \"M3-T14\", \"capability\": \"http-guards-metrics\"}, {\"task\": \"M5-T7\", \"capability\": \"analytics-page-events\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\", \"jobs\", \"migrations\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "有效outputPaths和实际prompt均加入e2e/analytics-job-runtime.spec.ts，复用T7同意/访问，仅新增cron/watermark/UV-PV关联；原HTTP作业测试保留，55s/500条/租约/±时间窗未变。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "908c84464fafd57eb2b21bab52b1527da2a5644f98e1498cbf9d72a773026b41",
+      "integrationTask": null,
+      "priorContractHash": "9c9b5a4c260a73b2e9e5c0a77ff9b155b836d9c3a5dc97d0ba5e449480b2dd08",
+      "stage": "integration",
+      "taskLine": 69,
+      "testPaths": [
+        "tests/jobs-runtime.http.test.ts",
+        "e2e/analytics-job-runtime.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T8.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M5-T9": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "1078be421228f7a53595bfb0f4f518e78bbb6a66338ad571ce5531033ab2ba1b",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M5-T9。本轮以04-执行/19-模块任务拆分.md:70、_run/task-contracts.json tasks.M5-T9和最终_run/dispatch.json tasks.M5-T9.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"analytics-settings-domain\"], \"requires\": [{\"task\": \"M1-T2\", \"capability\": \"contract-types\"}, {\"task\": \"M3-T1\", \"capability\": \"current-admin-permissions\"}], \"stage\": \"primitive\", \"integrationTask\": \"M5-T4\", \"wiring\": []}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "cc7e51f83d4c699b183b8bd65c0a626ce6a3617cc300ffc18952e2f38cdf7efe",
+      "integrationTask": "M5-T4",
+      "priorContractHash": "e1c43ee360affefefddd2c3bfa121488e8123d86c974846b5e6c81e2276afce0",
+      "stage": "primitive",
+      "taskLine": 70,
+      "testPaths": [
+        "tests/analytics-settings.db.test.ts",
+        "tests/analytics-day-boundaries.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M5-T9.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M6-T1": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "5558812fdcf0f2b21fcb6d3b1e9d13b82435029c90afd6dca4df43d19e8e7df1",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M6-T1。本轮以04-执行/19-模块任务拆分.md:73、_run/task-contracts.json tasks.M6-T1和最终_run/dispatch.json tasks.M6-T1.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"stats-query-rules\"], \"requires\": [{\"task\": \"M5-T3\", \"capability\": \"analytics-aggregate\"}, {\"task\": \"M2-T7\", \"capability\": \"model-events\"}], \"stage\": \"primitive\", \"integrationTask\": \"M6-T6\", \"wiring\": []}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "f70d9551365b6a029b350e2c3172073c890513c066f5b8884ce9bb4640b6dfe0",
+      "integrationTask": "M6-T6",
+      "priorContractHash": "b3d9fd16b156a5272e4ca4573b6f48a0a0303d3b7017803df59dd2cc768e4c0a",
+      "stage": "primitive",
+      "taskLine": 73,
+      "testPaths": [
+        "tests/stats-query.db.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T1.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M6-T2": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "460e55d0a7766012634b56185c8956e63bbf32345eb52f73ed17b3487fbea55a",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M6-T2。本轮以04-执行/19-模块任务拆分.md:74、_run/task-contracts.json tasks.M6-T2和最终_run/dispatch.json tasks.M6-T2.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"stats-business\"], \"requires\": [{\"task\": \"M6-T6\", \"capability\": \"stats-core\"}, {\"task\": \"M4-T4\", \"capability\": \"chat-notification-job\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "3b2009e552614219b920595f93d4b0be012802ed4a149c96eb210ebee39c7d65",
+      "integrationTask": null,
+      "priorContractHash": "bfe0b0cd720c748f9fbe9442313c1b222eee61e9fec154ba3983c513cd5f5ac5",
+      "stage": "integration",
+      "taskLine": 74,
+      "testPaths": [
+        "tests/stats-business.test.ts",
+        "e2e/stats-business-api.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T2.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M6-T3": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "b1c5062ce280cc8e45beb40b82ff00df3e7c1e094e45160f6541edcb63aef2b1",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M6-T3。本轮以04-执行/19-模块任务拆分.md:75、_run/task-contracts.json tasks.M6-T3和最终_run/dispatch.json tasks.M6-T3.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"ops-sources\"], \"requires\": [{\"task\": \"M6-T6\", \"capability\": \"stats-core\"}, {\"task\": \"M5-T8\", \"capability\": \"job-foundation\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\", \"jobs\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "783399d245d8b7e8436fa7f01a81a8bdfd9f9f0c927c67aca72dcd7e33e3bdc3",
+      "integrationTask": null,
+      "priorContractHash": "064b46eaa26b3092bfd452a3ffc63fc08001f88819c404a28a3e286f3420d360",
+      "stage": "integration",
+      "taskLine": 75,
+      "testPaths": [
+        "tests/ops-report.test.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T3.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M6-T4": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "30757cc3316f344f77f5b6c7d81204ba80091b8b3355f8e9a00c04f99f384b36",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:76、_run/task-contracts.json:tasks.M6-T4、_run/dispatch.json:tasks.M6-T4.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "F05必要传播通过：T7已可经既有Auth.js先交，stats页可在T6之前真实存在，随后T6消费stats-base-ui。自身stats-link/GET stats/按角色核心DTO与三尺寸密度承诺未减，ops.ts stats方法与T10设置方法互不覆盖。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M6-T5": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "880d9bdf39931bc1f4c255f8409a4df6a207e0703d67613569297292a6028ff7",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M6-T5。本轮以04-执行/19-模块任务拆分.md:77、_run/task-contracts.json tasks.M6-T5和最终_run/dispatch.json tasks.M6-T5.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"stats-reliability\"], \"requires\": [{\"task\": \"M6-T6\", \"capability\": \"stats-core\"}, {\"task\": \"M4-T4\", \"capability\": \"chat-notification-job\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "本卡业务范围、字段/错误/最终事务和测试owner无新增冲突；仅核共享09/10的chat_start定义及前置传播：新增分支有M4-T5产品producer、M5-T6 strict准入/M5-T3聚合consumer，不把聊天必要身份或PII送入分析；原HTTP/CLI/作业/页面完成阶段保持。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "92cfdd80c30a49fd1208132c0cdcb73b2a105d15637131f3b67c7edd1762ef9a",
+      "integrationTask": null,
+      "priorContractHash": "6956f23a4cd243035191ecb16ea8e614d695ab50c475d2c21e9859a7070684e7",
+      "stage": "integration",
+      "taskLine": 77,
+      "testPaths": [
+        "tests/stats-reliability.test.ts",
+        "e2e/stats-reliability-api.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T5.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M6-T6": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "d5a2390e536b6197a9a8175d700d49c42544419753068beb9052c21941842bfc",
+    "evidence": [
+      "第二轮定点文档契约复核；第一轮详细逐项证据保留于s6-backend-evidence.json tasks.M6-T6。本轮以04-执行/19-模块任务拆分.md:78、_run/task-contracts.json tasks.M6-T6和最终_run/dispatch.json tasks.M6-T6.implementation复核传播差异；验收分句均完整、currentHash与逐status及实际prompt相同。",
+      "当前提供/消费：{\"provides\": [\"stats-core\"], \"requires\": [{\"task\": \"M6-T1\", \"capability\": \"stats-query-rules\"}, {\"task\": \"M5-T4\", \"capability\": \"analytics-settings-api\"}], \"stage\": \"integration\", \"integrationTask\": null, \"wiring\": [\"backendRoutes\", \"container\"]}。已核声明provider能力在真实前置闭包；primitive指定的integrationTask闭包含本卡，未把尚未实现产品作为pass依据。",
+      "新增M5-T4 analytics-settings-api前置/requires，其闭包包含M5-T8真实runtime；变时区HTTP及五分钟聚合均有实际提供方。未增加M6被M3服务导入的反向运行依赖。",
+      "pass仅指当前文档契约可实施；没有运行或宣称产品功能测试、部署、迁移、真实清理或应用CI通过。本轮未改源、未verify、未调用TypeSafe、未提交。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-backend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewMetadata": {
+      "dispatchPromptSha256": "011440be3ad7161ae36a2b18ce74079d7491e90b7fa1998f574569ed7079c799",
+      "integrationTask": null,
+      "priorContractHash": "5e6a1258a4283022d4249975601059d76d86dc2effbcd43baacdf434d38c0010",
+      "stage": "integration",
+      "taskLine": 78,
+      "testPaths": [
+        "tests/stats-route.test.ts",
+        "e2e/stats-core-api.spec.ts"
+      ]
+    },
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "statusEvidence": {
+      "blockers": [],
+      "returncode": 1,
+      "runtimeDrift": [],
+      "sourceVersion": "fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7",
+      "stale": [],
+      "template": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M6-T6.evidence-template.json"
+    },
+    "verdict": "pass"
+  },
+  "M6-T7": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "8e985c9e6349a52f5bdb05cfe6e8e4fdc2d55e6489ce18347abdcabd16b11f5d",
+    "evidence": [
+      "S6前端契约审查第2轮，仅核首轮修正及必要传播；04-执行/19-模块任务拆分.md:79、_run/task-contracts.json:tasks.M6-T7、_run/dispatch.json:tasks.M6-T7.implementation/review。33项逐status刷新current contractHash，当前hash与实际dispatch一致，stale/runtimeDrift/blockers为空。",
+      "本卡局部验收/产出/scope无新增设计变更，首轮通过证据保留于s6-frontend-evidence.json；仅核共享06/07/09/10/12修正及前置哈希传播，没有引入缺失provider或改变本卡完成阶段。",
+      "当前requires每项均有唯一声明提供方且位于前置闭包，primitive任务存在依赖自己的真实integrationTask；source/effectivePaths覆盖本轮变化，未删除测试、页面入口或网络/状态承诺。此pass只证明文档契约可实施，不证明产品代码、素材或CI已完成。",
+      "必要传播后的实际implementation仍含唯一minimalist-flat、三视口真实GIF/computed style、后台D1–D6/overflow；混合M3/M4/M5仍显式必读07/11/12，不依赖模块自动分类。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-frontend-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T1": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "818f4eeda9cf5ec7fd31225bddce7057bea8aaec3c3731a7a5662f50cc35d298",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:80 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T1.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T1.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T2": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "11721478375f4d9d75652afcd9c3a2dcf179ba974f49a9b8b557ef7e6349b2c0",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:81 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T2.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T2.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T3": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "0c29e40c6be11d58d8a4421f22f4afdce4f8df6f0bca0dc6786b2be5d7bdc3a5",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:82 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T3.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T3.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T4": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "77922c54511c533c60161f4662e627c3628c1c9e376524dcb5e4f2059e58172f",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:83 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T4.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T4.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T5": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "f17a8051e422b47ee15acd66184e7a02f0508069f611ec2c24074f28d53373d5",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:84 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T5.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T5.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T6": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "26f13c5e5a495030ab93f246ccdcfe17960652174a81ca4a3919c3ddb2eae381",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:85 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T6.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T6.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T7": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "a13c7d2add33349d066bb00f2e9bb28c60ef1f131439e3568b66ec64ca91dd5e",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:86 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T7.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T7.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T8": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "6cf437d8eedabf09c3e3150c5a6ee5c51eb63f807ba429da333ef723bf3772c5",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:87 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+      "s6-general-round2-inputs/M7-T8.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T8.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "M7-T9": {
+    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "contractHash": "97726cf3474f4e7d7fc62504f8cb8531ce72839161bf83c1c0fcecb9c7d66f56",
+    "evidence": [
+      "04-执行/19-模块任务拆分.md:88；04-执行/18-部署与运维.md:143 — G-B1已修：不直接执行内部mktemp+clone包装，只从现有worktree的已核main SHA用git archive导出到唯一planning/build-source；复用原Docker/BuildKit/公开args/revision标签/双镜像检查/manifest/import/schema/restore子步骤，泄漏/平台/版本检查不得省略；无新clone、平台、生产授权或任意删除。",
+      "s6-general-round2-inputs/M7-T9.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+      "_run/dispatch.json tasks.M7-T9.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+      "实际dispatch M7-T9实施包已包含同一archive/non-clone限定，任务路径仍仅e2e/delivery-smoke.spec.ts与docs/acceptance/delivery；planning内临时构建输入不另建开发仓库，目录纪律与验收可同时遵守。",
+      "审查原报告/状态材料位于docs/PackJoyU-开发文档/_run/reviews/s6-general-round2-review.md及同目录附件；本次只登记文档契约，未声称产品实现或测试通过。"
+    ],
+    "reviewed": "2026-10-20T05:18:46.452705+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  }
+}

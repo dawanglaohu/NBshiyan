@@ -102,7 +102,7 @@
       ]
     },
     "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层",
-    "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。",
+    "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。",
     "design": {
       "register": "brand",
       "style": "`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。",
@@ -171,7 +171,6 @@
       "M1-T8": [
         "src/lib/client/api.ts",
         "src/lib/client/api-errors.ts",
-        "src/lib/server/http/errors.ts",
         "tests/client-api-foundation.http.test.ts"
       ],
       "M2-T1": [
@@ -286,8 +285,7 @@
       "M3-T14": [
         "src/lib/server/config.ts",
         "src/lib/server/http/errors.ts",
-        "src/lib/server/http/metrics.ts",
-        "src/app/api/admin/account/route.ts"
+        "src/lib/server/http/metrics.ts"
       ],
       "M3-T15": [
         "src/lib/server/admin/session-expiry.ts",
@@ -342,7 +340,8 @@
         "src/components/chat/ChatContainer.tsx",
         "src/components/chat/Composer.tsx",
         "src/components/chat/MessageList.tsx",
-        "src/lib/client/chat.ts"
+        "src/lib/client/chat.ts",
+        "e2e/chat-start-analytics.spec.ts"
       ],
       "M4-T6": [
         "src/app/admin/chat/",
@@ -434,7 +433,8 @@
         "src/app/api/admin/cron/operations/route.ts",
         "deploy/cron.nbshiyan",
         "deploy/deploy.sh",
-        "tests/jobs-runtime.http.test.ts"
+        "tests/jobs-runtime.http.test.ts",
+        "e2e/analytics-job-runtime.spec.ts"
       ],
       "M5-T9": [
         "src/lib/server/analytics/settings.ts",
@@ -446,7 +446,8 @@
       "M5-T10": [
         "src/components/admin/stats/AnalyticsSettingsContainer.tsx",
         "src/app/admin/settings/",
-        "e2e/analytics-settings.spec.ts"
+        "e2e/analytics-settings.spec.ts",
+        "src/lib/client/ops.ts"
       ],
       "M5-T11": [
         "src/lib/server/analytics/retention.ts",

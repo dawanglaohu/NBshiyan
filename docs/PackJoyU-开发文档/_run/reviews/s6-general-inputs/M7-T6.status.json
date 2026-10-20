@@ -1,0 +1,17 @@
+{
+  "sourceVersion": "85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272",
+  "stale": [],
+  "runtimeDrift": [],
+  "tasks": {
+    "M7-T6": {
+      "ready": false,
+      "contractHash": "91c348c928dd44c8b8dbc46b2e0f481fe64620938e154bcb287565d3c34962f1",
+      "blockers": [],
+      "reasons": [
+        "任务契约待语义复核；可在当前审查内完成，无需重跑生成流程",
+        "M7-T6 疑似接线任务未列注册点（命中：/api/）"
+      ]
+    }
+  },
+  "evidenceTemplate": "D:\\xiangmu\\NBshiyan-docs-s2-s6\\docs\\PackJoyU-开发文档\\_run\\M7-T6.evidence-template.json"
+}

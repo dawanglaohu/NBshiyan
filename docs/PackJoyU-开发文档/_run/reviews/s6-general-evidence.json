@@ -1,0 +1,95 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T1": {
+      "contractHash": "bcd296d1ab1b7f07e5a79a89542ea6468e271913124d3921ff65e93353677a4a",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:11 — 8个首页核心token与真实standalone/CSS/API/RUM/CI完整小闭环；任务前置为空，GET models与WebVitals为现存接口，不依赖后续新分析；有效范围覆盖token/CI/e2e与文档基线。实际dispatch约定先导入本机规格分支，git log已确认ad759d5为本地规格提交，后续从其落地main取得输入。",
+        "_run/dispatch.json tasks.M1-T1.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M1-T1.package.json记录逐行展开。",
+        "s6-general-inputs/M1-T1.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T1": {
+      "contractHash": "7590ad94b09a69a7dfcfa3a8286e0d77f0375d3f4777f76fccc4a85572bdebf2",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:80 — 仅终验已交付媒体/3D，不承担素材制作或新基础；M1-T5与M2-T8闭包包含brand-media/home-media及真实模型。证据范围仅e2e与docs；E29明确真实GPT Dot记录或逐件未执行，E30不允许未过副本进入发布。",
+        "_run/dispatch.json tasks.M7-T1.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T1.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T1.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T2": {
+      "contractHash": "1ae3856b474695a72c627ede71717fbca4a5a3e6c5e25ac0cbc3410cb6c5f285",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:81 — 会话专测初登/真实activity Set-Cookie/SSR/signOut、浏览器重开与2h/7d/30d拒绝、sv/设备撤销；M3-T8/6/10/11/13闭包提供全部入口，不注入认证存储。长时间边界按17服务/数据库clock层与真实HTTP续期分层，不承诺等待30天。",
+        "_run/dispatch.json tasks.M7-T2.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T2.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T2.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T3": {
+      "contractHash": "20a63ccb0854024b64f638f6166ceb28d75c56d00ba851c9228075ce74e0d097",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:82 — 分析终验使用M5-T11/10、M2-T7与M6-T7已交付生产链，事件到5分钟计划及stats均在前置闭包。真实同意、终态、DST/快照/旧代次与无授权删除0有具体检查；仅写e2e/db tests及验收报告。",
+        "_run/dispatch.json tasks.M7-T3.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T3.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T3.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T4": {
+      "contractHash": "85cbb15b9a162bc1a1ee5185dde44b5ff2df1e333a119be0d99e43f5c7b6089e",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:83 — 咨询终验依赖M7-T1及M4-T14/12/13等最终能力，产品slug与持久消息ID可对照真实询盘/聊天HTTP和运营回复；独立聊天关闭仍保留联系入口，容量明确实测而非2.7GB历史快照；不购买服务。",
+        "_run/dispatch.json tasks.M7-T4.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T4.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T4.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T5": {
+      "contractHash": "cce837141db1c1da7a922858b2decb018a52188d2b5fffaedb495c25d5fe2a1a",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:84 — 恢复终验依赖新鲜授权终验、M3-T11/18/20与目标授权UI，受限start/enroll/confirm、同/异码并发、OS-owner TTY、一次展示及旧凭据拒绝均有明确验收；不让restricted cookie升级角色，不放宽旧首次绑定CLI。",
+        "_run/dispatch.json tasks.M7-T5.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T5.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T5.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T6": {
+      "contractHash": "91c348c928dd44c8b8dbc46b2e0f481fe64620938e154bcb287565d3c34962f1",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:85 — 敏感授权终验依赖M3-T12/13等实际个人安全UI；同step/grant并发、purpose/target/device、过期/撤销及错/过期/重放绑定有具体拒绝；E75明确日常无密码继续可用，但忘现密码不能凭会话/TOTP签普通grant，独立恢复仅重绑且审计。",
+        "_run/dispatch.json tasks.M7-T6.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T6.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T6.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T7": {
+      "contractHash": "a5f9c9ce14d045a20c9cb96d41a62020743a5e38e0378b25cd26c662337a1dad",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:86 — 仅验既有来源与通知worker，M6-T7/M4-T4/M5-T8闭包含HTTP计数、mail/ops adapters、registry/composition/cron；分钟计划、重启出箱与SMTP实际结果分离，未接/未验证备份不造成功；H12是测试消费接口，不缺生产注册权。",
+        "_run/dispatch.json tasks.M7-T7.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T7.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T7.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "58c84f3de6619e8533483f3a50ac6a97c8e0477350cff00bae7368eec217869a",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:87 — 只读核实际复用PR head/base/check/批准及当前HEAD与来源，缺一不称可合并/上线；E105承诺不混受保护备份秘密且不自动合并。仅docs验收范围，不要求复读原始秘密或恢复备份，不重做S1恢复。",
+        "_run/dispatch.json tasks.M7-T8.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T8.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T8.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "5a763cf070499edaeaf2d0b4a9c1f3e27c7a8ba83eab7c39b0cc056f9789c65e",
+      "verdict": "revise",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:88 — 验收目标合理且只用现有Docker/standalone/脚本方案、隔离schema/restore并保留无备份来源not_connected；但当前实际build-offbox会额外mktemp+git clone，与本任务的两个目录/禁clone约束有执行冲突，须先定点明确容器或CI执行边界。",
+        "_run/dispatch.json tasks.M7-T9.implementation — 已核实际编译任务包的验收、当前hash、有效路径、继承约定与前置闭包；s6-general-inputs/M7-T9.package.json记录逐行展开。",
+        "s6-general-inputs/M7-T9.status.json — 本轮实际status输出sourceVersion=85d042c28b91ac1bcc11b51b89285c0177cc894663e22201484a6b110d204272，stale/runtimeDrift/blockers均空；pending为尚未登记本轮语义审查，不代表产品已实施。"
+      ]
+    }
+  }
+}
