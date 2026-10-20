@@ -91,6 +91,11 @@ test('8 个核心 token 在首页与产品页的 computed style 等于 11 节取
   // 首页产品入口卡同样是 2px 黑边、0 圆角
   expect(await css(page, '.entry a', 'border-top-width')).toBe(PJ.borderWidth);
   expect(await css(page, '.entry a', 'border-radius')).toBe(PJ.radius);
+  // 礼盒/酒盒入口带 theme-premium，黑边落在深底上看不见，边和焦点环用 --pj-bg
+  expect(await css(page, '.entry a.theme-premium', 'border-top-width')).toBe(PJ.borderWidth);
+  expect(await css(page, '.entry a.theme-premium', 'border-top-color')).toBe(PJ.bg);
+  expect(await css(page, '.entry a.theme-premium', 'border-radius')).toBe(PJ.radius);
+  expect(await css(page, '.entry a.theme-premium', 'box-shadow')).toBe('none');
 
   // ⑧ 焦点颜色：键盘聚焦后 outline 为 2px 强调色 + 2px offset
   const outline = await keyboardFocusOutline(page, '.btn');
@@ -119,6 +124,19 @@ test('8 个核心 token 在首页与产品页的 computed style 等于 11 节取
   const cardCount = await cards.count();
   expect(cardCount).toBeGreaterThan(0);
   expect(await cards.first().locator('h2').innerText()).not.toHaveLength(0);
+  // 进入产品页后，正文 token 与卡片的边宽、圆角、阴影仍等于 11 节
+  expect(await css(page, 'body', 'background-color')).toBe(PJ.bg);
+  expect(await css(page, 'body', 'color')).toBe(PJ.fg);
+  expect(await css(page, 'body', 'font-size')).toBe(PJ.bodySize);
+  expect(await css(page, 'body', 'line-height')).toBe(PJ.bodyLine);
+  expect(await css(page, 'article.card:not(.theme-premium)', 'border-top-width')).toBe(PJ.borderWidth);
+  expect(await css(page, 'article.card:not(.theme-premium)', 'border-top-color')).toBe(PJ.fg);
+  expect(await css(page, 'article.card:not(.theme-premium)', 'border-radius')).toBe(PJ.radius);
+  expect(await css(page, 'article.card:not(.theme-premium)', 'box-shadow')).toBe('none');
+  expect(await css(page, 'article.card.theme-premium', 'border-top-width')).toBe(PJ.borderWidth);
+  expect(await css(page, 'article.card.theme-premium', 'border-top-color')).toBe(PJ.bg);
+  expect(await css(page, 'article.card.theme-premium', 'border-radius')).toBe(PJ.radius);
+  expect(await css(page, 'article.card.theme-premium', 'box-shadow')).toBe('none');
   // 产品页自己有 0 次 /api/models 请求（目录走 SSR；3D 模型走 /api/models/<id>/<variant>）
   expect(pageRequests.filter((r) => r === 'GET /api/models')).toEqual([]);
 

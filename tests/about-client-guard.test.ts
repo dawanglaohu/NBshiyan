@@ -115,10 +115,13 @@ const rel = (p: string) => path.relative(ROOT, p);
 function memHost(files: Record<string, string>): Host {
   return { isFile: (p) => p in files, read: (p) => files[p] };
 }
-const R = '/fx';
-const A = { prefix: '@/', dir: `${R}/src` };
-const T = `${R}/src/lib/seo/about.ts`;
-const base: Record<string, string> = { [T]: 'export const x = 1;\n', [`${R}/src/lib/seo/other.ts`]: 'export const y = 2;\n' };
+// resolveLocal 走 path.resolve / path.join。夹具键必须用同一套平台路径，否则 Windows 会把 /fx 收成 D:\fx，内存表对不上。
+const R = path.resolve('/fx');
+const fx = (...parts: string[]) => path.join(R, ...parts);
+const slash = (p: string) => p.split(path.sep).join('/');
+const A = { prefix: '@/', dir: fx('src') };
+const T = fx('src', 'lib', 'seo', 'about.ts');
+const base: Record<string, string> = { [T]: 'export const x = 1;\n', [fx('src', 'lib', 'seo', 'other.ts')]: 'export const y = 2;\n' };
 const run = (files: Record<string, string>, direct: boolean) => {
   const all = { ...base, ...files };
   const host = memHost(all);
@@ -127,47 +130,47 @@ const run = (files: Record<string, string>, direct: boolean) => {
 };
 
 test('client guard 自测：直接相对路径 import 会被抓到', () => {
-  const r = run({ [`${R}/src/components/A.tsx`]: "'use client';\nimport { x } from '../lib/seo/about';\n" }, true);
+  const r = run({ [fx('src', 'components', 'A.tsx')]: "'use client';\nimport { x } from '../lib/seo/about';\n" }, true);
   assert.equal(r.findings.length, 1);
 });
 
 test('client guard 自测：@/ 别名、带扩展名、双引号指令都会被抓到', () => {
   const r = run({
-    [`${R}/src/components/A.tsx`]: '"use client"\nimport { x } from "@/lib/seo/about";\n',
-    [`${R}/src/components/B.tsx`]: "'use client';\nexport { x } from '@/lib/seo/about.ts';\n",
+    [fx('src', 'components', 'A.tsx')]: '"use client"\nimport { x } from "@/lib/seo/about";\n',
+    [fx('src', 'components', 'B.tsx')]: "'use client';\nexport { x } from '@/lib/seo/about.ts';\n",
   }, true);
   assert.equal(r.findings.length, 2);
 });
 
 test('client guard 自测：两跳间接（经 index 再导出 + import()）会被附加检查抓到，直接检查不报', () => {
   const files = {
-    [`${R}/src/components/C.tsx`]: "'use client';\nimport { z } from '../lib/hub';\n",
-    [`${R}/src/lib/hub/index.ts`]: "export const z = () => import('@/lib/seo/mid');\n",
-    [`${R}/src/lib/seo/mid.ts`]: "export * from './about';\n",
+    [fx('src', 'components', 'C.tsx')]: "'use client';\nimport { z } from '../lib/hub';\n",
+    [fx('src', 'lib', 'hub', 'index.ts')]: "export const z = () => import('@/lib/seo/mid');\n",
+    [fx('src', 'lib', 'seo', 'mid.ts')]: "export * from './about';\n",
   };
   const ind = run(files, false);
   assert.equal(ind.findings.length, 1);
-  assert.deepEqual(ind.findings[0].chain.map((p) => path.relative(R, p)),
+  assert.deepEqual(ind.findings[0].chain.map((p) => slash(path.relative(R, p))),
     ['src/components/C.tsx', 'src/lib/hub/index.ts', 'src/lib/seo/mid.ts', 'src/lib/seo/about.ts']);
   assert.equal(run(files, true).findings.length, 0);
 });
 
 test('client guard 自测：环形 import 不死循环；require 也算', () => {
   const r = run({
-    [`${R}/src/components/D.tsx`]: "'use client';\nimport './a';\n",
-    [`${R}/src/components/a.ts`]: "import './b';\n",
-    [`${R}/src/components/b.ts`]: "import './a';\nconst m = require('../lib/seo/about');\n",
+    [fx('src', 'components', 'D.tsx')]: "'use client';\nimport './a';\n",
+    [fx('src', 'components', 'a.ts')]: "import './b';\n",
+    [fx('src', 'components', 'b.ts')]: "import './a';\nconst m = require('../lib/seo/about');\n",
   }, false);
   assert.equal(r.findings.length, 1);
 });
 
 test('client guard 自测：不误报——服务端文件、只有类型的 import、注释/字符串里的路径、非首条语句的指令', () => {
   const r = run({
-    [`${R}/src/app/page.tsx`]: "import { x } from '@/lib/seo/about';\n",
-    [`${R}/src/components/E.tsx`]: "'use client';\nimport type { X } from '@/lib/seo/about';\nexport type { Y } from '../lib/seo/about';\n",
-    [`${R}/src/components/F.tsx`]: "'use client';\n// import '@/lib/seo/about'\nconst s = \"import('@/lib/seo/about')\";\nimport { y } from '@/lib/seo/other';\n",
-    [`${R}/src/components/G.tsx`]: "import { x } from '@/lib/seo/about';\n'use client';\n",
-    [`${R}/src/components/H.tsx`]: "'use client';\nimport React from 'react';\nimport '@/styles/x.css';\n",
+    [fx('src', 'app', 'page.tsx')]: "import { x } from '@/lib/seo/about';\n",
+    [fx('src', 'components', 'E.tsx')]: "'use client';\nimport type { X } from '@/lib/seo/about';\nexport type { Y } from '../lib/seo/about';\n",
+    [fx('src', 'components', 'F.tsx')]: "'use client';\n// import '@/lib/seo/about'\nconst s = \"import('@/lib/seo/about')\";\nimport { y } from '@/lib/seo/other';\n",
+    [fx('src', 'components', 'G.tsx')]: "import { x } from '@/lib/seo/about';\n'use client';\n",
+    [fx('src', 'components', 'H.tsx')]: "'use client';\nimport React from 'react';\nimport '@/styles/x.css';\n",
   }, false);
   assert.equal(r.findings.length, 0);
 });
