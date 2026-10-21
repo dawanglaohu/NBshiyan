@@ -1,0 +1,180 @@
+{
+  "task": "M1-T3",
+  "revision": "industrial-v3-and-product-video-v3",
+  "deliverables": [
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+      "width": 1737,
+      "height": 905,
+      "role": "static_image",
+      "releaseAllowed": true,
+      "source": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+        "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833"
+      },
+      "bytes": 2845196
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+      "width": 1384,
+      "height": 720,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "animated_gif",
+      "releaseAllowed": true,
+      "source": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+        "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291"
+      },
+      "bytes": 13877870
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+      "width": 960,
+      "height": 500,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "gif_preview",
+      "releaseAllowed": true,
+      "source": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+        "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d"
+      },
+      "bytes": 8663921
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "bytes": 10216338,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_video",
+      "role": "video_1080p",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+        "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+      }
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "bytes": 4231724,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_web_video",
+      "role": "video_720p",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+        "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd"
+      }
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+      "bytes": 421795,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": true,
+      "role": "video_poster",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+      }
+    }
+  ],
+  "staticReview": {
+    "source": {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833"
+    },
+    "master": {
+      "path": "public/brand/packjoyu-logo-master.svg",
+      "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099"
+    },
+    "brandLocations": [
+      {
+        "id": "airship",
+        "text": "PackJoyU",
+        "bounds": [
+          355,
+          68,
+          241,
+          76
+        ],
+        "oldLogoReview": "no_residual",
+        "evidence": {
+          "path": "docs/brand-media/static/evidence/final-v3/industrial-logo-airship.png",
+          "sha256": "30dfd335e77074327b33336a05c75b47c9ee68d66934cbd6da755313c1c2330a",
+          "width": 241,
+          "height": 76,
+          "sourceImagePath": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+          "sourceImageSha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+          "cropBounds": [
+            355,
+            68,
+            596,
+            144
+          ],
+          "encoding": "png"
+        }
+      },
+      {
+        "id": "factory",
+        "text": "PackJoyU",
+        "bounds": [
+          953,
+          480,
+          235,
+          92
+        ],
+        "oldLogoReview": "no_residual",
+        "evidence": {
+          "path": "docs/brand-media/static/evidence/final-v3/industrial-logo-factory.png",
+          "sha256": "35427f43aca3de437297b0fa8857b72eed1506b0d1f86b76c2b82bb3dd7c9377",
+          "width": 235,
+          "height": 92,
+          "sourceImagePath": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+          "sourceImageSha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+          "cropBounds": [
+            953,
+            480,
+            1188,
+            572
+          ],
+          "encoding": "png"
+        }
+      }
+    ],
+    "basis": [
+      {
+        "path": "docs/brand-media/static/accepted-industrial-assets.json",
+        "sha256": "f753defb5862bff80b394258b8f64c08c9461585336345384699ae4efe66fc94"
+      },
+      {
+        "path": "docs/brand-media/static/style-generation-record.json",
+        "sha256": "313e8149ee4b8f01985b412f9467de42061444114475ac2dd43542a105264e12"
+      },
+      {
+        "path": "docs/brand-media/static/selected-output-visual-review.json",
+        "sha256": "5c85c84b72734d60cebfe5bf714f19cd04a950d67746c49e4d181316f9f82415"
+      },
+      {
+        "path": "docs/brand-media/static/industrial-city-animation-record.json",
+        "sha256": "0ca5e2d39723e19df1054e85f73aac8c45568c47724f54ddac1d5d4292050ec3"
+      }
+    ]
+  },
+  "productionMethod": "Actual account image generation for industrial art, deterministic OpenCV/Pillow animation, exact-master local video compositing and WSL FFmpeg encoding; no Dot invocation claimed.",
+  "sourceScope": "Employee filming and authorized later logo addition only; no title, customer, certification or capacity inference."
+}

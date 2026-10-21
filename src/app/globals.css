@@ -293,7 +293,7 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 .hero:has(.hero-media){min-height:min(78vh,720px);display:flex;align-items:center}
 .hero:has(.hero-media)>.container{width:100%}
 .hero-media{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--surface);container-type:inline-size}
-.hero-media-poster,.hero-media-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.hero-media-poster,.hero-media-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;display:block}
 /* #291 视频缩到 99%，略小于封面，避免视频首帧抢走 LCP（原因见 HeroVideo.tsx） */
 .hero-media-video{opacity:0;transition:opacity 300ms ease;transform:scale(.99)}
 .hero-media-video[data-visible="1"]{opacity:1}
@@ -321,7 +321,7 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 @media (max-width:767px){.hero .hero-brand{inset:0 0 auto 0;width:auto;height:45%;background:linear-gradient(180deg,color-mix(in srgb,var(--stage-bg) 85%,transparent) 0,color-mix(in srgb,var(--stage-bg) 85%,transparent) 55%,transparent 100%)}.hero-brand-inner{justify-content:flex-start;padding:24px 0 0 24px;font-size:max(13px,3.6cqi)}.hero-brand-tagline{max-width:none}}
 /* #291 焦点环：深色外环（--ink 在浅色画面上 ≥3:1）+ 内侧白环（压在深色礼盒上也看得见） */
 .hero-media-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 2px #fff}
-@media (max-width:767px){.hero:has(.hero-media){min-height:0}.hero-media{aspect-ratio:4/5}}
+@media (max-width:767px){.hero:has(.hero-media){min-height:0}.hero-media{aspect-ratio:16/9}}
 
 /* ---- M1-T1：8 个核心 --pj-* token 接到现有首页选择器上 ----
    规则写在文件末尾：与上方 .btn/.entry a/.hero/:focus-visible 同特异性，靠后出现赢得层叠。
@@ -368,3 +368,8 @@ body{background:var(--pj-bg);color:var(--pj-fg);font-size:var(--pj-body-size);li
 .card{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:none}
 .card.theme-premium{border-color:var(--pj-bg)}
 .card.theme-premium :focus-visible{outline-color:var(--pj-bg)}
+
+/* Approved industrial artwork: static by default, animation starts only on request. */
+.brand-scene-media{position:relative;width:100%;aspect-ratio:1737/905;background:var(--pj-bg)}
+.brand-scene-media img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
+.brand-scene-controls{display:flex;justify-content:flex-end;min-height:44px;margin-top:12px}

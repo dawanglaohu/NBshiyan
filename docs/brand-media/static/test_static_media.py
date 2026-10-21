@@ -37,7 +37,11 @@ class StaticMediaChecks(unittest.TestCase):
                 CHECK.verify()
 
     def test_missing_production_stays_blocked(self):
-        blockers = CHECK.release_blockers(self.manifest, self.identity, self.production)
+        history = CHECK.BASE / 'history/selected-release-before'
+        manifest = CHECK.json.loads((history / 'brand-static-media.json').read_text(encoding='utf-8'))
+        identity = CHECK.json.loads((history / 'video-identity.json').read_text(encoding='utf-8'))
+        production = CHECK.json.loads((history / 'production-record.json').read_text(encoding='utf-8'))
+        blockers = CHECK.release_blockers(manifest, identity, production)
         self.assertIn('PRODUCTION_NOT_COMPLETE', blockers)
         self.assertIn('JPG_REPLACEMENT_NOT_VERIFIED', blockers)
         self.assertIn('VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED', blockers)
@@ -60,6 +64,8 @@ class StaticMediaChecks(unittest.TestCase):
                         CHECK.verify()
 
     def test_equipment_marks_do_not_become_corporate_identity(self):
+        history = CHECK.BASE / 'history/selected-release-before'
+        self.manifest = CHECK.json.loads((history / 'brand-static-media.json').read_text(encoding='utf-8'))
         self.identity['corporateAuthorship']['identity'] = 'OWN_VERIFIED'
         self.identity['observations'] = [
             {'role': 'equipment', 'identity': 'THIRD_PARTY'},

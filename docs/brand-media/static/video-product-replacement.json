@@ -268,8 +268,8 @@
   },
   "browserPlayback": "not executed; existing local-file URL policy block, no workaround attempted",
   "userAcceptedOutput": true,
-  "releaseAllowed": false,
-  "factualBoundary": "Product print is an edited appearance. Original corporate authorship and customer/factory relationship inventory is not reclassified by this edit.",
+  "releaseAllowed": true,
+  "factualBoundary": "Source attestation supports employee filming in the factory and subsequent authorized PackJoyU compositing only. No factory title, customer relationship, certification or capacity is inferred.",
   "integrityStatus": "pass:65 registered media files; originals re-read; 735 frames and 576 original audio packets verified",
   "revision": "v3",
   "previousRevisionArchive": "docs/brand-media/static/product-video/v2-output-archive.json",
@@ -301,5 +301,53 @@
       }
     ]
   },
-  "savedMediaIndexPath": "docs/brand-media/static/saved-media-index.json"
+  "savedMediaIndexPath": "docs/brand-media/static/saved-media-index.json",
+  "releasedAliases": [
+    {
+      "path": "public/brand/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "bytes": 10216338,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_video",
+      "role": "video_1080p",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+        "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+      }
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "bytes": 4231724,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_web_video",
+      "role": "video_720p",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+        "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd"
+      }
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+      "bytes": 421795,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": true,
+      "role": "video_poster",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+      }
+    }
+  ],
+  "selectedOutputReviewPath": "docs/brand-media/static/selected-output-visual-review.json"
 }

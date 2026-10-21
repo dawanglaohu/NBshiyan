@@ -89,7 +89,21 @@
       ],
       "stage": "integration",
       "wiring": [],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/components/layout/HeroVideo.tsx",
+        "src/components/layout/BrandScene.tsx",
+        "src/lib/home/brandMedia.ts",
+        "src/app/[locale]/page.tsx",
+        "src/app/globals.css",
+        "messages/en.json",
+        "messages/ru.json",
+        "tests/hero-video.test.ts",
+        "tests/home-brand-media.test.ts",
+        "design/og-src/render-og.mjs",
+        "public/og/home-en.jpg",
+        "public/og/home-ru.jpg",
+        "src/data/og-versions.json"
+      ],
       "outputPaths": [
         "public/brand/",
         "docs/brand-media/static/"

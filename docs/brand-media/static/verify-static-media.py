@@ -2,6 +2,9 @@
 
 import argparse
 import hashlib
+import importlib.util
+import sys
+from functools import lru_cache
 import json
 import subprocess
 import xml.etree.ElementTree as ET
@@ -11,6 +14,14 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[3]
 BASE = ROOT / 'docs/brand-media/static'
+SELECTED_MODULE = '_packjoyu_selected_release_checks'
+if SELECTED_MODULE not in sys.modules:
+    spec = importlib.util.spec_from_file_location(SELECTED_MODULE, BASE / 'selected_release_checks.py')
+    selected_checks = importlib.util.module_from_spec(spec)
+    sys.modules[SELECTED_MODULE] = selected_checks
+    spec.loader.exec_module(selected_checks)
+else:
+    selected_checks = sys.modules[SELECTED_MODULE]
 
 
 def require(condition, message):
@@ -42,21 +53,65 @@ def release_blockers(manifest, identity, production):
         blockers.append('TASK_INCOMPLETE')
     if not manifest['releaseFiles']:
         blockers.append('EMPTY_RELEASE_SET')
-    if any(row['status'] != 'complete' or not row['oldLogoAbsentVerified'] or not row['afterPath']
-           for row in manifest['jpgReplacements']):
-        blockers.append('JPG_REPLACEMENT_NOT_VERIFIED')
-    if identity['corporateAuthorship']['identity'] != 'OWN_VERIFIED':
-        blockers.append('VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED')
-    if any(row['role'] != 'equipment' and
-           (row['identity'] != 'OWN_VERIFIED' or row.get('relationshipToPackJoyU') == 'UNKNOWN')
-           for row in identity['observations']):
-        blockers.append('NON_EQUIPMENT_IDENTITY_NOT_VERIFIED')
-    if production['taskStatus'] != 'complete' or any(
-            row['status'] == 'not_executed' for row in production['operations']):
-        blockers.append('PRODUCTION_NOT_COMPLETE')
+    if manifest.get('selectionRecordPath'):
+        selected_checks.verify_selected_release(manifest, identity, production, ROOT)
+        if production['taskStatus'] != 'complete':
+            blockers.append('PRODUCTION_NOT_COMPLETE')
+    else:
+        if any(row['status'] != 'complete' or not row['oldLogoAbsentVerified'] or not row['afterPath']
+               for row in manifest['jpgReplacements']):
+            blockers.append('JPG_REPLACEMENT_NOT_VERIFIED')
+        if identity['corporateAuthorship']['identity'] != 'OWN_VERIFIED':
+            blockers.append('VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED')
+        if any(row['role'] != 'equipment' and
+               (row['identity'] != 'OWN_VERIFIED' or row.get('relationshipToPackJoyU') == 'UNKNOWN')
+               for row in identity['observations']):
+            blockers.append('NON_EQUIPMENT_IDENTITY_NOT_VERIFIED')
+        if production['taskStatus'] != 'complete' or any(
+                row['status'] == 'not_executed' for row in production['operations']):
+            blockers.append('PRODUCTION_NOT_COMPLETE')
     if any(not data['releaseAllowed'] for data in [manifest, identity, production]):
         blockers.append('RELEASE_HELD')
     return sorted(set(blockers))
+
+
+@lru_cache(maxsize=128)
+def decoded_media(path, content_sha256):
+    """Reuse full decode results only after the caller rehashes the complete file."""
+    target = Path(path)
+    if target.suffix == '.svg':
+        code = "import sharp from 'sharp'; const {info}=await sharp(process.argv[1]).raw().toBuffer({resolveWithObject:true}); console.log(JSON.stringify(info));"
+        result = subprocess.run(['node', '--input-type=module', '-e', code, str(target)],
+                                cwd=ROOT, capture_output=True, text=True, check=True)
+        info = json.loads(result.stdout)
+        return {'size': (info['width'], info['height'])}
+    if target.suffix.lower() == '.gif':
+        with Image.open(target) as decoded:
+            size, loop = decoded.size, decoded.info.get('loop')
+            durations = []
+            for frame_index in range(decoded.n_frames):
+                decoded.seek(frame_index)
+                decoded.convert('RGB').load()
+                durations.append(decoded.info.get('duration', 0))
+            decoded.seek(0)
+            first_pixels = decoded.convert('RGB').tobytes()
+        return {'size': size, 'loop': loop, 'durationsMs': durations, 'firstPixels': first_pixels}
+    if target.suffix.lower() == '.mp4':
+        import cv2
+        decoded = cv2.VideoCapture(str(target))
+        try:
+            require(decoded.isOpened(), f'Cannot decode video: {target}')
+            size = (int(decoded.get(cv2.CAP_PROP_FRAME_WIDTH)), int(decoded.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            count = 0
+            while decoded.read()[0]:
+                count += 1
+            require(count > 0, f'Video has no decoded frames: {target}')
+            return {'size': size, 'frameCount': count, 'fps': decoded.get(cv2.CAP_PROP_FPS)}
+        finally:
+            decoded.release()
+    with Image.open(target) as decoded:
+        decoded.load()
+        return {'size': decoded.size}
 
 
 def verify(originals_root=None):
@@ -98,52 +153,19 @@ def verify(originals_root=None):
     for row in manifest['files']:
         target = check_hash(row)
         image_paths.add(row['path'])
-        if target.suffix == '.svg':
-            code = "import sharp from 'sharp'; const {info}=await sharp(process.argv[1]).raw().toBuffer({resolveWithObject:true}); console.log(JSON.stringify(info));"
-            result = subprocess.run(['node', '--input-type=module', '-e', code, str(target)],
-                                    cwd=ROOT, capture_output=True, text=True, check=True)
-            info = json.loads(result.stdout)
-            size = (info['width'], info['height'])
-        elif target.suffix.lower() == '.gif':
-            with Image.open(target) as decoded:
-                size, loop = decoded.size, decoded.info.get('loop')
-                durations = []
-                for frame_index in range(decoded.n_frames):
-                    decoded.seek(frame_index)
-                    decoded.convert('RGB').load()
-                    durations.append(decoded.info.get('duration', 0))
-                decoded.seek(0)
-                first_pixels = decoded.convert('RGB').tobytes()
-            require(len(durations) == row['frameCount'], f'GIF frame count differs: {row["path"]}')
-            require(sum(durations) == row['durationMs'], f'GIF duration differs: {row["path"]}')
-            require(loop == row['loop'] == 0, f'GIF loop differs: {row["path"]}')
-            gif_metadata[row['path']] = {'durationsMs': durations, 'firstPixels': first_pixels}
+        metadata = decoded_media(str(target), row['sha256'])
+        if target.suffix.lower() == '.gif':
+            require(len(metadata['durationsMs']) == row['frameCount'], f'GIF frame count differs: {row["path"]}')
+            require(sum(metadata['durationsMs']) == row['durationMs'], f'GIF duration differs: {row["path"]}')
+            require(metadata['loop'] == row['loop'] == 0, f'GIF loop differs: {row["path"]}')
+            gif_metadata[row['path']] = metadata
         elif target.suffix.lower() == '.mp4':
-            import cv2
-            decoded = cv2.VideoCapture(str(target))
-            try:
-                require(decoded.isOpened(), f'Cannot decode video: {row["path"]}')
-                size = (int(decoded.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                        int(decoded.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-                decoded_count = 0
-                while True:
-                    ok, _ = decoded.read()
-                    if not ok:
-                        break
-                    decoded_count += 1
-                require(decoded_count > 0, f'Video has no decoded frames: {row["path"]}')
-                if 'frameCount' in row:
-                    require(decoded_count == row['frameCount'], f'Video frame count differs: {row["path"]}')
-                if 'fps' in row:
-                    require(decoded.get(cv2.CAP_PROP_FPS) == row['fps'], f'Video fps differs: {row["path"]}')
-            finally:
-                decoded.release()
-        else:
-            with Image.open(target) as decoded:
-                decoded.load()
-                size = decoded.size
-        require(size == (row['width'], row['height']), f'Decoded dimensions differ: {row["path"]}')
-    actual_images = {p.relative_to(ROOT).as_posix() for p in (BASE / 'evidence').iterdir()
+            if 'frameCount' in row:
+                require(metadata['frameCount'] == row['frameCount'], f'Video frame count differs: {row["path"]}')
+            if 'fps' in row:
+                require(metadata['fps'] == row['fps'], f'Video fps differs: {row["path"]}')
+        require(metadata['size'] == (row['width'], row['height']), f'Decoded dimensions differ: {row["path"]}')
+    actual_images = {p.relative_to(ROOT).as_posix() for p in (BASE / 'evidence').rglob('*')
                      if p.suffix.lower() in {'.png', '.jpg'}}
     actual_images.add('public/brand/packjoyu-logo-master.svg')
     for held_path in manifest.get('heldFiles', []):

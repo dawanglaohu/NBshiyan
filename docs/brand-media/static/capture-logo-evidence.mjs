@@ -58,7 +58,7 @@ try {
   const font = await fontResponse.body();
   evidence.fontResource.path = 'docs/brand-media/static/evidence/current-manrope-latin.woff2';
   evidence.fontResource.sha256 = createHash('sha256').update(font).digest('hex');
-  evidence.capture = { browser: browser.version(), service: 'Next.js development, task worktree', viewport: '1440x900', applicationApiMocking: false, scope: 'Header font and source only; no database or product acceptance claimed.' };
+  evidence.capture = { browser: browser.version(), service: process.argv[3] ?? 'Next.js development, task worktree', viewport: '1440x900', applicationApiMocking: false, scope: 'Header font and source only; no database or product acceptance claimed.' };
   await writeFile(path.join(root, evidence.fontResource.path), font);
   await copyFile(path.join(root, 'src/assets/og-fonts/OFL.txt'), path.join(output, 'font-OFL.txt'));
   await page.locator('header.site').screenshot({ path: path.join(output, 'current-header.png') });

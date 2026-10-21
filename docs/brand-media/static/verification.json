@@ -1,76 +1,40 @@
 {
   "task": "M1-T3",
   "baseCommit": "7b7ab1c51e1b013c754b7d6fd2305c587f46afba",
-  "checkedOn": "2026-10-20",
+  "checkedOn": "2026-10-21",
   "integrity": "pass",
-  "releaseAllowed": false,
-  "taskStatus": "incomplete",
+  "releaseAllowed": true,
+  "taskStatus": "complete",
   "checks": [
     {
-      "command": "master exporter default check",
+      "command": "python -B -m unittest discover -s docs/brand-media/static -p \"test_*.py\" -v",
       "result": "pass",
-      "masterSha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099"
+      "tests": 40,
+      "evidencePath": "docs/brand-media/static/evidence/rework-round1/after-tests.txt"
     },
     {
-      "command": "verify-static-media.py --originals-root C:/Users/admin/Desktop",
+      "command": "python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop",
       "result": "pass",
-      "imageFilesChecked": 59,
-      "sourceDecodedFrames": 735,
-      "reproducedEvidenceFrames": 7,
-      "mediaFilesChecked": 65,
-      "compressedVideoFrames": 735,
-      "gifDecodedFrames": 361,
-      "gifDurationMs": 30080,
-      "gifFiles": 3,
-      "fullResolutionWebVideoFrames": 735
+      "mediaFilesChecked": 125,
+      "imageFilesChecked": 117,
+      "evidencePath": "docs/brand-media/static/evidence/rework-round1/after-integrity.json"
     },
     {
-      "command": "python -B -m unittest discover -s docs/brand-media/static -p test_*.py -v",
+      "command": "python -B docs/brand-media/static/verify-static-media.py --require-release",
       "result": "pass",
-      "tests": 12
+      "releaseAllowed": true,
+      "evidencePath": "docs/brand-media/static/evidence/rework-round1/after-release.json"
     },
     {
-      "command": "verify-static-media.py --require-release",
-      "result": "expected_release_hold",
-      "nativeExitCode": 2
-    },
-    {
-      "command": "npx --yes pnpm@10.34.6 lint",
-      "result": "pass_with_existing_warnings",
-      "nativeExitCode": 0,
-      "head": "d601ce39bfececbeef34446e187eae7e2f9d0e7b",
-      "scopeNote": "Application source unchanged in account-media continuation; no repeat full lint."
-    },
-    {
-      "command": "node --check and targeted eslint capture-logo-evidence.mjs",
-      "result": "pass"
-    },
-    {
-      "command": "independent verification subagent, read-only",
-      "result": "pass_for_existing_evidence_only",
-      "negativeMutationsRejected": 8,
-      "continuationNegativeMutationsRejected": 6,
-      "heldJpegReproducesSelectedPng": true,
-      "compressedVideoMetadataIndependentlyChecked": true
-    },
-    {
-      "command": "python -B -m unittest discover -s docs/brand-media/static -p test_approved_image_gif.py -v",
+      "command": "pnpm lint",
       "result": "pass",
-      "tests": 2,
-      "negativeCases": 4
+      "exitCode": 0
     }
   ],
-  "notExecuted": [
-    "GPT Dot graphics editing",
-    "account video-generation tool (not exposed)",
-    "whole application build/DB/e2e for account-media increment"
-  ],
+  "notExecuted": [],
   "previousVerifiedHead": "d601ce39bfececbeef34446e187eae7e2f9d0e7b",
   "imageGenerationCalls": 2,
-  "pendingAcceptance": [
-    "JPG exact master glyphs and non-target scene fidelity",
-    "video corporate provenance and product relationship"
-  ],
+  "pendingAcceptance": [],
   "styleGenerationCalls": 1,
   "styleDetailEditCalls": 1,
   "approvedImageGif": {
@@ -246,10 +210,57 @@
       "publicationAcceptanceClaimed": false,
       "userAcceptedOutput": false
     },
-    "releaseAllowed": false,
-    "manifestMediaFilesChecked": 65,
-    "manifestImageFilesChecked": 59,
+    "releaseAllowed": true,
+    "manifestMediaFilesChecked": 125,
+    "manifestImageFilesChecked": 117,
     "revision": "v3",
     "geometryVerificationPath": "docs/brand-media/static/product-video/geometry-verification.json"
+  },
+  "reworkRound1": {
+    "requests": [
+      "R1",
+      "R2"
+    ],
+    "priorHead": "da7c1de",
+    "before": {
+      "legacySelectedGateTestsFailed": 3,
+      "releaseExitCode": 2,
+      "evidenceDirectory": "docs/brand-media/static/evidence/rework-round1/"
+    },
+    "after": {
+      "tests": 40,
+      "existingTests": 12,
+      "addedTests": 28,
+      "allTestsPassed": true,
+      "integrity": {
+        "integrity": "pass",
+        "mediaFilesChecked": 125,
+        "imageFilesChecked": 117,
+        "originalsReRead": true,
+        "releaseAllowed": true,
+        "taskStatus": "complete",
+        "releaseBlockers": []
+      },
+      "release": {
+        "integrity": "pass",
+        "mediaFilesChecked": 125,
+        "imageFilesChecked": 117,
+        "originalsReRead": false,
+        "releaseAllowed": true,
+        "taskStatus": "complete",
+        "releaseBlockers": []
+      },
+      "sourceHistoryFieldsUnchanged": true,
+      "masterSvgUnchanged": true,
+      "realHeaderRecaptured": true,
+      "pnpmLintExitCode": 0,
+      "testsEvidence": "docs/brand-media/static/evidence/rework-round1/after-tests.txt",
+      "websiteFocusedTests": 24
+    },
+    "releaseMeans": "Selected local media delivery validated; task remains unlanded and PR397 awaits second review.",
+    "limits": [
+      "Windows standalone dependency symlink EPERM after compilation",
+      "Pre-existing M1-T9 prompt budget, outside this rework"
+    ]
   }
 }

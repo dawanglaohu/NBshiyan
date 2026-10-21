@@ -1,5 +1,5 @@
 {
-  "pageUrl": "http://localhost:3123/en",
+  "pageUrl": "http://127.0.0.1:3217/en",
   "fontStatus": "loaded",
   "logo": {
     "text": "PackJoyU",
@@ -27,13 +27,13 @@
   },
   "fontFace": "@font-face { font-family: Manrope; font-style: normal; font-weight: 200 800; font-display: swap; src: url(\"/_next/static/media/4c9affa5bc8f420e-s.p.woff2\") format(\"woff2\"); unicode-range: U+0-FF, U+131, U+152-153, U+2BB-2BC, U+2C6, U+2DA, U+2DC, U+304, U+308, U+329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }",
   "fontResource": {
-    "url": "http://localhost:3123/_next/static/media/4c9affa5bc8f420e-s.p.woff2",
+    "url": "http://127.0.0.1:3217/_next/static/media/4c9affa5bc8f420e-s.p.woff2",
     "path": "docs/brand-media/static/evidence/current-manrope-latin.woff2",
     "sha256": "e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f"
   },
   "capture": {
-    "browser": "155.0.8059.79",
-    "service": "Next.js development, task worktree",
+    "browser": "155.0.8059.85",
+    "service": "Next.js production start from task worktree; compilation succeeded, standalone copy failed with Windows symlink EPERM",
     "viewport": "1440x900",
     "applicationApiMocking": false,
     "scope": "Header font and source only; no database or product acceptance claimed."

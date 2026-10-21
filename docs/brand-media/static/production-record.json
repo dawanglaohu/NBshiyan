@@ -1,7 +1,7 @@
 {
   "task": "M1-T3",
-  "taskStatus": "incomplete",
-  "releaseAllowed": false,
+  "taskStatus": "complete",
+  "releaseAllowed": true,
   "operations": [
     {
       "id": "current-master",
@@ -11,7 +11,8 @@
         "public/brand/packjoyu-logo-master.svg",
         "docs/brand-media/static/logo-source-audit.json"
       ],
-      "verification": "Source/header Latin WOFF2 and committed TTF glyph outlines/advance/kerning equal; browser positions/styles checked."
+      "verification": "Source/header Latin WOFF2 and committed TTF glyph outlines/advance/kerning equal. Header was recaptured from real production Next server after media-only CSS changes; computed styles and positions still match; SVG SHA256 unchanged.",
+      "historical": false
     },
     {
       "id": "source-decode-and-identity",
@@ -21,7 +22,8 @@
         "docs/brand-media/static/video-identity.json",
         "docs/brand-media/static/evidence/all-frame-coverage.json"
       ],
-      "verification": "735 frames decoded; unresolved identities and provenance prevent release."
+      "verification": "735 frames decoded; unresolved identities and provenance prevent release.",
+      "historical": true
     },
     {
       "id": "airship-and-factory-replacement",
@@ -31,7 +33,8 @@
         "docs/brand-media/static/held/packjoyu-city-edited.jpg"
       ],
       "remainingTask": "Verify exact master glyph/proportion fidelity; do not call generative scene repainting a pixel-local edit.",
-      "reviewPath": "docs/brand-media/static/image-edit-review.md"
+      "reviewPath": "docs/brand-media/static/image-edit-review.md",
+      "historical": true
     },
     {
       "id": "video-compressed-release-copy",
@@ -41,7 +44,8 @@
       ],
       "remainingTask": "Resolve video corporate provenance and non-equipment UNKNOWN before release.",
       "tool": "existing Windows.Media.Transcoding.MediaTranscoder; no trim start/stop",
-      "verificationPath": "docs/brand-media/static/evidence/video-transcode-verification.json"
+      "verificationPath": "docs/brand-media/static/evidence/video-transcode-verification.json",
+      "historical": true
     },
     {
       "id": "video-poster-release-copy",
@@ -50,7 +54,8 @@
         "docs/brand-media/static/held/video2-poster-4500ms.jpg"
       ],
       "remainingTask": "Resolve whole-video provenance before poster release.",
-      "tool": "Original-video frame270 at4500ms, exact byte copy of canonical JPEG export"
+      "tool": "Original-video frame270 at4500ms, exact byte copy of canonical JPEG export",
+      "historical": true
     },
     {
       "id": "papercraft-style-variant",
@@ -62,7 +67,8 @@
       ],
       "recordPath": "docs/brand-media/static/style-generation-record.json",
       "scope": "User-authorized new style from reference, not a pixel-local replacement.",
-      "detailRevisionRecord": "docs/brand-media/static/style-generation-record.json"
+      "detailRevisionRecord": "docs/brand-media/static/style-generation-record.json",
+      "historical": true
     },
     {
       "id": "approved-image-loop-gif",
@@ -73,7 +79,8 @@
         "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png"
       ],
       "recordPath": "docs/brand-media/static/approved-image-gif-record.json",
-      "scope": "New animation based on explicitly accepted static image, originalGIF timing preserved; not formal original-GIF replacement acceptance."
+      "scope": "New animation based on explicitly accepted static image, originalGIF timing preserved; not formal original-GIF replacement acceptance.",
+      "historical": true
     },
     {
       "id": "industrial-static-and-moving-scene",
@@ -90,7 +97,8 @@
         "docs/brand-media/static/industrial-city-animation-record.json"
       ],
       "scope": "User requested natural materials, workers, moving cloud/water/smoke and loaded-forklift shuttle.",
-      "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json"
+      "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json",
+      "historical": false
     },
     {
       "id": "video-full-resolution-web-copy",
@@ -101,7 +109,8 @@
       ],
       "recordPath": "docs/brand-media/static/video-web-processing-record.json",
       "verification": "735 identical decoded video frames; all video/audio packet payloads and exact normalized timestamps preserved; original moov relocated before mdat.",
-      "remainingTask": "Resolve original video corporate provenance and non-equipment UNKNOWN before release."
+      "remainingTask": "Resolve original video corporate provenance and non-equipment UNKNOWN before release.",
+      "historical": true
     },
     {
       "id": "video-product-brand-replacement",
@@ -113,7 +122,26 @@
         "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg"
       ],
       "recordPath": "docs/brand-media/static/video-product-replacement.json",
-      "remainingTask": "Original video provenance and product relationship remain unresolved for release."
+      "historical": false,
+      "verificationPath": "docs/brand-media/static/selected-output-visual-review.json"
+    },
+    {
+      "id": "selected-final-output-review",
+      "status": "executed_verified",
+      "historical": false,
+      "tool": "Existing OpenCV 5.0.0 full video decode, actual frame JPEG92/95 reproduction and Pillow static crop verification; independent visual review of selected outputs",
+      "outputs": [
+        "public/brand/packjoyu-industrial-city-v3.png",
+        "public/brand/packjoyu-industrial-city-v3-loop.gif",
+        "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+        "public/brand/video2-packjoyu-products-v3.mp4",
+        "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+        "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "docs/brand-media/static/selected-output-decode-evidence.json",
+        "docs/brand-media/static/selected-output-visual-review.json"
+      ],
+      "recordPath": "docs/brand-media/static/selected-output-decode-evidence.json",
+      "reviewPath": "docs/brand-media/static/selected-output-visual-review.json"
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",
@@ -140,12 +168,18 @@
     }
   ],
   "originalHashCheck": "Original JPG/MP4 re-read after editing and export; SHA256 matches originals registered in brand-static-media.json. No original changed.",
-  "guiChange": false,
-  "gifEvidence": "Not applicable: no product GUI behavior changed; Dot software workflow is not executed.",
+  "guiChange": true,
+  "gifEvidence": "Website uses the selected release copies. Real-server UI recording is attached to PR397 separately; media content production records above remain literal.",
   "authorizationChange": {
     "requestedMode": "current account image/video generation instead of Dot",
     "source": "Direct user instruction in this chat",
     "dotExecutionClaimed": false,
     "imageGenerationRecordPath": "docs/brand-media/static/image-generation-record.json"
-  }
+  },
+  "requiredOperationIds": [
+    "current-master",
+    "industrial-static-and-moving-scene",
+    "video-product-brand-replacement",
+    "selected-final-output-review"
+  ]
 }

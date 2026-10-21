@@ -1,0 +1,20 @@
+{
+  "integrity": "pass",
+  "mediaFilesChecked": 65,
+  "imageFilesChecked": 59,
+  "originalsReRead": false,
+  "releaseAllowed": false,
+  "taskStatus": "incomplete",
+  "releaseBlockers": [
+    "EMPTY_RELEASE_SET",
+    "JPG_REPLACEMENT_NOT_VERIFIED",
+    "NON_EQUIPMENT_IDENTITY_NOT_VERIFIED",
+    "PRODUCTION_NOT_COMPLETE",
+    "RELEASE_HELD",
+    "TASK_INCOMPLETE",
+    "VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED",
+    "approved_video_and_poster_release",
+    "jpg_exact_master_fidelity_acceptance",
+    "video_own_identity_provenance"
+  ]
+}
