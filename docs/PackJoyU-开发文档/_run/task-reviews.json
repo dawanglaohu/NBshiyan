@@ -117,14 +117,14 @@
     "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
     "contractHash": "102c91ac9cd040403c4c40387f85cb32a0cb95a80685ab384ef8f17800ebfabe",
     "evidence": [
-      "本轮核对 PR #395：base=7b7ab1c51e1b013c754b7d6fd2305c587f46afba，代码 head=8db0bcfec1267984911c10f99c892dcb5c0d72f6。status 返回契约哈希与当前派发包一致，stale=[]、runtimeDrift=[]。本文件仅登记任务定义的语义复核；代码验收为 rework，未执行 --landed。",
-      "04-执行/19-模块任务拆分.md 的 M1-T7 行及 _run/task-contracts.json tasks.M1-T7：唯一前置 M1-T1 已落地并提供 visual-base，本卡唯一提供 visual-components；有效实现路径为 src/components/ui/、src/styles/tokens.css、tests/ui-primitives.test.ts，任务笔记回填由交接流程明确要求。未增加领域页面、依赖或 API。",
-      "06/07 节确定 M1 持有唯一视觉 token，ui 只包装原生语义并复用既有焦点能力。当前四类包装经 index.ts 同一出口导出，不含请求、Prisma、身份、cookie 或业务角色判断；本卡没有新增 DTO/HTTP 字段，10 节业务接口不适用。",
-      "11 节与 tests/ui-primitives.test.ts:161 对照：64 个 --pj- 变量同源同值且各声明一次，原有 legacy token 保留；原语尺寸、disabled/busy/error/focus 对应状态均有类名、变量与语义断言。StyleKit 动态类扫描为 inconclusive，未冒称工具通过，已按11节原生 CSS 项目适配核规则。",
-      "13 节未为本卡挂独立 E 编号，通用空输入、错误关联、重复提交和焦点恢复需保留。17 节规定规则测试、lint/types 与实际输入行为证据；本轮相关测试32通过0跳过、lint及tsc通过，但真实 Chrome 原语探针确认 summary 被 Tab 跳过，已列代码阻断 R1；既有 DOM doubles 绿灯不证明该原生顺序正确。",
-      "19 节阶段约定与 task-contracts.json 均为 stage=primitive、integrationTask=M1-T4；本卡验统一出口与原语行为，完整页面接入、computed style、真实操作 GIF 与密度验收仍由 M1-T4 承担，不以独立原语探针或已有首页样式冒称集成完成。当前 globals.css:1 与 admin/admin.css:1 均导入同一 tokens.css，现有 Linux CI 的 standalone E2E 为60通过9既有跳过，未把跳过项计为验收通过。"
+      "第二轮仅复核 REVIEW-ROUND 1 的 R1 与直接回归。代码head=1f5ab2a45b9b5e9e4090a005d8530598a8f6ba89，base=7b7ab1c51e1b013c754b7d6fd2305c587f46afba；相比上一轮01dab19，仅修改 src/components/ui/dialog-focus.ts 和 tests/ui-primitives.test.ts，未改契约、生成器、API或业务范围。",
+      "当前 status 的 contractHash 与上一轮及派发包一致，stale=[]、runtimeDrift=[]。沿用 _run/M1-T7.review-round-1.contract.evidence.json 对06/07/10/11/13/17/19的已通过核查：M1-T1提供visual-base，本卡唯一提供visual-components；有效路径、原生展示层无业务IO、唯一tokens.css及统一出口均无变化。",
+      "src/components/ui/dialog-focus.ts:7-10 复用FOCUSABLE_SELECTOR并加入summary，以同一querySelectorAll保留DOM顺序；可见性、tabIndex、inert/hidden/disabled过滤保留，Escape/销毁/来源焦点恢复/异步close处理未改。tests/ui-primitives.test.ts:108、:123新增选择器敏感的正向summary、双向边界和反向原生步进回归；未修改范围外的既有共享焦点工具。",
+      "复跑原失败脚本 semantic-focus-probe.mjs：Chrome155中标题Tab及input Shift+Tab均到summary，断言退出0；扩展的r1-native-focus-probe.mjs同样退出0，正向边界到summary、反向边界到close，Escape请求一次关闭并恢复opener，快速重开后仍open且焦点在title。该证据仅证明独立原语行为，不冒充产品集成或GIF。",
+      "本轮 node --import tsx --test tests/ui-primitives.test.ts tests/brand-surface-tokens.test.ts tests/admin-mobile-291.test.ts tests/focus-307.test.ts tests/cookie-settings-focus-307p2.test.ts 为34通过、0失败、0跳过；pnpm10 lint和tsc --noEmit退出0。代码head的CI run39534433773中build-and-audit和e2e均SUCCESS，security-review gate也SUCCESS。落地文档提交后的检查另按最终head核对。",
+      "stage仍为primitive、integrationTask仍为M1-T4；本轮不新增产品页面或降低最终集成验收。任务笔记代码位置和实施沉淀已按summary语义及新测试行号更新。R1已修复，其余上一轮通过项保持，代码验收结论pass。"
     ],
-    "reviewed": "2026-10-21T02:31:16.102790+00:00",
+    "reviewed": "2026-10-21T02:55:41.727486+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
