@@ -72,6 +72,67 @@ class StaticMediaChecks(unittest.TestCase):
         self.assertIn('NON_EQUIPMENT_IDENTITY_NOT_VERIFIED',
                       CHECK.release_blockers(self.manifest, self.identity, self.production))
 
+    def test_held_media_cannot_be_public_or_released(self):
+        original_read = CHECK.read
+        cases = [
+            ('public-path', lambda value: value.update(heldFiles=['public/brand/not-approved.mp4']),
+             'Held media must stay outside public assets'),
+            ('release-held', lambda value: value.update(releaseFiles=[value['heldFiles'][1]]),
+             'Held media entered release set'),
+        ]
+        for name, mutate, error in cases:
+            with self.subTest(case=name):
+                manifest = copy.deepcopy(self.manifest)
+                mutate(manifest)
+                with patch.object(CHECK, 'read', side_effect=lambda filename:
+                                  manifest if filename == 'brand-static-media.json' else original_read(filename)):
+                    with self.assertRaisesRegex(ValueError, error):
+                        CHECK.verify()
+
+    def test_held_poster_cannot_change_frame_time(self):
+        original_read = CHECK.read
+        self.identity['heldDerivatives'][1]['atMs'] = 4000
+        with patch.object(CHECK, 'read', side_effect=lambda filename:
+                          self.identity if filename == 'video-identity.json' else original_read(filename)):
+            with self.assertRaisesRegex(ValueError, 'Poster time differs'):
+                CHECK.verify()
+
+    def test_held_file_flag_cannot_override_hold(self):
+        original_read = CHECK.read
+        held_path = self.manifest['heldFiles'][0]
+        next(row for row in self.manifest['files'] if row['path'] == held_path)['releaseAllowed'] = True
+        with patch.object(CHECK, 'read', side_effect=lambda filename:
+                          self.manifest if filename == 'brand-static-media.json' else original_read(filename)):
+            with self.assertRaisesRegex(ValueError, 'Held file was marked releasable'):
+                CHECK.verify()
+
+    def test_held_derivative_dimensions_match_decoded_file(self):
+        original_read = CHECK.read
+        self.identity['heldDerivatives'][0]['width'] = 1
+        with patch.object(CHECK, 'read', side_effect=lambda filename:
+                          self.identity if filename == 'video-identity.json' else original_read(filename)):
+            with self.assertRaisesRegex(ValueError, 'Registered media width differs'):
+                CHECK.verify()
+
+    def test_generation_selection_and_metadata_are_consistent(self):
+        original_loads = CHECK.json.loads
+        cases = [
+            ('selected-hash', lambda record: record['selectedOutput'].update(sha256='0' * 64), 'Hash mismatch'),
+            ('output-width', lambda record: record['calls'][1]['output'].update(width=1), 'Registered media width differs'),
+            ('jpeg-source', lambda record: record['jpegExport'].update(sourcePngPath=record['calls'][0]['output']['path']),
+             'JPEG source differs'),
+        ]
+        for name, mutate, error in cases:
+            with self.subTest(case=name):
+                def altered_record(text, *args, **kwargs):
+                    record = original_loads(text, *args, **kwargs)
+                    if isinstance(record, dict) and 'selectedOutput' in record:
+                        mutate(record)
+                    return record
+                with patch.object(CHECK.json, 'loads', side_effect=altered_record):
+                    with self.assertRaisesRegex(ValueError, error):
+                        CHECK.verify()
+
 
 if __name__ == '__main__':
     unittest.main()

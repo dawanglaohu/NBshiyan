@@ -108,9 +108,12 @@
       ],
       "beforeEvidencePath": "docs/brand-media/static/evidence/jpg-airship.png",
       "replacementLogoPath": "public/brand/packjoyu-logo-master.svg",
-      "status": "not_executed",
+      "status": "generated_pending_fidelity_review",
       "afterPath": null,
-      "oldLogoAbsentVerified": false
+      "oldLogoAbsentVerified": true,
+      "candidatePath": "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+      "currentMasterFidelityVerified": false,
+      "reviewPath": "docs/brand-media/static/image-edit-review.md"
     },
     {
       "id": "JPG-02",
@@ -124,9 +127,12 @@
       ],
       "beforeEvidencePath": "docs/brand-media/static/evidence/jpg-factory.png",
       "replacementLogoPath": "public/brand/packjoyu-logo-master.svg",
-      "status": "not_executed",
+      "status": "generated_pending_fidelity_review",
       "afterPath": null,
-      "oldLogoAbsentVerified": false
+      "oldLogoAbsentVerified": true,
+      "candidatePath": "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+      "currentMasterFidelityVerified": false,
+      "reviewPath": "docs/brand-media/static/image-edit-review.md"
     }
   ],
   "videoIdentityPath": "docs/brand-media/static/video-identity.json",
@@ -237,6 +243,30 @@
       "releaseAllowed": false
     },
     {
+      "path": "docs/brand-media/static/evidence/exact-logo-reference.png",
+      "sha256": "a574cb98ca4c31fdb3ca642e336ca70dfeec464563203a886d065cf6a2ce9f5f",
+      "width": 1854,
+      "height": 384,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/imagegen-banner-edit-01.png",
+      "sha256": "5b1e990598e0db38c7b4c2a3c696c1269c823de94c584f51b22ccbb600486cb1",
+      "width": 1738,
+      "height": 905,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/imagegen-banner-edit-02.png",
+      "sha256": "bf4dbca5ce9b82100e5b65f58afc4a62a3ee17d3f94d2308a4cb675be1d12e63",
+      "width": 1738,
+      "height": 905,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
       "path": "docs/brand-media/static/evidence/jpg-airship.png",
       "sha256": "e45a2d5c1d3fafc0ca3ceddb407c57791477cc093a33fd5caf03f418f8ca7f55",
       "width": 1050,
@@ -317,6 +347,32 @@
       "releaseAllowed": false
     },
     {
+      "path": "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+      "sha256": "c80f0c7ce5be725c792597beb994b56e238d8c886cbcc86e56c59dbd83cb39a7",
+      "role": "held_derivative",
+      "releaseAllowed": false,
+      "width": 1738,
+      "height": 905
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-720p60.mp4",
+      "sha256": "ed776cfa192a65588d6cc8ed3c5d46b3a2c7a8121b0be7cb2f5b315f88bb3634",
+      "role": "held_derivative",
+      "releaseAllowed": false,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60.0
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-poster-4500ms.jpg",
+      "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+      "role": "held_derivative",
+      "releaseAllowed": false,
+      "width": 1920,
+      "height": 1080
+    },
+    {
       "path": "public/brand/packjoyu-logo-master.svg",
       "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
       "width": 927,
@@ -327,10 +383,15 @@
     }
   ],
   "missingDeliverables": [
-    "branded_jpg_release_copy",
-    "video_compressed_release_copy",
-    "video_poster_release_copy",
-    "actual_remote_software_production_records"
+    "jpg_exact_master_fidelity_acceptance",
+    "video_own_identity_provenance",
+    "approved_video_and_poster_release"
   ],
-  "completionRule": "Missing release copies or actual production records keep M1-T3 incomplete. Evidence is not a substitute for finished media."
+  "completionRule": "Missing release copies or actual production records keep M1-T3 incomplete. Evidence is not a substitute for finished media.",
+  "heldFiles": [
+    "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+    "docs/brand-media/static/held/video2-720p60.mp4",
+    "docs/brand-media/static/held/video2-poster-4500ms.jpg"
+  ],
+  "generationRecordPath": "docs/brand-media/static/image-generation-record.json"
 }

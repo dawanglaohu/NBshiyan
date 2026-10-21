@@ -1,0 +1,48 @@
+{
+  "pairedFrames": 735,
+  "comparison": "Each original frame resized to1280x720 INTER_AREA against same-index decoded candidate frame. Compression and differing scaler filters may vary pixels.",
+  "meanPsnrDb": 32.267432103934794,
+  "minimumPsnr": {
+    "frame": 445,
+    "psnrDb": 27.204482503680314,
+    "meanAbsolutePixelDifference": 7.463932653356482
+  },
+  "cutAndEndpointFrames": [
+    {
+      "frame": 0,
+      "psnrDb": 41.13799960113468,
+      "meanAbsolutePixelDifference": 1.0782537615740742
+    },
+    {
+      "frame": 114,
+      "psnrDb": 32.648642584978646,
+      "meanAbsolutePixelDifference": 3.7460300925925925
+    },
+    {
+      "frame": 223,
+      "psnrDb": 33.60878847703968,
+      "meanAbsolutePixelDifference": 3.4229430700231482
+    },
+    {
+      "frame": 355,
+      "psnrDb": 31.704466031939397,
+      "meanAbsolutePixelDifference": 4.514878110532408
+    },
+    {
+      "frame": 467,
+      "psnrDb": 29.455021286229666,
+      "meanAbsolutePixelDifference": 5.282535083912037
+    },
+    {
+      "frame": 600,
+      "psnrDb": 31.245786688402927,
+      "meanAbsolutePixelDifference": 4.678230251736111
+    },
+    {
+      "frame": 734,
+      "psnrDb": 31.39435785899571,
+      "meanAbsolutePixelDifference": 4.453773148148148
+    }
+  ],
+  "releaseAllowed": false
+}

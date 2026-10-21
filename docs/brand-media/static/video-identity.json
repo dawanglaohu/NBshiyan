@@ -193,8 +193,7 @@
   "releaseBlockers": [
     "UNREADABLE_NON_EQUIPMENT_IDENTITY",
     "NO_OWN_VERIFIED_VIDEO_PROVENANCE",
-    "PRODUCT_RELATIONSHIP_UNKNOWN",
-    "NO_RELEASE_COPY_OR_REMOTE_SOFTWARE_RECORD"
+    "PRODUCT_RELATIONSHIP_UNKNOWN"
   ],
   "corporateAuthorship": {
     "identity": "UNKNOWN",
@@ -247,5 +246,34 @@
     "status": "evidence_only",
     "releaseAllowed": false,
     "reason": "Own source frame showing paper-handling machinery; whole-video identity is not verified."
-  }
+  },
+  "heldDerivatives": [
+    {
+      "path": "docs/brand-media/static/held/video2-720p60.mp4",
+      "sha256": "ed776cfa192a65588d6cc8ed3c5d46b3a2c7a8121b0be7cb2f5b315f88bb3634",
+      "kind": "compressed_video",
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60.0,
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "releaseAllowed": false,
+      "movieDurationMs": 12309.125,
+      "movieDurationDeltaMs": 42.125,
+      "audio": "AAC 48000Hz stereo; re-encoded, not stream copied",
+      "verificationPath": "docs/brand-media/static/evidence/video-transcode-verification.json"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-poster-4500ms.jpg",
+      "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+      "kind": "poster",
+      "width": 1920,
+      "height": 1080,
+      "frameIndex": 270,
+      "atMs": 4500.0,
+      "sourceFramePath": "docs/brand-media/static/evidence/video2-f0270.jpg",
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "releaseAllowed": false
+    }
+  ]
 }

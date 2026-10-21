@@ -25,22 +25,32 @@
     },
     {
       "id": "airship-and-factory-replacement",
-      "status": "not_executed",
-      "tool": "GPT Dot graphics software unavailable",
-      "outputs": [],
-      "remainingTask": "Import verified master into authorized graphics software; replace both complete old logos with surface perspective; export JPG copy; inspect each occurrence; preserve original."
+      "status": "executed_pending_quality_review",
+      "tool": "built-in image_gen.imagegen, two actual calls; sharp JPEG format export",
+      "outputs": [
+        "docs/brand-media/static/held/packjoyu-city-edited.jpg"
+      ],
+      "remainingTask": "Verify exact master glyph/proportion fidelity; do not call generative scene repainting a pixel-local edit.",
+      "reviewPath": "docs/brand-media/static/image-edit-review.md"
     },
     {
       "id": "video-compressed-release-copy",
-      "status": "not_executed",
-      "outputs": [],
-      "remainingTask": "Resolve source corporate identity and product relationship, record actual authorized software export of the complete uncut timeline, decode output and verify duration/audio policy; keep original unchanged."
+      "status": "executed_release_held",
+      "outputs": [
+        "docs/brand-media/static/held/video2-720p60.mp4"
+      ],
+      "remainingTask": "Resolve video corporate provenance and non-equipment UNKNOWN before release.",
+      "tool": "existing Windows.Media.Transcoding.MediaTranscoder; no trim start/stop",
+      "verificationPath": "docs/brand-media/static/evidence/video-transcode-verification.json"
     },
     {
       "id": "video-poster-release-copy",
-      "status": "not_executed",
-      "outputs": [],
-      "remainingTask": "After identity clearance, export semantic poster from documented original frame in available authorized software; record output hash/dimensions and visual review. Current 4500ms extraction is evidence only."
+      "status": "executed_release_held",
+      "outputs": [
+        "docs/brand-media/static/held/video2-poster-4500ms.jpg"
+      ],
+      "remainingTask": "Resolve whole-video provenance before poster release.",
+      "tool": "Original-video frame270 at4500ms, exact byte copy of canonical JPEG export"
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",
@@ -66,7 +76,13 @@
       "backend": "OpenCV 5.0.0"
     }
   ],
-  "originalHashCheck": "Read before inspection and again after all local extraction; SHA256 equal. No original is copied into public/brand.",
+  "originalHashCheck": "Original JPG/MP4 re-read after editing and export; SHA256 matches originals registered in brand-static-media.json. No original changed.",
   "guiChange": false,
-  "gifEvidence": "Not applicable: no product GUI behavior changed; Dot software workflow is not executed."
+  "gifEvidence": "Not applicable: no product GUI behavior changed; Dot software workflow is not executed.",
+  "authorizationChange": {
+    "requestedMode": "current account image/video generation instead of Dot",
+    "source": "Direct user instruction in this chat",
+    "dotExecutionClaimed": false,
+    "imageGenerationRecordPath": "docs/brand-media/static/image-generation-record.json"
+  }
 }

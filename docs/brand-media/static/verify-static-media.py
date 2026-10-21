@@ -63,6 +63,10 @@ def verify(originals_root=None):
     manifest, identity, production = map(read, [
         'brand-static-media.json', 'video-identity.json', 'production-record.json'])
     require(manifest['task'] == production['task'] == 'M1-T3', 'Wrong task')
+    video_source = next((row for row in manifest['originals']
+                         if row['path'] == identity['originalPath']), None)
+    require(video_source is not None, 'Identity source video is not registered')
+    require(identity['originalSha256'] == video_source['sha256'], 'Identity source hash differs')
     audit = read('logo-source-audit.json')
     for key in ['path', 'sha256', 'viewBox']:
         require(manifest['logoMaster'][key] == audit['export'][key], f'Master {key} differs')
@@ -79,6 +83,17 @@ def verify(originals_root=None):
         allowed = {'viewBox', 'width', 'height'} if node is svg else {'d', 'fill'}
         require(set(node.attrib) <= allowed, 'Unexpected SVG attributes or external reference')
     image_paths = set()
+    file_by_path = {row['path']: row for row in manifest['files']}
+    require(len(file_by_path) == len(manifest['files']), 'Duplicate media path')
+
+    def check_registered_record(row):
+        check_hash(row)
+        canonical = file_by_path.get(row['path'])
+        require(canonical is not None, 'Media record is not registered')
+        for key in ['sha256', 'width', 'height', 'frameCount', 'fps']:
+            if key in row:
+                require(row[key] == canonical.get(key), f'Registered media {key} differs')
+
     for row in manifest['files']:
         target = check_hash(row)
         image_paths.add(row['path'])
@@ -102,6 +117,10 @@ def verify(originals_root=None):
                         break
                     decoded_count += 1
                 require(decoded_count > 0, f'Video has no decoded frames: {row["path"]}')
+                if 'frameCount' in row:
+                    require(decoded_count == row['frameCount'], f'Video frame count differs: {row["path"]}')
+                if 'fps' in row:
+                    require(decoded.get(cv2.CAP_PROP_FPS) == row['fps'], f'Video fps differs: {row["path"]}')
             finally:
                 decoded.release()
         else:
@@ -112,6 +131,13 @@ def verify(originals_root=None):
     actual_images = {p.relative_to(ROOT).as_posix() for p in (BASE / 'evidence').iterdir()
                      if p.suffix.lower() in {'.png', '.jpg'}}
     actual_images.add('public/brand/packjoyu-logo-master.svg')
+    for held_path in manifest.get('heldFiles', []):
+        require(held_path.startswith('docs/brand-media/static/held/'), 'Held media must stay outside public assets')
+        local_path(held_path)
+        require(held_path in image_paths, f'Held file missing from hash/dimension manifest: {held_path}')
+        require(held_path not in manifest['releaseFiles'], 'Held media entered release set')
+        require(file_by_path[held_path]['releaseAllowed'] is False, 'Held file was marked releasable')
+        actual_images.add(held_path)
     for release_path in manifest['releaseFiles']:
         local_path(release_path)
         require(release_path in image_paths, f'Release file missing from hash/dimension manifest: {release_path}')
@@ -120,7 +146,33 @@ def verify(originals_root=None):
         if replacement['afterPath']:
             local_path(replacement['afterPath'])
             require(replacement['afterPath'] in manifest['releaseFiles'], 'JPG output missing from release set')
+        if replacement.get('candidatePath'):
+            require(replacement['candidatePath'] in manifest.get('heldFiles', []), 'JPG candidate is not held')
     require(actual_images == image_paths, 'Manifest omits an image or lists an extra image')
+    if manifest.get('generationRecordPath'):
+        generation = json.loads(local_path(manifest['generationRecordPath']).read_text(encoding='utf-8'))
+        check_hash(generation['master'])
+        require(all(generation['master'][key] == manifest['logoMaster'][key] for key in ['path', 'sha256']),
+                'Image edit master differs from verified master')
+        for call in generation['calls']:
+            require(call['tool'] == 'image_gen.imagegen' and call['result'] == 'succeeded',
+                    'Image editing record does not describe an actual successful tool call')
+            check_hash(call['prompt'])
+            check_registered_record(call['output'])
+            require(call['output']['path'] in image_paths, 'Generated output missing from file manifest')
+            for source in call['inputs']:
+                if source['role'] == 'edit_target':
+                    require(any(source['path'] == row['path'] and source['sha256'] == row['sha256']
+                                for row in manifest['originals']), 'Image edit source differs from original')
+                else:
+                    check_hash(source)
+        check_registered_record(generation['selectedOutput'])
+        require(generation['selectedOutput'] in [call['output'] for call in generation['calls']],
+                'Selected image is not an actual tool output')
+        check_registered_record(generation['jpegExport'])
+        require(generation['jpegExport']['sourcePngPath'] == generation['selectedOutput']['path'],
+                'JPEG source differs from selected tool output')
+        require(generation['jpegExport']['path'] in manifest.get('heldFiles', []), 'Unaccepted JPG is not held')
     frames = read('evidence/video-frames.json')
     frame_by_path = {frame['path']: frame for frame in frames}
     require(len(frame_by_path) == len(frames), 'Duplicate frame evidence path')
@@ -148,6 +200,17 @@ def verify(originals_root=None):
     check_frame(identity['posterCandidate'])
     require(identity['posterCandidate']['releaseAllowed'] is False or identity['releaseAllowed'],
             'Held source video has a released poster candidate')
+    if 'heldDerivatives' in identity:
+        for derivative in identity['heldDerivatives']:
+            check_registered_record(derivative)
+            require(derivative['path'] in manifest.get('heldFiles', []), 'Unreleased derivative missing from held set')
+            require(derivative['releaseAllowed'] is False, 'Held video derivative was marked released')
+            require(derivative['sourceSha256'] == identity['originalSha256'], 'Derivative source video hash differs')
+            if derivative['kind'] == 'poster':
+                frame = frame_by_path[derivative['sourceFramePath']]
+                require(derivative['sha256'] == frame['sha256'], 'Poster differs from its original frame export')
+                require(derivative['frameIndex'] == frame['frameIndex']
+                        and derivative['atMs'] == frame['atMs'], 'Poster time differs from original frame')
     coverage = read('evidence/all-frame-coverage.json')
     next_frame = 0
     for sheet in coverage['sheets']:
@@ -155,10 +218,6 @@ def verify(originals_root=None):
         require(sheet['fromFrame'] == next_frame, 'Gap or overlap in full-frame contact sheets')
         next_frame = sheet['toFrame'] + 1
     require(next_frame == identity['frameCount'] == coverage['decodedFrames'], 'Frame coverage differs')
-    video_source = next((row for row in manifest['originals']
-                         if row['path'] == identity['originalPath']), None)
-    require(video_source is not None, 'Identity source video is not registered')
-    require(identity['originalSha256'] == video_source['sha256'], 'Identity source hash differs')
     timing = read('evidence/video-timing.json')
     require(identity['movieDurationMs'] == timing['movie']['durationMs'], 'Movie duration differs')
     for row in manifest['originals']:
@@ -193,7 +252,8 @@ def verify(originals_root=None):
         require(all(data['releaseAllowed'] is False for data in [manifest, identity, production]),
                 'Incomplete or unverified work was marked releasable')
         require(manifest['releaseFiles'] == [], 'Held media entered release set')
-    return {'integrity': 'pass', 'imageFilesChecked': len(image_paths),
+    return {'integrity': 'pass', 'mediaFilesChecked': len(image_paths),
+            'imageFilesChecked': sum(not path.endswith('.mp4') for path in image_paths),
             'originalsReRead': bool(originals_root), 'releaseAllowed': not blockers,
             'taskStatus': manifest['taskStatus'], 'releaseBlockers': blockers}
 

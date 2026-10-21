@@ -87,5 +87,50 @@
       "input_tokens": 1015,
       "output_tokens": 101
     }
+  },
+  {
+    "ts": "2026-10-20T17:43:31",
+    "template": "adjudicate",
+    "model": "jev-1.13.0",
+    "state_sha256": "f895123d6d31b197",
+    "label": "M1-T3:impl-account-media",
+    "verdicts": {
+      "pick": {
+        "choice": "A",
+        "confidence": 0.89,
+        "band": "high",
+        "probabilities": {
+          "A": 0.9299999999999999,
+          "B": 0.06,
+          "C": 0.01
+        }
+      },
+      "spec_change": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "outside_stack": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "needs_owner": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "reversible": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "adopt": {
+        "action": "take",
+        "option": "A",
+        "confidence": "high",
+        "why": "Jev 选 A（high）"
+      }
+    },
+    "usage": {
+      "input_tokens": 1266,
+      "output_tokens": 108
+    }
   }
 ]

@@ -14,14 +14,16 @@
     {
       "command": "verify-static-media.py --originals-root C:/Users/admin/Desktop",
       "result": "pass",
-      "imageFilesChecked": 24,
+      "imageFilesChecked": 29,
       "sourceDecodedFrames": 735,
-      "reproducedEvidenceFrames": 7
+      "reproducedEvidenceFrames": 7,
+      "mediaFilesChecked": 30,
+      "compressedVideoFrames": 735
     },
     {
       "command": "python -B -m unittest discover -s docs/brand-media/static -p test_*.py -v",
       "result": "pass",
-      "tests": 5
+      "tests": 10
     },
     {
       "command": "verify-static-media.py --require-release",
@@ -31,7 +33,9 @@
     {
       "command": "npx --yes pnpm@10.34.6 lint",
       "result": "pass_with_existing_warnings",
-      "nativeExitCode": 0
+      "nativeExitCode": 0,
+      "head": "d601ce39bfececbeef34446e187eae7e2f9d0e7b",
+      "scopeNote": "Application source unchanged in account-media continuation; no repeat full lint."
     },
     {
       "command": "node --check and targeted eslint capture-logo-evidence.mjs",
@@ -40,14 +44,21 @@
     {
       "command": "independent verification subagent, read-only",
       "result": "pass_for_existing_evidence_only",
-      "negativeMutationsRejected": 8
+      "negativeMutationsRejected": 8,
+      "continuationNegativeMutationsRejected": 6,
+      "heldJpegReproducesSelectedPng": true,
+      "compressedVideoMetadataIndependentlyChecked": true
     }
   ],
   "notExecuted": [
     "GPT Dot graphics editing",
-    "branded JPG export",
-    "compressed video release export",
-    "poster release export",
-    "whole application build/DB/e2e"
+    "account video-generation tool (not exposed)",
+    "whole application build/DB/e2e for account-media increment"
+  ],
+  "previousVerifiedHead": "d601ce39bfececbeef34446e187eae7e2f9d0e7b",
+  "imageGenerationCalls": 2,
+  "pendingAcceptance": [
+    "JPG exact master glyphs and non-target scene fidelity",
+    "video corporate provenance and product relationship"
   ]
 }

@@ -10,4 +10,4 @@
 - `evidence/video2-f0600.jpg` 和 `evidence/video2-f0734.jpg`：10000 ms 及 12233.333333 ms，包装纸可读 `Holiland`、`好利来`，登记 THIRD_PARTY、`role=product_brand`；与 PackJoyU 的关系为 UNKNOWN。节庆图文中的 `YEAR OF HORSE`、`NEW`、`2014` 不是 PackJoyU 企业事实。
 - 首帧是进纸设备实拍，末帧仍是带 Holiland 的包装生产场景。通览未见独立片头/片尾企业署名卡或固定叠加水印；企业归属仍为 UNKNOWN，不据此放行。
 
-`releaseAllowed=false`。原片、整片压缩发布副本和海报发布副本均不得列入成品；仅保留 4500 ms 的原帧作为海报候选证据。没有裁切、遮挡、重剪或换标视频。后续须补可打开的己方身份依据并消除非设备角色的 UNKNOWN，再复核成片；设备商标的记录不能替代企业归属判断。
+`releaseAllowed=false`。原片、整片压缩副本和海报副本均不得列入已批准发布集合。`held/video2-720p60.mp4` 为系统媒体工具转码的完整 735 帧副本，未裁切、遮挡、重剪或换标，保留音轨；容器时长比原片多 42.125ms，不能称时长完全相等。`held/video2-poster-4500ms.jpg` 与 4500ms 原帧 JPEG 的字节相同，不是生成或重绘的画面。后续须补可打开的己方身份依据并消除非设备角色的 UNKNOWN，再复核成片；设备商标的记录不能替代企业归属判断。
