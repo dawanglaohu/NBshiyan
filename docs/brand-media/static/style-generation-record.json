@@ -1,0 +1,42 @@
+{
+  "task": "M1-T3",
+  "kind": "new_style_variant",
+  "authorization": "用户明确将原图作为参考，要求生成不同风格且保留logo；不要求新风格保持原场景像素。",
+  "tool": "image_gen.imagegen",
+  "result": "succeeded",
+  "intent": "generate a new illustration using thematic and existing-logo references",
+  "style": "handcrafted papercraft miniature diorama",
+  "inputs": [
+    {
+      "path": "C:/Users/admin/Desktop/banner1_1654824049643.jpg",
+      "sha256": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "role": "thematic_reference_only"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/exact-logo-reference.png",
+      "sha256": "a574cb98ca4c31fdb3ca642e336ca70dfeec464563203a886d065cf6a2ce9f5f",
+      "role": "existing_wordmark_reference"
+    }
+  ],
+  "prompt": {
+    "path": "docs/brand-media/static/evidence/papercraft-style.prompt.txt",
+    "sha256": "934602ebcd4c69efbc9c88d894fb730052cfba728ed45c6633619be75295caf5"
+  },
+  "output": {
+    "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+    "sha256": "01440bcade957cf0ec82d05b11bf5de0e227f450c2cb156f6e2cedf41a7115f7",
+    "width": 1738,
+    "height": 905
+  },
+  "toolResultFileName": "exec-434f04a5-6ff2-4bd4-b934-b77ec26880a0.png",
+  "visualReview": {
+    "airshipWordmark": "PackJoyU",
+    "factoryWordmark": "PackJoyU",
+    "PackAndU": "black",
+    "Joy": "coral",
+    "oldCorporateMarksObserved": false,
+    "styleIsDifferent": true
+  },
+  "factualBoundary": "Fictional paper-art brand illustration; no real factory/customer/capacity claim. Does not change original video provenance.",
+  "releaseAllowed": false
+}

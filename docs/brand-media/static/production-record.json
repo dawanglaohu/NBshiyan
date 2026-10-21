@@ -51,6 +51,16 @@
       ],
       "remainingTask": "Resolve whole-video provenance before poster release.",
       "tool": "Original-video frame270 at4500ms, exact byte copy of canonical JPEG export"
+    },
+    {
+      "id": "papercraft-style-variant",
+      "status": "executed_pending_selection",
+      "tool": "image_gen.imagegen",
+      "outputs": [
+        "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png"
+      ],
+      "recordPath": "docs/brand-media/static/style-generation-record.json",
+      "scope": "User-authorized new style from reference, not a pixel-local replacement."
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",

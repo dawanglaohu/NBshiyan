@@ -380,6 +380,14 @@
       "role": "verified_logo_master",
       "dimensionsFrom": "Sharp 0.35.5 full raster decode at intrinsic SVG size",
       "releaseAllowed": true
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+      "sha256": "01440bcade957cf0ec82d05b11bf5de0e227f450c2cb156f6e2cedf41a7115f7",
+      "width": 1738,
+      "height": 905,
+      "role": "held_style_variant",
+      "releaseAllowed": false
     }
   ],
   "missingDeliverables": [
@@ -391,7 +399,16 @@
   "heldFiles": [
     "docs/brand-media/static/held/packjoyu-city-edited.jpg",
     "docs/brand-media/static/held/video2-720p60.mp4",
-    "docs/brand-media/static/held/video2-poster-4500ms.jpg"
+    "docs/brand-media/static/held/video2-poster-4500ms.jpg",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png"
   ],
-  "generationRecordPath": "docs/brand-media/static/image-generation-record.json"
+  "generationRecordPath": "docs/brand-media/static/image-generation-record.json",
+  "styleVariants": [
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+      "recordPath": "docs/brand-media/static/style-generation-record.json",
+      "status": "generated_reference_style",
+      "userAuthorizedRestyling": true
+    }
+  ]
 }

@@ -14,10 +14,10 @@
     {
       "command": "verify-static-media.py --originals-root C:/Users/admin/Desktop",
       "result": "pass",
-      "imageFilesChecked": 29,
+      "imageFilesChecked": 30,
       "sourceDecodedFrames": 735,
       "reproducedEvidenceFrames": 7,
-      "mediaFilesChecked": 30,
+      "mediaFilesChecked": 31,
       "compressedVideoFrames": 735
     },
     {
@@ -60,5 +60,6 @@
   "pendingAcceptance": [
     "JPG exact master glyphs and non-target scene fidelity",
     "video corporate provenance and product relationship"
-  ]
+  ],
+  "styleGenerationCalls": 1
 }
