@@ -106,14 +106,14 @@
     {
       "id": "video-product-brand-replacement",
       "status": "executed_verified_local_media",
-      "tool": "Existing local OpenCV/Pillow exact-master compositing and WSL FFmpeg H264 encoding. Early paper panels use per-frame detection; final bags use source-reviewed individual-paper perspective keyframes with foreground restoration.",
+      "tool": "Existing local exact-master OpenCV/Pillow compositing and WSL FFmpeg H264 encoding. Ink-removal bounds remain separate from source-calibrated typography projection; lower paper/stack and upper ramp use separate plane corrections.",
       "outputs": [
-        "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
-        "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
-        "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg"
+        "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+        "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+        "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg"
       ],
       "recordPath": "docs/brand-media/static/video-product-replacement.json",
-      "remainingTask": "Original source provenance and overall task release checks remain unresolved."
+      "remainingTask": "Original video provenance and product relationship remain unresolved for release."
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",

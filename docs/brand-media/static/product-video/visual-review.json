@@ -1,8 +1,38 @@
 {
-  "status": "pass_for_recorded_scope",
-  "earlyEncodedBaselineFramesReviewed": 109,
-  "lateEncodedBaselineFramesReviewed": 135,
-  "finalV2BlockingFrameRegressionsReviewed": [
+  "status": "pass_for_requested_typography_correction",
+  "revision": "v3",
+  "finalVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+  "lateEncodedFramesReviewed": 135,
+  "lateFrameRangeInclusive": [
+    600,
+    734
+  ],
+  "independentVisualContributions": {
+    "agent": "logo_review",
+    "candidateFramesReviewed": 17,
+    "encodedContactSheetsReviewed": 12,
+    "encodedFramesOnContactSheets": 135,
+    "fullResolutionTransitionFramesReviewed": [
+      676,
+      677,
+      678,
+      679,
+      680
+    ],
+    "reportedResult": "Requested paper typography alignment and original machinery occlusion pass. Root rechecked the possible transition concern separately."
+  },
+  "rootTransitionRecheck": {
+    "frames": [
+      676,
+      677,
+      678,
+      679,
+      680
+    ],
+    "evidence": "Planning independent-transition-676-680.jpg extracted from actual MP4",
+    "result": "No distinct one-frame size or angle jump confirmed on central paper C. Text moves continuously behind original machinery. Newly entering upper paper D grows from a small initial projection; its relative area change alone is not a discontinuity defect."
+  },
+  "previousClippingRegressionFrames": [
     604,
     605,
     606,
@@ -11,20 +41,44 @@
     708,
     709
   ],
-  "finalV2DirectOcclusionRegressionsReviewed": [
-    600,
-    609,
-    734
-  ],
-  "finalV2EvidenceFramesPixelEqualToMovieDecode": 10,
-  "finalVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
-  "resolved": "False paper-colour/skin alpha holes and artificial white-border clipping removed while original machinery foreground remains above the print.",
-  "earlyDiagonalBeamRegressionFrames": [
+  "actualEncodedEvidenceFramesPixelEqualToMovieDecode": [
+    114,
+    150,
     179,
     180,
-    181
+    181,
+    210,
+    222,
+    600,
+    604,
+    605,
+    606,
+    609,
+    610,
+    611,
+    612,
+    642,
+    654,
+    657,
+    660,
+    663,
+    666,
+    669,
+    672,
+    684,
+    705,
+    708,
+    709,
+    714,
+    717,
+    726,
+    734
   ],
-  "earlyDiagonalBeamActualSourcePixelsPreserved": 27,
-  "normalSpeedBrowserPlayback": "not executed: local-file browser URL policy block",
-  "publicationAcceptanceClaimed": false
+  "evidenceFrameMatches": 31,
+  "early109RawCompositesEqualV2": true,
+  "geometryVerificationPath": "docs/brand-media/static/product-video/geometry-verification.json",
+  "resolved": "Wordmark projection follows source paper print axes. Original ink-cleanup bounds, exact master, equipment foreground and early-shot composites are retained.",
+  "normalSpeedBrowserPlayback": "not executed: existing local-file browser URL policy block",
+  "publicationAcceptanceClaimed": false,
+  "userAcceptedOutput": false
 }

@@ -1,0 +1,111 @@
+{
+  "paperQuad": [
+    [
+      668.0,
+      409.0
+    ],
+    [
+      1230.0,
+      591.0
+    ],
+    [
+      568.0,
+      935.0
+    ],
+    [
+      0.0,
+      652.0
+    ]
+  ],
+  "oldStripQuad": [
+    [
+      250.0,
+      548.0
+    ],
+    [
+      935.0,
+      752.0
+    ],
+    [
+      830.0,
+      829.0
+    ],
+    [
+      144.0,
+      617.0
+    ]
+  ],
+  "newStripQuad": [
+    [
+      283.2575988769531,
+      537.8991088867188
+    ],
+    [
+      931.677001953125,
+      804.2334594726562
+    ],
+    [
+      803.1338500976562,
+      873.7232666015625
+    ],
+    [
+      154.62362670898438,
+      584.27734375
+    ]
+  ],
+  "pixelCorrection": [
+    [
+      0.9296988143016697,
+      -0.33189639061449205,
+      21.046545849041685
+    ],
+    [
+      0.11644228434841893,
+      0.8298619576171926,
+      -40.321690469399044
+    ],
+    [
+      -9.901039576116932e-05,
+      -0.00015166253201236548,
+      1.0
+    ]
+  ],
+  "kind": "paper_typography_plane_calibration",
+  "sourceFrame": 734,
+  "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+  "scope": "Only final-shot logo projection. Original ink cleanup quads and foreground masks remain separate.",
+  "lowerPlaneUnitCorrection": [
+    [
+      0.9296988832005522,
+      -0.06034479866656725,
+      0.019133223499128934
+    ],
+    [
+      0.6404326151569502,
+      0.8298619615226578,
+      -0.2016084523469954
+    ],
+    [
+      -0.10891136981421612,
+      -0.030332500993699957,
+      1.0
+    ]
+  ],
+  "upperPlaneBaselineRotationDegrees": 2.8,
+  "transitionCenterY": [
+    350,
+    620
+  ],
+  "sourcePrintedLine": [
+    [
+      300,
+      583
+    ],
+    [
+      531,
+      696
+    ]
+  ],
+  "sourcePrintedLineDegrees": 26.07,
+  "calibrationNote": "Source paper corners, original red print and front edge determine the lower paper projection. The upper paper sits on a different ramp; retain its depth axis and apply only the smaller observed baseline correction."
+}

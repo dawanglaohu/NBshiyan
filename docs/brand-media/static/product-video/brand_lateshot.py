@@ -11,6 +11,24 @@ w=640;h=round(w*logo.shape[0]/logo.shape[1]);small=cv2.resize(logo,(w,h),interpo
 canvas=cv2.GaussianBlur(canvas,(0,0),.65)
 source_rect=np.float32([[0,0],[1100,0],[1100,200],[0,200]])
 anchors=json.loads((BASE/'late-anchors.json').read_text(encoding='utf-8'))['keyframes']
+calibration=json.loads((BASE/'late-logo-calibration.json').read_text(encoding='utf-8'))
+unit_square=np.float32([[0,0],[1,0],[1,1],[0,1]])
+plane_correction=np.float64(calibration['lowerPlaneUnitCorrection'])
+
+def logo_quad(q):
+ # Ink-removal bounds are not a physical rectangle: project type through the calibrated paper plane.
+ plane=cv2.getPerspectiveTransform(unit_square,q)
+ lower=cv2.perspectiveTransform(unit_square[None],plane@plane_correction)[0]
+ mid=q.mean(axis=0)
+ u=(q[1]-q[0]+q[2]-q[3])/4
+ v=(q[3]-q[0]+q[2]-q[1])/4
+ a=np.deg2rad(calibration['upperPlaneBaselineRotationDegrees'])
+ rotated=np.array([[np.cos(a),-np.sin(a)],[np.sin(a),np.cos(a)]])@u
+ upper=np.float32([mid-rotated-v,mid+rotated-v,mid+rotated+v,mid-rotated+v])
+ low,high=calibration['transitionCenterY']
+ t=np.clip((mid[1]-low)/(high-low),0,1)
+ t=t*t*(3-2*t)
+ return np.float32(upper*(1-t)+lower*t)
 
 def red_mask(f):
  b,g,r=[f[:,:,k].astype(np.float32) for k in range(3)]
@@ -42,7 +60,7 @@ def compose(f,index,rows):
  debug=[]
  for row in rows:
   q=np.float32(row['quad'])
-  # Expand the clean region around the original brand; the new wordmark uses the checked strip itself.
+  # Retain the source ink-removal region independently of the typography projection.
   mid=(q[0]+q[1]+q[2]+q[3])/4
   u=(q[1]-q[0]+q[2]-q[3])/4;v=(q[3]-q[0]+q[2]-q[1])/4
   horizontal=1.45 if np.mean(q,axis=0)[0]>1000 and np.mean(q,axis=0)[1]>800 else 1.06
@@ -55,12 +73,13 @@ def compose(f,index,rows):
    x0=max(int(xs.min())-10,0);x1=min(int(xs.max())+11,1920);y0=max(int(ys.min())-10,0);y1=min(int(ys.max())+11,1080)
    patch=cv2.inpaint(out[y0:y1,x0:x1],old[y0:y1,x0:x1],4,cv2.INPAINT_TELEA)
    out[y0:y1,x0:x1]=patch
-  H=cv2.getPerspectiveTransform(source_rect,q)
+  printq=logo_quad(q)
+  H=cv2.getPerspectiveTransform(source_rect,printq)
   layer=cv2.warpPerspective(canvas,H,(1920,1080),flags=cv2.INTER_LINEAR)
   layer=cv2.GaussianBlur(layer,(0,0),1.0 if np.linalg.norm(q[1]-q[0])>600 else 1.5)
   alpha=layer[:,:,3].astype(np.float32)/255*visible*.94
   out=np.uint8(out.astype(np.float32)*(1-alpha[:,:,None])+layer[:,:,:3].astype(np.float32)*alpha[:,:,None])
-  debug.append({'quad':q.tolist(),'clearedRedPixels':int(len(xs))})
+  debug.append({'quad':q.tolist(),'logoQuad':printq.tolist(),'clearedRedPixels':int(len(xs))})
  out[protect>0]=f[protect>0]
  out[hand]=f[hand]
  return out,debug

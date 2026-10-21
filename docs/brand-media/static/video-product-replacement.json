@@ -13,9 +13,9 @@
   "displayedBrand": "PackJoyU",
   "outputs": [
     {
-      "path": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
-      "sha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
-      "bytes": 10221006,
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "bytes": 10216338,
       "width": 1920,
       "height": 1080,
       "frameCount": 735,
@@ -29,9 +29,9 @@
       "kind": "product_brand_edited_video"
     },
     {
-      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
-      "sha256": "1fd65228391f6eb2131feddfc3ca5fbdf05ce3fb315a535004e985bc3f37f170",
-      "bytes": 4235191,
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "bytes": 4231724,
       "width": 1280,
       "height": 720,
       "frameCount": 735,
@@ -46,44 +46,42 @@
     }
   ],
   "poster": {
-    "path": "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg",
-    "sha256": "38ad2d7f809bba82cabba63dbc5794bbdaa73d92fae9594bf5c0607bf023bdd4",
-    "bytes": 427595,
+    "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
+    "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+    "bytes": 421795,
     "width": 1920,
     "height": 1080,
     "frameIndex": 734,
     "atMs": 12233.333333333332,
-    "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
-    "sourceVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
-    "encoding": "OpenCV JPEG quality95 from the actual encoded edited video frame",
+    "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+    "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+    "encoding": "OpenCV JPEG quality95 from actual encoded edited video frame",
     "releaseAllowed": false
   },
   "encodedFrameEvidence": [
     {
-      "path": "docs/brand-media/static/evidence/video-product-brand-after-0180.jpg",
-      "sha256": "59641be0b3b8335256fc332f2fbf4176248327bf06469e2f5d8da8d6223ba219",
-      "bytes": 366453,
+      "path": "docs/brand-media/static/evidence/video-product-logo-alignment-v3-0734.jpg",
+      "sha256": "ae1aa520fbb8e89b5b3b17ac8df7330288e79627a455c890eb231d88db277c30",
+      "bytes": 233553,
       "width": 1920,
-      "height": 1080,
-      "frameIndex": 180,
-      "atMs": 3000.0,
-      "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
-      "sourceVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
-      "encoding": "OpenCV JPEG quality95 from the actual encoded edited video frame",
-      "releaseAllowed": false
-    },
-    {
-      "path": "docs/brand-media/static/evidence/video-product-brand-after-0600.jpg",
-      "sha256": "942d8e535e0f15d61161f6715aecbf9d170fa7e766c92baf02077e46be0f4813",
-      "bytes": 415058,
-      "width": 1920,
-      "height": 1080,
-      "frameIndex": 600,
-      "atMs": 10000.0,
-      "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
-      "sourceVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
-      "encoding": "OpenCV JPEG quality95 from the actual encoded edited video frame",
-      "releaseAllowed": false
+      "height": 550,
+      "frameIndex": 734,
+      "sourceVideoPaths": [
+        "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+        "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4"
+      ],
+      "sourceVideoSha256s": [
+        "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+        "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+      ],
+      "crop": [
+        100,
+        430,
+        1100,
+        930
+      ],
+      "releaseAllowed": false,
+      "kind": "encoded_logo_alignment_comparison"
     }
   ],
   "editedShotRanges": [
@@ -123,13 +121,13 @@
   "all576AudioPacketPayloadsAndTimingPreserved": true,
   "sourceFilesUnchanged": true,
   "previousAcceptedStaticAndGifUnchanged": true,
-  "actualMethod": "Existing local OpenCV/Pillow exact-master compositing and WSL FFmpeg H264 encoding. Early paper panels use per-frame detection; final bags use source-reviewed individual-paper perspective keyframes with foreground restoration.",
+  "actualMethod": "Existing local exact-master OpenCV/Pillow compositing and WSL FFmpeg H264 encoding. Ink-removal bounds remain separate from source-calibrated typography projection; lower paper/stack and upper ramp use separate plane corrections.",
   "accountVideoGenerationClaimed": false,
   "dotExecutionClaimed": false,
   "codeAndData": [
     {
       "path": "docs/brand-media/static/render-product-brand-video.py",
-      "sha256": "af1b76224f0514165f2359f1e9644f84c6f85ee8e3e0ccaad897ca8ae7f73705"
+      "sha256": "6f1542a6ddfda5edc860d199882deb0ba5d97f96f85992d6de272f0ffa2a0475"
     },
     {
       "path": "docs/brand-media/static/product-video/brand_earlyshot.py",
@@ -137,7 +135,7 @@
     },
     {
       "path": "docs/brand-media/static/product-video/brand_lateshot.py",
-      "sha256": "123dce7cb33f2d330ae3fbfda1ff15b862f578367351bebf0ffa3f2baccd7fb9"
+      "sha256": "d6e251de8cbbe7f0d0a39198b3d6b9ae633548ec38d83e5712f72e1ec8ad42be"
     },
     {
       "path": "docs/brand-media/static/product-video/late-anchors.json",
@@ -152,16 +150,28 @@
       "sha256": "75fc7fcdb42f744acae98da87f1df040df303d5de31e44a14ecb9ae9fedbfa3f"
     },
     {
+      "path": "docs/brand-media/static/product-video/late-logo-calibration.json",
+      "sha256": "b3adb7515f584603fbe3df6d2f7a5b5ab497a4f5190aa6a474490696ece61a81"
+    },
+    {
       "path": "docs/brand-media/static/product-video/composition-record.json",
-      "sha256": "e00a972844dc573247d54b5375590e3fa4a77cc272e919b946409656bac18400"
+      "sha256": "6b77725e17bec1944c29912d47208b451a35a6872b43577dc406369fe552638e"
     },
     {
       "path": "docs/brand-media/static/product-video/media-verification.json",
-      "sha256": "b77331c95400d583405f548cf90d745e2496cfaa45ca77951a136d13046e194a"
+      "sha256": "1b9fc93ab6b29763a64e1fa33d90644ff6a3f7c7e9d4843a80f20b5c2a48af16"
     },
     {
       "path": "docs/brand-media/static/product-video/visual-review.json",
-      "sha256": "7e7c3d5f8ae4965153a0a3fb00c803f4d77ba262db26f2a78366dd20292f51ce"
+      "sha256": "5fa5be7dab99e5496c75a645c1c92f03b5b11a129aaf3c150e4eb9608140f920"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/geometry-verification.json",
+      "sha256": "dec22752b92338c8eae3afce2cd71736f18690e7970a29654d465247044ff944"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/v2-output-archive.json",
+      "sha256": "d454b7b264241a63f9096d57a32391b9d386fc8008716d578d7a293dcca8db5e"
     }
   ],
   "decision": {
@@ -173,10 +183,40 @@
     "logPath": "docs/brand-media/static/evidence/video-product-adjudication.jsonl"
   },
   "independentEncodedVisualReview": {
-    "status": "pass_for_recorded_scope",
-    "earlyEncodedBaselineFramesReviewed": 109,
-    "lateEncodedBaselineFramesReviewed": 135,
-    "finalV2BlockingFrameRegressionsReviewed": [
+    "status": "pass_for_requested_typography_correction",
+    "revision": "v3",
+    "finalVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+    "lateEncodedFramesReviewed": 135,
+    "lateFrameRangeInclusive": [
+      600,
+      734
+    ],
+    "independentVisualContributions": {
+      "agent": "logo_review",
+      "candidateFramesReviewed": 17,
+      "encodedContactSheetsReviewed": 12,
+      "encodedFramesOnContactSheets": 135,
+      "fullResolutionTransitionFramesReviewed": [
+        676,
+        677,
+        678,
+        679,
+        680
+      ],
+      "reportedResult": "Requested paper typography alignment and original machinery occlusion pass. Root rechecked the possible transition concern separately."
+    },
+    "rootTransitionRecheck": {
+      "frames": [
+        676,
+        677,
+        678,
+        679,
+        680
+      ],
+      "evidence": "Planning independent-transition-676-680.jpg extracted from actual MP4",
+      "result": "No distinct one-frame size or angle jump confirmed on central paper C. Text moves continuously behind original machinery. Newly entering upper paper D grows from a small initial projection; its relative area change alone is not a discontinuity defect."
+    },
+    "previousClippingRegressionFrames": [
       604,
       605,
       606,
@@ -185,26 +225,59 @@
       708,
       709
     ],
-    "finalV2DirectOcclusionRegressionsReviewed": [
-      600,
-      609,
-      734
-    ],
-    "finalV2EvidenceFramesPixelEqualToMovieDecode": 10,
-    "finalVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
-    "resolved": "False paper-colour/skin alpha holes and artificial white-border clipping removed while original machinery foreground remains above the print.",
-    "earlyDiagonalBeamRegressionFrames": [
+    "actualEncodedEvidenceFramesPixelEqualToMovieDecode": [
+      114,
+      150,
       179,
       180,
-      181
+      181,
+      210,
+      222,
+      600,
+      604,
+      605,
+      606,
+      609,
+      610,
+      611,
+      612,
+      642,
+      654,
+      657,
+      660,
+      663,
+      666,
+      669,
+      672,
+      684,
+      705,
+      708,
+      709,
+      714,
+      717,
+      726,
+      734
     ],
-    "earlyDiagonalBeamActualSourcePixelsPreserved": 27,
-    "normalSpeedBrowserPlayback": "not executed: local-file browser URL policy block",
-    "publicationAcceptanceClaimed": false
+    "evidenceFrameMatches": 31,
+    "early109RawCompositesEqualV2": true,
+    "geometryVerificationPath": "docs/brand-media/static/product-video/geometry-verification.json",
+    "resolved": "Wordmark projection follows source paper print axes. Original ink-cleanup bounds, exact master, equipment foreground and early-shot composites are retained.",
+    "normalSpeedBrowserPlayback": "not executed: existing local-file browser URL policy block",
+    "publicationAcceptanceClaimed": false,
+    "userAcceptedOutput": false
   },
   "browserPlayback": "not executed; existing local-file URL policy block, no workaround attempted",
   "userAcceptedOutput": false,
   "releaseAllowed": false,
   "factualBoundary": "Product print is an edited appearance. Original corporate authorship and customer/factory relationship inventory is not reclassified by this edit.",
-  "integrityStatus": "pass:61 registered media files; originals re-read"
+  "integrityStatus": "pass:65 registered media files; originals re-read; 735 frames and 576 original audio packets verified",
+  "revision": "v3",
+  "previousRevisionArchive": "docs/brand-media/static/product-video/v2-output-archive.json",
+  "correctionRequest": {
+    "quote": "这个地方字歪了，需要调整。",
+    "matchedFrame": 734,
+    "matchedAtMs": 12233.333333333332,
+    "change": "Calibrate final-shot wordmark to paper print axes; retain exact existing logo master, cleanup bounds, foreground occlusion and full timeline.",
+    "calibrationPath": "docs/brand-media/static/product-video/late-logo-calibration.json"
+  }
 }

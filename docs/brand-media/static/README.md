@@ -32,3 +32,5 @@ python -B docs/brand-media/static/verify-static-media.py --require-release
 视频高清网页副本为 `held/video2-web-1080p60.mp4`：1920×1080、60fps、735帧、12.267秒、8,051,146 bytes。现有 WSL FFmpeg 附带的 qt-faststart 只前置 MP4 索引；所有视频/音频包及时间戳不变，735帧逐像素相同。较小副本仍为 `held/video2-720p60.mp4`，海报继续使用原片4500ms第270帧。实际操作与独立核验见 `video-web-processing-record.json`；浏览器本地文件策略阻止播放器实测，该项未执行，未尝试绕过。原视频身份及产品关系仍待核，不进入发布集合。
 
 按用户授权，产品包装品牌合成版为 `held/video2-packjoyu-products-v2.mp4`（1080p60，10.22MB）及 `held/video2-packjoyu-products-web-720p60-v2.mp4`（720p60，4.24MB）；对应海报来自1080p成片第734帧、12233.333ms。前段红色产品标签与片尾Holiland/好利来字带采用现用PackJoyU字标，设备品牌与节庆图案保留。两版均735帧、原576个AAC包及时序逐值相同；视频轨12.250秒，容器12.288秒，比原容器多21ms。实际制作、逐纸袋控制点、完整合成命令和原片身份关系见 `video-product-replacement.json`、`product-video/`；发布仍待原片来源依据。
+
+本次字标透视修正版为 `held/video2-packjoyu-products-v3.mp4` 与 `held/video2-packjoyu-products-web-720p60-v3.mp4`；最新海报为 `held/video2-packjoyu-products-v3-poster-12233ms.jpg`。按用户标注的第734帧修正片尾纸袋文字：字标沿纸面印刷行投影，下方纸袋与上方斜坡分别校准，清除旧标区域与机器遮挡保持独立。v2视频和海报保留，复现提交见 `product-video/v2-output-archive.json`；第734帧实际编码前后对比见 `evidence/video-product-logo-alignment-v3-0734.jpg`。

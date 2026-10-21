@@ -59,7 +59,7 @@ def render(source, output, record_path, review_dir):
     records = []
     summary = {'inputFrames': 0, 'earlyFrames': 0, 'lateFrames': 0, 'unchangedFramesBeforeEncoding': 0,
                'earlyLabelInstances': 0, 'protectedForegroundChangedPixels': 0}
-    chosen = {114, 150, 179, 180, 181, 210, 222, 600, 609, 612, 642, 654, 657, 660,
+    chosen = {604, 605, 606, 663, 705, 708, 709, 733, 114, 150, 179, 180, 181, 210, 222, 600, 609, 612, 642, 654, 657, 660,
               666, 669, 672, 684, 714, 717, 726, 734}
     with log_path.open('w', encoding='utf-8') as log:
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
@@ -127,7 +127,7 @@ def render(source, output, record_path, review_dir):
         'videoReencoded': True, 'audioReencoded': False,
         'equipmentMarks': 'Original device-maker scenes are unchanged before H264 encoding.',
         'releaseAllowed': False, 'integrityStatus': 'rendered; encoded media verification pending'}
-    record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    record_path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
     print(json.dumps(summary, indent=2), flush=True)
 
 
