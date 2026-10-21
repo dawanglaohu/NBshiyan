@@ -88,21 +88,16 @@
     "verdict": "pass"
   },
   "M1-T8": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "b264e841c0606da3ade9ee2f73674b967571e3b66ce28839498f959897194680",
     "evidence": [
-      "沿用与本补丁before哈希匹配的历史契约语义证据：04-执行/19-模块任务拆分.md:18 — M1-T8「接通统一fetch取消与错误适配」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/task-contracts.json:275 — client-api-foundation的唯一提供方；M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/dispatch.json tasks.M1-T8 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=6c1c3f9b32ed9b69，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T8 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 33226da898db6e2c97233a892fca44136e33b507dd89db84af2ba1780351b5da 变为 a2c922e805ca7b8844664896ab7655e2db51cc42bb43dc63e795b89881d2c21a。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。",
-      "本轮逐字段复核补丁 m1-t1-retain-local-main 的 M1-T8 before/after，精确变化路径为 $.context.handoff.conventions, $.hash；契约hash从 a2c922e805ca7b8844664896ab7655e2db51cc42bb43dc63e795b89881d2c21a 变为 b264e841c0606da3ade9ee2f73674b967571e3b66ce28839498f959897194680，已按 handoff_contract.py 的完整context与真实祖先provider公式重算并逐字匹配。",
-      "共享handoff.conventions确有语义变化：M1-T1的规格来源由本机临时task/docs-s2-s6分支改为已合并的本地main；从origin/main建树后仅在该远端基线缺规格时导入，远端已含时沿用，不重复覆盖；后继仍等首PR落地后从origin/main创建。已核该来源说明之外的conventions前缀、后缀逐字相同，包括真实登录cookie、禁认证存储注入、UI/GIF/密度与原语/集成分工。不能将本次变化描述为纯hash传播。",
-      "排除上述共享来源说明后，M1-T8完整context逐字相等：自身任务input/accept/output、边界、前置deps/requires、有效路径/supportPaths/outputPaths、提供能力、阶段、架构、视觉、共享章节及接线全部未变；后继业务验收没有降低。hash变化同时包含本任务共享conventions变更及真实祖先base哈希变化，非仅上游hash。",
-      "本次pass仅登记任务契约来源澄清的语义复核，复用补丁前已通过证据并审计精确变化；不宣称本任务产品已全部实现、运行通过、已落地或已合并。本审计未执行Git操作，已合并本地main的历史事实由主审提供并负责最终提交前核实。"
+      "第2轮仅复核上一轮R1/R2及直接回归，当前契约哈希未变；复用第1轮全部未受影响的任务定义、共享DTO、层次与基础行为证据。",
+      "R1已修：api.ts:71统一解码后的策略与实际发送路径，测试925和995真实HTTP确认编码Auth.js零fetch、cron不可重放、聊天/分析限体及同体退避均保持。",
+      "R2已修：api.ts:336保留已知永久4xx状态和429等待限制，用户取消优先silent；测试1040、1070、1093、1141、1166覆盖断连、Retry-After、真实15s正文超时和取消。",
+      "审查方修复R2同根因408/503遗漏：8a32d6a仅向原network/timeout失败传递已解析Retry-After。新增测试1117修复前4次发送≠1次而失败，修复后通过。完整HTTP36pass/0fail/0skip；聚焦ESLint和tsc均退出0。",
+      "本轮无新技术岔路口；复用第1轮Jev model=jev-1.13.0，pick=C high0.92，adopt=take(C)。契约、阶段primitive、有效路径和下游接线归属均未改；代码位置与沉淀只更新行号并补保留响应头及编码路径规则。"
     ],
-    "reviewed": "2026-10-20T15:08:10.422783+00:00",
+    "reviewed": "2026-10-21T13:25:31.319764+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -268,12 +263,13 @@
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "87a0f66eea006411117676a56dba7ea84dd4dfd3f7ae861dc1b0db3f076510cc",
     "evidence": [
-      "2026-10-21 ROUND 1: 19节M3-T14与task-contracts.json核对：stage=primitive，M1-T2提供contract-types；outputPaths与6个supportPaths覆盖本层生产文件、schema、启动和测试。未要求本卡实现GET account，真实入口计数由integrationTask M3-T1承担。",
-      "06/08节约束与当前实现逐项核对：config首次冻结、HTTP唯一错误映射、参数化原子计数SQL、无M5/M6导入、没有业务事务/SMTP及全局请求状态；09/10节ApiDailyCounter列、固定routeId、SiteSetting时区/revision与旧信封兼容要求一致。",
-      "13节本卡无绑定E编号；空/坏配置、白名单拒绝、设置不存在/非法、存储故障与并发场景均在验收范围。17节Node22/PG17专用库、test/lint/tsc/Linux构建和配置启动回归的证据要求已核实，未缩减。",
-      "本记录只登记任务定义可执行性和路径/依赖/架构复核，不代表代码验收pass。独立审查在head 6ecab45复现R1：logger异常打断计数失败保留响应及未知错误映射；代码结论rework，未执行--landed。"
+      "ROUND 2仅复核上一轮R1/R2及直接回归。19节M3-T14和task-contracts的stage=primitive、M1-T2前置、有效路径及integrationTask=M3-T1均未变化；GET account生产链仍归M3-T1，没有扩大本卡范围。",
+      "R1在54c23bc已修：metrics.ts:112隔离所有诊断分支日志异常；errors.ts:106隔离未知错误日志异常。原失败探针2/2通过，永久三场景回归覆盖存储+日志同时失败、受控500、白名单及坏设置。R2在errors.ts:36直接复用M1-T2的AppErrorDTO，重复响应字段定义已删除。",
+      "同54c23bc专用PostgreSQL17.9与Node22测试admin-config/admin-http-metrics共12通过0失败0跳过；原子计数、隐私列、站点时区/revision及旧信封回归均通过。pnpm lint与pnpm exec tsc --noEmit通过。",
+      "06/08/09/10/13/17/19的相关约定沿用第一轮已接受证据；源契约未变，未重新审无关范围。已合入origin/main的文档产品冲突取主干后重建，保留M1-T8记录与本卡证据，未改生成器。",
+      "本verify登记任务契约复核与R1/R2修复证据；最终落地仍须实际PR MERGED及当前head合并门禁满足，不能以task-contract pass冒充合并完成。"
     ],
-    "reviewed": "2026-10-21T15:01:54.541162+00:00",
+    "reviewed": "2026-10-21T15:25:44.474637+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
