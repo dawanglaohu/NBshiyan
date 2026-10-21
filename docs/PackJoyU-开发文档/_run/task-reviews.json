@@ -91,13 +91,13 @@
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "b264e841c0606da3ade9ee2f73674b967571e3b66ce28839498f959897194680",
     "evidence": [
-      "本记录只复核任务定义，代码验收为 rework，未登记落地。19节M1-T8与当前派发验收一致，输入为已落地M1-T2 contract-types；contracts/index.ts导出共享schema，errors.ts保留新增错误码与受控字段唯一来源。",
-      "task-contracts.json将本任务登记为stage=primitive，provides=client-api-foundation，outputPaths为api.ts、api-errors.ts与HTTP测试，wiring=[]，integrationTask=M3-T7；本层没有产品界面，不要求虚构页面注册或GIF，下游生产接线另验。",
-      "06/07层次与10节逐路径重试表可实现：Auth.js维持原客户端；新成功体直接解析有名DTO，旧error响应兼容；15s取消、same-origin/no-store、受控错误与禁重放条款无矛盾。13节无本任务挂载边界，17节提供node:test+tsx、lint、tsc与真实HTTP验收方法。",
-      "实施岔路口保留原A/B/C/D四候选，本轮typesafe_ask.py adjudicate返回model=jev-1.13.0，pick=C high0.92，adopt=take(C)，spec_change=no、outside_stack=no、needs_owner=no。代码采用C：GET显式重读，聊天/分析同体1/2/4s重试。",
-      "原有代码位置与实施沉淀已回填；未删除既有事实命题。反占位/固定门禁/生产测试钩子检查无命中，生产错误schema沿用共享定义。编码路由策略与已收到错误头后的正文断连是实现缺陷，不降低验收标准。"
+      "第2轮仅复核上一轮R1/R2及直接回归，当前契约哈希未变；复用第1轮全部未受影响的任务定义、共享DTO、层次与基础行为证据。",
+      "R1已修：api.ts:71统一解码后的策略与实际发送路径，测试925和995真实HTTP确认编码Auth.js零fetch、cron不可重放、聊天/分析限体及同体退避均保持。",
+      "R2已修：api.ts:336保留已知永久4xx状态和429等待限制，用户取消优先silent；测试1040、1070、1093、1141、1166覆盖断连、Retry-After、真实15s正文超时和取消。",
+      "审查方修复R2同根因408/503遗漏：8a32d6a仅向原network/timeout失败传递已解析Retry-After。新增测试1117修复前4次发送≠1次而失败，修复后通过。完整HTTP36pass/0fail/0skip；聚焦ESLint和tsc均退出0。",
+      "本轮无新技术岔路口；复用第1轮Jev model=jev-1.13.0，pick=C high0.92，adopt=take(C)。契约、阶段primitive、有效路径和下游接线归属均未改；代码位置与沉淀只更新行号并补保留响应头及编码路径规则。"
     ],
-    "reviewed": "2026-10-21T13:08:06.652041+00:00",
+    "reviewed": "2026-10-21T13:25:31.319764+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
