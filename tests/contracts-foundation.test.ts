@@ -295,6 +295,13 @@ for (const { audience, schema, conversation } of [
     }]);
   });
 
+  test(`R1 ${audience} sync rejects an empty page that claims more messages`, () => {
+    rejects(schema, [{
+      conversation, messages: [],
+      lastSeq: 5, nextAfterSeq: 3, hasMore: true, read: { lastReadSeq: 0 },
+    }]);
+  });
+
   test(`R1 ${audience} sync preserves continuous, nonzero-start and empty pages`, () => {
     for (const page of [
       { sequences: [1, 2], lastSeq: 5, nextAfterSeq: 2, hasMore: true },
