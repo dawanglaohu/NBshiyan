@@ -1,0 +1,29 @@
+{
+  "scope": "isolated-native-primitive-regression",
+  "task": "M1-T7",
+  "pr": 395,
+  "head": "1f5ab2a45b9b5e9e4090a005d8530598a8f6ba89",
+  "verdict": "pass",
+  "finding": "R1",
+  "browser": "Chrome 155.0.8059.79",
+  "method": "Rerun the prior failing semantic-focus-probe.mjs and the extended r1-native-focus-probe.mjs against current production source in an isolated native dialog with real Tab/Shift+Tab/Escape input. Both exit 0. This is not product integration or GIF evidence.",
+  "observed": {
+    "initial": "title",
+    "tabFromTitle": "summary",
+    "reverseFromField": "summary",
+    "wrapForward": "summary",
+    "wrapReverse": "close",
+    "escape": { "closeRequests": 1, "open": false, "focus": "opener" },
+    "reopen": { "closeRequests": 1, "open": true, "focus": "title" },
+    "nativeTabFromTitle": "summary",
+    "nativeReverseFromField": "summary"
+  },
+  "priorFailure": "M1-T7.review-round-1.focus.evidence.json",
+  "regressionTests": [
+    "dialog title Tab reaches the implicit summary tab stop and wraps at both boundaries",
+    "dialog input Shift+Tab allows the native step back to summary",
+    "dialog keyboard focus wraps both ways, Escape requests close, cleanup restores opener",
+    "dialog handles no tab stops, native cancel/close, removed opener and repeated openings",
+    "a queued native close from the previous opening does not cancel the reopened dialog"
+  ]
+}

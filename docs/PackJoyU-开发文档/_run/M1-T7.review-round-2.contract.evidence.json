@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T7": {
+      "contractHash": "102c91ac9cd040403c4c40387f85cb32a0cb95a80685ab384ef8f17800ebfabe",
+      "verdict": "pass",
+      "evidence": [
+        "第二轮仅复核 REVIEW-ROUND 1 的 R1 与直接回归。代码head=1f5ab2a45b9b5e9e4090a005d8530598a8f6ba89，base=7b7ab1c51e1b013c754b7d6fd2305c587f46afba；相比上一轮01dab19，仅修改 src/components/ui/dialog-focus.ts 和 tests/ui-primitives.test.ts，未改契约、生成器、API或业务范围。",
+        "当前 status 的 contractHash 与上一轮及派发包一致，stale=[]、runtimeDrift=[]。沿用 _run/M1-T7.review-round-1.contract.evidence.json 对06/07/10/11/13/17/19的已通过核查：M1-T1提供visual-base，本卡唯一提供visual-components；有效路径、原生展示层无业务IO、唯一tokens.css及统一出口均无变化。",
+        "src/components/ui/dialog-focus.ts:7-10 复用FOCUSABLE_SELECTOR并加入summary，以同一querySelectorAll保留DOM顺序；可见性、tabIndex、inert/hidden/disabled过滤保留，Escape/销毁/来源焦点恢复/异步close处理未改。tests/ui-primitives.test.ts:108、:122新增选择器敏感的正向summary、双向边界和反向原生步进回归；未修改范围外的既有共享焦点工具。",
+        "复跑原失败脚本 semantic-focus-probe.mjs：Chrome155中标题Tab及input Shift+Tab均到summary，断言退出0；扩展的r1-native-focus-probe.mjs同样退出0，正向边界到summary、反向边界到close，Escape请求一次关闭并恢复opener，快速重开后仍open且焦点在title。该证据仅证明独立原语行为，不冒充产品集成或GIF。",
+        "本轮 node --import tsx --test tests/ui-primitives.test.ts tests/brand-surface-tokens.test.ts tests/admin-mobile-291.test.ts tests/focus-307.test.ts tests/cookie-settings-focus-307p2.test.ts 为34通过、0失败、0跳过；pnpm10 lint和tsc --noEmit退出0。代码head的CI run39534433773中build-and-audit和e2e均SUCCESS，security-review gate也SUCCESS。落地文档提交后的检查另按最终head核对。",
+        "stage仍为primitive、integrationTask仍为M1-T4；本轮不新增产品页面或降低最终集成验收。任务笔记代码位置和实施沉淀已按summary语义及新测试行号更新。R1已修复，其余上一轮通过项保持，代码验收结论pass。"
+      ]
+    }
+  }
+}
