@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T7": {
+      "contractHash": "102c91ac9cd040403c4c40387f85cb32a0cb95a80685ab384ef8f17800ebfabe",
+      "verdict": "pass",
+      "evidence": [
+        "本轮核对 PR #395：base=7b7ab1c51e1b013c754b7d6fd2305c587f46afba，代码 head=8db0bcfec1267984911c10f99c892dcb5c0d72f6。status 返回契约哈希与当前派发包一致，stale=[]、runtimeDrift=[]。本文件仅登记任务定义的语义复核；代码验收为 rework，未执行 --landed。",
+        "04-执行/19-模块任务拆分.md 的 M1-T7 行及 _run/task-contracts.json tasks.M1-T7：唯一前置 M1-T1 已落地并提供 visual-base，本卡唯一提供 visual-components；有效实现路径为 src/components/ui/、src/styles/tokens.css、tests/ui-primitives.test.ts，任务笔记回填由交接流程明确要求。未增加领域页面、依赖或 API。",
+        "06/07 节确定 M1 持有唯一视觉 token，ui 只包装原生语义并复用既有焦点能力。当前四类包装经 index.ts 同一出口导出，不含请求、Prisma、身份、cookie 或业务角色判断；本卡没有新增 DTO/HTTP 字段，10 节业务接口不适用。",
+        "11 节与 tests/ui-primitives.test.ts:161 对照：64 个 --pj- 变量同源同值且各声明一次，原有 legacy token 保留；原语尺寸、disabled/busy/error/focus 对应状态均有类名、变量与语义断言。StyleKit 动态类扫描为 inconclusive，未冒称工具通过，已按11节原生 CSS 项目适配核规则。",
+        "13 节未为本卡挂独立 E 编号，通用空输入、错误关联、重复提交和焦点恢复需保留。17 节规定规则测试、lint/types 与实际输入行为证据；本轮相关测试32通过0跳过、lint及tsc通过，但真实 Chrome 原语探针确认 summary 被 Tab 跳过，已列代码阻断 R1；既有 DOM doubles 绿灯不证明该原生顺序正确。",
+        "19 节阶段约定与 task-contracts.json 均为 stage=primitive、integrationTask=M1-T4；本卡验统一出口与原语行为，完整页面接入、computed style、真实操作 GIF 与密度验收仍由 M1-T4 承担，不以独立原语探针或已有首页样式冒称集成完成。当前 globals.css:1 与 admin/admin.css:1 均导入同一 tokens.css，现有 Linux CI 的 standalone E2E 为60通过9既有跳过，未把跳过项计为验收通过。"
+      ]
+    }
+  }
+}
