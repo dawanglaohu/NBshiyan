@@ -42,6 +42,13 @@ def sha256(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def source_digest(path, data):
+    # Same LF rule as verify-static-media.content_digest. Font bytes stay raw.
+    if Path(path).suffix.lower() in {'.css', '.ts', '.tsx', '.js', '.mjs', '.py', '.txt', '.svg', '.json', '.md'}:
+        data = data.replace(b'\r\n', b'\n')
+    return sha256(data)
+
+
 def require(condition, message):
     if not condition:
         raise ValueError(message)
@@ -184,7 +191,7 @@ def run():
     svg, view_box = build_svg(font, layout, main_color, joy_color)
     audit = {
         "task": "M1-T3", "scope": "Current SiteHeader complete wordmark; icon is provenance only",
-        "sourceFiles": [{"path": path, "sha256": sha256(data)} for path, data in source.items()],
+        "sourceFiles": [{"path": path, "sha256": source_digest(path, data)} for path, data in source.items()],
         "export": {"path": MASTER.relative_to(ROOT).as_posix(), "sha256": sha256(svg), "viewBox": view_box,
                    "format": "SVG; eight outlined paths; no text/font/script/external references/metadata"},
         "font": {"path": FONT.relative_to(ROOT).as_posix(), "weight": 800, "unitsPerEm": layout["unitsPerEm"],
@@ -192,7 +199,7 @@ def run():
                  "browserFontUrl": browser["fontResource"]["url"], "exactOutlineAdvanceKerningMatch": True},
         "styleSources": {"wordmark": "src/components/layout/SiteHeader.tsx:56",
                          "weightSizeJoyStyle": "src/app/globals.css:14",
-                         "mainColorCascade": "src/app/globals.css:330; src/styles/tokens.css:29",
+                         "mainColorCascade": "src/app/globals.css:330; src/styles/tokens.css:26",
                          "joyColor": "src/styles/tokens.css:6",
                          "fontFamily": "src/app/[locale]/layout.tsx:20,57; src/app/globals.css:8"},
         "geometry": {key: value for key, value in layout.items() if key != "glyphs"},
