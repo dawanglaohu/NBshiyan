@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "M3-T14": {
+      "evidence": [
+        "2026-10-21 ROUND 1: 19节M3-T14与task-contracts.json核对：stage=primitive，M1-T2提供contract-types；outputPaths与6个supportPaths覆盖本层生产文件、schema、启动和测试。未要求本卡实现GET account，真实入口计数由integrationTask M3-T1承担。",
+        "06/08节约束与当前实现逐项核对：config首次冻结、HTTP唯一错误映射、参数化原子计数SQL、无M5/M6导入、没有业务事务/SMTP及全局请求状态；09/10节ApiDailyCounter列、固定routeId、SiteSetting时区/revision与旧信封兼容要求一致。",
+        "13节本卡无绑定E编号；空/坏配置、白名单拒绝、设置不存在/非法、存储故障与并发场景均在验收范围。17节Node22/PG17专用库、test/lint/tsc/Linux构建和配置启动回归的证据要求已核实，未缩减。",
+        "本记录只登记任务定义可执行性和路径/依赖/架构复核，不代表代码验收pass。独立审查在head 6ecab45复现R1：logger异常打断计数失败保留响应及未知错误映射；代码结论rework，未执行--landed。"
+      ],
+      "contractHash": "87a0f66eea006411117676a56dba7ea84dd4dfd3f7ae861dc1b0db3f076510cc",
+      "verdict": "pass"
+    }
+  },
+  "scope": "task-contract"
+}
