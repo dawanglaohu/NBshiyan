@@ -4,6 +4,7 @@ import {
   FieldErrorSchema,
   LegacyGuardErrorSchema,
   type AppErrorCode,
+  type AppErrorDTO,
   type FieldError,
 } from '../../contracts/errors';
 import { UuidSchema } from '../../contracts/common';
@@ -32,11 +33,7 @@ const HTTP_STATUS = {
   internal_error: 500,
 } as const satisfies Record<AppErrorCode, number>;
 
-export type HttpErrorBody = {
-  error: AppErrorCode;
-  requestId: string;
-  fieldErrors?: FieldError;
-};
+export type HttpErrorBody = AppErrorDTO;
 
 export type MappedHttpError = {
   status: number;
@@ -105,16 +102,20 @@ function errorCategory(error: unknown): string {
   return 'Error';
 }
 
-/** 未知异常只变成 internal_error。日志只有类别，没有 message、stack 或连接串。 */
+/** 未知异常只变成 internal_error。日志只有类别，没有 message、stack 或连接串。日志回调失败也不改变这个结果。 */
 export function mapUnknownFailure(error: unknown, requestId?: string, log?: (event: UnknownFailureLog) => void): MappedHttpError {
-  log?.({
-    timestamp: new Date().toISOString(),
-    level: 'WARN',
-    module: 'http',
-    operation: 'map_unknown_failure',
-    outcomeCode: 'internal_error',
-    errorCategory: errorCategory(error),
-  });
+  try {
+    log?.({
+      timestamp: new Date().toISOString(),
+      level: 'WARN',
+      module: 'http',
+      operation: 'map_unknown_failure',
+      outcomeCode: 'internal_error',
+      errorCategory: errorCategory(error),
+    });
+  } catch {
+    // 观测回调失败不能替换受控的 500 正文。
+  }
   return {
     status: HTTP_STATUS.internal_error,
     headers: { ...PRIVATE_HEADERS },

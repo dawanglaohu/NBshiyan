@@ -295,3 +295,57 @@ test('dedicated postgres increments requestCount on every final response and err
     if (previous) await client.siteSetting.create({ data: { key: previous.key, value: previous.value as never } });
   }
 });
+
+const unavailableLog = () => { throw new Error('log unavailable'); };
+
+test('counter storage and log failure preserve original response', async () => {
+  const body = { ok: true };
+  const counter = createApiCounter({
+    db: {
+      siteSetting: { findUnique: async () => null },
+      $executeRaw: async () => { throw new Error('db unavailable'); },
+    } as unknown as ApiCounterDb,
+    log: unavailableLog,
+  });
+  const actual = await counter.recordFinalResponse({ routeId: ROUTE, status: 200, body });
+  assert.equal(actual.status, 200);
+  assert.equal(actual.body, body);
+  assert.equal(actual.recorded, false);
+  assert.equal(JSON.stringify(actual).includes('log unavailable'), false);
+  assert.equal(JSON.stringify(actual).includes('db unavailable'), false);
+});
+
+test('log failure cannot interrupt controlled unknown-error mapping', () => {
+  const actual = mapUnknownFailure(new Error('private database detail'), REQUEST_ID, unavailableLog);
+  assert.equal(actual.status, 500);
+  assert.deepEqual(actual.body, { error: 'internal_error', requestId: REQUEST_ID });
+  assert.equal(JSON.stringify(actual).includes('private database detail'), false);
+  assert.equal(JSON.stringify(actual).includes('log unavailable'), false);
+});
+
+test('whitelist rejection and unreadable settings keep the original response when logging throws', async () => {
+  const body = { ok: true };
+  const rejected = await createApiCounter({
+    db: {
+      siteSetting: { findUnique: async () => null },
+      $executeRaw: async () => 1,
+    } as unknown as ApiCounterDb,
+    log: unavailableLog,
+  }).recordFinalResponse({ routeId: 'GET /api/admin/account?email=ada@example.com', status: 200, body });
+  assert.equal(rejected.status, 200);
+  assert.equal(rejected.body, body);
+  assert.equal(rejected.recorded, false);
+
+  const unreadable = await createApiCounter({
+    db: {
+      siteSetting: { findUnique: async () => ({ value: { timezone: 'Not/AZone', updatedBy: 'ada@example.com' } }) },
+      $executeRaw: async () => { throw new Error('should not write'); },
+    } as unknown as ApiCounterDb,
+    log: unavailableLog,
+  }).recordFinalResponse({ routeId: ROUTE, status: 503, body });
+  assert.equal(unreadable.status, 503);
+  assert.equal(unreadable.body, body);
+  assert.equal(unreadable.recorded, false);
+  assert.equal(JSON.stringify(unreadable).includes('ada@example.com'), false);
+  assert.equal(JSON.stringify(unreadable).includes('log unavailable'), false);
+});

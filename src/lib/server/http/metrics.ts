@@ -110,13 +110,17 @@ export function createApiCounter(deps: {
 }): ApiCounter {
   const clock = deps.clock ?? (() => new Date());
   const warn = (event: Omit<CounterLog, 'timestamp' | 'level' | 'module' | 'operation'>) => {
-    deps.log?.({
-      timestamp: new Date().toISOString(),
-      level: 'WARN',
-      module: 'http',
-      operation: 'api_counter',
-      ...event,
-    });
+    try {
+      deps.log?.({
+        timestamp: new Date().toISOString(),
+        level: 'WARN',
+        module: 'http',
+        operation: 'api_counter',
+        ...event,
+      });
+    } catch {
+      // 观测回调失败不能替换调用方的 status、body 或 recorded。
+    }
   };
 
   return {
