@@ -14,13 +14,14 @@
     {
       "command": "verify-static-media.py --originals-root C:/Users/admin/Desktop",
       "result": "pass",
-      "imageFilesChecked": 38,
+      "imageFilesChecked": 54,
       "sourceDecodedFrames": 735,
       "reproducedEvidenceFrames": 7,
-      "mediaFilesChecked": 39,
+      "mediaFilesChecked": 55,
       "compressedVideoFrames": 735,
       "gifDecodedFrames": 361,
-      "gifDurationMs": 30080
+      "gifDurationMs": 30080,
+      "gifFiles": 3
     },
     {
       "command": "python -B -m unittest discover -s docs/brand-media/static -p test_*.py -v",
@@ -80,5 +81,19 @@
     "originalGifHashUnchanged": true,
     "approvedPngHashUnchanged": true,
     "accountVideoGenerationClaimed": false
+  },
+  "styleMaterialEditCalls": 1,
+  "industrialRevision": {
+    "static": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+    "gif": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+    "staticEightPointsReviewed": true,
+    "frameCount": 361,
+    "durationMs": 30080,
+    "loop": 0,
+    "bytes": 13877870,
+    "status": "static and final GIF independently visually verified",
+    "previewBytes": 8663921,
+    "finalGifSha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+    "gifRegressionTests": 2
   }
 }

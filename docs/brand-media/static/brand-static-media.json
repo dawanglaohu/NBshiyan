@@ -467,6 +467,140 @@
       "height": 720,
       "role": "held_pause_frame",
       "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-clean-plate.png",
+      "sha256": "04191fd9d9eff9af3ff06d7c56a2f8dd820e47e1dea6a9d690a067b0fa85eefc",
+      "width": 1737,
+      "height": 905,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-forklift-layer.png",
+      "sha256": "07da6be90def740765e7e7cbf67ef70346f60cb5f6b5036b7a406d755b68625a",
+      "width": 1737,
+      "height": 905,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-000.png",
+      "sha256": "e5f6000a5ca44246c52f05eb41b9c28b546555af02b2f9971b728f494c10230b",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-045.png",
+      "sha256": "3b1be6ff0a10a25731844c448150771df5a50ecafd6ab13847d9859a5fae240e",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-090.png",
+      "sha256": "d044291c32df9259fd6e86419ce2dda28d91d36a85d06e8349f637e4f143d592",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-180.png",
+      "sha256": "7d5ef16a0ef434c6af0da07c326c29a83c3d130a52576f9b75b5d4ae65f62278",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-270.png",
+      "sha256": "adbad63be03474e4ab44a567fa3ffb63e8bd19630f92521fc13a7ff1f2a0a9a6",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-360.png",
+      "sha256": "7e6a598c0125355a00053a5fc2a28223f9bd5a920815a7f3111360a539c27339",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-high_cloud-layer.png",
+      "sha256": "976566a101adc02aee5943bc28c74b625c2f9f0443db7cbf640c9721ace3b3b1",
+      "width": 254,
+      "height": 151,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-left_cloud-layer.png",
+      "sha256": "c83936fca2dab2f15e7755ee51c59c329e66cd28ef77fe45dac4b226f7bd95a3",
+      "width": 246,
+      "height": 151,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-metal_airship-layer.png",
+      "sha256": "6607507a39cbf60b8834b621f887dead63c325b368e2a10049b8606e43b8f4f9",
+      "width": 448,
+      "height": 197,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-water-mask.png",
+      "sha256": "19865dd76517eb45291f736d5527215f73812c155eaf208bc46e53d8e492a289",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+      "width": 1737,
+      "height": 905,
+      "role": "held_requested_revision",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+      "width": 1384,
+      "height": 720,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "held_requested_revision",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
+      "sha256": "e5f6000a5ca44246c52f05eb41b9c28b546555af02b2f9971b728f494c10230b",
+      "width": 1384,
+      "height": 720,
+      "role": "held_requested_revision",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+      "width": 960,
+      "height": 500,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "held_animation_preview",
+      "releaseAllowed": false
     }
   ],
   "missingDeliverables": [
@@ -482,7 +616,11 @@
     "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
     "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
     "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
-    "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png"
+    "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif"
   ],
   "generationRecordPath": "docs/brand-media/static/image-generation-record.json",
   "styleVariants": [
@@ -505,7 +643,19 @@
       "status": "new_loop_from_approved_image",
       "originalTimingPreserved": true,
       "originalGifFrameContentIdentityClaimed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+      "recordPath": "docs/brand-media/static/style-generation-record.json",
+      "status": "requested_material_and_people_revision"
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+      "recordPath": "docs/brand-media/static/industrial-city-animation-record.json",
+      "status": "multi_layer_requested_animation"
     }
   ],
-  "approvedGifRecordPath": "docs/brand-media/static/approved-image-gif-record.json"
+  "approvedGifRecordPath": "docs/brand-media/static/approved-image-gif-record.json",
+  "industrialGifRecordPath": "docs/brand-media/static/industrial-city-animation-record.json",
+  "industrialGifPreviewRecordPath": "docs/brand-media/static/industrial-gif-preview-record.json"
 }

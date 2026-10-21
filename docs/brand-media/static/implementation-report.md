@@ -10,7 +10,7 @@
 | 2 现用标识 / E-28 | `public/brand/packjoyu-logo-master.svg:1`；`image-generation-record.json:5` 两次真实调用 | 每次均提供现用 master 的渲染参考，不设计候选新标；生成图不替换 master。JPG 模型字形不能直接冒称与 master 逐轮廓一致。 |
 | 3 实际制作 / E-29 与用户补充指令 | `image-generation-record.json:1`；`production-record.json:1`；`evidence/video-transcode-command.ps1:1` | 图片实际工具为 `image_gen.imagegen`，未调用 API 付费回退。视频实际工具为既有 Windows MediaTranscoder，未调用 Dot，也未调用账号视频生成接口：本聊天未提供该接口。输入、提示词、输出和核对记录均留存。 |
 | 4 完整 master 与来源 | `logo-source-audit.json:4` 来源哈希；`:46` 导出；`:132` 网页核验；`export-logo-master.py:143` | master SHA256 `7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099`。8 个转曲路径无字体/脚本/外链/私有 metadata；现有源码、CSS、icon 和字体均未改。真实网页字形/advance/kerning 与提交字体一致，Pack/U 黑、Joy 为 #c2381a。 |
-| 5 清单与禁发 | `brand-static-media.json:140` 逐文件哈希/尺寸；`:391` heldFiles；`verify-static-media.py:62` | 38 个图像（含 GIF）和 1 段视频逐值核对通过。heldFiles 七个文件均不在 public 或 releaseFiles；UNKNOWN 企业归属与 JPG 保真问题阻止发布。副本存在不等于已批准发布，任务卡仍为 todo。 |
+| 5 清单与禁发 | `brand-static-media.json:140` 逐文件哈希/尺寸；`:391` heldFiles；`verify-static-media.py:62` | 54 个图像（含3个GIF）和 1 段视频逐值核对通过。heldFiles 十一个文件均不在 public 或 releaseFiles；UNKNOWN 企业归属与 JPG 保真问题阻止发布。副本存在不等于已批准发布，任务卡仍为 todo。 |
 
 表中短路径相对 `docs/brand-media/static/`，public 路径相对项目根。
 
@@ -35,7 +35,7 @@ JPG 两个 before 标记与生成后的逐项观察均在清单中。原视频�
 TESTS: pass（已交文件完整性）；发布验收未通过。
 
 - `python -B -m unittest discover -s docs/brand-media/static -p "test_*.py" -v`：10 项通过。包括错误主标/源哈希、伪造帧时间、缺文件、held 移入 public/发布集合、海报换帧和设备角色负例。
-- `python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop`：39 个媒体文件哈希/尺寸一致；原件重读哈希不变；原视频完整 735 帧重解、7 个原帧重建一致，压缩副本 735 帧可解码。图片调用的提示词、输入与输出哈希也被核查。
+- `python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop`：55 个媒体文件哈希/尺寸一致；原件重读哈希不变；原视频完整 735 帧重解、7 个原帧重建一致，压缩副本 735 帧可解码。图片调用的提示词、输入与输出哈希也被核查。
 - `python -B docs/brand-media/static/verify-static-media.py --require-release`：原生退出 2，正确拒绝当前未完成集合。
 - master 默认导出器 check、页头采集脚本 `node --check` 和独立 ESLint 通过；此前同分支 d601ce3 的 pnpm lint 退出0，仅既有警告。素材增量未改应用源码，不重复全库构建/DB/e2e。CI 结果只对应各自远端 head，不把旧 head 的绿色检查当作新提交结果。
 - 原 master 从任务工作树真实 Next 服务返回200并由 Chrome/Sharp 解码核查；该页头服务数据库设置不可用，此证据仅证明字体与样式。冻结依赖安装成功、锁文件未改。
@@ -59,3 +59,11 @@ VIBEHUB: [标志（Logo）](https://vibe-hub.org/logo)。
 用户明确确认纸艺 v2 图片达标，并要求据此制作 GIF。`held/packjoyu-papercraft-city-loop.gif` 为确定性分层动画导出：固定镜头、飞艇缓慢周期漂移、局部灯光呼吸和水面流光，字标随飞艇原图层移动；不是模型视频生成或 Dot 操作。361帧、1384×720、原80/90ms时序逐帧相同，总长30.08秒、loop0，约5.06MB；同尺寸暂停帧另附PNG。每帧均可解码，原GIF/已验收PNG哈希不变。新动画不冒称原GIF内容逐帧品牌替换已验收，未标记M1-T6落地；视频身份禁发仍独立保留。
 
 GIF 专项负例：test_approved_image_gif.py 的2项测试（4个错误数据案例）通过，实际编码帧数/循环/时长与逐帧时间表均不能用错误清单绕过；39个媒体文件完整性通过。原型过大GIF仅为本机中间输出，未进入仓库或交付集合。
+
+### 金属飞艇、自然云与作业场景修订
+
+按用户顺序先生成并核验静态 v3，再制作独立新 GIF。`held/packjoyu-industrial-city-v3.png` 已核：自然云、金属飞艇、真实水纹、轮船烟囱及烟、混凝土隧道、完整叉车/司机/托盘货物、装卸区工作人员和双处logo。`held/packjoyu-industrial-city-v3-loop.gif` 采用独立图层动画：两朵云漂移、金属飞艇保持原字标像素移动、河面纹理位移、烟囱发射渐隐粒子、叉车司机/货物/投影整体往返且不镜像；近景托盘遮挡恢复。原停车位以局部重建清除原车辆，少部分地面接缝简化，未冒称恢复遮挡背景真值。旧图片与GIF保留。GIF为1384×720、361帧、30.08秒、loop0，约13.88MB；PNG保留完整色彩，GIF受全局255色调色板限制。
+
+最终水流遮罩覆盖反射和深色河水，保护船/桥/树岛与岸边；用户标注河水区域0→10帧约76.2%像素变化，工厂字标与混凝土隧道区域变化为0。960×500轻量GIF预览约8.66MB，361帧/30.08秒/loop0与原尺寸版一致；最终静态图未在动画处理中改写。
+
+最终独立视觉复核通过：0/10/20帧确认用户标注河段纹理流动与烟粒子上升可见，叉车/司机/货物整体往返，无第二车或前景穿插，双logo/楼/混凝土隧道稳定；361帧/30.08秒/loop0与原时序一致。55个媒体文件完整性通过，GIF专项2项测试（4个错误时序数据案例）通过。

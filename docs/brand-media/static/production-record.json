@@ -74,6 +74,22 @@
       ],
       "recordPath": "docs/brand-media/static/approved-image-gif-record.json",
       "scope": "New animation based on explicitly accepted static image, originalGIF timing preserved; not formal original-GIF replacement acceptance."
+    },
+    {
+      "id": "industrial-static-and-moving-scene",
+      "status": "executed_verified_requested_static_and_gif",
+      "tool": "image_gen.imagegen for static, then deterministic layers/OpenCV/Pillow for animation",
+      "outputs": [
+        "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+        "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+        "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
+        "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif"
+      ],
+      "recordPaths": [
+        "docs/brand-media/static/style-generation-record.json",
+        "docs/brand-media/static/industrial-city-animation-record.json"
+      ],
+      "scope": "User requested natural materials, workers, moving cloud/water/smoke and loaded-forklift shuttle."
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",

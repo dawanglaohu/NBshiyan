@@ -164,8 +164,10 @@ def verify(originals_root=None):
         if replacement.get('candidatePath'):
             require(replacement['candidatePath'] in manifest.get('heldFiles', []), 'JPG candidate is not held')
     require(actual_images == image_paths, 'Manifest omits an image or lists an extra image')
-    if manifest.get('approvedGifRecordPath'):
-        animation = json.loads(local_path(manifest['approvedGifRecordPath']).read_text(encoding='utf-8'))
+    for record_key in ['approvedGifRecordPath', 'industrialGifRecordPath']:
+        if not manifest.get(record_key):
+            continue
+        animation = json.loads(local_path(manifest[record_key]).read_text(encoding='utf-8'))
         check_registered_record(animation['approvedImage'])
         check_registered_record(animation['output'])
         check_registered_record(animation['pauseFrame'])
@@ -182,6 +184,15 @@ def verify(originals_root=None):
         require(any(row['path'] == animation['originalGif']['path'].replace('\\', '/')
                     and row['sha256'] == animation['originalGif']['sha256'] for row in manifest['originals']),
                 'Original GIF source is not registered')
+    if manifest.get('industrialGifPreviewRecordPath'):
+        preview = json.loads(local_path(manifest['industrialGifPreviewRecordPath']).read_text(encoding='utf-8'))
+        check_registered_record(preview)
+        animation = json.loads(local_path(manifest['industrialGifRecordPath']).read_text(encoding='utf-8'))
+        require(preview['sourceGifSha256'] == animation['output']['sha256'], 'Preview GIF source differs')
+        require(gif_metadata[preview['path']]['durationsMs']
+                == gif_metadata[animation['output']['path']]['durationsMs'], 'Preview GIF timing differs')
+        require(preview['durationMs'] == animation['output']['durationMs'] and preview['loop'] == 0,
+                'Preview GIF duration or loop differs')
     if manifest.get('generationRecordPath'):
         generation = json.loads(local_path(manifest['generationRecordPath']).read_text(encoding='utf-8'))
         check_hash(generation['master'])
