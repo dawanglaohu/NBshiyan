@@ -22,58 +22,53 @@
     "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
     "contractHash": "87905d6e38a350a7873af6e52d14d92605d2a1e3acaba3b5bbb1501bf493ba91",
     "evidence": [
-      "沿用与本补丁before哈希匹配的历史契约语义证据：04-执行/19-模块任务拆分.md:12 — M1-T2「导出新增领域共享schema与DTO」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/task-contracts.json:42 — contract-types的唯一提供方；M1-T1提供visual-base均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/dispatch.json tasks.M1-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=1e9d00fe59f8db60，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 bb38ef3235779285b0f4eba3465cc390a8e1e1dca366aef627f832cd2f5f2b27 变为 f4c36426feba985d0e38ee449388b40eb9a1e12da2bccd7cb43a6461c73e1016。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。",
-      "本轮逐字段复核补丁 m1-t1-retain-local-main 的 M1-T2 before/after，精确变化路径为 $.context.handoff.conventions, $.hash；契约hash从 f4c36426feba985d0e38ee449388b40eb9a1e12da2bccd7cb43a6461c73e1016 变为 87905d6e38a350a7873af6e52d14d92605d2a1e3acaba3b5bbb1501bf493ba91，已按 handoff_contract.py 的完整context与真实祖先provider公式重算并逐字匹配。",
-      "共享handoff.conventions确有语义变化：M1-T1的规格来源由本机临时task/docs-s2-s6分支改为已合并的本地main；从origin/main建树后仅在该远端基线缺规格时导入，远端已含时沿用，不重复覆盖；后继仍等首PR落地后从origin/main创建。已核该来源说明之外的conventions前缀、后缀逐字相同，包括真实登录cookie、禁认证存储注入、UI/GIF/密度与原语/集成分工。不能将本次变化描述为纯hash传播。",
-      "排除上述共享来源说明后，M1-T2完整context逐字相等：自身任务input/accept/output、边界、前置deps/requires、有效路径/supportPaths/outputPaths、提供能力、阶段、架构、视觉、共享章节及接线全部未变；后继业务验收没有降低。hash变化同时包含本任务共享conventions变更及真实祖先base哈希变化，非仅上游hash。",
-      "本次pass仅登记任务契约来源澄清的语义复核，复用补丁前已通过证据并审计精确变化；不宣称本任务产品已全部实现、运行通过、已落地或已合并。本审计未执行Git操作，已合并本地main的历史事实由主审提供并负责最终提交前核实。"
+      "第2轮仅复核上轮R1/R2与同一分页函数的完整性，不重开已接受条款；任务前置M1-T1 visual-base、primitive阶段contract-types唯一产出、有效路径及06/07/08/09/10/13/17/19约定均未变化。当前契约hash与第1轮及提示词一致，沿用第1轮已登记语义证据。",
+      "10节seq分页及13节E-77：chat.ts:177拒绝页内seq缺口，:182要求非空页nextAfterSeq等于页尾，:185要求hasMore与nextAfterSeq<lastSeq一致；访客与后台复用。tests/contracts-foundation.test.ts:277-312覆盖缺口、跳游标、提前结束、连续非零起点和空页。",
+      "10节optional email及13节E-39：chat.ts:38-41只将聊天trim空值归为省略，CR/LF不归一化；tests/contracts-foundation.test.ts:315-333覆盖省略/空串/空白/合法trim邮箱、非法格式/超长/显示名/单独CR/LF/CRLF及账号必填规则。",
+      "E-95及其他第1轮已接受规则保持；31/31本卡测试通过且0skip，公共index独立strict TypeScript消费仍通过。上轮独立原始复现2/2转绿；全项目tsc、完整lint及新增改动的focused lint通过，vault check通过。授权、JWT/cookie策略、HTTP及界面仍属于后续任务，不用纯schema测试冒充其完成。",
+      "本轮没有新的技术/UI取舍；上轮6项jev-1.13.0裁决均保留完整候选及真实结果，结论由_run/M1-T2.review-round-1.evidence.json保存并沿用。当前修改均直接落实R1/R2与已定字段关系，无任务范围或接口结构变化。"
     ],
-    "reviewed": "2026-10-20T15:08:10.422783+00:00",
+    "reviewed": "2026-10-21T02:58:13.005947+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T3": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "1f1a4eef0d6018543bb9f3142ff6ad82170b073192fbfe37e114fb0553b5a909",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "668f1f9f5aedcf085aad0ee324fe690c2c3bcc6a1337e36c396591688a008647",
     "evidence": [
-      "04-执行/19-模块任务拆分.md:13 按直接用户指令允许已确认工业风PNG和真实授权制作渠道；原件哈希、现用master、安全SVG、全片身份时间清单和缺成品不得完成的要求保留。原片观察留档，发布复核绑定实际选定成片与海报哈希/帧证据；source-attestation.json:1只保存用户关于员工工厂实拍及后加标识的原话，不推导产权、客户、认证或产能。Jev review:final-artifact-scope model=jev-1.13.0 pick=A(high0.96),spec_change=yes,adopt=take(A)；据此定点修正文档。当前release校验仍拒绝，契约复核不表示素材发布或任务落地通过。13/17要求和接口字段、有效路径已核。"
+      "本轮只复核第1轮R1/R2及直接回归。19节M1-T3五项断言、E28/E29、13/17要求及接口字段保留；已核实际用户在实施会话原话授权网站消费已确认素材。16个exact支持路径覆盖实际Hero/Scene/OG/测试及字面Next路由H03根因修复，不放宽为src/app/。R1成片来源/hash/抽帧/海报及UNKNOWN拒绝通过，原片历史逐字段不变；R2六份public/held逐值一致，历史制作不误阻、缺成品仍拒绝。40媒体测试+24网站测试+lint通过；合入main后真实页头重采/字体master复现及126媒体原件重读发布门禁通过。三个实际Jev复跑均take(A)。本记录只登记契约和功能复核，Linux完整构建与最终合并门禁仍待完成，不冒称落地。"
     ],
-    "reviewed": "2026-10-21T06:52:38.849447+00:00",
+    "reviewed": "2026-10-21T09:19:08.373637+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T4": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "8c5ad33c93ed19dbabd66eee6ebc10717a031bff3a824418b72b42b9cd3e819a",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "ccb3ac856b176c38e3aad36a063a18a99c1b210ff8b8f391b385fdf2b1378559",
     "evidence": [
-      "M1-T4: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:14 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M1-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T5": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "61d106360c3b8f3024e232417ff95df7e512eae34764c0ab8909ef6b2344f25c",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "2f2139f496263bf1b8f3d8e416b893ac4d84bd815e4f105e2acbac7334c38534",
     "evidence": [
-      "M1-T5: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:15 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M1-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T6": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "afb88b79cabea9911746bb137cf7804b470cc6957c7b0d459f269932767d86ca",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "b3bfe707cd65d090da9fdd83976ba662b3f1ed7a49acb244bf4566fdff51029b",
     "evidence": [
-      "04-执行/19-模块任务拆分.md:16 仅将T3的JPG旧标位置改称T3选定静态发布图的品牌位置，与用户接受工业风PNG的T3输出一致；无旧标、漏标、361帧顺序/30.08秒、真实制作和哈希要求均保留。前后effectivePaths相等；不实施T6，不声明其GIF验收或落地。"
+      "M1-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -81,18 +76,14 @@
     "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
     "contractHash": "102c91ac9cd040403c4c40387f85cb32a0cb95a80685ab384ef8f17800ebfabe",
     "evidence": [
-      "沿用与本补丁before哈希匹配的历史契约语义证据：04-执行/19-模块任务拆分.md:17 — M1-T7「补齐共享视觉变量与原生UI包装」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/task-contracts.json:238 — visual-components的唯一提供方；M1-T1提供visual-base均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/dispatch.json tasks.M1-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=3d0060d4f77a90dd，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 24601d54530f85a389eb7640aaf7be307594c840be92dfb5c2067cd94acb3dec 变为 58808ac888546813f7e611858320673339176f2ab9ffe0e666fc957541bd80be。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。",
-      "本轮逐字段复核补丁 m1-t1-retain-local-main 的 M1-T7 before/after，精确变化路径为 $.context.handoff.conventions, $.hash；契约hash从 58808ac888546813f7e611858320673339176f2ab9ffe0e666fc957541bd80be 变为 102c91ac9cd040403c4c40387f85cb32a0cb95a80685ab384ef8f17800ebfabe，已按 handoff_contract.py 的完整context与真实祖先provider公式重算并逐字匹配。",
-      "共享handoff.conventions确有语义变化：M1-T1的规格来源由本机临时task/docs-s2-s6分支改为已合并的本地main；从origin/main建树后仅在该远端基线缺规格时导入，远端已含时沿用，不重复覆盖；后继仍等首PR落地后从origin/main创建。已核该来源说明之外的conventions前缀、后缀逐字相同，包括真实登录cookie、禁认证存储注入、UI/GIF/密度与原语/集成分工。不能将本次变化描述为纯hash传播。",
-      "排除上述共享来源说明后，M1-T7完整context逐字相等：自身任务input/accept/output、边界、前置deps/requires、有效路径/supportPaths/outputPaths、提供能力、阶段、架构、视觉、共享章节及接线全部未变；后继业务验收没有降低。hash变化同时包含本任务共享conventions变更及真实祖先base哈希变化，非仅上游hash。",
-      "本次pass仅登记任务契约来源澄清的语义复核，复用补丁前已通过证据并审计精确变化；不宣称本任务产品已全部实现、运行通过、已落地或已合并。本审计未执行Git操作，已合并本地main的历史事实由主审提供并负责最终提交前核实。"
+      "第二轮仅复核 REVIEW-ROUND 1 的 R1 与直接回归。代码head=1f5ab2a45b9b5e9e4090a005d8530598a8f6ba89，base=7b7ab1c51e1b013c754b7d6fd2305c587f46afba；相比上一轮01dab19，仅修改 src/components/ui/dialog-focus.ts 和 tests/ui-primitives.test.ts，未改契约、生成器、API或业务范围。",
+      "当前 status 的 contractHash 与上一轮及派发包一致，stale=[]、runtimeDrift=[]。沿用 _run/M1-T7.review-round-1.contract.evidence.json 对06/07/10/11/13/17/19的已通过核查：M1-T1提供visual-base，本卡唯一提供visual-components；有效路径、原生展示层无业务IO、唯一tokens.css及统一出口均无变化。",
+      "src/components/ui/dialog-focus.ts:7-10 复用FOCUSABLE_SELECTOR并加入summary，以同一querySelectorAll保留DOM顺序；可见性、tabIndex、inert/hidden/disabled过滤保留，Escape/销毁/来源焦点恢复/异步close处理未改。tests/ui-primitives.test.ts:108、:123新增选择器敏感的正向summary、双向边界和反向原生步进回归；未修改范围外的既有共享焦点工具。",
+      "复跑原失败脚本 semantic-focus-probe.mjs：Chrome155中标题Tab及input Shift+Tab均到summary，断言退出0；扩展的r1-native-focus-probe.mjs同样退出0，正向边界到summary、反向边界到close，Escape请求一次关闭并恢复opener，快速重开后仍open且焦点在title。该证据仅证明独立原语行为，不冒充产品集成或GIF。",
+      "本轮 node --import tsx --test tests/ui-primitives.test.ts tests/brand-surface-tokens.test.ts tests/admin-mobile-291.test.ts tests/focus-307.test.ts tests/cookie-settings-focus-307p2.test.ts 为34通过、0失败、0跳过；pnpm10 lint和tsc --noEmit退出0。代码head的CI run39534433773中build-and-audit和e2e均SUCCESS，security-review gate也SUCCESS。落地文档提交后的检查另按最终head核对。",
+      "stage仍为primitive、integrationTask仍为M1-T4；本轮不新增产品页面或降低最终集成验收。任务笔记代码位置和实施沉淀已按summary语义及新测试行号更新。R1已修复，其余上一轮通过项保持，代码验收结论pass。"
     ],
-    "reviewed": "2026-10-20T15:08:10.422783+00:00",
+    "reviewed": "2026-10-21T02:55:41.727486+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -116,42 +107,42 @@
     "verdict": "pass"
   },
   "M1-T9": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "0e8559d89734c7dd5f3b62ed4f316295757eaa883efc8dde4e4bc388a016b7c2",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "90b1c1d7e8436991ce68fea33512a8edca732079f59102420084afc60622cc89",
     "evidence": [
-      "M1-T9: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:19 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M1-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T1": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "085080f233644653cf58fcfd75b3357bf3791bbde99eaf91ed9a9b9ce5ecab7f",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "ff307a5be72e2f2ae0460bd771718541857916ae6b679a5f5280c09143569a74",
     "evidence": [
-      "M2-T1: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:20 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M2-T1: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T2": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "f7b92d3f79d85579fc7806b4de0d7c212779fc36092b6e2e57255a27386009a9",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "4565ddc659d8d7894057de4e6310946f4cfdb536a4f6f0e0cda53ba1c6336c06",
     "evidence": [
-      "M2-T2: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:21 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M2-T2: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T3": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "4594fe13854e725bc0f3c4dfea2ae7cdc36c645a1d774edc38dc08f59113b29f",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "ad7f476abff5e6520e777d926e0a44b57c8e492d8347e248d56c99eeeb36fdd0",
     "evidence": [
-      "M2-T3: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:22 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M2-T3: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -175,42 +166,42 @@
     "verdict": "pass"
   },
   "M2-T5": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "3d7035e3e2845982cc57c696b7a7221e27e9c67830c76a98ee0e7d282ed3798d",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "0d3612b9b67190497cb6cc1c7916f88791ab4f842cebb24e898aa237a7f0678d",
     "evidence": [
-      "M2-T5: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:24 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M2-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T6": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "f87039dd8d271a84c123fcab838e728dab35f3bce66a2ad1c5175810442b29d4",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "4f31923d2c2dbd01fb46b0b6b72fc984c0727f3590bd6cd90f728f7323c760ee",
     "evidence": [
-      "M2-T6: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:25 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M2-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T7": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "ec52ec15d0f64af31689e48ddcb9199f8d7f46eba7dd4fdac6a3f4d552cf6178",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "ea16a2f995e11f90e7af5d84ba104229f464987651630e78808e0b5c6e78021a",
     "evidence": [
-      "M2-T7: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:26 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M2-T7: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T8": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "f6e00f58cd173b45d99212989ffc834d79873533820c4105d600f7da394aee10",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "74181dc333bc4b3baa7a08fed2745f37d814413a7468e6bbcb0c1011858491d0",
     "evidence": [
-      "M2-T8: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:27 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M2-T8: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -234,42 +225,42 @@
     "verdict": "pass"
   },
   "M3-T10": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "007b0bc018eb1333b2e83a1182c172dd211f244d44e313de9370a18fe0bc3947",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "70c8b92ca20b955ac806c31766527d88a547dd9f4df2a7a88fbdc1acf1a8fe97",
     "evidence": [
-      "M3-T10: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:37 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T10: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T11": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "18577777343666976cce61bec09a558aa1be514fda39732349e50ee3eb47fc32",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "8716c67aa93d423ff180630d08350608bea3bbfeb361b4495ef9b45b22280620",
     "evidence": [
-      "M3-T11: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:38 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T11: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T12": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "4133076567b809c25724d7b24e2a9eba6a1b973e93068e3585f544b5392b45c0",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "9ea804c46dbcafd40e1c0d8ac689d27bff39853b4063a7468a9862bdc42b2e56",
     "evidence": [
-      "M3-T12: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:39 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T12: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T13": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "523f74ea5df309ffe621f1a4dc567124e3686c4bfdb5369ad9c222ab984e060f",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "1a74e837a1603b1a935bb8aea2e8c5723007566301f8c2f5c0b2f152373579af",
     "evidence": [
-      "M3-T13: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:40 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T13: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -502,12 +493,12 @@
     "verdict": "pass"
   },
   "M3-T25": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "f49bdb60446ad929b73512b59fc14ecaee74b2f01019b7cc179b43344b50be57",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "367db1862c3a0ff91ffecff6b16544a81867d9356b9ca8723a7ab6526dbfde7f",
     "evidence": [
-      "M3-T25: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:52 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T25: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -569,12 +560,12 @@
     "verdict": "pass"
   },
   "M3-T6": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "521132fe15f640240f894c789bf1bb2a468714a933ef3dd2d14fe2efa5fd3df5",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "5b6cd691b4501acbf39c5e3bd409ceeac7733421da777c8d3fda72e1293f5148",
     "evidence": [
-      "M3-T6: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:33 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -598,22 +589,22 @@
     "verdict": "pass"
   },
   "M3-T8": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "719b025e808c252cc2e681379942e7833d7ab1e039d845e50f1a2f4c426b49a9",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "280772816bcdd95821b79d0b263192dc349dc5928cafbfe958f60081d637d092",
     "evidence": [
-      "M3-T8: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:35 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T8: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T9": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "8a0522d5d5a77930e6230c78f989ef6aa535f601c09b6eb4f1bfbd0fa5b082eb",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "37a4c75567c01beebaa796081247644a41766b4f478060ee21b63ba45bd60c97",
     "evidence": [
-      "M3-T9: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:36 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M3-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1112,162 +1103,162 @@
     "verdict": "pass"
   },
   "M6-T1": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "ff9d1b930b0e4590a7a2ebc9f80ecb6aa564f4258bb0758b5c493f0f35d5320b",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "28e656779373b0645a68321db9d800e6562752730473e92f1dc9a5efa5f81a2b",
     "evidence": [
-      "M6-T1: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:79 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M6-T1: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T2": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "3c41a442efed15e91cbdc2041c3550f9ec0414e229d03b595edd3f1c363b3ca1",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "46af6622c2f896226e70e07c611fb91a90f883d8f0bef9ab8ef54a68ddd231a6",
     "evidence": [
-      "M6-T2: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:80 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M6-T2: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T3": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "9a93c97869910fcdb543b6b82f1815484c2bb12cc195ceee87bb3dd67940e27e",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "e1e219431fe4b9826aeb612768556094685ace9e1fd669a22a7f7f1e66cafc55",
     "evidence": [
-      "M6-T3: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:81 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M6-T3: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T4": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "1cfbc55bf964a53a8b412e2ef298212823bf77162c4f0ede903eb05da868eec1",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "c1758d9cf13def13064d18b722d77bbc1cac95384c2d0fae963e6ddc1572901a",
     "evidence": [
-      "M6-T4: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:82 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M6-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T5": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "823f75cdb757f6b261fab1e232f0c1283f16f4c00fa69451816ca6cbfbc5f7d7",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "edb64885d0da62b765516a35be3c01b8a9c43c92a8bdbc39ec75ad561d976517",
     "evidence": [
-      "M6-T5: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:83 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M6-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T6": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "475dea5f6336794f34ee0f51a44b9fa6ef3b70f5ac20327328d690b68b960274",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "3ef34daa016db6a8ddd5a9f4e03f54842ca85b781c5c2d4e58241ddc924d1b0c",
     "evidence": [
-      "M6-T6: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:84 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M6-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M6-T7": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "9cea386a5da1208e73296a0e83ebe47514fe70462826f296665bd99d5d2f6754",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "92239e89167f39065b447bb8740e7e5c11299feccab95edbbb4dcf9b319096d5",
     "evidence": [
-      "M6-T7: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:85 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M6-T7: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T1": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "fea73124900d5db31c7021ae1576ca1b1de84f906f45dc8f317fc7792b34086b",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "b46de0c24415b2c377d1c938ef218cb114838abefe37082b9503e8b7c41246b9",
     "evidence": [
-      "M7-T1: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:86 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T1: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T2": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "4af3cf5dd90ebdff8e04e874917be9441dac6b81a129ac7749fd83f2b95b0e37",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "3a362c0e7b83a4ec18b39c9f405334645aabb6596cbcf7333afd49118a348e03",
     "evidence": [
-      "M7-T2: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:87 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T2: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T3": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "2855e512eab6f83e75e76c4129ab85601081fdb9fd7be845cab031dd8332a7d5",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "0ba6a19e0e204ae25f36425c23db12b69b9d90fcd68d1ef65580ea8205390cd4",
     "evidence": [
-      "M7-T3: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:88 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T3: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T4": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "849ef8d65668aaf728431f63576d20aada4dbe7c41ebd597897e80547e0fcc16",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "8997add925e2519618f6bcfa3954a2e014417d8cafe7dbfac757f7b0a3418453",
     "evidence": [
-      "M7-T4: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:89 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T5": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "43cd2a4f54698ab80cbda842e74573f386a47dec07a248618ebdc9a07fa652e2",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "9e2ecbfce4b59a9343d1fa2aa2e271690937cbade8a5dfa5fafed670d51e058f",
     "evidence": [
-      "M7-T5: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:90 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T6": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "b521e8605f18af0c23013cb36d7fe09c561ff54af5b16efbf863f3d6d641b257",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "a30c9828277f063a672bc48a331e975cc8b90a9ca17077d80a1e09ae41cb0bae",
     "evidence": [
-      "M7-T6: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:91 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T7": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "b252ae15472908a897686d7202583bb036181b2c3f3e2929dc38132be7dbc3ad",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "717e3bfd21417d838e754f4e521a4b0d8a58531db9b4576cbda1ec52da29e002",
     "evidence": [
-      "M7-T7: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:92 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T7: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T8": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "bdc61a7d505554801aeed99f24816c3e540432476951b4cbe34e10b1f1e44333",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "aa90da3dd1a22491390a56131807cf3f1bf93a0541d797781d502931398b722f",
     "evidence": [
-      "M7-T8: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:93 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T8: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M7-T9": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
-    "contractHash": "b0152cf6741a640091febd07dcf1a1e7a6d5caabee0ee648163bdeb2072782dd",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "0bd04aaf6747977d3a2540c558e1dea65d6744e18bf1bb4f9727bf11f6c19511",
     "evidence": [
-      "M7-T9: 补丁changes前后context/effectivePaths逐值完全相同；04-执行/19-模块任务拆分.md:94 的输入、产出、依赖和验收未变。hash仅因祖先M1-T3及T6消费者称谓修正传播（_run/handoff_contract.py:330-332）。仅复核前置契约传播，不宣称本卡功能实现、发布或落地。"
+      "M7-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
     ],
-    "reviewed": "2026-10-21T06:52:43.615094+00:00",
+    "reviewed": "2026-10-21T09:19:13.757256+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   }

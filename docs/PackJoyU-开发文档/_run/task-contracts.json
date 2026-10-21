@@ -102,7 +102,10 @@
         "design/og-src/render-og.mjs",
         "public/og/home-en.jpg",
         "public/og/home-ru.jpg",
-        "src/data/og-versions.json"
+        "src/data/og-versions.json",
+        "docs/PackJoyU-开发文档/_run/handoff_contract.py",
+        "docs/PackJoyU-开发文档/_run/tests/test_maintenance.py",
+        "docs/PackJoyU-开发文档/_run/tool-version.json"
       ],
       "outputPaths": [
         "public/brand/",

@@ -1,0 +1,25 @@
+{
+  "scope": "isolated-native-primitive-regression",
+  "task": "M1-T7",
+  "pr": 395,
+  "head": "8db0bcfec1267984911c10f99c892dcb5c0d72f6",
+  "verdict": "rework",
+  "finding": "R1",
+  "location": "src/components/ui/dialog-focus.ts:7",
+  "browser": "Chrome 155.0.8059.79",
+  "method": "Load current activateDialog and reused focus-trap source into an isolated native dialog. Use real browser Tab and Shift+Tab; compare against the same dialog after disposing the wrapper listeners. This is a primitive regression probe, not product integration or GIF evidence.",
+  "markup": "<dialog><h2 tabindex=\"-1\">Details</h2><details><summary>Show details</summary><p>More information</p></details><input aria-label=\"Name\"><button>Close</button></dialog>",
+  "observed": {
+    "initial": "title",
+    "tabFromTitle": "field",
+    "reverseFromField": "close",
+    "nativeTabFromTitle": "summary",
+    "nativeReverseFromField": "summary"
+  },
+  "expected": {
+    "tabFromTitle": "summary",
+    "reverseFromField": "summary"
+  },
+  "cause": "available() omits a native summary tab stop; nextTrapFocus therefore forces a jump past it in both directions.",
+  "requiredRegression": "Cover a summary before the first input, forward traversal from the initial title, reverse traversal from the input, both dialog boundaries, Escape, opener restoration, and queued close after reopening. Preserve native semantics without adding business logic."
+}

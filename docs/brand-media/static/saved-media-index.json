@@ -99,7 +99,7 @@
       }
     }
   ],
-  "registeredMediaCount": 125,
+  "registeredMediaCount": 126,
   "registeredMedia": [
     {
       "path": "docs/brand-media/static/evidence/all-01.jpg",
@@ -1199,6 +1199,14 @@
       "height": 92,
       "bytes": 33550,
       "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/current-header-before-main.png",
+      "sha256": "9af566833c91fd59b48c7631575d617095297e1d88486ad81e72df1f686954bc",
+      "width": 1440,
+      "height": 73,
+      "role": "historical_source_audit",
       "releaseAllowed": false
     }
   ],

@@ -1,0 +1,8 @@
+test_globs_and_malformed_next_route_scopes_are_rejected (test_maintenance.MaintenanceTests.test_globs_and_malformed_next_route_scopes_are_rejected) ... ok
+test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) ... ok
+test_next_route_scope_prefixes_do_not_expand_parameters (test_maintenance.MaintenanceTests.test_next_route_scope_prefixes_do_not_expand_parameters) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.345s
+
+OK

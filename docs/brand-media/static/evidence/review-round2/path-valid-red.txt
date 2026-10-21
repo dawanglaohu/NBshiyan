@@ -1,0 +1,68 @@
+test_globs_and_malformed_next_route_scopes_are_rejected (test_maintenance.MaintenanceTests.test_globs_and_malformed_next_route_scopes_are_rejected) ... ok
+test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) ...
+  test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='src/app/[locale]/page.tsx') ... FAIL
+  test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='app/[locale]/page.tsx') ... FAIL
+  test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='src/app/[...slug]/page.tsx') ... FAIL
+  test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='app/[...slug]/page.tsx') ... FAIL
+  test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='src/app/[[...slug]]/page.tsx') ... FAIL
+  test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='app/[[...slug]]/page.tsx') ... FAIL
+test_next_route_scope_prefixes_do_not_expand_parameters (test_maintenance.MaintenanceTests.test_next_route_scope_prefixes_do_not_expand_parameters) ... ok
+
+======================================================================
+FAIL: test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='src/app/[locale]/page.tsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\xiangmu\NBshiyan-m1-t3\docs\PackJoyU-开发文档\_run\tests\test_maintenance.py", line 185, in test_next_route_directories_are_literal_contract_scopes
+    self.assertFalse(any(i['code']=='H03' for i in self.state()['issues']))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='app/[locale]/page.tsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\xiangmu\NBshiyan-m1-t3\docs\PackJoyU-开发文档\_run\tests\test_maintenance.py", line 185, in test_next_route_directories_are_literal_contract_scopes
+    self.assertFalse(any(i['code']=='H03' for i in self.state()['issues']))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='src/app/[...slug]/page.tsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\xiangmu\NBshiyan-m1-t3\docs\PackJoyU-开发文档\_run\tests\test_maintenance.py", line 185, in test_next_route_directories_are_literal_contract_scopes
+    self.assertFalse(any(i['code']=='H03' for i in self.state()['issues']))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='app/[...slug]/page.tsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\xiangmu\NBshiyan-m1-t3\docs\PackJoyU-开发文档\_run\tests\test_maintenance.py", line 185, in test_next_route_directories_are_literal_contract_scopes
+    self.assertFalse(any(i['code']=='H03' for i in self.state()['issues']))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='src/app/[[...slug]]/page.tsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\xiangmu\NBshiyan-m1-t3\docs\PackJoyU-开发文档\_run\tests\test_maintenance.py", line 185, in test_next_route_directories_are_literal_contract_scopes
+    self.assertFalse(any(i['code']=='H03' for i in self.state()['issues']))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_next_route_directories_are_literal_contract_scopes (test_maintenance.MaintenanceTests.test_next_route_directories_are_literal_contract_scopes) (path='app/[[...slug]]/page.tsx')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\xiangmu\NBshiyan-m1-t3\docs\PackJoyU-开发文档\_run\tests\test_maintenance.py", line 185, in test_next_route_directories_are_literal_contract_scopes
+    self.assertFalse(any(i['code']=='H03' for i in self.state()['issues']))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.330s
+
+FAILED (failures=6)

@@ -1,0 +1,156 @@
+head=8c668fc8f9f352640cca9e13b83e34ad9d9122aa command=node --import tsx --test tests/hero-video.test.ts tests/home-brand-media.test.ts tests/home-entry-grid-308.test.ts tests/og-versions.test.ts
+TAP version 13
+# Subtest: first visit autoplays; after markSeen later visits show poster only
+ok 1 - first visit autoplays; after markSeen later visits show poster only
+  ---
+  duration_ms: 2.4621
+  type: 'test'
+  ...
+# Subtest: reduced motion and saveData: poster only, even on first visit
+ok 2 - reduced motion and saveData: poster only, even on first visit
+  ---
+  duration_ms: 0.4093
+  type: 'test'
+  ...
+# Subtest: missing or throwing storage: poster only, markSeen does not throw
+ok 3 - missing or throwing storage: poster only, markSeen does not throw
+  ---
+  duration_ms: 0.9631
+  type: 'test'
+  ...
+# Subtest: skip, ended and error all stop on the poster (no loop)
+ok 4 - skip, ended and error all stop on the poster (no loop)
+  ---
+  duration_ms: 0.4015
+  type: 'test'
+  ...
+# Subtest: video loads only after page load + idle
+ok 5 - video loads only after page load + idle
+  ---
+  duration_ms: 2.7621
+  type: 'test'
+  ...
+# Subtest: component markup: poster is high-priority img, video muted/playsInline/preload=none, approved mp4 sources, no loop, real button
+ok 6 - component markup: poster is high-priority img, video muted/playsInline/preload=none, approved mp4 sources, no loop, real button
+  ---
+  duration_ms: 2.4354
+  type: 'test'
+  ...
+# Subtest: all screens use the approved complete 16:9 video and its own poster
+ok 7 - all screens use the approved complete 16:9 video and its own poster
+  ---
+  duration_ms: 31.9439
+  type: 'test'
+  ...
+# Subtest: skip/play labels exist in en and ru
+ok 8 - skip/play labels exist in en and ru
+  ---
+  duration_ms: 1.8289
+  type: 'test'
+  ...
+# Subtest: \#292 skipped/failed non-last <source> does not stop playback; video or last-source error does
+ok 9 - \#292 skipped/failed non-last <source> does not stop playback; video or last-source error does
+  ---
+  duration_ms: 135.1555
+  type: 'test'
+  ...
+# Subtest: reduced motion: video never mounts (poster only)
+ok 10 - reduced motion: video never mounts (poster only)
+  ---
+  duration_ms: 1.3491
+  type: 'test'
+  ...
+# Subtest: home media no longer uses reference hero files or a layer obscuring the corrected product logo
+ok 11 - home media no longer uses reference hero files or a layer obscuring the corrected product logo
+  ---
+  duration_ms: 2.2629
+  type: 'test'
+  ...
+# Subtest: every public brand release copy retains the exact approved media bytes
+ok 12 - every public brand release copy retains the exact approved media bytes
+  ---
+  duration_ms: 272.9234
+  type: 'test'
+  ...
+# Subtest: brand illustration starts with the approved static image and does not preload an animation
+ok 13 - brand illustration starts with the approved static image and does not preload an animation
+  ---
+  duration_ms: 61.2275
+  type: 'test'
+  ...
+# Subtest: home share-image renderer reads the selected website poster instead of a reference-hero regex
+ok 14 - home share-image renderer reads the selected website poster instead of a reference-hero regex
+  ---
+  duration_ms: 997.1596
+  type: 'test'
+  ...
+# Subtest: 文案 Home.entryAll：EN / RU
+ok 15 - 文案 Home.entryAll：EN / RU
+  ---
+  duration_ms: 2.4901
+  type: 'test'
+  ...
+# Subtest: 页面：网格下面用 next-intl Link 指向 /products
+ok 16 - 页面：网格下面用 next-intl Link 指向 /products
+  ---
+  duration_ms: 0.5632
+  type: 'test'
+  ...
+# Subtest: ≤767px：两列、间距 8px；卡片最小高度 156；链接 44px 触控高度
+ok 17 - ≤767px：两列、间距 8px；卡片最小高度 156；链接 44px 触控高度
+  ---
+  duration_ms: 1.0748
+  type: 'test'
+  ...
+# Subtest: 390 宽：卡片 ≥171 宽，整块高度 ≤1100（按 11 个入口、容器左右各 20px 计算）
+ok 18 - 390 宽：卡片 ≥171 宽，整块高度 ≤1100（按 11 个入口、容器左右各 20px 计算）
+  ---
+  duration_ms: 0.9719
+  type: 'test'
+  ...
+# Subtest: ≥768 不变：原来的 .entry 规则原样保留，「全部产品」链接默认隐藏
+ok 19 - ≥768 不变：原来的 .entry 规则原样保留，「全部产品」链接默认隐藏
+  ---
+  duration_ms: 0.6577
+  type: 'test'
+  ...
+# Subtest: \#314 首屏设置没动：封面 sizes="50vw"、视频 99%
+ok 20 - \#314 首屏设置没动：封面 sizes="50vw"、视频 99%
+  ---
+  duration_ms: 0.6894
+  type: 'test'
+  ...
+# Subtest: 断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符
+ok 21 - 断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符
+  ---
+  duration_ms: 1.0318
+  type: 'test'
+  ...
+# Subtest: og-versions.json 覆盖 public/og 的每张图，且 v = 文件 sha256 前 8 位（换图后要重跑 design/og-src/og-versions.mjs）
+ok 22 - og-versions.json 覆盖 public/og 的每张图，且 v = 文件 sha256 前 8 位（换图后要重跑 design/og-src/og-versions.mjs）
+  ---
+  duration_ms: 16.9103
+  type: 'test'
+  ...
+# Subtest: og:image URL 都带 ?v=，且与文件内容哈希一致
+ok 23 - og:image URL 都带 ?v=，且与文件内容哈希一致
+  ---
+  duration_ms: 4.1956
+  type: 'test'
+  ...
+# Subtest: 没有 eco-paper-cups 分享图（\#296）
+ok 24 - 没有 eco-paper-cups 分享图（\#296）
+  ---
+  duration_ms: 0.5111
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2223.3405
+exitCode=0 elapsedSeconds=2.5361772

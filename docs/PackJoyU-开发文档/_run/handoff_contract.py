@@ -11,6 +11,8 @@ from pathlib import Path
 VERSION = '1.9.0'
 SCHEMA_VERSION = 1
 TASK_RE = re.compile(r'(?:M\d{1,2}-T\d{1,3}|R\d{1,3}-T\d{1,8})')
+NEXT_ROUTE_DIR_RE = re.compile(r'\[(?:\.\.\.)?[A-Za-z_][A-Za-z0-9_]*\]'
+                               r'|\[\[\.\.\.[A-Za-z_][A-Za-z0-9_]*\]\]')
 # handoff.wiring 与任务 wiring 共用的类别。
 WIRING_KEYS = ('backendRoutes', 'container', 'frontendRoutes', 'buildPipeline', 'sharedTypes',
                'eventKinds', 'migrations', 'jobs', 'shellBridge', 'judgments')
@@ -114,11 +116,19 @@ def ancestors(task_id, tasks):
 
 
 def path_valid(path):
-    return (isinstance(path, str) and bool(path) and path == path.strip()
+    if not (isinstance(path, str) and bool(path) and path == path.strip()
             and '\\' not in path and not path.startswith('/')
             and not re.match(r'^[A-Za-z]:', path)
             and not any(part in ('.', '..', '') for part in path.rstrip('/').split('/'))
-            and not any(ch in path for ch in '*?[]{}'))
+            and not any(ch in path for ch in '*?{}')):
+        return False
+    parts = path.rstrip('/').split('/')
+    route_start = 2 if parts[:2] == ['src', 'app'] else 1 if parts[0] == 'app' else None
+    # App Router 参数目录是字面文件系统范围，不作 glob 展开。
+    return all(not any(ch in part for ch in '[]')
+               or (route_start is not None and i >= route_start
+                   and NEXT_ROUTE_DIR_RE.fullmatch(part))
+               for i, part in enumerate(parts))
 
 
 def under(path, scope):

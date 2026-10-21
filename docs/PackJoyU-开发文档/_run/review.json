@@ -1,5 +1,5 @@
 {
-  "block": 1,
+  "block": 0,
   "info": 1,
   "items": [
     {
@@ -79,15 +79,6 @@
       "level": "INFO",
       "msg": "边界覆盖率 100%（111 条边界，111 条被任务直接覆盖）",
       "where": null
-    },
-    {
-      "code": "H03",
-      "level": "BLOCK",
-      "msg": "M1-T3 范围须为无通配符的仓库相对路径：src/app/[locale]/page.tsx",
-      "taskIds": [
-        "M1-T3"
-      ],
-      "where": "M1-T3"
     },
     {
       "code": "H12",
@@ -234,6 +225,6 @@
       "where": "M7-T9"
     }
   ],
-  "sourceVersion": "a85a3b4278ec2fd6663bd57a893f3d4c53d8518bf6456ba0be93d3d649e06e7b",
+  "sourceVersion": "e951e5f18ef534aa44b0c81f2e87e2df318b4d6cabeed31e49011d4aa1451f33",
   "warn": 28
 }

@@ -262,5 +262,13 @@
       "Windows standalone dependency symlink EPERM after compilation",
       "Pre-existing M1-T9 prompt budget, outside this rework"
     ]
+  },
+  "reviewRound2MainIntegration": {
+    "upstreamMain": "3e7ffa8c153a62a9141d63917bf3ac87f935f9c3",
+    "sourceAudit": "Recaptured real production header and original font after merging M1-T7 token additions; reproducible export keeps master SVG unchanged.",
+    "previousAuditArchive": "docs/brand-media/static/history/pre-main-integration",
+    "masterSha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "sourceCapture": "docs/brand-media/static/evidence/current-header.json",
+    "previousHeaderImage": "docs/brand-media/static/evidence/current-header-before-main.png"
   }
 }

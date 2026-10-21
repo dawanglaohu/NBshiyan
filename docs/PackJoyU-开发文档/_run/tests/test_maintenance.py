@@ -175,6 +175,33 @@ class MaintenanceTests(unittest.TestCase):
         hc.write_json(self.doc/'_run/presentation.json',pres)
         self.assertTrue(any(i['code']=='H03' for i in self.state()['issues']))
 
+    def test_next_route_directories_are_literal_contract_scopes(self):
+        for path in ('src/app/[locale]/page.tsx', 'app/[locale]/page.tsx',
+                     'src/app/[...slug]/page.tsx', 'app/[...slug]/page.tsx',
+                     'src/app/[[...slug]]/page.tsx', 'app/[[...slug]]/page.tsx'):
+            with self.subTest(path=path):
+                hc.write_json(self.doc/'_run/task-contracts.json', {'schemaVersion': 1, 'tasks': {
+                    'M1-T1': {'supportPaths': [path]}}})
+                self.assertFalse(any(i['code']=='H03' for i in self.state()['issues']))
+
+    def test_globs_and_malformed_next_route_scopes_are_rejected(self):
+        for path in ('src/app/*/page.tsx', 'src/app/[locale]/p?ge.tsx',
+                     'src/app/[a-z]/page.tsx', 'src/app/[!ab]/page.tsx',
+                     'src/app/page[ab].tsx', 'src/[locale]/page.tsx',
+                     'src/app/[locale/page.tsx', 'src/app/locale]/page.tsx',
+                     'src/app/[[locale]]/page.tsx', 'src/app/[...]/page.tsx',
+                     'src/app/[[...]]/page.tsx', 'src/app/[locale]suffix/page.tsx'):
+            with self.subTest(path=path):
+                self.assertFalse(hc.path_valid(path))
+
+    def test_next_route_scope_prefixes_do_not_expand_parameters(self):
+        self.assertTrue(hc.under('src/app/[locale]/page.tsx', 'src/app/[locale]/'))
+        for path in ('src/app/en/page.tsx', 'src/app/locale/page.tsx',
+                     'src/app/[other]/page.tsx', 'src/app/[locale]other/page.tsx'):
+            with self.subTest(path=path):
+                self.assertFalse(hc.under(path, 'src/app/[locale]/'))
+        self.assertFalse(hc.under('app/[...slug]/page.tsx', 'app/[slug]/'))
+
     def test_fingerprint_includes_edge_path_and_architecture_not_mtime(self):
         original=self.state()['contracts']['M1-T1']['hash']
         edge=self.doc/'03-质量/13-边界问题与异常处理.md'
