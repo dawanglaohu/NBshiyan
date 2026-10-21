@@ -908,3 +908,256 @@ test('the error adapter is the same function the request path uses', () => {
   assert.match(direct.text, /not accepted/);
   absent(direct);
 });
+
+const encodedAuth = '/api/%61uth/callback/credentials';
+const encodedCron = '/api/admin/%63ron/mail-queue';
+const encodedChat = '/api/%63hat/conversations/thread_1/%6Dessages';
+const encodedAnalytics = '/api/%61nalytics/events';
+const decodedChat = '/api/chat/conversations/thread_1/messages';
+const decodedAnalytics = '/api/analytics/events';
+
+function dropBody(res: http.ServerResponse, status: number, extra: Record<string, string> = {}) {
+  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', ...extra });
+  res.write(`{"message":"${SENTINEL}"`);
+  setImmediate(() => { res.destroy(); });
+}
+
+test('encoded Auth.js, cron, chat, and analytics paths follow the decoded route', async () => {
+  const auto = { delaysMs: MESSAGE_RETRY_DELAYS_MS, explicitReread: true };
+  assert.equal(isAuthJsPath(encodedAuth), true);
+  assert.equal(isAuthJsPath('/api/auth%2Fcallback/credentials'), true);
+  assert.equal(isAuthJsPath('/api/auth-admin/%72ecovery/enroll'), false);
+  assert.deepEqual(retryPlanFor('GET', encodedCron), { delaysMs: [], explicitReread: false });
+  assert.deepEqual(retryPlanFor('POST', '/api/admin/%63ron/operations', true), { delaysMs: [], explicitReread: false });
+  assert.deepEqual(retryPlanFor('POST', encodedChat), auto);
+  assert.deepEqual(retryPlanFor('POST', encodedAnalytics), auto);
+  let authCalls = 0;
+  const authTransport: ClientTransport = async () => {
+    authCalls += 1;
+    throw new Error(SENTINEL);
+  };
+  const blocked = fail(await requestApi({
+    path: encodedAuth,
+    method: 'POST',
+    body: { csrfToken: SENTINEL, error: 'CredentialsSignin' },
+    schema: AccountDTOSchema,
+    transport: authTransport,
+  }));
+  assert.equal(authCalls, 0);
+  assert.equal(blocked.envelope, 'auth-unchanged');
+  assert.equal(blocked.attempts, 0);
+  assert.equal(JSON.stringify(blocked).includes('CredentialsSignin'), false);
+  absent(blocked);
+
+  await withServer((req, res) => {
+    if (req.url === '/api/admin/cron/mail-queue') send(res, 503, { error: 'service_unavailable', requestId: UUID, stack: SENTINEL });
+    else if (req.url === decodedAnalytics) send(res, 200, receipt);
+    else send(res, 200, received);
+  }, async (transport, hits) => {
+    const cron = fail(await requestApi({
+      path: encodedCron,
+      schema: AccountDTOSchema,
+      transport,
+    }));
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].url, '/api/admin/cron/mail-queue');
+    assert.equal(cron.attempts, 1);
+    assert.equal(cron.retryable, false);
+    assert.equal(cron.action, 'stop');
+    absent(cron);
+
+    const chatBody = { clientMessageId: OTHER, bodyText: 'a'.repeat(12_000) };
+    const chat = await requestApi({
+      path: encodedChat,
+      method: 'POST',
+      body: chatBody,
+      schema: MessageReceivedDTOSchema,
+      transport,
+    });
+    assert.equal(chat.ok, true);
+    assert.equal(hits[1].url, decodedChat);
+    assert.equal(hits[1].body, JSON.stringify(chatBody));
+
+    const analyticsBody = { note: 'a'.repeat(20_000) };
+    const analytics = await requestApi({
+      path: encodedAnalytics,
+      method: 'POST',
+      body: analyticsBody,
+      schema: AnalyticsReceiptDTOSchema,
+      transport,
+    });
+    assert.equal(analytics.ok, true);
+    assert.equal(hits[2].url, decodedAnalytics);
+    assert.equal(hits.length, 3);
+  });
+});
+
+test('encoded chat and analytics paths replay the same body once', async () => {
+  let chatHits = 0;
+  let analyticsHits = 0;
+  const chatBody = { clientMessageId: OTHER, bodyText: 'Hello' };
+  const analyticsBody = {
+    events: [{ kind: 'page_view', eventId: UUID, navigationId: OTHER, occurredAt: AT, locale: 'en', path: '/en' }],
+  };
+  await withServer((req, res) => {
+    if (req.url === decodedChat) {
+      chatHits += 1;
+      if (chatHits === 1) send(res, 503, { error: 'service_unavailable', requestId: UUID });
+      else send(res, 200, received);
+      return;
+    }
+    analyticsHits += 1;
+    if (analyticsHits === 1) send(res, 503, { error: 'service_unavailable', requestId: UUID });
+    else send(res, 200, receipt);
+  }, async (transport, hits) => {
+    const chat = await requestApi({
+      path: encodedChat,
+      method: 'POST',
+      body: chatBody,
+      schema: MessageReceivedDTOSchema,
+      transport,
+    });
+    const analytics = await requestApi({
+      path: encodedAnalytics,
+      method: 'POST',
+      body: analyticsBody,
+      schema: AnalyticsReceiptDTOSchema,
+      transport,
+    });
+    assert.equal(chat.ok, true);
+    assert.equal(analytics.ok, true);
+    if (chat.ok) assert.equal(chat.attempts, 2);
+    if (analytics.ok) assert.equal(analytics.attempts, 2);
+    assert.equal(hits.filter((hit) => hit.url === decodedChat).length, 2);
+    assert.equal(hits.filter((hit) => hit.url === decodedAnalytics).length, 2);
+    assert.equal(hits[0].body, hits[1].body);
+    assert.equal(hits[2].body, hits[3].body);
+    assert.ok(hits[1].at - hits[0].at >= 900);
+    assert.ok(hits[3].at - hits[2].at >= 900);
+  });
+});
+
+test('a dropped body keeps 401, 403, 404, and 409 from being replayed', async () => {
+  const statuses = [401, 403, 404, 409];
+  let step = 0;
+  await withServer((_req, res) => {
+    const status = statuses[step];
+    step += 1;
+    dropBody(res, status);
+  }, async (transport, hits) => {
+    for (const status of statuses) {
+      const before = hits.length;
+      const started = Date.now();
+      const result = fail(await requestApi({
+        path: MESSAGE_PATH,
+        method: 'POST',
+        body: { clientMessageId: OTHER, bodyText: 'Hello' },
+        schema: MessageReceivedDTOSchema,
+        transport,
+      }));
+      assert.equal(hits.length - before, 1, String(status));
+      assert.ok(Date.now() - started < 1_000, String(status));
+      assert.equal(result.status, status);
+      assert.equal(result.attempts, 1);
+      assert.equal(result.retryable, false);
+      assert.equal(result.action, 'stop');
+      assert.notEqual(result.action, 'unconfirmed');
+      absent(result);
+    }
+  });
+});
+
+test('a dropped 429 body keeps Retry-After and does not use the 1/2/4 schedule', async () => {
+  await withServer((_req, res) => {
+    dropBody(res, 429, { 'retry-after': '31' });
+  }, async (transport, hits) => {
+    const started = Date.now();
+    const result = fail(await requestApi({
+      path: MESSAGE_PATH,
+      method: 'POST',
+      body: { clientMessageId: OTHER, bodyText: 'Hello' },
+      schema: MessageReceivedDTOSchema,
+      transport,
+    }));
+    assert.equal(hits.length, 1);
+    assert.ok(Date.now() - started < 1_000);
+    assert.equal(result.status, 429);
+    assert.equal(result.action, 'wait');
+    assert.equal(result.retryAfterMs, 31_000);
+    assert.equal(result.retryable, true);
+    assert.equal(result.attempts, 1);
+    absent(result);
+  });
+});
+
+test('a dropped 429 body waits for a short Retry-After before the same body is sent again', async () => {
+  let count = 0;
+  const body = { clientMessageId: OTHER, bodyText: 'Hello' };
+  await withServer((_req, res) => {
+    count += 1;
+    if (count === 1) dropBody(res, 429, { 'retry-after': '2' });
+    else send(res, 200, received);
+  }, async (transport, hits) => {
+    const result = await requestApi({
+      path: MESSAGE_PATH,
+      method: 'POST',
+      body,
+      schema: MessageReceivedDTOSchema,
+      transport,
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.attempts, 2);
+    assert.equal(hits.length, 2);
+    assert.equal(hits[0].body, hits[1].body);
+    assert.ok(hits[1].at - hits[0].at >= 1_800, String(hits[1].at - hits[0].at));
+  });
+});
+
+test('a 403 whose body never finishes is not replayed when the deadline fires', { timeout: 25_000 }, async () => {
+  await withServer((_req, res) => {
+    res.writeHead(403, { 'content-type': 'application/json; charset=utf-8' });
+    res.write(`{"message":"${SENTINEL}"`);
+  }, async (transport, hits) => {
+    const started = Date.now();
+    const result = fail(await requestApi({
+      path: MESSAGE_PATH,
+      method: 'POST',
+      body: { clientMessageId: OTHER, bodyText: 'Hello' },
+      schema: MessageReceivedDTOSchema,
+      transport,
+    }));
+    const elapsed = Date.now() - started;
+    assert.ok(elapsed >= 14_000, `elapsed ${elapsed}`);
+    assert.ok(elapsed < 22_000, `elapsed ${elapsed}`);
+    assert.equal(hits.length, 1);
+    assert.equal(result.status, 403);
+    assert.equal(result.action, 'stop');
+    assert.equal(result.retryable, false);
+    assert.equal(result.attempts, 1);
+    absent(result);
+  });
+});
+
+test('caller abort during a partial 403 body stays silent', async () => {
+  const controller = new AbortController();
+  await withServer((_req, res) => {
+    res.writeHead(403, { 'content-type': 'application/json; charset=utf-8' });
+    res.write(`{"message":"${SENTINEL}"`);
+    setTimeout(() => controller.abort(), 40);
+  }, async (transport, hits) => {
+    const result = fail(await requestApi({
+      path: MESSAGE_PATH,
+      method: 'POST',
+      body: { clientMessageId: OTHER, bodyText: 'Hello' },
+      schema: MessageReceivedDTOSchema,
+      signal: controller.signal,
+      transport,
+    }));
+    assert.equal(hits.length, 1);
+    assert.equal(result.action, 'silent');
+    assert.equal(result.text, '');
+    assert.equal(result.attempts, 1);
+    absent(result);
+  });
+});

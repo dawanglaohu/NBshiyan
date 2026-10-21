@@ -64,20 +64,27 @@ type Attempt = {
   finish: () => void;
 };
 
+/**
+ * Next routes one `decodeURIComponent` pass. Auth.js, cron, body caps, and the retry
+ * whitelist all see that pathname, and the outgoing request uses it too.
+ */
 export function normalizeApiPath(input: string): string | undefined {
   if (typeof input !== 'string' || input.length === 0 || input.length > 2048) return undefined;
   if (!input.startsWith('/') || input.startsWith('//') || input.includes('#')) return undefined;
   if (/[\s\\\p{Cc}\p{Cf}]/u.test(input)) return undefined;
-  const pathname = input.split(/[?#]/, 1)[0];
+  const queryAt = input.indexOf('?');
+  const pathname = queryAt === -1 ? input : input.slice(0, queryAt);
+  const search = queryAt === -1 ? '' : input.slice(queryAt);
   let decoded: string;
   try {
     decoded = decodeURIComponent(pathname);
   } catch {
     return undefined;
   }
+  if (!decoded.startsWith('/') || decoded.startsWith('//')) return undefined;
   if (/[\\%?#\s\p{Cc}\p{Cf}]/u.test(decoded) || decoded.includes('//')) return undefined;
   if (decoded.split('/').some((part) => part === '.' || part === '..')) return undefined;
-  return input;
+  return decoded + search;
 }
 
 function pathnameOf(path: string): string {
@@ -240,6 +247,13 @@ function retryAfterMs(header: string | null, now: number): number | undefined {
   return Math.max(0, date - now);
 }
 
+/** 401/403/404/409 and every other finished non-replay status stay closed if the body then drops. */
+function headerForbidsReplay(status: number): boolean {
+  if (status === 408 || status === 429) return false;
+  if (status >= 500 && status <= 599) return false;
+  return status >= 400 && status <= 499;
+}
+
 function applyPlan(failure: ClientApiFailure, plan: RetryPlan, transient: boolean): ClientApiFailure {
   const retryable = transient && plan.explicitReread;
   const action = failure.action === 'retry' && !plan.explicitReread ? 'stop' : failure.action;
@@ -323,7 +337,33 @@ export async function requestApi<T>(options: RequestApiOptions<T>): Promise<Clie
       attempt.finish();
       sends += 1;
       const kind = thrownKind(error, attempt, options.signal);
-      const stopped = await settle(kind, response.status, undefined, sends);
+      if (kind === 'cancelled') return adaptApiError({ kind: 'cancelled', locale, audience, attempts: sends });
+      const status = response.status;
+      const retryAfter = retryAfterMs(response.headers.get('retry-after'), Date.now());
+      if (headerForbidsReplay(status)) {
+        return applyPlan(adaptApiError({
+          kind: 'http',
+          status,
+          locale,
+          audience,
+          attempts: sends,
+          retryAfterMs: retryAfter,
+        }), plan, false);
+      }
+      if (status === 429) {
+        const failure = adaptApiError({
+          kind: 'http',
+          status,
+          locale,
+          audience,
+          attempts: sends,
+          retryAfterMs: retryAfter,
+        });
+        const stopped = await settle('http', status, failure, sends);
+        if (stopped) return stopped;
+        continue;
+      }
+      const stopped = await settle(kind, status, undefined, sends);
       if (stopped) return stopped;
       continue;
     }
