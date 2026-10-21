@@ -34,3 +34,5 @@ python -B docs/brand-media/static/verify-static-media.py --require-release
 按用户授权，产品包装品牌合成版为 `held/video2-packjoyu-products-v2.mp4`（1080p60，10.22MB）及 `held/video2-packjoyu-products-web-720p60-v2.mp4`（720p60，4.24MB）；对应海报来自1080p成片第734帧、12233.333ms。前段红色产品标签与片尾Holiland/好利来字带采用现用PackJoyU字标，设备品牌与节庆图案保留。两版均735帧、原576个AAC包及时序逐值相同；视频轨12.250秒，容器12.288秒，比原容器多21ms。实际制作、逐纸袋控制点、完整合成命令和原片身份关系见 `video-product-replacement.json`、`product-video/`；发布仍待原片来源依据。
 
 本次字标透视修正版为 `held/video2-packjoyu-products-v3.mp4` 与 `held/video2-packjoyu-products-web-720p60-v3.mp4`；最新海报为 `held/video2-packjoyu-products-v3-poster-12233ms.jpg`。按用户标注的第734帧修正片尾纸袋文字：字标沿纸面印刷行投影，下方纸袋与上方斜坡分别校准，清除旧标区域与机器遮挡保持独立。v2视频和海报保留，复现提交见 `product-video/v2-output-archive.json`；第734帧实际编码前后对比见 `evidence/video-product-logo-alignment-v3-0734.jpg`。
+
+用户已确认保留全部素材。`saved-media-index.json` 汇总当前选用的6个文件、全部65个已登记媒体、原件和品牌master的位置与SHA256；当前选用视频为v3，图片/GIF沿用已确认工业场景。全部媒体及原件哈希已重新核对，旧版本保留。

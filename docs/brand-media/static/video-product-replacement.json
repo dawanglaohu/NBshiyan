@@ -267,7 +267,7 @@
     "userAcceptedOutput": false
   },
   "browserPlayback": "not executed; existing local-file URL policy block, no workaround attempted",
-  "userAcceptedOutput": false,
+  "userAcceptedOutput": true,
   "releaseAllowed": false,
   "factualBoundary": "Product print is an edited appearance. Original corporate authorship and customer/factory relationship inventory is not reclassified by this edit.",
   "integrityStatus": "pass:65 registered media files; originals re-read; 735 frames and 576 original audio packets verified",
@@ -279,5 +279,27 @@
     "matchedAtMs": 12233.333333333332,
     "change": "Calibrate final-shot wordmark to paper print axes; retain exact existing logo master, cleanup bounds, foreground occlusion and full timeline.",
     "calibrationPath": "docs/brand-media/static/product-video/late-logo-calibration.json"
-  }
+  },
+  "userAcceptance": {
+    "source": "Direct user instruction in this chat",
+    "quote": "ok  保持好全部素材",
+    "savedAt": "2026-10-21T06:43:50+00:00",
+    "scope": "Keep all existing artwork, GIFs, video variants, posters, source material and earlier revisions. Current selection uses accepted industrial image/GIF and corrected product video v3.",
+    "revision": "v3",
+    "acceptedOutputs": [
+      {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+        "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+      },
+      {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+        "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd"
+      },
+      {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+      }
+    ]
+  },
+  "savedMediaIndexPath": "docs/brand-media/static/saved-media-index.json"
 }
