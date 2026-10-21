@@ -70,24 +70,28 @@ test('status text uses polite announcements, explicit prefixes and opt-in error 
 });
 
 // DOM doubles isolate lifecycle ordering; the browser integration belongs to M1-T4.
-function dialogFixture() {
+function dialogFixture(withSummary = false) {
   const doc = new EventTarget() as EventTarget & { activeElement: unknown };
   doc.activeElement = null;
-  const element = () => ({
-    isConnected: true, tabIndex: 0, disabled: false,
+  const element = (tagName = 'BUTTON') => ({
+    tagName, isConnected: true, tabIndex: 0, disabled: false,
     hasAttribute: () => false, closest: () => null, matches: () => false,
     getClientRects: () => [{}],
     focus() { doc.activeElement = this; },
   });
   const opener = element();
-  const title = element();
-  const first = element();
+  const title = element('H2');
+  const summary = element('SUMMARY');
+  const first = element('INPUT');
   const last = element();
   const dialog = Object.assign(new EventTarget(), {
-    ownerDocument: doc, open: false, items: [first, last],
+    ownerDocument: doc, open: false, items: withSummary ? [summary, first, last] : [first, last],
     showModal() { this.open = true; first.focus(); },
     close() { this.open = false; dialog.dispatchEvent(new Event('close')); },
-    querySelectorAll() { return this.items; },
+    // An implicit tab stop must match a requested type selector; it has no tabindex attribute.
+    querySelectorAll(selector: string) {
+      return this.items.filter((el) => selector.split(',').some((part) => new RegExp(`^${el.tagName}(?:$|[\\s:[.#>])`, 'i').test(part.trim())));
+    },
     contains(el: unknown) { return [title, ...this.items].includes(el as typeof first); },
   });
   opener.focus();
@@ -98,8 +102,32 @@ function dialogFixture() {
     doc.dispatchEvent(event);
     return event;
   };
-  return { doc, opener, title, first, last, dialog, activate, key, requests: () => requests };
+  return { doc, opener, title, summary, first, last, dialog, activate, key, requests: () => requests };
 }
+
+test('dialog title Tab reaches the implicit summary tab stop and wraps at both boundaries', () => {
+  const f = dialogFixture(true);
+  const release = f.activate();
+  try {
+    assert.equal(f.key('Tab').defaultPrevented, true);
+    assert.equal(f.doc.activeElement, f.summary);
+    f.last.focus();
+    f.key('Tab');
+    assert.equal(f.doc.activeElement, f.summary);
+    f.key('Tab', true);
+    assert.equal(f.doc.activeElement, f.last);
+  } finally { release(); }
+});
+
+test('dialog input Shift+Tab allows the native step back to summary', () => {
+  const f = dialogFixture(true);
+  const release = f.activate();
+  try {
+    f.first.focus();
+    assert.equal(f.key('Tab', true).defaultPrevented, false);
+    assert.equal(f.doc.activeElement, f.first);
+  } finally { release(); }
+});
 
 test('dialog keyboard focus wraps both ways, Escape requests close, cleanup restores opener', () => {
   const f = dialogFixture();
