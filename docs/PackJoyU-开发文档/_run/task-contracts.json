@@ -3503,6 +3503,10 @@
         {
           "task": "M1-T3",
           "capability": "brand-logo-master"
+        },
+        {
+          "task": "M1-T3",
+          "capability": "brand-static-media"
         }
       ],
       "supportPaths": [],
