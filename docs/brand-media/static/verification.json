@@ -269,6 +269,30 @@
     "previousAuditArchive": "docs/brand-media/static/history/pre-main-integration",
     "masterSha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
     "sourceCapture": "docs/brand-media/static/evidence/current-header.json",
-    "previousHeaderImage": "docs/brand-media/static/evidence/current-header-before-main.png"
+    "previousHeaderImage": "docs/brand-media/static/evidence/current-header-before-main.png",
+    "ci": {
+      "head": "0bd8c3e8a360bbf8f37b0399408cb0e32cd4dab8",
+      "runId": 39576295748,
+      "url": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39576295748",
+      "buildAndAudit": "success",
+      "securityGate": "success",
+      "e2e": "success",
+      "repositoryUnitTests": {
+        "passed": 1250,
+        "failed": 0,
+        "skipped": 13
+      },
+      "standaloneStartupTests": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      },
+      "e2eTests": {
+        "passed": 60,
+        "failed": 0,
+        "skipped": 9
+      },
+      "skipScope": "Existing conditional repository cases; no task-media or direct-regression skips."
+    }
   }
 }
