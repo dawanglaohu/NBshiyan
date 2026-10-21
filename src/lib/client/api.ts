@@ -363,7 +363,15 @@ export async function requestApi<T>(options: RequestApiOptions<T>): Promise<Clie
         if (stopped) return stopped;
         continue;
       }
-      const stopped = await settle(kind, status, undefined, sends);
+      const failure = adaptApiError({
+        kind,
+        status,
+        locale,
+        audience,
+        attempts: sends,
+        retryAfterMs: retryAfter,
+      });
+      const stopped = await settle(kind, status, failure, sends);
       if (stopped) return stopped;
       continue;
     }

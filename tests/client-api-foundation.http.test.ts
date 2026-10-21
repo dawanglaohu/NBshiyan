@@ -1114,6 +1114,30 @@ test('a dropped 429 body waits for a short Retry-After before the same body is s
   });
 });
 
+test('a dropped 408 or 503 body keeps an already received Retry-After', async () => {
+  for (const status of [408, 503]) {
+    await withServer((_req, res) => {
+      dropBody(res, status, { 'retry-after': '31' });
+    }, async (transport, hits) => {
+      const started = Date.now();
+      const result = fail(await requestApi({
+        path: MESSAGE_PATH,
+        method: 'POST',
+        body: { clientMessageId: OTHER, bodyText: 'Hello' },
+        schema: MessageReceivedDTOSchema,
+        transport,
+      }));
+      assert.equal(hits.length, 1, String(status));
+      assert.ok(Date.now() - started < 1_000, String(status));
+      assert.equal(result.status, status);
+      assert.equal(result.retryAfterMs, 31_000);
+      assert.equal(result.retryable, true);
+      assert.equal(result.attempts, 1);
+      absent(result);
+    });
+  }
+});
+
 test('a 403 whose body never finishes is not replayed when the deadline fires', { timeout: 25_000 }, async () => {
   await withServer((_req, res) => {
     res.writeHead(403, { 'content-type': 'application/json; charset=utf-8' });
