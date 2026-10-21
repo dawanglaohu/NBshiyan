@@ -40,9 +40,20 @@ def local_path(value):
     return target
 
 
+# Text digests use LF so a core.autocrlf checkout re-reads the same SHA as an LF checkout.
+# Binary media, fonts and web fonts stay raw bytes.
+TEXT_HASH_SUFFIXES = {'.css', '.ts', '.tsx', '.js', '.mjs', '.py', '.txt', '.svg', '.json', '.md'}
+
+
+def content_digest(path, data):
+    if Path(path).suffix.lower() in TEXT_HASH_SUFFIXES:
+        data = data.replace(b'\r\n', b'\n')
+    return hashlib.sha256(data).hexdigest()
+
+
 def check_hash(row):
     target = local_path(row['path'])
-    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    digest = content_digest(row['path'], target.read_bytes())
     require(digest == row['sha256'], f'Hash mismatch: {row["path"]}')
     return target
 

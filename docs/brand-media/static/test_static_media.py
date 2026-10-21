@@ -140,5 +140,24 @@ class StaticMediaChecks(unittest.TestCase):
                         CHECK.verify()
 
 
+    def test_logo_source_reread_matches_across_newline_conventions(self):
+        audit = CHECK.read('logo-source-audit.json')
+        for row in audit['sourceFiles']:
+            data = CHECK.local_path(row['path']).read_bytes().replace(b'\r\n', b'\n')
+            self.assertEqual(CHECK.content_digest(row['path'], data), row['sha256'], row['path'])
+            if Path(row['path']).suffix.lower() in CHECK.TEXT_HASH_SUFFIXES and b'\n' in data:
+                crlf = data.replace(b'\n', b'\r\n')
+                self.assertEqual(CHECK.content_digest(row['path'], crlf), row['sha256'], row['path'])
+
+    def test_logo_main_color_citation_is_the_black_foreground_token(self):
+        audit = CHECK.read('logo-source-audit.json')
+        citation = audit['styleSources']['mainColorCascade']
+        token = next(part.strip() for part in citation.split(';') if 'tokens.css:' in part)
+        path, line_no = token.rsplit(':', 1)
+        line = CHECK.local_path(path).read_text(encoding='utf-8').splitlines()[int(line_no) - 1]
+        self.assertIn('--pj-fg', line)
+        self.assertIn('#000000', line.replace(' ', '').lower())
+
+
 if __name__ == '__main__':
     unittest.main()

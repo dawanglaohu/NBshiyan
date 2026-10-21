@@ -4,7 +4,7 @@
   "sourceFiles": [
     {
       "path": "src/components/layout/SiteHeader.tsx",
-      "sha256": "c69df839ef3c35ba26edc5d37e3df46945fb05b77beaf7e3fca5f1d0c2ec4ce4"
+      "sha256": "fbaa2a3319ee9945dad98b2247d4a5c8d2ce7ffd1c649a921cbdc85999ce4d01"
     },
     {
       "path": "src/app/globals.css",
@@ -12,15 +12,15 @@
     },
     {
       "path": "src/app/[locale]/layout.tsx",
-      "sha256": "87d0befc92a6882692e6c960b2901461bcf83918135dd339ba92c32922b01e56"
+      "sha256": "8ea0a444f371646ec390cf52495ada71719ffec641378d723c0b9764865bd957"
     },
     {
       "path": "src/styles/tokens.css",
-      "sha256": "801ab137b9b2439a41c11aaccdf119f5b7a9a86cdcce2ff02a251fd046f14081"
+      "sha256": "4e47291e870b3c76e6c483d6c3bfcc0ff70646561e40ebeb5ba3239bd7dc113f"
     },
     {
       "path": "src/app/icon.svg",
-      "sha256": "56bdc4a29ae508300bc6b1d0e3fa1bfa4f8d9cdacbe9c294154cfce46261a17c"
+      "sha256": "6f488204fc61165f3a31e8e5c0e5450ff378d722c8d7b196c631feea7c2ceb3f"
     },
     {
       "path": "src/assets/og-fonts/Manrope-ExtraBold.ttf",
@@ -28,11 +28,11 @@
     },
     {
       "path": "src/assets/og-fonts/OFL.txt",
-      "sha256": "4b8929f05a122b7abb9059501dc7dc4df86f8c97d5a1769d60d82cf2d2795dde"
+      "sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b"
     },
     {
       "path": "design/og-src/og-article-font.py",
-      "sha256": "2c7e8b13d18fe4b8d15b116d6006ded6b022c6f79387f2e481944c5dd74644d1"
+      "sha256": "f5610a357704e20d01b0b10a7e31a7785cdaa66211107ca0b2677a82fac9d75a"
     },
     {
       "path": "docs/brand-media/static/evidence/current-header.json",
@@ -61,7 +61,7 @@
   "styleSources": {
     "wordmark": "src/components/layout/SiteHeader.tsx:56",
     "weightSizeJoyStyle": "src/app/globals.css:14",
-    "mainColorCascade": "src/app/globals.css:330; src/styles/tokens.css:29",
+    "mainColorCascade": "src/app/globals.css:330; src/styles/tokens.css:26",
     "joyColor": "src/styles/tokens.css:6",
     "fontFamily": "src/app/[locale]/layout.tsx:20,57; src/app/globals.css:8"
   },
