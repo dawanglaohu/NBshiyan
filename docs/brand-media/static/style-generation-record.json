@@ -110,5 +110,8 @@
     "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf",
     "width": 1737,
     "height": 905
-  }
+  },
+  "latestOutputUserAccepted": true,
+  "approvalBasis": "用户：当前的图片效果达标",
+  "approvedImageAnimationRecord": "docs/brand-media/static/approved-image-gif-record.json"
 }

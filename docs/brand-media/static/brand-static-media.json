@@ -93,6 +93,18 @@
       "backend": "OpenCV 5.0.0",
       "sha256Before": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
       "sha256After": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f"
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video_1654824102804.gif",
+      "sha256": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "sha256Before": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "sha256After": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "bytes": 7934997,
+      "width": 1384,
+      "height": 720,
+      "frames": 361,
+      "durationMs": 30080,
+      "loop": 0
     }
   ],
   "jpgReplacements": [
@@ -396,6 +408,65 @@
       "height": 905,
       "role": "held_style_variant",
       "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-000.png",
+      "sha256": "86e5bbab980ad6a717126b786ee1399ee9962d9ac724e4ec19816c4febedfda7",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-090.png",
+      "sha256": "c1b5bc9314aba59260b6202a87c6b9c69258365299a0859547f671343a1bdad7",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-180.png",
+      "sha256": "91e22e296abb8f7bf98199daf2d35b56abafcb8fdf3c72ca70f7d00030d52549",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-270.png",
+      "sha256": "25f2188afc9d18574a387190f892549b91b71f108b069e3fe786329d55adac4c",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-360.png",
+      "sha256": "23539b3ca4da2743a8d56ce9266244e000a99744f9168278a1b4cf6b6b6b3882",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
+      "sha256": "318464582e6091b812f8f07551455b9ca6037efd35fdd825dbb1ac261b87fe3f",
+      "width": 1384,
+      "height": 720,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "held_style_animation",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png",
+      "sha256": "86e5bbab980ad6a717126b786ee1399ee9962d9ac724e4ec19816c4febedfda7",
+      "width": 1384,
+      "height": 720,
+      "role": "held_pause_frame",
+      "releaseAllowed": false
     }
   ],
   "missingDeliverables": [
@@ -409,7 +480,9 @@
     "docs/brand-media/static/held/video2-720p60.mp4",
     "docs/brand-media/static/held/video2-poster-4500ms.jpg",
     "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
-    "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png"
+    "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png"
   ],
   "generationRecordPath": "docs/brand-media/static/image-generation-record.json",
   "styleVariants": [
@@ -423,7 +496,16 @@
       "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
       "recordPath": "docs/brand-media/static/style-generation-record.json",
       "status": "user_annotated_detail_revision",
-      "revisionOf": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png"
+      "revisionOf": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+      "userAccepted": true
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
+      "recordPath": "docs/brand-media/static/approved-image-gif-record.json",
+      "status": "new_loop_from_approved_image",
+      "originalTimingPreserved": true,
+      "originalGifFrameContentIdentityClaimed": false
     }
-  ]
+  ],
+  "approvedGifRecordPath": "docs/brand-media/static/approved-image-gif-record.json"
 }

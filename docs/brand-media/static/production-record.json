@@ -63,6 +63,17 @@
       "recordPath": "docs/brand-media/static/style-generation-record.json",
       "scope": "User-authorized new style from reference, not a pixel-local replacement.",
       "detailRevisionRecord": "docs/brand-media/static/style-generation-record.json"
+    },
+    {
+      "id": "approved-image-loop-gif",
+      "status": "executed_verified_animation",
+      "tool": "Deterministic Python/OpenCV animation and Pillow GIF encoding; no video-generation API",
+      "outputs": [
+        "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
+        "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png"
+      ],
+      "recordPath": "docs/brand-media/static/approved-image-gif-record.json",
+      "scope": "New animation based on explicitly accepted static image, originalGIF timing preserved; not formal original-GIF replacement acceptance."
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",

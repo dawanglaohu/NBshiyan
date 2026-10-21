@@ -22,3 +22,5 @@ python -B docs/brand-media/static/verify-static-media.py --require-release
 `production-record.json` 区分已执行、待保真核对和身份禁发。`video-identity.json` 与 `identity-basis.md` 保留原片逐项身份观察及禁发原因。`heldFiles` 与 `releaseFiles` 分开；持有副本不等于已批准发布。接触表、抽帧、旧标放大、字体和截图为核查材料，字体证据附同源 OFL 许可。
 
 目录内 `.gitattributes` 保留证据和导出文件的原始字节，避免 Git 自动换行转换使 SHA256 失效；OFL 副本保留来源中的空格。`sourceFiles` 记录此次 Windows 工作树源文件的实际字节。跨平台的源文件换行不同会使源哈希核查失败，须重新采集来源与网页核验，不能只改清单哈希绕过核对。
+
+用户已确认纸艺 v2 图片达标。基于该图的新循环动画为 `held/packjoyu-papercraft-city-loop.gif`（1384×720，361帧，30.08秒，无限循环，约5.06MB），暂停帧为同名 `-poster.png`。固定机位下飞艇漂移、局部灯光和水面变化；实际制作是确定性图层动画与Pillow编码，不是账号视频生成或Dot操作。原GIF时序保留，源GIF及已验收PNG字节未改，不以此替代M1-T6对原GIF内容逐帧换标的正式验收。

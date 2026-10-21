@@ -14,11 +14,13 @@
     {
       "command": "verify-static-media.py --originals-root C:/Users/admin/Desktop",
       "result": "pass",
-      "imageFilesChecked": 31,
+      "imageFilesChecked": 38,
       "sourceDecodedFrames": 735,
       "reproducedEvidenceFrames": 7,
-      "mediaFilesChecked": 32,
-      "compressedVideoFrames": 735
+      "mediaFilesChecked": 39,
+      "compressedVideoFrames": 735,
+      "gifDecodedFrames": 361,
+      "gifDurationMs": 30080
     },
     {
       "command": "python -B -m unittest discover -s docs/brand-media/static -p test_*.py -v",
@@ -48,6 +50,12 @@
       "continuationNegativeMutationsRejected": 6,
       "heldJpegReproducesSelectedPng": true,
       "compressedVideoMetadataIndependentlyChecked": true
+    },
+    {
+      "command": "python -B -m unittest discover -s docs/brand-media/static -p test_approved_image_gif.py -v",
+      "result": "pass",
+      "tests": 2,
+      "negativeCases": 4
     }
   ],
   "notExecuted": [
@@ -62,5 +70,15 @@
     "video corporate provenance and product relationship"
   ],
   "styleGenerationCalls": 1,
-  "styleDetailEditCalls": 1
+  "styleDetailEditCalls": 1,
+  "approvedImageGif": {
+    "frameCount": 361,
+    "durationMs": 30080,
+    "loop": 0,
+    "bytes": 5057276,
+    "sha256": "318464582e6091b812f8f07551455b9ca6037efd35fdd825dbb1ac261b87fe3f",
+    "originalGifHashUnchanged": true,
+    "approvedPngHashUnchanged": true,
+    "accountVideoGenerationClaimed": false
+  }
 }

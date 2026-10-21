@@ -83,6 +83,7 @@ def verify(originals_root=None):
         allowed = {'viewBox', 'width', 'height'} if node is svg else {'d', 'fill'}
         require(set(node.attrib) <= allowed, 'Unexpected SVG attributes or external reference')
     image_paths = set()
+    gif_metadata = {}
     file_by_path = {row['path']: row for row in manifest['files']}
     require(len(file_by_path) == len(manifest['files']), 'Duplicate media path')
 
@@ -103,6 +104,20 @@ def verify(originals_root=None):
                                     cwd=ROOT, capture_output=True, text=True, check=True)
             info = json.loads(result.stdout)
             size = (info['width'], info['height'])
+        elif target.suffix.lower() == '.gif':
+            with Image.open(target) as decoded:
+                size, loop = decoded.size, decoded.info.get('loop')
+                durations = []
+                for frame_index in range(decoded.n_frames):
+                    decoded.seek(frame_index)
+                    decoded.convert('RGB').load()
+                    durations.append(decoded.info.get('duration', 0))
+                decoded.seek(0)
+                first_pixels = decoded.convert('RGB').tobytes()
+            require(len(durations) == row['frameCount'], f'GIF frame count differs: {row["path"]}')
+            require(sum(durations) == row['durationMs'], f'GIF duration differs: {row["path"]}')
+            require(loop == row['loop'] == 0, f'GIF loop differs: {row["path"]}')
+            gif_metadata[row['path']] = {'durationsMs': durations, 'firstPixels': first_pixels}
         elif target.suffix.lower() == '.mp4':
             import cv2
             decoded = cv2.VideoCapture(str(target))
@@ -149,6 +164,24 @@ def verify(originals_root=None):
         if replacement.get('candidatePath'):
             require(replacement['candidatePath'] in manifest.get('heldFiles', []), 'JPG candidate is not held')
     require(actual_images == image_paths, 'Manifest omits an image or lists an extra image')
+    if manifest.get('approvedGifRecordPath'):
+        animation = json.loads(local_path(manifest['approvedGifRecordPath']).read_text(encoding='utf-8'))
+        check_registered_record(animation['approvedImage'])
+        check_registered_record(animation['output'])
+        check_registered_record(animation['pauseFrame'])
+        metadata = gif_metadata[animation['output']['path']]
+        require(metadata['durationsMs'] == animation['originalGif']['durationsMs']
+                == animation['output']['durationsMs'], 'GIF original frame timing differs')
+        starts, elapsed = [], 0
+        for duration in metadata['durationsMs']:
+            starts.append(elapsed)
+            elapsed += duration
+        require(starts == animation['frameStartMs'], 'GIF frame start times differ')
+        with Image.open(local_path(animation['pauseFrame']['path'])) as pause:
+            require(pause.convert('RGB').tobytes() == metadata['firstPixels'], 'GIF pause image differs from first frame')
+        require(any(row['path'] == animation['originalGif']['path'].replace('\\', '/')
+                    and row['sha256'] == animation['originalGif']['sha256'] for row in manifest['originals']),
+                'Original GIF source is not registered')
     if manifest.get('generationRecordPath'):
         generation = json.loads(local_path(manifest['generationRecordPath']).read_text(encoding='utf-8'))
         check_hash(generation['master'])
