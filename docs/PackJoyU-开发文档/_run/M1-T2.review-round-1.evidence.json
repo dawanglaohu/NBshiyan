@@ -1,0 +1,472 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T2": {
+      "contractHash": "87905d6e38a350a7873af6e52d14d92605d2a1e3acaba3b5bbb1501bf493ba91",
+      "verdict": "pass",
+      "evidence": [
+        "本轮对照19节M1-T2源任务、06/07/08/09/10/13/17及当前派发包复核：唯一产物contract-types，primitive阶段，只交付同源schema/DTO与公共出口；M1-T1 visual-base确已合入origin/main，任务前置与requires能力一致。",
+        "有效实现路径src/lib/contracts/、src/types/next-auth.d.ts、tests/contracts-foundation.test.ts覆盖预定产出；index导出全部领域，next-auth.d.ts从公共出口消费推导类型；真实Auth.js设备期限与HTTP/页面接线由M3集成任务负责，本卡无UI，不要求虚构运行时或GIF证据。",
+        "第10节字段表与请求/响应名称、既有Auth.js协议和错误码单一归属均有可执行依据；13节E-95要求缺值/false/字面false为false。聊天optional email与seq分页同时受第10节及E-39/E-77约束；这两条是当前代码缺陷，不是文档冲突，不降低标准或扩大任务范围。",
+        "第17节规定Node原生测试+tsx、pnpm10 lint与tsc命令，支持本卡纯规则验收；独立TypeScript消费测试确实编译公共index且含非法类型负例。现有21测试、tsc及lint通过，但定向复现2/2失败；代码验收结论rework，不运行--landed、不合并。",
+        "当前contractHash与复制提示词一致，stale/runtimeDrift为空；本轮登记仅证明任务契约经语义复核，不表示代码通过、已落地、真实会话/聊天/统计链已交付。实施方6项裁决保留全部原候选并补入实际源码与下游事实重跑，jev-1.13.0均ok/adopt=take，结果与最终实现一致。"
+      ]
+    }
+  },
+  "codeReview": {
+    "round": 1,
+    "verdict": "rework",
+    "reviewedHead": "18245e3ccbe0ec05de9ff1aa4ff0431699ceef35",
+    "base": "7b7ab1c51e1b013c754b7d6fd2305c587f46afba",
+    "pr": 396,
+    "blockers": [
+      {
+        "id": "R1",
+        "path": "src/lib/contracts/chat.ts:174",
+        "also": [
+          "src/lib/contracts/chat.ts:179",
+          "src/lib/contracts/chat.ts:193"
+        ],
+        "requirement": "10节seq分页与13节E-77只推进已完整接收范围",
+        "observed": "访客与后台schema均接受messages.seq=[3,5],nextAfterSeq=5及messages.seq=[3],nextAfterSeq=5；漏消息或游标越过返回尾项。",
+        "expected": "返回消息相邻seq连续；非空页nextAfterSeq等于最后返回seq；请求afterSeq与首项连续性由后续服务/客户端依请求上下文验证。"
+      },
+      {
+        "id": "R2",
+        "path": "src/lib/contracts/chat.ts:38",
+        "requirement": "10节optional email及13节E-39空值按不填处理",
+        "observed": "省略email成功；email为空串或纯空白均失败。",
+        "expected": "聊天可选邮箱将trim空值归为省略；保留非法/超长/CRLF拒绝和账号必填邮箱规则。"
+      }
+    ],
+    "checks": [
+      {
+        "command": "node --import tsx --test tests/contracts-foundation.test.ts",
+        "result": "pass",
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "command": "npx --yes pnpm@10.34.6 exec tsc --noEmit",
+        "result": "pass",
+        "exitCode": 0
+      },
+      {
+        "command": "npx --yes pnpm@10.34.6 lint",
+        "result": "pass",
+        "exitCode": 0,
+        "warnings": "4既有ESLint警告；原生SWC初始化告警后fallback完成。"
+      },
+      {
+        "command": "node --import tsx --test review-repro.mjs",
+        "result": "fail",
+        "passed": 0,
+        "failed": 2,
+        "skipped": 0
+      }
+    ],
+    "reproductionSource": "import assert from 'node:assert/strict';\nimport test from 'node:test';\nimport * as imported from 'file:///D:/xiangmu/NBshiyan-m1-t2/src/lib/contracts/index.ts';\nconst contracts = imported.default ?? imported;\n\nconst time = '2026-10-20T12:00:00.000Z';\nconst conversation = {\n  id: 'conversation-1', locale: 'en', productSlug: null, sourcePath: null,\n  status: 'OPEN', version: 0, createdAt: time, updatedAt: time,\n  lastActivityAt: time, retainUntil: '2026-11-20T12:00:00.000Z', anonymizedAt: null,\n};\nconst message = seq => ({ id: `message-${seq}`, seq, sender: 'VISITOR', bodyText: 'Hello', createdAt: time });\nconst sync = (seqs, nextAfterSeq = 5) => ({ conversation, messages: seqs.map(message), lastSeq: 5, nextAfterSeq, hasMore: false, read: { lastReadSeq: 0 } });\n\ntest('R1: public and admin chat schemas reject incomplete ranges and cursor jumps', () => {\n  const results = [];\n  for (const schema of [contracts.ChatSyncDTOSchema, contracts.AdminChatSyncDTOSchema]) {\n    const admin = schema === contracts.AdminChatSyncDTOSchema;\n    for (const seqs of [[3, 5], [3]]) {\n      const value = sync(seqs);\n      if (admin) value.conversation = { ...conversation, email: null };\n      const result = schema.safeParse(value);\n      console.log(JSON.stringify({ case: 'R1', admin, seqs, nextAfterSeq: 5, accepted: result.success }));\n      results.push(result.success);\n    }\n  }\n  assert.deepEqual(results, [false, false, false, false], 'Incomplete returned messages must not advance the cursor beyond the complete range.');\n});\n\ntest('R2: optional blank chat email is treated as omitted', () => {\n  const value = {\n    clientConversationId: '2cba8760-8b82-4f32-9ff0-f1b3c426d490',\n    clientMessageId: '3cba8760-8b82-4f32-9ff0-f1b3c426d490',\n    locale: 'en', bodyText: 'Hello',\n  };\n  assert.equal(contracts.ConversationCreateRequestSchema.safeParse(value).success, true);\n  const accepted = [];\n  for (const email of ['', '   ']) {\n    const result = contracts.ConversationCreateRequestSchema.safeParse({ ...value, email });\n    console.log(JSON.stringify({ case: 'R2', email, accepted: result.success }));\n    accepted.push(result.success);\n  }\n  assert.deepEqual(accepted, [true, true], 'Blank optional email must behave like omission.');\n});\n",
+    "reproductionOutput": "TAP version 13\n# {\"case\":\"R1\",\"admin\":false,\"seqs\":[3,5],\"nextAfterSeq\":5,\"accepted\":true}\n# {\"case\":\"R1\",\"admin\":false,\"seqs\":[3],\"nextAfterSeq\":5,\"accepted\":true}\n# {\"case\":\"R1\",\"admin\":true,\"seqs\":[3,5],\"nextAfterSeq\":5,\"accepted\":true}\n# {\"case\":\"R1\",\"admin\":true,\"seqs\":[3],\"nextAfterSeq\":5,\"accepted\":true}\n# {\"case\":\"R2\",\"email\":\"\",\"accepted\":false}\n# {\"case\":\"R2\",\"email\":\"   \",\"accepted\":false}\n# Subtest: R1: public and admin chat schemas reject incomplete ranges and cursor jumps\nnot ok 1 - R1: public and admin chat schemas reject incomplete ranges and cursor jumps\n  ---\n  duration_ms: 12.0272\n  type: 'test'\n  location: 'D:\\\\xiangmu\\\\.codex-plans\\\\NBshiyan-m1-t2\\\\review-repro.mjs:15:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Incomplete returned messages must not advance the cursor beyond the complete range.\n    + actual - expected\n    \n      [\n    +   true,\n    +   true,\n    +   true,\n    +   true\n    -   false,\n    -   false,\n    -   false,\n    -   false\n      ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0: false\n    1: false\n    2: false\n    3: false\n  actual:\n    0: true\n    1: true\n    2: true\n    3: true\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///D:/xiangmu/.codex-plans/NBshiyan-m1-t2/review-repro.mjs:27:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.start (node:internal/test_runner/test:944:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n# Subtest: R2: optional blank chat email is treated as omitted\nnot ok 2 - R2: optional blank chat email is treated as omitted\n  ---\n  duration_ms: 3.2346\n  type: 'test'\n  location: 'D:\\\\xiangmu\\\\.codex-plans\\\\NBshiyan-m1-t2\\\\review-repro.mjs:30:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Blank optional email must behave like omission.\n    + actual - expected\n    \n      [\n    +   false,\n    +   false\n    -   true,\n    -   true\n      ]\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    0: true\n    1: true\n  actual:\n    0: false\n    1: false\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///D:/xiangmu/.codex-plans/NBshiyan-m1-t2/review-repro.mjs:43:10)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    Test.run (node:internal/test_runner/test:1101:12)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 0\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 479.4478\n",
+    "adjudications": [
+      {
+        "name": "login",
+        "state": {
+          "requirement": "Implement only M1-T2 shared strict Zod request/response schemas and schema-inferred DTOs for PackJoyU, faithfully reflecting sections 06/09/10. Preserve existing Auth.js runtime and future task boundaries. No UI or new dependency. Record implementation details in protected task notes; implementation must not change task definitions.",
+          "task": {
+            "title": "M1-T2 Export shared schemas and DTOs for new domains",
+            "accept": "Strict field validation and public independent TypeScript exports; reject unknown/out-of-bound values. LoginMode password/totp. rememberDevice missing, boolean false and literal false -> false; Auth.js prose says only literal true -> true."
+          },
+          "conflict": "Field table says Boolean, explicit values for rememberDevice, but Auth.js prose says only literal true maps true; missing/false/literal false false; all other values rejected. Endpoint device query limit<=50 but generic pagination says max100.",
+          "options": {
+            "A": "Apply narrower endpoint-specific rules: rememberDevice accepts only undefined,false,\"false\",\"true\"; reject boolean true; device query default25 max50. Keep pure DTO metadata optional in next-auth augmentation until runtime M3 exists. Record constraints in task notes.",
+            "B": "Accept boolean true as JSON Boolean in addition to literal true; device max100 per generic table, document discrepancy."
+          },
+          "review_facts": {
+            "exact_head": "18245e3ccbe0ec05de9ff1aa4ff0431699ceef35",
+            "review_context": "First bounded acceptance review for M1-T2. All original candidate options are preserved verbatim. This is pure shared schema infrastructure with no runtime route or UI change. Review must meet existing requirements, without adding future service implementation.",
+            "observed_implementation": "Current source implements login A, projections A with subsequent details B and review-gaps A, events A, queries A. Strict public index is consumed by Auth.js type augmentation and by a standalone TypeScript compilation test. Runtime authorization, product existence, event clock window, consent and cursor ownership belong to future service tasks.",
+            "downstream_facts": "Section09 requires mean load duration accompanied by sample count and null without samples; M5-T11 requires candidate count and actual deletion count. Current schemas include candidateCount and conditional loadDurationSamples. M6-T5 requires HTTP-source counts and mail queued/sending/sent/failed/unknown counts; current StatsSource names api_requests/api_errors and mail, with one scalar number/null per source. M6-T3 names STORAGE/BACKUP, current reports use uppercase and StatsSource uses lowercase. Exact nested response projection vocabularies are not exhaustively specified in section10.",
+            "risk_facts": "Current ChatSessionDTO always requires UTC expiresAt even when available=false, per original details B. StatsDTO contains only sources, query sources accepts arrays. There is no production chat/stats consumer yet. Do not treat absent future routes as a blocker for this foundational task."
+          }
+        },
+        "result": {
+          "status": "ok",
+          "template": "adjudicate",
+          "model": "jev-1.13.0",
+          "key_source": "C:/Users/admin/.typesafe/.env",
+          "verdicts": {
+            "pick": {
+              "choice": "A",
+              "confidence": 0.94,
+              "band": "high",
+              "probabilities": {
+                "A": 0.97,
+                "B": 0.03
+              }
+            },
+            "spec_change": {
+              "p": 0.23,
+              "verdict": "no"
+            },
+            "outside_stack": {
+              "p": 0.06,
+              "verdict": "no"
+            },
+            "needs_owner": {
+              "p": 0.07,
+              "verdict": "no"
+            },
+            "reversible": {
+              "p": 0.8,
+              "verdict": "yes"
+            },
+            "adopt": {
+              "action": "take",
+              "option": "A",
+              "confidence": "high",
+              "why": "Jev 选 A（high）"
+            }
+          },
+          "line": "adjudicate: pick=A(high 0.94) spec_change=no(0.23) outside_stack=no(0.06) needs_owner=no(0.07) reversible=yes(0.80) adopt=take(A)",
+          "usage": {
+            "input_tokens": 3442,
+            "output_tokens": 101
+          }
+        }
+      },
+      {
+        "name": "projections",
+        "state": {
+          "requirement": "Implement only M1-T2 shared strict Zod request/response schemas and schema-inferred DTOs for PackJoyU, faithfully reflecting sections 06/09/10. Preserve existing Auth.js runtime and future task boundaries. No UI or new dependency. Record implementation details in protected task notes; implementation must not change task definitions.",
+          "task": {
+            "title": "M1-T2 Export shared schemas and DTOs for new domains",
+            "accept": "Strict field validation and public independent TypeScript exports; reject unknown/out-of-bound values. LoginMode password/totp. rememberDevice missing, boolean false and literal false -> false; Auth.js prose says only literal true -> true."
+          },
+          "conflict": "Exact nested projections and source/coverage/counts vocabularies for named response DTOs are missing. Need strict concrete DTOs now without inventing service behavior.",
+          "options": {
+            "A": "Derive minimal explicit projections from existing 09 entity fields and 10 named fields. Account currentDevice has id/current/remembered/createdAt/lastActivityAt/effectiveExpiresAt/absoluteExpiresAt/revokedAt/deviceLabel. Chat nested projection excludes token and author IDs, includes documented status/version/times/context; admin projection adds nullable email; read has lastReadSeq; page includes unreadTotal. Stats source uses enumerated documented semantic metric names (page_views,visitors,product_views,model_starts,model_successes,model_failures,mean_load_duration_ms,chat_starts,inquiries,chat_conversations,chat_messages,chat_notifications,api_requests,api_errors,mail,storage,backup); coverage enum full/partial/unavailable, StatsDTO sources + from/to; JobResult counts strict known count fields from jobs. Ops safeErrorCode use only existing AppErrorCode enum. Shapes are reversible implementation details, task notes list them, no service/endpoint change.",
+            "B": "Export request schemas and only fully enumerated response DTOs; omit underspecified AccountDTO/ChatSyncDTO/StatsDTO/JobResultDTO, mark acceptance incomplete for reviewer documentation patch."
+          },
+          "review_facts": {
+            "exact_head": "18245e3ccbe0ec05de9ff1aa4ff0431699ceef35",
+            "review_context": "First bounded acceptance review for M1-T2. All original candidate options are preserved verbatim. This is pure shared schema infrastructure with no runtime route or UI change. Review must meet existing requirements, without adding future service implementation.",
+            "observed_implementation": "Current source implements login A, projections A with subsequent details B and review-gaps A, events A, queries A. Strict public index is consumed by Auth.js type augmentation and by a standalone TypeScript compilation test. Runtime authorization, product existence, event clock window, consent and cursor ownership belong to future service tasks.",
+            "downstream_facts": "Section09 requires mean load duration accompanied by sample count and null without samples; M5-T11 requires candidate count and actual deletion count. Current schemas include candidateCount and conditional loadDurationSamples. M6-T5 requires HTTP-source counts and mail queued/sending/sent/failed/unknown counts; current StatsSource names api_requests/api_errors and mail, with one scalar number/null per source. M6-T3 names STORAGE/BACKUP, current reports use uppercase and StatsSource uses lowercase. Exact nested response projection vocabularies are not exhaustively specified in section10.",
+            "risk_facts": "Current ChatSessionDTO always requires UTC expiresAt even when available=false, per original details B. StatsDTO contains only sources, query sources accepts arrays. There is no production chat/stats consumer yet. Do not treat absent future routes as a blocker for this foundational task."
+          }
+        },
+        "result": {
+          "status": "ok",
+          "template": "adjudicate",
+          "model": "jev-1.13.0",
+          "key_source": "C:/Users/admin/.typesafe/.env",
+          "verdicts": {
+            "pick": {
+              "choice": "A",
+              "confidence": 0.82,
+              "band": "high",
+              "probabilities": {
+                "A": 0.91,
+                "B": 0.09
+              }
+            },
+            "spec_change": {
+              "p": 0.25,
+              "verdict": "no"
+            },
+            "outside_stack": {
+              "p": 0.07,
+              "verdict": "no"
+            },
+            "needs_owner": {
+              "p": 0.08,
+              "verdict": "no"
+            },
+            "reversible": {
+              "p": 0.82,
+              "verdict": "yes"
+            },
+            "adopt": {
+              "action": "take",
+              "option": "A",
+              "confidence": "high",
+              "why": "Jev 选 A（high）"
+            }
+          },
+          "line": "adjudicate: pick=A(high 0.82) spec_change=no(0.25) outside_stack=no(0.07) needs_owner=no(0.08) reversible=yes(0.82) adopt=take(A)",
+          "usage": {
+            "input_tokens": 8873,
+            "output_tokens": 101
+          }
+        }
+      },
+      {
+        "name": "events",
+        "state": {
+          "requirement": "Implement only M1-T2 shared strict Zod request/response schemas and schema-inferred DTOs for PackJoyU, faithfully reflecting sections 06/09/10. Preserve existing Auth.js runtime and future task boundaries. No UI or new dependency. Record implementation details in protected task notes; implementation must not change task definitions.",
+          "task": {
+            "title": "M1-T2 Export shared schemas and DTOs for new domains",
+            "accept": "Strict field validation and public independent TypeScript exports; reject unknown/out-of-bound values. LoginMode password/totp. rememberDevice missing, boolean false and literal false -> false; Auth.js prose says only literal true -> true."
+          },
+          "conflict": "Analytics event contract requires kind-specific navigation/view/product/path fields; exact table references 09 and downstream M2-T4 says preserve product/navigation association. consentVersion type unstated but existing CONSENT_VERSION=2.",
+          "options": {
+            "A": "consentVersion positive Int; ConsentDTO expiresAt UTC or null (false -> null). Require navigationId on every event, page_view path required, product_view productSlug required, model branches viewId+productSlug required, terminal durationMs0..600000; failureReason exact LOAD_ERROR/TIMEOUT/WEBGL_UNAVAILABLE; chat_start path/product optional. Every object strict; schema datetime format only, actual now/published product checked by future service.",
+            "B": "Require navigationId only page_view/product_view/chat_start; allow model navigationId optional; otherwise same strict fields. Use string consentVersion because type unstated."
+          },
+          "review_facts": {
+            "exact_head": "18245e3ccbe0ec05de9ff1aa4ff0431699ceef35",
+            "review_context": "First bounded acceptance review for M1-T2. All original candidate options are preserved verbatim. This is pure shared schema infrastructure with no runtime route or UI change. Review must meet existing requirements, without adding future service implementation.",
+            "observed_implementation": "Current source implements login A, projections A with subsequent details B and review-gaps A, events A, queries A. Strict public index is consumed by Auth.js type augmentation and by a standalone TypeScript compilation test. Runtime authorization, product existence, event clock window, consent and cursor ownership belong to future service tasks.",
+            "downstream_facts": "Section09 requires mean load duration accompanied by sample count and null without samples; M5-T11 requires candidate count and actual deletion count. Current schemas include candidateCount and conditional loadDurationSamples. M6-T5 requires HTTP-source counts and mail queued/sending/sent/failed/unknown counts; current StatsSource names api_requests/api_errors and mail, with one scalar number/null per source. M6-T3 names STORAGE/BACKUP, current reports use uppercase and StatsSource uses lowercase. Exact nested response projection vocabularies are not exhaustively specified in section10.",
+            "risk_facts": "Current ChatSessionDTO always requires UTC expiresAt even when available=false, per original details B. StatsDTO contains only sources, query sources accepts arrays. There is no production chat/stats consumer yet. Do not treat absent future routes as a blocker for this foundational task."
+          }
+        },
+        "result": {
+          "status": "ok",
+          "template": "adjudicate",
+          "model": "jev-1.13.0",
+          "key_source": "C:/Users/admin/.typesafe/.env",
+          "verdicts": {
+            "pick": {
+              "choice": "A",
+              "confidence": 0.88,
+              "band": "high",
+              "probabilities": {
+                "A": 0.94,
+                "B": 0.06
+              }
+            },
+            "spec_change": {
+              "p": 0.23,
+              "verdict": "no"
+            },
+            "outside_stack": {
+              "p": 0.09,
+              "verdict": "no"
+            },
+            "needs_owner": {
+              "p": 0.11,
+              "verdict": "no"
+            },
+            "reversible": {
+              "p": 0.71,
+              "verdict": "yes"
+            },
+            "adopt": {
+              "action": "take",
+              "option": "A",
+              "confidence": "high",
+              "why": "Jev 选 A（high）"
+            }
+          },
+          "line": "adjudicate: pick=A(high 0.88) spec_change=no(0.23) outside_stack=no(0.09) needs_owner=no(0.11) reversible=yes(0.71) adopt=take(A)",
+          "usage": {
+            "input_tokens": 2819,
+            "output_tokens": 101
+          }
+        }
+      },
+      {
+        "name": "queries",
+        "state": {
+          "requirement": "Implement only M1-T2 shared strict Zod request/response schemas and schema-inferred DTOs for PackJoyU, faithfully reflecting sections 06/09/10. Preserve existing Auth.js runtime and future task boundaries. No UI or new dependency. Record implementation details in protected task notes; implementation must not change task definitions.",
+          "task": {
+            "title": "M1-T2 Export shared schemas and DTOs for new domains",
+            "accept": "Strict field validation and public independent TypeScript exports; reject unknown/out-of-bound values. LoginMode password/totp. rememberDevice missing, boolean false and literal false -> false; Auth.js prose says only literal true -> true."
+          },
+          "conflict": "GET query values arrive strings; docs require strict bounded integer paging and cursor verified last sort key, without wire encoding. Need independent browser-safe exports.",
+          "options": {
+            "A": "Export bounded query integers accepting canonical digit strings or integer numbers, explicit true/false strings for query unreadOnly only. Cursor base64url of strict JSON sort key {createdAt,id} for devices / {updatedAt,id} for chats, decode+validate schema without IO and reject SQL/plain/malformed/unknown keys. Site paths normalized by stripping query/hash after validation and en/ru locale whitelist.",
+            "B": "Export numeric-only query object schemas and bounded opaque base64url cursors, leave URL decoding and sort-key verification to future endpoint service."
+          },
+          "review_facts": {
+            "exact_head": "18245e3ccbe0ec05de9ff1aa4ff0431699ceef35",
+            "review_context": "First bounded acceptance review for M1-T2. All original candidate options are preserved verbatim. This is pure shared schema infrastructure with no runtime route or UI change. Review must meet existing requirements, without adding future service implementation.",
+            "observed_implementation": "Current source implements login A, projections A with subsequent details B and review-gaps A, events A, queries A. Strict public index is consumed by Auth.js type augmentation and by a standalone TypeScript compilation test. Runtime authorization, product existence, event clock window, consent and cursor ownership belong to future service tasks.",
+            "downstream_facts": "Section09 requires mean load duration accompanied by sample count and null without samples; M5-T11 requires candidate count and actual deletion count. Current schemas include candidateCount and conditional loadDurationSamples. M6-T5 requires HTTP-source counts and mail queued/sending/sent/failed/unknown counts; current StatsSource names api_requests/api_errors and mail, with one scalar number/null per source. M6-T3 names STORAGE/BACKUP, current reports use uppercase and StatsSource uses lowercase. Exact nested response projection vocabularies are not exhaustively specified in section10.",
+            "risk_facts": "Current ChatSessionDTO always requires UTC expiresAt even when available=false, per original details B. StatsDTO contains only sources, query sources accepts arrays. There is no production chat/stats consumer yet. Do not treat absent future routes as a blocker for this foundational task."
+          }
+        },
+        "result": {
+          "status": "ok",
+          "template": "adjudicate",
+          "model": "jev-1.13.0",
+          "key_source": "C:/Users/admin/.typesafe/.env",
+          "verdicts": {
+            "pick": {
+              "choice": "A",
+              "confidence": 0.74,
+              "band": "medium",
+              "probabilities": {
+                "A": 0.87,
+                "B": 0.13
+              }
+            },
+            "spec_change": {
+              "p": 0.21,
+              "verdict": "no"
+            },
+            "outside_stack": {
+              "p": 0.1,
+              "verdict": "no"
+            },
+            "needs_owner": {
+              "p": 0.07,
+              "verdict": "no"
+            },
+            "reversible": {
+              "p": 0.78,
+              "verdict": "yes"
+            },
+            "adopt": {
+              "action": "take",
+              "option": "A",
+              "confidence": "medium",
+              "why": "Jev 选 A（medium）"
+            }
+          },
+          "line": "adjudicate: pick=A(medium 0.74) spec_change=no(0.21) outside_stack=no(0.10) needs_owner=no(0.07) reversible=yes(0.78) adopt=take(A)",
+          "usage": {
+            "input_tokens": 9774,
+            "output_tokens": 101
+          }
+        }
+      },
+      {
+        "name": "details",
+        "state": {
+          "requirement": "Implement only M1-T2 shared strict Zod request/response schemas and schema-inferred DTOs for PackJoyU, faithfully reflecting sections 06/09/10. Preserve existing Auth.js runtime and future task boundaries. No UI or new dependency. Record implementation details in protected task notes; implementation must not change task definitions.",
+          "task": {
+            "title": "M1-T2 Export shared schemas and DTOs for new domains",
+            "accept": "Strict field validation and public independent TypeScript exports; reject unknown/out-of-bound values. LoginMode password/totp. rememberDevice missing, boolean false and literal false -> false; Auth.js prose says only literal true -> true."
+          },
+          "conflict": "Resolve exact remaining projection and query details for the already chosen minimal strict implementation. No service work, task note records shapes. Actual10 only says named DTO, JobResult counts/finishedAt, ChatSession available/expiresAt, StatsSource fields. 09 states config unavailable is not fake success.",
+          "options": {
+            "A": "Use JobCounts strict optional nonnegative candidateCount,processedCount,deletedCount,failedCount,skippedCount,remainingCount,stale,sent,failed,deferred,dropped; status SUCCEEDED/FAILED/PARTIAL, fixed keys analytics-aggregate/analytics-retention/chat-notifications/chat-retention/mail-queue/ops-sample; dryRun only retention and defaults true. ChatSession expiresAt null when unavailable=false, UTC when available=true. StatsDTO {from,to,sources} and exact lower-case source/coverage vocabulary from previous chosenA. Stats query sources accepts unique enum array or comma-delimited exact enum values; date range both optional, one supplied can remain single-ended for server default resolution, two supplied must be ordered <=400 inclusive days. Ops status FAILED/NOT_CONNECTED permits absent values but success requires full source whitelist; safeErrorCode uses AppErrorCode enum.",
+            "B": "Omit optional invented job counts leaving only known deletedCount/mail counts; ChatSession always requires expiresAt even unavailable; stats response omits from/to and sources query only accepts arrays. Mark omissions for reviewer."
+          },
+          "review_facts": {
+            "exact_head": "18245e3ccbe0ec05de9ff1aa4ff0431699ceef35",
+            "review_context": "First bounded acceptance review for M1-T2. All original candidate options are preserved verbatim. This is pure shared schema infrastructure with no runtime route or UI change. Review must meet existing requirements, without adding future service implementation.",
+            "observed_implementation": "Current source implements login A, projections A with subsequent details B and review-gaps A, events A, queries A. Strict public index is consumed by Auth.js type augmentation and by a standalone TypeScript compilation test. Runtime authorization, product existence, event clock window, consent and cursor ownership belong to future service tasks.",
+            "downstream_facts": "Section09 requires mean load duration accompanied by sample count and null without samples; M5-T11 requires candidate count and actual deletion count. Current schemas include candidateCount and conditional loadDurationSamples. M6-T5 requires HTTP-source counts and mail queued/sending/sent/failed/unknown counts; current StatsSource names api_requests/api_errors and mail, with one scalar number/null per source. M6-T3 names STORAGE/BACKUP, current reports use uppercase and StatsSource uses lowercase. Exact nested response projection vocabularies are not exhaustively specified in section10.",
+            "risk_facts": "Current ChatSessionDTO always requires UTC expiresAt even when available=false, per original details B. StatsDTO contains only sources, query sources accepts arrays. There is no production chat/stats consumer yet. Do not treat absent future routes as a blocker for this foundational task."
+          }
+        },
+        "result": {
+          "status": "ok",
+          "template": "adjudicate",
+          "model": "jev-1.13.0",
+          "key_source": "C:/Users/admin/.typesafe/.env",
+          "verdicts": {
+            "pick": {
+              "choice": "B",
+              "confidence": 0.14,
+              "band": "low",
+              "probabilities": {
+                "A": 0.43,
+                "B": 0.57
+              }
+            },
+            "spec_change": {
+              "p": 0.22,
+              "verdict": "no"
+            },
+            "outside_stack": {
+              "p": 0.08,
+              "verdict": "no"
+            },
+            "needs_owner": {
+              "p": 0.08,
+              "verdict": "no"
+            },
+            "reversible": {
+              "p": 0.75,
+              "verdict": "yes"
+            },
+            "adopt": {
+              "action": "take",
+              "option": "B",
+              "confidence": "low",
+              "why": "Jev 选 B（low）"
+            }
+          },
+          "line": "adjudicate: pick=B(low 0.14) spec_change=no(0.22) outside_stack=no(0.08) needs_owner=no(0.08) reversible=yes(0.75) adopt=take(B)",
+          "usage": {
+            "input_tokens": 6807,
+            "output_tokens": 101
+          }
+        }
+      },
+      {
+        "name": "review-gaps",
+        "state": {
+          "requirement": "Implement only M1-T2 shared strict Zod request/response schemas and schema-inferred DTOs for PackJoyU, faithfully reflecting sections 06/09/10. Preserve existing Auth.js runtime and future task boundaries. No UI or new dependency. Record implementation details in protected task notes; implementation must not change task definitions.",
+          "task": {
+            "title": "M1-T2 Export shared schemas and DTOs for new domains",
+            "accept": "Strict field validation and public independent TypeScript exports; reject unknown/out-of-bound values. LoginMode password/totp. rememberDevice missing, boolean false and literal false -> false; Auth.js prose says only literal true -> true."
+          },
+          "conflict": "Bounded independent review found facts omitted from earlier minimal-projection judgment: section09 AnalyticsDaily defines loadDurationSamples and section09:68 explicitly requires average duration WITH samples, null if none. M5-T11:22/29 explicitly requires candidate and actual counts, dryRun only candidates, actual deletion0. Existing JobCounts rejects candidateCount and StatsSourceDTO cannot express samples. Existing approved projection currently has source mean_load_duration_ms and generic numeric value, other source enums are counts. Need smallest strict contract representation that meets these already-fixed requirements without implementing service work or changing task scope.",
+          "options": {
+            "A": "Add candidateCount optional bounded nonnegative Int to JobCounts only. Add loadDurationSamples optional bounded nonnegative Int on StatsSourceDTO, required when source=mean_load_duration_ms and forbidden for other source enums; nonnull average requires samples>0, zero samples requires value=null. Keep other source value counts safe integers (storage/backup up to JS MAX_SAFE_INTEGER, Int32 for DB count sources); mean is finite0..600000. No open records. Record09/M5-T11 rationale in protected task notes.",
+            "B": "Add candidateCount optional bounded nonnegative Int to JobCounts. Add load_duration_samples as a separate StatsSource enum with numeric count value, leave mean DTO shape unchanged. Require StatsDTO containing a mean to contain the matching sample source with same timezone/revision. Other count values safe integers; preserve strict unknown rejection.",
+            "C": "Keep minimal contracts and defer candidate/sample expressiveness to M5/M6 integration tasks, explicitly mark M1-T2 not meeting the full shared contract acceptance pending reviewer correction."
+          },
+          "review_facts": {
+            "exact_head": "18245e3ccbe0ec05de9ff1aa4ff0431699ceef35",
+            "review_context": "First bounded acceptance review for M1-T2. All original candidate options are preserved verbatim. This is pure shared schema infrastructure with no runtime route or UI change. Review must meet existing requirements, without adding future service implementation.",
+            "observed_implementation": "Current source implements login A, projections A with subsequent details B and review-gaps A, events A, queries A. Strict public index is consumed by Auth.js type augmentation and by a standalone TypeScript compilation test. Runtime authorization, product existence, event clock window, consent and cursor ownership belong to future service tasks.",
+            "downstream_facts": "Section09 requires mean load duration accompanied by sample count and null without samples; M5-T11 requires candidate count and actual deletion count. Current schemas include candidateCount and conditional loadDurationSamples. M6-T5 requires HTTP-source counts and mail queued/sending/sent/failed/unknown counts; current StatsSource names api_requests/api_errors and mail, with one scalar number/null per source. M6-T3 names STORAGE/BACKUP, current reports use uppercase and StatsSource uses lowercase. Exact nested response projection vocabularies are not exhaustively specified in section10.",
+            "risk_facts": "Current ChatSessionDTO always requires UTC expiresAt even when available=false, per original details B. StatsDTO contains only sources, query sources accepts arrays. There is no production chat/stats consumer yet. Do not treat absent future routes as a blocker for this foundational task."
+          }
+        },
+        "result": {
+          "status": "ok",
+          "template": "adjudicate",
+          "model": "jev-1.13.0",
+          "key_source": "C:/Users/admin/.typesafe/.env",
+          "verdicts": {
+            "pick": {
+              "choice": "A",
+              "confidence": 0.92,
+              "band": "high",
+              "probabilities": {
+                "A": 0.95,
+                "B": 0.04,
+                "C": 0.01
+              }
+            },
+            "spec_change": {
+              "p": 0.13,
+              "verdict": "no"
+            },
+            "outside_stack": {
+              "p": 0.06,
+              "verdict": "no"
+            },
+            "needs_owner": {
+              "p": 0.08,
+              "verdict": "no"
+            },
+            "reversible": {
+              "p": 0.69,
+              "verdict": "yes"
+            },
+            "adopt": {
+              "action": "take",
+              "option": "A",
+              "confidence": "high",
+              "why": "Jev 选 A（high）"
+            }
+          },
+          "line": "adjudicate: pick=A(high 0.92) spec_change=no(0.13) outside_stack=no(0.06) needs_owner=no(0.08) reversible=yes(0.69) adopt=take(A)",
+          "usage": {
+            "input_tokens": 4338,
+            "output_tokens": 108
+          }
+        }
+      }
+    ]
+  }
+}
