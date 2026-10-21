@@ -1,0 +1,182 @@
+[
+  {
+    "ts": "2026-10-21T00:17:53",
+    "template": "adjudicate",
+    "model": "jev-1.13.0",
+    "state_sha256": "532409dc1844354e",
+    "label": "M1-T3:rework-site-scope",
+    "verdicts": {
+      "pick": {
+        "choice": "A",
+        "confidence": 0.56,
+        "band": "medium",
+        "probabilities": {
+          "A": 0.78,
+          "B": 0.22
+        }
+      },
+      "spec_change": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "outside_stack": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "needs_owner": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "reversible": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "adopt": {
+        "action": "red_line",
+        "option": null,
+        "confidence": "n/a",
+        "why": "needs_owner 不是明确 no：花钱 / 不可逆删除 / 改范围 / 对外承诺的授权边界须由用户确认"
+      }
+    },
+    "usage": {
+      "input_tokens": 1116,
+      "output_tokens": 101
+    }
+  },
+  {
+    "ts": "2026-10-21T00:18:25",
+    "template": "adjudicate",
+    "model": "jev-1.13.0",
+    "state_sha256": "39c63c6151afa49b",
+    "label": "M1-T3:rework-site-authorized",
+    "verdicts": {
+      "pick": {
+        "choice": "A",
+        "confidence": 0.76,
+        "band": "high",
+        "probabilities": {
+          "A": 0.88,
+          "B": 0.12
+        }
+      },
+      "spec_change": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "outside_stack": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "needs_owner": {
+        "p": 0.1,
+        "verdict": "no"
+      },
+      "reversible": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "adopt": {
+        "action": "take",
+        "option": "A",
+        "confidence": "high",
+        "why": "Jev 选 A（high）"
+      }
+    },
+    "usage": {
+      "input_tokens": 1323,
+      "output_tokens": 101
+    }
+  },
+  {
+    "ts": "2026-10-21T00:29:18",
+    "template": "design",
+    "model": "jev-1.13.0",
+    "state_sha256": "da0481ae89aa3fbc",
+    "label": "M1-T3:rework-scene",
+    "verdicts": {
+      "pick": {
+        "choice": "A",
+        "confidence": 0.8,
+        "band": "high",
+        "probabilities": {
+          "A": 0.9,
+          "B": 0.1
+        }
+      },
+      "register": {
+        "choice": "brand",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "product_backoffice": 0.0,
+          "product_workbench": 0.0,
+          "brand": 1.0,
+          "commerce": 0.0,
+          "h5": 0.0
+        }
+      },
+      "stated": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "token_only": {
+        "p": 0.04,
+        "verdict": "no"
+      },
+      "adopt": {
+        "action": "take",
+        "option": "A",
+        "confidence": "high",
+        "why": "Jev 选 A（high）"
+      }
+    },
+    "usage": {
+      "input_tokens": 1155,
+      "output_tokens": 124
+    }
+  },
+  {
+    "ts": "2026-10-21T01:05:59",
+    "template": "adjudicate",
+    "model": "jev-1.13.0",
+    "state_sha256": "c6f9fe8534fca50c",
+    "label": "M1-T3:rework-doc-budget",
+    "verdicts": {
+      "pick": {
+        "choice": "A",
+        "confidence": 0.44,
+        "band": "low",
+        "probabilities": {
+          "A": 0.72,
+          "B": 0.28
+        }
+      },
+      "spec_change": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "outside_stack": {
+        "p": 0.11,
+        "verdict": "no"
+      },
+      "needs_owner": {
+        "p": 0.12,
+        "verdict": "no"
+      },
+      "reversible": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "adopt": {
+        "action": "take",
+        "option": "A",
+        "confidence": "low",
+        "why": "Jev 选 A（low）"
+      }
+    },
+    "usage": {
+      "input_tokens": 1168,
+      "output_tokens": 101
+    }
+  }
+]

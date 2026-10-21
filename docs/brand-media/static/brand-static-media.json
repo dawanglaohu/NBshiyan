@@ -1,0 +1,1427 @@
+{
+  "task": "M1-T3",
+  "taskStatus": "complete",
+  "releaseAllowed": true,
+  "releaseFiles": [
+    "public/brand/packjoyu-industrial-city-v3.png",
+    "public/brand/packjoyu-industrial-city-v3-loop.gif",
+    "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+    "public/brand/video2-packjoyu-products-v3.mp4",
+    "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+    "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg"
+  ],
+  "logoMaster": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "viewBox": "0 0 9268 1920",
+    "format": "SVG; eight outlined paths; no text/font/script/external references/metadata",
+    "status": "verified",
+    "sourceFiles": [
+      {
+        "path": "src/components/layout/SiteHeader.tsx",
+        "sha256": "c69df839ef3c35ba26edc5d37e3df46945fb05b77beaf7e3fca5f1d0c2ec4ce4"
+      },
+      {
+        "path": "src/app/globals.css",
+        "sha256": "076b85b4e2631ae9877800b0d5de9d3561bc691144cf655cb3c010fa1abc0d6d"
+      },
+      {
+        "path": "src/app/[locale]/layout.tsx",
+        "sha256": "87d0befc92a6882692e6c960b2901461bcf83918135dd339ba92c32922b01e56"
+      },
+      {
+        "path": "src/styles/tokens.css",
+        "sha256": "801ab137b9b2439a41c11aaccdf119f5b7a9a86cdcce2ff02a251fd046f14081"
+      },
+      {
+        "path": "src/app/icon.svg",
+        "sha256": "56bdc4a29ae508300bc6b1d0e3fa1bfa4f8d9cdacbe9c294154cfce46261a17c"
+      },
+      {
+        "path": "src/assets/og-fonts/Manrope-ExtraBold.ttf",
+        "sha256": "27846657e08671d0a5de532c0aacf70ea69dd55319ea48c113dd26210a6482a8"
+      },
+      {
+        "path": "src/assets/og-fonts/OFL.txt",
+        "sha256": "4b8929f05a122b7abb9059501dc7dc4df86f8c97d5a1769d60d82cf2d2795dde"
+      },
+      {
+        "path": "design/og-src/og-article-font.py",
+        "sha256": "2c7e8b13d18fe4b8d15b116d6006ded6b022c6f79387f2e481944c5dd74644d1"
+      },
+      {
+        "path": "docs/brand-media/static/evidence/current-header.json",
+        "sha256": "eed989197ab553e44c93b256b0190dafa05f234e640096296f16f04561018f47"
+      },
+      {
+        "path": "docs/brand-media/static/evidence/current-manrope-latin.woff2",
+        "sha256": "e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f"
+      }
+    ],
+    "font": {
+      "path": "src/assets/og-fonts/Manrope-ExtraBold.ttf",
+      "weight": 800,
+      "unitsPerEm": 2000,
+      "version": "Version 4.504",
+      "webfontSha256": "e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f",
+      "browserFontUrl": "http://127.0.0.1:3317/_next/static/media/4c9affa5bc8f420e-s.p.woff2",
+      "exactOutlineAdvanceKerningMatch": true
+    },
+    "styleSources": {
+      "wordmark": "src/components/layout/SiteHeader.tsx:56",
+      "weightSizeJoyStyle": "src/app/globals.css:14",
+      "mainColorCascade": "src/app/globals.css:330; src/styles/tokens.css:29",
+      "joyColor": "src/styles/tokens.css:6",
+      "fontFamily": "src/app/[locale]/layout.tsx:20,57; src/app/globals.css:8"
+    },
+    "auditPath": "docs/brand-media/static/logo-source-audit.json"
+  },
+  "originals": [
+    {
+      "path": "C:/Users/admin/Desktop/banner1_1654824049643.jpg",
+      "bytes": 658714,
+      "sha256": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "width": 1920,
+      "height": 1000,
+      "frames": 1,
+      "sha256Before": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "sha256After": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468"
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video2.mp4",
+      "bytes": 8051146,
+      "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "width": 1920,
+      "height": 1080,
+      "fps": 60.0,
+      "reportedFrameCount": 735,
+      "decodedFrameCount": 735,
+      "durationMs": 12250.0,
+      "backend": "OpenCV 5.0.0",
+      "sha256Before": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "sha256After": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f"
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video_1654824102804.gif",
+      "sha256": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "sha256Before": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "sha256After": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "bytes": 7934997,
+      "width": 1384,
+      "height": 720,
+      "frames": 361,
+      "durationMs": 30080,
+      "loop": 0
+    }
+  ],
+  "jpgReplacements": [
+    {
+      "id": "JPG-01",
+      "location": "飞艇下部中文旧标",
+      "originalText": "合兴包装",
+      "sourcePixelBounds": [
+        521,
+        99,
+        550,
+        110
+      ],
+      "beforeEvidencePath": "docs/brand-media/static/evidence/jpg-airship.png",
+      "replacementLogoPath": "public/brand/packjoyu-logo-master.svg",
+      "status": "generated_pending_fidelity_review",
+      "afterPath": null,
+      "oldLogoAbsentVerified": true,
+      "candidatePath": "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+      "currentMasterFidelityVerified": false,
+      "reviewPath": "docs/brand-media/static/image-edit-review.md",
+      "historical": true,
+      "supersededBy": "public/brand/packjoyu-industrial-city-v3.png"
+    },
+    {
+      "id": "JPG-02",
+      "location": "工厂墙面完整红灰几何图形及深蓝字母",
+      "originalText": "HXPP",
+      "sourcePixelBounds": [
+        1202,
+        647,
+        1265,
+        684
+      ],
+      "beforeEvidencePath": "docs/brand-media/static/evidence/jpg-factory.png",
+      "replacementLogoPath": "public/brand/packjoyu-logo-master.svg",
+      "status": "generated_pending_fidelity_review",
+      "afterPath": null,
+      "oldLogoAbsentVerified": true,
+      "candidatePath": "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+      "currentMasterFidelityVerified": false,
+      "reviewPath": "docs/brand-media/static/image-edit-review.md",
+      "historical": true,
+      "supersededBy": "public/brand/packjoyu-industrial-city-v3.png"
+    }
+  ],
+  "videoIdentityPath": "docs/brand-media/static/video-identity.json",
+  "productionRecordPath": "docs/brand-media/static/production-record.json",
+  "files": [
+    {
+      "path": "docs/brand-media/static/evidence/all-01.jpg",
+      "sha256": "fb46b7febad1e532e7e5af4319201d5fb2e991426b119636a363572e8535aa43",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-02.jpg",
+      "sha256": "28e7da586833d2558ea571c500f22a78517d18bf43ecf06a584ae7d0fd2f76dd",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-03.jpg",
+      "sha256": "5cff413ed905624679fcaecaeb2da52b306a1d14906a85e31f4d8f244ce9a040",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-04.jpg",
+      "sha256": "4d2688d5134ef43a47a2f5980b3ba61f21be2db780c814530a90f7943c9e7c64",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-05.jpg",
+      "sha256": "2da67758aefd6fcd958e48df5639f5dd8fc78b6937b8af9a8337ec118d750413",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-06.jpg",
+      "sha256": "bb133231a86ee23e3940131b41b9e559f9b9c579e0e654923cd3e5d33c3f2672",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-07.jpg",
+      "sha256": "9c66c42fd969149ec22b4e84306deb5cee20be64234786d3b5187b09f1d27541",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-08.jpg",
+      "sha256": "71d5765dd24ab506828f2b40620de94ff4610b91a3044bb00b893af558bffbe5",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-09.jpg",
+      "sha256": "bb0583d5dff4577e045d35b36f86b3aa73016baeaba0a8d41b5920a4f9737a32",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-10.jpg",
+      "sha256": "ebb0a4f5284c930a78c3bc2500a13999300ac882daad39c43ed1723bb2bdf043",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-11.jpg",
+      "sha256": "c15d724815ef5714e79a2b22f60668bc36e4787a7664a153a8d9eb411d7052bd",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-12.jpg",
+      "sha256": "1eb32d1aa34e8d2bdc4238d6dee02884e681b75937651f761412f5ab3eed6d4b",
+      "width": 1680,
+      "height": 1350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/current-header.png",
+      "sha256": "9af566833c91fd59b48c7631575d617095297e1d88486ad81e72df1f686954bc",
+      "width": 1440,
+      "height": 73,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/exact-logo-reference.png",
+      "sha256": "a574cb98ca4c31fdb3ca642e336ca70dfeec464563203a886d065cf6a2ce9f5f",
+      "width": 1854,
+      "height": 384,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/imagegen-banner-edit-01.png",
+      "sha256": "5b1e990598e0db38c7b4c2a3c696c1269c823de94c584f51b22ccbb600486cb1",
+      "width": 1738,
+      "height": 905,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/imagegen-banner-edit-02.png",
+      "sha256": "bf4dbca5ce9b82100e5b65f58afc4a62a3ee17d3f94d2308a4cb675be1d12e63",
+      "width": 1738,
+      "height": 905,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/jpg-airship.png",
+      "sha256": "e45a2d5c1d3fafc0ca3ceddb407c57791477cc093a33fd5caf03f418f8ca7f55",
+      "width": 1050,
+      "height": 420,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/jpg-factory.png",
+      "sha256": "2d3d4375001eba6cbe7b5aa4687a624ff0572bde826f7b780951873584ffa047",
+      "width": 480,
+      "height": 330,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/logo-master-browser.png",
+      "sha256": "30db39f66e8b8c12615a6c09d65d1dbd2a27c47255143dbeb3f940a3032ee7c7",
+      "width": 1000,
+      "height": 250,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0000.jpg",
+      "sha256": "29bd36ed2a77d3b5c2118110b3cd70646f93733706d93d2daf829012fef0718b",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0180.jpg",
+      "sha256": "9f86ee053cec5f9fef7acb429c1d593a2010137888d3073bf9b6a7fd5e65d8d7",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0270.jpg",
+      "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0483.jpg",
+      "sha256": "f7c9e5eb73ee522e0db60923a59ff5afa4ca39076dfb10fa63945659444647e9",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0510.jpg",
+      "sha256": "00d8beeaf2c4ffd1e1e022610689ebc22c52e7ce036ab391c2bcb3064bb6ad00",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0600.jpg",
+      "sha256": "7700d874314686f0fddf35632f8d4ba9850d0c7d4dcd6c605e69ba9974541a12",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video2-f0734.jpg",
+      "sha256": "fa60340b92b761a1fd7bb676681a8e753eef81fcd2f30db50cbe95e4b5dc0835",
+      "width": 1920,
+      "height": 1080,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+      "sha256": "c80f0c7ce5be725c792597beb994b56e238d8c886cbcc86e56c59dbd83cb39a7",
+      "role": "held_derivative",
+      "releaseAllowed": false,
+      "width": 1738,
+      "height": 905
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-720p60.mp4",
+      "sha256": "ed776cfa192a65588d6cc8ed3c5d46b3a2c7a8121b0be7cb2f5b315f88bb3634",
+      "role": "held_derivative",
+      "releaseAllowed": false,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60.0
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-poster-4500ms.jpg",
+      "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+      "role": "held_derivative",
+      "releaseAllowed": false,
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "path": "public/brand/packjoyu-logo-master.svg",
+      "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+      "width": 927,
+      "height": 192,
+      "role": "verified_logo_master",
+      "dimensionsFrom": "Sharp 0.35.5 full raster decode at intrinsic SVG size",
+      "releaseAllowed": true
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+      "sha256": "01440bcade957cf0ec82d05b11bf5de0e227f450c2cb156f6e2cedf41a7115f7",
+      "width": 1738,
+      "height": 905,
+      "role": "held_style_variant",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+      "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf",
+      "width": 1737,
+      "height": 905,
+      "role": "held_style_variant",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-000.png",
+      "sha256": "86e5bbab980ad6a717126b786ee1399ee9962d9ac724e4ec19816c4febedfda7",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-090.png",
+      "sha256": "c1b5bc9314aba59260b6202a87c6b9c69258365299a0859547f671343a1bdad7",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-180.png",
+      "sha256": "91e22e296abb8f7bf98199daf2d35b56abafcb8fdf3c72ca70f7d00030d52549",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-270.png",
+      "sha256": "25f2188afc9d18574a387190f892549b91b71f108b069e3fe786329d55adac4c",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/gif-preview-360.png",
+      "sha256": "23539b3ca4da2743a8d56ce9266244e000a99744f9168278a1b4cf6b6b6b3882",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_preview_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
+      "sha256": "318464582e6091b812f8f07551455b9ca6037efd35fdd825dbb1ac261b87fe3f",
+      "width": 1384,
+      "height": 720,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "held_style_animation",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png",
+      "sha256": "86e5bbab980ad6a717126b786ee1399ee9962d9ac724e4ec19816c4febedfda7",
+      "width": 1384,
+      "height": 720,
+      "role": "held_pause_frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-clean-plate.png",
+      "sha256": "04191fd9d9eff9af3ff06d7c56a2f8dd820e47e1dea6a9d690a067b0fa85eefc",
+      "width": 1737,
+      "height": 905,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-forklift-layer.png",
+      "sha256": "07da6be90def740765e7e7cbf67ef70346f60cb5f6b5036b7a406d755b68625a",
+      "width": 1737,
+      "height": 905,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-000.png",
+      "sha256": "e5f6000a5ca44246c52f05eb41b9c28b546555af02b2f9971b728f494c10230b",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-045.png",
+      "sha256": "3b1be6ff0a10a25731844c448150771df5a50ecafd6ab13847d9859a5fae240e",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-090.png",
+      "sha256": "d044291c32df9259fd6e86419ce2dda28d91d36a85d06e8349f637e4f143d592",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-180.png",
+      "sha256": "7d5ef16a0ef434c6af0da07c326c29a83c3d130a52576f9b75b5d4ae65f62278",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-270.png",
+      "sha256": "adbad63be03474e4ab44a567fa3ffb63e8bd19630f92521fc13a7ff1f2a0a9a6",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-gif-preview-360.png",
+      "sha256": "7e6a598c0125355a00053a5fc2a28223f9bd5a920815a7f3111360a539c27339",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-high_cloud-layer.png",
+      "sha256": "976566a101adc02aee5943bc28c74b625c2f9f0443db7cbf640c9721ace3b3b1",
+      "width": 254,
+      "height": 151,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-left_cloud-layer.png",
+      "sha256": "c83936fca2dab2f15e7755ee51c59c329e66cd28ef77fe45dac4b226f7bd95a3",
+      "width": 246,
+      "height": 151,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-metal_airship-layer.png",
+      "sha256": "6607507a39cbf60b8834b621f887dead63c325b368e2a10049b8606e43b8f4f9",
+      "width": 448,
+      "height": 197,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/industrial-water-mask.png",
+      "sha256": "19865dd76517eb45291f736d5527215f73812c155eaf208bc46e53d8e492a289",
+      "width": 1384,
+      "height": 720,
+      "role": "animation_layer_or_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+      "width": 1737,
+      "height": 905,
+      "role": "held_requested_revision",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+      "width": 1384,
+      "height": 720,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "held_requested_revision",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
+      "sha256": "e5f6000a5ca44246c52f05eb41b9c28b546555af02b2f9971b728f494c10230b",
+      "width": 1384,
+      "height": 720,
+      "role": "held_requested_revision",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+      "width": 960,
+      "height": 500,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "held_animation_preview",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-web-1080p60.mp4",
+      "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+      "bytes": 8051146,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60.0,
+      "kind": "lossless_web_video",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+      "sha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+      "bytes": 10221006,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_video"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
+      "sha256": "1fd65228391f6eb2131feddfc3ca5fbdf05ce3fb315a535004e985bc3f37f170",
+      "bytes": 4235191,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_web_video"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video-product-brand-after-0180.jpg",
+      "sha256": "59641be0b3b8335256fc332f2fbf4176248327bf06469e2f5d8da8d6223ba219",
+      "bytes": 366453,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video-product-brand-after-0600.jpg",
+      "sha256": "942d8e535e0f15d61161f6715aecbf9d170fa7e766c92baf02077e46be0f4813",
+      "bytes": 415058,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg",
+      "sha256": "38ad2d7f809bba82cabba63dbc5794bbdaa73d92fae9594bf5c0607bf023bdd4",
+      "bytes": 427595,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "bytes": 10216338,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_video"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "bytes": 4231724,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_web_video"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+      "bytes": 421795,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video-product-logo-alignment-v3-0734.jpg",
+      "sha256": "ae1aa520fbb8e89b5b3b17ac8df7330288e79627a455c890eb231d88db277c30",
+      "bytes": 233553,
+      "width": 1920,
+      "height": 550,
+      "releaseAllowed": false,
+      "kind": "encoded_logo_alignment_comparison"
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+      "width": 1737,
+      "height": 905,
+      "role": "static_image",
+      "releaseAllowed": true,
+      "bytes": 2845196
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+      "width": 1384,
+      "height": 720,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "animated_gif",
+      "releaseAllowed": true,
+      "bytes": 13877870
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+      "width": 960,
+      "height": 500,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "gif_preview",
+      "releaseAllowed": true,
+      "bytes": 8663921
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "bytes": 10216338,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_video",
+      "role": "video_1080p"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "bytes": 4231724,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_web_video",
+      "role": "video_720p"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+      "bytes": 421795,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": true,
+      "role": "video_poster"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0000.jpg",
+      "sha256": "55821571967a8aafb6a20ed5e19e78d4b8e67d280d30e8c4efe9405db9861d6c",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 170079,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0114.jpg",
+      "sha256": "53000d3bbf44b9b191d33e482ad568f8fd94ff9fa894ae5cfbaae3a9b8a9ae09",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 188102,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0180.jpg",
+      "sha256": "e3233235fe4f8e46e633c52c1f9c030af1987fd42be3b7b342e17a9b0ce246c7",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 273967,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0222.jpg",
+      "sha256": "1de82b8f8f073b508628371c5a9250bd7b0400efa51cb4b25dcec3e147771262",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 306940,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0270.jpg",
+      "sha256": "c56e724017fd1d7e8aa4b64ce1329cbd0b4a9a2127255d40452b1ca33388d66d",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 200350,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0400.jpg",
+      "sha256": "637e3228a43e63e0fed06732ef3946c344f4ffa9a83373c325088a1e7ae410c3",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 339014,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0483.jpg",
+      "sha256": "c80383e2306e5a3a88ba246f8c28a5642212f4a61dcbbb8a9c23c2af7c602a50",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 235695,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0510.jpg",
+      "sha256": "c085802379eabc0ecbd383fe24edafbce6b44136e1822a4b022c4804753a8b05",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 252358,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0600.jpg",
+      "sha256": "710fb1a6422c45214f8dd283bc21832d20fbd808cb5ef634c3d8fe36ff7fdf97",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 309471,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0604.jpg",
+      "sha256": "4806ea66b88b0e367619c3bf524f6c88859546ef988edd8b5893dc73e03d37d4",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 324466,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0663.jpg",
+      "sha256": "da491b66e66e5fe817a963d2a7d3ca1df255f12b8bfcdaf148db77f54202a269",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 323591,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0705.jpg",
+      "sha256": "ca4ab72869ff5827d8ac536f8ef50b880f48bd05d8c351b5bfb7e834baee5337",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 324690,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0734.jpg",
+      "sha256": "5737b53235191ceea36a026e64c9d59f4d78da7381382393ce886b1620d94db3",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 314581,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-01.jpg",
+      "sha256": "e936dbb41526e192f75d5f1f11ba9f7276c9aa5f4c8425265f6a22daf717696a",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 586996,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-02.jpg",
+      "sha256": "b777a3bf40284985ea1709e27bdfa0080aad05a7d02608a3ba84f0a5f1ff9ce3",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 667873,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-03.jpg",
+      "sha256": "b1922bb8e63ce9b7fe9538973cdbb054feb9bd1d3366c75ee73351ad234405c8",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 740036,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-04.jpg",
+      "sha256": "154b8228f7d600ad2389993135a0bdb6bf88a38a9a4fe98b362c750b00fbaec9",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 820731,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-05.jpg",
+      "sha256": "a7b8104124f030bd2d1e56c67f41739812a64eae365f2f8dc696d455941b4e4d",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 583851,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-06.jpg",
+      "sha256": "070e8a2a7478c3a25b4a336b0bf8648993a5b7ff79a1296b3ec76c5d0ee495bd",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 668075,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-07.jpg",
+      "sha256": "4b9364b891b244c0bdbcadf001034c59346144f009831b1d26da06ee116d05d2",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 781159,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-08.jpg",
+      "sha256": "8d95cc4d21c206b14134a20c93a3b5c4279055b69f68807520fc56a042d09452",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 830642,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-09.jpg",
+      "sha256": "96a3a2a2c8a9b9bed620648b4098c53b9e8948343adbdce4b93cabe88e0c675c",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 643482,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-10.jpg",
+      "sha256": "bf56c8dd1b31adee13b832969993c9ae0df16e95f77d53c3a310fc7040a08600",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 664979,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-11.jpg",
+      "sha256": "af5a8458205524d73c2ce26c235912aac81230fe63294190d648637361ed0a26",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 777335,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-12.jpg",
+      "sha256": "4b6f430cbaf9c7ec65e12dd8115a6dee14fed4b790b8247dac103be677c8b3c6",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 646544,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-13.jpg",
+      "sha256": "5d54de5b167f74189d60b0d154303d1d342414a94f800e56089a00b00b42215f",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 950150,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-14.jpg",
+      "sha256": "277704401ad68cb95603cccc61951317bfef94932300dbd84f3193b238c31446",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 955913,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-15.jpg",
+      "sha256": "16bc1b69cddcc6c7ebe5ef9c92b52446b683fecdff73c2e59961ec27a8d4a776",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 929068,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-16.jpg",
+      "sha256": "56d7366f8f6256a06ada9826d25f4cf67a7038267be1e07527fe96fff418f511",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 743292,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-17.jpg",
+      "sha256": "a842d4c60e0eae589e02902be295674fb46c1a36a135eacd7873d52cbdc099bb",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 645381,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-18.jpg",
+      "sha256": "51ab378231bc129a5b7a45c96c4e8cda511cc5845b8b97020bd53ceef42e053d",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 729530,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-19.jpg",
+      "sha256": "ce30d33a6a275f87ea3b276b9aaceb3be248414109e44aa95ec43c76ed6c45b5",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 779238,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-20.jpg",
+      "sha256": "275a7141ecf39706053d7d29769454973bf085064162b30f885b9887e4576c34",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 767999,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-21.jpg",
+      "sha256": "eb6b2f0f3f8172c128b51e231e4e238847469ba9b783924d191337af24112325",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 900937,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-22.jpg",
+      "sha256": "446be40d008d4df45088cd6ca652f7ff3b8b64a300feaf20e8b91188f05af2c5",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 899537,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-23.jpg",
+      "sha256": "d291ffd4ff1a4be097c33d82d0180c299ef1ed5955f468b4c6a3c1bdd3dbbe5a",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 895349,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-24.jpg",
+      "sha256": "758cc6fbdfcbcad9cecb87e09f76b5b4525c45fd43d217c30f62fe7fb05a9fbd",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 897944,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-25.jpg",
+      "sha256": "a465f8b9fb8f7329fa4fa9c317b8592b116c940030a8730a2ee105db00adaafc",
+      "width": 1600,
+      "height": 1200,
+      "bytes": 461630,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0000.jpg",
+      "sha256": "1154d2ee0feb000aefcfb225c1b50706e6ea87b4bef74e1d002e28562097df3b",
+      "width": 1280,
+      "height": 720,
+      "bytes": 90728,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0114.jpg",
+      "sha256": "e4bf16270060f99b5f3c0fff121a8d3409895e11fdf36d8d3aff75f6d30a23d6",
+      "width": 1280,
+      "height": 720,
+      "bytes": 101660,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0180.jpg",
+      "sha256": "bc8d96adf61e770fb3c21613198eb3fe4597eea3d83236afd593f967e0bd96c8",
+      "width": 1280,
+      "height": 720,
+      "bytes": 150605,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0222.jpg",
+      "sha256": "01a2f20a309e6bb4b530d85e736a1a37cdc2c7c17ec17834bc9a481f566283b8",
+      "width": 1280,
+      "height": 720,
+      "bytes": 163875,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0270.jpg",
+      "sha256": "237db19a88162ff15846b5f7453434ddfc34ff87a6d10338524c6569d5314e92",
+      "width": 1280,
+      "height": 720,
+      "bytes": 112205,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0400.jpg",
+      "sha256": "122bda3b2b7c5e2f25909d45487bcf318a769cac3745cc792c1047ae095e6f75",
+      "width": 1280,
+      "height": 720,
+      "bytes": 186129,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0483.jpg",
+      "sha256": "fe6a9716d54510a079bff90169aaab38fb2a983573439749c0ec35f5af6268ba",
+      "width": 1280,
+      "height": 720,
+      "bytes": 121094,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0510.jpg",
+      "sha256": "267963e525cedd56972ac6d35a0ce14189057bc9328eec34b1076494c1bb4e29",
+      "width": 1280,
+      "height": 720,
+      "bytes": 138877,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0600.jpg",
+      "sha256": "a8b7c6ea7557a80343a6147963be437e306572c633d6b423f71504cae455e5a4",
+      "width": 1280,
+      "height": 720,
+      "bytes": 172381,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0604.jpg",
+      "sha256": "4a34d266a4f5aab7663eaea012f07116469fb0d709f7da28db3435ed3a720bf2",
+      "width": 1280,
+      "height": 720,
+      "bytes": 178226,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0663.jpg",
+      "sha256": "4a575b5db399d3e6a1fea61c6e6dcb5b03084b64a1f72f4dff216dbe155a3f0b",
+      "width": 1280,
+      "height": 720,
+      "bytes": 178758,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0705.jpg",
+      "sha256": "f940061abab359a46d6a61a805d5851bd4a9fe51165c454ae98dda003ff23a42",
+      "width": 1280,
+      "height": 720,
+      "bytes": 177385,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-0734.jpg",
+      "sha256": "440632adeca06230951ed8d0c0f73668b6385890c49c6e1364419fe04eee16a1",
+      "width": 1280,
+      "height": 720,
+      "bytes": 172514,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/final-720p-selected-contact.jpg",
+      "sha256": "d00efaa0b56a5b1f28cfc5af79a6d0aaa8aa175a5af5acd64e026839523e3c72",
+      "width": 1920,
+      "height": 1520,
+      "bytes": 885949,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/industrial-logo-airship.png",
+      "sha256": "30dfd335e77074327b33336a05c75b47c9ee68d66934cbd6da755313c1c2330a",
+      "width": 241,
+      "height": 76,
+      "bytes": 32097,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/final-v3/industrial-logo-factory.png",
+      "sha256": "35427f43aca3de437297b0fa8857b72eed1506b0d1f86b76c2b82bb3dd7c9377",
+      "width": 235,
+      "height": 92,
+      "bytes": 33550,
+      "role": "review_evidence",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/current-header-before-main.png",
+      "sha256": "9af566833c91fd59b48c7631575d617095297e1d88486ad81e72df1f686954bc",
+      "width": 1440,
+      "height": 73,
+      "role": "historical_source_audit",
+      "releaseAllowed": false
+    }
+  ],
+  "missingDeliverables": [],
+  "completionRule": "Validate the explicitly selected public industrial PNG/GIF, corrected v3 videos and actual encoded-frame poster; preserve original observations and historical candidates without treating them as current deliverables.",
+  "heldFiles": [
+    "docs/brand-media/static/held/packjoyu-city-edited.jpg",
+    "docs/brand-media/static/held/video2-720p60.mp4",
+    "docs/brand-media/static/held/video2-poster-4500ms.jpg",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-loop-poster.png",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+    "docs/brand-media/static/held/video2-web-1080p60.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg",
+    "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg"
+  ],
+  "generationRecordPath": "docs/brand-media/static/image-generation-record.json",
+  "styleVariants": [
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+      "recordPath": "docs/brand-media/static/style-generation-record.json",
+      "status": "generated_reference_style",
+      "userAuthorizedRestyling": true
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+      "recordPath": "docs/brand-media/static/style-generation-record.json",
+      "status": "user_annotated_detail_revision",
+      "revisionOf": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+      "userAccepted": true
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-loop.gif",
+      "recordPath": "docs/brand-media/static/approved-image-gif-record.json",
+      "status": "new_loop_from_approved_image",
+      "originalTimingPreserved": true,
+      "originalGifFrameContentIdentityClaimed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+      "recordPath": "docs/brand-media/static/style-generation-record.json",
+      "status": "requested_material_and_people_revision"
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+      "recordPath": "docs/brand-media/static/industrial-city-animation-record.json",
+      "status": "multi_layer_requested_animation"
+    }
+  ],
+  "approvedGifRecordPath": "docs/brand-media/static/approved-image-gif-record.json",
+  "industrialGifRecordPath": "docs/brand-media/static/industrial-city-animation-record.json",
+  "industrialGifPreviewRecordPath": "docs/brand-media/static/industrial-gif-preview-record.json",
+  "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json",
+  "videoWebProcessingRecordPath": "docs/brand-media/static/video-web-processing-record.json",
+  "productVideoReplacementRecordPath": "docs/brand-media/static/video-product-replacement.json",
+  "selectedDeliverables": [
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+      "width": 1737,
+      "height": 905,
+      "role": "static_image",
+      "releaseAllowed": true,
+      "source": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+        "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833"
+      },
+      "bytes": 2845196
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+      "width": 1384,
+      "height": 720,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "animated_gif",
+      "releaseAllowed": true,
+      "source": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+        "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291"
+      },
+      "bytes": 13877870
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+      "width": 960,
+      "height": 500,
+      "frameCount": 361,
+      "durationMs": 30080,
+      "loop": 0,
+      "role": "gif_preview",
+      "releaseAllowed": true,
+      "source": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+        "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d"
+      },
+      "bytes": 8663921
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "bytes": 10216338,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_video",
+      "role": "video_1080p",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+        "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+      }
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "bytes": 4231724,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": true,
+      "kind": "product_brand_edited_web_video",
+      "role": "video_720p",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+        "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd"
+      }
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+      "bytes": 421795,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": true,
+      "role": "video_poster",
+      "source": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+      }
+    }
+  ],
+  "selectionRecordPath": "docs/brand-media/static/selected-media-release.json"
+}

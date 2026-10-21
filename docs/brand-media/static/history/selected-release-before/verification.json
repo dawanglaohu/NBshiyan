@@ -1,0 +1,255 @@
+{
+  "task": "M1-T3",
+  "baseCommit": "7b7ab1c51e1b013c754b7d6fd2305c587f46afba",
+  "checkedOn": "2026-10-20",
+  "integrity": "pass",
+  "releaseAllowed": false,
+  "taskStatus": "incomplete",
+  "checks": [
+    {
+      "command": "master exporter default check",
+      "result": "pass",
+      "masterSha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099"
+    },
+    {
+      "command": "verify-static-media.py --originals-root C:/Users/admin/Desktop",
+      "result": "pass",
+      "imageFilesChecked": 59,
+      "sourceDecodedFrames": 735,
+      "reproducedEvidenceFrames": 7,
+      "mediaFilesChecked": 65,
+      "compressedVideoFrames": 735,
+      "gifDecodedFrames": 361,
+      "gifDurationMs": 30080,
+      "gifFiles": 3,
+      "fullResolutionWebVideoFrames": 735
+    },
+    {
+      "command": "python -B -m unittest discover -s docs/brand-media/static -p test_*.py -v",
+      "result": "pass",
+      "tests": 12
+    },
+    {
+      "command": "verify-static-media.py --require-release",
+      "result": "expected_release_hold",
+      "nativeExitCode": 2
+    },
+    {
+      "command": "npx --yes pnpm@10.34.6 lint",
+      "result": "pass_with_existing_warnings",
+      "nativeExitCode": 0,
+      "head": "d601ce39bfececbeef34446e187eae7e2f9d0e7b",
+      "scopeNote": "Application source unchanged in account-media continuation; no repeat full lint."
+    },
+    {
+      "command": "node --check and targeted eslint capture-logo-evidence.mjs",
+      "result": "pass"
+    },
+    {
+      "command": "independent verification subagent, read-only",
+      "result": "pass_for_existing_evidence_only",
+      "negativeMutationsRejected": 8,
+      "continuationNegativeMutationsRejected": 6,
+      "heldJpegReproducesSelectedPng": true,
+      "compressedVideoMetadataIndependentlyChecked": true
+    },
+    {
+      "command": "python -B -m unittest discover -s docs/brand-media/static -p test_approved_image_gif.py -v",
+      "result": "pass",
+      "tests": 2,
+      "negativeCases": 4
+    }
+  ],
+  "notExecuted": [
+    "GPT Dot graphics editing",
+    "account video-generation tool (not exposed)",
+    "whole application build/DB/e2e for account-media increment"
+  ],
+  "previousVerifiedHead": "d601ce39bfececbeef34446e187eae7e2f9d0e7b",
+  "imageGenerationCalls": 2,
+  "pendingAcceptance": [
+    "JPG exact master glyphs and non-target scene fidelity",
+    "video corporate provenance and product relationship"
+  ],
+  "styleGenerationCalls": 1,
+  "styleDetailEditCalls": 1,
+  "approvedImageGif": {
+    "frameCount": 361,
+    "durationMs": 30080,
+    "loop": 0,
+    "bytes": 5057276,
+    "sha256": "318464582e6091b812f8f07551455b9ca6037efd35fdd825dbb1ac261b87fe3f",
+    "originalGifHashUnchanged": true,
+    "approvedPngHashUnchanged": true,
+    "accountVideoGenerationClaimed": false
+  },
+  "styleMaterialEditCalls": 1,
+  "industrialRevision": {
+    "static": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+    "gif": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+    "staticEightPointsReviewed": true,
+    "frameCount": 361,
+    "durationMs": 30080,
+    "loop": 0,
+    "bytes": 13877870,
+    "status": "static and final GIF independently visually verified",
+    "previewBytes": 8663921,
+    "finalGifSha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+    "gifRegressionTests": 2
+  },
+  "videoWebCopy": {
+    "path": "docs/brand-media/static/held/video2-web-1080p60.mp4",
+    "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+    "width": 1920,
+    "height": 1080,
+    "fps": 60,
+    "frameCount": 735,
+    "durationMs": 12267,
+    "bytes": 8051146,
+    "pixelIdenticalFrames": 735,
+    "videoPacketsEqual": 735,
+    "audioPacketsEqual": 576,
+    "originalHashUnchanged": true,
+    "moovBeforeMdat": true,
+    "accountVideoGenerationClaimed": false,
+    "browserPlayback": "not executed: local-file URL policy block",
+    "releaseAllowed": false,
+    "manifestIntegrity": "pass:56 media files; originals re-read"
+  },
+  "productBrandVideo": {
+    "outputs": [
+      {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+        "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+        "bytes": 10216338,
+        "width": 1920,
+        "height": 1080,
+        "frameCount": 735,
+        "fps": 60,
+        "videoDurationMs": 12250.0,
+        "movieDurationMs": 12288.0,
+        "allFramePtsEqualOriginal": true,
+        "audioPacketsEqualOriginal": 576,
+        "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+        "releaseAllowed": false,
+        "kind": "product_brand_edited_video"
+      },
+      {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+        "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+        "bytes": 4231724,
+        "width": 1280,
+        "height": 720,
+        "frameCount": 735,
+        "fps": 60,
+        "videoDurationMs": 12250.0,
+        "movieDurationMs": 12288.0,
+        "allFramePtsEqualOriginal": true,
+        "audioPacketsEqualOriginal": 576,
+        "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+        "releaseAllowed": false,
+        "kind": "product_brand_edited_web_video"
+      }
+    ],
+    "masterSha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "editedFrames": 244,
+    "earlyPanelInstances": 794,
+    "sourceRawFramesUnchangedOutsideEditedShots": 491,
+    "allFramePtsPreserved": true,
+    "all576AudioPacketsAndTimingPreserved": true,
+    "sourceMovieDurationMs": 12267,
+    "outputMovieDurationMs": 12288,
+    "containerDeltaMs": 21,
+    "sourceHashUnchanged": true,
+    "acceptedStaticAndGifUnchanged": true,
+    "encodedVisualReview": {
+      "status": "pass_for_requested_typography_correction",
+      "revision": "v3",
+      "finalVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "lateEncodedFramesReviewed": 135,
+      "lateFrameRangeInclusive": [
+        600,
+        734
+      ],
+      "independentVisualContributions": {
+        "agent": "logo_review",
+        "candidateFramesReviewed": 17,
+        "encodedContactSheetsReviewed": 12,
+        "encodedFramesOnContactSheets": 135,
+        "fullResolutionTransitionFramesReviewed": [
+          676,
+          677,
+          678,
+          679,
+          680
+        ],
+        "reportedResult": "Requested paper typography alignment and original machinery occlusion pass. Root rechecked the possible transition concern separately."
+      },
+      "rootTransitionRecheck": {
+        "frames": [
+          676,
+          677,
+          678,
+          679,
+          680
+        ],
+        "evidence": "Planning independent-transition-676-680.jpg extracted from actual MP4",
+        "result": "No distinct one-frame size or angle jump confirmed on central paper C. Text moves continuously behind original machinery. Newly entering upper paper D grows from a small initial projection; its relative area change alone is not a discontinuity defect."
+      },
+      "previousClippingRegressionFrames": [
+        604,
+        605,
+        606,
+        663,
+        705,
+        708,
+        709
+      ],
+      "actualEncodedEvidenceFramesPixelEqualToMovieDecode": [
+        114,
+        150,
+        179,
+        180,
+        181,
+        210,
+        222,
+        600,
+        604,
+        605,
+        606,
+        609,
+        610,
+        611,
+        612,
+        642,
+        654,
+        657,
+        660,
+        663,
+        666,
+        669,
+        672,
+        684,
+        705,
+        708,
+        709,
+        714,
+        717,
+        726,
+        734
+      ],
+      "evidenceFrameMatches": 31,
+      "early109RawCompositesEqualV2": true,
+      "geometryVerificationPath": "docs/brand-media/static/product-video/geometry-verification.json",
+      "resolved": "Wordmark projection follows source paper print axes. Original ink-cleanup bounds, exact master, equipment foreground and early-shot composites are retained.",
+      "normalSpeedBrowserPlayback": "not executed: existing local-file browser URL policy block",
+      "publicationAcceptanceClaimed": false,
+      "userAcceptedOutput": false
+    },
+    "releaseAllowed": false,
+    "manifestMediaFilesChecked": 65,
+    "manifestImageFilesChecked": 59,
+    "revision": "v3",
+    "geometryVerificationPath": "docs/brand-media/static/product-video/geometry-verification.json"
+  }
+}

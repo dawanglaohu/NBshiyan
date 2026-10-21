@@ -1,0 +1,366 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T3": {
+      "contractHash": "668f1f9f5aedcf085aad0ee324fe690c2c3bcc6a1337e36c396591688a008647",
+      "evidence": [
+        "本轮只复核第1轮R1/R2及直接回归。19节M1-T3五项断言、E28/E29、13/17要求及接口字段保留；已核实际用户在实施会话原话授权网站消费已确认素材。16个exact支持路径覆盖实际Hero/Scene/OG/测试及字面Next路由H03根因修复，不放宽为src/app/。R1成片来源/hash/抽帧/海报及UNKNOWN拒绝通过，原片历史逐字段不变；R2六份public/held逐值一致，历史制作不误阻、缺成品仍拒绝。40媒体测试+24网站测试+lint通过；合入main后真实页头重采/字体master复现及126媒体原件重读发布门禁通过。三个实际Jev复跑均take(A)。本记录只登记契约和功能复核，Linux完整构建与最终合并门禁仍待完成，不冒称落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T4": {
+      "contractHash": "ccb3ac856b176c38e3aad36a063a18a99c1b210ff8b8f391b385fdf2b1378559",
+      "evidence": [
+        "M1-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T5": {
+      "contractHash": "2f2139f496263bf1b8f3d8e416b893ac4d84bd815e4f105e2acbac7334c38534",
+      "evidence": [
+        "M1-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T6": {
+      "contractHash": "b3bfe707cd65d090da9fdd83976ba662b3f1ed7a49acb244bf4566fdff51029b",
+      "evidence": [
+        "M1-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T9": {
+      "contractHash": "90b1c1d7e8436991ce68fea33512a8edca732079f59102420084afc60622cc89",
+      "evidence": [
+        "M1-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T1": {
+      "contractHash": "ff307a5be72e2f2ae0460bd771718541857916ae6b679a5f5280c09143569a74",
+      "evidence": [
+        "M2-T1: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T2": {
+      "contractHash": "4565ddc659d8d7894057de4e6310946f4cfdb536a4f6f0e0cda53ba1c6336c06",
+      "evidence": [
+        "M2-T2: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T3": {
+      "contractHash": "ad7f476abff5e6520e777d926e0a44b57c8e492d8347e248d56c99eeeb36fdd0",
+      "evidence": [
+        "M2-T3: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T5": {
+      "contractHash": "0d3612b9b67190497cb6cc1c7916f88791ab4f842cebb24e898aa237a7f0678d",
+      "evidence": [
+        "M2-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T6": {
+      "contractHash": "4f31923d2c2dbd01fb46b0b6b72fc984c0727f3590bd6cd90f728f7323c760ee",
+      "evidence": [
+        "M2-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T7": {
+      "contractHash": "ea16a2f995e11f90e7af5d84ba104229f464987651630e78808e0b5c6e78021a",
+      "evidence": [
+        "M2-T7: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T8": {
+      "contractHash": "74181dc333bc4b3baa7a08fed2745f37d814413a7468e6bbcb0c1011858491d0",
+      "evidence": [
+        "M2-T8: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T10": {
+      "contractHash": "70c8b92ca20b955ac806c31766527d88a547dd9f4df2a7a88fbdc1acf1a8fe97",
+      "evidence": [
+        "M3-T10: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T11": {
+      "contractHash": "8716c67aa93d423ff180630d08350608bea3bbfeb361b4495ef9b45b22280620",
+      "evidence": [
+        "M3-T11: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T12": {
+      "contractHash": "9ea804c46dbcafd40e1c0d8ac689d27bff39853b4063a7468a9862bdc42b2e56",
+      "evidence": [
+        "M3-T12: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T13": {
+      "contractHash": "1a74e837a1603b1a935bb8aea2e8c5723007566301f8c2f5c0b2f152373579af",
+      "evidence": [
+        "M3-T13: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T25": {
+      "contractHash": "367db1862c3a0ff91ffecff6b16544a81867d9356b9ca8723a7ab6526dbfde7f",
+      "evidence": [
+        "M3-T25: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T6": {
+      "contractHash": "5b6cd691b4501acbf39c5e3bd409ceeac7733421da777c8d3fda72e1293f5148",
+      "evidence": [
+        "M3-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T8": {
+      "contractHash": "280772816bcdd95821b79d0b263192dc349dc5928cafbfe958f60081d637d092",
+      "evidence": [
+        "M3-T8: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T9": {
+      "contractHash": "37a4c75567c01beebaa796081247644a41766b4f478060ee21b63ba45bd60c97",
+      "evidence": [
+        "M3-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T1": {
+      "contractHash": "28e656779373b0645a68321db9d800e6562752730473e92f1dc9a5efa5f81a2b",
+      "evidence": [
+        "M6-T1: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T2": {
+      "contractHash": "46af6622c2f896226e70e07c611fb91a90f883d8f0bef9ab8ef54a68ddd231a6",
+      "evidence": [
+        "M6-T2: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T3": {
+      "contractHash": "e1e219431fe4b9826aeb612768556094685ace9e1fd669a22a7f7f1e66cafc55",
+      "evidence": [
+        "M6-T3: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T4": {
+      "contractHash": "c1758d9cf13def13064d18b722d77bbc1cac95384c2d0fae963e6ddc1572901a",
+      "evidence": [
+        "M6-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T5": {
+      "contractHash": "edb64885d0da62b765516a35be3c01b8a9c43c92a8bdbc39ec75ad561d976517",
+      "evidence": [
+        "M6-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T6": {
+      "contractHash": "3ef34daa016db6a8ddd5a9f4e03f54842ca85b781c5c2d4e58241ddc924d1b0c",
+      "evidence": [
+        "M6-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T7": {
+      "contractHash": "92239e89167f39065b447bb8740e7e5c11299feccab95edbbb4dcf9b319096d5",
+      "evidence": [
+        "M6-T7: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T1": {
+      "contractHash": "b46de0c24415b2c377d1c938ef218cb114838abefe37082b9503e8b7c41246b9",
+      "evidence": [
+        "M7-T1: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T2": {
+      "contractHash": "3a362c0e7b83a4ec18b39c9f405334645aabb6596cbcf7333afd49118a348e03",
+      "evidence": [
+        "M7-T2: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T3": {
+      "contractHash": "0ba6a19e0e204ae25f36425c23db12b69b9d90fcd68d1ef65580ea8205390cd4",
+      "evidence": [
+        "M7-T3: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T4": {
+      "contractHash": "8997add925e2519618f6bcfa3954a2e014417d8cafe7dbfac757f7b0a3418453",
+      "evidence": [
+        "M7-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T5": {
+      "contractHash": "9e2ecbfce4b59a9343d1fa2aa2e271690937cbade8a5dfa5fafed670d51e058f",
+      "evidence": [
+        "M7-T5: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T6": {
+      "contractHash": "a30c9828277f063a672bc48a331e975cc8b90a9ca17077d80a1e09ae41cb0bae",
+      "evidence": [
+        "M7-T6: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T7": {
+      "contractHash": "717e3bfd21417d838e754f4e521a4b0d8a58531db9b4576cbda1ec52da29e002",
+      "evidence": [
+        "M7-T7: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T8": {
+      "contractHash": "aa90da3dd1a22491390a56131807cf3f1bf93a0541d797781d502931398b722f",
+      "evidence": [
+        "M7-T8: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T9": {
+      "contractHash": "0bd04aaf6747977d3a2540c558e1dea65d6744e18bf1bb4f9727bf11f6c19511",
+      "evidence": [
+        "M7-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      ],
+      "verdict": "pass"
+    }
+  },
+  "reviewRound": 2,
+  "reviewedImplementationHead": "8c668fc8f9f352640cca9e13b83e34ad9d9122aa",
+  "upstreamMain": "3e7ffa8c153a62a9141d63917bf3ac87f935f9c3",
+  "productReview": {
+    "R1": "pass",
+    "R2": "pass",
+    "mediaUnitTests": {
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0
+    },
+    "websiteUnitTests": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0
+    },
+    "generatorTests": {
+      "before": 214,
+      "after": 217,
+      "skipped": 1,
+      "skipReason": "Installed project _run does not contain SKILL.md; existing test_release_1_3_tools condition"
+    },
+    "postMainRelease": {
+      "integrity": "pass",
+      "mediaFilesChecked": 126,
+      "imageFilesChecked": 118,
+      "originalsReRead": true,
+      "releaseAllowed": true,
+      "taskStatus": "complete",
+      "releaseBlockers": []
+    },
+    "browser": "Real production compiled merged tree, fresh isolated Chrome contexts, EN/RU and1440/1920/390 plus reduced motion; no fixture/model round",
+    "windowsBuild": "Compilation/type checks/60 pages passed; standalone failed with symlink EPERM",
+    "linuxBuild": "pass: Ubuntu CI built the complete standalone output; standalone+PostgreSQL e2e passed",
+    "landing": "approved-for-recording",
+    "ci": {
+      "head": "0bd8c3e8a360bbf8f37b0399408cb0e32cd4dab8",
+      "runId": 39576295748,
+      "url": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39576295748",
+      "buildAndAudit": "success",
+      "securityGate": "success",
+      "e2e": "success",
+      "repositoryUnitTests": {
+        "passed": 1250,
+        "failed": 0,
+        "skipped": 13
+      },
+      "standaloneStartupTests": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      },
+      "e2eTests": {
+        "passed": 60,
+        "failed": 0,
+        "skipped": 9
+      },
+      "skipScope": "Existing conditional repository cases; no task-media or direct-regression skips."
+    },
+    "verdict": "pass"
+  },
+  "logs": [
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/media-tests.txt",
+      "sha256": "da58ad1c909236723290b386275c2005c2a6b13b34d596df74a138ee5413c60d"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/media-release-before-main.json",
+      "sha256": "5f0455d862b74ce45e0f02f77b13a3081a9cfd2ae559039080950d50630bca16"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/lint.txt",
+      "sha256": "1d2355a06c458bcbf315c0d4ba1018703e693437ce6f13efc2b19e3b153cbca5"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/website-node-tests.txt",
+      "sha256": "0a4d83f2431fa1c7f30977d677209c2913068eb77934dd076ef6c8ec176d9f35"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/path-valid-before-full.txt",
+      "sha256": "487287dab9634b663cdc551becb365f190aae55695b22c25347203f51e30fa33"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/path-valid-red.txt",
+      "sha256": "f8c28c55379fdd312c3865210ba469ef00907e7e92f6a3de09173f6672f6dd0e",
+      "rawCanonicalSha256": "554e469844f3f380b28b328bc075d40da3980cb1a0397354af35c9f4b8b498a5",
+      "normalization": "UTF8 LF; progress-line trailing whitespace removed; raw source log retained in planning during review"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/path-valid-green.txt",
+      "sha256": "08b44a02b6026518879b5222f84fb64a206a7bc1a74b1517450200535a2d294e"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/path-valid-after-full.txt",
+      "sha256": "b852b03dd75f4fd8802a697ece3ef874eae1cf8fa73992914859284b5b3a4852"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/post-main-release.json",
+      "sha256": "c797d5cc8153ec8f6dd75b39d2efb848b6b7610110907d2e2858d4558209d28b"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/post-main-website-tests.txt",
+      "sha256": "9eb41fb96630122138dea5737e3f5331e5f93fc1e6b59040464c1350dc0b41be"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/review-round2/production-browser-merged.json",
+      "sha256": "7816c7a0a7a3e3f7fb9d2351fc30f110325d65c67d3530694f3ef24fa8d1ac57"
+    }
+  ]
+}

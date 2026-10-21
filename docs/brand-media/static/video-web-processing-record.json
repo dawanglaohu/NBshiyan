@@ -1,0 +1,222 @@
+{
+  "task": "M1-T3",
+  "kind": "original_video_progressive_mp4_copy",
+  "createdAt": "2026-10-21T03:26:39Z",
+  "actualTool": "Existing WSL /usr/bin/qt-faststart bundled with FFmpeg 4.2.7-0ubuntu0.1",
+  "accountVideoGenerationClaimed": false,
+  "source": {
+    "path": "C:/Users/admin/Desktop/video2.mp4",
+    "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+    "bytes": 8051146
+  },
+  "output": {
+    "path": "docs/brand-media/static/held/video2-web-1080p60.mp4",
+    "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+    "bytes": 8051146,
+    "width": 1920,
+    "height": 1080,
+    "frameCount": 735,
+    "fps": 60.0,
+    "kind": "lossless_web_video",
+    "releaseAllowed": false
+  },
+  "command": [
+    "wsl.exe",
+    "--exec",
+    "qt-faststart",
+    "/mnt/c/Users/admin/Desktop/video2.mp4",
+    "/mnt/d/xiangmu/.codex-plans/NBshiyan-m1-t3/video2-web-1080p60-faststart.mp4"
+  ],
+  "operation": "Relocate original moov before mdat and adjust chunk offsets; no audio/video re-encoding or timeline edit.",
+  "sourceTopLevelAtoms": [
+    {
+      "type": "ftyp",
+      "offset": 0,
+      "bytes": 32
+    },
+    {
+      "type": "free",
+      "offset": 32,
+      "bytes": 8
+    },
+    {
+      "type": "mdat",
+      "offset": 40,
+      "bytes": 8036107
+    },
+    {
+      "type": "moov",
+      "offset": 8036147,
+      "bytes": 14999
+    }
+  ],
+  "outputTopLevelAtoms": [
+    {
+      "type": "ftyp",
+      "offset": 0,
+      "bytes": 32
+    },
+    {
+      "type": "moov",
+      "offset": 32,
+      "bytes": 14999
+    },
+    {
+      "type": "free",
+      "offset": 15031,
+      "bytes": 8
+    },
+    {
+      "type": "mdat",
+      "offset": 15039,
+      "bytes": 8036107
+    }
+  ],
+  "packetChecks": [
+    {
+      "kind": "video",
+      "count": 735,
+      "payloadsAndPtsDtsDurationsEqual": true,
+      "canonicalPacketSequenceSha256": "879e638b18b111072bab8aeb85824a73a51c825a36ce082633db38c61699324e",
+      "first": {
+        "pts": "0",
+        "dts": "0",
+        "duration": "1/60",
+        "size": "30317",
+        "payloadSha256": "SHA256:f97e530ee00c4efbee4cd7634591d13c35dd746e34ef58ca74a667cbc6df8949"
+      },
+      "last": {
+        "pts": "367/30",
+        "dts": "367/30",
+        "duration": "1/60",
+        "size": "14399",
+        "payloadSha256": "SHA256:57ba9886d8b9d02ee937468990a1695e1f9558aa639e4475adaecb8dee1448cd"
+      }
+    },
+    {
+      "kind": "audio",
+      "count": 576,
+      "payloadsAndPtsDtsDurationsEqual": true,
+      "canonicalPacketSequenceSha256": "57dfa8bc317b5235c6ad916f3287327f59fc36793cfeb3c0ff965eba2765977a",
+      "first": {
+        "pts": "-8/375",
+        "dts": "-8/375",
+        "duration": "8/375",
+        "size": "606",
+        "payloadSha256": "SHA256:2b5b7410616524278960f43db0ad837fb910dad3d95cf9ff6bed31688d0f704f"
+      },
+      "last": {
+        "pts": "587767/48000",
+        "dts": "587767/48000",
+        "duration": "1001/48000",
+        "size": "838",
+        "payloadSha256": "SHA256:63fca17aff31fd09279a4a2b7457658812442e499a808806c3e69e182972116d"
+      }
+    }
+  ],
+  "fullFramePixelEquality": {
+    "verifier": "independent OpenCV full paired frame decode and MP4 atom parser",
+    "source": {
+      "path": "C:\\Users\\admin\\Desktop\\video2.mp4",
+      "bytes": 8051146,
+      "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "topLevelBoxes": [
+        {
+          "type": "ftyp",
+          "offset": 0,
+          "bytes": 32
+        },
+        {
+          "type": "free",
+          "offset": 32,
+          "bytes": 8
+        },
+        {
+          "type": "mdat",
+          "offset": 40,
+          "bytes": 8036107
+        },
+        {
+          "type": "moov",
+          "offset": 8036147,
+          "bytes": 14999
+        }
+      ],
+      "moovBeforeMdat": false,
+      "movieDurationMs": 12267.0,
+      "width": 1920,
+      "height": 1080,
+      "fps": 60.0,
+      "reportedFrameCount": 735
+    },
+    "candidate": {
+      "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-m1-t3\\video2-web-1080p60-faststart.mp4",
+      "bytes": 8051146,
+      "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+      "topLevelBoxes": [
+        {
+          "type": "ftyp",
+          "offset": 0,
+          "bytes": 32
+        },
+        {
+          "type": "moov",
+          "offset": 32,
+          "bytes": 14999
+        },
+        {
+          "type": "free",
+          "offset": 15031,
+          "bytes": 8
+        },
+        {
+          "type": "mdat",
+          "offset": 15039,
+          "bytes": 8036107
+        }
+      ],
+      "moovBeforeMdat": true,
+      "movieDurationMs": 12267.0,
+      "width": 1920,
+      "height": 1080,
+      "fps": 60.0,
+      "reportedFrameCount": 735
+    },
+    "pairedDecodedFrames": 735,
+    "pixelIdenticalFrameCount": 735,
+    "mismatchFrameIndices": [],
+    "sourceSha256After": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+    "sourceHashUnchanged": true,
+    "pass": true
+  },
+  "formatDurationMs": 12267,
+  "originalHashUnchanged": true,
+  "poster": {
+    "path": "docs/brand-media/static/held/video2-poster-4500ms.jpg",
+    "frameIndex": 270,
+    "atMs": 4500.0,
+    "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d"
+  },
+  "smallerVideoAlternative": "docs/brand-media/static/held/video2-720p60.mp4",
+  "browserPlayback": {
+    "status": "not_executed",
+    "reason": "Browser URL policy blocked the local file verification page; no localhost or alternate-browser workaround attempted."
+  },
+  "capabilityCheck": {
+    "checkedOn": "2026-10-21",
+    "nativeVideoGenerationToolExposed": false,
+    "dotBrowserPresent": false,
+    "dotNativeAppPresent": false,
+    "computerUseInventoryChecked": true
+  },
+  "decision": {
+    "statePath": "docs/brand-media/static/video-web-delivery.state.json",
+    "logPath": "docs/brand-media/static/evidence/video-web-adjudication.jsonl",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "option": "A",
+    "line": "adjudicate: pick=A(high 0.98) spec_change=no(0.12) outside_stack=no(0.12) needs_owner=no(0.09) reversible=yes(0.76) adopt=take(A)"
+  },
+  "releaseAllowed": false,
+  "releaseHoldReason": "Original corporate provenance and product relationship remain UNKNOWN; processing does not establish ownership."
+}

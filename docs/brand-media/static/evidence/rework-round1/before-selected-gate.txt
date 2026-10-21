@@ -1,0 +1,29 @@
+test_replaced_original_product_marks_do_not_block_selected_video (__main__.RegressionBeforeFix.test_replaced_original_product_marks_do_not_block_selected_video) ... FAIL
+test_selected_static_png_not_blocked_by_superseded_jpg (__main__.RegressionBeforeFix.test_selected_static_png_not_blocked_by_superseded_jpg) ... FAIL
+test_selected_video_identity_not_classified_as_original_authorship (__main__.RegressionBeforeFix.test_selected_video_identity_not_classified_as_original_authorship) ... FAIL
+
+======================================================================
+FAIL: test_replaced_original_product_marks_do_not_block_selected_video (__main__.RegressionBeforeFix.test_replaced_original_product_marks_do_not_block_selected_video)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 14, in test_replaced_original_product_marks_do_not_block_selected_video
+AssertionError: 'NON_EQUIPMENT_IDENTITY_NOT_VERIFIED' unexpectedly found in ['JPG_REPLACEMENT_NOT_VERIFIED', 'NON_EQUIPMENT_IDENTITY_NOT_VERIFIED', 'VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED']
+
+======================================================================
+FAIL: test_selected_static_png_not_blocked_by_superseded_jpg (__main__.RegressionBeforeFix.test_selected_static_png_not_blocked_by_superseded_jpg)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 12, in test_selected_static_png_not_blocked_by_superseded_jpg
+AssertionError: 'JPG_REPLACEMENT_NOT_VERIFIED' unexpectedly found in ['JPG_REPLACEMENT_NOT_VERIFIED', 'NON_EQUIPMENT_IDENTITY_NOT_VERIFIED', 'VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED']
+
+======================================================================
+FAIL: test_selected_video_identity_not_classified_as_original_authorship (__main__.RegressionBeforeFix.test_selected_video_identity_not_classified_as_original_authorship)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<stdin>", line 13, in test_selected_video_identity_not_classified_as_original_authorship
+AssertionError: 'VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED' unexpectedly found in ['JPG_REPLACEMENT_NOT_VERIFIED', 'NON_EQUIPMENT_IDENTITY_NOT_VERIFIED', 'VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED']
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+FAILED (failures=3)

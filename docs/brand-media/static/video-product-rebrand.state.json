@@ -1,0 +1,12 @@
+{
+  "requirement": "The user explicitly authorizes replacing product brands printed on packaging in video2.mp4 with this website's existing PackJoyU brand. Edit a new video derivative only; preserve original media, verified brand master, all735frames at60fps, original audio and physical equipment manufacturer marks. Do not infer real factory ownership or customer relationship from rebranding.",
+  "task": {
+    "title": "M1-T3 product-packaging brand replacement in the full video",
+    "accept": "Replace early red-panel product identities atframes114-222 and Holiland/Chinese product wordmarks on every visible bag atframes600-734, including entering/leaving fragments. Maintain paper perspective/motion and original machine/hand occlusion, preserve decorative motifs and equipment marks, record actual local tools and checks, keep the unresolved overall release hold."
+  },
+  "conflict": "Repeated package graphics and motion blur made automatic SIFT/LK proposals unreliable: prototypes retained some old marks, misplaced labels or temporarily duplicated them. The early-shot helper now dynamically identifies product brand panels and has109frame masks and tests. The final shot has manually identified bag instancesA-E,15source keyframes, foreground machine outlines,43frame feed-cycle evidence and independent blocker-frame review. Need choose the final implementation and validation strategy; no native video generation tool is exposed.",
+  "options": {
+    "A": "Use the completed per-frame early-shot compositor and manually seeded individual-bag perspective trajectories for the final shot. Correct source keyframes at every independently identified blocker, interpolate within each actual paper instance, preserve machine foreground and apply the existing exact master. Review all244edited frames plus source boundaries, encode the full735frame video and copy original audio. Save derivative and truthful provenance/remaining release hold. Do not use failed automatic prototypes as final evidence.",
+    "B": "Manually rotoscope every one of the244edited frames and each visible brand fragment instead of using the per-frame early detector or paper-trajectory interpolation. Apply the same verified master and original foreground masks, then perform the same complete frame/audio/source verification and retain the same release hold."
+  }
+}

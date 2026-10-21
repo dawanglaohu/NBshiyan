@@ -1,0 +1,126 @@
+{
+  "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+  "beforeHelperSha256": "70c71e9ee5040c10edbb843f7fe2912e09430b58cdba0d4372b2af0946c336e7",
+  "realSourceBeamPixelCases": [
+    {
+      "frame": 180,
+      "pointXY": [
+        310,
+        780
+      ],
+      "sourceBGR": [
+        54,
+        55,
+        65
+      ],
+      "beforeBGR": [
+        194,
+        200,
+        202
+      ],
+      "beforeFailed": true,
+      "labelQuad": [
+        [
+          309.63800048828125,
+          770.010009765625
+        ],
+        [
+          373.6600036621094,
+          786.426025390625
+        ],
+        [
+          362.0190124511719,
+          831.8250122070312
+        ],
+        [
+          297.99798583984375,
+          815.4099731445312
+        ]
+      ]
+    }
+  ],
+  "afterHelperSha256": "4d417cfd3119b53221501063592b68f23328958a97335a209609cf55d599c35c",
+  "afterPassed": true,
+  "afterPoint": {
+    "xy": [
+      310,
+      780
+    ],
+    "sourceBGR": [
+      54,
+      55,
+      65
+    ],
+    "editedBGR": [
+      54,
+      55,
+      65
+    ]
+  },
+  "directAdjacentFrameChecks": [
+    {
+      "frame": 179,
+      "beamPixels": 9,
+      "overwrittenBeamPixels": 0,
+      "point": {
+        "xy": [
+          310,
+          780
+        ],
+        "sourceBGR": [
+          55,
+          53,
+          65
+        ],
+        "editedBGR": [
+          55,
+          53,
+          65
+        ]
+      }
+    },
+    {
+      "frame": 180,
+      "beamPixels": 9,
+      "overwrittenBeamPixels": 0,
+      "point": {
+        "xy": [
+          310,
+          780
+        ],
+        "sourceBGR": [
+          54,
+          55,
+          65
+        ],
+        "editedBGR": [
+          54,
+          55,
+          65
+        ]
+      }
+    },
+    {
+      "frame": 181,
+      "beamPixels": 9,
+      "overwrittenBeamPixels": 0,
+      "point": {
+        "xy": [
+          310,
+          780
+        ],
+        "sourceBGR": [
+          52,
+          54,
+          61
+        ],
+        "editedBGR": [
+          52,
+          54,
+          61
+        ]
+      }
+    }
+  ],
+  "sourceThreeByThreeProtected": true
+}

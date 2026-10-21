@@ -1,0 +1,23 @@
+﻿{
+    "source":  "C:\\Users\\admin\\Desktop\\video2.mp4",
+    "output":  "D:\\xiangmu\\.codex-plans\\NBshiyan-m1-t3\\video2-mediafoundation-720p60-candidate.mp4",
+    "tool":  "Windows.Media.Transcoding.MediaTranscoder",
+    "hardwareAcceleration":  false,
+    "video":  {
+                  "width":  1280,
+                  "height":  720,
+                  "frameRateNumerator":  60,
+                  "frameRateDenominator":  1,
+                  "bitrate":  2500000,
+                  "subtype":  "H264"
+              },
+    "audio":  {
+                  "subtype":  "AAC",
+                  "sampleRate":  48000,
+                  "channelCount":  2,
+                  "bitrate":  284128
+              },
+    "trimStartSet":  false,
+    "trimStopSet":  false,
+    "releaseAllowed":  false
+}

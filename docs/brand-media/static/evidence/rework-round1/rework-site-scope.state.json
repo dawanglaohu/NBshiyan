@@ -1,0 +1,18 @@
+{
+  "requirement": "Rework only M1-T3 R1/R2 and direct regressions on the original branch/worktree/PR397. In the same direct request the user additionally states that the website must use all approved edited material and no reference material. Approved assets are industrial PNG/GIF plus corrected product video v3 and its real frame poster; old files and original sources must remain.",
+  "task": {
+    "title": "R1 selected-output release identity and R2 selected-delivery synchronization, with explicitly requested website media consumption",
+    "accept": "Keep authentic source observations and tool records; validate real selected files, hashes and decoded frames; route actual website references to approved media. Do not redesign the website, implement unrelated M1-T4 behavior or change unverified factory/customer/certification claims."
+  },
+  "conflict": "The directly authorized media-consumer paths are absent from an older contract path list. This is a bookkeeping/path-registration question after explicit human authorization, not a request to grant new human permission. Need choose whether to implement the stated request now with exact support paths or leave it unfulfilled. Existing homepage reference videos otherwise remain active.",
+  "options": {
+    "A": "Honor the explicit added user request now: publish exact-byte approved assets under public/brand, replace existing hero sources/poster, add the smallest homepage scene consumer for approved PNG/GIF without redesign or unrelated controls, add focused source/reference tests and real browser/GIF evidence. Record the explicit user scope expansion and exact support paths in the existing task patch workflow. Preserve all original references as archived files but remove their active consumer URLs.",
+    "B": "Complete only the asset release validator and manifest under old effective paths now; leave website reference media active and defer all source URL binding and industrial-scene consumption to future M1-T4. Explicitly report that the added direct website-consumption request remains unfulfilled."
+  },
+  "authorization": {
+    "directHumanQuote": "网站中全部使用已修改好的素材，不使用参考素材",
+    "translation": "Use the already edited approved material throughout the website; do not use the reference material.",
+    "authority": "This is the final sentence of the current human user request in this chat, not a model assumption or instruction from a document. It explicitly authorizes the bounded website-media consumer change in this original task. The same user explicitly requests commit and gh stack push on the existing branch/PR.",
+    "limits": "No payment, purchase, irreversible deletion, external messaging, deployment or merge. Existing media and originals remain intact. No new task, worktree, layout redesign, unrelated page logic, product photos, or new factual factory claims. Only existing hero media sources/poster plus a small approved-artwork consumer and necessary focused evidence."
+  }
+}

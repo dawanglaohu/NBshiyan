@@ -1,0 +1,77 @@
+{
+  "decodedFrames": 735,
+  "sheets": [
+    {
+      "path": "docs/brand-media/static/evidence/all-01.jpg",
+      "fromFrame": 0,
+      "toFrame": 62,
+      "sha256": "fb46b7febad1e532e7e5af4319201d5fb2e991426b119636a363572e8535aa43"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-02.jpg",
+      "fromFrame": 63,
+      "toFrame": 125,
+      "sha256": "28e7da586833d2558ea571c500f22a78517d18bf43ecf06a584ae7d0fd2f76dd"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-03.jpg",
+      "fromFrame": 126,
+      "toFrame": 188,
+      "sha256": "5cff413ed905624679fcaecaeb2da52b306a1d14906a85e31f4d8f244ce9a040"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-04.jpg",
+      "fromFrame": 189,
+      "toFrame": 251,
+      "sha256": "4d2688d5134ef43a47a2f5980b3ba61f21be2db780c814530a90f7943c9e7c64"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-05.jpg",
+      "fromFrame": 252,
+      "toFrame": 314,
+      "sha256": "2da67758aefd6fcd958e48df5639f5dd8fc78b6937b8af9a8337ec118d750413"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-06.jpg",
+      "fromFrame": 315,
+      "toFrame": 377,
+      "sha256": "bb133231a86ee23e3940131b41b9e559f9b9c579e0e654923cd3e5d33c3f2672"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-07.jpg",
+      "fromFrame": 378,
+      "toFrame": 440,
+      "sha256": "9c66c42fd969149ec22b4e84306deb5cee20be64234786d3b5187b09f1d27541"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-08.jpg",
+      "fromFrame": 441,
+      "toFrame": 503,
+      "sha256": "71d5765dd24ab506828f2b40620de94ff4610b91a3044bb00b893af558bffbe5"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-09.jpg",
+      "fromFrame": 504,
+      "toFrame": 566,
+      "sha256": "bb0583d5dff4577e045d35b36f86b3aa73016baeaba0a8d41b5920a4f9737a32"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-10.jpg",
+      "fromFrame": 567,
+      "toFrame": 629,
+      "sha256": "ebb0a4f5284c930a78c3bc2500a13999300ac882daad39c43ed1723bb2bdf043"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-11.jpg",
+      "fromFrame": 630,
+      "toFrame": 692,
+      "sha256": "c15d724815ef5714e79a2b22f60668bc36e4787a7664a153a8d9eb411d7052bd"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/all-12.jpg",
+      "fromFrame": 693,
+      "toFrame": 734,
+      "sha256": "1eb32d1aa34e8d2bdc4238d6dee02884e681b75937651f761412f5ab3eed6d4b"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "task": "M1-T3",
+  "scope": "Explicit user request to use approved edited media throughout the website; minimal homepage/OG consumer changes only.",
+  "selectedConsumerModule": "src/lib/home/brandMedia.ts",
+  "siteConsumerDerivatives": [
+    {
+      "path": "public/og/home-en.jpg",
+      "url": "/og/home-en.jpg",
+      "sha256": "53f2adfcbbd0e5e3c6047e11d6344e426a5145bdd1cb5a2636f07b04c1ce1c91",
+      "bytes": 97080,
+      "width": 1200,
+      "height": 630,
+      "locale": "en",
+      "kind": "website_share_image_derivative",
+      "sourcePoster": {
+        "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+      },
+      "generator": {
+        "path": "design/og-src/render-og.mjs",
+        "sha256": "bc7f6d28b61642865dbd80a8c60afdf4124d20aa7cd2bbee921244a889295b81"
+      },
+      "layout": "Existing typography/copy/positions retained; current poster plus solid original-background text panel for legibility.",
+      "visualReview": "pass: actual exported JPEG viewed",
+      "priorPublicVersionPreservedInGit": true,
+      "priorVersionArchive": "D:\\xiangmu\\.codex-plans\\NBshiyan-m1-t3\\site-og-before\\home-en.jpg"
+    },
+    {
+      "path": "public/og/home-ru.jpg",
+      "url": "/og/home-ru.jpg",
+      "sha256": "304fcc393b6dc03107b10ba38b546ce285288b4a4d1845924923ab035ad2a53e",
+      "bytes": 94501,
+      "width": 1200,
+      "height": 630,
+      "locale": "ru",
+      "kind": "website_share_image_derivative",
+      "sourcePoster": {
+        "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+      },
+      "generator": {
+        "path": "design/og-src/render-og.mjs",
+        "sha256": "bc7f6d28b61642865dbd80a8c60afdf4124d20aa7cd2bbee921244a889295b81"
+      },
+      "layout": "Existing typography/copy/positions retained; current poster plus solid original-background text panel for legibility.",
+      "visualReview": "pass: actual exported JPEG viewed",
+      "priorPublicVersionPreservedInGit": true,
+      "priorVersionArchive": "D:\\xiangmu\\.codex-plans\\NBshiyan-m1-t3\\site-og-before\\home-ru.jpg"
+    }
+  ],
+  "browserEvidence": "Final clean-commit production browser recording is published on the separate assets branch and embedded in PR397. Real public-media requests and playback only; no AI model round or database fixture.",
+  "productionBuildLimitation": "Windows standalone copy fails on dependency symlink EPERM after successful compilation, type checks and static rendering. Actual production next start serves those compiled outputs for browser verification; no OS permission or CSP change."
+}

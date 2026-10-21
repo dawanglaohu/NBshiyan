@@ -1,0 +1,70 @@
+{
+  "source": {
+    "path": "C:\\Users\\admin\\Desktop\\video2.mp4",
+    "bytes": 8051146,
+    "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+    "width": 1920,
+    "height": 1080,
+    "fps": 60.0,
+    "reportedFrameCount": 735.0,
+    "decodedFrames": 735,
+    "movie": {
+      "timescale": 1000,
+      "durationUnits": 12267,
+      "durationMs": 12267.0
+    },
+    "tracks": [
+      {
+        "timescale": 60,
+        "durationUnits": 735,
+        "durationMs": 12250.0,
+        "handler": "vide"
+      },
+      {
+        "timescale": 48000,
+        "durationUnits": 589815,
+        "durationMs": 12287.8125,
+        "handler": "soun"
+      }
+    ]
+  },
+  "candidate": {
+    "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-m1-t3\\video2-mediafoundation-720p60-candidate.mp4",
+    "bytes": 4456406,
+    "sha256": "ed776cfa192a65588d6cc8ed3c5d46b3a2c7a8121b0be7cb2f5b315f88bb3634",
+    "width": 1280,
+    "height": 720,
+    "fps": 60.0,
+    "reportedFrameCount": 735.0,
+    "decodedFrames": 735,
+    "movie": {
+      "timescale": 48000,
+      "durationUnits": 590838,
+      "durationMs": 12309.125
+    },
+    "tracks": [
+      {
+        "timescale": 60000,
+        "durationUnits": 734999,
+        "durationMs": 12249.983333,
+        "handler": "vide"
+      },
+      {
+        "timescale": 48000,
+        "durationUnits": 590838,
+        "durationMs": 12309.125,
+        "handler": "soun"
+      }
+    ]
+  },
+  "sourceHashMatchesRegistered": true,
+  "sizeRatio": 0.5535120093462471,
+  "frameCountEqual": true,
+  "audioTrackPresent": true,
+  "movieDurationDeltaMs": 42.125,
+  "releaseAllowed": false,
+  "archivedCopy": {
+    "path": "docs/brand-media/static/held/video2-720p60.mp4",
+    "sha256": "ed776cfa192a65588d6cc8ed3c5d46b3a2c7a8121b0be7cb2f5b315f88bb3634"
+  }
+}
