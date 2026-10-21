@@ -1,0 +1,29 @@
+{
+  "task": "M1-T3",
+  "status": "user_accepted_saved",
+  "acceptedAt": "2026-10-21T02:56:49Z",
+  "approvalSource": "Direct user instruction in this chat",
+  "approvalQuote": "ok   保存这俩个素材，然后我们在处理视频。",
+  "assets": [
+    {
+      "role": "static_image",
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+      "bytes": 2845196
+    },
+    {
+      "role": "animated_gif",
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+      "bytes": 13877870
+    }
+  ],
+  "preview": {
+    "role": "preview_gif",
+    "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+    "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+    "bytes": 8663921
+  },
+  "scope": "User acceptance of the latest static image and GIF artwork; original media and overall video release checks remain separate.",
+  "nextSourceVideo": "C:/Users/admin/Desktop/video2.mp4"
+}

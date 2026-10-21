@@ -146,8 +146,8 @@
     "width": 1737,
     "height": 905
   },
-  "latestOutputUserAccepted": false,
-  "approvalBasis": "用户：当前的图片效果达标",
+  "latestOutputUserAccepted": true,
+  "approvalBasis": "用户确认保存当前静态图与GIF：ok   保存这俩个素材，然后我们在处理视频。",
   "approvedImageAnimationRecord": "docs/brand-media/static/approved-image-gif-record.json",
   "previousUserAcceptedOutput": {
     "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
@@ -156,5 +156,6 @@
     "height": 905
   },
   "latestOutputQa": "Eight requested static corrections passed independent visual review.",
-  "latestAnimationRecord": "docs/brand-media/static/industrial-city-animation-record.json"
+  "latestAnimationRecord": "docs/brand-media/static/industrial-city-animation-record.json",
+  "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json"
 }

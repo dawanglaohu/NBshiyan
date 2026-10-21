@@ -657,5 +657,6 @@
   ],
   "approvedGifRecordPath": "docs/brand-media/static/approved-image-gif-record.json",
   "industrialGifRecordPath": "docs/brand-media/static/industrial-city-animation-record.json",
-  "industrialGifPreviewRecordPath": "docs/brand-media/static/industrial-gif-preview-record.json"
+  "industrialGifPreviewRecordPath": "docs/brand-media/static/industrial-gif-preview-record.json",
+  "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json"
 }

@@ -26,3 +26,5 @@ python -B docs/brand-media/static/verify-static-media.py --require-release
 用户已确认纸艺 v2 图片达标。基于该图的新循环动画为 `held/packjoyu-papercraft-city-loop.gif`（1384×720，361帧，30.08秒，无限循环，约5.06MB），暂停帧为同名 `-poster.png`。固定机位下飞艇漂移、局部灯光和水面变化；实际制作是确定性图层动画与Pillow编码，不是账号视频生成或Dot操作。原GIF时序保留，源GIF及已验收PNG字节未改，不以此替代M1-T6对原GIF内容逐帧换标的正式验收。
 
 本轮材质/人物修订：`held/packjoyu-industrial-city-v3.png` 是先修好的静态图；`held/packjoyu-industrial-city-v3-loop.gif` 为随后制作的1384×720原尺寸GIF（约13.88MB），`held/packjoyu-industrial-city-v3-loop-preview.gif` 为960×500预览（约8.66MB）。两者均361帧、30.08秒无限循环；云漂移、金属飞艇移动、真实水纹位移、烟粒子上升、载货叉车/司机整体往返。静态场景通过8项视觉检查后才进入动画；生成记录、分层参数和实际文件在style-generation-record.json与industrial-city-animation-record.json。
+
+用户已确认保存当前工业场景静态图与 GIF；最终选用路径、哈希及预览版见 `accepted-industrial-assets.json`。视频继续使用桌面原片 `video2.mp4` 作为处理输入。
