@@ -10,7 +10,7 @@
 | 2 现用标识 / E-28 | `public/brand/packjoyu-logo-master.svg:1`；`image-generation-record.json:5` 两次真实调用 | 每次均提供现用 master 的渲染参考，不设计候选新标；生成图不替换 master。JPG 模型字形不能直接冒称与 master 逐轮廓一致。 |
 | 3 实际制作 / E-29 与用户补充指令 | `image-generation-record.json:1`；`production-record.json:1`；`evidence/video-transcode-command.ps1:1` | 图片实际工具为 `image_gen.imagegen`，未调用 API 付费回退。视频实际工具为既有 Windows MediaTranscoder，未调用 Dot，也未调用账号视频生成接口：本聊天未提供该接口。输入、提示词、输出和核对记录均留存。 |
 | 4 完整 master 与来源 | `logo-source-audit.json:4` 来源哈希；`:46` 导出；`:132` 网页核验；`export-logo-master.py:143` | master SHA256 `7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099`。8 个转曲路径无字体/脚本/外链/私有 metadata；现有源码、CSS、icon 和字体均未改。真实网页字形/advance/kerning 与提交字体一致，Pack/U 黑、Joy 为 #c2381a。 |
-| 5 清单与禁发 | `brand-static-media.json:140` 逐文件哈希/尺寸；`:391` heldFiles；`verify-static-media.py:62` | 30 个图像和 1 段视频逐值核对通过。heldFiles 四个文件均不在 public 或 releaseFiles；UNKNOWN 企业归属与 JPG 保真问题阻止发布。副本存在不等于已批准发布，任务卡仍为 todo。 |
+| 5 清单与禁发 | `brand-static-media.json:140` 逐文件哈希/尺寸；`:391` heldFiles；`verify-static-media.py:62` | 31 个图像和 1 段视频逐值核对通过。heldFiles 五个文件均不在 public 或 releaseFiles；UNKNOWN 企业归属与 JPG 保真问题阻止发布。副本存在不等于已批准发布，任务卡仍为 todo。 |
 
 表中短路径相对 `docs/brand-media/static/`，public 路径相对项目根。
 
@@ -35,7 +35,7 @@ JPG 两个 before 标记与生成后的逐项观察均在清单中。原视频�
 TESTS: pass（已交文件完整性）；发布验收未通过。
 
 - `python -B -m unittest discover -s docs/brand-media/static -p "test_*.py" -v`：10 项通过。包括错误主标/源哈希、伪造帧时间、缺文件、held 移入 public/发布集合、海报换帧和设备角色负例。
-- `python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop`：31 个媒体文件哈希/尺寸一致；原件重读哈希不变；原视频完整 735 帧重解、7 个原帧重建一致，压缩副本 735 帧可解码。图片调用的提示词、输入与输出哈希也被核查。
+- `python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop`：32 个媒体文件哈希/尺寸一致；原件重读哈希不变；原视频完整 735 帧重解、7 个原帧重建一致，压缩副本 735 帧可解码。图片调用的提示词、输入与输出哈希也被核查。
 - `python -B docs/brand-media/static/verify-static-media.py --require-release`：原生退出 2，正确拒绝当前未完成集合。
 - master 默认导出器 check、页头采集脚本 `node --check` 和独立 ESLint 通过；此前同分支 d601ce3 的 pnpm lint 退出0，仅既有警告。素材增量未改应用源码，不重复全库构建/DB/e2e。CI 结果只对应各自远端 head，不把旧 head 的绿色检查当作新提交结果。
 - 原 master 从任务工作树真实 Next 服务返回200并由 Chrome/Sharp 解码核查；该页头服务数据库设置不可用，此证据仅证明字体与样式。冻结依赖安装成功、锁文件未改。
@@ -49,3 +49,7 @@ VIBEHUB: [标志（Logo）](https://vibe-hub.org/logo)。
 ## 用户授权的新风格图
 
 用户明确原图仅作参考，要求不同风格且logo显示。`held/packjoyu-papercraft-city-v1.png` 为新的手工纸艺微缩场景，飞艇与工厂均显示完整 PackJoyU。它不套用旧图“只改两处像素”的约束，不冒充工厂实拍；实际第三次图片工具结果和提示词见 `style-generation-record.json`。原有两轮局部编辑记录保留，尚未直接替换选2 JPG，原视频身份禁发不变。
+
+### 标注细节修订
+
+`held/packjoyu-papercraft-city-v2.png` 按用户四处百分比标注及类似位置实际编辑：移除货车重复后车头；将裸瓦楞/纸盒状楼体改为有完整窗面和屋顶的建筑；工厂屋顶采用通风设备、天窗和少量太阳能板；增加克制的暖窗光、路灯与冷色装卸区灯带。两处 PackJoyU 均保留，原 v1 不覆盖，生成提示词和逐项观察在 style-generation-record.json 的 revisions。

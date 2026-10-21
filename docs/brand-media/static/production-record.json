@@ -57,10 +57,12 @@
       "status": "executed_pending_selection",
       "tool": "image_gen.imagegen",
       "outputs": [
-        "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png"
+        "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+        "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png"
       ],
       "recordPath": "docs/brand-media/static/style-generation-record.json",
-      "scope": "User-authorized new style from reference, not a pixel-local replacement."
+      "scope": "User-authorized new style from reference, not a pixel-local replacement.",
+      "detailRevisionRecord": "docs/brand-media/static/style-generation-record.json"
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",

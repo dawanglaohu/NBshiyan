@@ -388,6 +388,14 @@
       "height": 905,
       "role": "held_style_variant",
       "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+      "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf",
+      "width": 1737,
+      "height": 905,
+      "role": "held_style_variant",
+      "releaseAllowed": false
     }
   ],
   "missingDeliverables": [
@@ -400,7 +408,8 @@
     "docs/brand-media/static/held/packjoyu-city-edited.jpg",
     "docs/brand-media/static/held/video2-720p60.mp4",
     "docs/brand-media/static/held/video2-poster-4500ms.jpg",
-    "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png"
+    "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+    "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png"
   ],
   "generationRecordPath": "docs/brand-media/static/image-generation-record.json",
   "styleVariants": [
@@ -409,6 +418,12 @@
       "recordPath": "docs/brand-media/static/style-generation-record.json",
       "status": "generated_reference_style",
       "userAuthorizedRestyling": true
+    },
+    {
+      "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+      "recordPath": "docs/brand-media/static/style-generation-record.json",
+      "status": "user_annotated_detail_revision",
+      "revisionOf": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png"
     }
   ]
 }

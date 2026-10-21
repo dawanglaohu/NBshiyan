@@ -38,5 +38,77 @@
     "styleIsDifferent": true
   },
   "factualBoundary": "Fictional paper-art brand illustration; no real factory/customer/capacity claim. Does not change original video provenance.",
-  "releaseAllowed": false
+  "releaseAllowed": false,
+  "revisions": [
+    {
+      "tool": "image_gen.imagegen",
+      "result": "succeeded",
+      "kind": "user_annotated_detail_edit",
+      "input": {
+        "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+        "sha256": "01440bcade957cf0ec82d05b11bf5de0e227f450c2cb156f6e2cedf41a7115f7"
+      },
+      "wordmarkReference": {
+        "path": "docs/brand-media/static/evidence/exact-logo-reference.png",
+        "sha256": "a574cb98ca4c31fdb3ca642e336ca70dfeec464563203a886d065cf6a2ce9f5f"
+      },
+      "prompt": {
+        "path": "docs/brand-media/static/evidence/papercraft-detail-v2.prompt.txt",
+        "sha256": "c83d973c807fa6fbe88c7119e644cea8cb9ecec6e47ef1d47b15ce3c7da6963f"
+      },
+      "output": {
+        "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+        "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf",
+        "width": 1737,
+        "height": 905
+      },
+      "toolResultFileName": "exec-7ab4e703-7e60-4599-88b5-46363621cfa4.png",
+      "corrections": [
+        {
+          "atPercent": [
+            31.3,
+            52.4
+          ],
+          "request": "Remove duplicate truck cab and analogous vehicle artifacts",
+          "observed": "Single red cab and enclosed white box body; no rear beige cab."
+        },
+        {
+          "atPercent": [
+            36.3,
+            44.8
+          ],
+          "request": "Finish exposed corrugated building facade",
+          "observed": "Coherent windowed miniature office facade."
+        },
+        {
+          "atPercent": [
+            43.6,
+            49.9
+          ],
+          "request": "Replace taped-box-like low building and similar buildings",
+          "observed": "Finished windows, doorway and normal roofline."
+        },
+        {
+          "atPercent": [
+            77.9,
+            52.1
+          ],
+          "request": "Vary and rationalize factory rooftop structures",
+          "observed": "Flat roof surfaces with ventilation/HVAC, skylights and modest solar arrays."
+        }
+      ],
+      "additionalDetail": "Selected warm windows and yard lamps, restrained cyan canopy lights, no heavy sci-fi transformation.",
+      "wordmarks": [
+        "Airship: PackJoyU",
+        "Factory: PackJoyU"
+      ],
+      "releaseAllowed": false
+    }
+  ],
+  "latestOutput": {
+    "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+    "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf",
+    "width": 1737,
+    "height": 905
+  }
 }
