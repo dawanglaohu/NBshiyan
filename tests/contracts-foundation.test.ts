@@ -288,6 +288,13 @@ for (const { audience, schema, conversation } of [
     }]);
   });
 
+  test(`R1 ${audience} sync rejects a premature end-of-page marker`, () => {
+    rejects(schema, [{
+      conversation, messages: [{ ...message, seq: 3 }],
+      lastSeq: 5, nextAfterSeq: 3, hasMore: false, read: { lastReadSeq: 0 },
+    }]);
+  });
+
   test(`R1 ${audience} sync preserves continuous, nonzero-start and empty pages`, () => {
     for (const page of [
       { sequences: [1, 2], lastSeq: 5, nextAfterSeq: 2, hasMore: true },
@@ -316,7 +323,7 @@ test('R2 optional chat email treats omitted, empty and trimmed whitespace as unf
 
 test('R2 chat email still rejects malformed or unsafe input and account email stays required', () => {
   const create = { clientConversationId: uuid, clientMessageId: anotherUuid, locale: 'en', bodyText: 'Please send pricing.' };
-  for (const email of ['not-an-email', `${'a'.repeat(250)}@example.com`, 'Name <sales@example.com>', 'sales@example.com\r\n', '\r\n', ' \r\n ', null]) {
+  for (const email of ['not-an-email', `${'a'.repeat(250)}@example.com`, 'Name <sales@example.com>', 'sales@example.com\r\n', '\r\n', '\r', '\n', ' \r\n ', null]) {
     rejects(contracts.ConversationCreateRequestSchema, [{ ...create, email }]);
   }
   rejects(contracts.EmailSchema, [undefined, '', '   ', '\t \u00a0 ', '\r\n']);

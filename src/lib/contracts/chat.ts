@@ -182,8 +182,8 @@ function checkChatSync(
   if (value.messages.length > 0 && previousSeq !== value.nextAfterSeq) {
     context.addIssue({ code: 'custom', path: ['nextAfterSeq'], message: 'Next sequence must equal the last returned message sequence.' });
   }
-  if (value.hasMore && value.nextAfterSeq >= value.lastSeq) {
-    context.addIssue({ code: 'custom', path: ['hasMore'], message: 'No messages remain after the next sequence.' });
+  if (value.hasMore !== (value.nextAfterSeq < value.lastSeq)) {
+    context.addIssue({ code: 'custom', path: ['hasMore'], message: 'Has more must match whether messages remain after the next sequence.' });
   }
 }
 
