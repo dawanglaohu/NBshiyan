@@ -35,7 +35,10 @@ export const ConversationCreateRequestSchema = z.object({
   clientMessageId: UuidSchema,
   locale: LocaleSchema,
   bodyText: BodyTextSchema,
-  email: EmailSchema.optional(),
+  email: z.preprocess(
+    (value) => typeof value === 'string' && !/[\r\n]/.test(value) && value.trim() === '' ? undefined : value,
+    EmailSchema.optional(),
+  ),
   productSlug: ProductSlugSchema.optional(),
   sourcePath: SitePathSchema.optional(),
 }).strict();
@@ -171,13 +174,13 @@ function checkChatSync(
   }
   let previousSeq = 0;
   value.messages.forEach((message, index) => {
-    if (message.seq <= previousSeq || message.seq > value.lastSeq) {
-      context.addIssue({ code: 'custom', path: ['messages', index, 'seq'], message: 'Messages must be ordered within the conversation.' });
+    if (message.seq <= previousSeq || (index > 0 && message.seq !== previousSeq + 1) || message.seq > value.lastSeq) {
+      context.addIssue({ code: 'custom', path: ['messages', index, 'seq'], message: 'Messages must be consecutive within the page.' });
     }
     previousSeq = message.seq;
   });
-  if (previousSeq > value.nextAfterSeq) {
-    context.addIssue({ code: 'custom', path: ['nextAfterSeq'], message: 'Next sequence precedes the returned messages.' });
+  if (value.messages.length > 0 && previousSeq !== value.nextAfterSeq) {
+    context.addIssue({ code: 'custom', path: ['nextAfterSeq'], message: 'Next sequence must equal the last returned message sequence.' });
   }
   if (value.hasMore && value.nextAfterSeq >= value.lastSeq) {
     context.addIssue({ code: 'custom', path: ['hasMore'], message: 'No messages remain after the next sequence.' });

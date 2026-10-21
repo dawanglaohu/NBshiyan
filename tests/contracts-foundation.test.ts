@@ -265,6 +265,65 @@ test('chat pagination validates wire queries, nested privacy and monotonic seque
   rejects(contracts.ChatSummaryPageDTOSchema, [{ ...page, hasMore: true }, { ...page, items: [{ ...page.items[0], visitorSessionId: token }] }]);
 });
 
+const syncConversation = {
+  id: 'cv_example', locale: 'en', productSlug: null, sourcePath: null, status: 'OPEN', version: 0,
+  createdAt: at, updatedAt: at, lastActivityAt: at, retainUntil: '2027-01-17T16:20:00.000Z', anonymizedAt: null,
+};
+
+for (const { audience, schema, conversation } of [
+  { audience: 'visitor', schema: contracts.ChatSyncDTOSchema, conversation: syncConversation },
+  { audience: 'admin', schema: contracts.AdminChatSyncDTOSchema, conversation: { ...syncConversation, email: null } },
+]) {
+  test(`R1 ${audience} sync rejects a sequence gap within a page`, () => {
+    rejects(schema, [{
+      conversation, messages: [{ ...message, seq: 3 }, { ...message, seq: 5 }],
+      lastSeq: 5, nextAfterSeq: 5, hasMore: false, read: { lastReadSeq: 0 },
+    }]);
+  });
+
+  test(`R1 ${audience} sync rejects a cursor beyond its last returned message`, () => {
+    rejects(schema, [{
+      conversation, messages: [{ ...message, seq: 3 }],
+      lastSeq: 5, nextAfterSeq: 5, hasMore: false, read: { lastReadSeq: 0 },
+    }]);
+  });
+
+  test(`R1 ${audience} sync preserves continuous, nonzero-start and empty pages`, () => {
+    for (const page of [
+      { sequences: [1, 2], lastSeq: 5, nextAfterSeq: 2, hasMore: true },
+      { sequences: [3, 4], lastSeq: 5, nextAfterSeq: 4, hasMore: true },
+      { sequences: [3], lastSeq: 3, nextAfterSeq: 3, hasMore: false },
+      { sequences: [], lastSeq: 0, nextAfterSeq: 0, hasMore: false },
+      { sequences: [], lastSeq: 3, nextAfterSeq: 3, hasMore: false },
+    ]) {
+      const sync = {
+        conversation, messages: page.sequences.map((seq) => ({ ...message, seq })),
+        lastSeq: page.lastSeq, nextAfterSeq: page.nextAfterSeq, hasMore: page.hasMore, read: { lastReadSeq: 0 },
+      };
+      assert.deepEqual(schema.parse(sync), sync);
+    }
+  });
+}
+
+test('R2 optional chat email treats omitted, empty and trimmed whitespace as unfilled', () => {
+  const create = { clientConversationId: uuid, clientMessageId: anotherUuid, locale: 'en', bodyText: 'Please send pricing.' };
+  assert.equal(contracts.ConversationCreateRequestSchema.parse(create).email, undefined);
+  for (const email of ['', '   ', '\t \u00a0 ']) {
+    assert.equal(contracts.ConversationCreateRequestSchema.parse({ ...create, email }).email, undefined);
+  }
+  assert.equal(contracts.ConversationCreateRequestSchema.parse({ ...create, email: '  sales@example.com  ' }).email, 'sales@example.com');
+});
+
+test('R2 chat email still rejects malformed or unsafe input and account email stays required', () => {
+  const create = { clientConversationId: uuid, clientMessageId: anotherUuid, locale: 'en', bodyText: 'Please send pricing.' };
+  for (const email of ['not-an-email', `${'a'.repeat(250)}@example.com`, 'Name <sales@example.com>', 'sales@example.com\r\n', '\r\n', ' \r\n ', null]) {
+    rejects(contracts.ConversationCreateRequestSchema, [{ ...create, email }]);
+  }
+  rejects(contracts.EmailSchema, [undefined, '', '   ', '\t \u00a0 ', '\r\n']);
+  const login = { password: 'existing password', totp: '001234' };
+  rejects(contracts.LoginRequestSchema, [login, { ...login, email: '' }, { ...login, email: '   ' }]);
+});
+
 test('analytics event variants reject private data and fields belonging to another event kind', () => {
   const base = { eventId: uuid, navigationId: anotherUuid, occurredAt: at, locale: 'en' };
   const page = { ...base, kind: 'page_view', path: '/en' };
