@@ -274,6 +274,22 @@
       "sourceFramePath": "docs/brand-media/static/evidence/video2-f0270.jpg",
       "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
       "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-web-1080p60.mp4",
+      "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+      "bytes": 8051146,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60.0,
+      "kind": "lossless_web_video",
+      "releaseAllowed": false,
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "movieDurationMs": 12267,
+      "movieDurationDeltaMs": 0,
+      "audio": "All 576 original AAC packet payloads and timing preserved; no re-encoding",
+      "verificationPath": "docs/brand-media/static/video-web-processing-record.json"
     }
   ]
 }

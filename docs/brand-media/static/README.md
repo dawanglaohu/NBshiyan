@@ -28,3 +28,5 @@ python -B docs/brand-media/static/verify-static-media.py --require-release
 本轮材质/人物修订：`held/packjoyu-industrial-city-v3.png` 是先修好的静态图；`held/packjoyu-industrial-city-v3-loop.gif` 为随后制作的1384×720原尺寸GIF（约13.88MB），`held/packjoyu-industrial-city-v3-loop-preview.gif` 为960×500预览（约8.66MB）。两者均361帧、30.08秒无限循环；云漂移、金属飞艇移动、真实水纹位移、烟粒子上升、载货叉车/司机整体往返。静态场景通过8项视觉检查后才进入动画；生成记录、分层参数和实际文件在style-generation-record.json与industrial-city-animation-record.json。
 
 用户已确认保存当前工业场景静态图与 GIF；最终选用路径、哈希及预览版见 `accepted-industrial-assets.json`。视频继续使用桌面原片 `video2.mp4` 作为处理输入。
+
+视频高清网页副本为 `held/video2-web-1080p60.mp4`：1920×1080、60fps、735帧、12.267秒、8,051,146 bytes。现有 WSL FFmpeg 附带的 qt-faststart 只前置 MP4 索引；所有视频/音频包及时间戳不变，735帧逐像素相同。较小副本仍为 `held/video2-720p60.mp4`，海报继续使用原片4500ms第270帧。实际操作与独立核验见 `video-web-processing-record.json`；浏览器本地文件策略阻止播放器实测，该项未执行，未尝试绕过。原视频身份及产品关系仍待核，不进入发布集合。

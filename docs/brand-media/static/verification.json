@@ -17,11 +17,12 @@
       "imageFilesChecked": 54,
       "sourceDecodedFrames": 735,
       "reproducedEvidenceFrames": 7,
-      "mediaFilesChecked": 55,
+      "mediaFilesChecked": 56,
       "compressedVideoFrames": 735,
       "gifDecodedFrames": 361,
       "gifDurationMs": 30080,
-      "gifFiles": 3
+      "gifFiles": 3,
+      "fullResolutionWebVideoFrames": 735
     },
     {
       "command": "python -B -m unittest discover -s docs/brand-media/static -p test_*.py -v",
@@ -95,5 +96,24 @@
     "previewBytes": 8663921,
     "finalGifSha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
     "gifRegressionTests": 2
+  },
+  "videoWebCopy": {
+    "path": "docs/brand-media/static/held/video2-web-1080p60.mp4",
+    "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+    "width": 1920,
+    "height": 1080,
+    "fps": 60,
+    "frameCount": 735,
+    "durationMs": 12267,
+    "bytes": 8051146,
+    "pixelIdenticalFrames": 735,
+    "videoPacketsEqual": 735,
+    "audioPacketsEqual": 576,
+    "originalHashUnchanged": true,
+    "moovBeforeMdat": true,
+    "accountVideoGenerationClaimed": false,
+    "browserPlayback": "not executed: local-file URL policy block",
+    "releaseAllowed": false,
+    "manifestIntegrity": "pass:56 media files; originals re-read"
   }
 }

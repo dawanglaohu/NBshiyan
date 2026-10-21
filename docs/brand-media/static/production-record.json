@@ -91,6 +91,17 @@
       ],
       "scope": "User requested natural materials, workers, moving cloud/water/smoke and loaded-forklift shuttle.",
       "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json"
+    },
+    {
+      "id": "video-full-resolution-web-copy",
+      "status": "executed_verified_release_held",
+      "tool": "Existing WSL /usr/bin/qt-faststart bundled with FFmpeg 4.2.7-0ubuntu0.1",
+      "outputs": [
+        "docs/brand-media/static/held/video2-web-1080p60.mp4"
+      ],
+      "recordPath": "docs/brand-media/static/video-web-processing-record.json",
+      "verification": "735 identical decoded video frames; all video/audio packet payloads and exact normalized timestamps preserved; original moov relocated before mdat.",
+      "remainingTask": "Resolve original video corporate provenance and non-equipment UNKNOWN before release."
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",

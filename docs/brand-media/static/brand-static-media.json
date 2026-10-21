@@ -601,6 +601,17 @@
       "loop": 0,
       "role": "held_animation_preview",
       "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-web-1080p60.mp4",
+      "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+      "bytes": 8051146,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60.0,
+      "kind": "lossless_web_video",
+      "releaseAllowed": false
     }
   ],
   "missingDeliverables": [
@@ -620,7 +631,8 @@
     "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
     "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
     "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
-    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif"
+    "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+    "docs/brand-media/static/held/video2-web-1080p60.mp4"
   ],
   "generationRecordPath": "docs/brand-media/static/image-generation-record.json",
   "styleVariants": [
@@ -658,5 +670,6 @@
   "approvedGifRecordPath": "docs/brand-media/static/approved-image-gif-record.json",
   "industrialGifRecordPath": "docs/brand-media/static/industrial-city-animation-record.json",
   "industrialGifPreviewRecordPath": "docs/brand-media/static/industrial-gif-preview-record.json",
-  "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json"
+  "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json",
+  "videoWebProcessingRecordPath": "docs/brand-media/static/video-web-processing-record.json"
 }
