@@ -22,13 +22,13 @@
     "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
     "contractHash": "87905d6e38a350a7873af6e52d14d92605d2a1e3acaba3b5bbb1501bf493ba91",
     "evidence": [
-      "本轮对照19节M1-T2源任务、06/07/08/09/10/13/17及当前派发包复核：唯一产物contract-types，primitive阶段，只交付同源schema/DTO与公共出口；M1-T1 visual-base确已合入origin/main，任务前置与requires能力一致。",
-      "有效实现路径src/lib/contracts/、src/types/next-auth.d.ts、tests/contracts-foundation.test.ts覆盖预定产出；index导出全部领域，next-auth.d.ts从公共出口消费推导类型；真实Auth.js设备期限与HTTP/页面接线由M3集成任务负责，本卡无UI，不要求虚构运行时或GIF证据。",
-      "第10节字段表与请求/响应名称、既有Auth.js协议和错误码单一归属均有可执行依据；13节E-95要求缺值/false/字面false为false。聊天optional email与seq分页同时受第10节及E-39/E-77约束；这两条是当前代码缺陷，不是文档冲突，不降低标准或扩大任务范围。",
-      "第17节规定Node原生测试+tsx、pnpm10 lint与tsc命令，支持本卡纯规则验收；独立TypeScript消费测试确实编译公共index且含非法类型负例。现有21测试、tsc及lint通过，但定向复现2/2失败；代码验收结论rework，不运行--landed、不合并。",
-      "当前contractHash与复制提示词一致，stale/runtimeDrift为空；本轮登记仅证明任务契约经语义复核，不表示代码通过、已落地、真实会话/聊天/统计链已交付。实施方6项裁决保留全部原候选并补入实际源码与下游事实重跑，jev-1.13.0均ok/adopt=take，结果与最终实现一致。"
+      "第2轮仅复核上轮R1/R2与同一分页函数的完整性，不重开已接受条款；任务前置M1-T1 visual-base、primitive阶段contract-types唯一产出、有效路径及06/07/08/09/10/13/17/19约定均未变化。当前契约hash与第1轮及提示词一致，沿用第1轮已登记语义证据。",
+      "10节seq分页及13节E-77：chat.ts:177拒绝页内seq缺口，:182要求非空页nextAfterSeq等于页尾，:185要求hasMore与nextAfterSeq<lastSeq一致；访客与后台复用。tests/contracts-foundation.test.ts:277-312覆盖缺口、跳游标、提前结束、连续非零起点和空页。",
+      "10节optional email及13节E-39：chat.ts:38-41只将聊天trim空值归为省略，CR/LF不归一化；tests/contracts-foundation.test.ts:315-333覆盖省略/空串/空白/合法trim邮箱、非法格式/超长/显示名/单独CR/LF/CRLF及账号必填规则。",
+      "E-95及其他第1轮已接受规则保持；31/31本卡测试通过且0skip，公共index独立strict TypeScript消费仍通过。上轮独立原始复现2/2转绿；全项目tsc、完整lint及新增改动的focused lint通过，vault check通过。授权、JWT/cookie策略、HTTP及界面仍属于后续任务，不用纯schema测试冒充其完成。",
+      "本轮没有新的技术/UI取舍；上轮6项jev-1.13.0裁决均保留完整候选及真实结果，结论由_run/M1-T2.review-round-1.evidence.json保存并沿用。当前修改均直接落实R1/R2与已定字段关系，无任务范围或接口结构变化。"
     ],
-    "reviewed": "2026-10-21T02:31:11.425585+00:00",
+    "reviewed": "2026-10-21T02:58:13.005947+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

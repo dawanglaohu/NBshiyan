@@ -1,0 +1,84 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T2": {
+      "contractHash": "87905d6e38a350a7873af6e52d14d92605d2a1e3acaba3b5bbb1501bf493ba91",
+      "verdict": "pass",
+      "evidence": [
+        "第2轮仅复核上轮R1/R2与同一分页函数的完整性，不重开已接受条款；任务前置M1-T1 visual-base、primitive阶段contract-types唯一产出、有效路径及06/07/08/09/10/13/17/19约定均未变化。当前契约hash与第1轮及提示词一致，沿用第1轮已登记语义证据。",
+        "10节seq分页及13节E-77：chat.ts:177拒绝页内seq缺口，:182要求非空页nextAfterSeq等于页尾，:185要求hasMore与nextAfterSeq<lastSeq一致；访客与后台复用。tests/contracts-foundation.test.ts:277-312覆盖缺口、跳游标、提前结束、连续非零起点和空页。",
+        "10节optional email及13节E-39：chat.ts:38-41只将聊天trim空值归为省略，CR/LF不归一化；tests/contracts-foundation.test.ts:315-333覆盖省略/空串/空白/合法trim邮箱、非法格式/超长/显示名/单独CR/LF/CRLF及账号必填规则。",
+        "E-95及其他第1轮已接受规则保持；31/31本卡测试通过且0skip，公共index独立strict TypeScript消费仍通过。上轮独立原始复现2/2转绿；全项目tsc、完整lint及新增改动的focused lint通过，vault check通过。授权、JWT/cookie策略、HTTP及界面仍属于后续任务，不用纯schema测试冒充其完成。",
+        "本轮没有新的技术/UI取舍；上轮6项jev-1.13.0裁决均保留完整候选及真实结果，结论由_run/M1-T2.review-round-1.evidence.json保存并沿用。当前修改均直接落实R1/R2与已定字段关系，无任务范围或接口结构变化。"
+      ]
+    }
+  },
+  "codeReview": {
+    "round": 2,
+    "verdict": "pass",
+    "implementationHead": "999cd3ad725eb27c9e41fac4d47c244c8c79aeca",
+    "reviewedCodeHead": "dfd6696dbdc3002e22f1e5b12e48611cfa894316",
+    "blockers": [],
+    "resolved": [
+      {
+        "id": "R1",
+        "location": "src/lib/contracts/chat.ts:177/182/185",
+        "result": "页内连续、尾游标一致、hasMore双向一致；访客与后台负例/合法非零起点/空页通过。"
+      },
+      {
+        "id": "R2",
+        "location": "src/lib/contracts/chat.ts:38-41",
+        "result": "聊天空邮箱归省略，合法trim；CR/LF及其他非法值拒绝，账号邮箱保持必填。"
+      }
+    ],
+    "reviewerFix": {
+      "commit": "dfd6696dbdc3002e22f1e5b12e48611cfa894316",
+      "change": "R1同函数直接完整性补项：剩余消息存在时hasMore不得为false；无接口变更。",
+      "red": {
+        "passed": 0,
+        "failed": 2
+      },
+      "green": {
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "falsePositive": {
+      "commentId": 4332506236,
+      "reason": "字符类/[\\r\\n]/分别匹配CR或LF，不是仅匹配CRLF序列；单独CR/LF实测均拒绝，并加入负例。"
+    },
+    "checks": [
+      {
+        "command": "node --import tsx --test tests/contracts-foundation.test.ts",
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "command": "node --import tsx --test review-repro.mjs",
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "command": "npx --yes pnpm@10.34.6 exec tsc --noEmit",
+        "exitCode": 0
+      },
+      {
+        "command": "npx --yes pnpm@10.34.6 lint",
+        "exitCode": 0,
+        "warnings": "4既有ESLint警告，SWC native告警后fallback完成。"
+      },
+      {
+        "command": "npx --yes pnpm@10.34.6 exec next lint --dir src/lib/contracts --file tests/contracts-foundation.test.ts",
+        "exitCode": 0,
+        "warnings": "0 ESLint warning/error；同一SWC环境告警。"
+      }
+    ],
+    "redOutput": "TAP version 13\n# Subtest: R1 visitor sync rejects a premature end-of-page marker\nnot ok 1 - R1 visitor sync rejects a premature end-of-page marker\n  ---\n  duration_ms: 15.3861\n  type: 'test'\n  location: 'D:\\\\xiangmu\\\\NBshiyan-m1-t2\\\\tests\\\\contracts-foundation.test.ts:2:22164'\n  failureType: 'testCodeFailure'\n  error: |-\n    Unexpectedly accepted {\"conversation\":{\"id\":\"cv_example\",\"locale\":\"en\",\"productSlug\":null,\"sourcePath\":null,\"status\":\"OPEN\",\"version\":0,\"createdAt\":\"2026-10-19T16:20:00.000Z\",\"updatedAt\":\"2026-10-19T16:20:00.000Z\",\"lastActivityAt\":\"2026-10-19T16:20:00.000Z\",\"retainUntil\":\"2027-01-17T16:20:00.000Z\",\"anonymizedAt\":null},\"messages\":[{\"id\":\"cm_example_message\",\"seq\":3,\"sender\":\"VISITOR\",\"bodyText\":\"Can you make this box in blue?\",\"createdAt\":\"2026-10-19T16:20:00.000Z\"}],\"lastSeq\":5,\"nextAfterSeq\":3,\"hasMore\":false,\"read\":{\"lastReadSeq\":0}}\n    \n    true !== false\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: false\n  actual: true\n  operator: 'strictEqual'\n  stack: |-\n    rejects (D:\\xiangmu\\NBshiyan-m1-t2\\tests\\contracts-foundation.test.ts:17:12)\n    TestContext.<anonymous> (D:\\xiangmu\\NBshiyan-m1-t2\\tests\\contracts-foundation.test.ts:292:5)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.start (node:internal/test_runner/test:944:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n# Subtest: R1 admin sync rejects a premature end-of-page marker\nnot ok 2 - R1 admin sync rejects a premature end-of-page marker\n  ---\n  duration_ms: 1.4089\n  type: 'test'\n  location: 'D:\\\\xiangmu\\\\NBshiyan-m1-t2\\\\tests\\\\contracts-foundation.test.ts:2:22164'\n  failureType: 'testCodeFailure'\n  error: |-\n    Unexpectedly accepted {\"conversation\":{\"id\":\"cv_example\",\"locale\":\"en\",\"productSlug\":null,\"sourcePath\":null,\"status\":\"OPEN\",\"version\":0,\"createdAt\":\"2026-10-19T16:20:00.000Z\",\"updatedAt\":\"2026-10-19T16:20:00.000Z\",\"lastActivityAt\":\"2026-10-19T16:20:00.000Z\",\"retainUntil\":\"2027-01-17T16:20:00.000Z\",\"anonymizedAt\":null,\"email\":null},\"messages\":[{\"id\":\"cm_example_message\",\"seq\":3,\"sender\":\"VISITOR\",\"bodyText\":\"Can you make this box in blue?\",\"createdAt\":\"2026-10-19T16:20:00.000Z\"}],\"lastSeq\":5,\"nextAfterSeq\":3,\"hasMore\":false,\"read\":{\"lastReadSeq\":0}}\n    \n    true !== false\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: false\n  actual: true\n  operator: 'strictEqual'\n  stack: |-\n    rejects (D:\\xiangmu\\NBshiyan-m1-t2\\tests\\contracts-foundation.test.ts:17:12)\n    TestContext.<anonymous> (D:\\xiangmu\\NBshiyan-m1-t2\\tests\\contracts-foundation.test.ts:292:5)\n    Test.runInAsyncScope (node:async_hooks:214:14)\n    Test.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    Test.postRun (node:internal/test_runner/test:1173:19)\n    node:internal/test_runner/test:981:31\n    node:internal/process/task_queues:151:7\n    AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    AsyncResource.runMicrotask (node:internal/process/task_queues:148:8)\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 0\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1067.3784\n",
+    "greenOutput": "TAP version 13\n# Subtest: E-95: Auth.js rememberDevice uses explicit literal parsing and rejects truthy inputs\nok 1 - E-95: Auth.js rememberDevice uses explicit literal parsing and rejects truthy inputs\n  ---\n  duration_ms: 7.9825\n  type: 'test'\n  ...\n# Subtest: login requests retain the password default and reject recovery credentials or false-like remembering\nok 2 - login requests retain the password default and reject recovery credentials or false-like remembering\n  ---\n  duration_ms: 4.2112\n  type: 'test'\n  ...\n# Subtest: account DTOs expose only documented current-device metadata and explicit Boolean values\nok 3 - account DTOs expose only documented current-device metadata and explicit Boolean values\n  ---\n  duration_ms: 2.4553\n  type: 'test'\n  ...\n# Subtest: account mutations require explicit fresh credentials and preserve named security responses\nok 4 - account mutations require explicit fresh credentials and preserve named security responses\n  ---\n  duration_ms: 3.9408\n  type: 'test'\n  ...\n# Subtest: legacy reset response preserves issueResponse expiry metadata without dropping fields\nok 5 - legacy reset response preserves issueResponse expiry metadata without dropping fields\n  ---\n  duration_ms: 0.6613\n  type: 'test'\n  ...\n# Subtest: legacy initial enrollment keeps its existing fields and distinct response shapes\nok 6 - legacy initial enrollment keeps its existing fields and distinct response shapes\n  ---\n  duration_ms: 2.4951\n  type: 'test'\n  ...\n# Subtest: device pagination validates sort cursors and never accepts device credentials in nested DTOs\nok 7 - device pagination validates sort cursors and never accepts device credentials in nested DTOs\n  ---\n  duration_ms: 5.7412\n  type: 'test'\n  ...\n# Subtest: restricted recovery schemas reject role escalation, password injection and mismatched credential kinds\nok 8 - restricted recovery schemas reject role escalation, password injection and mismatched credential kinds\n  ---\n  duration_ms: 3.9053\n  type: 'test'\n  ...\n# Subtest: new errors retain trace ids and controlled field names while legacy guard errors remain consumable\nok 9 - new errors retain trace ids and controlled field names while legacy guard errors remain consumable\n  ---\n  duration_ms: 2.0698\n  type: 'test'\n  ...\n# Subtest: shared scalar boundaries preserve Unicode, reject control characters and normalize safe paths\nok 10 - shared scalar boundaries preserve Unicode, reject control characters and normalize safe paths\n  ---\n  duration_ms: 4.4582\n  type: 'test'\n  ...\n# Subtest: shared identifiers, integers, UTC timestamps, dates and timezones reject invalid wire values\nok 11 - shared identifiers, integers, UTC timestamps, dates and timezones reject invalid wire values\n  ---\n  duration_ms: 27.6167\n  type: 'test'\n  ...\n# Subtest: chat request and nested response schemas keep only documented fields\nok 12 - chat request and nested response schemas keep only documented fields\n  ---\n  duration_ms: 4.0797\n  type: 'test'\n  ...\n# Subtest: chat pagination validates wire queries, nested privacy and monotonic sequence boundaries\nok 13 - chat pagination validates wire queries, nested privacy and monotonic sequence boundaries\n  ---\n  duration_ms: 35.6382\n  type: 'test'\n  ...\n# Subtest: R1 visitor sync rejects a sequence gap within a page\nok 14 - R1 visitor sync rejects a sequence gap within a page\n  ---\n  duration_ms: 0.4316\n  type: 'test'\n  ...\n# Subtest: R1 visitor sync rejects a cursor beyond its last returned message\nok 15 - R1 visitor sync rejects a cursor beyond its last returned message\n  ---\n  duration_ms: 0.3441\n  type: 'test'\n  ...\n# Subtest: R1 visitor sync rejects a premature end-of-page marker\nok 16 - R1 visitor sync rejects a premature end-of-page marker\n  ---\n  duration_ms: 0.323\n  type: 'test'\n  ...\n# Subtest: R1 visitor sync preserves continuous, nonzero-start and empty pages\nok 17 - R1 visitor sync preserves continuous, nonzero-start and empty pages\n  ---\n  duration_ms: 4.6154\n  type: 'test'\n  ...\n# Subtest: R1 admin sync rejects a sequence gap within a page\nok 18 - R1 admin sync rejects a sequence gap within a page\n  ---\n  duration_ms: 0.3359\n  type: 'test'\n  ...\n# Subtest: R1 admin sync rejects a cursor beyond its last returned message\nok 19 - R1 admin sync rejects a cursor beyond its last returned message\n  ---\n  duration_ms: 0.5797\n  type: 'test'\n  ...\n# Subtest: R1 admin sync rejects a premature end-of-page marker\nok 20 - R1 admin sync rejects a premature end-of-page marker\n  ---\n  duration_ms: 0.2812\n  type: 'test'\n  ...\n# Subtest: R1 admin sync preserves continuous, nonzero-start and empty pages\nok 21 - R1 admin sync preserves continuous, nonzero-start and empty pages\n  ---\n  duration_ms: 2.6548\n  type: 'test'\n  ...\n# Subtest: R2 optional chat email treats omitted, empty and trimmed whitespace as unfilled\nok 22 - R2 optional chat email treats omitted, empty and trimmed whitespace as unfilled\n  ---\n  duration_ms: 0.9263\n  type: 'test'\n  ...\n# Subtest: R2 chat email still rejects malformed or unsafe input and account email stays required\nok 23 - R2 chat email still rejects malformed or unsafe input and account email stays required\n  ---\n  duration_ms: 27.0515\n  type: 'test'\n  ...\n# Subtest: analytics event variants reject private data and fields belonging to another event kind\nok 24 - analytics event variants reject private data and fields belonging to another event kind\n  ---\n  duration_ms: 12.77\n  type: 'test'\n  ...\n# Subtest: analytics settings and consent responses retain explicit Boolean and time revision fields\nok 25 - analytics settings and consent responses retain explicit Boolean and time revision fields\n  ---\n  duration_ms: 9.472\n  type: 'test'\n  ...\n# Subtest: stats distinguish verified zero from absent or failed data and enforce calendar ranges\nok 26 - stats distinguish verified zero from absent or failed data and enforce calendar ranges\n  ---\n  duration_ms: 6.7343\n  type: 'test'\n  ...\n# Subtest: fixed operation jobs and reports reject arbitrary commands, unsafe values and nested extras\nok 27 - fixed operation jobs and reports reject arbitrary commands, unsafe values and nested extras\n  ---\n  duration_ms: 2.4958\n  type: 'test'\n  ...\n# Subtest: runtime-supported IANA aliases remain valid timezones\nok 28 - runtime-supported IANA aliases remain valid timezones\n  ---\n  duration_ms: 1.2294\n  type: 'test'\n  ...\n# Subtest: retention dry-run reports candidate and actual deletion counts separately\nok 29 - retention dry-run reports candidate and actual deletion counts separately\n  ---\n  duration_ms: 0.6928\n  type: 'test'\n  ...\n# Subtest: measured model averages carry samples while count sources reject fractions\nok 30 - measured model averages carry samples while count sources reject fractions\n  ---\n  duration_ms: 3.4338\n  type: 'test'\n  ...\n# Subtest: the public barrel compiles for an independent strict TypeScript consumer without DOM or app aliases\nok 31 - the public barrel compiles for an independent strict TypeScript consumer without DOM or app aliases\n  ---\n  duration_ms: 4976.9264\n  type: 'test'\n  ...\n1..31\n# tests 31\n# suites 0\n# pass 31\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 8469.2024\n",
+    "originalReproductionGreen": "TAP version 13\n# {\"case\":\"R1\",\"admin\":false,\"seqs\":[3,5],\"nextAfterSeq\":5,\"accepted\":false}\n# {\"case\":\"R1\",\"admin\":false,\"seqs\":[3],\"nextAfterSeq\":5,\"accepted\":false}\n# {\"case\":\"R1\",\"admin\":true,\"seqs\":[3,5],\"nextAfterSeq\":5,\"accepted\":false}\n# {\"case\":\"R1\",\"admin\":true,\"seqs\":[3],\"nextAfterSeq\":5,\"accepted\":false}\n# {\"case\":\"R2\",\"email\":\"\",\"accepted\":true}\n# {\"case\":\"R2\",\"email\":\"   \",\"accepted\":true}\n# Subtest: R1: public and admin chat schemas reject incomplete ranges and cursor jumps\nok 1 - R1: public and admin chat schemas reject incomplete ranges and cursor jumps\n  ---\n  duration_ms: 14.759\n  type: 'test'\n  ...\n# Subtest: R2: optional blank chat email is treated as omitted\nok 2 - R2: optional blank chat email is treated as omitted\n  ---\n  duration_ms: 2.1793\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 734.4205\n",
+    "adjudicationEvidence": "_run/M1-T2.review-round-1.evidence.json#codeReview.adjudications"
+  }
+}
