@@ -612,6 +612,52 @@
       "fps": 60.0,
       "kind": "lossless_web_video",
       "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+      "sha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+      "bytes": 10221006,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_video"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
+      "sha256": "1fd65228391f6eb2131feddfc3ca5fbdf05ce3fb315a535004e985bc3f37f170",
+      "bytes": 4235191,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_web_video"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video-product-brand-after-0180.jpg",
+      "sha256": "59641be0b3b8335256fc332f2fbf4176248327bf06469e2f5d8da8d6223ba219",
+      "bytes": 366453,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video-product-brand-after-0600.jpg",
+      "sha256": "942d8e535e0f15d61161f6715aecbf9d170fa7e766c92baf02077e46be0f4813",
+      "bytes": 415058,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg",
+      "sha256": "38ad2d7f809bba82cabba63dbc5794bbdaa73d92fae9594bf5c0607bf023bdd4",
+      "bytes": 427595,
+      "width": 1920,
+      "height": 1080,
+      "releaseAllowed": false
     }
   ],
   "missingDeliverables": [
@@ -632,7 +678,10 @@
     "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop.gif",
     "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
     "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
-    "docs/brand-media/static/held/video2-web-1080p60.mp4"
+    "docs/brand-media/static/held/video2-web-1080p60.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
+    "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg"
   ],
   "generationRecordPath": "docs/brand-media/static/image-generation-record.json",
   "styleVariants": [
@@ -671,5 +720,6 @@
   "industrialGifRecordPath": "docs/brand-media/static/industrial-city-animation-record.json",
   "industrialGifPreviewRecordPath": "docs/brand-media/static/industrial-gif-preview-record.json",
   "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json",
-  "videoWebProcessingRecordPath": "docs/brand-media/static/video-web-processing-record.json"
+  "videoWebProcessingRecordPath": "docs/brand-media/static/video-web-processing-record.json",
+  "productVideoReplacementRecordPath": "docs/brand-media/static/video-product-replacement.json"
 }

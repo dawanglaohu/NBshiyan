@@ -102,6 +102,18 @@
       "recordPath": "docs/brand-media/static/video-web-processing-record.json",
       "verification": "735 identical decoded video frames; all video/audio packet payloads and exact normalized timestamps preserved; original moov relocated before mdat.",
       "remainingTask": "Resolve original video corporate provenance and non-equipment UNKNOWN before release."
+    },
+    {
+      "id": "video-product-brand-replacement",
+      "status": "executed_verified_local_media",
+      "tool": "Existing local OpenCV/Pillow exact-master compositing and WSL FFmpeg H264 encoding. Early paper panels use per-frame detection; final bags use source-reviewed individual-paper perspective keyframes with foreground restoration.",
+      "outputs": [
+        "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+        "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
+        "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg"
+      ],
+      "recordPath": "docs/brand-media/static/video-product-replacement.json",
+      "remainingTask": "Original source provenance and overall task release checks remain unresolved."
     }
   ],
   "dotEvidencePath": "docs/brand-media/static/tool-availability.json",

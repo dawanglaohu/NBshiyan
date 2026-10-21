@@ -10,7 +10,7 @@
 | 2 现用标识 / E-28 | `public/brand/packjoyu-logo-master.svg:1`；`image-generation-record.json:5` 两次真实调用 | 每次均提供现用 master 的渲染参考，不设计候选新标；生成图不替换 master。JPG 模型字形不能直接冒称与 master 逐轮廓一致。 |
 | 3 实际制作 / E-29 与用户补充指令 | `image-generation-record.json:1`；`production-record.json:1`；`evidence/video-transcode-command.ps1:1` | 图片实际工具为 `image_gen.imagegen`，未调用 API 付费回退。视频实际工具为既有 Windows MediaTranscoder，未调用 Dot，也未调用账号视频生成接口：本聊天未提供该接口。输入、提示词、输出和核对记录均留存。 |
 | 4 完整 master 与来源 | `logo-source-audit.json:4` 来源哈希；`:46` 导出；`:132` 网页核验；`export-logo-master.py:143` | master SHA256 `7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099`。8 个转曲路径无字体/脚本/外链/私有 metadata；现有源码、CSS、icon 和字体均未改。真实网页字形/advance/kerning 与提交字体一致，Pack/U 黑、Joy 为 #c2381a。 |
-| 5 清单与禁发 | `brand-static-media.json:140` 逐文件哈希/尺寸；`:391` heldFiles；`verify-static-media.py:62` | 54 个图像（含3个GIF）和 2 段视频逐值核对通过。heldFiles 十二个文件均不在 public 或 releaseFiles；UNKNOWN 企业归属与 JPG 保真问题阻止发布。副本存在不等于已批准发布，任务卡仍为 todo。 |
+| 5 清单与禁发 | `brand-static-media.json:140` 逐文件哈希/尺寸；`:391` heldFiles；`verify-static-media.py:62` | 57 个图像（含3个GIF）和 4 段视频逐值核对通过。heldFiles 十五个文件均不在 public 或 releaseFiles；UNKNOWN 企业归属与 JPG 保真问题阻止发布。副本存在不等于已批准发布，任务卡仍为 todo。 |
 
 表中短路径相对 `docs/brand-media/static/`，public 路径相对项目根。
 
@@ -35,7 +35,7 @@ JPG 两个 before 标记与生成后的逐项观察均在清单中。原视频�
 TESTS: pass（已交文件完整性）；发布验收未通过。
 
 - `python -B -m unittest discover -s docs/brand-media/static -p "test_*.py" -v`：10 项通过。包括错误主标/源哈希、伪造帧时间、缺文件、held 移入 public/发布集合、海报换帧和设备角色负例。
-- `python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop`：56 个媒体文件哈希/尺寸一致；原件重读哈希不变；原视频完整 735 帧重解、7 个原帧重建一致，压缩副本 735 帧可解码。图片调用的提示词、输入与输出哈希也被核查。
+- `python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop`：61 个媒体文件哈希/尺寸一致；原件重读哈希不变；原视频完整 735 帧重解、7 个原帧重建一致，压缩副本 735 帧可解码。图片调用的提示词、输入与输出哈希也被核查。
 - `python -B docs/brand-media/static/verify-static-media.py --require-release`：原生退出 2，正确拒绝当前未完成集合。
 - master 默认导出器 check、页头采集脚本 `node --check` 和独立 ESLint 通过；此前同分支 d601ce3 的 pnpm lint 退出0，仅既有警告。素材增量未改应用源码，不重复全库构建/DB/e2e。CI 结果只对应各自远端 head，不把旧 head 的绿色检查当作新提交结果。
 - 原 master 从任务工作树真实 Next 服务返回200并由 Chrome/Sharp 解码核查；该页头服务数据库设置不可用，此证据仅证明字体与样式。冻结依赖安装成功、锁文件未改。
@@ -76,3 +76,19 @@ GIF 专项负例：test_approved_image_gif.py 的2项测试（4个错误数据�
 自行裁决：A为无损1080p索引前置并保留小体积720p，B为第三次受限码率1080p有损编码，C为仅保留720p。Jev实际返回 `status=ok`，模型 `jev-1.13.0`，line `adjudicate: pick=A(high 0.98) spec_change=no(0.12) outside_stack=no(0.12) needs_owner=no(0.09) reversible=yes(0.76) adopt=take(A)`；已落实A。原始英文候选与真实日志分别保存在 `video-web-delivery.state.json`、`evidence/video-web-adjudication.jsonl`，同一记录追加至指定_run/judgments.jsonl。
 
 制作记录和ffprobe结果见 `video-web-processing-record.json`、`evidence/video-web1080-{source,output}-probe.json`，命令见 `evidence/video-web1080-command.ps1`。浏览器URL策略拒绝本地核对页，播放器实测未执行，未转用其他浏览器或localhost绕过。已完成本地全帧及音视频包核验，不能据此声称线上端到端播放通过。视频企业归属与产品关系仍UNKNOWN，releaseAllowed=false，任务todo、PR草稿。
+
+### 用户授权的产品包装换标视频
+
+用户明确“产品品牌可改为本网站的产品品牌”。产品身份条和Holiland/好利来字带已在新派生视频中使用现用PackJoyU master合成：早段114–222共109帧、794处可见标签/边缘实例；片尾600–734共135帧，按A–E逐只纸袋及静态堆叠控制透视，并恢复原机器前景。原设备商标和节庆图文保留。原片、先前的图片/GIF及品牌master未改，原始身份清单继续描述未经编辑的输入。
+
+- `held/video2-packjoyu-products-v2.mp4`：1920×1080、60fps、735帧，10,221,006 bytes。
+- `held/video2-packjoyu-products-web-720p60-v2.mp4`：1280×720、60fps、735帧，4,235,191 bytes，为原片约52.60%。
+- `held/video2-packjoyu-products-poster-12233ms.jpg`：实际1080p编码成片第734帧，12233.333ms，1920×1080，JPEG quality95。
+
+两版逐帧PTS与原片相同，原576个AAC包的内容、PTS、DTS和duration逐个相等；没有音轨重编码。视频轨12.250秒，容器12.288秒比原12.267秒多21ms，未宣称容器完全等长。491帧在图像合成前后保持相同，产品换标发生在指定244帧；H264会重新编码整段。早段斜梁遮挡回归用真实179/180/181帧的27个原像素确认，mask外及受保护机器前景改变为0。实际代码、纸袋控制点、合成逐帧记录及音画核验见 `product-video/`、`video-product-replacement.json`。
+
+本轮自行裁决候选A为早段动态面片检测+片尾逐只纸袋源帧控制点、前景恢复并逐帧核验；B为逐个手工描绘全部244帧。Jev真实返回status=ok、模型jev-1.13.0、line `adjudicate: pick=A(high 0.94) spec_change=no(0.11) outside_stack=unsure(0.43) needs_owner=no(0.10) reversible=yes(0.74) adopt=take(A)`；已执行A。原始英文候选和日志在 `video-product-rebrand.state.json`、`evidence/video-product-adjudication.jsonl`，同条记录追加至指定_run日志。outside_stack不确定项保留为本地制作运行环境风险，网站运行依赖未增改。
+
+实际工具为既有OpenCV/Pillow与WSL FFmpeg；没有Dot或账号视频生成调用。原片企业来源与产品关系仍UNKNOWN，视频产品印刷的修改不能推导工厂归属，releaseAllowed=false、任务todo与PR草稿继续保留。浏览器本地文件URL策略已阻止播放器实测，本轮未绕过；逐帧解码与编码帧联系表用于本地核查。
+
+独立视觉核查记录见 `product-video/visual-review.json`：早段109帧与片尾135帧编码基线已完整检查，发现问题后仅复核v2的7个阻断帧与3个直接遮挡回归；10张最终证据与实际MP4对应帧逐像素一致。本轮记录范围内通过，文件清单61项完整性与原件重读通过。

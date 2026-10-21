@@ -1,0 +1,118 @@
+{
+  "checks": [
+    {
+      "check": "outside early shot unchanged",
+      "frame": 113,
+      "passed": true
+    },
+    {
+      "check": "outside early shot unchanged",
+      "frame": 223,
+      "passed": true
+    },
+    {
+      "check": "outside early shot unchanged",
+      "frame": 355,
+      "passed": true
+    },
+    {
+      "check": "outside early shot unchanged",
+      "frame": 510,
+      "passed": true
+    },
+    {
+      "check": "outside early shot unchanged",
+      "frame": 600,
+      "passed": true
+    },
+    {
+      "check": "outside early shot unchanged",
+      "frame": 734,
+      "passed": true
+    },
+    {
+      "check": "surface and foreground protection",
+      "frame": 114,
+      "passed": true
+    },
+    {
+      "check": "surface and foreground protection",
+      "frame": 150,
+      "passed": true
+    },
+    {
+      "check": "surface and foreground protection",
+      "frame": 180,
+      "passed": true
+    },
+    {
+      "check": "dotted illustration",
+      "frame": 180,
+      "roiXYXY": [
+        986,
+        526,
+        1066,
+        544
+      ],
+      "passed": true
+    },
+    {
+      "check": "thin red border below rail",
+      "frame": 180,
+      "roiXYXY": [
+        1020,
+        616,
+        1216,
+        642
+      ],
+      "passed": true
+    },
+    {
+      "check": "metal top frame",
+      "frame": 180,
+      "roiXYXY": [
+        800,
+        100,
+        1180,
+        350
+      ],
+      "passed": true
+    },
+    {
+      "check": "opaque right pillar",
+      "frame": 180,
+      "roiXYXY": [
+        1800,
+        0,
+        1920,
+        1080
+      ],
+      "passed": true
+    },
+    {
+      "check": "repeat call deterministic",
+      "frame": 180,
+      "passed": true
+    },
+    {
+      "check": "surface and foreground protection",
+      "frame": 210,
+      "passed": true
+    },
+    {
+      "check": "surface and foreground protection",
+      "frame": 222,
+      "passed": true
+    }
+  ],
+  "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+  "sourceOriginalUnchanged": true,
+  "helperSha256": "4d417cfd3119b53221501063592b68f23328958a97335a209609cf55d599c35c",
+  "railRegressionAfterPassed": true,
+  "railSourceFrames": [
+    179,
+    180,
+    181
+  ],
+  "railSourceThreeByThreeProtected": true
+}

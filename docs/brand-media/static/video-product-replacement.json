@@ -1,0 +1,210 @@
+{
+  "task": "M1-T3",
+  "kind": "user_authorized_product_brand_replacement",
+  "authorizationQuote": "产品品牌可改为   本网站的产品品牌，",
+  "source": {
+    "path": "C:/Users/admin/Desktop/video2.mp4",
+    "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f"
+  },
+  "master": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099"
+  },
+  "displayedBrand": "PackJoyU",
+  "outputs": [
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+      "sha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+      "bytes": 10221006,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "videoDurationMs": 12250.0,
+      "movieDurationMs": 12288.0,
+      "allFramePtsEqualOriginal": true,
+      "audioPacketsEqualOriginal": 576,
+      "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_video"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
+      "sha256": "1fd65228391f6eb2131feddfc3ca5fbdf05ce3fb315a535004e985bc3f37f170",
+      "bytes": 4235191,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "videoDurationMs": 12250.0,
+      "movieDurationMs": 12288.0,
+      "allFramePtsEqualOriginal": true,
+      "audioPacketsEqualOriginal": 576,
+      "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_web_video"
+    }
+  ],
+  "poster": {
+    "path": "docs/brand-media/static/held/video2-packjoyu-products-poster-12233ms.jpg",
+    "sha256": "38ad2d7f809bba82cabba63dbc5794bbdaa73d92fae9594bf5c0607bf023bdd4",
+    "bytes": 427595,
+    "width": 1920,
+    "height": 1080,
+    "frameIndex": 734,
+    "atMs": 12233.333333333332,
+    "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+    "sourceVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+    "encoding": "OpenCV JPEG quality95 from the actual encoded edited video frame",
+    "releaseAllowed": false
+  },
+  "encodedFrameEvidence": [
+    {
+      "path": "docs/brand-media/static/evidence/video-product-brand-after-0180.jpg",
+      "sha256": "59641be0b3b8335256fc332f2fbf4176248327bf06469e2f5d8da8d6223ba219",
+      "bytes": 366453,
+      "width": 1920,
+      "height": 1080,
+      "frameIndex": 180,
+      "atMs": 3000.0,
+      "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+      "sourceVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+      "encoding": "OpenCV JPEG quality95 from the actual encoded edited video frame",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/evidence/video-product-brand-after-0600.jpg",
+      "sha256": "942d8e535e0f15d61161f6715aecbf9d170fa7e766c92baf02077e46be0f4813",
+      "bytes": 415058,
+      "width": 1920,
+      "height": 1080,
+      "frameIndex": 600,
+      "atMs": 10000.0,
+      "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+      "sourceVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+      "encoding": "OpenCV JPEG quality95 from the actual encoded edited video frame",
+      "releaseAllowed": false
+    }
+  ],
+  "editedShotRanges": [
+    {
+      "fromFrame": 114,
+      "toFrameInclusive": 222,
+      "oldPrint": "Untranscribable original product print on red identity bars",
+      "newPrint": "PackJoyU",
+      "instancesAcrossFrames": 794
+    },
+    {
+      "fromFrame": 600,
+      "toFrameInclusive": 734,
+      "oldPrint": "Holiland 好利来",
+      "newPrint": "PackJoyU",
+      "paperInstances": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "stationary stack"
+      ]
+    }
+  ],
+  "equipmentManufacturerMarksPreserved": true,
+  "decorativeFestivalArtworkPreserved": true,
+  "videoReencoded": true,
+  "audioReencoded": false,
+  "frameCount": 735,
+  "fps": 60,
+  "sourceMovieDurationMs": 12267,
+  "outputMovieDurationMs": 12288,
+  "movieDurationDeltaMs": 21,
+  "videoTrackDurationMs": 12250,
+  "allVideoFramePtsPreserved": true,
+  "all576AudioPacketPayloadsAndTimingPreserved": true,
+  "sourceFilesUnchanged": true,
+  "previousAcceptedStaticAndGifUnchanged": true,
+  "actualMethod": "Existing local OpenCV/Pillow exact-master compositing and WSL FFmpeg H264 encoding. Early paper panels use per-frame detection; final bags use source-reviewed individual-paper perspective keyframes with foreground restoration.",
+  "accountVideoGenerationClaimed": false,
+  "dotExecutionClaimed": false,
+  "codeAndData": [
+    {
+      "path": "docs/brand-media/static/render-product-brand-video.py",
+      "sha256": "af1b76224f0514165f2359f1e9644f84c6f85ee8e3e0ccaad897ca8ae7f73705"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/brand_earlyshot.py",
+      "sha256": "f0c27ff76753c4dd9f5d8ef5ba183a5e488399aafc9b93519744074ac7a5bc3d"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/brand_lateshot.py",
+      "sha256": "123dce7cb33f2d330ae3fbfda1ff15b862f578367351bebf0ffa3f2baccd7fb9"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/late-anchors.json",
+      "sha256": "ccf483562bef7efcaf27434790001f97031185a9944efd54529bf2674884095b"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/late-controls.json",
+      "sha256": "f6b94583aef75415cd7a636bba728488e904a39f7c7112aad600e41672aa5c53"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/late-tracks.json",
+      "sha256": "75fc7fcdb42f744acae98da87f1df040df303d5de31e44a14ecb9ae9fedbfa3f"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/composition-record.json",
+      "sha256": "e00a972844dc573247d54b5375590e3fa4a77cc272e919b946409656bac18400"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/media-verification.json",
+      "sha256": "b77331c95400d583405f548cf90d745e2496cfaa45ca77951a136d13046e194a"
+    },
+    {
+      "path": "docs/brand-media/static/product-video/visual-review.json",
+      "sha256": "7e7c3d5f8ae4965153a0a3fb00c803f4d77ba262db26f2a78366dd20292f51ce"
+    }
+  ],
+  "decision": {
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "option": "A",
+    "line": "adjudicate: pick=A(high 0.94) spec_change=no(0.11) outside_stack=unsure(0.43) needs_owner=no(0.10) reversible=yes(0.74) adopt=take(A)",
+    "statePath": "docs/brand-media/static/video-product-rebrand.state.json",
+    "logPath": "docs/brand-media/static/evidence/video-product-adjudication.jsonl"
+  },
+  "independentEncodedVisualReview": {
+    "status": "pass_for_recorded_scope",
+    "earlyEncodedBaselineFramesReviewed": 109,
+    "lateEncodedBaselineFramesReviewed": 135,
+    "finalV2BlockingFrameRegressionsReviewed": [
+      604,
+      605,
+      606,
+      663,
+      705,
+      708,
+      709
+    ],
+    "finalV2DirectOcclusionRegressionsReviewed": [
+      600,
+      609,
+      734
+    ],
+    "finalV2EvidenceFramesPixelEqualToMovieDecode": 10,
+    "finalVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+    "resolved": "False paper-colour/skin alpha holes and artificial white-border clipping removed while original machinery foreground remains above the print.",
+    "earlyDiagonalBeamRegressionFrames": [
+      179,
+      180,
+      181
+    ],
+    "earlyDiagonalBeamActualSourcePixelsPreserved": 27,
+    "normalSpeedBrowserPlayback": "not executed: local-file browser URL policy block",
+    "publicationAcceptanceClaimed": false
+  },
+  "browserPlayback": "not executed; existing local-file URL policy block, no workaround attempted",
+  "userAcceptedOutput": false,
+  "releaseAllowed": false,
+  "factualBoundary": "Product print is an edited appearance. Original corporate authorship and customer/factory relationship inventory is not reclassified by this edit.",
+  "integrityStatus": "pass:61 registered media files; originals re-read"
+}

@@ -1,0 +1,30 @@
+{
+  "status": "pass_for_recorded_scope",
+  "earlyEncodedBaselineFramesReviewed": 109,
+  "lateEncodedBaselineFramesReviewed": 135,
+  "finalV2BlockingFrameRegressionsReviewed": [
+    604,
+    605,
+    606,
+    663,
+    705,
+    708,
+    709
+  ],
+  "finalV2DirectOcclusionRegressionsReviewed": [
+    600,
+    609,
+    734
+  ],
+  "finalV2EvidenceFramesPixelEqualToMovieDecode": 10,
+  "finalVideoSha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+  "resolved": "False paper-colour/skin alpha holes and artificial white-border clipping removed while original machinery foreground remains above the print.",
+  "earlyDiagonalBeamRegressionFrames": [
+    179,
+    180,
+    181
+  ],
+  "earlyDiagonalBeamActualSourcePixelsPreserved": 27,
+  "normalSpeedBrowserPlayback": "not executed: local-file browser URL policy block",
+  "publicationAcceptanceClaimed": false
+}
