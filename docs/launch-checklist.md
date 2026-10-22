@@ -79,3 +79,10 @@
 - [ ] 上线前在有真实 GPU 的设备上复查 3D：颜色、阴影、#172 里那一排空白卡片、金色会不会发灰（设计这边只有软件渲染，没法确认）。
 - [ ] 品牌按钮颜色：#148 已定，金色按钮用原色 `#D4AF6A` 配深色文字，hover 时变亮；#147 珊瑚色待 Ryan 定。上线前确认代码里没有残留旧色值。
 - [ ] 深色模式和俄语各发一封测试邮件，用真实邮箱客户端（Gmail 网页版、iOS 邮件）确认显示正常。
+
+## 8. Sanity webhook 签名迁移
+
+- [ ] 应用运行环境设置 `SANITY_WEBHOOK_SECRET`（`openssl rand -base64 32`），并将同一个值填入 Sanity 后台 API → Webhooks 的 Secret。生产环境缺少此配置时，接口返回 503。
+- [ ] Webhook 使用 POST `https://<正式域名>/api/sanity/revalidate`，事件选择 create/update/delete，Filter 为 `_type in ["product","solution","article"]`，Projection 为 `{_type, _id, slug, "seo": {"noindex": seo.noindex}}`。`slug` 和 `seo.noindex` 用于已启用页面类型的 IndexNow 通知。
+- [ ] 切换到此版本时同步应用与 Sanity 的 Secret 配置；此版本只接受 `sanity-webhook-signature`，不再接受旧 `Authorization: Bearer`。在 Sanity Attempts 中确认签名请求返回 200 后，再清理旧 `SANITY_REVALIDATE_SECRET`。
+- [ ] 确认原始请求体未被代理改写。签名格式为 `t=<毫秒>,v1=<base64url HMAC-SHA256>`；本应用拒绝时间戳与服务器相差超过五分钟的请求（401），服务器需保持时间同步。
