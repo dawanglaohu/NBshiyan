@@ -45391,8 +45391,10 @@
     "_run/task-contracts.json": "b6ab8fe711b7723c9d6f0ceeaf158fa01d36f35499bfeb824c4a200b47bd04f7"
   },
   "sourceVersion": "a528c33f48584dcb8a270ab2853d636694020db1c4c47381c827d0a17f6db817",
-  "status": "synced",
+  "status": "verified",
   "synced": "2026-10-22T15:00:35.657937+00:00",
   "task": "M3-T1",
-  "verifiedTasks": []
+  "verifiedTasks": [
+    "M3-T1"
+  ]
 }

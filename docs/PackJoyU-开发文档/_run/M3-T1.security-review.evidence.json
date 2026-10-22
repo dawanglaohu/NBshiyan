@@ -1,0 +1,77 @@
+{
+  "scope": "task-contract",
+  "reviewState": {
+    "definitionSemanticVerdict": "pass",
+    "implementationAcceptance": "pass",
+    "sampleHead": "8eb9979894387b90e60933423493450c90e8fc11",
+    "sourceVersion": "a528c33f48584dcb8a270ab2853d636694020db1c4c47381c827d0a17f6db817",
+    "sourceFilesMatchImplementationHead": {
+      ".github/workflows/ci.yml": true,
+      "e2e/admin-device-session.spec.ts": true,
+      "prisma/schema.prisma": true,
+      "src/app/api/admin/account/2fa/reset/route.ts": true,
+      "src/app/api/admin/account/password/route.ts": true,
+      "src/app/api/admin/account/route.ts": true,
+      "src/app/api/admin/users/[id]/reset-2fa/route.ts": true,
+      "src/app/api/admin/users/[id]/route.ts": true,
+      "src/app/api/auth/[...nextauth]/route.ts": true,
+      "src/auth.ts": true,
+      "src/lib/server/admin/account.ts": true,
+      "src/lib/server/admin/accounts.ts": true,
+      "src/lib/server/admin/device-repo.ts": true,
+      "src/lib/server/admin/device-session.ts": true,
+      "src/lib/server/admin/guard.ts": true,
+      "src/lib/server/admin/login.ts": true,
+      "src/lib/server/composition.ts": true
+    },
+    "templateContractHash": "40d74414c7f01fde589d3c5357ea89ccd7b5cc1851d116beca329c632b57e959",
+    "registeredByThisAgent": false,
+    "finalCIRunPending": 39805496310,
+    "historicalCIFailure": {
+      "run": 39803043943,
+      "head": "7faf9b3331c5324cce3c2553e1b52cc1039bb245",
+      "networkStatus": 401,
+      "actualCookies": "both session names empty but neither Max-Age nor Expires on real response",
+      "trace": "security-review/trace-account-headers-7faf9b3.json"
+    },
+    "finalRequired": "Final documentation head must retain these source hashes and pass its required checks before merge.",
+    "sourceCI": 39805496310,
+    "sourceCIAttempt": 2,
+    "independentSecurity": "SECURITY_PASS"
+  },
+  "tasks": {
+    "M3-T1": {
+      "contractHash": "40d74414c7f01fde589d3c5357ea89ccd7b5cc1851d116beca329c632b57e959",
+      "verdict": "pass",
+      "evidence": [
+        "本轮契约语义：M3-T1-security-repair累计只补11个必要supportPaths及有效路径；原三项验收、输入/输出/前置、能力/阶段/wiring及E-01/E-02/E-03/E-69/E-70不变。64个下游仅hash变化已按本轮新hash完成定义差量登记，不宣称其实现通过，不清继承needsReview。",
+        "验收1映射：src/auth.ts:64真实Credentials成功后open设备并返回user/sv/sid；device-session.ts:136/158绑定及每次读取当前User/device，:37/:53账号和设备先于路由角色，缺sid/设备失效/DB失败拒绝；jwt回调auth.ts:97取当前库role。API guard.ts:39和SSR共用判断，account/route.ts:6显式requireAdmin。新增auth.ts:32/:60固定当前环境唯一cookie命名空间，:149以同名salt读取，生产/开发混合cookie不回退另一个账号；tests/admin-device-session.db.test.ts:157有直接red/green回归。",
+        "验收2映射：device-session.ts:21/28限制普通lastActivityAt+2h、记住7d闲置/30d绝对且等号拒绝；auth.ts:43/188限制JWT与Set-Cookie，:84/198保证signOut提交撤sid再清cookie或503。device-repo.ts:42按小于已提交版本撤旧设备，五处真实调用均传已提交sv。owning规则/db/handler测试覆盖期限、旧cookie401及新Credentials后迟到helper；独立安全负对照与最终判定由root补入。",
+        "可写cookie删除直接回归：device-session.ts:122同时发送Max-Age=0和过去Expires；guard.ts:31的jar.set也置expires:new Date(0)。真实Next parse/MutableRequestCookiesAdapter/appendMutableCookies/ResponseCookies链会丢数值0的maxAge时仍保留过去expires；tests/admin-device-session.db.test.ts:187由cookie-delete-red.log的0pass/1fail到green.log的1pass/0fail，不把空cookie值或仅Max-Age正则当作删除成功。",
+        "真实网络已执行：源码提交8eb9979894387b90e60933423493450c90e8fc11，CI39805496310第2次执行build-and-audit/e2e均SUCCESS；PG/协议14pass0skip，E2E78pass9项既有skip。完整DEVICE_SESSION_NETWORK_EVIDENCE经独立JSON核验：invalid3、mixed4、当前secure cookie过去Expires且Auth.js前jar已移除、真实新登录后迟到helper新200旧401、signOut旧cookie401。",
+        "独立安全SECURITY_PASS匹配同一源码head及15项哈希；root另重算17项实施源码哈希相等。两项原始PG红绿、production/development双cookie12矩阵及真实Next cookie管线红绿均保留；组合回归25pass0skip，不冒充25项PG。",
+        "首次同head E2E唯一失败为未改动的首页video Pause状态用例；无代码/素材/断言修改，单次原样重跑后全部通过，未隐藏初次失败。本机Next启动被自动审批拒绝，Windows standalone符号链接EPERM与本地全量平台失败不冒称成功；真实网络与完整构建证据来自Linux CI。",
+        "本轮新契约模板已由status刷新至40d744...；受保护code/notes与当前源一致，workflow指针78。继承10项needsReview/revalidation保留，不代做下游64项实现验收，不改素材或仓库门禁。"
+      ]
+    }
+  },
+  "sourceSHA256": {
+    ".github/workflows/ci.yml": "a9c734d8930c699ff5eb9a869f6f76f1bdd778173d213b331993db73abd317f0",
+    "e2e/admin-device-session.spec.ts": "6acdf446d19cadee96ee7b008ac59492c662f421cd836afc0acafb4c129e2f16",
+    "prisma/schema.prisma": "c884a5196bb620df221dd401dd1de82715509e5b25970252ee5052a76572b7fd",
+    "src/app/api/admin/account/2fa/reset/route.ts": "ff61109d1dedb265bba75eb4d6c31a1a8e17213e758cc009ced65e35e75f037c",
+    "src/app/api/admin/account/password/route.ts": "de5842b35c549d00e0e03bea7770f0464dc5ac31cafed67ec146100c4a71a662",
+    "src/app/api/admin/account/route.ts": "46aca8cc45a373507f3ffff5f8709942a29b678a6fc10ece642e4592f3a0aad8",
+    "src/app/api/admin/users/[id]/reset-2fa/route.ts": "11d94b3d959966af6c1384c2f92d4a23e48b7ab3a3a8ceeea645e61b1eada7e2",
+    "src/app/api/admin/users/[id]/route.ts": "77ca337da53f6aa17b51fd857010d4ec601ffb1445f90bebda3212ac517f0aad",
+    "src/app/api/auth/[...nextauth]/route.ts": "dcd081ea751df9b353db962739462be995cbe78a2f185860904d657a2e79127f",
+    "src/auth.ts": "45c6af8582640e004d1ac8d1b1443a115264ac009d10db73dd01983a919691a7",
+    "src/lib/server/admin/account.ts": "0a164982b51b1346776b0f2353724b34fff6cfa5917bf63227d3743c2f08e2fa",
+    "src/lib/server/admin/accounts.ts": "f50e3c594249810bf4c653431f01114739e9771e38afe537d892cdf13ff38041",
+    "src/lib/server/admin/device-repo.ts": "b162c4090f1449cc49ddd8996a1057a27d3f50b052304df32240b87d39a04e60",
+    "src/lib/server/admin/device-session.ts": "b60f712d79c5c047abcea691409ca73e449925a6cbeeda1c0d0d3dbaede6d804",
+    "src/lib/server/admin/guard.ts": "cf57f4f17710333adcaf466f65d31d4c8518263cbd20abe1a1f476bd70dd2f75",
+    "src/lib/server/admin/login.ts": "2c6f4fd2b156ed229052b0d8abd4bd65084a5b971173afc457a3d36587b3eb8a",
+    "src/lib/server/composition.ts": "a60db26947fdb3e06cdc7e063911cd314c55f7f6ad0e213489f56a882112f545"
+  }
+}

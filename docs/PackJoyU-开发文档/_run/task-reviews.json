@@ -222,14 +222,18 @@
   },
   "M3-T1": {
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "722cac076a30e05aa51828bf0761077e51f945a955b48bd7a2a1eeb388ca6690",
+    "contractHash": "40d74414c7f01fde589d3c5357ea89ccd7b5cc1851d116beca329c632b57e959",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:28；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《将真实Auth.js会话绑定当前设备与权限》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=现有Credentials、JWT/sv、requireAdmin/page gate；M3-T14共享HTTP层；M1-T2契约。；输出=AdminDeviceSession；Auth.js登录/读取/普通signOut的sid适配；GET /api/admin/account的当前设备摘要及当前权限守卫。 本卡增加User.passwordlessEnabled并默认false，保证首个AccountDTO字段齐；真实GET account最终响应消费T14计数适配。；前置=M1-T2,M3-T14；阶段=integration；能力=admin-device-sessions,current-admin-permissions；有效路径共27项（prisma/schema.prisma; src/app/api/admin/account/; src/app/api/admin/account/route.ts; src/app/api/admin/chat/; src/app/api/admin/cron/mail-queue/route.ts; src/app/api/admin/cron/operations/route.ts; src/app/api/admin/settings/analytics/route.ts; src/app/api/admin/stats/route.ts; src/app/api/admin/users/; src/app/api/analytics/; src/app/api/auth-admin/; src/app/api/auth/; src/app/api/chat/; src/app/api/internal/ops-report/route.ts; src/auth.ts; src/lib/server/admin/accounts.ts; src/lib/server/admin/device-repo.ts; src/lib/server/admin/device-session.ts; src/lib/server/admin/guard.ts; src/lib/server/admin/layout-gate.ts; src/lib/server/admin/login.ts; src/lib/server/admin/page-access.ts; src/lib/server/composition.ts; src/lib/server/db.ts; src/types/next-auth.d.ts; tests/admin-device-guard.http.test.ts; tests/admin-device-session.db.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-01,E-02,E-03,E-69,E-70；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "本轮契约语义：M3-T1-security-repair累计只补11个必要supportPaths及有效路径；原三项验收、输入/输出/前置、能力/阶段/wiring及E-01/E-02/E-03/E-69/E-70不变。64个下游仅hash变化已按本轮新hash完成定义差量登记，不宣称其实现通过，不清继承needsReview。",
+      "验收1映射：src/auth.ts:64真实Credentials成功后open设备并返回user/sv/sid；device-session.ts:136/158绑定及每次读取当前User/device，:37/:53账号和设备先于路由角色，缺sid/设备失效/DB失败拒绝；jwt回调auth.ts:97取当前库role。API guard.ts:39和SSR共用判断，account/route.ts:6显式requireAdmin。新增auth.ts:32/:60固定当前环境唯一cookie命名空间，:149以同名salt读取，生产/开发混合cookie不回退另一个账号；tests/admin-device-session.db.test.ts:157有直接red/green回归。",
+      "验收2映射：device-session.ts:21/28限制普通lastActivityAt+2h、记住7d闲置/30d绝对且等号拒绝；auth.ts:43/188限制JWT与Set-Cookie，:84/198保证signOut提交撤sid再清cookie或503。device-repo.ts:42按小于已提交版本撤旧设备，五处真实调用均传已提交sv。owning规则/db/handler测试覆盖期限、旧cookie401及新Credentials后迟到helper；独立安全负对照与最终判定由root补入。",
+      "可写cookie删除直接回归：device-session.ts:122同时发送Max-Age=0和过去Expires；guard.ts:31的jar.set也置expires:new Date(0)。真实Next parse/MutableRequestCookiesAdapter/appendMutableCookies/ResponseCookies链会丢数值0的maxAge时仍保留过去expires；tests/admin-device-session.db.test.ts:187由cookie-delete-red.log的0pass/1fail到green.log的1pass/0fail，不把空cookie值或仅Max-Age正则当作删除成功。",
+      "真实网络已执行：源码提交8eb9979894387b90e60933423493450c90e8fc11，CI39805496310第2次执行build-and-audit/e2e均SUCCESS；PG/协议14pass0skip，E2E78pass9项既有skip。完整DEVICE_SESSION_NETWORK_EVIDENCE经独立JSON核验：invalid3、mixed4、当前secure cookie过去Expires且Auth.js前jar已移除、真实新登录后迟到helper新200旧401、signOut旧cookie401。",
+      "独立安全SECURITY_PASS匹配同一源码head及15项哈希；root另重算17项实施源码哈希相等。两项原始PG红绿、production/development双cookie12矩阵及真实Next cookie管线红绿均保留；组合回归25pass0skip，不冒充25项PG。",
+      "首次同head E2E唯一失败为未改动的首页video Pause状态用例；无代码/素材/断言修改，单次原样重跑后全部通过，未隐藏初次失败。本机Next启动被自动审批拒绝，Windows standalone符号链接EPERM与本地全量平台失败不冒称成功；真实网络与完整构建证据来自Linux CI。",
+      "本轮新契约模板已由status刷新至40d744...；受保护code/notes与当前源一致，workflow指针78。继承10项needsReview/revalidation保留，不代做下游64项实现验收，不改素材或仓库门禁。"
     ],
-    "reviewed": "2026-10-22T12:42:52.240698+00:00",
+    "reviewed": "2026-10-22T15:50:40.943694+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
