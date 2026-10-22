@@ -22,9 +22,11 @@ BANNED = ("YUHAO", "Mingkai", "Kyson", "certificate", "capacity", "factory", "IS
 
 
 def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    digest.update(path.read_bytes())
-    return digest.hexdigest()
+    # SVG digest is the LF bytes. A Windows checkout may insert CR.
+    data = path.read_bytes()
+    if path.suffix.lower() == ".svg":
+        data = data.replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()
 
 
 def fail(message: str) -> None:
