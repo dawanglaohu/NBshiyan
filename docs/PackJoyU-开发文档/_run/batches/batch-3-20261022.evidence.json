@@ -1,0 +1,2078 @@
+{
+  "scope": [
+    "M1-T8",
+    "M2-T4",
+    "M3-T14",
+    "M5-T1"
+  ],
+  "excluded": [
+    "M1-T6",
+    "M1-T9"
+  ],
+  "base": "47e97964",
+  "codeHead": "17de9c85",
+  "environment": {
+    "node": "22.17.0",
+    "pnpm": "10.34.6",
+    "postgres": "17.9 Windows x64",
+    "database": "isolated batch3; localhost54338; planning pgdata; no production data"
+  },
+  "tests": {
+    "finalFullSuite": {
+      "tests": 1347,
+      "pass": 1312,
+      "fail": 30,
+      "skip": 5,
+      "command": "pnpm test with isolated DATABASE_URL and ADMIN_RESET_TEST_DATABASE_URL"
+    },
+    "fullSuiteConnectionRecheck": {
+      "test": "并发领取同一 key",
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "reason": "Full run had P1001 once; independent rerun and complete 15-test jobs suite passed; not a reproduced lease assertion defect"
+    },
+    "clientHttp": {
+      "pass": 41,
+      "fail": 0,
+      "skip": 0
+    },
+    "modelAndContracts": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "configAndMetrics": {
+      "pass": 17,
+      "fail": 0,
+      "skip": 0
+    },
+    "jobs": {
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+    },
+    "combinedPrimitives": {
+      "pass": 65,
+      "fail": 0,
+      "skip": 0,
+      "note": "config+metrics+jobs+shared contracts, not an additional disjoint count"
+    },
+    "lint": "pass; existing warnings",
+    "typecheck": "pass",
+    "docsReview": {
+      "block": 0,
+      "warn": 28
+    },
+    "modelSignalPermutations": 5040,
+    "realHttpErrorSeam": {
+      "appCodes": 21,
+      "legacy": 1,
+      "unknown": 1,
+      "httpHits": 23,
+      "automaticReplays": 0
+    }
+  },
+  "fixes": [
+    {
+      "id": "B1",
+      "task": "M1-T8",
+      "severity": "S2",
+      "commit": "68e10120",
+      "root": "Admin 401 with unreadable or unrecognized body returned stop instead of login",
+      "red": {
+        "pass": 1,
+        "fail": 4
+      },
+      "green": {
+        "pass": 5,
+        "fail": 0
+      },
+      "source": "src/lib/client/api-errors.ts:140",
+      "test": "tests/client-api-foundation.http.test.ts:308"
+    },
+    {
+      "id": "B2",
+      "task": "M5-T1",
+      "severity": "S2",
+      "commit": "17de9c85",
+      "root": "Claim returned an already expired lease as active after actual row-lock wait",
+      "red": {
+        "pass": 0,
+        "fail": 1
+      },
+      "green": {
+        "pass": 15,
+        "fail": 0
+      },
+      "source": "src/lib/server/jobs/lease-repo.ts:180",
+      "test": "tests/job-leases.db.test.ts:215"
+    }
+  ],
+  "judgments": {
+    "scope": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 0.94) spec_change=no(0.12) outside_stack=no(0.09) needs_owner=no(0.14) reversible=yes(0.89) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.94,
+          "band": "high",
+          "probabilities": {
+            "A": 0.96,
+            "B": 0.01,
+            "C": 0.03
+          }
+        },
+        "spec_change": {
+          "p": 0.12,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.09,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.14,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.89,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      },
+      "state": {
+        "requirement": "Close out batch 3 only for M1-T8, M2-T4, M3-T14 and M5-T1. The human explicitly excludes M1-T6 and M1-T9. Preserve their files and status. Review tests and direct seams, fix reproducible root causes and record truthful bounded results.",
+        "task": {
+          "title": "Partial batch wrap-up with reproducible administrative 401 fallback defect",
+          "accept": "M1-T8 section 10 requires administrative session HTTP 401 to direct to safe same-site login; recognized bad_credentials stays inline. Existing tasks are primitives with downstream wiring explicitly deferred."
+        },
+        "conflict": "Two routine implementation questions. First, true local HTTP 401 HTML response or interrupted body loses the usable error code; api-errors.ts actionFor only recognizes code unauthorized and returns stop despite preserving status 401. Second, batch record matching requires an exact task set. Recording four task IDs will honestly represent the requested scope but not mark the entire six-task batch closed in the handoff UI. No generator changes or full-batch claim are requested.",
+        "options": {
+          "A": "Add regression coverage and repair only admin HTTP 401 with missing or unrecognized error code to action login and safe login text, preserving recognized bad_credentials/recovery/reauth semantics and visitor behavior. Record only the four reviewed IDs in tasks frontmatter; note excluded IDs and that the six-task batch gate is unchanged.",
+          "B": "Add the same focused 401 repair, but keep all six IDs in tasks frontmatter as batch membership and explicitly list four reviewed IDs plus two human-excluded IDs in the record body; treat the result as a batch closure under the human exclusion.",
+          "C": "Record the reproducible 401 as an open repair task without changing the client, keeping only the four reviewed IDs in record frontmatter and preserving the full batch gate."
+        }
+      },
+      "stateFileSha256": "c1491428382a4bc2fb7f62e05becd56cd37a2658d420fa19abfb1f6f4f0ea069"
+    },
+    "claim": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 0.98) spec_change=no(0.11) outside_stack=no(0.08) needs_owner=no(0.07) reversible=yes(0.75) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.98,
+          "band": "high",
+          "probabilities": {
+            "A": 0.99,
+            "B": 0.0,
+            "C": 0.01
+          }
+        },
+        "spec_change": {
+          "p": 0.11,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.08,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.07,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.75,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      },
+      "state": {
+        "requirement": "Batch 3 M5-T1 requires true PostgreSQL atomic claims, 90-second leases, correct lease ownership/generation fencing, safe read. Only repair the lease root cause, no redesign or production job wiring.",
+        "task": {
+          "title": "M5-T1 claim can report an already expired lease as acquired after waiting on a database lock",
+          "accept": "Same key concurrent claim has one current winner; expired old owners cannot complete; returned acquired lease state must be current."
+        },
+        "conflict": "Real isolated PostgreSQL17.9 probe holds an expired JobState row lock. Waiting claim samples clock at t=90s before currentTimezoneRevision and INSERT ON CONFLICT. Clock moves to181s while SQL waits; after lock release it returns acquired=true, generation2, lockedUntil180s, view.leaseActive=true. A next worker immediately claims generation3. Existing renew/complete fence stale writes, but first worker can begin work based on a falsely active acquired result. Existing 14 DB tests pass, missing this acquisition delay case.",
+        "options": {
+          "A": "Keep the atomic SQL and existing interface. After the awaited claim SQL returns, sample and validate the clock again; build the returned view with that time. Return acquired=false/busy if the stored lease is already expired, do not hand out an inactive acquired lease. Preserve stored fenced row until a new worker reclaims it normally. Add a true PostgreSQL lock-wait regression proving expired claims do not acquire.",
+          "B": "Change claim to a service-owned transaction that locks the row before sampling time, then performs conditional claim inside the same transaction. This expands the current claim interface and caller contract but can grant a full lease after contention.",
+          "C": "Replace the injected application clock in claim with database clock_timestamp sampled after lock acquisition, redesigning deterministic clock tests and documenting cross-clock consistency with renew/complete."
+        }
+      },
+      "stateFileSha256": "41e7ab81ab49cc7d95ea47dbf1f9ad527730cf85da6dfb47c0ee83dc5b60118a"
+    },
+    "baseline": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 0.98) spec_change=no(0.13) outside_stack=no(0.21) needs_owner=no(0.13) reversible=yes(0.86) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.98,
+          "band": "high",
+          "probabilities": {
+            "A": 0.99,
+            "B": 0.0,
+            "C": 0.01
+          }
+        },
+        "spec_change": {
+          "p": 0.13,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.21,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.13,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.86,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      },
+      "state": {
+        "requirement": "Perform only the four requested batch3 primitive wrap-ups, exclude M1-T6/M1-T9. Reproducible in-scope bugs were repaired with red-green tests. Batch records must remain open and create complete repair tasks for unresolved verification issues. Do not expand current production code scope or weaken assertions.",
+        "task": {
+          "title": "Record remaining full-suite validation failures without rewriting unrelated product behavior",
+          "accept": "Run full existing tests/lint and true HTTP/Postgres evidence; distinguish environment gaps, existing test bugs, and product defects. Every unresolved issue gets a stable repair task with files and falsifiable acceptance."
+        },
+        "conflict": "Initial Windows suite:1346 tests,1309pass,32fail,5skip.3 DB-startup metric failures are resolved by ready PG17.9, and final rerun is underway. Remaining29 assertions have verified root groups:11 CRLF source/bash assumptions (10 pass when normalized only in memory; bash CRLF syntax error),3 slash-only Windows path assumptions,6 POSIX absolute-path/mode/symlink prerequisites on Windows (EPERM before test body),7 python3 WindowsApps alias startup failures (real python.exe available),2 stale reset audit expectations (production deliberately emits auth.enroll_token_issued; security audit must remain). None are caused by the four primitives. Local Next build compiles but fails Windows standalone symlink EPERM. Next dev loads real CSS and true API200 but CSP blocks dev unsafe-eval hydration, so this is limited evidence, not production browser success. Future production entry wiring and authenticated admin pages belong to later tasks.",
+        "options": {
+          "A": "Keep the requested scope. Register five distinct stable repair tasks for the five verified baseline root groups, plus a separate build/browser evidence task to obtain true supported Linux standalone smoke and density results. Record tests=fail/verdict=open and explain the current limited dev evidence. Do not fix unrelated UI, audit production behavior, storage, content import or generators in this run.",
+          "B": "Repair the test harness issues now across all five groups, preserving actual security behavior, then obtain supported Linux build and browser evidence before closure; this broadens test-file changes well beyond the current four primitive roots.",
+          "C": "Use Linux CI evidence for environment-only groups and defer only the two stale reset audit tests, while retaining tests=fail/open until that strict dedicated-DB baseline and supported standalone browser run are confirmed."
+        }
+      },
+      "stateFileSha256": "65a946c182d5c918df36b39ee218b21f18163d257faf81c12d1d03c11bfd5301"
+    }
+  },
+  "baselineTriage": {
+    "baselineHead": "47e97964",
+    "targetTasks": [
+      "M1-T8",
+      "M2-T4",
+      "M3-T14",
+      "M5-T1"
+    ],
+    "excludedTasks": [
+      "M1-T6",
+      "M1-T9"
+    ],
+    "failureCount": 30,
+    "resolvedPreparationFailureCount": 3,
+    "remainingFailingAssertions": 29,
+    "remainingRootCauseGroups": 5,
+    "productDefectsReproducedInTargetTasks": 0,
+    "groups": [
+      {
+        "id": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "testNumbers": [
+          193,
+          197,
+          198
+        ],
+        "kind": "environment-preparation",
+        "resolved": true,
+        "rootCause": "Full baseline started before dedicated database batch3 existed; parent reran all three metrics DB scenarios green after bootstrap.",
+        "suggestion": "Do not generate a repair task for this already-resolved preparation race.",
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "owningTests": [
+          "tests/admin-http-metrics.test.ts"
+        ]
+      },
+      {
+        "id": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "testNumbers": [
+          142,
+          151,
+          212,
+          290,
+          325,
+          456,
+          727,
+          791,
+          793,
+          849,
+          1214
+        ],
+        "kind": "windows-harness-line-endings",
+        "resolved": false,
+        "rootCause": "core.autocrlf=true checkout uses CRLF, while source/SQL assertions assume LF and bash cannot source CRLF shell functions.",
+        "suggestion": "Make checkout/source assertions and shell execution agree on LF; preserve actual UI/SQL/security behavior.",
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "owningTests": [
+          "tests/admin-enroll-hardening-347-348.test.ts",
+          "tests/admin-enroll-p1.test.ts",
+          "tests/admin-inquiry-history-331.test.ts",
+          "tests/admin-mail-states-74.test.ts",
+          "tests/admin-p3-350.test.ts",
+          "tests/article-og-route.test.ts",
+          "tests/home-entry-grid-308.test.ts",
+          "tests/locale-enum-values.test.ts",
+          "tests/mail-routes.test.ts",
+          "tests/site-settings-read-350.test.ts"
+        ]
+      },
+      {
+        "id": "G2",
+        "stableKey": "baseline-path-harness",
+        "testNumbers": [
+          789,
+          997,
+          998
+        ],
+        "kind": "windows-harness-path-separators",
+        "resolved": false,
+        "rootCause": "path.join/defaultFiles/walk return Windows backslashes but test suffixes, mock recognizer, and expected lists use slash-only paths.",
+        "suggestion": "Normalize filesystem paths before path identity and mock classification assertions.",
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "owningTests": [
+          "tests/lint-ru-yo.test.ts",
+          "tests/prod-mocks-strip.test.ts"
+        ]
+      },
+      {
+        "id": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "testNumbers": [
+          990,
+          991,
+          996,
+          1288,
+          1289,
+          1298
+        ],
+        "kind": "windows-vs-posix-runtime",
+        "resolved": false,
+        "rootCause": "Linux deployment path semantics are mixed with Windows path.resolve/join, Windows denies symlink creation, and Windows mode bits do not equal POSIX chmod 0600/0700.",
+        "suggestion": "Run Linux-specific storage/security acceptance in its supported runtime or explicitly separate platform-neutral and platform-specific checks without weakening safety assertions.",
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "owningTests": [
+          "tests/prod-env-check.test.ts",
+          "tests/storage-local.test.ts",
+          "tests/storage.test.ts"
+        ]
+      },
+      {
+        "id": "G4",
+        "stableKey": "baseline-python-runtime",
+        "testNumbers": [
+          1123,
+          1124,
+          1125,
+          1126,
+          1129,
+          1130,
+          1131
+        ],
+        "kind": "windows-python-alias",
+        "resolved": false,
+        "rootCause": "tests spawn python3, which resolves to WindowsApps execution alias and exits 9009 with empty stdout/stderr; real installed Python is python.exe 3.13.7.",
+        "suggestion": "Select a real configured Python runtime for content-import tests; rerun guards and output equivalence rather than accepting startup failure.",
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "owningTests": [
+          "tests/sanity-import.test.ts"
+        ]
+      },
+      {
+        "id": "G5",
+        "stableKey": "reset-audit-expectations",
+        "testNumbers": [
+          360,
+          361
+        ],
+        "kind": "stale-db-test-expectation",
+        "resolved": false,
+        "rootCause": "DB assertions expect only password_reset/pending_enroll_cleared, but CLI intentionally also emits auth.enroll_token_issued for the generated enrollment token, as documented and implemented in auditEntries.",
+        "suggestion": "Update exact audit expectations to include mandatory token issuance, continue asserting row order/count, redaction, transaction behavior, and account race outcomes. Do not remove security audit output to satisfy old tests.",
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "owningTests": [
+          "tests/admin-reset-initial-password.db.test.ts"
+        ]
+      },
+      {
+        "id": "G6",
+        "stableKey": "baseline-database-connection-transient",
+        "testNumbers": [
+          775
+        ],
+        "subtestNumbers": [
+          1
+        ],
+        "kind": "environment-connection-transient",
+        "resolved": true,
+        "rootCause": "Final all-tests job suite first parallel-claim test could not connect to the isolated PostgreSQL server (P1001). Remaining 13 job subtests passed in the same suite. No data assertion or schema error.",
+        "suggestion": "Rerun only the first job test or focused job suite after checking the dedicated server. If green, record the transient environment failure as resolved and do not manufacture a repair task.",
+        "scopeRelation": "M5-T1 test execution environment; no proven product invariant failure",
+        "owningTests": [
+          "tests/job-leases.db.test.ts"
+        ],
+        "pendingFocusedRerun": false,
+        "resolutionEvidence": "db-connection-recheck.log: original concurrent-claim case independently passed 1/1, zero skip; full jobs suite also passed 15/15"
+      }
+    ],
+    "baselineFailures": [
+      {
+        "testNumber": 142,
+        "name": "review-only SQL is exactly the additive migrate diff and passes deploy/plan-check.sh",
+        "owner": "tests/admin-enroll-hardening-347-348.test.ts:262:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '-- #347 / #348 2FA 绑定加固：User 表新增 3 列。只供评审核对（review-only），不要手工执行。 -- 仓库仍用 `prisma db push`（deploy/deploy.sh schema_sync），不加 --accept-data-loss。 -- 下面的语句就是 `prisma migrate diff --from-schema-datamodel <main c9d3ce1 的 schema> --to-schema-datamodel prisma/schema.prisma --s",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 853
+      },
+      {
+        "testNumber": 151,
+        "name": "P1 enroll: no storage / logging / innerHTML / external URLs; download revokes Blob URL; callback hardcoded",
+        "owner": "tests/admin-enroll-p1.test.ts:166:10",
+        "error": "'wait hint sits right above the sign-in button'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 925
+      },
+      {
+        "testNumber": 193,
+        "name": "dedicated postgres increments requestCount on every final response and errorCount only for 5xx",
+        "owner": "tests/admin-http-metrics.test.ts:233:3",
+        "error": "|-\n    \n    Invalid `prisma.$queryRaw()` invocation:\n    \n    \n    Database `batch3` does not exist",
+        "group": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "resolved": true,
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "baselineLogLine": 1196
+      },
+      {
+        "testNumber": 197,
+        "name": "lastObservedAt never regresses when an older response writes after a newer response",
+        "owner": "tests/admin-http-metrics.test.ts:356:3",
+        "error": "|-\n    \n    Invalid `prisma.$queryRaw()` invocation:\n    \n    \n    Database `batch3` does not exist",
+        "group": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "resolved": true,
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "baselineLogLine": 1238
+      },
+      {
+        "testNumber": 198,
+        "name": "counter stores UTC observed times when the PostgreSQL session uses another timezone",
+        "owner": "tests/admin-http-metrics.test.ts:415:3",
+        "error": "|-\n    \n    Invalid `prisma.$queryRaw()` invocation:\n    \n    \n    Database `batch3` does not exist",
+        "group": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "resolved": true,
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "baselineLogLine": 1262
+      },
+      {
+        "testNumber": 212,
+        "name": "接线：详情页用 <InquiryHistory>，回复 / 改状态 / 改分配后刷新第一页；加备注不刷新；不轮询、不无限滚动",
+        "owner": "tests/admin-inquiry-history-331.test.ts:159:10",
+        "error": "'changeStatus 之后'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 1364
+      },
+      {
+        "testNumber": 290,
+        "name": "回复框：往来记录刷新之后才显示提示（滚进视口时位置准确）",
+        "owner": "tests/admin-mail-states-74.test.ts:202:10",
+        "error": "'false == true'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2068
+      },
+      {
+        "testNumber": 325,
+        "name": "ConfirmDialog：保留原有行为（alertdialog + 标题 / 正文关联、焦点在「取消」、Esc 关闭、焦点回到触发按钮），新增 Tab 循环和 focusin 拉回",
+        "owner": "tests/admin-p3-350.test.ts:44:10",
+        "error": "|-\n    The input did not match the regular expression /prev\\?\\.focus\\(\\); \\};\\n  \\}, \\[\\]\\);/. Input:\n    \n    \"'use client';\\r\\n\" +\n      \"import { useEffect, useRef } from 'react';\\r\\n\" +\n      \"import { SETTINGS_TEXT as T } from '@/lib/admin/site-settings';\\r\\n\" +\n      \"import { focusablesIn, nextTrapFocus } from '@/lib/admin/focus-trap';\\r\\n\" ",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2294
+      },
+      {
+        "testNumber": 360,
+        "name": "真实 PG：同一账号两次并发重置（都不带参数）→ 串行执行，sessionVersion 加两次，后提交的密码生效，两条审计",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:119:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'user.password_reset',\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n    +   'auth.enroll_token_issued'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2620
+      },
+      {
+        "testNumber": 361,
+        "name": "真实 PG：A 带 --clear-pending-enroll 持锁时 B（不带参数）开始 → B 在锁内看到 A 已提交的 enrollIssuedAt，拒绝（退出 3），什么都不写",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:136:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n        'user.pending_enroll_cleared'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2654
+      },
+      {
+        "testNumber": 456,
+        "name": "loc_bad 本身可用（对照）",
+        "owner": "tests/article-og-route.test.ts:36:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    false !== true",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 3254
+      },
+      {
+        "testNumber": 727,
+        "name": "断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符",
+        "owner": "tests/home-entry-grid-308.test.ts:61:10",
+        "error": "|-\n    The input did not match the regular expression /\\.entry a\\{[^}]*hyphens:auto/. Input:\n    \n    '\\n'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 4918
+      },
+      {
+        "testNumber": 789,
+        "name": "ru-yo: repo Russian copy is clean; optional dirs are skipped",
+        "owner": "tests/lint-ru-yo.test.ts:39:10",
+        "error": "'false == true'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 5391
+      },
+      {
+        "testNumber": 791,
+        "name": "schema: enum Locale keeps en, ru first (order unchanged) and appends es/de/fr/ja/hi/ar",
+        "owner": "tests/locale-enum-values.test.ts:21:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'en',\n        'ru',\n    +   '// 多语言第 0 期预留（只追加，不改名、不删、不调顺序）。线上是否开放由 src/lib/server/published-locales.ts 决定，未发布语言接口一律 400。',\n        'es',\n        'de',\n        'fr',\n        'ja',\n        'hi',",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5419
+      },
+      {
+        "testNumber": 793,
+        "name": "review-only SQL contains only ALTER TYPE \"Locale\" ADD VALUE for the reserved values, and passes the deploy plan gate",
+        "owner": "tests/locale-enum-values.test.ts:34:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   '-- 多语言第 0 期前置：Prisma `enum Locale` 追加 es/de/fr/ja/hi/ar。只供评审核对（review-only），不要手工执行。',\n    +   '-- 仓库仍用 `prisma db push`（launch-runbook.md、deploy/deploy.sh），不加 --accept-data-loss。',\n    +   '-- 下面 6 行就是 `prisma migrate diff`（main 0038eee 的 schema → 本分支 sc",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5475
+      },
+      {
+        "testNumber": 849,
+        "name": "静态检查：src/app/api/admin/mail/** 下每个路由、发信路由、webhook、邮件 cron 都先调用 mailSwitchGate()",
+        "owner": "tests/mail-routes.test.ts:89:36",
+        "error": "'src\\\\app\\\\api\\\\admin\\\\mail\\\\config\\\\route.ts: mailSwitchGate must be first'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5865
+      },
+      {
+        "testNumber": 990,
+        "name": "local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:206:12",
+        "error": "|-\n    /app/public/uploads\n    \n    0 !== 1",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6907
+      },
+      {
+        "testNumber": 991,
+        "name": "local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）",
+        "owner": "tests/prod-env-check.test.ts:219:12",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n    + [\n    +   'UPLOAD_DIR 必须是绝对路径'\n    + ]\n    - []",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6933
+      },
+      {
+        "testNumber": 996,
+        "name": "\\#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:291:5",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\app\\\\public\\\\uploads' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\link-pub'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6984
+      },
+      {
+        "testNumber": 997,
+        "name": "\\#323 所有 src/lib 下的 mock 源文件都被 next.config 的 outputFileTracingExcludes 覆盖；不用 .dockerignore 排除",
+        "owner": "tests/prod-mocks-strip.test.ts:24:12",
+        "error": "'src/lib/admin/mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 6999
+      },
+      {
+        "testNumber": 998,
+        "name": "\\#323 每个 mock 的 import 都在构建期常量后面（生产构建里是死代码）",
+        "owner": "tests/prod-mocks-strip.test.ts:47:12",
+        "error": "'src\\\\lib\\\\admin\\\\mail\\\\mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 7019
+      },
+      {
+        "testNumber": 1123,
+        "name": "sanity-import: build.py output matches committed import.ndjson",
+        "owner": "tests/sanity-import.test.ts:14:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 7997
+      },
+      {
+        "testNumber": 1124,
+        "name": "sanity-import: build.py skips docs without an internal key (FAQ drafts, proofreading, fact sheet) and articles with import: false",
+        "owner": "tests/sanity-import.test.ts:35:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8021
+      },
+      {
+        "testNumber": 1125,
+        "name": "sanity-import: build.py refuses importable articles whose body has {{待Ryan确认}} or TBD, naming file and line",
+        "owner": "tests/sanity-import.test.ts:52:14",
+        "error": "|-\n    The input did not match the regular expression /guard-placeholder\\.md:13: /. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8047
+      },
+      {
+        "testNumber": 1126,
+        "name": "internal links: import: false articles get no links; flipping them importable brings the links back",
+        "owner": "tests/sanity-import.test.ts:71:18",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8073
+      },
+      {
+        "testNumber": 1129,
+        "name": "sanity-import: build.py refuses product docs with TBD or {{待Ryan确认}}, naming doc and line",
+        "owner": "tests/sanity-import.test.ts:128:14",
+        "error": "|-\n    The input did not match the regular expression /import\\.ndjson:3: product-corrugated-boxes body\\.ru\\[0\\]/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8112
+      },
+      {
+        "testNumber": 1130,
+        "name": "linkmap.py: --meta defaults to src/lib/seo/categoryMeta.ts; missing, unreadable or retired compostable slug exits non-zero",
+        "owner": "tests/sanity-import.test.ts:154:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8138
+      },
+      {
+        "testNumber": 1131,
+        "name": "sanity-import: build.py refuses product docs with food-contact claims (EN + RU)",
+        "owner": "tests/sanity-import.test.ts:193:14",
+        "error": "|-\n    The input did not match the regular expression /product-christmas-merchandise: unconfirmed food-use claim/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8164
+      },
+      {
+        "testNumber": 1214,
+        "name": "缓存：三个函数都走 unstable_cache，标签 site-settings，revalidate 60；签名和交接一致",
+        "owner": "tests/site-settings-read-350.test.ts:100:10",
+        "error": "|-\n    The input did not match the regular expression /name: string; url: string; logo\\?: string; description\\?: string; sameAs: string\\[\\];\\n  alternateName\\?: string; legalName\\?: string; email\\?: string; telephone\\?: string; address\\?: string; foundingDate\\?: string;/. Input:\n    \n    \"import { unstable_cache } from 'next/cache';\\r\\n\" +\n      \"i",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 8682
+      },
+      {
+        "testNumber": 1288,
+        "name": "不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响",
+        "owner": "tests/storage-local.test.ts:58:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\outside' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\root\\\\logos'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9364
+      },
+      {
+        "testNumber": 1289,
+        "name": "根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断",
+        "owner": "tests/storage-local.test.ts:82:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\vol' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\link'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9381
+      },
+      {
+        "testNumber": 1298,
+        "name": "local: put/get/delete, private mode, no overwrite",
+        "owner": "tests/storage.test.ts:24:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    438 !== 384",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9448
+      }
+    ],
+    "authoritativeRun": "final-all-tests.log",
+    "finalTotals": {
+      "tests": 1347,
+      "pass": 1312,
+      "fail": 30,
+      "skipped": 5
+    },
+    "historicalBaselineFailureCount": 32,
+    "currentFailingLeafTests": 30,
+    "pendingEnvironmentRootCauseGroups": 0,
+    "failures": [
+      {
+        "testNumber": 142,
+        "name": "review-only SQL is exactly the additive migrate diff and passes deploy/plan-check.sh",
+        "owner": "tests/admin-enroll-hardening-347-348.test.ts:262:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '-- #347 / #348 2FA 绑定加固：User 表新增 3 列。只供评审核对（review-only），不要手工执行。 -- 仓库仍用 `prisma db push`（deploy/deploy.sh schema_sync），不加 --accept-data-loss。 -- 下面的语句就是 `prisma migrate diff --from-schema-datamodel <main c9d3ce1 的 schema> --to-schema-datamodel prisma/schema.prisma --s",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 853,
+        "finalLogLine": 853,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 151,
+        "name": "P1 enroll: no storage / logging / innerHTML / external URLs; download revokes Blob URL; callback hardcoded",
+        "owner": "tests/admin-enroll-p1.test.ts:166:10",
+        "error": "'wait hint sits right above the sign-in button'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 925,
+        "finalLogLine": 925,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 212,
+        "name": "接线：详情页用 <InquiryHistory>，回复 / 改状态 / 改分配后刷新第一页；加备注不刷新；不轮询、不无限滚动",
+        "owner": "tests/admin-inquiry-history-331.test.ts:159:10",
+        "error": "'changeStatus 之后'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 1364,
+        "finalLogLine": 1310,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 290,
+        "name": "回复框：往来记录刷新之后才显示提示（滚进视口时位置准确）",
+        "owner": "tests/admin-mail-states-74.test.ts:202:10",
+        "error": "'false == true'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2068,
+        "finalLogLine": 2014,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 325,
+        "name": "ConfirmDialog：保留原有行为（alertdialog + 标题 / 正文关联、焦点在「取消」、Esc 关闭、焦点回到触发按钮），新增 Tab 循环和 focusin 拉回",
+        "owner": "tests/admin-p3-350.test.ts:44:10",
+        "error": "|-\n    The input did not match the regular expression /prev\\?\\.focus\\(\\); \\};\\n  \\}, \\[\\]\\);/. Input:\n    \n    \"'use client';\\r\\n\" +\n      \"import { useEffect, useRef } from 'react';\\r\\n\" +\n      \"import { SETTINGS_TEXT as T } from '@/lib/admin/site-settings';\\r\\n\" +\n      \"import { focusablesIn, nextTrapFocus } from '@/lib/admin/focus-trap';\\r\\n\" ",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2294,
+        "finalLogLine": 2240,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 360,
+        "name": "真实 PG：同一账号两次并发重置（都不带参数）→ 串行执行，sessionVersion 加两次，后提交的密码生效，两条审计",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:119:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'user.password_reset',\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n    +   'auth.enroll_token_issued'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2620,
+        "finalLogLine": 2566,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 361,
+        "name": "真实 PG：A 带 --clear-pending-enroll 持锁时 B（不带参数）开始 → B 在锁内看到 A 已提交的 enrollIssuedAt，拒绝（退出 3），什么都不写",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:136:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n        'user.pending_enroll_cleared'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2654,
+        "finalLogLine": 2600,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 456,
+        "name": "loc_bad 本身可用（对照）",
+        "owner": "tests/article-og-route.test.ts:36:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    false !== true",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 3254,
+        "finalLogLine": 3200,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 727,
+        "name": "断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符",
+        "owner": "tests/home-entry-grid-308.test.ts:61:10",
+        "error": "|-\n    The input did not match the regular expression /\\.entry a\\{[^}]*hyphens:auto/. Input:\n    \n    '\\n'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 4918,
+        "finalLogLine": 4864,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 775,
+        "suite": "JobState 租约",
+        "subtestNumber": 1,
+        "name": "并发领取同一 key 只有一个成功，另一 key 互不阻塞",
+        "owner": "tests/job-leases.db.test.ts:148:23",
+        "error": "Prisma P1001: Can't reach database server at 127.0.0.1:54338; currentTimezoneRevision lease-repo.ts:98 -> claim:158 -> Promise.all index2",
+        "group": "G6",
+        "stableKey": "baseline-database-connection-transient",
+        "resolved": true,
+        "scopeRelation": "M5-T1 acceptance execution; connection failure, not a failed lease invariant",
+        "finalLogLine": 5175,
+        "authoritativeRun": "final-all-tests.log",
+        "pendingFocusedRerun": false,
+        "resolutionEvidence": "db-connection-recheck.log 1 pass / 0 fail / 0 skip"
+      },
+      {
+        "testNumber": 789,
+        "name": "ru-yo: repo Russian copy is clean; optional dirs are skipped",
+        "owner": "tests/lint-ru-yo.test.ts:39:10",
+        "error": "'false == true'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 5391,
+        "finalLogLine": 5369,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 791,
+        "name": "schema: enum Locale keeps en, ru first (order unchanged) and appends es/de/fr/ja/hi/ar",
+        "owner": "tests/locale-enum-values.test.ts:21:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'en',\n        'ru',\n    +   '// 多语言第 0 期预留（只追加，不改名、不删、不调顺序）。线上是否开放由 src/lib/server/published-locales.ts 决定，未发布语言接口一律 400。',\n        'es',\n        'de',\n        'fr',\n        'ja',\n        'hi',",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5419,
+        "finalLogLine": 5397,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 793,
+        "name": "review-only SQL contains only ALTER TYPE \"Locale\" ADD VALUE for the reserved values, and passes the deploy plan gate",
+        "owner": "tests/locale-enum-values.test.ts:34:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   '-- 多语言第 0 期前置：Prisma `enum Locale` 追加 es/de/fr/ja/hi/ar。只供评审核对（review-only），不要手工执行。',\n    +   '-- 仓库仍用 `prisma db push`（launch-runbook.md、deploy/deploy.sh），不加 --accept-data-loss。',\n    +   '-- 下面 6 行就是 `prisma migrate diff`（main 0038eee 的 schema → 本分支 sc",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5475,
+        "finalLogLine": 5453,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 849,
+        "name": "静态检查：src/app/api/admin/mail/** 下每个路由、发信路由、webhook、邮件 cron 都先调用 mailSwitchGate()",
+        "owner": "tests/mail-routes.test.ts:89:36",
+        "error": "'src\\\\app\\\\api\\\\admin\\\\mail\\\\config\\\\route.ts: mailSwitchGate must be first'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5865,
+        "finalLogLine": 5843,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 990,
+        "name": "local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:206:12",
+        "error": "|-\n    /app/public/uploads\n    \n    0 !== 1",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6907,
+        "finalLogLine": 6885,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 991,
+        "name": "local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）",
+        "owner": "tests/prod-env-check.test.ts:219:12",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n    + [\n    +   'UPLOAD_DIR 必须是绝对路径'\n    + ]\n    - []",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6933,
+        "finalLogLine": 6911,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 996,
+        "name": "\\#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:291:5",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\app\\\\public\\\\uploads' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\link-pub'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6984,
+        "finalLogLine": 6962,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 997,
+        "name": "\\#323 所有 src/lib 下的 mock 源文件都被 next.config 的 outputFileTracingExcludes 覆盖；不用 .dockerignore 排除",
+        "owner": "tests/prod-mocks-strip.test.ts:24:12",
+        "error": "'src/lib/admin/mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 6999,
+        "finalLogLine": 6977,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 998,
+        "name": "\\#323 每个 mock 的 import 都在构建期常量后面（生产构建里是死代码）",
+        "owner": "tests/prod-mocks-strip.test.ts:47:12",
+        "error": "'src\\\\lib\\\\admin\\\\mail\\\\mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 7019,
+        "finalLogLine": 6997,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1123,
+        "name": "sanity-import: build.py output matches committed import.ndjson",
+        "owner": "tests/sanity-import.test.ts:14:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 7997,
+        "finalLogLine": 7975,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1124,
+        "name": "sanity-import: build.py skips docs without an internal key (FAQ drafts, proofreading, fact sheet) and articles with import: false",
+        "owner": "tests/sanity-import.test.ts:35:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8021,
+        "finalLogLine": 7999,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1125,
+        "name": "sanity-import: build.py refuses importable articles whose body has {{待Ryan确认}} or TBD, naming file and line",
+        "owner": "tests/sanity-import.test.ts:52:14",
+        "error": "|-\n    The input did not match the regular expression /guard-placeholder\\.md:13: /. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8047,
+        "finalLogLine": 8025,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1126,
+        "name": "internal links: import: false articles get no links; flipping them importable brings the links back",
+        "owner": "tests/sanity-import.test.ts:71:18",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8073,
+        "finalLogLine": 8051,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1129,
+        "name": "sanity-import: build.py refuses product docs with TBD or {{待Ryan确认}}, naming doc and line",
+        "owner": "tests/sanity-import.test.ts:128:14",
+        "error": "|-\n    The input did not match the regular expression /import\\.ndjson:3: product-corrugated-boxes body\\.ru\\[0\\]/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8112,
+        "finalLogLine": 8090,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1130,
+        "name": "linkmap.py: --meta defaults to src/lib/seo/categoryMeta.ts; missing, unreadable or retired compostable slug exits non-zero",
+        "owner": "tests/sanity-import.test.ts:154:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8138,
+        "finalLogLine": 8116,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1131,
+        "name": "sanity-import: build.py refuses product docs with food-contact claims (EN + RU)",
+        "owner": "tests/sanity-import.test.ts:193:14",
+        "error": "|-\n    The input did not match the regular expression /product-christmas-merchandise: unconfirmed food-use claim/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8164,
+        "finalLogLine": 8142,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1214,
+        "name": "缓存：三个函数都走 unstable_cache，标签 site-settings，revalidate 60；签名和交接一致",
+        "owner": "tests/site-settings-read-350.test.ts:100:10",
+        "error": "|-\n    The input did not match the regular expression /name: string; url: string; logo\\?: string; description\\?: string; sameAs: string\\[\\];\\n  alternateName\\?: string; legalName\\?: string; email\\?: string; telephone\\?: string; address\\?: string; foundingDate\\?: string;/. Input:\n    \n    \"import { unstable_cache } from 'next/cache';\\r\\n\" +\n      \"i",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 8682,
+        "finalLogLine": 8660,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1288,
+        "name": "不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响",
+        "owner": "tests/storage-local.test.ts:58:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\outside' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\root\\\\logos'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9364,
+        "finalLogLine": 9342,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1289,
+        "name": "根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断",
+        "owner": "tests/storage-local.test.ts:82:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\vol' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\link'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9381,
+        "finalLogLine": 9359,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1298,
+        "name": "local: put/get/delete, private mode, no overwrite",
+        "owner": "tests/storage.test.ts:24:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    438 !== 384",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9448,
+        "finalLogLine": 9426,
+        "authoritativeRun": "final-all-tests.log"
+      }
+    ],
+    "connectionRecheck": {
+      "resolved": true,
+      "evidence": "db-connection-recheck.log 1pass/0fail/0skip",
+      "remainingVerificationAssertions": 29
+    }
+  },
+  "browser": {
+    "head": "17de9c85",
+    "origin": "http://localhost:3138",
+    "mode": "next start compiled bundle; standalone packaging failed EPERM",
+    "freshContext": true,
+    "home": {
+      "token": "#ffffff",
+      "background": "rgb(255, 255, 255)",
+      "color": "rgb(0, 0, 0)",
+      "font": "16px",
+      "line": "24px",
+      "border": "2px",
+      "radius": "0px",
+      "shadow": "none"
+    },
+    "cards": 12,
+    "models": {
+      "status": 200,
+      "items": true
+    },
+    "consentClicked": true,
+    "contactUrl": "http://localhost:3138/en/contact",
+    "errors": [],
+    "hits": [
+      {
+        "method": "GET",
+        "path": "/en",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/9ba5c45d99f82b8a.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/1b94159106e5b15c.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/c969987c81bdd7ee.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/11462f62d40213c5.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/6002cb45499bc7be.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-corrugated-boxes.5f405542.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-color-boxes.8f12372d.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-gift-boxes.b8d335bc.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-paper-cups.541dba14.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-pulp-molding.70fd3582.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-party-supplies.90f6ce6d.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-wine-boxes.c087d1e2.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-color-printing.a7a01e8f.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-offset-printing.de01d8f7.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-gift-cards.dc250339.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-christmas-merchandise.072acd21.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/icon.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/products",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/contact",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/privacy",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/brand/video2-packjoyu-products-v3.mp4",
+        "status": 206
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/db7724ad78675cc0.css",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-eco-paper-cups.5c9549be.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/icon.svg",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "path": "/icon.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/env/studio_small_09_256.hdr",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/draco/draco_decoder.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/basis/basis_transcoder.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/basis/basis_transcoder.wasm",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      }
+    ],
+    "density": [
+      {
+        "size": {
+          "width": 1920,
+          "height": 1080
+        },
+        "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+        "result": {
+          "probe": "density",
+          "version": 2,
+          "url": "http://localhost:3138/en/products",
+          "type": "work",
+          "contract": {
+            "density": 7,
+            "gutter": 16,
+            "gap": 16,
+            "pad": 16
+          },
+          "viewport": {
+            "width": 1905,
+            "height": 1080
+          },
+          "mobile": false,
+          "main": "html.__variable_14cd0a > body > main.container",
+          "rail": null,
+          "avail": {
+            "left": 0,
+            "right": 1905,
+            "width": 1905
+          },
+          "contentFound": true,
+          "fill": 0.815,
+          "leftGap": 352.5,
+          "rightGap": 0,
+          "interiorBand": {
+            "px": 8,
+            "ratio": 0.004
+          },
+          "overflowX": 0,
+          "bars": 0,
+          "growth": [],
+          "emptyTracks": [],
+          "gapOffenders": [],
+          "padOffenders": [],
+          "sparseBlocks": [],
+          "centeredCaps": [],
+          "counts": {
+            "growth": 0,
+            "emptyTracks": 0,
+            "gapOffenders": 0,
+            "padOffenders": 0,
+            "sparseBlocks": 0,
+            "centeredCaps": 0
+          },
+          "verdict": {
+            "D1": "pass",
+            "D2": "fail",
+            "D3": "pass",
+            "D4": "pass",
+            "D5": "pass",
+            "D6": "fail",
+            "overflow": "pass",
+            "pass": false
+          }
+        }
+      },
+      {
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+        "result": {
+          "probe": "density",
+          "version": 2,
+          "url": "http://localhost:3138/en/products",
+          "type": "work",
+          "contract": {
+            "density": 7,
+            "gutter": 16,
+            "gap": 16,
+            "pad": 16
+          },
+          "viewport": {
+            "width": 1425,
+            "height": 900
+          },
+          "mobile": false,
+          "main": "html.__variable_14cd0a.has-consent > body > main.container",
+          "rail": null,
+          "avail": {
+            "left": 0,
+            "right": 1425,
+            "width": 1425
+          },
+          "contentFound": true,
+          "fill": 0.921,
+          "leftGap": 112.5,
+          "rightGap": 0,
+          "interiorBand": {
+            "px": 8,
+            "ratio": 0.006
+          },
+          "overflowX": 0,
+          "bars": 0,
+          "growth": [],
+          "emptyTracks": [],
+          "gapOffenders": [],
+          "padOffenders": [],
+          "sparseBlocks": [],
+          "centeredCaps": [],
+          "counts": {
+            "growth": 0,
+            "emptyTracks": 0,
+            "gapOffenders": 0,
+            "padOffenders": 0,
+            "sparseBlocks": 0,
+            "centeredCaps": 0
+          },
+          "verdict": {
+            "D1": "pass",
+            "D2": "pass",
+            "D3": "pass",
+            "D4": "pass",
+            "D5": "pass",
+            "D6": "pass",
+            "overflow": "pass",
+            "pass": true
+          }
+        }
+      }
+    ]
+  },
+  "densityExploratory": [
+    {
+      "size": {
+        "width": 1920,
+        "height": 1080
+      },
+      "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+      "result": {
+        "probe": "density",
+        "version": 2,
+        "url": "http://localhost:3138/en/products",
+        "type": "work",
+        "contract": {
+          "density": 7,
+          "gutter": 16,
+          "gap": 16,
+          "pad": 16
+        },
+        "viewport": {
+          "width": 1905,
+          "height": 1080
+        },
+        "mobile": false,
+        "main": "html.__variable_14cd0a > body > main.container",
+        "rail": null,
+        "avail": {
+          "left": 0,
+          "right": 1905,
+          "width": 1905
+        },
+        "contentFound": true,
+        "fill": 0.815,
+        "leftGap": 352.5,
+        "rightGap": 0,
+        "interiorBand": {
+          "px": 8,
+          "ratio": 0.004
+        },
+        "overflowX": 0,
+        "bars": 0,
+        "growth": [],
+        "emptyTracks": [],
+        "gapOffenders": [],
+        "padOffenders": [],
+        "sparseBlocks": [],
+        "centeredCaps": [],
+        "counts": {
+          "growth": 0,
+          "emptyTracks": 0,
+          "gapOffenders": 0,
+          "padOffenders": 0,
+          "sparseBlocks": 0,
+          "centeredCaps": 0
+        },
+        "verdict": {
+          "D1": "pass",
+          "D2": "fail",
+          "D3": "pass",
+          "D4": "pass",
+          "D5": "pass",
+          "D6": "fail",
+          "overflow": "pass",
+          "pass": false
+        }
+      }
+    },
+    {
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+      "result": {
+        "probe": "density",
+        "version": 2,
+        "url": "http://localhost:3138/en/products",
+        "type": "work",
+        "contract": {
+          "density": 7,
+          "gutter": 16,
+          "gap": 16,
+          "pad": 16
+        },
+        "viewport": {
+          "width": 1425,
+          "height": 900
+        },
+        "mobile": false,
+        "main": "html.__variable_14cd0a.has-consent > body > main.container",
+        "rail": null,
+        "avail": {
+          "left": 0,
+          "right": 1425,
+          "width": 1425
+        },
+        "contentFound": true,
+        "fill": 0.921,
+        "leftGap": 112.5,
+        "rightGap": 0,
+        "interiorBand": {
+          "px": 8,
+          "ratio": 0.006
+        },
+        "overflowX": 0,
+        "bars": 0,
+        "growth": [],
+        "emptyTracks": [],
+        "gapOffenders": [],
+        "padOffenders": [],
+        "sparseBlocks": [],
+        "centeredCaps": [],
+        "counts": {
+          "growth": 0,
+          "emptyTracks": 0,
+          "gapOffenders": 0,
+          "padOffenders": 0,
+          "sparseBlocks": 0,
+          "centeredCaps": 0
+        },
+        "verdict": {
+          "D1": "pass",
+          "D2": "pass",
+          "D3": "pass",
+          "D4": "pass",
+          "D5": "pass",
+          "D6": "pass",
+          "overflow": "pass",
+          "pass": true
+        }
+      }
+    }
+  ],
+  "build": {
+    "command": "pnpm build",
+    "result": "fail",
+    "cause": "Windows EPERM symlink in standalone tracing; compiled routes generated",
+    "notProven": [
+      "Linux standalone full build/start",
+      "STANDALONE_TEST real artifact tests",
+      "authenticated product UI density"
+    ]
+  },
+  "gif": {
+    "sha256": "efa8734c9951b6067ea5ea9f6e16771e448d12b1b8b6dd8ede8710a6cf6673b3",
+    "bytes": 313430,
+    "width": 1200,
+    "height": 750,
+    "durationSeconds": 6.5,
+    "frames": 65,
+    "sourceFrames": 3,
+    "mode": "true compiled app via next start; fresh browser; no application API mocks; not standalone; no model judgment runtime"
+  },
+  "independentReview": {
+    "blockingFindings": [],
+    "typecheck": "pass",
+    "newClaimPgTest": "1 pass / 0 skip",
+    "scope": "all 4 outgoing source/test files; client author also reviewed own change, job repair independently reviewed"
+  },
+  "fileHashes": {
+    "src/lib/client/api-errors.ts": "d69570d51eee3c1ab81c747cae8556f604bb3596d10da730f9b76c2159ed7a07",
+    "tests/client-api-foundation.http.test.ts": "7eba4e6ffa143bd982f1f74719bc24feeba3d3cc155d6117a56c49c1305a683a",
+    "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+    "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0",
+    "src/lib/analytics/model-events.ts": "5a7e4f21d40b6d4a7d56e29d3ebb5b25d626ac45a1272261eb71a03c41b7014d",
+    "src/lib/server/http/metrics.ts": "aa33369f71ce0b5486f4027796dd4cb89033c7ff32a509012fae4d2a3b4981aa",
+    "src/lib/server/config.ts": "422f725b40820203af3d76bcbaf9ac410d8abd608572570a1cb022d811c30264"
+  },
+  "logHashes": {
+    "baseline-lint.log": "664b6ca7a49fc684a0b3403949d39462ae55e5d471d2a3927904d3e592b6b56b",
+    "baseline-tests.log": "b349fb6670d395a15b0167807f2b07a4b65914da9369fa8c0ea73f5a6e7bb862",
+    "baseline-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-final.log": "315099ce83fd5ef8b9360fa37cd7294bac09c382d740eac61878dea64c17d07b",
+    "build.log": "70612a3273de400658595e3d7ef34cc329c3a6681d4b9f7c565aa1a3f10789d8",
+    "client-401-green.log": "1c07848c335eb13d9dd785523e5a8bd90847a47e476f77713d2f4f8af14cd3a5",
+    "client-401-red.log": "21b3a9d8f571f8ffd436ae3203a84e89aaf881b3cd01d2a1459cf4a0ba13ce70",
+    "client-http-post-fix.log": "b2a7f5b853cc1cecdcc5ed39b36a38c078fc0dd5ea5fc01a28cddc3df6400513",
+    "contract-status.log": "6927f905f9eb622cd0341b02838f87208fcbd3579aab6a32aad4b19d52f0fc5d",
+    "db-connection-recheck.log": "199e08ac03d7583ffd66ba4a1b9c433d4d790d1a8b09f4c7fb56e7322bfab044",
+    "db-focused.log": "70bc7ddc970504f7593beb15c93ee5a03d6b273147d2fcaac8aefa02e08a3688",
+    "fetch-http-focused-tests.log": "76f1ebf25552fc928b4668188b37a10fff0edd40542414c3ffc9e1d4539a1055",
+    "fetch-model-focused-tests.log": "dd6ed6b73b6204f76739d17c21a32557e7d1fbd4f27132d1c3b1bb4cf8875098",
+    "final-all-tests.log": "517faeeae432eb1afc7f56a6da37d722cc84ff44e255cfb69d9c08ca6a2e80ed",
+    "final-lint.log": "82840f309092912ce2fb7d48efd2ba878ad668c55dfd4c452e9cf6c73a16435a",
+    "final-primitives.log": "1b5f4219021f29af3f48b0e5b1c12d5cfed975d99bbfe4dcba9a1ee3d015ae96",
+    "independent-claim-boundary.log": "24c2e3b200a230160fa1af354f8da38154c104acc3b4e8406a3ed442f82baf9a",
+    "independent-diff-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "install-pnpm10.log": "6b3644e1b31d75cae3c72b46b305d419acb4bfdc7e14c5f3e21e1f49f814bd9c",
+    "install.log": "1b79ab60a380e103bb3af93d9364fd62fc3cd259e542572214d270666d52b489",
+    "jobstate-claim-clock-probe.log": "0316d098562b15e5286e96f3d5ccbab5d5b8655ae43f3462386cee039fc78260",
+    "jobstate-claim-fixed-probe.log": "fec1de4a53e1f121fa075370dc6b5191a7f4b5f5281b8b0fbb11485969fe5a01",
+    "jobstate-claim-green.log": "d5fadef617c2cbadc70970247603ddfa59005c6aa4e392a7b52804febd89505b",
+    "jobstate-claim-red.log": "fbc6fc20b4cc11dd02459614fdffd25f276c09374e7e598aa77e1039fb3e01a7",
+    "jobstate-db-suite.log": "7cbcebf1cf15395b15a64ef879ef20511ba1aade8cb5692b2af32fd44400c6ad",
+    "m3-t14-tests.log": "48ca13699d6306a132a28ee1572418b20f34a6be8e9d78a5e99b859d1ea88a70",
+    "metrics-final-db.log": "99e28e83c7fa2f92b836102cf2931d894d79b595b72d21a7c71b4e08f89cbb4e",
+    "next-dev.log": "ba7c0805d16566f5757659627d584d55d2fae79abaae89fa6f30356ea84f87ee",
+    "next-start-final.log": "b571918ea7b7a120e2077fb6c2ff15c64630f56bb5ab62c8f09f6c4d2553138d",
+    "next-start.log": "49dc17016aa47e93b3801c4ce16134bffe5d9a5ef75d6257821a8edd0470cd9d",
+    "pg-init.log": "05d8b911148c31bfd63059258a28972e668ebe56d7549bb47c8928eaf0459f19",
+    "pg-server.log": "4581f508d880832412a67e4e2b1fe6d1b2e4d64da39732f21387db3c5eb71225",
+    "prisma-db-push.log": "07136026ef7ad0d37964cf9ec7d891151ea55a922d2f54bd2ab625dace285ae5",
+    "probe-client-401-green.log": "f910565de766b7dc225121c3994f9bfb9bdc1011a9cc5c5557061e0d6d43e318",
+    "vault-check.log": "daec2cb446b3acbb010b7834369bc6258f07ffe52cbc8bdd4ac5b15165ff7d38"
+  },
+  "fileHashesScope": "Historical codeHead17de9c85 snapshot before the independent-review follow-up; current reviewed source hashes are in independentReviewFollowup",
+  "independentReviewFollowup": {
+    "requestedBy": "Human requested one independent reviewer and next-batch enablement after successful review",
+    "originalReviewedHead": "ddbed27a1975af58b0d321b59d3c91a6e9ba0cda",
+    "codeVerdict": "PASS",
+    "batchCompletionVerdict": "FAIL/open",
+    "nextBatchVerdict": "READY for M3-T1/M4-T15/M4-T8; M1-T4 done",
+    "report": "# PR #407 独立审查结论\n\n日期：2026-10-22。审查员：本轮新派发的独立 agent。工作目录仅 D:/xiangmu/NBshiyan-batch-3；探针与报告仅本轮 planning。未修改仓库、未提交、未合并、未改 gate。\n\n## 三项结论\n\n1. **代码与安全语义审查：PASS（限下列文件哈希的修复后工作树）。** 原审查 head ddbed27a1975af58b0d321b59d3c91a6e9ba0cda 留有一条真实 P2；本轮实施方限定修复后，本阻断及直接回归已通过。此 PASS 不是指定 GitHub App 的 APPROVED，也不是修复后精确 head 的 CI 通过。\n2. **收口完成与返工落地：FAIL。** 当前 open 记录如实反映状态，记录真实性与六项任务生成本身可接受；六个 R3 任务仍 todo，Windows 全量验证与适用后台证据未清，不能改 clean/fixed 或把返工标为 landed。Linux 原 head CI 通过不能自动满足这六任务原定的 Windows/Linux 与真实数据库、后台密度验收。\n3. **下批文件态实施资格：READY（M3-T1、M4-T15、M4-T8 已经可实施，无需人工改 gate）。** M1-T4 已 done。整批收口/PR 合并资格仍 BLOCKED。不能将“整批不能宣告完成”误说成“三个下批待派任务仍被 gate 锁住”。\n\n## 范围与依据\n\n只核 M1-T8、M2-T4、M3-T14、M5-T1、本轮两处根因修复及当前未解决的审查线程。M1-T6、M1-T9 按用户要求排除，其源文件和任务状态未由本审查更改。\n\n已读 AGENTS.md、_MOC、四任务笔记、第10/17节、dsh-code-review 及本地命令映射。已检查 origin/main...HEAD 的源代码/测试、受保护实施记录、收口源记录、生成资料与真实红绿日志。没有扩大到全项目重新找 bug。\n\n## 本轮唯一代码阻断及复验\n\nGitHub 当前未解决、未过时线程：src/lib/client/api-errors.ts:147，chatgpt-codex-connector 在 1063669edb 提出的 P2：“Route oversized admin 401 responses back to login”。\n\n- 根因：requestApi 在 Content-Length 声明大于4MiB或真实 chunked 正文越界时传 kind=oversize；原 helper 仅接受 http，且 oversize 分支提前 stop，仍丢后台会话401的登录恢复。\n- 原始红证据：review401-oversize-red.log，新增两个真实 HTTP 用例均 stop!=login，0 pass / 2 fail / 0 skip。用 git show 与原控制流核对，失败对应真实旧行为。\n- 实施方 Jev 实答：review401-oversize-adjudication-result.json，model=jev-1.14.0，pick=A/high1.00，adopt=take(A)，spec_change/outside_stack/needs_owner 均 no。方案A为限定响应侧401恢复；不取消响应体限额，不修改请求侧超限规则。\n- 修复：isAdminSessionFailure 增加 admin + oversize + status401；会话恢复检查移至 oversize stop 之前，同一 helper 同时决定固定文案。请求侧超限 status 未定义，不会误去登录；visitor、已知 bad_credentials/recovery_expired/action_grant_invalid 的原语义保留。\n- 独立真实 HTTP 探针 review407-oversize-401.ts（未 mock fetch）：声明超限与真实65×64KiB chunked401均 login、固定会话文案、attempts=1、1次请求、不重试；admin 请求体超8KiB仍 stop/statusundefined/attempts0/0次请求；visitor 响应超限仍 stop/attempts1。结果 review407-oversize-401-green.log。\n- 同时核对实施方完整 owning suite：review401-full-http.log，43 pass / 0 fail / 0 skip，45.6秒；新增请求侧保护明确验证 audience=admin。\n- 本轮修复后未发现仍成立的代码/安全语义阻断。由实施方在最终提交后回复并处理该 GitHub 线程，不能把线程未处理默认为已解决。\n\n## 独立检查\n\n- node --import tsx --test tests/contracts-foundation.test.ts tests/model-event-rules.test.ts tests/admin-config.test.ts：48 pass / 0 fail / 0 skip；review407-rules.log。\n- 本轮私有 PostgreSQL17.9，planning/pgdata，localhost54338/batch3，非生产：node --import tsx --test tests/job-leases.db.test.ts tests/admin-http-metrics.test.ts：28 pass / 0 fail / 0 skip；review407-pg-primitives.log。包含真实并发、过期/锁等待边界、旧代次回滚、设置revision/RR竞争和计数UTC/乱序。\n- 独立 tsc --noEmit --incremental false：exit0，无诊断；review407-typecheck.log。实施方修复后的 typecheck/lint 日志也无错误。\n- git diff --check：通过。\n- 未再次重复已知 Windows 全量红套件或必然 EPERM 的本机构建；它们在当前收口仍明确 open，不能因此宣称全量通过。\n\n## 为什么文件态下批已经 READY\n\n不是推断按钮颜色；review407-gate-eval.cjs 用 TypeScript scanner 从 build_docs.py 提取原始 gate 函数，在 Node VM 中执行。输入为实际 docs-data.js/presentation.json、文件 progress、空浏览器本地覆盖和空维护锁，没有写浏览器状态。\n\n结果 review407-gate-result.json：\n\n- 第3批原集合：M1-T6=todo，其余五项 done。batch3Complete=false。\n- 当前局部记录仅四项，matchingBatch3Records=0；它不会匹配六项整批。\n- wrapupBlocked 的实际规则是在“紧邻上一批全落地”时才检查收口。当前 M1-T6 保持 todo，所以对第4批 wrapupBlocked 均为 null。\n- M3-T1 / M4-T15 / M4-T8：todo、waiting=[]、contractBlocked=false、wrapupBlocked=null、implLocked=false。\n- M1-T4 已 done；它显示 locked 是“已实施”，不能当成下一批尚未解锁。\n- 若用户打开旧主检出或有 browser localStorage 状态，实际页面可能不同；上述结论只证明当前生成资料的文件态。应核对所打开的 reader 与缓存，而不是改 wrapupGate=false、伪造 M1-T6 完成或写 clean。\n\n## 六项返工仍未完成\n\nR3-T92231765 换行策略；R3-T87287564 Windows路径比较；R3-T09233008 POSIX/Windows存储验证；R3-T21757567 Python解释器入口；R3-T71889698 真实PG重置审计预期；R3-T22883505 受支持standalone及适用后台证据。任务均有具体路径进入 dispatch，todo 状态真实。原 head 的 Linux CI 对部分平台问题提供新证据，但没有改变这些任务的原定验收或完成它们。\n\n## 远端与合并限制\n\n审查开始时远端 exact head=ddbed27a。其 CI build-and-audit、e2e 均 SUCCESS；security-review gate FAILURE，reviews 只有旧提交的 COMMENTED，没有 packjoyu-security-reviewer[bot] 对该 head 的 APPROVED。当前 P2 修复尚需一次提交与最终 exact-head CI；旧 green 不可挪作新 head 验证。\n\n该 App gate 与本 agent 的本地代码 PASS 分开。不得伪称机器人批准或无授权绕过。当前 PR/整批完成仍 BLOCKED；现有第4批三个待派任务已具文件态实施资格，无需伪造收口状态以“解锁”。\n\n## 复验文件哈希（SHA-256，当前 Windows 工作树字节）\n\n- src/lib/client/api-errors.ts: 6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65\n- tests/client-api-foundation.http.test.ts: d0d81a925d2fe23dd09d929b6c7c63de40e0b66272002901f1a728bdeb7ede57\n- src/lib/server/jobs/lease-repo.ts: f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83\n- tests/job-leases.db.test.ts: 29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0\n\n最小后续动作：提交本次限定401修复与审查证据，复查最终 head CI 与线程/指定App门禁；保留 open 和六项 todo。需要展示下批时核对当前 reader 的 M3-T1/M4-T15/M4-T8，不手改完成状态或全局 gate。\n\n",
+    "reviewFinding": {
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/407#discussion_r4347662809",
+      "severity": "P2",
+      "cause": "oversized admin HTTP401 response misclassified as stop",
+      "repair": "extend only oversized received401 session predicate before generic oversize stop; request-side zero-send control preserved",
+      "red": {
+        "pass": 0,
+        "fail": 2
+      },
+      "httpGreen": {
+        "pass": 43,
+        "fail": 0,
+        "skip": 0
+      },
+      "lint": "pass",
+      "typecheck": "pass",
+      "independentPg": {
+        "pass": 28,
+        "fail": 0,
+        "skip": 0
+      },
+      "independentRules": {
+        "pass": 48,
+        "fail": 0
+      }
+    },
+    "judgment": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 1.00) spec_change=no(0.08) outside_stack=no(0.08) needs_owner=no(0.04) reversible=yes(0.89) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 1.0,
+          "band": "high",
+          "probabilities": {
+            "A": 1.0,
+            "B": 0.0,
+            "C": 0.0
+          }
+        },
+        "spec_change": {
+          "p": 0.08,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.08,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.04,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.89,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      },
+      "state": {
+        "requirement": "Independent review of PR407 must pass before unlocking next batch. Scope remains M1-T8/M2-T4/M3-T14/M5-T1, M1-T6/M1-T9 excluded. M1-T8 must preserve admin login recovery when a received HTTP401 has no usable error body, while request-side oversized data never sends a request and never redirects to login.",
+        "task": {
+          "title": "Repair remaining admin401 recovery regression for capped oversized response bodies",
+          "accept": "Real HTTP tests for Content-Length beyond4MiB and actual oversized streamed body both produce one attempt, action login and safe localized session-expired text. Request-side oversize keeps attempts0/actionstop. Visitor and other statuses/known credentials retain behavior."
+        },
+        "conflict": "GitHub Codex P2 thread4347662809 on1063669 remains relevant at finalddbed27a. requestApi readCapped returns kindoversize and passes received status401. adaptApiError assigns codetoo_large; isAdminSessionFailure accepts only kindhttp; actionFor returns stop before the helper. Thus still drops login on oversized401. Independent reviewer is reproducing with true localhostHTTP. Current code retains received status distinguishing response oversize from request oversize where status is absent.",
+        "options": {
+          "A": "Keep transport and response cap unchanged. Extend the shared admin-session predicate to recognize kindoversize only when received status401, in addition to existing HTTP cases. Run that predicate before the generic oversize stop branch so action and localized text agree. Keep request oversize with no status and all visitor/other status cases unchanged. Add real declared/streamed oversized401 red-green tests and request-side protection.",
+          "B": "Normalize oversized non-success HTTP responses to kindhttp inside requestApi before the adapter; retain kindoversize for request-side and successful response caps. Add tests for all affected non-2xx statuses to establish the changed representation.",
+          "C": "Record another open repair task for oversized admin401 and leave all unlock work blocked without changing current code."
+        }
+      }
+    },
+    "gateEvaluation": {
+      "scope": "file-backed generated reader logic; no browser-local status overrides",
+      "batch3": [
+        {
+          "id": "M1-T6",
+          "state": "todo"
+        },
+        {
+          "id": "M1-T8",
+          "state": "done"
+        },
+        {
+          "id": "M1-T9",
+          "state": "done"
+        },
+        {
+          "id": "M2-T4",
+          "state": "done"
+        },
+        {
+          "id": "M3-T14",
+          "state": "done"
+        },
+        {
+          "id": "M5-T1",
+          "state": "done"
+        }
+      ],
+      "batch3Complete": false,
+      "matchingBatch3Records": 0,
+      "partialRecordTaskSet": [
+        "M1-T8",
+        "M2-T4",
+        "M3-T14",
+        "M5-T1"
+      ],
+      "nextBatch": [
+        {
+          "id": "M1-T4",
+          "state": "done",
+          "waiting": [
+            "M1-T6"
+          ],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": true
+        },
+        {
+          "id": "M3-T1",
+          "state": "todo",
+          "waiting": [],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": false
+        },
+        {
+          "id": "M4-T15",
+          "state": "todo",
+          "waiting": [],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": false
+        },
+        {
+          "id": "M4-T8",
+          "state": "todo",
+          "waiting": [],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": false
+        }
+      ]
+    },
+    "browser": {
+      "url": "http://127.0.0.1:3148/index.html#%E4%BA%A4%E6%8E%A5%E5%8F%B0",
+      "tasks": [
+        {
+          "id": "M3-T1",
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "M4-T15",
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "M4-T8",
+          "enabled": true,
+          "visible": true
+        }
+      ],
+      "noTaskCopied": true,
+      "noTaskStatusMutation": true,
+      "action": "expanded batch4 through its real toggle"
+    },
+    "screenshotSha256": "3381e253513b56663bbebfaf2afa3f94e27bcdbdd1b52fa33e9bd803a8e3b23c",
+    "currentSourceHashes": {
+      "src/lib/client/api-errors.ts": "6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65",
+      "tests/client-api-foundation.http.test.ts": "d0d81a925d2fe23dd09d929b6c7c63de40e0b66272002901f1a728bdeb7ede57",
+      "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+      "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0"
+    },
+    "ciAtOriginalHead": {
+      "head": "ddbed27a1975af58b0d321b59d3c91a6e9ba0cda",
+      "buildAndAudit": "SUCCESS",
+      "e2e": "SUCCESS",
+      "securityGate": "FAILURE; no designated exact-head approval"
+    },
+    "noGateConfigChanged": true,
+    "noTaskStateChanged": true,
+    "excludedTasks": [
+      "M1-T6",
+      "M1-T9"
+    ],
+    "logHashes": {
+      "review401-full-http.log": "57428b5246ad467f010846ac696869a761433624bde7547b830816beccf26142",
+      "review401-lint.log": "82840f309092912ce2fb7d48efd2ba878ad668c55dfd4c452e9cf6c73a16435a",
+      "review401-oversize-green.log": "90c3d5c7e9b6d6a7e75f0f70c415f841a74e3e8d192d17b1bd47715e4af9f01e",
+      "review401-oversize-red.log": "4ae9a864d570380fbb3a3f7a5dccfd77397ef8b5a3954337051e70658f1899f5",
+      "review401-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sourceHashScope": "Historical acc0543a review snapshot; later cancellation repair is covered by securityAudit source hashes"
+  },
+  "securityAudit": {
+    "result": {
+      "securityVerdict": "SECURITY_PASS",
+      "originalRemoteHead": "acc0543a7be3e79215c8d583407f8005730d5c3c",
+      "reviewScope": "fix-after-security-review working-tree hashes; final commit and CI must match",
+      "sourceHashes": {
+        "src/lib/client/api.ts": "3a68214846e8a4310c7504c410af2379af16684679cc600d2682749210dcf6f5",
+        "src/lib/client/api-errors.ts": "6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65",
+        "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+        "tests/client-api-foundation.http.test.ts": "dddf0736495447ad1ca2812e719ffadc04502001242142db49fdebee11ff09c1",
+        "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0"
+      },
+      "directRegressionTests": {
+        "pass": 9,
+        "fail": 0,
+        "skip": 0
+      },
+      "initialIndependentHttp": {
+        "pass": 43,
+        "fail": 0,
+        "skip": 0
+      },
+      "postgres": {
+        "pass": 28,
+        "fail": 0,
+        "skip": 0
+      },
+      "designatedAppApproval": false,
+      "adminException": "Human-authorized for PR407 only after final-head checks; not executed by reviewer",
+      "remainingSecurityBlockers": []
+    },
+    "report": "# PR #407 独立安全审查最终结论\n\n## 结论\n\n**SECURITY_PASS，限本报告末尾修复后文件哈希。** 一轮安全审查仅发现一个取消/超限401交错阻断，实施方已做最小根因修复，本审查员独立复验通过，没有再发现已复现的安全阻断。\n\n原远端审查提交为 acc0543a7be3e79215c8d583407f8005730d5c3c，基线为47e979641050bf101a8bf98da30aa283bea923cb；该提交本身含已复现的问题。本轮PASS适用于尚待root提交的修复后工作树，不挪用旧head CI。root须确认实际提交包含这些修复、最终精确head的必需构建/E2E检查通过、无新未解决审查项，再按用户已经给出的管理员例外授权合并#407。此安全结论不是packjoyu-security-reviewer[bot]的APPROVED，不修改或伪造指定App门禁。\n\n源码、门禁、任务状态与生产环境未由本审查员修改。本轮只读核对PR完整diff、上下文和证据。M1-T6/M1-T9素材不在范围。\n\n## 唯一阻断及复验\n\nS2：真实HTTP401返回大于4MiB的Content-Length；真实fetch拿到Response后调用方AbortController立即abort，再交回requestApi。原代码的readCapped忽略body.cancel异常并正常返回oversize，响应正文处理分支未重查caller取消，于是统一适配返回login与非空会话文案，即使signal.aborted=true。\n\n原始探针：security407-cancel-headers-probe.mts，原始失败日志security407-cancel-headers-probe.log。原实际为action=login/status401/aborted=true/hits1，期望silent/空text，exit1。初始化两次Windows ESM导入失败是探针环境准备，不计产品缺陷；最终使用node:createRequire加载同一仓库源，真实业务复现如上。\n\n实施方最小修复：src/lib/client/api.ts:380正文读取正常返回、attempt清理与attempts计数后，先检查options.signal?.aborted，统一返回cancelled，再进入oversize或DTO分支。未改transport、响应上限、路径/重试策略或鉴权协议。\n\n复验：\n- 原独立探针未改业务断言，修复后输出action=silent、text为空、aborted=true、hits1，exit0；security407-cancel-headers-fixed.log。\n- 独立重跑 owning HTTP直接回归：\n  node --import tsx --test --test-name-pattern \"caller cancellation after real response headers|admin 401|request bodies over\" tests/client-api-foundation.http.test.ts\n  9pass/0fail/0skip，security407-cancel-direct-regressions.log。\n- 覆盖caller取消优先、原六种非取消401仍login、已知凭据/恢复/本人验证分支保留、admin请求体超限仍零发送/stop/status未定义、visitor仍stop。新增用例通过真实本机HTTP及真实fetch，不是固定应答替换生产入口。\n- root的新增owning测试先红0pass/1fail、focused后9/9，本审查员另有原始独立红→同探针绿证据。完整HTTP44及类型/ESLint为root收尾检查，提交/合并前仍须确认其结果，不预先冒称通过。\n\n## 其余独立验证\n\n1. 修复这三行取消优先保护前，本审查员完整运行 owning真实HTTP suite：43pass/0fail/0skip，45.64秒；security407-http.log。因此不是只看原实施方报告；上节直接回归专门复验新增保护及相邻分支。\n2. 本轮私有PostgreSQL17.9执行 tests/job-leases.db.test.ts 与 tests/admin-http-metrics.test.ts：28pass/0fail/0skip；security407-pg.log。只启动planning/pgdata localhost54338/batch3，测试独立schema，结束后私有PG已停止。\n3. 参数化SQL与并发：claim仍由单条INSERT ON CONFLICT决胜，返回前重新采有效时钟，不交付到期租约；renew/complete保留真实外层事务、锁后时钟、owner/generation/期限/revision fencing、拒绝抛JobLeaseAbort使业务结果共同回滚。安全读取不返回leaseOwner，summary仍严格白名单；没有新增脚本、SQL字符串拼接或仓储自提交。\n4. 客户端数据最小化：错误只使用受控字段/固定双语文案，未知message/stack和超限正文不回显。Auth.js路径排除、归一化、same-origin credentials、redirect:error及一次性操作禁自动重放均未改。\n5. 新增diff专用凭据模式扫描：private-key、AWS access-key、TypeSafe key-prefix、GitHub token-prefix均0命中；未读取.env/浏览器凭据。没有把隔离测试地址和历史假值当生产秘密；扫描不是通用“绝无秘密”保证。\n6. git diff --check通过。远端原head acc0543a 的build-and-audit/e2e实际SUCCESS，原P2线程resolved/outdated；指定App对该head的APPROVED不存在，不能把独立agent PASS等同指定身份批准。\n\n## 记录与边界\n\n收口记录如实open，六个验证返工任务保持todo。真实保留待办的记录可以合入；本轮PASS不把它们改clean/landed，也不证明后续产品功能已完成。文档证据区分历史代码hash和独立复验hash，没有以旧绿色测试替代新提交检查。PR中未修改M1-T6/M1-T9素材或门禁配置。\n\n## 修复后SHA-256（本轮Windows工作树字节）\n\n- src/lib/client/api.ts: 3a68214846e8a4310c7504c410af2379af16684679cc600d2682749210dcf6f5\n- src/lib/client/api-errors.ts: 6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65\n- src/lib/server/jobs/lease-repo.ts: f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83\n- tests/client-api-foundation.http.test.ts: dddf0736495447ad1ca2812e719ffadc04502001242142db49fdebee11ff09c1\n- tests/job-leases.db.test.ts: 29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0\n\n原始失败版报告另存 security-407-pre-fix.md，保留因果证据。\n",
+    "humanAuthorization": "Direct answer to explicit PR407 administrator-exception request: create a new security-review subagent and merge if no issue; repository gate configuration remains unchanged",
+    "httpSuite": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "red": {
+      "pass": 0,
+      "fail": 1
+    },
+    "focusedGreen": {
+      "pass": 9,
+      "fail": 0,
+      "skip": 0
+    },
+    "lint": "pass",
+    "typecheck": "pass",
+    "judgment": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(medium 0.58) spec_change=no(0.07) outside_stack=no(0.06) needs_owner=no(0.05) reversible=yes(0.88) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.58,
+          "band": "medium",
+          "probabilities": {
+            "A": 0.72,
+            "B": 0.26,
+            "C": 0.02
+          }
+        },
+        "spec_change": {
+          "p": 0.07,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.06,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.05,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.88,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "medium",
+          "why": "Jev 选 A（medium）"
+        }
+      },
+      "state": {
+        "requirement": "PR407 may merge under the human's authorized administrator exception only after a new independent security agent finds no issue. M1-T8 requires caller cancellation/unmount to remain silent and take priority over a received error/oversize result.",
+        "task": {
+          "title": "Fix caller-cancellation race after real HTTP401 headers with declared oversized body",
+          "accept": "True localhostHTTP regression fails before repair and passes afterward: caller abort immediately after actual fetch returns headers, response Content-Length beyond4MiB, final action silent/text empty/one attempt/no replay. Existing non-cancelled admin oversized401 still login; request-side oversized admin remains stop with zero sends."
+        },
+        "conflict": "Independent security reviewer reproduced realHTTP401 with Content-Length>4MiB. Caller AbortController aborts between awaited transport response and capped body processing. readCapped handles body cancellation internally and returns kindoversize; normal return path then maps login despite options.signal.aborted=true. Existing catch path checks cancellation but normal return path does not. All other reviewed security checks passed; this is the only remaining reproduced security defect.",
+        "options": {
+          "A": "After readCapped returns, finish attempt and count the send, then recheck the caller's AbortSignal before interpreting oversize/DTO/status; if aborted return the existing cancelled adapter result. Add owning real HTTP race regression and preserve all existing transport/retry policies.",
+          "B": "Thread caller AbortSignal through readCapped and make capped-body early-return paths reject cancellation; update its internal call contract and exercise all body-reader branches.",
+          "C": "Leave PR407 unmerged with a new repair task and wait for another implementation session rather than apply a bounded cancellation guard."
+        }
+      }
+    },
+    "logHashes": {
+      "security407-cancel-direct-regressions.log": "6429870c716449c9edf079feb127f8a23d3871d8597eb1f3a6c5d03be801540b",
+      "security407-cancel-green.log": "7fadd172b5cfbf623bd8a4ab187fc2214ca2ab1ff9f38df226405df6f83fa6ad",
+      "security407-cancel-headers-fixed.log": "7dca2bd3f698530faae1c6e5a71a4ebedcb1f2315cf775f96ad696ef5b51f62d",
+      "security407-cancel-headers-probe.log": "5117eb1a5d603dceafa81a428c4e7431a1f0bf41c1b3950946060eca76244464",
+      "security407-cancel-red.log": "a1113b5c20fe07d9381a2780df2c168d0244fcf0aaab3f4ab2c724adc91a6830",
+      "security407-http.log": "dbd7bd76dbc32d8266802d325eeb74e02fc7f726f0e931179d9ffc204f0953e5",
+      "security407-http44.log": "dfa0bb1285d457626f3928684869b33041d2b08b126c02f1430c5c64ea4416a5",
+      "security407-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "security407-pg.log": "184a6f35c609b27ba04737a516b51028218bcf870b1620cddf7ebf4c953fb7f9",
+      "security407-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sourceHashes": {
+      "src/lib/client/api.ts": "3a68214846e8a4310c7504c410af2379af16684679cc600d2682749210dcf6f5",
+      "src/lib/client/api-errors.ts": "6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65",
+      "tests/client-api-foundation.http.test.ts": "dddf0736495447ad1ca2812e719ffadc04502001242142db49fdebee11ff09c1",
+      "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+      "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0"
+    }
+  }
+}

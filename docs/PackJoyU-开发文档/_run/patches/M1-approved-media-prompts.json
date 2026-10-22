@@ -83,7 +83,13 @@
     "M7-T6",
     "M7-T7",
     "M7-T8",
-    "M7-T9"
+    "M7-T9",
+    "R3-T09233008",
+    "R3-T21757567",
+    "R3-T22883505",
+    "R3-T71889698",
+    "R3-T87287564",
+    "R3-T92231765"
   ],
   "baseline": {
     "contracts": {
@@ -51394,6 +51400,758 @@
         ],
         "hash": "0bd04aaf6747977d3a2540c558e1dea65d6744e18bf1bb4f9727bf11f6c19511"
       }
+    },
+    "R3-T09233008": {
+      "after": {
+        "context": {
+          "architecture": {
+            "backend": {
+              "config": "server/config.ts首次Node运行组合时集中读env、Zod验证并冻结，沿instrumentation.ts与startup/env-check.ts生产检查；测试显式传配置；环境改动需重启，站点时区从版本化SiteSetting按同一revision读取；禁止业务散读新增env、构建内联秘密或静默热改安全策略。",
+              "data": "复用db.ts唯一PrismaClient；新查询集中模块repo，锁/聚合用Prisma.sql参数化，禁止service拼SQL及拼接queryRawUnsafe；每实例connection_limit=5、pool_timeout=10s，总连接不超过数据库可用额度；schema只经现有deploy.sh备份/diff/plan-check/db push/零drift，禁止accept-data-loss、删改旧列或把prisma/sql参考计划当已执行迁移。",
+              "di": "不加DI库；server/composition.ts组装createService({repo,config,clock,tokenCrypto,mailer})供route使用；仅Prisma、冻结配置与无请求状态服务可为进程级对象；禁止全局当前用户/恢复凭据/消息/计数和以Map代替跨实例事实；依赖测试显式注入。",
+              "errors": "新AppError仅含受控code/fieldErrors，service抛领域错误，repo只转已识别唯一冲突；仅server/http/errors.ts映射新HTTP，未知错误脱敏记录；Auth.js CredentialsSignin、旧{error}/邮件状态/rum空体保持协议；禁止全库换信封或外泄Prisma/SMTP原始异常。",
+              "jobs": "jobs/registry.ts固定注册聊天通知、5min分析聚合、分析/聊天保留、运维采样及既有mail-queue包装，deploy/cron.nbshiyan真实调度；复用service/repo，持久租约+代次、batch≤500、截止55s；ChatNotification与消息同事务，SMTP事务外且稳定Message-ID/至少一次有界重试；禁止setInterval、after承担持久交付、看板GET跑作业或只写接口不接调度。",
+              "layers": "新路径route→service→repo单向；route收发HTTP和调用守卫，service管业务/事务，repo接显式Prisma依赖执行查询；M6只读M4/M5查询，禁止repo反调service、service返回NextResponse、客户端导入server、统计或聊天反调看板；未改旧路径不强制重分层。",
+              "layout": "src/app/api/**/route.ts保留路由、src/auth.ts保留Auth.js组合；src/lib/server/admin/{device-session,action-grant,recovery}.ts属M3，chat/属M4，analytics/属M5，ops/属M6，jobs/放固定作业；src/lib/contracts/放新契约，prisma/schema.prisma仍是数据源；禁止另建应用或迁移无关旧模块。",
+              "middleware": "后台新入口按requestId/脱敏计时→requireAdmin(当前User/sv/sid/角色)→写操作精确同源→await限流→限体/Zod strict→service→HTTP错误映射；公开聊天先同源/限流再cookie范围校验，恢复先限流再凭据，cron仅Bearer；既有邮件gate仍最先；禁止仅靠layout鉴权、漏await、日志含验证码/token/正文/email。",
+              "tx": "仅service或顶层use-case开事务，嵌套调用复用tx，禁止事务内SMTP/HTTP/文件IO与嵌套事务；一次性凭据核销+动作、恢复核销+sv/设备撤销+受限session、消息+seq+出箱均原子；敏感写最终重查账号/设备/授权；固定User→Device→Grant锁序，聚合整组原子替换并核作业代次，禁止先报成功再补关键写。",
+              "utils": "contracts及lib/chat/rules.ts、lib/analytics/rules.ts只放无IO的schema/枚举/纯转换；授权、同意准入、时钟、cookie、加密、存储与通知留server；禁止将带请求/状态的业务判断塞入utils或从纯模块读env。"
+            },
+            "shared": {
+              "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+              "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+              "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。",
+              "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。"
+            }
+          },
+          "definition": {
+            "outputPaths": [],
+            "supportPaths": [
+              "tests/prod-env-check.test.ts",
+              "tests/storage-local.test.ts",
+              "tests/storage.test.ts",
+              ".github/workflows/ci.yml"
+            ]
+          },
+          "design": null,
+          "edges": [],
+          "effectivePaths": [
+            ".github/workflows/ci.yml",
+            "tests/prod-env-check.test.ts",
+            "tests/storage-local.test.ts",
+            "tests/storage.test.ts"
+          ],
+          "handoff": {
+            "branchPrefix": "task/",
+            "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1从origin/main创建工作树后，若该远端基线尚无规格，先从已合并的本地main导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；已含规格时沿用该版本。其他任务等首PR落地后从origin/main创建。文档仅合并本地main，不假定origin已含；不依赖临时规格分支。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。",
+            "docsPath": "docs/PackJoyU-开发文档",
+            "mainBranch": "main",
+            "repo": "NBshiyan",
+            "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层"
+          },
+          "module": "M3",
+          "project": "PackJoyU 网站改版与运营能力升级",
+          "sections": {
+            "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
+            "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
+            "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
+            "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
+            "02-设计/08-后端架构.md": "6469262b1467cab742ca877ce020eb7f03cb6fdd661fb47d946344e13e43c6d1",
+            "02-设计/09-数据模型.md": "09a10b3c8f26ee7c14ee5a25dfa5df36f78e3dc7df01305c42d57351a0f6d334",
+            "02-设计/10-接口约定.md": "4f4daf0bbf47021c01b5c4f8c14441c48bf0bfc1f371999aff4b8ad47130fa0b",
+            "03-质量/14-安全与权限.md": "236bd6455958db631f8f2eea06ca94b98eeab803c4f97025a5100602976f3017",
+            "03-质量/15-性能与容量假设.md": "be07b6be670db5589febf3b639182812510601a0e2b7754e1af1129dc23027fc",
+            "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
+            "03-质量/17-测试策略.md": "a847b502aab295aab64aa33a9a2e19bee77d5c822d41b4faee1c258a494ce94e",
+            "04-执行/18-部署与运维.md": "3366d0c87d1c590bfedc0f558104d05747e5daad419b97b3f3391417c11521d1"
+          },
+          "skills": null,
+          "task": {
+            "accept": "1) Linux真实运行六项全部通过且拒绝不可写/根目录/public/.next/逃逸链接/覆盖。2) Windows前置能力明确验证并保留适用平台中性断言；不可用不能冒充通过。3) 保留生产路径与权限规则，不删除安全用例；完整运行记录区分pass/fail/skip。",
+            "currentSourceBatch": null,
+            "deps": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "edges": [],
+            "est": 1.5,
+            "id": "R3-T09233008",
+            "input": "最终全量6项失败：prod-env-check两处POSIX路径、三处symlink准备EPERM、storage mode0666不等于0600；安全待测分支没有都实际执行。",
+            "jev": "model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline",
+            "module": "M3",
+            "output": "适用平台验证分层与真实Linux安全证据",
+            "record": "batch-3-20261022",
+            "repair": true,
+            "severity": "S2",
+            "sourceBatch": 3,
+            "sourceBatchTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "sourceTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "stableKey": "baseline-posix-storage-harness",
+            "title": "在适用平台执行存储权限与符号链接安全验收"
+          }
+        },
+        "effectivePaths": [
+          ".github/workflows/ci.yml",
+          "tests/prod-env-check.test.ts",
+          "tests/storage-local.test.ts",
+          "tests/storage.test.ts"
+        ],
+        "hash": "c23e26d183030a11f5926116dae6dde3ad532aeb628607604913e2fc319ee104"
+      },
+      "before": null
+    },
+    "R3-T21757567": {
+      "after": {
+        "context": {
+          "architecture": {
+            "frontend": {
+              "api": "新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。",
+              "build": "沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。",
+              "env": "客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。",
+              "errors": "严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。",
+              "layout": "沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。",
+              "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中23个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
+              "state": "仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。",
+              "tier": "page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。",
+              "ui": "沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。",
+              "utils": "无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。"
+            },
+            "shared": {
+              "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+              "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+              "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。",
+              "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。"
+            }
+          },
+          "definition": {
+            "outputPaths": [],
+            "supportPaths": [
+              "tests/sanity-import.test.ts",
+              "docs/content/sanity-import/build.py",
+              "docs/content/sanity-import/linkmap.py"
+            ]
+          },
+          "design": {
+            "avoid": "目录dontList原样：\n\n- `Do not use any shadows shadow-*`\n- `Do not use gradients bg-gradient-*`\n- `Do not use colors with opacity below 0.5`\n- `Do not mix different border-radius values`\n- `Do not use gray text (unless intentional)`\n- `Do not use pattern backgrounds`\n\n项目执行：不使用阴影、渐变、玻璃模糊、花纹背景、低透明度禁用态、混合圆角或无意灰字；不使用hover位移/缩放、长于75ms的UI装饰过渡、全卡链接覆盖模型、重复底部介绍、首屏并发下载全部媒体。字标不变形、不描成另一套图形，参考站素材和PDF企业事实不直接移植。",
+            "components": "Button/Input桌面高36px、触屏44px；Button横padding12px，2px黑边、0圆角；focus为2px强调色+2px offset，黑底白outline。disabled用原生属性、虚线黑边、opacity1和原因。loading保留文字与尺寸；Table行40px；Dialog≤520px、焦点闭环/Escape/返回触发点。静态卡无整卡hover，模型/多动作卡只反馈实际控件。所有状态及统计0/无数据/未接入/失败/旧值/部分覆盖按11组件表；无颜色单独传义、无自动消失结果替代。",
+            "layout": "前台以“清楚标题 + 有边界的真实媒体/产品区 + 直接联系入口”组织，标题不压在动态画面上；后台以固定导航、紧凑标题/筛选和铺满可用宽度的工作区组织。全站4px基础刻度、2px实线、0圆角、0阴影；只有媒体自身有透视与3D，UI不借位移、缩放或渐变制造层次。",
+            "palette": "`background #ffffff`用于页面、表单和模型工具条；`foreground #000000`用于正文与数值；`border #000000`用于2px边界；`inverse #000000 / on-inverse #ffffff`用于主按钮及反色区；`accent #b45700 / on-accent #ffffff`用于当前入口、聚焦边界、错误/警示文字与明确操作反馈。强调色取自目录允许列表，不叠加第二色板。状态含义同时用文字、图形或边框样式表达，不靠颜色区分。正文不使用半透明黑；必要的次要层级用字号、字重和位置表达。",
+            "register": "brand",
+            "signature": "保留现用PackJoyU字标的形状和比例，以2px黑线框住大幅产品/媒体视口，交互通过黑白反转与#b45700边界提示完成；让包装轮廓和操作空间成为识别点，不重画字标、不做几何hover缩放。",
+            "spacing": {
+              "acceptance": "所有后台UI任务显式测D1–D6及overflow：1920×1080、1440×900、390×844；work fill≥.85，form fill≥.55且左边距≤gutter+24；gap≤24/pad≤20，无空网格轨道/横向大空白>15%/body横溢出。详11；主register=brand不能豁免后台。",
+              "adminProduct": "DENSITY7项目适配：所有屏幕gutter16/gap16/pad16；row40/control36，触屏44。work无max-width铺满；form左对齐minmax(0,800px)+320px旁栏，宽度不足折叠；card≤520px，rail224px。局部空/错/加载左上pad16，无撑高。",
+              "publicBrand": "桌面≥1024 gutter24/gap48/pad24，窄屏16/32/16；产品grid auto-fit minmax(min(100%,560px),1fr)，gap16，PC模型高clamp(360px,28vw,440px)，窄屏4:3且≥240px。"
+            },
+            "style": "`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。",
+            "tokens": ":root{--pj-bg:#ffffff;--pj-fg:#000000;--pj-border:#000000;--pj-inverse:#000000;--pj-on-inverse:#ffffff;--pj-accent:#b45700;--pj-on-accent:#ffffff;--pj-radius:0px;--pj-border-width:2px;--pj-shadow:none;--pj-opacity:1;--pj-space-unit:4px;--pj-admin-gutter:16px;--pj-admin-block-gap:16px;--pj-admin-card-pad:16px;--pj-admin-row-height:40px;--pj-admin-control-height:36px;--pj-touch-target:44px;--pj-feedback-duration:75ms;--pj-inversion-duration:0ms;}",
+            "type": "display/body/utility沿用项目现有Manrope的`--font-sans`（既有latin/cyrillic配置），后台未持有该变量时回退`Arial, Helvetica, sans-serif`；数值/时间使用`ui-monospace, SFMono-Regular, Consolas, monospace`，不新增下载字体。英文/俄文正文16px/24px、400；后台表格14px/20px、400，标签14px/20px、600，辅助文案14px/20px、400；按钮14px/20px、600。前台hero为桌面64px/68px、窄屏36px/40px、700；前台h1为48px/52px→32px/36px，h2为36px/40px→28px/32px，h3为24px/28px→20px/24px；后台h1固定28px/32px、700，h2固定20px/24px、700。标题tracking=-0.02em，正文tracking=0；俄语不强制大写、不截断必要标签，字体缺字时落系统栈。"
+          },
+          "edges": [],
+          "effectivePaths": [
+            "docs/content/sanity-import/build.py",
+            "docs/content/sanity-import/linkmap.py",
+            "tests/sanity-import.test.ts"
+          ],
+          "handoff": {
+            "branchPrefix": "task/",
+            "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1从origin/main创建工作树后，若该远端基线尚无规格，先从已合并的本地main导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；已含规格时沿用该版本。其他任务等首PR落地后从origin/main创建。文档仅合并本地main，不假定origin已含；不依赖临时规格分支。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。",
+            "docsPath": "docs/PackJoyU-开发文档",
+            "mainBranch": "main",
+            "repo": "NBshiyan",
+            "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层"
+          },
+          "module": "M1",
+          "project": "PackJoyU 网站改版与运营能力升级",
+          "sections": {
+            "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
+            "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
+            "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
+            "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
+            "02-设计/07-前端架构.md": "054d17e3e7a46347fa4f0a788d3ab282e73a51f558a74e378a4651ca8a6eed97",
+            "02-设计/09-数据模型.md": "09a10b3c8f26ee7c14ee5a25dfa5df36f78e3dc7df01305c42d57351a0f6d334",
+            "02-设计/10-接口约定.md": "4f4daf0bbf47021c01b5c4f8c14441c48bf0bfc1f371999aff4b8ad47130fa0b",
+            "02-设计/11-UI.md": "15ca711d3a0b49bde7dad2dffc7cf67e5acaae5d6cee5c167e83c03d43cff458",
+            "02-设计/12-UX.md": "5f6931b80c05deab22656a8ea54c5ba58c29ea0da7a73cbb67901ada717a3aa1",
+            "03-质量/14-安全与权限.md": "236bd6455958db631f8f2eea06ca94b98eeab803c4f97025a5100602976f3017",
+            "03-质量/15-性能与容量假设.md": "be07b6be670db5589febf3b639182812510601a0e2b7754e1af1129dc23027fc",
+            "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
+            "03-质量/17-测试策略.md": "a847b502aab295aab64aa33a9a2e19bee77d5c822d41b4faee1c258a494ce94e",
+            "04-执行/18-部署与运维.md": "3366d0c87d1c590bfedc0f558104d05747e5daad419b97b3f3391417c11521d1"
+          },
+          "skills": null,
+          "task": {
+            "accept": "1) 真Windows/Linux各跑七项导入/placeholder/food-claim/links保护用例通过。2) 错误解释器仍明确失败并保留stderr；不删除保护断言或把9009当通过。3) 与已提交import.ndjson一致性在真实解释器验证。",
+            "currentSourceBatch": null,
+            "deps": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "edges": [],
+            "est": 0.5,
+            "id": "R3-T21757567",
+            "input": "最终全量7条sanity-import测试spawn python3命中WindowsApps别名退出9009；本机python.exe3.13.7实际可用，导入断言未执行。",
+            "jev": "model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline",
+            "module": "M1",
+            "output": "可配置Python测试运行入口及启动失败诊断",
+            "record": "batch-3-20261022",
+            "repair": true,
+            "severity": "S2",
+            "sourceBatch": 3,
+            "sourceBatchTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "sourceTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "stableKey": "baseline-python-runtime",
+            "title": "让内容导入用例使用实际Python并执行全部保护断言"
+          }
+        },
+        "effectivePaths": [
+          "docs/content/sanity-import/build.py",
+          "docs/content/sanity-import/linkmap.py",
+          "tests/sanity-import.test.ts"
+        ],
+        "hash": "fdd7bc2852afe4a3981df2c07d679f1594bfd966705e716a5807d489eeb715a2"
+      },
+      "before": null
+    },
+    "R3-T22883505": {
+      "after": {
+        "context": {
+          "architecture": {
+            "frontend": {
+              "api": "新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。",
+              "build": "沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。",
+              "env": "客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。",
+              "errors": "严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。",
+              "layout": "沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。",
+              "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中23个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
+              "state": "仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。",
+              "tier": "page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。",
+              "ui": "沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。",
+              "utils": "无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。"
+            },
+            "shared": {
+              "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+              "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+              "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。",
+              "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。"
+            }
+          },
+          "definition": {
+            "outputPaths": [],
+            "supportPaths": [
+              ".github/workflows/ci.yml",
+              "playwright.config.ts",
+              "e2e/brand-smoke.spec.ts",
+              "e2e/global-setup.ts",
+              "tests/standalone-start.test.ts",
+              "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md",
+              "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json"
+            ]
+          },
+          "design": {
+            "avoid": "目录dontList原样：\n\n- `Do not use any shadows shadow-*`\n- `Do not use gradients bg-gradient-*`\n- `Do not use colors with opacity below 0.5`\n- `Do not mix different border-radius values`\n- `Do not use gray text (unless intentional)`\n- `Do not use pattern backgrounds`\n\n项目执行：不使用阴影、渐变、玻璃模糊、花纹背景、低透明度禁用态、混合圆角或无意灰字；不使用hover位移/缩放、长于75ms的UI装饰过渡、全卡链接覆盖模型、重复底部介绍、首屏并发下载全部媒体。字标不变形、不描成另一套图形，参考站素材和PDF企业事实不直接移植。",
+            "components": "Button/Input桌面高36px、触屏44px；Button横padding12px，2px黑边、0圆角；focus为2px强调色+2px offset，黑底白outline。disabled用原生属性、虚线黑边、opacity1和原因。loading保留文字与尺寸；Table行40px；Dialog≤520px、焦点闭环/Escape/返回触发点。静态卡无整卡hover，模型/多动作卡只反馈实际控件。所有状态及统计0/无数据/未接入/失败/旧值/部分覆盖按11组件表；无颜色单独传义、无自动消失结果替代。",
+            "layout": "前台以“清楚标题 + 有边界的真实媒体/产品区 + 直接联系入口”组织，标题不压在动态画面上；后台以固定导航、紧凑标题/筛选和铺满可用宽度的工作区组织。全站4px基础刻度、2px实线、0圆角、0阴影；只有媒体自身有透视与3D，UI不借位移、缩放或渐变制造层次。",
+            "palette": "`background #ffffff`用于页面、表单和模型工具条；`foreground #000000`用于正文与数值；`border #000000`用于2px边界；`inverse #000000 / on-inverse #ffffff`用于主按钮及反色区；`accent #b45700 / on-accent #ffffff`用于当前入口、聚焦边界、错误/警示文字与明确操作反馈。强调色取自目录允许列表，不叠加第二色板。状态含义同时用文字、图形或边框样式表达，不靠颜色区分。正文不使用半透明黑；必要的次要层级用字号、字重和位置表达。",
+            "register": "brand",
+            "signature": "保留现用PackJoyU字标的形状和比例，以2px黑线框住大幅产品/媒体视口，交互通过黑白反转与#b45700边界提示完成；让包装轮廓和操作空间成为识别点，不重画字标、不做几何hover缩放。",
+            "spacing": {
+              "acceptance": "所有后台UI任务显式测D1–D6及overflow：1920×1080、1440×900、390×844；work fill≥.85，form fill≥.55且左边距≤gutter+24；gap≤24/pad≤20，无空网格轨道/横向大空白>15%/body横溢出。详11；主register=brand不能豁免后台。",
+              "adminProduct": "DENSITY7项目适配：所有屏幕gutter16/gap16/pad16；row40/control36，触屏44。work无max-width铺满；form左对齐minmax(0,800px)+320px旁栏，宽度不足折叠；card≤520px，rail224px。局部空/错/加载左上pad16，无撑高。",
+              "publicBrand": "桌面≥1024 gutter24/gap48/pad24，窄屏16/32/16；产品grid auto-fit minmax(min(100%,560px),1fr)，gap16，PC模型高clamp(360px,28vw,440px)，窄屏4:3且≥240px。"
+            },
+            "style": "`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。",
+            "tokens": ":root{--pj-bg:#ffffff;--pj-fg:#000000;--pj-border:#000000;--pj-inverse:#000000;--pj-on-inverse:#ffffff;--pj-accent:#b45700;--pj-on-accent:#ffffff;--pj-radius:0px;--pj-border-width:2px;--pj-shadow:none;--pj-opacity:1;--pj-space-unit:4px;--pj-admin-gutter:16px;--pj-admin-block-gap:16px;--pj-admin-card-pad:16px;--pj-admin-row-height:40px;--pj-admin-control-height:36px;--pj-touch-target:44px;--pj-feedback-duration:75ms;--pj-inversion-duration:0ms;}",
+            "type": "display/body/utility沿用项目现有Manrope的`--font-sans`（既有latin/cyrillic配置），后台未持有该变量时回退`Arial, Helvetica, sans-serif`；数值/时间使用`ui-monospace, SFMono-Regular, Consolas, monospace`，不新增下载字体。英文/俄文正文16px/24px、400；后台表格14px/20px、400，标签14px/20px、600，辅助文案14px/20px、400；按钮14px/20px、600。前台hero为桌面64px/68px、窄屏36px/40px、700；前台h1为48px/52px→32px/36px，h2为36px/40px→28px/32px，h3为24px/28px→20px/24px；后台h1固定28px/32px、700，h2固定20px/24px、700。标题tracking=-0.02em，正文tracking=0；俄语不强制大写、不截断必要标签，字体缺字时落系统栈。"
+          },
+          "edges": [],
+          "effectivePaths": [
+            ".github/workflows/ci.yml",
+            "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json",
+            "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md",
+            "e2e/brand-smoke.spec.ts",
+            "e2e/global-setup.ts",
+            "playwright.config.ts",
+            "tests/standalone-start.test.ts"
+          ],
+          "handoff": {
+            "branchPrefix": "task/",
+            "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1从origin/main创建工作树后，若该远端基线尚无规格，先从已合并的本地main导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；已含规格时沿用该版本。其他任务等首PR落地后从origin/main创建。文档仅合并本地main，不假定origin已含；不依赖临时规格分支。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。",
+            "docsPath": "docs/PackJoyU-开发文档",
+            "mainBranch": "main",
+            "repo": "NBshiyan",
+            "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层"
+          },
+          "module": "M1",
+          "project": "PackJoyU 网站改版与运营能力升级",
+          "sections": {
+            "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
+            "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
+            "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
+            "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
+            "02-设计/07-前端架构.md": "054d17e3e7a46347fa4f0a788d3ab282e73a51f558a74e378a4651ca8a6eed97",
+            "02-设计/09-数据模型.md": "09a10b3c8f26ee7c14ee5a25dfa5df36f78e3dc7df01305c42d57351a0f6d334",
+            "02-设计/10-接口约定.md": "4f4daf0bbf47021c01b5c4f8c14441c48bf0bfc1f371999aff4b8ad47130fa0b",
+            "02-设计/11-UI.md": "15ca711d3a0b49bde7dad2dffc7cf67e5acaae5d6cee5c167e83c03d43cff458",
+            "02-设计/12-UX.md": "5f6931b80c05deab22656a8ea54c5ba58c29ea0da7a73cbb67901ada717a3aa1",
+            "03-质量/14-安全与权限.md": "236bd6455958db631f8f2eea06ca94b98eeab803c4f97025a5100602976f3017",
+            "03-质量/15-性能与容量假设.md": "be07b6be670db5589febf3b639182812510601a0e2b7754e1af1129dc23027fc",
+            "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
+            "03-质量/17-测试策略.md": "a847b502aab295aab64aa33a9a2e19bee77d5c822d41b4faee1c258a494ce94e",
+            "04-执行/18-部署与运维.md": "3366d0c87d1c590bfedc0f558104d05747e5daad419b97b3f3391417c11521d1"
+          },
+          "skills": null,
+          "task": {
+            "accept": "1) 精确head在Linux完成冻结安装/build，确有standalone/server.js，STANDALONE_TEST=1启动测试零环境skip。2) 真standalone+独立PG跑现有首页导航/目录/同意/RUM及已有后台路径，禁止应用API拦截或状态注入；保存trace/GIF和请求结果。3) 只对已实现的后台工作面在真实登录下跑1920x1080和1440x900 densityProbe；未实现的下游功能不得宣称完成，任何适用失败另登记返工，不降低17节标准。",
+            "currentSourceBatch": null,
+            "deps": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "edges": [],
+            "est": 1.5,
+            "id": "R3-T22883505",
+            "input": "两次Windowspnpm build在standalone复制symlink EPERM失败；只有已编译bundle经next start的真浏览器/CSS/API/RUM/GIF通过，不能冒充standalone。公开品牌产品页探索密度1920 D2/D6失败而1440通过，不是已登录后台验收。",
+            "jev": "model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline",
+            "module": "M1",
+            "output": "受支持Linux构建、真实standalone主冒烟、适用后台测量及证据记录",
+            "record": "batch-3-20261022",
+            "repair": true,
+            "severity": "S2",
+            "sourceBatch": 3,
+            "sourceBatchTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "sourceTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "stableKey": "supported-standalone-smoke",
+            "title": "补齐Linux独立产物与适用后台密度实证"
+          }
+        },
+        "effectivePaths": [
+          ".github/workflows/ci.yml",
+          "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json",
+          "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md",
+          "e2e/brand-smoke.spec.ts",
+          "e2e/global-setup.ts",
+          "playwright.config.ts",
+          "tests/standalone-start.test.ts"
+        ],
+        "hash": "86bc61eeb4ac3a4595c18d65897c660c1cbf6429a5914ae627e8dca5504c706d"
+      },
+      "before": null
+    },
+    "R3-T71889698": {
+      "after": {
+        "context": {
+          "architecture": {
+            "backend": {
+              "config": "server/config.ts首次Node运行组合时集中读env、Zod验证并冻结，沿instrumentation.ts与startup/env-check.ts生产检查；测试显式传配置；环境改动需重启，站点时区从版本化SiteSetting按同一revision读取；禁止业务散读新增env、构建内联秘密或静默热改安全策略。",
+              "data": "复用db.ts唯一PrismaClient；新查询集中模块repo，锁/聚合用Prisma.sql参数化，禁止service拼SQL及拼接queryRawUnsafe；每实例connection_limit=5、pool_timeout=10s，总连接不超过数据库可用额度；schema只经现有deploy.sh备份/diff/plan-check/db push/零drift，禁止accept-data-loss、删改旧列或把prisma/sql参考计划当已执行迁移。",
+              "di": "不加DI库；server/composition.ts组装createService({repo,config,clock,tokenCrypto,mailer})供route使用；仅Prisma、冻结配置与无请求状态服务可为进程级对象；禁止全局当前用户/恢复凭据/消息/计数和以Map代替跨实例事实；依赖测试显式注入。",
+              "errors": "新AppError仅含受控code/fieldErrors，service抛领域错误，repo只转已识别唯一冲突；仅server/http/errors.ts映射新HTTP，未知错误脱敏记录；Auth.js CredentialsSignin、旧{error}/邮件状态/rum空体保持协议；禁止全库换信封或外泄Prisma/SMTP原始异常。",
+              "jobs": "jobs/registry.ts固定注册聊天通知、5min分析聚合、分析/聊天保留、运维采样及既有mail-queue包装，deploy/cron.nbshiyan真实调度；复用service/repo，持久租约+代次、batch≤500、截止55s；ChatNotification与消息同事务，SMTP事务外且稳定Message-ID/至少一次有界重试；禁止setInterval、after承担持久交付、看板GET跑作业或只写接口不接调度。",
+              "layers": "新路径route→service→repo单向；route收发HTTP和调用守卫，service管业务/事务，repo接显式Prisma依赖执行查询；M6只读M4/M5查询，禁止repo反调service、service返回NextResponse、客户端导入server、统计或聊天反调看板；未改旧路径不强制重分层。",
+              "layout": "src/app/api/**/route.ts保留路由、src/auth.ts保留Auth.js组合；src/lib/server/admin/{device-session,action-grant,recovery}.ts属M3，chat/属M4，analytics/属M5，ops/属M6，jobs/放固定作业；src/lib/contracts/放新契约，prisma/schema.prisma仍是数据源；禁止另建应用或迁移无关旧模块。",
+              "middleware": "后台新入口按requestId/脱敏计时→requireAdmin(当前User/sv/sid/角色)→写操作精确同源→await限流→限体/Zod strict→service→HTTP错误映射；公开聊天先同源/限流再cookie范围校验，恢复先限流再凭据，cron仅Bearer；既有邮件gate仍最先；禁止仅靠layout鉴权、漏await、日志含验证码/token/正文/email。",
+              "tx": "仅service或顶层use-case开事务，嵌套调用复用tx，禁止事务内SMTP/HTTP/文件IO与嵌套事务；一次性凭据核销+动作、恢复核销+sv/设备撤销+受限session、消息+seq+出箱均原子；敏感写最终重查账号/设备/授权；固定User→Device→Grant锁序，聚合整组原子替换并核作业代次，禁止先报成功再补关键写。",
+              "utils": "contracts及lib/chat/rules.ts、lib/analytics/rules.ts只放无IO的schema/枚举/纯转换；授权、同意准入、时钟、cookie、加密、存储与通知留server；禁止将带请求/状态的业务判断塞入utils或从纯模块读env。"
+            },
+            "shared": {
+              "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+              "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+              "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。",
+              "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。"
+            }
+          },
+          "definition": {
+            "outputPaths": [],
+            "supportPaths": [
+              "tests/admin-reset-initial-password.db.test.ts",
+              "scripts/admin-reset-initial-password-lib.mjs"
+            ]
+          },
+          "design": null,
+          "edges": [],
+          "effectivePaths": [
+            "scripts/admin-reset-initial-password-lib.mjs",
+            "tests/admin-reset-initial-password.db.test.ts"
+          ],
+          "handoff": {
+            "branchPrefix": "task/",
+            "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1从origin/main创建工作树后，若该远端基线尚无规格，先从已合并的本地main导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；已含规格时沿用该版本。其他任务等首PR落地后从origin/main创建。文档仅合并本地main，不假定origin已含；不依赖临时规格分支。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。",
+            "docsPath": "docs/PackJoyU-开发文档",
+            "mainBranch": "main",
+            "repo": "NBshiyan",
+            "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层"
+          },
+          "module": "M3",
+          "project": "PackJoyU 网站改版与运营能力升级",
+          "sections": {
+            "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
+            "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
+            "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
+            "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
+            "02-设计/08-后端架构.md": "6469262b1467cab742ca877ce020eb7f03cb6fdd661fb47d946344e13e43c6d1",
+            "02-设计/09-数据模型.md": "09a10b3c8f26ee7c14ee5a25dfa5df36f78e3dc7df01305c42d57351a0f6d334",
+            "02-设计/10-接口约定.md": "4f4daf0bbf47021c01b5c4f8c14441c48bf0bfc1f371999aff4b8ad47130fa0b",
+            "03-质量/14-安全与权限.md": "236bd6455958db631f8f2eea06ca94b98eeab803c4f97025a5100602976f3017",
+            "03-质量/15-性能与容量假设.md": "be07b6be670db5589febf3b639182812510601a0e2b7754e1af1129dc23027fc",
+            "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
+            "03-质量/17-测试策略.md": "a847b502aab295aab64aa33a9a2e19bee77d5c822d41b4faee1c258a494ce94e",
+            "04-执行/18-部署与运维.md": "3366d0c87d1c590bfedc0f558104d05747e5daad419b97b3f3391417c11521d1"
+          },
+          "skills": null,
+          "task": {
+            "accept": "1) ADMIN_RESET_TEST_DATABASE_URL指向一次性PG17，三项数据库测试零环境skip全部通过。2) 并发重置串行、密码与sessionVersion正确；每次实际令牌签发恰有对应审计。3) 不删除生产auth.enroll_token_issued、不放宽为任意审计数；确认拒绝者不写审计。",
+            "currentSourceBatch": null,
+            "deps": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "edges": [],
+            "est": 0.5,
+            "id": "R3-T71889698",
+            "input": "真实独立PG17两项测试在tests/admin-reset-initial-password.db.test.ts:119/136失败；scripts/admin-reset-initial-password-lib.mjs:149-154明确还写auth.enroll_token_issued。",
+            "jev": "model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline",
+            "module": "M3",
+            "output": "与真实安全审计契约一致的数据库并发回归",
+            "record": "batch-3-20261022",
+            "repair": true,
+            "severity": "S2",
+            "sourceBatch": 3,
+            "sourceBatchTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "sourceTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "stableKey": "reset-audit-expectations",
+            "title": "保留令牌签发审计并修正重置并发测试预期"
+          }
+        },
+        "effectivePaths": [
+          "scripts/admin-reset-initial-password-lib.mjs",
+          "tests/admin-reset-initial-password.db.test.ts"
+        ],
+        "hash": "314dde429cade0194ffe77b17c16c4fcf2f6cb290f529a761b64cde558595b04"
+      },
+      "before": null
+    },
+    "R3-T87287564": {
+      "after": {
+        "context": {
+          "architecture": {
+            "frontend": {
+              "api": "新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。",
+              "build": "沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。",
+              "env": "客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。",
+              "errors": "严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。",
+              "layout": "沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。",
+              "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中23个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
+              "state": "仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。",
+              "tier": "page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。",
+              "ui": "沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。",
+              "utils": "无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。"
+            },
+            "shared": {
+              "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+              "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+              "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。",
+              "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。"
+            }
+          },
+          "definition": {
+            "outputPaths": [],
+            "supportPaths": [
+              "tests/lint-ru-yo.test.ts",
+              "tests/prod-mocks-strip.test.ts",
+              "scripts/lint-ru-yo.mjs"
+            ]
+          },
+          "design": {
+            "avoid": "目录dontList原样：\n\n- `Do not use any shadows shadow-*`\n- `Do not use gradients bg-gradient-*`\n- `Do not use colors with opacity below 0.5`\n- `Do not mix different border-radius values`\n- `Do not use gray text (unless intentional)`\n- `Do not use pattern backgrounds`\n\n项目执行：不使用阴影、渐变、玻璃模糊、花纹背景、低透明度禁用态、混合圆角或无意灰字；不使用hover位移/缩放、长于75ms的UI装饰过渡、全卡链接覆盖模型、重复底部介绍、首屏并发下载全部媒体。字标不变形、不描成另一套图形，参考站素材和PDF企业事实不直接移植。",
+            "components": "Button/Input桌面高36px、触屏44px；Button横padding12px，2px黑边、0圆角；focus为2px强调色+2px offset，黑底白outline。disabled用原生属性、虚线黑边、opacity1和原因。loading保留文字与尺寸；Table行40px；Dialog≤520px、焦点闭环/Escape/返回触发点。静态卡无整卡hover，模型/多动作卡只反馈实际控件。所有状态及统计0/无数据/未接入/失败/旧值/部分覆盖按11组件表；无颜色单独传义、无自动消失结果替代。",
+            "layout": "前台以“清楚标题 + 有边界的真实媒体/产品区 + 直接联系入口”组织，标题不压在动态画面上；后台以固定导航、紧凑标题/筛选和铺满可用宽度的工作区组织。全站4px基础刻度、2px实线、0圆角、0阴影；只有媒体自身有透视与3D，UI不借位移、缩放或渐变制造层次。",
+            "palette": "`background #ffffff`用于页面、表单和模型工具条；`foreground #000000`用于正文与数值；`border #000000`用于2px边界；`inverse #000000 / on-inverse #ffffff`用于主按钮及反色区；`accent #b45700 / on-accent #ffffff`用于当前入口、聚焦边界、错误/警示文字与明确操作反馈。强调色取自目录允许列表，不叠加第二色板。状态含义同时用文字、图形或边框样式表达，不靠颜色区分。正文不使用半透明黑；必要的次要层级用字号、字重和位置表达。",
+            "register": "brand",
+            "signature": "保留现用PackJoyU字标的形状和比例，以2px黑线框住大幅产品/媒体视口，交互通过黑白反转与#b45700边界提示完成；让包装轮廓和操作空间成为识别点，不重画字标、不做几何hover缩放。",
+            "spacing": {
+              "acceptance": "所有后台UI任务显式测D1–D6及overflow：1920×1080、1440×900、390×844；work fill≥.85，form fill≥.55且左边距≤gutter+24；gap≤24/pad≤20，无空网格轨道/横向大空白>15%/body横溢出。详11；主register=brand不能豁免后台。",
+              "adminProduct": "DENSITY7项目适配：所有屏幕gutter16/gap16/pad16；row40/control36，触屏44。work无max-width铺满；form左对齐minmax(0,800px)+320px旁栏，宽度不足折叠；card≤520px，rail224px。局部空/错/加载左上pad16，无撑高。",
+              "publicBrand": "桌面≥1024 gutter24/gap48/pad24，窄屏16/32/16；产品grid auto-fit minmax(min(100%,560px),1fr)，gap16，PC模型高clamp(360px,28vw,440px)，窄屏4:3且≥240px。"
+            },
+            "style": "`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。",
+            "tokens": ":root{--pj-bg:#ffffff;--pj-fg:#000000;--pj-border:#000000;--pj-inverse:#000000;--pj-on-inverse:#ffffff;--pj-accent:#b45700;--pj-on-accent:#ffffff;--pj-radius:0px;--pj-border-width:2px;--pj-shadow:none;--pj-opacity:1;--pj-space-unit:4px;--pj-admin-gutter:16px;--pj-admin-block-gap:16px;--pj-admin-card-pad:16px;--pj-admin-row-height:40px;--pj-admin-control-height:36px;--pj-touch-target:44px;--pj-feedback-duration:75ms;--pj-inversion-duration:0ms;}",
+            "type": "display/body/utility沿用项目现有Manrope的`--font-sans`（既有latin/cyrillic配置），后台未持有该变量时回退`Arial, Helvetica, sans-serif`；数值/时间使用`ui-monospace, SFMono-Regular, Consolas, monospace`，不新增下载字体。英文/俄文正文16px/24px、400；后台表格14px/20px、400，标签14px/20px、600，辅助文案14px/20px、400；按钮14px/20px、600。前台hero为桌面64px/68px、窄屏36px/40px、700；前台h1为48px/52px→32px/36px，h2为36px/40px→28px/32px，h3为24px/28px→20px/24px；后台h1固定28px/32px、700，h2固定20px/24px、700。标题tracking=-0.02em，正文tracking=0；俄语不强制大写、不截断必要标签，字体缺字时落系统栈。"
+          },
+          "edges": [],
+          "effectivePaths": [
+            "scripts/lint-ru-yo.mjs",
+            "tests/lint-ru-yo.test.ts",
+            "tests/prod-mocks-strip.test.ts"
+          ],
+          "handoff": {
+            "branchPrefix": "task/",
+            "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1从origin/main创建工作树后，若该远端基线尚无规格，先从已合并的本地main导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；已含规格时沿用该版本。其他任务等首PR落地后从origin/main创建。文档仅合并本地main，不假定origin已含；不依赖临时规格分支。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。",
+            "docsPath": "docs/PackJoyU-开发文档",
+            "mainBranch": "main",
+            "repo": "NBshiyan",
+            "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层"
+          },
+          "module": "M1",
+          "project": "PackJoyU 网站改版与运营能力升级",
+          "sections": {
+            "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
+            "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
+            "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
+            "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
+            "02-设计/07-前端架构.md": "054d17e3e7a46347fa4f0a788d3ab282e73a51f558a74e378a4651ca8a6eed97",
+            "02-设计/09-数据模型.md": "09a10b3c8f26ee7c14ee5a25dfa5df36f78e3dc7df01305c42d57351a0f6d334",
+            "02-设计/10-接口约定.md": "4f4daf0bbf47021c01b5c4f8c14441c48bf0bfc1f371999aff4b8ad47130fa0b",
+            "02-设计/11-UI.md": "15ca711d3a0b49bde7dad2dffc7cf67e5acaae5d6cee5c167e83c03d43cff458",
+            "02-设计/12-UX.md": "5f6931b80c05deab22656a8ea54c5ba58c29ea0da7a73cbb67901ada717a3aa1",
+            "03-质量/14-安全与权限.md": "236bd6455958db631f8f2eea06ca94b98eeab803c4f97025a5100602976f3017",
+            "03-质量/15-性能与容量假设.md": "be07b6be670db5589febf3b639182812510601a0e2b7754e1af1129dc23027fc",
+            "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
+            "03-质量/17-测试策略.md": "a847b502aab295aab64aa33a9a2e19bee77d5c822d41b4faee1c258a494ce94e",
+            "04-执行/18-部署与运维.md": "3366d0c87d1c590bfedc0f558104d05747e5daad419b97b3f3391417c11521d1"
+          },
+          "skills": null,
+          "task": {
+            "accept": "1) 实际Windows与Linux运行三条用例通过。2) 生产mock剔除、俄文校验与扫描覆盖保持，新增slash/backslash同文件身份及真实坏文件负例。3) 不通过缩小发现范围或改空列表过关。",
+            "currentSourceBatch": null,
+            "deps": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "edges": [],
+            "est": 1.0,
+            "id": "R3-T87287564",
+            "input": "最终全量3条失败：tests/lint-ru-yo.test.ts:39与tests/prod-mocks-strip.test.ts:24/47；仅内存规范反斜杠后断言通过。",
+            "jev": "model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline",
+            "module": "M1",
+            "output": "只读文件发现与测试身份比较适配",
+            "record": "batch-3-20261022",
+            "repair": true,
+            "severity": "S2",
+            "sourceBatch": 3,
+            "sourceBatchTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "sourceTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "stableKey": "baseline-path-harness",
+            "title": "统一文件身份比较以通过Windows路径负例"
+          }
+        },
+        "effectivePaths": [
+          "scripts/lint-ru-yo.mjs",
+          "tests/lint-ru-yo.test.ts",
+          "tests/prod-mocks-strip.test.ts"
+        ],
+        "hash": "37d45d601afa45bf8acb7f783b9e1aed6a404897b34be1546d625b6b0145b79c"
+      },
+      "before": null
+    },
+    "R3-T92231765": {
+      "after": {
+        "context": {
+          "architecture": {
+            "frontend": {
+              "api": "新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。",
+              "build": "沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。",
+              "env": "客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。",
+              "errors": "严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。",
+              "layout": "沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。",
+              "route": "Next15 App Router不变，src/lib/navigation/routes.ts集中23个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。",
+              "state": "仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。",
+              "tier": "page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。",
+              "ui": "沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。",
+              "utils": "无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。"
+            },
+            "shared": {
+              "env": "新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。",
+              "errors": "src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。",
+              "naming": "文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。",
+              "types": "新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。"
+            }
+          },
+          "definition": {
+            "outputPaths": [],
+            "supportPaths": [
+              ".gitattributes",
+              "tests/admin-enroll-hardening-347-348.test.ts",
+              "tests/admin-enroll-p1.test.ts",
+              "tests/admin-inquiry-history-331.test.ts",
+              "tests/admin-mail-states-74.test.ts",
+              "tests/admin-p3-350.test.ts",
+              "tests/article-og-route.test.ts",
+              "tests/home-entry-grid-308.test.ts",
+              "tests/locale-enum-values.test.ts",
+              "tests/mail-routes.test.ts",
+              "tests/site-settings-read-350.test.ts"
+            ]
+          },
+          "design": {
+            "avoid": "目录dontList原样：\n\n- `Do not use any shadows shadow-*`\n- `Do not use gradients bg-gradient-*`\n- `Do not use colors with opacity below 0.5`\n- `Do not mix different border-radius values`\n- `Do not use gray text (unless intentional)`\n- `Do not use pattern backgrounds`\n\n项目执行：不使用阴影、渐变、玻璃模糊、花纹背景、低透明度禁用态、混合圆角或无意灰字；不使用hover位移/缩放、长于75ms的UI装饰过渡、全卡链接覆盖模型、重复底部介绍、首屏并发下载全部媒体。字标不变形、不描成另一套图形，参考站素材和PDF企业事实不直接移植。",
+            "components": "Button/Input桌面高36px、触屏44px；Button横padding12px，2px黑边、0圆角；focus为2px强调色+2px offset，黑底白outline。disabled用原生属性、虚线黑边、opacity1和原因。loading保留文字与尺寸；Table行40px；Dialog≤520px、焦点闭环/Escape/返回触发点。静态卡无整卡hover，模型/多动作卡只反馈实际控件。所有状态及统计0/无数据/未接入/失败/旧值/部分覆盖按11组件表；无颜色单独传义、无自动消失结果替代。",
+            "layout": "前台以“清楚标题 + 有边界的真实媒体/产品区 + 直接联系入口”组织，标题不压在动态画面上；后台以固定导航、紧凑标题/筛选和铺满可用宽度的工作区组织。全站4px基础刻度、2px实线、0圆角、0阴影；只有媒体自身有透视与3D，UI不借位移、缩放或渐变制造层次。",
+            "palette": "`background #ffffff`用于页面、表单和模型工具条；`foreground #000000`用于正文与数值；`border #000000`用于2px边界；`inverse #000000 / on-inverse #ffffff`用于主按钮及反色区；`accent #b45700 / on-accent #ffffff`用于当前入口、聚焦边界、错误/警示文字与明确操作反馈。强调色取自目录允许列表，不叠加第二色板。状态含义同时用文字、图形或边框样式表达，不靠颜色区分。正文不使用半透明黑；必要的次要层级用字号、字重和位置表达。",
+            "register": "brand",
+            "signature": "保留现用PackJoyU字标的形状和比例，以2px黑线框住大幅产品/媒体视口，交互通过黑白反转与#b45700边界提示完成；让包装轮廓和操作空间成为识别点，不重画字标、不做几何hover缩放。",
+            "spacing": {
+              "acceptance": "所有后台UI任务显式测D1–D6及overflow：1920×1080、1440×900、390×844；work fill≥.85，form fill≥.55且左边距≤gutter+24；gap≤24/pad≤20，无空网格轨道/横向大空白>15%/body横溢出。详11；主register=brand不能豁免后台。",
+              "adminProduct": "DENSITY7项目适配：所有屏幕gutter16/gap16/pad16；row40/control36，触屏44。work无max-width铺满；form左对齐minmax(0,800px)+320px旁栏，宽度不足折叠；card≤520px，rail224px。局部空/错/加载左上pad16，无撑高。",
+              "publicBrand": "桌面≥1024 gutter24/gap48/pad24，窄屏16/32/16；产品grid auto-fit minmax(min(100%,560px),1fr)，gap16，PC模型高clamp(360px,28vw,440px)，窄屏4:3且≥240px。"
+            },
+            "style": "`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。",
+            "tokens": ":root{--pj-bg:#ffffff;--pj-fg:#000000;--pj-border:#000000;--pj-inverse:#000000;--pj-on-inverse:#ffffff;--pj-accent:#b45700;--pj-on-accent:#ffffff;--pj-radius:0px;--pj-border-width:2px;--pj-shadow:none;--pj-opacity:1;--pj-space-unit:4px;--pj-admin-gutter:16px;--pj-admin-block-gap:16px;--pj-admin-card-pad:16px;--pj-admin-row-height:40px;--pj-admin-control-height:36px;--pj-touch-target:44px;--pj-feedback-duration:75ms;--pj-inversion-duration:0ms;}",
+            "type": "display/body/utility沿用项目现有Manrope的`--font-sans`（既有latin/cyrillic配置），后台未持有该变量时回退`Arial, Helvetica, sans-serif`；数值/时间使用`ui-monospace, SFMono-Regular, Consolas, monospace`，不新增下载字体。英文/俄文正文16px/24px、400；后台表格14px/20px、400，标签14px/20px、600，辅助文案14px/20px、400；按钮14px/20px、600。前台hero为桌面64px/68px、窄屏36px/40px、700；前台h1为48px/52px→32px/36px，h2为36px/40px→28px/32px，h3为24px/28px→20px/24px；后台h1固定28px/32px、700，h2固定20px/24px、700。标题tracking=-0.02em，正文tracking=0；俄语不强制大写、不截断必要标签，字体缺字时落系统栈。"
+          },
+          "edges": [],
+          "effectivePaths": [
+            ".gitattributes",
+            "tests/admin-enroll-hardening-347-348.test.ts",
+            "tests/admin-enroll-p1.test.ts",
+            "tests/admin-inquiry-history-331.test.ts",
+            "tests/admin-mail-states-74.test.ts",
+            "tests/admin-p3-350.test.ts",
+            "tests/article-og-route.test.ts",
+            "tests/home-entry-grid-308.test.ts",
+            "tests/locale-enum-values.test.ts",
+            "tests/mail-routes.test.ts",
+            "tests/site-settings-read-350.test.ts"
+          ],
+          "handoff": {
+            "branchPrefix": "task/",
+            "conventions": "本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1从origin/main创建工作树后，若该远端基线尚无规格，先从已合并的本地main导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；已含规格时沿用该版本。其他任务等首PR落地后从origin/main创建。文档仅合并本地main，不假定origin已含；不依赖临时规格分支。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。",
+            "docsPath": "docs/PackJoyU-开发文档",
+            "mainBranch": "main",
+            "repo": "NBshiyan",
+            "stack": "TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层"
+          },
+          "module": "M1",
+          "project": "PackJoyU 网站改版与运营能力升级",
+          "sections": {
+            "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
+            "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
+            "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
+            "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
+            "02-设计/07-前端架构.md": "054d17e3e7a46347fa4f0a788d3ab282e73a51f558a74e378a4651ca8a6eed97",
+            "02-设计/09-数据模型.md": "09a10b3c8f26ee7c14ee5a25dfa5df36f78e3dc7df01305c42d57351a0f6d334",
+            "02-设计/10-接口约定.md": "4f4daf0bbf47021c01b5c4f8c14441c48bf0bfc1f371999aff4b8ad47130fa0b",
+            "02-设计/11-UI.md": "15ca711d3a0b49bde7dad2dffc7cf67e5acaae5d6cee5c167e83c03d43cff458",
+            "02-设计/12-UX.md": "5f6931b80c05deab22656a8ea54c5ba58c29ea0da7a73cbb67901ada717a3aa1",
+            "03-质量/14-安全与权限.md": "236bd6455958db631f8f2eea06ca94b98eeab803c4f97025a5100602976f3017",
+            "03-质量/15-性能与容量假设.md": "be07b6be670db5589febf3b639182812510601a0e2b7754e1af1129dc23027fc",
+            "03-质量/16-可观测性.md": "29ccdf00887dfe7397c73ad1eb8a14d73c7aea0011888f58587ba09efd561333",
+            "03-质量/17-测试策略.md": "a847b502aab295aab64aa33a9a2e19bee77d5c822d41b4faee1c258a494ce94e",
+            "04-执行/18-部署与运维.md": "3366d0c87d1c590bfedc0f558104d05747e5daad419b97b3f3391417c11521d1"
+          },
+          "skills": null,
+          "task": {
+            "accept": "1) 逐项复现11条失败并在受支持Windows/Linux检出验证通过。2) 保留SQL、后台guard、UI行为与所有安全断言；不删除断言或降低验收，不改生产行为迁就文本匹配。3) LF/CRLF输入与真实Bash调用均有因果回归。",
+            "currentSourceBatch": null,
+            "deps": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "edges": [],
+            "est": 1.0,
+            "id": "R3-T92231765",
+            "input": "最终全量运行11项因CRLF失败；10项源码断言仅在内存转LF后通过，deploy/smoke-lib.sh真Bash读取出现\\r语法错。证据见本记录evidence.json baselineTriage。",
+            "jev": "model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline",
+            "module": "M1",
+            "output": "换行策略或测试读取/执行适配及同场景回归",
+            "record": "batch-3-20261022",
+            "repair": true,
+            "severity": "S2",
+            "sourceBatch": 3,
+            "sourceBatchTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "sourceTasks": [
+              "M1-T8",
+              "M2-T4",
+              "M3-T14",
+              "M5-T1"
+            ],
+            "stableKey": "baseline-crlf-harness",
+            "title": "使源码断言与Shell验证在实际检出换行下可靠执行"
+          }
+        },
+        "effectivePaths": [
+          ".gitattributes",
+          "tests/admin-enroll-hardening-347-348.test.ts",
+          "tests/admin-enroll-p1.test.ts",
+          "tests/admin-inquiry-history-331.test.ts",
+          "tests/admin-mail-states-74.test.ts",
+          "tests/admin-p3-350.test.ts",
+          "tests/article-og-route.test.ts",
+          "tests/home-entry-grid-308.test.ts",
+          "tests/locale-enum-values.test.ts",
+          "tests/mail-routes.test.ts",
+          "tests/site-settings-read-350.test.ts"
+        ],
+        "hash": "9fb581aea902fcbfaba3ac6ea52ca8093a103e9a9d6fc812316f9257ca6c3b4b"
+      },
+      "before": null
     }
   },
   "created": "2026-10-21T15:33:27.833108+00:00",
@@ -51453,6 +52211,10 @@
     "05-附录/22-决策记录.md": {
       "after": "# 决策记录\n\n素材执行入口以04节当前已确认清单为准。下表保留形成决策时的原始依据；第6/22项涉及的场景制作已有确认成品，后续复用/核验这些新素材，不据历史“独立重绘/逐帧换标”措辞重新处理参考附件。公司可编辑工程、己方事实和真实渠道证据仍须实际交付。\n\n| # | 问题 | 评审 | 选定 | 理由 | 边界编号 | 隐含假设 | 置信 |\n|---|---|---|---|---|---|---|---|\n| 1 | 会话持久化与记住设备期限 | sound；none | 保留Auth.js；记住设备7天闲置/30天绝对上限 | 原文要求“管理后台登录没有持久化”得到解决，时长需求未覆盖，按可逆优先保留现有框架并增加明确的“记住此设备”选项，采用 7 天闲置、30 天绝对上限。 decision: sound=yes(0.73) covered=no(0.10) pick=A(high 1.00) irreversible=unsure(0.41) agree=yes | E-01、E-02、E-03、E-04 | 需求未指定持续时间，7/30 天作为本轮可修改策略；服务端允许校验账号凭证版本和设备会话撤销状态。 | medium |\n| 2 | C-03 验证器绑定与无密码默认开关 | flawed；B 跳过首次绑定与切换闭环，也删掉原文明确的个人信息开关，不构成有效的“不做”选项；TypeSafe 对题型判 sound=yes，与本审题不同，但同选 A，因此保留裁决并降为 medium。 | 本人验证后启用账号+验证器码；补个人信息页 | 原文明确“可默认使用 2fa 进行登录，无需填写密码”及“个人信息中去设置开关”，故做 C-03，以账号本人验证后启用的无密码验证器码登录完成该闭环。 decision: sound=yes(0.79) covered=unsure(0.38) pick=A(high 1.00) irreversible=unsure(0.54) agree=yes | E-05、E-06、E-07、E-08、E-09 | “默认”指账号本人启用后的默认方式，不替所有管理员强制启用；当前没有个人信息页，应将该页和开关作为本任务交付内容。 | medium |\n| 3 | C-04 验证器丢失与单管理员恢复 | incomplete；A 把尚未实证的完整找回/授权重置流程当成已有能力，也未解决单管理员与恢复码同时丢失；已将 D 加入真实判断，TypeSafe 低置信偏向 A 且 agree=NO，保留 D 并将置信降为 low。 | 采纳反提案：独立受限恢复；服务器所有者本地审计兜底 | 原文只要求“去除管理后台登录时需要的恢复码才能登录的逻辑”，没有授权删除异常恢复能力，故保留独立恢复并补齐首次或单管理员场景，未明确的落地细节按可恢复和可撤销优先。 decision: sound=yes(0.86) covered=no(0.14) pick=A(low 0.28) irreversible=yes(0.67) agree=NO | E-10、E-11、E-12、E-13、E-14、E-15 | 选错代价高：错误恢复路径会导致后台永久锁定或未经授权接管；本轮不把完整恢复流程视为既有事实，服务器所有者的操作系统管理权限作为无第二管理员时的最终运维授权边界。 | low |\n| 4 | 在线聊天实现路线 | sound；none | 现有Next.js/PostgreSQL内自研最小人工聊天 | 原文允许“寻找开源项目进行替代，或是我们自己自研开发”，未给扩容预算，按可逆优先在现有 Next.js/PostgreSQL 内交付最小人工会话、运营收件箱、回复和离线留言。 decision: sound=yes(0.87) covered=no(0.16) pick=B(high 1.00) irreversible=unsure(0.50) agree=yes | E-16、E-17、E-18、E-19、E-20 | 本轮需要人工沟通闭环，未要求坐席中心、AI 机器人、语音或完整第三方客服平台；复用既有询盘通知时先验证真实投递能力。 | medium |\n| 5 | 主页视频、JPG、GIF加载与控制 | flawed；B 将“一起展示”偷换为首屏同时加载并强制带声轮播，原文没有该要求，形成明显失衡的伪选择；TypeSafe 对题型判 sound=yes，与本审题不同但同选 A，故降为 medium。 | 静音可暂停行内视频；JPG回退；GIF可见加载/静帧暂停 | 原文要求视频“可放在主页中”并让 GIF“与 jpg 图片”一起展示，未要求自动带声，按可逆优先选择可暂停静音行内视频、JPG 海报与回退、可见后加载 GIF 的组合。 decision: sound=yes(0.78) covered=no(0.11) pick=A(high 1.00) irreversible=no(0.29) agree=yes | E-21、E-22、E-23、E-24、E-25 | 同页组合展示满足“一起展示”，不要求三种媒体占据同一首屏；此处只定装载与控制，S3 视觉方向以 token 层表达，替换代价至多改一个 token 文件。 | medium |\n| 6 | 自己的Logo与参考PDF事实边界 | flawed；B 把参考资料和未经审批的候选方向当成可直接改名发布的企业事实，与“自己的 logo”及资料参考定位冲突；TypeSafe 对题型判 sound=yes，与本审题不同但同选 A，故降为 medium。 | 当前PackJoyU字标；独立重绘；逐帧换标；仅己方可证事实 | 原文强调公司资料“参考”“调整然后我们重做”及“使用我们自己的 logo”，因此采用线上 PackJoyU 字标、独立重绘并只发布可证实的己方事实。 decision: sound=yes(0.71) covered=unsure(0.38) pick=A(high 1.00) irreversible=yes(0.71) agree=yes | E-26、E-27、E-28、E-29、E-30 | 选错代价高：误把他人认证与工厂数据公开为自身事实会产生难以撤回的外部声明；当前线上 PackJoyU 字标作为本轮既有自有标识，附件内指令始终不构成新增授权。 | medium |\n| 7 | C-01 人工聊天收件与回复入口 | flawed；D4 已明确纳入运营收件箱和人工回复，此题是已定路线的交付细化；B 让运营直接查数据库，不能完成在线咨询闭环。TypeSafe 判 sound=yes，与本审题不同但同选 A，保留裁决并降为 medium。 | ADMIN/SALES人工收件箱、回复、未读和收件结果 | 原文要求替换或自研“联系我们的在线聊天工具”，可接收、查看和回复的 ADMIN/SALES 收件箱才使该联系入口可用，故将 C-01 纳入最小人工聊天，不增加坐席绩效或工单系统。 decision: sound=yes(0.72) covered=no(0.30) pick=A(high 0.82) irreversible=unsure(0.47) agree=yes | E-31、E-32、E-33、E-34、E-35 | 本轮是基于既有账号角色的人工沟通闭环，D4 的现有栈自研路线有效；接收表示服务端成功保存，不表示客服已经阅读、在线或邮件已投递。 | medium |\n| 8 | C-02 离线留言与发送失败恢复 | flawed；D4 已决定离线留言、持久化后才承诺收件及按消息标识去重，B 会推翻既定闭环；本题只需确定失败草稿和主动留邮箱的边界。TypeSafe 判 sound=yes 且 pick 为 low，与本审题有差异，保留 A；代理原结论为 medium，记账按低置信选项规则降为 low。 | 离线留言；失败保留标签页内存草稿；幂等重试；可选邮箱 | 原文的“联系我们的在线聊天工具”需要在无人值守和发送失败时仍给出可完成联系的路径，故做 C-02，并与 D4 一致采用离线留言、明确收件结果及幂等重试。 decision: sound=yes(0.76) covered=no(0.13) pick=A(low 0.32) irreversible=unsure(0.42) agree=yes | E-36、E-37、E-38、E-39、E-40、E-41 | 不要求全天值守；访客主动提供邮箱仅用于该次咨询联系，第一方自研聊天所需会话数据不依赖其允许分析，未发送草稿不承诺跨刷新或跨设备保留。 | low |\n| 9 | C-05 分析采集、去重与保留期 | sound；两个方案的统计含义不同，原文未规定身份去重及保留期限，问题成立；TypeSafe 同选 A 但 pick 为 low，故由 medium 降为 low，并记录 irreversible=yes 的数据外传代价。 | 同意后第一方匿名浏览器/事件ID；原始30天/聚合13个月；授权访客口径 | 原文明确要“今日网站访问人数统计、访问 3d 产品统计”，故做 C-05 的事件采集与按日、产品归因，需求未覆盖去重和保留策略，按可逆优先采用授权后第一方匿名浏览器 ID、事件幂等、原始 30 天及聚合 13 个月，并标为“授权访客”。 decision: sound=yes(0.88) covered=no(0.08) pick=A(low 0.32) irreversible=yes(0.65) agree=yes | E-42、E-43、E-44、E-45、E-46、E-47、E-48 | 需求未给精确真人识别要求、分析口径或保留期，此处采用可配置的最小第一方分析；选错代价高：错误采集或外传的访问数据不能仅靠随后修改页面完全撤回，分析只在获同意后产生，聚合不含可回连个人的标识。 | low |\n| 10 | C-06 看板数据时间与异常状态 | sound；none | 最近成功数据时间；零/无数据/未接入/失败/旧值分开 | 原文既指出“管理后台数据看版无法查看”又要求添加“运维数据看板”，故做 C-06，以刷新时间、采集状态、空态、错误和旧值标识使运营能判断数据是否可用，不因先前候选 needed=no 而删除必要状态。 decision: sound=yes(0.77) covered=no(0.14) pick=A(high 0.86) irreversible=no(0.29) agree=yes | E-49、E-50、E-51、E-52、E-53、E-54 | 这是本轮业务看板自身的数据可用性说明，不引入全功能监控平台或虚构采集心跳；展示时间取真实成功查询或聚合完成结果。 | high |\n| 11 | 今日统计的站点时区与历史重算 | sound；none | 站点IANA时区初始UTC；自然日左闭右开；保留期内重算 | 原文的“今日网站访问人数统计”需要后台共同可解释的日界线，需求未覆盖企业时区，按可逆优先在站点设置配置 IANA 时区、初始 UTC 并在图表明示，统一按该时区统计。 decision: sound=yes(0.89) covered=no(0.05) pick=A(medium 0.74) irreversible=unsure(0.61) agree=yes | E-55、E-56、E-57、E-58、E-59、E-60 | UTC 只是未指定企业时区时的可修改初始值，用户系统的 America/Los_Angeles 不作为公司时区证据；修改不恢复已按保留策略清理的原始事件。 | medium |\n| 12 | 运维指标扩展及角色权限 | incomplete；本题合并了指标扩展范围与角色权限两个独立决定，且 B 完全排除补充指标，未充分体现“补充有用的内容”；仍可直接采用有真实来源和权限边界的 A。TypeSafe 判 sound=yes 且同选 A，但 pick 为 low，故由 medium 降为 low。 | 真实访问/3D/咨询/错误及邮件计数；可验证存储备份；服务端分权 | 原文明确允许“散发思考进行补充有用的内容”，故在授权访问和 3D 基础上纳入询盘、聊天、接口及邮件可靠性与真实存储备份状态，并按 ADMIN/SALES/EDITOR 分权，未指定的展示细节按可逆优先，不扩成全功能监控平台。 decision: sound=yes(0.84) covered=no(0.29) pick=A(low 0.42) irreversible=unsure(0.38) agree=yes | E-61、E-62、E-63、E-64、E-65、E-66、E-67 | 只补与本轮真实访问、咨询、服务可靠性有关的聚合，不增加虚构 SLA、收入、生产数据、全功能监控或未经授权的外部采购；辅助来源未接入可明确说明，但核心访问与 3D 统计必须本轮完成闭环。 | low |\n| 13 | 设备会话与Auth.js期限接合 | sound；两个方案都能实现既定期限，但凭据数量、续会话协议和兼容面不同，问题成立；TypeSafe 对审题为 unsure，未推翻其余事实或选择。 | 设备会话表+JWT sid；统一适配层裁JWT/cookie期限 | 原文要求解决“管理后台登录没有持久化”，D1 已保留 Auth.js 并确定设备期限；具体接合方式需求未覆盖，按可逆优先保留现有加密和 callback，在一个适配层统一裁定设备、JWT 与 cookie 期限。 decision: sound=unsure(0.37) covered=no(0.09) pick=A(high 0.86) irreversible=unsure(0.60) agree=yes | E-68、E-69、E-70、E-71 | 当前锁定的 Auth.js beta 能在适配层实现并验证按设备裁期；这是实施时须证明的接口契约，不把仅调整全局 maxAge 或 callback 返回值当作已满足期限。 | medium |\n| 14 | 敏感设置的新鲜本人验证 | sound；两个方案只改变敏感设置的新鲜验证强度，不改变既定日常无密码登录，问题成立。 | 现密码+未使用TOTP换5分钟单用途ActionGrant；日常无密码不变 | 原文允许在“个人信息中去设置开关”，该开关必须由本人安全变更；新鲜验证协议需求未覆盖，按可逆优先为敏感设置采用现密码及未使用 TOTP 换取短期一次性授权，保持日常账号加验证器码登录不填密码。 decision: sound=yes(0.74) covered=no(0.13) pick=A(high 0.80) irreversible=unsure(0.45) agree=yes | E-72、E-73、E-74、E-75 | 敏感动作清单包含密码、验证器绑定/解绑、无密码默认开关、恢复材料及设备安全设置；现密码仅用于这些动作的新鲜本人校验，不成为日常无密码登录的额外字段。首次绑定尚无 TOTP 时沿用既定首次绑定/独立恢复闭环，不要求不存在的验证码。 | medium |\n| 15 | 人工聊天同步机制 | sound；轮询与 SSE 的用户可见延迟和部署复杂度不同，问题成立；TypeSafe 对审题为 unsure，仍明确同选 A。 | 可见时3秒增量轮询；隐藏暂停；退避到30秒；seq补齐 | 原文要求的是“联系我们的在线聊天工具”，未要求毫秒级实时；同步机制需求未覆盖，按可逆优先采用现有 Next.js/PostgreSQL 内的增量短轮询，完成已定人工咨询闭环。 decision: sound=unsure(0.61) covered=no(0.11) pick=A(high 1.00) irreversible=no(0.32) agree=yes | E-76、E-77、E-78、E-79 | 数秒级人工消息延迟满足本轮在线咨询意图，原文没有即时推送或新消息 broker 的硬要求；游标协议与传输独立，未来换 SSE 仍保留相同补齐和权限规则。 | medium |\n| 16 | 分析聚合与水位发布 | sound；两个方案的争用、恢复和调度依赖不同，问题成立；TypeSafe 对审题为 unsure，同选 B 并标记 irreversible=yes，已记录选错代价。 | 原始事件幂等落库；每5分钟重算与事务替换；watermark及时区版本 | 原文要真实可查看的“今日网站访问人数统计、访问 3d 产品统计”，未要求逐秒更新；聚合延迟需求未覆盖，按可逆优先将幂等原始事件作为来源，以每 5 分钟可重复重算和事务替换实现一致、可恢复的看板。 decision: sound=unsure(0.49) covered=no(0.08) pick=B(high 1.00) irreversible=yes(0.69) agree=yes | E-80、E-81、E-82、E-83、E-84 | 五分钟是正常调度下的最大一个聚合周期，故障时依 D10 明示旧值而不承诺时效；D9 的原始 30 天/聚合 13 个月及 D11 的时区规则不变。选错代价高：错误聚合替换或日界线迁移会污染对外使用的数据口径，已按保留策略清除的原始事件无法仅靠重跑恢复。 | medium |\n| 17 | 聊天凭据及数据保留期限 | incomplete；必要凭据期限与消息/邮箱保留期是两个可独立调整的参数，题目把它们成对捆绑，粒度不完整；可以直接采用 B 的较小默认值。TypeSafe 判 sound=yes，与本审题不同但同选 B，保留裁决并由 medium 降为 low。 | 必要cookie7天闲置/30天绝对；新增聊天90天保留；实际生产清理另需授权 | 原文要求“在线聊天工具”，没有规定跨月凭据或长久保存咨询；期限需求未覆盖，按可逆优先为新增聊天采用 7 天闲置/30 天绝对的必要 cookie，以及最后咨询活动后 90 天的消息/主动邮箱保留策略，并把两项设为独立配置。 decision: sound=yes(0.70) covered=no(0.08) pick=B(high 0.94) irreversible=unsure(0.58) agree=yes | E-85、E-86、E-87、E-88、E-89 | 90 天是本轮新增聊天的可修改文档默认值，不是用户已明确要求的业务期限。选错代价高：实际清除后的咨询内容与邮箱不可逆，参数在启用清理前容易修改，清理后不能凭改回参数恢复；本轮不执行删除，也不代授生产、恢复或备份清理权限。 | low |\n| 18 | 聊天通知持久队列 | sound；专属出箱与扩展现有邮件状态机均可持久化通知，但兼容和 PII 耦合不同，问题成立；TypeSafe 判 sound=no，与本审题不同但同选 A，保留裁决并由 medium 降为 low。 | 专属ChatNotification出箱；复用SMTP；唯一messageId、租约和真实cron | 原文的“在线聊天工具”需要先可靠保存联系内容，未要求统一邮件工作台；队列结构需求未覆盖，按可逆优先新增 ChatNotification 专属出箱，复用 SMTP 适配器而避免扩大既有询盘邮件状态机。 decision: sound=no(0.32) covered=no(0.07) pick=A(high 1.00) irreversible=unsure(0.56) agree=yes | E-90、E-91、E-92、E-93、E-94 | 本轮仅需让运营获知新咨询，未要求把聊天通知加入现有邮件管理 UI；ChatNotification 的专属表、作业及审计范围可以独立演进，现有询盘邮件协议不变。 | low |\n| 19 | 官网与后台视觉方向 | sound；Jev低置信选择已采纳；原目录状态覆盖partial，采用项目状态规格补足 | minimalist-flat；前台brand、后台product/后台，共用唯一token文件 | 用户要求调整前端、对标同行并同步后台风格；真实目录3候选交Jev，原样line：design: pick=A(low 0.41) register=brand(high 0.85) stated=yes(0.85) token_only=unsure(0.46) adopt=take(A)；model=jev-1.13.0 | E-21–E-30 | 方向集中token；原目录备用CSS不直接整段注入，缺失状态显式补全；不设真人视觉闸门 | low |\n| 20 | PC内联3D输入控制 | sound；Jev对该局部商品展示语境给commerce低置信分类，不改变官网/后台寄存器或增加结算 | 视口内pointer-down直接捕获当前模型；悬停暂停自动旋转；默认滚轮仍滚页面；显式缩放与Escape退出 | 原话要求鼠标在模型上精准操控，选择直接内联操作；design: pick=A(high 0.80) register=commerce(low 0.39) stated=yes(0.92) token_only=no(0.04) adopt=take(A)；model=jev-1.13.0 | E-97–E-104 | 源码的悬停缩放与共用Canvas是复现输入，不宣称根因已证实；实现需旧版失败/新版通过的真实操控证据 | high |\n| 21 | 既有后台视觉迁移的任务归属 | sound；两种拆分均保留原业务，按领域可独立验收 | 新增5项旧后台视觉任务，最终交付依赖齐备 | 复查确认仅换外壳不能覆盖独立CSS/内联样式；adjudicate: pick=A(low 0.36) spec_change=unsure(0.52) outside_stack=no(0.09) needs_owner=no(0.09) reversible=yes(0.82) adopt=take(A)；model=jev-1.13.0 | E-106–E-110 | 只迁移既有视觉及回归，保持关闭gate与重定向，不新增业务/API；估时未实测 | low |\n| 22 | PDF公司图稿制作与网页集成的分工 | sound；保留所有事实/字标/入口要求，拆开软件产出与消费 | M1-T9制作图稿，M1-T5集成到首页公司摘要/about | 原要求有独立重绘，原任务只列文本；adjudicate: pick=A(low 0.26) spec_change=no(0.26) outside_stack=no(0.28) needs_owner=no(0.17) reversible=yes(0.73) adopt=take(A)；model=jev-1.13.0 | E-111 | 仅选网站所需1–2幅图，不重画整本25页、不虚构企业事实；没有实际图稿和软件源工程不能落地 | low |\n",
       "before": "# 决策记录\n\n| # | 问题 | 评审 | 选定 | 理由 | 边界编号 | 隐含假设 | 置信 |\n|---|---|---|---|---|---|---|---|\n| 1 | 会话持久化与记住设备期限 | sound；none | 保留Auth.js；记住设备7天闲置/30天绝对上限 | 原文要求“管理后台登录没有持久化”得到解决，时长需求未覆盖，按可逆优先保留现有框架并增加明确的“记住此设备”选项，采用 7 天闲置、30 天绝对上限。 decision: sound=yes(0.73) covered=no(0.10) pick=A(high 1.00) irreversible=unsure(0.41) agree=yes | E-01、E-02、E-03、E-04 | 需求未指定持续时间，7/30 天作为本轮可修改策略；服务端允许校验账号凭证版本和设备会话撤销状态。 | medium |\n| 2 | C-03 验证器绑定与无密码默认开关 | flawed；B 跳过首次绑定与切换闭环，也删掉原文明确的个人信息开关，不构成有效的“不做”选项；TypeSafe 对题型判 sound=yes，与本审题不同，但同选 A，因此保留裁决并降为 medium。 | 本人验证后启用账号+验证器码；补个人信息页 | 原文明确“可默认使用 2fa 进行登录，无需填写密码”及“个人信息中去设置开关”，故做 C-03，以账号本人验证后启用的无密码验证器码登录完成该闭环。 decision: sound=yes(0.79) covered=unsure(0.38) pick=A(high 1.00) irreversible=unsure(0.54) agree=yes | E-05、E-06、E-07、E-08、E-09 | “默认”指账号本人启用后的默认方式，不替所有管理员强制启用；当前没有个人信息页，应将该页和开关作为本任务交付内容。 | medium |\n| 3 | C-04 验证器丢失与单管理员恢复 | incomplete；A 把尚未实证的完整找回/授权重置流程当成已有能力，也未解决单管理员与恢复码同时丢失；已将 D 加入真实判断，TypeSafe 低置信偏向 A 且 agree=NO，保留 D 并将置信降为 low。 | 采纳反提案：独立受限恢复；服务器所有者本地审计兜底 | 原文只要求“去除管理后台登录时需要的恢复码才能登录的逻辑”，没有授权删除异常恢复能力，故保留独立恢复并补齐首次或单管理员场景，未明确的落地细节按可恢复和可撤销优先。 decision: sound=yes(0.86) covered=no(0.14) pick=A(low 0.28) irreversible=yes(0.67) agree=NO | E-10、E-11、E-12、E-13、E-14、E-15 | 选错代价高：错误恢复路径会导致后台永久锁定或未经授权接管；本轮不把完整恢复流程视为既有事实，服务器所有者的操作系统管理权限作为无第二管理员时的最终运维授权边界。 | low |\n| 4 | 在线聊天实现路线 | sound；none | 现有Next.js/PostgreSQL内自研最小人工聊天 | 原文允许“寻找开源项目进行替代，或是我们自己自研开发”，未给扩容预算，按可逆优先在现有 Next.js/PostgreSQL 内交付最小人工会话、运营收件箱、回复和离线留言。 decision: sound=yes(0.87) covered=no(0.16) pick=B(high 1.00) irreversible=unsure(0.50) agree=yes | E-16、E-17、E-18、E-19、E-20 | 本轮需要人工沟通闭环，未要求坐席中心、AI 机器人、语音或完整第三方客服平台；复用既有询盘通知时先验证真实投递能力。 | medium |\n| 5 | 主页视频、JPG、GIF加载与控制 | flawed；B 将“一起展示”偷换为首屏同时加载并强制带声轮播，原文没有该要求，形成明显失衡的伪选择；TypeSafe 对题型判 sound=yes，与本审题不同但同选 A，故降为 medium。 | 静音可暂停行内视频；JPG回退；GIF可见加载/静帧暂停 | 原文要求视频“可放在主页中”并让 GIF“与 jpg 图片”一起展示，未要求自动带声，按可逆优先选择可暂停静音行内视频、JPG 海报与回退、可见后加载 GIF 的组合。 decision: sound=yes(0.78) covered=no(0.11) pick=A(high 1.00) irreversible=no(0.29) agree=yes | E-21、E-22、E-23、E-24、E-25 | 同页组合展示满足“一起展示”，不要求三种媒体占据同一首屏；此处只定装载与控制，S3 视觉方向以 token 层表达，替换代价至多改一个 token 文件。 | medium |\n| 6 | 自己的Logo与参考PDF事实边界 | flawed；B 把参考资料和未经审批的候选方向当成可直接改名发布的企业事实，与“自己的 logo”及资料参考定位冲突；TypeSafe 对题型判 sound=yes，与本审题不同但同选 A，故降为 medium。 | 当前PackJoyU字标；独立重绘；逐帧换标；仅己方可证事实 | 原文强调公司资料“参考”“调整然后我们重做”及“使用我们自己的 logo”，因此采用线上 PackJoyU 字标、独立重绘并只发布可证实的己方事实。 decision: sound=yes(0.71) covered=unsure(0.38) pick=A(high 1.00) irreversible=yes(0.71) agree=yes | E-26、E-27、E-28、E-29、E-30 | 选错代价高：误把他人认证与工厂数据公开为自身事实会产生难以撤回的外部声明；当前线上 PackJoyU 字标作为本轮既有自有标识，附件内指令始终不构成新增授权。 | medium |\n| 7 | C-01 人工聊天收件与回复入口 | flawed；D4 已明确纳入运营收件箱和人工回复，此题是已定路线的交付细化；B 让运营直接查数据库，不能完成在线咨询闭环。TypeSafe 判 sound=yes，与本审题不同但同选 A，保留裁决并降为 medium。 | ADMIN/SALES人工收件箱、回复、未读和收件结果 | 原文要求替换或自研“联系我们的在线聊天工具”，可接收、查看和回复的 ADMIN/SALES 收件箱才使该联系入口可用，故将 C-01 纳入最小人工聊天，不增加坐席绩效或工单系统。 decision: sound=yes(0.72) covered=no(0.30) pick=A(high 0.82) irreversible=unsure(0.47) agree=yes | E-31、E-32、E-33、E-34、E-35 | 本轮是基于既有账号角色的人工沟通闭环，D4 的现有栈自研路线有效；接收表示服务端成功保存，不表示客服已经阅读、在线或邮件已投递。 | medium |\n| 8 | C-02 离线留言与发送失败恢复 | flawed；D4 已决定离线留言、持久化后才承诺收件及按消息标识去重，B 会推翻既定闭环；本题只需确定失败草稿和主动留邮箱的边界。TypeSafe 判 sound=yes 且 pick 为 low，与本审题有差异，保留 A；代理原结论为 medium，记账按低置信选项规则降为 low。 | 离线留言；失败保留标签页内存草稿；幂等重试；可选邮箱 | 原文的“联系我们的在线聊天工具”需要在无人值守和发送失败时仍给出可完成联系的路径，故做 C-02，并与 D4 一致采用离线留言、明确收件结果及幂等重试。 decision: sound=yes(0.76) covered=no(0.13) pick=A(low 0.32) irreversible=unsure(0.42) agree=yes | E-36、E-37、E-38、E-39、E-40、E-41 | 不要求全天值守；访客主动提供邮箱仅用于该次咨询联系，第一方自研聊天所需会话数据不依赖其允许分析，未发送草稿不承诺跨刷新或跨设备保留。 | low |\n| 9 | C-05 分析采集、去重与保留期 | sound；两个方案的统计含义不同，原文未规定身份去重及保留期限，问题成立；TypeSafe 同选 A 但 pick 为 low，故由 medium 降为 low，并记录 irreversible=yes 的数据外传代价。 | 同意后第一方匿名浏览器/事件ID；原始30天/聚合13个月；授权访客口径 | 原文明确要“今日网站访问人数统计、访问 3d 产品统计”，故做 C-05 的事件采集与按日、产品归因，需求未覆盖去重和保留策略，按可逆优先采用授权后第一方匿名浏览器 ID、事件幂等、原始 30 天及聚合 13 个月，并标为“授权访客”。 decision: sound=yes(0.88) covered=no(0.08) pick=A(low 0.32) irreversible=yes(0.65) agree=yes | E-42、E-43、E-44、E-45、E-46、E-47、E-48 | 需求未给精确真人识别要求、分析口径或保留期，此处采用可配置的最小第一方分析；选错代价高：错误采集或外传的访问数据不能仅靠随后修改页面完全撤回，分析只在获同意后产生，聚合不含可回连个人的标识。 | low |\n| 10 | C-06 看板数据时间与异常状态 | sound；none | 最近成功数据时间；零/无数据/未接入/失败/旧值分开 | 原文既指出“管理后台数据看版无法查看”又要求添加“运维数据看板”，故做 C-06，以刷新时间、采集状态、空态、错误和旧值标识使运营能判断数据是否可用，不因先前候选 needed=no 而删除必要状态。 decision: sound=yes(0.77) covered=no(0.14) pick=A(high 0.86) irreversible=no(0.29) agree=yes | E-49、E-50、E-51、E-52、E-53、E-54 | 这是本轮业务看板自身的数据可用性说明，不引入全功能监控平台或虚构采集心跳；展示时间取真实成功查询或聚合完成结果。 | high |\n| 11 | 今日统计的站点时区与历史重算 | sound；none | 站点IANA时区初始UTC；自然日左闭右开；保留期内重算 | 原文的“今日网站访问人数统计”需要后台共同可解释的日界线，需求未覆盖企业时区，按可逆优先在站点设置配置 IANA 时区、初始 UTC 并在图表明示，统一按该时区统计。 decision: sound=yes(0.89) covered=no(0.05) pick=A(medium 0.74) irreversible=unsure(0.61) agree=yes | E-55、E-56、E-57、E-58、E-59、E-60 | UTC 只是未指定企业时区时的可修改初始值，用户系统的 America/Los_Angeles 不作为公司时区证据；修改不恢复已按保留策略清理的原始事件。 | medium |\n| 12 | 运维指标扩展及角色权限 | incomplete；本题合并了指标扩展范围与角色权限两个独立决定，且 B 完全排除补充指标，未充分体现“补充有用的内容”；仍可直接采用有真实来源和权限边界的 A。TypeSafe 判 sound=yes 且同选 A，但 pick 为 low，故由 medium 降为 low。 | 真实访问/3D/咨询/错误及邮件计数；可验证存储备份；服务端分权 | 原文明确允许“散发思考进行补充有用的内容”，故在授权访问和 3D 基础上纳入询盘、聊天、接口及邮件可靠性与真实存储备份状态，并按 ADMIN/SALES/EDITOR 分权，未指定的展示细节按可逆优先，不扩成全功能监控平台。 decision: sound=yes(0.84) covered=no(0.29) pick=A(low 0.42) irreversible=unsure(0.38) agree=yes | E-61、E-62、E-63、E-64、E-65、E-66、E-67 | 只补与本轮真实访问、咨询、服务可靠性有关的聚合，不增加虚构 SLA、收入、生产数据、全功能监控或未经授权的外部采购；辅助来源未接入可明确说明，但核心访问与 3D 统计必须本轮完成闭环。 | low |\n| 13 | 设备会话与Auth.js期限接合 | sound；两个方案都能实现既定期限，但凭据数量、续会话协议和兼容面不同，问题成立；TypeSafe 对审题为 unsure，未推翻其余事实或选择。 | 设备会话表+JWT sid；统一适配层裁JWT/cookie期限 | 原文要求解决“管理后台登录没有持久化”，D1 已保留 Auth.js 并确定设备期限；具体接合方式需求未覆盖，按可逆优先保留现有加密和 callback，在一个适配层统一裁定设备、JWT 与 cookie 期限。 decision: sound=unsure(0.37) covered=no(0.09) pick=A(high 0.86) irreversible=unsure(0.60) agree=yes | E-68、E-69、E-70、E-71 | 当前锁定的 Auth.js beta 能在适配层实现并验证按设备裁期；这是实施时须证明的接口契约，不把仅调整全局 maxAge 或 callback 返回值当作已满足期限。 | medium |\n| 14 | 敏感设置的新鲜本人验证 | sound；两个方案只改变敏感设置的新鲜验证强度，不改变既定日常无密码登录，问题成立。 | 现密码+未使用TOTP换5分钟单用途ActionGrant；日常无密码不变 | 原文允许在“个人信息中去设置开关”，该开关必须由本人安全变更；新鲜验证协议需求未覆盖，按可逆优先为敏感设置采用现密码及未使用 TOTP 换取短期一次性授权，保持日常账号加验证器码登录不填密码。 decision: sound=yes(0.74) covered=no(0.13) pick=A(high 0.80) irreversible=unsure(0.45) agree=yes | E-72、E-73、E-74、E-75 | 敏感动作清单包含密码、验证器绑定/解绑、无密码默认开关、恢复材料及设备安全设置；现密码仅用于这些动作的新鲜本人校验，不成为日常无密码登录的额外字段。首次绑定尚无 TOTP 时沿用既定首次绑定/独立恢复闭环，不要求不存在的验证码。 | medium |\n| 15 | 人工聊天同步机制 | sound；轮询与 SSE 的用户可见延迟和部署复杂度不同，问题成立；TypeSafe 对审题为 unsure，仍明确同选 A。 | 可见时3秒增量轮询；隐藏暂停；退避到30秒；seq补齐 | 原文要求的是“联系我们的在线聊天工具”，未要求毫秒级实时；同步机制需求未覆盖，按可逆优先采用现有 Next.js/PostgreSQL 内的增量短轮询，完成已定人工咨询闭环。 decision: sound=unsure(0.61) covered=no(0.11) pick=A(high 1.00) irreversible=no(0.32) agree=yes | E-76、E-77、E-78、E-79 | 数秒级人工消息延迟满足本轮在线咨询意图，原文没有即时推送或新消息 broker 的硬要求；游标协议与传输独立，未来换 SSE 仍保留相同补齐和权限规则。 | medium |\n| 16 | 分析聚合与水位发布 | sound；两个方案的争用、恢复和调度依赖不同，问题成立；TypeSafe 对审题为 unsure，同选 B 并标记 irreversible=yes，已记录选错代价。 | 原始事件幂等落库；每5分钟重算与事务替换；watermark及时区版本 | 原文要真实可查看的“今日网站访问人数统计、访问 3d 产品统计”，未要求逐秒更新；聚合延迟需求未覆盖，按可逆优先将幂等原始事件作为来源，以每 5 分钟可重复重算和事务替换实现一致、可恢复的看板。 decision: sound=unsure(0.49) covered=no(0.08) pick=B(high 1.00) irreversible=yes(0.69) agree=yes | E-80、E-81、E-82、E-83、E-84 | 五分钟是正常调度下的最大一个聚合周期，故障时依 D10 明示旧值而不承诺时效；D9 的原始 30 天/聚合 13 个月及 D11 的时区规则不变。选错代价高：错误聚合替换或日界线迁移会污染对外使用的数据口径，已按保留策略清除的原始事件无法仅靠重跑恢复。 | medium |\n| 17 | 聊天凭据及数据保留期限 | incomplete；必要凭据期限与消息/邮箱保留期是两个可独立调整的参数，题目把它们成对捆绑，粒度不完整；可以直接采用 B 的较小默认值。TypeSafe 判 sound=yes，与本审题不同但同选 B，保留裁决并由 medium 降为 low。 | 必要cookie7天闲置/30天绝对；新增聊天90天保留；实际生产清理另需授权 | 原文要求“在线聊天工具”，没有规定跨月凭据或长久保存咨询；期限需求未覆盖，按可逆优先为新增聊天采用 7 天闲置/30 天绝对的必要 cookie，以及最后咨询活动后 90 天的消息/主动邮箱保留策略，并把两项设为独立配置。 decision: sound=yes(0.70) covered=no(0.08) pick=B(high 0.94) irreversible=unsure(0.58) agree=yes | E-85、E-86、E-87、E-88、E-89 | 90 天是本轮新增聊天的可修改文档默认值，不是用户已明确要求的业务期限。选错代价高：实际清除后的咨询内容与邮箱不可逆，参数在启用清理前容易修改，清理后不能凭改回参数恢复；本轮不执行删除，也不代授生产、恢复或备份清理权限。 | low |\n| 18 | 聊天通知持久队列 | sound；专属出箱与扩展现有邮件状态机均可持久化通知，但兼容和 PII 耦合不同，问题成立；TypeSafe 判 sound=no，与本审题不同但同选 A，保留裁决并由 medium 降为 low。 | 专属ChatNotification出箱；复用SMTP；唯一messageId、租约和真实cron | 原文的“在线聊天工具”需要先可靠保存联系内容，未要求统一邮件工作台；队列结构需求未覆盖，按可逆优先新增 ChatNotification 专属出箱，复用 SMTP 适配器而避免扩大既有询盘邮件状态机。 decision: sound=no(0.32) covered=no(0.07) pick=A(high 1.00) irreversible=unsure(0.56) agree=yes | E-90、E-91、E-92、E-93、E-94 | 本轮仅需让运营获知新咨询，未要求把聊天通知加入现有邮件管理 UI；ChatNotification 的专属表、作业及审计范围可以独立演进，现有询盘邮件协议不变。 | low |\n| 19 | 官网与后台视觉方向 | sound；Jev低置信选择已采纳；原目录状态覆盖partial，采用项目状态规格补足 | minimalist-flat；前台brand、后台product/后台，共用唯一token文件 | 用户要求调整前端、对标同行并同步后台风格；真实目录3候选交Jev，原样line：design: pick=A(low 0.41) register=brand(high 0.85) stated=yes(0.85) token_only=unsure(0.46) adopt=take(A)；model=jev-1.13.0 | E-21–E-30 | 方向集中token；原目录备用CSS不直接整段注入，缺失状态显式补全；不设真人视觉闸门 | low |\n| 20 | PC内联3D输入控制 | sound；Jev对该局部商品展示语境给commerce低置信分类，不改变官网/后台寄存器或增加结算 | 视口内pointer-down直接捕获当前模型；悬停暂停自动旋转；默认滚轮仍滚页面；显式缩放与Escape退出 | 原话要求鼠标在模型上精准操控，选择直接内联操作；design: pick=A(high 0.80) register=commerce(low 0.39) stated=yes(0.92) token_only=no(0.04) adopt=take(A)；model=jev-1.13.0 | E-97–E-104 | 源码的悬停缩放与共用Canvas是复现输入，不宣称根因已证实；实现需旧版失败/新版通过的真实操控证据 | high |\n| 21 | 既有后台视觉迁移的任务归属 | sound；两种拆分均保留原业务，按领域可独立验收 | 新增5项旧后台视觉任务，最终交付依赖齐备 | 复查确认仅换外壳不能覆盖独立CSS/内联样式；adjudicate: pick=A(low 0.36) spec_change=unsure(0.52) outside_stack=no(0.09) needs_owner=no(0.09) reversible=yes(0.82) adopt=take(A)；model=jev-1.13.0 | E-106–E-110 | 只迁移既有视觉及回归，保持关闭gate与重定向，不新增业务/API；估时未实测 | low |\n| 22 | PDF公司图稿制作与网页集成的分工 | sound；保留所有事实/字标/入口要求，拆开软件产出与消费 | M1-T9制作图稿，M1-T5集成到首页公司摘要/about | 原要求有独立重绘，原任务只列文本；adjudicate: pick=A(low 0.26) spec_change=no(0.26) outside_stack=no(0.28) needs_owner=no(0.17) reversible=yes(0.73) adopt=take(A)；model=jev-1.13.0 | E-111 | 仅选网站所需1–2幅图，不重画整本25页、不虚构企业事实；没有实际图稿和软件源工程不能落地 | low |\n"
+    },
+    "_run/batches/batch-3-20261022.md": {
+      "after": "---\nbatch: 3\ntasks: M1-T8, M2-T4, M3-T14, M5-T1\ndate: 2026-10-22\nverdict: open\ntests: fail\npr: https://github.com/dawanglaohu/NBshiyan/pull/407\nnote: 仅复核四任务；用户排除M1-T6/M1-T9；两处根因已修，验证遗留未清；不代表六任务整批收口或解锁。\nrepair_schema: 1\n---\n\n## 范围\n\n用户明确排除 M1-T6、M1-T9。本轮不重审其媒体、图稿、源工程、事实来源或制作过程，不修改两项原任务及状态。四项前置仅核直接接口。记录的 tasks 只列实际复核集合；现有交接台按完整任务集合匹配，本记录不把六任务整批标为已收口。原批次集合不变。\n\n## 交付了什么\n\nM1-T8 统一请求的取消、受控错误与有限重试；M2-T4 纯模型事件生命周期规则；M3-T14 配置、HTTP错误与脱敏计数原语；M5-T1 原子租约、代次与受事务约束的完成。两处原语缺陷已经修复。M2-T7、M3-T1、M5-T8负责后续真实浏览器事件、account响应计数与生产作业接线，本轮不提前宣称这些入口完成。\n\n## 逐任务复核\n\n|任务|验收与具体位置|\n|---|---|\n|M1-T8|src/lib/client/api.ts:163 每次尝试15秒/合并取消；:131方法路径重试策略；:299循环外载荷；:336正文失败仍留HTTP状态；api-errors.ts:108受控字段、:140后台401安全恢复。真实本地HTTP覆盖400/401/403/409/429/503、旧信封、断体、取消、限体、同key及一次性禁重放，41通过。|\n|M2-T4|src/lib/analytics/model-events.ts:134信号规则、:176注入单调时钟差、:195/:224共享schema、:311首终态固定、:375新view重试；tests/model-event-rules.test.ts:286纯度、:352真实TypeScript。模型+共享契约44通过，独立5040种输入顺序均通过，产品与导航关联保留，poster/FoldBox不产GLB success。|\n|M3-T14|src/lib/server/config.ts:81/:97集中Zod与必需配置；http/errors.ts:12/:85/:107状态、requestId、未知异常脱敏；metrics.ts:6固定routeId、:137设置日期、:148单SQL累加、:158 GREATEST防时间倒退；tests/admin-http-metrics.test.ts:231/:354/:413在本轮PG17实际通过。配置+计数17通过，实际HTTP跨原语23请求通过。|\n|M5-T1|prisma/schema.prisma:423 JobState；src/lib/server/jobs/lease-repo.ts:168条件领取、:180返回前时钟、:193事务续租、:225事务完成；tests/job-leases.db.test.ts:143并发/:167租约与旧代次/:215锁等待领取，以及后续业务回滚、设置revision/RR竞争。真实PG17共15通过，0跳过。|\n\n接缝：共享DTO/Zod由M1-T2唯一提供；HTTP mapper经真实Node HTTP由M1-T8解析21种AppError、旧401、未知500，23请求无自动重放与私密回显。计数与JobState无跨模块反向依赖、各自单SQL/外层事务约束保留。未发现M2纯规则的新增阻断。\n\n## 测试\n\n代码基线 main 47e97964，修复代码 68e10120、17de9c85。Node22.17.0/pnpm10.34.6；独立PostgreSQL17.9在本轮planning目录初始化，仅localhost54338/batch3，不读生产库。\n\n- 冻结安装通过；本机pnpm9不匹配后改用17节指定pnpm10，锁文件未修改。\n- 最终 pnpm test：1347 tests，1312 pass / 30 fail / 5 skipped。29条断言属于下述5组验证遗留；另1条JobState连接P1001在独立补跑通过（1 pass/0 skip），不作为租约产品缺陷。最初DB未创建的3项metric失败也已在完整库中补证通过。保留原始失败统计，未把补跑叠加成全量绿灯。\n- 原语组合65 pass/0 fail/0 skip；HTTP owning suite41通过；模型与共享契约44通过；JobState15通过。上述集合有重叠，不累加声称总数。\n- pnpm lint通过（既有warning），tsc --noEmit --incremental false通过；独立diff复核无新阻断；review.py为0 block/28 warn，vault --check通过。\n- Windows pnpm build两次在standalone符号链接EPERM失败；编译路由成功不算完整构建通过，STANDALONE_TEST产物验收仍未完成。\n- 真实编译bundle由next start启动，fresh浏览器点击首页→产品→联系，12卡、真/api/models 200、真实Accept all后/api/rum 204，CSS白底/黑字/16px/24px/2px边/0圆角/无阴影，页面脚本错误0；3帧GIF6.5秒，1200x750，65帧。此证据不是standalone及后续完整业务链验收。\n- stylekit严格类名检查inconclusive（CSS与运行时表达式），不报pass；实际computed style已核。公开品牌产品页探索densityProbe：1920×1080 D2/D6 fail，其余pass；1440×900全pass。此页不是本轮新增的已登录product工作面，不把它冒充后台密度验收，也不在本轮改其布局。\n- 安全摘要、逐项错误、文件/日志哈希、Jev实答与浏览器请求见同目录 batch-3-20261022.evidence.json。\n\n## 发现与修复\n\n- B1 [S2] M1-T8：后台HTTP401为HTML/空体/未知码/中断正文时只有stop，丢登录恢复。真实HTTP新增4例修前4失败，修后5例全过（含已知错误保护）；68e10120统一动作和固定双语文案。bad_credentials、recovery_expired、action_grant_invalid及访客行为保留。\n- B2 [S2] M5-T1：等待真实行锁后仍按等待前时间返回已过期leaseActive/acquired。新增回归修前失败，修后剩1ms/等号/过期1ms与下代次领取均过；17de9c85在SQL返回后重采有效时钟，过期busy，不额外释放行，不改fencing。\n\n## 遗留\n\n以下均有真实失败证据，保持open；验证问题不等同于已证明产品缺陷。当前只修四原语根因，不跨范围重写旧后台、导入、存储或生产安全审计。\n\n- N1 [S2] baseline-crlf-harness：11个源码/Bash断言的CRLF假设；tests/admin-enroll-hardening-347-348.test.ts:262等10个测试文件；仅内存转LF全部反事实通过。\n- N2 [S2] baseline-path-harness：3个文件身份/扫描断言以斜杠硬比较Windows路径；tests/lint-ru-yo.test.ts:39、prod-mocks-strip.test.ts:24/47。\n- N3 [S2] baseline-posix-storage-harness：6项POSIX路径/权限/符号链接在Windows前置不成立；tests/prod-env-check.test.ts:206/219/291、storage-local.test.ts:58/82、storage.test.ts:24。\n- N4 [S2] baseline-python-runtime：7项内容导入测试命中python3 WindowsApps别名，退出9009，保护断言未实际执行；tests/sanity-import.test.ts:14起。\n- N5 [S2] reset-audit-expectations：2项真实PG测试漏既有auth.enroll_token_issued审计；tests/admin-reset-initial-password.db.test.ts:119/136；不删除scripts/admin-reset-initial-password-lib.mjs:149的安全审计迁就测试。\n- N6 [S2] supported-standalone-smoke：Windows完整构建/standalone未通过，缺受支持Linux产物与适用已登录后台测量证据；playwright.config.ts:20、tests/standalone-start.test.ts:16、.github/workflows/ci.yml。\n\n## 自行裁决\n\n三次均为真实jev-1.14.0调用，原始需求、冲突及全部候选保存在证据；均spec_change=no/outside_stack=no/needs_owner=no/adopt=take(A)。\n\n1. 四项局部记录与401恢复：A限定修复且tasks只列四项；B同修但列六项、正文排除；C只登记不修。Jev A/high0.94；实际采用四项集合与68e10120，不宣称六任务整批解锁。\n2. 领取锁等待时钟：A返回后重采并拒绝过期；B改claim事务接口并锁后采时钟；C改DB时钟与注入路径。Jev A/high0.98；实际17de9c85与真PG回归。\n3. 验证遗留：A五组测试返工+独立产物/冒烟任务；B本轮大范围修测试；C先依LinuxCI减小待办但仍open。Jev A/high0.98；实际保持open，下面登记六项，不降低验收或扩大当前生产改动。\n\n## 返工任务\n\n```task\nstable-key: baseline-crlf-harness\ntitle: 使源码断言与Shell验证在实际检出换行下可靠执行\nmodule: M1\nsource-tasks: M1-T8, M2-T4, M3-T14, M5-T1\ndepends-on: M1-T8, M2-T4, M3-T14, M5-T1\ninput: 最终全量运行11项因CRLF失败；10项源码断言仅在内存转LF后通过，deploy/smoke-lib.sh真Bash读取出现\\r语法错。证据见本记录evidence.json baselineTriage。\noutput: 换行策略或测试读取/执行适配及同场景回归\nacceptance: 1) 逐项复现11条失败并在受支持Windows/Linux检出验证通过。2) 保留SQL、后台guard、UI行为与所有安全断言；不删除断言或降低验收，不改生产行为迁就文本匹配。3) LF/CRLF输入与真实Bash调用均有因果回归。\nedges: none\npaths: .gitattributes, tests/admin-enroll-hardening-347-348.test.ts, tests/admin-enroll-p1.test.ts, tests/admin-inquiry-history-331.test.ts, tests/admin-mail-states-74.test.ts, tests/admin-p3-350.test.ts, tests/article-og-route.test.ts, tests/home-entry-grid-308.test.ts, tests/locale-enum-values.test.ts, tests/mail-routes.test.ts, tests/site-settings-read-350.test.ts\nestimate: 1d\nseverity: S2\njev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline\n```\n\n```task\nstable-key: baseline-path-harness\ntitle: 统一文件身份比较以通过Windows路径负例\nmodule: M1\nsource-tasks: M1-T8, M2-T4, M3-T14, M5-T1\ndepends-on: M1-T8, M2-T4, M3-T14, M5-T1\ninput: 最终全量3条失败：tests/lint-ru-yo.test.ts:39与tests/prod-mocks-strip.test.ts:24/47；仅内存规范反斜杠后断言通过。\noutput: 只读文件发现与测试身份比较适配\nacceptance: 1) 实际Windows与Linux运行三条用例通过。2) 生产mock剔除、俄文校验与扫描覆盖保持，新增slash/backslash同文件身份及真实坏文件负例。3) 不通过缩小发现范围或改空列表过关。\nedges: none\npaths: tests/lint-ru-yo.test.ts, tests/prod-mocks-strip.test.ts, scripts/lint-ru-yo.mjs\nestimate: 1d\nseverity: S2\njev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline\n```\n\n```task\nstable-key: baseline-posix-storage-harness\ntitle: 在适用平台执行存储权限与符号链接安全验收\nmodule: M3\nsource-tasks: M1-T8, M2-T4, M3-T14, M5-T1\ndepends-on: M1-T8, M2-T4, M3-T14, M5-T1\ninput: 最终全量6项失败：prod-env-check两处POSIX路径、三处symlink准备EPERM、storage mode0666不等于0600；安全待测分支没有都实际执行。\noutput: 适用平台验证分层与真实Linux安全证据\nacceptance: 1) Linux真实运行六项全部通过且拒绝不可写/根目录/public/.next/逃逸链接/覆盖。2) Windows前置能力明确验证并保留适用平台中性断言；不可用不能冒充通过。3) 保留生产路径与权限规则，不删除安全用例；完整运行记录区分pass/fail/skip。\nedges: none\npaths: tests/prod-env-check.test.ts, tests/storage-local.test.ts, tests/storage.test.ts, .github/workflows/ci.yml\nestimate: 1.5d\nseverity: S2\njev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline\n```\n\n```task\nstable-key: baseline-python-runtime\ntitle: 让内容导入用例使用实际Python并执行全部保护断言\nmodule: M1\nsource-tasks: M1-T8, M2-T4, M3-T14, M5-T1\ndepends-on: M1-T8, M2-T4, M3-T14, M5-T1\ninput: 最终全量7条sanity-import测试spawn python3命中WindowsApps别名退出9009；本机python.exe3.13.7实际可用，导入断言未执行。\noutput: 可配置Python测试运行入口及启动失败诊断\nacceptance: 1) 真Windows/Linux各跑七项导入/placeholder/food-claim/links保护用例通过。2) 错误解释器仍明确失败并保留stderr；不删除保护断言或把9009当通过。3) 与已提交import.ndjson一致性在真实解释器验证。\nedges: none\npaths: tests/sanity-import.test.ts, docs/content/sanity-import/build.py, docs/content/sanity-import/linkmap.py\nestimate: 0.5d\nseverity: S2\njev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline\n```\n\n```task\nstable-key: reset-audit-expectations\ntitle: 保留令牌签发审计并修正重置并发测试预期\nmodule: M3\nsource-tasks: M1-T8, M2-T4, M3-T14, M5-T1\ndepends-on: M1-T8, M2-T4, M3-T14, M5-T1\ninput: 真实独立PG17两项测试在tests/admin-reset-initial-password.db.test.ts:119/136失败；scripts/admin-reset-initial-password-lib.mjs:149-154明确还写auth.enroll_token_issued。\noutput: 与真实安全审计契约一致的数据库并发回归\nacceptance: 1) ADMIN_RESET_TEST_DATABASE_URL指向一次性PG17，三项数据库测试零环境skip全部通过。2) 并发重置串行、密码与sessionVersion正确；每次实际令牌签发恰有对应审计。3) 不删除生产auth.enroll_token_issued、不放宽为任意审计数；确认拒绝者不写审计。\nedges: none\npaths: tests/admin-reset-initial-password.db.test.ts, scripts/admin-reset-initial-password-lib.mjs\nestimate: 0.5d\nseverity: S2\njev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline\n```\n\n```task\nstable-key: supported-standalone-smoke\ntitle: 补齐Linux独立产物与适用后台密度实证\nmodule: M1\nsource-tasks: M1-T8, M2-T4, M3-T14, M5-T1\ndepends-on: M1-T8, M2-T4, M3-T14, M5-T1\ninput: 两次Windowspnpm build在standalone复制symlink EPERM失败；只有已编译bundle经next start的真浏览器/CSS/API/RUM/GIF通过，不能冒充standalone。公开品牌产品页探索密度1920 D2/D6失败而1440通过，不是已登录后台验收。\noutput: 受支持Linux构建、真实standalone主冒烟、适用后台测量及证据记录\nacceptance: 1) 精确head在Linux完成冻结安装/build，确有standalone/server.js，STANDALONE_TEST=1启动测试零环境skip。2) 真standalone+独立PG跑现有首页导航/目录/同意/RUM及已有后台路径，禁止应用API拦截或状态注入；保存trace/GIF和请求结果。3) 只对已实现的后台工作面在真实登录下跑1920x1080和1440x900 densityProbe；未实现的下游功能不得宣称完成，任何适用失败另登记返工，不降低17节标准。\nedges: none\npaths: .github/workflows/ci.yml, playwright.config.ts, e2e/brand-smoke.spec.ts, e2e/global-setup.ts, tests/standalone-start.test.ts, docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md, docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json\nestimate: 1.5d\nseverity: S2\njev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline\n```\n\n## 给下一批的提醒\n\n本轮只收四项，M1-T6/M1-T9的状态与交付未在本轮复核。两个缺陷修复可供复用；验证返工全部实际落地并重新收口后才能讨论clean/fixed。lease领取可能因等待而返回busy；调用方不得在acquired=false时执行。后台401未知正文使用统一登录恢复，不自行复制错误解析。\n\n\n## 独立审查与下批实施资格\n\n用户要求另派一名独立 agent 复核，审查无误后解锁下批。新审查员按当前四任务范围检查完整diff、契约、真实证据和远端线程，M1-T6/M1-T9仍排除。\n\n审查发现原修复遗漏超限401响应：Content-Length声明超过4MiB或实际chunked正文超过4MiB时，kind=oversize先落stop，丢失登录恢复。两项真实HTTP回归先红（0pass/2fail），再限定修复共享会话判断与分支顺序后转绿。请求侧超限的admin负例保持status未定义、action=stop、attempts=0且0HTTP；visitor及已知凭据错误语义保留。完整HTTP43pass/0fail/0skip，tsc和lint通过；审查员独立真HTTP探针及28项PG、48项规则检查通过，本轮代码审查PASS。Jev真实裁决model=jev-1.14.0，A/high1.00、adopt=take(A)：A只扩受控oversize401判断；B由transport统一改写超限非2xx错误表示；C保留为新返工。实际采A，不改transport/响应上限。\n\n整体收口完成仍FAIL/open，六项R3仍todo；独立agent PASS不等于指定GitHub安全App APPROVED。原head ddbed27a的Linux构建与e2e已过，不能挪作后续修复head的CI通过。\n\n下批资格另外核实，不把整批open等同于下批全锁：实际运行生成器原函数，文件态M1-T6=todo，其余第3批五项done，batch3Complete=false；现行闸门只在紧邻上一批全部落地时生效，因此M3-T1、M4-T15、M4-T8为todo且implLocked=false，M1-T4已done。四任务局部记录不匹配原六任务整批，matchingBatch3Records=0。M1-T6的todo不改、不伪造clean，不修改wrapupGate或skip配置。\n\n进一步在本工作树真实交接台静态服务中点击导航和第4批展开控件，确认这三个任务的实施按钮均visible=true、enabled=true；没有复制实施提示词、没有推进任务状态。当前文件态下批已READY，无需人工改gate。旧主检出或浏览器本地状态可能不同，打开本工作树的交接台核对；本轮未合并前不称主检出已同步。\n\n完整独立报告、真实UI/gate结果、候选与红绿日志哈希见同目录evidence.json的independentReviewFollowup。原全量30fail/5skip和前轮证据保留为历史实测，不用本轮43pass覆盖或冒称全量绿灯。\n\n\n## 管理员例外前的独立安全审查\n\n用户在明确知晓#407被指定App门禁阻断后，要求新子agent安全审查，无问题后合并。新的安全审查员发现唯一真实阻断：收到超限401响应头后、正文处理前caller已abort，正常readCapped返回仍可能触发login。owning真实HTTP回归修前0pass/1fail，新增正常读取返回后的caller取消检查后转绿；focused9/9、完整HTTP44/44、tsc/eslint通过。独立原探针复验为silent/空文案/1HTTP；非取消超限401仍login、请求侧超限仍0次发送，真实PG28项通过，无其他已复现安全阻断，最终SECURITY_PASS限所列源文件哈希。\n\nJev model=jev-1.14.0，A/medium0.58、adopt=take(A)：A读取返回后单点重查caller取消，B向readCapped透传signal并改内部契约，C留返工不合。本轮采A，不改transport/重试/响应上限/Auth.js。\n\n此安全PASS不伪装成packjoyu-security-reviewer[bot]批准。root仍须核最终head及CI；满足后仅按用户对此PR的管理员例外授权合并，不关闭仓库门禁，不把open/六返工改为clean或done。安全报告、原始裁决/红绿哈希和授权范围写入evidence.json的securityAudit。\n",
+      "before": null
     },
     "_run/presentation.json": {
       "after": "{\n  \"project\": \"PackJoyU 网站改版与运营能力升级\",\n  \"handoff\": {\n    \"repo\": \"NBshiyan\",\n    \"docsPath\": \"docs/PackJoyU-开发文档\",\n    \"mainBranch\": \"main\",\n    \"architecture\": {\n      \"shared\": {\n        \"errors\": \"src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。\",\n        \"env\": \"新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。\",\n        \"types\": \"新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。\",\n        \"naming\": \"文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。\"\n      },\n      \"backend\": {\n        \"layout\": \"src/app/api/**/route.ts保留路由、src/auth.ts保留Auth.js组合；src/lib/server/admin/{device-session,action-grant,recovery}.ts属M3，chat/属M4，analytics/属M5，ops/属M6，jobs/放固定作业；src/lib/contracts/放新契约，prisma/schema.prisma仍是数据源；禁止另建应用或迁移无关旧模块。\",\n        \"layers\": \"新路径route→service→repo单向；route收发HTTP和调用守卫，service管业务/事务，repo接显式Prisma依赖执行查询；M6只读M4/M5查询，禁止repo反调service、service返回NextResponse、客户端导入server、统计或聊天反调看板；未改旧路径不强制重分层。\",\n        \"data\": \"复用db.ts唯一PrismaClient；新查询集中模块repo，锁/聚合用Prisma.sql参数化，禁止service拼SQL及拼接queryRawUnsafe；每实例connection_limit=5、pool_timeout=10s，总连接不超过数据库可用额度；schema只经现有deploy.sh备份/diff/plan-check/db push/零drift，禁止accept-data-loss、删改旧列或把prisma/sql参考计划当已执行迁移。\",\n        \"middleware\": \"后台新入口按requestId/脱敏计时→requireAdmin(当前User/sv/sid/角色)→写操作精确同源→await限流→限体/Zod strict→service→HTTP错误映射；公开聊天先同源/限流再cookie范围校验，恢复先限流再凭据，cron仅Bearer；既有邮件gate仍最先；禁止仅靠layout鉴权、漏await、日志含验证码/token/正文/email。\",\n        \"tx\": \"仅service或顶层use-case开事务，嵌套调用复用tx，禁止事务内SMTP/HTTP/文件IO与嵌套事务；一次性凭据核销+动作、恢复核销+sv/设备撤销+受限session、消息+seq+出箱均原子；敏感写最终重查账号/设备/授权；固定User→Device→Grant锁序，聚合整组原子替换并核作业代次，禁止先报成功再补关键写。\",\n        \"utils\": \"contracts及lib/chat/rules.ts、lib/analytics/rules.ts只放无IO的schema/枚举/纯转换；授权、同意准入、时钟、cookie、加密、存储与通知留server；禁止将带请求/状态的业务判断塞入utils或从纯模块读env。\",\n        \"errors\": \"新AppError仅含受控code/fieldErrors，service抛领域错误，repo只转已识别唯一冲突；仅server/http/errors.ts映射新HTTP，未知错误脱敏记录；Auth.js CredentialsSignin、旧{error}/邮件状态/rum空体保持协议；禁止全库换信封或外泄Prisma/SMTP原始异常。\",\n        \"config\": \"server/config.ts首次Node运行组合时集中读env、Zod验证并冻结，沿instrumentation.ts与startup/env-check.ts生产检查；测试显式传配置；环境改动需重启，站点时区从版本化SiteSetting按同一revision读取；禁止业务散读新增env、构建内联秘密或静默热改安全策略。\",\n        \"di\": \"不加DI库；server/composition.ts组装createService({repo,config,clock,tokenCrypto,mailer})供route使用；仅Prisma、冻结配置与无请求状态服务可为进程级对象；禁止全局当前用户/恢复凭据/消息/计数和以Map代替跨实例事实；依赖测试显式注入。\",\n        \"jobs\": \"jobs/registry.ts固定注册聊天通知、5min分析聚合、分析/聊天保留、运维采样及既有mail-queue包装，deploy/cron.nbshiyan真实调度；复用service/repo，持久租约+代次、batch≤500、截止55s；ChatNotification与消息同事务，SMTP事务外且稳定Message-ID/至少一次有界重试；禁止setInterval、after承担持久交付、看板GET跑作业或只写接口不接调度。\"\n      },\n      \"frontend\": {\n        \"layout\": \"沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。\",\n        \"tier\": \"page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。\",\n        \"ui\": \"沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。\",\n        \"route\": \"Next15 App Router不变，src/lib/navigation/routes.ts集中23个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。\",\n        \"state\": \"仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。\",\n        \"api\": \"新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。\",\n        \"utils\": \"无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。\",\n        \"errors\": \"严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。\",\n        \"env\": \"客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。\",\n        \"build\": \"沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。\"\n      }\n    },\n    \"wiring\": {\n      \"backendRoutes\": [\n        \"src/auth.ts\",\n        \"src/app/api/auth/\",\n        \"src/app/api/auth-admin/\",\n        \"src/app/api/admin/account/\",\n        \"src/app/api/admin/users/\",\n        \"src/app/api/chat/\",\n        \"src/app/api/admin/chat/\",\n        \"src/app/api/analytics/\",\n        \"src/app/api/admin/settings/analytics/route.ts\",\n        \"src/app/api/admin/stats/route.ts\",\n        \"src/app/api/admin/cron/operations/route.ts\",\n        \"src/app/api/admin/cron/mail-queue/route.ts\",\n        \"src/app/api/internal/ops-report/route.ts\"\n      ],\n      \"container\": [\n        \"src/lib/server/composition.ts\",\n        \"src/lib/server/db.ts\",\n        \"src/auth.ts\"\n      ],\n      \"sharedTypes\": [\n        \"src/lib/contracts/index.ts\",\n        \"src/types/next-auth.d.ts\"\n      ],\n      \"eventKinds\": [\n        \"src/lib/contracts/analytics.ts\",\n        \"src/lib/contracts/chat.ts\"\n      ],\n      \"migrations\": [\n        \"prisma/schema.prisma\",\n        \"deploy/deploy.sh\"\n      ],\n      \"jobs\": [\n        \"src/lib/server/jobs/registry.ts\",\n        \"deploy/cron.nbshiyan\"\n      ],\n      \"buildPipeline\": [\n        \"package.json\",\n        \"next.config.ts\",\n        \"eslint.config.mjs\",\n        \"tsconfig.json\",\n        \"prod-env-check.ts\",\n        \"src/instrumentation.ts\",\n        \"src/styles/tokens.css\",\n        \"src/styles/motion-tokens.css\"\n      ],\n      \"frontendRoutes\": [\n        \"src/lib/navigation/routes.ts\",\n        \"src/i18n/routing.ts\",\n        \"src/i18n/navigation.ts\",\n        \"src/components/layout/SiteHeader.tsx\",\n        \"src/components/layout/SiteFooter.tsx\",\n        \"src/components/admin/AdminShell.tsx\",\n        \"src/app/\",\n        \"src/app/admin-login/\",\n        \"src/app/admin-enroll/\",\n        \"src/app/admin-recovery/\",\n        \"src/app/admin/account/\",\n        \"src/app/admin/chat/\",\n        \"src/app/admin/stats/\",\n        \"src/app/admin/settings/\",\n        \"src/app/admin/users/\"\n      ]\n    },\n    \"stack\": \"TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层\",\n    \"conventions\": \"本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1从origin/main创建工作树后，若该远端基线尚无规格，先从已合并的本地main导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；已含规格时沿用该版本。其他任务等首PR落地后从origin/main创建。文档仅合并本地main，不假定origin已含；不依赖临时规格分支。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。 “逐页”指本卡实际产出的页面或区域；增量任务仅验新增控件、布局和与现有页面的接缝，未迁移的旧内层不得称视觉通过。M3-T7验壳导航、外框、活动和退出；M3-T9验恢复授权区域；M5-T10验analytics分区。既有业务完整页由M3-T21至T25逐页验收，最终M7-T9汇总，完整GUI、D1–D6与overflow标准不减。\",\n    \"design\": {\n      \"register\": \"brand\",\n      \"style\": \"`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。\",\n      \"palette\": \"`background #ffffff`用于页面、表单和模型工具条；`foreground #000000`用于正文与数值；`border #000000`用于2px边界；`inverse #000000 / on-inverse #ffffff`用于主按钮及反色区；`accent #b45700 / on-accent #ffffff`用于当前入口、聚焦边界、错误/警示文字与明确操作反馈。强调色取自目录允许列表，不叠加第二色板。状态含义同时用文字、图形或边框样式表达，不靠颜色区分。正文不使用半透明黑；必要的次要层级用字号、字重和位置表达。\",\n      \"type\": \"display/body/utility沿用项目现有Manrope的`--font-sans`（既有latin/cyrillic配置），后台未持有该变量时回退`Arial, Helvetica, sans-serif`；数值/时间使用`ui-monospace, SFMono-Regular, Consolas, monospace`，不新增下载字体。英文/俄文正文16px/24px、400；后台表格14px/20px、400，标签14px/20px、600，辅助文案14px/20px、400；按钮14px/20px、600。前台hero为桌面64px/68px、窄屏36px/40px、700；前台h1为48px/52px→32px/36px，h2为36px/40px→28px/32px，h3为24px/28px→20px/24px；后台h1固定28px/32px、700，h2固定20px/24px、700。标题tracking=-0.02em，正文tracking=0；俄语不强制大写、不截断必要标签，字体缺字时落系统栈。\",\n      \"layout\": \"前台以“清楚标题 + 有边界的真实媒体/产品区 + 直接联系入口”组织，标题不压在动态画面上；后台以固定导航、紧凑标题/筛选和铺满可用宽度的工作区组织。全站4px基础刻度、2px实线、0圆角、0阴影；只有媒体自身有透视与3D，UI不借位移、缩放或渐变制造层次。\",\n      \"signature\": \"保留现用PackJoyU字标的形状和比例，以2px黑线框住大幅产品/媒体视口，交互通过黑白反转与#b45700边界提示完成；让包装轮廓和操作空间成为识别点，不重画字标、不做几何hover缩放。\",\n      \"avoid\": \"目录dontList原样：\\n\\n- `Do not use any shadows shadow-*`\\n- `Do not use gradients bg-gradient-*`\\n- `Do not use colors with opacity below 0.5`\\n- `Do not mix different border-radius values`\\n- `Do not use gray text (unless intentional)`\\n- `Do not use pattern backgrounds`\\n\\n项目执行：不使用阴影、渐变、玻璃模糊、花纹背景、低透明度禁用态、混合圆角或无意灰字；不使用hover位移/缩放、长于75ms的UI装饰过渡、全卡链接覆盖模型、重复底部介绍、首屏并发下载全部媒体。字标不变形、不描成另一套图形，参考站素材和PDF企业事实不直接移植。\",\n      \"tokens\": \":root{--pj-bg:#ffffff;--pj-fg:#000000;--pj-border:#000000;--pj-inverse:#000000;--pj-on-inverse:#ffffff;--pj-accent:#b45700;--pj-on-accent:#ffffff;--pj-radius:0px;--pj-border-width:2px;--pj-shadow:none;--pj-opacity:1;--pj-space-unit:4px;--pj-admin-gutter:16px;--pj-admin-block-gap:16px;--pj-admin-card-pad:16px;--pj-admin-row-height:40px;--pj-admin-control-height:36px;--pj-touch-target:44px;--pj-feedback-duration:75ms;--pj-inversion-duration:0ms;}\",\n      \"components\": \"Button/Input桌面高36px、触屏44px；Button横padding12px，2px黑边、0圆角；focus为2px强调色+2px offset，黑底白outline。disabled用原生属性、虚线黑边、opacity1和原因。loading保留文字与尺寸；Table行40px；Dialog≤520px、焦点闭环/Escape/返回触发点。静态卡无整卡hover，模型/多动作卡只反馈实际控件。所有状态及统计0/无数据/未接入/失败/旧值/部分覆盖按11组件表；无颜色单独传义、无自动消失结果替代。\",\n      \"spacing\": {\n        \"publicBrand\": \"桌面≥1024 gutter24/gap48/pad24，窄屏16/32/16；产品grid auto-fit minmax(min(100%,560px),1fr)，gap16，PC模型高clamp(360px,28vw,440px)，窄屏4:3且≥240px。\",\n        \"adminProduct\": \"DENSITY7项目适配：所有屏幕gutter16/gap16/pad16；row40/control36，触屏44。work无max-width铺满；form左对齐minmax(0,800px)+320px旁栏，宽度不足折叠；card≤520px，rail224px。局部空/错/加载左上pad16，无撑高。\",\n        \"acceptance\": \"所有后台UI任务显式测D1–D6及overflow：1920×1080、1440×900、390×844；work fill≥.85，form fill≥.55且左边距≤gutter+24；gap≤24/pad≤20，无空网格轨道/横向大空白>15%/body横溢出。详11；主register=brand不能豁免后台。\"\n      }\n    },\n    \"frontendModules\": [\n      \"M1\",\n      \"M2\",\n      \"M6\"\n    ],\n    \"branchPrefix\": \"task/\",\n    \"promptBudget\": 20000,\n    \"taskPaths\": {\n      \"M1-T1\": [\n        \"src/styles/tokens.css\",\n        \"src/styles/motion-tokens.css\",\n        \".github/workflows/ci.yml\",\n        \"e2e/brand-smoke.spec.ts\",\n        \"docs/PackJoyU-开发文档/\",\n        \"AGENTS.md\",\n        \"CLAUDE.md\"\n      ],\n      \"M1-T2\": [\n        \"src/lib/contracts/\",\n        \"tests/contracts-foundation.test.ts\"\n      ],\n      \"M1-T3\": [\n        \"public/brand/\",\n        \"docs/brand-media/static/\"\n      ],\n      \"M1-T4\": [\n        \"src/components/layout/\",\n        \"src/app/\",\n        \"messages/en.json\",\n        \"messages/ru.json\",\n        \"e2e/home-media.spec.ts\"\n      ],\n      \"M1-T5\": [\n        \"src/components/about/\",\n        \"src/app/\",\n        \"messages/en.json\",\n        \"messages/ru.json\",\n        \"docs/brand-content/\",\n        \"e2e/company-content.spec.ts\",\n        \"src/lib/brand/company-media.ts\"\n      ],\n      \"M1-T6\": [\n        \"public/brand/\",\n        \"docs/brand-media/animation/\"\n      ],\n      \"M1-T7\": [\n        \"src/styles/tokens.css\",\n        \"src/components/ui/\",\n        \"tests/ui-primitives.test.ts\"\n      ],\n      \"M1-T8\": [\n        \"src/lib/client/api.ts\",\n        \"src/lib/client/api-errors.ts\",\n        \"tests/client-api-foundation.http.test.ts\"\n      ],\n      \"M2-T1\": [\n        \"src/components/three/ProductGallery.tsx\",\n        \"src/components/three/GalleryScene.tsx\",\n        \"src/app/\",\n        \"e2e/product-cards.spec.ts\"\n      ],\n      \"M2-T2\": [\n        \"src/components/three/\",\n        \"src/lib/three/\",\n        \"e2e/model-pointer.spec.ts\"\n      ],\n      \"M2-T3\": [\n        \"src/components/three/\",\n        \"src/lib/three/\",\n        \"e2e/model-accessibility.spec.ts\"\n      ],\n      \"M2-T4\": [\n        \"src/lib/analytics/model-events.ts\",\n        \"tests/model-event-rules.test.ts\"\n      ],\n      \"M2-T5\": [\n        \"src/components/inquiry/\",\n        \"src/components/quote/\",\n        \"src/components/three/ProductGallery.tsx\",\n        \"src/app/\",\n        \"e2e/product-inquiry.spec.ts\"\n      ],\n      \"M2-T6\": [\n        \"src/components/three/\",\n        \"src/lib/three/\",\n        \"e2e/model-fallback.spec.ts\"\n      ],\n      \"M2-T7\": [\n        \"src/components/three/\",\n        \"src/components/analytics/\",\n        \"e2e/model-events.spec.ts\"\n      ],\n      \"M2-T8\": [\n        \"src/components/chat/\",\n        \"src/components/three/ProductGallery.tsx\",\n        \"e2e/product-contact.spec.ts\"\n      ],\n      \"M3-T1\": [\n        \"src/auth.ts\",\n        \"src/lib/server/admin/device-session.ts\",\n        \"src/lib/server/admin/device-repo.ts\",\n        \"src/lib/server/admin/guard.ts\",\n        \"src/lib/server/admin/layout-gate.ts\",\n        \"src/lib/server/admin/page-access.ts\"\n      ],\n      \"M3-T2\": [\n        \"src/auth.ts\",\n        \"src/lib/server/admin/login.ts\",\n        \"src/lib/server/admin/enroll-token.ts\",\n        \"src/lib/server/admin/enroll-guard.ts\",\n        \"src/app/api/auth-admin/enroll/route.ts\",\n        \"src/app/api/auth-admin/enroll/confirm/route.ts\"\n      ],\n      \"M3-T3\": [\n        \"src/lib/server/admin/action-grant.ts\",\n        \"src/app/api/admin/account/reauth/route.ts\"\n      ],\n      \"M3-T4\": [\n        \"src/lib/server/admin/recovery-authorizations.ts\",\n        \"src/app/api/admin/account/recovery-authorizations/route.ts\",\n        \"src/app/api/admin/users/\"\n      ],\n      \"M3-T5\": [\n        \"src/lib/server/admin/recovery-enrollment.ts\",\n        \"src/app/api/auth-admin/recovery/enroll/route.ts\",\n        \"src/app/api/auth-admin/recovery/confirm/route.ts\"\n      ],\n      \"M3-T6\": [\n        \"src/app/admin-login/\",\n        \"src/components/admin/auth/LoginForm.tsx\"\n      ],\n      \"M3-T7\": [\n        \"src/components/admin/AdminShell.tsx\",\n        \"src/components/admin/auth/AdminSessionActivity.tsx\",\n        \"src/app/admin/admin.css\",\n        \"src/app/admin/layout.tsx\"\n      ],\n      \"M3-T8\": [\n        \"src/app/admin/account/devices/\",\n        \"src/components/admin/account/DevicesContainer.tsx\",\n        \"src/components/admin/account/DeviceRow.tsx\"\n      ],\n      \"M3-T9\": [\n        \"src/components/admin/users/UsersAdmin.tsx\",\n        \"src/components/admin/users/RecoveryPermitResult.tsx\"\n      ],\n      \"M3-T10\": [\n        \"src/app/admin-enroll/\",\n        \"src/components/admin/enroll/EnrollWizard.tsx\"\n      ],\n      \"M3-T11\": [\n        \"src/app/admin-recovery/\",\n        \"src/components/admin/auth/RecoveryWizard.tsx\",\n        \"src/lib/client/recovery.ts\"\n      ],\n      \"M3-T12\": [\n        \"src/app/admin/account/page.tsx\",\n        \"src/components/admin/account/AccountContainer.tsx\",\n        \"src/components/admin/account/ReauthDialog.tsx\",\n        \"src/lib/client/account.ts\"\n      ],\n      \"M3-T13\": [\n        \"src/components/admin/account/SignOutAllDevices.tsx\"\n      ],\n      \"M3-T14\": [\n        \"src/lib/server/config.ts\",\n        \"src/lib/server/http/errors.ts\",\n        \"src/lib/server/http/metrics.ts\"\n      ],\n      \"M3-T15\": [\n        \"src/lib/server/admin/session-expiry.ts\",\n        \"src/app/api/admin/account/session/activity/route.ts\"\n      ],\n      \"M3-T16\": [\n        \"src/lib/server/admin/account-security.ts\",\n        \"src/app/api/admin/account/login-mode/route.ts\",\n        \"src/app/api/admin/account/password/route.ts\"\n      ],\n      \"M3-T17\": [\n        \"src/lib/server/admin/device-management.ts\",\n        \"src/app/api/admin/account/devices/\",\n        \"src/app/api/admin/account/logout-all/route.ts\"\n      ],\n      \"M3-T18\": [\n        \"scripts/admin-authorize-recovery.mjs\",\n        \"src/lib/server/admin/owner-recovery.ts\"\n      ],\n      \"M3-T19\": [\n        \"src/lib/server/admin/recovery-start.ts\",\n        \"src/app/api/auth-admin/recovery/start/route.ts\"\n      ],\n      \"M3-T20\": [\n        \"src/app/api/admin/account/2fa/reset/route.ts\",\n        \"src/lib/server/admin/self-rebind.ts\"\n      ],\n      \"M4-T1\": [\n        \"src/lib/server/chat/conversation-service.ts\",\n        \"src/lib/server/chat/repo.ts\",\n        \"src/lib/chat/rules.ts\",\n        \"src/app/api/chat/conversations/route.ts\"\n      ],\n      \"M4-T2\": [\n        \"src/lib/server/chat/read-cursor.ts\",\n        \"src/lib/server/chat/visitor-read.ts\",\n        \"src/app/api/chat/conversations/\"\n      ],\n      \"M4-T3\": [\n        \"src/lib/server/chat/operator-read.ts\",\n        \"src/lib/server/chat/inbox-repo.ts\",\n        \"src/app/api/admin/chat/conversations/\"\n      ],\n      \"M4-T4\": [\n        \"src/lib/server/chat/notification-service.ts\",\n        \"src/lib/server/chat/notification-repo.ts\",\n        \"src/lib/server/chat/notification-mailer.ts\",\n        \"src/lib/server/mail/smtp.ts\"\n      ],\n      \"M4-T5\": [\n        \"src/components/chat/ContactChatEntry.tsx\",\n        \"src/components/chat/ChatContainer.tsx\",\n        \"src/components/chat/Composer.tsx\",\n        \"src/components/chat/MessageList.tsx\",\n        \"src/lib/client/chat.ts\",\n        \"e2e/chat-start-analytics.spec.ts\"\n      ],\n      \"M4-T6\": [\n        \"src/app/admin/chat/\",\n        \"src/components/admin/chat/InboxContainer.tsx\",\n        \"src/components/admin/chat/ThreadContainer.tsx\"\n      ],\n      \"M4-T7\": [\n        \"src/lib/server/chat/retention-candidates.ts\",\n        \"src/lib/server/chat/retention-policy.ts\"\n      ],\n      \"M4-T8\": [\n        \"src/lib/server/chat/visitor-session.ts\",\n        \"src/app/api/chat/session/route.ts\"\n      ],\n      \"M4-T9\": [\n        \"src/lib/client/chat-poller.ts\",\n        \"src/lib/client/chat-retry.ts\"\n      ],\n      \"M4-T10\": [\n        \"src/lib/server/chat/message-service.ts\"\n      ],\n      \"M4-T11\": [\n        \"src/lib/server/chat/operator-write.ts\"\n      ],\n      \"M4-T12\": [\n        \"src/app/api/admin/cron/mail-queue/route.ts\"\n      ],\n      \"M4-T13\": [\n        \"src/lib/server/chat/retention-service.ts\",\n        \"src/lib/server/chat/retention-repo.ts\"\n      ],\n      \"M4-T14\": [\n        \"src/components/admin/chat/OperatorReplyComposer.tsx\",\n        \"src/components/admin/chat/CloseConversation.tsx\"\n      ],\n      \"M4-T15\": [\n        \"src/components/chat/useTawk.ts\",\n        \"src/components/quote/FloatingActions.tsx\",\n        \"src/components/consent/CookieConsent.tsx\",\n        \"src/lib/consent.ts\",\n        \"src/lib/client/consent.ts\"\n      ],\n      \"M5-T1\": [\n        \"src/lib/server/jobs/lease-repo.ts\",\n        \"src/lib/server/jobs/types.ts\",\n        \"prisma/schema.prisma\",\n        \"tests/job-leases.db.test.ts\"\n      ],\n      \"M5-T2\": [\n        \"src/lib/server/analytics/consent.ts\",\n        \"src/app/api/analytics/consent/route.ts\",\n        \"tests/analytics-consent.http.test.ts\"\n      ],\n      \"M5-T3\": [\n        \"src/lib/server/analytics/aggregate.ts\",\n        \"src/lib/server/analytics/aggregate-repo.ts\",\n        \"prisma/schema.prisma\",\n        \"tests/analytics-aggregate.db.test.ts\"\n      ],\n      \"M5-T4\": [\n        \"src/app/api/admin/settings/analytics/route.ts\",\n        \"src/lib/server/composition.ts\",\n        \"tests/analytics-settings.http.test.ts\"\n      ],\n      \"M5-T5\": [\n        \"src/lib/server/analytics/retention-plan.ts\",\n        \"tests/analytics-retention-plan.test.ts\"\n      ],\n      \"M5-T6\": [\n        \"src/lib/server/analytics/ingest.ts\",\n        \"src/lib/server/analytics/event-repo.ts\",\n        \"src/app/api/analytics/events/route.ts\",\n        \"prisma/schema.prisma\",\n        \"tests/analytics-ingest.http.db.test.ts\"\n      ],\n      \"M5-T7\": [\n        \"src/lib/client/analytics.ts\",\n        \"src/components/consent/\",\n        \"src/components/analytics/\",\n        \"e2e/analytics-consent.spec.ts\",\n        \"src/app/\",\n        \"messages/en.json\",\n        \"messages/ru.json\",\n        \"e2e/privacy-analytics.spec.ts\"\n      ],\n      \"M5-T8\": [\n        \"src/lib/server/jobs/registry.ts\",\n        \"src/lib/server/composition.ts\",\n        \"src/app/api/admin/cron/operations/route.ts\",\n        \"deploy/cron.nbshiyan\",\n        \"deploy/deploy.sh\",\n        \"tests/jobs-runtime.http.test.ts\",\n        \"e2e/analytics-job-runtime.spec.ts\"\n      ],\n      \"M5-T9\": [\n        \"src/lib/server/analytics/settings.ts\",\n        \"src/lib/server/analytics/settings-repo.ts\",\n        \"src/lib/analytics/day-boundaries.ts\",\n        \"tests/analytics-settings.db.test.ts\",\n        \"tests/analytics-day-boundaries.test.ts\"\n      ],\n      \"M5-T10\": [\n        \"src/components/admin/stats/AnalyticsSettingsContainer.tsx\",\n        \"src/app/admin/settings/\",\n        \"e2e/analytics-settings.spec.ts\",\n        \"src/lib/client/ops.ts\"\n      ],\n      \"M5-T11\": [\n        \"src/lib/server/analytics/retention.ts\",\n        \"src/lib/server/jobs/registry.ts\",\n        \"src/lib/server/composition.ts\",\n        \"deploy/cron.nbshiyan\",\n        \"tests/analytics-retention.db.test.ts\"\n      ],\n      \"M6-T1\": [\n        \"src/lib/server/ops/stats-query.ts\",\n        \"src/lib/server/ops/source-dto.ts\",\n        \"tests/stats-query.db.test.ts\"\n      ],\n      \"M6-T2\": [\n        \"src/lib/server/ops/business-source.ts\",\n        \"src/lib/server/composition.ts\",\n        \"tests/stats-business.test.ts\",\n        \"e2e/stats-business-api.spec.ts\"\n      ],\n      \"M6-T3\": [\n        \"src/lib/server/ops/ops-report.ts\",\n        \"src/lib/server/ops/ops-sample.ts\",\n        \"src/app/api/internal/ops-report/\",\n        \"src/lib/server/composition.ts\",\n        \"deploy/ops-report.py\",\n        \"deploy/cron.nbshiyan\",\n        \"tests/ops-report.test.ts\"\n      ],\n      \"M6-T4\": [\n        \"src/components/admin/stats/StatsContainer.tsx\",\n        \"src/components/admin/stats/StatsFilters.tsx\",\n        \"src/lib/client/ops.ts\",\n        \"src/app/admin/stats/\",\n        \"src/components/admin/AdminShell.tsx\",\n        \"e2e/stats-page.spec.ts\"\n      ],\n      \"M6-T5\": [\n        \"src/lib/server/ops/reliability-source.ts\",\n        \"src/lib/server/composition.ts\",\n        \"tests/stats-reliability.test.ts\",\n        \"e2e/stats-reliability-api.spec.ts\"\n      ],\n      \"M6-T6\": [\n        \"src/app/api/admin/stats/\",\n        \"src/lib/server/ops/stats-service.ts\",\n        \"src/lib/server/composition.ts\",\n        \"tests/stats-route.test.ts\",\n        \"e2e/stats-core-api.spec.ts\"\n      ],\n      \"M6-T7\": [\n        \"src/components/admin/stats/SourceCard.tsx\",\n        \"src/components/admin/stats/StatsContainer.tsx\",\n        \"src/components/admin/stats/StatsTrend.tsx\",\n        \"e2e/stats-source-states.spec.ts\"\n      ],\n      \"M7-T1\": [\n        \"e2e/visitor-media-integration.spec.ts\",\n        \"docs/acceptance/visitor-media/\"\n      ],\n      \"M7-T2\": [\n        \"e2e/admin-session-integration.spec.ts\",\n        \"tests/admin-session-http-integration.test.ts\",\n        \"docs/acceptance/admin-session/\"\n      ],\n      \"M7-T3\": [\n        \"e2e/analytics-integration.spec.ts\",\n        \"tests/analytics-time-integration.db.test.ts\",\n        \"docs/acceptance/analytics/\"\n      ],\n      \"M7-T4\": [\n        \"e2e/visitor-consultation-integration.spec.ts\",\n        \"docs/acceptance/consultation/\"\n      ],\n      \"M7-T5\": [\n        \"e2e/admin-recovery-integration.spec.ts\",\n        \"tests/admin-recovery-concurrency.db.test.ts\",\n        \"docs/acceptance/admin-recovery/\"\n      ],\n      \"M7-T6\": [\n        \"e2e/admin-fresh-auth-integration.spec.ts\",\n        \"tests/admin-action-grant-concurrency.db.test.ts\",\n        \"docs/acceptance/admin-fresh-auth/\"\n      ],\n      \"M7-T7\": [\n        \"e2e/operations-sources-integration.spec.ts\",\n        \"tests/chat-notification-restart.integration.test.ts\",\n        \"docs/acceptance/operations/\"\n      ],\n      \"M7-T8\": [\n        \"docs/acceptance/provenance/\"\n      ],\n      \"M7-T9\": [\n        \"docs/acceptance/delivery/\",\n        \"e2e/delivery-smoke.spec.ts\"\n      ],\n      \"M1-T9\": [\n        \"public/brand/company/\",\n        \"docs/brand-content/source/\",\n        \"docs/brand-content/company-visuals.json\"\n      ],\n      \"M3-T21\": [\n        \"src/components/admin/InquiryList.tsx\",\n        \"src/components/admin/InquiryDetail.tsx\",\n        \"src/components/admin/InquiryHistory.tsx\",\n        \"src/components/admin/InquiryNotFound.tsx\",\n        \"src/components/admin/StatusBadge.tsx\",\n        \"src/components/admin/DateRange.tsx\",\n        \"src/components/admin/anonymized.tsx\",\n        \"src/components/admin/mail/MailThread.tsx\",\n        \"src/components/admin/mail/MailParts.tsx\",\n        \"src/app/admin/admin.css\",\n        \"src/app/admin/mail.css\"\n      ],\n      \"M3-T22\": [\n        \"src/components/admin/mail/UnassignedInbox.tsx\",\n        \"src/components/admin/mail/UnassignedNav.tsx\",\n        \"src/app/admin/mail.css\"\n      ],\n      \"M3-T23\": [\n        \"src/components/admin/models/ModelUpload.tsx\",\n        \"src/components/admin/models/ModelPreview.tsx\",\n        \"src/components/admin/models/models.css\"\n      ],\n      \"M3-T24\": [\n        \"src/components/admin/specs/SpecEditor.tsx\",\n        \"src/components/admin/specs/specs.css\",\n        \"src/app/admin/specs/page.tsx\"\n      ],\n      \"M3-T25\": [\n        \"src/components/admin/settings/settings.css\",\n        \"src/components/admin/settings/about-images.css\",\n        \"src/components/admin/settings/AboutSettings.tsx\",\n        \"src/components/admin/settings/OrgSettings.tsx\",\n        \"src/components/admin/settings/AboutImages.tsx\",\n        \"src/components/admin/settings/ImageTextField.tsx\",\n        \"src/components/admin/settings/ConfirmDialog.tsx\",\n        \"src/components/admin/settings/SettingsSections.tsx\",\n        \"src/components/admin/users/UsersAdmin.tsx\"\n      ]\n    },\n    \"taskSkills\": {\n      \"M1-T1\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M1-T4\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M1-T5\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M2-T1\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M2-T2\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M2-T3\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M2-T5\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M2-T6\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M2-T7\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M2-T8\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T6\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T7\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。 本卡验收范围为壳导航、外框、活动和退出；如旧内层未迁移据实列出，完整页视觉和密度由M3-T21至T25及M7-T9完成，不在壳任务冒称全后台通过。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。 本卡验收范围为壳导航、外框、活动和退出；如旧内层未迁移据实列出，完整页视觉和密度由M3-T21至T25及M7-T9完成，不在壳任务冒称全后台通过。\"\n        }\n      ],\n      \"M3-T8\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T9\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T10\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T11\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T12\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T13\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M4-T5\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M4-T6\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M4-T9\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M4-T14\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M4-T15\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M5-T7\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M5-T10\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M6-T4\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M6-T7\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M7-T1\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M7-T2\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M7-T3\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M7-T4\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M7-T5\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M7-T6\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施/审查本卡UI及集成时\",\n          \"why\": \"消费唯一minimalist-flat与11，不重搜slug；必读07/11/12。前台brand、后台product；后台gutter/gap/pad16、row40、control36/触屏44，work铺满/form左对齐/card≤520，三尺寸D1–D6/overflow。原语只验本层，完整界面证据归integrationTask。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"验收真实页面交互时\",\n          \"why\": \"真实服务、真实登录/数据，记录可见入口与点击请求、computed style和密度JSON；未完成集成不称页面完成。\"\n        }\n      ],\n      \"M3-T21\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施与审查视觉迁移时\",\n          \"why\": \"必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"真实可见入口验收时\",\n          \"why\": \"真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。\"\n        }\n      ],\n      \"M3-T22\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施与审查视觉迁移时\",\n          \"why\": \"必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"真实可见入口验收时\",\n          \"why\": \"真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。\"\n        }\n      ],\n      \"M3-T23\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施与审查视觉迁移时\",\n          \"why\": \"必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"真实可见入口验收时\",\n          \"why\": \"真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。\"\n        }\n      ],\n      \"M3-T24\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施与审查视觉迁移时\",\n          \"why\": \"必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"真实可见入口验收时\",\n          \"why\": \"真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。\"\n        }\n      ],\n      \"M3-T25\": [\n        {\n          \"name\": \"stylekit\",\n          \"when\": \"实施与审查视觉迁移时\",\n          \"why\": \"必读07/11/12，只消费锁定minimalist-flat；后台product密度D1–D6/overflow，不重搜slug。\"\n        },\n        {\n          \"name\": \"record-browser-gif\",\n          \"when\": \"真实可见入口验收时\",\n          \"why\": \"真实服务/登录/原HTTP、三尺寸computed style和密度；关闭gate不伪造可见或通过。\"\n        }\n      ],\n      \"M1-T9\": [\n        {\n          \"name\": \"computer-use:computer-use\",\n          \"when\": \"核验或补齐可编辑工程的软件操作时\",\n          \"why\": \"复用已确认工业素材，用现有授权软件真实打开/选择/编辑/导出工程并留证；未用Dot不重做场景，缺工程不得冒完成，不新购服务或重建GLB。\"\n        }\n      ]\n    }\n  },\n  \"frontendModules\": [\n    \"M1\",\n    \"M2\",\n    \"M6\"\n  ],\n  \"lead\": \"以大幅媒体和可直接操作的3D呈现PackJoyU产品；后台围绕可靠登录、人工咨询与真实统计组织。先交付可运行骨架，再按能力依赖接通会话、咨询、事件与看板；每批落地后先收口。\",\n  \"highlights\": {\n    \"tasks\": [\n      \"M1-T1\",\n      \"M3-T1\",\n      \"M5-T8\",\n      \"M6-T7\"\n    ],\n    \"modules\": [\n      \"M3\",\n      \"M5\"\n    ],\n    \"edges\": [\n      \"E-03\",\n      \"E-61\",\n      \"E-105\"\n    ]\n  },\n  \"blocks\": [\n    {\n      \"type\": \"metrics\"\n    },\n    {\n      \"type\": \"modulemap\",\n      \"note\": \"M1唯一拥有视觉值；M3提供身份，M5提供作业基础；M4/M6追加各自作业，M7只做终验。\"\n    },\n    {\n      \"type\": \"taskdag\",\n      \"note\": \"原语与集成任务分开；依赖按实际能力提供方，第一项含真实运行链。\"\n    },\n    {\n      \"type\": \"edgematrix\",\n      \"note\": \"105条边界均有完整集成任务；原语不虚报跨层覆盖。\"\n    },\n    {\n      \"type\": \"evolution\",\n      \"note\": \"20项决定保留低置信、审题缺陷及高代价标记。\"\n    },\n    {\n      \"type\": \"milestones\"\n    },\n    {\n      \"type\": \"risks\",\n      \"note\": \"容量未实测、媒体通道与估时仍有不确定性；实际删除需另行授权。\"\n    },\n    {\n      \"type\": \"handoff\",\n      \"note\": \"全部任务尚未落地；M1-T1先将本地规格带入首个实施PR。\"\n    },\n    {\n      \"type\": \"endpoints\"\n    },\n    {\n      \"type\": \"terms\"\n    }\n  ]\n}\n",
@@ -51521,9 +52283,9 @@
     "_run/presentation.json": "e1003b458394424b09be409bfe6bcb5824be0256575820c65c2b12e69397e9df",
     "_run/task-contracts.json": "62d1f007b0ac4e5aa5be80d147a1a4c88802bfab97e5a5258530bdac55e4deb5"
   },
-  "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4",
+  "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf",
   "status": "verified",
-  "synced": "2026-10-22T12:32:23.503982+00:00",
+  "synced": "2026-10-22T12:53:24.379281+00:00",
   "task": "M1-T4",
   "verifiedTasks": [
     "M1-T1",
@@ -51609,6 +52371,12 @@
     "M7-T6",
     "M7-T7",
     "M7-T8",
-    "M7-T9"
+    "M7-T9",
+    "R3-T09233008",
+    "R3-T21757567",
+    "R3-T22883505",
+    "R3-T71889698",
+    "R3-T87287564",
+    "R3-T92231765"
   ]
 }

@@ -840,6 +840,66 @@
         "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
       ],
       "verdict": "pass"
+    },
+    "R3-T09233008": {
+      "contractHash": "c23e26d183030a11f5926116dae6dde3ad532aeb628607604913e2fc319ee104",
+      "evidence": [
+        "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T09233008.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+        "本任务《在适用平台执行存储权限与符号链接安全验收》具体核查：存储/环境安全验证分层：Linux六项必须实际跑过不可写/根目录/public/.next/逃逸链接/覆盖负例，Windows前置能力不足不得冒充通过；仅test/CI有效路径，不修改生产路径与权限规则。共享素材更新不削弱其POSIX/安全断言。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-posix-storage-harness，未改原批次/来源记录。",
+        "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/prod-env-check.test.ts; tests/storage-local.test.ts; tests/storage.test.ts; .github/workflows/ci.yml。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+        "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      ],
+      "verdict": "pass"
+    },
+    "R3-T21757567": {
+      "contractHash": "fdd7bc2852afe4a3981df2c07d679f1594bfd966705e716a5807d489eeb715a2",
+      "evidence": [
+        "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T21757567.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+        "本任务《让内容导入用例使用实际Python并执行全部保护断言》具体核查：真实Python入口与七项内容导入保护断言：Windows/Linux均执行、错误解释器仍失败留stderr、与committed NDJSON一致；路径仅test与既有build.py/linkmap.py，不因媒体文案变化跳过placeholder/food-claim保护。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-python-runtime，未改原批次/来源记录。",
+        "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/sanity-import.test.ts; docs/content/sanity-import/build.py; docs/content/sanity-import/linkmap.py。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+        "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      ],
+      "verdict": "pass"
+    },
+    "R3-T22883505": {
+      "contractHash": "86bc61eeb4ac3a4595c18d65897c660c1cbf6429a5914ae627e8dca5504c706d",
+      "evidence": [
+        "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T22883505.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+        "本任务《补齐Linux独立产物与适用后台密度实证》具体核查：受支持Linux standalone精确head构建/零环境skip与真实应用HTTP/独立PG/已有后台登录密度，禁止应用API拦截或存储注入；仅已实现页面验收、不宣称未来功能，失败另登记返工。新媒体04/17说明仅绑定现成v3/PNG/GIF与真实帧，不取消真实服务/GUI/密度门槛。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=supported-standalone-smoke，未改原批次/来源记录。",
+        "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：.github/workflows/ci.yml; playwright.config.ts; e2e/brand-smoke.spec.ts; e2e/global-setup.ts; tests/standalone-start.test.ts; docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md; docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+        "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      ],
+      "verdict": "pass"
+    },
+    "R3-T71889698": {
+      "contractHash": "314dde429cade0194ffe77b17c16c4fcf2f6cb290f529a761b64cde558595b04",
+      "evidence": [
+        "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T71889698.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+        "本任务《保留令牌签发审计并修正重置并发测试预期》具体核查：真实PG17密码重置串行及精确审计：保留auth.enroll_token_issued，每次签发恰有对应审计、拒绝者不写；仅既有DB测试与reset库文件，不能删除生产审计或任意放宽计数。共享品牌文件说明不影响账号安全契约。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=reset-audit-expectations，未改原批次/来源记录。",
+        "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/admin-reset-initial-password.db.test.ts; scripts/admin-reset-initial-password-lib.mjs。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+        "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      ],
+      "verdict": "pass"
+    },
+    "R3-T87287564": {
+      "contractHash": "37d45d601afa45bf8acb7f783b9e1aed6a404897b34be1546d625b6b0145b79c",
+      "evidence": [
+        "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T87287564.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+        "本任务《统一文件身份比较以通过Windows路径负例》具体核查：Windows/Linux文件身份与mock/俄文扫描：三个原用例都需实际通过，保留发现覆盖、坏文件负例，禁止缩小范围或空列表过关；仅原测试/俄文lint脚本。媒体声明变更不改变生产mock剔除或校验策略。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-path-harness，未改原批次/来源记录。",
+        "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/lint-ru-yo.test.ts; tests/prod-mocks-strip.test.ts; scripts/lint-ru-yo.mjs。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+        "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      ],
+      "verdict": "pass"
+    },
+    "R3-T92231765": {
+      "contractHash": "9fb581aea902fcbfaba3ac6ea52ca8093a103e9a9d6fc812316f9257ca6c3b4b",
+      "evidence": [
+        "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T92231765.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+        "本任务《使源码断言与Shell验证在实际检出换行下可靠执行》具体核查：LF/CRLF与真实Bash验证：逐项复现11个既有失败，保留SQL/后台guard/UI行为和安全断言，不改生产行为迁就字符串；显式允许根.gitattributes与列举测试，无通配扩权。共享素材更新不降低适用平台的因果回归标准。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-crlf-harness，未改原批次/来源记录。",
+        "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：.gitattributes; tests/admin-enroll-hardening-347-348.test.ts; tests/admin-enroll-p1.test.ts; tests/admin-inquiry-history-331.test.ts; tests/admin-mail-states-74.test.ts; tests/admin-p3-350.test.ts; tests/article-og-route.test.ts; tests/home-entry-grid-308.test.ts; tests/locale-enum-values.test.ts; tests/mail-routes.test.ts; tests/site-settings-read-350.test.ts。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+        "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      ],
+      "verdict": "pass"
     }
   },
   "reviewScope": "definition-only independent review; six source task changes and 78 section-fingerprint-only changes; no implementation/asset completion verdict",
@@ -1481,5 +1541,575 @@
         "C": "Leave PR402 unmerged with explicit conflict rework rather than attempting to resolve its source and derived records in this run."
       }
     }
+  },
+  "mergeMainDeltaReview": {
+    "baseline": "f50f621d6556f3403606e7ed803341764b3f6549",
+    "restoredOriginalReviewHashes": 84,
+    "newRepairDefinitions": {
+      "R3-T09233008": {
+        "noteSha256": "14a469a34653794bb9e8da5c4fd383549a1bda5a5f61af30d2d753604df8772e",
+        "taskFieldsEqualMain": true,
+        "effectivePaths": [
+          "tests/prod-env-check.test.ts",
+          "tests/storage-local.test.ts",
+          "tests/storage.test.ts",
+          ".github/workflows/ci.yml"
+        ],
+        "status": "todo",
+        "baseline": "f50f621d6556f3403606e7ed803341764b3f6549"
+      },
+      "R3-T21757567": {
+        "noteSha256": "9f8db3d2945ab42ef89298f4dc2ec36703b4302dae84cba4f113bb88349ca380",
+        "taskFieldsEqualMain": true,
+        "effectivePaths": [
+          "tests/sanity-import.test.ts",
+          "docs/content/sanity-import/build.py",
+          "docs/content/sanity-import/linkmap.py"
+        ],
+        "status": "todo",
+        "baseline": "f50f621d6556f3403606e7ed803341764b3f6549"
+      },
+      "R3-T22883505": {
+        "noteSha256": "bbbc04f28097dc0b40bfeecd47e9310966b59b233084ee6be0ad509ee69a5c72",
+        "taskFieldsEqualMain": true,
+        "effectivePaths": [
+          ".github/workflows/ci.yml",
+          "playwright.config.ts",
+          "e2e/brand-smoke.spec.ts",
+          "e2e/global-setup.ts",
+          "tests/standalone-start.test.ts",
+          "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md",
+          "docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json"
+        ],
+        "status": "todo",
+        "baseline": "f50f621d6556f3403606e7ed803341764b3f6549"
+      },
+      "R3-T71889698": {
+        "noteSha256": "8a025c5cccf3a45988295f498e5f28802c044c19c9ffbe60311b3f4f10e4ea70",
+        "taskFieldsEqualMain": true,
+        "effectivePaths": [
+          "tests/admin-reset-initial-password.db.test.ts",
+          "scripts/admin-reset-initial-password-lib.mjs"
+        ],
+        "status": "todo",
+        "baseline": "f50f621d6556f3403606e7ed803341764b3f6549"
+      },
+      "R3-T87287564": {
+        "noteSha256": "f395a8632feef5ead76202396c92b9bcc41b8d4785196de8ba7b2ee1edfa5524",
+        "taskFieldsEqualMain": true,
+        "effectivePaths": [
+          "tests/lint-ru-yo.test.ts",
+          "tests/prod-mocks-strip.test.ts",
+          "scripts/lint-ru-yo.mjs"
+        ],
+        "status": "todo",
+        "baseline": "f50f621d6556f3403606e7ed803341764b3f6549"
+      },
+      "R3-T92231765": {
+        "noteSha256": "7a0d1221229e318400179fe4afe2ff089d292b3bce0ac0f2a2c89ff1b800eb77",
+        "taskFieldsEqualMain": true,
+        "effectivePaths": [
+          ".gitattributes",
+          "tests/admin-enroll-hardening-347-348.test.ts",
+          "tests/admin-enroll-p1.test.ts",
+          "tests/admin-inquiry-history-331.test.ts",
+          "tests/admin-mail-states-74.test.ts",
+          "tests/admin-p3-350.test.ts",
+          "tests/article-og-route.test.ts",
+          "tests/home-entry-grid-308.test.ts",
+          "tests/locale-enum-values.test.ts",
+          "tests/mail-routes.test.ts",
+          "tests/site-settings-read-350.test.ts"
+        ],
+        "status": "todo",
+        "baseline": "f50f621d6556f3403606e7ed803341764b3f6549"
+      }
+    },
+    "taskStatuses": {
+      "M1-T1": "done",
+      "M1-T2": "done",
+      "M1-T3": "done",
+      "M1-T4": "done",
+      "M1-T5": "todo",
+      "M1-T6": "todo",
+      "M1-T7": "done",
+      "M1-T8": "done",
+      "M1-T9": "done",
+      "M2-T1": "todo",
+      "M2-T2": "todo",
+      "M2-T3": "todo",
+      "M2-T4": "done",
+      "M2-T5": "todo",
+      "M2-T6": "todo",
+      "M2-T7": "todo",
+      "M2-T8": "todo",
+      "M3-T1": "todo",
+      "M3-T10": "todo",
+      "M3-T11": "todo",
+      "M3-T12": "todo",
+      "M3-T13": "todo",
+      "M3-T14": "done",
+      "M3-T15": "todo",
+      "M3-T16": "todo",
+      "M3-T17": "todo",
+      "M3-T18": "todo",
+      "M3-T19": "todo",
+      "M3-T2": "todo",
+      "M3-T20": "todo",
+      "M3-T21": "todo",
+      "M3-T22": "todo",
+      "M3-T23": "todo",
+      "M3-T24": "todo",
+      "M3-T25": "todo",
+      "M3-T3": "todo",
+      "M3-T4": "todo",
+      "M3-T5": "todo",
+      "M3-T6": "todo",
+      "M3-T7": "todo",
+      "M3-T8": "todo",
+      "M3-T9": "todo",
+      "M4-T1": "todo",
+      "M4-T10": "todo",
+      "M4-T11": "todo",
+      "M4-T12": "todo",
+      "M4-T13": "todo",
+      "M4-T14": "todo",
+      "M4-T15": "todo",
+      "M4-T2": "todo",
+      "M4-T3": "todo",
+      "M4-T4": "todo",
+      "M4-T5": "todo",
+      "M4-T6": "todo",
+      "M4-T7": "todo",
+      "M4-T8": "todo",
+      "M4-T9": "todo",
+      "M5-T1": "done",
+      "M5-T10": "todo",
+      "M5-T11": "todo",
+      "M5-T2": "todo",
+      "M5-T3": "todo",
+      "M5-T4": "todo",
+      "M5-T5": "todo",
+      "M5-T6": "todo",
+      "M5-T7": "todo",
+      "M5-T8": "todo",
+      "M5-T9": "todo",
+      "M6-T1": "todo",
+      "M6-T2": "todo",
+      "M6-T3": "todo",
+      "M6-T4": "todo",
+      "M6-T5": "todo",
+      "M6-T6": "todo",
+      "M6-T7": "todo",
+      "M7-T1": "todo",
+      "M7-T2": "todo",
+      "M7-T3": "todo",
+      "M7-T4": "todo",
+      "M7-T5": "todo",
+      "M7-T6": "todo",
+      "M7-T7": "todo",
+      "M7-T8": "todo",
+      "M7-T9": "todo",
+      "R3-T09233008": "todo",
+      "R3-T21757567": "todo",
+      "R3-T22883505": "todo",
+      "R3-T71889698": "todo",
+      "R3-T87287564": "todo",
+      "R3-T92231765": "todo"
+    },
+    "protectedBlocksSha256": {
+      "M1-T1": {
+        "code": "1130bd8f481ece7cd39da5f8a29bd530325ec9089b6072e9b9e546981eb9ced7",
+        "notes": "b326c3132be552feb12e0de5844c2fd0596560dfc9ff6ed0d1ce1e023c22c937"
+      },
+      "M1-T2": {
+        "code": "b6658df85221f08a8910d8004b527632f1c0ae5b708b91198a9e311ef2989977",
+        "notes": "1e0c185b2184480587e53b920d79ffe5183117b9ae3f7c3df5769b164ec48d06"
+      },
+      "M1-T3": {
+        "code": "b86ca923a41bea7403334247dedf42d1cb50849682eb5a38e5911be96670a488",
+        "notes": "71a990b83e210cc008438900011664301d3c6f6959c4b69b95f2215ea9891564"
+      },
+      "M1-T4": {
+        "code": "a5ed56d90cf071c6c206faa16f00fe7ac642d9ab0dea596a1f9f10d220a8584d",
+        "notes": "8f7924ef41efa0bc888ce87085db0f3dc61ee86357ed7a5ef890c7024b33d12b"
+      },
+      "M1-T5": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M1-T6": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M1-T7": {
+        "code": "90e527a64ef6cc8096654e0fe923669196c974f299f1fa4fd2a9a6e4f7b5cd66",
+        "notes": "40b99344b01d7846b9e642d779eb9f96e4108ac62f85f37bbc05cea679b5499b"
+      },
+      "M1-T8": {
+        "code": "3b95badaa3b7ccdbf24362afd3af026f71caa18b013a3649f98a4404cff2a012",
+        "notes": "3fa44de3a66632ee7cb68eaa93a9e25ade9f337f0ec2f3aff3ce6a5198e75373"
+      },
+      "M1-T9": {
+        "code": "e28cea92c36aaa874f4de49b7ac496ccb3c1876f29a7ccce0ca0437473b12259",
+        "notes": "31ffd9fcd00506c2e7eb343499e6ed4c6e9510ae6ed835a893c77a3380f4264f"
+      },
+      "M2-T1": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M2-T2": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M2-T3": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M2-T4": {
+        "code": "f271d21f053cc9f0ebc0c05eb60f55855b3f3b365543e2efcf338c95835f5b7d",
+        "notes": "45d687dbe56b6eebf908f367cbd886da4759e050c23f48f39e22e5362a8930d0"
+      },
+      "M2-T5": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M2-T6": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M2-T7": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M2-T8": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T1": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T10": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T11": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T12": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T13": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T14": {
+        "code": "0a37ebac587f71d7dbb36c672336d5694d36fa5397c89f84c3e946c9bbebae36",
+        "notes": "767a0fcb844ebc3cb2457a5f5c97491445ac8103e2c091d73fb432b5c359ff50"
+      },
+      "M3-T15": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T16": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T17": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T18": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T19": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T2": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T20": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T21": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T22": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T23": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T24": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T25": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T3": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T4": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T5": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T6": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T7": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T8": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M3-T9": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T1": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T10": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T11": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T12": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T13": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T14": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T15": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T2": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T3": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T4": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T5": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T6": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T7": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T8": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M4-T9": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T1": {
+        "code": "d94b1ce2be14778430ece798a85b77cb8ee4829bb2d41bd34ce79f6efea609af",
+        "notes": "c57ba4d8c656b75a455262e1da54441625036ec0c76224f9dcb48e1fc67716d1"
+      },
+      "M5-T10": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T11": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T2": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T3": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T4": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T5": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T6": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T7": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T8": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M5-T9": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M6-T1": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M6-T2": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M6-T3": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M6-T4": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M6-T5": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M6-T6": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M6-T7": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T1": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T2": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T3": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T4": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T5": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T6": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T7": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T8": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "M7-T9": {
+        "code": "46549663fdc62c3b6da7bc40720426c0d94266e40875036c5da957196cb7c438",
+        "notes": "cae7449093400141d830821ba1a477ba8407372ddcec8429491b43b94473c34e"
+      },
+      "R3-T09233008": {
+        "code": "c00181c6b7bb6b6a022aa5729c2ece7ed4a18586a463b3537645f2c545c8b28b",
+        "notes": "252dbf23a46d4cfb26926295c5c8f8d34f01312621e8f3e31c130d350ba301bd"
+      },
+      "R3-T21757567": {
+        "code": "c00181c6b7bb6b6a022aa5729c2ece7ed4a18586a463b3537645f2c545c8b28b",
+        "notes": "252dbf23a46d4cfb26926295c5c8f8d34f01312621e8f3e31c130d350ba301bd"
+      },
+      "R3-T22883505": {
+        "code": "c00181c6b7bb6b6a022aa5729c2ece7ed4a18586a463b3537645f2c545c8b28b",
+        "notes": "252dbf23a46d4cfb26926295c5c8f8d34f01312621e8f3e31c130d350ba301bd"
+      },
+      "R3-T71889698": {
+        "code": "c00181c6b7bb6b6a022aa5729c2ece7ed4a18586a463b3537645f2c545c8b28b",
+        "notes": "252dbf23a46d4cfb26926295c5c8f8d34f01312621e8f3e31c130d350ba301bd"
+      },
+      "R3-T87287564": {
+        "code": "c00181c6b7bb6b6a022aa5729c2ece7ed4a18586a463b3537645f2c545c8b28b",
+        "notes": "252dbf23a46d4cfb26926295c5c8f8d34f01312621e8f3e31c130d350ba301bd"
+      },
+      "R3-T92231765": {
+        "code": "c00181c6b7bb6b6a022aa5729c2ece7ed4a18586a463b3537645f2c545c8b28b",
+        "notes": "252dbf23a46d4cfb26926295c5c8f8d34f01312621e8f3e31c130d350ba301bd"
+      }
+    },
+    "materialHashesUnchanged": 6,
+    "originalRRecordTextUnchanged": true,
+    "noImplementationCompletionClaim": true
+  },
+  "registeredMainDeltaReview": {
+    "mergedMain": "f50f621d6556f3403606e7ed803341764b3f6549",
+    "verifiedTasks": 90,
+    "reusedMatchingOriginalEvidence": 84,
+    "newRepairDefinitionsVerified": 6,
+    "reviewHashesMatch": 90,
+    "statusesProtected": 90,
+    "latestMainProtectedBlocksPreserved": 90,
+    "repairTasksStillTodo": 6,
+    "selectedMediaUnchanged": 6,
+    "pendingTasks": [],
+    "needsReviewPreserved": [
+      "M1-T1",
+      "M1-T2",
+      "M1-T3",
+      "M1-T4",
+      "M1-T7",
+      "M1-T8",
+      "M1-T9",
+      "M2-T4",
+      "M3-T14",
+      "M5-T1"
+    ],
+    "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf",
+    "buildState": "complete",
+    "mergeAdjudicationPreserved": true,
+    "outsideSpecEqualsMergedMain": true,
+    "noLandedUsed": true
   }
 }

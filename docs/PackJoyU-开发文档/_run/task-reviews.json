@@ -1090,5 +1090,83 @@
     "reviewed": "2026-10-22T12:50:26.201576+00:00",
     "scope": "task-contract",
     "verdict": "pass"
+  },
+  "R3-T09233008": {
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "c23e26d183030a11f5926116dae6dde3ad532aeb628607604913e2fc319ee104",
+    "evidence": [
+      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T09233008.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+      "本任务《在适用平台执行存储权限与符号链接安全验收》具体核查：存储/环境安全验证分层：Linux六项必须实际跑过不可写/根目录/public/.next/逃逸链接/覆盖负例，Windows前置能力不足不得冒充通过；仅test/CI有效路径，不修改生产路径与权限规则。共享素材更新不削弱其POSIX/安全断言。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-posix-storage-harness，未改原批次/来源记录。",
+      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/prod-env-check.test.ts; tests/storage-local.test.ts; tests/storage.test.ts; .github/workflows/ci.yml。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+    ],
+    "reviewed": "2026-10-22T12:57:30.241373+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R3-T21757567": {
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "fdd7bc2852afe4a3981df2c07d679f1594bfd966705e716a5807d489eeb715a2",
+    "evidence": [
+      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T21757567.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+      "本任务《让内容导入用例使用实际Python并执行全部保护断言》具体核查：真实Python入口与七项内容导入保护断言：Windows/Linux均执行、错误解释器仍失败留stderr、与committed NDJSON一致；路径仅test与既有build.py/linkmap.py，不因媒体文案变化跳过placeholder/food-claim保护。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-python-runtime，未改原批次/来源记录。",
+      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/sanity-import.test.ts; docs/content/sanity-import/build.py; docs/content/sanity-import/linkmap.py。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+    ],
+    "reviewed": "2026-10-22T12:57:36.769866+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R3-T22883505": {
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "86bc61eeb4ac3a4595c18d65897c660c1cbf6429a5914ae627e8dca5504c706d",
+    "evidence": [
+      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T22883505.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+      "本任务《补齐Linux独立产物与适用后台密度实证》具体核查：受支持Linux standalone精确head构建/零环境skip与真实应用HTTP/独立PG/已有后台登录密度，禁止应用API拦截或存储注入；仅已实现页面验收、不宣称未来功能，失败另登记返工。新媒体04/17说明仅绑定现成v3/PNG/GIF与真实帧，不取消真实服务/GUI/密度门槛。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=supported-standalone-smoke，未改原批次/来源记录。",
+      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：.github/workflows/ci.yml; playwright.config.ts; e2e/brand-smoke.spec.ts; e2e/global-setup.ts; tests/standalone-start.test.ts; docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md; docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+    ],
+    "reviewed": "2026-10-22T12:57:43.349062+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R3-T71889698": {
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "314dde429cade0194ffe77b17c16c4fcf2f6cb290f529a761b64cde558595b04",
+    "evidence": [
+      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T71889698.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+      "本任务《保留令牌签发审计并修正重置并发测试预期》具体核查：真实PG17密码重置串行及精确审计：保留auth.enroll_token_issued，每次签发恰有对应审计、拒绝者不写；仅既有DB测试与reset库文件，不能删除生产审计或任意放宽计数。共享品牌文件说明不影响账号安全契约。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=reset-audit-expectations，未改原批次/来源记录。",
+      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/admin-reset-initial-password.db.test.ts; scripts/admin-reset-initial-password-lib.mjs。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+    ],
+    "reviewed": "2026-10-22T12:57:50.354645+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R3-T87287564": {
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "37d45d601afa45bf8acb7f783b9e1aed6a404897b34be1546d625b6b0145b79c",
+    "evidence": [
+      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T87287564.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+      "本任务《统一文件身份比较以通过Windows路径负例》具体核查：Windows/Linux文件身份与mock/俄文扫描：三个原用例都需实际通过，保留发现覆盖、坏文件负例，禁止缩小范围或空列表过关；仅原测试/俄文lint脚本。媒体声明变更不改变生产mock剔除或校验策略。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-path-harness，未改原批次/来源记录。",
+      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/lint-ru-yo.test.ts; tests/prod-mocks-strip.test.ts; scripts/lint-ru-yo.mjs。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+    ],
+    "reviewed": "2026-10-22T12:57:59.342321+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R3-T92231765": {
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "9fb581aea902fcbfaba3ac6ea52ca8093a103e9a9d6fc812316f9257ca6c3b4b",
+    "evidence": [
+      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T92231765.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+      "本任务《使源码断言与Shell验证在实际检出换行下可靠执行》具体核查：LF/CRLF与真实Bash验证：逐项复现11个既有失败，保留SQL/后台guard/UI行为和安全断言，不改生产行为迁就字符串；显式允许根.gitattributes与列举测试，无通配扩权。共享素材更新不降低适用平台的因果回归标准。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-crlf-harness，未改原批次/来源记录。",
+      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：.gitattributes; tests/admin-enroll-hardening-347-348.test.ts; tests/admin-enroll-p1.test.ts; tests/admin-inquiry-history-331.test.ts; tests/admin-mail-states-74.test.ts; tests/admin-p3-350.test.ts; tests/article-og-route.test.ts; tests/home-entry-grid-308.test.ts; tests/locale-enum-values.test.ts; tests/mail-routes.test.ts; tests/site-settings-read-350.test.ts。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+    ],
+    "reviewed": "2026-10-22T12:58:06.806875+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
   }
 }

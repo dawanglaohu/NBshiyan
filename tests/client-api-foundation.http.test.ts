@@ -305,6 +305,117 @@ test('admin and visitor legacy 401 use different recovery actions', async () => 
   });
 });
 
+for (const mode of ['html', 'empty', 'unknown', 'dropped', 'oversize-declared', 'oversize-streamed']) {
+  test(`admin 401 without a usable error code returns to login: ${mode}`, async () => {
+    await withServer((_req, res) => {
+      if (mode === 'oversize-declared') {
+        res.writeHead(401, { 'content-type': 'application/json', 'content-length': RESPONSE_JSON_MAX_BYTES + 1 });
+        res.end('{}');
+      } else if (mode === 'oversize-streamed') {
+        res.writeHead(401, { 'content-type': 'application/json' });
+        res.write(SENTINEL);
+        res.end('x'.repeat(RESPONSE_JSON_MAX_BYTES));
+      } else if (mode === 'dropped') {
+        dropBody(res, 401);
+      } else if (mode === 'unknown') {
+        send(res, 401, { error: 'session_expired', message: SENTINEL });
+      } else if (mode === 'empty') {
+        res.writeHead(401);
+        res.end();
+      } else {
+        res.writeHead(401, { 'content-type': 'text/html' });
+        res.end(`<html>${SENTINEL}</html>`);
+      }
+    }, async (transport, hits) => {
+      for (const locale of ['en', 'ru'] as const) {
+        const before = hits.length;
+        const result = fail(await requestApi({
+          path: `/api/admin/account?response=${mode}`,
+          schema: AccountDTOSchema,
+          audience: 'admin',
+          locale,
+          transport,
+        }));
+        assert.equal(result.status, 401, mode);
+        assert.equal(result.action, 'login', mode);
+        assert.equal(result.text, locale === 'ru'
+          ? 'Сессия закончилась. Войдите снова.'
+          : 'Your session has ended. Sign in again to continue.');
+        assert.equal(hits.length - before, 1, mode);
+        assert.equal(result.attempts, 1, mode);
+        assert.equal(result.retryable, false, mode);
+        absent(result);
+      }
+      const visitor = fail(await requestApi({
+        path: `/api/chat/conversations/thread_1?response=${mode}`,
+        schema: AccountDTOSchema,
+        transport,
+      }));
+      assert.equal(visitor.status, 401, mode);
+      assert.equal(visitor.action, 'stop', mode);
+      assert.equal(visitor.attempts, 1, mode);
+      absent(visitor);
+    });
+  });
+}
+
+test('recognized admin 401 errors retain their inline and reauthentication actions', async () => {
+  const cases = [
+    { code: 'bad_credentials', action: 'inline', text: /not accepted/ },
+    { code: 'recovery_expired', action: 'inline', text: /expired/ },
+    { code: 'action_grant_invalid', action: 'reauthenticate', text: /Verify your identity/ },
+  ];
+  let step = 0;
+  await withServer((_req, res) => {
+    send(res, 401, { error: cases[step++].code, requestId: UUID });
+  }, async (transport) => {
+    for (const item of cases) {
+      const result = fail(await requestApi({
+        path: '/api/admin/account/reauth',
+        method: 'POST',
+        body: {},
+        schema: AccountDTOSchema,
+        audience: 'admin',
+        transport,
+      }));
+      assert.equal(result.action, item.action);
+      assert.match(result.text, item.text);
+      assert.equal(result.attempts, 1);
+      assert.equal(result.retryable, false);
+    }
+  });
+});
+
+test('caller cancellation after real response headers wins over an oversized admin 401', async () => {
+  const controller = new AbortController();
+  await withServer((_req, res) => {
+    res.writeHead(401, {
+      'content-type': 'text/html',
+      'content-length': RESPONSE_JSON_MAX_BYTES + 1,
+    });
+    res.flushHeaders();
+    res.write(SENTINEL);
+  }, async (transport, hits) => {
+    const result = fail(await requestApi({
+      path: '/api/admin/account',
+      schema: AccountDTOSchema,
+      audience: 'admin',
+      signal: controller.signal,
+      transport: async (path, init) => {
+        const response = await transport(path, init);
+        controller.abort();
+        return response;
+      },
+    }));
+    assert.equal(hits.length, 1);
+    assert.equal(result.attempts, 1);
+    assert.equal(result.action, 'silent');
+    assert.equal(result.text, '');
+    assert.equal(result.retryable, false);
+    absent(result);
+  });
+});
+
 test('a safe GET marks 503 and 408 for an explicit re-read and does not loop', async () => {
   let step = 0;
   await withServer((_req, res) => {
@@ -777,6 +888,7 @@ test('request bodies over the path cap are refused before fetch', async () => {
       method: 'POST',
       body: { note: 'a'.repeat(9_000) },
       schema: AccountDTOSchema,
+      audience: 'admin',
       transport,
     }));
     assert.equal(accepted.ok, true);
@@ -787,6 +899,9 @@ test('request bodies over the path cap are refused before fetch', async () => {
     assert.equal(chat.retryable, false);
     assert.equal(accountWrite.code, 'too_large');
     assert.equal(accountWrite.attempts, 0);
+    assert.equal(accountWrite.status, undefined);
+    assert.equal(accountWrite.action, 'stop');
+    assert.match(accountWrite.text, /too large/);
     assert.match(chat.text, /too large/);
   });
 });

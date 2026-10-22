@@ -29,6 +29,13 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -63,6 +70,13 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -109,6 +123,16 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "edges",
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md",
+          "skills",
+          "task"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -127,6 +151,18 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "definition",
+          "edges",
+          "effectivePaths",
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md",
+          "task",
+          "wiring"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -161,6 +197,13 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -195,6 +238,13 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -212,6 +262,17 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "definition",
+          "edges",
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/11-UI.md,03-质量/17-测试策略.md",
+          "skills",
+          "task"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -225,6 +286,13 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -238,6 +306,13 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"
@@ -251,6 +326,13 @@
         ],
         "patch": "M1-approved-media-prompts",
         "sourceVersion": "cc1fddd0d7b92ebd7d218ba10a74060ed8efb1803faf4059ea2ae7e191dcf2b4"
+      },
+      {
+        "changedFields": [
+          "sections:00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md"
+        ],
+        "patch": "M1-approved-media-prompts",
+        "sourceVersion": "8287043fe3f534b1dbcd74678617da3c3fa18dd3330be3744a7312f63a7571cf"
       }
     ],
     "previousStatus": "done"

@@ -91,6 +91,12 @@
 - M7-T7：sections
 - M7-T8：sections
 - M7-T9：sections
+- R3-T09233008：architecture、definition、edges、effectivePaths、handoff、module、project、sections、task
+- R3-T21757567：architecture、definition、design、edges、effectivePaths、handoff、module、project、sections、task
+- R3-T22883505：architecture、definition、design、edges、effectivePaths、handoff、module、project、sections、task
+- R3-T71889698：architecture、definition、edges、effectivePaths、handoff、module、project、sections、task
+- R3-T87287564：architecture、definition、design、edges、effectivePaths、handoff、module、project、sections、task
+- R3-T92231765：architecture、definition、design、edges、effectivePaths、handoff、module、project、sections、task
 
 ### 00-概览/01-概述与目标.md
 
@@ -430,6 +436,206 @@
  |---|---|---|---|---|---|---|---|
 ````
 
+### _run/batches/batch-3-20261022.md
+
+````diff
+--- before/_run/batches/batch-3-20261022.md
++++ after/_run/batches/batch-3-20261022.md
+@@ -0,0 +1,192 @@
++---
++batch: 3
++tasks: M1-T8, M2-T4, M3-T14, M5-T1
++date: 2026-10-22
++verdict: open
++tests: fail
++pr: https://github.com/dawanglaohu/NBshiyan/pull/407
++note: 仅复核四任务；用户排除M1-T6/M1-T9；两处根因已修，验证遗留未清；不代表六任务整批收口或解锁。
++repair_schema: 1
++---
++
++## 范围
++
++用户明确排除 M1-T6、M1-T9。本轮不重审其媒体、图稿、源工程、事实来源或制作过程，不修改两项原任务及状态。四项前置仅核直接接口。记录的 tasks 只列实际复核集合；现有交接台按完整任务集合匹配，本记录不把六任务整批标为已收口。原批次集合不变。
++
++## 交付了什么
++
++M1-T8 统一请求的取消、受控错误与有限重试；M2-T4 纯模型事件生命周期规则；M3-T14 配置、HTTP错误与脱敏计数原语；M5-T1 原子租约、代次与受事务约束的完成。两处原语缺陷已经修复。M2-T7、M3-T1、M5-T8负责后续真实浏览器事件、account响应计数与生产作业接线，本轮不提前宣称这些入口完成。
++
++## 逐任务复核
++
++|任务|验收与具体位置|
++|---|---|
++|M1-T8|src/lib/client/api.ts:163 每次尝试15秒/合并取消；:131方法路径重试策略；:299循环外载荷；:336正文失败仍留HTTP状态；api-errors.ts:108受控字段、:140后台401安全恢复。真实本地HTTP覆盖400/401/403/409/429/503、旧信封、断体、取消、限体、同key及一次性禁重放，41通过。|
++|M2-T4|src/lib/analytics/model-events.ts:134信号规则、:176注入单调时钟差、:195/:224共享schema、:311首终态固定、:375新view重试；tests/model-event-rules.test.ts:286纯度、:352真实TypeScript。模型+共享契约44通过，独立5040种输入顺序均通过，产品与导航关联保留，poster/FoldBox不产GLB success。|
++|M3-T14|src/lib/server/config.ts:81/:97集中Zod与必需配置；http/errors.ts:12/:85/:107状态、requestId、未知异常脱敏；metrics.ts:6固定routeId、:137设置日期、:148单SQL累加、:158 GREATEST防时间倒退；tests/admin-http-metrics.test.ts:231/:354/:413在本轮PG17实际通过。配置+计数17通过，实际HTTP跨原语23请求通过。|
++|M5-T1|prisma/schema.prisma:423 JobState；src/lib/server/jobs/lease-repo.ts:168条件领取、:180返回前时钟、:193事务续租、:225事务完成；tests/job-leases.db.test.ts:143并发/:167租约与旧代次/:215锁等待领取，以及后续业务回滚、设置revision/RR竞争。真实PG17共15通过，0跳过。|
++
++接缝：共享DTO/Zod由M1-T2唯一提供；HTTP mapper经真实Node HTTP由M1-T8解析21种AppError、旧401、未知500，23请求无自动重放与私密回显。计数与JobState无跨模块反向依赖、各自单SQL/外层事务约束保留。未发现M2纯规则的新增阻断。
++
++## 测试
++
++代码基线 main 47e97964，修复代码 68e10120、17de9c85。Node22.17.0/pnpm10.34.6；独立PostgreSQL17.9在本轮planning目录初始化，仅localhost54338/batch3，不读生产库。
++
++- 冻结安装通过；本机pnpm9不匹配后改用17节指定pnpm10，锁文件未修改。
++- 最终 pnpm test：1347 tests，1312 pass / 30 fail / 5 skipped。29条断言属于下述5组验证遗留；另1条JobState连接P1001在独立补跑通过（1 pass/0 skip），不作为租约产品缺陷。最初DB未创建的3项metric失败也已在完整库中补证通过。保留原始失败统计，未把补跑叠加成全量绿灯。
++- 原语组合65 pass/0 fail/0 skip；HTTP owning suite41通过；模型与共享契约44通过；JobState15通过。上述集合有重叠，不累加声称总数。
++- pnpm lint通过（既有warning），tsc --noEmit --incremental false通过；独立diff复核无新阻断；review.py为0 block/28 warn，vault --check通过。
++- Windows pnpm build两次在standalone符号链接EPERM失败；编译路由成功不算完整构建通过，STANDALONE_TEST产物验收仍未完成。
++- 真实编译bundle由next start启动，fresh浏览器点击首页→产品→联系，12卡、真/api/models 200、真实Accept all后/api/rum 204，CSS白底/黑字/16px/24px/2px边/0圆角/无阴影，页面脚本错误0；3帧GIF6.5秒，1200x750，65帧。此证据不是standalone及后续完整业务链验收。
++- stylekit严格类名检查inconclusive（CSS与运行时表达式），不报pass；实际computed style已核。公开品牌产品页探索densityProbe：1920×1080 D2/D6 fail，其余pass；1440×900全pass。此页不是本轮新增的已登录product工作面，不把它冒充后台密度验收，也不在本轮改其布局。
++- 安全摘要、逐项错误、文件/日志哈希、Jev实答与浏览器请求见同目录 batch-3-20261022.evidence.json。
++
++## 发现与修复
++
++- B1 [S2] M1-T8：后台HTTP401为HTML/空体/未知码/中断正文时只有stop，丢登录恢复。真实HTTP新增4例修前4失败，修后5例全过（含已知错误保护）；68e10120统一动作和固定双语文案。bad_credentials、recovery_expired、action_grant_invalid及访客行为保留。
++- B2 [S2] M5-T1：等待真实行锁后仍按等待前时间返回已过期leaseActive/acquired。新增回归修前失败，修后剩1ms/等号/过期1ms与下代次领取均过；17de9c85在SQL返回后重采有效时钟，过期busy，不额外释放行，不改fencing。
++
++## 遗留
++
++以下均有真实失败证据，保持open；验证问题不等同于已证明产品缺陷。当前只修四原语根因，不跨范围重写旧后台、导入、存储或生产安全审计。
++
++- N1 [S2] baseline-crlf-harness：11个源码/Bash断言的CRLF假设；tests/admin-enroll-hardening-347-348.test.ts:262等10个测试文件；仅内存转LF全部反事实通过。
++- N2 [S2] baseline-path-harness：3个文件身份/扫描断言以斜杠硬比较Windows路径；tests/lint-ru-yo.test.ts:39、prod-mocks-strip.test.ts:24/47。
++- N3 [S2] baseline-posix-storage-harness：6项POSIX路径/权限/符号链接在Windows前置不成立；tests/prod-env-check.test.ts:206/219/291、storage-local.test.ts:58/82、storage.test.ts:24。
++- N4 [S2] baseline-python-runtime：7项内容导入测试命中python3 WindowsApps别名，退出9009，保护断言未实际执行；tests/sanity-import.test.ts:14起。
++- N5 [S2] reset-audit-expectations：2项真实PG测试漏既有auth.enroll_token_issued审计；tests/admin-reset-initial-password.db.test.ts:119/136；不删除scripts/admin-reset-initial-password-lib.mjs:149的安全审计迁就测试。
++- N6 [S2] supported-standalone-smoke：Windows完整构建/standalone未通过，缺受支持Linux产物与适用已登录后台测量证据；playwright.config.ts:20、tests/standalone-start.test.ts:16、.github/workflows/ci.yml。
++
++## 自行裁决
++
++三次均为真实jev-1.14.0调用，原始需求、冲突及全部候选保存在证据；均spec_change=no/outside_stack=no/needs_owner=no/adopt=take(A)。
++
++1. 四项局部记录与401恢复：A限定修复且tasks只列四项；B同修但列六项、正文排除；C只登记不修。Jev A/high0.94；实际采用四项集合与68e10120，不宣称六任务整批解锁。
++2. 领取锁等待时钟：A返回后重采并拒绝过期；B改claim事务接口并锁后采时钟；C改DB时钟与注入路径。Jev A/high0.98；实际17de9c85与真PG回归。
++3. 验证遗留：A五组测试返工+独立产物/冒烟任务；B本轮大范围修测试；C先依LinuxCI减小待办但仍open。Jev A/high0.98；实际保持open，下面登记六项，不降低验收或扩大当前生产改动。
++
++## 返工任务
++
++```task
++stable-key: baseline-crlf-harness
++title: 使源码断言与Shell验证在实际检出换行下可靠执行
++module: M1
++source-tasks: M1-T8, M2-T4, M3-T14, M5-T1
++depends-on: M1-T8, M2-T4, M3-T14, M5-T1
++input: 最终全量运行11项因CRLF失败；10项源码断言仅在内存转LF后通过，deploy/smoke-lib.sh真Bash读取出现\r语法错。证据见本记录evidence.json baselineTriage。
++output: 换行策略或测试读取/执行适配及同场景回归
++acceptance: 1) 逐项复现11条失败并在受支持Windows/Linux检出验证通过。2) 保留SQL、后台guard、UI行为与所有安全断言；不删除断言或降低验收，不改生产行为迁就文本匹配。3) LF/CRLF输入与真实Bash调用均有因果回归。
++edges: none
++paths: .gitattributes, tests/admin-enroll-hardening-347-348.test.ts, tests/admin-enroll-p1.test.ts, tests/admin-inquiry-history-331.test.ts, tests/admin-mail-states-74.test.ts, tests/admin-p3-350.test.ts, tests/article-og-route.test.ts, tests/home-entry-grid-308.test.ts, tests/locale-enum-values.test.ts, tests/mail-routes.test.ts, tests/site-settings-read-350.test.ts
++estimate: 1d
++severity: S2
++jev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline
++```
++
++```task
++stable-key: baseline-path-harness
++title: 统一文件身份比较以通过Windows路径负例
++module: M1
++source-tasks: M1-T8, M2-T4, M3-T14, M5-T1
++depends-on: M1-T8, M2-T4, M3-T14, M5-T1
++input: 最终全量3条失败：tests/lint-ru-yo.test.ts:39与tests/prod-mocks-strip.test.ts:24/47；仅内存规范反斜杠后断言通过。
++output: 只读文件发现与测试身份比较适配
++acceptance: 1) 实际Windows与Linux运行三条用例通过。2) 生产mock剔除、俄文校验与扫描覆盖保持，新增slash/backslash同文件身份及真实坏文件负例。3) 不通过缩小发现范围或改空列表过关。
++edges: none
++paths: tests/lint-ru-yo.test.ts, tests/prod-mocks-strip.test.ts, scripts/lint-ru-yo.mjs
++estimate: 1d
++severity: S2
++jev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline
++```
++
++```task
++stable-key: baseline-posix-storage-harness
++title: 在适用平台执行存储权限与符号链接安全验收
++module: M3
++source-tasks: M1-T8, M2-T4, M3-T14, M5-T1
++depends-on: M1-T8, M2-T4, M3-T14, M5-T1
++input: 最终全量6项失败：prod-env-check两处POSIX路径、三处symlink准备EPERM、storage mode0666不等于0600；安全待测分支没有都实际执行。
++output: 适用平台验证分层与真实Linux安全证据
++acceptance: 1) Linux真实运行六项全部通过且拒绝不可写/根目录/public/.next/逃逸链接/覆盖。2) Windows前置能力明确验证并保留适用平台中性断言；不可用不能冒充通过。3) 保留生产路径与权限规则，不删除安全用例；完整运行记录区分pass/fail/skip。
++edges: none
++paths: tests/prod-env-check.test.ts, tests/storage-local.test.ts, tests/storage.test.ts, .github/workflows/ci.yml
++estimate: 1.5d
++severity: S2
++jev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline
++```
++
++```task
++stable-key: baseline-python-runtime
++title: 让内容导入用例使用实际Python并执行全部保护断言
++module: M1
++source-tasks: M1-T8, M2-T4, M3-T14, M5-T1
++depends-on: M1-T8, M2-T4, M3-T14, M5-T1
++input: 最终全量7条sanity-import测试spawn python3命中WindowsApps别名退出9009；本机python.exe3.13.7实际可用，导入断言未执行。
++output: 可配置Python测试运行入口及启动失败诊断
++acceptance: 1) 真Windows/Linux各跑七项导入/placeholder/food-claim/links保护用例通过。2) 错误解释器仍明确失败并保留stderr；不删除保护断言或把9009当通过。3) 与已提交import.ndjson一致性在真实解释器验证。
++edges: none
++paths: tests/sanity-import.test.ts, docs/content/sanity-import/build.py, docs/content/sanity-import/linkmap.py
++estimate: 0.5d
++severity: S2
++jev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline
++```
++
++```task
++stable-key: reset-audit-expectations
++title: 保留令牌签发审计并修正重置并发测试预期
++module: M3
++source-tasks: M1-T8, M2-T4, M3-T14, M5-T1
++depends-on: M1-T8, M2-T4, M3-T14, M5-T1
++input: 真实独立PG17两项测试在tests/admin-reset-initial-password.db.test.ts:119/136失败；scripts/admin-reset-initial-password-lib.mjs:149-154明确还写auth.enroll_token_issued。
++output: 与真实安全审计契约一致的数据库并发回归
++acceptance: 1) ADMIN_RESET_TEST_DATABASE_URL指向一次性PG17，三项数据库测试零环境skip全部通过。2) 并发重置串行、密码与sessionVersion正确；每次实际令牌签发恰有对应审计。3) 不删除生产auth.enroll_token_issued、不放宽为任意审计数；确认拒绝者不写审计。
++edges: none
++paths: tests/admin-reset-initial-password.db.test.ts, scripts/admin-reset-initial-password-lib.mjs
++estimate: 0.5d
++severity: S2
++jev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline
++```
++
++```task
++stable-key: supported-standalone-smoke
++title: 补齐Linux独立产物与适用后台密度实证
++module: M1
++source-tasks: M1-T8, M2-T4, M3-T14, M5-T1
++depends-on: M1-T8, M2-T4, M3-T14, M5-T1
++input: 两次Windowspnpm build在standalone复制symlink EPERM失败；只有已编译bundle经next start的真浏览器/CSS/API/RUM/GIF通过，不能冒充standalone。公开品牌产品页探索密度1920 D2/D6失败而1440通过，不是已登录后台验收。
++output: 受支持Linux构建、真实standalone主冒烟、适用后台测量及证据记录
++acceptance: 1) 精确head在Linux完成冻结安装/build，确有standalone/server.js，STANDALONE_TEST=1启动测试零环境skip。2) 真standalone+独立PG跑现有首页导航/目录/同意/RUM及已有后台路径，禁止应用API拦截或状态注入；保存trace/GIF和请求结果。3) 只对已实现的后台工作面在真实登录下跑1920x1080和1440x900 densityProbe；未实现的下游功能不得宣称完成，任何适用失败另登记返工，不降低17节标准。
++edges: none
++paths: .github/workflows/ci.yml, playwright.config.ts, e2e/brand-smoke.spec.ts, e2e/global-setup.ts, tests/standalone-start.test.ts, docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md, docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json
++estimate: 1.5d
++severity: S2
++jev: model=jev-1.14.0; adjudicate pick=A(high 0.98); adopt=take(A); judgments.jsonl label=batch-3:baseline
++```
++
++## 给下一批的提醒
++
++本轮只收四项，M1-T6/M1-T9的状态与交付未在本轮复核。两个缺陷修复可供复用；验证返工全部实际落地并重新收口后才能讨论clean/fixed。lease领取可能因等待而返回busy；调用方不得在acquired=false时执行。后台401未知正文使用统一登录恢复，不自行复制错误解析。
++
++
++## 独立审查与下批实施资格
++
++用户要求另派一名独立 agent 复核，审查无误后解锁下批。新审查员按当前四任务范围检查完整diff、契约、真实证据和远端线程，M1-T6/M1-T9仍排除。
++
++审查发现原修复遗漏超限401响应：Content-Length声明超过4MiB或实际chunked正文超过4MiB时，kind=oversize先落stop，丢失登录恢复。两项真实HTTP回归先红（0pass/2fail），再限定修复共享会话判断与分支顺序后转绿。请求侧超限的admin负例保持status未定义、action=stop、attempts=0且0HTTP；visitor及已知凭据错误语义保留。完整HTTP43pass/0fail/0skip，tsc和lint通过；审查员独立真HTTP探针及28项PG、48项规则检查通过，本轮代码审查PASS。Jev真实裁决model=jev-1.14.0，A/high1.00、adopt=take(A)：A只扩受控oversize401判断；B由transport统一改写超限非2xx错误表示；C保留为新返工。实际采A，不改transport/响应上限。
++
++整体收口完成仍FAIL/open，六项R3仍todo；独立agent PASS不等于指定GitHub安全App APPROVED。原head ddbed27a的Linux构建与e2e已过，不能挪作后续修复head的CI通过。
++
++下批资格另外核实，不把整批open等同于下批全锁：实际运行生成器原函数，文件态M1-T6=todo，其余第3批五项done，batch3Complete=false；现行闸门只在紧邻上一批全部落地时生效，因此M3-T1、M4-T15、M4-T8为todo且implLocked=false，M1-T4已done。四任务局部记录不匹配原六任务整批，matchingBatch3Records=0。M1-T6的todo不改、不伪造clean，不修改wrapupGate或skip配置。
++
++进一步在本工作树真实交接台静态服务中点击导航和第4批展开控件，确认这三个任务的实施按钮均visible=true、enabled=true；没有复制实施提示词、没有推进任务状态。当前文件态下批已READY，无需人工改gate。旧主检出或浏览器本地状态可能不同，打开本工作树的交接台核对；本轮未合并前不称主检出已同步。
++
++完整独立报告、真实UI/gate结果、候选与红绿日志哈希见同目录evidence.json的independentReviewFollowup。原全量30fail/5skip和前轮证据保留为历史实测，不用本轮43pass覆盖或冒称全量绿灯。
++
++
++## 管理员例外前的独立安全审查
++
++用户在明确知晓#407被指定App门禁阻断后，要求新子agent安全审查，无问题后合并。新的安全审查员发现唯一真实阻断：收到超限401响应头后、正文处理前caller已abort，正常readCapped返回仍可能触发login。owning真实HTTP回归修前0pass/1fail，新增正常读取返回后的caller取消检查后转绿；focused9/9、完整HTTP44/44、tsc/eslint通过。独立原探针复验为silent/空文案/1HTTP；非取消超限401仍login、请求侧超限仍0次发送，真实PG28项通过，无其他已复现安全阻断，最终SECURITY_PASS限所列源文件哈希。
++
++Jev model=jev-1.14.0，A/medium0.58、adopt=take(A)：A读取返回后单点重查caller取消，B向readCapped透传signal并改内部契约，C留返工不合。本轮采A，不改transport/重试/响应上限/Auth.js。
++
++此安全PASS不伪装成packjoyu-security-reviewer[bot]批准。root仍须核最终head及CI；满足后仅按用户对此PR的管理员例外授权合并，不关闭仓库门禁，不把open/六返工改为clean或done。安全报告、原始裁决/红绿哈希和授权范围写入evidence.json的securityAudit。
+````
+
 ### _run/presentation.json
 
 ````diff
@@ -595,16 +801,17 @@ tests/hero-video.test.ts
 `src/lib/client/api.ts:257` — 只有可重放且计划允许显式重读时 retryable 为 true，否则把 retry 改成 stop。
 `src/lib/client/api.ts:283` — 统一请求出口。成功返回有名 DTO，失败返回适配结果而不抛出。
 `src/lib/client/api.ts:299` — 超限请求不发出。通过的 JSON 字符串在各次尝试间复用。
-`src/lib/client/api.ts:432` — 自动等待超过 30 秒时返回 Retry-After，不在这次调用里睡满。
+`src/lib/client/api.ts:435` — 自动等待超过 30 秒时返回 Retry-After，不在这次调用里睡满。
 `src/lib/client/api-errors.ts:46` — 旧守卫码必须是小写 token。CredentialsSignin 不进入 code 或文案。
 `src/lib/client/api-errors.ts:108` — fieldErrors 只保留契约字段中通过长度和控制符检查的句子。
-`src/lib/client/api-errors.ts:140` — 后台 unauthorized 去登录，action_grant_invalid 重新本人验证，403 停止。
-`src/lib/client/api-errors.ts:178` — 统一错误适配。新错误体和旧 `{error}` 都从这里读，message 与 stack 不进入文案。
+`src/lib/client/api-errors.ts:140` — 后台会话错误统一决定登录动作与固定文案；HTTP 401 无可识别错误体时仍去登录。
+`src/lib/client/api-errors.ts:191` — 统一错误适配。新错误体和旧 `{error}` 都从这里读，message 与 stack 不进入文案。
 `tests/client-api-foundation.http.test.ts:89` — 用本机 HTTP 服务器覆盖延迟、状态码、取消和同体复用。
 `src/lib/client/api.ts:336` — 正文读取失败时保留响应头状态和 Retry-After，用户取消仍静默。
-`tests/client-api-foundation.http.test.ts:925` — 编码路径的 Auth.js 排除、cron 禁重试与聊天/分析限体和重试。
-`tests/client-api-foundation.http.test.ts:1040` — 4xx 正文断连不重放，429 正文断连保留等待。
-`tests/client-api-foundation.http.test.ts:1117` — 408/503 正文断连继续遵守已收到的 Retry-After。
+`tests/client-api-foundation.http.test.ts:1040` — 编码路径的 Auth.js 排除、cron 禁重试与聊天/分析限体和重试。
+`tests/client-api-foundation.http.test.ts:1155` — 4xx 正文断连不重放，429 正文断连保留等待。
+`tests/client-api-foundation.http.test.ts:1232` — 408/503 正文断连继续遵守已收到的 Retry-After。
+`tests/client-api-foundation.http.test.ts:308` — 真实 HTTP 401 的 HTML、空体、未知码、断体与声明/流式超限响应均只发送一次，后台恢复登录；已知凭据和本人验证动作保留。
 
 运行 python "docs/PackJoyU-开发文档/_run/maintain_docs.py" "docs/PackJoyU-开发文档" status --task M1-T4 读取当前版本与证据模板。
 契约复核完成后，用同一维护命令的 verify --task M1-T4 --evidence <证据JSON> 登记真实证据。verify 只登记文档契约复核，不证明代码验收或 CI 通过，也不清除代码复验标记。

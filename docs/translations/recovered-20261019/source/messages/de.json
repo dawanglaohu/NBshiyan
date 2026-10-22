@@ -1,0 +1,551 @@
+{
+  "Meta": {
+    "title": "Individuelle Verpackungen: Kartons & Becher | PackJoyU",
+    "description": "Individuelle Wellpappkartons, Geschenk- und Weinboxen, Formfaserguss, Pappbecher und bedruckte Verpackungen für Marken in Nordamerika, Europa und Australien.",
+    "home": "Startseite",
+    "ogImageAlt": "Individuelle Verpackungen von PackJoyU: Kartons, Pappbecher und Druck"
+  },
+  "Nav": {
+    "home": "Startseite",
+    "products": "Produkte in 3D",
+    "about": "Über uns",
+    "contact": "Kontakt",
+    "quote": "Angebot anfordern",
+    "menu": "Menü",
+    "main": "Hauptnavigation",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "switchLang": "English version"
+  },
+  "Home": {
+    "headline": "Verpackungen, die Freude machen",
+    "sub": "Individuelle Papierverpackungen und Druck – vom Muster bis zur Serienbestellung. Entdecken Sie jedes Produkt in 3D.",
+    "cta": "Produkte in 3D ansehen",
+    "ctaQuote": "Angebot anfordern",
+    "entryTitle": "Finden Sie Ihre Verpackung",
+    "premiumTitle": "Premium-Geschenk- und Weinverpackungen",
+    "premiumText": "Feste Kartonagen mit Heißfolienprägung, Magnetverschluss und passgenauen Einlagen – gemacht fürs Unboxing vor der Kamera.",
+    "ctaBandTitle": "Haben Sie ein Projekt im Kopf?",
+    "ctaBandText": "Sagen Sie uns, was Sie brauchen – ein Verpackungsspezialist antwortet Ihnen per E-Mail.",
+    "heroLabel": "Stapel individueller PackJoyU-Kartons und ein Pappbecher",
+    "heroBrand": "Pack<accent>Joy</accent>U",
+    "heroTagline": "Individuell bedruckte Verpackungen",
+    "heroVideoSkip": "Video überspringen",
+    "heroVideoPlay": "Video abspielen",
+    "heroVideoPause": "Video pausieren",
+    "heroPosterAlt": "Individuell bedruckte Verpackungen von PackJoyU: weißer Versandkarton mit korallfarbenem Logo, hohe schwarze Schachtel mit goldener Banderole, schwarze Geschenkbox mit goldener Kante und Verschluss, weißer Pappbecher und kleine Schachtel mit Farbverlaufsdruck"
+  },
+  "Products": {
+    "title": "Unsere Produkte in 3D",
+    "hint": "Zum Drehen ziehen, zum Zoomen scrollen oder mit zwei Fingern zoomen.",
+    "tapToRotate": "Zum Drehen tippen",
+    "dragToRotate": "Zum Drehen ziehen",
+    "loading": "3D-Modell wird geladen …",
+    "addToQuote": "Zur Anfrage hinzufügen",
+    "details": "Details",
+    "names": {
+      "corrugated-boxes": "Wellpappkartons",
+      "color-boxes": "Bedruckte Faltschachteln",
+      "gift-boxes": "Geschenkboxen",
+      "pulp-molding": "Formfaserguss",
+      "paper-cups": "Pappbecher",
+      "party-supplies": "Partyartikel",
+      "wine-boxes": "Weinverpackungen",
+      "color-printing": "Farbdruck",
+      "offset-printing": "Offsetdruck",
+      "eco-paper-cups": "Bedruckte Kaffeebecher",
+      "gift-cards": "Grußkarten",
+      "christmas-merchandise": "Weihnachtsverpackungen"
+    },
+    "done": "Fertig",
+    "categories": "Produktkategorien",
+    "metaTitle": "Verpackungsprodukte in 3D: Kartons & Becher | PackJoyU",
+    "metaDescription": "Entdecken Sie unser breites Sortiment individueller Verpackungen in 3D: Wellpapp-, Geschenk- und Weinverpackungen, Formfaserguss, Pappbecher und Druck.",
+    "desc": {
+      "corrugated-boxes": "Individuelle Versand- und Wellpappkartons in einwelliger oder zweiwelliger Ausführung, mit Ihrer Marke bedruckt.",
+      "color-boxes": "Vollfarbig bedruckte Faltschachteln und Produktverpackungen für Kosmetik, Lebensmittel und Elektronik.",
+      "gift-boxes": "Feste Geschenkboxen und Boxen mit Magnetverschluss, mit Heißfolienprägung, Blindprägung und passgenauen Einlagen.",
+      "pulp-molding": "Trays und Einlagen aus Formfaserguss.",
+      "paper-cups": "Individuell bedruckte Pappbecher für Kaffee, Tee und Kaltgetränke, einwandig oder doppelwandig.",
+      "party-supplies": "Bedrucktes Partygeschirr aus Papier: Teller, Becher, Servietten und Deko für Events und Handel.",
+      "wine-boxes": "Individuelle Wein- und Spirituosenverpackungen für eine oder mehrere Flaschen, mit Premium-Veredelung und Einlagen.",
+      "color-printing": "CMYK- und Sonderfarbendruck für Verpackungen, Etiketten und Marketingmaterial.",
+      "offset-printing": "Offsetdruck für Schachteln, Kataloge und Broschüren – mit gleichbleibender Farbe auch bei hohen Auflagen.",
+      "eco-paper-cups": "Pappbecher mit Ihrem Logo bedruckt; Beschichtungsoptionen werden je Auftrag bestätigt.",
+      "gift-cards": "Individuell bedruckte Grußkarten und Kartenverpackungen für Handel und Promotion.",
+      "christmas-merchandise": "Weihnachtliche Geschenkboxen, Röhren, Adventskalender und Saisonverpackungen auf Bestellung."
+    },
+    "alt": "{name}: individuelle Verpackung von PackJoyU",
+    "specs": {
+      "corrugated-boxes": [
+        "Einwellig und zweiwellig (E-/B-/C-Welle)",
+        "Flexo- oder Digitaldruck bis 4 Farben",
+        "Mengen werden je Auftrag bestätigt"
+      ],
+      "color-boxes": [
+        "SBS- oder Kraftkarton, 300–400 g/m²",
+        "CMYK + Pantone, matte/glänzende Kaschierung",
+        "Mengen werden je Auftrag bestätigt"
+      ],
+      "gift-boxes": [
+        "Fester Graukarton 1,5–2,5 mm",
+        "Heißfolienprägung, Prägung, Magnetdeckel",
+        "Individuelle Einlagen aus EVA oder Papier"
+      ],
+      "pulp-molding": [
+        "Formfaserguss",
+        "Individuelle Kavitäten in der Form Ihres Produkts",
+        "Materialoptionen auf Anfrage"
+      ],
+      "paper-cups": [
+        "Verschiedene Größen, einwandig oder doppelwandig",
+        "Beschichtungen für Heiß- und Kaltgetränke",
+        "Mengen werden je Auftrag bestätigt"
+      ],
+      "party-supplies": [
+        "Teller, Becher, Servietten, Girlanden",
+        "Individuelle Druckmotive",
+        "Verkaufsfertige Packs"
+      ],
+      "wine-boxes": [
+        "Formate für 1, 2 oder 3 Flaschen",
+        "Folienprägung, partieller UV-Lack, Magnetverschlüsse",
+        "Passgenaue Einlagen für den sicheren Versand"
+      ],
+      "color-printing": [
+        "CMYK + Sonderfarben",
+        "Etiketten, Banderolen, Flyer",
+        "Farbproof vor dem Druck"
+      ],
+      "offset-printing": [
+        "Offsetdruck in CMYK und Pantone",
+        "Kataloge, Broschüren, Faltschachteln",
+        "Gleichbleibende Farbe bei hohen Auflagen"
+      ],
+      "eco-paper-cups": [
+        "Beschichtungsoptionen je Auftrag bestätigt",
+        "Materialoptionen auf Anfrage"
+      ],
+      "gift-cards": [
+        "Karton 350–600 g/m²",
+        "Folienprägung, Prägung, Sonderstanzungen",
+        "Umschläge und Kartenhalter"
+      ],
+      "christmas-merchandise": [
+        "Geschenkboxen, Röhren, Adventskalender",
+        "Saisonale Folien- und Glitzerveredelung",
+        "Bestellung bis September für Q4"
+      ]
+    },
+    "learnMore": "Mehr erfahren",
+    "specsLabel": "Wichtige Spezifikationen",
+    "empty": "Es sind noch keine 3D-Modelle veröffentlicht. Schauen Sie bald wieder vorbei oder fragen Sie uns nach Mustern.",
+    "ogImageAlt": "PackJoyU: Unsere Produkte in 3D – individuelle Wellpapp-, Geschenk- und Weinverpackungen"
+  },
+  "Admin": {
+    "title": "Verwaltung"
+  },
+  "Quote": {
+    "title": "Anfrageliste",
+    "add": "Zur Anfrage hinzufügen",
+    "added": "In der Anfrage ✓",
+    "remove": "Entfernen",
+    "empty": "Ihre Anfrageliste ist leer. Fügen Sie Produkte aus dem 3D-Katalog hinzu.",
+    "continue": "Weiter zur Anfrage",
+    "browse": "3D-Katalog ansehen",
+    "close": "Schließen",
+    "full": "Ihre Anfrageliste ist voll ({max} Artikel). Entfernen Sie einen, um einen weiteren hinzuzufügen."
+  },
+  "Fab": {
+    "quote": "Anfrageliste",
+    "chat": "Kontakt",
+    "top": "Nach oben",
+    "menu": "Schnellaktionen"
+  },
+  "Contact": {
+    "metaTitle": "Verpackungsangebot anfordern | PackJoyU",
+    "metaDescription": "Erzählen Sie uns von Ihrem Verpackungsprojekt und fordern Sie ein Angebot von PackJoyU an.",
+    "title": "Angebot anfordern",
+    "intro": "Drei kurze Schritte. Nur Ihre Kontaktdaten sind Pflichtangaben – wählen Sie „Noch unklar“ für alles, was Sie noch nicht entschieden haben.",
+    "ogImageAlt": "PackJoyU: Angebot für individuelle Verpackungen anfordern"
+  },
+  "Inquiry": {
+    "stepOf": "Schritt {n} von {total}",
+    "steps": {
+      "0": "Produkte & Menge",
+      "1": "Größe, Material & Zeitrahmen",
+      "2": "Kontaktdaten"
+    },
+    "products": "Welche Produkte interessieren Sie?",
+    "quantity": "Menge pro Auftrag",
+    "qty": {
+      "1k": "~1.000",
+      "5k": "~5.000",
+      "10k": "~10.000",
+      "50k": "50.000+",
+      "unsure": "Noch unklar"
+    },
+    "size": "Größe (L × B × H)",
+    "sizePh": "z. B. 30 × 20 × 10 cm oder „noch unklar“",
+    "material": "Material",
+    "materials": {
+      "corrugated": "Wellpappe",
+      "paperboard": "Karton",
+      "kraft": "Kraftpapier",
+      "pulp": "Formfaserguss",
+      "unsure": "Noch unklar"
+    },
+    "timeline": "Wann benötigen Sie es?",
+    "timelines": {
+      "2w": "Innerhalb von 2 Wochen",
+      "1m": "Innerhalb eines Monats",
+      "2m": "1–2 Monate",
+      "unsure": "Noch unklar"
+    },
+    "message": "Noch etwas? (optional)",
+    "name": "Name",
+    "email": "Geschäftliche E-Mail",
+    "company": "Unternehmen",
+    "phone": "Telefon / WhatsApp",
+    "country": "Land",
+    "countryPh": "Land auswählen",
+    "countries": {
+      "US": "Vereinigte Staaten",
+      "GB": "Vereinigtes Königreich",
+      "DE": "Deutschland",
+      "FR": "Frankreich",
+      "IT": "Italien",
+      "ES": "Spanien",
+      "NL": "Niederlande",
+      "PL": "Polen",
+      "RU": "Russland",
+      "KZ": "Kasachstan",
+      "BY": "Belarus",
+      "UZ": "Usbekistan",
+      "AE": "Vereinigte Arabische Emirate",
+      "SA": "Saudi-Arabien",
+      "AU": "Australien",
+      "CA": "Kanada",
+      "ZZ": "Anderes Land"
+    },
+    "consent": "Ich bin damit einverstanden, dass PackJoyU meine Daten zur Beantwortung dieser Anfrage verarbeitet, wie in der <link>Datenschutzerklärung</link> beschrieben.",
+    "back": "Zurück",
+    "next": "Weiter",
+    "submit": "Anfrage senden",
+    "sending": "Wird gesendet …",
+    "checking": "Sicherheitsprüfung läuft …",
+    "success": {
+      "title": "Vielen Dank – Ihre Anfrage ist eingegangen!",
+      "ref": "Ihre Anfragenummer:",
+      "reply": "Ein Verpackungsspezialist antwortet Ihnen per E-Mail."
+    },
+    "errors": {
+      "unavailable": "Online-Anfragen sind vorübergehend nicht möglich. Bitte versuchen Sie es später erneut.",
+      "rate": "Zu viele Anfragen. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
+      "invalid": "Bitte prüfen Sie Name, E-Mail und Land und versuchen Sie es erneut.",
+      "captcha": "Die Sicherheitsprüfung ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "server": "Bei uns ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
+      "network": "Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry": "Die Sicherheitsprüfung konnte gerade nicht abgeschlossen werden. Ihre Angaben bleiben erhalten – bitte versuchen Sie es gleich noch einmal.",
+      "logo_invalid": "Ihr Logo-Upload ist abgelaufen oder nicht mehr gültig. Bitte laden Sie Ihr Logo erneut hoch – Ihre übrigen Angaben bleiben erhalten."
+    },
+    "retry": "Erneut versuchen",
+    "retryIn": "Erneut versuchen in {s} s",
+    "logoNote": "Sie haben ein Vektorlogo (PDF/AI)? Senden Sie es als Anhang, wenn Sie auf unsere E-Mail zu Ihrer Anfrage antworten.",
+    "logo": {
+      "label": "Logo (optional)",
+      "hint": "PNG, JPEG oder WebP, bis 2 MB.",
+      "uploading": "Wird hochgeladen …",
+      "uploaded": "Logo hochgeladen",
+      "remove": "Entfernen",
+      "choose": "Datei auswählen",
+      "none": "Keine Datei ausgewählt",
+      "expired": "Ihr Logo-Upload ist abgelaufen. Bitte laden Sie es erneut hoch.",
+      "errors": {
+        "type": "Bitte wählen Sie ein PNG-, JPEG- oder WebP-Bild.",
+        "size": "Diese Datei ist größer als 2 MB. Bitte wählen Sie ein kleineres Bild.",
+        "dimensions": "Dieses Bild ist zu groß (max. 4096 × 4096 px). Bitte verkleinern Sie es und versuchen Sie es erneut.",
+        "corrupt": "Dieses Bild konnte nicht gelesen werden. Bitte versuchen Sie eine andere Datei.",
+        "rate": "Zu viele Uploads. Bitte warten Sie etwas und versuchen Sie es erneut.",
+        "network": "Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+        "server": "Ihr Logo konnte gerade nicht hochgeladen werden. Bitte versuchen Sie es später erneut."
+      }
+    },
+    "overLimit": "Ihre Liste enthält {n} Artikel; das Limit liegt bei {max}. Entfernen Sie einige, um sie abzusenden.",
+    "newTab": "(öffnet in neuem Tab)",
+    "validation": {
+      "summary": "Bitte prüfen Sie diese Felder:",
+      "name": "Bitte geben Sie Ihren Namen ein.",
+      "emailRequired": "Bitte geben Sie Ihre geschäftliche E-Mail-Adresse ein.",
+      "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein, z. B. name@company.com.",
+      "region": "Bitte wählen Sie Ihr Land.",
+      "consent": "Bitte bestätigen Sie die Einwilligung zur Datenverarbeitung."
+    }
+  },
+  "Views": {
+    "label": "Ansicht der Schachtel",
+    "closed": "Geschlossen",
+    "open": "Geöffnet",
+    "dieline": "Stanzkontur"
+  },
+  "Consent": {
+    "label": "Cookie-Einwilligung",
+    "text": "Wir verwenden notwendige Cookies, um diese Website zu betreiben. Mit Ihrer Einwilligung nutzen wir zusätzlich Analyse und Live-Chat.",
+    "policy": "Datenschutzerklärung",
+    "accept": "Alle akzeptieren",
+    "reject": "Alle ablehnen",
+    "settings": "Einstellungen",
+    "title": "Cookie-Einstellungen",
+    "lead": "Wählen Sie, welche Cookies wir verwenden dürfen. Sie können dies jederzeit über „Cookie-Einstellungen“ in der Fußzeile ändern.",
+    "necessary": "Notwendig",
+    "necessaryDesc": "Sprache, Sicherheit (Turnstile), Anfrageliste und diese Auswahl. Immer aktiv.",
+    "alwaysOn": "Immer aktiv",
+    "analytics": "Analyse",
+    "analyticsDesc": "Anonyme Statistiken zu Ladezeit und Nutzung (Web Vitals), um die Website zu verbessern.",
+    "chat": "Live-Chat (Tawk.to)",
+    "chatDesc": "Lädt das Chat-Widget von Tawk.to, das eigene Cookies setzt.",
+    "save": "Auswahl speichern",
+    "close": "Schließen",
+    "saved": "Ihre Cookie-Auswahl wurde gespeichert.",
+    "withdrawn": "Einwilligung widerrufen. Analyse und Chat sind deaktiviert.",
+    "change": "Ändern"
+  },
+  "Footer": {
+    "about": "Individuelle Papierverpackungen und Druck – vom Muster bis zur Serienbestellung.",
+    "categories": "Produkte",
+    "contact": "Kontakt",
+    "contactText": "Erzählen Sie uns von Ihrem Projekt – ein Verpackungsspezialist antwortet Ihnen per E-Mail.",
+    "privacy": "Datenschutzerklärung",
+    "otherLang": "English",
+    "cookieSettings": "Cookie-Einstellungen"
+  },
+  "Privacy": {
+    "metaTitle": "Datenschutzerklärung: welche Daten wir erheben | PackJoyU",
+    "title": "Datenschutzerklärung",
+    "metaDescription": "Wie PackJoyU personenbezogene Daten aus Angebotsanfragen, Musteranfragen, Chat und Cookies erhebt, nutzt und schützt – und wie Sie Ihre Rechte ausüben.",
+    "intro": "Auf dieser Seite erklären wir, welche personenbezogenen Daten PackJoyU über diese Website erhebt, wofür und wie lange wir sie speichern.",
+    "contactLink": "Kontaktieren Sie uns über das Anfrageformular",
+    "sections": {
+      "collected": {
+        "title": "Welche Daten wir erheben",
+        "items": [
+          "Anfragen und Angebotsanfragen: Ihr Name, Ihre E-Mail-Adresse, Ihr Unternehmen, Ihre Telefonnummer, Ihr Land und Ihre Nachricht sowie die gewählten Produkte und Optionen.",
+          "Musteranfragen: die oben genannten Daten sowie Ihre Lieferadresse.",
+          "Logos, die Sie im Konfigurator oder im Anfrageformular hochladen. Ein Logo kann bereits vor dem Absenden der Anfrage hochgeladen werden.",
+          "Geteilte individuelle Designs, die Sie im 3D-Konfigurator erstellen.",
+          "Herkunfts- und Kampagnendaten, die Ihr Browser mit einer Anfrage übermittelt: die Seite, von der Sie kamen, Suchbegriffe und UTM-Parameter.",
+          "Technische Daten: Ihre IP-Adresse und – sofern Sie Analyse erlauben – anonyme Leistungsmetriken der Seiten. Wir nutzen die IP-Adresse zur Begrenzung der Anfragehäufigkeit und zum Schutz vor Missbrauch, übermitteln sie an unseren Anbieter für Sicherheitsprüfungen, um festzustellen, dass Sie kein Bot sind, und speichern sie in den Sicherheits- (Audit-)Protokollen der Administration. Mit einer Anfrage speichern wir außerdem das aus Ihrer IP-Adresse abgeleitete Land, um Spam zu erkennen."
+        ]
+      },
+      "purpose": {
+        "title": "Wofür wir sie nutzen",
+        "items": [
+          "Um Anfragen zu beantworten, Angebote zu erstellen und Muster zu versenden.",
+          "Um die Website vor Spam und Missbrauch zu schützen (Sicherheitsprüfung und Anfragelimits).",
+          "Nur mit Ihrer Einwilligung: um die Leistung der Website zu messen und einen Live-Chat anzubieten."
+        ]
+      },
+      "retention": {
+        "title": "Wie lange wir sie speichern",
+        "items": {
+          "designs": "Geteilte individuelle Designs laufen nach 180 Tagen ab (der Link liefert dann „410 Gone“) und werden 90 Tage später gelöscht.",
+          "designsInquiry": "Designs, die einer Anfrage beigefügt sind, werden so lange wie diese Anfrage gespeichert und mit ihr anonymisiert oder gelöscht.",
+          "logos": "Logos, die keiner Anfrage beigefügt sind, werden in der Regel innerhalb von 48 Stunden nach dem Hochladen gelöscht (nach 24 Stunden sind sie zur Löschung freigegeben, die Bereinigung läuft täglich) – ausgenommen Logos, die noch in einem nicht abgelaufenen gespeicherten Design verwendet werden.",
+          "sampleEmail": "Bei Musteranfragen (eine pro E-Mail-Adresse alle 30 Tage) wird die für dieses Limit verwendete E-Mail-Adresse nach 30 Tagen gelöscht.",
+          "rateLimit": "Zähler für Anfragelimits nutzen Ihre IP-Adresse und einen Hash (nicht lesbar) Ihrer E-Mail-Adresse und laufen am Ende des jeweiligen Limitzeitraums ab – spätestens nach 30 Tagen.",
+          "audit": "Sicherheits- (Audit-)Protokolle der Administration einschließlich IP-Adressen werden nach 365 Tagen gelöscht.",
+          "adminSessions": "Admin-Sitzungen enden nach 2 Stunden Inaktivität.",
+          "inquiries": "Anfragen werden 2 Jahre nach der letzten Aktivität zur Anfrage (unsere Antwort oder eine Statusänderung) anonymisiert: Wir löschen oder anonymisieren Kontaktdaten, Nachrichten, Lieferadresse, E-Mail-Korrespondenz, hochgeladene Logos und Logo-Einstellungen in der Konfiguration, interne Notizen der Mitarbeitenden zur Anfrage, vom Browser übermittelte Herkunftsdaten sowie Sendungsnummern von Musterlieferungen; es bleiben nur nicht personenbezogene Statistiken erhalten.",
+          "inquiriesContact": "Kontaktdaten werden gespeichert, solange zu diesem Kontakt noch nicht anonymisierte Anfragen bestehen.",
+          "onRequest": "Auf Anfrage löschen oder anonymisieren wir Kontaktdaten, Nachrichten, Lieferadresse, E-Mail-Korrespondenz, hochgeladene Logos und Logo-Einstellungen in der Konfiguration, interne Notizen der Mitarbeitenden zur Anfrage, vom Browser übermittelte Herkunftsdaten sowie Sendungsnummern von Musterlieferungen; es bleiben nur nicht personenbezogene Statistiken erhalten. Einträge in unserer Datenbank werden sofort gelöscht oder anonymisiert.",
+          "deletionCopies": "Kopien der Benachrichtigungs-E-Mails zu Anfragen in unserem geschäftlichen Postfach werden innerhalb von 30 Tagen nach Ihrem Antrag manuell gelöscht. Protokolle unserer Dienstleister (zum Beispiel E-Mail-Zustellung und Hosting) werden gemäß der jeweiligen Aufbewahrungsfrist des Anbieters gelöscht.",
+          "oldReplies": "Antworten auf alte E-Mails zu einer anonymisierten Anfrage werden ihr nicht hinzugefügt.",
+          "exports": "Datenexporte erhalten Sie als Datei; auf dem Server wird keine Kopie gespeichert.",
+          "cleanup": "Eine automatische Bereinigung läuft einmal täglich."
+        }
+      },
+      "cookies": {
+        "title": "Cookies, lokaler Speicher und Einwilligung",
+        "items": [
+          "Ihre Auswahl wird im localStorage Ihres Browsers unter dem Schlüssel pj-consent gespeichert, nicht in einem Cookie. Sie hält fest, ob und wann Sie Analyse und Chat erlaubt haben.",
+          "Analyse (anonyme Leistungsmetriken) wird erst geladen, nachdem Sie sie erlaubt haben.",
+          "Der Live-Chat (Tawk.to) wird erst geladen, nachdem Sie ihn erlaubt haben.",
+          "Ihre Auswahl läuft nach 12 Monaten ab, dann fragen wir erneut.",
+          "Sie können Ihre Einwilligung jederzeit über „Cookie-Einstellungen“ in der Fußzeile ändern oder widerrufen. Nach dem Widerruf werden Analyse und Chat nicht mehr geladen; beim Widerruf für den Chat werden zudem die Daten des Chat-Anbieters aus Ihrem Browser entfernt."
+        ]
+      },
+      "chat": {
+        "title": "Live-Chat (Tawk.to)",
+        "items": [
+          "Der Live-Chat wird von Tawk.to bereitgestellt und nur geladen, wenn Sie den Chat erlauben.",
+          "Beim Laden erhält Tawk.to Ihre Nachrichten und die für den Chat erforderlichen technischen Daten und legt eigene Daten in Ihrem Browser ab.",
+          "Auf unseren Admin-Seiten wird der Chat nie geladen."
+        ]
+      },
+      "processors": {
+        "title": "Dienstleister",
+        "text": [
+          "Wir arbeiten mit Dienstleistern der folgenden Kategorien. Einige können Daten außerhalb Ihres Landes verarbeiten. Wir verkaufen Ihre Daten nicht."
+        ],
+        "items": [
+          "Website-Hosting",
+          "Sicherheitsprüfung (Bot-Schutz) und Dateispeicherung",
+          "Speicher für Anfragelimits",
+          "E-Mail-Zustellung",
+          "Datenbank",
+          "Live-Chat (nur mit Ihrer Einwilligung)"
+        ]
+      },
+      "contact": {
+        "title": "Kontakt und Ihre Rechte",
+        "text": [
+          "Sie können Auskunft über Ihre Daten sowie deren Export, Berichtigung oder Löschung verlangen.",
+          "E-Mail: {{待Ryan确认}}"
+        ]
+      },
+      "company": {
+        "title": "Verantwortliche Stelle",
+        "text": [
+          "Verantwortlicher: {{待Ryan确认}}"
+        ]
+      }
+    },
+    "ogImageAlt": "PackJoyU: Datenschutzerklärung"
+  },
+  "DesignExpired": {
+    "metaTitle": "Design abgelaufen | PackJoyU",
+    "title": "Dieses Design ist abgelaufen",
+    "text": "Dieses Design ist abgelaufen. Bitte gestalten Sie es neu.",
+    "backToCategory": "{category} neu gestalten",
+    "backToProducts": "Produkte ansehen und neu gestalten",
+    "quote": "Angebot anfordern"
+  },
+  "DesignShared": {
+    "metaTitle": "Individuelles Verpackungsdesign | PackJoyU"
+  },
+  "NotFound": {
+    "meta": {
+      "title": "Seite nicht gefunden | PackJoyU"
+    },
+    "code": "404",
+    "title": "Seite nicht gefunden",
+    "lead": "Diese Schachtel ist leer. Die Seite wurde möglicherweise verschoben – probieren Sie eine unserer Produktkategorien.",
+    "home": "Zur Startseite",
+    "quote": "Angebot anfordern",
+    "browse": "Produkte ansehen"
+  },
+  "Solutions": {
+    "meta": {
+      "title": "Verpackungslösungen nach Branche | PackJoyU",
+      "description": "Individuelle Kartons, Becher und Einlagen für Ihre Branche – passend zu Versand und Verkauf Ihres Produkts. Beschreiben Sie Ihr Produkt für ein Angebot."
+    },
+    "eyebrow": "Branchenlösungen",
+    "title": "Verpackungen für Ihre Branche",
+    "lead": "Individuelle Kartons, Becher und Einlagen – passend dazu, wie Ihr Produkt versandt und verkauft wird.",
+    "more": "Lösung ansehen",
+    "premium": {
+      "eyebrow": "Wein- & Geschenkboxen",
+      "title": "Premium-Veredelung nach Maß",
+      "lead": "Feste Wein- und Geschenkboxen, passend zu Ihrer Flasche oder Ihrem Produkt – mit der Veredelung und dem Öffnungserlebnis Ihrer Wahl.",
+      "imageAlt": {
+        "wine": "Individuelle Weinverpackung",
+        "gift": "Individuelle Geschenkbox"
+      }
+    },
+    "empty": "Die Lösungen werden gerade aktualisiert. Sagen Sie uns, was Sie brauchen.",
+    "cta": "Unsicher, welche Verpackung passt? Schicken Sie uns Ihr Produkt.",
+    "detail": {
+      "crumb": "Branchenlösungen",
+      "lead": "Individuelle Verpackungen für {industryGen} – passend dazu, wie Ihr Produkt versandt und verkauft wird.",
+      "metaTitle": "{industry}: Verpackungslösungen | PackJoyU",
+      "metaDescription": "Individuelle Verpackungen für {industryGen}, passend zu Versand und Verkauf Ihres Produkts. Beschreiben Sie Ihr Produkt für ein Angebot.",
+      "cta": "Beschreiben Sie Ihr Produkt – wir schlagen eine passende Lösung vor."
+    },
+    "industries": {
+      "color-boxes": {
+        "name": "Einzelhandel",
+        "title": "Verpackungen für den Einzelhandel",
+        "industryGen": "den Einzelhandel"
+      },
+      "corrugated-boxes": {
+        "name": "E-Commerce & Versand",
+        "title": "Verpackungen für E-Commerce & Versand",
+        "industryGen": "E-Commerce und Versand"
+      },
+      "paper-cups": {
+        "name": "Cafés & Coffeeshops",
+        "title": "Verpackungen für Cafés & Coffeeshops",
+        "industryGen": "Cafés und Coffeeshops"
+      },
+      "party-supplies": {
+        "name": "Partys & Events",
+        "title": "Verpackungen für Partys & Events",
+        "industryGen": "Partys und Events"
+      },
+      "wine-boxes": {
+        "name": "Wein & Spirituosen",
+        "title": "Verpackungen für Wein & Spirituosen",
+        "industryGen": "Wein und Spirituosen"
+      },
+      "gift-boxes": {
+        "name": "Geschenke & Firmenpräsente",
+        "title": "Verpackungen für Geschenke & Firmenpräsente",
+        "industryGen": "Geschenke und Firmenpräsente"
+      }
+    }
+  },
+  "Factory": {
+    "meta": {
+      "title": "So arbeiten wir: vom Angebot bis zum Versand | PackJoyU",
+      "description": "So läuft ein Verpackungsauftrag bei PackJoyU ab: Briefing und Stanzkontur, Muster, Druck, Stanzen und Konfektionierung, Qualitätskontrolle und Versand."
+    },
+    "eyebrow": "So arbeiten wir",
+    "title": "Vom Briefing zur fertigen Verpackung",
+    "lead": "So läuft Ihr Auftrag ab – Schritt für Schritt, von der ersten Stanzkontur bis zum Versand.",
+    "steps": {
+      "title": "Vom Angebot bis zum Versand",
+      "1": {
+        "title": "Briefing & Stanzkontur",
+        "desc": "Sie nennen uns Produkt, Mengen und Druckdaten, und wir stimmen die Konstruktion und eine passende Stanzkontur ab."
+      },
+      "2": {
+        "title": "Muster",
+        "desc": "Nach der abgestimmten Stanzkontur wird ein Muster gefertigt, damit Sie Größe, Passform und Druck vor der Auflage prüfen können."
+      },
+      "3": {
+        "title": "Druck",
+        "desc": "Nach Freigabe des Musters wird Ihr Motiv auf das gewählte Material gedruckt."
+      },
+      "4": {
+        "title": "Stanzen & Konfektionierung",
+        "desc": "Die bedruckten Bogen werden gestanzt, gefalzt und konfektioniert – mit Einlagen, wo Ihr Design sie vorsieht."
+      },
+      "5": {
+        "title": "Kontrolle & Versand",
+        "desc": "Die fertigen Verpackungen werden mit dem freigegebenen Muster abgeglichen, verpackt und für den Versand vorbereitet."
+      }
+    },
+    "stepImageAlt": {
+      "print": "Druck",
+      "dieCut": "Stanzen",
+      "qc": "Qualitätskontrolle",
+      "warehouse": "Lager"
+    },
+    "cta": "Haben Sie ein Projekt? Erzählen Sie uns davon."
+  },
+  "Cases": {
+    "meta": {
+      "title": "Verpackungsprojekte | PackJoyU",
+      "description": "Individuelle Verpackungsprojekte von PackJoyU. Fallbeispiele folgen in Kürze. Beschreiben Sie Ihr Produkt – wir besprechen die passende Verpackung."
+    },
+    "eyebrow": "Projekte",
+    "title": "Von uns gefertigte Boxen",
+    "lead": "Fallbeispiele folgen in Kürze. Erzählen Sie uns in der Zwischenzeit von Ihrem Projekt.",
+    "comingSoon": "Fallbeispiele folgen in Kürze.",
+    "filtersLabel": "Nach Branche filtern",
+    "all": "Alle",
+    "empty": "In dieser Kategorie gibt es noch keine Projekte.",
+    "showAll": "Alle anzeigen",
+    "cta": "Haben Sie ein Projekt? Erzählen Sie uns davon."
+  }
+}
