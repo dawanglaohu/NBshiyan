@@ -1,0 +1,122 @@
+Inquiry.stepOf ||| الخطوة {n} من {total}
+Inquiry.steps.0 ||| المنتجات والكمية
+Inquiry.steps.1 ||| المقاس والمادة والموعد
+Inquiry.steps.2 ||| بيانات التواصل
+Inquiry.products ||| ما المنتجات التي تهمك؟
+Inquiry.quantity ||| الكمية لكل طلب
+Inquiry.qty.1k ||| حوالي 1,000
+Inquiry.qty.5k ||| حوالي 5,000
+Inquiry.qty.10k ||| حوالي 10,000
+Inquiry.qty.50k ||| أكثر من 50,000
+Inquiry.qty.unsure ||| غير متأكد
+Inquiry.size ||| المقاس (الطول × العرض × الارتفاع)
+Inquiry.sizePh ||| مثال: 30 × 20 × 10 سم، أو «غير متأكد»
+Inquiry.material ||| المادة
+Inquiry.materials.corrugated ||| كرتون مموج
+Inquiry.materials.paperboard ||| كرتون مقوى
+Inquiry.materials.kraft ||| ورق كرافت
+Inquiry.materials.pulp ||| لب ورقي مقولب
+Inquiry.materials.unsure ||| غير متأكد
+Inquiry.timeline ||| متى تحتاج إليه؟
+Inquiry.timelines.2w ||| خلال أسبوعين
+Inquiry.timelines.1m ||| خلال شهر
+Inquiry.timelines.2m ||| من شهر إلى شهرين
+Inquiry.timelines.unsure ||| غير متأكد
+Inquiry.message ||| هل لديك أي تفاصيل أخرى؟ (اختياري)
+Inquiry.name ||| الاسم
+Inquiry.email ||| البريد الإلكتروني للعمل
+Inquiry.company ||| الشركة
+Inquiry.phone ||| الهاتف / واتساب
+Inquiry.country ||| الدولة
+Inquiry.countryPh ||| اختر الدولة
+Inquiry.countries.US ||| الولايات المتحدة
+Inquiry.countries.GB ||| المملكة المتحدة
+Inquiry.countries.DE ||| ألمانيا
+Inquiry.countries.FR ||| فرنسا
+Inquiry.countries.IT ||| إيطاليا
+Inquiry.countries.ES ||| إسبانيا
+Inquiry.countries.NL ||| هولندا
+Inquiry.countries.PL ||| بولندا
+Inquiry.countries.RU ||| روسيا
+Inquiry.countries.KZ ||| كازاخستان
+Inquiry.countries.BY ||| بيلاروس
+Inquiry.countries.UZ ||| أوزبكستان
+Inquiry.countries.AE ||| الإمارات العربية المتحدة
+Inquiry.countries.SA ||| المملكة العربية السعودية
+Inquiry.countries.AU ||| أستراليا
+Inquiry.countries.CA ||| كندا
+Inquiry.countries.ZZ ||| أخرى
+Inquiry.consent ||| أوافق على أن تعالج PackJoyU بياناتي للرد على هذا الطلب، وفقًا لما هو موضح في <link>سياسة الخصوصية</link>.
+Inquiry.back ||| رجوع
+Inquiry.next ||| التالي
+Inquiry.submit ||| إرسال الطلب
+Inquiry.sending ||| جارٍ الإرسال…
+Inquiry.checking ||| جارٍ إكمال التحقق الأمني…
+Inquiry.success.title ||| شكرًا لك — تم استلام طلبك!
+Inquiry.success.ref ||| رقم استفسارك:
+Inquiry.success.reply ||| سيرد عليك أحد متخصصي التغليف عبر البريد الإلكتروني.
+Inquiry.errors.unavailable ||| الطلبات عبر الإنترنت غير متاحة مؤقتًا. يُرجى المحاولة لاحقًا.
+Inquiry.errors.rate ||| عدد كبير جدًا من الطلبات. يُرجى الانتظار بضع دقائق ثم المحاولة مرة أخرى.
+Inquiry.errors.invalid ||| يُرجى التحقق من الاسم والبريد الإلكتروني والدولة ثم المحاولة مرة أخرى.
+Inquiry.errors.captcha ||| فشل التحقق الأمني. يُرجى المحاولة مرة أخرى.
+Inquiry.errors.server ||| حدث خطأ من جانبنا. يُرجى المحاولة لاحقًا.
+Inquiry.errors.network ||| خطأ في الشبكة. يُرجى التحقق من اتصالك ثم المحاولة مرة أخرى.
+Inquiry.errors.retry ||| تعذّر إكمال التحقق الأمني الآن. بياناتك محفوظة — يُرجى المحاولة مرة أخرى بعد قليل.
+Inquiry.errors.logo_invalid ||| انتهت صلاحية الشعار الذي رفعته أو لم يعد صالحًا. يُرجى رفع الشعار مرة أخرى — بياناتك الأخرى محفوظة.
+Inquiry.retry ||| حاول مرة أخرى
+Inquiry.retryIn ||| حاول مرة أخرى بعد {s} ثانية
+Inquiry.logoNote ||| هل لديك شعار بصيغة متجهة (PDF/AI)؟ أرسله كمرفق عند الرد على رسالة الاستفسار الخاصة بنا.
+Inquiry.logo.label ||| الشعار (اختياري)
+Inquiry.logo.hint ||| PNG أو JPEG أو WebP، حتى 2 MB.
+Inquiry.logo.uploading ||| جارٍ الرفع…
+Inquiry.logo.uploaded ||| تم رفع الشعار
+Inquiry.logo.remove ||| إزالة
+Inquiry.logo.choose ||| اختر ملفًا
+Inquiry.logo.none ||| لم يتم اختيار ملف
+Inquiry.logo.expired ||| انتهت صلاحية الشعار الذي رفعته. يُرجى رفعه مرة أخرى.
+Inquiry.logo.errors.type ||| يُرجى اختيار صورة بصيغة PNG أو JPEG أو WebP.
+Inquiry.logo.errors.size ||| حجم هذا الملف أكبر من 2 MB. يُرجى اختيار صورة أصغر.
+Inquiry.logo.errors.dimensions ||| هذه الصورة كبيرة جدًا (الحد الأقصى 4096 × 4096 px). يُرجى تغيير حجمها والمحاولة مرة أخرى.
+Inquiry.logo.errors.corrupt ||| تعذّرت قراءة هذه الصورة. يُرجى تجربة ملف آخر.
+Inquiry.logo.errors.rate ||| عدد كبير جدًا من عمليات الرفع. يُرجى الانتظار قليلًا ثم المحاولة مرة أخرى.
+Inquiry.logo.errors.network ||| خطأ في الشبكة. يُرجى التحقق من اتصالك ثم المحاولة مرة أخرى.
+Inquiry.logo.errors.server ||| تعذّر رفع شعارك الآن. يُرجى المحاولة لاحقًا.
+Inquiry.overLimit ||| عدد العناصر في قائمتك: {n}، والحد الأقصى: {max}. أزل بعضها لإرسال الطلب.
+Inquiry.newTab ||| (يفتح في علامة تبويب جديدة)
+Inquiry.validation.summary ||| يُرجى التحقق من الحقول التالية:
+Inquiry.validation.name ||| أدخل اسمك.
+Inquiry.validation.emailRequired ||| أدخل بريدك الإلكتروني للعمل.
+Inquiry.validation.emailInvalid ||| أدخل عنوان بريد إلكتروني صالحًا، مثل name@company.com.
+Inquiry.validation.region ||| اختر دولتك.
+Inquiry.validation.consent ||| ضع علامة في المربع للموافقة على معالجة البيانات.
+Views.label ||| عرض العلبة
+Views.closed ||| مغلقة
+Views.open ||| مفتوحة
+Views.dieline ||| مخطط القص
+Consent.label ||| الموافقة على ملفات تعريف الارتباط
+Consent.text ||| نستخدم ملفات تعريف الارتباط الضرورية لتشغيل هذا الموقع. وبإذنك نستخدم أيضًا أدوات التحليلات والدردشة المباشرة.
+Consent.policy ||| سياسة الخصوصية
+Consent.accept ||| قبول الكل
+Consent.reject ||| رفض الكل
+Consent.settings ||| الإعدادات
+Consent.title ||| إعدادات ملفات تعريف الارتباط
+Consent.lead ||| اختر ملفات تعريف الارتباط التي يمكننا استخدامها. يمكنك تغيير ذلك في أي وقت عبر «إعدادات ملفات تعريف الارتباط» في تذييل الصفحة.
+Consent.necessary ||| ضرورية
+Consent.necessaryDesc ||| اللغة والأمان (Turnstile) وقائمة عرض السعر وهذا الاختيار. مفعّلة دائمًا.
+Consent.alwaysOn ||| مفعّلة دائمًا
+Consent.analytics ||| التحليلات
+Consent.analyticsDesc ||| إحصاءات مجهولة الهوية عن سرعة الصفحات والاستخدام (Web Vitals) لتحسين الموقع.
+Consent.chat ||| الدردشة المباشرة (Tawk.to)
+Consent.chatDesc ||| يحمّل أداة الدردشة من Tawk.to، والتي تضع ملفات تعريف الارتباط الخاصة بها.
+Consent.save ||| حفظ الاختيارات
+Consent.close ||| إغلاق
+Consent.saved ||| تم حفظ اختياراتك لملفات تعريف الارتباط.
+Consent.withdrawn ||| تم سحب الموافقة. التحليلات والدردشة متوقفة.
+Consent.change ||| تغيير
+Footer.about ||| تغليف ورقي وطباعة حسب الطلب — من العيّنة إلى الإنتاج بالجملة.
+Footer.categories ||| المنتجات
+Footer.contact ||| تواصل معنا
+Footer.contactText ||| أخبرنا عن مشروعك، وسيرد عليك أحد متخصصي التغليف عبر البريد الإلكتروني.
+Footer.privacy ||| سياسة الخصوصية
+Footer.otherLang ||| English
+Footer.cookieSettings ||| إعدادات ملفات تعريف الارتباط

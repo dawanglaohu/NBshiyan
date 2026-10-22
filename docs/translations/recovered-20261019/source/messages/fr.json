@@ -1,0 +1,551 @@
+{
+  "Meta": {
+    "title": "Emballages sur mesure : boîtes et gobelets | PackJoyU",
+    "description": "Cartons ondulés, coffrets cadeaux et à vin, pulpe moulée, gobelets et emballages imprimés sur mesure pour les marques en Amérique du Nord, Europe et Australie.",
+    "home": "Accueil",
+    "ogImageAlt": "Emballages sur mesure PackJoyU : boîtes, gobelets en carton et impression"
+  },
+  "Nav": {
+    "home": "Accueil",
+    "products": "Produits en 3D",
+    "about": "À propos",
+    "contact": "Contact",
+    "quote": "Demander un devis",
+    "menu": "Menu",
+    "main": "Navigation principale",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "switchLang": "English version"
+  },
+  "Home": {
+    "headline": "Des emballages qui font plaisir",
+    "sub": "Emballages papier et impression sur mesure, de l’échantillon à la commande en volume. Découvrez chaque produit en 3D.",
+    "cta": "Voir les produits en 3D",
+    "ctaQuote": "Demander un devis",
+    "entryTitle": "Trouvez votre emballage",
+    "premiumTitle": "Coffrets cadeaux et coffrets à vin premium",
+    "premiumText": "Coffrets rigides avec marquage à chaud, fermeture aimantée et calages sur mesure, pensés pour l’unboxing en vidéo.",
+    "ctaBandTitle": "Vous avez un projet ?",
+    "ctaBandText": "Dites-nous ce dont vous avez besoin : un spécialiste de l’emballage vous répondra par e-mail.",
+    "heroLabel": "Pile de boîtes sur mesure PackJoyU et un gobelet en carton",
+    "heroBrand": "Pack<accent>Joy</accent>U",
+    "heroTagline": "Emballages imprimés sur mesure",
+    "heroVideoSkip": "Passer la vidéo",
+    "heroVideoPlay": "Lire la vidéo",
+    "heroVideoPause": "Mettre la vidéo en pause",
+    "heroPosterAlt": "Emballages imprimés sur mesure PackJoyU : boîte d’expédition blanche avec logo corail, haute boîte noire à bande dorée, coffret cadeau noir à liseré et fermoir dorés, gobelet en carton blanc et petite boîte imprimée en dégradé"
+  },
+  "Products": {
+    "title": "Nos produits en 3D",
+    "hint": "Faites glisser pour pivoter, faites défiler ou pincez pour zoomer.",
+    "tapToRotate": "Touchez pour pivoter",
+    "dragToRotate": "Faites glisser pour pivoter",
+    "loading": "Chargement du modèle 3D…",
+    "addToQuote": "Ajouter au devis",
+    "details": "Détails",
+    "names": {
+      "corrugated-boxes": "Cartons ondulés",
+      "color-boxes": "Boîtes pliantes imprimées",
+      "gift-boxes": "Coffrets cadeaux",
+      "pulp-molding": "Pulpe moulée",
+      "paper-cups": "Gobelets en carton",
+      "party-supplies": "Articles de fête",
+      "wine-boxes": "Coffrets à vin",
+      "color-printing": "Impression couleur",
+      "offset-printing": "Impression offset",
+      "eco-paper-cups": "Gobelets à café imprimés",
+      "gift-cards": "Cartes de vœux",
+      "christmas-merchandise": "Emballages de Noël"
+    },
+    "done": "Terminé",
+    "categories": "Catégories de produits",
+    "metaTitle": "Produits d’emballage en 3D : boîtes et gobelets | PackJoyU",
+    "metaDescription": "Découvrez en 3D notre large gamme d’emballages sur mesure : cartons ondulés, coffrets cadeaux et à vin, pulpe moulée, gobelets et impression.",
+    "desc": {
+      "corrugated-boxes": "Cartons d’expédition et boîtes postales en carton ondulé simple ou double cannelure, imprimés à votre marque.",
+      "color-boxes": "Étuis pliants et boîtes produits imprimés en quadrichromie pour la cosmétique, l’alimentaire et l’électronique.",
+      "gift-boxes": "Coffrets cadeaux rigides et aimantés sur mesure, avec marquage à chaud, gaufrage et calages ajustés.",
+      "pulp-molding": "Plateaux et calages en pulpe moulée.",
+      "paper-cups": "Gobelets en carton imprimés sur mesure pour le café, le thé et les boissons froides, simple ou double paroi.",
+      "party-supplies": "Vaisselle de fête en papier imprimée : assiettes, gobelets, serviettes et décorations pour l’événementiel et la distribution.",
+      "wine-boxes": "Coffrets sur mesure pour vins et spiritueux, pour une ou plusieurs bouteilles, avec finitions premium et calages.",
+      "color-printing": "Impression CMJN et tons directs pour emballages, étiquettes et supports marketing.",
+      "offset-printing": "Impression offset pour boîtes, catalogues et brochures, avec une couleur constante sur les grands tirages.",
+      "eco-paper-cups": "Gobelets en carton imprimés à votre logo ; les options de revêtement sont confirmées à chaque commande.",
+      "gift-cards": "Cartes de vœux et emballages pour cartes imprimés sur mesure pour la distribution et les promotions.",
+      "christmas-merchandise": "Coffrets cadeaux de Noël, tubes, calendriers de l’Avent et emballages saisonniers réalisés sur commande."
+    },
+    "alt": "{name} : emballage sur mesure PackJoyU",
+    "specs": {
+      "corrugated-boxes": [
+        "Simple et double cannelure (E/B/C)",
+        "Impression flexo ou numérique jusqu’à 4 couleurs",
+        "Quantités confirmées à chaque commande"
+      ],
+      "color-boxes": [
+        "Carton SBS ou kraft 300–400 g/m²",
+        "CMJN + Pantone, pelliculage mat/brillant",
+        "Quantités confirmées à chaque commande"
+      ],
+      "gift-boxes": [
+        "Carton gris rigide 1,5–2,5 mm",
+        "Marquage à chaud, gaufrage, couvercle aimanté",
+        "Calages sur mesure en EVA ou papier"
+      ],
+      "pulp-molding": [
+        "Pulpe moulée",
+        "Alvéoles sur mesure épousant votre produit",
+        "Options de matière sur demande"
+      ],
+      "paper-cups": [
+        "Plusieurs contenances, simple ou double paroi",
+        "Revêtements pour boissons chaudes et froides",
+        "Quantités confirmées à chaque commande"
+      ],
+      "party-supplies": [
+        "Assiettes, gobelets, serviettes, banderoles",
+        "Motifs imprimés sur mesure",
+        "Packs prêts à la vente"
+      ],
+      "wine-boxes": [
+        "Formats 1, 2 ou 3 bouteilles",
+        "Dorure, vernis UV sélectif, fermetures aimantées",
+        "Calages ajustés pour un transport sûr"
+      ],
+      "color-printing": [
+        "CMJN + tons directs",
+        "Étiquettes, fourreaux, dépliants",
+        "Épreuve couleur avant production"
+      ],
+      "offset-printing": [
+        "Impression offset CMJN et Pantone",
+        "Catalogues, brochures, étuis",
+        "Couleur constante sur les grands tirages"
+      ],
+      "eco-paper-cups": [
+        "Options de revêtement confirmées à chaque commande",
+        "Options de matière sur demande"
+      ],
+      "gift-cards": [
+        "Carte 350–600 g/m²",
+        "Dorure, gaufrage, découpes de forme",
+        "Enveloppes et porte-cartes"
+      ],
+      "christmas-merchandise": [
+        "Coffrets cadeaux, tubes, calendriers de l’Avent",
+        "Finitions saisonnières dorure et paillettes",
+        "Commande avant septembre pour le T4"
+      ]
+    },
+    "learnMore": "En savoir plus",
+    "specsLabel": "Caractéristiques clés",
+    "empty": "Aucun modèle 3D n’est encore publié. Revenez bientôt ou contactez-nous pour obtenir des échantillons.",
+    "ogImageAlt": "PackJoyU : nos produits en 3D – cartons ondulés, coffrets cadeaux et coffrets à vin sur mesure"
+  },
+  "Admin": {
+    "title": "Administration"
+  },
+  "Quote": {
+    "title": "Liste de devis",
+    "add": "Ajouter au devis",
+    "added": "Dans le devis ✓",
+    "remove": "Retirer",
+    "empty": "Votre liste de devis est vide. Ajoutez des produits depuis le catalogue 3D.",
+    "continue": "Continuer vers la demande",
+    "browse": "Parcourir le catalogue 3D",
+    "close": "Fermer",
+    "full": "Votre liste de devis est pleine ({max} articles). Retirez-en un pour en ajouter un autre."
+  },
+  "Fab": {
+    "quote": "Liste de devis",
+    "chat": "Nous contacter",
+    "top": "Haut de page",
+    "menu": "Actions rapides"
+  },
+  "Contact": {
+    "metaTitle": "Demander un devis d’emballage | PackJoyU",
+    "metaDescription": "Parlez-nous de votre projet d’emballage et demandez un devis à PackJoyU.",
+    "title": "Demander un devis",
+    "intro": "Trois étapes courtes. Seules vos coordonnées sont obligatoires : choisissez « Je ne sais pas » pour tout ce qui n’est pas encore décidé.",
+    "ogImageAlt": "PackJoyU : demandez un devis d’emballage sur mesure"
+  },
+  "Inquiry": {
+    "stepOf": "Étape {n} sur {total}",
+    "steps": {
+      "0": "Produits et quantité",
+      "1": "Format, matière et calendrier",
+      "2": "Coordonnées"
+    },
+    "products": "Quels produits vous intéressent ?",
+    "quantity": "Quantité par commande",
+    "qty": {
+      "1k": "~1 000",
+      "5k": "~5 000",
+      "10k": "~10 000",
+      "50k": "50 000+",
+      "unsure": "Je ne sais pas"
+    },
+    "size": "Dimensions (L × l × H)",
+    "sizePh": "p. ex. 30 × 20 × 10 cm, ou « je ne sais pas »",
+    "material": "Matière",
+    "materials": {
+      "corrugated": "Carton ondulé",
+      "paperboard": "Carton compact",
+      "kraft": "Papier kraft",
+      "pulp": "Pulpe moulée",
+      "unsure": "Je ne sais pas"
+    },
+    "timeline": "Pour quand en avez-vous besoin ?",
+    "timelines": {
+      "2w": "Sous 2 semaines",
+      "1m": "Sous un mois",
+      "2m": "1 à 2 mois",
+      "unsure": "Je ne sais pas"
+    },
+    "message": "Autre chose ? (facultatif)",
+    "name": "Nom",
+    "email": "E-mail professionnel",
+    "company": "Entreprise",
+    "phone": "Téléphone / WhatsApp",
+    "country": "Pays",
+    "countryPh": "Sélectionnez un pays",
+    "countries": {
+      "US": "États-Unis",
+      "GB": "Royaume-Uni",
+      "DE": "Allemagne",
+      "FR": "France",
+      "IT": "Italie",
+      "ES": "Espagne",
+      "NL": "Pays-Bas",
+      "PL": "Pologne",
+      "RU": "Russie",
+      "KZ": "Kazakhstan",
+      "BY": "Biélorussie",
+      "UZ": "Ouzbékistan",
+      "AE": "Émirats arabes unis",
+      "SA": "Arabie saoudite",
+      "AU": "Australie",
+      "CA": "Canada",
+      "ZZ": "Autre"
+    },
+    "consent": "J’accepte que PackJoyU traite mes données pour répondre à cette demande, comme décrit dans la <link>politique de confidentialité</link>.",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Envoyer la demande",
+    "sending": "Envoi en cours…",
+    "checking": "Vérification de sécurité en cours…",
+    "success": {
+      "title": "Merci, votre demande a bien été reçue !",
+      "ref": "Votre numéro de demande :",
+      "reply": "Un spécialiste de l’emballage vous répondra par e-mail."
+    },
+    "errors": {
+      "unavailable": "Les demandes en ligne sont temporairement indisponibles. Veuillez réessayer plus tard.",
+      "rate": "Trop de demandes. Veuillez patienter quelques minutes et réessayer.",
+      "invalid": "Veuillez vérifier votre nom, votre e-mail et votre pays, puis réessayer.",
+      "captcha": "La vérification de sécurité a échoué. Veuillez réessayer.",
+      "server": "Une erreur s’est produite de notre côté. Veuillez réessayer plus tard.",
+      "network": "Erreur réseau. Vérifiez votre connexion et réessayez.",
+      "retry": "La vérification de sécurité n’a pas pu aboutir pour le moment. Vos informations sont conservées : réessayez dans un instant.",
+      "logo_invalid": "Le téléversement de votre logo a expiré ou n’est plus valide. Veuillez téléverser à nouveau votre logo ; vos autres informations sont conservées."
+    },
+    "retry": "Réessayer",
+    "retryIn": "Réessayer dans {s} s",
+    "logoNote": "Vous avez un logo vectoriel (PDF/AI) ? Joignez-le en répondant à notre e-mail concernant votre demande.",
+    "logo": {
+      "label": "Logo (facultatif)",
+      "hint": "PNG, JPEG ou WebP, 2 Mo maximum.",
+      "uploading": "Téléversement…",
+      "uploaded": "Logo téléversé",
+      "remove": "Retirer",
+      "choose": "Choisir un fichier",
+      "none": "Aucun fichier choisi",
+      "expired": "Le téléversement de votre logo a expiré. Veuillez le téléverser à nouveau.",
+      "errors": {
+        "type": "Veuillez choisir une image PNG, JPEG ou WebP.",
+        "size": "Ce fichier dépasse 2 Mo. Veuillez choisir une image plus légère.",
+        "dimensions": "Cette image est trop grande (4096 × 4096 px maximum). Redimensionnez-la et réessayez.",
+        "corrupt": "Impossible de lire cette image. Essayez un autre fichier.",
+        "rate": "Trop de téléversements. Patientez un moment et réessayez.",
+        "network": "Erreur réseau. Vérifiez votre connexion et réessayez.",
+        "server": "Impossible de téléverser votre logo pour le moment. Veuillez réessayer plus tard."
+      }
+    },
+    "overLimit": "Votre liste contient {n} articles ; la limite est de {max}. Retirez-en pour l’envoyer.",
+    "newTab": "(s’ouvre dans un nouvel onglet)",
+    "validation": {
+      "summary": "Veuillez vérifier ces champs :",
+      "name": "Indiquez votre nom.",
+      "emailRequired": "Indiquez votre e-mail professionnel.",
+      "emailInvalid": "Saisissez une adresse e-mail valide, p. ex. name@company.com.",
+      "region": "Sélectionnez votre pays.",
+      "consent": "Cochez la case pour accepter le traitement des données."
+    }
+  },
+  "Views": {
+    "label": "Vue de la boîte",
+    "closed": "Fermée",
+    "open": "Ouverte",
+    "dieline": "Plan de découpe"
+  },
+  "Consent": {
+    "label": "Consentement aux cookies",
+    "text": "Nous utilisons des cookies essentiels au fonctionnement du site. Avec votre accord, nous utilisons aussi des outils d’analyse et un chat en direct.",
+    "policy": "Politique de confidentialité",
+    "accept": "Tout accepter",
+    "reject": "Tout refuser",
+    "settings": "Paramètres",
+    "title": "Paramètres des cookies",
+    "lead": "Choisissez les cookies que nous pouvons utiliser. Vous pouvez modifier ce choix à tout moment via « Paramètres des cookies » en bas de page.",
+    "necessary": "Nécessaires",
+    "necessaryDesc": "Langue, sécurité (Turnstile), liste de devis et ce choix. Toujours actifs.",
+    "alwaysOn": "Toujours actifs",
+    "analytics": "Mesure d’audience",
+    "analyticsDesc": "Statistiques anonymes de performance et d’utilisation (Web Vitals) pour améliorer le site.",
+    "chat": "Chat en direct (Tawk.to)",
+    "chatDesc": "Charge le widget de chat Tawk.to, qui dépose ses propres cookies.",
+    "save": "Enregistrer mes choix",
+    "close": "Fermer",
+    "saved": "Vos choix de cookies ont été enregistrés.",
+    "withdrawn": "Consentement retiré. La mesure d’audience et le chat sont désactivés.",
+    "change": "Modifier"
+  },
+  "Footer": {
+    "about": "Emballages papier et impression sur mesure, de l’échantillon à la commande en volume.",
+    "categories": "Produits",
+    "contact": "Contact",
+    "contactText": "Parlez-nous de votre projet : un spécialiste de l’emballage vous répondra par e-mail.",
+    "privacy": "Politique de confidentialité",
+    "otherLang": "English",
+    "cookieSettings": "Paramètres des cookies"
+  },
+  "Privacy": {
+    "metaTitle": "Politique de confidentialité : données collectées | PackJoyU",
+    "title": "Politique de confidentialité",
+    "metaDescription": "Comment PackJoyU collecte, utilise et protège les données des demandes de devis et d’échantillons, du chat et des cookies, et comment exercer vos droits.",
+    "intro": "Cette page explique quelles données personnelles PackJoyU collecte via ce site, dans quel but et pendant combien de temps nous les conservons.",
+    "contactLink": "Contactez-nous via le formulaire de demande",
+    "sections": {
+      "collected": {
+        "title": "Données collectées",
+        "items": [
+          "Demandes et demandes de devis : vos nom, e-mail, entreprise, téléphone, pays et message, ainsi que les produits et options choisis.",
+          "Demandes d’échantillons : les données ci-dessus ainsi que votre adresse de livraison.",
+          "Logos que vous téléversez dans le configurateur ou le formulaire de demande. Un logo peut être téléversé avant l’envoi de la demande.",
+          "Designs personnalisés partagés que vous créez dans le configurateur 3D.",
+          "Données de provenance et de campagne transmises par votre navigateur avec une demande : la page d’origine, les mots-clés de recherche et les paramètres UTM.",
+          "Données techniques : votre adresse IP et, si vous autorisez la mesure d’audience, des indicateurs anonymes de performance des pages. Nous utilisons l’adresse IP pour limiter la fréquence des requêtes et nous protéger des abus, la transmettons à notre prestataire de vérification de sécurité pour vérifier que vous n’êtes pas un robot et l’enregistrons dans les journaux de sécurité (audit) de l’administration. Avec une demande, nous enregistrons aussi le pays déduit de votre adresse IP afin d’aider à détecter le spam."
+        ]
+      },
+      "purpose": {
+        "title": "Pourquoi nous les utilisons",
+        "items": [
+          "Pour répondre aux demandes, préparer des devis et envoyer des échantillons.",
+          "Pour protéger le site contre le spam et les abus (vérification de sécurité et limites de requêtes).",
+          "Uniquement avec votre consentement : pour mesurer les performances du site et proposer le chat en direct."
+        ]
+      },
+      "retention": {
+        "title": "Durée de conservation",
+        "items": {
+          "designs": "Les designs personnalisés partagés expirent au bout de 180 jours (le lien renvoie alors « 410 Gone ») et sont supprimés 90 jours plus tard.",
+          "designsInquiry": "Les designs joints à une demande sont conservés aussi longtemps que celle-ci et sont anonymisés ou supprimés avec elle.",
+          "logos": "Les logos non joints à une demande sont généralement supprimés dans les 48 heures suivant leur téléversement (ils deviennent supprimables après 24 heures et un nettoyage a lieu chaque jour), sauf les logos encore utilisés par un design enregistré non expiré.",
+          "sampleEmail": "Pour les demandes d’échantillons (une par adresse e-mail tous les 30 jours), l’adresse utilisée pour cette limite est effacée au bout de 30 jours.",
+          "rateLimit": "Les compteurs de limite de requêtes utilisent votre adresse IP et une version hachée (illisible) de votre adresse e-mail, et expirent à la fin de leur période de limite, au plus tard après 30 jours.",
+          "audit": "Les journaux de sécurité (audit) de l’administration, y compris les adresses IP, sont supprimés au bout de 365 jours.",
+          "adminSessions": "Les sessions d’administration prennent fin après 2 heures d’inactivité.",
+          "inquiries": "Les demandes sont anonymisées 2 ans après la dernière activité sur la demande (notre réponse ou un changement de statut) : nous supprimons ou anonymisons les coordonnées, les messages, l’adresse de livraison, la correspondance par e-mail, les logos téléversés et leurs réglages dans la configuration, les notes internes du personnel sur la demande, les données de provenance transmises par le navigateur et les numéros de suivi des envois d’échantillons ; seules des statistiques non personnelles sont conservées.",
+          "inquiriesContact": "Les coordonnées sont conservées tant que ce contact a encore des demandes non anonymisées.",
+          "onRequest": "Sur demande, nous supprimons ou anonymisons les coordonnées, les messages, l’adresse de livraison, la correspondance par e-mail, les logos téléversés et leurs réglages dans la configuration, les notes internes du personnel sur la demande, les données de provenance transmises par le navigateur et les numéros de suivi des envois d’échantillons ; seules des statistiques non personnelles sont conservées. Les enregistrements de notre base de données sont supprimés ou anonymisés immédiatement.",
+          "deletionCopies": "Les copies des e-mails de notification de demande dans notre boîte professionnelle sont supprimées manuellement dans les 30 jours suivant votre demande. Les journaux conservés par nos prestataires (par exemple d’envoi d’e-mails et d’hébergement) sont supprimés selon la durée de conservation propre à chaque prestataire.",
+          "oldReplies": "Les réponses à d’anciens e-mails concernant une demande anonymisée ne lui sont pas rattachées.",
+          "exports": "Les exports de données vous sont remis sous forme de fichier ; aucune copie n’est conservée sur le serveur.",
+          "cleanup": "Un nettoyage automatique a lieu une fois par jour."
+        }
+      },
+      "cookies": {
+        "title": "Cookies, stockage local et consentement",
+        "items": [
+          "Votre choix est enregistré dans le localStorage de votre navigateur sous la clé pj-consent, et non dans un cookie. Il indique si vous avez autorisé la mesure d’audience et le chat, et quand.",
+          "La mesure d’audience (indicateurs anonymes de performance) ne se charge qu’après votre autorisation.",
+          "Le chat en direct (Tawk.to) ne se charge qu’après votre autorisation.",
+          "Votre choix expire au bout de 12 mois, puis nous vous le redemandons.",
+          "Vous pouvez modifier ou retirer votre consentement à tout moment via « Paramètres des cookies » en bas de page. Après le retrait, la mesure d’audience et le chat ne se chargent plus ; le retrait du chat efface aussi de votre navigateur les données du prestataire de chat."
+        ]
+      },
+      "chat": {
+        "title": "Chat en direct (Tawk.to)",
+        "items": [
+          "Le chat en direct est fourni par Tawk.to et ne se charge que si vous l’autorisez.",
+          "Une fois chargé, Tawk.to reçoit vos messages et les données techniques nécessaires au fonctionnement du chat, et enregistre ses propres données dans votre navigateur.",
+          "Le chat ne se charge jamais sur nos pages d’administration."
+        ]
+      },
+      "processors": {
+        "title": "Prestataires de services",
+        "text": [
+          "Nous faisons appel à des prestataires des catégories suivantes. Certains peuvent traiter des données en dehors de votre pays. Nous ne vendons pas vos données."
+        ],
+        "items": [
+          "Hébergement du site",
+          "Vérification de sécurité (protection anti-robots) et stockage de fichiers",
+          "Stockage des limites de requêtes",
+          "Envoi d’e-mails",
+          "Base de données",
+          "Chat en direct (uniquement avec votre consentement)"
+        ]
+      },
+      "contact": {
+        "title": "Contact et vos droits",
+        "text": [
+          "Vous pouvez nous demander l’accès à vos données, leur export, leur rectification ou leur suppression.",
+          "E-mail : {{待Ryan确认}}"
+        ]
+      },
+      "company": {
+        "title": "Responsable du traitement",
+        "text": [
+          "Responsable du traitement : {{待Ryan确认}}"
+        ]
+      }
+    },
+    "ogImageAlt": "PackJoyU : politique de confidentialité"
+  },
+  "DesignExpired": {
+    "metaTitle": "Design expiré | PackJoyU",
+    "title": "Ce design a expiré",
+    "text": "Ce design a expiré. Veuillez le personnaliser à nouveau.",
+    "backToCategory": "Personnaliser à nouveau : {category}",
+    "backToProducts": "Voir les produits et personnaliser à nouveau",
+    "quote": "Demander un devis"
+  },
+  "DesignShared": {
+    "metaTitle": "Design d’emballage personnalisé | PackJoyU"
+  },
+  "NotFound": {
+    "meta": {
+      "title": "Page introuvable | PackJoyU"
+    },
+    "code": "404",
+    "title": "Page introuvable",
+    "lead": "Cette boîte est vide. La page a peut-être été déplacée : essayez plutôt l’une de nos catégories de produits.",
+    "home": "Retour à l’accueil",
+    "quote": "Demander un devis",
+    "browse": "Voir les produits"
+  },
+  "Solutions": {
+    "meta": {
+      "title": "Solutions d’emballage par secteur | PackJoyU",
+      "description": "Boîtes, gobelets et calages sur mesure pour votre secteur, adaptés à l’expédition et à la vente de votre produit. Décrivez votre produit pour un devis."
+    },
+    "eyebrow": "Solutions par secteur",
+    "title": "Des emballages conçus pour votre secteur",
+    "lead": "Boîtes, gobelets et calages sur mesure, adaptés à la façon dont votre produit est expédié et vendu.",
+    "more": "Voir la solution",
+    "premium": {
+      "eyebrow": "Coffrets vin et cadeaux",
+      "title": "Finitions premium, sur commande",
+      "lead": "Coffrets rigides pour vin et cadeaux conçus autour de votre bouteille ou de votre produit, avec la finition et l’expérience d’ouverture de votre choix.",
+      "imageAlt": {
+        "wine": "Coffret à vin sur mesure",
+        "gift": "Coffret cadeau sur mesure"
+      }
+    },
+    "empty": "Les solutions sont en cours de mise à jour. Dites-nous ce dont vous avez besoin.",
+    "cta": "Vous hésitez sur la boîte ? Envoyez-nous votre produit.",
+    "detail": {
+      "crumb": "Solutions par secteur",
+      "lead": "Emballages sur mesure pour {industryGen}, adaptés à la façon dont votre produit est expédié et vendu.",
+      "metaTitle": "{industry} : nos emballages | PackJoyU",
+      "metaDescription": "Emballages sur mesure pour {industryGen}, adaptés à l’expédition et à la vente de votre produit. Décrivez votre produit pour un devis.",
+      "cta": "Décrivez votre produit et nous vous proposerons une solution adaptée."
+    },
+    "industries": {
+      "color-boxes": {
+        "name": "Commerce de détail",
+        "title": "Emballages pour le commerce de détail",
+        "industryGen": "le commerce de détail"
+      },
+      "corrugated-boxes": {
+        "name": "E-commerce et expédition",
+        "title": "Emballages pour l’e-commerce et l’expédition",
+        "industryGen": "l’e-commerce et l’expédition"
+      },
+      "paper-cups": {
+        "name": "Cafés et coffee shops",
+        "title": "Emballages pour cafés et coffee shops",
+        "industryGen": "les cafés et coffee shops"
+      },
+      "party-supplies": {
+        "name": "Fêtes et événements",
+        "title": "Emballages pour fêtes et événements",
+        "industryGen": "les fêtes et événements"
+      },
+      "wine-boxes": {
+        "name": "Vins et spiritueux",
+        "title": "Emballages pour vins et spiritueux",
+        "industryGen": "les vins et spiritueux"
+      },
+      "gift-boxes": {
+        "name": "Cadeaux et cadeaux d’affaires",
+        "title": "Emballages pour cadeaux et cadeaux d’affaires",
+        "industryGen": "les cadeaux et cadeaux d’affaires"
+      }
+    }
+  },
+  "Factory": {
+    "meta": {
+      "title": "Notre méthode : du devis à l’expédition | PackJoyU",
+      "description": "Une commande d’emballage sur mesure chez PackJoyU : brief et plan de découpe, échantillon, impression, découpe et montage, contrôle qualité et expédition."
+    },
+    "eyebrow": "Notre méthode",
+    "title": "Du brief à l’emballage fini",
+    "lead": "Découvrez comment avance votre commande, étape par étape, du premier plan de découpe à l’expédition.",
+    "steps": {
+      "title": "Du devis à l’expédition",
+      "1": {
+        "title": "Brief et plan de découpe",
+        "desc": "Vous nous présentez votre produit, les quantités et vos fichiers, et nous validons ensemble la structure de la boîte et un plan de découpe adapté."
+      },
+      "2": {
+        "title": "Échantillon",
+        "desc": "Un échantillon est réalisé d’après le plan de découpe validé pour que vous vérifiiez format, ajustement et impression avant le tirage."
+      },
+      "3": {
+        "title": "Impression",
+        "desc": "Une fois l’échantillon validé, vos visuels sont imprimés sur la matière choisie."
+      },
+      "4": {
+        "title": "Découpe et montage",
+        "desc": "Les feuilles imprimées sont découpées, pliées et montées, avec des calages là où votre conception le prévoit."
+      },
+      "5": {
+        "title": "Contrôle et expédition",
+        "desc": "Les emballages finis sont comparés à l’échantillon validé, conditionnés et préparés pour l’expédition."
+      }
+    },
+    "stepImageAlt": {
+      "print": "Impression",
+      "dieCut": "Découpe",
+      "qc": "Contrôle qualité",
+      "warehouse": "Entrepôt"
+    },
+    "cta": "Vous avez un projet ? Parlez-nous-en."
+  },
+  "Cases": {
+    "meta": {
+      "title": "Études de cas d’emballage | PackJoyU",
+      "description": "Projets d’emballage sur mesure PackJoyU. Les études de cas arrivent bientôt. Décrivez votre produit et parlons de l’emballage adapté."
+    },
+    "eyebrow": "Réalisations",
+    "title": "Boîtes que nous avons fabriquées",
+    "lead": "Les études de cas arrivent bientôt. En attendant, parlez-nous de votre projet.",
+    "comingSoon": "Études de cas bientôt disponibles.",
+    "filtersLabel": "Filtrer par secteur",
+    "all": "Tous",
+    "empty": "Aucun projet dans cette catégorie pour le moment.",
+    "showAll": "Tout afficher",
+    "cta": "Vous avez un projet ? Parlez-nous-en."
+  }
+}

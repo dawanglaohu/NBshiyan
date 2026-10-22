@@ -1,0 +1,124 @@
+Meta.title ||| Proveedor de embalaje a medida: cajas y vasos | PackJoyU ||| Individuelle Verpackungen: Kartons & Becher | PackJoyU ||| Emballages sur mesure : boîtes et gobelets | PackJoyU
+Meta.description ||| Cajas de cartón ondulado, de regalo y para vino, pulpa moldeada, vasos de papel y embalaje impreso a medida para marcas de Norteamérica, Europa y Australia. ||| Individuelle Wellpappkartons, Geschenk- und Weinboxen, Formfaserguss, Pappbecher und bedruckte Verpackungen für Marken in Nordamerika, Europa und Australien. ||| Cartons ondulés, coffrets cadeaux et à vin, pulpe moulée, gobelets et emballages imprimés sur mesure pour les marques en Amérique du Nord, Europe et Australie.
+Meta.home ||| Inicio ||| Startseite ||| Accueil
+Meta.ogImageAlt ||| Embalaje personalizado PackJoyU: cajas, vasos de papel e impresión ||| Individuelle Verpackungen von PackJoyU: Kartons, Pappbecher und Druck ||| Emballages sur mesure PackJoyU : boîtes, gobelets en carton et impression
+Nav.home ||| Inicio ||| Startseite ||| Accueil
+Nav.products ||| Productos en 3D ||| Produkte in 3D ||| Produits en 3D
+Nav.about ||| Quiénes somos ||| Über uns ||| À propos
+Nav.contact ||| Contacto ||| Kontakt ||| Contact
+Nav.quote ||| Solicitar presupuesto ||| Angebot anfordern ||| Demander un devis
+Nav.menu ||| Menú ||| Menü ||| Menu
+Nav.main ||| Navegación principal ||| Hauptnavigation ||| Navigation principale
+Nav.openMenu ||| Abrir menú ||| Menü öffnen ||| Ouvrir le menu
+Nav.closeMenu ||| Cerrar menú ||| Menü schließen ||| Fermer le menu
+Nav.switchLang ||| English version ||| English version ||| English version
+Home.headline ||| Embalaje que despierta alegría ||| Verpackungen, die Freude machen ||| Des emballages qui font plaisir
+Home.sub ||| Embalaje de papel e impresión a medida, desde la muestra hasta el pedido en volumen. Descubra cada producto en 3D. ||| Individuelle Papierverpackungen und Druck – vom Muster bis zur Serienbestellung. Entdecken Sie jedes Produkt in 3D. ||| Emballages papier et impression sur mesure, de l’échantillon à la commande en volume. Découvrez chaque produit en 3D.
+Home.cta ||| Ver productos en 3D ||| Produkte in 3D ansehen ||| Voir les produits en 3D
+Home.ctaQuote ||| Solicitar presupuesto ||| Angebot anfordern ||| Demander un devis
+Home.entryTitle ||| Encuentre su embalaje ||| Finden Sie Ihre Verpackung ||| Trouvez votre emballage
+Home.premiumTitle ||| Cajas premium para regalo y vino ||| Premium-Geschenk- und Weinverpackungen ||| Coffrets cadeaux et coffrets à vin premium
+Home.premiumText ||| Cajas rígidas con estampado en caliente, cierre magnético e interiores a medida, pensadas para el unboxing en cámara. ||| Feste Kartonagen mit Heißfolienprägung, Magnetverschluss und passgenauen Einlagen – gemacht fürs Unboxing vor der Kamera. ||| Coffrets rigides avec marquage à chaud, fermeture aimantée et calages sur mesure, pensés pour l’unboxing en vidéo.
+Home.ctaBandTitle ||| ¿Tiene un proyecto en mente? ||| Haben Sie ein Projekt im Kopf? ||| Vous avez un projet ?
+Home.ctaBandText ||| Cuéntenos qué necesita: un especialista en embalaje le responderá por correo electrónico. ||| Sagen Sie uns, was Sie brauchen – ein Verpackungsspezialist antwortet Ihnen per E-Mail. ||| Dites-nous ce dont vous avez besoin : un spécialiste de l’emballage vous répondra par e-mail.
+Home.heroLabel ||| Pila de cajas personalizadas PackJoyU y un vaso de papel ||| Stapel individueller PackJoyU-Kartons und ein Pappbecher ||| Pile de boîtes sur mesure PackJoyU et un gobelet en carton
+Home.heroBrand ||| Pack<accent>Joy</accent>U ||| Pack<accent>Joy</accent>U ||| Pack<accent>Joy</accent>U
+Home.heroTagline ||| Embalaje impreso a medida ||| Individuell bedruckte Verpackungen ||| Emballages imprimés sur mesure
+Home.heroVideoSkip ||| Saltar vídeo ||| Video überspringen ||| Passer la vidéo
+Home.heroVideoPlay ||| Reproducir vídeo ||| Video abspielen ||| Lire la vidéo
+Home.heroVideoPause ||| Pausar vídeo ||| Video pausieren ||| Mettre la vidéo en pause
+Home.heroPosterAlt ||| Embalaje impreso a medida PackJoyU: caja postal blanca con logotipo coral, caja alta negra con banda dorada, caja de regalo negra con ribete y cierre dorados, vaso de papel blanco y caja pequeña con impresión en degradado ||| Individuell bedruckte Verpackungen von PackJoyU: weißer Versandkarton mit korallfarbenem Logo, hohe schwarze Schachtel mit goldener Banderole, schwarze Geschenkbox mit goldener Kante und Verschluss, weißer Pappbecher und kleine Schachtel mit Farbverlaufsdruck ||| Emballages imprimés sur mesure PackJoyU : boîte d’expédition blanche avec logo corail, haute boîte noire à bande dorée, coffret cadeau noir à liseré et fermoir dorés, gobelet en carton blanc et petite boîte imprimée en dégradé
+Products.title ||| Nuestros productos en 3D ||| Unsere Produkte in 3D ||| Nos produits en 3D
+Products.hint ||| Arrastre para girar; desplace o pellizque para hacer zoom. ||| Zum Drehen ziehen, zum Zoomen scrollen oder mit zwei Fingern zoomen. ||| Faites glisser pour pivoter, faites défiler ou pincez pour zoomer.
+Products.tapToRotate ||| Toque para girar ||| Zum Drehen tippen ||| Touchez pour pivoter
+Products.dragToRotate ||| Arrastre para girar ||| Zum Drehen ziehen ||| Faites glisser pour pivoter
+Products.loading ||| Cargando modelo 3D… ||| 3D-Modell wird geladen … ||| Chargement du modèle 3D…
+Products.addToQuote ||| Añadir al presupuesto ||| Zur Anfrage hinzufügen ||| Ajouter au devis
+Products.details ||| Detalles ||| Details ||| Détails
+Products.names.corrugated-boxes ||| Cajas de cartón ondulado ||| Wellpappkartons ||| Cartons ondulés
+Products.names.color-boxes ||| Cajas impresas ||| Bedruckte Faltschachteln ||| Boîtes pliantes imprimées
+Products.names.gift-boxes ||| Cajas de regalo ||| Geschenkboxen ||| Coffrets cadeaux
+Products.names.pulp-molding ||| Pulpa moldeada ||| Formfaserguss ||| Pulpe moulée
+Products.names.paper-cups ||| Vasos de papel ||| Pappbecher ||| Gobelets en carton
+Products.names.party-supplies ||| Artículos para fiestas ||| Partyartikel ||| Articles de fête
+Products.names.wine-boxes ||| Cajas para vino ||| Weinverpackungen ||| Coffrets à vin
+Products.names.color-printing ||| Impresión a color ||| Farbdruck ||| Impression couleur
+Products.names.offset-printing ||| Impresión offset ||| Offsetdruck ||| Impression offset
+Products.names.eco-paper-cups ||| Vasos de café impresos ||| Bedruckte Kaffeebecher ||| Gobelets à café imprimés
+Products.names.gift-cards ||| Tarjetas de felicitación ||| Grußkarten ||| Cartes de vœux
+Products.names.christmas-merchandise ||| Embalaje navideño ||| Weihnachtsverpackungen ||| Emballages de Noël
+Products.done ||| Listo ||| Fertig ||| Terminé
+Products.categories ||| Categorías de productos ||| Produktkategorien ||| Catégories de produits
+Products.metaTitle ||| Productos de embalaje en 3D: cajas y vasos | PackJoyU ||| Verpackungsprodukte in 3D: Kartons & Becher | PackJoyU ||| Produits d’emballage en 3D : boîtes et gobelets | PackJoyU
+Products.metaDescription ||| Descubra en 3D nuestra amplia gama de embalaje a medida: cajas de cartón ondulado, de regalo y para vino, pulpa moldeada, vasos de papel e impresión. ||| Entdecken Sie unser breites Sortiment individueller Verpackungen in 3D: Wellpapp-, Geschenk- und Weinverpackungen, Formfaserguss, Pappbecher und Druck. ||| Découvrez en 3D notre large gamme d’emballages sur mesure : cartons ondulés, coffrets cadeaux et à vin, pulpe moulée, gobelets et impression.
+Products.desc.corrugated-boxes ||| Cajas de cartón ondulado para envío y cajas postales a medida, en canal simple o doble, impresas con su marca. ||| Individuelle Versand- und Wellpappkartons in einwelliger oder zweiwelliger Ausführung, mit Ihrer Marke bedruckt. ||| Cartons d’expédition et boîtes postales en carton ondulé simple ou double cannelure, imprimés à votre marque.
+Products.desc.color-boxes ||| Estuches plegables y cajas de producto impresos a todo color para cosmética, alimentación y electrónica. ||| Vollfarbig bedruckte Faltschachteln und Produktverpackungen für Kosmetik, Lebensmittel und Elektronik. ||| Étuis pliants et boîtes produits imprimés en quadrichromie pour la cosmétique, l’alimentaire et l’électronique.
+Products.desc.gift-boxes ||| Cajas de regalo rígidas y magnéticas a medida, con estampado en caliente, relieve e interiores ajustados. ||| Feste Geschenkboxen und Boxen mit Magnetverschluss, mit Heißfolienprägung, Blindprägung und passgenauen Einlagen. ||| Coffrets cadeaux rigides et aimantés sur mesure, avec marquage à chaud, gaufrage et calages ajustés.
+Products.desc.pulp-molding ||| Bandejas e interiores de pulpa moldeada. ||| Trays und Einlagen aus Formfaserguss. ||| Plateaux et calages en pulpe moulée.
+Products.desc.paper-cups ||| Vasos de papel impresos a medida para café, té y bebidas frías, de pared simple o doble. ||| Individuell bedruckte Pappbecher für Kaffee, Tee und Kaltgetränke, einwandig oder doppelwandig. ||| Gobelets en carton imprimés sur mesure pour le café, le thé et les boissons froides, simple ou double paroi.
+Products.desc.party-supplies ||| Vajilla de papel impresa para fiestas: platos, vasos, servilletas y decoración para eventos y retail. ||| Bedrucktes Partygeschirr aus Papier: Teller, Becher, Servietten und Deko für Events und Handel. ||| Vaisselle de fête en papier imprimée : assiettes, gobelets, serviettes et décorations pour l’événementiel et la distribution.
+Products.desc.wine-boxes ||| Cajas a medida para vino y licores, para una o varias botellas, con acabados premium e interiores. ||| Individuelle Wein- und Spirituosenverpackungen für eine oder mehrere Flaschen, mit Premium-Veredelung und Einlagen. ||| Coffrets sur mesure pour vins et spiritueux, pour une ou plusieurs bouteilles, avec finitions premium et calages.
+Products.desc.color-printing ||| Impresión en CMYK y tintas directas para embalaje, etiquetas y material de marketing. ||| CMYK- und Sonderfarbendruck für Verpackungen, Etiketten und Marketingmaterial. ||| Impression CMJN et tons directs pour emballages, étiquettes et supports marketing.
+Products.desc.offset-printing ||| Impresión offset para cajas, catálogos y folletos, con color constante en grandes tiradas. ||| Offsetdruck für Schachteln, Kataloge und Broschüren – mit gleichbleibender Farbe auch bei hohen Auflagen. ||| Impression offset pour boîtes, catalogues et brochures, avec une couleur constante sur les grands tirages.
+Products.desc.eco-paper-cups ||| Vasos de papel impresos con su logotipo; las opciones de recubrimiento se confirman en cada pedido. ||| Pappbecher mit Ihrem Logo bedruckt; Beschichtungsoptionen werden je Auftrag bestätigt. ||| Gobelets en carton imprimés à votre logo ; les options de revêtement sont confirmées à chaque commande.
+Products.desc.gift-cards ||| Tarjetas de felicitación y embalaje para tarjetas impresos a medida para retail y promociones. ||| Individuell bedruckte Grußkarten und Kartenverpackungen für Handel und Promotion. ||| Cartes de vœux et emballages pour cartes imprimés sur mesure pour la distribution et les promotions.
+Products.desc.christmas-merchandise ||| Cajas de regalo navideñas, tubos, calendarios de Adviento y embalaje de temporada hechos por encargo. ||| Weihnachtliche Geschenkboxen, Röhren, Adventskalender und Saisonverpackungen auf Bestellung. ||| Coffrets cadeaux de Noël, tubes, calendriers de l’Avent et emballages saisonniers réalisés sur commande.
+Products.alt ||| {name}: embalaje a medida de PackJoyU ||| {name}: individuelle Verpackung von PackJoyU ||| {name} : emballage sur mesure PackJoyU
+Products.specs.corrugated-boxes[0] ||| Canal simple y doble (onda E/B/C) ||| Einwellig und zweiwellig (E-/B-/C-Welle) ||| Simple et double cannelure (E/B/C)
+Products.specs.corrugated-boxes[1] ||| Impresión flexográfica o digital de hasta 4 colores ||| Flexo- oder Digitaldruck bis 4 Farben ||| Impression flexo ou numérique jusqu’à 4 couleurs
+Products.specs.corrugated-boxes[2] ||| Cantidades confirmadas en cada pedido ||| Mengen werden je Auftrag bestätigt ||| Quantités confirmées à chaque commande
+Products.specs.color-boxes[0] ||| Cartón SBS o kraft de 300–400 g/m² ||| SBS- oder Kraftkarton, 300–400 g/m² ||| Carton SBS ou kraft 300–400 g/m²
+Products.specs.color-boxes[1] ||| CMYK + Pantone, laminado mate/brillo ||| CMYK + Pantone, matte/glänzende Kaschierung ||| CMJN + Pantone, pelliculage mat/brillant
+Products.specs.color-boxes[2] ||| Cantidades confirmadas en cada pedido ||| Mengen werden je Auftrag bestätigt ||| Quantités confirmées à chaque commande
+Products.specs.gift-boxes[0] ||| Cartón gris rígido de 1,5–2,5 mm ||| Fester Graukarton 1,5–2,5 mm ||| Carton gris rigide 1,5–2,5 mm
+Products.specs.gift-boxes[1] ||| Estampado en caliente, relieve, tapa magnética ||| Heißfolienprägung, Prägung, Magnetdeckel ||| Marquage à chaud, gaufrage, couvercle aimanté
+Products.specs.gift-boxes[2] ||| Interiores a medida de EVA o papel ||| Individuelle Einlagen aus EVA oder Papier ||| Calages sur mesure en EVA ou papier
+Products.specs.pulp-molding[0] ||| Pulpa moldeada ||| Formfaserguss ||| Pulpe moulée
+Products.specs.pulp-molding[1] ||| Alvéolos a medida según la forma de su producto ||| Individuelle Kavitäten in der Form Ihres Produkts ||| Alvéoles sur mesure épousant votre produit
+Products.specs.pulp-molding[2] ||| Opciones de material bajo consulta ||| Materialoptionen auf Anfrage ||| Options de matière sur demande
+Products.specs.paper-cups[0] ||| Varias capacidades, pared simple o doble ||| Verschiedene Größen, einwandig oder doppelwandig ||| Plusieurs contenances, simple ou double paroi
+Products.specs.paper-cups[1] ||| Recubrimientos para bebidas calientes y frías ||| Beschichtungen für Heiß- und Kaltgetränke ||| Revêtements pour boissons chaudes et froides
+Products.specs.paper-cups[2] ||| Cantidades confirmadas en cada pedido ||| Mengen werden je Auftrag bestätigt ||| Quantités confirmées à chaque commande
+Products.specs.party-supplies[0] ||| Platos, vasos, servilletas, guirnaldas ||| Teller, Becher, Servietten, Girlanden ||| Assiettes, gobelets, serviettes, banderoles
+Products.specs.party-supplies[1] ||| Diseños impresos a medida ||| Individuelle Druckmotive ||| Motifs imprimés sur mesure
+Products.specs.party-supplies[2] ||| Packs listos para la venta ||| Verkaufsfertige Packs ||| Packs prêts à la vente
+Products.specs.wine-boxes[0] ||| Formatos para 1, 2 o 3 botellas ||| Formate für 1, 2 oder 3 Flaschen ||| Formats 1, 2 ou 3 bouteilles
+Products.specs.wine-boxes[1] ||| Estampado, barniz UV selectivo, cierres magnéticos ||| Folienprägung, partieller UV-Lack, Magnetverschlüsse ||| Dorure, vernis UV sélectif, fermetures aimantées
+Products.specs.wine-boxes[2] ||| Interiores ajustados para un envío seguro ||| Passgenaue Einlagen für den sicheren Versand ||| Calages ajustés pour un transport sûr
+Products.specs.color-printing[0] ||| CMYK + tintas directas ||| CMYK + Sonderfarben ||| CMJN + tons directs
+Products.specs.color-printing[1] ||| Etiquetas, fajas, folletos ||| Etiketten, Banderolen, Flyer ||| Étiquettes, fourreaux, dépliants
+Products.specs.color-printing[2] ||| Prueba de color antes de producción ||| Farbproof vor dem Druck ||| Épreuve couleur avant production
+Products.specs.offset-printing[0] ||| Impresión offset en CMYK y Pantone ||| Offsetdruck in CMYK und Pantone ||| Impression offset CMJN et Pantone
+Products.specs.offset-printing[1] ||| Catálogos, folletos, estuches ||| Kataloge, Broschüren, Faltschachteln ||| Catalogues, brochures, étuis
+Products.specs.offset-printing[2] ||| Color constante en grandes tiradas ||| Gleichbleibende Farbe bei hohen Auflagen ||| Couleur constante sur les grands tirages
+Products.specs.eco-paper-cups[0] ||| Opciones de recubrimiento confirmadas en cada pedido ||| Beschichtungsoptionen je Auftrag bestätigt ||| Options de revêtement confirmées à chaque commande
+Products.specs.eco-paper-cups[1] ||| Opciones de material bajo consulta ||| Materialoptionen auf Anfrage ||| Options de matière sur demande
+Products.specs.gift-cards[0] ||| Cartulina de 350–600 g/m² ||| Karton 350–600 g/m² ||| Carte 350–600 g/m²
+Products.specs.gift-cards[1] ||| Estampado, relieve, troquelados especiales ||| Folienprägung, Prägung, Sonderstanzungen ||| Dorure, gaufrage, découpes de forme
+Products.specs.gift-cards[2] ||| Sobres y portatarjetas ||| Umschläge und Kartenhalter ||| Enveloppes et porte-cartes
+Products.specs.christmas-merchandise[0] ||| Cajas de regalo, tubos, calendarios de Adviento ||| Geschenkboxen, Röhren, Adventskalender ||| Coffrets cadeaux, tubes, calendriers de l’Avent
+Products.specs.christmas-merchandise[1] ||| Acabados de temporada con estampado y purpurina ||| Saisonale Folien- und Glitzerveredelung ||| Finitions saisonnières dorure et paillettes
+Products.specs.christmas-merchandise[2] ||| Pedidos antes de septiembre para el 4.º trimestre ||| Bestellung bis September für Q4 ||| Commande avant septembre pour le T4
+Products.learnMore ||| Más información ||| Mehr erfahren ||| En savoir plus
+Products.specsLabel ||| Especificaciones clave ||| Wichtige Spezifikationen ||| Caractéristiques clés
+Products.empty ||| Todavía no hay modelos 3D publicados. Vuelva pronto o contáctenos para solicitar muestras. ||| Es sind noch keine 3D-Modelle veröffentlicht. Schauen Sie bald wieder vorbei oder fragen Sie uns nach Mustern. ||| Aucun modèle 3D n’est encore publié. Revenez bientôt ou contactez-nous pour obtenir des échantillons.
+Products.ogImageAlt ||| PackJoyU: nuestros productos en 3D: cajas de cartón ondulado, de regalo y para vino a medida ||| PackJoyU: Unsere Produkte in 3D – individuelle Wellpapp-, Geschenk- und Weinverpackungen ||| PackJoyU : nos produits en 3D – cartons ondulés, coffrets cadeaux et coffrets à vin sur mesure
+Admin.title ||| Administración ||| Verwaltung ||| Administration
+Quote.title ||| Lista de presupuesto ||| Anfrageliste ||| Liste de devis
+Quote.add ||| Añadir al presupuesto ||| Zur Anfrage hinzufügen ||| Ajouter au devis
+Quote.added ||| En el presupuesto ✓ ||| In der Anfrage ✓ ||| Dans le devis ✓
+Quote.remove ||| Quitar ||| Entfernen ||| Retirer
+Quote.empty ||| Su lista de presupuesto está vacía. Añada productos desde el catálogo 3D. ||| Ihre Anfrageliste ist leer. Fügen Sie Produkte aus dem 3D-Katalog hinzu. ||| Votre liste de devis est vide. Ajoutez des produits depuis le catalogue 3D.
+Quote.continue ||| Continuar con la solicitud ||| Weiter zur Anfrage ||| Continuer vers la demande
+Quote.browse ||| Ver catálogo 3D ||| 3D-Katalog ansehen ||| Parcourir le catalogue 3D
+Quote.close ||| Cerrar ||| Schließen ||| Fermer
+Quote.full ||| Su lista de presupuesto está llena ({max} artículos). Quite uno para añadir otro. ||| Ihre Anfrageliste ist voll ({max} Artikel). Entfernen Sie einen, um einen weiteren hinzuzufügen. ||| Votre liste de devis est pleine ({max} articles). Retirez-en un pour en ajouter un autre.
+Fab.quote ||| Lista de presupuesto ||| Anfrageliste ||| Liste de devis
+Fab.chat ||| Contáctenos ||| Kontakt ||| Nous contacter
+Fab.top ||| Volver arriba ||| Nach oben ||| Haut de page
+Fab.menu ||| Acciones rápidas ||| Schnellaktionen ||| Actions rapides
+Contact.metaTitle ||| Solicitar presupuesto de embalaje | PackJoyU ||| Verpackungsangebot anfordern | PackJoyU ||| Demander un devis d’emballage | PackJoyU
+Contact.metaDescription ||| Cuéntenos su proyecto de embalaje y solicite un presupuesto a PackJoyU. ||| Erzählen Sie uns von Ihrem Verpackungsprojekt und fordern Sie ein Angebot von PackJoyU an. ||| Parlez-nous de votre projet d’emballage et demandez un devis à PackJoyU.
+Contact.title ||| Solicitar presupuesto ||| Angebot anfordern ||| Demander un devis
+Contact.intro ||| Tres pasos breves. Solo son obligatorios sus datos de contacto: elija «No estoy seguro» en lo que aún no haya decidido. ||| Drei kurze Schritte. Nur Ihre Kontaktdaten sind Pflichtangaben – wählen Sie „Noch unklar“ für alles, was Sie noch nicht entschieden haben. ||| Trois étapes courtes. Seules vos coordonnées sont obligatoires : choisissez « Je ne sais pas » pour tout ce qui n’est pas encore décidé.
+Contact.ogImageAlt ||| PackJoyU: solicite un presupuesto de embalaje a medida ||| PackJoyU: Angebot für individuelle Verpackungen anfordern ||| PackJoyU : demandez un devis d’emballage sur mesure

@@ -1,0 +1,592 @@
+{
+  "sourceHead": "a75b9c9cc0d7d6455e47e6d0304704fb60184882",
+  "publishedLocales": [
+    "en",
+    "ru"
+  ],
+  "runtimeApplied": false,
+  "files": [
+    {
+      "path": ".i18n-src/ar/SUPERSEDED.md",
+      "bytes": 182,
+      "sha256": "bb5163caec789dd5d07b008bb1477aa3e1961e846c220cdc613fdc446d8fd50a",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/ar/a1.txt",
+      "bytes": 11294,
+      "sha256": "5b28b3202dde31bddde1cd7ad271f66ae9a944bb7a5a7120377c2f742f031dd0",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/ar/a2.txt",
+      "bytes": 8895,
+      "sha256": "822e8994b5b84afad37712454e54f953c841929772337d813c2c0fd1d52fef43",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/ar/a3.txt",
+      "bytes": 17909,
+      "sha256": "facff85aff2025db9ec7c55583e1663a9dde0f453883760cce4d1010a3745a04",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/build_and_validate.py",
+      "bytes": 3017,
+      "sha256": "a40adbc979f43aaa4b5c5c36b9603c3464611a1dd69d78ec001273b1625645bd",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/build_ja_hi.py",
+      "bytes": 4605,
+      "sha256": "dd941c435717f16420aa842209a5cf66780d15f2377548a0fa1c2b16fd0459ec",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/catmeta.py",
+      "bytes": 11434,
+      "sha256": "214fbe9ef05870e7c8e171abb87f618db90ccd2cd2c9095c9b5b872e2c4c9974",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/check_meta_lengths.py",
+      "bytes": 2509,
+      "sha256": "a2e9f2c8f39cc124b91c90ec2e51eee20675fd55dfddea06dc282cb58bfd70e5",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/faq_de.py",
+      "bytes": 10092,
+      "sha256": "3dc2d9c8cbcdd16fb01a45ff45ec3e9b0f5db527c0ac08b766308bf2498457f9",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/faq_es.py",
+      "bytes": 10091,
+      "sha256": "ae146dc32bdd76fbb0c95ad134c4af14fdfcef803028c0a0ac3f0cbca058ec70",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/faq_fr.py",
+      "bytes": 11039,
+      "sha256": "5d7f463ddaa1a4df83adb4261cf2ea5dae0f220d917e662dc38f2d3571ea9b09",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/gen_emails.py",
+      "bytes": 7286,
+      "sha256": "2e050f61f13588a80e32e48aef83800338cd3bdd1c3a4721c54bc083d9f745a2",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/gen_faq.py",
+      "bytes": 6939,
+      "sha256": "57c4020a2f3277063a0925d43bd60c043a716ca2d2d000b1269c090c3dbd1dfd",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/gen_pages.py",
+      "bytes": 26268,
+      "sha256": "7dbfd1528f5a993c214593e712171c4046ff2fca86b4c5a445b94005ced066d3",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/jahi/SUPERSEDED.md",
+      "bytes": 192,
+      "sha256": "3a0755e96e8e4269ce4ae952561b0c1f17269729e66ab34258ba20414856a151",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/jahi/a1.txt",
+      "bytes": 21629,
+      "sha256": "9a4f84149db0e2f2f96ed138b6dbcc2e1e7c81010fe8dd2d197ae47312e0954b",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/jahi/a2.txt",
+      "bytes": 17015,
+      "sha256": "67906db4e445c034551401fcdcc1e0b79825dc7bd7fe238b829548b95bce5210",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/jahi/a3.txt",
+      "bytes": 38823,
+      "sha256": "5c39fa6c71b18db98d00854e56bf81e3c01079a94ff724b4dd60f95da18a27ed",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/ru_factory.py",
+      "bytes": 2884,
+      "sha256": "cd25a2670defa7fc6e011db8eb2f2ad116e5beccc595c6011ad47cb7004a319b",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/src_fixes.py",
+      "bytes": 1910,
+      "sha256": "183f29b2c295d332901cae9ec7f8669e14b6a8550799d341c4dfc4181f01396a",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/t1.txt",
+      "bytes": 20541,
+      "sha256": "556944bba83eb85aae86ad2217ef4aa8c7b24f596c60bf8a7dbf80b4d7192212",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/t2.txt",
+      "bytes": 16251,
+      "sha256": "bd1537660242f633f139037c4d01e873a936d7edcc4384c242b05df23480e56f",
+      "originallyUntracked": true
+    },
+    {
+      "path": ".i18n-src/t3.txt",
+      "bytes": 35441,
+      "sha256": "8136bfbc6c32a1a3bb5124e019075fa422d9524661eeaebccf73800768d14014",
+      "originallyUntracked": true
+    },
+    {
+      "path": "categoryMeta-es-de-fr.md",
+      "bytes": 19165,
+      "sha256": "061a1dc3d517437664a4621fd3ba1ce5796a82747109072374278b0e3b0f3cd8",
+      "originallyUntracked": true
+    },
+    {
+      "path": "design/emails/inquiry-ack.de.html",
+      "bytes": 4965,
+      "sha256": "1258bbe97534e37cc70683576f1ac92b3a232eb08a67307b5e107ab5e9f5fee8",
+      "originallyUntracked": true
+    },
+    {
+      "path": "design/emails/inquiry-ack.de.txt",
+      "bytes": 852,
+      "sha256": "ad06acdaa6efe6c4313a6e0c792ef97ad762726f1d28cf512c2b3a203bf32f0a",
+      "originallyUntracked": true
+    },
+    {
+      "path": "design/emails/inquiry-ack.es.html",
+      "bytes": 4926,
+      "sha256": "be5385f366930ed4ea4e11a57ff21d16355d79f7d308599a0cbcc9422eefd2e6",
+      "originallyUntracked": true
+    },
+    {
+      "path": "design/emails/inquiry-ack.es.txt",
+      "bytes": 801,
+      "sha256": "28d79ab99b006a53fde6e94cb8197ffd6af7e8efce9ee4f3d8ed704823a804f6",
+      "originallyUntracked": true
+    },
+    {
+      "path": "design/emails/inquiry-ack.fr.html",
+      "bytes": 4957,
+      "sha256": "3e56f964d174e994049ad3b1b4f93297e827cea0d983bd156e975720971d027e",
+      "originallyUntracked": true
+    },
+    {
+      "path": "design/emails/inquiry-ack.fr.txt",
+      "bytes": 859,
+      "sha256": "16d658df1a7528f890fd28e7c065cdb9277729a1e07f9d0b83d5d7e4e54a7f70",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/articles/corporate-gift-packaging-planning-guide.md",
+      "bytes": 7391,
+      "sha256": "b30b4d4e5f8e23a70c3d8ca8c9002137712372b0a514236b7e37a6b2984a024f",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/articles/korporativnye-podarki-upakovka-s-logotipom.md",
+      "bytes": 12868,
+      "sha256": "94a158a6c243ffb62f17a291db1248ac0c8c1a30090f50b7759f4cd66a6a07af",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/articles/pochtovye-korobki-s-logotipom-dlya-internet-magazina.md",
+      "bytes": 12815,
+      "sha256": "11729a4572e3d971bd8c6b115a860ea392685c90aa5896e2bf50f7ed9f4f2e87",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/christmas-merchandise.de.md",
+      "bytes": 2317,
+      "sha256": "8502a195b850cb8c04f52b0e437bbe3afa636923dd55a54827a3d52512c65610",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/christmas-merchandise.es.md",
+      "bytes": 2440,
+      "sha256": "8d7abbf0efe6149b426124e06dee684e25b2120244e1f95baa2c8b1bbcf2b272",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/christmas-merchandise.fr.md",
+      "bytes": 2499,
+      "sha256": "d8aa98856387071aff89e5a5e73eef626a7f4f460a5442f1b4e044dfcbcb2636",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/christmas-merchandise.ru.md",
+      "bytes": 3437,
+      "sha256": "b850639476bee6e2ec4ff12bd1fe59958b8cba8a3d9c0fb1095ec3b48cfadddc",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/color-boxes.de.md",
+      "bytes": 2337,
+      "sha256": "2a91fce760e322742d1e11bddc7f10b67fec804c11d37c35c531f2d5b3bbbe3f",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/color-boxes.es.md",
+      "bytes": 2372,
+      "sha256": "ee2842bfad3572879b2e0d6f15efbd18a36b74644784521c922708e9670b7945",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/color-boxes.fr.md",
+      "bytes": 2455,
+      "sha256": "8be6e69f20cf4b8691ec6c5e6dcde915ac5ec312c76b233f97d8809f0b92faf5",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/color-boxes.ru.md",
+      "bytes": 3331,
+      "sha256": "d74e0fdcccf07ea6b48ae4b109580d4dac1268e4ffcbc6ae7ebd2d8335a1357a",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/color-printing.de.md",
+      "bytes": 2209,
+      "sha256": "bae5bf6521352561e5b1a228f9ad986e820f537e0129e98474b927b7b9c268e7",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/color-printing.es.md",
+      "bytes": 2287,
+      "sha256": "cbb10b8205db8f56193179d3237759383bad185c7a33c52eaad175932d898b43",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/color-printing.fr.md",
+      "bytes": 2367,
+      "sha256": "8c5c826ae7d1978cff0d9001d9de1bf33fe28cfe111ac7064265ae71fb1c61bc",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/color-printing.ru.md",
+      "bytes": 3191,
+      "sha256": "aa1c45a21aa97e6cf69d8aafbe1a4d065a2b18cd81d18110190c237fa49c38ce",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/corrugated-boxes.de.md",
+      "bytes": 2393,
+      "sha256": "8d69812d4159ad99f6b2f140cfba8050b830995b5f319c69288473a875581da0",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/corrugated-boxes.es.md",
+      "bytes": 2465,
+      "sha256": "24fb04b5ceaa051338dfa4f8a0db1312ad30030a0b4bde9d794fcf1e43c02cf1",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/corrugated-boxes.fr.md",
+      "bytes": 2595,
+      "sha256": "937075d42864b3b65ced4b4952646fcdb5549a5ff560d421836d6041ae30fde2",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/corrugated-boxes.ru.md",
+      "bytes": 3563,
+      "sha256": "91a5f40c8acd569b4f748ea23e7b93d2fe0c85669ea5dd5b2bfa1e2aa1dfc553",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/gift-boxes.de.md",
+      "bytes": 2314,
+      "sha256": "c74ffac9863f0bf574c8b95cd73b34cd29a5c9fa2ba4755cc11adae0af3f3a16",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/gift-boxes.es.md",
+      "bytes": 2380,
+      "sha256": "c886c4af35ca77c56c98bbcf92b0a22cb7c19b67a865d9936c74dafd1794a073",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/gift-boxes.fr.md",
+      "bytes": 2481,
+      "sha256": "1091223e3a58bca7261ce8c8ec7059e9a368bf406e66ea87feb284099f3b70c2",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/gift-boxes.ru.md",
+      "bytes": 3472,
+      "sha256": "abefceabe803edf57a61a72adeff3ee313722ba068dd15ac7939e23a997b3834",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/gift-cards.de.md",
+      "bytes": 2353,
+      "sha256": "3a729883c0e8bf5fb7093d6f1c05921a377ce059ce42da2d3d6be292f82a269e",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/gift-cards.es.md",
+      "bytes": 2505,
+      "sha256": "1720a6d0680143538b0f8ffb2c3d46e6c91d51ffef4d3e5e94f658644d0e1749",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/gift-cards.fr.md",
+      "bytes": 2556,
+      "sha256": "952b56e77b977d6f84971df7a073140c0ee4ac8a106b64595290377228b3b3ba",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/gift-cards.ru.md",
+      "bytes": 3496,
+      "sha256": "066c2678ddbd3b6902d187b5c050f0cafe91ed7d7b573f152fe064dfef75a1bb",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/offset-printing.de.md",
+      "bytes": 2192,
+      "sha256": "d982eb1e87915cbf723e28f5909763de7cb49f69a053b004edceefb193357a1b",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/offset-printing.es.md",
+      "bytes": 2275,
+      "sha256": "739376851b3d07c5857d6d17c5a84c3ad6e8c164cb6bc7d0a27ab358bf58fd5c",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/offset-printing.fr.md",
+      "bytes": 2339,
+      "sha256": "68b444bdad4563ed1280ccf3d9274166aa0d5081390c99ab38d40c25494ef1ae",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/offset-printing.ru.md",
+      "bytes": 3177,
+      "sha256": "5939d47c0fa0520b1cd04967cc0ba69ea1618b1a5b7ab956f2ba2de071d4af15",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/paper-cups.de.md",
+      "bytes": 2144,
+      "sha256": "417ec921f8a3ec2f530e150d0e9a671fccbba51f374f5b40a6b0cf4bea6c5774",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/paper-cups.es.md",
+      "bytes": 2288,
+      "sha256": "fc7fab7a33ed41dcf8643e5467959a1d518afc5d41ce83140cc48e064c59e356",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/paper-cups.fr.md",
+      "bytes": 2382,
+      "sha256": "d9bbed99f4a562793c59df7ccea8822107fc280d701036898985cc2032ef16c2",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/paper-cups.ru.md",
+      "bytes": 3196,
+      "sha256": "05529355f4287d4ef8225d886a183afefbf076f36ee28ea4c8eb1fdf500ae59d",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/party-supplies.de.md",
+      "bytes": 2289,
+      "sha256": "094ab165be7282635b8d10cb058a57a4d030c71dd1f6399ba161fb5b30fd1da1",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/party-supplies.es.md",
+      "bytes": 2437,
+      "sha256": "c9835e81fa7d0b7052da6117e721fe42718a4456757021cc7cc9d2bcf1d30dd6",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/party-supplies.fr.md",
+      "bytes": 2516,
+      "sha256": "fa558c918d1b8cb13d0eeccbd491939b240b2d7e8d351f909e50bbabb2cad024",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/party-supplies.ru.md",
+      "bytes": 3446,
+      "sha256": "586bbbfb49b39a3a7e6bf1985eb728df725c42795da38eb7f678581982607e95",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/pulp-molding.de.md",
+      "bytes": 2252,
+      "sha256": "7a38937b8ca99eebb9ad8c1b5a6a0d506a06f34fa2b097fe960474372c631b0d",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/pulp-molding.es.md",
+      "bytes": 2376,
+      "sha256": "83d705eb7907e922118aff612498d19b8d2b74a810bcb84cfa7b8d67d97770b7",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/pulp-molding.fr.md",
+      "bytes": 2389,
+      "sha256": "f913159156476d4ad3867d16f284c8dd93686e9ab4f46d9c57fcb4999071d5e1",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/pulp-molding.ru.md",
+      "bytes": 3384,
+      "sha256": "10f1ca4152df8942e42b672d6a65c4de266730b83444f6dcc8d09d2f07569739",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/category-pages/wine-boxes.de.md",
+      "bytes": 2291,
+      "sha256": "5ad59d97b3630a0a1213ff0d1affa411c63e8b3b999e226a12fe941e247b8986",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/wine-boxes.es.md",
+      "bytes": 2382,
+      "sha256": "59d2257db81d3894e7f596f7af598be3526ae85b23b18f2970865f6594e67abe",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/wine-boxes.fr.md",
+      "bytes": 2480,
+      "sha256": "296751afa52898c7b24d4f04e1bf263d7ea19d8d360e5d51e343a2f2597c6bd1",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/category-pages/wine-boxes.ru.md",
+      "bytes": 3459,
+      "sha256": "292282d3b95f741f02a88718f387820fb0c6c5f6d35d3954089e0a778ac005bb",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/custom-christmas-packaging.md",
+      "bytes": 9958,
+      "sha256": "4c41d4d45f20bfb2f9a9265620a3dcc182d40d238e21281346d18a77c15f53ed",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/custom-color-printing.md",
+      "bytes": 9126,
+      "sha256": "1084e8f0ab2328a035f6d85a78f347b95a9eb6f23994899a3bd1ef1d38432b6b",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/content/landing-faq.de.md",
+      "bytes": 16195,
+      "sha256": "410b1a16cee875d70c39af4f44c64a4972eb7c40c0771f0f7da62c0c071df60a",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/landing-faq.es.md",
+      "bytes": 16330,
+      "sha256": "c3688988b9611e3d0834028fb174ab27ea3ddab79c0d395121c55f776ed42984",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/landing-faq.fr.md",
+      "bytes": 17252,
+      "sha256": "f460197f03433d97a4c070f161f879fd7175c9140a98bbea95550cd4823c4e29",
+      "originallyUntracked": true
+    },
+    {
+      "path": "docs/content/sanity-import/import.ndjson",
+      "bytes": 195801,
+      "sha256": "a00945da5f39b719fa6abb5edd4602a5023387baf0387188b14a743b0b18c938",
+      "originallyUntracked": false
+    },
+    {
+      "path": "docs/seo-category-meta.md",
+      "bytes": 9994,
+      "sha256": "b377ce95d4c30b32bee131ad4cb9bbc2e5d2088ea94ce613392ae7464af390a7",
+      "originallyUntracked": false
+    },
+    {
+      "path": "glossary-es-de-fr.md",
+      "bytes": 25583,
+      "sha256": "d5d8a590c99920fe6d01bbbd983d03483f649d61b7395bb99cb2929bc405dcb5",
+      "originallyUntracked": true
+    },
+    {
+      "path": "messages/ar.json",
+      "bytes": 36665,
+      "sha256": "05557cb7eac740ffe8af752afd08532aa28adf3e936063ddfd1be92727ffcdbf",
+      "originallyUntracked": true
+    },
+    {
+      "path": "messages/de.json",
+      "bytes": 28336,
+      "sha256": "828487a9961a4c58f097eacf818d15d67cf75c9c22c4e791fe2dbb1dd3251fa4",
+      "originallyUntracked": true
+    },
+    {
+      "path": "messages/en.json",
+      "bytes": 24908,
+      "sha256": "90c30184919fbfb83359fc8d6466a55045dbbbf95a2b5ac332b89e2144e9abf2",
+      "originallyUntracked": false
+    },
+    {
+      "path": "messages/es.json",
+      "bytes": 28131,
+      "sha256": "2cd1a7078b606733c68b24a3e69362f3f1b8ddb251a0299052e758df2669df78",
+      "originallyUntracked": true
+    },
+    {
+      "path": "messages/fr.json",
+      "bytes": 29249,
+      "sha256": "66f9dbdaf30b5b20c2058f91250ea4c87271515ae9ca9212c35fcdab25731d96",
+      "originallyUntracked": true
+    },
+    {
+      "path": "messages/hi.json",
+      "bytes": 50762,
+      "sha256": "f0ad204a36c14781b4859df9ba094881482219bc62c2cdf6580621789ae56812",
+      "originallyUntracked": true
+    },
+    {
+      "path": "messages/ja.json",
+      "bytes": 32862,
+      "sha256": "b2fe08e620d6dd7b5113d6b95016e71654da8f03f76a47403cd5b6809dcbeb9e",
+      "originallyUntracked": true
+    },
+    {
+      "path": "messages/ru.json",
+      "bytes": 39344,
+      "sha256": "e9060e5514a6f4b06ac4afea765f3dfb4477d0be9484c444eb1597cd90d7ccad",
+      "originallyUntracked": false
+    },
+    {
+      "path": "review-ar.md",
+      "bytes": 14454,
+      "sha256": "4bad3d1881198f8b4c3e6880c36fa69a012d636f80e3299609ad8eab3f94d8cd",
+      "originallyUntracked": true
+    },
+    {
+      "path": "review-hi.md",
+      "bytes": 12046,
+      "sha256": "52d672b729b7eb0a4b95f52b0679b0ae73b7e48638792fcfc87c79cec9806c0a",
+      "originallyUntracked": true
+    },
+    {
+      "path": "review-ja.md",
+      "bytes": 8223,
+      "sha256": "14ca4a064d0e9a34225ef3d4873056ea8c08622aa9ce09c4aa2a324e2ef5336f",
+      "originallyUntracked": true
+    },
+    {
+      "path": "src/lib/seo/categoryMeta.ts",
+      "bytes": 9446,
+      "sha256": "165f06b0d29534af834db17eb0dd91cf92310cbfa2aecdbacb802e3e02d7d308",
+      "originallyUntracked": false
+    }
+  ]
+}
