@@ -25,8 +25,6 @@ export type ProductRealData = {
   certifications?: Array<{ name: string; certNo?: string; url?: string }>;
 };
 
-const abs = (u: string) => (/^https?:\/\//.test(u) ? u : `${SITE_URL}${u.startsWith('/') ? '' : '/'}${u}`);
-
 export function findCategory(key: string): CategoryMeta | undefined {
   return categoryMeta.find((c) => c.key === key);
 }
@@ -35,11 +33,39 @@ export function categoryUrl(c: CategoryMeta, locale: Locale) {
   return `${SITE_URL}/${locale}/products/${c[locale].slug}`;
 }
 
-const isHttps = (u?: string) => {
-  if (!u) return false;
-  try { return new URL(u).protocol === 'https:'; } catch { return false; }
-};
+/**
+ * Certificate links may point at any issuer domain, but must parse as an absolute
+ * https URL with no username/password. Returns the normalized href, or undefined.
+ * Note: WHATWG parsing normalizes 'https:evil.com' to 'https://evil.com/' (accepted, normalized).
+ */
+export function safeCertUrl(u?: string): string | undefined {
+  if (!u || typeof u !== 'string') return undefined;
+  let r: URL;
+  try { r = new URL(u.trim()); } catch { return undefined; }
+  if (r.protocol !== 'https:' || r.username || r.password || !r.hostname) return undefined;
+  return r.href;
+}
 
+const SITE_ORIGIN = new URL(SITE_URL).origin;
+const IMAGE_CDN_ORIGIN = 'https://cdn.sanity.io';
+
+/**
+ * Absolute image URL allow-list. Rejects other hosts, userinfo tricks
+ * such as 'https://packjoyu.com@evil.com/x', and non-https schemes. Returns the normalized href.
+ * (The site origin is also accepted as-is so local http://localhost dev builds keep working.)
+ */
+export function safeAbsoluteImage(u: string): string[] {
+  let r: URL;
+  try { r = new URL(u); } catch { return []; }
+  if (r.username || r.password) return [];
+  if (r.origin === SITE_ORIGIN) return [r.href];
+  if (r.protocol === 'https:' && r.origin === IMAGE_CDN_ORIGIN) return [r.href];
+  return [];
+}
+
+// NOTE: buildProductJsonLd is not wired into any page yet. When it is, render the result ONLY via
+// the <JsonLd> component (src/components/seo/JsonLd.tsx), which escapes '<' etc. Never use a raw
+// dangerouslySetInnerHTML with JSON.stringify.
 const DIM_NAMES: Record<keyof Dims, string> = { l: 'Length', w: 'Width', h: 'Height' };
 
 function specProperties(specs: NonNullable<ProductRealData['specs']>) {
@@ -76,16 +102,30 @@ export function buildProductJsonLd(key: string, locale: Locale, data: ProductRea
     category: m.keyword,
     brand: { '@type': 'Brand', name: 'PackJoyU' },
   };
-  if (data.images?.length) ld.image = data.images.map(abs);
+  // Site-relative paths resolve against SITE_URL; absolute URLs are parsed and kept only when they
+  // point at the site origin or the HTTPS image CDN (cdn.sanity.io), with no credentials.
+  const images = (data.images ?? []).flatMap((u) => {
+    if (u.startsWith('/') || u.startsWith('\\')) {
+      // Resolve with the WHATWG URL parser and require the same origin: '//evil.com/x' and '/\\evil.com/x'
+      // (backslash is treated as '/') would otherwise escape to another host.
+      try {
+        const r = new URL(u, SITE_URL);
+        return r.origin === SITE_ORIGIN && !r.username && !r.password ? [r.href] : [];
+      } catch { return []; }
+    }
+    return safeAbsoluteImage(u);
+  });
+  if (images.length) ld.image = images;
   if (data.sku) ld.sku = data.sku;
   const material = data.specs?.material?.trim();
   if (material) ld.material = material;
   const props = data.specs ? specProperties(data.specs) : [];
   if (props.length) ld.additionalProperty = props;
   const certs = (data.certifications ?? [])
-    .filter((x) => x.name?.trim() && isHttps(x.url))
-    .map((x) => ({
-      '@type': 'Certification', name: x.name.trim(), url: x.url,
+    .map((x) => ({ x, url: safeCertUrl(x.url) }))
+    .filter(({ x, url }) => x.name?.trim() && url)
+    .map(({ x, url }) => ({
+      '@type': 'Certification', name: x.name.trim(), url,
       ...(x.certNo?.trim() ? { certificationIdentification: x.certNo.trim() } : {}),
     }));
   if (certs.length) ld.hasCertification = certs;

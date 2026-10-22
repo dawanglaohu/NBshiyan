@@ -1,0 +1,137 @@
+Privacy.metaTitle ||| سياسة الخصوصية: البيانات التي نجمعها | PackJoyU
+Privacy.title ||| سياسة الخصوصية
+Privacy.metaDescription ||| كيف تجمع PackJoyU البيانات الشخصية من طلبات عروض الأسعار وطلبات العيّنات والدردشة وملفات تعريف الارتباط وتستخدمها وتحميها، وكيف تمارس حقوقك المتعلقة بالخصوصية.
+Privacy.intro ||| توضح هذه الصفحة البيانات الشخصية التي تجمعها PackJoyU عبر هذا الموقع، وسبب جمعها، ومدة الاحتفاظ بها.
+Privacy.contactLink ||| تواصل معنا عبر نموذج الاستفسار
+Privacy.sections.collected.title ||| البيانات التي نجمعها
+Privacy.sections.collected.items[0] ||| الاستفسارات وطلبات عروض الأسعار: اسمك وبريدك الإلكتروني وشركتك وهاتفك ودولتك ورسالتك، بالإضافة إلى المنتجات والخيارات التي تختارها.
+Privacy.sections.collected.items[1] ||| طلبات العيّنات: ما سبق بالإضافة إلى عنوان الشحن.
+Privacy.sections.collected.items[2] ||| الشعارات التي ترفعها في أداة التخصيص أو نموذج الاستفسار. وقد يُرفع الشعار قبل إرسال الاستفسار.
+Privacy.sections.collected.items[3] ||| التصاميم المخصصة المشتركة التي تنشئها في أداة التخصيص ثلاثية الأبعاد.
+Privacy.sections.collected.items[4] ||| بيانات الإحالة والحملات التي يرسلها متصفحك مع الاستفسار: الصفحة التي جئت منها، وكلمات البحث، ومعلمات UTM.
+Privacy.sections.collected.items[5] ||| البيانات التقنية: عنوان IP الخاص بك، وإذا سمحت بالتحليلات، مقاييس مجهولة الهوية لأداء الصفحات. نستخدم عنوان IP للحد من معدل الطلبات والحماية من إساءة الاستخدام، ونرسله إلى مزوّد خدمة التحقق الأمني للتأكد من أنك لست برنامجًا آليًا، ونسجّله في سجلات الأمان (التدقيق) الخاصة بالإدارة. كما نحفظ الدولة المستنتجة من عنوان IP مع الاستفسار للمساعدة في كشف الرسائل غير المرغوب فيها.
+Privacy.sections.purpose.title ||| لماذا نستخدمها
+Privacy.sections.purpose.items[0] ||| للرد على الاستفسارات وإعداد عروض الأسعار وشحن العيّنات.
+Privacy.sections.purpose.items[1] ||| لحماية الموقع من الرسائل غير المرغوب فيها وإساءة الاستخدام (التحقق الأمني وحدود معدل الطلبات).
+Privacy.sections.purpose.items[2] ||| بموافقتك فقط: لقياس أداء الموقع وتوفير الدردشة المباشرة.
+Privacy.sections.retention.title ||| مدة الاحتفاظ بها
+Privacy.sections.retention.items.designs ||| تنتهي صلاحية التصاميم المخصصة المشتركة بعد 180 يومًا (يعرض الرابط بعدها «410 Gone»)، وتُحذف بعد ذلك بـ 90 يومًا.
+Privacy.sections.retention.items.designsInquiry ||| يُحتفظ بالتصاميم المرفقة باستفسار طوال مدة الاحتفاظ بذلك الاستفسار، وتُجهَّل أو تُحذف معه.
+Privacy.sections.retention.items.logos ||| تُحذف الشعارات غير المرفقة باستفسار عادةً خلال 48 ساعة من رفعها (تصبح قابلة للحذف بعد 24 ساعة، وتُجرى عملية تنظيف يوميًا)، باستثناء الشعارات التي لا تزال مستخدمة في تصميم محفوظ لم تنتهِ صلاحيته.
+Privacy.sections.retention.items.sampleEmail ||| بالنسبة لطلبات العيّنات (طلب واحد لكل بريد إلكتروني كل 30 يومًا)، يُمسح البريد الإلكتروني المستخدم لهذا الحد بعد 30 يومًا.
+Privacy.sections.retention.items.rateLimit ||| تستخدم عدادات حد معدل الطلبات عنوان IP الخاص بك ونسخة مُجزّأة (غير قابلة للقراءة) من بريدك الإلكتروني، وتنتهي صلاحيتها بانتهاء فترة الحد — 30 يومًا كحد أقصى.
+Privacy.sections.retention.items.audit ||| تُحذف سجلات الأمان (التدقيق) الخاصة بالإدارة، بما فيها عناوين IP، بعد 365 يومًا.
+Privacy.sections.retention.items.adminSessions ||| تنتهي جلسات الإدارة بعد ساعتين من عدم النشاط.
+Privacy.sections.retention.items.inquiries ||| تُجهَّل الاستفسارات بعد سنتين من آخر نشاط عليها (ردّنا أو تغيير الحالة): نحذف أو نُجهّل بيانات التواصل والرسائل وعنوان الشحن والمراسلات بالبريد الإلكتروني والشعارات المرفوعة وإعدادات الشعار في التكوين وملاحظات الموظفين الداخلية حول الاستفسار وبيانات الإحالة/المصدر التي يرسلها المتصفح وأرقام تتبع شحنات العيّنات؛ ولا نحتفظ إلا بإحصاءات غير شخصية.
+Privacy.sections.retention.items.inquiriesContact ||| يُحتفظ ببيانات التواصل ما دامت لجهة الاتصال استفسارات لم تُجهَّل بعد.
+Privacy.sections.retention.items.onRequest ||| عند الطلب، نحذف أو نُجهّل بيانات التواصل والرسائل وعنوان الشحن والمراسلات بالبريد الإلكتروني والشعارات المرفوعة وإعدادات الشعار في التكوين وملاحظات الموظفين الداخلية حول الاستفسار وبيانات الإحالة/المصدر التي يرسلها المتصفح وأرقام تتبع شحنات العيّنات؛ ولا نحتفظ إلا بإحصاءات غير شخصية. وتُحذف السجلات في قاعدة بياناتنا أو تُجهَّل فورًا.
+Privacy.sections.retention.items.deletionCopies ||| تُحذف نسخ رسائل إشعار الاستفسار في صندوق بريد أعمالنا يدويًا خلال 30 يومًا من طلبك. أما السجلات التي يحتفظ بها مزوّدو خدماتنا (مثل سجلات إرسال البريد الإلكتروني والاستضافة) فتُحذف وفقًا لمدة الاحتفاظ الخاصة بكل مزوّد.
+Privacy.sections.retention.items.oldReplies ||| لا تُضاف الردود على الرسائل القديمة المتعلقة باستفسار مُجهَّل إليه.
+Privacy.sections.retention.items.exports ||| تُسلَّم إليك عمليات تصدير البيانات كملف؛ ولا نحتفظ بأي نسخة على الخادم.
+Privacy.sections.retention.items.cleanup ||| تُجرى عملية تنظيف تلقائية مرة واحدة يوميًا.
+Privacy.sections.cookies.title ||| ملفات تعريف الارتباط والتخزين المحلي والموافقة
+Privacy.sections.cookies.items[0] ||| يُحفظ اختيارك في localStorage بمتصفحك تحت المفتاح pj-consent، وليس في ملف تعريف ارتباط. ويسجّل ما إذا كنت قد سمحت بالتحليلات والدردشة، ومتى.
+Privacy.sections.cookies.items[1] ||| لا تُحمَّل التحليلات (مقاييس أداء مجهولة الهوية) إلا بعد سماحك بها.
+Privacy.sections.cookies.items[2] ||| لا تُحمَّل الدردشة المباشرة (Tawk.to) إلا بعد سماحك بها.
+Privacy.sections.cookies.items[3] ||| تنتهي صلاحية اختيارك بعد 12 شهرًا، ثم نسألك مجددًا.
+Privacy.sections.cookies.items[4] ||| يمكنك تغيير موافقتك أو سحبها في أي وقت عبر «إعدادات ملفات تعريف الارتباط» في تذييل الصفحة. بعد السحب، يتوقف تحميل التحليلات والدردشة؛ كما يؤدي سحب الموافقة على الدردشة إلى مسح بيانات مزوّد الدردشة من متصفحك.
+Privacy.sections.chat.title ||| الدردشة المباشرة (Tawk.to)
+Privacy.sections.chat.items[0] ||| تقدّم Tawk.to خدمة الدردشة المباشرة، ولا تُحمَّل إلا إذا سمحت بالدردشة.
+Privacy.sections.chat.items[1] ||| عند تحميلها، تتلقى Tawk.to رسائلك والبيانات التقنية اللازمة لتشغيل الدردشة، وتضع وحدة التخزين الخاصة بها في متصفحك.
+Privacy.sections.chat.items[2] ||| لا تُحمَّل الدردشة أبدًا في صفحات الإدارة لدينا.
+Privacy.sections.processors.title ||| مزوّدو الخدمات
+Privacy.sections.processors.text[0] ||| نستعين بمزوّدي خدمات من الفئات التالية. وقد يعالج بعضهم البيانات خارج بلدك. نحن لا نبيع بياناتك.
+Privacy.sections.processors.items[0] ||| استضافة الموقع
+Privacy.sections.processors.items[1] ||| التحقق الأمني (الحماية من البرامج الآلية) وتخزين الملفات
+Privacy.sections.processors.items[2] ||| تخزين حدود معدل الطلبات
+Privacy.sections.processors.items[3] ||| إرسال البريد الإلكتروني
+Privacy.sections.processors.items[4] ||| قاعدة البيانات
+Privacy.sections.processors.items[5] ||| الدردشة المباشرة (بموافقتك فقط)
+Privacy.sections.contact.title ||| التواصل وحقوقك
+Privacy.sections.contact.text[0] ||| يمكنك أن تطلب منا الاطلاع على بياناتك أو تصديرها أو تصحيحها أو حذفها.
+Privacy.sections.contact.text[1] ||| البريد الإلكتروني: {{待Ryan确认}}
+Privacy.sections.company.title ||| الجهة المسؤولة
+Privacy.sections.company.text[0] ||| مراقب البيانات: {{待Ryan确认}}
+Privacy.ogImageAlt ||| PackJoyU: سياسة الخصوصية
+DesignExpired.metaTitle ||| انتهت صلاحية التصميم | PackJoyU
+DesignExpired.title ||| انتهت صلاحية هذا التصميم
+DesignExpired.text ||| انتهت صلاحية هذا التصميم، يُرجى التخصيص مرة أخرى.
+DesignExpired.backToCategory ||| خصّص {category} مرة أخرى
+DesignExpired.backToProducts ||| تصفّح المنتجات وخصّص مرة أخرى
+DesignExpired.quote ||| اطلب عرض سعر
+DesignShared.metaTitle ||| تصميم تغليف مخصص | PackJoyU
+NotFound.meta.title ||| الصفحة غير موجودة | PackJoyU
+NotFound.code ||| 404
+NotFound.title ||| الصفحة غير موجودة
+NotFound.lead ||| هذه العلبة فارغة. ربما نُقلت الصفحة — جرّب إحدى فئات منتجاتنا بدلًا من ذلك.
+NotFound.home ||| العودة إلى الرئيسية
+NotFound.quote ||| اطلب عرض سعر
+NotFound.browse ||| تصفّح المنتجات
+Solutions.meta.title ||| حلول التغليف حسب القطاع | PackJoyU
+Solutions.meta.description ||| علب وأكواب وحشوات حسب الطلب لقطاعك، بمواصفات تناسب طريقة شحن منتجك وبيعه. أخبرنا عن منتجك للحصول على عرض سعر.
+Solutions.eyebrow ||| حلول القطاعات
+Solutions.title ||| تغليف مصمم لقطاعك
+Solutions.lead ||| علب وأكواب وحشوات حسب الطلب، بمواصفات تناسب طريقة شحن منتجك وبيعه.
+Solutions.more ||| عرض الحل
+Solutions.premium.eyebrow ||| علب النبيذ والهدايا
+Solutions.premium.title ||| تشطيبات فاخرة تُصنع حسب الطلب
+Solutions.premium.lead ||| علب صلبة للنبيذ والهدايا مصممة حول زجاجتك أو منتجك، بالتشطيب وتجربة الفتح اللذين تختارهما.
+Solutions.premium.imageAlt.wine ||| علبة نبيذ حسب الطلب
+Solutions.premium.imageAlt.gift ||| علبة هدايا حسب الطلب
+Solutions.empty ||| يجري تحديث الحلول. أخبرنا بما تحتاجه.
+Solutions.cta ||| لست متأكدًا من العلبة المناسبة؟ أرسل إلينا منتجك.
+Solutions.detail.crumb ||| حلول القطاعات
+Solutions.detail.lead ||| تغليف حسب الطلب لقطاع {industryGen}، بمواصفات تناسب طريقة شحن منتجك وبيعه.
+Solutions.detail.metaTitle ||| حلول التغليف لقطاع {industry} | PackJoyU
+Solutions.detail.metaDescription ||| تغليف حسب الطلب لقطاع {industryGen}، بمواصفات تناسب طريقة شحن منتجك وبيعه. أخبرنا عن منتجك للحصول على عرض سعر.
+Solutions.detail.cta ||| أخبرنا عن منتجك وسنقترح الحل المناسب.
+Solutions.industries.color-boxes.name ||| منتجات التجزئة
+Solutions.industries.color-boxes.title ||| تغليف منتجات التجزئة
+Solutions.industries.color-boxes.industryGen ||| منتجات التجزئة
+Solutions.industries.corrugated-boxes.name ||| التجارة الإلكترونية والشحن
+Solutions.industries.corrugated-boxes.title ||| تغليف للتجارة الإلكترونية والشحن
+Solutions.industries.corrugated-boxes.industryGen ||| التجارة الإلكترونية والشحن
+Solutions.industries.paper-cups.name ||| المقاهي ومحلات القهوة
+Solutions.industries.paper-cups.title ||| تغليف للمقاهي ومحلات القهوة
+Solutions.industries.paper-cups.industryGen ||| المقاهي ومحلات القهوة
+Solutions.industries.party-supplies.name ||| الحفلات والفعاليات
+Solutions.industries.party-supplies.title ||| تغليف للحفلات والفعاليات
+Solutions.industries.party-supplies.industryGen ||| الحفلات والفعاليات
+Solutions.industries.wine-boxes.name ||| النبيذ والمشروبات الروحية
+Solutions.industries.wine-boxes.title ||| تغليف للنبيذ والمشروبات الروحية
+Solutions.industries.wine-boxes.industryGen ||| النبيذ والمشروبات الروحية
+Solutions.industries.gift-boxes.name ||| الهدايا وهدايا الشركات
+Solutions.industries.gift-boxes.title ||| تغليف للهدايا وهدايا الشركات
+Solutions.industries.gift-boxes.industryGen ||| الهدايا وهدايا الشركات
+Factory.meta.title ||| كيف نعمل: من عرض السعر إلى الشحن | PackJoyU
+Factory.meta.description ||| كيف يسير طلب التغليف المخصص لدى PackJoyU خطوة بخطوة: المتطلبات ومخطط القص، والعيّنة، والطباعة، والقص والتجميع، ومراقبة الجودة، والشحن.
+Factory.eyebrow ||| كيف نعمل
+Factory.title ||| من المتطلبات إلى التغليف النهائي
+Factory.lead ||| تعرّف على مسار طلبك خطوة بخطوة، من أول مخطط قص حتى الشحن.
+Factory.steps.title ||| من عرض السعر إلى الشحن
+Factory.steps.1.title ||| المتطلبات ومخطط القص
+Factory.steps.1.desc ||| تشاركنا منتجك والكميات والتصاميم، ونتفق معك على هيكل العلبة ومخطط القص المناسب لها.
+Factory.steps.2.title ||| العيّنة
+Factory.steps.2.desc ||| تُصنع عيّنة وفق مخطط القص المتفق عليه لتتحقق من المقاس والملاءمة والطباعة قبل الإنتاج.
+Factory.steps.3.title ||| الطباعة
+Factory.steps.3.desc ||| بعد اعتماد العيّنة، يُطبع تصميمك على المادة المختارة.
+Factory.steps.4.title ||| القص والتجميع
+Factory.steps.4.desc ||| تُقص الأوراق المطبوعة وتُطوى وتُجمَّع، مع إضافة الحشوات حيث يتطلب تصميمك ذلك.
+Factory.steps.5.title ||| مراقبة الجودة والشحن
+Factory.steps.5.desc ||| يُفحص التغليف النهائي مقارنةً بالعيّنة المعتمدة، ثم يُعبأ ويُجهَّز للشحن.
+Factory.stepImageAlt.print ||| الطباعة
+Factory.stepImageAlt.dieCut ||| القص بالقوالب
+Factory.stepImageAlt.qc ||| مراقبة الجودة
+Factory.stepImageAlt.warehouse ||| المستودع
+Factory.cta ||| هل لديك مشروع في ذهنك؟ أخبرنا عنه.
+Cases.meta.title ||| دراسات حالة في التغليف | PackJoyU
+Cases.meta.description ||| مشاريع تغليف مخصص من PackJoyU. دراسات الحالة قريبًا. أخبرنا عن منتجك وسنناقش التغليف المناسب.
+Cases.eyebrow ||| معرض المشاريع
+Cases.title ||| علب صنعناها
+Cases.lead ||| دراسات الحالة قريبًا. وفي الأثناء، أخبرنا عن مشروعك.
+Cases.comingSoon ||| دراسات الحالة قريبًا.
+Cases.filtersLabel ||| التصفية حسب القطاع
+Cases.all ||| الكل
+Cases.empty ||| لا توجد حالات في هذه الفئة بعد.
+Cases.showAll ||| عرض الكل
+Cases.cta ||| هل لديك مشروع في ذهنك؟ أخبرنا عنه.

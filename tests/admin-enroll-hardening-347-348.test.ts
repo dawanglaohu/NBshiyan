@@ -258,7 +258,7 @@ test('review-only SQL is exactly the additive migrate diff and passes deploy/pla
   const f = 'prisma/sql/2fa-enroll-hardening.sql';
   const sql = readFileSync(f, 'utf8');
   assert.match(sql, /review-only/);
-  const stmts = sql.split('\n').map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean).join(' ');
+  const stmts = sql.split(/\r?\n/).map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean).join(' ');
   assert.equal(stmts.replace(/\s+/g, ' '), 'ALTER TABLE "User" ADD COLUMN "enrollIssuedAt" TIMESTAMP(3), ADD COLUMN "totpEnrollFails" INTEGER NOT NULL DEFAULT 0, ADD COLUMN "totpPendingUntil" TIMESTAMP(3);');
   const out = execFileSync('bash', ['-c', '. deploy/plan-check.sh; plan_problems "$1"', '_', f], { encoding: 'utf8' });
   assert.equal(out.trim(), '', out);

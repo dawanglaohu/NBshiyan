@@ -1,14 +1,14 @@
 import { isProdEnvFrom } from '../site';
-// IndexNow（Yandex / Bing）推送。Refs #74。
+// IndexNow 推送（Refs #74），使用全局参与端点 api.indexnow.org。
 // 只在生产环境、并且 INDEXNOW_KEY 格式合法时启用；否则所有函数都是空操作。
 // 端点写死；URL 只用 NEXT_PUBLIC_SITE_URL 拼接，绝不使用 webhook 里的主机名。
 // 失败永远不抛出、不重试、不阻塞调用方：只记录错误类型，不记录密钥、URL 或响应内容。
 import { UpstashStore, type RateLimitStore } from '@/lib/server/ratelimit';
 
 export const INDEXNOW_KEY_RE = /^[a-zA-Z0-9-]{8,128}$/;
-export const INDEXNOW_ENDPOINT = 'https://yandex.com/indexnow';
+export const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow';
 export const DEDUPE_MS = 10 * 60_000;
-const TIMEOUT_MS = 3_000;
+export const TIMEOUT_MS = 5_000;
 const MAX_URLS = 10_000;
 const SLUG_RE = /^[a-z0-9-]{1,96}$/;
 const LOCALES = ['en', 'ru'] as const;
@@ -73,6 +73,8 @@ export type IndexNowDeps = {
   fetchImpl?: typeof fetch;
   siteUrl?: string;
   log?: (msg: string) => void;
+  /** Request deadline override; defaults to TIMEOUT_MS. */
+  timeoutMs?: number;
 };
 
 /** 去重（同一 URL 10 分钟内只推一次）后合并成一个 POST。永不抛出。返回实际推送的 URL 数。 */
@@ -95,6 +97,7 @@ export async function submitIndexNow(paths: string[], deps: IndexNowDeps = {}): 
     for (const p of [...new Set(paths)]) {
       if (!/^\/(en|ru)(\/[a-z0-9-]+)*$/.test(p)) continue;
       const url = `${site}${p}`;
+      if (new URL(url).host !== host) continue;
       if (await store.hit(url, 1, DEDUPE_MS)) urls.push(url);
       if (urls.length >= MAX_URLS) break;
     }
@@ -103,7 +106,7 @@ export async function submitIndexNow(paths: string[], deps: IndexNowDeps = {}): 
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ host, key, keyLocation: `${site}/${key}.txt`, urlList: urls }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(deps.timeoutMs ?? TIMEOUT_MS),
       cache: 'no-store',
     });
     if (!res.ok) { log(`[indexnow] errorSummary=http_${res.status}`); return 0; }

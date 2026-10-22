@@ -32,3 +32,16 @@
 3. 已持有的认证（食品接触、FSC、可堆肥等）——没有文件前不写进页面。
 4. 是否提供塑料礼品卡、可变数据印刷、纸杯具体尺寸范围、胶印机幅面。
 5. 贸易条款（FOB/CIF 等）和是否支持俄罗斯清关。
+
+## 文章草稿
+
+以下 4 个选题各有 EN/RU 草稿，均为 `status: draft`、`import: false`。事实占位、俄语校对和发布前链接验收完成前，不导入 Sanity。源文件存在不表示对应网页已上线。
+
+| 选题 | EN | RU |
+| --- | --- | --- |
+| 节日包装排期 | [Holiday packaging timeline](./articles/holiday-packaging-timeline.md) | [Когда заказывать новогоднюю упаковку](./articles/kogda-zakazyvat-novogodnyuyu-upakovku.md) |
+| CMYK / Pantone | [CMYK vs Pantone](./articles/cmyk-vs-pantone-packaging.md) | [CMYK или Pantone](./articles/cmyk-ili-pantone.md) |
+| 折叠纸盒结构 | [Folding carton styles](./articles/folding-carton-styles.md) | [Виды картонных коробок](./articles/vidy-kartonnykh-korobok.md) |
+| 纸杯容量与杯壁 | [Paper cup sizes and wall types](./articles/paper-cup-sizes-wall-types.md) | [Объёмы бумажных стаканов](./articles/obyomy-bumazhnykh-stakanov.md) |
+
+事实收集见 [Ryan 问卷](./ryan-fact-sheet.md)与[占位映射](./placeholder-map.md)。文章发布顺序仍以[内容计划](./content-plan.md)为准。
