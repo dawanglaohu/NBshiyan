@@ -10,7 +10,9 @@
 
 ## 整合前置条件
 
-每套新语言有 383 个标量叶值；当前 main 英文有 391 个，缺少 Home.entryAll、About.crumbLabel、About.eyebrow、About.statsTitle、About.imagesTitle、About.ctaTitle、About.home.eyebrow、About.home.more 共 8 键。不得用本目录 en.json/ru.json 整文件覆盖现行翻译，以免删除当前页面文案。应逐键审核后再补译和集成；未补齐键不算语言可发布。
+每套新语言有 383 个标量叶值；归档时核对的主线基线 `971b5b46` 英文有 391 个，缺少 Home.entryAll、About.crumbLabel、About.eyebrow、About.statsTitle、About.imagesTitle、About.ctaTitle、About.home.eyebrow、About.home.more 共 8 键。不得用本目录 en.json/ru.json 整文件覆盖现行翻译，以免删除当前页面文案。应逐键审核后再补译和集成；未补齐键不算语言可发布。
+
+主线会继续新增键，归档时的数量不是发布前完整缺项清单。2026-10-22 审查主线 `47e97964` 时，英文已有 395 个标量叶值，除上述 8 键外还缺 Home.brandSceneAlt、Home.brandScenePause、Home.brandScenePlay、Home.brandSceneTitle，共 12 键；实际集成时须重新与当时主线逐键比对。
 
 所有文案、邮件、SEO 元数据、Sanity NDJSON 都是待审核草稿。本次不执行导入，也不承诺邮件模板、元数据长度和全文术语已经通过发布验收。PackJoyU 自有工厂身份来自后续用户确认；具体产能、认证、面积、交期、MOQ、客户品牌和环保承诺仍需自身证据，不能从参考目录或旧占位推定。Gift Cards 指印刷贺卡。
 
