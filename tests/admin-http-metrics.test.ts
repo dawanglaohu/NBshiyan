@@ -433,3 +433,58 @@ test('counter stores UTC observed times when the PostgreSQL session uses another
     if (previous) await tx.siteSetting.create({ data: { key: previous.key, value: previous.value as never } });
   });
 });
+
+
+test('default HTTP log sinks report sanitized counter and unknown failures', async () => {
+  const warnings: unknown[][] = [];
+  const errors: unknown[][] = [];
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  console.warn = (...args: unknown[]) => { warnings.push(args); };
+  console.error = (...args: unknown[]) => { errors.push(args); };
+  const body = { ok: true, secret: 'BODY_PRIVATE_PROBE' };
+  try {
+    const counter = createApiCounter({
+      db: {
+        siteSetting: { findUnique: async () => null },
+        $executeRaw: async () => { throw new Error('DATABASE_PRIVATE_PROBE'); },
+      } as unknown as ApiCounterDb,
+    });
+    const result = await counter.recordFinalResponse({ routeId: ROUTE, status: 200, body });
+    assert.equal(result.status, 200);
+    assert.equal(result.body, body);
+    assert.equal(result.recorded, false);
+    const mapped = mapUnknownFailure(new Error('ERROR_PRIVATE_PROBE'), REQUEST_ID);
+    assert.equal(mapped.status, 500);
+    assert.equal(warnings.length, 1);
+    assert.equal(errors.length, 1);
+    const warning = JSON.parse(String(warnings[0][0]));
+    const failure = JSON.parse(String(errors[0][0]));
+    assert.equal(warning.level, 'WARN');
+    assert.equal(warning.outcomeCode, 'counter_write_failed');
+    assert.equal(failure.level, 'ERROR');
+    assert.equal(failure.requestId, mapped.body.requestId);
+    assert.doesNotMatch(JSON.stringify([warnings, errors]), /PRIVATE_PROBE/);
+  } finally {
+    console.warn = originalWarn;
+    console.error = originalError;
+  }
+});
+
+test('unknown failure log and response share the same validated or generated requestId', () => {
+  for (const input of [REQUEST_ID, 'invalid-private-request-id']) {
+    const logs: Record<string, unknown>[] = [];
+    const mapped = mapUnknownFailure(new Error('hidden'), input, (event) => logs.push(event));
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0].requestId, mapped.body.requestId);
+    assert.match(mapped.body.requestId, /^[0-9a-f-]{36}$/);
+    assert.equal(JSON.stringify(logs).includes('invalid-private-request-id'), false);
+  }
+});
+
+test('unknown internal failures use ERROR severity with an injected logger', () => {
+  const logs: Record<string, unknown>[] = [];
+  const mapped = mapUnknownFailure(new Error('hidden'), REQUEST_ID, (event) => logs.push(event));
+  assert.equal(mapped.status, 500);
+  assert.equal(logs[0].level, 'ERROR');
+});

@@ -90,9 +90,10 @@ export function mapAppError(error: AppError, requestId?: string): MappedHttpErro
 
 export type UnknownFailureLog = {
   timestamp: string;
-  level: 'WARN';
+  level: 'ERROR';
   module: 'http';
   operation: 'map_unknown_failure';
+  requestId: string;
   outcomeCode: 'internal_error';
   errorCategory: string;
 };
@@ -104,12 +105,15 @@ function errorCategory(error: unknown): string {
 
 /** 未知异常只变成 internal_error。日志只有类别，没有 message、stack 或连接串。日志回调失败也不改变这个结果。 */
 export function mapUnknownFailure(error: unknown, requestId?: string, log?: (event: UnknownFailureLog) => void): MappedHttpError {
+  const id = requestIdOf(requestId);
+  const logger = log ?? ((event: UnknownFailureLog) => console.error(JSON.stringify(event)));
   try {
-    log?.({
+    logger({
       timestamp: new Date().toISOString(),
-      level: 'WARN',
+      level: 'ERROR',
       module: 'http',
       operation: 'map_unknown_failure',
+      requestId: id,
       outcomeCode: 'internal_error',
       errorCategory: errorCategory(error),
     });
@@ -119,7 +123,7 @@ export function mapUnknownFailure(error: unknown, requestId?: string, log?: (eve
   return {
     status: HTTP_STATUS.internal_error,
     headers: { ...PRIVATE_HEADERS },
-    body: { error: 'internal_error', requestId: requestIdOf(requestId) },
+    body: { error: 'internal_error', requestId: id },
   };
 }
 
