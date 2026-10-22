@@ -6,5 +6,12 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { runStartupEnvCheck } = await import('./lib/server/startup/env-check');
     runStartupEnvCheck();
+    const { freezeServerConfig, serverConfigFailureText } = await import('./lib/server/config');
+    try {
+      freezeServerConfig();
+    } catch (error) {
+      console.error(serverConfigFailureText(error));
+      process.exit(1);
+    }
   }
 }

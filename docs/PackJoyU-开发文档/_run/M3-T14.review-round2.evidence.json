@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T14": {
+      "contractHash": "87a0f66eea006411117676a56dba7ea84dd4dfd3f7ae861dc1b0db3f076510cc",
+      "verdict": "pass",
+      "evidence": [
+        "ROUND 2仅复核上一轮R1/R2及直接回归。19节M3-T14和task-contracts的stage=primitive、M1-T2前置、有效路径及integrationTask=M3-T1均未变化；GET account生产链仍归M3-T1，没有扩大本卡范围。",
+        "R1在54c23bc已修：metrics.ts:112隔离所有诊断分支日志异常；errors.ts:106隔离未知错误日志异常。原失败探针2/2通过，永久三场景回归覆盖存储+日志同时失败、受控500、白名单及坏设置。R2在errors.ts:36直接复用M1-T2的AppErrorDTO，重复响应字段定义已删除。",
+        "同54c23bc专用PostgreSQL17.9与Node22测试admin-config/admin-http-metrics共12通过0失败0跳过；原子计数、隐私列、站点时区/revision及旧信封回归均通过。pnpm lint与pnpm exec tsc --noEmit通过。",
+        "06/08/09/10/13/17/19的相关约定沿用第一轮已接受证据；源契约未变，未重新审无关范围。已合入origin/main的文档产品冲突取主干后重建，保留M1-T8记录与本卡证据，未改生成器。",
+        "本verify登记任务契约复核与R1/R2修复证据；最终落地仍须实际PR MERGED及当前head合并门禁满足，不能以task-contract pass冒充合并完成。",
+        "合并前自动复核发现具体lastObservedAt并发倒退，按两轮后的主审直接修复规则处理，不新增返工轮次。真实PG17分别复现旧请求晚写使已存时间倒退1秒、非UTC会话使raw DateTime写timestamp列偏移7小时；两项修复前2失败/0skip，SQL显式UTC表达式与GREATEST修复后2通过/0skip。完整admin-config/admin-http-metrics 14通过0失败0skip，lint与tsc通过；模型、接口、白名单及原响应失败隔离不变。"
+      ]
+    }
+  }
+}
