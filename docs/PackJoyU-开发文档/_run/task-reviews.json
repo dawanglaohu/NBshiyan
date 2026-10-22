@@ -44,11 +44,15 @@
   },
   "M1-T4": {
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "ccb3ac856b176c38e3aad36a063a18a99c1b210ff8b8f391b385fdf2b1378559",
+    "contractHash": "f234d6bcf4bf2e54fcb4e2faaf12fd8c1eeae5973dff7a75d83526c51e7de8aa",
     "evidence": [
-      "M1-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      "本轮只复核上一轮R1-R3及直接回归；原验收和E21-E25、集成阶段、M1-T6/T7/T8前置能力以及SSR目录来源均保持，未要求后台页面接线。",
+      "补丁只给M1-T4 supportPaths增加tests/hero-video.test.ts、tests/about-350.test.ts：两测试原先锁定原生button与字面href，当前按已定共享Button和PUBLIC_ROUTES更新，均属R2/R3必要直接回归；其余源任务与生产范围不变。",
+      "Jev jev-1.14.0 M1-T4:review-r2-support pick=A high0.98 adopt=take；候选A只列这两路径，B列整个tests目录，按A最小补齐，没有扩大测试目录授权。",
+      "定向hero-video/home-brand-media/about-350/ui-primitives规则测试39通过0失败0跳过；typecheck与lint通过。本记录只证明任务契约定义复核，R1真实隐藏页证据与本轮CI仍由代码验收记录负责，未调用--landed。",
+      "R1原复现转绿；独立Chrome无目标页调试器附着时真实窗口最小化/恢复与标签页切换产生可信hidden/visible，卸下GIF且保留用户暂停；R2三尺寸共享Button与真实Tab焦点通过，R3三集中入口点击与SSR来源通过。完整本轮证据为M1-T4.review-round-2.evidence.json；仅原生证据证明后台页，合成freeze/resume测试明确只覆盖处理器。"
     ],
-    "reviewed": "2026-10-21T09:19:13.757256+00:00",
+    "reviewed": "2026-10-22T08:06:04.916315+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

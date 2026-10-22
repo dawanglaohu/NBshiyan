@@ -52,7 +52,7 @@ test('#350 组件：空数据条 / 空图片整块不渲染；about 不显示时
   assert.match(header, /aboutVisible = false/);
   assert.match(read('../src/components/layout/SiteFooter.tsx'), /\{aboutVisible && <Link href="\/about">/);
   // 顺序：Home、3D Products、About、Contact
-  const order = ['href="/products"', 'href="/about"', 'href="/contact"'].map((h) => header.indexOf(h));
+  const order = ['PUBLIC_ROUTES.products.path', 'href="/about"', 'PUBLIC_ROUTES.contact.path'].map((h) => header.indexOf(h));
   assert.deepEqual([...order].sort((a, b) => a - b), order);
 });
 
