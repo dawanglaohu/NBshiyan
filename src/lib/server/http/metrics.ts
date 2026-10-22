@@ -148,13 +148,13 @@ export function createApiCounter(deps: {
           INSERT INTO "ApiDailyCounter" (
             "localDate", "timezoneRevision", "routeId", "requestCount", "errorCount", "lastObservedAt"
           ) VALUES (
-            ${localDate}, ${timezoneRevision}, ${route.data}, 1, ${errorIncrement}, ${observedAt}
+            ${localDate}, ${timezoneRevision}, ${route.data}, 1, ${errorIncrement}, ${observedAt}::timestamptz AT TIME ZONE 'UTC'
           )
           ON CONFLICT ("localDate", "timezoneRevision", "routeId")
           DO UPDATE SET
             "requestCount" = "ApiDailyCounter"."requestCount" + 1,
             "errorCount" = "ApiDailyCounter"."errorCount" + ${errorIncrement},
-            "lastObservedAt" = ${observedAt}
+            "lastObservedAt" = GREATEST("ApiDailyCounter"."lastObservedAt", ${observedAt}::timestamptz AT TIME ZONE 'UTC')
         `);
         return { status: response.status, body: response.body, recorded: true };
       } catch (error) {

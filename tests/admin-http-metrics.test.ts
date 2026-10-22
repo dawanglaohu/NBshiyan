@@ -349,3 +349,87 @@ test('whitelist rejection and unreadable settings keep the original response whe
   assert.equal(JSON.stringify(unreadable).includes('ada@example.com'), false);
   assert.equal(JSON.stringify(unreadable).includes('log unavailable'), false);
 });
+
+
+test('lastObservedAt never regresses when an older response writes after a newer response', { skip: !db }, async () => {
+  const client = db as PrismaClient;
+  await ensureCounterTable(client);
+  const localDate = '2026-07-03';
+  const olderTime = new Date('2026-07-03T12:00:00.000Z');
+  const newerTime = new Date('2026-07-03T12:00:01.000Z');
+  const previous = await client.siteSetting.findUnique({ where: { key: ANALYTICS_SETTINGS_KEY } });
+  await client.siteSetting.deleteMany({ where: { key: ANALYTICS_SETTINGS_KEY } });
+  await client.apiDailyCounter.deleteMany({ where: { localDate, routeId: ROUTE } });
+  let releaseOlderRead!: () => void;
+  let reportOlderRead!: () => void;
+  const olderReadHeld = new Promise<void>((resolve) => { releaseOlderRead = resolve; });
+  const olderReadStarted = new Promise<void>((resolve) => { reportOlderRead = resolve; });
+  let settingsReads = 0;
+  const orderedDb = {
+    siteSetting: {
+      findUnique: async (args: Parameters<typeof client.siteSetting.findUnique>[0]) => {
+        settingsReads += 1;
+        if (settingsReads === 1) {
+          reportOlderRead();
+          await olderReadHeld;
+        }
+        return client.siteSetting.findUnique(args);
+      },
+    },
+    $executeRaw: client.$executeRaw.bind(client),
+  } as unknown as ApiCounterDb;
+  const olderCounter = createApiCounter({ db: orderedDb, clock: () => olderTime });
+  const newerCounter = createApiCounter({ db: orderedDb, clock: () => newerTime });
+  const olderResponse = olderCounter.recordFinalResponse({ routeId: ROUTE, status: 200, body: { ok: true } });
+  try {
+    // Hold only the earlier settings read; both writes still use the real PostgreSQL adapter.
+    await olderReadStarted;
+    const newerResponse = await newerCounter.recordFinalResponse({ routeId: ROUTE, status: 500, body: { error: 'internal_error' } });
+    assert.equal(newerResponse.recorded, true);
+    const newestRow = await client.apiDailyCounter.findUnique({
+      where: { localDate_timezoneRevision_routeId: { localDate, timezoneRevision: 1, routeId: ROUTE } },
+    });
+    assert.ok(newestRow);
+    releaseOlderRead();
+    assert.equal((await olderResponse).recorded, true);
+    const row = await client.apiDailyCounter.findUnique({
+      where: { localDate_timezoneRevision_routeId: { localDate, timezoneRevision: 1, routeId: ROUTE } },
+    });
+    assert.ok(row);
+    assert.equal(row.requestCount, 2);
+    assert.equal(row.errorCount, 1);
+    assert.equal(row.lastObservedAt.toISOString(), newestRow.lastObservedAt.toISOString());
+    assert.equal(row.lastObservedAt.toISOString(), newerTime.toISOString());
+  } finally {
+    releaseOlderRead();
+    await olderResponse;
+    await client.apiDailyCounter.deleteMany({ where: { localDate, routeId: ROUTE } });
+    await client.siteSetting.deleteMany({ where: { key: ANALYTICS_SETTINGS_KEY } });
+    if (previous) await client.siteSetting.create({ data: { key: previous.key, value: previous.value as never } });
+  }
+});
+
+
+test('counter stores UTC observed times when the PostgreSQL session uses another timezone', { skip: !db }, async () => {
+  const client = db as PrismaClient;
+  await ensureCounterTable(client);
+  const localDate = '2026-07-04';
+  const observedAt = new Date('2026-07-04T12:00:00.000Z');
+  // The transaction pins SET LOCAL and the real insert to one connection.
+  await client.$transaction(async (tx) => {
+    const previous = await tx.siteSetting.findUnique({ where: { key: ANALYTICS_SETTINGS_KEY } });
+    await tx.siteSetting.deleteMany({ where: { key: ANALYTICS_SETTINGS_KEY } });
+    await tx.apiDailyCounter.deleteMany({ where: { localDate, routeId: ROUTE } });
+    await tx.$queryRaw`SELECT set_config('TimeZone', 'America/Los_Angeles', true)`;
+    const counter = createApiCounter({ db: tx as unknown as ApiCounterDb, clock: () => observedAt });
+    const result = await counter.recordFinalResponse({ routeId: ROUTE, status: 200, body: { ok: true } });
+    assert.equal(result.recorded, true);
+    const row = await tx.apiDailyCounter.findUnique({
+      where: { localDate_timezoneRevision_routeId: { localDate, timezoneRevision: 1, routeId: ROUTE } },
+    });
+    assert.ok(row);
+    assert.equal(row.lastObservedAt.toISOString(), observedAt.toISOString());
+    await tx.apiDailyCounter.deleteMany({ where: { localDate, routeId: ROUTE } });
+    if (previous) await tx.siteSetting.create({ data: { key: previous.key, value: previous.value as never } });
+  });
+});
