@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/server/db';
 import { z } from 'zod';
 import { requireAdmin, assertSameOrigin, enforceAdminRateLimit } from '@/lib/server/auth';
 import { jsonErr, noStore } from '@/lib/server/admin/guard';
@@ -50,6 +51,12 @@ export async function PATCH(req: Request, { params }: P) {
       if (b.disabled !== true && b.role === 'EDITOR') await unassignInquiries(tx, id);
       return { before: t, after };
     });
+    const disables = b.disabled === true;
+    const bumps = bumpsSession({ role: b.role, disabled: disables ? undefined : b.disabled, name: b.name, unlock: b.unlock });
+    if (disables || bumps) {
+      const { revokeUserDevices } = await import('@/lib/server/admin/device-repo');
+      await revokeUserDevices(prisma, id, 'session_bumped', after.sessionVersion);
+    }
     await audit({ actorId: ctx.user.id, action: 'user.update', target: id, meta: auditDiff(before, after, b), ip: ctx.ip });
     return NextResponse.json(publicUser(after), { headers: noStore });
   } catch (e) { return guardResponse(e); }

@@ -98,7 +98,7 @@ test('page access: EDITOR + ADMIN only, checked server-side before rendering', (
     assert.ok(src.indexOf('enforceAdminPage(') < src.lastIndexOf('return'), f);
   }
   const guard = readFileSync('src/lib/server/admin/guard.ts', 'utf8');
-  assert.match(guard, /requireAdmin[\s\S]*checkAdminSession\(roles\)/); // 接口和页面同一套规则
+  assert.match(guard, /requireAdmin[\s\S]*checkAdminSession\(roles, req\)/); // 接口和页面同一套规则
   const ed = readFileSync('src/components/admin/specs/SpecEditor.tsx', 'utf8');
   assert.match(ed, /method: 'PUT', credentials: 'same-origin'/);
   assert.ok(!/dangerouslySetInnerHTML/.test(ed));

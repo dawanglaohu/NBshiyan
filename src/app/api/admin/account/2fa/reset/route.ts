@@ -32,7 +32,9 @@ export async function POST(req: Request) {
   if (r !== 'ok') return jsonErr(r, r === 'locked' ? 423 : 401);
   const now = new Date();
   const t = newEnrollToken({ enrollIssuedAt: now }, now.getTime());
-  await prisma.user.update({ where: { id: ctx.user.id }, data: { ...reset2faData(now), ...t.data } }); // 含 sessionVersion+1 = revokeSessions
+  const updated = await prisma.user.update({ where: { id: ctx.user.id }, data: { ...reset2faData(now), ...t.data } }); // 含 sessionVersion+1 = revokeSessions
+  const { revokeUserDevices } = await import('@/lib/server/admin/device-repo');
+  await revokeUserDevices(prisma, ctx.user.id, 'totp_reset', updated.sessionVersion);
   await audit({ actorId: ctx.user.id, action: 'account.2fa_reset', target: ctx.user.id, meta: { via: p.data.totp ? 'totp' : 'recovery_code' }, ip: ctx.ip });
   await auditTokenIssued(ctx.user.id, ctx.user.id, 'self_reset_2fa', ctx.ip, t.expiresTruncated);
   return NextResponse.json({ ok: true, reenrollRequired: true, ...issueResponse(t, base) }, { headers: noStore });

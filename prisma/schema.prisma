@@ -72,6 +72,7 @@ model User {
   totpLastStep   Int? // 上次用过的 TOTP 时间步，防止验证码重放
   recoveryCodes  String[]  @default([]) // 恢复码 argon2id 哈希，用一个删一个
   sessionVersion Int       @default(0) // 加一即让该账号所有会话失效
+  passwordlessEnabled Boolean @default(false) // 未开启前日常登录仍要密码；开启不删 TOTP
   disabled       Boolean   @default(false)
   failedLogins   Int       @default(0)
   lockedUntil    DateTime?
@@ -83,7 +84,26 @@ model User {
   enrollTokenHash      String? // #347 方案 A 一次性绑定令牌的 sha256（hex），不存明文。签发（建号 / 重置 2FA / CLI）时覆盖，旧令牌立即失效；confirm 成功时清空
   enrollTokenExpiresAt DateTime? // #347 令牌截止时间 = min(签发后 24 小时, 72 小时绑定窗口截止)；为空或已过期时 enroll/confirm 一律 401 bad_credentials
   inquiries      Inquiry[] @relation("Assignee")
+  deviceSessions AdminDeviceSession[]
   createdAt      DateTime  @default(now())
+}
+
+// 后台设备会话。sid 只放在加密 JWT 里。普通会话没有绝对期限；记住设备的绝对期限从首次签发起算。
+model AdminDeviceSession {
+  id                 String    @id
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionVersion     Int
+  remembered         Boolean
+  createdAt          DateTime  @default(now())
+  lastActivityAt     DateTime
+  absoluteExpiresAt  DateTime?
+  revokedAt          DateTime?
+  revokedReason      String?
+  deviceLabel        String?
+
+  @@index([userId, revokedAt])
+  @@index([absoluteExpiresAt])
 }
 
 // 客户个人信息单独一张表，便于按地区迁移（如俄罗斯数据本地化）和 GDPR 删除

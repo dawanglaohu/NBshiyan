@@ -73,7 +73,8 @@ export async function mutateUser<T>(actor: User, targetId: string, change: UserC
   });
 }
 
-export const publicUser = (u: User) => ({
+type PublicSource = Omit<User, 'passwordlessEnabled'> & { passwordlessEnabled?: boolean };
+export const publicUser = (u: PublicSource) => ({
   id: u.id, email: u.email, name: u.name, role: u.role as Role, disabled: u.disabled, totpEnabled: u.totpEnabled,
   locked: !!(u.lockedUntil && u.lockedUntil > new Date()), createdAt: u.createdAt, lastLoginAt: u.lastLoginAt ?? null,
 });
