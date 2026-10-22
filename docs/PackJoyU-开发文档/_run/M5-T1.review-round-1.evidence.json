@@ -1,0 +1,67 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M5-T1": {
+      "contractHash": "906d89eff0552a295d6dcfdf2fb0702d6e7ca170e21fcfd7aae70575aa8f808c",
+      "verdict": "pass",
+      "evidence": [
+        "本轮为PR #404第1轮验收；实施代码HEAD c811431c09067e991de5e785c240909011cd2b76。status当前哈希与提示词一致，stale/runtimeDrift均空。本记录只登记任务契约语义复核；代码验收结论为rework，不代表功能通过或已落地。",
+        "核对19节:68与_run/task-contracts.json的M5-T1：stage=primitive，唯一提供job-leases，M1-T2提供contract-types，集成责任明确由M5-T8承接；本层不要求提前注册cron/registry/composition。有效路径为deploy/deploy.sh、schema、lease-repo、types和本卡DB测试，未扩生产范围。",
+        "06/08节要求repo显式Prisma依赖、service或顶层use-case开事务、嵌套复用tx、聚合整组替换与代次核对原子；09节要求90s租约、owner/generation CAS、提交重查当前时区revision、成功才推进lastSucceededAt。实现lease-repo.ts:25,201阻止外层tx复用，需返工；这属于既定架构要求，不修改或降低契约。",
+        "13节未为本卡挂专属边界编号，仍核空输入、失效租约、重复完成、失败、脏summary与安全读取。09/10的固定JobKey/JobCounts/JobResultStatus由共享ops.ts复用；summary严格白名单计数/UTC时间/版本，不接脚本或原始异常。现有8项测试在真实隔离PG12通过0失败0跳过，仅作补充证据；17节要求PG17，当前CI租约suite因无DATABASE_URL跳过，不能冒充PG17通过。",
+        "migrations接线由prisma/schema.prisma:415,423定义及deploy/deploy.sh:67-100现有schema_sync全量消费，94 db push不带accept-data-loss、98零drift；deploy.sh无需为每个模型增加重复注册。没有手写未执行迁移被当已部署。",
+        "本轮已读代码与任务回填；占位、任意脚本、重复共享类型、生产测试钩子扫描无本层阻断。pnpm lint和pnpm exec tsc --noEmit --incremental false通过；只保留现有仓库警告。代码并发缺陷与具体返工项单独留档，任务维持未落地。"
+      ]
+    }
+  },
+  "codeReview": {
+    "verdict": "rework",
+    "round": 1,
+    "implementationHead": "c811431c09067e991de5e785c240909011cd2b76",
+    "postgresVersion": "12.22 (supplemental; required PG17 not verified)",
+    "existingTests": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "probes": {
+      "schema": "review_lease_semantics_43924",
+      "results": [
+        {
+          "case": "complete-after-real-settings-lock-wait-crosses-expiry",
+          "observedLockWait": true,
+          "callAtMs": 89500,
+          "releaseAtMs": 90500,
+          "leaseExpiresAtMs": 90000,
+          "expectedCommitted": false,
+          "actualCommitted": true,
+          "reproduced": true,
+          "storedStatus": "SUCCEEDED",
+          "storedLastSucceededAt": "2026-01-15T00:01:29.500Z"
+        },
+        {
+          "case": "missing-settings-row-concurrent-revision-insert",
+          "actualEmptyLockedRead": true,
+          "submittedRevision": 1,
+          "storedRevisionBeforeCompletion": 2,
+          "expectedCommitted": false,
+          "actualCommitted": true,
+          "reproduced": true
+        },
+        {
+          "case": "outer-use-case-rollback-does-not-roll-back-internal-repo-completion",
+          "outerRolledBack": true,
+          "markerCountAfterRollback": 0,
+          "innerCompletionCommitted": true,
+          "expectedJobStatusAfterRollback": "RUNNING",
+          "actualJobStatusAfterRollback": "SUCCEEDED",
+          "reproduced": true
+        }
+      ]
+    },
+    "lint": "pass with existing warnings",
+    "typecheck": "pass",
+    "ciDatabaseSuite": "skipped: no DATABASE_URL",
+    "requiredPostgres17": "not verified"
+  }
+}
