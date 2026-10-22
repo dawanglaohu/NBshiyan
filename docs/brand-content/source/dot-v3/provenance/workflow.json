@@ -1,0 +1,60 @@
+{
+  "production_method": "Initial layout and conceptual vector shapes were authored programmatically as editable SVG. Final document was opened, layer-inspected, saved and exported through actual Inkscape GUI; not claimed to be entirely hand-drawn in the GUI.",
+  "actual_software": "Inkscape 1.4 (e7c3feb100, 2024-10-09)",
+  "platform": "Assistant cloud Linux desktop; not the user Windows computer.",
+  "gui_session_utc": "2026-10-22 approximately 05:40–05:47 UTC",
+  "original_document_window_id": 35661675,
+  "independently_reopened_window_id": 35727661,
+  "parent_conversation_session_id": "01a1576c-0f7d-72b5-b35f-3cefee4fa0e9",
+  "session_id_note": "Parent conversation only; not an Inkscape invocation identifier.",
+  "performed_steps": [
+    "Opened saved v3 draft and inspected eight editable layers in Layers and Objects.",
+    "Saved As PackJoyU-Company-Introduction-v3-EN.svg using the GUI.",
+    "Exported full Page PNG at 300 DPI, 5000×5800 pixels, using the GUI Export panel.",
+    "Exported full Page PDF using the GUI Export panel.",
+    "Updated document title metadata in GUI from layout draft to final English v3, saved SVG and re-exported PDF. No visual redesign.",
+    "Independently reopened final SVG from disk in a new Inkscape window. Edited live headline text by appending X; captured it and undid it. Restored 16-character original text, clean title bar, and unchanged on-disk SHA256 verified.",
+    "Selected independent orange cup-sleeve path with Node tool; editable nodes and #b45700 fill visible.",
+    "Decoded PNG, rendered final PDF with Poppler, visually reviewed layout, checked labels, logo paths/fills, page count, font embedding, bounds and archive integrity."
+  ],
+  "evidence": [
+    {
+      "file": "01-actual-inkscape-software.png",
+      "description": "actual inkscape software"
+    },
+    {
+      "file": "02-open-editable-layers.png",
+      "description": "open editable layers"
+    },
+    {
+      "file": "03-final-svg-saved.png",
+      "description": "final svg saved"
+    },
+    {
+      "file": "04-png-300dpi-export-settings.png",
+      "description": "png 300dpi export settings"
+    },
+    {
+      "file": "05-pdf-page-export-settings.png",
+      "description": "pdf page export settings"
+    },
+    {
+      "file": "06-reopened-temporary-text-edit.png",
+      "description": "reopened temporary text edit"
+    },
+    {
+      "file": "07-undo-restored-original-text.png",
+      "description": "undo restored original text"
+    },
+    {
+      "file": "08-reopened-product-path-nodes.png",
+      "description": "reopened product path nodes"
+    }
+  ],
+  "not_performed": [
+    "No website or repository integration",
+    "No language or target-country assumptions",
+    "No installation or user computer operation",
+    "No uploads in this production task"
+  ]
+}

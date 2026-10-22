@@ -1,0 +1,93 @@
+{
+  "task": "M1-T4",
+  "round": 1,
+  "verdict": "rework",
+  "reviewDate": "2026-10-21 America/Los_Angeles",
+  "implementationHead": "396bd501a9189c440956714868c9d4a4011f0444",
+  "service": {
+    "checkout": "C:/Users/admin/AppData/Local/Temp/NBshiyan-m1-t4",
+    "origin": "http://127.0.0.1:3214",
+    "command": "node node_modules/next/dist/bin/next start --port 3214",
+    "limits": "Existing implementation .next output; not a successful local standalone build. No test database attached; public catalog fallback. No model round."
+  },
+  "tests": {
+    "e2e": {
+      "command": "node node_modules/@playwright/test/cli.js test --config D:/xiangmu/.codex-plans/NBshiyan-m1-t4/review-playwright.config.cjs",
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "limits": "Original home-media.spec.ts against real next start; focused config omits globalSetup/admin seed and standalone webServer. MP4 abort and synthetic visibility exist only in explicit negative tests."
+    },
+    "lint": { "command": "pnpm lint", "exitCode": 0, "warnings": true },
+    "documentation": {
+      "command": "python -B -m unittest discover -s docs/PackJoyU-开发文档/_run/tests -p test_*.py",
+      "tests": 217,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Project _run does not contain the installed skill SKILL.md."
+    },
+    "typecheck": { "command": "node node_modules/typescript/bin/tsc --noEmit", "exitCode": 0 },
+    "unit": {
+      "command": "pnpm test",
+      "passed": 1284,
+      "failed": 28,
+      "skipped": 16,
+      "limits": "All 16 failing test files match origin/main blobs. 27 failures concern CRLF, Windows paths/permissions or python3 unavailable; one unchanged webhook timestamp-boundary failure is source-diagnosed, not rerun. Suite remains red."
+    },
+    "focused": {
+      "command": "node --import tsx --test tests/hero-video.test.ts tests/home-brand-media.test.ts tests/home-entry-grid-308.test.ts tests/ui-primitives.test.ts tests/brand-surface-tokens.test.ts tests/category-nav-195.test.ts",
+      "passed": 37,
+      "failed": 1,
+      "skipped": 0,
+      "limits": "LF-literal CSS assertion fails on CRLF checkout; in-memory normalization and origin/main both satisfy the same assertion. No source normalization was applied."
+    }
+  },
+  "observations": {
+    "video": { "durationSeconds": 12.266, "width": 1920, "height": 1080, "muted": true, "playsInline": true },
+    "R1": {
+      "file": "src/components/layout/BrandScene.tsx:37",
+      "sceneTop": 1050,
+      "sceneBottom": 1926.265625,
+      "viewportHeight": 900,
+      "dataState": "playing",
+      "gifCount": 1,
+      "userPaused": false,
+      "expected": "A fully offscreen section pauses to the same-size still; load permission and actual visibility are separate."
+    },
+    "R2": {
+      "file": "src/components/layout/HeroVideo.tsx:100",
+      "selector": ".hero-media-btn",
+      "radius": "999px",
+      "border": "0px",
+      "background": "rgba(31, 42, 68, 0.72)",
+      "height": "44px",
+      "expected": "Consume shared Button with token border 2px, radius 0, opaque colors and keyboard focus without shadow."
+    },
+    "R3": {
+      "missingFile": "src/lib/navigation/routes.ts",
+      "requirement": "02-设计/07-前端架构.md:68,72 and repaired 04-执行/19-模块任务拆分.md:14",
+      "actual": "SiteHeader has literal home/products/contact paths and does not consume a central registry."
+    },
+    "tabVisibility": "newPage/bringToFront left original document.visibilityState visible. Real hidden-tab transition remains unverified; existing E2E overrides visibility properties synthetically.",
+    "homeCanvasCount": 0
+  },
+  "gif": {
+    "url": "https://github.com/dawanglaohu/NBshiyan/blob/packjoyu-m1-assets/m1-t4-home-media.gif?raw=true",
+    "blobSha": "e867a8a3fea49a69a745567378dae9cf710e9c89",
+    "frames": 4,
+    "width": 1200,
+    "height": 750,
+    "durationMs": 7500,
+    "inspection": "Decoded and visually inspected video poster/play and city play/pause frames. Existing PR provenance identifies implementation head, real next start, Pillow encoding and no model. It does not demonstrate offscreen pause or a real hidden tab."
+  },
+  "stylekit": "minimalist-flat class evaluator reports missing Tailwind classes. Project native wrappers use CSS tokens; runtime styles substantiate R2.",
+  "judgments": {
+    "model": "jev-1.14.0",
+    "routing": { "line": 976, "pick": "A", "confidence": "medium", "supersededBy": 977 },
+    "supportedConfiguration": { "line": 977, "pick": "A", "confidence": "high", "adopt": "take" },
+    "review": { "line": 978, "fiveForgeryChecks": "no", "threeClaims": "supports" }
+  },
+  "contractPatch": "m1-t4-review-public-routing",
+  "contractReview": "Definition semantic review only; implementation is rework and task remains review.",
+  "antiForgery": "No production test globals, constant-success gates or duplicated prerequisite utilities found. Removed obsolete homepage TODO comment. Existing CSS placeholder selectors and ImagePlaceholder image/fallback components are not production stubs."
+}

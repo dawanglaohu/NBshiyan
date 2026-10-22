@@ -44,11 +44,15 @@
   },
   "M1-T4": {
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "ccb3ac856b176c38e3aad36a063a18a99c1b210ff8b8f391b385fdf2b1378559",
+    "contractHash": "f234d6bcf4bf2e54fcb4e2faaf12fd8c1eeae5973dff7a75d83526c51e7de8aa",
     "evidence": [
-      "M1-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      "本轮只复核上一轮R1-R3及直接回归；原验收和E21-E25、集成阶段、M1-T6/T7/T8前置能力以及SSR目录来源均保持，未要求后台页面接线。",
+      "补丁只给M1-T4 supportPaths增加tests/hero-video.test.ts、tests/about-350.test.ts：两测试原先锁定原生button与字面href，当前按已定共享Button和PUBLIC_ROUTES更新，均属R2/R3必要直接回归；其余源任务与生产范围不变。",
+      "Jev jev-1.14.0 M1-T4:review-r2-support pick=A high0.98 adopt=take；候选A只列这两路径，B列整个tests目录，按A最小补齐，没有扩大测试目录授权。",
+      "定向hero-video/home-brand-media/about-350/ui-primitives规则测试39通过0失败0跳过；typecheck与lint通过。本记录只证明任务契约定义复核，R1真实隐藏页证据与本轮CI仍由代码验收记录负责，未调用--landed。",
+      "R1原复现转绿；独立Chrome无目标页调试器附着时真实窗口最小化/恢复与标签页切换产生可信hidden/visible，卸下GIF且保留用户暂停；R2三尺寸共享Button与真实Tab焦点通过，R3三集中入口点击与SSR来源通过。完整本轮证据为M1-T4.review-round-2.evidence.json；仅原生证据证明后台页，合成freeze/resume测试明确只覆盖处理器。"
     ],
-    "reviewed": "2026-10-21T09:19:13.757256+00:00",
+    "reviewed": "2026-10-22T08:06:04.916315+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -105,9 +109,19 @@
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "90b1c1d7e8436991ce68fea33512a8edca732079f59102420084afc60622cc89",
     "evidence": [
-      "M1-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      "前置 M1-T1/M1-T3 已在 main 落地；有效范围为 company-visuals.json、source/、public/brand/company/，本轮无 src/ 产品代码改动。",
+      "验收1/E-27：company-visuals.json:83 对照参考PDF第2页主题；company-facts-attestation.json:6 记录用户直接确认的五项己方定性事实。已重渲染参考页与交付PDF并目视核对，无 YUHAO 地图、产能、客户数或认证移植。",
+      "验收2/E-111：source/dot-v3/PackJoyU-Company-Introduction-v3-EN.svg 有8图层、65文字、79路径；八张真实GUI截图已逐张查看，包含对象面板、独立图形节点、磁盘重开及临时文字编辑后撤销。Web PNG实际load为5000x5800，source/web原始字节SHA和en/ru alt均与manifest一致。",
+      "验收3/E-28：logoMaster SHA-256为7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099；logo-master-import的8条路径d/fill逐值匹配，使用同一master及统一缩放；未改原logo。",
+      "验收4/E-29：Dot workflow记载父会话01a1576c-0f7d-72b5-b35f-3cefee4fa0e9、云端Linux Inkscape 1.4 (e7c3feb100, 2024-10-09)及打开/导出/重开/编辑撤销；不冒充Inkscape调用号。receipt逐件绑定最终文件及8截图哈希，Dot ZIP内20文件SHA全部匹配。",
+      "完整原件核验：python -B docs/brand-content/source/verify_company_visuals.py --verify-originals 返回PASS artworks=1 desktop-originals=verified；实际读取4个桌面原件及6个受保护发布副本，均与制作前基线相同。",
+      "验收5/E-111：source和工具私有记录仅在docs，.dockerignore排除docs；public只有PNG导出。pageEvidence为null，首页/about消费和浏览器证据归M1-T5，不用伪造网页GIF替代素材证据。",
+      "回归：python -B -m unittest discover -s docs/brand-content/source -p test_company_visuals.py -v，11项通过，含文件篡改、尺寸、ru alt、缺截图/owner、会话、logo几何、SVG原字节及缺原PDF负例。",
+      "静态检查：pnpm10.34.6 lint exit0（仅既有img和disable提示）；pnpm10.34.6 exec tsc --noEmit --incremental false exit0；git diff origin/main --check通过。",
+      "反造假/语义：活动清单、最终SVG和校验器无placeholder、固定放行或生产测试钩子。独立子代理核对文件记录与生命周期边界无阻断。记录/截图一致性不被冒称软件真实性的自动证明。",
+      "本轮裁决：Jev jev-1.14.0，M1-T9:review-originals，adopt=take(A)，保持显式两种核验范围；完整验收命令必须带--verify-originals。state为_run/M1-T9.originals-adjudication.state.json，真实line在_run/judgments.jsonl。"
     ],
-    "reviewed": "2026-10-21T09:19:13.757256+00:00",
+    "reviewed": "2026-10-22T07:51:54.927667+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

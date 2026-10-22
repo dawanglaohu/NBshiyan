@@ -145,10 +145,14 @@
         }
       ],
       "stage": "integration",
-      "wiring": [
-        "frontendRoutes"
+      "wiring": [],
+      "supportPaths": [
+        "src/lib/navigation/routes.ts",
+        "src/i18n/routing.ts",
+        "src/i18n/navigation.ts",
+        "tests/hero-video.test.ts",
+        "tests/about-350.test.ts"
       ],
-      "supportPaths": [],
       "outputPaths": [
         "src/components/layout/",
         "src/app/",

@@ -1,0 +1,74 @@
+{
+  "task": "M1-T4",
+  "round": 2,
+  "verdict": "pass",
+  "date": "2026-10-22 America/Los_Angeles",
+  "scope": "Only round-1 R1/R2/R3 and direct regressions; retain previously accepted evidence.",
+  "implementationHead": "0977d2f16e5e43b85e09b48c6ec18675158072f2",
+  "productionChangesByReviewer": false,
+  "R1": {
+    "owner": "src/components/layout/BrandScene.tsx:45,46,73",
+    "offscreen": {
+      "top": 1050,
+      "viewport": 900,
+      "admitted": "1",
+      "inView": "0",
+      "state": "still",
+      "gif": 0
+    },
+    "nativeEvidence": "M1-T4.native-visibility.evidence.json",
+    "nativeResult": "Fresh Chrome 155, no target debugger during transitions. Real Play, minimize/restore, second tab/return, real Pause and tab/return all pass. Native visibilitychange events are trusted; hidden removes GIF; user pause survives return. No property overrides or synthetic lifecycle events.",
+    "handlerTest": "Explicit synthetic freeze/resume handler regression only. Removed the no-op CDP attempt and misleading fallback; not used as native lifecycle evidence."
+  },
+  "R2": {
+    "owner": "src/components/layout/HeroVideo.tsx:101,105,108",
+    "result": "All play/pause/skip branches consume shared Button context=public. Computed border2px/radius0/shadow none/44px targets and real keyboard focus verified at 1920/1440/390."
+  },
+  "R3": {
+    "owner": "src/lib/navigation/routes.ts:2 and SiteHeader.tsx:44,46,48,57,62,78",
+    "result": "Three public paths and entry IDs are central; existing localized Link is retained. Real home/products/contact clicks and SSR catalog pass; no new catalog fetch."
+  },
+  "checks": {
+    "focusedRules": {
+      "passed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "files": [
+        "hero-video.test.ts",
+        "home-brand-media.test.ts",
+        "about-350.test.ts",
+        "ui-primitives.test.ts"
+      ]
+    },
+    "mediaE2E": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "runs": "9 media/navigation/geometry cases and the changed handler case once separately",
+      "config": "D:/xiangmu/.codex-plans/NBshiyan-m1-t4/review-playwright.config.cjs"
+    },
+    "lint": "pnpm lint: passed with existing warnings",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit: passed",
+    "fullLocalUnit": "Not repeated; retain round-1 Windows baseline failures rather than claim full local pass.",
+    "service": "Real existing production .next via next start at http://127.0.0.1:3214. Production inputs unchanged from implementation head; local runtime is not full standalone/PG evidence. Final GitHub CI owns standalone/PG checks.",
+    "finalFocusRegression": "Real page focus plus :focus-visible and original outline CSS assertions:1passed/0failed/0skipped at1920,1440,390."
+  },
+  "reviewerFixes": {
+    "redEvidence": "CI run39733129495 e2e job119672527975: 68pass/2fail/9skip. Failures are smooth-scroll position race and non-keyboard focusVisible option; freeze test did not fail in that CI.",
+    "greenChanges": "Use instant position scroll with unchanged distance assertions. Activate the page and click body, traverse real Tab until document.hasFocus and :focus-visible are both true, then await unchanged 2px/solid/accent CSS. Three-viewport focused regression passed in17s. Handler coverage stays explicitly separate from native visibility acceptance.",
+    "additionalRedEvidence": "CI39745333462:69pass/1fail/9skip. Focused activeElement alone did not establish a visible focus ring; loaded CSS token/rule were correct. Screenshot had no accent ring."
+  },
+  "judgments": {
+    "model": "jev-1.14.0",
+    "982": "A high0.98: explicit isolated handler regression plus independent real native-browser acceptance, instead of a new cross-platform raw browser launcher in CI. Both parts completed.",
+    "981": "A high0.90: try frozen/active CDP DOM inspection. Attached-browser probe showed no actual freeze event; superseded using those facts in982.",
+    "980": "A high0.98: add exactly two required static-test support paths, not all tests."
+  },
+  "gif": {
+    "path": "packjoyu-m1-assets/m1-t4-home-media-r1.gif",
+    "demonstratedHead": "0977d2f16e5e43b85e09b48c6ec18675158072f2",
+    "verified": "Decoded 4frames,1200x750,7.5s; shared video controls and city play/pause visually inspected. Real next start, reduced-motion flag disclosed, no model round. Reviewer changes only tests/docs; production inputs remain identical."
+  },
+  "followUp": "Existing bot threads about Docker docs-import packaging and Save-Data are outside this bounded R1-R3 re-review. They are not claimed fixed or resolved.",
+  "mergedMain": "M1-T9 source notes/reviews and all judgment records retained; generated projections rebuilt from combined sources."
+}

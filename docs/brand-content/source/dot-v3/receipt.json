@@ -1,0 +1,69 @@
+{
+  "assetId": "company-introduction-v3-en",
+  "receivedAt": "2026-10-22T06:06:39.988059+00:00",
+  "source": {
+    "path": "docs/brand-content/source/dot-v3/PackJoyU-Company-Introduction-v3-EN.svg",
+    "sha256": "d1ae945bcec1e5535838e1438f262252cf7b4d679c84402b57ebd8e54ffa687e"
+  },
+  "web": {
+    "path": "public/brand/company/company-introduction-v3-en.png",
+    "sha256": "5d855fc087eb3fdca500718db6e1a64c00c80c8de2e04dc40e297683bdce611b",
+    "width": 5000,
+    "height": 5800
+  },
+  "dotSessionId": "01a1576c-0f7d-72b5-b35f-3cefee4fa0e9",
+  "sessionIdKind": "parent_conversation",
+  "invocationId": null,
+  "operationRecord": "docs/brand-content/source/dot-v3/provenance/workflow.json",
+  "operationRecordSha256": "69e901ce56ca7f7b1f2c3a58a33bee2fff0089c633fdb84635b9b4d6aa1f7f93",
+  "evidence": [
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/01-actual-inkscape-software.png",
+      "sha256": "461d5ddaa60ba7a3527b5ab89510faa4887e8e9201f13b45d7d827fc6d3b6261"
+    },
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/02-open-editable-layers.png",
+      "sha256": "337e72cb5e9c6640cea622ecfcf5653c14955ef2d3a47eeeecd0c5ce9aab7aa6"
+    },
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/03-final-svg-saved.png",
+      "sha256": "10a794784d08fbdc98d7536fddeaf4357c385616b2728ec5029ffb0a5eba8558"
+    },
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/04-png-300dpi-export-settings.png",
+      "sha256": "3b53d89f4e84f3770644e0689fa1b9bc6e503047d1e31f6cd15f593891686f29"
+    },
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/05-pdf-page-export-settings.png",
+      "sha256": "ed0f7dd2cec9d8d7dc1160e01d3268222ff4804b6883d681c33d21a9bfa73f42"
+    },
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/06-reopened-temporary-text-edit.png",
+      "sha256": "5ed94af997ad487b4ed025cb239f94f3dd1fb18ba8f0ea04597112de543d611a"
+    },
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/07-undo-restored-original-text.png",
+      "sha256": "53ae2f7b39aac97f60542a01276e42748ba33b226535c59aa862196e7257e791"
+    },
+    {
+      "path": "docs/brand-content/source/dot-v3/evidence/08-reopened-product-path-nodes.png",
+      "sha256": "e28016e7107ad8331e518c2f9e4e92241221931ea3912b60183d6d96085b80fa"
+    }
+  ],
+  "reopen": {
+    "temporaryEditUndone": true,
+    "sourceSha256Unchanged": true
+  },
+  "ownerAttestation": "docs/brand-content/source/company-facts-attestation.json",
+  "deliveryChecksums": "docs/brand-content/source/dot-v3/SHA256SUMS.txt",
+  "pathMapping": {
+    "deliveredSource": "PackJoyU-Company-Introduction-v3-EN.svg",
+    "deliveredWeb": "PackJoyU-Company-Introduction-v3-EN.png"
+  },
+  "review": {
+    "checkedAt": "2026-10-22T06:06:39.988059+00:00",
+    "scope": "素材文件、来源及所附软件截图；不等于网站集成或 PR 落地",
+    "visualEvidence": "已逐张查看8张截图，核对图层、临时文字X、撤销后标题、PNG/PDF导出设置及独立路径节点。",
+    "sessionProvenance": "会话标识由 Dot 工作记录提供，明确是父会话标识，不冒充软件调用号；无可读取的原会话工具转录。"
+  }
+}
