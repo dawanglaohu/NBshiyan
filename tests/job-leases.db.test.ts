@@ -212,6 +212,61 @@ describe('JobState 租约', { concurrency: false, skip }, () => {
     assert.notEqual(await storedOwner('chat-notifications'), 'owner-a');
   });
 
+  test('领取等待后只交付仍有效的租约，到期等号与已过期结果均拒绝', async () => {
+    for (const elapsed of [JOB_LEASE_MS - 1, JOB_LEASE_MS, JOB_LEASE_MS + 1]) {
+      await reset();
+      const { repo, now, advance } = harness();
+      const first = await repo.claim({ key: 'analytics-aggregate', owner: 'first' });
+      assert.equal(first.acquired, true);
+      const held = gate();
+      const release = gate();
+      const holder = db!.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = 'analytics-aggregate' FOR UPDATE`;
+        held.resolve();
+        await release.promise;
+      }, { timeout: 15_000 });
+      await held.promise;
+      advance(JOB_LEASE_MS);
+      const waiting = repo.claim({ key: 'analytics-aggregate', owner: 'waiting' });
+      try {
+        const deadline = Date.now() + 8_000;
+        let blocked = false;
+        while (Date.now() < deadline) {
+          const rows = await db!.$queryRaw<{ n: number }[]>`
+            SELECT count(*)::int AS n FROM pg_locks waiting
+            JOIN pg_locks owned ON owned.pid = waiting.pid
+            WHERE NOT waiting.granted AND owned.granted
+              AND owned.relation = to_regclass(${`"${SCHEMA}"."JobState"`})
+          `;
+          if (Number(rows[0]?.n ?? 0) > 0) { blocked = true; break; }
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        assert.equal(blocked, true, 'claim must wait on this schema\'s JobState lock');
+        advance(elapsed);
+      } finally {
+        release.resolve();
+      }
+      const claimed = await waiting;
+      await holder;
+      if (elapsed < JOB_LEASE_MS) {
+        assert.equal(claimed.acquired, true);
+        if (claimed.acquired) {
+          assert.equal(claimed.view.leaseActive, true);
+          assert.equal(Date.parse(claimed.lockedUntil) - now(), 1);
+        }
+        advance(1);
+      } else {
+        assert.deepEqual(claimed, { acquired: false, reason: 'busy' });
+        const expired = await repo.read('analytics-aggregate');
+        assert.equal(expired.ok && expired.view.generation, 2);
+        assert.equal(expired.ok && expired.view.leaseActive, false);
+        assert.equal(await storedOwner('analytics-aggregate'), 'waiting');
+      }
+      const next = await repo.claim({ key: 'analytics-aggregate', owner: 'next' });
+      assert.equal(next.acquired && next.generation, 3);
+    }
+  });
+
   test('成功才推进 lastSucceededAt；失败、部分完成和重复提交保留原成功时间', async () => {
     await reset();
     const { repo, now, advance } = harness();

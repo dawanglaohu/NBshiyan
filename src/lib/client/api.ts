@@ -377,6 +377,9 @@ export async function requestApi<T>(options: RequestApiOptions<T>): Promise<Clie
     }
     attempt.finish();
     sends += 1;
+    if (options.signal?.aborted) {
+      return adaptApiError({ kind: 'cancelled', locale, audience, attempts: sends });
+    }
 
     if (read.kind === 'oversize') {
       return applyPlan(adaptApiError({

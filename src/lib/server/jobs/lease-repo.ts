@@ -142,7 +142,8 @@ function validClock(date: Date): boolean {
 /**
  * 固定作业的领取、续租、完成和安全读取。调用方传入共享 Prisma 客户端和服务端时钟，默认时钟是 `new Date()`。
  * 续租和完成必须传入 service/顶层 use-case 开启的事务，与业务结果共同提交或回滚。
- * 租约判断用拿到 JobState 与设置锁之后的时钟。`lockedUntil` 等于该时钟时，旧工人不能续租或完成。
+ * 续租和完成用拿到 JobState 与设置锁之后的时钟；领取返回前按当前时钟确认租约仍有效。
+ * `lockedUntil` 等于该时钟时，不能交付、续租或完成租约。
  * 只有 `SUCCEEDED` 推进 `lastSucceededAt`。失败、部分完成，以及代次、租约或时区 revision 不匹配的提交，都不改原成功时间。
  * 拒绝续租或完成时抛出 JobLeaseAbort，调用方须让异常退出上层事务，使业务写入一起回滚。读取不返回 `leaseOwner`。
  */
@@ -176,8 +177,10 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
       WHERE "JobState"."lockedUntil" IS NULL OR "JobState"."lockedUntil" <= ${utc(now)}
       RETURNING ${returningView}
     `;
-    const view = rows.length === 1 ? viewFrom(key.data, rows[0], now) : null;
-    if (!view) return { acquired: false, reason: 'busy' };
+    const returnedAt = clock();
+    if (!validClock(returnedAt)) return { acquired: false, reason: 'invalid' };
+    const view = rows.length === 1 ? viewFrom(key.data, rows[0], returnedAt) : null;
+    if (!view?.leaseActive) return { acquired: false, reason: 'busy' };
     return {
       acquired: true,
       generation: view.generation,
