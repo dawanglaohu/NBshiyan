@@ -39,15 +39,16 @@
 3. Yandex 一般在两周内处理。可以手动触发重新处理，每个站点最多 10 次。
 4. 品类页开关（#198 的 `CATEGORY_PAGES_LIVE`）打开后，在这里再触发一次。
 
-## 6. IndexNow（建议做，还没实现）
-Yandex 支持 IndexNow：新增、修改或删除页面时主动通知搜索引擎，不用等爬虫来。Bing 也支持同一协议。
-- **密钥**：8 到 128 个字符，只能用 `a-z A-Z 0-9 -`。放在网站根目录的 `/{key}.txt`，文件名就是密钥，文件内容也只有密钥本身，UTF-8 纯文本，不能有 HTML。如果放在子目录，只能提交那个目录下的地址，所以要放根目录。
-- **推送接口**：单个地址用 `GET https://yandex.com/indexnow?url=…&key=…`；多个地址用 `POST https://yandex.com/indexnow`，JSON 里放 `host`、`key`、`urlList`，一次最多 10,000 个。
-- **实现方案**（之后单独提 PR，需要的话由我来做）：
-  1. 环境变量 `INDEXNOW_KEY`（🔑 由 Ryan 或运维放进服务器环境文件）。
-  2. `/[key].txt` 和 `[locale]` 路由会冲突。在 middleware 里匹配 `/${INDEXNOW_KEY}.txt`，返回 `text/plain` 的密钥内容；或者构建时生成 `public/<key>.txt`。
-  3. 在 Sanity 的 revalidate webhook（`/api/sanity/revalidate`）里，文档发布或下线后，把这个文档的英俄两个地址 POST 到 `https://yandex.com/indexnow`（Bing 用 `api.indexnow.org`）。只在生产环境推送，失败只记日志，不重试。
-  4. 品类页开关打开时，手动推送一次这 24 个地址。
+## 6. IndexNow（按当前实现核对）
+
+当前 [indexnow.ts](../src/lib/seo/indexnow.ts)已接入 `https://yandex.com/indexnow`，使用 3 秒超时；只有正式环境、合法 `INDEXNOW_KEY` 和 Upstash 去重配置同时满足时才提交，并按已发布类型过滤地址。是否在实际环境启用须由授权运维确认，本文不修改开关或配置。
+
+- 密钥为 8–128 个 `a-z A-Z 0-9 -` 字符；站点需提供同主机的 UTF-8 key 文件以供验证。不要把实际值写入文档。
+- [IndexNow 官方 FAQ](https://www.indexnow.org/faq)列出的 Yandex 与 `api.indexnow.org` 都是参与端点；向其中一个提交会共享给其他参与引擎，无需为 Bing 重复提交。
+- 批量 POST 上限是 10,000 个 URL。只提交实际新增、修改或删除的地址，不因保存草稿或填写监控表而推送未发布页面。200 表示接收，202 表示 key 验证待完成，不保证收录。
+- 品类落地页仍受当前发布开关控制；上线前先确认 HTTP、noindex 与 sitemap，不写死旧的 24 地址清单。
+
+更多设置与记录见 [Google/Bing 设置稿](./gsc-bing-setup.md)和[首周监控稿](./seo-first-week-monitoring.md)。
 
 ## 7. 不需要做的
 - **Turbo 页面**：不做。我们的页面本身已经有速度目标，而且 Turbo 会和我们自己的页面以及 canonical 管理冲突。
