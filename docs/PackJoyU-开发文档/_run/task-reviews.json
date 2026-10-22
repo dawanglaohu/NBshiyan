@@ -881,21 +881,17 @@
     "verdict": "pass"
   },
   "M5-T1": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "906d89eff0552a295d6dcfdf2fb0702d6e7ca170e21fcfd7aae70575aa8f808c",
     "evidence": [
-      "沿用与本补丁before哈希匹配的历史契约语义证据：04-执行/19-模块任务拆分.md:68 — M5-T1「建立JobState租约与代次仓储原语」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/task-contracts.json:2311 — job-leases的唯一提供方；M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/dispatch.json tasks.M5-T1 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=c64f6372ecd98f88，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T1 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 fbf9c935ffa38101ef922101c603334180f4bb958ed7cc5530da9c07ed77dc72 变为 f23e3213de1653236e13ce246f4603f63c9a49512aa73f6e98efa8271c15530c。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。",
-      "本轮逐字段复核补丁 m1-t1-retain-local-main 的 M5-T1 before/after，精确变化路径为 $.context.handoff.conventions, $.hash；契约hash从 f23e3213de1653236e13ce246f4603f63c9a49512aa73f6e98efa8271c15530c 变为 906d89eff0552a295d6dcfdf2fb0702d6e7ca170e21fcfd7aae70575aa8f808c，已按 handoff_contract.py 的完整context与真实祖先provider公式重算并逐字匹配。",
-      "共享handoff.conventions确有语义变化：M1-T1的规格来源由本机临时task/docs-s2-s6分支改为已合并的本地main；从origin/main建树后仅在该远端基线缺规格时导入，远端已含时沿用，不重复覆盖；后继仍等首PR落地后从origin/main创建。已核该来源说明之外的conventions前缀、后缀逐字相同，包括真实登录cookie、禁认证存储注入、UI/GIF/密度与原语/集成分工。不能将本次变化描述为纯hash传播。",
-      "排除上述共享来源说明后，M5-T1完整context逐字相等：自身任务input/accept/output、边界、前置deps/requires、有效路径/supportPaths/outputPaths、提供能力、阶段、架构、视觉、共享章节及接线全部未变；后继业务验收没有降低。hash变化同时包含本任务共享conventions变更及真实祖先base哈希变化，非仅上游hash。",
-      "本次pass仅登记任务契约来源澄清的语义复核，复用补丁前已通过证据并审计精确变化；不宣称本任务产品已全部实现、运行通过、已落地或已合并。本审计未执行Git操作，已合并本地main的历史事实由主审提供并负责最终提交前核实。"
+      "本轮为PR #404第1轮验收；实施代码HEAD c811431c09067e991de5e785c240909011cd2b76。status当前哈希与提示词一致，stale/runtimeDrift均空。本记录只登记任务契约语义复核；代码验收结论为rework，不代表功能通过或已落地。",
+      "核对19节:68与_run/task-contracts.json的M5-T1：stage=primitive，唯一提供job-leases，M1-T2提供contract-types，集成责任明确由M5-T8承接；本层不要求提前注册cron/registry/composition。有效路径为deploy/deploy.sh、schema、lease-repo、types和本卡DB测试，未扩生产范围。",
+      "06/08节要求repo显式Prisma依赖、service或顶层use-case开事务、嵌套复用tx、聚合整组替换与代次核对原子；09节要求90s租约、owner/generation CAS、提交重查当前时区revision、成功才推进lastSucceededAt。实现lease-repo.ts:25,201阻止外层tx复用，需返工；这属于既定架构要求，不修改或降低契约。",
+      "13节未为本卡挂专属边界编号，仍核空输入、失效租约、重复完成、失败、脏summary与安全读取。09/10的固定JobKey/JobCounts/JobResultStatus由共享ops.ts复用；summary严格白名单计数/UTC时间/版本，不接脚本或原始异常。现有8项测试在真实隔离PG12通过0失败0跳过，仅作补充证据；17节要求PG17，当前CI租约suite因无DATABASE_URL跳过，不能冒充PG17通过。",
+      "migrations接线由prisma/schema.prisma:415,423定义及deploy/deploy.sh:67-100现有schema_sync全量消费，94 db push不带accept-data-loss、98零drift；deploy.sh无需为每个模型增加重复注册。没有手写未执行迁移被当已部署。",
+      "本轮已读代码与任务回填；占位、任意脚本、重复共享类型、生产测试钩子扫描无本层阻断。pnpm lint和pnpm exec tsc --noEmit --incremental false通过；只保留现有仓库警告。代码并发缺陷与具体返工项单独留档，任务维持未落地。"
     ],
-    "reviewed": "2026-10-20T15:08:10.422783+00:00",
+    "reviewed": "2026-10-22T01:51:53.536902+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
