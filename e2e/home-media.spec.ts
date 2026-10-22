@@ -270,10 +270,17 @@ test('reduced motion does not start the city GIF until the visitor presses play 
 async function tokenButton(page: Page, name: string) {
   const button = page.getByTestId('home-video').getByRole('button', { name, exact: true });
   await expect(button).toBeVisible();
-  await button.focus();
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Tab');
+  await page.bringToFront();
+  await page.locator('body').click({ position: { x: 2, y: 2 } });
+  for (let i = 0; i < 120; i++) {
+    await page.keyboard.press('Tab');
+    if (await button.evaluate((el) => document.hasFocus() && document.activeElement === el && el.matches(':focus-visible'))) break;
+  }
   await expect(button).toBeFocused();
+  await expect.poll(() => button.evaluate((el) => document.hasFocus() && el.matches(':focus-visible'))).toBe(true);
+  await expect(button).toHaveCSS('outline-width', '2px');
+  await expect(button).toHaveCSS('outline-style', 'solid');
+  await expect(button).toHaveCSS('outline-color', 'rgb(180, 87, 0)');
   const chrome = await button.evaluate((el) => {
     const style = getComputedStyle(el);
     const rect = el.getBoundingClientRect();
@@ -315,6 +322,7 @@ async function tokenButton(page: Page, name: string) {
 }
 
 test('video play, pause and skip keep the shared button chrome at 1920, 1440 and 390', async ({ page }) => {
+  test.setTimeout(60_000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const viewport of [
     { width: 1920, height: 1080 },

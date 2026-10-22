@@ -50,11 +50,13 @@
     "lint": "pnpm lint: passed with existing warnings",
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit: passed",
     "fullLocalUnit": "Not repeated; retain round-1 Windows baseline failures rather than claim full local pass.",
-    "service": "Real existing production .next via next start at http://127.0.0.1:3214. Production inputs unchanged from implementation head; local runtime is not full standalone/PG evidence. Final GitHub CI owns standalone/PG checks."
+    "service": "Real existing production .next via next start at http://127.0.0.1:3214. Production inputs unchanged from implementation head; local runtime is not full standalone/PG evidence. Final GitHub CI owns standalone/PG checks.",
+    "finalFocusRegression": "Real page focus plus :focus-visible and original outline CSS assertions:1passed/0failed/0skipped at1920,1440,390."
   },
   "reviewerFixes": {
     "redEvidence": "CI run39733129495 e2e job119672527975: 68pass/2fail/9skip. Failures are smooth-scroll position race and non-keyboard focusVisible option; freeze test did not fail in that CI.",
-    "greenChanges": "Use instant positional scroll while retaining exact distance assertion. Use Shift+Tab/Tab to establish real keyboard focus. Label auxiliary lifecycle handler coverage honestly."
+    "greenChanges": "Use instant position scroll with unchanged distance assertions. Activate the page and click body, traverse real Tab until document.hasFocus and :focus-visible are both true, then await unchanged 2px/solid/accent CSS. Three-viewport focused regression passed in17s. Handler coverage stays explicitly separate from native visibility acceptance.",
+    "additionalRedEvidence": "CI39745333462:69pass/1fail/9skip. Focused activeElement alone did not establish a visible focus ring; loaded CSS token/rule were correct. Screenshot had no accent ring."
   },
   "judgments": {
     "model": "jev-1.14.0",
