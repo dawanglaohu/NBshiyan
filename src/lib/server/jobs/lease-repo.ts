@@ -22,7 +22,8 @@ import {
 import { AppErrorCodeSchema } from '../../contracts/errors';
 import { PositiveIntSchema } from '../../contracts/common';
 
-export type JobLeaseDb = Pick<PrismaClient, '$queryRaw' | '$transaction'>;
+export type JobLeaseDb = Pick<PrismaClient, '$queryRaw' | '$executeRaw' | '$transaction'>;
+export type JobLeaseTx = Prisma.TransactionClient;
 
 type RevisionRead = { ok: true; revision: number } | { ok: false; reason: 'revision_unreadable' };
 
@@ -93,18 +94,31 @@ function viewFrom(key: string, row: StoredRow, now: Date): JobLeaseView | null {
   };
 }
 
-async function currentTimezoneRevision(db: { $queryRaw: JobLeaseDb['$queryRaw'] }, lock: boolean): Promise<RevisionRead> {
-  const rows = lock
-    ? await db.$queryRaw<{ value: unknown }[]>`
-        SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY} FOR UPDATE
-      `
-    : await db.$queryRaw<{ value: unknown }[]>`
-        SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY}
-      `;
-  if (rows.length === 0) return { ok: true, revision: INITIAL_TIMEZONE_REVISION };
-  const parsed = StoredTimezoneRevisionSchema.safeParse(rows[0]?.value);
+async function currentTimezoneRevision(db: { $queryRaw: JobLeaseDb['$queryRaw'] }): Promise<RevisionRead> {
+  const rows = await db.$queryRaw<{ value: unknown }[]>`
+    SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY}
+  `;
+  return revisionFrom(rows[0]?.value, rows.length === 0);
+}
+
+async function lockedTimezoneRevision(query: JobLeaseTx): Promise<RevisionRead> {
+  // 缺行时行锁锁不住任何元组。表级锁与插入冲突，核对和提交才能串行。
+  await query.$executeRaw`LOCK TABLE "SiteSetting" IN SHARE ROW EXCLUSIVE MODE`;
+  const rows = await query.$queryRaw<{ value: unknown }[]>`
+    SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY} FOR UPDATE
+  `;
+  return revisionFrom(rows[0]?.value, rows.length === 0);
+}
+
+function revisionFrom(value: unknown, missing: boolean): RevisionRead {
+  if (missing) return { ok: true, revision: INITIAL_TIMEZONE_REVISION };
+  const parsed = StoredTimezoneRevisionSchema.safeParse(value);
   if (!parsed.success) return { ok: false, reason: 'revision_unreadable' };
   return { ok: true, revision: parsed.data.timezoneRevision };
+}
+
+function leaseAbort(reason: string): Error {
+  return Object.assign(new Error(reason), { name: 'JobLeaseAbort' });
 }
 
 function validClock(date: Date): boolean {
@@ -113,9 +127,10 @@ function validClock(date: Date): boolean {
 
 /**
  * 固定作业的领取、续租、完成和安全读取。调用方传入共享 Prisma 客户端和服务端时钟，默认时钟是 `new Date()`。
- * 三次写都在同一条条件语句里比较租约：`lockedUntil` 等于时钟时，旧工人不能续租或完成。
+ * 续租和完成接受上层事务；传入时复用该事务，不另开一层。未传入时由本次调用自己开一个事务。
+ * 租约判断用拿到 JobState 与设置锁之后的时钟。`lockedUntil` 等于该时钟时，旧工人不能续租或完成。
  * 只有 `SUCCEEDED` 推进 `lastSucceededAt`。失败、部分完成，以及代次、租约或时区 revision 不匹配的提交，都不改原成功时间。
- * 完成时锁住 `analytics.settings` 行，并核调用方带回的 revision。读取不返回 `leaseOwner`；不合白名单的 summary 和错误码按空值返回。
+ * 上层事务里未提交时抛出 JobLeaseAbort，让同一事务中的业务写入一起回滚。读取不返回 `leaseOwner`。
  */
 export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date }) {
   const clock = deps.clock ?? (() => new Date());
@@ -125,7 +140,7 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     const owner = JobLeaseOwnerSchema.safeParse(input.owner);
     const now = clock();
     if (!key.success || !owner.success || !validClock(now)) return { acquired: false, reason: 'invalid' };
-    const revision = await currentTimezoneRevision(deps.db, false);
+    const revision = await currentTimezoneRevision(deps.db);
     if (!revision.ok) return { acquired: false, reason: 'revision_unreadable' };
     const lockedUntil = new Date(now.getTime() + JOB_LEASE_MS);
     const rows = await deps.db.$queryRaw<StoredRow[]>`
@@ -158,75 +173,100 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     };
   }
 
-  async function renew(input: RenewInput): Promise<RenewResult> {
+  async function renew(input: RenewInput, tx?: JobLeaseTx): Promise<RenewResult> {
     const key = JobKeySchema.safeParse(input.key);
     const owner = JobLeaseOwnerSchema.safeParse(input.owner);
     const generation = PositiveIntSchema.safeParse(input.generation);
+    if (!key.success || !owner.success || !generation.success) {
+      if (tx) throw leaseAbort('invalid');
+      return { renewed: false, reason: 'invalid' };
+    }
+    const run = (query: JobLeaseTx) => finishRenew(query, key.data, owner.data, generation.data);
+    const outcome = tx ? await run(tx) : await deps.db.$transaction(run, { timeout: 15_000 });
+    if (tx && !outcome.renewed) throw leaseAbort(outcome.reason);
+    return outcome;
+  }
+
+  async function finishRenew(query: JobLeaseTx, key: string, owner: string, generation: number): Promise<RenewResult> {
+    await query.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = ${key} FOR UPDATE`;
     const now = clock();
-    if (!key.success || !owner.success || !generation.success || !validClock(now)) return { renewed: false, reason: 'invalid' };
+    if (!validClock(now)) return { renewed: false, reason: 'invalid' };
     const lockedUntil = new Date(now.getTime() + JOB_LEASE_MS);
-    const rows = await deps.db.$queryRaw<StoredRow[]>`
+    const rows = await query.$queryRaw<StoredRow[]>`
       UPDATE "JobState"
       SET "lockedUntil" = ${utc(lockedUntil)}, "updatedAt" = ${utc(now)}
-      WHERE "key" = ${key.data}
-        AND "leaseOwner" = ${owner.data}
-        AND "generation" = ${generation.data}
+      WHERE "key" = ${key}
+        AND "leaseOwner" = ${owner}
+        AND "generation" = ${generation}
         AND "lockedUntil" > ${utc(now)}
       RETURNING ${returningView}
     `;
-    const view = rows.length === 1 ? viewFrom(key.data, rows[0], now) : null;
+    const view = rows.length === 1 ? viewFrom(key, rows[0], now) : null;
     if (view?.lockedUntil) return { renewed: true, generation: view.generation, lockedUntil: view.lockedUntil, view };
-    return { renewed: false, reason: await missReason(key.data, owner.data, generation.data, now) };
+    return { renewed: false, reason: await missReason(key, owner, generation, now, query) };
   }
 
-  async function complete(input: CompleteInput): Promise<CompleteResult> {
+  async function complete(input: CompleteInput, tx?: JobLeaseTx): Promise<CompleteResult> {
     const key = JobKeySchema.safeParse(input.key);
     const owner = JobLeaseOwnerSchema.safeParse(input.owner);
     const generation = PositiveIntSchema.safeParse(input.generation);
     const status = JobResultStatusSchema.safeParse(input.status);
     const timezoneRevision = PositiveIntSchema.safeParse(input.timezoneRevision);
     const summary = input.summary === null ? { success: true as const, data: null } : JobSummarySchema.safeParse(input.summary);
-    const now = clock();
-    if (!key.success || !owner.success || !generation.success || !status.success || !timezoneRevision.success || !summary.success || !validClock(now)) {
+    if (!key.success || !owner.success || !generation.success || !status.success || !timezoneRevision.success || !summary.success) {
+      if (tx) throw leaseAbort('invalid');
       return { committed: false, reason: 'invalid' };
     }
     const errorCode = input.errorCode ?? null;
-    if (status.data === 'SUCCEEDED') {
-      if (errorCode !== null) return { committed: false, reason: 'invalid' };
-    } else if (!AppErrorCodeSchema.safeParse(errorCode).success) {
+    if (status.data === 'SUCCEEDED' ? errorCode !== null : !AppErrorCodeSchema.safeParse(errorCode).success) {
+      if (tx) throw leaseAbort('invalid');
       return { committed: false, reason: 'invalid' };
     }
     const summarySql = summary.data === null ? Prisma.sql`NULL` : Prisma.sql`${JSON.stringify(summary.data)}::jsonb`;
     const errorSql = status.data === 'SUCCEEDED' ? Prisma.sql`NULL` : Prisma.sql`${errorCode}`;
-    return deps.db.$transaction(async (tx) => {
-      const revision = await currentTimezoneRevision(tx, true);
-      if (!revision.ok) return { committed: false, reason: 'revision_unreadable' };
-      if (revision.revision !== timezoneRevision.data) return { committed: false, reason: 'revision_conflict' };
-      const rows = await tx.$queryRaw<StoredRow[]>`
-        UPDATE "JobState"
-        SET
-          "lastStatus" = ${status.data}::"JobRunStatus",
-          "lastFinishedAt" = ${utc(now)},
-          "lastSucceededAt" = CASE
-            WHEN ${status.data}::"JobRunStatus" = 'SUCCEEDED'::"JobRunStatus" THEN ${utc(now)}
-            ELSE "lastSucceededAt"
-          END,
-          "lastErrorCode" = ${errorSql},
-          "summary" = ${summarySql},
-          "leaseOwner" = NULL,
-          "lockedUntil" = NULL,
-          "updatedAt" = ${utc(now)}
-        WHERE "key" = ${key.data}
-          AND "leaseOwner" = ${owner.data}
-          AND "generation" = ${generation.data}
-          AND "lockedUntil" > ${utc(now)}
-          AND ${timezoneRevision.data} = ${revision.revision}
-        RETURNING ${returningView}
-      `;
-      const view = rows.length === 1 ? viewFrom(key.data, rows[0], now) : null;
-      if (!view) return { committed: false, reason: await missReason(key.data, owner.data, generation.data, now, tx) };
-      return { committed: true, view };
+    const run = (query: JobLeaseTx) => finishComplete(query, {
+      key: key.data, owner: owner.data, generation: generation.data, status: status.data,
+      timezoneRevision: timezoneRevision.data, summarySql, errorSql,
     });
+    const outcome = tx ? await run(tx) : await deps.db.$transaction(run, { timeout: 15_000 });
+    if (tx && !outcome.committed) throw leaseAbort(outcome.reason);
+    return outcome;
+  }
+
+  async function finishComplete(query: JobLeaseTx, parsed: {
+    key: string; owner: string; generation: number; status: 'SUCCEEDED' | 'FAILED' | 'PARTIAL';
+    timezoneRevision: number; summarySql: Prisma.Sql; errorSql: Prisma.Sql;
+  }): Promise<CompleteResult> {
+    await query.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = ${parsed.key} FOR UPDATE`;
+    const revision = await lockedTimezoneRevision(query);
+    const now = clock();
+    if (!validClock(now)) return { committed: false, reason: 'invalid' };
+    if (!revision.ok) return { committed: false, reason: 'revision_unreadable' };
+    if (revision.revision !== parsed.timezoneRevision) return { committed: false, reason: 'revision_conflict' };
+    const rows = await query.$queryRaw<StoredRow[]>`
+      UPDATE "JobState"
+      SET
+        "lastStatus" = ${parsed.status}::"JobRunStatus",
+        "lastFinishedAt" = ${utc(now)},
+        "lastSucceededAt" = CASE
+          WHEN ${parsed.status}::"JobRunStatus" = 'SUCCEEDED'::"JobRunStatus" THEN ${utc(now)}
+          ELSE "lastSucceededAt"
+        END,
+        "lastErrorCode" = ${parsed.errorSql},
+        "summary" = ${parsed.summarySql},
+        "leaseOwner" = NULL,
+        "lockedUntil" = NULL,
+        "updatedAt" = ${utc(now)}
+      WHERE "key" = ${parsed.key}
+        AND "leaseOwner" = ${parsed.owner}
+        AND "generation" = ${parsed.generation}
+        AND "lockedUntil" > ${utc(now)}
+        AND ${parsed.timezoneRevision} = ${revision.revision}
+      RETURNING ${returningView}
+    `;
+    const view = rows.length === 1 ? viewFrom(parsed.key, rows[0], now) : null;
+    if (!view) return { committed: false, reason: await missReason(parsed.key, parsed.owner, parsed.generation, now, query) };
+    return { committed: true, view };
   }
 
   async function read(key: string): Promise<ReadResult> {

@@ -42,6 +42,7 @@ async function reset() {
   await db.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${SCHEMA}"`);
   await db.$executeRawUnsafe(`DROP TABLE IF EXISTS "${SCHEMA}"."JobState"`);
   await db.$executeRawUnsafe(`DROP TABLE IF EXISTS "${SCHEMA}"."SiteSetting"`);
+  await db.$executeRawUnsafe(`DROP TABLE IF EXISTS "${SCHEMA}"."LeaseProbe"`);
   await db.$executeRawUnsafe(`DROP TYPE IF EXISTS "${SCHEMA}"."JobRunStatus"`);
   await db.$executeRawUnsafe(`CREATE TYPE "${SCHEMA}"."JobRunStatus" AS ENUM ('NEVER', 'RUNNING', 'SUCCEEDED', 'FAILED', 'PARTIAL')`);
   await db.$executeRawUnsafe(`
@@ -358,7 +359,195 @@ describe('JobState 租约', { concurrency: false, skip }, () => {
     }
   });
 
-  test('不可读设置不能领取出租约', async () => {
+  function gate(): { promise: Promise<void>; resolve: () => void } {
+  let resolve: () => void = () => {};
+  const promise = new Promise<void>((done) => { resolve = done; });
+  return { promise, resolve };
+}
+
+async function waitForUngrantedLock() {
+  assert.ok(db);
+  const deadline = Date.now() + 8_000;
+  while (Date.now() < deadline) {
+    const rows = await db.$queryRaw<{ n: number }[]>`SELECT count(*)::int AS n FROM pg_locks WHERE NOT granted`;
+    if (Number(rows[0]?.n ?? 0) > 0) return;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  throw new Error('lock wait not observed');
+}
+
+async function markerCount(id: string): Promise<number> {
+  assert.ok(db);
+  const rows = await db.$queryRaw<{ n: number }[]>`SELECT count(*)::int AS n FROM "LeaseProbe" WHERE "id" = ${id}`;
+  return Number(rows[0]?.n ?? 0);
+}
+
+test('外层事务回滚同时撤回 JobState 完成', async () => {
+  await reset();
+  assert.ok(db);
+  await db.$executeRawUnsafe(`CREATE TABLE "${SCHEMA}"."LeaseProbe" ("id" TEXT PRIMARY KEY)`);
+  const { repo } = harness();
+  const claimed = await repo.claim({ key: 'analytics-aggregate', owner: 'worker-a' });
+  assert.equal(claimed.acquired, true);
+  if (!claimed.acquired) return;
+  await assert.rejects(db.$transaction(async (tx) => {
+    await tx.$executeRaw`INSERT INTO "LeaseProbe" ("id") VALUES ('joint')`;
+    const result = await repo.complete({
+      key: 'analytics-aggregate', owner: 'worker-a', generation: claimed.generation,
+      status: 'SUCCEEDED', summary: { counts: { sent: 1 } }, timezoneRevision: claimed.timezoneRevision,
+    }, tx);
+    assert.equal(result.committed, true);
+    throw new Error('rollback-both');
+  }, { timeout: 15_000 }), (error: unknown) => error instanceof Error && error.message === 'rollback-both');
+  assert.equal(await markerCount('joint'), 0);
+  const rolled = await repo.read('analytics-aggregate');
+  assert.equal(rolled.ok && rolled.view.lastStatus, 'RUNNING');
+  assert.equal(rolled.ok && rolled.view.lastSucceededAt, null);
+});
+
+test('旧代次完成会回滚同一事务里的业务结果', async () => {
+  await reset();
+  assert.ok(db);
+  await db.$executeRawUnsafe(`CREATE TABLE "${SCHEMA}"."LeaseProbe" ("id" TEXT PRIMARY KEY)`);
+  const { repo, advance } = harness();
+  const claimed = await repo.claim({ key: 'analytics-aggregate', owner: 'worker-a' });
+  assert.equal(claimed.acquired, true);
+  if (!claimed.acquired) return;
+  advance(JOB_LEASE_MS);
+  const next = await repo.claim({ key: 'analytics-aggregate', owner: 'worker-b' });
+  assert.equal(next.acquired && next.generation, 2);
+  if (!next.acquired) return;
+  await assert.rejects(db.$transaction(async (tx) => {
+    await tx.$executeRaw`INSERT INTO "LeaseProbe" ("id") VALUES ('old-gen')`;
+    await repo.complete({
+      key: 'analytics-aggregate', owner: 'worker-a', generation: claimed.generation,
+      status: 'SUCCEEDED', summary: { counts: { sent: 9 } }, timezoneRevision: 1,
+    }, tx);
+  }, { timeout: 15_000 }));
+  assert.equal(await markerCount('old-gen'), 0);
+  const current = await repo.read('analytics-aggregate');
+  assert.equal(current.ok && current.view.generation, 2);
+  assert.equal(current.ok && current.view.lastStatus, 'RUNNING');
+  assert.equal(current.ok && current.view.lastSucceededAt, null);
+});
+
+test('89.5s 调用、90.5s 拿到设置锁或 JobState 锁后不能完成、续租或改成功时间', async () => {
+  await reset();
+  await setRevision({ version: 1, timezone: 'UTC', timezoneRevision: 1, changedAt: '2026-01-15T00:00:00.000Z', updatedBy: null });
+  const started = Date.parse('2026-01-15T00:00:00.000Z');
+  const settings = harness();
+  const claimed = await settings.repo.claim({ key: 'analytics-aggregate', owner: 'worker-a' });
+  assert.equal(claimed.acquired, true);
+  if (!claimed.acquired) return;
+  settings.advance(89_500);
+  const releaseSettings = gate();
+  const settingsHeld = gate();
+  const settingsHolder = db!.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "value" FROM "SiteSetting" WHERE "key" = 'analytics.settings' FOR UPDATE`;
+    settingsHeld.resolve();
+    await releaseSettings.promise;
+  }, { timeout: 15_000 });
+  await settingsHeld.promise;
+  const completing = settings.repo.complete({
+    key: 'analytics-aggregate', owner: 'worker-a', generation: claimed.generation,
+    status: 'SUCCEEDED', summary: { counts: { sent: 1 } }, timezoneRevision: 1,
+  });
+  await waitForUngrantedLock();
+  settings.advance(1_000);
+  releaseSettings.resolve();
+  const completed = await completing;
+  await settingsHolder;
+  assert.equal(completed.committed, false);
+  const afterSettings = await settings.repo.read('analytics-aggregate');
+  assert.equal(afterSettings.ok && afterSettings.view.lastStatus, 'RUNNING');
+  assert.equal(afterSettings.ok && afterSettings.view.lastSucceededAt, null);
+  assert.equal(afterSettings.ok && Date.parse(afterSettings.view.lockedUntil ?? ''), started + JOB_LEASE_MS);
+
+  const job = harness();
+  const jobClaim = await job.repo.claim({ key: 'mail-queue', owner: 'worker-b' });
+  assert.equal(jobClaim.acquired, true);
+  if (!jobClaim.acquired) return;
+  job.advance(89_500);
+  const releaseJob = gate();
+  const jobHeld = gate();
+  const jobHolder = db!.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = 'mail-queue' FOR UPDATE`;
+    jobHeld.resolve();
+    await releaseJob.promise;
+  }, { timeout: 15_000 });
+  await jobHeld.promise;
+  const jobComplete = job.repo.complete({
+    key: 'mail-queue', owner: 'worker-b', generation: jobClaim.generation,
+    status: 'SUCCEEDED', summary: { counts: { sent: 1 } }, timezoneRevision: jobClaim.timezoneRevision,
+  });
+  await waitForUngrantedLock();
+  job.advance(1_000);
+  releaseJob.resolve();
+  const jobResult = await jobComplete;
+  await jobHolder;
+  assert.equal(jobResult.committed, false);
+  const afterJob = await job.repo.read('mail-queue');
+  assert.equal(afterJob.ok && afterJob.view.lastStatus, 'RUNNING');
+  assert.equal(afterJob.ok && afterJob.view.lastSucceededAt, null);
+  assert.equal(afterJob.ok && Date.parse(afterJob.view.lockedUntil ?? ''), started + JOB_LEASE_MS);
+
+  const renew = harness();
+  const renewClaim = await renew.repo.claim({ key: 'chat-notifications', owner: 'worker-c' });
+  assert.equal(renewClaim.acquired, true);
+  if (!renewClaim.acquired) return;
+  renew.advance(89_500);
+  const releaseRenew = gate();
+  const renewHeld = gate();
+  const renewHolder = db!.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = 'chat-notifications' FOR UPDATE`;
+    renewHeld.resolve();
+    await releaseRenew.promise;
+  }, { timeout: 15_000 });
+  await renewHeld.promise;
+  const renewing = renew.repo.renew({ key: 'chat-notifications', owner: 'worker-c', generation: renewClaim.generation });
+  await waitForUngrantedLock();
+  renew.advance(1_000);
+  releaseRenew.resolve();
+  const renewed = await renewing;
+  await renewHolder;
+  assert.equal(renewed.renewed, false);
+  const afterRenew = await renew.repo.read('chat-notifications');
+  assert.equal(afterRenew.ok && afterRenew.view.lastSucceededAt, null);
+  assert.equal(afterRenew.ok && Date.parse(afterRenew.view.lockedUntil ?? ''), started + JOB_LEASE_MS);
+});
+
+test('缺行读取后并发创建 revision 2，旧 revision 1 不能完成', async () => {
+  await reset();
+  const { repo } = harness();
+  const claimed = await repo.claim({ key: 'analytics-aggregate', owner: 'aggregator' });
+  assert.equal(claimed.acquired && claimed.timezoneRevision, 1);
+  if (!claimed.acquired) return;
+  const release = gate();
+  const held = gate();
+  const holder = db!.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = 'analytics-aggregate' FOR UPDATE`;
+    held.resolve();
+    await release.promise;
+  }, { timeout: 15_000 });
+  await held.promise;
+  const completing = repo.complete({
+    key: 'analytics-aggregate', owner: 'aggregator', generation: claimed.generation,
+    status: 'SUCCEEDED', summary: null, timezoneRevision: 1,
+  });
+  await waitForUngrantedLock();
+  await setRevision({ version: 2, timezone: 'UTC', timezoneRevision: 2, changedAt: '2026-01-15T00:00:00.000Z', updatedBy: null });
+  release.resolve();
+  const result = await completing;
+  await holder;
+  assert.equal(result.committed, false);
+  assert.equal(result.committed ? '' : result.reason, 'revision_conflict');
+  const current = await repo.read('analytics-aggregate');
+  assert.equal(current.ok && current.view.lastStatus, 'RUNNING');
+  assert.equal(current.ok && current.view.lastSucceededAt, null);
+  assert.equal(current.ok && current.view.generation, 1);
+});
+
+test('不可读设置不能领取出租约', async () => {
     await reset();
     await setRevision({ timezone: 'Not/A_Zone' });
     const { repo } = harness();
