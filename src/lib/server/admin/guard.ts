@@ -28,7 +28,7 @@ async function clearWritableSessionCookie() {
     const jar = await cookies();
     for (const header of clearedSessionCookieHeaders()) {
       const name = header.split('=', 1)[0] ?? '';
-      jar.set(name, '', { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 0, secure: name.startsWith('__') });
+      jar.set(name, '', { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 0, expires: new Date(0), secure: name.startsWith('__') });
     }
   } catch {
     // 没有 Next 请求上下文时，由返回的 Response 自己带 Set-Cookie。

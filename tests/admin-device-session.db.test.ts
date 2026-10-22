@@ -1,3 +1,5 @@
+import { RequestCookies, ResponseCookies } from 'next/dist/server/web/spec-extension/cookies';
+import { MutableRequestCookiesAdapter, appendMutableCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 import { execFileSync } from 'node:child_process';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -7,6 +9,7 @@ import type { DeviceRepo } from '../src/lib/server/admin/device-repo';
 import { RememberDeviceSchema } from '../src/lib/contracts/account';
 import {
   accountDto,
+  clearedSessionCookieHeaders,
   coarseDeviceLabel,
   createDeviceSessionService,
   decideAdminAccess,
@@ -179,4 +182,21 @@ test('API cookie namespace matches Auth.js in production and development without
   }).trim()) as (string | null)[];
   assert.deepEqual(run('production'), ['secure-account', 'secure-account', 'secure-account', null, null, 'secure-account']);
   assert.deepEqual(run('development'), ['plain-account', 'plain-account', null, 'plain-account', 'plain-account', null]);
+});
+
+test('session deletion keeps a past expiry through the actual Next mutable-cookie merge', () => {
+  const response = new Response(null);
+  for (const cookie of clearedSessionCookieHeaders()) response.headers.append('set-cookie', cookie);
+  const jar = MutableRequestCookiesAdapter.wrap(new RequestCookies(new Headers({ cookie: 'authjs.session-token=old; __Secure-authjs.session-token=current' })));
+  for (const name of ['authjs.session-token', '__Secure-authjs.session-token']) {
+    jar.set(name, '', { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 0, secure: name.startsWith('__') });
+  }
+  appendMutableCookies(response.headers, jar);
+  const parsed = new ResponseCookies(response.headers);
+  for (const name of ['authjs.session-token', '__Secure-authjs.session-token']) {
+    const cookie = parsed.get(name);
+    assert.ok(cookie);
+    assert.equal(cookie.value ?? '', '');
+    assert.ok(cookie.expires instanceof Date && cookie.expires.getTime() <= Date.now(), `${name} must remain expired after Next parsing and merging`);
+  }
 });

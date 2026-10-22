@@ -12,7 +12,23 @@ import { AccountDTOSchema } from '../src/lib/contracts/account';
 const PASSWORD = 'device-network-only-Passw0rd!';
 const HOUR = 60 * 60_000;
 const DAY = 24 * HOUR;
-const clearsSession = (response: APIResponse) => /(?:__Secure-)?authjs\.session-token=;[^\n]*Max-Age=0/i.test(response.headers()['set-cookie'] ?? '');
+function sessionDeletionEvidence(response: APIResponse) {
+  return response.headersArray().filter((header) => header.name.toLowerCase() === 'set-cookie').flatMap((header) => {
+    const [pair, ...parts] = header.value.split(';');
+    const equals = pair.indexOf('=');
+    const name = pair.slice(0, equals).trim();
+    if (!['authjs.session-token', '__Secure-authjs.session-token'].includes(name)) return [];
+    const attrs = new Map(parts.map((part) => { const eq = part.indexOf('='); return eq < 0 ? [part.trim().toLowerCase(), ''] : [part.slice(0, eq).trim().toLowerCase(), part.slice(eq + 1).trim()]; }));
+    const maxAge = attrs.has('max-age') ? Number(attrs.get('max-age')) : null;
+    const expires = attrs.get('expires') ?? null;
+    const expired = maxAge !== null && Number.isFinite(maxAge) ? maxAge <= 0 : expires !== null && Date.parse(expires) <= Date.now();
+    return [{ name, empty: pair.slice(equals + 1) === '', maxAge, expires, expired }];
+  });
+}
+const clearsSession = (response: APIResponse) => {
+  const cookies = sessionDeletionEvidence(response);
+  return cookies.some((cookie) => cookie.name === '__Secure-authjs.session-token') && cookies.every((cookie) => cookie.empty && cookie.expired);
+};
 
 test('device sessions: real network denial, version-safe revocation race and sign-out', async ({ playwright }, info) => {
   test.setTimeout(120_000);
@@ -65,7 +81,8 @@ test('device sessions: real network denial, version-safe revocation race and sig
     const salesHttp = await login(sales);
     const salesState = await salesHttp.storageState();
     const salesDevice = await db.adminDeviceSession.findFirstOrThrow({ where: { userId: sales.user.id } });
-    const actorCookie = (await actorHttp.storageState()).cookies.find((cookie) => cookie.name === '__Secure-authjs.session-token');
+    const actorState = await actorHttp.storageState();
+    const actorCookie = actorState.cookies.find((cookie) => cookie.name === '__Secure-authjs.session-token');
     expect(actorCookie).toBeDefined();
     const stalePlain = await encode({ secret: process.env.AUTH_SECRET!, salt: 'authjs.session-token', token: { uid: sales.user.id, sv: sales.user.sessionVersion, sid: salesDevice.id }, maxAge: 3600 });
     const mixedCookieCases = [
@@ -76,9 +93,11 @@ test('device sessions: real network denial, version-safe revocation race and sig
     ];
     const mixedCookieEvidence: Record<string, unknown> = {};
     for (const mixed of mixedCookieCases) {
-      const raw = await context();
+      const raw = await playwright.request.newContext({ baseURL: BASE, storageState: actorState });
+      contexts.push(raw);
       const account = await raw.get('/api/admin/account', { headers: { Cookie: mixed.cookie } });
       expect(account.status()).toBe(mixed.status);
+      if (mixed.status === 401) expect((await raw.storageState()).cookies.filter((cookie) => /authjs\.session-token$/.test(cookie.name))).toHaveLength(0);
       const session = await raw.get('/api/auth/session', { headers: { Cookie: mixed.cookie } });
       if (mixed.status === 200) {
         expect((await account.json()).id).toBe(actor.user.id);
@@ -88,7 +107,7 @@ test('device sessions: real network denial, version-safe revocation race and sig
         expect(clearsSession(account)).toBe(true);
         expect(await session.json()).toBeNull();
       }
-      mixedCookieEvidence[mixed.tag] = { status: account.status(), authJsSameAccount: true, clearsCookie: mixed.status === 401 };
+      mixedCookieEvidence[mixed.tag] = { status: account.status(), authJsSameAccount: true, clearsCookie: mixed.status === 401, jarRemovedBeforeAuthJsRequest: mixed.status === 401, deletions: sessionDeletionEvidence(account) };
     }
     evidence.mixedCookieNamespaces = mixedCookieEvidence;
     const validForbidden = await salesHttp.post('/api/admin/users', { data: {}, headers: { Origin: BASE } });
@@ -108,9 +127,11 @@ test('device sessions: real network denial, version-safe revocation race and sig
       const excluded = await (await copy()).post('/api/admin/users', { data: {}, headers: { Origin: BASE } });
       expect(excluded.status()).toBe(401);
       expect(clearsSession(excluded)).toBe(true);
-      const account = await (await copy()).get('/api/admin/account');
+      const accountCopy = await copy();
+      const account = await accountCopy.get('/api/admin/account');
       expect(account.status()).toBe(401);
       expect(clearsSession(account)).toBe(true);
+      expect((await accountCopy.storageState()).cookies.filter((cookie) => /authjs\.session-token$/.test(cookie.name))).toHaveLength(0);
       const authSession = await (await copy()).get('/api/auth/session');
       expect(await authSession.json()).toBeNull();
       const ssr = await (await copy()).get('/admin/users', { maxRedirects: 0 });
@@ -118,7 +139,7 @@ test('device sessions: real network denial, version-safe revocation race and sig
       const signIn = new URL(ssr.headers()['location'], BASE);
       expect(signIn.pathname).toBe('/api/auth/signin');
       expect(signIn.searchParams.get('callbackUrl')).toBe('/admin/users');
-      deniedScenarios[invalid] = { excludedRole: excluded.status(), account: account.status(), session: 'null', ssr: ssr.status(), clearsCookie: true };
+      deniedScenarios[invalid] = { excludedRole: excluded.status(), account: account.status(), session: 'null', ssr: ssr.status(), clearsCookie: true, jarRemoved: true, deletions: sessionDeletionEvidence(account) };
     }
     evidence.invalidDevices = deniedScenarios;
     evidence.validRoleDenial = { status: validForbidden.status(), clearsCookie: false };
@@ -167,11 +188,12 @@ test('device sessions: real network denial, version-safe revocation race and sig
     const signedOut = await freshHttp.post('/api/auth/signout', { maxRedirects: 0, headers: { Origin: BASE }, form: { csrfToken: csrf, callbackUrl: `${BASE}/admin-signin` } });
     expect(signedOut.status()).not.toBe(503);
     expect(clearsSession(signedOut)).toBe(true);
+    expect((await freshHttp.storageState()).cookies.filter((cookie) => /authjs\.session-token$/.test(cookie.name))).toHaveLength(0);
     expect((await db.adminDeviceSession.findUniqueOrThrow({ where: { id: freshDevice.id } })).revokedAt).not.toBeNull();
     const replay = await playwright.request.newContext({ baseURL: BASE, storageState: beforeSignOut });
     contexts.push(replay);
     expect((await replay.get('/api/admin/account')).status()).toBe(401);
-    evidence.signOut = { revoked: true, clearsCookie: true, copiedCookieStatus: 401 };
+    evidence.signOut = { revoked: true, clearsCookie: true, copiedCookieStatus: 401, deletions: sessionDeletionEvidence(signedOut) };
     evidence.fixtureUsers = users.length;
     await info.attach('device-session-network-evidence', { body: JSON.stringify(evidence, null, 2), contentType: 'application/json' });
     console.log(`DEVICE_SESSION_NETWORK_EVIDENCE ${JSON.stringify(evidence)}`);

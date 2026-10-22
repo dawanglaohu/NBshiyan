@@ -118,9 +118,10 @@ export function sessionCookieNames(): readonly string[] {
   return [PLAIN_COOKIE, SECURE_COOKIE];
 }
 
+/** 明确的过去 Expires 保证 Next 合并 cookie 时即使丢弃数值 0 的 Max-Age，删除仍然有效。 */
 export function clearedSessionCookieHeaders(): string[] {
   return sessionCookieNames().map((name) => {
-    const parts = [`${name}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'];
+    const parts = [`${name}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0', 'Expires=Thu, 01 Jan 1970 00:00:00 GMT'];
     if (name.startsWith('__Secure-') || name.startsWith('__Host-')) parts.push('Secure');
     return parts.join('; ');
   });
