@@ -1951,6 +1951,128 @@
       "review401-oversize-green.log": "90c3d5c7e9b6d6a7e75f0f70c415f841a74e3e8d192d17b1bd47715e4af9f01e",
       "review401-oversize-red.log": "4ae9a864d570380fbb3a3f7a5dccfd77397ef8b5a3954337051e70658f1899f5",
       "review401-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sourceHashScope": "Historical acc0543a review snapshot; later cancellation repair is covered by securityAudit source hashes"
+  },
+  "securityAudit": {
+    "result": {
+      "securityVerdict": "SECURITY_PASS",
+      "originalRemoteHead": "acc0543a7be3e79215c8d583407f8005730d5c3c",
+      "reviewScope": "fix-after-security-review working-tree hashes; final commit and CI must match",
+      "sourceHashes": {
+        "src/lib/client/api.ts": "3a68214846e8a4310c7504c410af2379af16684679cc600d2682749210dcf6f5",
+        "src/lib/client/api-errors.ts": "6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65",
+        "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+        "tests/client-api-foundation.http.test.ts": "dddf0736495447ad1ca2812e719ffadc04502001242142db49fdebee11ff09c1",
+        "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0"
+      },
+      "directRegressionTests": {
+        "pass": 9,
+        "fail": 0,
+        "skip": 0
+      },
+      "initialIndependentHttp": {
+        "pass": 43,
+        "fail": 0,
+        "skip": 0
+      },
+      "postgres": {
+        "pass": 28,
+        "fail": 0,
+        "skip": 0
+      },
+      "designatedAppApproval": false,
+      "adminException": "Human-authorized for PR407 only after final-head checks; not executed by reviewer",
+      "remainingSecurityBlockers": []
+    },
+    "report": "# PR #407 独立安全审查最终结论\n\n## 结论\n\n**SECURITY_PASS，限本报告末尾修复后文件哈希。** 一轮安全审查仅发现一个取消/超限401交错阻断，实施方已做最小根因修复，本审查员独立复验通过，没有再发现已复现的安全阻断。\n\n原远端审查提交为 acc0543a7be3e79215c8d583407f8005730d5c3c，基线为47e979641050bf101a8bf98da30aa283bea923cb；该提交本身含已复现的问题。本轮PASS适用于尚待root提交的修复后工作树，不挪用旧head CI。root须确认实际提交包含这些修复、最终精确head的必需构建/E2E检查通过、无新未解决审查项，再按用户已经给出的管理员例外授权合并#407。此安全结论不是packjoyu-security-reviewer[bot]的APPROVED，不修改或伪造指定App门禁。\n\n源码、门禁、任务状态与生产环境未由本审查员修改。本轮只读核对PR完整diff、上下文和证据。M1-T6/M1-T9素材不在范围。\n\n## 唯一阻断及复验\n\nS2：真实HTTP401返回大于4MiB的Content-Length；真实fetch拿到Response后调用方AbortController立即abort，再交回requestApi。原代码的readCapped忽略body.cancel异常并正常返回oversize，响应正文处理分支未重查caller取消，于是统一适配返回login与非空会话文案，即使signal.aborted=true。\n\n原始探针：security407-cancel-headers-probe.mts，原始失败日志security407-cancel-headers-probe.log。原实际为action=login/status401/aborted=true/hits1，期望silent/空text，exit1。初始化两次Windows ESM导入失败是探针环境准备，不计产品缺陷；最终使用node:createRequire加载同一仓库源，真实业务复现如上。\n\n实施方最小修复：src/lib/client/api.ts:380正文读取正常返回、attempt清理与attempts计数后，先检查options.signal?.aborted，统一返回cancelled，再进入oversize或DTO分支。未改transport、响应上限、路径/重试策略或鉴权协议。\n\n复验：\n- 原独立探针未改业务断言，修复后输出action=silent、text为空、aborted=true、hits1，exit0；security407-cancel-headers-fixed.log。\n- 独立重跑 owning HTTP直接回归：\n  node --import tsx --test --test-name-pattern \"caller cancellation after real response headers|admin 401|request bodies over\" tests/client-api-foundation.http.test.ts\n  9pass/0fail/0skip，security407-cancel-direct-regressions.log。\n- 覆盖caller取消优先、原六种非取消401仍login、已知凭据/恢复/本人验证分支保留、admin请求体超限仍零发送/stop/status未定义、visitor仍stop。新增用例通过真实本机HTTP及真实fetch，不是固定应答替换生产入口。\n- root的新增owning测试先红0pass/1fail、focused后9/9，本审查员另有原始独立红→同探针绿证据。完整HTTP44及类型/ESLint为root收尾检查，提交/合并前仍须确认其结果，不预先冒称通过。\n\n## 其余独立验证\n\n1. 修复这三行取消优先保护前，本审查员完整运行 owning真实HTTP suite：43pass/0fail/0skip，45.64秒；security407-http.log。因此不是只看原实施方报告；上节直接回归专门复验新增保护及相邻分支。\n2. 本轮私有PostgreSQL17.9执行 tests/job-leases.db.test.ts 与 tests/admin-http-metrics.test.ts：28pass/0fail/0skip；security407-pg.log。只启动planning/pgdata localhost54338/batch3，测试独立schema，结束后私有PG已停止。\n3. 参数化SQL与并发：claim仍由单条INSERT ON CONFLICT决胜，返回前重新采有效时钟，不交付到期租约；renew/complete保留真实外层事务、锁后时钟、owner/generation/期限/revision fencing、拒绝抛JobLeaseAbort使业务结果共同回滚。安全读取不返回leaseOwner，summary仍严格白名单；没有新增脚本、SQL字符串拼接或仓储自提交。\n4. 客户端数据最小化：错误只使用受控字段/固定双语文案，未知message/stack和超限正文不回显。Auth.js路径排除、归一化、same-origin credentials、redirect:error及一次性操作禁自动重放均未改。\n5. 新增diff专用凭据模式扫描：private-key、AWS access-key、TypeSafe key-prefix、GitHub token-prefix均0命中；未读取.env/浏览器凭据。没有把隔离测试地址和历史假值当生产秘密；扫描不是通用“绝无秘密”保证。\n6. git diff --check通过。远端原head acc0543a 的build-and-audit/e2e实际SUCCESS，原P2线程resolved/outdated；指定App对该head的APPROVED不存在，不能把独立agent PASS等同指定身份批准。\n\n## 记录与边界\n\n收口记录如实open，六个验证返工任务保持todo。真实保留待办的记录可以合入；本轮PASS不把它们改clean/landed，也不证明后续产品功能已完成。文档证据区分历史代码hash和独立复验hash，没有以旧绿色测试替代新提交检查。PR中未修改M1-T6/M1-T9素材或门禁配置。\n\n## 修复后SHA-256（本轮Windows工作树字节）\n\n- src/lib/client/api.ts: 3a68214846e8a4310c7504c410af2379af16684679cc600d2682749210dcf6f5\n- src/lib/client/api-errors.ts: 6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65\n- src/lib/server/jobs/lease-repo.ts: f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83\n- tests/client-api-foundation.http.test.ts: dddf0736495447ad1ca2812e719ffadc04502001242142db49fdebee11ff09c1\n- tests/job-leases.db.test.ts: 29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0\n\n原始失败版报告另存 security-407-pre-fix.md，保留因果证据。\n",
+    "humanAuthorization": "Direct answer to explicit PR407 administrator-exception request: create a new security-review subagent and merge if no issue; repository gate configuration remains unchanged",
+    "httpSuite": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "red": {
+      "pass": 0,
+      "fail": 1
+    },
+    "focusedGreen": {
+      "pass": 9,
+      "fail": 0,
+      "skip": 0
+    },
+    "lint": "pass",
+    "typecheck": "pass",
+    "judgment": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(medium 0.58) spec_change=no(0.07) outside_stack=no(0.06) needs_owner=no(0.05) reversible=yes(0.88) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.58,
+          "band": "medium",
+          "probabilities": {
+            "A": 0.72,
+            "B": 0.26,
+            "C": 0.02
+          }
+        },
+        "spec_change": {
+          "p": 0.07,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.06,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.05,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.88,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "medium",
+          "why": "Jev 选 A（medium）"
+        }
+      },
+      "state": {
+        "requirement": "PR407 may merge under the human's authorized administrator exception only after a new independent security agent finds no issue. M1-T8 requires caller cancellation/unmount to remain silent and take priority over a received error/oversize result.",
+        "task": {
+          "title": "Fix caller-cancellation race after real HTTP401 headers with declared oversized body",
+          "accept": "True localhostHTTP regression fails before repair and passes afterward: caller abort immediately after actual fetch returns headers, response Content-Length beyond4MiB, final action silent/text empty/one attempt/no replay. Existing non-cancelled admin oversized401 still login; request-side oversized admin remains stop with zero sends."
+        },
+        "conflict": "Independent security reviewer reproduced realHTTP401 with Content-Length>4MiB. Caller AbortController aborts between awaited transport response and capped body processing. readCapped handles body cancellation internally and returns kindoversize; normal return path then maps login despite options.signal.aborted=true. Existing catch path checks cancellation but normal return path does not. All other reviewed security checks passed; this is the only remaining reproduced security defect.",
+        "options": {
+          "A": "After readCapped returns, finish attempt and count the send, then recheck the caller's AbortSignal before interpreting oversize/DTO/status; if aborted return the existing cancelled adapter result. Add owning real HTTP race regression and preserve all existing transport/retry policies.",
+          "B": "Thread caller AbortSignal through readCapped and make capped-body early-return paths reject cancellation; update its internal call contract and exercise all body-reader branches.",
+          "C": "Leave PR407 unmerged with a new repair task and wait for another implementation session rather than apply a bounded cancellation guard."
+        }
+      }
+    },
+    "logHashes": {
+      "security407-cancel-direct-regressions.log": "6429870c716449c9edf079feb127f8a23d3871d8597eb1f3a6c5d03be801540b",
+      "security407-cancel-green.log": "7fadd172b5cfbf623bd8a4ab187fc2214ca2ab1ff9f38df226405df6f83fa6ad",
+      "security407-cancel-headers-fixed.log": "7dca2bd3f698530faae1c6e5a71a4ebedcb1f2315cf775f96ad696ef5b51f62d",
+      "security407-cancel-headers-probe.log": "5117eb1a5d603dceafa81a428c4e7431a1f0bf41c1b3950946060eca76244464",
+      "security407-cancel-red.log": "a1113b5c20fe07d9381a2780df2c168d0244fcf0aaab3f4ab2c724adc91a6830",
+      "security407-http.log": "dbd7bd76dbc32d8266802d325eeb74e02fc7f726f0e931179d9ffc204f0953e5",
+      "security407-http44.log": "dfa0bb1285d457626f3928684869b33041d2b08b126c02f1430c5c64ea4416a5",
+      "security407-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "security407-pg.log": "184a6f35c609b27ba04737a516b51028218bcf870b1620cddf7ebf4c953fb7f9",
+      "security407-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sourceHashes": {
+      "src/lib/client/api.ts": "3a68214846e8a4310c7504c410af2379af16684679cc600d2682749210dcf6f5",
+      "src/lib/client/api-errors.ts": "6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65",
+      "tests/client-api-foundation.http.test.ts": "dddf0736495447ad1ca2812e719ffadc04502001242142db49fdebee11ff09c1",
+      "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+      "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0"
     }
   }
 }
