@@ -268,9 +268,10 @@
       "同54c23bc专用PostgreSQL17.9与Node22测试admin-config/admin-http-metrics共12通过0失败0跳过；原子计数、隐私列、站点时区/revision及旧信封回归均通过。pnpm lint与pnpm exec tsc --noEmit通过。",
       "06/08/09/10/13/17/19的相关约定沿用第一轮已接受证据；源契约未变，未重新审无关范围。已合入origin/main的文档产品冲突取主干后重建，保留M1-T8记录与本卡证据，未改生成器。",
       "本verify登记任务契约复核与R1/R2修复证据；最终落地仍须实际PR MERGED及当前head合并门禁满足，不能以task-contract pass冒充合并完成。",
-      "合并前自动复核发现具体lastObservedAt并发倒退，按两轮后的主审直接修复规则处理，不新增返工轮次。真实PG17分别复现旧请求晚写使已存时间倒退1秒、非UTC会话使raw DateTime写timestamp列偏移7小时；两项修复前2失败/0skip，SQL显式UTC表达式与GREATEST修复后2通过/0skip。完整admin-config/admin-http-metrics 14通过0失败0skip，lint与tsc通过；模型、接口、白名单及原响应失败隔离不变。"
+      "合并前自动复核发现具体lastObservedAt并发倒退，按两轮后的主审直接修复规则处理，不新增返工轮次。真实PG17分别复现旧请求晚写使已存时间倒退1秒、非UTC会话使raw DateTime写timestamp列偏移7小时；两项修复前2失败/0skip，SQL显式UTC表达式与GREATEST修复后2通过/0skip。完整admin-config/admin-http-metrics 14通过0失败0skip，lint与tsc通过；模型、接口、白名单及原响应失败隔离不变。",
+      "原PR401实际合并后，三条新增观测意见按Jev裁定直接补齐：model=jev-1.13.0，judgments.jsonl:974，pick=A(high0.86)，spec_change=no，outside_stack=no，needs_owner=no，adopt=take(A)。候选A为同范围直接修复并独立安全审批后补充合并，候选B为保持原语并将三条延后至M3-T1。已按A提供默认受控日志、未知日志/响应共用requestId及ERROR级别，原计数WARN和失败保留响应不变。三新增场景先3失败后3通过，PG17完整17通过0失败0skip，lint/tsc通过；规格、接口和模型无变化。"
     ],
-    "reviewed": "2026-10-22T00:35:03.210558+00:00",
+    "reviewed": "2026-10-22T01:09:32.627686+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

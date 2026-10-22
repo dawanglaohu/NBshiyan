@@ -109,9 +109,10 @@ export function createApiCounter(deps: {
   log?: (event: CounterLog) => void;
 }): ApiCounter {
   const clock = deps.clock ?? (() => new Date());
+  const log = deps.log ?? ((event: CounterLog) => console.warn(JSON.stringify(event)));
   const warn = (event: Omit<CounterLog, 'timestamp' | 'level' | 'module' | 'operation'>) => {
     try {
-      deps.log?.({
+      log({
         timestamp: new Date().toISOString(),
         level: 'WARN',
         module: 'http',

@@ -1,0 +1,20 @@
+{
+  "requirement": "User requests a bounded M3-T14 acceptance and landing, then an independent security reviewer approval before merge. Do not add unrelated rework rounds. After two rounds, concrete remaining code errors are fixed directly by the acceptance reviewer. Stay within the existing effective paths and preserve user work. Section 16 requires sanitized observation-write warnings, controlled request IDs for correlation, and ERROR severity for redacted internal failures. Business responses must survive observability failures. Do not change branch protection or pretend an independent reviewer is the legacy GitHub App.",
+  "task": {
+    "title": "M3-T14 shared configuration, HTTP errors and sanitized API counters",
+    "accept": "Only config/HTTP/counter primitives. Fixed route whitelist; real PostgreSQL atomic per-response counters, only 5xx increments errorCount, no body/IP/account records. Failure preserves original status/body. Zod configuration and safe errors. Site timezone/revision read from SiteSetting, no M5/M6 imports. Legacy envelopes unchanged. Production GET account wiring belongs to M3-T1."
+  },
+  "conflict": {
+    "state": "PR401 was merged at exact head40201e7 after independent APPROVE and build/e2e success. Three new non-security observability comments returned in the final metadata fetch were not classified before the merge command. No production route consumes the primitive yet. The original user request is still active; cleanup and local sync remain.",
+    "facts": [
+      "createHttpServices passes deps.log directly and createApiCounter does not install a sink when it is undefined, so the default factory path drops warnings. Explicit constructor injection is supported, including future M3-T1 callers.",
+      "UnknownFailureLog contains no requestId even though mapUnknownFailure returns a validated/generated one, preventing direct correlation.",
+      "Unknown failures mapped to internal_error are logged at WARN, while section16 classifies redacted internal errors as ERROR. Counter-write failures should remain WARN.",
+      "The existing effective paths already include composition.ts, errors.ts, metrics.ts, tests/admin-http-metrics.test.ts and documentation. Repairs can be localized without a new dependency, feature route, data model or configuration variable. Because PR401 is merged, any repair must use a small supplemental PR, with the same independent security reviewer and exact-head CI before merge."
+    ]
+  },
+  "options": {
+    "A": "Directly repair the three logging gaps within the existing task paths in the same task worktree, add failure-before/success-after tests, open a narrow supplemental PR, obtain the same independent security reviewer approval and other CI success, then merge and finish cleanup/sync. Provide safe default log sinks without weakening injected-sink failure isolation, one requestId shared by the unknown error log and body, and ERROR severity for unknown internal failures.",
+    "B": "Keep the already merged primitive unchanged because it has no production route consumer yet. Explicitly record the three comments as unresolved integration follow-ups for M3-T1, preserve the already accepted scope and independent security result, and complete cleanup/sync now. Require M3-T1 wiring to address default logging and correlation/severity before production entry use."
+  }
+}
