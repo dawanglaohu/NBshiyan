@@ -10,6 +10,7 @@ import { hashSecret } from '../src/lib/server/admin/crypto';
 import { rateLimitEnv } from '../src/lib/server/security';
 import type * as ARL from '../src/lib/server/admin/account-rate-limits';
 import { RESET_2FA_CONFIRM } from '../src/lib/admin/enroll';
+import { panelReducer, pickEnrollLink } from '../src/lib/admin/enroll-link';
 import * as ResetLib from '../scripts/admin-reset-initial-password-lib.mjs';
 
 // #347：后台「重置 2FA」同时解除锁定。真实路由（reset-2fa、enroll、confirm）；'@/auth' 换成测试桩，prisma 换成内存对象，不连数据库。
@@ -230,7 +231,8 @@ test('admin UI: Reset 2FA confirm copy has both sentences; link panel only in co
   assert.ok(c.includes('之前发出的绑定链接会立即失效'));
   assert.ok(c.includes('同时会解除这个账号的登录锁定'));
   const ui = readFileSync('src/components/admin/users/UsersAdmin.tsx', 'utf8');
-  assert.match(ui, /confirm\(RESET_2FA_CONFIRM\(u\.email\)\)/);
+  assert.match(ui, /<ConfirmDialog title=\{RESET_2FA_CONFIRM\(resetTarget\.email\)\}/);
+  assert.match(ui, /onConfirm=\{\(\) => reset2fa\(resetTarget\)\}/);
   assert.match(ui, /`\/\$\{u\.id\}\/reset-2fa`, \{ method: 'POST' \}/);
   assert.ok(!/localStorage|sessionStorage|console\.|history\./.test(ui));
 });
@@ -255,13 +257,16 @@ test('reset-2fa responses are never cacheable: Cache-Control no-store on 200 (wi
 
 test('admin UI one-time link: only in React state; cleared on 「我已复制」; never stored, logged, put in the URL or error state', () => {
   const ui = readFileSync('src/components/admin/users/UsersAdmin.tsx', 'utf8');
-  const sets = ui.match(/setIssued\([^)]*\)/g) ?? [];
-  // 只有两处：拿到响应时放进 state、「我已复制」时清空
-  assert.deepEqual(sets.map((x) => x.startsWith('setIssued(null)') ? 'clear' : 'set'), ['set', 'clear']);
-  assert.match(ui, /<button className="adm-btn" onClick=\{\(\) => setIssued\(null\)\}>我已复制<\/button>/);
-  // 面板只有这一个关闭入口（没有别的 ✕ / onClose / Escape 路径会留下链接）
-  assert.ok(!/onClose|onKeyDown|Escape|✕/.test(ui));
-  assert.ok(!/localStorage|sessionStorage|console\.|history\.|location\.|Sentry|captureException|reportError/.test(ui));
+  const panel = readFileSync('src/components/admin/users/EnrollLinkPanel.tsx', 'utf8');
+  const issued = pickEnrollLink({ enrollLink: `https://example.test/admin-enroll#t=${'A'.repeat(43)}`, expiresAt: '2026-10-19T20:00:00Z' })!;
+  const state = panelReducer(null, { type: 'issued', issued, email: EMAIL });
+  assert.equal(state?.issued.link, issued.link);
+  assert.equal(panelReducer(state, { type: 'dismiss' }), null);
+  assert.match(ui, /onDismiss=\{\(\) => setLinkPanel\(\(s\) => panelReducer\(s, \{ type: 'dismiss' \}\)\)\}/);
+  assert.match(panel, /onClick=\{onDismiss\}.*PANEL_TEXT\.done/);
+  for (const source of [ui, panel]) {
+    assert.ok(!/localStorage|sessionStorage|console\.|history\.|location\.|Sentry|captureException|reportError/.test(source));
+  }
   // 错误提示只来自错误码，不会把响应体（含链接）放进去
   assert.ok(!/setErr\([^)]*enrollLink/.test(ui)); assert.ok(!/enrollLink[^\n]*throw/.test(ui));
 });
