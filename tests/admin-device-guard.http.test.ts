@@ -8,7 +8,7 @@ import { authenticator } from 'otplib';
 import { decode } from 'next-auth/jwt';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { ADMIN_SESSION_POLICY } from '../src/lib/server/config';
-import { createApiCounter } from '../src/lib/server/http/metrics';
+import { createApiCounter, type ApiCounterDb } from '../src/lib/server/http/metrics';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
 const databaseUrl = process.env.ADMIN_DEVICE_TEST_DATABASE_URL?.startsWith('postgres')
@@ -26,7 +26,7 @@ const prisma = databaseUrl ? new PrismaClient({ datasources: { db: { url: databa
 const origin = 'http://127.0.0.1:3000';
 const sessionName = 'authjs.session-token';
 let handleAuth: (request: Request) => Promise<Response> = async () => { throw new Error('auth not loaded'); };
-let createAccountGet: typeof import('../src/app/api/admin/account/route').createAccountGet = () => { throw new Error('account not loaded'); };
+let createAccountGet: typeof import('../src/lib/server/admin/account').createAccountGet = () => { throw new Error('account not loaded'); };
 
 function cookieJar(response: Response, previous = ''): string {
   const pairs = new Map<string, string>();
@@ -83,12 +83,12 @@ before(async () => {
     cwd: process.cwd(), env: { ...process.env, DATABASE_URL: databaseUrl }, stdio: 'inherit',
   });
   ({ handleAuth } = await import('../src/auth'));
-  ({ createAccountGet } = await import('../src/app/api/admin/account/route'));
+  ({ createAccountGet } = await import('../src/lib/server/admin/account'));
 });
 
 after(async () => { await prisma?.$disconnect(); });
 
-async function enrolled(role: 'ADMIN' | 'EDITOR' = 'ADMIN') {
+async function enrolled(role: 'ADMIN' | 'SALES' | 'EDITOR' = 'ADMIN') {
   const client = prisma as PrismaClient;
   const plain = authenticator.generateSecret();
   const email = `device-${randomBytes(4).toString('hex')}@example.com`;
@@ -144,7 +144,7 @@ test('real login binds a device, caps the cookie, and GET account counts once', 
   assert.equal(reread?.lastActivityAt.getTime(), stored.lastActivityAt.getTime());
 
   const failing = createApiCounter({
-    db: { siteSetting: { findUnique: async () => null }, $executeRaw: async () => { throw new Error('counter down') } },
+    db: { siteSetting: { findUnique: async () => null }, $executeRaw: async () => { throw new Error('counter down') } } as unknown as ApiCounterDb,
     log: () => { throw new Error('log down'); },
   });
   const preserved = await createAccountGet({ record: (response) => failing.recordFinalResponse(response) })(
@@ -235,4 +235,50 @@ test('sign-out revokes the device, an old cookie is 401, and expiry or a sid-les
   const legacySession = await handleAuth(new Request(`${origin}/api/auth/session`, { headers: { cookie: `${sessionName}=${legacy}` } }));
   const legacyBody = await legacySession.json();
   assert.equal(legacyBody, null);
+});
+
+
+test('invalid device wins over an excluded route role', { skip, timeout: 120_000 }, async () => {
+  const client = prisma as PrismaClient;
+  const member = await enrolled('SALES');
+  const signed = await login(member.email, member.password, member.code());
+  const stored = await client.adminDeviceSession.findFirstOrThrow({ where: { userId: member.row.id } });
+  const { requireAdmin } = await import('../src/lib/server/admin/guard');
+  const validDenied = await requireAdmin(new Request(`${origin}/api/admin/users`, { headers: { cookie: signed.jar } }), ['ADMIN']);
+  assert.ok(validDenied instanceof Response);
+  assert.equal(validDenied.status, 403);
+  assert.equal(validDenied.headers.getSetCookie().length, 0);
+  await client.adminDeviceSession.update({ where: { id: stored.id }, data: { revokedAt: new Date() } });
+  const invalidDenied = await requireAdmin(new Request(`${origin}/api/admin/users`, { headers: { cookie: signed.jar } }), ['ADMIN']);
+  assert.ok(invalidDenied instanceof Response);
+  assert.equal(invalidDenied.status, 401);
+  assert.match(invalidDenied.headers.getSetCookie().join('\n'), /authjs\.session-token=;.*Max-Age=0/);
+  const { deviceServiceFor } = await import('../src/lib/server/admin/device-session');
+  const service = deviceServiceFor(client, () => new Date(), ADMIN_SESSION_POLICY);
+  const denied = await service.authenticate({ userId: member.row.id, sessionVersion: member.row.sessionVersion, sid: stored.id, roles: ['ADMIN'] });
+  assert.deepEqual(denied, { ok: false, reason: 'unauthenticated', status: 401 });
+  const replay = await account(signed.jar);
+  assert.equal(replay.status, 401);
+  assert.match(replay.headers.getSetCookie().join('\n'), /authjs\.session-token=;.*Max-Age=0/);
+});
+
+test('late device revocation preserves a newer real Credentials login', { skip, timeout: 120_000 }, async () => {
+  const client = prisma as PrismaClient;
+  const member = await enrolled();
+  const oldLogin = await login(member.email, member.password, member.code());
+  const oldDevice = await client.adminDeviceSession.findFirstOrThrow({ where: { userId: member.row.id } });
+  const committed = await client.user.update({ where: { id: member.row.id }, data: { sessionVersion: { increment: 1 } } });
+  const { decrypt } = await import('../src/lib/server/admin/crypto');
+  const nextCode = authenticator.clone({ epoch: Date.now() + 30_000 }).generate(decrypt(committed.totpSecret!));
+  const freshLogin = await login(member.email, member.password, nextCode);
+  assert.equal(freshLogin.jar.includes(`${sessionName}=`), true);
+  const freshDevice = await client.adminDeviceSession.findFirstOrThrow({ where: { userId: member.row.id, sessionVersion: committed.sessionVersion } });
+  const { revokeUserDevices } = await import('../src/lib/server/admin/device-repo');
+  await revokeUserDevices(client, member.row.id, 'session_bumped', committed.sessionVersion);
+  const oldAfter = await client.adminDeviceSession.findUniqueOrThrow({ where: { id: oldDevice.id } });
+  const freshAfter = await client.adminDeviceSession.findUniqueOrThrow({ where: { id: freshDevice.id } });
+  assert.ok(oldAfter.revokedAt);
+  assert.equal(freshAfter.revokedAt, null);
+  assert.equal((await account(oldLogin.jar)).status, 401);
+  assert.equal((await account(freshLogin.jar)).status, 200);
 });

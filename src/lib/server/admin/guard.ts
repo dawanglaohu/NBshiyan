@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { Role, User } from '@prisma/client';
-import { auth } from '@/auth';
+import { auth, readSessionToken } from '@/auth';
 import { ADMIN_SESSION_POLICY } from '../config';
 import { prisma } from '../db';
 import { clientIp } from '../security';
-import { clearedSessionCookieHeaders, decideAdminAccess, type SessionDenial } from './device-session';
+import { clearedSessionCookieHeaders, decideAdminAccess, type SessionDenial, type BoundAccess } from './device-session';
 
 export const noStore = { 'Cache-Control': 'private, no-store' };
 export const jsonErr = (error: string, status: number) => NextResponse.json({ error }, { status, headers: noStore });
@@ -18,9 +18,7 @@ export type AdminCtx = { user: User; ip: string | null };
  */
 export type { SessionDenial } from './device-session';
 export { classifySession } from './device-session';
-export type SessionCheck =
-  | { ok: true; user: User }
-  | { ok: false; reason: SessionDenial; status: 401 | 403 };
+export type SessionCheck = BoundAccess;
 
 type AuthSession = { user?: { id?: string }; sv?: number; sid?: string } | null;
 
@@ -38,9 +36,17 @@ async function clearWritableSessionCookie() {
 }
 
 /** 会话 + 账号 + 设备 + 角色。规则见 decideAdminAccess。拒绝时能写 cookie 就清掉。 */
-export async function checkAdminSession(roles: Role[] = ['ADMIN']): Promise<SessionCheck> {
+export async function checkAdminSession(roles: Role[] = ['ADMIN'], request?: Request): Promise<SessionCheck> {
   let session: AuthSession = null;
-  try { session = await auth() as AuthSession; } catch { return { ok: false, reason: 'unauthenticated', status: 401 }; }
+  try {
+    if (request) {
+      const token = await readSessionToken(request);
+      session = token ? { user: { id: typeof token.uid === 'string' ? token.uid : undefined }, sv: typeof token.sv === 'number' ? token.sv : undefined, sid: typeof token.sid === 'string' ? token.sid : undefined } : null;
+    } else session = await auth() as AuthSession;
+  } catch {
+    await clearWritableSessionCookie();
+    return { ok: false, reason: 'unauthenticated', status: 401 };
+  }
   const userId = session?.user?.id;
   const sid = typeof session?.sid === 'string' ? session.sid : undefined;
   try {
@@ -51,7 +57,7 @@ export async function checkAdminSession(roles: Role[] = ['ADMIN']): Promise<Sess
     });
     if (!decision.ok && decision.reason !== 'forbidden') await clearWritableSessionCookie();
     if (!decision.ok) return { ok: false, reason: decision.reason, status: decision.status };
-    return { ok: true, user: decision.user };
+    return decision;
   } catch {
     await clearWritableSessionCookie();
     return { ok: false, reason: 'unauthenticated', status: 401 };
@@ -66,11 +72,11 @@ export function withClearedSession(response: Response): Response {
   return response;
 }
 
-export async function requireAdmin(req: Request, roles: Role[] = ['ADMIN']): Promise<AdminCtx | Response> {
-  const c = await checkAdminSession(roles);
+export async function requireAdmin(req: Request, roles: Role[] = ['ADMIN']): Promise<(AdminCtx & Pick<Extract<BoundAccess, { ok: true }>, 'device' | 'bounds'>) | Response> {
+  const c = await checkAdminSession(roles, req);
   if (!c.ok) {
     const response = jsonErr(denialError(c.reason), c.status);
     return c.reason === 'forbidden' ? response : withClearedSession(response);
   }
-  return { user: c.user, ip: clientIp(req) };
+  return { user: c.user, device: c.device, bounds: c.bounds, ip: clientIp(req) };
 }

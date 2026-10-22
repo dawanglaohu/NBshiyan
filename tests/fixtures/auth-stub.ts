@@ -48,3 +48,8 @@ export const auth = async () => {
 };
 
 export const handlers = {};
+
+export async function readSessionToken() {
+  const session = await auth();
+  return session ? { uid: session.user?.id, sv: session.sv, sid: session.sid } : null;
+}

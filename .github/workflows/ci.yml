@@ -75,6 +75,10 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm prisma db push --skip-generate
+      - name: Device session protocol and PostgreSQL regressions
+        env:
+          ADMIN_DEVICE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+        run: node --import tsx --test tests/admin-device-guard.http.test.ts tests/admin-device-session.db.test.ts
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
       # next build 的 standalone 产物缺 .next/static 与 public，浏览器跑起来才会 404 样式和媒体。

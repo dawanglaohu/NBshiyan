@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AdminDeviceSession, User } from '@prisma/client';
 import { ADMIN_SESSION_POLICY } from '../src/lib/server/config';
+import type { DeviceRepo } from '../src/lib/server/admin/device-repo';
 import { RememberDeviceSchema } from '../src/lib/contracts/account';
 import {
   accountDto,
@@ -9,7 +10,6 @@ import {
   createDeviceSessionService,
   decideAdminAccess,
   expiryBounds,
-  type DeviceRepo,
 } from '../src/lib/server/admin/device-session';
 
 const policy = ADMIN_SESSION_POLICY;
@@ -102,7 +102,7 @@ test('a revoked row seen on the next call is not served from the first result', 
     create: async () => row,
     revokeSid: async () => {},
     revokeUser: async () => {},
-    transaction: async (run: (repo: DeviceRepo) => Promise<unknown>) => run({} as DeviceRepo),
+    transaction: async <T>(run: (repo: DeviceRepo) => Promise<T>) => run({} as DeviceRepo),
   } satisfies DeviceRepo;
   const service = createDeviceSessionService({ repo, clock: () => created, policy });
   const input = { userId: 'user-1', sessionVersion: 3, sid: 'device-1', roles: area };
@@ -139,4 +139,13 @@ test('device label keeps a coarse name and the account DTO defaults passwordless
   assert.equal(RememberDeviceSchema.safeParse(true).success, false);
   assert.equal(RememberDeviceSchema.parse('false'), false);
   assert.equal(RememberDeviceSchema.parse('true'), true);
+});
+
+
+test('E-70 invalid devices are unauthenticated before route-specific role denial', () => {
+  const invalid = [null, device({ revokedAt: created }), device({ userId: 'foreign' }), device({ sessionVersion: 2 }), device({ lastActivityAt: new Date(created.getTime() - policy.idleMs) }), device({ absoluteExpiresAt: created })];
+  for (const row of invalid) {
+    const result = decideAdminAccess({ userId: 'user-1', sessionVersion: 3, sid: row?.id, user: user({ role: 'SALES' }), device: row, roles: ['ADMIN'], now: created, policy });
+    assert.deepEqual(result, { ok: false, reason: 'unauthenticated', status: 401 });
+  }
 });

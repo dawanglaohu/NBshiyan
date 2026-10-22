@@ -1,0 +1,20 @@
+[
+  {
+    "body": "{\"_type\":\"article\",\"_id\":\"a1\"}",
+    "secret": "test-secret-123",
+    "timestamp": 1760000000000,
+    "signature": "t=1760000000000,v1=YcIBjde_otLVh-qAa7r-C1y-wBr2Hl3MNSzdO29wXgA"
+  },
+  {
+    "body": "{\n  \"_type\": \"product\", \"title\": \"Подарок 🎁\", \"note\": \"\\u0061\"\n}\n",
+    "secret": "test-secret-123",
+    "timestamp": 1760000000000,
+    "signature": "t=1760000000000,v1=8LfTdhZ3J2uuIjW77kyn6nEN6wd33M16Tc9OOfHru3g"
+  },
+  {
+    "body": "{\"_type\":\"article\",\"_id\":\"a2\",\"slug\":{\"en\":{\"current\":\"gift-guide\"},\"ru\":{\"current\":\"podarki\"}},\"seo\":{\"noindex\":false}}",
+    "secret": "synthetic-ключ-🔐",
+    "timestamp": 1760000000001,
+    "signature": "t=1760000000001,v1=qZ_lG-FKmxT_YbHOw3uQO7bnfI7hFwhTiKiPq2kyxOg"
+  }
+]

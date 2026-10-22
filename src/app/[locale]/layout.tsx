@@ -5,6 +5,8 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { clientMessages } from '@/lib/legal/privacy';
 import { routing } from '@/i18n/routing';
+import { PUBLISHED_LOCALES, isPublishedLocale } from '@/i18n/published-locales';
+import { localeDir, ogLocales } from '@/i18n/locale-meta';
 import SiteHeader from '@/components/layout/SiteHeader';
 import OrganizationJsonLd from '@/components/seo/OrganizationJsonLd';
 import { SITE_URL } from '@/lib/site';
@@ -20,7 +22,8 @@ import '../globals.css';
 const manrope = Manrope({ subsets: ['latin', 'cyrillic'], display: 'swap', variable: '--font-sans' });
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  // 只预渲染已发布语言；routing 里预留但未发布的语言不生成页面（middleware 也会先 404）
+  return PUBLISHED_LOCALES.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -32,8 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     openGraph: {
       type: 'website',
       siteName: 'PackJoyU',
-      locale: locale === 'ru' ? 'ru_RU' : 'en_US',
-      alternateLocale: locale === 'ru' ? ['en_US'] : ['ru_RU']
+      ...ogLocales(locale)
     },
     twitter: { card: 'summary_large_image' },
     metadataBase: new URL(SITE_URL),
@@ -47,14 +49,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function LocaleLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  if (!hasLocale(routing.locales, locale)) notFound();
+  // 双保险：middleware 已对未发布语言返回 404，这里对 RSC 等绕过 middleware 的请求再挡一次
+  if (!hasLocale(routing.locales, locale) || !isPublishedLocale(locale)) notFound();
   setRequestLocale(locale);
   // Privacy 文案只在服务端渲染（含 {{待Ryan确认}} 占位符），不下发到客户端
   const messages = clientMessages((await getMessages()) as Record<string, unknown>);
   // #350 导航、页脚的 About 入口：服务端判断后作为 prop 传下去（SiteHeader 是客户端组件）
   const aboutVisible = await isAboutVisible(locale);
   return (
-    <html lang={locale} className={manrope.variable}>
+    <html lang={locale} dir={localeDir(locale)} className={manrope.variable}>
       <body>
         <OrganizationJsonLd locale={locale} />
         <WebVitals />

@@ -153,7 +153,9 @@ Ryan 已确认：
 
 ### 4.6 Sanity（#100，接入时补）
 
-`SANITY_API_READ_TOKEN`（Viewer 权限）、`SANITY_REVALIDATE_SECRET`（`openssl rand -base64 32`），以及 #100 新增的 project ID / dataset 变量。
+`SANITY_API_READ_TOKEN`（Viewer 权限）、`SANITY_WEBHOOK_SECRET`（`openssl rand -base64 32`，同时填进 Sanity webhook 的 Secret），以及 #100 新增的 project ID / dataset 变量。
+
+部署签名校验版本时同步更新应用与 Sanity 的 Secret，验证 webhook 返回 200 后再清理旧 `SANITY_REVALIDATE_SECRET`。配置步骤见 [上线清单：Sanity webhook 签名迁移](./launch-checklist.md#8-sanity-webhook-签名迁移)。
 
 ### 4.7 建议：生产配置自检（后续单独 PR）
 

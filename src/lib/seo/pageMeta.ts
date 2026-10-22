@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { alternatesFor } from '@/i18n/alternates';
+import { ogLocales } from '@/i18n/locale-meta';
 import { SITE_URL } from '@/lib/site';
 import ogVersions from '@/data/og-versions.json';
 
@@ -40,8 +41,7 @@ export async function pageMetadata({ locale, path, title, description, ogSlug = 
       url,
       title,
       description,
-      locale: locale === 'ru' ? 'ru_RU' : 'en_US',
-      alternateLocale: locale === 'ru' ? ['en_US'] : ['ru_RU'],
+      ...ogLocales(locale),
       images: [image]
     },
     twitter: { card: 'summary_large_image', title, description, images: [image] }

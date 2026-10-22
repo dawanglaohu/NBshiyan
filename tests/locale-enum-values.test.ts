@@ -14,7 +14,7 @@ const schema = readFileSync('prisma/schema.prisma', 'utf8');
 const enumValues = () => {
   const m = schema.match(/enum Locale \{([^}]*)\}/);
   assert.ok(m, 'enum Locale missing');
-  return m[1].split('\n').map((l) => l.replace(/\/\/.*$/, '').trim()).filter(Boolean);
+  return m[1].split(/\r?\n/).map((l) => l.replace(/\/\/.*$/, '').trim()).filter(Boolean);
 };
 
 test('schema: enum Locale keeps en, ru first (order unchanged) and appends es/de/fr/ja/hi/ar', () => {
@@ -30,9 +30,10 @@ test('review-only SQL contains only ALTER TYPE "Locale" ADD VALUE for the reserv
   const f = 'prisma/sql/locale-enum-values.sql';
   const sql = readFileSync(f, 'utf8');
   assert.match(sql, /review-only/);
-  const stmts = sql.split('\n').map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean);
+  const stmts = sql.split(/\r?\n/).map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean);
   assert.deepEqual(stmts, RESERVED.map((v) => `ALTER TYPE "Locale" ADD VALUE '${v}';`));
-  const out = execFileSync('bash', ['-c', '. deploy/plan-check.sh; plan_problems "$1"', '_', f], { encoding: 'utf8' });
+  const gate = readFileSync('deploy/plan-check.sh', 'utf8').replace(/\r\n/g, '\n');
+  const out = execFileSync('bash', ['-s', '--', f], { encoding: 'utf8', input: `${gate}\nplan_problems "$1"\n` });
   assert.equal(out.trim(), '', out);
 });
 

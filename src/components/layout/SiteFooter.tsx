@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { categoryProducts as products } from '@/data/categories';
-import LangLink from './LangLink';
+import LangLinks from './LangLink';
 import CookieSettingsLink from '@/components/consent/CookieSettingsLink';
 
 // 站点页脚（#65）：公司、品类、联系、隐私政策、语言切换
@@ -32,7 +32,7 @@ export default async function SiteFooter({ aboutVisible = false }: { aboutVisibl
         {aboutVisible && <Link href="/about">{nav('about')}</Link>}
         <Link href="/privacy">{t('privacy')}</Link>
         <CookieSettingsLink label={t('cookieSettings')} />
-        <LangLink label={t('otherLang')} />
+        <LangLinks />
       </div>
     </footer>
   );

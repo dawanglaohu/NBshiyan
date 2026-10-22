@@ -32,15 +32,21 @@ export function isStrictlyBefore(now: Date, deadline: Date): boolean {
 /**
  * 账号状态判断，接口和页面共用。
  * 未登录、用户不存在、锁定、会话版本不一致、未开 2FA → 401。
- * 停用 → 403。角色不在名单里 → 403。
+ * 停用 → 403。路由角色在设备校验之后判断。
  */
-export function classifySession<U extends SessionUser>(uid: string | undefined, user: U | null, sv: number | undefined, roles: readonly Role[], now = new Date()):
+function classifyAccount<U extends SessionUser>(uid: string | undefined, user: U | null, sv: number | undefined, now: Date):
   { ok: true; user: U } | { ok: false; reason: SessionDenial; status: 401 | 403 } {
   if (!uid || !user) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (user.disabled) return { ok: false, reason: 'disabled', status: 403 };
   if (!user.totpEnabled || (user.lockedUntil && user.lockedUntil > now) || sv !== user.sessionVersion) return { ok: false, reason: 'unauthenticated', status: 401 };
-  if (!roles.includes(user.role)) return { ok: false, reason: 'forbidden', status: 403 };
   return { ok: true, user };
+}
+
+export function classifySession<U extends SessionUser>(uid: string | undefined, user: U | null, sv: number | undefined, roles: readonly Role[], now = new Date()) {
+  const account = classifyAccount(uid, user, sv, now);
+  if (!account.ok) return account;
+  if (!roles.includes(account.user.role)) return { ok: false, reason: 'forbidden', status: 403 } as const;
+  return account;
 }
 
 /** 在账号判断之后核对本机设备。过期的等号拒绝，读取不改 lastActivityAt。 */
@@ -54,7 +60,7 @@ export function decideAdminAccess(input: {
   now: Date;
   policy: SessionPolicy;
 }): BoundAccess {
-  const account = classifySession(input.userId, input.user, input.sessionVersion, input.roles, input.now);
+  const account = classifyAccount(input.userId, input.user, input.sessionVersion, input.now);
   if (!account.ok || !input.user) return account.ok ? { ok: false, reason: 'unauthenticated', status: 401 } : account;
   const device = input.device;
   if (!input.sid || !device || device.userId !== input.user.id || device.revokedAt || device.sessionVersion !== input.user.sessionVersion) {
@@ -64,6 +70,7 @@ export function decideAdminAccess(input: {
   const bounds = expiryBounds(device, input.policy);
   if (!isStrictlyBefore(input.now, bounds.effectiveExpiresAt)) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (bounds.absoluteExpiresAt && !isStrictlyBefore(input.now, bounds.absoluteExpiresAt)) return { ok: false, reason: 'unauthenticated', status: 401 };
+  if (!input.roles.includes(input.user.role)) return { ok: false, reason: 'forbidden', status: 403 };
   return { ok: true, user: input.user, device, bounds };
 }
 

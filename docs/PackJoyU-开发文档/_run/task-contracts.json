@@ -685,7 +685,18 @@
         "src/types/next-auth.d.ts",
         "src/app/api/admin/account/route.ts",
         "tests/admin-device-session.db.test.ts",
-        "tests/admin-device-guard.http.test.ts"
+        "tests/admin-device-guard.http.test.ts",
+        "src/lib/server/admin/account.ts",
+        "src/app/api/auth/[...nextauth]/route.ts",
+        "src/app/api/admin/account/password/route.ts",
+        "src/app/api/admin/account/2fa/reset/route.ts",
+        "src/app/api/admin/users/[id]/route.ts",
+        "src/app/api/admin/users/[id]/reset-2fa/route.ts",
+        "tests/fixtures/auth-stub.ts",
+        "tests/mail-routes.test.ts",
+        "tests/spec-form.test.ts",
+        ".github/workflows/ci.yml",
+        "e2e/admin-device-session.spec.ts"
       ],
       "outputPaths": [
         "src/auth.ts",
@@ -3507,6 +3518,10 @@
         {
           "task": "M1-T3",
           "capability": "brand-logo-master"
+        },
+        {
+          "task": "M1-T3",
+          "capability": "brand-static-media"
         }
       ],
       "supportPaths": [],

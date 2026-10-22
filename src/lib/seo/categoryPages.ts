@@ -19,3 +19,9 @@ export function categoryHref(locale: 'en' | 'ru', key: string, live: boolean = C
   const p = categoryPagePath(locale, key, live);
   return p ? p.slice(locale.length + 1) : `/products#${encodeURIComponent(key)}`;
 }
+
+/** 品类落地页给语言切换器的各语言路径（不含 locale 前缀），如 { en: '/products/custom-gift-boxes', ru: '/products/podarochnye-korobki' } */
+export function categoryLocaleAlternates(key: string): { en: string; ru: string } | null {
+  const s = categorySlugs(key);
+  return s ? { en: `/products/${s.en}`, ru: `/products/${s.ru}` } : null;
+}

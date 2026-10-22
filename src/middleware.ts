@@ -1,11 +1,14 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
+import { PUBLISHED_LOCALES } from './i18n/published-locales';
+import { isBlockedLocalePath, LOCALE_GATE_REWRITE } from './lib/edge/locale-gate';
 import { EXPIRED_RE, probeConfig, probeHeaders, probeShortlink, parseShortlink } from './lib/edge/shortlink';
 import { resolveClientIp } from './lib/edge/client-ip';
-import { rewriteSameSiteRedirect } from './lib/edge/redirect-location';
+import { listenOrigin, rewriteSameSiteRedirect } from './lib/edge/redirect-location';
 
-const intl = createMiddleware(routing);
+// 语言检测（Accept-Language / NEXT_LOCALE cookie）只在已发布语言里选，`/` 不会被跳到未发布语言
+const intl = createMiddleware({ ...routing, locales: PUBLISHED_LOCALES });
 const NOINDEX = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'private, no-store' };
 const UNAVAILABLE = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store', 'Retry-After': '60' };
 
@@ -38,6 +41,12 @@ export default async function middleware(req: NextRequest) {
     }
     // 未过期、超时或出错：照常交给页面处理
     if (!sl.locale) return NextResponse.next();
+  }
+  // 多语言第 0 期：未发布 / 未知 / 非规范写法的语言前缀 → 404 + noindex，不跳转（白名单见 lib/edge/locale-gate.ts）。
+  // rewrite 到 /en/locale-unavailable（真实 404，带头部页脚的英文 404 页），URL 不变；页面安全头照常由 next.config headers() 加上。
+  // 目标用监听 origin（同 redirect-location.ts），路由层按站内 rewrite 处理，不走内部代理
+  if (isBlockedLocalePath(pathname)) {
+    return NextResponse.rewrite(new URL(LOCALE_GATE_REWRITE, listenOrigin(req.nextUrl) ?? req.nextUrl.origin), { status: 404, headers: NOINDEX });
   }
   // next-intl 的跳转地址基于 req.url（监听地址）：指向本站的 Location 改成监听 origin + 路径，由路由层输出相对 Location（/en）
   return rewriteSameSiteRedirect(req.nextUrl, intl(req));

@@ -38,10 +38,10 @@ export function createDeviceRepo(db: PrismaClient): DeviceRepo {
   };
 }
 
-/** 账号会话版本变化之后，把仍未撤销的设备行标成撤销。调用方先写 User。 */
-export async function revokeUserDevices(db: Pick<PrismaClient, 'adminDeviceSession'>, userId: string, reason: string, now = new Date()) {
+/** 只撤销已提交账号版本之前的设备；提交之后新登录的设备不在撤销范围。 */
+export async function revokeUserDevices(db: Pick<PrismaClient, 'adminDeviceSession'>, userId: string, reason: string, committedSessionVersion: number, now = new Date()) {
   await db.adminDeviceSession.updateMany({
-    where: { userId, revokedAt: null },
+    where: { userId, revokedAt: null, sessionVersion: { lt: committedSessionVersion } },
     data: { revokedAt: now, revokedReason: reason },
   });
 }
