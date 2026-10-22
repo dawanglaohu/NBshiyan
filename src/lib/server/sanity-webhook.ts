@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 import { z } from 'zod';
 import { DOC_TYPES } from '@/lib/server/sanity';
 
@@ -6,6 +7,32 @@ import { DOC_TYPES } from '@/lib/server/sanity';
 export const SIGNATURE_HEADER_NAME = 'sanity-webhook-signature';
 export const MAX_SKEW_MS = 5 * 60_000;
 export const MAX_BODY = 8_000;
+
+type WarningReason =
+  | 'missing SANITY_WEBHOOK_SECRET'
+  | 'signature missing'
+  | 'signature malformed'
+  | 'signature stale'
+  | 'signature mismatch'
+  | 'invalid json'
+  | 'payload rejected';
+const WARNING_WINDOW_MS = 60_000;
+const warningWindows = new Map<WarningReason, { opensAt: number; suppressed: number }>();
+
+/** 只保留受控原因、单调时钟和计数，不能用请求输入作键。 */
+function warnWebhook({ errorSummary }: { errorSummary: WarningReason }): void {
+  const now = performance.now();
+  const previous = warningWindows.get(errorSummary);
+  if (previous && now < previous.opensAt) {
+    previous.suppressed = Math.min(Number.MAX_SAFE_INTEGER, previous.suppressed + 1);
+    return;
+  }
+  const suppressedCount = previous?.suppressed ?? 0;
+  warningWindows.set(errorSummary, { opensAt: now + WARNING_WINDOW_MS, suppressed: 0 });
+  try {
+    console.warn('[sanity-webhook]', suppressedCount ? { errorSummary, suppressedCount } : { errorSummary });
+  } catch { /* 日志出口不可用不能改变 webhook 的拒绝响应。 */ }
+}
 
 const b64url = (b: Buffer) => b.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
@@ -37,9 +64,12 @@ export const WebhookPayload = z.object({
 export type HandleDeps = { env: Record<string, string | undefined>; revalidateTag: (t: string) => void; log?: (o: { errorSummary: string }) => void; now?: number };
 export type HandleResult = { status: number; body: Record<string, unknown>; document?: z.infer<typeof WebhookPayload> };
 
-/** 纯处理逻辑（便于测试）：先验签原始请求体，再 JSON.parse + zod，最后只刷新白名单内的 tag */
+/**
+ * 先验签原始正文与校验载荷，再刷新白名单 tag。
+ * 默认日志每进程、每受控原因每分钟最多一条，下一窗口首次警告报告抑制次数；显式 log 由调用方管理。
+ */
 export function handleSanityWebhook(raw: string | null, sigHeader: string | null, d: HandleDeps): HandleResult {
-  const log = d.log ?? ((o) => console.warn('[sanity-webhook]', o));
+  const log = d.log ?? warnWebhook;
   const secret = d.env.SANITY_WEBHOOK_SECRET;
   if (!secret) {
     if (d.env.NODE_ENV === 'production') { log({ errorSummary: 'missing SANITY_WEBHOOK_SECRET' }); return { status: 503, body: { error: 'not_configured' } }; }
