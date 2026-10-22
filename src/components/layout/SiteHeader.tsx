@@ -42,9 +42,9 @@ export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: bo
   const links = (
     <>
       <Link href="/">{t('home')}</Link>
-      <Link href="/products">{t('products')}</Link>
+      <Link href="/products" data-testid="products-link">{t('products')}</Link>
       {aboutVisible && <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined}>{t('about')}</Link>}
-      <Link href="/contact">{t('contact')}</Link>
+      <Link href="/contact" data-testid="contact-link">{t('contact')}</Link>
     </>
   );
   const lang = (
@@ -53,7 +53,7 @@ export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: bo
 
   return (
     <header className="site">
-      <Link href="/" className="logo">Pack<i>Joy</i>U</Link>
+      <Link href="/" className="logo" data-testid="home-link">Pack<i>Joy</i>U</Link>
       <nav className="nav-desktop" aria-label={t('main')}>
         {links}
         {lang}

@@ -369,7 +369,16 @@ body{background:var(--pj-bg);color:var(--pj-fg);font-size:var(--pj-body-size);li
 .card.theme-premium{border-color:var(--pj-bg)}
 .card.theme-premium :focus-visible{outline-color:var(--pj-bg)}
 
-/* Approved industrial artwork: static by default, animation starts only on request. */
-.brand-scene-media{position:relative;width:100%;aspect-ratio:1737/905;background:var(--pj-bg)}
-.brand-scene-media img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
-.brand-scene-controls{display:flex;justify-content:flex-end;min-height:44px;margin-top:12px}
+/* City GIF and its same-size pause still share one 1384×720 frame. The GIF src is attached only near the viewport. */
+.brand-scene-section h2{margin:0 0 16px;font-size:var(--pj-h2-desktop-size);line-height:var(--pj-h2-desktop-line);font-weight:700;letter-spacing:-0.02em}
+.brand-scene-media{position:relative;width:100%;aspect-ratio:1384/720;box-sizing:content-box;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);overflow:hidden}
+.brand-scene-media img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+.brand-scene-controls{display:flex;justify-content:flex-start;min-height:44px;margin-top:12px}
+/* Controls sit under the 16:9 frame. The earlier absolute rule stays in the file for the locked selector text; this later rule wins. */
+.hero-stage{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;width:100%}
+.hero-media{box-sizing:content-box;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius)}
+.hero-media-ctrls{position:static;left:auto;bottom:auto;margin:0}
+@media (max-width:1023px){
+  .hero-grid{grid-template-columns:1fr}
+  .brand-scene-section h2{font-size:var(--pj-h2-phone-size);line-height:var(--pj-h2-phone-line)}
+}
