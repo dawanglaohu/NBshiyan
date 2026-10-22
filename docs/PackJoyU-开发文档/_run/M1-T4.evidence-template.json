@@ -2,7 +2,7 @@
   "scope": "task-contract",
   "tasks": {
     "M1-T4": {
-      "contractHash": "f66411b00d1f65ca7891b3ef3443b392753ac177352c91eadc7f2ed4d9d0b4be",
+      "contractHash": "f234d6bcf4bf2e54fcb4e2faaf12fd8c1eeae5973dff7a75d83526c51e7de8aa",
       "evidence": [],
       "verdict": "pending"
     }

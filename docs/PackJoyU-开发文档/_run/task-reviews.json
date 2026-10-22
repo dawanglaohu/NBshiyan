@@ -44,15 +44,15 @@
   },
   "M1-T4": {
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "f66411b00d1f65ca7891b3ef3443b392753ac177352c91eadc7f2ed4d9d0b4be",
+    "contractHash": "f234d6bcf4bf2e54fcb4e2faaf12fd8c1eeae5973dff7a75d83526c51e7de8aa",
     "evidence": [
-      "本记录仅登记任务契约语义复核，不代表实现验收通过；M1-T4仍为review，未执行--landed。原验收1至3与E21-E25保持逐字不变。",
-      "前置仍为M1-T6 brand-media、M1-T7 visual-components、M1-T8 client-api-foundation，integration产出home-media；13/17/19条款、SSR loadCatalog(listPublishedModels)和en/ru语言不变，不新增目录fetch或DTO。",
-      "按jev-1.14.0的M1-T4:review-routing-supported-config裁决A（high 0.94，adopt=take），只对M1-T4移除过宽frontendRoutes类别，在supportPaths显式列routes.ts与i18n入口；outputPaths仍包含SiteHeader及首页。19节明确本层建立home/products/contact登记并消费，其余入口由后继任务补，不创建后台页面；不修改生成器及07的23路由总目标。",
-      "已核实际SiteHeader三入口及locale navigation存在；routes.ts尚不存在，是实现返工R3，不能用本次文档复核冒充接线完成。R1真实视口外150px仍播放及R2旧圆形按钮样式亦保持未通过。",
-      "补丁只修改M1-T4源条款和任务配置；下游哈希由provider依赖传播，未降低验收、未修改其源任务。sync未标记任何已落地任务待复验。"
+      "本轮只复核上一轮R1-R3及直接回归；原验收和E21-E25、集成阶段、M1-T6/T7/T8前置能力以及SSR目录来源均保持，未要求后台页面接线。",
+      "补丁只给M1-T4 supportPaths增加tests/hero-video.test.ts、tests/about-350.test.ts：两测试原先锁定原生button与字面href，当前按已定共享Button和PUBLIC_ROUTES更新，均属R2/R3必要直接回归；其余源任务与生产范围不变。",
+      "Jev jev-1.14.0 M1-T4:review-r2-support pick=A high0.98 adopt=take；候选A只列这两路径，B列整个tests目录，按A最小补齐，没有扩大测试目录授权。",
+      "定向hero-video/home-brand-media/about-350/ui-primitives规则测试39通过0失败0跳过；typecheck与lint通过。本记录只证明任务契约定义复核，R1真实隐藏页证据与本轮CI仍由代码验收记录负责，未调用--landed。",
+      "R1原复现转绿；独立Chrome无目标页调试器附着时真实窗口最小化/恢复与标签页切换产生可信hidden/visible，卸下GIF且保留用户暂停；R2三尺寸共享Button与真实Tab焦点通过，R3三集中入口点击与SSR来源通过。完整本轮证据为M1-T4.review-round-2.evidence.json；仅原生证据证明后台页，合成freeze/resume测试明确只覆盖处理器。"
     ],
-    "reviewed": "2026-10-22T05:48:07.568048+00:00",
+    "reviewed": "2026-10-22T08:02:43.682387+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

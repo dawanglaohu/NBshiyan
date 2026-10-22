@@ -149,7 +149,9 @@
       "supportPaths": [
         "src/lib/navigation/routes.ts",
         "src/i18n/routing.ts",
-        "src/i18n/navigation.ts"
+        "src/i18n/navigation.ts",
+        "tests/hero-video.test.ts",
+        "tests/about-350.test.ts"
       ],
       "outputPaths": [
         "src/components/layout/",
