@@ -1,0 +1,35 @@
+{
+  "acceptance": "1) Caller/wiring point: an ADMIN handler consumes a target-bound RECOVERY_AUTHORIZE grant to issue a 15-minute permit. The target cannot be the authorizer. Reject the old unverified reset-2fa request. Recovery start locks User before reading and consuming the current recovery-code list; concurrent uses of two different codes must not resurrect a consumed code (E-11, E-13). 2) The start transaction revokes old devices/recovery sessions, increments sv, and sets a ten-minute HttpOnly restricted cookie while keeping the original valid TOTP/password. Any admin API request with that cookie is rejected; an account/email alone cannot obtain recovery authority (E-10, E-11, E-14). 3) The local CLI with OS authority issues the same kind of permit only for an explicit target and reason. Hidden, confirmed TTY input of a new password stores only a preauthorized hash; HTTP cannot write pendingPasswordHash. Audit records contain no secrets. Preserve the old initial-password CLI's ADMIN/unenrolled/enabled/TTY guards, and use isolated accounts to verify the full authorization input without a second administrator (E-12, E-75).",
+  "edges": {
+    "E-10": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "An ordinary sign-in is performed.",
+      "expect": "Do not show a recovery code as required. A separate Cannot use your authenticator entry opens recovery. Supplying only an account identifier or email address cannot grant reset authority."
+    },
+    "E-11": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "An account identifier and a valid one-time recovery code are submitted.",
+      "expect": "Atomically consume the recovery code and issue restricted, short-lived re-enrollment credentials. These allow only enrollment of a new authenticator; they cannot grant full admin access before a new code is correctly verified. Concurrent uses of the same recovery code succeed only once."
+    },
+    "E-12": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "The authenticator and all recovery codes are lost, and no second administrator exists.",
+      "expect": "Only a server owner with operating-system administrative authority may run a local recovery command to issue a one-time credential for an explicitly identified target account. Record the actor, time, and target; do not write the plaintext credential to the audit log."
+    },
+    "E-13": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Another administrator authorizes recovery on someone else's behalf.",
+      "expect": "The authorizer must authenticate again. An already open admin page or a visitor email request alone cannot authorize resetting another account."
+    },
+    "E-14": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Recovery is interrupted or the reset credential expires.",
+      "expect": "Explicitly reject protected admin access with restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid enrollment remains intact. A valid restricted cookie may re-enter the same enroll operation; once invalid, restart through the recovery-code or authorization path defined in section 10. Restricted credentials cannot be exchanged for a full admin session."
+    },
+    "E-75": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The user forgets the current password but can still use previously enabled passwordless sign-in.",
+      "expect": "Resolve D3 through the restricted recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless sign-in remains unchanged. Without the current password, sensitive settings cannot issue an ordinary ActionGrant: reject direct requests based solely on a signed-in session or one TOTP without a change. Restricted recovery permits only new enrollment and is audited."
+    }
+  }
+}

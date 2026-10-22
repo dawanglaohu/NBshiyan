@@ -1,0 +1,23 @@
+{
+  "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-preview.gif",
+  "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+  "width": 960,
+  "height": 500,
+  "frameCount": 361,
+  "durationMs": 30080,
+  "loop": 0,
+  "bytes": 8663921,
+  "sourceGifSha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+  "encoding": {
+    "source": "final full-size GIF RGB frames",
+    "resize": [
+      960,
+      500
+    ],
+    "resampler": "Pillow LANCZOS",
+    "palette": "255 colors, global from first resized frame",
+    "dither": "none",
+    "optimize": true,
+    "disposal": 1
+  }
+}

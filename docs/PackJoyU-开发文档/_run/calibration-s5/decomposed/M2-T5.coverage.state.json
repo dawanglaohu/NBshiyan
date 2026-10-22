@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Click product-card inquire-product to /[locale]/contact. A real POST /api/inquiries carries a server-recognized productSlug and persists a real Inquiry identifier; form product/specifications equal the source card, without changing the old inquiry protocol. 2) Use that entry separately in en/ru and at narrow width 390. Model dragging/keyboard control before submission produces no inquiry POST; names, specifications and inquiry entries remain visible and can complete submission. Retain one real-path GIF.",
+  "edges": {}
+}

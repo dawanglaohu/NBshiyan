@@ -1,0 +1,164 @@
+{
+  "phase": "reviewer-merged",
+  "origin": "http://127.0.0.1:3317",
+  "serverMode": "next start from real production compilation; standalone packaging failed EPERM",
+  "head": "8c668fc8f9f352640cca9e13b83e34ad9d9122aa",
+  "dirty": true,
+  "browser": "installed Chrome through repository Playwright, fresh isolated contexts",
+  "mockModes": false,
+  "modelRound": "not applicable: static website media playback",
+  "database": "not configured; normal site-settings read failure and catalog fallback remain, no DB fixture",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "locale": "en",
+      "media": {
+        "src": "http://127.0.0.1:3317/brand/video2-packjoyu-products-v3.mp4",
+        "width": 1920,
+        "height": 1080,
+        "duration": 12.266,
+        "time": 0.24621
+      },
+      "ratio": {
+        "w": 530.90625,
+        "h": 298.625,
+        "ratio": 1.777835914608623,
+        "fit": "contain"
+      },
+      "noOverflow": true,
+      "playPauseSkip": true,
+      "gifManualStartAndPause": true,
+      "noGifBeforeManualPlay": true,
+      "offscreenStaticAndResume": true,
+      "manualPausePreserved": true,
+      "pageErrors": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "locale": "en",
+      "media": {
+        "src": "http://127.0.0.1:3317/brand/video2-packjoyu-products-v3.mp4",
+        "width": 1920,
+        "height": 1080,
+        "duration": 12.266,
+        "time": 0.315707
+      },
+      "ratio": {
+        "w": 530.90625,
+        "h": 298.625,
+        "ratio": 1.777835914608623,
+        "fit": "contain"
+      },
+      "noOverflow": true,
+      "playPauseSkip": true,
+      "gifManualStartAndPause": true,
+      "noGifBeforeManualPlay": true,
+      "offscreenStaticAndResume": true,
+      "manualPausePreserved": true,
+      "pageErrors": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "locale": "en",
+      "media": {
+        "src": "http://127.0.0.1:3317/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+        "width": 1280,
+        "height": 720,
+        "duration": 12.266,
+        "time": 0.225538
+      },
+      "ratio": {
+        "w": 350,
+        "h": 196.875,
+        "ratio": 1.7777777777777777,
+        "fit": "contain"
+      },
+      "noOverflow": true,
+      "playPauseSkip": true,
+      "gifManualStartAndPause": true,
+      "noGifBeforeManualPlay": true,
+      "offscreenStaticAndResume": true,
+      "manualPausePreserved": true,
+      "pageErrors": []
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "locale": "ru",
+      "media": {
+        "src": "http://127.0.0.1:3317/brand/video2-packjoyu-products-v3.mp4",
+        "width": 1920,
+        "height": 1080,
+        "duration": 12.266,
+        "time": 0.225817
+      },
+      "ratio": {
+        "w": 530.90625,
+        "h": 298.625,
+        "ratio": 1.777835914608623,
+        "fit": "contain"
+      },
+      "noOverflow": true,
+      "playPauseSkip": true,
+      "gifManualStartAndPause": true,
+      "noGifBeforeManualPlay": true,
+      "offscreenStaticAndResume": true,
+      "manualPausePreserved": true,
+      "pageErrors": []
+    }
+  ],
+  "httpAssets": [
+    {
+      "name": "packjoyu-industrial-city-v3.png",
+      "status": 200,
+      "bytes": 2845196,
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+      "contentType": "image/png"
+    },
+    {
+      "name": "packjoyu-industrial-city-v3-loop.gif",
+      "status": 200,
+      "bytes": 13877870,
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+      "contentType": "image/gif"
+    },
+    {
+      "name": "packjoyu-industrial-city-v3-loop-preview.gif",
+      "status": 200,
+      "bytes": 8663921,
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+      "contentType": "image/gif"
+    },
+    {
+      "name": "video2-packjoyu-products-v3.mp4",
+      "status": 200,
+      "bytes": 10216338,
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "contentType": "video/mp4"
+    },
+    {
+      "name": "video2-packjoyu-products-web-720p60-v3.mp4",
+      "status": 200,
+      "bytes": 4231724,
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "contentType": "video/mp4"
+    },
+    {
+      "name": "video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "status": 200,
+      "bytes": 421795,
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+      "contentType": "image/jpeg"
+    }
+  ],
+  "reducedMotion": {
+    "videoMounts": 0,
+    "gifLoads": 0,
+    "staticOnly": true
+  },
+  "headAfter": "8c668fc8f9f352640cca9e13b83e34ad9d9122aa",
+  "status": "pass"
+}

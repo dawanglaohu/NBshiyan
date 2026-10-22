@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Complete keyboard/touch model control and static fallback",
+    "input": "model-pointer, the poster and initial camera bounds",
+    "output": "Keyboard/touch/reset behavior and GLB-failure fallback",
+    "accept": "1) Tab must reach the specific controls, with keyboard rotation/zoom/reset and Escape available; a single finger operates the model, two fingers zoom within bounds, and the page scrolls in the text area; targets must be at least 44px and must not trigger an inquiry (E-101, E-102). 2) Individually test GLB failure, unsupported WebGL, context lost, and poster-only or FoldBox-only display; each must give a static fallback with inquiry and retry available; reset must return to the initial camera with the complete model visible; posters/procedural demonstrations must not count as successful GLB loads (E-103, E-104)."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

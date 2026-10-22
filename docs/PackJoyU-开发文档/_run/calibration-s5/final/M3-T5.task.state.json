@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire restricted reentrant enrollment and final one-time confirmation",
+    "input": "M3-T19 real restricted sessions; section 09/10 pending/confirm states and current TOTP CAS.",
+    "output": "POST /api/auth-admin/recovery/enroll and POST /api/auth-admin/recovery/confirm; reentry and atomic publication of the new factor.",
+    "accept": "1) Caller/wiring point: real restricted handlers -> recovery-enrollment service. Encrypt pendingSecret on first entry; reentry within the original window returns the same URI/original expiresAt without rotation or extension. Wrong/expired/repeated confirms and two concurrent confirms check current token/sv/secret/step and commit at most once. The old valid method remains usable before a failing attempt (E-08, E-14). 2) After a real confirm with a new unused TOTP, publish secret/new recovery-code hashes, increment sv, revoke old devices/recovery credentials, consume the session, and clear the cookie in one transaction. Return recovery codes once. Change password simultaneously only for a SERVER_OWNER-preauthorized hash; HTTP accepts only totp. Unknown outcomes do not replay; actual ordinary sign-in at the next time step verifies the result. Old factors/devices reject (E-15). 3) Add assertions using T19's already-issued restricted cookie as a prerequisite; do not rebuild permit issuance. POST /api/auth-admin/recovery/enroll with body={} returns 200; otpauthUri is a nonempty string and expiresAt is a UTC timestamp. A second POST {} with the same cookie returns 200 with both fields byte-for-byte identical; stored pending ciphertext and pendingUntil remain unchanged. At equality with the original expiresAt, enroll returns 401/error=recovery_expired without changing the old secret/password. confirm with a wrong totp returns 401 without completed=true or recoveryCodes; after five wrong codes the same restricted credential no longer returns 200. confirm with a valid new totp returns 200, completed=true, and a nonempty array of recovery-code strings. Set-Cookie clears that same restricted cookie, completedAt is non-null, and this final confirmation increments sv exactly once. Copy the pre-success cookie into two concurrent confirm requests: exactly one returns 200; the other returns 401 without recoveryCodes. Further repeats return 401 and leave sv/recovery-code hashes unchanged. After success, GET /api/admin/account with an old-device cookie returns 401. At the next unused time step, new-authenticator Credentials obtains an admin cookie; an old-authenticator code obtains no session. Adding any password/newPassword/passwordHash field to confirm body returns 400/error=invalid. Only the existing SERVER_OWNER-preauthorized fixture signs in with its preauthorized new password after success; other sources preserve the password hash."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

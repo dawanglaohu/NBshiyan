@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Connect real product and model analytics events end to end",
+    "input": "analytics-ingest, model-fallback and allowlisted products",
+    "output": "Producer wiring for product visits and 3D start/terminal events",
+    "accept": "1) The entry is a real GLB load from a product card, triggering POST /api/analytics/events; without consent it must remain operable with no analytics requests, and a product-page visit must not masquerade as a 3D start (E-42, E-46). 2) Each viewId must have only one success/failure terminal event; timeouts and failures must carry actual durationMs, and static fallback must not report success; verify event associations separately for two attempts and for cancellation when switching cards (E-63, E-103)."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "task": "M1-T3",
+  "kind": "new_style_variant",
+  "authorization": "用户明确将原图作为参考，要求生成不同风格且保留logo；不要求新风格保持原场景像素。",
+  "tool": "image_gen.imagegen",
+  "result": "succeeded",
+  "intent": "generate a new illustration using thematic and existing-logo references",
+  "style": "handcrafted papercraft miniature diorama",
+  "inputs": [
+    {
+      "path": "C:/Users/admin/Desktop/banner1_1654824049643.jpg",
+      "sha256": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "role": "thematic_reference_only"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/exact-logo-reference.png",
+      "sha256": "a574cb98ca4c31fdb3ca642e336ca70dfeec464563203a886d065cf6a2ce9f5f",
+      "role": "existing_wordmark_reference"
+    }
+  ],
+  "prompt": {
+    "path": "docs/brand-media/static/evidence/papercraft-style.prompt.txt",
+    "sha256": "934602ebcd4c69efbc9c88d894fb730052cfba728ed45c6633619be75295caf5"
+  },
+  "output": {
+    "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+    "sha256": "01440bcade957cf0ec82d05b11bf5de0e227f450c2cb156f6e2cedf41a7115f7",
+    "width": 1738,
+    "height": 905
+  },
+  "toolResultFileName": "exec-434f04a5-6ff2-4bd4-b934-b77ec26880a0.png",
+  "visualReview": {
+    "airshipWordmark": "PackJoyU",
+    "factoryWordmark": "PackJoyU",
+    "PackAndU": "black",
+    "Joy": "coral",
+    "oldCorporateMarksObserved": false,
+    "styleIsDifferent": true
+  },
+  "factualBoundary": "Fictional paper-art brand illustration; no real factory/customer/capacity claim. Does not change original video provenance.",
+  "releaseAllowed": false,
+  "revisions": [
+    {
+      "tool": "image_gen.imagegen",
+      "result": "succeeded",
+      "kind": "user_annotated_detail_edit",
+      "input": {
+        "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v1.png",
+        "sha256": "01440bcade957cf0ec82d05b11bf5de0e227f450c2cb156f6e2cedf41a7115f7"
+      },
+      "wordmarkReference": {
+        "path": "docs/brand-media/static/evidence/exact-logo-reference.png",
+        "sha256": "a574cb98ca4c31fdb3ca642e336ca70dfeec464563203a886d065cf6a2ce9f5f"
+      },
+      "prompt": {
+        "path": "docs/brand-media/static/evidence/papercraft-detail-v2.prompt.txt",
+        "sha256": "c83d973c807fa6fbe88c7119e644cea8cb9ecec6e47ef1d47b15ce3c7da6963f"
+      },
+      "output": {
+        "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+        "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf",
+        "width": 1737,
+        "height": 905
+      },
+      "toolResultFileName": "exec-7ab4e703-7e60-4599-88b5-46363621cfa4.png",
+      "corrections": [
+        {
+          "atPercent": [
+            31.3,
+            52.4
+          ],
+          "request": "Remove duplicate truck cab and analogous vehicle artifacts",
+          "observed": "Single red cab and enclosed white box body; no rear beige cab."
+        },
+        {
+          "atPercent": [
+            36.3,
+            44.8
+          ],
+          "request": "Finish exposed corrugated building facade",
+          "observed": "Coherent windowed miniature office facade."
+        },
+        {
+          "atPercent": [
+            43.6,
+            49.9
+          ],
+          "request": "Replace taped-box-like low building and similar buildings",
+          "observed": "Finished windows, doorway and normal roofline."
+        },
+        {
+          "atPercent": [
+            77.9,
+            52.1
+          ],
+          "request": "Vary and rationalize factory rooftop structures",
+          "observed": "Flat roof surfaces with ventilation/HVAC, skylights and modest solar arrays."
+        }
+      ],
+      "additionalDetail": "Selected warm windows and yard lamps, restrained cyan canopy lights, no heavy sci-fi transformation.",
+      "wordmarks": [
+        "Airship: PackJoyU",
+        "Factory: PackJoyU"
+      ],
+      "releaseAllowed": false
+    },
+    {
+      "tool": "image_gen.imagegen",
+      "result": "succeeded",
+      "kind": "user_requested_material_and_workforce_revision",
+      "input": {
+        "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+        "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf"
+      },
+      "wordmarkReference": {
+        "path": "docs/brand-media/static/evidence/exact-logo-reference.png",
+        "sha256": "a574cb98ca4c31fdb3ca642e336ca70dfeec464563203a886d065cf6a2ce9f5f"
+      },
+      "prompt": {
+        "path": "docs/brand-media/static/evidence/industrial-detail-v3.prompt.txt",
+        "sha256": "a0243816f0a4dab5e7dec7d42e14a10aef111c3c020941f3c9480dc63e7029a5"
+      },
+      "output": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+        "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+        "width": 1737,
+        "height": 905
+      },
+      "toolResultFileName": "exec-e4e53282-4c27-44ed-bd58-0a915ede9e6c.png",
+      "staticReview": {
+        "naturalClouds": true,
+        "metalAirshipWithLogo": true,
+        "waterWithRealRipples": true,
+        "shipFunnelAndSmoke": true,
+        "concreteTunnel": true,
+        "completeForkliftWithSeatedDriverAndLoad": true,
+        "warehouseStaffAtWork": true,
+        "bothWordmarksReadable": true
+      },
+      "reviewScope": "Root and independent static-image review before GIF creation; no claim of separate user signoff."
+    }
+  ],
+  "latestOutput": {
+    "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+    "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+    "width": 1737,
+    "height": 905
+  },
+  "latestOutputUserAccepted": true,
+  "approvalBasis": "用户确认保存当前静态图与GIF：ok   保存这俩个素材，然后我们在处理视频。",
+  "approvedImageAnimationRecord": "docs/brand-media/static/approved-image-gif-record.json",
+  "previousUserAcceptedOutput": {
+    "path": "docs/brand-media/static/held/packjoyu-papercraft-city-v2.png",
+    "sha256": "dfe91a0f9e5d783e982b694023aaa757f0edafa61f138993e86013ebe06ebeaf",
+    "width": 1737,
+    "height": 905
+  },
+  "latestOutputQa": "Eight requested static corrections passed independent visual review.",
+  "latestAnimationRecord": "docs/brand-media/static/industrial-city-animation-record.json",
+  "acceptedSelectionRecordPath": "docs/brand-media/static/accepted-industrial-assets.json"
+}

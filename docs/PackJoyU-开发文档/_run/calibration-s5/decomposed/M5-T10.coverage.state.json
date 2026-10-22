@@ -1,0 +1,10 @@
+{
+  "acceptance": "1) In a real browser click settings-link to the analytics section of /admin/settings. After GET, clicking Save sends expectedVersion through PATCH and displays the server new revision/recomputableFrom and partial recomputation. Invalid-IANA field errors do not clear the old value; non-ADMIN cannot enter and direct API calls return 403 (E-59). 2) Label the common site-IANA time zone; two browser time zones see the same setting, this task verifies only the settings page, while M6 integration verifies common labels on charts/exports. At 1920x1080/1440x900/390x844 run form D1-D6/overflow checks, retain real-request GIF/computed-style evidence and consume the single style in section 11.",
+  "edges": {
+    "E-59": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "An invalid IANA time zone is supplied or an unauthorized role attempts a change",
+      "expect": "Reject the save and retain the previous valid configuration; do not silently fall back to the viewer's local time zone."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "requirement": "The user explicitly requests approved edited industrial PNG/GIF and corrected factory video on the website instead of reference material. Reuse the accepted files unchanged and keep existing website style. No additional marketing or factory-ownership claims.",
+  "task": {
+    "title": "Minimal approved-artwork scene consumption for M1-T3 R2",
+    "accept": "Expose the accepted static PNG and animated GIF on the existing homepage, preserve the corrected video and poster without cropping, and retain originals. Motion must be understandable and avoid hidden large GIF downloads when not requested."
+  },
+  "conflict": "The accepted preview GIF is about8.66MB and loops30seconds. Need choose initial display and play/pause behavior for a small new scene consumer without redesigning the homepage or automatically implementing unrelated future tasks.",
+  "options": {
+    "A": "Initially display the accepted industrial PNG. Show an existing-style play control that loads the unchanged preview GIF only when the user requests it. Pause returns to PNG; leaving the viewport, hiding the document or reduced-motion preference also returns to static. Keep description explicitly illustrative.",
+    "B": "Initially load and loop the unchanged preview GIF in the scene. Show the accepted industrial PNG only as loading/reduced-motion fallback, with an existing-style pause control. Stop loading or playback when offscreen as practical. Keep the same illustrative description and layout."
+  },
+  "authorization": "The current direct human request explicitly authorizes website consumption and the original PR commit/push, with no payment, deletion, deployment or merge. This is a reversible UI playback choice inside that authorization.",
+  "question": "The accepted preview GIF is about8.66MB and loops30seconds. Need choose initial display and play/pause behavior for a small new scene consumer without redesigning the homepage or automatically implementing unrelated future tasks."
+}

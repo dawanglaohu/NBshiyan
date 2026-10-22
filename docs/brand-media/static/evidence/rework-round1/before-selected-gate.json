@@ -1,0 +1,19 @@
+{
+  "originalVerifierCommit": "da7c1de6d7d68f48eaa2fc819290cd9ac5d8b57e",
+  "actualCurrentSelectedFiles": [
+    "public/brand/packjoyu-industrial-city-v3.png",
+    "public/brand/packjoyu-industrial-city-v3-loop.gif",
+    "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+    "public/brand/video2-packjoyu-products-v3.mp4",
+    "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+    "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg"
+  ],
+  "oldGateBlockers": [
+    "JPG_REPLACEMENT_NOT_VERIFIED",
+    "NON_EQUIPMENT_IDENTITY_NOT_VERIFIED",
+    "VIDEO_CORPORATE_IDENTITY_NOT_VERIFIED"
+  ],
+  "failures": 3,
+  "testsRun": 3,
+  "note": "Recorded old verifier runs against actual file-backed selected record now present; legacy source observations and JPG candidates remain unchanged."
+}

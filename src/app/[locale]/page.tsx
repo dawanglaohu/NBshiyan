@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import cityStill from '../../../docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { categoryProducts as products } from '@/data/categories';
 import HeroVideo from '@/components/layout/HeroVideo';
+import BrandScene from '@/components/layout/BrandScene';
 import AboutHomeBlock from '@/components/about/AboutHomeBlock';
 import { getAboutContent } from '@/lib/server/site-settings';
 import { isAboutVisible } from '@/lib/about/visibility';
@@ -27,7 +29,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const names = await getTranslations('Products.names');
   const aboutVisible = await isAboutVisible(locale);
   const about = aboutVisible && isPublishedLocale(locale) ? await getAboutContent(locale) : null;
-  // TODO: 空闲时把主图替换成 3D 盒子
   return (
     <main>
       <section className="hero">
@@ -40,7 +41,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             <Link className="btn ghost" href="/products">{t('cta')}</Link>
           </div>
           </div>
-          <HeroVideo labels={{ brand: t.rich('heroBrand', { accent: (c) => <i>{c}</i> }), tagline: t('heroTagline'), poster: t('heroPosterAlt'), skip: t('heroVideoSkip'), play: t('heroVideoPlay'), pause: t('heroVideoPause') }} />
+          <HeroVideo labels={{ poster: t('heroPosterAlt'), skip: t('heroVideoSkip'), play: t('heroVideoPlay'), pause: t('heroVideoPause') }} />
         </div>
       </section>
 
@@ -60,6 +61,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         {/* #308 手机端（≤767px）网格下面的「全部产品」入口；≥768 隐藏，桌面布局不变。箭头只是装饰，读屏只念文字 */}
         <Link className="entry-all" href="/products">{t('entryAll')} <span aria-hidden="true">→</span></Link>
       </section>
+
+      <BrandScene stillSrc={cityStill.src} labels={{ alt: t('brandSceneAlt'), title: t('brandSceneTitle'), play: t('brandScenePlay'), pause: t('brandScenePause') }} />
 
       <section className="container" aria-labelledby="premium-h">
         <div className="premium-band theme-premium">

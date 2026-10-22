@@ -1,0 +1,296 @@
+TAP version 13
+# Subtest: home media no longer uses reference hero files or a layer obscuring the corrected product logo
+not ok 1 - home media no longer uses reference hero files or a layer obscuring the corrected product logo
+  ---
+  duration_ms: 5.7381
+  type: 'test'
+  location: 'D:\\xiangmu\\NBshiyan-m1-t3\\tests\\home-brand-media.test.ts:2:1474'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /\/video\/hero-115/. Input:
+
+    "'use client';\r\n" +
+      '// #104 首屏视频：封面图（next/image priority）先渲染，是 LCP 元素；空闲后才加载视频（preload="none"）\r\n' +
+      '// ≤767px 用 4:5 竖版素材（#115 portrait）：<picture>/<source media> 选封面，<video><source media> 选视频，桌面不下载竖版\r\n' +
+      '// 仅首次访问自动播放；有 暂停/播放 + 跳过 两个按钮（WCAG 2.2.2）；播完/跳过停在封面，不循环\r\n' +
+      '// #291 控件统一在左下（所有状态同一容器），和品牌文字一组、间距 ≥24px；所有宽度只显示图标（44×44 + aria-label），不压产品\r\n' +
+      '// #291 品牌文字是 HTML 叠层（素材已无文字，#305）：始终显示在封面和视频上；alt 已含品牌和标语，所以 aria-hidden\r\n' +
+      '// #291 封面是视频最后一帧、视频从开箱镜头开始：视频真正开始播放（playing 事件）后再 300ms 交叉淡入\r\n' +
+      "import { getImageProps } from 'next/image';\r\n" +
+      "import { type ReactNode, useEffect, useReducer, useRef, useState } from 'react';\r\n" +
+      "import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, whenIdle } from '@/lib/home/heroVideo';\r\n" +
+      '\r\n' +
+      "export const PORTRAIT_MQ = '(max-width: 767px)';\r\n" +
+      "const DESKTOP_MQ = '(min-width: 768px)';\r\n" +
+      '\r\n' +
+      'type Labels = { brand: ReactNode; tagline: string; poster: string; skip: string; play: string; pause: string };\r\n' +
+      '\r\n' +
+      'export default function HeroVideo({ labels }: { labels: Labels }) {\r\n' +
+      "  const [state, dispatch] = useReducer(heroReducer, 'poster');\r\n" +
+      '  const [mounted, setMounted] = useState(false);\r\n' +
+      '  const [canPlay, setCanPlay] = useState(false);\r\n' +
+      '  const [started, setStarted] = useState(false);\r\n' +
+      '  const ref = useRef<HTMLVideoElement>(null);\r\n' +
+      '  const autoRef = useRef(false);\r\n' +
+      '  const rewindRef = useRef(false);\r\n' +
+      '\r\n' +
+      '  useEffect(() => {\r\n' +
+      '    const env = readEnv();\r\n' +
+      '    if (env.reducedMotion || env.saveData) return; // 只显示封面\r\n' +
+      '    setCanPlay(true);\r\n' +
+      '    if (shouldAutoplay(env)) {\r\n' +
+      '      autoRef.current = true;\r\n' +
+      "      whenIdle(window, () => { setMounted(true); dispatch('play'); });\r\n" +
+      '    }\r\n' +
+      '  }, []);\r\n' +
+      '\r\n' +
+      '  useEffect(() => {\r\n' +
+      '    const v = ref.current;\r\n' +
+      '    if (!v) return;\r\n' +
+      "    if (state === 'playing') {\r\n" +
+      '      if (autoRef.current) { markSeen(readEnv().storage); autoRef.current = false; }\r\n' +
+      '      if (rewindRef.current) { rewindRef.current = false; try { v.currentTime = 0; } catch { /* ignore */ } }\r\n' +
+      "      v.play().catch(() => dispatch('error'));\r\n" +
+      "    } else if (state === 'paused') v.pause();\r\n" +
+      '  }, [state, mounted]);\r\n' +
+      '\r\n' +
+      "  const stop = (ev: 'skip' | 'ended' | 'error') => {\r\n" +
+      '    const v = ref.current;\r\n' +
+      '    // 不在这里回到第 0 帧：否则淡出的 300ms 里会闪一下开箱镜头；下次播放前再回到开头\r\n' +
+      '    if (v) { v.pause(); rewindRef.current = true; }\r\n' +
+      '    setStarted(false);\r\n' +
+      '    dispatch(ev);\r\n' +
+      '  };\r\n' +
+      '\r\n' +
+      "  const active = state !== 'poster';\r\n" +
+      '  // 桌面封面仍走 next/image 优化；竖版封面直接用 3D 产出的 AVIF/WebP（已是 1080x1350 小文件）\r\n' +
+      '  // #291 LCP：Chrome 把 <video> 首帧也算作 LCP 候选；视频和封面面积一样时，视频会因为取整（768 下 56292 vs 56225 px²）胜出，\r\n' +
+      '  // 抢走 LCP。所以 CSS 里让视频缩到 99%（.hero-media-video transform:scale(.99)），略小于封面；边缘是纯背景色，看不出来。\r\n' +
+      '  // 改 sizes 让封面原图更大试过，对 768 没帮助还多花流量，所以 sizes 保持 50vw\r\n' +
+      '  const { props: { srcSet: desktopSrcSet, ...posterImg } } = getImageProps({\r\n' +
+      "    className: 'hero-media-poster', src: '/video/hero-115-poster.59e587a1.webp', alt: labels.poster,\r\n" +
+      "    fill: true, priority: true, sizes: '50vw',\r\n" +
+      '  });\r\n' +
+      '  return (\r\n' +
+      '    <div className="hero-media" data-state={state}>\r\n' +
+      '      <picture>\r\n' +
+      '        <source media={PORTRAIT_MQ} type="image/avif" srcSet="/video/hero-115-portrait-poster.32037cea.avif" />\r\n' +
+      '        <source media={PORTRAIT_MQ} type="image/webp" srcSet="/video/hero-115-portrait-poster.e3ad2401.webp" />\r\n' +
+      '        <source media={DESKTOP_MQ} srcSet={desktopSrcSet} sizes="50vw" />\r\n' +
+      '        {/* eslint-disable-next-line jsx-a11y/alt-text -- alt 来自 getImageProps */}\r\n' +
+      '        <img {...posterImg} srcSet={desktopSrcSet} />\r\n' +
+      '      </picture>\r\n' +
+      '      {mounted && (\r\n' +
+      '        <video ref={ref} className="hero-media-video" muted playsInline preload="none"\r\n' +
+      `          aria-hidden="true" tabIndex={-1} data-visible={active && started ? '1' : '0'}\r\n` +
+      '          onPlaying={() => setStarted(true)}\r\n' +
+      "          onEnded={() => stop('ended')} onError={(e) => { if (isFatalMediaError(e.target as Element, e.currentTarget)) stop('error'); }}>\r\n" +
+      '          <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.webm" type="video/webm" />\r\n' +
+      '          <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.mp4" type="video/mp4" />\r\n' +
+      '          <source src="/video/hero-115.c293080a.webm" type="video/webm" />\r\n' +
+      '          <source src="/video/hero-115.c2be059f.mp4" type="video/mp4" />\r\n' +
+      '        </video>\r\n' +
+      '      )}\r\n' +
+      '      <p className="hero-brand" aria-hidden="true">\r\n' +
+      '        <span className="hero-brand-inner">\r\n' +
+      '          <span className="hero-brand-name">{labels.brand}</span>\r\n' +
+      '          <span className="hero-brand-tagline">{labels.tagline}</span>\r\n' +
+      '        </span>\r\n' +
+      '      </p>\r\n' +
+      '      <div className="hero-media-ctrls">\r\n' +
+      '        {active ? (\r\n' +
+      '          <>\r\n' +
+      `            <button type="button" className="hero-media-btn" aria-pressed={state === 'paused'}\r\n` +
+      "              aria-label={state === 'playing' ? labels.pause : labels.play}\r\n" +
+      "              onClick={() => dispatch(state === 'playing' ? 'pause' : 'play')}>\r\n" +
+      `              <span aria-hidden="true">{state === 'playing' ? '❚❚' : '▶'}</span>\r\n` +
+      `              <span className="hero-media-btn-text" aria-hidden="true">{state === 'playing' ? labels.pause : labels.play}</span>\r\n` +
+      '            </button>\r\n' +
+      `            <button type="button" className="hero-media-btn" aria-label={labels.skip} onClick={() => stop('skip')}>\r\n` +
+      '              <span aria-hidden="true">✕</span>\r\n' +
+      '              <span className="hero-media-btn-text" aria-hidden="true">{labels.skip}</span>\r\n' +
+      '            </button>\r\n' +
+      '          </>\r\n' +
+      '        ) : canPlay ? (\r\n' +
+      `          <button type="button" className="hero-media-btn" aria-label={labels.play} onClick={() => { setMounted(true); dispatch('play'); }}>\r\n` +
+      '            <span aria-hidden="true">▶</span>\r\n' +
+      '            <span className="hero-media-btn-text" aria-hidden="true">{labels.play}</span>\r\n' +
+      '          </button>\r\n' +
+      '        ) : null}\r\n' +
+      '      </div>\r\n' +
+      '    </div>\r\n' +
+      '  );\r\n' +
+      '}\r\n'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    'use client';
+    // #104 首屏视频：封面图（next/image priority）先渲染，是 LCP 元素；空闲后才加载视频（preload="none"）
+    // ≤767px 用 4:5 竖版素材（#115 portrait）：<picture>/<source media> 选封面，<video><source media> 选视频，桌面不下载竖版
+    // 仅首次访问自动播放；有 暂停/播放 + 跳过 两个按钮（WCAG 2.2.2）；播完/跳过停在封面，不循环
+    // #291 控件统一在左下（所有状态同一容器），和品牌文字一组、间距 ≥24px；所有宽度只显示图标（44×44 + aria-label），不压产品
+    // #291 品牌文字是 HTML 叠层（素材已无文字，#305）：始终显示在封面和视频上；alt 已含品牌和标语，所以 aria-hidden
+    // #291 封面是视频最后一帧、视频从开箱镜头开始：视频真正开始播放（playing 事件）后再 300ms 交叉淡入
+    import { getImageProps } from 'next/image';
+    import { type ReactNode, useEffect, useReducer, useRef, useState } from 'react';
+    import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, whenIdle } from '@/lib/home/heroVideo';
+
+    export const PORTRAIT_MQ = '(max-width: 767px)';
+    const DESKTOP_MQ = '(min-width: 768px)';
+
+    type Labels = { brand: ReactNode; tagline: string; poster: string; skip: string; play: string; pause: string };
+
+    export default function HeroVideo({ labels }: { labels: Labels }) {
+      const [state, dispatch] = useReducer(heroReducer, 'poster');
+      const [mounted, setMounted] = useState(false);
+      const [canPlay, setCanPlay] = useState(false);
+      const [started, setStarted] = useState(false);
+      const ref = useRef<HTMLVideoElement>(null);
+      const autoRef = useRef(false);
+      const rewindRef = useRef(false);
+
+      useEffect(() => {
+        const env = readEnv();
+        if (env.reducedMotion || env.saveData) return; // 只显示封面
+        setCanPlay(true);
+        if (shouldAutoplay(env)) {
+          autoRef.current = true;
+          whenIdle(window, () => { setMounted(true); dispatch('play'); });
+        }
+      }, []);
+
+      useEffect(() => {
+        const v = ref.current;
+        if (!v) return;
+        if (state === 'playing') {
+          if (autoRef.current) { markSeen(readEnv().storage); autoRef.current = false; }
+          if (rewindRef.current) { rewindRef.current = false; try { v.currentTime = 0; } catch { /* ignore */ } }
+          v.play().catch(() => dispatch('error'));
+        } else if (state === 'paused') v.pause();
+      }, [state, mounted]);
+
+      const stop = (ev: 'skip' | 'ended' | 'error') => {
+        const v = ref.current;
+        // 不在这里回到第 0 帧：否则淡出的 300ms 里会闪一下开箱镜头；下次播放前再回到开头
+        if (v) { v.pause(); rewindRef.current = true; }
+        setStarted(false);
+        dispatch(ev);
+      };
+
+      const active = state !== 'poster';
+      // 桌面封面仍走 next/image 优化；竖版封面直接用 3D 产出的 AVIF/WebP（已是 1080x1350 小文件）
+      // #291 LCP：Chrome 把 <video> 首帧也算作 LCP 候选；视频和封面面积一样时，视频会因为取整（768 下 56292 vs 56225 px²）胜出，
+      // 抢走 LCP。所以 CSS 里让视频缩到 99%（.hero-media-video transform:scale(.99)），略小于封面；边缘是纯背景色，看不出来。
+      // 改 sizes 让封面原图更大试过，对 768 没帮助还多花流量，所以 sizes 保持 50vw
+      const { props: { srcSet: desktopSrcSet, ...posterImg } } = getImageProps({
+        className: 'hero-media-poster', src: '/video/hero-115-poster.59e587a1.webp', alt: labels.poster,
+        fill: true, priority: true, sizes: '50vw',
+      });
+      return (
+        <div className="hero-media" data-state={state}>
+          <picture>
+            <source media={PORTRAIT_MQ} type="image/avif" srcSet="/video/hero-115-portrait-poster.32037cea.avif" />
+            <source media={PORTRAIT_MQ} type="image/webp" srcSet="/video/hero-115-portrait-poster.e3ad2401.webp" />
+            <source media={DESKTOP_MQ} srcSet={desktopSrcSet} sizes="50vw" />
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- alt 来自 getImageProps */}
+            <img {...posterImg} srcSet={desktopSrcSet} />
+          </picture>
+          {mounted && (
+            <video ref={ref} className="hero-media-video" muted playsInline preload="none"
+              aria-hidden="true" tabIndex={-1} data-visible={active && started ? '1' : '0'}
+              onPlaying={() => setStarted(true)}
+              onEnded={() => stop('ended')} onError={(e) => { if (isFatalMediaError(e.target as Element, e.currentTarget)) stop('error'); }}>
+              <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.webm" type="video/webm" />
+              <source media={PORTRAIT_MQ} src="/video/hero-115-portrait.mp4" type="video/mp4" />
+              <source src="/video/hero-115.c293080a.webm" type="video/webm" />
+              <source src="/video/hero-115.c2be059f.mp4" type="video/mp4" />
+            </video>
+          )}
+          <p className="hero-brand" aria-hidden="true">
+            <span className="hero-brand-inner">
+              <span className="hero-brand-name">{labels.brand}</span>
+              <span className="hero-brand-tagline">{labels.tagline}</span>
+            </span>
+          </p>
+          <div className="hero-media-ctrls">
+            {active ? (
+              <>
+                <button type="button" className="hero-media-btn" aria-pressed={state === 'paused'}
+                  aria-label={state === 'playing' ? labels.pause : labels.play}
+                  onClick={() => dispatch(state === 'playing' ? 'pause' : 'play')}>
+                  <span aria-hidden="true">{state === 'playing' ? '❚❚' : '▶'}</span>
+                  <span className="hero-media-btn-text" aria-hidden="true">{state === 'playing' ? labels.pause : labels.play}</span>
+                </button>
+                <button type="button" className="hero-media-btn" aria-label={labels.skip} onClick={() => stop('skip')}>
+                  <span aria-hidden="true">✕</span>
+                  <span className="hero-media-btn-text" aria-hidden="true">{labels.skip}</span>
+                </button>
+              </>
+            ) : canPlay ? (
+              <button type="button" className="hero-media-btn" aria-label={labels.play} onClick={() => { setMounted(true); dispatch('play'); }}>
+                <span aria-hidden="true">▶</span>
+                <span className="hero-media-btn-text" aria-hidden="true">{labels.play}</span>
+              </button>
+            ) : null}
+          </div>
+        </div>
+      );
+    }
+
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (D:\xiangmu\NBshiyan-m1-t3\tests\home-brand-media.test.ts:20:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: every public brand release copy retains the exact approved media bytes
+not ok 2 - every public brand release copy retains the exact approved media bytes
+  ---
+  duration_ms: 0.4502
+  type: 'test'
+  location: 'D:\\xiangmu\\NBshiyan-m1-t3\\tests\\home-brand-media.test.ts:2:1868'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open 'D:\\xiangmu\\NBshiyan-m1-t3\\public\\brand\\packjoyu-industrial-city-v3.png'"
+  code: 'ENOENT'
+  stack: |-
+    Object.openSync (node:fs:561:18)
+    readFileSync (node:fs:445:35)
+    hash (D:\xiangmu\NBshiyan-m1-t3\tests\home-brand-media.test.ts:26:62)
+    TestContext.<anonymous> (D:\xiangmu\NBshiyan-m1-t3\tests\home-brand-media.test.ts:28:18)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: brand illustration starts with the approved static image and an explicit animation control
+not ok 3 - brand illustration starts with the approved static image and an explicit animation control
+  ---
+  duration_ms: 8.3474
+  type: 'test'
+  location: 'D:\\xiangmu\\NBshiyan-m1-t3\\tests\\home-brand-media.test.ts:2:2247'
+  failureType: 'testCodeFailure'
+  error: "Cannot find module 'D:\\xiangmu\\NBshiyan-m1-t3\\src\\components\\layout\\BrandScene' imported from D:\\xiangmu\\NBshiyan-m1-t3\\tests\\home-brand-media.test.ts"
+  code: 'ERR_MODULE_NOT_FOUND'
+  stack: |-
+    finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    moduleResolve (node:internal/modules/esm/resolve:860:10)
+    defaultResolve (node:internal/modules/esm/resolve:984:11)
+    nextResolve (node:internal/modules/esm/hooks:748:28)
+    resolveBase (file:///D:/xiangmu/NBshiyan-m1-t3/node_modules/.pnpm/tsx@4.23.15/node_modules/tsx/dist/register-nyXW-TH3.mjs:2:10494)
+    async resolveDirectory (file:///D:/xiangmu/NBshiyan-m1-t3/node_modules/.pnpm/tsx@4.23.15/node_modules/tsx/dist/register-nyXW-TH3.mjs:2:11575)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 922.537

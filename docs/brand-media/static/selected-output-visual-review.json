@@ -1,0 +1,1422 @@
+{
+  "task": "M1-T3",
+  "reviewKind": "actual_selected_v3_media_review",
+  "reviewedAt": "2026-10-21T07:32:32+00:00",
+  "status": "pass_for_selected_visible_brand_and_attested_source_scope",
+  "originalSourceUnchanged": {
+    "path": "C:/Users/admin/Desktop/video2.mp4",
+    "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f"
+  },
+  "provenanceBasis": {
+    "path": "docs/brand-media/static/source-attestation.json",
+    "sha256": "634ccf2cd8f54f5c48dacdb30bc0c90dcdc31de853e7b6b0e9f148ea48e0770b",
+    "basisKind": "direct_user_statement",
+    "statement": "这是在工厂的实拍机器图，员工在工厂中拍摄，然后通过 你来添加上了 logo",
+    "supportedClaim": "Direct user states employees recorded factory machinery on site; PackJoyU logo was added by the assistant afterwards.",
+    "notEstablished": [
+      "Factory real-estate or legal ownership",
+      "Original product customer relationship or production order",
+      "Certification",
+      "Capacity"
+    ]
+  },
+  "outputs": [
+    {
+      "output": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+        "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+        "bytes": 10216338,
+        "width": 1920,
+        "height": 1080,
+        "frameCount": 735,
+        "fps": 60,
+        "videoDurationMs": 12250.0,
+        "movieDurationMs": 12288.0,
+        "allFramePtsEqualOriginal": true,
+        "audioPacketsEqualOriginal": 576,
+        "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+        "releaseAllowed": false,
+        "kind": "product_brand_edited_video"
+      },
+      "decodedFrameCount": 735,
+      "fps": 60,
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0000.jpg",
+          "sha256": "55821571967a8aafb6a20ed5e19e78d4b8e67d280d30e8c4efe9405db9861d6c",
+          "frameIndex": 0,
+          "atMs": 0.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "04c598ea28b8768ebe40b992b8cfd268f757119b6f9f2a000899871dd33a8613",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0114.jpg",
+          "sha256": "53000d3bbf44b9b191d33e482ad568f8fd94ff9fa894ae5cfbaae3a9b8a9ae09",
+          "frameIndex": 114,
+          "atMs": 1900.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "8b7f1057c9bbe6765590e6e83be823a88e49af6838be6eb608ff78afea62062c",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0180.jpg",
+          "sha256": "e3233235fe4f8e46e633c52c1f9c030af1987fd42be3b7b342e17a9b0ce246c7",
+          "frameIndex": 180,
+          "atMs": 3000.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "3bbaf7874a7197c431aafc46d9e05f1b42582f047087fdf07f070100c0952e13",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0222.jpg",
+          "sha256": "1de82b8f8f073b508628371c5a9250bd7b0400efa51cb4b25dcec3e147771262",
+          "frameIndex": 222,
+          "atMs": 3700.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "3c1f5f344b8fd2de05aa149586ea6809f9bfb63079cea23ee6db144a8e9bb595",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0270.jpg",
+          "sha256": "c56e724017fd1d7e8aa4b64ce1329cbd0b4a9a2127255d40452b1ca33388d66d",
+          "frameIndex": 270,
+          "atMs": 4500.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "387140b173569a3518dff08cb1167cacb5cdd98543d4e4d57718df7c724b36e1",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0483.jpg",
+          "sha256": "c80383e2306e5a3a88ba246f8c28a5642212f4a61dcbbb8a9c23c2af7c602a50",
+          "frameIndex": 483,
+          "atMs": 8050.000000000001,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "c869aa941bebb14800b675592bda33d45b099a9bf53464ded3356dc8de89b2b2",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0510.jpg",
+          "sha256": "c085802379eabc0ecbd383fe24edafbce6b44136e1822a4b022c4804753a8b05",
+          "frameIndex": 510,
+          "atMs": 8500.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "88e13fa0b4f63584be2b58b9d61fb933004f02573d1f5bdf983874b9afad44a3",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0600.jpg",
+          "sha256": "710fb1a6422c45214f8dd283bc21832d20fbd808cb5ef634c3d8fe36ff7fdf97",
+          "frameIndex": 600,
+          "atMs": 10000.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "55f6e8cdc40cdd34c413434e47ef0ecca5f5859dfa6eeb16dc9c33a4a1746535",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0604.jpg",
+          "sha256": "4806ea66b88b0e367619c3bf524f6c88859546ef988edd8b5893dc73e03d37d4",
+          "frameIndex": 604,
+          "atMs": 10066.666666666666,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "374499f924d36626fedb0c61ac87f77f1c9242909cf9bb335cad2b2bb6d9b29b",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0663.jpg",
+          "sha256": "da491b66e66e5fe817a963d2a7d3ca1df255f12b8bfcdaf148db77f54202a269",
+          "frameIndex": 663,
+          "atMs": 11050.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "48162718104ea9ce94860958b71d5efb14d0c35cfff9d133907d221af5e9d361",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0705.jpg",
+          "sha256": "ca4ab72869ff5827d8ac536f8ef50b880f48bd05d8c351b5bfb7e834baee5337",
+          "frameIndex": 705,
+          "atMs": 11750.0,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "10f674236f91b1303da4fd6f1418a61895237ea25544415850989099cbd051e8",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0734.jpg",
+          "sha256": "5737b53235191ceea36a026e64c9d59f4d78da7381382393ce886b1620d94db3",
+          "frameIndex": 734,
+          "atMs": 12233.333333333332,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "rawBgrSha256": "8dbc32c89aa951b2230032bbcf32eda6899a81dec0f4ab3eb91e1fc89dacae97",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0400.jpg",
+          "sha256": "637e3228a43e63e0fed06732ef3946c344f4ffa9a83373c325088a1e7ae410c3",
+          "frameIndex": 400,
+          "atMs": 6666.666666666667,
+          "width": 1920,
+          "height": 1080,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+          "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+          "encoding": "jpeg",
+          "jpegQuality": 92,
+          "rawBgrSha256": "84bff5dd880f444a4d80e328d112270020aed452dc7b280badffc168b6859242"
+        }
+      ],
+      "opening": {
+        "fromMs": 0,
+        "toMs": 1900,
+        "actualText": null,
+        "result": "Paper feeding machinery; no separate corporate signature card or fixed overlay watermark observed.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0000.jpg",
+            "sha256": "55821571967a8aafb6a20ed5e19e78d4b8e67d280d30e8c4efe9405db9861d6c",
+            "frameIndex": 0,
+            "atMs": 0.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "04c598ea28b8768ebe40b992b8cfd268f757119b6f9f2a000899871dd33a8613",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0114.jpg",
+            "sha256": "53000d3bbf44b9b191d33e482ad568f8fd94ff9fa894ae5cfbaae3a9b8a9ae09",
+            "frameIndex": 114,
+            "atMs": 1900.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "8b7f1057c9bbe6765590e6e83be823a88e49af6838be6eb608ff78afea62062c",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "earlyProductReplacement": {
+        "fromMs": 1900,
+        "toMs": 3716.666666666667,
+        "actualText": "PackJoyU",
+        "originalObservationId": "VID-02",
+        "oldTextResidualObserved": false,
+        "result": "Visible former red identity-strip locations show authorized PackJoyU branding; source unknown print history remains unchanged.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0114.jpg",
+            "sha256": "53000d3bbf44b9b191d33e482ad568f8fd94ff9fa894ae5cfbaae3a9b8a9ae09",
+            "frameIndex": 114,
+            "atMs": 1900.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "8b7f1057c9bbe6765590e6e83be823a88e49af6838be6eb608ff78afea62062c",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0180.jpg",
+            "sha256": "e3233235fe4f8e46e633c52c1f9c030af1987fd42be3b7b342e17a9b0ce246c7",
+            "frameIndex": 180,
+            "atMs": 3000.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "3bbaf7874a7197c431aafc46d9e05f1b42582f047087fdf07f070100c0952e13",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0222.jpg",
+            "sha256": "1de82b8f8f073b508628371c5a9250bd7b0400efa51cb4b25dcec3e147771262",
+            "frameIndex": 222,
+            "atMs": 3700.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "3c1f5f344b8fd2de05aa149586ea6809f9bfb63079cea23ee6db144a8e9bb595",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "decorativeProductPrint": {
+        "fromMs": 5916.666666666667,
+        "toMs": 7783.333333333333,
+        "actualText": "Festive gold/red decorative print; fine motion-blurred decorative text not transcribed",
+        "result": "No distinct corporate authorship signature recognized in this decorative product artwork; not recategorized as PackJoyU customer evidence.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0400.jpg",
+            "sha256": "637e3228a43e63e0fed06732ef3946c344f4ffa9a83373c325088a1e7ae410c3",
+            "frameIndex": 400,
+            "atMs": 6666.666666666667,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "jpegQuality": 92,
+            "rawBgrSha256": "84bff5dd880f444a4d80e328d112270020aed452dc7b280badffc168b6859242"
+          }
+        ]
+      },
+      "equipment": {
+        "fromMs": 7783.333333333333,
+        "toMs": 10000,
+        "actualText": "YAMAHA; three-diamond-like equipment symbol with unreadable small line",
+        "identities": [
+          {
+            "text": "YAMAHA",
+            "identity": "THIRD_PARTY",
+            "role": "equipment"
+          },
+          {
+            "text": null,
+            "identity": "UNKNOWN",
+            "role": "equipment",
+            "description": "Three-diamond-like mark, exact manufacturer text not verified"
+          }
+        ],
+        "result": "Original physical equipment marks remain visible; neither is treated as corporate authorship or erased.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0483.jpg",
+            "sha256": "c80383e2306e5a3a88ba246f8c28a5642212f4a61dcbbb8a9c23c2af7c602a50",
+            "frameIndex": 483,
+            "atMs": 8050.000000000001,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "c869aa941bebb14800b675592bda33d45b099a9bf53464ded3356dc8de89b2b2",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0510.jpg",
+            "sha256": "c085802379eabc0ecbd383fe24edafbce6b44136e1822a4b022c4804753a8b05",
+            "frameIndex": 510,
+            "atMs": 8500.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "88e13fa0b4f63584be2b58b9d61fb933004f02573d1f5bdf983874b9afad44a3",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "lateProductReplacement": {
+        "fromMs": 10000,
+        "toMs": 12250,
+        "actualText": "PackJoyU; YEAR OF HORSE; NEW; festival decorative lettering",
+        "originalObservationId": "VID-05",
+        "oldTextResidualObserved": false,
+        "result": "No visible Holiland or 好利来 residual in reviewed final-shot contact coverage and full-resolution selected frames. PackJoyU typography follows paper plane; original foreground occlusion remains.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0600.jpg",
+            "sha256": "710fb1a6422c45214f8dd283bc21832d20fbd808cb5ef634c3d8fe36ff7fdf97",
+            "frameIndex": 600,
+            "atMs": 10000.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "55f6e8cdc40cdd34c413434e47ef0ecca5f5859dfa6eeb16dc9c33a4a1746535",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0604.jpg",
+            "sha256": "4806ea66b88b0e367619c3bf524f6c88859546ef988edd8b5893dc73e03d37d4",
+            "frameIndex": 604,
+            "atMs": 10066.666666666666,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "374499f924d36626fedb0c61ac87f77f1c9242909cf9bb335cad2b2bb6d9b29b",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0663.jpg",
+            "sha256": "da491b66e66e5fe817a963d2a7d3ca1df255f12b8bfcdaf148db77f54202a269",
+            "frameIndex": 663,
+            "atMs": 11050.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "48162718104ea9ce94860958b71d5efb14d0c35cfff9d133907d221af5e9d361",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0705.jpg",
+            "sha256": "ca4ab72869ff5827d8ac536f8ef50b880f48bd05d8c351b5bfb7e834baee5337",
+            "frameIndex": 705,
+            "atMs": 11750.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "10f674236f91b1303da4fd6f1418a61895237ea25544415850989099cbd051e8",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0734.jpg",
+            "sha256": "5737b53235191ceea36a026e64c9d59f4d78da7381382393ce886b1620d94db3",
+            "frameIndex": 734,
+            "atMs": 12233.333333333332,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "8dbc32c89aa951b2230032bbcf32eda6899a81dec0f4ab3eb91e1fc89dacae97",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "ending": {
+        "fromMs": 12233.333333333332,
+        "toMs": 12288,
+        "actualText": "PackJoyU on products",
+        "result": "Last decoded frame is the branded paper-bag scene; no separate closing company card or third-party fixed overlay watermark. No additional decoded video frames during the trailing container span.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0734.jpg",
+            "sha256": "5737b53235191ceea36a026e64c9d59f4d78da7381382393ce886b1620d94db3",
+            "frameIndex": 734,
+            "atMs": 12233.333333333332,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "8dbc32c89aa951b2230032bbcf32eda6899a81dec0f4ab3eb91e1fc89dacae97",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "corporateSignature": {
+        "fromMs": 0,
+        "toMs": 12288,
+        "actualText": null,
+        "result": "No separate conflicting corporate opening/closing/watermark signature observed. PackJoyU appears as authorized edited product print, not proof of original physical customer/order.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0000.jpg",
+            "sha256": "55821571967a8aafb6a20ed5e19e78d4b8e67d280d30e8c4efe9405db9861d6c",
+            "frameIndex": 0,
+            "atMs": 0.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "04c598ea28b8768ebe40b992b8cfd268f757119b6f9f2a000899871dd33a8613",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0180.jpg",
+            "sha256": "e3233235fe4f8e46e633c52c1f9c030af1987fd42be3b7b342e17a9b0ce246c7",
+            "frameIndex": 180,
+            "atMs": 3000.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "3bbaf7874a7197c431aafc46d9e05f1b42582f047087fdf07f070100c0952e13",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0270.jpg",
+            "sha256": "c56e724017fd1d7e8aa4b64ce1329cbd0b4a9a2127255d40452b1ca33388d66d",
+            "frameIndex": 270,
+            "atMs": 4500.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "387140b173569a3518dff08cb1167cacb5cdd98543d4e4d57718df7c724b36e1",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0483.jpg",
+            "sha256": "c80383e2306e5a3a88ba246f8c28a5642212f4a61dcbbb8a9c23c2af7c602a50",
+            "frameIndex": 483,
+            "atMs": 8050.000000000001,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "c869aa941bebb14800b675592bda33d45b099a9bf53464ded3356dc8de89b2b2",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0510.jpg",
+            "sha256": "c085802379eabc0ecbd383fe24edafbce6b44136e1822a4b022c4804753a8b05",
+            "frameIndex": 510,
+            "atMs": 8500.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "88e13fa0b4f63584be2b58b9d61fb933004f02573d1f5bdf983874b9afad44a3",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0600.jpg",
+            "sha256": "710fb1a6422c45214f8dd283bc21832d20fbd808cb5ef634c3d8fe36ff7fdf97",
+            "frameIndex": 600,
+            "atMs": 10000.0,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "55f6e8cdc40cdd34c413434e47ef0ecca5f5859dfa6eeb16dc9c33a4a1746535",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-1080p-0734.jpg",
+            "sha256": "5737b53235191ceea36a026e64c9d59f4d78da7381382393ce886b1620d94db3",
+            "frameIndex": 734,
+            "atMs": 12233.333333333332,
+            "width": 1920,
+            "height": 1080,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+            "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+            "encoding": "jpeg",
+            "rawBgrSha256": "8dbc32c89aa951b2230032bbcf32eda6899a81dec0f4ab3eb91e1fc89dacae97",
+            "jpegQuality": 92
+          }
+        ]
+      }
+    },
+    {
+      "output": {
+        "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+        "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+        "bytes": 4231724,
+        "width": 1280,
+        "height": 720,
+        "frameCount": 735,
+        "fps": 60,
+        "videoDurationMs": 12250.0,
+        "movieDurationMs": 12288.0,
+        "allFramePtsEqualOriginal": true,
+        "audioPacketsEqualOriginal": 576,
+        "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+        "releaseAllowed": false,
+        "kind": "product_brand_edited_web_video"
+      },
+      "decodedFrameCount": 735,
+      "fps": 60,
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0000.jpg",
+          "sha256": "1154d2ee0feb000aefcfb225c1b50706e6ea87b4bef74e1d002e28562097df3b",
+          "frameIndex": 0,
+          "atMs": 0.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "2fd3ca6f96782278de1862d646c0c216a0b1a7ce3e3afe1f1ea89f6d602bd5b9",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0114.jpg",
+          "sha256": "e4bf16270060f99b5f3c0fff121a8d3409895e11fdf36d8d3aff75f6d30a23d6",
+          "frameIndex": 114,
+          "atMs": 1900.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "332a2fdba455fca9a3b8ee5f35a1de19610af6608d446cc6debc19680db7f4c6",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0180.jpg",
+          "sha256": "bc8d96adf61e770fb3c21613198eb3fe4597eea3d83236afd593f967e0bd96c8",
+          "frameIndex": 180,
+          "atMs": 3000.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "109e5f17e3784d946387eabd28f865cd85716d1171b0e27910ddd20c2856e751",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0222.jpg",
+          "sha256": "01a2f20a309e6bb4b530d85e736a1a37cdc2c7c17ec17834bc9a481f566283b8",
+          "frameIndex": 222,
+          "atMs": 3700.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "97caa3c96af165af3cf39aa4ac6d8ae3a752cf2bee2246d948d4e254d85d841e",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0270.jpg",
+          "sha256": "237db19a88162ff15846b5f7453434ddfc34ff87a6d10338524c6569d5314e92",
+          "frameIndex": 270,
+          "atMs": 4500.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "b8c31b132c53369efce7422d7f1a6ab437808b98696f9846d63dcc15394c31f6",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0483.jpg",
+          "sha256": "fe6a9716d54510a079bff90169aaab38fb2a983573439749c0ec35f5af6268ba",
+          "frameIndex": 483,
+          "atMs": 8050.000000000001,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "ac1aaf1044923b5e6ae750cd00137ba99aaaa1526798457d955f5e6a5dc1220a",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0510.jpg",
+          "sha256": "267963e525cedd56972ac6d35a0ce14189057bc9328eec34b1076494c1bb4e29",
+          "frameIndex": 510,
+          "atMs": 8500.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "1f1efaa0b887eec2d34784ec1c14fd5d4747fc2cfdd62fce1ee09f962e5904a4",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0600.jpg",
+          "sha256": "a8b7c6ea7557a80343a6147963be437e306572c633d6b423f71504cae455e5a4",
+          "frameIndex": 600,
+          "atMs": 10000.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "cf745d42935488fede0a1a742c5432d9ab0b6b9cce3781656ddad8ed871fc61a",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0604.jpg",
+          "sha256": "4a34d266a4f5aab7663eaea012f07116469fb0d709f7da28db3435ed3a720bf2",
+          "frameIndex": 604,
+          "atMs": 10066.666666666666,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "97bc0c2fcb4a7ba97610c849db1d7b0f5efe5502ad05bc64bd810f720b0a6dee",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0663.jpg",
+          "sha256": "4a575b5db399d3e6a1fea61c6e6dcb5b03084b64a1f72f4dff216dbe155a3f0b",
+          "frameIndex": 663,
+          "atMs": 11050.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "ee93d49353c1eab3d50a8c99924dcfbddd835bb37ab625f98581a6a68372eab6",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0705.jpg",
+          "sha256": "f940061abab359a46d6a61a805d5851bd4a9fe51165c454ae98dda003ff23a42",
+          "frameIndex": 705,
+          "atMs": 11750.0,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "9a8c3b392815b1fb3d26dcf6f4617141a5bc67a66b5a778e0dc44e809ade2e08",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0734.jpg",
+          "sha256": "440632adeca06230951ed8d0c0f73668b6385890c49c6e1364419fe04eee16a1",
+          "frameIndex": 734,
+          "atMs": 12233.333333333332,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "rawBgrSha256": "b373bf0e4ffb636def0399203be69acd0a61440e5175fca6ea3f790243797ca5",
+          "jpegQuality": 92
+        },
+        {
+          "path": "docs/brand-media/static/evidence/final-v3/final-720p-0400.jpg",
+          "sha256": "122bda3b2b7c5e2f25909d45487bcf318a769cac3745cc792c1047ae095e6f75",
+          "frameIndex": 400,
+          "atMs": 6666.666666666667,
+          "width": 1280,
+          "height": 720,
+          "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+          "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+          "encoding": "jpeg",
+          "jpegQuality": 92,
+          "rawBgrSha256": "65a82573146d19c732922ff2f2365dd4694283f1434baac50e6a7fb39ea93783"
+        }
+      ],
+      "opening": {
+        "fromMs": 0,
+        "toMs": 1900,
+        "actualText": null,
+        "result": "Paper feeding machinery; no separate corporate signature card or fixed overlay watermark observed.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0000.jpg",
+            "sha256": "1154d2ee0feb000aefcfb225c1b50706e6ea87b4bef74e1d002e28562097df3b",
+            "frameIndex": 0,
+            "atMs": 0.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "2fd3ca6f96782278de1862d646c0c216a0b1a7ce3e3afe1f1ea89f6d602bd5b9",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0114.jpg",
+            "sha256": "e4bf16270060f99b5f3c0fff121a8d3409895e11fdf36d8d3aff75f6d30a23d6",
+            "frameIndex": 114,
+            "atMs": 1900.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "332a2fdba455fca9a3b8ee5f35a1de19610af6608d446cc6debc19680db7f4c6",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "earlyProductReplacement": {
+        "fromMs": 1900,
+        "toMs": 3716.666666666667,
+        "actualText": "PackJoyU",
+        "originalObservationId": "VID-02",
+        "oldTextResidualObserved": false,
+        "result": "Visible former red identity-strip locations show authorized PackJoyU branding; source unknown print history remains unchanged.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0114.jpg",
+            "sha256": "e4bf16270060f99b5f3c0fff121a8d3409895e11fdf36d8d3aff75f6d30a23d6",
+            "frameIndex": 114,
+            "atMs": 1900.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "332a2fdba455fca9a3b8ee5f35a1de19610af6608d446cc6debc19680db7f4c6",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0180.jpg",
+            "sha256": "bc8d96adf61e770fb3c21613198eb3fe4597eea3d83236afd593f967e0bd96c8",
+            "frameIndex": 180,
+            "atMs": 3000.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "109e5f17e3784d946387eabd28f865cd85716d1171b0e27910ddd20c2856e751",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0222.jpg",
+            "sha256": "01a2f20a309e6bb4b530d85e736a1a37cdc2c7c17ec17834bc9a481f566283b8",
+            "frameIndex": 222,
+            "atMs": 3700.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "97caa3c96af165af3cf39aa4ac6d8ae3a752cf2bee2246d948d4e254d85d841e",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "decorativeProductPrint": {
+        "fromMs": 5916.666666666667,
+        "toMs": 7783.333333333333,
+        "actualText": "Festive gold/red decorative print; fine motion-blurred decorative text not transcribed",
+        "result": "No distinct corporate authorship signature recognized in this decorative product artwork; not recategorized as PackJoyU customer evidence.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0400.jpg",
+            "sha256": "122bda3b2b7c5e2f25909d45487bcf318a769cac3745cc792c1047ae095e6f75",
+            "frameIndex": 400,
+            "atMs": 6666.666666666667,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "jpegQuality": 92,
+            "rawBgrSha256": "65a82573146d19c732922ff2f2365dd4694283f1434baac50e6a7fb39ea93783"
+          }
+        ]
+      },
+      "equipment": {
+        "fromMs": 7783.333333333333,
+        "toMs": 10000,
+        "actualText": "YAMAHA; three-diamond-like equipment symbol with unreadable small line",
+        "identities": [
+          {
+            "text": "YAMAHA",
+            "identity": "THIRD_PARTY",
+            "role": "equipment"
+          },
+          {
+            "text": null,
+            "identity": "UNKNOWN",
+            "role": "equipment",
+            "description": "Three-diamond-like mark, exact manufacturer text not verified"
+          }
+        ],
+        "result": "Original physical equipment marks remain visible; neither is treated as corporate authorship or erased.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0483.jpg",
+            "sha256": "fe6a9716d54510a079bff90169aaab38fb2a983573439749c0ec35f5af6268ba",
+            "frameIndex": 483,
+            "atMs": 8050.000000000001,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "ac1aaf1044923b5e6ae750cd00137ba99aaaa1526798457d955f5e6a5dc1220a",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0510.jpg",
+            "sha256": "267963e525cedd56972ac6d35a0ce14189057bc9328eec34b1076494c1bb4e29",
+            "frameIndex": 510,
+            "atMs": 8500.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "1f1efaa0b887eec2d34784ec1c14fd5d4747fc2cfdd62fce1ee09f962e5904a4",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "lateProductReplacement": {
+        "fromMs": 10000,
+        "toMs": 12250,
+        "actualText": "PackJoyU; YEAR OF HORSE; NEW; festival decorative lettering",
+        "originalObservationId": "VID-05",
+        "oldTextResidualObserved": false,
+        "result": "No visible Holiland or 好利来 residual in reviewed final-shot contact coverage and full-resolution selected frames. PackJoyU typography follows paper plane; original foreground occlusion remains.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0600.jpg",
+            "sha256": "a8b7c6ea7557a80343a6147963be437e306572c633d6b423f71504cae455e5a4",
+            "frameIndex": 600,
+            "atMs": 10000.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "cf745d42935488fede0a1a742c5432d9ab0b6b9cce3781656ddad8ed871fc61a",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0604.jpg",
+            "sha256": "4a34d266a4f5aab7663eaea012f07116469fb0d709f7da28db3435ed3a720bf2",
+            "frameIndex": 604,
+            "atMs": 10066.666666666666,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "97bc0c2fcb4a7ba97610c849db1d7b0f5efe5502ad05bc64bd810f720b0a6dee",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0663.jpg",
+            "sha256": "4a575b5db399d3e6a1fea61c6e6dcb5b03084b64a1f72f4dff216dbe155a3f0b",
+            "frameIndex": 663,
+            "atMs": 11050.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "ee93d49353c1eab3d50a8c99924dcfbddd835bb37ab625f98581a6a68372eab6",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0705.jpg",
+            "sha256": "f940061abab359a46d6a61a805d5851bd4a9fe51165c454ae98dda003ff23a42",
+            "frameIndex": 705,
+            "atMs": 11750.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "9a8c3b392815b1fb3d26dcf6f4617141a5bc67a66b5a778e0dc44e809ade2e08",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0734.jpg",
+            "sha256": "440632adeca06230951ed8d0c0f73668b6385890c49c6e1364419fe04eee16a1",
+            "frameIndex": 734,
+            "atMs": 12233.333333333332,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "b373bf0e4ffb636def0399203be69acd0a61440e5175fca6ea3f790243797ca5",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "ending": {
+        "fromMs": 12233.333333333332,
+        "toMs": 12288,
+        "actualText": "PackJoyU on products",
+        "result": "Last decoded frame is the branded paper-bag scene; no separate closing company card or third-party fixed overlay watermark. No additional decoded video frames during the trailing container span.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0734.jpg",
+            "sha256": "440632adeca06230951ed8d0c0f73668b6385890c49c6e1364419fe04eee16a1",
+            "frameIndex": 734,
+            "atMs": 12233.333333333332,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "b373bf0e4ffb636def0399203be69acd0a61440e5175fca6ea3f790243797ca5",
+            "jpegQuality": 92
+          }
+        ]
+      },
+      "corporateSignature": {
+        "fromMs": 0,
+        "toMs": 12288,
+        "actualText": null,
+        "result": "No separate conflicting corporate opening/closing/watermark signature observed. PackJoyU appears as authorized edited product print, not proof of original physical customer/order.",
+        "evidence": [
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0000.jpg",
+            "sha256": "1154d2ee0feb000aefcfb225c1b50706e6ea87b4bef74e1d002e28562097df3b",
+            "frameIndex": 0,
+            "atMs": 0.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "2fd3ca6f96782278de1862d646c0c216a0b1a7ce3e3afe1f1ea89f6d602bd5b9",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0180.jpg",
+            "sha256": "bc8d96adf61e770fb3c21613198eb3fe4597eea3d83236afd593f967e0bd96c8",
+            "frameIndex": 180,
+            "atMs": 3000.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "109e5f17e3784d946387eabd28f865cd85716d1171b0e27910ddd20c2856e751",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0270.jpg",
+            "sha256": "237db19a88162ff15846b5f7453434ddfc34ff87a6d10338524c6569d5314e92",
+            "frameIndex": 270,
+            "atMs": 4500.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "b8c31b132c53369efce7422d7f1a6ab437808b98696f9846d63dcc15394c31f6",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0483.jpg",
+            "sha256": "fe6a9716d54510a079bff90169aaab38fb2a983573439749c0ec35f5af6268ba",
+            "frameIndex": 483,
+            "atMs": 8050.000000000001,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "ac1aaf1044923b5e6ae750cd00137ba99aaaa1526798457d955f5e6a5dc1220a",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0510.jpg",
+            "sha256": "267963e525cedd56972ac6d35a0ce14189057bc9328eec34b1076494c1bb4e29",
+            "frameIndex": 510,
+            "atMs": 8500.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "1f1efaa0b887eec2d34784ec1c14fd5d4747fc2cfdd62fce1ee09f962e5904a4",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0600.jpg",
+            "sha256": "a8b7c6ea7557a80343a6147963be437e306572c633d6b423f71504cae455e5a4",
+            "frameIndex": 600,
+            "atMs": 10000.0,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "cf745d42935488fede0a1a742c5432d9ab0b6b9cce3781656ddad8ed871fc61a",
+            "jpegQuality": 92
+          },
+          {
+            "path": "docs/brand-media/static/evidence/final-v3/final-720p-0734.jpg",
+            "sha256": "440632adeca06230951ed8d0c0f73668b6385890c49c6e1364419fe04eee16a1",
+            "frameIndex": 734,
+            "atMs": 12233.333333333332,
+            "width": 1280,
+            "height": 720,
+            "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+            "sourceVideoSha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+            "encoding": "jpeg",
+            "rawBgrSha256": "b373bf0e4ffb636def0399203be69acd0a61440e5175fca6ea3f790243797ca5",
+            "jpegQuality": 92
+          }
+        ]
+      }
+    }
+  ],
+  "poster": {
+    "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
+    "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+    "bytes": 421795,
+    "width": 1920,
+    "height": 1080,
+    "frameIndex": 734,
+    "atMs": 12233.333333333332,
+    "sourceVideoPath": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+    "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+    "encoding": "OpenCV JPEG quality95 from actual encoded edited video frame",
+    "releaseAllowed": false
+  },
+  "posterReproduction": {
+    "result": "pass",
+    "method": "Re-encoded actual 1080p selected video decoded frame734 using OpenCV JPEG quality95; SHA256 equals stored poster bytes",
+    "frameIndex": 734,
+    "atMs": 12233.333333333332,
+    "sourceVideoSha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+  },
+  "staticReview": {
+    "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+    "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+    "width": 1737,
+    "height": 905,
+    "regions": [
+      {
+        "id": "airship",
+        "location": "metal airship side",
+        "bounds": [
+          355,
+          68,
+          596,
+          144
+        ],
+        "text": "PackJoyU",
+        "oldBrandTextObserved": null,
+        "evidence": {
+          "path": "docs/brand-media/static/evidence/final-v3/industrial-logo-airship.png",
+          "sha256": "30dfd335e77074327b33336a05c75b47c9ee68d66934cbd6da755313c1c2330a",
+          "width": 241,
+          "height": 76,
+          "sourceImagePath": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+          "sourceImageSha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+          "cropBounds": [
+            355,
+            68,
+            596,
+            144
+          ],
+          "encoding": "png"
+        }
+      },
+      {
+        "id": "factory",
+        "location": "factory front wall",
+        "bounds": [
+          953,
+          480,
+          1188,
+          572
+        ],
+        "text": "PackJoyU",
+        "oldBrandTextObserved": null,
+        "evidence": {
+          "path": "docs/brand-media/static/evidence/final-v3/industrial-logo-factory.png",
+          "sha256": "35427f43aca3de437297b0fa8857b72eed1506b0d1f86b76c2b82bb3dd7c9377",
+          "width": 235,
+          "height": 92,
+          "sourceImagePath": "docs/brand-media/static/held/packjoyu-industrial-city-v3.png",
+          "sourceImageSha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+          "cropBounds": [
+            953,
+            480,
+            1188,
+            572
+          ],
+          "encoding": "png"
+        }
+      }
+    ],
+    "reviewResult": "Visible PackJoyU wordmarks on airship and factory. Neither HXPP nor Chinese old brand appears in these regions or the overall approved scene. Typography observation does not claim byte/pixel identity with outlined master; approved illustration remains unchanged."
+  },
+  "visualReviewScope": {
+    "full1080pContactCoverageFrames": 735,
+    "full1080pContactSheetsViewed": 25,
+    "earlyEditedFrameRangeInclusive": [
+      114,
+      222
+    ],
+    "lateEditedFrameRangeInclusive": [
+      600,
+      734
+    ],
+    "fullResolution1080pFramesViewed": [
+      180,
+      400,
+      510,
+      734
+    ],
+    "720pSelectedContactFramesViewed": [
+      0,
+      114,
+      180,
+      222,
+      270,
+      483,
+      510,
+      600,
+      604,
+      663,
+      705,
+      734
+    ],
+    "allSourceOutputFilesSha256ReRead": true,
+    "actualDecodedEvidencePath": "D:/xiangmu/.codex-plans/NBshiyan-m1-t3/rework-final-decoded-evidence.json",
+    "all1080pContactEvidence": [
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-01.jpg",
+        "sha256": "e936dbb41526e192f75d5f1f11ba9f7276c9aa5f4c8425265f6a22daf717696a",
+        "fromFrame": 0,
+        "toFrame": 29,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-02.jpg",
+        "sha256": "b777a3bf40284985ea1709e27bdfa0080aad05a7d02608a3ba84f0a5f1ff9ce3",
+        "fromFrame": 30,
+        "toFrame": 59,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-03.jpg",
+        "sha256": "b1922bb8e63ce9b7fe9538973cdbb054feb9bd1d3366c75ee73351ad234405c8",
+        "fromFrame": 60,
+        "toFrame": 89,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-04.jpg",
+        "sha256": "154b8228f7d600ad2389993135a0bdb6bf88a38a9a4fe98b362c750b00fbaec9",
+        "fromFrame": 90,
+        "toFrame": 119,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-05.jpg",
+        "sha256": "a7b8104124f030bd2d1e56c67f41739812a64eae365f2f8dc696d455941b4e4d",
+        "fromFrame": 120,
+        "toFrame": 149,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-06.jpg",
+        "sha256": "070e8a2a7478c3a25b4a336b0bf8648993a5b7ff79a1296b3ec76c5d0ee495bd",
+        "fromFrame": 150,
+        "toFrame": 179,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-07.jpg",
+        "sha256": "4b9364b891b244c0bdbcadf001034c59346144f009831b1d26da06ee116d05d2",
+        "fromFrame": 180,
+        "toFrame": 209,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-08.jpg",
+        "sha256": "8d95cc4d21c206b14134a20c93a3b5c4279055b69f68807520fc56a042d09452",
+        "fromFrame": 210,
+        "toFrame": 239,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-09.jpg",
+        "sha256": "96a3a2a2c8a9b9bed620648b4098c53b9e8948343adbdce4b93cabe88e0c675c",
+        "fromFrame": 240,
+        "toFrame": 269,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-10.jpg",
+        "sha256": "bf56c8dd1b31adee13b832969993c9ae0df16e95f77d53c3a310fc7040a08600",
+        "fromFrame": 270,
+        "toFrame": 299,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-11.jpg",
+        "sha256": "af5a8458205524d73c2ce26c235912aac81230fe63294190d648637361ed0a26",
+        "fromFrame": 300,
+        "toFrame": 329,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-12.jpg",
+        "sha256": "4b6f430cbaf9c7ec65e12dd8115a6dee14fed4b790b8247dac103be677c8b3c6",
+        "fromFrame": 330,
+        "toFrame": 359,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-13.jpg",
+        "sha256": "5d54de5b167f74189d60b0d154303d1d342414a94f800e56089a00b00b42215f",
+        "fromFrame": 360,
+        "toFrame": 389,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-14.jpg",
+        "sha256": "277704401ad68cb95603cccc61951317bfef94932300dbd84f3193b238c31446",
+        "fromFrame": 390,
+        "toFrame": 419,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-15.jpg",
+        "sha256": "16bc1b69cddcc6c7ebe5ef9c92b52446b683fecdff73c2e59961ec27a8d4a776",
+        "fromFrame": 420,
+        "toFrame": 449,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-16.jpg",
+        "sha256": "56d7366f8f6256a06ada9826d25f4cf67a7038267be1e07527fe96fff418f511",
+        "fromFrame": 450,
+        "toFrame": 479,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-17.jpg",
+        "sha256": "a842d4c60e0eae589e02902be295674fb46c1a36a135eacd7873d52cbdc099bb",
+        "fromFrame": 480,
+        "toFrame": 509,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-18.jpg",
+        "sha256": "51ab378231bc129a5b7a45c96c4e8cda511cc5845b8b97020bd53ceef42e053d",
+        "fromFrame": 510,
+        "toFrame": 539,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-19.jpg",
+        "sha256": "ce30d33a6a275f87ea3b276b9aaceb3be248414109e44aa95ec43c76ed6c45b5",
+        "fromFrame": 540,
+        "toFrame": 569,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-20.jpg",
+        "sha256": "275a7141ecf39706053d7d29769454973bf085064162b30f885b9887e4576c34",
+        "fromFrame": 570,
+        "toFrame": 599,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-21.jpg",
+        "sha256": "eb6b2f0f3f8172c128b51e231e4e238847469ba9b783924d191337af24112325",
+        "fromFrame": 600,
+        "toFrame": 629,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-22.jpg",
+        "sha256": "446be40d008d4df45088cd6ca652f7ff3b8b64a300feaf20e8b91188f05af2c5",
+        "fromFrame": 630,
+        "toFrame": 659,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-23.jpg",
+        "sha256": "d291ffd4ff1a4be097c33d82d0180c299ef1ed5955f468b4c6a3c1bdd3dbbe5a",
+        "fromFrame": 660,
+        "toFrame": 689,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-24.jpg",
+        "sha256": "758cc6fbdfcbcad9cecb87e09f76b5b4525c45fd43d217c30f62fe7fb05a9fbd",
+        "fromFrame": 690,
+        "toFrame": 719,
+        "width": 1600,
+        "height": 1200
+      },
+      {
+        "path": "docs/brand-media/static/evidence/final-v3/final-1080p-contact-25.jpg",
+        "sha256": "a465f8b9fb8f7329fa4fa9c317b8592b116c940030a8730a2ee105db00adaafc",
+        "fromFrame": 720,
+        "toFrame": 734,
+        "width": 1600,
+        "height": 1200
+      }
+    ],
+    "browserNormalSpeedPlayback": "not executed by this review agent; this is direct local video decode and frame evidence review"
+  },
+  "historicalIdentityObservationsRewritten": false,
+  "sourceFilesModified": false,
+  "approvalDoesNotAssertUnstatedOwnershipOrCustomerFacts": true
+}

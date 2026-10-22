@@ -1,0 +1,150 @@
+{
+  "scope": "Early packaging-brand shot only",
+  "readyForParentComposition": true,
+  "releaseAcceptanceClaimed": false,
+  "processedFromFrame": 114,
+  "processedToFrameInclusive": 222,
+  "processedFrames": 109,
+  "labelInstancesAcrossFrames": 794,
+  "keyframeLabelCounts": {
+    "114": 6,
+    "150": 6,
+    "180": 8,
+    "210": 10,
+    "222": 10
+  },
+  "interface": "process_frame(frame,index) -> edited BGR frame; input unmodified; all other frame indices return an identical copy",
+  "geometry": "Fresh red-strip quad detection in each frame, not a fixed screen rectangle. Exact master is projected in a 2:1 depth-compressed sheet plane. Narrow exposed fragments clip the same-size print instead of squeezing in a miniature whole word.",
+  "foreground": "Cross-strip neutral machinery plus a local boundary-connected dark nonred matte on already detected near-left narrow fragments; original source foreground restored exactly.",
+  "pixelTotals": {
+    "changedPixels": 5034194,
+    "changedOutsideSurfaceAntialiasMargin": 0,
+    "foregroundMaskPixels": 22916,
+    "changedProtectedForegroundPixels": 0,
+    "originalWhitePrintPixels": 601868,
+    "unchangedOriginalWhitePrintPixels": 5
+  },
+  "pixelTestInterpretation": "Isolated originally pale pixels can equal newly rendered paper or antialias colors by coincidence; the few unchanged samples do not preserve an original letter shape.",
+  "visualReview": {
+    "all109Frames": "Six current contact sheets inspected",
+    "nativeKeyframes": [
+      114,
+      150,
+      180,
+      210,
+      222
+    ],
+    "additionalRegressionFrames": [
+      117,
+      118,
+      144,
+      161,
+      204,
+      205
+    ],
+    "resolvedDefects": [
+      "Narrow red decorative border false positives excluded",
+      "Motion-blurred light print need not be a hole in the red mask",
+      "Low-contrast middle-row print uses solid-brand-strip geometry fallback",
+      "Short partly occluded label pieces have a separate thickness threshold",
+      "Partial print entering at the frame edge is covered",
+      "Partial exposure clips the existing master at the normal plane size",
+      "Near-left narrow exposure is cut along original diagonal rail instead of painting the dark foreground corner"
+    ]
+  },
+  "knownRemainingDefects": [],
+  "remainingParentWork": [
+    "Compose with the final Holiland shot helper",
+    "Encode full-length output with original timing/audio",
+    "Review the complete encoded video in normal playback before publication"
+  ],
+  "limitations": [
+    "Original early-shot brand cannot be transcribed reliably because of shallow focus; no invented transcription is used.",
+    "Tiny far or occluded fragments keep source-scale blur. This is authored planar branding, not a claim of calibrated 3D reconstruction."
+  ],
+  "sourceOriginalUnchanged": true,
+  "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+  "helperSha256": "4d417cfd3119b53221501063592b68f23328958a97335a209609cf55d599c35c",
+  "recordsSha256": "9da0096cf9823d7aa499165569c50085cc82b6c4f36675367f4587cb3c1016c0",
+  "protectionChecksPassed": 16,
+  "artifacts": [
+    {
+      "path": "previews\\all-edited-01.jpg",
+      "sha256": "7d88af9cb0b60d5b8ec3a92e640f01d6059160ff8bddcd15a43463b5311a2da0"
+    },
+    {
+      "path": "previews\\all-edited-02.jpg",
+      "sha256": "0201f854d314b5c1d3278441b25813a8e5a0334990a86f36f6a7ac94d7fc6ed8"
+    },
+    {
+      "path": "previews\\all-edited-03.jpg",
+      "sha256": "60ee23134fd4fa32bc8a303307b4b33b3bc1dff22dbad7b54f9e3b49617891fc"
+    },
+    {
+      "path": "previews\\all-edited-04.jpg",
+      "sha256": "44def5cad2c75307292b588001415dffb666c0867412931f5afc9380163bc3a5"
+    },
+    {
+      "path": "previews\\all-edited-05.jpg",
+      "sha256": "daafb7008df2005d2b65be467ad6f69408e91fa7bcc9e8b2ee2d372470fbd402"
+    },
+    {
+      "path": "previews\\all-edited-06.jpg",
+      "sha256": "0378bdc16eea921a1f6cc18e6baa9adbad753923cd11d87517fd97438aca6eda"
+    },
+    {
+      "path": "previews\\edited-f0114.png",
+      "sha256": "d54ab054525e34dd252b3bcce54cd457e8b79807834fbcb9fb8e252775d20340"
+    },
+    {
+      "path": "previews\\edited-f0150.png",
+      "sha256": "26d2a7686ed915255b989014c78a844d6d812520483e20427e4b438dff6dc250"
+    },
+    {
+      "path": "previews\\edited-f0180.png",
+      "sha256": "344a8902cbff5469affd6fd9b27ea3452f4c55daa2053eab9fbe5f55bacf8b08"
+    },
+    {
+      "path": "previews\\edited-f0210.png",
+      "sha256": "ba89a575e6d779a01aea6e11269b79992b77b9dc303fd4599b4974e834e27d86"
+    },
+    {
+      "path": "previews\\edited-f0222.png",
+      "sha256": "03178aec2a60ff0d1cbce8c50d8d700d7490472ba076e1c883a9eedc4ed15064"
+    }
+  ],
+  "railOcclusionRepair": {
+    "regressionPath": "rail-occlusion-regression.json",
+    "beforeHelperSha256": "70c71e9ee5040c10edbb843f7fe2912e09430b58cdba0d4372b2af0946c336e7",
+    "afterHelperSha256": "4d417cfd3119b53221501063592b68f23328958a97335a209609cf55d599c35c",
+    "beforePixelRGB": [
+      65,
+      55,
+      54
+    ],
+    "beforeEditedRGB": [
+      202,
+      200,
+      194
+    ],
+    "afterPixelRGB": [
+      65,
+      55,
+      54
+    ],
+    "sourcePixelXY": [
+      310,
+      780
+    ],
+    "afterPassed": true,
+    "directFrameChecks": [
+      179,
+      180,
+      181
+    ],
+    "unchangedThreeByThreePixels": 27,
+    "detectorGeometryUnchanged": true,
+    "labelInstanceCountUnchanged": 794,
+    "nativeAfterCrop": "previews/rail-after-f0180.png"
+  }
+}

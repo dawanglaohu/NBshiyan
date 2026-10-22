@@ -1,0 +1,86 @@
+[
+  {
+    "task": "M3-T11",
+    "removedWholeEdgeClaims": [
+      "E-75"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M3-T14",
+    "removedWholeEdgeClaims": [
+      "E-70"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M3-T19",
+    "removedWholeEdgeClaims": [
+      "E-75"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M3-T20",
+    "removedWholeEdgeClaims": [
+      "E-73"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M3-T4",
+    "removedWholeEdgeClaims": [
+      "E-74"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M3-T8",
+    "removedWholeEdgeClaims": [
+      "E-03"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M4-T1",
+    "removedWholeEdgeClaims": [
+      "E-19"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M4-T14",
+    "removedWholeEdgeClaims": [
+      "E-32"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M4-T15",
+    "removedWholeEdgeClaims": [
+      "E-89"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M4-T3",
+    "removedWholeEdgeClaims": [
+      "E-77"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M4-T7",
+    "removedWholeEdgeClaims": [
+      "E-89"
+    ],
+    "localObligationTextPreserved": true
+  },
+  {
+    "task": "M4-T9",
+    "removedWholeEdgeClaims": [
+      "E-79"
+    ],
+    "localObligationTextPreserved": true
+  }
+]

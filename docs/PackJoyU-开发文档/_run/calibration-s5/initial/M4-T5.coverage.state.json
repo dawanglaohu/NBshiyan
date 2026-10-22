@@ -1,0 +1,75 @@
+{
+  "acceptance": "1) Entry: home/public-navigation Request a quote -> /[locale]/contact. Contact a person (contact-human-chat) actively sends POST /api/chat/session; Send message (chat-send) -> POST /api/chat/conversations or its messages endpoint. Data sources also include GET /api/chat/conversations/[id] and POST read. Assert actual requests/durable and unchanging received results after clicks. Offline mode has no online indicator. Failures retain the draft and original UUID in tab memory; email is optional (E-16, E-17, E-31, E-36, E-37, E-38, E-39). 2) Declining analytics still permits human consultation, with zero Tawk third-party requests and no analytics identity. An expired same-origin cookie stops the old thread and provides an explicit new-consultation option plus existing email/inquiry entries. Turning chat off with its independent switch preserves contact capability (E-20, E-40, E-85). 3) Poll every 3s while visible, zero times while hidden, and catch up on restoration. Failure backoff is 1/2/4/8/16/30s with one request in flight. Out-of-order responses cannot regress seq; read applies only to visible messages. On the real service at desktop widths 1440/1920 and narrow width 390, check tokens/44px controls/focus and attach a real visitor-flow GIF (E-76, E-77, E-78, E-79). 3) Use the unique minimalist-flat style from section 11 and the wiring in sections 07/12. Record actual GIFs/computed styles separately at 1920x1080, 1440x900, and 390x844. For each admin page run D1-D6 and overflow probes under work/form/card; retain keyboard operation and 44px touch targets on the public site.",
+  "edges": {
+    "E-16": {
+      "scene": "Online chat implementation route",
+      "trigger": "A visitor sends the first message while an operator is online.",
+      "expect": "Persist the conversation and message before showing a received state. The operator inbox can read it and send a human reply; do not generate an automated AI answer."
+    },
+    "E-17": {
+      "scene": "Online chat implementation route",
+      "trigger": "No operator is online, the service is temporarily unreachable, or the network disconnects.",
+      "expect": "Explicitly show an offline-message or retry-pending state. Promise receipt only after successful persistence; do not disguise failure as delivery."
+    },
+    "E-20": {
+      "scene": "Online chat implementation route",
+      "trigger": "Resource measurements before release are insufficient.",
+      "expect": "Keep a separate switch that can disable chat while preserving the existing contact entry point. Record capacity evidence and limits; do not claim that a snapshot of about 2.7 GB of free memory equals currently available capacity, and do not automatically buy additional capacity."
+    },
+    "E-31": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "A visitor submits a message and server-side persistence succeeds.",
+      "expect": "Return stable conversation and message identifiers and show Received, with the conversation readable in the operator inbox. If the database write fails, retain a retry-pending state and do not show Received or read by an operator."
+    },
+    "E-36": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "No operator is online but the server is reachable.",
+      "expect": "Explicitly show an offline-message option without indicating someone is online. After saving succeeds, show Received, awaiting human handling, without promising an immediate reply."
+    },
+    "E-37": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "Submission times out or the response is lost, leaving actual persistence unknown.",
+      "expect": "Show a confirmation-pending or retryable state. Retry with the original client message identifier and return the original receipt result, without duplicating inbox or notification items."
+    },
+    "E-38": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "The network disconnects before persistence.",
+      "expect": "Keep the message and optional email only in the current tab's memory. Allow retries and offer the existing contact-email entry point. Do not promise draft recovery after refresh, closure, or a crash, and do not write the draft to localStorage or logs."
+    },
+    "E-39": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "The visitor voluntarily supplies a blank email, an invalid format, or overlong contact details.",
+      "expect": "Mirror section 10: email is optional; when supplied, trim it, limit it to 254 characters, accept one valid mailbox, and reject display names and CRLF. Treat blank as omitted. Invalid or overlong values return field errors and retain the original message in the current tab. Do not elevate the email to verified identity or a delivery guarantee."
+    },
+    "E-40": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A visitor declines analytics but actively opens first-party human chat.",
+      "expect": "Allow the necessary consultation without creating an analytics identifier or loading a third-party chat script. Handle the necessary chat session separately from analytics consent."
+    },
+    "E-76": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "The chat/inbox is visible and requests succeed.",
+      "expect": "Use a normal interval of three seconds. Pause while the tab is hidden; when visible again, immediately catch up from the confirmed seq. Slow networks or repeated failures use bounded backoff up to 30 seconds. No round may accumulate unbounded in-flight requests."
+    },
+    "E-77": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "There are multiple tabs, retries, out-of-order responses, or new messages inserted between pages.",
+      "expect": "Merge and deduplicate by stable server seq and message identifier. Advance the cursor only through the fully received range. A late old response must not move the cursor backward, overwrite a newer reply, or skip messages on an omitted page."
+    },
+    "E-78": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "A visitor session expires or is revoked, or an operator loses chat permission after previously holding ADMIN/SALES.",
+      "expect": "Perform server-side authorization on the next poll and send, and stop returning conversation content. Changing threadId, seq, or email cannot read another consultation."
+    },
+    "E-79": {
+      "scene": "Human-chat synchronization mechanism",
+      "trigger": "The network recovers after an interruption, or the operator inbox has many unread messages.",
+      "expect": "Bind bounded pages to the established pagination cap, verify that no request exceeds it, and continuously fill seq gaps. Polling updates only the confirmed-receipt cursor, not the user's read position, and must not create an operator-online or read promise."
+    },
+    "E-85": {
+      "scene": "Chat-credential and data-retention lifetimes",
+      "trigger": "The cookie reaches seven idle days or 30 days since issuance, or is revoked.",
+      "expect": "The server rejects access to the old conversation using that credential; the browser may start a new consultation. Re-entering the same email alone cannot restore the old conversation. Neither the cookie nor any frontend copy stores PII."
+    }
+  }
+}

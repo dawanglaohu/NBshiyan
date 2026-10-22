@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) From the independent recovery entry, POST /api/auth-admin/recovery/start, enroll and confirm. Concurrent consumption of identical or different recovery codes never revives a used code. A restricted cookie cannot access admin. Interruption/expiry preserves old valid factors, reentry returns the same URI/deadline, and only final confirmation replaces factors followed by ordinary login (E-10, E-11, E-14). 2) When no second admin or recovery code exists, run the actual OS-owner TTY CLI on an isolated server with explicit target/reason to create a permit. A hidden-input password preauthorization commits only with final new-TOTP confirmation and audit. Do not weaken old first-enrollment reset-script guards; an anonymous browser cannot issue permits or change passwords. Final confirm revokes old sessions/factors/recovery materials, displays new codes once, and rejects the next request from old devices (E-15).",
+  "edges": {
+    "E-10": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "Ordinary login",
+      "expect": "Do not display recovery codes as mandatory; provide a separate Cannot use the authenticator entry into recovery. Merely entering an account name or email must not grant reset permission."
+    },
+    "E-11": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "An account identifier and a valid one-time recovery code are used",
+      "expect": "Atomically consume the recovery code and issue restricted, short-lived reenrollment credentials that can only bind a new authenticator. Full admin permission is unavailable until the new code is correctly verified; only one concurrent use of the same recovery code succeeds."
+    },
+    "E-14": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "Recovery is interrupted or reset credentials expire",
+      "expect": "Explicitly reject access to the protected admin area using restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid binding remains. A valid restricted cookie can reenter the same enroll flow; after expiry, restart through the recovery-code/authorization paths already defined in section 10, without exchanging it for a full admin session."
+    },
+    "E-15": {
+      "scene": "C-04 Lost-authenticator and single-administrator recovery",
+      "trigger": "The new authenticator passes verification and recovery is committed",
+      "expect": "Revoke old sessions, the old binding and old recovery credentials; generate new recovery codes and explicitly display them once. Old devices must no longer be able to access the admin area."
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "requirement": "Implement only M1-T3. Export the exact current SiteHeader PackJoyU full wordmark with source/export SHA256, current glyphs, proportion and colors. SVG must have no scripts, external references or private metadata. Current logo/icon sources must remain unchanged. GPT Dot media edits need authentic software records; absent Dot means those edits remain not executed, and M1-T3 is incomplete if any required release copy or record is missing. No new website runtime dependency.",
+  "task": {"title": "M1-T3: branded JPG, video poster and current wordmark master", "accept": "Current-font glyph/proportion/color equality and safe standalone SVG are required. Do not fabricate Dot execution or completion. Preserve originals."},
+  "conflict": "The current environment has no GPT Dot browser or remote graphics application. A complete website wordmark is CSS/DOM text, not an existing complete SVG. The repository ships Manrope weight-800 TTF, and Python fontTools 4.63.0 is already installed as a local tool, outside the listed website stack. Need to choose how to export independently verifiable master without adding application dependencies.",
+  "options": {
+    "A": "Use the already-installed local fontTools only as an offline authoring tool to convert the repository weight-800 glyphs and GPOS placement to SVG paths. Verify the TTF against the real Next-loaded WOFF2 and browser metrics/colors before accepting master. No app dependency or source change. Keep Dot-only JPG/release media work explicitly incomplete.",
+    "B": "Export SVG containing text using an embedded font data URI so the current font renders without an external URL. Verify browser render; document that other software may not honor embedded fonts. Keep Dot-only media work incomplete.",
+    "C": "Leave the wordmark master not executed together with media editing until an authorized graphics application or Dot becomes available. Commit source hashes and incomplete evidence only, without a master SVG."
+  }
+}

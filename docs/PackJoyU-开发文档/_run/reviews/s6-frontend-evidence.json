@@ -1,0 +1,329 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T1": {
+      "contractHash": "bcd296d1ab1b7f07e5a79a89542ea6468e271913124d3921ff65e93353677a4a",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:11；_run/dispatch.json:tasks.M1-T1.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "核8个核心token范围、现有GET /api/models与POST /api/rum 204、standalone/CI首条冒烟，以及本地规格导入首PR基线；未把只生成文件当运行证据。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M1-T2": {
+      "contractHash": "143675d7111844a2dcc5c89f12817090f877085b96ecd0eca79ac20d39b79cc9",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:12；_run/dispatch.json:tasks.M1-T2.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "共享Zod/DTO/index唯一来源与rememberDevice规范明确，primitive阶段正确；其integrationTask仍指向库级M1-T8，须按F04修。",
+        "阻断：F04 库级HTTP适配器被标为产品集成完成，修法：M1-T8设primitive，integrationTask=M3-T7，以AdminSessionActivity/account客户端生产请求验取消/DTO/error。M1-T2的integrationTask指M3-T1真实Auth.js/账户HTTP消费者；相应M3-T14若只做基础也按阶段收敛，不靠helper测试称网站接线。"
+      ]
+    },
+    "M1-T3": {
+      "contractHash": "75a7f99b621fd2b3631e2e0a4f248aba734fc14949abe0655295744119680407",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:13；_run/dispatch.json:tasks.M1-T3.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "静态发布副本范围public/brand与docs/brand-media/static齐；原件哈希、旧标位置、视频自身海报、现用字标和GPT Dot不可达未完成规则都有客观验收，未假定素材已完成。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。"
+      ]
+    },
+    "M1-T4": {
+      "contractHash": "fc9344aea65e04403552581481146cc3c2c46756c9846d8a6c4991bc43091b3a",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:14；_run/dispatch.json:tasks.M1-T4.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "M1-T6品牌媒体、T7视觉组件、T8统一client均在闭包；home/products/contact入口、视频控件、GIF近视区300px网络门控、用户暂停和三宽媒体矩形验证进入实际提示词，17真实GIF要求适用。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M1-T5": {
+      "contractHash": "889d063628f0dd4f57e02c7098f97824b3da8bba93ca5e3c0a70643abafd5e17",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:15；_run/dispatch.json:tasks.M1-T5.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "about/footer联系/隐私、en/ru和发布开关的可见入口完整；硬事实逐字段己方证据和来源内容路径齐，不把YUHAO材料改名为己方事实。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M1-T6": {
+      "contractHash": "77494e09972d66f3b1a46da6111dcd5b1c635e61b8cd40e9c827b692f5286244",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:16；_run/dispatch.json:tasks.M1-T6.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "原GIF361帧、30.08秒/逐帧时间轴、全部品牌/透视/遮挡再现和暂停帧有明确发布条件；它消费T3静态来源，不把不可达工具记录当成完成制作。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。"
+      ]
+    },
+    "M1-T7": {
+      "contractHash": "442fd0de2ee0b330f68d24d6aa7b5910bb4c44d36536502b5d661592e59b88e4",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:17；_run/dispatch.json:tasks.M1-T7.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "primitive->M1-T4且T4依赖本卡；ui/与唯一tokens.css范围明确，组件无IO/权限，原生状态与焦点由本层测，computed style由后续实际页面测，无重复公共token owner。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。"
+      ]
+    },
+    "M1-T8": {
+      "contractHash": "d3b415ab4d7885f0d47d58c475c1f1eb0ba15702ff91062910fd433aef101075",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:18；_run/dispatch.json:tasks.M1-T8.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "独立HTTP测试覆盖取消/错误/重试是库证据；没有产品装配调用，须按F04修阶段和integrationTask。",
+        "阻断：F04 库级HTTP适配器被标为产品集成完成，修法：M1-T8设primitive，integrationTask=M3-T7，以AdminSessionActivity/account客户端生产请求验取消/DTO/error。M1-T2的integrationTask指M3-T1真实Auth.js/账户HTTP消费者；相应M3-T14若只做基础也按阶段收敛，不靠helper测试称网站接线。"
+      ]
+    },
+    "M2-T1": {
+      "contractHash": "6b85e2d7e4c7ac2a345273d03b6bad6c31e1f8c94e5afb09c3b4cee1e7bb7207",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:19；_run/dispatch.json:tasks.M2-T1.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "卡宽/视口/名称规格/独立链接与既有品类发布开关不扩PDP；但整条E97/E104注入把后继功能强加本卡，见F06。",
+        "阻断：F06 布局任务被整条边界注入要求后继指针与复位能力，修法：T1保留全部局部布局、不导航和内容可辨承诺，去掉E-97/E-104整条覆盖标签；完整E97留T2、E104留T3，保持全局覆盖。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M2-T2": {
+      "contractHash": "df893a28535f6904d6ced1bd146d398782ba35d8d1caeee04878e24bce869316",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:20；_run/dispatch.json:tasks.M2-T2.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "products卡到真实GLB/OrbitControls输入链明确；直接pointer-down、当前模型跨卡捕获、普通wheel/显式缩放、hover不scale、Escape/blur/cancel释放与修改前失败/修改后通过均进入提示词，范围覆盖three/及相邻双卡测试。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M2-T3": {
+      "contractHash": "c9edc37fa00b1bc2f678650d3f79c26d652cce6e664cded685296efeb364d465",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:21；_run/dispatch.json:tasks.M2-T3.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "前置指针provider在闭包，命名键盘/单指/双指边界、44px与初始相机复位可断言，工具条/交互域范围与e2e文件齐；三尺寸真实GIF由实际任务技能约束。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M2-T4": {
+      "contractHash": "4b26b6dd5066da3cc0169412f71d361f1eae5d01ad0af2b484592018c1fe464b",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:22；_run/dispatch.json:tasks.M2-T4.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "primitive->M2-T7，消费者依赖本卡；纯事件规则无DOM/env/cookie/fetch，viewId单终态、durationMs单调钟、timeout与poster/FoldBox边界由共享schema检查，不抢真实事件producer职责。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。"
+      ]
+    },
+    "M2-T5": {
+      "contractHash": "4cb9cf33b2ce1b0646cc0227556d1b2707861685567c875245ccc1eef29d34e1",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:23；_run/dispatch.json:tasks.M2-T5.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "inquire-product->contact->既有POST /api/inquiries且保存Inquiry编号；产品slug/规格传递沿原协议与QuoteProvider，不扩成购物结算，输入拖动不产生提交，范围含inquiry/quote及e2e。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M2-T6": {
+      "contractHash": "6d9ece08c0b76b8ccd13aa7a25b25eba44b31fe3051195662accc593e14f1e62",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:24；_run/dispatch.json:tasks.M2-T6.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "已有可达产品卡与真实GLB来源；四类模型失败指向对应poster、重试/询盘，不在本卡伪造GLB success或提前建分析producer，后续T7具名负责真实终态接线。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M2-T7": {
+      "contractHash": "ba8845fab2828dfbe0699bfd6926137d9eb4e97df0a05c4a898e133291de6dfc",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:25；_run/dispatch.json:tasks.M2-T7.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "事件规则/模型回退/同意UI/ingest/聚合前置闭包齐；真实GLB事件POST与同viewId终态、拒分析零采集、真实duration/sample/null和取消/失败覆盖进入包，范围有three/analytics/e2e。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M2-T8": {
+      "contractHash": "2d1566dc361ae832df2d0864bf9e79cec3e1345f546b207e412fd36aa57ed7ae",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:26；_run/dispatch.json:tasks.M2-T8.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "访客产品上下文、同key响应未知重试及真实人工回复目标明确；当前缺M4-T14人工UI前置，按F01修，不把HTTP写API代替可见回复控制。",
+        "阻断：F01 产品咨询集成缺少人工回复UI提供方，修法：M2-T8增加M4-T14依赖和requires chat-human-roundtrip-ui，保留原产品上下文与双端验收。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T6": {
+      "contractHash": "988a9e9cfa516216ee0436241ecb6f598b67866dadbe70acf50317998be7c98e",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:32；_run/dispatch.json:tasks.M3-T6.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "公开footer-admin-login->独立登录路由、Auth.js原CSRF/Credentials、rememberDevice枚举/通用失败和真实cookie断言齐；混合任务明确必读07/11/12及stylekit/GIF，但完整visual-components与默认stats目标前置需修。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。；F05 自定义登录的默认成功目标尚未交付，直接补依赖会成环，修法：移除M3-T7→M3-T6及admin-auth-ui require，T7改在现有Auth.js密码+TOTP真实登录链上先交，保留T15并依赖T2/完整视觉基础；T6增加M6-T4/stats-base-ui，实际默认跳转后GET stats和可见页面通过。当前19 DAG实算该改法无环，服务不反调M6，仅UI目标可见性有序。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T7": {
+      "contractHash": "578b49d1ba723d5a1e100c49652f2c9706235b360963b341cabe3b867e31535c",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:33；_run/dispatch.json:tasks.M3-T7.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "当前角色壳、GET account、真实活动15min节流、普通signOut与401清状态均有请求/结果/e2e；当前T6依赖制造默认回跳阶段问题，改用既有Auth.js首交并继承完整视觉基础。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。；F05 自定义登录的默认成功目标尚未交付，直接补依赖会成环，修法：移除M3-T7→M3-T6及admin-auth-ui require，T7改在现有Auth.js密码+TOTP真实登录链上先交，保留T15并依赖T2/完整视觉基础；T6增加M6-T4/stats-base-ui，实际默认跳转后GET stats和可见页面通过。当前19 DAG实算该改法无环，服务不反调M6，仅UI目标可见性有序。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T8": {
+      "contractHash": "e67232aec82fe1aff60a35d366c1f5a5d499f91aa247686a45bd4c7d536f6424",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:34；_run/dispatch.json:tasks.M3-T8.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "个人页设备入口->GET设备->目标绑定reauth/revoke，当前设备/他人设备/复制cookie拒绝有逐按钮断言；共享ReauthDialog与设备API提供方齐，完整视觉基础缺口来自首个M3 UI。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T9": {
+      "contractHash": "112f4e0a1717190d69c3d56355bcf17798e0f41d188430fd725167d8d38bb242",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:35；_run/dispatch.json:tasks.M3-T9.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "admin-users-link->实际他人行->共享reauth->目标permit，权限、自授权拒绝、一次响应和未知不重签均明确；UsersAdmin/client/support与e2e范围齐，视觉基础继承缺口待F03修。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T10": {
+      "contractHash": "45b6b7dbd76433482a82f519929a6b7e7876c96d4747e19d1b42dcb83cc799c0",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:36；_run/dispatch.json:tasks.M3-T10.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "login-enroll->admin-enroll->既有token enroll/confirm，未确认不开无密码、fragment清URL/秘密内存/下一步验证码登录符合09/10；其登录UI前置与首个视觉基础须修后再继承。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T11": {
+      "contractHash": "8dc5f2ed4aeae6dc524787f6b244179ed54b03b279c55a142b281199d3b33235",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:37；_run/dispatch.json:tasks.M3-T11.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "独立start/enroll/confirm与SELF_REAUTH/OS CLI前置齐；字段、restricted cookie拒绝后台、原pending期限重入、200/401、一次材料、未知15s无自动confirm、回登录均进入当前包；视觉基础缺口属F03。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T12": {
+      "contractHash": "f7803f3d7a58a35223f71a06d8af1d1d7d322ddb85d25ba70106fc3539f7d9dc",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:38；_run/dispatch.json:tasks.M3-T12.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "个人入口与ReauthDialog、purpose/target/单用途grant、模式/password/reset实际HTTP响应和401回登录、重放/过期/未知只安全GET均有逐步断言；后端提供方及scope齐，完整视觉基础继承缺口待修。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M3-T13": {
+      "contractHash": "9bc0f68675255f24aadef6b327d7d5a5ba40af44acf6bd9bb7451d0177642133",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:39；_run/dispatch.json:tasks.M3-T13.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "设备页确认/Cancel零请求、LOGOUT_ALL两步body、SignedOutDTO/同名cookie过期、两个浏览器401以及结果未知双分支均可断言；API/对话框前置齐，视觉基础继承缺口待修。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M4-T5": {
+      "contractHash": "9fe72ae4786e8ec4b458c337797c60fe61839e7e843a972a10814161dba753dc",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:51；_run/dispatch.json:tasks.M4-T5.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "ContactChatEntry生产装配在InquiryWizard，主动点击才session、首次/后续消息UUID/received、纯内存可选邮箱与明确新咨询齐；自动poll由T9具名负责，T9依赖本卡，实际包锁风格/07/11/12/GIF。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M4-T6": {
+      "contractHash": "c61b28819ace690ce9d0777ec13be865d512482b22acaf08580ca703087d11ff",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:52；_run/dispatch.json:tasks.M4-T6.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "admin-chat-link->真实行->只读ThreadContainer，列表快照与seq增量/实际可见read分开，当前角色直达/401/403清内容，状态/通知独立，provider/范围/e2e与混合UI技能齐；人工写控件具名T14。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M4-T9": {
+      "contractHash": "7a7c4e80754af69a17a0db101d4737d732d625925cdc9f6c1a2aab1bc78caf3d",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:55；_run/dispatch.json:tasks.M4-T9.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "实际ChatContainer装配poller/retry，3s/隐藏/单在途/最多30s、同key响应丢失后原receipt/一出箱、失权后poll/send零正文零写均可观察；requires真实访客UI和operator写API，不用未来UI作前置。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M4-T14": {
+      "contractHash": "2e8e86bd33c4130818364afd3d2964359fcc73ee44dfb59f486e5f6d7d412ae0",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:60；_run/dispatch.json:tasks.M4-T14.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "已具备T6收件UI/T11写API/T9访客同步/T4通知job；真实访客发送->运营可见Send reply->访客同body/author，以及双运营seq/关闭CAS/通知失败边界，控件源路径与真实双端e2e齐。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M4-T15": {
+      "contractHash": "321b2ea91500279ad4d6acbccf31a083716cc1cb2a9ff7f48c7d6bb541cdda92",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:61；_run/dispatch.json:tasks.M4-T15.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "FloatingActions->contact、footer privacy->privacy、必要聊天/可选分析分离、零Tawk/零分析身份和独立开关保留联系均明确；legacy客户端/隐私/messages范围齐，但完整visual-components前置缺口待F03修。",
+        "阻断：F03 部分UI闭包只有8个核心token，没有完整视觉组件提供方，修法：在首个M3 UI的前置加M1-T7/visual-components，并给M4-T15增加同一提供方；后继通过闭包继承，不重做控件或第二套token。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M5-T7": {
+      "contractHash": "98bab5e45466def8bbae14fff5a3a3f9d6970fc5785573ff62f23a76cf78a6ce",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:68；_run/dispatch.json:tasks.M5-T7.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "公开同意/拒绝/撤回与在途true->false串行、cookie/队列/eventId真实POST条件明确；privacy说明授权浏览器与配置期限/未启用清理，公开IANA由既有SiteSetting SSR读取而不新增公开ADMIN API，client/consent/privacy范围齐。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M5-T10": {
+      "contractHash": "efa05b2a43fbb9fcd4c40cf18683148f6548806564b8b7f04d240dec47cbabb6",
+      "verdict": "revise",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:71；_run/dispatch.json:tasks.M5-T10.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "settings-link->ADMIN analytics分区GET/PATCH/expectedVersion/非法IANA/403和共同timezone明确；但按07应有的ops.ts领域客户端不在范围，见F02。",
+        "阻断：F02 时区表单的领域客户端落点不在有效范围，修法：为M5-T10补src/lib/client/ops.ts范围，明确本卡拥有settings/analytics方法，M6-T4追加stats方法；保留统一M1-T8请求基础，不新增API。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M6-T4": {
+      "contractHash": "3a4d23eb23a1114880fb30c959b1f15126c558dfa256fea1e05fd2930a6e42dc",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:76；_run/dispatch.json:tasks.M6-T4.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "stats-link->实际stats页->日期/产品/刷新GET stats，按角色DTO/授权browser/PV/3D/sample/timezone，真实会话GIF/密度和手机n/a明确；页面服务端真实provider stats-core及UI客户端路径齐。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    },
+    "M6-T7": {
+      "contractHash": "12c35bc751be37d9af22f31a58df35b75533bf3bad89b4904675099e741e8c28",
+      "verdict": "pass",
+      "evidence": [
+        "S6前端契约审查第1轮；04-执行/19-模块任务拆分.md:79；_run/dispatch.json:tasks.M6-T7.implementation/review；当前status哈希与派发包一致，stale/runtimeDrift/blockers均为空（status退出1仅因尚未登记语义复核）。",
+        "前置core/业务/可靠性/ops来源齐，SourceCard成功0/no_data/not_connected/query_failed/stale/partial各源时间不混、GET刷新不触cron、趋势与DTO表格一源，真实state e2e/GIF及三尺寸D1-D6在包内。",
+        "逐项核对06/07分层、09/10所用DTO与错误/重试、11/12页面及状态、13关联边界、17对应真实HTTP/浏览器测试，以及本卡source/effectivePaths、requires提供方闭包与完成阶段；此pass仅为规格可实施性，不是产品/CI/素材已完成。",
+        "实际实施提示词已含唯一minimalist-flat、stylekit、record-browser-gif、三视口、D1–D6/overflow；混合模块同时明确必读07/11/12，未依赖frontendModules自动分类。"
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+head=8c668fc8f9f352640cca9e13b83e34ad9d9122aa command=python -B docs/brand-media/static/verify-static-media.py --originals-root C:/Users/admin/Desktop --require-release
+{
+  "integrity": "pass",
+  "mediaFilesChecked": 125,
+  "imageFilesChecked": 117,
+  "originalsReRead": true,
+  "releaseAllowed": true,
+  "taskStatus": "complete",
+  "releaseBlockers": []
+}
+exitCode=0 elapsedSeconds=58.2994191

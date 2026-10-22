@@ -1,0 +1,22 @@
+已生成 index.html 与 docs-data.js
+  文档 24 篇 / 模块 7 / 任务 84 / 边界 111 / 批次 21 / 风险 10 / 术语 23 / 接口 37
+  演进与决策：决策 22 条（被驳回 5、低置信 9）/ 版本 2 个
+  编排：presentation.json（10 块）
+  任务提示词：84 个任务，各一份实施 / 审查 / 查 bug 提示词，另有全项目查 bug 一份
+  落地记录：0/84 个任务已落地（来自 图谱/任务 笔记头部的 status，写进 _run/progress.js）
+  批次收口：21 批各一份收口提示词（dispatchBatches）；收口记录 0 条（_run/batches/）
+  接线提示：H12/H13 共 16 条（不阻断；review.py 看明细）
+  TypeSafe 第二意见：_run/judgments.jsonl 共 921 条记录（typesafe_ask.py --log 追加；不进产物指纹）
+  架构约定：共用 4项 / 前端 10项 / 后端 10项
+  并发防护：依赖分批 + 路径冲突检测（84/84 个任务标了路径）
+  技能指引：两份提示词都按任务特征注入（栈位置、栈顶、界面任务）；24 个界面任务会要求录 GIF
+    另有 41 个任务在 taskSkills 里点名了追加技能
+  双击 index.html 即可浏览（无需本地服务器）
+知识库已构建：docs/PackJoyU-开发文档　[新建项目]
+  笔记 119 篇：模块 7 / 任务 84 / 边界 111
+  总索引 _MOC.md
+  项目根：AGENTS.md（更新）、CLAUDE.md（更新）
+  实施沉淀完成度 0/84 个任务
+
+  用 Obsidian 打开 docs/PackJoyU-开发文档 这个目录即可（Open folder as vault）
+任务契约已复核（1 个）。继续代码验收、回填、commit/push 与落地。

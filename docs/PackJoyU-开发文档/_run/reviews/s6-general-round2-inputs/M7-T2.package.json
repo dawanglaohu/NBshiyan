@@ -1,0 +1,59 @@
+{
+  "id": "M7-T2",
+  "row": {
+    "line": 81,
+    "title": "终验真实会话跨路径持久与撤销",
+    "deps": [
+      "M3-T8",
+      "M3-T6",
+      "M3-T10",
+      "M3-T11",
+      "M3-T13"
+    ],
+    "input": "设备/API/UI及Auth.js锁定版本、17真实会话检查",
+    "output": "session-acceptance；初登/活动刷新/SSR/退出与浏览器恢复证据",
+    "acceptance": "1) 真实登录并核rememberDevice=false的2h活动滑动；实际活动POST /api/admin/account/session/activity写Set-Cookie续期而SSR只读不冒称已续；记住设备7d闲置与30d绝对边界的HTTP测试拒绝等号/过期，连续活动不越30d（E-01、E-02、E-69、E-71）。2) 有效记住cookie关闭重开同浏览器可恢复；分别实际改密码、重置验证器、退出所有设备、撤销设备、禁用/改sv后旧cookie下一真实受保护HTTP被拒，刷新不复活；普通Auth.js signOut同步撤销sid，数据库不可校验时拒绝；mode非法/未启用totp/非空recoveryCode均通用登录失败（E-03、E-04、E-70、E-96）。",
+    "days": "1.5d"
+  },
+  "contract": {
+    "provides": [
+      "session-acceptance"
+    ],
+    "requires": [
+      {
+        "task": "M3-T8",
+        "capability": "device-management-ui"
+      },
+      {
+        "task": "M3-T6",
+        "capability": "admin-auth-ui"
+      }
+    ],
+    "stage": "integration",
+    "wiring": [],
+    "supportPaths": [],
+    "outputPaths": [
+      "e2e/admin-session-integration.spec.ts",
+      "tests/admin-session-http-integration.test.ts",
+      "docs/acceptance/admin-session/"
+    ],
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      14,
+      16,
+      17,
+      18
+    ]
+  },
+  "contractHash": "11721478375f4d9d75652afcd9c3a2dcf179ba974f49a9b8b557ef7e6349b2c0",
+  "implementationUnique": "11: ## 本任务\n12: - 模块：M7　集成验收与交付：负责访客跨模块完整路径、后台权限与恢复路径、统计和可靠性完整链路的真实集成验收及交付证据收口；核对本轮复用的恢复来源，不重做 S1 已完成的取回和来源审计，也不自动合并恢复草稿。\n13: - 输入：设备/API/UI及Auth.js锁定版本、17真实会话检查\n14: - 产出：session-acceptance；初登/活动刷新/SSR/退出与浏览器恢复证据\n15: - 预估：1.5 人天　｜　前置：M3-T8　显示本人设备并退出指定设备；M3-T6　接通唯一登录页和明确方式字段；M3-T10　接通首次绑定表单与一次展示材料；M3-T11　接通独立恢复及受限重绑向导；M3-T13　接通退出全部设备确认与结果核实（已落地）\n16: 任务契约版本：11721478375f4d9d75652afcd9c3a2dcf179ba974f49a9b8b557ef7e6349b2c0；提示词生成器 1.9.0\n17: \n18: ## 你的角色\n19: 本项目的后端开发工程师。架构在 08 节 与 06 节共用约定里已定死（下面有摘要）；你的活是在既定约定内实现这一个任务，不重新设计、不顺手重构。被架构约定挡住（照约定做不到、只能违反 06/08 节才能完成）也不自行停下或绕过去另起一套：列出候选交 Jev，按 spec_change 标记走文档补丁，并写进回报——下一个任务不知道，第三个又会起第三套。工具报错、仓库现状与本提示词对不上这类事，「步骤」里都写了怎么办：照做并记进回报，不停下来问。\n20: \n21: ## 动手前先读（知识库，顺 [[链接]] 取，不整本读）\n22: - docs/PackJoyU-开发文档/图谱/任务/M7-T2.md　任务卡 + 前人留下的实施沉淀\n23: - docs/PackJoyU-开发文档/图谱/模块/M7.md　模块职责与已有代码位置\n24: - docs/PackJoyU-开发文档/图谱/边界/ 下的 E-01.md、E-02.md、E-03.md、E-04.md、E-69.md、E-70.md、E-71.md、E-96.md　本任务要兜的边界\n25: \n26: ## 验收标准（验收的唯一依据，逐条都要满足）\n27: 1) 真实登录并核rememberDevice=false的2h活动滑动\n28: 实际活动POST /api/admin/account/session/activity写Set-Cookie续期而SSR只读不冒称已续\n29: 记住设备7d闲置与30d绝对边界的HTTP测试拒绝等号/过期，连续活动不越30d（E-01、E-02、E-69、E-71）。2) 有效记住cookie关闭重开同浏览器可恢复\n30: 分别实际改密码、重置验证器、退出所有设备、撤销设备、禁用/改sv后旧cookie下一真实受保护HTTP被拒，刷新不复活\n31: 普通Auth.js signOut同步撤销sid，数据库不可校验时拒绝\n32: mode非法/未启用totp/非空recoveryCode均通用登录失败（E-03、E-04、E-70、E-96）。\n33: \n34: ## 必须处理的边界\n35: - E-01　会话持久化与记住设备期限\n36:   触发：未选“记住此设备”　期望：保留当前 2 小时会刷新的会话策略，不误写成固定 2 小时强制退出；选中后连续活跃也不能突破从签发起算的 30 天绝对上限。\n37: - E-02　会话持久化与记住设备期限\n38:   触发：已记住的设备超过 7 天无有效服务端活动　期望：下次受保护请求要求重新验证，刷新 JWT 不能复活已过期会话。\n39: - E-03　会话持久化与记住设备期限\n40:   触发：改密、重置验证器、禁用账号或执行“退出所有设备”　期望：服务端撤销该账号旧凭证，旧 JWT 即使尚未到期也被拒绝；普通“退出”至少撤销当前设备会话并清除本地登录状态。\n41: - E-04　会话持久化与记住设备期限\n42:   触发：浏览器关闭、恢复标签页或重新打开　期望：补充可测分支：关闭并重开浏览器后，未到期且未撤销的真实凭据按既有策略处理；过期或撤销凭据的受保护请求拒绝。测试不得以浏览器关闭即销毁 Cookie 为前提。\n43: - E-69　设备会话与Auth.js期限接合\n44:   触发：普通会话距上次有效活动达到 2 小时，或记住设备达到 7 天闲置/首次签发起 30 天绝对期限中的任一项　期望：服务端拒绝授权并清理可写响应中的 cookie；JWT 和 Set-Cookie 到期时间均不得越过该设备实际允许期限，刷新不能延长绝对上限。\n45: - E-70　设备会话与Auth.js期限接合\n46:   触发：cookie/JWT 仍有效，但设备已撤销、账号禁用、凭证版本变化或服务端校验不可用　期望：受保护请求不得仅凭 cookie 放行；在请求范围内去重查询不能演变成跨请求忽略撤销的缓存。\n47: - E-71　设备会话与Auth.js期限接合\n48:   触发：初登、刷新、SSR 与退出走到不同 Auth.js 路径　期望：锁定同一实际 beta 版本，对四条真实路径验证 JWT 与 Set-Cookie 期限及撤销；SSR 无法写 cookie 时不得宣称浏览器持久化已续期，退出必须同步撤销设备记录。\n49: - E-96　登录方式枚举与账号隐私\n50:   触发：mode未知、totp模式未获账号本人启用或普通Credentials携非空recoveryCode　期望：列明每种非法 mode、未由本人开启的totp、普通Credentials带非空recoveryCode都沿同一通用Auth.js失败结果，不签后台会话且响应不区分账号存在；合法password/totp只校验相应方式，并按既定限流/错误协议测试，保留有效用户登录。\n51: \n52: ## 相关契约（照它实现，改要走文档补丁）\n53: | POST | /api/admin/account/session/activity | 空对象；真实前台活动节流调用 | SessionActivityDTO：effectiveExpiresAt、absoluteExpiresAt；真实Set-Cookie刷新 | 当前有效设备、同源、任一后台角色 |\n54: | POST /api/admin/account/session/activity | 将本次真实前台活动计入lastActivityAt并更新授权闲置截止/JWT/cookie；晚到的重放会延长所请求的有效期，不只是附带updatedAt | 不自动重放；遵Retry-After及15min节流，后台定时器不得替重试制造活动 | 用GET /api/admin/account的当前设备effectiveExpiresAt，或Auth.js GET session读取当前状态；这些读取不计活动。之后只有新的真实前台活动才可新调用；已过期/撤销则登录，不能复活 |\n55: \n56: ## 只改这些路径\n57: - docs/acceptance/admin-session/\n58: - e2e/admin-session-integration.spec.ts\n59: - tests/admin-session-http-integration.test.ts\n60: 这是实施、审查和并行排程共用的有效范围。测试、包导出、依赖清单和共享基础必须列在这里；缺少必需文件时回报具体路径，由审查方修补 taskPaths/supportPaths 并核对冲突，不擅自新增公共基础或放宽范围。\n61: 其余范围外的文件不动；文档漏列则提出定点补丁，不重新开始本任务。\n62: \n\n100: ## 本项目约定\n101: 本项目使用Next App Router，无hash路由；通用交接提示中的#/（首页）在本项目执行/en或/ru可见导航，不引入hash router。新增API信封和DTO遵06/10；既有Auth.js协议保持。源数据/素材未验证不冒充已完成。 混合模块M3/M4/M5的具体UI任务显式引用07/11/12、stylekit与record-browser-gif；后台逐页测D1–D6，沿唯一minimalist-flat及11值不重搜。 M1-T1工作树创建后先从本机task/docs-s2-s6导入docs/PackJoyU-开发文档、AGENTS.md、CLAUDE.md，作为首PR基线；其他任务等其落地后从origin/main创建。文档未上传远端，不假定origin已有。后台探针用真实登录cookie，禁止注入认证存储，CLI不能真实登录时在已登录页面调用探针导出测量。 原语completionStage只做本卡规则/DB层证据，完整可见入口/真实GIF/密度归其integrationTask；通用GUI模板按当前完成阶段解释，最终集成不免验。\n102: "
+}

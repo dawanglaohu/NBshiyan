@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire the operator inbox, thread replies, and unread navigation",
+    "input": "M4 operator APIs/actual notification states/shared chat client; M3 admin shell; section 11/12 workspace and meanings of read versus received.",
+    "output": "InboxContainer/ThreadContainer for /admin/chat and /admin/chat/[id]; AdminShell human-consultation entry and the current operator's unread badge; real human reply/close/synchronization UI.",
+    "accept": "1) Entry: admin Human conversations (admin-chat-link) -> /admin/chat; an actual conversation row (chat-thread-link-{id}) -> /admin/chat/[id]. Data source: GET /api/admin/chat/conversations and its id-specific incremental GET. Send reply (operator-chat-send) -> POST messages; displayed messages -> POST read; Close conversation (operator-chat-close) -> PATCH with expectedVersion. Click each control and assert actual requests plus a visitor-side reply from the real human author (E-16, E-31, E-32, E-33). 2) Visible 3s snapshot/seq polling, hidden pause, maximum-30s backoff, catch-up deduplication, and cancellation on switching threads pass out-of-order/page-insertion tests. Undisplayed new messages remain unread. Notification failure/unknown is shown separately without retracting received. EDITOR cannot see the entry, while direct-page/API access still rejects it (E-34, E-35, E-41, E-76, E-77, E-78, E-79). 3) Check the minimalist-flat workspace at 1920x1080/1440x900/390x844 under work/density7/gutter16/gap16/pad16 for D1-D6. Test one/two/many conversations, empty/failure/old-value states, keyboard, and focus. Attach GIFs of the real ADMIN/SALES and visitor two-sided flow."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

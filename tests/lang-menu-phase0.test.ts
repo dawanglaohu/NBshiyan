@@ -36,7 +36,7 @@ test('keyboard and outside click: Enter/Space/arrows open, arrows/Home/End move,
 
 test('CSP: no style attribute, classes only; 44px rows on mobile', () => {
   assert.doesNotMatch(menu, /style=\{/);
-  assert.match(css, /@media \(max-width:767px\)\{\.lang-item\{min-height:44px\}/);
+  assert.match(css, /\.lang-item\{[^}]*min-height:var\(--pj-touch-target\)/);
 });
 
 test('header uses the dropdown in desktop and mobile; slug-mapping logic reused (langSwitchTarget)', () => {

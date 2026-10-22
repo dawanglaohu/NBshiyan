@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Task estimates and reuse of prior regression tests remain uncertain after one substantive decomposition pass",
+    "impact": "Some calibration estimates still exceed the two-day planning target; schedule projections are not delivery commitments",
+    "mitigation": "At task start inspect the actual changed scope and existing prerequisite tests; add only the new branch evidence. If the scope still exceeds two person-days, split it through a local contract patch while preserving all acceptance obligations. Never reduce acceptance or claim a projection was measured.",
+    "trigger": "Actual task inspection reveals independent responsibilities or more than two days of work; keep the affected task unlanded"
+  }
+}

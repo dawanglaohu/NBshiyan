@@ -1,0 +1,2690 @@
+[
+  {
+    "id": "M1-T1",
+    "promptHash": "089bffe542ea6c86",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.49) asks_user=no(0.17) contradiction=unsure(0.43) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10122,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T2",
+    "promptHash": "1e9d00fe59f8db60",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.15) contradiction=no(0.33) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9360,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 49% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T3",
+    "promptHash": "da6bf9df406d4279",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.15) contradiction=no(0.31) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10139,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 51% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T4",
+    "promptHash": "cb19379976b3a1ab",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.42) asks_user=no(0.15) contradiction=unsure(0.39) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10741,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 48% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T5",
+    "promptHash": "e9fa1eaa67d47baa",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.37) asks_user=no(0.19) contradiction=unsure(0.36) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 11302,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 48% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T6",
+    "promptHash": "62cb8620e5cbe009",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.42) asks_user=no(0.17) contradiction=unsure(0.36) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9694,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 51% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T7",
+    "promptHash": "3d0060d4f77a90dd",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.14,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.44) asks_user=no(0.14) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9268,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 49% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T8",
+    "promptHash": "6c1c3f9b32ed9b69",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.13,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.36) asks_user=no(0.13) contradiction=unsure(0.36) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9188,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 49% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M1-T9",
+    "promptHash": "d032a8eaed04ac1a",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.12,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.12) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10681,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T1",
+    "promptHash": "400edfd57aa8e6de",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.42) asks_user=no(0.17) contradiction=unsure(0.40) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10025,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T2",
+    "promptHash": "cba7c2ceee4e4144",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.35) asks_user=no(0.17) contradiction=no(0.35) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10341,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T3",
+    "promptHash": "17799ea2eb517b95",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.15) contradiction=unsure(0.41) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10433,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 48% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T4",
+    "promptHash": "2e43acfb7c1a390f",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.35) asks_user=no(0.17) contradiction=unsure(0.37) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9126,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 49% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T5",
+    "promptHash": "05fabde686dfccc9",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.14,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.14) contradiction=unsure(0.37) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9963,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T6",
+    "promptHash": "4123f3d849a4454e",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.38) asks_user=no(0.18) contradiction=unsure(0.37) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9935,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T7",
+    "promptHash": "bca044e050833685",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.34) asks_user=no(0.21) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10973,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M2-T8",
+    "promptHash": "0ac49a825b499204",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.33) asks_user=no(0.17) contradiction=unsure(0.41) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10642,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T1",
+    "promptHash": "532a79a0febc83ee",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.35) asks_user=no(0.18) contradiction=no(0.35) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8931,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T10",
+    "promptHash": "140ee78c7c8a668a",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.38) asks_user=no(0.15) contradiction=unsure(0.37) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8149,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T11",
+    "promptHash": "52027e5b9fe17ebf",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.33) asks_user=no(0.17) contradiction=unsure(0.37) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10152,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T12",
+    "promptHash": "e1298f2b7ae9675e",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.18) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10043,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T13",
+    "promptHash": "0c3913c196f0ee84",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.31) asks_user=no(0.17) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9040,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T14",
+    "promptHash": "6cbd616861cb9027",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.20) contradiction=unsure(0.37) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7769,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T15",
+    "promptHash": "a6c712c946484bd3",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.36) asks_user=no(0.20) contradiction=unsure(0.42) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8819,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T16",
+    "promptHash": "ce36fba78a1cb642",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.17) contradiction=unsure(0.42) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8390,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T17",
+    "promptHash": "2cf84cd99005846d",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.29) asks_user=no(0.19) contradiction=unsure(0.39) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8182,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T18",
+    "promptHash": "d874439cad351d16",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.33) asks_user=no(0.24) contradiction=no(0.34) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7085,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 50% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T19",
+    "promptHash": "74ca5a720ebc6928",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.25,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.25) asks_user=no(0.17) contradiction=unsure(0.38) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8208,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T2",
+    "promptHash": "7d28d4e5ba7b0e75",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.16) contradiction=unsure(0.40) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8522,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T20",
+    "promptHash": "d5d7a88f32676181",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.36) asks_user=no(0.19) contradiction=unsure(0.40) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7803,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T21",
+    "promptHash": "413aec04658fe6e5",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.44) asks_user=no(0.15) contradiction=no(0.35) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7671,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T22",
+    "promptHash": "2946f2e0a504e9e9",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.17) contradiction=no(0.28) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7457,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 49% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T23",
+    "promptHash": "34e975f06b8fd770",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.42) asks_user=no(0.18) contradiction=unsure(0.37) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7254,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 49% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T24",
+    "promptHash": "c1aadb82c01e0797",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.34) asks_user=no(0.16) contradiction=no(0.33) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8074,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T25",
+    "promptHash": "615512dbadf941d7",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.14,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.36) asks_user=no(0.14) contradiction=no(0.35) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7704,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T3",
+    "promptHash": "9ef536483c5a7c09",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.30) asks_user=no(0.23) contradiction=unsure(0.41) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8200,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T4",
+    "promptHash": "8883fcd61e1fb57f",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.30) asks_user=no(0.18) contradiction=unsure(0.36) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8090,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T5",
+    "promptHash": "54d5365a748ed36b",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.19) contradiction=unsure(0.39) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9442,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T6",
+    "promptHash": "14feda9f1b118e29",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.13,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.28) asks_user=no(0.13) contradiction=no(0.33) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8649,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T7",
+    "promptHash": "32b0d82b9a5a4a0b",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.19) contradiction=no(0.35) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9046,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T8",
+    "promptHash": "1ed59a860f06c0ed",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.21) contradiction=unsure(0.36) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8031,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M3-T9",
+    "promptHash": "d8b24f506dcbd1a3",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.27,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.27) asks_user=no(0.23) contradiction=no(0.33) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8371,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T1",
+    "promptHash": "7bf868a753300f82",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.30) asks_user=no(0.18) contradiction=no(0.35) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8077,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T10",
+    "promptHash": "91f29d352c87333e",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.34) asks_user=no(0.17) contradiction=unsure(0.36) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8191,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T11",
+    "promptHash": "521c2822b545e008",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.43) asks_user=no(0.21) contradiction=unsure(0.41) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8176,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T12",
+    "promptHash": "d31706595f08db2b",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.36) asks_user=no(0.16) contradiction=unsure(0.41) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8149,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T13",
+    "promptHash": "1379896427a41fea",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.19) contradiction=no(0.31) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7711,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 51% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T14",
+    "promptHash": "e0f3f87623c58be4",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.17) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8612,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T15",
+    "promptHash": "b1c3485985a1e7e9",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.37) asks_user=no(0.20) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7984,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T2",
+    "promptHash": "58eb3d154b78caa8",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.31) asks_user=no(0.16) contradiction=unsure(0.40) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8102,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T3",
+    "promptHash": "4e03bd3832f697d3",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.34) asks_user=no(0.17) contradiction=no(0.35) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8744,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T4",
+    "promptHash": "37645b3fee58e910",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.31) asks_user=no(0.20) contradiction=unsure(0.36) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8750,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T5",
+    "promptHash": "581afa7db6e3a5cf",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.38) asks_user=no(0.20) contradiction=unsure(0.36) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9479,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T6",
+    "promptHash": "bfdd0e15bf44715b",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.18) contradiction=no(0.34) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8941,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 48% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T7",
+    "promptHash": "43be0cb4dd7a9765",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.34) asks_user=no(0.19) contradiction=no(0.29) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7778,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 50% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T8",
+    "promptHash": "f21581ce0e2330a2",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.29) asks_user=no(0.16) contradiction=no(0.34) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7653,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M4-T9",
+    "promptHash": "00a9112043c8d8e0",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.35) asks_user=no(0.19) contradiction=unsure(0.36) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8714,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T1",
+    "promptHash": "c64f6372ecd98f88",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.40) asks_user=no(0.18) contradiction=unsure(0.37) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 6700,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 50% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T10",
+    "promptHash": "74e643d4ebc8d496",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.27,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.27) asks_user=no(0.21) contradiction=no(0.34) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7653,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T11",
+    "promptHash": "539c5531acab5448",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.29) asks_user=no(0.23) contradiction=no(0.31) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7386,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 50% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T2",
+    "promptHash": "e148d2283192cbe4",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.34) asks_user=no(0.15) contradiction=unsure(0.39) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7644,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T3",
+    "promptHash": "721abc0a4ab89616",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.15) contradiction=no(0.34) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7721,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T4",
+    "promptHash": "7d08d7f58b2085f1",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.15) contradiction=unsure(0.37) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7575,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T5",
+    "promptHash": "ac588451da44bfff",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.14,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.39) asks_user=no(0.14) contradiction=no(0.33) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 6553,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 50% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T6",
+    "promptHash": "143e6171eb7ee979",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.37) asks_user=no(0.18) contradiction=unsure(0.54) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7807,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 44% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T7",
+    "promptHash": "44981523f10e35a5",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.18) contradiction=unsure(0.36) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9082,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 45% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T8",
+    "promptHash": "c4f5fc57463e1493",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.29) asks_user=no(0.20) contradiction=unsure(0.36) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8583,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M5-T9",
+    "promptHash": "9ba93836f0d841f7",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.37) asks_user=no(0.21) contradiction=no(0.33) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 6744,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 49% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M6-T1",
+    "promptHash": "0d1613cf374b93f4",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.12,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.33) asks_user=no(0.12) contradiction=unsure(0.38) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9717,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 50% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M6-T2",
+    "promptHash": "12164e0bca1be3d9",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.34) asks_user=no(0.17) contradiction=unsure(0.36) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 9945,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 48% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M6-T3",
+    "promptHash": "e1ebcccaef09456c",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.36) asks_user=no(0.17) contradiction=unsure(0.38) scope_clear=yes(0.95) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10495,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 46% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M6-T4",
+    "promptHash": "1a619d181b74e4eb",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.37) asks_user=no(0.15) contradiction=unsure(0.41) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10636,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M6-T5",
+    "promptHash": "a40275cbdfdd5f26",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.32) asks_user=no(0.15) contradiction=unsure(0.41) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10127,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 50% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M6-T6",
+    "promptHash": "1fa2ceb06229e57f",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.33) asks_user=no(0.17) contradiction=unsure(0.43) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10615,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 47% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M6-T7",
+    "promptHash": "e018274971a4d718",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.35) asks_user=no(0.15) contradiction=unsure(0.38) scope_clear=yes(0.94) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 10276,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 51% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T1",
+    "promptHash": "c7a9fc492327c10b",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.43) asks_user=no(0.21) contradiction=no(0.32) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7715,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 54% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T2",
+    "promptHash": "3fa5fdeb42acf27a",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.21,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.38) asks_user=no(0.21) contradiction=no(0.33) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8254,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T3",
+    "promptHash": "57f77aa50f617948",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.26) asks_user=no(0.22) contradiction=no(0.32) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 8073,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 53% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T4",
+    "promptHash": "80bc2d3451729254",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.9,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.33) asks_user=no(0.19) contradiction=no(0.34) scope_clear=yes(0.90) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7700,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T5",
+    "promptHash": "739890a221a8dd27",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.91,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.29) asks_user=no(0.18) contradiction=unsure(0.37) scope_clear=yes(0.91) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7712,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 51% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T6",
+    "promptHash": "89d2c7553dda6b2a",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.30) asks_user=no(0.20) contradiction=no(0.33) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7929,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T7",
+    "promptHash": "562330502e8d4261",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.29) asks_user=no(0.17) contradiction=no(0.30) scope_clear=yes(0.93) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7206,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T8",
+    "promptHash": "c76001bc2c0f2133",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "asks_user": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "scope_clear": {
+        "p": 0.91,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=no(0.35) asks_user=no(0.17) contradiction=unsure(0.37) scope_clear=yes(0.91) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 6885,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  },
+  {
+    "id": "M7-T9",
+    "promptHash": "9fb401d2715a3ca5",
+    "status": "ok",
+    "template": "prompt",
+    "model": "jev-1.13.0",
+    "key_source": "C:/Users/admin/.typesafe/.env",
+    "verdicts": {
+      "placeholder": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "asks_user": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "contradiction": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "scope_clear": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "line": "prompt: placeholder=unsure(0.40) asks_user=no(0.19) contradiction=no(0.34) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+    "usage": {
+      "input_tokens": 7169,
+      "output_tokens": 72
+    },
+    "language_warning": "state 里 52% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+  }
+]

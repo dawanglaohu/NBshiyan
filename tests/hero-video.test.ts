@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { BRAND_MEDIA } from '../src/lib/home/brandMedia';
 import { HERO_SEEN_KEY, heroReducer, markSeen, shouldAutoplay, whenIdle } from '../src/lib/home/heroVideo';
 
 const mem = () => { const m = new Map<string, string>(); return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) }; };
@@ -51,33 +52,34 @@ test('video loads only after page load + idle', () => {
   assert.equal(ran, true);
 });
 
-test('component markup: poster is high-priority img, video muted/playsInline/preload=none, webm before mp4, no loop, real button', () => {
+test('component markup: poster is high-priority img, video muted/playsInline/preload=none, approved mp4 sources, no loop, real button', () => {
   const src = readFileSync(new URL('../src/components/layout/HeroVideo.tsx', import.meta.url), 'utf8');
   assert.match(src, /getImageProps\(\{[^}]*className: 'hero-media-poster'[^}]*priority: true/);
   assert.match(src, /<video[^>]*\bmuted\b[^>]*\bplaysInline\b[^>]*preload="none"/);
   assert.doesNotMatch(src, /\bloop\b|autoPlay/);
-  assert.ok(src.indexOf('hero-115.c293080a.webm') < src.indexOf('hero-115.c2be059f.mp4'));
-  assert.match(src, /<button type="button"/);
+  assert.ok(src.indexOf('BRAND_MEDIA.video.compact') < src.indexOf('BRAND_MEDIA.video.full'));
+  assert.doesNotMatch(src, /\/video\/hero-115|\.webm/);
+  assert.match(src, /<Button type="button"/);
   const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
   assert.match(css, /\.hero-media\{[^}]*aspect-ratio:16\/9/);
-  assert.match(css, /max-width:767px\)\{[^@]*\.hero-media\{aspect-ratio:4\/5\}\}/);
+  assert.match(css, /max-width:767px\)\{[^@]*\.hero-media\{aspect-ratio:16\/9\}\}/);
   assert.doesNotMatch(css, /object-position:10% 50%/);
   assert.match(css, /prefers-reduced-motion:reduce\)\{\.hero-media-video\{transition:none/);
   assert.match(css, /\.hero-media-btn:focus-visible\{outline:2px solid var\(--ink\);outline-offset:2px;box-shadow:0 0 0 2px #fff/);
   assert.match(css, /\.hero-media-btn\{[^}]*min-width:44px;min-height:44px/);
 });
 
-test('portrait (<=767px): portrait poster + video via media queries, before landscape; desktop never gets portrait', () => {
+test('all screens use the approved complete 16:9 video and its own poster', () => {
   const src = readFileSync(new URL('../src/components/layout/HeroVideo.tsx', import.meta.url), 'utf8');
-  assert.match(src, /PORTRAIT_MQ = '\(max-width: 767px\)'/);
-  assert.match(src, /<source media=\{PORTRAIT_MQ\} type="image\/avif" srcSet="\/video\/hero-115-portrait-poster\.32037cea\.avif"/);
-  assert.match(src, /<source media=\{DESKTOP_MQ\} srcSet=\{desktopSrcSet\}/);
-  assert.match(src, /DESKTOP_MQ = '\(min-width: 768px\)'/);
-  const pw = src.indexOf('hero-115-portrait.webm'), pm = src.indexOf('hero-115-portrait.mp4'), lw = src.indexOf('hero-115.c293080a.webm');
-  assert.ok(pw > 0 && pw < pm && pm < lw, 'portrait webm < portrait mp4 < landscape');
-  assert.match(src, /<source media=\{PORTRAIT_MQ\} src="\/video\/hero-115-portrait\.webm"/);
-  for (const f of ['hero-115-portrait.webm', 'hero-115-portrait.mp4', 'hero-115-portrait-poster.32037cea.avif', 'hero-115-portrait-poster.e3ad2401.webp'])
-    assert.ok(readFileSync(new URL(`../public/video/${f}`, import.meta.url)).length > 0, f);
+  assert.match(src, /COMPACT_MQ = '\(max-width: 767px\)'/);
+  assert.match(src, /src: BRAND_MEDIA.video.poster/);
+  assert.match(src, /<source media=\{COMPACT_MQ\} src=\{BRAND_MEDIA.video.compact\}/);
+  assert.match(src, /<source src=\{BRAND_MEDIA.video.full\}/);
+  assert.doesNotMatch(src, /PORTRAIT_MQ|hero-115|className="hero-brand"/);
+  for (const path of Object.values(BRAND_MEDIA.video))
+    assert.ok(readFileSync(new URL(`../public${path}`, import.meta.url)).length > 0, path);
+  const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
+  assert.match(css, /\.hero-media-poster,\.hero-media-video\{[^}]*object-fit:contain/);
 });
 
 test('skip/play labels exist in en and ru', () => {

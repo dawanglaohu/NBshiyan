@@ -1,0 +1,65 @@
+[
+  {
+    "path": "docs/brand-media/static/evidence/video2-f0000.jpg",
+    "frameIndex": 0,
+    "atMs": 0.0,
+    "sha256": "29bd36ed2a77d3b5c2118110b3cd70646f93733706d93d2daf829012fef0718b",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+  },
+  {
+    "path": "docs/brand-media/static/evidence/video2-f0180.jpg",
+    "frameIndex": 180,
+    "atMs": 3000.0,
+    "sha256": "9f86ee053cec5f9fef7acb429c1d593a2010137888d3073bf9b6a7fd5e65d8d7",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+  },
+  {
+    "path": "docs/brand-media/static/evidence/video2-f0270.jpg",
+    "frameIndex": 270,
+    "atMs": 4500.0,
+    "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+  },
+  {
+    "path": "docs/brand-media/static/evidence/video2-f0483.jpg",
+    "frameIndex": 483,
+    "atMs": 8050.0,
+    "sha256": "f7c9e5eb73ee522e0db60923a59ff5afa4ca39076dfb10fa63945659444647e9",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+  },
+  {
+    "path": "docs/brand-media/static/evidence/video2-f0510.jpg",
+    "frameIndex": 510,
+    "atMs": 8500.0,
+    "sha256": "00d8beeaf2c4ffd1e1e022610689ebc22c52e7ce036ab391c2bcb3064bb6ad00",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+  },
+  {
+    "path": "docs/brand-media/static/evidence/video2-f0600.jpg",
+    "frameIndex": 600,
+    "atMs": 10000.0,
+    "sha256": "7700d874314686f0fddf35632f8d4ba9850d0c7d4dcd6c605e69ba9974541a12",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+  },
+  {
+    "path": "docs/brand-media/static/evidence/video2-f0734.jpg",
+    "frameIndex": 734,
+    "atMs": 12233.333333,
+    "sha256": "fa60340b92b761a1fd7bb676681a8e753eef81fcd2f30db50cbe95e4b5dc0835",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+  }
+]

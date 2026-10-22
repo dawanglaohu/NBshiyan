@@ -1,0 +1,33 @@
+
+> packjoyu-site@ lint D:\xiangmu\NBshiyan-m1-t3
+> next lint && pnpm run lint:ru-yo
+
+`next lint` is deprecated and will be removed in Next.js 16.
+For new projects, use create-next-app to choose your preferred linter.
+For existing projects, migrate to the ESLint CLI:
+npx @next/codemod@canary next-lint-to-eslint-cli .
+
+ ⚠ Attempted to load @next/swc-win32-x64-msvc, but an error occurred: A dynamic link library (DLL) initialization routine failed.
+\\?\D:\xiangmu\NBshiyan-m1-t3\node_modules\.pnpm\@next+swc-win32-x64-msvc@15.5.27\node_modules\@next\swc-win32-x64-msvc\next-swc.win32-x64-msvc.node
+
+./src/app/[locale]/page.tsx
+56:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/layout/BrandScene.tsx
+37:9  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+38:20  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/layout/HeroVideo.tsx
+57:7  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/three/ProductGallery.tsx
+117:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/lib/about/model.ts
+94:1  Warning: Unused eslint-disable directive (no problems were reported from 'no-control-regex').
+129:3  Warning: Unused eslint-disable directive (no problems were reported from 'no-control-regex').
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+
+> packjoyu-site@ lint:ru-yo D:\xiangmu\NBshiyan-m1-t3
+> node scripts/lint-ru-yo.mjs

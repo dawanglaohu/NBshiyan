@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Caller/wiring point: GET /api/admin/account -> existing requireAdmin -> account DTO -> final-response counter. An actual HTTP request produces one requestCount in isolated PostgreSQL; a controlled 5xx increments errorCount without request body/IP/account data. Counter-store failure leaves the original business status and body unchanged. 2) New configuration is parsed centrally with Zod; startup rejects missing required values and safe errors contain no raw exception. routeId is a fixed whitelist. Site dates use existing settings or initial UTC/revision1 without importing M5/M6 services. Existing endpoint envelopes stay intact .",
+  "edges": {}
+}

@@ -1,0 +1,295 @@
+{
+  "method": "Fresh headed Chrome, browser CDP connection; target debugger detached during transitions. No document property overrides or lifecycle event dispatch.",
+  "samples": [
+    {
+      "label": "foreground-playing",
+      "visibility": "visible",
+      "hidden": false,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [],
+      "scene": {
+        "state": "playing",
+        "visible": "1",
+        "userPaused": "0",
+        "inView": "1",
+        "gif": 1,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    },
+    {
+      "label": "minimized-with-target-detached",
+      "visibility": "hidden",
+      "hidden": true,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        }
+      ],
+      "scene": {
+        "state": "still",
+        "visible": "0",
+        "userPaused": "0",
+        "inView": "1",
+        "gif": 0,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    },
+    {
+      "label": "restored",
+      "visibility": "visible",
+      "hidden": false,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        }
+      ],
+      "scene": {
+        "state": "playing",
+        "visible": "1",
+        "userPaused": "0",
+        "inView": "1",
+        "gif": 1,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    },
+    {
+      "label": "second-tab-active-target-detached",
+      "visibility": "hidden",
+      "hidden": true,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        }
+      ],
+      "scene": {
+        "state": "still",
+        "visible": "0",
+        "userPaused": "0",
+        "inView": "1",
+        "gif": 0,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    },
+    {
+      "label": "original-tab-active",
+      "visibility": "visible",
+      "hidden": false,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        }
+      ],
+      "scene": {
+        "state": "playing",
+        "visible": "1",
+        "userPaused": "0",
+        "inView": "1",
+        "gif": 1,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    },
+    {
+      "label": "user-paused",
+      "visibility": "visible",
+      "hidden": false,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        }
+      ],
+      "scene": {
+        "state": "still",
+        "visible": "1",
+        "userPaused": "1",
+        "inView": "1",
+        "gif": 0,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    },
+    {
+      "label": "paused-second-tab-active",
+      "visibility": "hidden",
+      "hidden": true,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        }
+      ],
+      "scene": {
+        "state": "still",
+        "visible": "0",
+        "userPaused": "1",
+        "inView": "1",
+        "gif": 0,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    },
+    {
+      "label": "paused-returned",
+      "visibility": "visible",
+      "hidden": false,
+      "reducedMotion": true,
+      "overridden": false,
+      "events": [
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "hidden",
+          "trusted": true
+        },
+        {
+          "event": "visibilitychange",
+          "visibility": "visible",
+          "trusted": true
+        }
+      ],
+      "scene": {
+        "state": "still",
+        "visible": "1",
+        "userPaused": "1",
+        "inView": "1",
+        "gif": 0,
+        "top": -388.109375,
+        "bottom": 488.15625,
+        "viewport": 805
+      }
+    }
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.85",
+    "revision": "@0e66b94549a8bd85f03fbdf189b752d6e7b63c32",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.25"
+  },
+  "clickedSceneLabels": [
+    "Play illustration animation",
+    "Pause illustration animation"
+  ],
+  "actualHiddenObserved": true,
+  "success": true,
+  "profileRemoved": true
+}

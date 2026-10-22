@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Migrate existing inquiry list/detail and mail-thread visuals",
+    "input": "Existing inquiry pages, actual HTTP APIs, MailThread/MailParts, anonymized states, shared visual components and admin shell.",
+    "output": "Existing inquiry screens and mail-thread controls using the locked visual system, with actual service evidence and no business/API change.",
+    "accept": "1) Sign in as ADMIN/SALES, click the Inquiries navigation, search/filter/page using existing GET /api/admin/inquiries and GET /api/admin/users, then click an actual row to read its scoped detail and history. Create a synthetic inquiry through real POST /api/inquiries. 2) Existing status/assignee PATCH, note POST and reply controls retain their original methods/bodies and stored outcomes in isolated PostgreSQL/SMTP. SALES cannot read another owner's inquiry. Actual MailThread uses existing GET/POST /api/admin/inquiries/[id]/mail and status/retry only when the unchanged mail/config gate permits; otherwise preserve the disabled-mail fallback. 3) Replace hard-coded conic gradients, 4/999px radii and 1px borders in InquiryDetail/anonymized and adjacent controls with section 11 values while retaining numerical score/labels/history and redaction. Use only minimalist-flat and sections 07/11/12. At 1920x1080, 1440x900 and 390x844 capture actual interaction GIF, computed 2px black border, zero radius, no shadow/gradient, accent #b45700, D1-D6 and overflow results; density7/gutter16/gap16/pad16, work width and 44px touch targets, all loading/empty/error/success/disabled/focus states. E-106."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -57,6 +57,9 @@ jobs:
       AUTH_TRUST_HOST: 'true'
       ADMIN_TOTP_KEY: ZTJlLW9ubHktdG90cC1rZXktMzItYnl0ZXMtMDAwMDA=
       NEXT_PUBLIC_SITE_URL: http://localhost:3100
+      # standalone 的 req.url 使用监听地址（http://0.0.0.0:3100），与浏览器的 localhost Origin 不同。
+      # 显式配置 APP_ORIGIN，让后台写请求通过既有同源校验。
+      APP_ORIGIN: http://localhost:3100
       NEXT_PUBLIC_ADMIN_API: http
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
       TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
@@ -74,8 +77,26 @@ jobs:
       - run: pnpm prisma db push --skip-generate
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
-      - name: Playwright（仅 Chromium，next start，外部请求全部拦截）
+      # next build 的 standalone 产物缺 .next/static 与 public，浏览器跑起来才会 404 样式和媒体。
+      # playwright.config.ts 加载时也做同样的复制（本地跑 e2e 不必手动执行本步），这里显式列出来，CI 日志里能核到运行目录就位。
+      - name: 准备 standalone 运行目录（复制 .next/static 与 public）
+        run: |
+          test -f .next/standalone/server.js
+          mkdir -p .next/standalone/.next
+          cp -r .next/static .next/standalone/.next/static
+          cp -r public .next/standalone/public
+      # 全部 e2e 用例（含 e2e/brand-smoke.spec.ts）共用这一个真实构建产物服务 + 上面的 postgres service。
+      # standalone 的 stdout 由 webServer 重定向到 .next/standalone-server.log，brand-smoke 从同一份文件核 RUM 脱敏日志。
+      - name: Playwright（仅 Chromium；统一跑 .next/standalone/server.js + postgres service）
         run: pnpm test:e2e
+      - name: 核对同次 standalone 服务的 RUM 脱敏日志
+        run: |
+          test -s .next/standalone-server.log
+          grep -c '^{"type":"rum"' .next/standalone-server.log
+          if grep '^{"type":"rum"' .next/standalone-server.log | grep -q '@'; then
+            echo 'RUM 日志出现邮箱样式字段，脱敏白名单被破坏' >&2
+            exit 1
+          fi
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -83,5 +104,6 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            .next/standalone-server.log
           retention-days: 7
 

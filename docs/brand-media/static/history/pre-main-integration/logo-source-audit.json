@@ -1,0 +1,176 @@
+{
+  "task": "M1-T3",
+  "scope": "Current SiteHeader complete wordmark; icon is provenance only",
+  "sourceFiles": [
+    {
+      "path": "src/components/layout/SiteHeader.tsx",
+      "sha256": "c69df839ef3c35ba26edc5d37e3df46945fb05b77beaf7e3fca5f1d0c2ec4ce4"
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "076b85b4e2631ae9877800b0d5de9d3561bc691144cf655cb3c010fa1abc0d6d"
+    },
+    {
+      "path": "src/app/[locale]/layout.tsx",
+      "sha256": "87d0befc92a6882692e6c960b2901461bcf83918135dd339ba92c32922b01e56"
+    },
+    {
+      "path": "src/styles/tokens.css",
+      "sha256": "ffbbf35f8cc0f623d12f46f5c85ff35b616aa431fe4a755d6d9f492fb214249f"
+    },
+    {
+      "path": "src/app/icon.svg",
+      "sha256": "56bdc4a29ae508300bc6b1d0e3fa1bfa4f8d9cdacbe9c294154cfce46261a17c"
+    },
+    {
+      "path": "src/assets/og-fonts/Manrope-ExtraBold.ttf",
+      "sha256": "27846657e08671d0a5de532c0aacf70ea69dd55319ea48c113dd26210a6482a8"
+    },
+    {
+      "path": "src/assets/og-fonts/OFL.txt",
+      "sha256": "4b8929f05a122b7abb9059501dc7dc4df86f8c97d5a1769d60d82cf2d2795dde"
+    },
+    {
+      "path": "design/og-src/og-article-font.py",
+      "sha256": "2c7e8b13d18fe4b8d15b116d6006ded6b022c6f79387f2e481944c5dd74644d1"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/current-header.json",
+      "sha256": "32d965f6c5ca9903cb4aacccbec41406919f998d80600641b9311937a8028e65"
+    },
+    {
+      "path": "docs/brand-media/static/evidence/current-manrope-latin.woff2",
+      "sha256": "e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f"
+    }
+  ],
+  "export": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "viewBox": "0 0 9268 1920",
+    "format": "SVG; eight outlined paths; no text/font/script/external references/metadata"
+  },
+  "font": {
+    "path": "src/assets/og-fonts/Manrope-ExtraBold.ttf",
+    "weight": 800,
+    "unitsPerEm": 2000,
+    "version": "Version 4.504",
+    "webfontSha256": "e310b55a7fd9677f5e3555e6c6c4d064fa1f1d24393f0ddbe217cea12a8c432f",
+    "browserFontUrl": "http://127.0.0.1:3217/_next/static/media/4c9affa5bc8f420e-s.p.woff2",
+    "exactOutlineAdvanceKerningMatch": true
+  },
+  "styleSources": {
+    "wordmark": "src/components/layout/SiteHeader.tsx:56",
+    "weightSizeJoyStyle": "src/app/globals.css:14",
+    "mainColorCascade": "src/app/globals.css:330; src/styles/tokens.css:29",
+    "joyColor": "src/styles/tokens.css:6",
+    "fontFamily": "src/app/[locale]/layout.tsx:20,57; src/app/globals.css:8"
+  },
+  "geometry": {
+    "unitsPerEm": 2000,
+    "advance": 9548,
+    "bounds": [
+      140,
+      -480,
+      9408,
+      1440
+    ]
+  },
+  "glyphPositions": [
+    {
+      "character": "P",
+      "x": 0,
+      "advance": 1300,
+      "kernAfter": -20
+    },
+    {
+      "character": "a",
+      "x": 1280,
+      "advance": 1166,
+      "kernAfter": 0
+    },
+    {
+      "character": "c",
+      "x": 2446,
+      "advance": 1166,
+      "kernAfter": 0
+    },
+    {
+      "character": "k",
+      "x": 3612,
+      "advance": 1104,
+      "kernAfter": 0
+    },
+    {
+      "character": "J",
+      "x": 4716,
+      "advance": 1026,
+      "kernAfter": 0
+    },
+    {
+      "character": "o",
+      "x": 5742,
+      "advance": 1254,
+      "kernAfter": -40
+    },
+    {
+      "character": "y",
+      "x": 6956,
+      "advance": 1140,
+      "kernAfter": 0
+    },
+    {
+      "character": "U",
+      "x": 8096,
+      "advance": 1452,
+      "kernAfter": 0
+    }
+  ],
+  "colors": {
+    "PackAndU": "#000000",
+    "Joy": "#c2381a"
+  },
+  "browserVerification": {
+    "evidencePath": "docs/brand-media/static/evidence/current-header.json",
+    "evidenceSha256": "32d965f6c5ca9903cb4aacccbec41406919f998d80600641b9311937a8028e65",
+    "webfontPath": "docs/brand-media/static/evidence/current-manrope-latin.woff2",
+    "pageUrl": "http://127.0.0.1:3217/en",
+    "widthDeltaPx": 0.03562499999999602,
+    "widthTolerancePx": 0.046875,
+    "widthToleranceBasis": "Three inline runs; each quantized to 1/64 CSS px",
+    "computedStylesAndPositions": {
+      "text": "PackJoyU",
+      "fontFamily": "Manrope, \"Manrope Fallback\", system-ui, sans-serif",
+      "fontSize": "20px",
+      "fontWeight": "800",
+      "fontStyle": "normal",
+      "fontKerning": "auto",
+      "letterSpacing": "normal",
+      "lineHeight": "24px",
+      "color": "rgb(0, 0, 0)",
+      "joyColor": "rgb(194, 56, 26)",
+      "joyFontStyle": "normal",
+      "width": 95.515625,
+      "characterLefts": [
+        0,
+        12.796875,
+        24.453125,
+        36.109375,
+        47.171875,
+        57.421875,
+        69.5625,
+        80.984375
+      ]
+    }
+  },
+  "license": {
+    "path": "src/assets/og-fonts/OFL.txt",
+    "name": "SIL Open Font License 1.1",
+    "output": "Outlined wordmark artwork; no font software embedded or redistributed by this export",
+    "basis": "OFL preamble and condition 5 exclude documents created using the font from font-license requirements"
+  },
+  "reproduction": "python docs/brand-media/static/export-logo-master.py --webfont <captured-latin.woff2> --browser-evidence <header.json> [--write]",
+  "exporter": {
+    "path": "docs/brand-media/static/export-logo-master.py",
+    "fontToolsVersion": "4.63.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Finally verify operations sources and notification consumption after restart",
+    "input": "stats-reliability/ops-sources, real cron and the dedicated chat SMTP adapter",
+    "output": "operations-acceptance: source-failure and actual notification-scheduling evidence",
+    "accept": "1) An isolated SMTP receiver accepts actual chat notifications. Verify attempt/sent/failed/unknown outcomes and explicit HTTP-count coverage. Stop one auxiliary source: stats keeps original success times/stale values or not_connected, while core remains readable. An unverified backup is never labeled recoverable (E-64, E-65, E-67). 2) Direct requests to protected notification-related entries from unauthenticated/EDITOR sessions are refused; cron accepts only Bearer. chat-notifications uses a dedicated limited adapter without extending the old mail UI. Verify an actual every-minute cron registration, save a message, restart and wait for scheduled persistent-outbox consumption. A manual HTTP call or empty registration is insufficient; notification failure cannot roll back received (E-94)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "acceptance": "1) Establish strict Zod request/response schemas by checking every field against section 10; derive types only from schemas, make the public index consumable by independent TypeScript code, and reject unknown or out-of-bound fields. 2) LoginMode accepts only password/totp; missing rememberDevice, boolean false and literal false parse as false, while other invalid values are rejected. (E-95).",
+  "edges": {
+    "E-95": {
+      "scene": "Login remember-device field",
+      "trigger": "Auth.js form rememberDevice is literal false, missing or boolean false",
+      "expect": "Explicitly parse it as false and use the normal two-hour policy. Do not use Boolean or unconstrained coercion to turn it into remembered-device mode; reject other invalid values."
+    }
+  }
+}

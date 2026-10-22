@@ -1,0 +1,30 @@
+{
+  "acceptance": "1) Caller controlled deployment script leads to POST /api/internal/ops-report, with strict Bearer/allowlist/time-range checks; send only space counters/backup-completion metadata, without sending contents or allowing arbitrary path reads; show not connected when no verifiable source exists (E-65, E-66). 2) Actually register ops-sample in registry/cron and show real measuredAt/lastSucceededAt; stopping reports must not fake freshness, auxiliary exceptions must not block core stats, and unobserved chains must not show healthy (E-54, E-64, E-67).",
+  "edges": {
+    "E-65": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Storage health or backups lack a verifiable source",
+      "expect": "Show only not connected and source state. Once connected, show actual check/completion times; do not use ordinary file uploads, successful page queries or scheduled times to fake backup success, and do not silently add a backup platform or paid service."
+    },
+    "E-66": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "SALES, EDITOR or an unauthenticated user directly accesses an operations API or export address",
+      "expect": "Directly test the section 09/10 source matrix: ADMIN has all sources, SALES has business aggregates under the existing scope, and EDITOR has public traffic/products/3D. Direct requests for sensitive system sources return 403; mixed-source responses are filtered before querying and contain no hidden counts."
+    },
+    "E-54": {
+      "scene": "C-06 Dashboard data times and exception states",
+      "trigger": "The query succeeds but health of the event-ingestion chain cannot yet be demonstrated",
+      "expect": "Report only actually observed configuration, most recent receipt and query states. Show unknown or the last known time, without inferring end-to-end health from lack of traffic."
+    },
+    "E-64": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "API or mail metrics are connected to actual result sources",
+      "expect": "Show redacted, explicitly defined error rates and notification-failure counts. Record mail failures from actual send attempts; do not equate queuing, invoking the send function or receiving an ordinary inquiry with successful delivery."
+    },
+    "E-67": {
+      "scene": "Additional operations metrics and role permissions",
+      "trigger": "Any additional source is interrupted or has no data",
+      "expect": "That card independently shows error, stale value, unknown or not connected. Other actual metrics remain queryable, preventing one auxiliary source from taking down the entire dashboard."
+    }
+  }
+}

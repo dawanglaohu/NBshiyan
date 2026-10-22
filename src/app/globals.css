@@ -224,7 +224,7 @@ header.site nav a[aria-current="page"]:not(.btn){color:var(--accent-text);font-w
 
 /* #148 方案 B（Ryan 确认）：深色区金色按钮保留 #D4AF6A 底，文字用深色 --on-accent #121214（9.03:1）；hover 变浅 #E2C285（10.95:1），不加深 */
 .theme-premium .btn:not(.ghost){color:var(--on-accent)}
-.theme-premium .btn:focus-visible{outline-color:var(--gold)} /* 深色区焦点环用金色，对 #121214 为 9.03:1 */
+/* 深色区焦点环由文件末尾的 M1-T1 规则统一给白色 outline；这里不再单独指定颜色 */
 .theme-premium .btn:not(.ghost):hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 
 /* #195 本地化 404 */
@@ -293,7 +293,7 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 .hero:has(.hero-media){min-height:min(78vh,720px);display:flex;align-items:center}
 .hero:has(.hero-media)>.container{width:100%}
 .hero-media{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--surface);container-type:inline-size}
-.hero-media-poster,.hero-media-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.hero-media-poster,.hero-media-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;display:block}
 /* #291 视频缩到 99%，略小于封面，避免视频首帧抢走 LCP（原因见 HeroVideo.tsx） */
 .hero-media-video{opacity:0;transition:opacity 300ms ease;transform:scale(.99)}
 .hero-media-video[data-visible="1"]{opacity:1}
@@ -321,23 +321,84 @@ html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 @media (max-width:767px){.hero .hero-brand{inset:0 0 auto 0;width:auto;height:45%;background:linear-gradient(180deg,color-mix(in srgb,var(--stage-bg) 85%,transparent) 0,color-mix(in srgb,var(--stage-bg) 85%,transparent) 55%,transparent 100%)}.hero-brand-inner{justify-content:flex-start;padding:24px 0 0 24px;font-size:max(13px,3.6cqi)}.hero-brand-tagline{max-width:none}}
 /* #291 焦点环：深色外环（--ink 在浅色画面上 ≥3:1）+ 内侧白环（压在深色礼盒上也看得见） */
 .hero-media-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 2px #fff}
-@media (max-width:767px){.hero:has(.hero-media){min-height:0}.hero-media{aspect-ratio:4/5}}
-/* 多语言第 0 期：语言下拉（UX 规格：地球图标 + EN/RU，母语名称，无国旗，当前语言在最前并打勾；手机端每行 44px） */
+@media (max-width:767px){.hero:has(.hero-media){min-height:0}.hero-media{aspect-ratio:16/9}}
+
+/* ---- M1-T1：8 个核心 --pj-* token 接到现有首页选择器上 ----
+   规则写在文件末尾：与上方 .btn/.entry a/.hero/:focus-visible 同特异性，靠后出现赢得层叠。
+   上方那些旧规则被 tests/catbar-card-spacing.test.ts 与 tests/home-entry-grid-308.test.ts 逐字锁定，
+   删改会直接红；要统一到 token，先改对应测试。 */
+body{background:var(--pj-bg);color:var(--pj-fg);font-size:var(--pj-body-size);line-height:var(--pj-body-line)}
+/* 首屏背景用 --pj-bg 纯色，不叠渐变（11 节 Avoid） */
+.hero{background:var(--pj-bg)}
+/* 主按钮：11 节固定态 = 黑底白字、2px 黑边、0 圆角；hover 黑白反转；active 强调底白字 */
+.btn{background:var(--pj-fg);border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);color:var(--pj-bg)}
+.btn:hover{background:var(--pj-bg);border-color:var(--pj-border);color:var(--pj-fg)}
+.btn:not(.ghost):active{background:var(--pj-accent);border-color:var(--pj-accent);color:#ffffff;box-shadow:none}
+.btn.ghost{background:var(--pj-bg);border:var(--pj-border-width) solid var(--pj-border);color:var(--pj-fg)}
+.btn.ghost:hover{background:var(--pj-fg);border-color:var(--pj-fg);color:var(--pj-bg)}
+/* 深色区（礼盒/酒盒 band）与强调底 band 里不叠第二套色：按钮一律反白，靠边界和反色区分 */
+/* 选择器必须带 :not(.ghost)：文件上方 .theme-premium .btn:not(.ghost) 特异性更高，只写 .theme-premium .btn 压不住 */
+.theme-premium .btn:not(.ghost),.cta-band .btn:not(.ghost){background:var(--pj-bg);border:var(--pj-border-width) solid var(--pj-bg);color:var(--pj-fg)}
+.theme-premium .btn:not(.ghost):hover,.cta-band .btn:not(.ghost):hover{background:var(--pj-fg);border-color:var(--pj-bg);color:var(--pj-bg)}
+.theme-premium .btn.ghost,.cta-band .btn.ghost{background:transparent;border:var(--pj-border-width) solid var(--pj-bg);color:var(--pj-bg)}
+/* 首页产品入口卡：2px 黑边、0 圆角；hover 用强调色边界提示，不做位移/缩放 */
+.entry a{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius)}
+.entry a:hover{border-color:var(--pj-accent)}
+.entry a img{border-radius:var(--pj-radius)}
+/* 焦点环：浅色区 2px 强调色 outline + 2px offset；深色区（.theme-premium/.cta-band）反白，
+   强调色落在深底上对比不足，改用 --pj-bg 的白色 outline。offset 两处一致，环不压住控件边界。 */
+:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.btn:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.theme-premium .btn:focus-visible,.cta-band .btn:focus-visible{outline:var(--pj-focus-width) solid var(--pj-bg);outline-offset:var(--pj-focus-offset)}
+/* Cookie 同意条的按钮/链接与左下浮钮接同一批 token。
+   强调色只用于明确操作反馈；这里不改布局与尺寸，只改颜色、边界宽度、圆角。 */
+.consent{border:var(--pj-border-width) solid var(--pj-border);border-left:var(--pj-border-width) solid var(--pj-accent);border-radius:var(--pj-radius);box-shadow:none}
+.consent a,.cs-lead a,.cs-cat em{color:var(--pj-accent)}
+.consent .consent-actions button.consent-main,.cs-foot .consent-main{background:var(--pj-accent);border:var(--pj-border-width) solid var(--pj-accent);color:#ffffff;border-radius:var(--pj-radius)}
+.consent .consent-actions button.consent-main:hover,.cs-foot .consent-main:hover{background:var(--pj-fg);border-color:var(--pj-fg);color:var(--pj-bg)}
+.consent .consent-actions button.consent-set,.cs-foot .consent-set{background:var(--pj-bg);border:var(--pj-border-width) solid var(--pj-border);color:var(--pj-fg);border-radius:var(--pj-radius)}
+.consent .consent-actions button.consent-set:hover,.cs-foot .consent-set:hover{background:var(--pj-fg);border-color:var(--pj-fg);color:var(--pj-bg)}
+.fab .toggle{background:var(--pj-accent);color:#ffffff}
+.fab .badge{background:var(--pj-accent);color:#ffffff}
+/* 深色入口卡底色 #121214，黑边对比约 1.1:1，边界看不见。深色底改用 --pj-bg 白边，焦点环同色。 */
+.entry a.theme-premium{border-color:var(--pj-bg)}
+.entry a.theme-premium:hover{border-color:var(--pj-accent)}
+.entry a.theme-premium:focus-visible{outline:var(--pj-focus-width) solid var(--pj-bg);outline-offset:var(--pj-focus-offset)}
+/* 产品卡对齐 11 节：2px 实线、0 圆角、无阴影。深色卡边线用 --pj-bg。 */
+.card{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:none}
+.card.theme-premium{border-color:var(--pj-bg)}
+.card.theme-premium :focus-visible{outline-color:var(--pj-bg)}
+
+/* City GIF and its same-size pause still share one 1384×720 frame. */
+.brand-scene-section h2{margin:0 0 16px;font-size:var(--pj-h2-desktop-size);line-height:var(--pj-h2-desktop-line);font-weight:700;letter-spacing:-0.02em}
+.brand-scene-media{position:relative;width:100%;aspect-ratio:1384/720;box-sizing:content-box;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);overflow:hidden}
+.brand-scene-media img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+.brand-scene-controls{display:flex;justify-content:flex-start;min-height:44px;margin-top:12px}
+/* Controls sit under the 16:9 frame. The earlier absolute rule stays in the file for the locked selector text; this later rule wins. */
+.hero-stage{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;width:100%}
+.hero-media{box-sizing:content-box;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius)}
+.hero-media-ctrls{position:static;left:auto;bottom:auto;margin:0}
+@media (max-width:1023px){
+  .hero-grid{grid-template-columns:1fr}
+  .brand-scene-section h2{font-size:var(--pj-h2-phone-size);line-height:var(--pj-h2-phone-line)}
+}
+
+
+/* Published-language menu shares the public brand controls and focus tokens. */
 .lang-menu{position:relative;display:inline-flex}
-header.site .lang-btn{gap:6px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-pill);background:transparent;color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
-header.site .lang-btn:hover{border-color:var(--accent)}
-.lang-btn:focus-visible,.lang-item:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+header.site .lang-btn{gap:6px;min-height:var(--pj-touch-target);padding:0 10px;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg);font:inherit;font-weight:var(--pj-weight-control);box-shadow:none;cursor:pointer}
+header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-color:var(--pj-border)}
+.lang-btn:focus-visible,.lang-item:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
 .lang-globe{flex:none}
-.lang-caret{flex:none;transition:transform var(--dur) var(--ease)}
+.lang-caret{flex:none;transition:transform var(--pj-feedback-duration)}
 .lang-menu[data-open] .lang-caret{transform:rotate(180deg)}
-.lang-list{position:absolute;top:calc(100% + 6px);inset-inline-end:0;z-index:30;min-width:180px;margin:0;padding:6px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow)}
+.lang-list{position:absolute;top:calc(100% + 6px);inset-inline-end:0;z-index:30;min-width:180px;margin:0;padding:6px;list-style:none;background:var(--pj-bg);color:var(--pj-fg);border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:none}
 .lang-list[hidden]{display:none}
-.lang-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px;padding:0 12px;border-radius:6px;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
-.lang-item:hover,.lang-item:focus-visible{background:var(--bg)}
-.lang-item.is-current{color:var(--accent-text)}
+.lang-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--pj-touch-target);padding:0 12px;border-radius:var(--pj-radius);color:var(--pj-fg);text-decoration:none;font-weight:var(--pj-weight-control);white-space:nowrap}
+.lang-item.is-current{color:var(--pj-accent)}
+.lang-item:hover,.lang-item:focus-visible{background:var(--pj-fg);color:var(--pj-bg)}
 .lang-check{flex:none}
-@media (max-width:767px){.lang-item{min-height:44px}.lang-list{min-width:200px}}
+@media (max-width:767px){.lang-list{min-width:200px}}
 @media (prefers-reduced-motion:reduce){.lang-caret{transition:none}}
-/* 多语言第 0 期：未发布语言 404 页的其他语言文字链接 */
 .nf-langs{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0 0}
-.nf-langs a{display:inline-flex;align-items:center;min-height:44px;color:var(--accent-text);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.nf-langs a{display:inline-flex;align-items:center;min-height:var(--pj-touch-target);color:var(--pj-accent);font-weight:var(--pj-weight-control);text-decoration:underline;text-underline-offset:3px}

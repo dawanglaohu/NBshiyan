@@ -1,0 +1,10 @@
+{
+  "edge": {
+    "scene": "Traceable company artwork, editable native projects, brand, and provenance",
+    "trigger": "A website company-block artwork has only copy or screenshots, lacks an editable project or export, has old branding or mismatched source hashes, or is not consumed by a real page",
+    "expect": "For each of only one or two selected independently redrawn illustrations, deliver the editable native software project, Web export, and en/ru alt text. Record reference PDF pages/themes, company-owned factual evidence, the current PackJoyU logo hash, project/export hashes, software version, actual GPT Dot operation evidence, and consuming page locations. Real pages load matching files and retain complete subjects. A missing required output or unperformed tool step keeps that item incomplete; a textual plan cannot count as completed artwork. Do not expand this into redrawing all 25 catalogue pages or unsupported factory/certificate depictions."
+  },
+  "modules": {
+    "M1": "Brand and public experience; owns current PackJoyU branding, verifiable company content, media publication copies, homepage integration, and the unique shared visual tokens."
+  }
+}

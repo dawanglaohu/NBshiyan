@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T4": {
+      "contractHash": "f234d6bcf4bf2e54fcb4e2faaf12fd8c1eeae5973dff7a75d83526c51e7de8aa",
+      "evidence": [
+        "本轮只复核上一轮R1-R3及直接回归；原验收和E21-E25、集成阶段、M1-T6/T7/T8前置能力以及SSR目录来源均保持，未要求后台页面接线。",
+        "补丁只给M1-T4 supportPaths增加tests/hero-video.test.ts、tests/about-350.test.ts：两测试原先锁定原生button与字面href，当前按已定共享Button和PUBLIC_ROUTES更新，均属R2/R3必要直接回归；其余源任务与生产范围不变。",
+        "Jev jev-1.14.0 M1-T4:review-r2-support pick=A high0.98 adopt=take；候选A只列这两路径，B列整个tests目录，按A最小补齐，没有扩大测试目录授权。",
+        "定向hero-video/home-brand-media/about-350/ui-primitives规则测试39通过0失败0跳过；typecheck与lint通过。本记录只证明任务契约定义复核，R1真实隐藏页证据与本轮CI仍由代码验收记录负责，未调用--landed。",
+        "R1原复现转绿；独立Chrome无目标页调试器附着时真实窗口最小化/恢复与标签页切换产生可信hidden/visible，卸下GIF且保留用户暂停；R2三尺寸共享Button与真实Tab焦点通过，R3三集中入口点击与SSR来源通过。完整本轮证据为M1-T4.review-round-2.evidence.json；仅原生证据证明后台页，合成freeze/resume测试明确只覆盖处理器。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}

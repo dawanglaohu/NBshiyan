@@ -46,3 +46,5 @@
   .en-steps span{display:none}.en-steps .cur span{display:inline}
   .en-qr{grid-template-columns:1fr;justify-items:center}.en-key{width:100%}
 }
+/* #347 有令牌时表单上方的灰色提示（UX v1.0） */
+.en-keep{background:#F3F0EA;color:var(--ink-2);border-radius:var(--r-sm);padding:8px 12px;font-size:13px;margin:0 0 16px}

@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "POST",
+    "path": "/api/analytics/events",
+    "params": "events[1..20]: eventId/kind/occurredAt/locale and navigationId/viewId/productSlug/path as required by each kind.",
+    "returns": "AnalyticsReceiptDTO: acceptedIds, duplicateIds, receivedAt.",
+    "permission": "A valid analytics-consent cookie and same origin. Without consent return 403 and persist no event."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "Anonymous analytics caller must carry a server-verified signed and unexpired consent cookie; no backend session is required. Server derives a domain-separated browserHash, never trusts consent=true or a browserId in the body. kinds: page_view/product_view/model_view_start/model_load_success/model_load_failure/chat_start. eventId and semanticKey are both unique with payload hashes; identical retries are duplicates and cannot recount, conflicts 409. Semantic keys bind browser hash and kind/navigation/product or viewId; one terminal result per viewId and only terminal events with a corresponding start count. Verify published product slug, sanitize path to an internal allowlisted path without query/hash, accept occurredAt only now-48h through now+5min. No IP/UA raw data, email, message body, full URLs, stack, or fingerprint."
+}

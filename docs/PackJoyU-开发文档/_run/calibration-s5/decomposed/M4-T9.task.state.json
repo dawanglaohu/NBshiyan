@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Integrate chat polling, offline retries, and stopping after authorization loss",
+    "input": "M4-T5 actual visitor UI, complete message APIs, and section 09/10 seq plus 1/2/4/8/16/30s protocol.",
+    "output": "chat-poller actually assembled into ChatContainer; three-second synchronization, original-key message retries, and expiry/offline branches.",
+    "accept": "1) Entry: contact a person on /contact -> chat window. Data sources: GET /api/chat/conversations/[id] and POST messages/read. Poll normally every 3s while visible, never while hidden, and catch up immediately on return. Allow one request in flight; slow/failing requests back off 1/2/4/8/16/30s. Out-of-order/page-insert tests yield each ID once without seq regression. Read only the largest actually visible complete seq (E-76, E-77, E-79). 2) Cut off a response after the actual service persists a message. UI keeps confirmation-pending state and original UUID/body/email. Clicking chat-retry resends the original payload and returns the original receipt. Actual operator GET sees one message and the outbox contains one row. Before-persistence offline drafts remain tab-memory-only, without a refresh-recovery promise (E-18, E-37, E-38). 3) After cookie expiry/revocation or operator role revocation, the next poll and send are rejected by the server with no body or write. Changed threadId/seq/email cannot cross authorization. UI stops timers/old sends, preserves the current draft, and displays explicit new consultation; never silently change UUID or resend into another thread (E-78, E-85). Use the unique minimalist-flat style from section 11. At the actual service at 1920x1080, 1440x900, and 390x844, record GIFs and computed styles: 2px black borders, zero radius, no shadow, and accent #b45700. On each admin page, run D1-D6 and overflow probes with work/form/card and density7/gutter16/gap16/pad16. Labels and keyboard focus are reachable; touch-control targets measure at least 44px."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

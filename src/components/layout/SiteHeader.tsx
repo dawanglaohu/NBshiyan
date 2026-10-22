@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
+import { PUBLIC_ROUTES } from '@/lib/navigation/routes';
 import LangMenu from './LangMenu';
 
 // 站点头部：桌面端一行链接；手机端只留 Logo + 语言切换 + 菜单按钮，链接收进抽屉（#63）
@@ -39,20 +40,20 @@ export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: bo
 
   const links = (
     <>
-      <Link href="/">{t('home')}</Link>
-      <Link href="/products">{t('products')}</Link>
+      <Link href={PUBLIC_ROUTES.home.path}>{t('home')}</Link>
+      <Link href={PUBLIC_ROUTES.products.path} data-testid={PUBLIC_ROUTES.products.entryId}>{t('products')}</Link>
       {aboutVisible && <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined}>{t('about')}</Link>}
-      <Link href="/contact">{t('contact')}</Link>
+      <Link href={PUBLIC_ROUTES.contact.path} data-testid={PUBLIC_ROUTES.contact.entryId}>{t('contact')}</Link>
     </>
   );
 
   return (
     <header className="site">
-      <Link href="/" className="logo">Pack<i>Joy</i>U</Link>
+      <Link href={PUBLIC_ROUTES.home.path} className="logo" data-testid={PUBLIC_ROUTES.home.entryId}>Pack<i>Joy</i>U</Link>
       <nav className="nav-desktop" aria-label={t('main')}>
         {links}
         <LangMenu />
-        <Link href="/contact" className="btn sm">{t('quote')}</Link>
+        <Link href={PUBLIC_ROUTES.contact.path} className="btn sm">{t('quote')}</Link>
       </nav>
       <div className="nav-mobile">
         <LangMenu />
@@ -69,7 +70,7 @@ export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: bo
               <button type="button" className="linkbtn close" aria-label={t('closeMenu')} onClick={() => setOpen(false)}>✕</button>
             </div>
             <nav aria-label={t('main')}>{links}</nav>
-            <Link href="/contact" className="btn">{t('quote')}</Link>
+            <Link href={PUBLIC_ROUTES.contact.path} className="btn">{t('quote')}</Link>
           </div>
         </>
       )}

@@ -1,0 +1,230 @@
+{
+  "block": 0,
+  "info": 1,
+  "items": [
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M1-T1 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M1-T7 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M1-T8 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M2-T1 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M2-T4 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M2-T5 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M2-T6 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M3-T14 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M5-T1 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M5-T2 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M5-T5 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T10",
+      "level": "WARN",
+      "msg": "M5-T9 验收标准没有引用任何边界编号",
+      "where": "04-执行/19-模块任务拆分.md"
+    },
+    {
+      "code": "T19",
+      "level": "INFO",
+      "msg": "边界覆盖率 100%（111 条边界，111 条被任务直接覆盖）",
+      "where": null
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M1-T8 疑似接线任务未列注册点（命中：服务）",
+      "taskIds": [
+        "M1-T8"
+      ],
+      "where": "M1-T8"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M1-T9 疑似接线任务未列注册点（命中：页面）",
+      "taskIds": [
+        "M1-T9"
+      ],
+      "where": "M1-T9"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M2-T4 疑似接线任务未列注册点（命中：事件）",
+      "taskIds": [
+        "M2-T4"
+      ],
+      "where": "M2-T4"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T21 疑似接线任务未列注册点（命中：/api/、服务、迁移）",
+      "taskIds": [
+        "M3-T21"
+      ],
+      "where": "M3-T21"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T22 疑似接线任务未列注册点（命中：服务、迁移、页面）",
+      "taskIds": [
+        "M3-T22"
+      ],
+      "where": "M3-T22"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T23 疑似接线任务未列注册点（命中：/api/、服务、迁移）",
+      "taskIds": [
+        "M3-T23"
+      ],
+      "where": "M3-T23"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T24 疑似接线任务未列注册点（命中：/api/、接口、服务、端点、迁移、页面）",
+      "taskIds": [
+        "M3-T24"
+      ],
+      "where": "M3-T24"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M3-T25 疑似接线任务未列注册点（命中：/api/、服务、路由、迁移）",
+      "taskIds": [
+        "M3-T25"
+      ],
+      "where": "M3-T25"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M5-T9 疑似接线任务未列注册点（命中：事件、服务）",
+      "taskIds": [
+        "M5-T9"
+      ],
+      "where": "M5-T9"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M6-T7 疑似接线任务未列注册点（命中：事件、页面）",
+      "taskIds": [
+        "M6-T7"
+      ],
+      "where": "M6-T7"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M7-T2 疑似接线任务未列注册点（命中：/api/）",
+      "taskIds": [
+        "M7-T2"
+      ],
+      "where": "M7-T2"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M7-T3 疑似接线任务未列注册点（命中：页面）",
+      "taskIds": [
+        "M7-T3"
+      ],
+      "where": "M7-T3"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M7-T4 疑似接线任务未列注册点（命中：/api/）",
+      "taskIds": [
+        "M7-T4"
+      ],
+      "where": "M7-T4"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M7-T5 疑似接线任务未列注册点（命中：/api/、服务）",
+      "taskIds": [
+        "M7-T5"
+      ],
+      "where": "M7-T5"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M7-T6 疑似接线任务未列注册点（命中：/api/）",
+      "taskIds": [
+        "M7-T6"
+      ],
+      "where": "M7-T6"
+    },
+    {
+      "code": "H12",
+      "level": "WARN",
+      "msg": "M7-T9 疑似接线任务未列注册点（命中：事件、接口、页面）",
+      "taskIds": [
+        "M7-T9"
+      ],
+      "where": "M7-T9"
+    }
+  ],
+  "sourceVersion": "fdbfc6a485b1fc881f9e77c4809afef7eba04fd75f67c87e59d03da36d78f6b6",
+  "warn": 28
+}

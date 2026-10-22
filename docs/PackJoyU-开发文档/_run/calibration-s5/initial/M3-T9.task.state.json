@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Replace account-row resets with target-scoped recovery authorization",
+    "input": "Existing /admin/users and UsersAdmin; M3-T4 target-authorization API; M3-T7 ReauthDialog and current-permission navigation.",
+    "output": "An Authorize recovery control on target rows of /admin/users, one-time permit display, and unknown-outcome guidance; replacement of the original direct unverified reset call.",
+    "accept": "1) Entry: admin Account permissions (admin-users-link) -> /admin/users, then an actual target row's Authorize recovery (user-authorize-recovery-{id}). Data source: the existing user list, POST /api/admin/account/reauth, and POST /api/admin/account/recovery-authorizations. The click sends a target grant and authorization request in order. Assert that the target's factors are not directly rewritten, the permit is shown once, and source/target audit records exist (E-13). 2) Do not authorize the authorizer's own row. Direct self-authorization, EDITOR/SALES requests, and the old bodyless reset-2fa all fail. An unknown outcome does not reissue a permit. Explain that a single administrator without materials must contact the OS owner; the web page does not create OS authority (E-12, E-13). 3) At 1920x1080/1440x900/390x844, check D1-D6 with work/density7/gutter16/gap16/pad16. Include keyboard, secret-memory cleanup, and real-click GIF evidence. Existing user creation/deletion/role operations keep their original contracts."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

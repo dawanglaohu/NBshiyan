@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Caller/wiring point: real 2fa/reset -> current device plus transactional TOTP_RESET consumption -> SELF_REAUTH restricted cookie/enrollLink. The compatible currentPassword+totp path has equal strength and rejects recoveryCode. Keep the original factor until final confirm; a restricted-cookie admin request returns 401 (E-14, E-73). 2) Without the current password, passwordless-session/TOTP-only grant issuance or direct reset rejects without a factor change. A valid owner grant permits restricted enroll/confirm and audited new enrollment. A forgotten password requires separate OS-owner preauthorization, not a self-chosen HTTP password (E-75).",
+  "edges": {
+    "E-14": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Recovery is interrupted or the reset credential expires.",
+      "expect": "Explicitly reject protected admin access with restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid enrollment remains intact. A valid restricted cookie may re-enter the same enroll operation; once invalid, restart through the recovery-code or authorization path defined in section 10. Restricted credentials cannot be exchanged for a full admin session."
+    },
+    "E-73": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "Two requests use the same ActionGrant concurrently, or a password-change grant is used to disable the authenticator.",
+      "expect": "Within the sensitive-change transaction, validate and consume the grant once against the action, device, account, and credential version. Only one matching request succeeds; reject a mismatched purpose without executing the change."
+    },
+    "E-75": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The user forgets the current password but can still use previously enabled passwordless sign-in.",
+      "expect": "Resolve D3 through the restricted recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless sign-in remains unchanged. Without the current password, sensitive settings cannot issue an ordinary ActionGrant: reject direct requests based solely on a signed-in session or one TOTP without a change. Restricted recovery permits only new enrollment and is audited."
+    }
+  }
+}

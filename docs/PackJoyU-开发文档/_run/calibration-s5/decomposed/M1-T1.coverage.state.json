@@ -1,0 +1,4 @@
+{
+  "acceptance": "1) Wire only eight core tokens into the existing home page: background, foreground, accent color, border width, border radius, base font size, body line height and focus color; do not create new pages or business controls. Build/start the real standalone service, follow the header product link to the products page, verify each computed style equals section 11, and verify GET /api/models returns the published source. 2) Actual home-page WebVitals must trigger POST /api/rum; verify 204 and redacted logs. CI starts the same service and runs this browser smoke test. 3) Bring the locally reviewed documents into main through this PR; subsequent tasks branch from that landed baseline.",
+  "edges": {}
+}

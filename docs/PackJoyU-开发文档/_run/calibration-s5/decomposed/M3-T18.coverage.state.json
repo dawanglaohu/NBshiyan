@@ -1,0 +1,15 @@
+{
+  "acceptance": "1) The real CLI runs only under OS administrative authority and issues a 15-minute one-time permit for explicit target, current role, and reason. Reject non-TTY or unidentified targets without records. Output the credential once; audit only actor/target/source/time/reason without secrets. An isolated account with no second administrator and no recovery codes obtains a valid permit (E-12). 2) Optional password reset takes hidden, confirmed TTY input and writes only pendingPasswordHash under existing Argon rules; the original password/TOTP remain unchanged at this point. Keep the original initial-password script's ADMIN/unenrolled/enabled/TTY guards; do not clear factors first to bypass them. HTTP cannot submit pendingPasswordHash (E-75).",
+  "edges": {
+    "E-12": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "The authenticator and all recovery codes are lost, and no second administrator exists.",
+      "expect": "Only a server owner with operating-system administrative authority may run a local recovery command to issue a one-time credential for an explicitly identified target account. Record the actor, time, and target; do not write the plaintext credential to the audit log."
+    },
+    "E-75": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The user forgets the current password but can still use previously enabled passwordless sign-in.",
+      "expect": "Resolve D3 through the restricted recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless sign-in remains unchanged. Without the current password, sensitive settings cannot issue an ordinary ActionGrant: reject direct requests based solely on a signed-in session or one TOTP without a change. Restricted recovery permits only new enrollment and is audited."
+    }
+  }
+}

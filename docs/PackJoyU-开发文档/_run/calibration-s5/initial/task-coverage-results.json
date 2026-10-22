@@ -1,0 +1,2590 @@
+[
+  {
+    "id": "M1-T1.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-22=yes(0.87)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-22": {
+        "p": 0.87,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M1-T1.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=yes(0.69) frontend=yes(0.71) objective=unsure(0.62) defers=unsure(0.42) needs_gif=unsure(0.59) needs_judgment=unsure(0.45) size=more than two days, should be split(medium 0.53)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.45,
+        "level": "more than two days, should be split",
+        "confidence": 0.53,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M1-T2.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-95=yes(0.71) covered_E-96=unsure(0.63)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-95": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "covered_E-96": {
+        "p": 0.63,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M1-T2.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.34) frontend=no(0.30) objective=unsure(0.46) defers=unsure(0.38) needs_gif=no(0.18) needs_judgment=unsure(0.54) size=more than two days, should be split(medium 0.68)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.62,
+        "level": "more than two days, should be split",
+        "confidence": 0.68,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M1-T3.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-26=yes(0.93) covered_E-28=no(0.34) covered_E-30=yes(0.88) covered_E-29=yes(0.94)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-26": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-28": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "covered_E-30": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-29": {
+        "p": 0.94,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M1-T3.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.16) frontend=no(0.15) objective=no(0.34) defers=no(0.35) needs_gif=no(0.33) needs_judgment=yes(0.65) size=more than two days, should be split(low 0.28)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.16,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.15,
+        "level": "more than two days, should be split",
+        "confidence": 0.28,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M1-T4.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-21=yes(0.89) covered_E-22=yes(0.93) covered_E-23=yes(0.87) covered_E-24=yes(0.94) covered_E-25=yes(0.95)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-21": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-22": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-23": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-24": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-25": {
+        "p": 0.95,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M1-T4.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.60) frontend=yes(0.92) objective=no(0.26) defers=unsure(0.43) needs_gif=yes(0.80) needs_judgment=no(0.30) size=two days(low 0.44)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.57,
+        "level": "two days",
+        "confidence": 0.44,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M1-T5.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-27=yes(0.92) covered_E-28=yes(0.78)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-27": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-28": {
+        "p": 0.78,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M1-T5.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.40) frontend=yes(0.74) objective=no(0.25) defers=unsure(0.39) needs_gif=yes(0.78) needs_judgment=yes(0.66) size=two days(low 0.43)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.25,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 2.93,
+        "level": "two days",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M2-T1.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-104=unsure(0.46) covered_E-97=yes(0.85)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-104": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "covered_E-97": {
+        "p": 0.85,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M2-T1.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.30) frontend=yes(0.91) objective=unsure(0.37) defers=no(0.34) needs_gif=yes(0.72) needs_judgment=no(0.24) size=two days(low 0.43)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.24,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.51,
+        "level": "two days",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M2-T2.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-97=yes(0.82) covered_E-98=yes(0.95) covered_E-99=yes(0.77) covered_E-100=yes(0.97)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-97": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-98": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-99": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-100": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M2-T2.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.19) frontend=yes(0.96) objective=unsure(0.42) defers=no(0.20) needs_gif=yes(0.71) needs_judgment=no(0.19) size=two days(medium 0.52)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.2,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 2.76,
+        "level": "two days",
+        "confidence": 0.52,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M2-T3.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-101=yes(0.89) covered_E-102=yes(0.95) covered_E-103=yes(0.95) covered_E-104=yes(0.78)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-101": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-102": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-103": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-104": {
+        "p": 0.78,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M2-T3.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.22) frontend=yes(0.96) objective=unsure(0.48) defers=no(0.22) needs_gif=yes(0.69) needs_judgment=no(0.19) size=more than two days, should be split(medium 0.63)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.22,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.69,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.55,
+        "level": "more than two days, should be split",
+        "confidence": 0.63,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M2-T4.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-42=yes(0.91) covered_E-46=yes(0.88) covered_E-63=yes(0.89) covered_E-103=unsure(0.62)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-42": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-46": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-63": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-103": {
+        "p": 0.62,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M2-T4.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.43) frontend=unsure(0.63) objective=unsure(0.61) defers=unsure(0.42) needs_gif=unsure(0.64) needs_judgment=unsure(0.43) size=more than two days, should be split(medium 0.65)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "objective": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.58,
+        "level": "more than two days, should be split",
+        "confidence": 0.65,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M2-T5.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-16=no(0.29) covered_E-31=unsure(0.56) covered_E-37=yes(0.79) covered_E-40=yes(0.91) covered_E-102=yes(0.81)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-16": {
+        "p": 0.29,
+        "verdict": "no"
+      },
+      "covered_E-31": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "covered_E-37": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-40": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-102": {
+        "p": 0.81,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M2-T5.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.48) frontend=yes(0.82) objective=unsure(0.46) defers=unsure(0.42) needs_gif=yes(0.75) needs_judgment=unsure(0.46) size=more than two days, should be split(medium 0.72)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.66,
+        "level": "more than two days, should be split",
+        "confidence": 0.72,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M3-T1.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-01=yes(0.81) covered_E-02=yes(0.90) covered_E-03=yes(0.82) covered_E-04=yes(0.95) covered_E-68=yes(0.83) covered_E-69=yes(0.92) covered_E-70=yes(0.76) covered_E-71=yes(0.73) covered_E-95=yes(0.97)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-01": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "covered_E-02": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-03": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-04": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-68": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-69": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-70": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "covered_E-71": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-95": {
+        "p": 0.97,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M3-T1.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=yes(0.74) frontend=no(0.08) objective=unsure(0.53) defers=no(0.30) needs_gif=unsure(0.61) needs_judgment=unsure(0.37) size=more than two days, should be split(high 0.78)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.08,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.73,
+        "level": "more than two days, should be split",
+        "confidence": 0.78,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M3-T2.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-05=yes(0.85) covered_E-06=yes(0.68) covered_E-08=yes(0.73) covered_E-72=yes(0.88) covered_E-96=yes(0.96)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-05": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "covered_E-06": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "covered_E-08": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-72": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-96": {
+        "p": 0.96,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M3-T2.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.37) frontend=no(0.05) objective=unsure(0.57) defers=unsure(0.55) needs_gif=unsure(0.47) needs_judgment=unsure(0.64) size=two days(medium 0.54)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.47,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.06,
+        "level": "two days",
+        "confidence": 0.54,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M3-T3.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-03=yes(0.76) covered_E-06=no(0.35) covered_E-07=yes(0.83) covered_E-08=unsure(0.62) covered_E-72=unsure(0.58) covered_E-73=yes(0.73) covered_E-74=yes(0.87) covered_E-75=yes(0.86)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-03": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "covered_E-06": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "covered_E-07": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-08": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "covered_E-72": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "covered_E-73": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-74": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-75": {
+        "p": 0.86,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M3-T3.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.36) frontend=no(0.06) objective=unsure(0.37) defers=unsure(0.59) needs_gif=no(0.34) needs_judgment=unsure(0.58) size=more than two days, should be split(low 0.47)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.06,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.36,
+        "level": "more than two days, should be split",
+        "confidence": 0.47,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M3-T4.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-10=unsure(0.44) covered_E-11=yes(0.86) covered_E-12=yes(0.91) covered_E-13=yes(0.71) covered_E-14=unsure(0.55) covered_E-75=no(0.25)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-10": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "covered_E-11": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-12": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-13": {
+        "p": 0.71,
+        "verdict": "yes"
+      },
+      "covered_E-14": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "covered_E-75": {
+        "p": 0.25,
+        "verdict": "no"
+      }
+    }
+  },
+  {
+    "id": "M3-T4.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.53) frontend=no(0.04) objective=unsure(0.44) defers=unsure(0.62) needs_gif=unsure(0.36) needs_judgment=unsure(0.57) size=more than two days, should be split(high 0.81)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.04,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.62,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.76,
+        "level": "more than two days, should be split",
+        "confidence": 0.81,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M3-T5.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-08=unsure(0.44) covered_E-14=yes(0.80) covered_E-15=yes(0.86) covered_E-73=unsure(0.45) covered_E-75=unsure(0.47)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-08": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "covered_E-14": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "covered_E-15": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-73": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "covered_E-75": {
+        "p": 0.47,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M3-T5.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.31) frontend=no(0.07) objective=unsure(0.37) defers=yes(0.70) needs_gif=unsure(0.42) needs_judgment=unsure(0.60) size=more than two days, should be split(medium 0.59)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.07,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "needs_gif": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.51,
+        "level": "more than two days, should be split",
+        "confidence": 0.59,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M3-T6.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-05=unsure(0.39) covered_E-09=unsure(0.64) covered_E-10=yes(0.66) covered_E-14=unsure(0.45) covered_E-15=unsure(0.53) covered_E-95=no(0.15) covered_E-96=no(0.23)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-05": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "covered_E-09": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "covered_E-10": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "covered_E-14": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "covered_E-15": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "covered_E-95": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "covered_E-96": {
+        "p": 0.23,
+        "verdict": "no"
+      }
+    }
+  },
+  {
+    "id": "M3-T6.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.48) frontend=yes(0.84) objective=no(0.26) defers=unsure(0.38) needs_gif=yes(0.90) needs_judgment=unsure(0.55) size=more than two days, should be split(high 0.83)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.79,
+        "level": "more than two days, should be split",
+        "confidence": 0.83,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M3-T7.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-06=yes(0.73) covered_E-07=unsure(0.38) covered_E-09=unsure(0.43) covered_E-68=unsure(0.45) covered_E-70=unsure(0.63) covered_E-72=unsure(0.51) covered_E-73=unsure(0.59) covered_E-74=yes(0.65) covered_E-75=unsure(0.44)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-06": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-07": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "covered_E-09": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "covered_E-68": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "covered_E-70": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "covered_E-72": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "covered_E-73": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "covered_E-74": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "covered_E-75": {
+        "p": 0.44,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M3-T7.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.54) frontend=yes(0.89) objective=no(0.31) defers=no(0.26) needs_gif=yes(0.91) needs_judgment=unsure(0.48) size=more than two days, should be split(high 0.88)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.84,
+        "level": "more than two days, should be split",
+        "confidence": 0.88,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M3-T9.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-12=yes(0.80) covered_E-13=yes(0.81)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-12": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "covered_E-13": {
+        "p": 0.81,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M3-T9.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.37) frontend=yes(0.86) objective=no(0.33) defers=unsure(0.39) needs_gif=yes(0.82) needs_judgment=unsure(0.36) size=more than two days, should be split(low 0.42)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.29,
+        "level": "more than two days, should be split",
+        "confidence": 0.42,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M4-T2.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-18=yes(0.88) covered_E-19=yes(0.70) covered_E-33=unsure(0.37) covered_E-34=yes(0.94) covered_E-37=yes(0.93) covered_E-77=unsure(0.52) covered_E-78=yes(0.82) covered_E-79=yes(0.66) covered_E-85=unsure(0.60) covered_E-86=no(0.34) covered_E-89=yes(0.92)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-18": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-19": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "covered_E-33": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "covered_E-34": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-37": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-77": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "covered_E-78": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-79": {
+        "p": 0.66,
+        "verdict": "yes"
+      },
+      "covered_E-85": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "covered_E-86": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "covered_E-89": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M4-T2.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.58) frontend=no(0.07) objective=unsure(0.52) defers=unsure(0.49) needs_gif=no(0.32) needs_judgment=unsure(0.40) size=more than two days, should be split(medium 0.57)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.07,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.47,
+        "level": "more than two days, should be split",
+        "confidence": 0.57,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M4-T3.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-16=no(0.17) covered_E-19=yes(0.70) covered_E-32=yes(0.88) covered_E-33=yes(0.82) covered_E-34=yes(0.78) covered_E-35=yes(0.90) covered_E-41=yes(0.73) covered_E-77=unsure(0.53) covered_E-78=unsure(0.60) covered_E-79=unsure(0.64) covered_E-86=yes(0.67) covered_E-89=yes(0.86)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-16": {
+        "p": 0.17,
+        "verdict": "no"
+      },
+      "covered_E-19": {
+        "p": 0.7,
+        "verdict": "yes"
+      },
+      "covered_E-32": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-33": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-34": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-35": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-41": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-77": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "covered_E-78": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "covered_E-79": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "covered_E-86": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "covered_E-89": {
+        "p": 0.86,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M4-T3.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.41) frontend=no(0.07) objective=unsure(0.52) defers=unsure(0.46) needs_gif=unsure(0.42) needs_judgment=unsure(0.53) size=more than two days, should be split(low 0.30)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.07,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.19,
+        "level": "more than two days, should be split",
+        "confidence": 0.3,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M4-T4.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-35=yes(0.89) covered_E-41=yes(0.65) covered_E-90=yes(0.81) covered_E-91=yes(0.85) covered_E-92=yes(0.81) covered_E-93=yes(0.94) covered_E-94=yes(0.92)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-35": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-41": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "covered_E-90": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "covered_E-91": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "covered_E-92": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "covered_E-93": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-94": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M4-T4.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=yes(0.90) frontend=no(0.03) objective=unsure(0.37) defers=no(0.34) needs_gif=unsure(0.53) needs_judgment=no(0.23) size=more than two days, should be split(low 0.32)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.03,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.16,
+        "level": "more than two days, should be split",
+        "confidence": 0.32,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M4-T6.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-16=unsure(0.61) covered_E-31=unsure(0.55) covered_E-32=yes(0.79) covered_E-33=unsure(0.56) covered_E-34=yes(0.88) covered_E-35=yes(0.91) covered_E-41=unsure(0.63) covered_E-76=yes(0.93) covered_E-77=yes(0.89) covered_E-78=no(0.30) covered_E-79=unsure(0.58)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-16": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "covered_E-31": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "covered_E-32": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-33": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "covered_E-34": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-35": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-41": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "covered_E-76": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-77": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-78": {
+        "p": 0.3,
+        "verdict": "no"
+      },
+      "covered_E-79": {
+        "p": 0.58,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M4-T6.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.61) frontend=yes(0.92) objective=unsure(0.43) defers=no(0.27) needs_gif=yes(0.86) needs_judgment=unsure(0.49) size=more than two days, should be split(high 0.91)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.27,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.87,
+        "level": "more than two days, should be split",
+        "confidence": 0.91,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M4-T7.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-85=yes(0.86) covered_E-86=yes(0.92) covered_E-87=yes(0.97) covered_E-88=yes(0.92) covered_E-89=yes(0.87)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-85": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-86": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-87": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "covered_E-88": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "covered_E-89": {
+        "p": 0.87,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M4-T7.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=yes(0.85) frontend=no(0.05) objective=unsure(0.56) defers=unsure(0.57) needs_gif=no(0.27) needs_judgment=unsure(0.53) size=more than two days, should be split(high 0.88)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.27,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.53,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.84,
+        "level": "more than two days, should be split",
+        "confidence": 0.88,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M5-T1.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-81=yes(0.85) covered_E-64=no(0.28)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-81": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "covered_E-64": {
+        "p": 0.28,
+        "verdict": "no"
+      }
+    }
+  },
+  {
+    "id": "M5-T1.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=yes(0.83) frontend=no(0.05) objective=unsure(0.52) defers=unsure(0.56) needs_gif=unsure(0.51) needs_judgment=unsure(0.49) size=more than two days, should be split(medium 0.67)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.6,
+        "level": "more than two days, should be split",
+        "confidence": 0.67,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M5-T2.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-42=yes(0.87) covered_E-43=yes(0.93) covered_E-44=yes(0.84) covered_E-45=unsure(0.36) covered_E-46=no(0.31) covered_E-47=yes(0.91) covered_E-60=yes(0.91)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-42": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-43": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-44": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "covered_E-45": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "covered_E-46": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "covered_E-47": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "covered_E-60": {
+        "p": 0.91,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M5-T2.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.59) frontend=unsure(0.37) objective=no(0.32) defers=unsure(0.50) needs_gif=unsure(0.43) needs_judgment=unsure(0.56) size=more than two days, should be split(high 0.80)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.59,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "objective": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.56,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.76,
+        "level": "more than two days, should be split",
+        "confidence": 0.8,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M5-T3.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-80=yes(0.79) covered_E-81=yes(0.90) covered_E-83=yes(0.83) covered_E-55=yes(0.84) covered_E-56=yes(0.89) covered_E-57=yes(0.72) covered_E-58=yes(0.93) covered_E-59=unsure(0.36) covered_E-60=yes(0.86) covered_E-82=yes(0.75) covered_E-84=unsure(0.43)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-80": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-81": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "covered_E-83": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-55": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "covered_E-56": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-57": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "covered_E-58": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-59": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "covered_E-60": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-82": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "covered_E-84": {
+        "p": 0.43,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M5-T3.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.55) frontend=no(0.06) objective=unsure(0.48) defers=unsure(0.44) needs_gif=no(0.35) needs_judgment=no(0.33) size=more than two days, should be split(high 0.99)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.06,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.48,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.99,
+        "level": "more than two days, should be split",
+        "confidence": 0.99,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M5-T4.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-58=unsure(0.51) covered_E-59=yes(0.86) covered_E-45=unsure(0.52) covered_E-55=unsure(0.39)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-58": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "covered_E-59": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-45": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "covered_E-55": {
+        "p": 0.39,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M5-T4.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.51) frontend=yes(0.74) objective=unsure(0.57) defers=no(0.31) needs_gif=yes(0.76) needs_judgment=unsure(0.49) size=more than two days, should be split(low 0.43)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.51,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.33,
+        "level": "more than two days, should be split",
+        "confidence": 0.43,
+        "band": "low"
+      }
+    }
+  },
+  {
+    "id": "M5-T5.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-48=yes(0.86) covered_E-82=no(0.26) covered_E-81=unsure(0.48)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-48": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-82": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "covered_E-81": {
+        "p": 0.48,
+        "verdict": "unsure"
+      }
+    }
+  },
+  {
+    "id": "M5-T5.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.40) frontend=no(0.07) objective=unsure(0.40) defers=unsure(0.44) needs_gif=unsure(0.36) needs_judgment=no(0.35) size=more than two days, should be split(medium 0.56)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.07,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.35,
+        "verdict": "no"
+      },
+      "size": {
+        "score": 3.46,
+        "level": "more than two days, should be split",
+        "confidence": 0.56,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M6-T1.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-49=yes(0.86) covered_E-50=unsure(0.46) covered_E-61=yes(0.94) covered_E-63=yes(0.79) covered_E-55=yes(0.67) covered_E-58=yes(0.87) covered_E-66=yes(0.89)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-49": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-50": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "covered_E-61": {
+        "p": 0.94,
+        "verdict": "yes"
+      },
+      "covered_E-63": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-55": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "covered_E-58": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-66": {
+        "p": 0.89,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M6-T1.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.50) frontend=no(0.11) objective=unsure(0.44) defers=unsure(0.41) needs_gif=unsure(0.61) needs_judgment=unsure(0.47) size=more than two days, should be split(medium 0.70)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.11,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.47,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.63,
+        "level": "more than two days, should be split",
+        "confidence": 0.7,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M6-T2.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-62=yes(0.89) covered_E-51=yes(0.83) covered_E-52=yes(0.82) covered_E-53=yes(0.67) covered_E-54=unsure(0.61) covered_E-64=yes(0.87) covered_E-67=yes(0.78)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-62": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-51": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-52": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-53": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "covered_E-54": {
+        "p": 0.61,
+        "verdict": "unsure"
+      },
+      "covered_E-64": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-67": {
+        "p": 0.78,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M6-T2.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.44) frontend=no(0.10) objective=no(0.33) defers=unsure(0.36) needs_gif=unsure(0.40) needs_judgment=unsure(0.45) size=more than two days, should be split(high 0.77)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.1,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "defers": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.45,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.71,
+        "level": "more than two days, should be split",
+        "confidence": 0.77,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M6-T3.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-65=yes(0.88) covered_E-66=unsure(0.41) covered_E-54=yes(0.81) covered_E-64=unsure(0.50) covered_E-67=yes(0.79)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-65": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-66": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "covered_E-54": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "covered_E-64": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "covered_E-67": {
+        "p": 0.79,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M6-T3.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=yes(0.83) frontend=no(0.10) objective=unsure(0.49) defers=unsure(0.49) needs_gif=unsure(0.58) needs_judgment=unsure(0.55) size=two days(medium 0.53)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "frontend": {
+        "p": 0.1,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.49,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "needs_judgment": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 2.87,
+        "level": "two days",
+        "confidence": 0.53,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M6-T4.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-61=yes(0.73) covered_E-63=yes(0.67) covered_E-66=yes(0.77) covered_E-49=yes(0.87) covered_E-50=yes(0.89) covered_E-51=yes(0.95) covered_E-52=yes(0.88) covered_E-53=yes(0.75) covered_E-54=no(0.28) covered_E-67=yes(0.68)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-61": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-63": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "covered_E-66": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "covered_E-49": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "covered_E-50": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-51": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "covered_E-52": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "covered_E-53": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "covered_E-54": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "covered_E-67": {
+        "p": 0.68,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M6-T4.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=unsure(0.54) frontend=yes(0.77) objective=unsure(0.41) defers=no(0.31) needs_gif=yes(0.79) needs_judgment=unsure(0.36) size=more than two days, should be split(high 0.84)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "frontend": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.36,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.8,
+        "level": "more than two days, should be split",
+        "confidence": 0.84,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M7-T1.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-16=yes(0.83) covered_E-18=yes(0.93) covered_E-31=yes(0.78) covered_E-37=yes(0.93) covered_E-40=unsure(0.44) covered_E-21=yes(0.73) covered_E-24=yes(0.85) covered_E-26=yes(0.67) covered_E-29=yes(0.86) covered_E-30=yes(0.75) covered_E-104=yes(0.68)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-16": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-18": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-31": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-37": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "covered_E-40": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "covered_E-21": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-24": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "covered_E-26": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "covered_E-29": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-30": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "covered_E-104": {
+        "p": 0.68,
+        "verdict": "yes"
+      }
+    }
+  },
+  {
+    "id": "M7-T1.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.12) frontend=yes(0.77) objective=unsure(0.42) defers=unsure(0.58) needs_gif=yes(0.89) needs_judgment=yes(0.74) size=more than two days, should be split(medium 0.60)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.12,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.77,
+        "verdict": "yes"
+      },
+      "objective": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "size": {
+        "score": 3.51,
+        "level": "more than two days, should be split",
+        "confidence": 0.6,
+        "band": "medium"
+      }
+    }
+  },
+  {
+    "id": "M7-T2.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-01=unsure(0.60) covered_E-02=yes(0.83) covered_E-03=yes(0.73) covered_E-04=yes(0.89) covered_E-14=unsure(0.60) covered_E-15=yes(0.80) covered_E-69=yes(0.78) covered_E-70=yes(0.68) covered_E-71=yes(0.86) covered_E-96=yes(0.82) covered_E-08=unsure(0.54) covered_E-10=unsure(0.58) covered_E-11=yes(0.78) covered_E-72=unsure(0.38) covered_E-73=unsure(0.55) covered_E-74=unsure(0.52) covered_E-75=no(0.33)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-01": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "covered_E-02": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "covered_E-03": {
+        "p": 0.73,
+        "verdict": "yes"
+      },
+      "covered_E-04": {
+        "p": 0.89,
+        "verdict": "yes"
+      },
+      "covered_E-14": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "covered_E-15": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "covered_E-69": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-70": {
+        "p": 0.68,
+        "verdict": "yes"
+      },
+      "covered_E-71": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "covered_E-96": {
+        "p": 0.82,
+        "verdict": "yes"
+      },
+      "covered_E-08": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "covered_E-10": {
+        "p": 0.58,
+        "verdict": "unsure"
+      },
+      "covered_E-11": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-72": {
+        "p": 0.38,
+        "verdict": "unsure"
+      },
+      "covered_E-73": {
+        "p": 0.55,
+        "verdict": "unsure"
+      },
+      "covered_E-74": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "covered_E-75": {
+        "p": 0.33,
+        "verdict": "no"
+      }
+    }
+  },
+  {
+    "id": "M7-T2.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.14) frontend=no(0.28) objective=unsure(0.41) defers=no(0.32) needs_gif=yes(0.85) needs_judgment=unsure(0.60) size=more than two days, should be split(high 0.93)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.14,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.28,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.41,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "needs_gif": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "needs_judgment": {
+        "p": 0.6,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.9,
+        "level": "more than two days, should be split",
+        "confidence": 0.93,
+        "band": "high"
+      }
+    }
+  },
+  {
+    "id": "M7-T3.coverage",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "coverage: covered_E-42=yes(0.72) covered_E-48=yes(0.67) covered_E-56=yes(0.79) covered_E-61=yes(0.78) covered_E-63=unsure(0.50) covered_E-64=unsure(0.42) covered_E-65=unsure(0.54) covered_E-67=unsure(0.57) covered_E-81=unsure(0.52) covered_E-88=yes(0.74) covered_E-20=no(0.32) covered_E-29=no(0.33) covered_E-94=no(0.23)",
+    "warning": null,
+    "verdicts": {
+      "covered_E-42": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "covered_E-48": {
+        "p": 0.67,
+        "verdict": "yes"
+      },
+      "covered_E-56": {
+        "p": 0.79,
+        "verdict": "yes"
+      },
+      "covered_E-61": {
+        "p": 0.78,
+        "verdict": "yes"
+      },
+      "covered_E-63": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "covered_E-64": {
+        "p": 0.42,
+        "verdict": "unsure"
+      },
+      "covered_E-65": {
+        "p": 0.54,
+        "verdict": "unsure"
+      },
+      "covered_E-67": {
+        "p": 0.57,
+        "verdict": "unsure"
+      },
+      "covered_E-81": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "covered_E-88": {
+        "p": 0.74,
+        "verdict": "yes"
+      },
+      "covered_E-20": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "covered_E-29": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "covered_E-94": {
+        "p": 0.23,
+        "verdict": "no"
+      }
+    }
+  },
+  {
+    "id": "M7-T3.task",
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "task: is_wiring=no(0.18) frontend=no(0.08) objective=unsure(0.44) defers=unsure(0.46) needs_gif=no(0.33) needs_judgment=unsure(0.63) size=more than two days, should be split(high 0.93)",
+    "warning": null,
+    "verdicts": {
+      "is_wiring": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "frontend": {
+        "p": 0.08,
+        "verdict": "no"
+      },
+      "objective": {
+        "p": 0.44,
+        "verdict": "unsure"
+      },
+      "defers": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "needs_gif": {
+        "p": 0.33,
+        "verdict": "no"
+      },
+      "needs_judgment": {
+        "p": 0.63,
+        "verdict": "unsure"
+      },
+      "size": {
+        "score": 3.91,
+        "level": "more than two days, should be split",
+        "confidence": 0.93,
+        "band": "high"
+      }
+    }
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Migrate existing model upload and preview workflow visuals",
+    "input": "Existing /admin/models redirect and /admin/models/new, ModelUpload/ModelPreview, models.css and actual models-http APIs.",
+    "output": "Existing upload/check/preview/publish controls in the locked style, preserving the redirect and business constraints.",
+    "accept": "1) Actual ADMIN/EDITOR signs in, clicks 3D Models to /admin/models/new, then its breadcrumb to /admin/models still redirects to /new. Do not implement a new model list. In isolation, upload a synthetic actual GLB/poster through POST /api/admin/models, use existing GET/PATCH /api/admin/models/[id] and POST process/publish, and retain size limits, READY checks and explicit publish confirmation. 2) Replace old models.css/ModelUpload/ModelPreview visual values using the shared token source without removing actual GLB preview or existing preview themes. Preserve upload, processing, failed checks, preview and confirmation actions, named file input and cancel-to-inquiries. Read 07/11/12 and only minimalist-flat. At 1920x1080, 1440x900 and 390x844 record actual HTTP/GLB interaction GIFs, computed 2px borders, zero radius, no shadow/gradient, accent #b45700, D1-D6 and overflow; form is left aligned with density7/gutter16/gap16/pad16, 44px touch targets and all loading/empty/error/success/disabled/focus states. E-108."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,6 +1,7 @@
 import { accessSync, constants as fsConstants, realpathSync, statSync } from 'fs';
 import path from 'path';
 import { isProdEnvFrom } from './src/lib/site';
+import { policyConfigProblems } from './src/lib/server/config';
 import { dailyCapValid, smtpBaseConfig } from './src/lib/server/mail/config';
 // 生产环境配置自检：
 // - next.config 加载时执行（next build → 'build'，next start → 'runtime'）；
@@ -37,7 +38,7 @@ export function prodEnvProblems(env: Record<string, string | undefined>, phase: 
     if (env.RATE_LIMIT_STORE !== 'upstash') problems.push(`RATE_LIMIT_STORE 必须为 "upstash"（当前：${env.RATE_LIMIT_STORE ?? '未设置'}），多实例下内存限流无效`);
     for (const k of ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN']) if (!env[k]?.trim()) problems.push(`${k} 未设置`);
     if (env.UPSTASH_REDIS_REST_URL && !/^https:\/\//.test(env.UPSTASH_REDIS_REST_URL)) problems.push('UPSTASH_REDIS_REST_URL 必须是 https 地址');
-    problems.push(...mailProblems(env), ...storageProblems(env, deps), ...secretProblems(env), ...runtimeSecretProblems(env));
+    problems.push(...mailProblems(env), ...storageProblems(env, deps), ...secretProblems(env), ...runtimeSecretProblems(env), ...policyConfigProblems());
   }
   return problems.sort();
 }

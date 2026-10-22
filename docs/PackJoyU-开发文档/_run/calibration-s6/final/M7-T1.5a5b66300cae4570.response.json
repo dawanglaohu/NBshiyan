@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "template": "prompt",
+  "model": "jev-1.13.0",
+  "key_source": "C:/Users/admin/.typesafe/.env",
+  "verdicts": {
+    "placeholder": {
+      "p": 0.34,
+      "verdict": "no"
+    },
+    "asks_user": {
+      "p": 0.23,
+      "verdict": "no"
+    },
+    "contradiction": {
+      "p": 0.35,
+      "verdict": "no"
+    },
+    "scope_clear": {
+      "p": 0.92,
+      "verdict": "yes"
+    }
+  },
+  "line": "prompt: placeholder=no(0.34) asks_user=no(0.23) contradiction=no(0.35) scope_clear=yes(0.92) [lang: CJK state, prefer English]",
+  "usage": {
+    "input_tokens": 7563,
+    "output_tokens": 72
+  },
+  "language_warning": "state 里 53% 是中日韩字符：Jev 英文最准，先把 requirement / question / options 忠实翻成英文再问（文档与记账仍用原文）"
+}

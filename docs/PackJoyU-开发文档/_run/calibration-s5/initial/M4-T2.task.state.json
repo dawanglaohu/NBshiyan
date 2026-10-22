@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire visitor message increments, idempotent sends, and read cursors",
+    "input": "M4-T1 durable chat, necessary cookies, and atomic outbox; section 09/10 seq pagination, message UUID, read MAX, and cookie-expiry protocols.",
+    "output": "GET /api/chat/conversations/[id], POST /api/chat/conversations/[id]/messages, and POST /api/chat/conversations/[id]/read; stable-seq queries and visitor-message append service.",
+    "accept": "1) Caller/wiring point: the three visitor handlers -> cookie-scoped service. Reads are owner-only and seq-ascending with a maximum page size of 100. With concurrent inserts between pages, catch-up contains each message ID once. Read cursors advance by MAX only to an existing seq; synchronization does not automatically mark messages read (E-19, E-34, E-77, E-79). 2) Appending a message locks the row, increments seq, and commits with the outbox. The same UUID/payload retried after response loss returns the original id/seq; a changed payload returns 409. Closed/anonymized conversations reject writes. Unknown outcomes use bounded retries with the original key, not a new key (E-18, E-33, E-37). 3) Actual expired/revoked cookies fail the next read and write; the same email cannot restore authority. GET/read renew neither seven-day idle nor 90-day content retention. Cookie expiry does not delete consultations still within 90 days; authorized operators can still handle them (E-78, E-85, E-86, E-89)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

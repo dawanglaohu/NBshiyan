@@ -1,0 +1,1001 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T2": {
+      "contractHash": "f4c36426feba985d0e38ee449388b40eb9a1e12da2bccd7cb43a6461c73e1016",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:12 — M1-T2「导出新增领域共享schema与DTO」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:42 — contract-types的唯一提供方；M1-T1提供visual-base均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=1e9d00fe59f8db60，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 bb38ef3235779285b0f4eba3465cc390a8e1e1dca366aef627f832cd2f5f2b27 变为 f4c36426feba985d0e38ee449388b40eb9a1e12da2bccd7cb43a6461c73e1016。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T3": {
+      "contractHash": "9b676a1e5cc8eedeee9248136bb3af0655c65a36f19c7c3933e8b42df066c8c8",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:13 — M1-T3「制作JPG换标及视频海报发布副本」，输入/产出/验收及1.5d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:77 — brand-static-media、brand-logo-master的唯一提供方；M1-T1提供visual-base均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T3 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=da6bf9df406d4279，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 当前SiteHeader/icon.svg的标识导出为唯一master；JPG透视换标/视频身份清单/真实制作与成品齐；两JSON清单位于已声明static范围，缺素材不得落地。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T3 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 9b2e774c5244ba3e5a6dbe4885aee82d8590cc3860af309c9afb71debbdd7c45 变为 9b676a1e5cc8eedeee9248136bb3af0655c65a36f19c7c3933e8b42df066c8c8。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T4": {
+      "contractHash": "2290530b52e54b9ec1a11cfba6c28645a0bb8b5daa62ddcb638da5d5b09284df",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:14 — M1-T4「接好首页视频与分区JPG/GIF场景」，输入/产出/验收及1.5d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:110 — home-media的唯一提供方；M1-T6提供brand-media; M1-T7提供visual-components; M1-T8提供client-api-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T4 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=cb19379976b3a1ab，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 视频/静帧/GIF在真实首页消费；SSR目录事实已修正；实际发布副本须先由T3/T6交付，保留可暂停及减少动态回退。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T4 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 cad95ee4d90a08bd6d58377c59bb903203f93bf3c4f3e5f82d8541dcf5742f63 变为 2290530b52e54b9ec1a11cfba6c28645a0bb8b5daa62ddcb638da5d5b09284df。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T5": {
+      "contractHash": "3b33767691c6fe07be4c5a1fd932c0fc259bb64870b2a360a0733894b0ca16b0",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:15 — M1-T5「集成己方公司内容与独立图稿」，输入/产出/验收及2d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:157 — company-content的唯一提供方；M1-T4提供home-media; M1-T9提供company-visual-assets均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T5 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=e9fa1eaa67d47baa，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 依赖T9实际图稿并在首页摘要/about消费；安全映射只提取Web资源/尺寸/双语alt，运行镜像不含私有源工程或原manifest。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T5 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 18602e1a4b760a19c3907ba9e87adbb43d37e40bbd27e92767f9eca031d27653 变为 3b33767691c6fe07be4c5a1fd932c0fc259bb64870b2a360a0733894b0ca16b0。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T6": {
+      "contractHash": "a4dedae04cdd57de7f2ab5b77095fe71ae4061102c8e480621c8210cec9d5a32",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:16 — M1-T6「逐帧替换GIF品牌并校验发布媒体集合」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:202 — brand-media的唯一提供方；M1-T3提供brand-static-media; M1-T3提供brand-logo-master均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T6 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=62cb8620e5cbe009，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 要求全361帧/原30.08秒时序及透视遮挡恢复换标，requires显式消费T3相同master；未制作保持未完成。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T6 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 691581997291a604ef43d7dc92396b7a88d11613aad981db6d3efd4e2246b0fc 变为 a4dedae04cdd57de7f2ab5b77095fe71ae4061102c8e480621c8210cec9d5a32。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T7": {
+      "contractHash": "58808ac888546813f7e611858320673339176f2ab9ffe0e666fc957541bd80be",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:17 — M1-T7「补齐共享视觉变量与原生UI包装」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:238 — visual-components的唯一提供方；M1-T1提供visual-base均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=3d0060d4f77a90dd，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 24601d54530f85a389eb7640aaf7be307594c840be92dfb5c2067cd94acb3dec 变为 58808ac888546813f7e611858320673339176f2ab9ffe0e666fc957541bd80be。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T8": {
+      "contractHash": "a2c922e805ca7b8844664896ab7655e2db51cc42bb43dc63e795b89881d2c21a",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:18 — M1-T8「接通统一fetch取消与错误适配」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:275 — client-api-foundation的唯一提供方；M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T8 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=6c1c3f9b32ed9b69，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T8 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 33226da898db6e2c97233a892fca44136e33b507dd89db84af2ba1780351b5da 变为 a2c922e805ca7b8844664896ab7655e2db51cc42bb43dc63e795b89881d2c21a。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M1-T9": {
+      "contractHash": "74eed2eb43a110a4625a2775ec42838f2271fbd011610bf2092a1e9183301812",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:19 — M1-T9「制作公司区块独立图稿与可编辑源工程」，输入/产出/验收及1.5d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:3475 — company-visual-assets的唯一提供方；M1-T1提供visual-base; M1-T3提供brand-logo-master均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M1-T9 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=d032a8eaed04ac1a，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 独立软件素材producer交1–2幅可编辑工程/Web图/双语alt/实际Dot记录/哈希；primitive只验素材，integrationTask=T5负责网页可达和资源消费，未虚造GLB或工厂事实。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M1-T9 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 cfbb864e7b6fe26da72f2e5c455c45150ad1a66bcea7c8d430e807c391ce94d4 变为 74eed2eb43a110a4625a2775ec42838f2271fbd011610bf2092a1e9183301812。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T1": {
+      "contractHash": "78c96c90c2cb79815279190009cfb1cd59d13d921b7312abc743037e0e4e28a8",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:20 — M2-T1「扩展产品卡视口与精简信息区」，输入/产出/验收及1.5d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:309 — product-cards的唯一提供方；M1-T4提供home-media均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T1 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=400edfd57aa8e6de，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 560px自适应卡/360–440px模型高、名称规格动作保留；SSR loadCatalog是目录来源，真实资源网络另核，不强加浏览器GET目录。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T1 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 254e83f0019b049b345c86b45b709d4dbdec12ec52befd8c2edc5537e2181f12 变为 78c96c90c2cb79815279190009cfb1cd59d13d921b7312abc743037e0e4e28a8。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T2": {
+      "contractHash": "df7b37f0b6fd677cef08fccbe6c422c6a0e306a75e803c863d73058ccb4c66b7",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:21 — M2-T2「修正模型直接拖动与滚轮焦点」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:347 — model-pointer的唯一提供方；M2-T1提供product-cards均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=cba7c2ceee4e4144，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11/12与M2任务链 — 本卡处理现有R3F/Drei/Three网页查看器/规则/咨询集成，沿用既有GLB；Dot不是默认模型几何更新提供方。真实加载/输入/回退/入口标准仍由原卡及下游消费。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 db5496aa3318271f599fc699b61f3e977257b55ce5c9da88159a5decabcd40cf 变为 df7b37f0b6fd677cef08fccbe6c422c6a0e306a75e803c863d73058ccb4c66b7。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T3": {
+      "contractHash": "b730e59becff1d7815357c6a0ecb5d2cee670d1e06fa6a93cf807e7ef8473f58",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:22 — M2-T3「接通模型键盘触屏与复位控件」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:384 — model-accessibility的唯一提供方；M2-T2提供model-pointer均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T3 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=17799ea2eb517b95，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11/12与M2任务链 — 本卡处理现有R3F/Drei/Three网页查看器/规则/咨询集成，沿用既有GLB；Dot不是默认模型几何更新提供方。真实加载/输入/回退/入口标准仍由原卡及下游消费。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T3 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 e31fee07971fc666d73025123ad21f1ad1a00013ae8c2389173018530d5c4e33 变为 b730e59becff1d7815357c6a0ecb5d2cee670d1e06fa6a93cf807e7ef8473f58。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T4": {
+      "contractHash": "3846ee36a6007e2a786af069c66353dc388e090ba57b29e7f27a6e89b1f3b943",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:23 — M2-T4「定义模型分析事件生命周期纯规则」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:421 — model-event-rules的唯一提供方；M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T4 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=2e43acfb7c1a390f，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11/12与M2任务链 — 本卡处理现有R3F/Drei/Three网页查看器/规则/咨询集成，沿用既有GLB；Dot不是默认模型几何更新提供方。真实加载/输入/回退/入口标准仍由原卡及下游消费。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T4 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 8562b88d79589ceb28cb83d066c7cc81d0cc2094e93269013d83c3760d044928 变为 3846ee36a6007e2a786af069c66353dc388e090ba57b29e7f27a6e89b1f3b943。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T5": {
+      "contractHash": "8d6e61e8e7c62db7beffff0d48d863b7a3e038cb1ca419d7e2921ac933cabcd8",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:24 — M2-T5「连接产品上下文到既有询盘表单」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:454 — product-inquiry的唯一提供方；M2-T6提供model-fallback; M1-T8提供client-api-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T5 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=05fabde686dfccc9，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11/12与M2任务链 — 本卡处理现有R3F/Drei/Three网页查看器/规则/咨询集成，沿用既有GLB；Dot不是默认模型几何更新提供方。真实加载/输入/回退/入口标准仍由原卡及下游消费。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T5 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 7c5d44acecac01ace5cd8edfee4e4f55b04b362bc0deab3d959d4486f2de0eac 变为 8d6e61e8e7c62db7beffff0d48d863b7a3e038cb1ca419d7e2921ac933cabcd8。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T6": {
+      "contractHash": "10c6e2a752500377046095cb5e24aca04b613349c59eb65c7bc9221cd0dfe87e",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:25 — M2-T6「接通真实模型失败与海报回退」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:497 — model-fallback的唯一提供方；M2-T3提供model-accessibility均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T6 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=4123f3d849a4454e，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11/12与M2任务链 — 本卡处理现有R3F/Drei/Three网页查看器/规则/咨询集成，沿用既有GLB；Dot不是默认模型几何更新提供方。真实加载/输入/回退/入口标准仍由原卡及下游消费。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T6 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 938ca9b47ca1a045b011bd985ada4d9b0c9bf4b295ec53ff6bc46c4ba63cad70 变为 10c6e2a752500377046095cb5e24aca04b613349c59eb65c7bc9221cd0dfe87e。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T7": {
+      "contractHash": "1f68dbf6e4722d6f5e38dd06eb1906a7fc2f60f013cd2508cb14b9675083e31d",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:26 — M2-T7「把真实GLB生命周期接入分析采集」，输入/产出/验收及1.5d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:534 — model-events的唯一提供方；M2-T4提供model-event-rules; M2-T6提供model-fallback; M5-T6提供analytics-ingest; M5-T7提供analytics-consent-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=bca044e050833685，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 真实可视或主动发起GLB均产生start；只有路由无加载不产生start，不另加激活点击；同意门控及poster/FoldBox不算success保留。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 b11d5d39be5560adfcbc8a8845e3d0a6450ed9a71fea009997c4022279c354c1 变为 1f68dbf6e4722d6f5e38dd06eb1906a7fc2f60f013cd2508cb14b9675083e31d。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M2-T8": {
+      "contractHash": "d1a68a7e3f27631747bd72ee18227e07f2c3d020e3b4cc753135352a7fa01d51",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:27 — M2-T8「贯通产品咨询与人工收件回复」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:584 — product-contact的唯一提供方；M2-T5提供product-inquiry; M2-T7提供model-events; M4-T5提供chat-visitor-ui; M4-T6提供chat-operator-ui; M4-T14提供chat-human-roundtrip-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M2-T8 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=0ac49a825b499204，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11/12与M2任务链 — 本卡处理现有R3F/Drei/Three网页查看器/规则/咨询集成，沿用既有GLB；Dot不是默认模型几何更新提供方。真实加载/输入/回退/入口标准仍由原卡及下游消费。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M2-T8 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 e1292b6cee1650bd9a7bfa44c88db5274c2c27b9b88b06f9c1dbad0dce63ece2 变为 d1a68a7e3f27631747bd72ee18227e07f2c3d020e3b4cc753135352a7fa01d51。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T1": {
+      "contractHash": "879318cc15645f07313b7e1d8d2715e76658bf72f9dc3b17ed35d2e3ae6c093e",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:28 — M3-T1「将真实Auth.js会话绑定当前设备与权限」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:637 — admin-device-sessions、current-admin-permissions的唯一提供方；M1-T2提供contract-types; M3-T14提供http-guards-metrics均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T1 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=532a79a0febc83ee，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T1 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 69d01d231fca33d2d3e373e11826aacfdb27bfd6383c53d78cfbeb25cae4a095 变为 879318cc15645f07313b7e1d8d2715e76658bf72f9dc3b17ed35d2e3ae6c093e。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T10": {
+      "contractHash": "c48b13c499f1fe0526d1e6852b663f7a80513c87ec70fcbf87653ac520146d8f",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:37 — M3-T10「接通首次绑定表单与一次展示材料」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1094 — first-enrollment-ui的唯一提供方；M3-T6提供admin-auth-ui; M3-T2提供first-enrollment均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T10 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=140ee78c7c8a668a，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T10 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 fdc7cdfde2db9ce18df74f81b21c53acfde522ac522a177372bb181d8ddcd30f 变为 c48b13c499f1fe0526d1e6852b663f7a80513c87ec70fcbf87653ac520146d8f。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T11": {
+      "contractHash": "5e40850f77a94da3693011e15b1d647c6b116ad73da709c5c178537c46ea1c4f",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:38 — M3-T11「接通独立恢复及受限重绑向导」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1140 — recovery-ui的唯一提供方；M3-T6提供admin-auth-ui; M3-T5提供limited-recovery-completion; M3-T18提供os-owner-recovery-cli; M3-T20提供self-rebind-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T11 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=52027e5b9fe17ebf，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T11 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 fd75184855a1d1714cfa622496736bf87e1b738332c7b5861112ad3736a837ce 变为 5e40850f77a94da3693011e15b1d647c6b116ad73da709c5c178537c46ea1c4f。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T12": {
+      "contractHash": "d6557e7b20ed1c086c05810b7400b652b02bfcdcb815b711995e756e0dcda84f",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:39 — M3-T12「接通个人安全页与共享新鲜验证对话框」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1196 — account-security-ui、reauth-dialog的唯一提供方；M3-T7提供admin-shell; M3-T16提供account-security-mutations; M3-T20提供self-rebind-api; M3-T11提供recovery-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T12 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=e1298f2b7ae9675e，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T12 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 5c91dd2fb4ca3e64aaaf967d34ca7cc53ff17c3cf2bfc0b527a5240e83c34d70 变为 d6557e7b20ed1c086c05810b7400b652b02bfcdcb815b711995e756e0dcda84f。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T13": {
+      "contractHash": "fb17df77e94e6c43420b9c6b03eae9b89cebcb6d2324a4d89fa487994f92f72e",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:40 — M3-T13「接通退出全部设备确认与结果核实」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1253 — signout-all-ui的唯一提供方；M3-T8提供device-management-ui; M3-T12提供reauth-dialog; M3-T17提供device-management-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T13 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=0c3913c196f0ee84，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T13 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 e14d639ebdd5395d8d10b35a66ec8f8d85b31034ddf9ba7c2b8fd8c3d4eeda28 变为 fb17df77e94e6c43420b9c6b03eae9b89cebcb6d2324a4d89fa487994f92f72e。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T14": {
+      "contractHash": "92935028849e5fb40e129a7d9f4b2406ed80cb441c36399ace7e0dcf664b2363",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:41 — M3-T14「接通新API配置、错误映射与脱敏计数」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1302 — http-guards-metrics的唯一提供方；M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T14 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=6cbd616861cb9027，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T14 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 bdc54fc6b618e70494ca951e6bc4f7b6d589f672bbb91c9c4c8ea09f8e0cc326 变为 92935028849e5fb40e129a7d9f4b2406ed80cb441c36399ace7e0dcf664b2363。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T15": {
+      "contractHash": "6b65c324b78c320575898c5fe538a6c89322c960c055396841c0631e6057bd73",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:42 — M3-T15「通过真实活动写回会话期限并验证四条Auth.js路径」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1343 — admin-session-activity的唯一提供方；M3-T1提供admin-device-sessions均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T15 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=a6c712c946484bd3，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T15 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 1a7a002dcb54c2195dd10429b1a3833bb49bed343610d6694e1030f7011ec316 变为 6b65c324b78c320575898c5fe538a6c89322c960c055396841c0631e6057bd73。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T16": {
+      "contractHash": "b2b5803317f592bb443c1ba044180f34a6985675ea81689913b8715c85ca32d2",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:43 — M3-T16「原子切换本人登录方式与密码」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1384 — account-security-mutations的唯一提供方；M3-T3提供admin-fresh-grants; M3-T2提供admin-login-modes均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T16 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=ce36fba78a1cb642，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T16 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 dbf77f97b7229614baeb448dcfeb3a7bfb82960af564636a7c32420927086cbc 变为 b2b5803317f592bb443c1ba044180f34a6985675ea81689913b8715c85ca32d2。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T17": {
+      "contractHash": "765ca265f7cebff74aff4290ac9363dbb6942461a45e5a1acd3d76ee335b1939",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:44 — M3-T17「提供本人设备列表及目标撤销API」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1429 — device-management-api的唯一提供方；M3-T3提供admin-fresh-grants; M3-T1提供admin-device-sessions均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T17 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=2cf84cd99005846d，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T17 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 63fdc0371bd8e6c1df204f2184999faf5442e824be83f16afd27808aa5d53b58 变为 765ca265f7cebff74aff4290ac9363dbb6942461a45e5a1acd3d76ee335b1939。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T18": {
+      "contractHash": "deb62790117220f9e94eb77a164346ee18338fef4ddcc106a79ddfca68bf2493",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:45 — M3-T18「提供受OS权限保护的本地恢复预授权CLI」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1474 — os-owner-recovery-cli的唯一提供方；M3-T4提供targeted-recovery-authorizations均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T18 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=d874439cad351d16，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T18 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 ac4dca4cd9473e63205ad26951e06d3e8ef246b1bc8acf0747465538b37424ad 变为 deb62790117220f9e94eb77a164346ee18338fef4ddcc106a79ddfca68bf2493。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T19": {
+      "contractHash": "c5a2986bd50ab5896e0b7bce4ccfc8a08b7bb30c10b665d9309a91dc035b7b17",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:46 — M3-T19「原子核销恢复码或permit为受限会话」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1511 — limited-recovery-start的唯一提供方；M3-T4提供targeted-recovery-authorizations; M3-T1提供admin-device-sessions均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T19 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=74ca5a720ebc6928，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T19 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 8dd9dcea9fe1be6837c7f58a0ba3620e75d1d44c7f7f941ed61dd4ba06e1079d 变为 c5a2986bd50ab5896e0b7bce4ccfc8a08b7bb30c10b665d9309a91dc035b7b17。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T2": {
+      "contractHash": "7c4a4d5b3bc9ad9b419c79a213d051434f77d5a2754d947eaa96cd1560584125",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:29 — M3-T2「校验登录方式并原子核销当前验证器时间步」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:690 — admin-login-modes、current-totp-consumption、first-enrollment的唯一提供方；M3-T1提供admin-device-sessions; M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=7d28d4e5ba7b0e75，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 f8d8f685de8aaf4091eb136771f8d811ea27acf92a4b321acfdf52af1b73efd3 变为 7c4a4d5b3bc9ad9b419c79a213d051434f77d5a2754d947eaa96cd1560584125。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T20": {
+      "contractHash": "94892e7c0d74cfc9e3d24a2250b3fa343a4c24c6e2c25effe2e4788eef551e30",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:47 — M3-T20「将本人换验证器接入受限重绑」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1556 — self-rebind-api的唯一提供方；M3-T5提供limited-recovery-completion; M3-T3提供admin-fresh-grants均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T20 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=d5d7a88f32676181，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T20 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 ae105ed957c01c7e77b499f6150b12684a2a14b132661ff8d47e7546300261ac 变为 94892e7c0d74cfc9e3d24a2250b3fa343a4c24c6e2c25effe2e4788eef551e30。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T21": {
+      "contractHash": "3948e848e76ae40cddab47b2b9385ac7e9c8d592a47f17b13c67baa2cafe7c37",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:48 — M3-T21「迁移原询盘列表、详情与往来邮件视觉」，输入/产出/验收及2d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:3510 — legacy-inquiries-ui的唯一提供方；M1-T7提供visual-components; M3-T7提供admin-shell均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T21 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=413aec04658fe6e5，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 列表/详情/匿名化/邮件组件与admin.css/mail.css均列范围；真实POST询盘到列表和持久动作，SMTP/gate保持，三尺寸全页测量不删业务字段。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T21 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 e38bf2eabbfab4aa04efd0e6178400a36996fcb094bd94d94223fa5c0aa89615 变为 3948e848e76ae40cddab47b2b9385ac7e9c8d592a47f17b13c67baa2cafe7c37。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T22": {
+      "contractHash": "b2bccb4cdd954d303d6c147bc17dd5b5f9a02aeeea77c06f2c08a960f55f7012",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:49 — M3-T22「迁移未归类邮件样式并保持关闭门禁」，输入/产出/验收及0.5d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:3558 — legacy-unassigned-ui的唯一提供方；M1-T7提供visual-components; M3-T7提供admin-shell; M3-T21提供legacy-inquiries-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T22 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=2946f2e0a504e9e9，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 源码UNASSIGNED_MAIL_LIVE和MAIL_ATTACHMENTS_LIVE均false；隐藏/404/零请求为真实验收，组件样式只报组件证据，gate-off不冒充GUI或密度通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T22 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 c47fc860fe1e6538b130dd545044aca3ffe6db92d3c6bfd05e558bf608fae675 变为 b2bccb4cdd954d303d6c147bc17dd5b5f9a02aeeea77c06f2c08a960f55f7012。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T23": {
+      "contractHash": "50a1dc394aeb001b0e91ecd7eed895934846190bf66b8369000032a38aad6cd2",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:50 — M3-T23「迁移既有模型上传和预览工作流视觉」，输入/产出/验收及1d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:3602 — legacy-model-admin-ui的唯一提供方；M1-T7提供visual-components; M3-T7提供admin-shell均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T23 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=34e975f06b8fd770，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 既有/models redirect到/new保持；原ADMIN/EDITOR上传/检查/READY/发布HTTP和真实GLB预览不变；内层models.css与组件有明确迁移owner。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T23 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 54ebc8b8ee51d5e1fdc84fdfad62960d85fe94531c28067197cc078f01f45ce3 变为 50a1dc394aeb001b0e91ecd7eed895934846190bf66b8369000032a38aad6cd2。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T24": {
+      "contractHash": "d41db219d0fef306e4f98e174948364cfb92d3ae9e6e02322ce2e8944cbd4c1c",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:51 — M3-T24「迁移规格列表及品类编辑器视觉」，输入/产出/验收及1d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:3642 — legacy-specs-ui的唯一提供方；M1-T7提供visual-components; M3-T7提供admin-shell均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T24 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=c1aadb82c01e0797，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — SSR categoryMeta列表及原GET/PUT编辑保存；八键body/状态/错误/重新GET/双语值精确可判，源SpecEditor和现行角色规则逐项核对，不增新API。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T24 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 fd7e6a524db9da2055fbe7ed457b3dc7773e9e74f006b6bed829e5e7d0638738 变为 d41db219d0fef306e4f98e174948364cfb92d3ae9e6e02322ce2e8944cbd4c1c。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T25": {
+      "contractHash": "d5223a0ea8e4b0e548c452ee1293a3d1279727c4b3efbb7bf7fd0f001680d173",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:52 — M3-T25「统一既有站点设置和账号表完整视觉」，输入/产出/验收及2d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:3682 — legacy-settings-users-ui的唯一提供方；M1-T7提供visual-components; M3-T7提供admin-shell; M3-T9提供target-recovery-ui; M5-T10提供analytics-settings-ui; M1-T5提供company-content均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T25 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=615512dbadf941d7，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 完整about/org/图片设置与UsersAdmin列路径；等待恢复授权、analytics分区及公司内容前置，保留版本冲突/最后管理员/旧reset拒绝，完整页统一风格。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T25 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 94ea5f495cb4d05f18e65d2d73b561721764af181244d8cdb456758674107a45 变为 d5223a0ea8e4b0e548c452ee1293a3d1279727c4b3efbb7bf7fd0f001680d173。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T3": {
+      "contractHash": "ccb7d94f28b7bc3e52f882f64f76d8ff2f70d71539c8072270eef696956eca7b",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:30 — M3-T3「签发一次性新鲜本人授权」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:741 — admin-fresh-grants的唯一提供方；M3-T2提供current-totp-consumption; M3-T1提供current-admin-permissions均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T3 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=9ef536483c5a7c09，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T3 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 a1616cead36662f82e516ed1c7108ca5908fe5b390690c5172b3fdd539dda00b 变为 ccb7d94f28b7bc3e52f882f64f76d8ff2f70d71539c8072270eef696956eca7b。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T4": {
+      "contractHash": "2b22253fff75d61a1449fed8a2fd58f24a499839db6f3abccbc27b6370b504d1",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:31 — M3-T4「签发管理员目标恢复permit」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:785 — targeted-recovery-authorizations的唯一提供方；M3-T3提供admin-fresh-grants; M3-T1提供current-admin-permissions均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T4 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=8883fcd61e1fb57f，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T4 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 3b3e51c3783660392b4f5a7138fce8adf86545b37dc11ebd42eab7099375549d 变为 2b22253fff75d61a1449fed8a2fd58f24a499839db6f3abccbc27b6370b504d1。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T5": {
+      "contractHash": "57991f3e1146c087252bc0e066608ca742f400f62a54e7b17712b326ec2a0800",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:32 — M3-T5「接通受限重入绑定与最终一次确认」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:831 — limited-recovery-completion的唯一提供方；M3-T19提供limited-recovery-start; M3-T2提供current-totp-consumption均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T5 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=54d5365a748ed36b，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T5 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 b3a603e0ee7f8f415a687be05bcae1942b3c13737a550f376d3c8d267a0636c2 变为 57991f3e1146c087252bc0e066608ca742f400f62a54e7b17712b326ec2a0800。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T6": {
+      "contractHash": "127f8f19dac6ce8b6b152271b9a961119e0025be85e6b6c72e907ef652cff763",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:33 — M3-T6「接通唯一登录页和明确方式字段」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:877 — admin-auth-ui的唯一提供方；M3-T2提供admin-login-modes; M1-T1提供visual-base; M1-T8提供client-api-foundation; M1-T7提供visual-components; M6-T4提供stats-base-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T6 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=14feda9f1b118e29，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T6 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 7f0e37d7ac67cb2139d5cc0b6534c5eaf1d93dec14ee381c4e1d12e2a3f67397 变为 127f8f19dac6ce8b6b152271b9a961119e0025be85e6b6c72e907ef652cff763。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T7": {
+      "contractHash": "f83ecfcd1102b3dfa10fe7aaf720246ce80730d62105c8b23cc173cf93b97fd1",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:34 — M3-T7「统一后台外壳并只上报真实活动」，输入/产出/验收及1d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:938 — admin-shell-profile-ui、admin-shell的唯一提供方；M3-T15提供admin-session-activity; M1-T1提供visual-base; M1-T7提供visual-components; M3-T2提供admin-login-modes; M1-T8提供client-api-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=32b0d82b9a5a4a0b，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 本卡限壳导航/外框/真实活动/退出及适用密度；旧业务内层不冒称通过，T21–T25逐页验、T9终验；taskSkills和实际prompt同步。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 4b993efe9a902ea865837f3e5d7036d7a0f16e29446041c7e26f641f44776cd3 变为 f83ecfcd1102b3dfa10fe7aaf720246ce80730d62105c8b23cc173cf93b97fd1。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T8": {
+      "contractHash": "e0806735895a936b2136638b84ab9ef9f823690b7452c9c7cdecfef1ea4b2554",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:35 — M3-T8「显示本人设备并退出指定设备」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:999 — device-management-ui的唯一提供方；M3-T12提供reauth-dialog; M3-T17提供device-management-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T8 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=1ed59a860f06c0ed，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T8 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 ba4710a27b9d24b69191d16328e7cac29cf2242e0a05a3c3c0a927ac165b179f 变为 e0806735895a936b2136638b84ab9ef9f823690b7452c9c7cdecfef1ea4b2554。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T9": {
+      "contractHash": "97dc79c6408644be8ac534c389e028825334c993619e71f0bfd9db09b4773df0",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:36 — M3-T9「在账号行复用验证对话框授权恢复」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1046 — target-recovery-ui的唯一提供方；M3-T12提供reauth-dialog; M3-T4提供targeted-recovery-authorizations均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M3-T9 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=d8b24f506dcbd1a3，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 当前恢复授权按钮仍复用真实reauth/permit；公共阶段解释仅限本卡新增区域，完整账号旧控件由T25承接，不恢复直接reset旁路。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T9 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 4524e25ee9a96a4f189cfe16b3291f6c0c3bf0fc04d42a0fb1713fd9552076b5 变为 97dc79c6408644be8ac534c389e028825334c993619e71f0bfd9db09b4773df0。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T1": {
+      "contractHash": "aa81981ef0fc345651dcd2fb659ebb6232f95ac8824aea3cd4a4a65fe7d910ee",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:53 — M4-T1「原子保存咨询首消息及唯一通知出箱」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1599 — chat-first-message-api、chat-atomic-outbox的唯一提供方；M4-T8提供chat-visitor-session; M5-T8提供job-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T1 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=7bf868a753300f82，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T1 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 3807caa3309379ea9223eeea7204a0977c153e867874f4b0432184092812c398 变为 aa81981ef0fc345651dcd2fb659ebb6232f95ac8824aea3cd4a4a65fe7d910ee。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T10": {
+      "contractHash": "654f691cb1fc9449c0c57c80f5b6780c303c2cfe02750ddab903c33f9ab85817",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:62 — M4-T10「幂等追加访客消息并更新咨询保留期限」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2038 — chat-visitor-append-api的唯一提供方；M4-T2提供chat-visitor-sync-api; M4-T1提供chat-atomic-outbox均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T10 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=91f29d352c87333e，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T10 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 6d56cb0ad6562f2a8dd29d31bc54ac362a2b03e20220626cd9637c2b763e52be 变为 654f691cb1fc9449c0c57c80f5b6780c303c2cfe02750ddab903c33f9ab85817。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T11": {
+      "contractHash": "3ce6bc1d1471ac04ab0ad0f21eecbe6aff228145d27bceae1175b8fece8d1be8",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:63 — M4-T11「保存真实人工回复并关闭咨询」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2081 — chat-operator-write-api的唯一提供方；M4-T3提供chat-operator-api; M4-T10提供chat-visitor-append-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T11 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=521c2822b545e008，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T11 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 740f8b3fa6ea8d8d0dd3a7e8911899ac881d40df5a44f2c907a48325620f740d 变为 3ce6bc1d1471ac04ab0ad0f21eecbe6aff228145d27bceae1175b8fece8d1be8。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T12": {
+      "contractHash": "35d83753713320c1d1857fcf338f245cf0f6b0a7c8567e4eb7d5185a11357ef9",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:64 — M4-T12「注册既有邮件队列真实POST调度」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2124 — mail-queue-real-schedule的唯一提供方；M5-T8提供job-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T12 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=d31706595f08db2b，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T12 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 5dbb051b6e15f2be1cce86e02079b6c1532c990baf4f0a33a5a7d7c3dc5add39 变为 35d83753713320c1d1857fcf338f245cf0f6b0a7c8567e4eb7d5185a11357ef9。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T13": {
+      "contractHash": "637fa35ccc251a1bdd4860bb434739124db648eaae1f4076135ba21e8f63c567",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:65 — M4-T13「在隔离授权策略下原子匿名化过期咨询」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2163 — chat-authorized-retention的唯一提供方；M4-T7提供chat-retention-dryrun-job; M4-T11提供chat-operator-write-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T13 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=1379896427a41fea，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T13 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 4653ec94e26481a47fcbaa95d66c49a1bb792bcf7555e93a8e6ddd8aeb3a0d38 变为 637fa35ccc251a1bdd4860bb434739124db648eaae1f4076135ba21e8f63c567。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T14": {
+      "contractHash": "2440a92d87ba7a6bfe089d3aa12499ecd304e29aebfe59812ed2f2d824e393ac",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:66 — M4-T14「在真实双端会话接通人工回复与关闭」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2207 — chat-human-roundtrip-ui的唯一提供方；M4-T6提供chat-operator-ui; M4-T11提供chat-operator-write-api; M4-T4提供chat-notification-job均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T14 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=e0f3f87623c58be4，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T14 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 38ec1f9462a23ccca45969ef4b123fb18225e697e5b900562ae07a0d39d7548a 变为 2440a92d87ba7a6bfe089d3aa12499ecd304e29aebfe59812ed2f2d824e393ac。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T15": {
+      "contractHash": "4d3e9e11fe54de5579d9b6b51b15b8364a463f68dfd2d1d55e34fc15354b090c",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:67 — M4-T15「移除Tawk接线并说明必要人工咨询」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2257 — chat-consent-migration的唯一提供方；M1-T8提供client-api-foundation; M1-T1提供visual-base; M1-T7提供visual-components均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T15 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=b1c3485985a1e7e9，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T15 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 4c30b7aa81841bd172cebb321fa81441a77b42044b2414e8b3cb84a9635c648f 变为 4d3e9e11fe54de5579d9b6b51b15b8364a463f68dfd2d1d55e34fc15354b090c。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T2": {
+      "contractHash": "c0f5c2ab5b45dcf78fc0d21696c9be052eeab7804ce9518435b9ce348356cd3e",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:54 — M4-T2「读取访客消息页并单调推进读位置」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1645 — chat-visitor-sync-api的唯一提供方；M4-T1提供chat-first-message-api; M4-T8提供chat-visitor-session均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=58eb3d154b78caa8，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 9f871a279d9f38b1489dfcc0fa0d8ea95f2ad3b217289e5394c6937979ce009d 变为 c0f5c2ab5b45dcf78fc0d21696c9be052eeab7804ce9518435b9ce348356cd3e。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T3": {
+      "contractHash": "71eb9696376f72a2078c201f20849da67678e8a3d91c8bbce91c70eef755bcc2",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:55 — M4-T3「查询当前授权运营的收件箱及读状态」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1689 — chat-operator-api的唯一提供方；M4-T2提供chat-visitor-sync-api; M3-T1提供current-admin-permissions均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T3 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=4e03bd3832f697d3，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T3 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 45e5206d26df350c4cee31344dbfc620e9a46f77fafee19a2c16caf3b3fe14f7 变为 71eb9696376f72a2078c201f20849da67678e8a3d91c8bbce91c70eef755bcc2。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T4": {
+      "contractHash": "be0453837805c36510747334db3c91226fc72c00e04b63c52d4704b211f1c7da",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:56 — M4-T4「消费持久聊天通知并注册每分钟作业」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1733 — chat-notification-job的唯一提供方；M4-T1提供chat-atomic-outbox; M5-T8提供job-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T4 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=37645b3fee58e910，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T4 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 22d1194dce0584f3eeec672c5d3bd77ca6cb93fbeb71e1508b4abd3a6c2c6216 变为 be0453837805c36510747334db3c91226fc72c00e04b63c52d4704b211f1c7da。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T5": {
+      "contractHash": "f2a2184255c5e81f7ae935ecba04510a0be3afa2b7bf207830d63081e7282aad",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:57 — M4-T5「接通访客聊天打开与消息编辑器」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1784 — chat-visitor-ui的唯一提供方；M4-T10提供chat-visitor-append-api; M4-T15提供chat-consent-migration; M1-T8提供client-api-foundation; M5-T6提供analytics-ingest; M5-T7提供analytics-consent-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T5 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=581afa7db6e3a5cf，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T5 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 f45baffbc50ae2aec0e5ee3863139d1ef357b7690242614eb15d07e615f824c5 变为 f2a2184255c5e81f7ae935ecba04510a0be3afa2b7bf207830d63081e7282aad。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T6": {
+      "contractHash": "7de539fd900384d3943a80b05e022490c7601f9f55c114270c335de72582c00b",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:58 — M4-T6「接通运营收件箱和只读会话页」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1847 — chat-operator-ui的唯一提供方；M4-T3提供chat-operator-api; M3-T7提供admin-shell; M4-T9提供chat-sync-retry-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T6 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=bfdd0e15bf44715b，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T6 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 10875638b83e2df7d99c39901b10f59f11d2f2623577f8cf4183908f264d5b72 变为 7de539fd900384d3943a80b05e022490c7601f9f55c114270c335de72582c00b。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T7": {
+      "contractHash": "c1f564250b048b7f3e1699a8c09dbb0e0bf35a7874814709f693554e977f35da",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:59 — M4-T7「注册聊天保留候选与默认拒绝真实清理」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1901 — chat-retention-dryrun-job的唯一提供方；M4-T3提供chat-operator-api; M5-T8提供job-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=43be0cb4dd7a9765，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 b17043e1120be899025254cf9fa32476fab355410c63bece5986fbf983e16098 变为 c1f564250b048b7f3e1699a8c09dbb0e0bf35a7874814709f693554e977f35da。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T8": {
+      "contractHash": "27c0bf2fd7842cfef1a380a717b59f7662d1c8eb6c8a986837b2623b54ff1a07",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:60 — M4-T8「建立主动联系才签发的必要cookie」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1947 — chat-visitor-session的唯一提供方；M3-T14提供http-guards-metrics; M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T8 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=f21581ce0e2330a2，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T8 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 7ed8d9ccbc23f590660db85514182a16996a9365582f45f59adaa088c6725db6 变为 27c0bf2fd7842cfef1a380a717b59f7662d1c8eb6c8a986837b2623b54ff1a07。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M4-T9": {
+      "contractHash": "ebdc0142904fe383525275bb9fc48424deb809309a6ac26e88da1add8689d838",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:61 — M4-T9「集成聊天轮询、断网重试与失权停止」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:1992 — chat-sync-retry-ui的唯一提供方；M4-T5提供chat-visitor-ui; M4-T11提供chat-operator-write-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M4-T9 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=00a9112043c8d8e0，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M4-T9 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 9dc1531baa535db44cea77b5679da0500acaee2fd573995467a110c293b7e0db 变为 ebdc0142904fe383525275bb9fc48424deb809309a6ac26e88da1add8689d838。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T1": {
+      "contractHash": "f23e3213de1653236e13ce246f4603f63c9a49512aa73f6e98efa8271c15530c",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:68 — M5-T1「建立JobState租约与代次仓储原语」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2311 — job-leases的唯一提供方；M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T1 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=c64f6372ecd98f88，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T1 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 fbf9c935ffa38101ef922101c603334180f4bb958ed7cc5530da9c07ed77dc72 变为 f23e3213de1653236e13ce246f4603f63c9a49512aa73f6e98efa8271c15530c。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T10": {
+      "contractHash": "29e9d920e682baf13073d9a49f389bd1196508193ad7ef317647f1db24b5deb6",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:77 — M5-T10「呈现ADMIN时区表单与保存反馈」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2706 — analytics-settings-ui的唯一提供方；M5-T4提供analytics-settings-api; M3-T7提供admin-shell-profile-ui; M1-T7提供visual-components均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T10 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=74e643d4ebc8d496，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 仅analytics表单接缝及ops.ts方法，T25等待本卡并统旧设置整页视觉；阶段解释不取消最终密度与权限拒绝。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T10 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 ef1f619c64de87373dd947f3a762e699c0a1585eb1fe4b6239efd01d793a866d 变为 29e9d920e682baf13073d9a49f389bd1196508193ad7ef317647f1db24b5deb6。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T11": {
+      "contractHash": "cc05d2fd3e0ea6c26f9bfcbc58566ae5ed587edf24c2ec382f3531909c5663ec",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:78 — M5-T11「注册默认dry-run的分析保留任务」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2752 — analytics-retention的唯一提供方；M5-T5提供analytics-retention-plan; M5-T8提供job-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T11 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=539c5531acab5448，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T11 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 add8552aa56f1a4bc9ad7c52026fe31bc1bce409e20b657967be1ff6b79cdb83 变为 cc05d2fd3e0ea6c26f9bfcbc58566ae5ed587edf24c2ec382f3531909c5663ec。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T2": {
+      "contractHash": "e410b8a5dcc942bc7457fe69aa5f0863cb2a2c3c6a2030eae4ab3a5702a80f57",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:69 — M5-T2「接通服务端分析同意签名cookie」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2348 — analytics-consent-api的唯一提供方；M1-T2提供contract-types; M3-T14提供http-guards-metrics均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=e148d2283192cbe4，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 857351952b75597dabfa2bf6f3d0c3207c562f8b4fdd90d519f398ec1111d4a4 变为 e410b8a5dcc942bc7457fe69aa5f0863cb2a2c3c6a2030eae4ab3a5702a80f57。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T3": {
+      "contractHash": "cbe5fe4d8f11cee197dedb32ada79f44de7bba358248ae90958ff9225d2efe26",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:70 — M5-T3「以一致快照重算并原子替换日聚合」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2390 — analytics-aggregate的唯一提供方；M5-T6提供analytics-ingest; M5-T1提供job-leases; M5-T9提供analytics-settings-domain均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T3 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=721abc0a4ab89616，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T3 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 075a3ed0579f9210ee95a0f79052ce04402c842fca1c47cb852b857583e6c3a1 变为 cbe5fe4d8f11cee197dedb32ada79f44de7bba358248ae90958ff9225d2efe26。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T4": {
+      "contractHash": "09e46098d6f14058028f6b15f5847374c13716f21401b2f698ed0ce7e8a140bd",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:71 — M5-T4「接通时区设置HTTP与重算范围查询」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2435 — analytics-settings-api的唯一提供方；M5-T9提供analytics-settings-domain; M5-T8提供analytics-aggregate-runtime均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T4 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=7d08d7f58b2085f1，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T4 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 510ba2d1b6531cc106b9917a06db09ba93a70b7cdcd5fa19243b65c2446e7edb 变为 09e46098d6f14058028f6b15f5847374c13716f21401b2f698ed0ce7e8a140bd。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T5": {
+      "contractHash": "1f3e47092bc4067f2db8dc87dfbc2f8bfb1fae25bbc9eefa96e52cb5fde58186",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:72 — M5-T5「实现分析保留候选与覆盖边界计划器」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2475 — analytics-retention-plan的唯一提供方；M5-T3提供analytics-aggregate均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T5 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=ac588451da44bfff，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T5 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 0eb373e42e6a2731479d6fd519aaf95f3b9fbbe5b3374d1d75bfb6d98e2857f8 变为 1f3e47092bc4067f2db8dc87dfbc2f8bfb1fae25bbc9eefa96e52cb5fde58186。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T6": {
+      "contractHash": "a32135c8217db13e5e909b1ad8f4ed68792954cb3febab6d7ce6b1084f503523",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:73 — M5-T6「持久化严格白名单分析事件」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2508 — analytics-ingest的唯一提供方；M5-T2提供analytics-consent-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T6 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=143e6171eb7ee979，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T6 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 9eb0b7f56402245a83fc48556537a4a0b7256f985f84fa4c33a09352e8038907 变为 a32135c8217db13e5e909b1ad8f4ed68792954cb3febab6d7ce6b1084f503523。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T7": {
+      "contractHash": "768d87045c5126e9a2daea60689438d0dc87dc54aa8b58758a77c17ddc06ea59",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:74 — M5-T7「接通同意UI、页面事件与隐私说明」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2550 — analytics-consent-ui、analytics-page-events、analytics-privacy-copy的唯一提供方；M5-T2提供analytics-consent-api; M5-T6提供analytics-ingest; M1-T8提供client-api-foundation; M1-T7提供visual-components; M5-T9提供analytics-settings-domain均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=44981523f10e35a5，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 9bd9f34af8deaaa8b5b6d1e1ddda755c1b61c9ff23ca7586a6dfd515f06f5823 变为 768d87045c5126e9a2daea60689438d0dc87dc54aa8b58758a77c17ddc06ea59。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T8": {
+      "contractHash": "ecde9175199f6fb49d3838518043b88c76f05b19167b6323b7aa8b428c4db2da",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:75 — M5-T8「注册聚合作业并接通真实5分钟cron」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2611 — job-foundation、analytics-aggregate-runtime的唯一提供方；M5-T1提供job-leases; M5-T3提供analytics-aggregate; M3-T14提供http-guards-metrics; M5-T7提供analytics-page-events均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T8 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=c4f5fc57463e1493，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T8 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 de987849abd29fe629ce931b26cfb9721a9501ba1fe5daac6fbbc4b5145d4ce4 变为 ecde9175199f6fb49d3838518043b88c76f05b19167b6323b7aa8b428c4db2da。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M5-T9": {
+      "contractHash": "9b8c98e98be106cbe8b981c93511ae289001264af83e82c4e9ff5f6a2ca99440",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:76 — M5-T9「建立版本化IANA时区与自然日仓储规则」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2666 — analytics-settings-domain的唯一提供方；M1-T2提供contract-types; M3-T1提供current-admin-permissions均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M5-T9 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=9ba93836f0d841f7，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M5-T9 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 a9e230e36c4a4958d38c81851199735b0832c96328bc8fb8887c197b7e6c4b08 变为 9b8c98e98be106cbe8b981c93511ae289001264af83e82c4e9ff5f6a2ca99440。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T1": {
+      "contractHash": "d2af863151275378ffd300f9982eba4f11e0a2fff6b192dc8809b0b26a43cb4f",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:79 — M6-T1「定义统计查询范围与核心来源DTO」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2794 — stats-query-rules的唯一提供方；M5-T3提供analytics-aggregate; M2-T7提供model-events均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M6-T1 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=0d1613cf374b93f4，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M6-T1 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 4ffcc79605e17699a26615981047009e469a9baad99ca89040c37d96f1a98d57 变为 d2af863151275378ffd300f9982eba4f11e0a2fff6b192dc8809b0b26a43cb4f。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T2": {
+      "contractHash": "455cacbe1465e7047711472ea1132b3df253be8583252a2ccfffd2a6aba1ce08",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:80 — M6-T2「接入询盘与聊天只读业务计数」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2832 — stats-business的唯一提供方；M6-T6提供stats-core; M4-T4提供chat-notification-job均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M6-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=12164e0bca1be3d9，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M6-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 69262ad55bd83523a7d8213013fa60ec632164c6b2e18a8c7e05d7956a9a1c37 变为 455cacbe1465e7047711472ea1132b3df253be8583252a2ccfffd2a6aba1ce08。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T3": {
+      "contractHash": "1ff944bd2b0072fa5f959d281d287a081238654eeb4b95f1ceecf35f0c9bee03",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:81 — M6-T3「登记存储备份报告与运维采样」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2872 — ops-sources的唯一提供方；M6-T6提供stats-core; M5-T8提供job-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M6-T3 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=e1ebcccaef09456c，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M6-T3 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 de511ee2529f6499eeec27c9bc6471e83647cf8141fc57b46056dbfb2b9b4e03 变为 1ff944bd2b0072fa5f959d281d287a081238654eeb4b95f1ceecf35f0c9bee03。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T4": {
+      "contractHash": "31090a12cff689ede651248ee29052d28ae2d88373f98cba254ad464d6cdc7c9",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:82 — M6-T4「交付可导航的核心数据看板页面」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2917 — stats-base-ui的唯一提供方；M6-T6提供stats-core; M3-T7提供admin-shell-profile-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M6-T4 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=1a619d181b74e4eb，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M6-T4 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 073d0a1a76b9909ec6026a6ddfeb5395d6627567e932aaac7d54f0df8d49c77b 变为 31090a12cff689ede651248ee29052d28ae2d88373f98cba254ad464d6cdc7c9。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T5": {
+      "contractHash": "50d20ecff236cdf18924b94a4bd5138bc3641ca55c74635ab9e2aa98c2d71a8b",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:83 — M6-T5「接入HTTP和邮件可靠性来源」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:2961 — stats-reliability的唯一提供方；M6-T6提供stats-core; M4-T4提供chat-notification-job均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M6-T5 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=a40275cbdfdd5f26，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M6-T5 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 2d0a141946431b3c731fda96e9746788967af29645920908af02f1aef939b9d2 变为 50d20ecff236cdf18924b94a4bd5138bc3641ca55c74635ab9e2aa98c2d71a8b。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T6": {
+      "contractHash": "36a863e2ea87f03a34f5aa3e208e5589005b95c1b9f3a69e03eb4c300ebd787e",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:84 — M6-T6「接通受角色限制的真实统计HTTP入口」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3001 — stats-core的唯一提供方；M6-T1提供stats-query-rules; M5-T4提供analytics-settings-api均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M6-T6 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=1fa2ceb06229e57f，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M6-T6 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 6eedb95b5c5152347d6a7c6cf174ce7a33cd0b67bebc37cec4fb71e530610bc8 变为 36a863e2ea87f03a34f5aa3e208e5589005b95c1b9f3a69e03eb4c300ebd787e。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M6-T7": {
+      "contractHash": "23605f16ec921559871dac7d7358b9b508d7d263848cb3853a80eb8f1a9b4d81",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:85 — M6-T7「完成看板逐源状态与故障呈现」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3043 — stats-ui的唯一提供方；M6-T4提供stats-base-ui; M6-T2提供stats-business; M6-T5提供stats-reliability; M6-T3提供ops-sources均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M6-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=e018274971a4d718，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07/11与本轮公共差异 — 原聊天/分析/看板能力和运行接线未被该补丁替换；后台增量区域按本卡验，完整相关页仍需真实登录/数据/HTTP与适用密度；不把文档或模型校准视为运行通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M6-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 1a00573a955f12e27c9bbfc2aea108fc3e0931aa87fc9ebd6c6e29dc3fd512e7 变为 23605f16ec921559871dac7d7358b9b508d7d263848cb3853a80eb8f1a9b4d81。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T1": {
+      "contractHash": "8d5c4d183885c413151de456e8c67b0aeed30bd6bb5cfa13fac0e2ac6be38fd8",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:86 — M7-T1「终验公开媒体与3D访客路径」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3091 — visitor-media-acceptance的唯一提供方；M1-T5提供company-content; M2-T8提供product-contact均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T1 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=c7a9fc492327c10b，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T1 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 c1c63657e6d073e79073508fcc4b65b8ea8f7bcab0a065a9035e8250c688199e 变为 8d5c4d183885c413151de456e8c67b0aeed30bd6bb5cfa13fac0e2ac6be38fd8。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T2": {
+      "contractHash": "f38e84fa2014803f0e3b31b29147d623e6e9fb9bab72c92fe3615f7f15959c18",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:87 — M7-T2「终验真实会话跨路径持久与撤销」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3129 — session-acceptance的唯一提供方；M3-T8提供device-management-ui; M3-T6提供admin-auth-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T2 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=3fa5fdeb42acf27a，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T2 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 ffebdfbe4c02885c1472cc9d477351c48acdfc204323a5c8420f83fca10eb539 变为 f38e84fa2014803f0e3b31b29147d623e6e9fb9bab72c92fe3615f7f15959c18。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T3": {
+      "contractHash": "9a7d0cfaa12a47e5485187ef46fe8013af49581aa8df9bb65a7a48dc366d9718",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:88 — M7-T3「终验同意到分析看板及统计日界线」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3168 — analytics-acceptance的唯一提供方；M5-T11提供analytics-retention; M5-T10提供analytics-settings-ui; M6-T7提供stats-ui; M2-T7提供model-events均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T3 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=57f77aa50f617948，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T3 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 1ebaa936f062660c1163f56c1877ae2b86d3d85fd7a76e4a373f47d1a371bd22 变为 9a7d0cfaa12a47e5485187ef46fe8013af49581aa8df9bb65a7a48dc366d9718。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T4": {
+      "contractHash": "6d178674aa20cd7b6d08c417e2f51c8ba2270279ea5c63bd0752f00924b5d0ec",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:89 — M7-T4「终验询盘聊天闭环与容量降级」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3215 — visitor-acceptance的唯一提供方；M7-T1提供visitor-media-acceptance; M4-T6提供chat-operator-ui; M4-T7提供chat-retention-dryrun-job均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T4 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=80bc2d3451729254，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T4 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 117f20c4f3c30e440bd35c02085e3dbb05e087b40b0f8e74048b729b28bbf8fc 变为 6d178674aa20cd7b6d08c417e2f51c8ba2270279ea5c63bd0752f00924b5d0ec。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T5": {
+      "contractHash": "68020b3b871df38c7fa194c629ee7c62332094a61196d188f2b6417187696607",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:90 — M7-T5「终验受限恢复与单管理员兜底」，输入/产出/验收及2d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3257 — admin-acceptance的唯一提供方；M7-T6提供fresh-auth-acceptance; M3-T9提供target-recovery-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T5 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=739890a221a8dd27，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T5 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 141c539ab3f664ab87142a5224299c42d1789afe01aa90a7fe6b187b8ca8819d 变为 68020b3b871df38c7fa194c629ee7c62332094a61196d188f2b6417187696607。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T6": {
+      "contractHash": "290bb7662a0cd29cce8eb5fea13701f1b5b2eac30d6dcc833e0dd1f8075e5f64",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:91 — M7-T6「终验新鲜本人授权与忘密码隔离」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3296 — fresh-auth-acceptance的唯一提供方；M3-T12提供reauth-dialog; M3-T9提供target-recovery-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T6 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=89d2c7553dda6b2a，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T6 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 0cd907a18c069b115a5749b5ec59b4e6eef3448443d15c0bcdf7c39b08b7bcde 变为 290bb7662a0cd29cce8eb5fea13701f1b5b2eac30d6dcc833e0dd1f8075e5f64。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T7": {
+      "contractHash": "e80c7a9fc4580b3c9eb2805ee0e4e244172a0afb6db8ee3e0554bd19962df424",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:92 — M7-T7「终验运维来源与通知重启消费」，输入/产出/验收及1.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3335 — operations-acceptance的唯一提供方；M6-T7提供stats-ui; M4-T4提供chat-notification-job; M5-T8提供job-foundation均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T7 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=562330502e8d4261，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T7 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 68d0bfabb88e14b8e5ab6de0d07bb2f93c39dee8634e3261cbfdb8306b715ef5 变为 e80c7a9fc4580b3c9eb2805ee0e4e244172a0afb6db8ee3e0554bd19962df424。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T8": {
+      "contractHash": "c72d43d1b373a660688f91b901c0afff819fa99ba3a799f83cf87197600d9baf",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:93 — M7-T8「核对恢复候选的当前来源与安全批准」，输入/产出/验收及0.5d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
+        "_run/task-contracts.json:3376 — provenance-acceptance的唯一提供方；M7-T4提供visitor-acceptance; M7-T2提供session-acceptance; M7-T5提供admin-acceptance; M7-T3提供analytics-acceptance; M7-T7提供operations-acceptance均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T8 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=c76001bc2c0f2133，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06/07与04-执行/19 — 本轮品牌素材和后台补漏均有唯一上游产物及最终消费/终验责任；本卡已声明的证据范围和外部发布/保密边界保留，未提前宣称实现。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T8 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 4dd907335b37318fe4beb2359e8bb7fd87e37725b4156a188a97d561870f90ef 变为 c72d43d1b373a660688f91b901c0afff819fa99ba3a799f83cf87197600d9baf。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T9": {
+      "contractHash": "dbe0b68d5a29b56f94b008a59e0ed444e40e190cd1a11623b28abaa25e7ad152",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:94 — M7-T9「验收既有分发脚本与隔离备份恢复链」，输入/产出/验收及1.5d估时有明确范围。本轮新增或定点修改源行已逐项对照原需求与前置提供方复核；未以校准分数代替语义核验。",
+        "_run/task-contracts.json:3423 — delivery-acceptance的唯一提供方；M7-T8提供provenance-acceptance; M3-T21提供legacy-inquiries-ui; M3-T22提供legacy-unassigned-ui; M3-T23提供legacy-model-admin-ui; M3-T24提供legacy-specs-ui; M3-T25提供legacy-settings-users-ui均在实际前置闭包且能力名存在；stage=integration，输出在taskPaths+supportPaths内，未新增重复provider。",
+        "_run/dispatch.json tasks.M7-T9 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=9fb401d2715a3ca5，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
+        "02-设计/06、07、11及本卡源/当前派发交叉核验 — 真实最终交付增加T21–T25五个能力为requires且为直接依赖；同head逐页证据及关闭门禁/重定向按实际结果汇总，不开启功能凑通过。",
+        "本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M7-T9 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 1df0863e8613c39626c90cbea06b4392f85c9ae1de98493b900ddf4e24727523 变为 dbe0b68d5a29b56f94b008a59e0ed444e40e190cd1a11623b28abaa25e7ad152。",
+        "已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}

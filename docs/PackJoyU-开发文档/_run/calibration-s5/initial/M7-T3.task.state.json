@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Accept analytics/operations and rollback-capable delivery",
+    "input": "All implementations and the preceding two evidence sets, existing deployment scripts and provenance of reused PRs",
+    "output": "Final build/CI/scheduling/backup-restore drill evidence and a release checklist; no automatic production release",
+    "accept": "1) Trace real consented visits/GLB/messages through cron aggregation to the dashboard; individually verify metrics across same-day time zones/DST/late events/recomputation/source interruption; actual cleanup without authorization must delete zero records (E-42, E-48, E-56, E-61, E-63, E-64, E-65, E-67, E-81, E-88). 2) In an isolated environment, execute schema-first diff verification, build/start/browser smoke, cron restart and a backup-restore drill, retaining exact commands/results/versions; for each reused recovery PR verify head/checks/provenance/permissions, and without bot approval do not claim it is mergeable; do not automatically merge, deploy or purchase new services (E-20, E-29, E-94)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

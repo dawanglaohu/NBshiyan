@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Connect product consultation through human receipt and reply",
+    "input": "product-inquiry, chat-visitor-ui, chat-operator-ui and model-events",
+    "output": "product-contact; the visitor/operator human-consultation chain with product context",
+    "accept": "1) Product-card chat-product opens the window. POST /api/chat/conversations must persist the same productSlug/stable message identifier before showing received. The real operator inbox can read it and a human replies; the visitor receives that same reply. Network traffic contains no AI-reply endpoint or automatically generated reply (E-16, E-31). 2) Rejected analytics does not prevent consultation or create analytics IDs/third-party chat scripts. After submission timeout/lost response, retry with the same clientMessageId and return the original receipt; the inbox/notification each contain one item. Preserve the current-tab draft and retain real GIFs for en/ru/390 paths (E-37, E-40)."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

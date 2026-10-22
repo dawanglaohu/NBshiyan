@@ -1,0 +1,371 @@
+{
+  "originalPath": "C:/Users/admin/Desktop/video2.mp4",
+  "originalSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+  "movieDurationMs": 12267,
+  "videoTrackDurationMs": 12250,
+  "frameCount": 735,
+  "fps": 60,
+  "reviewMethod": {
+    "fullDecode": 735,
+    "allFrameThumbnailReview": "docs/brand-media/static/evidence/all-frame-coverage.json",
+    "thumbnailResolution": [
+      240,
+      135
+    ],
+    "largerContactSheetIntervalMs": 250,
+    "fullResolutionEvidence": true,
+    "limitation": "Unreadable shallow-focus printed text and unverified product/customer relationship remain UNKNOWN.",
+    "allFrameThumbnailReviewCompleted": true
+  },
+  "observations": [
+    {
+      "role": "opening",
+      "fromMs": 0,
+      "toMs": 1900,
+      "text": null,
+      "description": "Actual paper-feeding equipment; no separate opening signature card or overlay watermark observed.",
+      "identity": "UNKNOWN",
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0000.jpg",
+          "frameIndex": 0,
+          "atMs": 0.0,
+          "sha256": "29bd36ed2a77d3b5c2118110b3cd70646f93733706d93d2daf829012fef0718b",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        }
+      ],
+      "id": "VID-01",
+      "basisPaths": [
+        "docs/brand-media/static/identity-basis.md"
+      ],
+      "rangeMeaning": "Conservative shot envelope, not a claim of legibility in every frame."
+    },
+    {
+      "role": "product_print",
+      "fromMs": 1900,
+      "toMs": 3716.666667,
+      "text": null,
+      "description": "White characters in red printed blocks; shallow focus and occlusion prevent exact transcription.",
+      "identity": "UNKNOWN",
+      "basis": "Original frame itself; no identity evidence located.",
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0180.jpg",
+          "frameIndex": 180,
+          "atMs": 3000.0,
+          "sha256": "9f86ee053cec5f9fef7acb429c1d593a2010137888d3073bf9b6a7fd5e65d8d7",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        }
+      ],
+      "id": "VID-02",
+      "basisPaths": [
+        "docs/brand-media/static/identity-basis.md"
+      ],
+      "rangeMeaning": "Conservative shot envelope, not a claim of legibility in every frame."
+    },
+    {
+      "role": "equipment",
+      "fromMs": 7783.333333,
+      "toMs": 10000,
+      "text": "YAMAHA",
+      "description": "Yamaha tuning-fork circle symbol plus YAMAHA printed on robot housing. Side view partly occluded before 8050ms and during rotation; shot range conservatively covers its appearance.",
+      "identity": "THIRD_PARTY",
+      "basis": "Visible manufacturer word and symbol on physical equipment; not a video authorship/ownership signature.",
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0483.jpg",
+          "frameIndex": 483,
+          "atMs": 8050.0,
+          "sha256": "f7c9e5eb73ee522e0db60923a59ff5afa4ca39076dfb10fa63945659444647e9",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        },
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0510.jpg",
+          "frameIndex": 510,
+          "atMs": 8500.0,
+          "sha256": "00d8beeaf2c4ffd1e1e022610689ebc22c52e7ce036ab391c2bcb3064bb6ad00",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        }
+      ],
+      "id": "VID-03",
+      "basisPaths": [
+        "docs/brand-media/static/identity-basis.md"
+      ],
+      "rangeMeaning": "Conservative shot envelope, not a claim of legibility in every frame."
+    },
+    {
+      "role": "equipment",
+      "fromMs": 7783.333333,
+      "toMs": 10000,
+      "text": null,
+      "description": "Black three-diamond-like symbol and a blurred line on rear cabinet; possible Mitsubishi mark, not verified exact text.",
+      "identity": "UNKNOWN",
+      "basis": "Physical equipment placement and visible symbol only; no authoritative provenance.",
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0510.jpg",
+          "frameIndex": 510,
+          "atMs": 8500.0,
+          "sha256": "00d8beeaf2c4ffd1e1e022610689ebc22c52e7ce036ab391c2bcb3064bb6ad00",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        }
+      ],
+      "id": "VID-04",
+      "basisPaths": [
+        "docs/brand-media/static/identity-basis.md"
+      ],
+      "rangeMeaning": "Conservative shot envelope, not a claim of legibility in every frame."
+    },
+    {
+      "role": "product_brand",
+      "fromMs": 10000,
+      "toMs": 12250,
+      "text": "Holiland 好利来",
+      "additionalVisibleText": "YEAR OF HORSE; NEW; 2014; Chinese festival characters 春/马/年 visible in layout.",
+      "description": "Brand printed on handled paper-bag products; no evidence this is a PackJoyU customer, facility, or production order.",
+      "identity": "THIRD_PARTY",
+      "relationshipToPackJoyU": "UNKNOWN",
+      "basis": "Brand is directly readable on physical printed bags; supplied-video status is not an ownership/customer-relationship proof.",
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0600.jpg",
+          "frameIndex": 600,
+          "atMs": 10000.0,
+          "sha256": "7700d874314686f0fddf35632f8d4ba9850d0c7d4dcd6c605e69ba9974541a12",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        },
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0734.jpg",
+          "frameIndex": 734,
+          "atMs": 12233.333333,
+          "sha256": "fa60340b92b761a1fd7bb676681a8e753eef81fcd2f30db50cbe95e4b5dc0835",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        }
+      ],
+      "id": "VID-05",
+      "basisPaths": [
+        "docs/brand-media/static/identity-basis.md"
+      ],
+      "rangeMeaning": "Conservative shot envelope, not a claim of legibility in every frame."
+    },
+    {
+      "role": "ending",
+      "fromMs": 12233.333333,
+      "toMs": 12267,
+      "text": null,
+      "description": "Last decoded frame continues the Holiland bag-production scene. No separate closing signature card or overlay watermark observed.",
+      "identity": "UNKNOWN",
+      "evidence": [
+        {
+          "path": "docs/brand-media/static/evidence/video2-f0734.jpg",
+          "frameIndex": 734,
+          "atMs": 12233.333333,
+          "sha256": "fa60340b92b761a1fd7bb676681a8e753eef81fcd2f30db50cbe95e4b5dc0835",
+          "width": 1920,
+          "height": 1080,
+          "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+        }
+      ],
+      "id": "VID-06",
+      "basisPaths": [
+        "docs/brand-media/static/identity-basis.md"
+      ],
+      "rangeMeaning": "Conservative shot envelope, not a claim of legibility in every frame."
+    }
+  ],
+  "publicationDecisionMade": false,
+  "releaseAllowed": false,
+  "releaseHoldReason": "Unresolved printed identity and absent verified PackJoyU ownership/production or customer relationship evidence; this inventory is not a release approval.",
+  "releaseBlockers": [
+    "UNREADABLE_NON_EQUIPMENT_IDENTITY",
+    "NO_OWN_VERIFIED_VIDEO_PROVENANCE",
+    "PRODUCT_RELATIONSHIP_UNKNOWN"
+  ],
+  "corporateAuthorship": {
+    "identity": "UNKNOWN",
+    "fromMs": 0,
+    "toMs": 12267,
+    "text": null,
+    "description": "No distinct corporate opening/closing/watermark observed; supplied file does not verify PackJoyU authorship.",
+    "basisPaths": [
+      "docs/brand-media/static/identity-basis.md"
+    ],
+    "evidence": [
+      {
+        "path": "docs/brand-media/static/evidence/video2-f0000.jpg",
+        "frameIndex": 0,
+        "atMs": 0.0,
+        "sha256": "29bd36ed2a77d3b5c2118110b3cd70646f93733706d93d2daf829012fef0718b",
+        "width": 1920,
+        "height": 1080,
+        "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+      },
+      {
+        "path": "docs/brand-media/static/evidence/video2-f0734.jpg",
+        "frameIndex": 734,
+        "atMs": 12233.333333,
+        "sha256": "fa60340b92b761a1fd7bb676681a8e753eef81fcd2f30db50cbe95e4b5dc0835",
+        "width": 1920,
+        "height": 1080,
+        "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay"
+      }
+    ]
+  },
+  "watermarkReview": {
+    "fromMs": 0,
+    "toMs": 12267,
+    "observedText": null,
+    "result": "No fixed overlay watermark observed in complete thumbnail sweep; unreadable source print remains UNKNOWN.",
+    "basisPaths": [
+      "docs/brand-media/static/identity-basis.md"
+    ],
+    "coveragePath": "docs/brand-media/static/evidence/all-frame-coverage.json"
+  },
+  "posterCandidate": {
+    "path": "docs/brand-media/static/evidence/video2-f0270.jpg",
+    "frameIndex": 270,
+    "atMs": 4500.0,
+    "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+    "width": 1920,
+    "height": 1080,
+    "encoding": "OpenCV 5.0.0 JPEG quality 92; full original frame, no crop or overlay",
+    "status": "evidence_only",
+    "releaseAllowed": false,
+    "reason": "Own source frame showing paper-handling machinery; whole-video identity is not verified."
+  },
+  "heldDerivatives": [
+    {
+      "path": "docs/brand-media/static/held/video2-720p60.mp4",
+      "sha256": "ed776cfa192a65588d6cc8ed3c5d46b3a2c7a8121b0be7cb2f5b315f88bb3634",
+      "kind": "compressed_video",
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60.0,
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "releaseAllowed": false,
+      "movieDurationMs": 12309.125,
+      "movieDurationDeltaMs": 42.125,
+      "audio": "AAC 48000Hz stereo; re-encoded, not stream copied",
+      "verificationPath": "docs/brand-media/static/evidence/video-transcode-verification.json"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-poster-4500ms.jpg",
+      "sha256": "1432661db067d154539eade147027afe5d9f15e989c5bdb10394c06f7db4156d",
+      "kind": "poster",
+      "width": 1920,
+      "height": 1080,
+      "frameIndex": 270,
+      "atMs": 4500.0,
+      "sourceFramePath": "docs/brand-media/static/evidence/video2-f0270.jpg",
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "releaseAllowed": false
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-web-1080p60.mp4",
+      "sha256": "4f63bb11f07b048fff2e6344a3a3d027effbfabcc54c97d98407cc71d5e65c92",
+      "bytes": 8051146,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60.0,
+      "kind": "lossless_web_video",
+      "releaseAllowed": false,
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "movieDurationMs": 12267,
+      "movieDurationDeltaMs": 0,
+      "audio": "All 576 original AAC packet payloads and timing preserved; no re-encoding",
+      "verificationPath": "docs/brand-media/static/video-web-processing-record.json"
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v2.mp4",
+      "sha256": "1fa3636e940538fe85c40f0a2b3ea81fc51d684e34884ba92849221cd7deb6b0",
+      "bytes": 10221006,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "videoDurationMs": 12250.0,
+      "movieDurationMs": 12288.0,
+      "allFramePtsEqualOriginal": true,
+      "audioPacketsEqualOriginal": 576,
+      "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_video",
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "verificationPath": "docs/brand-media/static/video-product-replacement.json",
+      "appearanceEdit": "Product print changed to PackJoyU by direct user instruction; source identity inventory remains unchanged."
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v2.mp4",
+      "sha256": "1fd65228391f6eb2131feddfc3ca5fbdf05ce3fb315a535004e985bc3f37f170",
+      "bytes": 4235191,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "videoDurationMs": 12250.0,
+      "movieDurationMs": 12288.0,
+      "allFramePtsEqualOriginal": true,
+      "audioPacketsEqualOriginal": 576,
+      "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_web_video",
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "verificationPath": "docs/brand-media/static/video-product-replacement.json",
+      "appearanceEdit": "Product print changed to PackJoyU by direct user instruction; source identity inventory remains unchanged."
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+      "bytes": 10216338,
+      "width": 1920,
+      "height": 1080,
+      "frameCount": 735,
+      "fps": 60,
+      "videoDurationMs": 12250.0,
+      "movieDurationMs": 12288.0,
+      "allFramePtsEqualOriginal": true,
+      "audioPacketsEqualOriginal": 576,
+      "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_video",
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "verificationPath": "docs/brand-media/static/video-product-replacement.json",
+      "appearanceEdit": "Product print changed to PackJoyU by direct user instruction; v3 corrects paper perspective; source identity inventory remains unchanged."
+    },
+    {
+      "path": "docs/brand-media/static/held/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+      "bytes": 4231724,
+      "width": 1280,
+      "height": 720,
+      "frameCount": 735,
+      "fps": 60,
+      "videoDurationMs": 12250.0,
+      "movieDurationMs": 12288.0,
+      "allFramePtsEqualOriginal": true,
+      "audioPacketsEqualOriginal": 576,
+      "audioPacketSequenceSha256": "1b41af5ecc09dd893d09a7ed1d1b7f5dc89dcddcfaba7e36fe1a8dc450f2c86a",
+      "releaseAllowed": false,
+      "kind": "product_brand_edited_web_video",
+      "sourceSha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "verificationPath": "docs/brand-media/static/video-product-replacement.json",
+      "appearanceEdit": "Product print changed to PackJoyU by direct user instruction; v3 corrects paper perspective; source identity inventory remains unchanged."
+    }
+  ]
+}

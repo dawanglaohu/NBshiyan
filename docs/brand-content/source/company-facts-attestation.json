@@ -1,0 +1,16 @@
+{
+  "basisKind": "direct_user_statement",
+  "recordedAt": "2026-10-22T06:06:39.988059+00:00",
+  "source": "User reply in the current Codex chat",
+  "question": "图中写有“自有工厂、整合供应链、多品类定制、设计打样、质量把控”。这些是否都是你在 Dot 会话中提供的公司真实信息？",
+  "quote": "是，全部都是我提供的真实信息",
+  "confirmedClaims": [
+    "自有工厂",
+    "整合供应链",
+    "多品类定制",
+    "设计打样",
+    "质量把控"
+  ],
+  "scope": "用于本次公司介绍图稿的上述定性表述；不推导厂房规模、认证、产能、交期、出口国家或其他数字。",
+  "supplierMessageReference": "Sentinel_b2b57e91a27481918ba944672dee564f"
+}

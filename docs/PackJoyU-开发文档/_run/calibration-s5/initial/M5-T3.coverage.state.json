@@ -1,0 +1,60 @@
+{
+  "acceptance": "1) Caller five-minute cron leads to registry and raw-data recomputation, replacing the whole group atomically with dataThrough/revision; duplicate jobs must not add counts again, expired leases/old generations must not overwrite new results, and refresh retries with the same navigationId must be deduplicated (E-80, E-81, E-83). 2) Use left-closed/right-open local days, 23/25-hour DST days and identical values across browser time zones; ADMIN CAS changes of IANA time zone must recompute only the completely retained range, preserve original labels and partial coverage for older ranges, and never overwrite from fragments; events accepted within the 48h late window and 5min future window count only once their time is reached (E-55, E-56, E-57, E-58, E-59, E-60, E-82, E-84).",
+  "edges": {
+    "E-80": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "The same event is retried, or new events arrive while an aggregate read is in progress",
+      "expect": "Persist ingestion idempotently by unique event identifier. Aggregation fixes a consistent source snapshot and watermark and publishes only results covered by that snapshot; new events wait for the next round, without repeatedly adding them to already-published counts."
+    },
+    "E-81": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Two scheduling instances overlap, or an old timed-out job commits after a new job",
+      "expect": "Use a database mutex or generation-bearing leases and commit checks so that an old job cannot overwrite new results. Replace the entire group of target-day data and commit the watermark in one transaction; process interruption preserves the previous complete results."
+    },
+    "E-83": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "A site-time-zone change and a job occur concurrently",
+      "expect": "Results carry timezoneRevision; old generations cannot overwrite new-time-zone results. Recompute only within the raw-retention range, without faking restored data or silently changing cleared portions to zero."
+    },
+    "E-55": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "Two operators with different browser or operating-system time zones view the same day",
+      "expect": "Use the same site time zone and day interval; metric definitions and values must not change with the viewer's location. Label charts and exports with the site time zone."
+    },
+    "E-56": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "A statistics day encounters a daylight-saving transition",
+      "expect": "Use an IANA time-zone library to compute UTC boundaries from local midnight to the next local midnight, allowing 23-hour or 25-hour days. Do not add a fixed 24 hours or double-count overlapping instants."
+    },
+    "E-57": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "An event occurs exactly at midnight or a query spans midnight",
+      "expect": "Use a left-closed/right-open interval; a single query fixes one consistent site time zone, date and boundaries. A midnight event belongs to exactly one natural day."
+    },
+    "E-58": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "ADMIN changes the time zone to a valid one",
+      "expect": "Preserve UTC event times, mark recomputation state and reaggregate only still-retained events. Older aggregates beyond the 30-day raw-retention period must preserve the original time-zone label or explicitly state that recomputation is unavailable; do not silently stitch them into a uniform-definition trend."
+    },
+    "E-59": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "An invalid IANA time zone is supplied or an unauthorized role attempts a change",
+      "expect": "Reject the save and retain the previous valid configuration; do not silently fall back to the viewer's local time zone."
+    },
+    "E-60": {
+      "scene": "Site time zone for today's statistics and historical recomputation",
+      "trigger": "The browser uploads future or clearly expired event timestamps",
+      "expect": "Directly use the established section 09 rule now-48h <= occurredAt <= now+5min: reject out-of-range events, and include accepted future events in aggregation only after their actual time. Handle closed historical intervals according to complete raw coverage and the established late window; arbitrary client timestamps must not contaminate future days or closed intervals."
+    },
+    "E-82": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "Raw events are inserted within the allowed late-arrival window",
+      "expect": "Explicitly recompute only natural days whose dayStart is not earlier than the start of complete raw-data coverage. Beyond that range, retain the original aggregates and return partial/unavailable plus their original definition/coverage; do not replace old complete counts with post-cleanup fragments. The late window remains 48h under section 09 without extending raw retention."
+    },
+    "E-84": {
+      "scene": "Analytics aggregation and watermark publication",
+      "trigger": "An aggregation entry exists but cron is not registered, cron stops or its latest run fails",
+      "expect": "Do not claim connected or just updated; show the actual last successful watermark and stale-value state. The implementation task must include real five-minute schedule registration and evidence of execution after restart, rather than verifying only manual API invocation."
+    }
+  }
+}

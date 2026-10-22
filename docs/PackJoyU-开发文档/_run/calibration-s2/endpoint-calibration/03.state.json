@@ -1,0 +1,29 @@
+{
+  "endpoint": {
+    "method": "POST",
+    "path": "/api/auth-admin/enroll",
+    "params": "The existing email/password/token fields.",
+    "returns": "The existing {otpauthUri}; fix only the final compare-and-swap against the current token and sessionVersion (sv).",
+    "permission": "The existing one-time enrollment credential is required."
+  },
+  "roles": [
+    "anonymous",
+    "visitor_session",
+    "authenticated_self",
+    "EDITOR",
+    "SALES",
+    "ADMIN",
+    "cron"
+  ],
+  "role_definitions": {
+    "anonymous": "No backend account session or backend role. An endpoint may still require a particular enrollment/recovery/consent credential. Such a caller remains anonymous to the backend authorization system and gets only the explicitly restricted operation.",
+    "visitor_session": "A valid necessary chat visitor cookie. It authorizes only conversations owned by that cookie, never any backend account privilege.",
+    "authenticated_self": "A valid current backend account/device acting on its own account. All ADMIN, SALES, and EDITOR accounts may use self-account functions; no ADMIN-only or SALES-only business authorization is implied.",
+    "EDITOR": "A current valid backend EDITOR; public traffic/product/3D aggregates only, no shared chat or system sources.",
+    "SALES": "A current valid backend SALES; shared human chat inbox, traffic/3D and inquiry counts under the existing sales scope. No system sources.",
+    "ADMIN": "A current valid backend ADMIN, full authorized administration subject to fresh-grant and target restrictions.",
+    "cron": "A controlled server job or reporting script authenticated by the dedicated Bearer CRON_SECRET. A browser session, including ADMIN, cannot substitute for that secret.",
+    "public": "No authentication or endpoint-specific credential is required; same-origin checks and rate limiting may still apply."
+  },
+  "contract_context": "This is initial binding using the existing email/password/token protocol, not an existing backend session requirement. Require the one-time current enrollment token, the earlier of the existing 24h/72h windows, a 10-minute pending binding, and at most five wrong codes. Final enroll/confirm CAS must recheck current token hash, expiry, sv, and secret. Restricted binding is not a backend role grant."
+}

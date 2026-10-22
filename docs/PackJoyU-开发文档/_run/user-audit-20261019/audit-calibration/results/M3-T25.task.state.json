@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Unify complete legacy settings and user-administration visuals",
+    "input": "Existing settings/users after target-recovery UI and analytics-timezone UI; legacy about/org/image controls and the full user table; locked style.",
+    "output": "All existing about/org/image and user-administration controls in the shared style, preserving current security and timezone functionality.",
+    "accept": "1) Actual ADMIN clicks Site settings to /admin/settings and ordinary section links to ?section=org. Preserve existing GET about, GET/PUT organization, PUT about/[locale]/enabled, GET/POST assets, PUT about/images and DELETE assets/[id] protocols. In isolated synthetic data/assets, verify Save, version-409 refresh confirmation, image upload/order and alt errors, without changing publication completeness, HTML sanitization or dirty-draft/version rules. 2) Click Account permissions to /admin/users. Actual GET users?all=1, POST users and PATCH users/[id] preserve role/self-modification/last-admin constraints. Reuse T9 recovery authorization, never restore direct-reset bypass; retain T10 analytics section. Do not duplicate settings/users routes or add locales. 3) Replace legacy CSS/inline colors/radii/borders/states in all existing settings, image, confirm-dialog, section-navigation and UsersAdmin controls. Retain fields, alt/order, role and disable actions. Failures/conflicts never report success or discard non-secret draft. Read 07/11/12, only minimalist-flat; actual service GIF/HTTP/persistence, computed 2px black border/zero radius/no shadow or gradient/accent #b45700, D1-D6/overflow at 1920x1080,1440x900,390x844. Settings is left-aligned form, users is work, density7/gutter16/gap16/pad16; 44px targets and loading/empty/error/success/disabled/focus states. E-110."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

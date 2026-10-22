@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Atomically anonymize expired consultations under an isolated authorized policy",
+    "input": "M4-T7 retention policy/fixed job, M4-T11 actual activity writes, and section 09 transactional rechecks.",
+    "output": "Anonymization branches in retention-service/repo, policy version, and protection against competing new activity; dry-run remains the default and no production cleanup is executed.",
+    "accept": "1) Caller/wiring point: existing chat-retention -> currently authorized policy branch -> transaction rereading lastActivityAt/retainUntil/policyVersion. Execute only on isolated authorized data. New successful exchange after scanning causes an old candidate to be skipped. An unchanged expired target has body/email/sensitive context anonymized and further replies disabled (E-87). 2) Reuse M4-T9 hidden-poll/offline and M4-T4 notification-retry prerequisites, adding only retainUntil assertions: repeated refresh GET, hidden-tab polling, read, and SMTP notification retries/receipts leave the 90-day deadline unchanged; only successfully saved visitor messages or human replies advance it. Cookie expiry does not cascade-delete content. Foreign keys use Restrict and empty sessions are reclaimed only after every consultation is anonymized. Without explicit authorization, real writes still reject with deletedCount zero. Existing inquiry/analytics/recovered/backup data is unchanged (E-86, E-88, E-89)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

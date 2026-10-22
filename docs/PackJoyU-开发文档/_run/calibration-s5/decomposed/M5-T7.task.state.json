@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire consent UI, page events and privacy explanations",
+    "input": "analytics-consent-api, analytics-ingest, client-api-foundation and the existing footer preferences entry; the public time zone from analytics-settings-domain and existing en/ru privacy copy",
+    "output": "analytics-consent-ui and analytics-page-events; serialized consent writes and page producers; analytics-privacy-copy privacy-page and anonymous-browser/retention explanations",
+    "accept": "1) Open controls through footer analytics-preferences in a real browser. Without consent/with rejection, do not generate/store analytics IDs or send events, while pages/3D remain usable. After consent, a completed real navigation produces page_view and retries with the same navigationId do not duplicate it (E-42). 2) Withdrawal immediately stops collection, clears local analytics IDs/pending queues and does not backfill withdrawn-period visits. If false is selected while true is in flight, serialize cookie clearing according to the latest intent; out-of-order responses cannot reopen collection (E-43). 3) Use only section 11 minimalist-flat and sections 07/12 wiring. At 1920x1080/1440x900/390x844 retain actual-request GIF/computed-style evidence; keyboard and 44px touch targets remain usable. 4) In a real browser use footer privacy-link to /[locale]/privacy. Corresponding en/ru content explicitly states Number of anonymous browsers that consented to analytics. Isolated tests separately change device contexts, clear identifiers and switch browsers, verifying that a new browserHash can form while recording only whether it differs, not its raw value. Do not claim unique real-person or cross-device identification (E-45). 5) Explain necessary chat cookies, analytics consent, default dry-run and actual retention-authorization boundaries separately. Preserve the existing noindex/completeness rules. Show the site-IANA time zone and raw/aggregate query ranges consistently with backend configuration reads."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

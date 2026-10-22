@@ -1,0 +1,92 @@
+{
+  "status": "proposal_not_applied_not_calibrated",
+  "taskChinese": {
+    "id": "M1-T9",
+    "title": "制作公司区块独立图稿与可编辑源工程",
+    "module": "M1",
+    "deps": [
+      "M1-T1"
+    ],
+    "input": "参考PDF组织/产品主题、己方可证事实、现用PackJoyU字标与用户已授权GPT Dot远程软件制作",
+    "output": "company-visual-assets；网站公司区块选定1–2幅独立重绘图稿、可编辑软件源工程、Web图/enru alt与尺寸、哈希及真实制作清单",
+    "acceptance": "1) 仅为网站公司区块选定1–2幅介绍/产品主题图，制作前登记“参考PDF页码/主题→己方可证事实或不含硬事实的产品示意→独立重绘图稿”清单。仅参考组织和主题，不重绘25页整本目录；没有己方依据的YUHAO认证/产能/规模、厂房、设备及证照均不进入图稿（E-27、E-111）。2) 每件交付可打开编辑的软件源工程、可解码Web发布图、正整数尺寸与en/ru alt元数据；源工程存docs/brand-content/source/，Web图存public/brand/company/，两者不能混放。docs/brand-content/company-visuals.json逐件记录软件名称/版本、源工程/导出相对路径及SHA-256、参考主题/事实依据、标识文件SHA-256；标识必须等于现用PackJoyU字标，不用候选新标、不等待用户回看候选图（E-28、E-111）。3) 先探测用户已授权GPT Dot远程软件制作通道；仅实际调用后保留调用、软件操作和源工程/导出证据。不可达或未执行时逐件登记尚未执行，缺源工程或Web成品均保持该项未完成；文字计划、截图和伪造调用不算交付（E-29、E-111）。4) 本卡仅交素材与清单，不宣称页面已接通；company-visual-assets由M1-T5实际消费并验首页/about入口、加载和尺寸，T9不能代替T5的集成验收（E-111）。",
+    "days": "1.5d",
+    "paths": [
+      "public/brand/company/",
+      "docs/brand-content/source/",
+      "docs/brand-content/company-visuals.json"
+    ],
+    "supportPaths": [],
+    "provides": [
+      "company-visual-assets"
+    ],
+    "requires": [
+      {
+        "task": "M1-T1",
+        "capability": "visual-base"
+      }
+    ],
+    "stage": "primitive",
+    "integrationTask": "M1-T5",
+    "wiring": [],
+    "ui": false,
+    "sections": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      11,
+      13,
+      14,
+      17,
+      18
+    ]
+  },
+  "taskEnglish": {
+    "title": "Produce independently redrawn company-block artwork and editable native projects",
+    "input": "Reference PDF organization/product themes, verifiable company-owned facts, the current PackJoyU wordmark, and the user-authorized GPT Dot remote-software production channel",
+    "output": "company-visual-assets; only one or two independently redrawn website company-block illustrations, editable native software projects, Web images/en-ru alt/dimensions, hashes, and truthful production manifest",
+    "accept": "1) Select only one or two introduction/product-theme illustrations for website company blocks. Before production, map each reference PDF page/theme to verifiable company-owned facts or a product schematic with no unsupported hard corporate claims, then to an independently redrawn illustration. Refer only to organization and themes; do not redraw the whole 25-page catalogue. Unsupported YUHAO certifications, capacity, scale, real factories, equipment, and certificates must not enter artwork (E-27, E-111). 2) For each item deliver an editable native software project that opens, a decodable Web publication image, positive integer dimensions, and en/ru alt metadata. Store projects in docs/brand-content/source/ and Web exports in public/brand/company/; do not mix the two. The manifest docs/brand-content/company-visuals.json records software name/version, relative project/export paths and SHA-256 hashes, reference themes/factual evidence, and the logo file SHA-256. Use the same current PackJoyU wordmark, not a candidate logo; do not wait for the user to revisit candidates (E-28, E-111). 3) First inspect the authorized GPT Dot remote-software channel. Only actual invocation permits a performed claim; retain call, software-operation, project, and export evidence. Mark each unavailable or unperformed item unperformed. Any missing editable project or Web output keeps that item incomplete; a plan, screenshot, or fabricated invocation is not delivery (E-29, E-111). 4) This task delivers assets and their manifest only; it does not claim that pages are connected. M1-T5 consumes company-visual-assets and verifies homepage/about entries, actual loading, and dimensions. T9 cannot replace T5 integration acceptance (E-111)."
+  },
+  "taskState": {
+    "task": {
+      "title": "Produce independently redrawn company-block artwork and editable native projects",
+      "input": "Reference PDF organization/product themes, verifiable company-owned facts, the current PackJoyU wordmark, and the user-authorized GPT Dot remote-software production channel",
+      "output": "company-visual-assets; only one or two independently redrawn website company-block illustrations, editable native software projects, Web images/en-ru alt/dimensions, hashes, and truthful production manifest",
+      "accept": "1) Select only one or two introduction/product-theme illustrations for website company blocks. Before production, map each reference PDF page/theme to verifiable company-owned facts or a product schematic with no unsupported hard corporate claims, then to an independently redrawn illustration. Refer only to organization and themes; do not redraw the whole 25-page catalogue. Unsupported YUHAO certifications, capacity, scale, real factories, equipment, and certificates must not enter artwork (E-27, E-111). 2) For each item deliver an editable native software project that opens, a decodable Web publication image, positive integer dimensions, and en/ru alt metadata. Store projects in docs/brand-content/source/ and Web exports in public/brand/company/; do not mix the two. The manifest docs/brand-content/company-visuals.json records software name/version, relative project/export paths and SHA-256 hashes, reference themes/factual evidence, and the logo file SHA-256. Use the same current PackJoyU wordmark, not a candidate logo; do not wait for the user to revisit candidates (E-28, E-111). 3) First inspect the authorized GPT Dot remote-software channel. Only actual invocation permits a performed claim; retain call, software-operation, project, and export evidence. Mark each unavailable or unperformed item unperformed. Any missing editable project or Web output keeps that item incomplete; a plan, screenshot, or fabricated invocation is not delivery (E-29, E-111). 4) This task delivers assets and their manifest only; it does not claim that pages are connected. M1-T5 consumes company-visual-assets and verifies homepage/about entries, actual loading, and dimensions. T9 cannot replace T5 integration acceptance (E-111)."
+    },
+    "module": "M1",
+    "frontend_modules": [
+      "M1",
+      "M2",
+      "M6"
+    ]
+  },
+  "coverageState": {
+    "acceptance": "1) Select only one or two introduction/product-theme illustrations for website company blocks. Before production, map each reference PDF page/theme to verifiable company-owned facts or a product schematic with no unsupported hard corporate claims, then to an independently redrawn illustration. Refer only to organization and themes; do not redraw the whole 25-page catalogue. Unsupported YUHAO certifications, capacity, scale, real factories, equipment, and certificates must not enter artwork (E-27, E-111). 2) For each item deliver an editable native software project that opens, a decodable Web publication image, positive integer dimensions, and en/ru alt metadata. Store projects in docs/brand-content/source/ and Web exports in public/brand/company/; do not mix the two. The manifest docs/brand-content/company-visuals.json records software name/version, relative project/export paths and SHA-256 hashes, reference themes/factual evidence, and the logo file SHA-256. Use the same current PackJoyU wordmark, not a candidate logo; do not wait for the user to revisit candidates (E-28, E-111). 3) First inspect the authorized GPT Dot remote-software channel. Only actual invocation permits a performed claim; retain call, software-operation, project, and export evidence. Mark each unavailable or unperformed item unperformed. Any missing editable project or Web output keeps that item incomplete; a plan, screenshot, or fabricated invocation is not delivery (E-29, E-111). 4) This task delivers assets and their manifest only; it does not claim that pages are connected. M1-T5 consumes company-visual-assets and verifies homepage/about entries, actual loading, and dimensions. T9 cannot replace T5 integration acceptance (E-111).",
+    "edges": {
+      "E-27": {
+        "scene": "Own-logo and reference-PDF factual boundaries",
+        "trigger": "The PDF contains YUHAO certifications, capacity, factory scale or other hard figures not verified as belonging to PackJoyU",
+        "expect": "Do not rename and publish them as the company's own facts; use only the content organization and product categories as references, and fill the relevant corporate fields only with verifiable company-owned materials."
+      },
+      "E-28": {
+        "scene": "Own-logo and reference-PDF factual boundaries",
+        "trigger": "A candidate design differs from the current online wordmark",
+        "expect": "Continue production using the current PackJoyU wordmark in this round; waiting for the user to revisit candidate images is not an implementation or acceptance prerequisite."
+      },
+      "E-29": {
+        "scene": "Own-logo media production and truthful tool execution",
+        "trigger": "The GPT Dot remote-software channel is reachable and actual production is performed",
+        "expect": "Retain actual calls, software operation evidence, and output files, then inspect the finished assets. If the channel is unavailable, record each item as unperformed and incomplete rather than claiming an invocation or logo replacement occurred."
+      },
+      "E-111": {
+        "scene": "Traceable company artwork, editable native projects, brand, and provenance",
+        "trigger": "A website company-block artwork has only copy or screenshots, lacks an editable project or export, has old branding or mismatched source hashes, or is not consumed by a real page",
+        "expect": "For each of only one or two selected independently redrawn illustrations, deliver the editable native software project, Web export, and en/ru alt text. Record reference PDF pages/themes, company-owned factual evidence, the current PackJoyU logo hash, project/export hashes, software version, actual GPT Dot operation evidence, and consuming page locations. Real pages load matching files and retain complete subjects. A missing required output or unperformed tool step keeps that item incomplete; a textual plan cannot count as completed artwork. Do not expand this into redrawing all 25 catalogue pages or unsupported factory/certificate depictions."
+      }
+    }
+  },
+  "coverageScope": "M1-T9 is material-production primitive only; full shared E-111 includes page integration explicitly assigned to M1-T5. Preserve any partial-coverage result; do not claim that the primitive alone satisfies page requirements."
+}

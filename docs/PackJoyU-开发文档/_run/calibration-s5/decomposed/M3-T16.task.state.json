@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Atomically change the account owner's sign-in mode and password",
+    "input": "M3-T3 fresh grants and M3-T2 valid sign-in modes/TOTP consumption.",
+    "output": "PATCH /api/admin/account/login-mode and POST /api/admin/account/password, with grant consumption/audit/sv revocation in the same transaction.",
+    "accept": "1) Caller/wiring point: the two real handlers -> account-security service. After an enrolled owner enables passwordless mode with a LOGIN_MODE grant, real Credentials mode=totp using the next unused code signs in with only email/totp and no password/recoveryCode. After disabling it, that totp mode gives a generic failure while password+totp still signs in (E-06). 2) If a change would leave no verified usable method, return 409 without changing state. Wrong/expired/replayed submissions and two concurrent switches using the same grant allow at most one success; the final query retains at least one method. A PASSWORD grant cannot switch modes. Atomic consumption/audit/sv increment invalidate old cookies (E-03, E-07, E-08, E-73). 3) Recheck current account/device in the final transaction. Equality at the grant's five-minute expiry, old sv, or a revoked device causes no change. The compatible old currentPassword+totp path applies equal-strength checks and rejects nonempty recoveryCode (E-74)."
+  },
+  "module": "M3",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire time-zone-settings HTTP and recomputation-coverage queries",
+    "input": "analytics-settings-domain, analytics-aggregate-runtime and the existing ADMIN guard",
+    "output": "analytics-settings-api; GET/PATCH /api/admin/settings/analytics",
+    "accept": "1) Real HTTP GET returns current version/timezone/revision/recomputableFrom, and PATCH carries expectedVersion. An ADMIN change to a valid IANA time zone commits the new revision, pending recomputation and audit together; the next real job recomputes only complete coverage while older ranges retain original labels/partial (E-58). 2) Nonexistent IANA, stale version and direct SALES/EDITOR/unauthenticated requests are rejected with the original configuration entirely unchanged, without fallback to browser time zone (E-59). Existing about/org settings stay unchanged and responses pass section 10 schemas."
+  },
+  "module": "M5",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

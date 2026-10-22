@@ -1,0 +1,20 @@
+{
+  "acceptance": "1) Caller/wiring point: deploy/cron.nbshiyan sends a per-minute POST to old mail-queue -> existing mail gate/Bearer -> worker. After restart, controlled SMTP actually consumes committed mail. Keep stale/sent/failed/deferred/dropped fields unchanged and do not trigger through GET prefetch (E-94). 2) Compatible GET/POST entries share leases/JobState summaries. HTTP timeouts do not automatically replay or change methods to probe. Unknown SMTP outcomes preserve old unknown_delivery semantics. Unauthorized/disabled calls send no mail, and failure never claims SENT (E-35, E-41).",
+  "edges": {
+    "E-35": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "An email notification fails or is not connected.",
+      "expect": "Represent the actual notification state using the defined queued/sending/sent/failed states or their existing DTO mapping. Notification failure after a message is saved changes only that notification state, not the message's received state or the inbox's ability to process it. An unconnected source must not display Sent."
+    },
+    "E-41": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A message has been saved but an operator reply or notification fails to send.",
+      "expect": "Keep the received result and inbox pending-work state. Separately show the real sending failure; do not pretend that the visitor has been contacted."
+    },
+    "E-94": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "An account without chat permission calls an outbox/notification endpoint, or the SMTP adapter can send only the existing inquiry format.",
+      "expect": "Separately verify unauthorized calls are rejected and chat-notifications uses a dedicated restricted adapter without expanding the old mail UI. deploy/cron.nbshiyan must actually register a once-per-minute schedule, and committed outbox records must be consumed after restart; manual invocation alone or an empty future registration is insufficient. M4 registers the job with its delivery; M7 performs only final acceptance."
+    }
+  }
+}

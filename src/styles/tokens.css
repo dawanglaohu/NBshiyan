@@ -17,3 +17,248 @@
 }
 .theme-premium{ --bg:var(--premium-bg); --surface:#1D1D22; --stage-bg:#1D1D22; --placeholder:#26262C; --ink:var(--premium-ink); --ink-2:#B9AF9C; --line:#2E2C28; --accent:var(--gold); --accent-press:#B8934F; --on-accent:#121214; --accent-hover:#E2C285; --accent-text:var(--gold); }
 @media (prefers-reduced-motion:reduce){ :root{ --dur:0ms } }
+
+/* ---- 11 节共享视觉变量：M1 维护，前后台与领域控件消费同一来源 ----
+   --pj- 变量覆盖颜色、字体、字号、间距与组件状态；原生 UI 包装的消费规则同文件维护。
+   legacy 变量（--bg、--ink、--accent、--r- 系列、--fs- 系列）仍被 admin.css、mail.css 与既有测试消费，不得删除或改值。 */
+:root{
+  --pj-bg:#ffffff;
+  --pj-fg:#000000;
+  --pj-border:#000000;
+  --pj-inverse:#000000;
+  --pj-on-inverse:#ffffff;
+  --pj-accent:#b45700;
+  --pj-on-accent:#ffffff;
+  --pj-disabled-bg:#ffffff;
+  --pj-disabled-fg:#000000;
+  --pj-border-width:2px;
+  --pj-radius:0px;
+  --pj-shadow:none;
+  --pj-opacity:1;
+  --pj-font-sans:var(--font-sans, Arial, Helvetica, sans-serif);
+  --pj-font-mono:ui-monospace, SFMono-Regular, Consolas, monospace;
+  --pj-body-size:16px;
+  --pj-body-line:24px;
+  --pj-ui-size:14px;
+  --pj-ui-line:20px;
+  --pj-weight-body:400;
+  --pj-weight-control:600;
+  --pj-weight-heading:700;
+  --pj-hero-desktop-size:64px;
+  --pj-hero-desktop-line:68px;
+  --pj-hero-phone-size:36px;
+  --pj-hero-phone-line:40px;
+  --pj-h1-desktop-size:48px;
+  --pj-h1-desktop-line:52px;
+  --pj-h1-phone-size:32px;
+  --pj-h1-phone-line:36px;
+  --pj-h2-desktop-size:36px;
+  --pj-h2-desktop-line:40px;
+  --pj-h2-phone-size:28px;
+  --pj-h2-phone-line:32px;
+  --pj-h3-desktop-size:24px;
+  --pj-h3-desktop-line:28px;
+  --pj-h3-phone-size:20px;
+  --pj-h3-phone-line:24px;
+  --pj-admin-h1-size:28px;
+  --pj-admin-h1-line:32px;
+  --pj-admin-h2-size:20px;
+  --pj-admin-h2-line:24px;
+  --pj-heading-tracking:-0.02em;
+  --pj-body-tracking:0;
+  --pj-space-unit:4px;
+  --pj-public-gutter-desktop:24px;
+  --pj-public-gutter-phone:16px;
+  --pj-public-block-gap-desktop:48px;
+  --pj-public-block-gap-phone:32px;
+  --pj-public-card-pad-desktop:24px;
+  --pj-public-card-pad-phone:16px;
+  --pj-admin-gutter:16px;
+  --pj-admin-block-gap:16px;
+  --pj-admin-card-pad:16px;
+  --pj-admin-row-height:40px;
+  --pj-admin-control-height:36px;
+  --pj-touch-target:44px;
+  --pj-auth-card-width:520px;
+  --pj-form-column-width:800px;
+  --pj-form-aside-width:320px;
+  --pj-focus-width:2px;
+  --pj-focus-offset:2px;
+  --pj-feedback-duration:75ms;
+  --pj-inversion-duration:0ms;
+}
+
+/* 包装样式先于页面样式载入；重复类选择器使原生控件优先采用自身视觉契约。 */
+.pj-button.pj-button,.pj-input.pj-input,.pj-dialog.pj-dialog{
+  box-sizing:border-box;
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  opacity:var(--pj-opacity);
+  font-family:var(--pj-font-sans);
+  letter-spacing:var(--pj-body-tracking);
+}
+.pj-button.pj-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:var(--pj-admin-control-height);
+  width:auto;
+  height:auto;
+  max-width:100%;
+  margin:0;
+  padding:var(--pj-space-unit) calc(var(--pj-space-unit) * 3);
+  background:var(--pj-inverse);
+  color:var(--pj-on-inverse);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  font-weight:var(--pj-weight-control);
+  text-align:center;
+  overflow-wrap:anywhere;
+  cursor:pointer;
+  transition:background-color var(--pj-inversion-duration),color var(--pj-inversion-duration),border-color var(--pj-feedback-duration);
+}
+.pj-button.pj-button[data-variant="secondary"]{
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+}
+.pj-button.pj-button:not(:disabled):hover{
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+}
+.pj-button.pj-button[data-variant="secondary"]:not(:disabled):hover{
+  background:var(--pj-inverse);
+  color:var(--pj-on-inverse);
+}
+.pj-button.pj-button:not(:disabled):active,.pj-button.pj-button[data-variant="secondary"]:not(:disabled):active{
+  background:var(--pj-accent);
+  color:var(--pj-on-accent);
+}
+.pj-button.pj-button:disabled,.pj-input.pj-input:disabled{
+  border:var(--pj-border-width) dashed var(--pj-border);
+  background:var(--pj-disabled-bg);
+  color:var(--pj-disabled-fg);
+  opacity:var(--pj-opacity);
+  cursor:not-allowed;
+}
+.pj-button.pj-button[aria-busy="true"]{cursor:wait}
+.pj-button-field{
+  display:inline-flex;
+  flex-direction:column;
+  align-items:flex-start;
+  max-width:100%;
+}
+.pj-control-content{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:calc(var(--pj-space-unit) * 2);
+}
+.pj-busy-label{visibility:hidden}
+.pj-button-field[data-busy="true"] .pj-busy-label{visibility:visible}
+.pj-field{
+  display:grid;
+  gap:var(--pj-space-unit);
+  min-width:0;
+  max-width:100%;
+}
+.pj-label.pj-label,.pj-feedback.pj-feedback,.pj-status.pj-status{
+  font-family:var(--pj-font-sans);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  letter-spacing:var(--pj-body-tracking);
+}
+.pj-label.pj-label{
+  color:var(--pj-fg);
+  font-weight:var(--pj-weight-control);
+}
+.pj-input.pj-input{
+  width:100%;
+  min-width:0;
+  min-height:var(--pj-admin-control-height);
+  height:auto;
+  margin:0;
+  padding:var(--pj-space-unit) calc(var(--pj-space-unit) * 3);
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+  font-size:var(--pj-body-size);
+  line-height:var(--pj-body-line);
+  font-weight:var(--pj-weight-body);
+  transition:border-color var(--pj-feedback-duration);
+}
+textarea.pj-input.pj-input{
+  min-height:calc(var(--pj-body-line) * 3 + var(--pj-space-unit) * 2 + var(--pj-border-width) * 2);
+  resize:vertical;
+}
+.pj-input.pj-input::placeholder{color:var(--pj-fg);opacity:var(--pj-opacity)}
+.pj-input.pj-input:hover:not(:disabled){border-color:var(--pj-border)}
+.pj-input.pj-input:focus-visible{border-color:var(--pj-border)}
+.pj-input.pj-input[aria-invalid="true"]:not(:disabled),.pj-input.pj-input:user-invalid:not(:disabled){
+  border:var(--pj-border-width) solid var(--pj-accent);
+}
+.pj-feedback.pj-feedback{
+  display:block;
+  min-height:var(--pj-ui-line);
+  margin:0;
+  color:var(--pj-fg);
+  font-weight:var(--pj-weight-body);
+  overflow-wrap:anywhere;
+}
+.pj-feedback.pj-feedback > span{display:block}
+.pj-field-error.pj-field-error,.pj-feedback.pj-feedback [data-tone="error"]{color:var(--pj-accent)}
+.pj-button.pj-button[data-context="public"],.pj-input.pj-input[data-context="public"]{
+  min-height:var(--pj-touch-target);
+}
+.pj-button.pj-button[data-context="public"]{min-width:var(--pj-touch-target)}
+.pj-button.pj-button:focus-visible,.pj-input.pj-input:focus-visible,.pj-dialog-title.pj-dialog-title:focus{
+  outline:var(--pj-focus-width) solid var(--pj-accent);
+  outline-offset:var(--pj-focus-offset);
+}
+[data-pj-inverse] .pj-button.pj-button:focus-visible,[data-pj-inverse] .pj-input.pj-input:focus-visible,
+[data-pj-inverse].pj-button.pj-button:focus-visible,[data-pj-inverse].pj-input.pj-input:focus-visible,
+.theme-premium .pj-button.pj-button:focus-visible,.theme-premium .pj-input.pj-input:focus-visible,
+.cta-band .pj-button.pj-button:focus-visible,.cta-band .pj-input.pj-input:focus-visible{
+  outline-color:var(--pj-on-inverse);
+}
+.pj-dialog.pj-dialog{
+  width:calc(100% - var(--pj-admin-gutter) * 2);
+  max-width:var(--pj-auth-card-width);
+  max-height:calc(100vh - var(--pj-admin-gutter) * 2);
+  max-height:calc(100dvh - var(--pj-admin-gutter) * 2);
+  padding:var(--pj-admin-card-pad);
+  overflow:auto;
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+  font-size:var(--pj-body-size);
+  line-height:var(--pj-body-line);
+  font-weight:var(--pj-weight-body);
+}
+.pj-dialog.pj-dialog::backdrop{
+  background:var(--pj-inverse);
+  backdrop-filter:none;
+}
+.pj-dialog-title.pj-dialog-title{
+  min-width:0;
+  margin:0;
+  font-size:var(--pj-admin-h2-size);
+  line-height:var(--pj-admin-h2-line);
+  font-weight:var(--pj-weight-heading);
+  letter-spacing:var(--pj-heading-tracking);
+  overflow-wrap:anywhere;
+}
+.pj-dialog-close{flex:none}
+.pj-status.pj-status{
+  margin:0;
+  color:var(--pj-fg);
+  font-weight:var(--pj-weight-body);
+  overflow-wrap:anywhere;
+}
+.pj-status.pj-status[data-tone="error"],.pj-status.pj-status[data-tone="warning"]{color:var(--pj-accent)}
+.pj-status-prefix{font-weight:var(--pj-weight-control)}
+@media (pointer:coarse),(max-width:767px){
+  .pj-button.pj-button,.pj-input.pj-input{min-height:var(--pj-touch-target)}
+  .pj-button.pj-button{min-width:var(--pj-touch-target)}
+}
+@media (prefers-reduced-motion:reduce){
+  .pj-button.pj-button,.pj-input.pj-input{transition:none}
+}

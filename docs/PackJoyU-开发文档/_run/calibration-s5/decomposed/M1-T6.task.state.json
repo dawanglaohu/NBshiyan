@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Replace GIF branding frame by frame and verify the publication-media set",
+    "input": "The original 361-frame GIF, brand-static-media, the current wordmark and the original timeline",
+    "output": "brand-media; a rebranded GIF, same-size pause frame, frame-by-frame branding/timing report and publishable set",
+    "accept": "1) Preserve original JPG/GIF hashes. List old-brand appearances, perspective changes, transitions and reappearances after occlusion across all 361 frames, and cover each completely with PackJoyU. Also recheck the JPG old-logo locations from T3; the first/last frames and all listed locations must contain no old or missed logo (E-26). 2) Compare every frame presentation time/order and the total 30.08-second loop against the original timeline; all must match. Overlay comparison must show no newly introduced misalignment or jitter. Any failure marks the copy unfinished and excludes it from publication, while preserving originals for rollback (E-30). 3) Output a decodable GIF, a same-size paused still and hashes. Record GPT Dot production evidence or per-item not-yet-executed status according to T3 actual tool availability; do not falsely report completion."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

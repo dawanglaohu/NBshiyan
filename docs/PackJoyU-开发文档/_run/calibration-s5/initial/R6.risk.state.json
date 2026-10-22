@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Production retention cleanup exceeds authorization",
+    "impact": "Consultation and analytics deletion is irreversible; D17 is high cost",
+    "mitigation": "Deliver default dry-run and isolated tests only. Real deletion requires separate explicit retention authorization and policy activation. Without authorization actual deletions remain zero.",
+    "trigger": "A document, model ruling or task dispatch is treated as permission for actual deletion"
+  }
+}

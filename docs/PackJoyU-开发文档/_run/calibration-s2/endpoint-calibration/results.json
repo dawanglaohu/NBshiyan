@@ -1,0 +1,1445 @@
+[
+  {
+    "index": 1,
+    "method": "GET",
+    "path": "/api/auth/[...nextauth]",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(low 0.46) mutating=unsure(0.47) idempotent=unsure(0.50) declared_ok=yes(0.85)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.46,
+        "band": "low",
+        "probabilities": {
+          "anonymous": 0.53,
+          "visitor_session": 0.01,
+          "authenticated_self": 0.01,
+          "EDITOR": 0.0,
+          "SALES": 0.01,
+          "ADMIN": 0.0,
+          "cron": 0.01,
+          "public": 0.43
+        }
+      },
+      "mutating": {
+        "p": 0.47,
+        "verdict": "unsure"
+      },
+      "idempotent": {
+        "p": 0.5,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.85,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 2,
+    "method": "POST",
+    "path": "/api/auth/[...nextauth]",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(medium 0.67) mutating=yes(0.92) idempotent=unsure(0.43) declared_ok=yes(0.87)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.67,
+        "band": "medium",
+        "probabilities": {
+          "anonymous": 0.71,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.01,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.01,
+          "public": 0.27
+        }
+      },
+      "mutating": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.43,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.87,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 3,
+    "method": "POST",
+    "path": "/api/auth-admin/enroll",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(high 0.93) mutating=yes(0.91) idempotent=unsure(0.37) declared_ok=yes(0.74)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.93,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.94,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.02,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.04
+        }
+      },
+      "mutating": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.74,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 4,
+    "method": "POST",
+    "path": "/api/auth-admin/enroll/confirm",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(high 0.86) mutating=yes(0.95) idempotent=unsure(0.39) declared_ok=yes(0.72)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.86,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.88,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.06,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.06
+        }
+      },
+      "mutating": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.39,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.72,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 5,
+    "method": "POST",
+    "path": "/api/admin/account/password",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(high 0.99) mutating=yes(0.95) idempotent=unsure(0.46) declared_ok=unsure(0.62)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.01,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.99,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.62,
+        "verdict": "unsure"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 6,
+    "method": "POST",
+    "path": "/api/admin/account/2fa/reset",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(medium 0.73) mutating=yes(0.92) idempotent=unsure(0.37) declared_ok=yes(0.81)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.73,
+        "band": "medium",
+        "probabilities": {
+          "anonymous": 0.18,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.76,
+          "EDITOR": 0.0,
+          "SALES": 0.01,
+          "ADMIN": 0.01,
+          "cron": 0.01,
+          "public": 0.03
+        }
+      },
+      "mutating": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.37,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.81,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 7,
+    "method": "POST",
+    "path": "/api/admin/users/[id]/reset-2fa",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=ADMIN(high 1.00) mutating=yes(0.75) idempotent=no(0.26) declared_ok=yes(0.88)",
+    "verdicts": {
+      "permission": {
+        "choice": "ADMIN",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 1.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.88,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 8,
+    "method": "GET",
+    "path": "/api/admin/account",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(high 0.86) mutating=no(0.10) idempotent=yes(0.90) declared_ok=yes(0.79)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.86,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.88,
+          "EDITOR": 0.1,
+          "SALES": 0.01,
+          "ADMIN": 0.01,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.1,
+        "verdict": "no"
+      },
+      "idempotent": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.79,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 9,
+    "method": "POST",
+    "path": "/api/admin/account/session/activity",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(low 0.47) mutating=yes(0.90) idempotent=no(0.31) declared_ok=yes(0.67)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.47,
+        "band": "low",
+        "probabilities": {
+          "anonymous": 0.14,
+          "visitor_session": 0.06,
+          "authenticated_self": 0.54,
+          "EDITOR": 0.01,
+          "SALES": 0.01,
+          "ADMIN": 0.01,
+          "cron": 0.01,
+          "public": 0.22
+        }
+      },
+      "mutating": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.31,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.67,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 10,
+    "method": "POST",
+    "path": "/api/admin/account/reauth",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(medium 0.66) mutating=yes(0.87) idempotent=no(0.19) declared_ok=unsure(0.59)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.66,
+        "band": "medium",
+        "probabilities": {
+          "anonymous": 0.21,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.7,
+          "EDITOR": 0.0,
+          "SALES": 0.01,
+          "ADMIN": 0.02,
+          "cron": 0.01,
+          "public": 0.05
+        }
+      },
+      "mutating": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.59,
+        "verdict": "unsure"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 11,
+    "method": "PATCH",
+    "path": "/api/admin/account/login-mode",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(high 0.98) mutating=yes(0.97) idempotent=unsure(0.52) declared_ok=yes(0.82)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.02,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.98,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.52,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.82,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 12,
+    "method": "GET",
+    "path": "/api/admin/account/devices",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(high 1.00) mutating=no(0.10) idempotent=yes(0.87) declared_ok=yes(0.86)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 1.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.1,
+        "verdict": "no"
+      },
+      "idempotent": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.86,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 13,
+    "method": "POST",
+    "path": "/api/admin/account/devices/[id]/revoke",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(high 1.00) mutating=yes(0.93) idempotent=yes(0.87) declared_ok=yes(0.88)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 1.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.88,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 14,
+    "method": "POST",
+    "path": "/api/admin/account/logout-all",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(high 0.87) mutating=yes(0.98) idempotent=unsure(0.40) declared_ok=yes(0.74)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.87,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.89,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.09,
+          "cron": 0.02,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.98,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.4,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.74,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 15,
+    "method": "POST",
+    "path": "/api/admin/account/recovery-authorizations",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=ADMIN(high 0.99) mutating=yes(0.92) idempotent=no(0.18) declared_ok=yes(0.82)",
+    "verdicts": {
+      "permission": {
+        "choice": "ADMIN",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.99,
+          "cron": 0.01,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.82,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 16,
+    "method": "POST",
+    "path": "/api/auth-admin/recovery/start",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(high 0.99) mutating=yes(0.98) idempotent=no(0.23) declared_ok=yes(0.92)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.99,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.01
+        }
+      },
+      "mutating": {
+        "p": 0.98,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.23,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.92,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 17,
+    "method": "POST",
+    "path": "/api/auth-admin/recovery/enroll",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(high 0.99) mutating=yes(0.92) idempotent=no(0.18) declared_ok=yes(0.90)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.99,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.01
+        }
+      },
+      "mutating": {
+        "p": 0.92,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.18,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.9,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 18,
+    "method": "POST",
+    "path": "/api/auth-admin/recovery/confirm",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(high 1.00) mutating=yes(0.97) idempotent=no(0.19) declared_ok=yes(0.76)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 1.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.97,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.19,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.76,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 19,
+    "method": "POST",
+    "path": "/api/chat/session",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(low 0.37) mutating=yes(0.87) idempotent=yes(0.75) declared_ok=yes(0.79)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.37,
+        "band": "low",
+        "probabilities": {
+          "anonymous": 0.45,
+          "visitor_session": 0.33,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.22
+        }
+      },
+      "mutating": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.75,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.79,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 20,
+    "method": "POST",
+    "path": "/api/chat/conversations",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=visitor_session(high 0.89) mutating=yes(0.95) idempotent=yes(0.72) declared_ok=yes(0.81)",
+    "verdicts": {
+      "permission": {
+        "choice": "visitor_session",
+        "confidence": 0.89,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.09,
+          "visitor_session": 0.9,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.01
+        }
+      },
+      "mutating": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.72,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.81,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 21,
+    "method": "GET",
+    "path": "/api/chat/conversations/[id]",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=visitor_session(high 0.99) mutating=no(0.15) idempotent=yes(0.80) declared_ok=yes(0.82)",
+    "verdicts": {
+      "permission": {
+        "choice": "visitor_session",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.01,
+          "visitor_session": 0.99,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.15,
+        "verdict": "no"
+      },
+      "idempotent": {
+        "p": 0.8,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.82,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 22,
+    "method": "POST",
+    "path": "/api/chat/conversations/[id]/messages",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=visitor_session(high 0.92) mutating=yes(0.95) idempotent=yes(0.83) declared_ok=yes(0.73)",
+    "verdicts": {
+      "permission": {
+        "choice": "visitor_session",
+        "confidence": 0.92,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.06,
+          "visitor_session": 0.93,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.01
+        }
+      },
+      "mutating": {
+        "p": 0.95,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.83,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.73,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 23,
+    "method": "POST",
+    "path": "/api/chat/conversations/[id]/read",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=visitor_session(high 0.99) mutating=yes(0.87) idempotent=yes(0.86) declared_ok=yes(0.78)",
+    "verdicts": {
+      "permission": {
+        "choice": "visitor_session",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.01,
+          "visitor_session": 0.99,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.78,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 24,
+    "method": "GET",
+    "path": "/api/admin/chat/conversations",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=SALES(high 0.99) mutating=no(0.25) idempotent=yes(0.81) declared_ok=yes(0.88)",
+    "verdicts": {
+      "permission": {
+        "choice": "SALES",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.01,
+          "EDITOR": 0.0,
+          "SALES": 0.99,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.25,
+        "verdict": "no"
+      },
+      "idempotent": {
+        "p": 0.81,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.88,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 25,
+    "method": "GET",
+    "path": "/api/admin/chat/conversations/[id]",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=SALES(high 0.99) mutating=no(0.10) idempotent=yes(0.84) declared_ok=yes(0.89)",
+    "verdicts": {
+      "permission": {
+        "choice": "SALES",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.99,
+          "ADMIN": 0.01,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.1,
+        "verdict": "no"
+      },
+      "idempotent": {
+        "p": 0.84,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.89,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 26,
+    "method": "POST",
+    "path": "/api/admin/chat/conversations/[id]/messages",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=SALES(high 0.95) mutating=yes(0.96) idempotent=yes(0.86) declared_ok=yes(0.76)",
+    "verdicts": {
+      "permission": {
+        "choice": "SALES",
+        "confidence": 0.95,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.03,
+          "EDITOR": 0.0,
+          "SALES": 0.96,
+          "ADMIN": 0.01,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.76,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 27,
+    "method": "POST",
+    "path": "/api/admin/chat/conversations/[id]/read",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=authenticated_self(low 0.42) mutating=yes(0.90) idempotent=yes(0.87) declared_ok=yes(0.78)",
+    "verdicts": {
+      "permission": {
+        "choice": "authenticated_self",
+        "confidence": 0.42,
+        "band": "low",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.01,
+          "authenticated_self": 0.49,
+          "EDITOR": 0.0,
+          "SALES": 0.47,
+          "ADMIN": 0.02,
+          "cron": 0.01,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.78,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 28,
+    "method": "PATCH",
+    "path": "/api/admin/chat/conversations/[id]",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=SALES(high 0.95) mutating=yes(0.93) idempotent=yes(0.91) declared_ok=yes(0.83)",
+    "verdicts": {
+      "permission": {
+        "choice": "SALES",
+        "confidence": 0.95,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.01,
+          "EDITOR": 0.0,
+          "SALES": 0.96,
+          "ADMIN": 0.03,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.83,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 29,
+    "method": "POST",
+    "path": "/api/analytics/consent",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(medium 0.65) mutating=yes(0.91) idempotent=no(0.34) declared_ok=yes(0.90)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.65,
+        "band": "medium",
+        "probabilities": {
+          "anonymous": 0.6900000000000001,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.31
+        }
+      },
+      "mutating": {
+        "p": 0.91,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.34,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.9,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 30,
+    "method": "POST",
+    "path": "/api/analytics/events",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=anonymous(high 0.94) mutating=yes(0.87) idempotent=unsure(0.64) declared_ok=yes(0.70)",
+    "verdicts": {
+      "permission": {
+        "choice": "anonymous",
+        "confidence": 0.94,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.95,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.0,
+          "public": 0.05
+        }
+      },
+      "mutating": {
+        "p": 0.87,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.64,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.7,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 31,
+    "method": "GET",
+    "path": "/api/admin/settings/analytics",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=ADMIN(high 1.00) mutating=no(0.05) idempotent=yes(0.93) declared_ok=yes(0.93)",
+    "verdicts": {
+      "permission": {
+        "choice": "ADMIN",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 1.0,
+          "cron": 0.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "idempotent": {
+        "p": 0.93,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 32,
+    "method": "PATCH",
+    "path": "/api/admin/settings/analytics",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=ADMIN(high 0.99) mutating=yes(0.96) idempotent=unsure(0.46) declared_ok=yes(0.90)",
+    "verdicts": {
+      "permission": {
+        "choice": "ADMIN",
+        "confidence": 0.99,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.99,
+          "cron": 0.01,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.96,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.46,
+        "verdict": "unsure"
+      },
+      "declared_ok": {
+        "p": 0.9,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 33,
+    "method": "GET",
+    "path": "/api/admin/stats",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=EDITOR(high 0.91) mutating=no(0.05) idempotent=yes(0.90) declared_ok=yes(0.86)",
+    "verdicts": {
+      "permission": {
+        "choice": "EDITOR",
+        "confidence": 0.91,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.01,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.02,
+          "EDITOR": 0.92,
+          "SALES": 0.0,
+          "ADMIN": 0.01,
+          "cron": 0.01,
+          "public": 0.03
+        }
+      },
+      "mutating": {
+        "p": 0.05,
+        "verdict": "no"
+      },
+      "idempotent": {
+        "p": 0.9,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.86,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 34,
+    "method": "POST",
+    "path": "/api/admin/cron/operations",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=cron(high 1.00) mutating=yes(0.86) idempotent=no(0.26) declared_ok=yes(0.87)",
+    "verdicts": {
+      "permission": {
+        "choice": "cron",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 1.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.86,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.26,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.87,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 35,
+    "method": "GET",
+    "path": "/api/admin/cron/mail-queue",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=cron(high 0.98) mutating=yes(0.85) idempotent=no(0.25) declared_ok=unsure(0.59)",
+    "verdicts": {
+      "permission": {
+        "choice": "cron",
+        "confidence": 0.98,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.01,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 0.98,
+          "public": 0.01
+        }
+      },
+      "mutating": {
+        "p": 0.85,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.25,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.59,
+        "verdict": "unsure"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 36,
+    "method": "POST",
+    "path": "/api/admin/cron/mail-queue",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=cron(high 1.00) mutating=yes(0.76) idempotent=no(0.32) declared_ok=yes(0.74)",
+    "verdicts": {
+      "permission": {
+        "choice": "cron",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 1.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.76,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.32,
+        "verdict": "no"
+      },
+      "declared_ok": {
+        "p": 0.74,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  },
+  {
+    "index": 37,
+    "method": "POST",
+    "path": "/api/internal/ops-report",
+    "exit_code": 0,
+    "status": "ok",
+    "model": "jev-1.13.0",
+    "line": "endpoint: permission=cron(high 1.00) mutating=yes(0.88) idempotent=yes(0.65) declared_ok=yes(0.93)",
+    "verdicts": {
+      "permission": {
+        "choice": "cron",
+        "confidence": 1.0,
+        "band": "high",
+        "probabilities": {
+          "anonymous": 0.0,
+          "visitor_session": 0.0,
+          "authenticated_self": 0.0,
+          "EDITOR": 0.0,
+          "SALES": 0.0,
+          "ADMIN": 0.0,
+          "cron": 1.0,
+          "public": 0.0
+        }
+      },
+      "mutating": {
+        "p": 0.88,
+        "verdict": "yes"
+      },
+      "idempotent": {
+        "p": 0.65,
+        "verdict": "yes"
+      },
+      "declared_ok": {
+        "p": 0.93,
+        "verdict": "yes"
+      }
+    },
+    "language_warning": null
+  }
+]

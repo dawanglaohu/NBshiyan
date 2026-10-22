@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Finally verify limited recovery and the sole-admin fallback",
+    "input": "Delivered recovery UI/OS-owner CLI, one-time codes and restricted-cookie protocol",
+    "output": "admin-acceptance: concurrent recovery, privilege isolation and local fallback evidence",
+    "accept": "1) From the independent recovery entry, POST /api/auth-admin/recovery/start, enroll and confirm. Concurrent consumption of identical or different recovery codes never revives a used code. A restricted cookie cannot access admin. Interruption/expiry preserves old valid factors, reentry returns the same URI/deadline, and only final confirmation replaces factors followed by ordinary login (E-10, E-11, E-14). 2) When no second admin or recovery code exists, run the actual OS-owner TTY CLI on an isolated server with explicit target/reason to create a permit. A hidden-input password preauthorization commits only with final new-TOTP confirmation and audit. Do not weaken old first-enrollment reset-script guards; an anonymous browser cannot issue permits or change passwords. Final confirm revokes old sessions/factors/recovery materials, displays new codes once, and rejects the next request from old devices (E-15)."
+  },
+  "module": "M7",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

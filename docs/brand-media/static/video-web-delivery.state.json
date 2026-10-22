@@ -1,0 +1,10 @@
+{
+  "requirement": "Continue only M1-T3 video processing. Preserve the accepted static PNG and GIF, original video, every original shot, all audio and physical equipment trademarks. The user said to start processing the supplied video. No paid API, new software installation, fictional factory, timeline trimming or release approval is authorized.",
+  "task": {"title": "M1-T3 full-video web copy and original-frame poster", "accept": "Keep the 735-frame 60fps original video timeline, extract the poster from a verifiable source frame, record real software operations and hashes, and retain the existing UNKNOWN provenance release hold."},
+  "conflict": "The previously saved720p transcode is4,456,406bytes versus the1920x1080 source8,051,146bytes, but it re-encodes audio and its container is42.125ms longer. Already-installed WSL FFmpeg4.2.7 is now verified usable. Two actual1080p H264 re-encodes atCRF21 and24 grew to13,243,989 and9,821,770bytes. Need choose the final web-delivery strategy without wasting quality or representing an AI video generation call. All original video/audio are H264/AAC already compatible with MP4 web playback.",
+  "options": {
+    "A": "Produce a1080p60 web MP4 by lossless stream copying the original H264 video and AAC audio, move the MP4 index before media for progressive loading, preserve packet payloads and timestamps, and verify all735frames, audio packets, source hash and browser playback. Keep the existing smaller720p version as the bandwidth alternative. Reuse the verified source-frame4500ms poster. Save truthful processing and hold records; no AI video generation claim.",
+    "B": "Encode a third1080p candidate at a constrained average3Mbps bitrate, preserving audio packets, compare every frame and visually accept the added detail loss only if adequate, then use that smaller candidate plus the4500ms source poster. Keep original and earlier copies.",
+    "C": "Keep only the existing720p compressed copy and source-frame poster as the current video handoff, document its audio re-encoding and timing difference, and do not produce a full-resolution web version."
+  }
+}

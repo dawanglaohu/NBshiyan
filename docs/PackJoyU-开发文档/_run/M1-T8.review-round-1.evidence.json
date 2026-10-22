@@ -1,0 +1,51 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T8": {
+      "contractHash": "b264e841c0606da3ade9ee2f73674b967571e3b66ce28839498f959897194680",
+      "verdict": "pass",
+      "evidence": [
+        "本记录只复核任务定义，代码验收为 rework，未登记落地。19节M1-T8与当前派发验收一致，输入为已落地M1-T2 contract-types；contracts/index.ts导出共享schema，errors.ts保留新增错误码与受控字段唯一来源。",
+        "task-contracts.json将本任务登记为stage=primitive，provides=client-api-foundation，outputPaths为api.ts、api-errors.ts与HTTP测试，wiring=[]，integrationTask=M3-T7；本层没有产品界面，不要求虚构页面注册或GIF，下游生产接线另验。",
+        "06/07层次与10节逐路径重试表可实现：Auth.js维持原客户端；新成功体直接解析有名DTO，旧error响应兼容；15s取消、same-origin/no-store、受控错误与禁重放条款无矛盾。13节无本任务挂载边界，17节提供node:test+tsx、lint、tsc与真实HTTP验收方法。",
+        "实施岔路口保留原A/B/C/D四候选，本轮typesafe_ask.py adjudicate返回model=jev-1.13.0，pick=C high0.92，adopt=take(C)，spec_change=no、outside_stack=no、needs_owner=no。代码采用C：GET显式重读，聊天/分析同体1/2/4s重试。",
+        "原有代码位置与实施沉淀已回填；未删除既有事实命题。反占位/固定门禁/生产测试钩子检查无命中，生产错误schema沿用共享定义。编码路由策略与已收到错误头后的正文断连是实现缺陷，不降低验收标准。"
+      ]
+    }
+  },
+  "codeReview": {
+    "round": 1,
+    "verdict": "rework",
+    "reviewedHead": "ad9812a9ceccc611be62670e9b510511472a8ec1",
+    "pullRequest": "https://github.com/dawanglaohu/NBshiyan/pull/399",
+    "checks": {
+      "httpAndContracts": {
+        "command": "node --import tsx --test tests/client-api-foundation.http.test.ts tests/contracts-foundation.test.ts",
+        "passed": 61,
+        "failed": 0,
+        "skipped": 0
+      },
+      "lint": "pnpm lint: exit 0, pre-existing image/eslint/native-SWC warnings; supported wasm fallback",
+      "focusedEslint": "pnpm exec eslint src/lib/client/api.ts src/lib/client/api-errors.ts tests/client-api-foundation.http.test.ts: exit 0",
+      "typecheck": "pnpm exec tsc --noEmit --incremental false: exit 0",
+      "callerAbort": "real local HTTP caller AbortSignal probe: silent at155ms, serverSawRequest=true, serverSawClose=true"
+    },
+    "blockers": [
+      {
+        "id": "R1",
+        "file": "src/lib/client/api.ts",
+        "line": 80,
+        "fact": "Decoded pathname is validated but original encoded path is used for policy. Encoded cron path resolves to existing cron appFile in locked Next production filesystem resolver but is marked explicitReread=true; encoded Auth.js path enters transport.",
+        "evidenceLimit": "Locked Next 15.5.27 real resolver with a minimal manifest, not a full-site E2E."
+      },
+      {
+        "id": "R2",
+        "file": "src/lib/client/api.ts",
+        "line": 322,
+        "fact": "Real local HTTP403 headers and truncated JSON body followed by disconnect cause the same chat POST to be sent four times. Result status403/action=unconfirmed/retryable=true.",
+        "expected": "Already known non-retryable HTTP statuses remain non-retryable even if the body fails to read; user abort remains silent.",
+        "additionalEvidence": "Real HTTP429 headers with Retry-After:31 and truncated body: 4 POSTs within7226ms, hit offsets53/1102/3153/7194ms, retryAfterMs lost."
+      }
+    ]
+  }
+}

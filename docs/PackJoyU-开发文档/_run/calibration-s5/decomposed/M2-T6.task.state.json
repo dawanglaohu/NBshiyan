@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Wire real-model failures and poster fallback",
+    "input": "model-accessibility, the corresponding product posters and actual GLB sources",
+    "output": "model-fallback; static fallback/retry entries for GLB/WebGL/context failures",
+    "accept": "1) Separately inject GLB-download failure, unsupported WebGL, context lost and poster/FoldBox-only display. Show the corresponding product poster and clickable retry/inquiry; do not retry indefinitely or substitute another product image. 2) Retry establishes a new actual loading attempt; unmount cancels old listeners/loading callbacks. Presentation state emits only a load-result callback, without creating analytics success events in this task; M2-T7 completes metrics integration."
+  },
+  "module": "M2",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

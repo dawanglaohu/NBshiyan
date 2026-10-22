@@ -1,0 +1,8 @@
+{
+  "risk": {
+    "risk": "Capacity, SMTP or auxiliary operations sources cannot be verified",
+    "impact": "Chat/jobs may contend for resources and some cards remain unavailable",
+    "mitigation": "State capacity is unassessed and measure before release. Keep a chat switch and contact route. Expose real at-least-once SMTP states. Label missing backup/storage sources unconnected; never buy services automatically.",
+    "trigger": "Capacity is insufficient, SMTP is unavailable, or verified backup completion metadata is missing"
+  }
+}

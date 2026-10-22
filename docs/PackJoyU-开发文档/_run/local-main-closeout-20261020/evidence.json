@@ -1,0 +1,929 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T1": {
+      "contractHash": "7094dd4fa0a8fbe6566f1b63ac5194e159408d4b5ec0bf3f8aad9b444b4f8982",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T1 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=dfc62222209dae5ca31f6e7f37560a46e00fbdafeabb642a641df195a045c082与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T1及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md:5、11及图谱/任务/M1-T1.md — 本地main替代待删规格分支作输入；验收3区分origin/main缺规格时首PR携带与已有时沿用，其他任务仍等首PR落地。第1/2验收在分割到3)之前逐字相同，保留8token/真实standalone/SSR目录/独立HTTP兼容/RUM204/CI冒烟。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T1 — 现实施提示SHA256=63843f122570db41fd3155725bc96ac4ba28b2b7555e767f1b7e74bcb7ef16d0；历史实施提示SHA256=089bffe542ea6c86c281095070796ff55f04a7ed17bc1eb58bebb9f874741db2。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前7094dd4fa0a8fbe6566f1b63ac5194e159408d4b5ec0bf3f8aad9b444b4f8982。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T2": {
+      "contractHash": "108d8cfaef31c0dcce3d6c523512e3afb3f222857a3875e7a1ccee03e5d582aa",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T2 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=bb38ef3235779285b0f4eba3465cc390a8e1e1dca366aef627f832cd2f5f2b27与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T2及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T2行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T2 — 现实施提示SHA256=cf10f683b9ddf8407c43936bbafd985d7767c6a8af993fe1d67695b5eebb3c99；历史实施提示SHA256=1e9d00fe59f8db604587890412ca39bbd678e7ae918fdca504baad92857d72f8。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前108d8cfaef31c0dcce3d6c523512e3afb3f222857a3875e7a1ccee03e5d582aa。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T3": {
+      "contractHash": "921f963ddc5d678cf164690386239d425a58dfe4bc3749aa566719b61414f181",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T3 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=9b2e774c5244ba3e5a6dbe4885aee82d8590cc3860af309c9afb71debbdd7c45与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T3及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T3行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T3 — 现实施提示SHA256=2aeae2b38b4f4ca4725c12fad04da22394451430c243068d8ed11de2ff51f4bf；历史实施提示SHA256=da6bf9df406d4279ed2aaf1563997f58790711f578ffbfde4cab6b3a9e45b50e。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前921f963ddc5d678cf164690386239d425a58dfe4bc3749aa566719b61414f181。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T4": {
+      "contractHash": "c02a7342bcb6b86a222395ff1cabd95dbd00eadcea2cc177e65199720bb81b50",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T4 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=cad95ee4d90a08bd6d58377c59bb903203f93bf3c4f3e5f82d8541dcf5742f63与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T4及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T4行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T4 — 现实施提示SHA256=1873a596558c202b3149461db5d85e7d427f29999abc7ac9e1565720adfb3e04；历史实施提示SHA256=cb19379976b3a1ab41b747a6361bd5ff2c21c4f2289dc4d4ab868b409746a250。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前c02a7342bcb6b86a222395ff1cabd95dbd00eadcea2cc177e65199720bb81b50。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T5": {
+      "contractHash": "7743865fb2a289a6a49b32312df36ae76287138a60a872d9a363735e143f70ed",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T5 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=18602e1a4b760a19c3907ba9e87adbb43d37e40bbd27e92767f9eca031d27653与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T5及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T5行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T5 — 现实施提示SHA256=2998de39b1e2861a349c11813044868b9365423ce96517e228cf1c34c9429e09；历史实施提示SHA256=e9fa1eaa67d47baa13261e35fb7ba48cb7b45b8cf0524dc0e49fbf68bd34f55a。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前7743865fb2a289a6a49b32312df36ae76287138a60a872d9a363735e143f70ed。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T6": {
+      "contractHash": "0bd91fa27dc8aeb4b9aeefeb24cbf5560d0f0d17c3cb13c8aca05101d6647faf",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T6 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=691581997291a604ef43d7dc92396b7a88d11613aad981db6d3efd4e2246b0fc与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T6及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T6行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T6 — 现实施提示SHA256=115d71726b91e9b1af74e259d4730bd0017f87743297bc34ba46a06b4ca2ffc1；历史实施提示SHA256=62cb8620e5cbe009b510ad3f390a2ab99180effa550343df028b5c81b8ca8bf1。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前0bd91fa27dc8aeb4b9aeefeb24cbf5560d0f0d17c3cb13c8aca05101d6647faf。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T7": {
+      "contractHash": "a97ec5d8681841510f42efb2f8e93695a4f603b01a0c0703e0873415dbe4131a",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T7 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=24601d54530f85a389eb7640aaf7be307594c840be92dfb5c2067cd94acb3dec与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T7及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T7行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T7 — 现实施提示SHA256=b8510e5da40403bbf274aa422d1b97499d4467f2c94ab55e4cf9d606ea12eb5a；历史实施提示SHA256=3d0060d4f77a90dda68a9399d734a4ce6e72447f594e4c08e2bde8d3c0ec73f6。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前a97ec5d8681841510f42efb2f8e93695a4f603b01a0c0703e0873415dbe4131a。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T8": {
+      "contractHash": "ffae1b4c8ca9de609841871dbb5ca03cdeafca7381748e6035da7adaf55571d4",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T8 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=33226da898db6e2c97233a892fca44136e33b507dd89db84af2ba1780351b5da与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T8及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T8行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T8 — 现实施提示SHA256=75945f0f223676ccc3bc4b56287443504b263c55dde240676231033daaeccecb；历史实施提示SHA256=6c1c3f9b32ed9b693a3a59e8e2f373dcd70ba91b77be7ec07553c870ddbde04d。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前ffae1b4c8ca9de609841871dbb5ca03cdeafca7381748e6035da7adaf55571d4。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M1-T9": {
+      "contractHash": "8950573ab5f2cac21d41a9d191b318d3e897998996f94a7726e2d319613e7d6e",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M1-T9 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=cfbb864e7b6fe26da72f2e5c455c45150ad1a66bcea7c8d430e807c391ce94d4与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M1-T9及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M1-T9行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M1-T9 — 现实施提示SHA256=52266b1e86403fb26374f719d842d6c6735e7abbcf21c697f4478d1cbd743dcc；历史实施提示SHA256=d032a8eaed04ac1a68ef64cf9a5b53a46f7b5574e0837022f713ac4a181a0b2a。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前8950573ab5f2cac21d41a9d191b318d3e897998996f94a7726e2d319613e7d6e。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T1": {
+      "contractHash": "c7eb47e4de6dc3caba2977e6f80e2b0278b32de2867dcf3a059cc555ddc1b008",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T1 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=254e83f0019b049b345c86b45b709d4dbdec12ec52befd8c2edc5537e2181f12与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T1及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T1行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T1 — 现实施提示SHA256=fbfdd7699092ca542bcd3e768f3ebb9b75fd8857cf213cf5069a770a052c9460；历史实施提示SHA256=400edfd57aa8e6de9c1f70b0c070d3f3670163b71cee275c76dbe9ead7e3be42。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前c7eb47e4de6dc3caba2977e6f80e2b0278b32de2867dcf3a059cc555ddc1b008。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T2": {
+      "contractHash": "0e9f3e3d9e76eb7dd899ba8f47d4df47315a3519d26ddef7c11fc414e56db4ef",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T2 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=db5496aa3318271f599fc699b61f3e977257b55ce5c9da88159a5decabcd40cf与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T2及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T2行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T2 — 现实施提示SHA256=f35a36ce597ae1d37dcfb9453fcd280b2529819241064d4c12cb4607e768fa09；历史实施提示SHA256=cba7c2ceee4e41445acc2e1d2dd2a9c27477a50837563c34fcc3d0ac2323dde7。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前0e9f3e3d9e76eb7dd899ba8f47d4df47315a3519d26ddef7c11fc414e56db4ef。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T3": {
+      "contractHash": "a857fbe5fea25a5a0486831473a29bdeca803a4a01031070e51019929fbef093",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T3 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=e31fee07971fc666d73025123ad21f1ad1a00013ae8c2389173018530d5c4e33与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T3及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T3行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T3 — 现实施提示SHA256=b68ad1c104b48161c189d04fde5474044a0a803fb9af89450124e73dd5ea752c；历史实施提示SHA256=17799ea2eb517b95f8a582a0d4e2ec64cff34415fe81745aaf8d8140d6cea612。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前a857fbe5fea25a5a0486831473a29bdeca803a4a01031070e51019929fbef093。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T4": {
+      "contractHash": "5cdbd0fc9b41134b3112b2d9e98c47b0f7b28afedc785c7b8fc724b1a3b135e5",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T4 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=8562b88d79589ceb28cb83d066c7cc81d0cc2094e93269013d83c3760d044928与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T4及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T4行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T4 — 现实施提示SHA256=17818f4a7eaa0c4919d9c7cc258ca81130db18b807578e62e2ca0c48e39e94b2；历史实施提示SHA256=2e43acfb7c1a390f34770f181ed39924a0d0e05144d33d435f65132dbd35c22e。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前5cdbd0fc9b41134b3112b2d9e98c47b0f7b28afedc785c7b8fc724b1a3b135e5。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T5": {
+      "contractHash": "defd4be094e5a2872e7e994c61d03d732198a0430d01a82931aefd7ff206cb73",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T5 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=7c5d44acecac01ace5cd8edfee4e4f55b04b362bc0deab3d959d4486f2de0eac与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T5及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T5行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T5 — 现实施提示SHA256=877dca17cf570a5da7a656b91ca5ab3669d236160df9eb37c8deeeccf92d865e；历史实施提示SHA256=05fabde686dfccc957c817f3c7728f5b78d0d7afd136661689b26b9602ddd7a8。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前defd4be094e5a2872e7e994c61d03d732198a0430d01a82931aefd7ff206cb73。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T6": {
+      "contractHash": "50e019e8f0fa6144e4f894f42420e42f253e35f58c3bdcab9d19ad7b9c91fe41",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T6 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=938ca9b47ca1a045b011bd985ada4d9b0c9bf4b295ec53ff6bc46c4ba63cad70与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T6及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T6行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T6 — 现实施提示SHA256=d197ddb485f33e669805f0939aac33400ce3daae7c7915e9dcc6f4ae2d1f60d5；历史实施提示SHA256=4123f3d849a4454e098ab50254adc2f069353ca216adfe231b1e81a9894daa2b。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前50e019e8f0fa6144e4f894f42420e42f253e35f58c3bdcab9d19ad7b9c91fe41。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T7": {
+      "contractHash": "df6826f1ad1f716c4d43ca944fcb88063d40b46331a0367f29eb1338b457b915",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T7 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=b11d5d39be5560adfcbc8a8845e3d0a6450ed9a71fea009997c4022279c354c1与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T7及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T7行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T7 — 现实施提示SHA256=bd5f9482d664c0d50edf1cfadf116506e63f71ab2fc1c4ee4006db24dea96020；历史实施提示SHA256=bca044e050833685767f824084bb27a467d7cd6bcb80580100f4cbc132f296b2。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前df6826f1ad1f716c4d43ca944fcb88063d40b46331a0367f29eb1338b457b915。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M2-T8": {
+      "contractHash": "467cb50770867e85ff198095a74a8bd9254ae9ce60d7dfdf40164f644249eda6",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M2-T8 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=e1292b6cee1650bd9a7bfa44c88db5274c2c27b9b88b06f9c1dbad0dce63ece2与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M2-T8及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M2-T8行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M2-T8 — 现实施提示SHA256=edd53a0b834182fb9560c0186526bf3c48f028e70a22e0d9ba177439dbf886ca；历史实施提示SHA256=0ac49a825b499204602d8192df80d0b31eccb99fd62009385b764d32d58329ca。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前467cb50770867e85ff198095a74a8bd9254ae9ce60d7dfdf40164f644249eda6。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T1": {
+      "contractHash": "66265c7440b764999544bdff2bce42809c9a64d3f9ef11ef03c3199d4ae0d4e6",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T1 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=69d01d231fca33d2d3e373e11826aacfdb27bfd6383c53d78cfbeb25cae4a095与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T1及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T1行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T1 — 现实施提示SHA256=eb1f8a997314094528ebf61ed1827625ba7870d3e8939f1b7cb3fcd110e12bd8；历史实施提示SHA256=532a79a0febc83ee0423225af0fd005abcd879c9d3e125513ca8e4c1b7f64ccb。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前66265c7440b764999544bdff2bce42809c9a64d3f9ef11ef03c3199d4ae0d4e6。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T10": {
+      "contractHash": "049bf12d087e903508d0c90d61c94c6fa47f89429c2dd2549428369975b62c1d",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T10 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=fdc7cdfde2db9ce18df74f81b21c53acfde522ac522a177372bb181d8ddcd30f与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T10及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T10行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T10 — 现实施提示SHA256=79c7fcbd86d5ab2dce4ff3a75418c0cece4d95edcdd192c7542558118d839c17；历史实施提示SHA256=140ee78c7c8a668a6d2a5f35324428d738fea682abf8561da2a29f1a070ed397。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前049bf12d087e903508d0c90d61c94c6fa47f89429c2dd2549428369975b62c1d。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T11": {
+      "contractHash": "0b545665b0529d11edbde638f3e203a458f89aaa0bae498dd63a86b5e651a8b1",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T11 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=fd75184855a1d1714cfa622496736bf87e1b738332c7b5861112ad3736a837ce与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T11及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T11行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T11 — 现实施提示SHA256=a6321d7c51f092e1992a217fc056b91458ce4b780dec64ad88a7915ac8eba2fa；历史实施提示SHA256=52027e5b9fe17ebff3ec7b763e4a09e83188a01ec119d1669c29cf2b51e818a6。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前0b545665b0529d11edbde638f3e203a458f89aaa0bae498dd63a86b5e651a8b1。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T12": {
+      "contractHash": "88e7c7d9ebe96fb3cc430b1f8fecfe2c076e4e9d2e962a091b412dedb9d72e56",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T12 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=5c91dd2fb4ca3e64aaaf967d34ca7cc53ff17c3cf2bfc0b527a5240e83c34d70与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T12及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T12行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T12 — 现实施提示SHA256=b5e7c1f495d2103db15df24a97a032c47f52a77634a689454354c1996723e7d6；历史实施提示SHA256=e1298f2b7ae9675e1ea9117a6ea079d868bc078d26a79e764a288d7929393fd3。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前88e7c7d9ebe96fb3cc430b1f8fecfe2c076e4e9d2e962a091b412dedb9d72e56。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T13": {
+      "contractHash": "c4f0376c9300d1b447a794ca2d6fc7aca1e34d51fb3118846cc203bc71413497",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T13 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=e14d639ebdd5395d8d10b35a66ec8f8d85b31034ddf9ba7c2b8fd8c3d4eeda28与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T13及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T13行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T13 — 现实施提示SHA256=4ceaace418d09209b8f533986a21a8bb063519faab660a230783cff4822de046；历史实施提示SHA256=0c3913c196f0ee84f96a44d2d3c14ad6b2c8ffae24f8d94e39e2b54f30d90dda。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前c4f0376c9300d1b447a794ca2d6fc7aca1e34d51fb3118846cc203bc71413497。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T14": {
+      "contractHash": "32575986e6020edf2ed9ce215273ebbc126a5b5250bca045f59e041e79350ee6",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T14 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=bdc54fc6b618e70494ca951e6bc4f7b6d589f672bbb91c9c4c8ea09f8e0cc326与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T14及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T14行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T14 — 现实施提示SHA256=29aae237c36938afa6e345efb69f59f6210dc75c5b3354c2ea7d9c007aa991f8；历史实施提示SHA256=6cbd616861cb90276ce8eccb97840eb58aac2b16cf9f57c855f5815a40ff2676。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前32575986e6020edf2ed9ce215273ebbc126a5b5250bca045f59e041e79350ee6。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T15": {
+      "contractHash": "19c896391e1465f2afbda4d796216a5af16c8280872de17093a24480fb7192cb",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T15 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=1a7a002dcb54c2195dd10429b1a3833bb49bed343610d6694e1030f7011ec316与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T15及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T15行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T15 — 现实施提示SHA256=3079edc65b804f8c59fe5efc8f506e7362e337fe105aa6076f10a6e73e2c3a40；历史实施提示SHA256=a6c712c946484bd3c69b8a5f9e20ae73b28fb46e5313c1082aa467924916db13。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前19c896391e1465f2afbda4d796216a5af16c8280872de17093a24480fb7192cb。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T16": {
+      "contractHash": "b4852fb7f13a9dbb865d2bd5c46494a04c3d9ffac496808066209c41e110be51",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T16 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=dbf77f97b7229614baeb448dcfeb3a7bfb82960af564636a7c32420927086cbc与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T16及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T16行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T16 — 现实施提示SHA256=bacb98b2dd5792d7984dbab0b6021d8ae46a5c1428fd30df810d5815379e0fd3；历史实施提示SHA256=ce36fba78a1cb642a6e99b8dc0ca4770089ce526ab27269155e784663a1176cc。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前b4852fb7f13a9dbb865d2bd5c46494a04c3d9ffac496808066209c41e110be51。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T17": {
+      "contractHash": "d866246771cdd1029ae5fa2f57ad640d4b0f6e204e9183bf366b15a7c0134b7e",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T17 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=63fdc0371bd8e6c1df204f2184999faf5442e824be83f16afd27808aa5d53b58与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T17及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T17行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T17 — 现实施提示SHA256=3af9b0fd05e9a371387d6596c3f246f194ce81b3f9e31471f952866b4a6efcb8；历史实施提示SHA256=2cf84cd99005846d37067fd6848ab0a714ab059bd15a0847843e2682e08d1f51。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前d866246771cdd1029ae5fa2f57ad640d4b0f6e204e9183bf366b15a7c0134b7e。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T18": {
+      "contractHash": "940465ebf18eced8519238c7b8c1d10f2b66c422b7873800110b7b70de9239db",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T18 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=ac4dca4cd9473e63205ad26951e06d3e8ef246b1bc8acf0747465538b37424ad与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T18及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T18行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T18 — 现实施提示SHA256=190a4e64ce40deae1dfaa2d1a25aa984cd6794b6308b34335e70266219673680；历史实施提示SHA256=d874439cad351d165e0a015c064a41778c51ca137109cff6eb2c9be2af9ef50f。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前940465ebf18eced8519238c7b8c1d10f2b66c422b7873800110b7b70de9239db。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T19": {
+      "contractHash": "54010ab6ffc7fca04b1ac333f52a1bce4c8dad0785af6406f6dd0286378b791d",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T19 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=8dd9dcea9fe1be6837c7f58a0ba3620e75d1d44c7f7f941ed61dd4ba06e1079d与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T19及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T19行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T19 — 现实施提示SHA256=da2b47bf818a40c6d60a2f87a2dad0b4b297653fdea692406815c82512675ebc；历史实施提示SHA256=74ca5a720ebc6928af39f1d792c074f184530c30f042c106d649ed956b386091。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前54010ab6ffc7fca04b1ac333f52a1bce4c8dad0785af6406f6dd0286378b791d。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T2": {
+      "contractHash": "e3432cfccdd142812503e64190bcf227850d6e39274e02763ce5f329490001a4",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T2 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=f8d8f685de8aaf4091eb136771f8d811ea27acf92a4b321acfdf52af1b73efd3与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T2及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T2行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T2 — 现实施提示SHA256=1bac42c47a8935a15dd20a50ee459e0f3dd3104d9970d0489e1406ef29ee0d31；历史实施提示SHA256=7d28d4e5ba7b0e758b56707a5c55fb87deb3171681aa08141a027ce4e14934cc。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前e3432cfccdd142812503e64190bcf227850d6e39274e02763ce5f329490001a4。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T20": {
+      "contractHash": "55f3dfd58dde88f469fdad35b3c2af243d2790dc5a98da819e5ab900f6260f44",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T20 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=ae105ed957c01c7e77b499f6150b12684a2a14b132661ff8d47e7546300261ac与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T20及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T20行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T20 — 现实施提示SHA256=c7df6c29b305d72c9b45ddf92d580b72f7be16b10805d620ffafef09c3ad1027；历史实施提示SHA256=d5d7a88f326761812757522c6d30e2ab9d7d8f96d7bdc8135ed9edd49db6b901。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前55f3dfd58dde88f469fdad35b3c2af243d2790dc5a98da819e5ab900f6260f44。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T21": {
+      "contractHash": "2572c8b80e484c9bb49b37898a044344f0ea90a6a15371c43648b83b6f6275b8",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T21 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=e38bf2eabbfab4aa04efd0e6178400a36996fcb094bd94d94223fa5c0aa89615与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T21及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T21行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T21 — 现实施提示SHA256=dbcc517a8fe37dcd1340ca04a717cdb8f7d8d93733698c51a51e19f19b1907f2；历史实施提示SHA256=413aec04658fe6e50b5f2eeea18b179b0f7bc67c330c0ad46d9ed168df9b9850。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前2572c8b80e484c9bb49b37898a044344f0ea90a6a15371c43648b83b6f6275b8。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T22": {
+      "contractHash": "a97f947549ecb4d7f90f425858fc219ae9e93b6085000533412cf1ad3fcf9e7d",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T22 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=c47fc860fe1e6538b130dd545044aca3ffe6db92d3c6bfd05e558bf608fae675与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T22及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T22行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T22 — 现实施提示SHA256=a133c4a7aa5779231fdce313571f61096b2ce57875fbb9febfb7c29ad3ae43cd；历史实施提示SHA256=2946f2e0a504e9e9a8b41430524f8e687d81bf1b53cdf3dee0f5cf6121d0c18c。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前a97f947549ecb4d7f90f425858fc219ae9e93b6085000533412cf1ad3fcf9e7d。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T23": {
+      "contractHash": "84a2ee68f2ad83b4d341780c3fa5a0cdad933249f029d93da7b43193a6e25532",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T23 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=54ebc8b8ee51d5e1fdc84fdfad62960d85fe94531c28067197cc078f01f45ce3与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T23及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T23行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T23 — 现实施提示SHA256=96b511d64bdbc0f1f5043d2316c5de575aee1039e2646d10057aa4b9385ebf0b；历史实施提示SHA256=34e975f06b8fd770ddb8853b376092e6c379c156ded9447320d8c73d3da023ff。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前84a2ee68f2ad83b4d341780c3fa5a0cdad933249f029d93da7b43193a6e25532。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T24": {
+      "contractHash": "3d063998f06b88530788e264cdae04196a18f53e7f1273e7d6ecd911d24ecbf7",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T24 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=fd7e6a524db9da2055fbe7ed457b3dc7773e9e74f006b6bed829e5e7d0638738与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T24及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T24行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T24 — 现实施提示SHA256=cb626077e993e4344f6ffeb2944560a8a683b11ed503012b182f4f86e1e42b6d；历史实施提示SHA256=c1aadb82c01e07971141d0d75cf43fda4cfd853addf84ef3ffeefd8c31c34a08。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前3d063998f06b88530788e264cdae04196a18f53e7f1273e7d6ecd911d24ecbf7。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T25": {
+      "contractHash": "a7a3bc1234a5e17c732d32d612a65f8c0e44f59c436bc923c27f6248ba59ecbe",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T25 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=94ea5f495cb4d05f18e65d2d73b561721764af181244d8cdb456758674107a45与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T25及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T25行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T25 — 现实施提示SHA256=9e53ab1eb23a39deb582760be927e0af14d6470a8ec73314d75b10901d032b06；历史实施提示SHA256=615512dbadf941d7e182e745c6526aaf7392e3671c6cd625f83380131268ce10。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前a7a3bc1234a5e17c732d32d612a65f8c0e44f59c436bc923c27f6248ba59ecbe。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T3": {
+      "contractHash": "eea5491c813ca6a5b3f4ff8c6e798e1b562c7b10defc0d3ee0498179eb055cf2",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T3 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=a1616cead36662f82e516ed1c7108ca5908fe5b390690c5172b3fdd539dda00b与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T3及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T3行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T3 — 现实施提示SHA256=b0f76b92748658c3b31e1e73eec233232b3236c910c55a2d383dc300f4e02846；历史实施提示SHA256=9ef536483c5a7c093fe402606dc16b95d487d7678a9dce71bb83d9b3c622fc0b。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前eea5491c813ca6a5b3f4ff8c6e798e1b562c7b10defc0d3ee0498179eb055cf2。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T4": {
+      "contractHash": "86d2194fadaa84cd34c8d5ad215d5709b47c9d6485cd57d3b977cbc3f2f40242",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T4 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=3b3e51c3783660392b4f5a7138fce8adf86545b37dc11ebd42eab7099375549d与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T4及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T4行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T4 — 现实施提示SHA256=c44fdd2bfc7260967de6459d1628522c6245e6c88a6f31d9695ad94935cc205a；历史实施提示SHA256=8883fcd61e1fb57f0ca1a0cabdf9e8ad182352635bf47c1ee0ff4a374cbdcf34。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前86d2194fadaa84cd34c8d5ad215d5709b47c9d6485cd57d3b977cbc3f2f40242。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T5": {
+      "contractHash": "634667944a47cb9a80e01f6d00d7823bb67334c5eab459906ae95a6bb1a7ac35",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T5 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=b3a603e0ee7f8f415a687be05bcae1942b3c13737a550f376d3c8d267a0636c2与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T5及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T5行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T5 — 现实施提示SHA256=9932ba2b9073480f21d41b0f2a729b9000586817d08b921f326ca310ffb86586；历史实施提示SHA256=54d5365a748ed36bf40782b985e2ef77c57e08660b9aea4c574d0e8738ff7e4e。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前634667944a47cb9a80e01f6d00d7823bb67334c5eab459906ae95a6bb1a7ac35。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T6": {
+      "contractHash": "35541fa3bdfbdf117423206722cc10c12354fa242607bd1379d3a901c44b4a9c",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T6 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=7f0e37d7ac67cb2139d5cc0b6534c5eaf1d93dec14ee381c4e1d12e2a3f67397与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T6及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T6行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T6 — 现实施提示SHA256=e7f8dfcb9ed2f1b44670f78043b81e45cbf6306b0710018ed791cce792d39757；历史实施提示SHA256=14feda9f1b118e29336911274574c550950c7a8d4dda390839e1128ca6f0d5a2。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前35541fa3bdfbdf117423206722cc10c12354fa242607bd1379d3a901c44b4a9c。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T7": {
+      "contractHash": "23b79acbf58f20cf6603e4577408638d9b9b7c02eb5759fcf651c4f71757836c",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T7 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=4b993efe9a902ea865837f3e5d7036d7a0f16e29446041c7e26f641f44776cd3与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T7及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T7行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T7 — 现实施提示SHA256=3f8b57bcdb731c4c32d5b55f134b3ec7eeed4e958daa7dc5f181e309502e35a8；历史实施提示SHA256=32b0d82b9a5a4a0b2a690be5aec60c8d3f586ab1706cd83dc2beb14e51c8795c。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前23b79acbf58f20cf6603e4577408638d9b9b7c02eb5759fcf651c4f71757836c。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T8": {
+      "contractHash": "049b942c3141b0e1d426517df19b2be0975cfeace22a9d51b115a8ea8fc062c1",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T8 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=ba4710a27b9d24b69191d16328e7cac29cf2242e0a05a3c3c0a927ac165b179f与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T8及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T8行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T8 — 现实施提示SHA256=2d5058c255c759d17dc72de55e39ad0d03d2422998ee044df34fdacb1df69293；历史实施提示SHA256=1ed59a860f06c0ed76d6ea64863402cbae50b96981a6b99448c87c8cf63f8de0。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前049b942c3141b0e1d426517df19b2be0975cfeace22a9d51b115a8ea8fc062c1。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M3-T9": {
+      "contractHash": "a8a4396e8ac2bf15610a591fab16793b250c26c9a78b9bbe29e0caa846a9f64e",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M3-T9 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=4524e25ee9a96a4f189cfe16b3291f6c0c3bf0fc04d42a0fb1713fd9552076b5与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M3-T9及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M3-T9行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M3-T9 — 现实施提示SHA256=849a6b9dcb6ccde830d51f505a7fc07b070bcf97099d7fe29ca150ae977ae39f；历史实施提示SHA256=d8b24f506dcbd1a3e75aec162352fcd72c35a40913ae88f76ad272a81a20ebb7。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前a8a4396e8ac2bf15610a591fab16793b250c26c9a78b9bbe29e0caa846a9f64e。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T1": {
+      "contractHash": "27e9d651a49cc37c4b8773d123a00715f9d78145fc01853f8ac492a3d7f05630",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T1 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=3807caa3309379ea9223eeea7204a0977c153e867874f4b0432184092812c398与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T1及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T1行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T1 — 现实施提示SHA256=ae080c43c30dc7be336d57c60182de3e2952b837274c630e6dc4f3b2a6ad9b36；历史实施提示SHA256=7bf868a753300f82ec6cfe9366eb85a119a76caabda587ac7ad93367ca62fd71。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前27e9d651a49cc37c4b8773d123a00715f9d78145fc01853f8ac492a3d7f05630。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T10": {
+      "contractHash": "a228510592ab009ab39b9a4e84e8829828f3a00f3d4c7a0e078ccbef77056b42",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T10 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=6d56cb0ad6562f2a8dd29d31bc54ac362a2b03e20220626cd9637c2b763e52be与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T10及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T10行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T10 — 现实施提示SHA256=e82c00cc2842bce0c3ae40fc3b586783dc7968bd477626ff2341878e5445398a；历史实施提示SHA256=91f29d352c87333ededf52c89549c39ff7b6b1609d2593ac5c54efaec8560425。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前a228510592ab009ab39b9a4e84e8829828f3a00f3d4c7a0e078ccbef77056b42。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T11": {
+      "contractHash": "82c4bf56e9994f9952bb11beeb911124644d77e4492f2f16f6adf4f983223216",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T11 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=740f8b3fa6ea8d8d0dd3a7e8911899ac881d40df5a44f2c907a48325620f740d与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T11及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T11行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T11 — 现实施提示SHA256=e9548bd00362688f182fbdd700d44ce412116e238ff4dbca586aa046215bfe3b；历史实施提示SHA256=521c2822b545e008df09633533677460289ad6cf93fc884bcffbd66e6ca04389。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前82c4bf56e9994f9952bb11beeb911124644d77e4492f2f16f6adf4f983223216。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T12": {
+      "contractHash": "21c80fbecf808bc1539a95da30485b802979c195e98bbd7120faf18c724fad3b",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T12 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=5dbb051b6e15f2be1cce86e02079b6c1532c990baf4f0a33a5a7d7c3dc5add39与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T12及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T12行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T12 — 现实施提示SHA256=b35805efd7454a4a86d8344dc54dbb97715561db266cd774a51a3be196db8206；历史实施提示SHA256=d31706595f08db2b7f2761751d64286f4ac44fabb8b4c573e727fe26a253a228。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前21c80fbecf808bc1539a95da30485b802979c195e98bbd7120faf18c724fad3b。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T13": {
+      "contractHash": "904919c2067c5a29fc6f5d0a5e0dcfc8047b2f731fb976203e3220065a7d23b2",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T13 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=4653ec94e26481a47fcbaa95d66c49a1bb792bcf7555e93a8e6ddd8aeb3a0d38与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T13及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T13行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T13 — 现实施提示SHA256=9ac30d002cb4db2c3d9f03cb1d22a2b428ef611f03f7f5bfdcc4cd34af16defb；历史实施提示SHA256=1379896427a41fea2a5bb4ed5671ac370a7ecc42c2b3a9f8ccb3627b21a06ec1。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前904919c2067c5a29fc6f5d0a5e0dcfc8047b2f731fb976203e3220065a7d23b2。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T14": {
+      "contractHash": "832354c80e476f99cc1153610c5fb4f8abccf53100941fad21057b88a5e20198",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T14 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=38ec1f9462a23ccca45969ef4b123fb18225e697e5b900562ae07a0d39d7548a与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T14及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T14行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T14 — 现实施提示SHA256=c744ec17e82a91e16fb459cfaaf031c5bc4fbfd70c63e830a2eacb5af240ec88；历史实施提示SHA256=e0f3f87623c58be486faf295d6d0ae0604c4e9835a9aba5b74fcea260b618bb3。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前832354c80e476f99cc1153610c5fb4f8abccf53100941fad21057b88a5e20198。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T15": {
+      "contractHash": "fe8a3a3b2f2e41e71b481ecc59934cb5d42d156a7633e5440e2d99d04219314c",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T15 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=4c30b7aa81841bd172cebb321fa81441a77b42044b2414e8b3cb84a9635c648f与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T15及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T15行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T15 — 现实施提示SHA256=39b1c83931bc59b9b0ec56887e1838b90a55368ed5a2f02b5e31281491a46e96；历史实施提示SHA256=b1c3485985a1e7e9672721b4eaa22750165d189f2213b9d06f833e27bc9b4e19。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前fe8a3a3b2f2e41e71b481ecc59934cb5d42d156a7633e5440e2d99d04219314c。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T2": {
+      "contractHash": "ed66ad655c319bf21ed596b6a71926544692c93974754628a9028e2ca3797f7b",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T2 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=9f871a279d9f38b1489dfcc0fa0d8ea95f2ad3b217289e5394c6937979ce009d与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T2及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T2行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T2 — 现实施提示SHA256=8a3d36a7dca4a90f994483fe9e05f38303fb36a70050115ba7908ac7c7b36d07；历史实施提示SHA256=58eb3d154b78caa8f3b941cb4285ffaaf1920e07e9bf2a6b1def6e5bdfc8d39a。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前ed66ad655c319bf21ed596b6a71926544692c93974754628a9028e2ca3797f7b。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T3": {
+      "contractHash": "85317be67d5e6cf4e595cde501cdc9de0070380ac2222e3faffb4574ed6d5332",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T3 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=45e5206d26df350c4cee31344dbfc620e9a46f77fafee19a2c16caf3b3fe14f7与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T3及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T3行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T3 — 现实施提示SHA256=96bcea115bf035dbd7a1b57b5fc0c88b11a678d6943e1f7327e58e6365fb913b；历史实施提示SHA256=4e03bd3832f697d3abfc307ed3954d3e21e34cbfc21f56f0fb873cd2aee5a975。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前85317be67d5e6cf4e595cde501cdc9de0070380ac2222e3faffb4574ed6d5332。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T4": {
+      "contractHash": "4ce7359060f6dba1ad605354db039639f1c12890ec028e4f0820c7492fcacf97",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T4 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=22d1194dce0584f3eeec672c5d3bd77ca6cb93fbeb71e1508b4abd3a6c2c6216与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T4及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T4行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T4 — 现实施提示SHA256=159eee1c285a19ee28ee571dbda8e620264e2a339790d8642f915b53cbe4931e；历史实施提示SHA256=37645b3fee58e9102fa8f2a17dc137b34dbb4a37a788e1fbf69bffc48a3930d8。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前4ce7359060f6dba1ad605354db039639f1c12890ec028e4f0820c7492fcacf97。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T5": {
+      "contractHash": "080a4d1756dacdcbeeb0009b7dad366098c4ee2305d63a959600474cd031afc2",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T5 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=f45baffbc50ae2aec0e5ee3863139d1ef357b7690242614eb15d07e615f824c5与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T5及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T5行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T5 — 现实施提示SHA256=98267cf48f835cc299193c10f80505d036bd1ec81f2f7075c6c4a8d91d5effc7；历史实施提示SHA256=581afa7db6e3a5cf864b65600eed336fa8e212a7c172930067be8721ab9d44f4。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前080a4d1756dacdcbeeb0009b7dad366098c4ee2305d63a959600474cd031afc2。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T6": {
+      "contractHash": "cfe4b8854b771df05ce5d6d7d4a94146da4175924d6d8560c5feb2f46eeff611",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T6 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=10875638b83e2df7d99c39901b10f59f11d2f2623577f8cf4183908f264d5b72与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T6及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T6行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T6 — 现实施提示SHA256=11a6ced2af600612c15a591e77ec9dd94d9d8c631833c4403587a19e709e4a65；历史实施提示SHA256=bfdd0e15bf44715bbffa9e2596099c9fd7f6f9a67a2d33cbea835e2fd101f2a7。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前cfe4b8854b771df05ce5d6d7d4a94146da4175924d6d8560c5feb2f46eeff611。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T7": {
+      "contractHash": "257967bc25ee195b733768df145dc4a2ba7e2f1a8a1269fde5e92e3f537e1d7d",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T7 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=b17043e1120be899025254cf9fa32476fab355410c63bece5986fbf983e16098与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T7及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T7行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T7 — 现实施提示SHA256=2aca847195493967e44fc118a1250548cdc79a884bfbf1a243bd045b2a145b4a；历史实施提示SHA256=43be0cb4dd7a97657b162cadeda88dde7cca9a85f3e94f019ce67a2e1f9895fa。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前257967bc25ee195b733768df145dc4a2ba7e2f1a8a1269fde5e92e3f537e1d7d。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T8": {
+      "contractHash": "ed98eacfab163503ebf421c7e4ec75865c3cd9f5b7bfedbd1819206d0334aef2",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T8 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=7ed8d9ccbc23f590660db85514182a16996a9365582f45f59adaa088c6725db6与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T8及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T8行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T8 — 现实施提示SHA256=1a9a74690e08fa206d7c14874b1cac0e02a68eb8d1aa364c733e66d4b610c4f5；历史实施提示SHA256=f21581ce0e2330a2635560d6177cf1003008e2449be13d939e07f94a53038890。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前ed98eacfab163503ebf421c7e4ec75865c3cd9f5b7bfedbd1819206d0334aef2。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M4-T9": {
+      "contractHash": "c1773bb4bc7dc75d15d5104a6d440f692cedf497c24a257fb1db99b7013b32e9",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M4-T9 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=9dc1531baa535db44cea77b5679da0500acaee2fd573995467a110c293b7e0db与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M4-T9及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M4-T9行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M4-T9 — 现实施提示SHA256=2f80970152decf4e3c22d5f19f95322f7c233b9c3625db9b0f493a5f1a2374bd；历史实施提示SHA256=00a9112043c8d8e0cbac166f78d0b123dc38c53159d0832286c9955dfabd3bca。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前c1773bb4bc7dc75d15d5104a6d440f692cedf497c24a257fb1db99b7013b32e9。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T1": {
+      "contractHash": "dad068afd92ce11dba5b8a27b43fe142a21dcc414f70b153a3e93b48a4f96d11",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T1 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=fbf9c935ffa38101ef922101c603334180f4bb958ed7cc5530da9c07ed77dc72与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T1及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T1行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T1 — 现实施提示SHA256=3662e673617f6ebde61b5c286f2a54d593a5347f5120baab846c5d6114ba6128；历史实施提示SHA256=c64f6372ecd98f88de2f25eb4bb690722c6f29baca8b59da7f3e345401297c6b。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前dad068afd92ce11dba5b8a27b43fe142a21dcc414f70b153a3e93b48a4f96d11。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T10": {
+      "contractHash": "c9fa87ab7c2f9201b15912333f4be466a96ca8f41bfc1070dbefb69f6763564e",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T10 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=ef1f619c64de87373dd947f3a762e699c0a1585eb1fe4b6239efd01d793a866d与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T10及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T10行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T10 — 现实施提示SHA256=9e9bbca0b19a3ff41695b6de995c47b9e8149f08754ff31b6e86ccc15b507f83；历史实施提示SHA256=74e643d4ebc8d4964f44bee75e8d5c7259a6c2fe7f5a5126547ed49454ba971c。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前c9fa87ab7c2f9201b15912333f4be466a96ca8f41bfc1070dbefb69f6763564e。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T11": {
+      "contractHash": "0bfd2c81d03930a32446533bc34596fca8ee32a22c940fca91b74017a25b090b",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T11 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=add8552aa56f1a4bc9ad7c52026fe31bc1bce409e20b657967be1ff6b79cdb83与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T11及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T11行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T11 — 现实施提示SHA256=c57aa61aa63996d7a447506b0db3dd878bd2ab0beccd9e0b33139d0c584b983a；历史实施提示SHA256=539c5531acab5448d840bc672ad87e33f0a581d33d9aa01fb69fcdeff921838d。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前0bfd2c81d03930a32446533bc34596fca8ee32a22c940fca91b74017a25b090b。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T2": {
+      "contractHash": "eaf12ca7725bb2a843ae59a5fa970ea728a492cdc1bd329b5e7be122eb129bba",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T2 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=857351952b75597dabfa2bf6f3d0c3207c562f8b4fdd90d519f398ec1111d4a4与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T2及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T2行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T2 — 现实施提示SHA256=ed4c2d37f452729db10250b6bafd4cbe2fb74a44a8053d3d9aca04e91f9fc00f；历史实施提示SHA256=e148d2283192cbe4a371830d2cd7ba8966e3489f331a5b8a2dc8395b2a2a1adf。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前eaf12ca7725bb2a843ae59a5fa970ea728a492cdc1bd329b5e7be122eb129bba。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T3": {
+      "contractHash": "e4edd4ac6d6f6bff1d151c4cb38a0a4beca2015575db4f8e661a0afb4c6576ad",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T3 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=075a3ed0579f9210ee95a0f79052ce04402c842fca1c47cb852b857583e6c3a1与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T3及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T3行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T3 — 现实施提示SHA256=1ab7de56ef952f752acc67d7b60c9835c91d36f7140287cd96f51112f43bf86c；历史实施提示SHA256=721abc0a4ab89616dc479b6c6ec2322a20570eec18b306edf5c9a32f188453c8。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前e4edd4ac6d6f6bff1d151c4cb38a0a4beca2015575db4f8e661a0afb4c6576ad。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T4": {
+      "contractHash": "5dc271966308fa98aade145bf66979bef9822fb3bba7084f4409bacb7564ebe6",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T4 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=510ba2d1b6531cc106b9917a06db09ba93a70b7cdcd5fa19243b65c2446e7edb与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T4及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T4行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T4 — 现实施提示SHA256=15e19beda2dd297ac91f9d3df4442343963162dec5e2b8f7e4bf0de81fd57beb；历史实施提示SHA256=7d08d7f58b2085f1af302d136588f204f7e8afb2a0aaefbeb0941bd54191021f。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前5dc271966308fa98aade145bf66979bef9822fb3bba7084f4409bacb7564ebe6。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T5": {
+      "contractHash": "4f607315aa70fd3580ad18aa5790b2eb264284f0f948e902108dc20aaad3f378",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T5 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=0eb373e42e6a2731479d6fd519aaf95f3b9fbbe5b3374d1d75bfb6d98e2857f8与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T5及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T5行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T5 — 现实施提示SHA256=7894170f979a4d2fd7ea35aeebde8001d9a30e73d8f01c267a022d811bf4a282；历史实施提示SHA256=ac588451da44bfffecf80c7a6bf3e9f96db8ad0705ec52fa02bc2e1831453076。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前4f607315aa70fd3580ad18aa5790b2eb264284f0f948e902108dc20aaad3f378。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T6": {
+      "contractHash": "f151575e366d83308e58834130c40d456f4271d3297891e21eb7eda742cb933f",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T6 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=9eb0b7f56402245a83fc48556537a4a0b7256f985f84fa4c33a09352e8038907与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T6及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T6行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T6 — 现实施提示SHA256=21c0ff3d0bdecb12f6d63b440a50c554302ea53657a52f5038fe0434a5b14188；历史实施提示SHA256=143e6171eb7ee9796d6722de506e0ccbca38ae3f405cf24f83eba5e4ac134db1。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前f151575e366d83308e58834130c40d456f4271d3297891e21eb7eda742cb933f。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T7": {
+      "contractHash": "c955dec3a0a1a9eff7991170d3c8b2b61ee78345d37921332984ff14aa4eecac",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T7 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=9bd9f34af8deaaa8b5b6d1e1ddda755c1b61c9ff23ca7586a6dfd515f06f5823与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T7及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T7行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T7 — 现实施提示SHA256=d99f1e81385f55b023c38065642461ccac4dead299859153dd3cbd7117c32e24；历史实施提示SHA256=44981523f10e35a58abec72e9973ee34b4c4a86978da3c68f54c83f9cc52ee7e。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前c955dec3a0a1a9eff7991170d3c8b2b61ee78345d37921332984ff14aa4eecac。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T8": {
+      "contractHash": "4fe4173b4ef781a2765d33a3a47b34493bc8d892a1571487d0485d6c6da79911",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T8 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=de987849abd29fe629ce931b26cfb9721a9501ba1fe5daac6fbbc4b5145d4ce4与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T8及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T8行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T8 — 现实施提示SHA256=eb3b3bc132a223a69e6ecf1c89755aa830cdd5cd14732943bb118e493d025be4；历史实施提示SHA256=c4f5fc57463e1493f3b8018588f28e49d07a7b8b806e67e99afbd877a174c13b。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前4fe4173b4ef781a2765d33a3a47b34493bc8d892a1571487d0485d6c6da79911。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M5-T9": {
+      "contractHash": "9c7ef297cea91582b33a3e1ecf5358b7303bc633d3dc08f01582f4e9513517d9",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M5-T9 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=a9e230e36c4a4958d38c81851199735b0832c96328bc8fb8887c197b7e6c4b08与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M5-T9及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M5-T9行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M5-T9 — 现实施提示SHA256=9beb157b74bc3f7cd8886603ee8556d54fdddab62d7a9f93a7f44cd7ff8ffed1；历史实施提示SHA256=9ba93836f0d841f7cadbf79645b66d7f169bfbfc67c375bc213421269381f9a8。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前9c7ef297cea91582b33a3e1ecf5358b7303bc633d3dc08f01582f4e9513517d9。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M6-T1": {
+      "contractHash": "dbda226689cdd1fde6574312dc4931c5e338ca1cc9ab5ea166d2dada79090615",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M6-T1 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=4ffcc79605e17699a26615981047009e469a9baad99ca89040c37d96f1a98d57与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M6-T1及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M6-T1行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M6-T1 — 现实施提示SHA256=9ee08602427b215dba4ffbac18872574025f962e8685ef6c03cfbd927d52384e；历史实施提示SHA256=0d1613cf374b93f4ee61aff6dc30c970d32d8f81bb396ec99aee76067e35f381。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前dbda226689cdd1fde6574312dc4931c5e338ca1cc9ab5ea166d2dada79090615。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M6-T2": {
+      "contractHash": "334f5ac50f83eca0dc18a4048366eafb58e742024e3d934748e3b59152829c0e",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M6-T2 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=69262ad55bd83523a7d8213013fa60ec632164c6b2e18a8c7e05d7956a9a1c37与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M6-T2及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M6-T2行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M6-T2 — 现实施提示SHA256=b98f655fa0682a2713ccc2757cb5cd42ab6cc3ba9301c65dd67e1db6519312b5；历史实施提示SHA256=12164e0bca1be3d9705ea3d6cd493ee4cc5aa3348fbe9e755117083de543d051。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前334f5ac50f83eca0dc18a4048366eafb58e742024e3d934748e3b59152829c0e。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M6-T3": {
+      "contractHash": "d96bfcac4735c8b7f5be5b65e8d98f803d9c33da14ee109e4c4caea80c0eaf26",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M6-T3 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=de511ee2529f6499eeec27c9bc6471e83647cf8141fc57b46056dbfb2b9b4e03与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M6-T3及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M6-T3行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M6-T3 — 现实施提示SHA256=a46efb93ec662f355d376ce4e6b40d64df8e83f3dcd269911bd3caaf4bbc130d；历史实施提示SHA256=e1ebcccaef09456cd0efa98e0d7ef26ca393414d46328199f93adf68a7e6747a。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前d96bfcac4735c8b7f5be5b65e8d98f803d9c33da14ee109e4c4caea80c0eaf26。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M6-T4": {
+      "contractHash": "1496c914b37d84ec9ffb02200e84e4d922f2b3be1de9f7783986c4d4fcb3c9f6",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M6-T4 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=073d0a1a76b9909ec6026a6ddfeb5395d6627567e932aaac7d54f0df8d49c77b与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M6-T4及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M6-T4行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M6-T4 — 现实施提示SHA256=1eb241cb9dda3896b83871768ebb2230eb1525f991ce6643b8d48d3d6bb9cd02；历史实施提示SHA256=1a619d181b74e4eb8863454856e9d4df9b09fe45a8277d8e889b31c1bcbaa5bb。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前1496c914b37d84ec9ffb02200e84e4d922f2b3be1de9f7783986c4d4fcb3c9f6。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M6-T5": {
+      "contractHash": "c569dec6d393ba60611267c4dadfe9289f49bb3b550a30999b33a4672edb939b",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M6-T5 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=2d0a141946431b3c731fda96e9746788967af29645920908af02f1aef939b9d2与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M6-T5及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M6-T5行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M6-T5 — 现实施提示SHA256=bc8ebae8aa3170941a1ab757888f2823462fc506f196670e5d764b096538bada；历史实施提示SHA256=a40275cbdfdd5f265e46e87fa0293c41c2fabb18c885bb5fd83e61a9088e67bc。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前c569dec6d393ba60611267c4dadfe9289f49bb3b550a30999b33a4672edb939b。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M6-T6": {
+      "contractHash": "6cf77d8a24ae63c9c6ebb537352057f760d5c57385aba5b019c6f3a5bc0cab77",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M6-T6 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=6eedb95b5c5152347d6a7c6cf174ce7a33cd0b67bebc37cec4fb71e530610bc8与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M6-T6及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M6-T6行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M6-T6 — 现实施提示SHA256=8b513a08e4ebf98b8529760cb2da30f4b34d54eb59a2d2e60d23cd2774978809；历史实施提示SHA256=1fa2ceb06229e57fe158e60ff8c110df372236d0279ae5091d31227d4c622558。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前6cf77d8a24ae63c9c6ebb537352057f760d5c57385aba5b019c6f3a5bc0cab77。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M6-T7": {
+      "contractHash": "7a33f47cca13edf90d55f20a66bbc9aaec3f315a98447b1ba7e2f3f697161751",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M6-T7 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=1a00573a955f12e27c9bbfc2aea108fc3e0931aa87fc9ebd6c6e29dc3fd512e7与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M6-T7及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M6-T7行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M6-T7 — 现实施提示SHA256=70a43679165f5a7bd54b1a9dd54b3f3ad30e1687a44bfd71a166fedbf1e7cfbc；历史实施提示SHA256=e018274971a4d718cc9def418dcb755e58ee19911856c424bc299f2aee71a6b2。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前7a33f47cca13edf90d55f20a66bbc9aaec3f315a98447b1ba7e2f3f697161751。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T1": {
+      "contractHash": "ceee7ad0c8aeaaf328b778277549a319d7f3e0c72cd05f489a89b8e3c3c431bd",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T1 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=c1c63657e6d073e79073508fcc4b65b8ea8f7bcab0a065a9035e8250c688199e与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T1及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T1行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T1 — 现实施提示SHA256=fafb4910914cff4831c1bd5ea79451fe7735d6c73cfb2c7bd743c107a96578bc；历史实施提示SHA256=c7a9fc492327c10b580416da9711af215a55964fb0f10279ebbe926af99812cf。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前ceee7ad0c8aeaaf328b778277549a319d7f3e0c72cd05f489a89b8e3c3c431bd。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T2": {
+      "contractHash": "0b820e208b08e7bb156712077ce157a4feeb77f28f27b9793033790783c273d7",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T2 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=ffebdfbe4c02885c1472cc9d477351c48acdfc204323a5c8420f83fca10eb539与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T2及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T2行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T2 — 现实施提示SHA256=d37bb362bda62cf35f45951b52460cd92eb6fd94f062616365b7a7e4a261bfc9；历史实施提示SHA256=3fa5fdeb42acf27adc5f86c460e88d65b5eaafabab2a92344e548313ec0ca6e4。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前0b820e208b08e7bb156712077ce157a4feeb77f28f27b9793033790783c273d7。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T3": {
+      "contractHash": "82a1727788db28f329e640554332e55d7ca6ad1425f8699d1a5f776dbef4b25b",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T3 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=1ebaa936f062660c1163f56c1877ae2b86d3d85fd7a76e4a373f47d1a371bd22与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T3及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T3行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T3 — 现实施提示SHA256=623b2f0ac5890acba193ba2440b66b9d9d5fa601adcc35c4df5e6ab6fa32dfc3；历史实施提示SHA256=57f77aa50f61794808ed52a31a60be8fc70536949078b649730681e5c4be72f5。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前82a1727788db28f329e640554332e55d7ca6ad1425f8699d1a5f776dbef4b25b。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T4": {
+      "contractHash": "1464b6f5d73dd1f2328b31879889a88652e60ed4922bf351cd9979ece9b18f5f",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T4 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=117f20c4f3c30e440bd35c02085e3dbb05e087b40b0f8e74048b729b28bbf8fc与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T4及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T4行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T4 — 现实施提示SHA256=21067c0b4f0eee8d63f5e30b3e9fadb7c636fbaec8ab0ea64082606b88f4b584；历史实施提示SHA256=80bc2d34517292542ba415a7480767c5834b2c377a450f730c1b081db9c06a7b。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前1464b6f5d73dd1f2328b31879889a88652e60ed4922bf351cd9979ece9b18f5f。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T5": {
+      "contractHash": "bdcfe478dda2da7632c3706cc91459ebaf24fb72a3c44ed17efad0ccf993b5be",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T5 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=141c539ab3f664ab87142a5224299c42d1789afe01aa90a7fe6b187b8ca8819d与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T5及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T5行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T5 — 现实施提示SHA256=08362e4cfc37017601fe502e40e136b34a3b75da51ed736f1c17c30343e810d1；历史实施提示SHA256=739890a221a8dd27d71fb63ad720e4a6419c7d82a4415a0b8d2169115de5c162。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前bdcfe478dda2da7632c3706cc91459ebaf24fb72a3c44ed17efad0ccf993b5be。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T6": {
+      "contractHash": "08758b3d068f3c4c1f0733f658d4e7678cd5d32090258ac49388960da75dcdd4",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T6 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=0cd907a18c069b115a5749b5ec59b4e6eef3448443d15c0bcdf7c39b08b7bcde与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T6及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T6行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T6 — 现实施提示SHA256=308f0628aecd186a29b697a35268aba6e0249fd1b9533cdca102408440fdab51；历史实施提示SHA256=89d2c7553dda6b2af5028331b9140914a073496d60335c81c3ebfa65ebf35b5c。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前08758b3d068f3c4c1f0733f658d4e7678cd5d32090258ac49388960da75dcdd4。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T7": {
+      "contractHash": "7a5d05f8058cd77f1188a24c0f01bdf20918ef53949a4718e348b3a5265b7554",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T7 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=68d0bfabb88e14b8e5ab6de0d07bb2f93c39dee8634e3261cbfdb8306b715ef5与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T7及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T7行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T7 — 现实施提示SHA256=43b912d2d42398fc2c35d749d164d233b8644fd0045633dbda707acdc26ba528；历史实施提示SHA256=562330502e8d4261d0a68216a9f5fe212fb0aa967a505574764cc3e61860f6fd。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前7a5d05f8058cd77f1188a24c0f01bdf20918ef53949a4718e348b3a5265b7554。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "eba552079524a61b50a96b9009428eb107e605c7440dd53763e0c59a8bbf29c9",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T8 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=4dd907335b37318fe4beb2359e8bb7fd87e37725b4156a188a97d561870f90ef与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T8及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T8行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T8 — 现实施提示SHA256=087d87be89297bba869df3d524ee7e0d3c070e33333d20545f45b28c181fd0f0；历史实施提示SHA256=c76001bc2c0f2133fe26b3c5ce8b6a2337d89e7309be026f16e0bcd23eb76e09。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前eba552079524a61b50a96b9009428eb107e605c7440dd53763e0c59a8bbf29c9。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "92ec9a0b102c01a468504961af342b87afda35270e02d4f4837997967d6fc730",
+      "verdict": "pass",
+      "evidence": [
+        "_run/user-audit-20261019/user-audit-verifier.evidence.json tasks.M7-T9 — 继承已提交aa2be53中逐卡语义复核；历史证据的contractHash=1df0863e8613c39626c90cbea06b4392f85c9ae1de98493b900ddf4e24727523与该提交dispatch逐值一致，verdict=pass。继承范围仅为本轮未改的产品、架构、路径、依赖、边界与验收条款。",
+        "_run/task-contracts.json tasks.M7-T9及04-执行/19-模块任务拆分.md — 合同JSON与aa2be53完全相等；提供/消费能力、stage、wiring、supportPaths、outputPaths、sections、依赖、估时均未改。本轮仅澄清规格基线获取路由，不增加产品/布局/媒体要求。",
+        "04-执行/19-模块任务拆分.md M7-T9行与aa2be53逐字相同；精确归一化公共conventions和各自contractHash后，本卡bug/implementation/resume/review四种提示均逐字相同，有限delta不改变该卡产品语义。",
+        "_run/presentation.json:105及_run/dispatch.json tasks.M7-T9 — 现实施提示SHA256=36de92185a78b387fe2afdc9e6eb04526907d4b3402f0d1775a96df206c08802；历史实施提示SHA256=9fb401d2715a3ca5e83b970aaa23a546bf4366d721c4cb2464a44a1bf4daabf5。84项新提示均含本地main/远端缺规格时导入/已有则沿用的约定，旧临时分支实时引用为零；四种提示内契约版本均等于当前92ec9a0b102c01a468504961af342b87afda35270e02d4f4837997967d6fc730。新SHA仅本轮独立差异核验，未声称重新调用真实模型校准。",
+        "_run/review.json — 0阻断、28既有警告，warning条目与aa2be53逐项相同；build_vault.py --check真实退出0，7模块/84任务/111边界，实施沉淀0/84。此pass不表示产品任务已落地，也不表示Git合并、远端推送或分支清理已经发生。"
+      ]
+    }
+  }
+}

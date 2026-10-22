@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Replace visitor chat and wire offline messages and failed-send retries",
+    "input": "M4 visitor APIs, M1 visual-base/client-api-foundation, existing contact/InquiryWizard and CookieConsent; section 11/12 human-consultation interaction.",
+    "output": "ChatContainer/MessageList/Composer, a visible contact entry, chat client/single-in-flight incremental polling; an independent contact entry at the existing InquiryWizard production assembly point while retaining its inquiry submission; FloatingActions becomes same-site human-contact navigation; removal of Tawk runtime wiring and updated first-party necessary-chat copy; synchronized en/ru privacy copy.",
+    "accept": "1) Entry: home/public-navigation Request a quote -> /[locale]/contact. Contact a person (contact-human-chat) actively sends POST /api/chat/session; Send message (chat-send) -> POST /api/chat/conversations or its messages endpoint. Data sources also include GET /api/chat/conversations/[id] and POST read. Assert actual requests/durable and unchanging received results after clicks. Offline mode has no online indicator. Failures retain the draft and original UUID in tab memory; email is optional (E-16, E-17, E-31, E-36, E-37, E-38, E-39). 2) Declining analytics still permits human consultation, with zero Tawk third-party requests and no analytics identity. An expired same-origin cookie stops the old thread and provides an explicit new-consultation option plus existing email/inquiry entries. Turning chat off with its independent switch preserves contact capability (E-20, E-40, E-85). 3) Poll every 3s while visible, zero times while hidden, and catch up on restoration. Failure backoff is 1/2/4/8/16/30s with one request in flight. Out-of-order responses cannot regress seq; read applies only to visible messages. On the real service at desktop widths 1440/1920 and narrow width 390, check tokens/44px controls/focus and attach a real visitor-flow GIF (E-76, E-77, E-78, E-79). 3) Use the unique minimalist-flat style from section 11 and the wiring in sections 07/12. Record actual GIFs/computed styles separately at 1920x1080, 1440x900, and 390x844. For each admin page run D1-D6 and overflow probes under work/form/card; retain keyboard operation and 44px touch targets on the public site."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

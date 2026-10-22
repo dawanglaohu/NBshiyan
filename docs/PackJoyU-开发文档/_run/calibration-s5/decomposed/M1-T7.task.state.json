@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Complete shared visual variables and native UI wrappers",
+    "input": "The eight core visual-base variables and the complete component/state specification in section 11",
+    "output": "visual-components; the complete single token source and native Button/Input/Dialog/Status wrappers",
+    "accept": "1) Extend only the same tokens.css, without a second set of color/font/spacing variables. Button/Input/Dialog/Status must use section 11 heights, 2px borders, 0 border radius and disabled/busy/error/focus values; Class/variable-reference and native-semantics assertions must match every state; M1-T4 verifies actual computed styles in integration. 2) Wrapper components contain no fetch, Prisma, identity, cookie or business-role decisions. Automated tests cover keyboard focus and dialog focus restoration; public and admin clients import the same export."
+  },
+  "module": "M1",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

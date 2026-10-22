@@ -1,0 +1,16 @@
+{
+  "edge": {
+    "scene": "Own logo and reference-PDF factual boundaries",
+    "trigger": "The GPT Dot tool is reachable and actually performs production using remote software",
+    "expect": "Retain tool-call records, software-operation evidence, and output-file evidence, then inspect the finished output. When the tool is unreachable, record Not yet executed item by item with concrete implementation tasks. Do not falsely claim a call or completed asset replacement."
+  },
+  "modules": {
+    "M1": "Brand/public UX: PackJoyU wordmark, verified content, JPG/GIF copies, home media/pages; sole visual tokens owner.",
+    "M2": "Products/3D: lists/cards/details, direct model input, touch/keyboard, image fallback, contextual inquiry.",
+    "M3": "Admin access/accounts: login/shell/settings, device sessions, authenticator/mode, revocation/restricted recovery.",
+    "M4": "First-party human chat: visitor session, messages/offline, ADMIN/SALES inbox/replies, unread/draft/retry, receipt/notification.",
+    "M5": "Consent/statistics ledger: anonymous IDs/events, admission/dedup, site timezone, daily/product aggregates, retention/recompute.",
+    "M6": "Business/ops dashboard: role-filtered real sources; distinguish data time, zero/no-data/unconnected/error/stale.",
+    "M7": "Integration/delivery: real cross-module visitor/admin/recovery/statistics/reliability acceptance evidence; safe recovered-source reuse."
+  }
+}

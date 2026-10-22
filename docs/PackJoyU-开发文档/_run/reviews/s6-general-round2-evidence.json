@@ -1,0 +1,96 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T1": {
+      "contractHash": "eef4a0e7b72cc65b7248a21191020c7297b0dc2a63bd92844cacf196120f1fcc",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:11 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M1-T1.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M1-T1.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T1": {
+      "contractHash": "818f4eeda9cf5ec7fd31225bddce7057bea8aaec3c3731a7a5662f50cc35d298",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:80 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T1.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T1.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T2": {
+      "contractHash": "11721478375f4d9d75652afcd9c3a2dcf179ba974f49a9b8b557ef7e6349b2c0",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:81 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T2.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T2.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T3": {
+      "contractHash": "0c29e40c6be11d58d8a4421f22f4afdce4f8df6f0bca0dc6786b2be5d7bdc3a5",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:82 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T3.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T3.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T4": {
+      "contractHash": "77922c54511c533c60161f4662e627c3628c1c9e376524dcb5e4f2059e58172f",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:83 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T4.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T4.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T5": {
+      "contractHash": "f17a8051e422b47ee15acd66184e7a02f0508069f611ec2c24074f28d53373d5",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:84 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T5.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T5.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T6": {
+      "contractHash": "26f13c5e5a495030ab93f246ccdcfe17960652174a81ca4a3919c3ddb2eae381",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:85 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T6.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T6.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T7": {
+      "contractHash": "a13c7d2add33349d066bb00f2e9bb28c60ef1f131439e3568b66ec64ca91dd5e",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:86 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T7.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T7.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T8": {
+      "contractHash": "6cf437d8eedabf09c3e3150c5a6ee5c51eb63f807ba429da333ef723bf3772c5",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:87 — 第二轮只核首轮后差异；本任务声明范围/产出/阶段未扩大。M1-T1与M7-T1–T8验收/输入/直接依赖逐项未变，首轮语义证据保留；全局章与提供方修正后已刷新当前hash。",
+        "s6-general-round2-inputs/M7-T8.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T8.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。"
+      ]
+    },
+    "M7-T9": {
+      "contractHash": "97726cf3474f4e7d7fc62504f8cb8531ce72839161bf83c1c0fcecb9c7d66f56",
+      "verdict": "pass",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:88；04-执行/18-部署与运维.md:143 — G-B1已修：不直接执行内部mktemp+clone包装，只从现有worktree的已核main SHA用git archive导出到唯一planning/build-source；复用原Docker/BuildKit/公开args/revision标签/双镜像检查/manifest/import/schema/restore子步骤，泄漏/平台/版本检查不得省略；无新clone、平台、生产授权或任意删除。",
+        "s6-general-round2-inputs/M7-T9.status.json — 实际status sourceVersion=fca77b4d96bc9bd35e46494b75fa3f052764a5c0921a3a29c3d9f259741136e7，无stale/runtimeDrift/blocker；与最终dispatch包hash逐项相等，未执行verify。",
+        "_run/dispatch.json tasks.M7-T9.implementation — 重新核实际包中的目录纪律/本地规格导入/完成阶段/禁止注入认证状态等继承约定；初轮详细任务证据见s6-general-evidence.json及s6-general-review.md。",
+        "实际dispatch M7-T9实施包已包含同一archive/non-clone限定，任务路径仍仅e2e/delivery-smoke.spec.ts与docs/acceptance/delivery；planning内临时构建输入不另建开发仓库，目录纪律与验收可同时遵守。"
+      ]
+    }
+  }
+}

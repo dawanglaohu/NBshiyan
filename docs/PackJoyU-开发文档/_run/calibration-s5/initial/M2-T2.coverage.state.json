@@ -1,0 +1,25 @@
+{
+  "acceptance": "1) A direct pointer-down in the product-card model viewport must capture the current model; hover must stop autorotation without geometrically scaling the card; ordinary wheel input scrolls the page, and only Ctrl/Cmd+wheel on a focused model or zoom controls zoom the model, without first forcing activation (E-97, E-98, E-99). 2) pointercancel/blur/Escape/unmount must all release control; subsequent manipulation must target the correct model without leaving the page locked; the user's pause takes priority over hiding/showing recovery; preserve tests that fail before the modification and pass afterward (E-100).",
+  "edges": {
+    "E-97": {
+      "scene": "Model-drag ownership",
+      "trigger": "On PC, pointer-down and dragging start within a visible model viewport, then the pointer crosses into other cards",
+      "expect": "Only the initial model obtains pointer capture and rotates. Do not trigger card navigation or switch to another model; cards do not geometrically hover-scale."
+    },
+    "E-98": {
+      "scene": "Page scrolling and zoom",
+      "trigger": "The pointer passes over a model while an ordinary mouse wheel or trackpad scroll is used",
+      "expect": "The page continues to scroll normally. Only Ctrl/Cmd+wheel on a focused model or explicit zoom buttons change the model camera; release all wheel interception after leaving control."
+    },
+    "E-99": {
+      "scene": "Autorotation and user intent",
+      "trigger": "Hover, manual control has started, the user explicitly pauses, the model leaves the viewport or the page returns to the foreground",
+      "expect": "Pause autorotation during hover/manual control; restored visibility does not override the user's pause. Reduced motion defaults to static presentation while allowing explicit operation."
+    },
+    "E-100": {
+      "scene": "Loss of focus and cancellation",
+      "trigger": "pointercancel, window blur, Escape, card unmount or page navigation",
+      "expect": "Release pointer capture, listeners and interaction state. Leave no residual wheel interception or continuous rotation; the next entry can start normally."
+    }
+  }
+}

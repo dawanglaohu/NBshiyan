@@ -1,0 +1,30 @@
+{
+  "acceptance": "1) Caller/wiring point: recovery handlers -> restricted-recovery service; validate restricted-cookie hash/sv/expiry. Re-entering an active pending enrollment returns the same URI and original expiresAt without rotation or extension. Reject after five wrong codes, expiry, or revocation; the original valid factor and password remain usable through the original sign-in method (E-08, E-14). 2) confirm atomically commits the new factor and recovery-code hashes against current pendingSecret, unused step, restricted session, and sv; it revokes old devices again and consumes the session. Only an OS-preauthorized hash can also change the password, and HTTP accepts only totp. Return successful codes once; repeated confirm cannot retrieve or recommit them (E-15, E-75). 3) Account-owner 2fa/reset requires a fresh TOTP_RESET grant or equally strong compatible verification. Create a SELF_REAUTH restricted session before re-enrollment; do not clear the old factor before final confirmation. Unknown outcomes do not automatically retry confirm. A real ordinary sign-in during the next time step proves the final state (E-14, E-15, E-73).",
+  "edges": {
+    "E-08": {
+      "scene": "C-03 Authenticator enrollment and the passwordless-default toggle",
+      "trigger": "An enrollment code is wrong or expired, a submission is repeated, or switches occur concurrently.",
+      "expect": "Test all four triggers separately. In the final transaction, recheck the pending enrollment record, validity period, and current credential version. Do not commit wrong, expired, or replayed submissions; at most one of two concurrent switches succeeds. After a failure, querying the account must still show at least one verified sign-in method. Follow section 09 without inventing another sign-in method."
+    },
+    "E-14": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "Recovery is interrupted or the reset credential expires.",
+      "expect": "Explicitly reject protected admin access with restricted credentials. Interruption or expiry must not commit the pending new factor, and the original valid enrollment remains intact. A valid restricted cookie may re-enter the same enroll operation; once invalid, restart through the recovery-code or authorization path defined in section 10. Restricted credentials cannot be exchanged for a full admin session."
+    },
+    "E-15": {
+      "scene": "C-04 Lost authenticator and single-administrator recovery",
+      "trigger": "The new authenticator is verified and recovery is committed.",
+      "expect": "Revoke the old sessions, old enrollment, and old recovery credentials. Generate new recovery codes and explicitly show them once; old devices cannot continue accessing the admin area afterward."
+    },
+    "E-73": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "Two requests use the same ActionGrant concurrently, or a password-change grant is used to disable the authenticator.",
+      "expect": "Within the sensitive-change transaction, validate and consume the grant once against the action, device, account, and credential version. Only one matching request succeeds; reject a mismatched purpose without executing the change."
+    },
+    "E-75": {
+      "scene": "Fresh identity verification for sensitive settings",
+      "trigger": "The user forgets the current password but can still use previously enabled passwordless sign-in.",
+      "expect": "Resolve D3 through the restricted recovery path and one-time permit/restricted cookie already defined in sections 09/10. Ordinary passwordless sign-in remains unchanged. Without the current password, sensitive settings cannot issue an ordinary ActionGrant: reject direct requests based solely on a signed-in session or one TOTP without a change. Restricted recovery permits only new enrollment and is audited."
+    }
+  }
+}

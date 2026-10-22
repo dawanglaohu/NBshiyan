@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Consume durable chat notifications and register the per-minute job",
+    "input": "Atomic chat outbox, M5 fixed-job foundation, and existing safe SMTP adapter.",
+    "output": "Fixed chat-notifications job, dedicated SMTP content adapter/stable Message-ID, and real once-per-minute cron; no legacy mail-queue wrapper.",
+    "accept": "1) Caller/wiring point: real per-minute cron POST /api/admin/cron/operations(jobKey=chat-notifications) -> registry -> durable notification service. Saving then restarting still permits consumption. Reject triggers without Bearer. MessageId-unique outbox items do not multiply on retries. Notifications contain only receipt facts/protected links (E-90, E-94). 2) Atomically claim with leaseOwner/version and CAS status. Old workers cannot overwrite a newer lease. SMTP is outside transactions with a 20s deadline. Interrupt after isolated SMTP acceptance -> UNKNOWN -> bounded at-least-once retry with the same stable Message-ID, at most three attempts with 1m/5m/30m backoff. Explicitly allow actual SMTP duplicates (E-91, E-92). 3) Missing SMTP configuration is DISABLED. Persist actual redacted states for unreachable/temporary rejection/attempt exhaustion and recover from the outbox after restart. body/email/token appear in neither notifications nor logs. Failure cannot retract chat received, and unknown HTTP-trigger outcomes do not trigger again automatically (E-35, E-41, E-93)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

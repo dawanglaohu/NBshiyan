@@ -1,0 +1,40 @@
+{
+  "acceptance": "1) Caller/wiring point: deploy/cron.nbshiyan sends once-per-minute POST to Bearer-protected operations(chat-notifications) -> registry -> composed service -> dedicated SMTP adapter. After actual message persistence, a process restart, and a real scheduled trigger, the outbox is consumed. An unauthorized session cannot trigger it. The actual old mail-queue POST schedule preserves the existing mail gate and protocol (E-90, E-94). 2) Concurrent-worker lease CAS/generation checks prevent old writes; SMTP runs outside transactions with a 20s deadline. Acceptance followed by interruption -> UNKNOWN -> bounded at-least-once retries with the same stable Message-ID, capped at three attempts and backoff of 1m/5m/30m. Unreachable/temporarily rejecting/unconfigured SMTP states are accurate. Possible duplicates are not labeled exactly-once (E-91, E-92, E-93). 3) Notifications contain only the receipt fact and protected admin link, without body/email/token. Missing configuration yields DISABLED; failure/unknown does not change message received or the inbox. JobState summaries contain only counts/times/safe error codes, and an HTTP-trigger timeout does not automatically replay the trigger (E-35, E-41, E-93).",
+  "edges": {
+    "E-35": {
+      "scene": "C-01 Human inbox and reply entry points",
+      "trigger": "An email notification fails or is not connected.",
+      "expect": "Represent the actual notification state using the defined queued/sending/sent/failed states or their existing DTO mapping. Notification failure after a message is saved changes only that notification state, not the message's received state or the inbox's ability to process it. An unconnected source must not display Sent."
+    },
+    "E-41": {
+      "scene": "C-02 Offline messages and recovery from send failures",
+      "trigger": "A message has been saved but an operator reply or notification fails to send.",
+      "expect": "Keep the received result and inbox pending-work state. Separately show the real sending failure; do not pretend that the visitor has been contacted."
+    },
+    "E-90": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "The process stops immediately after saving a message, or a client resends the same message following a timeout.",
+      "expect": "Save the message and an outbox record unique by messageId in the same database transaction. Notifications for committed messages can continue after restart; a message-idempotency hit cannot create a second notification."
+    },
+    "E-91": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "Multiple cron workers claim concurrently, or a claiming worker crashes until its lease expires.",
+      "expect": "Claim atomically and submit status with lease/generation checks. Expired work may be reclaimed; the old worker cannot overwrite the newer lease's result. Notification failure must not retract a successfully saved chat message."
+    },
+    "E-92": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "SMTP has accepted a message, but the sending process stops before writing back successful status.",
+      "expect": "With isolated SMTP, interrupt the worker after controlled acceptance, then restart and verify at-least-once retries reuse the stable Message-ID. SMTP may actually deliver duplicates, but local state must not claim exactly-once delivery or operator reading. Chat received remains unchanged; present actual state under section 09's unknown-delivery/lease rules."
+    },
+    "E-93": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "SMTP is unreachable, configuration is absent, or SMTP temporarily rejects delivery.",
+      "expect": "Bind bounded retries to the durable jobs, attempt cap, and backoff rules in sections 09/10. Inject unreachable SMTP, missing configuration, and temporary rejection, then restart to verify recovery from the durable outbox. Logs and counters contain only redacted error codes and quantities, not the voluntarily supplied email or body. Completion of Next after() cannot replace a durable record."
+    },
+    "E-94": {
+      "scene": "Durable chat-notification queue",
+      "trigger": "An account without chat permission calls an outbox/notification endpoint, or the SMTP adapter can send only the existing inquiry format.",
+      "expect": "Separately verify unauthorized calls are rejected and chat-notifications uses a dedicated restricted adapter without expanding the old mail UI. deploy/cron.nbshiyan must actually register a once-per-minute schedule, and committed outbox records must be consumed after restart; manual invocation alone or an empty future registration is insufficient. M4 registers the job with its delivery; M7 performs only final acceptance."
+    }
+  }
+}

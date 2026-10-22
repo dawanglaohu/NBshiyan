@@ -1,0 +1,14 @@
+{
+  "task": {
+    "title": "Query the currently authorized operator inbox and read state",
+    "input": "Real chat facts and M3 current roles; section 09/10 shared-chat scope/operator read cursors.",
+    "output": "GET /api/admin/chat/conversations, GET /api/admin/chat/conversations/[id], and POST /api/admin/chat/conversations/[id]/read.",
+    "accept": "1) Caller/wiring point: real admin-read handlers -> requireAdmin(ADMIN/SALES) -> inbox service. Direct reads by unauthenticated/EDITOR/revoked accounts or visitors return no body content. Recheck current role every time, independently of hidden buttons (E-19, E-32, E-78). 2) List snapshots use updatedAt/id cursors, body pages use seq with max100, and inserted messages are completely returned once. One operator's read MAX does not affect another's cursor; undisplayed new seq remains unread. Independently return actual queued/sending/sent/failed/unknown/disabled notification states without changing received (E-34, E-35, E-77, E-79). 3) GET/read/notifications do not extend 90 days. Cookie expiry yields visitor 401 while ADMIN/SALES still read retained consultations. Notification failure does not prevent inbox handling (E-41, E-86, E-89)."
+  },
+  "module": "M4",
+  "frontend_modules": [
+    "M1",
+    "M2",
+    "M6"
+  ]
+}

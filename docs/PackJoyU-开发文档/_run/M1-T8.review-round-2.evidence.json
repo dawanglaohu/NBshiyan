@@ -1,0 +1,44 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T8": {
+      "contractHash": "b264e841c0606da3ade9ee2f73674b967571e3b66ce28839498f959897194680",
+      "verdict": "pass",
+      "evidence": [
+        "第2轮仅复核上一轮R1/R2及直接回归，当前契约哈希未变；复用第1轮全部未受影响的任务定义、共享DTO、层次与基础行为证据。",
+        "R1已修：api.ts:71统一解码后的策略与实际发送路径，测试925和995真实HTTP确认编码Auth.js零fetch、cron不可重放、聊天/分析限体及同体退避均保持。",
+        "R2已修：api.ts:336保留已知永久4xx状态和429等待限制，用户取消优先silent；测试1040、1070、1093、1141、1166覆盖断连、Retry-After、真实15s正文超时和取消。",
+        "审查方修复R2同根因408/503遗漏：8a32d6a仅向原network/timeout失败传递已解析Retry-After。新增测试1117修复前4次发送≠1次而失败，修复后通过。完整HTTP36pass/0fail/0skip；聚焦ESLint和tsc均退出0。",
+        "本轮无新技术岔路口；复用第1轮Jev model=jev-1.13.0，pick=C high0.92，adopt=take(C)。契约、阶段primitive、有效路径和下游接线归属均未改；代码位置与沉淀只更新行号并补保留响应头及编码路径规则。"
+      ]
+    }
+  },
+  "codeReview": {
+    "round": 2,
+    "verdict": "pass",
+    "reviewedHead": "8a32d6aaeaf89e855903be29fffa0e20bd127141",
+    "pullRequest": "https://github.com/dawanglaohu/NBshiyan/pull/399",
+    "rechecked": [
+      "R1",
+      "R2",
+      "direct regressions"
+    ],
+    "fixedByReviewer": "8a32d6aaeaf89e855903be29fffa0e20bd127141",
+    "checks": {
+      "http": {
+        "command": "node --import tsx --test tests/client-api-foundation.http.test.ts",
+        "passed": 36,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 46917.6837
+      },
+      "red": "New dropped408/503 Retry-After:31 regression failed before fix: actual4 requests, expected1.",
+      "static": [
+        "pnpm exec eslint src/lib/client/api.ts tests/client-api-foundation.http.test.ts: exit0",
+        "pnpm exec tsc --noEmit --incremental false: exit0",
+        "git diff --check: exit0"
+      ]
+    },
+    "inheritedEvidence": "M1-T8.review-round-1.evidence.json; prior rework is historical and both blockers are closed by this review."
+  }
+}

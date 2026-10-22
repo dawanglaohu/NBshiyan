@@ -1,0 +1,12 @@
+{
+  "task": "M1-T3",
+  "basisKind": "direct_user_statement",
+  "recordedAt": "2026-10-21T06:51:00.950623+00:00",
+  "source": {
+    "path": "C:/Users/admin/Desktop/video2.mp4",
+    "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f"
+  },
+  "statement": "这是在工厂的实拍机器图，员工在工厂中拍摄，然后通过 你来添加上了 logo",
+  "scope": "用户说明素材是员工在工厂现场拍摄，PackJoyU标识随后由助手添加。此记录仅保存该来源说明，不推导工厂产权、原产品客户关系、认证或产能。",
+  "application": "供实际选定换标成片的来源复核使用；保留原片身份观察，不直接改写发布状态或以本文件代替成片核验。"
+}

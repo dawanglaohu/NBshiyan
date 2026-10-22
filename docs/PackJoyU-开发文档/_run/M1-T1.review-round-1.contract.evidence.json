@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T1": {
+      "contractHash": "c05fc8a5fb6198a932bfc715de2ea8141001fd67da51a5392672405a08673733",
+      "evidence": [
+        "04-执行/19-模块任务拆分.md:11 与 M1-T1 卡及当前派发包的三个验收组一致：仅八类核心值、真实standalone/可见header导航、SSR目录与独立API、WebVitals 204和脱敏日志、CI同服务及文档基线。无前置，stage=integration，visual-base/runnable-smoke唯一归属不变。",
+        "06/07/11/12/13/17与原需求交叉核对：仍用既有CSS/原生控件，token唯一声明；黑底白outline是明确要求；13未给本卡绑定完整跨模块E编号，后继页面与完整token包装不提前实现。",
+        "补丁只增加 M1-T1.supportPaths=playwright.config.ts，以便落实真实Jev复核J5=E的统一CI standalone入口。原验收、数据结构、DTO、前置及技术栈均未改。globals.css原已由frontendRoutes/src/app/覆盖，不另扩范围。当前PR仅#393触及本任务配置；无叠加PR，原HEAD未修改playwright.config.ts。",
+        "本轮五项Jev真实调用均status=ok、model=jev-1.13.0，judgments.jsonl:928-932。J1=B(low .45)、J2=A、J3=A、J4=A、J5=E。J5统一standalone与RUM日志、黑底白焦点尚待实施；这些是实现rework，不影响任务契约的可执行性。",
+        "此verdict仅登记task-contract语义复核，不表示代码通过或已落地。审查实现结果为rework，保留未落地状态，不运行--landed。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}
