@@ -147,7 +147,21 @@
           "confidence": "high",
           "why": "Jev 选 A（high）"
         }
-      }
+      },
+      "state": {
+        "requirement": "Close out batch 3 only for M1-T8, M2-T4, M3-T14 and M5-T1. The human explicitly excludes M1-T6 and M1-T9. Preserve their files and status. Review tests and direct seams, fix reproducible root causes and record truthful bounded results.",
+        "task": {
+          "title": "Partial batch wrap-up with reproducible administrative 401 fallback defect",
+          "accept": "M1-T8 section 10 requires administrative session HTTP 401 to direct to safe same-site login; recognized bad_credentials stays inline. Existing tasks are primitives with downstream wiring explicitly deferred."
+        },
+        "conflict": "Two routine implementation questions. First, true local HTTP 401 HTML response or interrupted body loses the usable error code; api-errors.ts actionFor only recognizes code unauthorized and returns stop despite preserving status 401. Second, batch record matching requires an exact task set. Recording four task IDs will honestly represent the requested scope but not mark the entire six-task batch closed in the handoff UI. No generator changes or full-batch claim are requested.",
+        "options": {
+          "A": "Add regression coverage and repair only admin HTTP 401 with missing or unrecognized error code to action login and safe login text, preserving recognized bad_credentials/recovery/reauth semantics and visitor behavior. Record only the four reviewed IDs in tasks frontmatter; note excluded IDs and that the six-task batch gate is unchanged.",
+          "B": "Add the same focused 401 repair, but keep all six IDs in tasks frontmatter as batch membership and explicitly list four reviewed IDs plus two human-excluded IDs in the record body; treat the result as a batch closure under the human exclusion.",
+          "C": "Record the reproducible 401 as an open repair task without changing the client, keeping only the four reviewed IDs in record frontmatter and preserving the full batch gate."
+        }
+      },
+      "stateFileSha256": "c1491428382a4bc2fb7f62e05becd56cd37a2658d420fa19abfb1f6f4f0ea069"
     },
     "claim": {
       "status": "ok",
@@ -186,7 +200,21 @@
           "confidence": "high",
           "why": "Jev 选 A（high）"
         }
-      }
+      },
+      "state": {
+        "requirement": "Batch 3 M5-T1 requires true PostgreSQL atomic claims, 90-second leases, correct lease ownership/generation fencing, safe read. Only repair the lease root cause, no redesign or production job wiring.",
+        "task": {
+          "title": "M5-T1 claim can report an already expired lease as acquired after waiting on a database lock",
+          "accept": "Same key concurrent claim has one current winner; expired old owners cannot complete; returned acquired lease state must be current."
+        },
+        "conflict": "Real isolated PostgreSQL17.9 probe holds an expired JobState row lock. Waiting claim samples clock at t=90s before currentTimezoneRevision and INSERT ON CONFLICT. Clock moves to181s while SQL waits; after lock release it returns acquired=true, generation2, lockedUntil180s, view.leaseActive=true. A next worker immediately claims generation3. Existing renew/complete fence stale writes, but first worker can begin work based on a falsely active acquired result. Existing 14 DB tests pass, missing this acquisition delay case.",
+        "options": {
+          "A": "Keep the atomic SQL and existing interface. After the awaited claim SQL returns, sample and validate the clock again; build the returned view with that time. Return acquired=false/busy if the stored lease is already expired, do not hand out an inactive acquired lease. Preserve stored fenced row until a new worker reclaims it normally. Add a true PostgreSQL lock-wait regression proving expired claims do not acquire.",
+          "B": "Change claim to a service-owned transaction that locks the row before sampling time, then performs conditional claim inside the same transaction. This expands the current claim interface and caller contract but can grant a full lease after contention.",
+          "C": "Replace the injected application clock in claim with database clock_timestamp sampled after lock acquisition, redesigning deterministic clock tests and documenting cross-clock consistency with renew/complete."
+        }
+      },
+      "stateFileSha256": "41e7ab81ab49cc7d95ea47dbf1f9ad527730cf85da6dfb47c0ee83dc5b60118a"
     },
     "baseline": {
       "status": "ok",
@@ -225,7 +253,21 @@
           "confidence": "high",
           "why": "Jev 选 A（high）"
         }
-      }
+      },
+      "state": {
+        "requirement": "Perform only the four requested batch3 primitive wrap-ups, exclude M1-T6/M1-T9. Reproducible in-scope bugs were repaired with red-green tests. Batch records must remain open and create complete repair tasks for unresolved verification issues. Do not expand current production code scope or weaken assertions.",
+        "task": {
+          "title": "Record remaining full-suite validation failures without rewriting unrelated product behavior",
+          "accept": "Run full existing tests/lint and true HTTP/Postgres evidence; distinguish environment gaps, existing test bugs, and product defects. Every unresolved issue gets a stable repair task with files and falsifiable acceptance."
+        },
+        "conflict": "Initial Windows suite:1346 tests,1309pass,32fail,5skip.3 DB-startup metric failures are resolved by ready PG17.9, and final rerun is underway. Remaining29 assertions have verified root groups:11 CRLF source/bash assumptions (10 pass when normalized only in memory; bash CRLF syntax error),3 slash-only Windows path assumptions,6 POSIX absolute-path/mode/symlink prerequisites on Windows (EPERM before test body),7 python3 WindowsApps alias startup failures (real python.exe available),2 stale reset audit expectations (production deliberately emits auth.enroll_token_issued; security audit must remain). None are caused by the four primitives. Local Next build compiles but fails Windows standalone symlink EPERM. Next dev loads real CSS and true API200 but CSP blocks dev unsafe-eval hydration, so this is limited evidence, not production browser success. Future production entry wiring and authenticated admin pages belong to later tasks.",
+        "options": {
+          "A": "Keep the requested scope. Register five distinct stable repair tasks for the five verified baseline root groups, plus a separate build/browser evidence task to obtain true supported Linux standalone smoke and density results. Record tests=fail/verdict=open and explain the current limited dev evidence. Do not fix unrelated UI, audit production behavior, storage, content import or generators in this run.",
+          "B": "Repair the test harness issues now across all five groups, preserving actual security behavior, then obtain supported Linux build and browser evidence before closure; this broadens test-file changes well beyond the current four primitive roots.",
+          "C": "Use Linux CI evidence for environment-only groups and defer only the two stale reset audit tests, while retaining tests=fail/open until that strict dedicated-DB baseline and supported standalone browser run are confirmed."
+        }
+      },
+      "stateFileSha256": "65a946c182d5c918df36b39ee218b21f18163d257faf81c12d1d03c11bfd5301"
     }
   },
   "baselineTriage": {
