@@ -1,0 +1,117 @@
+{
+  "assetSet": "company-visual-assets",
+  "status": "complete",
+  "reason": "选定1幅Dot交付公司介绍图；已核实际软件截图、源工程对象、Web解码、原始字节哈希与用户直接确认的公司事实。此状态只表示素材集合完成。",
+  "dot": {
+    "reachable": true,
+    "invocationId": null,
+    "sessionId": "01a1576c-0f7d-72b5-b35f-3cefee4fa0e9",
+    "sessionIdKind": "parent_conversation",
+    "operationRecord": "docs/brand-content/source/dot-v3/provenance/workflow.json",
+    "checkedAt": "2026-10-22T06:06:39.988059+00:00",
+    "note": "实际制作在云端Linux Inkscape完成；Windows本机任务服务先前失败的记录保留，不声称已修复。会话标识来自交付记录。"
+  },
+  "software": {
+    "name": "Inkscape",
+    "version": "1.4 (e7c3feb100, 2024-10-09)",
+    "sessionId": "01a1576c-0f7d-72b5-b35f-3cefee4fa0e9",
+    "sessionRecord": "docs/brand-content/source/dot-v3/provenance/workflow.json"
+  },
+  "logoMaster": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "importObject": "logo-master-import"
+  },
+  "referencePdf": {
+    "sha256": "f90310c0c3bd4b2f0bf9ff4941352a48aa982b41a4631f605453629c7870201d",
+    "bytes": 16291939,
+    "pageCount": 25,
+    "path": "C:\\Users\\admin\\Desktop\\catalog 2024-Mingkai&Kyson(1).pdf"
+  },
+  "originalMedia": [
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d"
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291"
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd"
+    }
+  ],
+  "originalDesktopFiles": [
+    {
+      "path": "C:/Users/admin/Desktop/catalog 2024-Mingkai&Kyson(1).pdf",
+      "sha256": "f90310c0c3bd4b2f0bf9ff4941352a48aa982b41a4631f605453629c7870201d",
+      "bytes": 16291939
+    },
+    {
+      "path": "C:/Users/admin/Desktop/banner1_1654824049643.jpg",
+      "sha256": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "bytes": 658714
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video2.mp4",
+      "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "bytes": 8051146
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video_1654824102804.gif",
+      "sha256": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "bytes": 7934997
+    }
+  ],
+  "ownerAttestation": {
+    "path": "docs/brand-content/source/company-facts-attestation.json",
+    "sha256": "6a78ec313584f221054fffecdd7ab6d1dd243ba0f6e48e235a6459c0ac350b23"
+  },
+  "artworks": [
+    {
+      "id": "company-introduction-v3-en",
+      "reference": {
+        "pdfPage": 2,
+        "theme": "仅参考公司概览、配套视觉与能力信息的组织层级；不移植YUHAO企业事实、照片或数字。"
+      },
+      "factBasis": "用户在当前会话直接确认自有工厂、整合供应链、多品类定制、设计打样、质量把控全部为其提供的真实信息；12个品类名称来自src/data/products.ts。产品插画为概念示意，不代表真实厂房、设备或产品照片。",
+      "source": {
+        "path": "docs/brand-content/source/dot-v3/PackJoyU-Company-Introduction-v3-EN.svg",
+        "sha256": "d1ae945bcec1e5535838e1438f262252cf7b4d679c84402b57ebd8e54ffa687e"
+      },
+      "web": {
+        "path": "public/brand/company/company-introduction-v3-en.png",
+        "sha256": "5d855fc087eb3fdca500718db6e1a64c00c80c8de2e04dc40e297683bdce611b",
+        "width": 5000,
+        "height": 5800
+      },
+      "alt": {
+        "en": "English PackJoyU company introduction with the official wordmark, conceptual packaging illustrations, company capabilities, a design-to-quality-control sequence, and a twelve-category product portfolio.",
+        "ru": "Англоязычное представление PackJoyU: официальный логотип, условные иллюстрации упаковки, возможности компании, последовательность от дизайна до контроля качества и ассортимент из двенадцати категорий."
+      },
+      "logoImportObject": "logo-master-import",
+      "editedObject": "hero-title-1",
+      "productionRecord": "docs/brand-content/source/dot-v3/receipt.json"
+    }
+  ],
+  "history": {
+    "previousManifest": "docs/brand-content/source/history/company-visuals-before-dot-v3.json",
+    "previousDrafts": "原两幅SVG/PNG及Inkscape记录保留为历史底稿，不列入本次选定素材。"
+  },
+  "pageEvidence": null,
+  "integrationTask": "M1-T5",
+  "measuredAt": "2026-10-22T06:06:39.988059+00:00"
+}

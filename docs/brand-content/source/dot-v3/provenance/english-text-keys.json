@@ -1,0 +1,262 @@
+[
+  {
+    "id": "header-company-label",
+    "en": "COMPANY INTRODUCTION"
+  },
+  {
+    "id": "header-descriptor",
+    "en": "PACKAGING / PAPER / PRINT"
+  },
+  {
+    "id": "about-kicker",
+    "en": "ABOUT PACKJOYU"
+  },
+  {
+    "id": "hero-title-1",
+    "en": "Our own factory."
+  },
+  {
+    "id": "hero-title-2",
+    "en": "An integrated"
+  },
+  {
+    "id": "hero-title-3",
+    "en": "supply chain."
+  },
+  {
+    "id": "intro-a-1",
+    "en": "PackJoyU combines its own factory with"
+  },
+  {
+    "id": "intro-a-2",
+    "en": "an integrated supply chain to offer"
+  },
+  {
+    "id": "intro-a-3",
+    "en": "packaging, paper products and printed"
+  },
+  {
+    "id": "intro-a-4",
+    "en": "materials. Our capabilities bring together"
+  },
+  {
+    "id": "intro-a-5",
+    "en": "multi-category customization, design"
+  },
+  {
+    "id": "intro-a-6",
+    "en": "and sampling, and quality control."
+  },
+  {
+    "id": "intro-b-1",
+    "en": "A diverse product offering spans boxes,"
+  },
+  {
+    "id": "intro-b-2",
+    "en": "cups, molded pulp, print products and"
+  },
+  {
+    "id": "intro-b-3",
+    "en": "seasonal supplies."
+  },
+  {
+    "id": "product-display-note",
+    "en": "Conceptual product illustrations"
+  },
+  {
+    "id": "capabilities-heading",
+    "en": "Capabilities that work together"
+  },
+  {
+    "id": "cap-title-0-a",
+    "en": "Multi-category"
+  },
+  {
+    "id": "cap-title-0-b",
+    "en": "customization"
+  },
+  {
+    "id": "cap-body-0-1",
+    "en": "We support customization across"
+  },
+  {
+    "id": "cap-body-0-2",
+    "en": "boxes, cups, printed materials and"
+  },
+  {
+    "id": "cap-body-0-3",
+    "en": "other product categories. A multi-"
+  },
+  {
+    "id": "cap-body-0-4",
+    "en": "category brief can bring different"
+  },
+  {
+    "id": "cap-body-0-5",
+    "en": "packaging and presentation needs"
+  },
+  {
+    "id": "cap-body-0-6",
+    "en": "into one project."
+  },
+  {
+    "id": "cap-title-1-a",
+    "en": "Design & sampling"
+  },
+  {
+    "id": "cap-title-1-b",
+    "en": "capability"
+  },
+  {
+    "id": "cap-body-1-1",
+    "en": "Design and sampling support the"
+  },
+  {
+    "id": "cap-body-1-2",
+    "en": "development of product concepts."
+  },
+  {
+    "id": "cap-body-1-3",
+    "en": "They create a practical stage for"
+  },
+  {
+    "id": "cap-body-1-4",
+    "en": "considering structure, appearance"
+  },
+  {
+    "id": "cap-body-1-5",
+    "en": "and presentation before moving"
+  },
+  {
+    "id": "cap-body-1-6",
+    "en": "into production."
+  },
+  {
+    "id": "cap-title-2-a",
+    "en": "Quality"
+  },
+  {
+    "id": "cap-title-2-b",
+    "en": "control"
+  },
+  {
+    "id": "cap-body-2-1",
+    "en": "Quality control is part of our"
+  },
+  {
+    "id": "cap-body-2-2",
+    "en": "packaging, paper and print offering,"
+  },
+  {
+    "id": "cap-body-2-3",
+    "en": "alongside design, sampling and"
+  },
+  {
+    "id": "cap-body-2-4",
+    "en": "production coordination."
+  },
+  {
+    "id": "path-heading",
+    "en": "From concept to product"
+  },
+  {
+    "id": "path-subheading",
+    "en": "Design, sampling, production coordination and quality control form a connected set of capabilities."
+  },
+  {
+    "id": "path-label-0",
+    "en": "Design"
+  },
+  {
+    "id": "path-label-1",
+    "en": "Sampling"
+  },
+  {
+    "id": "path-label-2",
+    "en": "Production coordination"
+  },
+  {
+    "id": "path-label-3",
+    "en": "Quality control"
+  },
+  {
+    "id": "portfolio-heading",
+    "en": "Product portfolio"
+  },
+  {
+    "id": "portfolio-count",
+    "en": "12 CATEGORIES / 4 PRODUCT GROUPS"
+  },
+  {
+    "id": "portfolio-title-0",
+    "en": "Boxes & Packaging"
+  },
+  {
+    "id": "category-0-0",
+    "en": "Corrugated boxes"
+  },
+  {
+    "id": "category-0-1",
+    "en": "Color boxes"
+  },
+  {
+    "id": "category-0-2",
+    "en": "Gift boxes"
+  },
+  {
+    "id": "category-0-3",
+    "en": "Wine boxes"
+  },
+  {
+    "id": "portfolio-title-1",
+    "en": "Cups & Molded Pulp"
+  },
+  {
+    "id": "category-1-0",
+    "en": "Paper cups"
+  },
+  {
+    "id": "category-1-1",
+    "en": "Eco paper cups"
+  },
+  {
+    "id": "category-1-2",
+    "en": "Pulp molding"
+  },
+  {
+    "id": "portfolio-title-2",
+    "en": "Print & Cards"
+  },
+  {
+    "id": "category-2-0",
+    "en": "Color printing"
+  },
+  {
+    "id": "category-2-1",
+    "en": "Offset printing"
+  },
+  {
+    "id": "category-2-2",
+    "en": "Gift cards"
+  },
+  {
+    "id": "portfolio-title-3",
+    "en": "Party & Seasonal"
+  },
+  {
+    "id": "category-3-0",
+    "en": "Party supplies"
+  },
+  {
+    "id": "category-3-1",
+    "en": "Christmas merchandise"
+  },
+  {
+    "id": "footer-kicker",
+    "en": "START WITH YOUR PRODUCT"
+  },
+  {
+    "id": "footer-guidance",
+    "en": "Product type, dimensions, quantity, artwork and any design or sampling requirements."
+  }
+]
