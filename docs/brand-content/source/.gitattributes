@@ -1,4 +1,4 @@
 # Registered material hashes refer to exact file bytes.
-dot-v3/** -text
-company-facts-attestation.json -text
-history/** -text
+dot-v3/** -text whitespace=cr-at-eol
+company-facts-attestation.json -text whitespace=cr-at-eol
+history/** -text whitespace=cr-at-eol
