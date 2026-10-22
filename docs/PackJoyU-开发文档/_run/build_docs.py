@@ -3080,7 +3080,7 @@ function handBody(){
          '<span class="tg" data-act="batchtoggle" data-batch="' + k + '" title="点一下折叠或展开这一批"><span class="tri">' + (isOpen ? "▾" : "▸") + "</span>" +
          "第 " + (k+1) + " 批 · " + g.length + " 个任务 · " + d + " 人天 · " +
          (k === 0 ? "无前置依赖，可立即开工" : (HO.wrapupGate !== false ? "前置全部落地后可开始；紧邻上一批落齐时须收口；同批次其他任务在跑不影响" : "前置全部落地后可开始；同批次其他任务在跑不影响")) +
-         (rec ? " · " + esc(batchLabel(rec, k)) : full ? " · 可收口" : "") + "</span>" +
+         (rec ? " · " + esc(batchLabel(rec, k)) : full ? " · 可收口" : " · 未收口") + "</span>" +
          (cnt.length ? '<span class="cnt">' + cnt.join(" · ") + "</span>" : "") +
          '<button class="cp batch" data-kind="batch" data-batch="' + k + '"' +
          (full ? ' title="' + (rec ? "再收口一次：把整批重新验一遍，记录文件新开一份" : "复制收口提示词：整批做小结、跑测试、查批内与跨批接缝，写记录并走一条 PR") + '"'
