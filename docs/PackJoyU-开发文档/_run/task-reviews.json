@@ -145,13 +145,13 @@
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "21851b3c8416c824d23e5a09c1cc0fb40a97f31f53db40730723e28649dab2a6",
     "evidence": [
-      "本轮审查 PR #400 / task/M2-T4，head f9ff0897b19cb93fac0f8a66e7ee1169f70938f6，base main 88b7a6b1a5149641431d8429b413cc114f5a17ad；status 的当前契约 hash 与派发文本逐字一致，stale/runtimeDrift 均为空。",
-      "19-模块任务拆分.md:23、图谱/任务/M2-T4.md 的输入/产出/两组验收一致；阶段为 primitive，仅交付模型生命周期无 IO 纯规则。前置 M1-T2 已 done，contracts/index.ts 公开 analytics/common schema 与 AnalyticsEventDTO；模型规则直接消费同一共享出口。",
-      "有效代码路径为 src/lib/analytics/model-events.ts 与 tests/model-event-rules.test.ts；本 PR 另有流程要求的 M2-T4.md 回填。无业务注册表改动要求：19节 M2-T7 与其任务卡明确负责真实 GLB、分析同意和 POST 生产接线，本层不以浏览器接线或 GIF 为前置。",
-      "13节无直接挂接边界；按17节纯规则层用 node:test+tsx 核空输入、失败、重复、乱序、取消、重试与注入时钟。10节分析事件字段由 M1 的严格共享 schema 拥有，06/07节分层禁止新增 IO，本卡没有前置能力或验收阶段矛盾。",
-      "本次 pass 仅登记任务契约语义复核。代码验收结论为 rework：DecidedModelView 的 open/decided 交叉类型导致 never，两个 CI build 与本地类型检查失败；不得据此登记落地、宣称功能通过或合并。"
+      "第2轮仅复核PR #400的R1/R2及其直接回归；修复head f0d2fdf8bebe9154cf128840fb17150c5d9e5159。19节M2-T4原语阶段、M1-T2共享schema前置、有效路径和10/13/17节验收要求未变；契约hash与当前status一致。",
+      "R1已修：src/lib/analytics/model-events.ts:77以Omit<OpenModelView,status>替换互斥status；tests/model-event-rules.test.ts:352用真实TypeScript createProgram导入生产模块并构造/收窄终态，没有any、断言或关闭检查。",
+      "R2已修：tests/model-event-rules.test.ts:83-85缓存同一终态对象、按kind显式收窄后断言TIMEOUT，不再依赖重复函数调用的类型收窄。",
+      "独立复验修复head：node --import tsx --test tests/model-event-rules.test.ts tests/contracts-foundation.test.ts，44/44通过、0跳过；pnpm exec tsc --noEmit --incremental false退出0。原有生命周期运行证据沿用第1轮，不扩大本轮清单。",
+      "真实浏览器生产者、同意、POST和GIF仍由19节M2-T7负责，本卡不新增IO或浏览器接线。当前只登记契约复核；代码pass后按流程记录落地并等待最终head的required CI与实际MERGED状态。"
     ],
-    "reviewed": "2026-10-22T00:33:27.234678+00:00",
+    "reviewed": "2026-10-22T01:25:27.507903+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -255,21 +255,18 @@
     "verdict": "pass"
   },
   "M3-T14": {
-    "compiler": "c91d972fecca74966c320dfb6e70cb5fbc45ee72e1ca6c6a70d44a3ea68a0cb1",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "87a0f66eea006411117676a56dba7ea84dd4dfd3f7ae861dc1b0db3f076510cc",
     "evidence": [
-      "沿用与本补丁before哈希匹配的历史契约语义证据：04-执行/19-模块任务拆分.md:41 — M3-T14「接通新API配置、错误映射与脱敏计数」，输入/产出/验收及1d估时有明确范围。本轮与HEAD的19节八列源行逐字一致；公共阶段约定仅澄清增量区域，不增删本卡业务验收。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/task-contracts.json:1302 — http-guards-metrics的唯一提供方；M1-T2提供contract-types均在实际前置闭包且能力名存在；stage=primitive，输出在taskPaths+supportPaths内，未新增重复provider。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：_run/dispatch.json tasks.M3-T14 — 当前status contractHash与实施/审查prompt内版本一致；实施prompt SHA256前16位=6cbd616861cb9027，实际84轮prompt校准使用相同哈希；代码任务仍todo，契约通过不代表功能已实施。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：02-设计/07与handoff.conventions — 原认证/设备/恢复协议不因旧后台视觉迁移而改变；壳和增量安全区域各自验收，旧完整业务页有T21–T25及最终T9承接，权限及秘密处理要求未减。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：本轮仅复核补丁 m1-t1-review-standalone-config 的变化：M3-T14 的 before/after 完整 context 递归相等，验收、边界行、任务前置、requires、有效路径、架构、视觉、章节与接线内容均未变；仅 hash 由 bdc54fc6b618e70494ca951e6bc4f7b6d589f672bbb91c9c4c8ea09f8e0cc326 变为 92935028849e5fb40e129a7d9f4b2406ed80cb441c36399ace7e0dcf664b2363。",
-      "沿用与本补丁before哈希匹配的历史契约语义证据：已按 handoff_contract.py:328–333 重算补丁 before/after 哈希并与记录逐字相等；本任务祖先中的 base hash 只有 M1-T1 改变，其唯一实质变化是 supportPaths 增加 playwright.config.ts 并同步加入有效路径，为原有 CI standalone 浏览器验收提供必要配置，不改变任何验收或提供能力。沿用以上与补丁 before 匹配的历史契约语义证据；本次 pass 只登记契约变化复核，不宣称本任务产品实现或运行已通过。",
-      "本轮逐字段复核补丁 m1-t1-retain-local-main 的 M3-T14 before/after，精确变化路径为 $.context.handoff.conventions, $.hash；契约hash从 92935028849e5fb40e129a7d9f4b2406ed80cb441c36399ace7e0dcf664b2363 变为 87a0f66eea006411117676a56dba7ea84dd4dfd3f7ae861dc1b0db3f076510cc，已按 handoff_contract.py 的完整context与真实祖先provider公式重算并逐字匹配。",
-      "共享handoff.conventions确有语义变化：M1-T1的规格来源由本机临时task/docs-s2-s6分支改为已合并的本地main；从origin/main建树后仅在该远端基线缺规格时导入，远端已含时沿用，不重复覆盖；后继仍等首PR落地后从origin/main创建。已核该来源说明之外的conventions前缀、后缀逐字相同，包括真实登录cookie、禁认证存储注入、UI/GIF/密度与原语/集成分工。不能将本次变化描述为纯hash传播。",
-      "排除上述共享来源说明后，M3-T14完整context逐字相等：自身任务input/accept/output、边界、前置deps/requires、有效路径/supportPaths/outputPaths、提供能力、阶段、架构、视觉、共享章节及接线全部未变；后继业务验收没有降低。hash变化同时包含本任务共享conventions变更及真实祖先base哈希变化，非仅上游hash。",
-      "本次pass仅登记任务契约来源澄清的语义复核，复用补丁前已通过证据并审计精确变化；不宣称本任务产品已全部实现、运行通过、已落地或已合并。本审计未执行Git操作，已合并本地main的历史事实由主审提供并负责最终提交前核实。"
+      "ROUND 2仅复核上一轮R1/R2及直接回归。19节M3-T14和task-contracts的stage=primitive、M1-T2前置、有效路径及integrationTask=M3-T1均未变化；GET account生产链仍归M3-T1，没有扩大本卡范围。",
+      "R1在54c23bc已修：metrics.ts:112隔离所有诊断分支日志异常；errors.ts:106隔离未知错误日志异常。原失败探针2/2通过，永久三场景回归覆盖存储+日志同时失败、受控500、白名单及坏设置。R2在errors.ts:36直接复用M1-T2的AppErrorDTO，重复响应字段定义已删除。",
+      "同54c23bc专用PostgreSQL17.9与Node22测试admin-config/admin-http-metrics共12通过0失败0跳过；原子计数、隐私列、站点时区/revision及旧信封回归均通过。pnpm lint与pnpm exec tsc --noEmit通过。",
+      "06/08/09/10/13/17/19的相关约定沿用第一轮已接受证据；源契约未变，未重新审无关范围。已合入origin/main的文档产品冲突取主干后重建，保留M1-T8记录与本卡证据，未改生成器。",
+      "本verify登记任务契约复核与R1/R2修复证据；最终落地仍须实际PR MERGED及当前head合并门禁满足，不能以task-contract pass冒充合并完成。",
+      "合并前自动复核发现具体lastObservedAt并发倒退，按两轮后的主审直接修复规则处理，不新增返工轮次。真实PG17分别复现旧请求晚写使已存时间倒退1秒、非UTC会话使raw DateTime写timestamp列偏移7小时；两项修复前2失败/0skip，SQL显式UTC表达式与GREATEST修复后2通过/0skip。完整admin-config/admin-http-metrics 14通过0失败0skip，lint与tsc通过；模型、接口、白名单及原响应失败隔离不变。",
+      "原PR401实际合并后，三条新增观测意见按Jev裁定直接补齐：model=jev-1.13.0，judgments.jsonl:974，pick=A(high0.86)，spec_change=no，outside_stack=no，needs_owner=no，adopt=take(A)。候选A为同范围直接修复并独立安全审批后补充合并，候选B为保持原语并将三条延后至M3-T1。已按A提供默认受控日志、未知日志/响应共用requestId及ERROR级别，原计数WARN和失败保留响应不变。三新增场景先3失败后3通过，PG17完整17通过0失败0skip，lint/tsc通过；规格、接口和模型无变化。"
     ],
-    "reviewed": "2026-10-20T15:08:10.422783+00:00",
+    "reviewed": "2026-10-22T01:09:32.627686+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

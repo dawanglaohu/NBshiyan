@@ -397,3 +397,15 @@ model MailMessage {
   @@index([status, deferredUntil])
   @@index([fromHash])
 }
+
+// 站点自然日（YYYY-MM-DD）+ revision + 固定 routeId 的最终响应计数。不存请求体、IP、账号或完整 URL。
+model ApiDailyCounter {
+  localDate        String
+  timezoneRevision Int
+  routeId          String
+  requestCount     Int
+  errorCount       Int
+  lastObservedAt   DateTime
+
+  @@id([localDate, timezoneRevision, routeId])
+}
