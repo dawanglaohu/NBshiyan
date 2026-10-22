@@ -1,0 +1,6 @@
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+CPTDMH+OpenSans-Semibold             TrueType          WinAnsi          yes yes yes      7  0
+SGAVKY+OpenSans                      TrueType          WinAnsi          yes yes yes      8  0
+MLHUAP+OpenSans-Bold                 TrueType          WinAnsi          yes yes yes      9  0
+XQODJD+OpenSans                      CID TrueType      Identity-H       yes yes yes     10  0

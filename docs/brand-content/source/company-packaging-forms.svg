@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" width="1600" height="900" viewBox="0 0 1600 900">
+  <sodipodi:namedview id="namedview" pagecolor="#ffffff" bordercolor="#000000" inkscape:zoom="1" inkscape:cx="800" inkscape:cy="450" inkscape:window-width="1400" inkscape:window-height="900" inkscape:window-x="80" inkscape:window-y="40" inkscape:window-maximized="0" inkscape:current-layer="layer-art" inkscape:showpageshadow="false"/>
+  <g id="layer-ground" inkscape:groupmode="layer" inkscape:label="Ground">
+    <rect id="page-ground" x="0" y="0" width="1600" height="900" fill="#ffffff"/>
+  </g>
+  <g id="layer-logo" inkscape:groupmode="layer" inkscape:label="Logo">
+    <g id="logo-master-import" transform="translate(48,32) scale(0.056107034959)">
+      <path id="logo-path-1" fill="#000000" d="M0 1440V0H608Q629 0 664.5 1.5Q700 3 728 8Q857 28 939.5 93.0Q1022 158 1061.0 256.5Q1100 355 1100 476Q1100 597 1060.5 695.5Q1021 794 938.5 859.0Q856 924 728 944Q700 948 664.0 950.0Q628 952 608 952H272V1440ZM272 698H596Q617 698 642.0 696.0Q667 694 688 688Q743 673 773.0 637.5Q803 602 814.5 558.5Q826 515 826 476Q826 437 814.5 393.5Q803 350 773.0 314.5Q743 279 688 264Q667 258 642.0 256.0Q617 254 596 254H272Z"/>
+      <path id="logo-path-2" fill="#000000" d="M1580 1470Q1464 1470 1383.5 1425.5Q1303 1381 1261.5 1306.5Q1220 1232 1220 1142Q1220 1067 1243.0 1005.0Q1266 943 1317.5 895.5Q1369 848 1456 816Q1516 794 1599.0 777.0Q1682 760 1787.0 744.5Q1892 729 2018 710L1920 764Q1920 668 1874.0 623.0Q1828 578 1720 578Q1660 578 1595.0 607.0Q1530 636 1504 710L1258 632Q1299 498 1412.0 414.0Q1525 330 1720 330Q1863 330 1974.0 374.0Q2085 418 2142 526Q2174 586 2180.0 646.0Q2186 706 2186 780V1440H1948V1218L1982 1264Q1903 1373 1811.5 1421.5Q1720 1470 1580 1470ZM1638 1256Q1713 1256 1764.5 1229.5Q1816 1203 1846.5 1169.0Q1877 1135 1888 1112Q1909 1068 1912.5 1009.5Q1916 951 1916 912L1996 932Q1875 952 1800.0 965.5Q1725 979 1679.0 990.0Q1633 1001 1598 1014Q1558 1030 1533.5 1048.5Q1509 1067 1497.5 1089.0Q1486 1111 1486 1138Q1486 1175 1504.5 1201.5Q1523 1228 1557.0 1242.0Q1591 1256 1638 1256Z"/>
+      <path id="logo-path-3" fill="#000000" d="M2922 1470Q2754 1470 2634.0 1395.0Q2514 1320 2450.0 1191.0Q2386 1062 2386 900Q2386 736 2452.5 607.0Q2519 478 2640.0 404.0Q2761 330 2926 330Q3117 330 3246.5 426.5Q3376 523 3412 690L3140 762Q3116 678 3056.5 631.0Q2997 584 2922 584Q2836 584 2781.0 625.5Q2726 667 2700.0 738.5Q2674 810 2674 900Q2674 1041 2736.5 1128.5Q2799 1216 2922 1216Q3014 1216 3062.0 1174.0Q3110 1132 3134 1054L3412 1112Q3366 1284 3238.0 1377.0Q3110 1470 2922 1470Z"/>
+      <path id="logo-path-4" fill="#000000" d="M3610 1440 3612 0H3888V880L4254 360H4590L4200 900L4616 1440H4262L3888 920V1440Z"/>
+      <path id="logo-path-5" fill="#c2381a" d="M5018 1470Q4846 1470 4734.5 1382.0Q4623 1294 4576 1144L4844 1080Q4853 1135 4902.0 1175.5Q4951 1216 5006 1216Q5044 1216 5087.5 1195.0Q5131 1174 5150 1128Q5162 1099 5164.0 1057.0Q5166 1015 5166 960V0H5442V960Q5442 1029 5441.5 1080.0Q5441 1131 5431.5 1175.5Q5422 1220 5394 1268Q5333 1374 5235.0 1422.0Q5137 1470 5018 1470Z"/>
+      <path id="logo-path-6" fill="#c2381a" d="M6228 1470Q6065 1470 5942.0 1397.0Q5819 1324 5750.5 1195.5Q5682 1067 5682 900Q5682 731 5752.0 602.5Q5822 474 5945.0 402.0Q6068 330 6228 330Q6391 330 6514.5 403.0Q6638 476 6707.0 604.5Q6776 733 6776 900Q6776 1068 6706.5 1196.5Q6637 1325 6513.5 1397.5Q6390 1470 6228 1470ZM6228 1216Q6359 1216 6423.5 1127.5Q6488 1039 6488 900Q6488 756 6422.5 670.0Q6357 584 6228 584Q6139 584 6082.0 624.0Q6025 664 5997.5 735.0Q5970 806 5970 900Q5970 1045 6035.5 1130.5Q6101 1216 6228 1216Z"/>
+      <path id="logo-path-7" fill="#c2381a" d="M7094 1920 7302 1348 7306 1516 6836 360H7118L7434 1178H7370L7684 360H7956L7346 1920Z"/>
+      <path id="logo-path-8" fill="#000000" d="M8682 1470Q8508 1470 8376.0 1399.5Q8244 1329 8170.0 1201.0Q8096 1073 8096 900V2L8372 0V898Q8372 969 8396.0 1027.0Q8420 1085 8462.5 1127.0Q8505 1169 8561.5 1191.5Q8618 1214 8682 1214Q8748 1214 8804.5 1191.0Q8861 1168 8903.0 1126.0Q8945 1084 8968.5 1026.0Q8992 968 8992 898V0H9268V900Q9268 1073 9194.0 1201.0Q9120 1329 8988.0 1399.5Q8856 1470 8682 1470Z"/>
+    </g>
+  </g>
+  <g id="layer-art" inkscape:groupmode="layer" inkscape:label="Artwork">
+    <rect id="page-border" x="16" y="16" width="1568" height="868" fill="none" stroke="#000000" stroke-width="2"/>
+    <rect id="accent-rule" x="48" y="168" width="360" height="2" fill="#b45700"/>
+    <path id="form-paper-cup" fill="#ffffff" stroke="#000000" stroke-width="2" d="M150 320 H370 L330 640 H190 Z"/>
+    <path id="form-paper-cup-rim" fill="#ffffff" stroke="#000000" stroke-width="2" d="M130 280 H390 V330 H130 Z"/>
+    <rect id="form-corrugated" x="1040" y="300" width="420" height="380" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+    <path id="form-corrugated-flap" fill="none" stroke="#000000" stroke-width="2" d="M1040 300 L1250 230 L1460 300"/>
+    <path id="form-corrugated-flute" fill="none" stroke="#000000" stroke-width="2" d="M1040 400 H1460 M1040 500 H1460 M1040 600 H1460"/>
+    <rect id="form-gift-box" inkscape:label="Gift box" x="460" y="250" width="460" height="420" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+    <path id="form-gift-ribbon-v" fill="none" stroke="#000000" stroke-width="2" d="M760 250 V670"/>
+    <path id="form-gift-ribbon-h" fill="none" stroke="#000000" stroke-width="2" d="M460 520 H920"/>
+  </g>
+  <g id="layer-labels" inkscape:groupmode="layer" inkscape:label="Labels">
+    <text id="label-paper-cup" x="160" y="720" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">Paper cup</text>
+    <text id="label-gift-box" x="590" y="720" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">Gift box</text>
+    <text id="label-corrugated" x="1120" y="720" font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#000000">Corrugated carton</text>
+    <text id="label-title" x="620" y="110" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="#000000">Packaging forms</text>
+  </g>
+</svg>

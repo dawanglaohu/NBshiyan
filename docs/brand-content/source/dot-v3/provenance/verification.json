@@ -1,0 +1,58 @@
+{
+  "verified_utc": "2026-10-22T05:48:00Z",
+  "svg_viewBox": "0 0 1600 1856",
+  "svg_live_text_objects": 65,
+  "svg_path_objects": 79,
+  "editable_layers": [
+    "01 Page and editorial rules",
+    "02 Official PackJoyU logo",
+    "03 Company positioning and overview",
+    "04 Editable product display illustrations",
+    "05 Capabilities and product accents",
+    "06 Connected capability path",
+    "07 Complete product portfolio",
+    "08 Project enquiry guidance"
+  ],
+  "svg_raster_images": 0,
+  "official_logo": {
+    "original_paths": 8,
+    "d_and_fill_exact_match": true,
+    "transform": "translate(88 62) scale(0.0291335779)",
+    "master_sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099"
+  },
+  "category_labels": [
+    "Corrugated boxes",
+    "Color boxes",
+    "Gift boxes",
+    "Wine boxes",
+    "Paper cups",
+    "Eco paper cups",
+    "Pulp molding",
+    "Color printing",
+    "Offset printing",
+    "Gift cards",
+    "Party supplies",
+    "Christmas merchandise"
+  ],
+  "all_12_present_in_svg_and_pdf": true,
+  "png_dimensions": [
+    5000,
+    5800
+  ],
+  "png_dpi": [
+    299.9994,
+    299.9994
+  ],
+  "png_fully_opaque_white_page": true,
+  "pdf_pages": 1,
+  "pdf_points": [
+    1200.0,
+    1392.0
+  ],
+  "pdf_title": "PackJoyU Company Introduction - English v3",
+  "font_embedding": "All four font subsets embedded, as recorded in pdf-fonts.txt.",
+  "out_of_page_objects": [],
+  "temporary_text_edit_undone": true,
+  "on_disk_svg_hash_unchanged_after_edit_test": true,
+  "visual_review": "Full page rendered and viewed; no clipping or overlap observed. All twelve categories retained. The design is a single English company-profile page with secondary product portfolio."
+}
