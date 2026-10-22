@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Button } from '@/components/ui/Button';
 import { BRAND_MEDIA } from '@/lib/home/brandMedia';
 
@@ -16,8 +17,10 @@ type Labels = { alt: string; play: string; pause: string; title?: string };
 export default function BrandScene({ labels, stillSrc }: { labels: Labels; stillSrc?: string }) {
   const section = useRef<HTMLElement>(null);
   const [mounted, setMounted] = useState(false);
-  const [near, setNear] = useState(false);
+  const [admitted, setAdmitted] = useState(false);
+  const [inView, setInView] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
+  const prefetched = useRef(false);
   const [reduced, setReduced] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
   const [userArmed, setUserArmed] = useState(false);
@@ -27,27 +30,47 @@ export default function BrandScene({ labels, stillSrc }: { labels: Labels; still
     setMounted(true);
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updateMotion = () => setReduced(motion.matches);
-    const updateVisibility = () => setPageVisible(document.visibilityState === 'visible');
+    // Commit the still or the GIF before the page freezes. A later paint never runs while frozen.
+    const updateVisibility = () => { flushSync(() => setPageVisible(document.visibilityState === 'visible')); };
+    const hidePage = () => { flushSync(() => setPageVisible(false)); };
     updateMotion();
     updateVisibility();
     motion.addEventListener('change', updateMotion);
     document.addEventListener('visibilitychange', updateVisibility);
-    let observer: IntersectionObserver | undefined;
-    if ('IntersectionObserver' in window) {
-      observer = new IntersectionObserver(([entry]) => setNear(entry.isIntersecting), { rootMargin: CITY_GIF_ROOT_MARGIN });
-      if (section.current) observer.observe(section.current);
+    document.addEventListener('freeze', hidePage);
+    document.addEventListener('resume', updateVisibility);
+    let loadObserver: IntersectionObserver | undefined;
+    let viewObserver: IntersectionObserver | undefined;
+    if ('IntersectionObserver' in window && section.current) {
+      loadObserver = new IntersectionObserver(([entry]) => setAdmitted(entry.isIntersecting), { rootMargin: CITY_GIF_ROOT_MARGIN });
+      viewObserver = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
+      loadObserver.observe(section.current);
+      viewObserver.observe(section.current);
     } else {
-      setNear(true);
+      setAdmitted(true);
+      setInView(true);
     }
     return () => {
-      observer?.disconnect();
+      loadObserver?.disconnect();
+      viewObserver?.disconnect();
       motion.removeEventListener('change', updateMotion);
       document.removeEventListener('visibilitychange', updateVisibility);
+      document.removeEventListener('freeze', hidePage);
+      document.removeEventListener('resume', updateVisibility);
     };
   }, []);
 
-  // Reduced motion stays on the still until the visitor presses play. A pause choice survives scroll and tab hide.
-  const showGif = near && pageVisible && !userPaused && !failed && (!reduced || userArmed);
+  const allowDownload = admitted && !failed && (!reduced || userArmed);
+  useEffect(() => {
+    if (!allowDownload || prefetched.current) return;
+    prefetched.current = true;
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = CITY_GIF_SRC;
+  }, [allowDownload]);
+
+  // 300px only admits the download. Playback needs the real viewport, a visible page, and no user pause.
+  const showGif = allowDownload && inView && pageVisible && !userPaused;
   const still = stillSrc ?? BRAND_MEDIA.scene.poster;
 
   const toggle = () => {
@@ -66,6 +89,9 @@ export default function BrandScene({ labels, stillSrc }: { labels: Labels; still
       ref={section}
       className="block container brand-scene-section"
       data-testid="brand-scene"
+      data-admitted={admitted ? '1' : '0'}
+      data-in-view={inView ? '1' : '0'}
+      data-page-visible={pageVisible ? '1' : '0'}
       data-user-paused={userPaused ? '1' : '0'}
       data-state={showGif ? 'playing' : 'still'}
       {...(labels.title ? { 'aria-labelledby': 'brand-scene-title' } : { 'aria-label': labels.alt })}

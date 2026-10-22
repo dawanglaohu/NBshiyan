@@ -2,6 +2,7 @@
 // The selected factory video and its own poster retain their complete 16:9 frame on every screen.
 import { getImageProps } from 'next/image';
 import { useEffect, useReducer, useRef, useState } from 'react';
+import { Button } from '@/components/ui/Button';
 import { BRAND_MEDIA } from '@/lib/home/brandMedia';
 import { heroReducer, isFatalMediaError, markSeen, readEnv, shouldAutoplay, whenIdle } from '@/lib/home/heroVideo';
 
@@ -97,22 +98,14 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
       <div className="hero-media-ctrls">
         {active ? (
           <>
-            <button type="button" className="hero-media-btn" aria-pressed={state === 'paused'}
-              aria-label={state === 'playing' ? labels.pause : labels.play}
+            <Button type="button" context="public" variant="secondary" aria-pressed={state === 'paused'}
               onClick={() => dispatch(state === 'playing' ? 'pause' : 'play')}>
-              <span aria-hidden="true">{state === 'playing' ? '❚❚' : '▶'}</span>
-              <span className="hero-media-btn-text" aria-hidden="true">{state === 'playing' ? labels.pause : labels.play}</span>
-            </button>
-            <button type="button" className="hero-media-btn" aria-label={labels.skip} onClick={() => stop('skip')}>
-              <span aria-hidden="true">✕</span>
-              <span className="hero-media-btn-text" aria-hidden="true">{labels.skip}</span>
-            </button>
+              {state === 'playing' ? labels.pause : labels.play}
+            </Button>
+            <Button type="button" context="public" variant="secondary" onClick={() => stop('skip')}>{labels.skip}</Button>
           </>
         ) : (canPlay || manualOffer) ? (
-          <button type="button" className="hero-media-btn" aria-label={labels.play} onClick={() => { setMounted(true); dispatch('play'); }}>
-            <span aria-hidden="true">▶</span>
-            <span className="hero-media-btn-text" aria-hidden="true">{labels.play}</span>
-          </button>
+          <Button type="button" context="public" variant="secondary" onClick={() => { setMounted(true); dispatch('play'); }}>{labels.play}</Button>
         ) : null}
       </div>
     </div>

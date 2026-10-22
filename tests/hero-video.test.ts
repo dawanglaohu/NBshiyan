@@ -59,7 +59,7 @@ test('component markup: poster is high-priority img, video muted/playsInline/pre
   assert.doesNotMatch(src, /\bloop\b|autoPlay/);
   assert.ok(src.indexOf('BRAND_MEDIA.video.compact') < src.indexOf('BRAND_MEDIA.video.full'));
   assert.doesNotMatch(src, /\/video\/hero-115|\.webm/);
-  assert.match(src, /<button type="button"/);
+  assert.match(src, /<Button type="button"/);
   const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
   assert.match(css, /\.hero-media\{[^}]*aspect-ratio:16\/9/);
   assert.match(css, /max-width:767px\)\{[^@]*\.hero-media\{aspect-ratio:16\/9\}\}/);

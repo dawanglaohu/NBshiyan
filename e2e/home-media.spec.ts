@@ -135,7 +135,24 @@ test('reduced motion and a failed video stay on the poster and offer play once',
   expect(videos.length).toBe(after);
 });
 
-test('the city GIF is not requested until it is within 300px, and a pause survives scroll and a hidden tab', async ({ page }) => {
+async function sceneState(page: Page) {
+  return page.getByTestId('brand-scene').evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      viewport: window.innerHeight,
+      admitted: el.getAttribute('data-admitted'),
+      inView: el.getAttribute('data-in-view'),
+      state: el.getAttribute('data-state'),
+      userPaused: el.getAttribute('data-user-paused'),
+      pageVisible: el.getAttribute('data-page-visible'),
+      gif: el.querySelectorAll('[data-testid="brand-scene-gif"]').length,
+    };
+  });
+}
+
+test('the city GIF may download within 300px and plays only while it intersects the viewport', async ({ page }) => {
   const requested: string[] = [];
   page.on('request', (request) => requested.push(request.url()));
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -150,53 +167,108 @@ test('the city GIF is not requested until it is within 300px, and a pause surviv
     });
     if (fits) break;
   }
+  const scene = page.getByTestId('brand-scene');
   await placeScene(page, 360);
+  await expect(scene).toHaveAttribute('data-admitted', '0');
+  await expect(scene).toHaveAttribute('data-in-view', '0');
+  await expect(scene).toHaveAttribute('data-state', 'still');
   expect(gifPaths(requested)).toEqual([]);
   await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
   await expect(page.getByTestId('brand-scene-still')).toBeVisible();
 
-  await placeScene(page, 200);
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+  // The section sits fully below the fold and still inside the 300px load margin.
+  await placeScene(page, 150);
+  await expect(scene).toHaveAttribute('data-admitted', '1');
+  await expect(scene).toHaveAttribute('data-in-view', '0');
+  const parked = await sceneState(page);
+  expect(parked.top).toBeGreaterThan(parked.viewport);
+  expect(parked.bottom).toBeGreaterThan(parked.viewport);
+  expect(parked.top).toBeLessThan(parked.viewport + 300);
+  expect(parked.state).toBe('still');
+  expect(parked.userPaused).toBe('0');
+  expect(parked.gif).toBe(0);
   await expect.poll(() => gifPaths(requested).length).toBeGreaterThan(0);
-  const scene = page.getByTestId('brand-scene');
-  await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
-  await expect(scene).toHaveAttribute('data-user-paused', '1');
   await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
-  await page.getByTestId('brand-scene-still').scrollIntoViewIfNeeded();
-  const pausedStill = await page.getByTestId('brand-scene-still').evaluate((el) => ({
+
+  await scene.scrollIntoViewIfNeeded();
+  await expect(scene).toHaveAttribute('data-in-view', '1');
+  await expect(scene).toHaveAttribute('data-state', 'playing');
+  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+
+  await placeScene(page, 150);
+  await expect(scene).toHaveAttribute('data-in-view', '0');
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await expect(scene).toHaveAttribute('data-user-paused', '0');
+  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  const leftStill = await page.getByTestId('brand-scene-still').evaluate((el) => ({
     width: (el as HTMLImageElement).naturalWidth,
     height: (el as HTMLImageElement).naturalHeight,
   }));
-  expect(pausedStill).toEqual({ width: 1384, height: 720 });
+  expect(leftStill).toEqual({ width: 1384, height: 720 });
 
-  await placeScene(page, 360);
-  await placeScene(page, 200);
+  await scene.scrollIntoViewIfNeeded();
+  await expect(scene).toHaveAttribute('data-user-paused', '0');
+  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+
+  await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
   await expect(scene).toHaveAttribute('data-user-paused', '1');
   await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
-
-  await scene.getByRole('button', { name: 'Play illustration animation' }).click();
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
-  const setPageHidden = async (hidden: boolean) => {
-    await page.evaluate((isHidden) => {
-      const value = isHidden ? 'hidden' : 'visible';
-      Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => value });
-      Object.defineProperty(document, 'hidden', { configurable: true, get: () => isHidden });
-      document.dispatchEvent(new Event('visibilitychange'));
-    }, hidden);
-  };
-  await setPageHidden(true);
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
-  await expect(scene).toHaveAttribute('data-user-paused', '0');
-  await setPageHidden(false);
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
-  await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
-  await setPageHidden(true);
-  await setPageHidden(false);
+  await placeScene(page, 360);
+  await scene.scrollIntoViewIfNeeded();
   await expect(scene).toHaveAttribute('data-user-paused', '1');
   await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
 });
 
-test('reduced motion does not start the city GIF until the visitor presses play', async ({ page }) => {
+test('freezing the page drops the city GIF and restoring it does not clear a user pause', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  await dismissConsent(page);
+  const scene = page.getByTestId('brand-scene');
+  await scene.scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+  await page.evaluate(() => {
+    const log: string[] = [];
+    (window as unknown as { __life: string[] }).__life = log;
+    document.addEventListener('freeze', () => log.push('freeze'));
+    document.addEventListener('resume', () => log.push('resume'));
+    document.addEventListener('visibilitychange', () => log.push(`visibility:${document.visibilityState}`));
+  });
+  const client = await page.context().newCDPSession(page);
+  // An attached debugger makes Chromium accept frozen and then emit nothing. Minimize and a second tab do the same.
+  await client.send('Page.setWebLifecycleState', { state: 'frozen' }).catch(() => undefined);
+  const fromBrowser = await page.evaluate(() => (window as unknown as { __life: string[] }).__life);
+  if (!fromBrowser.includes('freeze')) {
+    await page.evaluate(() => document.dispatchEvent(new Event('freeze')));
+  }
+  await expect(scene).toHaveAttribute('data-page-visible', '0');
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await expect(scene).toHaveAttribute('data-user-paused', '0');
+  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  const frozen = await page.evaluate(() => ({
+    overridden: Object.prototype.hasOwnProperty.call(document, 'visibilityState'),
+    visibility: document.visibilityState,
+    life: (window as unknown as { __life: string[] }).__life,
+  }));
+  expect(frozen.overridden).toBe(false);
+  expect(frozen.life).toContain('freeze');
+
+  if (!frozen.life.includes('resume')) {
+    await page.evaluate(() => document.dispatchEvent(new Event('resume')));
+  }
+  await expect(scene).toHaveAttribute('data-page-visible', '1');
+  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+
+  await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
+  await expect(scene).toHaveAttribute('data-user-paused', '1');
+  await page.evaluate(() => document.dispatchEvent(new Event('freeze')));
+  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  await page.evaluate(() => document.dispatchEvent(new Event('resume')));
+  await expect(scene).toHaveAttribute('data-page-visible', '1');
+  await expect(scene).toHaveAttribute('data-user-paused', '1');
+  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+});
+
+test('reduced motion does not start the city GIF until the visitor presses play inside the viewport', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const requested: string[] = [];
   page.on('request', (request) => requested.push(request.url()));
@@ -204,11 +276,80 @@ test('reduced motion does not start the city GIF until the visitor presses play'
   await page.goto('/en');
   await dismissConsent(page);
   await placeScene(page, 200);
+  const scene = page.getByTestId('brand-scene');
+  await expect(scene).toHaveAttribute('data-admitted', '1');
+  await expect(scene).toHaveAttribute('data-in-view', '0');
   expect(gifPaths(requested)).toEqual([]);
   await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
-  await page.getByTestId('brand-scene').getByRole('button', { name: 'Play illustration animation' }).click();
+  await scene.getByRole('button', { name: 'Play illustration animation' }).evaluate((el: HTMLButtonElement) => el.click());
+  await expect(scene).toHaveAttribute('data-in-view', '0');
+  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  await scene.scrollIntoViewIfNeeded();
   await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
   expect(gifPaths(requested).length).toBeGreaterThan(0);
+});
+
+async function tokenButton(page: Page, name: string) {
+  const button = page.getByTestId('home-video').getByRole('button', { name, exact: true });
+  await expect(button).toBeVisible();
+  await button.evaluate((el: HTMLElement) => el.focus({ focusVisible: true }));
+  const chrome = await button.evaluate((el) => {
+    const style = getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    return {
+      borderTopWidth: style.borderTopWidth,
+      borderRightWidth: style.borderRightWidth,
+      borderBottomWidth: style.borderBottomWidth,
+      borderLeftWidth: style.borderLeftWidth,
+      borderTopStyle: style.borderTopStyle,
+      borderRadius: style.borderRadius,
+      boxShadow: style.boxShadow,
+      minHeight: parseFloat(style.minHeight),
+      minWidth: parseFloat(style.minWidth),
+      height: rect.height,
+      width: rect.width,
+      outlineWidth: style.outlineWidth,
+      outlineStyle: style.outlineStyle,
+      outlineColor: style.outlineColor,
+      context: el.getAttribute('data-context'),
+      className: el.className,
+    };
+  });
+  expect(chrome.borderTopWidth).toBe('2px');
+  expect(chrome.borderRightWidth).toBe('2px');
+  expect(chrome.borderBottomWidth).toBe('2px');
+  expect(chrome.borderLeftWidth).toBe('2px');
+  expect(chrome.borderTopStyle).toBe('solid');
+  for (const part of chrome.borderRadius.split(' ')) expect(part === '0px' || part === '0').toBe(true);
+  expect(chrome.boxShadow).toBe('none');
+  expect(chrome.minHeight).toBeGreaterThanOrEqual(44);
+  expect(chrome.minWidth).toBeGreaterThanOrEqual(44);
+  expect(chrome.height).toBeGreaterThanOrEqual(44);
+  expect(chrome.width).toBeGreaterThanOrEqual(44);
+  expect(chrome.outlineWidth).toBe('2px');
+  expect(chrome.outlineStyle).toBe('solid');
+  expect(chrome.outlineColor).toBe('rgb(180, 87, 0)');
+  expect(chrome.context).toBe('public');
+  expect(chrome.className).toContain('pj-button');
+}
+
+test('video play, pause and skip keep the shared button chrome at 1920, 1440 and 390', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1440, height: 900 },
+    { width: 390, height: 844 },
+  ] as const) {
+    await page.setViewportSize(viewport);
+    await page.goto('/en');
+    await dismissConsent(page);
+    const frame = page.getByTestId('home-video');
+    await tokenButton(page, 'Play video');
+    await frame.getByRole('button', { name: 'Play video', exact: true }).click();
+    await expect(frame.locator('.hero-media')).toHaveAttribute('data-state', 'playing');
+    await tokenButton(page, 'Pause video');
+    await tokenButton(page, 'Skip video');
+  }
 });
 
 for (const viewport of [
