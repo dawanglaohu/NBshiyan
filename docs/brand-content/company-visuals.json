@@ -1,0 +1,109 @@
+{
+  "assetSet": "company-visual-assets",
+  "status": "unfinished",
+  "reason": "Inkscape 1.4.4 已打开两份源工程、编辑对象、撤销并导出 Web 图。GPT Dot 没有调用号，本清单不是已完成的 company-visual-assets，不能当作落地。",
+  "dot": {
+    "reachable": false,
+    "invocationId": null,
+    "checkedAt": "2026-10-21",
+    "note": "尚未执行。MCP 工具列表里没有 computer-use 或 GPT Dot，没有编造调用号。"
+  },
+  "software": {
+    "name": "Inkscape",
+    "version": "1.4.4 (dcaf3e7, 2026-05-05)",
+    "sessionId": "368b4fde-1628-4163-adb6-99a701b8088e",
+    "sessionRecord": "docs/brand-content/source/inkscape-session.json"
+  },
+  "logoMaster": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "importObject": "logo-master-import"
+  },
+  "referencePdf": {
+    "sha256": "f90310c0c3bd4b2f0bf9ff4941352a48aa982b41a4631f605453629c7870201d",
+    "bytes": 16291939,
+    "pageCount": 25
+  },
+  "originalMedia": [
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+      "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d"
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop.gif",
+      "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291"
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3.png",
+      "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+      "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-v3.mp4",
+      "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731"
+    },
+    {
+      "path": "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+      "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd"
+    }
+  ],
+  "artworks": [
+    {
+      "id": "company-product-range",
+      "reference": {
+        "pdfPage": 3,
+        "theme": "CONTENTS 的组织：01 Company Introduction、02 Application、03 Main products。只借鉴目录怎么分块，不搬页上的企业事实。"
+      },
+      "factBasis": "画面上的六个名称对应 src/data/products.ts 已发布 slug：corrugated-boxes、color-boxes、gift-boxes、paper-cups、pulp-molding、party-supplies。没有厂房、设备、认证、产能或尺寸。",
+      "source": {
+        "path": "docs/brand-content/source/company-product-range.svg",
+        "sha256": "3cb023812360a3003192fa539bc19053fab5da0e6f0fc78c0e10805ab06f4ed4"
+      },
+      "web": {
+        "path": "public/brand/company/company-product-range.png",
+        "sha256": "52ea1899439e454a24308c1e69dbcdc36e5be7cc7d1b9bad5c6c8b45a98ee80a",
+        "width": 1600,
+        "height": 900
+      },
+      "alt": {
+        "en": "PackJoyU wordmark at the upper left, the title Product range, a short brown rule, and six outlined labels: corrugated boxes, color boxes, gift boxes, paper cups, pulp molding, and party supplies. No factory, certificate, or capacity figures.",
+        "ru": "Словесный знак PackJoyU слева вверху, заголовок Product range, короткая коричневая линия и шесть контуров: гофрокороба, цветные коробки, подарочные коробки, бумажные стаканы, формованная целлюлоза и праздничные товары. Без завода, сертификатов и цифр мощности."
+      },
+      "logoImportObject": "logo-master-import",
+      "editedObject": "cell-gift-boxes"
+    },
+    {
+      "id": "company-packaging-forms",
+      "reference": {
+        "pdfPages": [
+          16,
+          20
+        ],
+        "theme": "第16页纸杯/杯盖和第20页餐盒的产品种类。重画成纸杯、礼盒和瓦楞箱的平面正视轮廓，不抄尺寸表，不画证照。"
+      },
+      "factBasis": "三种轮廓对应已发布品类 paper-cups、gift-boxes、corrugated-boxes。图中没有测量数字、厂房或认证标记。",
+      "source": {
+        "path": "docs/brand-content/source/company-packaging-forms.svg",
+        "sha256": "1b5d6ae8401f170ec3eeef9444ede477dc15293b925bc3a93757ad7706b875d4"
+      },
+      "web": {
+        "path": "public/brand/company/company-packaging-forms.png",
+        "sha256": "c968580b4b29a274c9c8baa4ab29b81c209f59b3cdab984beaf706bcaf861e19",
+        "width": 1600,
+        "height": 900
+      },
+      "alt": {
+        "en": "PackJoyU wordmark at the upper left, the title Packaging forms, a short brown rule, and flat black outlines of a paper cup, a gift box, and a corrugated carton on white. No measurements or certificates.",
+        "ru": "Словесный знак PackJoyU слева вверху, заголовок Packaging forms, короткая коричневая линия и плоские чёрные контуры бумажного стакана, подарочной коробки и гофрокороба на белом поле. Без размеров и сертификатов."
+      },
+      "logoImportObject": "logo-master-import",
+      "editedObject": "form-gift-box"
+    }
+  ],
+  "pageEvidence": null,
+  "integrationTask": "M1-T5",
+  "measuredAt": "2026-10-22T01:39:36Z"
+}

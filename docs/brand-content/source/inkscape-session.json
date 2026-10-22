@@ -1,0 +1,137 @@
+{
+  "sessionId": "368b4fde-1628-4163-adb6-99a701b8088e",
+  "software": {
+    "name": "Inkscape",
+    "version": "1.4.4 (dcaf3e7, 2026-05-05)"
+  },
+  "dot": {
+    "reachable": false,
+    "invocationId": null,
+    "checkedAt": "2026-10-21",
+    "note": "尚未执行。MCP 工具列表里没有 computer-use 或 GPT Dot，没有编造调用号。"
+  },
+  "logoMaster": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "importObject": "logo-master-import"
+  },
+  "measuredAt": "2026-10-22T01:39:36Z",
+  "artworks": [
+    {
+      "id": "company-product-range",
+      "source": {
+        "path": "docs/brand-content/source/company-product-range.svg",
+        "sha256": "3cb023812360a3003192fa539bc19053fab5da0e6f0fc78c0e10805ab06f4ed4"
+      },
+      "web": {
+        "path": "public/brand/company/company-product-range.png",
+        "sha256": "52ea1899439e454a24308c1e69dbcdc36e5be7cc7d1b9bad5c6c8b45a98ee80a",
+        "width": 1600,
+        "height": 900
+      },
+      "editedObject": "cell-gift-boxes",
+      "objectLabel": "Gift boxes",
+      "logoImportObject": "logo-master-import",
+      "open": {
+        "windowTitle": "company-product-range.svg - Inkscape",
+        "sha256UnchangedAfterClose": true
+      },
+      "panels": {
+        "objects": "图层与对象",
+        "layers": [
+          "Ground",
+          "Logo",
+          "Artwork",
+          "Labels"
+        ],
+        "selectedEntry": "Gift boxes"
+      },
+      "edit": {
+        "method": "palette fill",
+        "temporaryFill": "#0000ff",
+        "historyEntry": "从色卡中设置填充颜色"
+      },
+      "undo": {
+        "actionGroup": "doc",
+        "actionName": "undo",
+        "accelerator": "doc.undo",
+        "enabled": true,
+        "restoredFill": "#ffffff",
+        "historyHead": "未改变",
+        "saved": false,
+        "sourceSha256Unchanged": true
+      },
+      "export": {
+        "command": "inkscape.com --export-type=png --export-filename=public/brand/company/company-product-range.png --export-width=1600 --export-height=900 docs/brand-content/source/company-product-range.svg",
+        "web": {
+          "path": "public/brand/company/company-product-range.png",
+          "sha256": "52ea1899439e454a24308c1e69dbcdc36e5be7cc7d1b9bad5c6c8b45a98ee80a",
+          "width": 1600,
+          "height": 900
+        }
+      },
+      "reopen": {
+        "windowTitle": "company-product-range.svg - Inkscape",
+        "sha256Unchanged": true
+      }
+    },
+    {
+      "id": "company-packaging-forms",
+      "source": {
+        "path": "docs/brand-content/source/company-packaging-forms.svg",
+        "sha256": "1b5d6ae8401f170ec3eeef9444ede477dc15293b925bc3a93757ad7706b875d4"
+      },
+      "web": {
+        "path": "public/brand/company/company-packaging-forms.png",
+        "sha256": "c968580b4b29a274c9c8baa4ab29b81c209f59b3cdab984beaf706bcaf861e19",
+        "width": 1600,
+        "height": 900
+      },
+      "editedObject": "form-gift-box",
+      "objectLabel": "Gift box",
+      "logoImportObject": "logo-master-import",
+      "open": {
+        "windowTitle": "company-packaging-forms.svg - Inkscape",
+        "sha256UnchangedAfterClose": true
+      },
+      "panels": {
+        "objects": "图层与对象",
+        "layers": [
+          "Ground",
+          "Logo",
+          "Artwork",
+          "Labels"
+        ],
+        "selectedEntry": "Gift box"
+      },
+      "edit": {
+        "method": "palette fill",
+        "temporaryFill": "#0000ff",
+        "historyEntry": "从色卡中设置填充颜色"
+      },
+      "undo": {
+        "actionGroup": "doc",
+        "actionName": "undo",
+        "accelerator": "doc.undo",
+        "enabled": true,
+        "restoredFill": "#ffffff",
+        "historyHead": "未改变",
+        "saved": false,
+        "sourceSha256Unchanged": true
+      },
+      "export": {
+        "command": "inkscape.com --export-type=png --export-filename=public/brand/company/company-packaging-forms.png --export-width=1600 --export-height=900 docs/brand-content/source/company-packaging-forms.svg",
+        "web": {
+          "path": "public/brand/company/company-packaging-forms.png",
+          "sha256": "c968580b4b29a274c9c8baa4ab29b81c209f59b3cdab984beaf706bcaf861e19",
+          "width": 1600,
+          "height": 900
+        }
+      },
+      "reopen": {
+        "windowTitle": "company-packaging-forms.svg - Inkscape",
+        "sha256Unchanged": true
+      }
+    }
+  ]
+}
