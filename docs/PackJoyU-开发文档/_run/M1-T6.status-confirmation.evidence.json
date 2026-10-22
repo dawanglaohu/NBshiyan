@@ -1,0 +1,106 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T6": {
+      "contractHash": "d9f634c6292868f4cb64467ebc678f24fbdbd7ac430ca00fd9ad9ff04419574a",
+      "evidence": [
+        "本轮为用户明确要求的完成状态同步：第三批收口已执行，M1-T6标记已完成。恢复本地主分支43592a41已有完成提交的status与code/notes，通过合并保留全部本地5提交历史；最新M1-T6定义、验收和边界来自origin/main，未降低或重写。",
+        "素材完成依据沿用既有用户确认成品及原任务受保护记录。本轮只读验证6个选定public成品逐字节SHA与held/selected一致；full1384x720及preview960x500均真实解码361帧/30080ms/loop0，全部帧duration数组匹配既有动画记录。Desktop原GIF实际SHA仍匹配历史值。完整输出见本仓库本文件的 mediaIntegrity；可复现命令及脚本SHA见 mediaIntegrityReproduction。",
+        "当前真实消费版本是BrandScene的1384x720 fullGIF，page.tsx传同尺寸held/loop-poster.png，SHA及尺寸匹配；preview仅登记而未被当前src消费，不声称有另一个960x500暂停帧。T3静态PNG1737x905与GIF暂停帧分别保存，没有互相冒充。",
+        "本轮没有重新制作或修改媒体，没有声称重新人工视觉审查361帧；沿用用户已确认的制作和完成记录。广义verify-static-media --require-release在现用SiteHeader.tsx与历史制作source-hash不等处失败，该项如实记录，不把它当作素材本体损坏或全绿，也不改旧制作记录迁就检查。",
+        "批次状态修正只给batch3 record登记六个批次成员；实际审查仍四项、两素材任务仍免审，verdict open/tests fail及六个返工task围栏不变。真实浏览器fresh localhost origin storageEntries0，显示已收口2026-10-22有遗留/已落地6/6/再收口一次，M1-T6为htask done；六R3 ID仍可见。",
+        "现有批次闸门回归15/15通过；生成器未修改。所有应用代码与素材相对origin/main零差异，继承revalidation不清除。此登记是当前契约语义复核和明确的人工作品接受状态同步，不将未解决验证返工判为完成。"
+      ],
+      "verdict": "pass"
+    }
+  },
+  "acceptanceOrigin": "explicit user confirmation and existing local completion commit43592a41",
+  "mediaIntegrity": {
+    "scope": "read-only selected media integrity and full GIF decode; not new human visual review",
+    "deliverables": [
+      {
+        "path": "public/brand/packjoyu-industrial-city-v3.png",
+        "sha256": "3c9bc089678ef07d5903543174216a4300e2c742b5d92af7afb16d1aba083833",
+        "publicMatchesSelectedAndHeld": true
+      },
+      {
+        "path": "public/brand/packjoyu-industrial-city-v3-loop.gif",
+        "sha256": "1381f0b922e2853d7f0b97b72f9d7582f27c6ee2504fddf0bfef5a85512a9291",
+        "publicMatchesSelectedAndHeld": true
+      },
+      {
+        "path": "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+        "sha256": "f009f8c4070ef0385cfdadf65138825737c217a9ada7d8d7802c9c7eaa93104d",
+        "publicMatchesSelectedAndHeld": true
+      },
+      {
+        "path": "public/brand/video2-packjoyu-products-v3.mp4",
+        "sha256": "76054d878a9c535d902664761211525b686d48d0401ddb1506670d0cda6ea731",
+        "publicMatchesSelectedAndHeld": true
+      },
+      {
+        "path": "public/brand/video2-packjoyu-products-web-720p60-v3.mp4",
+        "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd",
+        "publicMatchesSelectedAndHeld": true
+      },
+      {
+        "path": "public/brand/video2-packjoyu-products-v3-poster-12233ms.jpg",
+        "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8",
+        "publicMatchesSelectedAndHeld": true
+      }
+    ],
+    "gifs": [
+      {
+        "path": "public/brand/packjoyu-industrial-city-v3-loop.gif",
+        "dimensions": [
+          1384,
+          720
+        ],
+        "decodedFrames": 361,
+        "durationMs": 30080,
+        "loop": 0,
+        "allFrameDurationsMatchAnimationRecord": true,
+        "allDecodedRgbSequenceSha256": "3dc1b48d99d830c515fe563893378751f5458e25b36828c0bdc28b82efa2171b"
+      },
+      {
+        "path": "public/brand/packjoyu-industrial-city-v3-loop-preview.gif",
+        "dimensions": [
+          960,
+          500
+        ],
+        "decodedFrames": 361,
+        "durationMs": 30080,
+        "loop": 0,
+        "allFrameDurationsMatchAnimationRecord": true,
+        "allDecodedRgbSequenceSha256": "db265f90853b32da1511a4b4d98bcb55eb231cb37f5518e793c7f3cb5db967b5"
+      }
+    ],
+    "pauseFrame": {
+      "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
+      "sha256": "e5f6000a5ca44246c52f05eb41b9c28b546555af02b2f9971b728f494c10230b",
+      "width": 1384,
+      "height": 720,
+      "actualHashAndDimensionsMatch": true
+    },
+    "originalGif": {
+      "checked": true,
+      "recordedSha256": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "path": "C:\\Users\\admin\\Desktop\\video_1654824102804.gif",
+      "present": true,
+      "actualSha256": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d"
+    }
+  },
+  "mediaIntegrityReproduction": {
+    "requires": [
+      "Python",
+      "Pillow"
+    ],
+    "script": "docs/brand-media/animation/verify-media-integrity.py",
+    "scriptSha256": "92aa287cb699507e8caa21176b4132f02ae6334dfe57f10771574d7af8cdf7a1",
+    "command": "python -B docs/brand-media/animation/verify-media-integrity.py",
+    "executedCommand": "python -B docs/brand-media/animation/verify-media-integrity.py --original-gif C:/Users/admin/Desktop/video_1654824102804.gif",
+    "output": "this file: mediaIntegrity",
+    "originalNote": "Default is repository-only; use --original-gif <path> to recheck a separately retained original.",
+    "scriptSha256Basis": "UTF-8 source with LF line endings"
+  }
+}
