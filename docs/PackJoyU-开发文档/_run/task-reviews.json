@@ -68,12 +68,14 @@
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "d9f634c6292868f4cb64467ebc678f24fbdbd7ac430ca00fd9ad9ff04419574a",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:16；只把旧参考重制作改为当前选定GIF复核；361帧、品牌/透视/转场/遮挡、逐帧时序/30.08s无限循环、失败排除发布均保留。现PNG1737x905不能冒充1384x720/960x500暂停帧，已有pauseFrame先核后补登记，只有残留缺陷才定点修当前副本；实际授权渠道证据仍必需，不补造Dot。",
-      "本任务具体边界：输入=docs/brand-media/static/selected-media-release.json中的已确认工业GIF/预览GIF及PNG、industrial-city-animation-record.json的时序/暂停帧、brand-static-media和现用master；原GIF仅历史SHA/时间线对照；输出=brand-media；复用已确认GIF、补齐已核同尺寸暂停帧、全帧品牌/时序报告和发布集合；前置=M1-T3；阶段=integration；能力=brand-media；有效路径共2项（docs/brand-media/animation/; public/brand/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-26,E-30；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "本轮为用户明确要求的完成状态同步：第三批收口已执行，M1-T6标记已完成。恢复本地主分支43592a41已有完成提交的status与code/notes，通过合并保留全部本地5提交历史；最新M1-T6定义、验收和边界来自origin/main，未降低或重写。",
+      "素材完成依据沿用既有用户确认成品及原任务受保护记录。本轮只读验证6个选定public成品逐字节SHA与held/selected一致；full1384x720及preview960x500均真实解码361帧/30080ms/loop0，全部帧duration数组匹配既有动画记录。Desktop原GIF实际SHA仍匹配历史值。详见independent-media-integrity.json。",
+      "当前真实消费版本是BrandScene的1384x720 fullGIF，page.tsx传同尺寸held/loop-poster.png，SHA及尺寸匹配；preview仅登记而未被当前src消费，不声称有另一个960x500暂停帧。T3静态PNG1737x905与GIF暂停帧分别保存，没有互相冒充。",
+      "本轮没有重新制作或修改媒体，没有声称重新人工视觉审查361帧；沿用用户已确认的制作和完成记录。广义verify-static-media --require-release在现用SiteHeader.tsx与历史制作source-hash不等处失败，该项如实记录，不把它当作素材本体损坏或全绿，也不改旧制作记录迁就检查。",
+      "批次状态修正只给batch3 record登记六个批次成员；实际审查仍四项、两素材任务仍免审，verdict open/tests fail及六个返工task围栏不变。真实浏览器fresh localhost origin storageEntries0，显示已收口2026-10-22有遗留/已落地6/6/再收口一次，M1-T6为htask done；六R3 ID仍可见。",
+      "现有批次闸门回归15/15通过；生成器未修改。所有应用代码与素材相对origin/main零差异，继承revalidation不清除。此登记是当前契约语义复核和明确的人工作品接受状态同步，不将未解决验证返工判为完成。"
     ],
-    "reviewed": "2026-10-22T12:41:28.859984+00:00",
+    "reviewed": "2026-10-22T16:19:53.104102+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
