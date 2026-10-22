@@ -1,0 +1,1703 @@
+{
+  "scope": [
+    "M1-T8",
+    "M2-T4",
+    "M3-T14",
+    "M5-T1"
+  ],
+  "excluded": [
+    "M1-T6",
+    "M1-T9"
+  ],
+  "base": "47e97964",
+  "codeHead": "17de9c85",
+  "environment": {
+    "node": "22.17.0",
+    "pnpm": "10.34.6",
+    "postgres": "17.9 Windows x64",
+    "database": "isolated batch3; localhost54338; planning pgdata; no production data"
+  },
+  "tests": {
+    "finalFullSuite": {
+      "tests": 1347,
+      "pass": 1312,
+      "fail": 30,
+      "skip": 5,
+      "command": "pnpm test with isolated DATABASE_URL and ADMIN_RESET_TEST_DATABASE_URL"
+    },
+    "fullSuiteConnectionRecheck": {
+      "test": "并发领取同一 key",
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "reason": "Full run had P1001 once; independent rerun and complete 15-test jobs suite passed; not a reproduced lease assertion defect"
+    },
+    "clientHttp": {
+      "pass": 41,
+      "fail": 0,
+      "skip": 0
+    },
+    "modelAndContracts": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "configAndMetrics": {
+      "pass": 17,
+      "fail": 0,
+      "skip": 0
+    },
+    "jobs": {
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+    },
+    "combinedPrimitives": {
+      "pass": 65,
+      "fail": 0,
+      "skip": 0,
+      "note": "config+metrics+jobs+shared contracts, not an additional disjoint count"
+    },
+    "lint": "pass; existing warnings",
+    "typecheck": "pass",
+    "docsReview": {
+      "block": 0,
+      "warn": 28
+    },
+    "modelSignalPermutations": 5040,
+    "realHttpErrorSeam": {
+      "appCodes": 21,
+      "legacy": 1,
+      "unknown": 1,
+      "httpHits": 23,
+      "automaticReplays": 0
+    }
+  },
+  "fixes": [
+    {
+      "id": "B1",
+      "task": "M1-T8",
+      "severity": "S2",
+      "commit": "68e10120",
+      "root": "Admin 401 with unreadable or unrecognized body returned stop instead of login",
+      "red": {
+        "pass": 1,
+        "fail": 4
+      },
+      "green": {
+        "pass": 5,
+        "fail": 0
+      },
+      "source": "src/lib/client/api-errors.ts:140",
+      "test": "tests/client-api-foundation.http.test.ts:308"
+    },
+    {
+      "id": "B2",
+      "task": "M5-T1",
+      "severity": "S2",
+      "commit": "17de9c85",
+      "root": "Claim returned an already expired lease as active after actual row-lock wait",
+      "red": {
+        "pass": 0,
+        "fail": 1
+      },
+      "green": {
+        "pass": 15,
+        "fail": 0
+      },
+      "source": "src/lib/server/jobs/lease-repo.ts:180",
+      "test": "tests/job-leases.db.test.ts:215"
+    }
+  ],
+  "judgments": {
+    "scope": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 0.94) spec_change=no(0.12) outside_stack=no(0.09) needs_owner=no(0.14) reversible=yes(0.89) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.94,
+          "band": "high",
+          "probabilities": {
+            "A": 0.96,
+            "B": 0.01,
+            "C": 0.03
+          }
+        },
+        "spec_change": {
+          "p": 0.12,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.09,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.14,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.89,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      }
+    },
+    "claim": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 0.98) spec_change=no(0.11) outside_stack=no(0.08) needs_owner=no(0.07) reversible=yes(0.75) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.98,
+          "band": "high",
+          "probabilities": {
+            "A": 0.99,
+            "B": 0.0,
+            "C": 0.01
+          }
+        },
+        "spec_change": {
+          "p": 0.11,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.08,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.07,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.75,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      }
+    },
+    "baseline": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 0.98) spec_change=no(0.13) outside_stack=no(0.21) needs_owner=no(0.13) reversible=yes(0.86) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.98,
+          "band": "high",
+          "probabilities": {
+            "A": 0.99,
+            "B": 0.0,
+            "C": 0.01
+          }
+        },
+        "spec_change": {
+          "p": 0.13,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.21,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.13,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.86,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      }
+    }
+  },
+  "baselineTriage": {
+    "baselineHead": "47e97964",
+    "targetTasks": [
+      "M1-T8",
+      "M2-T4",
+      "M3-T14",
+      "M5-T1"
+    ],
+    "excludedTasks": [
+      "M1-T6",
+      "M1-T9"
+    ],
+    "failureCount": 30,
+    "resolvedPreparationFailureCount": 3,
+    "remainingFailingAssertions": 29,
+    "remainingRootCauseGroups": 5,
+    "productDefectsReproducedInTargetTasks": 0,
+    "groups": [
+      {
+        "id": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "testNumbers": [
+          193,
+          197,
+          198
+        ],
+        "kind": "environment-preparation",
+        "resolved": true,
+        "rootCause": "Full baseline started before dedicated database batch3 existed; parent reran all three metrics DB scenarios green after bootstrap.",
+        "suggestion": "Do not generate a repair task for this already-resolved preparation race.",
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "owningTests": [
+          "tests/admin-http-metrics.test.ts"
+        ]
+      },
+      {
+        "id": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "testNumbers": [
+          142,
+          151,
+          212,
+          290,
+          325,
+          456,
+          727,
+          791,
+          793,
+          849,
+          1214
+        ],
+        "kind": "windows-harness-line-endings",
+        "resolved": false,
+        "rootCause": "core.autocrlf=true checkout uses CRLF, while source/SQL assertions assume LF and bash cannot source CRLF shell functions.",
+        "suggestion": "Make checkout/source assertions and shell execution agree on LF; preserve actual UI/SQL/security behavior.",
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "owningTests": [
+          "tests/admin-enroll-hardening-347-348.test.ts",
+          "tests/admin-enroll-p1.test.ts",
+          "tests/admin-inquiry-history-331.test.ts",
+          "tests/admin-mail-states-74.test.ts",
+          "tests/admin-p3-350.test.ts",
+          "tests/article-og-route.test.ts",
+          "tests/home-entry-grid-308.test.ts",
+          "tests/locale-enum-values.test.ts",
+          "tests/mail-routes.test.ts",
+          "tests/site-settings-read-350.test.ts"
+        ]
+      },
+      {
+        "id": "G2",
+        "stableKey": "baseline-path-harness",
+        "testNumbers": [
+          789,
+          997,
+          998
+        ],
+        "kind": "windows-harness-path-separators",
+        "resolved": false,
+        "rootCause": "path.join/defaultFiles/walk return Windows backslashes but test suffixes, mock recognizer, and expected lists use slash-only paths.",
+        "suggestion": "Normalize filesystem paths before path identity and mock classification assertions.",
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "owningTests": [
+          "tests/lint-ru-yo.test.ts",
+          "tests/prod-mocks-strip.test.ts"
+        ]
+      },
+      {
+        "id": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "testNumbers": [
+          990,
+          991,
+          996,
+          1288,
+          1289,
+          1298
+        ],
+        "kind": "windows-vs-posix-runtime",
+        "resolved": false,
+        "rootCause": "Linux deployment path semantics are mixed with Windows path.resolve/join, Windows denies symlink creation, and Windows mode bits do not equal POSIX chmod 0600/0700.",
+        "suggestion": "Run Linux-specific storage/security acceptance in its supported runtime or explicitly separate platform-neutral and platform-specific checks without weakening safety assertions.",
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "owningTests": [
+          "tests/prod-env-check.test.ts",
+          "tests/storage-local.test.ts",
+          "tests/storage.test.ts"
+        ]
+      },
+      {
+        "id": "G4",
+        "stableKey": "baseline-python-runtime",
+        "testNumbers": [
+          1123,
+          1124,
+          1125,
+          1126,
+          1129,
+          1130,
+          1131
+        ],
+        "kind": "windows-python-alias",
+        "resolved": false,
+        "rootCause": "tests spawn python3, which resolves to WindowsApps execution alias and exits 9009 with empty stdout/stderr; real installed Python is python.exe 3.13.7.",
+        "suggestion": "Select a real configured Python runtime for content-import tests; rerun guards and output equivalence rather than accepting startup failure.",
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "owningTests": [
+          "tests/sanity-import.test.ts"
+        ]
+      },
+      {
+        "id": "G5",
+        "stableKey": "reset-audit-expectations",
+        "testNumbers": [
+          360,
+          361
+        ],
+        "kind": "stale-db-test-expectation",
+        "resolved": false,
+        "rootCause": "DB assertions expect only password_reset/pending_enroll_cleared, but CLI intentionally also emits auth.enroll_token_issued for the generated enrollment token, as documented and implemented in auditEntries.",
+        "suggestion": "Update exact audit expectations to include mandatory token issuance, continue asserting row order/count, redaction, transaction behavior, and account race outcomes. Do not remove security audit output to satisfy old tests.",
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "owningTests": [
+          "tests/admin-reset-initial-password.db.test.ts"
+        ]
+      },
+      {
+        "id": "G6",
+        "stableKey": "baseline-database-connection-transient",
+        "testNumbers": [
+          775
+        ],
+        "subtestNumbers": [
+          1
+        ],
+        "kind": "environment-connection-transient",
+        "resolved": false,
+        "rootCause": "Final all-tests job suite first parallel-claim test could not connect to the isolated PostgreSQL server (P1001). Remaining 13 job subtests passed in the same suite. No data assertion or schema error.",
+        "suggestion": "Rerun only the first job test or focused job suite after checking the dedicated server. If green, record the transient environment failure as resolved and do not manufacture a repair task.",
+        "scopeRelation": "M5-T1 test execution environment; no proven product invariant failure",
+        "owningTests": [
+          "tests/job-leases.db.test.ts"
+        ],
+        "pendingFocusedRerun": true
+      }
+    ],
+    "baselineFailures": [
+      {
+        "testNumber": 142,
+        "name": "review-only SQL is exactly the additive migrate diff and passes deploy/plan-check.sh",
+        "owner": "tests/admin-enroll-hardening-347-348.test.ts:262:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '-- #347 / #348 2FA 绑定加固：User 表新增 3 列。只供评审核对（review-only），不要手工执行。 -- 仓库仍用 `prisma db push`（deploy/deploy.sh schema_sync），不加 --accept-data-loss。 -- 下面的语句就是 `prisma migrate diff --from-schema-datamodel <main c9d3ce1 的 schema> --to-schema-datamodel prisma/schema.prisma --s",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 853
+      },
+      {
+        "testNumber": 151,
+        "name": "P1 enroll: no storage / logging / innerHTML / external URLs; download revokes Blob URL; callback hardcoded",
+        "owner": "tests/admin-enroll-p1.test.ts:166:10",
+        "error": "'wait hint sits right above the sign-in button'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 925
+      },
+      {
+        "testNumber": 193,
+        "name": "dedicated postgres increments requestCount on every final response and errorCount only for 5xx",
+        "owner": "tests/admin-http-metrics.test.ts:233:3",
+        "error": "|-\n    \n    Invalid `prisma.$queryRaw()` invocation:\n    \n    \n    Database `batch3` does not exist",
+        "group": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "resolved": true,
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "baselineLogLine": 1196
+      },
+      {
+        "testNumber": 197,
+        "name": "lastObservedAt never regresses when an older response writes after a newer response",
+        "owner": "tests/admin-http-metrics.test.ts:356:3",
+        "error": "|-\n    \n    Invalid `prisma.$queryRaw()` invocation:\n    \n    \n    Database `batch3` does not exist",
+        "group": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "resolved": true,
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "baselineLogLine": 1238
+      },
+      {
+        "testNumber": 198,
+        "name": "counter stores UTC observed times when the PostgreSQL session uses another timezone",
+        "owner": "tests/admin-http-metrics.test.ts:415:3",
+        "error": "|-\n    \n    Invalid `prisma.$queryRaw()` invocation:\n    \n    \n    Database `batch3` does not exist",
+        "group": "G0",
+        "stableKey": "baseline-database-bootstrap",
+        "resolved": true,
+        "scopeRelation": "M3-T14 acceptance; resolved",
+        "baselineLogLine": 1262
+      },
+      {
+        "testNumber": 212,
+        "name": "接线：详情页用 <InquiryHistory>，回复 / 改状态 / 改分配后刷新第一页；加备注不刷新；不轮询、不无限滚动",
+        "owner": "tests/admin-inquiry-history-331.test.ts:159:10",
+        "error": "'changeStatus 之后'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 1364
+      },
+      {
+        "testNumber": 290,
+        "name": "回复框：往来记录刷新之后才显示提示（滚进视口时位置准确）",
+        "owner": "tests/admin-mail-states-74.test.ts:202:10",
+        "error": "'false == true'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2068
+      },
+      {
+        "testNumber": 325,
+        "name": "ConfirmDialog：保留原有行为（alertdialog + 标题 / 正文关联、焦点在「取消」、Esc 关闭、焦点回到触发按钮），新增 Tab 循环和 focusin 拉回",
+        "owner": "tests/admin-p3-350.test.ts:44:10",
+        "error": "|-\n    The input did not match the regular expression /prev\\?\\.focus\\(\\); \\};\\n  \\}, \\[\\]\\);/. Input:\n    \n    \"'use client';\\r\\n\" +\n      \"import { useEffect, useRef } from 'react';\\r\\n\" +\n      \"import { SETTINGS_TEXT as T } from '@/lib/admin/site-settings';\\r\\n\" +\n      \"import { focusablesIn, nextTrapFocus } from '@/lib/admin/focus-trap';\\r\\n\" ",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2294
+      },
+      {
+        "testNumber": 360,
+        "name": "真实 PG：同一账号两次并发重置（都不带参数）→ 串行执行，sessionVersion 加两次，后提交的密码生效，两条审计",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:119:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'user.password_reset',\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n    +   'auth.enroll_token_issued'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2620
+      },
+      {
+        "testNumber": 361,
+        "name": "真实 PG：A 带 --clear-pending-enroll 持锁时 B（不带参数）开始 → B 在锁内看到 A 已提交的 enrollIssuedAt，拒绝（退出 3），什么都不写",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:136:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n        'user.pending_enroll_cleared'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2654
+      },
+      {
+        "testNumber": 456,
+        "name": "loc_bad 本身可用（对照）",
+        "owner": "tests/article-og-route.test.ts:36:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    false !== true",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 3254
+      },
+      {
+        "testNumber": 727,
+        "name": "断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符",
+        "owner": "tests/home-entry-grid-308.test.ts:61:10",
+        "error": "|-\n    The input did not match the regular expression /\\.entry a\\{[^}]*hyphens:auto/. Input:\n    \n    '\\n'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 4918
+      },
+      {
+        "testNumber": 789,
+        "name": "ru-yo: repo Russian copy is clean; optional dirs are skipped",
+        "owner": "tests/lint-ru-yo.test.ts:39:10",
+        "error": "'false == true'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 5391
+      },
+      {
+        "testNumber": 791,
+        "name": "schema: enum Locale keeps en, ru first (order unchanged) and appends es/de/fr/ja/hi/ar",
+        "owner": "tests/locale-enum-values.test.ts:21:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'en',\n        'ru',\n    +   '// 多语言第 0 期预留（只追加，不改名、不删、不调顺序）。线上是否开放由 src/lib/server/published-locales.ts 决定，未发布语言接口一律 400。',\n        'es',\n        'de',\n        'fr',\n        'ja',\n        'hi',",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5419
+      },
+      {
+        "testNumber": 793,
+        "name": "review-only SQL contains only ALTER TYPE \"Locale\" ADD VALUE for the reserved values, and passes the deploy plan gate",
+        "owner": "tests/locale-enum-values.test.ts:34:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   '-- 多语言第 0 期前置：Prisma `enum Locale` 追加 es/de/fr/ja/hi/ar。只供评审核对（review-only），不要手工执行。',\n    +   '-- 仓库仍用 `prisma db push`（launch-runbook.md、deploy/deploy.sh），不加 --accept-data-loss。',\n    +   '-- 下面 6 行就是 `prisma migrate diff`（main 0038eee 的 schema → 本分支 sc",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5475
+      },
+      {
+        "testNumber": 849,
+        "name": "静态检查：src/app/api/admin/mail/** 下每个路由、发信路由、webhook、邮件 cron 都先调用 mailSwitchGate()",
+        "owner": "tests/mail-routes.test.ts:89:36",
+        "error": "'src\\\\app\\\\api\\\\admin\\\\mail\\\\config\\\\route.ts: mailSwitchGate must be first'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5865
+      },
+      {
+        "testNumber": 990,
+        "name": "local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:206:12",
+        "error": "|-\n    /app/public/uploads\n    \n    0 !== 1",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6907
+      },
+      {
+        "testNumber": 991,
+        "name": "local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）",
+        "owner": "tests/prod-env-check.test.ts:219:12",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n    + [\n    +   'UPLOAD_DIR 必须是绝对路径'\n    + ]\n    - []",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6933
+      },
+      {
+        "testNumber": 996,
+        "name": "\\#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:291:5",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\app\\\\public\\\\uploads' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\link-pub'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6984
+      },
+      {
+        "testNumber": 997,
+        "name": "\\#323 所有 src/lib 下的 mock 源文件都被 next.config 的 outputFileTracingExcludes 覆盖；不用 .dockerignore 排除",
+        "owner": "tests/prod-mocks-strip.test.ts:24:12",
+        "error": "'src/lib/admin/mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 6999
+      },
+      {
+        "testNumber": 998,
+        "name": "\\#323 每个 mock 的 import 都在构建期常量后面（生产构建里是死代码）",
+        "owner": "tests/prod-mocks-strip.test.ts:47:12",
+        "error": "'src\\\\lib\\\\admin\\\\mail\\\\mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 7019
+      },
+      {
+        "testNumber": 1123,
+        "name": "sanity-import: build.py output matches committed import.ndjson",
+        "owner": "tests/sanity-import.test.ts:14:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 7997
+      },
+      {
+        "testNumber": 1124,
+        "name": "sanity-import: build.py skips docs without an internal key (FAQ drafts, proofreading, fact sheet) and articles with import: false",
+        "owner": "tests/sanity-import.test.ts:35:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8021
+      },
+      {
+        "testNumber": 1125,
+        "name": "sanity-import: build.py refuses importable articles whose body has {{待Ryan确认}} or TBD, naming file and line",
+        "owner": "tests/sanity-import.test.ts:52:14",
+        "error": "|-\n    The input did not match the regular expression /guard-placeholder\\.md:13: /. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8047
+      },
+      {
+        "testNumber": 1126,
+        "name": "internal links: import: false articles get no links; flipping them importable brings the links back",
+        "owner": "tests/sanity-import.test.ts:71:18",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8073
+      },
+      {
+        "testNumber": 1129,
+        "name": "sanity-import: build.py refuses product docs with TBD or {{待Ryan确认}}, naming doc and line",
+        "owner": "tests/sanity-import.test.ts:128:14",
+        "error": "|-\n    The input did not match the regular expression /import\\.ndjson:3: product-corrugated-boxes body\\.ru\\[0\\]/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8112
+      },
+      {
+        "testNumber": 1130,
+        "name": "linkmap.py: --meta defaults to src/lib/seo/categoryMeta.ts; missing, unreadable or retired compostable slug exits non-zero",
+        "owner": "tests/sanity-import.test.ts:154:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8138
+      },
+      {
+        "testNumber": 1131,
+        "name": "sanity-import: build.py refuses product docs with food-contact claims (EN + RU)",
+        "owner": "tests/sanity-import.test.ts:193:14",
+        "error": "|-\n    The input did not match the regular expression /product-christmas-merchandise: unconfirmed food-use claim/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8164
+      },
+      {
+        "testNumber": 1214,
+        "name": "缓存：三个函数都走 unstable_cache，标签 site-settings，revalidate 60；签名和交接一致",
+        "owner": "tests/site-settings-read-350.test.ts:100:10",
+        "error": "|-\n    The input did not match the regular expression /name: string; url: string; logo\\?: string; description\\?: string; sameAs: string\\[\\];\\n  alternateName\\?: string; legalName\\?: string; email\\?: string; telephone\\?: string; address\\?: string; foundingDate\\?: string;/. Input:\n    \n    \"import { unstable_cache } from 'next/cache';\\r\\n\" +\n      \"i",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 8682
+      },
+      {
+        "testNumber": 1288,
+        "name": "不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响",
+        "owner": "tests/storage-local.test.ts:58:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\outside' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\root\\\\logos'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9364
+      },
+      {
+        "testNumber": 1289,
+        "name": "根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断",
+        "owner": "tests/storage-local.test.ts:82:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\vol' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\link'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9381
+      },
+      {
+        "testNumber": 1298,
+        "name": "local: put/get/delete, private mode, no overwrite",
+        "owner": "tests/storage.test.ts:24:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    438 !== 384",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9448
+      }
+    ],
+    "authoritativeRun": "final-all-tests.log",
+    "finalTotals": {
+      "tests": 1347,
+      "pass": 1312,
+      "fail": 30,
+      "skipped": 5
+    },
+    "historicalBaselineFailureCount": 32,
+    "currentFailingLeafTests": 30,
+    "pendingEnvironmentRootCauseGroups": 1,
+    "failures": [
+      {
+        "testNumber": 142,
+        "name": "review-only SQL is exactly the additive migrate diff and passes deploy/plan-check.sh",
+        "owner": "tests/admin-enroll-hardening-347-348.test.ts:262:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + '-- #347 / #348 2FA 绑定加固：User 表新增 3 列。只供评审核对（review-only），不要手工执行。 -- 仓库仍用 `prisma db push`（deploy/deploy.sh schema_sync），不加 --accept-data-loss。 -- 下面的语句就是 `prisma migrate diff --from-schema-datamodel <main c9d3ce1 的 schema> --to-schema-datamodel prisma/schema.prisma --s",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 853,
+        "finalLogLine": 853,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 151,
+        "name": "P1 enroll: no storage / logging / innerHTML / external URLs; download revokes Blob URL; callback hardcoded",
+        "owner": "tests/admin-enroll-p1.test.ts:166:10",
+        "error": "'wait hint sits right above the sign-in button'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 925,
+        "finalLogLine": 925,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 212,
+        "name": "接线：详情页用 <InquiryHistory>，回复 / 改状态 / 改分配后刷新第一页；加备注不刷新；不轮询、不无限滚动",
+        "owner": "tests/admin-inquiry-history-331.test.ts:159:10",
+        "error": "'changeStatus 之后'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 1364,
+        "finalLogLine": 1310,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 290,
+        "name": "回复框：往来记录刷新之后才显示提示（滚进视口时位置准确）",
+        "owner": "tests/admin-mail-states-74.test.ts:202:10",
+        "error": "'false == true'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2068,
+        "finalLogLine": 2014,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 325,
+        "name": "ConfirmDialog：保留原有行为（alertdialog + 标题 / 正文关联、焦点在「取消」、Esc 关闭、焦点回到触发按钮），新增 Tab 循环和 focusin 拉回",
+        "owner": "tests/admin-p3-350.test.ts:44:10",
+        "error": "|-\n    The input did not match the regular expression /prev\\?\\.focus\\(\\); \\};\\n  \\}, \\[\\]\\);/. Input:\n    \n    \"'use client';\\r\\n\" +\n      \"import { useEffect, useRef } from 'react';\\r\\n\" +\n      \"import { SETTINGS_TEXT as T } from '@/lib/admin/site-settings';\\r\\n\" +\n      \"import { focusablesIn, nextTrapFocus } from '@/lib/admin/focus-trap';\\r\\n\" ",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 2294,
+        "finalLogLine": 2240,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 360,
+        "name": "真实 PG：同一账号两次并发重置（都不带参数）→ 串行执行，sessionVersion 加两次，后提交的密码生效，两条审计",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:119:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'user.password_reset',\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n    +   'auth.enroll_token_issued'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2620,
+        "finalLogLine": 2566,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 361,
+        "name": "真实 PG：A 带 --clear-pending-enroll 持锁时 B（不带参数）开始 → B 在锁内看到 A 已提交的 enrollIssuedAt，拒绝（退出 3），什么都不写",
+        "owner": "tests/admin-reset-initial-password.db.test.ts:136:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   'auth.enroll_token_issued',\n        'user.password_reset',\n        'user.pending_enroll_cleared'\n      ]",
+        "group": "G5",
+        "stableKey": "reset-audit-expectations",
+        "resolved": false,
+        "scopeRelation": "Existing reset CLI tests; no connection to HTTP counter or JobState table mutation",
+        "baselineLogLine": 2654,
+        "finalLogLine": 2600,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 456,
+        "name": "loc_bad 本身可用（对照）",
+        "owner": "tests/article-og-route.test.ts:36:10",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    false !== true",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 3254,
+        "finalLogLine": 3200,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 727,
+        "name": "断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符",
+        "owner": "tests/home-entry-grid-308.test.ts:61:10",
+        "error": "|-\n    The input did not match the regular expression /\\.entry a\\{[^}]*hyphens:auto/. Input:\n    \n    '\\n'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 4918,
+        "finalLogLine": 4864,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 775,
+        "suite": "JobState 租约",
+        "subtestNumber": 1,
+        "name": "并发领取同一 key 只有一个成功，另一 key 互不阻塞",
+        "owner": "tests/job-leases.db.test.ts:148:23",
+        "error": "Prisma P1001: Can't reach database server at 127.0.0.1:54338; currentTimezoneRevision lease-repo.ts:98 -> claim:158 -> Promise.all index2",
+        "group": "G6",
+        "stableKey": "baseline-database-connection-transient",
+        "resolved": false,
+        "scopeRelation": "M5-T1 acceptance execution; connection failure, not a failed lease invariant",
+        "finalLogLine": 5175,
+        "authoritativeRun": "final-all-tests.log",
+        "pendingFocusedRerun": true
+      },
+      {
+        "testNumber": 789,
+        "name": "ru-yo: repo Russian copy is clean; optional dirs are skipped",
+        "owner": "tests/lint-ru-yo.test.ts:39:10",
+        "error": "'false == true'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 5391,
+        "finalLogLine": 5369,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 791,
+        "name": "schema: enum Locale keeps en, ru first (order unchanged) and appends es/de/fr/ja/hi/ar",
+        "owner": "tests/locale-enum-values.test.ts:21:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n        'en',\n        'ru',\n    +   '// 多语言第 0 期预留（只追加，不改名、不删、不调顺序）。线上是否开放由 src/lib/server/published-locales.ts 决定，未发布语言接口一律 400。',\n        'es',\n        'de',\n        'fr',\n        'ja',\n        'hi',",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5419,
+        "finalLogLine": 5397,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 793,
+        "name": "review-only SQL contains only ALTER TYPE \"Locale\" ADD VALUE for the reserved values, and passes the deploy plan gate",
+        "owner": "tests/locale-enum-values.test.ts:34:10",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      [\n    +   '-- 多语言第 0 期前置：Prisma `enum Locale` 追加 es/de/fr/ja/hi/ar。只供评审核对（review-only），不要手工执行。',\n    +   '-- 仓库仍用 `prisma db push`（launch-runbook.md、deploy/deploy.sh），不加 --accept-data-loss。',\n    +   '-- 下面 6 行就是 `prisma migrate diff`（main 0038eee 的 schema → 本分支 sc",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5475,
+        "finalLogLine": 5453,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 849,
+        "name": "静态检查：src/app/api/admin/mail/** 下每个路由、发信路由、webhook、邮件 cron 都先调用 mailSwitchGate()",
+        "owner": "tests/mail-routes.test.ts:89:36",
+        "error": "'src\\\\app\\\\api\\\\admin\\\\mail\\\\config\\\\route.ts: mailSwitchGate must be first'",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 5865,
+        "finalLogLine": 5843,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 990,
+        "name": "local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:206:12",
+        "error": "|-\n    /app/public/uploads\n    \n    0 !== 1",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6907,
+        "finalLogLine": 6885,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 991,
+        "name": "local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）",
+        "owner": "tests/prod-env-check.test.ts:219:12",
+        "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n    + [\n    +   'UPLOAD_DIR 必须是绝对路径'\n    + ]\n    - []",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6933,
+        "finalLogLine": 6911,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 996,
+        "name": "\\#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径",
+        "owner": "tests/prod-env-check.test.ts:291:5",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\app\\\\public\\\\uploads' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\upl-real-fz7yaP\\\\link-pub'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 6984,
+        "finalLogLine": 6962,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 997,
+        "name": "\\#323 所有 src/lib 下的 mock 源文件都被 next.config 的 outputFileTracingExcludes 覆盖；不用 .dockerignore 排除",
+        "owner": "tests/prod-mocks-strip.test.ts:24:12",
+        "error": "'src/lib/admin/mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 6999,
+        "finalLogLine": 6977,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 998,
+        "name": "\\#323 每个 mock 的 import 都在构建期常量后面（生产构建里是死代码）",
+        "owner": "tests/prod-mocks-strip.test.ts:47:12",
+        "error": "'src\\\\lib\\\\admin\\\\mail\\\\mock.ts'",
+        "group": "G2",
+        "stableKey": "baseline-path-harness",
+        "resolved": false,
+        "scopeRelation": "Existing lint/build-verification harness; outside target primitive code",
+        "baselineLogLine": 7019,
+        "finalLogLine": 6997,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1123,
+        "name": "sanity-import: build.py output matches committed import.ndjson",
+        "owner": "tests/sanity-import.test.ts:14:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 7997,
+        "finalLogLine": 7975,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1124,
+        "name": "sanity-import: build.py skips docs without an internal key (FAQ drafts, proofreading, fact sheet) and articles with import: false",
+        "owner": "tests/sanity-import.test.ts:35:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8021,
+        "finalLogLine": 7999,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1125,
+        "name": "sanity-import: build.py refuses importable articles whose body has {{待Ryan确认}} or TBD, naming file and line",
+        "owner": "tests/sanity-import.test.ts:52:14",
+        "error": "|-\n    The input did not match the regular expression /guard-placeholder\\.md:13: /. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8047,
+        "finalLogLine": 8025,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1126,
+        "name": "internal links: import: false articles get no links; flipping them importable brings the links back",
+        "owner": "tests/sanity-import.test.ts:71:18",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8073,
+        "finalLogLine": 8051,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1129,
+        "name": "sanity-import: build.py refuses product docs with TBD or {{待Ryan确认}}, naming doc and line",
+        "owner": "tests/sanity-import.test.ts:128:14",
+        "error": "|-\n    The input did not match the regular expression /import\\.ndjson:3: product-corrugated-boxes body\\.ru\\[0\\]/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8112,
+        "finalLogLine": 8090,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1130,
+        "name": "linkmap.py: --meta defaults to src/lib/seo/categoryMeta.ts; missing, unreadable or retired compostable slug exits non-zero",
+        "owner": "tests/sanity-import.test.ts:154:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    9009 !== 0",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8138,
+        "finalLogLine": 8116,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1131,
+        "name": "sanity-import: build.py refuses product docs with food-contact claims (EN + RU)",
+        "owner": "tests/sanity-import.test.ts:193:14",
+        "error": "|-\n    The input did not match the regular expression /product-christmas-merchandise: unconfirmed food-use claim/. Input:\n    \n    ''",
+        "group": "G4",
+        "stableKey": "baseline-python-runtime",
+        "resolved": false,
+        "scopeRelation": "Existing content importer validation; outside target primitive code",
+        "baselineLogLine": 8164,
+        "finalLogLine": 8142,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1214,
+        "name": "缓存：三个函数都走 unstable_cache，标签 site-settings，revalidate 60；签名和交接一致",
+        "owner": "tests/site-settings-read-350.test.ts:100:10",
+        "error": "|-\n    The input did not match the regular expression /name: string; url: string; logo\\?: string; description\\?: string; sameAs: string\\[\\];\\n  alternateName\\?: string; legalName\\?: string; email\\?: string; telephone\\?: string; address\\?: string; foundingDate\\?: string;/. Input:\n    \n    \"import { unstable_cache } from 'next/cache';\\r\\n\" +\n      \"i",
+        "group": "G1",
+        "stableKey": "baseline-crlf-harness",
+        "resolved": false,
+        "scopeRelation": "Existing full-suite harness; no reproduced defect in the four target primitives",
+        "baselineLogLine": 8682,
+        "finalLogLine": 8660,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1288,
+        "name": "不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响",
+        "owner": "tests/storage-local.test.ts:58:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\outside' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-N4AHKR\\\\root\\\\logos'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9364,
+        "finalLogLine": 9342,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1289,
+        "name": "根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断",
+        "owner": "tests/storage-local.test.ts:82:3",
+        "error": "\"EPERM: operation not permitted, symlink 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\vol' -> 'C:\\\\Users\\\\admin\\\\AppData\\\\Local\\\\Temp\\\\st-local-30aVkT\\\\link'\"",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9381,
+        "finalLogLine": 9359,
+        "authoritativeRun": "final-all-tests.log"
+      },
+      {
+        "testNumber": 1298,
+        "name": "local: put/get/delete, private mode, no overwrite",
+        "owner": "tests/storage.test.ts:24:12",
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    438 !== 384",
+        "group": "G3",
+        "stableKey": "baseline-posix-storage-harness",
+        "resolved": false,
+        "scopeRelation": "Existing storage/deployment baseline, no direct primitive seam defect established",
+        "baselineLogLine": 9448,
+        "finalLogLine": 9426,
+        "authoritativeRun": "final-all-tests.log"
+      }
+    ],
+    "connectionRecheck": {
+      "resolved": true,
+      "evidence": "db-connection-recheck.log 1pass/0fail/0skip",
+      "remainingVerificationAssertions": 29
+    }
+  },
+  "browser": {
+    "head": "17de9c85",
+    "origin": "http://localhost:3138",
+    "mode": "next start compiled bundle; standalone packaging failed EPERM",
+    "freshContext": true,
+    "home": {
+      "token": "#ffffff",
+      "background": "rgb(255, 255, 255)",
+      "color": "rgb(0, 0, 0)",
+      "font": "16px",
+      "line": "24px",
+      "border": "2px",
+      "radius": "0px",
+      "shadow": "none"
+    },
+    "cards": 12,
+    "models": {
+      "status": 200,
+      "items": true
+    },
+    "consentClicked": true,
+    "contactUrl": "http://localhost:3138/en/contact",
+    "errors": [],
+    "hits": [
+      {
+        "method": "GET",
+        "path": "/en",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/9ba5c45d99f82b8a.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/1b94159106e5b15c.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/c969987c81bdd7ee.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/11462f62d40213c5.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/6002cb45499bc7be.css",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-corrugated-boxes.5f405542.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-color-boxes.8f12372d.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-gift-boxes.b8d335bc.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-paper-cups.541dba14.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-pulp-molding.70fd3582.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-party-supplies.90f6ce6d.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-wine-boxes.c087d1e2.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-color-printing.a7a01e8f.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-offset-printing.de01d8f7.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-gift-cards.dc250339.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-christmas-merchandise.072acd21.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/icon.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/products",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/contact",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/privacy",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/brand/video2-packjoyu-products-v3.mp4",
+        "status": 206
+      },
+      {
+        "method": "GET",
+        "path": "/_next/static/css/db7724ad78675cc0.css",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "path": "/images/posters/custom-eco-paper-cups.5c9549be.webp",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/icon.svg",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "path": "/icon.svg",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/env/studio_small_09_256.hdr",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/draco/draco_decoder.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/basis/basis_transcoder.js",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/basis/basis_transcoder.wasm",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      }
+    ],
+    "density": [
+      {
+        "size": {
+          "width": 1920,
+          "height": 1080
+        },
+        "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+        "result": {
+          "probe": "density",
+          "version": 2,
+          "url": "http://localhost:3138/en/products",
+          "type": "work",
+          "contract": {
+            "density": 7,
+            "gutter": 16,
+            "gap": 16,
+            "pad": 16
+          },
+          "viewport": {
+            "width": 1905,
+            "height": 1080
+          },
+          "mobile": false,
+          "main": "html.__variable_14cd0a > body > main.container",
+          "rail": null,
+          "avail": {
+            "left": 0,
+            "right": 1905,
+            "width": 1905
+          },
+          "contentFound": true,
+          "fill": 0.815,
+          "leftGap": 352.5,
+          "rightGap": 0,
+          "interiorBand": {
+            "px": 8,
+            "ratio": 0.004
+          },
+          "overflowX": 0,
+          "bars": 0,
+          "growth": [],
+          "emptyTracks": [],
+          "gapOffenders": [],
+          "padOffenders": [],
+          "sparseBlocks": [],
+          "centeredCaps": [],
+          "counts": {
+            "growth": 0,
+            "emptyTracks": 0,
+            "gapOffenders": 0,
+            "padOffenders": 0,
+            "sparseBlocks": 0,
+            "centeredCaps": 0
+          },
+          "verdict": {
+            "D1": "pass",
+            "D2": "fail",
+            "D3": "pass",
+            "D4": "pass",
+            "D5": "pass",
+            "D6": "fail",
+            "overflow": "pass",
+            "pass": false
+          }
+        }
+      },
+      {
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+        "result": {
+          "probe": "density",
+          "version": 2,
+          "url": "http://localhost:3138/en/products",
+          "type": "work",
+          "contract": {
+            "density": 7,
+            "gutter": 16,
+            "gap": 16,
+            "pad": 16
+          },
+          "viewport": {
+            "width": 1425,
+            "height": 900
+          },
+          "mobile": false,
+          "main": "html.__variable_14cd0a.has-consent > body > main.container",
+          "rail": null,
+          "avail": {
+            "left": 0,
+            "right": 1425,
+            "width": 1425
+          },
+          "contentFound": true,
+          "fill": 0.921,
+          "leftGap": 112.5,
+          "rightGap": 0,
+          "interiorBand": {
+            "px": 8,
+            "ratio": 0.006
+          },
+          "overflowX": 0,
+          "bars": 0,
+          "growth": [],
+          "emptyTracks": [],
+          "gapOffenders": [],
+          "padOffenders": [],
+          "sparseBlocks": [],
+          "centeredCaps": [],
+          "counts": {
+            "growth": 0,
+            "emptyTracks": 0,
+            "gapOffenders": 0,
+            "padOffenders": 0,
+            "sparseBlocks": 0,
+            "centeredCaps": 0
+          },
+          "verdict": {
+            "D1": "pass",
+            "D2": "pass",
+            "D3": "pass",
+            "D4": "pass",
+            "D5": "pass",
+            "D6": "pass",
+            "overflow": "pass",
+            "pass": true
+          }
+        }
+      }
+    ]
+  },
+  "densityExploratory": [
+    {
+      "size": {
+        "width": 1920,
+        "height": 1080
+      },
+      "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+      "result": {
+        "probe": "density",
+        "version": 2,
+        "url": "http://localhost:3138/en/products",
+        "type": "work",
+        "contract": {
+          "density": 7,
+          "gutter": 16,
+          "gap": 16,
+          "pad": 16
+        },
+        "viewport": {
+          "width": 1905,
+          "height": 1080
+        },
+        "mobile": false,
+        "main": "html.__variable_14cd0a > body > main.container",
+        "rail": null,
+        "avail": {
+          "left": 0,
+          "right": 1905,
+          "width": 1905
+        },
+        "contentFound": true,
+        "fill": 0.815,
+        "leftGap": 352.5,
+        "rightGap": 0,
+        "interiorBand": {
+          "px": 8,
+          "ratio": 0.004
+        },
+        "overflowX": 0,
+        "bars": 0,
+        "growth": [],
+        "emptyTracks": [],
+        "gapOffenders": [],
+        "padOffenders": [],
+        "sparseBlocks": [],
+        "centeredCaps": [],
+        "counts": {
+          "growth": 0,
+          "emptyTracks": 0,
+          "gapOffenders": 0,
+          "padOffenders": 0,
+          "sparseBlocks": 0,
+          "centeredCaps": 0
+        },
+        "verdict": {
+          "D1": "pass",
+          "D2": "fail",
+          "D3": "pass",
+          "D4": "pass",
+          "D5": "pass",
+          "D6": "fail",
+          "overflow": "pass",
+          "pass": false
+        }
+      }
+    },
+    {
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "scope": "exploratory public brand page; D1-D6 product contract not applicable to four primitive tasks",
+      "result": {
+        "probe": "density",
+        "version": 2,
+        "url": "http://localhost:3138/en/products",
+        "type": "work",
+        "contract": {
+          "density": 7,
+          "gutter": 16,
+          "gap": 16,
+          "pad": 16
+        },
+        "viewport": {
+          "width": 1425,
+          "height": 900
+        },
+        "mobile": false,
+        "main": "html.__variable_14cd0a.has-consent > body > main.container",
+        "rail": null,
+        "avail": {
+          "left": 0,
+          "right": 1425,
+          "width": 1425
+        },
+        "contentFound": true,
+        "fill": 0.921,
+        "leftGap": 112.5,
+        "rightGap": 0,
+        "interiorBand": {
+          "px": 8,
+          "ratio": 0.006
+        },
+        "overflowX": 0,
+        "bars": 0,
+        "growth": [],
+        "emptyTracks": [],
+        "gapOffenders": [],
+        "padOffenders": [],
+        "sparseBlocks": [],
+        "centeredCaps": [],
+        "counts": {
+          "growth": 0,
+          "emptyTracks": 0,
+          "gapOffenders": 0,
+          "padOffenders": 0,
+          "sparseBlocks": 0,
+          "centeredCaps": 0
+        },
+        "verdict": {
+          "D1": "pass",
+          "D2": "pass",
+          "D3": "pass",
+          "D4": "pass",
+          "D5": "pass",
+          "D6": "pass",
+          "overflow": "pass",
+          "pass": true
+        }
+      }
+    }
+  ],
+  "build": {
+    "command": "pnpm build",
+    "result": "fail",
+    "cause": "Windows EPERM symlink in standalone tracing; compiled routes generated",
+    "notProven": [
+      "Linux standalone full build/start",
+      "STANDALONE_TEST real artifact tests",
+      "authenticated product UI density"
+    ]
+  },
+  "gif": {
+    "sha256": "efa8734c9951b6067ea5ea9f6e16771e448d12b1b8b6dd8ede8710a6cf6673b3",
+    "bytes": 313430,
+    "width": 1200,
+    "height": 750,
+    "durationSeconds": 6.5,
+    "frames": 65,
+    "sourceFrames": 3,
+    "mode": "true compiled app via next start; fresh browser; no application API mocks; not standalone; no model judgment runtime"
+  },
+  "independentReview": {
+    "blockingFindings": [],
+    "typecheck": "pass",
+    "newClaimPgTest": "1 pass / 0 skip",
+    "scope": "all 4 outgoing source/test files; client author also reviewed own change, job repair independently reviewed"
+  },
+  "fileHashes": {
+    "src/lib/client/api-errors.ts": "d69570d51eee3c1ab81c747cae8556f604bb3596d10da730f9b76c2159ed7a07",
+    "tests/client-api-foundation.http.test.ts": "7eba4e6ffa143bd982f1f74719bc24feeba3d3cc155d6117a56c49c1305a683a",
+    "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+    "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0",
+    "src/lib/analytics/model-events.ts": "5a7e4f21d40b6d4a7d56e29d3ebb5b25d626ac45a1272261eb71a03c41b7014d",
+    "src/lib/server/http/metrics.ts": "aa33369f71ce0b5486f4027796dd4cb89033c7ff32a509012fae4d2a3b4981aa",
+    "src/lib/server/config.ts": "422f725b40820203af3d76bcbaf9ac410d8abd608572570a1cb022d811c30264"
+  },
+  "logHashes": {
+    "baseline-lint.log": "664b6ca7a49fc684a0b3403949d39462ae55e5d471d2a3927904d3e592b6b56b",
+    "baseline-tests.log": "b349fb6670d395a15b0167807f2b07a4b65914da9369fa8c0ea73f5a6e7bb862",
+    "baseline-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build-final.log": "315099ce83fd5ef8b9360fa37cd7294bac09c382d740eac61878dea64c17d07b",
+    "build.log": "70612a3273de400658595e3d7ef34cc329c3a6681d4b9f7c565aa1a3f10789d8",
+    "client-401-green.log": "1c07848c335eb13d9dd785523e5a8bd90847a47e476f77713d2f4f8af14cd3a5",
+    "client-401-red.log": "21b3a9d8f571f8ffd436ae3203a84e89aaf881b3cd01d2a1459cf4a0ba13ce70",
+    "client-http-post-fix.log": "b2a7f5b853cc1cecdcc5ed39b36a38c078fc0dd5ea5fc01a28cddc3df6400513",
+    "contract-status.log": "6927f905f9eb622cd0341b02838f87208fcbd3579aab6a32aad4b19d52f0fc5d",
+    "db-connection-recheck.log": "199e08ac03d7583ffd66ba4a1b9c433d4d790d1a8b09f4c7fb56e7322bfab044",
+    "db-focused.log": "70bc7ddc970504f7593beb15c93ee5a03d6b273147d2fcaac8aefa02e08a3688",
+    "fetch-http-focused-tests.log": "76f1ebf25552fc928b4668188b37a10fff0edd40542414c3ffc9e1d4539a1055",
+    "fetch-model-focused-tests.log": "dd6ed6b73b6204f76739d17c21a32557e7d1fbd4f27132d1c3b1bb4cf8875098",
+    "final-all-tests.log": "517faeeae432eb1afc7f56a6da37d722cc84ff44e255cfb69d9c08ca6a2e80ed",
+    "final-lint.log": "82840f309092912ce2fb7d48efd2ba878ad668c55dfd4c452e9cf6c73a16435a",
+    "final-primitives.log": "1b5f4219021f29af3f48b0e5b1c12d5cfed975d99bbfe4dcba9a1ee3d015ae96",
+    "independent-claim-boundary.log": "24c2e3b200a230160fa1af354f8da38154c104acc3b4e8406a3ed442f82baf9a",
+    "independent-diff-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "install-pnpm10.log": "6b3644e1b31d75cae3c72b46b305d419acb4bfdc7e14c5f3e21e1f49f814bd9c",
+    "install.log": "1b79ab60a380e103bb3af93d9364fd62fc3cd259e542572214d270666d52b489",
+    "jobstate-claim-clock-probe.log": "0316d098562b15e5286e96f3d5ccbab5d5b8655ae43f3462386cee039fc78260",
+    "jobstate-claim-fixed-probe.log": "fec1de4a53e1f121fa075370dc6b5191a7f4b5f5281b8b0fbb11485969fe5a01",
+    "jobstate-claim-green.log": "d5fadef617c2cbadc70970247603ddfa59005c6aa4e392a7b52804febd89505b",
+    "jobstate-claim-red.log": "fbc6fc20b4cc11dd02459614fdffd25f276c09374e7e598aa77e1039fb3e01a7",
+    "jobstate-db-suite.log": "7cbcebf1cf15395b15a64ef879ef20511ba1aade8cb5692b2af32fd44400c6ad",
+    "m3-t14-tests.log": "48ca13699d6306a132a28ee1572418b20f34a6be8e9d78a5e99b859d1ea88a70",
+    "metrics-final-db.log": "99e28e83c7fa2f92b836102cf2931d894d79b595b72d21a7c71b4e08f89cbb4e",
+    "next-dev.log": "ba7c0805d16566f5757659627d584d55d2fae79abaae89fa6f30356ea84f87ee",
+    "next-start-final.log": "b571918ea7b7a120e2077fb6c2ff15c64630f56bb5ab62c8f09f6c4d2553138d",
+    "next-start.log": "49dc17016aa47e93b3801c4ce16134bffe5d9a5ef75d6257821a8edd0470cd9d",
+    "pg-init.log": "05d8b911148c31bfd63059258a28972e668ebe56d7549bb47c8928eaf0459f19",
+    "pg-server.log": "4581f508d880832412a67e4e2b1fe6d1b2e4d64da39732f21387db3c5eb71225",
+    "prisma-db-push.log": "07136026ef7ad0d37964cf9ec7d891151ea55a922d2f54bd2ab625dace285ae5",
+    "probe-client-401-green.log": "f910565de766b7dc225121c3994f9bfb9bdc1011a9cc5c5557061e0d6d43e318",
+    "vault-check.log": "daec2cb446b3acbb010b7834369bc6258f07ffe52cbc8bdd4ac5b15165ff7d38"
+  }
+}
