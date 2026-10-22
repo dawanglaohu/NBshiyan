@@ -409,3 +409,28 @@ model ApiDailyCounter {
 
   @@id([localDate, timezoneRevision, routeId])
 }
+
+// 固定作业的租约与代次。key 只接受契约中的六个作业名；summary 只存白名单计数、时间和版本。
+// 表结构由 deploy.sh 现有的备份、diff、plan-check、db push、零 drift 路径消费，不另执行 SQL 文件。
+enum JobRunStatus {
+  NEVER
+  RUNNING
+  SUCCEEDED
+  FAILED
+  PARTIAL
+}
+
+model JobState {
+  key             String       @id
+  leaseOwner      String?
+  generation      Int          @default(0)
+  lockedUntil     DateTime?
+  lastStartedAt   DateTime?
+  lastSucceededAt DateTime?
+  lastFinishedAt  DateTime?
+  lastStatus      JobRunStatus @default(NEVER)
+  lastErrorCode   String?
+  summary         Json?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}

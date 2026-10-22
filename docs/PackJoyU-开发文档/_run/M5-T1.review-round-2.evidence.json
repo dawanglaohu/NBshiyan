@@ -1,0 +1,115 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M5-T1": {
+      "contractHash": "906d89eff0552a295d6dcfdf2fb0702d6e7ca170e21fcfd7aae70575aa8f808c",
+      "verdict": "pass",
+      "evidence": [
+        "第2轮仅复核第1轮R1-R4与直接回归；当前契约hash与派发包相同，前置M1-T2/shared contracts、primitive阶段、job-leases唯一产出、有效路径、13/17/19要求及M5-T8集成责任未改变。第1轮已接受的摘要白名单、固定key、安全读与schema/deploy接线证据保留。",
+        "R1：lease-repo.ts:25只依赖$queryRaw；190/222要求上层tx，缺失立即拒绝，生产repo没有$transaction。拒绝时JobLeaseAbort须退出service/顶层use-case事务。tests:418/441验证JobState与业务写共同回滚，583验证无tx调用不能自行提交。",
+        "R2：lease-repo.ts:204/251先锁JobState，complete还锁SiteSetting并处理缺行；205/253在全部锁后采样。tests:467真实等待设置锁、完成等待JobState锁、续租等待JobState锁，89.5s调用/90.5s获锁均拒绝，成功时间与原租约不改。",
+        "R3：lease-repo.ts:104-124串行化设置读，缺行幂等初始化UTC/revision1/version0/changedAt/updatedBy；已有设置不被默认值覆盖。RR旧快照看不到并发revision2时唯一冲突写产生SQLSTATE40001，整个业务事务回滚。tests:598验证真实RepeatableRead、并发插入、序列化错误、业务marker为0、JobState仍RUNNING且revision2保留。",
+        "本轮R1私有事务fallback与R3旧RR快照残留先补失败用例，修复前0通过/2失败；按Jev采纳A修复后同两项转绿，完整PG17.10测试14通过/0失败/0跳过。PG17为任务内私有隔离实例，所有业务测试仅用独立schema，不触及生产或普通开发库。",
+        "pnpm lint通过（仅既有仓库警告）；pnpm exec tsc --noEmit --incremental false通过；git diff --check通过。没有改生成器、业务共享接口或CI配置，未将现有CI里环境性skip冒充DB通过。",
+        "Jev真实裁决：judgments.jsonl:975，model=jev-1.13.0，pick=A medium0.58，adopt=take(A)，spec_change=no，outside_stack=no，needs_owner=no。完整A/B/C候选和实际返回附本文件；A的缺行唯一冲突写与回归已落实，无未执行裁决。",
+        "代码验收pass与合并资格分开：当前指定安全App对最终HEAD的APPROVED尚未取得，任务笔记保持review，不执行--landed、不伪造批准、不改安全gate。正常落地须等最终CI及指定批准满足后执行。"
+      ]
+    }
+  },
+  "codeReview": {
+    "round": 2,
+    "verdict": "pass",
+    "reviewedImplementationHead": "7569ffe1a22e1ffc5cfbb31767e8089fa9da0d14",
+    "fixesByReviewer": [
+      "R1 remove private transaction fallback",
+      "R3 reject invisible newer settings in RepeatableRead"
+    ],
+    "testedFilesSha256": {
+      "src/lib/server/jobs/lease-repo.ts": "e7d688fd0868e8d39ed6a23e0c59f7e39e86b9efede383041fb1a412d6588358",
+      "src/lib/server/jobs/types.ts": "5b347406d99d418e00c77bc64a7924c5b7385d04a5a12c6465ffb96ff4e9fe94",
+      "tests/job-leases.db.test.ts": "155d731516bfbbf962fd58cc90667bdc20bcdc5dd8d60e22ee5d254bbfbf4ad8",
+      "prisma/schema.prisma": "f1060e9b1d5d89a9bf5812297b60bbbf1df43722108c17163f318ecc95a2bcb1",
+      "deploy/deploy.sh": "4bf02bb7e61c28e080c42a77523c72abe6fcd28934cf8b5dd5578b5bce8bda30"
+    },
+    "postgres17": {
+      "version": "17.10",
+      "database": "jobstate_review",
+      "port": 54337,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "command": "DATABASE_URL=<isolated PostgreSQL17> node --import tsx --test tests/job-leases.db.test.ts"
+    },
+    "redBeforeFix": {
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "environment": "isolated PostgreSQL12 supplemental reproduction"
+    },
+    "redLog": "TAP version 13\n# Subtest: JobState 租约\n    # Subtest: 仓储不能在缺少上层事务时自行续租或完成\n    not ok 1 - 仓储不能在缺少上层事务时自行续租或完成\n      ---\n      duration_ms: 544.4909\n      type: 'test'\n      location: 'D:\\\\xiangmu\\\\NBshiyan-m5-t1\\\\tests\\\\job-leases.db.test.ts:33:8891'\n      failureType: 'testCodeFailure'\n      error: 'Missing expected rejection (required).'\n      code: 'ERR_ASSERTION'\n      name: 'AssertionError'\n      stack: |-\n        async TestContext.<anonymous> (D:\\xiangmu\\NBshiyan-m5-t1\\tests\\job-leases.db.test.ts:558:3)\n        async Test.run (node:internal/test_runner/test:1054:7)\n        async Promise.all (index 10)\n        async Suite.run (node:internal/test_runner/test:1442:7)\n        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n      ...\n    # Subtest: RepeatableRead 缺行旧快照不能在新时区代次提交后发布结果\n    not ok 2 - RepeatableRead 缺行旧快照不能在新时区代次提交后发布结果\n      ---\n      duration_ms: 299.458\n      type: 'test'\n      location: 'D:\\\\xiangmu\\\\NBshiyan-m5-t1\\\\tests\\\\job-leases.db.test.ts:33:9858'\n      failureType: 'testCodeFailure'\n      error: 'Missing expected rejection.'\n      code: 'ERR_ASSERTION'\n      name: 'AssertionError'\n      operator: 'rejects'\n      stack: |-\n        async TestContext.<anonymous> (D:\\xiangmu\\NBshiyan-m5-t1\\tests\\job-leases.db.test.ts:590:3)\n        async Test.run (node:internal/test_runner/test:1054:7)\n        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)\n      ...\n    1..2\nnot ok 1 - JobState 租约\n  ---\n  duration_ms: 847.4873\n  type: 'suite'\n  location: 'D:\\\\xiangmu\\\\NBshiyan-m5-t1\\\\tests\\\\job-leases.db.test.ts:28:531'\n  failureType: 'subtestsFailed'\n  error: '2 subtests failed'\n  code: 'ERR_TEST_FAILURE'\n  ...\n1..1\n# tests 2\n# suites 1\n# pass 0\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1649.1774\n",
+    "postgres17Log": "TAP version 13\n# Subtest: JobState 进入 schema，并由 deploy.sh 现有 db push 消费\nok 1 - JobState 进入 schema，并由 deploy.sh 现有 db push 消费\n  ---\n  duration_ms: 7.0034\n  type: 'test'\n  ...\n# Subtest: JobState 租约\n    # Subtest: 并发领取同一 key 只有一个成功，另一 key 互不阻塞\n    ok 1 - 并发领取同一 key 只有一个成功，另一 key 互不阻塞\n      ---\n      duration_ms: 348.2764\n      type: 'test'\n      ...\n    # Subtest: 满 90 秒才能以新代次领取；旧 owner 不能续租或覆盖新结果\n    ok 2 - 满 90 秒才能以新代次领取；旧 owner 不能续租或覆盖新结果\n      ---\n      duration_ms: 155.6718\n      type: 'test'\n      ...\n    # Subtest: 成功才推进 lastSucceededAt；失败、部分完成和重复提交保留原成功时间\n    ok 3 - 成功才推进 lastSucceededAt；失败、部分完成和重复提交保留原成功时间\n      ---\n      duration_ms: 101.7522\n      type: 'test'\n      ...\n    # Subtest: 同一代次并发完成只有一个写入\n    ok 4 - 同一代次并发完成只有一个写入\n      ---\n      duration_ms: 74.9745\n      type: 'test'\n      ...\n    # Subtest: summary 只接受白名单；空输入、脚本字段和脏错误码不写库\n    ok 5 - summary 只接受白名单；空输入、脚本字段和脏错误码不写库\n      ---\n      duration_ms: 62.5027\n      type: 'test'\n      ...\n    # Subtest: 旧时区代次和不可读设置拒绝提交，且不改成功时间\n    ok 6 - 旧时区代次和不可读设置拒绝提交，且不改成功时间\n      ---\n      duration_ms: 90.2809\n      type: 'test'\n      ...\n    # Subtest: 外层事务回滚同时撤回 JobState 完成\n    ok 7 - 外层事务回滚同时撤回 JobState 完成\n      ---\n      duration_ms: 58.7862\n      type: 'test'\n      ...\n    # Subtest: 旧代次完成会回滚同一事务里的业务结果\n    ok 8 - 旧代次完成会回滚同一事务里的业务结果\n      ---\n      duration_ms: 58.7749\n      type: 'test'\n      ...\n    # Subtest: 89.5s 调用、90.5s 拿到设置锁或 JobState 锁后不能完成、续租或改成功时间\n    ok 9 - 89.5s 调用、90.5s 拿到设置锁或 JobState 锁后不能完成、续租或改成功时间\n      ---\n      duration_ms: 242.3419\n      type: 'test'\n      ...\n    # Subtest: 缺行读取后并发创建 revision 2，旧 revision 1 不能完成\n    ok 10 - 缺行读取后并发创建 revision 2，旧 revision 1 不能完成\n      ---\n      duration_ms: 130.2144\n      type: 'test'\n      ...\n    # Subtest: 仓储不能在缺少上层事务时自行续租或完成\n    ok 11 - 仓储不能在缺少上层事务时自行续租或完成\n      ---\n      duration_ms: 29.1699\n      type: 'test'\n      ...\n    # Subtest: RepeatableRead 缺行旧快照不能在新时区代次提交后发布结果\n    ok 12 - RepeatableRead 缺行旧快照不能在新时区代次提交后发布结果\n      ---\n      duration_ms: 89.0566\n      type: 'test'\n      ...\n    # Subtest: 不可读设置不能领取出租约\n    ok 13 - 不可读设置不能领取出租约\n      ---\n      duration_ms: 26.5489\n      type: 'test'\n      ...\n    1..13\nok 2 - JobState 租约\n  ---\n  duration_ms: 1473.8174\n  type: 'suite'\n  ...\n1..2\n# tests 14\n# suites 1\n# pass 14\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2110.9006\n",
+    "landing": "review; required exact-head security App approval absent"
+  },
+  "adjudication": {
+    "state": {
+      "requirement": "PackJoyU M5-T1 supplies JobState atomic claim, renewal and guarded completion primitives. Repository operations reuse a service-owned Prisma transaction. Completion must verify owner, generation, unexpired lease and current timezone revision, and business results must roll back with rejected completion. The documented M5-T3 consumer uses RepeatableRead. SiteSetting analytics.settings has a documented initial UTC timezone and revision 1, initialized idempotently; no production deployment is authorized.",
+      "task": {
+        "title": "M5-T1 review round 2: finish R1-R4 without a third rework cycle",
+        "accept": "Real PostgreSQL 17 concurrency and rollback tests with zero environment skips; old workers and old timezone revisions cannot commit. Only the existing lease repository, types, schema, deploy hook and lease test paths are in production scope."
+      },
+      "conflict": "The submitted repair takes a SHARE ROW EXCLUSIVE table lock and SELECT FOR UPDATE on analytics.settings. In an outer RepeatableRead transaction that established its snapshot while the row was absent, another connection can commit revision 2 before the table lock is taken. The later SELECT still sees no row and defaults to revision 1, so the old revision can commit despite the lock. The reviewer must repair this concrete R3 residue within the existing scope. R1 will separately remove all repository-owned transaction fallbacks and require a caller transaction for renew/complete.",
+      "options": {
+        "A": "Keep guarded completion composable with the caller transaction. When the locked settings lookup is empty, materialize the documented initial UTC/revision1 value using parameterized INSERT ON CONFLICT DO UPDATE returning the existing value unchanged. A row inserted after a RepeatableRead snapshot then causes PostgreSQL serialization failure and the whole outer transaction rolls back. Normal ReadCommitted missing-row completion continues to work. Preserve valid existing settings; add real RepeatableRead race and rollback regression tests.",
+        "B": "Initialize the documented settings singleton idempotently as part of claim before returning a lease, so subsequent worker snapshots contain a durable row. Completion must fail closed if the settings row is absent rather than infer revision1 from an empty old snapshot. Keep row locking and add RepeatableRead and missing-row regressions. This adds a settings initialization side effect to claim.",
+        "C": "Avoid creating settings in the lease primitive. Keep existing ReadCommitted missing-row serialization, but explicitly reject completion when the caller uses RepeatableRead and the settings row is absent. Let the documented settings initialization service create the row before aggregate execution. Add tests proving rejection rolls back business results; document that precondition without relaxing owner/generation/revision safety."
+      }
+    },
+    "result": {
+      "ts": "2026-10-21T19:41:30",
+      "template": "adjudicate",
+      "model": "jev-1.13.0",
+      "state_sha256": "48bf1d3378b29b67",
+      "label": "M5-T1:review-round2:repeatable-read",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.58,
+          "band": "medium",
+          "probabilities": {
+            "A": 0.72,
+            "B": 0.02,
+            "C": 0.26
+          }
+        },
+        "spec_change": {
+          "p": 0.14,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.07,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.06,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.65,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "medium",
+          "why": "Jev 选 A（medium）"
+        }
+      },
+      "usage": {
+        "input_tokens": 1437,
+        "output_tokens": 108
+      }
+    },
+    "line": 975,
+    "summary": "adjudicate: pick=A(medium 0.58) spec_change=no(0.14) outside_stack=no(0.07) needs_owner=no(0.06) reversible=yes(0.65) adopt=take(A)"
+  }
+}
