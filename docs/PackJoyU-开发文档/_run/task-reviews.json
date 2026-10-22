@@ -105,9 +105,19 @@
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "90b1c1d7e8436991ce68fea33512a8edca732079f59102420084afc60622cc89",
     "evidence": [
-      "M1-T9: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      "前置 M1-T1/M1-T3 已在 main 落地；有效范围为 company-visuals.json、source/、public/brand/company/，本轮无 src/ 产品代码改动。",
+      "验收1/E-27：company-visuals.json:83 对照参考PDF第2页主题；company-facts-attestation.json:6 记录用户直接确认的五项己方定性事实。已重渲染参考页与交付PDF并目视核对，无 YUHAO 地图、产能、客户数或认证移植。",
+      "验收2/E-111：source/dot-v3/PackJoyU-Company-Introduction-v3-EN.svg 有8图层、65文字、79路径；八张真实GUI截图已逐张查看，包含对象面板、独立图形节点、磁盘重开及临时文字编辑后撤销。Web PNG实际load为5000x5800，source/web原始字节SHA和en/ru alt均与manifest一致。",
+      "验收3/E-28：logoMaster SHA-256为7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099；logo-master-import的8条路径d/fill逐值匹配，使用同一master及统一缩放；未改原logo。",
+      "验收4/E-29：Dot workflow记载父会话01a1576c-0f7d-72b5-b35f-3cefee4fa0e9、云端Linux Inkscape 1.4 (e7c3feb100, 2024-10-09)及打开/导出/重开/编辑撤销；不冒充Inkscape调用号。receipt逐件绑定最终文件及8截图哈希，Dot ZIP内20文件SHA全部匹配。",
+      "完整原件核验：python -B docs/brand-content/source/verify_company_visuals.py --verify-originals 返回PASS artworks=1 desktop-originals=verified；实际读取4个桌面原件及6个受保护发布副本，均与制作前基线相同。",
+      "验收5/E-111：source和工具私有记录仅在docs，.dockerignore排除docs；public只有PNG导出。pageEvidence为null，首页/about消费和浏览器证据归M1-T5，不用伪造网页GIF替代素材证据。",
+      "回归：python -B -m unittest discover -s docs/brand-content/source -p test_company_visuals.py -v，11项通过，含文件篡改、尺寸、ru alt、缺截图/owner、会话、logo几何、SVG原字节及缺原PDF负例。",
+      "静态检查：pnpm10.34.6 lint exit0（仅既有img和disable提示）；pnpm10.34.6 exec tsc --noEmit --incremental false exit0；git diff origin/main --check通过。",
+      "反造假/语义：活动清单、最终SVG和校验器无placeholder、固定放行或生产测试钩子。独立子代理核对文件记录与生命周期边界无阻断。记录/截图一致性不被冒称软件真实性的自动证明。",
+      "本轮裁决：Jev jev-1.14.0，M1-T9:review-originals，adopt=take(A)，保持显式两种核验范围；完整验收命令必须带--verify-originals。state为_run/M1-T9.originals-adjudication.state.json，真实line在_run/judgments.jsonl。"
     ],
-    "reviewed": "2026-10-21T09:19:13.757256+00:00",
+    "reviewed": "2026-10-22T07:51:54.927667+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
