@@ -137,6 +137,17 @@ function transientFor(kind: ClientErrorKind, status: number | undefined): boolea
   return status === 408 || status === 429 || (status >= 500 && status <= 599);
 }
 
+function isAdminSessionFailure(
+  kind: ClientErrorKind,
+  status: number | undefined,
+  code: string | undefined,
+  audience: ClientAudience,
+): boolean {
+  return kind === 'http' && audience === 'admin' && (
+    code === 'unauthorized' || (status === 401 && (code === undefined || !isAppCode(code)))
+  );
+}
+
 function actionFor(
   kind: ClientErrorKind,
   status: number | undefined,
@@ -146,6 +157,7 @@ function actionFor(
   if (kind === 'cancelled') return 'silent';
   if (kind === 'timeout' || kind === 'network') return 'unconfirmed';
   if (kind === 'auth-protocol' || kind === 'rejected' || kind === 'oversize') return 'stop';
+  if (isAdminSessionFailure(kind, status, code, audience)) return 'login';
   if (code === 'action_grant_invalid') return 'reauthenticate';
   if (code === 'unauthorized') return audience === 'admin' ? 'login' : 'stop';
   if (code === 'invalid' || code === 'bad_credentials' || code === 'recovery_expired') return 'inline';
@@ -165,7 +177,7 @@ function sentence(
   if (kind === 'cancelled') return '';
   if (kind === 'timeout' || kind === 'network') return pick(locale, UNCONFIRMED);
   if (kind === 'auth-protocol') return pick(locale, AUTH_UNCHANGED);
-  if (code === 'unauthorized' && audience === 'admin') return pick(locale, ADMIN_UNAUTHORIZED);
+  if (isAdminSessionFailure(kind, status, code, audience)) return pick(locale, ADMIN_UNAUTHORIZED);
   if (code && isAppCode(code)) return pick(locale, COPY[code]);
   if (kind === 'http' && (status === undefined || (status >= 200 && status < 300) || status >= 500)) return pick(locale, INTERNAL);
   return pick(locale, REJECTED);
