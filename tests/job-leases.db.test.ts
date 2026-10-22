@@ -1,8 +1,8 @@
 import { after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { PrismaClient } from '@prisma/client';
-import { createJobLeaseRepo, type JobLeaseRepo } from '../src/lib/server/jobs/lease-repo';
+import { Prisma, PrismaClient } from '@prisma/client';
+import { createJobLeaseRepo, type JobLeaseRepo, type JobLeaseTx } from '../src/lib/server/jobs/lease-repo';
 import { JOB_LEASE_MS, type JobLeaseView } from '../src/lib/server/jobs/types';
 
 const base = process.env.DATABASE_URL;
@@ -69,10 +69,43 @@ async function reset() {
   `);
 }
 
-function harness(): { repo: JobLeaseRepo; now: () => number; advance: (ms: number) => void } {
+function leaseFailure(error: unknown) {
+  if (error instanceof Error && error.name === 'JobLeaseAbort') {
+    switch (error.message) {
+      case 'invalid': case 'stale': case 'expired': case 'revision_conflict': case 'revision_unreadable':
+        return error.message;
+    }
+  }
+  throw error;
+}
+
+function harness() {
   assert.ok(db);
+  const client = db;
   let now = Date.parse('2026-01-15T00:00:00.000Z');
-  const repo = createJobLeaseRepo({ db, clock: () => new Date(now) });
+  const raw = createJobLeaseRepo({ db: client, clock: () => new Date(now) });
+  // 测试用顶层 use-case 拥有事务；传入业务 tx 时直接复用并让拒绝异常退出。
+  const repo = {
+    ...raw,
+    async complete(input: Parameters<JobLeaseRepo['complete']>[0], tx?: JobLeaseTx) {
+      if (tx) return raw.complete(input, tx);
+      try {
+        return await client.$transaction((current) => raw.complete(input, current), { timeout: 15_000 });
+      } catch (error) {
+        return { committed: false as const, reason: leaseFailure(error) };
+      }
+    },
+    async renew(input: Parameters<JobLeaseRepo['renew']>[0], tx?: JobLeaseTx) {
+      if (tx) return raw.renew(input, tx);
+      try {
+        return await client.$transaction((current) => raw.renew(input, current), { timeout: 15_000 });
+      } catch (error) {
+        const reason = leaseFailure(error);
+        if (reason !== 'invalid' && reason !== 'stale' && reason !== 'expired') throw error;
+        return { renewed: false as const, reason };
+      }
+    },
+  };
   return { repo, now: () => now, advance: (ms: number) => { now += ms; } };
 }
 
@@ -545,6 +578,60 @@ test('缺行读取后并发创建 revision 2，旧 revision 1 不能完成', asy
   assert.equal(current.ok && current.view.lastStatus, 'RUNNING');
   assert.equal(current.ok && current.view.lastSucceededAt, null);
   assert.equal(current.ok && current.view.generation, 1);
+});
+
+test('仓储不能在缺少上层事务时自行续租或完成', async () => {
+  await reset();
+  assert.ok(db);
+  const repo = createJobLeaseRepo({ db });
+  const claimed = await repo.claim({ key: 'analytics-aggregate', owner: 'transaction-required' });
+  assert.equal(claimed.acquired, true);
+  if (!claimed.acquired) return;
+  const required = (error: unknown) => error instanceof Error && error.name === 'JobLeaseAbort' && error.message === 'transaction_required';
+  await assert.rejects(Reflect.apply(repo.renew, repo, [{ key: 'analytics-aggregate', owner: 'transaction-required', generation: claimed.generation }]), required);
+  await assert.rejects(Reflect.apply(repo.complete, repo, [{
+    key: 'analytics-aggregate', owner: 'transaction-required', generation: claimed.generation,
+    status: 'SUCCEEDED', summary: null, timezoneRevision: claimed.timezoneRevision,
+  }]), required);
+});
+
+test('RepeatableRead 缺行旧快照不能在新时区代次提交后发布结果', async () => {
+  await reset();
+  assert.ok(db);
+  await db.$executeRawUnsafe(`CREATE TABLE "${SCHEMA}"."LeaseProbe" ("id" TEXT PRIMARY KEY)`);
+  const { repo } = harness();
+  const claimed = await repo.claim({ key: 'analytics-aggregate', owner: 'repeatable-read' });
+  assert.equal(claimed.acquired, true);
+  if (!claimed.acquired) return;
+  const snapshot = gate();
+  const resume = gate();
+  const transaction = db.$transaction(async (tx) => {
+    const settings = await tx.$queryRaw`SELECT "value" FROM "SiteSetting" WHERE "key" = 'analytics.settings'`;
+    assert.deepEqual(settings, []);
+    snapshot.resolve();
+    await resume.promise;
+    await tx.$executeRaw`INSERT INTO "LeaseProbe" ("id") VALUES ('old-snapshot')`;
+    return repo.complete({
+      key: 'analytics-aggregate', owner: 'repeatable-read', generation: claimed.generation,
+      status: 'SUCCEEDED', summary: null, timezoneRevision: 1,
+    }, tx);
+  }, { isolationLevel: 'RepeatableRead', timeout: 15_000 });
+  await snapshot.promise;
+  await setRevision({ version: 2, timezone: 'UTC', timezoneRevision: 2, changedAt: '2026-01-15T00:00:00.000Z', updatedBy: null });
+  const rejected = assert.rejects(transaction, (error: unknown) =>
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    (error.code === 'P2034' || (error.code === 'P2010' && error.meta?.code === '40001')),
+  );
+  resume.resolve();
+  await rejected;
+  assert.equal(await markerCount('old-snapshot'), 0);
+  const current = await repo.read('analytics-aggregate');
+  assert.equal(current.ok && current.view.lastStatus, 'RUNNING');
+  assert.equal(current.ok && current.view.lastSucceededAt, null);
+  const settings = await db.$queryRaw<{ value: { timezoneRevision: number } }[]>`
+    SELECT "value" FROM "SiteSetting" WHERE "key" = 'analytics.settings'
+  `;
+  assert.equal(settings[0]?.value.timezoneRevision, 2);
 });
 
 test('不可读设置不能领取出租约', async () => {

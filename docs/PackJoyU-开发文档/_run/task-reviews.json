@@ -884,14 +884,16 @@
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "906d89eff0552a295d6dcfdf2fb0702d6e7ca170e21fcfd7aae70575aa8f808c",
     "evidence": [
-      "本轮为PR #404第1轮验收；实施代码HEAD c811431c09067e991de5e785c240909011cd2b76。status当前哈希与提示词一致，stale/runtimeDrift均空。本记录只登记任务契约语义复核；代码验收结论为rework，不代表功能通过或已落地。",
-      "核对19节:68与_run/task-contracts.json的M5-T1：stage=primitive，唯一提供job-leases，M1-T2提供contract-types，集成责任明确由M5-T8承接；本层不要求提前注册cron/registry/composition。有效路径为deploy/deploy.sh、schema、lease-repo、types和本卡DB测试，未扩生产范围。",
-      "06/08节要求repo显式Prisma依赖、service或顶层use-case开事务、嵌套复用tx、聚合整组替换与代次核对原子；09节要求90s租约、owner/generation CAS、提交重查当前时区revision、成功才推进lastSucceededAt。实现lease-repo.ts:25,201阻止外层tx复用，需返工；这属于既定架构要求，不修改或降低契约。",
-      "13节未为本卡挂专属边界编号，仍核空输入、失效租约、重复完成、失败、脏summary与安全读取。09/10的固定JobKey/JobCounts/JobResultStatus由共享ops.ts复用；summary严格白名单计数/UTC时间/版本，不接脚本或原始异常。现有8项测试在真实隔离PG12通过0失败0跳过，仅作补充证据；17节要求PG17，当前CI租约suite因无DATABASE_URL跳过，不能冒充PG17通过。",
-      "migrations接线由prisma/schema.prisma:415,423定义及deploy/deploy.sh:67-100现有schema_sync全量消费，94 db push不带accept-data-loss、98零drift；deploy.sh无需为每个模型增加重复注册。没有手写未执行迁移被当已部署。",
-      "本轮已读代码与任务回填；占位、任意脚本、重复共享类型、生产测试钩子扫描无本层阻断。pnpm lint和pnpm exec tsc --noEmit --incremental false通过；只保留现有仓库警告。代码并发缺陷与具体返工项单独留档，任务维持未落地。"
+      "第2轮仅复核第1轮R1-R4与直接回归；当前契约hash与派发包相同，前置M1-T2/shared contracts、primitive阶段、job-leases唯一产出、有效路径、13/17/19要求及M5-T8集成责任未改变。第1轮已接受的摘要白名单、固定key、安全读与schema/deploy接线证据保留。",
+      "R1：lease-repo.ts:25只依赖$queryRaw；190/222要求上层tx，缺失立即拒绝，生产repo没有$transaction。拒绝时JobLeaseAbort须退出service/顶层use-case事务。tests:418/441验证JobState与业务写共同回滚，583验证无tx调用不能自行提交。",
+      "R2：lease-repo.ts:204/251先锁JobState，complete还锁SiteSetting并处理缺行；205/253在全部锁后采样。tests:467真实等待设置锁、完成等待JobState锁、续租等待JobState锁，89.5s调用/90.5s获锁均拒绝，成功时间与原租约不改。",
+      "R3：lease-repo.ts:104-124串行化设置读，缺行幂等初始化UTC/revision1/version0/changedAt/updatedBy；已有设置不被默认值覆盖。RR旧快照看不到并发revision2时唯一冲突写产生SQLSTATE40001，整个业务事务回滚。tests:598验证真实RepeatableRead、并发插入、序列化错误、业务marker为0、JobState仍RUNNING且revision2保留。",
+      "本轮R1私有事务fallback与R3旧RR快照残留先补失败用例，修复前0通过/2失败；按Jev采纳A修复后同两项转绿，完整PG17.10测试14通过/0失败/0跳过。PG17为任务内私有隔离实例，所有业务测试仅用独立schema，不触及生产或普通开发库。",
+      "pnpm lint通过（仅既有仓库警告）；pnpm exec tsc --noEmit --incremental false通过；git diff --check通过。没有改生成器、业务共享接口或CI配置，未将现有CI里环境性skip冒充DB通过。",
+      "Jev真实裁决：judgments.jsonl:975，model=jev-1.13.0，pick=A medium0.58，adopt=take(A)，spec_change=no，outside_stack=no，needs_owner=no。完整A/B/C候选和实际返回附本文件；A的缺行唯一冲突写与回归已落实，无未执行裁决。",
+      "代码验收pass与合并资格分开：当前指定安全App对最终HEAD的APPROVED尚未取得，任务笔记保持review，不执行--landed、不伪造批准、不改安全gate。正常落地须等最终CI及指定批准满足后执行。"
     ],
-    "reviewed": "2026-10-22T01:51:53.536902+00:00",
+    "reviewed": "2026-10-22T02:47:49.657634+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

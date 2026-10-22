@@ -22,7 +22,7 @@ import {
 import { AppErrorCodeSchema } from '../../contracts/errors';
 import { PositiveIntSchema } from '../../contracts/common';
 
-export type JobLeaseDb = Pick<PrismaClient, '$queryRaw' | '$executeRaw' | '$transaction'>;
+export type JobLeaseDb = Pick<PrismaClient, '$queryRaw'>;
 export type JobLeaseTx = Prisma.TransactionClient;
 
 type RevisionRead = { ok: true; revision: number } | { ok: false; reason: 'revision_unreadable' };
@@ -101,13 +101,27 @@ async function currentTimezoneRevision(db: { $queryRaw: JobLeaseDb['$queryRaw'] 
   return revisionFrom(rows[0]?.value, rows.length === 0);
 }
 
-async function lockedTimezoneRevision(query: JobLeaseTx): Promise<RevisionRead> {
+async function lockedTimezoneRevision(query: JobLeaseTx, clock: () => Date): Promise<RevisionRead> {
   // 缺行时行锁锁不住任何元组。表级锁与插入冲突，核对和提交才能串行。
   await query.$executeRaw`LOCK TABLE "SiteSetting" IN SHARE ROW EXCLUSIVE MODE`;
   const rows = await query.$queryRaw<{ value: unknown }[]>`
     SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY} FOR UPDATE
   `;
-  return revisionFrom(rows[0]?.value, rows.length === 0);
+  if (rows.length > 0) return revisionFrom(rows[0]?.value, false);
+  const now = clock();
+  if (!validClock(now)) return { ok: false, reason: 'revision_unreadable' };
+  const initial = {
+    version: 0, timezone: 'UTC', timezoneRevision: INITIAL_TIMEZONE_REVISION,
+    changedAt: now.toISOString(), updatedBy: null,
+  };
+  // RR 旧快照看不到已插入的行；唯一冲突的写会让 PostgreSQL 拒绝整笔旧事务。
+  const initialized = await query.$queryRaw<{ value: unknown }[]>`
+    INSERT INTO "SiteSetting" ("key", "value")
+    VALUES (${ANALYTICS_SETTINGS_KEY}, ${JSON.stringify(initial)}::jsonb)
+    ON CONFLICT ("key") DO UPDATE SET "value" = "SiteSetting"."value"
+    RETURNING "value"
+  `;
+  return revisionFrom(initialized[0]?.value, false);
 }
 
 function revisionFrom(value: unknown, missing: boolean): RevisionRead {
@@ -127,10 +141,10 @@ function validClock(date: Date): boolean {
 
 /**
  * 固定作业的领取、续租、完成和安全读取。调用方传入共享 Prisma 客户端和服务端时钟，默认时钟是 `new Date()`。
- * 续租和完成接受上层事务；传入时复用该事务，不另开一层。未传入时由本次调用自己开一个事务。
+ * 续租和完成必须传入 service/顶层 use-case 开启的事务，与业务结果共同提交或回滚。
  * 租约判断用拿到 JobState 与设置锁之后的时钟。`lockedUntil` 等于该时钟时，旧工人不能续租或完成。
  * 只有 `SUCCEEDED` 推进 `lastSucceededAt`。失败、部分完成，以及代次、租约或时区 revision 不匹配的提交，都不改原成功时间。
- * 上层事务里未提交时抛出 JobLeaseAbort，让同一事务中的业务写入一起回滚。读取不返回 `leaseOwner`。
+ * 拒绝续租或完成时抛出 JobLeaseAbort，调用方须让异常退出上层事务，使业务写入一起回滚。读取不返回 `leaseOwner`。
  */
 export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date }) {
   const clock = deps.clock ?? (() => new Date());
@@ -173,17 +187,16 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     };
   }
 
-  async function renew(input: RenewInput, tx?: JobLeaseTx): Promise<RenewResult> {
+  async function renew(input: RenewInput, tx: JobLeaseTx): Promise<RenewResult> {
+    if (!tx) throw leaseAbort('transaction_required');
     const key = JobKeySchema.safeParse(input.key);
     const owner = JobLeaseOwnerSchema.safeParse(input.owner);
     const generation = PositiveIntSchema.safeParse(input.generation);
     if (!key.success || !owner.success || !generation.success) {
-      if (tx) throw leaseAbort('invalid');
-      return { renewed: false, reason: 'invalid' };
+      throw leaseAbort('invalid');
     }
-    const run = (query: JobLeaseTx) => finishRenew(query, key.data, owner.data, generation.data);
-    const outcome = tx ? await run(tx) : await deps.db.$transaction(run, { timeout: 15_000 });
-    if (tx && !outcome.renewed) throw leaseAbort(outcome.reason);
+    const outcome = await finishRenew(tx, key.data, owner.data, generation.data);
+    if (!outcome.renewed) throw leaseAbort(outcome.reason);
     return outcome;
   }
 
@@ -206,7 +219,8 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     return { renewed: false, reason: await missReason(key, owner, generation, now, query) };
   }
 
-  async function complete(input: CompleteInput, tx?: JobLeaseTx): Promise<CompleteResult> {
+  async function complete(input: CompleteInput, tx: JobLeaseTx): Promise<CompleteResult> {
+    if (!tx) throw leaseAbort('transaction_required');
     const key = JobKeySchema.safeParse(input.key);
     const owner = JobLeaseOwnerSchema.safeParse(input.owner);
     const generation = PositiveIntSchema.safeParse(input.generation);
@@ -214,22 +228,19 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     const timezoneRevision = PositiveIntSchema.safeParse(input.timezoneRevision);
     const summary = input.summary === null ? { success: true as const, data: null } : JobSummarySchema.safeParse(input.summary);
     if (!key.success || !owner.success || !generation.success || !status.success || !timezoneRevision.success || !summary.success) {
-      if (tx) throw leaseAbort('invalid');
-      return { committed: false, reason: 'invalid' };
+      throw leaseAbort('invalid');
     }
     const errorCode = input.errorCode ?? null;
     if (status.data === 'SUCCEEDED' ? errorCode !== null : !AppErrorCodeSchema.safeParse(errorCode).success) {
-      if (tx) throw leaseAbort('invalid');
-      return { committed: false, reason: 'invalid' };
+      throw leaseAbort('invalid');
     }
     const summarySql = summary.data === null ? Prisma.sql`NULL` : Prisma.sql`${JSON.stringify(summary.data)}::jsonb`;
     const errorSql = status.data === 'SUCCEEDED' ? Prisma.sql`NULL` : Prisma.sql`${errorCode}`;
-    const run = (query: JobLeaseTx) => finishComplete(query, {
+    const outcome = await finishComplete(tx, {
       key: key.data, owner: owner.data, generation: generation.data, status: status.data,
       timezoneRevision: timezoneRevision.data, summarySql, errorSql,
     });
-    const outcome = tx ? await run(tx) : await deps.db.$transaction(run, { timeout: 15_000 });
-    if (tx && !outcome.committed) throw leaseAbort(outcome.reason);
+    if (!outcome.committed) throw leaseAbort(outcome.reason);
     return outcome;
   }
 
@@ -238,7 +249,7 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     timezoneRevision: number; summarySql: Prisma.Sql; errorSql: Prisma.Sql;
   }): Promise<CompleteResult> {
     await query.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = ${parsed.key} FOR UPDATE`;
-    const revision = await lockedTimezoneRevision(query);
+    const revision = await lockedTimezoneRevision(query, clock);
     const now = clock();
     if (!validClock(now)) return { committed: false, reason: 'invalid' };
     if (!revision.ok) return { committed: false, reason: 'revision_unreadable' };
