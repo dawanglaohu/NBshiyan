@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { test } from 'node:test';
-import { AnalyticsEventDTOSchema, type AnalyticsEventDTO } from '../src/lib/contracts/index';
+import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
+import { AnalyticsEventDTOSchema, type AnalyticsEventDTO, type ModelFailureReason } from '../src/lib/contracts/index';
 import {
   applyModelEventSignal,
   emptyModelEventRules,
@@ -9,6 +12,7 @@ import {
   type ModelEventRulesState,
   type ModelEventSignal,
   type ModelStartInput,
+  type ModelViewRecord,
 } from '../src/lib/analytics/model-events';
 
 const viewA = '5fcf5ba2-7d35-4d50-8798-e6f65b1268ef';
@@ -76,10 +80,9 @@ test('recorded sequences allow one terminal per view, count timeout as failure, 
   assert.equal(terminalsOf(events, viewA).length, 1);
   assert.equal(terminalsOf(events, viewA)[0]?.kind, 'model_load_success');
   assert.equal(terminalsOf(events, viewB).length, 1);
-  assert.equal(terminalsOf(events, viewB)[0]?.kind, 'model_load_failure');
-  if (terminalsOf(events, viewB)[0]?.kind === 'model_load_failure') {
-    assert.equal(terminalsOf(events, viewB)[0].failureReason, 'TIMEOUT');
-  }
+  const viewBTerminal = terminalsOf(events, viewB)[0];
+  if (!viewBTerminal || viewBTerminal.kind !== 'model_load_failure') assert.fail('timeout terminal must be a failure');
+  assert.equal(viewBTerminal.failureReason, 'TIMEOUT');
   assert.equal(events.some((event) => event.kind === 'model_load_success' && event.viewId === viewB), false);
 });
 
@@ -338,4 +341,68 @@ test('the same signals reduce twice to the same events', () => {
   const origin = emptyModelEventRules();
   assert.deepEqual(reduceModelEventSignals(signals, origin), reduceModelEventSignals(signals, origin));
   assert.deepEqual(origin, emptyModelEventRules());
+});
+
+function decidedFailureReason(view: ModelViewRecord): ModelFailureReason | undefined {
+  if (view.status !== 'decided') return undefined;
+  if (view.terminalKind !== 'model_load_failure') return undefined;
+  return view.failureReason;
+}
+
+test('a strict consumer can compile the module and narrow a decided failure', () => {
+  const view = reduceModelEventSignals([
+    { type: 'start', ...start({ viewId: viewB, eventId: startB, monotonicMs: 1_000, navigationId: navB, productSlug: 'red-mailer', path: '/en/products/red-mailer' }) },
+    { type: 'timeout', viewId: viewB, eventId: termB, occurredAt: later, monotonicMs: 1_400 },
+  ]).state.views[viewB];
+  assert.ok(view);
+  if (view.status !== 'decided' || view.terminalKind !== 'model_load_failure') assert.fail('decided failure did not narrow');
+  assert.equal(view.failureReason, 'TIMEOUT');
+  assert.equal(decidedFailureReason(view), 'TIMEOUT');
+
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const consumerFile = resolve(root, 'tests/model-event-rules.consumer.ts');
+  const consumerSource = `
+    import { reduceModelEventSignals, type DecidedModelView, type ModelViewRecord } from '../src/lib/analytics/model-events';
+    export function decidedFailureReason(view: ModelViewRecord): DecidedModelView['failureReason'] {
+      if (view.status !== 'decided') return undefined;
+      if (view.terminalKind !== 'model_load_failure') return undefined;
+      return view.failureReason;
+    }
+    const decided: DecidedModelView = {
+      status: 'decided',
+      viewId: '${viewB}',
+      navigationId: '${navB}',
+      productSlug: 'red-mailer',
+      locale: 'en',
+      path: '/en/products/red-mailer',
+      startEventId: '${startB}',
+      startOccurredAt: '${later}',
+      startedAtMs: 1000,
+      terminalKind: 'model_load_failure',
+      failureReason: 'TIMEOUT',
+      terminalEventId: '${termB}',
+      terminalOccurredAt: '${later}',
+      endedAtMs: 1400,
+      terminalEmitted: true,
+    };
+    export const reason = decidedFailureReason(decided);
+    export const empty = reduceModelEventSignals([]);
+  `;
+  assert.equal(/\bany\b| as |@ts-ignore|@ts-nocheck|@ts-expect-error/.test(consumerSource), false);
+  const config = ts.readConfigFile(resolve(root, 'tsconfig.json'), ts.sys.readFile);
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root);
+  const options: ts.CompilerOptions = { ...parsed.options, noEmit: true, incremental: false };
+  const host = ts.createCompilerHost(options);
+  const readSource = host.getSourceFile;
+  host.getSourceFile = (fileName, languageVersion, onError, shouldCreateNewSourceFile) =>
+    resolve(fileName) === consumerFile
+      ? ts.createSourceFile(fileName, consumerSource, languageVersion, true)
+      : readSource(fileName, languageVersion, onError, shouldCreateNewSourceFile);
+  const program = ts.createProgram([consumerFile], options, host);
+  const diagnostics = ts.getPreEmitDiagnostics(program).filter((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error);
+  assert.equal(diagnostics.length, 0, ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+    getCanonicalFileName: (fileName) => fileName,
+    getCurrentDirectory: () => root,
+    getNewLine: () => '\n',
+  }));
 });

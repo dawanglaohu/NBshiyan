@@ -74,7 +74,7 @@ type OpenModelView = {
   startedAtMs: number;
 };
 
-export type DecidedModelView = OpenModelView & {
+export type DecidedModelView = Omit<OpenModelView, 'status'> & {
   status: 'decided';
   terminalKind: ModelTerminalKind;
   failureReason?: ModelFailureReason;
