@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import cityStill from '../../../docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
@@ -28,7 +29,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const names = await getTranslations('Products.names');
   const aboutVisible = await isAboutVisible(locale);
   const about = aboutVisible && isPublishedLocale(locale) ? await getAboutContent(locale) : null;
-  // TODO: 空闲时把主图替换成 3D 盒子
   return (
     <main>
       <section className="hero">
@@ -62,7 +62,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Link className="entry-all" href="/products">{t('entryAll')} <span aria-hidden="true">→</span></Link>
       </section>
 
-      <BrandScene labels={{ alt: t('brandSceneAlt'), play: t('brandScenePlay'), pause: t('brandScenePause') }} />
+      <BrandScene stillSrc={cityStill.src} labels={{ alt: t('brandSceneAlt'), title: t('brandSceneTitle'), play: t('brandScenePlay'), pause: t('brandScenePause') }} />
 
       <section className="container" aria-labelledby="premium-h">
         <div className="premium-band theme-premium">

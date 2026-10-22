@@ -1,0 +1,49 @@
+{
+  "owner_stated_strengths": {
+    "message_id": "Sentinel_b2b57e91a27481918ba944672dee564f",
+    "quote": "自有工厂 + 整合供应链 + 多品定制 + 设计打样能力、质量把控、服务市场",
+    "use": "Own factory, integrated supply chain, multi-category customization, design/sampling and quality control support the company positioning and capability text. Business statements supplied by the owner, not independently audited."
+  },
+  "market_geography": "Not specified, therefore omitted. No global/export-country implication is made.",
+  "category_source": {
+    "file": "products.ts",
+    "sha256": "cbc01a91204710217dbaceebf6fad847c6567953a09084c506dafe964a33f991",
+    "category_names": [
+      "Corrugated boxes",
+      "Color boxes",
+      "Gift boxes",
+      "Wine boxes",
+      "Paper cups",
+      "Eco paper cups",
+      "Pulp molding",
+      "Color printing",
+      "Offset printing",
+      "Gift cards",
+      "Party supplies",
+      "Christmas merchandise"
+    ],
+    "editorial_grouping": "Four editorial groups for readability, not asserted corporate divisions. Category count is a count of the supplied list, not a company-scale claim.",
+    "eco_label": "Eco paper cups remains an existing category name; no recyclability, compostability or certification claim is added."
+  },
+  "logo_source": {
+    "file": "packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "reuse": "All eight original path d and fill attributes retained. Uniform scaling only; no font recreation or redesign."
+  },
+  "reference_pdf": {
+    "file": "catalog 2024-Mingkai&Kyson(1).pdf",
+    "sha256": "f90310c0c3bd4b2f0bf9ff4941352a48aa982b41a4631f605453629c7870201d",
+    "page_actually_rendered_and_inspected": 2,
+    "observed": "About YUHAO GROUP / Company Introduction composition: prominent overview, supporting company visual and scale callouts. Used the overview-plus-supporting-strengths hierarchy only.",
+    "not_reused": "No photographs, map claims, company figures, history, certification, capacity, facilities/equipment specifics, addresses or other YUHAO facts."
+  },
+  "illustrations": "New editable conceptual product-display illustrations: gift box, open carton, cup, tall presentation carton, cards, brochure, molded-pulp tray, seasonal star ornament and party cone. They are not product photographs and do not represent an actual factory, facility or equipment.",
+  "capability_path": "High-level editorial capability sequence, not a service guarantee, fixed workflow, production schedule or promised lead time.",
+  "language_delivery": {
+    "delivered": [
+      "en"
+    ],
+    "pending": "Other language versions require confirmation of the actual website locale list. Earlier en/ru copy fragments are not a verified exhaustive locale list.",
+    "market_claims": "No countries, regions, export history or global reach claimed. Website languages do not establish operating markets."
+  }
+}

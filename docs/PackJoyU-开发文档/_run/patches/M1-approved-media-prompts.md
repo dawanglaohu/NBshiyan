@@ -10,7 +10,7 @@
 - M1-T1：sections
 - M1-T2：sections
 - M1-T3：edges、sections、skills、task
-- M1-T4：edges、sections、task
+- M1-T4：definition、edges、effectivePaths、sections、task、wiring
 - M1-T5：edges、sections、task
 - M1-T6：edges、sections、skills、task
 - M1-T7：sections
@@ -379,7 +379,7 @@
 -| M1-T5 | 集成己方公司内容与独立图稿 | M1 | M1-T4、M1-T9 | 己方可核实材料、PDF结构参考、现有SiteSetting/Sanity及发布开关、M1-T9 company-visual-assets与素材manifest | company-content；about与首页公司摘要、事实对照、安全发布映射和真实页面图稿消费；原联系隐私入口兼容 | 1) 为每个对外公司硬事实建立“页面字段→己方证据文件/页码”对照；无己方证据的YUHAO认证/产能/工厂规模不得出现在成品文案或图片；PDF仅作结构/产品主题参考，自动检索加逐字段对照均无改名冒用（E-27）。2) 成品引用的logo哈希等于现用PackJoyU字标，不使用候选新标；不等待用户回看候选图，PDF指令不作执行授权（E-28）。3) 真浏览器点about-link→/[locale]/about、footer联系/隐私→对应路由，en/ru切换保持对应页；发布开关关闭时仍404，开时SSR SiteSetting/Sanity显示与事实对照表一致，改动页全部有导航证据。 4) 消费M1-T9的company-visual-assets，为已选图稿建立src/lib/brand/company-media.ts安全发布映射，仅输出/brand/company/下已核哈希的Web路径、正整数宽高及en/ru alt；拒绝外部URL、越界路径、源工程路径和文件系统地址，不把工程、私有路径或制作凭据下发浏览器。逐件核manifest中的成品与现用字标哈希、制作证据和完成状态；素材未完成时本集成项不能通过（E-29、E-111）。5) en/ru真实首页公司摘要及about消费相同已审映射，真实浏览器从可见入口进入，网络加载Web图路径/文件哈希与清单一致；alt按语言匹配，1920/1440/390尺寸下主体完整、无横向溢出。保存参考主题/己方事实→源工程/成品→映射→路由/组件的追溯证据；仅有资料目录文件不算页面完成，源工程不进public或生产镜像（E-111）。 6) 安全映射只提取已核Web路径、尺寸、alt；不在生产运行时import原docs manifest或工程/制作记录，不把含私有源路径的原JSON打包；浏览器产物和运行镜像检查均无源工程及私有路径。 | 2d |
 -| M1-T6 | 逐帧替换GIF品牌并校验发布媒体集合 | M1 | M1-T3 | 原361帧GIF、brand-static-media、现用字标与原始时间轴 | brand-media；换标GIF、等尺寸暂停帧、逐帧品牌/时序报告与可发布集合 | 1) 保留原JPG/GIF哈希，逐帧列出361帧中旧品牌出现、透视变化、转场及遮挡恢复位置，全部以PackJoyU完整覆盖；同时复核T3选定静态发布图的品牌位置，首尾帧与全部列出位置无旧标或漏标（E-26）。2) 用原时间轴对照每帧呈现时刻/顺序和30.08秒循环总长，全部相同；叠加对照无替换新增错位或抖动；任一失败则该副本标未完成且排除发布，原件保留回退（E-30）。3) 输出可解码GIF、同尺寸暂停静帧与哈希；GPT Dot制作证据或逐项尚未执行状态按T3的真实工具可达结果登记，不虚报完成。 | 2d |
 +| M1-T3 | 制作JPG换标及视频海报发布副本 | M1 | M1-T1 | docs/brand-media/static/selected-media-release.json与真实制作记录；桌面原件只核来源/SHA，不重做已确认素材 | brand-static-media：工业PNG、压缩视频及帧海报、哈希清单；brand-logo-master：public/brand/packjoyu-logo-master.svg及源/导出SHA。 | 1) 原JPG/GIF/视频SHA不变，选定成品可解码。用已确认工业PNG，逐核飞艇/工厂PackJoyU及旧标清除，不重做弃用JPG。保留原片公司名/logo/片头尾/水印时间点观察，逐核选定成片；授权替换且无残留的原产品商标/未知客户关系不单独阻断。设备商标保留、标equipment，不作企业署名。成片来源未明或企业署名/片头尾/水印不符禁发；不改原片、不删/重排镜头或改音轨。2) 候选不同时仍用当前PackJoyU，不待用户回看、不视为批准新标（E-28）。3) 存授权渠道输入、真实调用/软件操作、输出及成品核验；未用Dot不否定其他授权制作，用时存调用证据；未制作逐项记尚未执行/具体任务，不伪称成功/完成（E-29）。4) 核SiteHeader字标、样式/字体、icon.svg来源，导出可供软件导入的现用完整master，存源/导出SHA，逐核字形/比例/颜色与当前一致；不重设计或改源标/icon。SVG无script/外链/私有元数据，T6/T9仅用此master。5) brand-static-media.json逐文件path/sha256/width/height与实测哈希/解码相等，分开选定发布和历史待核。logoMaster存sourceFiles路径/SHA、导出路径/SHA/viewBox及字体/样式来源，重读相等。video-identity.json另核成片并绑定原片/输出path/SHA；企业署名/片头尾/水印/替换区逐项存fromMs/toMs、精确文字/标识、抽帧SHA、OWN_VERIFIED/THIRD_PARTY/UNKNOWN及可打开依据，时刻在片长内；海报取此成片，绑定成片/海报SHA及精确帧时刻。直接用户来源声明可作限定依据，不推导产权/客户/认证/产能；来源/最终署名UNKNOWN则releaseAllowed=false，T4不得称发布通过。缺必要成品/成片核验/真实制作记录则T3未完成，不以清单或未执行说明代替。 | 1.5d |
-+| M1-T4 | 接好选定视频与分区PNG/GIF场景 | M1 | M1-T6、M1-T7、M1-T8 | docs/brand-media/static/selected-media-release.json的PNG/GIF/v3视频及成片海报、src/lib/home/brandMedia.ts现有接线、M1-T6已核发布集合/暂停帧、visual-components与client-api-foundation | home-media；复用现有HeroVideo/BrandScene的选定成品与控制，不重新制作场景 | 1) 先读docs/brand-media/static/selected-media-release.json与BRAND_MEDIA，复用public/brand下工业PNG/GIF和v3视频/真实帧海报，不用参考附件或旧hero素材。点击home-link→/[locale]、products-link→产品、contact-link→联系，核实际SSR来源；目录沿loadCatalog(listPublishedModels)，不要求浏览器GET /api/models。约12.3秒v3成片的精确时长/帧数取制作记录，muted/playsinline、播放/暂停可点击；autoplay受阻保留对应成片JPG海报/播放入口，解码失败或减少动态效果显示该海报，不强制持续播放（E-21、E-22）。2) 已确认工业PNG/GIF位于产品区后，按消费GIF版本选同尺寸暂停帧，不把1737×905插画当960×500或1384×720暂停帧。网络证明接近视区300px前无GIF下载，进入后才准入，保留现有主动播放；暂停、离视区、后台页切该GIF静帧，恢复不覆盖用户暂停（E-23、E-24）。3) 1440/1920/390测宽高比与各源一致、四角/主体完整，媒体DOM不与导航/正文/3D可点击矩形相交；不删主体或控件刷绿，留真实按钮操作GIF（E-25）。 | 1.5d |
++| M1-T4 | 接好选定视频与分区PNG/GIF场景 | M1 | M1-T6、M1-T7、M1-T8 | docs/brand-media/static/selected-media-release.json的PNG/GIF/v3视频及成片海报、src/lib/home/brandMedia.ts现有接线、M1-T6已核发布集合/暂停帧、visual-components与client-api-foundation | home-media；复用现有HeroVideo/BrandScene的选定成品与控制，不重新制作场景 | 1) 先读docs/brand-media/static/selected-media-release.json与BRAND_MEDIA，复用public/brand下工业PNG/GIF和v3视频/真实帧海报，不用参考附件或旧hero素材。点击home-link→/[locale]、products-link→产品、contact-link→联系，核实际SSR来源；目录沿loadCatalog(listPublishedModels)，不要求浏览器GET /api/models。约12.3秒v3成片的精确时长/帧数取制作记录，muted/playsinline、播放/暂停可点击；autoplay受阻保留对应成片JPG海报/播放入口，解码失败或减少动态效果显示该海报，不强制持续播放（E-21、E-22）。2) 已确认工业PNG/GIF位于产品区后，按消费GIF版本选同尺寸暂停帧，不把1737×905插画当960×500或1384×720暂停帧。网络证明接近视区300px前无GIF下载，进入后才准入，保留现有主动播放；暂停、离视区、后台页切该GIF静帧，恢复不覆盖用户暂停（E-23、E-24）。3) 1440/1920/390测宽高比与各源一致、四角/主体完整，媒体DOM不与导航/正文/3D可点击矩形相交；不删主体或控件刷绿，留真实按钮操作GIF（E-25）。 4) 本层在src/lib/navigation/routes.ts建立home/products/contact的路径与入口ID登记，由SiteHeader消费并经既有i18n/navigation输出本地化href；后续任务在同一表补各自产出的入口。接线核查限本层首页、产品、联系三入口及首页媒体装配，不要求改动后台页面或建立第二套路由。 | 1.5d |
 +| M1-T5 | 集成己方公司内容与选定图稿 | M1 | M1-T4、M1-T9 | 己方可核事实、docs/brand-media/static/selected-media-release.json的已确认工业素材、M1-T9公司图稿/工程清单、现有SiteSetting/Sanity及发布开关；旧PDF仅历史主题对照 | company-content；about与首页公司摘要、事实对照、安全发布映射和真实页面图稿消费；原联系隐私入口兼容 | 1) 先核docs/brand-media/static/selected-media-release.json的选定成品；每项公司硬事实建“页面字段→己方证据文件/页码”对照；无己方证据的YUHAO认证/产能/规模不得进入文案/图片，旧PDF仅历史结构/主题，不作底图或改名事实（E-27）。2) 图稿沿用现用PackJoyU字标/SHA，不用候选新标、不等待回看；附件指令不作授权（E-28）。3) 真浏览器about-link→/[locale]/about、footer联系/隐私→对应路由，en/ru切换保持页；关闭发布仍404，开放时SSR SiteSetting/Sanity与事实表一致，改动页有导航证据。4) 在src/lib/brand/company-media.ts生成精确文件白名单：可复用T3选定工业PNG/GIF中适合图像组件的文件及M1-T9已核public/brand/company/图稿，不放宽为任意/brand前缀。只输出Web路径、正整数宽高及en/ru alt；拒绝外部URL、越界、源工程/文件系统路径。核成品/现用master SHA、实际渠道记录与M1-T9工程要求；PNG/GIF已确认不能代替未交工程或事实证据（E-29、E-111）。5) en/ru首页公司摘要/about消费同一映射，真实可见入口/网络路径/SHA/alt匹配；1920/1440/390主体完整无横溢。保留“选定新素材/事实→工程/成品→映射→路由/组件”追溯；目录文件不算页面完成，私有工程不入public/运行镜像（E-111）。6) 映射只提取已核Web路径/尺寸/alt，生产运行时不import私有docs manifest/工程/制作记录，浏览器及运行镜像不得包含私有路径/源件。 | 2d |
 +| M1-T6 | 核验已确认GIF及发布媒体集合 | M1 | M1-T3 | docs/brand-media/static/selected-media-release.json中的已确认工业GIF/预览GIF及PNG、industrial-city-animation-record.json的时序/暂停帧、brand-static-media和现用master；原GIF仅历史SHA/时间线对照 | brand-media；复用已确认GIF、补齐已核同尺寸暂停帧、全帧品牌/时序报告和发布集合 | 1) 先核docs/brand-media/static/selected-media-release.json的选定成品；不重新从参考GIF/JPG制作场景：复用选定清单中的工业GIF及预览，逐帧登记并核验361帧的品牌位置、透视、转场/遮挡恢复，T3工业PNG飞艇/工厂两处亦复核；首尾及全部标识位置无旧标/漏标。仅发现缺陷才定点修当前副本并保留已确认版（E-26）。2) 依已确认GIF及动画记录逐帧比呈现时刻/顺序、30.08秒/无限循环；原附件SHA不变且保留，旧参考画面不作新场景像素相等的要求。以封存新素材核无修订新增错位/抖动，失败副本未完成并排除发布（E-30）。3) 交可解码GIF及各消费版本同尺寸暂停帧/SHA，先核动画记录已有pauseFrame再决定补发布；1737×905 PNG不冒充GIF同尺寸帧。核实际授权渠道/工具/制作记录，未用Dot不否定已有成品；缺产物/核验才标未完成，不补造调用或重复生成已确认素材。 | 2d |
  | M1-T7 | 补齐共享视觉变量与原生UI包装 | M1 | M1-T1 | visual-base的8个核心变量、第11节完整组件/状态规格 | visual-components；完整唯一token源与Button/Input/Dialog/Status原生包装 | 1) 只扩展同一tokens.css，不建立第二套颜色/字体/间距变量；Button/Input/Dialog/Status逐项使用11节高度、2px边界、0圆角、disabled/busy/error/focus值，类名/变量引用与原生语义断言对应每种状态，实际computed style由M1-T4集成验证。2) 包装组件不含fetch、Prisma、身份、cookie或业务角色判断；键盘焦点与对话框焦点恢复有自动化测试，前后台均导入同一出口。 | 1.5d |
@@ -481,7 +481,26 @@
 ````diff
 --- before/_run/task-contracts.json
 +++ after/_run/task-contracts.json
-@@ -3503,6 +3503,10 @@
+@@ -145,10 +145,14 @@
+         }
+       ],
+       "stage": "integration",
+-      "wiring": [
+-        "frontendRoutes"
+-      ],
+-      "supportPaths": [],
++      "wiring": [],
++      "supportPaths": [
++        "src/lib/navigation/routes.ts",
++        "src/i18n/routing.ts",
++        "src/i18n/navigation.ts",
++        "tests/hero-video.test.ts",
++        "tests/about-350.test.ts"
++      ],
+       "outputPaths": [
+         "src/components/layout/",
+         "src/app/",
+@@ -3503,6 +3507,10 @@
          {
            "task": "M1-T3",
            "capability": "brand-logo-master"
@@ -498,41 +517,156 @@
 
 ## 原任务续做
 
-# 继续原任务 M1-T4：接好选定视频与分区PNG/GIF场景
-沿用分支 task/M1-T4、现有工作树和原 PR；不要创建新任务或重新初始化分支。
-任务契约版本：e31bf7f1e6a91b4b679d90feb6f6b391e9ae250db8d6a809a93bb8d46a261a97
-读取 _run/patches/ 中本次补丁的差异和复验清单，只处理列出的条目及其直接影响。没有差异说明时先核对现有 PR 的返工记录，不按完整实施流程重做。
-修正后的验收：
+# 继续复验已落地任务 M1-T4：接好选定视频与分区PNG/GIF场景
+本任务有已落地历史，现在仅因契约变化待复验。代码依据是已合入 main 的当前代码与任务回填；历史 PR 只作为已合入实现和原验收的证据。
+不要创建空 PR，不重新初始化旧任务分支，不向已经 MERGED 的原 PR 追加提交或要求再次合并。
+## 项目
+- 项目：PackJoyU 网站改版与运营能力升级　｜　技术栈：TypeScript / Next.js 15 / React 19 / Auth.js / Prisma PostgreSQL / next-intl / React Three Fiber；现有CSS与原生控件，不接线上AI判断层
+- 开发文档：docs/PackJoyU-开发文档（知识库入口 docs/PackJoyU-开发文档/_MOC.md）
+
+## 本任务
+- 模块：M1　品牌与公共体验：负责现用 PackJoyU 字标、己方可证公司内容、JPG/GIF 发布副本、首页媒体和前台公共页面，并作为全站前后台视觉 token 的唯一归属；不承担后台权限或后台外壳。
+- 输入：docs/brand-media/static/selected-media-release.json的PNG/GIF/v3视频及成片海报、src/lib/home/brandMedia.ts现有接线、M1-T6已核发布集合/暂停帧、visual-components与client-api-foundation
+- 产出：home-media；复用现有HeroVideo/BrandScene的选定成品与控制，不重新制作场景
+- 预估：1.5 人天　｜　前置：M1-T6　核验已确认GIF及发布媒体集合；M1-T7　补齐共享视觉变量与原生UI包装；M1-T8　接通统一fetch取消与错误适配（已落地）
+任务契约版本：bf82180326ff3ab63d19c295cf5e0e1752aa97e8efe0fbae181e2188181bb73c
+先读 docs/PackJoyU-开发文档/图谱/任务/M1-T4.md 的代码位置、实施沉淀和已有落地记录，以及本次补丁的差异与复验清单（_run/revalidation.json 里本任务的 patches[].changedFields 列出了变化字段；只有共享章节变化时只核该章节对本任务的影响）。
+若已有本次复验或修复的工作树、分支和开放 PR，沿用它们的实际标识；不假定它们仍是旧任务的分支或历史 PR。
+仅核对变化条款及其直接影响，保留已有代码、回填和 done 历史，不按完整实施流程重做。
+验收：
 1) 先读docs/brand-media/static/selected-media-release.json与BRAND_MEDIA，复用public/brand下工业PNG/GIF和v3视频/真实帧海报，不用参考附件或旧hero素材。点击home-link→/[locale]、products-link→产品、contact-link→联系，核实际SSR来源
 目录沿loadCatalog(listPublishedModels)，不要求浏览器GET /api/models。约12.3秒v3成片的精确时长/帧数取制作记录，muted/playsinline、播放/暂停可点击
 autoplay受阻保留对应成片JPG海报/播放入口，解码失败或减少动态效果显示该海报，不强制持续播放（E-21、E-22）。2) 已确认工业PNG/GIF位于产品区后，按消费GIF版本选同尺寸暂停帧，不把1737×905插画当960×500或1384×720暂停帧。网络证明接近视区300px前无GIF下载，进入后才准入，保留现有主动播放
 暂停、离视区、后台页切该GIF静帧，恢复不覆盖用户暂停（E-23、E-24）。3) 1440/1920/390测宽高比与各源一致、四角/主体完整，媒体DOM不与导航/正文/3D可点击矩形相交
 不删主体或控件刷绿，留真实按钮操作GIF（E-25）。
+4) 本层在src/lib/navigation/routes.ts建立home/products/contact的路径与入口ID登记，由SiteHeader消费并经既有i18n/navigation输出本地化href
+后续任务在同一表补各自产出的入口。接线核查限本层首页、产品、联系三入口及首页媒体装配，不要求改动后台页面或建立第二套路由。
+边界：
+- E-21　主页视频、JPG、GIF加载与控制
+  触发：首屏正常访问　期望：用选定v3成片（约12.3秒，精确时长/帧数取成片记录）静音行内播放，提供可操作播放/暂停；JPG海报必须取该成片。自动播放受阻保留此海报和主动播放入口。
+- E-22　主页视频、JPG、GIF加载与控制
+  触发：用户开启减少动态效果、视频解码失败或加载超时　期望：默认显示选定v3对应JPG帧海报，保留主动播放入口，不持续强制播放；工业PNG不是视频海报。
+- E-23　主页视频、JPG、GIF加载与控制
+  触发：30.08 秒 GIF 场景模块尚未接近可视区　期望：不提前下载整段 GIF；进入可视范围后加载，并提供“暂停”切换到同尺寸静帧的控制。
+- E-24　主页视频、JPG、GIF加载与控制
+  触发：用户暂停、模块离开视区或页面转到后台　期望：保持明确暂停状态，恢复可见时不擅自覆盖用户的暂停选择。
+- E-25　主页视频、JPG、GIF加载与控制
+  触发：移动端或较窄窗口　期望：列明在已定义的 PC 1440/1920 和窄屏验收尺寸检查：容器宽高比与素材一致，导航、正文及 PC 3D 控件的可见点击区域不被媒体覆盖，裁切后仍显示原图主体；不得以删除主体或操作区域通过检查。
 有效范围：
 e2e/home-media.spec.ts
 messages/en.json
 messages/ru.json
 src/app/
-src/app/admin-enroll/
-src/app/admin-login/
-src/app/admin-recovery/
-src/app/admin/account/
-src/app/admin/chat/
-src/app/admin/settings/
-src/app/admin/stats/
-src/app/admin/users/
-src/components/admin/AdminShell.tsx
 src/components/layout/
-src/components/layout/SiteFooter.tsx
-src/components/layout/SiteHeader.tsx
 src/i18n/navigation.ts
 src/i18n/routing.ts
 src/lib/navigation/routes.ts
-保留已有代码和回填；修改后运行必要检查、追加提交并 push，继续原 PR 审查。
+tests/about-350.test.ts
+tests/hero-video.test.ts
+
+## 接线要求（做完必须从入口可达）
+- backendRoutes：src/app/api/auth/、src/app/api/auth-admin/、src/app/api/admin/account/、src/app/api/admin/users/、src/app/api/chat/、src/app/api/admin/chat/、src/app/api/analytics/、src/app/api/admin/settings/analytics/route.ts、src/app/api/admin/stats/route.ts、src/app/api/admin/cron/operations/route.ts、src/app/api/admin/cron/mail-queue/route.ts、src/app/api/internal/ops-report/route.ts；路由已注册并返回真实数据
+- frontendRoutes：src/lib/navigation/routes.ts、src/i18n/routing.ts、src/i18n/navigation.ts、src/components/layout/SiteHeader.tsx、src/components/layout/SiteFooter.tsx、src/app/、src/app/admin-login/、src/app/admin-enroll/、src/app/admin-recovery/、src/app/admin/account/、src/app/admin/chat/、src/app/admin/stats/、src/app/admin/settings/、src/app/admin/users/；页面已挂进装配件可导航，且从首页经可见控件点击可达（只调 navigateTo、page.goto 或直接改 hash 不算）
+
+## 前置留下的代码位置（直接用，不重造）
+
+### M1-T7 补齐共享视觉变量与原生UI包装
+`src/styles/tokens.css:24` — 第11节64个共享视觉变量；保留既有legacy变量。
+`src/styles/tokens.css:92` — 原生包装的尺寸、边框、禁用、错误、焦点及触屏状态。
+`src/components/ui/Button.tsx:25` — 原生按钮、命名检查、busy防重复操作与关联原因。
+`src/components/ui/Input.tsx:49` — Input、Textarea、Select的label、错误与反馈关联。
+`src/components/ui/Dialog.tsx:16` — 受控原生dialog、标题与可见取消动作。
+`src/components/ui/dialog-focus.ts:4` — 复用既有focus-trap，包含原生summary的顺序；打开、Tab闭环、Escape、销毁与焦点恢复。
+`src/components/ui/Status.tsx:10` — 带文字前缀的polite结果区及按需错误alert。
+`src/components/ui/index.ts:1` — 前台、后台后续接入使用的同一组件与类型出口。
+`tests/ui-primitives.test.ts:9` — 原生语义、空值、busy、错误、键盘焦点及关闭后重开回归。
+`tests/ui-primitives.test.ts:108` — summary正向可达、反向原生步进与双向边界回归。
+`tests/ui-primitives.test.ts:189` — 全量token与规格逐项比对、状态变量接线及无业务IO约束。
+
+### M1-T8 接通统一fetch取消与错误适配
+`src/lib/client/api.ts:24` — 每次尝试单独计 15 秒截止，不把 1/2/4 秒退避算进同一次截止。
+`src/lib/client/api.ts:26` — 响应 JSON 超过 4MiB 即停止读取，正文不进入失败结果。
+`src/lib/client/api.ts:71` — 只接受单斜杠开头的相对路径，拒绝绝对地址、双斜杠、反斜杠、片段和点段。
+`src/lib/client/api.ts:95` — `/api/auth` 在 fetch 之前拒绝；`/api/auth-admin` 仍走统一请求。
+`src/lib/client/api.ts:115` — 发送前按分析 32KiB、聊天 16KiB、其余 8KiB 拒绝请求体。
+`src/lib/client/api.ts:131` — 重试次数和是否可再读只由方法与路径决定。
+`src/lib/client/api.ts:163` — 每次尝试合并调用方取消和独立截止，用户取消优先。
+`src/lib/client/api.ts:206` — 按字节封顶读取响应；中途取消不记成体积错误。
+`src/lib/client/api.ts:257` — 只有可重放且计划允许显式重读时 retryable 为 true，否则把 retry 改成 stop。
+`src/lib/client/api.ts:283` — 统一请求出口。成功返回有名 DTO，失败返回适配结果而不抛出。
+`src/lib/client/api.ts:299` — 超限请求不发出。通过的 JSON 字符串在各次尝试间复用。
+`src/lib/client/api.ts:432` — 自动等待超过 30 秒时返回 Retry-After，不在这次调用里睡满。
+`src/lib/client/api-errors.ts:46` — 旧守卫码必须是小写 token。CredentialsSignin 不进入 code 或文案。
+`src/lib/client/api-errors.ts:108` — fieldErrors 只保留契约字段中通过长度和控制符检查的句子。
+`src/lib/client/api-errors.ts:140` — 后台 unauthorized 去登录，action_grant_invalid 重新本人验证，403 停止。
+`src/lib/client/api-errors.ts:178` — 统一错误适配。新错误体和旧 `{error}` 都从这里读，message 与 stack 不进入文案。
+`tests/client-api-foundation.http.test.ts:89` — 用本机 HTTP 服务器覆盖延迟、状态码、取消和同体复用。
+`src/lib/client/api.ts:336` — 正文读取失败时保留响应头状态和 Retry-After，用户取消仍静默。
+`tests/client-api-foundation.http.test.ts:925` — 编码路径的 Auth.js 排除、cron 禁重试与聊天/分析限体和重试。
+`tests/client-api-foundation.http.test.ts:1040` — 4xx 正文断连不重放，429 正文断连保留等待。
+`tests/client-api-foundation.http.test.ts:1117` — 408/503 正文断连继续遵守已收到的 Retry-After。
+
+运行 python "docs/PackJoyU-开发文档/_run/maintain_docs.py" "docs/PackJoyU-开发文档" status --task M1-T4 读取当前版本与证据模板。
+契约复核完成后，用同一维护命令的 verify --task M1-T4 --evidence <证据JSON> 登记真实证据。verify 只登记文档契约复核，不证明代码验收或 CI 通过，也不清除代码复验标记。
+无需代码修改时，直接复验已合入代码并记录必要检查结果，不为复验补开代码 PR。确有代码差异才按正常修复流程处理：沿用本次修复的工作树和开放 PR；没有时使用实际修复分支和新 PR，不继续已经 MERGED 的历史 PR。
+只有代码完成实际验收、必要检查通过，且所需修复已确认合入 main 后，才运行 python "docs/PackJoyU-开发文档/_run/build_docs.py" "docs/PackJoyU-开发文档" --landed M1-T4 清除本任务的代码复验标记；没有代码差异时以当前已合入代码为依据。不能靠手点状态、删除标记或契约 pass 代替代码验收。
+输出 VERDICT: pass | rework | doc-issue；列明变化条款、代码位置、必要检查结果和代码复验是否完成。剩余代码错误给精确 rework；普通岔路口交 Jev，只有授权红线才给用户，不因已有 done 历史自动判 pass。
 ## 自行裁决：交 Jev，不交用户
 实施、审查、查 bug、批次收口过程中出现的每一条「自行裁决」，以及验收冲突、文档缺口、栈外依赖、UI/UX 未定项，都先列出 2–5 个真实可行的选项；不能把你想要的答案当唯一候选。
 把原始需求、任务标题与验收、冲突和选项忠实译成英文写入 state.json（文档与回报仍用中文）；UI/UX 取舍使用 design，其余使用 adjudicate。
-运行 python "docs/PackJoyU-开发文档/_run/typesafe_ask.py" --log "docs/PackJoyU-开发文档/_run/judgments.jsonl" --label "M1-T4:resume" run adjudicate --state <state.json>；UI/UX 将 adjudicate 换成 design。若 language_warning 提示中文过多，重译后重跑。
+运行 python "docs/PackJoyU-开发文档/_run/typesafe_ask.py" --log "docs/PackJoyU-开发文档/_run/judgments.jsonl" --label "M1-T4:landed-review" run adjudicate --state <state.json>；UI/UX 将 adjudicate 换成 design。若 language_warning 提示中文过多，重译后重跑。
 仅 status=ok 且 verdicts.adopt.action=take 才按 option 执行；confidence=low 仍用 Jev 的 option，记低置信风险。spec_change=yes 走文档补丁，outside_stack=yes 在回报点名，不自动扩权。
 adopt=red_line 仅涉及付费、不可逆删除、改变已定范围或对外承诺时请求用户授权；status=skipped/error 或缺有效 pick 时留下待 Jev 裁决，不得由人代答、判 pass、声称已落地或写 clean/fixed。
 回报逐条写：冲突 → 全部候选 → Jev line/model/采纳的 option → 代码或文档动作；没有写「无」。
+
+## 附录：约定与架构（先做完上面的再看这里；只列与本任务相关的条款，完整版见 06/07/08/11 节）
+
+## 全项目共用约定（前后端必须一致；出处 06 节，要改回文档改）
+- 错误体系：src/lib/contracts/errors.ts是新增账号设置/恢复、聊天、统计、看板AppErrorCode与FieldError的唯一来源，第10节同名表逐项镜像；src/lib/server/http/errors.ts唯一映射HTTP，前端src/lib/client/api-errors.ts映射多语言文案；新增错误体为{error,requestId,fieldErrors?}、成功直接用有名DTO，现有Auth.js、{error}、邮件状态体、/api/rum空体及其他旧端点不改信封；禁止把未知码显示原始异常或用新码覆盖Auth.js协议。
+- 环境变量：新增变量及本轮触及的安全参数接入src/lib/server/config.ts与prod-env-check.ts集中Zod验证，服务端变量沿AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_命名，公开变量仅NEXT_PUBLIC_且不得含密钥或内网地址；业务代码禁止直接读取新增process.env，未触及旧适配器不借机全库重构；秘密只在服务器受权限保护的环境文件或CI secret，示例只写变量名/假值，禁止提交真实值。
+- 共享类型：新增请求/响应Zod schema置src/lib/contracts/{account,recovery,chat,analytics,ops}.ts，z.infer手工导出DTO并从src/lib/contracts/index.ts统一出口，server解析和client只读同源schema；第10节字段表与DTO同名，Auth.js扩展仅src/types/next-auth.d.ts，Prisma实体不直接传客户端；既有admin/types与邮件契约保持原入口，禁止在组件/route复制新增接口类型或用any绕过契约。
+- 命名与格式：文件kebab-case.ts、React组件PascalCase.tsx、函数/JSON字段camelCase、类型PascalCase、常量UPPER_SNAKE_CASE、Prisma模型PascalCase，既有枚举不改名；新HTTP路径小写kebab-case，时间ISO8601 UTC、日标签YYYY-MM-DD且携timezone/revision；沿eslint.config.mjs、tsconfig.json及实际可执行lint/type/build约束，禁止新加格式化库、批量改旧文件或用本机时区算今日。
+
+## 框架架构（已定，照它组织代码；完整说明见 07-前端架构）
+- 目录结构：沿src/app路由、src/components按品牌/产品/账号/聊天/看板分域、src/lib/client放请求及hooks、src/lib/contracts放同源DTO、src/styles/tokens.css放M1唯一视觉token；既有目录渐进修改，禁止另建应用、全库搬家或在public发布原始附件。
+- 组件分层：page/layout负责服务端数据和守卫，container/hook负责请求、状态及取消，展示组件只接DTO与事件，ui只包装原生控件；禁止展示组件直接fetch、client导入server/Prisma、页面跳过服务端权限或业务组件绕过ui重复造通用控件。
+- 组件库：沿React19、现有CSS和原生HTML，通用包装置src/components/ui，领域组件留原域；复用现有焦点/对话框能力，只有已有控件不覆盖的语义才增原生包装；禁止新增组件库、状态库或在领域组件另选slug/色值，第11节统一写现有token文件。
+- 路由：Next15 App Router不变，src/lib/navigation/routes.ts集中23个本轮路由的路径/入口，src/i18n/routing.ts仍只发布en/ru；后台layout+page+API各自校验，登录/受限恢复在admin布局外；禁止把品类slug当完整PDP、开放新语言或绕过既有品类上线开关。
+- 状态管理：仅React state/reducer/ref/context与native fetch；全局只放非秘密同意状态、既有询盘清单及必要UI状态，服务结果按页面查询键保留内存快照并显式失效；禁止TanStack/Zustand、持久化正文/邮箱/凭据、轮询续闲置、旧响应倒退seq或跨账号复用缓存。
+- API 客户端层：新请求由src/lib/client/api.ts及account/chat/analytics/ops客户端模块消费10节DTO，15s AbortController、same-origin/no-store，兼容旧{error}；Auth.js仍用原CSRF/signIn/signOut协议；只对10节允许的消息写复用UUID退避重试，禁止自动重试一次性授权/恢复/CAS写或新增便捷endpoint。
+- 工具层：无IO纯函数留src/lib/client纯转换模块及既有lib/a11y、three、quote、chat/rules、analytics/rules；seq合并/日期标签/字段显示可纯化；禁止utils读取env、发请求、持有当前账号/草稿、决定权限或把浏览器本地午夜当站点统计边界。
+- 错误体系：严格复用shared.errors，api-errors.ts按code和调用场景映射本地化反馈：action_grant_invalid重新本人验证，公开恢复的bad_credentials/recovery_expired就地提示，仅后台unauthorized清该账号内存并安全回登录；403停止越权请求；禁止显示原始异常、失败填0或把恢复凭据当后台登录。
+- 环境变量：客户端仅可读已有且明确公开的NEXT_PUBLIC_值；新增安全参数只由server/config.ts验证，客户端用相对/api和脱敏DTO；禁止内联AUTH_/ADMIN_/CHAT_/ANALYTICS_/CRON_秘密、内网地址或把secret复制进next.config.env/public/source map。
+- 构建产物：沿pnpm10冻结锁文件、Next15 build与standalone；产物.next/standalone、.next/static及经核验public资源，按App Router拆路由，Three仅客户端按需加载，聊天/图表在入口后加载；禁止并打第二套SPA、首屏下载全部媒体或在本规格阶段生成页面预览。
+
+## 视觉方向（已定，照它实现，不自由发挥）
+- **register：brand**（前提，别重判）
+- **style：`minimalist-flat` — 以黑白平面、清楚边界和单一强调色承托生产视频、包装与3D，前后台共享方向，页面按用途分配密度。**（目录 slug 已选定，不许重新搜索、不许换）
+- 色板：`background #ffffff`用于页面、表单和模型工具条；`foreground #000000`用于正文与数值；`border #000000`用于2px边界；`inverse #000000 / on-inverse #ffffff`用于主按钮及反色区；`accent #b45700 / on-accent #ffffff`用于当前入口、聚焦边界、错误/警示文字与明确操作反馈。强调色取自目录允许列表，不叠加第二色板。状态含义同时用文字、图形或边框样式表达，不靠颜色区分。正文不使用半透明黑；必要的次要层级用字号、字重和位置表达。
+- 字体：display/body/utility沿用项目现有Manrope的`--font-sans`（既有latin/cyrillic配置），后台未持有该变量时回退`Arial, Helvetica, sans-serif`；数值/时间使用`ui-monospace, SFMono-Regular, Consolas, monospace`，不新增下载字体。英文/俄文正文16px/24px、400；后台表格14px/20px、400，标签14px/20px、600，辅助文案14px/20px、400；按钮14px/20px、600。前台hero为桌面64px/68px、窄屏36px/40px、700；前台h1为48px/52px→32px/36px，h2为36px/40px→28px/32px，h3为24px/28px→20px/24px；后台h1固定28px/32px、700，h2固定20px/24px、700。标题tracking=-0.02em，正文tracking=0；俄语不强制大写、不截断必要标签，字体缺字时落系统栈。
+- 布局：前台以“清楚标题 + 有边界的真实媒体/产品区 + 直接联系入口”组织，标题不压在动态画面上；后台以固定导航、紧凑标题/筛选和铺满可用宽度的工作区组织。全站4px基础刻度、2px实线、0圆角、0阴影；只有媒体自身有透视与3D，UI不借位移、缩放或渐变制造层次。
+- 标志性元素：保留现用PackJoyU字标的形状和比例，以2px黑线框住大幅产品/媒体视口，交互通过黑白反转与#b45700边界提示完成；让包装轮廓和操作空间成为识别点，不重画字标、不做几何hover缩放。
+- 要避开：目录dontList原样：
+
+- `Do not use any shadows shadow-*`
+- `Do not use gradients bg-gradient-*`
+- `Do not use colors with opacity below 0.5`
+- `Do not mix different border-radius values`
+- `Do not use gray text (unless intentional)`
+- `Do not use pattern backgrounds`
+
+项目执行：不使用阴影、渐变、玻璃模糊、花纹背景、低透明度禁用态、混合圆角或无意灰字；不使用hover位移/缩放、长于75ms的UI装饰过渡、全卡链接覆盖模型、重复底部介绍、首屏并发下载全部媒体。字标不变形、不描成另一套图形，参考站素材和PDF企业事实不直接移植。
+
+token 直接用，不自己编颜色、字号、圆角、间距与容器宽度：
+```css
+:root{--pj-bg:#ffffff;--pj-fg:#000000;--pj-border:#000000;--pj-inverse:#000000;--pj-on-inverse:#ffffff;--pj-accent:#b45700;--pj-on-accent:#ffffff;--pj-radius:0px;--pj-border-width:2px;--pj-shadow:none;--pj-opacity:1;--pj-space-unit:4px;--pj-admin-gutter:16px;--pj-admin-block-gap:16px;--pj-admin-card-pad:16px;--pj-admin-row-height:40px;--pj-admin-control-height:36px;--pj-touch-target:44px;--pj-feedback-duration:75ms;--pj-inversion-duration:0ms;}
+```
+
+组件规范：Button/Input桌面高36px、触屏44px；Button横padding12px，2px黑边、0圆角；focus为2px强调色+2px offset，黑底白outline。disabled用原生属性、虚线黑边、opacity1和原因。loading保留文字与尺寸；Table行40px；Dialog≤520px、焦点闭环/Escape/返回触发点。静态卡无整卡hover，模型/多动作卡只反馈实际控件。所有状态及统计0/无数据/未接入/失败/旧值/部分覆盖按11组件表；无颜色单独传义、无自动消失结果替代。
+
+间距与容器（DENSITY 的落地值，照抄；宽出来的屏幕换成更多列，不换成留白）：
+- publicBrand：桌面≥1024 gutter24/gap48/pad24，窄屏16/32/16；产品grid auto-fit minmax(min(100%,560px),1fr)，gap16，PC模型高clamp(360px,28vw,440px)，窄屏4:3且≥240px。
+- adminProduct：DENSITY7项目适配：所有屏幕gutter16/gap16/pad16；row40/control36，触屏44。work无max-width铺满；form左对齐minmax(0,800px)+320px旁栏，宽度不足折叠；card≤520px，rail224px。局部空/错/加载左上pad16，无撑高。
+- acceptance：所有后台UI任务显式测D1–D6及overflow：1920×1080、1440×900、390×844；work fill≥.85，form fill≥.55且左边距≤gutter+24；gap≤24/pad≤20，无空网格轨道/横向大空白>15%/body横溢出。详11；主register=brand不能豁免后台。
+
+完整说明在 11 节「视觉方向」。按 _run/stylekit-spec.json 调 stylekit 落组件，但不许重新搜索、不许换 slug、不出预览页——直接在产品代码里把 token 落成组件。未定的 UI/UX 取舍写成 2–5 个选项，交 Jev 的 design 模板裁决，不交用户选择。
