@@ -305,10 +305,17 @@ test('admin and visitor legacy 401 use different recovery actions', async () => 
   });
 });
 
-for (const mode of ['html', 'empty', 'unknown', 'dropped']) {
+for (const mode of ['html', 'empty', 'unknown', 'dropped', 'oversize-declared', 'oversize-streamed']) {
   test(`admin 401 without a usable error code returns to login: ${mode}`, async () => {
     await withServer((_req, res) => {
-      if (mode === 'dropped') {
+      if (mode === 'oversize-declared') {
+        res.writeHead(401, { 'content-type': 'application/json', 'content-length': RESPONSE_JSON_MAX_BYTES + 1 });
+        res.end('{}');
+      } else if (mode === 'oversize-streamed') {
+        res.writeHead(401, { 'content-type': 'application/json' });
+        res.write(SENTINEL);
+        res.end('x'.repeat(RESPONSE_JSON_MAX_BYTES));
+      } else if (mode === 'dropped') {
         dropBody(res, 401);
       } else if (mode === 'unknown') {
         send(res, 401, { error: 'session_expired', message: SENTINEL });
@@ -851,6 +858,7 @@ test('request bodies over the path cap are refused before fetch', async () => {
       method: 'POST',
       body: { note: 'a'.repeat(9_000) },
       schema: AccountDTOSchema,
+      audience: 'admin',
       transport,
     }));
     assert.equal(accepted.ok, true);
@@ -861,6 +869,9 @@ test('request bodies over the path cap are refused before fetch', async () => {
     assert.equal(chat.retryable, false);
     assert.equal(accountWrite.code, 'too_large');
     assert.equal(accountWrite.attempts, 0);
+    assert.equal(accountWrite.status, undefined);
+    assert.equal(accountWrite.action, 'stop');
+    assert.match(accountWrite.text, /too large/);
     assert.match(chat.text, /too large/);
   });
 });

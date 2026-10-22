@@ -143,8 +143,9 @@ function isAdminSessionFailure(
   code: string | undefined,
   audience: ClientAudience,
 ): boolean {
-  return kind === 'http' && audience === 'admin' && (
-    code === 'unauthorized' || (status === 401 && (code === undefined || !isAppCode(code)))
+  return audience === 'admin' && (
+    (kind === 'oversize' && status === 401) ||
+    (kind === 'http' && (code === 'unauthorized' || (status === 401 && (code === undefined || !isAppCode(code)))))
   );
 }
 
@@ -156,8 +157,8 @@ function actionFor(
 ): ClientFailureAction {
   if (kind === 'cancelled') return 'silent';
   if (kind === 'timeout' || kind === 'network') return 'unconfirmed';
-  if (kind === 'auth-protocol' || kind === 'rejected' || kind === 'oversize') return 'stop';
   if (isAdminSessionFailure(kind, status, code, audience)) return 'login';
+  if (kind === 'auth-protocol' || kind === 'rejected' || kind === 'oversize') return 'stop';
   if (code === 'action_grant_invalid') return 'reauthenticate';
   if (code === 'unauthorized') return audience === 'admin' ? 'login' : 'stop';
   if (code === 'invalid' || code === 'bad_credentials' || code === 'recovery_expired') return 'inline';

@@ -1743,5 +1743,214 @@
     "prisma-db-push.log": "07136026ef7ad0d37964cf9ec7d891151ea55a922d2f54bd2ab625dace285ae5",
     "probe-client-401-green.log": "f910565de766b7dc225121c3994f9bfb9bdc1011a9cc5c5557061e0d6d43e318",
     "vault-check.log": "daec2cb446b3acbb010b7834369bc6258f07ffe52cbc8bdd4ac5b15165ff7d38"
+  },
+  "fileHashesScope": "Historical codeHead17de9c85 snapshot before the independent-review follow-up; current reviewed source hashes are in independentReviewFollowup",
+  "independentReviewFollowup": {
+    "requestedBy": "Human requested one independent reviewer and next-batch enablement after successful review",
+    "originalReviewedHead": "ddbed27a1975af58b0d321b59d3c91a6e9ba0cda",
+    "codeVerdict": "PASS",
+    "batchCompletionVerdict": "FAIL/open",
+    "nextBatchVerdict": "READY for M3-T1/M4-T15/M4-T8; M1-T4 done",
+    "report": "# PR #407 独立审查结论\n\n日期：2026-10-22。审查员：本轮新派发的独立 agent。工作目录仅 D:/xiangmu/NBshiyan-batch-3；探针与报告仅本轮 planning。未修改仓库、未提交、未合并、未改 gate。\n\n## 三项结论\n\n1. **代码与安全语义审查：PASS（限下列文件哈希的修复后工作树）。** 原审查 head ddbed27a1975af58b0d321b59d3c91a6e9ba0cda 留有一条真实 P2；本轮实施方限定修复后，本阻断及直接回归已通过。此 PASS 不是指定 GitHub App 的 APPROVED，也不是修复后精确 head 的 CI 通过。\n2. **收口完成与返工落地：FAIL。** 当前 open 记录如实反映状态，记录真实性与六项任务生成本身可接受；六个 R3 任务仍 todo，Windows 全量验证与适用后台证据未清，不能改 clean/fixed 或把返工标为 landed。Linux 原 head CI 通过不能自动满足这六任务原定的 Windows/Linux 与真实数据库、后台密度验收。\n3. **下批文件态实施资格：READY（M3-T1、M4-T15、M4-T8 已经可实施，无需人工改 gate）。** M1-T4 已 done。整批收口/PR 合并资格仍 BLOCKED。不能将“整批不能宣告完成”误说成“三个下批待派任务仍被 gate 锁住”。\n\n## 范围与依据\n\n只核 M1-T8、M2-T4、M3-T14、M5-T1、本轮两处根因修复及当前未解决的审查线程。M1-T6、M1-T9 按用户要求排除，其源文件和任务状态未由本审查更改。\n\n已读 AGENTS.md、_MOC、四任务笔记、第10/17节、dsh-code-review 及本地命令映射。已检查 origin/main...HEAD 的源代码/测试、受保护实施记录、收口源记录、生成资料与真实红绿日志。没有扩大到全项目重新找 bug。\n\n## 本轮唯一代码阻断及复验\n\nGitHub 当前未解决、未过时线程：src/lib/client/api-errors.ts:147，chatgpt-codex-connector 在 1063669edb 提出的 P2：“Route oversized admin 401 responses back to login”。\n\n- 根因：requestApi 在 Content-Length 声明大于4MiB或真实 chunked 正文越界时传 kind=oversize；原 helper 仅接受 http，且 oversize 分支提前 stop，仍丢后台会话401的登录恢复。\n- 原始红证据：review401-oversize-red.log，新增两个真实 HTTP 用例均 stop!=login，0 pass / 2 fail / 0 skip。用 git show 与原控制流核对，失败对应真实旧行为。\n- 实施方 Jev 实答：review401-oversize-adjudication-result.json，model=jev-1.14.0，pick=A/high1.00，adopt=take(A)，spec_change/outside_stack/needs_owner 均 no。方案A为限定响应侧401恢复；不取消响应体限额，不修改请求侧超限规则。\n- 修复：isAdminSessionFailure 增加 admin + oversize + status401；会话恢复检查移至 oversize stop 之前，同一 helper 同时决定固定文案。请求侧超限 status 未定义，不会误去登录；visitor、已知 bad_credentials/recovery_expired/action_grant_invalid 的原语义保留。\n- 独立真实 HTTP 探针 review407-oversize-401.ts（未 mock fetch）：声明超限与真实65×64KiB chunked401均 login、固定会话文案、attempts=1、1次请求、不重试；admin 请求体超8KiB仍 stop/statusundefined/attempts0/0次请求；visitor 响应超限仍 stop/attempts1。结果 review407-oversize-401-green.log。\n- 同时核对实施方完整 owning suite：review401-full-http.log，43 pass / 0 fail / 0 skip，45.6秒；新增请求侧保护明确验证 audience=admin。\n- 本轮修复后未发现仍成立的代码/安全语义阻断。由实施方在最终提交后回复并处理该 GitHub 线程，不能把线程未处理默认为已解决。\n\n## 独立检查\n\n- node --import tsx --test tests/contracts-foundation.test.ts tests/model-event-rules.test.ts tests/admin-config.test.ts：48 pass / 0 fail / 0 skip；review407-rules.log。\n- 本轮私有 PostgreSQL17.9，planning/pgdata，localhost54338/batch3，非生产：node --import tsx --test tests/job-leases.db.test.ts tests/admin-http-metrics.test.ts：28 pass / 0 fail / 0 skip；review407-pg-primitives.log。包含真实并发、过期/锁等待边界、旧代次回滚、设置revision/RR竞争和计数UTC/乱序。\n- 独立 tsc --noEmit --incremental false：exit0，无诊断；review407-typecheck.log。实施方修复后的 typecheck/lint 日志也无错误。\n- git diff --check：通过。\n- 未再次重复已知 Windows 全量红套件或必然 EPERM 的本机构建；它们在当前收口仍明确 open，不能因此宣称全量通过。\n\n## 为什么文件态下批已经 READY\n\n不是推断按钮颜色；review407-gate-eval.cjs 用 TypeScript scanner 从 build_docs.py 提取原始 gate 函数，在 Node VM 中执行。输入为实际 docs-data.js/presentation.json、文件 progress、空浏览器本地覆盖和空维护锁，没有写浏览器状态。\n\n结果 review407-gate-result.json：\n\n- 第3批原集合：M1-T6=todo，其余五项 done。batch3Complete=false。\n- 当前局部记录仅四项，matchingBatch3Records=0；它不会匹配六项整批。\n- wrapupBlocked 的实际规则是在“紧邻上一批全落地”时才检查收口。当前 M1-T6 保持 todo，所以对第4批 wrapupBlocked 均为 null。\n- M3-T1 / M4-T15 / M4-T8：todo、waiting=[]、contractBlocked=false、wrapupBlocked=null、implLocked=false。\n- M1-T4 已 done；它显示 locked 是“已实施”，不能当成下一批尚未解锁。\n- 若用户打开旧主检出或有 browser localStorage 状态，实际页面可能不同；上述结论只证明当前生成资料的文件态。应核对所打开的 reader 与缓存，而不是改 wrapupGate=false、伪造 M1-T6 完成或写 clean。\n\n## 六项返工仍未完成\n\nR3-T92231765 换行策略；R3-T87287564 Windows路径比较；R3-T09233008 POSIX/Windows存储验证；R3-T21757567 Python解释器入口；R3-T71889698 真实PG重置审计预期；R3-T22883505 受支持standalone及适用后台证据。任务均有具体路径进入 dispatch，todo 状态真实。原 head 的 Linux CI 对部分平台问题提供新证据，但没有改变这些任务的原定验收或完成它们。\n\n## 远端与合并限制\n\n审查开始时远端 exact head=ddbed27a。其 CI build-and-audit、e2e 均 SUCCESS；security-review gate FAILURE，reviews 只有旧提交的 COMMENTED，没有 packjoyu-security-reviewer[bot] 对该 head 的 APPROVED。当前 P2 修复尚需一次提交与最终 exact-head CI；旧 green 不可挪作新 head 验证。\n\n该 App gate 与本 agent 的本地代码 PASS 分开。不得伪称机器人批准或无授权绕过。当前 PR/整批完成仍 BLOCKED；现有第4批三个待派任务已具文件态实施资格，无需伪造收口状态以“解锁”。\n\n## 复验文件哈希（SHA-256，当前 Windows 工作树字节）\n\n- src/lib/client/api-errors.ts: 6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65\n- tests/client-api-foundation.http.test.ts: d0d81a925d2fe23dd09d929b6c7c63de40e0b66272002901f1a728bdeb7ede57\n- src/lib/server/jobs/lease-repo.ts: f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83\n- tests/job-leases.db.test.ts: 29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0\n\n最小后续动作：提交本次限定401修复与审查证据，复查最终 head CI 与线程/指定App门禁；保留 open 和六项 todo。需要展示下批时核对当前 reader 的 M3-T1/M4-T15/M4-T8，不手改完成状态或全局 gate。\n\n",
+    "reviewFinding": {
+      "url": "https://github.com/dawanglaohu/NBshiyan/pull/407#discussion_r4347662809",
+      "severity": "P2",
+      "cause": "oversized admin HTTP401 response misclassified as stop",
+      "repair": "extend only oversized received401 session predicate before generic oversize stop; request-side zero-send control preserved",
+      "red": {
+        "pass": 0,
+        "fail": 2
+      },
+      "httpGreen": {
+        "pass": 43,
+        "fail": 0,
+        "skip": 0
+      },
+      "lint": "pass",
+      "typecheck": "pass",
+      "independentPg": {
+        "pass": 28,
+        "fail": 0,
+        "skip": 0
+      },
+      "independentRules": {
+        "pass": 48,
+        "fail": 0
+      }
+    },
+    "judgment": {
+      "status": "ok",
+      "model": "jev-1.14.0",
+      "line": "adjudicate: pick=A(high 1.00) spec_change=no(0.08) outside_stack=no(0.08) needs_owner=no(0.04) reversible=yes(0.89) adopt=take(A)",
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 1.0,
+          "band": "high",
+          "probabilities": {
+            "A": 1.0,
+            "B": 0.0,
+            "C": 0.0
+          }
+        },
+        "spec_change": {
+          "p": 0.08,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.08,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.04,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.89,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      },
+      "state": {
+        "requirement": "Independent review of PR407 must pass before unlocking next batch. Scope remains M1-T8/M2-T4/M3-T14/M5-T1, M1-T6/M1-T9 excluded. M1-T8 must preserve admin login recovery when a received HTTP401 has no usable error body, while request-side oversized data never sends a request and never redirects to login.",
+        "task": {
+          "title": "Repair remaining admin401 recovery regression for capped oversized response bodies",
+          "accept": "Real HTTP tests for Content-Length beyond4MiB and actual oversized streamed body both produce one attempt, action login and safe localized session-expired text. Request-side oversize keeps attempts0/actionstop. Visitor and other statuses/known credentials retain behavior."
+        },
+        "conflict": "GitHub Codex P2 thread4347662809 on1063669 remains relevant at finalddbed27a. requestApi readCapped returns kindoversize and passes received status401. adaptApiError assigns codetoo_large; isAdminSessionFailure accepts only kindhttp; actionFor returns stop before the helper. Thus still drops login on oversized401. Independent reviewer is reproducing with true localhostHTTP. Current code retains received status distinguishing response oversize from request oversize where status is absent.",
+        "options": {
+          "A": "Keep transport and response cap unchanged. Extend the shared admin-session predicate to recognize kindoversize only when received status401, in addition to existing HTTP cases. Run that predicate before the generic oversize stop branch so action and localized text agree. Keep request oversize with no status and all visitor/other status cases unchanged. Add real declared/streamed oversized401 red-green tests and request-side protection.",
+          "B": "Normalize oversized non-success HTTP responses to kindhttp inside requestApi before the adapter; retain kindoversize for request-side and successful response caps. Add tests for all affected non-2xx statuses to establish the changed representation.",
+          "C": "Record another open repair task for oversized admin401 and leave all unlock work blocked without changing current code."
+        }
+      }
+    },
+    "gateEvaluation": {
+      "scope": "file-backed generated reader logic; no browser-local status overrides",
+      "batch3": [
+        {
+          "id": "M1-T6",
+          "state": "todo"
+        },
+        {
+          "id": "M1-T8",
+          "state": "done"
+        },
+        {
+          "id": "M1-T9",
+          "state": "done"
+        },
+        {
+          "id": "M2-T4",
+          "state": "done"
+        },
+        {
+          "id": "M3-T14",
+          "state": "done"
+        },
+        {
+          "id": "M5-T1",
+          "state": "done"
+        }
+      ],
+      "batch3Complete": false,
+      "matchingBatch3Records": 0,
+      "partialRecordTaskSet": [
+        "M1-T8",
+        "M2-T4",
+        "M3-T14",
+        "M5-T1"
+      ],
+      "nextBatch": [
+        {
+          "id": "M1-T4",
+          "state": "done",
+          "waiting": [
+            "M1-T6"
+          ],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": true
+        },
+        {
+          "id": "M3-T1",
+          "state": "todo",
+          "waiting": [],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": false
+        },
+        {
+          "id": "M4-T15",
+          "state": "todo",
+          "waiting": [],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": false
+        },
+        {
+          "id": "M4-T8",
+          "state": "todo",
+          "waiting": [],
+          "contractBlocked": false,
+          "wrapupBlocked": null,
+          "implLocked": false
+        }
+      ]
+    },
+    "browser": {
+      "url": "http://127.0.0.1:3148/index.html#%E4%BA%A4%E6%8E%A5%E5%8F%B0",
+      "tasks": [
+        {
+          "id": "M3-T1",
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "M4-T15",
+          "enabled": true,
+          "visible": true
+        },
+        {
+          "id": "M4-T8",
+          "enabled": true,
+          "visible": true
+        }
+      ],
+      "noTaskCopied": true,
+      "noTaskStatusMutation": true,
+      "action": "expanded batch4 through its real toggle"
+    },
+    "screenshotSha256": "3381e253513b56663bbebfaf2afa3f94e27bcdbdd1b52fa33e9bd803a8e3b23c",
+    "currentSourceHashes": {
+      "src/lib/client/api-errors.ts": "6bc25b6638fc06408107c23c2a659630e264ae28ee1978430cbd7ccdbc954a65",
+      "tests/client-api-foundation.http.test.ts": "d0d81a925d2fe23dd09d929b6c7c63de40e0b66272002901f1a728bdeb7ede57",
+      "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
+      "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0"
+    },
+    "ciAtOriginalHead": {
+      "head": "ddbed27a1975af58b0d321b59d3c91a6e9ba0cda",
+      "buildAndAudit": "SUCCESS",
+      "e2e": "SUCCESS",
+      "securityGate": "FAILURE; no designated exact-head approval"
+    },
+    "noGateConfigChanged": true,
+    "noTaskStateChanged": true,
+    "excludedTasks": [
+      "M1-T6",
+      "M1-T9"
+    ],
+    "logHashes": {
+      "review401-full-http.log": "57428b5246ad467f010846ac696869a761433624bde7547b830816beccf26142",
+      "review401-lint.log": "82840f309092912ce2fb7d48efd2ba878ad668c55dfd4c452e9cf6c73a16435a",
+      "review401-oversize-green.log": "90c3d5c7e9b6d6a7e75f0f70c415f841a74e3e8d192d17b1bd47715e4af9f01e",
+      "review401-oversize-red.log": "4ae9a864d570380fbb3a3f7a5dccfd77397ef8b5a3954337051e70658f1899f5",
+      "review401-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
   }
 }
