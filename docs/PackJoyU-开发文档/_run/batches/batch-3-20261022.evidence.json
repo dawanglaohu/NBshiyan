@@ -384,14 +384,15 @@
           1
         ],
         "kind": "environment-connection-transient",
-        "resolved": false,
+        "resolved": true,
         "rootCause": "Final all-tests job suite first parallel-claim test could not connect to the isolated PostgreSQL server (P1001). Remaining 13 job subtests passed in the same suite. No data assertion or schema error.",
         "suggestion": "Rerun only the first job test or focused job suite after checking the dedicated server. If green, record the transient environment failure as resolved and do not manufacture a repair task.",
         "scopeRelation": "M5-T1 test execution environment; no proven product invariant failure",
         "owningTests": [
           "tests/job-leases.db.test.ts"
         ],
-        "pendingFocusedRerun": true
+        "pendingFocusedRerun": false,
+        "resolutionEvidence": "db-connection-recheck.log: original concurrent-claim case independently passed 1/1, zero skip; full jobs suite also passed 15/15"
       }
     ],
     "baselineFailures": [
@@ -757,7 +758,7 @@
     },
     "historicalBaselineFailureCount": 32,
     "currentFailingLeafTests": 30,
-    "pendingEnvironmentRootCauseGroups": 1,
+    "pendingEnvironmentRootCauseGroups": 0,
     "failures": [
       {
         "testNumber": 142,
@@ -885,11 +886,12 @@
         "error": "Prisma P1001: Can't reach database server at 127.0.0.1:54338; currentTimezoneRevision lease-repo.ts:98 -> claim:158 -> Promise.all index2",
         "group": "G6",
         "stableKey": "baseline-database-connection-transient",
-        "resolved": false,
+        "resolved": true,
         "scopeRelation": "M5-T1 acceptance execution; connection failure, not a failed lease invariant",
         "finalLogLine": 5175,
         "authoritativeRun": "final-all-tests.log",
-        "pendingFocusedRerun": true
+        "pendingFocusedRerun": false,
+        "resolutionEvidence": "db-connection-recheck.log 1 pass / 0 fail / 0 skip"
       },
       {
         "testNumber": 789,
