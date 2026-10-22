@@ -5,6 +5,7 @@ import path from 'node:path';
 import { createHmac } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import * as authStub from './fixtures/auth-stub';
+import { fixtureDeviceApi } from './fixtures/auth-stub';
 import { createMailDb } from './fixtures/mail-db';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit';
 
@@ -23,6 +24,7 @@ function resetDb() {
   Object.assign(mem.db, {
     user: { findUnique: async ({ where }: { where: { id: string } }) => (where.id === admin.id ? admin : null) },
     auditLog: { create: async () => ({}) },
+    adminDeviceSession: fixtureDeviceApi(),
   });
   g.prisma = new Proxy({}, { get: (_t, k) => (mem.db as Record<string | symbol, unknown>)[k] });
 }

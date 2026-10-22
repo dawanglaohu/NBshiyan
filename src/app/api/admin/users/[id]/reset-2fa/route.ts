@@ -31,6 +31,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       unlocked = before.failedLogins > 0 || !!(before.lockedUntil && before.lockedUntil > now);
       return tx.user.update({ where: { id }, data: { ...reset2faData(now), ...t.data, failedLogins: 0, lockedUntil: null } });
     });
+    const { revokeUserDevices } = await import('@/lib/server/admin/device-repo');
+    const { prisma } = await import('@/lib/server/db');
+    await revokeUserDevices(prisma, id, 'totp_reset');
     await audit({ actorId: ctx.user.id, action: 'user.reset_2fa', target: id, meta: { unlocked }, ip: ctx.ip });
     await auditTokenIssued(ctx.user.id, id, 'admin_reset_2fa', ctx.ip, t.expiresTruncated);
     // 提交之后：失败不回滚、不报错给前端，只记结果（不含 key、邮箱）

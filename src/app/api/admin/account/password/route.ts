@@ -32,6 +32,8 @@ export async function POST(req: Request) {
   if (r !== 'ok') return jsonErr(r, r === 'locked' ? 423 : 401);
   if (await verifySecret(ctx.user.passwordHash, p.data.newPassword)) return jsonErr('same_password', 422);
   await prisma.user.update({ where: { id: ctx.user.id }, data: { passwordHash: await hashPassword(p.data.newPassword), sessionVersion: { increment: 1 } } }); // = revokeSessions
+  const { revokeUserDevices } = await import('@/lib/server/admin/device-repo');
+  await revokeUserDevices(prisma, ctx.user.id, 'password_change');
   await audit({ actorId: ctx.user.id, action: 'account.password_change', target: ctx.user.id, ip: ctx.ip });
   return NextResponse.json({ ok: true, reauthRequired: true }, { headers: noStore });
 }

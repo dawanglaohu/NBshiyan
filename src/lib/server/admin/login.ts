@@ -57,6 +57,8 @@ export function auditEmailHash(email: string, env: Record<string, string | undef
 /** 让该账号所有现有会话失效。改密码、重置或关闭 2FA、禁用账号时必须调用。 */
 export async function revokeSessions(userId: string) {
   await prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
+  const { revokeUserDevices } = await import('./device-repo');
+  await revokeUserDevices(prisma, userId, 'session_version');
 }
 
 /** 登录类失败：计入 failedLogins（满 MAX_FAILS 锁定并告警）+ 审计 auth.login_fail。checkPassword 的错密码分支和 #347 的令牌错开关共用 */
