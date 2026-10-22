@@ -382,3 +382,23 @@ body{background:var(--pj-bg);color:var(--pj-fg);font-size:var(--pj-body-size);li
   .hero-grid{grid-template-columns:1fr}
   .brand-scene-section h2{font-size:var(--pj-h2-phone-size);line-height:var(--pj-h2-phone-line)}
 }
+
+
+/* Published-language menu shares the public brand controls and focus tokens. */
+.lang-menu{position:relative;display:inline-flex}
+header.site .lang-btn{gap:6px;min-height:var(--pj-touch-target);padding:0 10px;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg);font:inherit;font-weight:var(--pj-weight-control);box-shadow:none;cursor:pointer}
+header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-color:var(--pj-border)}
+.lang-btn:focus-visible,.lang-item:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.lang-globe{flex:none}
+.lang-caret{flex:none;transition:transform var(--pj-feedback-duration)}
+.lang-menu[data-open] .lang-caret{transform:rotate(180deg)}
+.lang-list{position:absolute;top:calc(100% + 6px);inset-inline-end:0;z-index:30;min-width:180px;margin:0;padding:6px;list-style:none;background:var(--pj-bg);color:var(--pj-fg);border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:none}
+.lang-list[hidden]{display:none}
+.lang-item{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:var(--pj-touch-target);padding:0 12px;border-radius:var(--pj-radius);color:var(--pj-fg);text-decoration:none;font-weight:var(--pj-weight-control);white-space:nowrap}
+.lang-item.is-current{color:var(--pj-accent)}
+.lang-item:hover,.lang-item:focus-visible{background:var(--pj-fg);color:var(--pj-bg)}
+.lang-check{flex:none}
+@media (max-width:767px){.lang-list{min-width:200px}}
+@media (prefers-reduced-motion:reduce){.lang-caret{transition:none}}
+.nf-langs{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0 0}
+.nf-langs a{display:inline-flex;align-items:center;min-height:var(--pj-touch-target);color:var(--pj-accent);font-weight:var(--pj-weight-control);text-decoration:underline;text-underline-offset:3px}

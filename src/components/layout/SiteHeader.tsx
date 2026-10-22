@@ -3,15 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { PUBLIC_ROUTES } from '@/lib/navigation/routes';
-import { useLangSwitch } from './LangLink';
+import LangMenu from './LangMenu';
 
 // 站点头部：桌面端一行链接；手机端只留 Logo + 语言切换 + 菜单按钮，链接收进抽屉（#63）
 // #350 aboutVisible：由服务端 layout 按站点设置传入（当前语言的 /about 是否显示），隐藏时直接不渲染入口，避免先出现再消失
 export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: boolean }) {
   const t = useTranslations('Nav');
   const pathname = usePathname();
-  const langSw = useLangSwitch();
-  const other = langSw.other;
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -48,20 +46,17 @@ export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: bo
       <Link href={PUBLIC_ROUTES.contact.path} data-testid={PUBLIC_ROUTES.contact.entryId}>{t('contact')}</Link>
     </>
   );
-  const lang = (
-    <Link href={langSw.href} locale={other} onClick={langSw.onClick} className="lang" hrefLang={other} aria-label={t('switchLang')}>{other.toUpperCase()}</Link>
-  );
 
   return (
     <header className="site">
       <Link href={PUBLIC_ROUTES.home.path} className="logo" data-testid={PUBLIC_ROUTES.home.entryId}>Pack<i>Joy</i>U</Link>
       <nav className="nav-desktop" aria-label={t('main')}>
         {links}
-        {lang}
+        <LangMenu />
         <Link href={PUBLIC_ROUTES.contact.path} className="btn sm">{t('quote')}</Link>
       </nav>
       <div className="nav-mobile">
-        {lang}
+        <LangMenu />
         <button ref={btnRef} type="button" className="menu-btn" aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? t('closeMenu') : t('openMenu')} onClick={() => setOpen((o) => !o)}>
           <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
         </button>
