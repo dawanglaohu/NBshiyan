@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M2-T4": {
+      "contractHash": "21851b3c8416c824d23e5a09c1cc0fb40a97f31f53db40730723e28649dab2a6",
+      "verdict": "pass",
+      "evidence": [
+        "本轮审查 PR #400 / task/M2-T4，head f9ff0897b19cb93fac0f8a66e7ee1169f70938f6，base main 88b7a6b1a5149641431d8429b413cc114f5a17ad；status 的当前契约 hash 与派发文本逐字一致，stale/runtimeDrift 均为空。",
+        "19-模块任务拆分.md:23、图谱/任务/M2-T4.md 的输入/产出/两组验收一致；阶段为 primitive，仅交付模型生命周期无 IO 纯规则。前置 M1-T2 已 done，contracts/index.ts 公开 analytics/common schema 与 AnalyticsEventDTO；模型规则直接消费同一共享出口。",
+        "有效代码路径为 src/lib/analytics/model-events.ts 与 tests/model-event-rules.test.ts；本 PR 另有流程要求的 M2-T4.md 回填。无业务注册表改动要求：19节 M2-T7 与其任务卡明确负责真实 GLB、分析同意和 POST 生产接线，本层不以浏览器接线或 GIF 为前置。",
+        "13节无直接挂接边界；按17节纯规则层用 node:test+tsx 核空输入、失败、重复、乱序、取消、重试与注入时钟。10节分析事件字段由 M1 的严格共享 schema 拥有，06/07节分层禁止新增 IO，本卡没有前置能力或验收阶段矛盾。",
+        "本次 pass 仅登记任务契约语义复核。代码验收结论为 rework：DecidedModelView 的 open/decided 交叉类型导致 never，两个 CI build 与本地类型检查失败；不得据此登记落地、宣称功能通过或合并。"
+      ]
+    }
+  }
+}

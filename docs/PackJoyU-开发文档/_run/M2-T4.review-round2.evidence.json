@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M2-T4": {
+      "contractHash": "21851b3c8416c824d23e5a09c1cc0fb40a97f31f53db40730723e28649dab2a6",
+      "verdict": "pass",
+      "evidence": [
+        "第2轮仅复核PR #400的R1/R2及其直接回归；修复head f0d2fdf8bebe9154cf128840fb17150c5d9e5159。19节M2-T4原语阶段、M1-T2共享schema前置、有效路径和10/13/17节验收要求未变；契约hash与当前status一致。",
+        "R1已修：src/lib/analytics/model-events.ts:77以Omit<OpenModelView,status>替换互斥status；tests/model-event-rules.test.ts:352用真实TypeScript createProgram导入生产模块并构造/收窄终态，没有any、断言或关闭检查。",
+        "R2已修：tests/model-event-rules.test.ts:83-85缓存同一终态对象、按kind显式收窄后断言TIMEOUT，不再依赖重复函数调用的类型收窄。",
+        "独立复验修复head：node --import tsx --test tests/model-event-rules.test.ts tests/contracts-foundation.test.ts，44/44通过、0跳过；pnpm exec tsc --noEmit --incremental false退出0。原有生命周期运行证据沿用第1轮，不扩大本轮清单。",
+        "真实浏览器生产者、同意、POST和GIF仍由19节M2-T7负责，本卡不新增IO或浏览器接线。当前只登记契约复核；代码pass后按流程记录落地并等待最终head的required CI与实际MERGED状态。"
+      ]
+    }
+  }
+}
