@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { PrismaClient, type Role } from '@prisma/client';
 import type { APIRequestContext, APIResponse } from '@playwright/test';
+import { encode } from 'next-auth/jwt';
 import { authenticator } from 'otplib';
 import { test, expect } from './fixtures';
 import { BASE } from '../playwright.config';
@@ -64,6 +65,32 @@ test('device sessions: real network denial, version-safe revocation race and sig
     const salesHttp = await login(sales);
     const salesState = await salesHttp.storageState();
     const salesDevice = await db.adminDeviceSession.findFirstOrThrow({ where: { userId: sales.user.id } });
+    const actorCookie = (await actorHttp.storageState()).cookies.find((cookie) => cookie.name === '__Secure-authjs.session-token');
+    expect(actorCookie).toBeDefined();
+    const stalePlain = await encode({ secret: process.env.AUTH_SECRET!, salt: 'authjs.session-token', token: { uid: sales.user.id, sv: sales.user.sessionVersion, sid: salesDevice.id }, maxAge: 3600 });
+    const mixedCookieCases = [
+      { tag: 'both-valid', cookie: `authjs.session-token=${stalePlain}; __Secure-authjs.session-token=${actorCookie!.value}`, status: 200 },
+      { tag: 'invalid-plain', cookie: `authjs.session-token=malformed; __Secure-authjs.session-token=${actorCookie!.value}`, status: 200 },
+      { tag: 'invalid-secure', cookie: `authjs.session-token=${stalePlain}; __Secure-authjs.session-token=malformed`, status: 401 },
+      { tag: 'plain-only', cookie: `authjs.session-token=${stalePlain}`, status: 401 },
+    ];
+    const mixedCookieEvidence: Record<string, unknown> = {};
+    for (const mixed of mixedCookieCases) {
+      const raw = await context();
+      const account = await raw.get('/api/admin/account', { headers: { Cookie: mixed.cookie } });
+      expect(account.status()).toBe(mixed.status);
+      const session = await raw.get('/api/auth/session', { headers: { Cookie: mixed.cookie } });
+      if (mixed.status === 200) {
+        expect((await account.json()).id).toBe(actor.user.id);
+        expect((await session.json()).user.id).toBe(actor.user.id);
+        expect(clearsSession(account)).toBe(false);
+      } else {
+        expect(clearsSession(account)).toBe(true);
+        expect(await session.json()).toBeNull();
+      }
+      mixedCookieEvidence[mixed.tag] = { status: account.status(), authJsSameAccount: true, clearsCookie: mixed.status === 401 };
+    }
+    evidence.mixedCookieNamespaces = mixedCookieEvidence;
     const validForbidden = await salesHttp.post('/api/admin/users', { data: {}, headers: { Origin: BASE } });
     expect(validForbidden.status()).toBe(403);
     expect(clearsSession(validForbidden)).toBe(false);

@@ -28,6 +28,8 @@ const Login = z.object({
 export const SESSION_MAX_AGE = 2 * 60 * 60;
 const ABSOLUTE_MAX_AGE = Math.floor(ADMIN_SESSION_POLICY.absoluteMs / 1000);
 const AREA = ['ADMIN', 'SALES', 'EDITOR'] as const;
+const USE_SECURE_COOKIES = process.env.NODE_ENV === 'production';
+const SESSION_COOKIE_NAME = USE_SECURE_COOKIES ? '__Secure-authjs.session-token' : 'authjs.session-token';
 
 let devices: DeviceSessionService | undefined;
 function devicesOf() {
@@ -54,8 +56,8 @@ export const { handlers, auth } = NextAuth({
   trustHost: true,
   session: { strategy: 'jwt', maxAge: ABSOLUTE_MAX_AGE, updateAge: 15 * 60 },
   jwt: { maxAge: ABSOLUTE_MAX_AGE, encode: encodeCapped },
-  useSecureCookies: process.env.NODE_ENV === 'production',
-  cookies: { sessionToken: { options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' } } },
+  useSecureCookies: USE_SECURE_COOKIES,
+  cookies: { sessionToken: { name: SESSION_COOKIE_NAME, options: { httpOnly: true, sameSite: 'lax', path: '/', secure: USE_SECURE_COOKIES } } },
   providers: [
     Credentials({
       credentials: { email: {}, password: {}, totp: {}, recoveryCode: {}, rememberDevice: {} },
@@ -143,21 +145,16 @@ function cookieValue(header: string, name: string): string | null {
   return null;
 }
 
+/** 与 Auth.js 使用同一个 cookie 命名空间，不降级到另一个账号遗留的 cookie。 */
 export async function readSessionToken(request: Request) {
-  const header = request.headers.get('cookie') ?? '';
-  for (const name of sessionCookieNames()) {
-    const token = cookieValue(header, name);
-    if (!token) continue;
-    try {
-      const secret = process.env.AUTH_SECRET;
-      if (!secret) return null;
-      const decoded = await decode({ token, secret, salt: name });
-      if (decoded) return decoded;
-    } catch {
-      return null;
-    }
+  const token = cookieValue(request.headers.get('cookie') ?? '', SESSION_COOKIE_NAME);
+  const secret = process.env.AUTH_SECRET;
+  if (!token || !secret) return null;
+  try {
+    return await decode({ token, secret, salt: SESSION_COOKIE_NAME });
+  } catch {
+    return null;
   }
-  return null;
 }
 
 function clearedNamed(name: string): string {

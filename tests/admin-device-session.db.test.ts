@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AdminDeviceSession, User } from '@prisma/client';
@@ -148,4 +149,34 @@ test('E-70 invalid devices are unauthenticated before route-specific role denial
     const result = decideAdminAccess({ userId: 'user-1', sessionVersion: 3, sid: row?.id, user: user({ role: 'SALES' }), device: row, roles: ['ADMIN'], now: created, policy });
     assert.deepEqual(result, { ok: false, reason: 'unauthenticated', status: 401 });
   }
+});
+
+test('API cookie namespace matches Auth.js in production and development without account fallback', () => {
+  const script = `
+    const { readSessionToken } = require('./src/auth.ts');
+    (async () => {
+      const { encode } = await import('next-auth/jwt');
+      const secret = process.env.AUTH_SECRET;
+      const plainName = 'authjs.session-token';
+      const secureName = '__Secure-authjs.session-token';
+      const plain = await encode({ secret, salt: plainName, token: { uid: 'plain-account', sv: 1, sid: 'plain-device' }, maxAge: 3600 });
+      const secure = await encode({ secret, salt: secureName, token: { uid: 'secure-account', sv: 2, sid: 'secure-device' }, maxAge: 3600 });
+      const input = [plainName + '=' + plain + '; ' + secureName + '=' + secure,
+        secureName + '=' + secure + '; ' + plainName + '=' + plain,
+        plainName + '=malformed; ' + secureName + '=' + secure,
+        plainName + '=' + plain + '; ' + secureName + '=malformed',
+        plainName + '=' + plain, secureName + '=' + secure];
+      const actual = [];
+      for (const cookie of input) {
+        const token = await readSessionToken(new Request('http://localhost/api/admin/account', { headers: { cookie } }));
+        actual.push(token?.uid ?? null);
+      }
+      console.log(JSON.stringify(actual));
+    })().catch(() => process.exit(1));
+  `;
+  const run = (mode: 'production' | 'development') => JSON.parse(execFileSync(process.execPath, ['--import', 'tsx', '-e', script], {
+    cwd: process.cwd(), encoding: 'utf8', env: { ...process.env, NODE_ENV: mode, AUTH_SECRET: 'mixed-cookie-test-only-secret-20261022', DATABASE_URL: 'postgresql://test:test@127.0.0.1:1/unused' }, timeout: 30_000,
+  }).trim()) as (string | null)[];
+  assert.deepEqual(run('production'), ['secure-account', 'secure-account', 'secure-account', null, null, 'secure-account']);
+  assert.deepEqual(run('development'), ['plain-account', 'plain-account', null, 'plain-account', 'plain-account', null]);
 });
