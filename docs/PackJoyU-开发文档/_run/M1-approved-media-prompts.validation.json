@@ -1,0 +1,76 @@
+{
+  "kind": "documentation_media_reference_verification",
+  "status": "pass",
+  "baselineCommit": "ce5362123ff29dd95e3f290c5cb35bc7a0b0c678",
+  "affectedTasks": [
+    "M1-T4",
+    "M1-T5",
+    "M1-T6",
+    "M1-T9",
+    "M7-T1"
+  ],
+  "promptKinds": [
+    "implementation",
+    "review",
+    "resume",
+    "bug"
+  ],
+  "canonicalSelectionPathInAll20Prompts": true,
+  "selectedMediaFilesHashUnchanged": 6,
+  "taskLifecycleStatesUnchanged": 84,
+  "applicationMediaAndGeneratorCodeChanged": false,
+  "structuralBlockers": 0,
+  "existingTests": [
+    {
+      "log": "test-routing.log",
+      "tests": 24,
+      "status": "pass"
+    },
+    {
+      "log": "test-prompts.log",
+      "tests": 19,
+      "status": "pass"
+    },
+    {
+      "log": "test-maintenance.log",
+      "tests": 27,
+      "status": "pass"
+    }
+  ],
+  "independentReview": "pass: current selection, private-path safety, editable company source requirements and original-history boundaries preserved.",
+  "preExistingReviewPromptBudgetWarnings": {
+    "M1-T4": {
+      "before": 20924,
+      "after": 21232
+    },
+    "M1-T9": {
+      "before": 21014,
+      "after": 20810
+    },
+    "M3-T6": {
+      "before": 21694,
+      "after": 21694
+    },
+    "M3-T7": {
+      "before": 21428,
+      "after": 21428
+    },
+    "M4-T15": {
+      "before": 20597,
+      "after": 20597
+    }
+  },
+  "documentationRevalidationFlags": [
+    "M1-T1",
+    "M1-T2",
+    "M1-T3",
+    "M1-T7",
+    "M1-T8"
+  ],
+  "revalidationMeaning": "Source-document changes trigger existing review reminders; landed task statuses remain unchanged and these reminders do not undo landing.",
+  "whitespaceCheck": {
+    "sourceAndOtherArtifacts": "pass",
+    "generatedPatchMarkdown": "Preserved significant single-space prefixes on blank unified-diff context lines inside diff fences; validated every diagnostic is exactly this machine-format case.",
+    "intentionalContextLines": 31
+  }
+}
