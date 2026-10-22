@@ -1,119 +1,212 @@
-"""Recompute company-visual hashes and decoded sizes.
+"""Verify delivered asset bytes and record links; software evidence also needs human review.
 
-The manifest status must stay unfinished while dot.invocationId is null.
-This script does not open a page and does not treat the asset set as landed.
+Desktop originals are read only with --verify-originals. A successful file check
+does not establish website integration or task landing.
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import re
-import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from PIL import Image
 
+
 ROOT = Path(__file__).resolve().parents[3]
-MANIFEST_PATH = ROOT / "docs" / "brand-content" / "company-visuals.json"
-SESSION_PATH = ROOT / "docs" / "brand-content" / "source" / "inkscape-session.json"
-MASTER_PATH = ROOT / "public" / "brand" / "packjoyu-logo-master.svg"
-PDF_PATH = Path(r"C:\Users\admin\Desktop\catalog 2024-Mingkai&Kyson(1).pdf")
-BANNED = ("YUHAO", "Mingkai", "Kyson", "certificate", "capacity", "factory", "ISO", "认证", "产能", "厂房")
+MANIFEST = "docs/brand-content/company-visuals.json"
+SVG = "{http://www.w3.org/2000/svg}"
+
+
+class VerificationError(ValueError):
+    """A required asset or record does not agree with its registered evidence."""
+
+
+def require(condition: object, message: str) -> None:
+    if not condition:
+        raise VerificationError(message)
+
+
+def nonempty(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
 
 
 def sha256(path: Path) -> str:
-    # SVG digest is the LF bytes. A Windows checkout may insert CR.
-    data = path.read_bytes()
-    if path.suffix.lower() == ".svg":
-        data = data.replace(b"\r\n", b"\n")
-    return hashlib.sha256(data).hexdigest()
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def fail(message: str) -> None:
-    print(f"FAIL {message}")
-    sys.exit(1)
+def repository_file(root: Path, value: object, label: str) -> Path:
+    require(nonempty(value), f"{label} path missing")
+    relative = Path(str(value))
+    require(not relative.is_absolute(), f"{label} must use a repository-relative path")
+    path = (root / relative).resolve()
+    require(path.is_relative_to(root), f"{label} escapes repository")
+    require(path.is_file(), f"{label} file missing: {value}")
+    return path
 
 
-def require(condition: bool, message: str) -> None:
-    if not condition:
-        fail(message)
+def read_json(path: Path, label: str) -> dict:
+    value = json.loads(path.read_text(encoding="utf-8-sig"))
+    require(isinstance(value, dict), f"{label} must be an object")
+    return value
 
 
-def main() -> None:
-    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    session = json.loads(SESSION_PATH.read_text(encoding="utf-8"))
-    require(manifest.get("status") == "unfinished", "status must stay unfinished")
-    require(manifest["dot"]["invocationId"] is None, "dot invocation id must stay null")
-    require(manifest["dot"]["reachable"] is False, "dot must stay unreachable")
+def checked_file(root: Path, entry: dict, label: str) -> Path:
+    path = repository_file(root, entry.get("path"), label)
+    require(sha256(path) == entry.get("sha256"), f"{label} hash mismatch")
+    return path
+
+
+def decoded_size(path: Path, label: str) -> tuple[int, int]:
+    try:
+        with Image.open(path) as image:
+            image.load()
+            size = image.size
+    except (OSError, ValueError) as error:
+        raise VerificationError(f"{label} decode failed: {error}") from error
+    require(all(dimension > 0 for dimension in size), f"{label} invalid size")
+    return size
+
+
+def verify_checksums(root: Path, receipt: dict, source: Path, web_sha: str) -> None:
+    checksum_path = repository_file(root, receipt.get("deliveryChecksums"), "delivery checksums")
+    delivered: dict[Path, str] = {}
+    for line in checksum_path.read_text(encoding="utf-8-sig").splitlines():
+        match = re.fullmatch(r"([0-9a-f]{64})  (.+)", line)
+        require(match is not None, "delivery checksum entry malformed")
+        assert match is not None
+        expected, name = match.groups()
+        path = (checksum_path.parent / name).resolve()
+        require(path.is_relative_to(checksum_path.parent), "delivery checksum path escapes package")
+        require(path not in delivered, "duplicate delivery checksum entry")
+        require(path.is_file(), f"delivery file missing: {name}")
+        require(sha256(path) == expected, f"delivery file hash mismatch: {name}")
+        delivered[path] = expected
+    require(source in delivered, "source missing from delivery checksums")
+    require(web_sha in delivered.values(), "web export missing from delivery checksums")
+
+
+def verify_desktop_originals(manifest: dict) -> None:
+    reference = manifest["referencePdf"]
+    require(nonempty(reference.get("path")), "reference PDF path missing")
+    pdf = Path(reference["path"])
+    require(pdf.is_file(), "reference PDF file missing")
+    require(sha256(pdf) == reference.get("sha256"), "reference PDF hash mismatch")
+    require(pdf.stat().st_size == reference.get("bytes"), "reference PDF byte size mismatch")
+    originals = manifest.get("originalDesktopFiles")
+    require(isinstance(originals, list) and originals, "desktop original file list missing")
+    for item in originals:
+        require(nonempty(item.get("path")), "desktop original path missing")
+        path = Path(item["path"])
+        require(path.is_file(), f"desktop original missing: {path}")
+        require(sha256(path) == item.get("sha256"), f"desktop original hash mismatch: {path}")
+
+
+def verify(root: Path, *, verify_originals: bool = False) -> dict:
+    root = root.resolve()
+    manifest = read_json(repository_file(root, MANIFEST, "manifest"), "manifest")
+    require(manifest.get("assetSet") == "company-visual-assets", "asset set mismatch")
+    require(manifest.get("status") == "complete", "asset set is not complete")
     require(manifest.get("pageEvidence") is None, "page evidence belongs to M1-T5")
-    require(manifest.get("integrationTask") == "M1-T5", "integration task")
-    require(session["sessionId"] == manifest["software"]["sessionId"], "session id mismatch")
-    require(session["software"]["version"] == "1.4.4 (dcaf3e7, 2026-05-05)", "inkscape version")
+    require(manifest.get("integrationTask") == "M1-T5", "integration task mismatch")
 
-    logo_sha = sha256(MASTER_PATH)
-    require(logo_sha == manifest["logoMaster"]["sha256"], "logo master hash")
-    require(logo_sha == session["logoMaster"]["sha256"], "session logo hash")
-    master_text = MASTER_PATH.read_text(encoding="utf-8")
-    logo_paths = re.findall(r'<path fill="(#[0-9A-Fa-f]{6})" d="([^"]+)"/>', master_text)
-    require(len(logo_paths) == 8, "logo master path count")
+    dot, software = manifest["dot"], manifest["software"]
+    session_id = dot.get("sessionId") or dot.get("invocationId")
+    require(dot.get("reachable") is True and nonempty(session_id), "actual Dot session missing")
+    require(software.get("sessionId") == session_id, "software session mismatch")
+    require(nonempty(software.get("name")) and nonempty(software.get("version")), "software identity missing")
+    operation_path = dot.get("operationRecord")
+    require(software.get("sessionRecord") == operation_path, "software operation record mismatch")
+    operation_file = repository_file(root, operation_path, "software operation record")
+    workflow = read_json(operation_file, "software operation record")
+    require(workflow.get("parent_conversation_session_id") == session_id, "workflow session mismatch")
+    require(workflow.get("actual_software") == f"{software['name']} {software['version']}", "software version mismatch")
+    steps = workflow.get("performed_steps")
+    require(isinstance(steps, list) and steps and all(nonempty(step) for step in steps), "software steps missing")
+    step_text = " ".join(steps).lower()
+    require(all(action in step_text for action in ("open", "edit", "und", "export", "reopen")), "software operation steps incomplete")
 
-    artworks = manifest["artworks"]
-    require(len(artworks) in (1, 2), "artwork count")
-    session_by_id = {item["id"]: item for item in session["artworks"]}
-    require(set(session_by_id) == {item["id"] for item in artworks}, "session artwork ids")
+    owner_path = manifest["ownerAttestation"].get("path")
+    owner = read_json(checked_file(root, manifest["ownerAttestation"], "owner attestation"), "owner attestation")
+    require(owner.get("basisKind") == "direct_user_statement", "owner attestation basis missing")
+    require(nonempty(owner.get("quote")), "owner attestation quote missing")
+    require(isinstance(owner.get("confirmedClaims"), list) and owner["confirmedClaims"], "owner confirmed claims missing")
 
+    master = ET.parse(checked_file(root, manifest["logoMaster"], "logo master")).getroot()
+    logo_paths = [(path.get("d"), path.get("fill")) for path in master.iter(SVG + "path")]
+    require(len(logo_paths) == 8, "official logo master path count mismatch")
+    artworks = manifest.get("artworks")
+    require(isinstance(artworks, list) and len(artworks) in (1, 2), "artwork count must be one or two")
     for artwork in artworks:
-        source = ROOT / artwork["source"]["path"]
-        web = ROOT / artwork["web"]["path"]
-        require(sha256(source) == artwork["source"]["sha256"], f"{artwork['id']} source hash")
-        require(sha256(web) == artwork["web"]["sha256"], f"{artwork['id']} web hash")
-        with Image.open(web) as image:
-            width, height = image.size
-        require(width == artwork["web"]["width"] and height == artwork["web"]["height"], f"{artwork['id']} size")
-        require(width > 0 and height > 0, f"{artwork['id']} positive size")
-        require(artwork["alt"]["en"].strip() and artwork["alt"]["ru"].strip(), f"{artwork['id']} alt")
-        require(artwork["reference"] and artwork["factBasis"].strip(), f"{artwork['id']} reference")
-        require(artwork["logoImportObject"] == "logo-master-import", f"{artwork['id']} import object")
-        text = source.read_text(encoding="utf-8")
-        require('id="logo-master-import"' in text, f"{artwork['id']} import group")
-        require(f'id="{artwork["editedObject"]}"' in text, f"{artwork['id']} edited object")
-        for _fill, d in logo_paths:
-            require(d in text, f"{artwork['id']} logo path bytes")
-        lowered = text.lower()
-        for word in BANNED:
-            require(word.lower() not in lowered, f"{artwork['id']} contains {word}")
-        require("#0000ff" not in lowered, f"{artwork['id']} kept the temporary blue fill")
-        record = session_by_id[artwork["id"]]
-        require(record["source"]["sha256"] == artwork["source"]["sha256"], f"{artwork['id']} session source")
-        require(record["web"]["sha256"] == artwork["web"]["sha256"], f"{artwork['id']} session web")
-        require(record["undo"]["saved"] is False, f"{artwork['id']} undo must not save")
-        require(record["reopen"]["sha256Unchanged"] is True, f"{artwork['id']} reopen")
-        pixels = Image.open(web).convert("RGB")
-        raw = pixels.tobytes()
-        joy = accent = black = 0
-        for offset in range(0, len(raw), 3):
-            red = raw[offset]
-            green = raw[offset + 1]
-            blue = raw[offset + 2]
-            if red < 30 and green < 30 and blue < 30:
-                black += 1
-            if 160 <= red <= 220 and green < 110 and blue < 70:
-                if abs(red - 194) < 25 and abs(green - 56) < 25:
-                    joy += 1
-                if abs(red - 180) < 25 and abs(green - 87) < 25 and blue < 30:
-                    accent += 1
-        require(black > 1000, f"{artwork['id']} black outlines")
-        require(joy > 100, f"{artwork['id']} wordmark joy color")
-        require(accent > 20, f"{artwork['id']} accent rule")
+        asset_id = artwork["id"]
+        source = checked_file(root, artwork["source"], f"{asset_id} source")
+        web = checked_file(root, artwork["web"], f"{asset_id} web")
+        width, height = decoded_size(web, f"{asset_id} web")
+        registered_size = (artwork["web"].get("width"), artwork["web"].get("height"))
+        require(all(type(value) is int and value > 0 for value in registered_size), f"{asset_id} dimensions invalid")
+        require((width, height) == registered_size, f"{asset_id} decoded size mismatch")
+        for language in ("en", "ru"):
+            require(nonempty(artwork.get("alt", {}).get(language)), f"{asset_id} alt.{language} missing")
+        require(artwork.get("reference") and nonempty(artwork.get("factBasis")), f"{asset_id} reference/fact basis missing")
 
-    for item in manifest["originalMedia"]:
-        require(sha256(ROOT / item["path"]) == item["sha256"], f"original media {item['path']}")
-    if PDF_PATH.is_file():
-        require(sha256(PDF_PATH) == manifest["referencePdf"]["sha256"], "reference pdf hash")
-        require(PDF_PATH.stat().st_size == manifest["referencePdf"]["bytes"], "reference pdf size")
+        document = ET.parse(source).getroot()
+        objects = {element.get("id"): element for element in document.iter() if element.get("id")}
+        logo = objects.get(artwork.get("logoImportObject"))
+        require(logo is not None, f"{asset_id} logo import object missing")
+        assert logo is not None
+        imported_paths = [(path.get("d"), path.get("fill")) for path in logo.iter(SVG + "path")]
+        require(imported_paths == logo_paths, f"{asset_id} official logo paths differ")
+        edited = objects.get(artwork.get("editedObject"))
+        editable_tags = {SVG + name for name in ("text", "path", "rect", "circle", "ellipse", "line", "polygon", "polyline")}
+        require(edited is not None and edited.tag in editable_tags, f"{asset_id} editable object missing")
 
-    print(f"PASS unfinished artworks={len(artworks)} session={manifest['software']['sessionId']}")
+        receipt = read_json(repository_file(root, artwork.get("productionRecord"), "production receipt"), "production receipt")
+        require(receipt.get("source") == artwork["source"] and receipt.get("web") == artwork["web"], f"{asset_id} receipt asset mismatch")
+        require(receipt.get("dotSessionId") == session_id, "receipt session mismatch")
+        require(receipt.get("operationRecord") == operation_path, "receipt operation record mismatch")
+        require(receipt.get("operationRecordSha256") == sha256(operation_file), "receipt operation record hash mismatch")
+        require(receipt.get("ownerAttestation") == owner_path, "receipt owner attestation mismatch")
+        reopen = receipt.get("reopen", {})
+        require(reopen.get("temporaryEditUndone") is True and reopen.get("sourceSha256Unchanged") is True, "source reopen/edit/undo record missing")
+        evidence = receipt.get("evidence")
+        require(isinstance(evidence, list) and evidence, "software evidence missing")
+        evidence_paths = []
+        for entry in evidence:
+            screenshot = checked_file(root, entry, "software evidence")
+            decoded_size(screenshot, "software evidence")
+            evidence_paths.append(screenshot)
+        listed = workflow.get("evidence")
+        require(isinstance(listed, list) and listed, "workflow evidence missing")
+        expected_paths = [(operation_file.parent.parent / "evidence" / item["file"]).resolve() for item in listed]
+        require(len(set(evidence_paths)) == len(evidence_paths), "duplicate software evidence")
+        require(set(evidence_paths) == set(expected_paths), "workflow/receipt evidence mismatch")
+        verify_checksums(root, receipt, source, artwork["web"]["sha256"])
+
+    originals = manifest.get("originalMedia")
+    require(isinstance(originals, list) and originals, "protected original media list missing")
+    for item in originals:
+        checked_file(root, item, "protected original media")
+    if verify_originals:
+        verify_desktop_originals(manifest)
+    return {"artworks": len(artworks), "sessionId": session_id, "desktopOriginalsVerified": verify_originals}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root containing the asset manifest")
+    parser.add_argument("--verify-originals", action="store_true", help="Also require and hash the listed desktop originals")
+    arguments = parser.parse_args()
+    try:
+        result = verify(arguments.root, verify_originals=arguments.verify_originals)
+    except (OSError, KeyError, TypeError, ET.ParseError, ValueError) as error:
+        print(f"FAIL {error}")
+        return 1
+    originals = "verified" if result["desktopOriginalsVerified"] else "not-requested"
+    print(f"PASS asset-files-and-records artworks={result['artworks']} session={result['sessionId']} desktop-originals={originals}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

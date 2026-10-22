@@ -1,0 +1,4 @@
+# Registered material hashes refer to exact file bytes.
+dot-v3/** -text
+company-facts-attestation.json -text
+history/** -text

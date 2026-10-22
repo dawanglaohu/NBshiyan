@@ -1,0 +1,12 @@
+{
+  "requirement": "M1-T9 must deliver 1-2 real artworks with editable sources, web exports, official logo provenance, exact raw-byte hashes, en/ru alt, actual Dot software records, and unchanged original PDF/JPG/GIF/video. No page integration in this task.",
+  "task": {
+    "title": "M1-T9 independent company artwork and editable source projects",
+    "accept": "Reopen sources, decode exports, recalculate registered hashes, and verify original media unchanged. Missing required artifacts or tool execution cannot count as complete."
+  },
+  "conflict": "The old verifier silently skipped a hardcoded PDF if absent. The corrected default only checks delivered files/records and explicitly reports desktop-originals=not-requested. --verify-originals requires the configured PDF and originals and fails if absent/changed. Actual local originals passed. An existing PR review asks to fail when the reference PDF cannot be verified. Select the durable CLI contract without weakening task acceptance.",
+  "options": {
+    "A": "Keep explicit separate scopes. Default checks delivered files/records and reports originals not requested. Document --verify-originals as mandatory full M1-T9 acceptance; it rejects missing or changed originals. Preserve actual full verification evidence and negative tests.",
+    "B": "Make full original verification the CLI default, failing on unavailable originals. Add explicit --files-only for transferred package or CI checks with originals not verified, retain --verify-originals compatibility, and test that default CLI rejects a missing PDF. Original paths remain configurable in the manifest."
+  }
+}

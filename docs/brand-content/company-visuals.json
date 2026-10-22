@@ -1,18 +1,21 @@
 {
   "assetSet": "company-visual-assets",
-  "status": "unfinished",
-  "reason": "Inkscape 1.4.4 已打开两份源工程、编辑对象、撤销并导出 Web 图。GPT Dot 没有调用号，本清单不是已完成的 company-visual-assets，不能当作落地。",
+  "status": "complete",
+  "reason": "选定1幅Dot交付公司介绍图；已核实际软件截图、源工程对象、Web解码、原始字节哈希与用户直接确认的公司事实。此状态只表示素材集合完成。",
   "dot": {
-    "reachable": false,
+    "reachable": true,
     "invocationId": null,
-    "checkedAt": "2026-10-21",
-    "note": "尚未执行。MCP 工具列表里没有 computer-use 或 GPT Dot，没有编造调用号。"
+    "sessionId": "01a1576c-0f7d-72b5-b35f-3cefee4fa0e9",
+    "sessionIdKind": "parent_conversation",
+    "operationRecord": "docs/brand-content/source/dot-v3/provenance/workflow.json",
+    "checkedAt": "2026-10-22T06:06:39.988059+00:00",
+    "note": "实际制作在云端Linux Inkscape完成；Windows本机任务服务先前失败的记录保留，不声称已修复。会话标识来自交付记录。"
   },
   "software": {
     "name": "Inkscape",
-    "version": "1.4.4 (dcaf3e7, 2026-05-05)",
-    "sessionId": "368b4fde-1628-4163-adb6-99a701b8088e",
-    "sessionRecord": "docs/brand-content/source/inkscape-session.json"
+    "version": "1.4 (e7c3feb100, 2024-10-09)",
+    "sessionId": "01a1576c-0f7d-72b5-b35f-3cefee4fa0e9",
+    "sessionRecord": "docs/brand-content/source/dot-v3/provenance/workflow.json"
   },
   "logoMaster": {
     "path": "public/brand/packjoyu-logo-master.svg",
@@ -22,7 +25,8 @@
   "referencePdf": {
     "sha256": "f90310c0c3bd4b2f0bf9ff4941352a48aa982b41a4631f605453629c7870201d",
     "bytes": 16291939,
-    "pageCount": 25
+    "pageCount": 25,
+    "path": "C:\\Users\\admin\\Desktop\\catalog 2024-Mingkai&Kyson(1).pdf"
   },
   "originalMedia": [
     {
@@ -50,60 +54,64 @@
       "sha256": "756a6eb95af8ed9f329cba9f7f7b4bcf2676e05815fcdc43c26e22675716d8bd"
     }
   ],
-  "artworks": [
+  "originalDesktopFiles": [
     {
-      "id": "company-product-range",
-      "reference": {
-        "pdfPage": 3,
-        "theme": "CONTENTS 的组织：01 Company Introduction、02 Application、03 Main products。只借鉴目录怎么分块，不搬页上的企业事实。"
-      },
-      "factBasis": "画面上的六个名称对应 src/data/products.ts 已发布 slug：corrugated-boxes、color-boxes、gift-boxes、paper-cups、pulp-molding、party-supplies。没有厂房、设备、认证、产能或尺寸。",
-      "source": {
-        "path": "docs/brand-content/source/company-product-range.svg",
-        "sha256": "3cb023812360a3003192fa539bc19053fab5da0e6f0fc78c0e10805ab06f4ed4"
-      },
-      "web": {
-        "path": "public/brand/company/company-product-range.png",
-        "sha256": "52ea1899439e454a24308c1e69dbcdc36e5be7cc7d1b9bad5c6c8b45a98ee80a",
-        "width": 1600,
-        "height": 900
-      },
-      "alt": {
-        "en": "PackJoyU wordmark at the upper left, the title Product range, a short brown rule, and six outlined labels: corrugated boxes, color boxes, gift boxes, paper cups, pulp molding, and party supplies. No factory, certificate, or capacity figures.",
-        "ru": "Словесный знак PackJoyU слева вверху, заголовок Product range, короткая коричневая линия и шесть контуров: гофрокороба, цветные коробки, подарочные коробки, бумажные стаканы, формованная целлюлоза и праздничные товары. Без завода, сертификатов и цифр мощности."
-      },
-      "logoImportObject": "logo-master-import",
-      "editedObject": "cell-gift-boxes"
+      "path": "C:/Users/admin/Desktop/catalog 2024-Mingkai&Kyson(1).pdf",
+      "sha256": "f90310c0c3bd4b2f0bf9ff4941352a48aa982b41a4631f605453629c7870201d",
+      "bytes": 16291939
     },
     {
-      "id": "company-packaging-forms",
-      "reference": {
-        "pdfPages": [
-          16,
-          20
-        ],
-        "theme": "第16页纸杯/杯盖和第20页餐盒的产品种类。重画成纸杯、礼盒和瓦楞箱的平面正视轮廓，不抄尺寸表，不画证照。"
-      },
-      "factBasis": "三种轮廓对应已发布品类 paper-cups、gift-boxes、corrugated-boxes。图中没有测量数字、厂房或认证标记。",
-      "source": {
-        "path": "docs/brand-content/source/company-packaging-forms.svg",
-        "sha256": "1b5d6ae8401f170ec3eeef9444ede477dc15293b925bc3a93757ad7706b875d4"
-      },
-      "web": {
-        "path": "public/brand/company/company-packaging-forms.png",
-        "sha256": "c968580b4b29a274c9c8baa4ab29b81c209f59b3cdab984beaf706bcaf861e19",
-        "width": 1600,
-        "height": 900
-      },
-      "alt": {
-        "en": "PackJoyU wordmark at the upper left, the title Packaging forms, a short brown rule, and flat black outlines of a paper cup, a gift box, and a corrugated carton on white. No measurements or certificates.",
-        "ru": "Словесный знак PackJoyU слева вверху, заголовок Packaging forms, короткая коричневая линия и плоские чёрные контуры бумажного стакана, подарочной коробки и гофрокороба на белом поле. Без размеров и сертификатов."
-      },
-      "logoImportObject": "logo-master-import",
-      "editedObject": "form-gift-box"
+      "path": "C:/Users/admin/Desktop/banner1_1654824049643.jpg",
+      "sha256": "fc3ae2e8186a1d5ca4ed377635eaee1d47d8bf66b7faac3a43fe548404049468",
+      "bytes": 658714
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video2.mp4",
+      "sha256": "4fb4b5b362fc3fde5cf0245b3d736eed517d8d9b0ffee838a9d1e2545343960f",
+      "bytes": 8051146
+    },
+    {
+      "path": "C:/Users/admin/Desktop/video_1654824102804.gif",
+      "sha256": "adfe45adb830d6c5073805790b038e127c4c0361af02a68d276385d4025b516d",
+      "bytes": 7934997
     }
   ],
+  "ownerAttestation": {
+    "path": "docs/brand-content/source/company-facts-attestation.json",
+    "sha256": "6a78ec313584f221054fffecdd7ab6d1dd243ba0f6e48e235a6459c0ac350b23"
+  },
+  "artworks": [
+    {
+      "id": "company-introduction-v3-en",
+      "reference": {
+        "pdfPage": 2,
+        "theme": "仅参考公司概览、配套视觉与能力信息的组织层级；不移植YUHAO企业事实、照片或数字。"
+      },
+      "factBasis": "用户在当前会话直接确认自有工厂、整合供应链、多品类定制、设计打样、质量把控全部为其提供的真实信息；12个品类名称来自src/data/products.ts。产品插画为概念示意，不代表真实厂房、设备或产品照片。",
+      "source": {
+        "path": "docs/brand-content/source/dot-v3/PackJoyU-Company-Introduction-v3-EN.svg",
+        "sha256": "d1ae945bcec1e5535838e1438f262252cf7b4d679c84402b57ebd8e54ffa687e"
+      },
+      "web": {
+        "path": "public/brand/company/company-introduction-v3-en.png",
+        "sha256": "5d855fc087eb3fdca500718db6e1a64c00c80c8de2e04dc40e297683bdce611b",
+        "width": 5000,
+        "height": 5800
+      },
+      "alt": {
+        "en": "English PackJoyU company introduction with the official wordmark, conceptual packaging illustrations, company capabilities, a design-to-quality-control sequence, and a twelve-category product portfolio.",
+        "ru": "Англоязычное представление PackJoyU: официальный логотип, условные иллюстрации упаковки, возможности компании, последовательность от дизайна до контроля качества и ассортимент из двенадцати категорий."
+      },
+      "logoImportObject": "logo-master-import",
+      "editedObject": "hero-title-1",
+      "productionRecord": "docs/brand-content/source/dot-v3/receipt.json"
+    }
+  ],
+  "history": {
+    "previousManifest": "docs/brand-content/source/history/company-visuals-before-dot-v3.json",
+    "previousDrafts": "原两幅SVG/PNG及Inkscape记录保留为历史底稿，不列入本次选定素材。"
+  },
   "pageEvidence": null,
   "integrationTask": "M1-T5",
-  "measuredAt": "2026-10-22T01:39:36Z"
+  "measuredAt": "2026-10-22T06:06:39.988059+00:00"
 }
