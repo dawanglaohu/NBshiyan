@@ -29,7 +29,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const names = await getTranslations('Products.names');
   const aboutVisible = await isAboutVisible(locale);
   const about = aboutVisible && isPublishedLocale(locale) ? await getAboutContent(locale) : null;
-  // TODO: 空闲时把主图替换成 3D 盒子
   return (
     <main>
       <section className="hero">

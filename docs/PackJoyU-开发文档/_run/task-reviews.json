@@ -44,11 +44,15 @@
   },
   "M1-T4": {
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "ccb3ac856b176c38e3aad36a063a18a99c1b210ff8b8f391b385fdf2b1378559",
+    "contractHash": "f66411b00d1f65ca7891b3ef3443b392753ac177352c91eadc7f2ed4d9d0b4be",
     "evidence": [
-      "M1-T4: 本补丁前后context/effectivePaths逐值相等，输入、产出、前置、验收和有效路径未变；hash仅由祖先M1-T3授权消费/精确支持路径/等义验收精简传播。仅复核传播影响，不宣称本卡实现或落地。"
+      "本记录仅登记任务契约语义复核，不代表实现验收通过；M1-T4仍为review，未执行--landed。原验收1至3与E21-E25保持逐字不变。",
+      "前置仍为M1-T6 brand-media、M1-T7 visual-components、M1-T8 client-api-foundation，integration产出home-media；13/17/19条款、SSR loadCatalog(listPublishedModels)和en/ru语言不变，不新增目录fetch或DTO。",
+      "按jev-1.14.0的M1-T4:review-routing-supported-config裁决A（high 0.94，adopt=take），只对M1-T4移除过宽frontendRoutes类别，在supportPaths显式列routes.ts与i18n入口；outputPaths仍包含SiteHeader及首页。19节明确本层建立home/products/contact登记并消费，其余入口由后继任务补，不创建后台页面；不修改生成器及07的23路由总目标。",
+      "已核实际SiteHeader三入口及locale navigation存在；routes.ts尚不存在，是实现返工R3，不能用本次文档复核冒充接线完成。R1真实视口外150px仍播放及R2旧圆形按钮样式亦保持未通过。",
+      "补丁只修改M1-T4源条款和任务配置；下游哈希由provider依赖传播，未降低验收、未修改其源任务。sync未标记任何已落地任务待复验。"
     ],
-    "reviewed": "2026-10-21T09:19:13.757256+00:00",
+    "reviewed": "2026-10-22T05:48:07.568048+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
