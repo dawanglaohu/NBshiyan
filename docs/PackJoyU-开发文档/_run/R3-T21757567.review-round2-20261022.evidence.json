@@ -1,0 +1,21 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T21757567": {
+      "contractHash": "6e8a2b08594ced3057a2491c4f310f0f9103c32d681e3cb275990a169e573bcd",
+      "verdict": "pass",
+      "evidence": [
+        "第2轮仅复核上轮 R1、直接回归与已登记的独立 CI 阻断。受审代码 head=3ec7ccb702ab728550d3a9371479c2a8b3806a04，base=main b9432f5d161fd9bd05bbcc6d0fbb3fd32ac20bdc；契约与上轮相同，status stale/runtimeDrift/blockers 为空。",
+        "此 pass 仅登记任务契约复核；R1 已修，范围内代码验收通过；总体结论 rework 的唯一剩余原因是上轮已登记的必需依赖审计未过。PR 保持 OPEN，任务状态 review，未运行 --landed，不请求 R1 第3轮返工。",
+        "R1 修复在 tests/sanity-import.test.ts:339-364：真实 probe 9009 才运行别名拒绝断言；probe0 则真实执行 python3；缺失命令和其他非9009结果不冒充9009。原9009/stderr负例与七项 Python 内容保护未删除。",
+        "真实 Windows 三配置逐个通过整份 tests/sanity-import.test.ts：WindowsApps python3 probe=9009、真实 Python3.13.7 probe=0、私有PATH去掉WindowsApps后python3 probe=ENOENT；每组13 pass/0 fail/0 skip。全部通过原node --import tsx --test入口，未改全局PATH或Python安装。",
+        "Linux WSL2/Node22.17/Python3.8.10：62个输入逐文件来自该head原始Git blob；node --experimental-strip-types --test tests/sanity-import.test.ts，13 pass/0 fail/0 skip。原七项真实Python保护、ndjson与内链地图比对均通过。",
+        "pnpm lint exit0（既有warnings），git diff --check通过；只审 tests/sanity-import.test.ts 的19行增量和任务受保护回填，不重开前轮已接受条款。",
+        "现有独立落地阻断仍在精确head：Actions run39883181504/job120185126589 的 build-and-audit 在 pnpm audit --audit-level high --prod 对 Next15.5.27 报1 critical/1 high并exit1；Unit tests未执行。package.json/pnpm-lock.yaml与当前main字节一致。",
+        "审查方复用外部依赖冲突并补入R1已修事实：A总体rework但不再要求R1代码修改、保持review等独立依赖修复；B仅代码pass但落地阻断；C扩任务路径修Next。Jev jev-1.14.0，label R3-T21757567:review-round2-ci-scope，adjudicate: pick=A(medium 0.67) spec_change=no(0.14) outside_stack=no(0.07) needs_owner=no(0.19) reversible=yes(0.84) adopt=take(A)。已执行A，未扩范围、未绕过CI或合并。",
+        "任务的代码位置与实施沉淀已同步真实probe分支；本轮无新接口/DTO/UI/持久化/前置能力，不新增边界编号或注册要求。",
+        "真实日志目录 ../.codex-plans/NBshiyan-r3-t21757567/；计数与SHA256：{\"review2-linux.log\": {\"counts\": {\"fail\": 0, \"pass\": 13, \"skipped\": 0, \"tests\": 13}, \"sha256\": \"54622f99272cdbd441be49fd51a398f678e9ada91ac81d82c5c2f6b164fb86db\"}, \"review2-windows-alias.log\": {\"counts\": {\"fail\": 0, \"pass\": 13, \"skipped\": 0, \"tests\": 13}, \"sha256\": \"77c5eb72e97f11256fa8b1770c74c9a9b2e8c7414785f440a36077f1a77ecb2e\"}, \"review2-windows-missing-python3.log\": {\"counts\": {\"fail\": 0, \"pass\": 13, \"skipped\": 0, \"tests\": 13}, \"sha256\": \"4052ff535e14c7040f0f3001cc344037094a51b1553b692615608f108fc57cea\"}, \"review2-windows-real-python3.log\": {\"counts\": {\"fail\": 0, \"pass\": 13, \"skipped\": 0, \"tests\": 13}, \"sha256\": \"8b46f1b28cd7b2ede956657f8bdec3daea322c85a59caccc5f5a04a435d96fb6\"}}"
+      ]
+    }
+  }
+}
