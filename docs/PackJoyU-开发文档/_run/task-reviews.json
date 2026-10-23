@@ -1111,15 +1111,23 @@
     "verdict": "pass"
   },
   "R3-T21757567": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "fdd7bc2852afe4a3981df2c07d679f1594bfd966705e716a5807d489eeb715a2",
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "6e8a2b08594ced3057a2491c4f310f0f9103c32d681e3cb275990a169e573bcd",
     "evidence": [
-      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T21757567.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
-      "本任务《让内容导入用例使用实际Python并执行全部保护断言》具体核查：真实Python入口与七项内容导入保护断言：Windows/Linux均执行、错误解释器仍失败留stderr、与committed NDJSON一致；路径仅test与既有build.py/linkmap.py，不因媒体文案变化跳过placeholder/food-claim保护。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-python-runtime，未改原批次/来源记录。",
-      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/sanity-import.test.ts; docs/content/sanity-import/build.py; docs/content/sanity-import/linkmap.py。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
-      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      "本轮只登记任务定义的语义复核；代码验收为 rework，R1 未修，PR #413 保持开放，不能用本记录声称代码通过或落地。",
+      "当前 PR base=main、审查代码 head=50ad0f7f511f771dafbdcba695a7bf7e78492e01；任务契约哈希与派发包一致；status stale/runtimeDrift/blockers 均为空。",
+      "前置 M1-T8/M2-T4/M3-T14/M5-T1 在当前 main b9432f5d 均为 done；本修复复用现存 build.py/linkmap.py 入口，不新增 HTTP、DTO、数据库、UI 或运行时配置。",
+      "源要求来自 _run/batches/batch-3-20261022.md:122-134 的 baseline-python-runtime；19 节原批次集合不改，13 节未为本返工新增边界编号，17 节 Node22/Node test 及冻结依赖和 lint 要求适用。",
+      "有效生产/测试路径为 tests/sanity-import.test.ts、docs/content/sanity-import/build.py、docs/content/sanity-import/linkmap.py；PR 仅改测试和本任务受保护回填，未修改 Python 保护规则、import.ndjson 或共享 API/环境校验。",
+      "Windows Node22.17/Python3.13.7 默认入口运行 13 pass/0 fail/0 skip；七项真实子进程保护断言及两项静态内容检查均保留并执行；tests/sanity-import.test.ts:106-296。",
+      "Linux WSL2 Ubuntu20.04 Node22.17/Python3.8.10 对当前提交的 62 个原始 Git blob 运行 node --experimental-strip-types --test tests/sanity-import.test.ts：12 pass/0 fail/1 Windows 专属别名用例 skip；原七项子进程保护用例均通过，ndjson 和内链地图与已提交 LF blob 一致。首次 git archive 受 Windows autocrlf 转换影响的结果已定位并排除，不计作 Linux 验收通过证据。",
+      "错误解释器负例由真实 Node runner 执行：SANITY_IMPORT_PYTHON 指向不存在的 exe 时 exit1，输出 ENOENT、not a pass、stderr 字段；不回退其他解释器。合成9009负例保留 alias-stderr-kept。",
+      "R1 已真实复现：只在子进程 PATH 内把 python3 指向 Python3.13.7 原始 executable，python3 -c 返回0；tests/sanity-import.test.ts:339-347 无条件 assert.throws 报 Missing expected exception。此缺陷违反 Windows 可移植性，需要返工。",
+      "pnpm lint exit0（既有 warning）；git diff --check 通过。生产 Python 中无占位或测试钩子；测试中的 placeholder/TBD 为保护负例，return true 仅属于 assert.throws 验错谓词。",
+      "CI build-and-audit 因与 main 相同的 Next15.5.27 依赖审计失败，在 Unit tests 前停止；e2e/security gate 成功不代替该审计。Jev jev-1.14.0、label R3-T21757567:review-ci-scope：pick=A(high0.97),spec_change=no,outside_stack=no,adopt=take(A)。保留为独立落地阻断，不扩本任务依赖改动范围。",
+      "真实日志位于 ../.codex-plans/NBshiyan-r3-t21757567/：windows-default.log、windows-real-python3.log、linux-exact-blobs.log、wrong-interpreter.log、lint.log；审查只登记契约，不运行 --landed。"
     ],
-    "reviewed": "2026-10-22T12:57:36.769866+00:00",
+    "reviewed": "2026-10-23T01:06:50.756931+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
