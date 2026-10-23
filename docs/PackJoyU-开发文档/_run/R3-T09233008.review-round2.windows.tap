@@ -1,0 +1,324 @@
+TAP version 13
+# Subtest: 非生产环境（CI/预览/本地）不检查
+ok 1 - 非生产环境（CI/预览/本地）不检查
+  ---
+  duration_ms: 6.2871
+  type: 'test'
+  ...
+# Subtest: 生产环境：mock 开启或 ADMIN_API 不是 http 时失败
+ok 2 - 生产环境：mock 开启或 ADMIN_API 不是 http 时失败
+  ---
+  duration_ms: 23.7513
+  type: 'test'
+  ...
+# Subtest: \#74 完整生产配置通过
+ok 3 - \#74 完整生产配置通过
+  ---
+  duration_ms: 0.6561
+  type: 'test'
+  ...
+# Subtest: \#74 每一项缺失或不合规都单独报错
+ok 4 - \#74 每一项缺失或不合规都单独报错
+  ---
+  duration_ms: 6.4968
+  type: 'test'
+  ...
+# Subtest: \#74 多个问题一次性报出
+ok 5 - \#74 多个问题一次性报出
+  ---
+  duration_ms: 0.976
+  type: 'test'
+  ...
+# Subtest: \#74 预览环境不检查
+ok 6 - \#74 预览环境不检查
+  ---
+  duration_ms: 0.2668
+  type: 'test'
+  ...
+# Subtest: \#74 错误信息里不出现密钥值
+ok 7 - \#74 错误信息里不出现密钥值
+  ---
+  duration_ms: 0.8044
+  type: 'test'
+  ...
+# Subtest: APP_ENV: Vercel 自动变量单独不再触发生产自检
+ok 8 - APP_ENV: Vercel 自动变量单独不再触发生产自检
+  ---
+  duration_ms: 0.2719
+  type: 'test'
+  ...
+# Subtest: \#74 审查：MAIL_SEND_ADAPTER 必须是 smtp、MAIL_WEBHOOK_SECRET 必须 ≥32 字节，否则 assertProdEnv 拒绝启动；报错不含值
+ok 9 - \#74 审查：MAIL_SEND_ADAPTER 必须是 smtp、MAIL_WEBHOOK_SECRET 必须 ≥32 字节，否则 assertProdEnv 拒绝启动；报错不含值
+  ---
+  duration_ms: 1.633
+  type: 'test'
+  ...
+# Subtest: EDGE_AUTH_SECRET is runtime-only: build phase skips it, runtime / default require >= 32 bytes
+ok 10 - EDGE_AUTH_SECRET is runtime-only: build phase skips it, runtime / default require >= 32 bytes
+  ---
+  duration_ms: 1.78
+  type: 'test'
+  ...
+# Subtest: next.config runs the prod check per phase (build skips runtime-only secrets)
+ok 11 - next.config runs the prod check per phase (build skips runtime-only secrets)
+  ---
+  duration_ms: 1.6937
+  type: 'test'
+  ...
+# Subtest: \#74 邮件密钥只在运行时检查：RUNTIME_ONLY 含 SMTP_USER / SMTP_PASS / MAIL_WEBHOOK_SECRET（不含 CRON_SECRET 等其他变量）
+ok 12 - \#74 邮件密钥只在运行时检查：RUNTIME_ONLY 含 SMTP_USER / SMTP_PASS / MAIL_WEBHOOK_SECRET（不含 CRON_SECRET 等其他变量）
+  ---
+  duration_ms: 0.28
+  type: 'test'
+  ...
+# Subtest: deploy-readiness：build 阶段只查公开值（NEXT_PUBLIC_*、mock），构建机不需要任何密钥或服务端配置
+ok 13 - deploy-readiness：build 阶段只查公开值（NEXT_PUBLIC_*、mock），构建机不需要任何密钥或服务端配置
+  ---
+  duration_ms: 0.8637
+  type: 'test'
+  ...
+# Subtest: \#74 build 阶段：三个邮件密钥全部缺失 → 没有任何邮件密钥问题；MAIL_SEND_ADAPTER / SMTP 端口改在 runtime 检查（deploy-readiness）
+ok 14 - \#74 build 阶段：三个邮件密钥全部缺失 → 没有任何邮件密钥问题；MAIL_SEND_ADAPTER / SMTP 端口改在 runtime 检查（deploy-readiness）
+  ---
+  duration_ms: 0.7413
+  type: 'test'
+  ...
+# Subtest: \#74 runtime 阶段：三个邮件密钥逐个缺失 → 各自单独报错，只报变量名，不含任何值
+ok 15 - \#74 runtime 阶段：三个邮件密钥逐个缺失 → 各自单独报错，只报变量名，不含任何值
+  ---
+  duration_ms: 2.5244
+  type: 'test'
+  ...
+# Subtest: local 驱动：UPLOAD_DIR 是存在且可写的绝对路径时通过，不再要求 R2_*
+ok 16 - local 驱动：UPLOAD_DIR 是存在且可写的绝对路径时通过，不再要求 R2_*
+  ---
+  duration_ms: 2.1457
+  type: 'test'
+  ...
+# Subtest: 适用平台：UPLOAD_DIR 词法、根目录、不可写与路径不外泄
+ok 17 - 适用平台：UPLOAD_DIR 词法、根目录、不可写与路径不外泄
+  ---
+  duration_ms: 0.6165
+  type: 'test'
+  ...
+# Subtest: 拒绝根目录
+ok 18 - 拒绝根目录
+  ---
+  duration_ms: 0.2364
+  type: 'test'
+  ...
+# Subtest: 拒绝不可写目录
+ok 19 - 拒绝不可写目录
+  ---
+  duration_ms: 3.8897
+  type: 'test'
+  ...
+# Subtest: 适用平台：临时目录不是 POSIX 绝对路径时不能通过可写检查
+ok 20 - 适用平台：临时目录不是 POSIX 绝对路径时不能通过可写检查
+  ---
+  duration_ms: 12.2541
+  type: 'test'
+  ...
+# Subtest: 前置能力：符号链接、POSIX 应用根与临时目录有明确结论
+ok 21 - 前置能力：符号链接、POSIX 应用根与临时目录有明确结论
+  ---
+  duration_ms: 6.724
+  type: 'test'
+  ...
+# appRoot path.resolve/join 不保持 POSIX 应用根，public/.next 前缀分支未执行
+# tempAbsolute 临时目录不是 POSIX 绝对路径，真实目录与符号链接前缀分支未执行
+# symlink 创建符号链接失败（EPERM），realpath 逃逸分支未执行
+# Subtest: local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径
+ok 22 - local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径 # SKIP path.resolve/join 不保持 POSIX 应用根，public/.next 前缀分支未执行
+  ---
+  duration_ms: 0.1396
+  type: 'test'
+  ...
+# Subtest: local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）
+ok 23 - local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝） # SKIP 临时目录不是 POSIX 绝对路径，真实目录与符号链接前缀分支未执行
+  ---
+  duration_ms: 0.115
+  type: 'test'
+  ...
+# Subtest: r2 驱动行为不变：4 个 R2_* 逐个缺失各报一条；STORAGE_DRIVER 未设置或未知值拒绝
+ok 24 - r2 驱动行为不变：4 个 R2_* 逐个缺失各报一条；STORAGE_DRIVER 未设置或未知值拒绝
+  ---
+  duration_ms: 0.7391
+  type: 'test'
+  ...
+# Subtest: 存储检查只在 runtime：build 阶段不看 STORAGE_DRIVER / UPLOAD_DIR / R2_*
+ok 25 - 存储检查只在 runtime：build 阶段不看 STORAGE_DRIVER / UPLOAD_DIR / R2_*
+  ---
+  duration_ms: 0.2614
+  type: 'test'
+  ...
+# Subtest: build 阶段：NEXT_PUBLIC_SITE_URL 缺失 / 非 https / 本机或回环主机名都拒绝
+ok 26 - build 阶段：NEXT_PUBLIC_SITE_URL 缺失 / 非 https / 本机或回环主机名都拒绝
+  ---
+  duration_ms: 0.8366
+  type: 'test'
+  ...
+# Subtest: \#323 publicSiteHostOk：IP 字面量（v4 / v6 / 带括号 / 十进制 / 十六进制 / 八进制）、userinfo、端口、路径、非规范写法一律拒绝
+ok 27 - \#323 publicSiteHostOk：IP 字面量（v4 / v6 / 带括号 / 十进制 / 十六进制 / 八进制）、userinfo、端口、路径、非规范写法一律拒绝
+  ---
+  duration_ms: 2.3228
+  type: 'test'
+  ...
+# Subtest: realpath 抛错时退回字面路径并报告不存在
+ok 28 - realpath 抛错时退回字面路径并报告不存在
+  ---
+  duration_ms: 0.5311
+  type: 'test'
+  ...
+# Subtest: 注入 realpath 指向 public 时拒绝
+ok 29 - 注入 realpath 指向 public 时拒绝 # SKIP path.resolve/join 不保持 POSIX 应用根，public/.next 前缀分支未执行
+  ---
+  duration_ms: 0.1209
+  type: 'test'
+  ...
+# Subtest: \#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径
+ok 30 - \#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径 # SKIP 创建符号链接失败（EPERM），realpath 逃逸分支未执行
+  ---
+  duration_ms: 0.1211
+  type: 'test'
+  ...
+# Subtest: key 只能是服务端生成的形状：拒绝 ..、绝对路径、NUL、反斜杠、svg/html 等扩展名
+ok 31 - key 只能是服务端生成的形状：拒绝 ..、绝对路径、NUL、反斜杠、svg/html 等扩展名
+  ---
+  duration_ms: 5.6245
+  type: 'test'
+  ...
+# Subtest: 扩展名由文件头决定：文件头与 key 扩展名不一致（含 SVG / HTML 伪装成 png）一律拒绝写入
+ok 32 - 扩展名由文件头决定：文件头与 key 扩展名不一致（含 SVG / HTML 伪装成 png）一律拒绝写入
+  ---
+  duration_ms: 69.3908
+  type: 'test'
+  ...
+# Subtest: 路径穿越不可能：解析后必须在 UPLOAD_DIR 内，get/put/delete 都拒绝
+ok 33 - 路径穿越不可能：解析后必须在 UPLOAD_DIR 内，get/put/delete 都拒绝
+  ---
+  duration_ms: 7.4731
+  type: 'test'
+  ...
+# Subtest: 前置能力：符号链接可创建性有明确结论
+ok 34 - 前置能力：符号链接可创建性有明确结论
+  ---
+  duration_ms: 3.3394
+  type: 'test'
+  ...
+# 创建符号链接失败（EPERM），逃逸链接与挂载点分支未执行
+# Subtest: 不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响
+ok 35 - 不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响 # SKIP 创建符号链接失败（EPERM），逃逸链接与挂载点分支未执行
+  ---
+  duration_ms: 0.1662
+  type: 'test'
+  ...
+# Subtest: 根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断
+ok 36 - 根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断 # SKIP 创建符号链接失败（EPERM），逃逸链接与挂载点分支未执行
+  ---
+  duration_ms: 0.1624
+  type: 'test'
+  ...
+# Subtest: 目录不能当文件读；不存在的 key / 根目录不存在 → null；没有任何列目录的方法
+ok 37 - 目录不能当文件读；不存在的 key / 根目录不存在 → null；没有任何列目录的方法
+  ---
+  duration_ms: 16.5764
+  type: 'test'
+  ...
+# Subtest: createStorage：生产（APP_ENV=production）local 驱动必须给绝对路径 UPLOAD_DIR，不回落到 cwd；开发默认不变；R2 不变
+ok 38 - createStorage：生产（APP_ENV=production）local 驱动必须给绝对路径 UPLOAD_DIR，不回落到 cwd；开发默认不变；R2 不变
+  ---
+  duration_ms: 1.3505
+  type: 'test'
+  ...
+# [privacy] skip non-logo key
+# [privacy] skip non-logo key
+# Subtest: 隐私删除（deleteLogoFiles，deleteCustomer 和到期匿名化共用）：本地驱动删掉磁盘文件，与 R2 驱动结果一致
+ok 39 - 隐私删除（deleteLogoFiles，deleteCustomer 和到期匿名化共用）：本地驱动删掉磁盘文件，与 R2 驱动结果一致
+  ---
+  duration_ms: 131.3686
+  type: 'test'
+  ...
+# Subtest: 孤儿 logo 清理（cleanupOrphanLogos，保留期 cron）：本地驱动删掉记录对应的磁盘文件
+ok 40 - 孤儿 logo 清理（cleanupOrphanLogos，保留期 cron）：本地驱动删掉记录对应的磁盘文件
+  ---
+  duration_ms: 26.0018
+  type: 'test'
+  ...
+# Subtest: 上传大小 / 类型白名单与 R2 一致：限额和嗅探在路由里，存储驱动无关（同一个 storage 抽象）
+ok 41 - 上传大小 / 类型白名单与 R2 一致：限额和嗅探在路由里，存储驱动无关（同一个 storage 抽象）
+  ---
+  duration_ms: 14.199
+  type: 'test'
+  ...
+# Subtest: 文件只经现有接口提供：每个读存储的接口都走 storedFileResponse（Content-Type 白名单 + nosniff + sandbox CSP）；没有 svg/html
+ok 42 - 文件只经现有接口提供：每个读存储的接口都走 storedFileResponse（Content-Type 白名单 + nosniff + sandbox CSP）；没有 svg/html
+  ---
+  duration_ms: 12.1139
+  type: 'test'
+  ...
+# Subtest: \#323 本地驱动读文件前 fstat 判大小：超过上限直接报错、不读进内存；上限以内照常；默认上限高于所有写入上限
+ok 43 - \#323 本地驱动读文件前 fstat 判大小：超过上限直接报错、不读进内存；上限以内照常；默认上限高于所有写入上限
+  ---
+  duration_ms: 351.0252
+  type: 'test'
+  ...
+# Subtest: 前置能力：新建文件能否保留 0600 有明确结论
+ok 44 - 前置能力：新建文件能否保留 0600 有明确结论
+  ---
+  duration_ms: 8.9311
+  type: 'test'
+  ...
+# 新建文件权限是 0666 而不是 0600，私有模式分支未执行
+# Subtest: 适用平台：本地读写删除、拒绝覆盖与逃逸 key
+    # Subtest: 拒绝覆盖已有对象
+    ok 1 - 拒绝覆盖已有对象
+      ---
+      duration_ms: 10.6185
+      type: 'test'
+      ...
+    1..1
+ok 45 - 适用平台：本地读写删除、拒绝覆盖与逃逸 key
+  ---
+  duration_ms: 53.6346
+  type: 'test'
+  ...
+# Subtest: keys: only server-shaped keys with allowed extensions
+ok 46 - keys: only server-shaped keys with allowed extensions
+  ---
+  duration_ms: 2.3109
+  type: 'test'
+  ...
+# Subtest: local: put/get/delete, private mode, no overwrite
+ok 47 - local: put/get/delete, private mode, no overwrite # SKIP 新建文件权限是 0666 而不是 0600，私有模式分支未执行
+  ---
+  duration_ms: 0.2527
+  type: 'test'
+  ...
+# Subtest: s3/r2: SigV4-signed path-style requests, conditional put, 404 -> null
+ok 48 - s3/r2: SigV4-signed path-style requests, conditional put, 404 -> null
+  ---
+  duration_ms: 235.9731
+  type: 'test'
+  ...
+# Subtest: s3/r2: server errors surface
+ok 49 - s3/r2: server errors surface
+  ---
+  duration_ms: 709.3693
+  type: 'test'
+  ...
+# Subtest: factory: env selection and validation
+ok 50 - factory: env selection and validation
+  ---
+  duration_ms: 1.9763
+  type: 'test'
+  ...
+1..50
+# tests 51
+# suites 0
+# pass 44
+# fail 0
+# cancelled 0
+# skipped 7
+# todo 0
+# duration_ms 2068.0728

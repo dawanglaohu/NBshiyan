@@ -1,0 +1,68 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T09233008": {
+      "contractHash": "b1bfa9084cbbbcebcba80fb0a7a9b8571b71d9ca7b1729ae6d0d1b38f5fd690a",
+      "verdict": "pass",
+      "evidence": [
+        "第二轮仅复核原 R1-R3 与同步主干的直接回归；三项存储验收与所有生产路径/权限规则保持，前置仍已落地，有效实现路径不扩展。当前契约与原始 task、13/17/19 及06/08约定一致。",
+        "R1已修：ci.yml:117-118仅contents: read，删除actions: write；真实Linux job120188407322的GITHUB_TOKEN Permissions仅Contents: read，53 pass/0 fail/0 skip且artifact12471603121上传成功，旧权限线程已resolve。",
+        "R2已由主干PR #413解除：已合入 9a16d16f9511ce663f1fb57ea8da9a2c44124b4f 的pnpm-lock.yaml锁定Next15.5.28；本分支只merge主干，没有相对主干的package.json/锁文件改动。无需等待仍开放的PR #415。",
+        "同步后真实npx pnpm10.34.6 install --frozen-lockfile退出0，根postinstall完成Prisma生成；实际Next15.5.28，eslint-config-next15.5.27与主干一致。",
+        "同步后真实pnpm10 audit --prod --audit-level high --json退出0，257个生产依赖，info/low/moderate/high/critical全部0；完整JSON已随证据提交。审计阈值与CI规则未降低。",
+        "同步后node --import tsx --test --test-reporter=tap tests/prod-env-check.test.ts tests/storage-local.test.ts tests/storage.test.ts退出0：44 pass/0 fail/7 skip；三个能力探测与平台中性断言仍执行，不可用分支标明未执行；完整TAP已随证据提交。",
+        "同步后pnpm10 lint与pnpm10 exec tsc --noEmit --incremental false均退出0；git diff --check通过；有效四文件反造假扫描无命中。只读CI的最新Linux完整检查在最终推送后另行核验，合并前必核。",
+        "R3按用户本轮明确指令无需等待App确认，仅对本次指定App批准门禁使用管理员例外；授权已在PR #414 comment6355476592留档，不改保护规则或把App失败写成批准，其他构建/测试仍须通过。",
+        "沿用第一轮Jev A：保留本PR依赖范围、继承独立合入main的修复，不弱化审计。没有新增技术岔路口，App例外来自用户明确授权；judgments日志合并保留主干990行与本任务3行，未覆盖任一侧记录。",
+        "只修正任务笔记中删除一行后的四个CI引用行号，并补只读权限维护约束；代码位置、实施沉淀均已复核。"
+      ]
+    }
+  },
+  "review": {
+    "round": 2,
+    "phase": "pre-push-local-review",
+    "testedSourceRevision": "7056c7f01e3f94a0f58f48396a21a872a4240457",
+    "inheritedMainRevision": "9a16d16f9511ce663f1fb57ea8da9a2c44124b4f",
+    "resolvedBlockers": [
+      "R1",
+      "R2"
+    ],
+    "appGate": "user-authorized exception; not App approval",
+    "windows": {
+      "tests": 51,
+      "pass": 44,
+      "fail": 0,
+      "skipped": 7
+    },
+    "audit": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0
+      },
+      "dependencies": 257,
+      "devDependencies": 0,
+      "optionalDependencies": 0,
+      "totalDependencies": 257
+    },
+    "sourceSha256": {
+      ".github/workflows/ci.yml": "3306a5f69ff0040c8706dda92dbaef1343e7241f049a96df4a29afb33a2ebc7d",
+      "tests/prod-env-check.test.ts": "e2b6ae6a8978c937ce3bef7f61685bf6a486dcf5f40834f7e3605d7fd9d73a36",
+      "tests/storage-local.test.ts": "a57f381d1cdd9a3545999acd0b9ec17eb7646310bfc25ab6ad5a9f37dd2b25ca",
+      "tests/storage.test.ts": "7650fca9e8aa9ea912390e8b59e967886243f94395481d1946d841289f7411e5",
+      "prod-env-check.ts": "513a6c799e0b069290096f2997facbded852bb3087d90a6c5632fa79d8b3ea4c",
+      "src/lib/server/storage.ts": "de556af9a92346fdac79a1d50cac264a2bcd5ae64f8f2dd953fd1d15915c59c6",
+      "pnpm-lock.yaml": "a659d9155e01aeae98d0e81d749f3b5ab7430f416a658919441590b406f0e247"
+    },
+    "linuxPriorReadonlyRun": {
+      "run": 39884192463,
+      "job": 120188407322,
+      "pass": 53,
+      "fail": 0,
+      "skip": 0
+    },
+    "requiredBeforeMerge": "Exact final head build-and-audit, e2e and posix-storage-security success; only designated App gate excepted by user."
+  }
+}

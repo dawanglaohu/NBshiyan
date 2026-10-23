@@ -1098,15 +1098,21 @@
     "verdict": "pass"
   },
   "R3-T09233008": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "c23e26d183030a11f5926116dae6dde3ad532aeb628607604913e2fc319ee104",
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "b1bfa9084cbbbcebcba80fb0a7a9b8571b71d9ca7b1729ae6d0d1b38f5fd690a",
     "evidence": [
-      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T09233008.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
-      "本任务《在适用平台执行存储权限与符号链接安全验收》具体核查：存储/环境安全验证分层：Linux六项必须实际跑过不可写/根目录/public/.next/逃逸链接/覆盖负例，Windows前置能力不足不得冒充通过；仅test/CI有效路径，不修改生产路径与权限规则。共享素材更新不削弱其POSIX/安全断言。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-posix-storage-harness，未改原批次/来源记录。",
-      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/prod-env-check.test.ts; tests/storage-local.test.ts; tests/storage.test.ts; .github/workflows/ci.yml。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
-      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      "第二轮仅复核原 R1-R3 与同步主干的直接回归；三项存储验收与所有生产路径/权限规则保持，前置仍已落地，有效实现路径不扩展。当前契约与原始 task、13/17/19 及06/08约定一致。",
+      "R1已修：ci.yml:117-118仅contents: read，删除actions: write；真实Linux job120188407322的GITHUB_TOKEN Permissions仅Contents: read，53 pass/0 fail/0 skip且artifact12471603121上传成功，旧权限线程已resolve。",
+      "R2已由主干PR #413解除：已合入 9a16d16f9511ce663f1fb57ea8da9a2c44124b4f 的pnpm-lock.yaml锁定Next15.5.28；本分支只merge主干，没有相对主干的package.json/锁文件改动。无需等待仍开放的PR #415。",
+      "同步后真实npx pnpm10.34.6 install --frozen-lockfile退出0，根postinstall完成Prisma生成；实际Next15.5.28，eslint-config-next15.5.27与主干一致。",
+      "同步后真实pnpm10 audit --prod --audit-level high --json退出0，257个生产依赖，info/low/moderate/high/critical全部0；完整JSON已随证据提交。审计阈值与CI规则未降低。",
+      "同步后node --import tsx --test --test-reporter=tap tests/prod-env-check.test.ts tests/storage-local.test.ts tests/storage.test.ts退出0：44 pass/0 fail/7 skip；三个能力探测与平台中性断言仍执行，不可用分支标明未执行；完整TAP已随证据提交。",
+      "同步后pnpm10 lint与pnpm10 exec tsc --noEmit --incremental false均退出0；git diff --check通过；有效四文件反造假扫描无命中。只读CI的最新Linux完整检查在最终推送后另行核验，合并前必核。",
+      "R3按用户本轮明确指令无需等待App确认，仅对本次指定App批准门禁使用管理员例外；授权已在PR #414 comment6355476592留档，不改保护规则或把App失败写成批准，其他构建/测试仍须通过。",
+      "沿用第一轮Jev A：保留本PR依赖范围、继承独立合入main的修复，不弱化审计。没有新增技术岔路口，App例外来自用户明确授权；judgments日志合并保留主干990行与本任务3行，未覆盖任一侧记录。",
+      "只修正任务笔记中删除一行后的四个CI引用行号，并补只读权限维护约束；代码位置、实施沉淀均已复核。"
     ],
-    "reviewed": "2026-10-22T12:57:30.241373+00:00",
+    "reviewed": "2026-10-23T02:20:18.201247+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
