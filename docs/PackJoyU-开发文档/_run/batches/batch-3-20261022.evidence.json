@@ -2074,5 +2074,476 @@
       "src/lib/server/jobs/lease-repo.ts": "f285534b0a9c8f7fbc22c7489118e3b4a047a488b99049e0fc164aea04517e83",
       "tests/job-leases.db.test.ts": "29b369c5e7c555124f4bfad15dc8f0e5b9eac26b0614a587bcaf0bfcd6bbc5b0"
     }
+  },
+  "r3t22883505": {
+    "task": "R3-T22883505",
+    "exactHeadProof": "GitHub Actions jobs build-and-audit and e2e on this pull request head. The commit hash is written in the pull request body after push, because this object is part of that head.",
+    "localPrecheck": {
+      "role": "pre-check only; not the exact-head Linux proof",
+      "os": "WSL Ubuntu 20.04.6",
+      "node": "v22.17.0",
+      "pnpm": "10.34.6",
+      "postgres": "12.22 at 127.0.0.1:54338 database r3smoke",
+      "ciPostgres": "17",
+      "browser": "Google Chrome 138.0.7204.100 when E2E_BROWSER_CHANNEL=chrome",
+      "ciBrowser": "Playwright bundled Chromium; E2E_BROWSER_CHANNEL unset",
+      "transport": "node .next/standalone/server.js",
+      "notTransport": "next start",
+      "appEnv": "unset on the smoke server",
+      "nextPublicAdminApi": "http inlined at build",
+      "interception": "no application API fulfill; non-localhost fixture abort and Turnstile stub remain",
+      "auth": "Auth.js credentials callback Set-Cookie; no localStorage or sessionStorage auth",
+      "standaloneTap": {
+        "command": "STANDALONE_TEST=1 node --import tsx --test --test-reporter=tap tests/standalone-start.test.ts",
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "durationMs": 8683.0911
+      },
+      "next": "15.5.28",
+      "smoke": {
+        "command": "playwright test e2e/brand-smoke.spec.ts -g standalone public and admin flow",
+        "result": "1 passed (1.0m)",
+        "exit": 0,
+        "browser": "Google Chrome 138 via E2E_BROWSER_CHANNEL=chrome"
+      },
+      "density": {
+        "role": "empty-database precheck only; not the official failure list",
+        "densityPassed": 5,
+        "densityFailed": 9,
+        "inquiries1920": {
+          "viewport": "1920x1080",
+          "type": "work",
+          "pass": false,
+          "D2": "fail",
+          "D6": "fail",
+          "fill": 0.102,
+          "leftGap": 1508.3
+        }
+      }
+    },
+    "notClaimed": [
+      "/admin/samples",
+      "/admin/content",
+      "/admin/stats",
+      "/admin/mail/unassigned"
+    ],
+    "assertedClosed": [
+      {
+        "path": "/admin/mail/unassigned",
+        "status": 404
+      },
+      {
+        "path": "/admin/samples",
+        "status": 404
+      },
+      {
+        "path": "/admin/content",
+        "status": 404
+      },
+      {
+        "path": "/admin/stats",
+        "status": 404
+      }
+    ],
+    "disabledNav": [
+      "样品申请",
+      "内容",
+      "数据看板"
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/en",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/products",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/contact",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/en/privacy",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "path": "/api/rum",
+        "status": 204
+      },
+      {
+        "method": "GET",
+        "path": "/admin/inquiries",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/mail/config",
+        "status": 404
+      },
+      {
+        "method": "GET",
+        "path": "/admin/models/new",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/settings",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/users",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/inquiries",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/users",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/corrugated-boxes",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/color-boxes",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/gift-boxes",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/pulp-molding",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/paper-cups",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/party-supplies",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/wine-boxes",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/color-printing",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/offset-printing",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/gift-cards",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/specs/christmas-merchandise",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/specs/corrugated-boxes",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/site-settings/about",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/site-settings/assets",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/api/admin/site-settings/organization",
+        "status": 200
+      },
+      {
+        "method": "GET",
+        "path": "/admin/models",
+        "status": 200
+      }
+    ],
+    "probes": [
+      {
+        "surface": "询盘",
+        "type": "work",
+        "viewport": "1920x1080",
+        "pass": true,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.971,
+        "leftGap": 25
+      },
+      {
+        "surface": "询盘",
+        "type": "work",
+        "viewport": "1440x900",
+        "pass": true,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.961,
+        "leftGap": 24
+      },
+      {
+        "surface": "账号权限",
+        "type": "work",
+        "viewport": "1920x1080",
+        "pass": false,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "fail",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.972,
+        "leftGap": 24.5
+      },
+      {
+        "surface": "账号权限",
+        "type": "work",
+        "viewport": "1440x900",
+        "pass": false,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "fail",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.961,
+        "leftGap": 24
+      },
+      {
+        "surface": "产品规格",
+        "type": "work",
+        "viewport": "1920x1080",
+        "pass": true,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.971,
+        "leftGap": 25
+      },
+      {
+        "surface": "产品规格",
+        "type": "work",
+        "viewport": "1440x900",
+        "pass": true,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.961,
+        "leftGap": 24
+      },
+      {
+        "surface": "规格编辑",
+        "type": "form",
+        "viewport": "1920x1080",
+        "pass": true,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.972,
+        "leftGap": 24
+      },
+      {
+        "surface": "规格编辑",
+        "type": "form",
+        "viewport": "1440x900",
+        "pass": true,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.961,
+        "leftGap": 24
+      },
+      {
+        "surface": "站点设置",
+        "type": "form",
+        "viewport": "1920x1080",
+        "pass": false,
+        "D1": "pass",
+        "D2": "fail",
+        "D3": "fail",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.67,
+        "leftGap": 48
+      },
+      {
+        "surface": "站点设置",
+        "type": "form",
+        "viewport": "1440x900",
+        "pass": false,
+        "D1": "pass",
+        "D2": "fail",
+        "D3": "fail",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.923,
+        "leftGap": 48
+      },
+      {
+        "surface": "组织信息",
+        "type": "form",
+        "viewport": "1920x1080",
+        "pass": false,
+        "D1": "pass",
+        "D2": "fail",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.67,
+        "leftGap": 48
+      },
+      {
+        "surface": "组织信息",
+        "type": "form",
+        "viewport": "1440x900",
+        "pass": false,
+        "D1": "pass",
+        "D2": "fail",
+        "D3": "pass",
+        "D4": "pass",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.613,
+        "leftGap": 48
+      },
+      {
+        "surface": "3D 模型",
+        "type": "form",
+        "viewport": "1920x1080",
+        "pass": false,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "fail",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.972,
+        "leftGap": 24
+      },
+      {
+        "surface": "3D 模型",
+        "type": "form",
+        "viewport": "1440x900",
+        "pass": false,
+        "D1": "pass",
+        "D2": "pass",
+        "D3": "pass",
+        "D4": "fail",
+        "D5": "pass",
+        "D6": "pass",
+        "overflow": "pass",
+        "fill": 0.961,
+        "leftGap": 24
+      }
+    ],
+    "probeSource": {
+      "runId": 39897468015,
+      "artifact": "standalone-smoke.json",
+      "head": "8ec1dd4cd91c3107322d1ff6e0d14d548032bd1a",
+      "transport": "node .next/standalone/server.js",
+      "postgres": "17",
+      "browser": "Playwright Chromium"
+    },
+    "densityPassed": 6,
+    "densityFailed": 8,
+    "thresholdsUnchanged": true,
+    "adminCssEdited": false,
+    "gif": {
+      "sha256": "519d96d353262e8e3083145c68a58012bd2ffc20c609d766ac701d6ec154f211",
+      "bytes": 350587,
+      "next": "15.5.28",
+      "durationSec": 8.0,
+      "size": "1200x750",
+      "encodedFrames": 80,
+      "fps": 10,
+      "sourceFrames": [
+        "00-home.png",
+        "01-catalog.png",
+        "02-admin-inquiries.png",
+        "03-admin-settings.png"
+      ]
+    },
+    "judgments": {
+      "browser": "adjudicate: pick=A(medium 0.62) spec_change=no(0.14) outside_stack=no(0.30) needs_owner=no(0.06) reversible=yes(0.87) adopt=take(A); model=jev-1.14.0; label=R3-T22883505:impl",
+      "density": "adjudicate: pick=A(high 0.82) spec_change=no(0.17) outside_stack=no(0.11) needs_owner=no(0.12) reversible=yes(0.89) adopt=take(A); model=jev-1.14.0; label=R3-T22883505:impl"
+    },
+    "reworkStableKey": "admin-density-applicable-failures",
+    "batchesGeneratorRun": false
   }
 }
