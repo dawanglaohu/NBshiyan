@@ -336,7 +336,24 @@ test('sanity-import: the selected interpreter runs again instead of replaying a 
   assert.equal(twice.stdout.trim(), '3');
 });
 
-test('sanity-import: the Windows python3 alias is not treated as a pass', { skip: process.platform === 'win32' ? false : 'only the WindowsApps python3 alias exits 9009' }, () => {
+test('sanity-import: the python3 alias assertion runs only when a probe exits 9009', () => {
+  // Exit 9009 identifies the WindowsApps alias. Exit 0 is a real interpreter.
+  // A missing command has no status and is not reported as exit 9009.
+  const launch: PythonLaunch = { command: 'python3', args: [], display: 'python3' };
+  const probe = asOutput(spawnSync(launch.command, [...launch.args, '-c', PROBE], spawnOptions()));
+  if (probe.status === 0 && !probe.error) {
+    const ran = spawnPython(['-c', 'print(1)'], 'python3');
+    assert.equal(ran.status, 0, ran.stderr);
+    return;
+  }
+  if (probe.status !== 9009) {
+    const failure = startupFailure(launch, probe);
+    if (failure) {
+      assert.match(failure, /stderr:/);
+      assert.doesNotMatch(failure, /exit 9009/);
+    }
+    return;
+  }
   assert.throws(() => spawnPython(['-c', 'print(1)'], 'python3'), (err: unknown) => {
     assert.ok(err instanceof Error);
     assert.match(err.message, /9009/);
