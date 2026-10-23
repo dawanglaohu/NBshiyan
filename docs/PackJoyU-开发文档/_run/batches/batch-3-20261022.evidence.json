@@ -2100,12 +2100,14 @@
         "fail": 0,
         "skipped": 0,
         "cancelled": 0,
-        "durationMs": 9425.8103
+        "durationMs": 8683.0911
       },
+      "next": "15.5.28",
       "smoke": {
         "command": "playwright test e2e/brand-smoke.spec.ts -g standalone public and admin flow",
-        "result": "1 passed (59.6s)",
-        "exit": 0
+        "result": "1 passed (1.0m)",
+        "exit": 0,
+        "browser": "Google Chrome 138 via E2E_BROWSER_CHANNEL=chrome"
       }
     },
     "notClaimed": [
@@ -2501,8 +2503,9 @@
     "thresholdsUnchanged": true,
     "adminCssEdited": false,
     "gif": {
-      "sha256": "2ec53b9fa91366d2185f5dd46c3c8126266f365d9b271328b981405ab3402e97",
-      "bytes": 356754,
+      "sha256": "519d96d353262e8e3083145c68a58012bd2ffc20c609d766ac701d6ec154f211",
+      "bytes": 350587,
+      "next": "15.5.28",
       "durationSec": 8.0,
       "size": "1200x750",
       "encodedFrames": 80,
