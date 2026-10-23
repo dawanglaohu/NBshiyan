@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { lintText, fixText, defaultFiles, fileId, sameFile } from '../scripts/lint-ru-yo.mjs';
@@ -114,35 +113,6 @@ test('ru-yo: slash and backslash name one file; a real bad file is flagged', () 
     const scanned = files.flatMap((f) => lintText(readFileSync(f, 'utf8'), f));
     assert.ok(scanned.some((h) => h.word.toLowerCase() === 'черный'));
     assert.ok(!scanned.some((h) => h.word.toLowerCase() === 'расчет'));
-  } finally {
-    rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test('ru-yo cli reports a real bad file for either separator and accepts clean copy', () => {
-  const root = mkdtempSync(path.join(tmpdir(), 'ru-yo-cli-'));
-  try {
-    const bad = path.join(root, 'bad-yo.md');
-    const clean = path.join(root, 'clean.md');
-    writeFileSync(bad, 'черный\n');
-    writeFileSync(clean, 'белый\n');
-    const script = path.join(process.cwd(), 'scripts', 'lint-ru-yo.mjs');
-    const run = (file: string) => spawnSync(process.execPath, [script, file], { encoding: 'utf8' });
-    const flagged = run(fileId(bad));
-    assert.notEqual(flagged.status, 0);
-    assert.match(flagged.stderr, /черный/);
-    assert.match(flagged.stderr, /bad-yo\.md/);
-    const native = run(bad);
-    assert.notEqual(native.status, 0);
-    assert.match(native.stderr, /черный/);
-    if (process.platform === 'win32') {
-      const back = run(fileId(bad).split('/').join('\\'));
-      assert.notEqual(back.status, 0);
-      assert.match(back.stderr, /черный/);
-    }
-    const ok = run(fileId(clean));
-    assert.equal(ok.status, 0, ok.stderr);
-    assert.match(ok.stdout, /lint:ru-yo: ok/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

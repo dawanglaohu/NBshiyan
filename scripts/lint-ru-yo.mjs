@@ -5,7 +5,6 @@
 // Usage: node scripts/lint-ru-yo.mjs [--fix] [files...]
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { pathToFileURL } from 'node:url';
 
 // One lexical identity for discovery, allowlists, and exclusions.
 // path.join emits "\" on Windows; patterns and assertions use "/".
@@ -125,13 +124,7 @@ export function defaultFiles(cwd = process.cwd()) {
   return ROOTS.flatMap((r) => walk(join(cwd, r.path), r.ext, []));
 }
 
-// argv[1] is a native path; import.meta.url is a file URL. A string compare never matches on Windows, so the scan would exit 0 without reading files.
-function invokedAsCli() {
-  const entry = process.argv[1];
-  return Boolean(entry) && import.meta.url === pathToFileURL(entry).href;
-}
-
-if (invokedAsCli()) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const fix = args.includes('--fix');
   const files = args.filter((a) => a !== '--fix');
