@@ -1,5 +1,5 @@
 /* #350 站点设置 · 公司介绍（UX spec v1.0 §3）。沿用 admin.css 的 .adm-card / .adm-btn */
-.st-page{padding:24px;max-width:1200px;padding-bottom:96px}
+.st-page{padding:24px 0 96px;max-width:1200px}
 .st-page h1{font-size:24px;margin:4px 0 6px}
 .st-crumb,.st-audit,.st-hint{font-size:13px;color:var(--ink-2);margin:4px 0}
 .st-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;margin-top:16px;align-items:start}
@@ -116,3 +116,7 @@
 .st-same .st-ferr,.st-same .st-hint{grid-column:1/-1;margin:0}
 .st-same-add{display:flex;align-items:center;gap:8px;margin-top:4px}
 .st-f input.st-ro{background:#F2EFEA;color:var(--ink-2)}
+/* 图片格在 about-images.css 里写死 3 列。桌面不足三张时右轨是空的，这里按卡片最小宽度折列。 */
+@media (min-width:768px){
+  .st-page .st-im-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+}
