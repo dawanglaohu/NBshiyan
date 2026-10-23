@@ -4,6 +4,7 @@ import Module, { createRequire } from 'node:module';
 import path from 'node:path';
 import { createHmac } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import * as authStub from './fixtures/auth-stub';
 import { fixtureDeviceApi } from './fixtures/auth-stub';
 import { createMailDb } from './fixtures/mail-db';
@@ -14,6 +15,7 @@ const authFile = path.resolve('src/auth.ts');
 const m = new Module(authFile); m.filename = authFile; m.loaded = true; m.exports = authStub;
 (createRequire(authFile).cache as Record<string, unknown>)[authFile] = m;
 
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 const INQ = 'cminquiry00000000000003';
 const TOKEN = 'tokenBBBBBBBBBBBBBBBBBBB';
 const admin = { id: 'a1', role: 'ADMIN', disabled: false, totpEnabled: true, lockedUntil: null, sessionVersion: 1 };
@@ -85,11 +87,21 @@ test('静态检查：src/app/api/admin/mail/** 下每个路由、发信路由、
   const files = [...await walk('src/app/api/admin/mail'), 'src/app/api/admin/inquiries/[id]/mail/route.ts', 'src/app/api/mail/inbound-webhook/route.ts', 'src/app/api/admin/cron/mail-queue/route.ts'];
   assert.ok(files.length >= 6);
   for (const f of files) {
-    const src = await readFile(f, 'utf8');
+    const src = lf(await readFile(f, 'utf8'));
     const bodies = src.split(/export async function (?:GET|POST|DELETE|PUT|PATCH)\(|async function handle\(/).slice(1);
     assert.ok(bodies.length >= 1, f);
     for (const b of bodies) assert.match(b, /^[^\n]*\{\n\s*const off = mailSwitchGate\(\);\n\s*if \(off\) return off;/, `${f}: mailSwitchGate must be first`);
   }
+});
+
+test('mailSwitchGate 在 LF 与 CRLF 检出都是第一条语句，换掉调用就失败', () => {
+  const gate = /^[^\n]*\{\n\s*const off = mailSwitchGate\(\);\n\s*if \(off\) return off;/;
+  const raw = readFileSync('src/app/api/admin/mail/config/route.ts', 'utf8');
+  const body = (src: string) => src.split(/export async function (?:GET|POST|DELETE|PUT|PATCH)\(/).slice(1)[0];
+  const crlf = lf(raw).replace(/\n/g, '\r\n');
+  assert.equal(gate.test(body(crlf)), false);
+  assert.equal(gate.test(body(lf(crlf))), true);
+  assert.equal(gate.test(body(lf(crlf).replace('mailSwitchGate()', 'notTheGate()'))), false);
 });
 
 test('GET /mail/config → sendingEnabled 由配置决定', async () => {

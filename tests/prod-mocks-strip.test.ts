@@ -3,14 +3,16 @@
 //   MOCK_BUNDLE_TEST=1 node --import tsx --test tests/prod-mocks-strip.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileId, sameFile } from '../scripts/lint-ru-yo.mjs';
 
 const walk = (dir: string, skip: (p: string) => boolean = () => false): string[] =>
   !existsSync(dir) ? [] : readdirSync(dir).flatMap((n) => {
     const p = path.join(dir, n);
     if (skip(p)) return [];
-    return statSync(p).isDirectory() ? walk(p, skip) : [p];
+    return statSync(p).isDirectory() ? walk(p, skip) : [fileId(p)];
   });
 
 const MOCK_FILE = /(^|\/)(mock|[A-Za-z]+Mock|[a-z0-9-]+-mock)\.ts$/;
@@ -20,8 +22,12 @@ test('#323 所有 src/lib 下的 mock 源文件都被 next.config 的 outputFile
   assert.match(cfg, /outputFileTracingExcludes: \{ '\/\*\*': MOCK_SOURCE_GLOBS \}/);
   assert.match(cfg, /const MOCK_SOURCE_GLOBS = \['\.\/src\/lib\/\*\*\/mock\.ts', '\.\/src\/lib\/\*\*\/\*Mock\.ts', '\.\/src\/lib\/\*\*\/\*-mock\.ts'\];/);
   const files = walk('src').filter((f) => /mock/i.test(path.basename(f)) && f.endsWith('.ts'));
-  for (const f of ['src/lib/admin/mock.ts', 'src/lib/admin/mail/mock.ts', 'src/lib/admin/models-mock.ts', 'src/lib/server/sanityMock.ts', 'src/lib/server/mail/mock.ts'])
+  assert.ok(files.length >= 5);
+  for (const f of ['src/lib/admin/mock.ts', 'src/lib/admin/mail/mock.ts', 'src/lib/admin/models-mock.ts', 'src/lib/server/sanityMock.ts', 'src/lib/server/mail/mock.ts']) {
     assert.ok(files.includes(f), f);
+    assert.ok(files.includes(fileId(f.split('/').join('\\'))), f);
+    assert.ok(sameFile(f, f.split('/').join('\\')));
+  }
   for (const f of files) {
     if (f === 'src/lib/seo/mock.ts') continue; // 只有开关函数（seoMockEnabled / categoryPagesLive），没有 mock 数据；被页面和 next.config 正常 import
     assert.ok(f.startsWith('src/lib/') && MOCK_FILE.test(f), `${f} not covered by MOCK_SOURCE_GLOBS`);
@@ -70,4 +76,48 @@ test('#323 生产构建产物（.next/standalone、.next/server、.next/static�
     for (const m of MARKERS) if (s.includes(m)) hits.push(`${m} in ${f}`);
   }
   assert.deepEqual(hits, []);
+});
+
+test('#323 slash and backslash name one mock file; a real uncovered mock stays a failure', () => {
+  const root = mkdtempSync(path.join(tmpdir(), 'mock-id-'));
+  try {
+    const covered = path.join(root, 'src', 'lib', 'admin', 'mock.ts');
+    const uncovered = path.join(root, 'src', 'components', 'widget-mock.ts');
+    const importer = path.join(root, 'src', 'components', 'widget.ts');
+    mkdirSync(path.dirname(covered), { recursive: true });
+    mkdirSync(path.dirname(uncovered), { recursive: true });
+    writeFileSync(covered, 'export const mockAdminApi = {};\n');
+    writeFileSync(uncovered, 'export const widgetMock = true;\n');
+    writeFileSync(importer, "import { mockAdminApi } from '../lib/admin/mock';\n");
+
+    const slash = 'src/lib/admin/mock.ts';
+    const back = 'src\\lib\\admin\\mock.ts';
+    assert.equal(fileId(back), slash);
+    assert.ok(sameFile(slash, back));
+    assert.equal(sameFile(slash, 'src/lib/admin/other.ts'), false);
+    assert.equal(readFileSync(covered, 'utf8'), readFileSync(fileId(covered), 'utf8'));
+    assert.ok(MOCK_FILE.test(fileId(back)));
+    assert.ok(MOCK_FILE.test(fileId(path.join('src', 'components', 'widget-mock.ts'))));
+    assert.equal(MOCK_FILE.test(fileId(path.join('src', 'components', 'widget.ts'))), false);
+
+    assert.deepEqual(walk(path.join(root, 'missing')), []);
+    const discovered = walk(path.join(root, 'src')).map((abs) => fileId(path.relative(root, abs)));
+    assert.deepEqual(discovered.slice().sort(), [
+      'src/components/widget-mock.ts',
+      'src/components/widget.ts',
+      'src/lib/admin/mock.ts',
+    ]);
+    assert.ok(discovered.includes(fileId(back)));
+    assert.equal(discovered.filter((f) => sameFile(f, slash)).length, 1);
+
+    const uncoveredMocks = discovered.filter((f) => /mock/i.test(path.basename(f)) && f.endsWith('.ts') && f !== 'src/lib/seo/mock.ts' && !(f.startsWith('src/lib/') && MOCK_FILE.test(f)));
+    assert.deepEqual(uncoveredMocks, ['src/components/widget-mock.ts']);
+
+    const nonMocks = discovered.filter((f) => /\.(ts|tsx)$/.test(f) && !MOCK_FILE.test(f));
+    assert.deepEqual(nonMocks, ['src/components/widget.ts']);
+    const staticHits = nonMocks.filter((f) => /^import [^;]*from '[^']*(\/mock|Mock|-mock)';/m.test(readFileSync(path.join(root, f), 'utf8')));
+    assert.deepEqual(staticHits, ['src/components/widget.ts']);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

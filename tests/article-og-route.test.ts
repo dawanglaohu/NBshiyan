@@ -26,15 +26,35 @@ const MOCK = [['en', 'mock-article-packaging-guide', 'Mock Article: Packaging Gu
 const ver = async (l: 'en' | 'ru', title: string) => (await import('../src/lib/seo/articleOg')).articleOgVersion(l, title);
 /** 正确的 v，外加会被忽略的干扰参数 */
 const goodQuery = async (l: 'en' | 'ru', title: string) => `title=${encodeURIComponent('<script>evil</script>')}&v=${await ver(l, title)}&slug=..%2F..&locale=de`;
+// Bash 把 CR 算进词法。先收成 LF 再交给真 bash，语法错误不再被当成「Location 安全」。
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+const smokeLib = () => lf(fs.readFileSync('deploy/smoke-lib.sh', 'utf8'));
+const locVerdict = (script: string, loc: string) => execFileSync('bash', ['-s', '--', loc], {
+  encoding: 'utf8',
+  input: `${lf(script)}\nif loc_bad "$1"; then printf '%s\\n' bad; else printf '%s\\n' ok; fi\n`,
+}).trim();
 /** deploy/smoke-lib.sh 的 loc_bad（运维 smoke 用的同一个函数）：返回 true 表示 Location 不安全 */
-const locBad = (loc: string) => {
-  try { execFileSync('bash', ['-c', '. deploy/smoke-lib.sh && loc_bad "$1"', '_', loc]); return true; } catch { return false; }
-};
+const locBad = (loc: string) => locVerdict(smokeLib(), loc) === 'bad';
 const headerValues = (r: Response) => [...r.headers.entries()].map(([k, v]) => `${k}: ${v}`).join('\n');
 
 test('loc_bad 本身可用（对照）', () => {
   assert.equal(locBad('//evil.com/'), true);
   assert.equal(locBad('/og/home-en.jpg?v=7086247a'), false);
+});
+
+test('smoke-lib.sh：CRLF 脚本被真 Bash 拒绝；收成 LF 后危险、安全、带 CR 的 Location 判定不变', () => {
+  const script = smokeLib();
+  const crlf = script.replace(/\n/g, '\r\n');
+  assert.throws(() => execFileSync('bash', ['-s'], { encoding: 'utf8', input: crlf }), (error: unknown) => {
+    const stderr = String((error as { stderr?: unknown }).stderr ?? '');
+    return /syntax error|command not found/.test(stderr) && stderr.includes('\r');
+  });
+  for (const body of [script, crlf]) {
+    assert.equal(locVerdict(body, '//evil.com/'), 'bad');
+    assert.equal(locVerdict(body, '/og/home-en.jpg?v=7086247a'), 'ok');
+    assert.equal(locVerdict(body, '/\r/evil.com'), 'bad');
+    assert.equal(locVerdict(body, ''), 'ok');
+  }
 });
 
 test('200（v 正确，其他参数忽略）：PNG 1200×630，Cache-Control public, max-age=31536000, immutable，noindex，标题不进响应头', async () => {

@@ -11,7 +11,8 @@ import { mockAdminApi } from '../src/lib/admin/mock';
 import { HistoryView, HistoryRow } from '../src/components/admin/InquiryHistory';
 import { fmtDate } from '../src/components/admin/format';
 
-const src = (p: string) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+const src = (p: string) => lf(readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8'));
 const item = (n: number, o: Partial<H.HistoryItem> = {}): H.HistoryItem => ({ type: 'status', at: new Date(Date.UTC(2026, 9, 1, 0, 0) - n * 60_000).toISOString(), actor: { name: '王五', role: 'ADMIN' }, summary: `状态：新询盘 → 跟进中 #${n}`, cursor: `c${n}`, ...o });
 const page = (from: number, n: number, total: number): H.HistoryPage => ({ items: Array.from({ length: n }, (_, i) => item(from + i)), total });
 
@@ -157,6 +158,11 @@ test('接线：详情页用 <InquiryHistory>，回复 / 改状态 / 改分配后
   assert.match(d, /<InquiryHistory inquiryId=\{inq\.id\} refreshKey=\{historyKey\} \/>/);
   assert.doesNotMatch(d, /inq\.history/);
   assert.match(d, /setBusy\(false\); refreshHistory\(\); \}\n  \};/, 'changeStatus 之后');
+  const refresh = /setBusy\(false\); refreshHistory\(\); \}\n  \};/;
+  const crlfDetail = lf(readFileSync(new URL('../src/components/admin/InquiryDetail.tsx', import.meta.url), 'utf8')).replace(/\n/g, '\r\n');
+  assert.equal(refresh.test(crlfDetail), false);
+  assert.equal(refresh.test(lf(crlfDetail)), true);
+  assert.equal(refresh.test(lf(crlfDetail).replace('refreshHistory()', 'keepHistory()')), false);
   assert.match(d, /finally \{ setBusy\(false\); if \(history\) refreshHistory\(\); \}/, 'run（分配、标记无效、回复）之后');
   assert.match(d, /adminApi\.addNote\(inq\.id, note\.trim\(\)\); setNote\(''\); \}, false\)/);
   assert.match(d, /: refreshHistory\}/, '新邮件回复被接受后（非新询盘）也刷新');
