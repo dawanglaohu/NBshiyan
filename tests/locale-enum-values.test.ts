@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit/index';
 import { PUBLISHED_LOCALES, PublishedLocaleSchema, isPublishedLocale, toPublishedLocale } from '../src/lib/server/published-locales';
 import { parseLocale } from '../src/lib/server/specs';
@@ -10,15 +10,33 @@ import { routing } from '../src/i18n/routing';
 
 // 多语言第 0 期前置：DB 枚举只追加预留值；公开接口仍只接受已发布语言（未发布 → 400，不是 500）
 const RESERVED = ['es', 'de', 'fr', 'ja', 'hi', 'ar'];
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 const schema = readFileSync('prisma/schema.prisma', 'utf8');
-const enumValues = () => {
-  const m = schema.match(/enum Locale \{([^}]*)\}/);
+const enumValues = (schemaText = schema) => {
+  const m = lf(schemaText).match(/enum Locale \{([^}]*)\}/);
   assert.ok(m, 'enum Locale missing');
-  return m[1].split(/\r?\n/).map((l) => l.replace(/\/\/.*$/, '').trim()).filter(Boolean);
+  return m[1].split('\n').map((l) => l.replace(/\/\/.*$/, '').trim()).filter(Boolean);
 };
+const sqlStatements = (sql: string) => lf(sql).split('\n').map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean);
+function planProblems(script: string, sqlBody: string): string {
+  const dir = mkdtempSync('tests/.crlf-plan-');
+  const rel = `${dir.replace(/\\/g, '/')}/plan.sql`;
+  try {
+    writeFileSync(rel, sqlBody);
+    return execFileSync('bash', ['-s', '--', rel], { encoding: 'utf8', input: `${lf(script)}\nplan_problems "$1"\n` });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
 
 test('schema: enum Locale keeps en, ru first (order unchanged) and appends es/de/fr/ja/hi/ar', () => {
-  assert.deepEqual(enumValues(), ['en', 'ru', ...RESERVED]);
+  const expected = ['en', 'ru', ...RESERVED];
+  assert.deepEqual(enumValues(), expected);
+  const crlf = lf(schema).replace(/\n/g, '\r\n');
+  assert.deepEqual(enumValues(crlf), expected);
+  const broken = crlf.match(/enum Locale \{([^}]*)\}/)![1].split('\n').map((l) => l.replace(/\/\/.*$/, '').trim()).filter(Boolean);
+  assert.ok(broken.some((v) => v.startsWith('//')));
+  assert.notDeepEqual(enumValues(lf(schema).replace('\n  es\n', '\n')), expected);
 });
 
 test('generated Prisma client knows the new values', async () => {
@@ -29,12 +47,23 @@ test('generated Prisma client knows the new values', async () => {
 test('review-only SQL contains only ALTER TYPE "Locale" ADD VALUE for the reserved values, and passes the deploy plan gate', () => {
   const f = 'prisma/sql/locale-enum-values.sql';
   const sql = readFileSync(f, 'utf8');
+  const expected = RESERVED.map((v) => `ALTER TYPE "Locale" ADD VALUE '${v}';`);
   assert.match(sql, /review-only/);
-  const stmts = sql.split(/\r?\n/).map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean);
-  assert.deepEqual(stmts, RESERVED.map((v) => `ALTER TYPE "Locale" ADD VALUE '${v}';`));
-  const gate = readFileSync('deploy/plan-check.sh', 'utf8').replace(/\r\n/g, '\n');
-  const out = execFileSync('bash', ['-s', '--', f], { encoding: 'utf8', input: `${gate}\nplan_problems "$1"\n` });
+  assert.deepEqual(sqlStatements(sql), expected);
+  const crlf = lf(sql).replace(/\n/g, '\r\n');
+  assert.deepEqual(sqlStatements(crlf), expected);
+  assert.notDeepEqual(crlf.split('\n').map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean), expected);
+  const script = lf(readFileSync('deploy/plan-check.sh', 'utf8'));
+  const out = execFileSync('bash', ['-s', '--', f], { encoding: 'utf8', input: `${script}\nplan_problems "$1"\n` });
   assert.equal(out.trim(), '', out);
+  assert.throws(() => execFileSync('bash', ['-s'], { encoding: 'utf8', input: script.replace(/\n/g, '\r\n') }), (error: unknown) => {
+    const stderr = String((error as { stderr?: unknown }).stderr ?? '');
+    return /syntax error|command not found/.test(stderr) && stderr.includes('\r');
+  });
+  assert.equal(planProblems(script, lf(sql)).trim(), '');
+  assert.equal(planProblems(script.replace(/\n/g, '\r\n'), crlf).trim(), '');
+  assert.match(planProblems(script, ''), /empty\/unreadable/);
+  assert.match(planProblems(script, 'DROP TYPE "Locale";\n'), /DROP/);
 });
 
 test('published list: only en, ru; subset of routing locales; reserved values are not published', () => {

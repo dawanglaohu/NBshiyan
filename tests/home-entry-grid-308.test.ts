@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { categoryProducts } from '../src/data/categories';
 
-const css = readFileSync('src/app/globals.css', 'utf8');
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+const css = lf(readFileSync('src/app/globals.css', 'utf8'));
 const page = readFileSync('src/app/[locale]/page.tsx', 'utf8');
 const en = JSON.parse(readFileSync('messages/en.json', 'utf8'));
 const ru = JSON.parse(readFileSync('messages/ru.json', 'utf8'));
@@ -58,6 +59,14 @@ test('#314 首屏设置没动：封面 sizes="50vw"、视频 99%', () => {
 });
 test('断词只靠 CSS hyphens:auto（RU 页 html lang=ru），产品名里没有硬连字符', () => {
   assert.match(readFileSync('src/app/[locale]/layout.tsx', 'utf8'), /<html lang=\{locale\}/);
-  assert.match(css.slice(css.indexOf('@media (max-width:767px){\n  .entry{')), /\.entry a\{[^}]*hyphens:auto/);
+  const needle = '@media (max-width:767px){\n  .entry{';
+  const block = css.slice(css.indexOf(needle));
+  assert.match(block, /\.entry a\{[^}]*hyphens:auto/);
+  const crlf = css.replace(/\n/g, '\r\n');
+  assert.equal(crlf.indexOf(needle), -1);
+  assert.match(lf(crlf).slice(lf(crlf).indexOf(needle)), /\.entry a\{[^}]*hyphens:auto/);
+  const rule = block.match(/\.entry a\{[^}]*hyphens:auto/);
+  assert.ok(rule);
+  assert.doesNotMatch(block.replace(rule[0], rule[0].replace('hyphens:auto', 'hyphens:manual')), /\.entry a\{[^}]*hyphens:auto/);
   for (const m of [en, ru]) for (const [slug, name] of Object.entries(m.Products.names as Record<string, string>)) assert.doesNotMatch(name, /\S-\S|\u2010|\u2011/, `${slug}: ${name}`);
 });

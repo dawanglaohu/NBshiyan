@@ -1,6 +1,7 @@
 import { test, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { authenticator } from 'otplib';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit/index';
@@ -253,13 +254,49 @@ test('all error codes stay within the known set (enroll_reset is the only new on
   assert.ok(seen.has('enroll_reset'));
 });
 
-test('review-only SQL is exactly the additive migrate diff and passes deploy/plan-check.sh', async () => {
-  const { execFileSync } = await import('node:child_process');
+// 检出可以是 LF 或 CRLF。语句比较看的是 SQL，不是工作区字节。
+function lf(text: string): string {
+  return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+const ADDITIVE_2FA = 'ALTER TABLE "User" ADD COLUMN "enrollIssuedAt" TIMESTAMP(3), ADD COLUMN "totpEnrollFails" INTEGER NOT NULL DEFAULT 0, ADD COLUMN "totpPendingUntil" TIMESTAMP(3);';
+const sqlStatements = (sql: string) => lf(sql).split('\n').map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean).join(' ');
+function planProblems(script: string, sqlBody: string): string {
+  const dir = mkdtempSync('tests/.crlf-plan-');
+  const rel = `${dir.replace(/\\/g, '/')}/plan.sql`;
+  try {
+    writeFileSync(rel, sqlBody);
+    return execFileSync('bash', ['-s', '--', rel], { encoding: 'utf8', input: `${lf(script)}\nplan_problems "$1"\n` });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('review-only SQL is exactly the additive migrate diff and passes deploy/plan-check.sh', () => {
   const f = 'prisma/sql/2fa-enroll-hardening.sql';
   const sql = readFileSync(f, 'utf8');
   assert.match(sql, /review-only/);
-  const stmts = sql.split(/\r?\n/).map((l) => l.replace(/--.*$/, '').trim()).filter(Boolean).join(' ');
-  assert.equal(stmts.replace(/\s+/g, ' '), 'ALTER TABLE "User" ADD COLUMN "enrollIssuedAt" TIMESTAMP(3), ADD COLUMN "totpEnrollFails" INTEGER NOT NULL DEFAULT 0, ADD COLUMN "totpPendingUntil" TIMESTAMP(3);');
-  const out = execFileSync('bash', ['-c', '. deploy/plan-check.sh; plan_problems "$1"', '_', f], { encoding: 'utf8' });
+  assert.equal(sqlStatements(sql).replace(/\s+/g, ' '), ADDITIVE_2FA);
+  const script = lf(readFileSync('deploy/plan-check.sh', 'utf8'));
+  const out = execFileSync('bash', ['-s', '--', f], { encoding: 'utf8', input: `${script}\nplan_problems "$1"\n` });
   assert.equal(out.trim(), '', out);
+});
+
+test('plan-check.sh: real bash rejects a CRLF script; LF and CRLF plans keep the additive verdict and still report DROP', () => {
+  const script = lf(readFileSync('deploy/plan-check.sh', 'utf8'));
+  const crlfScript = script.replace(/\n/g, '\r\n');
+  assert.throws(() => execFileSync('bash', ['-s'], { encoding: 'utf8', input: crlfScript }), (error: unknown) => {
+    const stderr = String((error as { stderr?: unknown }).stderr ?? '');
+    return /syntax error|command not found/.test(stderr) && stderr.includes('\r');
+  });
+  const sql = readFileSync('prisma/sql/2fa-enroll-hardening.sql', 'utf8');
+  const lfSql = lf(sql);
+  const crlfSql = lfSql.replace(/\n/g, '\r\n');
+  assert.match(sql, /review-only/);
+  assert.equal(sqlStatements(lfSql), sqlStatements(crlfSql));
+  assert.equal(sqlStatements(crlfSql).replace(/\s+/g, ' '), ADDITIVE_2FA);
+  assert.doesNotMatch(sqlStatements(crlfSql), /review-only|DROP|TRUNCATE/i);
+  assert.equal(planProblems(script, lfSql).trim(), '');
+  assert.equal(planProblems(crlfScript, crlfSql).trim(), '');
+  assert.match(planProblems(script, ''), /empty\/unreadable/);
+  assert.match(planProblems(script, 'DROP TABLE "User";\n'), /DROP/);
 });
