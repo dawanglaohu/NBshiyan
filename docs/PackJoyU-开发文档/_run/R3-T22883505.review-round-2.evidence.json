@@ -1,0 +1,15 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T22883505": {
+      "contractHash": "80b3544cf0374db45be29839a8c5ddbc79eeedb6f276d697393b7c2c89760017",
+      "verdict": "pass",
+      "evidence": [
+        "第2轮只核R1。batch-3-20261022.evidence.json 的 r3t22883505.probes 与 GitHub Actions run 39897468015、head 8ec1dd4 的 standalone-smoke.json 逐项相同：14次，densityPassed 6，densityFailed 8，询盘 1920x1080 work pass，fill 0.971，leftGap 25。",
+        "batch-3-20261022.md 的 N7 与 admin-density-applicable-failures 围栏 input 写明同样的六次通过和八次失败。localPrecheck.density 保留本机空库的 5/9，并标明不是正式失败清单。",
+        "PR 418 正文已改为六次通过、八次失败。e2e/brand-smoke.spec.ts 仍只断言测到 14 次。admin CSS、density_probe.js 和 D1–D6 阈值未改，未运行 build_docs.py --batches。",
+        "head ac3e1d33 的 run 39907670845 中 build-and-audit 与 e2e 成功。ci.yml 仍要求 standalone/server.js 非空，且 STANDALONE_TEST=1 的 TAP 为 skipped 0、fail 0。"
+      ]
+    }
+  }
+}

@@ -1136,15 +1136,15 @@
     "verdict": "pass"
   },
   "R3-T22883505": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "86bc61eeb4ac3a4595c18d65897c660c1cbf6429a5914ae627e8dca5504c706d",
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "80b3544cf0374db45be29839a8c5ddbc79eeedb6f276d697393b7c2c89760017",
     "evidence": [
-      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T22883505.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
-      "本任务《补齐Linux独立产物与适用后台密度实证》具体核查：受支持Linux standalone精确head构建/零环境skip与真实应用HTTP/独立PG/已有后台登录密度，禁止应用API拦截或存储注入；仅已实现页面验收、不宣称未来功能，失败另登记返工。新媒体04/17说明仅绑定现成v3/PNG/GIF与真实帧，不取消真实服务/GUI/密度门槛。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=supported-standalone-smoke，未改原批次/来源记录。",
-      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：.github/workflows/ci.yml; playwright.config.ts; e2e/brand-smoke.spec.ts; e2e/global-setup.ts; tests/standalone-start.test.ts; docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.md; docs/PackJoyU-开发文档/_run/batches/batch-3-20261022.evidence.json。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
-      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      "第2轮只核R1。batch-3-20261022.evidence.json 的 r3t22883505.probes 与 GitHub Actions run 39897468015、head 8ec1dd4 的 standalone-smoke.json 逐项相同：14次，densityPassed 6，densityFailed 8，询盘 1920x1080 work pass，fill 0.971，leftGap 25。",
+      "batch-3-20261022.md 的 N7 与 admin-density-applicable-failures 围栏 input 写明同样的六次通过和八次失败。localPrecheck.density 保留本机空库的 5/9，并标明不是正式失败清单。",
+      "PR 418 正文已改为六次通过、八次失败。e2e/brand-smoke.spec.ts 仍只断言测到 14 次。admin CSS、density_probe.js 和 D1–D6 阈值未改，未运行 build_docs.py --batches。",
+      "head ac3e1d33 的 run 39907670845 中 build-and-audit 与 e2e 成功。ci.yml 仍要求 standalone/server.js 非空，且 STANDALONE_TEST=1 的 TAP 为 skipped 0、fail 0。"
     ],
-    "reviewed": "2026-10-22T12:57:43.349062+00:00",
+    "reviewed": "2026-10-23T07:02:26.472279+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
