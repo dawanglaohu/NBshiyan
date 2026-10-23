@@ -1098,34 +1098,34 @@
     "verdict": "pass"
   },
   "R3-T09233008": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "b1bfa9084cbbbcebcba80fb0a7a9b8571b71d9ca7b1729ae6d0d1b38f5fd690a",
+    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
+    "contractHash": "c23e26d183030a11f5926116dae6dde3ad532aeb628607604913e2fc319ee104",
     "evidence": [
-      "仅登记任务定义的语义复核：实现验收为 REWORK，未 --landed、未合并；不得把本 scope=task-contract 的 pass 当作代码或门禁通过。",
-      "当前派发包与附件契约哈希一致；输入、产出和三项验收与 _run/batches/batch-3-20261022.md:106 的原始 task 一致；13节无本返工任务新增编号边界，17节要求真实适用平台证据，19节原任务集合保持不变。",
-      "前置 M1-T8、M2-T4、M3-T14、M5-T1 的任务笔记 status 均为 done；有效改动只在四个获授权文件，额外差异为本任务笔记回填和 judgments 日志；无生产类型、环境配置、HTTP 字段或事务层变化。",
-      "06/08 分层、唯一配置与错误体系经核：生产 prod-env-check.ts、src/lib/server/storage.ts、package.json 和 pnpm-lock.yaml 与 main b9432f5d161fd9bd05bbcc6d0fbb3fd32ac20bdc 均无差异。",
-      "Linux 精确实现 head bf49e765095275184d4b3343b3b5a3e35135388f 的 CI run 39881749760、job 120180468450 真实执行：pass=53 fail=0 skip=0；原六项及只读、覆盖、根目录、不可写、注入 public 均 pass。https://github.com/dawanglaohu/NBshiyan/actions/runs/39881749760/job/120180468450",
-      "Windows 现场复跑 node --import tsx --test --test-reporter=tap tests/prod-env-check.test.ts tests/storage-local.test.ts tests/storage.test.ts：51 tests，44 pass，0 fail，7 skip；缺 POSIX 路径、symlink EPERM、mode=0666 均如实 skip。完整 TAP：D:/xiangmu/.codex-plans/NBshiyan-r3-t09233008/review-windows.tap。",
-      "pnpm lint 与 pnpm exec tsc --noEmit --incremental false 均退出 0；lint 留有既有 img/unused-disable 警告与 SWC wasm fallback。有效四文件反造假扫描无命中，git diff --check 通过。",
-      "从当前 ci.yml 提取实际 TAP gate，六组控制通过：全齐 pass 返回0；缺失、skip、not ok、同名重复 skip、其他测试失败均返回1。探针仅在 planning 目录，不替代真实 Linux 证据。",
-      "实现侧裁决全部候选 A 保留依赖、B 本 PR 升级、C 弱化审计已完整重审；jev-1.14.0，judgments.jsonl label=R3-T09233008:review，adjudicate: pick=A(high 0.95) spec_change=no(0.10) outside_stack=no(0.10) needs_owner=no(0.34) reversible=yes(0.86) adopt=take(A)。动作：不改依赖、不削弱审计，审计失败保留为阻断落地的基线问题。",
-      "语义审查代码阻断：.github/workflows/ci.yml:119 新增 actions: write，而 checkout 默认保存 token，随后运行 PR 控制的 install/test，形成不必要的 Actions 写权限。另有 required build-and-audit 在审计处失败以及 security-review 缺精确 head 的安全 App 批准，均不得写成已通过。"
+      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T09233008.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
+      "本任务《在适用平台执行存储权限与符号链接安全验收》具体核查：存储/环境安全验证分层：Linux六项必须实际跑过不可写/根目录/public/.next/逃逸链接/覆盖负例，Windows前置能力不足不得冒充通过；仅test/CI有效路径，不修改生产路径与权限规则。共享素材更新不削弱其POSIX/安全断言。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-posix-storage-harness，未改原批次/来源记录。",
+      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/prod-env-check.test.ts; tests/storage-local.test.ts; tests/storage.test.ts; .github/workflows/ci.yml。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
+      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
     ],
-    "reviewed": "2026-10-23T01:18:56.767048+00:00",
+    "reviewed": "2026-10-22T12:57:30.241373+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T21757567": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "fdd7bc2852afe4a3981df2c07d679f1594bfd966705e716a5807d489eeb715a2",
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "a1c9bc478d0e5d86c22efc3705c6e7332cc7243241003b40550c49536a241b16",
     "evidence": [
-      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T21757567.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
-      "本任务《让内容导入用例使用实际Python并执行全部保护断言》具体核查：真实Python入口与七项内容导入保护断言：Windows/Linux均执行、错误解释器仍失败留stderr、与committed NDJSON一致；路径仅test与既有build.py/linkmap.py，不因媒体文案变化跳过placeholder/food-claim保护。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-python-runtime，未改原批次/来源记录。",
-      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/sanity-import.test.ts; docs/content/sanity-import/build.py; docs/content/sanity-import/linkmap.py。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
-      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      "本补丁仅扩有效支持路径pnpm-lock.yaml；原七项导入保护、错误解释器与stderr、import.ndjson一致性验收未变；相邻任务/批次结论未更改。源声明为_run/batches/batch-3-20261022.md中baseline-python-runtime围栏，修复任务由生成器同步，未在task-contracts.json重复创建返工ID。",
+      "用户在本次会话明确批准应用已独立审查的单锁文件安全补丁，并确认指定bot开发已取消，授权相应身份门禁管理员例外；此例外不用于跳过审计、构建、E2E。当前保持review、尚未声称已合并。",
+      "冲突检查：开放PR412/414均不改pnpm-lock.yaml；继续原PR413及原工作树，没有新clone或Windows worktree prune。",
+      "实际应用与独立审查候选逐文本相同：Next、@next/env及8个平台SWC解析到15.5.28，只有必要peer引用随之更新，其他包不升级；package.json保留~15.5.27和eslint-config-next15.5.27。独立子代理已核10包integrity与npm官方registry一致，PATCH_SECURITY_VERDICT=PASS。",
+      "真实完整安装：npx --yes pnpm@10.34.6 install --frozen-lockfile exit0，正常根postinstall成功生成Prisma6.19.3客户端，实际node_modules/next版本15.5.28；未把仅lockfile-only检查冒充完整安装。",
+      "应用后真实npx pnpm10 audit --prod --audit-level high --json exit0，257个生产依赖，info/low/moderate/high/critical全部0。",
+      "应用后node --import tsx --test tests/sanity-import.test.ts：13 pass/0 fail/0 skip；七项真实Python保护与逐字节生成、空/缺失解释器、9009诊断均保留。前轮同一测试代码已在Windows三种命令配置及Linux各13 pass/0 fail/0 skip。",
+      "应用后pnpm10 lint exit0（既有warnings）；生产src、Python保护脚本和CI审计规则未改。本轮后续必须由Linux CI验证真正新head的build-and-audit和e2e，再补最终head独立安全复核。",
+      "独立安全报告已在PR https://github.com/dawanglaohu/NBshiyan/pull/413#issuecomment-6355283134 留档；旧锁的sharp0.35.5已满足RCE公告缓解，依赖补丁仍用于满足版本级审计与官方Next修复，不声称当前应用已被证明可利用。",
+      "应用后日志SHA256：{\"merge-applied-audit.json\": \"b73f32a71af6bb1b15f2071e3df4659fc1e02df41126d9aed163ec59277f9f72\", \"merge-applied-lint.log\": \"90278efd449e2b46c14011208a5fde65917e2fd0038451d83a8c896170f6cfb8\", \"merge-applied-tests.log\": \"7f944d42f6905c3afc57cb00f8087047aca3277ae8c0fc03f9d53bf8c3ba3344\", \"merge-frozen-install.log\": \"d76fc4a3b60c86322d849b363e0974116e3594a4c23730c26c9dc49aaa510bcb\"}"
     ],
-    "reviewed": "2026-10-22T12:57:36.769866+00:00",
+    "reviewed": "2026-10-23T01:47:18.545173+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
