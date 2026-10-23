@@ -7,7 +7,8 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { PrismaClient } from '@prisma/client';
 import { hash as argonHash, verify } from '@node-rs/argon2';
-import { ARGON, CLEAR_FLAG, runReset } from '../scripts/admin-reset-initial-password-lib.mjs';
+import { ARGON, CLEAR_FLAG, runReset, VIA } from '../scripts/admin-reset-initial-password-lib.mjs';
+import { hashEnrollToken } from '../scripts/enroll-token-lib.mjs';
 
 const base = process.env.ADMIN_RESET_TEST_DATABASE_URL;
 const SCHEMA = `adminreset_test_${process.pid}`;
@@ -91,6 +92,29 @@ async function newAdmin(email: string) {
 }
 const t = (ev: Ev[], who: string, what: string) => ev.find((e) => e.who === who && e.what === what)!.t;
 
+/** 终端只打印一次的绑定链接。令牌在 fragment 里，审计里必须没有它。 */
+function linkToken(out: string) {
+  const m = /#t=(\S+)/.exec(out);
+  assert.ok(m, 'stdout missing the one-time enroll link');
+  return decodeURIComponent(m[1]);
+}
+
+const RESET_META = { actor: 'cli', via: VIA };
+const ISSUED_META = { actor: 'cli', source: 'cli', via: VIA, truncated: false };
+
+function assertAuditClosed(audits: { actorId: string | null; meta: unknown }[], secrets: string[]) {
+  for (const x of audits) {
+    assert.equal(x.actorId, null);
+    const text = JSON.stringify(x);
+    for (const secret of secrets) assert.equal(text.includes(secret), false, 'audit contains a secret');
+    assert.doesNotMatch(text, /argon2/);
+    const meta = x.meta as Record<string, unknown> | null;
+    if (meta && typeof meta === 'object') {
+      for (const key of Object.keys(meta)) assert.doesNotMatch(key, /hash|secret|password|email|token|totp/i);
+    }
+  }
+}
+
 /** A 先开始并拿到行锁；A 持锁期间 B 开始，B 的 FOR UPDATE 必须等到 A 提交后才返回 */
 async function race(email: string, a: { pw: string; extra?: string[] }, b: { pw: string; extra?: string[] }) {
   const ev: Ev[] = [];
@@ -107,17 +131,28 @@ async function race(email: string, a: { pw: string; extra?: string[] }, b: { pw:
   return { ra, rb, ev };
 }
 
-test('真实 PG：同一账号两次并发重置（都不带参数）→ 串行执行，sessionVersion 加两次，后提交的密码生效，两条审计', { skip }, async () => {
+test('真实 PG：同一账号两次并发重置（都不带参数）→ 串行执行，sessionVersion 加两次，后提交的密码生效，每次签发恰有一条令牌审计', { skip }, async () => {
   const email = `race1-${process.pid}@example.com`;
   const { id } = await newAdmin(email);
   const { ra, rb, ev } = await race(email, { pw: PW_A }, { pw: PW_B });
   assert.equal(ra.code, 0, ra.err); assert.equal(rb.code, 0, rb.err);
+  const tokenA = linkToken(ra.out);
+  const tokenB = linkToken(rb.out);
+  assert.notEqual(tokenA, tokenB);
   const u = await db!.user.findUniqueOrThrow({ where: { id } });
   assert.equal(u.sessionVersion, 2);
+  assert.equal(u.enrollTokenHash, hashEnrollToken(tokenB));
   assert.ok(await verify(u.passwordHash, PW_B)); assert.ok(!(await verify(u.passwordHash, PW_A)));
   const audits = await db!.auditLog.findMany({ where: { target: id }, orderBy: { createdAt: 'asc' } });
-  assert.deepEqual(audits.map((x) => x.action), ['user.password_reset', 'user.password_reset']);
-  for (const x of audits) { assert.equal(x.actorId, null); assert.doesNotMatch(JSON.stringify(x), new RegExp(`${PW_A}|${PW_B}|${email}|argon2`)); }
+  // 同一事务的两行 createdAt 都是事务时间戳，不能靠它区分先后；精确多重集仍固定为每次成功签发各一对。
+  assert.deepEqual(audits.map((x) => x.action).sort(), [
+    'auth.enroll_token_issued', 'auth.enroll_token_issued', 'user.password_reset', 'user.password_reset',
+  ]);
+  assert.equal(audits.filter((x) => x.action === 'auth.enroll_token_issued').length, 2);
+  for (const x of audits) {
+    assert.deepEqual(x.meta, x.action === 'auth.enroll_token_issued' ? ISSUED_META : RESET_META);
+  }
+  assertAuditClosed(audits, [PW_A, PW_B, email, tokenA, tokenB, u.enrollTokenHash!]);
   const waited = t(ev, 'B', 'locked') - t(ev, 'B', 'lock_wait');
   assert.ok(waited >= 100, `B waited ${waited}ms for the lock`);
 });
@@ -128,12 +163,24 @@ test('真实 PG：A 带 --clear-pending-enroll 持锁时 B（不带参数）开�
   const { ra, rb } = await race(email, { pw: PW_A, extra: [CLEAR_FLAG] }, { pw: PW_B });
   assert.equal(ra.code, 0, ra.err);
   assert.equal(rb.code, 3); assert.match(rb.err, /未完成的 2FA 绑定/);
+  assert.equal(rb.out.includes('#t='), false);
+  const tokenA = linkToken(ra.out);
   const u = await db!.user.findUniqueOrThrow({ where: { id } });
   assert.equal(u.sessionVersion, 1);
   assert.ok(u.enrollIssuedAt instanceof Date);
+  assert.equal(u.enrollTokenHash, hashEnrollToken(tokenA));
   assert.ok(await verify(u.passwordHash, PW_A)); assert.ok(!(await verify(u.passwordHash, PW_B)));
   const audits = await db!.auditLog.findMany({ where: { target: id }, orderBy: { createdAt: 'asc' } });
-  assert.deepEqual(audits.map((x) => x.action).sort(), ['user.password_reset', 'user.pending_enroll_cleared']);
+  assert.deepEqual(audits.map((x) => x.action).sort(), [
+    'auth.enroll_token_issued', 'user.password_reset', 'user.pending_enroll_cleared',
+  ]);
+  assert.equal(audits.filter((x) => x.action === 'auth.enroll_token_issued').length, 1);
+  assert.deepEqual(audits.find((x) => x.action === 'user.password_reset')?.meta, RESET_META);
+  assert.deepEqual(audits.find((x) => x.action === 'auth.enroll_token_issued')?.meta, ISSUED_META);
+  assert.deepEqual(audits.find((x) => x.action === 'user.pending_enroll_cleared')?.meta, {
+    actor: 'cli', via: VIA, hadPending: false, windowReopened: true,
+  });
+  assertAuditClosed(audits, [PW_A, PW_B, email, tokenA, u.enrollTokenHash!]);
 });
 
 test('真实 PG：TOTP 已启用的账号，带参数也拒绝，库里不变', { skip }, async () => {
@@ -142,7 +189,11 @@ test('真实 PG：TOTP 已启用的账号，带参数也拒绝，库里不变', 
   await db!.user.update({ where: { id }, data: { totpEnabled: true, totpSecret: 'v1.x.y.z' } });
   const r = await reset('A', [], email, PW_A, [CLEAR_FLAG]);
   assert.equal(r.code, 3);
+  assert.equal(r.out.includes('#t='), false);
   const u = await db!.user.findUniqueOrThrow({ where: { id } });
   assert.equal(u.sessionVersion, 0); assert.equal(u.totpSecret, 'v1.x.y.z');
+  assert.equal(u.enrollTokenHash, null);
+  assert.ok(await verify(u.passwordHash, 'Initial-Password-000'));
+  assert.ok(!(await verify(u.passwordHash, PW_A)));
   assert.equal(await db!.auditLog.count({ where: { target: id } }), 0);
 });

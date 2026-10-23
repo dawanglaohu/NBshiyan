@@ -1,0 +1,23 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T87287564": {
+      "contractHash": "2dd4edc4ad7304f795ac7c45977092a81d4c90ee6472af91a20577a62e803c7c",
+      "verdict": "pass",
+      "evidence": [
+        "验收1（双平台实跑）：工作树 D:\\xiangmu\\NBshiyan-r3-t87287564 在 Windows 上 `node --import tsx --test tests/lint-ru-yo.test.ts tests/prod-mocks-strip.test.ts` → tests 12 / pass 11 / fail 0 / skipped 1；WSL Ubuntu-20.04 上 `node --experimental-strip-types --test` 同两文件 → tests 12 / pass 11 / fail 0 / skipped 1（skip 项为「#323 生产构建产物」，需 .next/standalone/server.js，仓库未做生产构建）。",
+        "验收1（类型核验）：`npx tsc --noEmit` → EXIT=0、零输出；修复前为 EXIT=2 与 5 条 TS2305/TS2339（tests/lint-ru-yo.test.ts:6/52、tests/prod-mocks-strip.test.ts:9 缺 fileId/sameFile 声明）。",
+        "验收1（lint）：`pnpm run lint:ru-yo` → EXIT=0；WSL 下 `node scripts/lint-ru-yo.mjs` 打印 lint:ru-yo: ok 并正常退出。",
+        "验收2（扫描覆盖保持）：scripts/lint-ru-yo.mjs:101-107 的 ROOTS 与 :112 的 EXCLUDE 未改动，tests/lint-ru-yo.test.ts:39-49 断言 messages/ru.json、docs/seo-category-meta.md、src/lib/seo/categoryMeta.ts、docs/content 仍被发现且校对稿被排除；tests/prod-mocks-strip.test.ts:22-37 断言 next.config 的 MOCK_SOURCE_GLOBS 字面量与 src/lib 下五个真实 mock 文件清单未变。",
+        "验收2（slash/backslash 同文件身份）：scripts/lint-ru-yo.mjs:12-14 fileId 折叠分隔符、:16-18 sameFile 以 fileId 相等判同；:79-86 lintText 用 id 做允许名单比较并把命中 file 写成斜杠身份；:114-120 walk 用 fileId 判 EXCLUDE 且输出斜杠身份；tests/lint-ru-yo.test.ts:64-119 与 tests/prod-mocks-strip.test.ts:81-123 覆盖斜杠/反斜杠互认。",
+        "验收2（真实坏文件负例）：tests/lint-ru-yo.test.ts:77-115 在 mkdtemp 临时目录写入真实坏文件（'черный'）并断言被默认扫描命中、命中 file===斜杠身份、允许名单斜杠与反斜杠两种写法都放行、其他文件不放行；校对稿 'расчет' 被排除；tests/prod-mocks-strip.test.ts:84-119 写真实未覆盖 mock src/components/widget-mock.ts 并断言它仍判失败、静态 import 命中 src/components/widget.ts。",
+        "验收3（未缩小发现范围或改空列表）：tests/lint-ru-yo.test.ts:41 断言 files.length>1、:95 断言 files.length>=5、:92 断言缺目录时 defaultFiles 返回 []；tests/prod-mocks-strip.test.ts:25 断言 files.length>=5、:103 断言缺目录 walk 返回 []、:105-109 断言发现的三个文件精确相等；无一处以空列表代替断言。",
+        "边界（空输入/失败路径/重复提交）：空输入见 scripts/lint-ru-yo.mjs:85 允许名单项 file 为空即全局放行、tests/lint-ru-yo.test.ts:86 断言 sameFile('', badSlash)===false、:105 断言 lintText('', badBack)===[]；失败路径见 defaultFiles 缺根目录返回 [] 与 prod-mocks-strip:103；重复提交/重复身份见 tests/lint-ru-yo.test.ts:96 ids 唯一、:98 坏文件只出现一次、tests/prod-mocks-strip.test.ts:111 同一身份只计数一次。",
+        "范围核对：`git diff --name-status origin/main...HEAD` 仅 4 个文件（docs/PackJoyU-开发文档/图谱/任务/R3-T87287564.md、scripts/lint-ru-yo.mjs、tests/lint-ru-yo.test.ts、tests/prod-mocks-strip.test.ts），无范围外改动；补丁另加 scripts/lint-ru-yo.d.mts（经 DOC_PATCH r3-t87287564-type-decl 扩入有效路径）。",
+        "审查方修复（FIXED_BY_REVIEWER）：scripts/lint-ru-yo.d.mts 末尾补 'export function fileId(p: string): string;' 与 'export function sameFile(a: string, b: string): boolean;'，对应 scripts/lint-ru-yo.mjs:12-14 与 :16-18；修复后 tsc EXIT=0。",
+        "反造假扫描：三个有效路径内 grep 'not implemented|placeholder|stub|TODO|FIXME|待接入|后续接入' 零命中；grep 'window\\.__|globalThis\\.__' 零命中；grep 'return true|return false|=> true|=> false' 零命中；fileId/sameFile 全库唯一，未重复实现前置已有工具。",
+        "任务笔记回填：docs/PackJoyU-开发文档/图谱/任务/R3-T87287564.md 的 code 区块 12 条、notes 区块 4 段已填，路径与行号可核对（scripts/lint-ru-yo.mjs:13/17/80/115、tests/lint-ru-yo.test.ts:39/51/64、tests/prod-mocks-strip.test.ts:15/25/52/81）。"
+      ]
+    }
+  }
+}
