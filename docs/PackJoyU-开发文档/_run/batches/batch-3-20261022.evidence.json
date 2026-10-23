@@ -2108,6 +2108,20 @@
         "result": "1 passed (1.0m)",
         "exit": 0,
         "browser": "Google Chrome 138 via E2E_BROWSER_CHANNEL=chrome"
+      },
+      "density": {
+        "role": "empty-database precheck only; not the official failure list",
+        "densityPassed": 5,
+        "densityFailed": 9,
+        "inquiries1920": {
+          "viewport": "1920x1080",
+          "type": "work",
+          "pass": false,
+          "D2": "fail",
+          "D6": "fail",
+          "fill": 0.102,
+          "leftGap": 1508.3
+        }
       }
     },
     "notClaimed": [
@@ -2291,16 +2305,16 @@
         "surface": "询盘",
         "type": "work",
         "viewport": "1920x1080",
-        "pass": false,
+        "pass": true,
         "D1": "pass",
-        "D2": "fail",
+        "D2": "pass",
         "D3": "pass",
         "D4": "pass",
         "D5": "pass",
-        "D6": "fail",
+        "D6": "pass",
         "overflow": "pass",
-        "fill": 0.102,
-        "leftGap": 1508.3
+        "fill": 0.971,
+        "leftGap": 25
       },
       {
         "surface": "询盘",
@@ -2498,8 +2512,16 @@
         "leftGap": 24
       }
     ],
-    "densityPassed": 5,
-    "densityFailed": 9,
+    "probeSource": {
+      "runId": 39897468015,
+      "artifact": "standalone-smoke.json",
+      "head": "8ec1dd4cd91c3107322d1ff6e0d14d548032bd1a",
+      "transport": "node .next/standalone/server.js",
+      "postgres": "17",
+      "browser": "Playwright Chromium"
+    },
+    "densityPassed": 6,
+    "densityFailed": 8,
     "thresholdsUnchanged": true,
     "adminCssEdited": false,
     "gif": {
