@@ -1,0 +1,214 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T71889698": {
+      "contractHash": "b9e2b4c739b5dd721bbef82c953eabc012411892baf155dfc67512fe83e3cddf",
+      "verdict": "pass",
+      "evidence": [
+        "本轮只核首轮R1和主干同步的直接回归；当前status ready=true、stale=[]、blockers=[]，契约哈希保持。首轮验收与代码位置、实施沉淀质量检查继续有效，没有重跑整套需求清单。",
+        "独立PR415已经MERGED，merge=5da0b6a6b470f713b26a7db981d7e872a63a16a1；本任务已在同一工作树同步main。当前相对main的代码增量仍只有原DB测试，生产reset/token库无差异，已审依赖与视频四文件逐个blob相等。",
+        "更新后的实际Next/ESLint15.5.28与sharp0.35.5下，ADMIN_RESET_TEST_DATABASE_URL指向本任务planning里的专用PG17.9新空库，三项真实DB测试3pass/0fail/0skip，reset单元22/22；PG已停止。",
+        "验收1/2：tests/admin-reset-initial-password.db.test.ts:143-157核最终密码、sessionVersion=2、末次令牌哈希和两条reset加两条issued精确动作多重集、元数据脱敏及真实锁等待。审计按事务时间排序不被当作动作顺序保证。",
+        "验收3：生产scripts/admin-reset-initial-password-lib.mjs:153保持签发审计，:284-293保持锁后重查和拒绝早返；DB测试:160-183只成功方三条审计、等待拒绝方不签发，:186-198核TOTP拒绝后密码/会话/令牌/审计不变。上述三个源文件与首轮哈希完全相等，反造假/接线结论保留。",
+        "R1实际解除：本分支生产audit各级全0且muted=[]，独立安全子代理checkpoint SECURITY_PASS。首轮Jev A/high0.82/adopt=take(A)在judgments.jsonl:994，独立依赖修复、先合main、再同步和复验的动作已落实。私有App的管理员例外仅按用户明示授权用于PR415，其余CI全部成功；本PR仍须以最终文档提交的检查成功作为merge前提。"
+      ]
+    }
+  },
+  "review": {
+    "task": "R3-T71889698",
+    "round": 2,
+    "verdict": "pass",
+    "recordedAtUtc": "2026-10-23T02:39:48.603755+00:00",
+    "pr": "https://github.com/dawanglaohu/NBshiyan/pull/412",
+    "verifiedSourceCheckpoint": "04bf4129f67810af184b7e3f2157b99398872cb5",
+    "verifiedBase": "5da0b6a6b470f713b26a7db981d7e872a63a16a1",
+    "scope": "previous R1 and direct synchronization regressions only",
+    "acceptance": {
+      "1": "pass",
+      "2": "pass",
+      "3": "pass"
+    },
+    "sourceHashes": {
+      "tests/admin-reset-initial-password.db.test.ts": "6b405008bb1093f4cc4012f1826395a87de3619cd5cb7e39d6c4df5a68e0d8d4",
+      "scripts/admin-reset-initial-password-lib.mjs": "46b852c037d41341712597d59763af40784f3748263f32bc86b0d64b3eb1b70f",
+      "scripts/enroll-token-lib.mjs": "7b030014e800d53be48793b8045c893201606e6ff57c6537cc98f924742e496d",
+      "package.json": "36ed6b0f4d23ca3ebb8280f0688957dab2bf822693c43df455686a34005fe2cf",
+      "pnpm-lock.yaml": "609b030583252ea69a7598de30e65f0f59f4989d946de86e307e58483cffed9d",
+      "src/components/layout/HeroVideo.tsx": "a0991e6e6ab5ef63d5d677f4e49225da11fac2b57fe83ccd7d05fe456f3eeee0",
+      "e2e/home-media.spec.ts": "35af1735f6d20a54142d91b2ecf023a88fc146152af95d604a4a820bfbfb2716"
+    },
+    "tests": [
+      {
+        "command": "node --import tsx --test tests/admin-reset-initial-password.db.test.ts",
+        "exitCode": 0,
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "file": "round2-pg17-tests.log",
+          "bytes": 1187,
+          "sha256": "972ae4dd6ae9f6b76645398dee85fbb9aaa5aca55c571d2e28d691a471bc9410"
+        }
+      },
+      {
+        "command": "node --import tsx --test tests/admin-reset-initial-password.test.ts",
+        "exitCode": 0,
+        "pass": 22,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "file": "round2-reset-unit.log",
+          "bytes": 6733,
+          "sha256": "b006f242148e5117b43fc49f5c5f70902ea49da679b4b149ef77485163f4cc6a"
+        }
+      },
+      {
+        "command": "pnpm install --frozen-lockfile",
+        "exitCode": 0,
+        "log": {
+          "file": "round2-install.log",
+          "bytes": 2220,
+          "sha256": "392b3297e3f5f42b6df1452c574312ef93fd50ff19455291b34f954c8424fa0c"
+        }
+      },
+      {
+        "command": "pnpm audit --prod --json",
+        "exitCode": 0,
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0
+        },
+        "muted": [],
+        "log": {
+          "file": "round2-audit.json",
+          "bytes": 328,
+          "sha256": "0572eee8b787970d5d28f7cba1ca260174a0d244568a0631a5530c2eed68c480"
+        }
+      },
+      {
+        "command": "pnpm exec eslint tests/admin-reset-initial-password.db.test.ts scripts/admin-reset-initial-password-lib.mjs",
+        "exitCode": 0,
+        "log": {
+          "file": "round2-eslint.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "command": "pnpm exec tsc --noEmit --incremental false",
+        "exitCode": 0,
+        "log": {
+          "file": "round2-tsc.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "command": "build_vault.py --check",
+        "exitCode": 0
+      },
+      {
+        "command": "review.py --json",
+        "exitCode": 0,
+        "block": 0,
+        "existingWarnings": 28,
+        "logSha256": "aaf98e4d61f016375ffe18811ba59eb641b928a3451a9cf0bcb02c7e41e4429c"
+      },
+      {
+        "command": "node --check docs/PackJoyU-开发文档/docs-data.js",
+        "exitCode": 0
+      },
+      {
+        "command": "git diff --check",
+        "exitCode": 0
+      }
+    ],
+    "databaseRuntime": {
+      "version": "PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit",
+      "data_directory": "D:/xiangmu/.codex-plans/NBshiyan-r3-t71889698/pgdata",
+      "port": "55462",
+      "database": "r3t71889698_review_31760",
+      "initialUserTables": 0,
+      "capturedAt": "2026-10-23T02:36:17.321Z"
+    },
+    "productionDatabaseUsed": false,
+    "taskPostgresStopped": true,
+    "upstreamRepair": {
+      "pr": "https://github.com/dawanglaohu/NBshiyan/pull/415",
+      "state": "MERGED",
+      "sourceHead": "fa207966c00a0952b9ba6b2cc2a3fd1bed7f589c",
+      "mergeCommit": "5da0b6a6b470f713b26a7db981d7e872a63a16a1",
+      "ci": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39888875805",
+      "buildAndAudit": "SUCCESS",
+      "e2e": {
+        "result": "SUCCESS",
+        "pass": 79,
+        "existingSkipped": 9
+      },
+      "privateAppGate": "FAILURE; user explicitly authorized this gate only administrator exception",
+      "independentSecurityReport": "https://github.com/dawanglaohu/NBshiyan/pull/415#issuecomment-6355996675",
+      "gif": "https://github.com/dawanglaohu/NBshiyan/blob/ea57ad4cebaec7626c1288f514927c345b5d4202/pr415-video-pause.gif?raw=true",
+      "videoFixAuthorization": "user explicitly expanded scope to reproduce and repair the pending-play pause race",
+      "videoRedGreen": "Same real delayed MP4/browser test: old source expected paused but got poster; guard cleanup fix passes.",
+      "videoAdjudication": {
+        "model": "jev-1.14.0",
+        "source": "PR415 planning judgments.jsonl:2",
+        "options": [
+          "A effect-local active cleanup",
+          "B ref generation"
+        ],
+        "pick": "A",
+        "confidence": 0.92,
+        "adopt": "take(A)",
+        "implementationMatches": true
+      },
+      "gifLimit": "Windows standalone copy EPERM; same compiled root .next with next start and normal CSP, APP_ENV=development. Full production/standalone Linux CI succeeded. No AI model applies to this public video flow."
+    },
+    "independentSecurity": {
+      "result": "SECURITY_PASS",
+      "checkpoint": "04bf4129f67810af184b7e3f2157b99398872cb5",
+      "report": {
+        "file": "security-agent-round2-report.md",
+        "bytes": 4572,
+        "sha256": "ceb1d5c1de5ad5902c9ae50bd30b1e1ee35d2f36da64a64e86315790c6436b31"
+      },
+      "equivalence": {
+        "file": "security-round2-equivalence.json",
+        "bytes": 2946,
+        "sha256": "ac93638f6966527807df0197de043687c6395557dd1597ca181eefd7099abc30"
+      }
+    },
+    "adjudication": {
+      "source": "review round 1",
+      "line": "_run/judgments.jsonl:994",
+      "historicalLineAt2fd3a450": 989,
+      "model": "jev-1.14.0",
+      "options": [
+        "A independent repair first, sync main, exact-head checks",
+        "B doc-issue and await separate repair"
+      ],
+      "pick": "A",
+      "confidence": 0.82,
+      "adopt": "take(A)",
+      "actionCompleted": true
+    },
+    "typeSafeReview": "skipped optional second opinion; required prior adjudication preserved and action implemented",
+    "newProductionCodeInThisPR": [],
+    "docIssues": [],
+    "rework": [],
+    "ciValidation": {
+      "requiredBeforeMerge": true,
+      "statusAtEvidence": "awaiting final documentation commit; final live-head CI result must be posted before merge"
+    },
+    "firstRoundEvidencePreserved": "_run/R3-T71889698.review-2026-10-22.evidence.json",
+    "vault": {
+      "code": "verified existing protected section",
+      "notes": "verified existing protected section",
+      "taskStatusBeforePush": "done",
+      "remainingRevalidation": []
+    }
+  }
+}
