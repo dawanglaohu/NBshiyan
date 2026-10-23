@@ -1,5 +1,6 @@
 // deploy-readiness：standalone 产物（node .next/standalone/server.js）启动时的生产配置检查。
-// 需要先做一次生产构建（output: 'standalone'），默认跳过；CI / 本地这样跑：
+// 未设置 STANDALONE_TEST 时跳过，避免普通 pnpm test 在没有产物时失败。
+// STANDALONE_TEST=1 时三例都必须执行：缺 server.js 是失败，不能再因环境 skip。
 //   pnpm build && STANDALONE_TEST=1 node --import tsx --test tests/standalone-start.test.ts
 // 只用假值；服务只按子进程 PID 停止。
 import { test } from 'node:test';
@@ -11,7 +12,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 const SERVER = path.resolve('.next/standalone/server.js');
-const enabled = process.env.STANDALONE_TEST === '1' && existsSync(SERVER);
+/** 标志已设就必须跑完。缺产物由各例断言失败，不用 skip 把启动检查写成通过。 */
+const skip = process.env.STANDALONE_TEST === '1' ? false : 'STANDALONE_TEST is not 1';
 const FAKE = {
   APP_ENV: 'production', NODE_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', NEXT_PUBLIC_SITE_URL: 'https://packjoyu.example', APP_ORIGIN: 'https://packjoyu.example',
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAAfakePublicSiteKey', RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'https://fake.upstash.invalid',
@@ -71,7 +73,8 @@ async function start(env: Record<string, string | undefined>, onReady?: (port: n
   });
 }
 
-test('standalone：缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS、MAIL_SEND_ADAPTER=mock、SMTP_PORT=25 各自 exit 1，只打印变量名，不打印任何值', { skip: !enabled }, async () => {
+test('standalone：缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS、MAIL_SEND_ADAPTER=mock、SMTP_PORT=25 各自 exit 1，只打印变量名，不打印任何值', { skip }, async () => {
+  assert.ok(existsSync(SERVER), `missing ${SERVER}`);
   const dir = mkdtempSync(path.join(tmpdir(), 'sa-upl-'));
   const cases: [string, Record<string, string | undefined>, RegExp][] = [
     ['EDGE_AUTH_SECRET missing', { EDGE_AUTH_SECRET: undefined }, /- EDGE_AUTH_SECRET/],
@@ -92,7 +95,8 @@ test('standalone：缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS、MAIL_SEND_A
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('standalone：UPLOAD_DIR 不存在 / 不可写 → exit 1', { skip: !enabled }, async () => {
+test('standalone：UPLOAD_DIR 不存在 / 不可写 → exit 1', { skip }, async () => {
+  assert.ok(existsSync(SERVER), `missing ${SERVER}`);
   const dir = mkdtempSync(path.join(tmpdir(), 'sa-upl-'));
   try {
     let r = await start({ ...FAKE, UPLOAD_DIR: path.join(dir, 'missing') });
@@ -106,7 +110,8 @@ test('standalone：UPLOAD_DIR 不存在 / 不可写 → exit 1', { skip: !enable
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
-test('standalone：全部假值 → 正常启动；/api/health 不跳转 locale，数据库不可达时 503 {ok:false} + no-store', { skip: !enabled }, async () => {
+test('standalone：全部假值 → 正常启动；/api/health 不跳转 locale，数据库不可达时 503 {ok:false} + no-store', { skip }, async () => {
+  assert.ok(existsSync(SERVER), `missing ${SERVER}`);
   const dir = mkdtempSync(path.join(tmpdir(), 'sa-upl-'));
   try {
     let health: { status: number; body: string; cc: string | null } | null = null;

@@ -26,8 +26,15 @@ jobs:
       - name: Unit tests
         run: pnpm test
       - run: pnpm build
-      - name: standalone 启动检查（缺 EDGE_AUTH_SECRET / DATABASE_URL / SMTP_PASS 都必须 exit 1；只用假值）
-        run: STANDALONE_TEST=1 node --import tsx --test tests/standalone-start.test.ts
+      - name: 确认 Linux standalone 产物
+        run: test -s .next/standalone/server.js
+      - name: standalone 启动检查（STANDALONE_TEST=1，缺产物或环境 skip 都算失败；只用假值）
+        run: |
+          set -o pipefail
+          STANDALONE_TEST=1 node --import tsx --test --test-reporter=tap tests/standalone-start.test.ts | tee /tmp/standalone-start.tap
+          grep -qx '# skipped 0' /tmp/standalone-start.tap
+          grep -qx '# fail 0' /tmp/standalone-start.tap
+          grep -Eq '^# pass [1-9][0-9]*$' /tmp/standalone-start.tap
       # 固定 Chrome 版本，避免 runner 自带 Chrome 升级后与 Lighthouse 的 trace 格式不兼容（frame_sequence 报错）
       - uses: browser-actions/setup-chrome@v1
         id: chrome
@@ -101,6 +108,15 @@ jobs:
             echo 'RUM 日志出现邮箱样式字段，脱敏白名单被破坏' >&2
             exit 1
           fi
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-smoke
+          path: |
+            test-results/**/standalone-smoke.json
+            test-results/**/trace.zip
+          retention-days: 7
+          if-no-files-found: warn
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
