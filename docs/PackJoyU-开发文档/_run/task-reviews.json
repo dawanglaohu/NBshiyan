@@ -1149,15 +1149,17 @@
     "verdict": "pass"
   },
   "R3-T71889698": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "314dde429cade0194ffe77b17c16c4fcf2f6cb290f529a761b64cde558595b04",
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "b9e2b4c739b5dd721bbef82c953eabc012411892baf155dfc67512fe83e3cddf",
     "evidence": [
-      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T71889698.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
-      "本任务《保留令牌签发审计并修正重置并发测试预期》具体核查：真实PG17密码重置串行及精确审计：保留auth.enroll_token_issued，每次签发恰有对应审计、拒绝者不写；仅既有DB测试与reset库文件，不能删除生产审计或任意放宽计数。共享品牌文件说明不影响账号安全契约。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=reset-audit-expectations，未改原批次/来源记录。",
-      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/admin-reset-initial-password.db.test.ts; scripts/admin-reset-initial-password-lib.mjs。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
-      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      "本轮只核首轮R1和主干同步的直接回归；当前status ready=true、stale=[]、blockers=[]，契约哈希保持。首轮验收与代码位置、实施沉淀质量检查继续有效，没有重跑整套需求清单。",
+      "独立PR415已经MERGED，merge=5da0b6a6b470f713b26a7db981d7e872a63a16a1；本任务已在同一工作树同步main。当前相对main的代码增量仍只有原DB测试，生产reset/token库无差异，已审依赖与视频四文件逐个blob相等。",
+      "更新后的实际Next/ESLint15.5.28与sharp0.35.5下，ADMIN_RESET_TEST_DATABASE_URL指向本任务planning里的专用PG17.9新空库，三项真实DB测试3pass/0fail/0skip，reset单元22/22；PG已停止。",
+      "验收1/2：tests/admin-reset-initial-password.db.test.ts:143-157核最终密码、sessionVersion=2、末次令牌哈希和两条reset加两条issued精确动作多重集、元数据脱敏及真实锁等待。审计按事务时间排序不被当作动作顺序保证。",
+      "验收3：生产scripts/admin-reset-initial-password-lib.mjs:153保持签发审计，:284-293保持锁后重查和拒绝早返；DB测试:160-183只成功方三条审计、等待拒绝方不签发，:186-198核TOTP拒绝后密码/会话/令牌/审计不变。上述三个源文件与首轮哈希完全相等，反造假/接线结论保留。",
+      "R1实际解除：本分支生产audit各级全0且muted=[]，独立安全子代理checkpoint SECURITY_PASS。首轮Jev A/high0.82/adopt=take(A)在judgments.jsonl:994，独立依赖修复、先合main、再同步和复验的动作已落实。私有App的管理员例外仅按用户明示授权用于PR415，其余CI全部成功；本PR仍须以最终文档提交的检查成功作为merge前提。"
     ],
-    "reviewed": "2026-10-22T12:57:50.354645+00:00",
+    "reviewed": "2026-10-23T02:39:50.441419+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
