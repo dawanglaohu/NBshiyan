@@ -1,0 +1,21 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T21757567": {
+      "contractHash": "a1c9bc478d0e5d86c22efc3705c6e7332cc7243241003b40550c49536a241b16",
+      "evidence": [
+        "本补丁仅扩有效支持路径pnpm-lock.yaml；原七项导入保护、错误解释器与stderr、import.ndjson一致性验收未变；相邻任务/批次结论未更改。源声明为_run/batches/batch-3-20261022.md中baseline-python-runtime围栏，修复任务由生成器同步，未在task-contracts.json重复创建返工ID。",
+        "用户在本次会话明确批准应用已独立审查的单锁文件安全补丁，并确认指定bot开发已取消，授权相应身份门禁管理员例外；此例外不用于跳过审计、构建、E2E。当前保持review、尚未声称已合并。",
+        "冲突检查：开放PR412/414均不改pnpm-lock.yaml；继续原PR413及原工作树，没有新clone或Windows worktree prune。",
+        "实际应用与独立审查候选逐文本相同：Next、@next/env及8个平台SWC解析到15.5.28，只有必要peer引用随之更新，其他包不升级；package.json保留~15.5.27和eslint-config-next15.5.27。独立子代理已核10包integrity与npm官方registry一致，PATCH_SECURITY_VERDICT=PASS。",
+        "真实完整安装：npx --yes pnpm@10.34.6 install --frozen-lockfile exit0，正常根postinstall成功生成Prisma6.19.3客户端，实际node_modules/next版本15.5.28；未把仅lockfile-only检查冒充完整安装。",
+        "应用后真实npx pnpm10 audit --prod --audit-level high --json exit0，257个生产依赖，info/low/moderate/high/critical全部0。",
+        "应用后node --import tsx --test tests/sanity-import.test.ts：13 pass/0 fail/0 skip；七项真实Python保护与逐字节生成、空/缺失解释器、9009诊断均保留。前轮同一测试代码已在Windows三种命令配置及Linux各13 pass/0 fail/0 skip。",
+        "应用后pnpm10 lint exit0（既有warnings）；生产src、Python保护脚本和CI审计规则未改。本轮后续必须由Linux CI验证真正新head的build-and-audit和e2e，再补最终head独立安全复核。",
+        "独立安全报告已在PR https://github.com/dawanglaohu/NBshiyan/pull/413#issuecomment-6355283134 留档；旧锁的sharp0.35.5已满足RCE公告缓解，依赖补丁仍用于满足版本级审计与官方Next修复，不声称当前应用已被证明可利用。",
+        "应用后日志SHA256：{\"merge-applied-audit.json\": \"b73f32a71af6bb1b15f2071e3df4659fc1e02df41126d9aed163ec59277f9f72\", \"merge-applied-lint.log\": \"90278efd449e2b46c14011208a5fde65917e2fd0038451d83a8c896170f6cfb8\", \"merge-applied-tests.log\": \"7f944d42f6905c3afc57cb00f8087047aca3277ae8c0fc03f9d53bf8c3ba3344\", \"merge-frozen-install.log\": \"d76fc4a3b60c86322d849b363e0974116e3594a4c23730c26c9dc49aaa510bcb\"}"
+      ],
+      "verdict": "pass"
+    }
+  }
+}
