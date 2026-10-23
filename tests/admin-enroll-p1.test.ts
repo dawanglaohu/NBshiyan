@@ -7,7 +7,9 @@ import {
 } from '../src/lib/admin/enroll';
 import { qrSvgDataUrl } from '../src/lib/admin/enroll-qr';
 
-const read = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8');
+// 源码断言按逻辑行比较。recovery .txt 的 CRLF 是文件格式，不从这里读。
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+const read = (p: string) => lf(readFileSync(new URL(p, import.meta.url), 'utf8'));
 const URI = 'otpauth://totp/PackJoyU%20Admin:a%40b.test?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=PackJoyU%20Admin';
 const SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 const CODES = Array.from({ length: 10 }, (_, i) => `abcdef012${i}`);
@@ -164,6 +166,16 @@ test('P1 enroll: no storage / logging / innerHTML / external URLs; download revo
   // 「请等待下一个验证码」常驻在「去登录」正上方
   const w = ui.indexOf('请等待下一个验证码（约 30 秒）再登录'), btn = ui.indexOf('>去登录</a>\n');
   assert.ok(w > 0 && btn > w && !ui.slice(w, btn).includes('</div>'), 'wait hint sits right above the sign-in button');
+  const rawUi = readFileSync(new URL('../src/components/admin/enroll/EnrollWizard.tsx', import.meta.url), 'utf8');
+  const crlfUi = lf(rawUi).replace(/\n/g, '\r\n');
+  const above = (src: string) => {
+    const hint = src.indexOf('请等待下一个验证码（约 30 秒）再登录');
+    const signIn = src.indexOf('>去登录</a>\n');
+    return hint > 0 && signIn > hint && !src.slice(hint, signIn).includes('</div>');
+  };
+  assert.equal(above(crlfUi), false, 'CRLF checkout misses an LF-only needle');
+  assert.equal(above(lf(crlfUi)), true);
+  assert.equal(above(lf(crlfUi).replace('请等待下一个验证码（约 30 秒）再登录', '请等待下一个验证码（约 30 秒）再登录</div>')), false);
   assert.doesNotMatch(ui, /重新生成/);
   assert.match(ui, /尚未完成绑定/);
   // a11y：错误 role=alert、状态 aria-live、标题可聚焦、验证码输入属性

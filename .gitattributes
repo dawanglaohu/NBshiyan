@@ -1,0 +1,3 @@
+# Bash treats a trailing CR as part of the token (`$'\r': command not found`).
+# Keep shell scripts LF in the working tree, including when core.autocrlf=true.
+*.sh text eol=lf

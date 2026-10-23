@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs';
 import { createSiteSettingsReader, PUBLIC_SETTING_KEYS } from '../src/lib/server/site-settings';
 import { SITE_URL } from '../src/lib/site';
 
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+const ORG_FIELDS = /name: string; url: string; logo\?: string; description\?: string; sameAs: string\[\];\n  alternateName\?: string; legalName\?: string; email\?: string; telephone\?: string; address\?: string; foundingDate\?: string;/;
+
 // #350 前台读取：开关 / 完整内容 / 已发布语言过滤 / 读出再净化 / 缓存标签
 const body = (n = 60) => `<p>${'x'.repeat(n)}</p>`;
 const about = (o: Record<string, unknown> = {}) => ({ version: 1, title: 'About us', summary: 'S', bodyHtml: body(), stats: [{ label: 'L', value: '00' }], home: { title: 'H', intro: 'I' }, imageMeta: { img1: { alt: 'a', caption: 'c' } }, updatedAt: '2026-10-18T05:30:00.000Z', updatedBy: 'u1', ...o });
@@ -90,13 +93,17 @@ test('getOrganizationSettings：读库失败时降级为 name + url，不抛错'
 });
 
 test('缓存：三个函数都走 unstable_cache，标签 site-settings，revalidate 60；签名和交接一致', () => {
-  const src = readFileSync('src/lib/server/site-settings.ts', 'utf8');
+  const src = lf(readFileSync('src/lib/server/site-settings.ts', 'utf8'));
   assert.equal(src.match(/unstable_cache\(/g)?.length, 1);
   assert.equal(src.match(/\{ tags: \[SITE_SETTINGS_TAG\], revalidate: 60 \}/g)?.length, 1);
   assert.match(src, /createSiteSettingsReader\(loadPublicSettingsCached\)/);
   assert.match(src, /export function getAboutContent\(locale: PublishedLocale\): Promise<AboutContent \| null>/);
   assert.match(src, /export function getPublishedAboutLocales\(\): Promise<PublishedLocale\[\]>/);
   assert.match(src, /export function getOrganizationSettings\(\): Promise<OrganizationSettings>/);
-  assert.match(src, /name: string; url: string; logo\?: string; description\?: string; sameAs: string\[\];\n  alternateName\?: string; legalName\?: string; email\?: string; telephone\?: string; address\?: string; foundingDate\?: string;/);
+  assert.match(src, ORG_FIELDS);
+  const crlf = src.replace(/\n/g, '\r\n');
+  assert.equal(ORG_FIELDS.test(crlf), false);
+  assert.match(lf(crlf), ORG_FIELDS);
+  assert.equal(ORG_FIELDS.test(lf(crlf).replace('alternateName?: string;', 'nickname?: string;')), false);
   assert.match(readFileSync('src/lib/server/site-settings-model.ts', 'utf8'), /SITE_SETTINGS_TAG = 'site-settings'/);
 });

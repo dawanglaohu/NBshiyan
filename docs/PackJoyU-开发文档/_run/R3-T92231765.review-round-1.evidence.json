@@ -1,0 +1,21 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T92231765": {
+      "contractHash": "239da04b0c08f514342414de7cea95fff42985765f9da9a6dce42b633821ec26",
+      "verdict": "pass",
+      "evidence": [
+        "契约：maintain_docs.py status --task R3-T92231765 的 contractHash 为 239da04b0c08f514342414de7cea95fff42985765f9da9a6dce42b633821ec26，与派发包一致；ready=false 仅因待语义复核。合入 origin/main 后重跑 status，哈希未变。",
+        "验收1（11 条对上基线）：batch-3-20261022.evidence.json baselineTriage G1 的 142、151、212、290、325、456、727、791、793、849、1214 分别落在 admin-enroll-hardening 的 review-only SQL、admin-enroll-p1 的等待提示、inquiry-history 的 refreshHistory、mail-states 的 onSent、admin-p3 的 focus effect、article-og 的 loc_bad、home-entry-grid 的 hyphens:auto、locale-enum 的枚举注释与 ADD VALUE、mail-routes 的 mailSwitchGate、site-settings 的组织字段签名。",
+        "验收1（Windows 检出）：工作树 D:\\xiangmu\\NBshiyan-r3-t92231765 上 node --import tsx --test 跑上述 10 个测试文件，129 pass、0 fail、0 skipped。真 Bash 是 WSL GNU bash 5.0.17，cwd 为 /mnt/d/xiangmu/NBshiyan-r3-t92231765。",
+        "验收1（Linux 检出）：PR head 4fa51d8 的 CI build-and-audit（actions/runs/39892140053）执行 pnpm test 且结论 SUCCESS。随后 origin/main 合入未改这 10 个测试文件，也未改它们读取的 SQL、shell、CSS 与源码。",
+        "验收2：2FA SQL 仍等于三条 ADD COLUMN；Locale 仍只有 6 条 ADD VALUE；空计划匹配 empty/unreadable，DROP 仍被报出；mailSwitchGate 仍是函数体第一条，换成 notTheGate 失败；recovery .txt 仍断言每行 CRLF，且不经过 lf()；loc_bad('//evil.com/') 仍为 true，同站 /og 路径仍为 false。",
+        "验收3：CRLF 脚本交给真 Bash 必须 syntax error 或 command not found 且 stderr 含 CR；CRLF 源码对不上原 LF 针，收成 LF 后通过，改掉守卫、hyphens:auto 或 alternateName 则失败。plan_problems 对 LF 与 CRLF 计划的结论相同，因为脚本先收成 LF，SQL 文件按原字节交给 Bash。",
+        "范围：相对合并前的实现提交只改 .gitattributes、10 个列出的测试文件和任务笔记。未改生产 SQL、路由、组件或 deploy 脚本行为。.gitattributes 只写 *.sh text eol=lf，没有仓库级 * text eol=lf。",
+        "分层：无新请求、无新错误码、无组件或环境变量。前置 api.ts、model-events、http errors/metrics、lease-repo 未被改写。",
+        "反造假：有效路径内的 placeholder 命中只是 globals.css 断言里的 var(--placeholder)，不是桩。无 window.__ 或 globalThis.__ 测试钩子，无生产文件 TODO/stub。duplicates_shared 为 unsure(0.37)，人工核对 lf() 只在这几个测试里各写一份，不是前置共享类型的另一套实现。",
+        "边界：空计划由 planProblems(script, '') 报 empty/unreadable；Bash 语法错误不再被 locBad 的 catch 当成安全 Location；mailSwitchGate 与 SQL 语句在重复读取下仍须逐字成立。任务契约未挂 E 编号。"
+      ]
+    }
+  }
+}

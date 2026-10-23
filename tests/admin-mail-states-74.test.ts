@@ -12,7 +12,8 @@ import { futureTime, tzAbbr } from '../src/components/admin/format';
 import { MailOffNote } from '../src/components/admin/mail/MailGate';
 import { RateText } from '../src/components/admin/mail/MailParts';
 
-const src = (p: string) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
+const lf = (text: string) => text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+const src = (p: string) => lf(readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8'));
 const st = (o: Partial<Parameters<typeof L.outboundView>[0]>) => L.outboundView({ status: 'FAILED', errorCode: null, retryable: false, retryCount: 0, sentAt: null, ...o });
 
 // —— 开关：GET /api/admin/mail/config ——
@@ -198,6 +199,11 @@ test('429 文案：倒计时在句中原位', () => {
 });
 test('回复框：往来记录刷新之后才显示提示（滚进视口时位置准确）', () => {
   const t = src('components/admin/mail/MailThread.tsx');
-  const i = t.indexOf('await onSent();\n      // 往来记录刷新'), j = t.indexOf('if (r.deferred) setDeferred(');
+  const sent = 'await onSent();\n      // 往来记录刷新';
+  const i = t.indexOf(sent), j = t.indexOf('if (r.deferred) setDeferred(');
   assert.ok(i > 0 && j > i);
+  const crlfThread = lf(readFileSync(new URL('../src/components/admin/mail/MailThread.tsx', import.meta.url), 'utf8')).replace(/\n/g, '\r\n');
+  assert.equal(crlfThread.indexOf(sent), -1);
+  assert.ok(lf(crlfThread).indexOf(sent) > 0 && lf(crlfThread).indexOf(sent) < lf(crlfThread).indexOf('if (r.deferred) setDeferred('));
+  assert.equal(lf(crlfThread).replace('await onSent();', 'await skipSent();').indexOf(sent), -1);
 });

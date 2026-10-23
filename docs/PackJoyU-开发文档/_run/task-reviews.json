@@ -1185,15 +1185,21 @@
     "verdict": "pass"
   },
   "R3-T92231765": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "9fb581aea902fcbfaba3ac6ea52ca8093a103e9a9d6fc812316f9257ca6c3b4b",
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "239da04b0c08f514342414de7cea95fff42985765f9da9a6dce42b633821ec26",
     "evidence": [
-      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T92231765.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
-      "本任务《使源码断言与Shell验证在实际检出换行下可靠执行》具体核查：LF/CRLF与真实Bash验证：逐项复现11个既有失败，保留SQL/后台guard/UI行为和安全断言，不改生产行为迁就字符串；显式允许根.gitattributes与列举测试，无通配扩权。共享素材更新不降低适用平台的因果回归标准。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=baseline-crlf-harness，未改原批次/来源记录。",
-      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：.gitattributes; tests/admin-enroll-hardening-347-348.test.ts; tests/admin-enroll-p1.test.ts; tests/admin-inquiry-history-331.test.ts; tests/admin-mail-states-74.test.ts; tests/admin-p3-350.test.ts; tests/article-og-route.test.ts; tests/home-entry-grid-308.test.ts; tests/locale-enum-values.test.ts; tests/mail-routes.test.ts; tests/site-settings-read-350.test.ts。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
-      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      "契约：maintain_docs.py status --task R3-T92231765 的 contractHash 为 239da04b0c08f514342414de7cea95fff42985765f9da9a6dce42b633821ec26，与派发包一致；ready=false 仅因待语义复核。合入 origin/main 后重跑 status，哈希未变。",
+      "验收1（11 条对上基线）：batch-3-20261022.evidence.json baselineTriage G1 的 142、151、212、290、325、456、727、791、793、849、1214 分别落在 admin-enroll-hardening 的 review-only SQL、admin-enroll-p1 的等待提示、inquiry-history 的 refreshHistory、mail-states 的 onSent、admin-p3 的 focus effect、article-og 的 loc_bad、home-entry-grid 的 hyphens:auto、locale-enum 的枚举注释与 ADD VALUE、mail-routes 的 mailSwitchGate、site-settings 的组织字段签名。",
+      "验收1（Windows 检出）：工作树 D:\\xiangmu\\NBshiyan-r3-t92231765 上 node --import tsx --test 跑上述 10 个测试文件，129 pass、0 fail、0 skipped。真 Bash 是 WSL GNU bash 5.0.17，cwd 为 /mnt/d/xiangmu/NBshiyan-r3-t92231765。",
+      "验收1（Linux 检出）：PR head 4fa51d8 的 CI build-and-audit（actions/runs/39892140053）执行 pnpm test 且结论 SUCCESS。随后 origin/main 合入未改这 10 个测试文件，也未改它们读取的 SQL、shell、CSS 与源码。",
+      "验收2：2FA SQL 仍等于三条 ADD COLUMN；Locale 仍只有 6 条 ADD VALUE；空计划匹配 empty/unreadable，DROP 仍被报出；mailSwitchGate 仍是函数体第一条，换成 notTheGate 失败；recovery .txt 仍断言每行 CRLF，且不经过 lf()；loc_bad('//evil.com/') 仍为 true，同站 /og 路径仍为 false。",
+      "验收3：CRLF 脚本交给真 Bash 必须 syntax error 或 command not found 且 stderr 含 CR；CRLF 源码对不上原 LF 针，收成 LF 后通过，改掉守卫、hyphens:auto 或 alternateName 则失败。plan_problems 对 LF 与 CRLF 计划的结论相同，因为脚本先收成 LF，SQL 文件按原字节交给 Bash。",
+      "范围：相对合并前的实现提交只改 .gitattributes、10 个列出的测试文件和任务笔记。未改生产 SQL、路由、组件或 deploy 脚本行为。.gitattributes 只写 *.sh text eol=lf，没有仓库级 * text eol=lf。",
+      "分层：无新请求、无新错误码、无组件或环境变量。前置 api.ts、model-events、http errors/metrics、lease-repo 未被改写。",
+      "反造假：有效路径内的 placeholder 命中只是 globals.css 断言里的 var(--placeholder)，不是桩。无 window.__ 或 globalThis.__ 测试钩子，无生产文件 TODO/stub。duplicates_shared 为 unsure(0.37)，人工核对 lf() 只在这几个测试里各写一份，不是前置共享类型的另一套实现。",
+      "边界：空计划由 planProblems(script, '') 报 empty/unreadable；Bash 语法错误不再被 locBad 的 catch 当成安全 Location；mailSwitchGate 与 SQL 语句在重复读取下仍须逐字成立。任务契约未挂 E 编号。"
     ],
-    "reviewed": "2026-10-22T12:58:06.806875+00:00",
+    "reviewed": "2026-10-23T05:45:49.941600+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   }
