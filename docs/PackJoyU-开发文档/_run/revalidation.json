@@ -1,16 +1,1 @@
-{
-  "R3-T21757567": {
-    "contractHash": "a1c9bc478d0e5d86c22efc3705c6e7332cc7243241003b40550c49536a241b16",
-    "patches": [
-      {
-        "changedFields": [
-          "definition",
-          "effectivePaths"
-        ],
-        "patch": "r3-t21757567-next-audit",
-        "sourceVersion": "0e807c402fa4cf8ca52240c695f1705c7900e3dd270267839e7d2b072480bb7a"
-      }
-    ],
-    "previousStatus": "review"
-  }
-}
+{}
