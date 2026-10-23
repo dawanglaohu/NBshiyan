@@ -26,18 +26,18 @@
     "05-附录/23-变更记录.md": "d2b9c9713be7d9b2b6d278ae59ac8d060f5bffbbc5b6864f3cc2e175177cb9a3",
     "05-附录/24-参考资料.md": "68a06d729c78c402bdd4d9445b30c271e45798afe34037ec6513d5d76f47e976",
     "README.md": "24fafee4a05121f0000c1b5edddc0ec7caaf954bb2783164c4cd25dd0bfce996",
-    "_run/batches/batch-3-20261022.md": "69e49a1066c50b9ed0488de06df346d0c2d9e7e8567e3505feee83e4411297d3",
+    "_run/batches/batch-3-20261022.md": "a1a93b75596e3032e895ea8b7a8dbc10f3956defa42fc361e32c215bfea6c88e",
     "_run/presentation.json": "18b9f3291e596d4db60976dd8ce4714c0ece3a572256ae046abec47691d6ebe1",
     "_run/task-contracts.json": "3bf94f6ef885b90f2cb1f6adc944c8eea240dfd029120d6f0bf0863dbc8c24da"
   },
   "products": {
     "_MOC.md": "4e359240cb4517d685e9b5f9a61a0d3ac70f6144a30949f11cf2eeb7ca34c469",
-    "_run/dispatch.json": "e0939ca84c8f432fb6c3b871cd90bb4ea52e78b7779537fe38239a6976357a69",
-    "_run/review.json": "baef7b7db964cb05ead827e65e802344a0979e6509325cc491f2946c6e92eccd",
-    "_run/task-reviews.json": "86785466c3095638def557491c8e8a229252a8805305cbef2289b73089d45d2e",
-    "docs-data.js": "e44a11bbcd0de24a275388bb3535cdd89d57d15cee4a50d991e3ba2f471454bb",
+    "_run/dispatch.json": "8b9dbfeeba678717d94cf4af5ba01a19622910d1a2965dcc24a3c3d4ffef3a44",
+    "_run/review.json": "a743b59f418eb0df14f2f17066fead6c860e9ffc739609b8ed3fca07679df42c",
+    "_run/task-reviews.json": "293a22feccb1be87443bd735b2be85df8e78acd2b253c903a2229e277af4abf5",
+    "docs-data.js": "c209937aec22f266bde532ed3cf73ca5a97c0c8e5d6211409341ba3a2f22e9cb",
     "index.html": "22fd2a88a480a36476e99d8c26361f3789db65591a2852283506ad00b16967ee"
   },
   "schemaVersion": 1,
-  "sourceVersion": "f8714d21b08ba477d2d07c4a132e2b5bc1f3b5d70e6f20c5a67618ae8c8fa642"
+  "sourceVersion": "0e807c402fa4cf8ca52240c695f1705c7900e3dd270267839e7d2b072480bb7a"
 }
