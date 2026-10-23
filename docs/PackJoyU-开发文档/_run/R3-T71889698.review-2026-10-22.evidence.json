@@ -1,0 +1,248 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T71889698": {
+      "contractHash": "b9e2b4c739b5dd721bbef82c953eabc012411892baf155dfc67512fe83e3cddf",
+      "verdict": "pass",
+      "evidence": [
+        "本轮逐字核验当前任务笔记、源批次记录 batch-3-20261022.md:139-151 与 status 契约哈希。前置 M1-T8/M2-T4/M3-T14/M5-T1 均已落地；任务产出仅为密码重置真实PG并发审计回归，不新增HTTP、DTO、作业或界面能力。",
+        "有效路径仅 tests/admin-reset-initial-password.db.test.ts 和 scripts/admin-reset-initial-password-lib.mjs；PR原始代码差异仅前者，另外是本任务受保护回填。生产reset、token库、依赖清单和锁文件与 main b9432f5d逐字相同。06/08单向依赖、顶层事务、配置与错误约定不变。",
+        "按17节在本任务planning集群新建空库并核实PostgreSQL17.9及data_directory；ADMIN_RESET_TEST_DATABASE_URL仅指该库。生产runReset配真实Prisma行锁/事务，三项3pass/0fail/0skip；原main同测试2fail/1pass均复现遗漏签发审计，未修改生产代码刷绿。",
+        "验收2/3：DB测试:143-155核最终密码、sessionVersion=2、末次令牌哈希、精确2条password_reset+2条enroll_token_issued与元数据脱敏；:160-183核等待方退出3且仅成功方3条审计；:186-198核TOTP拒绝及密码/会话/令牌/审计不变。生产:284-293保持锁后重查、改密/签发/审计同事务，:298限流在提交之后。",
+        "13/19要求对应源收口task围栏无E编号，未虚构新边界。单元22/22覆盖空参数(:178)、弱密码(:311)、审计失败原子回滚(:321)、非TTY(:331)、锁内并发重查(:373)；lint通过、Next类型声明生成后tsc通过。反占位/固定探测/测试钩子扫描有效生产路径无命中；无前置工具重复实现及新增注册责任。",
+        "仅登记任务定义及上述代码验收证据，整体落地结论仍rework。#412原head的build-and-audit在依赖审计报告1critical/1high后退出1；Jev裁决judgments.jsonl:989、jev-1.14.0、A/high0.82/adopt=take(A)，要求独立依赖修复先落地，原PR待同步与精确head CI。任务保持review，不运行--landed、不merge、不删除工作树。"
+      ]
+    }
+  },
+  "review": {
+    "task": "R3-T71889698",
+    "round": 1,
+    "verdict": "rework",
+    "reviewDate": "2026-10-22",
+    "recordedAtUtc": "2026-10-23T01:10:05.159859+00:00",
+    "pr": "https://github.com/dawanglaohu/NBshiyan/pull/412",
+    "implementationHead": "5fb412f26feacc23a440ec294f4150bab4e2c946",
+    "verifiedBase": "b9432f5d161fd9bd05bbcc6d0fbb3fd32ac20bdc",
+    "ownedAcceptance": {
+      "1": "pass",
+      "2": "pass",
+      "3": "pass"
+    },
+    "landing": "blocked_by_inherited_dependency_audit",
+    "taskStatus": "review",
+    "tests": [
+      {
+        "command": "node --import tsx --test tests/admin-reset-initial-password.db.test.ts",
+        "result": "pass",
+        "exitCode": 0,
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0,
+        "runtime": {
+          "version": "PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit",
+          "data_directory": "D:/xiangmu/.codex-plans/NBshiyan-r3-t71889698/pgdata",
+          "port": "55462",
+          "database": "r3t71889698_review_52484",
+          "initialUserTables": 0,
+          "capturedAt": "2026-10-23T01:03:03.304Z"
+        },
+        "log": {
+          "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\pg17-review-tests.log",
+          "sha256": "2b2fae6bf92917a0754738b0a5497bff3b621a720d952d17e27d9046e9e5269f"
+        }
+      },
+      {
+        "command": "node --import tsx --test tests/admin-reset-initial-password.test.ts",
+        "result": "pass",
+        "exitCode": 0,
+        "tests": 22,
+        "pass": 22,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\reset-unit-tests.log",
+          "sha256": "d3ed92116c2e02ed9cfafe70ab8701fa52f9cbfba6e3accc4c267baedd71b74b"
+        }
+      },
+      {
+        "command": "pnpm lint",
+        "result": "pass",
+        "exitCode": 0,
+        "notes": "Existing Next lint deprecation, SWC fallback, image and unused-disable warnings; no lint error.",
+        "log": {
+          "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\lint-review.log",
+          "sha256": "df00d72e6dd57c2c4e1bb663e4528757aa37f62661eff94e2695c56e3f228f4d"
+        }
+      },
+      {
+        "command": "pnpm exec tsc --noEmit --incremental false",
+        "result": "pass",
+        "exitCode": 0,
+        "notes": "Initial parallel run preceded Next lint generation of ignored next-env.d.ts (created 2026-10-22 18:03:39 PDT) and reported TS2307 for a PNG import. Independent rerun after bootstrap passed without any tracked source/configuration edit.",
+        "log": {
+          "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\typecheck-review-after-next-env.log",
+          "emptyOutput": true,
+          "logFileCreated": false,
+          "notes": "The successful command produced no output, so PowerShell Tee-Object created no file."
+        },
+        "initialRun": {
+          "result": "fail",
+          "exitCode": 2,
+          "log": {
+            "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\typecheck-review.log",
+            "sha256": "a875e4a9d305e106fbd2c35f794acd00d5dcebfd18ccf1ff7a091d2c92b2421f"
+          }
+        }
+      },
+      {
+        "command": "node --import tsx D:/xiangmu/.codex-plans/NBshiyan-r3-t71889698/baseline-db-probe.cjs",
+        "result": "expected_failure",
+        "exitCode": 1,
+        "tests": 3,
+        "pass": 1,
+        "fail": 2,
+        "skipped": 0,
+        "notes": "Exact main b9432f5d DB test source was transpiled in memory and run against the same disposable PG17.9. Both failures are the original missing auth.enroll_token_issued expectations. The checkout test was never overwritten.",
+        "log": {
+          "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\baseline-db-red.log",
+          "sha256": "09412dcb268647fbdef094ca1db6755b976930ba331ebd99fa55ac74654145f9"
+        }
+      },
+      {
+        "command": "python docs/PackJoyU-开发文档/_run/build_vault.py docs/PackJoyU-开发文档 --check",
+        "result": "pass",
+        "exitCode": 0
+      },
+      {
+        "command": "git diff --check",
+        "result": "pass",
+        "exitCode": 0
+      },
+      {
+        "command": "pnpm exec eslint tests/admin-reset-initial-password.db.test.ts scripts/admin-reset-initial-password-lib.mjs",
+        "result": "pass",
+        "exitCode": 0,
+        "emptyOutput": true
+      },
+      {
+        "command": "python docs/PackJoyU-开发文档/_run/review.py docs/PackJoyU-开发文档 --json",
+        "result": "pass",
+        "exitCode": 0,
+        "block": 0,
+        "warn": 28,
+        "log": {
+          "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\docs-review.json",
+          "sha256": "b416456f10f84a5f1b69958411bf590f1b92e962f57f48d3e166601a532cf490"
+        }
+      },
+      {
+        "command": "node --check docs/PackJoyU-开发文档/docs-data.js",
+        "result": "pass",
+        "exitCode": 0
+      },
+      {
+        "command": "verify recorded source hashes and docs-data progress",
+        "result": "pass",
+        "exitCode": 0,
+        "taskProgress": "review"
+      }
+    ],
+    "wiring": "scripts/admin-reset-initial-password.mjs:56 -> runReset:256; the production call chain is unchanged and DB tests exercise its real use-case with PostgreSQL row locks.",
+    "scan": {
+      "productionPlaceholders": [],
+      "hardcodedGateOrProbe": [],
+      "productionTestHooks": [],
+      "duplicatePrerequisiteImplementations": [],
+      "unexpectedCodePaths": [],
+      "guiEvidence": "not_applicable"
+    },
+    "optionalTypeSafeReview": "skipped; manual semantic review performed; required adjudication was executed separately",
+    "adjudication": {
+      "source": "review",
+      "log": "_run/judgments.jsonl:989",
+      "model": "jev-1.14.0",
+      "state": {
+        "requirement": "Conduct one bounded acceptance round for R3-T71889698 and act promptly. Preserve production auth.enroll_token_issued audits. Restrict implementation edits to scripts/admin-reset-initial-password-lib.mjs and tests/admin-reset-initial-password.db.test.ts plus task documentation and generated review records. Do not reduce acceptance or bypass required CI. Only the reviewer may correct a necessary local documentation omission. Ordinary engineering choices go to Jev, not the human. The user has not authorized unrelated dependency upgrades or a security gate exception.",
+        "task": {
+          "title": "Preserve token issuance audits and correct password-reset concurrency test expectations",
+          "accept": "All three reset database tests must pass on a disposable PostgreSQL 17 with zero environment skips. Concurrent resets serialize, final password and sessionVersion are correct, each actual token issuance has exactly one audit, and refused operations write no audit. Do not delete the production issuance audit or accept arbitrary audit counts."
+        },
+        "conflict": "PR #412 at 5fb412f26feacc23a440ec294f4150bab4e2c946 changes only its owned database test and task backfill. Production reset code, package.json and pnpm-lock.yaml are unchanged from main b9432f5d. Its CI build-and-audit job failed before unit tests/build because pnpm audit --audit-level high --prod reports Next.js 15.5.27 with one critical and one high advisory (GHSA-2464-fhr4-w9xw and GHSA-p3m5-59mp-jv5r), both reported patched at 15.5.28. E2E and the security-path gate passed. This is an inherited, out-of-scope dependency failure, and it blocks safe landing even if the task's focused checks pass. Choose the handling and review conclusion without upgrading dependencies outside the agreed scope or bypassing CI.",
+        "options": {
+          "A": "Complete all owned acceptance checks, register the task-contract review and preserve its evidence, keep PR #412 open and the task not done, and issue one precise rework blocker for the inherited dependency gate. Require an independently scoped security dependency repair to land first, then merge updated main into this same branch and rerun affected checks plus exact-head CI. Do not change package.json or lockfile within this review. This retains accepted task evidence and is easiest to reverse.",
+          "B": "Complete all owned acceptance checks and register their evidence, then classify the unresolved cross-scope landing requirement as doc-issue rather than implementation rework. Keep PR #412 open and task not done, record a separate required security dependency follow-up without changing the original acceptance, and resume this original PR only after that external repair provides green CI. Do not modify dependencies or claim landing."
+        }
+      },
+      "verdicts": {
+        "pick": {
+          "choice": "A",
+          "confidence": 0.82,
+          "band": "high",
+          "probabilities": {
+            "A": 0.91,
+            "B": 0.09
+          }
+        },
+        "spec_change": {
+          "p": 0.11,
+          "verdict": "no"
+        },
+        "outside_stack": {
+          "p": 0.08,
+          "verdict": "no"
+        },
+        "needs_owner": {
+          "p": 0.11,
+          "verdict": "no"
+        },
+        "reversible": {
+          "p": 0.89,
+          "verdict": "yes"
+        },
+        "adopt": {
+          "action": "take",
+          "option": "A",
+          "confidence": "high",
+          "why": "Jev 选 A（high）"
+        }
+      },
+      "action": "Register true owned evidence; leave original PR open and task review; issue R1 for independently scoped dependency repair, then main synchronization and exact-head CI."
+    },
+    "ciBlocker": {
+      "id": "R1",
+      "introducedByThisPR": false,
+      "location": "package.json:30; .github/workflows/ci.yml:18-19",
+      "job": "https://github.com/dawanglaohu/NBshiyan/actions/runs/39880055282/job/120174986945",
+      "result": "fail",
+      "exitCode": 1,
+      "critical": 1,
+      "high": 1,
+      "advisories": [
+        "https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw",
+        "https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r"
+      ],
+      "notes": "Both upstream advisories list Next15.5.28 as fixed. The critical advisory also has a sharp>=0.35.5 mitigation already requested by this project; the required audit still fails, and this review does not claim actual exploitability. Do not weaken or bypass the audit gate.",
+      "log": {
+        "path": "D:\\xiangmu\\.codex-plans\\NBshiyan-r3-t71889698\\ci-audit-failure.log",
+        "sha256": "dcf04bbc2b2107661bfc82dbcf86d2e9055ca8733824d915a081073b52048005"
+      }
+    },
+    "outOfScopeEdits": [],
+    "fixedByReviewer": [],
+    "docIssues": [],
+    "cleanup": {
+      "taskPostgresStopped": true,
+      "worktreePreserved": true,
+      "planningPreserved": true,
+      "mainCheckoutUntouched": true
+    },
+    "sourceHashes": {
+      "tests/admin-reset-initial-password.db.test.ts": "6b405008bb1093f4cc4012f1826395a87de3619cd5cb7e39d6c4df5a68e0d8d4",
+      "scripts/admin-reset-initial-password-lib.mjs": "46b852c037d41341712597d59763af40784f3748263f32bc86b0d64b3eb1b70f",
+      "scripts/enroll-token-lib.mjs": "7b030014e800d53be48793b8045c893201606e6ff57c6537cc98f924742e496d",
+      "package.json": "b9946dd17f083171d5d82c8a9d945cae85711be9157fbdb3619b2d227ddc4a91",
+      "pnpm-lock.yaml": "915fbd0d245f250524b88c56471673c6bfa1ad798a4f65ec476a39da5cf60766"
+    }
+  }
+}

@@ -1137,15 +1137,17 @@
     "verdict": "pass"
   },
   "R3-T71889698": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "314dde429cade0194ffe77b17c16c4fcf2f6cb290f529a761b64cde558595b04",
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "b9e2b4c739b5dd721bbef82c953eabc012411892baf155dfc67512fe83e3cddf",
     "evidence": [
-      "仅定义delta复核，非返工实施完成：逐字读取图谱/任务/R3-T71889698.md的输入/产出/验收/有效路径，与当前合入主干f50f621d同文件完全相等；after.context.task亦与主干docs-data.js同ID任务契约字段逐字段相等（排除阅读器派生codeRefs，原保护块另核）。原patch基线尚无R任务所以before=null，不将其误作改写原返工要求。",
-      "本任务《保留令牌签发审计并修正重置并发测试预期》具体核查：真实PG17密码重置串行及精确审计：保留auth.enroll_token_issued，每次签发恰有对应审计、拒绝者不写；仅既有DB测试与reset库文件，不能删除生产审计或任意放宽计数。共享品牌文件说明不影响账号安全契约。 前置仍为M1-T8,M2-T4,M3-T14,M5-T1，sourceBatchTasks仍四项原审查任务；stableKey=reset-audit-expectations，未改原批次/来源记录。",
-      "源记录batch-3-20261022.md与主干全文相同；有效路径逐项匹配原笔记、definition.supportPaths与effectivePaths：tests/admin-reset-initial-password.db.test.ts; scripts/admin-reset-initial-password-lib.mjs。没有新增输出路径、任务业务能力或可写目录；只是本补丁共享章节及前置provider指纹传播，前轮已读共享媒体说明仍适用。",
-      "只登记该契约hash的语义可接受；status仍todo、code/notes占位保护块保留，不运行--landed、不将返工冒充已修，不清除10项已落地needsReview；M1-T8/M5-T1保护块跟随已合407的新主干。"
+      "本轮逐字核验当前任务笔记、源批次记录 batch-3-20261022.md:139-151 与 status 契约哈希。前置 M1-T8/M2-T4/M3-T14/M5-T1 均已落地；任务产出仅为密码重置真实PG并发审计回归，不新增HTTP、DTO、作业或界面能力。",
+      "有效路径仅 tests/admin-reset-initial-password.db.test.ts 和 scripts/admin-reset-initial-password-lib.mjs；PR原始代码差异仅前者，另外是本任务受保护回填。生产reset、token库、依赖清单和锁文件与 main b9432f5d逐字相同。06/08单向依赖、顶层事务、配置与错误约定不变。",
+      "按17节在本任务planning集群新建空库并核实PostgreSQL17.9及data_directory；ADMIN_RESET_TEST_DATABASE_URL仅指该库。生产runReset配真实Prisma行锁/事务，三项3pass/0fail/0skip；原main同测试2fail/1pass均复现遗漏签发审计，未修改生产代码刷绿。",
+      "验收2/3：DB测试:143-155核最终密码、sessionVersion=2、末次令牌哈希、精确2条password_reset+2条enroll_token_issued与元数据脱敏；:160-183核等待方退出3且仅成功方3条审计；:186-198核TOTP拒绝及密码/会话/令牌/审计不变。生产:284-293保持锁后重查、改密/签发/审计同事务，:298限流在提交之后。",
+      "13/19要求对应源收口task围栏无E编号，未虚构新边界。单元22/22覆盖空参数(:178)、弱密码(:311)、审计失败原子回滚(:321)、非TTY(:331)、锁内并发重查(:373)；lint通过、Next类型声明生成后tsc通过。反占位/固定探测/测试钩子扫描有效生产路径无命中；无前置工具重复实现及新增注册责任。",
+      "仅登记任务定义及上述代码验收证据，整体落地结论仍rework。#412原head的build-and-audit在依赖审计报告1critical/1high后退出1；Jev裁决judgments.jsonl:989、jev-1.14.0、A/high0.82/adopt=take(A)，要求独立依赖修复先落地，原PR待同步与精确head CI。任务保持review，不运行--landed、不merge、不删除工作树。"
     ],
-    "reviewed": "2026-10-22T12:57:50.354645+00:00",
+    "reviewed": "2026-10-23T01:07:18.904916+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
