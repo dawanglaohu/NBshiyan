@@ -6,6 +6,17 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
+// One lexical identity for discovery, allowlists, and exclusions.
+// path.join emits "\" on Windows; patterns and assertions use "/".
+// Only the separator is folded. Case, "." / ".." segments, and a trailing slash stay distinct.
+export function fileId(p) {
+  return String(p).split('\\').join('/');
+}
+
+export function sameFile(a, b) {
+  return fileId(a) === fileId(b);
+}
+
 const L = 'а-яё';
 // [е-stem, ё-stem, suffix regex]. Matches whole words, case-insensitive.
 export const YO_WORDS = [
@@ -66,16 +77,17 @@ function toYo(word) {
 }
 
 export function lintText(text, file = '', allow = []) {
+  const id = fileId(file);
   const hits = [];
   text.split('\n').forEach((line, i) => {
     if (line.includes('ru-yo-ignore')) return;
     for (const m of line.matchAll(yoRe)) {
-      if (allow.some((a) => (!a.file || a.file === file) && a.word.toLowerCase() === m[0].toLowerCase())) continue;
-      hits.push({ file, line: i + 1, word: m[0], fix: toYo(m[0]), kind: 'yo' });
+      if (allow.some((a) => (!a.file || sameFile(a.file, id)) && a.word.toLowerCase() === m[0].toLowerCase())) continue;
+      hits.push({ file: id, line: i + 1, word: m[0], fix: toYo(m[0]), kind: 'yo' });
     }
     for (const re of OLD_CTA) {
       for (const m of line.matchAll(re)) {
-        hits.push({ file, line: i + 1, word: m[0], fix: 'Запросить расчёт', kind: 'cta' });
+        hits.push({ file: id, line: i + 1, word: m[0], fix: 'Запросить расчёт', kind: 'cta' });
       }
     }
   });
@@ -100,10 +112,11 @@ const ROOTS = [
 export const EXCLUDE = [/(^|\/)docs\/content\/ru-proofreading[^/]*\.md$/, /(^|\/)design\/[^/]*\.html$/];
 
 function walk(p, ext, out) {
-  if (EXCLUDE.some((re) => re.test(p.split(sep).join('/')))) return out;
+  const id = fileId(p);
+  if (EXCLUDE.some((re) => re.test(id))) return out;
   if (!existsSync(p)) return out; // optional dirs (e.g. src/lib/server/email) are skipped gracefully
   if (statSync(p).isDirectory()) for (const f of readdirSync(p)) walk(join(p, f), ext, out);
-  else if (!ext || ext.test(p)) out.push(p);
+  else if (!ext || ext.test(p)) out.push(id);
   return out;
 }
 
