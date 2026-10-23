@@ -43,15 +43,19 @@ export default function HeroVideo({ labels }: { labels: Labels }) {
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
+    let active = true;
     if (state === 'playing' && pageVisible) {
       if (autoRef.current) { markSeen(readEnv().storage); autoRef.current = false; }
       if (rewindRef.current) { rewindRef.current = false; try { v.currentTime = 0; } catch { /* ignore */ } }
       v.play().catch(() => {
+        // Pausing can reject a pending play; only the current effect owns its failure.
+        if (!active) return;
         setStarted(false);
         setMounted(false);
         dispatch('error');
       });
     } else if (state === 'paused' || !pageVisible) v.pause();
+    return () => { active = false; };
   }, [state, mounted, pageVisible]);
 
   useEffect(() => {

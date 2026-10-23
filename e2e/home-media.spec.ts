@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures';
+import type { Route } from '@playwright/test';
 
 const GIF = '/brand/packjoyu-industrial-city-v3-loop.gif';
 const STILL_RATIO = 1384 / 720;
@@ -86,7 +87,7 @@ test('video stays muted and inline, keeps a poster when autoplay is blocked, and
         blocked = false;
         return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
       }
-      return original.apply(this, arguments);
+      return original.call(this);
     };
   });
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -107,6 +108,37 @@ test('video stays muted and inline, keeps a poster when autoplay is blocked, and
   await frame.getByRole('button', { name: 'Pause video' }).click();
   await expect(frame.locator('.hero-media')).toHaveAttribute('data-state', 'paused');
   await expect.poll(() => video.evaluate((el) => (el as HTMLVideoElement).paused)).toBe(true);
+});
+
+test('pausing during a pending video start preserves pause and can resume', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const held: Route[] = [];
+  // Hold the real media response so native play() is still pending when pause runs.
+  const hold = (route: Route) => { held.push(route); };
+  await page.route('**/*.mp4', hold);
+  try {
+    await page.goto('/en');
+    await dismissConsent(page);
+    const frame = page.getByTestId('home-video');
+    await frame.getByRole('button', { name: 'Play video', exact: true }).click();
+    const video = frame.locator('video');
+    await expect.poll(() => held.length).toBeGreaterThan(0);
+    await expect(frame.locator('.hero-media')).toHaveAttribute('data-state', 'playing');
+    await expect.poll(() => video.evaluate((el) => (el as HTMLVideoElement).paused)).toBe(false);
+    await frame.getByRole('button', { name: 'Pause video', exact: true }).click();
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(null)))));
+    await expect(frame.locator('.hero-media')).toHaveAttribute('data-state', 'paused');
+    await expect(video).toHaveCount(1);
+    await expect.poll(() => video.evaluate((el) => (el as HTMLVideoElement).paused)).toBe(true);
+
+    await frame.getByRole('button', { name: 'Play video', exact: true }).click();
+    await page.unroute('**/*.mp4', hold);
+    await Promise.all(held.splice(0).map((route) => route.continue().catch(() => undefined)));
+    await expect(frame.locator('.hero-media')).toHaveAttribute('data-state', 'playing');
+    await expect(video).toHaveAttribute('data-visible', '1');
+  } finally {
+    await Promise.all(held.map((route) => route.abort().catch(() => undefined)));
+  }
 });
 
 test('reduced motion and a failed video stay on the poster and offer play once', async ({ page }) => {
