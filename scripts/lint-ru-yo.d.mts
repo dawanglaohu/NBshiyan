@@ -7,3 +7,5 @@ export const EXCLUDE: RegExp[];
 export function lintText(text: string, file?: string, allow?: RuYoAllow[]): RuYoHit[];
 export function fixText(text: string): string;
 export function defaultFiles(cwd?: string): string[];
+export function fileId(p: string): string;
+export function sameFile(a: string, b: string): boolean;
