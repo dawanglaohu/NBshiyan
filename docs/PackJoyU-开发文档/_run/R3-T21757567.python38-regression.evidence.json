@@ -1,0 +1,70 @@
+{
+  "task": "R3-T21757567",
+  "scope": "reviewer-code-regression",
+  "baseHead": "0bf37d6f03348a53406ff47ff82e5536e519285e",
+  "finding": "Probe accepted Python3.7 although build.py uses Python3.8 assignment expressions, hiding later usable candidates.",
+  "fix": "Automatic PROBE requires sys.version_info >= (3,8); diagnostic names Python3.8+. Explicit interpreter still does not fall back. Original seven guards retained.",
+  "realBeforeAfter": {
+    "source": "https://www.python.org/ftp/python/3.7.9/python-3.7.9-embed-amd64.zip",
+    "oldPython": "3.7.9",
+    "laterPyLauncher": "3.13.7",
+    "before": "Private PATH first python3.7.9; real build byte-consistency case failed SyntaxError at build.py:63, exit1.",
+    "after": "Same private PATH and original test command passed exit0 after version probe fix.",
+    "logs": {
+      "reviewer-python37-before.log": "1547ab05829459c9385ea227710b8bf95a7a62baad0715a94f3eb25682271398",
+      "reviewer-python37-after.log": "0d479d44ab8438ae37425e0ead3362f8fd50608df20a79bc2c002bb062ab09dc",
+      "reviewer-version-regression-red.log": "b958d0659fde034762142b8323dfd4b3d80158a8c4185440191629465b2e3d99"
+    }
+  },
+  "persistentRegression": "tests/sanity-import.test.ts:367 executes the same PROBE in a real selected interpreter with 3.7/3.8 metadata boundaries; failed before fix and passed after. The independent real3.7 integration above proves actual candidate fallback; metadata boundary is only a focused gate unit test.",
+  "verification": {
+    "reviewer-final-windows-alias.log": {
+      "counts": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "sha256": "82fb09896f628cb92c3ad50456cc9bfd22443ead7b92b1ff871d36aad598b312"
+    },
+    "reviewer-final-windows-real-python3.log": {
+      "counts": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "sha256": "d5e84d309d1a1c0afed8901e7568ec2c128a3adf58f36a0dfd6f75601aab22d1"
+    },
+    "reviewer-final-windows-missing-python3.log": {
+      "counts": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "sha256": "862c3f534ae18fe0cb470dd0a4b14fcc2ebfb5b9dd1c8791a85791b23860eec0"
+    },
+    "reviewer-final-windows-legacy-python37.log": {
+      "counts": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "sha256": "33cfa4383b3d9ba90b1fc8b697bb707432b8e09b15dae045e7abbe04a252bb06"
+    },
+    "reviewer-final-linux.log": {
+      "counts": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      },
+      "sha256": "bf0c30e74ce9f6b1c48e12a6cfe57c8235a00766eaae40c53459ca771bddde1e"
+    }
+  },
+  "lint": "pnpm10 lint exit0; preexisting warnings only",
+  "security": "Next15.5.28 lock unchanged from independent PASS; no server/Python guard/workflow change. Final head CI and independent security review required before merge.",
+  "reviewerAction": "After two review rounds this small concrete error was fixed by reviewer without another implementation rework request."
+}

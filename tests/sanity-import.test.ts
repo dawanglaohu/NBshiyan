@@ -10,7 +10,7 @@ import { join } from 'node:path';
 // A set value, including an empty string, is used as-is. Exit 9009 is the WindowsApps
 // alias: it is a startup failure and must not satisfy a content refusal.
 const PYTHON_ENV = 'SANITY_IMPORT_PYTHON';
-const PROBE = 'import sys; raise SystemExit(0 if sys.version_info[0] >= 3 else 1)';
+const PROBE = 'import sys; raise SystemExit(0 if sys.version_info >= (3, 8) else 1)';
 
 type PythonLaunch = { command: string; args: string[]; display: string };
 type PythonOutput = { status: number | null; signal: NodeJS.Signals | null; stdout: string; stderr: string; error?: Error };
@@ -92,7 +92,7 @@ function resolvePython(override?: string): PythonLaunch {
     cachedLaunch = launch;
     return launch;
   }
-  assert.fail(`No usable Python interpreter for sanity-import tests.\n${failures.join('\n---\n')}`);
+  assert.fail(`No usable Python 3.8+ interpreter for sanity-import tests.\n${failures.join('\n---\n')}`);
 }
 
 function spawnPython(scriptArgs: string[], override?: string): PythonOutput {
@@ -361,4 +361,13 @@ test('sanity-import: the python3 alias assertion runs only when a probe exits 90
     assert.match(err.message, /stderr:/);
     return true;
   });
+});
+
+
+test('sanity-import: discovery probe rejects versions below the script syntax baseline', () => {
+  // Version metadata isolates the boundary while executing the actual discovery expression in Python.
+  for (const [version, expected] of [['(3, 7, 9)', 1], ['(3, 8, 0)', 0]] as const) {
+    const result = spawnPython(['-c', `import sys; sys.version_info = ${version}; ${PROBE}`]);
+    assert.equal(result.status, expected, `Python ${version}: ${result.stderr}`);
+  }
 });
