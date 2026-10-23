@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -9,13 +10,52 @@ import { mockServer } from './helpers';
 // 本地驱动写入前校验文件头与扩展名一致，测试数据用真实的文件头
 const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from('png-body')]);
 
+// 缺权限位时必须 skip。先断言模式再 return 会让覆盖拒绝跑不到；跳过整段则不能把 0600 记成通过。
+function privateModeCapability(): { ready: true } | { ready: false; reason: string } {
+  const base = mkdtempSync(path.join(tmpdir(), 'cap-mode-'));
+  try {
+    const file = path.join(base, 'f');
+    writeFileSync(file, 'x', { mode: 0o600 });
+    const mode = statSync(file).mode & 0o777;
+    if (mode === 0o600) return { ready: true };
+    return { ready: false, reason: `新建文件权限是 ${mode.toString(8).padStart(4, '0')} 而不是 0600，私有模式分支未执行` };
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+}
+
+const privateModeCap = privateModeCapability();
+
+test('前置能力：新建文件能否保留 0600 有明确结论', (t) => {
+  const again = privateModeCapability();
+  assert.equal(again.ready, privateModeCap.ready);
+  t.diagnostic(privateModeCap.ready ? 'mode 0600 ready' : privateModeCap.reason);
+  if (!privateModeCap.ready) assert.match(privateModeCap.reason, /未执行/);
+});
+
+test('适用平台：本地读写删除、拒绝覆盖与逃逸 key', async (t) => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'st-neutral-'));
+  try {
+    const s = new LocalStorage(dir);
+    await s.put('logos/a.png', PNG);
+    assert.deepEqual(await s.get('logos/a.png'), PNG);
+    await t.test('拒绝覆盖已有对象', async () => {
+      await assert.rejects(s.put('logos/a.png', PNG), /EEXIST/);
+    });
+    await s.delete('logos/a.png');
+    assert.equal(await s.get('logos/a.png'), null);
+    await s.delete('logos/a.png');
+    await assert.rejects(s.put('../escape.png', PNG), /bad storage key/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
 test('keys: only server-shaped keys with allowed extensions', () => {
   for (const k of ['logos/2026-10/abc.png', 'models/x1/main.glb', 'models/x1/poster.webp']) assert.equal(assertKey(k), k);
   for (const k of ['../etc/passwd.png', '/abs.png', 'a//b.png', 'a/../b.png', 'x.svg', 'x.png.exe', 'sp ace.png', 'x.PNG%00.png', ''])
     assert.throws(() => assertKey(k), /bad storage key/, k);
 });
 
-test('local: put/get/delete, private mode, no overwrite', async () => {
+test('local: put/get/delete, private mode, no overwrite', { skip: privateModeCap.ready ? false : privateModeCap.reason }, async (t) => {
   const dir = await mkdtemp(path.join(tmpdir(), 'st-'));
   try {
     const s = new LocalStorage(dir);
@@ -23,7 +63,9 @@ test('local: put/get/delete, private mode, no overwrite', async () => {
     assert.deepEqual(await s.get('logos/a.png'), PNG);
     assert.equal((await stat(path.join(dir, 'logos/a.png'))).mode & 0o777, 0o600);
     assert.equal((await stat(path.join(dir, 'logos'))).mode & 0o777, 0o700);
-    await assert.rejects(s.put('logos/a.png', PNG), /EEXIST/);
+    await t.test('拒绝覆盖已有对象', async () => {
+      await assert.rejects(s.put('logos/a.png', PNG), /EEXIST/);
+    });
     await s.delete('logos/a.png');
     assert.equal(await s.get('logos/a.png'), null);
     await s.delete('logos/a.png'); // 幂等

@@ -1,6 +1,7 @@
 // deploy-readiness：STORAGE_DRIVER=local（自建服务器挂载数据卷）的安全要求。见 PR 正文的安全审查清单第 1 项。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs';
 import { mkdtemp, rm, stat, symlink, mkdir, writeFile, readFile, readdir, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -21,6 +22,26 @@ async function withDir(fn: (dir: string) => Promise<void>) {
   try { await fn(dir); } finally { await rm(dir, { recursive: true, force: true }); }
 }
 const exists = (p: string) => access(p).then(() => true, () => false);
+
+// 缺能力时必须 skip。断言前 return 会让该用例变成通过，逃逸链接分支却没有执行。
+function symlinkCapability(): { ready: true } | { ready: false; reason: string } {
+  const base = mkdtempSync(path.join(tmpdir(), 'cap-link-'));
+  try {
+    mkdirSync(path.join(base, 'target'));
+    try {
+      symlinkSync(path.join(base, 'target'), path.join(base, 'link'));
+      return { ready: true };
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code ?? 'UNKNOWN';
+      return { ready: false, reason: `创建符号链接失败（${code}），逃逸链接与挂载点分支未执行` };
+    }
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+}
+
+const symlinkCap = symlinkCapability();
+const skipWithoutSymlink = symlinkCap.ready ? false : symlinkCap.reason;
 
 test('key 只能是服务端生成的形状：拒绝 ..、绝对路径、NUL、反斜杠、svg/html 等扩展名', () => {
   for (const k of ['../x.png', 'a/../../x.png', '/etc/x.png', 'a\0.png', 'a\\b.png', 'x.svg', 'x.html', 'x.htm', 'x.png.svg', 'x.svg.png/../y.png', 'logos/a b.png', '', 'logos/.png/..'])
@@ -54,7 +75,14 @@ test('路径穿越不可能：解析后必须在 UPLOAD_DIR 内，get/put/delete
   });
 });
 
-test('不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响', async () => {
+test('前置能力：符号链接可创建性有明确结论', (t) => {
+  const again = symlinkCapability();
+  assert.equal(again.ready, symlinkCap.ready);
+  t.diagnostic(symlinkCap.ready ? 'symlink ready' : symlinkCap.reason);
+  if (!symlinkCap.ready) assert.match(symlinkCap.reason, /未执行/);
+});
+
+test('不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响', { skip: skipWithoutSymlink }, async () => {
   await withDir(async (dir) => {
     const root = path.join(dir, 'root'); const outside = path.join(dir, 'outside');
     await mkdir(root); await mkdir(path.join(outside, 'sub'), { recursive: true });
@@ -78,7 +106,7 @@ test('不跟随符号链接：目录或文件是符号链接（指向根目录�
   });
 });
 
-test('根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断', async () => {
+test('根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断', { skip: skipWithoutSymlink }, async () => {
   await withDir(async (dir) => {
     const real = path.join(dir, 'vol'); await mkdir(real);
     await symlink(real, path.join(dir, 'link'));
