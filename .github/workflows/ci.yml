@@ -111,3 +111,93 @@ jobs:
             .next/standalone-server.log
           retention-days: 7
 
+  # Ubuntu 上名单内的安全用例必须实跑并通过。缺符号链接、POSIX 路径或 0600 时测试记 skip，作业不能算通过。
+  posix-storage-security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: 存储权限与符号链接安全验收
+        run: |
+          set +e
+          node --import tsx --test \
+            --test-reporter=spec \
+            --test-reporter=tap \
+            --test-reporter-destination=stdout \
+            --test-reporter-destination=posix-storage-security.tap \
+            tests/prod-env-check.test.ts tests/storage-local.test.ts tests/storage.test.ts
+          test_status=$?
+          node --input-type=module <<'EOF'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const tap = readFileSync('posix-storage-security.tap', 'utf8');
+          // TAP 把标题里的 # 写成 \#。不还原时 #323 会显示通过，闸门却把它当成缺失。
+          const unescapeTap = (value) => value.replaceAll('\\#', '#');
+          const results = [];
+          for (const line of tap.split(/\r?\n/)) {
+            const match = line.match(/^\s*(ok|not ok)\s+\d+\s+-\s(.*)$/);
+            if (!match) continue;
+            const raw = match[2];
+            const skipAt = raw.lastIndexOf(' # SKIP');
+            if (match[1] === 'not ok') {
+              const comment = raw.search(/ # /);
+              results.push({ status: 'fail', name: unescapeTap(comment >= 0 ? raw.slice(0, comment) : raw), detail: line.trim() });
+            } else if (skipAt >= 0) results.push({ status: 'skip', name: unescapeTap(raw.slice(0, skipAt)), detail: raw.slice(skipAt + 8).trim() });
+            else results.push({ status: 'pass', name: unescapeTap(raw), detail: '' });
+          }
+          const counts = { pass: 0, fail: 0, skip: 0 };
+          const rows = [];
+          for (const result of results) {
+            counts[result.status] += 1;
+            rows.push(`${result.status.toUpperCase()}\t${result.name}${result.detail ? `\t${result.detail}` : ''}`);
+          }
+          const required = [
+            'local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径',
+            'local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）',
+            '#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径',
+            '不跟随符号链接：目录或文件是符号链接（指向根目录外）时 get/put/delete 都拒绝，外部文件不受影响',
+            '根目录本身是符号链接（挂载点）时正常工作：按 realpath 判断',
+            'local: put/get/delete, private mode, no overwrite',
+            '只读目录拒绝',
+            '拒绝覆盖已有对象',
+            '拒绝根目录',
+            '拒绝不可写目录',
+            '注入 realpath 指向 public 时拒绝',
+          ];
+          const problems = [];
+          for (const name of required) {
+            const hits = results.filter((result) => result.name === name);
+            if (hits.length === 0) problems.push(`ABSENT\t${name}`);
+            for (const hit of hits) if (hit.status !== 'pass') problems.push(`${hit.status.toUpperCase()}\t${name}\t${hit.detail}`);
+          }
+          const record = [
+            `platform=${process.platform}`,
+            `pass=${counts.pass}`,
+            `fail=${counts.fail}`,
+            `skip=${counts.skip}`,
+            ...rows,
+            ...problems,
+          ].join('\n') + '\n';
+          writeFileSync('posix-storage-security.record.txt', record);
+          process.stdout.write(record);
+          if (problems.length > 0 || counts.fail > 0) process.exit(1);
+          EOF
+          gate_status=$?
+          set -e
+          if [ "$test_status" -ne 0 ] || [ "$gate_status" -ne 0 ]; then exit 1; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: posix-storage-security
+          path: |
+            posix-storage-security.tap
+            posix-storage-security.record.txt
+          if-no-files-found: ignore
+          retention-days: 14
+

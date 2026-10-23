@@ -1,7 +1,46 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { prodEnvProblems, assertProdEnv, storageProblems, RUNTIME_ONLY, publicSiteHostOk, PUBLIC_SITE_HOST_RE } from '../prod-env-check';
+
+// 缺能力时必须 skip。断言前 return 会让该用例变成通过，安全分支却没有执行。
+type StorageCap = { ready: true } | { ready: false; reason: string };
+
+function classifyUploadFixture(): { appRoot: StorageCap; tempAbsolute: StorageCap; symlink: StorageCap } {
+  const resolved = path.resolve('/app');
+  const appRoot: StorageCap = resolved === '/app' && path.join(resolved, 'public') === '/app/public'
+    ? { ready: true }
+    : { ready: false, reason: 'path.resolve/join 不保持 POSIX 应用根，public/.next 前缀分支未执行' };
+  const base = mkdtempSync(path.join(tmpdir(), 'cap-upl-'));
+  let tempAbsolute: StorageCap = { ready: false, reason: '临时目录探测未完成，真实目录分支未执行' };
+  let symlink: StorageCap = { ready: false, reason: '符号链接探测未完成，realpath 逃逸分支未执行' };
+  try {
+    tempAbsolute = path.posix.isAbsolute(base)
+      ? { ready: true }
+      : { ready: false, reason: '临时目录不是 POSIX 绝对路径，真实目录与符号链接前缀分支未执行' };
+    mkdirSync(path.join(base, 'target'));
+    try {
+      symlinkSync(path.join(base, 'target'), path.join(base, 'link'));
+      symlink = { ready: true };
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code ?? 'UNKNOWN';
+      symlink = { ready: false, reason: `创建符号链接失败（${code}），realpath 逃逸分支未执行` };
+    }
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+  return { appRoot, tempAbsolute, symlink };
+}
+
+const uploadFixtureCap = classifyUploadFixture();
+const skipUnless = (cap: StorageCap): false | string => (cap.ready ? false : cap.reason);
+function skipRealpathFixture(): false | string {
+  if (!uploadFixtureCap.symlink.ready) return uploadFixtureCap.symlink.reason;
+  if (!uploadFixtureCap.tempAbsolute.ready) return uploadFixtureCap.tempAbsolute.reason;
+  return skipUnless(uploadFixtureCap.appRoot);
+}
 
 test('非生产环境（CI/预览/本地）不检查', () => {
   assert.deepEqual(prodEnvProblems({ CI: 'true', NODE_ENV: 'production', NEXT_PUBLIC_LOGO_UPLOAD_MOCK: '1' }), []);
@@ -195,7 +234,62 @@ test('local 驱动：UPLOAD_DIR 是存在且可写的绝对路径时通过，不
   assert.deepEqual(storageProblems(localEnv(), { dirProblem: okDir, cwd: '/app' }), []);
 });
 
-test('local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径', () => {
+test('适用平台：UPLOAD_DIR 词法、根目录、不可写与路径不外泄', () => {
+  const cases: [string | undefined, RegExp][] = [
+    [undefined, /UPLOAD_DIR 未设置/], ['', /UPLOAD_DIR 未设置/], ['data/uploads', /绝对路径/], ['./uploads', /绝对路径/],
+    ['/', /规范/], ['/data/../etc', /规范/], ['/data/./uploads', /规范/], ['/data//uploads', /规范/], ['/data/up\0loads', /绝对路径/],
+  ];
+  for (const [dir, re] of cases) {
+    const p = storageProblems(localEnv({ UPLOAD_DIR: dir }), { dirProblem: okDir, cwd: '/app' });
+    assert.equal(p.length, 1, String(dir)); assert.match(p[0], re, String(dir));
+    if (dir && dir.length > 1) assert.ok(!p[0].includes(dir), `path leaked: ${dir}`);
+  }
+});
+
+test('拒绝根目录', () => {
+  const p = storageProblems(localEnv({ UPLOAD_DIR: '/' }), { dirProblem: okDir, cwd: '/app' });
+  assert.equal(p.length, 1);
+  assert.match(p[0], /规范/);
+});
+
+test('拒绝不可写目录', () => {
+  const p = prodEnvProblems(localEnv(), 'runtime', { dirProblem: () => '不存在或当前用户不可读写', cwd: '/app' });
+  assert.deepEqual(p, ['UPLOAD_DIR 不存在或当前用户不可读写']);
+});
+
+test('适用平台：临时目录不是 POSIX 绝对路径时不能通过可写检查', () => {
+  const base = mkdtempSync(path.join(tmpdir(), 'upl-neutral-'));
+  try {
+    const problems = storageProblems(localEnv({ UPLOAD_DIR: base }), { cwd: process.cwd() });
+    if (path.posix.isAbsolute(base)) assert.deepEqual(problems, []);
+    else {
+      assert.equal(problems.length, 1);
+      assert.match(problems[0], /必须是绝对路径/);
+      assert.ok(!problems[0].includes(base), 'path leaked');
+    }
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test('前置能力：符号链接、POSIX 应用根与临时目录有明确结论', (t) => {
+  const again = classifyUploadFixture();
+  for (const key of ['appRoot', 'tempAbsolute', 'symlink'] as const) {
+    assert.equal(again[key].ready, uploadFixtureCap[key].ready, key);
+    const cap = uploadFixtureCap[key];
+    t.diagnostic(`${key} ${cap.ready ? 'ready' : cap.reason}`);
+    if (!cap.ready) assert.match(cap.reason, /未执行/);
+  }
+  assert.equal(uploadFixtureCap.appRoot.ready, path.resolve('/app') === '/app' && path.join(path.resolve('/app'), 'public') === '/app/public');
+  const sample = mkdtempSync(path.join(tmpdir(), 'cap-check-'));
+  try {
+    assert.equal(uploadFixtureCap.tempAbsolute.ready, path.posix.isAbsolute(sample));
+  } finally {
+    rmSync(sample, { recursive: true, force: true });
+  }
+});
+
+test('local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public/.next 下 / 不可写 都拒绝启动，只报变量名不报路径', { skip: skipUnless(uploadFixtureCap.appRoot) }, () => {
   const cases: [string | undefined, RegExp][] = [
     [undefined, /UPLOAD_DIR 未设置/], ['', /UPLOAD_DIR 未设置/], ['data/uploads', /绝对路径/], ['./uploads', /绝对路径/],
     ['/', /规范/], ['/data/../etc', /规范/], ['/data/./uploads', /规范/], ['/data//uploads', /规范/], ['/data/up\0loads', /绝对路径/],
@@ -210,22 +304,27 @@ test('local 驱动：UPLOAD_DIR 缺失 / 相对 / 非规范 / 根目录 / public
   assert.deepEqual(p, ['UPLOAD_DIR 不存在或当前用户不可读写']);
 });
 
-test('local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）', async () => {
-  const { mkdtempSync, writeFileSync, chmodSync, rmSync } = await import('node:fs');
-  const { tmpdir } = await import('node:os');
+test('local 驱动：默认 fs 检查真实目录（可写通过、不存在 / 只读 / 是文件 拒绝）', { skip: skipUnless(uploadFixtureCap.tempAbsolute) }, async (t) => {
+  const { mkdtempSync: makeTemp, writeFileSync, chmodSync, mkdirSync: makeDir, rmSync: remove } = await import('node:fs');
+  const { tmpdir: osTmp } = await import('node:os');
   const { join } = await import('node:path');
-  const base = mkdtempSync(join(tmpdir(), 'upl-'));
+  const base = makeTemp(join(osTmp(), 'upl-'));
   try {
     assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: base }), { cwd: '/app' }), []);
     assert.match(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'missing') }), { cwd: '/app' })[0], /不存在或当前用户不可读写/);
     writeFileSync(join(base, 'f'), 'x');
     assert.match(storageProblems(localEnv({ UPLOAD_DIR: join(base, 'f') }), { cwd: '/app' })[0], /不是目录/);
-    if (process.getuid?.() !== 0) {
-      const ro = join(base, 'ro'); (await import('node:fs')).mkdirSync(ro); chmodSync(ro, 0o500);
-      assert.match(storageProblems(localEnv({ UPLOAD_DIR: ro }), { cwd: '/app' })[0], /不可读写/);
-      chmodSync(ro, 0o700);
-    }
-  } finally { rmSync(base, { recursive: true, force: true }); }
+    await t.test('只读目录拒绝', { skip: process.getuid?.() === 0 ? '当前进程是 root，chmod 不能证明不可写，只读分支未执行' : false }, () => {
+      const ro = join(base, 'ro');
+      makeDir(ro);
+      chmodSync(ro, 0o500);
+      try {
+        assert.match(storageProblems(localEnv({ UPLOAD_DIR: ro }), { cwd: '/app' })[0], /不可读写/);
+      } finally {
+        chmodSync(ro, 0o700);
+      }
+    });
+  } finally { remove(base, { recursive: true, force: true }); }
 });
 
 test('r2 驱动行为不变：4 个 R2_* 逐个缺失各报一条；STORAGE_DRIVER 未设置或未知值拒绝', () => {
@@ -279,7 +378,15 @@ test('#323 publicSiteHostOk：IP 字面量（v4 / v6 / 带括号 / 十进制 / �
   assert.equal(PUBLIC_SITE_HOST_RE.source, '^[a-z0-9-]+(\\.[a-z0-9-]+)+$');
 });
 
-test('#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径', async () => {
+test('realpath 抛错时退回字面路径并报告不存在', () => {
+  assert.deepEqual(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: () => '不存在或当前用户不可读写', realpath: () => { throw new Error('ENOENT'); } }), ['UPLOAD_DIR 不存在或当前用户不可读写']);
+});
+
+test('注入 realpath 指向 public 时拒绝', { skip: skipUnless(uploadFixtureCap.appRoot) }, () => {
+  assert.match(storageProblems(localEnv({ UPLOAD_DIR: '/data/uploads' }), { cwd: '/app', dirProblem: okDir, realpath: (p) => (p === '/data/uploads' ? '/app/public/x' : p) })[0], /public\//);
+});
+
+test('#323 local 驱动：UPLOAD_DIR 先 realpath 再比 public/、.next/ 前缀（符号链接指进去也拒绝），只报变量名不报路径', { skip: skipRealpathFixture() }, async () => {
   const { mkdtempSync, mkdirSync, symlinkSync, rmSync, realpathSync } = await import('node:fs');
   const { tmpdir } = await import('node:os');
   const { join } = await import('node:path');

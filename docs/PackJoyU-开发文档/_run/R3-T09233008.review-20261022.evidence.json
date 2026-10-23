@@ -1,0 +1,58 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T09233008": {
+      "contractHash": "b1bfa9084cbbbcebcba80fb0a7a9b8571b71d9ca7b1729ae6d0d1b38f5fd690a",
+      "verdict": "pass",
+      "evidence": [
+        "仅登记任务定义的语义复核：实现验收为 REWORK，未 --landed、未合并；不得把本 scope=task-contract 的 pass 当作代码或门禁通过。",
+        "当前派发包与附件契约哈希一致；输入、产出和三项验收与 _run/batches/batch-3-20261022.md:106 的原始 task 一致；13节无本返工任务新增编号边界，17节要求真实适用平台证据，19节原任务集合保持不变。",
+        "前置 M1-T8、M2-T4、M3-T14、M5-T1 的任务笔记 status 均为 done；有效改动只在四个获授权文件，额外差异为本任务笔记回填和 judgments 日志；无生产类型、环境配置、HTTP 字段或事务层变化。",
+        "06/08 分层、唯一配置与错误体系经核：生产 prod-env-check.ts、src/lib/server/storage.ts、package.json 和 pnpm-lock.yaml 与 main b9432f5d161fd9bd05bbcc6d0fbb3fd32ac20bdc 均无差异。",
+        "Linux 精确实现 head bf49e765095275184d4b3343b3b5a3e35135388f 的 CI run 39881749760、job 120180468450 真实执行：pass=53 fail=0 skip=0；原六项及只读、覆盖、根目录、不可写、注入 public 均 pass。https://github.com/dawanglaohu/NBshiyan/actions/runs/39881749760/job/120180468450",
+        "Windows 现场复跑 node --import tsx --test --test-reporter=tap tests/prod-env-check.test.ts tests/storage-local.test.ts tests/storage.test.ts：51 tests，44 pass，0 fail，7 skip；缺 POSIX 路径、symlink EPERM、mode=0666 均如实 skip。完整 TAP：D:/xiangmu/.codex-plans/NBshiyan-r3-t09233008/review-windows.tap。",
+        "pnpm lint 与 pnpm exec tsc --noEmit --incremental false 均退出 0；lint 留有既有 img/unused-disable 警告与 SWC wasm fallback。有效四文件反造假扫描无命中，git diff --check 通过。",
+        "从当前 ci.yml 提取实际 TAP gate，六组控制通过：全齐 pass 返回0；缺失、skip、not ok、同名重复 skip、其他测试失败均返回1。探针仅在 planning 目录，不替代真实 Linux 证据。",
+        "实现侧裁决全部候选 A 保留依赖、B 本 PR 升级、C 弱化审计已完整重审；jev-1.14.0，judgments.jsonl label=R3-T09233008:review，adjudicate: pick=A(high 0.95) spec_change=no(0.10) outside_stack=no(0.10) needs_owner=no(0.34) reversible=yes(0.86) adopt=take(A)。动作：不改依赖、不削弱审计，审计失败保留为阻断落地的基线问题。",
+        "语义审查代码阻断：.github/workflows/ci.yml:119 新增 actions: write，而 checkout 默认保存 token，随后运行 PR 控制的 install/test，形成不必要的 Actions 写权限。另有 required build-and-audit 在审计处失败以及 security-review 缺精确 head 的安全 App 批准，均不得写成已通过。"
+      ]
+    }
+  },
+  "implementationReview": {
+    "verdict": "rework",
+    "round": 1,
+    "head": "bf49e765095275184d4b3343b3b5a3e35135388f",
+    "base": "b9432f5d161fd9bd05bbcc6d0fbb3fd32ac20bdc",
+    "linux": {
+      "run": 39881749760,
+      "job": 120180468450,
+      "pass": 53,
+      "fail": 0,
+      "skip": 0
+    },
+    "windows": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 7,
+      "tests": 51,
+      "node": "v22.17.0",
+      "pnpm": "9.15.9"
+    },
+    "requiredGates": [
+      {
+        "name": "build-and-audit",
+        "state": "failure",
+        "run": 39881749760,
+        "job": 120180468537,
+        "reason": "pnpm audit --audit-level high --prod: 1 critical, 1 high against unchanged next 15.5.27; not a storage-test failure"
+      },
+      {
+        "name": "security-review",
+        "state": "failure",
+        "run": 39881749744,
+        "job": 120180467968,
+        "reason": "missing packjoyu-security-reviewer[bot] APPROVED for bf49e765095275184d4b3343b3b5a3e35135388f"
+      }
+    ]
+  }
+}
