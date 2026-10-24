@@ -12,6 +12,7 @@ import {
   aboutOgImageUrl,
   aboutOgVersion,
   aboutSitemapEntries,
+  aboutSitemapFromLoader,
   buildAboutMetadata,
   buildOrganizationJsonLd,
   aboutPlainText,
@@ -23,7 +24,10 @@ import { articleOgImageUrl, articleOgVersion } from '../src/lib/seo/articleOg';
 import { ORGANIZATION_DEFAULTS } from '../src/lib/seo/organization-defaults';
 import { SITE_URL } from '../src/lib/site';
 import { isValidFoundingDate, parseStoredOrganization } from '../src/lib/server/site-settings-model';
-import type { AboutContent } from '../src/lib/server/site-settings';
+import { createSiteSettingsReader, type AboutContent, type AboutImage } from '../src/lib/server/site-settings';
+import { ABOUT_LIMITS, visibleImages } from '../src/lib/about/model';
+import { isAboutVisible, loadAboutPage } from '../src/lib/about/visibility';
+import { buildSitemap } from '../src/lib/seo/sitemapEntries';
 
 const ORIGIN = 'https://example.test';
 const LONG_BODY = `<h2>Who we are</h2><p>${'Sample text about the company. '.repeat(12)}</p><ul><li>Item one</li></ul>`;
@@ -66,12 +70,28 @@ test('metadata: single published locale → canonical, self hreflang, no x-defau
   assert.deepEqual(m.alternates?.languages, { ru: `${ORIGIN}/ru/about` });
   assert.equal((m.title as { absolute: string }).absolute, 'About PackJoyU');
   assert.equal(m.robots, undefined);
+  const sm = aboutSitemapEntries({ publishedLocales: ['ru'], origin: ORIGIN });
+  assert.deepEqual(sm[0].alternates?.languages, { ru: `${ORIGIN}/ru/about` });
 });
 
-test('metadata: en + ru → both listed, x-default = en', () => {
+test('metadata and sitemap: only en → neither has x-default', () => {
+  const languages = { en: `${ORIGIN}/en/about` };
+  const m = buildAboutMetadata({ locale: 'en', content: content('en'), publishedLocales: ['en'], origin: ORIGIN });
+  const sm = aboutSitemapEntries({ publishedLocales: ['en'], origin: ORIGIN });
+  assert.equal(m.alternates?.canonical, `${ORIGIN}/en/about`);
+  assert.deepEqual(m.alternates?.languages, languages);
+  assert.deepEqual(sm[0].alternates?.languages, languages);
+  assert.equal(Object.hasOwn(m.alternates?.languages ?? {}, 'x-default'), false);
+  assert.equal(Object.hasOwn(sm[0].alternates?.languages ?? {}, 'x-default'), false);
+});
+
+test('metadata and sitemap: en + ru → both have x-default pointing at en', () => {
+  const languages = { en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about` };
   const m = buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['en', 'ru'], origin: `${ORIGIN}/` });
-  assert.deepEqual(m.alternates?.languages, { en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about` });
+  const sm = aboutSitemapEntries({ publishedLocales: ['en', 'ru'], origin: `${ORIGIN}/` });
+  assert.deepEqual(m.alternates?.languages, languages);
   assert.equal(m.alternates?.canonical, `${ORIGIN}/ru/about`);
+  for (const e of sm) assert.deepEqual(e.alternates?.languages, languages);
 });
 
 test('metadata: locale not in publishedLocales (switch off / no content) → noindex, no canonical/hreflang', () => {
@@ -109,18 +129,154 @@ test('og image: title with no renderable glyphs → home OG fallback', () => {
   assert.equal(img.alt, 'alt');
 });
 
-test('sitemap: [] when none; entries share the same hreflang rule', () => {
+const aboutImg = (id: string, sameFile = false): AboutImage => ({
+  id, w: sameFile ? 640 : 1600, h: sameFile ? 480 : 1000, alt: `alt ${id}`, caption: '',
+  sm: sameFile ? { w: 640, h: 480 } : { w: 800, h: 500 },
+  lg: sameFile ? { w: 640, h: 480 } : { w: 1600, h: 1000 },
+  src: { sm: `/media/${id}-${sameFile ? '1600' : '800'}.webp`, lg: `/media/${id}-1600.webp` }
+});
+
+test('sitemap: [] when none; one locale has no x-default; en+ru matches the page', () => {
   assert.deepEqual(aboutSitemapEntries({ publishedLocales: [], origin: ORIGIN }), []);
   const one = aboutSitemapEntries({ publishedLocales: ['en'], origin: ORIGIN });
   assert.equal(one.length, 1);
+  assert.equal('x-default' in (one[0].alternates?.languages ?? {}), false);
   assert.deepEqual(one[0].alternates?.languages, { en: `${ORIGIN}/en/about` });
+  assert.deepEqual(one[0].alternates?.languages, buildAboutMetadata({ locale: 'en', content: content('en'), publishedLocales: ['en'], origin: ORIGIN }).alternates?.languages);
   assert.equal('lastModified' in one[0], false);
+  assert.equal('images' in one[0], false);
+  const ruOnly = aboutSitemapEntries({ publishedLocales: ['ru'], origin: ORIGIN });
+  assert.equal('x-default' in (ruOnly[0].alternates?.languages ?? {}), false);
+  assert.deepEqual(ruOnly[0].alternates?.languages, { ru: `${ORIGIN}/ru/about` });
+  assert.deepEqual(ruOnly[0].alternates?.languages, buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['ru'], origin: ORIGIN }).alternates?.languages);
   const lm = new Date('2026-10-17T00:00:00Z');
   const two = aboutSitemapEntries({ publishedLocales: ['en', 'ru'], origin: ORIGIN, lastModified: { en: lm, ru: 'bad-date' } });
   assert.deepEqual(two.map((e) => e.url), [`${ORIGIN}/en/about`, `${ORIGIN}/ru/about`]);
   assert.equal(two[0].lastModified, lm);
   assert.equal('lastModified' in two[1], false);
-  for (const e of two) assert.deepEqual(e.alternates?.languages, { en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about` });
+  const both = { en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about` };
+  for (const e of two) assert.deepEqual(e.alternates?.languages, both);
+  assert.deepEqual(buildAboutMetadata({ locale: 'ru', content: content('ru'), publishedLocales: ['en', 'ru'], origin: ORIGIN }).alternates?.languages, both);
+});
+
+const storedAbout = () => ({
+  version: 1, title: 'About us', summary: 'S', bodyHtml: `<p>${'x'.repeat(60)}</p>`,
+  stats: [{ label: 'L', value: '00' }], home: { title: 'H', intro: 'I' }, imageMeta: {},
+  updatedAt: '2026-10-18T05:30:00.000Z', updatedBy: 'u1',
+});
+
+test('sitemap: switch off → isAboutVisible is false and /about is omitted even when content exists', async () => {
+  const raw = () => ({ 'about.enabled': { enabled: false, version: 1 }, 'about.en': storedAbout(), 'about.ru': storedAbout() });
+  const published = await createSiteSettingsReader(async () => raw()).getPublishedAboutLocales();
+  assert.deepEqual(published, []);
+  assert.equal(await isAboutVisible('en', published), false);
+  assert.equal(await isAboutVisible('ru', published), false);
+  const on = await createSiteSettingsReader(async () => ({ ...raw(), 'about.enabled': { enabled: true, version: 1 } })).getPublishedAboutLocales();
+  assert.deepEqual(on, ['en', 'ru']);
+  assert.equal(await isAboutVisible('en', on), true);
+
+  const read = {
+    isAboutVisible: (locale: string) => isAboutVisible(locale, published),
+    getAboutContent: async (locale: 'en' | 'ru') => content(locale),
+  };
+  assert.ok(await read.getAboutContent('en'));
+  assert.equal(await loadAboutPage('en', read), null);
+  assert.equal(await loadAboutPage('ru', read), null);
+  const entries = await aboutSitemapFromLoader({
+    locales: ['en', 'ru'] as const,
+    origin: ORIGIN,
+    load: (locale) => loadAboutPage(locale, read),
+  });
+  assert.deepEqual(entries, []);
+});
+
+test('sitemap loader: one hidden image is dropped; the two that remain end in -1600.webp', async () => {
+  const images = [aboutImg('aaa'), { ...aboutImg('hid'), w: 0, h: 0 }, aboutImg('ccc')];
+  assert.equal(visibleImages(images).length, 2);
+  const entries = await aboutSitemapFromLoader({
+    locales: ['en', 'ru'] as const,
+    origin: `${ORIGIN}/`,
+    load: async (locale) => (locale === 'en' ? content('en', { images, updatedAt: '2026-10-18T05:30:00.000Z' }) : null)
+  });
+  assert.deepEqual(entries.map((e) => e.url), [`${ORIGIN}/en/about`]);
+  assert.deepEqual(entries[0].alternates?.languages, buildAboutMetadata({ locale: 'en', content: content('en'), publishedLocales: ['en'], origin: ORIGIN }).alternates?.languages);
+  assert.equal((entries[0].lastModified as Date).toISOString(), '2026-10-18T05:30:00.000Z');
+  assert.equal(entries[0].images?.length, 2);
+  assert.deepEqual(entries[0].images, [
+    `${ORIGIN}/media/aaa-1600.webp`,
+    `${ORIGIN}/media/ccc-1600.webp`,
+  ]);
+  for (const u of entries[0].images ?? []) assert.match(u, /-1600\.webp$/);
+  assert.ok(!(entries[0].images ?? []).some((u) => u.includes('hid')));
+});
+
+test('sitemap loader: an image with no alt stays out of the sitemap', async () => {
+  const images = [aboutImg('keep'), { ...aboutImg('noalt'), alt: '' }];
+  const entries = await aboutSitemapFromLoader({
+    locales: ['en'] as const,
+    origin: ORIGIN,
+    load: async () => content('en', { images }),
+  });
+  assert.deepEqual(entries[0].images, [`${ORIGIN}/media/keep-1600.webp`]);
+  assert.ok(!(entries[0].images ?? []).some((u) => u.includes('noalt')));
+});
+
+test('sitemap loader: images beyond imagesMax stay out of the sitemap', async () => {
+  const images = [...Array.from({ length: ABOUT_LIMITS.imagesMax }, (_, i) => aboutImg(`n${i}`)), aboutImg('past')];
+  assert.equal(visibleImages(images).length, ABOUT_LIMITS.imagesMax);
+  const entries = await aboutSitemapFromLoader({
+    locales: ['en'] as const,
+    origin: ORIGIN,
+    load: async () => content('en', { images }),
+  });
+  assert.equal(entries[0].images?.length, ABOUT_LIMITS.imagesMax);
+  assert.ok(!(entries[0].images ?? []).some((u) => u.includes('/media/past-')));
+  for (const u of entries[0].images ?? []) assert.match(u, /-1600\.webp$/);
+});
+
+test('sitemap route keeps hourly revalidate and loads about through loadAboutPage', () => {
+  const src = readFileSync('src/app/sitemap.ts', 'utf8');
+  assert.match(src, /export const revalidate = 3600/);
+  assert.match(src, /revalidate: 3600/);
+  assert.match(src, /tags: \[SITE_SETTINGS_TAG\]/);
+  assert.match(src, /loadAboutPage\(locale\)/);
+  assert.match(src, /aboutSitemapFromLoader/);
+  assert.doesNotMatch(src, /export const dynamic/);
+  const page = readFileSync('src/app/[locale]/about/page.tsx', 'utf8');
+  assert.match(page, /loadAboutPage\(locale\)/);
+  assert.doesNotMatch(page, /async function load\(/);
+  const vis = readFileSync('src/lib/about/visibility.ts', 'utf8');
+  assert.match(vis, /isPublishedLocale\(locale\)/);
+  assert.match(vis, /await visible\(locale\)/);
+  assert.match(vis, /contentOf\(locale\)/);
+});
+
+test('sitemap loader: getAboutContent throw leaves the other entries unchanged', async () => {
+  const base = buildSitemap({ siteUrl: ORIGIN, locales: ['en', 'ru'] as const, defaultLocale: 'en', lastModified: new Date('2026-01-01T00:00:00Z') });
+  const logs: unknown[][] = [];
+  const orig = console.error;
+  console.error = (...args: unknown[]) => { logs.push(args); };
+  try {
+    const about = await aboutSitemapFromLoader({
+      locales: ['en', 'ru'] as const,
+      origin: ORIGIN,
+      load: async () => { throw new Error('database unavailable secret-host'); }
+    });
+    assert.deepEqual(about, []);
+    assert.deepEqual([...base, ...about], base);
+    assert.ok(base.length > 0);
+    assert.ok(![...base, ...about].some((e) => e.url.includes('/about')));
+    const cacheMiss = Object.assign(new Error('Invariant: incrementalCache missing in unstable_cache () => 1'), { __NEXT_ERROR_CODE: 'E469' });
+    assert.deepEqual(await aboutSitemapFromLoader({
+      locales: ['en'] as const, origin: ORIGIN, load: async () => { throw cacheMiss; }
+    }), []);
+    assert.deepEqual(await aboutSitemapFromLoader({
+      locales: ['en'] as const, origin: ORIGIN, load: async () => { throw new Error('incrementalCache missing'); }
+    }), []);
+  } finally { console.error = orig; }
+  assert.equal(logs.length, 1);
+  assert.deepEqual(logs[0], ['[sitemap] about entries skipped', 'Error']);
+  assert.equal(JSON.stringify(logs).includes('secret-host'), false);
 });
 
 test('ORGANIZATION_DEFAULTS: exact text, no numbers', () => {

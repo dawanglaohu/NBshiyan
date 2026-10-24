@@ -52,12 +52,35 @@ test.describe('SEO（#144 评论 6150724426）', () => {
     const xml = await res.text();
     const urls = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((m) => m[1]);
     expect(urls.length).toBeGreaterThan(0);
+    // 只请求公开页，不登录后台。/about 发布几种，alternates 就列几种；只有一种时不带 x-default。
+    const publishedAbout: string[] = [];
+    for (const locale of ['en', 'ru']) {
+      if ((await request.get(`/${locale}/about`, { maxRedirects: 0 })).status() === 200) publishedAbout.push(locale);
+    }
+    const aboutLangs = [...publishedAbout].sort();
+    const seenAbout: string[] = [];
+    let bilingual = 0;
     for (const u of urls) {
       const loc = /<loc>(.*?)<\/loc>/.exec(u)![1];
-      expect(u, loc).toMatch(/hreflang="en"/); expect(u, loc).toMatch(/hreflang="ru"/);
       const path = new URL(loc).pathname;
       expect((await request.get(path, { maxRedirects: 0 })).status(), path).toBe(200);
+      const about = /^\/(en|ru)\/about\/?$/.exec(path);
+      if (!about) {
+        bilingual += 1;
+        expect(u, loc).toMatch(/hreflang="en"/);
+        expect(u, loc).toMatch(/hreflang="ru"/);
+        continue;
+      }
+      seenAbout.push(about[1]);
+      const alts = new Map([...u.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map((m) => [m[1], m[2]]));
+      const langs = [...alts.keys()].filter((k) => k !== 'x-default').sort();
+      expect(langs, loc).toEqual(aboutLangs);
+      for (const lang of langs) expect(new URL(alts.get(lang)!).pathname, loc).toBe(`/${lang}/about`);
+      if (aboutLangs.length < 2 || !aboutLangs.includes('en')) expect(alts.has('x-default'), loc).toBe(false);
+      else expect(new URL(alts.get('x-default')!).pathname, loc).toBe('/en/about');
     }
+    expect(bilingual).toBeGreaterThan(0);
+    expect(seenAbout.sort()).toEqual(aboutLangs);
   });
 
   test('7. JSON-LD：首页 Organization+WebSite，/products ItemList+BreadcrumbList，无 offers/aggregateRating', async ({ page }) => {
