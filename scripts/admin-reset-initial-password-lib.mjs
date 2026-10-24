@@ -14,8 +14,10 @@
 // - upstash：用 https.request 打 /pipeline。APP_ENV=production 时拒绝 http: 地址（不发 Bearer，结果是 failed）。
 //   env.NODE_EXTRA_CA_CERTS 有值时读那个 PEM，和公共根证书一起交给这次请求
 //   （docker compose exec 的新进程会继承容器 environment 里的这个变量和 CA 挂载；没带到 CA 时证书校验失败，返回 failed，不抛错）。
-// - redis：RATE_LIMIT_STORE=redis。需要 Redis 7 或更新（PEXPIRE … NX）。生产环境非本机必须 rediss://
-//   （本机只认 127.0.0.1、::1、localhost）。同样只 DEL 上面那些 key，rediss 时同样带上额外 CA。
+// - redis：RATE_LIMIT_STORE=redis。需要 Redis 7 或更新（PEXPIRE … NX）。APP_ENV=production 时，开任何 socket 之前
+//   先按 prod-env-check.ts 的 rateLimitProblems 判定：REDIS_URL 必须带密码；非本机必须 rediss://
+//   （本机只认 127.0.0.1、::1、localhost；URL 里的 [::1] 解析后是 ::1）。不合规则 rate_limit=failed，文案只写变量名，不连网。
+//   同样只 DEL 上面那些 key，rediss 时同样带上额外 CA。
 // - #347 方案 A：每次都在同一个事务里签发新的一次性绑定令牌（覆盖旧的，旧链接立即失效；加不加 --clear-pending-enroll 都签发），
 //   审计 auth.enroll_token_issued（source 'cli'，不含令牌）。链接只打印到终端一次（链接 / 有效至 / 只私信给本人三行）。
 //   stdout 不是终端（重定向、管道、exec -T）时在读密码、连库之前就拒绝（退出码 2），什么都不改：链接不能落进文件或日志，
@@ -263,26 +265,51 @@ function postJson(urlStr, token, body, ca, timeoutMs) {
   });
 }
 
-/** 与 src/lib/server/ratelimit/redis.ts 的 parseRedisUrl 同一规则。失败返回 null，不带回原始串。 */
-function parseRedisEndpoint(raw) {
-  if (!raw || !String(raw).trim()) return null;
+/**
+ * 与 src/lib/server/ratelimit/redis.ts 的 parseRedisUrl、以及 prod-env-check.ts rateLimitProblems 的文案映射同一规则。
+ * error 只含变量名 REDIS_URL，不含原始串。解析成功时 endpoint 还不含「生产必须有密码 / 非本机必须 rediss」这两条。
+ */
+function classifyRedisUrl(raw) {
+  const text = typeof raw === 'string' ? raw.trim() : '';
+  if (!text) return { error: 'REDIS_URL 未设置' };
   let u;
-  try { u = new URL(String(raw).trim()); } catch { return null; }
-  if (u.protocol !== 'redis:' && u.protocol !== 'rediss:') return null;
-  if (u.search || u.hash || !u.hostname) return null;
+  try { u = new URL(text); } catch { return { error: 'REDIS_URL 必须是 redis:// 或 rediss://' }; }
+  if (u.protocol !== 'redis:' && u.protocol !== 'rediss:') return { error: 'REDIS_URL 必须是 redis:// 或 rediss://' };
+  if (u.search || u.hash || !u.hostname) return { error: 'REDIS_URL 无效' };
   const port = u.port ? Number(u.port) : 6379;
-  if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return { error: 'REDIS_URL 无效' };
   const path = u.pathname.replace(/^\//, '');
-  if (path && (!/^\d+$/.test(path) || Number(path) > 15)) return null;
+  if (path && (!/^\d+$/.test(path) || Number(path) > 15)) return { error: 'REDIS_URL 无效' };
   let password;
   let username;
   try {
     password = u.password ? decodeURIComponent(u.password) : undefined;
     username = u.username ? decodeURIComponent(u.username) : undefined;
-  } catch { return null; }
-  if (username && !password) return null;
+  } catch { return { error: 'REDIS_URL 无效' }; }
+  if (username && !password) return { error: 'REDIS_URL 无效' };
   const host = u.hostname.startsWith('[') && u.hostname.endsWith(']') ? u.hostname.slice(1, -1) : u.hostname;
-  return { host, port, tls: u.protocol === 'rediss:', username, password, db: path ? Number(path) : 0 };
+  return { endpoint: { host, port, tls: u.protocol === 'rediss:', username, password, db: path ? Number(path) : 0 } };
+}
+
+/** 与 parseRedisUrl 同一规则。失败返回 null，不带回原始串。 */
+function parseRedisEndpoint(raw) {
+  return classifyRedisUrl(raw).endpoint ?? null;
+}
+
+/** 允许明文 redis:// 的主机。与 prod-env-check.ts 的 REDIS_PLAINTEXT_HOSTS 一致，大小写敏感。 */
+const REDIS_PLAINTEXT_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
+
+/**
+ * APP_ENV=production 且 RATE_LIMIT_STORE=redis 时，返回与 rateLimitProblems 相同的拒绝文案；否则 null。
+ * 文案只含变量名。调用方必须在打开 socket 之前用它拒绝。
+ */
+function productionRedisProblem(env) {
+  if (env.APP_ENV !== 'production' || env.RATE_LIMIT_STORE !== 'redis') return null;
+  const parsed = classifyRedisUrl(env.REDIS_URL);
+  if (parsed.error) return parsed.error;
+  if (!parsed.endpoint.password) return 'REDIS_URL 必须包含密码';
+  if (!parsed.endpoint.tls && !REDIS_PLAINTEXT_HOSTS.has(parsed.endpoint.host)) return 'REDIS_URL 必须是 rediss://';
+  return null;
 }
 
 function encodeCmd(args) {
@@ -426,6 +453,8 @@ function redisRoundtrip(ep, commands, ca, timeoutMs) {
 }
 
 async function clearViaRedis(email, env, now) {
+  // 生产传输规则先于任何 socket，避免把命令或 AUTH 发到明文远端。
+  if (productionRedisProblem(env)) return 'failed';
   const ep = parseRedisEndpoint(env.REDIS_URL);
   if (!ep) return 'failed';
   let ca;
@@ -443,6 +472,7 @@ async function clearViaRedis(email, env, now) {
  * 清掉只凭账号能算出的限流 key（按 key 名直接 DEL，不扫描键空间）。
  * - RATE_LIMIT_STORE=upstash：一次 pipeline DEL。传了 fetchImpl 就用它（测试）；否则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS。APP_ENV=production 时 http: 地址直接 failed，不发 Bearer。
  * - RATE_LIMIT_STORE=redis：TCP DEL，REDIS_URL。需要 Redis 7 或更新（PEXPIRE … NX）。rediss:// 同样读取 NODE_EXTRA_CA_CERTS。
+ *   APP_ENV=production 时先按 rateLimitProblems 拒绝（无密码、非本机 redis://、URL 无效），不连网。
  * - memory（默认）以及其他值：计数在应用进程内存里，或不是这支脚本认识的存储，跳过（10 分钟后自然过期）。
  * 返回 'cleared' | 'skipped_memory' | 'failed'。出错不抛、不输出 key、邮箱或 token。
  */
@@ -554,7 +584,11 @@ export async function runReset({ argv, env, readPassword, db, hash, fetchImpl, n
     out(`已重置管理员（id ${result.id}）的初始密码；该账号所有会话已失效、登录锁定已解除。\n`);
     if (result.plan.clearPending) out('已清掉未完成的 2FA 绑定，72 小时绑定窗口重新开始计时。\n');
     out(`rate_limit=${rl}\n`);
-    if (rl === 'failed') err('提示：清这个账号的限流计数失败（密码已改好），最多 10 分钟后自动过期。\n');
+    if (rl === 'failed') {
+      err('提示：清这个账号的限流计数失败（密码已改好），最多 10 分钟后自动过期。\n');
+      const problem = productionRedisProblem(env);
+      if (problem) err(`${problem}\n`);
+    }
     out('下一步：把下面的绑定链接和新密码分别私信给本人，对方打开链接立即绑定 2FA（之前发出的绑定链接已失效）。\n');
     out(linkLines(result.issued, linkBase)); // 只打印这一次、只到终端
     result.issued = undefined;

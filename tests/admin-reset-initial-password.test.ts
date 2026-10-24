@@ -316,6 +316,31 @@ async function closedPort() {
   return port;
 }
 
+/** 本机计数用。127.0.0.2 不在明文白名单里（只认 127.0.0.1 / ::1 / localhost），又不会离开这台机器。 */
+function hitServer(host: string) {
+  let hits = 0;
+  const sockets = new Set<net.Socket>();
+  const srv = net.createServer((sock) => {
+    hits++;
+    sockets.add(sock);
+    sock.on('close', () => sockets.delete(sock));
+    sock.destroy();
+  });
+  return new Promise<{ port: number; hits: () => number; close: () => Promise<void> }>((ok) => {
+    srv.listen(0, host, () => {
+      const port = (srv.address() as net.AddressInfo).port;
+      ok({
+        port,
+        hits: () => hits,
+        close: () => new Promise((done) => {
+          for (const sock of sockets) sock.destroy();
+          srv.close(() => done());
+        }),
+      });
+    });
+  });
+}
+
 test('#432 redis：清掉与 Upstash 相同的 6 个 key，打印 rate_limit=cleared，不输出密码', async () => {
   const redisPw = 'redis-secret-SHOULD-NOT-LEAK';
   const fake = await startFakeRedis({ password: redisPw });
@@ -362,6 +387,89 @@ test('#432 生产环境拒绝 http 的 Upstash 地址：rate_limit=failed，不�
   assert.equal(r.ff.calls.length, 0);
   assert.equal((r.out + r.err).includes(token), false);
   assert.equal((r.out + r.err).includes('http://'), false);
+});
+
+test('#432 生产环境：远端明文 redis://、无密码、坏协议在开 socket 前失败，输出只点 REDIS_URL', async () => {
+  const pw = 'placeholder';
+  const remote = await hitServer('127.0.0.2');
+  const loop = await hitServer('127.0.0.1');
+  try {
+    const remoteUrl = `redis://:${pw}@127.0.0.2:${remote.port}`;
+    const r1 = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: remoteUrl, AUTH_SECRET: 'a' } });
+    assert.equal(r1.code, 0, r1.err);
+    assert.match(r1.out, /rate_limit=failed/);
+    assert.match(r1.err, /REDIS_URL 必须是 rediss:\/\//);
+    assert.equal(remote.hits(), 0);
+    const blob1 = r1.out + r1.err;
+    for (const s of [pw, remoteUrl, '127.0.0.2']) assert.equal(blob1.includes(s), false, s);
+
+    const noPw = `redis://127.0.0.1:${loop.port}`;
+    const r2 = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: noPw, AUTH_SECRET: 'a' } });
+    assert.equal(r2.code, 0, r2.err);
+    assert.match(r2.out, /rate_limit=failed/);
+    assert.match(r2.err, /REDIS_URL 必须包含密码/);
+    assert.equal(loop.hits(), 0);
+    assert.equal((r2.out + r2.err).includes(noPw), false);
+
+    const bad = `http://127.0.0.2:${remote.port}/secret-${pw}`;
+    const r3 = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: bad, AUTH_SECRET: 'a' } });
+    assert.equal(r3.code, 0, r3.err);
+    assert.match(r3.out, /rate_limit=failed/);
+    assert.match(r3.err, /REDIS_URL 必须是 redis:\/\/ 或 rediss:\/\//);
+    assert.equal(remote.hits(), 0);
+    const blob3 = r3.out + r3.err;
+    for (const s of [pw, bad, '127.0.0.2']) assert.equal(blob3.includes(s), false, s);
+
+    assert.equal(await clearAccountRateLimits({
+      email: EMAIL, now: NOW,
+      env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: remoteUrl, AUTH_SECRET: 'a' },
+    }), 'failed');
+    assert.equal(remote.hits(), 0);
+  } finally {
+    await remote.close();
+    await loop.close();
+  }
+});
+
+test('#432 生产环境 loopback redis://:placeholder@127.0.0.1 仍清限流，输出不含 URL 和密码', async () => {
+  const pw = 'placeholder';
+  const fake = await startFakeRedis({ password: pw });
+  try {
+    const url = `redis://:${pw}@127.0.0.1:${fake.port}`;
+    const env = { APP_ENV: 'production', AUTH_SECRET: 'a' };
+    const r = await run([user()], { env: { ...env, RATE_LIMIT_STORE: 'redis', REDIS_URL: url } });
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /rate_limit=cleared/);
+    assert.doesNotMatch(r.err, /REDIS_URL/);
+    assert.deepEqual(fake.auths(), [pw]);
+    assert.deepEqual(fake.commands().filter((c) => c[0] === 'DEL').map((c) => c[1]), rateKeysToDelete(EMAIL, env, NOW));
+    const blob = r.out + r.err;
+    for (const s of [pw, url, 'redis://']) assert.equal(blob.includes(s), false, s);
+  } finally { await fake.close(); }
+});
+
+test('#432 生产环境远端 rediss:// 会去连接；非生产明文远端也仍去连接', async () => {
+  const pw = 'placeholder';
+  const remote = await hitServer('127.0.0.2');
+  try {
+    const tlsUrl = `rediss://:${pw}@127.0.0.2:${remote.port}`;
+    const r = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: tlsUrl, AUTH_SECRET: 'a' } });
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /rate_limit=failed/);
+    assert.ok(remote.hits() >= 1, 'rediss remote should open a socket');
+    assert.doesNotMatch(r.err, /REDIS_URL 必须/);
+    const blob = r.out + r.err;
+    for (const s of [pw, tlsUrl, '127.0.0.2']) assert.equal(blob.includes(s), false, s);
+
+    const before = remote.hits();
+    const plain = `redis://:${pw}@127.0.0.2:${remote.port}`;
+    const dev = await run([user()], { env: { RATE_LIMIT_STORE: 'redis', REDIS_URL: plain, AUTH_SECRET: 'a' } });
+    assert.match(dev.out, /rate_limit=failed/);
+    assert.ok(remote.hits() > before, 'non-production plaintext remote still connects');
+    assert.doesNotMatch(dev.err, /REDIS_URL 必须/);
+    const devBlob = dev.out + dev.err;
+    for (const s of [pw, plain, '127.0.0.2']) assert.equal(devBlob.includes(s), false, s);
+  } finally { await remote.close(); }
 });
 
 // ---------------- 失败路径 ----------------
