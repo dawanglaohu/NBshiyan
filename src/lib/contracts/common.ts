@@ -1,10 +1,12 @@
 import { z } from 'zod';
+import { isPublishedLocale, PUBLISHED_LOCALES } from '../../i18n/published-locale-list';
 
 export const NonNegativeIntSchema = z.number().int().min(0).max(2_147_483_647);
 export const PositiveIntSchema = NonNegativeIntSchema.refine((value) => value > 0);
 export const IdSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
 export const UuidSchema = z.string().uuid();
-export const LocaleSchema = z.enum(['en', 'ru']);
+/** 公开契约里的语言：只接受已发布清单，不接受数据库里预留但未发布的值。 */
+export const LocaleSchema = z.enum(PUBLISHED_LOCALES);
 export const UtcDateTimeSchema = z.string().datetime().refine((value) => Number.isFinite(Date.parse(value)));
 export const LocalDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   const date = new Date(`${value}T00:00:00.000Z`);
@@ -23,7 +25,11 @@ export const SitePathSchema = z.string().min(1).max(200).refine((value) => {
   try { decoded = decodeURIComponent(path); } catch { return false; }
   if (/[\\%?#\s\p{Cc}\p{Cf}]/u.test(decoded) || decoded.includes('//')) return false;
   if (decoded.split('/').some((part) => part === '.' || part === '..')) return false;
-  return decoded === '/' || /^\/(?:en|ru)(?:\/|$)/.test(decoded);
+  if (decoded === '/') return true;
+  const segment = decoded.split('/')[1] ?? '';
+  if (!isPublishedLocale(segment)) return false;
+  const rest = decoded.slice(segment.length + 1);
+  return rest === '' || rest.startsWith('/');
 }).transform((value) => value.split(/[?#]/, 1)[0]);
 export const BodyTextSchema = z.string().refine((value) => !/[\p{Cc}\p{Cf}]/u.test(value.replace(/[\r\n]/g, '')))
   .transform((value) => value.trim()).refine((value) => {

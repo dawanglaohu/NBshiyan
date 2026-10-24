@@ -1,11 +1,12 @@
 import { TEMPLATES, type TemplateKey } from './templates.generated';
+import type { PublishedLocale } from '@/i18n/published-locales';
 import { SITE_URL } from '@/lib/site';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import enMessages from '../../../../messages/en.json';
 import ruMessages from '../../../../messages/ru.json';
 
 export type EmailVars = {
-  name: string; company?: string; product: string; quantity: string; inquiryId: string; locale: 'en' | 'ru';
+  name: string; company?: string; product: string; quantity: string; inquiryId: string; locale: PublishedLocale;
   adminId?: string; score?: number;
 };
 
@@ -23,7 +24,15 @@ export function replyHours(v?: string): number | null {
   const n = Number(m[1]);
   return Number.isInteger(n) && n > 0 && n <= 720 ? n : null;
 }
-/** 按语言写回复时间：en "24 hours"，ru "24 часа" */
+const REPLY_LOCALES = new Set(['en', 'ru', 'zh', 'es', 'de', 'fr']);
+/** 模板 key 的语言后缀：inquiry-ack.es、sample-ack.de、inquiry-notify.zh。认不出时按 en。 */
+export function replyLocaleFromTemplateKey(key: string): string {
+  const dot = key.lastIndexOf('.');
+  const suffix = dot >= 0 ? key.slice(dot + 1) : '';
+  return REPLY_LOCALES.has(suffix) ? suffix : 'en';
+}
+
+/** 按语言写回复时间：en "24 hours"，ru "24 часа"，zh "24 小时"，es "24 horas"，de "24 Stunden"，fr "24 heures" */
 export function replyTimeText(hours: number, locale: string) {
   if (locale === 'ru') {
     const m10 = hours % 10, m100 = hours % 100;
@@ -31,6 +40,9 @@ export function replyTimeText(hours: number, locale: string) {
     return `${hours} ${w}`;
   }
   if (locale === 'zh') return `${hours} 小时`;
+  if (locale === 'es') return `${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+  if (locale === 'de') return `${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;
+  if (locale === 'fr') return `${hours} ${hours === 1 ? 'heure' : 'heures'}`;
   return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
 }
 
@@ -74,7 +86,7 @@ export function renderEmail(key: TemplateKey, v: EmailVars) {
   const vals: Record<string, string> = {
     name: v.name, company: v.company || '—', product: v.product, quantity: v.quantity, inquiryId: v.inquiryId, locale: v.locale,
     adminId: v.adminId ?? '', score: v.score === undefined ? '' : String(v.score),
-    siteUrl: cfg.siteUrl, replyTime: cfg.replyHours === null ? '' : replyTimeText(cfg.replyHours, key.endsWith('.ru') ? 'ru' : key.endsWith('.zh') ? 'zh' : 'en'), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
+    siteUrl: cfg.siteUrl, replyTime: cfg.replyHours === null ? '' : replyTimeText(cfg.replyHours, replyLocaleFromTemplateKey(key)), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
   };
   const flags = { risk: v.score !== undefined && v.score < 40, contact: !!(cfg.contactEmail && cfg.whatsapp), named: safeGreetingName(v.name) !== null, reply: cfg.replyHours !== null };
   return {
@@ -97,7 +109,7 @@ export function renderAlert(kind: string, lines: Record<string, string | number>
 /** 不在 categoryMeta 里的卡片（已并入纸杯的 eco-paper-cups）：邮件里用卡片名 Products.names.<slug>，不把 slug（含 eco）原样露给客户 */
 const CARD_SLUG: Record<string, string> = { 'eco-paper-cups': 'eco-paper-cups', 'eco-paper-cup': 'eco-paper-cups' };
 const CARD_NAMES: Record<'en' | 'ru', Record<string, string>> = { en: enMessages.Products.names, ru: ruMessages.Products.names };
-export function productName(slug: string, locale: 'en' | 'ru' | 'zh') {
+export function productName(slug: string, locale: PublishedLocale | 'zh') {
   // 只查自身属性，原型键（constructor / __proto__ / toString）不命中
   const own = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
   const names = CARD_NAMES[locale === 'ru' ? 'ru' : 'en'];
@@ -110,7 +122,7 @@ export function productName(slug: string, locale: 'en' | 'ru' | 'zh') {
 }
 
 /** 产品、数量摘要：最多列 3 个产品，其余用 +N；数量按产品顺序，用 / 分隔。客户邮件按语言给产品名，内部通知用 slug */
-export function summarizeItems(items: { productSlug: string; quantity?: number }[], locale?: 'en' | 'ru') {
+export function summarizeItems(items: { productSlug: string; quantity?: number }[], locale?: PublishedLocale) {
   if (!items.length) return { product: '—', quantity: '—' };
   const shown = items.slice(0, 3);
   const more = items.length > 3 ? ` +${items.length - 3}` : '';

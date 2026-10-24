@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderEmail, summarizeItems, cleanText, safeGreetingName, looksLinky, replyTimeText, productName } from '../src/lib/server/email/render';
+import { renderEmail, summarizeItems, cleanText, safeGreetingName, looksLinky, replyTimeText, replyLocaleFromTemplateKey, productName } from '../src/lib/server/email/render';
 import { sendMail, sendSafely, sendAdminAlert, customerAckMail, inquiryNotifyMail, errorSummary, setMailTransportFactory } from '../src/lib/server/mail';
 import { setRateLimitStore, MemoryStore } from '../src/lib/server/ratelimit';
 import { TEMPLATES } from '../src/lib/server/email/templates.generated';
@@ -180,6 +180,35 @@ test('reply time localized when CONTACT_REPLY_TIME set; RU never shows raw "24h"
   assert.ok(en.html.includes('Thanks — our team will reply within 12 hours.'));
   assert.ok(!en.html.includes('by email.</div>'), 'neutral preheader not shown when set');
   assert.equal(replyTimeText(1, 'ru'), '1 час'); assert.equal(replyTimeText(48, 'ru'), '48 часов'); assert.equal(replyTimeText(22, 'ru'), '22 часа');
+});
+
+test('es de fr reply hours follow the template key and do not say hour', () => {
+  assert.equal(replyLocaleFromTemplateKey('inquiry-ack.es'), 'es');
+  assert.equal(replyLocaleFromTemplateKey('sample-ack.de'), 'de');
+  assert.equal(replyLocaleFromTemplateKey('inquiry-ack.fr'), 'fr');
+  assert.equal(replyLocaleFromTemplateKey('inquiry-ack.en'), 'en');
+  assert.equal(replyLocaleFromTemplateKey('inquiry-ack.ru'), 'ru');
+  assert.equal(replyLocaleFromTemplateKey('inquiry-notify.zh'), 'zh');
+  assert.equal(replyTimeText(1, 'es'), '1 hora');
+  assert.equal(replyTimeText(2, 'es'), '2 horas');
+  assert.equal(replyTimeText(1, 'de'), '1 Stunde');
+  assert.equal(replyTimeText(2, 'de'), '2 Stunden');
+  assert.equal(replyTimeText(1, 'fr'), '1 heure');
+  assert.equal(replyTimeText(2, 'fr'), '2 heures');
+  process.env.CONTACT_REPLY_TIME = '1';
+  for (const [key, phrase] of [['inquiry-ack.es', '1 hora'], ['inquiry-ack.de', '1 Stunde'], ['inquiry-ack.fr', '1 heure']] as const) {
+    const out = renderEmail(key, vars);
+    assert.ok(out.text.includes(phrase) && out.html.includes(phrase), key);
+    assert.equal(out.text.includes('hour'), false, key);
+    assert.equal(out.html.includes('hour'), false, key);
+  }
+  process.env.CONTACT_REPLY_TIME = '24';
+  for (const [key, phrase] of [['sample-ack.es', '24 horas'], ['sample-ack.de', '24 Stunden'], ['sample-ack.fr', '24 heures']] as const) {
+    const out = renderEmail(key, vars);
+    assert.ok(out.text.includes(phrase) && out.html.includes(phrase), key);
+    assert.equal(out.text.includes('hour'), false, key);
+    assert.equal(out.html.includes('hour'), false, key);
+  }
 });
 
 test('reply time unset/invalid: whole sentence neutral, no "within", no 24, preheader neutral', () => {

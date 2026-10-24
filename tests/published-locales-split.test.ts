@@ -6,15 +6,20 @@ import * as server from '../src/lib/server/published-locales';
 import { routing } from '../src/i18n/routing';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit/index';
 
-// 多语言第 0 期：PUBLISHED_LOCALES 拆成两层，清单只有一份（src/i18n/published-locales.ts）
+// 多语言第 0 期：已发布语言的字面清单只在 src/i18n/published-locale-list.ts。
+// published-locales.ts 核对它是路由语言和数据库枚举的子集；服务端再 re-export 并加 zod。
+const listSrc = readFileSync('src/i18n/published-locale-list.ts', 'utf8');
 const sharedSrc = readFileSync('src/i18n/published-locales.ts', 'utf8');
 const serverSrc = readFileSync('src/lib/server/published-locales.ts', 'utf8');
 
 test('shared layer: no zod, Prisma only via import type, no server imports', () => {
-  assert.ok(!/from ['"]zod['"]/.test(sharedSrc));
-  for (const m of sharedSrc.matchAll(/^import (.*) from ['"]([^'"]+)['"]/gm)) {
-    if (m[2] === '@prisma/client') assert.match(m[1], /^type /, 'Prisma must be import type');
-    assert.ok(!m[2].includes('lib/server'), m[2]);
+  assert.ok(!/^import /m.test(listSrc), 'locale list has no imports');
+  for (const src of [listSrc, sharedSrc]) {
+    assert.ok(!/from ['"]zod['"]/.test(src));
+    for (const m of src.matchAll(/^import (.*) from ['"]([^'"]+)['"]/gm)) {
+      if (m[2] === '@prisma/client') assert.match(m[1], /^type /, 'Prisma must be import type');
+      assert.ok(!m[2].includes('lib/server'), m[2]);
+    }
   }
 });
 
@@ -37,9 +42,18 @@ test('published ⊆ routing.locales; default is en; reserved/unknown/case varian
   for (const v of ['en', 'ru']) assert.equal(shared.isPublishedLocale(v), true, v);
 });
 
-test('exactly one published-locale array literal across both layers', () => {
-  const out = readFileSync('src/lib/server/published-locales.ts', 'utf8') + readFileSync('src/i18n/published-locales.ts', 'utf8');
-  assert.equal((out.match(/\['en', 'ru'\] as const/g) ?? []).length, 1);
+test('exactly one published-locale array literal', () => {
+  const files = [
+    'src/lib/server/published-locales.ts',
+    'src/i18n/published-locales.ts',
+    'src/i18n/published-locale-list.ts',
+    'src/lib/contracts/common.ts',
+  ];
+  const hits = files.flatMap((file) => {
+    const n = (readFileSync(file, 'utf8').match(/\['en', 'ru'\] as const/g) ?? []).length;
+    return n ? [`${file}:${n}`] : [];
+  });
+  assert.deepEqual(hits, ['src/i18n/published-locale-list.ts:1']);
 });
 
 // 全栈要求：三个公开接口对 ja / es 仍返回 400（在查库之前）
