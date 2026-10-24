@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T86511435": {
+      "contractHash": "79a48731f64dff67eccc6e306c92698b59b8da29e9601139ed78dd00d7259b1a",
+      "verdict": "pass",
+      "evidence": [
+        "有效路径是七个数据库测试和 lease-repo.ts、jobs/types.ts、http/metrics.ts。前置是 M3-T14 与 M5-T1。edges 为 none。验收要求一次性 PostgreSQL 17 上这七个文件 0 fail 且 0 环境 skip，并保持租约与计数原语的原断言。",
+        "tests/job-leases.db.test.ts:10 没有 postgres 开头的 DATABASE_URL 时跳过。:143 断言同一 key 并发只有一项成功。:167 用注入时钟满 90 秒后领取新代次，并拒绝旧 owner 覆盖。src/lib/server/jobs/types.ts:7 的租约是 90000 毫秒。lease-repo.ts:177 只在租约为空或已到期时更新。:275 起完成写同时核 owner、generation 与未到期。",
+        "src/lib/server/http/metrics.ts:146 仅 status >= 500 时 errorIncrement 为 1。:149 一条 INSERT ON CONFLICT 递增 requestCount 与 errorCount。:141 与 :168 在设置解析失败或写入失败时返回调用方原来的 status 与 body。",
+        "tests/admin-http-metrics.test.ts:204 的写库用例只认 ADMIN_RESET_TEST_DATABASE_URL。:231 断言每次最终响应 requestCount 加一且 errorCount 只在 5xx 增加。tests/cleanup-lock.db.test.ts:8、tests/last-admin.db.test.ts:11、tests/admin-users-last-admin.test.ts:11 只认 postgres 开头的 DATABASE_URL。tests/admin-reset-initial-password.db.test.ts:13 只认 ADMIN_RESET_TEST_DATABASE_URL。tests/admin-device-guard.http.test.ts:14 只认 ADMIN_DEVICE_TEST_DATABASE_URL。缺变量即环境跳过，按验收算未通过。",
+        "合入提交 a474df01 的任务笔记记录官方 Windows PostgreSQL 17.11、server_version 17.11、Node 22.17.0、上述七个文件 42 pass、0 fail、0 cancelled、0 skipped。本轮契约复核对照了这些门闩和笔记，没有另起一次性实例重跑。租约仓储、计数原语和类型没有被该提交改写。"
+      ]
+    }
+  }
+}

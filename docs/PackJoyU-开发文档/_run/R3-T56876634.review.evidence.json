@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T56876634": {
+      "contractHash": "30407f20970d2fb004839932c96a932d5adab85fed229093dd1bad8e23e0fef6",
+      "verdict": "pass",
+      "evidence": [
+        "有效路径只有 docs/brand-content/company-visuals.json 与 tests/company-visuals-selected-input.test.ts。前置是 M1-T9。edges 为 E-111、E-27。",
+        "收口记录 input 末句原写「页面消费留给 M1-T5」，H05 把它当成未声明的能力前置。该句只说明页面消费不在本任务。已改成「页面消费不在本任务」。depends-on 仍是 M1-T9。同记录「给下一批的提醒」仍写明公司图稿页面消费归 M1-T5。",
+        "company-visuals.json:91 的 selectedInput.path 为 public/brand/packjoyu-logo-master.svg，与同文件 :21 的 logoMaster 相同。:96 与 :100 的源 SVG、Web PNG 路径和 SHA-256 等于验收里的 d1ae945b 与 5d855fc0。",
+        "tests/company-visuals-selected-input.test.ts:11 与 :12 钉住这两枚 SHA。:79 起要求 path、sha256、use 非空，path 属于 originalMedia 或 logoMaster，并核对目录与文件字节。:100 拒绝 use 写入 YUHAO、产能、规模、证照、认证、厂房或工厂。:116 核对源 SVG 与 Web PNG 字节。:143 与 :161 在缺字段或哈希不等时失败。",
+        "selectedInput.use 只描述字标 master 的导入和统一缩放。pageEvidence 仍为 null，页面加载不在本任务。"
+      ]
+    }
+  }
+}
