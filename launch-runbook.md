@@ -80,7 +80,7 @@
 | STORAGE_DRIVER | **`local`**（Ryan 已定：上传文件存服务器本地磁盘的挂载数据卷）。`r2` 只作为代码仍支持的可选驱动保留；生产必须显式设置 | local | 是 | — |
 | R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET | 可选 R2 驱动（仅 `STORAGE_DRIVER=r2` 时；当前方案不用） | — | 否（local 时不设） | — |
 | R2_ENDPOINT | 留空（由账号 ID 推出来） | 推导值 | 否 | — |
-| UPLOAD_DIR | `STORAGE_DRIVER=local` 时的上传目录：挂载数据卷的**绝对路径**，必须存在且应用用户可读写（建议目录 700、属主为容器内应用用户），不能在应用的 `public/` 或 `.next/` 下。不经 nginx 或静态服务暴露，文件只经现有接口按权限提供 | 本地默认 `./storage/uploads` | local 时必填（缺失、相对路径、不可写 → 拒绝启动） | 运维 |
+| UPLOAD_DIR | `STORAGE_DRIVER=local` 时的上传目录：挂载数据卷的**绝对路径**，必须存在且应用用户可读写（建议目录 700、属主为容器内应用用户），不能在应用的 `public/` 或 `.next/` 下。不经 nginx 或静态服务暴露。Logo 和模型只经现有接口按权限提供；关于页图片在该目录的 `public-assets/` 下，由应用的 `/media/` 公开读出（仍经应用，不是静态目录），见第 9 节 | 本地默认 `./storage/uploads` | local 时必填（缺失、相对路径、不可写 → 拒绝启动） | 运维 |
 | SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS | 发邮件（Gmail SMTP，465 或 587；SMTP_PASS 为 Gmail 应用专用密码） | — | 是 | **Ryan** |
 | MAIL_FROM | 发件人 | — | 是 | Ryan |
 | INQUIRY_NOTIFY_EMAIL | 询盘通知收件人 | — | 是 | Ryan |
@@ -179,3 +179,63 @@ docker compose exec app node scripts/admin-create.mjs --email <管理员邮箱> 
 ## 8. 安全规则（长期有效）
 
 - **客户回信（inbound reply）**：以后新增的任何客户回信处理接口，**必须**用 `findInquiryForReply`（`src/lib/server/privacy.ts`）按 token 查找询盘，它会拒绝已匿名化的询盘；**绝不能**对 `anonymizedAt` 不为空的询盘做任何写入（新增往来邮件、改状态、存附件等）。目前还没有这个接口；新增的 PR 属于安全路径，全栈和 `packjoyu-security-reviewer[bot]` 审查时要核对这两条。
+
+## 9. 关于页图片（PublicAsset，`/media/`）
+
+关于页图片写在 `UPLOAD_DIR/public-assets/<年-月>/`。原图不保存。这些文件不参与 24 小时上传清理（`cleanup-uploads` 只删未绑定询盘的 Logo）。`deploy/backup-postgres.sh` 只备份 Postgres。`UPLOAD_DIR`（含 `public-assets/`）由运维按和数据库备份同一时间点单独备份，本仓库不把这一步写进该脚本。
+
+应用对还在的 `/media/<id>-800.webp`、`/media/<id>-1600.webp` 下发 `Cache-Control: public, max-age=300, s-maxage=3600`（不加 `immutable`）：浏览器 5 分钟，共享缓存 1 小时。删除不清 Cloudflare 缓存，已缓存的副本会留到这一小时结束。不存在或已删除的名字是 `404`，`Cache-Control: no-store`。这一版之前发出的响应是 `public, max-age=31536000, immutable`。新版上线后，经 Ryan 批准，清一次 Cloudflare 上 `/media/` 前缀的边缘缓存。边缘上的旧副本会没掉；访客浏览器里已经缓存的旧副本收不回来。所以「删图后 1 小时内访问不到」只对这一版上线之后才被访问过的图成立。若 Cloudflare 给 `/media/` 单独配了 Edge TTL 或 Browser TTL，不得长于这个新头。改 Cloudflare 配置需 Ryan 批准。
+
+nginx 必须把下面两个路径反代到应用。不能默认现有 vhost 已经配好。下面只用占位符。
+
+location 里出现 `proxy_set_header` 时，server 层的 `proxy_set_header` 不再继承。两个 location 都写出与 `docs/seo-cutover-geiom.md` 第 2.4 节「边缘鉴权和转发头」逐条相同的整组头，和其他反代 location 用的是同一组：Host、X-Forwarded-Host、X-Forwarded-Proto、X-Forwarded-For、X-Real-IP 清空、X-Edge-Auth 覆盖、CF-Connecting-IP 原样转发。应用（`src/lib/edge/client-ip.ts`）靠 `X-Edge-Auth` 和 `CF-Connecting-IP` 取客户端 IP。丢掉 `CF-Connecting-IP` 时，后台上传的按 IP 限流和审计会进 `untrusted` 桶，ip 记 `unknown`。
+
+这两个 location 也必须和其他 location 一样，先做第 2.4 节的 `X-Edge-Auth` 校验（所有 location 都要校验：不对或缺失 → 403 / 444），通过后才 `proxy_pass`。注释标出粘贴位置，照抄其他反代 location 已有的那一段校验。
+
+不要在这两个 location 里写 `add_header`。location 里出现一条 `add_header` 时，server 层统一添加的 6 个安全头在该路径上全部失效。
+
+```nginx
+location = /api/admin/site-settings/assets {
+    client_max_body_size 11m;   # 全局 4m 不够；应用单文件 10 MB，整个请求 10 MB + 64 KB，超出返回 413
+    # 与其他反代 location 相同的 X-Edge-Auth 校验（第 2.4 节），先于 proxy_pass。照抄那一段。
+    proxy_pass http://<应用上游>;
+    # 七条 proxy_set_header 与第 2.4 节逐条一致。不要在这个 location 里写 add_header。
+    proxy_set_header Host geiom.com;              # 固定值
+    proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+    proxy_set_header X-Forwarded-Proto https;     # 固定值
+    proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+    proxy_set_header X-Real-IP "";                # 清空
+    proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+    proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
+}
+# ^~：带点路径的正则 404 不能先于 /media/*.webp 命中。不要把这个前缀当静态目录。
+location ^~ /media/ {
+    # 与其他反代 location 相同的 X-Edge-Auth 校验（第 2.4 节），先于 proxy_pass。照抄那一段。
+    proxy_pass http://<应用上游>;
+    # 七条 proxy_set_header 与第 2.4 节逐条一致。不要在这个 location 里写 add_header。
+    proxy_set_header Host geiom.com;              # 固定值
+    proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+    proxy_set_header X-Forwarded-Proto https;     # 固定值
+    proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+    proxy_set_header X-Real-IP "";                # 清空
+    proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+    proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
+}
+```
+
+应用自己的带点路径 rewrite 已经跳过 `media` 前缀。nginx 仍要把 `/media/` 交给应用。用不存在的 id 核对：
+
+```sh
+curl -sI "https://<域名>/media/aaaaaaaaaaaaaaaaaaaaaaaa-800.webp"
+```
+
+应是应用的 404：`Cache-Control: no-store`，且 `Content-Security-Policy` 含 `sandbox`。没有这些头的静态 404 说明 location 没指到应用。
+
+运维在服务器上核对后勾选：
+
+- [ ] `location = /api/admin/site-settings/assets` 设了 `client_max_body_size 11m`
+- [ ] 两个 location 先做与其他反代 location 相同的 `X-Edge-Auth` 校验（第 2.4 节），并使用与其他反代 location 相同的整组转发头，且没有 `add_header`
+- [ ] `/media/` 反代到应用；不存在的 `/media/<24位id>-800.webp` 是应用的 404（`no-store`，CSP 含 `sandbox`）
+- [ ] `UPLOAD_DIR`（含 `public-assets/`）已单独备份，不依赖 `backup-postgres.sh`
+- [ ] Cloudflare 上 `/media/` 的 Edge TTL / Browser TTL 不长于新头（浏览器 5 分钟，边缘 1 小时，无 `immutable`）
+- [ ] 新版上线后清一次 `/media/` 前缀的边缘缓存（需 Ryan 批准）

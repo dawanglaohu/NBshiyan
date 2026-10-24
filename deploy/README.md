@@ -41,7 +41,67 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `build-offbox.sh`, `tests/build-offbox.test.sh` | build both images OFF the server (fresh clone at the pinned SHA, explicit `--platform`, same pins, public build args only), secret-free pre-checks, `docker save` → `.tar.zst` + `.sha256` + `.manifest` (expected IDs) |
 | `import-and-scan.sh`, `tests/import-scan.test.sh` | ON the server: `sha256sum -c`, tar content check (only our two tags) → `docker load` → IDs / platform / revision label → leak scan with the server's secrets → production build checks → only then `:candidate` + `.candidate-sha`; the transferred files are always removed |
 | `mem-check.sh`, `tests/mem-check.test.sh` | `mem_ok` (sourced by `deploy.sh up` before anything starts): MemAvailable ≥ compose `mem_limit` of the services that still have to start (+ migrate next to a running app) + `MEM_RESERVE_MB` (256) |
-| `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
+| `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container. Postgres only; `UPLOAD_DIR` is a separate ops backup (see below) |
+
+## Public images (`/media/`) and the about-page upload
+
+About-page images (PublicAsset) are written under `UPLOAD_DIR/public-assets/<yyyy-mm>/`. The original upload is not stored. These files are not part of the 24-hour upload cleanup (`cleanup-uploads` only removes unbound inquiry logos). `deploy/backup-postgres.sh` dumps Postgres only. Backing up `UPLOAD_DIR`, including `public-assets/`, is a separate ops step on the same schedule as the database dump. This repository does not add that step to the Postgres script.
+
+The app sends `Cache-Control: public, max-age=300, s-maxage=3600` on a live `/media/<id>-800.webp` or `/media/<id>-1600.webp` (no `immutable`): 5 minutes in the browser, 1 hour in a shared cache. Deleting an asset does not purge Cloudflare, so a cached copy can remain until that hour ends. A missing or deleted name is `404` with `Cache-Control: no-store`. Responses issued before this header were `public, max-age=31536000, immutable`. After this version is live, purge the `/media/` prefix once on Cloudflare (Ryan's approval). That removes the old edge copies. Copies already stored in visitors' browsers stay until those browsers drop them, so "gone within an hour of delete" applies only to images first fetched after this version. If Cloudflare has an Edge TTL or Browser TTL rule for `/media/`, it must not be longer than this header. Changing that rule needs Ryan's approval.
+
+nginx must actually proxy these paths. Do not assume an existing vhost already does. Values below are placeholders.
+
+One `proxy_set_header` inside a location drops every server-level `proxy_set_header`. Both locations therefore repeat the full set from `docs/seo-cutover-geiom.md` section 2.4 («边缘鉴权和转发头»), the same seven lines other proxied locations use: Host, X-Forwarded-Host, X-Forwarded-Proto, X-Forwarded-For, X-Real-IP cleared, X-Edge-Auth overwritten, CF-Connecting-IP passed through. The app (`src/lib/edge/client-ip.ts`) reads the client IP from `X-Edge-Auth` plus `CF-Connecting-IP`. Without `CF-Connecting-IP`, the about-page upload's per-IP limit and audit land in the `untrusted` bucket and record `unknown`.
+
+Both locations also run the same `X-Edge-Auth` check as every other location before `proxy_pass` (section 2.4 requires that check on all locations: wrong or missing → 403 / 444). Paste the check the other proxied locations already use. The comments mark where it goes.
+
+Do not write `add_header` in either location. One `add_header` in a location drops the six security headers the server block adds, on that path.
+
+```nginx
+location = /api/admin/site-settings/assets {
+    client_max_body_size 11m;   # global 4m is too small; the app allows 10 MB per file and 10 MB + 64 KB per request, and returns 413 above that
+    # Same X-Edge-Auth check as every other proxied location (section 2.4), before proxy_pass. Paste that block.
+    proxy_pass http://<app-upstream>;
+    # Seven proxy_set_header lines copied from section 2.4. Do not add_header in this location.
+    proxy_set_header Host geiom.com;              # 固定值
+    proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+    proxy_set_header X-Forwarded-Proto https;     # 固定值
+    proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+    proxy_set_header X-Real-IP "";                # 清空
+    proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+    proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
+}
+# ^~ so a regex "dotted path → 404" location cannot take /media/*.webp first. Do not serve this prefix as static files.
+location ^~ /media/ {
+    # Same X-Edge-Auth check as every other proxied location (section 2.4), before proxy_pass. Paste that block.
+    proxy_pass http://<app-upstream>;
+    # Seven proxy_set_header lines copied from section 2.4. Do not add_header in this location.
+    proxy_set_header Host geiom.com;              # 固定值
+    proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+    proxy_set_header X-Forwarded-Proto https;     # 固定值
+    proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+    proxy_set_header X-Real-IP "";                # 清空
+    proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+    proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
+}
+```
+
+The app's own dotted-path rewrite already skips the `media` prefix. nginx still has to hand `/media/` to the app. Check with an id that does not exist:
+
+```sh
+curl -sI "https://<domain>/media/aaaaaaaaaaaaaaaaaaaaaaaa-800.webp"
+```
+
+Expect the app's 404: `Cache-Control: no-store`, and `Content-Security-Policy` containing `sandbox`. A static-file 404 without those headers means the location is wrong.
+
+Ops checklist (tick on the server):
+
+- [ ] `location = /api/admin/site-settings/assets` sets `client_max_body_size 11m`
+- [ ] Both locations run the same `X-Edge-Auth` check as every other proxied location (section 2.4) and use that section's full `proxy_set_header` set, with no `add_header`
+- [ ] `/media/` is proxied to the app, and a missing `/media/<24-char-id>-800.webp` is the app's 404 (`no-store`, CSP `sandbox`)
+- [ ] `UPLOAD_DIR` (including `public-assets/`) is backed up separately from `backup-postgres.sh`
+- [ ] Any Cloudflare Edge TTL or Browser TTL for `/media/` is no longer than the new header (browser 5 minutes, edge 1 hour, no `immutable`)
+- [ ] After this version is live, purge the `/media/` prefix once (Ryan's approval)
 
 ## Builder (`nbshiyan-builder`)
 - Created by `build-on-server.sh` with `--buildkitd-config deploy/buildkitd.toml` (from the pinned checkout; the script

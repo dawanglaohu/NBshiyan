@@ -7,11 +7,12 @@ import type { PrivateStorage } from './storage';
  * GET /media/<id>-<w>.webp：公开图片。只对未删除的 PublicAsset 返回；w 是尺寸的名义长边：800 → sm、1600 → lg。
  * - 查库、读存储之前先校验文件名：id 必须完全匹配 PUBLIC_ASSET_ID_RE，w 必须在 PUBLIC_ASSET_SIZES 白名单里，否则直接 404。
  *   存储 key 只取库里那一行的 smKey / lgKey（服务端生成），从不用请求里的字符串拼路径。
- * - 内容按 id 不可变（重新上传是新 id）→ Cache-Control: public, max-age=31536000, immutable
+ * - 同一 id 的文件内容不变（重新上传是新 id）。删除不清边缘缓存，所以成功响应只短缓存：
+ *   Cache-Control: public, max-age=300, s-maxage=3600（浏览器 5 分钟，共享缓存 1 小时；不加 immutable）
  * - Content-Type 由存储 key（.webp）决定，nosniff + CSP default-src 'none'; sandbox（storedFileResponse）；不设 Cookie
- * - 404：no-store（删除后不被缓存成 404 以外的东西，也不缓存 404 本身）
+ * - 404：no-store（不存在或已删除都不缓存）
  */
-export const MEDIA_CACHE_CONTROL = 'public, max-age=31536000, immutable';
+export const MEDIA_CACHE_CONTROL = 'public, max-age=300, s-maxage=3600';
 export type MediaDeps = { findLive(id: string): Promise<PublicAssetRow | null>; storage: Pick<PrivateStorage, 'get'> };
 const nf = () => new Response('not found', { status: 404, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'text/plain; charset=utf-8' } });
 
