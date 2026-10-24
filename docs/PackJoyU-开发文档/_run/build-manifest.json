@@ -4,7 +4,7 @@
     "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
     "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
     "00-概览/03-术语表.md": "a023990be05d1a19a1f6006875da02f4b102812be88d334a0e39dc7b654edbaa",
-    "01-约束/04-开发条件.md": "d55228cf853abe1276a1a0049d06b149787a87e77bfe37000302cc71f1143a90",
+    "01-约束/04-开发条件.md": "91c855ae41dfc75c0a23d710cf63a501fe1a1f99d2d1ca18b41265337cfd45e9",
     "01-约束/05-技术栈.md": "fe2167b138db835e8c1afb339c57c8549630d0e856245a81af3e61e603992f92",
     "02-设计/06-系统架构与模块划分.md": "9abc025993a37242a78f700c223a7427c8132c602975d08f9d0d99c2f6a060a3",
     "02-设计/07-前端架构.md": "054d17e3e7a46347fa4f0a788d3ab282e73a51f558a74e378a4651ca8a6eed97",
@@ -32,12 +32,12 @@
   },
   "products": {
     "_MOC.md": "9a97a99eecd6e59e4f9554bd6ef41912e6cd0b3965786bf729f88b178921655c",
-    "_run/dispatch.json": "4a05a3f6bce736b3620bd7c6cccf0e872cca2b8e667add41a2b5a1108026af3a",
-    "_run/review.json": "cf508eb57ece3d1c57b7736cfbbeb2acf719b0a8f83d91f86d82ac5634372b35",
+    "_run/dispatch.json": "0e93fbc213d6eaff479fdea000831c8d14286dff8cb240432f109cfafbe1cf3e",
+    "_run/review.json": "a2d5082e1872b4ee3f718e07847f8ec6f0f2afe89c79d568e5cb08680de87304",
     "_run/task-reviews.json": "ecf43e79e45cb3443dc20e4033b1509a05b7095d124a0c5ef9873a525fad4ad9",
-    "docs-data.js": "b0d3eff8983e36e2da0df09686fe5e5c7922c78e76b27705c09471d556e4aa47",
+    "docs-data.js": "f142bf59fe56143efff184a132366961ea5812af4d022e00d8483cd292badaf1",
     "index.html": "22fd2a88a480a36476e99d8c26361f3789db65591a2852283506ad00b16967ee"
   },
   "schemaVersion": 1,
-  "sourceVersion": "f5055d07d6ee45dcb0dbb2bfd14bf997b73603795c3bfd5c15e88780d631ee9c"
+  "sourceVersion": "f907a1eb681faccbdf9e21aa745890209e27a7a0007ec4bb4a04b08cb3198a16"
 }

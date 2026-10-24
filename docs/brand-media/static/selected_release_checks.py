@@ -7,7 +7,7 @@ from pathlib import Path
 import cv2
 from PIL import Image
 
-REQUIRED_ROLES = {'static_image', 'animated_gif', 'gif_preview', 'video_1080p', 'video_720p', 'video_poster'}
+REQUIRED_ROLES = {'static_image', 'animated_gif', 'gif_pause_still', 'gif_preview', 'video_1080p', 'video_720p', 'video_poster'}
 VIDEO_ROLES = {'video_1080p', 'video_720p'}
 VERIFIED_PRODUCTION = {'complete', 'executed_verified', 'executed_verified_animation',
                        'executed_verified_local_media', 'executed_verified_release', 'user_accepted_saved'}

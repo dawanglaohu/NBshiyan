@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import cityStill from '../../../docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
@@ -10,6 +9,7 @@ import AboutHomeBlock from '@/components/about/AboutHomeBlock';
 import { getAboutContent } from '@/lib/server/site-settings';
 import { isAboutVisible } from '@/lib/about/visibility';
 import { isPublishedLocale } from '@/lib/server/published-locales';
+import { BRAND_MEDIA } from '@/lib/home/brandMedia';
 
 const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
 // Home stats row (capacity / sampling / eco / certs) removed — all unconfirmed; section hidden
@@ -62,7 +62,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Link className="entry-all" href="/products">{t('entryAll')} <span aria-hidden="true">→</span></Link>
       </section>
 
-      <BrandScene stillSrc={cityStill.src} labels={{ alt: t('brandSceneAlt'), title: t('brandSceneTitle'), play: t('brandScenePlay'), pause: t('brandScenePause') }} />
+      <BrandScene stillSrc={BRAND_MEDIA.scene.pauseStill} labels={{ alt: t('brandSceneAlt'), title: t('brandSceneTitle'), play: t('brandScenePlay'), pause: t('brandScenePause') }} />
 
       <section className="container" aria-labelledby="premium-h">
         <div className="premium-band theme-premium">
