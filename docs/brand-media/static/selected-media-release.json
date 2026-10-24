@@ -91,6 +91,19 @@
         "path": "docs/brand-media/static/held/video2-packjoyu-products-v3-poster-12233ms.jpg",
         "sha256": "aa0364f31cfda114456c2fbc94a8c0efbe04bbbd5c378744e8330fb11a89bae8"
       }
+    },
+    {
+      "path": "public/brand/packjoyu-industrial-city-v3-loop-poster.png",
+      "sha256": "e5f6000a5ca44246c52f05eb41b9c28b546555af02b2f9971b728f494c10230b",
+      "width": 1384,
+      "height": 720,
+      "role": "gif_pause_still",
+      "releaseAllowed": true,
+      "source": {
+        "path": "docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png",
+        "sha256": "e5f6000a5ca44246c52f05eb41b9c28b546555af02b2f9971b728f494c10230b"
+      },
+      "bytes": 1222926
     }
   ],
   "staticReview": {
