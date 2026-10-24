@@ -37,6 +37,9 @@ def state(root):
     records = build_docs.read_batch_records(str(root))
     repairs, repair_contracts = build_docs.inject_repair_tasks(data, records)
     build_docs.ensure_repair_notes(root, repairs)
+    issues, issue_contracts = build_docs.inject_issue_tasks(data, root)
+    build_docs.ensure_issue_notes(root, issues)
+    repair_contracts.update(issue_contracts)
     pres = read_json(root / '_run/presentation.json', {})
     checked = analyze(root, data['tasks'], pres, data['edges'], data['endpoints'], repair_contracts)
     return data, checked
@@ -116,7 +119,7 @@ def build(root, selected=None):
         vault = Path(__file__).resolve().parents[2] / 'obsidian-vault/scripts/build_vault.py'
     if not vault.exists():
         raise ValueError('缺少 build_vault.py；请从配套 obsidian-vault 技能复制到文档 _run/')
-    original_ids = {task['id'] for task in data['tasks'] if not task.get('repair')}
+    original_ids = {task['id'] for task in data['tasks'] if not task.get('repair') and not task.get('issue')}
     vault_selected = set(selected or []) & original_ids
     # 返工任务笔记由 build_docs 从收口记录生成；build_vault 只认识 19 节原任务。
     if not selected or vault_selected:

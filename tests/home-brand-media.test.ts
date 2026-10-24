@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { dirname, delimiter } from 'node:path';
@@ -28,7 +28,7 @@ test('home media no longer uses reference hero files or a layer obscuring the co
   const page = source('src/app/[locale]/page.tsx');
   assert.match(page, /<BrandScene /);
   assert.match(page, /stillSrc=\{BRAND_MEDIA\.scene\.pauseStill\}/);
-  assert.equal(BRAND_MEDIA.scene.pauseStill, '/brand/packjoyu-industrial-city-v3-loop-poster.png');
+  assert.equal(BRAND_MEDIA.scene.pauseStill, '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp');
   assert.doesNotMatch(page, /docs\/brand-media/);
 });
 
@@ -43,8 +43,42 @@ test('brand illustration starts with the approved static image and does not prel
   const { default: BrandScene } = await import('../src/components/layout/BrandScene');
   const html = renderToStaticMarkup(React.createElement(BrandScene, { labels: { alt: 'Industrial illustration', play: 'Play animation', pause: 'Pause animation' } }));
   assert.match(html, /packjoyu-industrial-city-v3\.png/);
+  assert.doesNotMatch(html, /srcset=/i);
   assert.doesNotMatch(html, /src="[^"]*\.gif/);
   assert.doesNotMatch(html, /<button/);
+});
+
+test('city pause still publishes the delivered responsive webp pair and keeps the png', () => {
+  assert.equal(statSync('public/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp').size, 160922);
+  assert.equal(statSync('public/brand/packjoyu-industrial-city-v3-loop-poster-2000.webp').size, 294336);
+  assert.equal(statSync('public/brand/packjoyu-industrial-city-v3-loop-poster.png').size, statSync('docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png').size);
+});
+
+test('city pause still markup is lazy, sized 1384x720, and has no fetchpriority', async () => {
+  const { default: BrandScene } = await import('../src/components/layout/BrandScene');
+  const html = renderToStaticMarkup(React.createElement(BrandScene, {
+    stillSrc: BRAND_MEDIA.scene.pauseStill,
+    labels: { alt: 'Industrial illustration', play: 'Play animation', pause: 'Pause animation' },
+  }));
+  const img = html.match(/<img\b[^>]*data-testid="brand-scene-still"[^>]*>/)?.[0];
+  assert.ok(img);
+  const attr = (name: string) => img.match(new RegExp(`\\s${name}="([^"]*)"`, 'i'))?.[1];
+  assert.equal(attr('src'), '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp');
+  assert.equal(attr('srcset'), '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp 1384w, /brand/packjoyu-industrial-city-v3-loop-poster-2000.webp 2000w');
+  assert.equal(attr('sizes'), '(min-width:1489px) calc(100vw - 48px), min(1240px, 100vw - 40px)');
+  assert.equal(attr('loading'), 'lazy');
+  assert.equal(attr('width'), '1384');
+  assert.equal(attr('height'), '720');
+  assert.equal(attr('alt'), 'Industrial illustration');
+  assert.equal(img.includes('fetchpriority') || img.includes('fetchPriority'), false);
+  assert.doesNotMatch(html, /src="[^"]*\.gif/);
+  assert.doesNotMatch(html, /packjoyu-industrial-city-v3-loop-poster\.png/);
+  const legacy = renderToStaticMarkup(React.createElement(BrandScene, {
+    stillSrc: '/brand/packjoyu-industrial-city-v3-loop-poster.png',
+    labels: { alt: 'Industrial illustration', play: 'Play animation', pause: 'Pause animation' },
+  }));
+  assert.match(legacy, /src="\/brand\/packjoyu-industrial-city-v3-loop-poster-1384\.webp"/);
+  assert.doesNotMatch(legacy, /src="\/brand\/packjoyu-industrial-city-v3-loop-poster\.png"/);
 });
 
 test('home share-image renderer reads the selected website poster instead of a reference-hero regex', () => {
