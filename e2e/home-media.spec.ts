@@ -1,7 +1,12 @@
 import { expect, test, type Page } from './fixtures';
 import type { Route } from '@playwright/test';
 
-const GIF = '/brand/packjoyu-industrial-city-v3-loop.gif';
+const CITY_1384 = '/brand/packjoyu-industrial-city-v3-loop-1384.mp4';
+const CITY_2000 = '/brand/packjoyu-industrial-city-v3-loop-2000.mp4';
+const CITY_GIF = '/brand/packjoyu-industrial-city-v3-loop.gif';
+const HERO_MP4S = ['/brand/video2-packjoyu-products-v3.mp4', '/brand/video2-packjoyu-products-web-720p60-v3.mp4'];
+/** 361 frames across 30.080s. A pause may not move the playhead by a whole frame. */
+const FRAME_S = 30.080 / 361;
 const STILL_RATIO = 1384 / 720;
 const VIDEO_RATIO = 16 / 9;
 
@@ -13,8 +18,12 @@ async function dismissConsent(page: Page) {
   }
 }
 
-function gifPaths(urls: string[]) {
-  return urls.filter((url) => new URL(url).pathname === GIF);
+function pathname(url: string) {
+  return new URL(url).pathname;
+}
+
+function cityPaths(urls: string[]) {
+  return urls.map(pathname).filter((path) => path === CITY_1384 || path === CITY_2000);
 }
 
 async function placeScene(page: Page, belowFoldPx: number) {
@@ -170,6 +179,7 @@ test('reduced motion and a failed video stay on the poster and offer play once',
 async function sceneState(page: Page) {
   return page.getByTestId('brand-scene').evaluate((el) => {
     const rect = el.getBoundingClientRect();
+    const video = el.querySelector('[data-testid="brand-scene-video"]') as HTMLVideoElement | null;
     return {
       top: rect.top,
       bottom: rect.bottom,
@@ -179,12 +189,16 @@ async function sceneState(page: Page) {
       state: el.getAttribute('data-state'),
       userPaused: el.getAttribute('data-user-paused'),
       pageVisible: el.getAttribute('data-page-visible'),
-      gif: el.querySelectorAll('[data-testid="brand-scene-gif"]').length,
+      video: el.querySelectorAll('[data-testid="brand-scene-video"]').length,
+      revealed: video?.getAttribute('data-revealed') ?? '0',
+      paused: video ? video.paused : true,
+      currentTime: video?.currentTime ?? 0,
+      src: video?.currentSrc ? new URL(video.currentSrc).pathname : '',
     };
   });
 }
 
-test('the city GIF may download within 300px and plays only while it intersects the viewport', async ({ page }) => {
+test('the city video may download within 300px and plays only while it intersects the viewport', async ({ page }) => {
   const requested: string[] = [];
   page.on('request', (request) => requested.push(request.url()));
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -204,8 +218,9 @@ test('the city GIF may download within 300px and plays only while it intersects 
   await expect(scene).toHaveAttribute('data-admitted', '0');
   await expect(scene).toHaveAttribute('data-in-view', '0');
   await expect(scene).toHaveAttribute('data-state', 'still');
-  expect(gifPaths(requested)).toEqual([]);
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  expect(cityPaths(requested)).toEqual([]);
+  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+  await expect(page.getByTestId('brand-scene-video')).toHaveCount(0);
   await expect(page.getByTestId('brand-scene-still')).toBeVisible();
 
   // The section sits fully below the fold and still inside the 300px load margin.
@@ -218,20 +233,32 @@ test('the city GIF may download within 300px and plays only while it intersects 
   expect(parked.top).toBeLessThan(parked.viewport + 300);
   expect(parked.state).toBe('still');
   expect(parked.userPaused).toBe('0');
-  expect(parked.gif).toBe(0);
-  await expect.poll(() => gifPaths(requested).length).toBeGreaterThan(0);
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  expect(parked.revealed).toBe('0');
+  await expect.poll(() => cityPaths(requested).length, { timeout: 10_000 }).toBeGreaterThan(0);
+  const heroAt = requested.findIndex((url) => HERO_MP4S.includes(pathname(url)));
+  const cityAt = requested.findIndex((url) => cityPaths([url]).length > 0);
+  expect(heroAt).toBeGreaterThanOrEqual(0);
+  expect(cityAt).toBeGreaterThan(heroAt);
+  const loaded = await sceneState(page);
+  expect(loaded.video).toBe(1);
+  expect(loaded.revealed).toBe('0');
+  expect(loaded.paused).toBe(true);
+  expect(loaded.src).toBe(CITY_1384);
 
   await scene.scrollIntoViewIfNeeded();
   await expect(scene).toHaveAttribute('data-in-view', '1');
   await expect(scene).toHaveAttribute('data-state', 'playing');
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '1');
 
   await placeScene(page, 150);
   await expect(scene).toHaveAttribute('data-in-view', '0');
   await expect(scene).toHaveAttribute('data-state', 'still');
   await expect(scene).toHaveAttribute('data-user-paused', '0');
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  const leftView = await sceneState(page);
+  expect(leftView.video).toBe(1);
+  expect(leftView.paused).toBe(true);
+  expect(leftView.revealed).toBe('1');
+  expect(leftView.src).toBe(CITY_1384);
   const leftStill = await page.getByTestId('brand-scene-still').evaluate((el) => {
     const image = el as HTMLImageElement;
     return {
@@ -249,15 +276,30 @@ test('the city GIF may download within 300px and plays only while it intersects 
 
   await scene.scrollIntoViewIfNeeded();
   await expect(scene).toHaveAttribute('data-user-paused', '0');
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+  await expect(scene).toHaveAttribute('data-state', 'playing');
+  await expect.poll(() => sceneState(page).then((state) => state.paused)).toBe(false);
+  const resumed = await sceneState(page);
+  expect(resumed.src).toBe(leftView.src);
+  expect(resumed.currentTime).toBeGreaterThanOrEqual(leftView.currentTime);
 
   await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
   await expect(scene).toHaveAttribute('data-user-paused', '1');
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await expect(scene.getByRole('button', { name: 'Play illustration animation' })).toHaveAttribute('aria-pressed', 'false');
+  const userPaused = await sceneState(page);
+  expect(userPaused.video).toBe(1);
+  expect(userPaused.paused).toBe(true);
+  expect(userPaused.revealed).toBe('1');
+  expect(userPaused.src).toBe(CITY_1384);
   await placeScene(page, 360);
   await scene.scrollIntoViewIfNeeded();
   await expect(scene).toHaveAttribute('data-user-paused', '1');
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  const stillPaused = await sceneState(page);
+  expect(stillPaused.video).toBe(1);
+  expect(stillPaused.paused).toBe(true);
+  expect(stillPaused.src).toBe(CITY_1384);
+  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
 });
 
 test('freeze and resume handlers preserve the city animation pause choice', async ({ page }) => {
@@ -266,28 +308,46 @@ test('freeze and resume handlers preserve the city animation pause choice', asyn
   await dismissConsent(page);
   const scene = page.getByTestId('brand-scene');
   await scene.scrollIntoViewIfNeeded();
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '1');
+  const playing = await sceneState(page);
   // Isolated handler coverage; genuine hidden/visible transitions require a separate native-browser acceptance run.
   await page.evaluate(() => document.dispatchEvent(new Event('freeze')));
   await expect(scene).toHaveAttribute('data-page-visible', '0');
   await expect(scene).toHaveAttribute('data-state', 'still');
   await expect(scene).toHaveAttribute('data-user-paused', '0');
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  const frozen = await sceneState(page);
+  expect(frozen.video).toBe(1);
+  expect(frozen.paused).toBe(true);
+  expect(frozen.revealed).toBe('1');
+  expect(frozen.currentTime).toBeGreaterThanOrEqual(playing.currentTime);
+  expect(frozen.src).toBe(playing.src);
   await page.evaluate(() => document.dispatchEvent(new Event('resume')));
   await expect(scene).toHaveAttribute('data-page-visible', '1');
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
+  await expect(scene).toHaveAttribute('data-state', 'playing');
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '1');
+  await expect.poll(() => sceneState(page).then((state) => state.paused)).toBe(false);
+  await expect.poll(() => sceneState(page).then((state) => state.currentTime)).toBeGreaterThanOrEqual(frozen.currentTime);
 
   await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
   await expect(scene).toHaveAttribute('data-user-paused', '1');
+  const held = await sceneState(page);
   await page.evaluate(() => document.dispatchEvent(new Event('freeze')));
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  const frozenHeld = await sceneState(page);
+  expect(frozenHeld.video).toBe(1);
+  expect(frozenHeld.paused).toBe(true);
+  expect(frozenHeld.currentTime).toBe(held.currentTime);
   await page.evaluate(() => document.dispatchEvent(new Event('resume')));
   await expect(scene).toHaveAttribute('data-page-visible', '1');
   await expect(scene).toHaveAttribute('data-user-paused', '1');
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  const after = await sceneState(page);
+  expect(after.video).toBe(1);
+  expect(after.paused).toBe(true);
+  expect(after.currentTime).toBe(held.currentTime);
+  expect(after.src).toBe(held.src);
 });
 
-test('reduced motion does not start the city GIF until the visitor presses play inside the viewport', async ({ page }) => {
+test('reduced motion does not start the city video until the visitor presses play inside the viewport', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const requested: string[] = [];
   page.on('request', (request) => requested.push(request.url()));
@@ -298,14 +358,147 @@ test('reduced motion does not start the city GIF until the visitor presses play 
   const scene = page.getByTestId('brand-scene');
   await expect(scene).toHaveAttribute('data-admitted', '1');
   await expect(scene).toHaveAttribute('data-in-view', '0');
-  expect(gifPaths(requested)).toEqual([]);
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  expect(requested.filter((url) => pathname(url).endsWith('.mp4'))).toEqual([]);
+  expect(cityPaths(requested)).toEqual([]);
+  await expect(page.getByTestId('brand-scene-video')).toHaveCount(0);
   await scene.getByRole('button', { name: 'Play illustration animation' }).evaluate((el: HTMLButtonElement) => el.click());
   await expect(scene).toHaveAttribute('data-in-view', '0');
-  await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  const armed = await sceneState(page);
+  expect(armed.video).toBe(1);
+  expect(armed.revealed).toBe('0');
+  expect(armed.paused).toBe(true);
+  await expect.poll(() => cityPaths(requested).length).toBeGreaterThan(0);
   await scene.scrollIntoViewIfNeeded();
-  await expect(page.getByTestId('brand-scene-gif')).toBeVisible();
-  expect(gifPaths(requested).length).toBeGreaterThan(0);
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '1');
+  const playing = await sceneState(page);
+  expect(playing.paused).toBe(false);
+  expect(playing.src).toBe(CITY_1384);
+  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+});
+
+test('a rejected city play() keeps the still and the Play button', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLVideoElement.prototype.play;
+    HTMLVideoElement.prototype.play = function play(this: HTMLVideoElement, ...args: Parameters<typeof original>) {
+      if (this.dataset.testid === 'brand-scene-video') return Promise.reject(new DOMException('blocked', 'NotAllowedError'));
+      return original.apply(this, args);
+    };
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  await dismissConsent(page);
+  const scene = page.getByTestId('brand-scene');
+  await scene.scrollIntoViewIfNeeded();
+  const play = scene.getByRole('button', { name: 'Play illustration animation' });
+  await expect(play).toBeVisible();
+  await expect(play).toHaveAttribute('aria-pressed', 'false');
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await expect(page.getByTestId('brand-scene-still')).toBeVisible();
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '0');
+});
+
+test('city video pauses within one frame and resumes from that playhead', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  await dismissConsent(page);
+  const scene = page.getByTestId('brand-scene');
+  await scene.scrollIntoViewIfNeeded();
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '1');
+  await expect.poll(() => sceneState(page).then((state) => state.currentTime)).toBeGreaterThan(0.2);
+
+  const buttonPause = await page.evaluate(() => {
+    const section = document.querySelector('[data-testid="brand-scene"]');
+    const video = section?.querySelector('[data-testid="brand-scene-video"]') as HTMLVideoElement | null;
+    const button = section?.querySelector('button') as HTMLButtonElement | null;
+    if (!video || !button) throw new Error('city controls missing');
+    const before = video.currentTime;
+    button.click();
+    return { before, after: video.currentTime, paused: video.paused, src: video.currentSrc };
+  });
+  expect(buttonPause.paused).toBe(true);
+  expect(buttonPause.after - buttonPause.before).toBeLessThan(FRAME_S);
+  expect(buttonPause.after).toBeGreaterThanOrEqual(buttonPause.before);
+  await page.waitForTimeout(2000);
+  const buttonHeld = await sceneState(page);
+  expect(buttonHeld.currentTime).toBe(buttonPause.after);
+  expect(buttonHeld.paused).toBe(true);
+  expect(buttonHeld.src).toBe(CITY_1384);
+  expect(buttonHeld.revealed).toBe('1');
+  await scene.getByRole('button', { name: 'Play illustration animation' }).click();
+  await expect.poll(() => sceneState(page).then((state) => state.currentTime)).toBeGreaterThan(buttonPause.after);
+  const continuedSrc = await sceneState(page);
+  expect(continuedSrc.src).toBe(pathname(buttonPause.src));
+  expect(continuedSrc.paused).toBe(false);
+
+  const hidden = await page.evaluate(() => {
+    const video = document.querySelector('[data-testid="brand-scene-video"]') as HTMLVideoElement;
+    const before = video.currentTime;
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+    return { before, after: video.currentTime, paused: video.paused, src: video.currentSrc, pageVisible: document.querySelector('[data-testid="brand-scene"]')?.getAttribute('data-page-visible') };
+  });
+  expect(hidden.pageVisible).toBe('0');
+  expect(hidden.paused).toBe(true);
+  expect(hidden.after - hidden.before).toBeLessThan(FRAME_S);
+  expect(hidden.src).toBe(buttonPause.src);
+  await page.waitForTimeout(2000);
+  const hiddenHeld = await sceneState(page);
+  expect(hiddenHeld.currentTime).toBe(hidden.after);
+  expect(hiddenHeld.paused).toBe(true);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect.poll(() => sceneState(page).then((state) => state.currentTime)).toBeGreaterThan(hidden.after);
+
+  const beforeLeave = await sceneState(page);
+  await page.evaluate(() => {
+    const video = document.querySelector('[data-testid="brand-scene-video"]') as HTMLVideoElement;
+    const orig = video.pause.bind(video);
+    const mark = window as Window & { __cityPauseAt?: number };
+    mark.__cityPauseAt = -1;
+    video.pause = () => {
+      mark.__cityPauseAt = video.currentTime;
+      orig();
+    };
+  });
+  await placeScene(page, 150);
+  await expect(scene).toHaveAttribute('data-in-view', '0');
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  const left = await sceneState(page);
+  expect(left.paused).toBe(true);
+  expect(left.video).toBe(1);
+  expect(left.revealed).toBe('1');
+  expect(left.src).toBe(beforeLeave.src);
+  expect(left.currentTime).toBeGreaterThanOrEqual(beforeLeave.currentTime);
+  const pauseAt = await page.evaluate(() => (window as Window & { __cityPauseAt?: number }).__cityPauseAt ?? -1);
+  expect(pauseAt).toBeGreaterThanOrEqual(0);
+  expect(Math.abs(left.currentTime - pauseAt)).toBeLessThan(FRAME_S);
+  await page.waitForTimeout(2000);
+  const leftHeld = await sceneState(page);
+  expect(leftHeld.currentTime).toBe(left.currentTime);
+  expect(leftHeld.paused).toBe(true);
+  await scene.scrollIntoViewIfNeeded();
+  await expect.poll(() => sceneState(page).then((state) => state.currentTime)).toBeGreaterThan(left.currentTime);
+  const returned = await sceneState(page);
+  expect(returned.src).toBe(left.src);
+  expect(returned.paused).toBe(false);
+});
+
+test('the city source chosen at 1440 stays put when the viewport grows to 1920', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  await dismissConsent(page);
+  const scene = page.getByTestId('brand-scene');
+  await scene.scrollIntoViewIfNeeded();
+  await expect.poll(() => sceneState(page).then((state) => state.src)).toBe(CITY_1384);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await expect.poll(() => sceneState(page).then((state) => state.src)).toBe(CITY_1384);
+  const held = await sceneState(page);
+  expect(held.video).toBe(1);
+  expect(held.src).toBe(CITY_1384);
 });
 
 async function tokenButton(page: Page, name: string) {
@@ -434,6 +627,51 @@ for (const viewport of [
     expect(still.fit).toBe('contain');
     expect(still.inside).toBe(true);
     expect(Math.abs(still.ratio - STILL_RATIO)).toBeLessThan(0.01);
+
+    const city = page.getByTestId('brand-scene-video');
+    await expect(city).toHaveAttribute('data-revealed', '1');
+    const played = await city.evaluate((el) => {
+      const video = el as HTMLVideoElement;
+      const stillImage = el.parentElement?.querySelector('[data-testid="brand-scene-still"]') as HTMLImageElement | null;
+      const videoBox = video.getBoundingClientRect();
+      const stillBox = stillImage?.getBoundingClientRect();
+      const frame = el.parentElement?.getBoundingClientRect();
+      const player = video as HTMLVideoElement & { disablePictureInPicture?: boolean; audioTracks?: { length: number } };
+      return {
+        src: video.currentSrc ? new URL(video.currentSrc).pathname : '',
+        frameWidth: frame?.width ?? 0,
+        dpr: window.devicePixelRatio,
+        fit: getComputedStyle(video).objectFit,
+        preload: video.getAttribute('preload'),
+        poster: video.getAttribute('poster'),
+        controls: video.hasAttribute('controls'),
+        hidden: video.getAttribute('aria-hidden'),
+        muted: video.muted,
+        loop: video.loop,
+        inline: video.playsInline,
+        pip: player.disablePictureInPicture === true,
+        remote: video.hasAttribute('disableremoteplayback'),
+        opacity: getComputedStyle(video).opacity,
+        audio: player.audioTracks?.length ?? 0,
+        overlap: Boolean(stillBox) && Math.abs(videoBox.left - stillBox.left) < 1 && Math.abs(videoBox.top - stillBox.top) < 1 && Math.abs(videoBox.width - stillBox.width) < 1 && Math.abs(videoBox.height - stillBox.height) < 1,
+      };
+    });
+    expect(played.dpr).toBe(1);
+    expect(played.frameWidth * played.dpr > 1384).toBe(viewport.width === 1920);
+    expect(played.src).toBe(viewport.width === 1920 ? CITY_2000 : CITY_1384);
+    expect(played.fit).toBe('contain');
+    expect(played.preload).toBe('none');
+    expect(played.poster).toBeNull();
+    expect(played.controls).toBe(false);
+    expect(played.hidden).toBe('true');
+    expect(played.muted).toBe(true);
+    expect(played.loop).toBe(true);
+    expect(played.inline).toBe(true);
+    expect(played.pip).toBe(true);
+    expect(played.remote).toBe(true);
+    expect(played.opacity).toBe('1');
+    expect(played.audio).toBe(0);
+    expect(played.overlap).toBe(true);
 
     // 1920 铺满后品牌场景高于 1080 视口。scrollIntoViewIfNeeded 把区块中线对齐视口中线，
     // 吸顶页头会盖住画框上沿。重叠断言量的是版面是否压住导航和文案，不是滚动经过页头。
