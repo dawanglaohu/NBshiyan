@@ -88,6 +88,11 @@
         "theme": "仅参考公司概览、配套视觉与能力信息的组织层级；不移植YUHAO企业事实、照片或数字。"
       },
       "factBasis": "用户在当前会话直接确认自有工厂、整合供应链、多品类定制、设计打样、质量把控全部为其提供的真实信息；12个品类名称来自src/data/products.ts。产品插画为概念示意，不代表真实厂房、设备或产品照片。",
+      "selectedInput": {
+        "path": "public/brand/packjoyu-logo-master.svg",
+        "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+        "use": "现用 PackJoyU 字标 master，导入对象 logo-master-import。八条路径的 d 与 fill 与该文件一致，只做统一缩放。"
+      },
       "source": {
         "path": "docs/brand-content/source/dot-v3/PackJoyU-Company-Introduction-v3-EN.svg",
         "sha256": "d1ae945bcec1e5535838e1438f262252cf7b4d679c84402b57ebd8e54ffa687e"
