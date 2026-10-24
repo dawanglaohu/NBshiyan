@@ -6,7 +6,7 @@ import { REFUND_LUA } from './refund-lua';
 /**
  * 最小 RESP 客户端（Node 内置 net / tls，无第三方 Redis 包）。
  * 连接只来自 REDIS_URL（redis:// 或 rediss://）。出错 throw 的文案是固定短句，不含主机、密码、key。
- * hit 与 UpstashStore 一样：INCR 后 PEXPIRE NX，同一次写入里用同一个时间算窗口号。
+ * hit 与 UpstashStore 一样：INCR 后 PEXPIRE NX（需要 Redis 7 或更新），同一次写入里用同一个时间算窗口号。
  */
 
 export type RedisEndpoint = {
@@ -70,6 +70,8 @@ type Reply =
 
 const MAX_BULK = 1_000_000;
 const MAX_ARRAY = 64;
+/** 正常回复是平的。0 是最外层，超过 2 层嵌套直接当坏回复，避免递归把进程打爆。 */
+const MAX_RESP_DEPTH = 2;
 
 function encodeCommand(args: string[]): Buffer {
   const chunks: Buffer[] = [Buffer.from(`*${args.length}\r\n`)];
@@ -80,8 +82,16 @@ function encodeCommand(args: string[]): Buffer {
   return Buffer.concat(chunks);
 }
 
-/** 从 buf[at] 读一条 RESP。数据不够返回 null。协议不对返回 kind:'bad'。 */
-function readOne(buf: Buffer, at: number): { reply: Reply | 'bad'; next: number } | null {
+/** 长度和个数必须是整数字面量。空串、1e3、带空格都不行。 */
+function respCount(head: string): number | null {
+  if (!/^-?\d+$/.test(head)) return null;
+  const n = Number(head);
+  return Number.isInteger(n) ? n : null;
+}
+
+/** 从 buf[at] 读一条 RESP。数据不够返回 null。协议不对返回 reply:'bad'。 */
+function readOne(buf: Buffer, at: number, depth = 0): { reply: Reply | 'bad'; next: number } | null {
+  if (depth > MAX_RESP_DEPTH) return { reply: 'bad', next: at };
   if (at >= buf.length) return null;
   const nl = buf.indexOf('\r\n', at);
   if (nl < 0) return null;
@@ -90,25 +100,24 @@ function readOne(buf: Buffer, at: number): { reply: Reply | 'bad'; next: number 
   const next = nl + 2;
   if (type === '+' || type === '-') return { reply: { kind: type === '+' ? 'ok' : 'err', value: head }, next };
   if (type === ':') {
-    if (!/^-?\d+$/.test(head)) return { reply: 'bad', next };
-    const value = Number(head);
-    if (!Number.isSafeInteger(value)) return { reply: 'bad', next };
+    const value = respCount(head);
+    if (value === null || !Number.isSafeInteger(value)) return { reply: 'bad', next };
     return { reply: { kind: 'int', value }, next };
   }
   if (type === '$') {
-    const n = Number(head);
-    if (!Number.isInteger(n) || n > MAX_BULK) return { reply: 'bad', next };
+    const n = respCount(head);
+    if (n === null || n > MAX_BULK) return { reply: 'bad', next };
     if (n < 0) return { reply: { kind: 'bulk', value: null }, next };
     if (buf.length < next + n + 2) return null;
     return { reply: { kind: 'bulk', value: Buffer.from(buf.subarray(next, next + n)) }, next: next + n + 2 };
   }
   if (type === '*') {
-    const n = Number(head);
-    if (!Number.isInteger(n) || n < 0 || n > MAX_ARRAY) return { reply: 'bad', next };
+    const n = respCount(head);
+    if (n === null || n < 0 || n > MAX_ARRAY) return { reply: 'bad', next };
     const value: Reply[] = [];
     let p = next;
     for (let i = 0; i < n; i++) {
-      const one = readOne(buf, p);
+      const one = readOne(buf, p, depth + 1);
       if (!one) return null;
       if (one.reply === 'bad') return { reply: 'bad', next: one.next };
       value.push(one.reply);
@@ -117,6 +126,11 @@ function readOne(buf: Buffer, at: number): { reply: Reply | 'bad'; next: number 
     return { reply: { kind: 'arr', value }, next: p };
   }
   return { reply: 'bad', next };
+}
+
+/** 读一条 RESP。测试与重置脚本里的副本对照用。 */
+export function parseResp(buf: Buffer, at = 0) {
+  return readOne(buf, at, 0);
 }
 
 function connect(ep: RedisEndpoint, timeoutMs: number): Promise<net.Socket> {
@@ -163,17 +177,21 @@ function readReplies(sock: net.Socket, n: number, timeoutMs: number): Promise<Re
       else resolve(value!);
     };
     const pump = () => {
-      const buf = Buffer.concat(bufs, size);
-      const out: Reply[] = [];
-      let at = 0;
-      while (out.length < n) {
-        const one = readOne(buf, at);
-        if (!one) return;
-        if (one.reply === 'bad') return finish(new Error('redis bad response'));
-        out.push(one.reply);
-        at = one.next;
+      try {
+        const buf = Buffer.concat(bufs, size);
+        const out: Reply[] = [];
+        let at = 0;
+        while (out.length < n) {
+          const one = readOne(buf, at);
+          if (!one) return;
+          if (one.reply === 'bad') return finish(new Error('redis bad response'));
+          out.push(one.reply);
+          at = one.next;
+        }
+        finish(null, out);
+      } catch {
+        finish(new Error('redis bad response'));
       }
-      finish(null, out);
     };
     const onData = (c: Buffer) => {
       size += c.length;

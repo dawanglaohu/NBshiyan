@@ -77,7 +77,7 @@
 | ~~BEHIND_CLOUDFLARE~~ / ~~TRUSTED_PROXY_HOPS~~ | 已废弃，不再读取 | — | 不要设 | — |
 | RATE_LIMIT_STORE | `upstash` 或 `redis` | memory | 是（必须是 upstash 或 redis） | — |
 | UPSTASH_REDIS_REST_URL / _TOKEN | `RATE_LIMIT_STORE=upstash` 时的限流存储 | — | upstash 时是 | **Ryan** |
-| REDIS_URL | `RATE_LIMIT_STORE=redis` 时的连接，userinfo 里必须带密码 | — | redis 时是 | — |
+| REDIS_URL | `RATE_LIMIT_STORE=redis` 时的连接。Redis 7 或更新（`PEXPIRE ... NX`）。userinfo 里必须带密码。生产环境非本机必须走 TLS（rediss 方案）；本机只认 `127.0.0.1`、`::1`、`localhost`，可以不走 TLS（redis 方案） | — | redis 时是 | — |
 | STORAGE_DRIVER | **`local`**（Ryan 已定：上传文件存服务器本地磁盘的挂载数据卷）。`r2` 只作为代码仍支持的可选驱动保留；生产必须显式设置 | local | 是 | — |
 | R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET | 可选 R2 驱动（仅 `STORAGE_DRIVER=r2` 时；当前方案不用） | — | 否（local 时不设） | — |
 | R2_ENDPOINT | 留空（由账号 ID 推出来） | 推导值 | 否 | — |

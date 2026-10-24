@@ -5,7 +5,7 @@ import { REFUND_LUA } from './refund-lua';
  * 可插拔限流存储。
  * - RATE_LIMIT_STORE=memory（默认）：进程内存，单实例有效，开发/预览用
  * - RATE_LIMIT_STORE=upstash：Upstash Redis REST（UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN），多实例共享
- * - RATE_LIMIT_STORE=redis：TCP Redis（REDIS_URL，redis:// 或 rediss://），多实例共享
+ * - RATE_LIMIT_STORE=redis：TCP Redis 7 或更新（REDIS_URL；生产环境非本机必须 rediss://），多实例共享。用 PEXPIRE … NX
  * 存储不可用（超时/5xx/网络错误）时 hit()/refund() 直接 throw；hit 的降级行为（拒绝/本地计数/放行）由调用方 hitRateLimit 按路由的 onStoreError 决定（#74），
  * refund 出错由 refundRateLimit 直接忽略（计数保留，偏严）。
  */

@@ -31,6 +31,8 @@ export const UNTRUSTED: 'untrusted';
 export function accountOnlyRateKeys(email: string, env: Record<string, string | undefined>): { key: string; windowMs: number }[];
 export function upstashKey(key: string, env: Record<string, string | undefined>, now: number, windowMs?: number, offset?: number): string;
 export function rateKeysToDelete(email: string, env: Record<string, string | undefined>, now: number): string[];
+/** 读一条 RESP。数据不够返回 null。与应用里的 parseResp 对照。 */
+export function readResp(buf: Buffer, at?: number, depth?: number): { kind: string; next: number; value?: unknown } | null;
 type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }) => Promise<{ ok: boolean; json(): Promise<unknown> }>;
 export function clearAccountRateLimits(o: { email: string; env: Record<string, string | undefined>; now: number; fetchImpl?: FetchLike }): Promise<'cleared' | 'skipped_memory' | 'failed'>;
 export function safeErrorCode(e: unknown): string;

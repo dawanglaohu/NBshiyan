@@ -199,7 +199,7 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   to `https.request` (public roots plus that file). Run it as `docker compose exec -it app …`, not as host `node`.
   A missing variable or an unreadable file fails the handshake and prints `rate_limit=failed`.
   Do not set `NODE_TLS_REJECT_UNAUTHORIZED=0`.
-- `RATE_LIMIT_STORE=redis` deletes the same six keys over TCP (`REDIS_URL`). This compose file stays on `upstash`:
+- `RATE_LIMIT_STORE=redis` deletes the same six keys over TCP (`REDIS_URL`). Redis must be 7 or newer because the client sends `PEXPIRE ... NX`. In production, a non-loopback host must use `rediss://`. Loopback is only `127.0.0.1`, `::1`, and `localhost`, which may use `redis://`. When `APP_ENV=production`, an `http:` Upstash URL is refused before any request and the script prints `rate_limit=failed` (the bearer token is not sent and is not printed). This compose file stays on `upstash`:
   the app is not on `srh-net` and cannot open Redis on the internal network. Switching stores is a later deploy change.
 - Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments, 3 refused. Output shows the user id only.
 
@@ -327,7 +327,7 @@ fixed in backend PR #328 (now 404).
   inbound Worker until Q7 is approved.
 
 ## Rate-limit store notes
-- `RATE_LIMIT_STORE=upstash` remains the value written by `init-secrets.sh`, with `UPSTASH_REDIS_REST_URL=https://redis-rest:8443` and `UPSTASH_REDIS_REST_TOKEN` = SRH token. The prod check accepts `upstash` (https URL and token) or `redis` (`REDIS_URL` is `redis://` or `rediss://` and includes a password). Do not switch this stack to `redis` until a later deploy PR attaches the app to Redis. `srh` and `srh-tls` stay.
+- `RATE_LIMIT_STORE=upstash` remains the value written by `init-secrets.sh`, with `UPSTASH_REDIS_REST_URL=https://redis-rest:8443` and `UPSTASH_REDIS_REST_TOKEN` = SRH token. The prod check accepts `upstash` (https URL and token) or `redis` (`REDIS_URL` includes a password; `rediss://` is required unless the host is exactly `127.0.0.1`, `::1`, or `localhost`). Redis must be 7 or newer (`PEXPIRE ... NX`). Do not switch this stack to `redis` until a later deploy PR attaches the app to Redis. `srh` and `srh-tls` stay.
 - `NODE_EXTRA_CA_CERTS` is set on the app service `environment` (container config, not a PID-1-only export), and the CA file is bind-mounted. `docker compose exec` starts a new process with that environment, so the variable and the file are visible. The reset script and a `rediss://` client read the file at connect time and pass it as `ca`. A process started without the variable (host `node`) does not trust the private CA, and the reset script prints `rate_limit=failed`.
 - `src/lib/seo/indexnow.ts` still uses the Upstash REST variables for de-duplication. `RATE_LIMIT_STORE=redis` does not turn IndexNow on.
 - If SRH/srh-tls is down, routes follow their own `onStoreError`: some reject, some fall back to in-process counting. 429/503 on some endpoints in that state is expected, not a bug.

@@ -33,9 +33,12 @@ export type EnvCheckDeps = {
 };
 
 /**
- * 生产限流：upstash（REST，https）或 redis（TCP，REDIS_URL）。
+ * 生产限流：upstash（REST，https）或 redis（TCP，REDIS_URL，Redis 7 或更新，因为用了 PEXPIRE … NX）。
+ * 非本机必须 rediss://。允许明文 redis:// 的主机只有 127.0.0.1、::1、localhost（URL 里的 [::1] 解析后是 ::1）。
  * 只报变量名和原因，不把 REDIS_URL / token 的值写进问题文本。
  */
+const REDIS_PLAINTEXT_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
+
 function rateLimitProblems(env: Record<string, string | undefined>): string[] {
   const kind = env.RATE_LIMIT_STORE;
   if (kind === 'upstash') {
@@ -48,6 +51,7 @@ function rateLimitProblems(env: Record<string, string | undefined>): string[] {
     const parsed = parseRedisUrl(env.REDIS_URL);
     if (!parsed.ok) return [parsed.error === 'RATE_LIMIT_STORE=redis 需要 REDIS_URL' ? 'REDIS_URL 未设置' : parsed.error === 'REDIS_URL 必须是 redis:// 或 rediss://' ? parsed.error : 'REDIS_URL 无效'];
     if (!parsed.endpoint.password) return ['REDIS_URL 必须包含密码'];
+    if (!parsed.endpoint.tls && !REDIS_PLAINTEXT_HOSTS.has(parsed.endpoint.host)) return ['REDIS_URL 必须是 rediss://'];
     return [];
   }
   return [`RATE_LIMIT_STORE 必须为 "upstash" 或 "redis"（当前：${kind ?? '未设置'}），多实例下内存限流无效`];

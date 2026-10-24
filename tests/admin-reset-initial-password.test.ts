@@ -352,6 +352,18 @@ test('#432 redis：连不上或 URL 无效时 rate_limit=failed，不抛错、�
   assert.equal(await clearAccountRateLimits({ email: EMAIL, env: { RATE_LIMIT_STORE: 'redis' }, now: NOW }), 'failed');
 });
 
+test('#432 生产环境拒绝 http 的 Upstash 地址：rate_limit=failed，不发出请求，不打印 token', async () => {
+  const token = 'bearer-SHOULD-NOT-LEAK';
+  const r = await run([user()], {
+    env: { RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'http://127.0.0.1:9/rest', UPSTASH_REDIS_REST_TOKEN: token, APP_ENV: 'production', AUTH_SECRET: 'a' },
+  });
+  assert.equal(r.code, 0, r.err);
+  assert.match(r.out, /rate_limit=failed/);
+  assert.equal(r.ff.calls.length, 0);
+  assert.equal((r.out + r.err).includes(token), false);
+  assert.equal((r.out + r.err).includes('http://'), false);
+});
+
 // ---------------- 失败路径 ----------------
 
 test('弱密码 / 等于邮箱 / 两次不一致：退出 1，不写库，输出不含密码', async () => {

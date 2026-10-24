@@ -82,7 +82,8 @@ test('账号页「重置 2FA」：危险样式、行内最后一个、和其他�
   assert.match(cell, /\{u\.id !== selfId && <button className="adm-btn danger adm-row-last"/);
   assert.doesNotMatch(cell, /编辑/);
   assert.match(src, /<ConfirmDialog title=\{RESET_2FA_CONFIRM\(resetTarget\.email\)\} confirmLabel="重置 2FA" danger onCancel=\{\(\) => setResetTarget\(null\)\}/);
-  assert.match(RESET_2FA_CONFIRM('a@x.com'), /之前发出的绑定链接会立即失效，同时会解除这个账号的登录锁定。按真实 IP 计的登录限流最多再保留一个 10 分钟窗口。$/);
+  assert.match(RESET_2FA_CONFIRM('a@x.com'), /之前发出的绑定链接会立即失效，同时会解除这个账号的登录锁定。重置后，对方可能还要等最多 10 分钟才能重新登录。$/);
+  assert.doesNotMatch(RESET_2FA_CONFIRM('a@x.com'), /按真实 IP 计的登录限流/);
   const page = code('src/app/admin/users/page.tsx');
   assert.match(page, /<UsersAdmin selfId=\{c\.ok \? c\.user\.id : undefined\} \/>/);
   const css = read('src/app/admin/admin.css');

@@ -120,7 +120,7 @@ Ryan 操作：
 
 环境变量：`RATE_LIMIT_STORE=upstash`、`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`。
 
-生产也可以改用 `RATE_LIMIT_STORE=redis`，另设 `REDIS_URL`（`redis://` 或 `rediss://`，userinfo 里带密码）。当前自建栈仍写 `upstash`：应用容器不在 Redis 所在的网络上，切换和去掉 REST 代理留到后面的部署变更。IndexNow 去重只认 `upstash`。
+生产也可以改用 `RATE_LIMIT_STORE=redis`，另设 `REDIS_URL`（userinfo 里带密码）。这需要 Redis 7 或更新（用了 `PEXPIRE ... NX`）。生产环境里，主机不是 `127.0.0.1`、`::1`、`localhost` 时必须用 `rediss://`；这三个主机名可以用 `redis://`。当前自建栈仍写 `upstash`：应用容器不在 Redis 所在的网络上，切换和去掉 REST 代理留到后面的部署变更。IndexNow 去重只认 `upstash`。
 
 ## 3. 发信：Gmail SMTP（询盘通知、自动回复）
 
@@ -153,7 +153,7 @@ Ryan 已确认：
 | ~~`BEHIND_CLOUDFLARE`~~ / ~~`TRUSTED_PROXY_HOPS`~~ | 不要再设 | 已废弃，代码不再读取（设了只会在日志里提示一次）。客户端 IP 只由 `EDGE_AUTH_SECRET` + `CF-Connecting-IP` 决定 |
 | `RATE_LIMIT_STORE` | `upstash` 或 `redis` | 生产必须是二者之一，不能用 memory。当前自建栈仍写 `upstash`（见 deploy/README.md） |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | `upstash` 时必填 |
-| `REDIS_URL` | `redis://` 或 `rediss://`，userinfo 里带密码 | 仅 `redis` 时必填。密码不进仓库 |
+| `REDIS_URL` | `rediss://`（本机 `127.0.0.1` / `::1` / `localhost` 可用 `redis://`），userinfo 里带密码 | 仅 `redis` 时必填。Redis 7 或更新（`PEXPIRE ... NX`）。密码不进仓库 |
 | `STORAGE_DRIVER` | `local`（Ryan 已定） | 生产必须显式设置。`local`：文件放服务器挂载数据卷（配 `UPLOAD_DIR`，第 1 节）；`r2` 只是代码仍支持的可选驱动（第 1.1 节） |
 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 不设 | 仅可选的 `STORAGE_DRIVER=r2` 时必填（第 1.1 节） |
 | `R2_ENDPOINT` | 留空 | |

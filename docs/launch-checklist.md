@@ -30,7 +30,7 @@
 
 ## 3. 生产环境必须项（通用）
 
-- [ ] `RATE_LIMIT_STORE` 为 `upstash`（配 https 的 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN`）或 `redis`（配带密码的 `REDIS_URL`，`redis://` 或 `rediss://`）。缺了或不合规时，`prod-env-check.ts` 在生产启动时拒绝启动（构建阶段不查这项）。当前自建栈仍用 `upstash`。
+- [ ] `RATE_LIMIT_STORE` 为 `upstash`（配 https 的 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN`）或 `redis`（配带密码的 `REDIS_URL`。Redis 7 或更新，因为用了 `PEXPIRE ... NX`。生产环境非本机必须 `rediss://`；只有 `127.0.0.1`、`::1`、`localhost` 可以用 `redis://`）。缺了或不合规时，`prod-env-check.ts` 在生产启动时拒绝启动（构建阶段不查这项）。当前自建栈仍用 `upstash`。
 - [ ] 所有 `NEXT_PUBLIC_*_MOCK` 都未开启，开了构建会失败。
 - [ ] `NEXT_PUBLIC_ADMIN_API=http`，否则构建失败。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。

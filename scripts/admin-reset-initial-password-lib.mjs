@@ -11,9 +11,11 @@
 // - 提交之后再清这个账号的限流计数：只清 key 名能只凭账号算出来的 login-acct:<e>、login:untrusted:<e>、enroll-confirm:untrusted:<e>
 //   （当前和上一个窗口）。login-ip、真实 IP 的 login:<ip>:<e>、enroll-confirm:<ip>:<e> 不清，也不扫描键空间，10 分钟窗口后自己过期。
 //   被真实 IP 桶挡住的人，重置后最多还要再等当前这一个 10 分钟窗口。
-// - upstash：用 https.request 打 /pipeline。env.NODE_EXTRA_CA_CERTS 有值时读那个 PEM，和公共根证书一起交给这次请求
+// - upstash：用 https.request 打 /pipeline。APP_ENV=production 时拒绝 http: 地址（不发 Bearer，结果是 failed）。
+//   env.NODE_EXTRA_CA_CERTS 有值时读那个 PEM，和公共根证书一起交给这次请求
 //   （docker compose exec 的新进程会继承容器 environment 里的这个变量和 CA 挂载；没带到 CA 时证书校验失败，返回 failed，不抛错）。
-// - redis：RATE_LIMIT_STORE=redis，REDIS_URL 为 redis:// 或 rediss://。同样只 DEL 上面那些 key，rediss 时同样带上额外 CA。
+// - redis：RATE_LIMIT_STORE=redis。需要 Redis 7 或更新（PEXPIRE … NX）。生产环境非本机必须 rediss://
+//   （本机只认 127.0.0.1、::1、localhost）。同样只 DEL 上面那些 key，rediss 时同样带上额外 CA。
 // - #347 方案 A：每次都在同一个事务里签发新的一次性绑定令牌（覆盖旧的，旧链接立即失效；加不加 --clear-pending-enroll 都签发），
 //   审计 auth.enroll_token_issued（source 'cli'，不含令牌）。链接只打印到终端一次（链接 / 有效至 / 只私信给本人三行）。
 //   stdout 不是终端（重定向、管道、exec -T）时在读密码、连库之前就拒绝（退出码 2），什么都不改：链接不能落进文件或日志，
@@ -253,6 +255,7 @@ function postJson(urlStr, token, body, ca, timeoutMs) {
         chunks.push(c);
       });
       res.on('end', () => resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, body: Buffer.concat(chunks).toString('utf8') }));
+      res.on('error', (err) => { req.destroy(); reject(err); });
     });
     req.on('timeout', () => req.destroy(new Error('timeout')));
     req.on('error', reject);
@@ -291,33 +294,50 @@ function encodeCmd(args) {
   return Buffer.concat(chunks);
 }
 
-function readResp(buf, at) {
+const MAX_RESP_DEPTH = 2;
+
+/** 长度和个数必须是整数字面量。空串、1e3、带空格都不行。与 src/lib/server/ratelimit/redis.ts 一致。 */
+function respCount(head) {
+  if (!/^-?\d+$/.test(head)) return null;
+  const n = Number(head);
+  return Number.isInteger(n) ? n : null;
+}
+
+/** 从 buf[at] 读一条 RESP。数据不够返回 null。协议不对 kind 为 bad。嵌套超过 2 层也是 bad。 */
+export function readResp(buf, at = 0, depth = 0) {
+  if (depth > MAX_RESP_DEPTH) return { kind: 'bad', next: at };
   if (at >= buf.length) return null;
   const nl = buf.indexOf('\r\n', at);
   if (nl < 0) return null;
   const type = String.fromCharCode(buf[at]);
   const head = buf.toString('utf8', at + 1, nl);
   const next = nl + 2;
-  if (type === '+' || type === '-') return { kind: type === '+' ? 'ok' : 'err', next };
-  if (type === ':') return /^-?\d+$/.test(head) ? { kind: 'int', next } : { kind: 'bad', next };
+  if (type === '+' || type === '-') return { kind: type === '+' ? 'ok' : 'err', value: head, next };
+  if (type === ':') {
+    const value = respCount(head);
+    if (value === null || !Number.isSafeInteger(value)) return { kind: 'bad', next };
+    return { kind: 'int', value, next };
+  }
   if (type === '$') {
-    const n = Number(head);
-    if (!Number.isInteger(n) || n > 1_000_000) return { kind: 'bad', next };
-    if (n < 0) return { kind: 'bulk', next };
+    const n = respCount(head);
+    if (n === null || n > 1_000_000) return { kind: 'bad', next };
+    if (n < 0) return { kind: 'bulk', value: null, next };
     if (buf.length < next + n + 2) return null;
-    return { kind: 'bulk', next: next + n + 2 };
+    return { kind: 'bulk', value: buf.toString('utf8', next, next + n), next: next + n + 2 };
   }
   if (type === '*') {
-    const n = Number(head);
-    if (!Number.isInteger(n) || n < 0 || n > 64) return { kind: 'bad', next };
+    const n = respCount(head);
+    if (n === null || n < 0 || n > 64) return { kind: 'bad', next };
+    const value = [];
     let p = next;
     for (let i = 0; i < n; i++) {
-      const one = readResp(buf, p);
+      const one = readResp(buf, p, depth + 1);
       if (!one) return null;
       if (one.kind === 'bad') return one;
+      value.push(one);
       p = one.next;
     }
-    return { kind: 'arr', next: p };
+    return { kind: 'arr', value, next: p };
   }
   return { kind: 'bad', next };
 }
@@ -370,24 +390,34 @@ function redisRoundtrip(ep, commands, ca, timeoutMs) {
       if (err) reject(err);
       else resolve();
     };
+    // 每次从整段缓冲重新数。got 若跨分片累加，而 at 又从 0 开始，前面的回复会被再数一遍，后面的 -ERR 会被漏掉。
     const pump = () => {
-      const buf = Buffer.concat(bufs, size);
-      let at = 0;
-      while (got < batch.length) {
-        const one = readResp(buf, at);
-        if (!one) return;
-        if (one.kind === 'bad' || one.kind === 'err') return finish(new Error('bad'));
-        got++;
-        at = one.next;
+      try {
+        const buf = Buffer.concat(bufs, size);
+        let at = 0;
+        got = 0;
+        while (got < batch.length) {
+          const one = readResp(buf, at);
+          if (!one) return;
+          if (one.kind === 'bad' || one.kind === 'err') return finish(new Error('bad'));
+          got++;
+          at = one.next;
+        }
+        finish();
+      } catch {
+        finish(new Error('bad'));
       }
-      finish();
     };
     const timer = setTimeout(() => finish(new Error('timeout')), timeoutMs);
     sock.on('data', (c) => {
-      size += c.length;
-      if (size > 1_000_000) return finish(new Error('big'));
-      bufs.push(c);
-      pump();
+      try {
+        size += c.length;
+        if (size > 1_000_000) return finish(new Error('big'));
+        bufs.push(c);
+        pump();
+      } catch {
+        finish(new Error('bad'));
+      }
     });
     sock.on('error', () => finish(new Error('conn')));
     sock.on('end', () => { if (got < batch.length) finish(new Error('bad')); });
@@ -411,8 +441,8 @@ async function clearViaRedis(email, env, now) {
 
 /**
  * 清掉只凭账号能算出的限流 key（按 key 名直接 DEL，不扫描键空间）。
- * - RATE_LIMIT_STORE=upstash：一次 pipeline DEL。传了 fetchImpl 就用它（测试）；否则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS。
- * - RATE_LIMIT_STORE=redis：TCP DEL，REDIS_URL。rediss:// 同样读取 NODE_EXTRA_CA_CERTS。
+ * - RATE_LIMIT_STORE=upstash：一次 pipeline DEL。传了 fetchImpl 就用它（测试）；否则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS。APP_ENV=production 时 http: 地址直接 failed，不发 Bearer。
+ * - RATE_LIMIT_STORE=redis：TCP DEL，REDIS_URL。需要 Redis 7 或更新（PEXPIRE … NX）。rediss:// 同样读取 NODE_EXTRA_CA_CERTS。
  * - memory（默认）以及其他值：计数在应用进程内存里，或不是这支脚本认识的存储，跳过（10 分钟后自然过期）。
  * 返回 'cleared' | 'skipped_memory' | 'failed'。出错不抛、不输出 key、邮箱或 token。
  */
@@ -424,6 +454,11 @@ export async function clearAccountRateLimits({ email, env, now, fetchImpl }) {
   if (kind !== 'upstash') return 'skipped_memory';
   const url = env.UPSTASH_REDIS_REST_URL, token = env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return 'failed';
+  if (env.APP_ENV === 'production') {
+    let proto;
+    try { proto = new URL(url).protocol; } catch { return 'failed'; }
+    if (proto === 'http:') return 'failed';
+  }
   const body = JSON.stringify(rateKeysToDelete(email, env, now).map((k) => ['DEL', k]));
   try {
     if (fetchImpl) {

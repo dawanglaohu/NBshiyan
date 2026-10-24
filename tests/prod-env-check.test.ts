@@ -79,9 +79,22 @@ const prodFull = {
 
 test('#432 redis 是生产限流的另一种选择，问题文本不含连接串', () => {
   const secret = 'redis-password-SHOULD-NOT-LEAK';
-  const ok = { ...prodFull, RATE_LIMIT_STORE: 'redis', REDIS_URL: `redis://:${secret}@example.invalid:6379` };
+  const ok = { ...prodFull, RATE_LIMIT_STORE: 'redis', REDIS_URL: `rediss://:${secret}@example.invalid:6379` };
   assert.deepEqual(prodEnvProblems(ok), []);
-  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: `rediss://:${secret}@example.invalid:6379` }), []);
+  for (const host of ['127.0.0.1', 'localhost', '[::1]']) {
+    assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: `redis://:${secret}@${host}:6379` }), [], host);
+  }
+  const plain = prodEnvProblems({ ...ok, REDIS_URL: `redis://:${secret}@example.invalid:6379` });
+  assert.deepEqual(plain, ['REDIS_URL 必须是 rediss://']);
+  assert.equal(plain.join('\n').includes(secret), false);
+  assert.equal(plain.join('\n').includes('example.invalid'), false);
+  for (const host of ['127.0.0.2', '0.0.0.0', 'LOCALHOST', 'localhost.localdomain']) {
+    const problems = prodEnvProblems({ ...ok, REDIS_URL: `redis://:${secret}@${host}:6379` });
+    assert.deepEqual(problems, ['REDIS_URL 必须是 rediss://'], host);
+    assert.equal(problems.join('\n').includes(secret), false, host);
+    assert.equal(problems.join('\n').includes(host), false, host);
+  }
+  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: `rediss://:${secret}@127.0.0.2:6379` }), []);
   assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: 'redis://example.invalid:6379' }), ['REDIS_URL 必须包含密码']);
   assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: '' }), ['REDIS_URL 未设置']);
   assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: 'redis://user@example.invalid:6379' }), ['REDIS_URL 无效']);
@@ -89,6 +102,7 @@ test('#432 redis 是生产限流的另一种选择，问题文本不含连接串
   assert.deepEqual(bad, ['REDIS_URL 必须是 redis:// 或 rediss://']);
   assert.equal(bad.join('\n').includes(secret), false);
   assert.equal(bad.join('\n').includes('example.invalid'), false);
+  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: 'not a url' }), ['REDIS_URL 必须是 redis:// 或 rediss://']);
   assert.deepEqual(prodEnvProblems({ ...prodFull, RATE_LIMIT_STORE: 'redis' }), ['REDIS_URL 未设置']);
 });
 

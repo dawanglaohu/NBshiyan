@@ -172,7 +172,7 @@
 ## 存储与限流（部署配置）
 - **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（开发默认；生产采用（Ryan 已定）：`UPLOAD_DIR` 必须是挂载数据卷的可写绝对路径，key 解析后必须在目录内，不跟随符号链接，写入前校验文件头与扩展名一致，文件 0600 / 目录 0700）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
 - **健康检查** `GET /api/health`：`200 {"ok":true}` / `503 {"ok":false}`，`Cache-Control: no-store`，只查 `SELECT 1`（1.5 秒超时），按来源限流（进程内存），不带版本或错误信息。
-- **限流**（`src/lib/server/ratelimit/`）：`RATE_LIMIT_STORE=memory`（默认，单实例）、`upstash`（`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`，REST pipeline）或 `redis`（`REDIS_URL` 为 `redis://` 或 `rediss://`，Node 内置 TCP 客户端）。后两种都是固定窗口 `INCR` + `PEXPIRE NX`，1.5 秒超时，出错 throw。各路由的 fail mode 保持原样：存储不可用时按该路由既定的拒绝、本机计数或放行处理。IndexNow 去重仍只在 `upstash` 时启用。代码里用 `await hitRateLimit(...)` / `await enforceAdminRateLimit(...)`（原同步的 `rateLimit` / `adminRateLimit` 已删除，防止漏写 `await`）。
+- **限流**（`src/lib/server/ratelimit/`）：`RATE_LIMIT_STORE=memory`（默认，单实例）、`upstash`（`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`，REST pipeline）或 `redis`（`REDIS_URL`，Node 内置 TCP 客户端。Redis 7 或更新，因为用了 `PEXPIRE ... NX`。生产环境非本机必须 `rediss://`；只有 `127.0.0.1`、`::1`、`localhost` 可以用 `redis://`）。后两种都是固定窗口 `INCR` + `PEXPIRE NX`，1.5 秒超时，出错 throw。各路由的 fail mode 保持原样：存储不可用时按该路由既定的拒绝、本机计数或放行处理。IndexNow 去重仍只在 `upstash` 时启用。代码里用 `await hitRateLimit(...)` / `await enforceAdminRateLimit(...)`（原同步的 `rateLimit` / `adminRateLimit` 已删除，防止漏写 `await`）。
 - 单元测试：`pnpm test`（node:test + tsx，Upstash 和 R2 都用本地模拟服务器，不需要真实账号）。
 
 ## 待定
