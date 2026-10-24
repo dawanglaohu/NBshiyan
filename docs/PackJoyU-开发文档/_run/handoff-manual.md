@@ -8,7 +8,8 @@
 
 - 入口：`<docs>/index.html`（双击或本地静态服务打开）→ 侧栏「任务交接台」。
 - **批次**（第 N 批）= 依赖层级，只表示「谁必须等谁」。**窗口**（lane）= 把未落地任务排进 N 个会话，同时避开 `taskPaths + supportPaths` 的文件冲突。窗口用于顺序与工期预测；批次收口默认作为紧邻下一批的实施闸门。
-- 状态五格显示：待派 → 进行中 → 审查中 → 已落地，外加「已落地·待复验」。来源三处：任务笔记头部 `status`（随代码进仓库，`build_docs.py` 把它写进 `docs-data.js` 的 `progress`，本机 `_run/progress.js` 只是覆盖）、`_run/maintenance.js`（进仓库：`pendingTasks` 补丁同步锁、`needsReview` 待复验）、浏览器 localStorage（手点或复制提示词自动推进）。显示取更靠后的一格；`pendingTasks` 里的任务显示「审查中」。
+- 状态五格显示：待派 → 进行中 → 审查中 → 已落地，外加「已落地·待复验」。来源三处：任务笔记头部 `status`（随代码进仓库，`build_docs.py` 把它写进 `docs-data.js` 的 `progress`，本机 `_run/progress.js` 只是覆盖）、`_run/maintenance.js`（进仓库：`pendingTasks` 补丁同步锁、`needsReview` 待复验）、浏览器 localStorage（手点或复制提示词自动推进）。显示取更靠后的一格；`pendingTasks` 里的任务显示「审查中」。自 2026-10-24 起，审查这一格的交接台文案是「由 PR 上 bot 审查替代」。
+- **审查提示词（2026-10-24 起）**：交接台里各任务的「审查提示词」不再派发。实施由 grok cli 完成后直接开 PR，团队 bot 在 GitHub PR 上审查。「审查」按钮只保留核对用文本。
 - **「实施」按钮亮的条件**（生成器 `implLocked`，行、任务卡、复制入口共用）：本任务是待派；前置**全部**已落地（含「已落地·待复验」）；契约没有明确错误（`task-contracts.json` 的 H01–H11 检查）、结构检查没过期、本任务不在同步中的文档补丁里；紧邻上一批全部落地时，其最新收口记录须为 `clean`/`fixed`（`open` 或无记录上锁；`handoff.wrapupGate:false` 可关闭，不追溯更早批次）。**语义复核不是派发条件，是审查第一步**：审查提示词让审查方在本轮登记 `verify`，`--landed` 拒绝没登记的任务。同批次其他任务在进行中、审查中都不影响本任务。
 - 两句提示怎么读：「N 个还没落地」= 有任务在途；「当前没有可派任务」= 前置没落地、紧邻上一批未收口或有遗留、补丁在同步或契约有明确错误；收口看批次标题，其他原因点该行「审查」。「N 个已落地任务待复验」= 被补丁 `sync` 标为待复验，**仍算已落地、不锁下游**，处理见第 4 节。
 - 顶部「任务契约已复核 N/M」只是统计，不参与解锁。
@@ -18,7 +19,7 @@
 
 0. **派发前核对（可选）**：待派任务的「审查」按钮给出「派发前核对任务要求」提示词，`python <docs>/_run/maintain_docs.py <docs> status --task <ID>` 拿证据模板，核对后 `verify --task <ID> --evidence <JSON>`。提前做完只是让审查阶段少一道工序，不做也能派。
 1. **实施**：复制「实施」发给实施模型（状态自动推到进行中）。实施方在自己的工作树里做：`git fetch origin main && git worktree add -b task/<ID> ../<repo>-<id> origin/main`，进去后按 05 节技术栈装依赖，`gh stack init --base main task/<ID>`，实现并自检，`git add -- <路径…>`（不用 `git add -A`），`git commit`，`gh stack push && gh stack submit --auto --open`，回填任务笔记两个受保护区块后 `python <docs>/_run/build_vault.py <docs>`，回报末行 `READY_FOR_REVIEW`。不合并。
-2. **审查**：复制「审查」发给审查模型（自动推到审查中）。审查方：`maintain_docs.py <docs> status --task <ID>` 核契约，`gh pr diff task/<ID>` 后在该分支复跑测试与 lint（红即阻断），逐条验收标准与边界指到文件:行，执行反造假扫描；判断层任务再核真实调用与低置信分支。实施方回报的每条「自行裁决」都复用全部候选、补入 diff 事实，跑 `typesafe_ask.py run adjudicate`（UI/UX 用 `design`）；普通技术与 UI/UX 选择不交用户，缺真实 model/line、skipped/error 或动作未落实均不判 pass。`run review` 仍只是代码断言的第二意见。只有阻断项打回，最多两轮；本轮登记契约复核，`--landed` 会拒绝没登记的任务。局部文档问题走第 4 节补丁。
+2. **审查**：自 2026-10-24 起，这一步不再从交接台派发。实施完成后直接开 PR，由团队 bot 在 GitHub PR 上审查；交接台状态为「由 PR 上 bot 审查替代」。下面仍是 PR 上要核对的事。审查方：`maintain_docs.py <docs> status --task <ID>` 核契约，`gh pr diff task/<ID>` 后在该分支复跑测试与 lint（红即阻断），逐条验收标准与边界指到文件:行，执行反造假扫描；判断层任务再核真实调用与低置信分支。实施方回报的每条「自行裁决」都复用全部候选、补入 diff 事实，跑 `typesafe_ask.py run adjudicate`（UI/UX 用 `design`）；普通技术与 UI/UX 选择不交用户，缺真实 model/line、skipped/error 或动作未落实均不判 pass。`run review` 仍只是代码断言的第二意见。只有阻断项打回，最多两轮；本轮登记契约复核，`--landed` 会拒绝没登记的任务。局部文档问题走第 4 节补丁。
 3. **落地**（审查方 pass 后一口气做完，都在该任务的工作树里）：回填质量核查 → `build_vault.py <docs>` → `python <docs>/_run/build_docs.py <docs> --landed <ID>`（写任务笔记 `status`、`docs-data.js` 的 `progress` 与本机 `progress.js`）→ `git add <docs> && git commit -m "<ID> 回填知识库并记录落地" && gh stack push` → 跑最小充分测试 → 单 PR `gh pr merge <N> --merge`，两层以上 `gh stack merge <N> --yes --merge` → 每个 PR 都报 MERGED 才算落地。
 4. **清理**（落地当场做，不留到以后）：`gh pr list --state open --base task/<ID> --json number --jq length` 为 0 → `git worktree remove ../<repo>-<id>`（node_modules 报 not empty 就再 `rm -rf` 该目录）→ `git branch -d task/<ID>` → `rm -rf ../.codex-plans/<repo>-<id>`。漏了哪些用 `maintain_docs.py <docs> workspace` 列出（只打印命令，不删）。
 5. **主检出同步**：在 `<主检出>` 里 `git pull`，刷新交接台即可——落地记录随 `docs-data.js` 进了仓库，换检出目录不必重跑 `--landed`。下游按前置与收口闸门解锁；本批落齐先执行第 7 步。

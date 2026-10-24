@@ -21,6 +21,7 @@ TESTS += ('test_release_1_6_adjudication.py', 'test_release_1_6_1_tests.py')
 TESTS += ('test_release_1_7_density.py',)
 TESTS += ('test_release_1_8_entry.py',)
 TESTS += ('test_release_1_9_stylekit.py',)
+TESTS += ('test_issue_ledger.py',)
 MANUAL = 'handoff-manual.md'
 HANDOFF_BEGIN, HANDOFF_END = '<!-- handoff:begin -->', '<!-- handoff:end -->'
 

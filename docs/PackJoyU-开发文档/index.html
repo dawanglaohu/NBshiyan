@@ -268,6 +268,14 @@ svg .lane{font-size:10px;fill:var(--muted)}
 .htask.recheck{background:var(--crit-soft)}
 .htask.recheck .st{width:auto;padding:2px 6px;color:var(--crit);background:#FFF;border-color:#E3B894}
 .htask.recheck .st[disabled]:hover{color:var(--crit);border-color:#E3B894}
+.htask.review .st,.htask.hold .st,.htask.merging .st,.htask.ops .st{width:auto;padding:2px 6px}
+.htask.hold{background:#F7F7F5}
+.htask.hold .st{color:var(--muted);background:#F7F7F5}
+.htask.merging{background:#FFFCF4}
+.htask.merging .st{color:var(--warn);background:#FCF6E8;border-color:#E5D3A6}
+.htask.ops .st{color:var(--muted)}
+.hbatch.issues .hid{width:auto;min-width:84px}
+.hbatch.issues .st{width:auto;min-width:62px;padding:2px 6px}
 .htask.now{box-shadow:inset 3px 0 0 var(--accent)}
 .htask .cls{flex:none;max-width:170px;overflow:hidden;text-overflow:ellipsis;
   padding:1px 6px;font-family:var(--mono);font-size:10px;white-space:nowrap;cursor:help;
@@ -996,7 +1004,7 @@ function showCardAt(x, y, id){
             就能绕过闸门，把一个前置还没落地的任务推成进行中 */
          '<button class="cp" data-kind="impl" data-task="'+esc(id)+'"'+
            (implLocked(id) ? ' disabled title="' + esc(implLockTitle(id)).replace(/"/g, "&quot;") + '"' : '')+'>复制实施提示词</button>'+
-         '<button class="cp" data-kind="review" data-task="'+esc(id)+'">复制审查提示词</button>'+
+         '<button class="cp" data-kind="review" data-task="'+esc(id)+'" title="自 2026-10-24 起，审查提示词不再派发，由 GitHub PR 上的团队 bot 审查替代。此按钮只保留核对用文本。">复制审查提示词</button>'+
          '<button class="cp bug" data-kind="bug" data-task="'+esc(id)+'">复制查 bug 提示词</button></div>';
   } else if(m){
     /* 时序图和状态机图上的参与方按约定就是模块 ID，点了要能看到它是干什么的 */
@@ -1262,7 +1270,7 @@ function layerOf(ids, depsOf){
 /* 交接台的「第 N 批」：lv 是任务 → 0 起层号，by[k] 是该层任务（按 ID 排序）。
    Python 端 task_layers 用同一算法，--landed 才能报「哪批已全部落地」 */
 function batchLayers(){
-  var tasks = (DT.tasks || []).filter(function(t){ return !t.repair; });
+  var tasks = (DT.tasks || []).filter(function(t){ return !t.repair && !t.issue; });
   var lv = layerOf(tasks.map(function(t){ return t.id; }), function(id){
     var t = taskById(id); return (t && t.deps) || [];
   });
@@ -1283,8 +1291,8 @@ try { PG = JSON.parse(localStorage.getItem(PKEY) || "{}") || {}; } catch(e){ PG 
    审查方落地时跑 build_docs.py --landed，把 status 写进任务笔记并生成 _run/progress.js，
    页面加载时读它；没跑就手点状态标签。两边取更靠后的一格 */
 var ST_NEXT = {todo:"doing", doing:"review", review:"done", done:"todo"};
-var ST_TEXT = {todo:"待派", doing:"进行中", review:"审查中", done:"已落地", recheck:"已落地·待复验"};
-var ST_RANK = {todo:0, doing:1, review:2, done:3};
+var ST_TEXT = {todo:"待派", doing:"进行中", review:"由 PR 上 bot 审查替代", done:"已落地", recheck:"已落地·待复验", hold:"暂不派", merging:"待合入", ops:"运维执行"};
+var ST_RANK = {todo:0, hold:1, merging:1, ops:1, doing:1, review:2, done:3};
 /* 落地记录随 docs-data.js 进仓库（D.progress），本机 _run/progress.js 只是覆盖：换检出目录只 git pull 也看得到已落地 */
 var FP = Object.assign({}, D.progress || {}, window.PROGRESS || {});
 /* 批次收口记录随 docs-data.js 进仓库（--batches 重扫 _run/batches/*.md）。
@@ -1305,6 +1313,8 @@ function landedNeedsReview(id){
 function stOf(id){
   if((MAINT.pendingTasks || []).indexOf(id) >= 0) return "review";
   if(landedNeedsReview(id)) return "recheck";
+  var file = fileSt(id);
+  if(file === "hold" || file === "merging" || file === "ops") return file;
   if((MAINT.needsReview || []).indexOf(id) >= 0 || FP[id] === "review") return "review";
   return progressOf(id);
 }
@@ -1344,8 +1354,15 @@ function clashOf(a, b){
   return null;
 }
 /* 与本任务抢文件的其他任务 */
+/* 遗留 issue 与 19 节任务分开防冲突：进行中的 issue 不把原批次从可派集合里挤掉。
+   同一类任务之间仍按路径互斥。 */
+function overlayClash(a, b){
+  var ta = taskById(a), tb = taskById(b);
+  if(ta && tb && !!ta.issue !== !!tb.issue) return null;
+  return clashOf(a, b);
+}
 function rivalsOf(id){
-  return (DT.tasks||[]).filter(function(x){ return x.id !== id && clashOf(id, x.id); });
+  return (DT.tasks||[]).filter(function(x){ return x.id !== id && overlayClash(id, x.id); });
 }
 
 /* ── 该调哪些技能：按任务特征算，一条一行——时机、拿到什么、不调会漏什么 ── */
@@ -1453,6 +1470,13 @@ function implLockTitle(id){
   if(block) return "第 " + block.batch + " 批已全部落地但" +
     (block.verdict === "open" ? "收口有遗留" : "尚未收口") +
     '：先点该批标题右侧「批次收口」；定点跳过可在 handoff.wrapupGateSkipRecords 绑定当前记录，"wrapupGate": false 会关闭全部批次闸门';
+  var st = stOf(id);
+  if(st === "hold") return "暂不派。条件写在遗留 issue 登记里，满足后再改登记状态。";
+  if(st === "merging") return "待合入。等仓库管理员合并，不从交接台再派实施。";
+  if(st === "ops") return "运维执行。这一条不作为代码任务派发。";
+  if(st === "doing") return "已派发，进行中。";
+  if(st === "done" || st === "recheck") return "已落地。";
+  if(st === "review") return "由 PR 上 bot 审查替代。";
   return "前置未落地、文档补丁同步中或任务要求有明确错误；点「审查」看原因";
 }
 function wrapupNotice(){
@@ -1481,8 +1505,8 @@ function dispatchable(){
   var out = [];
   tasks.forEach(function(t){
     if(stOf(t.id) !== "todo" || implLocked(t.id)) return;
-    for(var i = 0; i < busy.length; i++) if(clashOf(t.id, busy[i].id)) return;
-    for(var j = 0; j < out.length; j++) if(clashOf(t.id, out[j].id)) return;
+    for(var i = 0; i < busy.length; i++) if(overlayClash(t.id, busy[i].id)) return;
+    for(var j = 0; j < out.length; j++) if(overlayClash(t.id, out[j].id)) return;
     out.push(t);
   });
   return out;
@@ -1537,7 +1561,8 @@ function tailLen(){
 }
 
 function planLanes(N){
-  var tasks = DT.tasks || [], by = {};
+  /* 遗留 issue 不进原批次的窗口工期 */
+  var tasks = (DT.tasks || []).filter(function(t){ return !t.issue; }), by = {};
   tasks.forEach(function(t){ by[t.id] = t; });
   var tail = tailLen();
   /* 已落地的当作 0 时刻就完成了——调度表要回答的是「剩下的怎么排」，
@@ -2962,8 +2987,9 @@ function handBody(){
   var h = '<div class="kick">' +
     '<button class="cp big" data-kind="kick">复制开工总提示词</button>' +
     "<p>先把这条发给写代码的模型，一次性交代文档位置、技术栈、分支规矩和开工顺序。" +
-    "之后按下面的顺序派活：复制「实施」发过去（状态自动推到进行中），它交活后复制同一行的「审查」做验收" +
-    "（自动推到审查中）；审查判 pass 落地时会把「已落地」记进任务笔记，刷新本页后按前置与收口闸门解锁下游，没记录的手点状态标签。" +
+    "自 2026-10-24 起，交接台里各任务的「审查提示词」不再派发。实施由 grok cli 完成后直接开 PR，团队 bot 在 GitHub PR 上审查。" +
+    "交接台的审查状态显示为「由 PR 上 bot 审查替代」。复制「实施」仍把本机状态推到进行中；「审查」按钮只保留核对用文本。" +
+    "落地时仍把「已落地」记进任务笔记，刷新本页后按前置与收口闸门解锁下游。" +
     "「查 bug」是独立一步，不改状态：某一层落地前想再扫一遍、或一批任务落地后想查跨模块的接缝，点它。</p>" +
     '<button class="cp big bug" data-kind="bugall" title="查已落地任务之间的接缝：接口两侧、共用约定、跨任务状态">查全项目 bug</button></div>' +
     '<div class="hnow"><span class="bar"><i style="width:' +
@@ -2986,7 +3012,7 @@ function handBody(){
     var cnt = [];
     if(gd) cnt.push("已落地 " + gd + "/" + g.length);
     if(gDoing) cnt.push("进行中 " + gDoing);
-    if(gReview) cnt.push("审查中 " + gReview);
+    if(gReview) cnt.push(ST_TEXT.review + " " + gReview);
     h += '<div class="hbatch' + (isOpen ? " open" : "") + '" data-batch="' + k + '"><h5>' +
          '<span class="tg" data-act="batchtoggle" data-batch="' + k + '" title="点一下折叠或展开这一批"><span class="tri">' + (isOpen ? "▾" : "▸") + "</span>" +
          "第 " + (k+1) + " 批 · " + g.length + " 个任务 · " + d + " 人天 · " +
@@ -3022,7 +3048,7 @@ function handBody(){
       h += '<span class="hd">' + (t.est ? t.est + "d" : "—") + "</span>" +
         '<button class="cp" data-kind="impl" data-task="' + id + '"' +
           (implLocked(t.id) ? ' disabled title="' + esc(implLockTitle(t.id)).replace(/"/g, "&quot;") + '"' : "") + ">实施</button>" +
-        '<button class="cp" data-kind="review" data-task="' + id + '"' + (st === "recheck" ? ' title="已落地任务被文档补丁标为待复验：复制复验提示词，核对后 verify 并 --landed 清除标记"' : '') + '>审查</button>' +
+        '<button class="cp" data-kind="review" data-task="' + id + '" title="' + (st === "recheck" ? "已落地任务被文档补丁标为待复验：复制复验提示词，核对后 verify 并 --landed 清除标记。" : "自 2026-10-24 起，审查提示词不再派发，由 GitHub PR 上的团队 bot 审查替代。此按钮只保留核对用文本。") + '">审查</button>' +
         ((st === "doing" || st === "review" || st === "recheck") ? '<button class="cp" data-kind="resume" data-task="' + id + '" title="' + (st === "recheck" ? "继续复验：沿用本次复验的工作树与 PR（若有）" : "沿用原分支和 PR，只处理补丁与返工条目") + '">续做</button>' : '') +
         '<button class="cp bug" data-kind="bug" data-task="' + id + '" title="不改状态，随时可点">查 bug</button></div>';
     });
@@ -3041,7 +3067,32 @@ function handBody(){
         (st === 'todo' && wait.length ? '<span class="wait">等 ' + esc(wait.join('、')) + '</span>' : '') +
         '<span class="hd">' + (t.est ? t.est + 'd' : '—') + '</span>' +
         '<button class="cp" data-kind="impl" data-task="' + id + '"' + (implLocked(t.id) ? ' disabled title="' + esc(implLockTitle(t.id)).replace(/"/g, '&quot;') + '"' : '') + '>实施</button>' +
-        '<button class="cp" data-kind="review" data-task="' + id + '">审查</button>' +
+        '<button class="cp" data-kind="review" data-task="' + id + '" title="自 2026-10-24 起，审查提示词不再派发，由 GitHub PR 上的团队 bot 审查替代。此按钮只保留核对用文本。">审查</button>' +
+        ((st === 'doing' || st === 'review') ? '<button class="cp" data-kind="resume" data-task="' + id + '">续做</button>' : '') +
+        '<button class="cp bug" data-kind="bug" data-task="' + id + '">查 bug</button></div>';
+    });
+    h += '</div></div>';
+  }
+  var issues = tasks.filter(function(t){ return t.issue; });
+  if(issues.length){
+    h += '<div class="hbatch open issues" data-batch="issues"><h5><span class="tg"><span class="tri">▾</span>' +
+         '10/24 遗留 issue · ' + issues.length + ' 项 · 不进入原批次，不改写收口记录</span></h5><div class="hbody">';
+    issues.forEach(function(t){
+      var id = esc(t.id), st = stOf(t.id), wait = waitingOn(t);
+      var meta = [];
+      if(/^[0-9]+$/.test(String(t.gh || ""))) meta.push("#" + t.gh);
+      else meta.push(t.gh === "待开" ? "待开 issue" : (t.gh || "待开 issue"));
+      if(t.pr) meta.push("PR #" + t.pr);
+      if(t.review === "fullstack") meta.push("全栈审查");
+      h += '<div class="htask ' + st + (nextIds[t.id] ? ' now' : '') + '" data-t="' + id + '">' +
+        '<button class="st" disabled title="状态写在 04-执行/遗留issue-20261024.md，改登记后重新 build">' +
+        (ST_TEXT[st] || st) + '</button><span class="hid"><button class="chip" data-id="' + id + '">' + id + '</button></span>' +
+        '<span class="htt"' + (t.merged ? ' title="' + esc(t.merged) + '"' : '') + '>' + esc(t.title) +
+        ' <small>' + esc(meta.join(" · ")) + '</small></span>' +
+        (st === 'todo' && wait.length ? '<span class="wait">等 ' + esc(wait.join('、')) + '</span>' : '') +
+        '<span class="hd">' + (t.est ? t.est + 'd' : '—') + '</span>' +
+        '<button class="cp" data-kind="impl" data-task="' + id + '"' + (implLocked(t.id) ? ' disabled title="' + esc(implLockTitle(t.id)).replace(/"/g, '&quot;') + '"' : '') + '>实施</button>' +
+        '<button class="cp" data-kind="review" data-task="' + id + '" title="自 2026-10-24 起，审查提示词不再派发，由 GitHub PR 上的团队 bot 审查替代。此按钮只保留核对用文本。">审查</button>' +
         ((st === 'doing' || st === 'review') ? '<button class="cp" data-kind="resume" data-task="' + id + '">续做</button>' : '') +
         '<button class="cp bug" data-kind="bug" data-task="' + id + '">查 bug</button></div>';
     });

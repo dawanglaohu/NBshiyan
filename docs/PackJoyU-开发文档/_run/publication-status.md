@@ -1,23 +1,53 @@
-# 恢复成果发布记录
+# 发布与登记状态
 
-核对时间（UTC）：2026-10-20T02:29:06.522612+00:00
+核对时间（UTC）：2026-10-24
 
-7个独立草稿PR均OPEN、base=main；未合并、未部署。所有精确head的构建与浏览器CI通过；其中2个安全门禁等待指定机器人批准。
+本文件记当前事实。`publication-status.json` 仍是 2026-10-20 那次恢复草稿的快照，不随本页刷新。
 
-| PR | 内容 | Head | 检查状态 |
+## 主干
+
+- `origin/main`：`442ae308994706bf25df44dfb816149a21462a3d`
+- 该提交是 PR #443 第 3 批第 6 轮收口的合并。收口记录 `batch-3-20261024-r6`，verdict `clean`。第 3 批收口通过。
+- 第 4 批按前置和收口闸门解锁。本页的遗留 issue 不进入原批次，不改写该收口记录的任务集合。
+
+## 已合入 main
+
+| 登记 | PR | 合并提交 | 状态 |
 |---|---|---|---|
-| [#386](https://github.com/dawanglaohu/NBshiyan/pull/386) | 八篇文章与运维草稿 | `df58d08c9a590f55f1ae5d4a3bf0bd303fa21227` | 构建、E2E、安全门禁通过 |
-| [#387](https://github.com/dawanglaohu/NBshiyan/pull/387) | JSON-LD URL安全后续 | `b8b4990236230984d17b2050199dbad6dcf62e39` | 构建、E2E、安全门禁通过 |
-| [#388](https://github.com/dawanglaohu/NBshiyan/pull/388) | 一次性绑定链接前端 | `222016a4cef8d74fe5831ecccc8d566aae909b2a` | 构建、E2E、安全门禁通过 |
-| [#389](https://github.com/dawanglaohu/NBshiyan/pull/389) | 可选IndexNow共享端点 | `aff2f8d9a93afb6929e9601aae24b50e504eda0f` | 构建、E2E、安全门禁通过 |
-| [#390](https://github.com/dawanglaohu/NBshiyan/pull/390) | 六语言源资料草稿（未启用） | `362c0c148664792113c6c1f0e3895ab6de5b6ba5` | 构建、E2E、安全门禁通过 |
-| [#391](https://github.com/dawanglaohu/NBshiyan/pull/391) | i18n phase0与品类接线 | `a6fcbbd8789c97840ff470a59389dadc6dc18b20` | 构建/E2E通过；安全门禁缺指定机器人APPROVED |
-| [#392](https://github.com/dawanglaohu/NBshiyan/pull/392) | Sanity签名协议迁移候选 | `2422c7b88d11b35ae56d90b3b418a8aebec0fec7` | 构建/E2E通过；安全门禁缺指定机器人APPROVED |
+| DEP-AUDIT-1 | #420 | `950b63c235a3ce945fa6140dedf0bfad7a946bc3` | 已落地 |
+| DEPLOY-FIX-1 | #421 | `40b2eb5c52361ac57390530c7347498e3b2e07b1` | 已落地 |
+| DOCKER-UPLOADS-1 | #422 | `0b71952e7c0e15b2cc5cc0549167561e57789fc5` | 已落地 |
+| GATE-PATHS-1 | #423 | `78f535ec43e68cb6619a012270f878fdf4e3b954` | 已落地 |
+| GATE-PATHS-2 | #435 | `c8ebb9c6d3bf3fe230aae757bf187bfaef3c6d5c` | 已落地 |
+| #347 前端 | #388 | `2e27ef531bc5f686bf653c132a07db43d4a594e1` | 已合入。线上核对是 FE-347（#424），尚未做完 |
 
-安全门禁不等同于自动审批：#391和#392的安全门禁均因敏感路径需要 `packjoyu-security-reviewer[bot]` 对当前提交批准而失败，未修改策略或伪造审查。#391本机隔离服务启动另被自动审批拒绝，返回 blocked by policy、无详细理由，已停止；本机GUI录像尚未完成。
+M7-T10 仍是 19 节里的 zod 升级任务，在第 22 批，待派。#420 的合入不把它改成已落地。
 
-#388已附精确head的真实入口GIF，证明范围仅为无绑定令牌页面与返回登录。缺ffprobe时以Pillow编码并解码核查；没有把单测桩或历史版本画面冒充完整业务链路。
+## 交接台里的 10/24 登记
 
-#390保留97/97原源文件哈希，缺8个主线新文案键，所有材料仍为待审核译稿；不修改运行时语言。JPG/GIF品牌替换和公司介绍重绘属于后续实施，原附件未改，也未声称GPT Dot已执行。
+源文件是 `04-执行/遗留issue-20261024.md`。状态：
 
-S1仅完成01–05、12项决策与67条边界；完整24节、图谱和离线阅读器尚未生成。
+| 登记 | GitHub | 状态 |
+|---|---|---|
+| FE-347 | #424 | 待派。核对用任务 |
+| FE-378 | 待开 issue | 暂不派。等 #433 的缓存改动上线 |
+| SEO-1 | #425 | 进行中 |
+| SEO-2 | #426 | 待派 |
+| SEO-3 | #427 | 暂不派。等文案和图片定稿 |
+| SEO-4 | #428 | 暂不派。等运维确认 APP_ENV=production 的检查 PASS，再走全栈审查 |
+| SEO-5 | #429 | 待派 |
+| BE-I18N-P0 | #430 | 待派 |
+| BE-RESET-TTY | #431 | 待派 |
+| BE-RATELIMIT-P3 | #432 | 待派 |
+| BE-350A | #433 | 待派。只改 `/media/` 缓存头；等 SEO-1。全栈审查 |
+| BE-350B | #433 | 运维执行 |
+| GATE-HARDEN | #438 | 待合入。等仓库管理员合并 |
+| GATE-HARDEN-2 | 待开 issue | 待派。#438 合入后才派。只登记，不实施 |
+
+## 审查
+
+自 2026-10-24 起，交接台里各任务的「审查提示词」不再派发。实施由 grok cli 完成后直接开 PR，团队 bot 在 GitHub PR 上审查。审查状态显示为「由 PR 上 bot 审查替代」。
+
+## 待理顺
+
+about 和 privacy 在 11 节仍写 publicBrand。实际实现是 1240，随产品列表和品类页是否铺满一起定。设计结论和其他宽度数值未改。
