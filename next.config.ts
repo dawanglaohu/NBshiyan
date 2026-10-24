@@ -24,6 +24,29 @@ const MOCK_SOURCE_GLOBS = ['./src/lib/**/mock.ts', './src/lib/**/*Mock.ts', './s
 // 带点路径兜底 404 时跳过的前缀（这些前缀有自己的路由或 404 处理；media = #350 公开图片 /media/<id>-<w>.webp）
 const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s|media)(?:/|$)';
 
+// public/og/*.jpg（home-*.jpg、category-*.jpg 等）文件名不带内容哈希。
+// 浏览器缓存 1 天；过期后 7 天内可以先用旧图，同时在后台更新。不加 immutable，不加 s-maxage。
+// /og/:file*.jpg 只匹配以 /og/ 开头、以 .jpg 结尾的路径（可含多段）。
+// /[locale]/articles/[slug]/og 和 /[locale]/about/og 不在 /og/ 下，缓存头仍由各自的 route 写。
+export const OG_STATIC_JPG_SOURCE = '/og/:file*.jpg';
+export const OG_STATIC_JPG_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
+
+export function responseHeaderRules(isProd: boolean) {
+  return [
+    // 全站 CSP：输出存储文件的接口除外（FILE_ROUTE_SOURCES），由接口自己返回 `default-src 'none'; sandbox`（file-response.ts），避免被全站 CSP 覆盖
+    { source: `/((?!${FILE_ROUTE_EXCLUDE}).*)`, headers: securityHeaders },
+    // 被排除的路径仍然要带除 CSP 以外的其他安全头
+    ...FILE_ROUTE_SOURCES.map((source) => ({ source, headers: securityHeaders.filter((h) => h.key !== 'Content-Security-Policy') })),
+    // 非正式环境一律禁止收录（SEO 要求）
+    ...(isProd ? [] : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]),
+    // 后台页面和后台接口：不缓存、不收录、不带 Referer（/admin-enroll：P1 首次绑定 2FA 页，不在 /admin 下但同样处理）
+    ...['/admin', '/admin/:path*', '/:locale/admin', '/:locale/admin/:path*', '/api/admin/:path*', '/admin-enroll'].map((source) => ({ source, headers: adminHeaders })),
+    { source: '/s/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+    { source: '/models/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
+    { source: OG_STATIC_JPG_SOURCE, headers: [{ key: 'Cache-Control', value: OG_STATIC_JPG_CACHE_CONTROL }] }
+  ];
+}
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   // 自建部署：服务器上 docker build，运行 .next/standalone/server.js（Vercel 忽略此项）。
@@ -56,19 +79,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
-    const headers = [
-      // 全站 CSP：输出存储文件的接口除外（FILE_ROUTE_SOURCES），由接口自己返回 `default-src 'none'; sandbox`（file-response.ts），避免被全站 CSP 覆盖
-      { source: `/((?!${FILE_ROUTE_EXCLUDE}).*)`, headers: securityHeaders },
-      // 被排除的路径仍然要带除 CSP 以外的其他安全头
-      ...FILE_ROUTE_SOURCES.map((source) => ({ source, headers: securityHeaders.filter((h) => h.key !== 'Content-Security-Policy') })),
-      // 非正式环境一律禁止收录（SEO 要求）
-      ...(isProd ? [] : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]),
-      // 后台页面和后台接口：不缓存、不收录、不带 Referer（/admin-enroll：P1 首次绑定 2FA 页，不在 /admin 下但同样处理）
-      ...['/admin', '/admin/:path*', '/:locale/admin', '/:locale/admin/:path*', '/api/admin/:path*', '/admin-enroll'].map((source) => ({ source, headers: adminHeaders })),
-      { source: '/s/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
-      { source: '/models/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] }
-    ];
-    return headers;
+    return responseHeaderRules(isProd);
   }
 };
 // #291：SEO 审计 mock 开关在构建时内联成常量。正式部署或 APP_ENV/VERCEL_ENV 都未设时一律为空字符串，
