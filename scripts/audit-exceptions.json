@@ -1,0 +1,11 @@
+{
+  "exceptions": [
+    {
+      "ghsa": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "reason": "公告 GHSA-mrhx-c7xc-m3w5（CVE-2023-54404）。修复只在 zod 4.x，最低 4.6.6。3.25.76 留到任务 M7-T10。负责人 Ryan。",
+      "owner": "Ryan",
+      "expires": "2026-11-30"
+    }
+  ]
+}
