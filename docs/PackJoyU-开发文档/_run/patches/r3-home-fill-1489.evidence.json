@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T09598683": {
+      "contractHash": "6c2094181f3ab22b22bac0ca5aed192e3c45f0b4313152ef72a831ca7897c360",
+      "verdict": "pass",
+      "evidence": [
+        "src/app/globals.css:413 的铺满规则从 min-width 1489px 起，只匹配 main:has(> .hero)。:414 取消主视觉容器和 section.container 的 max-width，左右内边距用 --pj-public-gutter-desktop。:422 首页 .ab-home > .sx 使用 border-box 和同样的 24px 边距。:433 铺满宽度下入口卡片为 repeat(6, minmax(190px, 1fr))。",
+        "src/styles/tokens.css:14 的 --container 仍是 1240px。:70 的 --pj-public-gutter-desktop 是 24px。src/app/globals.css:25 的 section.block 上下 padding 仍是 64px，:34 的入口卡片 padding 仍是 12px。后台 16px 间距不参与这条首页规则。",
+        "e2e/brand-smoke.spec.ts:430 的门槛是 1489。:517 在不小于该宽度时要求 max-width 为 none、内容宽大于 1240 且等于视口减 48。:524 在更窄宽度要求 max-width 仍是 1240px、边框盒约 1240、左右内边距 20px，因此 1440 保持居中上限。:556 要求 6 列；:557 只在铺满宽度要求单卡不窄于 190px。",
+        "e2e/home-media.spec.ts:415 在吸顶页头盖住画框时把画框顶移到页头下沿，再执行原来的重叠断言。该文件已列入本任务有效路径。",
+        "实现头 4aff200c 已由合并提交 690ce748 进入 main。UX 在 4aff200c 复验通过：1488 及以下与铺满前一致，1489 起铺满，1920 入口卡片为 6+5。区块间距 48px 与卡片内边距 24px 保持为验收上限，未改成当前值。"
+      ]
+    }
+  }
+}
