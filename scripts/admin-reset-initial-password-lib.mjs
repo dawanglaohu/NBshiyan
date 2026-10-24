@@ -9,13 +9,22 @@
 //   必须显式加 --clear-pending-enroll，否则拒绝（退出码非 0）。加了以后清掉待确认状态，并重新打开 72 小时绑定窗口（与后台重置 2FA 的 reset2faData 一致）。
 // - 改密码、清待确认字段、会话全部失效（sessionVersion+1）、解除锁定、写审计（user.password_reset，必要时 user.pending_enroll_cleared）在同一个事务里。
 // - 提交之后再清这个账号的限流计数：只清 key 名能只凭账号算出来的 login-acct:<e>、login:untrusted:<e>、enroll-confirm:untrusted:<e>
-//   （当前和上一个窗口）。login-ip、真实 IP 的 login:<ip>:<e>、enroll-confirm:<ip>:<e> 不清，也不用 SCAN/KEYS 去找，10 分钟窗口后自己过期。
+//   （当前和上一个窗口）。login-ip、真实 IP 的 login:<ip>:<e>、enroll-confirm:<ip>:<e> 不清，也不扫描键空间，10 分钟窗口后自己过期。
+//   被真实 IP 桶挡住的人，重置后最多还要再等当前这一个 10 分钟窗口。
+// - upstash：用 https.request 打 /pipeline。env.NODE_EXTRA_CA_CERTS 有值时读那个 PEM，和公共根证书一起交给这次请求
+//   （docker compose exec 的新进程会继承容器 environment 里的这个变量和 CA 挂载；没带到 CA 时证书校验失败，返回 failed，不抛错）。
+// - redis：RATE_LIMIT_STORE=redis，REDIS_URL 为 redis:// 或 rediss://。同样只 DEL 上面那些 key，rediss 时同样带上额外 CA。
 // - #347 方案 A：每次都在同一个事务里签发新的一次性绑定令牌（覆盖旧的，旧链接立即失效；加不加 --clear-pending-enroll 都签发），
 //   审计 auth.enroll_token_issued（source 'cli'，不含令牌）。链接只打印到终端一次（链接 / 有效至 / 只私信给本人三行）。
 //   stdout 不是终端（重定向、管道、exec -T）时在读密码、连库之前就拒绝（退出码 2），什么都不改：链接不能落进文件或日志，
 //   也不能“签发了却没人看见”。所以本脚本现在必须在终端里运行（docker compose exec -it），标准输入读密码的方式随之不可用。
 //   NEXT_PUBLIC_SITE_URL 不合格（https；非生产可用 http://localhost）时同样在任何修改之前拒绝（退出码 1）。
 import { createHmac } from 'node:crypto';
+import fs from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
+import net from 'node:net';
+import tls from 'node:tls';
 import { enrollLinkBase, issuedAudit, linkLines, newEnrollToken } from './enroll-token-lib.mjs';
 import { ARGON, firstLine, normalizeAccountEmail, passwordPolicyError, validEmail } from './admin-create-lib.mjs';
 
@@ -201,27 +210,238 @@ export function rateKeysToDelete(email, env, now) {
   return accountOnlyRateKeys(email, env).flatMap(({ key, windowMs }) => [upstashKey(key, env, now, windowMs, 0), upstashKey(key, env, now, windowMs, -1)]);
 }
 
+/** 读 NODE_EXTRA_CA_CERTS。没设置返回 undefined（用默认信任库）；设置了但读不到返回 error，调用方按 failed 处理，不把路径写出去。 */
+function loadExtraCa(env) {
+  const p = env.NODE_EXTRA_CA_CERTS;
+  if (!p) return { ca: undefined };
+  try {
+    const pem = fs.readFileSync(p);
+    if (!pem.length) return { error: true };
+    return { ca: [...tls.rootCertificates, pem] };
+  } catch {
+    return { error: true };
+  }
+}
+
+function postJson(urlStr, token, body, ca, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    let u;
+    try { u = new URL(urlStr); } catch { reject(new Error('bad url')); return; }
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') { reject(new Error('bad url')); return; }
+    const lib = u.protocol === 'https:' ? https : http;
+    const opts = {
+      protocol: u.protocol,
+      hostname: u.hostname,
+      port: u.port || undefined,
+      path: `${u.pathname}${u.search}`,
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+      timeout: timeoutMs,
+    };
+    if (ca) opts.ca = ca;
+    if (u.protocol === 'https:' && !net.isIP(u.hostname)) opts.servername = u.hostname;
+    const req = lib.request(opts, (res) => {
+      const chunks = [];
+      let n = 0;
+      res.on('data', (c) => {
+        n += c.length;
+        if (n > 65536) { req.destroy(); reject(new Error('big')); return; }
+        chunks.push(c);
+      });
+      res.on('end', () => resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, body: Buffer.concat(chunks).toString('utf8') }));
+    });
+    req.on('timeout', () => req.destroy(new Error('timeout')));
+    req.on('error', reject);
+    req.end(body);
+  });
+}
+
+/** 与 src/lib/server/ratelimit/redis.ts 的 parseRedisUrl 同一规则。失败返回 null，不带回原始串。 */
+function parseRedisEndpoint(raw) {
+  if (!raw || !String(raw).trim()) return null;
+  let u;
+  try { u = new URL(String(raw).trim()); } catch { return null; }
+  if (u.protocol !== 'redis:' && u.protocol !== 'rediss:') return null;
+  if (u.search || u.hash || !u.hostname) return null;
+  const port = u.port ? Number(u.port) : 6379;
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return null;
+  const path = u.pathname.replace(/^\//, '');
+  if (path && (!/^\d+$/.test(path) || Number(path) > 15)) return null;
+  let password;
+  let username;
+  try {
+    password = u.password ? decodeURIComponent(u.password) : undefined;
+    username = u.username ? decodeURIComponent(u.username) : undefined;
+  } catch { return null; }
+  if (username && !password) return null;
+  const host = u.hostname.startsWith('[') && u.hostname.endsWith(']') ? u.hostname.slice(1, -1) : u.hostname;
+  return { host, port, tls: u.protocol === 'rediss:', username, password, db: path ? Number(path) : 0 };
+}
+
+function encodeCmd(args) {
+  const chunks = [Buffer.from(`*${args.length}\r\n`)];
+  for (const a of args) {
+    const b = Buffer.from(String(a));
+    chunks.push(Buffer.from(`$${b.length}\r\n`), b, Buffer.from('\r\n'));
+  }
+  return Buffer.concat(chunks);
+}
+
+function readResp(buf, at) {
+  if (at >= buf.length) return null;
+  const nl = buf.indexOf('\r\n', at);
+  if (nl < 0) return null;
+  const type = String.fromCharCode(buf[at]);
+  const head = buf.toString('utf8', at + 1, nl);
+  const next = nl + 2;
+  if (type === '+' || type === '-') return { kind: type === '+' ? 'ok' : 'err', next };
+  if (type === ':') return /^-?\d+$/.test(head) ? { kind: 'int', next } : { kind: 'bad', next };
+  if (type === '$') {
+    const n = Number(head);
+    if (!Number.isInteger(n) || n > 1_000_000) return { kind: 'bad', next };
+    if (n < 0) return { kind: 'bulk', next };
+    if (buf.length < next + n + 2) return null;
+    return { kind: 'bulk', next: next + n + 2 };
+  }
+  if (type === '*') {
+    const n = Number(head);
+    if (!Number.isInteger(n) || n < 0 || n > 64) return { kind: 'bad', next };
+    let p = next;
+    for (let i = 0; i < n; i++) {
+      const one = readResp(buf, p);
+      if (!one) return null;
+      if (one.kind === 'bad') return one;
+      p = one.next;
+    }
+    return { kind: 'arr', next: p };
+  }
+  return { kind: 'bad', next };
+}
+
+function connectRedis(ep, ca, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const opts = { host: ep.host, port: ep.port };
+    if (ep.tls) {
+      if (ca) opts.ca = ca;
+      if (!net.isIP(ep.host)) opts.servername = ep.host;
+    }
+    const sock = ep.tls ? tls.connect(opts) : net.connect(opts);
+    const fail = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      sock.destroy();
+      reject(new Error('conn'));
+    };
+    const timer = setTimeout(fail, timeoutMs);
+    sock.once('error', fail);
+    sock.once(ep.tls ? 'secureConnect' : 'connect', () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(sock);
+    });
+  });
+}
+
+/** 一条连接里按顺序写完命令并读回同样条数的回复。回复是错误或协议不对则 throw；throw 的对象不含命令内容。 */
+function redisRoundtrip(ep, commands, ca, timeoutMs) {
+  const batch = [];
+  if (ep.password) batch.push(ep.username ? ['AUTH', ep.username, ep.password] : ['AUTH', ep.password]);
+  if (ep.db !== 0) batch.push(['SELECT', String(ep.db)]);
+  batch.push(...commands);
+  return connectRedis(ep, ca, timeoutMs).then((sock) => new Promise((resolve, reject) => {
+    const bufs = [];
+    let size = 0;
+    let got = 0;
+    let settled = false;
+    const finish = (err) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      sock.removeAllListeners();
+      sock.on('error', () => {});
+      sock.destroy();
+      if (err) reject(err);
+      else resolve();
+    };
+    const pump = () => {
+      const buf = Buffer.concat(bufs, size);
+      let at = 0;
+      while (got < batch.length) {
+        const one = readResp(buf, at);
+        if (!one) return;
+        if (one.kind === 'bad' || one.kind === 'err') return finish(new Error('bad'));
+        got++;
+        at = one.next;
+      }
+      finish();
+    };
+    const timer = setTimeout(() => finish(new Error('timeout')), timeoutMs);
+    sock.on('data', (c) => {
+      size += c.length;
+      if (size > 1_000_000) return finish(new Error('big'));
+      bufs.push(c);
+      pump();
+    });
+    sock.on('error', () => finish(new Error('conn')));
+    sock.on('end', () => { if (got < batch.length) finish(new Error('bad')); });
+    sock.write(Buffer.concat(batch.map(encodeCmd)), (err) => { if (err) finish(new Error('conn')); });
+  }));
+}
+
+async function clearViaRedis(email, env, now) {
+  const ep = parseRedisEndpoint(env.REDIS_URL);
+  if (!ep) return 'failed';
+  let ca;
+  if (ep.tls) {
+    const extra = loadExtraCa(env);
+    if (extra.error) return 'failed';
+    ca = extra.ca;
+  }
+  const keys = rateKeysToDelete(email, env, now);
+  await redisRoundtrip(ep, keys.map((k) => ['DEL', k]), ca, 3000);
+  return 'cleared';
+}
+
 /**
- * 清掉只凭账号能算出的限流 key（按 key 名直接 DEL，不 SCAN、不 KEYS）。
- * - RATE_LIMIT_STORE=upstash：一次 pipeline DEL。
- * - memory（默认）：计数在应用进程内存里，脚本碰不到，跳过（10 分钟后自然过期）。
+ * 清掉只凭账号能算出的限流 key（按 key 名直接 DEL，不扫描键空间）。
+ * - RATE_LIMIT_STORE=upstash：一次 pipeline DEL。传了 fetchImpl 就用它（测试）；否则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS。
+ * - RATE_LIMIT_STORE=redis：TCP DEL，REDIS_URL。rediss:// 同样读取 NODE_EXTRA_CA_CERTS。
+ * - memory（默认）以及其他值：计数在应用进程内存里，或不是这支脚本认识的存储，跳过（10 分钟后自然过期）。
  * 返回 'cleared' | 'skipped_memory' | 'failed'。出错不抛、不输出 key、邮箱或 token。
  */
 export async function clearAccountRateLimits({ email, env, now, fetchImpl }) {
   const kind = env.RATE_LIMIT_STORE ?? 'memory';
+  if (kind === 'redis') {
+    try { return await clearViaRedis(email, env, now); } catch { return 'failed'; }
+  }
   if (kind !== 'upstash') return 'skipped_memory';
   const url = env.UPSTASH_REDIS_REST_URL, token = env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return 'failed';
-  const keys = rateKeysToDelete(email, env, now);
+  const body = JSON.stringify(rateKeysToDelete(email, env, now).map((k) => ['DEL', k]));
   try {
-    const r = await fetchImpl(`${url.replace(/\/$/, '')}/pipeline`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(keys.map((k) => ['DEL', k])),
-      signal: AbortSignal.timeout(3000),
-    });
+    if (fetchImpl) {
+      const r = await fetchImpl(`${url.replace(/\/$/, '')}/pipeline`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body,
+        signal: AbortSignal.timeout(3000),
+      });
+      if (!r.ok) return 'failed';
+      const j = await r.json();
+      return Array.isArray(j) && !j.some((x) => x?.error) ? 'cleared' : 'failed';
+    }
+    const extra = loadExtraCa(env);
+    if (extra.error) return 'failed';
+    const r = await postJson(`${url.replace(/\/$/, '')}/pipeline`, token, body, extra.ca, 3000);
     if (!r.ok) return 'failed';
-    const j = await r.json();
+    const j = JSON.parse(r.body);
     return Array.isArray(j) && !j.some((x) => x?.error) ? 'cleared' : 'failed';
   } catch {
     return 'failed';
@@ -246,7 +466,7 @@ export function safeErrorCode(e) {
  * @param o.readPassword   () => Promise<string|{error}> 从终端/标准输入读密码（终端时内部已确认两次一致）
  * @param o.db             () => Promise<PrismaClient 形状的对象>（findUnique、$transaction、$disconnect）
  * @param o.hash           (password) => Promise<string>，生产里是 @node-rs/argon2 hash(·, ARGON)
- * @param o.fetchImpl      清 Upstash 限流用的 fetch
+ * @param o.fetchImpl      清 Upstash 限流用的 fetch；不传则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS
  * @param o.now            () => 毫秒时间戳
  * @param o.out / o.err    写 stdout / stderr
  * @param o.stdoutIsTTY    stdout 是不是终端（#347：不是就拒绝运行；测试里注入）

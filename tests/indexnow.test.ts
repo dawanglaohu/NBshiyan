@@ -67,6 +67,7 @@ test('submit: never throws, logs only error type without secrets', async () => {
 
 test('dedupe store: Upstash only; off without it; upstash failure = no push', async () => {
   assert.equal(indexNowDedupeStore({ RATE_LIMIT_STORE: 'memory' }), null);
+  assert.equal(indexNowDedupeStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:<password>@127.0.0.1:1', UPSTASH_REDIS_REST_URL: 'https://127.0.0.1:1', UPSTASH_REDIS_REST_TOKEN: 't' }), null);
   assert.equal(indexNowDedupeStore({ RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'http://x', UPSTASH_REDIS_REST_TOKEN: 't' }), null);
   const { f, calls } = fakeFetch();
   // 没有 Upstash 时整个功能关闭

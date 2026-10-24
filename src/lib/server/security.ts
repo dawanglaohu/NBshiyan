@@ -60,7 +60,7 @@ export function resetRateLimitLogThrottle() { lastStoreErrorLog = 0; }
 /** 存储错误只记错误类型和已知的安全文案，绝不记原始 message（可能带 key、邮箱或 IP） */
 function safeStoreError(e: unknown) {
   const m = (e as Error)?.message ?? '';
-  if (/^upstash (\d{3}|bad response)$/.test(m)) return m;
+  if (/^upstash (\d{3}|bad response)$/.test(m) || /^redis (timeout|bad response|auth failed|connection failed)$/.test(m)) return m;
   const n = (e as Error)?.name;
   return n === 'TimeoutError' || n === 'AbortError' ? 'timeout' : 'error';
 }
@@ -82,7 +82,7 @@ export function rateLimitKeyHash(value: string, env: Record<string, string | und
 }
 
 /**
- * 限流：计一次数，返回是否仍在上限内。存储由 RATE_LIMIT_STORE 决定（内存 / Upstash），见 ./ratelimit。
+ * 限流：计一次数，返回是否仍在上限内。存储由 RATE_LIMIT_STORE 决定（内存 / Upstash / TCP Redis），见 ./ratelimit。
  * key 自动加环境前缀（`<env>:<key>`）。存储出错时按 opts.onStoreError 处理，默认 local。
  * 注意是异步的，必须 await（旧的同步 rateLimit 已删除，避免漏写 await 时 Promise 被当成 true）。
  */

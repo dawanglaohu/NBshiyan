@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MemoryStore, REFUND_LUA, UpstashStore, createRateLimitStore } from '../src/lib/server/ratelimit/index';
+import { RedisStore, parseRedisUrl } from '../src/lib/server/ratelimit/redis';
+import { startFakeRedis } from './fake-redis';
+import net from 'node:net';
 import { mockServer } from './helpers';
 import { MemoryStore as MS, setRateLimitStore, type RateLimitStore } from '../src/lib/server/ratelimit/index';
 import { hitRateLimit, rateLimitEnv, rateLimitKeyHash, refundRateLimit, resetRateLimitLogThrottle } from '../src/lib/server/security';
@@ -75,7 +78,153 @@ test('factory: env selection and validation', () => {
   assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'https://x.upstash.io', UPSTASH_REDIS_REST_TOKEN: 't' }) instanceof UpstashStore);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'upstash' }), /UPSTASH_REDIS_REST_URL/);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'http://x', UPSTASH_REDIS_REST_TOKEN: 't', NODE_ENV: 'production' }), /https/);
-  assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis' }), /未知/);
+  assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:<password>@127.0.0.1:1' }) instanceof RedisStore);
+  assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis' }), /REDIS_URL/);
+  assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'http://:supersecret@example.invalid' }), (e: Error) => {
+    assert.equal(e.message, 'REDIS_URL 必须是 redis:// 或 rediss://');
+    assert.doesNotMatch(e.message, /supersecret/);
+    return true;
+  });
+  assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'mysql' }), /未知/);
+  const parsed = parseRedisUrl('redis://user:p%40ss@[::1]:6380/2');
+  assert.equal(parsed.ok, true);
+  if (parsed.ok) {
+    assert.equal(parsed.endpoint.password, 'p@ss');
+    assert.equal(parsed.endpoint.username, 'user');
+    assert.equal(parsed.endpoint.host, '::1');
+    assert.equal(parsed.endpoint.port, 6380);
+    assert.equal(parsed.endpoint.db, 2);
+    assert.equal(parsed.endpoint.tls, false);
+  }
+});
+
+async function closedPort() {
+  const srv = net.createServer();
+  await new Promise<void>((ok) => srv.listen(0, '127.0.0.1', () => ok()));
+  const port = (srv.address() as net.AddressInfo).port;
+  await new Promise<void>((ok, err) => srv.close((e) => (e ? err(e) : ok())));
+  return port;
+}
+
+test('redis: INCR is atomic, PEXPIRE NX, same rl:<key>:<window> key as upstash', async () => {
+  const fake = await startFakeRedis();
+  try {
+    const s = new RedisStore({ host: '127.0.0.1', port: fake.port, tls: false, db: 0 });
+    const results = await Promise.all([0, 1, 2, 3].map(() => s.hit('login:1.2.3.4', 3, 60_000)));
+    assert.equal(results.filter(Boolean).length, 3);
+    assert.equal(results.filter((x) => !x).length, 1);
+    const incrs = fake.commands().filter((c) => c[0] === 'INCR');
+    assert.equal(incrs.length, 4);
+    assert.match(incrs[0][1], /^rl:login:1\.2\.3\.4:\d+$/);
+    const expires = fake.commands().filter((c) => c[0] === 'PEXPIRE');
+    assert.deepEqual(expires[0], ['PEXPIRE', incrs[0][1], '60000', 'NX']);
+    assert.ok(fake.commands().every((c) => c[0] === 'INCR' || c[0] === 'PEXPIRE'));
+  } finally { await fake.close(); }
+});
+
+test('redis: refund floors at 0 and does not touch TTL; expiry does not recreate the key', async () => {
+  const fake = await startFakeRedis();
+  try {
+    const s = new RedisStore({ host: '127.0.0.1', port: fake.port, tls: false, db: 0 });
+    await s.hit('login:k', 5, 60_000);
+    await s.hit('login:k', 5, 60_000);
+    const key = [...fake.keys().keys()][0];
+    const ttl = fake.keys().get(key)!.exp;
+    const ev = fake.commands().find((c) => c[0] === 'EVAL');
+    await s.refund('login:k', 60_000);
+    const evals = fake.commands().filter((c) => c[0] === 'EVAL');
+    assert.equal(evals[0][1], REFUND_LUA);
+    assert.equal(evals[0][3], key);
+    assert.equal(ev, undefined);
+    assert.equal(fake.keys().get(key)!.v, 1);
+    assert.equal(fake.keys().get(key)!.exp, ttl);
+    await s.refund('login:k', 60_000);
+    await s.refund('login:k', 60_000);
+    assert.equal(fake.keys().get(key)!.v, 0);
+    assert.equal(fake.keys().get(key)!.exp, ttl);
+    fake.expire(key);
+    await s.refund('login:k', 60_000);
+    assert.equal(fake.keys().has(key), false);
+    await s.hit('login:k', 5, 60_000);
+    assert.equal(fake.keys().get(key)!.v, 1);
+    assert.notEqual(fake.keys().get(key)!.exp, null);
+  } finally { await fake.close(); }
+});
+
+test('redis: clear deletes current and previous window only', async () => {
+  const fake = await startFakeRedis();
+  const real = Date.now;
+  let now = 1_700_000_000_000;
+  Date.now = () => now;
+  try {
+    const s = new RedisStore({ host: '127.0.0.1', port: fake.port, tls: false, db: 0 });
+    await s.hit('acct', 5, 60_000);
+    now -= 60_000;
+    await s.hit('acct', 5, 60_000);
+    // 上一个窗口的 PEXPIRE 恰好落在起始时刻。停在窗口内 1ms，两个 key 都还活着，窗口号不变。
+    now = 1_700_000_000_000 - 1;
+    assert.equal(fake.keys().size, 2);
+    await s.clear([{ key: 'acct', windowMs: 60_000 }]);
+    assert.equal(fake.keys().size, 0);
+    const dels = fake.commands().filter((c) => c[0] === 'DEL').map((c) => c[1]);
+    const w = Math.floor(now / 60_000);
+    assert.deepEqual(dels, [`rl:acct:${w}`, `rl:acct:${w - 1}`]);
+    assert.ok(fake.commands().every((c) => c[0] !== 'SCAN' && c[0] !== 'KEYS'));
+    assert.equal(await s.hit('acct', 5, 60_000), true);
+    assert.equal([...fake.keys().values()][0].v, 1);
+  } finally { Date.now = real; await fake.close(); }
+});
+
+test('redis: auth failure, bad reply, timeout and disconnect throw safe errors', async () => {
+  const auth = await startFakeRedis({ password: 'expected-secret' });
+  try {
+    await assert.rejects(new RedisStore({ host: '127.0.0.1', port: auth.port, tls: false, db: 0, password: 'other-secret' }).hit('k', 1, 60_000), (e: Error) => {
+      assert.equal(e.message, 'redis auth failed');
+      assert.equal(e.message.includes('other-secret') || e.message.includes('expected-secret'), false);
+      return true;
+    });
+  } finally { await auth.close(); }
+  const bad = await startFakeRedis({ failCommand: 'INCR' });
+  try {
+    await assert.rejects(new RedisStore({ host: '127.0.0.1', port: bad.port, tls: false, db: 0 }).hit('k', 1, 60_000), (e: Error) => {
+      assert.equal(e.message, 'redis bad response');
+      return true;
+    });
+  } finally { await bad.close(); }
+  const slow = await startFakeRedis({ hold: true });
+  try {
+    const t0 = Date.now();
+    await assert.rejects(new RedisStore({ host: '127.0.0.1', port: slow.port, tls: false, db: 0 }, 100).hit('k', 1, 60_000), /redis timeout/);
+    assert.ok(Date.now() - t0 < 1000);
+  } finally { await slow.close(); }
+  const port = await closedPort();
+  await assert.rejects(new RedisStore({ host: '127.0.0.1', port, tls: false, db: 0 }).hit('k', 1, 60_000), (e: Error) => {
+    assert.equal(e.message, 'redis connection failed');
+    assert.equal(e.message.includes(String(port)), false);
+    return true;
+  });
+});
+
+test('redis: SELECT when the URL has a db, and hitRateLimit fail modes still apply', async () => {
+  const fake = await startFakeRedis({ password: 'pw' });
+  try {
+    const s = createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: `redis://:pw@127.0.0.1:${fake.port}/2` });
+    assert.ok(s instanceof RedisStore);
+    assert.equal(await s.hit('k', 1, 60_000), true);
+    assert.ok(fake.commands().some((c) => c[0] === 'SELECT' && c[1] === '2'));
+    assert.deepEqual(fake.auths(), ['pw']);
+  } finally { await fake.close(); }
+  const port = await closedPort();
+  setRateLimitStore(new RedisStore({ host: '127.0.0.1', port, tls: false, db: 0 }));
+  try {
+    await quiet(async () => {
+      assert.equal(await hitRateLimit('rds:c', 100, 60_000, { onStoreError: 'closed' }), false);
+      assert.equal(await hitRateLimit('rds:o', 1, 60_000, { onStoreError: 'open' }), true);
+      const r = [];
+      for (let i = 0; i < 3; i++) r.push(await hitRateLimit('rds:l', 2, 60_000, { onStoreError: 'local' }));
+      assert.deepEqual(r, [true, true, false]);
+    });
+  } finally { setRateLimitStore(undefined); }
 });
 
 // ---- #74：按路由的故障模式、环境前缀、邮箱 HMAC、noip ----

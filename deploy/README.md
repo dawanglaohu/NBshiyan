@@ -185,8 +185,22 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   and prints the link / `有效至 … PT` (+ `已按账号绑定截止时间缩短` when capped by the 72 h window) / private-message reminder once.
   `NEXT_PUBLIC_SITE_URL` must be an https origin (exit 1 otherwise, nothing changed).
 - After commit it deletes only the account-scoped rate-limit keys whose names it can compute: `login-acct:<e>`,
-  `login:untrusted:<e>` and `enroll-confirm:untrusted:<e>`, current and previous window (Upstash only; one DEL, no SCAN/KEYS).
-  `login-ip` and real-IP buckets (`login:<ip>:<e>`, `enroll-confirm:<ip>:<e>`) are left alone and expire within 10 minutes.
+  `login:untrusted:<e>` and `enroll-confirm:untrusted:<e>`, current and previous window (six `DEL`s, no keyspace scan).
+  `login-ip`, `enroll-ip`, and real-IP buckets (`login:<ip>:<e>`, `enroll-confirm:<ip>:<e>`) stay.
+  Someone already inside a full real-IP bucket can remain limited until that 10-minute window ends.
+  The reset request only knows the operator's address, so those buckets are left for the window to expire.
+  The admin UI confirm dialog says the same thing.
+- The script then prints `rate_limit=cleared`, `rate_limit=skipped_memory`, or `rate_limit=failed`.
+  `failed` leaves the password change committed. The counters expire within 10 minutes.
+  Output does not include keys, the email, or the token.
+- On this stack the REST endpoint is HTTPS signed by the private internal CA.
+  `docker compose exec` starts a new process with the app service environment, so `NODE_EXTRA_CA_CERTS`
+  and the mounted CA file are visible. The script reads that variable when it connects and passes the PEM
+  to `https.request` (public roots plus that file). Run it as `docker compose exec -it app …`, not as host `node`.
+  A missing variable or an unreadable file fails the handshake and prints `rate_limit=failed`.
+  Do not set `NODE_TLS_REJECT_UNAUTHORIZED=0`.
+- `RATE_LIMIT_STORE=redis` deletes the same six keys over TCP (`REDIS_URL`). This compose file stays on `upstash`:
+  the app is not on `srh-net` and cannot open Redis on the internal network. Switching stores is a later deploy change.
 - Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments, 3 refused. Output shows the user id only.
 
 ## 2FA audit (deploy gate for #361, before `deploy.sh up`)
@@ -305,19 +319,19 @@ fixed in backend PR #328 (now 404).
   allowlist (`geiom.com`), not a blocklist of local names.
 - `deploy.sh` compares `EDGE_AUTH_SECRET` with the proxy include only if both are non-empty and at least 32 characters,
   and compares sha256 hashes, never the values.
-- Redis REST is short-term: SRH plus the internal TLS proxy, with no published ports,
+- Redis REST stays on this stack: SRH plus the internal TLS proxy, with no published ports,
   TLS 1.3 only, and only `POST /pipeline` allowed. `SRH_TOKEN` and `requirepass` are separate random values. The private
-  CA is name-constrained to `DNS:redis-rest` and its key is deleted right after signing. Long term, a backend TCP Redis
-  store removes `srh` and `srh-tls`.
+  CA is name-constrained to `DNS:redis-rest` and its key is deleted right after signing. The app can speak TCP Redis
+  (`RATE_LIMIT_STORE=redis`), and it is still not attached to `srh-net`. Removing `srh` and `srh-tls` is a later deploy PR.
 - `MAIL_WEBHOOK_SECRET` is generated on the server and stored only in the app env file. It is not configured on the
   inbound Worker until Q7 is approved.
 
 ## Rate-limit store notes
-- `RATE_LIMIT_STORE=upstash`, `UPSTASH_REDIS_REST_URL=https://redis-rest:8443`, `UPSTASH_REDIS_REST_TOKEN` = SRH token (written by `init-secrets.sh`). The prod check only requires the `https://` prefix, so the internal hostname is accepted.
-- `NODE_EXTRA_CA_CERTS` must be set in the app container environment before the process starts (it is, in compose); setting it at runtime has no effect.
-- `src/lib/seo/indexnow.ts` reuses the same Upstash variables for de-duplication; no extra config.
+- `RATE_LIMIT_STORE=upstash` remains the value written by `init-secrets.sh`, with `UPSTASH_REDIS_REST_URL=https://redis-rest:8443` and `UPSTASH_REDIS_REST_TOKEN` = SRH token. The prod check accepts `upstash` (https URL and token) or `redis` (`REDIS_URL` is `redis://` or `rediss://` and includes a password). Do not switch this stack to `redis` until a later deploy PR attaches the app to Redis. `srh` and `srh-tls` stay.
+- `NODE_EXTRA_CA_CERTS` is set on the app service `environment` (container config, not a PID-1-only export), and the CA file is bind-mounted. `docker compose exec` starts a new process with that environment, so the variable and the file are visible. The reset script and a `rediss://` client read the file at connect time and pass it as `ca`. A process started without the variable (host `node`) does not trust the private CA, and the reset script prints `rate_limit=failed`.
+- `src/lib/seo/indexnow.ts` still uses the Upstash REST variables for de-duplication. `RATE_LIMIT_STORE=redis` does not turn IndexNow on.
 - If SRH/srh-tls is down, routes follow their own `onStoreError`: some reject, some fall back to in-process counting. 429/503 on some endpoints in that state is expected, not a bug.
-- Long term: backend TCP Redis store (`REDIS_URL` with requirepass), then remove `srh` and `srh-tls`.
+- Removing `srh` and `srh-tls` waits until the TCP store is verified on this stack.
 
 ## APP_ORIGIN (required)
 `APP_ORIGIN=https://geiom.com` must be in the app env file exactly once and equal the `NEXT_PUBLIC_SITE_URL` origin. It is not a secret. standalone sees its own origin as `http://0.0.0.0:<port>`, so without it the admin same-origin check rejects every browser POST with 403 (2FA binding included). `init-secrets.sh` forces it, compose also sets it, `deploy.sh` (`env_prod_ok`) aborts if it's missing, duplicated or different, and the app's startup check (fix/root-redirect-location) exits 1 in production if it's missing, not https, or not the SITE_URL origin.

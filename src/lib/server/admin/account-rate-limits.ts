@@ -18,7 +18,8 @@ export function accountRateKeys(email: string) {
 }
 
 /**
- * 后台重置 2FA（解除锁定）提交之后调：删掉上面 3 个 key 的当前、上一个窗口（Upstash 一次 pipeline 6 个 DEL；内存直接删）。
+ * 后台重置 2FA（解除锁定）提交之后调：删掉上面 3 个 key 的当前、上一个窗口（Upstash / TCP Redis 各 6 个 DEL；内存直接删）。
+ * 真实 IP 桶和 login-ip 不在这里：重置后那些桶最多再留一个 10 分钟窗口。
  * 不 throw；失败不回滚重置，只返回 'failed'，由调用方记 rate_limit=failed。
  */
 export const clearAccountRateLimits = (email: string) => clearRateLimits(accountRateKeys(email));

@@ -1,12 +1,14 @@
-// 队列 ②：scripts/admin-reset-initial-password.mjs（给未绑定 2FA 的 ADMIN 重设初始密码）。prisma 和限流存储换成内存里的假对象，不连任何数据库或 Redis。
+// 队列 ②：scripts/admin-reset-initial-password.mjs（给未绑定 2FA 的 ADMIN 重设初始密码）。prisma 换成内存里的假对象；Redis 只用本机假服务器。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import net from 'node:net';
 import {
-  ARGON, CLEAR_FLAG, ENROLL_CONFIRM_WINDOW_MS, ENROLL_WINDOW_MS, LOGIN_WINDOW_MS, MESSAGES, UNTRUSTED, VIA, accountOnlyRateKeys, decide, hasPendingEnroll, parseArgs,
+  ARGON, CLEAR_FLAG, ENROLL_CONFIRM_WINDOW_MS, ENROLL_WINDOW_MS, LOGIN_WINDOW_MS, MESSAGES, UNTRUSTED, VIA, accountOnlyRateKeys, clearAccountRateLimits, decide, hasPendingEnroll, parseArgs,
   rateKeysToDelete, rateLimitEnv, rateLimitKeyHash, runReset, stripPasswordEnv, upstashKey, type ResetUser,
 } from '../scripts/admin-reset-initial-password-lib.mjs';
+import { startFakeRedis } from './fake-redis';
 import { newEnrollToken, hashEnrollToken, type Issued } from '../scripts/enroll-token-lib.mjs';
 import { verifySecret } from '../src/lib/server/admin/crypto';
 import { rateLimitEnv as appEnv, rateLimitKeyHash as appKeyHash, rateLimitSubject, UNTRUSTED as APP_UNTRUSTED } from '../src/lib/server/security';
@@ -304,6 +306,50 @@ test('清限流失败不影响已提交的改密（退出 0，给提示，不输
   const r = await run([user()], { env: { RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'https://r.example', UPSTASH_REDIS_REST_TOKEN: 'tok-SHOULD-NOT-LEAK' }, fetchOk: false });
   assert.equal(r.code, 0); assert.match(r.out, /rate_limit=failed/); assert.match(r.err, /10 分钟/);
   assert.ok(!(r.out + r.err).includes('tok-SHOULD-NOT-LEAK')); assert.ok(!(r.out + r.err).includes('login-acct'));
+});
+
+async function closedPort() {
+  const srv = net.createServer();
+  await new Promise<void>((ok) => srv.listen(0, '127.0.0.1', () => ok()));
+  const port = (srv.address() as net.AddressInfo).port;
+  await new Promise<void>((ok, err) => srv.close((e) => (e ? err(e) : ok())));
+  return port;
+}
+
+test('#432 redis：清掉与 Upstash 相同的 6 个 key，打印 rate_limit=cleared，不输出密码', async () => {
+  const redisPw = 'redis-secret-SHOULD-NOT-LEAK';
+  const fake = await startFakeRedis({ password: redisPw });
+  try {
+    const env = { AUTH_SECRET: 'a', APP_ENV: 'production' };
+    const r = await run([user()], {
+      env: { ...env, RATE_LIMIT_STORE: 'redis', REDIS_URL: `redis://:${redisPw}@127.0.0.1:${fake.port}/2` },
+    });
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /rate_limit=cleared/);
+    assert.equal(r.ff.calls.length, 0);
+    assert.ok(fake.commands().some((c) => c[0] === 'SELECT' && c[1] === '2'));
+    assert.deepEqual(fake.auths(), [redisPw]);
+    assert.deepEqual(fake.commands().filter((c) => c[0] === 'DEL').map((c) => c[1]), rateKeysToDelete(EMAIL, env, NOW));
+    assert.ok(fake.commands().every((c) => c[0] === 'AUTH' || c[0] === 'SELECT' || c[0] === 'DEL'));
+    const blob = r.out + r.err + JSON.stringify(fake.commands());
+    assert.equal(blob.includes(redisPw), false);
+    assert.equal(blob.includes(EMAIL), false);
+  } finally { await fake.close(); }
+});
+
+test('#432 redis：连不上或 URL 无效时 rate_limit=failed，不抛错、不泄露', async () => {
+  const redisPw = 'redis-secret-SHOULD-NOT-LEAK';
+  const port = await closedPort();
+  const r = await run([user()], {
+    env: { RATE_LIMIT_STORE: 'redis', REDIS_URL: `redis://:${redisPw}@127.0.0.1:${port}` },
+  });
+  assert.equal(r.code, 0);
+  assert.match(r.out, /rate_limit=failed/);
+  assert.match(r.err, /10 分钟/);
+  const blob = r.out + r.err;
+  for (const s of [redisPw, EMAIL, 'login-acct', String(port)]) assert.equal(blob.includes(s), false, s);
+  assert.equal(await clearAccountRateLimits({ email: EMAIL, env: { RATE_LIMIT_STORE: 'redis', REDIS_URL: 'http://x' }, now: NOW }), 'failed');
+  assert.equal(await clearAccountRateLimits({ email: EMAIL, env: { RATE_LIMIT_STORE: 'redis' }, now: NOW }), 'failed');
 });
 
 // ---------------- 失败路径 ----------------

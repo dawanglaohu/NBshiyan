@@ -1,9 +1,12 @@
 import { isProdEnvFrom } from '../../site';
+import { RedisStore, redisEndpointFromEnv } from './redis';
+import { REFUND_LUA } from './refund-lua';
 /**
  * 可插拔限流存储。
  * - RATE_LIMIT_STORE=memory（默认）：进程内存，单实例有效，开发/预览用
  * - RATE_LIMIT_STORE=upstash：Upstash Redis REST（UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN），多实例共享
- * Upstash 不可用（超时/5xx/网络错误）时 hit()/refund() 直接 throw；hit 的降级行为（拒绝/本地计数/放行）由调用方 hitRateLimit 按路由的 onStoreError 决定（#74），
+ * - RATE_LIMIT_STORE=redis：TCP Redis（REDIS_URL，redis:// 或 rediss://），多实例共享
+ * 存储不可用（超时/5xx/网络错误）时 hit()/refund() 直接 throw；hit 的降级行为（拒绝/本地计数/放行）由调用方 hitRateLimit 按路由的 onStoreError 决定（#74），
  * refund 出错由 refundRateLimit 直接忽略（计数保留，偏严）。
  */
 export interface RateLimitStore {
@@ -51,11 +54,7 @@ export class MemoryStore implements RateLimitStore {
 }
 
 /** 固定窗口计数：key:窗口序号 INCR，首次设置过期。一次 pipeline 请求完成。 */
-/**
- * refund 用的 Lua：key 存在且值 > 0 才 DECR，否则什么都不做。不用裸 DECR：key 过期后裸 DECR 会新建一个 -1 且没有 TTL 的 key，
- * 之后 hit 的 PEXPIRE NX 就不会再设过期时间，这个桶永远不过期。脚本不碰 TTL。
- */
-export const REFUND_LUA = "local v = tonumber(redis.call('GET', KEYS[1])) if v and v > 0 then return redis.call('DECR', KEYS[1]) end return 0";
+export { REFUND_LUA };
 
 export class UpstashStore implements RateLimitStore {
   constructor(private url: string, private token: string, private timeoutMs = 1500, private prefix = 'rl:') {}
@@ -101,6 +100,7 @@ export function createRateLimitStore(env: Record<string, string | undefined> = p
     if (!url.startsWith('https://') && env.NODE_ENV === 'production') throw new Error('UPSTASH_REDIS_REST_URL 必须是 https');
     return new UpstashStore(url, token);
   }
+  if (kind === 'redis') return new RedisStore(redisEndpointFromEnv(env));
   if (kind !== 'memory') throw new Error(`未知的 RATE_LIMIT_STORE: ${kind}`);
   if (isProdEnvFrom(env)) console.warn('[ratelimit] 生产环境仍在用内存限流，多实例下不共享');
   return new MemoryStore();

@@ -62,7 +62,7 @@ const code = await runReset({
     return new PrismaClient({ log: [], errorFormat: 'minimal' });
   },
   hash: async (pw) => (await import('@node-rs/argon2')).hash(pw, ARGON),
-  fetchImpl: (...a) => fetch(...a),
+  // 不传 fetchImpl：upstash 走 https.request，按环境变量 NODE_EXTRA_CA_CERTS 附加内部 CA（进程启动后才写这个变量对 fetch 无效）
   out: (s) => process.stdout.write(s),
   err: (s) => process.stderr.write(s),
   stdoutIsTTY: !!process.stdout.isTTY,
