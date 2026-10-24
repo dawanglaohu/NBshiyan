@@ -5,6 +5,7 @@ import path from 'node:path';
 import {
   checkImageContext,
   contextViolations,
+  excludedSourceViolations,
   isDockerignored,
   moduleSpecifiers,
   parseDockerignore,
@@ -54,11 +55,65 @@ test('同名目录规则不排除带扩展名的源码模块', () => {
   assert.equal(isDockerignored('src/lib/server/storage.ts', rules), false);
   assert.equal(isDockerignored('uploads/blob.bin', rules), true);
   assert.equal(isDockerignored('storage/blob.bin', rules), true);
+  assert.equal(isDockerignored('storage/uploads/blob.bin', rules), true);
+  assert.equal(isDockerignored('src/app/api/uploads/logo/route.ts', rules), false);
+  assert.equal(isDockerignored('src/app/api/admin/uploads/[id]/route.ts', rules), false);
   const source = "import { saveUpload } from '@/lib/server/uploads';\nimport { putObject } from '@/lib/server/storage';\n";
   assert.deepEqual(
     contextViolations('src/app/api/admin/cron/cleanup-uploads/route.ts', source, rules, root),
     [],
   );
+});
+
+test('**/uploads 排除 src/app/api/uploads 时检查失败', () => {
+  const broad = parseDockerignore('**/uploads\n');
+  assert.equal(isDockerignored('src/app/api/uploads/logo/route.ts', broad), true);
+  assert.equal(isDockerignored('src/app/api/admin/uploads/[id]/route.ts', broad), true);
+  assert.equal(isDockerignored('uploads/blob.bin', broad), true);
+  const files = excludedSourceViolations(root, broad).map((hit) => hit.resolved).sort();
+  assert.deepEqual(files, [
+    'src/app/api/admin/uploads/[id]/route.ts',
+    'src/app/api/uploads/logo/route.ts',
+  ]);
+});
+
+test('不带斜杠的 uploads 文件名规则也会排除上传路由', () => {
+  const byName = parseDockerignore('uploads\n');
+  assert.equal(isDockerignored('uploads/blob.bin', byName), true);
+  assert.equal(isDockerignored('src/app/api/uploads/logo/route.ts', byName), true);
+  assert.ok(
+    excludedSourceViolations(root, byName).some((hit) => hit.resolved === 'src/app/api/uploads/logo/route.ts'),
+  );
+});
+
+test('模板字符串 import、from 后无空格、CSS url 和 @import 指向 docs 时失败', () => {
+  const from = 'src/app/[locale]/page.tsx';
+  const template = 'const poster = await import(`../../../docs/brand-media/static/held/poster.png`);\n';
+  assert.equal(contextViolations(from, template, rules).length, 1);
+  const interpolated = 'const poster = await import(`../../../docs/brand-media/${name}.png`);\n';
+  assert.equal(contextViolations(from, interpolated, rules)[0]?.resolved, 'docs/brand-media');
+  const messages = 'const own = await import(`../../messages/${locale}.json`);\n';
+  assert.deepEqual(contextViolations('src/i18n/request.ts', messages, rules, root), []);
+  const packed = "import poster from'../../../docs/brand-media/static/held/poster.png';\nexport{poster}from\"./poster.png\";\n";
+  const packedHits = contextViolations(from, packed, rules);
+  assert.equal(packedHits.length, 1);
+  assert.equal(packedHits[0]?.resolved, 'docs/brand-media/static/held/poster.png');
+  const css = [
+    '@import "../../docs/brand-media/x.css";',
+    '@import url("../../docs/brand-media/y.css");',
+    '@import url(../../docs/brand-media/z.css);',
+    '.a{background:url("../../docs/brand-media/x.png")}',
+    '.b{background:url(../../docs/brand-media/y.png)}',
+    '@import "../styles/tokens.css";',
+  ].join('\n');
+  const cssHits = contextViolations('src/app/globals.css', css, rules, root).map((hit) => hit.resolved).sort();
+  assert.deepEqual(cssHits, [
+    'docs/brand-media/x.css',
+    'docs/brand-media/x.png',
+    'docs/brand-media/y.css',
+    'docs/brand-media/y.png',
+    'docs/brand-media/z.css',
+  ]);
 });
 
 test('检出里真实存在的 docs 资源被 import 时仍然算排除', () => {
