@@ -4374,8 +4374,23 @@ ISSUE_STATUS_TEXT = {'todo': '待派', 'doing': '进行中', 'done': '已落地'
 ISSUE_ID_RE = re.compile(r'[A-Z][A-Z0-9]+(?:-[A-Z0-9]+)+')
 
 
+def assert_issue_fences_closed(text, name):
+    """未闭合的 issue 围栏必须报错。findall 会把没关上的最后一块静默丢掉。"""
+    open_at = None
+    for lineno, line in enumerate((text or '').splitlines(), 1):
+        if re.match(r'^```issue\s*$', line, re.I):
+            if open_at is not None:
+                raise ValueError('%s:%d issue 围栏未闭合（从第 %d 行开始）' % (name, lineno, open_at))
+            open_at = lineno
+        elif open_at is not None and re.match(r'^```\s*$', line):
+            open_at = None
+    if open_at is not None:
+        raise ValueError('%s:%d issue 围栏未闭合' % (name, open_at))
+
+
 def parse_issue_tasks(text, name):
     """解析 04-执行/遗留issue-*.md 里的 issue 围栏。缺字段或坏状态直接拒绝，避免静默丢登记。"""
+    assert_issue_fences_closed(text, name)
     out, seen = [], set()
     for index, body in enumerate(re.findall(r'```issue\s*\n(.*?)\n```', text or '', re.S | re.I), 1):
         values, current = {}, None
@@ -4450,6 +4465,45 @@ def load_issue_ledger(root):
     if not os.path.isfile(path):
         return []
     return parse_issue_tasks(read(path), '遗留issue-20261024.md')
+
+
+def persist_issue_landed(root, ids):
+    """--landed 通过契约门之后，把 done 写回遗留 issue 源围栏。
+
+    下次 build 按源文件重写任务笔记。只改生成的笔记时，状态会被还原。
+    围栏里还没有合法 pr 与 40 位 merged 时拒绝，避免写成解析失败的 done。
+    """
+    path = os.path.join(root, '04-执行', '遗留issue-20261024.md')
+    if not os.path.isfile(path):
+        return []
+    text = read(path)
+    issues = {task['id']: task for task in parse_issue_tasks(text, '遗留issue-20261024.md')}
+    targets = [tid for tid in ids if tid in issues]
+    if not targets:
+        return []
+    blocked = [tid for tid in targets
+               if issues[tid]['ledgerStatus'] != 'done' and (
+                   not re.fullmatch(r'\d{1,6}', issues[tid].get('pr') or '')
+                   or not re.fullmatch(r'[0-9a-f]{40}', issues[tid].get('merged') or ''))]
+    if blocked:
+        raise ValueError('按 issue 登记的任务落地前，源围栏须已写 pr 与 40 位合并提交：' + '、'.join(blocked))
+
+    def rewrite(match):
+        body = match.group(1)
+        found = re.search(r'^id:\s*(\S+)\s*$', body, re.M)
+        if not found or found.group(1) not in targets:
+            return match.group(0)
+        if re.search(r'^status:\s*done\s*$', body, re.M | re.I):
+            return match.group(0)
+        new_body, count = re.subn(r'^status:\s*\S+.*$', 'status: done', body, count=1, flags=re.M | re.I)
+        if count != 1:
+            raise ValueError('遗留issue-20261024.md/%s 没有 status 行，不能记落地' % found.group(1))
+        return '```issue\n%s\n```' % new_body
+
+    new_text = re.sub(r'```issue\s*\n(.*?)\n```', rewrite, text, flags=re.S | re.I)
+    if new_text != text:
+        write_text(path, new_text)
+    return targets
 
 
 def inject_issue_tasks(data, root):
@@ -4657,6 +4711,11 @@ def mark_landed(root, ids):
     blocked = [i for i in ids if not ready.get(i, {}).get("ready")]
     if blocked:
         print("任务契约未复核，不能记录落地：" + "、".join(blocked))
+        return 1
+    try:
+        persist_issue_landed(root, ids)
+    except ValueError as exc:
+        print(str(exc))
         return 1
     ok = []
     for i in ids:

@@ -664,8 +664,7 @@ def agents_block(project, doc_rel, modules, tasks, edges, mode="greenfield"):
          "- 模块划分要和真实目录对得上。**目录动了，06 节的表也要跟着动**，"
          "否则笔记里每一条代码位置都会错位。"] if bf else [
          "- 一个任务一层栈分支 `task/<任务ID>`，做完提交并 `gh stack push`，**不自己合并**。",
-         "  落地由审查方做：栈里只有一个开放 PR（GitHub 不为单个 PR 建栈对象）就按普通 PR `gh pr merge --merge`；"
-         "两个以上才走 `gh stack merge`。任务的前置都已落地时，单 PR 是常态，不用为了凑栈去等下一个任务。",
+         "  PR 已被 bot 审过、required checks 全绿、状态 CLEAN 开不了 auto-merge 时，由全栈（安全审查者）锁定审过的 head SHA 用 merge commit 合并（如 `gh pr merge <号> --merge --match-head-commit <sha>`）。改了 `.github/workflows/` 的 PR 不开 auto-merge。栈里只有一个开放 PR（GitHub 不为单个 PR 建栈对象）就按这一条合并；两个以上才走 `gh stack merge`。任务的前置都已落地时，单 PR 是常态，不用为了凑栈去等下一个任务。",
          "- 并行开工时每个任务用自己的 git worktree（仓库旁边的同级目录，实施提示词第 0 步给命令），不在别人的检出里切分支；planning 类工作文件放仓库外。",
          "- 派下来的任务前置都已合进主干，所以本任务是新栈最底层：`gh stack init`。`gh stack add` 报 All branches in this stack have been merged 就是该 init，不用问。",
          "- 只做当前任务范围内的事，不提前做后面的。",

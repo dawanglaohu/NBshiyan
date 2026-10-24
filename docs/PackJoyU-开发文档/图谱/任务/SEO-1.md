@@ -1,7 +1,7 @@
 ---
 type: task
 id: SEO-1
-status: doing
+status: done
 module: M7
 origin: issue-ledger-20261024
 ---
@@ -13,10 +13,12 @@ origin: issue-ledger-20261024
 - 所属模块：[[M7]]
 - 前置依赖：无
 - GitHub：#425
+- PR：#445
+- 合并提交：`55a5a7111c81d3938b0528c5567b3b50c878f0d7`
 - 审查：由 PR 上 bot 审查替代
-- 登记状态：进行中
+- 登记状态：已落地
 
-已派发，进行中。不要标成已落地。
+已由 PR #445 于 2026-10-24 合入 main。合并提交 55a5a7111c81d3938b0528c5567b3b50c878f0d7。issue #425 已关闭。
 
 ## 输入 / 产出
 
