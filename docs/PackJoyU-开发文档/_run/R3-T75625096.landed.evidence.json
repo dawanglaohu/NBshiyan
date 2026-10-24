@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R3-T75625096": {
+      "contractHash": "0d97df31b3df52e294a5545227387dca6b6bca38f0ea36e7441d15f4433c8eae",
+      "verdict": "pass",
+      "evidence": [
+        "契约与 batch-3-20261022.md:171-184 的 admin-density-applicable-failures 围栏一致：模块 M3，前置 R3-T22883505，来源 M1-T8、M2-T4、M3-T14、M5-T1，edges 为 none，验收四条要求十四次 densityProbe 的 D1–D6 与 overflow 全部 pass、不改 density_probe.js 判定、四个未完成入口不记完成、回归留在 e2e/brand-smoke.spec.ts 的同一次 standalone 冒烟。有效路径 12 个，与任务笔记一致。status blockers 为空，待登记的只有语义复核。",
+        "验收 1 与 4：PR 419 评论（2026-10-24T02:49:57Z）记录 run 40055157119、head 912b1a47 的 standalone-smoke.json：14 行 probe，D1–D6 与 overflow 共 98 项 pass，densityFailed 为 []。fill/leftGap 为询盘 0.971/25 与 0.961/24，账号权限 0.972/24.5 与 0.961/24，产品规格 0.971/25 与 0.961/24，规格编辑 0.972/24 与 0.961/24，站点设置 0.698/24 与 0.961/24，组织信息 0.698/24 与 0.613/24，3D 模型 0.972/24 与 0.961/24。同 run 的 e2e（job 120756416966）为 80 passed、9 skipped。",
+        "验收 2：同一评论记录 density_probe.js 与 e2e/admin-about-images.spec.ts 相对当时 origin/main 无 diff。本工作树 git diff 912b1a47 afcd8fdc 对 src/app/admin/admin.css、src/components/admin/settings/settings.css、src/components/admin/models/models.css、e2e/brand-smoke.spec.ts、e2e/admin-about-images.spec.ts、docs/PackJoyU-开发文档/_run/density_probe.js 无差异。当前行：admin.css:145 标题 16px 下边距 8px；settings.css:2 水平内边距 0；settings.css:121-123 按网格直接子项收缩；models.css:6 上传区内边距 16px；brand-smoke.spec.ts:357-358 要求 14 次且 densityFailed 为空。",
+        "验收 3：同一份 standalone-smoke 的 notClaimed 为 /admin/samples、/admin/content、/admin/stats、/admin/mail/unassigned。样品申请、内容、数据看板、未归类邮件不记为完成。",
+        "PR 419 评论（2026-10-24T06:05:31Z）确认图片格直接子项选择器已修，e2e 成功，admin-about-images.spec.ts:400 的两条 1440 失败不在失败列表。当时 build-and-audit 失败于 GHSA-mrhx-c7xc-m3w5 与 GHSA-f2hq-32vh-53cc，条件是依赖升级进入 main 且本 PR 的 build-and-audit 变绿后再合并并记录落地。PR 420 已合入 950b63c2。PR 419 head 89381045 的 run 40081092403 中 build-and-audit、e2e、posix-storage-security 均为 success。合并提交 afcd8fdc 的 run 40081550954 同样三项 success。"
+      ]
+    }
+  }
+}
