@@ -1,10 +1,11 @@
 name: security-review
-# 改动安全相关路径的 PR，必须有安全复查 App 对最新提交的 APPROVE 才能通过
+# 改动安全相关路径的 PR，必须有安全复查 App 对最新提交的 APPROVE 才能通过。
+# pull_request_target 使用默认分支上的这份文件。PR 修改、删规则或提前 return 不会改变本次判定。
+# 只通过 API 读 PR 文件列表和 reviews。不 checkout，不安装，不构建，不执行 PR head 的代码。
+# 不把 PR 标题、正文、分支名或文件名拼进 shell。批准后的重跑见 security-review-rerun.yml。
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
-  pull_request_review:
-    types: [submitted, dismissed]
 permissions:
   contents: read
   pull-requests: read
@@ -26,7 +27,8 @@ jobs:
               /^tsconfig.*\.json$/, /^\.gitattributes$/, /^prod-env-check\.ts$/, /^src\/instrumentation\.ts$/,
               /^src\/auth\.ts$/, /^src\/lib\/admin\//, /^src\/lib\/edge\//, /^src\/lib\/contracts\//, /^src\/app\/admin-enroll\//, /^vercel\.json$/,
               /^\.env\.example$/, /(^|\/)\.gitattributes$/,
-              /^next\.config\.(js|mjs|cjs|mts|cts)$/, /^middleware\.(js|mjs|cjs|ts|mts|cts)$/, /^src\/middleware\.(js|mjs|cjs|mts|cts)$/];
+              /^next\.config\.(js|mjs|cjs|mts|cts)$/, /^middleware\.(js|mjs|cjs|ts|mts|cts)$/, /^src\/middleware\.(js|mjs|cjs|mts|cts)$/,
+              /^src\/app\/admin\//, /^src\/app\/media\//, /^src\/components\/admin\//, /^src\/components\/seo\/JsonLd\.tsx$/, /^src\/lib\/site-settings\//];
             const hit = files.flatMap(f => [f.filename, f.previous_filename].filter(Boolean)).filter(p => sensitive.some(r => r.test(p)));
             if (!hit.length) { core.info('未改动安全路径，跳过'); return; }
             core.info('安全路径：' + hit.join(', '));

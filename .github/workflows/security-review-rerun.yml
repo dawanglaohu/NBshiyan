@@ -1,0 +1,143 @@
+name: security-review-rerun
+# 监听 replay 的完成事件。本文件只从默认分支运行，PR 改 replay 不能改这里的脚本。
+# 只重跑 event=pull_request_target 且 path 为 security-review.yml 的 run。
+# 不 checkout，不读取 artifact，不把 PR 标题、正文、分支名或文件名拼进 shell。
+on:
+  workflow_run:
+    workflows: ["security-review-replay"]
+    types: [completed]
+permissions:
+  actions: write
+  checks: read
+  contents: read
+  pull-requests: read
+jobs:
+  rerun:
+    if: >-
+      github.event.workflow_run.event == 'pull_request_review' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.path == '.github/workflows/security-review-replay.yml'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const runMeta = context.payload.workflow_run || {};
+            const headSha = runMeta.head_sha || '';
+            if (!/^[0-9a-f]{40}$/.test(headSha)) {
+              core.info('replay head SHA 不是 40 位十六进制，跳过');
+              return;
+            }
+            const { owner, repo } = context.repo;
+            const GATE_PATH = '.github/workflows/security-review.yml';
+
+            let openPrs = [];
+            try {
+              const associated = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner, repo, commit_sha: headSha,
+              });
+              openPrs = (associated.data || []).filter(pr =>
+                pr && pr.state === 'open' && pr.head && pr.head.sha === headSha && Number.isInteger(pr.number)
+              );
+            } catch (error) {
+              core.info('按提交查找 PR 失败，status=' + (error && error.status));
+              return;
+            }
+            if (openPrs.length !== 1) {
+              core.info('开放 PR 不是唯一匹配，跳过。count=' + openPrs.length);
+              return;
+            }
+            const prNumber = openPrs[0].number;
+
+            function trustedShape(run) {
+              return Boolean(run)
+                && run.path === GATE_PATH
+                && run.event === 'pull_request_target'
+                && run.name === 'security-review'
+                && Number.isInteger(run.id);
+            }
+            function linkedToThisHead(run) {
+              return (run.pull_requests || []).some(pr =>
+                pr.number === prNumber && pr.head && pr.head.sha === headSha
+              );
+            }
+            function runIdFromCheck(check) {
+              const url = check.html_url || check.details_url || '';
+              const prefix = 'https://github.com/' + owner + '/' + repo + '/actions/runs/';
+              if (!url.startsWith(prefix)) return null;
+              const match = /^(\d+)\/job\/\d+$/.exec(url.slice(prefix.length));
+              return match ? Number(match[1]) : null;
+            }
+
+            const checkRunIds = [];
+            try {
+              const checks = await github.rest.checks.listForRef({
+                owner, repo, ref: headSha, check_name: 'gate', per_page: 20,
+              });
+              for (const check of checks.data.check_runs || []) {
+                const runId = runIdFromCheck(check);
+                if (runId) checkRunIds.push(runId);
+              }
+            } catch (error) {
+              core.info('读取 head 上的 gate check 失败，status=' + (error && error.status));
+            }
+
+            let chosen = null;
+            for (const runId of checkRunIds) {
+              const loaded = await github.rest.actions.getWorkflowRun({ owner, repo, run_id: runId });
+              const run = loaded.data;
+              if (!trustedShape(run)) continue;
+              const links = run.pull_requests || [];
+              if (links.length && !linkedToThisHead(run)) continue;
+              if (!chosen || run.id > chosen.id) chosen = run;
+            }
+
+            if (!chosen) {
+              for (let page = 1; page <= 5 && !chosen; page++) {
+                const listed = await github.rest.actions.listWorkflowRuns({
+                  owner, repo,
+                  workflow_id: 'security-review.yml',
+                  event: 'pull_request_target',
+                  per_page: 20,
+                  page,
+                });
+                const runs = listed.data.workflow_runs || [];
+                if (!runs.length) break;
+                for (const candidate of runs) {
+                  if (trustedShape(candidate) && linkedToThisHead(candidate)) {
+                    chosen = candidate;
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (!chosen) {
+              core.setFailed('没有找到该 head 对应的 pull_request_target gate run');
+              return;
+            }
+
+            for (let attempt = 1; attempt <= 5; attempt++) {
+              const current = await github.rest.actions.getWorkflowRun({
+                owner, repo, run_id: chosen.id,
+              });
+              const run = current.data;
+              if (!trustedShape(run)) {
+                core.setFailed('待重跑的 run 不再是 security-review 的 pull_request_target');
+                return;
+              }
+              const links = run.pull_requests || [];
+              if (links.length && !linkedToThisHead(run)) {
+                core.setFailed('待重跑的 run 不属于这个 head');
+                return;
+              }
+              if (run.status === 'completed') {
+                await github.rest.actions.reRunWorkflow({ owner, repo, run_id: run.id });
+                core.info('已重跑 security-review run ' + run.id + '，PR ' + prNumber);
+                return;
+              }
+              core.info('run ' + run.id + ' 状态 ' + run.status + '，等待 ' + attempt);
+              await new Promise(resolve => setTimeout(resolve, 15000));
+            }
+            core.setFailed('security-review run ' + chosen.id + ' 仍在进行，未能重跑');
