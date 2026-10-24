@@ -3,11 +3,10 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { visibleImages, visibleStats } from '@/lib/about/model';
-import { isPublishedLocale } from '@/lib/server/published-locales';
-import { getAboutContent, getPublishedAboutLocales } from '@/lib/server/site-settings';
+import { loadAboutPage } from '@/lib/about/visibility';
+import { getPublishedAboutLocales } from '@/lib/server/site-settings';
 import { buildAboutMetadata } from '@/lib/seo/about';
 import { SITE_URL } from '@/lib/site';
-import { isAboutVisible } from '@/lib/about/visibility';
 import { AboutFigure, AboutStats, aboutImageSizes } from '@/components/about/AboutParts';
 import { CtaBand } from '@/components/sections/ui';
 import '@/components/sections/sections.css';
@@ -21,16 +20,11 @@ import '@/components/about/about.css';
  */
 export const revalidate = 60;
 
-async function load(locale: string) {
-  if (!isPublishedLocale(locale) || !(await isAboutVisible(locale))) return null;
-  return getAboutContent(locale);
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (locale !== 'en' && locale !== 'ru') return {};
   const [content, publishedLocales, t, nav] = await Promise.all([
-    load(locale),
+    loadAboutPage(locale),
     getPublishedAboutLocales(),
     getTranslations({ locale, namespace: 'Meta' }),
     getTranslations({ locale, namespace: 'Nav' }),
@@ -43,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const c = await load(locale);
+  const c = await loadAboutPage(locale);
   if (!c) notFound();
   const t = await getTranslations('About');
   const nav = await getTranslations('Nav');

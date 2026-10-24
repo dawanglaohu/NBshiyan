@@ -3,6 +3,7 @@
 import crypto from 'node:crypto';
 import type { Metadata, MetadataRoute } from 'next';
 import type { AboutContent, OrganizationSettings } from '../server/site-settings';
+import { visibleImages } from '../about/model';
 import { withXDefault } from './hreflang';
 import { ogSafeText } from './og/articleOgLayout';
 import { ORGANIZATION_DEFAULTS } from './organization-defaults';
@@ -13,8 +14,8 @@ import ogVersions from '../../data/og-versions.json';
 
 // /[locale]/about 的 SEO 规则（#350）。metadata / JSON-LD 不查库：数据由调用方读好再传进来。
 // - meta title = 标题；description = 摘要，没填就取正文纯文本前 160 字（spec §2）。
-// - 页面 canonical / hreflang 只列调用方传入的已显示语言；只有一种语言时页面不出 x-default。
-// - sitemap 也只列 getAboutContent 非 null 的语言。x-default 按 hreflang.ts：en 在列表里就指向 en，只有 en 时也输出。
+// - 页面 HTML 和 sitemap 的 hreflang 都走 aboutLanguages：只列已发布语言；只有一种语言时不输出 x-default；两种及以上并且包含 en 时，x-default 指向 en。
+// - sitemap 是否收录某个语言由调用方按页面的 loadAboutPage 决定。图片先过 visibleImages，再用 src.lg。
 
 export const ABOUT_PATH = '/about';
 /** = ABOUT_LIMITS.summaryMax（160，spec 字段限制） */
@@ -44,7 +45,7 @@ export function aboutDescription(content: Pick<AboutContent, 'summary' | 'bodyHt
   return truncateCodePoints(aboutPlainText(content.bodyHtml ?? ''), ABOUT_DESCRIPTION_MAX);
 }
 
-/** hreflang：只列显示中的语言；只有一种语言时不输出 x-default，多于一种时按 withXDefault（en 存在才有，指向 en） */
+/** 页面 HTML 和 sitemap 共用的 hreflang。只列已发布语言；只有一种语言时不输出 x-default，多于一种时按 withXDefault（en 存在才有，指向 en）。 */
 export function aboutLanguages(publishedLocales: readonly string[], origin: string): Record<string, string> {
   const langs: Record<string, string> = {};
   for (const l of publishedLocales) langs[l] = aboutUrl(origin, l);
@@ -136,7 +137,7 @@ function aboutSitemapImageUrl(origin: string, srcLg: string): string {
   return `${base}${srcLg.startsWith('/') ? srcLg : `/${srcLg}`}`;
 }
 
-/** sitemap 条目。没有语言时返回 []。x-default 仅在 en 在列表中时指向 en。 */
+/** sitemap 条目。没有语言时返回 []。hreflang 与页面 metadata 同一个 aboutLanguages。 */
 export function aboutSitemapEntries(opts: {
   publishedLocales: readonly string[];
   origin: string;
@@ -146,10 +147,7 @@ export function aboutSitemapEntries(opts: {
   imagePaths?: Partial<Record<string, readonly string[] | undefined>>;
 }): MetadataRoute.Sitemap {
   if (opts.publishedLocales.length === 0) return [];
-  const languages = withXDefault(
-    Object.fromEntries(opts.publishedLocales.map((l) => [l, aboutUrl(opts.origin, l)])),
-    DEFAULT_LOCALE
-  );
+  const languages = aboutLanguages(opts.publishedLocales, opts.origin);
   const lmFor = (l: string): Date | undefined => {
     const lm = opts.lastModified;
     if (!lm) return undefined;
@@ -192,16 +190,22 @@ export async function aboutSitemapFromLoader<L extends string>(opts: {
       publishedLocales: published.map((row) => row.locale),
       origin: opts.origin,
       lastModified: Object.fromEntries(published.map((row) => [row.locale, row.content.updatedAt])),
-      imagePaths: Object.fromEntries(published.map((row) => [row.locale, row.content.images.map((img) => img.src.lg)]))
+      imagePaths: Object.fromEntries(published.map((row) => [row.locale, visibleImages(row.content.images).map((img) => img.src.lg)]))
     });
   } catch (e) {
-    // 单测直接调用 sitemap() 时没有 Next 的 incremental cache，会抛这句。生产和 next build 里缓存存在。
-    // 只记错误名，不记 message（可能含连接信息）。
-    if (!(e instanceof Error) || !e.message.includes('incrementalCache missing')) {
+    // 单测直接调用 sitemap() 时没有 Next 的增量缓存。Next 把这个不变量标成 E469；message 里仍有 incrementalCache missing，留作对照。
+    // 生产和 next build 里缓存存在。只记错误名，不记 message（可能含连接信息）。
+    if (!isMissingIncrementalCache(e)) {
       console.error('[sitemap] about entries skipped', e instanceof Error ? e.name : 'Error');
     }
     return [];
   }
+}
+
+function isMissingIncrementalCache(e: unknown): boolean {
+  if (!(e instanceof Error)) return false;
+  const code = (e as { __NEXT_ERROR_CODE?: unknown }).__NEXT_ERROR_CODE;
+  return code === 'E469' || e.message.includes('incrementalCache missing');
 }
 
 const clean = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
