@@ -51,18 +51,38 @@ The app sends `Cache-Control: public, max-age=300, s-maxage=3600` on a live `/me
 
 nginx must actually proxy these paths. Do not assume an existing vhost already does. Values below are placeholders.
 
+One `proxy_set_header` inside a location drops every server-level `proxy_set_header`. Both locations therefore repeat the full set from `docs/seo-cutover-geiom.md` section 2.4 («边缘鉴权和转发头»), the same seven lines other proxied locations use: Host, X-Forwarded-Host, X-Forwarded-Proto, X-Forwarded-For, X-Real-IP cleared, X-Edge-Auth overwritten, CF-Connecting-IP passed through. The app (`src/lib/edge/client-ip.ts`) reads the client IP from `X-Edge-Auth` plus `CF-Connecting-IP`. Without `CF-Connecting-IP`, the about-page upload's per-IP limit and audit land in the `untrusted` bucket and record `unknown`.
+
+Both locations also run the same `X-Edge-Auth` check as every other location before `proxy_pass` (section 2.4 requires that check on all locations: wrong or missing → 403 / 444). Paste the check the other proxied locations already use. The comments mark where it goes.
+
+Do not write `add_header` in either location. One `add_header` in a location drops the six security headers the server block adds, on that path.
+
 ```nginx
 location = /api/admin/site-settings/assets {
     client_max_body_size 11m;   # global 4m is too small; the app allows 10 MB per file and 10 MB + 64 KB per request, and returns 413 above that
+    # Same X-Edge-Auth check as every other proxied location (section 2.4), before proxy_pass. Paste that block.
     proxy_pass http://<app-upstream>;
-    proxy_set_header Host $host;
-    proxy_set_header X-Edge-Auth "<same value as every other proxied location>";
+    # Seven proxy_set_header lines copied from section 2.4. Do not add_header in this location.
+    proxy_set_header Host geiom.com;              # 固定值
+    proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+    proxy_set_header X-Forwarded-Proto https;     # 固定值
+    proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+    proxy_set_header X-Real-IP "";                # 清空
+    proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+    proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
 }
 # ^~ so a regex "dotted path → 404" location cannot take /media/*.webp first. Do not serve this prefix as static files.
 location ^~ /media/ {
+    # Same X-Edge-Auth check as every other proxied location (section 2.4), before proxy_pass. Paste that block.
     proxy_pass http://<app-upstream>;
-    proxy_set_header Host $host;
-    proxy_set_header X-Edge-Auth "<same value as every other proxied location>";
+    # Seven proxy_set_header lines copied from section 2.4. Do not add_header in this location.
+    proxy_set_header Host geiom.com;              # 固定值
+    proxy_set_header X-Forwarded-Host geiom.com;  # 固定值
+    proxy_set_header X-Forwarded-Proto https;     # 固定值
+    proxy_set_header X-Forwarded-For $remote_addr;   # 不用 $proxy_add_x_forwarded_for
+    proxy_set_header X-Real-IP "";                # 清空
+    proxy_set_header X-Edge-Auth <服务器上的值，同一个值，不写在这里>;   # 校验通过后覆盖，不清空
+    proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;   # 原样转发（安全 + PM 决定），前提是 X-Edge-Auth 校验在所有 location 上生效
 }
 ```
 
@@ -77,7 +97,8 @@ Expect the app's 404: `Cache-Control: no-store`, and `Content-Security-Policy` c
 Ops checklist (tick on the server):
 
 - [ ] `location = /api/admin/site-settings/assets` sets `client_max_body_size 11m`
-- [ ] `/media/` is proxied to the app with `X-Edge-Auth`, and a missing `/media/<24-char-id>-800.webp` is the app's 404 (`no-store`, CSP `sandbox`)
+- [ ] Both locations run the same `X-Edge-Auth` check as every other proxied location (section 2.4) and use that section's full `proxy_set_header` set, with no `add_header`
+- [ ] `/media/` is proxied to the app, and a missing `/media/<24-char-id>-800.webp` is the app's 404 (`no-store`, CSP `sandbox`)
 - [ ] `UPLOAD_DIR` (including `public-assets/`) is backed up separately from `backup-postgres.sh`
 - [ ] Any Cloudflare Edge TTL or Browser TTL for `/media/` is no longer than the new header (browser 5 minutes, edge 1 hour, no `immutable`)
 - [ ] After this version is live, purge the `/media/` prefix once (Ryan's approval)

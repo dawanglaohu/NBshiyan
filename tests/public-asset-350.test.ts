@@ -649,7 +649,10 @@ test('/media/<id>-<w>.webp：WebP + 短缓存（5 分钟浏览器 / 1 小时边�
   assert.equal(gone.status, 404);
   assert.equal(gone.headers.get('cache-control'), 'no-store');
   assert.doesNotMatch(gone.headers.get('cache-control') ?? '', /max-age|immutable/);
-  const wrapped = await fileRoute(async (_req: Request, f: string) => handleMedia(f, md))(new Request('http://localhost/media/x'), `${a.id}-800.webp`);
+  const wrapped = await fileRoute(async (_req: Request, { params }: { params: Promise<{ file: string }> }) => {
+    const { file } = await params;
+    return handleMedia(file, md);
+  })(new Request('http://localhost/media/x'), { params: Promise.resolve({ file: `${a.id}-800.webp` }) });
   assert.equal(wrapped.status, 404);
   assert.equal(wrapped.headers.get('cache-control'), 'no-store');
   assert.equal(wrapped.headers.get('content-security-policy'), FILE_CSP);
@@ -703,14 +706,18 @@ test('/media 可被收录：200 不带 X-Robots-Tag（经 fileRoute 包装后也
   const t = await assetDeps();
   const a = (await body(await handleUploadAsset(uploadReq(await solid(2400, 1800)), t.d))).json;
   const md = { findLive: async (id: string) => { const r = t.mem.rows.get(id); return r && !r.deletedAt ? r : null; }, storage: t.local };
-  const GET = fileRoute(async (_req: Request, f: string) => handleMedia(f, md));
+  const GET = fileRoute(async (_req: Request, { params }: { params: Promise<{ file: string }> }) => {
+    const { file } = await params;
+    return handleMedia(file, md);
+  });
+  const mediaCtx = (file: string) => ({ params: Promise.resolve({ file }) });
   for (const w of [800, 1600]) {
-    const r = await GET(new Request(`http://localhost/media/${a.id}-${w}.webp`), `${a.id}-${w}.webp`);
+    const r = await GET(new Request(`http://localhost/media/${a.id}-${w}.webp`), mediaCtx(`${a.id}-${w}.webp`));
     assert.equal(r.status, 200);
     assert.equal(r.headers.get('x-robots-tag'), null);
     assert.equal(r.headers.get('cache-control'), MEDIA_CACHE_CONTROL);
   }
-  const nfr = await GET(new Request('http://localhost/media/x'), `${a.id}-801.webp`);
+  const nfr = await GET(new Request('http://localhost/media/x'), mediaCtx(`${a.id}-801.webp`));
   assert.deepEqual([nfr.status, nfr.headers.get('cache-control')], [404, 'no-store']);
   await t.cleanup();
   // 全站安全头里没有 X-Robots-Tag；next.config 里带 X-Robots-Tag 的只有：非正式环境全站、后台路径、/s/
