@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Prisma, type CategorySpec, type Incoterm } from '@prisma/client';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { isHttpsUrl, normalizeUrlSchemeHost } from '@/lib/admin/spec-form';
-import { isPublishedLocale, type PublishedLocale } from './published-locales';
+import { isPublishedLocale, PUBLISHED_LOCALES, type PublishedLocale } from './published-locales';
 
 /** 品类 key 以 categoryMeta.ts 为准 */
 export const CATEGORY_KEYS: readonly string[] = categoryMeta.map((c) => c.key);
@@ -14,7 +14,11 @@ export const CURRENCIES = ['USD', 'EUR', 'CNY', 'RUB'] as const;
 export type SpecLocale = PublishedLocale;
 
 const text = (max: number) => z.string().trim().max(max);
-const Localized = (max: number) => z.object({ en: text(max).optional(), ru: text(max).optional() }).strict();
+const Localized = (max: number) => {
+  const shape = {} as Record<PublishedLocale, z.ZodOptional<z.ZodString>>;
+  for (const locale of PUBLISHED_LOCALES) shape[locale] = text(max).optional();
+  return z.object(shape).strict();
+};
 const mm = z.number().int().min(1).max(10_000);
 const Dims = z.object({ l: mm, w: mm, h: mm }).strict();
 const days = z.number().int().min(1).max(365);
@@ -53,14 +57,16 @@ export const SpecInput = z.object({
 });
 export type SpecInput = z.infer<typeof SpecInput>;
 
-type Loc = { en?: string; ru?: string };
+type Loc = Partial<Record<PublishedLocale, string>>;
 type Dims = { l: number; w: number; h: number };
 type Cert = { name: string; certNo?: string; url?: string };
 const cleanLoc = (l: Loc | null | undefined): Loc | null => {
   if (!l) return null;
   const o: Loc = {};
-  if (l.en) o.en = l.en;
-  if (l.ru) o.ru = l.ru;
+  for (const locale of PUBLISHED_LOCALES) {
+    const value = l[locale];
+    if (value) o[locale] = value;
+  }
   return Object.keys(o).length ? o : null;
 };
 const json = (v: unknown) => (v == null ? Prisma.DbNull : (v as Prisma.InputJsonValue));

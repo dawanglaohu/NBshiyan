@@ -1,0 +1,20 @@
+Subject: Hemos recibido su solicitud n.º {{inquiryId}}
+
+Hola, {{name}}:
+
+Gracias por contactar con PackJoyU. {{#reply}}Hemos recibido su solicitud y un especialista en embalaje le responderá en un plazo de {{replyTime}}.{{/reply}}{{^reply}}Hemos recibido su solicitud y un especialista en embalaje le responderá por correo electrónico.{{/reply}}
+
+Su solicitud
+Referencia: #{{inquiryId}}
+Empresa: {{company}}
+Producto: {{product}}
+Cantidad: {{quantity}}
+
+Si responde a este correo, mantenga el número de referencia en el asunto.
+
+Ver nuestros productos: {{siteUrl}}/{{locale}}/products
+
+¿Necesita contactarnos antes? Escriba a {{contactEmail}} o por WhatsApp al {{whatsapp}}.
+
+--
+Recibe este correo porque envió una solicitud en {{siteUrl}}. PackJoyU · Embalaje de papel e impresión a medida.

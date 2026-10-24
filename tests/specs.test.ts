@@ -101,3 +101,11 @@ test('locale parsing', () => {
   assert.equal(parseLocale('ru'), 'ru');
   assert.equal(parseLocale('de'), null);
 });
+
+test('spec copy only accepts published locales', () => {
+  assert.equal(SpecInput.safeParse({ material: { en: 'Kraft paper' } }).success, true);
+  assert.equal(SpecInput.safeParse({ notes: { ru: 'заметка' } }).success, true);
+  for (const locale of ['es', 'de', 'fr', 'ja']) {
+    assert.equal(SpecInput.safeParse({ material: { [locale]: 'paper' } }).success, false, locale);
+  }
+});

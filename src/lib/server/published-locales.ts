@@ -4,7 +4,7 @@ import { PUBLISHED_LOCALES, DEFAULT_PUBLISHED_LOCALE, isPublishedLocale, type Pu
 
 /**
  * 已对外发布的语言：公开接口（询盘、定制方案、品类规格）只接受这里列出的值。
- * 清单本身只有一份，在 src/i18n/published-locales.ts（前后端共用，不依赖 zod）；这里只 re-export，再加服务端用的 zod 校验。
+ * 字面清单只有一份，在 src/i18n/published-locale-list.ts；src/i18n/published-locales.ts 再导出，并核对它仍是路由语言和数据库枚举的子集。这里只 re-export，再加服务端用的 zod 校验。
  * Prisma `enum Locale` 已为多语言第 0 期预留 es/de/fr/ja/hi/ar，但预留 ≠ 发布：
  * 未发布语言一律按参数错误返回 400，不能因为 DB 枚举里有就放行。
  */

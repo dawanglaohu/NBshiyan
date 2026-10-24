@@ -1,11 +1,12 @@
 import { TEMPLATES, type TemplateKey } from './templates.generated';
+import type { PublishedLocale } from '@/i18n/published-locales';
 import { SITE_URL } from '@/lib/site';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import enMessages from '../../../../messages/en.json';
 import ruMessages from '../../../../messages/ru.json';
 
 export type EmailVars = {
-  name: string; company?: string; product: string; quantity: string; inquiryId: string; locale: 'en' | 'ru';
+  name: string; company?: string; product: string; quantity: string; inquiryId: string; locale: PublishedLocale;
   adminId?: string; score?: number;
 };
 
@@ -97,7 +98,7 @@ export function renderAlert(kind: string, lines: Record<string, string | number>
 /** 不在 categoryMeta 里的卡片（已并入纸杯的 eco-paper-cups）：邮件里用卡片名 Products.names.<slug>，不把 slug（含 eco）原样露给客户 */
 const CARD_SLUG: Record<string, string> = { 'eco-paper-cups': 'eco-paper-cups', 'eco-paper-cup': 'eco-paper-cups' };
 const CARD_NAMES: Record<'en' | 'ru', Record<string, string>> = { en: enMessages.Products.names, ru: ruMessages.Products.names };
-export function productName(slug: string, locale: 'en' | 'ru' | 'zh') {
+export function productName(slug: string, locale: PublishedLocale | 'zh') {
   // 只查自身属性，原型键（constructor / __proto__ / toString）不命中
   const own = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
   const names = CARD_NAMES[locale === 'ru' ? 'ru' : 'en'];
@@ -110,7 +111,7 @@ export function productName(slug: string, locale: 'en' | 'ru' | 'zh') {
 }
 
 /** 产品、数量摘要：最多列 3 个产品，其余用 +N；数量按产品顺序，用 / 分隔。客户邮件按语言给产品名，内部通知用 slug */
-export function summarizeItems(items: { productSlug: string; quantity?: number }[], locale?: 'en' | 'ru') {
+export function summarizeItems(items: { productSlug: string; quantity?: number }[], locale?: PublishedLocale) {
   if (!items.length) return { product: '—', quantity: '—' };
   const shown = items.slice(0, 3);
   const more = items.length > 3 ? ` +${items.length - 3}` : '';
