@@ -12,6 +12,7 @@ import {
   aboutOgImageUrl,
   aboutOgVersion,
   aboutSitemapEntries,
+  aboutSitemapFromLoader,
   buildAboutMetadata,
   buildOrganizationJsonLd,
   aboutPlainText,
@@ -23,7 +24,8 @@ import { articleOgImageUrl, articleOgVersion } from '../src/lib/seo/articleOg';
 import { ORGANIZATION_DEFAULTS } from '../src/lib/seo/organization-defaults';
 import { SITE_URL } from '../src/lib/site';
 import { isValidFoundingDate, parseStoredOrganization } from '../src/lib/server/site-settings-model';
-import type { AboutContent } from '../src/lib/server/site-settings';
+import type { AboutContent, AboutImage } from '../src/lib/server/site-settings';
+import { buildSitemap } from '../src/lib/seo/sitemapEntries';
 
 const ORIGIN = 'https://example.test';
 const LONG_BODY = `<h2>Who we are</h2><p>${'Sample text about the company. '.repeat(12)}</p><ul><li>Item one</li></ul>`;
@@ -109,18 +111,69 @@ test('og image: title with no renderable glyphs → home OG fallback', () => {
   assert.equal(img.alt, 'alt');
 });
 
-test('sitemap: [] when none; entries share the same hreflang rule', () => {
+const aboutImg = (id: string, sameFile = false): AboutImage => ({
+  id, w: sameFile ? 640 : 1600, h: sameFile ? 480 : 1000, alt: `alt ${id}`, caption: '',
+  sm: sameFile ? { w: 640, h: 480 } : { w: 800, h: 500 },
+  lg: sameFile ? { w: 640, h: 480 } : { w: 1600, h: 1000 },
+  src: { sm: `/media/${id}-${sameFile ? '1600' : '800'}.webp`, lg: `/media/${id}-1600.webp` }
+});
+
+test('sitemap: [] when none; x-default only when en is published', () => {
   assert.deepEqual(aboutSitemapEntries({ publishedLocales: [], origin: ORIGIN }), []);
   const one = aboutSitemapEntries({ publishedLocales: ['en'], origin: ORIGIN });
   assert.equal(one.length, 1);
-  assert.deepEqual(one[0].alternates?.languages, { en: `${ORIGIN}/en/about` });
+  assert.deepEqual(one[0].alternates?.languages, { en: `${ORIGIN}/en/about`, 'x-default': `${ORIGIN}/en/about` });
   assert.equal('lastModified' in one[0], false);
+  assert.equal('images' in one[0], false);
+  const ruOnly = aboutSitemapEntries({ publishedLocales: ['ru'], origin: ORIGIN });
+  assert.deepEqual(ruOnly[0].alternates?.languages, { ru: `${ORIGIN}/ru/about` });
   const lm = new Date('2026-10-17T00:00:00Z');
   const two = aboutSitemapEntries({ publishedLocales: ['en', 'ru'], origin: ORIGIN, lastModified: { en: lm, ru: 'bad-date' } });
   assert.deepEqual(two.map((e) => e.url), [`${ORIGIN}/en/about`, `${ORIGIN}/ru/about`]);
   assert.equal(two[0].lastModified, lm);
   assert.equal('lastModified' in two[1], false);
   for (const e of two) assert.deepEqual(e.alternates?.languages, { en: `${ORIGIN}/en/about`, ru: `${ORIGIN}/ru/about`, 'x-default': `${ORIGIN}/en/about` });
+});
+
+test('sitemap loader: switch off → no /about; en only lists en and x-default; three lg images', async () => {
+  assert.deepEqual(await aboutSitemapFromLoader({ locales: ['en', 'ru'] as const, origin: ORIGIN, load: async () => null }), []);
+  const images = [aboutImg('aaa'), aboutImg('bbb', true), aboutImg('ccc')];
+  const entries = await aboutSitemapFromLoader({
+    locales: ['en', 'ru'] as const,
+    origin: `${ORIGIN}/`,
+    load: async (locale) => (locale === 'en' ? content('en', { images, updatedAt: '2026-10-18T05:30:00.000Z' }) : null)
+  });
+  assert.deepEqual(entries.map((e) => e.url), [`${ORIGIN}/en/about`]);
+  assert.deepEqual(entries[0].alternates?.languages, { en: `${ORIGIN}/en/about`, 'x-default': `${ORIGIN}/en/about` });
+  assert.equal((entries[0].lastModified as Date).toISOString(), '2026-10-18T05:30:00.000Z');
+  assert.deepEqual(entries[0].images, [
+    `${ORIGIN}/media/aaa-1600.webp`,
+    `${ORIGIN}/media/bbb-1600.webp`,
+    `${ORIGIN}/media/ccc-1600.webp`
+  ]);
+  for (const u of entries[0].images ?? []) assert.doesNotMatch(u, /-800\.webp$/);
+});
+
+test('sitemap route keeps hourly revalidate and reads about via getAboutContent', () => {
+  const src = readFileSync('src/app/sitemap.ts', 'utf8');
+  assert.match(src, /export const revalidate = 3600/);
+  assert.match(src, /getAboutContent\(locale\)/);
+  assert.match(src, /revalidate: 3600/);
+  assert.match(src, /aboutSitemapFromLoader/);
+  assert.doesNotMatch(src, /export const dynamic/);
+});
+
+test('sitemap loader: getAboutContent throw leaves the other entries unchanged', async () => {
+  const base = buildSitemap({ siteUrl: ORIGIN, locales: ['en', 'ru'] as const, defaultLocale: 'en', lastModified: new Date('2026-01-01T00:00:00Z') });
+  const about = await aboutSitemapFromLoader({
+    locales: ['en', 'ru'] as const,
+    origin: ORIGIN,
+    load: async () => { throw new Error('database unavailable'); }
+  });
+  assert.deepEqual(about, []);
+  assert.deepEqual([...base, ...about], base);
+  assert.ok(base.length > 0);
+  assert.ok(![...base, ...about].some((e) => e.url.includes('/about')));
 });
 
 test('ORGANIZATION_DEFAULTS: exact text, no numbers', () => {

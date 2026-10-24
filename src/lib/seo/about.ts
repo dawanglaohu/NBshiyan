@@ -11,10 +11,10 @@ import { ABOUT_LIMITS, aboutBodyText, countChars } from '../site-settings/about-
 import { ORG_EMAIL_RE, isValidFoundingDate, safeOrgUrl } from '../server/site-settings-model';
 import ogVersions from '../../data/og-versions.json';
 
-// /[locale]/about 的 SEO 规则（#350）。全部是纯函数：数据由调用方从 site-settings 读好再传进来，这里不查库。
+// /[locale]/about 的 SEO 规则（#350）。metadata / JSON-LD 不查库：数据由调用方读好再传进来。
 // - meta title = 标题；description = 摘要，没填就取正文纯文本前 160 字（spec §2）。
-// - 显示中的语言由后端 getPublishedAboutLocales() 决定（规则在后端 about-rules.ts），这里只吃这个列表：
-//   canonical / hreflang / sitemap 都只列这些语言；只有一种语言时不出 x-default。
+// - 页面 canonical / hreflang 只列调用方传入的已显示语言；只有一种语言时页面不出 x-default。
+// - sitemap 也只列 getAboutContent 非 null 的语言。x-default 按 hreflang.ts：en 在列表里就指向 en，只有 en 时也输出。
 
 export const ABOUT_PATH = '/about';
 /** = ABOUT_LIMITS.summaryMax（160，spec 字段限制） */
@@ -129,15 +129,27 @@ export function buildAboutMetadata(opts: {
   };
 }
 
-/** sitemap 条目：语言列表同 buildAboutMetadata；没有显示中的语言时返回 [] */
+/** sitemap <image:loc>。src.lg 是站内路径（/media/<id>-1600.webp）；绝对地址只用 origin，不用请求 Host。 */
+function aboutSitemapImageUrl(origin: string, srcLg: string): string {
+  if (/^https?:\/\//i.test(srcLg)) return srcLg;
+  const base = trimOrigin(origin);
+  return `${base}${srcLg.startsWith('/') ? srcLg : `/${srcLg}`}`;
+}
+
+/** sitemap 条目。没有语言时返回 []。x-default 仅在 en 在列表中时指向 en。 */
 export function aboutSitemapEntries(opts: {
   publishedLocales: readonly string[];
   origin: string;
   /** 统一时间，或按语言取 AboutContent.updatedAt */
   lastModified?: Date | Partial<Record<string, Date | string | undefined>>;
+  /** 按语言列出 AboutImage.src.lg。空则不写 images。 */
+  imagePaths?: Partial<Record<string, readonly string[] | undefined>>;
 }): MetadataRoute.Sitemap {
   if (opts.publishedLocales.length === 0) return [];
-  const languages = aboutLanguages(opts.publishedLocales, opts.origin);
+  const languages = withXDefault(
+    Object.fromEntries(opts.publishedLocales.map((l) => [l, aboutUrl(opts.origin, l)])),
+    DEFAULT_LOCALE
+  );
   const lmFor = (l: string): Date | undefined => {
     const lm = opts.lastModified;
     if (!lm) return undefined;
@@ -149,14 +161,47 @@ export function aboutSitemapEntries(opts: {
   };
   return opts.publishedLocales.map((l) => {
     const lastModified = lmFor(l);
+    const images = (opts.imagePaths?.[l] ?? []).filter((p) => p.length > 0).map((p) => aboutSitemapImageUrl(opts.origin, p));
     return {
       url: aboutUrl(opts.origin, l),
       ...(lastModified ? { lastModified } : {}),
+      ...(images.length ? { images } : {}),
       changeFrequency: 'monthly' as const,
       priority: 0.5,
       alternates: { languages }
     };
   });
+}
+
+/**
+ * load 与页面同一条件：返回 null 的语言不收录。
+ * 任一语言抛错则整段 /about 不输出，调用方已经生成的其他条目保持原样。
+ */
+export async function aboutSitemapFromLoader<L extends string>(opts: {
+  locales: readonly L[];
+  origin: string;
+  load: (locale: L) => Promise<AboutContent | null>;
+}): Promise<MetadataRoute.Sitemap> {
+  try {
+    const rows = await Promise.all(opts.locales.map(async (locale) => {
+      const content = await opts.load(locale);
+      return content ? { locale, content } : null;
+    }));
+    const published = rows.filter((row): row is { locale: L; content: AboutContent } => row != null);
+    return aboutSitemapEntries({
+      publishedLocales: published.map((row) => row.locale),
+      origin: opts.origin,
+      lastModified: Object.fromEntries(published.map((row) => [row.locale, row.content.updatedAt])),
+      imagePaths: Object.fromEntries(published.map((row) => [row.locale, row.content.images.map((img) => img.src.lg)]))
+    });
+  } catch (e) {
+    // 单测直接调用 sitemap() 时没有 Next 的 incremental cache，会抛这句。生产和 next build 里缓存存在。
+    // 只记错误名，不记 message（可能含连接信息）。
+    if (!(e instanceof Error) || !e.message.includes('incrementalCache missing')) {
+      console.error('[sitemap] about entries skipped', e instanceof Error ? e.name : 'Error');
+    }
+    return [];
+  }
 }
 
 const clean = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
