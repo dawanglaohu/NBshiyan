@@ -101,7 +101,7 @@ test('production load rejects missing required secrets and does not echo their v
 });
 
 test('startup wires the frozen config without adding a second problem list', () => {
-  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 24);
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 22); // #432：未设置 RATE_LIMIT_STORE 只报一条（upstash 或 redis）
   const instrumentation = readFileSync('src/instrumentation.ts', 'utf8');
   assert.match(instrumentation, /freezeServerConfig\(\)/);
   assert.match(instrumentation, /serverConfigFailureText/);

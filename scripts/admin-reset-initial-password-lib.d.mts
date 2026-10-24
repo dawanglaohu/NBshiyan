@@ -31,8 +31,10 @@ export const UNTRUSTED: 'untrusted';
 export function accountOnlyRateKeys(email: string, env: Record<string, string | undefined>): { key: string; windowMs: number }[];
 export function upstashKey(key: string, env: Record<string, string | undefined>, now: number, windowMs?: number, offset?: number): string;
 export function rateKeysToDelete(email: string, env: Record<string, string | undefined>, now: number): string[];
+/** 读一条 RESP。数据不够返回 null。与应用里的 parseResp 对照。 */
+export function readResp(buf: Buffer, at?: number, depth?: number): { kind: string; next: number; value?: unknown } | null;
 type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }) => Promise<{ ok: boolean; json(): Promise<unknown> }>;
-export function clearAccountRateLimits(o: { email: string; env: Record<string, string | undefined>; now: number; fetchImpl: FetchLike }): Promise<'cleared' | 'skipped_memory' | 'failed'>;
+export function clearAccountRateLimits(o: { email: string; env: Record<string, string | undefined>; now: number; fetchImpl?: FetchLike }): Promise<'cleared' | 'skipped_memory' | 'failed'>;
 export function safeErrorCode(e: unknown): string;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ResetDb = any;
@@ -42,7 +44,8 @@ export function runReset(o: {
   readPassword: () => Promise<string | { error: string } | undefined>;
   db: () => Promise<ResetDb>;
   hash: (pw: string) => Promise<string>;
-  fetchImpl: FetchLike;
+  /** 不传则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS */
+  fetchImpl?: FetchLike;
   now?: () => number;
   out: (s: string) => void;
   err: (s: string) => void;

@@ -117,8 +117,9 @@ services:
       timeout: 3s
       retries: 5
 
-  # SHORT-TERM (approved): Upstash-compatible REST proxy; the app only speaks Upstash REST (POST {url}/pipeline, Bearer).
-  # SRH_TOKEN and redis requirepass are separate random values. LONG-TERM: backend TCP Redis store PR → remove srh + srh-tls.
+  # REST proxy for the current stack. The app can also speak TCP Redis (RATE_LIMIT_STORE=redis),
+  # but this file stays on REST: the app is not on srh-net. Removing srh + srh-tls is a later deploy PR.
+  # SRH_TOKEN and redis requirepass are separate random values.
   srh:
     <<: *hardening
     image: hiett/serverless-redis-http:0.0.10@sha256:65128347949bca511e448fd7238780d624573d74c22b79155a7563db19e9b678
@@ -132,9 +133,9 @@ services:
     memswap_limit: 192m
     pids_limit: 128
 
-  # TLS in front of SRH. prod-env-check, ratelimit/index.ts and seo/indexnow.ts all require an https:// UPSTASH URL.
+  # TLS in front of SRH. This stack still uses an https:// UPSTASH URL (IndexNow still requires it).
   # The cert is signed by a private CA generated on the host (SAN DNS:redis-rest); only the app trusts that CA.
-  # Remove this and srh once a TCP redis store lands in the backend (see plan §11.4).
+  # Keep this proxy until a later deploy PR switches the app to TCP Redis and drops srh + srh-tls.
   srh-tls:
     <<: *hardening
     image: nginxinc/nginx-unprivileged:1.27-alpine@sha256:65e3e85dbaed8ba248841d9d58a899b6197106c23cb0ff1a132b7bfe0547e4c0

@@ -144,6 +144,6 @@ export const stepStatus = (current: Step, n: Step): 'done' | 'current' | 'todo' 
 export const recoveryTxt = (codes: readonly string[]): string => codes.map((c) => `${c}\r\n`).join('');
 export const recoveryFilename = 'packjoyu-admin-recovery-codes.txt';
 
-/** 后台「重置 2FA」确认框（#347）：「之前发出的绑定链接会立即失效」+「同时会解除这个账号的登录锁定」 */
+/** 后台「重置 2FA」确认框（#347）：链接失效、解除账号锁定。重置后对方最多还要等 10 分钟才能重新登录（#432） */
 export const RESET_2FA_CONFIRM = (email: string) =>
-  `重置 ${email} 的 2FA？对方会立即退出登录，需要用新的绑定链接重新绑定。之前发出的绑定链接会立即失效，同时会解除这个账号的登录锁定。`;
+  `重置 ${email} 的 2FA？对方会立即退出登录，需要用新的绑定链接重新绑定。之前发出的绑定链接会立即失效，同时会解除这个账号的登录锁定。重置后，对方可能还要等最多 10 分钟才能重新登录。`;

@@ -27,7 +27,7 @@
 - **样品申请（`SAMPLE`）**：`items` 1–5 个，`shippingAddress` 必填（禁止控制字符和 `<>`）。限制：
   - 每个规范化邮箱 30 天 1 次（小写、去 `+后缀`、Gmail 去点，googlemail 归一为 gmail），数据库判断并加锁。超限返回 `429 { "error": "sample_recent" }`，**不带** `retryAfter` / `Retry-After`，避免借此探测邮箱。
   - 每 IP 30 天 3 次（Turnstile 通过后才计数），超限返回带 `retryAfter` 的标准 429。
-- **429 格式**（IP 类限流）：`{ "error": "rate_limited", "retryAfter": 秒 }` + `Retry-After` 头；`retryAfter` 是窗口长度，属上限值。内存限流存储只保留 24 小时内的记录，30 天窗口需要 `RATE_LIMIT_STORE=upstash` 才完全生效（邮箱限制在数据库里，不受影响）。
+- **429 格式**（IP 类限流）：`{ "error": "rate_limited", "retryAfter": 秒 }` + `Retry-After` 头；`retryAfter` 是窗口长度，属上限值。内存限流存储只保留 24 小时内的记录，30 天窗口需要 `RATE_LIMIT_STORE=upstash` 或 `redis` 才完全生效（邮箱限制在数据库里，不受影响）。
 
 **收货地址（PII）**：后台询盘列表不返回地址；详情 `GET /api/admin/inquiries/:id` 永远返回脱敏地址（国家、城市首字母、邮编前 2 位），`canRevealAddress` 告诉前端是否显示“查看完整地址”按钮。完整地址只能 `POST /api/admin/samples/:id/address`（`:id` 是 `sample.id`，没有 GET）：同源校验 → 登录（ADMIN/SALES）→ 限流 → 只有 ADMIN 和被分配的 SALES，否则 404 → 写审计 `sample.address.view`（不记录地址内容）→ 返回 `{ shippingAddress }`，`Cache-Control: no-store`。EDITOR 无权访问。目前没有导出功能，以后加导出时也要写审计。
 
@@ -137,7 +137,7 @@
 - `GET /api/admin/users?all=1` → `{ items: [{ id, email, name, role, disabled, totpEnabled, locked, createdAt }] }`（不带 `all` 时是分配下拉框用的精简列表，见上）。
 - `POST /api/admin/users` `{ email, name, role: ADMIN|SALES|EDITOR, password }` → 201。新账号需先绑定 2FA 才能登录。409 `email_taken`，422 `weak_password`。
 - `PATCH /api/admin/users/:id` `{ role?, disabled?, name?, unlock?: true }` → 用户对象。停用或改为 EDITOR 时取消其名下询盘的分配。
-- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码，或新账号 72 小时内没绑定（绑定窗口过期）；重新打开 72 小时绑定窗口，对方需重新绑定。#347：同一次写入里签发新的一次性绑定令牌（响应多 `enrollLink`、`expiresAt`、`expiresTruncated`，旧链接失效）、会话失效，并**解除登录锁定**（`failedLogins=0`、`lockedUntil=null`）；审计 `user.reset_2fa` meta `{ unlocked }`（重置前锁定中或 `failedLogins>0` 为 true）。提交后删掉该账号的 3 个限流 key（`login-acct`、`login:untrusted`、`enroll-confirm:untrusted`，当前 + 上一个窗口），不碰 `login-ip`；删除失败不回滚，只记日志 `rate_limit=failed`。
+- `POST /api/admin/users/:id/reset-2fa` → 用户对象。用于对方丢失手机和恢复码，或新账号 72 小时内没绑定（绑定窗口过期）；重新打开 72 小时绑定窗口，对方需重新绑定。#347：同一次写入里签发新的一次性绑定令牌（响应多 `enrollLink`、`expiresAt`、`expiresTruncated`，旧链接失效）、会话失效，并**解除登录锁定**（`failedLogins=0`、`lockedUntil=null`）；审计 `user.reset_2fa` meta `{ unlocked }`（重置前锁定中或 `failedLogins>0` 为 true）。提交后删掉该账号的 3 个限流 key（`login-acct`、`login:untrusted`、`enroll-confirm:untrusted`，当前 + 上一个窗口）。真实 IP 的 `login:<ip>:<账号>`、`enroll-confirm:<ip>:<账号>` 以及 `login-ip`、`enroll-ip` 留着，最多再保留一个 10 分钟窗口。后台确认框使用同一句说明。删除失败不回滚，只记日志 `rate_limit=failed`。
 - `DELETE /api/admin/users/:id` → 204。名下询盘取消分配；审计记录保留。
 - 保护规则：不能修改/停用/删除/重置自己（409 `cannot_modify_self`，自己用上面的自助接口）；不能让系统里没有有效管理员（role=ADMIN 且未停用），否则 409 `last_admin`。账号变更在事务里用 advisory lock 串行执行，防止两个管理员同时互相停用。
 
@@ -172,7 +172,7 @@
 ## 存储与限流（部署配置）
 - **私有文件存储**（`src/lib/server/storage.ts`）：`STORAGE_DRIVER=local`（开发默认；生产采用（Ryan 已定）：`UPLOAD_DIR` 必须是挂载数据卷的可写绝对路径，key 解析后必须在目录内，不跟随符号链接，写入前校验文件头与扩展名一致，文件 0600 / 目录 0700）或 `r2`（Cloudflare R2，S3 API + SigV4，path-style `{endpoint}/{bucket}/{key}`）。R2 需要 `R2_ACCOUNT_ID`（或 `R2_ENDPOINT`）、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`；生产环境 endpoint 必须是 https。桶保持私有，文件只经后端接口按权限提供，不生成公开或预签名地址。写入带 `If-None-Match: *`，不覆盖已有对象；key 只能是服务端生成的 `[A-Za-z0-9/_-]+.(png|webp|glb)`。R2 令牌只需对该桶的对象读写权限。
 - **健康检查** `GET /api/health`：`200 {"ok":true}` / `503 {"ok":false}`，`Cache-Control: no-store`，只查 `SELECT 1`（1.5 秒超时），按来源限流（进程内存），不带版本或错误信息。
-- **限流**（`src/lib/server/ratelimit/`）：`RATE_LIMIT_STORE=memory`（默认，单实例）或 `upstash`（`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`，固定窗口 `INCR` + `PEXPIRE NX`，一次 pipeline 请求，1.5 秒超时）。Upstash 不可用时退回本实例内存计数并记错误日志，既不整站放行也不整站拒绝。代码里用 `await hitRateLimit(...)` / `await enforceAdminRateLimit(...)`（原同步的 `rateLimit` / `adminRateLimit` 已删除，防止漏写 `await`）。
+- **限流**（`src/lib/server/ratelimit/`）：`RATE_LIMIT_STORE=memory`（默认，单实例）、`upstash`（`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`，REST pipeline）或 `redis`（`REDIS_URL`，Node 内置 TCP 客户端。Redis 7 或更新，因为用了 `PEXPIRE ... NX`。生产环境非本机必须 `rediss://`；只有 `127.0.0.1`、`::1`、`localhost` 可以用 `redis://`）。后两种都是固定窗口 `INCR` + `PEXPIRE NX`，1.5 秒超时，出错 throw。各路由的 fail mode 保持原样：存储不可用时按该路由既定的拒绝、本机计数或放行处理。IndexNow 去重仍只在 `upstash` 时启用。代码里用 `await hitRateLimit(...)` / `await enforceAdminRateLimit(...)`（原同步的 `rateLimit` / `adminRateLimit` 已删除，防止漏写 `await`）。
 - 单元测试：`pnpm test`（node:test + tsx，Upstash 和 R2 都用本地模拟服务器，不需要真实账号）。
 
 ## 待定

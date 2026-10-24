@@ -30,7 +30,7 @@
 
 ## 3. 生产环境必须项（通用）
 
-- [ ] `RATE_LIMIT_STORE=upstash`，`UPSTASH_REDIS_REST_URL`（https）和 `UPSTASH_REDIS_REST_TOKEN` 已配置。缺任何一项，`prod-env-check.ts` 会让生产构建直接失败。
+- [ ] `RATE_LIMIT_STORE` 为 `upstash`（配 https 的 `UPSTASH_REDIS_REST_URL` 和 `UPSTASH_REDIS_REST_TOKEN`）或 `redis`（配带密码的 `REDIS_URL`。Redis 7 或更新，因为用了 `PEXPIRE ... NX`。生产环境非本机必须 `rediss://`；只有 `127.0.0.1`、`::1`、`localhost` 可以用 `redis://`）。缺了或不合规时，`prod-env-check.ts` 在生产启动时拒绝启动（构建阶段不查这项）。当前自建栈仍用 `upstash`。
 - [ ] 所有 `NEXT_PUBLIC_*_MOCK` 都未开启，开了构建会失败。
 - [ ] `NEXT_PUBLIC_ADMIN_API=http`，否则构建失败。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值（例如 `openssl rand -base64 48`）。
@@ -49,7 +49,7 @@
 ## 4. 后端
 
 - [ ] `STORAGE_DRIVER=local`（Ryan 已定），`UPLOAD_DIR` 是挂载数据卷的绝对路径、应用用户可读写，且不经 nginx 或静态服务暴露；数据卷纳入备份。（R2 只是可选驱动，当前不配。）
-- [ ] `RATE_LIMIT_STORE=upstash`（同第 3 节）。
+- [ ] `RATE_LIMIT_STORE` 为 `upstash` 或 `redis`（同第 3 节）。当前自建栈仍用 `upstash`。
 - [ ] 发信：免费 Gmail SMTP，From = Gmail 地址，Reply-To = geiom.com 地址；SMTP 账号和应用专用密码只放部署环境变量，不进仓库、不发群。不为发信新增任何 DNS 记录（不加 SPF `include:`、不加 DKIM）。收信仍走 Cloudflare Email Routing。
 - [ ] DMARC：上线时新增 `_dmarc` `p=none`，放进运维 DNS 批次，只新增不改现有记录，安全+运维共审。不用 `p=quarantine`。
 - [ ] `MIDDLEWARE_PROBE_SECRET` 是至少 32 字节的随机值。

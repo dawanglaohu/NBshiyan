@@ -1,12 +1,14 @@
-// 队列 ②：scripts/admin-reset-initial-password.mjs（给未绑定 2FA 的 ADMIN 重设初始密码）。prisma 和限流存储换成内存里的假对象，不连任何数据库或 Redis。
+// 队列 ②：scripts/admin-reset-initial-password.mjs（给未绑定 2FA 的 ADMIN 重设初始密码）。prisma 换成内存里的假对象；Redis 只用本机假服务器。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import net from 'node:net';
 import {
-  ARGON, CLEAR_FLAG, ENROLL_CONFIRM_WINDOW_MS, ENROLL_WINDOW_MS, LOGIN_WINDOW_MS, MESSAGES, UNTRUSTED, VIA, accountOnlyRateKeys, decide, hasPendingEnroll, parseArgs,
+  ARGON, CLEAR_FLAG, ENROLL_CONFIRM_WINDOW_MS, ENROLL_WINDOW_MS, LOGIN_WINDOW_MS, MESSAGES, UNTRUSTED, VIA, accountOnlyRateKeys, clearAccountRateLimits, decide, hasPendingEnroll, parseArgs,
   rateKeysToDelete, rateLimitEnv, rateLimitKeyHash, runReset, stripPasswordEnv, upstashKey, type ResetUser,
 } from '../scripts/admin-reset-initial-password-lib.mjs';
+import { startFakeRedis } from './fake-redis';
 import { newEnrollToken, hashEnrollToken, type Issued } from '../scripts/enroll-token-lib.mjs';
 import { verifySecret } from '../src/lib/server/admin/crypto';
 import { rateLimitEnv as appEnv, rateLimitKeyHash as appKeyHash, rateLimitSubject, UNTRUSTED as APP_UNTRUSTED } from '../src/lib/server/security';
@@ -304,6 +306,170 @@ test('清限流失败不影响已提交的改密（退出 0，给提示，不输
   const r = await run([user()], { env: { RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'https://r.example', UPSTASH_REDIS_REST_TOKEN: 'tok-SHOULD-NOT-LEAK' }, fetchOk: false });
   assert.equal(r.code, 0); assert.match(r.out, /rate_limit=failed/); assert.match(r.err, /10 分钟/);
   assert.ok(!(r.out + r.err).includes('tok-SHOULD-NOT-LEAK')); assert.ok(!(r.out + r.err).includes('login-acct'));
+});
+
+async function closedPort() {
+  const srv = net.createServer();
+  await new Promise<void>((ok) => srv.listen(0, '127.0.0.1', () => ok()));
+  const port = (srv.address() as net.AddressInfo).port;
+  await new Promise<void>((ok, err) => srv.close((e) => (e ? err(e) : ok())));
+  return port;
+}
+
+/** 本机计数用。127.0.0.2 不在明文白名单里（只认 127.0.0.1 / ::1 / localhost），又不会离开这台机器。 */
+function hitServer(host: string) {
+  let hits = 0;
+  const sockets = new Set<net.Socket>();
+  const srv = net.createServer((sock) => {
+    hits++;
+    sockets.add(sock);
+    sock.on('close', () => sockets.delete(sock));
+    sock.destroy();
+  });
+  return new Promise<{ port: number; hits: () => number; close: () => Promise<void> }>((ok) => {
+    srv.listen(0, host, () => {
+      const port = (srv.address() as net.AddressInfo).port;
+      ok({
+        port,
+        hits: () => hits,
+        close: () => new Promise((done) => {
+          for (const sock of sockets) sock.destroy();
+          srv.close(() => done());
+        }),
+      });
+    });
+  });
+}
+
+test('#432 redis：清掉与 Upstash 相同的 6 个 key，打印 rate_limit=cleared，不输出密码', async () => {
+  const redisPw = 'redis-secret-SHOULD-NOT-LEAK';
+  const fake = await startFakeRedis({ password: redisPw });
+  try {
+    const env = { AUTH_SECRET: 'a', APP_ENV: 'production' };
+    const r = await run([user()], {
+      env: { ...env, RATE_LIMIT_STORE: 'redis', REDIS_URL: `redis://:${redisPw}@127.0.0.1:${fake.port}/2` },
+    });
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /rate_limit=cleared/);
+    assert.equal(r.ff.calls.length, 0);
+    assert.ok(fake.commands().some((c) => c[0] === 'SELECT' && c[1] === '2'));
+    assert.deepEqual(fake.auths(), [redisPw]);
+    assert.deepEqual(fake.commands().filter((c) => c[0] === 'DEL').map((c) => c[1]), rateKeysToDelete(EMAIL, env, NOW));
+    assert.ok(fake.commands().every((c) => c[0] === 'AUTH' || c[0] === 'SELECT' || c[0] === 'DEL'));
+    const blob = r.out + r.err + JSON.stringify(fake.commands());
+    assert.equal(blob.includes(redisPw), false);
+    assert.equal(blob.includes(EMAIL), false);
+  } finally { await fake.close(); }
+});
+
+test('#432 redis：连不上或 URL 无效时 rate_limit=failed，不抛错、不泄露', async () => {
+  const redisPw = 'redis-secret-SHOULD-NOT-LEAK';
+  const port = await closedPort();
+  const r = await run([user()], {
+    env: { RATE_LIMIT_STORE: 'redis', REDIS_URL: `redis://:${redisPw}@127.0.0.1:${port}` },
+  });
+  assert.equal(r.code, 0);
+  assert.match(r.out, /rate_limit=failed/);
+  assert.match(r.err, /10 分钟/);
+  const blob = r.out + r.err;
+  for (const s of [redisPw, EMAIL, 'login-acct', String(port)]) assert.equal(blob.includes(s), false, s);
+  assert.equal(await clearAccountRateLimits({ email: EMAIL, env: { RATE_LIMIT_STORE: 'redis', REDIS_URL: 'http://x' }, now: NOW }), 'failed');
+  assert.equal(await clearAccountRateLimits({ email: EMAIL, env: { RATE_LIMIT_STORE: 'redis' }, now: NOW }), 'failed');
+});
+
+test('#432 生产环境拒绝 http 的 Upstash 地址：rate_limit=failed，不发出请求，不打印 token', async () => {
+  const token = 'bearer-SHOULD-NOT-LEAK';
+  const r = await run([user()], {
+    env: { RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'http://127.0.0.1:9/rest', UPSTASH_REDIS_REST_TOKEN: token, APP_ENV: 'production', AUTH_SECRET: 'a' },
+  });
+  assert.equal(r.code, 0, r.err);
+  assert.match(r.out, /rate_limit=failed/);
+  assert.equal(r.ff.calls.length, 0);
+  assert.equal((r.out + r.err).includes(token), false);
+  assert.equal((r.out + r.err).includes('http://'), false);
+});
+
+test('#432 生产环境：远端明文 redis://、无密码、坏协议在开 socket 前失败，输出只点 REDIS_URL', async () => {
+  const pw = 'placeholder';
+  const remote = await hitServer('127.0.0.2');
+  const loop = await hitServer('127.0.0.1');
+  try {
+    const remoteUrl = `redis://:${pw}@127.0.0.2:${remote.port}`;
+    const r1 = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: remoteUrl, AUTH_SECRET: 'a' } });
+    assert.equal(r1.code, 0, r1.err);
+    assert.match(r1.out, /rate_limit=failed/);
+    assert.match(r1.err, /REDIS_URL 必须是 rediss:\/\//);
+    assert.equal(remote.hits(), 0);
+    const blob1 = r1.out + r1.err;
+    for (const s of [pw, remoteUrl, '127.0.0.2']) assert.equal(blob1.includes(s), false, s);
+
+    const noPw = `redis://127.0.0.1:${loop.port}`;
+    const r2 = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: noPw, AUTH_SECRET: 'a' } });
+    assert.equal(r2.code, 0, r2.err);
+    assert.match(r2.out, /rate_limit=failed/);
+    assert.match(r2.err, /REDIS_URL 必须包含密码/);
+    assert.equal(loop.hits(), 0);
+    assert.equal((r2.out + r2.err).includes(noPw), false);
+
+    const bad = `http://127.0.0.2:${remote.port}/secret-${pw}`;
+    const r3 = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: bad, AUTH_SECRET: 'a' } });
+    assert.equal(r3.code, 0, r3.err);
+    assert.match(r3.out, /rate_limit=failed/);
+    assert.match(r3.err, /REDIS_URL 必须是 redis:\/\/ 或 rediss:\/\//);
+    assert.equal(remote.hits(), 0);
+    const blob3 = r3.out + r3.err;
+    for (const s of [pw, bad, '127.0.0.2']) assert.equal(blob3.includes(s), false, s);
+
+    assert.equal(await clearAccountRateLimits({
+      email: EMAIL, now: NOW,
+      env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: remoteUrl, AUTH_SECRET: 'a' },
+    }), 'failed');
+    assert.equal(remote.hits(), 0);
+  } finally {
+    await remote.close();
+    await loop.close();
+  }
+});
+
+test('#432 生产环境 loopback redis://:placeholder@127.0.0.1 仍清限流，输出不含 URL 和密码', async () => {
+  const pw = 'placeholder';
+  const fake = await startFakeRedis({ password: pw });
+  try {
+    const url = `redis://:${pw}@127.0.0.1:${fake.port}`;
+    const env = { APP_ENV: 'production', AUTH_SECRET: 'a' };
+    const r = await run([user()], { env: { ...env, RATE_LIMIT_STORE: 'redis', REDIS_URL: url } });
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /rate_limit=cleared/);
+    assert.doesNotMatch(r.err, /REDIS_URL/);
+    assert.deepEqual(fake.auths(), [pw]);
+    assert.deepEqual(fake.commands().filter((c) => c[0] === 'DEL').map((c) => c[1]), rateKeysToDelete(EMAIL, env, NOW));
+    const blob = r.out + r.err;
+    for (const s of [pw, url, 'redis://']) assert.equal(blob.includes(s), false, s);
+  } finally { await fake.close(); }
+});
+
+test('#432 生产环境远端 rediss:// 会去连接；非生产明文远端也仍去连接', async () => {
+  const pw = 'placeholder';
+  const remote = await hitServer('127.0.0.2');
+  try {
+    const tlsUrl = `rediss://:${pw}@127.0.0.2:${remote.port}`;
+    const r = await run([user()], { env: { APP_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: tlsUrl, AUTH_SECRET: 'a' } });
+    assert.equal(r.code, 0, r.err);
+    assert.match(r.out, /rate_limit=failed/);
+    assert.ok(remote.hits() >= 1, 'rediss remote should open a socket');
+    assert.doesNotMatch(r.err, /REDIS_URL 必须/);
+    const blob = r.out + r.err;
+    for (const s of [pw, tlsUrl, '127.0.0.2']) assert.equal(blob.includes(s), false, s);
+
+    const before = remote.hits();
+    const plain = `redis://:${pw}@127.0.0.2:${remote.port}`;
+    const dev = await run([user()], { env: { RATE_LIMIT_STORE: 'redis', REDIS_URL: plain, AUTH_SECRET: 'a' } });
+    assert.match(dev.out, /rate_limit=failed/);
+    assert.ok(remote.hits() > before, 'non-production plaintext remote still connects');
+    assert.doesNotMatch(dev.err, /REDIS_URL 必须/);
+    const devBlob = dev.out + dev.err;
+    for (const s of [pw, plain, '127.0.0.2']) assert.equal(devBlob.includes(s), false, s);
+  } finally { await remote.close(); }
 });
 
 // ---------------- 失败路径 ----------------

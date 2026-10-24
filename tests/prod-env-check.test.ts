@@ -60,7 +60,7 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, RATE_LIMIT_STORE: 'memory' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
-  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 24); // APP_ORIGIN 生产必填；deploy-readiness：STORAGE_DRIVER 未设置只报一条（不再连带 4 个 R2_*）；#74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）
+  assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 22); // APP_ORIGIN 生产必填；deploy-readiness：STORAGE_DRIVER 未设置只报一条（不再连带 4 个 R2_*）；#74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）；#432：未设置 RATE_LIMIT_STORE 只报一条（upstash 或 redis），不再连带两个 UPSTASH_*
   assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
 });
 
@@ -76,6 +76,35 @@ const prodFull = {
   MAIL_SEND_ADAPTER: 'smtp', MAIL_WEBHOOK_SECRET: SECRET,
   NEXT_PUBLIC_SITE_URL: 'https://packjoyu.com', APP_ORIGIN: 'https://packjoyu.com', ADMIN_SEED_TOTP_SECRET: '', EDGE_AUTH_SECRET: SECRET,
 };
+
+test('#432 redis 是生产限流的另一种选择，问题文本不含连接串', () => {
+  const secret = 'redis-password-SHOULD-NOT-LEAK';
+  const ok = { ...prodFull, RATE_LIMIT_STORE: 'redis', REDIS_URL: `rediss://:${secret}@example.invalid:6379` };
+  assert.deepEqual(prodEnvProblems(ok), []);
+  for (const host of ['127.0.0.1', 'localhost', '[::1]']) {
+    assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: `redis://:${secret}@${host}:6379` }), [], host);
+  }
+  const plain = prodEnvProblems({ ...ok, REDIS_URL: `redis://:${secret}@example.invalid:6379` });
+  assert.deepEqual(plain, ['REDIS_URL 必须是 rediss://']);
+  assert.equal(plain.join('\n').includes(secret), false);
+  assert.equal(plain.join('\n').includes('example.invalid'), false);
+  for (const host of ['127.0.0.2', '0.0.0.0', 'LOCALHOST', 'localhost.localdomain']) {
+    const problems = prodEnvProblems({ ...ok, REDIS_URL: `redis://:${secret}@${host}:6379` });
+    assert.deepEqual(problems, ['REDIS_URL 必须是 rediss://'], host);
+    assert.equal(problems.join('\n').includes(secret), false, host);
+    assert.equal(problems.join('\n').includes(host), false, host);
+  }
+  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: `rediss://:${secret}@127.0.0.2:6379` }), []);
+  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: 'redis://example.invalid:6379' }), ['REDIS_URL 必须包含密码']);
+  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: '' }), ['REDIS_URL 未设置']);
+  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: 'redis://user@example.invalid:6379' }), ['REDIS_URL 无效']);
+  const bad = prodEnvProblems({ ...ok, REDIS_URL: `https://:${secret}@example.invalid` });
+  assert.deepEqual(bad, ['REDIS_URL 必须是 redis:// 或 rediss://']);
+  assert.equal(bad.join('\n').includes(secret), false);
+  assert.equal(bad.join('\n').includes('example.invalid'), false);
+  assert.deepEqual(prodEnvProblems({ ...ok, REDIS_URL: 'not a url' }), ['REDIS_URL 必须是 redis:// 或 rediss://']);
+  assert.deepEqual(prodEnvProblems({ ...prodFull, RATE_LIMIT_STORE: 'redis' }), ['REDIS_URL 未设置']);
+});
 
 test('#74 完整生产配置通过', () => {
   assert.deepEqual(prodEnvProblems(prodFull), []);

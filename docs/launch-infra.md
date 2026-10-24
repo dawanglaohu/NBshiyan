@@ -120,6 +120,8 @@ Ryan 操作：
 
 环境变量：`RATE_LIMIT_STORE=upstash`、`UPSTASH_REDIS_REST_URL`、`UPSTASH_REDIS_REST_TOKEN`。
 
+生产也可以改用 `RATE_LIMIT_STORE=redis`，另设 `REDIS_URL`（userinfo 里带密码）。这需要 Redis 7 或更新（用了 `PEXPIRE ... NX`）。生产环境里，主机不是 `127.0.0.1`、`::1`、`localhost` 时必须用 `rediss://`；这三个主机名可以用 `redis://`。当前自建栈仍写 `upstash`：应用容器不在 Redis 所在的网络上，切换和去掉 REST 代理留到后面的部署变更。IndexNow 去重只认 `upstash`。
+
 ## 3. 发信：Gmail SMTP（询盘通知、自动回复）
 
 Ryan 已确认：
@@ -149,8 +151,9 @@ Ryan 已确认：
 | `MIDDLEWARE_PROBE_SECRET` | `openssl rand -base64 32`（≥ 32 字节） | middleware 探测短链状态（`HEAD /api/designs/:id`）时带在 `x-internal-probe` 头里，服务端据此信任 `x-probe-client-ip` 做分桶限流；不配置则探测按连接 IP 限流 |
 | `EDGE_AUTH_SECRET` | `openssl rand -hex 32`（≥ 32 字节） | geiom.com（Cloudflare → nginx → Next）取客户端 IP 用，**生产必填，只在运行时设**（`next build` 不需要也不检查；`next start` 时缺了拒绝启动；middleware 和 API 都在运行时读取，不会内联进构建产物）。nginx 每个反代的 location 都要加 `proxy_set_header X-Edge-Auth "<同一个值>";`（会覆盖客户端自己带的同名头）。只有这个头和密钥常量时间比较一致时才信任 `CF-Connecting-IP`（并校验是合法 IP）；没设、不足 32 字节、头不对或没带时，所有请求都按不可信来源进同一个 `untrusted` 限流桶，审计 ip 记 `unknown`。不读 `X-Real-IP` / `X-Forwarded-For`。值只放在服务器环境变量和 nginx 配置里，不要写进日志格式、不要提交、不要发群里 |
 | ~~`BEHIND_CLOUDFLARE`~~ / ~~`TRUSTED_PROXY_HOPS`~~ | 不要再设 | 已废弃，代码不再读取（设了只会在日志里提示一次）。客户端 IP 只由 `EDGE_AUTH_SECRET` + `CF-Connecting-IP` 决定 |
-| `RATE_LIMIT_STORE` | `upstash` | 生产必须，不能用 memory |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | |
+| `RATE_LIMIT_STORE` | `upstash` 或 `redis` | 生产必须是二者之一，不能用 memory。当前自建栈仍写 `upstash`（见 deploy/README.md） |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | 第 2 节 | `upstash` 时必填 |
+| `REDIS_URL` | `rediss://`（本机 `127.0.0.1` / `::1` / `localhost` 可用 `redis://`），userinfo 里带密码 | 仅 `redis` 时必填。Redis 7 或更新（`PEXPIRE ... NX`）。密码不进仓库 |
 | `STORAGE_DRIVER` | `local`（Ryan 已定） | 生产必须显式设置。`local`：文件放服务器挂载数据卷（配 `UPLOAD_DIR`，第 1 节）；`r2` 只是代码仍支持的可选驱动（第 1.1 节） |
 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 不设 | 仅可选的 `STORAGE_DRIVER=r2` 时必填（第 1.1 节） |
 | `R2_ENDPOINT` | 留空 | |
@@ -222,7 +225,7 @@ Ryan 已确认：
 建议加一个 `scripts/check-prod-env.mjs`，在 `APP_ENV=production` 时于构建前运行，满足任一条件就让构建失败：
 - 任何 `*_MOCK` 变量为真（如 `NEXT_PUBLIC_LOGO_UPLOAD_MOCK=1`）
 - `NEXT_PUBLIC_ADMIN_API` 不等于 `http`
-- `RATE_LIMIT_STORE` 不是 `upstash`；`STORAGE_DRIVER` 不是 `local` / `r2`（local 时 `UPLOAD_DIR` 不是可写的绝对路径）
+- `RATE_LIMIT_STORE` 不是 `upstash` 或 `redis`；`STORAGE_DRIVER` 不是 `local` / `r2`（local 时 `UPLOAD_DIR` 不是可写的绝对路径）
 - `TURNSTILE_SECRET_KEY` 仍是测试密钥 `1x0000…`
 - `AUTH_SECRET` / `ADMIN_TOTP_KEY` / `CRON_SECRET` 缺失或长度不足，`ADMIN_TOTP_KEY` 解码后不是 32 字节
 
@@ -272,7 +275,7 @@ APP_TAG=candidate docker compose -p nbshiyan -f deploy/docker-compose.yml --env-
 
 ### 7.2 未绑定 2FA 的 ADMIN 重设初始密码
 
-`docker compose exec -it app node scripts/admin-reset-initial-password.mjs --email <邮箱> [--clear-pending-enroll]`（或 `--id <账号 id>`；等同 `pnpm admin:reset-initial-password`）。只用于还没绑定 2FA 的 ADMIN。#347：必须在终端里运行（stdout 不是终端时退出 2、什么都不改，所以不能再用标准输入读密码）；同一事务里签发新的一次性绑定令牌，成功后在终端显示一次链接、有效期和「只私信发给本人」，旧链接立即失效。新密码只从终端（不回显，输两次）或标准输入第一行读，不接受命令行参数和环境变量；密码只由 Ryan 本人输入，或私信给本人，不发群里。2FA 已启用、不是 ADMIN、已停用一律拒绝（退出码 3）。有未完成的绑定或 72 小时绑定窗口已关闭时必须加 `--clear-pending-enroll`，它会清掉待确认状态并重新打开绑定窗口。改密码、清待确认状态、所有会话失效、解除锁定、写审计（`user.password_reset`，必要时加 `user.pending_enroll_cleared`，只记 actor=cli 和账号 id）在同一个事务里。提交后只清这个账号能直接算出名字的限流 key：`login-acct:<e>`、`login:untrusted:<e>`、`enroll-confirm:untrusted:<e>`，当前和上一个窗口（按 key 名直接删，不 SCAN/KEYS）；`login-ip` 和真实 IP 的桶不清。详见 deploy/README.md。
+`docker compose exec -it app node scripts/admin-reset-initial-password.mjs --email <邮箱> [--clear-pending-enroll]`（或 `--id <账号 id>`；等同 `pnpm admin:reset-initial-password`）。只用于还没绑定 2FA 的 ADMIN。#347：必须在终端里运行（stdout 不是终端时退出 2、什么都不改，所以不能再用标准输入读密码）；同一事务里签发新的一次性绑定令牌，成功后在终端显示一次链接、有效期和「只私信发给本人」，旧链接立即失效。新密码只从终端（不回显，输两次）或标准输入第一行读，不接受命令行参数和环境变量；密码只由 Ryan 本人输入，或私信给本人，不发群里。2FA 已启用、不是 ADMIN、已停用一律拒绝（退出码 3）。有未完成的绑定或 72 小时绑定窗口已关闭时必须加 `--clear-pending-enroll`，它会清掉待确认状态并重新打开绑定窗口。改密码、清待确认状态、所有会话失效、解除锁定、写审计（`user.password_reset`，必要时加 `user.pending_enroll_cleared`，只记 actor=cli 和账号 id）在同一个事务里。提交后只清这个账号能直接算出名字的限流 key：`login-acct:<e>`、`login:untrusted:<e>`、`enroll-confirm:untrusted:<e>`，当前和上一个窗口（按 key 名直接删，不 SCAN/KEYS）；`login-ip` 和真实 IP 的桶不清，最多再留一个 10 分钟窗口。成功时标准输出有 `rate_limit=cleared`；内存存储是 `skipped_memory`；清不掉是 `rate_limit=failed`（密码已经改好）。自建栈的 REST 由内部 CA 签发。脚本连接时读取 `NODE_EXTRA_CA_CERTS`，把那份 PEM 和公共根证书一起交给这次 `https.request`。在 app 容器里用 `docker compose exec -it` 跑；宿主机上的 `node` 没有这份 CA，结果是 `rate_limit=failed`。不要设置 `NODE_TLS_REJECT_UNAUTHORIZED=0`。详见 deploy/README.md。
 
 ## 8. CSP 说明（Tawk.to 等第三方）
 
