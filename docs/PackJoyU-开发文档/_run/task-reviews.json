@@ -1148,6 +1148,20 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R3-T56876634": {
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "30407f20970d2fb004839932c96a932d5adab85fed229093dd1bad8e23e0fef6",
+    "evidence": [
+      "有效路径只有 docs/brand-content/company-visuals.json 与 tests/company-visuals-selected-input.test.ts。前置是 M1-T9。edges 为 E-111、E-27。",
+      "收口记录 input 末句原写「页面消费留给 M1-T5」，H05 把它当成未声明的能力前置。该句只说明页面消费不在本任务。已改成「页面消费不在本任务」。depends-on 仍是 M1-T9。同记录「给下一批的提醒」仍写明公司图稿页面消费归 M1-T5。",
+      "company-visuals.json:91 的 selectedInput.path 为 public/brand/packjoyu-logo-master.svg，与同文件 :21 的 logoMaster 相同。:96 与 :100 的源 SVG、Web PNG 路径和 SHA-256 等于验收里的 d1ae945b 与 5d855fc0。",
+      "tests/company-visuals-selected-input.test.ts:11 与 :12 钉住这两枚 SHA。:79 起要求 path、sha256、use 非空，path 属于 originalMedia 或 logoMaster，并核对目录与文件字节。:100 拒绝 use 写入 YUHAO、产能、规模、证照、认证、厂房或工厂。:116 核对源 SVG 与 Web PNG 字节。:143 与 :161 在缺字段或哈希不等时失败。",
+      "selectedInput.use 只描述字标 master 的导入和统一缩放。pageEvidence 仍为 null，页面加载不在本任务。"
+    ],
+    "reviewed": "2026-10-24T13:28:29.087964+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "R3-T71889698": {
     "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
     "contractHash": "b9e2b4c739b5dd721bbef82c953eabc012411892baf155dfc67512fe83e3cddf",
@@ -1174,6 +1188,20 @@
       "PR 419 评论（2026-10-24T06:05:31Z）确认图片格直接子项选择器已修，e2e 成功，admin-about-images.spec.ts:400 的两条 1440 失败不在失败列表。当时 build-and-audit 失败于 GHSA-mrhx-c7xc-m3w5 与 GHSA-f2hq-32vh-53cc，条件是依赖升级进入 main 且本 PR 的 build-and-audit 变绿后再合并并记录落地。PR 420 已合入 950b63c2。PR 419 head 89381045 的 run 40081092403 中 build-and-audit、e2e、posix-storage-security 均为 success。合并提交 afcd8fdc 的 run 40081550954 同样三项 success。"
     ],
     "reviewed": "2026-10-24T09:29:12.752414+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R3-T86511435": {
+    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
+    "contractHash": "79a48731f64dff67eccc6e306c92698b59b8da29e9601139ed78dd00d7259b1a",
+    "evidence": [
+      "有效路径是七个数据库测试和 lease-repo.ts、jobs/types.ts、http/metrics.ts。前置是 M3-T14 与 M5-T1。edges 为 none。验收要求一次性 PostgreSQL 17 上这七个文件 0 fail 且 0 环境 skip，并保持租约与计数原语的原断言。",
+      "tests/job-leases.db.test.ts:10 没有 postgres 开头的 DATABASE_URL 时跳过。:143 断言同一 key 并发只有一项成功。:167 用注入时钟满 90 秒后领取新代次，并拒绝旧 owner 覆盖。src/lib/server/jobs/types.ts:7 的租约是 90000 毫秒。lease-repo.ts:177 只在租约为空或已到期时更新。:275 起完成写同时核 owner、generation 与未到期。",
+      "src/lib/server/http/metrics.ts:146 仅 status >= 500 时 errorIncrement 为 1。:149 一条 INSERT ON CONFLICT 递增 requestCount 与 errorCount。:141 与 :168 在设置解析失败或写入失败时返回调用方原来的 status 与 body。",
+      "tests/admin-http-metrics.test.ts:204 的写库用例只认 ADMIN_RESET_TEST_DATABASE_URL。:231 断言每次最终响应 requestCount 加一且 errorCount 只在 5xx 增加。tests/cleanup-lock.db.test.ts:8、tests/last-admin.db.test.ts:11、tests/admin-users-last-admin.test.ts:11 只认 postgres 开头的 DATABASE_URL。tests/admin-reset-initial-password.db.test.ts:13 只认 ADMIN_RESET_TEST_DATABASE_URL。tests/admin-device-guard.http.test.ts:14 只认 ADMIN_DEVICE_TEST_DATABASE_URL。缺变量即环境跳过，按验收算未通过。",
+      "合入提交 a474df01 的任务笔记记录官方 Windows PostgreSQL 17.11、server_version 17.11、Node 22.17.0、上述七个文件 42 pass、0 fail、0 cancelled、0 skipped。本轮契约复核对照了这些门闩和笔记，没有另起一次性实例重跑。租约仓储、计数原语和类型没有被该提交改写。"
+    ],
+    "reviewed": "2026-10-24T13:28:50.777246+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

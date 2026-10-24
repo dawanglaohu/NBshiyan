@@ -134,8 +134,9 @@ test('每件公司图稿的选定输入指向已有字标或工业原件，且�
   assertDeliverableBytes();
   assertFrozenProse(manifest);
   const artwork = manifest.artworks?.find((item) => item.id === frozenArtwork.id);
-  assert.equal(artwork?.selectedInput?.path, manifest.logoMaster?.path);
-  assert.equal(artwork?.selectedInput?.sha256, manifest.logoMaster?.sha256);
+  assert.ok(artwork);
+  assert.equal(artwork.selectedInput?.path, manifest.logoMaster?.path);
+  assert.equal(artwork.selectedInput?.sha256, manifest.logoMaster?.sha256);
   assert.equal(artwork.source?.sha256, svgSha256);
   assert.equal(artwork.web?.sha256, pngSha256);
 });
