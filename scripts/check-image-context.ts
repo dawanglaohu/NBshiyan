@@ -2,6 +2,7 @@
  * 生产镜像的构建上下文等于仓库减去 .dockerignore。
  * Next 构建会解析 src/、根配置和 scripts/ 里的 import、require、new URL。
  * 这些说明符若落到被排除的路径（例如 docs/），docker build 在 COPY 之后找不到文件。
+ * src/ 里被排除的源码同样进不了镜像，Next 路由会变成 404。
  * CI 的 pnpm build 用的是完整检出，发现不了这件事。
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -9,11 +10,14 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const SOURCE = /\.(?:[cm]?[jt]sx?)$/;
+const SCAN = /\.(?:[cm]?[jt]sx?|css)$/;
 const SKIP_SPEC = /^(?:node:|data:|https?:|blob:)/;
+const SKIP_WALK = new Set(['node_modules', '.next', '.git']);
 
 export type IgnoreRule = {
   negate: boolean;
   directoryOnly: boolean;
+  /** 不带 / 的模式按文件名匹配任意一层。开头的 / 只匹配仓库根。 */
   basename: boolean;
   regex: RegExp;
 };
@@ -36,12 +40,22 @@ export function parseDockerignore(text: string): IgnoreRule[] {
       line = line.slice(1).trim();
       if (!line) continue;
     }
+    // Docker 会去掉模式开头的 /，/uploads 与 uploads 在镜像里都只排除仓库根那一层。
+    // 这里不带 / 的模式仍按文件名匹配任意一层（*.log）。开头的 / 收成仓库根，
+    // 这样 /uploads 不会带走 src/app/api/uploads。
+    let rooted = false;
+    if (line.startsWith('/')) {
+      rooted = true;
+      line = line.replace(/^\/+/, '');
+      if (!line) continue;
+    }
     const directoryOnly = line.endsWith('/');
     if (directoryOnly) line = line.replace(/\/+$/, '');
+    if (!line) continue;
     rules.push({
       negate,
       directoryOnly,
-      basename: !line.includes('/'),
+      basename: !rooted && !line.includes('/'),
       regex: globToRegExp(line),
     });
   }
@@ -160,17 +174,55 @@ function blankComments(source: string): string {
   return out;
 }
 
+/** 模板字符串里 ${} 之前的目录。完整静态模板原样返回。 */
+function staticTemplateSpecifier(value: string): string | null {
+  if (!value.includes('${')) return value;
+  const head = value.slice(0, value.indexOf('${'));
+  const slash = head.lastIndexOf('/');
+  if (slash <= 0) return null;
+  const prefix = head.slice(0, slash);
+  if (!prefix || prefix === '.' || prefix === '..') return null;
+  return prefix;
+}
+
+function pushSpecifier(found: string[], seen: Set<string>, raw: string, quote: string): void {
+  let value = raw.trim();
+  if (!value) return;
+  if (quote === '`') {
+    const resolved = staticTemplateSpecifier(value);
+    if (!resolved) return;
+    value = resolved;
+  }
+  if (seen.has(value)) return;
+  seen.add(value);
+  found.push(value);
+}
+
 export function moduleSpecifiers(source: string): string[] {
   const text = blankComments(source);
   const found: string[] = [];
-  const patterns = [
-    /(?:^|[\n;])\s*(?:import|export)\s+(?:type\s+)?(?:[^'";]*?\sfrom\s+)?['"]([^'"]+)['"]/g,
-    /\bimport\s*\(\s*['"]([^'"]+)['"]/g,
-    /\brequire\s*\(\s*['"]([^'"]+)['"]/g,
-    /\bnew\s+URL\s*\(\s*['"]([^'"]+)['"]/g,
+  const seen = new Set<string>();
+  const quoted: Array<{ pattern: RegExp; spec: number; quote: number }> = [
+    // from 两侧的空白可缺：export{a}from'./a'、import x from"./a"
+    { pattern: /(?:^|[\n;])\s*(?:import|export)\s*(?:type\s+)?(?:[^'";]*?\s*from\s*)?(['"`])([^'"`]+)\1/g, spec: 2, quote: 1 },
+    { pattern: /\bimport\s*\(\s*(['"`])([^'"`]+)\1/g, spec: 2, quote: 1 },
+    { pattern: /\brequire\s*\(\s*(['"`])([^'"`]+)\1/g, spec: 2, quote: 1 },
+    { pattern: /\bnew\s+URL\s*\(\s*(['"`])([^'"`]+)\1/g, spec: 2, quote: 1 },
+    { pattern: /@import\s+(?:url\(\s*)?(['"])([^'"]+)\1/g, spec: 2, quote: 1 },
+    { pattern: /\burl\(\s*(['"])([^'"]+)\1\s*\)/g, spec: 2, quote: 1 },
   ];
-  for (const pattern of patterns) {
-    for (const match of text.matchAll(pattern)) found.push(match[1]);
+  for (const item of quoted) {
+    for (const match of text.matchAll(item.pattern)) {
+      pushSpecifier(found, seen, match[item.spec] ?? '', match[item.quote] ?? '');
+    }
+  }
+  const bare = [
+    /@import\s+url\(\s*([^)'"\s]+)\s*\)/g,
+    /@import\s+([^'"\s();]+)\s*;/g,
+    /\burl\(\s*([^)'"\s]+)\s*\)/g,
+  ];
+  for (const pattern of bare) {
+    for (const match of text.matchAll(pattern)) pushSpecifier(found, seen, match[1] ?? '', '"');
   }
   return found;
 }
@@ -245,17 +297,42 @@ export function sourceFilesInContext(root: string, rules: IgnoreRule[]): string[
   const visit = (relDir: string) => {
     const abs = relDir ? path.join(root, relDir) : root;
     for (const entry of readdirSync(abs, { withFileTypes: true })) {
-      if (entry.name === 'node_modules' || entry.name === '.next' || entry.name === '.git') continue;
+      if (SKIP_WALK.has(entry.name)) continue;
       const rel = relDir ? `${relDir}/${entry.name}` : entry.name;
       if (entry.isDirectory()) {
         if (!isDockerignored(rel, rules)) visit(rel);
         continue;
       }
-      if (SOURCE.test(entry.name) && !isDockerignored(rel, rules)) files.push(rel);
+      if (SCAN.test(entry.name) && !isDockerignored(rel, rules)) files.push(rel);
     }
   };
   visit('');
   return files;
+}
+
+/** src/ 下被 .dockerignore 排除的 .ts/.tsx/.js/.mjs 等源码（含 route、page）。 */
+export function excludedSourceViolations(root: string, rules: IgnoreRule[]): ContextViolation[] {
+  const violations: ContextViolation[] = [];
+  const visit = (relDir: string) => {
+    let entries;
+    try {
+      entries = readdirSync(path.join(root, relDir), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (SKIP_WALK.has(entry.name)) continue;
+      const rel = `${relDir}/${entry.name}`;
+      if (entry.isDirectory()) {
+        visit(rel);
+        continue;
+      }
+      if (!SOURCE.test(entry.name) || !isDockerignored(rel, rules)) continue;
+      violations.push({ file: rel, specifier: rel, resolved: rel, reason: '源码被 .dockerignore 排除' });
+    }
+  };
+  visit('src');
+  return violations;
 }
 
 export function checkImageContext(root: string): { files: number; violations: ContextViolation[] } {
@@ -267,13 +344,14 @@ export function checkImageContext(root: string): { files: number; violations: Co
     if (!statSync(abs).isFile()) continue;
     violations.push(...contextViolations(file, readFileSync(abs, 'utf8'), rules, root));
   }
+  violations.push(...excludedSourceViolations(root, rules));
   return { files: files.length, violations };
 }
 
 export function reportContext(root: string): number {
   const { files, violations } = checkImageContext(root);
   if (violations.length) {
-    console.error(`镜像构建上下文引用了 ${violations.length} 个被 .dockerignore 排除或落在仓库外的路径：`);
+    console.error(`镜像构建上下文有 ${violations.length} 个被 .dockerignore 排除的引用或源码：`);
     for (const hit of violations) {
       console.error(`${hit.file}: ${hit.specifier} -> ${hit.resolved}（${hit.reason}）`);
     }

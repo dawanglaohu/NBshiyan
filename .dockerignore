@@ -12,8 +12,9 @@
 node_modules
 .next
 storage
-uploads
-**/uploads
+# Root uploads/ only. Docker strips the leading slash, so this is that one directory.
+# Do not write **/uploads: it also drops src/app/api/uploads and src/app/api/admin/uploads.
+/uploads
 deploy
 e2e
 tests
