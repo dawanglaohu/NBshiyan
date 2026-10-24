@@ -422,12 +422,13 @@ async function measure(page: Page, surface: string, type: 'work' | 'form', headi
 }
 
 /**
- * 1240px 上限还在时，首页外壳内容宽是 1200（1240 减两侧 20px），本测试失败。
- * 修复后外壳等于视口减去两侧 24px。不登录后台。
+ * 1920 上 1240px 上限还在时，首页外壳 max-width 是 1240px，本测试失败。
+ * 修复后 ≥1489px 的外壳等于视口减去两侧 24px。1440 仍是居中的 1240px 上限。
+ * 铺满宽度下入口卡片固定 6 列，单卡不窄于 190px。不登录后台。
  * /about 未发布时是 404，同一条 .sx 上限改在 /solutions 与 /factory 上量。
  */
-const HOME_CARD_TRACK = 190;
-const HOME_CARD_GAP = 12;
+const HOME_FILL_MIN = 1489;
+const HOME_CARD_MIN = 190;
 
 function near(actual: number, expected: number, tolerance = 1) {
   expect(Math.abs(actual - expected), `expected ${actual} within ${tolerance} of ${expected}`).toBeLessThanOrEqual(tolerance);
@@ -512,13 +513,22 @@ test('首页外壳铺满 publicBrand 边距，产品页与 .sx 公开页仍是 1
     await expect(page.locator('.hero h1')).toBeVisible();
     for (const selector of shells) {
       const box = await shellBox(page, selector);
-      expect(box.maxWidth, selector).toBe('none');
-      expect(box.contentWidth, selector).toBeGreaterThan(1240);
-      near(box.contentWidth, box.clientWidth - 48);
-      near(box.padL, 24);
-      near(box.padR, 24);
-      near(box.left, 0);
       expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1);
+      if (viewport.width >= HOME_FILL_MIN) {
+        expect(box.maxWidth, selector).toBe('none');
+        expect(box.contentWidth, selector).toBeGreaterThan(1240);
+        near(box.contentWidth, box.clientWidth - 48);
+        near(box.padL, 24);
+        near(box.padR, 24);
+        near(box.left, 0);
+      } else {
+        expect(box.maxWidth, selector).toBe('1240px');
+        near(box.contentWidth + box.padL + box.padR, 1240);
+        expect(box.contentWidth, selector).toBeLessThanOrEqual(1240);
+        near(box.padL, 20);
+        near(box.padR, 20);
+        near(box.left, (box.clientWidth - 1240) / 2);
+      }
     }
     const copy = await page.locator('.hero').evaluate((hero) => {
       const h1 = hero.querySelector('h1') as HTMLElement;
@@ -543,17 +553,19 @@ test('首页外壳铺满 publicBrand 边距，产品页与 .sx 公开页仍是 1
     }
     const row = await entryRow(page);
     columns[viewport.width] = row.columns;
-    const shell = await shellBox(page, 'section.container:has(.entry)');
-    const expectedColumns = Math.floor((shell.contentWidth + HOME_CARD_GAP) / (HOME_CARD_TRACK + HOME_CARD_GAP));
-    expect(row.columns).toBe(expectedColumns);
-    expect(row.columns).toBeGreaterThan(1);
-    for (const width of row.widths) near(width, HOME_CARD_TRACK);
+    expect(row.columns).toBe(6);
+    if (viewport.width >= HOME_FILL_MIN) {
+      for (const width of row.widths) expect(width, 'entry card').toBeGreaterThanOrEqual(HOME_CARD_MIN);
+    } else {
+      for (const width of row.widths) near(width, HOME_CARD_MIN);
+    }
     near(row.pad, 12);
     expect(await css(page, 'section.block', 'padding-top')).toBe('64px');
     expect(await css(page, ':root', '--pj-admin-gutter')).toBe('16px');
   }
 
-  expect(columns[1920]).toBeGreaterThan(columns[1440]);
+  expect(columns[1920]).toBe(6);
+  expect(columns[1440]).toBe(6);
 
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.locator('header.site nav.nav-desktop a[href="/en/products"]').click();

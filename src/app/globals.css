@@ -405,13 +405,12 @@ header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-co
 
 /* 只作用于首页外壳。全局 --container 仍是 1240px，其他公开页的 .container 与 .sx 继续用这个上限。
    main:has(> .hero) 只匹配首页；页头、页脚和后台不匹配。
-   ≥1024px 时外壳等于视口减去两侧 --pj-public-gutter-desktop（24px）。
-   小于 1024px 时这些规则不生效：内边距仍是共用的 20px，max-width 仍是 1240px。
-   主视觉 h1 上限 820px，主视觉段落上限 640px。≤1440 时文案列再限制为
-   (1240px - 40px - 32px) * 1.2 / 2.2，即 1240px 容器里的文案列宽。
-   从 1249px 起，入口卡片是固定 190px 轨道 ((1200 - 5*12) / 6)；多出来的宽度加列。
+   1488px 及以下不命中：仍是居中的 1240px 上限和共用的 20px 内边距，1440/1280/1024 与改之前一致。
+   ≥1489px（宽于 1440px 加两侧 24px）时外壳等于视口减去两侧 --pj-public-gutter-desktop（24px）。
+   主视觉 h1 上限 820px，主视觉段落上限 640px。区块 h2 上限 960px，行动区段落上限 720px。
+   铺满宽度下入口卡片固定 6 列：repeat(6, minmax(190px, 1fr))，列宽把单卡拉宽，仍是 6+5 两行。
    不使用 --pj-admin-gutter。 */
-@media (min-width:1024px){
+@media (min-width:1489px){
   main:has(> .hero) > .hero > .container,
   main:has(> .hero) > section.container{
     max-width:none;
@@ -431,15 +430,7 @@ header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-co
   main:has(> .hero) :is(.block,.brand-scene-section) > h2,
   main:has(> .hero) :is(.premium-band,.cta-band) h2{max-width:960px}
   main:has(> .hero) .cta-band p{max-width:720px}
-}
-@media (min-width:1024px) and (max-width:1440px){
-  main:has(> .hero) > .hero .hero-grid > :first-child{
-    max-width:calc((1240px - 40px - 32px) * 1.2 / 2.2);
-  }
-}
-@media (min-width:1249px){
   main:has(> .hero) .entry{
-    grid-template-columns:repeat(auto-fill,190px);
-    justify-content:start;
+    grid-template-columns:repeat(6,minmax(190px,1fr));
   }
 }

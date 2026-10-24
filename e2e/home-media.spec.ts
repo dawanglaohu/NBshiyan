@@ -409,6 +409,20 @@ for (const viewport of [
     });
     expect(still).toMatchObject({ width: 1384, height: 720, fit: 'contain', inside: true });
 
+    // 1920 铺满后品牌场景高于 1080 视口。scrollIntoViewIfNeeded 把区块中线对齐视口中线，
+    // 吸顶页头会盖住画框上沿。重叠断言量的是版面是否压住导航和文案，不是滚动经过页头。
+    // 只在画框顶进入吸顶页头时，把画框顶移到页头下沿再量。窄屏页头不吸顶，这里不动。
+    await page.evaluate(() => {
+      const header = document.querySelector('header.site');
+      const frame = document.querySelector('.brand-scene-media');
+      if (!header || !frame) return;
+      if (getComputedStyle(header).position !== 'sticky') return;
+      const limit = header.getBoundingClientRect().bottom;
+      const top = frame.getBoundingClientRect().top;
+      if (top >= limit) return;
+      window.scrollBy({ top: top - limit, behavior: 'instant' });
+    });
+
     const media = await page.locator('.hero-media, .brand-scene-media').evaluateAll((nodes) => nodes.map((node) => {
       const rect = node.getBoundingClientRect();
       return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
