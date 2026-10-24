@@ -420,3 +420,178 @@ async function measure(page: Page, surface: string, type: 'work' | 'form', headi
   await page.setViewportSize({ width: 1440, height: 900 });
   return out;
 }
+
+/**
+ * 1240px 上限还在时，首页外壳内容宽是 1200（1240 减两侧 20px），本测试失败。
+ * 修复后外壳等于视口减去两侧 24px。不登录后台。
+ * /about 未发布时是 404，同一条 .sx 上限改在 /solutions 与 /factory 上量。
+ */
+const HOME_CARD_TRACK = 190;
+const HOME_CARD_GAP = 12;
+
+function near(actual: number, expected: number, tolerance = 1) {
+  expect(Math.abs(actual - expected), `expected ${actual} within ${tolerance} of ${expected}`).toBeLessThanOrEqual(tolerance);
+}
+
+async function shellBox(page: Page, selector: string) {
+  return page.locator(selector).first().evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    const padL = parseFloat(style.paddingLeft);
+    const padR = parseFloat(style.paddingRight);
+    return {
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      contentWidth: rect.width - padL - padR,
+      padL,
+      padR,
+      left: rect.left,
+      maxWidth: style.maxWidth,
+    };
+  });
+}
+
+async function entryRow(page: Page) {
+  return page.locator('.entry').evaluate((grid) => {
+    const cards = [...grid.querySelectorAll<HTMLElement>(':scope > a')];
+    const firstTop = Math.round(cards[0].getBoundingClientRect().top);
+    const columns = cards.filter((el) => Math.round(el.getBoundingClientRect().top) === firstTop).length;
+    return {
+      columns,
+      widths: cards.map((el) => el.getBoundingClientRect().width),
+      pad: parseFloat(getComputedStyle(cards[0]).paddingTop),
+    };
+  });
+}
+
+async function expectPublicContainerCap(page: Page) {
+  const box = await page.locator('main.container').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      maxWidth: style.maxWidth,
+      width: el.getBoundingClientRect().width,
+      token: getComputedStyle(document.documentElement).getPropertyValue('--container').trim(),
+    };
+  });
+  expect(box.token).toBe('1240px');
+  expect(box.maxWidth).toBe('1240px');
+  near(box.width, 1240);
+}
+
+async function expectPublicSxCap(page: Page) {
+  const box = await page.locator('main .sx').first().evaluate((el) => {
+    const style = getComputedStyle(el);
+    const rect = el.getBoundingClientRect();
+    return {
+      maxWidth: style.maxWidth,
+      contentWidth: rect.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+      token: getComputedStyle(document.documentElement).getPropertyValue('--container').trim(),
+    };
+  });
+  expect(box.token).toBe('1240px');
+  expect(box.maxWidth).toBe('1240px');
+  near(box.contentWidth, 1240);
+}
+
+test('首页外壳铺满 publicBrand 边距，产品页与 .sx 公开页仍是 1240 上限', async ({ page }) => {
+  test.setTimeout(180_000);
+  const desktop = [
+    { width: 1920, height: 1080 },
+    { width: 1440, height: 900 },
+  ] as const;
+  const shells = ['.hero > .container', '[data-testid="brand-scene"]', 'section.container:has(.entry)'];
+  const columns: Record<number, number> = {};
+
+  await page.setViewportSize(desktop[0]);
+  await page.goto('/en');
+  await expect(page).toHaveURL(/\/en$/);
+  await expect(page.locator('.hero h1')).toBeVisible();
+
+  for (const viewport of desktop) {
+    await page.setViewportSize(viewport);
+    await expect(page.locator('.hero h1')).toBeVisible();
+    for (const selector of shells) {
+      const box = await shellBox(page, selector);
+      expect(box.maxWidth, selector).toBe('none');
+      expect(box.contentWidth, selector).toBeGreaterThan(1240);
+      near(box.contentWidth, box.clientWidth - 48);
+      near(box.padL, 24);
+      near(box.padR, 24);
+      near(box.left, 0);
+      expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth + 1);
+    }
+    const copy = await page.locator('.hero').evaluate((hero) => {
+      const h1 = hero.querySelector('h1') as HTMLElement;
+      const paragraph = hero.querySelector('p') as HTMLElement;
+      const h1Style = getComputedStyle(h1);
+      const pStyle = getComputedStyle(paragraph);
+      return {
+        h1: h1.getBoundingClientRect().width,
+        h1Max: parseFloat(h1Style.maxWidth),
+        p: paragraph.getBoundingClientRect().width,
+        pMax: parseFloat(pStyle.maxWidth),
+      };
+    });
+    expect(copy.h1Max).toBeLessThanOrEqual(960);
+    expect(copy.h1).toBeLessThanOrEqual(960);
+    expect(copy.pMax).toBeLessThanOrEqual(720);
+    expect(copy.p).toBeLessThanOrEqual(720);
+    near(copy.pMax, 640);
+    if (viewport.width === 1440) {
+      expect(copy.h1).toBeLessThanOrEqual(638);
+      expect(copy.p).toBeLessThanOrEqual(638);
+    }
+    const row = await entryRow(page);
+    columns[viewport.width] = row.columns;
+    const shell = await shellBox(page, 'section.container:has(.entry)');
+    const expectedColumns = Math.floor((shell.contentWidth + HOME_CARD_GAP) / (HOME_CARD_TRACK + HOME_CARD_GAP));
+    expect(row.columns).toBe(expectedColumns);
+    expect(row.columns).toBeGreaterThan(1);
+    for (const width of row.widths) near(width, HOME_CARD_TRACK);
+    near(row.pad, 12);
+    expect(await css(page, 'section.block', 'padding-top')).toBe('64px');
+    expect(await css(page, ':root', '--pj-admin-gutter')).toBe('16px');
+  }
+
+  expect(columns[1920]).toBeGreaterThan(columns[1440]);
+
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.locator('header.site nav.nav-desktop a[href="/en/products"]').click();
+  await expect(page).toHaveURL(/\/en\/products$/);
+  await expect(page.locator('main.container')).toBeVisible();
+  await expectPublicContainerCap(page);
+
+  await page.locator('header.site nav.nav-desktop a[href="/en/contact"]:not(.btn)').click();
+  await expect(page).toHaveURL(/\/en\/contact$/);
+  await expect(page.locator('main.container')).toBeVisible();
+  await expectPublicContainerCap(page);
+
+  // 窄屏从仍有页头的联系页点字标回首页。未发布关于页的 404 文档不含 header.site。
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('header.site a.logo').click();
+  await expect(page).toHaveURL(/\/en$/);
+  await expect(page.locator('.hero h1')).toBeVisible();
+  const phone = await shellBox(page, '.hero > .container');
+  expect(phone.maxWidth).toBe('1240px');
+  near(phone.padL, 20);
+  near(phone.padR, 20);
+  expect(phone.scrollWidth).toBeLessThanOrEqual(phone.clientWidth + 1);
+  const phoneRow = await entryRow(page);
+  expect(phoneRow.columns).toBe(2);
+
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  for (const path of ['/en/solutions', '/en/factory']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('main .sx').first()).toBeVisible();
+    await expectPublicSxCap(page);
+  }
+
+  const about = await page.goto('/en/about');
+  if (about?.status() === 200) {
+    await expect(page.locator('main .sx').first()).toBeVisible();
+    await expectPublicSxCap(page);
+  } else {
+    expect(about?.status()).toBe(404);
+  }
+});
