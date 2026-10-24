@@ -1,4 +1,5 @@
 """10/24 遗留 issue 覆盖层：不进入原批次，状态按登记显示。"""
+import tempfile
 import unittest
 from pathlib import Path
 import sys
@@ -11,13 +12,14 @@ ROOT = Path(__file__).resolve().parents[2]
 WANT = {
     'FE-347': 'todo',
     'FE-378': 'hold',
-    'SEO-1': 'doing',
+    'SEO-1': 'done',
     'SEO-2': 'todo',
     'SEO-3': 'hold',
     'SEO-4': 'hold',
     'SEO-5': 'todo',
     'SEO-6': 'todo',
-    'SEO-7': 'doing',
+    'SEO-7': 'done',
+    'CITY-STILL-WEBP': 'done',
     'BE-I18N-P0': 'todo',
     'BE-RESET-TTY': 'todo',
     'BE-RATELIMIT-P3': 'todo',
@@ -37,6 +39,9 @@ MERGED = {
     'DOCKER-UPLOADS-1': '0b71952e7c0e15b2cc5cc0549167561e57789fc5',
     'GATE-PATHS-1': '78f535ec43e68cb6619a012270f878fdf4e3b954',
     'GATE-PATHS-2': 'c8ebb9c6d3bf3fe230aae757bf187bfaef3c6d5c',
+    'SEO-1': '55a5a7111c81d3938b0528c5567b3b50c878f0d7',
+    'SEO-7': '55a5a7111c81d3938b0528c5567b3b50c878f0d7',
+    'CITY-STILL-WEBP': '369c2e90a2ea92096896e0126f579d61bfe553ea',
 }
 
 
@@ -58,6 +63,29 @@ class IssueLedgerTests(unittest.TestCase):
     def test_bad_fence_is_rejected(self):
         with self.assertRaises(ValueError):
             build_docs.parse_issue_tasks('```issue\nid: SEO-9\n```\n', 'fixture')
+
+    def test_unclosed_issue_fence_names_file_and_line(self):
+        text = 'intro\n```issue\nid: SEO-9\nstatus: todo\n'
+        with self.assertRaises(ValueError) as caught:
+            build_docs.parse_issue_tasks(text, '遗留issue-20261024.md')
+        message = str(caught.exception)
+        self.assertIn('遗留issue-20261024.md:2', message)
+        self.assertIn('未闭合', message)
+
+    def test_unclosed_fence_after_a_closed_one_is_rejected(self):
+        text = '```issue\nid: SEO-9\n```\n```issue\nid: SEO-8\n'
+        with self.assertRaises(ValueError) as caught:
+            build_docs.parse_issue_tasks(text, 'ledger.md')
+        self.assertIn('ledger.md:4', str(caught.exception))
+        self.assertIn('未闭合', str(caught.exception))
+
+    def test_second_issue_opener_before_close_is_rejected(self):
+        text = '```issue\nid: SEO-9\n```issue\nid: SEO-8\n```\n'
+        with self.assertRaises(ValueError) as caught:
+            build_docs.parse_issue_tasks(text, 'ledger.md')
+        message = str(caught.exception)
+        self.assertIn('ledger.md:3', message)
+        self.assertIn('从第 1 行开始', message)
 
     def test_real_ledger_keeps_batch_three_clean(self):
         groups, by_num = build_docs.collect(str(ROOT))
@@ -92,13 +120,22 @@ class IssueLedgerTests(unittest.TestCase):
             self.assertIn(path, by_id['BE-I18N-P0']['paths'])
         self.assertEqual(by_id['BE-RESET-TTY']['review'], 'fullstack')
         self.assertIn('aboutLanguages()', by_id['SEO-1']['accept'])
+        self.assertIn('只发布一种语言时不输出 x-default', by_id['SEO-1']['accept'])
         self.assertNotIn('x-default 在 en 发布时指向 en', by_id['SEO-1']['accept'])
+        self.assertIn('AboutSettings.tsx', by_id['FE-378']['note'])
+        self.assertIn('GATE-HARDEN', by_id['FE-378']['note'])
+        self.assertIn('全栈安全审查', by_id['FE-378']['note'])
         self.assertEqual(by_id['SEO-6']['gh'], '444')
         self.assertEqual(by_id['SEO-6']['ledgerStatus'], 'todo')
         self.assertIn('3D', by_id['SEO-6']['note'])
+        self.assertEqual(by_id['SEO-2']['ledgerStatus'], 'todo')
+        self.assertEqual(by_id['BE-I18N-P0']['ledgerStatus'], 'todo')
         self.assertEqual(by_id['SEO-7']['gh'], '446')
         self.assertEqual(by_id['SEO-7']['pr'], '445')
+        self.assertEqual(by_id['SEO-7']['ledgerStatus'], 'done')
         self.assertIn('aboutLanguages()', by_id['SEO-7']['accept'])
+        self.assertEqual(by_id['CITY-STILL-WEBP']['gh'], '待开')
+        self.assertEqual(by_id['CITY-STILL-WEBP']['ledgerStatus'], 'done')
         self.assertIn('已知限制', by_id['BE-350A']['accept'])
         self.assertIn('线上验收', by_id['BE-350A']['accept'])
         self.assertIn('线上验收', by_id['BE-350B']['accept'])
@@ -106,7 +143,8 @@ class IssueLedgerTests(unittest.TestCase):
         self.assertEqual(by_id['GATE-HARDEN']['pr'], '438')
         self.assertNotIn('docs/seo-post-launch-indexing.md', by_id['BE-350A']['paths'])
         prs = {'DEP-AUDIT-1': '420', 'DEPLOY-FIX-1': '421', 'DOCKER-UPLOADS-1': '422',
-               'GATE-PATHS-1': '423', 'GATE-PATHS-2': '435'}
+               'GATE-PATHS-1': '423', 'GATE-PATHS-2': '435',
+               'SEO-1': '445', 'SEO-7': '445', 'CITY-STILL-WEBP': '448'}
         for tid, sha in MERGED.items():
             self.assertEqual(by_id[tid]['merged'], sha)
             self.assertEqual(by_id[tid]['pr'], prs[tid])
@@ -124,6 +162,48 @@ class IssueLedgerTests(unittest.TestCase):
         reader = (ROOT / '_run' / 'build_docs.py').read_text(encoding='utf-8')
         self.assertIn('由 PR 上 bot 审查替代', reader)
         self.assertIn('!t.issue', reader)
+        self.assertIn('persist_issue_landed', reader)
+
+    def test_landed_issue_status_survives_note_rebuild(self):
+        landed = '''```issue
+id: SEO-9
+title: 示例登记
+module: M7
+status: todo
+gh: 100
+pr: 200
+merged: 0123456789abcdef0123456789abcdef01234567
+depends-on: none
+paths: src/app/sitemap.ts
+estimate: 0.5d
+input: 输入
+output: 产出
+acceptance: 验收
+edges: none
+```
+'''
+        other = landed.replace('id: SEO-9', 'id: SEO-8').replace('status: todo', 'status: hold').replace(
+            'pr: 200\nmerged: 0123456789abcdef0123456789abcdef01234567\n', '')
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ledger = root / '04-执行'
+            ledger.mkdir()
+            path = ledger / '遗留issue-20261024.md'
+            path.write_text(landed + '\n' + other, encoding='utf-8', newline='\n')
+            with self.assertRaises(ValueError) as caught:
+                build_docs.persist_issue_landed(str(root), ['SEO-8'])
+            self.assertIn('SEO-8', str(caught.exception))
+            self.assertIn('status: hold', path.read_text(encoding='utf-8'))
+            self.assertEqual(build_docs.persist_issue_landed(str(root), ['SEO-9']), ['SEO-9'])
+            issues = {task['id']: task for task in build_docs.load_issue_ledger(str(root))}
+            self.assertEqual(issues['SEO-9']['ledgerStatus'], 'done')
+            self.assertEqual(issues['SEO-8']['ledgerStatus'], 'hold')
+            build_docs.ensure_issue_notes(str(root), [issues['SEO-9']])
+            note = root / '图谱' / '任务' / 'SEO-9.md'
+            self.assertIn('\nstatus: done\n', '\n' + note.read_text(encoding='utf-8'))
+            build_docs.ensure_issue_notes(str(root), build_docs.load_issue_ledger(str(root)))
+            self.assertIn('\nstatus: done\n', '\n' + note.read_text(encoding='utf-8'))
+            self.assertEqual(build_docs.persist_issue_landed(str(root), ['M1-T1']), [])
 
 
 if __name__ == '__main__':

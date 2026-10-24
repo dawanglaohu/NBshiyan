@@ -1,5 +1,5 @@
 {
-  "compiler": "b173fd4f488943a4200882f214c347597cf5f20d928f5671c1d6f80fbd61b82e",
+  "compiler": "6e54e27b4956d58c992e5c686743fd5be07a04b41937d0488392db82786a7b73",
   "inputs": {
     "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
     "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
@@ -22,7 +22,7 @@
     "04-执行/19-模块任务拆分.md": "0a508ae1cf4a58ba109cd4891c7381eed1be86d86334dd9684ab03f6a83ffe33",
     "04-执行/20-里程碑与交付顺序.md": "90bd0b9730dce571fbfb5597d9bc12f0362c187e308f677b15f0b4d85b16fb77",
     "04-执行/21-风险与未决事项.md": "1145375447465c85e857e6586a6a9bc26997bb8fbf077e615b4cff77fe168ad7",
-    "04-执行/遗留issue-20261024.md": "4bfc9f69119702aeb04a24699117b29ac6320978cab1afe2690911e43bc233cc",
+    "04-执行/遗留issue-20261024.md": "8eabe10a846423021366021afbc619cd7ee0711b96c040b498c0239eb9c1d152",
     "05-附录/22-决策记录.md": "128318be8feb326b25035d00cccc64aa325bf5b4018905578e2d077e72ec2709",
     "05-附录/23-变更记录.md": "b78c124dbc327e3794cdb6758d495dcad76fdabc363beb61c41febe633defa42",
     "05-附录/24-参考资料.md": "68a06d729c78c402bdd4d9445b30c271e45798afe34037ec6513d5d76f47e976",
@@ -36,12 +36,12 @@
   },
   "products": {
     "_MOC.md": "9a97a99eecd6e59e4f9554bd6ef41912e6cd0b3965786bf729f88b178921655c",
-    "_run/dispatch.json": "5cfde63d2eb5e7c4fd5b1e5c97786973adc000089117e5008d71114df1d39a95",
-    "_run/review.json": "53e48052fbe5f68659b3c7c881118b2d9499f06dc96918430ea5a191cb5cfbfa",
+    "_run/dispatch.json": "b4cbab2cbca872422911926b74f37adbee48e02452ff782cab44b248c619b343",
+    "_run/review.json": "8cb1c171fdea9e50ff8ae13dd418948b5b03cb203d3aa794e92a451193c4ed5e",
     "_run/task-reviews.json": "fa829fb089ce2a5d6a7d89d4b833fff35af34bcd24c6c4d1f8d9a09516663736",
-    "docs-data.js": "4100846421a8425357c4b59c564eb80b082657a992bf6bd89438aea289f9ac50",
+    "docs-data.js": "84d8b35ff45b928fcd29d0482c9a3bfe27761d7d36dda9fb631dbce2f9b0c9dc",
     "index.html": "5c3c46f15d7c7eb64da10371a1a7593ea4c8412c8b9aeb2d09d11065922852fe"
   },
   "schemaVersion": 1,
-  "sourceVersion": "e4ae1b8960123aaeecc0162572d1da66d8da148fde9987c39f839db8d1f90b43"
+  "sourceVersion": "c7e1352e5f4d7410589470b23c3bdd72167853cacd30d5e730ea0a01e4d5bbd7"
 }
