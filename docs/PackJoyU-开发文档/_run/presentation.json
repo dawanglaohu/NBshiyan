@@ -544,6 +544,19 @@
         "docs/acceptance/delivery/",
         "e2e/delivery-smoke.spec.ts"
       ],
+      "M7-T10": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/audit-high-prod.ts",
+        "scripts/audit-exceptions.json",
+        ".github/workflows/ci.yml",
+        "src/lib/contracts/",
+        "src/lib/client/api.ts",
+        "src/auth.ts",
+        "src/lib/server/",
+        "src/app/api/",
+        "tests/"
+      ],
       "M1-T9": [
         "public/brand/company/",
         "docs/brand-content/source/",

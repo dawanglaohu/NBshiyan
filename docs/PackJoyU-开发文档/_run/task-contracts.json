@@ -3506,6 +3506,44 @@
         18
       ]
     },
+    "M7-T10": {
+      "provides": [
+        "zod-4-migration"
+      ],
+      "requires": [
+        {
+          "task": "M7-T9",
+          "capability": "delivery-acceptance"
+        }
+      ],
+      "stage": "integration",
+      "wiring": [
+        "buildPipeline",
+        "sharedTypes"
+      ],
+      "supportPaths": [],
+      "outputPaths": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/audit-exceptions.json",
+        "src/lib/contracts/",
+        "tests/contracts-foundation.test.ts"
+      ],
+      "sections": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        14,
+        16,
+        17,
+        18
+      ]
+    },
     "M1-T9": {
       "provides": [
         "company-visual-assets"
