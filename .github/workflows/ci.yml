@@ -16,7 +16,7 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - name: 依赖漏洞扫描（high 及以上阻断）
-        run: pnpm audit --audit-level high --prod
+        run: node --import tsx scripts/audit-high-prod.ts
       - name: 模型体积门槛（普通 1MB，带动画 1.5MB）
         run: node scripts/check-model-size.mjs
       - name: 模型和封面路径必须存在（products.ts）
