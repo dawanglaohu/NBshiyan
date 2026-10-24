@@ -1,0 +1,15 @@
+name: security-review-replay
+# 批准或撤销评审时发出信号。判定不在这里。
+# pull_request_review 会运行 PR merge commit 上的这个文件，所以这里不能做判定，也不能叫 gate。
+# 默认分支上的 security-review-rerun.yml 收到成功信号后，重跑 pull_request_target 的 gate。
+on:
+  pull_request_review:
+    types: [submitted, dismissed]
+permissions:
+  contents: read
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: replay signal
+        run: echo "security-review replay signal"
