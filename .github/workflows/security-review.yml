@@ -23,8 +23,11 @@ jobs:
             const sensitive = [/^package\.json$/, /^pnpm-lock\.yaml$/, /^\.github\//, /^src\/middleware\.ts$/,
               /^src\/app\/api\//, /^src\/lib\/server\//, /^security-headers\.ts$/, /^next\.config\.ts$/, /^prisma\//, /^patches\//, /^public\/(draco|basis)\//, /^pnpm-workspace\.yaml$/, /^\.npmrc$/,
               /^scripts\//, /^\.dockerignore$/, /^Dockerfile/, /^deploy\//, /^docker-compose/,
-              /^tsconfig.*\.json$/, /^\.gitattributes$/, /^prod-env-check\.ts$/, /^src\/instrumentation\.ts$/];
-            const hit = files.map(f => f.filename).filter(f => sensitive.some(r => r.test(f)));
+              /^tsconfig.*\.json$/, /^\.gitattributes$/, /^prod-env-check\.ts$/, /^src\/instrumentation\.ts$/,
+              /^src\/auth\.ts$/, /^src\/lib\/admin\//, /^src\/lib\/edge\//, /^src\/lib\/contracts\//, /^src\/app\/admin-enroll\//, /^vercel\.json$/,
+              /^\.env\.example$/, /(^|\/)\.gitattributes$/,
+              /^next\.config\.(js|mjs|cjs|mts|cts)$/, /^middleware\.(js|mjs|cjs|ts|mts|cts)$/, /^src\/middleware\.(js|mjs|cjs|mts|cts)$/];
+            const hit = files.flatMap(f => [f.filename, f.previous_filename].filter(Boolean)).filter(p => sensitive.some(r => r.test(p)));
             if (!hit.length) { core.info('未改动安全路径，跳过'); return; }
             core.info('安全路径：' + hit.join(', '));
             const app = process.env.REVIEWER_APP;
