@@ -13,3 +13,16 @@ export function buildEmailTemplates(
 ): Record<string, { subject: string; html: string; text: string }>;
 
 export const CUSTOMER_LOCALES: Record<string, CustomerLocale>;
+
+export function invokedDirectly(argv?: string[], metaUrl?: string): boolean;
+
+export type EmailBuildPlan =
+  | { action: 'write'; code: 0 }
+  | { action: 'fail'; code: 1; error: string }
+  | { action: 'skip'; code: 0 };
+
+export function emailBuildPlan(options?: {
+  argv?: string[];
+  metaUrl?: string;
+  lifecycle?: string;
+}): EmailBuildPlan;

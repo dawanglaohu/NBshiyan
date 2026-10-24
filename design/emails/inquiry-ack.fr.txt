@@ -2,19 +2,19 @@ Subject: Nous avons bien reçu votre demande n° {{inquiryId}}
 
 Bonjour {{name}},
 
-Merci d’avoir contacté PackJoyU. {{#reply}}Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra sous {{replyTime}}.{{/reply}}{{^reply}}Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra par e-mail.{{/reply}}
+Merci d’avoir contacté PackJoyU. {{#reply}}Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra sous {{replyTime}}.{{/reply}}{{^reply}}Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra par e-mail.{{/reply}}
 
 Votre demande
-Référence : #{{inquiryId}}
-Entreprise : {{company}}
-Produit : {{product}}
-Quantité : {{quantity}}
+Référence : #{{inquiryId}}
+Entreprise : {{company}}
+Produit : {{product}}
+Quantité : {{quantity}}
 
 Si vous répondez à cet e-mail, merci de conserver le numéro de référence dans l’objet.
 
-Voir nos produits : {{siteUrl}}/{{locale}}/products
+Voir nos produits : {{siteUrl}}/{{locale}}/products
 
-Besoin de nous joindre plus vite ? Écrivez à {{contactEmail}} ou sur WhatsApp au {{whatsapp}}.
+Besoin de nous joindre plus vite ? Écrivez à {{contactEmail}} ou sur WhatsApp au {{whatsapp}}.
 
 --
 Vous recevez cet e-mail car vous avez envoyé une demande sur {{siteUrl}}. PackJoyU · Emballages papier et impression sur mesure.

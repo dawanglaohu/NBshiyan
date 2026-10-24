@@ -24,7 +24,15 @@ export function replyHours(v?: string): number | null {
   const n = Number(m[1]);
   return Number.isInteger(n) && n > 0 && n <= 720 ? n : null;
 }
-/** 按语言写回复时间：en "24 hours"，ru "24 часа" */
+const REPLY_LOCALES = new Set(['en', 'ru', 'zh', 'es', 'de', 'fr']);
+/** 模板 key 的语言后缀：inquiry-ack.es、sample-ack.de、inquiry-notify.zh。认不出时按 en。 */
+export function replyLocaleFromTemplateKey(key: string): string {
+  const dot = key.lastIndexOf('.');
+  const suffix = dot >= 0 ? key.slice(dot + 1) : '';
+  return REPLY_LOCALES.has(suffix) ? suffix : 'en';
+}
+
+/** 按语言写回复时间：en "24 hours"，ru "24 часа"，zh "24 小时"，es "24 horas"，de "24 Stunden"，fr "24 heures" */
 export function replyTimeText(hours: number, locale: string) {
   if (locale === 'ru') {
     const m10 = hours % 10, m100 = hours % 100;
@@ -32,6 +40,9 @@ export function replyTimeText(hours: number, locale: string) {
     return `${hours} ${w}`;
   }
   if (locale === 'zh') return `${hours} 小时`;
+  if (locale === 'es') return `${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+  if (locale === 'de') return `${hours} ${hours === 1 ? 'Stunde' : 'Stunden'}`;
+  if (locale === 'fr') return `${hours} ${hours === 1 ? 'heure' : 'heures'}`;
   return `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
 }
 
@@ -75,7 +86,7 @@ export function renderEmail(key: TemplateKey, v: EmailVars) {
   const vals: Record<string, string> = {
     name: v.name, company: v.company || '—', product: v.product, quantity: v.quantity, inquiryId: v.inquiryId, locale: v.locale,
     adminId: v.adminId ?? '', score: v.score === undefined ? '' : String(v.score),
-    siteUrl: cfg.siteUrl, replyTime: cfg.replyHours === null ? '' : replyTimeText(cfg.replyHours, key.endsWith('.ru') ? 'ru' : key.endsWith('.zh') ? 'zh' : 'en'), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
+    siteUrl: cfg.siteUrl, replyTime: cfg.replyHours === null ? '' : replyTimeText(cfg.replyHours, replyLocaleFromTemplateKey(key)), contactEmail: cfg.contactEmail, whatsapp: cfg.whatsapp,
   };
   const flags = { risk: v.score !== undefined && v.score < 40, contact: !!(cfg.contactEmail && cfg.whatsapp), named: safeGreetingName(v.name) !== null, reply: cfg.replyHours !== null };
   return {

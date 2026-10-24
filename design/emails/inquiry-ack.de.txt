@@ -10,7 +10,7 @@ Unternehmen: {{company}}
 Produkt: {{product}}
 Menge: {{quantity}}
 
-Bitte behalten Sie die Referenznummer im Betreff, wenn Sie auf diese E-Mail antworten.
+Bitte lassen Sie die Referenznummer im Betreff stehen, wenn Sie auf diese E-Mail antworten.
 
 Unsere Produkte ansehen: {{siteUrl}}/{{locale}}/products
 

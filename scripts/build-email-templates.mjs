@@ -8,7 +8,8 @@
 // 加一种客户语言：在 CUSTOMER_LOCALES 加一行，并放入 design/emails/inquiry-ack.<code>.{html,txt}。处理逻辑不按语言写分支。
 // ar 把 dir 设为 rtl（生成的 <html> 会带 dir="rtl"）。ja / hi / ar 本期不发布，也不放模板。
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const lf = (s) => s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
@@ -102,7 +103,7 @@ export const CUSTOMER_LOCALES = {
   es: {
     dir: 'ltr',
     companyLabel: 'Empresa',
-    greeting: { named: 'Hola, {{name}}:', generic: 'Hola,' },
+    greeting: { named: 'Hola, {{name}}:', generic: 'Hola:' },
     sampleRules: [
       ['Hemos recibido su solicitud y un especialista en embalaje le responderá en un plazo de', 'Hemos recibido su solicitud de muestras. Un especialista en embalaje la revisará y confirmará el envío en un plazo de', 'html,text'],
       ['Hemos recibido su solicitud y un especialista en embalaje le responderá por correo electrónico.', 'Hemos recibido su solicitud de muestras. Un especialista en embalaje la revisará y confirmará el envío por correo electrónico.', 'html,text'],
@@ -112,8 +113,8 @@ export const CUSTOMER_LOCALES = {
       ['porque envió una solicitud en', 'porque solicitó muestras en', 'html,text'],
       ['Su solicitud', 'Su solicitud de muestras', 'html,text'],
       ['Cantidad', 'Cantidad de muestras', 'html,text'],
-      ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Cualquier coste se confirmará por correo electrónico antes del envío.</p>', 'html'],
-      ['{{/reply}}\n\n', '{{/reply}}\n\nCualquier coste se confirmará por correo electrónico antes del envío.\n\n', 'text'],
+      ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Le confirmaremos por correo electrónico cualquier posible coste antes del envío.</p>', 'html'],
+      ['{{/reply}}\n\n', '{{/reply}}\n\nLe confirmaremos por correo electrónico cualquier posible coste antes del envío.\n\n', 'text'],
     ],
   },
   de: {
@@ -129,8 +130,8 @@ export const CUSTOMER_LOCALES = {
       ['eine Anfrage gesendet haben', 'eine Musteranfrage gesendet haben', 'html,text'],
       ['Ihre Anfrage', 'Ihre Musteranfrage', 'html,text'],
       ['Menge', 'Mustermenge', 'html,text'],
-      ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Alle Kosten bestätigen wir per E-Mail vor dem Versand.</p>', 'html'],
-      ['{{/reply}}\n\n', '{{/reply}}\n\nAlle Kosten bestätigen wir per E-Mail vor dem Versand.\n\n', 'text'],
+      ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Etwaige Kosten bestätigen wir Ihnen vor dem Versand per E-Mail.</p>', 'html'],
+      ['{{/reply}}\n\n', '{{/reply}}\n\nEtwaige Kosten bestätigen wir Ihnen vor dem Versand per E-Mail.\n\n', 'text'],
     ],
   },
   fr: {
@@ -138,16 +139,16 @@ export const CUSTOMER_LOCALES = {
     companyLabel: 'Entreprise',
     greeting: { named: 'Bonjour {{name}},', generic: 'Bonjour,' },
     sampleRules: [
-      ['Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra sous', 'Nous avons bien reçu votre demande d’échantillons. Un spécialiste de l’emballage la vérifiera et confirmera l’envoi sous', 'html,text'],
-      ['Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra par e-mail.', 'Nous avons bien reçu votre demande d’échantillons. Un spécialiste de l’emballage la vérifiera et confirmera l’envoi par e-mail.', 'html,text'],
+      ['Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra sous', 'Nous avons bien reçu votre demande d’échantillons. Un spécialiste de l’emballage l’examinera et confirmera l’envoi sous', 'html,text'],
+      ['Nous avons bien reçu votre demande ; un spécialiste de l’emballage vous répondra par e-mail.', 'Nous avons bien reçu votre demande d’échantillons. Un spécialiste de l’emballage l’examinera et confirmera l’envoi par e-mail.', 'html,text'],
       ['Merci, notre équipe vous répondra sous {{replyTime}}.', 'Merci, nous confirmerons l’envoi des échantillons sous {{replyTime}}.', 'html'],
       ['Merci, notre équipe vous répondra par e-mail.', 'Merci, nous confirmerons l’envoi des échantillons par e-mail.', 'html'],
       ['Nous avons bien reçu votre demande n°', 'Nous avons bien reçu votre demande d’échantillons n°', 'subject,html'],
       ['envoyé une demande sur', 'demandé des échantillons sur', 'html,text'],
       ['Votre demande', 'Votre demande d’échantillons', 'html,text'],
       ['Quantité', 'Quantité d’échantillons', 'html,text'],
-      ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Tout coût sera confirmé par e-mail avant l’envoi.</p>', 'html'],
-      ['{{/reply}}\n\n', '{{/reply}}\n\nTout coût sera confirmé par e-mail avant l’envoi.\n\n', 'text'],
+      ['{{/reply}}</p>', '{{/reply}}</p><p style="margin:0 0 20px 0;">Les éventuels frais vous seront confirmés par e-mail avant l’envoi.</p>', 'html'],
+      ['{{/reply}}\n\n', '{{/reply}}\n\nLes éventuels frais vous seront confirmés par e-mail avant l’envoi.\n\n', 'text'],
     ],
   },
 };
@@ -197,12 +198,49 @@ export function buildEmailTemplates(files, locales) {
   return ordered;
 }
 
-function invokedDirectly() {
-  const entry = process.argv[1];
-  return !!entry && import.meta.url === pathToFileURL(entry).href;
+const SCRIPT_NAME = 'build-email-templates.mjs';
+
+function entryFilePath(entry) {
+  return entry.startsWith('file:') ? fileURLToPath(entry) : entry;
 }
 
-if (invokedDirectly()) {
+function sameFile(a, b) {
+  const left = path.resolve(a);
+  const right = path.resolve(b);
+  return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
+}
+
+/** 规范化路径后再比较，避免盘符大小写或 file URL 编码让直接运行被当成 import。 */
+export function invokedDirectly(argv = process.argv, metaUrl = import.meta.url) {
+  const entry = argv?.[1];
+  if (!entry) return false;
+  try {
+    return sameFile(entryFilePath(entry), fileURLToPath(metaUrl));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * write：路径比较认定本文件是入口，生成模板。
+ * fail：email:build 或本文件名是入口，但 invokedDirectly() 为 false。必须非 0，不能空跑成功。
+ * skip：被测试 import。不写盘、不退出。
+ */
+export function emailBuildPlan({ argv = process.argv, metaUrl = import.meta.url, lifecycle = process.env.npm_lifecycle_event } = {}) {
+  if (invokedDirectly(argv, metaUrl)) return { action: 'write', code: 0 };
+  const entry = argv?.[1] ?? '';
+  const namedEntry = path.basename(String(entry).replace(/\\/g, '/')) === SCRIPT_NAME;
+  if (lifecycle === 'email:build' || namedEntry) {
+    return {
+      action: 'fail',
+      code: 1,
+      error: 'email:build: invokedDirectly() failed, so templates were not written. Refusing to exit 0.',
+    };
+  }
+  return { action: 'skip', code: 0 };
+}
+
+function writeTemplates() {
   const DIR = 'design/emails';
   const files = {};
   for (const name of readdirSync(DIR)) {
@@ -214,3 +252,10 @@ if (invokedDirectly()) {
     `// 自动生成，勿手改。来源 design/emails/，生成脚本 scripts/build-email-templates.mjs\nexport const TEMPLATES = ${JSON.stringify(out, null, 1)} as const;\nexport type TemplateKey = keyof typeof TEMPLATES;\n`);
   console.log('templates:', Object.keys(out).join(', '));
 }
+
+const plan = emailBuildPlan();
+if (plan.action === 'fail') {
+  console.error(plan.error);
+  process.exit(plan.code);
+}
+if (plan.action === 'write') writeTemplates();

@@ -64,6 +64,27 @@ test('email templates match the language table and drop every company line', () 
   }
   for (const locale of ['es', 'de', 'fr']) assert.match(built[`sample-ack.${locale}`].html, /antes del envío|vor dem Versand|avant l’envoi/);
   assert.deepEqual(built, TEMPLATES);
+  assert.match(built['inquiry-ack.es'].text, /\{\{\^named\}\}Hola:\{\{\/named\}\}/);
+  assert.match(built['inquiry-ack.es'].html, /\{\{\^named\}\}Hola:\{\{\/named\}\}/);
+  assert.match(built['inquiry-ack.es'].text, /\{\{#named\}\}Hola, \{\{name\}\}:/);
+  assert.ok(built['sample-ack.es'].text.includes('Le confirmaremos por correo electrónico cualquier posible coste antes del envío.'));
+  assert.ok(built['sample-ack.de'].text.includes('Etwaige Kosten bestätigen wir Ihnen vor dem Versand per E-Mail.'));
+  const deRef = 'Bitte lassen Sie die Referenznummer im Betreff stehen, wenn Sie auf diese E-Mail antworten.';
+  assert.ok(built['inquiry-ack.de'].text.includes(deRef) && built['inquiry-ack.de'].html.includes(deRef));
+  assert.ok(built['sample-ack.de'].text.includes(deRef));
+  assert.ok(built['sample-ack.fr'].text.includes('l\u2019examinera') && !built['sample-ack.fr'].text.includes('v\u00e9rifiera'));
+  assert.ok(built['sample-ack.fr'].html.includes('Les \u00e9ventuels frais vous seront confirm\u00e9s par e-mail avant l\u2019envoi.'));
+  for (const part of ['html', 'text'] as const) {
+    assert.equal(/ [;?!]/.test(built['inquiry-ack.fr'][part]), false, `inquiry-ack.fr ${part}`);
+    assert.equal(/ :/.test(built['inquiry-ack.fr'][part]), false, `inquiry-ack.fr ${part} colon`);
+    assert.equal(/ [;?!]/.test(built['sample-ack.fr'][part]), false, `sample-ack.fr ${part}`);
+    assert.equal(/ :/.test(built['sample-ack.fr'][part]), false, `sample-ack.fr ${part} colon`);
+  }
+  assert.ok(built['inquiry-ack.fr'].text.includes('demande\u202F;'));
+  assert.ok(built['inquiry-ack.fr'].html.includes('demande\u202F;'));
+  assert.ok(built['inquiry-ack.fr'].text.includes('R\u00e9f\u00e9rence\u00A0:'));
+  assert.ok(built['inquiry-ack.fr'].text.includes('produits\u00A0:'));
+  assert.ok(built['sample-ack.fr'].text.includes('vite\u202F?'));
 });
 
 test('a new customer locale is a table row plus template files', () => {
