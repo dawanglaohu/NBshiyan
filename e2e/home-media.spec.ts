@@ -232,11 +232,20 @@ test('the city GIF may download within 300px and plays only while it intersects 
   await expect(scene).toHaveAttribute('data-state', 'still');
   await expect(scene).toHaveAttribute('data-user-paused', '0');
   await expect(page.getByTestId('brand-scene-gif')).toHaveCount(0);
-  const leftStill = await page.getByTestId('brand-scene-still').evaluate((el) => ({
-    width: (el as HTMLImageElement).naturalWidth,
-    height: (el as HTMLImageElement).naturalHeight,
-  }));
-  expect(leftStill).toEqual({ width: 1384, height: 720 });
+  const leftStill = await page.getByTestId('brand-scene-still').evaluate((el) => {
+    const image = el as HTMLImageElement;
+    return {
+      currentSrc: new URL(image.currentSrc).pathname,
+      attrWidth: Number(image.getAttribute('width')),
+      attrHeight: Number(image.getAttribute('height')),
+      ratio: image.naturalWidth / image.naturalHeight,
+    };
+  });
+  // w 描述符下 naturalWidth 是 sizes 槽宽，不是文件像素。1440 仍应选 1384 的 WebP，属性保持 1384×720。
+  expect(leftStill.currentSrc).toBe('/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp');
+  expect(leftStill.attrWidth).toBe(1384);
+  expect(leftStill.attrHeight).toBe(720);
+  expect(Math.abs(leftStill.ratio - STILL_RATIO)).toBeLessThan(0.01);
 
   await scene.scrollIntoViewIfNeeded();
   await expect(scene).toHaveAttribute('data-user-paused', '0');
@@ -396,18 +405,35 @@ for (const viewport of [
     await expect(page.getByTestId('brand-scene-still')).toBeVisible();
     const stillBox = await contentRatio(page, '.brand-scene-media');
     expect(Math.abs(stillBox.ratio - STILL_RATIO)).toBeLessThan(0.02);
+    await expect.poll(() => page.getByTestId('brand-scene-still').evaluate((el) => (el as HTMLImageElement).currentSrc)).not.toBe('');
     const still = await page.getByTestId('brand-scene-still').evaluate((el) => {
       const image = el as HTMLImageElement;
       const rect = image.getBoundingClientRect();
       const frame = image.parentElement!.getBoundingClientRect();
       return {
-        width: image.naturalWidth,
-        height: image.naturalHeight,
+        attrWidth: Number(image.getAttribute('width')),
+        attrHeight: Number(image.getAttribute('height')),
+        currentSrc: new URL(image.currentSrc).pathname,
+        loading: image.getAttribute('loading'),
+        fetchPriority: image.getAttribute('fetchpriority'),
         fit: getComputedStyle(image).objectFit,
+        ratio: image.naturalWidth / image.naturalHeight,
         inside: rect.left >= frame.left - 1 && rect.top >= frame.top - 1 && rect.right <= frame.right + 1 && rect.bottom <= frame.bottom + 1,
       };
     });
-    expect(still).toMatchObject({ width: 1384, height: 720, fit: 'contain', inside: true });
+    // DPR 1：≥1489 的 sizes 槽宽超过 1384，选 2000w；1440 与 390 仍选 1384w。
+    // w 描述符下 naturalWidth 跟着槽宽走，所以这里核 currentSrc、属性宽高和比例，不拿文件像素当 naturalWidth。
+    const wide = viewport.width >= 1489;
+    expect(still.currentSrc).toBe(wide
+      ? '/brand/packjoyu-industrial-city-v3-loop-poster-2000.webp'
+      : '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp');
+    expect(still.attrWidth).toBe(1384);
+    expect(still.attrHeight).toBe(720);
+    expect(still.loading).toBe('lazy');
+    expect(still.fetchPriority).toBeNull();
+    expect(still.fit).toBe('contain');
+    expect(still.inside).toBe(true);
+    expect(Math.abs(still.ratio - STILL_RATIO)).toBeLessThan(0.01);
 
     // 1920 铺满后品牌场景高于 1080 视口。scrollIntoViewIfNeeded 把区块中线对齐视口中线，
     // 吸顶页头会盖住画框上沿。重叠断言量的是版面是否压住导航和文案，不是滚动经过页头。

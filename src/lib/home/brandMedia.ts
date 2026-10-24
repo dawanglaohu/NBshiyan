@@ -7,8 +7,8 @@ export const BRAND_MEDIA = {
   },
   scene: {
     poster: '/brand/packjoyu-industrial-city-v3.png',
-    /** 1384×720 pause still for the full city GIF. The 1737×905 illustration is a different frame. */
-    pauseStill: '/brand/packjoyu-industrial-city-v3-loop-poster.png',
+    /** Default src for the city GIF pause still. BrandScene adds the 2000w WebP. The 1737×905 illustration is a different frame. */
+    pauseStill: '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp',
     animation: '/brand/packjoyu-industrial-city-v3-loop-preview.gif',
     width: 1737,
     height: 905,

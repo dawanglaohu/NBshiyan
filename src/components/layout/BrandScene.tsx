@@ -9,6 +9,11 @@ import { BRAND_MEDIA } from '@/lib/home/brandMedia';
 export const CITY_GIF_SRC = '/brand/packjoyu-industrial-city-v3-loop.gif';
 export const CITY_GIF_WIDTH = 1384;
 export const CITY_GIF_HEIGHT = 720;
+/** Pause still for the full city GIF. src is the 1384 WebP; the 2000w file is only a srcset candidate. */
+export const CITY_STILL_SRC = '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp';
+export const CITY_STILL_SRCSET = '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp 1384w, /brand/packjoyu-industrial-city-v3-loop-poster-2000.webp 2000w';
+export const CITY_STILL_SIZES = '(min-width:1489px) calc(100vw - 48px), min(1240px, 100vw - 40px)';
+const CITY_STILL_PNG = '/brand/packjoyu-industrial-city-v3-loop-poster.png';
 /** Load only once the section is this close to the viewport. */
 export const CITY_GIF_ROOT_MARGIN = '300px 0px 300px 0px';
 
@@ -71,7 +76,9 @@ export default function BrandScene({ labels, stillSrc }: { labels: Labels; still
 
   // 300px only admits the download. Playback needs the real viewport, a visible page, and no user pause.
   const showGif = allowDownload && inView && pageVisible && !userPaused;
-  const still = stillSrc ?? BRAND_MEDIA.scene.poster;
+  const requestedStill = stillSrc ?? BRAND_MEDIA.scene.poster;
+  const cityStill = requestedStill === CITY_STILL_SRC || requestedStill === CITY_STILL_PNG || requestedStill === BRAND_MEDIA.scene.pauseStill;
+  const still = cityStill ? CITY_STILL_SRC : requestedStill;
 
   const toggle = () => {
     if (showGif) {
@@ -106,6 +113,8 @@ export default function BrandScene({ labels, stillSrc }: { labels: Labels; still
           loading="lazy"
           decoding="async"
           data-testid="brand-scene-still"
+          srcSet={cityStill ? CITY_STILL_SRCSET : undefined}
+          sizes={cityStill ? CITY_STILL_SIZES : undefined}
         />
         {showGif && (
           <img
