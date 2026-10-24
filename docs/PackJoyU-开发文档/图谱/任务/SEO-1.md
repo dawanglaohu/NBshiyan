@@ -26,7 +26,7 @@ origin: issue-ledger-20261024
 
 ## 验收标准
 
-每个已发布语言的关于页进入 sitemap。条件和页面一致：getAboutContent(locale) 非 null 才输出；开关关闭、语言未发布或内容不完整时不输出。hreflang 只列确实发布的语言，x-default 在 en 发布时指向 en。每张图一条 image，URL 用 AboutImage.src.lg，即长边文件名以 -1600.webp 结尾，不列 src.sm。图片 URL 用 SITE_URL 拼成绝对地址。保持现有 revalidate，读取失败时不输出关于页，其他条目照常。lastModified 用 AboutContent.updatedAt。单测覆盖开关关闭、只发布 en、三张图、getAboutContent 抛错。pnpm build 的路由类型表前后一致，并写进 PR 正文。tsc、lint、test、build 通过。上线后由 SEO 只读验收。不改 robots.txt，不改关于页本身，不新增依赖。
+每个已发布语言的关于页进入 sitemap。条件和页面一致：getAboutContent(locale) 非 null 才输出；开关关闭、语言未发布或内容不完整时不输出。hreflang 只列确实发布的语言。x-default 统一用 aboutLanguages()：只发布一种语言时不输出 x-default，两种及以上并包含 en 时才指向 en。每张图一条 image，URL 用 AboutImage.src.lg，即长边文件名以 -1600.webp 结尾，不列 src.sm。图片 URL 用 SITE_URL 拼成绝对地址。保持现有 revalidate，读取失败时不输出关于页，其他条目照常。lastModified 用 AboutContent.updatedAt。单测覆盖开关关闭、只发布 en、三张图、getAboutContent 抛错。pnpm build 的路由类型表前后一致，并写进 PR 正文。tsc、lint、test、build 通过。上线后由 SEO 只读验收。不改 robots.txt，不改关于页本身，不新增依赖。
 
 ## 必须处理的边界
 

@@ -16,11 +16,13 @@ origin: issue-ledger-20261024
 - 审查：全栈审查
 - 登记状态：待派
 
+sample-ack 由 inquiry-ack 经 SAMPLE_RULES 写入 src/lib/server/email/templates.generated.ts。design/emails/ 新增的是 inquiry-ack 的 es/de/fr 稿。
+
 ## 输入 / 产出
 
 - **输入**：已发布语言清单，以及 es/de/fr 邮件稿和 Sanity 字段。
-- **产出**：邮件模板、PublishedLocaleSchema 和 Sanity schema 接受 es/de/fr，未发布语言的公开接口仍拒绝。
-- **有效路径**：`scripts/build-email-templates.mjs`、`src/i18n/published-locales.ts`、`src/lib/server/published-locales.ts`、`sanity/schemas/index.ts`
+- **产出**：邮件模板和 Sanity schema 支持 es/de/fr。这次不发布任何新语言。未发布语言的公开接口仍返回 400。
+- **有效路径**：`scripts/build-email-templates.mjs`、`src/i18n/published-locales.ts`、`src/lib/server/published-locales.ts`、`sanity/schemas/index.ts`、`design/emails/inquiry-ack.es.html`、`design/emails/inquiry-ack.es.txt`、`design/emails/inquiry-ack.de.html`、`design/emails/inquiry-ack.de.txt`、`design/emails/inquiry-ack.fr.html`、`design/emails/inquiry-ack.fr.txt`、`src/lib/server/email/templates.generated.ts`、`src/lib/server/specs.ts`
 
 ## 验收标准
 

@@ -16,6 +16,8 @@ WANT = {
     'SEO-3': 'hold',
     'SEO-4': 'hold',
     'SEO-5': 'todo',
+    'SEO-6': 'todo',
+    'SEO-7': 'doing',
     'BE-I18N-P0': 'todo',
     'BE-RESET-TTY': 'todo',
     'BE-RATELIMIT-P3': 'todo',
@@ -81,6 +83,26 @@ class IssueLedgerTests(unittest.TestCase):
         self.assertEqual(by_id['FE-378']['deps'], ['BE-350A'])
         self.assertEqual(by_id['BE-350A']['deps'], ['SEO-1'])
         self.assertEqual(by_id['GATE-HARDEN-2']['deps'], ['GATE-HARDEN'])
+        self.assertNotIn('PublishedLocaleSchema', by_id['BE-I18N-P0']['output'])
+        self.assertIn('不发布任何新语言', by_id['BE-I18N-P0']['output'])
+        self.assertIn('400', by_id['BE-I18N-P0']['output'])
+        for path in ('design/emails/inquiry-ack.es.html', 'design/emails/inquiry-ack.de.txt',
+                     'design/emails/inquiry-ack.fr.html', 'src/lib/server/email/templates.generated.ts',
+                     'src/lib/server/specs.ts'):
+            self.assertIn(path, by_id['BE-I18N-P0']['paths'])
+        self.assertEqual(by_id['BE-RESET-TTY']['review'], 'fullstack')
+        self.assertIn('aboutLanguages()', by_id['SEO-1']['accept'])
+        self.assertNotIn('x-default 在 en 发布时指向 en', by_id['SEO-1']['accept'])
+        self.assertEqual(by_id['SEO-6']['gh'], '444')
+        self.assertEqual(by_id['SEO-6']['ledgerStatus'], 'todo')
+        self.assertIn('3D', by_id['SEO-6']['note'])
+        self.assertEqual(by_id['SEO-7']['gh'], '446')
+        self.assertEqual(by_id['SEO-7']['pr'], '445')
+        self.assertIn('aboutLanguages()', by_id['SEO-7']['accept'])
+        self.assertIn('已知限制', by_id['BE-350A']['accept'])
+        self.assertIn('线上验收', by_id['BE-350A']['accept'])
+        self.assertIn('线上验收', by_id['BE-350B']['accept'])
+        self.assertIn('已知限制', by_id['BE-350B']['accept'])
         self.assertEqual(by_id['GATE-HARDEN']['pr'], '438')
         self.assertNotIn('docs/seo-post-launch-indexing.md', by_id['BE-350A']['paths'])
         prs = {'DEP-AUDIT-1': '420', 'DEPLOY-FIX-1': '421', 'DOCKER-UPLOADS-1': '422',

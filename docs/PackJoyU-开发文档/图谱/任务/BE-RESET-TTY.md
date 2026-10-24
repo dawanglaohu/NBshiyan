@@ -13,7 +13,7 @@ origin: issue-ledger-20261024
 - 所属模块：[[M3]]
 - 前置依赖：无
 - GitHub：#431
-- 审查：由 PR 上 bot 审查替代
+- 审查：全栈审查
 - 登记状态：待派
 
 ## 输入 / 产出
@@ -24,7 +24,7 @@ origin: issue-ledger-20261024
 
 ## 验收标准
 
-只改文档和已有文档测试，不改两个 admin 脚本。deploy/README.md、launch-runbook.md、docs/launch-infra.md 里所有 admin-create 和 admin-reset-initial-password 示例都是 docker compose exec -it，或 $DC exec -it，或 run --rm -it。三份都说明：reset 没有终端时退出 2 且什么都不改，从标准输入喂密码的旧用法已失效；admin-create 没有终端时会建号，但不签发、不显示绑定链接。三份都写明绑定链接只私下发给账号本人。launch-runbook.md 有 reset 一节，或明确链到 deploy/README.md 的对应小节。文档测试仍通过。示例只用占位符，不写真实邮箱、域名、主机名或密钥。
+只改文档和已有文档测试，不改两个 admin 脚本。deploy/README.md、launch-runbook.md、docs/launch-infra.md 里所有 admin-create 和 admin-reset-initial-password 示例都是 docker compose exec -it，或 $DC exec -it，或 run --rm -it。三份都说明：reset 没有终端时退出 2 且什么都不改，从标准输入喂密码的旧用法已失效；admin-create 没有终端时会建号，但不签发、不显示绑定链接。三份都写明绑定链接只私下发给账号本人。launch-runbook.md 有 reset 一节，或明确链到 deploy/README.md 的对应小节。文档测试仍通过。示例只用占位符，不写真实邮箱、域名、主机名或密钥。会改 deploy/README.md，走全栈审查。
 
 ## 必须处理的边界
 
