@@ -41,7 +41,46 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `build-offbox.sh`, `tests/build-offbox.test.sh` | build both images OFF the server (fresh clone at the pinned SHA, explicit `--platform`, same pins, public build args only), secret-free pre-checks, `docker save` → `.tar.zst` + `.sha256` + `.manifest` (expected IDs) |
 | `import-and-scan.sh`, `tests/import-scan.test.sh` | ON the server: `sha256sum -c`, tar content check (only our two tags) → `docker load` → IDs / platform / revision label → leak scan with the server's secrets → production build checks → only then `:candidate` + `.candidate-sha`; the transferred files are always removed |
 | `mem-check.sh`, `tests/mem-check.test.sh` | `mem_ok` (sourced by `deploy.sh up` before anything starts): MemAvailable ≥ compose `mem_limit` of the services that still have to start (+ migrate next to a running app) + `MEM_RESERVE_MB` (256) |
-| `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container |
+| `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container. Postgres only; `UPLOAD_DIR` is a separate ops backup (see below) |
+
+## Public images (`/media/`) and the about-page upload
+
+About-page images (PublicAsset) are written under `UPLOAD_DIR/public-assets/<yyyy-mm>/`. The original upload is not stored. These files are not part of the 24-hour upload cleanup (`cleanup-uploads` only removes unbound inquiry logos). `deploy/backup-postgres.sh` dumps Postgres only. Backing up `UPLOAD_DIR`, including `public-assets/`, is a separate ops step on the same schedule as the database dump. This repository does not add that step to the Postgres script.
+
+The app sends `Cache-Control: public, max-age=300, s-maxage=3600` on a live `/media/<id>-800.webp` or `/media/<id>-1600.webp` (no `immutable`): 5 minutes in the browser, 1 hour in a shared cache. Deleting an asset does not purge Cloudflare, so a cached copy can remain until that hour ends. A missing or deleted name is `404` with `Cache-Control: no-store`. Responses issued before this header were `public, max-age=31536000, immutable`. After this version is live, purge the `/media/` prefix once on Cloudflare (Ryan's approval). That removes the old edge copies. Copies already stored in visitors' browsers stay until those browsers drop them, so "gone within an hour of delete" applies only to images first fetched after this version. If Cloudflare has an Edge TTL or Browser TTL rule for `/media/`, it must not be longer than this header. Changing that rule needs Ryan's approval.
+
+nginx must actually proxy these paths. Do not assume an existing vhost already does. Values below are placeholders.
+
+```nginx
+location = /api/admin/site-settings/assets {
+    client_max_body_size 11m;   # global 4m is too small; the app allows 10 MB per file and 10 MB + 64 KB per request, and returns 413 above that
+    proxy_pass http://<app-upstream>;
+    proxy_set_header Host $host;
+    proxy_set_header X-Edge-Auth "<same value as every other proxied location>";
+}
+# ^~ so a regex "dotted path → 404" location cannot take /media/*.webp first. Do not serve this prefix as static files.
+location ^~ /media/ {
+    proxy_pass http://<app-upstream>;
+    proxy_set_header Host $host;
+    proxy_set_header X-Edge-Auth "<same value as every other proxied location>";
+}
+```
+
+The app's own dotted-path rewrite already skips the `media` prefix. nginx still has to hand `/media/` to the app. Check with an id that does not exist:
+
+```sh
+curl -sI "https://<domain>/media/aaaaaaaaaaaaaaaaaaaaaaaa-800.webp"
+```
+
+Expect the app's 404: `Cache-Control: no-store`, and `Content-Security-Policy` containing `sandbox`. A static-file 404 without those headers means the location is wrong.
+
+Ops checklist (tick on the server):
+
+- [ ] `location = /api/admin/site-settings/assets` sets `client_max_body_size 11m`
+- [ ] `/media/` is proxied to the app with `X-Edge-Auth`, and a missing `/media/<24-char-id>-800.webp` is the app's 404 (`no-store`, CSP `sandbox`)
+- [ ] `UPLOAD_DIR` (including `public-assets/`) is backed up separately from `backup-postgres.sh`
+- [ ] Any Cloudflare Edge TTL or Browser TTL for `/media/` is no longer than the new header (browser 5 minutes, edge 1 hour, no `immutable`)
+- [ ] After this version is live, purge the `/media/` prefix once (Ryan's approval)
 
 ## Builder (`nbshiyan-builder`)
 - Created by `build-on-server.sh` with `--buildkitd-config deploy/buildkitd.toml` (from the pinned checkout; the script

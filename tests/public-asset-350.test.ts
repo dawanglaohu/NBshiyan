@@ -618,7 +618,7 @@ test('前台读取：长边 ≤ 800（sm、lg 同一个文件、宽高相同）�
 });
 
 // ================= 公开路由 =================
-test('/media/<id>-<w>.webp：WebP + immutable 长缓存 + nosniff + CSP，没有 Set-Cookie；宽度不对 / 已删除 / 文件名不合法 → 404 no-store', async () => {
+test('/media/<id>-<w>.webp：WebP + 短缓存（5 分钟浏览器 / 1 小时边缘，无 immutable）+ nosniff + CSP，没有 Set-Cookie；宽度不对 / 已删除 / 不存在 / 文件名不合法 → 404 no-store', async () => {
   const t = await assetDeps();
   const a = (await body(await handleUploadAsset(uploadReq(await solid(2400, 1800)), t.d))).json;
   const md = { findLive: async (id: string) => { const r = t.mem.rows.get(id); return r && !r.deletedAt ? r : null; }, storage: t.local };
@@ -626,12 +626,14 @@ test('/media/<id>-<w>.webp：WebP + immutable 长缓存 + nosniff + CSP，没有
     const r = await handleMedia(`${a.id}-${w}.webp`, md);
     assert.equal(r.status, 200);
     assert.equal(r.headers.get('content-type'), 'image/webp');
+    assert.equal(MEDIA_CACHE_CONTROL, 'public, max-age=300, s-maxage=3600');
     assert.equal(r.headers.get('cache-control'), MEDIA_CACHE_CONTROL);
-    assert.equal(MEDIA_CACHE_CONTROL, 'public, max-age=31536000, immutable');
+    assert.doesNotMatch(r.headers.get('cache-control') ?? '', /immutable/);
     assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
     assert.equal(r.headers.get('content-security-policy'), FILE_CSP);
     assert.equal(r.headers.get('set-cookie'), null);
     assert.match(r.headers.get('content-disposition')!, new RegExp(`^inline; filename="${a.id}-${w}\\.webp"$`));
+    assert.deepEqual([...r.headers.keys()].sort(), ['cache-control', 'content-disposition', 'content-length', 'content-security-policy', 'content-type', 'x-content-type-options']);
     const m = await sharp(Buffer.from(await r.arrayBuffer())).metadata();
     assert.equal(m.width, w);
   }
@@ -639,8 +641,19 @@ test('/media/<id>-<w>.webp：WebP + immutable 长缓存 + nosniff + CSP，没有
     const r = await handleMedia(f, md);
     assert.equal(r.status, 404, f); assert.equal(r.headers.get('cache-control'), 'no-store');
   }
+  const missing = await handleMedia(`${'b'.repeat(24)}-800.webp`, md);
+  assert.equal(missing.status, 404);
+  assert.equal(missing.headers.get('cache-control'), 'no-store');
   t.mem.rows.get(a.id)!.deletedAt = NOW;
-  assert.equal((await handleMedia(`${a.id}-1600.webp`, md)).status, 404);
+  const gone = await handleMedia(`${a.id}-1600.webp`, md);
+  assert.equal(gone.status, 404);
+  assert.equal(gone.headers.get('cache-control'), 'no-store');
+  assert.doesNotMatch(gone.headers.get('cache-control') ?? '', /max-age|immutable/);
+  const wrapped = await fileRoute(async (_req: Request, f: string) => handleMedia(f, md))(new Request('http://localhost/media/x'), `${a.id}-800.webp`);
+  assert.equal(wrapped.status, 404);
+  assert.equal(wrapped.headers.get('cache-control'), 'no-store');
+  assert.equal(wrapped.headers.get('content-security-policy'), FILE_CSP);
+  assert.equal(wrapped.headers.get('x-content-type-options'), 'nosniff');
   await t.cleanup();
 });
 

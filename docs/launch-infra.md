@@ -29,9 +29,9 @@
 Ryan 已定：`STORAGE_DRIVER=local`，`UPLOAD_DIR` 指向挂载数据卷的绝对路径（属主为容器内应用用户 uid 1001，权限 700；容器 `read_only` 时这个卷单独挂成可写）。
 
 - 代码：`src/lib/server/storage.ts` 的 `LocalStorage`：key 只能是服务端生成的随机 id（`png/webp/glb`），解析后必须在 `UPLOAD_DIR` 内，不跟随符号链接，写入前校验文件头与扩展名一致，文件 0600、目录 0700、不覆盖。
-- 这个目录**不**经 nginx 或任何静态服务暴露；文件只经现有接口按权限提供（`src/lib/server/file-response.ts` 统一设 Content-Type、`nosniff`、`sandbox` CSP、`Content-Disposition`）。
+- 这个目录**不**经 nginx 或任何静态服务暴露。Logo、模型只经现有接口按权限提供；关于页图片见第 1.2 节。两类都由应用读出字节再返回（`src/lib/server/file-response.ts` 统一设 Content-Type、`nosniff`、`sandbox` CSP、`Content-Disposition`）。
 - 启动时检查：`UPLOAD_DIR` 缺失、不是绝对路径、在 `public/`/`.next/` 下、不存在或不可写 → 拒绝启动。
-- 备份：数据卷随服务器备份一起做（与数据库备份同一时间点）。孤儿文件由定时任务 `/api/admin/cron/cleanup-uploads` 清理（第 5 节）。
+- 备份：数据卷要和数据库备份放在同一时间点。`deploy/backup-postgres.sh` 只备份 Postgres，不含 `UPLOAD_DIR`；`UPLOAD_DIR`（含 `public-assets/`）是运维的单独步骤（第 1.2 节）。孤儿 Logo 由定时任务 `/api/admin/cron/cleanup-uploads` 清理（第 5 节）；`public-assets/` 不参与这次清理。
 
 ### 1.1 可选：Cloudflare R2（代码仍支持，当前不用）
 
@@ -48,6 +48,45 @@ Ryan 操作：
 5. 目前**不**配置生命周期规则：Logo 上传的对象 key 没有 `tmp/` 之类的前缀，按前缀的规则匹配不到任何文件。未绑定询盘的孤儿文件由定时任务 `/api/admin/cron/cleanup-uploads` 清理（见下文 Cron 一节）。以后如需桶级兜底，可先改代码让未绑定的上传写到单独前缀，再对该前缀加规则。
 
 环境变量：`STORAGE_DRIVER=r2`、`R2_ACCOUNT_ID`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`，`R2_ENDPOINT` 留空（默认 `https://<account>.r2.cloudflarestorage.com`）。
+
+### 1.2 关于页公开图片（PublicAsset，`/media/`）
+
+关于页图片写在 `UPLOAD_DIR/public-assets/<年-月>/`。原图不保存。这些文件不参与 24 小时上传清理（`cleanup-uploads` 只删未绑定询盘的 Logo）。`deploy/backup-postgres.sh` 只备份 Postgres。`UPLOAD_DIR`（含 `public-assets/`）由运维按和数据库备份同一时间点单独备份，本仓库不把这一步写进该脚本。
+
+应用对还在的 `/media/<id>-800.webp`、`/media/<id>-1600.webp` 下发 `Cache-Control: public, max-age=300, s-maxage=3600`（不加 `immutable`）：浏览器 5 分钟，共享缓存 1 小时。删除不清 Cloudflare 缓存，已缓存的副本会留到这一小时结束。不存在或已删除的名字是 `404`，`Cache-Control: no-store`。这一版之前发出的响应是 `public, max-age=31536000, immutable`。新版上线后，经 Ryan 批准，清一次 Cloudflare 上 `/media/` 前缀的边缘缓存。边缘上的旧副本会没掉；访客浏览器里已经缓存的旧副本收不回来。所以「删图后 1 小时内访问不到」只对这一版上线之后才被访问过的图成立。若 Cloudflare 给 `/media/` 单独配了 Edge TTL 或 Browser TTL，不得长于这个新头。改 Cloudflare 配置需 Ryan 批准。
+
+nginx 必须把下面两个路径反代到应用。不能默认现有 vhost 已经配好。下面只用占位符。
+
+```nginx
+location = /api/admin/site-settings/assets {
+    client_max_body_size 11m;   # 全局 4m 不够；应用单文件 10 MB，整个请求 10 MB + 64 KB，超出返回 413
+    proxy_pass http://<应用上游>;
+    proxy_set_header Host $host;
+    proxy_set_header X-Edge-Auth "<与其他反代 location 相同的值>";
+}
+# ^~：带点路径的正则 404 不能先于 /media/*.webp 命中。不要把这个前缀当静态目录。
+location ^~ /media/ {
+    proxy_pass http://<应用上游>;
+    proxy_set_header Host $host;
+    proxy_set_header X-Edge-Auth "<与其他反代 location 相同的值>";
+}
+```
+
+应用自己的带点路径 rewrite 已经跳过 `media` 前缀。nginx 仍要把 `/media/` 交给应用。用不存在的 id 核对：
+
+```sh
+curl -sI "https://<域名>/media/aaaaaaaaaaaaaaaaaaaaaaaa-800.webp"
+```
+
+应是应用的 404：`Cache-Control: no-store`，且 `Content-Security-Policy` 含 `sandbox`。没有这些头的静态 404 说明 location 没指到应用。
+
+运维在服务器上核对后勾选：
+
+- [ ] `location = /api/admin/site-settings/assets` 设了 `client_max_body_size 11m`
+- [ ] `/media/` 反代到应用并带 `X-Edge-Auth`；不存在的 `/media/<24位id>-800.webp` 是应用的 404（`no-store`，CSP 含 `sandbox`）
+- [ ] `UPLOAD_DIR`（含 `public-assets/`）已单独备份，不依赖 `backup-postgres.sh`
+- [ ] Cloudflare 上 `/media/` 的 Edge TTL / Browser TTL 不长于新头（浏览器 5 分钟，边缘 1 小时，无 `immutable`）
+- [ ] 新版上线后清一次 `/media/` 前缀的边缘缓存（需 Ryan 批准）
 
 ## 2. Upstash Redis（多实例共享限流）
 
@@ -94,7 +133,7 @@ Ryan 已确认：
 | `STORAGE_DRIVER` | `local`（Ryan 已定） | 生产必须显式设置。`local`：文件放服务器挂载数据卷（配 `UPLOAD_DIR`，第 1 节）；`r2` 只是代码仍支持的可选驱动（第 1.1 节） |
 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 不设 | 仅可选的 `STORAGE_DRIVER=r2` 时必填（第 1.1 节） |
 | `R2_ENDPOINT` | 留空 | |
-| `UPLOAD_DIR` | 挂载数据卷的绝对路径 | 仅 `STORAGE_DRIVER=local` 时必填：绝对路径、存在且应用用户可读写、不在 `public/` 或 `.next/` 下，否则拒绝启动。不对外静态服务，文件只经现有接口按权限提供 |
+| `UPLOAD_DIR` | 挂载数据卷的绝对路径 | 仅 `STORAGE_DRIVER=local` 时必填：绝对路径、存在且应用用户可读写、不在 `public/` 或 `.next/` 下，否则拒绝启动。不对外静态服务。Logo 和模型只经现有接口按权限提供；关于页图片在其下 `public-assets/`，由应用的 `/media/` 公开读出，见第 1.2 节 |
 
 > 自建 standalone：`next build` 只需要 `APP_ENV`、`NODE_ENV` 和 `NEXT_PUBLIC_*` 公开值，不需要任何密钥；上表其余变量只在容器启动时注入，`src/instrumentation.ts` 启动时检查，缺了 exit 1（只报变量名）。健康检查：`GET /api/health`（见 launch-runbook.md 第 4.2 节）。
 
@@ -232,6 +271,7 @@ APP_TAG=candidate docker compose -p nbshiyan -f deploy/docker-compose.yml --env-
 
 - [ ] 询盘提交 → 收到通知邮件、客户收到自动回复（英/俄）
 - [ ] 上传 Logo → `UPLOAD_DIR` 下出现 0600 的 `<随机id>.png`；该文件没有任何静态地址可以直接访问，只能经后台接口（带 `nosniff`、`sandbox` CSP）查看
+- [ ] 关于页图片按第 1.2 节核对：上传 location 的 `client_max_body_size 11m`；`/media/` 反代并带 `X-Edge-Auth`，不存在的 `/media/<24位id>-800.webp` 由应用返回 404 + `no-store` + CSP `sandbox`；`UPLOAD_DIR`（含 `public-assets/`）另做备份；Cloudflare 上 `/media/` 的 Edge/Browser TTL 不长于新缓存头；新版上线后经 Ryan 批准清一次 `/media/` 前缀缓存
 - [ ] 连续错误登录触发限流；重启 app 容器后计数仍在（Upstash 共享存储）
 - [ ] 服务器 cron 手动运行返回 200，不带密钥返回 401
 - [ ] `GET /api/health` 返回 200 `{"ok":true}`；停掉 Postgres 容器时返回 503
