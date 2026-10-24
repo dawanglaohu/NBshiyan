@@ -353,8 +353,9 @@ test.describe('standalone 主冒烟', () => {
     const reportPath = testInfo.outputPath('standalone-smoke.json');
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
     await testInfo.attach('standalone-smoke', { path: reportPath, contentType: 'application/json' });
-    // 十四个工作面都要量到。失败项不改 D1–D6 阈值，也不改后台样式；批次记录另开返工围栏。
+    // 十四次测量都要做完，并且 D1–D6 与 overflow 全部通过。阈值仍在 density_probe.js。
     expect(probes).toHaveLength(14);
+    expect(densityFailed).toEqual([]);
   });
 });
 

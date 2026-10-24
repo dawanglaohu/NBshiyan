@@ -1,5 +1,5 @@
 /* #350 站点设置 · 公司介绍（UX spec v1.0 §3）。沿用 admin.css 的 .adm-card / .adm-btn */
-.st-page{padding:24px;max-width:1200px;padding-bottom:96px}
+.st-page{padding:24px 0 96px;max-width:1200px}
 .st-page h1{font-size:24px;margin:4px 0 6px}
 .st-crumb,.st-audit,.st-hint{font-size:13px;color:var(--ink-2);margin:4px 0}
 .st-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;margin-top:16px;align-items:start}
@@ -116,3 +116,9 @@
 .st-same .st-ferr,.st-same .st-hint{grid-column:1/-1;margin:0}
 .st-same-add{display:flex;align-items:center;gap:8px;margin-top:4px}
 .st-f input.st-ro{background:#F2EFEA;color:var(--ink-2)}
+/* 不足 3 张图时网格收缩到占用列。单列约 260px，和三列时一格接近，空出来的宽度不留在网格里。
+   只看网格自己的子项（>），卡片内部的 label、textarea 也算 nth-child，不带 > 会一直判成「已满 3 个」。 */
+@media (min-width:768px){
+  .st-page .st-im-grid:not(:has(> :nth-child(3))){width:calc(2 * 260px + 12px);max-width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .st-page .st-im-grid:not(:has(> :nth-child(2))){width:260px;grid-template-columns:minmax(0,1fr)}
+}
