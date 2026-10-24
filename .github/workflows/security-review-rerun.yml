@@ -1,6 +1,7 @@
 name: security-review-rerun
 # 监听 replay 的完成事件。本文件只从默认分支运行，PR 改 replay 不能改这里的脚本。
-# 只重跑 event=pull_request_target 且 path 为 security-review.yml 的 run。
+# 只重跑 event=pull_request_target、name=security-review，且文件是默认分支上 security-review.yml 的 run。
+# path 接受裸路径，或「裸路径@默认分支名」。其他 ref 不重跑。
 # 不 checkout，不读取 artifact，不把 PR 标题、正文、分支名或文件名拼进 shell。
 on:
   workflow_run:
@@ -16,7 +17,10 @@ jobs:
     if: >-
       github.event.workflow_run.event == 'pull_request_review' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.path == '.github/workflows/security-review-replay.yml'
+      (
+        github.event.workflow_run.path == '.github/workflows/security-review-replay.yml' ||
+        github.event.workflow_run.path == format('.github/workflows/security-review-replay.yml@{0}', github.event.repository.default_branch)
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -30,7 +34,22 @@ jobs:
               return;
             }
             const { owner, repo } = context.repo;
+            const REPLAY_PATH = '.github/workflows/security-review-replay.yml';
             const GATE_PATH = '.github/workflows/security-review.yml';
+            const defaultBranch = (context.payload.repository && context.payload.repository.default_branch) || '';
+
+            function workflowFileOnDefaultBranch(path, barePath) {
+              if (typeof path !== 'string' || path.length === 0) return false;
+              if (typeof barePath !== 'string' || barePath.length === 0) return false;
+              const at = path.indexOf('@');
+              if (at === -1) return path === barePath;
+              if (typeof defaultBranch !== 'string' || defaultBranch.length === 0) return false;
+              return path.slice(0, at) === barePath && path.slice(at + 1) === defaultBranch;
+            }
+            if (!workflowFileOnDefaultBranch(runMeta.path, REPLAY_PATH)) {
+              core.info('replay workflow path 不是默认分支上的 security-review-replay.yml，跳过');
+              return;
+            }
 
             let openPrs = [];
             try {
@@ -52,7 +71,7 @@ jobs:
 
             function trustedShape(run) {
               return Boolean(run)
-                && run.path === GATE_PATH
+                && workflowFileOnDefaultBranch(run.path, GATE_PATH)
                 && run.event === 'pull_request_target'
                 && run.name === 'security-review'
                 && Number.isInteger(run.id);
