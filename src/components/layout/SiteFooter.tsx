@@ -4,6 +4,7 @@ import { categoryProducts as products } from '@/data/categories';
 import { PUBLIC_ROUTES } from '@/lib/navigation/routes';
 import LangLinks from './LangLink';
 import CookieSettingsLink from '@/components/consent/CookieSettingsLink';
+import '@/components/consent/consent-flat.css';
 
 // 站点页脚（#65）：公司、品类、联系、隐私政策、语言切换
 // #350 aboutVisible：显示规则同导航（服务端 layout 传入）
@@ -33,7 +34,7 @@ export default async function SiteFooter({ aboutVisible = false }: { aboutVisibl
         {aboutVisible && <Link href="/about">{nav('about')}</Link>}
         <Link id="footer-contact-link" href={PUBLIC_ROUTES.contact.path}>{nav('contact')}</Link>
         <Link id={PUBLIC_ROUTES.privacy.entryId} href={PUBLIC_ROUTES.privacy.path} data-testid={PUBLIC_ROUTES.privacy.entryId}>{t('privacy')}</Link>
-        <CookieSettingsLink label={t('cookieSettings')} />
+        <span id="analytics-preferences"><CookieSettingsLink label={t('cookieSettings')} /></span>
         <LangLinks />
       </div>
     </footer>

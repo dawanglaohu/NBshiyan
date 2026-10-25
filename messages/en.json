@@ -411,6 +411,11 @@
         ]
       }
     },
+    "ledger": {
+      "analyticsTitle": "Analytics consent",
+      "visitors": "Visitor counts are anonymous browsers that consented to analytics. Clearing an identifier or using another browser can be counted separately.",
+      "analytics": "Raw analytics are kept for {rawAnalyticsDays} days. Aggregates are kept for {aggregateMonths} months."
+    },
     "ogImageAlt": "PackJoyU: Privacy policy"
   },
   "DesignExpired": {

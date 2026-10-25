@@ -336,16 +336,16 @@ describe('POST /api/analytics/events', { concurrency: false, skip }, () => {
   test('a catalog internal key is stored without a Model3D row, and en/ru paths keep that key', async () => {
     assert.ok(db);
     assert.equal(await db.model3D.count({ where: { productSlug: 'gift-cards' } }), 0);
-    const en = product({ productSlug: 'gift-cards', locale: 'en', path: '/en/custom-gift-cards' });
-    const ru = product({ productSlug: 'gift-cards', locale: 'ru', path: '/ru/podarochnye-karty' });
+    const en = product({ productSlug: 'gift-cards', locale: 'en', path: '/en/products/custom-greeting-cards' });
+    const ru = product({ productSlug: 'gift-cards', locale: 'ru', path: '/ru/products/otkrytki-na-zakaz' });
     const receipt = await accept([en, ru]);
     assert.deepEqual([...receipt.acceptedIds].sort(), [en.eventId, ru.eventId].sort());
     const rows = await db.analyticsEvent.findMany({ where: { productSlug: 'gift-cards' } });
     assert.equal(rows.length, 2);
     assert.deepEqual(rows.map((row) => row.productSlug), ['gift-cards', 'gift-cards']);
-    assert.deepEqual(new Set(rows.map((row) => row.path)), new Set(['/en/custom-gift-cards', '/ru/podarochnye-karty']));
+    assert.deepEqual(new Set(rows.map((row) => row.path)), new Set(['/en/products/custom-greeting-cards', '/ru/products/otkrytki-na-zakaz']));
     assert.deepEqual(new Set(rows.map((row) => row.locale)), new Set(['en', 'ru']));
-    await expectCode({ events: [page(), product({ productSlug: 'custom-gift-cards' })] }, 400, 'invalid');
+    await expectCode({ events: [page(), product({ productSlug: 'custom-greeting-cards' })] }, 400, 'invalid');
     await expectCode({ events: [page(), product({ productSlug: 'not-a-product' })] }, 400, 'invalid');
   });
 

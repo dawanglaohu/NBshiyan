@@ -3,6 +3,7 @@ import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server
 import { Link } from '@/i18n/navigation';
 import { buildPrivacy, privacyIndexable } from '@/lib/legal/privacy';
 import { pageMetadata } from '@/lib/seo/pageMeta';
+import { retentionFacts } from './retention-facts';
 
 // 隐私政策：文案在 messages Privacy.*；含 {{待Ryan确认}} 的条目不渲染。
 // PRIVACY_PAGE_COMPLETE=false 或仍有占位符时 noindex（sitemap 用同一开关排除）。
@@ -25,6 +26,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
   setRequestLocale(locale);
   const t = await getTranslations('Privacy');
   const doc = buildPrivacy(await privacyMessages(locale));
+  const facts = retentionFacts();
   return (
     <main className="container legal">
       <h1>{doc.title}</h1>
@@ -37,6 +39,11 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           {s.key === 'contact' && <p><Link href="/contact">{t('contactLink')}</Link></p>}
         </section>
       ))}
+      <section id="privacy-analytics-consent" aria-labelledby="privacy-analytics-consent-title">
+        <h2 id="privacy-analytics-consent-title">{t('ledger.analyticsTitle')}</h2>
+        <p>{t('ledger.visitors')}</p>
+        <p>{t('ledger.analytics', facts)}</p>
+      </section>
     </main>
   );
 }

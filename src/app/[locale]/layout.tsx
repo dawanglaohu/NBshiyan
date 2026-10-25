@@ -14,6 +14,7 @@ import { QuoteProvider } from '@/components/quote/QuoteProvider';
 import SiteFooter from '@/components/layout/SiteFooter';
 import FloatingActions from '@/components/quote/FloatingActions';
 import CookieConsent from '@/components/consent/CookieConsent';
+import PageEvents from '@/components/analytics/PageEvents';
 import WebVitals from '@/components/analytics/WebVitals';
 import { isAboutVisible } from '@/lib/about/visibility';
 import '../globals.css';
@@ -62,6 +63,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
         <OrganizationJsonLd locale={locale} />
         <WebVitals />
         <NextIntlClientProvider messages={messages as Parameters<typeof NextIntlClientProvider>[0]['messages']}>
+          <PageEvents />
           <QuoteProvider>
             <SiteHeader aboutVisible={aboutVisible} />
             {children}
