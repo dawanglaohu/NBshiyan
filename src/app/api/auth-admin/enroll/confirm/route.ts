@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
 import { clientIp, readBody } from '@/lib/server/security';
-import { checkPassword, checkSecondFactor, hashCodes, newRecoveryCodes, refundLoginRate } from '@/lib/server/admin/login';
+import { LOGIN_WINDOW_MS, checkPassword, checkSecondFactor, hashCodes, newRecoveryCodes, refundLoginRate } from '@/lib/server/admin/login';
 import { audit } from '@/lib/server/admin/audit';
-import { jsonErr, noStore } from '@/lib/server/admin/guard';
+import { jsonErr, noStore, rateLimited } from '@/lib/server/admin/guard';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
 import { enrollConfirmRateOk, enrollIpRateOk, enrollWindowOpen, pendingSecretUsable, recordBadEnrollTotp } from '@/lib/server/admin/enroll-guard';
 import { checkEnrollToken, rejectEnrollToken } from '@/lib/server/admin/enroll-token';
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   const p = Body.safeParse(json);
   if (!p.success) return jsonErr('invalid', 400);
   const user = await checkPassword(p.data.email, p.data.password, ip);
-  if (user === 'rate_limited') return jsonErr('rate_limited', 429);
+  if (user === 'rate_limited') return rateLimited(LOGIN_WINDOW_MS / 1000);
   if (typeof user === 'string') return jsonErr('bad_credentials', 401);
   const tk = checkEnrollToken(user, p.data.token);
   if (tk !== 'ok') { await rejectEnrollToken(user, p.data.email, 'confirm', tk, ip); return jsonErr('bad_credentials', 401); } // 不退登录桶

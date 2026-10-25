@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseArgs, normalizeBase, get, isNoindex, htmlLang, hreflangs, robotsRules, sitemapLocs, runChecks, SANITY_WEBHOOK_PATH, type Fetch } from '../scripts/smoke';
+import { OG_STATIC_JPG_CACHE_CONTROL } from '../next.config';
+import { parseArgs, normalizeBase, get, isNoindex, htmlLang, hreflangs, robotsRules, sitemapLocs, runChecks, sessionClearCookieViolation, SANITY_WEBHOOK_PATH, ADMIN_API_PROBE, OG_HOME_CACHE_PATH, OG_HOME_CACHE_CONTROL, type Fetch } from '../scripts/smoke';
 
 const B = 'https://shop.example.com';
 const page = (lang: string, robots = '') => `<!doctype html><html lang="${lang}"><head>${robots ? `<meta name="robots" content="${robots}"/>` : ''}<link rel="alternate" hrefLang="en" href="${B}/en"/><link rel="alternate" hrefLang="ru" href="${B}/ru"/><link rel="alternate" hrefLang="x-default" href="${B}/en"/></head><body>ok</body></html>`;
-const GOOD: Record<string, [number, string, Record<string, string>?]> = {
+const GOOD: Record<string, [number, string, Record<string, string | string[]>?]> = {
   '/': [307, '', { location: '/en' }],
   '/en': [200, page('en')], '/ru': [200, page('ru')],
   '/robots.txt': [200, `User-Agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ${B}/sitemap.xml\n`],
@@ -13,13 +14,21 @@ const GOOD: Record<string, [number, string, Record<string, string>?]> = {
   '/api/auth/signin': [200, '<html><body>Sign in</body></html>'],
   '/en/privacy': [200, page('en', 'noindex, follow')], '/ru/privacy': [200, page('ru', 'noindex, follow')],
   [SANITY_WEBHOOK_PATH]: [401, '{"error":"unauthorized"}'],
+  [ADMIN_API_PROBE]: [401, '{"error":"unauthorized"}'],
+  [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': OG_HOME_CACHE_CONTROL }],
 };
 function mock(routes: typeof GOOD) {
   const seen: { url: string; init: RequestInit }[] = [];
   const f = (async (u: URL, init: RequestInit) => {
     seen.push({ url: String(u), init });
     const [s, body, h] = routes[new URL(u).pathname] ?? [404, 'nf'];
-    return new Response([301, 302, 303, 307, 308].includes(s) ? null : body, { status: s, headers: h });
+    const headers = new Headers();
+    if (h) {
+      for (const [key, value] of Object.entries(h)) {
+        for (const item of Array.isArray(value) ? value : [value]) headers.append(key, item);
+      }
+    }
+    return new Response([301, 302, 303, 307, 308].includes(s) ? null : body, { status: s, headers });
   }) as unknown as Fetch;
   return { f, seen };
 }
@@ -37,7 +46,8 @@ test('args: base must be http(s) origin; flags', () => {
 test('all good → every check PASS; only GET/HEAD plus one unsigned POST; no secrets; manual redirects', async () => {
   const { rs, seen } = await run(GOOD);
   assert.deepEqual(failed(rs), []);
-  assert.equal(rs.length, 9);
+  assert.equal(rs.length, 11);
+  assert.equal(OG_HOME_CACHE_CONTROL, OG_STATIC_JPG_CACHE_CONTROL);
   const posts = seen.filter((s) => s.init.method === 'POST');
   assert.equal(posts.length, 1); assert.equal(new URL(posts[0].url).pathname, SANITY_WEBHOOK_PATH);
   for (const s of seen) {
@@ -103,6 +113,42 @@ test('privacy: noindex expected by default, indexable with --privacy-indexed, 40
 test('sanity webhook: 401 PASS, 503 → "SANITY_WEBHOOK_SECRET not set", 200 FAIL', async () => {
   assert.match(failed((await run({ ...GOOD, [SANITY_WEBHOOK_PATH]: [503, '{}'] })).rs).join(), /SANITY_WEBHOOK_SECRET not set/);
   assert.match(failed((await run({ ...GOOD, [SANITY_WEBHOOK_PATH]: [200, '{}'] })).rs).join(), /expected 401, got 200/);
+});
+
+test('401 session-cookie clear is a whitelist of two names', async () => {
+  const plain = 'authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  const secure = '__Secure-authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
+  assert.equal(sessionClearCookieViolation([]), null);
+  assert.equal(sessionClearCookieViolation([plain, secure]), null);
+  assert.equal(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT']), null);
+  const livePlain = 'authjs.session-token=; Path=/; HttpOnly; SameSite=lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  const liveSecure = '__Secure-authjs.session-token=; Path=/; HttpOnly; SameSite=lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
+  assert.equal(sessionClearCookieViolation([livePlain, liveSecure]), null);
+  assert.match(sessionClearCookieViolation(['__Secure-authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT']) ?? '', /missing Secure/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; SameSite=None; Max-Age=0']) ?? '', /SameSite must be Lax or Strict/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Max-Age=0']) ?? '', /missing SameSite/);
+  assert.match(sessionClearCookieViolation([plain, secure, 'extra=; Path=/; HttpOnly; Max-Age=0']) ?? '', /too many/);
+  assert.match(sessionClearCookieViolation(['sid=; Path=/; HttpOnly; Max-Age=0']) ?? '', /not allowed/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=leftover; Path=/; HttpOnly; Max-Age=0']) ?? '', /empty/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Max-Age=0; Domain=shop.example.com']) ?? '', /attribute not allowed/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/admin; HttpOnly; Max-Age=0']) ?? '', /Path/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; Max-Age=0']) ?? '', /HttpOnly/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Max-Age=60']) ?? '', /Max-Age/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Expires=Wed, 21 Oct 2015 07:28:00 GMT']) ?? '', /1970/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Expires=Thu, 01 Jan 1970 00:00:01 GMT']) ?? '', /1970/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Expires=not-a-date-but-1970']) ?? '', /1970/);
+  const ok = await run({ ...GOOD, [ADMIN_API_PROBE]: [401, '{}', { 'set-cookie': [plain, secure] }] });
+  assert.deepEqual(failed(ok.rs), []);
+  assert.equal(ok.rs.length, 11);
+  const bad = await run({ ...GOOD, [ADMIN_API_PROBE]: [401, '{}', { 'set-cookie': 'sid=; Path=/; HttpOnly; Max-Age=0' }] });
+  assert.match(failed(bad.rs).join(), /cookie name not allowed/);
+  const webhookCookies = await run({ ...GOOD, [SANITY_WEBHOOK_PATH]: [401, '{}', { 'set-cookie': 'sid=; Path=/; HttpOnly; Max-Age=0' }] });
+  assert.deepEqual(failed(webhookCookies.rs), []);
+  assert.match(failed((await run({ ...GOOD, [ADMIN_API_PROBE]: [200, '{}'] })).rs).join(), /expected 401, got 200/);
+  assert.match(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'no-store' }] })).rs).join(), /no-store/);
+  assert.deepEqual(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'public, max-age=14400' }] })).rs), []);
+  assert.match(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'public, max-age=0' }] })).rs).join(), /max-age/);
+  assert.match(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'public, max-age=86400, no-store' }] })).rs).join(), /no-store/);
 });
 
 test('get(): too many same-origin redirects stops; non-http redirect blocked', async () => {

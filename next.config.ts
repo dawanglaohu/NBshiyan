@@ -1,3 +1,5 @@
+import { readdirSync } from 'node:fs';
+import path from 'node:path';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import { securityHeaders } from './security-headers';
@@ -30,6 +32,55 @@ const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s|media)(?:/|$)';
 // /[locale]/articles/[slug]/og 和 /[locale]/about/og 不在 /og/ 下，缓存头仍由各自的 route 写。
 export const OG_STATIC_JPG_SOURCE = '/og/:file*.jpg';
 export const OG_STATIC_JPG_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
+export const OG_STATIC_JPG_MISS_CACHE_CONTROL = 'no-store';
+// /brand 下的 mp4 文件名没有内容哈希。Cloudflare 浏览器缓存 TTL 可能把源站这个头盖成 max-age=14400，那一层不在这份配置里。
+export const BRAND_MP4_SOURCE = '/brand/:file*.mp4';
+export const BRAND_MP4_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
+export const BRAND_MP4_MISS_CACHE_CONTROL = 'no-store';
+/** 文件名进路由规则之前只放行这个集合。其余跳过，避免把奇怪的名字写进 path-to-regexp。 */
+const SAFE_PUBLIC_FILE = /^[a-z0-9._-]+$/;
+let ogListMustExist = false;
+
+type PublicFileOptions = { failIfEmpty?: boolean; warn?: (message: string) => void };
+
+function listPublicFiles(dir: string, suffix: '.jpg' | '.mp4', options?: PublicFileOptions): string[] {
+  const warn = options?.warn ?? ((message: string) => { console.warn(message); });
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    if (options?.failIfEmpty) throw new Error(`public directory for ${suffix} cannot be read; refusing a build that would mark every matching URL no-store`);
+    return [];
+  }
+  const names: string[] = [];
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith(suffix)) continue;
+    if (!SAFE_PUBLIC_FILE.test(entry.name)) {
+      const shown = entry.name.replace(/[^\x20-\x7e]/g, '?').slice(0, 80);
+      warn(`skipped public ${suffix} file; name must match ^[a-z0-9._-]+$: ${shown}`);
+      continue;
+    }
+    names.push(entry.name);
+  }
+  names.sort();
+  if (options?.failIfEmpty && names.length === 0) {
+    throw new Error(`public directory for ${suffix} has no cacheable files; refusing a build that would mark every matching URL no-store`);
+  }
+  return names;
+}
+
+/** 磁盘上存在的 public/brand/*.mp4。未命中的路径只吃前面的 no-store 规则。 */
+export function brandMp4HitSources(dir = path.join(process.cwd(), 'public', 'brand')): string[] {
+  return listPublicFiles(dir, '.mp4').map((name) => `/brand/${name}`);
+}
+
+/**
+ * 磁盘上存在的 public/og/*.jpg。未命中的路径只吃前面的 no-store 规则。
+ * public/og 新增 jpg 后必须重新 build。headers() 在构建时把当时的文件名写成路由，之后放进目录的新图只得到 no-store。
+ */
+export function ogStaticJpgHitSources(dir = path.join(process.cwd(), 'public', 'og'), options?: PublicFileOptions): string[] {
+  return listPublicFiles(dir, '.jpg', options).map((name) => `/og/${name}`);
+}
 
 export function responseHeaderRules(isProd: boolean) {
   return [
@@ -43,7 +94,12 @@ export function responseHeaderRules(isProd: boolean) {
     ...['/admin', '/admin/:path*', '/:locale/admin', '/:locale/admin/:path*', '/api/admin/:path*', '/admin-enroll'].map((source) => ({ source, headers: adminHeaders })),
     { source: '/s/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
     { source: '/models/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
-    { source: OG_STATIC_JPG_SOURCE, headers: [{ key: 'Cache-Control', value: OG_STATIC_JPG_CACHE_CONTROL }] }
+    // 先给所有 /brand mp4 no-store。磁盘上存在的文件在下一条覆盖成 1 天缓存，后匹配的生效。不存在的保持 no-store。
+    { source: BRAND_MP4_SOURCE, headers: [{ key: 'Cache-Control', value: BRAND_MP4_MISS_CACHE_CONTROL }] },
+    ...brandMp4HitSources().map((source) => ({ source, headers: [{ key: 'Cache-Control', value: BRAND_MP4_CACHE_CONTROL }] })),
+    // 先给所有 /og jpg no-store。存在的文件在下一条用同名头覆盖，后匹配的生效。
+    { source: OG_STATIC_JPG_SOURCE, headers: [{ key: 'Cache-Control', value: OG_STATIC_JPG_MISS_CACHE_CONTROL }] },
+    ...ogStaticJpgHitSources(undefined, { failIfEmpty: ogListMustExist }).map((source) => ({ source, headers: [{ key: 'Cache-Control', value: OG_STATIC_JPG_CACHE_CONTROL }] }))
   ];
 }
 
@@ -93,6 +149,8 @@ nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes
 nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/about/og': ['./src/assets/og-fonts/*.ttf'] };
 // 生产配置检查：`next build` 时跳过只在运行时用的密钥（见 prod-env-check.ts 的 RUNTIME_ONLY），`next start` 时全部检查
 export default function config(phase: string) {
+  ogListMustExist = phase === PHASE_PRODUCTION_BUILD;
+  if (ogListMustExist) ogStaticJpgHitSources(undefined, { failIfEmpty: true });
   assertProdEnv(process.env, phase === PHASE_PRODUCTION_BUILD ? 'build' : 'runtime');
   return withNextIntl(nextConfig);
 }

@@ -3,7 +3,6 @@ import type { Route } from '@playwright/test';
 
 const CITY_1384 = '/brand/packjoyu-industrial-city-v3-loop-1384.mp4';
 const CITY_2000 = '/brand/packjoyu-industrial-city-v3-loop-2000.mp4';
-const CITY_GIF = '/brand/packjoyu-industrial-city-v3-loop.gif';
 const HERO_MP4S = ['/brand/video2-packjoyu-products-v3.mp4', '/brand/video2-packjoyu-products-web-720p60-v3.mp4'];
 /** 361 frames across 30.080s. A pause may not move the playhead by a whole frame. */
 const FRAME_S = 30.080 / 361;
@@ -219,7 +218,7 @@ test('the city video may download within 300px and plays only while it intersect
   await expect(scene).toHaveAttribute('data-in-view', '0');
   await expect(scene).toHaveAttribute('data-state', 'still');
   expect(cityPaths(requested)).toEqual([]);
-  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+  expect(requested.map(pathname).filter((path) => path.endsWith('.gif'))).toEqual([]);
   await expect(page.getByTestId('brand-scene-video')).toHaveCount(0);
   await expect(page.getByTestId('brand-scene-still')).toBeVisible();
 
@@ -299,7 +298,7 @@ test('the city video may download within 300px and plays only while it intersect
   expect(stillPaused.video).toBe(1);
   expect(stillPaused.paused).toBe(true);
   expect(stillPaused.src).toBe(CITY_1384);
-  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+  expect(requested.map(pathname).filter((path) => path.endsWith('.gif'))).toEqual([]);
 });
 
 test('freeze and resume handlers preserve the city animation pause choice', async ({ page }) => {
@@ -374,7 +373,7 @@ test('reduced motion does not start the city video until the visitor presses pla
   const playing = await sceneState(page);
   expect(playing.paused).toBe(false);
   expect(playing.src).toBe(CITY_1384);
-  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+  expect(requested.map(pathname).filter((path) => path.endsWith('.gif'))).toEqual([]);
 });
 
 test('a rejected city play() keeps the still and the Play button', async ({ page }) => {
@@ -396,6 +395,51 @@ test('a rejected city play() keeps the still and the Play button', async ({ page
   await expect(scene).toHaveAttribute('data-state', 'still');
   await expect(page.getByTestId('brand-scene-still')).toBeVisible();
   await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '0');
+});
+
+test('a 404 city video falls back to the still, retries on play, and pause does not fetch again', async ({ page }) => {
+  let allowMedia = false;
+  let cityRequests = 0;
+  await page.route('**/*packjoyu-industrial-city-v3-loop-*.mp4', async (route) => {
+    cityRequests += 1;
+    if (!allowMedia) {
+      await route.fulfill({ status: 404, contentType: 'text/plain', body: 'missing' });
+      return;
+    }
+    await route.continue();
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  await dismissConsent(page);
+  const scene = page.getByTestId('brand-scene');
+  await scene.scrollIntoViewIfNeeded();
+  await expect.poll(() => cityRequests).toBeGreaterThan(0);
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await expect(page.getByTestId('brand-scene-still')).toBeVisible();
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '0');
+  const beforePlay = cityRequests;
+  allowMedia = true;
+  await scene.getByRole('button', { name: 'Play illustration animation' }).click();
+  await expect.poll(() => cityRequests).toBeGreaterThan(beforePlay);
+  const video = page.getByTestId('brand-scene-video');
+  await expect(video).toHaveAttribute('data-revealed', '1');
+  await expect(video).toBeVisible();
+  await expect.poll(() => sceneState(page).then((state) => state.paused)).toBe(false);
+  let settled = cityRequests;
+  const settleBy = Date.now() + 8_000;
+  while (Date.now() < settleBy) {
+    await page.waitForTimeout(400);
+    if (cityRequests === settled) break;
+    settled = cityRequests;
+  }
+  await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
+  await expect(scene).toHaveAttribute('data-user-paused', '1');
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await scene.getByRole('button', { name: 'Play illustration animation' }).click();
+  await expect(video).toHaveAttribute('data-revealed', '1');
+  await expect.poll(() => sceneState(page).then((state) => state.paused)).toBe(false);
+  await page.waitForTimeout(800);
+  expect(cityRequests).toBe(settled);
 });
 
 test('city video pauses within one frame and resumes from that playhead', async ({ page }) => {

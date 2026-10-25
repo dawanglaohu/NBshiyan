@@ -390,6 +390,39 @@ test('#432 生产环境拒绝 http 的 Upstash 地址：rate_limit=failed，不�
   assert.equal((r.out + r.err).includes('http://'), false);
 });
 
+test('VERCEL_ENV=production refuses remote plaintext redis and http upstash before any request', async () => {
+  const pw = 'placeholder';
+  const remote = await hitServer('127.0.0.2');
+  try {
+    const remoteUrl = `redis://:${pw}@127.0.0.2:${remote.port}`;
+    const r1 = await run([user()], { env: { VERCEL_ENV: 'production', RATE_LIMIT_STORE: 'redis', REDIS_URL: remoteUrl, AUTH_SECRET: 'a' } });
+    assert.equal(r1.code, 0, r1.err);
+    assert.match(r1.out, /rate_limit=failed/);
+    assert.match(r1.err, /REDIS_URL 必须是 rediss:\/\//);
+    assert.equal(remote.hits(), 0);
+    const blob1 = r1.out + r1.err;
+    for (const s of [pw, remoteUrl, '127.0.0.2']) assert.equal(blob1.includes(s), false, s);
+
+    const token = 'bearer-SHOULD-NOT-LEAK';
+    const r2 = await run([user()], {
+      env: { VERCEL_ENV: 'production', RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'http://127.0.0.1:9/rest', UPSTASH_REDIS_REST_TOKEN: token, AUTH_SECRET: 'a' },
+    });
+    assert.equal(r2.code, 0, r2.err);
+    assert.match(r2.out, /rate_limit=failed/);
+    assert.equal(r2.ff.calls.length, 0);
+    assert.equal((r2.out + r2.err).includes(token), false);
+    assert.equal((r2.out + r2.err).includes('http://'), false);
+
+    const before = remote.hits();
+    const preview = await run([user()], { env: { VERCEL_ENV: 'preview', RATE_LIMIT_STORE: 'redis', REDIS_URL: remoteUrl, AUTH_SECRET: 'a' } });
+    assert.match(preview.out, /rate_limit=failed/);
+    assert.ok(remote.hits() > before, 'preview still opens a socket');
+    assert.doesNotMatch(preview.err, /REDIS_URL 必须/);
+    const previewBlob = preview.out + preview.err;
+    for (const s of [pw, remoteUrl, '127.0.0.2']) assert.equal(previewBlob.includes(s), false, s);
+  } finally { await remote.close(); }
+});
+
 test('#432 生产环境：远端明文 redis://、无密码、坏协议在开 socket 前失败，输出只点 REDIS_URL', async () => {
   const pw = 'placeholder';
   const remote = await hitServer('127.0.0.2');
