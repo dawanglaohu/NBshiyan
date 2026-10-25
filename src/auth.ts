@@ -3,8 +3,7 @@ import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { decode, encode as defaultEncode } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
-import { z } from 'zod';
-import { RememberDeviceSchema } from '@/lib/contracts/account';
+import { LoginRequestSchema } from '@/lib/contracts/account';
 import { ADMIN_SESSION_POLICY } from '@/lib/server/config';
 import { clientIp } from '@/lib/server/security';
 import { authorizeLogin } from '@/lib/server/admin/login';
@@ -16,13 +15,18 @@ import {
   type DeviceSessionService,
 } from '@/lib/server/admin/device-session';
 
-const Login = z.object({
-  email: z.string().trim().email().max(200),
-  password: z.string().min(1).max(200),
-  totp: z.string().trim().regex(/^\d{6}$/).optional().or(z.literal('').transform(() => undefined)),
-  recoveryCode: z.string().trim().max(40).optional().or(z.literal('').transform(() => undefined)),
-  rememberDevice: RememberDeviceSchema,
-});
+/** Auth.js 自己的传输字段。登录契约只解析剩下的字段，未知登录字段仍由 strict schema 拒绝。 */
+const AUTH_TRANSPORT_FIELDS = ['csrfToken', 'callbackUrl', 'redirect', 'json'] as const;
+
+function parseLogin(raw: unknown) {
+  if (!raw || typeof raw !== 'object') return LoginRequestSchema.safeParse(raw);
+  const source = { ...(raw as Record<string, unknown>) };
+  for (const key of AUTH_TRANSPORT_FIELDS) delete source[key];
+  // 空密码输入视为没带密码，totp 模式才能不填密码；password 模式仍由契约要求密码。
+  if (source.password === '') delete source.password;
+  if (typeof source.totp === 'string') source.totp = source.totp.trim();
+  return LoginRequestSchema.safeParse(source);
+}
 
 /** 普通会话的闲置窗口。Auth.js 的 maxAge 只用绝对上限当天花板，真正的截止由设备行裁定。 */
 export const SESSION_MAX_AGE = 2 * 60 * 60;
@@ -60,9 +64,9 @@ export const { handlers, auth } = NextAuth({
   cookies: { sessionToken: { name: SESSION_COOKIE_NAME, options: { httpOnly: true, sameSite: 'lax', path: '/', secure: USE_SECURE_COOKIES } } },
   providers: [
     Credentials({
-      credentials: { email: {}, password: { type: 'password' }, totp: {}, recoveryCode: {}, rememberDevice: {} },
+      credentials: { email: {}, password: { type: 'password' }, totp: {}, recoveryCode: {}, rememberDevice: {}, mode: {} },
       async authorize(raw, request) {
-        const parsed = Login.safeParse(raw);
+        const parsed = parseLogin(raw);
         if (!parsed.success) throw new CredentialsSignin();
         const user = await authorizeLogin(parsed.data, clientIp(request));
         if (!user) throw new CredentialsSignin();
