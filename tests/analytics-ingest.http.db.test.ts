@@ -60,6 +60,8 @@ test('AnalyticsEvent 进入 schema，并由 deploy.sh 现有 db push 消费', ()
   assert.doesNotMatch(push, /accept-data-loss/);
   const repo = readFileSync('src/lib/server/analytics/event-repo.ts', 'utf8');
   const ingest = readFileSync('src/lib/server/analytics/ingest.ts', 'utf8');
+  assert.match(repo, /ON CONFLICT DO NOTHING/);
+  assert.match(repo, /::timestamptz AT TIME ZONE 'UTC'/);
   assert.doesNotMatch(repo, /queryRawUnsafe|NextResponse|process\.env|clientIp/);
   assert.doesNotMatch(ingest, /queryRawUnsafe|NextResponse|process\.env|clientIp/);
   assert.equal(ANALYTICS_EVENTS_COOKIE_LIMIT, 120);
@@ -329,6 +331,22 @@ describe('POST /api/analytics/events', { concurrency: false, skip }, () => {
     }
   });
 
+  test('a catalog internal key is stored without a Model3D row, and en/ru paths keep that key', async () => {
+    assert.ok(db);
+    assert.equal(await db.model3D.count({ where: { productSlug: 'gift-cards' } }), 0);
+    const en = product({ productSlug: 'gift-cards', locale: 'en', path: '/en/custom-gift-cards' });
+    const ru = product({ productSlug: 'gift-cards', locale: 'ru', path: '/ru/podarochnye-karty' });
+    const receipt = await accept([en, ru]);
+    assert.deepEqual([...receipt.acceptedIds].sort(), [en.eventId, ru.eventId].sort());
+    const rows = await db.analyticsEvent.findMany({ where: { productSlug: 'gift-cards' } });
+    assert.equal(rows.length, 2);
+    assert.deepEqual(rows.map((row) => row.productSlug), ['gift-cards', 'gift-cards']);
+    assert.deepEqual(new Set(rows.map((row) => row.path)), new Set(['/en/custom-gift-cards', '/ru/podarochnye-karty']));
+    assert.deepEqual(new Set(rows.map((row) => row.locale)), new Set(['en', 'ru']));
+    await expectCode({ events: [page(), product({ productSlug: 'custom-gift-cards' })] }, 400, 'invalid');
+    await expectCode({ events: [page(), product({ productSlug: 'not-a-product' })] }, 400, 'invalid');
+  });
+
   test('missing required fields, unknown kinds, overlong values, unpublished products and sensitive URLs do not insert', async () => {
     const viewId = randomUUID();
     const path200 = `/en/${'a'.repeat(196)}`;
@@ -433,6 +451,26 @@ describe('POST /api/analytics/events', { concurrency: false, skip }, () => {
     const chatRow = await db.analyticsEvent.findFirst({ where: { navigationId: chatNavigation, kind: 'chat_start' } });
     assert.equal(chatRow?.productSlug, null);
     assert.equal(await countEvents(), 6);
+  });
+
+  test('a concurrent duplicate insert is duplicate, not 500', async () => {
+    const event = page();
+    const [left, right] = await Promise.all([
+      httpPost({ json: { events: [event] }, cookie: consentCookie }),
+      httpPost({ json: { events: [event] }, cookie: consentCookie }),
+    ]);
+    assert.equal(left.status, 200, left.text);
+    assert.equal(right.status, 200, right.text);
+    assert.equal(left.headers['cache-control'], 'private, no-store');
+    assert.equal(right.headers['cache-control'], 'private, no-store');
+    const receipts = [AnalyticsReceiptDTOSchema.parse(left.body), AnalyticsReceiptDTOSchema.parse(right.body)];
+    const accepted = receipts.reduce((count, receipt) => count + receipt.acceptedIds.length, 0);
+    const duplicated = receipts.reduce((count, receipt) => count + receipt.duplicateIds.length, 0);
+    assert.equal(accepted, 1);
+    assert.equal(duplicated, 1);
+    assert.equal(await countEvents(), 1);
+    assertNoPlanted(left);
+    assertNoPlanted(right);
   });
 
   test('cookie 121 and IP-HMAC 301 are rejected with Retry-After and are not stored', async () => {

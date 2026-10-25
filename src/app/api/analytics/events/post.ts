@@ -13,6 +13,7 @@ import {
   analyticsEventsAttemptCount,
 } from '@/lib/server/analytics/ingest';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
+import { isDbUnavailable } from '@/lib/server/designs';
 import { createAnalyticsIngestServices, type AnalyticsIngestServices } from '@/lib/server/composition';
 import type { ServerConfig } from '@/lib/server/config';
 import { AppError, classifyThrown } from '@/lib/server/http/errors';
@@ -108,12 +109,23 @@ export function createEventsPost(deps: {
       const receipt = AnalyticsReceiptDTOSchema.parse(await services.ingest.accept(payload, consent.browserHash));
       return finish(200, receipt, {});
     } catch (error) {
+      if (isDbUnavailable(error)) return fail(new AppError('service_unavailable'));
       const mapped = classifyThrown(error, requestId);
-      if (mapped.kind === 'legacy-response') return mapped.response;
+      if (mapped.kind === 'legacy-response') return privateNoStore(mapped.response);
       if (mapped.kind === 'legacy-body') return finish(500, mapped.body, { 'cache-control': 'private, no-store' });
       return finish(mapped.status, mapped.body, mapped.headers);
     }
   };
+}
+
+function privateNoStore(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set('cache-control', 'private, no-store');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 function rateLimited(): AppError {

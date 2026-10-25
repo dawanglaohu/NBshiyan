@@ -11,6 +11,7 @@ export type NewAnalyticsEvent = {
   receivedAt: Date;
   locale: string;
   path: string | null;
+  /** 产品内部 key（`products[].slug`），或已发布且 READY 的 Model3D slug。不是本地化 URL slug。 */
   productSlug: string | null;
   navigationId: string | null;
   viewId: string | null;
@@ -56,23 +57,54 @@ export function createAnalyticsEventRepo(db: PrismaClient): AnalyticsEventRepo {
             outcomes.push('duplicate');
             continue;
           }
-          try {
-            await tx.analyticsEvent.create({ data: row });
-          } catch (error) {
-            if (!isUniqueConflict(error)) throw error;
-            const againId = await tx.analyticsEvent.findUnique({ where: { eventId: row.eventId }, select: identity });
-            const againKey = await tx.analyticsEvent.findUnique({ where: { semanticKey: row.semanticKey }, select: identity });
-            const again = classify(againId, againKey, row);
-            if (again === 'conflict' || again === 'create') throw new AnalyticsPayloadConflict();
-            outcomes.push('duplicate');
+          // 交互事务里 create 撞上唯一约束会进入 aborted，随后的查找也会失败。
+          // ON CONFLICT DO NOTHING 不中止事务，插不进再读已有行。
+          const inserted = Number(await tx.$executeRaw(insertAnalyticsEvent(row)));
+          if (inserted === 1) {
+            outcomes.push('created');
             continue;
           }
-          outcomes.push('created');
+          const againId = await tx.analyticsEvent.findUnique({ where: { eventId: row.eventId }, select: identity });
+          const againKey = await tx.analyticsEvent.findUnique({ where: { semanticKey: row.semanticKey }, select: identity });
+          const again = classify(againId, againKey, row);
+          if (again === 'conflict' || again === 'create') throw new AnalyticsPayloadConflict();
+          outcomes.push('duplicate');
         }
       }, { maxWait: 2_000, timeout: 5_000 });
       return outcomes;
     },
   };
+}
+
+/** timestamp(3) 用 UTC 墙钟写入，不把 JS Date 直接绑到该列。与 settings-repo 的 utc 相同。 */
+function utc(date: Date): Prisma.Sql {
+  return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
+}
+
+function insertAnalyticsEvent(row: NewAnalyticsEvent): Prisma.Sql {
+  return Prisma.sql`
+    INSERT INTO "AnalyticsEvent" (
+      "eventId", "semanticKey", "payloadHash", "browserHash", "kind",
+      "occurredAt", "receivedAt", "locale", "path", "productSlug",
+      "navigationId", "viewId", "durationMs", "failureReason"
+    ) VALUES (
+      ${row.eventId},
+      ${row.semanticKey},
+      ${row.payloadHash},
+      ${row.browserHash},
+      ${row.kind}::"AnalyticsEventKind",
+      ${utc(row.occurredAt)},
+      ${utc(row.receivedAt)},
+      ${row.locale},
+      ${row.path},
+      ${row.productSlug},
+      ${row.navigationId},
+      ${row.viewId},
+      ${row.durationMs},
+      ${row.failureReason}
+    )
+    ON CONFLICT DO NOTHING
+  `;
 }
 
 function classify(byId: Identity | null, byKey: Identity | null, row: NewAnalyticsEvent): 'create' | 'duplicate' | 'conflict' {
@@ -89,8 +121,4 @@ function hashEqual(left: string, right: string): boolean {
   const a = Buffer.from(left);
   const b = Buffer.from(right);
   return a.length === b.length && timingSafeEqual(a, b);
-}
-
-function isUniqueConflict(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
 }

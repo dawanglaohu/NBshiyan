@@ -1,12 +1,17 @@
 import { createHmac } from 'node:crypto';
+import { products } from '../../../data/products';
 import {
   AnalyticsEventsRequestSchema,
   AnalyticsReceiptDTOSchema,
   type AnalyticsEventDTO,
   type AnalyticsReceiptDTO,
 } from '../../contracts/analytics';
+import { isDbUnavailable } from '../designs';
 import { AppError } from '../http/errors';
 import { AnalyticsPayloadConflict, type AnalyticsEventRepo, type NewAnalyticsEvent } from './event-repo';
+
+/** 目录产品的内部 key。分析事件不使用 categoryMeta 的本地化 URL slug。 */
+export const CATALOG_PRODUCT_SLUGS: ReadonlySet<string> = new Set(products.map((product) => product.slug));
 
 export const ANALYTICS_EVENTS_MAX_BYTES = 32 * 1024;
 export const ANALYTICS_EVENTS_COOKIE_LIMIT = 120;
@@ -45,11 +50,8 @@ export function createAnalyticsIngestService(deps: {
         throw new AppError('event_time_out_of_range');
       }
       const slugs = productSlugs(parsed.data.events);
-      if (slugs.length > 0) {
-        const published = await deps.repo.publishedSlugs(slugs);
-        if (slugs.some((slug) => !published.has(slug))) {
-          throw new AppError('invalid', { fieldErrors: { productSlug: 'Must be a published product.' } });
-        }
+      if (slugs.length > 0 && !await catalogOrPublished(deps.repo, slugs)) {
+        throw new AppError('invalid', { fieldErrors: { productSlug: 'Must be a published product.' } });
       }
       const rows = parsed.data.events.map((event) => toRow(event, browserHash, deps.secret as Buffer, now));
       let outcomes: Array<'created' | 'duplicate'>;
@@ -61,6 +63,7 @@ export function createAnalyticsIngestService(deps: {
             fieldErrors: { events: 'This event was already stored with different content.' },
           });
         }
+        if (isDbUnavailable(error)) throw new AppError('service_unavailable');
         throw error;
       }
       if (outcomes.length !== rows.length) throw new AppError('service_unavailable');
@@ -103,6 +106,20 @@ function sensitivePath(path: string): boolean {
 function occurredAtInWindow(occurredAt: string, nowMs: number): boolean {
   const at = Date.parse(occurredAt);
   return Number.isFinite(at) && at >= nowMs - PAST_MS && at <= nowMs + FUTURE_MS;
+}
+
+/** 内部 key 直接放行。其余 slug 必须是已发布且 READY 的 Model3D。任一不在白名单则整批无效。 */
+async function catalogOrPublished(repo: AnalyticsEventRepo, slugs: readonly string[]): Promise<boolean> {
+  const external = slugs.filter((slug) => !CATALOG_PRODUCT_SLUGS.has(slug));
+  if (external.length === 0) return true;
+  let published: Set<string>;
+  try {
+    published = await repo.publishedSlugs(external);
+  } catch (error) {
+    if (isDbUnavailable(error)) throw new AppError('service_unavailable');
+    throw error;
+  }
+  return external.every((slug) => published.has(slug));
 }
 
 function productSlugs(events: readonly AnalyticsEventDTO[]): string[] {
