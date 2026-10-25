@@ -38,6 +38,7 @@ const edge = process.env.EDGE_AUTH_SECRET;
 let ipSeq = 1;
 let handleAuth: (request: Request) => Promise<Response> = async () => { throw new Error('auth not loaded'); };
 let consumeTotpStep: typeof import('../src/lib/server/admin/login').consumeTotpStep = async () => { throw new Error('login not loaded'); };
+let authorizeLogin: typeof import('../src/lib/server/admin/login').authorizeLogin = async () => { throw new Error('login not loaded'); };
 
 function nextIp() {
   const n = ipSeq++;
@@ -128,7 +129,7 @@ before(async () => {
     throw new Error('prisma db push failed');
   }
   ({ handleAuth } = await import('../src/auth'));
-  ({ consumeTotpStep } = await import('../src/lib/server/admin/login'));
+  ({ consumeTotpStep, authorizeLogin } = await import('../src/lib/server/admin/login'));
 });
 
 after(async () => { await prisma?.$disconnect(); });
@@ -146,6 +147,40 @@ async function makeUser(over: { passwordlessEnabled?: boolean; disabled?: boolea
     },
   });
   return { row, email, password, plain, code: () => authenticator.generate(plain) };
+}
+
+async function securitySnapshot(id: string) {
+  const row = await (prisma as PrismaClient).user.findUniqueOrThrow({ where: { id } });
+  return {
+    totpEnabled: row.totpEnabled,
+    totpSecret: row.totpSecret,
+    sessionVersion: row.sessionVersion,
+    passwordlessEnabled: row.passwordlessEnabled,
+    recoveryCodes: row.recoveryCodes,
+    failedLogins: row.failedLogins,
+    lockedUntil: row.lockedUntil,
+    totpLastStep: row.totpLastStep,
+  };
+}
+
+async function makeRecoveryUser(over: { passwordlessEnabled?: boolean; sessionVersion?: number } = {}) {
+  const member = await makeUser({ passwordlessEnabled: over.passwordlessEnabled });
+  const recovery = randomBytes(5).toString('hex');
+  const hash = await hashSecret(recovery);
+  const client = prisma as PrismaClient;
+  await client.user.update({
+    where: { id: member.row.id },
+    data: { recoveryCodes: [hash], ...(over.sessionVersion === undefined ? {} : { sessionVersion: over.sessionVersion }) },
+  });
+  return { ...member, recovery, hash };
+}
+
+async function auditsFor(id: string) {
+  return (prisma as PrismaClient).auditLog.findMany({ where: { actorId: id } });
+}
+
+function auditsOmit(audits: { action: string; target: string | null; meta: unknown }[], code: string) {
+  assert.equal(JSON.stringify(audits).includes(code), false);
 }
 
 function leadingZeroCode() {
@@ -302,5 +337,122 @@ test('the existing login rate limit still rejects the next correct code without 
   assert.equal(await deviceCount(member.row.id), 0);
   const row = await (prisma as PrismaClient).user.findUniqueOrThrow({ where: { id: member.row.id } });
   assert.equal(row.totpLastStep, null);
+});
+
+test('an unused recovery code logs in once and does not change totp or session fields', { skip, timeout: 180_000 }, async () => {
+  const member = await makeRecoveryUser({ passwordlessEnabled: true, sessionVersion: 7 });
+  const before = await securitySnapshot(member.row.id);
+  const signed = await postLogin({
+    email: member.email, password: member.password, totp: member.code(), recoveryCode: member.recovery,
+  }, nextIp());
+  assert.equal(hasSession(signed), true);
+  assert.equal(await deviceCount(member.row.id), 1);
+  const after = await securitySnapshot(member.row.id);
+  assert.equal(after.totpEnabled, before.totpEnabled);
+  assert.equal(after.totpSecret, before.totpSecret);
+  assert.equal(after.sessionVersion, before.sessionVersion);
+  assert.equal(after.sessionVersion, 7);
+  assert.equal(after.passwordlessEnabled, true);
+  assert.equal(after.totpLastStep, null);
+  assert.deepEqual(after.recoveryCodes, []);
+  const audits = await auditsFor(member.row.id);
+  assert.equal(audits.some((row) => row.action === 'auth.login_success' && (row.meta as { method?: string }).method === 'recovery_code'), true);
+  auditsOmit(audits, member.recovery);
+});
+
+test('a wrong recovery code counts as one failure and reuse fails the same way', { skip, timeout: 180_000 }, async () => {
+  const base = await baselineKey();
+  const member = await makeRecoveryUser();
+  const wrongPassword = await authorizeLogin({
+    email: member.email, password: 'wrong-password-value', recoveryCode: member.recovery,
+  }, nextIp());
+  assert.equal(wrongPassword, null);
+  const afterPassword = await securitySnapshot(member.row.id);
+  assert.deepEqual(afterPassword.recoveryCodes, [member.hash]);
+  assert.equal(afterPassword.failedLogins, 1);
+
+  const wrongCode = randomBytes(5).toString('hex');
+  const wrong = await postLogin({
+    email: member.email, password: member.password, recoveryCode: wrongCode,
+  }, nextIp());
+  assert.equal(failureKey(wrong), base.key);
+  assert.equal(hasSession(wrong), false);
+  const afterWrong = await securitySnapshot(member.row.id);
+  assert.equal(afterWrong.failedLogins, 2);
+  assert.deepEqual(afterWrong.recoveryCodes, [member.hash]);
+  const wrongAudits = await auditsFor(member.row.id);
+  assert.equal(wrongAudits.some((row) => row.action === 'auth.login_fail'), true);
+  auditsOmit(wrongAudits, wrongCode);
+  auditsOmit(wrongAudits, member.recovery);
+
+  const signed = await postLogin({
+    email: member.email, password: member.password, recoveryCode: member.recovery,
+  }, nextIp());
+  assert.equal(hasSession(signed), true);
+  const reused = await postLogin({
+    email: member.email, password: member.password, recoveryCode: member.recovery,
+  }, nextIp());
+  assert.equal(failureKey(reused), base.key);
+  assert.equal(await deviceCount(member.row.id), 1);
+  assert.deepEqual((await securitySnapshot(member.row.id)).recoveryCodes, []);
+  auditsOmit(await auditsFor(member.row.id), member.recovery);
+});
+
+test('two logins with the same recovery code succeed only once', { skip, timeout: 180_000 }, async () => {
+  const member = await makeRecoveryUser({ sessionVersion: 4 });
+  const before = await securitySnapshot(member.row.id);
+  const fields = { email: member.email, password: member.password, recoveryCode: member.recovery };
+  const [left, right] = await Promise.all([postLogin(fields, nextIp()), postLogin(fields, nextIp())]);
+  assert.equal([left, right].filter(hasSession).length, 1);
+  assert.equal(await deviceCount(member.row.id), 1);
+  const after = await securitySnapshot(member.row.id);
+  assert.deepEqual(after.recoveryCodes, []);
+  assert.equal(after.totpEnabled, before.totpEnabled);
+  assert.equal(after.totpSecret, before.totpSecret);
+  assert.equal(after.sessionVersion, before.sessionVersion);
+  assert.equal(after.passwordlessEnabled, before.passwordlessEnabled);
+});
+
+test('a correct recovery code still fails while the account is locked', { skip, timeout: 180_000 }, async () => {
+  const base = await baselineKey();
+  const member = await makeRecoveryUser();
+  await (prisma as PrismaClient).user.update({
+    where: { id: member.row.id },
+    data: { lockedUntil: new Date(Date.now() + 15 * 60_000), failedLogins: 2 },
+  });
+  const before = await securitySnapshot(member.row.id);
+  const denied = await postLogin({
+    email: member.email, password: member.password, recoveryCode: member.recovery,
+  }, nextIp());
+  assert.equal(failureKey(denied), base.key);
+  assert.equal(hasSession(denied), false);
+  assert.equal(await deviceCount(member.row.id), 0);
+  const after = await securitySnapshot(member.row.id);
+  assert.deepEqual(after.recoveryCodes, before.recoveryCodes);
+  assert.equal(after.failedLogins, before.failedLogins);
+  assert.equal(after.totpEnabled, before.totpEnabled);
+  assert.equal(after.totpSecret, before.totpSecret);
+  assert.equal(after.sessionVersion, before.sessionVersion);
+  assert.equal(after.passwordlessEnabled, before.passwordlessEnabled);
+  const audits = await auditsFor(member.row.id);
+  assert.equal(audits.some((row) => row.action === 'auth.login_fail'), true);
+  auditsOmit(audits, member.recovery);
+});
+
+test('five wrong recovery codes lock the account on the shared failure counter', { skip, timeout: 180_000 }, async () => {
+  const member = await makeRecoveryUser();
+  for (let i = 0; i < 5; i++) {
+    const response = await postLogin({
+      email: member.email, password: member.password, recoveryCode: randomBytes(5).toString('hex'),
+    }, nextIp());
+    assert.equal(hasSession(response), false);
+  }
+  const locked = await securitySnapshot(member.row.id);
+  assert.equal(locked.failedLogins, 0);
+  assert.ok(locked.lockedUntil && locked.lockedUntil > new Date());
+  assert.deepEqual(locked.recoveryCodes, [member.hash]);
+  const audits = await auditsFor(member.row.id);
+  assert.equal(audits.some((row) => row.action === 'auth.lockout'), true);
+  auditsOmit(audits, member.recovery);
 });
 });

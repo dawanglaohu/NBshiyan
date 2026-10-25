@@ -26,14 +26,23 @@ test('E-95: Auth.js rememberDevice uses explicit literal parsing and rejects tru
   rejects(contracts.LoginModeSchema, ['recovery', 'PASSWORD', '', null]);
 });
 
-test('login requests retain the password default and reject recovery credentials or false-like remembering', () => {
+test('login requests retain the password default and accept one bounded recovery code', () => {
   const legacy = { email: 'admin@example.com', password: 'existing password', totp: '001234' };
   assert.deepEqual(contracts.LoginRequestSchema.parse(legacy), { ...legacy, mode: 'password', rememberDevice: false });
   assert.equal(contracts.LoginRequestSchema.parse({ ...legacy, rememberDevice: 'false' }).rememberDevice, false);
   assert.equal(contracts.LoginRequestSchema.parse({ email: legacy.email, mode: 'totp', totp: '001234', rememberDevice: 'true' }).rememberDevice, true);
+  const withCode = contracts.LoginRequestSchema.parse({ ...legacy, recoveryCode: '0123456789' });
+  assert.equal(withCode.recoveryCode, '0123456789');
+  assert.equal(withCode.totp, '001234');
+  const dashed = contracts.LoginRequestSchema.parse({ email: legacy.email, password: legacy.password, recoveryCode: 'AB-CD-EF-01-23' });
+  assert.equal(dashed.recoveryCode, 'abcdef0123');
+  assert.equal(dashed.totp, undefined);
+  assert.equal(contracts.LoginRequestSchema.parse({ ...legacy, recoveryCode: '   ' }).recoveryCode, undefined);
   rejects(contracts.LoginRequestSchema, [
     { email: legacy.email, totp: '001234' }, { ...legacy, mode: 'recovery' },
-    { ...legacy, recoveryCode: 'recovery-secret' }, { ...legacy, totp: 1234 },
+    { email: legacy.email, password: legacy.password },
+    { ...legacy, recoveryCode: 'recovery-secret' }, { ...legacy, recoveryCode: 'a'.repeat(41) },
+    { ...legacy, totp: 1234 },
     { ...legacy, rememberDevice: true }, { ...legacy, role: 'ADMIN' },
   ]);
 });

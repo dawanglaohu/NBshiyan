@@ -85,7 +85,11 @@ export async function checkPassword(email: string, password: string, ip: string 
   if (!(await loginRateOk(ip, email))) { await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip }); return 'rate_limited'; }
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.disabled) { await burnVerify(password); await fail(null, email, ip, 'bad_credentials'); return 'bad_credentials'; }
-  if (user.lockedUntil && user.lockedUntil > new Date()) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'locked' }, ip }); return 'locked'; }
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    await burnVerify(password);
+    await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'locked' }, ip });
+    return 'locked';
+  }
   if (!(await verifySecret(user.passwordHash, password))) { await fail(user, email, ip, 'bad_password'); return 'bad_credentials'; }
   return user;
 }
@@ -116,19 +120,32 @@ export async function consumeTotpStep(user: TotpSubject, totp: string | undefine
   return r.count === 1;
 }
 
-/** 校验 TOTP（拒绝重放）或恢复码（用后删除）。日常登录不把恢复码传进来。 */
+/**
+ * 原子消费一个未使用的恢复码。库存的是哈希，比对用 argon2，不把明文写进条件。
+ * 删除必须落在同一条带「还在数组里」条件的 UPDATE 上，返回行数不是 1 就当失败。
+ */
+export async function consumeRecoveryCode(user: Pick<User, 'id' | 'recoveryCodes'>, recovery: string): Promise<boolean> {
+  const code = recovery.replace(/[\s-]/g, '').toLowerCase();
+  if (!/^[a-f0-9]{10}$/.test(code)) return false;
+  for (const hash of user.recoveryCodes) {
+    if (!(await verifySecret(hash, code))) continue;
+    const removed = await prisma.$queryRaw<{ id: string }[]>`
+      UPDATE "User"
+      SET "recoveryCodes" = array_remove("recoveryCodes", ${hash})
+      WHERE "id" = ${user.id}
+        AND ${hash} = ANY("recoveryCodes")
+      RETURNING "id"
+    `;
+    return removed.length === 1;
+  }
+  return false;
+}
+
+/** 校验 TOTP（拒绝重放）或恢复码（用后删除）。重新验证仍走这里。 */
 export async function checkSecondFactor(user: User, totp: string | undefined, recovery: string | undefined): Promise<boolean> {
   if (!user.totpSecret) return false;
   if (totp && /^[0-9]{6}$/.test(totp)) return consumeTotpStep(user, totp);
-  if (recovery) {
-    const code = recovery.replace(/[\s-]/g, '').toLowerCase();
-    for (const h of user.recoveryCodes) {
-      if (await verifySecret(h, code)) {
-        const r = await prisma.user.updateMany({ where: { id: user.id, recoveryCodes: { has: h } }, data: { recoveryCodes: user.recoveryCodes.filter((x) => x !== h) } });
-        return r.count === 1;
-      }
-    }
-  }
+  if (recovery) return consumeRecoveryCode(user, recovery);
   return false;
 }
 
@@ -142,22 +159,23 @@ async function genericCredentialFailure(email: string, ip: string | null, burn: 
   return null;
 }
 
-async function finishLogin(user: User, email: string, ip: string | null, method: 'password' | 'totp') {
+async function finishLogin(user: User, email: string, ip: string | null, method: 'password' | 'totp' | 'recovery_code') {
   await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: 'auth.login_success', target: user.id, meta: { method }, ip });
   return user;
 }
 
 /**
- * 日常登录只有 password（当前密码 + 验证码）和已开启 passwordlessEnabled 的 totp（账号 + 验证码）。
- * 未知 mode、非空恢复码、未开启的 totp、未知或停用账号都返回 null，由 Auth.js 走同一条 CredentialsSignin。
- * 恢复码留在独立恢复入口，这里不核销。
+ * 日常登录有 password（当前密码 + 验证码）和已开启 passwordlessEnabled 的 totp（账号 + 验证码）。
+ * 非空恢复码暂时仍可代替验证码，但必须先通过当前密码。未知 mode、未开启的 totp、未知或停用账号都返回 null。
  */
 export async function authorizeLogin(input: { email: string; password?: string; totp?: string; recoveryCode?: string; mode?: string }, ip: string | null) {
   const email = input.email.trim().toLowerCase();
   const mode = input.mode ?? 'password';
   const recovery = (input.recoveryCode ?? '').trim();
-  if (recovery || (mode !== 'password' && mode !== 'totp')) return genericCredentialFailure(email, ip, input.password || input.totp || 'x');
+  if (mode !== 'password' && mode !== 'totp') return genericCredentialFailure(email, ip, input.password || input.totp || 'x');
+  // TODO(M3-T19): remove recovery-code login once /api/auth-admin/recovery/start ships
+  if (recovery) return authorizeRecovery(email, input.password ?? '', recovery, ip);
   if (mode === 'totp') return authorizeTotp(email, input.totp, ip);
   const user = await checkPassword(email, input.password ?? '', ip);
   if (typeof user === 'string') return null;
@@ -179,11 +197,21 @@ async function authorizeTotp(email: string, totp: string | undefined, ip: string
     return null;
   }
   if (user.lockedUntil && user.lockedUntil > new Date()) {
+    await burnVerify(totp || '000000');
     await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'locked' }, ip });
     return null;
   }
   if (!(await checkSecondFactor(user, totp, undefined))) { await fail(user, email, ip, totp ? 'bad_totp' : 'totp_missing'); return null; }
   return finishLogin(user, email, ip, 'totp');
+}
+
+/** 恢复码登录与验证码共用密码校验、失败计数、锁定和限流。成功只删掉用过的哈希。 */
+async function authorizeRecovery(email: string, password: string, recovery: string, ip: string | null) {
+  const user = await checkPassword(email, password, ip);
+  if (typeof user === 'string') return null;
+  if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
+  if (!(await consumeRecoveryCode(user, recovery))) { await fail(user, email, ip, 'bad_totp'); return null; }
+  return finishLogin(user, email, ip, 'recovery_code');
 }
 
 export function newRecoveryCodes(n = 10) {
