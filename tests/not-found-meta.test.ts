@@ -22,3 +22,10 @@ test('404: generateMetadata keeps NotFound.meta.title and does not emit a second
   const rest = readFileSync('src/app/[locale]/[...rest]/page.tsx', 'utf8');
   assert.match(rest, /notFound\(\)/);
 });
+
+test('product 404 and locale-unavailable 404 do not declare their own robots meta', () => {
+  const product = readFileSync('src/app/[locale]/products/[slug]/page.tsx', 'utf8');
+  const unavailable = readFileSync('src/app/[locale]/locale-unavailable/not-found.tsx', 'utf8');
+  assert.doesNotMatch(product, /\brobots\s*:/);
+  assert.doesNotMatch(unavailable, /\brobots\s*:/);
+});

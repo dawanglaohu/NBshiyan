@@ -89,7 +89,7 @@ test('gate 404 page: English 404 styling, primary button → /en, «Русски
   const page = readFileSync('src/app/[locale]/locale-unavailable/page.tsx', 'utf8');
   const view = readFileSync('src/app/[locale]/locale-unavailable/not-found.tsx', 'utf8');
   assert.match(page, /notFound\(\);/);
-  assert.match(view, /robots: \{ index: false, follow: true \}/);
+  assert.doesNotMatch(view, /\brobots\s*:/);
   assert.doesNotMatch(view, /alternates|canonical:/);
   assert.match(view, /className="container nf nf-locale"/);
   assert.match(view, /<Link className="btn" href="\/" locale=\{DEFAULT_PUBLISHED_LOCALE\}/);

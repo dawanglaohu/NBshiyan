@@ -17,7 +17,16 @@ test.describe('404 robots meta (#429)', () => {
       const robots = page.locator('meta[name="robots"]');
       await expect(robots).toHaveCount(1);
       await expect(robots).toHaveAttribute('content', 'noindex');
-      await expect(page).toHaveTitle(item.title);
+      const html = await res!.text();
+      expect(html).toContain(`<title>${item.title}</title>`);
     });
   }
+
+  test('/de 语言未上线：状态 404，恰好 1 个 robots meta 为 noindex', async ({ page }) => {
+    const res = await page.goto('/de');
+    expect(res!.status()).toBe(404);
+    const robots = page.locator('meta[name="robots"]');
+    await expect(robots).toHaveCount(1);
+    await expect(robots).toHaveAttribute('content', 'noindex');
+  });
 });

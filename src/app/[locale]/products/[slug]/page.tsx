@@ -25,7 +25,7 @@ const find = (locale: 'en' | 'ru', slug: string) => {
 export async function generateMetadata({ params }: P): Promise<Metadata> {
   const { locale: raw, slug } = await params; const locale = loc(raw);
   const c = categoryPagesLive() ? find(locale, slug) : undefined;
-  if (!c) return { robots: { index: false } };
+  if (!c) return {};
   const names = await getTranslations({ locale, namespace: 'Products.names' });
   const { title, description } = categorySeo({ locale, name: names(c.key), meta: c[locale] });
   const languages: Record<string, string> = Object.fromEntries(PUBLISHED_LOCALES.map((l) => [l, categoryPagePath(l, c.key, true)!]));
