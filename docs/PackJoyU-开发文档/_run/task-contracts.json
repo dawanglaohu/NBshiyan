@@ -195,7 +195,13 @@
       "wiring": [
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "tests/company-content.test.ts",
+        "e2e/company-content.spec.ts",
+        "src/components/layout/SiteFooter.tsx",
+        "src/components/layout/SiteHeader.tsx",
+        "src/lib/navigation/routes.ts"
+      ],
       "outputPaths": [
         "src/components/about/",
         "src/app/",

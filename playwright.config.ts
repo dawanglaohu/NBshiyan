@@ -41,7 +41,7 @@ export default defineConfig({
       url: `${BASE}/en`,
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,
-      env: { PORT: String(PORT), HOSTNAME: '0.0.0.0' }
+      env: { PORT: String(PORT), HOSTNAME: '0.0.0.0', E2E_SITE_REVALIDATE: '1' }
     }
   ]
 });

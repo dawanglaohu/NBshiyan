@@ -6,6 +6,7 @@ import { categoryProducts as products } from '@/data/categories';
 import HeroVideo from '@/components/layout/HeroVideo';
 import BrandScene from '@/components/layout/BrandScene';
 import AboutHomeBlock from '@/components/about/AboutHomeBlock';
+import CompanySummary from '@/components/about/CompanySummary';
 import { getAboutContent } from '@/lib/server/site-settings';
 import { isAboutVisible } from '@/lib/about/visibility';
 import { isPublishedLocale } from '@/lib/server/published-locales';
@@ -45,7 +46,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
-      <AboutHomeBlock content={about} aboutVisible={aboutVisible} />
+      <CompanySummary aboutVisible={aboutVisible} />
+
+      {aboutVisible ? null : <AboutHomeBlock content={about} aboutVisible={aboutVisible} />}
 
       <section className="block container" aria-labelledby="entry-h">
         <h2 id="entry-h">{t('entryTitle')}</h2>
