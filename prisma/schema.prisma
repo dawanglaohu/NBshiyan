@@ -454,3 +454,50 @@ model JobState {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
+
+// 已同意浏览器的原始分析事件。终态 semanticKey 按浏览器和 viewId 只留一种结果。
+// 不存 IP、UA、邮箱、聊天正文或带查询串的 URL。deploy.sh 现有 db push 会创建本表。
+enum AnalyticsEventKind {
+  page_view
+  product_view
+  model_view_start
+  model_load_success
+  model_load_failure
+  chat_start
+}
+
+model AnalyticsEvent {
+  eventId       String             @id
+  semanticKey   String             @unique
+  payloadHash   String
+  browserHash   String
+  kind          AnalyticsEventKind
+  occurredAt    DateTime
+  receivedAt    DateTime
+  locale        String
+  path          String?
+  productSlug   String?
+  navigationId  String?
+  viewId        String?
+  durationMs    Int?
+  failureReason String?
+
+  @@index([occurredAt])
+  @@index([receivedAt])
+  @@index([productSlug, occurredAt])
+  @@index([viewId])
+}
+
+// 访客必要会话。cookie 是 256bit 随机原值，这里只存 SHA-256。7 天闲置、首次签发后 30 天绝对。
+// 没有邮箱列：相同邮箱不能找回旧会话。过期或撤销只拒绝访问，不在这里删除咨询正文。
+model ChatVisitorSession {
+  id                String    @id
+  tokenHash         String    @unique
+  createdAt         DateTime
+  lastActivityAt    DateTime
+  absoluteExpiresAt DateTime
+  revokedAt         DateTime?
+
+  @@index([absoluteExpiresAt])
+  @@index([lastActivityAt])
+}

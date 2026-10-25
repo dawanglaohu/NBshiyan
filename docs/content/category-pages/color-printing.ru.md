@@ -38,7 +38,7 @@ PackJoyU организует цветную печать упаковки, эт
 ## Похожие товары
 - [Офсетная печать упаковки](/ru/products/ofsetnaya-pechat)
 - [Картонные коробки с печатью](/ru/products/tsvetnye-korobki)
-- [Подарочные карты](/ru/products/podarochnye-karty)
+- [Открытки](/ru/products/otkrytki-na-zakaz)
 
 ## CTA
 **Запросить расчёт** → форма заявки с выбранной категорией.

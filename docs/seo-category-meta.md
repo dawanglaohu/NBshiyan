@@ -93,10 +93,10 @@
 
 | 字段 | EN | RU（草稿，待 Ryan 校对） |
 |---|---|---|
-| slug | `custom-gift-cards` | `podarochnye-karty` |
-| 主关键词 | custom gift cards | печать подарочных карт |
-| title | Custom Gift Cards Printing & Supplier \| PackJoyU (48) | Печать подарочных карт на заказ \| PackJoyU (42) |
-| description | Custom printed gift cards, vouchers and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. (155) | Печать подарочных карт и сертификатов на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка для карт в едином стиле бренда. Запросите расчёт. (152) |
+| slug | `custom-greeting-cards` | `otkrytki-na-zakaz` |
+| 主关键词 | custom greeting cards | открытки на заказ |
+| title | Custom Greeting Cards Printing & Supplier \| PackJoyU (52) | Печать открыток на заказ \| PackJoyU (35) |
+| description | Custom printed greeting cards and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. (149) | Печать открыток на заказ: тиснение фольгой, выборочный лак и конгрев. Конверты и упаковка в едином стиле бренда. Запросите расчёт. (130) |
 
 ## christmas-merchandise
 

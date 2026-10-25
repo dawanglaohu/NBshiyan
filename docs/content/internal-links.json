@@ -167,8 +167,8 @@
       "locale": "en",
       "kind": "category→category",
       "from": "/en/products/custom-color-printing",
-      "to": "/en/products/custom-gift-cards",
-      "anchor": "custom gift cards"
+      "to": "/en/products/custom-greeting-cards",
+      "anchor": "custom greeting cards"
     },
     {
       "locale": "en",
@@ -188,27 +188,27 @@
       "locale": "en",
       "kind": "category→category",
       "from": "/en/products/offset-printing-services",
-      "to": "/en/products/custom-gift-cards",
-      "anchor": "printed gift vouchers"
+      "to": "/en/products/custom-greeting-cards",
+      "anchor": "printed greeting cards"
     },
     {
       "locale": "en",
       "kind": "category→category",
-      "from": "/en/products/custom-gift-cards",
+      "from": "/en/products/custom-greeting-cards",
       "to": "/en/products/custom-color-printing",
       "anchor": "packaging printing services"
     },
     {
       "locale": "en",
       "kind": "category→category",
-      "from": "/en/products/custom-gift-cards",
+      "from": "/en/products/custom-greeting-cards",
       "to": "/en/products/custom-gift-boxes",
       "anchor": "custom gift boxes"
     },
     {
       "locale": "en",
       "kind": "category→category",
-      "from": "/en/products/custom-gift-cards",
+      "from": "/en/products/custom-greeting-cards",
       "to": "/en/products/offset-printing-services",
       "anchor": "offset printing services"
     },
@@ -398,8 +398,8 @@
       "locale": "ru",
       "kind": "category→category",
       "from": "/ru/products/tsvetnaya-pechat",
-      "to": "/ru/products/podarochnye-karty",
-      "anchor": "печать подарочных карт"
+      "to": "/ru/products/otkrytki-na-zakaz",
+      "anchor": "печать открыток"
     },
     {
       "locale": "ru",
@@ -419,27 +419,27 @@
       "locale": "ru",
       "kind": "category→category",
       "from": "/ru/products/ofsetnaya-pechat",
-      "to": "/ru/products/podarochnye-karty",
-      "anchor": "подарочные сертификаты на заказ"
+      "to": "/ru/products/otkrytki-na-zakaz",
+      "anchor": "открытки на заказ"
     },
     {
       "locale": "ru",
       "kind": "category→category",
-      "from": "/ru/products/podarochnye-karty",
+      "from": "/ru/products/otkrytki-na-zakaz",
       "to": "/ru/products/tsvetnaya-pechat",
       "anchor": "печать упаковки"
     },
     {
       "locale": "ru",
       "kind": "category→category",
-      "from": "/ru/products/podarochnye-karty",
+      "from": "/ru/products/otkrytki-na-zakaz",
       "to": "/ru/products/podarochnye-korobki",
       "anchor": "подарочные коробки на заказ"
     },
     {
       "locale": "ru",
       "kind": "category→category",
-      "from": "/ru/products/podarochnye-karty",
+      "from": "/ru/products/otkrytki-na-zakaz",
       "to": "/ru/products/ofsetnaya-pechat",
       "anchor": "офсетная печать упаковки"
     },

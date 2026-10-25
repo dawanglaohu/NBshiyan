@@ -131,7 +131,7 @@ PackJoyU организует полноцветную печать упаков
 
 - → `offset-printing-services`（Offset Printing Services / RU `ofsetnaya-pechat`），锚文本用品类名
 - → `custom-printed-boxes`（Custom Printed Boxes / RU `tsvetnye-korobki`），锚文本用品类名
-- → `custom-gift-cards`（Custom Gift Cards / RU `podarochnye-karty`），锚文本用品类名
+- → `custom-greeting-cards`（Custom Greeting Cards / RU `otkrytki-na-zakaz`），锚文本用品类名
 - → `/products`（3D 展示页）；→ 询价页；→ 相关行业方案页（见 `industries.md`，页面上线前不链接）
 
 ## Article outlines（博客选题）

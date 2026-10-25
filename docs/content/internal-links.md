@@ -35,13 +35,13 @@
 | category→category | `/en/products/custom-wine-boxes` | `/en/products/molded-pulp-packaging` | molded fiber trays |
 | category→category | `/en/products/custom-color-printing` | `/en/products/offset-printing-services` | catalog and box printing |
 | category→category | `/en/products/custom-color-printing` | `/en/products/custom-printed-boxes` | custom printed boxes |
-| category→category | `/en/products/custom-color-printing` | `/en/products/custom-gift-cards` | custom gift cards |
+| category→category | `/en/products/custom-color-printing` | `/en/products/custom-greeting-cards` | custom greeting cards |
 | category→category | `/en/products/offset-printing-services` | `/en/products/custom-color-printing` | CMYK and Pantone printing |
 | category→category | `/en/products/offset-printing-services` | `/en/products/custom-printed-boxes` | full-color retail boxes |
-| category→category | `/en/products/offset-printing-services` | `/en/products/custom-gift-cards` | printed gift vouchers |
-| category→category | `/en/products/custom-gift-cards` | `/en/products/custom-color-printing` | packaging printing services |
-| category→category | `/en/products/custom-gift-cards` | `/en/products/custom-gift-boxes` | custom gift boxes |
-| category→category | `/en/products/custom-gift-cards` | `/en/products/offset-printing-services` | offset printing services |
+| category→category | `/en/products/offset-printing-services` | `/en/products/custom-greeting-cards` | printed greeting cards |
+| category→category | `/en/products/custom-greeting-cards` | `/en/products/custom-color-printing` | packaging printing services |
+| category→category | `/en/products/custom-greeting-cards` | `/en/products/custom-gift-boxes` | custom gift boxes |
+| category→category | `/en/products/custom-greeting-cards` | `/en/products/offset-printing-services` | offset printing services |
 | category→category | `/en/products/custom-christmas-packaging` | `/en/products/custom-gift-boxes` | rigid magnetic gift boxes |
 | category→category | `/en/products/custom-christmas-packaging` | `/en/products/custom-wine-boxes` | wine and spirits gift boxes |
 | category→category | `/en/products/custom-christmas-packaging` | `/en/products/custom-party-supplies` | printed party tableware |
@@ -73,13 +73,13 @@
 | category→category | `/ru/products/upakovka-dlya-vina` | `/ru/products/izdeliya-iz-tsellyulozy` | лотки из целлюлозы |
 | category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/ofsetnaya-pechat` | печать каталогов и коробок |
 | category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/tsvetnye-korobki` | картонные коробки с печатью |
-| category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/podarochnye-karty` | печать подарочных карт |
+| category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/otkrytki-na-zakaz` | печать открыток |
 | category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/tsvetnaya-pechat` | печать пантонами |
 | category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/tsvetnye-korobki` | коробки с логотипом |
-| category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/podarochnye-karty` | подарочные сертификаты на заказ |
-| category→category | `/ru/products/podarochnye-karty` | `/ru/products/tsvetnaya-pechat` | печать упаковки |
-| category→category | `/ru/products/podarochnye-karty` | `/ru/products/podarochnye-korobki` | подарочные коробки на заказ |
-| category→category | `/ru/products/podarochnye-karty` | `/ru/products/ofsetnaya-pechat` | офсетная печать упаковки |
+| category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/otkrytki-na-zakaz` | открытки на заказ |
+| category→category | `/ru/products/otkrytki-na-zakaz` | `/ru/products/tsvetnaya-pechat` | печать упаковки |
+| category→category | `/ru/products/otkrytki-na-zakaz` | `/ru/products/podarochnye-korobki` | подарочные коробки на заказ |
+| category→category | `/ru/products/otkrytki-na-zakaz` | `/ru/products/ofsetnaya-pechat` | офсетная печать упаковки |
 | category→category | `/ru/products/novogodnyaya-upakovka` | `/ru/products/podarochnye-korobki` | жёсткие коробки с магнитом |
 | category→category | `/ru/products/novogodnyaya-upakovka` | `/ru/products/upakovka-dlya-vina` | подарочная упаковка для алкоголя |
 | category→category | `/ru/products/novogodnyaya-upakovka` | `/ru/products/tovary-dlya-prazdnikov` | праздничная посуда с печатью |

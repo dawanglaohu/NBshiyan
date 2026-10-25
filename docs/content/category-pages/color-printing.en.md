@@ -38,7 +38,7 @@ See the questions buyers ask most about this category: [FAQ](/en/products/custom
 ## Related products
 - [Offset Printing Services](/en/products/offset-printing-services)
 - [Custom Printed Boxes](/en/products/custom-printed-boxes)
-- [Custom Gift Cards](/en/products/custom-gift-cards)
+- [Greeting cards](/en/products/custom-greeting-cards)
 
 ## CTA
 **Request a quote** → inquiry form, category pre-filled.

@@ -40,7 +40,7 @@ A = {
  'wine-boxes': {'en': ['custom wine boxes', 'wine and spirits gift boxes', 'luxury bottle packaging'], 'ru': ['коробки для вина на заказ', 'подарочная упаковка для алкоголя', 'коробки для бутылок с логотипом']},
  'color-printing': {'en': ['packaging printing services', 'full-color packaging printing', 'CMYK and Pantone printing'], 'ru': ['печать упаковки', 'полноцветная печать на картоне', 'печать пантонами']},
  'offset-printing': {'en': ['offset printing services', 'high-volume offset printing', 'catalog and box printing'], 'ru': ['офсетная печать упаковки', 'офсетная печать тиражом', 'печать каталогов и коробок']},
- 'gift-cards': {'en': ['custom gift cards', 'printed gift vouchers', 'gift card holders and envelopes'], 'ru': ['печать подарочных карт', 'подарочные сертификаты на заказ', 'упаковка для подарочных карт']},
+ 'gift-cards': {'en': ['custom greeting cards', 'printed greeting cards', 'greeting card holders and envelopes'], 'ru': ['печать открыток', 'открытки на заказ', 'держатели и конверты для открыток']},
  'christmas-merchandise': {'en': ['custom Christmas packaging', 'holiday gift boxes', 'advent calendars and seasonal packaging'], 'ru': ['новогодняя упаковка на заказ', 'новогодние подарочные коробки', 'адвент-календари на заказ']},
 }
 REL = {  # category -> related categories (from #188), 3 each
