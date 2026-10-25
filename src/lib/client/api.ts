@@ -203,7 +203,54 @@ function concatBytes(chunks: Uint8Array[], total: number): Uint8Array {
   return out;
 }
 
-async function readCapped(response: Response): Promise<{ kind: 'json'; json: unknown } | { kind: 'oversize' }> {
+function abortedError(signal: AbortSignal): Error {
+  if (signal.reason instanceof Error) return signal.reason;
+  const error = new Error('The operation was aborted.');
+  error.name = 'AbortError';
+  return error;
+}
+
+/**
+ * Headers already resolved `fetch`. Aborting its signal does not always reject a
+ * later `reader.read()`, so the deadline has to win the race itself.
+ */
+function readOrAbort(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  signal: AbortSignal,
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  if (signal.aborted) {
+    reader.cancel().catch(() => undefined);
+    return Promise.reject(abortedError(signal));
+  }
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (settle: () => void) => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener('abort', onAbort);
+      settle();
+    };
+    const onAbort = () => {
+      reader.cancel().catch(() => undefined);
+      finish(() => reject(abortedError(signal)));
+    };
+    signal.addEventListener('abort', onAbort);
+    reader.read().then(
+      (step) => finish(() => resolve(step)),
+      (error: unknown) => finish(() => reject(error)),
+    );
+    if (signal.aborted) onAbort();
+  });
+}
+
+async function readCapped(
+  response: Response,
+  signal: AbortSignal,
+): Promise<{ kind: 'json'; json: unknown } | { kind: 'oversize' }> {
+  if (signal.aborted) {
+    await response.body?.cancel().catch(() => undefined);
+    throw abortedError(signal);
+  }
   const declared = response.headers.get('content-length');
   if (declared !== null && /^\d+$/.test(declared) && Number(declared) > RESPONSE_JSON_MAX_BYTES) {
     await response.body?.cancel().catch(() => undefined);
@@ -215,7 +262,7 @@ async function readCapped(response: Response): Promise<{ kind: 'json'; json: unk
   let total = 0;
   try {
     while (true) {
-      const step = await reader.read();
+      const step = await readOrAbort(reader, signal);
       if (step.done) break;
       total += step.value.byteLength;
       if (total > RESPONSE_JSON_MAX_BYTES) {
@@ -332,7 +379,7 @@ export async function requestApi<T>(options: RequestApiOptions<T>): Promise<Clie
 
     let read: { kind: 'json'; json: unknown } | { kind: 'oversize' };
     try {
-      read = await readCapped(response);
+      read = await readCapped(response, attempt.signal);
     } catch (error) {
       attempt.finish();
       sends += 1;
