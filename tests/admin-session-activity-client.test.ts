@@ -63,6 +63,7 @@ test('client activity throttle matches the server and only a 401 leaves for the 
 test('admin shell reports only real interactions', () => {
   const shell = readFileSync('src/components/admin/AdminShell.tsx', 'utf8');
   const route = readFileSync('src/app/api/admin/account/session/activity/route.ts', 'utf8');
+  const handler = readFileSync('src/lib/server/admin-session-activity.ts', 'utf8');
   assert.match(shell, /addEventListener\('pointerdown'/);
   assert.match(shell, /addEventListener\('keydown'/);
   assert.match(shell, /addEventListener\('submit'/);
@@ -71,11 +72,13 @@ test('admin shell reports only real interactions', () => {
   assert.equal(shell.includes('setInterval'), false);
   assert.equal(shell.includes('useSession'), false);
   assert.equal(shell.includes("addEventListener('focus'"), false);
-  const originAt = route.indexOf('assertSameOrigin(request)');
-  const adminAt = route.indexOf('requireAdmin(request');
-  const limitAt = route.indexOf('enforceAdminUserRateLimit(');
+  assert.match(route, /return handleSessionActivity\(request\)/);
+  assert.equal(/export\s+(async\s+)?function\s+handleSessionActivity/.test(route), false);
+  const originAt = handler.indexOf('assertSameOrigin(request)');
+  const adminAt = handler.indexOf('requireAdmin(request');
+  const limitAt = handler.indexOf('enforceAdminUserRateLimit(');
   assert.ok(originAt !== -1 && originAt < adminAt && adminAt < limitAt);
-  assert.equal(route.includes('enforceAdminRateLimit('), false);
-  assert.match(route, /enforceAdminUserRateLimit\([^)]*ACTIVITY_USER_LIMIT\)/);
-  assert.match(route, /if \(!activity\.wrote\) return finish\(200/);
+  assert.equal(handler.includes('enforceAdminRateLimit('), false);
+  assert.match(handler, /enforceAdminUserRateLimit\([^)]*ACTIVITY_USER_LIMIT\)/);
+  assert.match(handler, /if \(!activity\.wrote\) return finish\(200/);
 });

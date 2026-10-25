@@ -49,7 +49,7 @@ const created = new Date('2026-06-01T00:00:00.000Z');
 let handleAuth: (request: Request) => Promise<Response> = async () => { throw new Error('auth not loaded'); };
 let auth: () => Promise<{ user?: { id?: string }; expires?: string } | null> = async () => null;
 let postActivity: (request: Request) => Promise<Response> = async () => { throw new Error('activity not loaded'); };
-let handleSessionActivity: typeof import('../src/app/api/admin/account/session/activity/route').handleSessionActivity = async () => { throw new Error('activity not loaded'); };
+let handleSessionActivity: typeof import('../src/lib/server/admin-session-activity').handleSessionActivity = async () => { throw new Error('activity not loaded'); };
 let createAccountGet: typeof import('../src/lib/server/admin/account').createAccountGet = () => { throw new Error('account not loaded'); };
 
 function cookieJar(response: Response, previous = ''): string {
@@ -158,7 +158,8 @@ before(async () => {
     throw new Error('prisma db push failed');
   }
   ({ handleAuth, auth } = await import('../src/auth'));
-  ({ POST: postActivity, handleSessionActivity } = await import('../src/app/api/admin/account/session/activity/route'));
+  ({ POST: postActivity } = await import('../src/app/api/admin/account/session/activity/route'));
+  ({ handleSessionActivity } = await import('../src/lib/server/admin-session-activity'));
   ({ createAccountGet } = await import('../src/lib/server/admin/account'));
 }, { timeout: 180_000 });
 
