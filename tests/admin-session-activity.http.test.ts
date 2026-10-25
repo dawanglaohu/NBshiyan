@@ -50,6 +50,8 @@ let handleAuth: (request: Request) => Promise<Response> = async () => { throw ne
 let auth: () => Promise<{ user?: { id?: string }; expires?: string } | null> = async () => null;
 let postActivity: (request: Request) => Promise<Response> = async () => { throw new Error('activity not loaded'); };
 let handleSessionActivity: typeof import('../src/lib/server/admin-session-activity').handleSessionActivity = async () => { throw new Error('activity not loaded'); };
+let assertSameOrigin: typeof import('../src/lib/server/auth').assertSameOrigin = () => { throw new Error('origin not loaded'); };
+let requireAdmin: typeof import('../src/lib/server/auth').requireAdmin = async () => { throw new Error('admin not loaded'); };
 let createAccountGet: typeof import('../src/lib/server/admin/account').createAccountGet = () => { throw new Error('account not loaded'); };
 
 function cookieJar(response: Response, previous = ''): string {
@@ -160,6 +162,7 @@ before(async () => {
   ({ handleAuth, auth } = await import('../src/auth'));
   ({ POST: postActivity } = await import('../src/app/api/admin/account/session/activity/route'));
   ({ handleSessionActivity } = await import('../src/lib/server/admin-session-activity'));
+  ({ assertSameOrigin, requireAdmin } = await import('../src/lib/server/auth'));
   ({ createAccountGet } = await import('../src/lib/server/admin/account'));
 }, { timeout: 180_000 });
 
@@ -200,6 +203,12 @@ function activity(jar: string, body = '{}') {
     headers: { cookie: jar, origin, 'content-type': 'application/json' },
     body,
   }));
+}
+
+async function openActivity(request: Request, services: Parameters<typeof handleSessionActivity>[2]) {
+  const originBlocked = assertSameOrigin(request);
+  if (originBlocked) return handleSessionActivity(request, originBlocked, services);
+  return handleSessionActivity(request, await requireAdmin(request, ['ADMIN', 'SALES', 'EDITOR']), services);
 }
 
 async function ssrSession(cookie: string) {
@@ -612,7 +621,7 @@ test('activity database failures stay 503 and keep the cookie, and the user buck
   const member = await enrolled();
   const signed = await login(member.email, member.password, member.code());
   const services = createAdminServices();
-  const unavailable = await handleSessionActivity(new Request(`${origin}/api/admin/account/session/activity`, {
+  const unavailable = await openActivity(new Request(`${origin}/api/admin/account/session/activity`, {
     method: 'POST', headers: { cookie: signed.jar, origin, 'content-type': 'application/json' }, body: '{}',
   }), {
     ...services,
@@ -622,7 +631,7 @@ test('activity database failures stay 503 and keep the cookie, and the user buck
   assert.equal((await unavailable.json() as { error?: string }).error, 'service_unavailable');
   assert.equal(unavailable.headers.getSetCookie().join('\n').includes('Max-Age=0'), false);
   assert.equal((await account(signed.jar)).status, 200);
-  const loggedOut = await handleSessionActivity(new Request(`${origin}/api/admin/account/session/activity`, {
+  const loggedOut = await openActivity(new Request(`${origin}/api/admin/account/session/activity`, {
     method: 'POST', headers: { cookie: signed.jar, origin, 'content-type': 'application/json' }, body: '{}',
   }), {
     ...services,

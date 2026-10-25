@@ -4,13 +4,13 @@ import { SessionActivityDTOSchema, SessionActivityRequestSchema } from '@/lib/co
 import { AppErrorCodeSchema, type AppErrorCode } from '@/lib/contracts/errors';
 import { withClearedSession } from '@/lib/server/admin/guard';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { assertSameOrigin, enforceAdminUserRateLimit, requireAdmin } from '@/lib/server/auth';
+import { enforceAdminUserRateLimit, requireAdmin } from '@/lib/server/auth';
 import type { AdminServices } from '@/lib/server/composition';
 import { createAdminServices } from '@/lib/server/composition';
 import { AppError, classifyThrown } from '@/lib/server/http/errors';
 
 const ROUTE_ID = 'POST /api/admin/account/session/activity';
-const ROLES = ['ADMIN', 'SALES', 'EDITOR'] as const;
+type SessionActivityGate = Awaited<ReturnType<typeof requireAdmin>>;
 /** 真实客户端 15 分钟才上报一次。按用户每分钟大约 6 次，挡住不守节流的调用方。 */
 const ACTIVITY_USER_LIMIT = 6;
 type ActivityRecord = (response: { routeId: string; status: number; body: unknown }) => Promise<{ status: number; body: unknown }>;
@@ -48,14 +48,13 @@ async function fromGuard(response: Response, requestId: string, record: Activity
   return finish(mapped.status, mapped.body, mapped.headers, [], clear, record);
 }
 
-export async function handleSessionActivity(request: Request, services: AdminServices = createAdminServices()) {
+/** 路由先执行同源检查和 requireAdmin，再把拒绝响应或已通过的 decision 交到这里。 */
+export async function handleSessionActivity(request: Request, gate: SessionActivityGate, services: AdminServices = createAdminServices()) {
   const requestId = randomUUID();
   const record: ActivityRecord = (response) => services.apiCounter.recordFinalResponse(response);
   try {
-    const originBlocked = assertSameOrigin(request);
-    if (originBlocked) return fromGuard(originBlocked, requestId, record);
-    const decision = await requireAdmin(request, [...ROLES]);
-    if (decision instanceof Response) return fromGuard(decision, requestId, record);
+    if (gate instanceof Response) return fromGuard(gate, requestId, record);
+    const decision = gate;
     const limited = await enforceAdminUserRateLimit(decision.user.id, 'account.session.activity', ACTIVITY_USER_LIMIT);
     if (limited) return fromGuard(limited, requestId, record);
     const json = await readJson(request, 1_000);
