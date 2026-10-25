@@ -256,8 +256,8 @@ body{padding-bottom:var(--fab-clearance)}
 html.has-consent{--fab-clearance:calc(84px + var(--consent-h,0px) + 12px)}
 
 /* 询价清单已满提示（20 项） */
-/* 与 #185 的 .consent-toast 纵向堆叠：toast 在下，本提示在上（--pj-consent-h = toast 高度 + 底部间距，由 CookieConsent 写入） */
-.quote-notice{position:fixed;left:50%;bottom:calc(var(--pj-consent-h,0px) + 16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:56;max-width:min(520px,calc(100vw - 32px));background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none}
+/* 与确认 toast 纵向堆叠：toast 在下，本提示在上。--pj-toast-h 是 toast 高度 + 12px，显示期间由 CookieConsent 写入。 */
+.quote-notice{position:fixed;left:50%;bottom:calc(var(--pj-consent-h,0px) + var(--pj-toast-h,0px) + 16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:56;max-width:min(520px,calc(100vw - 32px));background:var(--ink);color:var(--bg);border-radius:var(--r-md);padding:12px 16px;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none}
 .quote-notice.on{opacity:1}
 @media (max-width:480px){.quote-notice{width:calc(100% - 32px);max-width:none}}
 .quote-notice:empty{padding:0}

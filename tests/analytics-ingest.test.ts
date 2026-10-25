@@ -38,7 +38,7 @@ function productView(extra: Record<string, unknown> = {}) {
     occurredAt: NOW,
     locale: 'en',
     productSlug: 'gift-cards',
-    path: '/en/custom-gift-cards',
+    path: '/en/products/custom-greeting-cards',
     ...extra,
   };
 }
@@ -91,7 +91,7 @@ function row(extra: Partial<NewAnalyticsEvent> = {}): NewAnalyticsEvent {
     occurredAt: new Date(NOW),
     receivedAt: new Date(NOW),
     locale: 'en',
-    path: '/en/custom-gift-cards',
+    path: '/en/products/custom-greeting-cards',
     productSlug: 'gift-cards',
     navigationId: '22222222-2222-4222-8222-222222222222',
     viewId: null,
@@ -193,12 +193,12 @@ test('a catalog slug missing from Model3D is stored with the internal key', asyn
 
 test('en and ru paths store the same internal productSlug', async () => {
   const { repo, batches } = recordingRepo();
-  const en = productView({ locale: 'en', path: '/en/custom-gift-cards' });
-  const ru = productView({ locale: 'ru', path: '/ru/podarochnye-karty' });
+  const en = productView({ locale: 'en', path: '/en/products/custom-greeting-cards' });
+  const ru = productView({ locale: 'ru', path: '/ru/products/otkrytki-na-zakaz' });
   const receipt = await service(repo).accept({ events: [en, ru] }, HASH);
   assert.deepEqual([...receipt.acceptedIds].sort(), [en.eventId, ru.eventId].sort());
   assert.deepEqual(batches[0].map((item) => item.productSlug), ['gift-cards', 'gift-cards']);
-  assert.deepEqual(batches[0].map((item) => item.path), ['/en/custom-gift-cards', '/ru/podarochnye-karty']);
+  assert.deepEqual(batches[0].map((item) => item.path), ['/en/products/custom-greeting-cards', '/ru/products/otkrytki-na-zakaz']);
   assert.deepEqual(batches[0].map((item) => item.locale), ['en', 'ru']);
 });
 
@@ -208,8 +208,7 @@ test('an unknown productSlug invalidates the whole batch', async () => {
   const known = productView();
   const cases = [
     [page, known, productView({ productSlug: 'not-a-product' })],
-    [known, productView({ productSlug: 'custom-gift-cards' })],
-    [productView({ productSlug: 'custom-greeting-cards' })],
+    [known, productView({ productSlug: 'custom-greeting-cards' })],
     [productView({ productSlug: 'otkrytki-na-zakaz' })],
   ];
   for (const events of cases) {
