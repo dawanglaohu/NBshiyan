@@ -104,12 +104,30 @@ def verify_desktop_originals(manifest: dict) -> None:
         require(sha256(path) == item.get("sha256"), f"desktop original hash mismatch: {path}")
 
 
+def verify_page_evidence(root: Path, manifest: dict) -> None:
+    evidence = manifest.get("pageEvidence")
+    require(isinstance(evidence, dict), "page evidence missing")
+    require(evidence.get("task") == "M1-T5", "page evidence task mismatch")
+    require(evidence.get("trace") == "docs/brand-content/company-page-trace.json", "page evidence trace mismatch")
+    trace = read_json(repository_file(root, evidence["trace"], "page trace"), "page trace")
+    artwork = manifest["artworks"][0]
+    web_file = str(artwork["web"]["path"]).replace("\\", "/")
+    require(web_file.startswith("public/"), "artwork web file is outside public")
+    require(trace.get("webPath") == web_file[len("public"):], "page trace web path mismatch")
+    require(trace.get("mappingModule") == "src/lib/brand/company-media.ts", "page trace mapping mismatch")
+    require(str(trace.get("webPath", "")).startswith("/brand/company/"), "page trace web path is not the company release")
+    require(not str(trace.get("webPath")).endswith((".svg", ".pdf")), "page trace web path is a source file")
+    fact_map = trace.get("factMap")
+    require(fact_map == "docs/brand-content/company-fact-map.json", "page trace fact map mismatch")
+    repository_file(root, fact_map, "fact map")
+
+
 def verify(root: Path, *, verify_originals: bool = False) -> dict:
     root = root.resolve()
     manifest = read_json(repository_file(root, MANIFEST, "manifest"), "manifest")
     require(manifest.get("assetSet") == "company-visual-assets", "asset set mismatch")
     require(manifest.get("status") == "complete", "asset set is not complete")
-    require(manifest.get("pageEvidence") is None, "page evidence belongs to M1-T5")
+    verify_page_evidence(root, manifest)
     require(manifest.get("integrationTask") == "M1-T5", "integration task mismatch")
 
     dot, software = manifest["dot"], manifest["software"]

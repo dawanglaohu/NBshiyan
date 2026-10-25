@@ -102,6 +102,7 @@ jobs:
             tests/analytics-settings.db.test.ts \
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-rollup.http.db.test.ts \
+            tests/retention-cleanup.http.db.test.ts \
             tests/chat-session.http.test.ts \
             tests/cleanup-lock.db.test.ts \
             tests/job-leases.db.test.ts \

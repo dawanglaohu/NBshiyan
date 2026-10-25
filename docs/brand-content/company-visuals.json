@@ -116,7 +116,10 @@
     "previousManifest": "docs/brand-content/source/history/company-visuals-before-dot-v3.json",
     "previousDrafts": "原两幅SVG/PNG及Inkscape记录保留为历史底稿，不列入本次选定素材。"
   },
-  "pageEvidence": null,
+  "pageEvidence": {
+    "task": "M1-T5",
+    "trace": "docs/brand-content/company-page-trace.json"
+  },
   "integrationTask": "M1-T5",
   "measuredAt": "2026-10-22T06:06:39.988059+00:00"
 }

@@ -44,6 +44,7 @@ export default defineConfig({
       env: {
         PORT: String(PORT),
         HOSTNAME: '0.0.0.0',
+        E2E_SITE_REVALIDATE: '1',
         // 本地 e2e 与 CI 共用的假值，不是生产密钥。生产环境缺少此项时同意接口仍返回 503。
         PRIVACY_HASH_SECRET: 'ci-e2e-only-privacy-hash-not-prod-0001',
       }

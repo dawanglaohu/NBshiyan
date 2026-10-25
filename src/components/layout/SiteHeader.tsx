@@ -42,7 +42,7 @@ export default function SiteHeader({ aboutVisible = false }: { aboutVisible?: bo
     <>
       <Link href={PUBLIC_ROUTES.home.path}>{t('home')}</Link>
       <Link href={PUBLIC_ROUTES.products.path} data-testid={PUBLIC_ROUTES.products.entryId}>{t('products')}</Link>
-      {aboutVisible && <Link href="/about" aria-current={pathname === '/about' ? 'page' : undefined}>{t('about')}</Link>}
+      {aboutVisible && <Link href="/about" data-testid={PUBLIC_ROUTES.about.entryId} aria-current={pathname === '/about' ? 'page' : undefined}>{t('about')}</Link>}
       <Link href={PUBLIC_ROUTES.contact.path} data-testid={PUBLIC_ROUTES.contact.entryId}>{t('contact')}</Link>
     </>
   );
