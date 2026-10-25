@@ -196,7 +196,8 @@ test('home and about consume the plate, and the publish gate still owns the abou
   const about = read('../src/app/[locale]/about/page.tsx');
   const header = read('../src/components/layout/SiteHeader.tsx');
   const footer = read('../src/components/layout/SiteFooter.tsx');
-  const route = read('../src/app/api/e2e/revalidate-site-settings/route.ts');
+  const route = read('../src/app/api/site-settings-revalidate/route.ts');
+  const spec = read('../e2e/company-content.spec.ts');
   assert.match(home, /<CompanySummary aboutVisible=\{aboutVisible\} \/>/);
   assert.match(home, /\{aboutVisible \? null : <AboutHomeBlock content=\{about\} aboutVisible=\{aboutVisible\} \/>\}/);
   assert.match(about, /<CompanySummary aboutVisible showMore=\{false\} placement="about" \/>/);
@@ -211,6 +212,8 @@ test('home and about consume the plate, and the publish gate still owns the abou
   assert.match(route, /status: 404/);
   assert.match(route, /revalidateTag\(SITE_SETTINGS_TAG\)/);
   assert.doesNotMatch(route, /site-settings-admin-deps/);
+  assert.match(spec, /\/api\/site-settings-revalidate/);
+  assert.doesNotMatch(spec, /\/api\/e2e\//);
   assert.equal(home.includes(PLATE_PNG), false);
   assert.equal(about.includes(PLATE_PNG), false);
 });

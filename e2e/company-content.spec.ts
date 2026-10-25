@@ -49,7 +49,7 @@ function pickWidth(widths: number[], need: number): number {
 }
 
 async function revalidate(request: APIRequestContext) {
-  const response = await request.post('/api/e2e/revalidate-site-settings');
+  const response = await request.post('/api/site-settings-revalidate');
   expect(response.status()).toBe(204);
 }
 
