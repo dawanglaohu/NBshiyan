@@ -23,6 +23,11 @@ export type AnalyticsEventKind = z.infer<typeof AnalyticsEventKindSchema>;
 export const ModelFailureReasonSchema = z.enum(['LOAD_ERROR', 'TIMEOUT', 'WEBGL_UNAVAILABLE']);
 export type ModelFailureReason = z.infer<typeof ModelFailureReasonSchema>;
 
+/**
+ * `productSlug` is the internal key (`products[].slug`), not a localized category URL slug.
+ * Ingest also accepts a published READY Model3D slug.
+ */
+
 const eventFields = {
   eventId: UuidSchema,
   occurredAt: UtcDateTimeSchema,

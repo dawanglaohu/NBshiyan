@@ -17,6 +17,7 @@ import {
   createAnalyticsConsentService,
 } from '../src/lib/server/analytics/consent';
 import { analyticsConsentSecret, loadServerConfig } from '../src/lib/server/config';
+import type { ApiCounterDb } from '../src/lib/server/http/metrics';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
 const PLANTED_EMAIL = 'planted-m5t2@example.com';
@@ -42,7 +43,7 @@ const db = {
     writes.push(query);
     return 1;
   },
-};
+} as unknown as ApiCounterDb;
 
 let now = new Date('2026-06-01T00:00:00.000Z');
 let port = 0;
@@ -317,7 +318,9 @@ describe('POST /api/analytics/consent', { concurrency: false }, () => {
     handler = makePost({ randomId: () => ID_A });
     const first = await httpPost();
     const token = tokenOf(first.cookies[0]);
-    const expiresAt = Date.parse(ConsentDTOSchema.parse(first.body).expiresAt);
+    const granted = ConsentDTOSchema.parse(first.body);
+    if (!granted.analytics) throw new Error('consent');
+    const expiresAt = Date.parse(granted.expiresAt);
     now = new Date(expiresAt - 1);
     assert.ok(service().verifyValue(token));
     const kept = await httpPost({ cookie: `pj_analytics=${token}` });
@@ -594,7 +597,7 @@ describe('POST /api/analytics/consent', { concurrency: false }, () => {
           calls += 1;
           throw new Error(LEAKTOKEN);
         },
-      },
+      } as unknown as ApiCounterDb,
     });
     const kept = await httpPost();
     assert.equal(kept.status, 200);

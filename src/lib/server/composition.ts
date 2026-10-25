@@ -5,6 +5,9 @@ import { deviceServiceFor, type DeviceSessionService } from './admin/device-sess
 import { mapAppError, mapUnknownFailure } from './http/errors';
 import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog } from './http/metrics';
 import { createAnalyticsConsentService, type AnalyticsConsentService } from './analytics/consent';
+import { createAnalyticsEventRepo } from './analytics/event-repo';
+import { createAnalyticsIngestService, type AnalyticsIngestService } from './analytics/ingest';
+import { analyticsConsentSecret } from './config';
 import { CHAT_VISITOR_POLICY } from './config';
 import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
@@ -73,6 +76,40 @@ export function createAnalyticsConsentServices(deps: {
       env: deps.env,
       clock: deps.clock,
       randomId: deps.randomId,
+    }),
+  };
+}
+
+export type AnalyticsIngestServices = AnalyticsConsentServices & {
+  ingest: AnalyticsIngestService;
+};
+
+/** 分析事件入库。同意验签与载荷哈希共用同一次解析出的密钥，不写进冻结配置。 */
+export function createAnalyticsIngestServices(deps: {
+  db?: PrismaClient;
+  config?: ServerConfig;
+  clock?: () => Date;
+  log?: (event: CounterLog) => void;
+  env?: Record<string, string | undefined>;
+  secret?: Buffer | null;
+  randomId?: () => string;
+} = {}): AnalyticsIngestServices {
+  const db = deps.db ?? (prisma as PrismaClient);
+  const secret = deps.secret !== undefined ? deps.secret : (deps.env ? analyticsConsentSecret(deps.env) : null);
+  return {
+    ...createAnalyticsConsentServices({
+      db,
+      config: deps.config,
+      clock: deps.clock,
+      log: deps.log,
+      env: deps.env,
+      secret,
+      randomId: deps.randomId,
+    }),
+    ingest: createAnalyticsIngestService({
+      repo: createAnalyticsEventRepo(db),
+      secret,
+      clock: deps.clock,
     }),
   };
 }
