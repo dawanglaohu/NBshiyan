@@ -10,11 +10,11 @@ import { LOCALE_META } from '@/i18n/locale-meta';
  * 未发布语言的 404 页（多语言第 0 期，UX）：沿用英文 404 页的样式（含头部和页脚），
  * 主按钮回 /en，其余已发布语言用母语名称的文字链接（目前是「Русский」→ /ru）。
  * 只用 NotFound 命名空间已有的英文文案，不新增文案。状态码 404 来自同目录 page.tsx 的 notFound()，X-Robots-Tag 来自 middleware。
- * 不输出 canonical 和 hreflang（SEO），只有 title 和 noindex。
+ * robots 由 Next notFound() 注入，不自行声明。不输出 canonical 和 hreflang（SEO）。
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations({ locale: DEFAULT_PUBLISHED_LOCALE, namespace: 'NotFound' });
-  return { title: t('meta.title'), description: null, robots: { index: false, follow: true } };
+  return { title: t('meta.title'), description: null };
 }
 
 export default async function LocaleUnavailable() {
