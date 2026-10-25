@@ -15,11 +15,13 @@ import { AnalyticsReceiptDTOSchema } from '../src/lib/contracts/analytics';
 import { AppErrorDTOSchema } from '../src/lib/contracts/errors';
 import { CONSENT_VERSION } from '../src/lib/consent';
 import { createAnalyticsConsentService } from '../src/lib/server/analytics/consent';
+import { CATALOG_CATEGORY_KEYS } from '../src/lib/catalog/catalog';
 import {
   ANALYTICS_EVENTS_COOKIE_LIMIT,
   ANALYTICS_EVENTS_IP_LIMIT,
   ANALYTICS_EVENTS_MAX_BYTES,
   ANALYTICS_EVENTS_RETRY_AFTER_SECONDS,
+  CATALOG_PRODUCT_SLUGS,
 } from '../src/lib/server/analytics/ingest';
 import { loadServerConfig } from '../src/lib/server/config';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
@@ -350,15 +352,23 @@ describe('POST /api/analytics/events', { concurrency: false, skip }, () => {
   test('missing required fields, unknown kinds, overlong values, unpublished products and sensitive URLs do not insert', async () => {
     const viewId = randomUUID();
     const path200 = `/en/${'a'.repeat(196)}`;
-    const slug120 = 'b'.repeat(120);
+    const offCatalog = 'orphan-sku';
+    const overlongSlug = 'c'.repeat(121);
     assert.equal(path200.length, 200);
+    assert.equal(overlongSlug.length, 121);
+    assert.equal(CATALOG_CATEGORY_KEYS.has(offCatalog), false);
+    assert.equal(CATALOG_PRODUCT_SLUGS.has(offCatalog), false);
+    assert.equal(CATALOG_PRODUCT_SLUGS.has('gift-cards'), true);
     assert.ok(db);
     await db.model3D.create({
-      data: { id: 'slug-120', productSlug: slug120, category: slug120, sourceKey: 'src-long', status: 'READY', published: true },
+      data: { id: 'off-catalog', productSlug: offCatalog, category: offCatalog, sourceKey: 'src-off', status: 'READY', published: true },
     });
+    const hidden = await expectCode({ events: [page(), product({ productSlug: offCatalog })] }, 400, 'invalid');
+    assert.equal(hidden.fieldErrors?.productSlug, 'Must be a published product.');
+    assert.equal(await db.model3D.count({ where: { category: offCatalog, status: 'READY', published: true } }), 1);
     const receipt = await accept([
       page({ path: path200 }),
-      product({ productSlug: slug120 }),
+      product({ productSlug: 'gift-cards' }),
       success(viewId, { durationMs: 0 }),
       failure(randomUUID(), { durationMs: 600_000, failureReason: 'TIMEOUT' }),
     ]);
@@ -379,7 +389,7 @@ describe('POST /api/analytics/events', { concurrency: false, skip }, () => {
       { events: [chat({ navigationId: undefined })] },
       { events: [page({ kind: 'click' })] },
       { events: [page({ path: `/en/${'a'.repeat(197)}` })] },
-      { events: [product({ productSlug: 'c'.repeat(121) })] },
+      { events: [product({ productSlug: overlongSlug })] },
       { events: [success(randomUUID(), { durationMs: 600_001 })] },
       { events: [success(randomUUID(), { durationMs: -1 })] },
       { events: [] },
@@ -398,6 +408,9 @@ describe('POST /api/analytics/events', { concurrency: false, skip }, () => {
       { events: [page(), page({ kind: 'click' })] },
     ];
     for (const body of cases) await expectCode(body, 400, 'invalid');
+    const overlong = await expectCode({ events: [product({ productSlug: overlongSlug })] }, 400, 'invalid');
+    assert.equal(overlong.fieldErrors?.events, 'Events must match the strict whitelist.');
+    assert.equal(overlong.fieldErrors?.productSlug, undefined);
     const timed = [
       page({ occurredAt: iso(-PAST_MS - 1) }),
       page({ occurredAt: iso(FUTURE_MS + 1) }),
