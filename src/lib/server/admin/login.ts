@@ -99,9 +99,10 @@ type TotpSubject = Pick<User, 'id' | 'totpSecret' | 'totpEnabled' | 'sessionVers
  */
 export async function consumeTotpStep(user: TotpSubject, totp: string | undefined): Promise<boolean> {
   if (!user.totpSecret || !totp || !/^[0-9]{6}$/.test(totp)) return false;
-  const delta = authenticator.checkDelta(totp, decrypt(user.totpSecret));
+  const now = Date.now();
+  const delta = authenticator.clone({ epoch: now }).checkDelta(totp, decrypt(user.totpSecret));
   if (delta === null) return false;
-  const step = Math.floor(Date.now() / 30_000) + delta;
+  const step = Math.floor(now / 30_000) + delta;
   const r = await prisma.user.updateMany({
     where: {
       id: user.id,

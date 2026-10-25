@@ -96,7 +96,7 @@
   - 按账号的错码上限（#348）：只统计密码正确、6 位码错的 confirm（不管 IP）。同一个待确认密钥错满 5 次即作废，返回 401 `enroll_reset`（之后 confirm 也返回 `enroll_reset`，直到重新 enroll）；作废后冷却 10 分钟，期间 enroll 返回 429 `rate_limited`。密码错的请求不计入、不作废密钥（仍按下面的登录防爆破处理）。绑定成功或发新密钥时清零。
   - `bad_totp` / `rate_limited` / `enroll_reset` 这几种区分只有密码正确才看得到；密码错或账号不存在一律 401 `bad_credentials`。
   - 两个接口各自另有按 IP 的限流：每 IP 10 分钟 20 次（在同源检查之后、解析请求体之前），超限 429 `rate_limited`。
-- 登录：Auth.js 标准流程，`GET /api/auth/csrf` 取 token，再 `POST /api/auth/callback/credentials`（表单字段 `csrfToken, email, password, totp` 或 `recoveryCode`）。任何一步失败统一返回 `CredentialsSignin`，不区分原因。
+- 登录：Auth.js 标准流程，`GET /api/auth/csrf` 取 token，再 `POST /api/auth/callback/credentials`（表单字段 `csrfToken, email, password, totp`）。日常登录不再接受 `recoveryCode`，非空恢复码同样失败。任何一步失败统一返回 `CredentialsSignin`，不区分原因。
 - 会话：JWT，2 小时有效；cookie HttpOnly、SameSite=Lax，生产强制 Secure（`__Secure-` 前缀）。每次请求核对 `User.sessionVersion`、禁用、2FA 状态，不一致即失效（改密码/重置 2FA 时调用 `revokeSessions()`）。
 - 防爆破：10 分钟内 IP+账号 5 次、单账号 10 次、单 IP 30 次；同一账号连续 5 次失败锁定 15 分钟。TOTP 同一时间步只能用一次，恢复码用后作废。
 - 审计：`auth.login_success / auth.login_fail(reason) / auth.lockout / auth.totp_enroll_start / auth.totp_enroll_blocked(reason: pending|cooldown|window_expired) / auth.totp_enroll_fail / auth.totp_enroll_voided / auth.totp_enabled`，不记密码、验证码、密钥、token，邮箱只记 HMAC。

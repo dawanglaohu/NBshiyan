@@ -8,11 +8,16 @@ import { authenticator } from 'otplib';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
+// 隔离库只认本任务的专用变量。没有它就跳过，避免连上开发库或生产库。
+// describe 级 skip 在 TAP 里是 tests 0 / skipped 0，CI 缺地址时必须直接失败。
 const databaseUrl = process.env.M3T2_TEST_DATABASE_URL?.startsWith('postgres')
   ? process.env.M3T2_TEST_DATABASE_URL
   : '';
+if (process.env.CI === 'true' && !databaseUrl) {
+  throw new Error('M3T2_TEST_DATABASE_URL must be a postgres URL when CI=true');
+}
 const skip = !databaseUrl && 'no dedicated M3T2_TEST_DATABASE_URL';
-process.env.NODE_ENV = 'test';
+Object.assign(process.env, { NODE_ENV: 'test' });
 process.env.APP_ENV = 'test';
 process.env.AUTH_SECRET ??= 'm3t2-enroll-state-test-secret-32';
 process.env.ADMIN_TOTP_KEY ??= Buffer.alloc(32, 8).toString('base64');
