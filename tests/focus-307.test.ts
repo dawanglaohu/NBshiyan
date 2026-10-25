@@ -65,7 +65,7 @@ test('CookieConsent wiring: banner buttons restore as "banner", dialog paths as 
   assert.match(src, /el\?\.focus\(preventScroll \? \{ preventScroll: true \} : undefined\)/);
   // 横幅按钮走 save(..., false)，设置面板走 save(c, true)
   assert.match(src, /onClick=\{\(\) => save\(\{ analytics: false, chat: false \}, false\)\}/);
-  assert.match(src, /onClick=\{\(\) => save\(\{ analytics: true, chat: true \}, false\)\}/);
+  assert.match(src, /onClick=\{\(\) => save\(\{ analytics: true, chat: false \}, false\)\}/);
   assert.match(src, /onSave=\{\(c\) => save\(c, true\)\}/);
 });
 

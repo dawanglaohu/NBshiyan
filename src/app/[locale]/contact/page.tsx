@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import InquiryWizard from '@/components/inquiry/InquiryWizard';
+import HumanContactNotice from './HumanContactNotice';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -16,7 +17,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   return (
     <main className="container" style={{ padding: '48px 20px 96px' }}>
       <h1 style={{ fontSize: 'var(--fs-h2)', marginTop: 0 }}>{t('title')}</h1>
-      <p style={{ maxWidth: 640, color: 'var(--ink-2)' }}>{t('intro')}</p>
+      <p className="contact-intro">{t('intro')}</p>
+      <HumanContactNotice />
       <InquiryWizard />
     </main>
   );

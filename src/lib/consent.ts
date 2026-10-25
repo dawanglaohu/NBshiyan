@@ -26,8 +26,10 @@ export function getConsent(): Consent | null {
   try { return parseConsent(window.localStorage.getItem(CONSENT_KEY)); } catch { return null; }
 }
 
-export function setConsent(choice: { analytics: boolean; chat: boolean }): Consent {
-  const value: Consent = { v: 2, analytics: choice.analytics === true, chat: choice.chat === true, ts: Date.now() };
+/** 新写入一律 chat:false。调用方传入的 chat 位不再生效，避免全部接受或保存设置把旧的 true 再写回去。 */
+export function setConsent(choice: { analytics: boolean; chat?: boolean }): Consent {
+  void choice.chat;
+  const value: Consent = { v: 2, analytics: choice.analytics === true, chat: false, ts: Date.now() };
   try {
     window.localStorage.setItem(CONSENT_KEY, JSON.stringify(value));
   } catch {
@@ -55,9 +57,37 @@ export function openConsentSettings(opener?: HTMLElement | null) {
   window.dispatchEvent(new CustomEvent(CONSENT_OPEN_EVENT, { detail: { opener: opener ?? (document.activeElement as HTMLElement | null) } }));
 }
 
+/**
+ * 挂载时把仍有效、且 chat 为 true 的旧记录改成 false。
+ * 只改这一位，ts、analytics 和其余字段原样保留。不经过 setConsent，也不派发同意事件。
+ * 没有记录、记录无效，或 chat 不是 true 时不写存储。
+ */
+export function migrateLegacyChat(): void {
+  if (typeof window === 'undefined') return;
+  let raw: string | null;
+  try { raw = window.localStorage.getItem(CONSENT_KEY); } catch { return; }
+  if (!raw || !parseConsent(raw)) return;
+  let stored: unknown;
+  try { stored = JSON.parse(raw); } catch { return; }
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return;
+  const record = stored as Record<string, unknown>;
+  if (record.chat !== true) return;
+  clearTawkData();
+  try {
+    window.localStorage.setItem(CONSENT_KEY, JSON.stringify({ ...record, chat: false }));
+  } catch {
+    /* 隐私模式等写入失败时保留原记录，下次挂载再试 */
+  }
+}
+
+/** 已保存 / 已撤回只跟分析同意是否被关掉对齐。清掉旧 chat 位但分析仍开着时，提示是已保存。 */
+export function consentNotice(before: { analytics?: boolean } | null, analytics: boolean): 'saved' | 'withdrawn' {
+  return before?.analytics === true && !analytics ? 'withdrawn' : 'saved';
+}
+
 const TAWK_KEY = /^(twk_|tawk|__tawk|TawkConnectionTime)/i;
 
-/** 撤回在线聊天同意：移除 Tawk.to 脚本/iframe/全局对象，删除它的 localStorage、sessionStorage 和 cookie。调用方随后刷新页面，保证不再有请求。 */
+/** 清掉浏览器里残留的第三方聊天脚本、全局对象和存储。不决定第一方咨询是否可用，也不读取分析标识。 */
 export function clearTawkData() {
   document.getElementById('tawk-js')?.remove();
   document.querySelectorAll('script[src*="tawk.to"], iframe[src*="tawk.to"]').forEach((el) => el.remove());

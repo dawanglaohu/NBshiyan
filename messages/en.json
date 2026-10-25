@@ -59,13 +59,13 @@
       "color-printing": "Color Printing",
       "offset-printing": "Offset Printing",
       "eco-paper-cups": "Printed Coffee Cups",
-      "gift-cards": "Gift Cards",
+      "gift-cards": "Greeting Cards",
       "christmas-merchandise": "Christmas Merchandise"
     },
     "done": "Done",
     "categories": "Product categories",
     "metaTitle": "Custom Packaging Products in 3D: Boxes & Cups | PackJoyU",
-    "metaDescription": "Explore 12 custom packaging categories in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
+    "metaDescription": "Explore our wide range of custom packaging in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
     "desc": {
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
@@ -77,7 +77,7 @@
       "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
       "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
       "eco-paper-cups": "Paper cups printed with your logo; coating options confirmed per order.",
-      "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
+      "gift-cards": "Custom printed greeting cards and card packaging for retail and promotions.",
       "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
     },
     "alt": "{name}: custom packaging by PackJoyU",
@@ -172,6 +172,8 @@
     "metaDescription": "Tell us about your packaging project and request a quote from PackJoyU.",
     "title": "Request a quote",
     "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
+    "humanBody": "The inquiry form and email always work, whatever you choose in cookie settings.",
+    "emailEntry": "Go to the email field",
     "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {
@@ -295,7 +297,7 @@
   },
   "Consent": {
     "label": "Cookie consent",
-    "text": "We use essential cookies to run this site. With your permission we also use analytics and live chat.",
+    "text": "We use essential cookies and local storage to run this site. With your permission, we also use optional anonymous analytics.",
     "policy": "Privacy policy",
     "accept": "Accept all",
     "reject": "Reject all",
@@ -303,16 +305,14 @@
     "title": "Cookie settings",
     "lead": "Choose which cookies we may use. You can change this any time via “Cookie settings” in the footer.",
     "necessary": "Necessary",
-    "necessaryDesc": "Language, security (Turnstile), quote list and this choice. Always on.",
+    "necessaryDesc": "Language, security check, quote list, inquiry form and this choice. Always on.",
     "alwaysOn": "Always on",
-    "analytics": "Analytics",
-    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site.",
-    "chat": "Live chat (Tawk.to)",
-    "chatDesc": "Loads the Tawk.to chat widget, which sets its own cookies.",
+    "analytics": "Optional analytics",
+    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site. Declining it does not affect the inquiry form or email.",
     "save": "Save choices",
     "close": "Close",
     "saved": "Your cookie choices were saved.",
-    "withdrawn": "Consent withdrawn. Analytics and chat are off.",
+    "withdrawn": "Consent withdrawn. Analytics is off. The inquiry form and email remain available.",
     "change": "Change"
   },
   "Footer": {
@@ -327,7 +327,7 @@
   "Privacy": {
     "metaTitle": "Privacy policy: data we collect | PackJoyU",
     "title": "Privacy policy",
-    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders, chat and cookies, and how to exercise your privacy rights.",
+    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders and cookies, and how to exercise your privacy rights.",
     "intro": "This page explains what personal data PackJoyU collects through this website, why, and how long we keep it.",
     "contactLink": "Contact us through the inquiry form",
     "sections": {
@@ -347,7 +347,7 @@
         "items": [
           "To answer inquiries, prepare quotes and ship samples.",
           "To protect the site from spam and abuse (security check and rate limits).",
-          "With your consent only: to measure site performance and to offer live chat."
+          "With your consent only: to measure site performance with anonymous analytics. Sending an inquiry does not require this consent."
         ]
       },
       "retention": {
@@ -372,19 +372,16 @@
       "cookies": {
         "title": "Cookies, local storage and consent",
         "items": [
-          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records whether you allowed analytics and chat, and when.",
-          "Analytics (anonymous performance metrics) load only after you allow them.",
-          "Live chat (Tawk.to) loads only after you allow it.",
+          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records whether you allowed optional analytics, and when.",
+          "Optional analytics load only after you allow them. If you decline, no analytics identifier is created.",
           "Your choice expires after 12 months, and we ask again.",
-          "You can change or withdraw consent at any time via “Cookie settings” in the footer. After you withdraw, analytics and chat stop loading; withdrawing chat also clears the chat provider’s data from your browser."
+          "You can change or withdraw analytics consent at any time via “Cookie settings” in the footer. Withdrawing analytics stops analytics only. It does not delete inquiry records."
         ]
       },
       "chat": {
-        "title": "Live chat (Tawk.to)",
+        "title": "Contacting us",
         "items": [
-          "Live chat is provided by Tawk.to and is loaded only if you allow chat.",
-          "When it loads, Tawk.to receives your messages and technical data needed to run the chat, and sets its own storage in your browser.",
-          "The chat never loads on our admin pages."
+          "The inquiry form and email always work, whatever you choose in cookie settings."
         ]
       },
       "processors": {
@@ -397,8 +394,7 @@
           "Security verification (bot protection) and file storage",
           "Rate-limit storage",
           "Email delivery",
-          "Database",
-          "Live chat (only with your consent)"
+          "Database"
         ]
       },
       "contact": {

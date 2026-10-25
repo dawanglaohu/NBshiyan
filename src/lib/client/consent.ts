@@ -3,10 +3,6 @@
 import { getConsent, onConsent } from '@/lib/consent';
 export { CONSENT_KEY, CONSENT_EVENT } from '@/lib/consent';
 
-export function hasChatConsent(): boolean {
-  return getConsent()?.chat === true;
-}
-
 export function onConsentChange(cb: () => void) {
   return onConsent(() => cb());
 }
