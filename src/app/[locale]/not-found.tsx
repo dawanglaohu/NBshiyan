@@ -1,15 +1,15 @@
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categoryHref } from '@/lib/seo/categoryPages';
-import { useLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
+import enMessages from '../../../messages/en.json';
+import ruMessages from '../../../messages/ru.json';
 
 // 本地化 404（design/error-pages.html，#125/#195）：不重定向、不放搜索框。状态码仍由调用方 notFound() 给出 404。
 // 品类落地页 /{locale}/products/{slug} 上线前（CATEGORY_PAGES_LIVE，#198），入口先链到 3D 目录里对应的卡片，避免 404 页再链到 404。
 // 标题用 NotFound.meta.title，不继承首页 Meta.title。description 留空，不继承首页描述。
-// locale 取自 [locale]/layout 的 setRequestLocale。
 // 不要在这里写 robots。notFound() 会让 Next 插入唯一的 <meta name="robots" content="noindex">；
 // 本文件再写 robots 会多出一个 meta。未写 follow 时爬虫按默认 follow 处理，品类链接仍可跟。
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +20,28 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function NotFound() {
+// 404 走错误文档，metadata 的 <title> 在 </head> 之后。水合会把 document.title 写成布局上的首页标题。
+// 脚本在 head 变化后写回 NotFound.meta.title。不要改成观察 document.body：首页画布会持续改 body。
+function notFoundDocumentTitle(locale: string): string {
+  return locale === 'ru' ? ruMessages.NotFound.meta.title : enMessages.NotFound.meta.title;
+}
+
+function titleLockScript(title: string): string {
+  const encoded = JSON.stringify(title).replace(/</g, '\\u003c');
+  return `(function(){var t=${encoded};function apply(){if(document.title!==t)document.title=t;}apply();var head=document.head;if(head&&typeof MutationObserver==="function"){var obs=new MutationObserver(apply);obs.observe(head,{subtree:true,childList:true,characterData:true});addEventListener("pagehide",function(){obs.disconnect();},{once:true});}var n=25;var timer=setInterval(function(){apply();if(--n<=0)clearInterval(timer);},200);})();`;
+}
+
+function NotFoundTitle() {
+  const title = notFoundDocumentTitle(useLocale());
+  return (
+    <>
+      <title>{title}</title>
+      <script dangerouslySetInnerHTML={{ __html: titleLockScript(title) }} />
+    </>
+  );
+}
+
+function NotFoundBody() {
   const t = useTranslations('NotFound');
   const names = useTranslations('Products.names');
   const locale = useLocale() as 'en' | 'ru';
@@ -45,5 +66,14 @@ export default function NotFound() {
         ))}
       </ul>
     </main>
+  );
+}
+
+export default function NotFound() {
+  return (
+    <>
+      <NotFoundTitle />
+      <NotFoundBody />
+    </>
   );
 }

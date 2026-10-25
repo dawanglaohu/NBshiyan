@@ -42,3 +42,19 @@ test.describe('404 robots meta (#429)', () => {
     }
   });
 });
+
+// 渲染后 document.title 必须是 404 标题。普通未知路径水合后会落到首页标题；未上线语言 /de 也要锁住，避免只守住一边。
+const titleCases = [
+  ...cases,
+  { path: '/de', title: 'Page not found | PackJoyU' },
+];
+
+test.describe('404 渲染后 document.title 是 404 标题', () => {
+  for (const item of titleCases) {
+    test(`${item.path} 渲染后 document.title 是 404 标题`, async ({ page }) => {
+      const res = await page.goto(item.path);
+      expect(res!.status()).toBe(404);
+      await expect(page).toHaveTitle(item.title);
+    });
+  }
+});

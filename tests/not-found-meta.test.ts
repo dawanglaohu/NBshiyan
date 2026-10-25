@@ -16,6 +16,7 @@ test('404: generateMetadata keeps NotFound.meta.title and does not emit a second
   assert.match(s, /export async function generateMetadata/);
   assert.match(s, /getTranslations\('NotFound'\)/);
   assert.match(s, /title: t\('meta\.title'\)/);
+  assert.match(s, /<title>/);
   // notFound() 已由 Next 插入一条 robots meta。这里再声明 robots 字段会变成第二条。
   assert.doesNotMatch(s, /\brobots\s*:/);
   assert.doesNotMatch(s, /redirect\(/);
@@ -28,4 +29,5 @@ test('product 404 and locale-unavailable 404 do not declare their own robots met
   const unavailable = readFileSync('src/app/[locale]/locale-unavailable/not-found.tsx', 'utf8');
   assert.doesNotMatch(product, /\brobots\s*:/);
   assert.doesNotMatch(unavailable, /\brobots\s*:/);
+  assert.match(unavailable, /<title>/);
 });
