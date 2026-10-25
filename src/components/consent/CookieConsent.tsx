@@ -4,14 +4,13 @@ import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { consentCloseSource, consentFocusTarget, type ConsentCloseSource } from '@/lib/a11y/focus';
-import { CONSENT_OPEN_EVENT, clearTawkData, consentNotice, getConsent, legacyChatCleared, onConsent, setConsent, type Consent } from '@/lib/consent';
+import { CONSENT_OPEN_EVENT, consentNotice, getConsent, migrateLegacyChat, onConsent, setConsent, type Consent } from '@/lib/consent';
 
-const TOAST_KEY = 'pj-consent-toast';
 type Toast = 'saved' | 'withdrawn';
 
 /**
  * Cookie 同意条 + 设置面板。服务端不渲染，挂载后再判断，避免水合闪烁。
- * 新写入一律把 chat 存成 false。旧记录里残留的 chat:true 被清掉时，清浏览器里的旧聊天存储并刷新。
+ * 新写入一律把 chat 存成 false。挂载时把旧记录里残留的 chat:true 静默改成 false，并清掉旧聊天存储。
  */
 export default function CookieConsent() {
   const t = useTranslations('Consent');
@@ -25,13 +24,12 @@ export default function CookieConsent() {
   const openedFromBanner = useRef(false);
 
   useEffect(() => {
+    migrateLegacyChat();
     prev.current = getConsent();
     setShow(prev.current === null);
-    try { const f = sessionStorage.getItem(TOAST_KEY) as Toast | null; if (f) { sessionStorage.removeItem(TOAST_KEY); setToast(f); } } catch { /* ignore */ }
     return onConsent((c) => {
-      const before = prev.current; prev.current = c;
+      prev.current = c;
       setShow(c === null);
-      if (legacyChatCleared(before, c)) { clearTawkData(); window.location.reload(); }
     });
   }, []);
 
@@ -77,13 +75,9 @@ export default function CookieConsent() {
   const save = (choice: { analytics: boolean; chat: boolean }, fromDialog: boolean) => {
     const next = { analytics: choice.analytics === true, chat: false as const };
     const before = getConsent();
-    const chatWithdrawn = legacyChatCleared(before, next);
     const kind: Toast = consentNotice(before, next.analytics);
     setOpen(false);
-    // 旧 chat 位撤回会刷新页面，提示放到 sessionStorage，刷新后再显示
-    if (chatWithdrawn) { try { sessionStorage.setItem(TOAST_KEY, kind); } catch { /* ignore */ } }
     setConsent(next);
-    if (chatWithdrawn) return;
     if (fromDialog || kind === 'withdrawn') setToast(kind);
     restoreFocus(consentCloseSource(fromDialog ? 'dialog-save' : 'banner-choice', openedFromBanner.current));
   };

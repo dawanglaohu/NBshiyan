@@ -76,7 +76,7 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 /* 询价向导 */
 .wizard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:28px;max-width:640px;margin-inline:auto} /* #308 P3-6：卡片居中、最宽 640px */
 .contact-intro{max-width:640px;color:var(--ink-2)}
-.contact-human{max-width:640px;margin:0 auto 24px}
+.contact-human{max-width:640px;margin:0 0 24px;color:var(--ink-2)}
 .contact-human a{font-weight:600;text-decoration:underline;text-underline-offset:2px}
 /* #307 成功卡片滚进可视区时不被吸顶页头挡住（手机端页头不吸顶） */
 /* 滚动落点 = 吸顶导航实际高度（全局 --header-h，实测 73px）+ 16px；

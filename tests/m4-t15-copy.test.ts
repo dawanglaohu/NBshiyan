@@ -81,8 +81,8 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(en.Privacy.sections.purpose.items[2], 'With your consent only: to measure site performance with anonymous analytics. Sending an inquiry does not require this consent.');
   assert.equal(ru.Privacy.sections.purpose.items[2], 'Только с вашего согласия: для анонимного измерения скорости сайта. Для отправки запроса это согласие не требуется.');
   assert.equal(en.Privacy.sections.processors.items.some((s: string) => /live-chat|third-party/i.test(s)), false);
-  assert.equal(en.Contact.humanTitle, 'Talk to a packaging specialist');
-  assert.equal(ru.Contact.humanTitle, 'Связаться со специалистом по упаковке');
+  assert.equal(en.Contact.humanTitle, undefined);
+  assert.equal(ru.Contact.humanTitle, undefined);
   assert.equal(en.Contact.humanBody, en.Privacy.sections.chat.items[0]);
   assert.equal(ru.Contact.humanBody, ru.Privacy.sections.chat.items[0]);
   assert.equal(en.Contact.emailEntry, 'Go to the email field');

@@ -1,9 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { INQUIRY_EMAIL_EVENT } from '@/lib/inquiry/events';
 
 /** 联系页在 intro 下的一行说明。点击后由询价向导切到邮箱那一步。 */
-export const INQUIRY_EMAIL_EVENT = 'pj:inquiry-email';
 
 export default function HumanContactNotice() {
   const t = useTranslations('Contact');

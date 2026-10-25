@@ -57,9 +57,27 @@ export function openConsentSettings(opener?: HTMLElement | null) {
   window.dispatchEvent(new CustomEvent(CONSENT_OPEN_EVENT, { detail: { opener: opener ?? (document.activeElement as HTMLElement | null) } }));
 }
 
-/** 旧记录里的 chat:true 被新写入清掉时，要清残留存储并刷新。新访客没有这条记录，返回 false。 */
-export function legacyChatCleared(before: { chat?: boolean } | null, next: { chat?: boolean } | null): boolean {
-  return Boolean(before?.chat && !next?.chat);
+/**
+ * 挂载时把仍有效、且 chat 为 true 的旧记录改成 false。
+ * 只改这一位，ts、analytics 和其余字段原样保留。不经过 setConsent，也不派发同意事件。
+ * 没有记录、记录无效，或 chat 不是 true 时不写存储。
+ */
+export function migrateLegacyChat(): void {
+  if (typeof window === 'undefined') return;
+  let raw: string | null;
+  try { raw = window.localStorage.getItem(CONSENT_KEY); } catch { return; }
+  if (!raw || !parseConsent(raw)) return;
+  let stored: unknown;
+  try { stored = JSON.parse(raw); } catch { return; }
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return;
+  const record = stored as Record<string, unknown>;
+  if (record.chat !== true) return;
+  clearTawkData();
+  try {
+    window.localStorage.setItem(CONSENT_KEY, JSON.stringify({ ...record, chat: false }));
+  } catch {
+    /* 隐私模式等写入失败时保留原记录，下次挂载再试 */
+  }
 }
 
 /** 已保存 / 已撤回只跟分析同意是否被关掉对齐。清掉旧 chat 位但分析仍开着时，提示是已保存。 */

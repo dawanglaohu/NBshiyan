@@ -10,7 +10,7 @@ import { LOGO_TTL_MS, type LogoUpload } from '@/lib/client/logoUpload';
 import { prefersReducedMotion, scrollBehaviorFor } from '@/lib/a11y/focus';
 import { Link } from '@/i18n/navigation';
 import { CONTACT_FIELDS, errorId, FIELD_ID, firstError, revalidate, validateContact, type ContactErrors, type ContactField } from '@/lib/inquiry/validate';
-import { INQUIRY_EMAIL_EVENT } from '@/app/[locale]/contact/HumanContactNotice';
+import { INQUIRY_EMAIL_EVENT } from '@/lib/inquiry/events';
 
 const QTY = [{ k: '1k', v: 1000 }, { k: '5k', v: 5000 }, { k: '10k', v: 10000 }, { k: '50k', v: 50000 }, { k: 'unsure', v: undefined }] as const;
 const MATERIALS = ['corrugated', 'paperboard', 'kraft', 'pulp', 'unsure'] as const;
