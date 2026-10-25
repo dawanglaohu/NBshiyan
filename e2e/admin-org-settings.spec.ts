@@ -34,6 +34,10 @@ test.describe('已登录的 ADMIN（整组共用一次登录）', () => {
 
   test('组织信息：分区导航、占位不预填、计数器、社交主页上限、保存、409 保留输入 + 刷新确认', async ({ page }) => {
     test.setTimeout(90_000);
+    const activityPosts: string[] = [];
+    page.on('request', (req) => {
+      if (req.method() === 'POST' && new URL(req.url()).pathname === '/api/admin/account/session/activity') activityPosts.push(req.url());
+    });
     // 从干净的状态开始（测试库可能被前一次运行或同组前面的测试写过）
     await resetOrg(page);
 
@@ -43,6 +47,14 @@ test.describe('已登录的 ADMIN（整组共用一次登录）', () => {
     await expect(nav.getByRole('link', { name: '组织信息' })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: '关于我们' })).not.toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { level: 1, name: '组织信息' })).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-admin-activity', 'on');
+    await page.evaluate(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+      window.dispatchEvent(new Event('focus'));
+    });
+    expect(activityPosts).toEqual([]);
+    await page.getByRole('heading', { level: 1, name: '组织信息' }).click();
+    await expect.poll(() => activityPosts.length).toBe(1);
     await expect(page.getByText('这些信息会出现在搜索引擎的结构化数据里，不确定的就不要填。')).toBeVisible();
 
     // 默认值只是占位，不预填
@@ -150,6 +162,7 @@ test.describe('已登录的 ADMIN（整组共用一次登录）', () => {
     await nav.getByRole('link', { name: '关于我们' }).click();
     await expect(page).toHaveURL(/\/admin\/settings$/);
     await expect(page.getByRole('navigation', { name: '站点设置分区' }).getByRole('link', { name: '关于我们' })).toHaveAttribute('aria-current', 'page');
+    expect(activityPosts).toHaveLength(1);
   });
 
   test('组织信息：对不上字段的 400 issue、422 没带 issues，都显示在顶部错误条', async ({ page }) => {

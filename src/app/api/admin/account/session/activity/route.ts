@@ -4,7 +4,8 @@ import { SessionActivityDTOSchema, SessionActivityRequestSchema } from '@/lib/co
 import { AppErrorCodeSchema, type AppErrorCode } from '@/lib/contracts/errors';
 import { withClearedSession } from '@/lib/server/admin/guard';
 import { readJson, TOO_LARGE } from '@/lib/server/admin/inquiries';
-import { assertSameOrigin, enforceAdminRateLimit, requireAdmin } from '@/lib/server/auth';
+import { assertSameOrigin, enforceAdminUserRateLimit, requireAdmin } from '@/lib/server/auth';
+import type { AdminServices } from '@/lib/server/composition';
 import { createAdminServices } from '@/lib/server/composition';
 import { AppError, classifyThrown } from '@/lib/server/http/errors';
 
@@ -12,6 +13,8 @@ export const runtime = 'nodejs';
 
 const ROUTE_ID = 'POST /api/admin/account/session/activity';
 const ROLES = ['ADMIN', 'SALES', 'EDITOR'] as const;
+/** 真实客户端 15 分钟才上报一次。按用户每分钟大约 6 次，挡住不守节流的调用方。 */
+const ACTIVITY_USER_LIMIT = 6;
 type ActivityRecord = (response: { routeId: string; status: number; body: unknown }) => Promise<{ status: number; body: unknown }>;
 
 async function finish(
@@ -48,14 +51,19 @@ async function fromGuard(response: Response, requestId: string, record: Activity
 }
 
 export async function POST(request: Request) {
+  return handleSessionActivity(request);
+}
+
+export async function handleSessionActivity(request: Request, services: AdminServices = createAdminServices()) {
   const requestId = randomUUID();
-  const services = createAdminServices();
   const record: ActivityRecord = (response) => services.apiCounter.recordFinalResponse(response);
   try {
+    const originBlocked = assertSameOrigin(request);
+    if (originBlocked) return fromGuard(originBlocked, requestId, record);
     const decision = await requireAdmin(request, [...ROLES]);
     if (decision instanceof Response) return fromGuard(decision, requestId, record);
-    const blocked = assertSameOrigin(request) ?? (await enforceAdminRateLimit(request, 'account.session.activity'));
-    if (blocked) return fromGuard(blocked, requestId, record);
+    const limited = await enforceAdminUserRateLimit(decision.user.id, 'account.session.activity', ACTIVITY_USER_LIMIT);
+    if (limited) return fromGuard(limited, requestId, record);
     const json = await readJson(request, 1_000);
     if (json === TOO_LARGE) {
       const mapped = mappedDenial('too_large', requestId);
@@ -72,6 +80,10 @@ export async function POST(request: Request) {
       sid: decision.device.id,
     });
     if (!activity.ok) {
+      if (activity.reason === 'unavailable') {
+        const mapped = mappedDenial('service_unavailable', requestId);
+        return finish(mapped.status, mapped.body, mapped.headers, [], false, record);
+      }
       const code: AppErrorCode = activity.reason === 'disabled' ? 'account_disabled' : activity.reason === 'forbidden' ? 'forbidden' : 'unauthorized';
       const mapped = mappedDenial(code, requestId);
       return finish(mapped.status, mapped.body, mapped.headers, [], code !== 'forbidden', record);
@@ -80,6 +92,8 @@ export async function POST(request: Request) {
       effectiveExpiresAt: activity.bounds.effectiveExpiresAt.toISOString(),
       absoluteExpiresAt: activity.bounds.absoluteExpiresAt ? activity.bounds.absoluteExpiresAt.toISOString() : null,
     });
+    const headers = { 'retry-after': String(activity.retryAfterSeconds) };
+    if (!activity.wrote) return finish(200, body, headers, [], false, record);
     const sealed = await sealSessionCookie({
       sub: activity.user.id,
       uid: activity.user.id,
@@ -96,7 +110,6 @@ export async function POST(request: Request) {
       const mapped = mappedDenial('service_unavailable', requestId);
       return finish(mapped.status, mapped.body, mapped.headers, [], false, record);
     }
-    const headers = { 'retry-after': String(activity.retryAfterSeconds) };
     return finish(200, body, headers, [sessionSetCookie(sealed.value, sealed.exp)], false, record);
   } catch (error) {
     const mapped = classifyThrown(error, requestId);

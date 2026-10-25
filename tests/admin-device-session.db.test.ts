@@ -112,7 +112,9 @@ test('a revoked row seen on the next call is not served from the first result', 
   const input = { userId: 'user-1', sessionVersion: 3, sid: 'device-1', roles: area };
   assert.equal((await service.authenticate(input)).ok, true);
   row = device({ revokedAt: created });
-  assert.equal((await service.authenticate(input)).ok, false);
+  const denied = await service.authenticate(input);
+  assert.equal(denied.ok, false);
+  if (!denied.ok) assert.equal(denied.status, 401);
 });
 
 test('database errors deny instead of accepting the cookie', async () => {
@@ -126,8 +128,71 @@ test('database errors deny instead of accepting the cookie', async () => {
   } satisfies DeviceRepo;
   const service = createDeviceSessionService({ repo, clock: () => created, policy });
   const result = await service.authenticate({ userId: 'user-1', sessionVersion: 3, sid: 'device-1', roles: area });
-  assert.equal(result.ok, false);
+  assert.deepEqual(result, { ok: false, reason: 'unavailable', status: 503 });
   assert.equal(JSON.stringify(result).includes('database down'), false);
+});
+
+function activityDb(options: { transactionCalls?: { n: number }; findUser?: () => Promise<User | null>; device?: AdminDeviceSession | null }) {
+  return {
+    user: { findUnique: options.findUser ?? (async () => user()) },
+    adminDeviceSession: { findUnique: async () => (options.device === undefined ? device() : options.device) },
+    $transaction: async () => {
+      if (options.transactionCalls) options.transactionCalls.n += 1;
+      throw new Error('database down');
+    },
+  };
+}
+
+test('a throttled activity read does not lock or write', async () => {
+  const transactionCalls = { n: 0 };
+  const service = createDeviceSessionService({
+    repo: {
+      findUser: async () => { throw new Error('repo locked'); },
+      findDevice: async () => { throw new Error('repo locked'); },
+      create: async () => { throw new Error('repo locked'); },
+      revokeSid: async () => { throw new Error('repo locked'); },
+      revokeUser: async () => { throw new Error('repo locked'); },
+      transaction: async () => { throw new Error('repo locked'); },
+    },
+    clock: () => new Date(created.getTime() + 1_000),
+    policy,
+    db: activityDb({ transactionCalls }) as never,
+  });
+  const result = await service.recordActivity({ userId: 'user-1', sessionVersion: 3, sid: 'device-1' });
+  assert.equal(result.ok && result.wrote, false);
+  assert.equal(transactionCalls.n, 0);
+  assert.equal(JSON.stringify(result).includes('repo locked'), false);
+});
+
+test('recordActivity maps a database failure to unavailable and a revoked row stays 401', async () => {
+  const downCalls = { n: 0 };
+  const down = createDeviceSessionService({
+    repo: {
+      findUser: async () => user(), findDevice: async () => device(), create: async () => device(),
+      revokeSid: async () => {}, revokeUser: async () => {}, transaction: async <T,>() => device() as T,
+    },
+    clock: () => new Date(created.getTime() + policy.activityThrottleMs),
+    policy,
+    db: activityDb({ transactionCalls: downCalls }) as never,
+  });
+  const failed = await down.recordActivity({ userId: 'user-1', sessionVersion: 3, sid: 'device-1' });
+  assert.deepEqual(failed, { ok: false, reason: 'unavailable', status: 503 });
+  assert.equal(downCalls.n, 1);
+  assert.equal(JSON.stringify(failed).includes('database down'), false);
+
+  const revokedCalls = { n: 0 };
+  const revoked = createDeviceSessionService({
+    repo: {
+      findUser: async () => user(), findDevice: async () => device(), create: async () => device(),
+      revokeSid: async () => {}, revokeUser: async () => {}, transaction: async <T,>() => device() as T,
+    },
+    clock: () => created,
+    policy,
+    db: activityDb({ transactionCalls: revokedCalls, device: device({ revokedAt: created }) }) as never,
+  });
+  const denied = await revoked.recordActivity({ userId: 'user-1', sessionVersion: 3, sid: 'device-1' });
+  assert.deepEqual(denied, { ok: false, reason: 'unauthenticated', status: 401 });
+  assert.equal(revokedCalls.n, 0);
 });
 
 test('device label keeps a coarse name and the account DTO defaults passwordless to false', () => {

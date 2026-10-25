@@ -12,6 +12,7 @@ import {
   clearedSessionCookieHeaders,
   deviceServiceFor,
   sessionCookieNames,
+  type AuthenticateResult,
   type DeviceSessionService,
 } from '@/lib/server/admin/device-session';
 
@@ -39,6 +40,12 @@ let devices: DeviceSessionService | undefined;
 function devicesOf() {
   devices ??= deviceServiceFor(prisma, () => new Date(), ADMIN_SESSION_POLICY);
   return devices;
+}
+
+/** 鉴权失败丢掉 token。数据库暂时不可用时原样退回，已有 cookie 继续有效。 */
+export function jwtAfterAccess<T>(token: T, decision: AuthenticateResult): T | null {
+  if (!decision.ok) return decision.reason === 'unavailable' ? token : null;
+  return token;
 }
 
 type EncodeParams = Parameters<typeof defaultEncode>[0];
@@ -110,7 +117,7 @@ export const { handlers, auth } = NextAuth({
         sid: typeof token.sid === 'string' ? token.sid : undefined,
         roles: AREA,
       });
-      if (!decision.ok) return null;
+      if (!decision.ok) return jwtAfterAccess(token, decision);
       token.uid = decision.user.id;
       token.sid = decision.device.id;
       token.sv = decision.user.sessionVersion;

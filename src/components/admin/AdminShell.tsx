@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminApi, usingMock } from '@/lib/admin/api';
+import { reportAdminActivity } from '@/lib/admin/session-activity';
 import UnassignedNav from './mail/UnassignedNav';
 import { UNASSIGNED_MAIL_LIVE } from '@/lib/admin/mail/features';
 import { mailEnabled, usingMailMock } from '@/lib/admin/mail/api';
@@ -21,7 +22,31 @@ const NAV: { href: string; label: string; ready?: boolean; adminOnly?: boolean }
 export default function AdminShell({ children, role }: { children: React.ReactNode; role?: string }) {
   const path = usePathname();
   const [newCount, setNewCount] = useState<number>();
+  const seenPath = useRef<string | null>(null);
   useEffect(() => { adminApi.listInquiries({ status: 'NEW', pageSize: 1 }).then((d) => setNewCount(d.total)).catch(() => {}); }, [path]);
+  // 只在真实操作时续期：路由变化、指针、按键、提交。第一次渲染、定时器、焦点和可见性变化都不上报。
+  useEffect(() => {
+    if (seenPath.current === null) {
+      seenPath.current = path;
+      return;
+    }
+    if (seenPath.current === path) return;
+    seenPath.current = path;
+    reportAdminActivity();
+  }, [path]);
+  useEffect(() => {
+    document.documentElement.dataset.adminActivity = 'on';
+    const report = () => reportAdminActivity();
+    document.addEventListener('pointerdown', report, true);
+    document.addEventListener('keydown', report, true);
+    document.addEventListener('submit', report, true);
+    return () => {
+      delete document.documentElement.dataset.adminActivity;
+      document.removeEventListener('pointerdown', report, true);
+      document.removeEventListener('keydown', report, true);
+      document.removeEventListener('submit', report, true);
+    };
+  }, []);
   // #74：进入后台时问一次服务端邮件开关；404（关闭）→ 各页面一开始就隐藏发信入口
   const mailGate = useMailGateFetch();
 

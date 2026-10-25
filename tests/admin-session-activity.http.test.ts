@@ -15,6 +15,7 @@ import {
   deviceServiceFor,
   expiryBounds,
 } from '../src/lib/server/admin/device-session';
+import { createAdminServices } from '../src/lib/server/composition';
 import {
   activityWriteAllowed,
   enforcedAbsolute,
@@ -48,6 +49,7 @@ const created = new Date('2026-06-01T00:00:00.000Z');
 let handleAuth: (request: Request) => Promise<Response> = async () => { throw new Error('auth not loaded'); };
 let auth: () => Promise<{ user?: { id?: string }; expires?: string } | null> = async () => null;
 let postActivity: (request: Request) => Promise<Response> = async () => { throw new Error('activity not loaded'); };
+let handleSessionActivity: typeof import('../src/app/api/admin/account/session/activity/route').handleSessionActivity = async () => { throw new Error('activity not loaded'); };
 let createAccountGet: typeof import('../src/lib/server/admin/account').createAccountGet = () => { throw new Error('account not loaded'); };
 
 function cookieJar(response: Response, previous = ''): string {
@@ -156,7 +158,7 @@ before(async () => {
     throw new Error('prisma db push failed');
   }
   ({ handleAuth, auth } = await import('../src/auth'));
-  ({ POST: postActivity } = await import('../src/app/api/admin/account/session/activity/route'));
+  ({ POST: postActivity, handleSessionActivity } = await import('../src/app/api/admin/account/session/activity/route'));
   ({ createAccountGet } = await import('../src/lib/server/admin/account'));
 }, { timeout: 180_000 });
 
@@ -259,6 +261,7 @@ test('real activity refreshes the cookie, reads do not, and the four Auth.js pat
   assert.equal(tooSoon.status, 200);
   assert.equal(tooSoonBody.absoluteExpiresAt, null);
   assert.ok(Number(tooSoon.headers.get('retry-after')) >= 1);
+  assert.equal(liveCookie(tooSoon), undefined);
   assert.equal((await client.adminDeviceSession.findUniqueOrThrow({ where: { id: stored.id } })).lastActivityAt.getTime(), beforeRead);
 
   await client.adminDeviceSession.update({
@@ -295,6 +298,10 @@ test('real activity refreshes the cookie, reads do not, and the four Auth.js pat
     method: 'POST', headers: { cookie: renewedJar, 'content-type': 'application/json' }, body: '{}',
   }));
   assert.equal(noOrigin.status, 403);
+  const anonymous = await postActivity(new Request(`${origin}/api/admin/account/session/activity`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+  }));
+  assert.equal(anonymous.status, 403);
   assert.equal((await client.adminDeviceSession.findUniqueOrThrow({ where: { id: stored.id } })).lastActivityAt.getTime(), moved.lastActivityAt.getTime());
 
   const rendered = await ssrSession(renewedJar);
@@ -509,4 +516,129 @@ test('backfill writes only missing hard deadlines and a late refresh loses to a 
   const raced = await client.adminDeviceSession.findUniqueOrThrow({ where: { id: remembered.id } });
   assert.ok(raced.revokedAt);
   assert.equal(raced.lastActivityAt.getTime(), anchor.getTime());
+});
+
+test('null hardExpiresAt rejects at the createdAt cap, allows 1ms before, and renewal does not move the cap', { skip, timeout: 180_000 }, async () => {
+  const client = prisma as PrismaClient;
+  const ordinaryUser = await enrolled();
+  const anchor = new Date('2026-01-15T00:00:00.000Z');
+  const ordinaryCap = new Date(anchor.getTime() + policy.ordinaryAbsoluteMs);
+  const beforeCap = new Date(ordinaryCap.getTime() - 1);
+  const ordinary = await client.adminDeviceSession.create({
+    data: {
+      id: randomBytes(24).toString('base64url'), userId: ordinaryUser.row.id, sessionVersion: ordinaryUser.row.sessionVersion,
+      remembered: false, createdAt: anchor, lastActivityAt: new Date(beforeCap.getTime() - policy.activityThrottleMs),
+      absoluteExpiresAt: null, hardExpiresAt: null,
+    },
+  });
+  let now = beforeCap;
+  const service = deviceServiceFor(client, () => now, policy);
+  const allowed = await service.recordActivity({ userId: ordinaryUser.row.id, sessionVersion: ordinaryUser.row.sessionVersion, sid: ordinary.id });
+  assert.equal(allowed.ok && allowed.wrote, true);
+  if (!allowed.ok) return;
+  assert.equal(allowed.device.hardExpiresAt, null);
+  assert.equal(allowed.bounds.absoluteExpiresAt, null);
+  assert.equal(allowed.bounds.effectiveExpiresAt.toISOString(), ordinaryCap.toISOString());
+  const renewedAt = allowed.device.lastActivityAt.getTime();
+  assert.equal(renewedAt, beforeCap.getTime());
+  now = ordinaryCap;
+  const rejected = await service.recordActivity({ userId: ordinaryUser.row.id, sessionVersion: ordinaryUser.row.sessionVersion, sid: ordinary.id });
+  assert.equal(rejected.ok, false);
+  if (rejected.ok) return;
+  assert.equal(rejected.status, 401);
+  const afterOrdinary = await client.adminDeviceSession.findUniqueOrThrow({ where: { id: ordinary.id } });
+  assert.equal(afterOrdinary.lastActivityAt.getTime(), renewedAt);
+  assert.equal(afterOrdinary.hardExpiresAt, null);
+  assert.equal(afterOrdinary.revokedAt, null);
+
+  const rememberedUser = await enrolled();
+  const rememberedCap = new Date(anchor.getTime() + policy.absoluteMs);
+  const rememberedBefore = new Date(rememberedCap.getTime() - 1);
+  const remembered = await client.adminDeviceSession.create({
+    data: {
+      id: randomBytes(24).toString('base64url'), userId: rememberedUser.row.id, sessionVersion: rememberedUser.row.sessionVersion,
+      remembered: true, createdAt: anchor, lastActivityAt: new Date(rememberedBefore.getTime() - policy.activityThrottleMs),
+      absoluteExpiresAt: rememberedCap, hardExpiresAt: null,
+    },
+  });
+  now = rememberedBefore;
+  const rememberedOk = await service.recordActivity({ userId: rememberedUser.row.id, sessionVersion: rememberedUser.row.sessionVersion, sid: remembered.id });
+  assert.equal(rememberedOk.ok && rememberedOk.wrote, true);
+  if (!rememberedOk.ok) return;
+  assert.equal(rememberedOk.device.hardExpiresAt, null);
+  assert.equal(rememberedOk.bounds.effectiveExpiresAt.toISOString(), rememberedCap.toISOString());
+  assert.equal(rememberedOk.device.absoluteExpiresAt?.toISOString(), rememberedCap.toISOString());
+  const rememberedActivity = rememberedOk.device.lastActivityAt.getTime();
+  now = rememberedCap;
+  const rememberedDenied = await service.recordActivity({ userId: rememberedUser.row.id, sessionVersion: rememberedUser.row.sessionVersion, sid: remembered.id });
+  assert.equal(rememberedDenied.ok, false);
+  if (rememberedDenied.ok) return;
+  assert.equal(rememberedDenied.status, 401);
+  const afterRemembered = await client.adminDeviceSession.findUniqueOrThrow({ where: { id: remembered.id } });
+  assert.equal(afterRemembered.lastActivityAt.getTime(), rememberedActivity);
+  assert.equal(afterRemembered.hardExpiresAt, null);
+  assert.equal(afterRemembered.revokedAt, null);
+});
+
+test('a throttled activity returns while a device row lock is still held', { skip, timeout: 60_000 }, async () => {
+  const client = prisma as PrismaClient;
+  const member = await enrolled();
+  const now = new Date('2026-03-01T00:00:00.000Z');
+  const service = deviceServiceFor(client, () => now, policy);
+  const opened = await service.open({ userId: member.row.id, sessionVersion: member.row.sessionVersion, remembered: false, userAgent: null });
+  let release: () => void = () => {};
+  const releasePromise = new Promise<void>((resolve) => { release = resolve; });
+  let locked: () => void = () => {};
+  const lockedPromise = new Promise<void>((resolve) => { locked = resolve; });
+  const locking = client.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${member.row.id} FOR UPDATE`;
+    await tx.$queryRaw`SELECT "id" FROM "AdminDeviceSession" WHERE "id" = ${opened.id} FOR UPDATE`;
+    locked();
+    await releasePromise;
+  }, { maxWait: 5_000, timeout: 20_000 });
+  await lockedPromise;
+  const started = Date.now();
+  const result = await service.recordActivity({ userId: member.row.id, sessionVersion: member.row.sessionVersion, sid: opened.id });
+  assert.ok(Date.now() - started < 1_500);
+  assert.equal(result.ok && result.wrote, false);
+  release();
+  await locking;
+  assert.equal((await client.adminDeviceSession.findUniqueOrThrow({ where: { id: opened.id } })).lastActivityAt.getTime(), opened.lastActivityAt.getTime());
+});
+
+test('activity database failures stay 503 and keep the cookie, and the user bucket allows about six posts a minute', { skip, timeout: 180_000 }, async () => {
+  const client = prisma as PrismaClient;
+  const member = await enrolled();
+  const signed = await login(member.email, member.password, member.code());
+  const services = createAdminServices();
+  const unavailable = await handleSessionActivity(new Request(`${origin}/api/admin/account/session/activity`, {
+    method: 'POST', headers: { cookie: signed.jar, origin, 'content-type': 'application/json' }, body: '{}',
+  }), {
+    ...services,
+    devices: { ...services.devices, async recordActivity() { return { ok: false, reason: 'unavailable', status: 503 }; } },
+  });
+  assert.equal(unavailable.status, 503);
+  assert.equal((await unavailable.json() as { error?: string }).error, 'service_unavailable');
+  assert.equal(unavailable.headers.getSetCookie().join('\n').includes('Max-Age=0'), false);
+  assert.equal((await account(signed.jar)).status, 200);
+  const loggedOut = await handleSessionActivity(new Request(`${origin}/api/admin/account/session/activity`, {
+    method: 'POST', headers: { cookie: signed.jar, origin, 'content-type': 'application/json' }, body: '{}',
+  }), {
+    ...services,
+    devices: { ...services.devices, async recordActivity() { return { ok: false, reason: 'unauthenticated', status: 401 }; } },
+  });
+  assert.equal(loggedOut.status, 401);
+  assert.match(loggedOut.headers.getSetCookie().join('\n'), /Max-Age=0/);
+  assert.equal((await account(signed.jar)).status, 200);
+
+  const limitedUser = await enrolled();
+  const limited = await login(limitedUser.email, limitedUser.password, limitedUser.code());
+  const stored = await client.adminDeviceSession.findFirstOrThrow({ where: { userId: limitedUser.row.id } });
+  for (let i = 0; i < 6; i += 1) assert.equal((await activity(limited.jar)).status, 200, String(i));
+  const blocked = await activity(limited.jar);
+  assert.equal(blocked.status, 429);
+  assert.equal((await blocked.json() as { error?: string }).error, 'rate_limited');
+  assert.equal(blocked.headers.getSetCookie().join('\n').includes('Max-Age=0'), false);
+  assert.equal((await client.adminDeviceSession.findUniqueOrThrow({ where: { id: stored.id } })).lastActivityAt.getTime(), stored.lastActivityAt.getTime());
+  assert.equal((await account(limited.jar)).status, 200);
 });

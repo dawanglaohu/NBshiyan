@@ -15,6 +15,11 @@ export type BoundAccess =
   | { ok: true; user: User; device: AdminDeviceSession; bounds: ExpiryBounds }
   | { ok: false; reason: SessionDenial; status: 401 | 403 };
 
+/** 数据库暂时不可用。调用方保留 cookie，不把这次故障当成未登录。 */
+export type UnavailableAccess = { ok: false; reason: 'unavailable'; status: 503 };
+
+export type AuthenticateResult = BoundAccess | UnavailableAccess;
+
 const SECURE_COOKIE = '__Secure-authjs.session-token';
 const PLAIN_COOKIE = 'authjs.session-token';
 
@@ -158,7 +163,8 @@ export type OpenDeviceInput = {
 
 export type ActivityWrite =
   | { ok: true; wrote: boolean; bounds: ExpiryBounds; retryAfterSeconds: number; user: User; device: AdminDeviceSession }
-  | { ok: false; reason: SessionDenial; status: 401 | 403 };
+  | { ok: false; reason: SessionDenial; status: 401 | 403 }
+  | UnavailableAccess;
 
 const ACTIVITY_ROLES = ['ADMIN', 'SALES', 'EDITOR'] as const;
 
@@ -184,25 +190,51 @@ export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () =
         });
       });
     },
-    async authenticate(input: { userId: string | undefined; sessionVersion: number | undefined; sid: string | undefined; roles: readonly Role[] }): Promise<BoundAccess> {
+    async authenticate(input: { userId: string | undefined; sessionVersion: number | undefined; sid: string | undefined; roles: readonly Role[] }): Promise<AuthenticateResult> {
       try {
         const user = input.userId ? await repo.findUser(input.userId) : null;
         const device = input.sid ? await repo.findDevice(input.sid) : null;
         return decideAdminAccess({ ...input, user, device, now: clock(), policy });
       } catch {
-        return { ok: false, reason: 'unauthenticated', status: 401 };
+        return { ok: false, reason: 'unavailable', status: 503 };
       }
     },
     async revokeSid(id: string, reason: string): Promise<void> {
       await repo.revokeSid(id, reason, clock());
     },
     /**
-     * 把一次真实活动写入当前设备。先锁用户再锁设备，条件更新只允许 lastActivityAt 前进。
-     * hardExpiresAt 不在更新列里。节流窗口内不写库。已撤销、停用、2FA 关闭、版本不符或期限等号已到的行不更新。
+     * 把一次真实活动写入当前设备。节流窗口内只做无锁读，不锁用户行或设备行。
+     * 需要写库时才先锁用户再锁设备。条件更新只允许 lastActivityAt 前进。
+     * hardExpiresAt 不在更新列里。已撤销、停用、2FA 关闭、版本不符或期限等号已到的行不更新。
      */
     async recordActivity(input: { userId: string; sessionVersion: number; sid: string }): Promise<ActivityWrite> {
       if (!db) return { ok: false, reason: 'unauthenticated', status: 401 };
       try {
+        const seenAt = clock();
+        const seenUser = await db.user.findUnique({ where: { id: input.userId } });
+        const seenDevice = await db.adminDeviceSession.findUnique({ where: { id: input.sid } });
+        const seen = decideAdminAccess({
+          userId: input.userId,
+          sessionVersion: input.sessionVersion,
+          sid: input.sid,
+          user: seenUser,
+          device: seenDevice,
+          roles: ACTIVITY_ROLES,
+          now: seenAt,
+          policy,
+        });
+        if (!seen.ok) return seen;
+        if (!seenUser || !seenDevice) return { ok: false, reason: 'unauthenticated', status: 401 };
+        if (!activityWriteAllowed(seenDevice.lastActivityAt, seenAt, policy.activityThrottleMs)) {
+          return {
+            ok: true,
+            wrote: false,
+            bounds: seen.bounds,
+            retryAfterSeconds: activityRetryAfterSeconds(seenDevice.lastActivityAt, seenAt, policy.activityThrottleMs),
+            user: seenUser,
+            device: seenDevice,
+          };
+        }
         return await db.$transaction(async (tx) => {
           await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${input.userId} FOR UPDATE`;
           await tx.$queryRaw`SELECT "id" FROM "AdminDeviceSession" WHERE "id" = ${input.sid} AND "userId" = ${input.userId} FOR UPDATE`;
@@ -257,7 +289,7 @@ export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () =
           return { ok: true, wrote: true, bounds: again.bounds, retryAfterSeconds: Math.ceil(policy.activityThrottleMs / 1000), user, device: fresh };
         }, { maxWait: 5_000, timeout: 10_000 });
       } catch {
-        return { ok: false, reason: 'unauthenticated', status: 401 };
+        return { ok: false, reason: 'unavailable', status: 503 };
       }
     },
   };
