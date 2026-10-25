@@ -10,11 +10,31 @@ export const RememberDeviceSchema = z.union([z.literal('true'), z.literal('false
   .optional().transform((value) => value === 'true');
 const PasswordSchema = z.string().min(1).max(200);
 export const NewPasswordSchema = z.string().min(12).max(200);
+
+function emptyToAbsent(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+// 原始输入最长 40。去掉空白和连字符并转成小写后，必须是签发时的 10 位十六进制。空字符串视为没带。
+function loginRecoveryInput(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.length > 40) return trimmed;
+  return trimmed.replace(/[\s-]/g, '').toLowerCase();
+}
+
+const LoginRecoveryCodeSchema = z.string().max(40).regex(/^[a-f0-9]{10}$/);
 export const LoginRequestSchema = z.object({
   email: EmailSchema.pipe(z.string().max(200)), mode: LoginModeSchema.default('password'),
-  password: PasswordSchema.optional(), totp: TotpSchema,
-  rememberDevice: RememberDeviceSchema, recoveryCode: z.literal('').optional(),
-}).strict().refine((input) => input.mode !== 'password' || input.password !== undefined, { path: ['password'], message: 'Password required' });
+  password: PasswordSchema.optional(),
+  totp: z.preprocess(emptyToAbsent, TotpSchema.optional()),
+  rememberDevice: RememberDeviceSchema,
+  recoveryCode: z.preprocess(loginRecoveryInput, LoginRecoveryCodeSchema.optional()),
+}).strict().refine((input) => input.mode !== 'password' || input.password !== undefined, { path: ['password'], message: 'Password required' })
+  .refine((input) => input.totp !== undefined || input.recoveryCode !== undefined, { path: ['totp'], message: 'Authenticator or recovery code required' });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
 export const ActionPurposeSchema = z.enum(['LOGIN_MODE', 'PASSWORD', 'TOTP_RESET', 'RECOVERY_AUTHORIZE', 'DEVICE_REVOKE', 'LOGOUT_ALL']);

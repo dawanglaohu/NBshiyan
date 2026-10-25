@@ -90,13 +90,46 @@ jobs:
         run: node --import tsx --test tests/admin-device-guard.http.test.ts tests/admin-device-session.db.test.ts
       # build-and-audit 没有数据库，这些用例会静默 skip。连到本 job 的 postgres:17，TAP 里 skipped/fail 必须是 0。
       # 文件串行跑：cleanup-lock 与 job-leases 会看全库 pg_locks，并行时会互相看见对方的锁。
+      # M3-T2 用 schema=m3t2 隔离。describe 级 skip 的汇总是 tests 0 / skipped 0，汇总门禁看不见，所以再数这两个文件自己的 pass。
+      # M3T2_REQUIRE_DATABASE 只在本步骤打开。缺地址时两个文件直接抛错。单元测试 job 不设它，pnpm test 继续跳过。
       - name: Analytics, chat, and other PostgreSQL regressions
         env:
           ADMIN_RESET_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           CHAT_SESSION_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
+          M3T2_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
-          node --import tsx --test --test-concurrency=1 --test-reporter=tap \
+          cat > /tmp/m3t2-file-gate.cjs <<'EOF'
+          'use strict';
+          module.exports = async function* fileGate(source) {
+            const counts = new Map();
+            for await (const event of source) {
+              if (event.type !== 'test:summary' || !event.data?.file || !event.data.counts) continue;
+              counts.set(String(event.data.file), event.data.counts);
+            }
+            const wanted = [
+              'tests/admin-login-mode.db.test.ts',
+              'tests/admin-enroll-current-state.db.test.ts',
+            ];
+            for (const file of wanted) {
+              const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
+              if (!hit) {
+                yield `MISSING\t${file}\n`;
+                continue;
+              }
+              const pass = hit[1].passed ?? 0;
+              const fail = hit[1].failed ?? 0;
+              const skip = hit[1].skipped ?? 0;
+              yield `${file}\tpass=${pass}\tfail=${fail}\tskip=${skip}\n`;
+            }
+          };
+          EOF
+          node --import tsx --test --test-concurrency=1 \
+            --test-reporter=tap \
+            --test-reporter=/tmp/m3t2-file-gate.cjs \
+            --test-reporter-destination=/tmp/pg-regressions.tap \
+            --test-reporter-destination=/tmp/m3t2-file-gate.txt \
             tests/analytics-settings.db.test.ts \
             tests/analytics-ingest.http.db.test.ts \
             tests/analytics-rollup.http.db.test.ts \
@@ -106,10 +139,30 @@ jobs:
             tests/job-leases.db.test.ts \
             tests/last-admin.db.test.ts \
             tests/admin-reset-initial-password.db.test.ts \
-            | tee /tmp/pg-regressions.tap
+            tests/admin-login-mode.db.test.ts \
+            tests/admin-enroll-current-state.db.test.ts
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
           grep -Eq '^# pass [1-9][0-9]*$' /tmp/pg-regressions.tap
+          node --input-type=module <<'EOF'
+          import { readFileSync } from 'node:fs';
+          const gate = readFileSync('/tmp/m3t2-file-gate.txt', 'utf8');
+          process.stdout.write(gate.endsWith('\n') ? gate : `${gate}\n`);
+          const files = [
+            'tests/admin-login-mode.db.test.ts',
+            'tests/admin-enroll-current-state.db.test.ts',
+          ];
+          let bad = false;
+          for (const file of files) {
+            const line = gate.split(/\r?\n/).find((row) => row.startsWith(`${file}\t`));
+            const match = line?.match(/\tpass=(\d+)\tfail=(\d+)\tskip=(\d+)$/);
+            if (!match || Number(match[1]) < 1 || Number(match[2]) !== 0 || Number(match[3]) !== 0) {
+              console.error(`GATE ${line ?? `MISSING\t${file}`}`);
+              bad = true;
+            }
+          }
+          if (bad) process.exit(1);
+          EOF
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build
       # next build 的 standalone 产物缺 .next/static 与 public，浏览器跑起来才会 404 样式和媒体。

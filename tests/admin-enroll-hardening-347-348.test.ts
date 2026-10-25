@@ -190,6 +190,11 @@ test('no enumeration: unknown account vs known account with wrong password look 
   // 不存在的账号仍走 burnVerify（耗时与密码校验一致）
   const login = readFileSync('src/lib/server/admin/login.ts', 'utf8');
   assert.match(login, /if \(!user \|\| user\.disabled\) \{ await burnVerify\(password\);/);
+  assert.match(login, /user\.lockedUntil > new Date\(\)\) \{\r?\n    await burnVerify\(password\);/);
+  assert.equal(login.split("await burnVerify(totp || '000000')").length - 1, 2);
+  assert.match(login, /TODO\(M3-T19\): remove recovery-code login once \/api\/auth-admin\/recovery\/start ships/);
+  assert.match(login, /RETURNING "id"/);
+  assert.match(login, /removed\.length === 1/);
 });
 
 test('#347 pending secret cannot be overwritten: second enroll within 10 min → 429, first secret still confirms', async () => {

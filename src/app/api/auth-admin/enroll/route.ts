@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { authenticator } from 'otplib';
-import { prisma } from '@/lib/server/db';
 import { clientIp, readBody } from '@/lib/server/security';
 import { LOGIN_WINDOW_MS, checkPassword, refundLoginRate } from '@/lib/server/admin/login';
 import { encrypt } from '@/lib/server/admin/crypto';
 import { audit } from '@/lib/server/admin/audit';
 import { jsonErr, noStore, rateLimited } from '@/lib/server/admin/guard';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
-import { enrollCoolingDown, enrollIpRateOk, enrollWindowOpen, pendingSecretData } from '@/lib/server/admin/enroll-guard';
+import { commitPendingSecret, enrollCoolingDown, enrollIpRateOk, enrollWindowOpen } from '@/lib/server/admin/enroll-guard';
 import { checkEnrollToken, rejectEnrollToken } from '@/lib/server/admin/enroll-token';
 
 export const runtime = 'nodejs';
@@ -48,11 +47,8 @@ export async function POST(req: Request) {
     return jsonErr('rate_limited', 429);
   }
   const secret = authenticator.generateSecret(20);
-  // 条件更新：两个并发 enroll 只有一个能拿到密钥
-  const r = await prisma.user.updateMany({
-    where: { id: user.id, totpEnabled: false, OR: [{ totpPendingUntil: null }, { totpPendingUntil: { lte: new Date(now) } }] },
-    data: pendingSecretData(encrypt(secret), now),
-  });
+  // 两个并发 enroll 只有一个能写上密钥；令牌、期限或会话版本已经变了也不写
+  const r = await commitPendingSecret(user, encrypt(secret), now);
   if (r.count !== 1) {
     await audit({ actorId: user.id, action: 'auth.totp_enroll_blocked', target: user.id, meta: { reason: 'pending' }, ip });
     return jsonErr('rate_limited', 429);
