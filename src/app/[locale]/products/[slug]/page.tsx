@@ -6,7 +6,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categoryHref, categoryLocaleAlternates, categoryPagePath } from '@/lib/seo/categoryPages';
 import LocaleAlternates from '@/components/layout/LocaleAlternates';
-import { categoryPagesLive } from '@/lib/seo/mock';
+import { categoryPagesLive, connectWhenSeoMock } from '@/lib/seo/mock';
 import { categoryOgImage } from '@/lib/seo/categoryOg';
 import { categorySeo } from '@/lib/seo/templates';
 import { categoryBreadcrumb } from '@/lib/seo/breadcrumbs';
@@ -23,6 +23,7 @@ const find = (locale: 'en' | 'ru', slug: string) => {
 };
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
+  await connectWhenSeoMock();
   const { locale: raw, slug } = await params; const locale = loc(raw);
   const c = categoryPagesLive() ? find(locale, slug) : undefined;
   if (!c) return {};
@@ -36,6 +37,7 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params }: P) {
+  await connectWhenSeoMock();
   const { locale: raw, slug } = await params; const locale = loc(raw);
   const live = categoryPagesLive();
   const c = live ? find(locale, slug) : undefined;
@@ -49,7 +51,7 @@ export default async function CategoryPage({ params }: P) {
       {alts && <LocaleAlternates pathname={`/products/${c[locale].slug}`} value={alts} />}
       <JsonLd data={categoryBreadcrumb(SITE_URL, locale, c.key, name, live)} />
       <h1>{name}</h1>
-      <p><Link href={categoryHref(locale, c.key, false)}>{locale === 'ru' ? '3D-каталог' : '3D Products'}</Link></p>
+      <p><Link href={categoryHref(locale, c.key, false)} data-testid="catalog-return-link">{locale === 'ru' ? '3D-каталог' : '3D Products'}</Link></p>
     </main>
   );
 }
