@@ -295,3 +295,22 @@ test('a category that differs from productSlug is the key both the grid and anal
   assert.equal(calls[0].where.productSlug, undefined);
   assert.deepEqual([...(await repo.publishedSlugs(['orphan-sku', 'not-the-card']))], []);
 });
+
+test('acceptedCatalogSlugs accepts a published READY key only when categoryKeys lists it', () => {
+  const listed = 'future-mailers';
+  const unlisted = 'orphan-sku';
+  const draft = 'draft-mailers';
+  const processing = 'processing-mailers';
+  const keys = new Set([listed, draft, processing]);
+  const accepted = acceptedCatalogSlugs(['gift-cards'], [
+    { category: listed, published: true, status: 'READY' },
+    { category: unlisted, published: true, status: 'READY' },
+    { category: draft, published: false, status: 'READY' },
+    { category: processing, published: true, status: 'PROCESSING' },
+  ], keys);
+  assert.equal(accepted.has(listed), true);
+  assert.equal(accepted.has('gift-cards'), true);
+  assert.equal(accepted.has(unlisted), false);
+  assert.equal(accepted.has(draft), false);
+  assert.equal(accepted.has(processing), false);
+});
