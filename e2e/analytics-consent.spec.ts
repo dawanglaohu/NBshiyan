@@ -180,6 +180,8 @@ test('未选择和拒绝都不采集，页脚偏好面板和产品控件仍可�
   await expect(dialog).toBeVisible();
   await dialog.getByRole('button', { name: 'Close' }).click();
   await expect(dialog).toBeHidden();
+  // 关闭后 50ms 才把焦点还给打开面板的页脚按钮。先等这次归还，再把焦点移到横幅。
+  await expect(page.locator('#analytics-preferences #cookie-settings-link')).toBeFocused();
   await assertNoAnalyticsIdentity(page);
 
   const banner = page.getByRole('region', { name: 'Cookie consent' });
@@ -514,19 +516,67 @@ test('同意后刷新会接受这一次加载的 page_view', async ({ page }) =>
   await page.goto('/en');
   await page.getByRole('button', { name: 'Accept all' }).click();
   await waitForGrant(page);
-  const posted = page.waitForResponse((response) => (
-    response.url().includes('/api/analytics/events') && response.request().method() === 'POST' && response.ok()
-  ));
-  await page.reload();
-  const response = await posted;
-  const receipt = await response.json() as { acceptedIds?: string[] };
-  const payload = response.request().postDataJSON() as { events?: { kind: string; eventId: string }[] };
-  const pageView = payload.events?.find((event) => event.kind === 'page_view');
-  if (!pageView || !receipt.acceptedIds?.includes(pageView.eventId)) {
-    throw new Error('expected the reloaded page view to be accepted');
-  }
-  if (await page.locator('html').getAttribute('data-analytics-collecting') !== 'true') {
-    throw new Error('expected collection to resume after reload');
+
+  type PostedEvent = { kind: string; eventId: string; navigationId?: string };
+  const priorNavigationIds = new Set<string>();
+  const acceptedPageViews: string[] = [];
+  let reloading = false;
+  const record = (postData: string, raw: string, ok: boolean, fromReload: boolean) => {
+    if (!ok) return;
+    let payload: { events?: PostedEvent[] };
+    let receipt: { acceptedIds?: string[] };
+    try {
+      payload = JSON.parse(postData) as { events?: PostedEvent[] };
+      receipt = JSON.parse(raw) as { acceptedIds?: string[] };
+    } catch {
+      return;
+    }
+    const pageView = payload.events?.find((event) => event.kind === 'page_view');
+    if (!pageView?.eventId) return;
+    const navigationId = pageView.navigationId ?? '';
+    if (!fromReload) {
+      if (navigationId) priorNavigationIds.add(navigationId);
+      return;
+    }
+    if (navigationId && priorNavigationIds.has(navigationId)) return;
+    if (receipt.acceptedIds?.includes(pageView.eventId)) acceptedPageViews.push(pageView.eventId);
+  };
+
+  // 响应体在 Node 侧读取。刷新会替换文档，事后再向浏览器取体会丢。
+  await page.route('**/api/analytics/events', async (route) => {
+    const request = route.request();
+    const fromReload = reloading;
+    if (request.method() !== 'POST') {
+      await route.continue();
+      return;
+    }
+    const postData = request.postData() ?? '';
+    const res = await route.fetch();
+    const raw = await res.text();
+    const headers = { ...res.headers() };
+    delete headers['content-encoding'];
+    delete headers['content-length'];
+    record(postData, raw, res.ok(), fromReload);
+    try {
+      await route.fulfill({ response: res, body: raw, headers });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/aborted|closed|disposed|Target page/i.test(message)) throw error;
+    }
+  });
+
+  try {
+    reloading = true;
+    await page.reload();
+    await expect.poll(() => acceptedPageViews.length, {
+      message: 'expected the reloaded page view to be accepted',
+      timeout: 15_000,
+    }).toBeGreaterThan(0);
+    if (await page.locator('html').getAttribute('data-analytics-collecting') !== 'true') {
+      throw new Error('expected collection to resume after reload');
+    }
+  } finally {
+    await page.unroute('**/api/analytics/events');
   }
 });
 
