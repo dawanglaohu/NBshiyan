@@ -4,6 +4,7 @@ import { prisma } from './db';
 import { deviceServiceFor, type DeviceSessionService } from './admin/device-session';
 import { mapAppError, mapUnknownFailure } from './http/errors';
 import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog } from './http/metrics';
+import { createAnalyticsConsentService, type AnalyticsConsentService } from './analytics/consent';
 
 export type HttpServices = {
   config: ServerConfig;
@@ -45,5 +46,30 @@ export function createAdminServices(deps: {
   return {
     ...createHttpServices({ db, config, clock, log: deps.log }),
     devices: deviceServiceFor(db, clock, config.session),
+  };
+}
+
+export type AnalyticsConsentServices = HttpServices & {
+  consent: AnalyticsConsentService;
+};
+
+/** 分析同意验签。每次调用新建服务，密钥只留在同意服务里，不写进冻结配置。 */
+export function createAnalyticsConsentServices(deps: {
+  db?: ApiCounterDb;
+  config?: ServerConfig;
+  clock?: () => Date;
+  log?: (event: CounterLog) => void;
+  env?: Record<string, string | undefined>;
+  secret?: Buffer | null;
+  randomId?: () => string;
+} = {}): AnalyticsConsentServices {
+  return {
+    ...createHttpServices({ db: deps.db, config: deps.config, clock: deps.clock, log: deps.log }),
+    consent: createAnalyticsConsentService({
+      secret: deps.secret,
+      env: deps.env,
+      clock: deps.clock,
+      randomId: deps.randomId,
+    }),
   };
 }
