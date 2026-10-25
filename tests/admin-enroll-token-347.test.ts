@@ -136,7 +136,7 @@ test('link base: only NEXT_PUBLIC_SITE_URL, https bare origin; http only for loc
     [{ NEXT_PUBLIC_SITE_URL: 'http://localhost:3100' }, 'http://localhost:3100'],
     [{ NEXT_PUBLIC_SITE_URL: 'http://127.0.0.1:3000' }, 'http://127.0.0.1:3000'],
     [{ NEXT_PUBLIC_SITE_URL: 'http://localhost:3100', APP_ENV: 'production' }, null],
-    [{ NEXT_PUBLIC_SITE_URL: 'http://localhost:3100', VERCEL_ENV: 'production' }, null],
+    [{ NEXT_PUBLIC_SITE_URL: 'http://localhost:3100', VERCEL_ENV: 'production' }, 'http://localhost:3100'],
     [{ NEXT_PUBLIC_SITE_URL: 'http://geiom.com' }, null],
     [{ NEXT_PUBLIC_SITE_URL: 'http://localhost.evil.com' }, null],
     [{ NEXT_PUBLIC_SITE_URL: 'https://geiom.com/en' }, null],

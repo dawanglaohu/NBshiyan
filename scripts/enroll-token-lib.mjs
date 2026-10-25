@@ -2,7 +2,7 @@
 // 规则与 src/lib/server/admin/enroll-token.ts 相同（单测 tests/admin-enroll-token-347.test.ts 校验两边一致）：
 //   32 字节 CSPRNG → base64url；库里只存 sha256(令牌) 的 hex；有效期 = min(签发后 24 小时, 72 小时绑定窗口截止)。
 //   链接 = <NEXT_PUBLIC_SITE_URL>/admin-enroll#t=<令牌>（放在 fragment 里：不发给服务器、不进访问日志和 Referer）。
-//   NEXT_PUBLIC_SITE_URL 必须是 https 裸 origin；只有非生产（APP_ENV/VERCEL_ENV 不是 production）允许 http://localhost、http://127.0.0.1。
+//   NEXT_PUBLIC_SITE_URL 必须是 https 裸 origin；只有 APP_ENV 不是 production 时允许 http://localhost、http://127.0.0.1。VERCEL_ENV 不参与。
 // 明文令牌只在 stdout 是终端时打印一次（给运行脚本的人），不进日志、审计或异常信息。
 import { createHash, randomBytes } from 'node:crypto';
 
@@ -23,10 +23,10 @@ export function newEnrollToken(now = Date.now(), windowStart = now) {
   return { token, data: { enrollTokenHash: hashEnrollToken(token), enrollTokenExpiresAt: expiresAt }, expiresAt, expiresTruncated: windowEnd < ttlEnd };
 }
 
-const isProd = (env) => env.APP_ENV === 'production' || env.VERCEL_ENV === 'production';
+const isProd = (env) => env.APP_ENV === 'production';
 /**
  * 绑定链接的站点前缀，只取 NEXT_PUBLIC_SITE_URL（从不用请求的 Host）。不合格返回 null：
- * 必须是裸 origin（无账号密码、路径、查询、fragment）；https，或非生产下的 http://localhost / http://127.0.0.1（可带端口）。
+ * 必须是裸 origin（无账号密码、路径、查询、fragment）；https，或 APP_ENV 不是 production 时的 http://localhost / http://127.0.0.1（可带端口）。VERCEL_ENV 不参与。
  */
 export function enrollLinkBase(env = {}) {
   const raw = String(env.NEXT_PUBLIC_SITE_URL ?? '').trim();

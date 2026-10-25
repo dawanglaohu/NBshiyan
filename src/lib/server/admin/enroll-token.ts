@@ -46,10 +46,10 @@ export function newEnrollToken(u: Partial<WindowUser> = {}, now = Date.now()): I
 
 /**
  * 绑定链接的站点前缀：只取 NEXT_PUBLIC_SITE_URL（构建时内联，与后台邮件链接同一来源），从不用请求的 Host。不合格返回 null，签发接口在写库之前就 500 拒绝。
- * 必须是裸 origin（无账号密码、路径、查询、fragment）；https，或非生产（APP_ENV/VERCEL_ENV 不是 production）下的 http://localhost / http://127.0.0.1。
- * 与 scripts/enroll-token-lib.mjs enrollLinkBase 相同（单测对比）。生产启动时 prod-env-check 也要求 https 正式域名。
+ * 必须是裸 origin（无账号密码、路径、查询、fragment）；https，或 APP_ENV 不是 production 时的 http://localhost / http://127.0.0.1。
+ * 与 scripts/enroll-token-lib.mjs 的 enrollLinkBase 相同（只认 APP_ENV）。生产启动时 prod-env-check 也要求 https 正式域名。
  */
-export function enrollLinkBase(env: Record<string, string | undefined> = { NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL, APP_ENV: process.env.APP_ENV, VERCEL_ENV: process.env.VERCEL_ENV }): string | null {
+export function enrollLinkBase(env: Record<string, string | undefined> = { NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL, APP_ENV: process.env.APP_ENV }): string | null {
   const raw = String(env.NEXT_PUBLIC_SITE_URL ?? '').trim();
   let u: URL;
   try { u = new URL(raw); } catch { return null; }

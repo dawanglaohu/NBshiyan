@@ -34,9 +34,10 @@ test('emailHash: HMAC of normalized email with PRIVACY_HASH_SECRET, no plaintext
 });
 
 test('PRIVACY_HASH_SECRET: refused in production when unset/short, dev falls back to AUTH_SECRET', () => {
-  const prod = [{ VERCEL_ENV: 'production', AUTH_SECRET: 'a'.repeat(40) }, { NODE_ENV: 'production', AUTH_SECRET: 'a'.repeat(40) }, { VERCEL_ENV: 'production', PRIVACY_HASH_SECRET: 'short', AUTH_SECRET: 'a'.repeat(40) }];
+  const prod = [{ APP_ENV: 'production', AUTH_SECRET: 'a'.repeat(40) }, { NODE_ENV: 'production', AUTH_SECRET: 'a'.repeat(40) }, { APP_ENV: 'production', PRIVACY_HASH_SECRET: 'short', AUTH_SECRET: 'a'.repeat(40) }];
   for (const e of prod) { assert.equal(privacyHashReady(e as never), false); assert.throws(() => emailHash('a@b.co', e as never)); }
-  assert.ok(privacyHashReady({ VERCEL_ENV: 'production', PRIVACY_HASH_SECRET: 'p'.repeat(32) } as never));
+  assert.equal(privacyHashReady({ VERCEL_ENV: 'production', AUTH_SECRET: 'a'.repeat(40) } as never), true);
+  assert.ok(privacyHashReady({ APP_ENV: 'production', PRIVACY_HASH_SECRET: 'p'.repeat(32) } as never));
   assert.ok(privacyHashReady({ NODE_ENV: 'development', AUTH_SECRET: 'a'.repeat(40) } as never));
   assert.equal(privacyHashReady({ NODE_ENV: 'development' } as never), false);
 });

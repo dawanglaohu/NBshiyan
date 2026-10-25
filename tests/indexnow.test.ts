@@ -4,12 +4,13 @@ import { type SanityWebhookDoc, indexNowDedupeStore, activeIndexNowKey, pathsFor
 import { MemoryStore } from '../src/lib/server/ratelimit';
 
 const KEY = 'abcDEF12-3456';
-const PROD = { VERCEL_ENV: 'production', INDEXNOW_KEY: KEY, NEXT_PUBLIC_SITE_URL: 'https://packjoyu.example' };
+const PROD = { APP_ENV: 'production', INDEXNOW_KEY: KEY, NEXT_PUBLIC_SITE_URL: 'https://packjoyu.example' };
 const LIVE = { product: { live: true, prefix: 'products' }, article: { live: false, prefix: 'articles' } };
 
 test('key: only in production with valid format', () => {
   assert.equal(activeIndexNowKey(PROD), KEY);
-  assert.equal(activeIndexNowKey({ ...PROD, VERCEL_ENV: 'preview' }), null);
+  assert.equal(activeIndexNowKey({ ...PROD, APP_ENV: 'preview' }), null);
+  assert.equal(activeIndexNowKey({ ...PROD, APP_ENV: undefined, VERCEL_ENV: 'production' }), null);
   assert.equal(activeIndexNowKey({ ...PROD, INDEXNOW_KEY: undefined }), null);
   for (const bad of ['short', 'has space 12345', 'a'.repeat(129), 'bad_underscore1', '../etc/passwd'])
     assert.equal(activeIndexNowKey({ ...PROD, INDEXNOW_KEY: bad }), null, bad);
@@ -49,7 +50,7 @@ test('submit: one batched POST, dedupe within window', async () => {
 test('submit: off outside production, non-https site or junk paths', async () => {
   const { f, calls } = fakeFetch();
   const d = { store: new MemoryStore(), fetchImpl: f, log: () => {} };
-  assert.equal(await submitIndexNow(['/en/x'], { ...d, env: { ...PROD, VERCEL_ENV: 'preview' } }), 0);
+  assert.equal(await submitIndexNow(['/en/x'], { ...d, env: { ...PROD, APP_ENV: 'preview' } }), 0);
   assert.equal(await submitIndexNow(['/en/x'], { ...d, env: { ...PROD, NEXT_PUBLIC_SITE_URL: 'http://a.example' } }), 0);
   assert.equal(await submitIndexNow(['https://evil.example/x', '/de/x', '/en/../admin'], { ...d, env: PROD }), 0);
   assert.equal(calls.length, 0);

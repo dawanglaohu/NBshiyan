@@ -96,7 +96,7 @@ test('factory: env selection and validation', () => {
     assert.equal(e.message.includes('203.0.113.10'), false);
     return true;
   });
-  assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:pw@203.0.113.10:6379', VERCEL_ENV: 'production' }), /REDIS_URL 必须是 rediss:\/\//);
+  assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:pw@203.0.113.10:6379', VERCEL_ENV: 'production' }) instanceof RedisStore);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis' }), /REDIS_URL/);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'http://:supersecret@example.invalid' }), (e: Error) => {
     assert.equal(e.message, 'REDIS_URL 必须是 redis:// 或 rediss://');

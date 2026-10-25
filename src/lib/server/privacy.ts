@@ -12,8 +12,8 @@ export const PrivacyExportBody = z.object({ email: z.string().trim().email().max
 export const PrivacyDeleteBody = z.object({ email: z.string().trim().email().max(200), confirmEmail: z.string().trim().max(200) }).strict()
   .refine((b) => normalizeEmail(b.email) === normalizeEmail(b.confirmEmail), { message: 'confirm_mismatch', path: ['confirmEmail'] });
 
-// 密钥 fail-closed：APP_ENV=production，或 APP_ENV 未设置但 NODE_ENV=production（非 CI）时都按生产处理，拒绝回退到派生密钥
-const isProd = (env: NodeJS.ProcessEnv = process.env) => isProdEnvFrom(env) || (env.NODE_ENV === 'production' && !env.CI && !env.APP_ENV && env.VERCEL_ENV !== 'preview');
+// 密钥 fail-closed：APP_ENV=production，或 APP_ENV 未设置但 NODE_ENV=production（非 CI）时都按生产处理，拒绝回退到派生密钥。VERCEL_ENV 不参与。
+const isProd = (env: NodeJS.ProcessEnv = process.env) => isProdEnvFrom(env) || (env.NODE_ENV === 'production' && !env.CI && !env.APP_ENV);
 
 /**
  * 邮箱哈希密钥：独立的 PRIVACY_HASH_SECRET（≥ 32 字节），轮换 AUTH_SECRET 不影响历史审计哈希。
