@@ -37,11 +37,18 @@ origin: issue-ledger-20261024
 ## 代码位置
 
 <!-- code:begin -->
-_落地前回填：`路径:行号` — 作用。_
+- `next.config.ts:31` — 静态 jpg 的匹配是 `/og/:file*.jpg`。
+- `next.config.ts:32` — Cache-Control 为 `public, max-age=86400, stale-while-revalidate=604800`。
+- `next.config.ts:46` — headers() 把这条头加到上述匹配。
+- `tests/og-static-cache.test.ts:58` — 断言这串头，并且不含 immutable 和 s-maxage。
+- `tests/og-static-cache.test.ts:62` — `/og/home-en.jpg` 命中。文章 og 和关于页 og 不走这条规则。
 <!-- code:end -->
 
 ## 实施沉淀
 
 <!-- notes:begin -->
-_落地前回填实现选择、失败教训与维护约束。_
+- PR #450，合并提交 `6161329671e6e03e47f387643c3772633e2ce673`。`git show --stat` 只有 `next.config.ts` 和 `tests/og-static-cache.test.ts`。
+- 文件名没有内容哈希，所以不加 immutable，也不加 s-maxage。浏览器缓存 1 天，过期后 7 天内可以先用旧图。
+- 匹配只覆盖 `/og/` 下以 `.jpg` 结尾的路径。`/[locale]/articles/[slug]/og` 和 `/[locale]/about/og` 仍由各自 route 写头。
+- 静态 `/og` 未命中时仍会被这条 1 天头盖住。404 改为 no-store 的验收见 POST-LAUNCH-P3。
 <!-- notes:end -->

@@ -3170,6 +3170,7 @@ function handBody(){
       var id = esc(t.id), st = stOf(t.id), wait = waitingOn(t);
       var meta = [];
       if(/^[0-9]+$/.test(String(t.gh || ""))) meta.push("#" + t.gh);
+      else if(t.gh === "无") meta.push("没有单独的 GitHub issue");
       else meta.push(t.gh === "待开" ? "待开 issue" : (t.gh || "待开 issue"));
       if(t.pr) meta.push("PR #" + t.pr);
       if(t.review === "fullstack") meta.push("全栈审查");
@@ -4440,8 +4441,8 @@ def parse_issue_tasks(text, name):
         if review and review not in ('bot', 'fullstack'):
             raise ValueError('%s/%s 的 review 只允许 bot 或 fullstack' % (name, tid))
         gh = values['gh'].strip()
-        if gh != '待开' and not re.fullmatch(r'\d{1,6}', gh):
-            raise ValueError('%s/%s 的 gh 须为 issue 编号或「待开」' % (name, tid))
+        if gh not in ('待开', '无') and not re.fullmatch(r'\d{1,6}', gh):
+            raise ValueError('%s/%s 的 gh 须为 issue 编号、「待开」或「无」' % (name, tid))
         pr = (values.get('pr') or '').strip()
         merged = (values.get('merged') or '').strip().lower()
         if status == 'done' and (not re.fullmatch(r'\d{1,6}', pr) or not re.fullmatch(r'[0-9a-f]{40}', merged)):
@@ -4566,8 +4567,13 @@ def ensure_issue_notes(root, issues):
             return ('<!-- %s:begin -->%s<!-- %s:end -->' % (name, found.group(1), name)
                     if found else '<!-- %s:begin -->\n%s\n<!-- %s:end -->' % (name, placeholder, name))
 
-        gh = ('#%s' % task['gh']) if re.fullmatch(r'\d+', task['gh']) else '待开 issue'
-        bits = ['- GitHub：%s' % gh]
+        if re.fullmatch(r'\d+', task['gh']):
+            gh_label = '#%s' % task['gh']
+        elif task['gh'] == '无':
+            gh_label = '没有单独的 GitHub issue'
+        else:
+            gh_label = '待开 issue'
+        bits = ['- GitHub：%s' % gh_label]
         if task.get('pr'):
             bits.append('- PR：#%s' % task['pr'])
         if task.get('merged'):

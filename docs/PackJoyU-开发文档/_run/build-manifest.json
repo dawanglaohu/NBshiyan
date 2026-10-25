@@ -1,5 +1,5 @@
 {
-  "compiler": "6e54e27b4956d58c992e5c686743fd5be07a04b41937d0488392db82786a7b73",
+  "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
   "inputs": {
     "00-概览/01-概述与目标.md": "0822f8521094114259136e03afc1269da171eb60d901677d326397f4e80cea25",
     "00-概览/02-非目标.md": "42c036affaed3af2e45aa6b7a8a3bdfe124b9fcb3f9f4ee8bf9c1ce38c3538a8",
@@ -22,7 +22,7 @@
     "04-执行/19-模块任务拆分.md": "0a508ae1cf4a58ba109cd4891c7381eed1be86d86334dd9684ab03f6a83ffe33",
     "04-执行/20-里程碑与交付顺序.md": "90bd0b9730dce571fbfb5597d9bc12f0362c187e308f677b15f0b4d85b16fb77",
     "04-执行/21-风险与未决事项.md": "1145375447465c85e857e6586a6a9bc26997bb8fbf077e615b4cff77fe168ad7",
-    "04-执行/遗留issue-20261024.md": "5586bdbf4471a0366627053221e5a20593ad8e7b3fa7f4ed4d20d760f834e83d",
+    "04-执行/遗留issue-20261024.md": "30db43a4438ec8d21ff462d54f5a503317e1e7f8c3f471f530b598e5c86dcda7",
     "05-附录/22-决策记录.md": "128318be8feb326b25035d00cccc64aa325bf5b4018905578e2d077e72ec2709",
     "05-附录/23-变更记录.md": "b78c124dbc327e3794cdb6758d495dcad76fdabc363beb61c41febe633defa42",
     "05-附录/24-参考资料.md": "68a06d729c78c402bdd4d9445b30c271e45798afe34037ec6513d5d76f47e976",
@@ -36,12 +36,12 @@
   },
   "products": {
     "_MOC.md": "9a97a99eecd6e59e4f9554bd6ef41912e6cd0b3965786bf729f88b178921655c",
-    "_run/dispatch.json": "c99412d4caf5c15cc6d45fdead02f1af7a983f06850fda43963225a2144aa893",
-    "_run/review.json": "c2bcd4b989bcc3cff969f6edafbc240ef51afae3ef13962a138839a37533fee1",
+    "_run/dispatch.json": "9c740fe49dc8730f5006a5a8a71705cba5bf56495064abd55375b0e734aca35c",
+    "_run/review.json": "7893cf71036cd447ffcd692d27c2285bd22012fc72c611ebb738d4cc6d3bc836",
     "_run/task-reviews.json": "fa829fb089ce2a5d6a7d89d4b833fff35af34bcd24c6c4d1f8d9a09516663736",
-    "docs-data.js": "548fc70b63c04884fffc106b62d7cac7be1912618f6ad57fc686a1e158410b66",
-    "index.html": "5c3c46f15d7c7eb64da10371a1a7593ea4c8412c8b9aeb2d09d11065922852fe"
+    "docs-data.js": "a141dfb93156fbfe3d9c6a9034e22e0e38f41bd18a232f0a779667ce4d2b9ca9",
+    "index.html": "5617db805b812b43341e631af0b9eeee509f5069dc3f7c752b92a7a06c442de0"
   },
   "schemaVersion": 1,
-  "sourceVersion": "945e8620d858938b91073718856cb164736186504d1c5635426c0c9516e90645"
+  "sourceVersion": "42a1a2422fa799ea344d25e582bb7d696802ef613e2c8e5d848f9fd60af1e51c"
 }

@@ -3081,6 +3081,7 @@ function handBody(){
       var id = esc(t.id), st = stOf(t.id), wait = waitingOn(t);
       var meta = [];
       if(/^[0-9]+$/.test(String(t.gh || ""))) meta.push("#" + t.gh);
+      else if(t.gh === "无") meta.push("没有单独的 GitHub issue");
       else meta.push(t.gh === "待开" ? "待开 issue" : (t.gh || "待开 issue"));
       if(t.pr) meta.push("PR #" + t.pr);
       if(t.review === "fullstack") meta.push("全栈审查");

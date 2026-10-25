@@ -16,7 +16,7 @@ WANT = {
     'SEO-2': 'done',
     'SEO-3': 'hold',
     'SEO-4': 'hold',
-    'SEO-5': 'doing',
+    'SEO-5': 'done',
     'SEO-6': 'done',
     'SEO-7': 'done',
     'CITY-STILL-WEBP': 'done',
@@ -34,6 +34,7 @@ WANT = {
     'GATE-HARDEN': 'merging',
     'GATE-HARDEN-2': 'todo',
     'POST-LAUNCH-P3': 'todo',
+    'FE-404-TITLE': 'todo',
 }
 MERGED = {
     'DEP-AUDIT-1': '950b63c235a3ce945fa6140dedf0bfad7a946bc3',
@@ -51,6 +52,7 @@ MERGED = {
     'BE-RESET-STDIN-TTY': '926a34b7041e51ad25d9425a62b1b06e7dbdd680',
     'BE-RATELIMIT-P3': '3c45e699c41c0e0c01efbba5f4d2e58746193944',
     'BE-350A': '009860c2f28c51f01a1e710f8f5b823b04f20de9',
+    'SEO-5': '466c8f65eed72fe96db8b9aa5cc7eb30407d2dcd',
 }
 
 
@@ -140,13 +142,44 @@ class IssueLedgerTests(unittest.TestCase):
         self.assertEqual(by_id['SEO-2']['ledgerStatus'], 'done')
         self.assertEqual(by_id['BE-I18N-P0']['ledgerStatus'], 'done')
         self.assertEqual(by_id['SEO-5']['pr'], '456')
-        self.assertIn('已派发/PR 审查中', by_id['SEO-5']['note'])
+        self.assertEqual(by_id['SEO-5']['ledgerStatus'], 'done')
+        self.assertIn('466c8f65eed72fe96db8b9aa5cc7eb30407d2dcd', by_id['SEO-5']['note'])
+        self.assertIn('069412f0', by_id['SEO-5']['note'])
+        self.assertNotIn('尚未合入', by_id['SEO-5']['note'])
+        self.assertNotIn('已派发/PR 审查中', by_id['SEO-5']['note'])
+        self.assertNotIn('2026-10-25', by_id['SEO-5']['note'])
+        self.assertIn('e2e/not-found-robots.spec.ts', by_id['SEO-5']['paths'])
+        self.assertIn('原始 HTML 里只有 1 条 robots', by_id['SEO-5']['accept'])
+        self.assertIn('不含独立的 index 或 follow', by_id['SEO-5']['accept'])
+        self.assertNotIn('noindex, follow', by_id['SEO-5']['accept'])
         self.assertIn('3c45e699', by_id['FE-378']['note'])
         self.assertIn('issue #433', by_id['BE-350A']['note'])
         self.assertIn('firstLine', by_id['POST-LAUNCH-P3']['accept'])
         self.assertIn('不列入剩余工作', by_id['POST-LAUNCH-P3']['note'])
         self.assertEqual(by_id['POST-LAUNCH-P3']['review'], 'fullstack')
-        self.assertEqual(by_id['BE-RESET-STDIN-TTY']['gh'], '待开')
+        self.assertEqual(by_id['BE-RESET-STDIN-TTY']['gh'], '无')
+        self.assertIn('2026-10-24', by_id['BE-RESET-TTY']['note'])
+        self.assertNotIn('2026-10-25', by_id['BE-RESET-TTY']['note'])
+        self.assertIn('2026-10-24', by_id['BE-RESET-STDIN-TTY']['accept'])
+        self.assertNotIn('2026-10-25', by_id['BE-RESET-STDIN-TTY']['accept'])
+        self.assertIn('没有单独的 GitHub issue', by_id['BE-RESET-STDIN-TTY']['accept'])
+        self.assertIn('剩余 P3 见 POST-LAUNCH-P3', by_id['BE-RATELIMIT-P3']['note'])
+        self.assertIn('VERCEL_ENV', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('productionRedisProblem', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('任意 .gif 请求', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('不能删掉', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('curl 请求一个不存在的 /og/*.jpg', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('/og/home-en.jpg', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('在 play() 之前先 load()', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('src/components/layout/BrandScene.tsx', by_id['POST-LAUNCH-P3']['paths'])
+        self.assertEqual(by_id['FE-404-TITLE']['ledgerStatus'], 'todo')
+        self.assertEqual(by_id['FE-404-TITLE']['gh'], '待开')
+        self.assertIn('htmlLimitedBots', by_id['FE-404-TITLE']['accept'])
+        self.assertIn('</head>', by_id['FE-404-TITLE']['accept'])
+        self.assertIn('document.title', by_id['FE-404-TITLE']['accept'])
+        self.assertIn('Googlebot', by_id['FE-404-TITLE']['accept'])
+        self.assertIn('不能只验', by_id['FE-404-TITLE']['accept'])
+        self.assertNotIn('next.config.ts', by_id['FE-404-TITLE']['paths'])
         self.assertEqual(by_id['SEO-7']['gh'], '446')
         self.assertEqual(by_id['SEO-7']['pr'], '445')
         self.assertEqual(by_id['SEO-7']['ledgerStatus'], 'done')
@@ -163,7 +196,8 @@ class IssueLedgerTests(unittest.TestCase):
                'GATE-PATHS-1': '423', 'GATE-PATHS-2': '435',
                'SEO-1': '445', 'SEO-2': '450', 'SEO-6': '453', 'SEO-7': '445',
                'CITY-STILL-WEBP': '448', 'BE-I18N-P0': '449', 'BE-RESET-TTY': '455',
-               'BE-RESET-STDIN-TTY': '457', 'BE-RATELIMIT-P3': '454', 'BE-350A': '452'}
+               'BE-RESET-STDIN-TTY': '457', 'BE-RATELIMIT-P3': '454', 'BE-350A': '452',
+               'SEO-5': '456'}
         for tid, sha in MERGED.items():
             self.assertEqual(by_id[tid]['merged'], sha)
             self.assertEqual(by_id[tid]['pr'], prs[tid])
@@ -223,6 +257,34 @@ edges: none
             build_docs.ensure_issue_notes(str(root), build_docs.load_issue_ledger(str(root)))
             self.assertIn('\nstatus: done\n', '\n' + note.read_text(encoding='utf-8'))
             self.assertEqual(build_docs.persist_issue_landed(str(root), ['M1-T1']), [])
+
+    def test_gh_none_renders_as_no_separate_issue(self):
+        text = '''```issue
+id: SEO-9
+title: 示例登记
+module: M7
+status: todo
+gh: 无
+depends-on: none
+paths: src/app/sitemap.ts
+estimate: 0.5d
+input: 输入
+output: 产出
+acceptance: 没有单独的 GitHub issue。
+edges: none
+```
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ledger = root / '04-执行'
+            ledger.mkdir()
+            (ledger / '遗留issue-20261024.md').write_text(text, encoding='utf-8', newline='\n')
+            issues = build_docs.load_issue_ledger(str(root))
+            self.assertEqual(issues[0]['gh'], '无')
+            build_docs.ensure_issue_notes(str(root), issues)
+            note = (root / '图谱' / '任务' / 'SEO-9.md').read_text(encoding='utf-8')
+            self.assertIn('- GitHub：没有单独的 GitHub issue\n', note)
+            self.assertNotIn('待开 issue', note)
 
 
 if __name__ == '__main__':

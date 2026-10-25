@@ -37,11 +37,20 @@ origin: issue-ledger-20261024
 ## 代码位置
 
 <!-- code:begin -->
-_落地前回填：`路径:行号` — 作用。_
+- `src/lib/home/brandMedia.ts:14` — 1384 宽的城市场景 mp4，文件名不带 hash。
+- `src/lib/home/brandMedia.ts:15` — 2000 宽的城市场景 mp4。
+- `src/components/layout/BrandScene.tsx:162` — preload 为 none。第一次挂上 src 时 load() 一次。
+- `src/components/layout/BrandScene.tsx:169` — 播放用 play()。被拒绝则退回静帧。
+- `src/components/layout/BrandScene.tsx:236` — video 为 muted、loop、playsInline、preload none、aria-hidden，无 controls。
+- `src/components/layout/BrandScene.tsx:258` — error 时退回静帧。error 路径在 play() 之前先 load() 见 POST-LAUNCH-P3。
+- `e2e/home-media.spec.ts:222` — 未准入时断言不请求城市场景 GIF 文件名。同文件第 302、377 行是另外两处。改成匹配任意 .gif 见 POST-LAUNCH-P3。
 <!-- code:end -->
 
 ## 实施沉淀
 
 <!-- notes:begin -->
-_落地前回填实现选择、失败教训与维护约束。_
+- PR #453，合并提交 `151724cb74ae876c97d6297b169dc7ce49590af9`。`git show --stat` 是 `BrandScene.tsx`、`brandMedia.ts`、`e2e/home-media.spec.ts`，以及 `public/brand/packjoyu-industrial-city-v3-loop-1384.mp4`、`public/brand/packjoyu-industrial-city-v3-loop-2000.mp4`。`e2e/brand-smoke.spec.ts` 不在这次合并里。
+- 城市场景用静音循环 mp4 代替 GIF。两档都在 `public/brand/`，文件名不带 hash。poster 仍用静帧 WebP。
+- 视频一旦播放过，暂停不卸载，不再 load()，不重设 currentTime。从没播放、减少动态效果或加载失败时显示静帧。
+- 冷加载不滚动时不请求城市场景视频。进入 300px 后才请求，且排在 Hero 视频之后。旧 GIF 还在仓库里，删除条件见 POST-LAUNCH-P3。
 <!-- notes:end -->
