@@ -5,6 +5,8 @@ import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categoryHref } from '@/lib/seo/categoryPages';
 import { PUBLISHED_LOCALES, DEFAULT_PUBLISHED_LOCALE } from '@/i18n/published-locales';
 import { LOCALE_META } from '@/i18n/locale-meta';
+import enMessages from '../../../../messages/en.json';
+import { NotFoundTitle } from '@/components/NotFoundTitle';
 
 /**
  * 未发布语言的 404 页（多语言第 0 期，UX）：沿用英文 404 页的样式（含头部和页脚），
@@ -13,11 +15,19 @@ import { LOCALE_META } from '@/i18n/locale-meta';
  * robots 由 Next notFound() 注入，不自行声明。不输出 canonical 和 hreflang（SEO）。
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations({ locale: DEFAULT_PUBLISHED_LOCALE, namespace: 'NotFound' });
-  return { title: t('meta.title'), description: null };
+  return { title: enMessages.NotFound.meta.title, description: null };
 }
 
-export default async function LocaleUnavailable() {
+export default function LocaleUnavailable() {
+  return (
+    <>
+      <NotFoundTitle locale="en" />
+      <LocaleUnavailableBody />
+    </>
+  );
+}
+
+async function LocaleUnavailableBody() {
   const t = await getTranslations({ locale: DEFAULT_PUBLISHED_LOCALE, namespace: 'NotFound' });
   const names = await getTranslations({ locale: DEFAULT_PUBLISHED_LOCALE, namespace: 'Products.names' });
   const others = PUBLISHED_LOCALES.filter((l) => l !== DEFAULT_PUBLISHED_LOCALE);
