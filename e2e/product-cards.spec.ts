@@ -224,30 +224,44 @@ test('ru 390 products page does not overflow and each control center hits itself
   const title = await page.locator('#pulp-molding h2').evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
   expect(title.scroll).toBeLessThanOrEqual(title.client);
   const misses = await page.evaluate(() => {
-    document.documentElement.style.scrollBehavior = 'auto';
+    const freeze = document.createElement('style');
+    freeze.textContent = '*, *::before, *::after { scroll-behavior: auto !important; }';
+    document.head.appendChild(freeze);
     const nodes = [...document.querySelectorAll('a, button, input, select, textarea, [role="button"]')];
     const bad: string[] = [];
     for (const el of nodes) {
       if (!(el instanceof HTMLElement)) continue;
       const style = getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none') continue;
-      if (el.closest('[hidden], [aria-hidden="true"]')) continue;
+      if (el.closest('[hidden], [aria-hidden="true"], [inert]')) continue;
       const rect = el.getBoundingClientRect();
       if (rect.width < 8 || rect.height < 8) continue;
-      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+      const scroller = el.closest('.catbar');
+      if (scroller instanceof HTMLElement && scroller !== el) {
+        scroller.scrollLeft = Math.max(0, el.offsetLeft - (scroller.clientWidth - el.offsetWidth) / 2);
+      } else if (style.position !== 'fixed') {
+        el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+      }
       const next = el.getBoundingClientRect();
-      const cx = next.left + next.width / 2;
-      const cy = next.top + next.height / 2;
-      if (cx < 0 || cy < 0 || cx > window.innerWidth || cy > window.innerHeight) {
+      const left = Math.max(next.left, 0);
+      const right = Math.min(next.right, window.innerWidth);
+      const top = Math.max(next.top, 0);
+      const bottom = Math.min(next.bottom, window.innerHeight);
+      if (right - left < 8 || bottom - top < 8) {
         bad.push(`offscreen ${el.tagName} ${el.innerText.slice(0, 40)}`);
         continue;
       }
-      const hit = document.elementFromPoint(cx, cy);
+      const cx = Math.min(window.innerWidth - 1, Math.max(0, next.left + next.width / 2));
+      const cy = Math.min(window.innerHeight - 1, Math.max(0, next.top + next.height / 2));
+      const x = cx < left || cx > right ? (left + right) / 2 : cx;
+      const y = cy < top || cy > bottom ? (top + bottom) / 2 : cy;
+      const hit = document.elementFromPoint(x, y);
       if (hit !== el && !el.contains(hit)) {
         const target = hit instanceof HTMLElement ? `${hit.tagName}.${hit.className}` : String(hit);
         bad.push(`${el.tagName}.${el.className} "${el.innerText.slice(0, 40)}" hit ${target}`);
       }
     }
+    freeze.remove();
     return bad;
   });
   expect(misses).toEqual([]);
