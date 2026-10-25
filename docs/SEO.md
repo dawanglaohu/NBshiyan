@@ -35,7 +35,7 @@
 | /en/products/wine-boxes | custom wine boxes | wine gift box packaging, bottle packaging boxes, luxury wine box manufacturer | P2 |
 | /en/products/party-supplies | custom party supplies | paper party tableware wholesale, printed paper plates and cups | P2 |
 | /en/products/christmas-merchandise | christmas packaging | christmas gift boxes wholesale, custom christmas merchandise, advent calendar boxes | P2（季节性，9 月前上线） |
-| /en/products/gift-cards | custom gift card printing | gift card packaging, printed greeting cards manufacturer | P3 |
+| /en/products/custom-greeting-cards | custom greeting cards | printed greeting cards, greeting card holders and envelopes | P3 |
 | /en/products/color-printing | packaging printing services | CMYK printing packaging, custom label and box printing | P3 |
 | /en/products/offset-printing | offset printing packaging | offset printed boxes, offset printing manufacturer China | P3 |
 

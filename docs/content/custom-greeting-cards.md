@@ -53,7 +53,7 @@ PackJoyU prints custom paper greeting cards, together with matching card holders
 
 - **Q: Can each card have a unique number or barcode?**
   A: Variable data printing capability: TBD.
-- **Q: Do you make packaging for gift cards?**
+- **Q: Do you make packaging for greeting cards?**
   A: Yes — we supply holders, envelopes and boxes.
 - **Q: Can you print plastic cards?**
   A: On request.
@@ -102,9 +102,9 @@ PackJoyU печатает открытки на заказ вместе с де�
 
 > ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
 
-- **В: Можно ли уникальный номер или штрихкод на каждой карте?**
+- **В: Можно ли нанести уникальный номер или штрихкод на каждую открытку?**
   О: Возможность печати переменных данных: TBD.
-- **В: Можно ли заказать упаковку для карт?**
+- **В: Можно ли заказать упаковку для открыток?**
   О: Да — поставляем держатели, конверты и коробки.
 - **В: Печатаете пластиковые карты?**
   О: По запросу.

@@ -1,15 +1,13 @@
 <!-- key: gift-cards · /en/products/custom-greeting-cards · hreflang ru: /ru/products/otkrytki-na-zakaz · DRAFT (Refs #99) -->
 <!-- Blocks containing {{…}} must not be rendered. -->
 
-> ⚠️ F16: "gift cards" is ambiguous (stored-value gift cards vs greeting cards). H1, slug and wording wait for Ryan; if greeting cards, slug may become `custom-greeting-cards`.
-
-# Custom Gift Cards
+# Custom Greeting Cards
 
 ## Intro
 PackJoyU supplies printed cards for brands (product type: {{待Ryan确认}}). Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
-- Retail gift card packs
+- Greeting card packs for retail
 - Brand and thank-you cards
 - Cards in gift sets
 
