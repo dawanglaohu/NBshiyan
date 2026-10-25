@@ -90,20 +90,35 @@ export async function checkPassword(email: string, password: string, ip: string 
   return user;
 }
 
-/** 校验 TOTP（拒绝重放）或恢复码（用后删除）。 */
+type TotpSubject = Pick<User, 'id' | 'totpSecret' | 'totpEnabled' | 'sessionVersion'>;
+
+/**
+ * 原子核销当前验证器时间步。条件同时钉住本次验过的密文、totpEnabled 和 sessionVersion，
+ * 重置交错后旧快照不能把旧码写成新的 totpLastStep。同一时间步最多一行更新成功。
+ * 验证码保持 6 位字符串，前导零不转成数字。恢复码不在这里核销。
+ */
+export async function consumeTotpStep(user: TotpSubject, totp: string | undefined): Promise<boolean> {
+  if (!user.totpSecret || !totp || !/^[0-9]{6}$/.test(totp)) return false;
+  const delta = authenticator.checkDelta(totp, decrypt(user.totpSecret));
+  if (delta === null) return false;
+  const step = Math.floor(Date.now() / 30_000) + delta;
+  const r = await prisma.user.updateMany({
+    where: {
+      id: user.id,
+      totpSecret: user.totpSecret,
+      totpEnabled: user.totpEnabled,
+      sessionVersion: user.sessionVersion,
+      OR: [{ totpLastStep: null }, { totpLastStep: { lt: step } }],
+    },
+    data: { totpLastStep: step },
+  });
+  return r.count === 1;
+}
+
+/** 校验 TOTP（拒绝重放）或恢复码（用后删除）。日常登录不把恢复码传进来。 */
 export async function checkSecondFactor(user: User, totp: string | undefined, recovery: string | undefined): Promise<boolean> {
   if (!user.totpSecret) return false;
-  if (totp && /^\d{6}$/.test(totp)) {
-    const delta = authenticator.checkDelta(totp, decrypt(user.totpSecret));
-    if (delta === null) return false;
-    const step = Math.floor(Date.now() / 30_000) + delta;
-    // 条件更新：同一时间步的验证码只能用一次
-    const r = await prisma.user.updateMany({
-      where: { id: user.id, OR: [{ totpLastStep: null }, { totpLastStep: { lt: step } }] },
-      data: { totpLastStep: step },
-    });
-    return r.count === 1;
-  }
+  if (totp && /^[0-9]{6}$/.test(totp)) return consumeTotpStep(user, totp);
   if (recovery) {
     const code = recovery.replace(/[\s-]/g, '').toLowerCase();
     for (const h of user.recoveryCodes) {
@@ -116,16 +131,58 @@ export async function checkSecondFactor(user: User, totp: string | undefined, re
   return false;
 }
 
-/** 完整登录校验，供 Auth.js Credentials 使用 */
-export async function authorizeLogin(input: { email: string; password: string; totp?: string; recoveryCode?: string }, ip: string | null) {
+async function genericCredentialFailure(email: string, ip: string | null, burn: string) {
+  if (!(await loginRateOk(ip, email))) {
+    await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip });
+    return null;
+  }
+  await burnVerify(burn);
+  await fail(null, email, ip, 'bad_credentials');
+  return null;
+}
+
+async function finishLogin(user: User, email: string, ip: string | null, method: 'password' | 'totp') {
+  await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
+  await audit({ actorId: user.id, action: 'auth.login_success', target: user.id, meta: { method }, ip });
+  return user;
+}
+
+/**
+ * 日常登录只有 password（当前密码 + 验证码）和已开启 passwordlessEnabled 的 totp（账号 + 验证码）。
+ * 未知 mode、非空恢复码、未开启的 totp、未知或停用账号都返回 null，由 Auth.js 走同一条 CredentialsSignin。
+ * 恢复码留在独立恢复入口，这里不核销。
+ */
+export async function authorizeLogin(input: { email: string; password?: string; totp?: string; recoveryCode?: string; mode?: string }, ip: string | null) {
   const email = input.email.trim().toLowerCase();
-  const user = await checkPassword(email, input.password, ip);
+  const mode = input.mode ?? 'password';
+  const recovery = (input.recoveryCode ?? '').trim();
+  if (recovery || (mode !== 'password' && mode !== 'totp')) return genericCredentialFailure(email, ip, input.password || input.totp || 'x');
+  if (mode === 'totp') return authorizeTotp(email, input.totp, ip);
+  const user = await checkPassword(email, input.password ?? '', ip);
   if (typeof user === 'string') return null;
   if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
-  if (!(await checkSecondFactor(user, input.totp, input.recoveryCode))) { await fail(user, email, ip, input.totp || input.recoveryCode ? 'bad_totp' : 'totp_missing'); return null; }
-  await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
-  await audit({ actorId: user.id, action: 'auth.login_success', target: user.id, meta: { method: input.totp ? 'totp' : 'recovery_code' }, ip });
-  return user;
+  if (!(await checkSecondFactor(user, input.totp, undefined))) { await fail(user, email, ip, input.totp ? 'bad_totp' : 'totp_missing'); return null; }
+  return finishLogin(user, email, ip, 'password');
+}
+
+/** totp 模式不校验密码。账号未开启、未绑定、不存在或已停用时不核销验证码，响应与未知账号相同。 */
+async function authorizeTotp(email: string, totp: string | undefined, ip: string | null) {
+  if (!(await loginRateOk(ip, email))) {
+    await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip });
+    return null;
+  }
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || user.disabled || !user.passwordlessEnabled || !user.totpEnabled || !user.totpSecret) {
+    await burnVerify(totp || '000000');
+    await fail(null, email, ip, 'bad_credentials');
+    return null;
+  }
+  if (user.lockedUntil && user.lockedUntil > new Date()) {
+    await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'locked' }, ip });
+    return null;
+  }
+  if (!(await checkSecondFactor(user, totp, undefined))) { await fail(user, email, ip, totp ? 'bad_totp' : 'totp_missing'); return null; }
+  return finishLogin(user, email, ip, 'totp');
 }
 
 export function newRecoveryCodes(n = 10) {

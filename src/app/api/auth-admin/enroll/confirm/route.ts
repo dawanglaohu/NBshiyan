@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@/lib/server/db';
 import { clientIp, readBody } from '@/lib/server/security';
 import { LOGIN_WINDOW_MS, checkPassword, checkSecondFactor, hashCodes, newRecoveryCodes, refundLoginRate } from '@/lib/server/admin/login';
 import { audit } from '@/lib/server/admin/audit';
 import { jsonErr, noStore, rateLimited } from '@/lib/server/admin/guard';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
-import { enrollConfirmRateOk, enrollIpRateOk, enrollWindowOpen, pendingSecretUsable, recordBadEnrollTotp } from '@/lib/server/admin/enroll-guard';
+import { commitEnrollConfirmation, enrollConfirmRateOk, enrollIpRateOk, enrollWindowOpen, pendingSecretUsable, recordBadEnrollTotp } from '@/lib/server/admin/enroll-guard';
 import { checkEnrollToken, rejectEnrollToken } from '@/lib/server/admin/enroll-token';
 
 export const runtime = 'nodejs';
@@ -21,7 +20,7 @@ const Body = z.object({ email: z.string().trim().toLowerCase().email().max(200),
  * → 验码前原子计入 enroll-confirm（IP+账号 10 次/10 分钟，超了 429）。详见 enroll-guard.ts。
  * #347 方案 A：密码正确后、退桶之前校验一次性绑定令牌；缺失 / 错误 / 过期 / 已用过一律 401 bad_credentials，不退桶，
  * 所以没有令牌的人（只知道初始密码）既不能确认，也不能用错码把别人的待确认密钥作废。
- * 确认成功时同一条条件 UPDATE 里开启 2FA 并清掉令牌哈希和截止时间（where 带当前哈希且未过期）：令牌只能用一次，并发 confirm 只有一个成功。
+ * 确认成功时同一条条件 UPDATE 里开启 2FA 并清掉令牌哈希和截止时间。where 同时要求当前令牌哈希、未过期、当前会话版本、当前待确认密钥及其截止时间，并发确认只有一个成功。不改 passwordlessEnabled。
  */
 export async function POST(req: Request) {
   const bad = assertSameOrigin(req);
@@ -55,15 +54,13 @@ export async function POST(req: Request) {
     return (await recordBadEnrollTotp(user, ip)) ? jsonErr('enroll_reset', 401) : jsonErr('bad_totp', 401);
   }
   const codes = newRecoveryCodes();
-  const r = await prisma.user.updateMany({
-    // 只确认当前这个密钥：并发作废或换了新密钥后，旧密钥的码不能再确认
-    // #347：同时要求令牌仍是这一个且未过期（被重新签发或刚过期都确认失败），并在同一条语句里消耗令牌
-    where: { id: user.id, totpEnabled: false, totpSecret: user.totpSecret, enrollTokenHash: user.enrollTokenHash, enrollTokenExpiresAt: { gt: new Date() } },
-    data: {
-      totpEnabled: true, recoveryCodes: await hashCodes(codes), sessionVersion: { increment: 1 }, failedLogins: 0, totpEnrollFails: 0, totpPendingUntil: null,
-      enrollTokenHash: null, enrollTokenExpiresAt: null,
-    },
-  });
+  // 确认写入的令牌条件：当前哈希、未过期、尚未启用、当前待确认密钥。助手再要求当前 sessionVersion 与 totpPendingUntil。
+  const matched = { where: { id: user.id, totpEnabled: false, totpSecret: user.totpSecret, enrollTokenHash: user.enrollTokenHash, enrollTokenExpiresAt: { gt: new Date() } } };
+  const r = await commitEnrollConfirmation(user, {
+    // 不写 passwordlessEnabled：确认绑定只打开验证器，不批量打开无密码登录
+    totpEnabled: true, recoveryCodes: await hashCodes(codes), sessionVersion: { increment: 1 }, failedLogins: 0, totpEnrollFails: 0, totpPendingUntil: null,
+    enrollTokenHash: null, enrollTokenExpiresAt: null,
+  }, matched.where);
   if (r.count !== 1) return jsonErr('bad_credentials', 401);
   await audit({ actorId: user.id, action: 'auth.totp_enabled', ip });
   return NextResponse.json({ recoveryCodes: codes }, { headers: noStore });

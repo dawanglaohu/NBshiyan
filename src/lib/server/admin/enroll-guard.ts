@@ -1,4 +1,4 @@
-import type { User } from '@prisma/client';
+import type { Prisma, User } from '@prisma/client';
 import { prisma } from '../db';
 import { hitRateLimit, rateLimitKeyHash, rateLimitSubject } from '../security';
 import { audit } from './audit';
@@ -49,10 +49,38 @@ export const enrollConfirmKey = (ip: string | null, email: string) => `enroll-co
 export const enrollConfirmRateOk = (ip: string | null, email: string) =>
   hitRateLimit(enrollConfirmKey(ip, email), ENROLL_CONFIRM_LIMIT, ENROLL_CONFIRM_WINDOW_MS, { onStoreError: 'closed' });
 
-/** 发新的待确认密钥时要写的字段 */
+/** 发新的待确认密钥时要写的字段。不写 passwordlessEnabled，未确认前保持默认 false。 */
 export const pendingSecretData = (encryptedSecret: string, now = Date.now()) => ({
   totpSecret: encryptedSecret, totpLastStep: null, totpPendingUntil: new Date(now + ENROLL_PENDING_MS), totpEnrollFails: 0,
 });
+
+type EnrollSnapshot = Pick<User, 'id' | 'sessionVersion' | 'enrollTokenHash' | 'totpSecret'>;
+
+/**
+ * 最终写入再对一次当前令牌、期限、会话版本和待确认密钥。
+ * 调用方早先的校验不能单独放行：重置或并发签发改了其中任一列，这次写入计数为 0。
+ */
+export function commitPendingSecret(user: EnrollSnapshot, encryptedSecret: string, now = Date.now()) {
+  return prisma.user.updateMany({
+    where: {
+      id: user.id, totpEnabled: false, sessionVersion: user.sessionVersion, enrollTokenHash: user.enrollTokenHash, totpSecret: user.totpSecret,
+      enrollTokenExpiresAt: { gt: new Date() },
+      OR: [{ totpPendingUntil: null }, { totpPendingUntil: { lte: new Date(now) } }],
+    },
+    data: pendingSecretData(encryptedSecret, now),
+  });
+}
+
+/** 确认绑定的最终条件更新。不改 passwordlessEnabled。令牌条件由调用方给出，这里再钉上当前会话版本和待确认截止时间。 */
+export function commitEnrollConfirmation(user: EnrollSnapshot, data: Prisma.UserUpdateManyMutationInput, tokenWhere?: Prisma.UserWhereInput) {
+  const base = tokenWhere ?? {
+    id: user.id, totpEnabled: false, totpSecret: user.totpSecret, enrollTokenHash: user.enrollTokenHash, enrollTokenExpiresAt: { gt: new Date() },
+  };
+  return prisma.user.updateMany({
+    where: { ...base, sessionVersion: user.sessionVersion, totpPendingUntil: { gt: new Date() } },
+    data,
+  });
+}
 
 /**
  * 记一次「密码正确、6 位码错」。错满上限就作废这个待确认密钥并开始冷却。
