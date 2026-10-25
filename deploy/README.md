@@ -156,19 +156,22 @@ $DC run --rm -it --no-deps app node scripts/admin-create.mjs --email <admin emai
 ```
 Options (#321): `--name <display name>`, plus `--allow-additional-admin`, needed for any admin after the first (otherwise it
 refuses with `admin_exists`). Any flag that looks like a password (`--password`, `-p`, …) is refused. With no TTY the
-script reads the first line of stdin. With `APP_ENV=production`, `ADMIN_CREATE_PASSWORD` is refused.
+script still reads the first line of stdin and still creates the account. That stdin password does not apply to the reset
+script below. With `APP_ENV=production`, `ADMIN_CREATE_PASSWORD` is refused.
 `pnpm admin:seed` (the old create-admin with the `PROD_DATABASE_HOST` guard) is CI/local only: never run seed on the server. After creating the
 account, open the one-time enroll link and **bind 2FA immediately**. `ADMIN_SEED_TOTP_SECRET` is never set in production.
 #347: when stdout is a terminal (`exec -it`), admin-create issues a one-time enroll token in the same transaction and prints
-three lines once — the link `<NEXT_PUBLIC_SITE_URL>/admin-enroll#t=<token>`, `有效至 <date time> PT`, and the "private message only"
-reminder. Send the link only to that person, never to a group chat or ticket. Without a terminal it issues no token and
-prints no link; reissue from a terminal with the reset script below or an ADMIN "Reset 2FA". `NEXT_PUBLIC_SITE_URL` must be https.
+three lines once — the link `<NEXT_PUBLIC_SITE_URL>/admin-enroll#t=<token>`, `有效至 <date time> PT`, and the private-delivery
+reminder. Send the binding link only in private to the account owner, never to a group chat or ticket. Without a terminal the account is still created, but the script does not issue or display the binding link;
+reissue from a terminal with the reset script below or an ADMIN "Reset 2FA". `NEXT_PUBLIC_SITE_URL` must be https.
 
 ## Reset the initial password of an unbound ADMIN (queue ②; issues a #347 one-time enroll link)
 For an ADMIN who has **not** bound 2FA yet (lost initial password, or stuck half-way through enroll). Run it on the
 server, as Ryan or with Ryan at the keyboard; it ships in the image like admin-create. The new password comes only from a
-**hidden prompt** (typed twice) or the first line of stdin. Arguments that look like a password are refused;
-`ADMIN_RESET_PASSWORD` / `ADMIN_CREATE_PASSWORD` are deleted at start-up and never read. Never post the password in a group chat.
+**hidden prompt** (typed twice). Feeding a password on standard input is invalid: without a terminal the script exits 2 and changes nothing.
+Arguments that look like a password are refused;
+`ADMIN_RESET_PASSWORD` / `ADMIN_CREATE_PASSWORD` are deleted at start-up and never read. Never post the password or the binding link in a group chat.
+Send the binding link only in private to the account owner.
 ```sh
 DC="docker compose -p nbshiyan -f deploy/docker-compose.yml --env-file $NBSHIYAN_COMPOSE_ENV"
 $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin email>            # or --id <user id>
@@ -179,8 +182,8 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   unless `--clear-pending-enroll` is given; the flag clears the pending state and reopens the 72 h window (same fields as an ADMIN 2FA reset).
 - One transaction: new argon2id hash (same parameters as login), all sessions revoked (`sessionVersion`+1), lockout cleared,
   audit `user.password_reset` (+ `user.pending_enroll_cleared`) with actor `cli` and the user id only (no password, hash, secret or email).
-- #347: **stdout must be a terminal** (`exec -it`); otherwise it refuses with exit 2 before reading the password or touching
-  the DB (so the stdin-password form no longer works). In the same transaction it always issues a new one-time enroll token
+- #347: **stdout must be a terminal** (`exec -it`); otherwise it exits 2 and changes nothing, before reading a password or touching
+  the DB. Feeding a password on standard input is invalid. In the same transaction it always issues a new one-time enroll token
   (the old link stops working; with or without `--clear-pending-enroll`), audit `auth.enroll_token_issued` (source `cli`, no token),
   and prints the link / `有效至 … PT` (+ `已按账号绑定截止时间缩短` when capped by the 72 h window) / private-message reminder once.
   `NEXT_PUBLIC_SITE_URL` must be an https origin (exit 1 otherwise, nothing changed).
@@ -201,7 +204,7 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   Do not set `NODE_TLS_REJECT_UNAUTHORIZED=0`.
 - `RATE_LIMIT_STORE=redis` deletes the same six keys over TCP (`REDIS_URL`). Redis must be 7 or newer because the client sends `PEXPIRE ... NX`. In production, a non-loopback host must use `rediss://`. Loopback is only `127.0.0.1`, `::1`, and `localhost`, which may use `redis://`. When `APP_ENV=production`, an `http:` Upstash URL is refused before any request and the script prints `rate_limit=failed` (the bearer token is not sent and is not printed). This compose file stays on `upstash`:
   the app is not on `srh-net` and cannot open Redis on the internal network. Switching stores is a later deploy change.
-- Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments, 3 refused. Output shows the user id only.
+- Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments or stdout is not a terminal (nothing is changed), 3 refused. Output shows the user id only.
 
 ## 2FA audit (deploy gate for #361, before `deploy.sh up`)
 #361 closes the 2FA enroll window 72 h after `enrollIssuedAt` (set by an ADMIN 2FA reset) or, if empty, `createdAt`.
