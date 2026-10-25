@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { categoryProducts as products } from '@/data/categories';
+import { PUBLIC_ROUTES } from '@/lib/navigation/routes';
 import LangLinks from './LangLink';
 import CookieSettingsLink from '@/components/consent/CookieSettingsLink';
 
@@ -30,7 +31,8 @@ export default async function SiteFooter({ aboutVisible = false }: { aboutVisibl
       <div className="container bottom">
         <span>© {new Date().getFullYear()} PackJoyU</span>
         {aboutVisible && <Link href="/about">{nav('about')}</Link>}
-        <Link id="privacy-link" href="/privacy">{t('privacy')}</Link>
+        <Link id="footer-contact-link" href={PUBLIC_ROUTES.contact.path}>{nav('contact')}</Link>
+        <Link id={PUBLIC_ROUTES.privacy.entryId} href={PUBLIC_ROUTES.privacy.path} data-testid={PUBLIC_ROUTES.privacy.entryId}>{t('privacy')}</Link>
         <CookieSettingsLink label={t('cookieSettings')} />
         <LangLinks />
       </div>

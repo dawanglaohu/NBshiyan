@@ -1,0 +1,37 @@
+{
+  "pdfRole": "Page 2 of the old catalog is a historical theme for how a company overview can be organized. It is not a background image and it is not a source of renamed facts.",
+  "pdfPage": 2,
+  "blockedWithoutOwnEvidence": ["YUHAO certification", "production capacity", "factory scale"],
+  "fields": [
+    {
+      "pageField": "Company.claims.ownFactory",
+      "claim": "自有工厂",
+      "evidenceFile": "docs/brand-content/source/company-facts-attestation.json",
+      "evidencePointer": "confirmedClaims[0]"
+    },
+    {
+      "pageField": "Company.claims.supplyChain",
+      "claim": "整合供应链",
+      "evidenceFile": "docs/brand-content/source/company-facts-attestation.json",
+      "evidencePointer": "confirmedClaims[1]"
+    },
+    {
+      "pageField": "Company.claims.customization",
+      "claim": "多品类定制",
+      "evidenceFile": "docs/brand-content/source/company-facts-attestation.json",
+      "evidencePointer": "confirmedClaims[2]"
+    },
+    {
+      "pageField": "Company.claims.sampling",
+      "claim": "设计打样",
+      "evidenceFile": "docs/brand-content/source/company-facts-attestation.json",
+      "evidencePointer": "confirmedClaims[3]"
+    },
+    {
+      "pageField": "Company.claims.quality",
+      "claim": "质量把控",
+      "evidenceFile": "docs/brand-content/source/company-facts-attestation.json",
+      "evidencePointer": "confirmedClaims[4]"
+    }
+  ]
+}
