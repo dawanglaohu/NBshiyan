@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
@@ -23,6 +24,7 @@ const find = (locale: 'en' | 'ru', slug: string) => {
 };
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
+  await connection();
   const { locale: raw, slug } = await params; const locale = loc(raw);
   const c = categoryPagesLive() ? find(locale, slug) : undefined;
   if (!c) return {};
@@ -36,6 +38,7 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params }: P) {
+  await connection();
   const { locale: raw, slug } = await params; const locale = loc(raw);
   const live = categoryPagesLive();
   const c = live ? find(locale, slug) : undefined;
@@ -49,7 +52,7 @@ export default async function CategoryPage({ params }: P) {
       {alts && <LocaleAlternates pathname={`/products/${c[locale].slug}`} value={alts} />}
       <JsonLd data={categoryBreadcrumb(SITE_URL, locale, c.key, name, live)} />
       <h1>{name}</h1>
-      <p><Link href={categoryHref(locale, c.key, false)}>{locale === 'ru' ? '3D-каталог' : '3D Products'}</Link></p>
+      <p><Link href={categoryHref(locale, c.key, false)} data-testid="catalog-return-link">{locale === 'ru' ? '3D-каталог' : '3D Products'}</Link></p>
     </main>
   );
 }

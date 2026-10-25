@@ -1,6 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
-import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createRef, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Product } from '@/data/products';
 import type { BoxView } from './FoldBox';
 import SceneErrorBoundary from './SceneErrorBoundary';
@@ -21,6 +21,13 @@ const VIEWS: BoxView[] = ['closed', 'open', 'dieline'];
 const GalleryScene = dynamic(() => import('./GalleryScene'), { ssr: false });
 
 type Item = Product & { name: string; desc?: string; alt?: string; specs?: string[] };
+
+/** 只有 #锚点用原生 a。站内路径走 Link，才会带上语言前缀。 */
+function CatalogLink({ href, className, testId, children }: { href: string; className: string; testId: string; children: ReactNode }) {
+  if (href.startsWith('#')) return <a href={href} className={className} data-testid={testId}>{children}</a>;
+  return <Link href={href} className={className} data-testid={testId}>{children}</Link>;
+}
+
 type Labels = { learnMore: string; specsLabel: string; tap: string; drag: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
 export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
@@ -100,12 +107,15 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
 
   return (
     <div ref={rootRef}>
-      <div className="grid">
-        {items.map((p, idx) => (
+      <div className="grid product-grid">
+        {items.map((p, idx) => {
+          const catalogHref = p.landing ?? `#${p.slug}`;
+          return (
           <article key={p.slug} id={p.slug} className={`card${PREMIUM.has(p.slug) ? ' theme-premium' : ''}`}>
             <div
               ref={tracks[idx]}
               data-slug={p.slug}
+              data-testid="product-viewport"
               className={`stage${active === p.slug ? ' active' : ''}`}
               onClick={() => { if (!finePointer.current) setActive(p.slug); }}
               onPointerEnter={onEnter(p.slug)}
@@ -113,7 +123,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               onPointerDown={onDown(p.slug)}
             >
               {/* 静态图先显示，模型就绪后淡出，不造成布局偏移 */}
-              <img src={p.poster} alt={p.alt ?? p.name} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
+              <img src={p.poster} alt={p.alt ?? p.name} draggable={false} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
               {(() => {
                 const h = hintText({ failed: failed.has(p.slug) || sceneDead, started: armed && visible.has(p.slug), ready: ready.has(p.slug), interacting: active === p.slug || zoomSlug === p.slug, coarse }, labels);
                 return h && <span className="hint">{h}</span>;
@@ -122,18 +132,6 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               {active === p.slug && (
                 <button type="button" className="btn sm done" onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
               )}
-            </div>
-            <div className="body">
-              <h2 title={p.name}>{p.name}</h2>
-              {p.desc && <p className="desc">{p.desc}</p>}
-              {p.specs && p.specs.length > 0 && (
-                <ul className="specs" aria-label={labels.specsLabel}>{p.specs.slice(0, 3).map((s) => <li key={s}>{s}</li>)}</ul>
-              )}
-              <div className="actions">
-                <AddToQuoteButton slug={p.slug} />
-                {/* 品类落地页上线后在 products.ts 填 landing 即显示 */}
-                {p.landing && <Link href={p.landing} className="more">{labels.learnMore} <span aria-hidden="true">→</span><span className="sr-only"> {p.name}</span></Link>}
-              </div>
             </div>
             {VIEW_SLUGS.has(p.slug) && (
               <div className="views" role="group" aria-label={labels.viewsLabel}>
@@ -145,8 +143,21 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
                 ))}
               </div>
             )}
+            <div className="body">
+              <h2>
+                <CatalogLink href={catalogHref} className="product-name-link" testId="product-name-link">{p.name}</CatalogLink>
+              </h2>
+              {p.specs && p.specs.length > 0 && (
+                <ul className="specs" aria-label={labels.specsLabel}>{p.specs.slice(0, 3).map((s) => <li key={s}>{s}</li>)}</ul>
+              )}
+              <div className="actions">
+                <AddToQuoteButton slug={p.slug} />
+                <CatalogLink href={catalogHref} className="category-link" testId="category-link">{labels.learnMore}<span className="sr-only"> {p.name}</span></CatalogLink>
+              </div>
+            </div>
           </article>
-        ))}
+          );
+        })}
       </div>
       {armed && visible.size > 0 && !sceneDead && (<SceneErrorBoundary onError={() => setSceneDead(true)}><GalleryScene
         eventSource={rootRef}
