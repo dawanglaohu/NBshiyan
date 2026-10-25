@@ -9,11 +9,12 @@ import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
 // 隔离库只认本任务的专用变量。没有它就跳过，避免连上开发库或生产库。
-// describe 级 skip 在 TAP 里是 tests 0 / skipped 0，CI 缺地址时必须直接失败。
+// describe 级 skip 在 TAP 里是 tests 0 / skipped 0。
+// build-and-audit 也会设 CI=true，但没有数据库。只有 PG17 步骤设 M3T2_REQUIRE_DATABASE=true，缺地址时才抛错。
 const databaseUrl = process.env.M3T2_TEST_DATABASE_URL?.startsWith('postgres')
   ? process.env.M3T2_TEST_DATABASE_URL
   : '';
-if (process.env.CI === 'true' && !databaseUrl) {
+if (process.env.CI === 'true' && process.env.M3T2_REQUIRE_DATABASE === 'true' && !databaseUrl) {
   throw new Error('M3T2_TEST_DATABASE_URL must be a postgres URL when CI=true');
 }
 const skip = !databaseUrl && 'no dedicated M3T2_TEST_DATABASE_URL';
