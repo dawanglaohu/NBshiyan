@@ -22,11 +22,23 @@ test.describe('404 robots meta (#429)', () => {
     });
   }
 
-  test('/de 语言未上线：状态 404，恰好 1 个 robots meta 为 noindex', async ({ page }) => {
+  // 未上线语言 rewrite 到 locale-unavailable 后，Next 会在 head 和客户端渲染各插一次 noindex（框架行为），所以渲染后 DOM 不限条数，只要求都是 noindex。
+  test('/de 语言未上线：状态 404，原始 HTML 恰好 1 条 robots 为 noindex', async ({ page }) => {
     const res = await page.goto('/de');
     expect(res!.status()).toBe(404);
-    const robots = page.locator('meta[name="robots"]');
-    await expect(robots).toHaveCount(1);
-    await expect(robots).toHaveAttribute('content', 'noindex');
+    const html = await res!.text();
+    const robotsTags = html.match(/<meta name="robots"[^>]*>/g) ?? [];
+    expect(robotsTags).toHaveLength(1);
+    expect(robotsTags[0]).toContain('content="noindex"');
+    expect(html).toContain('<title>Page not found | PackJoyU</title>');
+    const contents = await page.locator('meta[name="robots"]').evaluateAll((els) =>
+      els.map((el) => el.getAttribute('content') ?? ''),
+    );
+    expect(contents.length).toBeGreaterThanOrEqual(1);
+    for (const content of contents) {
+      expect(content).toContain('noindex');
+      expect(content).not.toMatch(/(^|[\s,])index\b/);
+      expect(content).not.toMatch(/\bfollow\b/);
+    }
   });
 });
