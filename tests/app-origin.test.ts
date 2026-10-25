@@ -71,8 +71,8 @@ test('#323 assertSameOrigin 生产（APP_ENV=production）：只认 APP_ORIGIN�
     assert.equal(assertSameOrigin(post('http://0.0.0.0:3000'), { ...PROD, APP_ORIGIN: a })?.status, 403, String(a));
     assert.equal(assertSameOrigin(post('https://geiom.com'), { ...PROD, APP_ORIGIN: a })?.status, 403, String(a));
   }
-  // VERCEL_ENV=production 同样按生产处理（isProdEnvFrom）
-  assert.equal(assertSameOrigin(post('http://0.0.0.0:3000'), { VERCEL_ENV: 'production', APP_ORIGIN: 'https://geiom.com' })?.status, 403);
+  // 只设 VERCEL_ENV=production 不是生产：请求自身的 origin 仍然放行
+  assert.equal(assertSameOrigin(post('http://0.0.0.0:3000'), { VERCEL_ENV: 'production', APP_ORIGIN: 'https://geiom.com' }), null);
   // GET / HEAD / OPTIONS 不检查（与以前一样）
   for (const m of ['GET', 'HEAD', 'OPTIONS']) assert.equal(assertSameOrigin(new Request('http://0.0.0.0:3000/api/admin/x', { method: m }), PROD), null, m);
 });

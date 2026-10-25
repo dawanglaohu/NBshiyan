@@ -5,8 +5,8 @@ import { seoMockEnabled, categoryPagesLive } from '../src/lib/seo/mock';
 import { CATEGORY_PAGES_LIVE } from '../src/lib/seo/categoryPages';
 import { prodEnvProblems } from '../prod-env-check';
 
-// #291：SEO_AUDIT_MOCK 只看正式部署标记（APP_ENV/VERCEL_ENV），不看 NODE_ENV：本地审计用 next build/start，NODE_ENV 总是 production
-test('SEO_AUDIT_MOCK ignored on production deploy (APP_ENV / VERCEL_ENV), even with NODE_ENV=production', () => {
+// SEO_AUDIT_MOCK 只在 APP_ENV 明确为非 production 时打开。VERCEL_ENV 与 NODE_ENV 都不打开它（本地审计的 next build/start 里 NODE_ENV 总是 production）。
+test('SEO_AUDIT_MOCK ignored when APP_ENV=production, even with NODE_ENV=production', () => {
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', NODE_ENV: 'production', APP_ENV: 'production' }), false);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', NODE_ENV: 'production', VERCEL_ENV: 'production' }), false);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', APP_ENV: 'production', VERCEL_ENV: 'preview' }), false);
@@ -17,13 +17,14 @@ test('default-safe: APP_ENV and VERCEL_ENV both unset -> off', () => {
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1' }), false);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', NODE_ENV: 'production' }), false);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', APP_ENV: '  ' }), false);
+  assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', VERCEL_ENV: 'preview' }), false);
+  assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', VERCEL_ENV: 'production' }), false);
 });
 
 test('explicit APP_ENV=development/test + SEO_AUDIT_MOCK=1 -> on (local audit build, NODE_ENV=production)', () => {
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', APP_ENV: 'development' }), true);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', APP_ENV: 'development', NODE_ENV: 'production' }), true);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', APP_ENV: 'test', NODE_ENV: 'production' }), true);
-  assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', VERCEL_ENV: 'preview' }), true);
   assert.equal(categoryPagesLive({ SEO_AUDIT_MOCK: '1', APP_ENV: 'development', NODE_ENV: 'production' }), true);
   assert.equal(seoMockEnabled({ APP_ENV: 'development' }), false);
 });

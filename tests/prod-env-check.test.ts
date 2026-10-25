@@ -61,12 +61,13 @@ test('生产环境：mock 开启或 ADMIN_API 不是 http 时失败', () => {
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_TOKEN: '' }).length, 1);
   assert.equal(prodEnvProblems({ ...base, UPSTASH_REDIS_REST_URL: 'http://x' }).length, 1);
   assert.equal(prodEnvProblems({ APP_ENV: 'production' }).length, 22); // APP_ORIGIN 生产必填；deploy-readiness：STORAGE_DRIVER 未设置只报一条（不再连带 4 个 R2_*）；#74：RESEND_API_KEY → SMTP_HOST/PORT/USER/PASS；MAIL_SEND_ADAPTER、MAIL_WEBHOOK_SECRET 必填；#311：EDGE_AUTH_SECRET（运行时）；SMTP_USER/SMTP_PASS/MAIL_WEBHOOK_SECRET 也是运行时（默认 any 阶段照样报）；#432：未设置 RATE_LIMIT_STORE 只报一条（upstash 或 redis），不再连带两个 UPSTASH_*
-  assert.throws(() => assertProdEnv({ VERCEL_ENV: 'production' }));
+  assert.doesNotThrow(() => assertProdEnv({ VERCEL_ENV: 'production' }));
+  assert.deepEqual(prodEnvProblems({ VERCEL_ENV: 'production' }), []);
 });
 
 const SECRET = 'S3cr3t-value-that-must-not-leak-0123456789';
 const prodFull = {
-  VERCEL: '1', VERCEL_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', RATE_LIMIT_STORE: 'upstash',
+  APP_ENV: 'production', VERCEL: '1', VERCEL_ENV: 'production', NEXT_PUBLIC_ADMIN_API: 'http', RATE_LIMIT_STORE: 'upstash',
   UPSTASH_REDIS_REST_URL: 'https://x.upstash.io', UPSTASH_REDIS_REST_TOKEN: SECRET,
   STORAGE_DRIVER: 'r2', R2_ACCOUNT_ID: 'acc', R2_ACCESS_KEY_ID: 'akid', R2_SECRET_ACCESS_KEY: SECRET, R2_BUCKET: 'b',
   DATABASE_URL: `postgres://u:${SECRET}@h/db`, AUTH_SECRET: SECRET, AUTH_URL: 'https://packjoyu.com',
@@ -145,7 +146,7 @@ test('#74 多个问题一次性报出', () => {
 });
 
 test('#74 预览环境不检查', () => {
-  assert.deepEqual(prodEnvProblems({ ...prodFull, VERCEL_ENV: 'preview', STORAGE_DRIVER: 'local', CRON_SECRET: '', TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA' }), []);
+  assert.deepEqual(prodEnvProblems({ ...prodFull, APP_ENV: 'preview', VERCEL_ENV: 'preview', STORAGE_DRIVER: 'local', CRON_SECRET: '', TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA' }), []);
   assert.deepEqual(prodEnvProblems({ VERCEL_ENV: 'development' }), []);
 });
 

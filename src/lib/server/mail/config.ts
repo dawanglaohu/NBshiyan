@@ -116,12 +116,12 @@ export function sendingEnabled(env: Env = process.env): boolean {
 }
 
 /**
- * 发信适配器选择：MAIL_SEND_ADAPTER=mock 只在非生产环境、且 APP_ENV/VERCEL_ENV 明确设置时生效（与 #306 的 SEO mock 同一规则：都没设时按关闭处理）；
- * 生产环境一律 SMTP（prod-env-check 也会拒绝 mock）。
+ * 发信适配器：MAIL_SEND_ADAPTER=mock 只在 APP_ENV 去空白后非空、且不是 production 时生效。
+ * APP_ENV 未设置时关闭。APP_ENV=production 时关闭（prod-env-check 也会拒绝 mock）。VERCEL_ENV 不参与。
  */
 export function mockAdapterAllowed(env: Env = process.env): boolean {
   if (env.MAIL_SEND_ADAPTER !== 'mock') return false;
-  const appEnv = env.APP_ENV || env.VERCEL_ENV;
+  const appEnv = env.APP_ENV?.trim();
   return !!appEnv && !isProdEnvFrom(env);
 }
 
