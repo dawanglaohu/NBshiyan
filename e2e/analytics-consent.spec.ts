@@ -429,11 +429,18 @@ test('三个视口的同意控件是扁平强调色，键盘可操作，触控�
       return { width: computed.borderTopWidth, radius: computed.borderTopLeftRadius };
     });
     if (dialogChrome.width !== '2px' || dialogChrome.radius !== '0px') throw new Error('expected a flat dialog');
-    const short = await dialog.locator('button').evaluateAll((elements) => elements.some((element) => {
+    // 等弹层入场结束再量。静止后的按钮仍须至少 44px。
+    await dialog.evaluate(async (element) => {
+      const pending = element.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => undefined));
+      await Promise.all(pending);
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    });
+    await expect.poll(async () => dialog.locator('button').evaluateAll((elements) => elements.flatMap((element) => {
       const box = element.getBoundingClientRect();
-      return box.width < 44 || box.height < 44;
-    }));
-    if (short) throw new Error('expected a 44px target');
+      if (box.width >= 44 && box.height >= 44) return [];
+      const name = element.getAttribute('aria-label') || element.textContent?.trim() || element.className;
+      return [`${name} ${box.width.toFixed(2)}x${box.height.toFixed(2)}`];
+    }))).toEqual([]);
     const analytics = dialog.getByRole('switch', { name: 'Optional analytics' });
     await expect(analytics).toBeFocused();
     await expect.poll(async () => flatTrack(await switchFace(page, 'Necessary'), true)).toBe(true);
@@ -535,7 +542,17 @@ test('390 下确认 toast 显示期间悬浮按钮中心命中自身', async ({ 
     await page.goto(item.path);
     await page.evaluate(() => localStorage.removeItem('pj-consent'));
     await page.reload();
-    await page.getByRole('button', { name: item.accept }).click();
+    const accept = page.getByRole('button', { name: item.accept });
+    await expect(accept).toBeVisible();
+    const before = await page.evaluate(() => {
+      const root = document.documentElement;
+      const footer = document.querySelector('.site-footer');
+      return {
+        fabH: getComputedStyle(root).getPropertyValue('--fab-h').trim(),
+        footerPad: footer ? getComputedStyle(footer).paddingBottom : '',
+      };
+    });
+    await accept.click();
     const toast = page.locator('.consent-toast');
     await expect(toast).toBeVisible();
     const deadline = Date.now() + 8_000;
@@ -552,23 +569,24 @@ test('390 下确认 toast 显示期间悬浮按钮中心命中自身', async ({ 
       });
       if (!hit) throw new Error('expected the FAB center to hit the FAB');
       samples += 1;
-      if (!checkedLayout) {
-        const layout = await page.evaluate(() => {
-          const root = document.documentElement;
-          const style = getComputedStyle(root);
-          return {
-            banner: root.classList.contains('has-consent'),
-            clearance: style.getPropertyValue('--fab-clearance').trim(),
-            padding: getComputedStyle(document.body).paddingBottom,
-            fabH: style.getPropertyValue('--fab-h').trim(),
-          };
-        });
-        if (!layout.banner) {
-          if (layout.clearance !== '84px' || layout.padding !== '84px' || layout.fabH !== '') {
-            throw new Error('expected the footer clearance to stay put while the toast is visible');
-          }
-          checkedLayout = true;
+      const layout = await page.evaluate(() => {
+        const root = document.documentElement;
+        const style = getComputedStyle(root);
+        const footer = document.querySelector('.site-footer');
+        return {
+          banner: root.classList.contains('has-consent'),
+          clearance: style.getPropertyValue('--fab-clearance').trim(),
+          padding: getComputedStyle(document.body).paddingBottom,
+          fabH: style.getPropertyValue('--fab-h').trim(),
+          footerPad: footer ? getComputedStyle(footer).paddingBottom : '',
+        };
+      });
+      // 横幅关掉后页脚留白回到 84px，并在 toast 全程保持。--fab-h 和页脚 padding 保持点同意之前的值。
+      if (!layout.banner) {
+        if (layout.clearance !== '84px' || layout.padding !== '84px' || layout.fabH !== before.fabH || layout.footerPad !== before.footerPad) {
+          throw new Error(`expected the footer clearance to stay put while the toast is visible: clearance=${layout.clearance} padding=${layout.padding} fabH=${layout.fabH} was=${before.fabH} footer=${layout.footerPad} was=${before.footerPad}`);
         }
+        checkedLayout = true;
       }
       await page.waitForTimeout(200);
     }
