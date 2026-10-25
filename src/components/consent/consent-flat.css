@@ -1,0 +1,90 @@
+/* Section 11 on the consent banner and settings panel. Later and more specific than globals.css. */
+.consent.pj-flat {
+  border: var(--pj-border-width) solid var(--pj-border);
+  border-left: var(--pj-border-width) solid var(--pj-accent);
+  border-radius: var(--pj-radius);
+  box-shadow: var(--pj-shadow);
+}
+.cs-scrim .cs-dialog.pj-flat {
+  border: var(--pj-border-width) solid var(--pj-border);
+  border-radius: var(--pj-radius);
+  box-shadow: var(--pj-shadow);
+  background: var(--pj-bg);
+  color: var(--pj-fg);
+}
+@media (max-width: 767px) {
+  .cs-scrim .cs-dialog.pj-flat { border-radius: var(--pj-radius); }
+}
+.consent.pj-flat .consent-actions button.consent-main,
+.cs-dialog.pj-flat .cs-foot .consent-main {
+  background: var(--pj-accent);
+  border: var(--pj-border-width) solid var(--pj-accent);
+  border-radius: var(--pj-radius);
+  color: var(--pj-on-accent);
+  min-height: var(--pj-touch-target);
+  min-width: var(--pj-touch-target);
+}
+.consent.pj-flat .consent-actions button.consent-main:hover,
+.cs-dialog.pj-flat .cs-foot .consent-main:hover {
+  background: var(--pj-fg);
+  border-color: var(--pj-fg);
+  color: var(--pj-bg);
+}
+.consent.pj-flat .consent-actions button.consent-set,
+.cs-dialog.pj-flat .cs-foot .consent-set {
+  background: var(--pj-bg);
+  border: var(--pj-border-width) solid var(--pj-border);
+  border-radius: var(--pj-radius);
+  color: var(--pj-fg);
+  min-height: var(--pj-touch-target);
+  min-width: var(--pj-touch-target);
+}
+.cs-dialog.pj-flat .cs-x,
+.cs-dialog.pj-flat .cs-switch {
+  width: var(--pj-touch-target);
+  height: var(--pj-touch-target);
+  min-width: var(--pj-touch-target);
+  min-height: var(--pj-touch-target);
+  border: var(--pj-border-width) solid var(--pj-border);
+  border-radius: var(--pj-radius);
+  background: var(--pj-bg);
+  color: var(--pj-fg);
+}
+.cs-dialog.pj-flat .cs-switch i,
+.cs-dialog.pj-flat .cs-switch i::after {
+  border-radius: var(--pj-radius);
+}
+.cs-dialog.pj-flat .cs-switch i {
+  width: 100%;
+  height: 100%;
+  background: var(--pj-bg);
+}
+.cs-dialog.pj-flat .cs-switch[aria-checked="true"] i {
+  background: var(--pj-accent);
+}
+.cs-dialog.pj-flat .cs-switch:focus-visible,
+.cs-dialog.pj-flat .cs-x:focus-visible,
+.consent.pj-flat .consent-actions button:focus-visible,
+.cs-dialog.pj-flat .cs-foot button:focus-visible {
+  outline: var(--pj-focus-width) solid var(--pj-accent);
+  outline-offset: var(--pj-focus-offset);
+}
+.cs-dialog.pj-flat .cs-switch:focus-visible i { outline: none; }
+.consent-toast {
+  border: var(--pj-border-width) solid var(--pj-border);
+  border-radius: var(--pj-radius);
+  box-shadow: var(--pj-shadow);
+}
+.consent-toast button { min-height: var(--pj-touch-target); min-width: var(--pj-touch-target); }
+#analytics-preferences {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--pj-touch-target);
+  min-width: var(--pj-touch-target);
+}
+#analytics-preferences .linklike {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--pj-touch-target);
+  min-width: var(--pj-touch-target);
+}

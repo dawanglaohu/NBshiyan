@@ -4,7 +4,9 @@ import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { consentCloseSource, consentFocusTarget, type ConsentCloseSource } from '@/lib/a11y/focus';
+import { publishConsentChoice } from '@/lib/client/analytics';
 import { CONSENT_OPEN_EVENT, consentNotice, getConsent, migrateLegacyChat, onConsent, setConsent, type Consent } from '@/lib/consent';
+import './consent-flat.css';
 
 type Toast = 'saved' | 'withdrawn';
 
@@ -78,7 +80,8 @@ export default function CookieConsent() {
     const kind: Toast = consentNotice(before, next.analytics);
     setOpen(false);
     setConsent(next);
-    if (fromDialog || kind === 'withdrawn') setToast(kind);
+    setToast(kind);
+    publishConsentChoice(next.analytics);
     restoreFocus(consentCloseSource(fromDialog ? 'dialog-save' : 'banner-choice', openedFromBanner.current));
   };
 
@@ -101,7 +104,7 @@ export default function CookieConsent() {
   return (
     <>
       {show && !open && (
-        <div ref={ref} className="consent" role="region" aria-label={t('label')}>
+        <div ref={ref} className="consent pj-flat" role="region" aria-label={t('label')}>
           <p>{t('text')} <Link href="/privacy">{t('policy')}</Link></p>
           <div className="consent-actions">
             <button type="button" className="consent-main" onClick={() => save({ analytics: false, chat: false }, false)}>{t('reject')}</button>
@@ -162,7 +165,7 @@ function SettingsDialog({ draft, setDraft, onClose, onSave }: {
   );
   return createPortal(
     <div className="cs-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div ref={box} className="cs-dialog" role="dialog" aria-modal="true" aria-labelledby={`${id}-t`} aria-describedby={`${id}-d`} onKeyDown={onKey}>
+      <div ref={box} className="cs-dialog pj-flat" role="dialog" aria-modal="true" aria-labelledby={`${id}-t`} aria-describedby={`${id}-d`} onKeyDown={onKey}>
         <div className="cs-head">
           <h2 id={`${id}-t`}>{t('title')}</h2>
           <button type="button" className="cs-x" aria-label={t('close')} onClick={onClose}>✕</button>

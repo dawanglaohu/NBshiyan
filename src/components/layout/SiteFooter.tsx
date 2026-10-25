@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation';
 import { categoryProducts as products } from '@/data/categories';
 import LangLinks from './LangLink';
 import CookieSettingsLink from '@/components/consent/CookieSettingsLink';
+import '@/components/consent/consent-flat.css';
 
 // 站点页脚（#65）：公司、品类、联系、隐私政策、语言切换
 // #350 aboutVisible：显示规则同导航（服务端 layout 传入）
@@ -31,7 +32,7 @@ export default async function SiteFooter({ aboutVisible = false }: { aboutVisibl
         <span>© {new Date().getFullYear()} PackJoyU</span>
         {aboutVisible && <Link href="/about">{nav('about')}</Link>}
         <Link id="privacy-link" href="/privacy">{t('privacy')}</Link>
-        <CookieSettingsLink label={t('cookieSettings')} />
+        <span id="analytics-preferences"><CookieSettingsLink label={t('cookieSettings')} /></span>
         <LangLinks />
       </div>
     </footer>

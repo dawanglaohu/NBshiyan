@@ -1,16 +1,38 @@
 import type { Metadata } from 'next';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
+import { TimezoneSchema } from '@/lib/contracts/common';
 import { buildPrivacy, privacyIndexable } from '@/lib/legal/privacy';
 import { pageMetadata } from '@/lib/seo/pageMeta';
+import { prisma } from '@/lib/server/db';
+import { ANALYTICS_SETTINGS_KEY } from '@/lib/server/jobs/types';
+import { retentionFacts } from './retention-facts';
 
-// 隐私政策：文案在 messages Privacy.*；含 {{待Ryan确认}} 的条目不渲染。
-// PRIVACY_PAGE_COMPLETE=false 或仍有占位符时 noindex（sitemap 用同一开关排除）。
-export const dynamic = 'force-static';
+// 时区读 SiteSetting。没有行或读失败时显示 UTC。不在构建期连库。
+export const dynamic = 'force-dynamic';
 
 async function privacyMessages(locale: string) {
   const m = (await getMessages({ locale })) as Record<string, unknown>;
   return (m.Privacy ?? {}) as Record<string, unknown>;
+}
+
+function timezoneOf(value: unknown): string {
+  let data = value;
+  if (typeof data === 'string') {
+    try { data = JSON.parse(data) as unknown; } catch { return 'UTC'; }
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return 'UTC';
+  const parsed = TimezoneSchema.safeParse((data as { timezone?: unknown }).timezone);
+  return parsed.success ? parsed.data : 'UTC';
+}
+
+async function siteTimezone(): Promise<string> {
+  try {
+    const row = await prisma.siteSetting.findUnique({ where: { key: ANALYTICS_SETTINGS_KEY } });
+    return timezoneOf(row?.value);
+  } catch {
+    return 'UTC';
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -25,6 +47,8 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
   setRequestLocale(locale);
   const t = await getTranslations('Privacy');
   const doc = buildPrivacy(await privacyMessages(locale));
+  const facts = retentionFacts();
+  const timezone = await siteTimezone();
   return (
     <main className="container legal">
       <h1>{doc.title}</h1>
@@ -37,6 +61,20 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           {s.key === 'contact' && <p><Link href="/contact">{t('contactLink')}</Link></p>}
         </section>
       ))}
+      <section id="privacy-necessary-chat" aria-labelledby="privacy-necessary-chat-title">
+        <h2 id="privacy-necessary-chat-title">{t('ledger.necessaryTitle')}</h2>
+        <p>{t('ledger.necessary', facts)}</p>
+      </section>
+      <section id="privacy-analytics-consent" aria-labelledby="privacy-analytics-consent-title">
+        <h2 id="privacy-analytics-consent-title">{t('ledger.analyticsTitle')}</h2>
+        <p>{t('ledger.visitors')}</p>
+        <p>{t('ledger.analytics', facts)}</p>
+      </section>
+      <section id="privacy-cleanup-status" aria-labelledby="privacy-cleanup-status-title">
+        <h2 id="privacy-cleanup-status-title">{t('ledger.cleanupTitle')}</h2>
+        <p>{t('ledger.cleanup')}</p>
+      </section>
+      <p id="privacy-site-timezone">{timezone}</p>
     </main>
   );
 }
