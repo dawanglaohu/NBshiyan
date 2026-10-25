@@ -39,8 +39,7 @@
   min-height: var(--pj-touch-target);
   min-width: var(--pj-touch-target);
 }
-.cs-dialog.pj-flat .cs-x,
-.cs-dialog.pj-flat .cs-switch {
+.cs-dialog.pj-flat .cs-x {
   width: var(--pj-touch-target);
   height: var(--pj-touch-target);
   min-width: var(--pj-touch-target);
@@ -50,17 +49,43 @@
   background: var(--pj-bg);
   color: var(--pj-fg);
 }
-.cs-dialog.pj-flat .cs-switch i,
-.cs-dialog.pj-flat .cs-switch i::after {
-  border-radius: var(--pj-radius);
+.cs-dialog.pj-flat .cs-switch {
+  width: 56px;
+  height: 44px;
+  min-width: 44px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
 }
 .cs-dialog.pj-flat .cs-switch i {
-  width: 100%;
-  height: 100%;
+  box-sizing: border-box;
+  width: 44px;
+  height: 24px;
+  border: var(--pj-border-width) solid var(--pj-border);
+  border-radius: 0;
   background: var(--pj-bg);
+  position: relative;
+}
+.cs-dialog.pj-flat .cs-switch i::before { content: none; }
+.cs-dialog.pj-flat .cs-switch i::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 0;
+  background: var(--pj-fg);
 }
 .cs-dialog.pj-flat .cs-switch[aria-checked="true"] i {
   background: var(--pj-accent);
+  border-color: var(--pj-accent);
+}
+.cs-dialog.pj-flat .cs-switch[aria-checked="true"] i::after {
+  transform: translateX(20px);
+  background: var(--pj-on-accent);
 }
 .cs-dialog.pj-flat .cs-switch:focus-visible,
 .cs-dialog.pj-flat .cs-x:focus-visible,
@@ -87,4 +112,12 @@
   align-items: center;
   min-height: var(--pj-touch-target);
   min-width: var(--pj-touch-target);
+}
+/* ≤767：横幅显示时仍走 html.has-consent .fab。横幅关掉后 --pj-consent-h 归零，toast 期间加上 --pj-toast-h。
+   bottom 立刻到位，不跟 0.2s 过渡滑进 toast。--fab-h 和页脚留白不在这里改。 */
+@media (max-width: 767px) {
+  html:not(.has-consent) .fab {
+    bottom: calc(16px + var(--pj-consent-h, 0px) + var(--pj-toast-h, 0px) + env(safe-area-inset-bottom));
+    transition: none;
+  }
 }

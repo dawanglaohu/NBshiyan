@@ -35,6 +35,59 @@ async function queueLength(page: Page): Promise<number> {
   return Number(raw ?? '0');
 }
 
+function thumbOffset(transform: string): number | null {
+  if (transform === 'none') return 0;
+  const match = /^matrix\(([^)]+)\)$/.exec(transform);
+  if (!match) return null;
+  const parts = match[1].split(',').map((part) => Number(part.trim()));
+  if (parts.length !== 6 || parts.some((part) => Number.isNaN(part))) return null;
+  return parts[4];
+}
+
+async function switchFace(page: Page, name: string) {
+  return page.getByRole('switch', { name }).locator('i').evaluate((el) => {
+    const track = getComputedStyle(el);
+    const after = getComputedStyle(el, '::after');
+    const before = getComputedStyle(el, '::before');
+    const probe = document.createElement('div');
+    probe.style.background = 'var(--pj-accent)';
+    document.body.appendChild(probe);
+    const accent = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return {
+      trackW: track.width,
+      trackH: track.height,
+      trackRadius: track.borderTopLeftRadius,
+      border: track.borderTopWidth,
+      background: track.backgroundColor,
+      accent,
+      before: before.content,
+      afterW: after.width,
+      afterH: after.height,
+      afterRadius: after.borderTopLeftRadius,
+      transform: after.transform,
+      scroll: el.scrollWidth,
+      client: el.clientWidth,
+    };
+  });
+}
+
+function flatTrack(face: Awaited<ReturnType<typeof switchFace>>, on: boolean): boolean {
+  const offset = thumbOffset(face.transform);
+  const moved = offset !== null && Math.abs(offset - (on ? 20 : 0)) < 0.6;
+  return face.trackW === '44px'
+    && face.trackH === '24px'
+    && face.trackRadius === '0px'
+    && face.border === '2px'
+    && face.before === 'none'
+    && face.afterW === '16px'
+    && face.afterH === '16px'
+    && face.afterRadius === '0px'
+    && face.scroll <= face.client
+    && moved
+    && (on ? face.background === face.accent : face.background !== face.accent);
+}
+
 async function assertNoAnalyticsIdentity(page: Page): Promise<void> {
   const cookies = await page.context().cookies();
   if (cookies.some((cookie) => cookie.name === 'pj_analytics')) throw new Error('expected no analytics cookie');
@@ -383,8 +436,11 @@ test('三个视口的同意控件是扁平强调色，键盘可操作，触控�
     if (short) throw new Error('expected a 44px target');
     const analytics = dialog.getByRole('switch', { name: 'Optional analytics' });
     await expect(analytics).toBeFocused();
+    await expect.poll(async () => flatTrack(await switchFace(page, 'Necessary'), true)).toBe(true);
     await page.keyboard.press('Space');
+    await expect.poll(async () => flatTrack(await switchFace(page, 'Optional analytics'), true)).toBe(true);
     await page.keyboard.press('Space');
+    await expect.poll(async () => flatTrack(await switchFace(page, 'Optional analytics'), false)).toBe(true);
     await page.screenshot({ path: path.join(FRAMES, `${size.width}-switch.png`) });
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
@@ -402,4 +458,121 @@ test('三个视口的同意控件是扁平强调色，键盘可操作，触控�
   if (!privacyBox || privacyBox.width < 44 || privacyBox.height < 44) throw new Error('expected a 44px privacy link');
   const prefs = await page.locator('#cookie-settings-link').boundingBox();
   if (!prefs || prefs.width < 44 || prefs.height < 44) throw new Error('expected a 44px preferences control');
+});
+
+test('在途的撤回清掉后到的同意，全程只有一次同意请求', async ({ page }) => {
+  test.setTimeout(60_000);
+  const seen = track(page);
+  let heldFalse = false;
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/api/analytics/consent', async (route) => {
+    const body = route.request().postData() ?? '';
+    if (!heldFalse && body.includes('"analytics":false')) {
+      heldFalse = true;
+      await gate;
+    }
+    const response = await route.fetch();
+    await route.fulfill({ response });
+  });
+  try {
+    await page.goto('/en');
+    await page.getByRole('button', { name: 'Reject all' }).click();
+    await expect.poll(() => heldFalse).toBe(true);
+    await page.locator('.consent-toast').getByRole('button', { name: 'Change' }).click();
+    await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Accept all' }).click();
+    await page.locator('.consent-toast').getByRole('button', { name: 'Change' }).click();
+    await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Reject all' }).click();
+    const finished = page.waitForResponse((response) => (
+      response.url().includes('/api/analytics/consent')
+      && (response.request().postData() ?? '').includes('"analytics":false')
+    ));
+    release();
+    await finished;
+    await page.evaluate(() => new Promise((resolve) => { window.setTimeout(resolve, 300); }));
+    if (seen.consents.length !== 1) throw new Error('expected a single consent request');
+    if (!seen.consents[0]?.includes('"analytics":false')) throw new Error('expected the consent request to be a withdrawal');
+    if (await page.locator('html').getAttribute('data-analytics-collecting') !== 'false') {
+      throw new Error('expected collection to stay off');
+    }
+    await expect.poll(() => queueLength(page)).toBe(0);
+  } finally {
+    release();
+    await page.unroute('**/api/analytics/consent');
+  }
+});
+
+test('同意后刷新会接受这一次加载的 page_view', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto('/en');
+  await page.getByRole('button', { name: 'Accept all' }).click();
+  await waitForGrant(page);
+  const posted = page.waitForResponse((response) => (
+    response.url().includes('/api/analytics/events') && response.request().method() === 'POST' && response.ok()
+  ));
+  await page.reload();
+  const response = await posted;
+  const receipt = await response.json() as { acceptedIds?: string[] };
+  const payload = response.request().postDataJSON() as { events?: { kind: string; eventId: string }[] };
+  const pageView = payload.events?.find((event) => event.kind === 'page_view');
+  if (!pageView || !receipt.acceptedIds?.includes(pageView.eventId)) {
+    throw new Error('expected the reloaded page view to be accepted');
+  }
+  if (await page.locator('html').getAttribute('data-analytics-collecting') !== 'true') {
+    throw new Error('expected collection to resume after reload');
+  }
+});
+
+test('390 下确认 toast 显示期间悬浮按钮中心命中自身', async ({ page }) => {
+  test.setTimeout(45_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const cases = [
+    { path: '/en', accept: 'Accept all' },
+    { path: '/ru', accept: 'Принять все' },
+  ];
+  for (const item of cases) {
+    await page.context().clearCookies();
+    await page.goto(item.path);
+    await page.evaluate(() => localStorage.removeItem('pj-consent'));
+    await page.reload();
+    await page.getByRole('button', { name: item.accept }).click();
+    const toast = page.locator('.consent-toast');
+    await expect(toast).toBeVisible();
+    const deadline = Date.now() + 8_000;
+    let samples = 0;
+    let checkedLayout = false;
+    while (await toast.isVisible()) {
+      if (Date.now() > deadline) throw new Error('toast remained visible past the deadline');
+      const hit = await page.locator('.fab .toggle').evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        if (box.width < 1 || box.height < 1) return false;
+        const target = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        const fab = el.closest('.fab');
+        return Boolean(target && fab && fab.contains(target));
+      });
+      if (!hit) throw new Error('expected the FAB center to hit the FAB');
+      samples += 1;
+      if (!checkedLayout) {
+        const layout = await page.evaluate(() => {
+          const root = document.documentElement;
+          const style = getComputedStyle(root);
+          return {
+            banner: root.classList.contains('has-consent'),
+            clearance: style.getPropertyValue('--fab-clearance').trim(),
+            padding: getComputedStyle(document.body).paddingBottom,
+            fabH: style.getPropertyValue('--fab-h').trim(),
+          };
+        });
+        if (!layout.banner) {
+          if (layout.clearance !== '84px' || layout.padding !== '84px' || layout.fabH !== '') {
+            throw new Error('expected the footer clearance to stay put while the toast is visible');
+          }
+          checkedLayout = true;
+        }
+      }
+      await page.waitForTimeout(200);
+    }
+    if (!checkedLayout) throw new Error('expected the banner to close while the toast was visible');
+    if (samples < 8) throw new Error('expected samples across the whole toast');
+  }
 });

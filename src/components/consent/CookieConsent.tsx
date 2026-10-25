@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
@@ -52,15 +52,17 @@ export default function CookieConsent() {
 
   useEffect(() => { if (!toast) return; const id = window.setTimeout(() => setToast(null), 5000); return () => window.clearTimeout(id); }, [toast]);
 
-  // 确认 toast 显示时把（高度 + 12px）写进 --pj-consent-h，其他底部提示（如询价清单提示）据此上移；隐藏/卸载时归 0
+  // 确认 toast 显示期间写入 --pj-toast-h（高度 + 12px），消失时删掉。
+  // 横幅关闭后 --pj-consent-h 会归零，手机端悬浮按钮组要另加这一变量，不能只靠横幅变量。
   const toastRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = toastRef.current; const root = document.documentElement;
-    if (!toast || !el) { root.style.setProperty('--pj-consent-h', '0px'); return; }
-    const sync = () => root.style.setProperty('--pj-consent-h', `${Math.ceil(el.getBoundingClientRect().height) + 12}px`);
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const el = toastRef.current;
+    if (!toast || !el) { root.style.removeProperty('--pj-toast-h'); return; }
+    const sync = () => root.style.setProperty('--pj-toast-h', `${Math.ceil(el.getBoundingClientRect().height) + 12}px`);
     sync();
     const ro = new ResizeObserver(sync); ro.observe(el);
-    return () => { ro.disconnect(); root.style.setProperty('--pj-consent-h', '0px'); };
+    return () => { ro.disconnect(); root.style.removeProperty('--pj-toast-h'); };
   }, [toast]);
 
   // 手机端同意条占满底部：把实际高度写进 CSS 变量，悬浮按钮组据此上移到同意条上方 12px，关闭后复原

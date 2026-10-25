@@ -8,7 +8,7 @@ import {
   type AnalyticsEventDTO,
 } from '@/lib/contracts/analytics';
 import { SitePathSchema } from '@/lib/contracts/common';
-import { CONSENT_VERSION } from '@/lib/consent';
+import { CONSENT_VERSION, getConsent } from '@/lib/consent';
 
 const PRODUCT_KEYS = new Set(products.map((product) => product.slug));
 const MAX_BATCH = 20;
@@ -165,15 +165,24 @@ function emit(pathname: string, value: Locale): void {
 }
 
 /**
- * First call in a document is the load. Later pathname changes emit only while
- * this document has already confirmed consent. A reload does not resume collection.
+ * First call in a document is the load. A stored analytics allow resumes
+ * collection and emits that page view; a 403 from the event batch stops it.
+ * Later pathname changes emit only while collection is on.
  */
 export function noteNavigation(pathname: string, value: Locale): void {
   locale = value;
   ensureOnlineListener();
   const first = !opened;
   opened = true;
-  if (first || !collecting) return;
+  if (first) {
+    if (getConsent()?.analytics === true) {
+      collecting = true;
+      syncMarks();
+      emit(pathname, value);
+    }
+    return;
+  }
+  if (!collecting) return;
   emit(pathname, value);
 }
 
@@ -219,7 +228,12 @@ export function publishConsentChoice(analytics: boolean): void {
   ensureOnlineListener();
   if (!analytics) {
     stopCollection();
-    if (flightWant === false || nextIntent === false) return;
+    // A false write is already in flight. Drop a queued allow so its response cannot start collection.
+    if (flightWant === false) {
+      nextIntent = null;
+      return;
+    }
+    if (nextIntent === false) return;
     nextIntent = false;
   } else {
     nextIntent = true;

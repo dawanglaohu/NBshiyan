@@ -4,7 +4,7 @@ import { useLocale } from 'next-intl';
 import { usePathname } from '@/i18n/navigation';
 import { noteNavigation } from '@/lib/client/analytics';
 
-/** Emits page_view after a confirmed consent, on later pathname changes only. */
+/** Emits the loaded page view when analytics is already allowed, then later pathname changes while collection is on. */
 export default function PageEvents() {
   const pathname = usePathname();
   const locale = useLocale();
