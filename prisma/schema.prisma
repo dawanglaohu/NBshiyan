@@ -488,6 +488,36 @@ model AnalyticsEvent {
   @@index([viewId])
 }
 
+// 一个已结束站点本地日的汇总是否在同一个事务里写完。siteDate 是站点时区的 YYYY-MM-DD，不是 UTC 日。
+// timezoneRevision 是写入时 analytics.settings 的时区代次。代次不符的行保留原来的日界标签，
+// 当前时区下不算已汇总，避免切换当天被两种日界各算一次。不存浏览器、路径或事件标识。
+model AnalyticsRollupDay {
+  siteDate            String   @id
+  timezoneRevision    Int
+  completedAt         DateTime
+  eventCount          Int
+  sourceMaxReceivedAt DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// (siteDate, kind, locale, productSlug) 的计数。productSlug 没有产品时存 ''：
+// 可空列上的唯一约束会把多个 NULL 当成不同行，空字符串才能挡住重复组合。
+// 只存日期、语言、种类、产品内部 key 和计数。uniqueBrowsers 是该组合里 distinct browserHash 的个数，不存哈希。
+// 不存 path、browserHash、eventId、navigationId、viewId 或查询串。
+model AnalyticsDailyRollup {
+  siteDate       String
+  kind           AnalyticsEventKind
+  locale         String
+  productSlug    String             @default("")
+  count          Int
+  uniqueBrowsers Int
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([siteDate, kind, locale, productSlug])
+}
+
 // 访客必要会话。cookie 是 256bit 随机原值，这里只存 SHA-256。7 天闲置、首次签发后 30 天绝对。
 // 没有邮箱列：相同邮箱不能找回旧会话。过期或撤销只拒绝访问，不在这里删除咨询正文。
 model ChatVisitorSession {

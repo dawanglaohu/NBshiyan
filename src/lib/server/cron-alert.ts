@@ -40,3 +40,25 @@ export async function alertCleanupIssues(
   }
   return true;
 }
+
+/**
+ * 统计汇总失败时发一封告警。只含任务名、错误码和已完成天数，按 UTC 日期去重。
+ * 告警失败只记类型，不影响 cron 的响应。
+ */
+export async function alertAnalyticsRollupIssue(
+  input: { errorCode: string; days: number },
+  send: Send,
+  now = new Date(),
+): Promise<boolean> {
+  const lines: Record<string, string | number> = {
+    任务: 'analytics-rollup',
+    已完成天数: input.days,
+    错误码: safe(input.errorCode),
+  };
+  try {
+    await send('统计汇总异常', lines, `cron-analytics-rollup:${now.toISOString().slice(0, 10)}`);
+  } catch (error) {
+    console.error('[cron] analytics rollup alert failed', (error as { name?: string })?.name ?? typeof error);
+  }
+  return true;
+}
