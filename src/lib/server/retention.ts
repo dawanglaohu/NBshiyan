@@ -1,4 +1,13 @@
 /**
+ * 原始统计事件的保留时长。数字只定义在 day-boundaries.ts，按 receivedAt 的绝对时长，这里再导出。
+ * 汇总是否还能整日重算也用同一个常量，不要在清理任务里另写 30 天。
+ */
+export { RAW_EVENT_RETENTION_MS } from '../analytics/day-boundaries';
+
+/** 汇总表保留 13 个日历月。按站点本地日比较，不是 13×30 天。 */
+export const ROLLUP_RETENTION_MONTHS = 13;
+
+/**
  * 数据保留期限（天）。都可用环境变量覆盖，超出范围时用默认值。说明见 docs/data-retention.md。
  * 注意：最终期限需与隐私政策对齐（待 Ryan 确认）。
  */
@@ -19,6 +28,12 @@ export const retention = {
   /** 询盘 retainUntil（新询盘写入时计算） */
   get inquiryDays() { return intEnv('INQUIRY_RETAIN_DAYS', 730, 30, 3650); },
 };
+
+/**
+ * 聊天和询盘的保留天数。沿用询盘现有的 INQUIRY_RETAIN_DAYS（默认 730），不是 90。
+ * 询盘到期后仍由既有匿名化处理，不在分析清理里删行。聊天没有到期清理任务。
+ */
+export const chatAndInquiryRetentionDays = () => retention.inquiryDays;
 
 const DAY = 86_400_000;
 export const daysAgo = (days: number, now = new Date()) => new Date(now.getTime() - days * DAY);

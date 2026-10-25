@@ -48,6 +48,8 @@ export type StoredRollupDay = {
   siteDate: string;
   timezoneRevision: number;
   sourceMaxReceivedAt: string | null;
+  /** 这一天已经写入的非冒烟事件数。缺省按 0，代次切换时不会因此跳过重算。 */
+  eventCount?: number;
 };
 
 export type DayFreshness = {
@@ -89,6 +91,7 @@ export function eligibleSiteDates(now: Date, timeZone: string): string[] {
 /**
  * 从最早的未完成日开始，最多取 maxDays 天。
  * 当前时区代次不符，或非冒烟事件的 receivedAt 比已记录的 sourceMaxReceivedAt 更新，都要重算。
+ * 代次不符、这一天已经没有非冒烟事件、而上一代 eventCount 大于 0 时不重算，避免用空汇总盖掉已删除的原始事件。
  */
 export function selectRollupDates(input: {
   eligible: readonly string[];
@@ -109,7 +112,11 @@ export function selectRollupDates(input: {
 }
 
 function needsWork(stored: StoredRollupDay | undefined, currentMax: string | null | undefined, timezoneRevision: number): boolean {
-  if (!stored || stored.timezoneRevision !== timezoneRevision) return true;
+  if (!stored) return true;
+  if (stored.timezoneRevision !== timezoneRevision) {
+    if ((stored.eventCount ?? 0) > 0 && currentMax === null) return false;
+    return true;
+  }
   if (currentMax === undefined) return true;
   if (currentMax === null) return false;
   if (stored.sourceMaxReceivedAt === null) return true;

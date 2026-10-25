@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/server/db';
 import { randomId, hitRateLimit, rateLimitKeyHash, verifyTurnstile, clientIp, rateLimitSubject, readBody, tooManyRequests } from '@/lib/server/security';
 import { trustedCountry } from '@/lib/edge/client-ip';
-import { retention } from '@/lib/server/retention';
+import { chatAndInquiryRetentionDays } from '@/lib/server/retention';
 import { scoreInquiry, REVIEW_THRESHOLD } from '@/lib/server/trust';
 import { sendSafely, inquiryNotifyMail, customerAckMail, logNotification } from '@/lib/server/mail';
 import { summarizeItems } from '@/lib/server/email/render';
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
           ref, replyToken: randomId(24), locale: b.locale, source: b.source, message: b.message,
           trustScore: trust.score, trustReasons: trust.reasons, ipCountry,
           attribution: (b.attribution ?? undefined) as object | undefined,
-          retainUntil: new Date(Date.now() + retention.inquiryDays * 86_400_000),
+          retainUntil: new Date(Date.now() + chatAndInquiryRetentionDays() * 86_400_000),
           contact: { create: { ...b.contact, normalizedEmail: normalizeEmail(b.contact.email) } },
           items: { create: b.items.map((i) => ({ ...i, config: (i.config ?? undefined) as object | undefined })) },
           ...(sampleEmail ? { sample: { create: { normalizedEmail: sampleEmail, shippingAddress: b.shippingAddress } } } : {}),
