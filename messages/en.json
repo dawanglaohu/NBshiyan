@@ -548,14 +548,14 @@
   "Company": {
     "kicker": "Company",
     "title": "Our own factory and an integrated supply chain",
-    "illustrationNote": "The picture uses conceptual packaging illustrations. It is not a photograph of a factory, a certificate, or a production figure.",
+    "illustrationNote": "Illustrations are conceptual.",
     "more": "Company page",
     "claims": {
       "ownFactory": "PackJoyU works from its own factory.",
-      "supplyChain": "An integrated supply chain supports packaging, paper and print.",
-      "customization": "Customization covers multiple product categories.",
-      "sampling": "Design and sampling are part of the work.",
-      "quality": "Quality control is part of the same offering."
+      "supplyChain": "An integrated supply chain covers packaging, paper and print.",
+      "customization": "We customize products across multiple categories.",
+      "sampling": "Design and sampling are included.",
+      "quality": "Quality control is built into the process."
     }
   },
   "Cases": {

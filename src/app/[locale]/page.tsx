@@ -48,7 +48,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
       <CompanySummary aboutVisible={aboutVisible} />
 
-      <AboutHomeBlock content={about} aboutVisible={aboutVisible} />
+      {aboutVisible ? null : <AboutHomeBlock content={about} aboutVisible={aboutVisible} />}
 
       <section className="block container" aria-labelledby="entry-h">
         <h2 id="entry-h">{t('entryTitle')}</h2>

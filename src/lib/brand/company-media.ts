@@ -1,9 +1,7 @@
 /**
- * Exact image-component releases for company pages.
- * The list is the files, not a /brand prefix. Video, posters, the logo master, and named GIF
- * copies that are not in the public tree stay out. Callers get a web path, pixel size and alt text.
- * Private source paths are not in this module. Confirmed pixels do not stand in for the editable
- * source or the attested facts.
+ * Exact image-component releases for the company plate.
+ * The list is the six derived files the pages reference. Callers get a web path, pixel size and alt text
+ * only when the path matches one entry. Private source paths are not in this module.
  */
 
 export type CompanyMediaAlt = { readonly en: string; readonly ru: string };
@@ -15,29 +13,29 @@ export type CompanyMediaRelease = {
   readonly alt: CompanyMediaAlt;
 };
 
-const CITY_STILL: CompanyMediaAlt = {
-  en: 'PackJoyU industrial illustration with an airship, packaging factory, river, cargo ship and workers.',
-  ru: 'Промышленная иллюстрация PackJoyU: дирижабль, упаковочная фабрика, река, грузовое судно и рабочие.',
+const ART_ALT: CompanyMediaAlt = {
+  en: 'PackJoyU conceptual illustrations of custom packaging and printed products',
+  ru: 'Условные иллюстрации PackJoyU: упаковка и печатная продукция на заказ',
 };
 
-const CITY_PAUSE: CompanyMediaAlt = {
-  en: 'Still frame of the PackJoyU industrial illustration with an airship, packaging factory, river, cargo ship and workers.',
-  ru: 'Неподвижный кадр промышленной иллюстрации PackJoyU: дирижабль, упаковочная фабрика, река, грузовое судно и рабочие.',
-};
+const CROP_FRAMES = [
+  { src: '/brand/company/company-introduction-v3-en-crop-480.5094aa86.webp', width: 480, height: 429 },
+  { src: '/brand/company/company-introduction-v3-en-crop-960.ee4a5713.webp', width: 960, height: 858 },
+  { src: '/brand/company/company-introduction-v3-en-crop-1440.972e7f35.webp', width: 1440, height: 1287 },
+] as const;
 
-const COMPANY_PLATE: CompanyMediaAlt = {
-  en: 'English PackJoyU company introduction with the official wordmark, conceptual packaging illustrations, company capabilities, a design-to-quality-control sequence, and a twelve-category product portfolio.',
-  ru: 'Англоязычное представление PackJoyU: официальный логотип, условные иллюстрации упаковки, возможности компании, последовательность от дизайна до контроля качества и ассортимент из двенадцати категорий.',
-};
+const FULL_FRAMES = [
+  { src: '/brand/company/company-introduction-v3-en-w800.77f0c95d.webp', width: 800, height: 928 },
+  { src: '/brand/company/company-introduction-v3-en-w1600.7033e7eb.webp', width: 1600, height: 1856 },
+  { src: '/brand/company/company-introduction-v3-en-w2400.fdff20de.webp', width: 2400, height: 2784 },
+] as const;
 
-const RELEASED: readonly CompanyMediaRelease[] = [
-  { src: '/brand/packjoyu-industrial-city-v3.png', width: 1737, height: 905, alt: CITY_STILL },
-  { src: '/brand/packjoyu-industrial-city-v3-loop-poster.png', width: 1384, height: 720, alt: CITY_PAUSE },
-  { src: '/brand/company/company-introduction-v3-en.png', width: 5000, height: 5800, alt: COMPANY_PLATE },
-];
-
-/** The one company plate. Home summary and about both use this path. */
-export const COMPANY_ARTWORK_SRC = '/brand/company/company-introduction-v3-en.png';
+const RELEASED: readonly CompanyMediaRelease[] = [...CROP_FRAMES, ...FULL_FRAMES].map((frame) => ({
+  src: frame.src,
+  width: frame.width,
+  height: frame.height,
+  alt: ART_ALT,
+}));
 
 function isExactWebPath(src: string): boolean {
   if (typeof src !== 'string' || src.length === 0 || src.length > 240) return false;
@@ -67,10 +65,28 @@ export function releasedCompanyMedia(): CompanyMediaRelease[] {
   return RELEASED.map((item) => releaseCompanyMedia(item.src)).filter((item): item is CompanyMediaRelease => item !== null);
 }
 
-/** One locale's alt. An unknown locale does not fall back to the other language. */
-export function companyArtwork(locale: string): { src: string; width: number; height: number; alt: string } | null {
+export type CompanyArtworkVariant = {
+  src: string;
+  srcSet: string;
+  width: number;
+  height: number;
+};
+
+function variant(frames: readonly { src: string; width: number; height: number }[], width: number, height: number): CompanyArtworkVariant {
+  return {
+    src: frames[frames.length - 1].src,
+    srcSet: frames.map((frame) => `${frame.src} ${frame.width}w`).join(', '),
+    width,
+    height,
+  };
+}
+
+/** Crop and full plate for one locale. An unknown locale does not fall back to the other language. */
+export function companyArtwork(locale: string): { alt: string; crop: CompanyArtworkVariant; full: CompanyArtworkVariant } | null {
   if (locale !== 'en' && locale !== 'ru') return null;
-  const item = releaseCompanyMedia(COMPANY_ARTWORK_SRC);
-  if (!item) return null;
-  return { src: item.src, width: item.width, height: item.height, alt: item.alt[locale] };
+  return {
+    alt: ART_ALT[locale],
+    crop: variant(CROP_FRAMES, 1440, 1287),
+    full: variant(FULL_FRAMES, 5000, 5800),
+  };
 }

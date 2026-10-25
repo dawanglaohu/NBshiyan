@@ -56,7 +56,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           <h1>{c.title}</h1>
         </div>
       </section>
-      <CompanySummary aboutVisible showMore={false} />
+      <CompanySummary aboutVisible showMore={false} placement="about" />
       {/* 安全（全栈）：bodyHtml 只来自读取函数——后端 sanitizeAboutHtml 入库净化、读取时再净化一次。前端不自建净化器 */}
       <section className="sx sx-block">
         <div className="ab-body" dangerouslySetInnerHTML={{ __html: c.bodyHtml }} />

@@ -1,13 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { companyArtwork, COMPANY_ARTWORK_SRC, releaseCompanyMedia, releasedCompanyMedia } from '../src/lib/brand/company-media';
+import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
+import { companyArtwork, releaseCompanyMedia, releasedCompanyMedia } from '../src/lib/brand/company-media';
 
+const root = fileURLToPath(new URL('..', import.meta.url));
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
 const json = (path: string) => JSON.parse(read(path)) as Record<string, unknown>;
 
 const IMAGE_ROLES = new Set(['static_image', 'animated_gif', 'gif_preview', 'gif_pause_still']);
+const ART_ALT = {
+  en: 'PackJoyU conceptual illustrations of custom packaging and printed products',
+  ru: 'Условные иллюстрации PackJoyU: упаковка и печатная продукция на заказ',
+};
+const PLATE_PNG = '/brand/company/company-introduction-v3-en.png';
 
 function webPath(file: string): string {
   assert.ok(file.startsWith('public/'), file);
@@ -24,7 +33,7 @@ function rasterSize(buf: Buffer): { width: number; height: number } {
   throw new Error('not a png or gif');
 }
 
-test('company media is an exact image whitelist and rejects everything else', () => {
+test('company media is an exact image whitelist and rejects everything else', async () => {
   const release = json('../docs/brand-media/static/selected-media-release.json') as {
     deliverables: { path: string; sha256: string; width: number; height: number; role?: string }[];
   };
@@ -33,21 +42,15 @@ test('company media is an exact image whitelist and rejects everything else', ()
   let presentImages = 0;
   for (const item of images) {
     const src = webPath(item.path);
-    const media = releaseCompanyMedia(src);
+    assert.equal(releaseCompanyMedia(src), null, item.path);
     const publicFile = new URL(`../${item.path}`, import.meta.url);
     if (!existsSync(publicFile)) {
-      assert.equal(media, null, item.path);
       const held = new URL(`../docs/brand-media/static/held/${item.path.split('/').pop()}`, import.meta.url);
       const heldBytes = readFileSync(held);
       assert.equal(createHash('sha256').update(heldBytes).digest('hex'), item.sha256, item.path);
       continue;
     }
     presentImages += 1;
-    assert.ok(media, item.path);
-    assert.equal(media.src, src);
-    assert.equal(media.width, item.width);
-    assert.equal(media.height, item.height);
-    assert.ok(media.alt.en.trim() && media.alt.ru.trim());
     const bytes = readFileSync(publicFile);
     assert.equal(createHash('sha256').update(bytes).digest('hex'), item.sha256, item.path);
     assert.deepEqual(rasterSize(bytes), { width: item.width, height: item.height }, item.path);
@@ -57,18 +60,26 @@ test('company media is an exact image whitelist and rejects everything else', ()
     if (IMAGE_ROLES.has(item.role ?? '')) continue;
     assert.equal(releaseCompanyMedia(webPath(item.path)), null, item.path);
   }
-  const visuals = json('../docs/brand-content/company-visuals.json') as {
-    artworks: { web: { path: string; width: number; height: number }; alt: { en: string; ru: string } }[];
-  };
-  const plate = visuals.artworks[0];
-  const artwork = releaseCompanyMedia(webPath(plate.web.path));
-  assert.ok(artwork);
-  assert.equal(artwork.src, COMPANY_ARTWORK_SRC);
-  assert.equal(artwork.width, plate.web.width);
-  assert.equal(artwork.height, plate.web.height);
-  assert.equal(artwork.alt.en, plate.alt.en);
-  assert.equal(artwork.alt.ru, plate.alt.ru);
-  assert.equal(releasedCompanyMedia().length, presentImages + 1);
+  assert.equal(releaseCompanyMedia(PLATE_PNG), null);
+
+  const released = releasedCompanyMedia();
+  assert.equal(released.length, 6);
+  assert.deepEqual(
+    released.map((item) => [item.width, item.height]).sort((a, b) => a[0] - b[0]),
+    [[480, 429], [800, 928], [960, 858], [1440, 1287], [1600, 1856], [2400, 2784]],
+  );
+  for (const item of released) {
+    assert.equal(item.alt.en, ART_ALT.en);
+    assert.equal(item.alt.ru, ART_ALT.ru);
+    assert.match(item.src, /^\/brand\/company\/company-introduction-v3-en-(?:w|crop-)\d+\.[0-9a-f]{8}\.webp$/);
+    const file = readFileSync(new URL(`../public${item.src}`, import.meta.url));
+    const digest = createHash('sha256').update(file).digest('hex');
+    assert.equal(item.src.includes(`.${digest.slice(0, 8)}.webp`), true, item.src);
+    const meta = await sharp(file).metadata();
+    assert.equal(meta.width, item.width, item.src);
+    assert.equal(meta.height, item.height, item.src);
+  }
+
   const trace = json('../docs/brand-content/company-page-trace.json') as { omittedBecausePublicBytesAbsent: string[] };
   assert.deepEqual(trace.omittedBecausePublicBytesAbsent, [
     'public/brand/packjoyu-industrial-city-v3-loop.gif',
@@ -92,6 +103,8 @@ test('company media is an exact image whitelist and rejects everything else', ()
     '/brand/video2-packjoyu-products-v3-poster-12233ms.jpg',
     '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp',
     '/brand/not-listed.png',
+    PLATE_PNG,
+    '/brand/company/company-introduction-v3-en-w800.77f0c95d.png',
     '',
   ]) {
     assert.equal(releaseCompanyMedia(blocked), null, blocked);
@@ -101,24 +114,59 @@ test('company media is an exact image whitelist and rejects everything else', ()
 test('the runtime mapping does not carry private paths, hashes or source files', () => {
   const src = read('../src/lib/brand/company-media.ts');
   assert.doesNotMatch(src, /^\s*import /m);
-  for (const needle of ['docs/', 'sha256', '.svg', 'company-visuals', 'company-facts', 'http://', 'https://', 'C:\\']) {
+  for (const needle of ['docs/', 'sha256', '.svg', '.png', 'company-visuals', 'company-facts', 'http://', 'https://', 'C:\\']) {
     assert.equal(src.includes(needle), false, needle);
   }
-  assert.equal(companyArtwork('en')?.src, COMPANY_ARTWORK_SRC);
-  assert.equal(companyArtwork('ru')?.alt.length > 0, true);
+  const en = companyArtwork('en');
+  const ru = companyArtwork('ru');
+  assert.ok(en && ru);
+  assert.equal(en.alt, ART_ALT.en);
+  assert.equal(ru.alt, ART_ALT.ru);
+  assert.equal(en.crop.width, 1440);
+  assert.equal(en.crop.height, 1287);
+  assert.equal(en.full.width, 5000);
+  assert.equal(en.full.height, 5800);
+  assert.match(en.crop.srcSet, / 480w, .* 960w, .* 1440w$/);
+  assert.match(en.full.srcSet, / 800w, .* 1600w, .* 2400w$/);
+  assert.equal(en.crop.srcSet.includes('.png'), false);
+  assert.equal(en.full.srcSet.includes('.png'), false);
   assert.equal(companyArtwork('ja'), null);
-  assert.notEqual(companyArtwork('en')?.alt, companyArtwork('ru')?.alt);
+  assert.notEqual(en.alt, ru.alt);
+  const summary = read('../src/components/about/CompanySummary.tsx');
+  assert.equal(summary.includes('.png'), false);
+  assert.match(summary, /placement === 'about' && locale === 'en'/);
+  assert.match(summary, /media="\(max-width:767px\)"/);
+  assert.match(summary, /sizes="100vw"/);
+  assert.match(summary, /sizes="\(max-width:1023px\) 100vw, 45vw"/);
+  assert.match(summary, /width=\{art\.full\.width\}/);
+  assert.match(summary, /height=\{art\.full\.height\}/);
+  assert.match(summary, /className="sx-eyebrow"/);
+  assert.match(summary, /className="sx-h"/);
 });
 
 test('published company copy matches the attested fact table and skips unowned hard facts', () => {
-  const en = json('../messages/en.json') as { Company: Record<string, unknown> };
-  const ru = json('../messages/ru.json') as { Company: Record<string, unknown> };
+  const en = json('../messages/en.json') as { Company: Record<string, unknown> & { claims: Record<string, string> } };
+  const ru = json('../messages/ru.json') as { Company: Record<string, unknown> & { claims: Record<string, string> } };
   const keys = (value: unknown, prefix = ''): string[] => (
     value && typeof value === 'object'
       ? Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => keys(child, prefix ? `${prefix}.${key}` : key))
       : [prefix]
   );
   assert.deepEqual(keys(en.Company).sort(), keys(ru.Company).sort());
+  assert.equal(en.Company.title, 'Our own factory and an integrated supply chain');
+  assert.equal(ru.Company.title, 'Своя фабрика и единая цепочка поставок');
+  assert.equal(en.Company.illustrationNote, 'Illustrations are conceptual.');
+  assert.equal(ru.Company.illustrationNote, 'Иллюстрации условные.');
+  assert.equal(en.Company.claims.ownFactory, 'PackJoyU works from its own factory.');
+  assert.equal(ru.Company.claims.ownFactory, 'PackJoyU работает на своей фабрике.');
+  assert.equal(en.Company.claims.supplyChain, 'An integrated supply chain covers packaging, paper and print.');
+  assert.equal(ru.Company.claims.supplyChain, 'Единая цепочка поставок охватывает упаковку, бумагу и печать.');
+  assert.equal(en.Company.claims.customization, 'We customize products across multiple categories.');
+  assert.equal(ru.Company.claims.customization, 'Изготавливаем на заказ продукцию нескольких категорий.');
+  assert.equal(en.Company.claims.sampling, 'Design and sampling are included.');
+  assert.equal(ru.Company.claims.sampling, 'Дизайн и изготовление образцов входят в работу.');
+  assert.equal(en.Company.claims.quality, 'Quality control is built into the process.');
+  assert.equal(ru.Company.claims.quality, 'Контроль качества — часть производственного процесса.');
   const attestation = json('../docs/brand-content/source/company-facts-attestation.json') as { confirmedClaims: string[] };
   const factMap = json('../docs/brand-content/company-fact-map.json') as {
     fields: { pageField: string; claim: string; evidencePointer: string }[];
@@ -143,13 +191,15 @@ test('published company copy matches the attested fact table and skips unowned h
   assert.ok(factMap.blockedWithoutOwnEvidence.includes('YUHAO certification'));
 });
 
-test('home and about consume the same plate, and the publish gate still owns the about route', () => {
+test('home and about consume the plate, and the publish gate still owns the about route', () => {
   const home = read('../src/app/[locale]/page.tsx');
   const about = read('../src/app/[locale]/about/page.tsx');
   const header = read('../src/components/layout/SiteHeader.tsx');
   const footer = read('../src/components/layout/SiteFooter.tsx');
+  const route = read('../src/app/api/e2e/revalidate-site-settings/route.ts');
   assert.match(home, /<CompanySummary aboutVisible=\{aboutVisible\} \/>/);
-  assert.match(about, /<CompanySummary aboutVisible showMore=\{false\} \/>/);
+  assert.match(home, /\{aboutVisible \? null : <AboutHomeBlock content=\{about\} aboutVisible=\{aboutVisible\} \/>\}/);
+  assert.match(about, /<CompanySummary aboutVisible showMore=\{false\} placement="about" \/>/);
   assert.match(about, /if \(!c\) notFound\(\)/);
   assert.match(about, /dangerouslySetInnerHTML=\{\{ __html: c\.bodyHtml \}\}/);
   assert.match(header, /\{aboutVisible && <Link href="\/about"/);
@@ -157,9 +207,15 @@ test('home and about consume the same plate, and the publish gate still owns the
   assert.match(footer, /\{aboutVisible && <Link href="\/about">/);
   assert.match(footer, /id="footer-contact-link"/);
   assert.match(footer, /PUBLIC_ROUTES\.privacy\.entryId/);
+  assert.match(route, /E2E_SITE_REVALIDATE !== '1'/);
+  assert.match(route, /status: 404/);
+  assert.match(route, /revalidateTag\(SITE_SETTINGS_TAG\)/);
+  assert.doesNotMatch(route, /site-settings-admin-deps/);
+  assert.equal(home.includes(PLATE_PNG), false);
+  assert.equal(about.includes(PLATE_PNG), false);
 });
 
-test('the company plate, wordmark and listed image files match their recorded bytes', () => {
+test('the company plate, wordmark and listed image files match their recorded bytes', async () => {
   const trace = json('../docs/brand-content/company-page-trace.json') as {
     webPath: string;
     logoMaster: { path: string; sha256: string };
@@ -171,7 +227,7 @@ test('the company plate, wordmark and listed image files match their recorded by
     status: string;
   };
   assert.equal(visuals.status, 'complete');
-  assert.equal(trace.webPath, COMPANY_ARTWORK_SRC);
+  assert.equal(trace.webPath, PLATE_PNG);
   const logo = readFileSync(new URL(`../${trace.logoMaster.path}`, import.meta.url));
   assert.equal(createHash('sha256').update(logo).digest('hex'), trace.logoMaster.sha256);
   assert.equal(trace.logoMaster.sha256, visuals.logoMaster.sha256);
@@ -185,6 +241,16 @@ test('the company plate, wordmark and listed image files match their recorded by
   assert.equal(size.height, visuals.artworks[0].web.height);
   for (const item of releasedCompanyMedia()) {
     const file = readFileSync(new URL(`../public${item.src}`, import.meta.url));
-    assert.deepEqual(rasterSize(file), { width: item.width, height: item.height }, item.src);
+    const meta = await sharp(file).metadata();
+    assert.equal(meta.width, item.width, item.src);
+    assert.equal(meta.height, item.height, item.src);
   }
+});
+
+test('the export script reproduces the committed plate bytes', () => {
+  const result = spawnSync(process.execPath, ['scripts/export-company-plate.mjs', '--check'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
 });
