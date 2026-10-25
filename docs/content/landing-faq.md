@@ -24,7 +24,7 @@
 | `color-printing` | `custom-color-printing` | `tsvetnaya-pechat` | 5 |
 | `offset-printing` | `offset-printing-services` | `ofsetnaya-pechat` | 5 |
 | `eco-paper-cups` | `eco-paper-cups` | `ekologichnye-stakany` | 5 |
-| `gift-cards` | `custom-gift-cards` | `podarochnye-karty` | 4 |
+| `gift-cards` | `custom-greeting-cards` | `otkrytki-na-zakaz` | 4 |
 | `christmas-merchandise` | `custom-christmas-packaging` | `novogodnyaya-upakovka` | 5 |
 
 ---
@@ -729,13 +729,13 @@ Our MOQ is {{待Ryan确认}}.
 
 ---
 
-## `gift-cards` — EN `/en/products/custom-gift-cards` · RU `/ru/products/podarochnye-karty`（Печать подарочных карт）
+## `gift-cards` — EN `/en/products/custom-greeting-cards` · RU `/ru/products/otkrytki-na-zakaz`（Печать открыток на заказ）
 
 ### EN
 
-<details id="faq-gift-cards-en-1"><summary>Do you print paper gift cards, plastic cards or greeting cards?</summary>
+<details id="faq-gift-cards-en-1"><summary>What types of greeting cards can you print?</summary>
 
-Card types that can be printed: {{待Ryan确认}}. (Wording "gift cards" vs "greeting cards" is pending Ryan, see #218 F16.)
+Card types that can be printed: {{待Ryan确认}}.
 
 </details>
 
@@ -760,21 +760,21 @@ Our MOQ is {{待Ryan确认}}.
 
 ### RU ⚠️ ждёт вычитки Ryan
 
-<details id="faq-gift-cards-ru-1"><summary>Вы печатаете бумажные подарочные карты, пластиковые карты или открытки?</summary>
+<details id="faq-gift-cards-ru-1"><summary>Какие открытки вы печатаете?</summary>
 
-Виды карт — {{待Ryan确认}}. (Формулировка «подарочные карты» / «открытки» ждёт решения Ryan, см. #218 F16.)
+Виды открыток — {{待Ryan确认}}.
 
 </details>
 
-<details id="faq-gift-cards-ru-2"><summary>Можно ли нанести на каждую карту уникальный номер, штрихкод или QR-код?</summary>
+<details id="faq-gift-cards-ru-2"><summary>Можно ли нанести на каждую открытку уникальный номер, штрихкод или QR-код?</summary>
 
 Печать переменных данных — {{待Ryan确认}}.
 
 </details>
 
-<details id="faq-gift-cards-ru-3"><summary>Делаете ли вы держатели, конверты или коробки для карт?</summary>
+<details id="faq-gift-cards-ru-3"><summary>Делаете ли вы держатели, конверты или коробки для открыток?</summary>
 
-Упаковка для карт — {{待Ryan确认}}. Единый дизайн карты и упаковки можно указать в заявке на расчёт.
+Упаковка для открыток — {{待Ryan确认}}. Единый дизайн открытки и упаковки можно указать в заявке на расчёт.
 
 </details>
 

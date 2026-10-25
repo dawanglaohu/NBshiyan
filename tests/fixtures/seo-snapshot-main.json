@@ -393,28 +393,28 @@
       }
     },
     {
-      "url": "https://geiom.com/en/products/custom-gift-cards",
+      "url": "https://geiom.com/en/products/custom-greeting-cards",
       "lastModified": "2026-01-01T00:00:00.000Z",
       "changeFrequency": "weekly",
       "priority": 0.8,
       "alternates": {
         "languages": {
-          "en": "https://geiom.com/en/products/custom-gift-cards",
-          "ru": "https://geiom.com/ru/products/podarochnye-karty",
-          "x-default": "https://geiom.com/en/products/custom-gift-cards"
+          "en": "https://geiom.com/en/products/custom-greeting-cards",
+          "ru": "https://geiom.com/ru/products/otkrytki-na-zakaz",
+          "x-default": "https://geiom.com/en/products/custom-greeting-cards"
         }
       }
     },
     {
-      "url": "https://geiom.com/ru/products/podarochnye-karty",
+      "url": "https://geiom.com/ru/products/otkrytki-na-zakaz",
       "lastModified": "2026-01-01T00:00:00.000Z",
       "changeFrequency": "weekly",
       "priority": 0.8,
       "alternates": {
         "languages": {
-          "en": "https://geiom.com/en/products/custom-gift-cards",
-          "ru": "https://geiom.com/ru/products/podarochnye-karty",
-          "x-default": "https://geiom.com/en/products/custom-gift-cards"
+          "en": "https://geiom.com/en/products/custom-greeting-cards",
+          "ru": "https://geiom.com/ru/products/otkrytki-na-zakaz",
+          "x-default": "https://geiom.com/en/products/custom-greeting-cards"
         }
       }
     },

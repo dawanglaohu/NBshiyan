@@ -21,7 +21,7 @@
 | 彩色印刷 | `color-printing` | `custom-color-printing` | `tsvetnaya-pechat` | [custom-color-printing.md](./custom-color-printing.md) |
 | 胶印 | `offset-printing` | `offset-printing-services` | `ofsetnaya-pechat` | [offset-printing-services.md](./offset-printing-services.md) |
 | 环保纸杯 | `eco-paper-cups` | `eco-paper-cups` | `ekologichnye-stakany` | [eco-paper-cups.md](./eco-paper-cups.md) |
-| 礼品卡 | `gift-cards` | `custom-gift-cards` | `podarochnye-karty` | [custom-gift-cards.md](./custom-gift-cards.md) |
+| 礼品卡 | `gift-cards` | `custom-greeting-cards` | `otkrytki-na-zakaz` | [custom-greeting-cards.md](./custom-greeting-cards.md) |
 | 圣诞周边 | `christmas-merchandise` | `custom-christmas-packaging` | `novogodnyaya-upakovka` | [custom-christmas-packaging.md](./custom-christmas-packaging.md) |
 
 另见 [industries.md](./industries.md)：行业方案页关键词（食品、酒类、电商、节日）与跨品类文章选题。
