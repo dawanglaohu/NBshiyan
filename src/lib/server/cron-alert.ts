@@ -62,3 +62,24 @@ export async function alertAnalyticsRollupIssue(
   }
   return true;
 }
+
+/**
+ * 保留清理失败时发一封告警。只含任务名和错误码，按 UTC 日期去重。
+ * 告警失败只记类型，不影响 cron 的响应。
+ */
+export async function alertRetentionCleanupIssue(
+  input: { errorCode: string },
+  send: Send,
+  now = new Date(),
+): Promise<boolean> {
+  const lines: Record<string, string | number> = {
+    任务: 'retention-cleanup',
+    错误码: safe(input.errorCode),
+  };
+  try {
+    await send('保留清理异常', lines, `cron-retention-cleanup:${now.toISOString().slice(0, 10)}`);
+  } catch (error) {
+    console.error('[cron] retention cleanup alert failed', (error as { name?: string })?.name ?? typeof error);
+  }
+  return true;
+}

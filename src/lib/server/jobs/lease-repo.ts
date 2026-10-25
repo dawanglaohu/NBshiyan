@@ -190,6 +190,45 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     };
   }
 
+  /**
+   * 只领取租约。不改这一行的 lastStatus、lastErrorCode、summary、lastSucceededAt、lastFinishedAt、lastStartedAt。
+   * 清理任务用它锁住 analytics-aggregate，汇总已经写下的失败状态留在原行。
+   */
+  async function claimPreservingStatus(input: ClaimInput): Promise<ClaimResult> {
+    const key = JobKeySchema.safeParse(input.key);
+    const owner = JobLeaseOwnerSchema.safeParse(input.owner);
+    const now = clock();
+    if (!key.success || !owner.success || !validClock(now)) return { acquired: false, reason: 'invalid' };
+    const revision = await currentTimezoneRevision(deps.db);
+    if (!revision.ok) return { acquired: false, reason: 'revision_unreadable' };
+    const lockedUntil = new Date(now.getTime() + JOB_LEASE_MS);
+    const rows = await deps.db.$queryRaw<StoredRow[]>`
+      INSERT INTO "JobState" (
+        "key", "leaseOwner", "generation", "lockedUntil", "createdAt", "updatedAt"
+      ) VALUES (
+        ${key.data}, ${owner.data}, 1, ${utc(lockedUntil)}, ${utc(now)}, ${utc(now)}
+      )
+      ON CONFLICT ("key") DO UPDATE SET
+        "leaseOwner" = EXCLUDED."leaseOwner",
+        "generation" = "JobState"."generation" + 1,
+        "lockedUntil" = EXCLUDED."lockedUntil",
+        "updatedAt" = EXCLUDED."updatedAt"
+      WHERE "JobState"."lockedUntil" IS NULL OR "JobState"."lockedUntil" <= ${utc(now)}
+      RETURNING ${returningView}
+    `;
+    const returnedAt = clock();
+    if (!validClock(returnedAt)) return { acquired: false, reason: 'invalid' };
+    const view = rows.length === 1 ? viewFrom(key.data, rows[0], returnedAt) : null;
+    if (!view?.leaseActive) return { acquired: false, reason: 'busy' };
+    return {
+      acquired: true,
+      generation: view.generation,
+      lockedUntil: view.lockedUntil ?? lockedUntil.toISOString(),
+      timezoneRevision: revision.revision,
+      view,
+    };
+  }
+
   async function renew(input: RenewInput, tx: JobLeaseTx): Promise<RenewResult> {
     if (!tx) throw leaseAbort('transaction_required');
     const key = JobKeySchema.safeParse(input.key);
@@ -245,6 +284,81 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     });
     if (!outcome.committed) throw leaseAbort(outcome.reason);
     return outcome;
+  }
+
+  /**
+   * 释放 leaseKey 上的租约，不改那一行的状态字段。把本次结果写到 statusKey。
+   * 两行在同一个事务里提交。代次或租约对不上时整笔回滚，状态行也不写。
+   */
+  async function completeSeparately(input: {
+    leaseKey: string;
+    statusKey: string;
+    owner: string;
+    generation: number;
+    status: string;
+    summary: unknown;
+    errorCode?: string | null;
+    timezoneRevision: number;
+  }, tx: JobLeaseTx): Promise<CompleteResult> {
+    if (!tx) throw leaseAbort('transaction_required');
+    const leaseKey = JobKeySchema.safeParse(input.leaseKey);
+    const statusKey = JobKeySchema.safeParse(input.statusKey);
+    const owner = JobLeaseOwnerSchema.safeParse(input.owner);
+    const generation = PositiveIntSchema.safeParse(input.generation);
+    const status = JobResultStatusSchema.safeParse(input.status);
+    const timezoneRevision = PositiveIntSchema.safeParse(input.timezoneRevision);
+    const summary = input.summary === null ? { success: true as const, data: null } : JobSummarySchema.safeParse(input.summary);
+    if (!leaseKey.success || !statusKey.success || leaseKey.data === statusKey.data || !owner.success || !generation.success || !status.success || !timezoneRevision.success || !summary.success) {
+      throw leaseAbort('invalid');
+    }
+    const errorCode = input.errorCode ?? null;
+    if (status.data === 'SUCCEEDED' ? errorCode !== null : !AppErrorCodeSchema.safeParse(errorCode).success) {
+      throw leaseAbort('invalid');
+    }
+    const summarySql = summary.data === null ? Prisma.sql`NULL` : Prisma.sql`${JSON.stringify(summary.data)}::jsonb`;
+    const errorSql = status.data === 'SUCCEEDED' ? Prisma.sql`NULL` : Prisma.sql`${errorCode}`;
+    await tx.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = ${leaseKey.data} FOR UPDATE`;
+    const revision = await lockedTimezoneRevision(tx, clock);
+    const now = clock();
+    if (!validClock(now)) throw leaseAbort('invalid');
+    if (!revision.ok) throw leaseAbort('revision_unreadable');
+    if (revision.revision !== timezoneRevision.data) throw leaseAbort('revision_conflict');
+    const released = await tx.$queryRaw<{ generation: number }[]>`
+      UPDATE "JobState"
+      SET "leaseOwner" = NULL, "lockedUntil" = NULL, "updatedAt" = ${utc(now)}
+      WHERE "key" = ${leaseKey.data}
+        AND "leaseOwner" = ${owner.data}
+        AND "generation" = ${generation.data}
+        AND "lockedUntil" > ${utc(now)}
+      RETURNING "generation"
+    `;
+    if (released.length !== 1) throw leaseAbort(await missReason(leaseKey.data, owner.data, generation.data, now, tx));
+    const succeededSql = status.data === 'SUCCEEDED' ? utc(now) : Prisma.sql`NULL`;
+    const rows = await tx.$queryRaw<StoredRow[]>`
+      INSERT INTO "JobState" (
+        "key", "generation", "lastStartedAt", "lastFinishedAt", "lastSucceededAt",
+        "lastStatus", "lastErrorCode", "summary", "createdAt", "updatedAt"
+      ) VALUES (
+        ${statusKey.data}, 1, ${utc(now)}, ${utc(now)}, ${succeededSql},
+        ${status.data}::"JobRunStatus", ${errorSql}, ${summarySql}, ${utc(now)}, ${utc(now)}
+      )
+      ON CONFLICT ("key") DO UPDATE SET
+        "generation" = "JobState"."generation" + 1,
+        "lastStartedAt" = EXCLUDED."lastStartedAt",
+        "lastFinishedAt" = EXCLUDED."lastFinishedAt",
+        "lastSucceededAt" = CASE
+          WHEN EXCLUDED."lastStatus" = 'SUCCEEDED'::"JobRunStatus" THEN EXCLUDED."lastFinishedAt"
+          ELSE "JobState"."lastSucceededAt"
+        END,
+        "lastStatus" = EXCLUDED."lastStatus",
+        "lastErrorCode" = EXCLUDED."lastErrorCode",
+        "summary" = EXCLUDED."summary",
+        "updatedAt" = EXCLUDED."updatedAt"
+      RETURNING ${returningView}
+    `;
+    const view = rows.length === 1 ? viewFrom(statusKey.data, rows[0], now) : null;
+    if (!view) throw leaseAbort('invalid');
+    return { committed: true, view };
   }
 
   async function finishComplete(query: JobLeaseTx, parsed: {
@@ -314,7 +428,7 @@ export function createJobLeaseRepo(deps: { db: JobLeaseDb; clock?: () => Date })
     return Date.parse(row.lockedUntil) <= now.getTime() ? 'expired' : 'stale';
   }
 
-  return { claim, renew, complete, read };
+  return { claim, claimPreservingStatus, renew, complete, completeSeparately, read };
 }
 
 export type JobLeaseRepo = ReturnType<typeof createJobLeaseRepo>;
