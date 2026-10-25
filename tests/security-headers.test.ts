@@ -15,6 +15,13 @@ test('CSP 放行 Cloudflare Insights beacon', () => {
   assert.ok(directive('connect-src').split(' ').includes('https://cloudflareinsights.com'));
 });
 
+test('CSP 不含 tawk.to，也没有空指令或多余空格', () => {
+  const csp = get('Content-Security-Policy');
+  assert.equal(csp.toLowerCase().includes('tawk.to'), false);
+  assert.equal(csp.includes('  '), false);
+  for (const part of csp.split(';')) assert.notEqual(part.trim(), '');
+});
+
 test('CSP 不再放行 R2 公开域名和 Vercel Insights', () => {
   const csp = get('Content-Security-Policy');
   assert.ok(!csp.includes('r2.dev'));

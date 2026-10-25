@@ -1,11 +1,10 @@
 import { test, expect } from './fixtures';
 import type { Page } from '@playwright/test';
+import { isThirdPartyChatUrl, thirdPartyChatDomSelector } from './third-party-chat';
 
 /**
- * Third-party Tawk.to is not loaded in any consent state.
- * CSP still names the old hosts until a later change removes them from security-headers.
+ * 任何同意状态下都不加载第三方聊天。CSP 不再点名旧的聊天域名。
  */
-const TAWK_RE = /tawk\.to/i;
 
 async function presetConsent(page: Page, c: { analytics: boolean; chat: boolean } | null) {
   await page.addInitScript((v) => {
@@ -22,8 +21,8 @@ async function armAndWait(page: Page, ms = 1500) {
 }
 
 async function expectNoTawk(page: Page, hits: string[]) {
-  expect(hits.filter((url) => TAWK_RE.test(url))).toEqual([]);
-  await expect(page.locator('script#tawk-js, script[src*="tawk.to"], iframe[src*="tawk.to"]')).toHaveCount(0);
+  expect(hits.filter(isThirdPartyChatUrl)).toEqual([]);
+  await expect(page.locator(thirdPartyChatDomSelector())).toHaveCount(0);
   expect(await page.evaluate(() => Boolean((window as unknown as { Tawk_API?: unknown }).Tawk_API))).toBe(false);
 }
 
@@ -90,23 +89,18 @@ test('写入 v1 同意记录（chat=true）：不加载第三方聊天', async (
   await expectNoTawk(page, external.urls);
 });
 
-test('CSP：tawk 只放行 *.tawk.to，脚本/连接/框架没有通配 https:', async ({ request }) => {
+test('CSP 不含 tawk.to，脚本源只有 Cloudflare，没有通配 https:', async ({ request }) => {
   const res = await request.get('/en');
   const csp = res.headers()['content-security-policy'] ?? '';
   expect(csp).not.toBe('');
+  expect(csp.toLowerCase()).not.toContain('tawk.to');
   const dir = (name: string) => (csp.split(';').map((s) => s.trim()).find((s) => s.startsWith(name + ' ')) ?? '').split(/\s+/).slice(1);
-  const allowedTawk = new Set(['https://embed.tawk.to', 'https://*.tawk.to', 'wss://*.tawk.to']);
   for (const d of ['script-src', 'style-src', 'font-src', 'connect-src', 'frame-src']) {
     const srcs = dir(d);
-    const tawk = srcs.filter((s) => /tawk/i.test(s));
-    for (const s of tawk) expect(allowedTawk.has(s), `${d}: ${s}`).toBe(true);
     expect(srcs, d).not.toContain('https:');
     expect(srcs, d).not.toContain('*');
-    expect(srcs.some((s) => /^(https?|wss?):\/\/\*\.to$|tawk\.to\.|\*tawk/i.test(s)), d).toBe(false);
   }
-  expect(dir('script-src').filter((s) => /^https?:\/\//.test(s)).sort()).toEqual(['https://*.tawk.to', 'https://challenges.cloudflare.com', 'https://embed.tawk.to', 'https://static.cloudflareinsights.com']); // #346：CF Web Analytics beacon
-  expect(dir('connect-src')).toContain('wss://*.tawk.to');
-  expect(dir('frame-src')).toContain('https://*.tawk.to');
+  expect(dir('script-src').filter((s) => /^https?:\/\//.test(s)).sort()).toEqual(['https://challenges.cloudflare.com', 'https://static.cloudflareinsights.com']);
 });
 
 test('/admin：即使已同意聊天，也不加载第三方聊天', async ({ page, external }) => {

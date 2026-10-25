@@ -4,14 +4,14 @@ import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { consentCloseSource, consentFocusTarget, type ConsentCloseSource } from '@/lib/a11y/focus';
-import { CONSENT_OPEN_EVENT, clearTawkData, getConsent, onConsent, setConsent, type Consent } from '@/lib/consent';
+import { CONSENT_OPEN_EVENT, clearTawkData, consentNotice, getConsent, legacyChatCleared, onConsent, setConsent, type Consent } from '@/lib/consent';
 
 const TOAST_KEY = 'pj-consent-toast';
 type Toast = 'saved' | 'withdrawn';
 
 /**
  * Cookie 同意条 + 设置面板。服务端不渲染，挂载后再判断，避免水合闪烁。
- * 可选分析与必要人工联系分开：撤回 analytics 只停统计。旧 chat 位从 true 变为 false 时清掉残留的第三方聊天存储，不把它当作第一方咨询开关。
+ * 新写入一律把 chat 存成 false。旧记录里残留的 chat:true 被清掉时，清浏览器里的旧聊天存储并刷新。
  */
 export default function CookieConsent() {
   const t = useTranslations('Consent');
@@ -31,8 +31,7 @@ export default function CookieConsent() {
     return onConsent((c) => {
       const before = prev.current; prev.current = c;
       setShow(c === null);
-      // 旧 chat 位撤回：只清残留的第三方聊天存储。不创建分析标识，也不关闭询盘。
-      if (before?.chat && !c?.chat) { clearTawkData(); window.location.reload(); }
+      if (legacyChatCleared(before, c)) { clearTawkData(); window.location.reload(); }
     });
   }, []);
 
@@ -76,16 +75,16 @@ export default function CookieConsent() {
   }, [show]);
 
   const save = (choice: { analytics: boolean; chat: boolean }, fromDialog: boolean) => {
+    const next = { analytics: choice.analytics === true, chat: false as const };
     const before = getConsent();
-    const chatWithdrawn = Boolean(before?.chat && !choice.chat);
-    const withdrawn = chatWithdrawn || Boolean(before?.analytics && !choice.analytics && !choice.chat);
-    const kind: Toast = withdrawn ? 'withdrawn' : 'saved';
+    const chatWithdrawn = legacyChatCleared(before, next);
+    const kind: Toast = consentNotice(before, next.analytics);
     setOpen(false);
     // 旧 chat 位撤回会刷新页面，提示放到 sessionStorage，刷新后再显示
     if (chatWithdrawn) { try { sessionStorage.setItem(TOAST_KEY, kind); } catch { /* ignore */ } }
-    setConsent(choice);
+    setConsent(next);
     if (chatWithdrawn) return;
-    if (fromDialog || withdrawn) setToast(kind);
+    if (fromDialog || kind === 'withdrawn') setToast(kind);
     restoreFocus(consentCloseSource(fromDialog ? 'dialog-save' : 'banner-choice', openedFromBanner.current));
   };
 
@@ -112,7 +111,7 @@ export default function CookieConsent() {
           <p>{t('text')} <Link href="/privacy">{t('policy')}</Link></p>
           <div className="consent-actions">
             <button type="button" className="consent-main" onClick={() => save({ analytics: false, chat: false }, false)}>{t('reject')}</button>
-            <button type="button" className="consent-main" onClick={() => save({ analytics: true, chat: true }, false)}>{t('accept')}</button>
+            <button type="button" className="consent-main" onClick={() => save({ analytics: true, chat: false }, false)}>{t('accept')}</button>
             <button type="button" className="consent-set" onClick={(e) => openSettings(e.currentTarget)}>{t('settings')}</button>
           </div>
         </div>
@@ -163,7 +162,7 @@ function SettingsDialog({ draft, setDraft, onClose, onSave }: {
   };
 
   if (!host) return null;
-  const sw = (key: 'analytics' | 'chat', label: string, ref?: React.Ref<HTMLButtonElement>) => (
+  const sw = (key: 'analytics', label: string, ref?: React.Ref<HTMLButtonElement>) => (
     <button ref={ref} type="button" role="switch" className="cs-switch" aria-checked={draft[key]} aria-label={label} aria-describedby={`${id}-${key}`}
       onClick={() => setDraft({ ...draft, [key]: !draft[key] })}><i aria-hidden="true" /></button>
   );
@@ -187,8 +186,8 @@ function SettingsDialog({ draft, setDraft, onClose, onSave }: {
         </div>
         <div className="cs-foot">
           <button type="button" className="consent-main" onClick={() => onSave({ analytics: false, chat: false })}>{t('reject')}</button>
-          <button type="button" className="consent-main" onClick={() => onSave({ analytics: true, chat: true })}>{t('accept')}</button>
-          <button type="button" className="consent-set" onClick={() => onSave(draft)}>{t('save')}</button>
+          <button type="button" className="consent-main" onClick={() => onSave({ analytics: true, chat: false })}>{t('accept')}</button>
+          <button type="button" className="consent-set" onClick={() => onSave({ analytics: draft.analytics, chat: false })}>{t('save')}</button>
         </div>
       </div>
     </div>,

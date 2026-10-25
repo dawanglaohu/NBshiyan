@@ -59,13 +59,13 @@
       "color-printing": "Color Printing",
       "offset-printing": "Offset Printing",
       "eco-paper-cups": "Printed Coffee Cups",
-      "gift-cards": "Gift Cards",
+      "gift-cards": "Greeting Cards",
       "christmas-merchandise": "Christmas Merchandise"
     },
     "done": "Done",
     "categories": "Product categories",
     "metaTitle": "Custom Packaging Products in 3D: Boxes & Cups | PackJoyU",
-    "metaDescription": "Explore 12 custom packaging categories in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
+    "metaDescription": "Explore our wide range of custom packaging in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.",
     "desc": {
       "corrugated-boxes": "Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.",
       "color-boxes": "Full-color printed folding cartons and retail product boxes for cosmetics, food and electronics.",
@@ -77,7 +77,7 @@
       "color-printing": "CMYK and spot-color printing for packaging, labels and marketing materials.",
       "offset-printing": "Offset printing for boxes, catalogs and brochures with consistent color at volume.",
       "eco-paper-cups": "Paper cups printed with your logo; coating options confirmed per order.",
-      "gift-cards": "Custom printed gift cards, greeting cards and card packaging for retail and promotions.",
+      "gift-cards": "Custom printed greeting cards and card packaging for retail and promotions.",
       "christmas-merchandise": "Christmas gift boxes, tubes, advent calendars and seasonal packaging made to order."
     },
     "alt": "{name}: custom packaging by PackJoyU",
@@ -172,13 +172,9 @@
     "metaDescription": "Tell us about your packaging project and request a quote from PackJoyU.",
     "title": "Request a quote",
     "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
-    "humanTitle": "Necessary human contact",
-    "humanBody": "Refusing optional analytics does not close the inquiry form or the email field. This page does not load a third-party chat script.",
-    "capacityLimit": "A historical server snapshot of about 2.7 GB of free memory is not the capacity available now. This site does not buy extra capacity on its own.",
-    "chatSwitch": "Independent chat",
-    "chatOff": "Independent chat is off. The inquiry form and the email entry stay available.",
-    "chatOn": "Independent chat is on as a first-party path. It does not need analytics consent and does not load a third-party script. This page does not open a live reply window.",
-    "emailEntry": "Email field in the inquiry form",
+    "humanTitle": "Talk to a packaging specialist",
+    "humanBody": "The inquiry form and email always work, whatever you choose in cookie settings.",
+    "emailEntry": "Go to the email field",
     "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {
@@ -302,24 +298,22 @@
   },
   "Consent": {
     "label": "Cookie consent",
-    "text": "We use essential storage to run this site, including necessary human contact. With your permission we also use optional analytics.",
+    "text": "We use essential cookies and local storage to run this site. With your permission, we also use optional anonymous analytics.",
     "policy": "Privacy policy",
     "accept": "Accept all",
     "reject": "Reject all",
     "settings": "Settings",
     "title": "Cookie settings",
     "lead": "Choose which cookies we may use. You can change this any time via “Cookie settings” in the footer.",
-    "necessary": "Necessary human contact",
-    "necessaryDesc": "Inquiry form, email field, language, security check, and this choice. Always available. This does not load a third-party chat script and does not follow the analytics choice.",
+    "necessary": "Necessary",
+    "necessaryDesc": "Language, security check, quote list, inquiry form and this choice. Always on.",
     "alwaysOn": "Always on",
     "analytics": "Optional analytics",
-    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site. Refusing this does not block human contact.",
-    "chat": "Legacy chat flag",
-    "chatDesc": "Stored only so older browser choices still parse. It does not load a third-party chat script.",
+    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site. Declining it does not affect the inquiry form or email.",
     "save": "Save choices",
     "close": "Close",
     "saved": "Your cookie choices were saved.",
-    "withdrawn": "Consent withdrawn. Optional analytics is off. Necessary human contact stays available.",
+    "withdrawn": "Consent withdrawn. Analytics is off. The inquiry form and email remain available.",
     "change": "Change"
   },
   "Footer": {
@@ -334,7 +328,7 @@
   "Privacy": {
     "metaTitle": "Privacy policy: data we collect | PackJoyU",
     "title": "Privacy policy",
-    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders, chat and cookies, and how to exercise your privacy rights.",
+    "metaDescription": "How PackJoyU collects, uses and protects personal data from quote requests, sample orders and cookies, and how to exercise your privacy rights.",
     "intro": "This page explains what personal data PackJoyU collects through this website, why, and how long we keep it.",
     "contactLink": "Contact us through the inquiry form",
     "sections": {
@@ -354,7 +348,7 @@
         "items": [
           "To answer inquiries, prepare quotes and ship samples.",
           "To protect the site from spam and abuse (security check and rate limits).",
-          "With your consent only: optional anonymous analytics. Necessary human contact and inquiries do not require that consent."
+          "With your consent only: to measure site performance with anonymous analytics. Sending an inquiry does not require this consent."
         ]
       },
       "retention": {
@@ -379,21 +373,16 @@
       "cookies": {
         "title": "Cookies, local storage and consent",
         "items": [
-          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records optional analytics separately from necessary human contact.",
-          "Optional analytics load only after you allow them. Refusing analytics does not create an analytics id.",
-          "Necessary human contact does not load a third-party chat script and does not depend on the analytics choice.",
+          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records whether you allowed optional analytics, and when.",
+          "Optional analytics load only after you allow them. If you decline, no analytics identifier is created.",
           "Your choice expires after 12 months, and we ask again.",
           "You can change or withdraw analytics consent at any time via “Cookie settings” in the footer. Withdrawing analytics stops analytics only. It does not delete inquiry records."
         ]
       },
       "chat": {
-        "title": "Necessary human contact",
+        "title": "Contacting us",
         "items": [
-          "Necessary human contact does not load Tawk.to or any other third-party chat script.",
-          "Refusing optional analytics still allows the inquiry form and the email field. Analytics consent and human contact are separate.",
-          "An independent switch can turn the chat entry off. The inquiry submit control and the email entry stay available.",
-          "A historical server snapshot of about 2.7 GB of free memory is not a measurement of capacity available now. This site does not buy extra capacity on its own.",
-          "A necessary chat cookie, once a conversation exists, is designed for 7 days of inactivity and 30 days from the start. Chat message content has a 90-day design default after the last successful exchange. Real cleanup of that content is not enabled. Inquiry retention is unchanged."
+          "The inquiry form and email always work, whatever you choose in cookie settings."
         ]
       },
       "processors": {
@@ -406,8 +395,7 @@
           "Security verification (bot protection) and file storage",
           "Rate-limit storage",
           "Email delivery",
-          "Database",
-          "No third-party live-chat provider"
+          "Database"
         ]
       },
       "contact": {

@@ -1,23 +1,27 @@
-import { test, expect, consent } from './fixtures';
+import { test, expect } from './fixtures';
+import { isThirdPartyChatUrl, thirdPartyChatDomSelector } from './third-party-chat';
 
-const tawk = (u: string) => /tawk\.to/.test(u);
+test.describe('同意前不加载统计上报', () => {
+  test('不加载任何第三方聊天和同意前不上报统计', async ({ page, external }) => {
+    const rum: string[] = [];
+    page.on('request', (r) => { if (r.url().includes('/api/rum')) rum.push(r.url()); });
+    await page.goto('/en');
+    await page.mouse.move(200, 200); await page.keyboard.press('Tab'); await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(3500);
+    await page.goto('/en/products'); await page.waitForTimeout(1000);
+    expect(external.urls.filter(isThirdPartyChatUrl)).toEqual([]);
+    expect(rum).toEqual([]);
+    expect(await page.evaluate(() => Boolean((window as unknown as { Tawk_API?: unknown }).Tawk_API))).toBe(false);
+    await expect(page.locator(thirdPartyChatDomSelector())).toHaveCount(0);
 
-test('同意前不加载 Tawk.to 和统计上报；同意后仍不加载 Tawk.to', async ({ page, external }) => {
-  const rum: string[] = [];
-  page.on('request', (r) => { if (r.url().includes('/api/rum')) rum.push(r.url()); });
-  await page.goto('/en');
-  await page.mouse.move(200, 200); await page.keyboard.press('Tab'); await page.mouse.wheel(0, 600);
-  await page.waitForTimeout(3500); // 交互或空闲后留出时间，确认第三方聊天没有加载
-  await page.goto('/en/products'); await page.waitForTimeout(1000);
-  expect(external.urls.filter(tawk)).toEqual([]);
-  expect(rum).toEqual([]);
-  expect(await page.evaluate(() => Boolean(window.Tawk_API))).toBe(false);
-
-  await consent(page, 'all');
-  await page.mouse.move(300, 300); await page.mouse.wheel(0, 300);
-  await page.waitForTimeout(3500);
-  expect(external.urls.filter(tawk)).toEqual([]);
-  expect(await page.evaluate(() => Boolean(window.Tawk_API))).toBe(false);
+    await page.getByRole('button', { name: 'Accept all' }).click();
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pj-consent') ?? 'null'));
+    expect(stored).toMatchObject({ v: 2, analytics: true, chat: false });
+    await page.mouse.move(300, 300); await page.mouse.wheel(0, 300);
+    await page.waitForTimeout(3500);
+    expect(external.urls.filter(isThirdPartyChatUrl)).toEqual([]);
+    expect(await page.evaluate(() => Boolean((window as unknown as { Tawk_API?: unknown }).Tawk_API))).toBe(false);
+  });
 });
 
 test('Cookie 同意条：拒绝后不加载第三方，刷新后不再出现', async ({ page, external }) => {
@@ -26,8 +30,10 @@ test('Cookie 同意条：拒绝后不加载第三方，刷新后不再出现', a
   await page.goto('/en');
   const bar = page.getByRole('region', { name: 'Cookie consent' });
   await expect(bar).toBeVisible();
+  await page.evaluate(() => { (window as unknown as { __stay?: number }).__stay = 1; });
   await bar.getByRole('button', { name: 'Reject all' }).click();
   await expect(bar).toBeHidden();
+  expect(await page.evaluate(() => (window as unknown as { __stay?: number }).__stay)).toBe(1);
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pj-consent') ?? 'null'));
   expect(stored).toMatchObject({ v: 2, analytics: false, chat: false });
 
@@ -36,9 +42,9 @@ test('Cookie 同意条：拒绝后不加载第三方，刷新后不再出现', a
   await page.reload();
   await expect(page.getByRole('region', { name: 'Cookie consent' })).toHaveCount(0);
   await page.waitForTimeout(1000);
-  expect(external.urls.filter(tawk)).toEqual([]);
+  expect(external.urls.filter(isThirdPartyChatUrl)).toEqual([]);
   expect(rum).toEqual([]);
-  expect(await page.evaluate(() => Boolean(window.Tawk_API))).toBe(false);
+  expect(await page.evaluate(() => Boolean((window as unknown as { Tawk_API?: unknown }).Tawk_API))).toBe(false);
 });
 
 // #183：手机 390px 下 Cookie 条不能盖住页脚最后一行。前端合并 #183/#184 的 PR 后去掉 fixme。

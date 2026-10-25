@@ -26,8 +26,10 @@ export function getConsent(): Consent | null {
   try { return parseConsent(window.localStorage.getItem(CONSENT_KEY)); } catch { return null; }
 }
 
-export function setConsent(choice: { analytics: boolean; chat: boolean }): Consent {
-  const value: Consent = { v: 2, analytics: choice.analytics === true, chat: choice.chat === true, ts: Date.now() };
+/** 新写入一律 chat:false。调用方传入的 chat 位不再生效，避免全部接受或保存设置把旧的 true 再写回去。 */
+export function setConsent(choice: { analytics: boolean; chat?: boolean }): Consent {
+  void choice.chat;
+  const value: Consent = { v: 2, analytics: choice.analytics === true, chat: false, ts: Date.now() };
   try {
     window.localStorage.setItem(CONSENT_KEY, JSON.stringify(value));
   } catch {
@@ -53,6 +55,16 @@ export function onConsent(cb: (c: Consent | null) => void): () => void {
 export function openConsentSettings(opener?: HTMLElement | null) {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new CustomEvent(CONSENT_OPEN_EVENT, { detail: { opener: opener ?? (document.activeElement as HTMLElement | null) } }));
+}
+
+/** 旧记录里的 chat:true 被新写入清掉时，要清残留存储并刷新。新访客没有这条记录，返回 false。 */
+export function legacyChatCleared(before: { chat?: boolean } | null, next: { chat?: boolean } | null): boolean {
+  return Boolean(before?.chat && !next?.chat);
+}
+
+/** 已保存 / 已撤回只跟分析同意是否被关掉对齐。清掉旧 chat 位但分析仍开着时，提示是已保存。 */
+export function consentNotice(before: { analytics?: boolean } | null, analytics: boolean): 'saved' | 'withdrawn' {
+  return before?.analytics === true && !analytics ? 'withdrawn' : 'saved';
 }
 
 const TAWK_KEY = /^(twk_|tawk|__tawk|TawkConnectionTime)/i;

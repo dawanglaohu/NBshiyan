@@ -10,6 +10,7 @@ import { LOGO_TTL_MS, type LogoUpload } from '@/lib/client/logoUpload';
 import { prefersReducedMotion, scrollBehaviorFor } from '@/lib/a11y/focus';
 import { Link } from '@/i18n/navigation';
 import { CONTACT_FIELDS, errorId, FIELD_ID, firstError, revalidate, validateContact, type ContactErrors, type ContactField } from '@/lib/inquiry/validate';
+import { INQUIRY_EMAIL_EVENT } from '@/app/[locale]/contact/HumanContactNotice';
 
 const QTY = [{ k: '1k', v: 1000 }, { k: '5k', v: 5000 }, { k: '10k', v: 10000 }, { k: '50k', v: 50000 }, { k: 'unsure', v: undefined }] as const;
 const MATERIALS = ['corrugated', 'paperboard', 'kraft', 'pulp', 'unsure'] as const;
@@ -79,10 +80,32 @@ export default function InquiryWizard() {
   // #308 P2-1：换步骤后焦点到「Step n of 3」这一行（tabIndex=-1，读屏会念），首次渲染不动焦点
   const stepRef = useRef<HTMLParagraphElement>(null);
   const stepMounted = useRef(false);
+  const emailJump = useRef(false);
+  const [emailJumpTick, setEmailJumpTick] = useState(0);
+  useEffect(() => {
+    const onJump = () => {
+      emailJump.current = true;
+      setStep(2);
+      setEmailJumpTick((n) => n + 1);
+    };
+    window.addEventListener(INQUIRY_EMAIL_EVENT, onJump);
+    return () => window.removeEventListener(INQUIRY_EMAIL_EVENT, onJump);
+  }, []);
   useEffect(() => {
     if (!stepMounted.current) { stepMounted.current = true; return; }
+    if (emailJump.current) return;
     revealNearest(stepRef.current);
   }, [step]);
+  useEffect(() => {
+    if (!emailJumpTick || step !== 2) return;
+    emailJump.current = false;
+    const input = document.getElementById('iq-email');
+    if (!(input instanceof HTMLInputElement)) return;
+    const field = input.closest('.field');
+    const target = field instanceof HTMLElement ? field : input;
+    target.scrollIntoView({ block: 'start', behavior: scrollBehaviorFor(prefersReducedMotion(window)) });
+    input.focus({ preventScroll: true });
+  }, [emailJumpTick, step]);
   // #308 P2-2：提交失败后焦点到错误框（role=alert，tabIndex=-1）；错误框下面就是提交按钮
   const errRef = useRef<HTMLDivElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);

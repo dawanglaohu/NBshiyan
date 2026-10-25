@@ -52,7 +52,8 @@ test('#308 wizard: noValidate always, fields wired with aria-invalid/aria-descri
 
 test('#308 wizard: step line focused on step change (not on mount), errors box focused on failure', () => {
   assert.match(src, /<p ref=\{stepRef\} className="iq-step" tabIndex=\{-1\}>/);
-  assert.match(src, /if \(!stepMounted\.current\) \{ stepMounted\.current = true; return; \}\s*revealNearest\(stepRef\.current\);\s*\}, \[step\]\);/);
+  assert.match(src, /if \(!stepMounted\.current\) \{ stepMounted\.current = true; return; \}\s*if \(emailJump\.current\) return;\s*revealNearest\(stepRef\.current\);\s*\}, \[step\]\);/);
+  assert.match(src, /target\.scrollIntoView\(\{ block: 'start', behavior: scrollBehaviorFor\(prefersReducedMotion\(window\)\) \}\);\s*input\.focus\(\{ preventScroll: true \}\)/);
   assert.match(src, /<div ref=\{errRef\} className="alert err" role="alert" tabIndex=\{-1\}>/);
   assert.match(src, /if \(failed\) revealNearest\(errRef\.current\);/);
   assert.match(src, /el\.scrollIntoView\(\{ block: 'nearest', behavior: scrollBehaviorFor\(prefersReducedMotion\(window\)\) \}\)/);

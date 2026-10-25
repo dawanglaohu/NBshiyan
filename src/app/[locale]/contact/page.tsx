@@ -17,7 +17,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   return (
     <main className="container" style={{ padding: '48px 20px 96px' }}>
       <h1 style={{ fontSize: 'var(--fs-h2)', marginTop: 0 }}>{t('title')}</h1>
-      <p style={{ maxWidth: 640 }}>{t('intro')}</p>
+      <p className="contact-intro">{t('intro')}</p>
       <HumanContactNotice />
       <InquiryWizard />
     </main>

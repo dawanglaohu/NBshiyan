@@ -29,23 +29,7 @@ export default function FloatingActions() {
         <button type="button" className="item" aria-label={`${t('quote')} (${items.length})`} title={t('quote')} onClick={() => setOpen(true)}>
           🧾{items.length > 0 && <span className="badge">{items.length}</span>}
         </button>
-        <Link
-          id="floating-human-contact"
-          className="item"
-          href="/contact"
-          aria-label={t('chat')}
-          title={t('chat')}
-          style={{
-            width: 52,
-            height: 52,
-            boxSizing: 'border-box',
-            border: 'var(--pj-border-width) solid var(--pj-border)',
-            borderRadius: 'var(--pj-radius)',
-            boxShadow: 'var(--pj-shadow)',
-            background: 'var(--pj-bg)',
-            color: 'var(--pj-accent)',
-          }}
-        >💬</Link>
+        <Link id="floating-human-contact" className="item" href="/contact" aria-label={t('chat')} title={t('chat')}>💬</Link>
         <button type="button" className="item" aria-label={t('top')} title={t('top')} onClick={toTop}>↑</button>
         <button type="button" className="toggle" aria-expanded={expanded} aria-label={t('menu')} onClick={() => setExpanded((v) => !v)}>
           {expanded ? '×' : '☰'}{!expanded && items.length > 0 && <span className="badge">{items.length}</span>}
