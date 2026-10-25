@@ -454,3 +454,17 @@ model JobState {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 }
+
+// 访客必要会话。cookie 是 256bit 随机原值，这里只存 SHA-256。7 天闲置、首次签发后 30 天绝对。
+// 没有邮箱列：相同邮箱不能找回旧会话。过期或撤销只拒绝访问，不在这里删除咨询正文。
+model ChatVisitorSession {
+  id                String    @id
+  tokenHash         String    @unique
+  createdAt         DateTime
+  lastActivityAt    DateTime
+  absoluteExpiresAt DateTime
+  revokedAt         DateTime?
+
+  @@index([absoluteExpiresAt])
+  @@index([lastActivityAt])
+}
