@@ -33,7 +33,7 @@ M7-T10 仍是 19 节里的 zod 升级任务，在第 22 批，待派。#420 的�
 | 登记 | GitHub | 状态 |
 |---|---|---|
 | FE-347 | #424 | 待派。核对用任务 |
-| FE-378 | 待开 issue | 暂不派。线上 `3c45e699` 于 2026-10-24 上线并复验通过，缓存上线前提已满足。现在只剩等 GATE-HARDEN（#438）合入。改 AboutSettings.tsx；合入后要全栈安全审查 |
+| FE-378 | 待开 issue | 暂不派。线上 `3c45e699` 于 2026-10-24 上线并复验通过，缓存上线前提已满足。派发前并列：等 GATE-HARDEN（#438）合入，以及确认 /media/ 的 Cloudflare 边缘缓存已清除（清缓存需要 Ryan 批准）或旧副本已过期。改 AboutSettings.tsx；合入后要全栈安全审查 |
 | SEO-1 | #425 | 已落地。PR #445，合并提交 `55a5a7111c81d3938b0528c5567b3b50c878f0d7`。x-default 用 aboutLanguages()：只发布一种语言时不输出，两种及以上并包含 en 时指向 en |
 | SEO-2 | #426 | 已落地。PR #450，合并提交 `6161329671e6e03e47f387643c3772633e2ce673`。issue #426 已关闭 |
 | SEO-3 | #427 | 暂不派。等文案和图片定稿 |
@@ -50,8 +50,8 @@ M7-T10 仍是 19 节里的 zod 升级任务，在第 22 批，待派。#420 的�
 | BE-350B | #433 | 运维执行，未完成。issue #433 仍开着 |
 | GATE-HARDEN | #438 | 待合入。等仓库管理员合并 |
 | GATE-HARDEN-2 | 待开 issue | 待派。#438 合入后才派。只登记，不实施 |
-| POST-LAUNCH-P3 | 待开 issue | 待派。上线后小任务，本次只登记。第 9 条含 VERCEL_ENV。第 2 条保留并放宽 GIF 断言。第 3 条用 curl 验收 404 no-store。另有城市场景 video 的 error 路径先 load() 再 play()。实施时按条目由前端、后端、SEO、UX 审查，敏感路径走全栈安全审，合入后需要部署 |
-| FE-404-TITLE | 待开 issue | 待派。P3。404 页标题进 head。不得把 Googlebot 加进 htmlLimitedBots。实施需前端、SEO 审 |
+| POST-LAUNCH-P3 | 待开 issue | 待派。上线后小任务，本次只登记。第 9 条含 VERCEL_ENV。第 2 条保留并放宽 GIF 断言。第 3 条用 curl 验收 404 no-store。第 11 条是出错后用户点播放重试先 load() 再 play()，不改 onError。审查人是前端和 UX。实施时按条目由前端、后端、SEO、UX 审查，敏感路径走全栈安全审，合入后需要部署 |
+| FE-404-TITLE | 待开 issue | 待派。P3。404 页标题进 head。不得把 Googlebot 加进 htmlLimitedBots。实施需前端、SEO、UX 审。UX 只复核渲染后的 document.title。断言加在 e2e/not-found-robots.spec.ts，覆盖普通未知路径和 /de |
 
 ## 审查
 
