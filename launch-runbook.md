@@ -134,12 +134,27 @@
 ### 4.3 首个管理员（只有命令行，没有 HTTP 接口）
 
 ```
-docker compose exec app node scripts/admin-create.mjs --email <管理员邮箱> --name "<显示名>"
+docker compose exec -it app node scripts/admin-create.mjs --email <管理员邮箱> --name "<显示名>"
 ```
 
-- 密码在终端里交互输入两次，不回显。没有终端时（如 `docker compose exec -T app node scripts/admin-create.mjs … < 只有自己可读的文件`）从标准输入读第一行，用完删掉那个文件（#347：没有终端时不会签发、显示绑定链接，之后需在终端里用 reset 脚本或后台「重置 2FA」签发）。**密码绝不放在命令行参数或环境变量里**：命令行参数脚本直接拒绝；生产（`APP_ENV=production`）下环境变量方式也直接拒绝（环境变量会出现在 `docker inspect` 和 shell 历史里）。
+- 在交互终端里运行。密码输入两次，不回显。没有终端时会建号，但不签发、不显示绑定链接。绑定链接只私下发给账号本人。要补发链接，在终端里运行第 4.4 节的 reset，或由另一个 ADMIN 在后台「重置 2FA」。
+- **密码绝不放在命令行参数或环境变量里**：命令行参数脚本直接拒绝；生产（`APP_ENV=production`）下环境变量方式也直接拒绝（环境变量会出现在 `docker inspect` 和 shell 历史里）。没有终端时，建号用的密码仍只从标准输入的第一行读取；这不适用于第 4.4 节的 reset。
 - 密码规则与后台新建账号相同（12–200 位，不能等于邮箱）。邮箱已存在 → 失败，不覆盖。已经有管理员 → 失败，除非显式加 `--allow-additional-admin`；日常加人走后台「账号管理」。
-- 建好的账号未绑定 2FA，首次登录前照常走 2FA 绑定流程。审计里写一条 `user.create`（`via: cli:admin-create`），不含密码、哈希或邮箱。
+- 建好的账号未绑定 2FA。审计里写一条 `user.create`（`via: cli:admin-create`），不含密码、哈希或邮箱。
+
+### 4.4 重设未绑定管理员的初始密码
+
+只用于还没绑定 2FA 的 ADMIN。在服务器上的交互终端里运行：
+
+```
+docker compose exec -it app node scripts/admin-reset-initial-password.mjs --email <管理员邮箱>
+```
+
+`--email <管理员邮箱>` 可换成 `--id <账号 id>`。有未完成的绑定，或 72 小时绑定窗口已关闭时，加上 `--clear-pending-enroll`。
+
+- 没有终端时退出 2，什么都不改。从标准输入喂密码的旧用法已失效。新密码只在终端里输入两次，不回显，不接受命令行参数或环境变量。
+- 成功后终端显示一次绑定链接。绑定链接只私下发给账号本人。
+- 退出码、事务、审计和限流见 [deploy/README.md](deploy/README.md) 的 “Reset the initial password of an unbound ADMIN”。
 
 ## 5. 上线后步骤
 
