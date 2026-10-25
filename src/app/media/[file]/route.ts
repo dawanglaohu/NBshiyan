@@ -1,3 +1,4 @@
+// gate-harden verify: test PR, do not merge
 import { prisma } from '@/lib/server/db';
 import { storage } from '@/lib/server/storage';
 import { fileRoute } from '@/lib/server/file-response';
