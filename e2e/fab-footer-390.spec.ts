@@ -362,6 +362,7 @@ for (const loc of LOCALES) {
     await waitForFabHeight(page);
     const pad = await page.locator('footer.site-footer').evaluate((el) => getComputedStyle(el).paddingBottom);
     expect(pad).toBe('24px');
+    expect(await page.locator('#analytics-preferences').evaluate((el) => getComputedStyle(el).marginRight)).toBe('0px');
     await expect(page.locator('footer.site-footer')).toBeVisible();
     await expect(page.locator('.fab .toggle')).toBeHidden();
     for (const item of await page.locator('.fab .item').all()) {

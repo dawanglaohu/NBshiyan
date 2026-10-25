@@ -106,6 +106,7 @@
   align-items: center;
   min-height: var(--pj-touch-target);
   min-width: var(--pj-touch-target);
+  margin-right: 0;
 }
 #analytics-preferences .linklike {
   display: inline-flex;
