@@ -147,3 +147,14 @@ function deepFreeze<T>(value: T): T {
   }
   return value;
 }
+
+/**
+ * 分析同意 cookie 的根密钥。同意服务再用固定标签派生 MAC 和 browserHash，避免和邮箱哈希互通。
+ * 生产已经要求 PRIVACY_HASH_SECRET 至少 32 字节，这里不另增变量，也不在缺省时使用开发回退密钥。
+ * 冻结的 ServerConfig 不复制这个值。
+ */
+export function analyticsConsentSecret(env: Record<string, string | undefined> = process.env): Buffer | null {
+  const raw = env.PRIVACY_HASH_SECRET;
+  if (typeof raw !== 'string' || Buffer.byteLength(raw) < 32) return null;
+  return Buffer.from(raw, 'utf8');
+}
