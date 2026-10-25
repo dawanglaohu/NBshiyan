@@ -23,6 +23,13 @@ test('collapsed FAB items keep their layout instead of display:none', () => {
   assert.doesNotMatch(css, /\.fab:not\(\.open\) \.item\{[^}]*display:\s*none/);
 });
 
+test('collapsed FAB container lets clicks pass through to the page', () => {
+  assert.match(css, /\.fab\{pointer-events:none\}\.fab>\*\{pointer-events:auto\}/);
+  const pass = css.indexOf('.fab{pointer-events:none}.fab>*{pointer-events:auto}');
+  const hidden = css.indexOf('.fab:not(.open) .item{visibility:hidden;opacity:0;pointer-events:none}');
+  assert.ok(pass > -1 && hidden > pass, '隐藏项的 pointer-events:none 写在容器规则之后');
+});
+
 test('FloatingActions writes the expanded height and clears it on unmount', () => {
   assert.match(fab, /new ResizeObserver\(write\)/);
   assert.match(fab, /setProperty\('--fab-h', `\$\{h\}px`\)/);

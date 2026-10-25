@@ -61,6 +61,8 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .stage .done{position:absolute;top:8px;right:8px;z-index:3}
 /* 悬浮按钮组：右下角；Cookie 条在左下 */
 .fab{position:fixed;right:16px;bottom:16px;z-index:40;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+/* 收起后容器仍占展开高度。容器不接点击，直接子项接；隐藏项规则特异性更高，仍是 pointer-events:none。 */
+.fab{pointer-events:none}.fab>*{pointer-events:auto}
 .fab button,.fab a{position:relative;width:52px;height:52px;border-radius:50%;border:0;background:var(--ink);color:#fff;font:inherit;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);text-decoration:none}
 .fab .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:700;line-height:20px;text-align:center}
 .fab .toggle{display:none}

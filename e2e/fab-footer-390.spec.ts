@@ -42,18 +42,96 @@ async function waitForFabHeight(page: Page) {
   });
 }
 
+type Box = { x: number; y: number; width: number; height: number };
+type Pt = { x: number; y: number };
+
+// html { scroll-behavior: smooth }：scrollTo 返回时 scrollY 可能还没动。基线必须等连续两次读数相同，且已经到达目标。
+async function waitForScroll(page: Page, target: number) {
+  let previous = Number.NaN;
+  await expect.poll(async () => {
+    const y = await page.evaluate(() => window.scrollY);
+    const settled = y === previous && Math.abs(y - target) <= 2;
+    previous = y;
+    return settled;
+  }).toBe(true);
+}
+
 async function scrollToBottom(page: Page) {
-  await page.evaluate(async () => {
-    const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    for (let i = 0; i < 4; i++) {
-      window.scrollTo(0, document.documentElement.scrollHeight);
-      await wait(100);
+  let previous = Number.NaN;
+  await expect.poll(async () => {
+    const snapshot = await page.evaluate(() => {
+      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      if (Math.abs(window.scrollY - max) > 2) window.scrollTo({ top: max, behavior: 'instant' });
+      return { y: window.scrollY, max };
+    });
+    const settled = snapshot.y === previous && Math.abs(snapshot.y - snapshot.max) <= 2;
+    previous = snapshot.y;
+    return settled;
+  }).toBe(true);
+}
+
+function zoneAboveToggle(fab: Box, toggle: Box): Box {
+  return { x: fab.x, y: fab.y, width: fab.width, height: toggle.y - fab.y };
+}
+
+function sampleZone(zone: Box): Pt[] {
+  const inset = 4;
+  const left = zone.x + inset;
+  const right = zone.x + zone.width - inset;
+  const top = zone.y + inset;
+  const bottom = zone.y + zone.height - inset;
+  const cols = 3;
+  const rows = 5;
+  const points: Pt[] = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      points.push({
+        x: left + ((col + 0.5) * (right - left)) / cols,
+        y: top + ((row + 0.5) * (bottom - top)) / rows,
+      });
     }
-  });
-  await page.waitForFunction(() => {
-    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    return Math.abs(window.scrollY - max) <= 2;
-  });
+  }
+  return points;
+}
+
+function pointInOverlap(target: Box, zone: Box, withinRightPx: number): Pt | null {
+  const left = Math.max(target.x, zone.x, target.x + target.width - withinRightPx);
+  const right = Math.min(target.x + target.width, zone.x + zone.width);
+  const top = Math.max(target.y, zone.y);
+  const bottom = Math.min(target.y + target.height, zone.y + zone.height);
+  if (right - left < 1 || bottom - top < 1) return null;
+  const span = right - left;
+  return { x: right - Math.min(2, span / 2), y: (top + bottom) / 2 };
+}
+
+async function hitAt(page: Page, point: Pt) {
+  return page.evaluate(({ x, y }) => {
+    const hit = document.elementFromPoint(x, y);
+    const fab = document.querySelector('.fab');
+    const className = hit && 'className' in hit ? String((hit as HTMLElement).className) : '';
+    return {
+      inFab: !!hit && !!fab && (hit === fab || fab.contains(hit)),
+      desc: hit ? `${hit.tagName}.${className}` : 'null',
+    };
+  }, point);
+}
+
+async function assertPassesThrough(page: Page, points: Pt[]) {
+  const blocked: { x: number; y: number; desc: string }[] = [];
+  for (const point of points) {
+    const hit = await hitAt(page, point);
+    if (hit.inFab) blocked.push({ ...point, desc: hit.desc });
+  }
+  expect(blocked).toEqual([]);
+}
+
+async function assertHitsOwner(page: Page, owner: Locator, point: Pt, label: string) {
+  const hit = await hitAt(page, point);
+  const owned = await owner.evaluate((el, p) => {
+    const target = document.elementFromPoint(p.x, p.y);
+    return !!target && el.contains(target);
+  }, point);
+  expect(owned, `${label} hit ${hit.desc}`).toBe(true);
 }
 
 async function hitReport(page: Page): Promise<Hit[]> {
@@ -163,6 +241,79 @@ async function metrics(page: Page) {
 
 for (const vp of PHONE) {
   for (const loc of LOCALES) {
+    test(`${vp.width}px ${loc.path}: collapsed FAB dead zone lets clicks through`, async ({ page }) => {
+      test.setTimeout(90_000);
+      await openHome(page, loc.path, vp.width, vp.height);
+      await waitForFabHeight(page);
+      const fab = page.locator('.fab');
+      await expect(fab).not.toHaveClass(/\bopen\b/);
+      const fabBox = await fab.boundingBox();
+      const toggle = page.getByRole('button', { name: loc.menu });
+      const toggleBox = await toggle.boundingBox();
+      expect(fabBox).not.toBeNull();
+      expect(toggleBox).not.toBeNull();
+      const zone = zoneAboveToggle(fabBox!, toggleBox!);
+      expect(zone.height).toBeGreaterThan(150);
+      expect(zone.width).toBeGreaterThan(40);
+      await assertPassesThrough(page, sampleZone(zone));
+
+      if (vp.width === 390 && loc.path === '/ru') {
+        expect(await page.evaluate(() => window.scrollY)).toBe(0);
+        const skip = page.getByRole('button', { name: 'Пропустить видео' });
+        const play = page.getByRole('button', { name: 'Смотреть видео' });
+        await expect(skip.or(play)).toBeVisible();
+        if (await play.isVisible()) await play.click();
+        await expect(skip).toBeVisible();
+        expect(await page.evaluate(() => window.scrollY)).toBe(0);
+        const skipBox = await skip.boundingBox();
+        expect(skipBox).not.toBeNull();
+        const point = pointInOverlap(skipBox!, zone, skipBox!.width);
+        expect(point, `skip ${JSON.stringify(skipBox)} zone ${JSON.stringify(zone)}`).not.toBeNull();
+        expect(point!.x).toBeGreaterThan(skipBox!.x + skipBox!.width / 2);
+        const hit = await hitAt(page, point!);
+        expect(hit.inFab, hit.desc).toBe(false);
+        await assertHitsOwner(page, skip, point!, 'Пропустить видео');
+      }
+
+      if (vp.width === 390 && loc.path === '/en') {
+        const link = page.locator('.entry').getByRole('link', { name: 'Color Boxes' });
+        await expect(link).toBeVisible();
+        let linkBox = await link.boundingBox();
+        expect(linkBox).not.toBeNull();
+        let point = pointInOverlap(linkBox!, zone, 48);
+        if (!point) {
+          const delta = (linkBox!.y + linkBox!.height / 2) - (zone.y + zone.height / 2);
+          const target = await page.evaluate((dy) => {
+            const top = Math.max(0, window.scrollY + dy);
+            window.scrollTo({ top, behavior: 'instant' });
+            return top;
+          }, delta);
+          await waitForScroll(page, target);
+          linkBox = await link.boundingBox();
+          expect(linkBox).not.toBeNull();
+          point = pointInOverlap(linkBox!, zone, 48);
+        }
+        expect(point, `color boxes ${JSON.stringify(linkBox)} zone ${JSON.stringify(zone)}`).not.toBeNull();
+        expect(linkBox!.x + linkBox!.width - point!.x).toBeLessThanOrEqual(48);
+        expect(linkBox!.x + linkBox!.width - point!.x).toBeGreaterThan(0);
+        const hit = await hitAt(page, point!);
+        expect(hit.inFab, hit.desc).toBe(false);
+        await assertHitsOwner(page, link, point!, 'Color Boxes');
+      }
+
+      await assertHitsOwner(page, toggle, {
+        x: toggleBox!.x + toggleBox!.width / 2,
+        y: toggleBox!.y + toggleBox!.height / 2,
+      }, 'collapsed toggle');
+      await toggle.click();
+      await expect(fab).toHaveClass(/\bopen\b/);
+      for (const item of await page.locator('.fab .item').all()) {
+        const box = await item.boundingBox();
+        expect(box).not.toBeNull();
+        await assertHitsOwner(page, item, { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 }, 'open FAB item');
+      }
+    });
+
     test(`${vp.width}px ${loc.path}: footer links stay clickable with the FAB collapsed and expanded`, async ({ page }) => {
       test.setTimeout(120_000);
       await openHome(page, loc.path, vp.width, vp.height);
@@ -184,7 +335,12 @@ for (const loc of LOCALES) {
     expect(pad).toBe('24px');
     await expect(page.locator('footer.site-footer')).toBeVisible();
     await expect(page.locator('.fab .toggle')).toBeHidden();
-    for (const item of await page.locator('.fab .item').all()) await expect(item).toBeVisible();
+    for (const item of await page.locator('.fab .item').all()) {
+      await expect(item).toBeVisible();
+      const box = await item.boundingBox();
+      expect(box).not.toBeNull();
+      await assertHitsOwner(page, item, { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 }, 'desktop FAB item');
+    }
     await scrollToBottom(page);
     await page.locator('#privacy-link').click({ trial: true });
     await page.locator('#cookie-settings-link').click();
@@ -196,15 +352,19 @@ for (const loc of LOCALES) {
 
   test(`390px ${loc.path}: toggling the FAB does not move the page or the footer padding`, async ({ page }) => {
     test.setTimeout(90_000);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await openHome(page, loc.path, 390, 844);
     await waitForFabHeight(page);
     const toggle = page.getByRole('button', { name: loc.menu });
     for (const where of ['middle', 'bottom'] as const) {
       if (where === 'middle') {
-        await page.evaluate(() => {
+        const target = await page.evaluate(() => {
           const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-          window.scrollTo(0, Math.round(max / 2));
+          const top = Math.round(max / 2);
+          window.scrollTo({ top, behavior: 'instant' });
+          return top;
         });
+        await waitForScroll(page, target);
       } else {
         await scrollToBottom(page);
       }
