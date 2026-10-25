@@ -397,6 +397,51 @@ test('a rejected city play() keeps the still and the Play button', async ({ page
   await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '0');
 });
 
+test('a 404 city video falls back to the still, retries on play, and pause does not fetch again', async ({ page }) => {
+  let allowMedia = false;
+  let cityRequests = 0;
+  await page.route('**/*packjoyu-industrial-city-v3-loop-*.mp4', async (route) => {
+    cityRequests += 1;
+    if (!allowMedia) {
+      await route.fulfill({ status: 404, contentType: 'text/plain', body: 'missing' });
+      return;
+    }
+    await route.continue();
+  });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en');
+  await dismissConsent(page);
+  const scene = page.getByTestId('brand-scene');
+  await scene.scrollIntoViewIfNeeded();
+  await expect.poll(() => cityRequests).toBeGreaterThan(0);
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await expect(page.getByTestId('brand-scene-still')).toBeVisible();
+  await expect(page.getByTestId('brand-scene-video')).toHaveAttribute('data-revealed', '0');
+  const beforePlay = cityRequests;
+  allowMedia = true;
+  await scene.getByRole('button', { name: 'Play illustration animation' }).click();
+  await expect.poll(() => cityRequests).toBeGreaterThan(beforePlay);
+  const video = page.getByTestId('brand-scene-video');
+  await expect(video).toHaveAttribute('data-revealed', '1');
+  await expect(video).toBeVisible();
+  await expect.poll(() => sceneState(page).then((state) => state.paused)).toBe(false);
+  let settled = cityRequests;
+  const settleBy = Date.now() + 8_000;
+  while (Date.now() < settleBy) {
+    await page.waitForTimeout(400);
+    if (cityRequests === settled) break;
+    settled = cityRequests;
+  }
+  await scene.getByRole('button', { name: 'Pause illustration animation' }).click();
+  await expect(scene).toHaveAttribute('data-user-paused', '1');
+  await expect(scene).toHaveAttribute('data-state', 'still');
+  await scene.getByRole('button', { name: 'Play illustration animation' }).click();
+  await expect(video).toHaveAttribute('data-revealed', '1');
+  await expect.poll(() => sceneState(page).then((state) => state.paused)).toBe(false);
+  await page.waitForTimeout(800);
+  expect(cityRequests).toBe(settled);
+});
+
 test('city video pauses within one frame and resumes from that playhead', async ({ page }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 900 });

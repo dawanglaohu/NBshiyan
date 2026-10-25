@@ -1,5 +1,4 @@
 'use client';
-import '@/styles/views.css';
 import dynamic from 'next/dynamic';
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Product } from '@/data/products';

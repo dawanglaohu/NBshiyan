@@ -75,11 +75,9 @@ test('upstash: error payload throws', async () => {
 
 test('RESP bulk length -1 is null and any other negative length is an error', () => {
   const nil = parseResp(Buffer.from('$-1\r\n'));
-  assert.ok(nil && nil.reply !== 'bad');
-  if (nil && nil.reply !== 'bad') {
-    assert.equal(nil.reply.kind, 'bulk');
-    assert.equal(nil.reply.value, null);
-  }
+  if (!nil || nil.reply === 'bad') assert.fail('expected a null bulk');
+  assert.equal(nil.reply.kind, 'bulk');
+  assert.equal(nil.reply.value, null);
   const bad = parseResp(Buffer.from('$-2\r\n'));
   assert.ok(bad && bad.reply === 'bad');
 });

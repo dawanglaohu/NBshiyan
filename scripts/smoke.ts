@@ -110,10 +110,16 @@ const ADMIN_LEAK = /PJ-\d{4}-[A-Z0-9]{4,}|询盘列表|adm-main|"inquiries"\s*:|
 
 const SESSION_CLEAR_NAMES = new Set(['authjs.session-token', '__Secure-authjs.session-token']);
 const SESSION_CLEAR_ATTRS = new Set(['httponly', 'path', 'max-age', 'expires', 'samesite', 'secure']);
+const EPOCH_EXPIRES = 'Thu, 01 Jan 1970 00:00:00 GMT';
+/** 不带会话访问这个后台接口。401 会带上会话 cookie 的清除头，白名单查的是这里。 */
+export const ADMIN_API_PROBE = '/api/admin/inquiries';
+/** 与 next.config.ts 的 OG_STATIC_JPG_CACHE_CONTROL 保持同一串。 */
+export const OG_HOME_CACHE_PATH = '/og/home-en.jpg';
+export const OG_HOME_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
 
 /**
  * 401 上的 Set-Cookie 只允许这两枚会话 cookie 的清除头。
- * 值必须为空，必须有 HttpOnly 和 Path=/，过期必须是 Max-Age=0 或 1970 的 Expires。
+ * 值必须为空，必须有 HttpOnly 和 Path=/，过期必须是 Max-Age=0 或 Expires=Thu, 01 Jan 1970 00:00:00 GMT。
  * SameSite=Lax|Strict 和 Secure 允许，因为清除头已经带它们。Domain 和其他属性失败。没有 Set-Cookie 则通过。
  */
 export function sessionClearCookieViolation(cookies: string[]): string | null {
@@ -149,7 +155,7 @@ export function sessionClearCookieViolation(cookies: string[]): string | null {
         if (val !== '0') return 'Max-Age must be 0';
         expired = true;
       } else if (key === 'expires') {
-        if (!/1970/.test(val)) return 'Expires must be in 1970';
+        if (val !== EPOCH_EXPIRES) return `Expires must be ${EPOCH_EXPIRES}`;
         expired = true;
       } else if (key === 'samesite' && val !== 'Lax' && val !== 'Strict') {
         return 'SameSite must be Lax or Strict';
@@ -231,10 +237,23 @@ export async function runChecks(f: Fetch, base: URL, o: { privacyIndexed: boolea
     const r = await g(SANITY_WEBHOOK_PATH, { method: 'POST', follow: false, body: '{"_type":"smoke"}', headers: { 'content-type': 'application/json' } });
     need(r.status !== 503, 'SANITY_WEBHOOK_SECRET not set');
     need(r.status === 401, `expected 401, got ${r.status}`);
+    return '401';
+  });
+  await check('admin API without a session returns 401', async () => {
+    const r = await g(ADMIN_API_PROBE, { follow: false });
+    need(r.status === 401, `expected 401, got ${r.status}`);
     const cookies = typeof r.headers.getSetCookie === 'function' ? r.headers.getSetCookie() : [];
     const violation = sessionClearCookieViolation(cookies);
     need(!violation, violation ?? '');
-    return '401';
+    return `401, set-cookie ${cookies.length}`;
+  });
+  await check('/og/home-en.jpg cached for 1 day', async () => {
+    const r = await g(OG_HOME_CACHE_PATH, { method: 'HEAD' });
+    need(r.status === 200, `status ${r.status}`);
+    const cc = r.headers.get('cache-control') ?? '';
+    need(!/\bno-store\b/.test(cc), `no-store: ${cc || '(missing)'}`);
+    need(cc === OG_HOME_CACHE_CONTROL, `cache-control ${cc || '(missing)'}`);
+    return cc;
   });
   return results;
 }

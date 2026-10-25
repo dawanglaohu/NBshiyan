@@ -1,4 +1,0 @@
-/* 合盖 / 开盖 / 展开刀模 切换按钮 */
-.card .views{display:flex;gap:6px;padding:0 16px 14px;flex-wrap:wrap}
-.card .views button{font:inherit;font-size:var(--fs-small);min-height:32px;padding:4px 12px;border-radius:var(--r-pill);border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
-.card .views button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
