@@ -141,7 +141,7 @@ export function createChatSessionPost(deps: {
       );
     } catch (error) {
       const mapped = classifyThrown(error, requestId);
-      if (mapped.kind === 'legacy-response') return mapped.response;
+      if (mapped.kind === 'legacy-response') return withPrivateNoStore(mapped.response);
       if (mapped.kind === 'legacy-body') return finish(500, mapped.body, { 'cache-control': 'private, no-store' });
       return finish(mapped.status, mapped.body, mapped.headers);
     }
@@ -161,6 +161,28 @@ function fieldErrorsFrom(error: z.ZodError): FieldError | undefined {
   const parsed = FieldErrorSchema.safeParse(fields);
   if (!parsed.success || Object.keys(parsed.data).length === 0) return undefined;
   return parsed.data;
+}
+
+/** 已经构造好的响应原样交还，只补上不缓存。头不可变时复制一份，状态、正文和其余头保持不变。 */
+function withPrivateNoStore(response: Response): Response {
+  try {
+    response.headers.set('cache-control', 'private, no-store');
+    return response;
+  } catch {
+    const headers = new Headers();
+    response.headers.forEach((value, key) => {
+      if (key === 'set-cookie') return;
+      headers.set(key, value);
+    });
+    const cookies = typeof response.headers.getSetCookie === 'function' ? response.headers.getSetCookie() : [];
+    for (const cookie of cookies) headers.append('set-cookie', cookie);
+    headers.set('cache-control', 'private, no-store');
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
 }
 
 async function discardBody(request: Request): Promise<void> {

@@ -27,7 +27,7 @@ import {
   type ChatVisitorSessionRow,
   createVisitorSessionService,
 } from '../src/lib/server/chat/visitor-session';
-import { DuplicateChatTokenError, createVisitorSessionRepo, type VisitorSessionStore } from '../src/lib/server/chat/visitor-session-repo';
+import { DuplicateChatTokenError, createVisitorSessionRepo, visitorSessionTouchSql, type VisitorSessionStore } from '../src/lib/server/chat/visitor-session-repo';
 import { CHAT_VISITOR_POLICY, loadServerConfig } from '../src/lib/server/config';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
@@ -56,6 +56,13 @@ let createAttempts = 0;
 let failCreates = 0;
 let fault: unknown = null;
 let executeFault: unknown = null;
+
+function utcInstant(value: unknown): Date | null {
+  if (typeof value !== 'string') return null;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime()) || date.toISOString() !== value) return null;
+  return date;
+}
 
 function cloneRow(row: ChatVisitorSessionRow): ChatVisitorSessionRow {
   return {
@@ -105,11 +112,11 @@ const db = {
     failIfFault();
     const values = [...query.values];
     touches.push({ sql: query.strings.join(''), values });
-    const now = values[0];
+    const now = utcInstant(values[0]);
     const tokenHash = values[1];
-    const nowAgain = values[2];
-    const cutoff = values[3];
-    if (!(now instanceof Date) || !(nowAgain instanceof Date) || typeof tokenHash !== 'string' || !(cutoff instanceof Date)) {
+    const nowAgain = utcInstant(values[2]);
+    const cutoff = utcInstant(values[3]);
+    if (values.length !== 4 || values.some((value) => value instanceof Date) || !now || !nowAgain || now.getTime() !== nowAgain.getTime() || typeof tokenHash !== 'string' || !cutoff) {
       throw new Error('touch sql shape');
     }
     const row = rows.get(tokenHash);
@@ -353,6 +360,29 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
     assert.equal(CHAT_SESSION_RATE_WINDOW_MS, 10 * 60 * 1000);
   });
 
+  test('touch sql binds now and the idle cutoff as UTC wall-clock parameters', () => {
+    const at = new Date('2026-11-01T05:06:07.008Z');
+    const idleMs = 7 * DAY_MS;
+    const cutoff = new Date(at.getTime() - idleMs);
+    const tokenHash = 'ab'.repeat(32);
+    const query = visitorSessionTouchSql(tokenHash, at, idleMs);
+    const casts = query.text.match(/::timestamptz AT TIME ZONE 'UTC'/g) ?? [];
+    assert.equal(casts.length, 3);
+    assert.match(query.text, /\$1::timestamptz AT TIME ZONE 'UTC'/);
+    assert.match(query.text, /\$3::timestamptz AT TIME ZONE 'UTC'/);
+    assert.match(query.text, /\$4::timestamptz AT TIME ZONE 'UTC'/);
+    assert.doesNotMatch(query.text, /\$2::timestamptz/);
+    assert.equal(query.values.length, 4);
+    assert.equal(query.values.some((value) => value instanceof Date), false);
+    assert.equal(query.values[0], at.toISOString());
+    assert.equal(query.values[1], tokenHash);
+    assert.equal(query.values[2], at.toISOString());
+    assert.equal(query.values[3], cutoff.toISOString());
+    assert.match(query.text, /"absoluteExpiresAt" >/);
+    assert.match(query.text, /"lastActivityAt" >/);
+    assert.doesNotMatch(query.text, />=/);
+  });
+
   test('active contact issues a 256-bit token, stores only the hash, and sets the necessary cookie', async () => {
     const issued = await httpPost({ json: { locale: 'ru' } });
     assert.equal(issued.status, 200);
@@ -412,9 +442,10 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
     assert.match(touches[0].sql, /"lastActivityAt" >/);
     assert.doesNotMatch(touches[0].sql, />=/);
     assert.equal(touches[0].values[1], hash);
-    assert.equal((touches[0].values[0] as Date).getTime(), now.getTime());
-    assert.equal((touches[0].values[2] as Date).getTime(), now.getTime());
-    assert.equal((touches[0].values[3] as Date).getTime(), now.getTime() - CHAT_VISITOR_POLICY.idleMs);
+    assert.equal(touches[0].values[0], now.toISOString());
+    assert.equal(touches[0].values[2], now.toISOString());
+    assert.equal(touches[0].values[3], new Date(now.getTime() - CHAT_VISITOR_POLICY.idleMs).toISOString());
+    assert.equal(touches[0].values.some((value) => value instanceof Date), false);
     const third = await httpPost();
     assert.equal(third.status, 200);
     assert.notEqual(tokenOf(third.cookies[0]), token);
@@ -750,6 +781,60 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
     assert.equal(twentyFirst.status, 429);
     assert.equal(twentyFirst.headers['retry-after'], '600');
     assert.equal(twentyFirst.cookies.length, 0);
+  });
+
+  test('a thrown legacy response keeps status, body, and set-cookie, and gains private no-store', async () => {
+    const mutable = new Response('legacy-body', {
+      status: 409,
+      statusText: 'Conflict',
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+        'x-kept': 'marker',
+        'cache-control': 'public, max-age=30',
+        'set-cookie': 'pj_chat=legacytoken; Path=/api/chat; HttpOnly',
+      },
+    });
+    fault = mutable;
+    const direct = await handler(new Request(`http://127.0.0.1:${port}/api/chat/session`, {
+      method: 'POST',
+      headers: { origin: `http://127.0.0.1:${port}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ locale: 'en' }),
+    }));
+    assert.equal(direct.status, 409);
+    assert.equal(direct.statusText, 'Conflict');
+    assert.equal(await direct.text(), 'legacy-body');
+    assert.equal(direct.headers.get('cache-control'), 'private, no-store');
+    assert.equal(direct.headers.get('x-kept'), 'marker');
+    assert.equal(direct.headers.get('content-type'), 'text/plain; charset=utf-8');
+    assert.deepEqual(direct.headers.getSetCookie(), ['pj_chat=legacytoken; Path=/api/chat; HttpOnly']);
+
+    const locked = new Response('kept-body', {
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: { 'content-type': 'text/plain', 'x-kept': 'yes' },
+    });
+    locked.headers.append('set-cookie', 'pj_chat=one; Path=/api/chat; HttpOnly');
+    locked.headers.append('set-cookie', 'pj_other=two; Path=/');
+    locked.headers.set = () => {
+      throw new TypeError('immutable');
+    };
+    fault = locked;
+    const copied = await handler(new Request(`http://127.0.0.1:${port}/api/chat/session`, {
+      method: 'POST',
+      headers: { origin: `http://127.0.0.1:${port}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ locale: 'en' }),
+    }));
+    assert.equal(copied.status, 401);
+    assert.equal(copied.statusText, 'Unauthorized');
+    assert.equal(await copied.text(), 'kept-body');
+    assert.equal(copied.headers.get('cache-control'), 'private, no-store');
+    assert.equal(copied.headers.get('x-kept'), 'yes');
+    assert.equal(copied.headers.get('content-type'), 'text/plain');
+    assert.deepEqual(copied.headers.getSetCookie(), [
+      'pj_chat=one; Path=/api/chat; HttpOnly',
+      'pj_other=two; Path=/',
+    ]);
+    assert.equal(copied === locked, false);
   });
 
   test('a closed rate-limit store, a down database, and a counter failure stay inside the error envelope', async () => {

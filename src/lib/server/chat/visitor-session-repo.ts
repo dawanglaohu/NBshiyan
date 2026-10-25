@@ -29,19 +29,24 @@ export function translateVisitorSessionError(error: unknown): never {
   throw error;
 }
 
+/** timestamp(3) 存的是 UTC 墙钟。时间参数写成 timestamptz，再 AT TIME ZONE 'UTC' 取该墙钟。 */
+function utc(date: Date): Prisma.Sql {
+  return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
+}
+
 /**
  * 先验期限再更新。等号拒绝：absoluteExpiresAt、lastActivityAt + idle 都必须严格晚于 now。
- * 参数顺序固定为 now、tokenHash、now、cutoff，供调用方和测试核对。
+ * 参数顺序固定为 now、tokenHash、now、cutoff。三个时刻都经 utc() 绑定。
  */
 export function visitorSessionTouchSql(tokenHash: string, now: Date, idleMs: number): Prisma.Sql {
   const cutoff = new Date(now.getTime() - idleMs);
   return Prisma.sql`
     UPDATE "ChatVisitorSession" AS session
-    SET "lastActivityAt" = ${now}
+    SET "lastActivityAt" = ${utc(now)}
     WHERE session."tokenHash" = ${tokenHash}
       AND session."revokedAt" IS NULL
-      AND session."absoluteExpiresAt" > ${now}
-      AND session."lastActivityAt" > ${cutoff}
+      AND session."absoluteExpiresAt" > ${utc(now)}
+      AND session."lastActivityAt" > ${utc(cutoff)}
     RETURNING
       session."id" AS "id",
       session."tokenHash" AS "tokenHash",
