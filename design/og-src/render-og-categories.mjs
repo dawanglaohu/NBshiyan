@@ -19,8 +19,10 @@ const H1={'corrugated-boxes':['Custom Corrugated Boxes','Гофрокороба 
 'wine-boxes':['Custom Wine Boxes','Коробки для вина на заказ'],'color-printing':['Packaging Printing Services','Печать упаковки на заказ'],
 'offset-printing':['Offset Printing Services','Офсетная печать упаковки'],
 'gift-cards':['Custom Greeting Cards','Печать открыток на заказ'],'christmas-merchandise':['Custom Christmas Packaging','Новогодняя упаковка на заказ']};
+// Poster file stem when it differs from custom-<key> (gift-cards renamed to greeting cards, #465; internal key unchanged).
+const POSTER={'gift-cards':'custom-greeting-cards'};
 const jobs=[];
 for(const l of ['en','ru']) for(const c of cats)
-  jobs.push(productJob(`category-${c[l]}-${l}.jpg`,H1[c.key][l=='en'?0:1],tag[l],l,c.key,R+'/public/images/posters/'+resolvePoster('custom-'+c.key)));
+  jobs.push(productJob(`category-${c[l]}-${l}.jpg`,H1[c.key][l=='en'?0:1],tag[l],l,c.key,R+'/public/images/posters/'+resolvePoster(POSTER[c.key]??'custom-'+c.key)));
 await renderJobs(R,jobs);
 writeOgVersions(R);
