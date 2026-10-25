@@ -1,23 +1,23 @@
-# Custom Gift Cards / Печать подарочных карт на заказ（礼品卡）
+# Custom Greeting Cards / Печать открыток на заказ（贺卡）
 
-> Fixes #99 · 内部 key `gift-cards` · EN `/en/products/custom-gift-cards` · RU `/ru/products/podarochnye-karty`
+> Fixes #99 · 内部 key `gift-cards` · EN `/en/products/custom-greeting-cards` · RU `/ru/products/otkrytki-na-zakaz`
 > 元信息与 `src/lib/seo/categoryMeta.ts` 一致。所有 **TBD** 处需 Ryan/工厂提供真实数据，禁止编造数字、认证、评分或价格。
 
 ## Meta
 
 | | EN | RU ⚠️ 需要 Ryan 校对 |
 |---|---|---|
-| title | Custom Gift Cards Printing & Supplier | PackJoyU | Печать подарочных карт на заказ | PackJoyU |
-| description | Custom printed gift cards, vouchers and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. | Печать подарочных карт и сертификатов на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка для карт в едином стиле бренда. Запросите расчёт. |
-| keyword | custom gift cards | печать подарочных карт |
+| title | Custom Greeting Cards Printing & Supplier | PackJoyU | Печать открыток на заказ | PackJoyU |
+| description | Custom printed greeting cards and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote. | Печать открыток на заказ: тиснение фольгой, выборочный лак и конгрев. Конверты и упаковка в едином стиле бренда. Запросите расчёт. |
+| keyword | custom greeting cards | открытки на заказ |
 
 ---
 
 ## EN — Landing copy
 
-### H1: Custom Gift Cards
+### H1: Custom Greeting Cards
 
-PackJoyU prints custom paper gift cards, vouchers and certificates, together with matching card holders, envelopes and display packaging. Premium finishes such as foil stamping, spot UV and embossing give each card a retail-quality look, and coordinated packaging turns a simple card into a presentable gift.
+PackJoyU prints custom paper greeting cards, together with matching card holders, envelopes and display packaging. Premium finishes such as foil stamping, spot UV and embossing give each card a retail-quality look, and coordinated packaging turns a simple card into a presentable gift.
 
 #### Why PackJoyU
 
@@ -30,7 +30,7 @@ PackJoyU prints custom paper gift cards, vouchers and certificates, together wit
 
 | Option | Details |
 |---|---|
-| Products | Gift cards, vouchers, certificates, card holders, envelopes, gift card boxes |
+| Products | Greeting cards, card holders, envelopes, card boxes |
 | Material | Paperboard / special papers |
 | Printing | Offset CMYK/Pantone |
 | Finishes | Foil, spot UV, embossing (options confirmed with your quote) |
@@ -64,14 +64,14 @@ PackJoyU prints custom paper gift cards, vouchers and certificates, together wit
 
 > ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
 
-### H1: Печать подарочных карт на заказ
+### H1: Печать открыток на заказ
 
-PackJoyU печатает подарочные карты, ваучеры и сертификаты на бумажной основе вместе с держателями, конвертами и упаковкой для выкладки. Премиальная отделка — тиснение фольгой, выборочный лак и конгрев — придает каждой карте розничное качество, а упаковка в едином стиле превращает карту в полноценный подарок.
+PackJoyU печатает открытки на заказ вместе с держателями, конвертами и упаковкой для выкладки. Премиальная отделка — тиснение фольгой, выборочный лак и конгрев — придаёт каждой открытке розничное качество, а упаковка в едином стиле превращает открытку в полноценный подарок.
 
 #### Почему PackJoyU
 
 - **Премиальный вид** — Фольга, выборочный лак, конгрев, дизайнерская бумага.
-- **Полный комплект** — Карты, держатели, конверты и коробки в одном дизайне.
+- **Полный комплект** — Открытки, держатели, конверты и коробки в одном дизайне.
 - **Персонализация** — Варианты согласовываются при расчёте.
 - **Для розницы** — Держатели с европодвесом и упаковка для выкладки.
 
@@ -79,7 +79,7 @@ PackJoyU печатает подарочные карты, ваучеры и с�
 
 | Параметр | Описание |
 |---|---|
-| Продукция | Подарочные карты, ваучеры, сертификаты, держатели, конверты, коробки |
+| Продукция | Открытки, держатели, конверты, коробки |
 | Материал | Картон / дизайнерская бумага |
 | Печать | Офсет CMYK/Pantone |
 | Отделка | Фольга, выборочный лак, конгрев (варианты согласовываются при расчёте) |
@@ -115,17 +115,17 @@ PackJoyU печатает подарочные карты, ваучеры и с�
 
 ### EN — Google
 
-- **Transactional / commercial (主页面)**: custom gift cards, gift card printing, gift card packaging supplier, custom gift card holders wholesale
-- **Commercial investigation (主页面 + 小节)**: printed gift vouchers, gift certificate printing, gift card envelopes custom, gift card box with logo
-- **Informational (博客文章)**: gift card packaging ideas, paper vs plastic gift cards
+- **Transactional / commercial (主页面)**: custom greeting cards, greeting card printing, greeting card packaging supplier, custom greeting card holders wholesale
+- **Commercial investigation (主页面 + 小节)**: printed greeting cards, greeting card printing, greeting card envelopes, greeting card box with logo
+- **Informational (博客文章)**: greeting card packaging ideas, paper greeting cards
 
 ### RU — Yandex
 
 > ⚠️ 需要 Ryan 校对（俄语草稿，请母语校对后再导入 Sanity）
 
-- **Транзакционные (主页面)**: печать подарочных карт, подарочные сертификаты на заказ, упаковка для подарочных карт, конверты для сертификатов
-- **Коммерческие (主页面 + 小节)**: печать ваучеров, держатель для подарочной карты, подарочный сертификат с логотипом
-- **Информационные (博客文章)**: как оформить подарочный сертификат, бумажные или пластиковые карты
+- **Транзакционные (主页面)**: печать открыток, открытки на заказ, упаковка для открыток, конверты для открыток
+- **Коммерческие (主页面 + 小节)**: печать открыток, держатель для открытки, открытка с логотипом
+- **Информационные (博客文章)**: как оформить открытку, бумажные открытки
 
 ## Internal links
 
@@ -136,12 +136,12 @@ PackJoyU печатает подарочные карты, ваучеры и с�
 
 ## Article outlines（博客选题）
 
-1. **Gift Card Packaging Ideas for Retail Brands**
+1. **Greeting Card Packaging Ideas for Retail Brands**
    - H2s: Holders; envelopes; boxes; display
-   - CTA → `custom-gift-cards` 落地页
-2. **Finishes That Make Gift Cards Feel Premium**
+   - CTA → `custom-greeting-cards` 落地页
+2. **Finishes That Make Greeting Cards Feel Premium**
    - H2s: Foil; spot UV; embossing; papers
-   - CTA → `custom-gift-cards` 落地页
-3. **Подарочные сертификаты для бизнеса: печать и упаковка**  ⚠️ 需要 Ryan 校对
+   - CTA → `custom-greeting-cards` 落地页
+3. **Открытки для бизнеса: печать и упаковка**  ⚠️ 需要 Ryan 校对
    - H2s: Варианты; отделка; сроки
-   - CTA → `podarochnye-karty` 落地页
+   - CTA → `otkrytki-na-zakaz` 落地页

@@ -35,10 +35,10 @@
 | category→category | `/en/products/custom-wine-boxes` | `/en/products/molded-pulp-packaging` | molded fiber trays |
 | category→category | `/en/products/custom-color-printing` | `/en/products/offset-printing-services` | catalog and box printing |
 | category→category | `/en/products/custom-color-printing` | `/en/products/custom-printed-boxes` | custom printed boxes |
-| category→category | `/en/products/custom-color-printing` | `/en/products/custom-greeting-cards` | custom gift cards |
+| category→category | `/en/products/custom-color-printing` | `/en/products/custom-greeting-cards` | custom greeting cards |
 | category→category | `/en/products/offset-printing-services` | `/en/products/custom-color-printing` | CMYK and Pantone printing |
 | category→category | `/en/products/offset-printing-services` | `/en/products/custom-printed-boxes` | full-color retail boxes |
-| category→category | `/en/products/offset-printing-services` | `/en/products/custom-greeting-cards` | printed gift vouchers |
+| category→category | `/en/products/offset-printing-services` | `/en/products/custom-greeting-cards` | printed greeting cards |
 | category→category | `/en/products/custom-greeting-cards` | `/en/products/custom-color-printing` | packaging printing services |
 | category→category | `/en/products/custom-greeting-cards` | `/en/products/custom-gift-boxes` | custom gift boxes |
 | category→category | `/en/products/custom-greeting-cards` | `/en/products/offset-printing-services` | offset printing services |
@@ -73,10 +73,10 @@
 | category→category | `/ru/products/upakovka-dlya-vina` | `/ru/products/izdeliya-iz-tsellyulozy` | лотки из целлюлозы |
 | category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/ofsetnaya-pechat` | печать каталогов и коробок |
 | category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/tsvetnye-korobki` | картонные коробки с печатью |
-| category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/otkrytki-na-zakaz` | печать подарочных карт |
+| category→category | `/ru/products/tsvetnaya-pechat` | `/ru/products/otkrytki-na-zakaz` | печать открыток |
 | category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/tsvetnaya-pechat` | печать пантонами |
 | category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/tsvetnye-korobki` | коробки с логотипом |
-| category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/otkrytki-na-zakaz` | подарочные сертификаты на заказ |
+| category→category | `/ru/products/ofsetnaya-pechat` | `/ru/products/otkrytki-na-zakaz` | открытки на заказ |
 | category→category | `/ru/products/otkrytki-na-zakaz` | `/ru/products/tsvetnaya-pechat` | печать упаковки |
 | category→category | `/ru/products/otkrytki-na-zakaz` | `/ru/products/podarochnye-korobki` | подарочные коробки на заказ |
 | category→category | `/ru/products/otkrytki-na-zakaz` | `/ru/products/ofsetnaya-pechat` | офсетная печать упаковки |

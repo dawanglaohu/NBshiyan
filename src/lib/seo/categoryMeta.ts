@@ -76,7 +76,7 @@ export const categoryMeta: CategoryMeta[] = [
       description: 'Custom printed greeting cards and card holders with foil, spot UV and embossing. Matching envelopes and packaging for retail brands. Request a quote.' },
     ru: { slug: 'otkrytki-na-zakaz', keyword: 'открытки на заказ', draft: true,
       title: 'Печать открыток на заказ | PackJoyU',
-      description: 'Печать открыток на заказ: фольга, выборочный лак и тиснение. Конверты и упаковка в едином стиле бренда. Запросите расчёт.' } },
+      description: 'Печать открыток на заказ: тиснение фольгой, выборочный лак и конгрев. Конверты и упаковка в едином стиле бренда. Запросите расчёт.' } },
   { key: 'christmas-merchandise',
     en: { slug: 'custom-christmas-packaging', keyword: 'custom christmas packaging',
       title: 'Custom Christmas Packaging Supplier | PackJoyU',

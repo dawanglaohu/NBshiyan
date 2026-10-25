@@ -24,7 +24,7 @@
 | `color-printing` | `custom-color-printing` | `tsvetnaya-pechat` | 5 |
 | `offset-printing` | `offset-printing-services` | `ofsetnaya-pechat` | 5 |
 | `eco-paper-cups` | `eco-paper-cups` | `ekologichnye-stakany` | 5 |
-| `gift-cards` | `custom-gift-cards` | `podarochnye-karty` | 4 |
+| `gift-cards` | `custom-greeting-cards` | `otkrytki-na-zakaz` | 4 |
 | `christmas-merchandise` | `custom-christmas-packaging` | `novogodnyaya-upakovka` | 5 |
 
 ---
@@ -729,7 +729,7 @@ Our MOQ is {{待Ryan确认}}.
 
 ---
 
-## `gift-cards` — EN `/en/products/custom-gift-cards` · RU `/ru/products/podarochnye-karty`（Печать подарочных карт）
+## `gift-cards` — EN `/en/products/custom-greeting-cards` · RU `/ru/products/otkrytki-na-zakaz`（Печать открыток на заказ）
 
 ### EN
 

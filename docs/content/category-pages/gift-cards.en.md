@@ -1,4 +1,4 @@
-<!-- key: gift-cards · /en/products/custom-gift-cards · hreflang ru: /ru/products/podarochnye-karty · DRAFT (Refs #99) -->
+<!-- key: gift-cards · /en/products/custom-greeting-cards · hreflang ru: /ru/products/otkrytki-na-zakaz · DRAFT (Refs #99) -->
 <!-- Blocks containing {{…}} must not be rendered. -->
 
 > ⚠️ F16: "gift cards" is ambiguous (stored-value gift cards vs greeting cards). H1, slug and wording wait for Ryan; if greeting cards, slug may become `custom-greeting-cards`.
@@ -35,7 +35,7 @@ Offset CMYK/Pantone; foil, spot UV and embossing can be discussed; edge painting
 - **Shipping terms:** {{待Ryan确认}}
 
 ## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-gift-cards#faq) (source: `docs/content/landing-faq.md`, `gift-cards`).
+See the questions buyers ask most about this category: [FAQ](/en/products/custom-greeting-cards#faq) (source: `docs/content/landing-faq.md`, `gift-cards`).
 
 ## Related products
 - [Packaging Printing](/en/products/custom-color-printing)

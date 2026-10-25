@@ -1,4 +1,4 @@
-<!-- key: gift-cards · /ru/products/podarochnye-karty · hreflang en: /en/products/custom-gift-cards · ЧЕРНОВИК (Refs #99) -->
+<!-- key: gift-cards · /ru/products/otkrytki-na-zakaz · hreflang en: /en/products/custom-greeting-cards · ЧЕРНОВИК (Refs #99) -->
 <!-- ⚠️ Русский текст ждёт вычитки Ryan. Блоки с {{…}} не выводить. -->
 
 > ⚠️ F16: «подарочные карты» обычно означает сертификаты; если речь об открытках — нужно «открытки». H1 и slug ждут решения Ryan.
@@ -35,7 +35,7 @@ PackJoyU поставляет печатные карты для брендов 
 - **Условия поставки:** {{待Ryan确认}}
 
 ## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/podarochnye-karty#faq) (источник: `docs/content/landing-faq.md`, `gift-cards`).
+Частые вопросы по этой категории: [FAQ](/ru/products/otkrytki-na-zakaz#faq) (источник: `docs/content/landing-faq.md`, `gift-cards`).
 
 ## Похожие товары
 - [Печать упаковки на заказ](/ru/products/tsvetnaya-pechat)

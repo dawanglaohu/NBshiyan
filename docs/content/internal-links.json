@@ -168,7 +168,7 @@
       "kind": "category→category",
       "from": "/en/products/custom-color-printing",
       "to": "/en/products/custom-greeting-cards",
-      "anchor": "custom gift cards"
+      "anchor": "custom greeting cards"
     },
     {
       "locale": "en",
@@ -189,7 +189,7 @@
       "kind": "category→category",
       "from": "/en/products/offset-printing-services",
       "to": "/en/products/custom-greeting-cards",
-      "anchor": "printed gift vouchers"
+      "anchor": "printed greeting cards"
     },
     {
       "locale": "en",
@@ -399,7 +399,7 @@
       "kind": "category→category",
       "from": "/ru/products/tsvetnaya-pechat",
       "to": "/ru/products/otkrytki-na-zakaz",
-      "anchor": "печать подарочных карт"
+      "anchor": "печать открыток"
     },
     {
       "locale": "ru",
@@ -420,7 +420,7 @@
       "kind": "category→category",
       "from": "/ru/products/ofsetnaya-pechat",
       "to": "/ru/products/otkrytki-na-zakaz",
-      "anchor": "подарочные сертификаты на заказ"
+      "anchor": "открытки на заказ"
     },
     {
       "locale": "ru",
