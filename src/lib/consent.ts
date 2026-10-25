@@ -57,7 +57,7 @@ export function openConsentSettings(opener?: HTMLElement | null) {
 
 const TAWK_KEY = /^(twk_|tawk|__tawk|TawkConnectionTime)/i;
 
-/** 撤回在线聊天同意：移除 Tawk.to 脚本/iframe/全局对象，删除它的 localStorage、sessionStorage 和 cookie。调用方随后刷新页面，保证不再有请求。 */
+/** 清掉浏览器里残留的第三方聊天脚本、全局对象和存储。不决定第一方咨询是否可用，也不读取分析标识。 */
 export function clearTawkData() {
   document.getElementById('tawk-js')?.remove();
   document.querySelectorAll('script[src*="tawk.to"], iframe[src*="tawk.to"]').forEach((el) => el.remove());

@@ -30,7 +30,7 @@ export default async function SiteFooter({ aboutVisible = false }: { aboutVisibl
       <div className="container bottom">
         <span>© {new Date().getFullYear()} PackJoyU</span>
         {aboutVisible && <Link href="/about">{nav('about')}</Link>}
-        <Link href="/privacy">{t('privacy')}</Link>
+        <Link id="privacy-link" href="/privacy">{t('privacy')}</Link>
         <CookieSettingsLink label={t('cookieSettings')} />
         <LangLinks />
       </div>

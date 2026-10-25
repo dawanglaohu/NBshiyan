@@ -172,6 +172,13 @@
     "metaDescription": "Tell us about your packaging project and request a quote from PackJoyU.",
     "title": "Request a quote",
     "intro": "Three short steps. Only your contact details are required — pick “Not sure” for anything you have not decided yet.",
+    "humanTitle": "Necessary human contact",
+    "humanBody": "Refusing optional analytics does not close the inquiry form or the email field. This page does not load a third-party chat script.",
+    "capacityLimit": "A historical server snapshot of about 2.7 GB of free memory is not the capacity available now. This site does not buy extra capacity on its own.",
+    "chatSwitch": "Independent chat",
+    "chatOff": "Independent chat is off. The inquiry form and the email entry stay available.",
+    "chatOn": "Independent chat is on as a first-party path. It does not need analytics consent and does not load a third-party script. This page does not open a live reply window.",
+    "emailEntry": "Email field in the inquiry form",
     "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {
@@ -295,24 +302,24 @@
   },
   "Consent": {
     "label": "Cookie consent",
-    "text": "We use essential cookies to run this site. With your permission we also use analytics and live chat.",
+    "text": "We use essential storage to run this site, including necessary human contact. With your permission we also use optional analytics.",
     "policy": "Privacy policy",
     "accept": "Accept all",
     "reject": "Reject all",
     "settings": "Settings",
     "title": "Cookie settings",
     "lead": "Choose which cookies we may use. You can change this any time via “Cookie settings” in the footer.",
-    "necessary": "Necessary",
-    "necessaryDesc": "Language, security (Turnstile), quote list and this choice. Always on.",
+    "necessary": "Necessary human contact",
+    "necessaryDesc": "Inquiry form, email field, language, security check, and this choice. Always available. This does not load a third-party chat script and does not follow the analytics choice.",
     "alwaysOn": "Always on",
-    "analytics": "Analytics",
-    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site.",
-    "chat": "Live chat (Tawk.to)",
-    "chatDesc": "Loads the Tawk.to chat widget, which sets its own cookies.",
+    "analytics": "Optional analytics",
+    "analyticsDesc": "Anonymous page-speed and usage stats (web vitals) to improve the site. Refusing this does not block human contact.",
+    "chat": "Legacy chat flag",
+    "chatDesc": "Stored only so older browser choices still parse. It does not load a third-party chat script.",
     "save": "Save choices",
     "close": "Close",
     "saved": "Your cookie choices were saved.",
-    "withdrawn": "Consent withdrawn. Analytics and chat are off.",
+    "withdrawn": "Consent withdrawn. Optional analytics is off. Necessary human contact stays available.",
     "change": "Change"
   },
   "Footer": {
@@ -347,7 +354,7 @@
         "items": [
           "To answer inquiries, prepare quotes and ship samples.",
           "To protect the site from spam and abuse (security check and rate limits).",
-          "With your consent only: to measure site performance and to offer live chat."
+          "With your consent only: optional anonymous analytics. Necessary human contact and inquiries do not require that consent."
         ]
       },
       "retention": {
@@ -372,19 +379,21 @@
       "cookies": {
         "title": "Cookies, local storage and consent",
         "items": [
-          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records whether you allowed analytics and chat, and when.",
-          "Analytics (anonymous performance metrics) load only after you allow them.",
-          "Live chat (Tawk.to) loads only after you allow it.",
+          "Your choice is stored in your browser’s localStorage under the key pj-consent, not in a cookie. It records optional analytics separately from necessary human contact.",
+          "Optional analytics load only after you allow them. Refusing analytics does not create an analytics id.",
+          "Necessary human contact does not load a third-party chat script and does not depend on the analytics choice.",
           "Your choice expires after 12 months, and we ask again.",
-          "You can change or withdraw consent at any time via “Cookie settings” in the footer. After you withdraw, analytics and chat stop loading; withdrawing chat also clears the chat provider’s data from your browser."
+          "You can change or withdraw analytics consent at any time via “Cookie settings” in the footer. Withdrawing analytics stops analytics only. It does not delete inquiry records."
         ]
       },
       "chat": {
-        "title": "Live chat (Tawk.to)",
+        "title": "Necessary human contact",
         "items": [
-          "Live chat is provided by Tawk.to and is loaded only if you allow chat.",
-          "When it loads, Tawk.to receives your messages and technical data needed to run the chat, and sets its own storage in your browser.",
-          "The chat never loads on our admin pages."
+          "Necessary human contact does not load Tawk.to or any other third-party chat script.",
+          "Refusing optional analytics still allows the inquiry form and the email field. Analytics consent and human contact are separate.",
+          "An independent switch can turn the chat entry off. The inquiry submit control and the email entry stay available.",
+          "A historical server snapshot of about 2.7 GB of free memory is not a measurement of capacity available now. This site does not buy extra capacity on its own.",
+          "A necessary chat cookie, once a conversation exists, is designed for 7 days of inactivity and 30 days from the start. Chat message content has a 90-day design default after the last successful exchange. Real cleanup of that content is not enabled. Inquiry retention is unchanged."
         ]
       },
       "processors": {
@@ -398,7 +407,7 @@
           "Rate-limit storage",
           "Email delivery",
           "Database",
-          "Live chat (only with your consent)"
+          "No third-party live-chat provider"
         ]
       },
       "contact": {

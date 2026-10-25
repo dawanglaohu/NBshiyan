@@ -10,8 +10,8 @@ const TOAST_KEY = 'pj-consent-toast';
 type Toast = 'saved' | 'withdrawn';
 
 /**
- * Cookie 同意条 + 设置面板（#185，design/cookie-settings.html）。服务端不渲染，挂载后再判断，避免水合闪烁。
- * 撤回：analytics → WebVitals 监听到后立即停止上报；chat → 清掉 Tawk.to 脚本/存储/cookie 并刷新本页，其他标签页通过 storage 事件同样刷新。
+ * Cookie 同意条 + 设置面板。服务端不渲染，挂载后再判断，避免水合闪烁。
+ * 可选分析与必要人工联系分开：撤回 analytics 只停统计。旧 chat 位从 true 变为 false 时清掉残留的第三方聊天存储，不把它当作第一方咨询开关。
  */
 export default function CookieConsent() {
   const t = useTranslations('Consent');
@@ -31,7 +31,7 @@ export default function CookieConsent() {
     return onConsent((c) => {
       const before = prev.current; prev.current = c;
       setShow(c === null);
-      // 撤回聊天同意（本页或其他标签页）：清理 Tawk.to 并刷新，保证当前页不再有请求
+      // 旧 chat 位撤回：只清残留的第三方聊天存储。不创建分析标识，也不关闭询盘。
       if (before?.chat && !c?.chat) { clearTawkData(); window.location.reload(); }
     });
   }, []);
@@ -81,7 +81,7 @@ export default function CookieConsent() {
     const withdrawn = chatWithdrawn || Boolean(before?.analytics && !choice.analytics && !choice.chat);
     const kind: Toast = withdrawn ? 'withdrawn' : 'saved';
     setOpen(false);
-    // 撤回聊天：onConsent 会清理 Tawk.to 并刷新页面，提示放到 sessionStorage，刷新后再显示
+    // 旧 chat 位撤回会刷新页面，提示放到 sessionStorage，刷新后再显示
     if (chatWithdrawn) { try { sessionStorage.setItem(TOAST_KEY, kind); } catch { /* ignore */ } }
     setConsent(choice);
     if (chatWithdrawn) return;
@@ -176,17 +176,13 @@ function SettingsDialog({ draft, setDraft, onClose, onSave }: {
         </div>
         <div className="cs-body">
           <p id={`${id}-d`} className="cs-lead">{t('lead')} <Link href="/privacy">{t('policy')}</Link></p>
-          <div className="cs-cat">
+          <div className="cs-cat" data-consent-category="human-contact">
             <div><b>{t('necessary')}</b> <em>{t('alwaysOn')}</em><span id={`${id}-nec`}>{t('necessaryDesc')}</span></div>
             <button type="button" role="switch" className="cs-switch" aria-checked="true" aria-disabled="true" aria-label={t('necessary')} aria-describedby={`${id}-nec`} tabIndex={-1}><i aria-hidden="true" /></button>
           </div>
-          <div className="cs-cat">
+          <div className="cs-cat" data-consent-category="analytics">
             <div><b>{t('analytics')}</b><span id={`${id}-analytics`}>{t('analyticsDesc')}</span></div>
             {sw('analytics', t('analytics'), first)}
-          </div>
-          <div className="cs-cat">
-            <div><b>{t('chat')}</b><span id={`${id}-chat`}>{t('chatDesc')}</span></div>
-            {sw('chat', t('chat'))}
           </div>
         </div>
         <div className="cs-foot">

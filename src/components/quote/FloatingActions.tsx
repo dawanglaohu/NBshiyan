@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
-import { useTawk } from '@/components/chat/useTawk';
+import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import { useQuote } from './QuoteProvider';
 
@@ -12,7 +11,6 @@ export default function FloatingActions() {
   const names = useTranslations('Products.names');
   const { items, remove, open, setOpen } = useQuote();
   const [expanded, setExpanded] = useState(false);
-  const chat = useTawk(useLocale());
   // #116 询价流程（/contact 里的 InquiryWizard）中手机端隐藏悬浮按钮组，避免挡住选项
   const inQuote = usePathname() === '/contact';
   useEffect(() => {
@@ -31,12 +29,23 @@ export default function FloatingActions() {
         <button type="button" className="item" aria-label={`${t('quote')} (${items.length})`} title={t('quote')} onClick={() => setOpen(true)}>
           🧾{items.length > 0 && <span className="badge">{items.length}</span>}
         </button>
-        {/* 配置了 Tawk.to 且已同意 Cookie 时打开在线客服，否则跳到联系页 */}
-        {chat.enabled ? (
-          <button type="button" className="item" aria-label={t('chat')} title={t('chat')} onClick={() => chat.open()}>💬</button>
-        ) : (
-          <Link className="item" href="/contact" aria-label={t('chat')} title={t('chat')}>💬</Link>
-        )}
+        <Link
+          id="floating-human-contact"
+          className="item"
+          href="/contact"
+          aria-label={t('chat')}
+          title={t('chat')}
+          style={{
+            width: 52,
+            height: 52,
+            boxSizing: 'border-box',
+            border: 'var(--pj-border-width) solid var(--pj-border)',
+            borderRadius: 'var(--pj-radius)',
+            boxShadow: 'var(--pj-shadow)',
+            background: 'var(--pj-bg)',
+            color: 'var(--pj-accent)',
+          }}
+        >💬</Link>
         <button type="button" className="item" aria-label={t('top')} title={t('top')} onClick={toTop}>↑</button>
         <button type="button" className="toggle" aria-expanded={expanded} aria-label={t('menu')} onClick={() => setExpanded((v) => !v)}>
           {expanded ? '×' : '☰'}{!expanded && items.length > 0 && <span className="badge">{items.length}</span>}
