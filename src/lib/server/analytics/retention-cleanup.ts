@@ -21,6 +21,8 @@ import {
 } from './retention-plan';
 
 const OWNER = 'retention-cleanup';
+/** 清理结果单独记在这一行。租约仍用 analytics-aggregate，不改汇总的状态。 */
+const STATUS_KEY = 'analytics-retention';
 const ISO_FORMAT = 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"';
 const TX = { maxWait: 5_000, timeout: 15_000 } as const;
 
@@ -100,8 +102,9 @@ async function finish(
 ): Promise<void> {
   try {
     await db.$transaction(async (tx) => {
-      await repo.complete({
-        key: ANALYTICS_ROLLUP_JOB_KEY,
+      await repo.completeSeparately({
+        leaseKey: ANALYTICS_ROLLUP_JOB_KEY,
+        statusKey: STATUS_KEY,
         owner: OWNER,
         generation: claim.generation,
         status,
@@ -122,10 +125,19 @@ async function renew(db: RetentionCleanupDb, repo: JobLeaseRepo, claim: Acquired
 }
 
 /**
- * 删除早于保留截止点、并且落在这一站点日里的原始事件。
+ * 这一站点日里可以删除的原始事件：occurredAt 和 receivedAt 都早于保留截止点。
+ * 两个时刻都早于 cutoff 时，事件落在任何时区的 recomputableFrom 之前，不能再被整日重算。
  * 截止时刻由本次运行读到的服务器时间减去 RAW_EVENT_RETENTION_MS，再用 utc() 绑定。
  * 冒烟路径不单独豁免。只锁这一批的行，提交后下一批才开始。
  */
+function deletableEventFilter(start: Date, end: Date, cutoff: Date): Prisma.Sql {
+  return Prisma.sql`
+    "occurredAt" >= ${utc(start)}
+    AND "occurredAt" < ${utc(end)}
+    AND "occurredAt" < ${utc(cutoff)}
+    AND "receivedAt" < ${utc(cutoff)}
+  `;
+}
 async function deleteEventBatch(
   db: RetentionCleanupDb,
   repo: JobLeaseRepo,
@@ -138,13 +150,12 @@ async function deleteEventBatch(
   const bounds = siteDayUtcBounds(siteDate, timeZone);
   const deleted = await db.$transaction(async (tx) => {
     await repo.renew({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER, generation: claim.generation }, tx);
+    const cutoff = rawEventCutoff(now);
     return tx.$executeRaw`
       DELETE FROM "AnalyticsEvent"
       WHERE "eventId" IN (
         SELECT "eventId" FROM "AnalyticsEvent"
-        WHERE "occurredAt" >= ${utc(new Date(bounds.startUtc))}
-          AND "occurredAt" < ${utc(new Date(bounds.endUtc))}
-          AND "receivedAt" < ${utc(rawEventCutoff(now))}
+        WHERE ${deletableEventFilter(new Date(bounds.startUtc), new Date(bounds.endUtc), cutoff)}
         ORDER BY "receivedAt" ASC, "eventId" ASC
         LIMIT ${limit}
       )
@@ -221,6 +232,7 @@ async function drain(budget: Budget, deleteBatch: (limit: number) => Promise<num
 
 /**
  * 分析保留清理。先拿 analytics-aggregate 租约，汇总正在重算时返回 busy。
+ * 租约不改汇总那一行的状态。成功或失败写到 analytics-retention。
  * dry-run 只统计并写审计，不删行。delete 每批一个事务，原始事件先于汇总行。
  * 询盘和聊天不在这里删除。
  */
@@ -244,7 +256,7 @@ export async function runRetentionCleanup(deps: {
   }
   const leaseClock = deps.clock ?? (() => new Date());
   const repo = createJobLeaseRepo({ db: deps.db, clock: leaseClock });
-  const claim = await repo.claim({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER });
+  const claim = await repo.claimPreservingStatus({ key: ANALYTICS_ROLLUP_JOB_KEY, owner: OWNER });
   if (!claim.acquired) {
     if (claim.reason === 'busy') return { status: 'busy' };
     return { status: 'failed', errorCode: 'service_unavailable', deletedEvents: 0, deletedRollupRows: 0 };
@@ -292,21 +304,19 @@ export async function runRetentionCleanup(deps: {
       if (await isSiteDateRolledUp(siteDate, deps.db)) confirmed.push(siteDate);
       else counts.skippedUnrolledDays += 1;
     }
-    const cutoff = utc(rawEventCutoff(now));
+    const cutoff = rawEventCutoff(now);
     for (const [index, siteDate] of confirmed.entries()) {
       if (index % 25 === 0) await renew(deps.db, repo, claim);
       const bounds = siteDayUtcBounds(siteDate, clock.timezone);
       const rows = await deps.db.$queryRaw<{ count: number }[]>`
         SELECT COUNT(*)::int AS "count"
         FROM "AnalyticsEvent"
-        WHERE "occurredAt" >= ${utc(new Date(bounds.startUtc))}
-          AND "occurredAt" < ${utc(new Date(bounds.endUtc))}
-          AND "receivedAt" < ${cutoff}
+        WHERE ${deletableEventFilter(new Date(bounds.startUtc), new Date(bounds.endUtc), cutoff)}
       `;
       counts.candidateEvents += Number(rows[0]?.count ?? 0);
     }
     const expiredRows = await deps.db.$queryRaw<{ count: number }[]>`
-      SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "receivedAt" < ${cutoff}
+      SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "receivedAt" < ${utc(cutoff)}
     `;
     const expired = Number(expiredRows[0]?.count ?? 0);
     counts.keptExpiredEvents = Math.max(0, expired - counts.candidateEvents);

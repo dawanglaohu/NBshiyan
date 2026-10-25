@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
+import { alertRetentionCleanupIssue } from '@/lib/server/cron-alert';
+import { audit } from '@/lib/server/admin/audit';
 import { prisma } from '@/lib/server/db';
+import { errorSummary, sendAdminAlert } from '@/lib/server/mail';
 import { runRetentionCleanup } from '@/lib/server/analytics/retention-cleanup';
 import { secretMatches } from '@/lib/server/uploads';
 
@@ -21,6 +24,15 @@ function errorName(error: unknown): string {
   return 'Error';
 }
 
+async function reportRetentionFailure(errorCode: string) {
+  await alertRetentionCleanupIssue({ errorCode }, sendAdminAlert);
+  try {
+    await audit({ action: 'cron.retention_cleanup.alert', meta: { errorCode } });
+  } catch (error) {
+    console.error('[cron] retention cleanup alert audit failed', errorSummary(error));
+  }
+}
+
 async function handle(req: Request) {
   const auth = req.headers.get('authorization');
   const token = auth?.startsWith('Bearer ') ? auth.slice(7) : null;
@@ -30,6 +42,7 @@ async function handle(req: Request) {
     if (result.status === 'busy') return json({ error: 'job_busy' }, 409);
     if (result.status === 'failed') {
       console.error('[cron] retention-cleanup failed', result.errorCode);
+      await reportRetentionFailure(result.errorCode);
       return json({ error: 'retention_cleanup_failed' }, 500);
     }
     console.info('[cron] retention-cleanup', {
@@ -61,6 +74,7 @@ async function handle(req: Request) {
     });
   } catch (error) {
     console.error('[cron] retention-cleanup failed', errorName(error));
+    await reportRetentionFailure('internal_error');
     return json({ error: 'retention_cleanup_failed' }, 500);
   }
 }

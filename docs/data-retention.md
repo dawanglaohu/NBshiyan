@@ -48,12 +48,12 @@
 
 | 数据 | 期限 | 处理方式 |
 |---|---|---|
-| 原始统计事件 `AnalyticsEvent` | `RAW_EVENT_RETENTION_MS`（30 天，按 `receivedAt`） | 只删已经按当前时区代次汇总完成、并且早于可重算下限的站点日。没汇总、代次不符、或落在汇总空缺之后的日子不删。冒烟路径按同一规则过期 |
+| 原始统计事件 `AnalyticsEvent` | `RAW_EVENT_RETENTION_MS`（30 天） | 只删 `occurredAt` 和 `receivedAt` 都早于截止点、已经按当前时区代次汇总完成、并且早于可重算下限的站点日。没汇总、代次不符、或落在汇总空缺之后的日子不删。`occurredAt` 不早于截止点的事件留下。冒烟路径按同一规则过期 |
 | 汇总 `AnalyticsDailyRollup`、`AnalyticsRollupDay` | 13 个日历月 | 删除早于站点本地日减去 13 个月的行。那一天本身保留 |
 | 询盘 | `INQUIRY_RETAIN_DAYS`（默认 730 天） | 仍由 `cleanup-uploads` 做成 `[deleted]` 匿名化，不物理删除 |
 | 聊天 | 与询盘同一个天数常量 | 没有到期清理任务，这次不新增 |
 
-入口：`GET|POST /api/admin/cron/retention-cleanup`。`deploy/cron.nbshiyan` 每天 03:30 在容器内请求 `http://127.0.0.1:3000`，密钥只从 `CRON_SECRET` 读取。和汇总任务共用 `analytics-aggregate` 租约，拿不到返回 409，cron 把 409 当成正常跳过，不重试。
+入口：`GET|POST /api/admin/cron/retention-cleanup`。`deploy/cron.nbshiyan` 每天 03:30 在容器内请求 `http://127.0.0.1:3000`，密钥只从 `CRON_SECRET` 读取。和汇总任务共用 `analytics-aggregate` 租约，清理结果单独写在 `analytics-retention`。拿不到租约返回 409，cron 把 409 当成正常跳过，不重试。失败时发一封保留清理告警。
 
 **默认 dry-run。** `RETENTION_CLEANUP_MODE` 未设置或为 `dry-run` 时只统计候选行数并写审计 `cron.retention_cleanup`，不删除分析行。要真正删除，在容器环境里把 `RETENTION_CLEANUP_MODE` 设为 `delete` 并重启应用。这个值不写进 crontab。每批最多 5000 行，每次运行最多 20000 行，每批单独提交。截止时刻用数据库当前时间减保留时长，以 timestamptz 绑定。
 

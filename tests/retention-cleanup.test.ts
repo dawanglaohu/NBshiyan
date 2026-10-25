@@ -22,6 +22,7 @@ import {
   rollupDeletionBefore,
 } from '../src/lib/server/analytics/retention-plan';
 import { GET, POST } from '../src/app/api/admin/cron/retention-cleanup/route';
+import { alertRetentionCleanupIssue } from '../src/lib/server/cron-alert';
 
 const NOW = new Date('2026-06-15T03:30:00.000Z');
 
@@ -108,26 +109,35 @@ test('清理模式默认 dry-run，只有精确的 delete 会删', () => {
   assert.equal(retentionCleanupMode({ RETENTION_CLEANUP_MODE: 'DELETE' }), 'dry-run');
 });
 
-test('时区代次变了以后，原始事件已经删掉的日子不会被空汇总覆盖', () => {
-  const stored = [{
-    siteDate: '2026-05-17',
+test('时区代次变了以后，窗口外的旧日不会被选中，窗口里的空日仍会重算', () => {
+  const outside = [{
+    siteDate: '2026-05-01',
     timezoneRevision: 1,
-    sourceMaxReceivedAt: '2026-05-17T11:00:00.000Z',
-    eventCount: 4,
+    sourceMaxReceivedAt: '2026-05-01T12:00:00.000Z',
   }];
-  const empty = [{ siteDate: '2026-05-17', sourceMaxReceivedAt: null }];
   assert.deepEqual(selectRollupDates({
-    eligible: ['2026-05-17', '2026-05-18'],
-    stored,
-    freshness: empty,
+    eligible: ['2026-05-18', '2026-05-19'],
+    stored: outside,
+    freshness: [],
+    timezoneRevision: 2,
+  }), ['2026-05-18', '2026-05-19']);
+  const shifted = [{
+    siteDate: '2026-05-18',
+    timezoneRevision: 1,
+    sourceMaxReceivedAt: '2026-05-18T02:00:00.000Z',
+  }];
+  assert.deepEqual(selectRollupDates({
+    eligible: ['2026-05-18', '2026-05-19'],
+    stored: shifted,
+    freshness: [{ siteDate: '2026-05-18', sourceMaxReceivedAt: null }],
+    timezoneRevision: 2,
+  }), ['2026-05-18', '2026-05-19']);
+  assert.deepEqual(selectRollupDates({
+    eligible: ['2026-05-18'],
+    stored: shifted,
+    freshness: [{ siteDate: '2026-05-18', sourceMaxReceivedAt: '2026-05-18T02:00:00.000Z' }],
     timezoneRevision: 2,
   }), ['2026-05-18']);
-  assert.deepEqual(selectRollupDates({
-    eligible: ['2026-05-17'],
-    stored,
-    freshness: [{ siteDate: '2026-05-17', sourceMaxReceivedAt: '2026-05-17T11:00:00.000Z' }],
-    timezoneRevision: 2,
-  }), ['2026-05-17']);
 });
 
 test('询盘匿名化仍写 [deleted]，清理任务不删除询盘或聊天行', async () => {
@@ -176,6 +186,11 @@ test('询盘匿名化仍写 [deleted]，清理任务不删除询盘或聊天行'
   assert.match(cleanup, /latestContiguousRolledUpDate/);
   assert.match(cleanup, /::timestamptz AT TIME ZONE 'UTC'/);
   assert.match(cleanup, /\$transaction/);
+  assert.match(cleanup, /claimPreservingStatus/);
+  assert.match(cleanup, /analytics-retention/);
+  assert.match(cleanup, /"occurredAt" < /);
+  assert.match(cleanup, /"receivedAt" < /);
+  assert.doesNotMatch(cleanup, /repo\.complete\(/);
   assert.doesNotMatch(cleanup, /queryRawUnsafe/);
 });
 
@@ -199,6 +214,10 @@ test('retention-cleanup cron 在 03:30 调本机，命令行没有密钥，409 �
   assert.match(route, /secretMatches\(token, process\.env\.CRON_SECRET\)/);
   assert.match(route, /no-store/);
   assert.match(route, /ANALYTICS_ROLLUP_JOB_KEY|runRetentionCleanup/);
+  assert.equal((route.match(/alertRetentionCleanupIssue\(/g) ?? []).length, 1);
+  assert.equal((route.match(/reportRetentionFailure\(/g) ?? []).length, 3);
+  const busy = route.slice(route.indexOf("result.status === 'busy'"), route.indexOf("result.status === 'failed'"));
+  assert.equal(busy.includes('reportRetentionFailure'), false);
 });
 
 test('没带密钥或密钥不对时返回 401，响应不缓存也不回显密钥', async () => {
@@ -221,4 +240,26 @@ test('没带密钥或密钥不对时返回 401，响应不缓存也不回显密�
     if (previous === undefined) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = previous;
   }
+});
+
+test('保留清理失败告警只含任务名和错误码，发送失败不抛出', async () => {
+  const calls: { kind: string; lines: Record<string, string | number>; key: string }[] = [];
+  const sent = await alertRetentionCleanupIssue(
+    { errorCode: 'internal_error' },
+    async (kind, lines, key) => { calls.push({ kind, lines, key }); },
+    new Date('2026-06-16T03:30:00.000Z'),
+  );
+  assert.equal(sent, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0]?.kind, '保留清理异常');
+  assert.equal(calls[0]?.key, 'cron-retention-cleanup:2026-06-16');
+  assert.deepEqual(calls[0]?.lines, { 任务: 'retention-cleanup', 错误码: 'internal_error' });
+  const dirty: { lines: Record<string, string | number> }[] = [];
+  await alertRetentionCleanupIssue(
+    { errorCode: 'internal_error postgres://secret' },
+    async (_kind, lines) => { dirty.push({ lines }); },
+  );
+  assert.equal(JSON.stringify(dirty).includes('postgres://'), false);
+  assert.equal(dirty[0]?.lines['错误码'], 'internal_errorpostgres:secret');
+  await assert.doesNotReject(alertRetentionCleanupIssue({ errorCode: 'invalid' }, async () => { throw new Error('down'); }));
 });

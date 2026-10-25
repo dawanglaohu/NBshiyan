@@ -162,11 +162,10 @@ async function finish(
 
 async function loadStored(db: Query, eligible: readonly string[]): Promise<StoredRollupDay[]> {
   if (eligible.length === 0) return [];
-  const rows = await db.$queryRaw<{ siteDate: string; timezoneRevision: number; eventCount: number; sourceMaxReceivedAt: string | null }[]>`
+  const rows = await db.$queryRaw<{ siteDate: string; timezoneRevision: number; sourceMaxReceivedAt: string | null }[]>`
     SELECT
       "siteDate",
       "timezoneRevision",
-      "eventCount",
       to_char("sourceMaxReceivedAt", ${ISO_FORMAT}) AS "sourceMaxReceivedAt"
     FROM "AnalyticsRollupDay"
     WHERE "siteDate" >= ${eligible[0]} AND "siteDate" <= ${eligible[eligible.length - 1]}
@@ -174,7 +173,6 @@ async function loadStored(db: Query, eligible: readonly string[]): Promise<Store
   return rows.map((row) => ({
     siteDate: row.siteDate,
     timezoneRevision: Number(row.timezoneRevision),
-    eventCount: Number(row.eventCount),
     sourceMaxReceivedAt: row.sourceMaxReceivedAt,
   }));
 }
@@ -182,7 +180,7 @@ async function loadStored(db: Query, eligible: readonly string[]): Promise<Store
 async function loadFreshness(db: Query, stored: readonly StoredRollupDay[], clock: SiteClock): Promise<DayFreshness[]> {
   const freshness: DayFreshness[] = [];
   for (const day of stored) {
-    // 旧代次也要看这一天还剩没有非冒烟事件。没有、且上一代有计数时，selectRollupDates 会跳过，避免写成空汇总。
+    if (day.timezoneRevision !== clock.timezoneRevision) continue;
     const bounds = siteDayUtcBounds(day.siteDate, clock.timezone);
     const rows = await db.$queryRaw<{ maxReceivedAt: string | null }[]>`
       SELECT to_char(MAX("receivedAt"), ${ISO_FORMAT}) AS "maxReceivedAt"

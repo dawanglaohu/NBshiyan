@@ -7,7 +7,7 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { eligibleSiteDates } from '../src/lib/analytics/rollup-plan';
 import { ANALYTICS_SETTINGS_KEY } from '../src/lib/server/jobs/types';
 import { createJobLeaseRepo } from '../src/lib/server/jobs/lease-repo';
-import { runAnalyticsRollup } from '../src/lib/server/analytics/rollup';
+import { latestContiguousRolledUpDate, runAnalyticsRollup } from '../src/lib/server/analytics/rollup';
 import { runRetentionCleanup } from '../src/lib/server/analytics/retention-cleanup';
 
 const base = process.env.DATABASE_URL;
@@ -20,6 +20,13 @@ const skip = !db && 'no DATABASE_URL';
 
 function utc(date: Date): Prisma.Sql {
   return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
+}
+
+function shiftDate(localDate: string, days: number): string {
+  const [year, month, day] = localDate.split('-').map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day + days));
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(shifted.getUTCDate())}`;
 }
 
 after(async () => {
@@ -253,28 +260,146 @@ describe('analytics retention cleanup', { concurrency: false, skip, timeout: 120
   test('时区代次切换后，已删除原始事件的汇总不会被空数据覆盖', async () => {
     assert.ok(db);
     const now = new Date('2026-06-16T12:00:00.000Z');
+    const cutoff = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     await setTimezone('UTC', 1, now);
-    await insertRollup('2026-05-17', 1, 1, now);
-    await insertEvent({
-      occurredAt: new Date('2026-05-17T15:00:00.000Z'),
-      receivedAt: new Date('2026-05-17T11:00:00.000Z'),
-      path: '/en',
-      browserHash: 'purged',
-    });
+    for (let index = 0; index < 17; index += 1) {
+      await insertRollup(shiftDate('2026-05-01', index), 1, index === 0 || index === 16 ? 1 : 0, now);
+    }
+    const oldAt = new Date('2026-05-01T12:00:00.000Z');
+    assert.ok(oldAt.getTime() < cutoff.getTime());
+    await insertEvent({ occurredAt: oldAt, receivedAt: oldAt, path: '/en', browserHash: 'purged' });
+    const lateReceived = new Date(cutoff.getTime() - 60_000);
+    const lateOccurred = new Date(lateReceived.getTime() + 5 * 60 * 1000);
+    assert.equal(lateOccurred.getTime() <= lateReceived.getTime() + 5 * 60 * 1000, true);
+    assert.equal(lateOccurred.getTime() >= cutoff.getTime(), true);
+    await insertEvent({ occurredAt: lateOccurred, receivedAt: lateReceived, path: '/en', browserHash: 'kept-late' });
     const cleaned = await runRetentionCleanup({ db, clock: () => now, mode: 'delete', audit: async () => {} });
     assert.equal(cleaned.status, 'succeeded');
     if (cleaned.status !== 'succeeded') return;
     assert.equal(cleaned.deletedEvents, 1);
-    assert.equal(await dailyCount('2026-05-17'), 1);
-    assert.equal(eligibleSiteDates(now, 'Etc/GMT+12').includes('2026-05-17'), true);
+    assert.ok(cleaned.keptExpiredEvents >= 1);
+    assert.deepEqual(await hashes(), ['kept-late']);
+    assert.equal(await dailyCount('2026-05-01'), 1);
     await setTimezone('Etc/GMT+12', 2, now);
+    assert.equal(eligibleSiteDates(now, 'Etc/GMT+12').includes('2026-05-01'), false);
+    assert.equal(eligibleSiteDates(now, 'Etc/GMT+12').includes('2026-05-17'), true);
     const rolled = await runAnalyticsRollup({ db, clock: () => now, maxDays: 40 });
     assert.equal(rolled.status, 'succeeded');
-    assert.equal(await dailyCount('2026-05-17'), 1);
-    const days = await db.$queryRaw<{ timezoneRevision: number; eventCount: number }[]>`
+    assert.equal(await dailyCount('2026-05-01'), 1);
+    const oldDays = await db.$queryRaw<{ timezoneRevision: number; eventCount: number }[]>`
+      SELECT "timezoneRevision", "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = '2026-05-01'
+    `;
+    assert.equal(Number(oldDays[0]?.timezoneRevision), 1);
+    assert.equal(Number(oldDays[0]?.eventCount), 1);
+    const lateDays = await db.$queryRaw<{ timezoneRevision: number; eventCount: number }[]>`
       SELECT "timezoneRevision", "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = '2026-05-17'
     `;
-    assert.equal(Number(days[0]?.timezoneRevision), 1);
-    assert.equal(Number(days[0]?.eventCount), 1);
+    assert.equal(Number(lateDays[0]?.timezoneRevision), 2);
+    assert.equal(Number(lateDays[0]?.eventCount), 1);
+    assert.equal(await dailyCount('2026-05-17'), 1);
+  });
+
+  test('改时区后的空日会升级到新 revision，连续上界能越过它', async () => {
+    assert.ok(db);
+    const now = new Date('2026-06-16T12:00:00.000Z');
+    const occurred = new Date('2026-05-20T02:00:00.000Z');
+    await setTimezone('UTC', 1, now);
+    await insertEvent({ occurredAt: occurred, receivedAt: occurred, path: '/en', browserHash: 'moved' });
+    const first = await runAnalyticsRollup({ db, clock: () => now, maxDays: 40 });
+    assert.equal(first.status, 'succeeded');
+    const before = await db.$queryRaw<{ timezoneRevision: number; eventCount: number }[]>`
+      SELECT "timezoneRevision", "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = '2026-05-20'
+    `;
+    assert.equal(Number(before[0]?.timezoneRevision), 1);
+    assert.equal(Number(before[0]?.eventCount), 1);
+    await setTimezone('Etc/GMT+12', 2, now);
+    const eligible = eligibleSiteDates(now, 'Etc/GMT+12');
+    assert.equal(eligible.includes('2026-05-20'), true);
+    assert.equal(eligible.includes('2026-05-19'), true);
+    const second = await runAnalyticsRollup({ db, clock: () => now, maxDays: 40 });
+    assert.equal(second.status, 'succeeded');
+    const empty = await db.$queryRaw<{ timezoneRevision: number; eventCount: number }[]>`
+      SELECT "timezoneRevision", "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = '2026-05-20'
+    `;
+    assert.equal(Number(empty[0]?.timezoneRevision), 2);
+    assert.equal(Number(empty[0]?.eventCount), 0);
+    assert.equal(await dailyCount('2026-05-20'), null);
+    const moved = await db.$queryRaw<{ timezoneRevision: number; eventCount: number }[]>`
+      SELECT "timezoneRevision", "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = '2026-05-19'
+    `;
+    assert.equal(Number(moved[0]?.timezoneRevision), 2);
+    assert.equal(Number(moved[0]?.eventCount), 1);
+    const through = await latestContiguousRolledUpDate(db);
+    assert.equal(through, eligible.at(-1));
+    assert.equal(through !== null && through > '2026-05-20', true);
+  });
+
+  test('汇总失败后，清理成功不会把汇总的失败状态覆盖掉', async () => {
+    assert.ok(db);
+    const now = new Date('2026-06-15T12:00:00.000Z');
+    await setTimezone('UTC', 1, now);
+    const repo = createJobLeaseRepo({ db, clock: () => now });
+    const claim = await repo.claim({ key: 'analytics-aggregate', owner: 'analytics-rollup' });
+    assert.equal(claim.acquired, true);
+    if (!claim.acquired) return;
+    const summary = { counts: { candidateCount: 3 }, versions: { timezoneRevision: 1 } };
+    await db.$transaction(async (tx) => {
+      await repo.complete({
+        key: 'analytics-aggregate',
+        owner: 'analytics-rollup',
+        generation: claim.generation,
+        status: 'FAILED',
+        summary,
+        errorCode: 'internal_error',
+        timezoneRevision: claim.timezoneRevision,
+      }, tx);
+    });
+    const before = await db.$queryRaw<{
+      lastStartedAt: string | null;
+      lastFinishedAt: string | null;
+      lastSucceededAt: string | null;
+    }[]>`
+      SELECT
+        to_char("lastStartedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastStartedAt",
+        to_char("lastFinishedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastFinishedAt",
+        to_char("lastSucceededAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastSucceededAt"
+      FROM "JobState" WHERE "key" = 'analytics-aggregate'
+    `;
+    assert.equal(before[0]?.lastSucceededAt, null);
+    const cleaned = await runRetentionCleanup({ db, clock: () => now, mode: 'dry-run', audit: async () => {} });
+    assert.equal(cleaned.status, 'succeeded');
+    const aggregate = await db.$queryRaw<{
+      leaseOwner: string | null;
+      lastStatus: string;
+      lastErrorCode: string | null;
+      lastStartedAt: string | null;
+      lastFinishedAt: string | null;
+      lastSucceededAt: string | null;
+      summary: { counts?: { candidateCount?: number } } | null;
+    }[]>`
+      SELECT
+        "leaseOwner",
+        "lastStatus"::text AS "lastStatus",
+        "lastErrorCode",
+        to_char("lastStartedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastStartedAt",
+        to_char("lastFinishedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastFinishedAt",
+        to_char("lastSucceededAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastSucceededAt",
+        "summary"
+      FROM "JobState" WHERE "key" = 'analytics-aggregate'
+    `;
+    assert.equal(aggregate[0]?.leaseOwner, null);
+    assert.equal(aggregate[0]?.lastStatus, 'FAILED');
+    assert.equal(aggregate[0]?.lastErrorCode, 'internal_error');
+    assert.equal(aggregate[0]?.lastStartedAt, before[0]?.lastStartedAt);
+    assert.equal(aggregate[0]?.lastFinishedAt, before[0]?.lastFinishedAt);
+    assert.equal(aggregate[0]?.lastSucceededAt, null);
+    assert.equal(aggregate[0]?.summary?.counts?.candidateCount, 3);
+    const retention = await db.$queryRaw<{ lastStatus: string; lastErrorCode: string | null; leaseOwner: string | null }[]>`
+      SELECT "lastStatus"::text AS "lastStatus", "lastErrorCode", "leaseOwner"
+      FROM "JobState" WHERE "key" = 'analytics-retention'
+    `;
+    assert.equal(retention[0]?.lastStatus, 'SUCCEEDED');
+    assert.equal(retention[0]?.lastErrorCode, null);
+    assert.equal(retention[0]?.leaseOwner, null);
   });
 });
