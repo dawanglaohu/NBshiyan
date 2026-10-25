@@ -61,10 +61,12 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .stage .done{position:absolute;top:8px;right:8px;z-index:3}
 /* 悬浮按钮组：右下角；Cookie 条在左下 */
 .fab{position:fixed;right:16px;bottom:16px;z-index:40;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+/* 收起后容器仍占展开高度。容器不接点击，直接子项接；隐藏项规则特异性更高，仍是 pointer-events:none。 */
+.fab{pointer-events:none}.fab>*{pointer-events:auto}
 .fab button,.fab a{position:relative;width:52px;height:52px;border-radius:50%;border:0;background:var(--ink);color:#fff;font:inherit;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);text-decoration:none}
 .fab .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:700;line-height:20px;text-align:center}
 .fab .toggle{display:none}
-@media (max-width:767px){.fab .toggle{display:flex;background:var(--accent);color:var(--on-accent)}.fab:not(.open) .item{display:none}}
+@media (max-width:767px){.fab .toggle{display:flex;background:var(--accent);color:var(--on-accent)}.fab:not(.open) .item{visibility:hidden;opacity:0;pointer-events:none}}
 /* 询价清单抽屉 */
 .drawer-mask{position:fixed;inset:0;background:rgb(0 0 0/.35);z-index:50}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:var(--surface);z-index:51;display:flex;flex-direction:column;box-shadow:var(--shadow)}
@@ -168,6 +170,9 @@ fieldset.field{border:0;padding:0;margin:0 0 16px}
 .site-footer .bottom{display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-top:32px;padding-top:16px;border-top:1px solid var(--line)}
 .site-footer .bottom span{margin-right:auto}
 @media (max-width:767px){.site-footer{padding-bottom:96px}.site-footer .cols{grid-template-columns:1fr}}
+/* ≤480：底边距跟随展开后的悬浮按钮组高度，最后一行停在按钮上方。更宽的视口不套这条。
+   品类名折行后，行内链接的包围盒中心会落在两行之间的空隙里，点不中 <a>。块级后整框都是链接。 */
+@media (max-width:480px){.site-footer{padding-bottom:calc(var(--fab-h, 0px) + 16px + env(safe-area-inset-bottom))}.site-footer ul.cats a{display:block}}
 /* #63 头部：手机端单行 Logo + 语言 + 菜单，链接进抽屉 */
 header.site .nav-mobile{display:none;align-items:center;gap:8px}
 header.site .lang{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;font-weight:700;text-decoration:none}
