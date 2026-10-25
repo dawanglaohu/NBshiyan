@@ -158,3 +158,10 @@ export function analyticsConsentSecret(env: Record<string, string | undefined> =
   if (typeof raw !== 'string' || Buffer.byteLength(raw) < 32) return null;
   return Buffer.from(raw, 'utf8');
 }
+
+/** 访客必要 cookie：7 天闲置，首次签发后 30 天绝对。与后台会话和分析同意期限分开，不读环境变量。 */
+export const CHAT_VISITOR_POLICY = Object.freeze({
+  idleMs: 7 * 24 * 60 * 60 * 1000,
+  absoluteMs: 30 * 24 * 60 * 60 * 1000,
+});
+export type ChatVisitorPolicy = typeof CHAT_VISITOR_POLICY;

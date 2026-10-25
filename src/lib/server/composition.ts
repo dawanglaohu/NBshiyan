@@ -8,6 +8,9 @@ import { createAnalyticsConsentService, type AnalyticsConsentService } from './a
 import { createAnalyticsEventRepo } from './analytics/event-repo';
 import { createAnalyticsIngestService, type AnalyticsIngestService } from './analytics/ingest';
 import { analyticsConsentSecret } from './config';
+import { CHAT_VISITOR_POLICY } from './config';
+import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
+import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 
 export type HttpServices = {
   config: ServerConfig;
@@ -107,6 +110,30 @@ export function createAnalyticsIngestServices(deps: {
       repo: createAnalyticsEventRepo(db),
       secret,
       clock: deps.clock,
+    }),
+  };
+}
+
+export type ChatServices = HttpServices & {
+  visitorSessions: VisitorSessionService;
+};
+
+/** 访客必要会话。每次调用新建服务，不保存当前 cookie 或会话行。 */
+export function createChatServices(deps: {
+  db?: ApiCounterDb & VisitorSessionStore;
+  config?: ServerConfig;
+  clock?: () => Date;
+  log?: (event: CounterLog) => void;
+} = {}): ChatServices {
+  const clock = deps.clock ?? (() => new Date());
+  const http = createHttpServices({ db: deps.db, config: deps.config, clock, log: deps.log });
+  const store = (deps.db ?? prisma) as unknown as VisitorSessionStore;
+  return {
+    ...http,
+    visitorSessions: createVisitorSessionService({
+      repo: createVisitorSessionRepo(store),
+      clock,
+      policy: CHAT_VISITOR_POLICY,
     }),
   };
 }
