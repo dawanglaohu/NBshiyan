@@ -6,6 +6,7 @@ import { categoryHref } from '@/lib/seo/categoryPages';
 import { PUBLISHED_LOCALES, DEFAULT_PUBLISHED_LOCALE } from '@/i18n/published-locales';
 import { LOCALE_META } from '@/i18n/locale-meta';
 import enMessages from '../../../../messages/en.json';
+import { NotFoundTitle } from '@/components/NotFoundTitle';
 
 /**
  * 未发布语言的 404 页（多语言第 0 期，UX）：沿用英文 404 页的样式（含头部和页脚），
@@ -17,27 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: enMessages.NotFound.meta.title, description: null };
 }
 
-// 未上线语言固定英文标题。水合会把 document.title 写成首页标题，脚本在 head 变化后写回。
-const localeUnavailableTitle = enMessages.NotFound.meta.title;
-
-function titleLockScript(title: string): string {
-  const encoded = JSON.stringify(title).replace(/</g, '\\u003c');
-  return `(function(){var t=${encoded};function apply(){if(document.title!==t)document.title=t;}apply();var head=document.head;if(head&&typeof MutationObserver==="function"){var obs=new MutationObserver(apply);obs.observe(head,{subtree:true,childList:true,characterData:true});addEventListener("pagehide",function(){obs.disconnect();},{once:true});}var n=25;var timer=setInterval(function(){apply();if(--n<=0)clearInterval(timer);},200);})();`;
-}
-
-function LocaleUnavailableTitle() {
-  return (
-    <>
-      <title>{localeUnavailableTitle}</title>
-      <script dangerouslySetInnerHTML={{ __html: titleLockScript(localeUnavailableTitle) }} />
-    </>
-  );
-}
-
 export default function LocaleUnavailable() {
   return (
     <>
-      <LocaleUnavailableTitle />
+      <NotFoundTitle locale="en" />
       <LocaleUnavailableBody />
     </>
   );

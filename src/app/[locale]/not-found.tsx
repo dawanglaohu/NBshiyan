@@ -4,8 +4,7 @@ import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categoryHref } from '@/lib/seo/categoryPages';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
-import enMessages from '../../../messages/en.json';
-import ruMessages from '../../../messages/ru.json';
+import { NotFoundTitle } from '@/components/NotFoundTitle';
 
 // 本地化 404（design/error-pages.html，#125/#195）：不重定向、不放搜索框。状态码仍由调用方 notFound() 给出 404。
 // 品类落地页 /{locale}/products/{slug} 上线前（CATEGORY_PAGES_LIVE，#198），入口先链到 3D 目录里对应的卡片，避免 404 页再链到 404。
@@ -18,27 +17,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('meta.title'),
     description: null
   };
-}
-
-// 404 走错误文档，metadata 的 <title> 在 </head> 之后。水合会把 document.title 写成布局上的首页标题。
-// 脚本在 head 变化后写回 NotFound.meta.title。不要改成观察 document.body：首页画布会持续改 body。
-function notFoundDocumentTitle(locale: string): string {
-  return locale === 'ru' ? ruMessages.NotFound.meta.title : enMessages.NotFound.meta.title;
-}
-
-function titleLockScript(title: string): string {
-  const encoded = JSON.stringify(title).replace(/</g, '\\u003c');
-  return `(function(){var t=${encoded};function apply(){if(document.title!==t)document.title=t;}apply();var head=document.head;if(head&&typeof MutationObserver==="function"){var obs=new MutationObserver(apply);obs.observe(head,{subtree:true,childList:true,characterData:true});addEventListener("pagehide",function(){obs.disconnect();},{once:true});}var n=25;var timer=setInterval(function(){apply();if(--n<=0)clearInterval(timer);},200);})();`;
-}
-
-function NotFoundTitle() {
-  const title = notFoundDocumentTitle(useLocale());
-  return (
-    <>
-      <title>{title}</title>
-      <script dangerouslySetInnerHTML={{ __html: titleLockScript(title) }} />
-    </>
-  );
 }
 
 function NotFoundBody() {
