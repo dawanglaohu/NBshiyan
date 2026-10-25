@@ -41,7 +41,7 @@ reverse proxy terminates public TLS, adds `X-Edge-Auth` and forwards to it.
 | `build-offbox.sh`, `tests/build-offbox.test.sh` | build both images OFF the server (fresh clone at the pinned SHA, explicit `--platform`, same pins, public build args only), secret-free pre-checks, `docker save` → `.tar.zst` + `.sha256` + `.manifest` (expected IDs) |
 | `import-and-scan.sh`, `tests/import-scan.test.sh` | ON the server: `sha256sum -c`, tar content check (only our two tags) → `docker load` → IDs / platform / revision label → leak scan with the server's secrets → production build checks → only then `:candidate` + `.candidate-sha`; the transferred files are always removed |
 | `mem-check.sh`, `tests/mem-check.test.sh` | `mem_ok` (sourced by `deploy.sh up` before anything starts): MemAvailable ≥ compose `mem_limit` of the services that still have to start (+ migrate next to a running app) + `MEM_RESERVE_MB` (256) |
-| `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly) and the cleanup cron run inside the container. Postgres only; `UPLOAD_DIR` is a separate ops backup (see below) |
+| `backup-postgres.sh`, `cron.nbshiyan` | daily `pg_dump -Fc` (7 daily + 4 weekly), the 03:00 cleanup cron, and the 03:30 analytics retention cron. Retention stays dry-run until `RETENTION_CLEANUP_MODE=delete`. Postgres only; `UPLOAD_DIR` is a separate ops backup (see below) |
 
 ## Public images (`/media/`) and the about-page upload
 

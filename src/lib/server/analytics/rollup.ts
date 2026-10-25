@@ -83,6 +83,10 @@ function validNow(now: Date): boolean {
   return now instanceof Date && Number.isFinite(now.getTime());
 }
 
+export async function readAnalyticsSiteClock(db: Query): Promise<SiteClock | 'corrupt'> {
+  return readSiteClock(db);
+}
+
 async function readSiteClock(db: Query): Promise<SiteClock | 'corrupt'> {
   const rows = await db.$queryRaw<{ value: unknown }[]>`
     SELECT "value" FROM "SiteSetting" WHERE "key" = ${ANALYTICS_SETTINGS_KEY}
