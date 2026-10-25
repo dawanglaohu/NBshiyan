@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { connectWhenSeoMock } from '../src/lib/seo/connectWhenSeoMock';
+import { connectWhenSeoMock } from '../src/lib/seo/mock';
 
 const pages = [
   'src/app/[locale]/products/page.tsx',
@@ -35,7 +35,7 @@ test('product pages keep ISR and do not call connection() themselves', () => {
   assert.match(shell, /await connectWhenSeoMock\(\)/);
   assert.equal(shell.match(/await connectWhenSeoMock\(\)/g)?.length, 2);
   assert.doesNotMatch(shell, /await connection\(\)/);
-  const helper = readFileSync('src/lib/seo/connectWhenSeoMock.ts', 'utf8');
+  const helper = readFileSync('src/lib/seo/mock.ts', 'utf8');
   const guard = helper.indexOf('if (!seoMockEnabled(env)) return;');
   const call = helper.indexOf('await connection()');
   assert.ok(guard >= 0 && call > guard);

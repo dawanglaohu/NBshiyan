@@ -9,8 +9,7 @@ import { SITE_URL } from '@/lib/site';
 import { listPublishedModels } from '@/lib/server/published-models';
 import { catalogItemList, decorateCatalogProducts, loadCatalog, withPublishedReady, type Locale } from '@/lib/catalog/catalog';
 import { categoryHref } from '@/lib/seo/categoryPages';
-import { connectWhenSeoMock } from '@/lib/seo/connectWhenSeoMock';
-import { categoryPagesLive } from '@/lib/seo/mock';
+import { categoryPagesLive, connectWhenSeoMock } from '@/lib/seo/mock';
 
 // 模型列表直接在服务端读数据库（与 /api/models 同一函数），60 秒重新生成
 export const revalidate = 60;
