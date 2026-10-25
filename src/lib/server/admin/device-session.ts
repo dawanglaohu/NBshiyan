@@ -1,8 +1,9 @@
 import { randomBytes } from 'crypto';
-import type { AdminDeviceSession, Role, User } from '@prisma/client';
+import type { AdminDeviceSession, PrismaClient, Role, User } from '@prisma/client';
 import { AccountDTOSchema, type AccountDTO } from '../../contracts/account';
 import type { ServerPolicy } from '../config';
 import { createDeviceRepo, type DeviceRepo } from './device-repo';
+import { activityRetryAfterSeconds, activityWriteAllowed, effectiveDeadline, enforcedAbsolute, initialHardExpiresAt, publicAbsolute } from './session-expiry';
 
 export type SessionPolicy = ServerPolicy['session'];
 export type SessionDenial = 'unauthenticated' | 'disabled' | 'forbidden';
@@ -17,16 +18,36 @@ export type BoundAccess =
 const SECURE_COOKIE = '__Secure-authjs.session-token';
 const PLAIN_COOKIE = 'authjs.session-token';
 
-/** 普通会话按上次活动滑动，不写绝对期限。记住设备再被首次签发后的绝对期限卡住。 */
-export function expiryBounds(device: Pick<AdminDeviceSession, 'remembered' | 'createdAt' | 'lastActivityAt' | 'absoluteExpiresAt'>, policy: SessionPolicy): ExpiryBounds {
-  const idleEnd = new Date(device.lastActivityAt.getTime() + (device.remembered ? policy.rememberedIdleMs : policy.idleMs));
-  if (!device.remembered) return { effectiveExpiresAt: idleEnd, absoluteExpiresAt: null };
-  const absolute = device.absoluteExpiresAt ?? new Date(device.createdAt.getTime() + policy.absoluteMs);
-  return { effectiveExpiresAt: new Date(Math.min(idleEnd.getTime(), absolute.getTime())), absoluteExpiresAt: absolute };
+/**
+ * 续期只拉长闲置截止。有效期限是闲置截止和 hardExpiresAt 里较早的那个。
+ * 对外的 absoluteExpiresAt 仍只属于记住设备；普通会话这一项保持空。
+ */
+export function expiryBounds(device: Pick<AdminDeviceSession, 'remembered' | 'createdAt' | 'lastActivityAt' | 'absoluteExpiresAt' | 'hardExpiresAt'>, policy: SessionPolicy): ExpiryBounds {
+  return { effectiveExpiresAt: effectiveDeadline(device, policy), absoluteExpiresAt: publicAbsolute(device, policy) };
 }
 
 export function isStrictlyBefore(now: Date, deadline: Date): boolean {
   return now.getTime() < deadline.getTime();
+}
+
+/**
+ * 只填 hardExpiresAt 仍为空的行，按创建时间写入绝对截止。
+ * 已经有值的行不动，absoluteExpiresAt 也不动。可以重复执行。
+ */
+export async function backfillHardExpiresAt(db: PrismaClient, policy: SessionPolicy): Promise<{ ordinary: number; remembered: number }> {
+  const ordinarySeconds = policy.ordinaryAbsoluteMs / 1000;
+  const rememberedSeconds = policy.absoluteMs / 1000;
+  const ordinary = await db.$executeRaw`
+    UPDATE "AdminDeviceSession"
+    SET "hardExpiresAt" = "createdAt" + make_interval(secs => ${ordinarySeconds})
+    WHERE "remembered" = false AND "hardExpiresAt" IS NULL
+  `;
+  const remembered = await db.$executeRaw`
+    UPDATE "AdminDeviceSession"
+    SET "hardExpiresAt" = "createdAt" + make_interval(secs => ${rememberedSeconds})
+    WHERE "remembered" = true AND "hardExpiresAt" IS NULL
+  `;
+  return { ordinary: Number(ordinary), remembered: Number(remembered) };
 }
 
 /**
@@ -68,6 +89,7 @@ export function decideAdminAccess(input: {
   }
   if (device.remembered !== (device.absoluteExpiresAt !== null)) return { ok: false, reason: 'unauthenticated', status: 401 };
   const bounds = expiryBounds(device, input.policy);
+  if (!isStrictlyBefore(input.now, enforcedAbsolute(device, input.policy))) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (!isStrictlyBefore(input.now, bounds.effectiveExpiresAt)) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (bounds.absoluteExpiresAt && !isStrictlyBefore(input.now, bounds.absoluteExpiresAt)) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (!input.roles.includes(input.user.role)) return { ok: false, reason: 'forbidden', status: 403 };
@@ -134,8 +156,14 @@ export type OpenDeviceInput = {
   userAgent: string | null;
 };
 
-export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () => Date; policy: SessionPolicy }) {
-  const { repo, clock, policy } = deps;
+export type ActivityWrite =
+  | { ok: true; wrote: boolean; bounds: ExpiryBounds; retryAfterSeconds: number; user: User; device: AdminDeviceSession }
+  | { ok: false; reason: SessionDenial; status: 401 | 403 };
+
+const ACTIVITY_ROLES = ['ADMIN', 'SALES', 'EDITOR'] as const;
+
+export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () => Date; policy: SessionPolicy; db?: PrismaClient }) {
+  const { repo, clock, policy, db } = deps;
   return {
     async open(input: OpenDeviceInput): Promise<AdminDeviceSession> {
       const now = clock();
@@ -151,6 +179,7 @@ export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () =
           createdAt: now,
           lastActivityAt: now,
           absoluteExpiresAt: input.remembered ? new Date(now.getTime() + policy.absoluteMs) : null,
+          hardExpiresAt: initialHardExpiresAt(now, input.remembered, policy),
           deviceLabel: coarseDeviceLabel(input.userAgent),
         });
       });
@@ -167,11 +196,75 @@ export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () =
     async revokeSid(id: string, reason: string): Promise<void> {
       await repo.revokeSid(id, reason, clock());
     },
+    /**
+     * 把一次真实活动写入当前设备。先锁用户再锁设备，条件更新只允许 lastActivityAt 前进。
+     * hardExpiresAt 不在更新列里。节流窗口内不写库。已撤销、停用、2FA 关闭、版本不符或期限等号已到的行不更新。
+     */
+    async recordActivity(input: { userId: string; sessionVersion: number; sid: string }): Promise<ActivityWrite> {
+      if (!db) return { ok: false, reason: 'unauthenticated', status: 401 };
+      try {
+        return await db.$transaction(async (tx) => {
+          await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${input.userId} FOR UPDATE`;
+          await tx.$queryRaw`SELECT "id" FROM "AdminDeviceSession" WHERE "id" = ${input.sid} AND "userId" = ${input.userId} FOR UPDATE`;
+          const user = await tx.user.findUnique({ where: { id: input.userId } });
+          const device = await tx.adminDeviceSession.findUnique({ where: { id: input.sid } });
+          const now = clock();
+          const decision = decideAdminAccess({
+            userId: input.userId,
+            sessionVersion: input.sessionVersion,
+            sid: input.sid,
+            user,
+            device,
+            roles: ACTIVITY_ROLES,
+            now,
+            policy,
+          });
+          if (!decision.ok || !user || !device) return decision.ok ? { ok: false, reason: 'unauthenticated', status: 401 } : decision;
+          if (!activityWriteAllowed(device.lastActivityAt, now, policy.activityThrottleMs)) {
+            return {
+              ok: true,
+              wrote: false,
+              bounds: decision.bounds,
+              retryAfterSeconds: activityRetryAfterSeconds(device.lastActivityAt, now, policy.activityThrottleMs),
+              user,
+              device,
+            };
+          }
+          const updated = await tx.adminDeviceSession.updateMany({
+            where: {
+              id: device.id,
+              userId: user.id,
+              sessionVersion: user.sessionVersion,
+              revokedAt: null,
+              lastActivityAt: device.lastActivityAt,
+              hardExpiresAt: device.hardExpiresAt,
+            },
+            data: { lastActivityAt: now },
+          });
+          if (updated.count !== 1) return { ok: false, reason: 'unauthenticated', status: 401 };
+          const fresh = await tx.adminDeviceSession.findUnique({ where: { id: device.id } });
+          const again = decideAdminAccess({
+            userId: input.userId,
+            sessionVersion: input.sessionVersion,
+            sid: input.sid,
+            user,
+            device: fresh,
+            roles: ACTIVITY_ROLES,
+            now,
+            policy,
+          });
+          if (!again.ok || !fresh) return again.ok ? { ok: false, reason: 'unauthenticated', status: 401 } : again;
+          return { ok: true, wrote: true, bounds: again.bounds, retryAfterSeconds: Math.ceil(policy.activityThrottleMs / 1000), user, device: fresh };
+        }, { maxWait: 5_000, timeout: 10_000 });
+      } catch {
+        return { ok: false, reason: 'unauthenticated', status: 401 };
+      }
+    },
   };
 }
 
 export type DeviceSessionService = ReturnType<typeof createDeviceSessionService>;
 
 export function deviceServiceFor(db: Parameters<typeof createDeviceRepo>[0], clock: () => Date, policy: SessionPolicy) {
-  return createDeviceSessionService({ repo: createDeviceRepo(db), clock, policy });
+  return createDeviceSessionService({ repo: createDeviceRepo(db), clock, policy, db: db as PrismaClient });
 }

@@ -8,5 +8,9 @@ declare module 'next-auth' {
 }
 
 declare module 'next-auth/jwt' {
-  interface JWT extends AuthSessionMetadata { uid?: AccountDTO['id'] }
+  interface JWT extends AuthSessionMetadata {
+    uid?: AccountDTO['id'];
+    /** 首次登录时间，ISO8601 UTC。只供展示，不参与鉴权；续期原样带上，不从客户端 session.update 采纳。 */
+    authTime?: string;
+  }
 }
