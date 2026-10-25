@@ -86,7 +86,7 @@ function fakeFetch(ok = true) {
   return { f, calls };
 }
 
-async function run(rows: Row[], o: { argv?: string[]; env?: Record<string, string | undefined>; pw?: string | { error: string }; db?: ReturnType<typeof fakeDb>; fetchOk?: boolean; tty?: boolean } = {}) {
+async function run(rows: Row[], o: { argv?: string[]; env?: Record<string, string | undefined>; pw?: string | { error: string }; db?: ReturnType<typeof fakeDb>; fetchOk?: boolean; tty?: boolean; stdinTty?: boolean } = {}) {
   const fdb = o.db ?? fakeDb(rows);
   const ff = fakeFetch(o.fetchOk ?? true);
   let out = '', err = '', pwReads = 0, hashed = '';
@@ -95,6 +95,7 @@ async function run(rows: Row[], o: { argv?: string[]; env?: Record<string, strin
     argv: o.argv ?? ['--email', EMAIL],
     env: { DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x', NEXT_PUBLIC_SITE_URL: 'https://geiom.com', ...(o.env ?? {}) },
     stdoutIsTTY: o.tty ?? true,
+    stdinIsTTY: o.stdinTty ?? true,
     issueToken: (now: number, start: number) => { const t = newEnrollToken(now, start); issued.push(t); return t; },
     readPassword: async () => { pwReads++; return o.pw ?? PW; },
     db: async () => fdb.db,
@@ -187,7 +188,7 @@ test('参数：密码不能出现在命令行参数里（任何写法），目�
   for (const m of Object.values(MESSAGES)) assert.doesNotMatch(m, /\$\{/);
 });
 
-test('环境变量里的密码只删不读：stripPasswordEnv 只返回变量名；读不到标准输入时不会退回去用环境变量', async () => {
+test('环境变量里的密码只删不读：stripPasswordEnv 只返回变量名；readPassword 返回空时不会退回去用环境变量', async () => {
   const env: Record<string, string | undefined> = { ADMIN_RESET_PASSWORD: PW, ADMIN_CREATE_PASSWORD: PW, OTHER: '1' };
   assert.deepEqual(stripPasswordEnv(env), ['ADMIN_RESET_PASSWORD', 'ADMIN_CREATE_PASSWORD']);
   assert.deepEqual(env, { OTHER: '1' });
@@ -497,9 +498,42 @@ test('事务里写审计失败：整体回滚（密码、会话、绑定字段�
 test('#347 stdout 不是终端 → 退出 2，读密码、连库之前就拒绝，什么都不改、不签发', async () => {
   let dbOpened = 0;
   const fdb = fakeDb([user()]);
-  const r = await run([], { tty: false, db: { ...fdb, db: new Proxy(fdb.db, { get: (o, k) => { dbOpened++; return (o as never)[k]; } }) } as never });
+  const r = await run([], { tty: false, stdinTty: true, db: { ...fdb, db: new Proxy(fdb.db, { get: (o, k) => { dbOpened++; return (o as never)[k]; } }) } as never });
   assert.equal(r.code, 2); assert.match(r.err, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m); assert.equal(r.pwReads, 0); assert.equal(dbOpened, 0);
   assert.equal(r.issued.length, 0); assert.equal(fdb.rows[0].passwordHash, 'OLD-HASH');
+});
+
+test('stdin 不是终端 → 退出 2，readPassword 未被调用，不连库、不写库、不签发', async () => {
+  let dbOpened = 0;
+  const fdb = fakeDb([user()]);
+  const r = await run([], { tty: true, stdinTty: false, db: { ...fdb, db: new Proxy(fdb.db, { get: (o, k) => { dbOpened++; return (o as never)[k]; } }) } as never });
+  assert.equal(r.code, 2);
+  assert.match(r.err, /^标准输入不是终端，未生成绑定链接，之前的链接仍然有效。请用 docker compose exec -it 重新运行$/m);
+  assert.equal(r.pwReads, 0);
+  assert.equal(dbOpened, 0);
+  assert.equal(r.issued.length, 0);
+  assert.equal(r.fdb.log.txs, 0);
+  assert.equal(r.fdb.log.updates, 0);
+  assert.equal(r.fdb.audits.length, 0);
+  assert.equal(fdb.rows[0].passwordHash, 'OLD-HASH');
+
+  let reads = 0;
+  let err = '';
+  const omitted = await runReset({
+    argv: ['--email', EMAIL],
+    env: { DATABASE_URL: 'set', NEXT_PUBLIC_SITE_URL: 'https://geiom.com' },
+    stdoutIsTTY: true,
+    readPassword: async () => { reads++; return PW; },
+    db: async () => { dbOpened++; return fdb.db; },
+    hash: async () => 'H',
+    out: () => {},
+    err: (s) => { err += s; },
+  });
+  assert.equal(omitted, 2);
+  assert.equal(reads, 0);
+  assert.equal(dbOpened, 0);
+  assert.match(err, /之前的链接仍然有效/);
+  assert.equal(fdb.rows[0].passwordHash, 'OLD-HASH');
 });
 
 test('#347 NEXT_PUBLIC_SITE_URL 不合格（http 生产、带路径、缺失）→ 退出 1，读密码、连库之前拒绝', async () => {
@@ -528,7 +562,7 @@ test('#347 终端输出三行：链接（#t= fragment）/ 有效至 PT（窗口�
 test('#347 数据库打不开 → 退出 1，只给错误类型，不签发、不打印链接', async () => {
   let out = '', err = '';
   const code = await runReset({
-    argv: ['--email', EMAIL], env: { DATABASE_URL: 'set', NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, stdoutIsTTY: true,
+    argv: ['--email', EMAIL], env: { DATABASE_URL: 'set', NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, stdoutIsTTY: true, stdinIsTTY: true,
     readPassword: async () => PW, db: async () => { throw Object.assign(new Error(`connect failed postgresql://u:dbpass-SHOULD-NOT-LEAK@h/x ${EMAIL}`), { name: 'PrismaClientInitializationError' }); },
     hash: async () => 'H', fetchImpl: (async () => { throw new Error('x'); }) as never, out: (s) => { out += s; }, err: (s) => { err += s; },
   });
@@ -556,12 +590,12 @@ test('CLI：命令行带密码 → 退出 2，不回显；环境变量密码被�
   const a = cli(['--email', EMAIL, '--password', PW], { DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/x' });
   assert.equal(a.code, 2); assert.match(a.out, /命令行参数/); assert.ok(!a.out.includes(PW));
   const b = cli(['--email', EMAIL], { ADMIN_RESET_PASSWORD: PW, ADMIN_CREATE_PASSWORD: PW });
-  // #347：子进程的 stdout 是管道（不是终端）→ 先报 stdout_not_tty（退出 2），不读密码、不连库
+  // 子进程的 stdin 和 stdout 都是管道。两者都失败时先报 stdout_not_tty，不读密码、不连库。
   assert.equal(b.code, 2); assert.match(b.out, /已忽略并删除环境变量 ADMIN_RESET_PASSWORD, ADMIN_CREATE_PASSWORD/); assert.match(b.out, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m);
   assert.ok(!b.out.includes(PW));
 });
 
-test('CLI：stdout 不是终端（管道 / 重定向）→ 退出 2，不读标准输入的密码、不连库，不输出密码、邮箱或连接串', () => {
+test('CLI：stdin 和 stdout 都是管道 → 退出 2，不把管道里的密码当输入、不连库，不输出密码、邮箱或连接串', () => {
   // 数据库不可达的路径改由上面的 runReset 单测覆盖（子进程拿不到终端）
   const r = cli(['--email', EMAIL], { DATABASE_URL: 'postgresql://dbuser:dbpass-SHOULD-NOT-LEAK@127.0.0.1:1/x', ADMIN_RESET_PASSWORD: PW, NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, `${PW}\n`);
   assert.equal(r.code, 2); assert.match(r.out, /^没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行$/m); assert.doesNotMatch(r.out, /数据库操作失败/);
@@ -576,6 +610,10 @@ test('只有 CLI；会进 standalone 产物；源码里没有 SCAN/KEYS、没有
     assert.doesNotMatch(src, /console\./);
     assert.doesNotMatch(src, /process\.env\.ADMIN_(RESET|CREATE)_PASSWORD/);
   }
+  assert.doesNotMatch(entry, /readStdinLine|for await \(const chunk of process\.stdin\)/);
+  assert.match(entry, /stdinIsTTY: !!process\.stdin\.isTTY/);
+  assert.match(entry, /process\.stdin\.isTTY !== true/);
+  assert.match(lib, /stdin_not_tty: 2/);
   assert.doesNotMatch(lib, /`login-ip:|`enroll-ip:/);
   assert.doesNotMatch(lib.slice(lib.indexOf('export function accountOnlyRateKeys')), /`login:\$\{(?!UNTRUSTED)|`enroll-confirm:\$\{(?!UNTRUSTED)/);
   assert.match(readFileSync('next.config.ts', 'utf8'), /'\.\/scripts\/admin-reset-initial-password\.mjs', '\.\/scripts\/admin-reset-initial-password-lib\.mjs'/);

@@ -51,6 +51,8 @@ export function runReset(o: {
   err: (s: string) => void;
   /** #347：stdout 是不是终端；不是 true 就拒绝运行（退出 2） */
   stdoutIsTTY?: boolean;
+  /** stdin 是不是终端；不是 true 就拒绝运行（退出 2，stdin_not_tty），先于读密码、连库和签发令牌 */
+  stdinIsTTY?: boolean;
   /** #347：签发令牌（默认 enroll-token-lib newEnrollToken） */
   issueToken?: (now: number, windowStart: number) => Issued;
 }): Promise<number>;

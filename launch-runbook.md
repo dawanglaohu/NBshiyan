@@ -152,7 +152,7 @@ docker compose exec -it app node scripts/admin-reset-initial-password.mjs --emai
 
 `--email <管理员邮箱>` 可换成 `--id <账号 id>`。有未完成的绑定，或 72 小时绑定窗口已关闭时，加上 `--clear-pending-enroll`。
 
-- 没有终端时退出 2，什么都不改。从标准输入喂密码的旧用法已失效。新密码只在终端里输入两次，不回显，不接受命令行参数或环境变量。
+- 没有终端时退出 2，什么都不改。stdin 或 stdout 不是终端时同样如此。从标准输入喂密码的旧用法已失效。新密码只在终端里输入两次，不回显，不接受命令行参数或环境变量。
 - 成功后终端显示一次绑定链接。绑定链接只私下发给账号本人。
 - 退出码、事务、审计和限流见 [deploy/README.md](deploy/README.md) 的 “Reset the initial password of an unbound ADMIN”。
 

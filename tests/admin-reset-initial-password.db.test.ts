@@ -78,7 +78,7 @@ function wrapped(who: string, events: Ev[], holdMs = 0) {
 async function reset(who: string, events: Ev[], email: string, pw: string, extra: string[] = [], holdMs = 0) {
   let out = '', err = '';
   const code = await runReset({
-    argv: ['--email', email, ...extra], env: { DATABASE_URL: 'set', NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, stdoutIsTTY: true,
+    argv: ['--email', email, ...extra], env: { DATABASE_URL: 'set', NEXT_PUBLIC_SITE_URL: 'https://geiom.com' }, stdoutIsTTY: true, stdinIsTTY: true,
     readPassword: async () => pw, db: async () => wrapped(who, events, holdMs), hash: (p) => argonHash(p, ARGON),
     fetchImpl: (async () => { throw new Error('no redis in this test'); }) as never,
     out: (s) => { out += s; }, err: (s) => { err += s; },
