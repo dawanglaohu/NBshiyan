@@ -39,7 +39,12 @@ class CompanyVisualVerificationTests(unittest.TestCase):
         for relative in files:
             destination = cls.root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(REPOSITORY / relative, destination)
+            source = REPOSITORY / relative
+            if not source.is_file():
+                # The selected release still names these public GIF copies. This tree keeps the
+                # same bytes under held/, and the runtime whitelist does not publish the missing paths.
+                source = REPOSITORY / "docs/brand-media/static/held" / Path(relative).name
+            shutil.copyfile(source, destination)
         cls.manifest_bytes = (cls.root / MANIFEST).read_bytes()
 
     @classmethod
@@ -128,6 +133,22 @@ class CompanyVisualVerificationTests(unittest.TestCase):
         self.manifest["dot"]["sessionId"] = "another-session"
         self.write_manifest()
         self.verify_fails("session")
+
+    def test_missing_page_evidence_fails(self) -> None:
+        self.manifest["pageEvidence"] = None
+        self.write_manifest()
+        self.verify_fails("page evidence")
+
+    def test_missing_page_trace_fails(self) -> None:
+        self.remember("docs/brand-content/company-page-trace.json").unlink()
+        self.verify_fails("page trace")
+
+    def test_page_trace_web_path_must_match_export(self) -> None:
+        path = self.remember("docs/brand-content/company-page-trace.json")
+        trace = json.loads(path.read_text(encoding="utf-8"))
+        trace["webPath"] = "/brand/not-the-export.png"
+        path.write_text(json.dumps(trace), encoding="utf-8")
+        self.verify_fails("web path")
 
     def test_explicit_original_verification_does_not_skip_missing_files(self) -> None:
         self.manifest["referencePdf"]["path"] = str(self.root / "absent-original.pdf")

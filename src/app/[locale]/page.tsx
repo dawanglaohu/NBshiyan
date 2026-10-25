@@ -6,6 +6,7 @@ import { categoryProducts as products } from '@/data/categories';
 import HeroVideo from '@/components/layout/HeroVideo';
 import BrandScene from '@/components/layout/BrandScene';
 import AboutHomeBlock from '@/components/about/AboutHomeBlock';
+import CompanySummary from '@/components/about/CompanySummary';
 import { getAboutContent } from '@/lib/server/site-settings';
 import { isAboutVisible } from '@/lib/about/visibility';
 import { isPublishedLocale } from '@/lib/server/published-locales';
@@ -44,6 +45,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <HeroVideo labels={{ poster: t('heroPosterAlt'), skip: t('heroVideoSkip'), play: t('heroVideoPlay'), pause: t('heroVideoPause') }} />
         </div>
       </section>
+
+      <CompanySummary aboutVisible={aboutVisible} />
 
       <AboutHomeBlock content={about} aboutVisible={aboutVisible} />
 

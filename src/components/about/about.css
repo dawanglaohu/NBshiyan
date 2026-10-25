@@ -41,3 +41,25 @@
   .ab-home-imgs .ab-fig{flex:0 0 78%;scroll-snap-align:start}
   .ab-home .sx-actions .sx-btn,.ab-cta .sx-btn{width:100%;justify-content:center}
 }
+
+/* Company plate. File pixel size stays on the img; the grid column must be allowed to shrink below that size. */
+.pj-company{background:var(--pj-bg);color:var(--pj-fg);border-top:var(--pj-border-width) solid var(--pj-border);padding:48px 0}
+.pj-company-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:48px;align-items:start}
+.pj-company-copy{min-width:0}
+.pj-company-kicker{margin:0 0 8px;font-size:14px;line-height:20px;font-weight:600;letter-spacing:0}
+.pj-company h2{margin:0;font-size:36px;line-height:40px;font-weight:700;letter-spacing:-0.02em;max-width:18em}
+.pj-company-claims{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:12px}
+.pj-company-claims li{margin:0;padding-left:12px;border-left:var(--pj-border-width) solid var(--pj-border);font-size:16px;line-height:24px;font-weight:400;letter-spacing:0}
+.pj-company-note{margin:24px 0 0;max-width:62ch;font-size:14px;line-height:20px;font-weight:400}
+.pj-company-more{display:inline-flex;align-items:center;min-height:44px;margin-top:24px;padding:0 12px;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg);box-shadow:var(--pj-shadow);font-size:14px;line-height:20px;font-weight:600;text-decoration:none}
+.pj-company-more:focus-visible{outline:2px solid var(--pj-accent);outline-offset:2px}
+.pj-company-frame{margin:0;min-width:0;max-width:100%;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);box-shadow:var(--pj-shadow);line-height:0}
+.pj-company-frame img{display:block;width:100%;max-width:100%;height:auto;object-fit:contain}
+@media (max-width:1023px){
+  .pj-company{padding:32px 0}
+  .pj-company-grid{grid-template-columns:minmax(0,1fr);gap:32px}
+}
+@media (max-width:767px){
+  .pj-company{padding:32px 0}
+  .pj-company h2{font-size:28px;line-height:32px}
+}
