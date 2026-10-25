@@ -32,6 +32,7 @@ export default function FloatingActions() {
     const write = () => {
       const h = Math.round(el.getBoundingClientRect().height);
       if (h > 0) root.style.setProperty('--fab-h', `${h}px`);
+      else root.style.removeProperty('--fab-h');
     };
     write();
     const ro = new ResizeObserver(write);

@@ -6,8 +6,8 @@ const PHONE = [
 ] as const;
 
 const LOCALES = [
-  { path: '/en', cookie: 'Cookie settings', close: 'Close', menu: 'Quick actions' },
-  { path: '/ru', cookie: 'Настройки cookie', close: 'Закрыть', menu: 'Быстрые действия' },
+  { path: '/en', cookie: 'Cookie settings', close: 'Close', menu: 'Quick actions', openMenu: 'Open menu' },
+  { path: '/ru', cookie: 'Настройки cookie', close: 'Закрыть', menu: 'Быстрые действия', openMenu: 'Открыть меню' },
 ] as const;
 
 type Locale = (typeof LOCALES)[number];
@@ -239,6 +239,35 @@ async function metrics(page: Page) {
   });
 }
 
+async function markStay(page: Page) {
+  await page.evaluate(() => { (window as unknown as { __stay?: boolean }).__stay = true; });
+}
+
+async function assertStay(page: Page) {
+  expect(await page.evaluate(() => (window as unknown as { __stay?: boolean }).__stay)).toBe(true);
+}
+
+async function openContactFromMenu(page: Page, locale: Locale) {
+  await page.getByRole('button', { name: locale.openMenu }).click();
+  const contact = page.locator('#mobile-menu [data-testid="contact-link"]');
+  await expect(contact).toBeVisible();
+  await contact.click();
+  await expect(page).toHaveURL(new RegExp(`${locale.path}/contact$`));
+}
+
+async function assertContactClearance(page: Page, directPad: string) {
+  await expect.poll(async () => (await metrics(page)).pad).toBe(directPad);
+  await expect.poll(async () => (await metrics(page)).fab).toBe('');
+  await assertStay(page);
+}
+
+async function assertHomeClearance(page: Page, locale: Locale) {
+  await expect(page).toHaveURL(new RegExp(`${locale.path}$`));
+  await expect.poll(async () => (await metrics(page)).pad).toBe('254px');
+  await expect.poll(async () => (await metrics(page)).fab).toBe('238px');
+  await assertStay(page);
+}
+
 for (const vp of PHONE) {
   for (const loc of LOCALES) {
     test(`${vp.width}px ${loc.path}: collapsed FAB dead zone lets clicks through`, async ({ page }) => {
@@ -412,5 +441,32 @@ for (const loc of LOCALES) {
     await expect(dialog).toBeVisible();
     await dialog.getByRole('button', { name: loc.close }).click();
     await expect(dialog).toHaveCount(0);
+  });
+
+  test(`390px ${loc.path}: client navigation to contact clears --fab-h and both returns restore it`, async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await seedConsent(page);
+    await page.goto(`${loc.path}/contact`);
+    await expect(page.locator('footer.site-footer')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    await expect.poll(async () => (await metrics(page)).fab).toBe('');
+    const directPad = (await metrics(page)).pad;
+
+    await page.goto(loc.path);
+    await expect(page.locator('footer.site-footer')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    await waitForFabHeight(page);
+    await markStay(page);
+    await openContactFromMenu(page, loc);
+    await assertContactClearance(page, directPad);
+
+    await page.getByTestId('home-link').click();
+    await assertHomeClearance(page, loc);
+
+    await openContactFromMenu(page, loc);
+    await assertContactClearance(page, directPad);
+    await page.goBack();
+    await assertHomeClearance(page, loc);
   });
 }

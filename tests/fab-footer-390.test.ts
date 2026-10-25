@@ -34,6 +34,7 @@ test('FloatingActions writes the expanded height and clears it on unmount', () =
   assert.match(fab, /new ResizeObserver\(write\)/);
   assert.match(fab, /setProperty\('--fab-h', `\$\{h\}px`\)/);
   assert.match(fab, /if \(h > 0\)/);
+  assert.match(fab, /if \(h > 0\) root\.style\.setProperty\('--fab-h', `\$\{h\}px`\);\r?\n\s*else root\.style\.removeProperty\('--fab-h'\)/);
   assert.match(fab, /ro\.disconnect\(\); root\.style\.removeProperty\('--fab-h'\)/);
   assert.match(fab, /const menuHidden = narrow && !expanded/);
   assert.match(fab, /aria-hidden=\{menuHidden \|\| undefined\}/);
