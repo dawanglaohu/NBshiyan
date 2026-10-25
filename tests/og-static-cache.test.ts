@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { aboutOgResponse } from '../src/lib/about/og-response';
 import { articleOgVersion } from '../src/lib/seo/articleOg';
 import { handleArticleOg } from '../src/lib/seo/og/articleOgHandler';
-import { OG_STATIC_JPG_CACHE_CONTROL, OG_STATIC_JPG_SOURCE, responseHeaderRules } from '../next.config';
+import { BRAND_MP4_CACHE_CONTROL, BRAND_MP4_SOURCE, OG_STATIC_JPG_CACHE_CONTROL, OG_STATIC_JPG_MISS_CACHE_CONTROL, OG_STATIC_JPG_SOURCE, ogStaticJpgHitSources, responseHeaderRules } from '../next.config';
 
 // 与 next 给 headers() 编译 source 的方式相同：path-to-regexp strict，再把结尾放宽成可选斜杠。
 const require = createRequire(process.cwd() + '/package.json');
@@ -71,8 +71,9 @@ test('/og/home-en.jpg 的 Cache-Control 是 1 天加 7 天 stale-while-revalidat
     ]) {
       assert.equal(headerValue(rules, path, 'cache-control'), OG_STATIC_JPG_CACHE_CONTROL, `${prod} ${path}`);
     }
-    // :file* 按 Next 的 path-to-regexp 可以跨段，所以 /og/ 下的嵌套 jpg 也会命中。public/og 里目前没有这种文件。
-    assert.equal(headerValue(rules, '/og/nested/home-en.jpg', 'cache-control'), OG_STATIC_JPG_CACHE_CONTROL);
+    // 磁盘上没有的 /og jpg 只剩 no-store。嵌套路径同样没有对应文件。
+    assert.equal(headerValue(rules, '/og/nested/home-en.jpg', 'cache-control'), OG_STATIC_JPG_MISS_CACHE_CONTROL);
+    assert.equal(headerValue(rules, '/og/does-not-exist.jpg', 'cache-control'), OG_STATIC_JPG_MISS_CACHE_CONTROL);
     for (const path of [
       '/en/articles/mock-article-packaging-guide/og',
       '/ru/articles/mock-statya-o-upakovke/og',
@@ -88,6 +89,30 @@ test('/og/home-en.jpg 的 Cache-Control 是 1 天加 7 天 stale-while-revalidat
       assert.equal(headerValue(rules, path, 'cache-control'), undefined, `${prod} ${path}`);
     }
     assert.equal(headerValue(rules, '/models/box.glb', 'cache-control'), 'public, max-age=31536000, immutable');
+    for (const file of [
+      '/brand/packjoyu-industrial-city-v3-loop-1384.mp4',
+      '/brand/packjoyu-industrial-city-v3-loop-2000.mp4',
+      '/brand/video2-packjoyu-products-v3.mp4',
+      '/brand/video2-packjoyu-products-web-720p60-v3.mp4',
+    ]) {
+      assert.equal(headerValue(rules, file, 'cache-control'), BRAND_MP4_CACHE_CONTROL, file);
+    }
+    assert.equal(headerValue(rules, '/brand/packjoyu-industrial-city-v3.png', 'cache-control'), undefined);
+  }
+});
+
+test('存在的 /og jpg 保持 1 天缓存，规则本身不加 immutable 或 s-maxage', () => {
+  assert.equal(BRAND_MP4_SOURCE, '/brand/:file*.mp4');
+  assert.equal(BRAND_MP4_CACHE_CONTROL, 'public, max-age=86400, stale-while-revalidate=604800');
+  assert.doesNotMatch(BRAND_MP4_CACHE_CONTROL, /immutable|s-maxage/);
+  assert.equal(OG_STATIC_JPG_MISS_CACHE_CONTROL, 'no-store');
+  const hits = ogStaticJpgHitSources();
+  assert.ok(hits.includes('/og/home-en.jpg'));
+  const rules = responseHeaderRules(true);
+  for (const file of hits) {
+    const value = headerValue(rules, file, 'cache-control');
+    assert.equal(value, OG_STATIC_JPG_CACHE_CONTROL, file);
+    assert.doesNotMatch(value ?? '', /immutable|s-maxage/);
   }
 });
 

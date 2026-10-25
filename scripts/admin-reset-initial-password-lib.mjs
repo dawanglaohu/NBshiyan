@@ -30,9 +30,9 @@ import https from 'node:https';
 import net from 'node:net';
 import tls from 'node:tls';
 import { enrollLinkBase, issuedAudit, linkLines, newEnrollToken } from './enroll-token-lib.mjs';
-import { ARGON, firstLine, normalizeAccountEmail, passwordPolicyError, validEmail } from './admin-create-lib.mjs';
+import { ARGON, normalizeAccountEmail, passwordPolicyError, validEmail } from './admin-create-lib.mjs';
 
-export { ARGON, firstLine };
+export { ARGON };
 
 /** 必须等于 src/lib/server/admin/enroll-guard.ts 的 ENROLL_WINDOW_MS（测试断言两者相等） */
 export const ENROLL_WINDOW_MS = 72 * 3_600_000;
@@ -300,12 +300,17 @@ function parseRedisEndpoint(raw) {
 /** 允许明文 redis:// 的主机。与 prod-env-check.ts 的 REDIS_PLAINTEXT_HOSTS 一致，大小写敏感。 */
 const REDIS_PLAINTEXT_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
 
+/** 生产认 APP_ENV，也认 VERCEL_ENV。rateLimitEnv 的 key 前缀已经会回退到 VERCEL_ENV。 */
+function scriptIsProduction(env) {
+  return env.APP_ENV === 'production' || env.VERCEL_ENV === 'production';
+}
+
 /**
- * APP_ENV=production 且 RATE_LIMIT_STORE=redis 时，返回与 rateLimitProblems 相同的拒绝文案；否则 null。
+ * 生产且 RATE_LIMIT_STORE=redis 时，返回与 rateLimitProblems 相同的拒绝文案；否则 null。
  * 文案只含变量名。调用方必须在打开 socket 之前用它拒绝。
  */
 function productionRedisProblem(env) {
-  if (env.APP_ENV !== 'production' || env.RATE_LIMIT_STORE !== 'redis') return null;
+  if (!scriptIsProduction(env) || env.RATE_LIMIT_STORE !== 'redis') return null;
   const parsed = classifyRedisUrl(env.REDIS_URL);
   if (parsed.error) return parsed.error;
   if (!parsed.endpoint.password) return 'REDIS_URL 必须包含密码';
@@ -349,7 +354,10 @@ export function readResp(buf, at = 0, depth = 0) {
   if (type === '$') {
     const n = respCount(head);
     if (n === null || n > 1_000_000) return { kind: 'bad', next };
-    if (n < 0) return { kind: 'bulk', value: null, next };
+    if (n < 0) {
+      if (n !== -1) return { kind: 'bad', next };
+      return { kind: 'bulk', value: null, next };
+    }
     if (buf.length < next + n + 2) return null;
     return { kind: 'bulk', value: buf.toString('utf8', next, next + n), next: next + n + 2 };
   }
@@ -471,9 +479,9 @@ async function clearViaRedis(email, env, now) {
 
 /**
  * 清掉只凭账号能算出的限流 key（按 key 名直接 DEL，不扫描键空间）。
- * - RATE_LIMIT_STORE=upstash：一次 pipeline DEL。传了 fetchImpl 就用它（测试）；否则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS。APP_ENV=production 时 http: 地址直接 failed，不发 Bearer。
+ * - RATE_LIMIT_STORE=upstash：一次 pipeline DEL。传了 fetchImpl 就用它（测试）；否则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS。生产（APP_ENV 或 VERCEL_ENV）时 http: 地址直接 failed，不发 Bearer。
  * - RATE_LIMIT_STORE=redis：TCP DEL，REDIS_URL。需要 Redis 7 或更新（PEXPIRE … NX）。rediss:// 同样读取 NODE_EXTRA_CA_CERTS。
- *   APP_ENV=production 时先按 rateLimitProblems 拒绝（无密码、非本机 redis://、URL 无效），不连网。
+ *   生产（APP_ENV 或 VERCEL_ENV）时先按 rateLimitProblems 拒绝（无密码、非本机 redis://、URL 无效），不连网。
  * - memory（默认）以及其他值：计数在应用进程内存里，或不是这支脚本认识的存储，跳过（10 分钟后自然过期）。
  * 返回 'cleared' | 'skipped_memory' | 'failed'。出错不抛、不输出 key、邮箱或 token。
  */
@@ -485,7 +493,7 @@ export async function clearAccountRateLimits({ email, env, now, fetchImpl }) {
   if (kind !== 'upstash') return 'skipped_memory';
   const url = env.UPSTASH_REDIS_REST_URL, token = env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return 'failed';
-  if (env.APP_ENV === 'production') {
+  if (scriptIsProduction(env)) {
     let proto;
     try { proto = new URL(url).protocol; } catch { return 'failed'; }
     if (proto === 'http:') return 'failed';

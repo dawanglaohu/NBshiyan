@@ -1,3 +1,5 @@
+import { readdirSync } from 'node:fs';
+import path from 'node:path';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import { securityHeaders } from './security-headers';
@@ -30,6 +32,21 @@ const NO_DOT_REWRITE = '(?:en|ru|api|admin|_next|s|media)(?:/|$)';
 // /[locale]/articles/[slug]/og 和 /[locale]/about/og 不在 /og/ 下，缓存头仍由各自的 route 写。
 export const OG_STATIC_JPG_SOURCE = '/og/:file*.jpg';
 export const OG_STATIC_JPG_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
+export const OG_STATIC_JPG_MISS_CACHE_CONTROL = 'no-store';
+// /brand 下的 mp4 文件名没有内容哈希。Cloudflare 浏览器缓存 TTL 可能把源站这个头盖成 max-age=14400，那一层不在这份配置里。
+export const BRAND_MP4_SOURCE = '/brand/:file*.mp4';
+export const BRAND_MP4_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
+
+/** 磁盘上存在的 public/og/*.jpg。未命中的路径只吃后面的 no-store 规则。 */
+export function ogStaticJpgHitSources(dir = path.join(process.cwd(), 'public', 'og')): string[] {
+  let names: string[] = [];
+  try {
+    names = readdirSync(dir).filter((name) => name.endsWith('.jpg'));
+  } catch {
+    names = [];
+  }
+  return names.sort().map((name) => `/og/${name}`);
+}
 
 export function responseHeaderRules(isProd: boolean) {
   return [
@@ -43,7 +60,10 @@ export function responseHeaderRules(isProd: boolean) {
     ...['/admin', '/admin/:path*', '/:locale/admin', '/:locale/admin/:path*', '/api/admin/:path*', '/admin-enroll'].map((source) => ({ source, headers: adminHeaders })),
     { source: '/s/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
     { source: '/models/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
-    { source: OG_STATIC_JPG_SOURCE, headers: [{ key: 'Cache-Control', value: OG_STATIC_JPG_CACHE_CONTROL }] }
+    { source: BRAND_MP4_SOURCE, headers: [{ key: 'Cache-Control', value: BRAND_MP4_CACHE_CONTROL }] },
+    // 先给所有 /og jpg no-store。存在的文件在下一条用同名头覆盖，后匹配的生效。
+    { source: OG_STATIC_JPG_SOURCE, headers: [{ key: 'Cache-Control', value: OG_STATIC_JPG_MISS_CACHE_CONTROL }] },
+    ...ogStaticJpgHitSources().map((source) => ({ source, headers: [{ key: 'Cache-Control', value: OG_STATIC_JPG_CACHE_CONTROL }] }))
   ];
 }
 

@@ -9,6 +9,15 @@ import { clearedSessionCookieHeaders, decideAdminAccess, type SessionDenial, typ
 export const noStore = { 'Cache-Control': 'private, no-store' };
 export const jsonErr = (error: string, status: number) => NextResponse.json({ error }, { status, headers: noStore });
 
+/** 登录桶 429。retryAfter 是窗口秒数，取上限。询盘和样品不走这里。 */
+export function rateLimited(retryAfterSec: number) {
+  const s = Math.max(1, Math.ceil(retryAfterSec));
+  return NextResponse.json(
+    { error: 'rate_limited', retryAfter: s },
+    { status: 429, headers: { ...noStore, 'Retry-After': String(s) } },
+  );
+}
+
 export type AdminCtx = { user: User; ip: string | null };
 
 /**

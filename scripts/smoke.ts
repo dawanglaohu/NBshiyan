@@ -108,6 +108,60 @@ export function sitemapLocs(xml: string): string[] {
 }
 const ADMIN_LEAK = /PJ-\d{4}-[A-Z0-9]{4,}|询盘列表|adm-main|"inquiries"\s*:|replyToken|shippingAddress/;
 
+const SESSION_CLEAR_NAMES = new Set(['authjs.session-token', '__Secure-authjs.session-token']);
+const SESSION_CLEAR_ATTRS = new Set(['httponly', 'path', 'max-age', 'expires', 'samesite', 'secure']);
+
+/**
+ * 401 上的 Set-Cookie 只允许这两枚会话 cookie 的清除头。
+ * 值必须为空，必须有 HttpOnly 和 Path=/，过期必须是 Max-Age=0 或 1970 的 Expires。
+ * SameSite=Lax|Strict 和 Secure 允许，因为清除头已经带它们。Domain 和其他属性失败。没有 Set-Cookie 则通过。
+ */
+export function sessionClearCookieViolation(cookies: string[]): string | null {
+  if (cookies.length > SESSION_CLEAR_NAMES.size) return `too many set-cookie headers (${cookies.length})`;
+  const seen = new Set<string>();
+  for (const raw of cookies) {
+    const parts = raw.split(';').map((part) => part.trim()).filter(Boolean);
+    const eq = parts[0]?.indexOf('=') ?? -1;
+    if (eq < 0) return 'set-cookie has no name';
+    const name = parts[0].slice(0, eq);
+    const value = parts[0].slice(eq + 1);
+    if (!SESSION_CLEAR_NAMES.has(name)) return `cookie name not allowed: ${name}`;
+    if (seen.has(name)) return `duplicate session cookie: ${name}`;
+    seen.add(name);
+    if (value !== '') return `session cookie value must be empty: ${name}`;
+    let httpOnly = false;
+    let pathOk = false;
+    let expired = false;
+    for (const attr of parts.slice(1)) {
+      const i = attr.indexOf('=');
+      const key = (i < 0 ? attr : attr.slice(0, i)).trim().toLowerCase();
+      const val = i < 0 ? '' : attr.slice(i + 1).trim();
+      if (!SESSION_CLEAR_ATTRS.has(key)) return `attribute not allowed: ${key}`;
+      if (key === 'httponly') {
+        if (val !== '') return 'HttpOnly must be a flag';
+        httpOnly = true;
+      } else if (key === 'secure') {
+        if (val !== '') return 'Secure must be a flag';
+      } else if (key === 'path') {
+        if (val !== '/') return 'Path must be /';
+        pathOk = true;
+      } else if (key === 'max-age') {
+        if (val !== '0') return 'Max-Age must be 0';
+        expired = true;
+      } else if (key === 'expires') {
+        if (!/1970/.test(val)) return 'Expires must be in 1970';
+        expired = true;
+      } else if (key === 'samesite' && val !== 'Lax' && val !== 'Strict') {
+        return 'SameSite must be Lax or Strict';
+      }
+    }
+    if (!httpOnly) return `missing HttpOnly: ${name}`;
+    if (!pathOk) return `missing Path=/: ${name}`;
+    if (!expired) return `missing Max-Age=0 or 1970 Expires: ${name}`;
+  }
+  return null;
+}
+
 // ---------- 检查 ----------
 export async function runChecks(f: Fetch, base: URL, o: { privacyIndexed: boolean; timeout: number }): Promise<Result[]> {
   const results: Result[] = [];
@@ -177,6 +231,9 @@ export async function runChecks(f: Fetch, base: URL, o: { privacyIndexed: boolea
     const r = await g(SANITY_WEBHOOK_PATH, { method: 'POST', follow: false, body: '{"_type":"smoke"}', headers: { 'content-type': 'application/json' } });
     need(r.status !== 503, 'SANITY_WEBHOOK_SECRET not set');
     need(r.status === 401, `expected 401, got ${r.status}`);
+    const cookies = typeof r.headers.getSetCookie === 'function' ? r.headers.getSetCookie() : [];
+    const violation = sessionClearCookieViolation(cookies);
+    need(!violation, violation ?? '');
     return '401';
   });
   return results;

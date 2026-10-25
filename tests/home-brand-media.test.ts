@@ -13,9 +13,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 const source = (path: string) => readFileSync(path, 'utf8');
 const approved = [
   'packjoyu-industrial-city-v3.png',
-  'packjoyu-industrial-city-v3-loop.gif',
   'packjoyu-industrial-city-v3-loop-poster.png',
-  'packjoyu-industrial-city-v3-loop-preview.gif',
   'video2-packjoyu-products-v3.mp4',
   'video2-packjoyu-products-web-720p60-v3.mp4',
   'video2-packjoyu-products-v3-poster-12233ms.jpg',

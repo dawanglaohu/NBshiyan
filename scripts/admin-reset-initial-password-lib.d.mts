@@ -1,6 +1,5 @@
 import type { Issued } from './enroll-token-lib.mjs';
 export const ARGON: { memoryCost: number; timeCost: number; parallelism: number };
-export function firstLine(text: string): string;
 export const ENROLL_WINDOW_MS: number;
 export const LOGIN_WINDOW_MS: number;
 export const VIA: 'cli:admin-reset-initial-password';

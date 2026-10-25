@@ -3,7 +3,6 @@ import type { Route } from '@playwright/test';
 
 const CITY_1384 = '/brand/packjoyu-industrial-city-v3-loop-1384.mp4';
 const CITY_2000 = '/brand/packjoyu-industrial-city-v3-loop-2000.mp4';
-const CITY_GIF = '/brand/packjoyu-industrial-city-v3-loop.gif';
 const HERO_MP4S = ['/brand/video2-packjoyu-products-v3.mp4', '/brand/video2-packjoyu-products-web-720p60-v3.mp4'];
 /** 361 frames across 30.080s. A pause may not move the playhead by a whole frame. */
 const FRAME_S = 30.080 / 361;
@@ -219,7 +218,7 @@ test('the city video may download within 300px and plays only while it intersect
   await expect(scene).toHaveAttribute('data-in-view', '0');
   await expect(scene).toHaveAttribute('data-state', 'still');
   expect(cityPaths(requested)).toEqual([]);
-  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+  expect(requested.map(pathname).filter((path) => path.endsWith('.gif'))).toEqual([]);
   await expect(page.getByTestId('brand-scene-video')).toHaveCount(0);
   await expect(page.getByTestId('brand-scene-still')).toBeVisible();
 
@@ -299,7 +298,7 @@ test('the city video may download within 300px and plays only while it intersect
   expect(stillPaused.video).toBe(1);
   expect(stillPaused.paused).toBe(true);
   expect(stillPaused.src).toBe(CITY_1384);
-  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+  expect(requested.map(pathname).filter((path) => path.endsWith('.gif'))).toEqual([]);
 });
 
 test('freeze and resume handlers preserve the city animation pause choice', async ({ page }) => {
@@ -374,7 +373,7 @@ test('reduced motion does not start the city video until the visitor presses pla
   const playing = await sceneState(page);
   expect(playing.paused).toBe(false);
   expect(playing.src).toBe(CITY_1384);
-  expect(requested.map(pathname).filter((path) => path === CITY_GIF)).toEqual([]);
+  expect(requested.map(pathname).filter((path) => path.endsWith('.gif'))).toEqual([]);
 });
 
 test('a rejected city play() keeps the still and the Play button', async ({ page }) => {

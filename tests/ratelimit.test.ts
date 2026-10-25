@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MemoryStore, REFUND_LUA, UpstashStore, createRateLimitStore } from '../src/lib/server/ratelimit/index';
-import { RedisStore, parseRedisUrl } from '../src/lib/server/ratelimit/redis';
+import { RedisStore, parseRedisUrl, parseResp } from '../src/lib/server/ratelimit/redis';
 import { startFakeRedis } from './fake-redis';
 import net from 'node:net';
 import { mockServer } from './helpers';
@@ -73,12 +73,32 @@ test('upstash: error payload throws', async () => {
   finally { await srv.close(); }
 });
 
+test('RESP bulk length -1 is null and any other negative length is an error', () => {
+  const nil = parseResp(Buffer.from('$-1\r\n'));
+  assert.ok(nil && nil.reply !== 'bad');
+  if (nil && nil.reply !== 'bad') {
+    assert.equal(nil.reply.kind, 'bulk');
+    assert.equal(nil.reply.value, null);
+  }
+  const bad = parseResp(Buffer.from('$-2\r\n'));
+  assert.ok(bad && bad.reply === 'bad');
+});
+
 test('factory: env selection and validation', () => {
   assert.ok(createRateLimitStore({}) instanceof MemoryStore);
   assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'https://x.upstash.io', UPSTASH_REDIS_REST_TOKEN: 't' }) instanceof UpstashStore);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'upstash' }), /UPSTASH_REDIS_REST_URL/);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'upstash', UPSTASH_REDIS_REST_URL: 'http://x', UPSTASH_REDIS_REST_TOKEN: 't', NODE_ENV: 'production' }), /https/);
   assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:<password>@127.0.0.1:1' }) instanceof RedisStore);
+  assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:pw@127.0.0.1:1', APP_ENV: 'production' }) instanceof RedisStore);
+  assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'rediss://:pw@203.0.113.10:6379', APP_ENV: 'production' }) instanceof RedisStore);
+  assert.ok(createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:pw@203.0.113.10:6379' }) instanceof RedisStore);
+  assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:pw@203.0.113.10:6379', APP_ENV: 'production' }), (e: Error) => {
+    assert.equal(e.message, 'REDIS_URL 必须是 rediss://');
+    assert.equal(e.message.includes('203.0.113.10'), false);
+    return true;
+  });
+  assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'redis://:pw@203.0.113.10:6379', VERCEL_ENV: 'production' }), /REDIS_URL 必须是 rediss:\/\//);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis' }), /REDIS_URL/);
   assert.throws(() => createRateLimitStore({ RATE_LIMIT_STORE: 'redis', REDIS_URL: 'http://:supersecret@example.invalid' }), (e: Error) => {
     assert.equal(e.message, 'REDIS_URL 必须是 redis:// 或 rediss://');

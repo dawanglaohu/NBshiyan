@@ -92,6 +92,9 @@ export class UpstashStore implements RateLimitStore {
   }
 }
 
+/** 允许明文 redis:// 的主机。与 prod-env-check.ts 一致，大小写敏感。 */
+const REDIS_PLAINTEXT_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
+
 export function createRateLimitStore(env: Record<string, string | undefined> = process.env): RateLimitStore {
   const kind = env.RATE_LIMIT_STORE ?? 'memory';
   if (kind === 'upstash') {
@@ -100,7 +103,11 @@ export function createRateLimitStore(env: Record<string, string | undefined> = p
     if (!url.startsWith('https://') && env.NODE_ENV === 'production') throw new Error('UPSTASH_REDIS_REST_URL 必须是 https');
     return new UpstashStore(url, token);
   }
-  if (kind === 'redis') return new RedisStore(redisEndpointFromEnv(env));
+  if (kind === 'redis') {
+    const endpoint = redisEndpointFromEnv(env);
+    if (isProdEnvFrom(env) && !endpoint.tls && !REDIS_PLAINTEXT_HOSTS.has(endpoint.host)) throw new Error('REDIS_URL 必须是 rediss://');
+    return new RedisStore(endpoint);
+  }
   if (kind !== 'memory') throw new Error(`未知的 RATE_LIMIT_STORE: ${kind}`);
   if (isProdEnvFrom(env)) console.warn('[ratelimit] 生产环境仍在用内存限流，多实例下不共享');
   return new MemoryStore();

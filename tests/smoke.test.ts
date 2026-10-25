@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseArgs, normalizeBase, get, isNoindex, htmlLang, hreflangs, robotsRules, sitemapLocs, runChecks, SANITY_WEBHOOK_PATH, type Fetch } from '../scripts/smoke';
+import { parseArgs, normalizeBase, get, isNoindex, htmlLang, hreflangs, robotsRules, sitemapLocs, runChecks, sessionClearCookieViolation, SANITY_WEBHOOK_PATH, type Fetch } from '../scripts/smoke';
 
 const B = 'https://shop.example.com';
 const page = (lang: string, robots = '') => `<!doctype html><html lang="${lang}"><head>${robots ? `<meta name="robots" content="${robots}"/>` : ''}<link rel="alternate" hrefLang="en" href="${B}/en"/><link rel="alternate" hrefLang="ru" href="${B}/ru"/><link rel="alternate" hrefLang="x-default" href="${B}/en"/></head><body>ok</body></html>`;
-const GOOD: Record<string, [number, string, Record<string, string>?]> = {
+const GOOD: Record<string, [number, string, Record<string, string | string[]>?]> = {
   '/': [307, '', { location: '/en' }],
   '/en': [200, page('en')], '/ru': [200, page('ru')],
   '/robots.txt': [200, `User-Agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ${B}/sitemap.xml\n`],
@@ -19,7 +19,13 @@ function mock(routes: typeof GOOD) {
   const f = (async (u: URL, init: RequestInit) => {
     seen.push({ url: String(u), init });
     const [s, body, h] = routes[new URL(u).pathname] ?? [404, 'nf'];
-    return new Response([301, 302, 303, 307, 308].includes(s) ? null : body, { status: s, headers: h });
+    const headers = new Headers();
+    if (h) {
+      for (const [key, value] of Object.entries(h)) {
+        for (const item of Array.isArray(value) ? value : [value]) headers.append(key, item);
+      }
+    }
+    return new Response([301, 302, 303, 307, 308].includes(s) ? null : body, { status: s, headers });
   }) as unknown as Fetch;
   return { f, seen };
 }
@@ -103,6 +109,27 @@ test('privacy: noindex expected by default, indexable with --privacy-indexed, 40
 test('sanity webhook: 401 PASS, 503 → "SANITY_WEBHOOK_SECRET not set", 200 FAIL', async () => {
   assert.match(failed((await run({ ...GOOD, [SANITY_WEBHOOK_PATH]: [503, '{}'] })).rs).join(), /SANITY_WEBHOOK_SECRET not set/);
   assert.match(failed((await run({ ...GOOD, [SANITY_WEBHOOK_PATH]: [200, '{}'] })).rs).join(), /expected 401, got 200/);
+});
+
+test('401 session-cookie clear is a whitelist of two names', async () => {
+  const plain = 'authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  const secure = '__Secure-authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
+  assert.equal(sessionClearCookieViolation([]), null);
+  assert.equal(sessionClearCookieViolation([plain, secure]), null);
+  assert.equal(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Expires=Thu, 01 Jan 1970 00:00:00 GMT']), null);
+  assert.match(sessionClearCookieViolation([plain, secure, 'extra=; Path=/; HttpOnly; Max-Age=0']) ?? '', /too many/);
+  assert.match(sessionClearCookieViolation(['sid=; Path=/; HttpOnly; Max-Age=0']) ?? '', /not allowed/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=leftover; Path=/; HttpOnly; Max-Age=0']) ?? '', /empty/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Max-Age=0; Domain=shop.example.com']) ?? '', /attribute not allowed/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/admin; HttpOnly; Max-Age=0']) ?? '', /Path/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; Max-Age=0']) ?? '', /HttpOnly/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Max-Age=60']) ?? '', /Max-Age/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Expires=Wed, 21 Oct 2015 07:28:00 GMT']) ?? '', /1970/);
+  const ok = await run({ ...GOOD, [SANITY_WEBHOOK_PATH]: [401, '{}', { 'set-cookie': [plain, secure] }] });
+  assert.deepEqual(failed(ok.rs), []);
+  assert.equal(ok.rs.length, 9);
+  const bad = await run({ ...GOOD, [SANITY_WEBHOOK_PATH]: [401, '{}', { 'set-cookie': 'sid=; Path=/; HttpOnly; Max-Age=0' }] });
+  assert.match(failed(bad.rs).join(), /cookie name not allowed/);
 });
 
 test('get(): too many same-origin redirects stops; non-http redirect blocked', async () => {

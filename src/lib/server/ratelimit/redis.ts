@@ -107,7 +107,10 @@ function readOne(buf: Buffer, at: number, depth = 0): { reply: Reply | 'bad'; ne
   if (type === '$') {
     const n = respCount(head);
     if (n === null || n > MAX_BULK) return { reply: 'bad', next };
-    if (n < 0) return { reply: { kind: 'bulk', value: null }, next };
+    if (n < 0) {
+      if (n !== -1) return { reply: 'bad', next };
+      return { reply: { kind: 'bulk', value: null }, next };
+    }
     if (buf.length < next + n + 2) return null;
     return { reply: { kind: 'bulk', value: Buffer.from(buf.subarray(next, next + n)) }, next: next + n + 2 };
   }

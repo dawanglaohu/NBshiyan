@@ -9,7 +9,6 @@ export const BRAND_MEDIA = {
     poster: '/brand/packjoyu-industrial-city-v3.png',
     /** Default src for the city pause still. BrandScene adds the 2000w WebP. The 1737×905 illustration is a different frame. */
     pauseStill: '/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp',
-    animation: '/brand/packjoyu-industrial-city-v3-loop-preview.gif',
     /** Same loop as the still. BrandScene picks one file from the laid-out frame and does not swap it. */
     video1384: '/brand/packjoyu-industrial-city-v3-loop-1384.mp4',
     video2000: '/brand/packjoyu-industrial-city-v3-loop-2000.mp4',
