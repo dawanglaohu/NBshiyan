@@ -1,7 +1,7 @@
 ---
 type: task
 id: BE-RATELIMIT-P3
-status: todo
+status: done
 module: M3
 origin: issue-ledger-20261024
 ---
@@ -13,8 +13,12 @@ origin: issue-ledger-20261024
 - 所属模块：[[M3]]
 - 前置依赖：无
 - GitHub：#432
+- PR：#454
+- 合并提交：`3c45e699c41c0e0c01efbba5f4d2e58746193944`
 - 审查：全栈审查
-- 登记状态：待派
+- 登记状态：已落地
+
+已由 PR #454 于 2026-10-24 合入 main。合并提交 3c45e699c41c0e0c01efbba5f4d2e58746193944。issue #432 已关闭。审查留下的按账号 429、批量长度和明文连接检查见 POST-LAUNCH-P3。
 
 ## 输入 / 产出
 

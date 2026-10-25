@@ -1,7 +1,7 @@
 ---
 type: task
 id: SEO-2
-status: todo
+status: done
 module: M7
 origin: issue-ledger-20261024
 ---
@@ -13,8 +13,12 @@ origin: issue-ledger-20261024
 - 所属模块：[[M7]]
 - 前置依赖：无
 - GitHub：#426
+- PR：#450
+- 合并提交：`6161329671e6e03e47f387643c3772633e2ce673`
 - 审查：由 PR 上 bot 审查替代
-- 登记状态：待派
+- 登记状态：已落地
+
+已由 PR #450 于 2026-10-24 合入 main。合并提交 6161329671e6e03e47f387643c3772633e2ce673。issue #426 已关闭。
 
 ## 输入 / 产出
 

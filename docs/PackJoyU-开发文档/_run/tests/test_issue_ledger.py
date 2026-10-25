@@ -13,17 +13,18 @@ WANT = {
     'FE-347': 'todo',
     'FE-378': 'hold',
     'SEO-1': 'done',
-    'SEO-2': 'todo',
+    'SEO-2': 'done',
     'SEO-3': 'hold',
     'SEO-4': 'hold',
-    'SEO-5': 'todo',
-    'SEO-6': 'todo',
+    'SEO-5': 'doing',
+    'SEO-6': 'done',
     'SEO-7': 'done',
     'CITY-STILL-WEBP': 'done',
-    'BE-I18N-P0': 'todo',
-    'BE-RESET-TTY': 'todo',
-    'BE-RATELIMIT-P3': 'todo',
-    'BE-350A': 'todo',
+    'BE-I18N-P0': 'done',
+    'BE-RESET-TTY': 'done',
+    'BE-RESET-STDIN-TTY': 'done',
+    'BE-RATELIMIT-P3': 'done',
+    'BE-350A': 'done',
     'BE-350B': 'ops',
     'DEP-AUDIT-1': 'done',
     'DEPLOY-FIX-1': 'done',
@@ -32,6 +33,7 @@ WANT = {
     'GATE-PATHS-2': 'done',
     'GATE-HARDEN': 'merging',
     'GATE-HARDEN-2': 'todo',
+    'POST-LAUNCH-P3': 'todo',
 }
 MERGED = {
     'DEP-AUDIT-1': '950b63c235a3ce945fa6140dedf0bfad7a946bc3',
@@ -40,8 +42,15 @@ MERGED = {
     'GATE-PATHS-1': '78f535ec43e68cb6619a012270f878fdf4e3b954',
     'GATE-PATHS-2': 'c8ebb9c6d3bf3fe230aae757bf187bfaef3c6d5c',
     'SEO-1': '55a5a7111c81d3938b0528c5567b3b50c878f0d7',
+    'SEO-2': '6161329671e6e03e47f387643c3772633e2ce673',
+    'SEO-6': '151724cb74ae876c97d6297b169dc7ce49590af9',
     'SEO-7': '55a5a7111c81d3938b0528c5567b3b50c878f0d7',
     'CITY-STILL-WEBP': '369c2e90a2ea92096896e0126f579d61bfe553ea',
+    'BE-I18N-P0': 'a761b058de8bc45c87d19207a411b1cfc204ab82',
+    'BE-RESET-TTY': 'e12d00e7e384316854e4e04584a57dfcf4108a53',
+    'BE-RESET-STDIN-TTY': '926a34b7041e51ad25d9425a62b1b06e7dbdd680',
+    'BE-RATELIMIT-P3': '3c45e699c41c0e0c01efbba5f4d2e58746193944',
+    'BE-350A': '009860c2f28c51f01a1e710f8f5b823b04f20de9',
 }
 
 
@@ -126,10 +135,18 @@ class IssueLedgerTests(unittest.TestCase):
         self.assertIn('GATE-HARDEN', by_id['FE-378']['note'])
         self.assertIn('全栈安全审查', by_id['FE-378']['note'])
         self.assertEqual(by_id['SEO-6']['gh'], '444')
-        self.assertEqual(by_id['SEO-6']['ledgerStatus'], 'todo')
-        self.assertIn('3D', by_id['SEO-6']['note'])
-        self.assertEqual(by_id['SEO-2']['ledgerStatus'], 'todo')
-        self.assertEqual(by_id['BE-I18N-P0']['ledgerStatus'], 'todo')
+        self.assertEqual(by_id['SEO-6']['ledgerStatus'], 'done')
+        self.assertIn('151724cb74ae876c97d6297b169dc7ce49590af9', by_id['SEO-6']['note'])
+        self.assertEqual(by_id['SEO-2']['ledgerStatus'], 'done')
+        self.assertEqual(by_id['BE-I18N-P0']['ledgerStatus'], 'done')
+        self.assertEqual(by_id['SEO-5']['pr'], '456')
+        self.assertIn('已派发/PR 审查中', by_id['SEO-5']['note'])
+        self.assertIn('3c45e699', by_id['FE-378']['note'])
+        self.assertIn('issue #433', by_id['BE-350A']['note'])
+        self.assertIn('firstLine', by_id['POST-LAUNCH-P3']['accept'])
+        self.assertIn('不列入剩余工作', by_id['POST-LAUNCH-P3']['note'])
+        self.assertEqual(by_id['POST-LAUNCH-P3']['review'], 'fullstack')
+        self.assertEqual(by_id['BE-RESET-STDIN-TTY']['gh'], '待开')
         self.assertEqual(by_id['SEO-7']['gh'], '446')
         self.assertEqual(by_id['SEO-7']['pr'], '445')
         self.assertEqual(by_id['SEO-7']['ledgerStatus'], 'done')
@@ -144,7 +161,9 @@ class IssueLedgerTests(unittest.TestCase):
         self.assertNotIn('docs/seo-post-launch-indexing.md', by_id['BE-350A']['paths'])
         prs = {'DEP-AUDIT-1': '420', 'DEPLOY-FIX-1': '421', 'DOCKER-UPLOADS-1': '422',
                'GATE-PATHS-1': '423', 'GATE-PATHS-2': '435',
-               'SEO-1': '445', 'SEO-7': '445', 'CITY-STILL-WEBP': '448'}
+               'SEO-1': '445', 'SEO-2': '450', 'SEO-6': '453', 'SEO-7': '445',
+               'CITY-STILL-WEBP': '448', 'BE-I18N-P0': '449', 'BE-RESET-TTY': '455',
+               'BE-RESET-STDIN-TTY': '457', 'BE-RATELIMIT-P3': '454', 'BE-350A': '452'}
         for tid, sha in MERGED.items():
             self.assertEqual(by_id[tid]['merged'], sha)
             self.assertEqual(by_id[tid]['pr'], prs[tid])

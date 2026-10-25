@@ -1,7 +1,7 @@
 ---
 type: task
 id: BE-RESET-TTY
-status: todo
+status: done
 module: M3
 origin: issue-ledger-20261024
 ---
@@ -13,8 +13,12 @@ origin: issue-ledger-20261024
 - 所属模块：[[M3]]
 - 前置依赖：无
 - GitHub：#431
+- PR：#455
+- 合并提交：`e12d00e7e384316854e4e04584a57dfcf4108a53`
 - 审查：全栈审查
-- 登记状态：待派
+- 登记状态：已落地
+
+已由 PR #455 于 2026-10-25 合入 main。合并提交 e12d00e7e384316854e4e04584a57dfcf4108a53。issue #431 已关闭。stdin 也必须是终端的跟进是 BE-RESET-STDIN-TTY（PR #457）。
 
 ## 输入 / 产出
 

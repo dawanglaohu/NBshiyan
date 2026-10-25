@@ -1,7 +1,7 @@
 ---
 type: task
 id: BE-I18N-P0
-status: todo
+status: done
 module: M7
 origin: issue-ledger-20261024
 ---
@@ -13,10 +13,12 @@ origin: issue-ledger-20261024
 - 所属模块：[[M7]]
 - 前置依赖：无
 - GitHub：#430
+- PR：#449
+- 合并提交：`a761b058de8bc45c87d19207a411b1cfc204ab82`
 - 审查：全栈审查
-- 登记状态：待派
+- 登记状态：已落地
 
-sample-ack 由 inquiry-ack 经 SAMPLE_RULES 写入 src/lib/server/email/templates.generated.ts。design/emails/ 新增的是 inquiry-ack 的 es/de/fr 稿。
+已由 PR #449 于 2026-10-24 合入 main。合并提交 a761b058de8bc45c87d19207a411b1cfc204ab82。issue #430 已关闭。这次不发布新语言。sample-ack 由 inquiry-ack 经 SAMPLE_RULES 写入 src/lib/server/email/templates.generated.ts。design/emails/ 新增的是 inquiry-ack 的 es/de/fr 稿。
 
 ## 输入 / 产出
 

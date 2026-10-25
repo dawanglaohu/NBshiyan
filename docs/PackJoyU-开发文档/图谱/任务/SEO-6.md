@@ -1,7 +1,7 @@
 ---
 type: task
 id: SEO-6
-status: todo
+status: done
 module: M7
 origin: issue-ledger-20261024
 ---
@@ -13,10 +13,12 @@ origin: issue-ledger-20261024
 - 所属模块：[[M7]]
 - 前置依赖：无
 - GitHub：#444
+- PR：#453
+- 合并提交：`151724cb74ae876c97d6297b169dc7ce49590af9`
 - 审查：由 PR 上 bot 审查替代
-- 登记状态：待派
+- 登记状态：已落地
 
-P3。待派。等 3D 出视频素材。议题审查角色是 UX、SEO、前端。
+已由 PR #453 于 2026-10-24 合入 main。合并提交 151724cb74ae876c97d6297b169dc7ce49590af9。issue #444 已关闭。旧 GIF 的删除见 POST-LAUNCH-P3。
 
 ## 输入 / 产出
 

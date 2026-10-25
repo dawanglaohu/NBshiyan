@@ -1,7 +1,7 @@
 ---
 type: task
 id: SEO-5
-status: todo
+status: doing
 module: M7
 origin: issue-ledger-20261024
 ---
@@ -13,8 +13,11 @@ origin: issue-ledger-20261024
 - 所属模块：[[M7]]
 - 前置依赖：无
 - GitHub：#429
+- PR：#456
 - 审查：由 PR 上 bot 审查替代
-- 登记状态：待派
+- 登记状态：进行中
+
+已派发/PR 审查中。实施 PR #456 仍开着，issue #429 仍开着。登记状态 doing，交接台显示进行中。
 
 ## 输入 / 产出
 
