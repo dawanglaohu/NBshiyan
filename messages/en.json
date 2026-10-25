@@ -412,13 +412,9 @@
       }
     },
     "ledger": {
-      "necessaryTitle": "Necessary chat",
-      "necessary": "The necessary chat cookie lasts {chatIdleDays} days of inactivity and {chatAbsoluteDays} days from issuance.",
       "analyticsTitle": "Analytics consent",
       "visitors": "Visitor counts are anonymous browsers that consented to analytics. Clearing an identifier or using another browser can be counted separately.",
-      "analytics": "Consultation records are kept for {consultationDays} days. Raw analytics are kept for {rawAnalyticsDays} days. Aggregates are kept for {aggregateMonths} months.",
-      "cleanupTitle": "Cleanup status",
-      "cleanup": "Cleanup is not enabled. The default mode is dry-run. Actual deletion needs a separate authorization. Documentation and task dispatch are not that authorization."
+      "analytics": "Raw analytics are kept for {rawAnalyticsDays} days. Aggregates are kept for {aggregateMonths} months."
     },
     "ogImageAlt": "PackJoyU: Privacy policy"
   },

@@ -62,6 +62,8 @@ jobs:
       # 只用于 CI 测试库的假值；不是生产密钥
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
       AUTH_SECRET: e2e-only-auth-secret-not-for-production-000
+      # 同意签名读取此项。这是 CI 专用假值，不是生产密钥。
+      PRIVACY_HASH_SECRET: ci-e2e-only-privacy-hash-not-prod-0001
       AUTH_URL: http://localhost:3100
       AUTH_TRUST_HOST: 'true'
       ADMIN_TOTP_KEY: ZTJlLW9ubHktdG90cC1rZXktMzItYnl0ZXMtMDAwMDA=
