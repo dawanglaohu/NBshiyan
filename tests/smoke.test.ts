@@ -120,7 +120,13 @@ test('401 session-cookie clear is a whitelist of two names', async () => {
   const secure = '__Secure-authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
   assert.equal(sessionClearCookieViolation([]), null);
   assert.equal(sessionClearCookieViolation([plain, secure]), null);
-  assert.equal(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Expires=Thu, 01 Jan 1970 00:00:00 GMT']), null);
+  assert.equal(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT']), null);
+  const livePlain = 'authjs.session-token=; Path=/; HttpOnly; SameSite=lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  const liveSecure = '__Secure-authjs.session-token=; Path=/; HttpOnly; SameSite=lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure';
+  assert.equal(sessionClearCookieViolation([livePlain, liveSecure]), null);
+  assert.match(sessionClearCookieViolation(['__Secure-authjs.session-token=; Path=/; HttpOnly; SameSite=Lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT']) ?? '', /missing Secure/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; SameSite=None; Max-Age=0']) ?? '', /SameSite must be Lax or Strict/);
+  assert.match(sessionClearCookieViolation(['authjs.session-token=; Path=/; HttpOnly; Max-Age=0']) ?? '', /missing SameSite/);
   assert.match(sessionClearCookieViolation([plain, secure, 'extra=; Path=/; HttpOnly; Max-Age=0']) ?? '', /too many/);
   assert.match(sessionClearCookieViolation(['sid=; Path=/; HttpOnly; Max-Age=0']) ?? '', /not allowed/);
   assert.match(sessionClearCookieViolation(['authjs.session-token=leftover; Path=/; HttpOnly; Max-Age=0']) ?? '', /empty/);
@@ -140,7 +146,9 @@ test('401 session-cookie clear is a whitelist of two names', async () => {
   assert.deepEqual(failed(webhookCookies.rs), []);
   assert.match(failed((await run({ ...GOOD, [ADMIN_API_PROBE]: [200, '{}'] })).rs).join(), /expected 401, got 200/);
   assert.match(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'no-store' }] })).rs).join(), /no-store/);
-  assert.match(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'public, max-age=14400' }] })).rs).join(), /cache-control/);
+  assert.deepEqual(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'public, max-age=14400' }] })).rs), []);
+  assert.match(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'public, max-age=0' }] })).rs).join(), /max-age/);
+  assert.match(failed((await run({ ...GOOD, [OG_HOME_CACHE_PATH]: [200, '', { 'cache-control': 'public, max-age=86400, no-store' }] })).rs).join(), /no-store/);
 });
 
 test('get(): too many same-origin redirects stops; non-http redirect blocked', async () => {

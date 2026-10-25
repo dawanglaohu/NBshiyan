@@ -119,8 +119,10 @@ export const OG_HOME_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalid
 
 /**
  * 401 上的 Set-Cookie 只允许这两枚会话 cookie 的清除头。
- * 值必须为空，必须有 HttpOnly 和 Path=/，过期必须是 Max-Age=0 或 Expires=Thu, 01 Jan 1970 00:00:00 GMT。
- * SameSite=Lax|Strict 和 Secure 允许，因为清除头已经带它们。Domain 和其他属性失败。没有 Set-Cookie 则通过。
+ * 值必须为空。必须有 HttpOnly、Path=/、SameSite=Lax 或 SameSite=Strict（大小写不限）。
+ * 过期用 Max-Age=0 或 Expires=Thu, 01 Jan 1970 00:00:00 GMT，有其中一项即可。
+ * 名字以 __Secure- 开头时必须带 Secure。Secure 出现在其他允许的名字上也可以。
+ * Domain 和其他属性失败。没有 Set-Cookie 则通过。
  */
 export function sessionClearCookieViolation(cookies: string[]): string | null {
   if (cookies.length > SESSION_CLEAR_NAMES.size) return `too many set-cookie headers (${cookies.length})`;
@@ -138,6 +140,8 @@ export function sessionClearCookieViolation(cookies: string[]): string | null {
     let httpOnly = false;
     let pathOk = false;
     let expired = false;
+    let secure = false;
+    let sameSiteOk = false;
     for (const attr of parts.slice(1)) {
       const i = attr.indexOf('=');
       const key = (i < 0 ? attr : attr.slice(0, i)).trim().toLowerCase();
@@ -148,6 +152,7 @@ export function sessionClearCookieViolation(cookies: string[]): string | null {
         httpOnly = true;
       } else if (key === 'secure') {
         if (val !== '') return 'Secure must be a flag';
+        secure = true;
       } else if (key === 'path') {
         if (val !== '/') return 'Path must be /';
         pathOk = true;
@@ -157,13 +162,17 @@ export function sessionClearCookieViolation(cookies: string[]): string | null {
       } else if (key === 'expires') {
         if (val !== EPOCH_EXPIRES) return `Expires must be ${EPOCH_EXPIRES}`;
         expired = true;
-      } else if (key === 'samesite' && val !== 'Lax' && val !== 'Strict') {
-        return 'SameSite must be Lax or Strict';
+      } else if (key === 'samesite') {
+        const folded = val.toLowerCase();
+        if (folded !== 'lax' && folded !== 'strict') return 'SameSite must be Lax or Strict';
+        sameSiteOk = true;
       }
     }
     if (!httpOnly) return `missing HttpOnly: ${name}`;
     if (!pathOk) return `missing Path=/: ${name}`;
     if (!expired) return `missing Max-Age=0 or 1970 Expires: ${name}`;
+    if (!sameSiteOk) return `missing SameSite: ${name}`;
+    if (name.startsWith('__Secure-') && !secure) return `missing Secure: ${name}`;
   }
   return null;
 }
@@ -247,12 +256,16 @@ export async function runChecks(f: Fetch, base: URL, o: { privacyIndexed: boolea
     need(!violation, violation ?? '');
     return `401, set-cookie ${cookies.length}`;
   });
-  await check('/og/home-en.jpg cached for 1 day', async () => {
+  // 公网经过 Cloudflare 时，浏览器 TTL 可能改写 max-age。这里要求 200、含 public、不含 no-store、max-age >= 3600。
+  // 与源站完全一致的那串留在 tests/og-static-cache.test.ts。
+  await check('/og/home-en.jpg publicly cacheable', async () => {
     const r = await g(OG_HOME_CACHE_PATH, { method: 'HEAD' });
     need(r.status === 200, `status ${r.status}`);
     const cc = r.headers.get('cache-control') ?? '';
-    need(!/\bno-store\b/.test(cc), `no-store: ${cc || '(missing)'}`);
-    need(cc === OG_HOME_CACHE_CONTROL, `cache-control ${cc || '(missing)'}`);
+    need(!/\bno-store\b/i.test(cc), `no-store: ${cc || '(missing)'}`);
+    need(/\bpublic\b/i.test(cc), `cache-control must contain public: ${cc || '(missing)'}`);
+    const ages = [...cc.matchAll(/(?:^|[,\s])max-age\s*=\s*(\d+)/gi)].map((m) => Number(m[1]));
+    need(ages.length > 0 && ages.every((age) => age >= 3600), `max-age must be >= 3600: ${cc || '(missing)'}`);
     return cc;
   });
   return results;
