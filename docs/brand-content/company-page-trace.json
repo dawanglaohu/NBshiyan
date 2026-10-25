@@ -1,0 +1,44 @@
+{
+  "chain": "Selected industrial files and attested qualitative claims lead to the editable source and the web export, then to the runtime mapping, then to the home summary and the about route.",
+  "selectedRelease": "docs/brand-media/static/selected-media-release.json",
+  "logoMaster": {
+    "path": "public/brand/packjoyu-logo-master.svg",
+    "sha256": "7b585370f85ceabd7ff221dfa0c9dbcc36a9c9c7b3480c0aebc99e05e308e099",
+    "use": "Current PackJoyU wordmark imported into the company plate. No candidate mark."
+  },
+  "factEvidence": "docs/brand-content/source/company-facts-attestation.json",
+  "factMap": "docs/brand-content/company-fact-map.json",
+  "artwork": {
+    "id": "company-introduction-v3-en",
+    "source": "docs/brand-content/source/dot-v3/PackJoyU-Company-Introduction-v3-EN.svg",
+    "sourceSha256": "d1ae945bcec1e5535838e1438f262252cf7b4d679c84402b57ebd8e54ffa687e",
+    "webFile": "public/brand/company/company-introduction-v3-en.png",
+    "webSha256": "5d855fc087eb3fdca500718db6e1a64c00c80c8de2e04dc40e297683bdce611b",
+    "width": 5000,
+    "height": 5800
+  },
+  "webPath": "/brand/company/company-introduction-v3-en.png",
+  "omittedBecausePublicBytesAbsent": [
+    "public/brand/packjoyu-industrial-city-v3-loop.gif",
+    "public/brand/packjoyu-industrial-city-v3-loop-preview.gif"
+  ],
+  "mappingModule": "src/lib/brand/company-media.ts",
+  "routes": {
+    "home": "/",
+    "about": "/about",
+    "contact": "/contact",
+    "privacy": "/privacy"
+  },
+  "components": [
+    "src/components/about/CompanySummary.tsx",
+    "src/app/[locale]/page.tsx",
+    "src/app/[locale]/about/page.tsx",
+    "src/components/layout/SiteHeader.tsx",
+    "src/components/layout/SiteFooter.tsx"
+  ],
+  "software": {
+    "name": "Inkscape",
+    "version": "1.4 (e7c3feb100, 2024-10-09)",
+    "record": "docs/brand-content/source/dot-v3/provenance/workflow.json"
+  }
+}
