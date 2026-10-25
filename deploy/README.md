@@ -182,7 +182,7 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   unless `--clear-pending-enroll` is given; the flag clears the pending state and reopens the 72 h window (same fields as an ADMIN 2FA reset).
 - One transaction: new argon2id hash (same parameters as login), all sessions revoked (`sessionVersion`+1), lockout cleared,
   audit `user.password_reset` (+ `user.pending_enroll_cleared`) with actor `cli` and the user id only (no password, hash, secret or email).
-- #347: **stdout must be a terminal** (`exec -it`); otherwise it exits 2 and changes nothing, before reading a password or touching
+- #347: **stdin and stdout must both be terminals** (`exec -it`); if stdin or stdout is not a terminal it exits 2 and changes nothing, before reading a password or touching
   the DB. Feeding a password on standard input is invalid. In the same transaction it always issues a new one-time enroll token
   (the old link stops working; with or without `--clear-pending-enroll`), audit `auth.enroll_token_issued` (source `cli`, no token),
   and prints the link / `有效至 … PT` (+ `已按账号绑定截止时间缩短` when capped by the 72 h window) / private-message reminder once.
@@ -204,7 +204,7 @@ $DC exec -it app node scripts/admin-reset-initial-password.mjs --email <admin em
   Do not set `NODE_TLS_REJECT_UNAUTHORIZED=0`.
 - `RATE_LIMIT_STORE=redis` deletes the same six keys over TCP (`REDIS_URL`). Redis must be 7 or newer because the client sends `PEXPIRE ... NX`. In production, a non-loopback host must use `rediss://`. Loopback is only `127.0.0.1`, `::1`, and `localhost`, which may use `redis://`. When `APP_ENV=production`, an `http:` Upstash URL is refused before any request and the script prints `rate_limit=failed` (the bearer token is not sent and is not printed). This compose file stays on `upstash`:
   the app is not on `srh-net` and cannot open Redis on the internal network. Switching stores is a later deploy change.
-- Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments or stdout is not a terminal (nothing is changed), 3 refused. Output shows the user id only.
+- Exit codes: 0 ok, 1 runtime error (DB, no password, weak password), 2 bad arguments or stdin or stdout is not a terminal (nothing is changed), 3 refused. Output shows the user id only.
 
 ## 2FA audit (deploy gate for #361, before `deploy.sh up`)
 #361 closes the 2FA enroll window 72 h after `enrollIssuedAt` (set by an ADMIN 2FA reset) or, if empty, `createdAt`.

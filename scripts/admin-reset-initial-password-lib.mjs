@@ -3,7 +3,7 @@
 //
 // 用途：给「还没绑定 2FA 的 ADMIN」重设初始密码（#347 一次性绑定令牌上线之前的临时出口；绑定做到一半卡住时也用它）。
 // 规则（安全审查已对齐）：
-// - 新密码只从终端（不回显）或标准输入读；不接受命令行参数和环境变量；任何输出、日志、异常信息、审计都不含密码、哈希、密钥或邮箱明文。
+// - 新密码只从终端读（不回显，输两次）；不接受命令行参数、环境变量和标准输入；任何输出、日志、异常信息、审计都不含密码、哈希、密钥或邮箱明文。
 // - 只处理 role=ADMIN、totpEnabled=false、未停用的账号。TOTP 已启用一律拒绝，没有任何参数能绕过。
 // - 有待确认的绑定（待确认密钥 / enrollIssuedAt / totpPendingUntil / totpEnrollFails 非默认值）或绑定窗口已关闭时，
 //   必须显式加 --clear-pending-enroll，否则拒绝（退出码非 0）。加了以后清掉待确认状态，并重新打开 72 小时绑定窗口（与后台重置 2FA 的 reset2faData 一致）。
@@ -20,8 +20,8 @@
 //   同样只 DEL 上面那些 key，rediss 时同样带上额外 CA。
 // - #347 方案 A：每次都在同一个事务里签发新的一次性绑定令牌（覆盖旧的，旧链接立即失效；加不加 --clear-pending-enroll 都签发），
 //   审计 auth.enroll_token_issued（source 'cli'，不含令牌）。链接只打印到终端一次（链接 / 有效至 / 只私信给本人三行）。
-//   stdout 不是终端（重定向、管道、exec -T）时在读密码、连库之前就拒绝（退出码 2），什么都不改：链接不能落进文件或日志，
-//   也不能“签发了却没人看见”。所以本脚本现在必须在终端里运行（docker compose exec -it），标准输入读密码的方式随之不可用。
+//   stdin 或 stdout 不是终端（重定向、管道、exec -T）时在读密码、连库、签发令牌之前就拒绝（退出码 2），什么都不改：
+//   链接不能落进文件或日志，也不能“签发了却没人看见”。必须用 docker compose exec -it。从标准输入喂密码的旧用法已失效。
 //   NEXT_PUBLIC_SITE_URL 不合格（https；非生产可用 http://localhost）时同样在任何修改之前拒绝（退出码 1）。
 import { createHmac } from 'node:crypto';
 import fs from 'node:fs';
@@ -40,20 +40,20 @@ export const ENROLL_WINDOW_MS = 72 * 3_600_000;
 export const LOGIN_WINDOW_MS = 10 * 60_000;
 export const VIA = 'cli:admin-reset-initial-password';
 export const CLEAR_FLAG = '--clear-pending-enroll';
-/** 这些环境变量名如果出现，脚本只删除、从不读取（密码只从终端或标准输入来） */
+/** 这些环境变量名如果出现，脚本只删除、从不读取（密码只从终端来） */
 export const IGNORED_PASSWORD_ENVS = ['ADMIN_RESET_PASSWORD', 'ADMIN_CREATE_PASSWORD'];
 
 export const USAGE = [
   '用法：node scripts/admin-reset-initial-password.mjs (--email <邮箱> | --id <账号 id>) [--clear-pending-enroll]',
-  '  只用于还没绑定 2FA 的 ADMIN。新密码在终端里交互输入（不回显，输两次）；没有终端时从标准输入读第一行。',
+  '  只用于还没绑定 2FA 的 ADMIN。新密码在终端里交互输入（不回显，输两次）。不从标准输入读密码。',
   '  密码绝不能放在命令行参数或环境变量里（环境变量会被忽略）。',
   '  有待确认的 2FA 绑定或绑定窗口已关闭时，必须加 --clear-pending-enroll：清掉待确认状态并重新打开 72 小时绑定窗口。',
-  '  成功后在终端显示一次 2FA 绑定链接（#347）；标准输出必须是终端（docker compose exec -it），否则拒绝运行。',
+  '  成功后在终端显示一次 2FA 绑定链接（#347）。stdin 和 stdout 都必须是终端（docker compose exec -it），否则拒绝运行。',
 ].join('\n');
 
 /** 错误码 → 面向运维的提示。只有固定文案，从不包含密码、哈希、邮箱或底层异常信息 */
 export const MESSAGES = {
-  password_in_argv: '密码不能通过命令行参数传入（会留在 shell 历史和进程列表里）。请在终端交互输入，或通过标准输入提供。',
+  password_in_argv: '密码不能通过命令行参数传入（会留在 shell 历史和进程列表里）。请在终端交互输入。',
   unknown_arg: `参数无法识别。\n${USAGE}`,
   no_target: `需要 --email 或 --id 二选一。\n${USAGE}`,
   both_targets: '--email 和 --id 只能给一个。',
@@ -61,7 +61,7 @@ export const MESSAGES = {
   invalid_id: '账号 id 无效。',
   weak_password: '密码不符合后台密码规则：12–200 位，且不能与邮箱相同。',
   password_mismatch: '两次输入的密码不一致。',
-  no_password: '没有读到密码（只从终端或标准输入读，命令行参数和环境变量都不算）。',
+  no_password: '没有读到密码（只从终端读，命令行参数、环境变量和标准输入都不算）。',
   not_found: '没有找到这个账号，未做任何修改。',
   not_admin: '这个账号不是 ADMIN，未做任何修改。本脚本只处理 ADMIN；其他角色请在后台“账号管理”里重置。',
   disabled: '这个账号已停用，未做任何修改。请先在后台启用。',
@@ -70,15 +70,16 @@ export const MESSAGES = {
   enroll_window_closed: '这个账号的 72 小时绑定窗口已关闭，只改密码也无法绑定。如确认要重新打开绑定窗口，请加 --clear-pending-enroll 再运行。未做任何修改。',
   no_database: 'DATABASE_URL 未设置。',
   stdout_not_tty: '没有检测到交互终端，未生成绑定链接，之前的链接仍然有效。请用 -it 重新运行', // UX v1.0.3 原文
+  stdin_not_tty: '标准输入不是终端，未生成绑定链接，之前的链接仍然有效。请用 docker compose exec -it 重新运行',
   site_url_invalid: 'NEXT_PUBLIC_SITE_URL 不合格（必须是 https 裸 origin；非生产可用 http://localhost），无法生成绑定链接，未做任何修改。',
   db_error: '数据库操作失败（详细原因未输出，以免带出敏感信息；请检查 DATABASE_URL 和数据库是否可达）。',
   aborted: '已取消。',
 };
 
-/** 退出码：0 成功；1 运行错误（数据库、读不到密码、密码不合规）；2 参数错误；3 账号状态不允许（拒绝） */
+/** 退出码：0 成功；1 运行错误（数据库、读不到密码、密码不合规）；2 参数错误或 stdin/stdout 不是终端；3 账号状态不允许（拒绝） */
 export const EXIT = { ok: 0, error: 1, usage: 2, refused: 3 };
 const EXIT_OF = {
-  password_in_argv: 2, unknown_arg: 2, stdout_not_tty: 2, no_target: 2, both_targets: 2, invalid_email: 2, invalid_id: 2,
+  password_in_argv: 2, unknown_arg: 2, stdout_not_tty: 2, stdin_not_tty: 2, no_target: 2, both_targets: 2, invalid_email: 2, invalid_id: 2,
   not_found: 3, not_admin: 3, disabled: 3, totp_enabled: 3, pending_enroll: 3, enroll_window_closed: 3,
 };
 export const exitCodeOf = (code) => EXIT_OF[code] ?? 1;
@@ -528,23 +529,25 @@ export function safeErrorCode(e) {
  * 跑一次重置。
  * @param o.argv           命令行参数
  * @param o.env            环境变量对象（只读 DATABASE_URL 是否存在、限流相关配置；密码类变量启动时已删除，从不读取）
- * @param o.readPassword   () => Promise<string|{error}> 从终端/标准输入读密码（终端时内部已确认两次一致）
+ * @param o.readPassword   () => Promise<string|{error}> 从终端读密码（内部已确认两次一致）。调用前 stdin 必须已是终端。
  * @param o.db             () => Promise<PrismaClient 形状的对象>（findUnique、$transaction、$disconnect）
  * @param o.hash           (password) => Promise<string>，生产里是 @node-rs/argon2 hash(·, ARGON)
  * @param o.fetchImpl      清 Upstash 限流用的 fetch；不传则用 https.request，并读取 env.NODE_EXTRA_CA_CERTS
  * @param o.now            () => 毫秒时间戳
  * @param o.out / o.err    写 stdout / stderr
- * @param o.stdoutIsTTY    stdout 是不是终端（#347：不是就拒绝运行；测试里注入）
+ * @param o.stdoutIsTTY    stdout 是不是终端（#347：不是 true 就拒绝运行；测试里注入）
+ * @param o.stdinIsTTY     stdin 是不是终端（不是 true 就拒绝运行，与 stdout 同样严格；测试里注入）
  * @param o.issueToken     (now, windowStart) => 令牌（默认 enroll-token-lib newEnrollToken；测试里可注入固定值）
  * @returns 退出码
  */
-export async function runReset({ argv, env, readPassword, db, hash, fetchImpl, now = () => Date.now(), out, err, stdoutIsTTY, issueToken = newEnrollToken }) {
+export async function runReset({ argv, env, readPassword, db, hash, fetchImpl, now = () => Date.now(), out, err, stdoutIsTTY, stdinIsTTY, issueToken = newEnrollToken }) {
   const fail = (code) => { err(`${MESSAGES[code] ?? MESSAGES.db_error}\n`); return exitCodeOf(code); };
   const args = parseArgs(argv);
   if (args.error) return fail(args.error);
   if (args.help) { out(`${USAGE}\n`); return EXIT.ok; }
-  // #347：先于读密码、连库：stdout 必须是终端，站点地址必须合格
+  // 读密码、连库、签发令牌之前：两者都不是 true 则退出 2。同时失败时先报 stdout。
   if (stdoutIsTTY !== true) return fail('stdout_not_tty');
+  if (stdinIsTTY !== true) return fail('stdin_not_tty');
   const linkBase = enrollLinkBase(env);
   if (!linkBase) return fail('site_url_invalid');
   if (!env.DATABASE_URL) return fail('no_database');
