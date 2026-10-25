@@ -7,7 +7,7 @@ const fallback: Product[] = [
   { slug: 'gift-boxes', model: '/models/gift.glb', poster: '/images/posters/gift.webp', animated: true, animationClips: { open: 'Open' } },
   { slug: 'paper-cups', model: '/models/cup.glb', poster: '/images/placeholder.svg' },
 ];
-const m = (o: Partial<CatalogModel>): CatalogModel => ({ productSlug: 'p', category: 'gift-boxes', animated: false, slugs: null, glbUrl: '/api/models/1/glb?v=a', posterUrl: null, ...o });
+const m = (o: Partial<CatalogModel>): CatalogModel => ({ productSlug: 'p', category: 'gift-boxes', published: true, status: 'READY', animated: false, slugs: null, glbUrl: '/api/models/1/glb?v=a', posterUrl: null, ...o });
 
 test('landingFor: 按语言取 slug，null 不出链接', () => {
   const s = { en: 'custom-gift-boxes', ru: 'podarochnye-korobki' };
@@ -17,25 +17,26 @@ test('landingFor: 按语言取 slug，null 不出链接', () => {
   assert.equal(landingFor({ en: '../x', ru: 'https://evil' }, 'en'), undefined);
   assert.equal(landingFor({ en: '../x', ru: 'https://evil' }, 'ru'), undefined);
 });
-test('modelsToProducts: null slugs 照常渲染但没有 landing，永远不会出现 /products/null', () => {
+test('modelsToProducts: 不合法或不在目录里的 category 不替换，也不拼 /products/null', () => {
   const out = modelsToProducts([m({ category: 'unknown-cat', productSlug: 'x-1', slugs: null })], 'en', fallback);
-  assert.equal(out.length, 1);
-  assert.equal(out[0].slug, 'unknown-cat');
-  assert.equal(out[0].landing, undefined);
-  assert.equal(out[0].model, '/api/models/1/glb?v=a');
+  assert.deepEqual(out.map((p) => p.slug), ['gift-boxes', 'paper-cups']);
+  assert.equal(out[0].model, '/models/gift.glb');
   assert.ok(!JSON.stringify(out).includes('/products/null'));
+  assert.ok(!JSON.stringify(out).includes('unknown-cat'));
 });
-test('modelsToProducts: 动画模型带 open 片段，海报回退到本地，同品类去重', () => {
+test('modelsToProducts: 同品类只替换一次，海报空则留本地图，片段沿用本地', () => {
   const out = modelsToProducts([
     m({ animated: true, slugs: { en: 'custom-gift-boxes', ru: 'podarochnye-korobki' } }),
     m({ glbUrl: '/api/models/2/glb' }),
     m({ category: 'paper-cups', posterUrl: '/api/models/3/poster?v=b' }),
   ], 'ru', fallback);
-  assert.equal(out.length, 2);
+  assert.deepEqual(out.map((p) => p.slug), ['gift-boxes', 'paper-cups']);
+  assert.equal(out[0].model, '/api/models/1/glb?v=a');
   assert.deepEqual(out[0].animationClips, { open: 'Open' });
   assert.equal(out[0].poster, '/images/posters/gift.webp');
-  assert.equal(out[0].landing, '/products/podarochnye-korobki');
+  assert.equal(out[0].landing, undefined);
   assert.equal(out[1].poster, '/api/models/3/poster?v=b');
+  assert.equal(out[1].model, '/api/models/1/glb?v=a');
   assert.equal(out[1].animationClips, undefined);
 });
 test('loadCatalog: 出错回退本地数据，空列表走空状态', async () => {

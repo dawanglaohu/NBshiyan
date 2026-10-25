@@ -226,6 +226,23 @@ test('an unknown productSlug invalidates the whole batch', async () => {
   assert.equal(batches.length, 0);
 });
 
+test('an overlong productSlug is rejected by the whitelist before the published-product check', async () => {
+  const slug = 'c'.repeat(121);
+  const { repo, batches, asked } = recordingRepo(new Set([slug]));
+  await assert.rejects(
+    () => service(repo).accept({ events: [productView({ productSlug: slug })] }, HASH),
+    (error: unknown) => {
+      assert.ok(error instanceof AppError);
+      assert.equal(error.code, 'invalid');
+      assert.equal(error.fieldErrors?.events, 'Events must match the strict whitelist.');
+      assert.equal(error.fieldErrors?.productSlug, undefined);
+      return true;
+    },
+  );
+  assert.equal(asked.length, 0);
+  assert.equal(batches.length, 0);
+});
+
 test('a published READY Model3D slug outside the catalog is still stored', async () => {
   const { repo, batches, asked } = recordingRepo(new Set(['ready-only-model']));
   const event = productView({ productSlug: 'ready-only-model', path: '/en/products' });

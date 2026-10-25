@@ -25,7 +25,7 @@ export type ModelFailureReason = z.infer<typeof ModelFailureReasonSchema>;
 
 /**
  * `productSlug` is the internal key (`products[].slug`), not a localized category URL slug.
- * Ingest also accepts a published READY Model3D slug.
+ * Ingest also accepts a published READY Model3D `category` that is listed in categoryMeta.
  */
 
 const eventFields = {

@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { Prisma, type PrismaClient } from '@prisma/client';
+import { isListedCatalogKey } from '../../catalog/catalog';
 
 export type NewAnalyticsEvent = {
   eventId: string;
@@ -11,7 +12,7 @@ export type NewAnalyticsEvent = {
   receivedAt: Date;
   locale: string;
   path: string | null;
-  /** 产品内部 key（`products[].slug`），或已发布且 READY 的 Model3D slug。不是本地化 URL slug。 */
+  /** 产品内部 key（`products[].slug`），或已发布且 READY、并且 category 在目录白名单里的 Model3D.category。不是本地化 URL slug。 */
   productSlug: string | null;
   navigationId: string | null;
   viewId: string | null;
@@ -38,12 +39,18 @@ type Identity = { eventId: string; semanticKey: string; payloadHash: string; bro
 export function createAnalyticsEventRepo(db: PrismaClient): AnalyticsEventRepo {
   return {
     async publishedSlugs(slugs) {
-      if (slugs.length === 0) return new Set();
+      const wanted = [...new Set(slugs)].filter((slug) => isListedCatalogKey(slug));
+      if (wanted.length === 0) return new Set();
       const rows = await db.model3D.findMany({
-        where: { productSlug: { in: [...slugs] }, published: true, status: 'READY' },
-        select: { productSlug: true },
+        where: { category: { in: wanted }, published: true, status: 'READY' },
+        select: { category: true },
       });
-      return new Set(rows.map((row) => row.productSlug));
+      const allow = new Set(wanted);
+      const found = new Set<string>();
+      for (const row of rows) {
+        if (allow.has(row.category)) found.add(row.category);
+      }
+      return found;
     },
     async saveAll(rows) {
       const outcomes: Array<'created' | 'duplicate'> = [];

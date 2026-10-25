@@ -7,7 +7,7 @@ import ProductGallery from '@/components/three/ProductGallery';
 import JsonLd from '@/components/seo/JsonLd';
 import { SITE_URL } from '@/lib/site';
 import { listPublishedModels } from '@/lib/server/published-models';
-import { loadCatalog, type Locale } from '@/lib/catalog/catalog';
+import { catalogItemList, decorateCatalogProducts, loadCatalog, withPublishedReady, type Locale } from '@/lib/catalog/catalog';
 
 // 模型列表直接在服务端读数据库（与 /api/models 同一函数），60 秒重新生成
 export const revalidate = 60;
@@ -18,24 +18,20 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return pageMetadata({ locale, path: '/products', title: t('metaTitle'), description: t('metaDescription'), ogSlug: 'products', ogAlt: t('ogImageAlt') });
 }
 
-// 本地海报的逐图 alt；API 换了海报地址时不用，回退到模板
-function posterAlt(p: { slug: string; poster: string }, locale: string): string | undefined {
-  const local = products.find((x) => x.slug === p.slug);
-  if (!local?.posterAlt || local.poster !== p.poster) return undefined;
-  return locale === 'ru' ? local.posterAlt.ru : local.posterAlt.en;
-}
-
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('Products');
   const v = await getTranslations('Views');
+  const loc = (locale === 'ru' ? 'ru' : 'en') as Locale;
   // 卡片文字和图片在服务端渲染，爬虫可读；3D 只在客户端增强
-  const catalog = await loadCatalog(listPublishedModels, (locale === 'ru' ? 'ru' : 'en') as Locale, products, { strictEmpty: process.env.CATALOG_STRICT_API === '1' });
-  const items = catalog.products.map((p) => {
-    const known = t.has(`names.${p.slug}`);
-    const name = known ? t(`names.${p.slug}`) : p.slug.replace(/-/g, ' ');
-    return { ...p, name, desc: known ? t(`desc.${p.slug}`) : undefined, specs: known ? (t.raw(`specs.${p.slug}`) as string[]) : undefined, alt: posterAlt(p, locale) ?? t('alt', { name }) };
+  const catalog = await loadCatalog(async () => withPublishedReady(await listPublishedModels()), loc, products, { strictEmpty: process.env.CATALOG_STRICT_API === '1' });
+  const items = decorateCatalogProducts(catalog.products, loc, products, {
+    hasName: (slug) => t.has(`names.${slug}`),
+    name: (slug) => t(`names.${slug}`),
+    desc: (slug) => t(`desc.${slug}`),
+    specs: (slug) => t.raw(`specs.${slug}`) as string[],
+    alt: (name) => t('alt', { name }),
   });
   const pageUrl = `${SITE_URL}/${locale}/products`;
   const m = await getTranslations('Meta');
@@ -46,7 +42,7 @@ export default async function ProductsPage({ params }: { params: Promise<{ local
         { '@type': 'ListItem', position: 1, name: m('home'), item: `${SITE_URL}/${locale}` },
         { '@type': 'ListItem', position: 2, name: t('title'), item: pageUrl }
       ] },
-      { '@type': 'ItemList', name: t('title'), itemListElement: items.map((p, i) => ({ '@type': 'ListItem', position: i + 1, name: p.name, description: p.desc, url: `${pageUrl}#${p.slug}` })) }
+      { '@type': 'ItemList', name: t('title'), itemListElement: catalogItemList(items, pageUrl) }
     ]
   };
   return (

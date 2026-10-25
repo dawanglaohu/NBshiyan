@@ -1278,6 +1278,56 @@ test('a 403 whose body never finishes is not replayed when the deadline fires', 
   });
 });
 
+test('a 403 body that ignores transport abort still ends at the deadline without a replay', { timeout: 25_000 }, async () => {
+  await withServer((_req, res) => {
+    res.writeHead(403, {
+      'content-type': 'application/json; charset=utf-8',
+      'retry-after': '31',
+    });
+    res.write(`{"message":"${SENTINEL}"`);
+  }, async (transport, hits) => {
+    const stalling: ClientTransport = async (path, init) => {
+      const response = await transport(path, init);
+      const inner = response.body?.getReader();
+      let delivered = false;
+      const body = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          if (!delivered && inner) {
+            delivered = true;
+            const step = await inner.read();
+            if (step.done) {
+              controller.close();
+              return;
+            }
+            if (step.value) controller.enqueue(step.value);
+            return;
+          }
+          await new Promise<void>(() => undefined);
+        },
+      });
+      return new Response(body, { status: response.status, headers: response.headers });
+    };
+    const started = Date.now();
+    const result = fail(await requestApi({
+      path: MESSAGE_PATH,
+      method: 'POST',
+      body: { clientMessageId: OTHER, bodyText: 'Hello' },
+      schema: MessageReceivedDTOSchema,
+      transport: stalling,
+    }));
+    const elapsed = Date.now() - started;
+    assert.ok(elapsed >= 14_000, `elapsed ${elapsed}`);
+    assert.ok(elapsed < 22_000, `elapsed ${elapsed}`);
+    assert.equal(hits.length, 1);
+    assert.equal(result.status, 403);
+    assert.equal(result.action, 'stop');
+    assert.equal(result.retryable, false);
+    assert.equal(result.attempts, 1);
+    assert.equal(result.retryAfterMs, 31_000);
+    absent(result);
+  });
+});
+
 test('caller abort during a partial 403 body stays silent', async () => {
   const controller = new AbortController();
   await withServer((_req, res) => {
