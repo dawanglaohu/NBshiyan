@@ -189,6 +189,8 @@ export default function BrandScene({ labels, stillSrc }: { labels: Labels; still
       setUserArmed(false);
       return;
     }
+    // A failed element stays on the last error until load(). Pause and resume leave didLoad set, so they keep the frame.
+    if (failedRef.current) didLoad.current = false;
     const frame = media.current;
     const width = frame?.getBoundingClientRect().width ?? 0;
     const canAttach = admitted && width > 0 && !heroStillTakingFirstRequest();

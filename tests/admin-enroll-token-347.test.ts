@@ -241,10 +241,14 @@ test('wrong / expired token → 401 bad_credentials on both routes; audit reason
 test('no oracle: correct password + bad token is not refunded, so it hits the same 429 as wrong passwords (IP+account 5/10min)', async () => {
   const ip = '203.0.113.50';
   for (let i = 0; i < 5; i++) assert.deepEqual(await enroll(otherToken(), PASSWORD, ip), BAD, `try ${i + 1}`);
-  assert.deepEqual(await enroll(token, PASSWORD, ip), { status: 429, body: { error: 'rate_limited' } });
+  assert.deepEqual(await enroll(token, PASSWORD, ip), { status: 429, body: { error: 'rate_limited', retryAfter: 600 } });
+  const limited = await enrollR.POST(post('/api/auth-admin/enroll', { email: EMAIL, password: PASSWORD, token }, ip));
+  assert.equal(limited.status, 429);
+  assert.equal(limited.headers.get('retry-after'), '600');
+  assert.match(limited.headers.get('cache-control') ?? '', /no-store/);
   setRateLimitStore(new MemoryStore());
   for (let i = 0; i < 5; i++) assert.deepEqual(await enroll(token, 'wrong-password-' + i, ip), BAD);
-  assert.deepEqual(await enroll(token, PASSWORD, ip), { status: 429, body: { error: 'rate_limited' } });
+  assert.deepEqual(await enroll(token, PASSWORD, ip), { status: 429, body: { error: 'rate_limited', retryAfter: 600 } });
   // 密码和令牌都对：照常退桶（#376），连续 enroll/confirm 不会撞上限
   setRateLimitStore(new MemoryStore());
   apply(owner(), { lockedUntil: null, failedLogins: 0 }); // 上面 5 次错密码锁了账号；令牌错不会锁（与登录接口一致，只有错密码计入）

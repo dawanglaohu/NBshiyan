@@ -60,7 +60,7 @@ export const { handlers, auth } = NextAuth({
   cookies: { sessionToken: { name: SESSION_COOKIE_NAME, options: { httpOnly: true, sameSite: 'lax', path: '/', secure: USE_SECURE_COOKIES } } },
   providers: [
     Credentials({
-      credentials: { email: {}, password: {}, totp: {}, recoveryCode: {}, rememberDevice: {} },
+      credentials: { email: {}, password: { type: 'password' }, totp: {}, recoveryCode: {}, rememberDevice: {} },
       async authorize(raw, request) {
         const parsed = Login.safeParse(raw);
         if (!parsed.success) throw new CredentialsSignin();

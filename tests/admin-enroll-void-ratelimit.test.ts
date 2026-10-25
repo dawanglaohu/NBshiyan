@@ -139,7 +139,11 @@ test('(b) 5 wrong passwords at confirm → 6th is 429 with no user lookup (passw
     await enroll();
     for (let i = 0; i < 5; i++) assert.deepEqual(await confirm('123456', 'wrong-' + i), BAD, `attempt ${i + 1}`);
     const before = lookups;
-    assert.deepEqual(await confirm('123456', PASSWORD), RL, '6th is 429 even with the right password');
+    assert.deepEqual(await confirm('123456', PASSWORD), { status: 429, body: { error: 'rate_limited', retryAfter: 600 } }, '6th is 429 even with the right password');
+    const limited = await confirmR.POST(post('/api/auth-admin/enroll/confirm', { email: EMAIL, password: PASSWORD, totp: '123456' }));
+    assert.equal(limited.status, 429);
+    assert.equal(limited.headers.get('retry-after'), '600');
+    assert.match(limited.headers.get('cache-control') ?? '', /no-store/);
     assert.equal(lookups, before, 'no user lookup on 429');
     assert.ok(audits.some((a) => a.action === 'auth.login_fail' && (a.meta as { reason: string }).reason === 'rate_limited'));
     assert.equal(owner().totpEnrollFails, 0);
@@ -175,7 +179,7 @@ test('(e) login and confirm share the login bucket: alternating wrong passwords,
       else assert.deepEqual(await confirm('123456', 'wrong-' + i), BAD);
     }
     const before = lookups;
-    assert.deepEqual(await confirm('123456', 'wrong-6'), RL, 'confirm is the 6th');
+    assert.deepEqual(await confirm('123456', 'wrong-6'), { status: 429, body: { error: 'rate_limited', retryAfter: 600 } }, 'confirm is the 6th');
     assert.equal(await authorizeLogin({ email: EMAIL, password: PASSWORD, totp: '123456' }, IP), null);
     assert.equal(lookups, before, 'neither reached the user lookup');
   });
