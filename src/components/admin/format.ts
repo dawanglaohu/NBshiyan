@@ -10,7 +10,7 @@ export const PRODUCT_LABEL: Record<string, string> = {
   'color-printing': '彩色印刷',
   'offset-printing': '胶印',
   'eco-paper-cups': '印刷咖啡杯',
-  'gift-cards': '礼品卡',
+  'gift-cards': '贺卡',
   'christmas-merchandise': '圣诞用品'
 };
 /** 只查自身属性：'constructor'、'__proto__'、'toString' 等原型键回退为 slug */
