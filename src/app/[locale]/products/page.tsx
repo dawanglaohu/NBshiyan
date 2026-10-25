@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { connection } from 'next/server';
 import { pageMetadata } from '@/lib/seo/pageMeta';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { products } from '@/data/products';
@@ -10,6 +9,7 @@ import { SITE_URL } from '@/lib/site';
 import { listPublishedModels } from '@/lib/server/published-models';
 import { catalogItemList, decorateCatalogProducts, loadCatalog, withPublishedReady, type Locale } from '@/lib/catalog/catalog';
 import { categoryHref } from '@/lib/seo/categoryPages';
+import { connectWhenSeoMock } from '@/lib/seo/connectWhenSeoMock';
 import { categoryPagesLive } from '@/lib/seo/mock';
 
 // 模型列表直接在服务端读数据库（与 /api/models 同一函数），60 秒重新生成
@@ -23,7 +23,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function ProductsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  await connection();
+  // 默认不碰 connection()，listPublishedModels 仍按 revalidate = 60 缓存。审计 mock 才按请求读开关。
+  await connectWhenSeoMock();
   setRequestLocale(locale);
   const t = await getTranslations('Products');
   const v = await getTranslations('Views');

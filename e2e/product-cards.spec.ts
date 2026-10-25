@@ -1,15 +1,23 @@
+import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from './fixtures';
 
-async function dismissConsent(page: Page) {
-  const bar = page.getByRole('region', { name: 'Cookie consent' });
+async function dismissConsent(page: Page, locale: 'en' | 'ru' = 'en') {
+  const name = locale === 'ru' ? 'Согласие на использование cookie' : 'Cookie consent';
+  const reject = locale === 'ru' ? 'Отклонить все' : 'Reject all';
+  const bar = page.getByRole('region', { name });
   if (await bar.isVisible().catch(() => false)) {
-    await bar.getByRole('button', { name: 'Reject all' }).click();
+    await bar.getByRole('button', { name: reject }).click();
     await expect(bar).toBeHidden();
   }
 }
 
 function clampViewport(viewportWidth: number) {
   return Math.min(440, Math.max(360, viewportWidth * 0.28));
+}
+
+function isGlbRequest(hit: string) {
+  const path = hit.replace(/^[A-Z]+ /, '');
+  return path.includes('/glb') || path.includes('.glb');
 }
 
 async function cardBox(page: Page) {
@@ -37,6 +45,29 @@ async function cardBox(page: Page) {
   });
 }
 
+function articleChunks(html: string) {
+  return html.split(/<article\b/).slice(1).map((part) => part.split('</article>')[0]);
+}
+
+function itemListDescriptions(html: string): string[] {
+  const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+  for (const block of blocks) {
+    const json = JSON.parse(block[1]) as { '@graph'?: { '@type'?: string; itemListElement?: { description?: string }[] }[]; '@type'?: string; itemListElement?: { description?: string }[] };
+    const nodes = json['@graph'] ?? [json];
+    const list = nodes.find((node) => node['@type'] === 'ItemList');
+    if (list?.itemListElement) return list.itemListElement.map((item) => item.description ?? '');
+  }
+  return [];
+}
+
+function renderedModes(): { anchor: string; hash: string; live: string } {
+  const out = execFileSync(process.execPath, ['--import', 'tsx', 'tests/product-card-markup.ts'], {
+    encoding: 'utf8',
+    env: { ...process.env, PRINT_PRODUCT_CARDS: '1' },
+  });
+  return JSON.parse(out);
+}
+
 test('products-link opens the server catalog, large cards, and the real model file', async ({ page }) => {
   test.setTimeout(60_000);
   const seen: string[] = [];
@@ -54,9 +85,19 @@ test('products-link opens the server catalog, large cards, and the real model fi
   const ssr = await page.request.get('/en/products');
   expect(ssr.status()).toBe(200);
   const html = await ssr.text();
-  expect((html.match(/<article[^>]*class="card/g) ?? []).length).toBeGreaterThanOrEqual(12);
+  const cards = articleChunks(html);
+  expect(cards.length).toBeGreaterThanOrEqual(12);
   expect(html).toMatch(/\/models\/[^"'\\\s]+\.glb|\/api\/models\/[^"'\\\s]+\/glb/);
-  expect(html).not.toContain('class="desc"');
+  const descriptions = itemListDescriptions(html);
+  expect(descriptions.length).toBe(cards.length);
+  for (const [index, card] of cards.entries()) {
+    const descs = [...card.matchAll(/<p class="desc">([\s\S]*?)<\/p>/g)];
+    expect(descs.length).toBe(1);
+    expect(descs[0][1]).toBe(descriptions[index]);
+    expect(card).not.toContain('product-name-link');
+    expect(card).not.toContain('category-link');
+    expect(card).not.toMatch(/<h2[^>]*>\s*<a\b/);
+  }
   await expect(page.locator('main article.card').first()).toBeVisible();
 
   const desktop = await cardBox(page);
@@ -69,12 +110,36 @@ test('products-link opens the server catalog, large cards, and the real model fi
   expect(desktop.specLine).toBe('24px');
   expect(desktop.specColor).toBe('rgb(0, 0, 0)');
   expect(desktop.viewportInLink).toBe(false);
-  expect(desktop.descCount).toBe(0);
+  expect(desktop.descCount).toBe(1);
   const first = page.locator('article.card').first();
-  await expect(first.getByTestId('product-name-link')).toBeVisible();
-  await expect(first.getByTestId('category-link')).toBeVisible();
+  await expect(first.locator('h2 a')).toHaveCount(0);
+  await expect(first.getByTestId('category-link')).toHaveCount(0);
+  await expect(page.getByTestId('category-link')).toHaveCount(0);
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
   await expect(first.locator('.specs li').first()).toBeVisible();
+  const heading = await first.locator('h2').evaluate((el) => getComputedStyle(el).textDecorationLine);
+  expect(heading).toBe('none');
+  const actions = await first.locator('.actions').evaluate((el) => {
+    const button = el.querySelector('button');
+    if (!button) return { children: el.childElementCount, inset: -1 };
+    return { children: el.childElementCount, inset: button.getBoundingClientRect().left - el.getBoundingClientRect().left };
+  });
+  expect(actions.children).toBe(1);
+  expect(actions.inset).toBeLessThanOrEqual(1);
+  const descStyle = await first.locator('.desc').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { size: style.fontSize, line: style.lineHeight, color: style.color, clamp: style.webkitLineClamp, weight: style.fontWeight };
+  });
+  expect(descStyle).toEqual({ size: '14px', line: '20px', color: 'rgb(90, 86, 80)', clamp: '2', weight: '400' });
+  const premiumColor = await page.locator('article.theme-premium .desc').first().evaluate((el) => getComputedStyle(el).color);
+  expect(premiumColor).toBe('rgb(185, 175, 156)');
+  const actionInset = await page.locator('.product-grid > .card').evaluateAll((nodes) => nodes.slice(0, 2).map((card) => {
+    const row = card.querySelector('.actions');
+    if (!row) return null;
+    return Math.round(card.getBoundingClientRect().bottom - row.getBoundingClientRect().bottom);
+  }));
+  expect(actionInset[0]).not.toBeNull();
+  expect(Math.abs((actionInset[0] ?? 0) - (actionInset[1] ?? 0))).toBeLessThanOrEqual(2);
 
   await page.setViewportSize({ width: 1920, height: 1080 });
   const wide = await cardBox(page);
@@ -82,6 +147,7 @@ test('products-link opens the server catalog, large cards, and the real model fi
   expect(wide.viewportHeight).toBeGreaterThanOrEqual(clampViewport(1920) - 1);
   expect(wide.viewportHeight).toBeLessThanOrEqual(clampViewport(1920) + 1);
 
+  await page.setViewportSize({ width: 1440, height: 900 });
   const viewport = page.getByTestId('product-viewport').first();
   const box = await viewport.boundingBox();
   if (!box) throw new Error('viewport box missing');
@@ -92,15 +158,10 @@ test('products-link opens the server catalog, large cards, and the real model fi
   await expect(page).toHaveURL(/\/en\/products$/);
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
   expect(seen.filter((hit) => hit === 'GET /api/models')).toEqual([]);
-  await expect.poll(() => seen.some((hit) => hit.startsWith('GET ') && hit !== 'GET /api/models'), { timeout: 25_000 }).toBe(true);
+  await expect.poll(() => seen.some(isGlbRequest), { timeout: 25_000 }).toBe(true);
 
-  const href = await first.getByTestId('category-link').getAttribute('href');
-  expect(href).toMatch(/\/products#corrugated-boxes$/);
   const blocked = await page.request.get('/en/products/custom-corrugated-boxes');
   expect(blocked.status()).toBe(404);
-  await first.getByTestId('category-link').click();
-  await expect(page).toHaveURL(/\/en\/products#corrugated-boxes$/);
-  await expect(page.locator('#corrugated-boxes')).toBeVisible();
 
   const api = await page.request.get('/api/models');
   expect(api.status()).toBe(200);
@@ -108,6 +169,21 @@ test('products-link opens the server catalog, large cards, and the real model fi
   const body = await api.json() as { items: unknown };
   expect(Array.isArray(body.items)).toBe(true);
   expect(seen.filter((hit) => hit === 'GET /api/models')).toEqual([]);
+});
+
+test('a 900px products column caps the model stage at 440px and the card inner width', async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 1000 });
+  await page.goto('/en/products');
+  await dismissConsent(page);
+  const measured = await page.locator('article.card').first().evaluate((card) => {
+    const stage = card.querySelector('[data-testid="product-viewport"]');
+    if (!stage) throw new Error('viewport missing');
+    const stageRect = stage.getBoundingClientRect();
+    return { stageHeight: stageRect.height, stageWidth: stageRect.width, cardInner: card.clientWidth };
+  });
+  expect(measured.stageHeight).toBeLessThanOrEqual(440);
+  expect(measured.stageHeight).toBeGreaterThanOrEqual(439);
+  expect(Math.abs(measured.stageWidth - measured.cardInner)).toBeLessThanOrEqual(1);
 });
 
 test('a 390px products entry does not overflow and keeps the name, specs, and inquiry control', async ({ page }) => {
@@ -126,9 +202,9 @@ test('a 390px products entry does not overflow and keeps the name, specs, and in
   expect(ratio).toBeLessThan(1.5);
   expect(narrow.nameSize).toBe('20px');
   expect(narrow.nameLine).toBe('24px');
-  expect(narrow.descCount).toBe(0);
+  expect(narrow.descCount).toBe(1);
   const first = page.locator('article.card').first();
-  await expect(first.getByTestId('product-name-link')).toBeVisible();
+  await expect(first.locator('h2 a')).toHaveCount(0);
   await expect(first.locator('.specs li').first()).toBeVisible();
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
   const overflow = await page.evaluate(() => ({
@@ -136,6 +212,86 @@ test('a 390px products entry does not overflow and keeps the name, specs, and in
     client: document.documentElement.clientWidth,
   }));
   expect(overflow.scroll).toBeLessThanOrEqual(overflow.client + 1);
+});
+
+test('ru 390 products page does not overflow and each control center hits itself', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/ru/products');
+  await dismissConsent(page, 'ru');
+  const docOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(docOverflow).toBe(0);
+  const title = await page.locator('#pulp-molding h2').evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+  expect(title.scroll).toBeLessThanOrEqual(title.client);
+  const misses = await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const nodes = [...document.querySelectorAll('a, button, input, select, textarea, [role="button"]')];
+    const bad: string[] = [];
+    for (const el of nodes) {
+      if (!(el instanceof HTMLElement)) continue;
+      const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none') continue;
+      if (el.closest('[hidden], [aria-hidden="true"]')) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width < 8 || rect.height < 8) continue;
+      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+      const next = el.getBoundingClientRect();
+      const cx = next.left + next.width / 2;
+      const cy = next.top + next.height / 2;
+      if (cx < 0 || cy < 0 || cx > window.innerWidth || cy > window.innerHeight) {
+        bad.push(`offscreen ${el.tagName} ${el.innerText.slice(0, 40)}`);
+        continue;
+      }
+      const hit = document.elementFromPoint(cx, cy);
+      if (hit !== el && !el.contains(hit)) {
+        const target = hit instanceof HTMLElement ? `${hit.tagName}.${hit.className}` : String(hit);
+        bad.push(`${el.tagName}.${el.className} "${el.innerText.slice(0, 40)}" hit ${target}`);
+      }
+    }
+    return bad;
+  });
+  expect(misses).toEqual([]);
+});
+
+test('unpublished cards stay plain text and published cards keep both links', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/en/products');
+  const css = await page.locator('link[rel="stylesheet"]').evaluateAll((els) => els.map((el) => (el as HTMLLinkElement).href));
+  const modes = renderedModes();
+  const shell = (body: string) => `<!doctype html><html><head>${css.map((href) => `<link rel="stylesheet" href="${href}">`).join('')}</head><body>${body}</body></html>`;
+  await page.setContent(shell(`<div id="anchor">${modes.anchor}</div><div id="hash">${modes.hash}</div><div id="live">${modes.live}</div>`), { waitUntil: 'load' });
+
+  for (const id of ['anchor', 'hash']) {
+    const root = page.locator(`#${id}`);
+    await expect(root.locator('h2 a')).toHaveCount(0);
+    await expect(root.getByTestId('category-link')).toHaveCount(0);
+    await expect(root.locator('h2')).toHaveText('Corrugated Boxes');
+    const decoration = await root.locator('h2').evaluate((el) => getComputedStyle(el).textDecorationLine);
+    expect(decoration).toBe('none');
+    const row = await root.locator('.actions').evaluate((el) => {
+      const button = el.querySelector('button');
+      if (!button) return { children: el.childElementCount, inset: -1 };
+      return { children: el.childElementCount, inset: button.getBoundingClientRect().left - el.getBoundingClientRect().left };
+    });
+    expect(row.children).toBe(1);
+    expect(row.inset).toBeLessThanOrEqual(1);
+  }
+
+  const live = page.locator('#live');
+  await expect(live.getByTestId('product-name-link')).toHaveAttribute('href', /\/products\/custom-corrugated-boxes$/);
+  await expect(live.getByTestId('category-link')).toHaveAttribute('href', /\/products\/custom-corrugated-boxes$/);
+  const linkDecoration = await live.getByTestId('product-name-link').evaluate((el) => getComputedStyle(el).textDecorationLine);
+  expect(linkDecoration).toContain('underline');
+  const desktopPad = await live.getByTestId('product-name-link').evaluate((el) => getComputedStyle(el).paddingTop);
+  expect(desktopPad).toBe('8px');
+  const desktopHeight = await live.getByTestId('product-name-link').evaluate((el) => el.getBoundingClientRect().height);
+  expect(desktopHeight).toBeGreaterThanOrEqual(44);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const phonePad = await live.getByTestId('product-name-link').evaluate((el) => getComputedStyle(el).paddingTop);
+  expect(phonePad).toBe('10px');
+  const phoneHeight = await live.getByTestId('product-name-link').evaluate((el) => el.getBoundingClientRect().height);
+  expect(phoneHeight).toBeGreaterThanOrEqual(44);
 });
 
 const liveOrigin = process.env.M2_LIVE_ORIGIN;
@@ -146,8 +302,11 @@ if (liveOrigin) {
     await dismissConsent(page);
     await page.locator('[data-testid="products-link"]:visible').click();
     await expect(page).toHaveURL(/\/en\/products$/);
-    const link = page.locator('article.card').first().getByTestId('category-link');
+    const card = page.locator('article.card').first();
+    const link = card.getByTestId('category-link');
     await expect(link).toHaveAttribute('href', /\/products\/custom-corrugated-boxes$/);
+    await expect(card.getByTestId('product-name-link')).toHaveAttribute('href', /\/products\/custom-corrugated-boxes$/);
+    await expect(card.locator('.desc')).toHaveCount(1);
     await link.click();
     await expect(page).toHaveURL(/\/en\/products\/custom-corrugated-boxes$/);
     await expect(page.locator('main h1')).toHaveText('Corrugated Boxes');

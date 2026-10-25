@@ -448,24 +448,27 @@ header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-co
 }
 
 /* M2-T1 product cards. Appended so earlier card, FAB, and footer rules stay intact.
-   PC track min 560px, model viewport clamp(360px, 28vw, 440px); under 1024px the viewport is 4:3 and at least 240px tall. */
+   PC track min 560px, model viewport clamp(360px, 28vw, 440px).
+   Under 1024px the viewport stays 4:3 and at least 240px, and width:100% plus max-height:440px keeps a single column from growing taller than the desktop cap. */
 .product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr));gap:16px;min-width:0;width:100%}
-.product-grid > .card{min-width:0;max-width:100%}
+.product-grid > .card{min-width:0;max-width:100%;display:flex;flex-direction:column}
 .product-grid > .card:not(.theme-premium){background:var(--pj-bg);color:var(--pj-fg)}
 .product-grid .card .stage{background:var(--stage-bg)}
 @media (min-width:1024px){
   .product-grid .card .stage{aspect-ratio:auto;height:clamp(360px,28vw,440px)}
 }
 @media (max-width:1023px){
-  .product-grid .card .stage{height:auto;aspect-ratio:4/3;min-height:240px}
+  .product-grid .card .stage{height:auto;aspect-ratio:4/3;min-height:240px;width:100%;max-height:440px}
 }
 .product-grid .card .stage img{object-fit:contain;transition-duration:var(--pj-feedback-duration)}
 .product-grid .card .views{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:12px 16px;background:var(--pj-bg);color:var(--pj-fg);border-top:var(--pj-border-width) solid var(--pj-border);border-bottom:var(--pj-border-width) solid var(--pj-border)}
 .product-grid .card .views button{min-height:var(--pj-admin-control-height);padding:0 12px;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg);box-shadow:none;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-control)}
 .product-grid .card .views button[aria-pressed="true"]{background:var(--pj-inverse);border-color:var(--pj-inverse);color:var(--pj-on-inverse)}
-.product-grid .card .body{padding:var(--pj-public-card-pad-desktop);gap:12px}
+.product-grid .card .body{padding:var(--pj-public-card-pad-desktop);gap:12px;flex:1}
 .product-grid .card .body h2{display:block;margin:0;overflow:visible;-webkit-line-clamp:unset;line-clamp:unset;font-size:var(--pj-h3-desktop-size);line-height:var(--pj-h3-desktop-line);font-weight:var(--pj-weight-heading);letter-spacing:var(--pj-heading-tracking)}
-.product-grid .card .product-name-link{color:inherit;font:inherit;letter-spacing:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+.product-grid .card .body .desc{margin:-4px 0 0;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-body);color:var(--ink-2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;hyphens:auto}
+.product-grid .card .product-name-link{display:inline-block;padding-block:8px;margin-block:-8px;color:inherit;font:inherit;letter-spacing:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
+.product-grid .card .body .actions{margin-top:auto}
 .product-grid .card:not(.theme-premium) .specs{color:var(--pj-fg)}
 .product-grid .card.theme-premium .specs{color:var(--premium-ink)}
 .product-grid .card .specs{margin:0;padding:0 0 0 20px;font-size:var(--pj-body-size);line-height:var(--pj-body-line);overflow-wrap:anywhere}
@@ -474,6 +477,7 @@ header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-co
 @media (max-width:1023px){
   .product-grid .card .body{padding:var(--pj-public-card-pad-phone)}
   .product-grid .card .body h2{font-size:var(--pj-h3-phone-size);line-height:var(--pj-h3-phone-line)}
+  .product-grid .card .product-name-link{padding-block:10px;margin-block:-10px}
 }
 @media (pointer:coarse),(max-width:1023px){
   .product-grid .card .views button,

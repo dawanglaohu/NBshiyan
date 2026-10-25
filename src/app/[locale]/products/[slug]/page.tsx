@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { connection } from 'next/server';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
@@ -7,6 +6,7 @@ import JsonLd from '@/components/seo/JsonLd';
 import { categoryMeta } from '@/lib/seo/categoryMeta';
 import { categoryHref, categoryLocaleAlternates, categoryPagePath } from '@/lib/seo/categoryPages';
 import LocaleAlternates from '@/components/layout/LocaleAlternates';
+import { connectWhenSeoMock } from '@/lib/seo/connectWhenSeoMock';
 import { categoryPagesLive } from '@/lib/seo/mock';
 import { categoryOgImage } from '@/lib/seo/categoryOg';
 import { categorySeo } from '@/lib/seo/templates';
@@ -24,7 +24,7 @@ const find = (locale: 'en' | 'ru', slug: string) => {
 };
 
 export async function generateMetadata({ params }: P): Promise<Metadata> {
-  await connection();
+  await connectWhenSeoMock();
   const { locale: raw, slug } = await params; const locale = loc(raw);
   const c = categoryPagesLive() ? find(locale, slug) : undefined;
   if (!c) return {};
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params }: P) {
-  await connection();
+  await connectWhenSeoMock();
   const { locale: raw, slug } = await params; const locale = loc(raw);
   const live = categoryPagesLive();
   const c = live ? find(locale, slug) : undefined;

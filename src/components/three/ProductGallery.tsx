@@ -22,9 +22,16 @@ const GalleryScene = dynamic(() => import('./GalleryScene'), { ssr: false });
 
 type Item = Product & { name: string; desc?: string; alt?: string; specs?: string[] };
 
-/** 只有 #锚点用原生 a。站内路径走 Link，才会带上语言前缀。 */
+/** 未上线时地址是本页锚点（`#key` 或 `/products#key`）。这种地址不做成链接。 */
+export function isCatalogSelfAnchor(href: string): boolean {
+  if (href.startsWith('#')) return true;
+  const hash = href.indexOf('#');
+  if (hash < 0) return false;
+  return /\/products$/.test(href.slice(0, hash));
+}
+
+/** 站内品类路径走 Link，才会带上语言前缀。本页锚点由调用方改成纯文本，不会进这里。 */
 function CatalogLink({ href, className, testId, children }: { href: string; className: string; testId: string; children: ReactNode }) {
-  if (href.startsWith('#')) return <a href={href} className={className} data-testid={testId}>{children}</a>;
   return <Link href={href} className={className} data-testid={testId}>{children}</Link>;
 }
 
@@ -110,6 +117,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
       <div className="grid product-grid">
         {items.map((p, idx) => {
           const catalogHref = p.landing ?? `#${p.slug}`;
+          const linked = !isCatalogSelfAnchor(catalogHref);
           return (
           <article key={p.slug} id={p.slug} className={`card${PREMIUM.has(p.slug) ? ' theme-premium' : ''}`}>
             <div
@@ -145,14 +153,15 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
             )}
             <div className="body">
               <h2>
-                <CatalogLink href={catalogHref} className="product-name-link" testId="product-name-link">{p.name}</CatalogLink>
+                {linked ? <CatalogLink href={catalogHref} className="product-name-link" testId="product-name-link">{p.name}</CatalogLink> : p.name}
               </h2>
+              {p.desc && <p className="desc">{p.desc}</p>}
               {p.specs && p.specs.length > 0 && (
                 <ul className="specs" aria-label={labels.specsLabel}>{p.specs.slice(0, 3).map((s) => <li key={s}>{s}</li>)}</ul>
               )}
               <div className="actions">
                 <AddToQuoteButton slug={p.slug} />
-                <CatalogLink href={catalogHref} className="category-link" testId="category-link">{labels.learnMore}<span className="sr-only"> {p.name}</span></CatalogLink>
+                {linked && <CatalogLink href={catalogHref} className="category-link" testId="category-link">{labels.learnMore}<span className="sr-only"> {p.name}</span></CatalogLink>}
               </div>
             </div>
           </article>
