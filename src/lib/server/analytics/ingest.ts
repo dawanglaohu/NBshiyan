@@ -108,7 +108,7 @@ function occurredAtInWindow(occurredAt: string, nowMs: number): boolean {
   return Number.isFinite(at) && at >= nowMs - PAST_MS && at <= nowMs + FUTURE_MS;
 }
 
-/** 内部 key 直接放行。其余 slug 必须是已发布且 READY 的 Model3D。任一不在白名单则整批无效。 */
+/** 内部 key 直接放行。其余 slug 必须是已发布且 READY、并且 category 在 categoryMeta 里的 Model3D.category。任一不在白名单则整批无效。 */
 async function catalogOrPublished(repo: AnalyticsEventRepo, slugs: readonly string[]): Promise<boolean> {
   const external = slugs.filter((slug) => !CATALOG_PRODUCT_SLUGS.has(slug));
   if (external.length === 0) return true;
