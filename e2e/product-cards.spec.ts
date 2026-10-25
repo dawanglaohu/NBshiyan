@@ -5,10 +5,11 @@ async function dismissConsent(page: Page, locale: 'en' | 'ru' = 'en') {
   const name = locale === 'ru' ? 'Согласие на использование cookie' : 'Cookie consent';
   const reject = locale === 'ru' ? 'Отклонить все' : 'Reject all';
   const bar = page.getByRole('region', { name });
-  if (await bar.isVisible().catch(() => false)) {
-    await bar.getByRole('button', { name: reject }).click();
-    await expect(bar).toBeHidden();
-  }
+  // 同意条在客户端 effect 里才出现。只看当前是否可见会漏掉，横幅 z-index 高于悬浮按钮。
+  const appeared = await bar.waitFor({ state: 'visible', timeout: 4_000 }).then(() => true, () => false);
+  if (!appeared) return;
+  await bar.getByRole('button', { name: reject }).click();
+  await expect(bar).toBeHidden();
 }
 
 function clampViewport(viewportWidth: number) {
