@@ -6,16 +6,17 @@ import { useLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 
-// 本地化 404（design/error-pages.html，#125/#195）：返回真实 404，Next 对 not-found 自动输出 noindex；不重定向、不放搜索框。
+// 本地化 404（design/error-pages.html，#125/#195）：不重定向、不放搜索框。状态码仍由调用方 notFound() 给出 404。
 // 品类落地页 /{locale}/products/{slug} 上线前（CATEGORY_PAGES_LIVE，#198），入口先链到 3D 目录里对应的卡片，避免 404 页再链到 404。
-// 404 自己的 title，不继承首页的 Meta.title；noindex, follow（页面上的品类链接照常可跟）。状态码仍由 notFound() 给出 404。
-// locale 取自 [locale]/layout 的 setRequestLocale；description 留空，不继承首页描述。
+// 标题用 NotFound.meta.title，不继承首页 Meta.title。description 留空，不继承首页描述。
+// locale 取自 [locale]/layout 的 setRequestLocale。
+// 不要在这里写 robots。notFound() 会让 Next 插入唯一的 <meta name="robots" content="noindex">；
+// 本文件再写 robots 会多出一个 meta。未写 follow 时爬虫按默认 follow 处理，品类链接仍可跟。
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('NotFound');
   return {
     title: t('meta.title'),
-    description: null,
-    robots: { index: false, follow: true }
+    description: null
   };
 }
 

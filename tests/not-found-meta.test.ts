@@ -11,12 +11,13 @@ test('404: own localized title, not the homepage Meta.title', () => {
   assert.notEqual(ru.NotFound.meta.title, ru.Meta.title);
 });
 
-test('404: generateMetadata uses NotFound.meta.title + noindex, follow; status stays 404 via notFound()', () => {
+test('404: generateMetadata keeps NotFound.meta.title and does not emit a second robots meta', () => {
   const s = readFileSync('src/app/[locale]/not-found.tsx', 'utf8');
   assert.match(s, /export async function generateMetadata/);
   assert.match(s, /getTranslations\('NotFound'\)/);
   assert.match(s, /title: t\('meta\.title'\)/);
-  assert.match(s, /robots: \{ index: false, follow: true \}/);
+  // notFound() 已由 Next 插入一条 robots meta。这里再声明 robots 字段会变成第二条。
+  assert.doesNotMatch(s, /\brobots\s*:/);
   assert.doesNotMatch(s, /redirect\(/);
   const rest = readFileSync('src/app/[locale]/[...rest]/page.tsx', 'utf8');
   assert.match(rest, /notFound\(\)/);
