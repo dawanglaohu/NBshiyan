@@ -5,6 +5,9 @@ import { deviceServiceFor, type DeviceSessionService } from './admin/device-sess
 import { mapAppError, mapUnknownFailure } from './http/errors';
 import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog } from './http/metrics';
 import { createAnalyticsConsentService, type AnalyticsConsentService } from './analytics/consent';
+import { CHAT_VISITOR_POLICY } from './config';
+import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
+import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
 
 export type HttpServices = {
   config: ServerConfig;
@@ -70,6 +73,30 @@ export function createAnalyticsConsentServices(deps: {
       env: deps.env,
       clock: deps.clock,
       randomId: deps.randomId,
+    }),
+  };
+}
+
+export type ChatServices = HttpServices & {
+  visitorSessions: VisitorSessionService;
+};
+
+/** 访客必要会话。每次调用新建服务，不保存当前 cookie 或会话行。 */
+export function createChatServices(deps: {
+  db?: ApiCounterDb & VisitorSessionStore;
+  config?: ServerConfig;
+  clock?: () => Date;
+  log?: (event: CounterLog) => void;
+} = {}): ChatServices {
+  const clock = deps.clock ?? (() => new Date());
+  const http = createHttpServices({ db: deps.db, config: deps.config, clock, log: deps.log });
+  const store = (deps.db ?? prisma) as unknown as VisitorSessionStore;
+  return {
+    ...http,
+    visitorSessions: createVisitorSessionService({
+      repo: createVisitorSessionRepo(store),
+      clock,
+      policy: CHAT_VISITOR_POLICY,
     }),
   };
 }
