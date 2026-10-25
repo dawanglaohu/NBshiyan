@@ -10,7 +10,7 @@ function withEnv(env: Record<string, string | undefined>, fn: () => Promise<void
   return fn().finally(() => { process.env = old; });
 }
 
-test('key file: exact /{key}.txt in production → 200 text/plain', () => withEnv({ VERCEL_ENV: 'production', INDEXNOW_KEY: KEY }, async () => {
+test('key file: exact /{key}.txt in production → 200 text/plain', () => withEnv({ APP_ENV: 'production', INDEXNOW_KEY: KEY }, async () => {
   const r = await call(`${KEY}.txt`);
   assert.equal(r.status, 200);
   assert.match(r.headers.get('content-type')!, /^text\/plain/);
@@ -20,6 +20,6 @@ test('key file: exact /{key}.txt in production → 200 text/plain', () => withEn
 }));
 
 test('key file: 404 when unset, invalid or not production', async () => {
-  for (const env of [{ VERCEL_ENV: 'production', INDEXNOW_KEY: undefined }, { VERCEL_ENV: 'preview', INDEXNOW_KEY: KEY }, { VERCEL_ENV: 'production', INDEXNOW_KEY: 'bad key!' }])
+  for (const env of [{ APP_ENV: 'production', INDEXNOW_KEY: undefined }, { APP_ENV: 'preview', INDEXNOW_KEY: KEY }, { APP_ENV: undefined, VERCEL_ENV: 'production', INDEXNOW_KEY: KEY }, { APP_ENV: 'production', INDEXNOW_KEY: 'bad key!' }])
     await withEnv(env, async () => assert.equal((await call(`${env.INDEXNOW_KEY}.txt`)).status, 404));
 });

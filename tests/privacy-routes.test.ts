@@ -56,6 +56,7 @@ beforeEach(() => {
   setRateLimitStore(new MemoryStore());
   process.env.PRIVACY_HASH_SECRET = 's'.repeat(32);
   delete process.env.VERCEL_ENV;
+  delete process.env.APP_ENV;
   delete process.env.APP_ORIGIN;
 });
 
@@ -87,13 +88,19 @@ for (const [name, handle, body] of ROUTES) {
 
   test(`${name}: production without PRIVACY_HASH_SECRET -> 503, nothing read/changed/audited`, async () => {
     const { d, calls, audits } = deps();
+    const savedSecret = process.env.AUTH_SECRET;
     delete process.env.PRIVACY_HASH_SECRET;
-    process.env.VERCEL_ENV = 'production';
+    process.env.APP_ENV = 'production';
+    process.env.AUTH_SECRET = 'a'.repeat(40);
     process.env.APP_ORIGIN = ORIGIN; // #323：生产环境同源检查只认 APP_ORIGIN
-    const r = await handle(req(name, body), d);
-    assert.equal(r.status, 503);
-    assert.equal((await r.json()).error, 'privacy_hash_secret_missing');
-    assert.deepEqual(calls, []); assert.deepEqual(audits, []);
+    try {
+      const r = await handle(req(name, body), d);
+      assert.equal(r.status, 503);
+      assert.equal((await r.json()).error, 'privacy_hash_secret_missing');
+      assert.deepEqual(calls, []); assert.deepEqual(audits, []);
+    } finally {
+      if (savedSecret === undefined) delete process.env.AUTH_SECRET; else process.env.AUTH_SECRET = savedSecret;
+    }
   });
 
   test(`${name}: ADMIN happy path, no-store, audit has hash only`, async () => {

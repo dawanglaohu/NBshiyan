@@ -2,14 +2,13 @@ import { isProdEnvFrom } from '../site';
 import { CATEGORY_PAGES_LIVE } from './categoryPages';
 
 /**
- * SEO 审计 mock 模式（scripts/seo-audit.ts --mock）：本地构建时设 SEO_AUDIT_MOCK=1，
- * 强制打开品类落地页并用本地 mock 文章代替 Sanity（不发网络请求）。
- * 生产环境（APP_ENV/VERCEL_ENV=production）一律关闭，即使误设了变量也不生效。
- * #291 默认安全：APP_ENV 和 VERCEL_ENV 都没设时也按生产处理（关闭），本地/CI 审计必须显式设 APP_ENV=development 或 test。
- * 只影响 SEO mock，isProdEnvFrom 本身不变（noindex、IndexNow、生产自检等仍按原规则）。
+ * SEO 审计 mock（scripts/seo-audit.ts --mock）：SEO_AUDIT_MOCK=1 时强制打开品类落地页，并用本地 mock 文章代替 Sanity（不发网络请求）。
+ * 只在 APP_ENV 去空白后非空、且不是 production 时打开。APP_ENV 未设置时关闭。
+ * APP_ENV=production 时关闭，误设 SEO_AUDIT_MOCK=1 也不生效。VERCEL_ENV 与 NODE_ENV 不参与。
+ * 这比 isProdEnvFrom 更严：未设置 APP_ENV 时 isProdEnvFrom 为 false，mock 仍然关闭。
  */
 export function seoMockEnabled(env: Record<string, string | undefined> = process.env): boolean {
-  const explicitNonProd = !!(env.APP_ENV?.trim() || env.VERCEL_ENV?.trim()) && !isProdEnvFrom(env);
+  const explicitNonProd = !!env.APP_ENV?.trim() && !isProdEnvFrom(env);
   return env.SEO_AUDIT_MOCK === '1' && explicitNonProd;
 }
 

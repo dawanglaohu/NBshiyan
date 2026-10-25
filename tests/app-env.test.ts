@@ -6,7 +6,7 @@ import robots from '../src/app/robots';
 
 const cases: [string, Record<string, string | undefined>, boolean][] = [
   ['only APP_ENV=production', { APP_ENV: 'production' }, true],
-  ['only VERCEL_ENV=production (transitional fallback)', { VERCEL_ENV: 'production' }, true],
+  ['only VERCEL_ENV=production is not production', { VERCEL_ENV: 'production' }, false],
   ['neither set → non-prod', {}, false],
   ['APP_ENV=staging → non-prod', { APP_ENV: 'staging' }, false],
   ['NODE_ENV=production alone → non-prod', { NODE_ENV: 'production' }, false]
