@@ -8,7 +8,7 @@ import { lightRig } from './lights';
 import ProductModel, { type BoxView, type AnimationClips, type ModelBounds } from './ProductModel';
 import { frameClosedBox, openFraming, easeInOut, OPEN_DOLLY_MS, type OpenView } from '@/lib/three/framing';
 
-export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; zoom?: boolean; view?: BoxView; animationClips?: AnimationClips; /** 开合途中按整条弧线取景（openFraming fitArc） */ fitArc?: boolean; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
+export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; /** PC 直接旋转，不先再点一次激活 */ directRotate?: boolean; /** 空闲自转。悬停、拖动、用户暂停、离屏和减少动态效果时为 false */ spin?: boolean; /** 按钮或 Ctrl/Cmd+滚轮的一次缩放。id 递增，deltaY<0 拉近 */ zoomId?: number; zoomDelta?: number; view?: BoxView; animationClips?: AnimationClips; /** 开合途中按整条弧线取景（openFraming fitArc） */ fitArc?: boolean; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
 
 // 整页只用一个 WebGL 画布，用 View 切分到每张卡片，避免超出浏览器的画布数量上限
 // frameloop="demand" 只在 invalidate 时出帧：View 按卡片位置裁剪，页面滚动、尺寸变化、卡片增减后都要重新出一帧，
@@ -48,6 +48,77 @@ function StudioLights({ dark }: { dark?: boolean }) {
 
 /** 真实 GLB 时用自己的取景；刀模视图在没有 unfold 片段时仍是 FoldBox */
 function usesGltf(i: SceneItem) { return !!i.model && !(i.view === 'dieline' && !i.animationClips?.unfold); }
+
+type OrbitHandle = ComponentRef<typeof OrbitControls>;
+
+function publishCamera(el: HTMLElement | null, controls: OrbitHandle) {
+  if (!el) return;
+  const distance = controls.object.position.distanceTo(controls.target);
+  el.dataset.cameraDistance = distance.toFixed(4);
+  el.dataset.azimuth = controls.getAzimuthalAngle().toFixed(4);
+  el.dataset.minDistance = String(controls.minDistance);
+  el.dataset.maxDistance = String(controls.maxDistance);
+}
+
+/**
+ * enableZoom 保持关闭：OrbitControls 打开它以后，普通 wheel 会 preventDefault，页面就不再滚动。
+ * 缩放只走 dollyIn/dollyOut，由画廊在「已聚焦且 Ctrl/Cmd」或缩放按钮时调用。
+ * 自转不依赖 enabled。粗指针设备要保持控件关闭，避免单指把页面滚动手势吃掉；那种情况下 drei 不会调用 update，这里补上。
+ */
+function ModelOrbit({ track, enabled, spin, minDistance, maxDistance, target, zoomId = 0, zoomDelta = 0, controlsRef }: { track: RefObject<HTMLDivElement | null>; enabled: boolean; spin: boolean; minDistance: number; maxDistance: number; target?: [number, number, number]; zoomId?: number; zoomDelta?: number; controlsRef?: RefObject<OrbitHandle | null> }) {
+  const ownRef = useRef<OrbitHandle>(null);
+  const ref = controlsRef ?? ownRef;
+  const seenZoom = useRef(0);
+  const invalidate = useThree((s) => s.invalidate);
+  useFrame(() => {
+    const controls = ref.current;
+    if (!controls || !spin || controls.enabled) return;
+    controls.update();
+  }, -1);
+  useLayoutEffect(() => {
+    const controls = ref.current;
+    if (!controls || !zoomId || zoomId === seenZoom.current) return;
+    seenZoom.current = zoomId;
+    const steps = Math.min(8, Math.abs(zoomDelta) / 100) || 1;
+    const scale = Math.pow(0.95, steps);
+    if (zoomDelta < 0) controls.dollyIn(scale);
+    else if (zoomDelta > 0) controls.dollyOut(scale);
+    publishCamera(track.current, controls);
+    invalidate();
+  }, [zoomId, zoomDelta, invalidate, track, ref]);
+  return (
+    <OrbitControls
+      ref={ref}
+      domElement={track.current ?? undefined}
+      enabled={enabled}
+      enableZoom={false}
+      enablePan={false}
+      enableDamping={false}
+      autoRotate={spin}
+      autoRotateSpeed={2}
+      minDistance={minDistance}
+      maxDistance={maxDistance}
+      target={target}
+      onChange={() => { const controls = ref.current; if (controls) publishCamera(track.current, controls); }}
+    />
+  );
+}
+
+/** demand 模式没有持续的帧。有卡片该自转时才请求下一帧，停转后这个循环也停。 */
+function SpinDriver({ on }: { on: boolean }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    if (!on) return;
+    let frame = 0;
+    const tick = () => {
+      invalidate();
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [on, invalidate]);
+  return null;
+}
 
 const FOV = 40;
 /**
@@ -104,6 +175,7 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
     camera.lookAt(...f.center);
     camera.updateProjectionMatrix();
     if (controls.current) { controls.current.target.set(...f.center); controls.current.update(); }
+    i.track.current?.setAttribute('data-framed', '1');
     const start = i.view === 'open' && openV ? viewCam(openV) : closedCam()!;
     zoom.current = { ...zoom.current, cur: start, from: start, to: start, done: true };
     if (i.view === 'open') { placeAt(start); controls.current?.update(); }
@@ -158,7 +230,7 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
           <ContactShadows key={`${footprint.toFixed(4)}:${i.view ?? ''}`} position={[0, 0.0005, 0]} opacity={0.6} blur={1.8} scale={footprint * 2.4} far={Math.max(shadowH, footprint) * 0.6} resolution={512} frames={1} />
         )}
       </Suspense>
-      <OrbitControls ref={controls} domElement={i.track.current ?? undefined} enabled={i.active} enableZoom={!!i.zoom} enablePan={false}
+      <ModelOrbit controlsRef={controls} track={i.track} enabled={!!i.directRotate || i.active} spin={!!i.spin} zoomId={i.zoomId} zoomDelta={i.zoomDelta}
         target={f?.center} minDistance={f ? f.distance * 0.6 : 0.01} maxDistance={f ? f.distance * 2 : 100} />
     </>
   );
@@ -174,6 +246,7 @@ export default function GalleryScene({ items, eventSource, onReady, onError }: {
       gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping }}
     >
       <DemandSync deps={items.filter((i) => i.visible).map((i) => `${i.slug}:${i.view ?? ''}`).join(',')} />
+      <SpinDriver on={items.some((i) => i.spin)} />
       {/* View 必须放在 Canvas 里面才会使用 track 跟踪卡片；放在外面时 drei 会走 HtmlView，忽略 track，
           改为跟踪自己生成的空 div（高度 0），所有模型都画不出来（issue #31） */}
       <Suspense fallback={null}>
@@ -194,7 +267,7 @@ export default function GalleryScene({ items, eventSource, onReady, onError }: {
             <Environment map={env} environmentIntensity={1} />
             <ContactShadows position={[0, 0, 0]} opacity={0.35} blur={2.5} scale={1.2} far={0.6} resolution={256} frames={1} />
           </Suspense>
-          <OrbitControls domElement={i.track.current ?? undefined} enabled={i.active} enableZoom={!!i.zoom} enablePan={false} minDistance={1.8} maxDistance={6} />
+          <ModelOrbit track={i.track} enabled={!!i.directRotate || i.active} spin={!!i.spin} zoomId={i.zoomId} zoomDelta={i.zoomDelta} minDistance={1.8} maxDistance={6} />
           </>)}
         </View>
       ))}</SharedEnvironment>
