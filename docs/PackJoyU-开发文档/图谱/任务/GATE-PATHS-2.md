@@ -35,11 +35,11 @@ origin: issue-ledger-20261024
 ## 代码位置
 
 <!-- code:begin -->
-_落地前回填：`路径:行号` — 作用。_
+- `.github/workflows/security-review.yml` — PR #435 的描述没有「回填草稿」，不编行号
 <!-- code:end -->
 
 ## 实施沉淀
 
 <!-- notes:begin -->
-_落地前回填实现选择、失败教训与维护约束。_
+PR #435 的描述没有「回填草稿」。合并提交 `c8ebb9c6d3bf3fe230aae757bf187bfaef3c6d5c`。代码位置不编行号。
 <!-- notes:end -->

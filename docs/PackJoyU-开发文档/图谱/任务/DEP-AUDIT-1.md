@@ -37,11 +37,14 @@ M7-T10 仍是后续 zod 升级，留在 19 节，状态保持待派。
 ## 代码位置
 
 <!-- code:begin -->
-_落地前回填：`路径:行号` — 作用。_
+- `package.json` — PR #420 的描述没有「回填草稿」，不编行号
+- `scripts/audit-exceptions.json` — PR #420 的描述没有「回填草稿」，不编行号
+- `scripts/audit-high-prod.ts` — PR #420 的描述没有「回填草稿」，不编行号
+- `tests/audit-high-prod.test.ts` — PR #420 的描述没有「回填草稿」，不编行号
 <!-- code:end -->
 
 ## 实施沉淀
 
 <!-- notes:begin -->
-_落地前回填实现选择、失败教训与维护约束。_
+PR #420 的描述没有「回填草稿」。合并提交 `950b63c235a3ce945fa6140dedf0bfad7a946bc3`。代码位置不编行号。
 <!-- notes:end -->

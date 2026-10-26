@@ -25,7 +25,7 @@ test('anonymized banner uses the unified format (issue example: 2026/09/15 00:44
 });
 
 test('admin pages no longer format dates with toLocaleString(zh-CN, hour12:false) (2026/9/15 00:44:40)', () => {
-  for (const f of ['../src/components/admin/format.ts', '../src/components/admin/specs/SpecEditor.tsx', '../src/components/admin/InquiryDetail.tsx', '../src/components/admin/users/UsersAdmin.tsx']) {
+  for (const f of ['../src/components/admin/format.ts', '../src/components/admin/specs/SpecEditor.tsx', '../src/components/admin/specs/SpecEditorView.tsx', '../src/components/admin/InquiryDetail.tsx', '../src/components/admin/users/UsersAdmin.tsx']) {
     const src = readFileSync(new URL(f, import.meta.url), 'utf8');
     assert.doesNotMatch(src, /toLocaleString\('zh-CN', \{ hour12: false \}\)/, f);
   }

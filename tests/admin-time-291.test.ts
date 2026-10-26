@@ -52,7 +52,7 @@ test('title / anonymized banner keep the full format', () => {
 test('AdminTime renders <time dateTime={iso} title={fmtDate(iso)}>; admin screens use it instead of ad-hoc formats', () => {
   const comp = readFileSync(new URL('../src/components/admin/AdminTime.tsx', import.meta.url), 'utf8');
   assert.match(comp, /<time dateTime=\{iso\} title=\{fmtDate\(iso\)\}[^>]*>\{adminTime\(iso\)\}<\/time>/);
-  const files = ['InquiryList.tsx', 'InquiryDetail.tsx', 'users/UsersAdmin.tsx', 'specs/SpecEditor.tsx', 'mail/MailThread.tsx', 'mail/UnassignedInbox.tsx'];
+  const files = ['InquiryList.tsx', 'InquiryDetail.tsx', 'users/UsersAdmin.tsx', 'specs/SpecEditorView.tsx', 'mail/MailThread.tsx', 'mail/UnassignedInbox.tsx'];
   for (const f of files) {
     const src = readFileSync(new URL(`../src/components/admin/${f}`, import.meta.url), 'utf8');
     assert.match(src, /<AdminTime iso=/, f);

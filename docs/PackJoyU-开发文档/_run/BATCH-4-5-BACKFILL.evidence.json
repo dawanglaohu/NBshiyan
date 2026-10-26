@@ -1,0 +1,48 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "GUARD-503": {
+      "contractHash": "677fbc64f8086eaed5f5cea261cd1044405d0b8126a7c347b89e676036294061",
+      "verdict": "pass",
+      "evidence": [
+        "PR #483 状态 MERGED。合并提交 46621db51ec59e7d062de784f866370254f86c0f。mergedAt 2026-10-26T07:49:08Z。标题：GUARD-503 数据库故障时保留后台登录并返回 503。",
+        "CI rollup：build-and-audit SUCCESS 2026-10-26T07:28:08Z；gate SUCCESS 2026-10-26T07:48:54Z；ping SUCCESS 2026-10-26T07:48:36Z；e2e SUCCESS 2026-10-26T07:41:26Z；posix-storage-security SUCCESS 2026-10-26T07:23:34Z。rollup 里列出的检查结论都是 SUCCESS。"
+      ]
+    },
+    "CI-DEVICE-SERIAL": {
+      "contractHash": "7f20693e5a9d708bbd88340e51070dfc6bf2d591e7cbd19d9d914b78c151ab99",
+      "verdict": "pass",
+      "evidence": [
+        "PR #485 状态 MERGED。合并提交 5bae3f292558d91cfe18475f3aec82c8efee4df0。mergedAt 2026-10-26T03:38:12Z。标题：CI-DEVICE-SERIAL: 设备会话回归步骤串行化并在失败时打印 TAP。",
+        "CI rollup：build-and-audit SUCCESS 2026-10-26T03:33:03Z；gate SUCCESS 2026-10-26T03:38:05Z；ping SUCCESS 2026-10-26T03:37:49Z；e2e SUCCESS 2026-10-26T03:36:02Z；posix-storage-security SUCCESS 2026-10-26T03:28:20Z。rollup 里列出的检查结论都是 SUCCESS。",
+        "PR 描述写明临时本地 PostgreSQL 17 上三个文件串行通过，24 pass / 0 fail / 0 skip / 0 todo，按文件 5、11、8。本次回填没有重跑该库。"
+      ]
+    },
+    "HOTFIX-LOGIN-EMPTY": {
+      "contractHash": "a9c6e5bc78674be0fe5853cc656c76693854898716c3633434f0fa54600e91a9",
+      "verdict": "pass",
+      "evidence": [
+        "PR #486 状态 MERGED。合并提交 e8d7f7afd569ba16d07bf3b043eeb77add8b67d0。mergedAt 2026-10-26T04:41:05Z。标题：HOTFIX-LOGIN-EMPTY: 默认登录页空框导致无法登录。",
+        "CI rollup：build-and-audit SUCCESS 2026-10-26T04:07:50Z；gate SUCCESS 2026-10-26T04:40:52Z；ping SUCCESS 2026-10-26T04:40:38Z；e2e SUCCESS 2026-10-26T04:11:10Z；posix-storage-security SUCCESS 2026-10-26T04:02:48Z。rollup 里列出的检查结论都是 SUCCESS。",
+        "PR 描述写明单元测试 8 通过，以及本地 next start 上一次真实表单登录返回 302 且会话邮箱匹配。本次回填没有再登录。"
+      ]
+    },
+    "BACKFILL-MJS": {
+      "contractHash": "bbd1bc6c31462441f4b1cd67f03279dc8e2a3ea29be5a9c47be4e0694e37cf91",
+      "verdict": "pass",
+      "evidence": [
+        "PR #488 状态 MERGED。合并提交 f95a8e234cc1d1b531e67324118b10c85205d3d6。mergedAt 2026-10-26T08:45:04Z。标题：BACKFILL-MJS：hardExpiresAt 回填改为生产可跑的 .mjs。",
+        "CI rollup：build-and-audit SUCCESS 2026-10-26T08:38:54Z；gate SUCCESS 2026-10-26T08:44:46Z；ping SUCCESS 2026-10-26T08:44:30Z；e2e SUCCESS 2026-10-26T08:42:09Z；posix-storage-security SUCCESS 2026-10-26T08:34:14Z。rollup 里列出的检查结论都是 SUCCESS。"
+      ]
+    },
+    "E2E-CONSENT-FIX": {
+      "contractHash": "aaf044751182541977b9b17ceee8faa0edaf4996d1576f1af5a10d476ea76d65",
+      "verdict": "pass",
+      "evidence": [
+        "PR #489 状态 MERGED。合并提交 6c2833ba90be585286d4faf13c4864611d422b21。mergedAt 2026-10-26T08:57:03Z。标题：E2E-CONSENT-FIX: analytics-consent 导航去重用例改用 route 截取回执。",
+        "CI rollup：build-and-audit SUCCESS 2026-10-26T08:47:11Z；gate SUCCESS 2026-10-26T08:42:25Z；ping SUCCESS 2026-10-26T08:56:56Z；e2e SUCCESS 2026-10-26T08:50:36Z；posix-storage-security SUCCESS 2026-10-26T08:42:47Z。rollup 里列出的检查结论都是 SUCCESS。",
+        "PR 描述写 Playwright 待 CI，并给出预期条数。上面的 e2e 结论是合入时的检查结果，不把该预期条数当作已观察到的计数。"
+      ]
+    }
+  }
+}

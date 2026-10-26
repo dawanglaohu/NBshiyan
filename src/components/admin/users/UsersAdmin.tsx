@@ -19,7 +19,11 @@ const ERR: Record<string, string> = {
   invalid: '输入不正确，请检查。',
   ...ISSUE_ERROR_TEXT, // #347 site_url_invalid：按接口分文案，不显示错误码
 };
-const msg = (code: string) => ERR[code] ?? errorText(code, '操作失败');
+/** 只查自身属性。未知码和 constructor / toString / __proto__ 走 errorText，最后落到通用句。 */
+export function userAdminMessage(code: string): string {
+  return Object.prototype.hasOwnProperty.call(ERR, code) ? ERR[code] : errorText(code, '操作失败');
+}
+const msg = userAdminMessage;
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api/admin/users${path}`, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...init });
