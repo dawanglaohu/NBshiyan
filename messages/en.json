@@ -359,7 +359,7 @@
           "sampleEmail": "For sample requests (one per email every 30 days), the email used for this limit is cleared after 30 days.",
           "rateLimit": "Rate-limit counters use your IP address and a hashed (not readable) version of your email address, and expire when their limit window ends — at most 30 days.",
           "audit": "Admin security (audit) logs, including IP addresses, are deleted after 365 days.",
-          "adminSessions": "Admin sessions end after 2 hours of inactivity.",
+          "adminSessions": "Admin sessions that are not kept on this device end after 2\u00A0hours without activity, or 12\u00A0hours after sign-in, whichever comes first. A session kept on this device ends after 7\u00A0days of inactivity, or 30\u00A0days after sign-in, whichever comes first.",
           "inquiries": "Inquiries are anonymized 2 years after the last activity on the inquiry (our reply or a status change): we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept.",
           "inquiriesContact": "Contact details are kept while that contact still has inquiries that have not been anonymized.",
           "onRequest": "On request, we delete or anonymize contact details, messages, shipping address, email correspondence, uploaded logos and logo settings in the configuration, internal staff notes about the inquiry, referral/source data sent by the browser, and sample shipment tracking numbers; only non-personal statistics are kept. Records in our database are deleted or anonymized immediately.",
