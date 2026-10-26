@@ -34,7 +34,7 @@ export const FORM_GENERIC = {
 
 /**
  * 校验结果对不上具体字段时，表单顶部的兜底句。后台用中文。
- * en / ru 是草稿，待语言专家审。ru 的不换行空格用 NBSP，不把不可见字符写进源码。
+ * en / ru 已定稿（语言专家已 PASS）。ru 的不换行空格用 NBSP，不把不可见字符写进源码。
  */
 export const FORM_INVALID = {
   zh: '部分内容没有通过检查，请核对后再提交。',

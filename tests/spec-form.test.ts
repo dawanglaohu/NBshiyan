@@ -217,6 +217,33 @@ test('top fallback only when no issue maps to a field', () => {
   assert.equal(JSON.stringify(down).includes(leaked), false);
 });
 
+test('API_ERR prototype keys and an empty 413 use fixed sentences', () => {
+  const leaked = 'postgres://secret-should-not-render';
+  const generic = '服务暂时出错，请稍后重试。';
+  for (const code of ['constructor', 'toString', '__proto__']) {
+    const s = serverErrors(500, { error: code, message: leaked });
+    assert.equal(s.message, generic, code);
+    assert.equal(typeof s.message, 'string');
+    assert.equal(s.message.includes(code), false, code);
+    assert.equal(JSON.stringify(s).includes(leaked), false, code);
+    const save = specSaveErrors(400, { error: code, message: leaked, issues: [] });
+    assert.equal(save.top, generic, code);
+    assert.equal(typeof save.top, 'string');
+    assert.deepEqual(save.fields, {});
+    assert.equal(JSON.stringify(save).includes(leaked), false, code);
+    assert.equal(JSON.stringify(save).includes(code), false, code);
+  }
+  assert.equal(serverErrors(413, {}).message, '内容太长');
+  assert.equal(specSaveErrors(413, {}).top, '内容太长');
+  assert.deepEqual(specSaveErrors(413, {}).fields, {});
+  const bare = serverErrors(413, { message: leaked });
+  assert.equal(bare.message, '内容太长');
+  assert.equal(JSON.stringify(bare).includes(leaked), false);
+  assert.notEqual(bare.message, generic);
+  assert.equal(serverErrors(413, { error: 'too_large', message: leaked }).message, '内容太长');
+  assert.equal(serverErrors(413, { error: 'http_413', message: leaked }).message, '内容太长');
+});
+
 test('issue path __proto__ lands on _ and does not pollute the prototype', () => {
   const marker = 'proto-pollute-marker-should-not-appear';
   const before = Object.getOwnPropertyNames(Object.prototype);

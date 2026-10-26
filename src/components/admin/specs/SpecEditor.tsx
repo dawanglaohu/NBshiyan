@@ -1,7 +1,9 @@
 'use client';
 import './specs.css';
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { commitAndReveal } from '@/components/admin/reveal-error';
+import { revealFirstSpecError } from '@/components/admin/specs/reveal-spec-error';
 import { SpecEditorView } from '@/components/admin/specs/SpecEditorView';
 import {
   DIMS, emptyForm, fromView, serverErrors, specSaveErrors, toBody,
@@ -18,6 +20,7 @@ export default function SpecEditor({ category, title }: { category: string; titl
   const [saving, setSaving] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const errRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     let live = true;
@@ -50,7 +53,18 @@ export default function SpecEditor({ category, title }: { category: string; titl
     try {
       const r = await fetch(url, { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) { const s = specSaveErrors(r.status, j); setErrors(s.fields); if (s.top) commitAndReveal(errRef, () => setMsg({ kind: 'err', text: s.top })); else setMsg(undefined); return; }
+      if (!r.ok) {
+        const s = specSaveErrors(r.status, j);
+        // 已映射到字段时不画顶部句（同一句话不能出现两次）。先把字段错误提交进 DOM，再滚到并聚焦第一个。
+        if (s.top) {
+          setErrors(s.fields);
+          commitAndReveal(errRef, () => setMsg({ kind: 'err', text: s.top }));
+        } else {
+          flushSync(() => { setErrors(s.fields); setMsg(undefined); });
+          revealFirstSpecError(formRef.current);
+        }
+        return;
+      }
       setF(fromView(j as SpecView)); setUpdatedAt((j as SpecView).updatedAt ?? null); setErrors({});
       setMsg({ kind: 'ok', text: '已保存。前台接口有 CDN 缓存，通常 1 小时内生效（最长约 70 分钟）。' });
     } catch {
@@ -61,7 +75,7 @@ export default function SpecEditor({ category, title }: { category: string; titl
   if (loading) return <p>加载中…</p>;
   return (
     <SpecEditorView
-      category={category} title={title} form={f} errors={errors} msg={msg} saving={saving} updatedAt={updatedAt} errRef={errRef}
+      category={category} title={title} form={f} errors={errors} msg={msg} saving={saving} updatedAt={updatedAt} errRef={errRef} formRef={formRef}
       onSave={save} onChange={set} onDim={setDim} onCert={setCert}
     />
   );

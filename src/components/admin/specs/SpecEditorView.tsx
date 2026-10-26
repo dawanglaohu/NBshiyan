@@ -9,7 +9,7 @@ const DIM_LABEL = { l: '长 L', w: '宽 W', h: '高 H' } as const;
 const UNIT_LABEL: Record<string, string> = { mm: 'mm', pcs: '件 (pcs)', day: '天 (day)' };
 
 function Err({ e, k }: { e: FieldErrors; k: string }) {
-  return e[k] ? <span className="spec-err" role="alert">{e[k]}</span> : null;
+  return e[k] ? <span className="spec-err" role="alert" tabIndex={-1}>{e[k]}</span> : null;
 }
 function UnitSelect({ value, units, onChange, label }: { value: string; units: readonly string[]; onChange: (v: string) => void; label: string }) {
   return (
@@ -28,6 +28,7 @@ export type SpecEditorViewProps = {
   saving: boolean;
   updatedAt: string | null;
   errRef: React.RefObject<HTMLDivElement | null>;
+  formRef?: React.Ref<HTMLFormElement>;
   onSave: (ev: React.FormEvent) => void;
   onChange: <K extends keyof SpecForm>(k: K, v: SpecForm[K]) => void;
   onDim: (which: 'sizeMin' | 'sizeMax', d: (typeof DIMS)[number], v: string) => void;
@@ -35,10 +36,10 @@ export type SpecEditorViewProps = {
 };
 
 /** 规格表单的可见部分。样式在 SpecEditor 引入的 specs.css。 */
-export function SpecEditorView({ category, title, form: f, errors, msg, saving, updatedAt, errRef, onSave, onChange, onDim, onCert }: SpecEditorViewProps) {
+export function SpecEditorView({ category, title, form: f, errors, msg, saving, updatedAt, errRef, formRef, onSave, onChange, onDim, onCert }: SpecEditorViewProps) {
   const certUrlBad = (u: string) => u.trim() !== '' && !isHttpsUrl(u.trim());
   return (
-    <form className="spec" onSubmit={onSave} noValidate>
+    <form ref={formRef} className="spec" onSubmit={onSave} noValidate>
       <p><Link href="/admin/specs">← 全部品类</Link></p>
       <h1>产品规格：{title} <small>{category}</small></h1>
       {updatedAt && <p className="spec-meta">上次保存：<AdminTime iso={updatedAt} /></p>}
@@ -117,7 +118,7 @@ export function SpecEditorView({ category, title, form: f, errors, msg, saving, 
                 <td><input aria-label={`certification ${i + 1} number`} value={c.certNo} maxLength={80} onChange={(e) => onCert(i, 'certNo', e.target.value)} /><Err e={errors} k={`certifications.${i}.certNo`} /><Err e={errors} k={`certifications.${i}`} /></td>
                 <td><input type="url" aria-label={`certification ${i + 1} url`} aria-invalid={certUrlBad(c.url) || undefined} value={c.url} maxLength={2048} placeholder="https://"
                   onChange={(e) => onCert(i, 'url', e.target.value)} />
-                  {certUrlBad(c.url) && !errors[`certifications.${i}.url`] && <span className="spec-err">链接必须以 https:// 开头，不能包含用户名或密码</span>}
+                  {certUrlBad(c.url) && !errors[`certifications.${i}.url`] && <span className="spec-err" tabIndex={-1}>链接必须以 https:// 开头，不能包含用户名或密码</span>}
                   <Err e={errors} k={`certifications.${i}.url`} /></td>
                 <td><button type="button" className="adm-btn" onClick={() => onChange('certifications', f.certifications.filter((_, j) => j !== i))}>删除</button></td>
               </tr>

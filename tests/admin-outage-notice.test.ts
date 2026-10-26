@@ -113,7 +113,8 @@ test('a 503 form error stays on the form and can be submitted again', async () =
   assert.equal(created, 0);
   assert.equal(form.password, 'correct-horse-battery');
   const editor = readFileSync('src/components/admin/specs/SpecEditor.tsx', 'utf8');
-  assert.match(editor, /if \(!r\.ok\) \{ const s = specSaveErrors\(r\.status, j\); setErrors\(s\.fields\); if \(s\.top\) commitAndReveal\(errRef, \(\) => setMsg\(\{ kind: 'err', text: s\.top \}\)\); else setMsg\(undefined\); return; \}/);
+  assert.match(editor, /if \(s\.top\) \{\s*setErrors\(s\.fields\);\s*commitAndReveal\(errRef, \(\) => setMsg\(\{ kind: 'err', text: s\.top \}\)\)/);
+  assert.match(editor, /flushSync\(\(\) => \{ setErrors\(s\.fields\); setMsg\(undefined\); \}\);\s*revealFirstSpecError\(formRef\.current\)/);
   const failure = adaptApiError({
     kind: 'http', status: 503, audience: 'admin',
     body: { error: 'service_unavailable', requestId: REQUEST_ID },

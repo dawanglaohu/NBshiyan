@@ -3,7 +3,7 @@ import '@/components/admin/models/models.css';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { CHECK_LABEL, LIMITS, blockingChecks, modelApi, readGlbJson, sizeFailed, uploadTotalError, type AdminModel } from '@/lib/admin/models-api';
+import { LIMITS, blockingChecks, modelApi, modelCheckLabel, readGlbJson, sizeFailed, uploadTotalError, type AdminModel } from '@/lib/admin/models-api';
 import { PRODUCT_LABEL } from '@/components/admin/format';
 import { ModelCheckDetail, ModelUploadAlert, modelUploadErrorText } from '@/components/admin/models/ModelUploadAlert';
 
@@ -69,7 +69,7 @@ export default function ModelUpload() {
 
   const blocking = model ? blockingChecks(model) : [];
   const warns = model ? model.checks.filter((c) => !c.ok && c.severity === 'warn') : [];
-  const nextReason = !model ? '请先上传文件' : model.status === 'PROCESSING' || model.status === 'UPLOADED' ? '检查进行中' : blocking.length ? `检查未通过：${blocking.map((c) => CHECK_LABEL[c.key]).join('、')}` : undefined;
+  const nextReason = !model ? '请先上传文件' : model.status === 'PROCESSING' || model.status === 'UPLOADED' ? '检查进行中' : blocking.length ? `检查未通过：${blocking.map((c) => modelCheckLabel(c.key)).join('、')}` : undefined;
   const missingLod = needsLod && !files.lod;
   const doneUpTo = model?.published ? 4 : step;
 
@@ -117,7 +117,7 @@ export default function ModelUpload() {
                     return (
                       <li key={c.key} className={state}>
                         <i aria-hidden>{state === 'ok' ? '✓' : state === 'warn' ? '!' : '✕'}</i>
-                        <b>{CHECK_LABEL[c.key] ?? c.key}</b>
+                        <b>{modelCheckLabel(c.key)}</b>
                         <ModelCheckDetail detail={c.detail} warn={state === 'warn'} />
                         {c.key === 'size' && <span className="mdl-bar"><span style={{ width: `${Math.min(100, (model.sizeBytes / (model.animated ? LIMITS.sizeAnimated : LIMITS.sizeNormal)) * 100)}%` }} className={c.ok ? 'ok' : 'fail'} /></span>}
                       </li>);

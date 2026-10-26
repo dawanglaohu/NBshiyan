@@ -175,7 +175,7 @@ const OUTAGE_FORM = outageFormMessage();
 const GENERIC_FORM = outageFormGeneric();
 const API_ERR: Record<string, string> = {
   unauthorized: '登录已过期，请重新登录', forbidden: '没有权限（需要 ADMIN 或 EDITOR 角色）', forbidden_origin: '请求被拒绝：来源校验失败，请刷新页面后重试',
-  rate_limited: '操作太频繁，请稍后再试', too_large: '内容太长', not_found: '品类不存在', invalid: FORM_INVALID.zh,
+  rate_limited: '操作太频繁，请稍后再试', too_large: '内容太长', http_413: '内容太长', not_found: '品类不存在', invalid: FORM_INVALID.zh,
   service_unavailable: OUTAGE_FORM, http_503: OUTAGE_FORM,
   internal_error: GENERIC_FORM,
 };

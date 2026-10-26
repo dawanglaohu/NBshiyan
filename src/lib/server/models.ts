@@ -44,7 +44,7 @@ const ALLOWED_EXT = new Set([
 export const isGlb = (b: Buffer) => b.length >= 20 && b.toString('latin1', 0, 4) === 'glTF' && b.readUInt32LE(4) === 2 && b.readUInt32LE(8) === b.length;
 
 type J = Record<string, unknown> & {
-  asset?: { version?: string }; extensionsUsed?: string[]; extensionsRequired?: string[];
+  asset?: { version?: unknown }; extensionsUsed?: string[]; extensionsRequired?: string[];
   meshes?: { primitives?: { attributes?: Record<string, number>; indices?: number; mode?: number }[] }[];
   accessors?: { count?: number; min?: number[]; max?: number[] }[];
   images?: { mimeType?: string; bufferView?: number; uri?: string; name?: string }[];
@@ -55,11 +55,19 @@ type J = Record<string, unknown> & {
 
 const mb = (n: number) => `${(n / 1048576).toFixed(2)}MB`;
 
-/** 解析失败只给管理员看这句固定文案。解析器原文留在服务端日志里，截断，不带文件名。 */
+/** 解析失败只给管理员看这句固定文案。历史记录里带原文的 detail 也归一成这一句。 */
+export const GLB_PARSE_DETAIL = 'GLB 解析失败';
+
+/** 日志里的异常原文：换行改成空格，再去掉其余控制字符，截断。不带文件名。 */
+export function modelLogText(raw: string): string {
+  return raw.replace(/[\r\n]/g, ' ').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 120);
+}
+
+/** 解析失败只给管理员看固定文案。解析器原文留在服务端日志里。 */
 function glbParseDetail(error: unknown): string {
   const raw = error instanceof Error ? error.message : String(error);
-  console.error('[model-upload] glb parse failed:', raw.replace(/[\r\n]/g, ' ').slice(0, 120));
-  return 'GLB 解析失败';
+  console.error('[model-upload] glb parse failed:', modelLogText(raw));
+  return GLB_PARSE_DETAIL;
 }
 
 async function textureDims(img: Uint8Array, mime: string | undefined): Promise<[number, number] | null> {
@@ -98,7 +106,9 @@ export async function inspectGlb(glb: Buffer, opts: { animated: boolean; lod?: B
     const doc = await new NodeIO().binaryToJSON(new Uint8Array(glb.buffer, glb.byteOffset, glb.byteLength));
     json = doc.json as unknown as J; resources = doc.resources;
   } catch (e) { push('format', false, glbParseDetail(e)); return fail(); }
-  if (json.asset?.version !== '2.0') { push('format', false, `glTF 版本 ${json.asset?.version ?? '未知'}，需要 2.0`); return fail(); }
+  const v = json.asset?.version;
+  const versionText = typeof v === 'string' && /^\d{1,3}\.\d{1,3}$/.test(v) ? v : '未知';
+  if (v !== '2.0') { push('format', false, `glTF 版本 ${versionText}，需要 2.0`); return fail(); }
   const unknownExt = [...(json.extensionsUsed ?? []), ...(json.extensionsRequired ?? [])].filter((e) => !ALLOWED_EXT.has(e));
   if (unknownExt.length) { push('format', false, `不支持的扩展：${[...new Set(unknownExt)].join(', ').slice(0, 200)}`); return fail(); }
   push('format', true, `glTF 2.0 binary，${json.meshes?.length ?? 0} 个网格`);

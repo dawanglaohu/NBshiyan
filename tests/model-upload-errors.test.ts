@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import * as React from 'react';
 (globalThis as { React?: unknown }).React = React;
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ModelApiError } from '../src/lib/admin/models';
+import { ModelApiError, modelCheckLabel } from '../src/lib/admin/models';
 import { FORM_INVALID, outageFormMessage } from '../src/lib/admin/outage-copy';
 import { MODEL_UPLOAD_ERRORS, ModelCheckDetail, ModelUploadAlert, modelUploadErrorText } from '../src/components/admin/models/ModelUploadAlert';
 
@@ -98,4 +98,24 @@ test('GLB check detail renders the fixed sentence, not the parser message', () =
   assert.equal(warn, '<span>GLB 解析失败（仅提示）</span>');
   const src = readFileSync('src/components/admin/models/ModelUpload.tsx', 'utf8');
   assert.match(src, /<ModelCheckDetail detail=\{c\.detail\} warn=\{state === 'warn'\} \/>/);
+  assert.match(src, /modelCheckLabel\(c\.key\)/);
+  assert.equal(src.includes('?? c.key'), false);
+});
+
+test('upload error codes and check labels reject prototype keys', () => {
+  for (const code of ['constructor', 'toString', '__proto__']) {
+    const err = new ModelApiError(code);
+    err.message = LEAK;
+    assert.equal(modelUploadErrorText(err), GENERIC);
+    const html = alert(err);
+    assert.equal(html.includes(code), false, code);
+    assert.equal(html.includes(LEAK), false, code);
+    assert.equal(html.includes('function'), false, code);
+    assert.match(html, /服务暂时出错，请稍后重试。/);
+    const label = renderToStaticMarkup(React.createElement('b', null, modelCheckLabel(code)));
+    assert.equal(label, `<b>${GENERIC}</b>`, code);
+    assert.equal(label.includes(code), false, code);
+  }
+  assert.equal(modelCheckLabel('format'), '格式');
+  assert.equal(modelCheckLabel('not-a-check'), GENERIC);
 });
