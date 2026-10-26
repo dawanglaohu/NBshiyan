@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { NotFoundTitle } from '@/components/NotFoundTitle';
 
 // 本地化 404（design/error-pages.html，#125/#195）：不重定向、不放搜索框。状态码仍由调用方 notFound() 给出 404。
-// 品类落地页 /{locale}/products/{slug} 上线前（CATEGORY_PAGES_LIVE，#198），入口先链到 3D 目录里对应的卡片，避免 404 页再链到 404。
+// 品类入口走 categoryHref：CATEGORY_PAGES_LIVE 为 true 时链到品类页，为 false 时回退到 3D 目录锚点。
 // 标题用 NotFound.meta.title，不继承首页 Meta.title。description 留空，不继承首页描述。
 // 不要在这里写 robots。notFound() 会让 Next 插入唯一的 <meta name="robots" content="noindex">；
 // 本文件再写 robots 会多出一个 meta。未写 follow 时爬虫按默认 follow 处理，品类链接仍可跟。

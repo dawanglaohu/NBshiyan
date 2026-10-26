@@ -38,7 +38,7 @@ export const categoryMeta: CategoryMeta[] = [
   { key: 'paper-cups',
     en: { slug: 'custom-paper-cups', keyword: 'custom paper cups',
       title: 'Custom Paper Cups Supplier | PackJoyU',
-      description: 'Custom printed paper coffee cups with your logo in single and double wall, 4 to 22 oz, with matching lids for cafes, coffee shops and brands. Get a quote.' },
+      description: 'Custom printed paper coffee cups with your logo in single and double wall, with matching lids for cafes, coffee shops and brands. Get a quote.' },
     ru: { slug: 'bumazhnye-stakany', keyword: 'бумажные стаканы с логотипом', draft: true,
       title: 'Бумажные стаканы с логотипом оптом | PackJoyU',
       description: 'Бумажные стаканы для кофе с логотипом: однослойные и двухслойные, разные объёмы, крышки в комплекте. Для кофеен и брендов. Запросите расчёт.' } },

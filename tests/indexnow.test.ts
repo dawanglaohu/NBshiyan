@@ -23,7 +23,8 @@ test('paths: both locales, skips noindex / not-live / bad slug', () => {
   assert.deepEqual(pathsForSanityDoc({ ...doc, _type: 'article' }, LIVE), []);
   assert.deepEqual(pathsForSanityDoc({ ...doc, _type: 'unknown' }, LIVE), []);
   assert.deepEqual(pathsForSanityDoc({ _type: 'product', slug: { en: { current: 'Bad Slug/../x' } } }, LIVE), []);
-  assert.deepEqual(pathsForSanityDoc(doc), []); // 默认全部未上线
+  assert.deepEqual(pathsForSanityDoc(doc), ['/en/products/custom-gift-boxes', '/ru/products/podarochnye-korobki']);
+  assert.deepEqual(pathsForSanityDoc(doc, { product: { live: false, prefix: 'products' }, solution: { live: false, prefix: 'solutions' }, article: { live: false, prefix: 'articles' } }), []);
   assert.deepEqual(pathsForModelPublish(), ['/en/products', '/ru/products']);
 });
 

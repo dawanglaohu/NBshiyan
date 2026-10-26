@@ -11,7 +11,7 @@ test('category page: per-locale map from categoryMeta → localized ru category 
   assert.equal(switchHref('/ru/products/podarochnye-korobki', 'ru', 'en', map), '/en/products/custom-gift-boxes');
 });
 
-test('category page: no map while CATEGORY_PAGES_LIVE=false (mock mode) → /ru/products fallback', () => {
+test('category page: live map by default; CATEGORY_PAGES_LIVE=false falls back to /ru/products', () => {
   assert.equal(switchHref('/en/products/custom-gift-boxes', 'en', 'ru', null, categoryMeta, false), '/ru/products');
-  assert.equal(switchHref('/en/products/custom-gift-boxes', 'en', 'ru'), '/ru/products');
+  assert.equal(switchHref('/en/products/custom-gift-boxes', 'en', 'ru'), '/ru/products/podarochnye-korobki');
 });

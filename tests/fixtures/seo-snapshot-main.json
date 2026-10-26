@@ -77,6 +77,292 @@
           "x-default": "http://localhost:3000/en/contact"
         }
       }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-corrugated-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-corrugated-boxes",
+          "ru": "http://localhost:3000/ru/products/gofrokorobki",
+          "x-default": "http://localhost:3000/en/products/custom-corrugated-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/gofrokorobki",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-corrugated-boxes",
+          "ru": "http://localhost:3000/ru/products/gofrokorobki",
+          "x-default": "http://localhost:3000/en/products/custom-corrugated-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-printed-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-printed-boxes",
+          "ru": "http://localhost:3000/ru/products/tsvetnye-korobki",
+          "x-default": "http://localhost:3000/en/products/custom-printed-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/tsvetnye-korobki",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-printed-boxes",
+          "ru": "http://localhost:3000/ru/products/tsvetnye-korobki",
+          "x-default": "http://localhost:3000/en/products/custom-printed-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-gift-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-gift-boxes",
+          "ru": "http://localhost:3000/ru/products/podarochnye-korobki",
+          "x-default": "http://localhost:3000/en/products/custom-gift-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/podarochnye-korobki",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-gift-boxes",
+          "ru": "http://localhost:3000/ru/products/podarochnye-korobki",
+          "x-default": "http://localhost:3000/en/products/custom-gift-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/molded-pulp-packaging",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/molded-pulp-packaging",
+          "ru": "http://localhost:3000/ru/products/izdeliya-iz-tsellyulozy",
+          "x-default": "http://localhost:3000/en/products/molded-pulp-packaging"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/izdeliya-iz-tsellyulozy",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/molded-pulp-packaging",
+          "ru": "http://localhost:3000/ru/products/izdeliya-iz-tsellyulozy",
+          "x-default": "http://localhost:3000/en/products/molded-pulp-packaging"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-paper-cups",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-paper-cups",
+          "ru": "http://localhost:3000/ru/products/bumazhnye-stakany",
+          "x-default": "http://localhost:3000/en/products/custom-paper-cups"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/bumazhnye-stakany",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-paper-cups",
+          "ru": "http://localhost:3000/ru/products/bumazhnye-stakany",
+          "x-default": "http://localhost:3000/en/products/custom-paper-cups"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-party-supplies",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-party-supplies",
+          "ru": "http://localhost:3000/ru/products/tovary-dlya-prazdnikov",
+          "x-default": "http://localhost:3000/en/products/custom-party-supplies"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/tovary-dlya-prazdnikov",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-party-supplies",
+          "ru": "http://localhost:3000/ru/products/tovary-dlya-prazdnikov",
+          "x-default": "http://localhost:3000/en/products/custom-party-supplies"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-wine-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-wine-boxes",
+          "ru": "http://localhost:3000/ru/products/upakovka-dlya-vina",
+          "x-default": "http://localhost:3000/en/products/custom-wine-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/upakovka-dlya-vina",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-wine-boxes",
+          "ru": "http://localhost:3000/ru/products/upakovka-dlya-vina",
+          "x-default": "http://localhost:3000/en/products/custom-wine-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-color-printing",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-color-printing",
+          "ru": "http://localhost:3000/ru/products/tsvetnaya-pechat",
+          "x-default": "http://localhost:3000/en/products/custom-color-printing"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/tsvetnaya-pechat",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-color-printing",
+          "ru": "http://localhost:3000/ru/products/tsvetnaya-pechat",
+          "x-default": "http://localhost:3000/en/products/custom-color-printing"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/offset-printing-services",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/offset-printing-services",
+          "ru": "http://localhost:3000/ru/products/ofsetnaya-pechat",
+          "x-default": "http://localhost:3000/en/products/offset-printing-services"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/ofsetnaya-pechat",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/offset-printing-services",
+          "ru": "http://localhost:3000/ru/products/ofsetnaya-pechat",
+          "x-default": "http://localhost:3000/en/products/offset-printing-services"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-greeting-cards",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-greeting-cards",
+          "ru": "http://localhost:3000/ru/products/otkrytki-na-zakaz",
+          "x-default": "http://localhost:3000/en/products/custom-greeting-cards"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/otkrytki-na-zakaz",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-greeting-cards",
+          "ru": "http://localhost:3000/ru/products/otkrytki-na-zakaz",
+          "x-default": "http://localhost:3000/en/products/custom-greeting-cards"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-christmas-packaging",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-christmas-packaging",
+          "ru": "http://localhost:3000/ru/products/novogodnyaya-upakovka",
+          "x-default": "http://localhost:3000/en/products/custom-christmas-packaging"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/ru/products/novogodnyaya-upakovka",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-christmas-packaging",
+          "ru": "http://localhost:3000/ru/products/novogodnyaya-upakovka",
+          "x-default": "http://localhost:3000/en/products/custom-christmas-packaging"
+        }
+      }
     }
   ],
   "sitemapWithCategories": [

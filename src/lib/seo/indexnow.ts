@@ -38,11 +38,11 @@ export function activeIndexNowKey(env: Env = process.env): string | null {
 
 /**
  * 哪些 Sanity 类型的页面已经上线、可以推送。和 sitemap 保持一致：
- * - product：等 #198 的 CATEGORY_PAGES_LIVE 改成 true 时一起改成 true。
+ * - product：与 CATEGORY_PAGES_LIVE 一起打开，推送 /{locale}/products/{slug}。
  * - solution / article：等 #199 的路由合并、页面进 sitemap 后改成 true。
  */
 export const INDEXNOW_LIVE_TYPES: Record<string, { live: boolean; prefix: string }> = {
-  product: { live: false, prefix: 'products' },
+  product: { live: true, prefix: 'products' },
   solution: { live: false, prefix: 'solutions' },
   article: { live: false, prefix: 'articles' },
 };

@@ -10,6 +10,21 @@ a{color:inherit}
 h1,h2,h3{line-height:1.15;overflow-wrap:anywhere;hyphens:auto} /* #194 长俄语单词可断开，避免横向滚动 */
 .legal h1{font-size:clamp(28px,8vw,40px)}
 .container{max-width:var(--container);margin:0 auto;padding:0 20px}
+/* 品类页正文：行宽约 70ch，标题从 H2 起。pretty 减少单词孤行；长词可断，避免 390 横向溢出 */
+main.category-prose{max-width:min(70ch,var(--container));text-wrap:pretty;overflow-wrap:anywhere;hyphens:auto;padding-bottom:48px}
+main.category-prose h1{font-size:clamp(28px,8vw,40px);margin:24px 0 12px;text-wrap:balance}
+main.category-prose .lead{margin:0 0 16px}
+main.category-prose .lead p{margin:0 0 12px}
+main.category-prose h2{font-size:clamp(22px,3vw,28px);margin:28px 0 8px;text-wrap:balance}
+main.category-prose h3{font-size:20px;margin:20px 0 8px}
+main.category-prose p{margin:0 0 12px}
+main.category-prose ul,main.category-prose ol{margin:0 0 12px;padding-inline-start:1.25em}
+main.category-prose li{margin:0 0 6px}
+main.category-prose a{text-decoration:underline;text-underline-offset:3px}
+main.category-prose .category-cta{margin-top:28px}
+main.category-prose .category-cta .btn{text-decoration:none}
+main.category-prose table{border-collapse:collapse;width:100%;margin:0 0 12px}
+main.category-prose th,main.category-prose td{border:1px solid var(--line);padding:6px 8px;text-align:start;vertical-align:top}
 header.site{display:flex;gap:20px;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:20}
 header.site .logo{font-weight:800;font-size:20px;text-decoration:none}header.site .logo i{color:var(--accent-text);font-style:normal}
 header.site nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center}

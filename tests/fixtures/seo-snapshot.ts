@@ -1,5 +1,5 @@
-// 多语言第 0 期 SEO 快照：sitemap 和 hreflang 的 en/ru 输出。生成器只依赖 main 上也存在的接口，
-// 所以同一份代码在 origin/main 上跑出的结果就是基准（tests/fixtures/seo-snapshot-main.json）。
+// sitemap 和 hreflang 的 en/ru 输出。基准是 tests/fixtures/seo-snapshot-main.json。
+// CATEGORY_PAGES_LIVE 为 true 时，sitemap() 的结果含品类页。
 import sitemap from '../../src/app/sitemap';
 import { alternatesFor } from '../../src/i18n/alternates';
 import { buildSitemap, buildCmsEntries } from '../../src/lib/seo/sitemapEntries';
