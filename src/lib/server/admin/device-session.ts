@@ -63,14 +63,14 @@ export async function backfillHardExpiresAt(db: PrismaClient, policy: SessionPol
 
 /**
  * 账号状态判断，接口和页面共用。
- * 未登录、用户不存在、锁定、会话版本不一致 → 401。未开启双重验证仍可持有会话。
+ * 未登录、用户不存在、锁定、未开启双重验证、会话版本不一致 → 401。
  * 停用 → 403。路由角色在设备校验之后判断。重置双重验证会增加 sessionVersion，旧会话因此失效。
  */
 function classifyAccount<U extends SessionUser>(uid: string | undefined, user: U | null, sv: number | undefined, now: Date):
   { ok: true; user: U } | { ok: false; reason: AccountDenial; status: 401 | 403 } {
   if (!uid || !user) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (user.disabled) return { ok: false, reason: 'disabled', status: 403 };
-  if ((user.lockedUntil && user.lockedUntil > now) || sv !== user.sessionVersion) return { ok: false, reason: 'unauthenticated', status: 401 };
+  if (!user.totpEnabled || (user.lockedUntil && user.lockedUntil > now) || sv !== user.sessionVersion) return { ok: false, reason: 'unauthenticated', status: 401 };
   return { ok: true, user };
 }
 
@@ -181,7 +181,7 @@ export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () =
       const now = clock();
       return repo.transaction(async (tx) => {
         const user = await tx.findUser(input.userId);
-        if (!user || user.disabled || user.sessionVersion !== input.sessionVersion) throw new Error('device open refused');
+        if (!user || user.disabled || !user.totpEnabled || user.sessionVersion !== input.sessionVersion) throw new Error('device open refused');
         if (user.lockedUntil && user.lockedUntil > now) throw new Error('device open refused');
         return tx.create({
           id: randomBytes(24).toString('base64url'),

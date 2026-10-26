@@ -79,7 +79,7 @@ test('E-02 E-69 equality at idle or absolute rejects and one millisecond before 
   assert.equal(access(absolute, atAbsolute).ok, false);
 });
 
-test('E-03 E-70 revoked, foreign, stale version, missing sid, disabled and locked are refused', () => {
+test('E-03 E-70 revoked, foreign, stale version, missing sid, disabled, locked and totp are refused', () => {
   assert.equal(access(created, device({ revokedAt: created })).ok, false);
   assert.equal(access(created, device({ userId: 'other' })).ok, false);
   assert.equal(access(created, device({ sessionVersion: 2 })).ok, false);
@@ -90,7 +90,7 @@ test('E-03 E-70 revoked, foreign, stale version, missing sid, disabled and locke
   const disabled = access(created, device(), user({ disabled: true, sessionVersion: 9 }));
   assert.deepEqual(disabled.ok ? null : { reason: disabled.reason, status: disabled.status }, { reason: 'disabled', status: 403 });
   assert.equal(access(created, device(), user({ lockedUntil: new Date(created.getTime() + 1000) })).ok, false);
-  assert.equal(access(created, device(), user({ totpEnabled: false })).ok, true);
+  assert.equal(access(created, device(), user({ totpEnabled: false })).ok, false);
   const editor = decideAdminAccess({
     userId: 'user-1', sessionVersion: 3, sid: 'device-1', user: user({ role: 'EDITOR' }), device: device(),
     roles: ['ADMIN'], now: created, policy,

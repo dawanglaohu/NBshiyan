@@ -6,7 +6,17 @@ import { hitRateLimit, rateLimitKeyHash, rateLimitSubject, refundRateLimit } fro
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
-import { throwTotpRequired } from './login-challenge';
+import {
+  CHALLENGE_MAX_ATTEMPTS,
+  consumeLoginChallenge,
+  findLoginChallenge,
+  issueLoginChallenge,
+  noteChallengeFailure,
+  throwChallengeInvalid,
+  throwRateLimited,
+  throwTotpRequired,
+  throwTotpSetupRequired,
+} from './login-challenge';
 import { normalizeEmail } from '../sample';
 
 authenticator.options = { window: 1, step: 30 };
@@ -35,6 +45,11 @@ export async function loginRateOk(ip: string | null, email: string) {
     hitRateLimit(k.ip, 30, LOGIN_WINDOW_MS, o),
   ]);
   return a && b && c;
+}
+
+/** 挑战对不上用户时只计单 IP 桶，避免所有未知挑战共用一个邮箱桶。 */
+export async function loginIpRateOk(ip: string | null) {
+  return hitRateLimit(`login-ip:${rateLimitSubject(ip)}`, 30, LOGIN_WINDOW_MS, { onStoreError: 'closed' });
 }
 
 /**
@@ -153,11 +168,50 @@ export async function checkSecondFactor(user: User, totp: string | undefined, re
 async function genericCredentialFailure(email: string, ip: string | null, burn: string) {
   if (!(await loginRateOk(ip, email))) {
     await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip });
-    return null;
+    throwRateLimited();
   }
   await burnVerify(burn);
   await fail(null, email, ip, 'bad_credentials');
   return null;
+}
+
+export type LoginContext = { userAgent?: string | null; cookie?: string | null };
+
+function challengeStillGood(row: { consumedAt: Date | null; expiresAt: Date; uaHash: string; sessionVersion: number; attempts: number }, user: User, uaHash: string, now: Date) {
+  return row.consumedAt == null
+    && row.expiresAt > now
+    && row.uaHash === uaHash
+    && row.sessionVersion === user.sessionVersion
+    && row.attempts < CHALLENGE_MAX_ATTEMPTS;
+}
+
+/** 第二步只带验证码。先核对挑战，再核对验证码。无效挑战不增加 failedLogins，但会计入限流。 */
+async function authorizeChallenge(totp: string, ip: string | null, ctx: LoginContext) {
+  const loaded = await findLoginChallenge(ctx.cookie ?? null, ctx.userAgent ?? null);
+  const row = loaded.row;
+  const user = row ? await prisma.user.findUnique({ where: { id: row.userId } }) : null;
+  const email = user?.email ?? '';
+  const allowed = user ? await loginRateOk(ip, email) : await loginIpRateOk(ip);
+  if (!allowed) {
+    await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip });
+    throwRateLimited();
+  }
+  const now = new Date();
+  if (!row || !user || !challengeStillGood(row, user, loaded.uaHash, now)) throwChallengeInvalid();
+  if (user.disabled || (user.lockedUntil && user.lockedUntil > now)) {
+    await burnVerify(totp);
+    await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: user.lockedUntil && user.lockedUntil > now ? 'locked' : 'bad_credentials' }, ip });
+    return null;
+  }
+  if (!user.totpEnabled || !user.totpSecret) throwChallengeInvalid();
+  if (!(await checkSecondFactor(user, totp, undefined))) {
+    await fail(user, email, ip, 'bad_totp');
+    await noteChallengeFailure(row.id);
+    return null;
+  }
+  const consumed = await consumeLoginChallenge(row.id, user.sessionVersion, loaded.uaHash);
+  if (consumed.count !== 1) throwChallengeInvalid();
+  return finishLogin(user, email, ip, 'password');
 }
 
 async function finishLogin(user: User, email: string, ip: string | null, method: 'password' | 'totp' | 'recovery_code') {
@@ -167,29 +221,35 @@ async function finishLogin(user: User, email: string, ip: string | null, method:
 }
 
 /**
- * password：密码正确且未开启双重验证时直接登录。已开启但没带验证码时抛出 totp_required，不记失败次数。
- * 已开启且带了验证码时核销验证码。未开启却带了验证码、未知 mode、未知或停用账号都返回 null。
- * totp 模式要已开启无密码登录。非空恢复码仍可代替验证码，但必须先通过当前密码。
+ * password：密码正确但未开启双重验证时抛出 totp_setup_required，不建会话。
+ * 已开启但没带验证码时签发一次性挑战并抛出 totp_required，不记失败次数。
+ * 已开启且同时带了验证码时按一次性登录核销验证码，不要求挑战。
+ * 只有验证码、没有邮箱和密码时，用 cookie 里的挑战核销。
+ * totp 模式要已开启无密码登录；未开启时与未知账号相同，不返回绑定错误。
+ * 非空恢复码仍可代替验证码，但必须先通过当前密码；未开启双重验证时抛出 totp_setup_required。
  */
-export async function authorizeLogin(input: { email: string; password?: string; totp?: string; recoveryCode?: string; mode?: string }, ip: string | null) {
-  const email = input.email.trim().toLowerCase();
+export async function authorizeLogin(input: { email?: string; password?: string; totp?: string; recoveryCode?: string; mode?: string }, ip: string | null, ctx: LoginContext = {}) {
   const mode = input.mode ?? 'password';
+  const totp = input.totp?.trim() ?? '';
   const recovery = (input.recoveryCode ?? '').trim();
-  if (mode !== 'password' && mode !== 'totp') return genericCredentialFailure(email, ip, input.password || input.totp || 'x');
+  const email = (input.email ?? '').trim().toLowerCase();
+  if (!email && mode === 'password' && totp && !input.password && !recovery) return authorizeChallenge(totp, ip, ctx);
+  if (mode !== 'password' && mode !== 'totp') return genericCredentialFailure(email, ip, input.password || totp || 'x');
   // TODO(M3-T19): remove recovery-code login once /api/auth-admin/recovery/start ships
   if (recovery) return authorizeRecovery(email, input.password ?? '', recovery, ip);
-  if (mode === 'totp') return authorizeTotp(email, input.totp, ip);
+  if (mode === 'totp') return authorizeTotp(email, totp, ip);
   const user = await checkPassword(email, input.password ?? '', ip);
+  if (user === 'rate_limited') throwRateLimited();
   if (typeof user === 'string') return null;
   if (!user.totpEnabled) {
-    if (input.totp?.trim()) {
-      await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip });
-      return null;
-    }
-    return finishLogin(user, email, ip, 'password');
+    await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_setup_required' }, ip });
+    throwTotpSetupRequired();
   }
-  if (!input.totp?.trim()) throwTotpRequired();
-  if (!(await checkSecondFactor(user, input.totp, undefined))) { await fail(user, email, ip, 'bad_totp'); return null; }
+  if (!totp) {
+    await issueLoginChallenge(user, ctx.userAgent ?? null);
+    throwTotpRequired();
+  }
+  if (!(await checkSecondFactor(user, totp, undefined))) { await fail(user, email, ip, 'bad_totp'); return null; }
   return finishLogin(user, email, ip, 'password');
 }
 
@@ -197,7 +257,7 @@ export async function authorizeLogin(input: { email: string; password?: string; 
 async function authorizeTotp(email: string, totp: string | undefined, ip: string | null) {
   if (!(await loginRateOk(ip, email))) {
     await audit({ action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'rate_limited' }, ip });
-    return null;
+    throwRateLimited();
   }
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.disabled || !user.passwordlessEnabled || !user.totpEnabled || !user.totpSecret) {
@@ -217,8 +277,12 @@ async function authorizeTotp(email: string, totp: string | undefined, ip: string
 /** 恢复码登录与验证码共用密码校验、失败计数、锁定和限流。成功只删掉用过的哈希。 */
 async function authorizeRecovery(email: string, password: string, recovery: string, ip: string | null) {
   const user = await checkPassword(email, password, ip);
+  if (user === 'rate_limited') throwRateLimited();
   if (typeof user === 'string') return null;
-  if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
+  if (!user.totpEnabled) {
+    await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_setup_required' }, ip });
+    throwTotpSetupRequired();
+  }
   if (!(await consumeRecoveryCode(user, recovery))) { await fail(user, email, ip, 'bad_totp'); return null; }
   return finishLogin(user, email, ip, 'recovery_code');
 }

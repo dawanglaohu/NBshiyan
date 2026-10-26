@@ -1,4 +1,5 @@
 import { Manrope } from 'next/font/google';
+import { loginDocumentLang } from '@/lib/admin/login-step';
 import './login.css';
 
 // 自定义后台登录页。不放在 /admin 下，避免未登录时被后台 layout 再送去登录。
@@ -13,6 +14,7 @@ export const dynamic = 'force-dynamic';
 
 const manrope = Manrope({ subsets: ['latin', 'cyrillic'], display: 'swap', variable: '--font-sans' });
 
-export default function AdminLoginLayout({ children }: { children: React.ReactNode }) {
-  return (<html lang="zh-CN" className={manrope.variable}><body style={{ margin: 0 }}>{children}</body></html>);
+export default async function AdminLoginLayout({ children }: { children: React.ReactNode }) {
+  const lang = await loginDocumentLang();
+  return (<html lang={lang} className={manrope.variable}><body style={{ margin: 0 }}>{children}</body></html>);
 }

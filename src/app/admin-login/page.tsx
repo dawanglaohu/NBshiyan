@@ -1,5 +1,6 @@
 import LoginForm from '@/components/admin/auth/LoginForm';
-import { safeCallbackPath } from '@/lib/admin/safe-callback';
+import { loginPageLang } from '@/lib/admin/login-step';
+import { adminCallbackPath } from '@/lib/admin/safe-callback';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,8 @@ export default async function AdminLoginPage({
   searchParams: Promise<{ callbackUrl?: string; error?: string; code?: string }>;
 }) {
   const params = await searchParams;
-  const callbackUrl = safeCallbackPath(params.callbackUrl);
+  const callbackUrl = adminCallbackPath(params.callbackUrl);
   const urlError = Boolean(params.error || params.code);
-  return <LoginForm callbackUrl={callbackUrl} urlError={urlError} />;
+  const initialLang = await loginPageLang();
+  return <LoginForm callbackUrl={callbackUrl} urlError={urlError} initialLang={initialLang} />;
 }

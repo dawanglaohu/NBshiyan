@@ -1,5 +1,6 @@
 import { test, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { CredentialsSignin } from 'next-auth';
 import { createHash } from 'node:crypto';
 import { authenticator } from 'otplib';
 import { setRateLimitStore, MemoryStore, type RateLimitStore } from '../src/lib/server/ratelimit/index';
@@ -180,7 +181,10 @@ test('(e) login and confirm share the login bucket: alternating wrong passwords,
     }
     const before = lookups;
     assert.deepEqual(await confirm('123456', 'wrong-6'), { status: 429, body: { error: 'rate_limited', retryAfter: 600 } }, 'confirm is the 6th');
-    assert.equal(await authorizeLogin({ email: EMAIL, password: PASSWORD, totp: '123456' }, IP), null);
+    await assert.rejects(
+      () => authorizeLogin({ email: EMAIL, password: PASSWORD, totp: '123456' }, IP),
+      (err: unknown) => err instanceof CredentialsSignin && err.code === 'rate_limited',
+    );
     assert.equal(lookups, before, 'neither reached the user lookup');
   });
 });

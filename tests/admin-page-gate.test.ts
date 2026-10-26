@@ -45,3 +45,35 @@ test('every /admin page is server-checked: enforceAdminPage before render, or a 
     assert.ok(pureRedirect || guarded, `${p} must call enforceAdminPage before rendering`);
   }
 });
+
+test('every admin route handler calls requireAdmin or secretMatches', async () => {
+  const { existsSync, readdirSync, readFileSync, statSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const root = 'src/app/api/admin';
+  assert.equal(existsSync(root), true);
+  const files: string[] = [];
+  const walk = (d: string) => {
+    for (const name of readdirSync(d)) {
+      const path = join(d, name);
+      if (statSync(path).isDirectory()) walk(path);
+      else if (/^route\.(ts|tsx|js|mjs)$/.test(name)) files.push(path);
+    }
+  };
+  walk(root);
+  assert.ok(files.length >= 1);
+  for (const file of files) {
+    const src = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    const exportsHandler = /export\s+(async\s+)?(function|const)\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/.test(src);
+    if (!exportsHandler) continue;
+    assert.ok(src.includes('requireAdmin(') || src.includes('secretMatches('), file);
+  }
+});
+
+test('admin-login contains only the page, layout, and stylesheet, with no server data import', async () => {
+  const { readdirSync, readFileSync } = await import('node:fs');
+  assert.deepEqual(readdirSync('src/app/admin-login').sort(), ['layout.tsx', 'login.css', 'page.tsx']);
+  for (const name of ['layout.tsx', 'login.css', 'page.tsx']) {
+    const src = readFileSync(`src/app/admin-login/${name}`, 'utf8');
+    assert.doesNotMatch(src, /prisma|@prisma\/client|from ['"][^'"]*\/db['"]/);
+  }
+});

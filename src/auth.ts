@@ -3,10 +3,11 @@ import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { decode, encode as defaultEncode } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
-import { LoginRequestSchema } from '@/lib/contracts/account';
+import { LoginRequestSchema, type LoginRequest } from '@/lib/contracts/account';
 import { ADMIN_SESSION_POLICY } from '@/lib/server/config';
 import { clientIp } from '@/lib/server/security';
 import { authorizeLogin } from '@/lib/server/admin/login';
+import { stagedLoginCookies, withLoginCookies } from '@/lib/server/admin/login-challenge';
 import { prisma } from '@/lib/server/db';
 import {
   clearedSessionCookieHeaders,
@@ -25,8 +26,8 @@ function blankText(value: unknown) {
   return typeof value === 'string' && value.trim() === '';
 }
 
-export function parseLogin(raw: unknown) {
-  if (!raw || typeof raw !== 'object') return LoginRequestSchema.safeParse(raw);
+function loginSource(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== 'object') return null;
   const source = { ...(raw as Record<string, unknown>) };
   for (const key of AUTH_TRANSPORT_FIELDS) delete source[key];
   // 空密码输入视为没带密码，totp 模式才能不填密码；password 模式仍由契约要求密码。
@@ -36,7 +37,46 @@ export function parseLogin(raw: unknown) {
     if (blankText(source[key])) delete source[key];
   }
   if (typeof source.totp === 'string') source.totp = source.totp.trim();
+  return source;
+}
+
+export function parseLogin(raw: unknown) {
+  const source = loginSource(raw);
+  if (!source) return LoginRequestSchema.safeParse(raw);
   return LoginRequestSchema.safeParse(source);
+}
+
+export type LoginAttempt = {
+  email?: string;
+  password?: string;
+  totp?: string;
+  recoveryCode?: string;
+  mode?: LoginRequest['mode'];
+  rememberDevice: boolean;
+};
+
+/**
+ * 契约要求密码模式带验证码或恢复码。第一步只有邮箱和密码，而且补一个验证码后契约就能通过时，
+ * 当成密码步骤。其他校验失败仍拒绝。第二步只有验证码，由契约里的挑战形状放行。
+ */
+export function credentialsFromRaw(raw: unknown): LoginAttempt | null {
+  const parsed = parseLogin(raw);
+  if (parsed.success) {
+    if (!parsed.data.email) {
+      if (parsed.data.mode === 'password' && parsed.data.totp && parsed.data.password === undefined && parsed.data.recoveryCode === undefined) {
+        return { totp: parsed.data.totp, mode: 'password', rememberDevice: parsed.data.rememberDevice };
+      }
+      return null;
+    }
+    return parsed.data;
+  }
+  const source = loginSource(raw);
+  if (!source) return null;
+  if ((source.mode ?? 'password') !== 'password') return null;
+  if (source.totp !== undefined || source.recoveryCode !== undefined) return null;
+  const probe = parseLogin({ ...source, totp: '000000' });
+  if (!probe.success || !probe.data.email || probe.data.password === undefined) return null;
+  return { email: probe.data.email, password: probe.data.password, mode: 'password', rememberDevice: probe.data.rememberDevice };
 }
 
 /** 普通会话的闲置窗口。Auth.js 的 maxAge 只用绝对上限当天花板，真正的截止由设备行裁定。 */
@@ -84,19 +124,21 @@ export const { handlers, auth } = NextAuth({
     Credentials({
       credentials: { email: {}, password: { type: 'password' }, totp: {}, recoveryCode: {}, rememberDevice: {}, mode: {} },
       async authorize(raw, request) {
-        const parsed = parseLogin(raw);
-        if (!parsed.success) throw new CredentialsSignin();
-        const user = await authorizeLogin(parsed.data, clientIp(request));
+        const attempt = credentialsFromRaw(raw);
+        if (!attempt) throw new CredentialsSignin();
+        const header = (name: string) => request?.headers?.get(name) ?? null;
+        const user = await authorizeLogin(attempt, clientIp(request), { userAgent: header('user-agent'), cookie: header('cookie') });
         if (!user) throw new CredentialsSignin();
         try {
           const device = await devicesOf().open({
             userId: user.id,
             sessionVersion: user.sessionVersion,
-            remembered: parsed.data.rememberDevice,
-            userAgent: request.headers.get('user-agent'),
+            remembered: attempt.rememberDevice,
+            userAgent: header('user-agent'),
           });
           return { id: user.id, email: user.email, name: user.name, role: user.role, sv: user.sessionVersion, sid: device.id };
-        } catch {
+        } catch (error) {
+          if (error instanceof CredentialsSignin) throw error;
           throw new CredentialsSignin();
         }
       },
@@ -241,13 +283,23 @@ export async function alignSessionCookies(response: Response): Promise<Response>
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
+function withExtraCookies(response: Response, extra: readonly string[]): Response {
+  if (extra.length === 0) return response;
+  const headers = new Headers(response.headers);
+  for (const cookie of extra) headers.append('set-cookie', cookie);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 /** Auth.js 路由入口。普通 signOut 只有在设备撤销提交之后才把清 cookie 的响应交出去。 */
 export async function handleAuth(request: Request): Promise<Response> {
   const next = request instanceof NextRequest ? request : new NextRequest(request);
   const signingOut = next.method === 'POST' && new URL(next.url).pathname.endsWith('/signout');
   const box = { failed: false };
   const run = () => (next.method === 'GET' ? handlers.GET(next) : handlers.POST(next));
-  const response = signingOut ? await signOutState.run(box, run) : await run();
+  const held = await withLoginCookies(async () => {
+    const response = signingOut ? await signOutState.run(box, run) : await run();
+    return { response, cookies: stagedLoginCookies() };
+  });
   if (box.failed) return new Response(null, { status: 503, headers: { 'cache-control': 'private, no-store' } });
-  return alignSessionCookies(response);
+  return alignSessionCookies(withExtraCookies(held.response, held.cookies));
 }

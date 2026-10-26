@@ -49,7 +49,7 @@ export async function adminPageDenied(roles: readonly ('ADMIN' | 'EDITOR' | 'SAL
 
 /**
  * 页面级判断（纯函数，便于测试）：与 layout 的 adminGate 同一规则。
- * 未登录（含会话失效、锁定）→ 跳登录页（callbackUrl 只允许站内路径）。
+ * 未登录（含会话失效、锁定、未开 2FA）→ 跳登录页（callbackUrl 只允许站内路径）。
  * 数据库不可用或服务出错 → 不跳转、不 404，由页面换成错误卡片。仅停用账号或角色不符 → 404。
  */
 export function adminPageGate(check: { ok: true } | { ok: false; reason: SessionDenial }, path: string): { action: 'render' } | { action: 'redirect'; to: string } | { action: 'notFound' } | { action: 'unavailable' } | { action: 'internal' } {
