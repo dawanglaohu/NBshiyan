@@ -37,11 +37,16 @@ origin: issue-ledger-20261024
 ## 代码位置
 
 <!-- code:begin -->
-_落地前回填：`路径:行号` — 作用。_
+- `src/components/layout/BrandScene.tsx` — PR #448 的描述没有「回填草稿」，不编行号
+- `src/lib/home/brandMedia.ts` — PR #448 的描述没有「回填草稿」，不编行号
+- `public/brand/packjoyu-industrial-city-v3-loop-poster-1384.webp` — PR #448 的描述没有「回填草稿」，不编行号
+- `public/brand/packjoyu-industrial-city-v3-loop-poster-2000.webp` — PR #448 的描述没有「回填草稿」，不编行号
+- `tests/home-brand-media.test.ts` — PR #448 的描述没有「回填草稿」，不编行号
+- `e2e/home-media.spec.ts` — PR #448 的描述没有「回填草稿」，不编行号
 <!-- code:end -->
 
 ## 实施沉淀
 
 <!-- notes:begin -->
-_落地前回填实现选择、失败教训与维护约束。_
+PR #448 的描述没有「回填草稿」。合并提交 `369c2e90a2ea92096896e0126f579d61bfe553ea`。代码位置不编行号。
 <!-- notes:end -->
