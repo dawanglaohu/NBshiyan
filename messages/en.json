@@ -176,7 +176,7 @@
     "emailEntry": "Go to the email field",
     "chatSwitch": "Live chat",
     "chatOff": "Chat is off. The inquiry form and email still work.",
-    "chatOn": "Chat is switched on. This page does not open a chat window. The inquiry form and email still work.",
+    "chatOn": "Live chat isn't available right now. Please contact us through the inquiry form or by email.",
     "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {

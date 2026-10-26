@@ -80,6 +80,12 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .contact-intro{max-width:640px;color:var(--ink-2)}
 .contact-human{max-width:640px;margin:0 0 24px;color:var(--ink-2)}
 .contact-human a{font-weight:600;text-decoration:underline;text-underline-offset:2px}
+/* 填充只跟 aria-checked。id 压过 tokens 里的按钮 :hover，悬停只在能悬停的设备上加下划线。 */
+.contact-chat-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:12px;width:100%}
+@media (max-width:390px){.contact-chat-line .contact-chat-status{flex-basis:100%;width:100%;min-width:0}}
+#contact-chat-switch{gap:8px;background:var(--pj-bg);color:var(--pj-fg)}
+#contact-chat-switch[aria-checked="true"]{background:var(--pj-inverse);color:var(--pj-on-inverse)}
+@media (hover:hover){#contact-chat-switch:not(:disabled):hover{text-decoration:underline;text-underline-offset:3px}}
 /* #307 成功卡片滚进可视区时不被吸顶页头挡住（手机端页头不吸顶） */
 /* 滚动落点 = 吸顶导航实际高度（全局 --header-h，实测 73px）+ 16px；
    ≤767px 导航不吸顶（position:static），只留 16px */

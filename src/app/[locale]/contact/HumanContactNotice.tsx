@@ -27,21 +27,23 @@ export default function HumanContactNotice() {
       >
         {t('emailEntry')}
       </a>
-      <br />
-      <button
-        id="contact-chat-switch"
-        type="button"
-        role="switch"
-        className="pj-button"
-        data-variant={chatEnabled ? 'primary' : 'secondary'}
-        data-context="public"
-        aria-checked={chatEnabled}
-        aria-describedby={statusId}
-        onClick={() => setChatEnabled((value) => !value)}
-      >
-        {t('chatSwitch')}
-      </button>{' '}
-      <span id={statusId}>{chatEnabled ? t('chatOn') : t('chatOff')}</span>
+      <div className="contact-chat-line">
+        <button
+          id="contact-chat-switch"
+          type="button"
+          role="switch"
+          className="pj-button"
+          data-variant="secondary"
+          data-context="public"
+          aria-checked={chatEnabled}
+          aria-describedby={statusId}
+          onClick={() => setChatEnabled((value) => !value)}
+        >
+          {t('chatSwitch')}
+          <span aria-hidden="true">{chatEnabled ? 'On' : 'Off'}</span>
+        </button>
+        <span id={statusId} className="contact-chat-status" aria-live="polite">{chatEnabled ? t('chatOn') : t('chatOff')}</span>
+      </div>
     </div>
   );
 }
