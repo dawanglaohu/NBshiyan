@@ -32,6 +32,16 @@ export const FORM_GENERIC = {
   ru: `На${NBSP}нашей стороне произошла ошибка. Повторите попытку позже.`,
 } as const;
 
+/**
+ * 校验结果对不上具体字段时，表单顶部的兜底句。后台用中文。
+ * en / ru 是草稿，待语言专家审。ru 的不换行空格用 NBSP，不把不可见字符写进源码。
+ */
+export const FORM_INVALID = {
+  zh: '部分内容没有通过检查，请核对后再提交。',
+  en: "Some fields didn't pass the check. Please review them and submit again.",
+  ru: `Некоторые поля не${NBSP}прошли проверку. Исправьте их и${NBSP}отправьте форму ещё раз.`,
+} as const;
+
 export type OutageCopy = { title: string; body: string; retry: string };
 
 /** 只看 Accept-Language 的第一段。认不出就用中文。 */

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { CHECK_LABEL, LIMITS, blockingChecks, modelApi, readGlbJson, sizeFailed, uploadTotalError, type AdminModel } from '@/lib/admin/models-api';
 import { PRODUCT_LABEL } from '@/components/admin/format';
-import { ModelUploadAlert, modelUploadErrorText } from '@/components/admin/models/ModelUploadAlert';
+import { ModelCheckDetail, ModelUploadAlert, modelUploadErrorText } from '@/components/admin/models/ModelUploadAlert';
 
 const ModelPreview = dynamic(() => import('./ModelPreview'), { ssr: false });
 const STEPS = ['上传', '处理与检查', '预览确认', '上架'] as const;
@@ -118,7 +118,7 @@ export default function ModelUpload() {
                       <li key={c.key} className={state}>
                         <i aria-hidden>{state === 'ok' ? '✓' : state === 'warn' ? '!' : '✕'}</i>
                         <b>{CHECK_LABEL[c.key] ?? c.key}</b>
-                        <span>{c.detail}{state === 'warn' ? '（仅提示）' : ''}</span>
+                        <ModelCheckDetail detail={c.detail} warn={state === 'warn'} />
                         {c.key === 'size' && <span className="mdl-bar"><span style={{ width: `${Math.min(100, (model.sizeBytes / (model.animated ? LIMITS.sizeAnimated : LIMITS.sizeNormal)) * 100)}%` }} className={c.ok ? 'ok' : 'fail'} /></span>}
                       </li>);
                   })}

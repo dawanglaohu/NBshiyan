@@ -3,7 +3,7 @@
  * 表单里都是字符串；toBody 做客户端校验并转成 PUT /api/admin/specs/:category 的 body（规则与服务端 zod 一致，
  * 服务端仍会再校验一次）。fromView 把 GET 返回的后台视图转回表单。
  */
-import { outageFormGeneric, outageFormMessage } from '@/lib/admin/outage-copy';
+import { FORM_INVALID, outageFormGeneric, outageFormMessage } from '@/lib/admin/outage-copy';
 
 export const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'] as const;
 export const CURRENCIES = ['USD', 'EUR', 'CNY', 'RUB'] as const;
@@ -175,7 +175,7 @@ const OUTAGE_FORM = outageFormMessage();
 const GENERIC_FORM = outageFormGeneric();
 const API_ERR: Record<string, string> = {
   unauthorized: '登录已过期，请重新登录', forbidden: '没有权限（需要 ADMIN 或 EDITOR 角色）', forbidden_origin: '请求被拒绝：来源校验失败，请刷新页面后重试',
-  rate_limited: '操作太频繁，请稍后再试', too_large: '内容太长', not_found: '品类不存在', invalid: '服务器校验未通过',
+  rate_limited: '操作太频繁，请稍后再试', too_large: '内容太长', not_found: '品类不存在', invalid: FORM_INVALID.zh,
   service_unavailable: OUTAGE_FORM, http_503: OUTAGE_FORM,
   internal_error: GENERIC_FORM,
 };
@@ -229,6 +229,7 @@ function fieldPlace(path: string): { key: string; text: string } {
 /** 只在 HTTP 400 调用。文案来自白名单，不使用服务器返回的 message 原文。 */
 function fieldsFromIssues(issues: unknown): FieldErrors {
   const fields: FieldErrors = {};
+  let unmapped = false;
   if (!Array.isArray(issues)) return fields;
   for (const it of issues) {
     if (!it || typeof it !== 'object') continue;
@@ -236,9 +237,14 @@ function fieldsFromIssues(issues: unknown): FieldErrors {
     const path = typeof row.path === 'string' ? row.path : '';
     const specific = knownIssueCopy(row.code) ?? knownIssueCopy(row.message);
     const placed = fieldPlace(path);
-    if (specific) fields[placed.key] = specific;
-    else if (fields[placed.key] === undefined) fields[placed.key] = placed.text;
+    // `__proto__` 不能当字段键，否则赋值会改对象的原型。对不上的路径一律记到顶部 `_`。
+    const key = path === '__proto__' || placed.key === '__proto__' ? '_' : placed.key;
+    if (key === '_') { unmapped = true; continue; }
+    if (specific) fields[key] = specific;
+    else if (fields[key] === undefined) fields[key] = placed.text;
   }
+  // 已经落到具体字段时不再写 `_`，避免顶部兜底和字段错误一起出现。
+  if (unmapped && Object.keys(fields).length === 0) fields._ = API_ERR.invalid;
   return fields;
 }
 
@@ -246,7 +252,8 @@ function fieldsFromIssues(issues: unknown): FieldErrors {
  * 服务端错误 → 页面提示。
  * 只有 HTTP 400 才读 issues，并按 path / code 换成固定文案。
  * 其他状态不读 message 和 issues，字段错误留空，调用方因此保留用户已填的内容。
- * internal_error、http_5xx（503 除外，503 仍是停机那句）和认不出的码用通用句。后台表单用中文；同一句的 en / ru 在 FORM_GENERIC。
+ * internal_error、http_5xx（503 除外，503 仍是停机那句）和认不出的码用通用句。后台表单用中文；停机之外的通用句 en / ru 在 FORM_GENERIC，校验兜底在 FORM_INVALID。
+ * 400 的 issues 已经落到具体字段时，`fields._` 留空。一个字段都对不上时，`fields._` 才是顶部兜底句。
  */
 export function serverErrors(status: number, json: unknown): { message: string; fields: FieldErrors } {
   const record = json !== null && typeof json === 'object' ? json as { error?: unknown } : {};
@@ -254,4 +261,13 @@ export function serverErrors(status: number, json: unknown): { message: string; 
   const message = Object.prototype.hasOwnProperty.call(API_ERR, code) ? API_ERR[code] : GENERIC_FORM;
   if (status !== 400) return { message, fields: {} };
   return { message, fields: fieldsFromIssues((record as { issues?: unknown }).issues) };
+}
+
+/** 保存失败时真正画到页面上的内容：有字段错误就不要再出顶部句。 */
+export function specSaveErrors(status: number, json: unknown): { top: string; fields: FieldErrors } {
+  const s = serverErrors(status, json);
+  const fields: FieldErrors = {};
+  for (const [key, text] of Object.entries(s.fields)) if (key !== '_') fields[key] = text;
+  if (Object.keys(fields).length) return { top: '', fields };
+  return { top: s.fields._ || s.message, fields };
 }

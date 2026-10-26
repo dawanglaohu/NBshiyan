@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { emptyForm, fromView, toBody, isHttpsUrl, newCertRow, serverErrors, type SpecForm } from '../src/lib/admin/spec-form';
+import { emptyForm, fromView, toBody, isHttpsUrl, newCertRow, serverErrors, specSaveErrors, type SpecForm } from '../src/lib/admin/spec-form';
+import { FORM_INVALID } from '../src/lib/admin/outage-copy';
 import { SpecInput, adminView, toRow } from '../src/lib/server/specs';
 import { SPEC_PAGE_ROLES } from '../src/lib/server/admin/page-access';
 
@@ -88,9 +89,13 @@ test('server errors are shown: codes mapped, 400 issues per field, unknown codes
   assert.equal(serverErrors(401, {}).message.includes('http_401'), false);
   const urlCopy = toBody({ ...filled(), certifications: [newCertRow({ name: 'FSC', url: 'http://x' })] }).errors['certifications.0.url'];
   const s = serverErrors(400, { error: 'invalid', issues: [{ path: 'certifications.0.url', message: 'https_url_required' }, { path: '', message: 'x' }, { bogus: 1 }] });
-  assert.equal(s.message, '服务器校验未通过');
+  assert.equal(s.message, FORM_INVALID.zh);
   assert.equal(s.fields['certifications.0.url'], urlCopy);
-  assert.equal(s.fields._, '服务器校验未通过');
+  assert.equal(s.fields._, undefined);
+  const mappedSave = specSaveErrors(400, { error: 'invalid', issues: [{ path: 'certifications.0.url', message: 'https_url_required' }, { path: '', message: 'x' }, { bogus: 1 }] });
+  assert.equal(mappedSave.top, '');
+  assert.equal(mappedSave.fields['certifications.0.url'], urlCopy);
+  assert.equal(mappedSave.fields._, undefined);
   const shown = [s.message, ...Object.values(s.fields)];
   assert.equal(shown.includes('https_url_required'), false);
   assert.equal(shown.includes('x'), false);
@@ -151,13 +156,24 @@ test('server field errors stay on the whitelist and non-400 responses keep the f
     ],
   });
   assert.equal(readTop, false);
-  assert.equal(bad.message, '服务器校验未通过');
+  assert.equal(bad.message, FORM_INVALID.zh);
   assert.equal(bad.fields['certifications.0.url'], urlCopy);
   assert.equal(bad.fields['size.max.l'], sizeCopy);
   assert.equal(bad.fields['moq.value'], moqCopy);
   assert.equal(bad.fields.material, materialCopy);
   assert.equal(bad.fields.tradeTerms, termsCopy);
-  assert.equal(bad.fields._, '服务器校验未通过');
+  assert.equal(bad.fields._, undefined);
+  const saved = specSaveErrors(400, {
+    error: 'invalid',
+    message: leaked,
+    issues: [
+      { path: 'certifications.0.url', message: 'https_url_required' },
+      { path: '', message: leaked },
+    ],
+  });
+  assert.equal(saved.top, '');
+  assert.equal(saved.fields['certifications.0.url'], urlCopy);
+  assert.equal(JSON.stringify(saved).includes(leaked), false);
   assert.equal(JSON.stringify(bad).includes(leaked), false);
   assert.equal(JSON.stringify(bad).includes('https_url_required'), false);
   assert.equal(JSON.stringify(bad).includes('size_min_gt_max'), false);
@@ -177,4 +193,49 @@ test('page access: EDITOR + ADMIN only, checked server-side before rendering', (
   const ed = readFileSync('src/components/admin/specs/SpecEditor.tsx', 'utf8');
   assert.match(ed, /method: 'PUT', credentials: 'same-origin'/);
   assert.ok(!/dangerouslySetInnerHTML/.test(ed));
+  assert.ok(!/dangerouslySetInnerHTML/.test(readFileSync('src/components/admin/specs/SpecEditorView.tsx', 'utf8')));
+});
+
+test('top fallback only when no issue maps to a field', () => {
+  const leaked = 'postgres://secret-should-not-render';
+  const only = specSaveErrors(400, { error: 'invalid', message: leaked, issues: [{ path: '', message: leaked }, { path: 'capacity', message: leaked }] });
+  assert.equal(only.top, FORM_INVALID.zh);
+  assert.deepEqual(only.fields, {});
+  assert.equal(JSON.stringify(only).includes(leaked), false);
+  const none = specSaveErrors(400, { error: 'invalid', message: leaked, issues: [] });
+  assert.equal(none.top, FORM_INVALID.zh);
+  assert.deepEqual(none.fields, {});
+  const mapped = specSaveErrors(400, { error: 'invalid', message: leaked, issues: [{ path: 'material.en', message: leaked }, { path: '', message: leaked }] });
+  assert.equal(mapped.top, '');
+  assert.equal(mapped.fields.material, '最多 300 个字符');
+  assert.equal(mapped.fields._, undefined);
+  assert.equal(JSON.stringify(mapped).includes(leaked), false);
+  assert.equal(JSON.stringify(mapped).includes(FORM_INVALID.zh), false);
+  const down = specSaveErrors(503, { error: 'service_unavailable', message: leaked, issues: [{ path: 'notes', message: leaked }] });
+  assert.equal(down.top, '服务暂时不可用。数据库连接出现问题，这不会让你退出登录，请稍后重试。');
+  assert.deepEqual(down.fields, {});
+  assert.equal(JSON.stringify(down).includes(leaked), false);
+});
+
+test('issue path __proto__ lands on _ and does not pollute the prototype', () => {
+  const marker = 'proto-pollute-marker-should-not-appear';
+  const before = Object.getOwnPropertyNames(Object.prototype);
+  const s = serverErrors(400, { error: 'invalid', issues: [{ path: '__proto__', message: marker }] });
+  assert.equal(s.fields._, FORM_INVALID.zh);
+  assert.equal(Object.prototype.hasOwnProperty.call(s.fields, '__proto__'), false);
+  assert.equal(JSON.stringify(s).includes(marker), false);
+  assert.deepEqual(Object.getOwnPropertyNames(Object.prototype), before);
+  const blank: Record<string, unknown> = {};
+  assert.equal(blank[marker], undefined);
+  assert.equal(Object.getOwnPropertyNames({}).includes(marker), false);
+  const save = specSaveErrors(400, { error: 'invalid', issues: [{ path: '__proto__', message: marker }] });
+  assert.equal(save.top, FORM_INVALID.zh);
+  assert.deepEqual(save.fields, {});
+  assert.equal(JSON.stringify(save).includes(marker), false);
+  const mixed = serverErrors(400, { error: 'invalid', issues: [{ path: '__proto__', message: marker }, { path: 'notes', message: marker }] });
+  assert.equal(mixed.fields.notes, '最多 2000 个字符');
+  assert.equal(mixed.fields._, undefined);
+  assert.equal(Object.prototype.hasOwnProperty.call(mixed.fields, '__proto__'), false);
+  assert.equal(JSON.stringify(mixed).includes(marker), false);
+  assert.deepEqual(Object.getOwnPropertyNames(Object.prototype), before);
 });

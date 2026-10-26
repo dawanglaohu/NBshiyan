@@ -246,18 +246,20 @@ export function issueMessageText(msg: string): string {
   if (/unrecognized key/i.test(m)) return '包含不支持的字段';
   return '不符合要求';
 }
-const CJK = /[\u3000-\u303f\u3400-\u9fff\uff00-\uffef]/;
+/** imageIssueText 改写结果，以及 issueLine 在没有内容时写的「（未说明）」。别的中文句子是服务器原文，不原样显示。 */
+const CLIENT_ISSUE_LINE = /^(?:第 \d+ 张图片|图片)的(?:替代文字|说明|文字)(?:超出上限（最多 \d+ 字）|不符合要求，请检查)$/;
 /**
- * rest 里的一行 → 顶部错误条里显示的文字：「path：message」→「中文字段名：中文说明」，认不出的路径去掉前缀；
- * 已经是中文的行（imageIssueText 改写过的「第 N 张图片…」、「（未说明）」）原样保留。
+ * rest 里的一行 → 顶部错误条里显示的文字：「path：message」→「中文字段名：中文说明」，认不出的路径去掉前缀。
+ * 只放行客户端自己改写过的行。其他服务器 message（包括中文）回落到「不符合要求」。
  */
 export function humanIssueLine(line: string): string {
+  if (line === '（未说明）' || CLIENT_ISSUE_LINE.test(line)) return line;
   const m = /^([A-Za-z][\w.-]*)：([\s\S]*)$/.exec(line);
   if (m) {
     const label = issuePathLabel(m[1]); const text = issueMessageText(m[2]);
     return label ? `${label}：${text}` : text;
   }
-  return CJK.test(line) ? line : issueMessageText(line);
+  return issueMessageText(line);
 }
 /**
  * 顶部错误条文案（about 和组织信息共用）：对不上字段的 issue、或 400 / 422 没带 issues，都必须显示在这里，不能悄悄丢掉。
