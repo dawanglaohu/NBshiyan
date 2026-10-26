@@ -375,7 +375,7 @@ test('enroll page: takes #t= out of the URL fragment (replaceState), keeps query
   assert.ok(!/localStorage|sessionStorage|console\./.test(page));
   // 绑定页和接口：no-referrer + noindex,nofollow（next.config 后台头覆盖全站的 strict-origin-when-cross-origin）
   const cfg = readFileSync('next.config.ts', 'utf8');
-  assert.match(cfg, /'\/admin-enroll'\]\.map\(\(source\) => \(\{ source, headers: adminHeaders \}\)\)/);
+  assert.match(cfg, /'\/admin-enroll', '\/admin-login'\]\.map\(\(source\) => \(\{ source, headers: adminHeaders \}\)\)/);
   assert.match(cfg, /\{ key: 'Referrer-Policy', value: 'no-referrer' \}/);
   assert.match(cfg, /\{ key: 'X-Robots-Tag', value: 'noindex, nofollow' \}/);
 });

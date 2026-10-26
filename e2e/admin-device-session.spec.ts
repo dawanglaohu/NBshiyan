@@ -51,14 +51,19 @@ test('device sessions: real network denial, version-safe revocation race and sig
     contexts.push(req);
     return req;
   }
-  async function login(member: Awaited<ReturnType<typeof seed>>, remembered = false, nextStep = false) {
+  async function login(member: Awaited<ReturnType<typeof seed>>, remembered = false, nextStep = false, callbackPath = '/admin') {
     const req = await context();
     const csrf = await req.get('/api/auth/csrf');
     expect(csrf.status()).toBe(200);
     const token = (await csrf.json()).csrfToken as string;
     const code = authenticator.clone({ epoch: Date.now() + (nextStep ? 30_000 : 0) }).generate(member.totp);
-    const signed = await req.post('/api/auth/callback/credentials', { maxRedirects: 0, headers: { Origin: BASE }, form: { email: member.user.email, password: PASSWORD, totp: code, csrfToken: token, rememberDevice: String(remembered), callbackUrl: `${BASE}/admin` } });
-    expect(signed.headers()['location'] ?? '').not.toContain('error');
+    const signed = await req.post('/api/auth/callback/credentials', { maxRedirects: 0, headers: { Origin: BASE }, form: { email: member.user.email, password: PASSWORD, totp: code, csrfToken: token, rememberDevice: String(remembered), callbackUrl: `${BASE}${callbackPath}` } });
+    const location = signed.headers()['location'] ?? '';
+    expect(location).not.toContain('error');
+    if (callbackPath !== '/admin') {
+      const back = new URL(location, BASE);
+      expect(`${back.pathname}${back.search}`).toBe(callbackPath);
+    }
     expect((await req.storageState()).cookies.some((cookie) => /authjs\.session-token$/.test(cookie.name))).toBe(true);
     expect((await req.get('/api/admin/account')).status()).toBe(200);
     return req;
@@ -67,7 +72,7 @@ test('device sessions: real network denial, version-safe revocation race and sig
     const actor = await seed('ADMIN');
     const sales = await seed('SALES');
     const target = await seed('SALES');
-    const actorHttp = await login(actor);
+    const actorHttp = await login(actor, false, false, '/admin/models?x=1');
     const validAccount = await actorHttp.get('/api/admin/account');
     const dto = AccountDTOSchema.parse(await validAccount.json());
     expect(dto.passwordlessEnabled).toBe(false);
@@ -137,8 +142,17 @@ test('device sessions: real network denial, version-safe revocation race and sig
       const ssr = await (await copy()).get('/admin/users', { maxRedirects: 0 });
       expect([303, 307]).toContain(ssr.status());
       const signIn = new URL(ssr.headers()['location'], BASE);
-      expect(signIn.pathname).toBe('/api/auth/signin');
+      expect(signIn.pathname).toBe('/admin-login');
       expect(signIn.searchParams.get('callbackUrl')).toBe('/admin/users');
+      if (invalid === 'revoked') {
+        const deep = await (await copy()).get('/admin/models?x=1', { maxRedirects: 0 });
+        expect([303, 307]).toContain(deep.status());
+        const deepLocation = deep.headers()['location'] ?? '';
+        const deepUrl = new URL(deepLocation, BASE);
+        expect(deepUrl.pathname).toBe('/admin-login');
+        expect(deepLocation).toContain('callbackUrl=%2Fadmin%2Fmodels%3Fx%3D1');
+        expect(deepUrl.searchParams.get('callbackUrl')).toBe('/admin/models?x=1');
+      }
       deniedScenarios[invalid] = { excludedRole: excluded.status(), account: account.status(), session: 'null', ssr: ssr.status(), clearsCookie: true, jarRemoved: true, deletions: sessionDeletionEvidence(account) };
     }
     evidence.invalidDevices = deniedScenarios;

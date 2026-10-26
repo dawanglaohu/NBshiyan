@@ -63,8 +63,8 @@ export async function backfillHardExpiresAt(db: PrismaClient, policy: SessionPol
 
 /**
  * 账号状态判断，接口和页面共用。
- * 未登录、用户不存在、锁定、会话版本不一致、未开 2FA → 401。
- * 停用 → 403。路由角色在设备校验之后判断。
+ * 未登录、用户不存在、锁定、未开启双重验证、会话版本不一致 → 401。
+ * 停用 → 403。路由角色在设备校验之后判断。重置双重验证会增加 sessionVersion，旧会话因此失效。
  */
 function classifyAccount<U extends SessionUser>(uid: string | undefined, user: U | null, sv: number | undefined, now: Date):
   { ok: true; user: U } | { ok: false; reason: AccountDenial; status: 401 | 403 } {

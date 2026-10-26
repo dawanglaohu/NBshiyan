@@ -119,7 +119,7 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   await expect(page.getByText('请等待下一个验证码（约 30 秒）再登录')).toBeVisible();
   const go = page.getByRole('link', { name: '去登录' });
   await expect(go).toHaveAttribute('aria-disabled', 'true');
-  await expect(go).toHaveAttribute('href', '/api/auth/signin?callbackUrl=%2Fadmin');
+  await expect(go).toHaveAttribute('href', '/admin-login?callbackUrl=%2Fadmin');
   const dl = page.waitForEvent('download');
   await page.getByRole('button', { name: '下载 .txt' }).click();
   const file = await dl;
@@ -131,7 +131,10 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   expect(external.urls).toEqual([]);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   await go.click();
-  await page.waitForURL(/\/api\/auth\/signin/);
+  await page.waitForURL(/\/admin-login/);
+  const landed = new URL(page.url());
+  expect(landed.pathname).toBe('/admin-login');
+  expect(landed.searchParams.get('callbackUrl')).toBe('/admin');
 });
 
 test('#347 没有 #t= 令牌（直接打开或刷新后）→「需要绑定链接」页，不显示表单，不发任何请求', async ({ page, external }) => {
@@ -140,7 +143,7 @@ test('#347 没有 #t= 令牌（直接打开或刷新后）→「需要绑定链�
   await page.goto('/admin-enroll');
   await expect(page.getByRole('heading', { level: 1, name: '需要绑定链接' })).toBeVisible();
   await expect(page.getByText('这个页面只能从管理员发给你的绑定链接打开。如果你刚刚刷新了页面，请重新点开那个链接；链接失效的话请联系管理员重新发送。')).toBeVisible();
-  await expect(page.getByRole('link', { name: '去登录' })).toHaveAttribute('href', '/api/auth/signin?callbackUrl=%2Fadmin');
+  await expect(page.getByRole('link', { name: '去登录' })).toHaveAttribute('href', '/admin-login?callbackUrl=%2Fadmin');
   await expect(page.getByLabel('初始密码')).toHaveCount(0);
   expect(calls).toEqual([]);
   expect(external.urls).toEqual([]);

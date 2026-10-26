@@ -1,18 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { safeCallbackPath, adminLoginHref } from '../src/lib/admin/safe-callback';
+import { safeCallbackPath, adminCallbackPath, adminLoginHref } from '../src/lib/admin/safe-callback';
 import { adminGate, ADMIN_AREA_ROLES, rolesForAdminPath } from '../src/lib/server/admin/layout-gate';
 
 const cb = (to: string) => new URL(to, 'https://x.test').searchParams.get('callbackUrl')!;
 
-test('unauthenticated → redirect to signin with same-site callbackUrl', () => {
+test('unauthenticated → redirect to the admin login page with a same-site callbackUrl', () => {
   const g = adminGate({ ok: false, reason: 'unauthenticated' }, '/admin/specs/gift-boxes?tab=ru');
   assert.equal(g.action, 'redirect');
-  assert.ok(g.action === 'redirect' && g.to.startsWith('/api/auth/signin?callbackUrl='));
+  assert.ok(g.action === 'redirect' && g.to.startsWith('/admin-login?callbackUrl='));
   assert.equal(g.action === 'redirect' && cb(g.to), '/admin/specs/gift-boxes?tab=ru');
   const none = adminGate({ ok: false, reason: 'unauthenticated' }, null);
-  assert.equal(none.action === 'redirect' && cb(none.to), '/admin');
+  assert.equal(none.action === 'redirect' && cb(none.to), '/admin/inquiries');
 });
 
 test('open-redirect attempts fall back to /admin', () => {
@@ -20,9 +20,12 @@ test('open-redirect attempts fall back to /admin', () => {
     const r = safeCallbackPath(bad);
     assert.ok(r === '/admin' || (r.startsWith('/') && !r.startsWith('//')), bad);
     if (bad !== '/%0a') assert.equal(r, '/admin', JSON.stringify(bad));
-    assert.equal(cb(adminLoginHref(bad)), r);
+    assert.equal(adminCallbackPath(bad), '/admin/inquiries', JSON.stringify(bad));
+    assert.ok(adminLoginHref(bad).startsWith('/admin-login?callbackUrl='), bad);
+    assert.equal(cb(adminLoginHref(bad)), '/admin/inquiries', JSON.stringify(bad));
   }
   assert.equal(safeCallbackPath('/admin/inquiries/abc'), '/admin/inquiries/abc');
+  assert.equal(adminCallbackPath('/admin/inquiries/abc'), '/admin/inquiries/abc');
 });
 
 test('database unavailable stays on the admin shell instead of the login page', () => {

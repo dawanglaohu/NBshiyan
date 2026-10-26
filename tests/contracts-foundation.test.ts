@@ -38,9 +38,16 @@ test('login requests retain the password default and accept one bounded recovery
   assert.equal(dashed.recoveryCode, 'abcdef0123');
   assert.equal(dashed.totp, undefined);
   assert.equal(contracts.LoginRequestSchema.parse({ ...legacy, recoveryCode: '   ' }).recoveryCode, undefined);
+  const challenge = contracts.LoginRequestSchema.parse({ totp: '001234' });
+  assert.equal(challenge.mode, 'password');
+  assert.equal(challenge.totp, '001234');
+  assert.equal(challenge.email, undefined);
+  assert.equal(challenge.password, undefined);
+  assert.equal(challenge.rememberDevice, false);
   rejects(contracts.LoginRequestSchema, [
-    { email: legacy.email, totp: '001234' }, { ...legacy, mode: 'recovery' },
     { email: legacy.email, password: legacy.password },
+    { email: legacy.email, totp: '001234' }, { ...legacy, mode: 'recovery' },
+    { email: legacy.email, mode: 'totp' }, { email: legacy.email, password: legacy.password, mode: 'totp' },
     { ...legacy, recoveryCode: 'recovery-secret' }, { ...legacy, recoveryCode: 'a'.repeat(41) },
     { ...legacy, totp: 1234 },
     { ...legacy, rememberDevice: true }, { ...legacy, role: 'ADMIN' },

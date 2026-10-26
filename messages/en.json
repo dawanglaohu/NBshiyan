@@ -381,7 +381,8 @@
       "chat": {
         "title": "Contacting us",
         "items": [
-          "The inquiry form and email always work, whatever you choose in cookie settings."
+          "The inquiry form and email always work, whatever you choose in cookie settings.",
+          "The necessary chat cookie expires after 7\u00A0days of inactivity and no later than 30\u00A0days after it was first set. Automatic deletion of chat messages is not currently enabled on this site."
         ]
       },
       "processors": {

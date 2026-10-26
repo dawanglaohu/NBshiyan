@@ -1,9 +1,9 @@
 import type { PrismaClient } from '@prisma/client';
+import { staleLoginChallengeWhere } from './admin/login-challenge';
 import { expiredDesignsWhere } from './designs';
 import { orphanLogoWhere } from './uploads';
-import { auditLogsWhere, sampleCountersWhere } from './retention';
+import { auditLogsWhere, daysAgo, sampleCountersWhere } from './retention';
 import { expiredInquiryWhere, inactiveWhere, adminInactiveDays } from './retention-enforce';
-import { daysAgo } from './retention';
 
 /** RETENTION_DRY_RUN=1：定时清理只统计，不写库、不删文件、不写审计 */
 export const isRetentionDryRun = (env: NodeJS.ProcessEnv = process.env) => env.RETENTION_DRY_RUN === '1';
@@ -16,6 +16,7 @@ export type ReadOnlyDb = {
   auditLog: Pick<PrismaClient['auditLog'], 'count'>;
   inquiry: Pick<PrismaClient['inquiry'], 'count'>;
   user: Pick<PrismaClient['user'], 'findMany'>;
+  adminLoginChallenge: Pick<PrismaClient['adminLoginChallenge'], 'count'>;
 };
 
 /**
@@ -25,13 +26,14 @@ export type ReadOnlyDb = {
  */
 export async function retentionDryRunCounts(db: ReadOnlyDb, now = new Date()) {
   const inqWhere = expiredInquiryWhere(now);
-  const [designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos] = await Promise.all([
+  const [designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos, loginChallenges] = await Promise.all([
     db.sharedDesign.count({ where: expiredDesignsWhere(now) }),
     db.logoUpload.count({ where: orphanLogoWhere(now) }),
     db.sampleRequest.count({ where: sampleCountersWhere(now) }),
     db.auditLog.count({ where: auditLogsWhere(now) }),
     db.inquiry.count({ where: inqWhere }),
     db.logoUpload.count({ where: { inquiry: inqWhere } }),
+    db.adminLoginChallenge.count({ where: staleLoginChallengeWhere(now) }),
   ]);
   // 闲置账号：按真实运行的顺序（createdAt 升序）模拟“最后一个有效 ADMIN 不停用”
   const cutoff = daysAgo(adminInactiveDays(), now);
@@ -45,5 +47,5 @@ export async function retentionDryRunCounts(db: ReadOnlyDb, now = new Date()) {
     }
     inactiveUsers++;
   }
-  return { designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos, inactiveUsers, skippedLastAdmin };
+  return { designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos, inactiveUsers, skippedLastAdmin, loginChallenges };
 }

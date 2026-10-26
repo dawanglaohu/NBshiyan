@@ -3,6 +3,7 @@ import { prisma } from '@/lib/server/db';
 import { cleanupOrphanLogos, secretMatches } from '@/lib/server/uploads';
 import { sendAdminAlert, errorSummary } from '@/lib/server/mail';
 import { cleanupExpiredDesigns } from '@/lib/server/designs';
+import { cleanupExpiredLoginChallenges } from '@/lib/server/admin/login-challenge';
 import { cleanupAuditLogs, clearSampleCounters, maxPerRun, runCleanupSteps, runDeadlineMs } from '@/lib/server/retention';
 import { anonymizeExpiredInquiries, disableInactiveUsers } from '@/lib/server/retention-enforce';
 import { audit } from '@/lib/server/admin/audit';
@@ -16,7 +17,7 @@ export const maxDuration = 300;
 
 /**
  * 定时清理（保留期限见 docs/data-retention.md）：
- * 过期方案 → 孤儿 logo → 样品申请邮箱计数 → 到期询盘匿名化 → 闲置后台账号停用 → 过期审计日志。日志只记条数和 errorSummary，不含个人信息。每步独立执行，其余步骤照常跑；有步骤失败或因截止时间跳过时，跑完发一封汇总告警（只含步骤名、错误类型/码和条数，按天去重，告警失败不影响响应），并写审计 cron.cleanup.alert。
+ * 过期方案 → 孤儿 logo → 样品申请邮箱计数 → 到期询盘匿名化 → 闲置后台账号停用 → 过期审计日志 → 过期或已核销的登录挑战。日志只记条数和 errorSummary，不含个人信息。每步独立执行，其余步骤照常跑；有步骤失败或因截止时间跳过时，跑完发一封汇总告警（只含步骤名、错误类型/码和条数，按天去重，告警失败不影响响应），并写审计 cron.cleanup.alert。
  * RETENTION_DRY_RUN=1 时只返回各步骤待处理条数（见 retention-dry-run.ts），不做任何修改。
  * 同一时间只跑一次（含 dry run）：advisory lock 拿不到返回 409。
  * 需 Authorization: Bearer $CRON_SECRET（Vercel Cron 会自动带上）。
@@ -46,6 +47,7 @@ async function handle(req: Request) {
       ['inquiries', (d) => anonymizeExpiredInquiries(prisma, new Date(), maxPerRun(), undefined, d)],
       ['inactiveUsers', (d) => disableInactiveUsers(prisma, (e) => audit(e), new Date(), d)],
       ['auditLogs', (d) => cleanupAuditLogs(prisma, new Date(), maxPerRun(), d)],
+      ['loginChallenges', (d) => cleanupExpiredLoginChallenges(prisma, new Date(), d)],
     ];
     const errors: Record<string, string> = {};
     const s = await runCleanupSteps(steps, deadline, async (name, e) => {
