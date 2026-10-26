@@ -151,7 +151,7 @@ test('P1 enroll: no storage / logging / innerHTML / external URLs; download revo
     assert.doesNotMatch(src, /useSearchParams|location\.(search|href|hash)|searchParams\.get\('(callback|redirect)/);
     assert.doesNotMatch(src.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, ''), /https?:\/\//, 'no absolute URLs (no external QR service)');
   }
-  assert.equal(SIGNIN_HREF, '/api/auth/signin?callbackUrl=%2Fadmin');
+  assert.equal(SIGNIN_HREF, '/admin-login?callbackUrl=%2Fadmin');
   const dl = ui.slice(ui.indexOf('const download'), ui.indexOf('const goto'));
   assert.ok(dl.indexOf('new Blob(') > 0 && dl.indexOf('a.click()') > dl.indexOf('createObjectURL') && dl.indexOf('revokeObjectURL(url)') > dl.indexOf('a.click()'), dl);
   assert.match(dl, /setTimeout\(\(\) => URL\.revokeObjectURL\(url\), 10_000\)/, 'revoke must be deferred (#353 P2)');
@@ -203,7 +203,7 @@ test('P1 enroll: page lives outside /admin, noindex + no-store, no locale prefix
   assert.doesNotMatch(layout, /checkAdminSession|redirect\(/);
   assert.match(read('../src/app/admin-enroll/page.tsx'), /export const dynamic = 'force-dynamic'/);
   const cfg = read('../next.config.ts');
-  assert.match(cfg, /'\/api\/admin\/:path\*', '\/admin-enroll'\]\.map\(\(source\) => \(\{ source, headers: adminHeaders \}\)\)/);
+  assert.match(cfg, /'\/api\/admin\/:path\*', '\/admin-enroll', '\/admin-login'\]\.map\(\(source\) => \(\{ source, headers: adminHeaders \}\)\)/);
   assert.match(cfg, /key: 'Cache-Control', value: 'no-store'/);
   // middleware matcher 的前缀排除覆盖 /admin-enroll（不走 next-intl，不会被加 /en 前缀）
   const mw = read('../src/middleware.ts');

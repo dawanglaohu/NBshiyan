@@ -70,8 +70,17 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(ru.Privacy.metaDescription.includes('чат'), false);
   assert.equal(en.Privacy.sections.chat.title, 'Contacting us');
   assert.equal(ru.Privacy.sections.chat.title, 'Как с нами связаться');
-  assert.deepEqual(en.Privacy.sections.chat.items, ['The inquiry form and email always work, whatever you choose in cookie settings.']);
-  assert.deepEqual(ru.Privacy.sections.chat.items, ['Форма запроса и e-mail работают всегда, независимо от настроек cookie.']);
+  // 联系页 humanBody 等于第 1 句。聊天期限放在第 2 句，避免联系页带上保留期限。
+  assert.deepEqual(en.Privacy.sections.chat.items, [
+    'The inquiry form and email always work, whatever you choose in cookie settings.',
+    'The necessary chat cookie expires after 7\u00A0days of inactivity and no later than 30\u00A0days after it was first set. Automatic deletion of chat messages is not currently enabled on this site.',
+  ]);
+  assert.deepEqual(ru.Privacy.sections.chat.items, [
+    'Форма запроса и e-mail работают всегда, независимо от настроек cookie.',
+    'Срок действия необходимого файла cookie чата истекает через 7\u00A0дней бездействия, но не позднее чем через 30\u00A0дней после его установки. Автоматическое удаление сообщений чата на сайте сейчас не включено.',
+  ]);
+  assert.equal(en.Privacy.sections.retention.items.inquiries.startsWith('Inquiries are anonymized 2 years after the last activity'), true);
+  assert.equal(ru.Privacy.sections.retention.items.inquiries.startsWith('Запросы обезличиваются через 2 года после последней активности'), true);
   assert.equal(en.Privacy.sections.cookies.items.length, 4);
   assert.equal(ru.Privacy.sections.cookies.items.length, 4);
   assert.equal(en.Privacy.sections.cookies.items[0].endsWith('It records whether you allowed optional analytics, and when.'), true);
@@ -100,6 +109,21 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(ru.Products.desc['gift-cards'], 'Открытки с печатью на заказ и упаковка для них — для розничных продаж и промоакций.');
   assert.equal(en.Products.metaDescription, 'Explore our wide range of custom packaging in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.');
   assert.equal(ru.Products.metaDescription, 'Широкий выбор упаковки на заказ в 3D: гофрокороба, подарочные и винные коробки, формованная целлюлоза, бумажные стаканы и печать. Запросите расчёт у PackJoyU.');
+  const enAdminSessions = 'Admin sessions that are not kept on this device end after 2\u00A0hours without activity, or 12\u00A0hours after sign-in, whichever comes first. A session kept on this device ends after 7\u00A0days of inactivity, or 30\u00A0days after sign-in, whichever comes first.';
+  const ruAdminSessions = 'Сеанс администратора без запоминания устройства завершается после 2\u00A0часов бездействия, но не позднее чем через 12\u00A0часов после входа. Сеанс с запоминанием устройства завершается после 7\u00A0дней бездействия, но не позднее чем через 30\u00A0дней после входа.';
+  assert.equal(en.Privacy.sections.retention.items.adminSessions, enAdminSessions);
+  assert.equal(ru.Privacy.sections.retention.items.adminSessions, ruAdminSessions);
+  for (const text of [enAdminSessions, ruAdminSessions]) {
+    const marks = [...text].flatMap((ch, index) => (ch.charCodeAt(0) === 160 ? [index] : []));
+    assert.equal(marks.length, 4);
+    for (const index of marks) assert.equal(text.charCodeAt(index), 160);
+  }
+  for (const file of ['messages/en.json', 'messages/ru.json']) {
+    const line = readFileSync(file, 'utf8').split('\n').find((row) => row.includes('"adminSessions"'));
+    assert.ok(line);
+    assert.equal(line.includes('\u00A0'), false);
+    assert.equal(line.split('\\u00A0').length - 1, 4);
+  }
   assert.equal(en.Fab.chat, 'Contact us');
   assert.equal(ru.Fab.chat, 'Связаться с нами');
 });

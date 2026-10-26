@@ -85,6 +85,7 @@ model User {
   enrollTokenExpiresAt DateTime? // #347 令牌截止时间 = min(签发后 24 小时, 72 小时绑定窗口截止)；为空或已过期时 enroll/confirm 一律 401 bad_credentials
   inquiries      Inquiry[] @relation("Assignee")
   deviceSessions AdminDeviceSession[]
+  loginChallenges AdminLoginChallenge[]
   createdAt      DateTime  @default(now())
 }
 
@@ -108,6 +109,23 @@ model AdminDeviceSession {
 
   @@index([userId, revokedAt])
   @@index([absoluteExpiresAt])
+}
+
+// 登录第二步的一次性挑战。id 是随机挑战的 sha256（hex），不存原文。
+// 绑定用户和 sessionVersion，并带当时的 User-Agent 哈希。5 分钟内用 updateMany 核销一次。
+model AdminLoginChallenge {
+  id             String    @id
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionVersion Int
+  uaHash         String
+  expiresAt      DateTime
+  consumedAt     DateTime?
+  attempts       Int       @default(0)
+  createdAt      DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 // 客户个人信息单独一张表，便于按地区迁移（如俄罗斯数据本地化）和 GDPR 删除

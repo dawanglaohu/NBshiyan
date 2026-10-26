@@ -59,7 +59,7 @@ test('point 3: non-locale top-level routes are never 404ed by the gate (enumerat
 
 test('point 3: matcher still keeps api/admin/_next/static files out of the locale middleware', () => {
   const m = getPathMatch(config.matcher[0], { removeUnnamedParams: true, strict: true });
-  for (const p of ['/api/inquiries', '/api/designs', '/admin', '/admin-enroll', '/_next/static/x.js', '/robots.txt', '/sitemap.xml', '/icon.svg', '/s/abc', '/models/a.glb', '/images/a.png'])
+  for (const p of ['/api/inquiries', '/api/designs', '/admin', '/admin-enroll', '/admin-login', '/_next/static/x.js', '/robots.txt', '/sitemap.xml', '/icon.svg', '/s/abc', '/models/a.glb', '/images/a.png'])
     assert.equal(m(p), false, p);
   for (const p of ['/ja', '/EN', '/en-US/products', '/xx']) assert.ok(m(p), p);
 });
