@@ -6,6 +6,7 @@ import { hitRateLimit, rateLimitKeyHash, rateLimitSubject, refundRateLimit } fro
 import { burnVerify, decrypt, hashSecret, verifySecret } from './crypto';
 import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
+import { throwTotpRequired } from './login-challenge';
 import { normalizeEmail } from '../sample';
 
 authenticator.options = { window: 1, step: 30 };
@@ -166,8 +167,9 @@ async function finishLogin(user: User, email: string, ip: string | null, method:
 }
 
 /**
- * 日常登录有 password（当前密码 + 验证码）和已开启 passwordlessEnabled 的 totp（账号 + 验证码）。
- * 非空恢复码暂时仍可代替验证码，但必须先通过当前密码。未知 mode、未开启的 totp、未知或停用账号都返回 null。
+ * password：密码正确且未开启双重验证时直接登录。已开启但没带验证码时抛出 totp_required，不记失败次数。
+ * 已开启且带了验证码时核销验证码。未开启却带了验证码、未知 mode、未知或停用账号都返回 null。
+ * totp 模式要已开启无密码登录。非空恢复码仍可代替验证码，但必须先通过当前密码。
  */
 export async function authorizeLogin(input: { email: string; password?: string; totp?: string; recoveryCode?: string; mode?: string }, ip: string | null) {
   const email = input.email.trim().toLowerCase();
@@ -179,8 +181,15 @@ export async function authorizeLogin(input: { email: string; password?: string; 
   if (mode === 'totp') return authorizeTotp(email, input.totp, ip);
   const user = await checkPassword(email, input.password ?? '', ip);
   if (typeof user === 'string') return null;
-  if (!user.totpEnabled) { await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip }); return null; }
-  if (!(await checkSecondFactor(user, input.totp, undefined))) { await fail(user, email, ip, input.totp ? 'bad_totp' : 'totp_missing'); return null; }
+  if (!user.totpEnabled) {
+    if (input.totp?.trim()) {
+      await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_not_enrolled' }, ip });
+      return null;
+    }
+    return finishLogin(user, email, ip, 'password');
+  }
+  if (!input.totp?.trim()) throwTotpRequired();
+  if (!(await checkSecondFactor(user, input.totp, undefined))) { await fail(user, email, ip, 'bad_totp'); return null; }
   return finishLogin(user, email, ip, 'password');
 }
 

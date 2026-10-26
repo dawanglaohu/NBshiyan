@@ -203,7 +203,7 @@ test('P1 enroll: page lives outside /admin, noindex + no-store, no locale prefix
   assert.doesNotMatch(layout, /checkAdminSession|redirect\(/);
   assert.match(read('../src/app/admin-enroll/page.tsx'), /export const dynamic = 'force-dynamic'/);
   const cfg = read('../next.config.ts');
-  assert.match(cfg, /'\/api\/admin\/:path\*', '\/admin-enroll'\]\.map\(\(source\) => \(\{ source, headers: adminHeaders \}\)\)/);
+  assert.match(cfg, /'\/api\/admin\/:path\*', '\/admin-enroll', '\/admin-login'\]\.map\(\(source\) => \(\{ source, headers: adminHeaders \}\)\)/);
   assert.match(cfg, /key: 'Cache-Control', value: 'no-store'/);
   // middleware matcher 的前缀排除覆盖 /admin-enroll（不走 next-intl，不会被加 /en 前缀）
   const mw = read('../src/middleware.ts');

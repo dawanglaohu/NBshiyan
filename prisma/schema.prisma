@@ -68,7 +68,7 @@ model User {
   passwordHash   String
   role           Role      @default(SALES)
   totpSecret     String? // 双重验证密钥，AES-256-GCM 加密（ADMIN_TOTP_KEY），所有后台账号强制开启
-  totpEnabled    Boolean   @default(false) // 绑定确认前为 false，此时不能登录
+  totpEnabled    Boolean   @default(false) // 绑定确认前为 false。未开启时邮箱和密码可以登录；开启后还要验证码
   totpLastStep   Int? // 上次用过的 TOTP 时间步，防止验证码重放
   recoveryCodes  String[]  @default([]) // 恢复码 argon2id 哈希，用一个删一个
   sessionVersion Int       @default(0) // 加一即让该账号所有会话失效

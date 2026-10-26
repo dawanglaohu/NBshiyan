@@ -131,7 +131,8 @@ test('/admin-enroll：页面上走完 账号验证 → 扫码并确认 → 保�
   expect(external.urls).toEqual([]);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
   await go.click();
-  await page.waitForURL(/\/api\/auth\/signin/);
+  await page.waitForURL(/\/admin-login/);
+  expect(new URL(page.url()).searchParams.get('callbackUrl')).toBe('/admin');
 });
 
 test('#347 没有 #t= 令牌（直接打开或刷新后）→「需要绑定链接」页，不显示表单，不发任何请求', async ({ page, external }) => {

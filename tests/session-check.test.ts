@@ -10,7 +10,6 @@ test('unauthenticated -> 401', () => {
   assert.equal(reason(classifySession(undefined, null, undefined, R)), 'unauthenticated:401');
   assert.equal(reason(classifySession('u1', null, 3, R)), 'unauthenticated:401');
   assert.equal(reason(classifySession('u1', { ...base, sessionVersion: 4 }, 3, R)), 'unauthenticated:401');
-  assert.equal(reason(classifySession('u1', { ...base, totpEnabled: false }, 3, R)), 'unauthenticated:401');
   assert.equal(reason(classifySession('u1', { ...base, lockedUntil: new Date(Date.now() + 60_000) }, 3, R)), 'unauthenticated:401');
 });
 
@@ -23,6 +22,7 @@ test('disabled -> 403 account_disabled, even with stale session or allowed role'
 test('wrong role -> 403 forbidden; ok otherwise', () => {
   assert.equal(reason(classifySession('u1', { ...base, role: 'SALES' as never }, 3, R)), 'forbidden:403');
   assert.equal(reason(classifySession('u1', base, 3, R)), 'ok');
+  assert.equal(reason(classifySession('u1', { ...base, totpEnabled: false }, 3, R)), 'ok');
   assert.equal(denialError('unauthenticated'), 'unauthorized');
   assert.equal(denialError('forbidden'), 'forbidden');
 });

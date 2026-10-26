@@ -34,7 +34,7 @@ export const LoginRequestSchema = z.object({
   rememberDevice: RememberDeviceSchema,
   recoveryCode: z.preprocess(loginRecoveryInput, LoginRecoveryCodeSchema.optional()),
 }).strict().refine((input) => input.mode !== 'password' || input.password !== undefined, { path: ['password'], message: 'Password required' })
-  .refine((input) => input.totp !== undefined || input.recoveryCode !== undefined, { path: ['totp'], message: 'Authenticator or recovery code required' });
+  .refine((input) => input.mode === 'password' || input.totp !== undefined || input.recoveryCode !== undefined, { path: ['totp'], message: 'Authenticator or recovery code required' });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
 export const ActionPurposeSchema = z.enum(['LOGIN_MODE', 'PASSWORD', 'TOTP_RESET', 'RECOVERY_AUTHORIZE', 'DEVICE_REVOKE', 'LOGOUT_ALL']);

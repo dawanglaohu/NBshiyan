@@ -90,8 +90,8 @@ export function responseHeaderRules(isProd: boolean) {
     ...FILE_ROUTE_SOURCES.map((source) => ({ source, headers: securityHeaders.filter((h) => h.key !== 'Content-Security-Policy') })),
     // 非正式环境一律禁止收录（SEO 要求）
     ...(isProd ? [] : [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]),
-    // 后台页面和后台接口：不缓存、不收录、不带 Referer（/admin-enroll：P1 首次绑定 2FA 页，不在 /admin 下但同样处理）
-    ...['/admin', '/admin/:path*', '/:locale/admin', '/:locale/admin/:path*', '/api/admin/:path*', '/admin-enroll'].map((source) => ({ source, headers: adminHeaders })),
+    // 后台页面和后台接口：不缓存、不收录、不带 Referer（/admin-enroll、/admin-login 不在 /admin 下，但同样处理）
+    ...['/admin', '/admin/:path*', '/:locale/admin', '/:locale/admin/:path*', '/api/admin/:path*', '/admin-enroll', '/admin-login'].map((source) => ({ source, headers: adminHeaders })),
     { source: '/s/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
     { source: '/models/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
     // 先给所有 /brand mp4 no-store。磁盘上存在的文件在下一条覆盖成 1 天缓存，后匹配的生效。不存在的保持 no-store。

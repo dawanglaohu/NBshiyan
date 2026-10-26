@@ -65,6 +65,7 @@ const signOutState = new AsyncLocalStorage<{ failed: boolean }>();
 
 export const { handlers, auth } = NextAuth({
   trustHost: true,
+  pages: { signIn: '/admin-login' },
   session: { strategy: 'jwt', maxAge: ABSOLUTE_MAX_AGE, updateAge: 15 * 60 },
   jwt: { maxAge: ABSOLUTE_MAX_AGE, encode: encodeCapped },
   useSecureCookies: USE_SECURE_COOKIES,

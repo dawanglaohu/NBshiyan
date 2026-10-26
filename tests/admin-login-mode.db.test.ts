@@ -203,7 +203,7 @@ test('omitted mode stays password and a valid password plus code opens one devic
 
 test('unknown mode, disallowed totp, recovery code, and unknown account share one failure and leave no device', { skip, timeout: 180_000 }, async () => {
   const base = await baselineKey();
-  assert.equal(base.key, '302|/api/auth/signin|CredentialsSignin|credentials|0');
+  assert.equal(base.key, '302|/admin-login|CredentialsSignin|credentials|0');
   assert.equal((base.response.headers.get('location') ?? '').includes('@'), false);
 
   const member = await makeUser();
@@ -242,6 +242,33 @@ test('unknown mode, disallowed totp, recovery code, and unknown account share on
   const signed = await postLogin({ email: member.email, password: member.password, totp: code }, nextIp());
   assert.equal(hasSession(signed), true);
   assert.equal(await deviceCount(member.row.id), 1);
+});
+
+test('password without a code logs in only when 2FA is off', { skip, timeout: 180_000 }, async () => {
+  const base = await baselineKey();
+  const unknown = await postLogin({
+    email: `missing-${randomBytes(4).toString('hex')}@example.com`,
+    password: 'not-a-real-password',
+  }, nextIp());
+  assert.equal(failureKey(unknown), base.key);
+
+  const enrolled = await makeUser();
+  const before = await securitySnapshot(enrolled.row.id);
+  const ask = await postLogin({ email: enrolled.email, password: enrolled.password }, nextIp());
+  assert.equal(failureKey(ask), '302|/admin-login|CredentialsSignin|totp_required|0');
+  assert.equal(hasSession(ask), false);
+  assert.equal(await deviceCount(enrolled.row.id), 0);
+  const after = await securitySnapshot(enrolled.row.id);
+  assert.equal(after.failedLogins, before.failedLogins);
+  assert.equal(after.lockedUntil, before.lockedUntil);
+
+  const badPassword = await postLogin({ email: enrolled.email, password: 'wrong-password-value' }, nextIp());
+  assert.equal(failureKey(badPassword), base.key);
+
+  const plain = await makeUser({ totpEnabled: false, totpSecret: null });
+  const signed = await postLogin({ email: plain.email, password: plain.password }, nextIp());
+  assert.equal(hasSession(signed), true);
+  assert.equal(await deviceCount(plain.row.id), 1);
 });
 
 test('totp mode ignores the password and password mode does not burn the code on a wrong password', { skip, timeout: 180_000 }, async () => {

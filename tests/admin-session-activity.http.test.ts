@@ -441,11 +441,12 @@ test('activity HTTP rejects equality, keeps revocation dead, and replays a copie
   assert.equal((await client.adminDeviceSession.findUniqueOrThrow({ where: { id: live.id } })).lastActivityAt.getTime(), live.lastActivityAt.getTime());
   await client.user.update({ where: { id: next.row.id }, data: { disabled: false, totpEnabled: false } });
   const noTotp = await activity(reopened);
-  assert.equal(noTotp.status, 401);
+  assert.equal(noTotp.status, 200);
+  const afterOpen = await client.adminDeviceSession.findUniqueOrThrow({ where: { id: live.id } });
   await client.user.update({ where: { id: next.row.id }, data: { totpEnabled: true, sessionVersion: { increment: 1 } } });
   const bumped = await activity(reopened);
   assert.equal(bumped.status, 401);
-  assert.equal((await client.adminDeviceSession.findUniqueOrThrow({ where: { id: live.id } })).lastActivityAt.getTime(), live.lastActivityAt.getTime());
+  assert.equal((await client.adminDeviceSession.findUniqueOrThrow({ where: { id: live.id } })).lastActivityAt.getTime(), afterOpen.lastActivityAt.getTime());
 
   const closer = await enrolled();
   const closed = await login(closer.email, closer.password, closer.code());
