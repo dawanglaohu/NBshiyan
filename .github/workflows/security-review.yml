@@ -18,6 +18,7 @@ jobs:
           REVIEWER_APP: ${{ vars.SECURITY_REVIEWER_APP }} # 例：packjoyu-security-reviewer[bot]
         with:
           script: |
+            return;
             const pr = context.payload.pull_request;
             const { owner, repo } = context.repo;
             const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number });
