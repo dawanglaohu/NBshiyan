@@ -53,5 +53,5 @@ origin: issue-ledger-20261024
 ## 实施沉淀
 
 <!-- notes:begin -->
-生产镜像不能跑 tsx。回填命令是 `node scripts/backfill-hard-expires-at.mjs`，由 `pnpm admin:backfill-hard-expires` 调用。时长写在 `.mjs` 里，单测要求等于 `ADMIN_SESSION_POLICY.ordinaryAbsoluteMs` 与 `absoluteMs`。两条 UPDATE 的文本与 `device-session.ts` 的 `backfillHardExpiresAt` 相同。脚本随 `/api/health` 的文件追踪进入 standalone。Dockerfile 在文件缺失时让构建失败。
+生产镜像不能跑 tsx。回填命令是 `node scripts/backfill-hard-expires-at.mjs`，由 `pnpm admin:backfill-hard-expires` 调用。时长写在 `.mjs` 里，单测要求等于 `ADMIN_SESSION_POLICY.ordinaryAbsoluteMs` 与 `absoluteMs`。两条 UPDATE 的文本与 `device-session.ts` 的 `backfillHardExpiresAt` 相同。脚本随 `/api/health` 的文件追踪进入 standalone。Dockerfile 在文件缺失时让构建失败。回填无 dry-run、不分批，两条 UPDATE 不在同一事务，失败直接重跑（幂等）。
 <!-- notes:end -->
