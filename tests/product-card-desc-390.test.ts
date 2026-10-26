@@ -6,11 +6,13 @@ const en = JSON.parse(readFileSync('messages/en.json', 'utf8')).Products.desc as
 const ru = JSON.parse(readFileSync('messages/ru.json', 'utf8')).Products.desc as Record<string, string>;
 const css = readFileSync('src/app/globals.css', 'utf8');
 
-test('390px catalog blurbs that overflowed two lines are the shortened sentences', () => {
+test('catalog blurbs held to two lines at 390px keep these exact sentences', () => {
   assert.equal(en['color-boxes'], 'Full-color printed folding cartons and retail boxes for cosmetics, food and electronics.');
+  assert.equal(en['corrugated-boxes'], 'Corrugated shipping and mailer boxes in single and double wall, printed with your brand.');
   assert.equal(ru['corrugated-boxes'], 'Гофрокороба и почтовые коробки на заказ, трёх- и пятислойные, печать логотипа.');
   assert.equal(ru['christmas-merchandise'], 'Новогодние коробки, тубусы, адвент-календари и сезонная упаковка на заказ.');
-  assert.equal(en['corrugated-boxes'], 'Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.');
+  assert.equal(ru['gift-boxes'], 'Жёсткие и магнитные подарочные коробки с тиснением фольгой и ложементами.');
+  assert.equal(ru['wine-boxes'], 'Коробки для вина и крепких напитков на одну или несколько бутылок, отделка.');
   assert.equal(ru['color-boxes'], 'Картонные коробки с полноцветной печатью для косметики, продуктов и электроники.');
 });
 

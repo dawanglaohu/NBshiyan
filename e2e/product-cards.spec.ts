@@ -46,41 +46,46 @@ async function cardBox(page: Page) {
   });
 }
 
-async function descriptionLines(page: Page, heading: string) {
-  const desc = page.locator('article.card', { has: page.getByRole('heading', { name: heading, exact: true }) }).locator('.desc');
-  await expect(desc).toHaveCount(1);
-  return desc.evaluate((el) => {
-    const probe = el.cloneNode(true) as HTMLElement;
-    probe.style.setProperty('-webkit-line-clamp', 'unset');
-    probe.style.lineClamp = 'unset';
-    probe.style.display = 'block';
-    probe.style.overflow = 'visible';
-    probe.style.position = 'absolute';
-    probe.style.visibility = 'hidden';
-    probe.style.width = `${el.getBoundingClientRect().width}px`;
-    probe.style.maxHeight = 'none';
-    probe.style.margin = '0';
-    el.insertAdjacentElement('afterend', probe);
-    const node = probe.firstChild;
-    const range = document.createRange();
-    let lines = 0;
-    let top: number | null = null;
-    if (node && node.nodeType === Node.TEXT_NODE) {
-      const text = node as Text;
-      for (let i = 0; i < text.length; i++) {
-        range.setStart(text, i);
-        range.setEnd(text, i + 1);
-        const rect = range.getBoundingClientRect();
-        if (!rect.height) continue;
-        if (top === null || Math.abs(rect.top - top) > 1) {
-          lines += 1;
-          top = rect.top;
+async function assertDescriptionsFitTwoLines(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
+  const descs = page.locator('.desc');
+  const count = await descs.count();
+  expect(count).toBeGreaterThan(0);
+  for (let index = 0; index < count; index++) {
+    const measured = await descs.nth(index).evaluate((el) => {
+      const probe = el.cloneNode(true) as HTMLElement;
+      probe.style.setProperty('-webkit-line-clamp', 'unset');
+      probe.style.lineClamp = 'unset';
+      probe.style.display = 'block';
+      probe.style.overflow = 'visible';
+      probe.style.position = 'absolute';
+      probe.style.visibility = 'hidden';
+      probe.style.width = `${el.getBoundingClientRect().width}px`;
+      probe.style.maxHeight = 'none';
+      probe.style.margin = '0';
+      el.insertAdjacentElement('afterend', probe);
+      const node = probe.firstChild;
+      const range = document.createRange();
+      let lines = 0;
+      let top: number | null = null;
+      if (node && node.nodeType === Node.TEXT_NODE) {
+        const text = node as Text;
+        for (let i = 0; i < text.length; i++) {
+          range.setStart(text, i);
+          range.setEnd(text, i + 1);
+          const rect = range.getBoundingClientRect();
+          if (!rect.height) continue;
+          if (top === null || Math.abs(rect.top - top) > 1) {
+            lines += 1;
+            top = rect.top;
+          }
         }
       }
-    }
-    probe.remove();
-    return lines;
-  });
+      probe.remove();
+      return { lines, text: (el.textContent ?? '').trim() };
+    });
+    expect(measured.lines, measured.text).toBeLessThanOrEqual(2);
+  }
 }
 
 function articleChunks(html: string) {
@@ -250,7 +255,7 @@ test('a 390px products entry does not overflow and keeps the name, specs, and in
     client: document.documentElement.clientWidth,
   }));
   expect(overflow.scroll).toBeLessThanOrEqual(overflow.client + 1);
-  expect(await descriptionLines(page, 'Color Boxes')).toBeLessThanOrEqual(2);
+  await assertDescriptionsFitTwoLines(page);
 });
 
 test('ru 390 products page does not overflow and each control center hits itself', async ({ page }) => {
@@ -258,8 +263,7 @@ test('ru 390 products page does not overflow and each control center hits itself
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/ru/products');
   await dismissConsent(page, 'ru');
-  expect(await descriptionLines(page, 'Гофрокороба')).toBeLessThanOrEqual(2);
-  expect(await descriptionLines(page, 'Новогодняя упаковка')).toBeLessThanOrEqual(2);
+  await assertDescriptionsFitTwoLines(page);
   const docOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(docOverflow).toBe(0);
   const title = await page.locator('#pulp-molding h2').evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
