@@ -1,3 +1,4 @@
+import { outageFormMessage } from '@/lib/admin/outage-copy';
 import { adminLoginHref } from '@/lib/admin/safe-callback';
 export const PRODUCT_LABEL: Record<string, string> = {
   'corrugated-boxes': '瓦楞纸箱',
@@ -30,6 +31,7 @@ export function errorText(code: string, prefix = '加载失败') {
   if (code === 'forbidden_origin') return '请求被拒绝：来源校验失败（请从后台页面本身操作，不要跨站或从缓存页面提交）。请刷新页面后重试。';
   if (code === 'unauthorized') return '登录已过期，请重新登录。';
   if (code === 'forbidden') return '没有权限执行这个操作。';
+  if (code === 'service_unavailable' || code === 'http_503') return outageFormMessage();
   return `${prefix}：${code}`;
 }
 /**

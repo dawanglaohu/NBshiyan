@@ -11,6 +11,10 @@ test('/admin/users: logged out → sign-in redirect (not 404)', () => {
   assert.equal(g.action === 'redirect' && cb(g.to), '/admin/users');
 });
 
+test('/admin/users: database unavailable does not redirect or 404', () => {
+  assert.deepEqual(adminPageGate({ ok: false, reason: 'unavailable' }, '/admin/users'), { action: 'unavailable' });
+});
+
 test('/admin/users: disabled or wrong role → 404; ok → render', () => {
   assert.deepEqual(adminPageGate({ ok: false, reason: 'disabled' }, '/admin/users'), { action: 'notFound' });
   assert.deepEqual(adminPageGate({ ok: false, reason: 'forbidden' }, '/admin/users'), { action: 'notFound' });

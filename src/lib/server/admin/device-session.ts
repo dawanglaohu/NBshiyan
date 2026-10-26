@@ -6,14 +6,16 @@ import { createDeviceRepo, type DeviceRepo } from './device-repo';
 import { activityRetryAfterSeconds, activityWriteAllowed, effectiveDeadline, enforcedAbsolute, initialHardExpiresAt, publicAbsolute } from './session-expiry';
 
 export type SessionPolicy = ServerPolicy['session'];
-export type SessionDenial = 'unauthenticated' | 'disabled' | 'forbidden';
+export type SessionDenial = 'unauthenticated' | 'disabled' | 'forbidden' | 'unavailable';
+/** 会话本身无效。数据库故障不在这里，见 UnavailableAccess。 */
+export type AccountDenial = Exclude<SessionDenial, 'unavailable'>;
 type SessionUser = Pick<User, 'disabled' | 'totpEnabled' | 'lockedUntil' | 'sessionVersion' | 'role'>;
 
 export type ExpiryBounds = { effectiveExpiresAt: Date; absoluteExpiresAt: Date | null };
 
 export type BoundAccess =
   | { ok: true; user: User; device: AdminDeviceSession; bounds: ExpiryBounds }
-  | { ok: false; reason: SessionDenial; status: 401 | 403 };
+  | { ok: false; reason: AccountDenial; status: 401 | 403 };
 
 /** 数据库暂时不可用。调用方保留 cookie，不把这次故障当成未登录。 */
 export type UnavailableAccess = { ok: false; reason: 'unavailable'; status: 503 };
@@ -61,7 +63,7 @@ export async function backfillHardExpiresAt(db: PrismaClient, policy: SessionPol
  * 停用 → 403。路由角色在设备校验之后判断。
  */
 function classifyAccount<U extends SessionUser>(uid: string | undefined, user: U | null, sv: number | undefined, now: Date):
-  { ok: true; user: U } | { ok: false; reason: SessionDenial; status: 401 | 403 } {
+  { ok: true; user: U } | { ok: false; reason: AccountDenial; status: 401 | 403 } {
   if (!uid || !user) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (user.disabled) return { ok: false, reason: 'disabled', status: 403 };
   if (!user.totpEnabled || (user.lockedUntil && user.lockedUntil > now) || sv !== user.sessionVersion) return { ok: false, reason: 'unauthenticated', status: 401 };
@@ -163,7 +165,7 @@ export type OpenDeviceInput = {
 
 export type ActivityWrite =
   | { ok: true; wrote: boolean; bounds: ExpiryBounds; retryAfterSeconds: number; user: User; device: AdminDeviceSession }
-  | { ok: false; reason: SessionDenial; status: 401 | 403 }
+  | { ok: false; reason: AccountDenial; status: 401 | 403 }
   | UnavailableAccess;
 
 const ACTIVITY_ROLES = ['ADMIN', 'SALES', 'EDITOR'] as const;

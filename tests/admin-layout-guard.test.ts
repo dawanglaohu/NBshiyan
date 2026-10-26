@@ -25,6 +25,11 @@ test('open-redirect attempts fall back to /admin', () => {
   assert.equal(safeCallbackPath('/admin/inquiries/abc'), '/admin/inquiries/abc');
 });
 
+test('database unavailable stays on the admin shell instead of the login page', () => {
+  assert.deepEqual(adminGate({ ok: false, reason: 'unavailable' }, '/admin/inquiries/abc'), { action: 'unavailable' });
+  assert.deepEqual(adminGate({ ok: false, reason: 'unavailable' }, null), { action: 'unavailable' });
+});
+
 test('wrong role → 404, correct role → render', () => {
   assert.deepEqual(adminGate({ ok: false, reason: 'forbidden' }, '/admin'), { action: 'notFound' });
   for (const p of ['/admin', '/admin/inquiries', '/admin/x']) assert.deepEqual(adminGate({ ok: false, reason: 'disabled' }, p), { action: 'notFound' }, 'disabled → 404, not login');

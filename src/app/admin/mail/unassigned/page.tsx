@@ -9,7 +9,8 @@ import { UNASSIGNED_MAIL_LIVE } from '@/lib/admin/mail/features';
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  await enforceAdminPage(['ADMIN'], '/admin/mail/unassigned');
+  const gate = await enforceAdminPage(['ADMIN'], '/admin/mail/unassigned');
+  if (gate === 'unavailable') return null;
   if (!mailEnabled) notFound(); // 邮件功能未开启（NEXT_PUBLIC_ADMIN_MAIL 未设置）
   if (!UNASSIGNED_MAIL_LIVE) notFound(); // #340：未归类接口后端还没有，入口整体关闭
   return <UnassignedInbox />;

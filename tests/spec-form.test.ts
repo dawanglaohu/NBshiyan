@@ -87,6 +87,10 @@ test('server errors are shown: codes mapped, 400 issues per field, unknown codes
   assert.equal(s.message, '服务器校验未通过');
   assert.deepEqual(s.fields, { 'certifications.0.url': 'https_url_required', _: 'x' });
   assert.equal(serverErrors(500, 'not json').message, '保存失败（http_500）');
+  const outage = '服务暂时不可用。数据库连接出现问题，你的登录状态仍然有效';
+  assert.equal(serverErrors(503, { error: 'service_unavailable' }).message, outage);
+  assert.equal(serverErrors(503, {}).message, outage);
+  assert.equal(serverErrors(503, { error: 'service_unavailable' }).message.includes('service_unavailable'), false);
 });
 
 test('page access: EDITOR + ADMIN only, checked server-side before rendering', () => {

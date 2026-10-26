@@ -2,7 +2,10 @@ import { Manrope } from 'next/font/google';
 import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import './admin.css';
+import AdminOutageNotice from '@/components/admin/AdminOutageNotice';
 import AdminShell from '@/components/admin/AdminShell';
+import { outageCopy } from '@/lib/admin/outage-copy';
+import { safeCallbackPath } from '@/lib/admin/safe-callback';
 import { checkAdminSession } from '@/lib/server/admin/guard';
 import { adminGate, ADMIN_AREA_ROLES } from '@/lib/server/admin/layout-gate';
 
@@ -17,12 +20,17 @@ const manrope = Manrope({ subsets: ['latin', 'cyrillic'], display: 'swap', varia
 /**
  * 第一道防线：所有 /admin 页面渲染前在服务端检查会话、账号状态和角色。
  * 未登录 → 登录页（callbackUrl 只允许站内路径）；角色不对或该页面（ADMIN_ROUTE_ROLES）不允许此角色 → 404。
+ * 数据库不可用 → 保留侧栏和顶栏，内容区换成错误卡片，不清登录态。
  * 注意：layout 不能替代各页面 / 接口自己的检查（客户端导航时 layout 不一定重新执行），/api/admin/* 仍各自 requireAdmin。
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const requestHeaders = await headers();
   const check = await checkAdminSession([...ADMIN_AREA_ROLES]);
-  const gate = adminGate(check.ok ? { ok: true, role: check.user.role } : { ok: false, reason: check.reason }, (await headers()).get('x-admin-path'));
+  const gate = adminGate(check.ok ? { ok: true, role: check.user.role } : { ok: false, reason: check.reason }, requestHeaders.get('x-admin-path'));
   if (gate.action === 'redirect') redirect(gate.to);
   if (gate.action === 'notFound') notFound();
-  return (<html lang="zh-CN" className={manrope.variable}><body style={{ margin: 0 }}><AdminShell role={check.ok ? check.user.role : undefined}>{children}</AdminShell></body></html>);
+  const content = gate.action === 'unavailable'
+    ? <AdminOutageNotice copy={outageCopy(requestHeaders.get('accept-language'))} href={safeCallbackPath(requestHeaders.get('x-admin-path'))} />
+    : children;
+  return (<html lang="zh-CN" className={manrope.variable}><body style={{ margin: 0 }}><AdminShell role={check.ok ? check.user.role : undefined}>{content}</AdminShell></body></html>);
 }

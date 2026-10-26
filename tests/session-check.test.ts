@@ -25,4 +25,5 @@ test('wrong role -> 403 forbidden; ok otherwise', () => {
   assert.equal(reason(classifySession('u1', base, 3, R)), 'ok');
   assert.equal(denialError('unauthenticated'), 'unauthorized');
   assert.equal(denialError('forbidden'), 'forbidden');
+  assert.equal(denialError('unavailable'), 'service_unavailable');
 });
