@@ -84,11 +84,12 @@ export default function EnrollWizard() {
     return () => { window.removeEventListener('pagehide', wipe); wipe(); };
   }, [wipe]);
 
+  // 密码已清空、不再明文之后，焦点回到密码框（错误条的聚焦不能留在那里）。
   useEffect(() => {
-    if (!focusPw.current || error?.code !== 'bad_credentials') return;
+    if (!focusPw.current || error?.code !== 'bad_credentials' || password !== '' || showPw) return;
     focusPw.current = false;
     pwInput.current?.focus();
-  }, [error]);
+  }, [error, password, showPw]);
 
   // 第 3 步：确认后 30 秒倒计时（确认用掉的码登录时再用会失败并计入锁定次数）
   const left = Math.ceil(waitLeft(s, now) / 1000);
@@ -113,9 +114,11 @@ export default function EnrollWizard() {
     const r = await postEnroll<{ otpauthUri: string }>(ENROLL_PATH, withToken({ email: email.trim(), password }));
     setBusy(false);
     if (!r.ok) {
-      // 401 统一文案：保留邮箱、清空密码并聚焦（下面的 effect 在渲染后聚焦）
+      // 401 统一文案：保留邮箱、清空密码，焦点回到密码框。错误条会先聚焦，所以随后再放回密码框。
       if (r.code === 'bad_credentials') { setPassword(''); setShowPw(false); focusPw.current = true; }
-      showError(r.code, 'top'); return;
+      showError(r.code, 'top');
+      if (r.code === 'bad_credentials') pwInput.current?.focus();
+      return;
     }
     if (!parseSecret(r.data.otpauthUri)) { showError('unknown', 'top'); return; }
     setShowPw(false);
