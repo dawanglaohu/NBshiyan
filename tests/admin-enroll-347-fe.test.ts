@@ -92,7 +92,7 @@ test('账号页「重置 2FA」：危险样式、行内最后一个、和其他�
 
 test('site_url_invalid 提示：后台错误样式（红底红边）+ role="alert"，位置不变（标题下方）', () => {
   const src = code(USERS);
-  assert.match(src, /<h1>账号权限<\/h1>\s*\{err && <p role="alert" className="adm-msg err">\{err\}<\/p>\}/);
+  assert.match(src, /<h1>账号权限<\/h1>\s*\{err && <p ref=\{errRef\} tabIndex=\{-1\} role="alert" className="adm-msg err">\{err\}<\/p>\}/);
   assert.match(read('src/app/admin/admin.css'), /\.adm-msg\.err\{background:var\(--errb\);border-color:[^;]+;color:var\(--err\)/);
 });
 
