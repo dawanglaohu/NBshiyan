@@ -1,4 +1,4 @@
-import { outageFormMessage } from '@/lib/admin/outage-copy';
+import { outageFormGeneric, outageFormMessage } from '@/lib/admin/outage-copy';
 import { adminLoginHref } from '@/lib/admin/safe-callback';
 export const PRODUCT_LABEL: Record<string, string> = {
   'corrugated-boxes': '瓦楞纸箱',
@@ -16,7 +16,7 @@ export const PRODUCT_LABEL: Record<string, string> = {
 };
 /** 只查自身属性：'constructor'、'__proto__'、'toString' 等原型键回退为 slug */
 export const productName = (slug: string) => (Object.prototype.hasOwnProperty.call(PRODUCT_LABEL, slug) ? PRODUCT_LABEL[slug] : slug);
-/** 接口错误转成后台可读的提示 */
+/** 接口错误转成后台可读的提示。只返回下面这些固定句子。 */
 const ERR: Record<string, string> = {
   invalid: '参数不正确，请检查后重试。',
   invalid_assignee: '负责人无效（账号已禁用或没有询盘权限）。',
@@ -26,13 +26,15 @@ const ERR: Record<string, string> = {
   anonymized: '此询盘已匿名化，无法修改',
   not_found: '询盘不存在，或不在你的权限范围内。'
 };
-export function errorText(code: string, prefix = '加载失败') {
-  if (ERR[code]) return ERR[code];
+/** 第二个参数保留给调用处。兜底句不再使用它，页面上不出现错误码。 */
+export function errorText(code: string, _prefix = '加载失败') {
+  if (Object.prototype.hasOwnProperty.call(ERR, code)) return ERR[code];
   if (code === 'forbidden_origin') return '请求被拒绝：来源校验失败（请从后台页面本身操作，不要跨站或从缓存页面提交）。请刷新页面后重试。';
   if (code === 'unauthorized') return '登录已过期，请重新登录。';
   if (code === 'forbidden') return '没有权限执行这个操作。';
   if (code === 'service_unavailable' || code === 'http_503') return outageFormMessage();
-  return `${prefix}：${code}`;
+  // 503 已在上面单独成句。internal_error、其余 http_5xx 和认不出的错误码都用同一句。
+  return outageFormGeneric();
 }
 /**
  * 后台统一时间格式（#291）：「2026/09/15 00:44」= YYYY/MM/DD HH:mm，月日补零、24 小时制、不显示秒。

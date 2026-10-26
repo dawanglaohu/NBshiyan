@@ -181,7 +181,7 @@ test.describe('已登录的 ADMIN（整组共用一次登录）', () => {
     await save.click();
     await expect(page.locator('.st-page [role=alert]')).toHaveText('参数不正确，请检查后重试。（包含不支持的字段）'); // UX #378 P3 ①：不显示后端字段路径
     await save.click();
-    await expect(page.locator('.st-page [role=alert]')).toHaveText('保存失败：http_422');
+    await expect(page.locator('.st-page [role=alert]')).toHaveText('服务暂时出错，请稍后重试。');
     await expect(page.getByLabel('公司注册全称')).toHaveValue('示例文字 Sample Co., Ltd.');
   });
 

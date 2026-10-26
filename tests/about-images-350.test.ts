@@ -366,7 +366,8 @@ test('错误文案：图片带来的新错误码都是中文（经 settingsError
   assert.equal(settingsErrorText('network'), '网络错误，请检查网络后重试');
   assert.equal(settingsErrorText('invalid_locale'), '这个语言还不支持，请刷新页面后重试');
   assert.equal(settingsErrorText('invalid'), '参数不正确，请检查后重试。');
-  assert.equal(settingsErrorText('http_422'), '保存失败：http_422', '#373 / #375 的既有约定不变');
+  assert.equal(settingsErrorText('http_422'), '服务暂时出错，请稍后重试。');
+  assert.equal(settingsErrorText('http_422').includes('http_422'), false);
   for (const c of ['unknown_asset', 'network', 'missing_file', 'asset_in_use', 'not_found', 'file_too_large', 'rate_limited', 'http_502', 'http_404']) {
     assert.doesNotMatch(imageErrorText(c), /[a-z]+_[a-z0-9]+/, c);
   }

@@ -7,7 +7,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import AdminOutageNotice from '../src/components/admin/AdminOutageNotice';
 import { errorText } from '../src/components/admin/format';
 import { submitCreate } from '../src/lib/admin/enroll-link';
-import { OUTAGE_COPY, outageCopy } from '../src/lib/admin/outage-copy';
+import { FORM_GENERIC, NBSP, OUTAGE_COPY, outageCopy, outageFormGeneric } from '../src/lib/admin/outage-copy';
+import { serverErrors } from '../src/lib/admin/spec-form';
 import { adaptApiError } from '../src/lib/client/api-errors';
 import { adminGate } from '../src/lib/server/admin/layout-gate';
 import { adminPageGate } from '../src/lib/server/admin/page-access';
@@ -43,9 +44,24 @@ test('outage card renders zh, en and ru without technical detail', () => {
   assert.match(en, />Try again</);
   const ru = card('ru-RU,ru;q=0.9,en;q=0.8', '/admin');
   assert.match(ru, new RegExp(OUTAGE_COPY.ru.title));
-  assert.match(visible(ru), /Это не приведёт к выходу из системы/);
+  for (const body of [OUTAGE_COPY.ru.unavailable, OUTAGE_COPY.ru.internal]) {
+    assert.ok(body.includes(`не${NBSP}приведёт`));
+    assert.ok(body.includes(`к${NBSP}выходу`));
+    assert.ok(body.includes(`из${NBSP}системы`));
+    assert.equal(body.includes('не приведёт'), false);
+    assert.equal(body.includes('к выходу'), false);
+    assert.equal(body.includes('из системы'), false);
+  }
+  assert.ok(OUTAGE_COPY.ru.unavailable.includes(`к${NBSP}базе данных`));
+  assert.equal(OUTAGE_COPY.ru.unavailable.includes('к базе'), false);
+  assert.ok(ru.includes(`не${NBSP}приведёт`) || new RegExp(`не(?:${NBSP}|&nbsp;|&#x0*a0;)приведёт`, 'i').test(ru));
+  assert.ok(ru.includes(`из${NBSP}системы`) || new RegExp(`из(?:${NBSP}|&nbsp;|&#x0*a0;)системы`, 'i').test(ru));
   assert.match(ru, /приведёт/);
-  assert.ok(ru.includes('\u00A0') || /&nbsp;|&#x0*a0;/i.test(ru));
+  assert.ok(ru.includes(NBSP) || /&nbsp;|&#x0*a0;/i.test(ru));
+  assert.equal(OUTAGE_COPY.en.internal.includes(NBSP), false);
+  assert.equal(OUTAGE_COPY.en.unavailable.includes(NBSP), false);
+  assert.equal(OUTAGE_COPY.zh.internal.includes(NBSP), false);
+  assert.equal(OUTAGE_COPY.zh.unavailable.includes(NBSP), false);
   assert.match(ru, /lang="ru"/);
   assert.match(ru, />Повторить</);
 });
@@ -98,4 +114,53 @@ test('a 503 form error stays on the form and can be submitted again', async () =
   assert.equal(failure.action, 'retry');
   assert.equal(failure.code, 'service_unavailable');
   assert.equal(failure.status, 503);
+});
+
+test('internal and unknown form errors use the fixed fallback in zh, en and ru', () => {
+  const unknown = 'zz_unknown_code_123';
+  const leaked = 'postgres://secret-should-not-render';
+  const zh = '服务暂时出错，请稍后重试。';
+  assert.equal(outageFormGeneric('zh'), zh);
+  assert.equal(outageFormGeneric('en'), 'Something went wrong on our side. Please try again shortly.');
+  assert.equal(outageFormGeneric('ru'), `На${NBSP}нашей стороне произошла ошибка. Повторите попытку позже.`);
+  assert.equal(FORM_GENERIC.zh.includes(NBSP), false);
+  assert.equal(FORM_GENERIC.en.includes(NBSP), false);
+  assert.ok(FORM_GENERIC.ru.includes(`На${NBSP}нашей стороне`));
+  assert.equal(FORM_GENERIC.ru.includes('На нашей'), false);
+  for (const code of ['internal_error', 'http_500', 'http_502', 'http_504', unknown]) {
+    const text = errorText(code, '操作失败');
+    assert.equal(text, zh, code);
+    assert.equal(text.includes(code), false, code);
+    assert.equal(text.includes('重新登录'), false, code);
+  }
+  assert.notEqual(errorText('http_503', '保存失败'), zh);
+  assert.equal(errorText('service_unavailable', '操作失败').includes('service_unavailable'), false);
+  const internal = serverErrors(500, { error: 'internal_error', message: leaked });
+  const odd = serverErrors(500, { error: unknown, message: leaked });
+  assert.equal(internal.message, zh);
+  assert.equal(odd.message, zh);
+  assert.equal(serverErrors(500, 'not json').message, zh);
+  assert.equal(internal.message.includes('internal_error'), false);
+  assert.equal(internal.message.includes(leaked), false);
+  assert.equal(odd.message.includes(unknown), false);
+  assert.equal(odd.message.includes(leaked), false);
+  const html = renderToStaticMarkup(React.createElement('div', null,
+    React.createElement('p', { role: 'alert' }, errorText(unknown, '保存失败')),
+    React.createElement('p', { role: 'alert' }, odd.message),
+    React.createElement('p', { lang: 'en' }, outageFormGeneric('en')),
+    React.createElement('p', { lang: 'ru' }, outageFormGeneric('ru')),
+    React.createElement('p', { lang: 'zh-CN' }, outageFormGeneric('zh')),
+  ));
+  assert.equal(html.includes(unknown), false);
+  assert.equal(html.includes(leaked), false);
+  assert.equal(html.includes('internal_error'), false);
+  assert.match(html, /服务暂时出错，请稍后重试。/);
+  assert.match(html, /Something went wrong on our side\. Please try again shortly\./);
+  assert.ok(html.includes(`На${NBSP}нашей стороне`) || new RegExp(`На(?:${NBSP}|&nbsp;|&#x0*a0;)нашей стороне`, 'i').test(html));
+  const copySrc = readFileSync('src/lib/admin/outage-copy.ts', 'utf8');
+  assert.equal(copySrc.includes(NBSP), false);
+  assert.match(copySrc, /export const NBSP = '\\u00A0'/);
+  for (const file of ['src/components/admin/format.ts', 'src/lib/admin/spec-form.ts']) {
+    assert.equal(readFileSync(file, 'utf8').includes(NBSP), false, file);
+  }
 });

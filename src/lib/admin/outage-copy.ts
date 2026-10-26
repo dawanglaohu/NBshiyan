@@ -2,7 +2,7 @@
 export type OutageLocale = 'zh' | 'en' | 'ru';
 export type OutageKind = 'unavailable' | 'internal';
 
-const NBSP = '\u00A0';
+export const NBSP = '\u00A0';
 
 export const OUTAGE_COPY = {
   zh: {
@@ -20,9 +20,16 @@ export const OUTAGE_COPY = {
   ru: {
     title: 'Сервис временно недоступен',
     retry: 'Повторить',
-    unavailable: `Не удалось подключиться к${NBSP}базе данных. Это не приведёт к${NBSP}выходу из системы. Повторите попытку позже.`,
-    internal: `Произошла ошибка на сервере. Это не приведёт к${NBSP}выходу из системы. Повторите попытку позже.`,
+    unavailable: `Не удалось подключиться к${NBSP}базе данных. Это не${NBSP}приведёт к${NBSP}выходу из${NBSP}системы. Повторите попытку позже.`,
+    internal: `Произошла ошибка на сервере. Это не${NBSP}приведёт к${NBSP}выходу из${NBSP}системы. Повторите попытку позже.`,
   },
+} as const;
+
+/** 表单认不出错误码时的固定句子。后台表单用中文；en / ru 是同一句。不包含错误码。ru 待语言专家审。 */
+export const FORM_GENERIC = {
+  zh: '服务暂时出错，请稍后重试。',
+  en: 'Something went wrong on our side. Please try again shortly.',
+  ru: `На${NBSP}нашей стороне произошла ошибка. Повторите попытку позже.`,
 } as const;
 
 export type OutageCopy = { title: string; body: string; retry: string };
@@ -51,4 +58,9 @@ export function outageCopy(acceptLanguage: string | null | undefined, kind: Outa
 export function outageFormMessage(): string {
   const copy = OUTAGE_COPY.zh;
   return `${copy.title}。${copy.unavailable}`;
+}
+
+/** 白名单之外的表单错误。默认中文，和后台壳层一致。 */
+export function outageFormGeneric(locale: OutageLocale = 'zh'): string {
+  return FORM_GENERIC[locale];
 }
