@@ -88,11 +88,11 @@ test('页脚隐私政策：必要联系、期限和未启用清理，且无分�
   await expect(main).toContainText('The necessary chat cookie expires after 7\u00A0days of inactivity and no later than 30\u00A0days after it was first set. Automatic deletion of chat messages is not currently enabled on this site.');
   await expect(main).not.toContainText('Tawk');
   const adminSessions = 'Admin sessions that are not kept on this device end after 2 hours without activity, or 12 hours after sign-in, whichever comes first. A session kept on this device ends after 7 days of inactivity, or 30 days after sign-in, whichever comes first.';
+  const chatCookieRetention = 'The necessary chat cookie expires after 7 days of inactivity and no later than 30 days after it was first set. Automatic deletion of chat messages is not currently enabled on this site.';
   await expect(main).toContainText(adminSessions);
-  const outsideAdminSessions = (await main.innerText()).replace(/\u00A0/g, ' ').split(adminSessions).join('');
-  expect(outsideAdminSessions).not.toContain('7 days of inactivity');
-  expect(outsideAdminSessions).not.toContain('chat cookie');
-  expect(outsideAdminSessions).not.toContain('Live chat');
+  const outsideKnownRetention = (await main.innerText()).replace(/\u00A0/g, ' ').split(adminSessions).join('').split(chatCookieRetention).join('');
+  expect(outsideKnownRetention).not.toContain('7 days of inactivity');
+  expect(outsideKnownRetention).not.toContain('Live chat');
   await expect(main).toContainText('Inquiries are anonymized 2 years after the last activity');
 
   await page.locator('#cookie-settings-link').click();
