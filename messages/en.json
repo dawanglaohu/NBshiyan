@@ -175,8 +175,10 @@
     "humanBody": "The inquiry form and email always work, whatever you choose in cookie settings.",
     "emailEntry": "Go to the email field",
     "chatSwitch": "Live chat",
+    "chatStateOn": "On",
+    "chatStateOff": "Off",
     "chatOff": "Chat is off. The inquiry form and email still work.",
-    "chatOn": "Live chat isn't available right now. Please contact us through the inquiry form or by email.",
+    "chatOn": "Live chat isn't available right now. Please use the inquiry form or email us.",
     "ogImageAlt": "PackJoyU: Request a quote for custom packaging"
   },
   "Inquiry": {

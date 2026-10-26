@@ -40,7 +40,7 @@ export default function HumanContactNotice() {
           onClick={() => setChatEnabled((value) => !value)}
         >
           {t('chatSwitch')}
-          <span aria-hidden="true">{chatEnabled ? 'On' : 'Off'}</span>
+          <span aria-hidden="true">{chatEnabled ? t('chatStateOn') : t('chatStateOff')}</span>
         </button>
         <span id={statusId} className="contact-chat-status" aria-live="polite">{chatEnabled ? t('chatOn') : t('chatOff')}</span>
       </div>

@@ -51,10 +51,14 @@ async function readSwitch(sw: Locator) {
   });
 }
 
-function expectPaint(snapshot: Awaited<ReturnType<typeof readSwitch>>, checked: boolean) {
+function expectPaint(
+  snapshot: Awaited<ReturnType<typeof readSwitch>>,
+  checked: boolean,
+  labels: { on: string; off: string },
+) {
   expect(snapshot.checked).toBe(checked ? 'true' : 'false');
   expect(opaque(snapshot.backgroundColor)).toBe(checked ? ON : OFF);
-  expect(snapshot.indicator).toBe(checked ? 'On' : 'Off');
+  expect(snapshot.indicator).toBe(checked ? labels.on : labels.off);
 }
 
 async function statusLines(page: Page): Promise<number> {
@@ -98,18 +102,21 @@ async function prepare(page: Page, path: string) {
 test.describe('联系页聊天开关', () => {
   test('1280 指针留在开关上时，底色和 On/Off 跟 aria-checked', async ({ page, external }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    for (const [path, name] of [['/en/contact', 'Live chat'], ['/ru/contact', 'Онлайн-чат']] as const) {
+    for (const [path, name, labels] of [
+      ['/en/contact', 'Live chat', { on: 'On', off: 'Off' }],
+      ['/ru/contact', 'Онлайн-чат', { on: 'Вкл', off: 'Выкл' }],
+    ] as const) {
       const { sw, seen } = await prepare(page, path);
       await expect(sw).toHaveAccessibleName(name);
       const before = await page.evaluate(() => ({ local: JSON.stringify(localStorage), cookie: document.cookie }));
       await sw.click();
       const on = await readSwitch(sw);
       expect(on.hovered).toBe(true);
-      expectPaint(on, true);
+      expectPaint(on, true, labels);
       await sw.click();
       const off = await readSwitch(sw);
       expect(off.hovered).toBe(true);
-      expectPaint(off, false);
+      expectPaint(off, false, labels);
       const after = await page.evaluate(() => ({ local: JSON.stringify(localStorage), cookie: document.cookie }));
       expect(after).toEqual(before);
       const writes = await storageWrites(page);
@@ -129,7 +136,10 @@ test.describe('联系页聊天开关', () => {
       const hoverCapable = await page.evaluate(() => matchMedia('(hover: hover)').matches);
       expect(hoverCapable).toBe(false);
       const counts: string[] = [];
-      for (const [path, name] of [['/en/contact', 'Live chat'], ['/ru/contact', 'Онлайн-чат']] as const) {
+      for (const [path, name, labels] of [
+        ['/en/contact', 'Live chat', { on: 'On', off: 'Off' }],
+        ['/ru/contact', 'Онлайн-чат', { on: 'Вкл', off: 'Выкл' }],
+      ] as const) {
         const { sw, seen } = await prepare(page, path);
         await expect(sw).toHaveAccessibleName(name);
         const locale = path.slice(1, 3);
@@ -139,13 +149,13 @@ test.describe('联系页聊天开关', () => {
         await expectOwnLine(page);
         const before = await page.evaluate(() => ({ local: JSON.stringify(localStorage), cookie: document.cookie }));
         await sw.tap();
-        expectPaint(await readSwitch(sw), true);
+        expectPaint(await readSwitch(sw), true, labels);
         const onLines = await statusLines(page);
         counts.push(`${locale} chatOn ${onLines}`);
         expect(onLines).toBeLessThanOrEqual(2);
         await expectOwnLine(page);
         await sw.tap();
-        expectPaint(await readSwitch(sw), false);
+        expectPaint(await readSwitch(sw), false, labels);
         const after = await page.evaluate(() => ({ local: JSON.stringify(localStorage), cookie: document.cookie }));
         expect(after).toEqual(before);
         const writes = await storageWrites(page);

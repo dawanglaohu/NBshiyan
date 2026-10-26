@@ -99,10 +99,15 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(en.Contact.capacityLimit, undefined);
   assert.equal(en.Contact.chatSwitch, 'Live chat');
   assert.equal(ru.Contact.chatSwitch, 'Онлайн-чат');
+  assert.equal(en.Contact.chatStateOn, 'On');
+  assert.equal(en.Contact.chatStateOff, 'Off');
+  assert.equal(ru.Contact.chatStateOn, 'Вкл');
+  assert.equal(ru.Contact.chatStateOff, 'Выкл');
   assert.equal(en.Contact.chatOff, 'Chat is off. The inquiry form and email still work.');
-  assert.equal(ru.Contact.chatOff, 'Чат выключен. Форма запроса и e-mail по-прежнему работают.');
-  assert.equal(en.Contact.chatOn, "Live chat isn't available right now. Please contact us through the inquiry form or by email.");
-  assert.equal(ru.Contact.chatOn, 'Онлайн-чат пока недоступен. Свяжитесь с\u00A0нами через форму запроса или по\u00A0e-mail.');
+  assert.equal(ru.Contact.chatOff, 'Чат выключен. Форма запроса и e\u2060-\u2060mail по\u2060-\u2060прежнему работают.');
+  assert.equal(en.Contact.chatOn, "Live chat isn't available right now. Please use the inquiry form or email us.");
+  assert.equal(en.Contact.chatOn.length, 77);
+  assert.equal(ru.Contact.chatOn, 'Онлайн-чат пока недоступен. Свяжитесь с\u00A0нами через форму запроса или по\u00A0e\u2060-\u2060mail.');
   assert.equal(en.Products.names['gift-cards'], 'Greeting Cards');
   assert.equal(ru.Products.names['gift-cards'], 'Открытки');
   assert.equal(en.Products.desc['gift-cards'], 'Custom printed greeting cards and card packaging for retail and promotions.');
@@ -139,7 +144,7 @@ test('联系页聊天开关默认关闭，独立于分析开关，不加载 Tawk
   assert.match(notice, /aria-live="polite"/);
   assert.equal(notice.includes('role="alert"'), false);
   assert.match(notice, /aria-hidden="true"/);
-  assert.match(notice, /chatEnabled \? 'On' : 'Off'/);
+  assert.match(notice, /chatEnabled \? t\('chatStateOn'\) : t\('chatStateOff'\)/);
   assert.match(notice, /data-variant="secondary"/);
   assert.equal(/data-variant=\{/.test(notice), false);
   assert.equal(notice.includes('setConsent'), false);
@@ -161,19 +166,59 @@ test('ru chatOn 的不换行空格写在 JSON 转义里', () => {
   assert.equal(raw.subarray(first, first + escape.length).toString('ascii'), '\\u00A0');
   assert.equal(raw.subarray(second, second + escape.length).toString('ascii'), '\\u00A0');
   assert.equal(text.includes('Свяжитесь с\\u00A0нами'), true);
-  assert.equal(text.includes('или по\\u00A0e-mail'), true);
+  assert.equal(text.includes('или по\\u00A0e\\u2060-\\u2060mail'), true);
   const chatOn = ru.Contact.chatOn as string;
   assert.equal([...chatOn].filter((ch) => ch === '\u00A0').length, 2);
   assert.equal(chatOn.includes('с\u00A0нами'), true);
-  assert.equal(chatOn.includes('по\u00A0e-mail'), true);
+  assert.equal(chatOn.includes('по\u00A0e\u2060-\u2060mail'), true);
   assert.equal(chatOn.includes('с нами'), false);
   assert.equal(chatOn.includes('по e-mail'), false);
 });
 
-test('聊天开关的填充不跟悬停走，窄屏状态句单独成行', () => {
+test('ru 连字符两侧是字连接符，开关状态有英俄文案', () => {
+  assert.equal(en.Contact.chatStateOn, 'On');
+  assert.equal(en.Contact.chatStateOff, 'Off');
+  assert.equal(ru.Contact.chatStateOn, 'Вкл');
+  assert.equal(ru.Contact.chatStateOff, 'Выкл');
+  const chatOn = ru.Contact.chatOn as string;
+  const chatOff = ru.Contact.chatOff as string;
+  assert.equal(chatOn.endsWith('e\u2060-\u2060mail.'), true);
+  assert.equal(chatOff.includes('e\u2060-\u2060mail'), true);
+  assert.equal(chatOff.includes('по\u2060-\u2060прежнему'), true);
+  assert.equal([...chatOn].filter((ch) => ch === '\u2060').length, 2);
+  assert.equal([...chatOff].filter((ch) => ch === '\u2060').length, 4);
+  assert.equal([...chatOn].filter((ch) => ch === '\u00A0').length, 2);
+  assert.equal([...chatOff].some((ch) => ch === '\u00A0'), false);
+  for (const text of [chatOn, chatOff]) {
+    assert.equal(text.includes('\u2060'), true);
+    assert.equal(text.includes('\u2011'), false);
+    assert.equal(text.includes('<'), false);
+  }
+  const raw = readFileSync('messages/ru.json', 'utf8');
+  for (const key of ['"chatOn"', '"chatOff"']) {
+    const line = raw.split(/\r?\n/).find((row) => row.includes(key));
+    assert.ok(line);
+    assert.equal(line.includes('\\u2060'), true);
+    assert.equal(line.includes('\u2060'), false);
+    assert.equal(line.includes('\\u2011'), false);
+    assert.equal(line.includes('\u2011'), false);
+  }
+  const hyphenated = [chatOn, chatOff].filter((text) => {
+    const plain = text.replaceAll('\u2060', '');
+    return plain.includes('e-mail') || plain.includes('по-прежнему');
+  });
+  assert.equal(hyphenated.length, 2);
+  for (const text of hyphenated) {
+    assert.equal(text.includes('\u2060'), true);
+    assert.equal(text.includes('\u2011'), false);
+  }
+});
+
+test('聊天开关的填充不跟悬停走，状态句在各宽度单独成行', () => {
   const css = readFileSync('src/app/globals.css', 'utf8');
   assert.match(css, /\.contact-chat-line\{[^}]*flex-wrap:wrap/);
-  assert.match(css, /@media \(max-width:390px\)\{\.contact-chat-line \.contact-chat-status\{flex-basis:100%;width:100%;min-width:0\}\}/);
+  assert.match(css, /\.contact-chat-line \.contact-chat-status\{flex-basis:100%;width:100%;min-width:0\}/);
+  assert.equal(/@media \(max-width:390px\)\{\.contact-chat-line \.contact-chat-status/.test(css), false);
   assert.match(css, /#contact-chat-switch\{[^}]*background:var\(--pj-bg\)/);
   assert.match(css, /#contact-chat-switch\[aria-checked="true"\]\{[^}]*background:var\(--pj-inverse\)/);
   const hover = css.match(/@media \(hover:hover\)\{#contact-chat-switch:not\(:disabled\):hover\{([^}]*)\}\}/);
