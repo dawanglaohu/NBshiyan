@@ -8,7 +8,7 @@ const css = readFileSync('src/app/globals.css', 'utf8');
 
 test('390px catalog blurbs that overflowed two lines are the shortened sentences', () => {
   assert.equal(en['color-boxes'], 'Full-color printed folding cartons and retail boxes for cosmetics, food and electronics.');
-  assert.equal(ru['corrugated-boxes'], 'Гофрокороба и почтовые коробки на заказ, одно- и двухслойные, печать логотипа.');
+  assert.equal(ru['corrugated-boxes'], 'Гофрокороба и почтовые коробки на заказ, трёх- и пятислойные, печать логотипа.');
   assert.equal(ru['christmas-merchandise'], 'Новогодние коробки, тубусы, адвент-календари и сезонная упаковка на заказ.');
   assert.equal(en['corrugated-boxes'], 'Custom corrugated shipping and mailer boxes in single and double wall, printed with your brand.');
   assert.equal(ru['color-boxes'], 'Картонные коробки с полноцветной печатью для косметики, продуктов и электроники.');
