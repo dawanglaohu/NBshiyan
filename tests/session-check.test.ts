@@ -26,4 +26,5 @@ test('wrong role -> 403 forbidden; ok otherwise', () => {
   assert.equal(denialError('unauthenticated'), 'unauthorized');
   assert.equal(denialError('forbidden'), 'forbidden');
   assert.equal(denialError('unavailable'), 'service_unavailable');
+  assert.equal(denialError('internal'), 'internal_error');
 });

@@ -14,11 +14,20 @@ import { adminPageGate } from '../src/lib/server/admin/page-access';
 
 const REQUEST_ID = '00000000-0000-4000-8000-000000000001';
 
+function card(header: string | null, href: string) {
+  const lang = header?.toLowerCase().startsWith('en') ? 'en' : header?.toLowerCase().startsWith('ru') ? 'ru' : 'zh-CN';
+  return renderToStaticMarkup(React.createElement(AdminOutageNotice, { copy: outageCopy(header), href, lang }));
+}
+function visible(html: string) {
+  return html.replace(/&#x27;|&#39;|&apos;/g, "'").replace(/&nbsp;|&#x0*a0;/gi, ' ').replace(/\u00A0/g, ' ');
+}
+
 test('outage card renders zh, en and ru without technical detail', () => {
   for (const header of [null, 'zh-CN,zh;q=0.9', 'fr,en;q=0.8']) {
-    const html = renderToStaticMarkup(React.createElement(AdminOutageNotice, { copy: outageCopy(header), href: '/admin/inquiries' }));
+    const html = card(header, '/admin/inquiries');
     assert.match(html, /服务暂时不可用/);
-    assert.match(html, /数据库连接出现问题，你的登录状态仍然有效/);
+    assert.match(html, /数据库连接出现问题，这不会让你退出登录，请稍后重试。/);
+    assert.match(html, /lang="zh-CN"/);
     assert.match(html, /href="\/admin\/inquiries"/);
     assert.match(html, /class="adm-btn primary"/);
     assert.equal(html.includes('503'), false);
@@ -27,13 +36,17 @@ test('outage card renders zh, en and ru without technical detail', () => {
     assert.equal(html.includes('Max-Age'), false);
     assert.equal(html.includes('重新登录'), false);
   }
-  const en = renderToStaticMarkup(React.createElement(AdminOutageNotice, { copy: outageCopy('en-US,en;q=0.9'), href: '/admin/specs' }));
+  const en = card('en-US,en;q=0.9', '/admin/specs');
   assert.match(en, new RegExp(OUTAGE_COPY.en.title));
-  assert.match(en, /Your sign-in is still valid/);
+  assert.match(visible(en), /This won.t sign you out/);
+  assert.match(en, /lang="en"/);
   assert.match(en, />Try again</);
-  const ru = renderToStaticMarkup(React.createElement(AdminOutageNotice, { copy: outageCopy('ru-RU,ru;q=0.9,en;q=0.8'), href: '/admin' }));
+  const ru = card('ru-RU,ru;q=0.9,en;q=0.8', '/admin');
   assert.match(ru, new RegExp(OUTAGE_COPY.ru.title));
-  assert.match(ru, /Ваш вход по-прежнему действителен/);
+  assert.match(visible(ru), /Это не приведёт к выходу из системы/);
+  assert.match(ru, /приведёт/);
+  assert.ok(ru.includes('\u00A0') || /&nbsp;|&#x0*a0;/i.test(ru));
+  assert.match(ru, /lang="ru"/);
   assert.match(ru, />Повторить</);
 });
 
@@ -48,11 +61,13 @@ test('unavailable does not redirect the layout or the page gate', () => {
   assert.match(layout, /gate\.action === 'unavailable'[\s\S]*<AdminOutageNotice/);
   assert.match(layout, /<AdminShell[^>]*>\{content\}<\/AdminShell>/);
   const inquiry = readFileSync('src/app/admin/inquiries/[id]/page.tsx', 'utf8');
-  assert.ok(inquiry.indexOf("gate === 'unavailable'") < inquiry.indexOf('notFound()'));
+  assert.ok(inquiry.indexOf('if (!gate.ok) return gate.notice') < inquiry.indexOf('notFound()'));
   assert.ok(inquiry.indexOf("c.reason === 'unavailable'") < inquiry.indexOf('prisma.inquiry'));
+  assert.match(inquiry, /c\.reason === 'unavailable' \|\| c\.reason === 'internal'/);
   for (const file of ['src/app/admin/mail/unassigned/page.tsx', 'src/app/admin/specs/[category]/page.tsx']) {
     const src = readFileSync(file, 'utf8');
-    assert.ok(src.indexOf("gate === 'unavailable'") < src.indexOf('notFound()'), file);
+    assert.ok(src.indexOf('if (!gate.ok) return gate.notice') < src.indexOf('notFound()'), file);
+    assert.equal(src.includes('return null'), false, file);
   }
 });
 
@@ -75,7 +90,7 @@ test('a 503 form error stays on the form and can be submitted again', async () =
   assert.equal(created, 0);
   assert.equal(form.password, 'correct-horse-battery');
   const editor = readFileSync('src/components/admin/specs/SpecEditor.tsx', 'utf8');
-  assert.match(editor, /if \(!r\.ok\) \{ const s = serverErrors\(r\.status, j\); setErrors\(s\.fields\); setMsg\(\{ kind: 'err', text: s\.message \}\); return; \}/);
+  assert.match(editor, /if \(!r\.ok\) \{ const s = serverErrors\(r\.status, j\); setErrors\(s\.fields\); commitAndReveal\(errRef, \(\) => setMsg\(\{ kind: 'err', text: s\.message \}\)\); return; \}/);
   const failure = adaptApiError({
     kind: 'http', status: 503, audience: 'admin',
     body: { error: 'service_unavailable', requestId: REQUEST_ID },

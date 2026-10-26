@@ -6,7 +6,7 @@ process.env.AUTH_SECRET = secret;
 delete process.env.AUTH_URL;
 delete process.env.NEXTAUTH_URL;
 
-type Mode = 'down' | 'unknown' | 'ok' | 'disabled' | 'forbidden';
+type Mode = 'down' | 'unknown' | 'ok' | 'disabled' | 'forbidden' | 'revoked' | 'sv';
 let mode: Mode = 'down';
 let lookups = 0;
 
@@ -25,8 +25,8 @@ const account = () => ({
   enrollTokenHash: null, enrollTokenExpiresAt: null, createdAt: now,
 });
 const device = () => ({
-  id: 'device-1', userId: 'user-1', sessionVersion: 3, remembered: false, createdAt: now,
-  lastActivityAt: now, absoluteExpiresAt: null, hardExpiresAt: null, revokedAt: null, revokedReason: null, deviceLabel: null,
+  id: 'device-1', userId: 'user-1', sessionVersion: mode === 'sv' ? 99 : 3, remembered: false, createdAt: now,
+  lastActivityAt: now, absoluteExpiresAt: null, hardExpiresAt: null, revokedAt: mode === 'revoked' ? now : null, revokedReason: null, deviceLabel: null,
 });
 
 function fail() {
@@ -94,20 +94,40 @@ test('requireAdmin returns 503 and keeps the cookie when the user query fails', 
   }
 });
 
-test('requireAdmin treats an unknown query exception as unavailable and keeps the cookie', async () => {
+test('requireAdmin returns 500 and keeps the cookie when the query throws for another reason', async () => {
   mode = 'unknown';
   const logs: unknown[][] = [];
   const original = console.error;
   console.error = (...args: unknown[]) => { logs.push(args); };
   try {
     const response = await guarded(await sessionCookie());
-    assert.equal(response.status, 503);
-    assert.equal((await response.json() as { error: string }).error, 'service_unavailable');
+    assert.equal(response.status, 500);
+    assert.equal((await response.json() as { error: string }).error, 'internal_error');
     assert.equal(cookiesOf(response).includes('Max-Age=0'), false);
     assert.equal(JSON.stringify(logs).includes('unexpected session fault'), false);
   } finally {
     console.error = original;
   }
+});
+
+test('a healthy database still returns 401 and clears the cookie for revoked devices, session mismatch, and garbage tokens', async () => {
+  mode = 'revoked';
+  const revoked = await guarded(await sessionCookie());
+  assert.equal(revoked.status, 401);
+  assert.equal((await revoked.json() as { error: string }).error, 'unauthorized');
+  assert.match(cookiesOf(revoked), /Max-Age=0/);
+
+  mode = 'sv';
+  const mismatch = await guarded(await sessionCookie());
+  assert.equal(mismatch.status, 401);
+  assert.equal((await mismatch.json() as { error: string }).error, 'unauthorized');
+  assert.match(cookiesOf(mismatch), /Max-Age=0/);
+
+  mode = 'ok';
+  const garbage = await guarded('authjs.session-token=not-a-jwt');
+  assert.equal(garbage.status, 401);
+  assert.equal((await garbage.json() as { error: string }).error, 'unauthorized');
+  assert.match(cookiesOf(garbage), /Max-Age=0/);
 });
 
 test('missing session still clears the cookie, and disabled or forbidden keep their old results', async () => {
@@ -162,4 +182,17 @@ test('session activity POST stays 503 and does not clear the cookie when the dat
     console.warn = originalWarn;
     console.error = originalError;
   }
+});
+
+test('session activity POST stays 500 and does not clear the cookie when the query throws for another reason', async () => {
+  mode = 'unknown';
+  const response = await POST(new Request(`${origin}/api/admin/account/session/activity`, {
+    method: 'POST',
+    headers: { cookie: await sessionCookie(), origin, 'content-type': 'application/json' },
+    body: '{}',
+  }));
+  assert.equal(response.status, 500);
+  const body = await response.json() as { error?: string };
+  assert.equal(body.error, 'internal_error');
+  assert.equal(cookiesOf(response).includes('Max-Age=0'), false);
 });

@@ -2,13 +2,14 @@ import { randomBytes } from 'crypto';
 import type { AdminDeviceSession, PrismaClient, Role, User } from '@prisma/client';
 import { AccountDTOSchema, type AccountDTO } from '../../contracts/account';
 import type { ServerPolicy } from '../config';
+import { isDbUnavailable } from '../designs';
 import { createDeviceRepo, type DeviceRepo } from './device-repo';
 import { activityRetryAfterSeconds, activityWriteAllowed, effectiveDeadline, enforcedAbsolute, initialHardExpiresAt, publicAbsolute } from './session-expiry';
 
 export type SessionPolicy = ServerPolicy['session'];
-export type SessionDenial = 'unauthenticated' | 'disabled' | 'forbidden' | 'unavailable';
-/** 会话本身无效。数据库故障不在这里，见 UnavailableAccess。 */
-export type AccountDenial = Exclude<SessionDenial, 'unavailable'>;
+export type SessionDenial = 'unauthenticated' | 'disabled' | 'forbidden' | 'unavailable' | 'internal';
+/** 会话本身无效。数据库故障和服务异常不在这里。 */
+export type AccountDenial = Exclude<SessionDenial, 'unavailable' | 'internal'>;
 type SessionUser = Pick<User, 'disabled' | 'totpEnabled' | 'lockedUntil' | 'sessionVersion' | 'role'>;
 
 export type ExpiryBounds = { effectiveExpiresAt: Date; absoluteExpiresAt: Date | null };
@@ -20,7 +21,10 @@ export type BoundAccess =
 /** 数据库暂时不可用。调用方保留 cookie，不把这次故障当成未登录。 */
 export type UnavailableAccess = { ok: false; reason: 'unavailable'; status: 503 };
 
-export type AuthenticateResult = BoundAccess | UnavailableAccess;
+/** 其他服务异常。调用方保留 cookie，不把这次故障当成未登录。 */
+export type InternalAccess = { ok: false; reason: 'internal'; status: 500 };
+
+export type AuthenticateResult = BoundAccess | UnavailableAccess | InternalAccess;
 
 const SECURE_COOKIE = '__Secure-authjs.session-token';
 const PLAIN_COOKIE = 'authjs.session-token';
@@ -197,8 +201,9 @@ export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () =
         const user = input.userId ? await repo.findUser(input.userId) : null;
         const device = input.sid ? await repo.findDevice(input.sid) : null;
         return decideAdminAccess({ ...input, user, device, now: clock(), policy });
-      } catch {
-        return { ok: false, reason: 'unavailable', status: 503 };
+      } catch (error) {
+        if (isDbUnavailable(error)) return { ok: false, reason: 'unavailable', status: 503 };
+        return { ok: false, reason: 'internal', status: 500 };
       }
     },
     async revokeSid(id: string, reason: string): Promise<void> {

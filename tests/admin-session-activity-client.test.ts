@@ -10,6 +10,7 @@ test('client activity throttle matches the server and only a 401 leaves for the 
   assert.equal(ADMIN_ACTIVITY_THROTTLE_MS, ADMIN_SESSION_POLICY.activityThrottleMs);
   const token = { uid: 'user-1', sid: 'device-1' };
   assert.equal(jwtAfterAccess(token, { ok: false, reason: 'unavailable', status: 503 }), token);
+  assert.equal(jwtAfterAccess(token, { ok: false, reason: 'internal', status: 500 }), token);
   assert.equal(jwtAfterAccess(token, { ok: false, reason: 'unauthenticated', status: 401 }), null);
 
   let now = 1_000_000;

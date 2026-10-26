@@ -44,14 +44,15 @@ export function rolesForAdminPath(raw: string | null | undefined): readonly Admi
   return best ? ADMIN_ROUTE_ROLES[best] : DEFAULT_ROLES;
 }
 
-export type GateInput = { ok: true; role: string } | { ok: false; reason: 'unauthenticated' | 'disabled' | 'forbidden' | 'unavailable' };
-export type GateResult = { action: 'render' } | { action: 'redirect'; to: string } | { action: 'notFound' } | { action: 'unavailable' };
+export type GateInput = { ok: true; role: string } | { ok: false; reason: 'unauthenticated' | 'disabled' | 'forbidden' | 'unavailable' | 'internal' };
+export type GateResult = { action: 'render' } | { action: 'redirect'; to: string } | { action: 'notFound' } | { action: 'unavailable' } | { action: 'internal' };
 
-/** 未登录 → 登录页（安全的 callbackUrl）；数据库不可用 → 留在后台；停用账号 / 角色不符 / 该路径不允许此角色 → 404 */
+/** 未登录 → 登录页（安全的 callbackUrl）；数据库不可用或服务出错 → 留在后台；停用账号 / 角色不符 / 该路径不允许此角色 → 404 */
 export function adminGate(check: GateInput, path: string | null | undefined): GateResult {
   if (!check.ok) {
     if (check.reason === 'unauthenticated') return { action: 'redirect', to: adminLoginHref(path) };
     if (check.reason === 'unavailable') return { action: 'unavailable' };
+    if (check.reason === 'internal') return { action: 'internal' };
     return { action: 'notFound' };
   }
   return (rolesForAdminPath(path) as readonly string[]).includes(check.role) ? { action: 'render' } : { action: 'notFound' };

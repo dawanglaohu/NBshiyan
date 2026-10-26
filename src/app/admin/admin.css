@@ -87,6 +87,9 @@
 .adm-scan{color:var(--ok);font-weight:600}
 .adm-empty{display:flex;flex-direction:column;align-items:center;width:100%;max-width:40em;margin:0 auto;padding:48px 16px;text-align:center}.adm-empty h1{margin:0 0 8px}.adm-empty p{max-width:32em;margin:0 0 24px}.adm-empty .adm-btn{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;text-decoration:none;border-color:var(--ink-2)}
 .adm-empty .adm-btn.primary{border-color:var(--accent);color:var(--on-accent)}
+.adm-empty.adm-outage{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);margin-top:24px}
+.adm-outage p{text-wrap:balance}
+.adm-outage .adm-btn:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
 
 /* #291 UX 细节：空状态灰字；禁用的下拉框看得出是禁用的；回复区两个按钮一组（次要在左、主要在右） */
 .adm-empty-note{color:var(--ink-2);margin:0;font-size:13px}

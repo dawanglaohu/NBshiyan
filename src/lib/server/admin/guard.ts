@@ -45,7 +45,7 @@ async function clearWritableSessionCookie() {
   }
 }
 
-/** 会话 + 账号 + 设备 + 角色。规则见 decideAdminAccess。拒绝时能写 cookie 就清掉。 */
+/** 会话 + 账号 + 设备 + 角色。规则见 decideAdminAccess。明确的会话拒绝会清 cookie。数据库不可用和其他服务异常保留 cookie。 */
 export async function checkAdminSession(roles: Role[] = ['ADMIN'], request?: Request): Promise<SessionCheck> {
   let session: AuthSession = null;
   try {
@@ -70,14 +70,15 @@ export async function checkAdminSession(roles: Role[] = ['ADMIN'], request?: Req
     return decision;
   } catch (error) {
     // decideAdminAccess 对无效会话直接返回拒绝，不会抛到这里。抛出的异常不能证明会话无效。
-    const kind = isDbUnavailable(error) ? 'database' : 'unknown';
-    console.error('[admin] session check unavailable', kind, errorSummary(error));
-    return { ok: false, reason: 'unavailable', status: 503 };
+    const dbDown = isDbUnavailable(error);
+    console.error('[admin] session check unavailable', dbDown ? 'database' : 'unknown', errorSummary(error));
+    if (dbDown) return { ok: false, reason: 'unavailable', status: 503 };
+    return { ok: false, reason: 'internal', status: 500 };
   }
 }
 
 const DENIAL_ERROR: Record<SessionDenial, string> = {
-  unauthenticated: 'unauthorized', disabled: 'account_disabled', forbidden: 'forbidden', unavailable: 'service_unavailable',
+  unauthenticated: 'unauthorized', disabled: 'account_disabled', forbidden: 'forbidden', unavailable: 'service_unavailable', internal: 'internal_error',
 };
 export const denialError = (r: SessionDenial) => DENIAL_ERROR[r];
 
@@ -90,7 +91,7 @@ export async function requireAdmin(req: Request, roles: Role[] = ['ADMIN']): Pro
   const c = await checkAdminSession(roles, req);
   if (!c.ok) {
     const response = jsonErr(denialError(c.reason), c.status);
-    return c.reason === 'forbidden' || c.reason === 'unavailable' ? response : withClearedSession(response);
+    return c.reason === 'forbidden' || c.reason === 'unavailable' || c.reason === 'internal' ? response : withClearedSession(response);
   }
   return { user: c.user, device: c.device, bounds: c.bounds, ip: clientIp(req) };
 }

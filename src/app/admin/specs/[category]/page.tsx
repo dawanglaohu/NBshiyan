@@ -8,8 +8,9 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page({ params }: { params: Promise<{ category: string }> }) {
   const { category } = await params;
-  const gate = await enforceAdminPage(SPEC_PAGE_ROLES, `/admin/specs/${encodeURIComponent(category)}`);
-  if (gate === 'unavailable') return null;
+  const path = `/admin/specs/${encodeURIComponent(category)}`;
+  const gate = await enforceAdminPage(SPEC_PAGE_ROLES, path);
+  if (!gate.ok) return gate.notice;
   const meta = categoryMeta.find((c) => c.key === category);
   if (!meta) notFound();
   return <SpecEditor category={meta.key} title={meta.en.keyword} />;

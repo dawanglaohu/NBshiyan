@@ -28,6 +28,7 @@ test('open-redirect attempts fall back to /admin', () => {
 test('database unavailable stays on the admin shell instead of the login page', () => {
   assert.deepEqual(adminGate({ ok: false, reason: 'unavailable' }, '/admin/inquiries/abc'), { action: 'unavailable' });
   assert.deepEqual(adminGate({ ok: false, reason: 'unavailable' }, null), { action: 'unavailable' });
+  assert.deepEqual(adminGate({ ok: false, reason: 'internal' }, '/admin/users'), { action: 'internal' });
 });
 
 test('wrong role → 404, correct role → render', () => {

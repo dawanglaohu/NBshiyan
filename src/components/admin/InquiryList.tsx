@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, STATUS_LABEL, type AdminUser, type InquiryQuery, type InquiryStatus, type InquirySummary, type Page } from '@/lib/admin/api';
 import StatusBadge from './StatusBadge';
 import DateRange from './DateRange';
 import { DeletedTag, filterAnonymized, isAnonymized, needsReview, parseIncludeAnon, piiField } from './anonymized';
 import { PRODUCT_LABEL, errorText, loginHref, productName } from './format';
+import { commitAndReveal } from './reveal-error';
 import AdminTime from './AdminTime';
 
 const TABS: (InquiryStatus | 'REVIEW' | '')[] = ['', 'NEW', 'FOLLOWING', 'QUOTED', 'WON', 'INVALID', 'REVIEW'];
@@ -27,6 +28,7 @@ export default function InquiryList() {
   const key = sp.toString();
   const [data, setData] = useState<Page<InquirySummary>>();
   const [error, setError] = useState<string>();
+  const errRef = useRef<HTMLTableCellElement>(null);
   const [q, setQ] = useState(query.q ?? '');
   // 可信度 <40 的询盘默认折叠到「待核实」分组（#85 第 2 条）
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -34,7 +36,7 @@ export default function InquiryList() {
   useEffect(() => { adminApi.listUsers().then(setUsers).catch(() => {}); }, []);
   useEffect(() => {
     let live = true; setError(undefined);
-    adminApi.listInquiries(query).then((d) => live && setData(d)).catch((e) => live && setError(String(e.message ?? e)));
+    adminApi.listInquiries(query).then((d) => live && setData(d)).catch((e) => { if (live) commitAndReveal(errRef, () => setError(String(e.message ?? e))); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
@@ -87,7 +89,7 @@ export default function InquiryList() {
         <table className="adm-inq-table">
           <thead><tr><th>编号</th><th>公司 · 国家</th><th>产品</th><th>可信度</th><th>状态</th><th>负责人</th><th>时间</th></tr></thead>
           <tbody>
-            {error && <tr><td colSpan={7} className="warn">{errorText(error)}{error === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</td></tr>}
+            {error && <tr><td ref={errRef} tabIndex={-1} colSpan={7} className="warn" role="alert">{errorText(error)}{error === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</td></tr>}
             {!data && !error && <tr><td colSpan={7} className="muted">加载中…</td></tr>}
             {data && data.items.length > 0 && filterAnonymized(data.items, includeAnon).length === 0 && <tr><td colSpan={7} className="muted">本页都是已匿名化询盘，勾选「含已匿名化」可查看</td></tr>}
             {data?.items.length === 0 && <tr><td colSpan={7} className="muted">没有符合条件的询盘</td></tr>}

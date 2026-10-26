@@ -1,8 +1,9 @@
 'use client';
 import './specs.css';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AdminTime from '@/components/admin/AdminTime';
+import { commitAndReveal } from '@/components/admin/reveal-error';
 import {
   CURRENCIES, DIMS, INCOTERMS, LEAD_UNITS, MOQ_UNITS, SIZE_UNITS, emptyForm, fromView, isHttpsUrl, newCertRow, serverErrors, toBody,
   type FieldErrors, type SpecForm, type SpecView,
@@ -31,6 +32,7 @@ export default function SpecEditor({ category, title }: { category: string; titl
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const errRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let live = true;
@@ -38,10 +40,13 @@ export default function SpecEditor({ category, title }: { category: string; titl
       .then(async (r) => {
         const j = await r.json().catch(() => ({}));
         if (!live) return;
-        if (!r.ok) { setMsg({ kind: 'err', text: serverErrors(r.status, j).message }); return; }
+        if (!r.ok) {
+          if (live) commitAndReveal(errRef, () => { setMsg({ kind: 'err', text: serverErrors(r.status, j).message }); setLoading(false); });
+          return;
+        }
         setF(fromView(j as SpecView)); setUpdatedAt((j as SpecView).updatedAt ?? null);
       })
-      .catch(() => live && setMsg({ kind: 'err', text: '加载失败，请检查网络后刷新' }))
+      .catch(() => { if (live) commitAndReveal(errRef, () => { setMsg({ kind: 'err', text: '加载失败，请检查网络后刷新' }); setLoading(false); }); })
       .finally(() => live && setLoading(false));
     return () => { live = false; };
   }, [url]);
@@ -55,16 +60,16 @@ export default function SpecEditor({ category, title }: { category: string; titl
     setMsg(undefined);
     const { body, errors: e } = toBody(f);
     setErrors(e);
-    if (!body) { setMsg({ kind: 'err', text: '请先修正标红的字段' }); return; }
+    if (!body) { commitAndReveal(errRef, () => setMsg({ kind: 'err', text: '请先修正标红的字段' })); return; }
     setSaving(true);
     try {
       const r = await fetch(url, { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) { const s = serverErrors(r.status, j); setErrors(s.fields); setMsg({ kind: 'err', text: s.message }); return; }
+      if (!r.ok) { const s = serverErrors(r.status, j); setErrors(s.fields); commitAndReveal(errRef, () => setMsg({ kind: 'err', text: s.message })); return; }
       setF(fromView(j as SpecView)); setUpdatedAt((j as SpecView).updatedAt ?? null); setErrors({});
       setMsg({ kind: 'ok', text: '已保存。前台接口有 CDN 缓存，通常 1 小时内生效（最长约 70 分钟）。' });
     } catch {
-      setMsg({ kind: 'err', text: '保存失败，请检查网络后重试' });
+      commitAndReveal(errRef, () => setMsg({ kind: 'err', text: '保存失败，请检查网络后重试' }));
     } finally { setSaving(false); }
   }
 
@@ -75,7 +80,7 @@ export default function SpecEditor({ category, title }: { category: string; titl
       <p><Link href="/admin/specs">← 全部品类</Link></p>
       <h1>产品规格：{title} <small>{category}</small></h1>
       {updatedAt && <p className="spec-meta">上次保存：<AdminTime iso={updatedAt} /></p>}
-      {msg && <div className={`spec-msg ${msg.kind}`} role={msg.kind === 'err' ? 'alert' : 'status'}>{msg.text}</div>}
+      {msg && <div ref={errRef} tabIndex={-1} className={`spec-msg ${msg.kind}`} role={msg.kind === 'err' ? 'alert' : 'status'}>{msg.text}</div>}
       {errors._ && <div className="spec-msg err" role="alert">{errors._}</div>}
 
       <section className="adm-card spec-sec">

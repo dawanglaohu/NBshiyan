@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client';
 import { test, expect } from './fixtures';
 import { BASE } from '../playwright.config';
 import { useSharedAdmin } from './shared-admin';
@@ -334,4 +335,98 @@ test.describe('已登录的 ADMIN（整组共用一次登录）', () => {
       return r.top >= top - 1 && r.bottom <= vh;
     }), { timeout: 3000 }).toBe(true);
   });
+
+  test('GUARD-503：数据库不可用时软导航到详情页显示错误卡，不新增登录', async ({ page }) => {
+    test.setTimeout(90_000);
+    let logins = 0;
+    page.on('request', (req) => {
+      if (req.method() === 'POST' && new URL(req.url()).pathname === '/api/auth/callback/credentials') logins += 1;
+    });
+    await page.goto('/admin/specs');
+    await page.getByRole('link', { name: 'custom corrugated boxes' }).waitFor();
+    await page.evaluate(() => { (window as Window & { __guardSoft?: number }).__guardSoft = 1; });
+    const restore = await denyNewConnections();
+    try {
+      await page.getByRole('link', { name: 'custom corrugated boxes' }).click();
+      await expectOutageCard(page, '/admin/specs/corrugated-boxes');
+      // 侧栏没有询盘详情和未归类邮件的链接（未归类入口编译关闭）。点侧栏链接触发的是同一套客户端 router，这里用它打开这两条路径。
+      await pushFromSidebar(page, '/admin/inquiries/e2eoutageinquiry0000001');
+      await expectOutageCard(page, '/admin/inquiries/e2eoutageinquiry0000001');
+      await pushFromSidebar(page, '/admin/mail/unassigned');
+      await expectOutageCard(page, '/admin/mail/unassigned');
+      expect(logins).toBe(0);
+    } finally {
+      await restore();
+    }
+  });
 });
+
+async function expectOutageCard(page: Page, path: string) {
+  await expect(page).toHaveURL(path);
+  const card = page.locator('.adm-outage[role="alert"]');
+  await expect(card).toBeVisible();
+  await expect(card).toContainText('Service temporarily unavailable');
+  await expect(card.getByRole('link', { name: 'Try again' })).toHaveAttribute('href', path);
+  await expect(page).not.toHaveURL(/signin/);
+  expect(await page.evaluate(() => (window as Window & { __guardSoft?: number }).__guardSoft)).toBe(1);
+}
+
+async function pushFromSidebar(page: Page, href: string) {
+  const pushed = await page.evaluate((target) => {
+    const link = document.querySelector('.adm-side a[href^="/admin/"]');
+    if (!link) return 'no-sidebar-link';
+    const fiberKey = Object.keys(link).find((key) => key.startsWith('__reactFiber$'));
+    if (!fiberKey) return 'no-fiber';
+    const seen = new Set<object>();
+    let fiber = (link as unknown as Record<string, unknown>)[fiberKey] as {
+      return?: typeof fiber;
+      memoizedState?: { memoizedState?: unknown; next?: { memoizedState?: unknown; next?: unknown } } | null;
+      dependencies?: { firstContext?: { memoizedValue?: unknown; next?: { memoizedValue?: unknown; next?: unknown } } };
+    } | undefined;
+    const routerOf = (value: unknown) => {
+      if (!value || typeof value !== 'object') return null;
+      const candidate = value as { push?: unknown; back?: unknown; prefetch?: unknown };
+      return typeof candidate.push === 'function' && typeof candidate.back === 'function' && typeof candidate.prefetch === 'function'
+        ? candidate as { push: (url: string) => void }
+        : null;
+    };
+    while (fiber && !seen.has(fiber)) {
+      seen.add(fiber);
+      let hook = fiber.memoizedState;
+      while (hook) {
+        const found = routerOf(hook.memoizedState);
+        if (found) { found.push(target); return 'pushed'; }
+        hook = hook.next as typeof hook;
+      }
+      let context = fiber.dependencies?.firstContext;
+      while (context) {
+        const found = routerOf(context.memoizedValue);
+        if (found) { found.push(target); return 'pushed'; }
+        context = context.next as typeof context;
+      }
+      fiber = fiber.return;
+    }
+    return 'no-router';
+  }, href);
+  expect(pushed).toBe('pushed');
+}
+
+async function denyNewConnections(): Promise<() => Promise<void>> {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL missing');
+  const name = new URL(url).pathname.replace(/^\//, '');
+  if (!/^[A-Za-z0-9_]+$/.test(name)) throw new Error('unexpected database name');
+  const maint = new URL(url);
+  maint.pathname = '/postgres';
+  const admin = new PrismaClient({ datasources: { db: { url: maint.toString() } } });
+  const quoted = `"${name}"`;
+  await admin.$executeRawUnsafe(`ALTER DATABASE ${quoted} WITH ALLOW_CONNECTIONS false`);
+  await admin.$queryRawUnsafe(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()`, name);
+  return async () => {
+    try {
+      await admin.$executeRawUnsafe(`ALTER DATABASE ${quoted} WITH ALLOW_CONNECTIONS true`);
+    } finally {
+      await admin.$disconnect();
+    }
+  };
+}

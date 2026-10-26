@@ -8,7 +8,8 @@ import '@/components/admin/settings/settings.css';
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  await enforceAdminPage(['ADMIN'], '/admin/users');
+  const gate = await enforceAdminPage(['ADMIN'], '/admin/users');
+  if (!gate.ok) return gate.notice;
   // #347：自己那一行不显示「重置 2FA」，需要知道当前账号 id（只传 id，不传其他会话信息）
   const c = await checkAdminSession(['ADMIN']);
   return <UsersAdmin selfId={c.ok ? c.user.id : undefined} />;
