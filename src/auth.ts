@@ -18,13 +18,23 @@ import {
 
 /** Auth.js 自己的传输字段。登录契约只解析剩下的字段，未知登录字段仍由 strict schema 拒绝。 */
 const AUTH_TRANSPORT_FIELDS = ['csrfToken', 'callbackUrl', 'redirect', 'json'] as const;
+/** 默认登录页没填的可选框会提交成空字符串。default 只认 undefined，空字符串会让枚举和 rememberDevice 直接失败。 */
+const BLANK_OPTIONAL_FIELDS = ['mode', 'rememberDevice', 'recoveryCode', 'totp'] as const;
 
-function parseLogin(raw: unknown) {
+function blankText(value: unknown) {
+  return typeof value === 'string' && value.trim() === '';
+}
+
+export function parseLogin(raw: unknown) {
   if (!raw || typeof raw !== 'object') return LoginRequestSchema.safeParse(raw);
   const source = { ...(raw as Record<string, unknown>) };
   for (const key of AUTH_TRANSPORT_FIELDS) delete source[key];
   // 空密码输入视为没带密码，totp 模式才能不填密码；password 模式仍由契约要求密码。
   if (source.password === '') delete source.password;
+  // 只删这四个可选字段的空值。email 留空仍交给契约拒绝，未知字段也不删。
+  for (const key of BLANK_OPTIONAL_FIELDS) {
+    if (blankText(source[key])) delete source[key];
+  }
   if (typeof source.totp === 'string') source.totp = source.totp.trim();
   return LoginRequestSchema.safeParse(source);
 }
