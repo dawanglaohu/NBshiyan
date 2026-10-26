@@ -1,11 +1,12 @@
 import { z } from 'zod';
 import { isProdEnvFrom } from '../site';
 
-/** 普通会话 2h 滑动。记住设备 7d 闲置、签发后 30d 绝对。真实活动 15min 才续一次。 */
+/** 普通会话 2h 滑动、首次登录后 12h 绝对。记住设备 7d 闲置、首次登录后 30d 绝对。真实活动 15min 才续一次。 */
 export const ADMIN_SESSION_POLICY = {
   idleMs: 2 * 60 * 60 * 1000,
   rememberedIdleMs: 7 * 24 * 60 * 60 * 1000,
   absoluteMs: 30 * 24 * 60 * 60 * 1000,
+  ordinaryAbsoluteMs: 12 * 60 * 60 * 1000,
   activityThrottleMs: 15 * 60 * 1000,
 } as const;
 
@@ -23,6 +24,7 @@ const ServerPolicySchema = z.object({
     idleMs: DurationMsSchema,
     rememberedIdleMs: DurationMsSchema,
     absoluteMs: DurationMsSchema,
+    ordinaryAbsoluteMs: DurationMsSchema,
     activityThrottleMs: DurationMsSchema,
   }).strict(),
   grant: z.object({
@@ -39,6 +41,9 @@ const ServerPolicySchema = z.object({
   }
   if (value.session.rememberedIdleMs >= value.session.absoluteMs) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['session', 'absoluteMs'] });
+  }
+  if (value.session.ordinaryAbsoluteMs <= value.session.idleMs || value.session.ordinaryAbsoluteMs >= value.session.rememberedIdleMs) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['session', 'ordinaryAbsoluteMs'] });
   }
 });
 

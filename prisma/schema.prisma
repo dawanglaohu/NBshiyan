@@ -88,7 +88,10 @@ model User {
   createdAt      DateTime  @default(now())
 }
 
-// 后台设备会话。sid 只放在加密 JWT 里。普通会话没有绝对期限；记住设备的绝对期限从首次签发起算。
+// 后台设备会话。sid 只放在加密 JWT 里。
+// absoluteExpiresAt 只写给记住设备，从首次签发起算 30 天；普通会话保持空，账号接口也返回空。
+// hardExpiresAt 是两种会话共用的绝对截止，续期不改：普通会话 = 创建时间 + 12 小时，记住设备 = 创建时间 + 30 天。
+// 旧行的空 hardExpiresAt 按创建时间回填。鉴权读这一列，不读 JWT 里的 authTime。
 model AdminDeviceSession {
   id                 String    @id
   userId             String
@@ -98,6 +101,7 @@ model AdminDeviceSession {
   createdAt          DateTime  @default(now())
   lastActivityAt     DateTime
   absoluteExpiresAt  DateTime?
+  hardExpiresAt      DateTime?
   revokedAt          DateTime?
   revokedReason      String?
   deviceLabel        String?

@@ -12,6 +12,7 @@ import {
   clearedSessionCookieHeaders,
   deviceServiceFor,
   sessionCookieNames,
+  type AuthenticateResult,
   type DeviceSessionService,
 } from '@/lib/server/admin/device-session';
 
@@ -39,6 +40,12 @@ let devices: DeviceSessionService | undefined;
 function devicesOf() {
   devices ??= deviceServiceFor(prisma, () => new Date(), ADMIN_SESSION_POLICY);
   return devices;
+}
+
+/** 鉴权失败丢掉 token。数据库暂时不可用时原样退回，已有 cookie 继续有效。 */
+export function jwtAfterAccess<T>(token: T, decision: AuthenticateResult): T | null {
+  if (!decision.ok) return decision.reason === 'unavailable' ? token : null;
+  return token;
 }
 
 type EncodeParams = Parameters<typeof defaultEncode>[0];
@@ -110,11 +117,13 @@ export const { handlers, auth } = NextAuth({
         sid: typeof token.sid === 'string' ? token.sid : undefined,
         roles: AREA,
       });
-      if (!decision.ok) return null;
+      if (!decision.ok) return jwtAfterAccess(token, decision);
       token.uid = decision.user.id;
       token.sid = decision.device.id;
       token.sv = decision.user.sessionVersion;
       token.role = decision.user.role;
+      // authTime 只复制设备行的创建时间，给展示用。鉴权不读它；客户端 session.update 带上的值在这里被盖掉。
+      token.authTime = decision.device.createdAt.toISOString();
       token.effectiveExpiresAt = decision.bounds.effectiveExpiresAt.toISOString();
       token.absoluteExpiresAt = decision.bounds.absoluteExpiresAt?.toISOString() ?? null;
       return token;
@@ -187,6 +196,29 @@ async function capSessionCookie(cookie: string): Promise<string> {
   } catch {
     return clearedNamed(name);
   }
+}
+
+/** 用当前设备期限重新签发会话 JWT。exp 仍走 encodeCapped，不把 maxAge 放到设备截止之后。 */
+export async function sealSessionCookie(token: EncodeParams['token']): Promise<{ value: string; exp: number } | null> {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret || !token) return null;
+  try {
+    const value = await encodeCapped({ token, secret, salt: SESSION_COOKIE_NAME });
+    const decoded = await decode({ token: value, secret, salt: SESSION_COOKIE_NAME });
+    if (!decoded || typeof decoded.exp !== 'number') return null;
+    return { value, exp: decoded.exp };
+  } catch {
+    return null;
+  }
+}
+
+/** 与 Auth.js 初始化时的 cookie 选项一致：HttpOnly、SameSite=Lax；生产再加 Secure 和 __Secure- 前缀。 */
+export function sessionSetCookie(value: string, exp: number): string {
+  const expires = new Date(exp * 1000).toUTCString();
+  const maxAge = Math.max(0, exp - Math.floor(Date.now() / 1000));
+  const parts = [`${SESSION_COOKIE_NAME}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Lax', `Expires=${expires}`, `Max-Age=${maxAge}`];
+  if (USE_SECURE_COOKIES) parts.push('Secure');
+  return parts.join('; ');
 }
 
 export async function alignSessionCookies(response: Response): Promise<Response> {
