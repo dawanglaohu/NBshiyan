@@ -60,7 +60,10 @@ test('未登录打开登录页得到 200，且这次请求没有重定向', asyn
   await page.getByLabel('密码', { exact: true }).fill('kept-secret');
   await page.getByLabel('邮箱').fill('');
   await page.getByRole('button', { name: '登录' }).click();
-  await expect(page.getByRole('alert')).toHaveText('邮箱或密码不正确');
+  // 页面级 getByRole('alert') 还会命中 body 上 Next 路由播报的 shadow 节点。
+  const emptyAlert = page.locator('#admin-login-alert');
+  await expect(emptyAlert).toHaveAttribute('role', 'alert');
+  await expect(emptyAlert).toHaveText('邮箱或密码不正确');
   await expect(page.getByLabel('密码', { exact: true })).toHaveValue('kept-secret');
   expect(credentialPosts).toBe(0);
   await assertNoHiddenFields(page);
@@ -140,7 +143,10 @@ test('返回和挑战失效把密码藏回去；提交被浏览器截住，不�
   await expect(password).toHaveValue('');
   await expect(password).toHaveAttribute('type', 'password');
   await expect(password).toBeFocused();
-  await expect(page.getByRole('alert')).toHaveText('验证已超时，请重新输入密码');
+  // 同上：定位本页提示，避开路由播报。
+  const expiredAlert = page.locator('#admin-login-alert');
+  await expect(expiredAlert).toHaveAttribute('role', 'alert');
+  await expect(expiredAlert).toHaveText('验证已超时，请重新输入密码');
   await expect(page.getByRole('button', { name: '显示密码' })).not.toHaveAttribute('aria-pressed');
   expect(intercepted).toBe(3);
 });
