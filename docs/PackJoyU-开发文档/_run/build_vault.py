@@ -376,24 +376,33 @@ def module_note(m, tasks, edges, modules, titles, kept, mode="greenfield", seed=
     return "\n".join(L)
 
 
-def task_note(t, tasks, edges, modules, repo, main_branch, kept):
+def task_note(t, tasks, edges, modules, repo, main_branch, kept, pr=None, merged=None):
     by_edge = {e["id"]: e for e in edges}
     by_mod = {m["id"]: m for m in modules}
     unlocks = [x["id"] for x in tasks if t["id"] in x["deps"]]
     mod = by_mod.get(t["module"])
-
-    L = [fm([("type", "task"), ("id", t["id"]), ("module", t["module"]),
+    pairs = [("type", "task"), ("id", t["id"]), ("module", t["module"]),
              ("depends_on", ylist(t["deps"])), ("unlocks", ylist(unlocks)),
              ("edges", ylist(t["edges"])), ("est_days", num(t["est"])),
-             ("branch", "task/" + t["id"]), ("status", "todo")]),
+             ("branch", "task/" + t["id"])]
+    # 与遗留 issue 相同的登记字段。只在笔记头部已经写了合法 pr 与 40 位 merged 时保留。
+    if pr and merged:
+        pairs.extend((("pr", pr), ("merged", merged)))
+    pairs.append(("status", "todo"))
+
+    L = [fm(pairs),
          "",
          "# %s　%s" % (t["id"], t["title"]),
          "",
          "- 所属模块：[[%s]]%s" % (t["module"], "　" + mod["role"] if mod else ""),
          "- 前置依赖：" + ("、".join("[[%s]]" % d for d in t["deps"]) or "无，可直接开工"),
-         "- 完成后解锁：" + ("、".join("[[%s]]" % d for d in unlocks) or "无，它不卡别人"),
-         "",
-         "## 输入 / 产出",
+         "- 完成后解锁：" + ("、".join("[[%s]]" % d for d in unlocks) or "无，它不卡别人")]
+    if pr and merged:
+        L.append("- PR：#%s" % pr)
+        L.append("- 合并提交：`%s`" % merged)
+        L.append("- 登记状态：已落地")
+    L += ["",
+          "## 输入 / 产出",
          "",
          "- **输入**：" + (t["input"] or "无"),
          "- **产出**：" + (t["output"] or "见验收标准"),
@@ -877,12 +886,20 @@ def main():
         if selected is not None and t["id"] not in selected and os.path.exists(p):
             continue
         k = harvest(p)
-        body = task_note(t, tasks, edges, modules, repo, main_branch, k)
+        old_text = read(p) if os.path.exists(p) else ""
+        pr = merged = None
+        status_m = re.search(r"^status:\s*(\S+)", old_text, re.M) if old_text else None
+        fm_m = re.match(r"^---\s*\n(.*?)\n---", old_text, re.S) if old_text else None
+        # 19 节任务不能进遗留 issue 围栏。已落地笔记用同一对 pr / merged 字段。
+        if status_m and status_m.group(1) == "done" and fm_m:
+            pr_m = re.search(r"^pr:\s*(\d{1,6})\s*$", fm_m.group(1), re.M)
+            sha_m = re.search(r"^merged:\s*([0-9a-f]{40})\s*$", fm_m.group(1), re.M)
+            if pr_m and sha_m:
+                pr, merged = pr_m.group(1), sha_m.group(1)
+        body = task_note(t, tasks, edges, modules, repo, main_branch, k, pr, merged)
         # status 是人手维护的，重跑不覆盖
-        if os.path.exists(p):
-            old = re.search(r"^status:\s*(\S+)", read(p), re.M)
-            if old:
-                body = re.sub(r"^status:\s*\S+", "status: " + old.group(1), body, count=1, flags=re.M)
+        if status_m:
+            body = re.sub(r"^status:\s*\S+", "status: " + status_m.group(1), body, count=1, flags=re.M)
         protected_kept += sum(1 for n, ph in (("code", PH_CODE_TASK), ("notes", PH_NOTES_TASK))
                               if filled(k, n, ph))
         write(p, body)

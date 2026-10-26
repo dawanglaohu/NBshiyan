@@ -1087,6 +1087,9 @@ function showCardAt(x, y, id){
          "<dt>依赖</dt><dd>"+esc(t.dep||"无")+"</dd>"+
          "<dt>验收</dt><dd>"+esc(t.accept||"—")+"</dd>"+
          "<dt>预估</dt><dd>"+esc(t.est||"—")+"</dd>"+
+         (t.pr ? "<dt>PR</dt><dd>#"+esc(t.pr)+"</dd>" : "")+
+         (t.merged ? "<dt>合并提交</dt><dd>"+esc(t.merged)+"</dd>" : "")+
+         (t.ledgerStatus === "done" ? "<dt>登记状态</dt><dd>已落地</dd>" : "")+
          "<dt>状态</dt><dd data-st>"+ST_TEXT[stOf(id)]+"</dd></dl>"+
          '<div class="acts">'+
          /* 卡片里的「实施」和交接台那一行一样受依赖闸门管——否则从正文芯片进来
@@ -3125,7 +3128,11 @@ function handBody(){
           : '<button class="st" data-act="st" title="点一下推进一格：待派 → 进行中 → 审查中 → 已落地（已落地再点会退回待派，会先问一句）">') +
           ST_TEXT[st] + "</button>" +
         '<span class="hid"><button class="chip" data-id="' + id + '">' + id + "</button></span>" +
-        '<span class="htt">' + esc(t.title) + "</span>";
+        '<span class="htt"' + (t.merged ? ' title="' + esc(t.merged) + '"' : "") + ">" + esc(t.title) +
+        (t.pr || t.ledgerStatus === "done"
+          ? ' <small>' + esc([t.pr ? ("PR #" + t.pr) : "", t.ledgerStatus === "done" ? "登记状态：已落地" : ""].filter(Boolean).join(" · ")) + "</small>"
+          : "") +
+        "</span>";
       if(rv.length){
         var one = clashOf(t.id, rv[0].id);
         var brief = one.length > 20 ? "…" + one.slice(-18) : one;
@@ -3889,6 +3896,32 @@ def extract(by_num):
             "decisions": decisions, "changes": changes}
 
 
+def attach_task_landing(root, tasks):
+    """19 节任务不能写入遗留 issue 围栏。已落地笔记头部的 pr 与 40 位 merged
+    用和 issue 任务相同的字段进 docs-data：pr、merged、ledgerStatus。
+    调用必须在契约分析之后，避免把登记字段算进契约哈希。不设置 issue，批次不变。"""
+    for task in tasks:
+        if task.get("issue") or task.get("repair"):
+            continue
+        path = os.path.join(root, "图谱", "任务", task["id"] + ".md")
+        if not os.path.isfile(path):
+            continue
+        text = read(path)
+        tid, status = note_status(text)
+        if tid != task["id"] or status != "done":
+            continue
+        fm = re.match(r"^---\s*\n(.*?)\n---", text, re.S)
+        if not fm:
+            continue
+        pr_m = re.search(r"^pr:\s*(\d{1,6})\s*$", fm.group(1), re.M)
+        sha_m = re.search(r"^merged:\s*([0-9a-f]{40})\s*$", fm.group(1), re.M)
+        if not pr_m or not sha_m:
+            continue
+        task["pr"] = pr_m.group(1)
+        task["merged"] = sha_m.group(1)
+        task["ledgerStatus"] = "done"
+
+
 def read_code_refs(root, tasks):
     """只读任务笔记的受保护代码块；空块与生成器的未回填占位不算代码位置。"""
     placeholders = {
@@ -3918,12 +3951,22 @@ def chip_index(data):
     tasks_of = {}
     for t in data["tasks"]:
         tasks_of.setdefault(t["module"], []).append(t["id"])
+    def chip_task(t):
+        item = {"title": t["title"], "module": t["module"],
+                "dep": "、".join(t["deps"]) or "无",
+                "accept": t["accept"], "est": (str(t["est"]) + "d") if t["est"] else ""}
+        if not t.get("issue") and not t.get("repair"):
+            if t.get("pr"):
+                item["pr"] = t["pr"]
+            if t.get("merged"):
+                item["merged"] = t["merged"]
+            if t.get("ledgerStatus"):
+                item["ledgerStatus"] = t["ledgerStatus"]
+        return item
+
     return {
         "edges": {e["id"]: e for e in data["edges"]},
-        "tasks": {t["id"]: {"title": t["title"], "module": t["module"],
-                            "dep": "、".join(t["deps"]) or "无",
-                            "accept": t["accept"], "est": (str(t["est"]) + "d") if t["est"] else ""}
-                  for t in data["tasks"]},
+        "tasks": {t["id"]: chip_task(t) for t in data["tasks"]},
         "modules": {m["id"]: {"role": m["role"],
                               "dep": "、".join(m["deps"]) or "无",
                               "tasks": tasks_of.get(m["id"], [])}
@@ -4879,6 +4922,7 @@ def main():
     # 笔记回填是提示词上下文，不进入 analyze 已计算的任务契约及其哈希。
     data["tasks"] = [dict(t) for t in data["tasks"]]
     read_code_refs(root, data["tasks"])
+    attach_task_landing(root, data["tasks"])
     payload = {
         "schemaVersion": 1,
         "handoff": checked,
