@@ -1,3 +1,5 @@
+import { outageFormGeneric } from '@/lib/admin/outage-copy';
+
 // 后台模型上传数据层，按 PR #89 的 docs/API.md「后台模型管理」：
 // POST /api/admin/models（multipart 上传，同步静态检查，不压缩）、GET/PATCH /api/admin/models/:id、
 // POST /api/admin/models/:id/process（重新检查）、POST /api/admin/models/:id/publish、GET /api/admin/models/:id/file?variant=
@@ -7,6 +9,10 @@ export const CHECK_ORDER: CheckKey[] = ['format', 'compress', 'size', 'triangles
 export const CHECK_LABEL: Record<CheckKey, string> = {
   format: '格式', compress: '压缩', size: '体积', triangles: '面数', textures: '贴图', animation: '动画', bounds: '尺寸', lod: '高精度层'
 };
+/** 检查项名称。只查自身属性；未知 key 和原型键都用固定通用句，不回显原始 key。 */
+export function modelCheckLabel(key: string): string {
+  return Object.prototype.hasOwnProperty.call(CHECK_LABEL, key) ? CHECK_LABEL[key as CheckKey] : outageFormGeneric();
+}
 /** 上传限制（服务端以同样规则拒绝：413 / 415） */
 export const LIMITS = { glb: 1.5 * 1024 * 1024, lod: 1024 * 1024, poster: 512 * 1024, sizeNormal: 1024 * 1024, sizeAnimated: 1.5 * 1024 * 1024, total: 4_000_000 };
 /** 留给 multipart 表单开销的余量（和服务端一致） */

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { nextTrapFocus, FOCUSABLE_SELECTOR } from '../src/lib/admin/focus-trap';
-import { draftErrors, emptyDraft, humanIssueLine, mapAboutServerIssues, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
+import { draftErrors, emptyDraft, humanIssueLine, issueLine, mapAboutServerIssues, issuePathLabel, issuesAlertText, saveFailureView } from '../src/lib/admin/site-settings';
 import { createAboutSettingsApi } from '../src/lib/admin/site-settings-http';
 import { IMAGES_TEXT, inFlightCount, isPortrait, missingAltImages, slotsLeft, takeReady } from '../src/lib/admin/about-images';
 import { ABOUT_LIMITS } from '../src/lib/site-settings/about-rules';
@@ -71,6 +71,22 @@ test('顶部错误条：认识的路径换成中文字段名，认不出的去�
   const alert = issuesAlertText('invalid', ['imageMeta.x：too_long', 'bodyHtml：too_long', 'a：bad', 'b：bad']);
   assert.equal(alert, '参数不正确，请检查后重试。（图片文字：超出上限；正文：超出上限；不符合要求）');
   for (const raw of ['imageMeta.', 'bodyHtml：', 'a：', 'too_long', 'bad']) assert.ok(!alert.includes(raw), raw);
+});
+
+test('服务器返回的中文 message 不出现在顶部错误条', () => {
+  const leak = '服务器偷偷写的中文原文不应出现在页面上';
+  assert.equal(humanIssueLine(leak), '不符合要求');
+  assert.equal(humanIssueLine(leak).includes(leak), false);
+  assert.equal(humanIssueLine(`bodyHtml：${leak}`).includes(leak), false);
+  const line = issueLine({ path: 'weird', message: leak });
+  const alert = issuesAlertText('invalid', [line]);
+  assert.equal(alert.includes(leak), false);
+  assert.match(alert, /不符合要求/);
+  const view = saveFailureView({ code: 'invalid', rest: [line] });
+  assert.equal(view.alert?.includes(leak), false);
+  const html = renderToStaticMarkup(React.createElement('p', { role: 'alert' }, view.alert));
+  assert.equal(html.includes(leak), false);
+  assert.match(html, /不符合要求/);
 });
 
 test('顶部错误条（端到端）：about 保存 400 带对不上字段的 issue → saveFailureView 里没有原始路径', async () => {
