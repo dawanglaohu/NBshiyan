@@ -70,8 +70,17 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(ru.Privacy.metaDescription.includes('чат'), false);
   assert.equal(en.Privacy.sections.chat.title, 'Contacting us');
   assert.equal(ru.Privacy.sections.chat.title, 'Как с нами связаться');
-  assert.deepEqual(en.Privacy.sections.chat.items, ['The inquiry form and email always work, whatever you choose in cookie settings.']);
-  assert.deepEqual(ru.Privacy.sections.chat.items, ['Форма запроса и e-mail работают всегда, независимо от настроек cookie.']);
+  // 联系页 humanBody 等于第 1 句。聊天期限放在第 2 句，避免联系页带上保留期限。
+  assert.deepEqual(en.Privacy.sections.chat.items, [
+    'The inquiry form and email always work, whatever you choose in cookie settings.',
+    'The necessary chat cookie expires after 7\u00A0days of inactivity and no later than 30\u00A0days after it was first set. Automatic deletion of chat messages is not currently enabled on this site.',
+  ]);
+  assert.deepEqual(ru.Privacy.sections.chat.items, [
+    'Форма запроса и e-mail работают всегда, независимо от настроек cookie.',
+    'Срок действия необходимого файла cookie чата истекает через 7\u00A0дней бездействия, но не позднее чем через 30\u00A0дней после его установки. Автоматическое удаление сообщений чата на сайте сейчас не включено.',
+  ]);
+  assert.equal(en.Privacy.sections.retention.items.inquiries.startsWith('Inquiries are anonymized 2 years after the last activity'), true);
+  assert.equal(ru.Privacy.sections.retention.items.inquiries.startsWith('Запросы обезличиваются через 2 года после последней активности'), true);
   assert.equal(en.Privacy.sections.cookies.items.length, 4);
   assert.equal(ru.Privacy.sections.cookies.items.length, 4);
   assert.equal(en.Privacy.sections.cookies.items[0].endsWith('It records whether you allowed optional analytics, and when.'), true);
