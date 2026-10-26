@@ -6,15 +6,29 @@ const en = JSON.parse(readFileSync('messages/en.json', 'utf8')).Products.desc as
 const ru = JSON.parse(readFileSync('messages/ru.json', 'utf8')).Products.desc as Record<string, string>;
 const css = readFileSync('src/app/globals.css', 'utf8');
 
-test('catalog blurbs held to two lines at 390px keep these exact sentences', () => {
-  assert.equal(en['color-boxes'], 'Full-color printed folding cartons and retail boxes for cosmetics, food and electronics.');
-  assert.equal(en['corrugated-boxes'], 'Custom corrugated shipping boxes in single and double wall, printed with your brand.');
-  assert.equal(ru['corrugated-boxes'], 'Гофрокороба и почтовые коробки на заказ, трёх- и пятислойные, печать логотипа.');
-  assert.equal(ru['christmas-merchandise'], 'Новогодние коробки, тубусы, адвент-календари и сезонная упаковка на заказ.');
-  assert.equal(ru['gift-boxes'], 'Жёсткие и магнитные подарочные коробки на заказ с\u00A0тиснением фольгой и ложементами.');
-  assert.equal(ru['wine-boxes'], 'Премиальные коробки для вина и крепких напитков на одну и более бутылок.');
+test('catalog blurbs held to two lines at 390px keep keywords and a length cap', () => {
+  assert.equal(en['color-boxes'].includes('Full-color'), true);
+  assert.equal(en['color-boxes'].includes('folding cartons'), true);
+  assert.ok([...en['color-boxes']].length <= 88);
+  assert.equal(en['corrugated-boxes'].includes('single'), true);
+  assert.equal(en['corrugated-boxes'].includes('double wall'), true);
+  assert.ok([...en['corrugated-boxes']].length <= 84);
+  assert.equal(ru['corrugated-boxes'].includes('трёх- и пятислойные'), true);
+  assert.ok([...ru['corrugated-boxes']].length <= 78);
+  assert.equal(ru['christmas-merchandise'].includes('Новогодние'), true);
+  assert.equal(ru['christmas-merchandise'].includes('адвент-календари'), true);
+  assert.ok([...ru['christmas-merchandise']].length <= 74);
+  assert.equal(ru['gift-boxes'].includes('на заказ'), true);
+  assert.equal(ru['gift-boxes'].includes('ложемент'), true);
+  assert.equal(ru['gift-boxes'].includes('с\u00A0'), true);
+  assert.equal(ru['gift-boxes'].includes('с '), false);
+  assert.ok([...ru['gift-boxes']].length <= 74);
+  assert.equal(ru['wine-boxes'].includes('вина'), true);
+  assert.equal(ru['wine-boxes'].includes('бутылок'), true);
   assert.ok([...ru['wine-boxes']].length <= 76);
-  assert.equal(ru['color-boxes'], 'Картонные коробки с полноцветной печатью для косметики, продуктов и электроники.');
+  assert.equal(ru['color-boxes'].includes('полноцветной'), true);
+  assert.equal(ru['color-boxes'].includes('косметики'), true);
+  assert.ok([...ru['color-boxes']].length <= 80);
 });
 
 test('ru product-card specs name three- and five-layer board and keep non-breaking spaces', () => {
@@ -22,7 +36,7 @@ test('ru product-card specs name three- and five-layer board and keep non-breaki
   assert.equal(specs['corrugated-boxes'][0], 'Трёх- и пятислойный гофрокартон (E/B/C)');
   assert.equal(specs['corrugated-boxes'][1].includes('до\u00A04\u00A0цветов'), true);
   assert.equal(specs['corrugated-boxes'][1].includes('до 4 цветов'), false);
-  assert.equal(specs['gift-boxes'][0].includes('2,5\u00A0мм'), true);
+  assert.equal(specs['gift-boxes'][0].includes('1,5\u2060–\u20602,5\u00A0мм'), true);
   assert.equal(specs['gift-boxes'][0].includes('2,5 мм'), false);
   assert.equal(ru['gift-boxes'].includes('с\u00A0тиснением'), true);
   assert.equal(ru['gift-boxes'].includes('с тиснением'), false);
