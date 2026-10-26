@@ -45,5 +45,6 @@ test('client-side total check with clear message', () => {
   assert.ok(msg && /4\.00MB/.test(msg) && /4MB/.test(msg));
   const ui = readFileSync('src/components/admin/models/ModelUpload.tsx', 'utf8');
   assert.match(ui, /uploadTotalError\(/);
-  assert.match(ui, /upload_too_large:/);
+  assert.match(ui, /modelUploadErrorText\(/);
+  assert.match(readFileSync('src/components/admin/models/ModelUploadAlert.tsx', 'utf8'), /upload_too_large:/);
 });
