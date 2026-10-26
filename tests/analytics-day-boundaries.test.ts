@@ -51,6 +51,35 @@ test('23 小时春令时和 25 小时秋令时用本地午夜，不加固定 24 
   assertWindow('2026-04-05', 'Australia/Sydney', '2026-04-04T13:00:00.000Z', '2026-04-05T14:00:00.000Z', 25);
 });
 
+test('跳过本地午夜时用该本地日最早瞬间作左闭端，并接到前一天的右开端', () => {
+  assertWindow('2026-09-05', 'America/Santiago', '2026-09-05T04:00:00.000Z', '2026-09-06T04:00:00.000Z', 24);
+  assertWindow('2026-09-06', 'America/Santiago', '2026-09-06T04:00:00.000Z', '2026-09-07T03:00:00.000Z', 23);
+  assertWindow('2026-03-07', 'America/Havana', '2026-03-07T05:00:00.000Z', '2026-03-08T05:00:00.000Z', 24);
+  assertWindow('2026-03-08', 'America/Havana', '2026-03-08T05:00:00.000Z', '2026-03-09T04:00:00.000Z', 23);
+
+  const santiagoGap = siteDayUtcBounds('2026-09-06', 'America/Santiago', 'Pacific/Kiritimati');
+  const santiagoBare = siteDayUtcBounds('2026-09-06', 'America/Santiago');
+  assert.deepEqual(santiagoGap, santiagoBare);
+  assert.equal(siteDayUtcBounds('2026-09-05', 'America/Santiago').endUtc, santiagoGap.startUtc);
+  assert.equal(santiagoGap.endUtc, siteDayUtcBounds('2026-09-07', 'America/Santiago').startUtc);
+  assert.equal(siteLocalDate(new Date(Date.parse(santiagoGap.startUtc) - 1), 'America/Santiago', 'Europe/London'), '2026-09-05');
+
+  const havanaGap = siteDayUtcBounds('2026-03-08', 'America/Havana', 'Pacific/Pago_Pago');
+  assert.deepEqual(havanaGap, siteDayUtcBounds('2026-03-08', 'America/Havana'));
+  assert.equal(siteDayUtcBounds('2026-03-07', 'America/Havana').endUtc, havanaGap.startUtc);
+  assert.equal(havanaGap.endUtc, siteDayUtcBounds('2026-03-09', 'America/Havana').startUtc);
+  assert.equal(siteLocalDate(new Date(Date.parse(havanaGap.startUtc) - 1), 'America/Havana', 'Asia/Tokyo'), '2026-03-07');
+
+  const santiagoNow = new Date(Date.parse('2026-09-06T04:00:00.000Z') + RAW_EVENT_RETENTION_MS);
+  assert.equal(recomputableFrom(santiagoNow, 'America/Santiago'), '2026-09-06T04:00:00.000Z');
+  const beforeGap = new Date(Date.parse('2026-09-06T03:59:59.999Z') + RAW_EVENT_RETENTION_MS);
+  assert.equal(recomputableFrom(beforeGap, 'America/Santiago'), '2026-09-06T04:00:00.000Z');
+  const havanaNow = new Date(Date.parse('2026-03-08T05:00:00.000Z') + RAW_EVENT_RETENTION_MS);
+  assert.equal(recomputableFrom(havanaNow, 'America/Havana'), '2026-03-08T05:00:00.000Z');
+  const havanaBefore = new Date(Date.parse('2026-03-08T04:59:59.999Z') + RAW_EVENT_RETENTION_MS);
+  assert.equal(recomputableFrom(havanaBefore, 'America/Havana'), '2026-03-08T05:00:00.000Z');
+});
+
 test('秋令时重复的本地时刻只属于一个 UTC 日，午夜只属于新的一天', () => {
   const day = siteDayUtcBounds('2026-11-01', 'America/New_York');
   const first = new Date('2026-11-01T05:30:00.000Z');
