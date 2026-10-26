@@ -1,5 +1,6 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { staleLoginChallengeWhere } from '../src/lib/server/admin/login-challenge';
 import { retentionDryRunCounts, isRetentionDryRun } from '../src/lib/server/retention-dry-run';
 
 afterEach(() => { delete process.env.ADMIN_INACTIVE_DAYS; });
@@ -8,24 +9,31 @@ afterEach(() => { delete process.env.ADMIN_INACTIVE_DAYS; });
 function guardedDb(counts: Record<string, number[]>, users: { inactive: { id: string; role: string }[]; activeAdmins: number }) {
   const writes: string[] = [];
   const reads: string[] = [];
+  const wheres: Record<string, unknown[]> = {};
   const model = (name: string) => new Proxy({}, {
     get: (_t, m: string) => {
-      if (m === 'count') return async () => { reads.push(`${name}.count`); return (counts[name] ?? []).shift() ?? 0; };
+      if (m === 'count') return async (args?: { where?: unknown }) => {
+        reads.push(`${name}.count`);
+        (wheres[name] ??= []).push(args?.where);
+        return (counts[name] ?? []).shift() ?? 0;
+      };
       if (m === 'findMany' && name === 'user') return async (a: any) => { reads.push('user.findMany'); return a.where.role === 'ADMIN' ? Array.from({ length: users.activeAdmins }, (_, i) => ({ id: `a${i}` })) : users.inactive; };
       return () => { writes.push(`${name}.${m}`); throw new Error(`write in dry run: ${name}.${m}`); };
     },
   });
   const db = new Proxy({}, { get: (_t, k: string) => (k.startsWith('$') ? () => { writes.push(k); throw new Error(k); } : model(k)) });
-  return { db, writes, reads };
+  return { db, writes, reads, wheres };
 }
 
 test('dry run only counts: zero writes, counts every step', async () => {
-  const { db, writes, reads } = guardedDb(
-    { sharedDesign: [3], logoUpload: [4, 2], sampleRequest: [5], auditLog: [6], inquiry: [7] },
+  const now = new Date('2026-10-13T00:00:00Z');
+  const { db, writes, reads, wheres } = guardedDb(
+    { sharedDesign: [3], logoUpload: [4, 2], sampleRequest: [5], auditLog: [6], inquiry: [7], adminLoginChallenge: [8] },
     { inactive: [{ id: 's1', role: 'SALES' }], activeAdmins: 2 },
   );
-  const r = await retentionDryRunCounts(db as never, new Date('2026-10-13T00:00:00Z'));
-  assert.deepEqual(r, { designs: 3, orphanLogos: 4, sampleCounters: 5, auditLogs: 6, inquiries: 7, inquiryLogos: 2, inactiveUsers: 1, skippedLastAdmin: 0 });
+  const r = await retentionDryRunCounts(db as never, now);
+  assert.deepEqual(r, { designs: 3, orphanLogos: 4, sampleCounters: 5, auditLogs: 6, inquiries: 7, inquiryLogos: 2, inactiveUsers: 1, skippedLastAdmin: 0, loginChallenges: 8 });
+  assert.deepEqual(wheres.adminLoginChallenge, [staleLoginChallengeWhere(now)]);
   assert.deepEqual(writes, []);
   assert.ok(reads.every((x) => x.endsWith('.count') || x === 'user.findMany'));
 });

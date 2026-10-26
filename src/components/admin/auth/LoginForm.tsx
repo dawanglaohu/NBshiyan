@@ -1,8 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useReducer, useRef, useState, type FormEvent } from 'react';
 import { signIn } from 'next-auth/react';
 import { commitAndReveal } from '@/components/admin/reveal-error';
+import {
+  initialLoginFormState,
+  passwordSubmitAction,
+  reduceLoginForm,
+  totpSubmitAction,
+} from '@/lib/admin/login-form-state';
 import {
   interpretSignInResult,
   loginCopy,
@@ -12,9 +18,6 @@ import {
   type LoginLang,
   type LoginStep,
 } from '@/lib/admin/login-step';
-
-type ErrorKind = '' | 'credentials' | 'totp' | 'rate';
-type NoticeKind = '' | 'setup' | 'expired';
 
 function PasswordEye({ off }: { off: boolean }) {
   return (
@@ -57,18 +60,12 @@ export default function LoginForm({
   signInFn?: typeof signIn;
 }) {
   const [ready, setReady] = useState(false);
-  const [step, setStep] = useState<LoginStep>(initialStep);
-  const [email, setEmail] = useState(initialEmail);
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [totp, setTotp] = useState('');
-  const [errorKind, setErrorKind] = useState<ErrorKind>(urlError ? 'credentials' : '');
-  const [notice, setNotice] = useState<NoticeKind>(initialStep === 'setup' ? 'setup' : '');
-  const [busy, setBusy] = useState(false);
+  const [state, dispatch] = useReducer(reduceLoginForm, { step: initialStep, email: initialEmail, urlError }, initialLoginFormState);
   const alertRef = useRef<HTMLParagraphElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const totpRef = useRef<HTMLInputElement>(null);
   const t = loginCopy(initialLang);
+  const { step, email, password, showPassword, totp, errorKind, notice, busy } = state;
   const alertText = notice === 'setup' ? t.setupRequired
     : notice === 'expired' ? t.challengeExpired
       : errorKind === 'credentials' ? t.badCredentials
@@ -90,22 +87,17 @@ export default function LoginForm({
       const next = `${window.location.pathname}${params.toString() ? `?${params}` : ''}`;
       window.history.replaceState(window.history.state, '', next);
     }
-    const clear = () => setPassword('');
+    const clear = () => dispatch({ type: 'clear-password' });
     window.addEventListener('pagehide', clear);
     return () => {
       window.removeEventListener('pagehide', clear);
-      setPassword('');
+      dispatch({ type: 'clear-password' });
     };
   }, []);
 
   function goBack() {
     commitAndReveal(passwordRef, () => {
-      setTotp('');
-      setPassword('');
-      setShowPassword(false);
-      setStep('password');
-      setNotice('');
-      setErrorKind('');
+      dispatch({ type: 'back' });
     });
   }
 
@@ -113,98 +105,51 @@ export default function LoginForm({
     event.preventDefault();
     if (!ready || busy || step === 'setup') return;
     if (step === 'password') {
-      const submittedPassword = password;
-      const submittedEmail = email.trim();
-      if (!submittedEmail || !submittedPassword) {
-        commitAndReveal(alertRef, () => {
-          setNotice('');
-          setErrorKind('credentials');
-        });
+      const action = passwordSubmitAction(state);
+      if (action.type === 'submit-password-blocked') {
+        commitAndReveal(alertRef, () => { dispatch(action); });
         return;
       }
-      setPassword('');
-      setBusy(true);
-      setNotice('');
-      setErrorKind('');
+      dispatch({ type: 'submit-password' });
       try {
-        const result = await signInFn('credentials', { ...passwordCredentials(submittedEmail, submittedPassword), ...signInOptions(callbackUrl) });
+        const result = await signInFn('credentials', { ...passwordCredentials(action.email, action.password), ...signInOptions(callbackUrl) });
         const outcome = interpretSignInResult(result, 'password');
         if (outcome === 'success') {
           window.location.assign(callbackUrl);
+          dispatch({ type: 'password-outcome', outcome });
           return;
         }
         if (outcome === 'totp') {
-          setStep('totp');
-          setTotp('');
-          setErrorKind('');
-          setNotice('');
+          dispatch({ type: 'password-outcome', outcome });
           return;
         }
-        if (outcome === 'setup') {
-          commitAndReveal(alertRef, () => {
-            setStep('setup');
-            setNotice('setup');
-            setErrorKind('');
-          });
-          return;
-        }
-        commitAndReveal(alertRef, () => {
-          setNotice('');
-          setErrorKind(outcome === 'rate-limited' ? 'rate' : 'credentials');
-        });
+        commitAndReveal(alertRef, () => { dispatch({ type: 'password-outcome', outcome }); });
       } catch {
-        commitAndReveal(alertRef, () => {
-          setNotice('');
-          setErrorKind('credentials');
-        });
-      } finally {
-        setBusy(false);
+        commitAndReveal(alertRef, () => { dispatch({ type: 'password-failed' }); });
       }
       return;
     }
-    const code = totp.replace(/\s/g, '');
-    if (!/^[0-9]{6}$/.test(code)) {
-      commitAndReveal(alertRef, () => {
-        setTotp('');
-        setNotice('');
-        setErrorKind('totp');
-      });
+    const action = totpSubmitAction(state);
+    if (action.type === 'submit-totp-blocked') {
+      commitAndReveal(alertRef, () => { dispatch(action); });
       return;
     }
-    setBusy(true);
-    setErrorKind('');
-    setNotice('');
+    dispatch({ type: 'submit-totp' });
     try {
-      const result = await signInFn('credentials', { ...totpCredentials(code), ...signInOptions(callbackUrl) });
+      const result = await signInFn('credentials', { ...totpCredentials(action.code), ...signInOptions(callbackUrl) });
       const outcome = interpretSignInResult(result, 'totp');
       if (outcome === 'success') {
         window.location.assign(callbackUrl);
+        dispatch({ type: 'totp-outcome', outcome });
         return;
       }
       if (outcome === 'challenge-invalid') {
-        commitAndReveal(passwordRef, () => {
-          setTotp('');
-          setPassword('');
-          setShowPassword(false);
-          setStep('password');
-          setErrorKind('');
-          setNotice('expired');
-        });
+        commitAndReveal(passwordRef, () => { dispatch({ type: 'totp-outcome', outcome }); });
         return;
       }
-      commitAndReveal(alertRef, () => {
-        setTotp('');
-        setNotice('');
-        setErrorKind(outcome === 'rate-limited' ? 'rate' : 'totp');
-      });
+      commitAndReveal(alertRef, () => { dispatch({ type: 'totp-outcome', outcome }); });
     } catch {
-      commitAndReveal(alertRef, () => {
-        setTotp('');
-        setNotice('');
-        setErrorKind('totp');
-      });
-    } finally {
-      setBusy(false);
+      commitAndReveal(alertRef, () => { dispatch({ type: 'totp-failed' }); });
     }
   }
 
@@ -226,7 +171,7 @@ export default function LoginForm({
                 autoCapitalize="none"
                 spellCheck={false}
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => dispatch({ type: 'email', value: event.target.value })}
                 required
               />
             </div>
@@ -240,14 +185,14 @@ export default function LoginForm({
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) => dispatch({ type: 'password', value: event.target.value })}
                   required
                 />
                 <button
                   type="button"
                   className="lg-pw-toggle"
                   aria-label={showPassword ? t.hidePassword : t.showPassword}
-                  onClick={() => setShowPassword((value) => !value)}
+                  onClick={() => dispatch({ type: 'toggle-password' })}
                 >
                   <PasswordEye off={showPassword} />
                 </button>
@@ -272,10 +217,10 @@ export default function LoginForm({
             </div>
           </>
         )}
-        {step === 'totp' ? <p className="lg-hint">{t.totpHint}</p> : null}
         {step === 'totp' ? (
           <div className="lg-field">
             <label htmlFor="admin-login-totp">{t.totp}</label>
+            <p id="admin-login-totp-hint" className="lg-hint">{t.totpHint}</p>
             <input
               id="admin-login-totp"
               ref={totpRef}
@@ -284,8 +229,9 @@ export default function LoginForm({
               inputMode="numeric"
               autoComplete="one-time-code"
               spellCheck={false}
+              aria-describedby="admin-login-totp-hint"
               value={totp}
-              onChange={(event) => setTotp(event.target.value.replace(/\D/g, '').slice(0, 6))}
+              onChange={(event) => dispatch({ type: 'totp', value: event.target.value.replace(/\D/g, '').slice(0, 6) })}
               required
             />
           </div>

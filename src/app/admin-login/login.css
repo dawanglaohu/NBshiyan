@@ -78,7 +78,7 @@
   flex: none;
 }
 .lg-back { align-self: flex-start; margin: 0 0 8px; padding: 0 10px; }
-.lg-hint { margin: 0 0 6px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
+.lg-hint { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
 .lg-pw-toggle:focus-visible,
 .lg-back:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 .lg-submit {

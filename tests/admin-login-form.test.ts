@@ -55,12 +55,14 @@ test('totp step keeps a readonly email, offers back, and drops the password fiel
   assert.match(html, /id="admin-login-email"[^>]*read[Oo]nly/);
   assert.match(html, />返回</);
   const emailAt = html.indexOf('id="admin-login-email"');
-  const hintAt = html.indexOf('class="lg-hint"');
+  const labelAt = html.indexOf('for="admin-login-totp"');
+  const hintAt = html.indexOf('id="admin-login-totp-hint"');
   const totpAt = html.indexOf('id="admin-login-totp"');
-  assert.ok(emailAt >= 0 && hintAt > emailAt && totpAt > hintAt);
-  assert.match(html, /<p class="lg-hint">请输入验证器 App 中显示的 6 位验证码。<\/p>/);
-  assert.doesNotMatch(html, /<p class="lg-hint"[^>]*role=/);
+  assert.ok(emailAt >= 0 && labelAt > emailAt && hintAt > labelAt && totpAt > hintAt);
+  assert.match(html, /<p id="admin-login-totp-hint" class="lg-hint">请输入验证器 App 中显示的 6 位验证码。<\/p>/);
+  assert.doesNotMatch(html, /id="admin-login-totp-hint"[^>]*role=/);
   assert.match(html, /<label for="admin-login-totp">验证码<\/label>/);
+  assert.match(html, /id="admin-login-totp"[^>]*aria-describedby="admin-login-totp-hint"/);
   assert.match(html, /id="admin-login-totp"[^>]*input[Mm]ode="numeric"/);
   assert.match(html, /auto[Cc]omplete="one-time-code"/);
   assert.doesNotMatch(html, /admin-login-password|type="password"/);
@@ -137,7 +139,7 @@ test('copy, callback, and language follow the admin sign-in rules', () => {
   assert.equal(en.setupRequired, 'Two-step verification is required to access the admin panel. Use the setup link in your email. If the link has expired, ask an administrator to send a new one.');
   assert.equal(ru.setupRequired, `Для входа в${NBSP}панель управления нужно включить двухэтапную аутентификацию. Настройте её по${NBSP}ссылке из${NBSP}письма. Если срок действия ссылки истёк, попросите администратора отправить новую.`);
   assert.equal(ru.email, `Эл.${NBSP}почта`);
-  assert.equal(ru.brand, '«Панель управления»');
+  assert.equal(ru.brand, 'Панель управления');
   assert.equal(zh.totpHint, '请输入验证器 App 中显示的 6 位验证码。');
   assert.equal(en.totpHint, 'Enter the 6-digit code shown in your authenticator app.');
   assert.equal(ru.totpHint, `Введите 6-значный код из${NBSP}приложения-аутентификатора.`);
@@ -172,7 +174,8 @@ test('copy, callback, and language follow the admin sign-in rules', () => {
   const form = readFileSync('src/components/admin/auth/LoginForm.tsx', 'utf8');
   assert.match(form, /commitAndReveal\(alertRef/);
   assert.match(form, /commitAndReveal\(passwordRef/);
-  assert.match(form, /setPassword\(''\)/);
+  assert.match(form, /type: 'clear-password'/);
+  assert.match(readFileSync('src/lib/admin/login-form-state.ts', 'utf8'), /case 'submit-password':\r?\n      return \{ \.\.\.state, password: ''/);
   assert.match(form, /totpRef\.current\?\.focus\(\)/);
   assert.doesNotMatch(form, /params\.get\('code'\)|searchParams\.get\('code'\)/);
   const css = readFileSync('src/app/admin-login/login.css', 'utf8');
@@ -207,6 +210,8 @@ test('same-origin absolute callbacks reduce to the admin path and everything els
   try {
     useEnv('https://app.example', 'https://other.example');
     assert.equal(adminCallbackPath('https://app.example/admin/models?x=1#gone'), '/admin/models?x=1');
+    assert.equal(adminCallbackPath('https://app.example@evil.com/admin'), '/admin/inquiries');
+    assert.equal(adminCallbackPath('https://u:p@app.example/admin/x'), '/admin/x');
     assert.equal(adminCallbackPath('https://other.example/admin/models'), '/admin/inquiries');
     assert.equal(adminCallbackPath('http://app.example/admin/models'), '/admin/inquiries');
     assert.equal(adminCallbackPath('https://app.example:444/admin/models'), '/admin/inquiries');

@@ -397,3 +397,26 @@ test('the fifth wrong code uses up the challenge and a later code cannot consume
   assert.equal(challenges[0]?.consumedAt, null);
   assert.equal(users[0]?.failedLogins, fails);
 });
+
+test('a locked or disabled account on the challenge step clears the host cookie and returns null', async () => {
+  const cases = [
+    { label: 'locked', patch: { lockedUntil: new Date(Date.now() + 60_000) }, issueIp: '198.51.100.120', ip: '198.51.100.121' },
+    { label: 'disabled', patch: { disabled: true, lockedUntil: null }, issueIp: '198.51.100.122', ip: '198.51.100.123' },
+  ];
+  for (const item of cases) {
+    users = [user()];
+    challenges = [];
+    const cookie = await issueCookie(item.issueIp);
+    Object.assign(users[0]!, item.patch);
+    const fails = users[0]?.failedLogins;
+    const cleared = await challengeApi.withLoginCookies(async () => {
+      const result = await authorizeLogin({ totp: authenticator.generate(SECRET), mode: 'password' }, item.ip, { cookie, userAgent: 'TestBrowser' });
+      assert.equal(result, null, item.label);
+      return challengeApi.stagedLoginCookies();
+    });
+    assertCleared(cleared);
+    assert.equal(users[0]?.failedLogins, fails, item.label);
+    assert.equal(challenges[0]?.consumedAt, null, item.label);
+    assert.equal(deviceInserts, 0, item.label);
+  }
+});

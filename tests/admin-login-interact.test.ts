@@ -1,120 +1,88 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { JSDOM } from 'jsdom';
+import {
+  initialLoginFormState,
+  passwordSubmitAction,
+  reduceLoginForm,
+  totpSubmitAction,
+  type LoginFormState,
+} from '../src/lib/admin/login-form-state';
 
-const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost:3100/admin-login' });
-const { window } = dom;
-const globals = globalThis as unknown as Record<string, unknown>;
-globals.window = window;
-globals.document = window.document;
-globals.HTMLElement = window.HTMLElement;
-globals.HTMLInputElement = window.HTMLInputElement;
-globals.HTMLButtonElement = window.HTMLButtonElement;
-globals.Element = window.Element;
-globals.Node = window.Node;
-globals.DocumentFragment = window.DocumentFragment;
-globals.MutationObserver = window.MutationObserver;
-globals.SVGElement = window.SVGElement;
-globals.IS_REACT_ACT_ENVIRONMENT = true;
-if (typeof globalThis.getComputedStyle !== 'function') globalThis.getComputedStyle = window.getComputedStyle.bind(window);
-window.HTMLElement.prototype.scrollIntoView = () => {};
-
-type Result = { error?: string | null; code?: string | null } | undefined;
-const queued: Result[] = [];
-const calls: unknown[] = [];
-const signInFn = (async (_provider: string, options?: unknown) => {
-  calls.push(options);
-  return queued.shift();
-}) as typeof import('next-auth/react').signIn;
-
-const loaded = (async () => {
-  const React = await import('react');
-  (globalThis as unknown as { React?: typeof React }).React = React;
-  const rtl = await import('@testing-library/react');
-  const { default: LoginForm } = await import('../src/components/admin/auth/LoginForm');
-  return { React, LoginForm, ...rtl };
-})();
-
-async function form() {
-  const { React, LoginForm, render, screen, fireEvent, cleanup } = await loaded;
-  cleanup();
-  calls.length = 0;
-  queued.length = 0;
-  const view = render(React.createElement(LoginForm, { callbackUrl: '/admin/settings', initialLang: 'zh', signInFn }));
-  await view.findByRole('button', { name: '登录' });
-  const submit = screen.getByRole('button', { name: '登录' }) as HTMLButtonElement;
-  await screen.findByRole('button', { name: '登录' });
-  if (submit.disabled) {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-  }
-  return { screen, fireEvent, submit: screen.getByRole('button', { name: '登录' }) as HTMLButtonElement };
+function withPassword(password: string, email = 'ada@example.test'): LoginFormState {
+  return reduceLoginForm(reduceLoginForm(initialLoginFormState(), { type: 'email', value: email }), { type: 'password', value: password });
 }
 
-test('the eye button switches its accessible name and has no pressed state', async () => {
-  const { screen, fireEvent } = await form();
-  const toggle = screen.getByRole('button', { name: '显示密码' });
-  assert.equal(toggle.hasAttribute('aria-pressed'), false);
-  assert.equal(toggle.querySelector('svg')?.getAttribute('aria-hidden'), 'true');
-  fireEvent.click(toggle);
-  const hidden = screen.getByRole('button', { name: '隐藏密码' });
-  assert.equal(hidden.hasAttribute('aria-pressed'), false);
-  assert.equal((screen.getByLabelText('密码') as HTMLInputElement).type, 'text');
-  fireEvent.click(hidden);
-  assert.equal(screen.getByRole('button', { name: '显示密码' }).hasAttribute('aria-pressed'), false);
-  assert.equal((screen.getByLabelText('密码') as HTMLInputElement).type, 'password');
+function shown(state: LoginFormState) {
+  return reduceLoginForm(state, { type: 'toggle-password' });
+}
+
+test('showing the password flips only the visibility flag', () => {
+  const hidden = withPassword('secret-value');
+  assert.equal(hidden.showPassword, false);
+  const visible = shown(hidden);
+  assert.equal(visible.showPassword, true);
+  assert.equal(visible.password, 'secret-value');
+  assert.equal(reduceLoginForm(visible, { type: 'toggle-password' }).showPassword, false);
 });
 
-test('an empty email does not clear the password or send a request', async () => {
-  const { screen, fireEvent, submit } = await form();
-  fireEvent.change(screen.getByLabelText('密码'), { target: { value: 'secret-value' } });
-  fireEvent.click(submit);
-  assert.equal(calls.length, 0);
-  assert.equal((screen.getByLabelText('密码') as HTMLInputElement).value, 'secret-value');
-  assert.match(screen.getByRole('alert').textContent ?? '', /邮箱或密码不正确/);
+test('an empty email does not clear the password or start a request', () => {
+  const state = reduceLoginForm(initialLoginFormState(), { type: 'password', value: 'secret-value' });
+  const action = passwordSubmitAction(state);
+  assert.equal(action.type, 'submit-password-blocked');
+  const next = reduceLoginForm(state, action);
+  assert.equal(next.password, 'secret-value');
+  assert.equal(next.errorKind, 'credentials');
+  assert.equal(next.busy, false);
+  assert.equal(next.showPassword, false);
 });
 
-test('a rejected sign-in clears the password only after the request is sent', async () => {
-  const { screen, fireEvent, submit } = await form();
-  queued.push({ error: 'CredentialsSignin', code: 'credentials' });
-  fireEvent.change(screen.getByLabelText('邮箱'), { target: { value: 'ada@example.test' } });
-  fireEvent.change(screen.getByLabelText('密码'), { target: { value: 'secret-value' } });
-  fireEvent.click(submit);
-  await screen.findByRole('alert');
-  assert.equal(calls.length, 1);
-  assert.equal((screen.getByLabelText('密码') as HTMLInputElement).value, '');
+test('a rejected sign-in clears the password only after the request is sent', () => {
+  const state = shown(withPassword('secret-value'));
+  const action = passwordSubmitAction(state);
+  assert.equal(action.type, 'submit-password');
+  if (action.type !== 'submit-password') return;
+  assert.equal(action.password, 'secret-value');
+  const sent = reduceLoginForm(state, { type: 'submit-password' });
+  assert.equal(sent.password, '');
+  assert.equal(sent.busy, true);
+  assert.equal(sent.showPassword, true);
+  const rejected = reduceLoginForm(sent, { type: 'password-outcome', outcome: 'credentials' });
+  assert.equal(rejected.password, '');
+  assert.equal(rejected.errorKind, 'credentials');
+  assert.equal(rejected.busy, false);
+  assert.equal(rejected.step, 'password');
 });
 
-test('back clears the password and hides it again', async () => {
-  const { screen, fireEvent, submit } = await form();
-  queued.push({ error: 'CredentialsSignin', code: 'totp_required' });
-  fireEvent.change(screen.getByLabelText('邮箱'), { target: { value: 'ada@example.test' } });
-  fireEvent.change(screen.getByLabelText('密码'), { target: { value: 'secret-value' } });
-  fireEvent.click(screen.getByRole('button', { name: '显示密码' }));
-  fireEvent.click(submit);
-  const back = await screen.findByRole('button', { name: '返回' });
-  fireEvent.click(back);
-  const password = await screen.findByLabelText('密码') as HTMLInputElement;
-  assert.equal(password.value, '');
-  assert.equal(password.type, 'password');
-  const toggle = screen.getByRole('button', { name: '显示密码' });
-  assert.equal(toggle.hasAttribute('aria-pressed'), false);
+test('back and an invalid challenge both hide the password again', () => {
+  const sent = reduceLoginForm(shown(withPassword('secret-value')), { type: 'submit-password' });
+  const totp = reduceLoginForm(sent, { type: 'password-outcome', outcome: 'totp' });
+  assert.equal(totp.step, 'totp');
+  assert.equal(totp.showPassword, true);
+  const back = reduceLoginForm(totp, { type: 'back' });
+  assert.equal(back.step, 'password');
+  assert.equal(back.password, '');
+  assert.equal(back.showPassword, false);
+  assert.equal(back.notice, '');
+
+  const expired = reduceLoginForm(reduceLoginForm(totp, { type: 'totp', value: '123456' }), { type: 'totp-outcome', outcome: 'challenge-invalid' });
+  assert.equal(expired.step, 'password');
+  assert.equal(expired.password, '');
+  assert.equal(expired.showPassword, false);
+  assert.equal(expired.notice, 'expired');
+  assert.equal(expired.errorKind, '');
 });
 
-test('an invalid challenge focuses the empty hidden password', async () => {
-  const { screen, fireEvent, submit } = await form();
-  queued.push({ error: 'CredentialsSignin', code: 'totp_required' });
-  fireEvent.change(screen.getByLabelText('邮箱'), { target: { value: 'ada@example.test' } });
-  fireEvent.change(screen.getByLabelText('密码'), { target: { value: 'secret-value' } });
-  fireEvent.click(screen.getByRole('button', { name: '显示密码' }));
-  fireEvent.click(submit);
-  const code = await screen.findByLabelText('验证码');
-  queued.push({ error: 'CredentialsSignin', code: 'challenge_invalid' });
-  fireEvent.change(code, { target: { value: '123456' } });
-  fireEvent.click(screen.getByRole('button', { name: '登录' }));
-  const password = await screen.findByLabelText('密码') as HTMLInputElement;
-  assert.equal(password.value, '');
-  assert.equal(password.type, 'password');
-  assert.equal(document.activeElement, password);
-  assert.match(screen.getByRole('alert').textContent ?? '', /验证已超时/);
-  assert.equal(screen.getByRole('button', { name: '显示密码' }).hasAttribute('aria-pressed'), false);
+test('a short code does not start a request and a rate limit keeps the step', () => {
+  const totp = reduceLoginForm(initialLoginFormState({ step: 'totp', email: 'ada@example.test' }), { type: 'totp', value: '1234' });
+  const blocked = totpSubmitAction(totp);
+  assert.equal(blocked.type, 'submit-totp-blocked');
+  assert.equal(reduceLoginForm(totp, blocked).errorKind, 'totp');
+  const ready = reduceLoginForm(totp, { type: 'totp', value: '123456' });
+  const action = totpSubmitAction(ready);
+  assert.deepEqual(action, { type: 'submit-totp', code: '123456' });
+  const limited = reduceLoginForm(reduceLoginForm(ready, { type: 'submit-totp' }), { type: 'totp-outcome', outcome: 'rate-limited' });
+  assert.equal(limited.step, 'totp');
+  assert.equal(limited.errorKind, 'rate');
+  assert.equal(limited.totp, '');
+  assert.equal(limited.showPassword, false);
 });

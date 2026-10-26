@@ -203,6 +203,7 @@ async function authorizeChallenge(totp: string, ip: string | null, ctx: LoginCon
   if (user.disabled || (user.lockedUntil && user.lockedUntil > now)) {
     await burnVerify(totp);
     await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: user.lockedUntil && user.lockedUntil > now ? 'locked' : 'bad_credentials' }, ip });
+    stageLoginCookie(challengeClearCookie());
     return null;
   }
   if (!user.totpEnabled || !user.totpSecret) throwChallengeInvalid();
