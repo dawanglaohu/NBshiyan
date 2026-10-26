@@ -85,6 +85,7 @@ test('页脚隐私政策：必要联系、期限和未启用清理，且无分�
   const main = page.locator('main');
   await expect(main.getByRole('heading', { name: 'Contacting us' })).toBeVisible();
   await expect(main).toContainText('The inquiry form and email always work, whatever you choose in cookie settings.');
+  await expect(main).toContainText('The necessary chat cookie expires after 7\u00A0days of inactivity and no later than 30\u00A0days after it was first set. Automatic deletion of chat messages is not currently enabled on this site.');
   await expect(main).not.toContainText('Tawk');
   const adminSessions = 'Admin sessions that are not kept on this device end after 2 hours without activity, or 12 hours after sign-in, whichever comes first. A session kept on this device ends after 7 days of inactivity, or 30 days after sign-in, whichever comes first.';
   await expect(main).toContainText(adminSessions);
@@ -112,6 +113,9 @@ test('俄语隐私页说明同一边界', async ({ page, external }) => {
   const main = page.locator('main');
   await expect(main.getByRole('heading', { name: 'Как с нами связаться' })).toBeVisible();
   await expect(main).toContainText('Форма запроса и e-mail работают всегда, независимо от настроек cookie.');
+  await expect(main).toContainText('Срок действия необходимого файла cookie чата истекает через 7\u00A0дней бездействия, но не позднее чем через 30\u00A0дней после его установки. Автоматическое удаление сообщений чата на сайте сейчас не включено.');
+  await expect(main).toContainText('Запросы обезличиваются через 2 года после последней активности');
+  await expect(main).not.toContainText('Tawk');
   await expect(main).not.toContainText('снимок');
   expect(external.urls.filter((url) => isThirdPartyChatUrl(url) || /\/api\/analytics/i.test(url))).toEqual([]);
 });
