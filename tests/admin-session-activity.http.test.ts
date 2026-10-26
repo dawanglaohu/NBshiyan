@@ -348,7 +348,7 @@ test('continuous activity still dies at the stored 12h and 30d caps and a revoke
   now = new Date(opened.createdAt.getTime() + policy.ordinaryAbsoluteMs - 1);
   await client.adminDeviceSession.update({
     where: { id: opened.id },
-    data: { lastActivityAt: new Date(now.getTime() - policy.activityThrottleMs) },
+    data: { lastActivityAt: new Date(now.getTime() - (policy.activityThrottleMs + 1_000)) },
   });
   const still = await service.recordActivity({ userId: ordinaryUser.row.id, sessionVersion: ordinaryUser.row.sessionVersion, sid: opened.id });
   assert.equal(still.ok && still.wrote, true);
@@ -369,7 +369,7 @@ test('continuous activity still dies at the stored 12h and 30d caps and a revoke
   assert.equal(remembered.absoluteExpiresAt?.getTime(), remembered.createdAt.getTime() + policy.absoluteMs);
   assert.equal(remembered.hardExpiresAt?.getTime(), remembered.absoluteExpiresAt?.getTime());
   now = new Date(remembered.createdAt.getTime() + 29 * 24 * 60 * 60_000);
-  await client.adminDeviceSession.update({ where: { id: remembered.id }, data: { lastActivityAt: new Date(now.getTime() - policy.activityThrottleMs) } });
+  await client.adminDeviceSession.update({ where: { id: remembered.id }, data: { lastActivityAt: new Date(now.getTime() - (policy.activityThrottleMs + 1_000)) } });
   const near = await service.recordActivity({ userId: rememberedUser.row.id, sessionVersion: rememberedUser.row.sessionVersion, sid: remembered.id });
   assert.equal(near.ok && near.wrote, true);
   if (!near.ok) return;
@@ -384,14 +384,14 @@ test('continuous activity still dies at the stored 12h and 30d caps and a revoke
   now = new Date(opened.createdAt.getTime() + 60 * 60_000);
   await client.adminDeviceSession.update({
     where: { id: opened.id },
-    data: { revokedAt: null, lastActivityAt: new Date(now.getTime() - policy.activityThrottleMs), hardExpiresAt: opened.hardExpiresAt },
+    data: { revokedAt: null, lastActivityAt: new Date(now.getTime() - (policy.activityThrottleMs + 1_000)), hardExpiresAt: opened.hardExpiresAt },
   });
   await service.revokeSid(opened.id, 'sign_out');
   const revived = await service.recordActivity({ userId: ordinaryUser.row.id, sessionVersion: ordinaryUser.row.sessionVersion, sid: opened.id });
   assert.equal(revived.ok, false);
   const dead = await client.adminDeviceSession.findUniqueOrThrow({ where: { id: opened.id } });
   assert.ok(dead.revokedAt);
-  assert.equal(dead.lastActivityAt.getTime(), now.getTime() - policy.activityThrottleMs);
+  assert.equal(dead.lastActivityAt.getTime(), now.getTime() - (policy.activityThrottleMs + 1_000));
 });
 
 test('activity HTTP rejects equality, keeps revocation dead, and replays a copied cookie only while the row allows it', { skip, timeout: 180_000 }, async () => {
@@ -537,7 +537,7 @@ test('null hardExpiresAt rejects at the createdAt cap, allows 1ms before, and re
   const ordinary = await client.adminDeviceSession.create({
     data: {
       id: randomBytes(24).toString('base64url'), userId: ordinaryUser.row.id, sessionVersion: ordinaryUser.row.sessionVersion,
-      remembered: false, createdAt: anchor, lastActivityAt: new Date(beforeCap.getTime() - policy.activityThrottleMs),
+      remembered: false, createdAt: anchor, lastActivityAt: new Date(beforeCap.getTime() - (policy.activityThrottleMs + 1_000)),
       absoluteExpiresAt: null, hardExpiresAt: null,
     },
   });
@@ -567,7 +567,7 @@ test('null hardExpiresAt rejects at the createdAt cap, allows 1ms before, and re
   const remembered = await client.adminDeviceSession.create({
     data: {
       id: randomBytes(24).toString('base64url'), userId: rememberedUser.row.id, sessionVersion: rememberedUser.row.sessionVersion,
-      remembered: true, createdAt: anchor, lastActivityAt: new Date(rememberedBefore.getTime() - policy.activityThrottleMs),
+      remembered: true, createdAt: anchor, lastActivityAt: new Date(rememberedBefore.getTime() - (policy.activityThrottleMs + 1_000)),
       absoluteExpiresAt: rememberedCap, hardExpiresAt: null,
     },
   });
