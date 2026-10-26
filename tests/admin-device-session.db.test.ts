@@ -45,7 +45,7 @@ function access(now: Date, row = device(), account = user(), sid: string | undef
   });
 }
 
-test('E-01 normal expiry slides from last activity and has no absolute cap', () => {
+test('E-01 normal expiry slides from last activity, and an ordinary session also ends 12 hours after creation', () => {
   const active = device({ lastActivityAt: new Date(created.getTime() + 60 * 60_000) });
   const bounds = expiryBounds(active, policy);
   assert.equal(bounds.absoluteExpiresAt, null);

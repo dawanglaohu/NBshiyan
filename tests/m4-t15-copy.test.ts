@@ -97,6 +97,21 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(ru.Products.desc['gift-cards'], 'Открытки с печатью на заказ и упаковка для них — для розничных продаж и промоакций.');
   assert.equal(en.Products.metaDescription, 'Explore our wide range of custom packaging in 3D: corrugated boxes, gift and wine boxes, molded pulp, paper cups and printing. Request a quote from PackJoyU.');
   assert.equal(ru.Products.metaDescription, 'Широкий выбор упаковки на заказ в 3D: гофрокороба, подарочные и винные коробки, формованная целлюлоза, бумажные стаканы и печать. Запросите расчёт у PackJoyU.');
+  const enAdminSessions = 'Admin sessions that are not kept on this device end after 2\u00A0hours without activity, or 12\u00A0hours after sign-in, whichever comes first. A session kept on this device ends after 7\u00A0days of inactivity, or 30\u00A0days after sign-in, whichever comes first.';
+  const ruAdminSessions = 'Сеанс администратора без запоминания устройства завершается после 2\u00A0часов бездействия, но не позднее чем через 12\u00A0часов после входа. Сеанс с запоминанием устройства завершается после 7\u00A0дней бездействия, но не позднее чем через 30\u00A0дней после входа.';
+  assert.equal(en.Privacy.sections.retention.items.adminSessions, enAdminSessions);
+  assert.equal(ru.Privacy.sections.retention.items.adminSessions, ruAdminSessions);
+  for (const text of [enAdminSessions, ruAdminSessions]) {
+    const marks = [...text].flatMap((ch, index) => (ch.charCodeAt(0) === 160 ? [index] : []));
+    assert.equal(marks.length, 4);
+    for (const index of marks) assert.equal(text.charCodeAt(index), 160);
+  }
+  for (const file of ['messages/en.json', 'messages/ru.json']) {
+    const line = readFileSync(file, 'utf8').split('\n').find((row) => row.includes('"adminSessions"'));
+    assert.ok(line);
+    assert.equal(line.includes('\u00A0'), false);
+    assert.equal(line.split('\\u00A0').length - 1, 4);
+  }
   assert.equal(en.Fab.chat, 'Contact us');
   assert.equal(ru.Fab.chat, 'Связаться с нами');
 });

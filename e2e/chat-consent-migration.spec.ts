@@ -86,7 +86,12 @@ test('页脚隐私政策：必要联系、期限和未启用清理，且无分�
   await expect(main.getByRole('heading', { name: 'Contacting us' })).toBeVisible();
   await expect(main).toContainText('The inquiry form and email always work, whatever you choose in cookie settings.');
   await expect(main).not.toContainText('Tawk');
-  await expect(main).not.toContainText('7 days of inactivity');
+  const adminSessions = 'Admin sessions that are not kept on this device end after 2 hours without activity, or 12 hours after sign-in, whichever comes first. A session kept on this device ends after 7 days of inactivity, or 30 days after sign-in, whichever comes first.';
+  await expect(main).toContainText(adminSessions);
+  const outsideAdminSessions = (await main.innerText()).replace(/\u00A0/g, ' ').split(adminSessions).join('');
+  expect(outsideAdminSessions).not.toContain('7 days of inactivity');
+  expect(outsideAdminSessions).not.toContain('chat cookie');
+  expect(outsideAdminSessions).not.toContain('Live chat');
   await expect(main).toContainText('Inquiries are anonymized 2 years after the last activity');
 
   await page.locator('#cookie-settings-link').click();
