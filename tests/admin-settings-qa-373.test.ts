@@ -96,7 +96,9 @@ test('关于页 400 / 422：能对上字段的进字段下方，对不上的进�
   assert.equal(v2.alert, '参数不正确，请检查后重试。（包含不支持的字段）'); // UX #378 P3 ①：不显示后端字段路径
   const r3 = await api.save({ en: d({ title: 'About' }) }, base);
   assert.ok(!r3.ok);
-  assert.equal(saveFailureView(r3 as Extract<typeof r3, { ok: false }>).alert, '保存失败：http_422');
+  const alert422 = saveFailureView(r3 as Extract<typeof r3, { ok: false }>).alert;
+  assert.equal(alert422, '服务暂时出错，请稍后重试。');
+  assert.equal(alert422 === null || alert422.includes('http_422'), false);
   assert.match(about, /saveFailureView\(r\)/);
 });
 

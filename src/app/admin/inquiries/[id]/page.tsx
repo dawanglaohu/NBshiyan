@@ -1,7 +1,7 @@
 import InquiryDetailView from '@/components/admin/InquiryDetail';
 import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
-import { enforceAdminPage } from '@/lib/server/admin/page-access';
+import { adminOutageNotice, enforceAdminPage } from '@/lib/server/admin/page-access';
 import { checkAdminSession } from '@/lib/server/admin/guard';
 import { ID_RE, inquiryScope } from '@/lib/server/admin/inquiries';
 import { prisma } from '@/lib/server/db';
@@ -19,10 +19,16 @@ async function currentRole(): Promise<string | undefined> {
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await enforceAdminPage(['ADMIN', 'SALES'], `/admin/inquiries/${encodeURIComponent(id)}`);
+  const path = `/admin/inquiries/${encodeURIComponent(id)}`;
+  const gate = await enforceAdminPage(['ADMIN', 'SALES'], path);
+  if (!gate.ok) return gate.notice;
   // 服务端再按接口同一个 inquiryScope 查一次（只取 id）：不存在 / 不在范围内（SALES 看别人的或未分配的）→ 页面 404。详情数据仍由客户端走 API
   const c = await checkAdminSession(['ADMIN', 'SALES']);
-  if (!c.ok || !ID_RE.test(id)) notFound();
+  if (!c.ok) {
+    if (c.reason === 'unavailable' || c.reason === 'internal') return adminOutageNotice(path, c.reason);
+    notFound();
+  }
+  if (!ID_RE.test(id)) notFound();
   if (!isDemoMock()) {
     const row = await prisma.inquiry.findFirst({ where: { AND: [{ id }, inquiryScope(c.user)] }, select: { id: true } });
     if (!row) notFound();

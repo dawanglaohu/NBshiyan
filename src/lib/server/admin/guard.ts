@@ -4,7 +4,8 @@ import { auth, readSessionToken } from '@/auth';
 import { ADMIN_SESSION_POLICY } from '../config';
 import { prisma } from '../db';
 import { clientIp } from '../security';
-import { clearedSessionCookieHeaders, decideAdminAccess, type SessionDenial, type BoundAccess } from './device-session';
+import { errorSummary, isDbUnavailable } from '../designs';
+import { clearedSessionCookieHeaders, decideAdminAccess, type AuthenticateResult, type BoundAccess, type SessionDenial } from './device-session';
 
 export const noStore = { 'Cache-Control': 'private, no-store' };
 export const jsonErr = (error: string, status: number) => NextResponse.json({ error }, { status, headers: noStore });
@@ -27,7 +28,7 @@ export type AdminCtx = { user: User; ip: string | null };
  */
 export type { SessionDenial } from './device-session';
 export { classifySession } from './device-session';
-export type SessionCheck = BoundAccess;
+export type SessionCheck = AuthenticateResult;
 
 type AuthSession = { user?: { id?: string }; sv?: number; sid?: string } | null;
 
@@ -44,7 +45,7 @@ async function clearWritableSessionCookie() {
   }
 }
 
-/** 会话 + 账号 + 设备 + 角色。规则见 decideAdminAccess。拒绝时能写 cookie 就清掉。 */
+/** 会话 + 账号 + 设备 + 角色。规则见 decideAdminAccess。明确的会话拒绝会清 cookie。数据库不可用和其他服务异常保留 cookie。 */
 export async function checkAdminSession(roles: Role[] = ['ADMIN'], request?: Request): Promise<SessionCheck> {
   let session: AuthSession = null;
   try {
@@ -67,13 +68,18 @@ export async function checkAdminSession(roles: Role[] = ['ADMIN'], request?: Req
     if (!decision.ok && decision.reason !== 'forbidden') await clearWritableSessionCookie();
     if (!decision.ok) return { ok: false, reason: decision.reason, status: decision.status };
     return decision;
-  } catch {
-    await clearWritableSessionCookie();
-    return { ok: false, reason: 'unauthenticated', status: 401 };
+  } catch (error) {
+    // decideAdminAccess 对无效会话直接返回拒绝，不会抛到这里。抛出的异常不能证明会话无效。
+    const dbDown = isDbUnavailable(error);
+    console.error('[admin] session check unavailable', dbDown ? 'database' : 'unknown', errorSummary(error));
+    if (dbDown) return { ok: false, reason: 'unavailable', status: 503 };
+    return { ok: false, reason: 'internal', status: 500 };
   }
 }
 
-const DENIAL_ERROR: Record<SessionDenial, string> = { unauthenticated: 'unauthorized', disabled: 'account_disabled', forbidden: 'forbidden' };
+const DENIAL_ERROR: Record<SessionDenial, string> = {
+  unauthenticated: 'unauthorized', disabled: 'account_disabled', forbidden: 'forbidden', unavailable: 'service_unavailable', internal: 'internal_error',
+};
 export const denialError = (r: SessionDenial) => DENIAL_ERROR[r];
 
 export function withClearedSession(response: Response): Response {
@@ -85,7 +91,7 @@ export async function requireAdmin(req: Request, roles: Role[] = ['ADMIN']): Pro
   const c = await checkAdminSession(roles, req);
   if (!c.ok) {
     const response = jsonErr(denialError(c.reason), c.status);
-    return c.reason === 'forbidden' ? response : withClearedSession(response);
+    return c.reason === 'forbidden' || c.reason === 'unavailable' || c.reason === 'internal' ? response : withClearedSession(response);
   }
   return { user: c.user, device: c.device, bounds: c.bounds, ip: clientIp(req) };
 }

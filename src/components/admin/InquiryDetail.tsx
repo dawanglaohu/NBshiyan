@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { adminApi, REVIEW_THRESHOLD, SOURCE_LABEL, STATUS_LABEL, type AdminUser, type InquiryDetail, type InquiryStatus } from '@/lib/admin/api';
 import InquiryNotFound from './InquiryNotFound';
 import MailThread from './mail/MailThread';
@@ -10,6 +10,7 @@ import { showSendEntry } from '@/lib/admin/mail/gate';
 import StatusBadge from './StatusBadge';
 import { AnonTag, DeletedBody, AnonConflictNotice, anonymizedNotice, detailControls, isAnonConflict, isAnonymized, piiField, LockedStatus, statusConflictText } from './anonymized';
 import { errorText, loginHref, fmtDate, productName } from './format';
+import { commitAndReveal } from './reveal-error';
 import AdminTime from './AdminTime';
 import InquiryHistory from './InquiryHistory';
 
@@ -33,6 +34,8 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string>();
+  const errRef = useRef<HTMLParagraphElement>(null);
+  const showErr = (code: string) => commitAndReveal(errRef, () => setErr(code));
   const [saved, setSaved] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>();
   const [logoErr, setLogoErr] = useState(false);
@@ -47,7 +50,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   const refreshHistory = () => setHistoryKey((k) => k + 1);
 
   useEffect(() => {
-    adminApi.getInquiry(id).then(setInq).catch((e) => setErr(String(e.message ?? e)));
+    adminApi.getInquiry(id).then(setInq).catch((e) => showErr(String(e.message ?? e)));
     adminApi.listUsers().then(setUsers).catch(() => {});
     setBody(localStorage.getItem(draftKey(id)) ?? '');
   }, [id]);
@@ -64,17 +67,20 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   const changeStatus = async (status: InquiryStatus) => {
     setBusy(true); setErr(undefined); setStatusErr(undefined);
     try { await adminApi.updateInquiry(id, { status }); }
-    catch (e) { const code = String((e as Error).message ?? e); const t = statusConflictText(code); if (t) setStatusErr(t); else setErr(code); }
+    catch (e) { const code = String((e as Error).message ?? e); const t = statusConflictText(code); if (t) setStatusErr(t); else showErr(code); }
     finally { try { setInq(await adminApi.getInquiry(id)); } catch { /* 保留原数据 */ } setBusy(false); refreshHistory(); }
   };
   /** history：操作完成后（成功或失败都）刷新操作历史第一页；加备注不进时间线，传 false */
   const run = async (fn: () => Promise<unknown>, history = true) => {
     setBusy(true); setErr(undefined);
-    try { await fn(); setInq(await adminApi.getInquiry(id)); } catch (e) { setErr(String((e as Error).message ?? e)); } finally { setBusy(false); if (history) refreshHistory(); }
+    try { await fn(); setInq(await adminApi.getInquiry(id)); } catch (e) { showErr(String((e as Error).message ?? e)); } finally { setBusy(false); if (history) refreshHistory(); }
   };
 
   // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
-  if (inq === undefined) return <p className="muted">{err ? <>{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></> : '加载中…'}</p>;
+  if (inq === undefined) {
+    if (err) return <p ref={errRef} tabIndex={-1} className="muted" role="alert">{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></p>;
+    return <p className="muted">加载中…</p>;
+  }
   if (inq === null) return <InquiryNotFound />;
   const c = inq.contact;
   const anon = isAnonymized(inq);
@@ -113,7 +119,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
       {inq.anonymizedAt && <p data-testid="anon-notice" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{anonymizedNotice(inq.anonymizedAt, fmtDate)}</p>}
       {statusErr && <p data-testid="status-conflict" role="status" style={{ color: 'var(--ink-2)', margin: '0 0 12px' }}>{statusErr}</p>}
       {isAnonConflict(err) && <AnonConflictNotice />}
-      {err && !isAnonConflict(err) && <p className="warn" role="alert">{errorText(err, '操作失败')}{err === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</p>}
+      {err && !isAnonConflict(err) && <p ref={errRef} tabIndex={-1} className="warn" role="alert">{errorText(err, '操作失败')}{err === 'unauthorized' && <> <a href={loginHref()}>去登录</a></>}</p>}
 
       <div className="adm-g2">
         <div>

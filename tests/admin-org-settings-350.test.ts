@@ -265,7 +265,7 @@ test('错误条：对不上字段的 issue、400 / 422 没带 issues 都进顶�
   assert.deepEqual(b.fieldErrors, {});
   assert.equal(b.alert, '参数不正确，请检查后重试。（版本号：必填）');
   assert.equal((await fail()).alert, '参数不正确，请检查后重试。'); // 400 没带 issues
-  assert.equal((await fail()).alert, '保存失败：http_422'); // 422 没 body
+  assert.equal((await fail()).alert, '服务暂时出错，请稍后重试。'); // 422 没 body，不显示错误码
   assert.equal((await fail()).alert, '参数不正确，请检查后重试。'); // 422 issues 为空
   const f = await fail();
   assert.equal(f.alert, null);

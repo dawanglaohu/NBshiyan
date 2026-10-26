@@ -52,9 +52,9 @@ function devicesOf() {
   return devices;
 }
 
-/** 鉴权失败丢掉 token。数据库暂时不可用时原样退回，已有 cookie 继续有效。 */
+/** 鉴权失败丢掉 token。数据库暂时不可用或服务出错时原样退回，已有 cookie 继续有效。 */
 export function jwtAfterAccess<T>(token: T, decision: AuthenticateResult): T | null {
-  if (!decision.ok) return decision.reason === 'unavailable' ? token : null;
+  if (!decision.ok) return decision.reason === 'unavailable' || decision.reason === 'internal' ? token : null;
   return token;
 }
 
