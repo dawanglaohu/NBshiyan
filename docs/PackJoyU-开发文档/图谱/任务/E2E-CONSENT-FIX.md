@@ -18,7 +18,7 @@ origin: issue-ledger-20261024
 - 审查：由 PR 上 bot 审查替代
 - 登记状态：已落地
 
-没有单独的 GitHub issue。只改 e2e。非 POST 或已经记下的请求走 fallback。
+没有单独的 GitHub issue。只改 e2e。非 POST 或已经记下的请求走 fallback。行号以 main 5963c5b5 为准：route 注册 253，route.fetch 233，20 秒等待 258，unroute 261，acceptedIds 266，duplicateIds 278，存储条数 279。route.fetch 抛错时会重置 claiming 并 abort。
 
 ## 输入 / 产出
 
@@ -37,17 +37,17 @@ origin: issue-ledger-20261024
 ## 代码位置
 
 <!-- code:begin -->
-- `e2e/analytics-consent.spec.ts:224` — 点击前注册 route，截取 POST `/api/analytics/events`；非 POST 或已记录的请求 fallback
-- `e2e/analytics-consent.spec.ts:231` — `route.fetch` 后只记录 ok 回执和原始 postData，再原样 fulfill
-- `e2e/analytics-consent.spec.ts:249` — 20 秒内等到回执
-- `e2e/analytics-consent.spec.ts:254` — 断言前 unroute，避免影响后续导航
-- `e2e/analytics-consent.spec.ts:259` — `acceptedIds` 仍须包含 page view 的 eventId
-- `e2e/analytics-consent.spec.ts:271` — 重放使用记下的 postData，`duplicateIds` 仍须包含该 eventId
-- `e2e/analytics-consent.spec.ts:272` — 同一 navigationId 的存储条数仍须为 1
+- `e2e/analytics-consent.spec.ts:253` — 点击前注册 route，截取 POST `/api/analytics/events`；非 POST 或已记录的请求 fallback。行号以 `5963c5b5` 为准
+- `e2e/analytics-consent.spec.ts:233` — `route.fetch` 后只记录 ok 回执和原始 postData，再原样 fulfill。`route.fetch` 抛错时会重置 claiming 并 abort
+- `e2e/analytics-consent.spec.ts:258` — 20 秒内等到回执
+- `e2e/analytics-consent.spec.ts:261` — 断言前 unroute，避免影响后续导航
+- `e2e/analytics-consent.spec.ts:266` — `acceptedIds` 仍须包含 page view 的 eventId
+- `e2e/analytics-consent.spec.ts:278` — 重放使用记下的 postData，`duplicateIds` 仍须包含该 eventId
+- `e2e/analytics-consent.spec.ts:279` — 同一 navigationId 的存储条数仍须为 1
 <!-- code:end -->
 
 ## 实施沉淀
 
 <!-- notes:begin -->
-导航去重用例在 Node 侧从 `route.fetch()` 读取回执，不在文档跳转之后向浏览器取响应体。上面三条断言没有放宽。产品代码没有改。
+导航去重用例在 Node 侧从 `route.fetch()` 读取回执，不在文档跳转之后向浏览器取响应体。上面三条断言没有放宽。产品代码没有改。行号以 main `5963c5b5` 为准。`route.fetch` 抛错时会重置 claiming 并 abort。
 <!-- notes:end -->

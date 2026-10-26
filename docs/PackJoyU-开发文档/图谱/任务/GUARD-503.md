@@ -18,17 +18,17 @@ origin: issue-ledger-20261024
 - 审查：由 PR 上 bot 审查替代
 - 登记状态：已落地
 
-没有单独的 GitHub issue。软导航不重跑 layout，每个后台页面自己返回错误卡。重试地址由页面传入后再校验，不读请求头。
+没有单独的 GitHub issue。软导航不重跑 layout，每个后台页面自己返回错误卡。重试地址由页面传入后再校验，不读请求头。fix3 的表单白名单在 src/components/admin/format.ts 与 src/lib/admin/spec-form.ts：HTTP 400 的文案来自白名单，不使用服务器返回的 message 原文。
 
 ## 输入 / 产出
 
 - **输入**：后台页面在数据库不可用时的会话检查结果。
-- **产出**：数据库不可用返回 503 错误卡并保留登录 cookie；其他查询异常返回 500，同样不清 cookie。
+- **产出**：数据库不可用时页面显示错误卡（HTTP 200）并保留登录 cookie；后台 API 返回 503，其他异常返回 500。
 - **有效路径**：`src/lib/server/admin/page-access.ts`、`src/lib/server/admin/guard.ts`、`src/lib/server/admin/device-session.ts`、`src/lib/admin/outage-copy.ts`、`src/components/admin/AdminOutageNotice.tsx`、`src/app/admin/admin.css`、`src/components/admin/reveal-error.ts`、`src/app/admin/inquiries/page.tsx`、`src/app/admin/inquiries/[id]/page.tsx`、`src/app/admin/mail/unassigned/page.tsx`、`src/app/admin/models/new/page.tsx`、`src/app/admin/settings/page.tsx`、`src/app/admin/specs/page.tsx`、`src/app/admin/specs/[category]/page.tsx`、`src/app/admin/users/page.tsx`
 
 ## 验收标准
 
-已由 PR #483 于 2026-10-26 合入 main。合并提交 46621db51ec59e7d062de784f866370254f86c0f。数据库不可用与其他查询异常分开返回 503 和 500，都不清 cookie。已吊销、会话版本不符和乱码 token 仍是 401 并清 cookie。本登记不重做。
+已由 PR #483 于 2026-10-26 合入 main。合并提交 46621db51ec59e7d062de784f866370254f86c0f。数据库不可用时页面显示错误卡（HTTP 200）并保留登录 cookie；后台 API 返回 503，其他异常返回 500。已吊销、会话版本不符和乱码 token 仍是 401 并清 cookie。本登记不重做。
 
 ## 必须处理的边界
 
