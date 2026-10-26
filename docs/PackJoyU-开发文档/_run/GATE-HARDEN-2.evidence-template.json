@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "GATE-HARDEN-2": {
+      "contractHash": "ec24334be3a2949847e711a2290303697cb5debd157f03d64c9e57265b8e9322",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
