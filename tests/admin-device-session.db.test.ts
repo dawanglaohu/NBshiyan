@@ -45,7 +45,7 @@ function access(now: Date, row = device(), account = user(), sid: string | undef
   });
 }
 
-test('E-01 normal expiry slides from last activity and has no absolute cap', () => {
+test('E-01 normal expiry slides from last activity, and an ordinary session also ends 12 hours after creation', () => {
   const active = device({ lastActivityAt: new Date(created.getTime() + 60 * 60_000) });
   const bounds = expiryBounds(active, policy);
   assert.equal(bounds.absoluteExpiresAt, null);
@@ -274,4 +274,27 @@ test('session deletion keeps a past expiry through the actual Next mutable-cooki
     assert.equal(cookie.value ?? '', '');
     assert.ok(cookie.expires instanceof Date && cookie.expires.getTime() <= Date.now(), `${name} must remain expired after Next parsing and merging`);
   }
+});
+
+test('open refuses an account that has not turned on 2FA and does not create a device', async () => {
+  let inserts = 0;
+  const account = user({ totpEnabled: false, totpSecret: null });
+  const tx = {
+    findUser: async () => account,
+    findDevice: async () => null,
+    create: async () => { inserts += 1; return device(); },
+    revokeSid: async () => {},
+    revokeUser: async () => {},
+    transaction: async () => { throw new Error('nested'); },
+  };
+  const service = createDeviceSessionService({
+    repo: { ...tx, transaction: async (run) => run(tx) },
+    clock: () => created,
+    policy,
+  });
+  await assert.rejects(
+    () => service.open({ userId: account.id, sessionVersion: account.sessionVersion, remembered: false, userAgent: 'Test' }),
+    /device open refused/,
+  );
+  assert.equal(inserts, 0);
 });

@@ -27,13 +27,33 @@ function loginRecoveryInput(value: unknown): unknown {
 }
 
 const LoginRecoveryCodeSchema = z.string().max(40).regex(/^[a-f0-9]{10}$/);
+
+type LoginShape = {
+  mode: LoginMode;
+  email?: string;
+  password?: string;
+  totp?: string;
+  recoveryCode?: string;
+};
+
+/** 第二步只提交验证码。邮箱和密码都不在请求里，挑战放在 cookie 里。 */
+function challengeContinuation(input: LoginShape): boolean {
+  return input.mode === 'password'
+    && input.email === undefined
+    && input.password === undefined
+    && input.recoveryCode === undefined
+    && input.totp !== undefined;
+}
+
 export const LoginRequestSchema = z.object({
-  email: EmailSchema.pipe(z.string().max(200)), mode: LoginModeSchema.default('password'),
+  email: EmailSchema.pipe(z.string().max(200)).optional(), mode: LoginModeSchema.default('password'),
   password: PasswordSchema.optional(),
   totp: z.preprocess(emptyToAbsent, TotpSchema.optional()),
   rememberDevice: RememberDeviceSchema,
   recoveryCode: z.preprocess(loginRecoveryInput, LoginRecoveryCodeSchema.optional()),
-}).strict().refine((input) => input.mode !== 'password' || input.password !== undefined, { path: ['password'], message: 'Password required' })
+}).strict()
+  .refine((input) => challengeContinuation(input) || input.email !== undefined, { path: ['email'], message: 'Email required' })
+  .refine((input) => challengeContinuation(input) || input.mode !== 'password' || input.password !== undefined, { path: ['password'], message: 'Password required' })
   .refine((input) => input.totp !== undefined || input.recoveryCode !== undefined, { path: ['totp'], message: 'Authenticator or recovery code required' });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 

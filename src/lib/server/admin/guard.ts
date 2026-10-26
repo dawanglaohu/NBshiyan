@@ -22,7 +22,7 @@ export function rateLimited(retryAfterSec: number) {
 export type AdminCtx = { user: User; ip: string | null };
 
 /**
- * 后台接口统一入口：校验会话、账号状态（未禁用、未锁定、会话版本一致、已开 2FA）、当前设备和角色。
+ * 后台接口统一入口：校验会话、账号状态（未禁用、未锁定、已开 2FA、会话版本一致）、当前设备和角色。
  * 同源校验和限流由 admin-guard.ts 的 assertSameOrigin / enforceAdminRateLimit 负责。
  * 失败直接返回 Response。设备是否有效每次读库，不在进程里记住上一次的结论。
  */

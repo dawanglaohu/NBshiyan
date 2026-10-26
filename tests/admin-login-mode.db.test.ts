@@ -203,7 +203,7 @@ test('omitted mode stays password and a valid password plus code opens one devic
 
 test('unknown mode, disallowed totp, recovery code, and unknown account share one failure and leave no device', { skip, timeout: 180_000 }, async () => {
   const base = await baselineKey();
-  assert.equal(base.key, '302|/api/auth/signin|CredentialsSignin|credentials|0');
+  assert.equal(base.key, '302|/admin-login|CredentialsSignin|credentials|0');
   assert.equal((base.response.headers.get('location') ?? '').includes('@'), false);
 
   const member = await makeUser();
@@ -236,12 +236,41 @@ test('unknown mode, disallowed totp, recovery code, and unknown account share on
   const unboundResponse = await postLogin({
     email: unbound.email, password: unbound.password, totp: '123456',
   }, nextIp());
-  assert.equal(failureKey(unboundResponse), base.key);
+  assert.equal(failureKey(unboundResponse), '302|/admin-login|CredentialsSignin|totp_setup_required|0');
+  assert.equal(hasSession(unboundResponse), false);
   assert.equal(await deviceCount(unbound.row.id), 0);
 
   const signed = await postLogin({ email: member.email, password: member.password, totp: code }, nextIp());
   assert.equal(hasSession(signed), true);
   assert.equal(await deviceCount(member.row.id), 1);
+});
+
+test('password without a code asks for a challenge when 2FA is on and refuses login when it is off', { skip, timeout: 180_000 }, async () => {
+  const base = await baselineKey();
+  const unknown = await postLogin({
+    email: `missing-${randomBytes(4).toString('hex')}@example.com`,
+    password: 'not-a-real-password',
+  }, nextIp());
+  assert.equal(failureKey(unknown), base.key);
+
+  const enrolled = await makeUser();
+  const before = await securitySnapshot(enrolled.row.id);
+  const ask = await postLogin({ email: enrolled.email, password: enrolled.password }, nextIp());
+  assert.equal(failureKey(ask), '302|/admin-login|CredentialsSignin|totp_required|0');
+  assert.equal(hasSession(ask), false);
+  assert.equal(await deviceCount(enrolled.row.id), 0);
+  const after = await securitySnapshot(enrolled.row.id);
+  assert.equal(after.failedLogins, before.failedLogins);
+  assert.equal(after.lockedUntil, before.lockedUntil);
+
+  const badPassword = await postLogin({ email: enrolled.email, password: 'wrong-password-value' }, nextIp());
+  assert.equal(failureKey(badPassword), base.key);
+
+  const plain = await makeUser({ totpEnabled: false, totpSecret: null });
+  const refused = await postLogin({ email: plain.email, password: plain.password }, nextIp());
+  assert.equal(failureKey(refused), '302|/admin-login|CredentialsSignin|totp_setup_required|0');
+  assert.equal(hasSession(refused), false);
+  assert.equal(await deviceCount(plain.row.id), 0);
 });
 
 test('totp mode ignores the password and password mode does not burn the code on a wrong password', { skip, timeout: 180_000 }, async () => {
@@ -333,7 +362,7 @@ test('the existing login rate limit still rejects the next correct code without 
     assert.equal(failureKey(wrong), base.key);
   }
   const blocked = await postLogin({ email: member.email, password: member.password, totp: code }, ip);
-  assert.equal(failureKey(blocked), base.key);
+  assert.equal(failureKey(blocked), '302|/admin-login|CredentialsSignin|rate_limited|0');
   assert.equal(await deviceCount(member.row.id), 0);
   const row = await (prisma as PrismaClient).user.findUniqueOrThrow({ where: { id: member.row.id } });
   assert.equal(row.totpLastStep, null);
