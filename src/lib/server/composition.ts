@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import { getServerConfig, type ServerConfig } from './config';
 import { prisma } from './db';
+import { createActionGrantService, type ActionGrantService } from './admin/action-grant';
 import { deviceServiceFor, type DeviceSessionService } from './admin/device-session';
 import { mapAppError, mapUnknownFailure } from './http/errors';
 import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog } from './http/metrics';
@@ -21,6 +22,7 @@ export type HttpServices = {
 
 export type AdminServices = HttpServices & {
   devices: DeviceSessionService;
+  actionGrants: ActionGrantService;
 };
 
 /** 新 HTTP 层的组装点。路由在最终响应处调用 apiCounter，不在这里发请求。 */
@@ -52,6 +54,12 @@ export function createAdminServices(deps: {
   return {
     ...createHttpServices({ db, config, clock, log: deps.log }),
     devices: deviceServiceFor(db, clock, config.session),
+    actionGrants: createActionGrantService({
+      db,
+      clock,
+      grantTtlMs: config.grant.ttlMs,
+      sessionPolicy: config.session,
+    }),
   };
 }
 
