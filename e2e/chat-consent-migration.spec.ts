@@ -85,7 +85,7 @@ test('页脚隐私政策：必要联系、期限和未启用清理，且无分�
   const main = page.locator('main');
   await expect(main.getByRole('heading', { name: 'Contacting us' })).toBeVisible();
   await expect(main).toContainText('The inquiry form and email always work, whatever you choose in cookie settings.');
-  await expect(main).toContainText('The necessary chat cookie expires after 7 days of inactivity, with an absolute limit of 30 days after it is first issued. The design default for chat messages is 90 days from the last successful message. Automatic cleanup of those chat messages is not enabled on this site.');
+  await expect(main).toContainText('The necessary chat cookie expires after 7\u00A0days of inactivity and no later than 30\u00A0days after it was first set. Automatic deletion of chat messages is not currently enabled on this site.');
   await expect(main).not.toContainText('Tawk');
   await expect(main).toContainText('Inquiries are anonymized 2 years after the last activity');
 
@@ -107,7 +107,7 @@ test('俄语隐私页说明同一边界', async ({ page, external }) => {
   const main = page.locator('main');
   await expect(main.getByRole('heading', { name: 'Как с нами связаться' })).toBeVisible();
   await expect(main).toContainText('Форма запроса и e-mail работают всегда, независимо от настроек cookie.');
-  await expect(main).toContainText('Необходимый cookie чата истекает через 7 дней бездействия, с абсолютным пределом в 30 дней после первой выдачи. Проектное значение по умолчанию для сообщений чата: 90 дней с последнего успешного сообщения. Автоматическая очистка этих сообщений чата на сайте не включена.');
+  await expect(main).toContainText('Срок действия необходимого файла cookie чата истекает через 7\u00A0дней бездействия, но не позднее чем через 30\u00A0дней после его установки. Автоматическое удаление сообщений чата на сайте сейчас не включено.');
   await expect(main).toContainText('Запросы обезличиваются через 2 года после последней активности');
   await expect(main).not.toContainText('Tawk');
   await expect(main).not.toContainText('снимок');

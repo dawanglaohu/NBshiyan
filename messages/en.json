@@ -382,7 +382,7 @@
         "title": "Contacting us",
         "items": [
           "The inquiry form and email always work, whatever you choose in cookie settings.",
-          "The necessary chat cookie expires after 7 days of inactivity, with an absolute limit of 30 days after it is first issued. The design default for chat messages is 90 days from the last successful message. Automatic cleanup of those chat messages is not enabled on this site."
+          "The necessary chat cookie expires after 7\u00A0days of inactivity and no later than 30\u00A0days after it was first set. Automatic deletion of chat messages is not currently enabled on this site."
         ]
       },
       "processors": {
