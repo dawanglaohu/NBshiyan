@@ -151,7 +151,7 @@ test('P1 enroll: no storage / logging / innerHTML / external URLs; download revo
     assert.doesNotMatch(src, /useSearchParams|location\.(search|href|hash)|searchParams\.get\('(callback|redirect)/);
     assert.doesNotMatch(src.replace(/http:\/\/www\.w3\.org\/2000\/svg/g, ''), /https?:\/\//, 'no absolute URLs (no external QR service)');
   }
-  assert.equal(SIGNIN_HREF, '/api/auth/signin?callbackUrl=%2Fadmin');
+  assert.equal(SIGNIN_HREF, '/admin-login?callbackUrl=%2Fadmin');
   const dl = ui.slice(ui.indexOf('const download'), ui.indexOf('const goto'));
   assert.ok(dl.indexOf('new Blob(') > 0 && dl.indexOf('a.click()') > dl.indexOf('createObjectURL') && dl.indexOf('revokeObjectURL(url)') > dl.indexOf('a.click()'), dl);
   assert.match(dl, /setTimeout\(\(\) => URL\.revokeObjectURL\(url\), 10_000\)/, 'revoke must be deferred (#353 P2)');

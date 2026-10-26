@@ -7,6 +7,7 @@ import {
   TOTP_REQUIRED_CODE,
   TOTP_SETUP_REQUIRED_CODE,
 } from '../../admin/login-step';
+import { inBatches, maxPerRun, NO_DEADLINE } from '../retention';
 import { prisma } from '../db';
 
 export const CHALLENGE_COOKIE = '__Host-admin-login-challenge';
@@ -35,8 +36,21 @@ export function throwRateLimited(): never {
   throwCoded(RATE_LIMITED_CODE);
 }
 
-/** 挑战缺失、过期、已用、设备不符或次数用尽。不增加 failedLogins。 */
+/** 清掉 __Host- 挑战 cookie。属性与签发时一致，不带 Domain。 */
+export function challengeClearCookie(): string {
+  return [
+    `${CHALLENGE_COOKIE}=`,
+    'Path=/',
+    'HttpOnly',
+    'Secure',
+    'SameSite=Lax',
+    'Max-Age=0',
+  ].join('; ');
+}
+
+/** 挑战缺失、过期、已用、设备不符或次数用尽。不增加 failedLogins，并清掉挑战 cookie。 */
 export function throwChallengeInvalid(): never {
+  stageLoginCookie(challengeClearCookie());
   throwCoded(CHALLENGE_INVALID_CODE);
 }
 
@@ -144,4 +158,20 @@ export async function consumeLoginChallenge(id: string, sessionVersion: number, 
     },
     data: { consumedAt: now },
   });
+}
+
+/** 过期或已经核销的挑战行。未过期且未核销的留下。 */
+export function staleLoginChallengeWhere(now = new Date()) {
+  return { OR: [{ expiresAt: { lt: now } }, { consumedAt: { not: null } }] };
+}
+
+/** 给清理 cron 用。分批删除，到截止时间就停，剩下的留给下次。 */
+export async function cleanupExpiredLoginChallenges(db = prisma, now = new Date(), deadline = NO_DEADLINE) {
+  const where = staleLoginChallengeWhere(now);
+  return inBatches(
+    async (take) => (await db.adminLoginChallenge.findMany({ where, select: { id: true }, orderBy: { expiresAt: 'asc' }, take })).map((row) => row.id),
+    async (ids) => (await db.adminLoginChallenge.deleteMany({ where: { id: { in: ids } } })).count,
+    maxPerRun(),
+    deadline,
+  );
 }

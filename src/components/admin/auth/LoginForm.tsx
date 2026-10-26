@@ -16,8 +16,29 @@ import {
 type ErrorKind = '' | 'credentials' | 'totp' | 'rate';
 type NoticeKind = '' | 'setup' | 'expired';
 
+function PasswordEye({ off }: { off: boolean }) {
+  return (
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {off ? (
+        <>
+          <path d="M3 3l18 18" />
+          <path d="M10.58 10.58a2 2 0 0 0 2.83 2.83" />
+          <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c5 0 9.27 3.11 10.5 7a11.6 11.6 0 0 1-2.16 3.19" />
+          <path d="M6.61 6.61A11.8 11.8 0 0 0 1.5 12c.55 1.74 1.64 3.32 3.08 4.61" />
+        </>
+      ) : (
+        <>
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 /**
- * 第一步提交后立刻从状态里清掉密码。第二步只提交验证码，挑战由 cookie 带上。
+ * 第一步只有真正发出登录请求时才清掉密码。邮箱或密码为空时保留已输入的内容。
+ * 第二步只提交验证码，挑战由 cookie 带上。
  * 地址栏里的 error / code 只用来显示笼统错误，不能决定当前步骤。
  */
 export default function LoginForm({
@@ -26,12 +47,14 @@ export default function LoginForm({
   initialStep = 'password',
   initialEmail = '',
   initialLang = 'zh',
+  signInFn = signIn,
 }: {
   callbackUrl: string;
   urlError?: boolean;
   initialStep?: LoginStep;
   initialEmail?: string;
   initialLang?: LoginLang;
+  signInFn?: typeof signIn;
 }) {
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<LoginStep>(initialStep);
@@ -79,6 +102,7 @@ export default function LoginForm({
     commitAndReveal(passwordRef, () => {
       setTotp('');
       setPassword('');
+      setShowPassword(false);
       setStep('password');
       setNotice('');
       setErrorKind('');
@@ -91,7 +115,6 @@ export default function LoginForm({
     if (step === 'password') {
       const submittedPassword = password;
       const submittedEmail = email.trim();
-      setPassword('');
       if (!submittedEmail || !submittedPassword) {
         commitAndReveal(alertRef, () => {
           setNotice('');
@@ -99,11 +122,12 @@ export default function LoginForm({
         });
         return;
       }
+      setPassword('');
       setBusy(true);
       setNotice('');
       setErrorKind('');
       try {
-        const result = await signIn('credentials', { ...passwordCredentials(submittedEmail, submittedPassword), ...signInOptions(callbackUrl) });
+        const result = await signInFn('credentials', { ...passwordCredentials(submittedEmail, submittedPassword), ...signInOptions(callbackUrl) });
         const outcome = interpretSignInResult(result, 'password');
         if (outcome === 'success') {
           window.location.assign(callbackUrl);
@@ -151,7 +175,7 @@ export default function LoginForm({
     setErrorKind('');
     setNotice('');
     try {
-      const result = await signIn('credentials', { ...totpCredentials(code), ...signInOptions(callbackUrl) });
+      const result = await signInFn('credentials', { ...totpCredentials(code), ...signInOptions(callbackUrl) });
       const outcome = interpretSignInResult(result, 'totp');
       if (outcome === 'success') {
         window.location.assign(callbackUrl);
@@ -161,6 +185,7 @@ export default function LoginForm({
         commitAndReveal(passwordRef, () => {
           setTotp('');
           setPassword('');
+          setShowPassword(false);
           setStep('password');
           setErrorKind('');
           setNotice('expired');
@@ -221,10 +246,10 @@ export default function LoginForm({
                 <button
                   type="button"
                   className="lg-pw-toggle"
-                  aria-pressed={showPassword}
+                  aria-label={showPassword ? t.hidePassword : t.showPassword}
                   onClick={() => setShowPassword((value) => !value)}
                 >
-                  {showPassword ? t.hidePassword : t.showPassword}
+                  <PasswordEye off={showPassword} />
                 </button>
               </div>
             </div>
@@ -247,6 +272,7 @@ export default function LoginForm({
             </div>
           </>
         )}
+        {step === 'totp' ? <p className="lg-hint">{t.totpHint}</p> : null}
         {step === 'totp' ? (
           <div className="lg-field">
             <label htmlFor="admin-login-totp">{t.totp}</label>

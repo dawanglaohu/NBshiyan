@@ -6,6 +6,7 @@
   place-items: start center;
   padding: 48px 16px;
   background: #F7F5F1;
+  --input-border: #8A8378;
   color: var(--ink);
   font-family: var(--font-sans), system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 14px;
@@ -47,7 +48,7 @@
   width: 100%;
   min-height: 44px;
   padding: 11px 12px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--input-border);
   border-radius: var(--r-sm);
   background: var(--bg);
   color: var(--ink);
@@ -68,8 +69,16 @@
   font-weight: 700;
   cursor: pointer;
 }
-.lg-pw-toggle { padding: 0 12px; }
+.lg-pw-toggle {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
 .lg-back { align-self: flex-start; margin: 0 0 8px; padding: 0 10px; }
+.lg-hint { margin: 0 0 6px; color: var(--ink-2); font-size: 14px; line-height: 1.5; }
 .lg-pw-toggle:focus-visible,
 .lg-back:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 .lg-submit {

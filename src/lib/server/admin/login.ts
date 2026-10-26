@@ -8,10 +8,12 @@ import { sendAdminAlert } from '../mail';
 import { audit } from './audit';
 import {
   CHALLENGE_MAX_ATTEMPTS,
+  challengeClearCookie,
   consumeLoginChallenge,
   findLoginChallenge,
   issueLoginChallenge,
   noteChallengeFailure,
+  stageLoginCookie,
   throwChallengeInvalid,
   throwRateLimited,
   throwTotpRequired,
@@ -215,6 +217,7 @@ async function authorizeChallenge(totp: string, ip: string | null, ctx: LoginCon
 }
 
 async function finishLogin(user: User, email: string, ip: string | null, method: 'password' | 'totp' | 'recovery_code') {
+  stageLoginCookie(challengeClearCookie());
   await prisma.user.update({ where: { id: user.id }, data: { failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() } });
   await audit({ actorId: user.id, action: 'auth.login_success', target: user.id, meta: { method }, ip });
   return user;

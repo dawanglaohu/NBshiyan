@@ -4,10 +4,12 @@
  * 安全要求：otpauth URI、密钥、密码、恢复码不进日志、URL、浏览器本地存储，二维码只在浏览器本地生成。
  */
 
+import { adminLoginHref } from './safe-callback';
+
 export const ENROLL_PATH = '/api/auth-admin/enroll';
 export const CONFIRM_PATH = '/api/auth-admin/enroll/confirm';
 /** 绑定完成后去登录。回跳地址写死 /admin，不读 URL 里的任何 callback / redirect 参数 */
-export const SIGNIN_HREF = '/api/auth/signin?callbackUrl=%2Fadmin';
+export const SIGNIN_HREF = adminLoginHref('/admin');
 export const ENROLL_PAGE = '/admin-enroll';
 /** #347 方案 A：绑定链接里的一次性令牌参数名（/admin-enroll#t=<令牌>，放在 fragment 里，浏览器不会发给服务器） */
 export const ENROLL_TOKEN_PARAM = 't';

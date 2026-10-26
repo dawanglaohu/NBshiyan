@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { authenticator } from 'otplib';
 import { test, expect } from './fixtures';
+import { BASE } from '../playwright.config';
 import { E2E_TOTP } from './shared-admin';
 
 // 自定义 /admin-login。未登录只打开页面，不计登录。有两步验证的账号提交 2 次。
@@ -45,27 +46,40 @@ test('未登录打开登录页得到 200，且这次请求没有重定向', asyn
   await assertNoHiddenFields(page);
 });
 
-test('开了两步验证的账号在密码正确后输入验证码，再进入询盘管理', async ({ page }) => {
+test('开了两步验证的账号从登录页回到设置，Auth.js 同源绝对地址也同样回到原页', async ({ page }) => {
   test.setTimeout(90_000);
   const email = `e2e-login-totp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
   seedAccount(email, true);
-  await page.goto('/admin-login?callbackUrl=%2Fadmin%2Finquiries');
+  const models = await page.request.get('/admin/models?x=1', { maxRedirects: 0 });
+  expect([303, 307]).toContain(models.status());
+  const modelsLocation = models.headers()['location'] ?? '';
+  expect(new URL(modelsLocation, BASE).pathname).toBe('/admin-login');
+  expect(modelsLocation).toContain('callbackUrl=%2Fadmin%2Fmodels%3Fx%3D1');
+  const settings = await page.request.get('/admin/settings', { maxRedirects: 0 });
+  expect([303, 307]).toContain(settings.status());
+  const settingsLocation = settings.headers()['location'] ?? '';
+  expect(new URL(settingsLocation, BASE).pathname).toBe('/admin-login');
+  expect(settingsLocation).toContain('callbackUrl=%2Fadmin%2Fsettings');
+  await page.goto(`/api/auth/signin?callbackUrl=${encodeURIComponent(`${BASE}/admin/settings`)}`);
+  await expect(page).toHaveURL(/\/admin-login/);
+  await expect(page.locator('form')).toHaveAttribute('data-callback', '/admin/settings');
   await assertNoHiddenFields(page);
   await page.getByLabel('邮箱').fill(email);
-  await page.getByLabel('密码').fill(PASSWORD);
+  await page.getByLabel('密码', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: '登录' }).click();
   const code = page.getByLabel('验证码');
   await expect(code).toBeVisible();
+  await expect(page.getByText('请输入验证器 App 中显示的 6 位验证码。')).toBeVisible();
+  await expect(page.locator('.lg-hint')).not.toHaveAttribute('role', 'alert');
   await expect(page.getByLabel('邮箱')).toHaveValue(email);
   await expect(page.getByLabel('邮箱')).toHaveAttribute('readonly', '');
   await expect(page.getByRole('button', { name: '返回' })).toBeVisible();
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
   await assertNoHiddenFields(page);
   await code.fill(authenticator.generate(E2E_TOTP));
-  const pending = page.waitForResponse((item) => item.url().includes('/admin/inquiries') && item.request().resourceType() === 'document');
+  const pending = page.waitForResponse((item) => item.url().includes('/admin/settings') && item.request().resourceType() === 'document');
   await page.getByRole('button', { name: '登录' }).click();
   expect((await pending).status()).toBe(200);
-  await expect(page).toHaveURL(/\/admin\/inquiries/);
-  await expect(page.getByRole('heading', { level: 1, name: /询盘管理/ })).toBeVisible();
-  expect((await page.request.get('/api/admin/inquiries')).status()).toBe(200);
+  await expect(page).toHaveURL(/\/admin\/settings/);
+  await expect(page.getByRole('heading', { level: 1, name: '公司介绍（/about 页）' })).toBeVisible();
 });

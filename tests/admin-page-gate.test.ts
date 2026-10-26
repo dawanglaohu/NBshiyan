@@ -4,10 +4,13 @@ import { adminPageGate } from '../src/lib/server/admin/page-access';
 
 const cb = (to: string) => new URL(to, 'https://x.test').searchParams.get('callbackUrl');
 
+/** 路由扫描同时认函数、const、re-export 和 `export const { GET } = handlers`。 */
+const ROUTE_EXPORT = /export\s+(?:async\s+)?(?:function|const)\s+(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b|export\s+const\s+\{\s*(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b|export\s+\{[^}]*\b(?:as\s+)?(?:GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/;
+
 test('/admin/users: logged out → sign-in redirect (not 404)', () => {
   const g = adminPageGate({ ok: false, reason: 'unauthenticated' }, '/admin/users');
   assert.equal(g.action, 'redirect');
-  assert.ok(g.action === 'redirect' && g.to.startsWith('/api/auth/signin?callbackUrl='));
+  assert.ok(g.action === 'redirect' && g.to.startsWith('/admin-login?callbackUrl='));
   assert.equal(g.action === 'redirect' && cb(g.to), '/admin/users');
 });
 
@@ -25,9 +28,10 @@ test('/admin/users: disabled or wrong role → 404; ok → render', () => {
   assert.deepEqual(adminPageGate({ ok: true }, '/admin/users'), { action: 'render' });
 });
 
-test('open-redirect path falls back to /admin', () => {
+test('open-redirect path falls back to the inquiry list', () => {
   const g = adminPageGate({ ok: false, reason: 'unauthenticated' }, '//evil.com');
-  assert.equal(g.action === 'redirect' && cb(g.to), '/admin');
+  assert.equal(g.action === 'redirect' && cb(g.to), '/admin/inquiries');
+  assert.ok(g.action === 'redirect' && g.to.startsWith('/admin-login?callbackUrl='));
 });
 
 test('every /admin page is server-checked: enforceAdminPage before render, or a pure redirect', async () => {
@@ -44,6 +48,18 @@ test('every /admin page is server-checked: enforceAdminPage before render, or a 
     const guarded = s.includes('await enforceAdminPage(') && s.indexOf('await enforceAdminPage(') < s.lastIndexOf('return');
     assert.ok(pureRedirect || guarded, `${p} must call enforceAdminPage before rendering`);
   }
+});
+
+test('route export scan matches function, const, re-export and handler aliases', () => {
+  for (const sample of [
+    'export const GET = handler',
+    'export async function POST() {}',
+    'export { GET } from "./mod"',
+    'export const { GET } = handlers',
+    'export { handle as GET, handle as POST }',
+  ]) assert.match(sample, ROUTE_EXPORT, sample);
+  assert.doesNotMatch('export const helper = 1', ROUTE_EXPORT);
+  assert.doesNotMatch('export function load() {}', ROUTE_EXPORT);
 });
 
 test('every admin route handler calls requireAdmin or secretMatches', async () => {
@@ -63,7 +79,7 @@ test('every admin route handler calls requireAdmin or secretMatches', async () =
   assert.ok(files.length >= 1);
   for (const file of files) {
     const src = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-    const exportsHandler = /export\s+(async\s+)?(function|const)\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b/.test(src);
+    const exportsHandler = ROUTE_EXPORT.test(src);
     if (!exportsHandler) continue;
     assert.ok(src.includes('requireAdmin(') || src.includes('secretMatches('), file);
   }

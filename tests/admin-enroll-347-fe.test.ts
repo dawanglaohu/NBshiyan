@@ -45,7 +45,7 @@ test('EnrollWizard：读一次令牌（ref 防 StrictMode 二次执行误判）�
   assert.match(src, /<h1 ref=\{heading\} tabIndex=\{-1\}>\{NO_TOKEN_TITLE\}<\/h1>/);
   assert.match(src, /<a className="en-btn ghost" href=\{SIGNIN_HREF\}>\{NO_TOKEN_SIGNIN\}<\/a>/, '次要按钮「去登录」');
   assert.equal((src.match(/\{keepHint\}/g) ?? []).length, 2, '第 1、2 步的表单上方');
-  assert.equal(SIGNIN_HREF, '/api/auth/signin?callbackUrl=%2Fadmin');
+  assert.equal(SIGNIN_HREF, '/admin-login?callbackUrl=%2Fadmin');
 });
 
 test('EnrollWizard 401：保留邮箱、清空密码并聚焦，不标红单个字段；令牌只在内存', () => {

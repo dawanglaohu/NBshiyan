@@ -26,6 +26,7 @@ type Challenge = Record<string, unknown> & { id: string; userId: string; consume
 let users: Row[] = [];
 let challenges: Challenge[] = [];
 let lookups = 0;
+let deviceInserts = 0;
 let hash = '';
 
 const match = (row: Record<string, unknown>, where: Record<string, unknown>): boolean => Object.entries(where).every(([key, value]) => {
@@ -87,6 +88,12 @@ const db = {
     },
   },
   auditLog: { create: async () => ({}) },
+  adminDeviceSession: {
+    create: async () => {
+      deviceInserts += 1;
+      return { id: 'device-should-not-be-created' };
+    },
+  },
 };
 (globalThis as { prisma?: unknown }).prisma = db;
 
@@ -114,6 +121,7 @@ beforeEach(() => {
   users = [user()];
   challenges = [];
   lookups = 0;
+  deviceInserts = 0;
 });
 
 function cookieJar(response: Response, previous = ''): string {
@@ -184,8 +192,10 @@ test('a correct password without 2FA returns the setup code and no session cooki
     assert.equal(response.headers.getSetCookie().some((cookie) => cookie.startsWith(`${challengeApi.CHALLENGE_COOKIE}=`)), false);
     assert.equal(challenges.length, 0);
   }
+  assert.equal(deviceInserts, 0);
   const totpMode = await authorizeLogin({ email: 'ada@example.test', mode: 'totp', totp: '123456' }, '198.51.100.20');
   assert.equal(totpMode, null);
+  assert.equal(deviceInserts, 0);
 });
 
 test('locked and missing accounts share the generic failure, and an unknown email is rate limited before lookup', async () => {
@@ -294,4 +304,96 @@ test('the password step over HTTP sets the challenge cookie and not a session co
   assert.match(cookie ?? '', /SameSite=Lax/);
   assert.match(cookie ?? '', /Path=\//);
   assert.doesNotMatch(cookie ?? '', /Domain=/i);
+});
+
+function challengeCookie(header: string) {
+  const raw = decodeURIComponent((header.split(';', 1)[0] ?? '').slice(challengeApi.CHALLENGE_COOKIE.length + 1));
+  return `${challengeApi.CHALLENGE_COOKIE}=${encodeURIComponent(raw)}`;
+}
+
+function assertCleared(headers: string[]) {
+  const header = headers.find((item) => item.startsWith(`${challengeApi.CHALLENGE_COOKIE}=`));
+  assert.ok(header);
+  assert.match(header ?? '', new RegExp(`^${challengeApi.CHALLENGE_COOKIE}=;`));
+  assert.match(header ?? '', /Max-Age=0/);
+  assert.match(header ?? '', /HttpOnly/);
+  assert.match(header ?? '', /Secure/);
+  assert.match(header ?? '', /SameSite=Lax/);
+  assert.match(header ?? '', /Path=\//);
+  assert.doesNotMatch(header ?? '', /Domain=/i);
+}
+
+async function issueCookie(ip: string) {
+  const issued = await challengeApi.withLoginCookies(async () => {
+    await assert.rejects(
+      () => authorizeLogin({ email: 'ada@example.test', password: PASSWORD, mode: 'password' }, ip, { userAgent: 'TestBrowser' }),
+      (error: unknown) => codeOf(error) === 'totp_required',
+    );
+    return challengeApi.stagedLoginCookies();
+  });
+  return challengeCookie(issued[0] ?? '');
+}
+
+test('login success and an invalid challenge both clear the host cookie', async () => {
+  const cookie = await issueCookie('198.51.100.80');
+  const cleared = await challengeApi.withLoginCookies(async () => {
+    const signed = await authorizeLogin({ totp: authenticator.generate(SECRET), mode: 'password' }, '198.51.100.81', { cookie, userAgent: 'TestBrowser' });
+    assert.equal(signed && typeof signed === 'object', true);
+    return challengeApi.stagedLoginCookies();
+  });
+  assertCleared(cleared);
+
+  users = [user({ id: 'user-invalid', failedLogins: 0 })];
+  challenges = [];
+  const missing = await challengeApi.withLoginCookies(async () => {
+    await assert.rejects(
+      () => authorizeLogin({ totp: authenticator.generate(SECRET), mode: 'password' }, '198.51.100.82', { cookie: `${challengeApi.CHALLENGE_COOKIE}=no-such-challenge-value-xx`, userAgent: 'TestBrowser' }),
+      (error: unknown) => codeOf(error) === 'challenge_invalid',
+    );
+    return challengeApi.stagedLoginCookies();
+  });
+  assertCleared(missing);
+  assert.equal(users[0]?.failedLogins, 0);
+
+  const wrong = await challengeApi.withLoginCookies(async () => {
+    const cookie2 = await issueCookie('198.51.100.83');
+    const result = await authorizeLogin({ totp: '000000', mode: 'password' }, '198.51.100.84', { cookie: cookie2, userAgent: 'TestBrowser' });
+    assert.equal(result, null);
+    return challengeApi.stagedLoginCookies();
+  });
+  assert.equal(wrong.some((header) => /Max-Age=0/.test(header)), false);
+
+  const httpInvalid = await postLogin({ totp: '123456' }, '198.51.100.85', `${challengeApi.CHALLENGE_COOKIE}=still-not-a-real-challenge`);
+  assert.match(failureKey(httpInvalid), /challenge_invalid\|0$/);
+  assertCleared(httpInvalid.headers.getSetCookie());
+});
+
+test('a sessionVersion change invalidates the challenge without counting a failed login', async () => {
+  const cookie = await issueCookie('198.51.100.90');
+  users[0]!.sessionVersion = 4;
+  const fails = users[0]?.failedLogins;
+  await assert.rejects(
+    () => authorizeLogin({ totp: authenticator.generate(SECRET), mode: 'password' }, '198.51.100.91', { cookie, userAgent: 'TestBrowser' }),
+    (error: unknown) => codeOf(error) === 'challenge_invalid',
+  );
+  assert.equal(users[0]?.failedLogins, fails);
+  assert.equal(challenges[0]?.consumedAt, null);
+});
+
+test('the fifth wrong code uses up the challenge and a later code cannot consume it', async () => {
+  const cookie = await issueCookie('198.51.100.100');
+  for (let i = 0; i < 5; i += 1) {
+    const wrong = await authorizeLogin({ totp: '000000', mode: 'password' }, `198.51.100.${101 + i}`, { cookie, userAgent: 'TestBrowser' });
+    assert.equal(wrong, null);
+  }
+  assert.equal(challenges[0]?.attempts, 5);
+  assert.equal(challenges[0]?.consumedAt, null);
+  const fails = users[0]?.failedLogins;
+  await assert.rejects(
+    () => authorizeLogin({ totp: authenticator.generate(SECRET), mode: 'password' }, '198.51.100.110', { cookie, userAgent: 'TestBrowser' }),
+    (error: unknown) => codeOf(error) === 'challenge_invalid',
+  );
+  assert.equal(challenges[0]?.attempts, 5);
+  assert.equal(challenges[0]?.consumedAt, null);
+  assert.equal(users[0]?.failedLogins, fails);
 });
