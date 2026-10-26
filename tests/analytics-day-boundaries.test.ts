@@ -117,10 +117,29 @@ test('两种浏览器时区不改变站点日，半小时偏移也不按整点�
 });
 
 test('进程时区变了，站点日的 UTC 边界仍相同', () => {
+  // 起止时刻用本机 Intl（IANA tzdata）二分当地自然日得到，再写进期望。
+  // 哈瓦那 2026-11-01 的墙上 00:00 出现两次：04:00Z（GMT-4）与 05:00Z（GMT-5）。左闭端取较早的 04:00Z，当天 25 小时。
+  // 贝鲁特 2025-03-30 没有墙上 00:00，当天从 01:00（GMT+3）起，23 小时。
+  // 豪勋爵岛 2026-10-04 是 +30 分钟的春令时切换日，23.5 小时。加德满都 2026-06-15 全天 GMT+05:45，24 小时。
+  // 圣地亚哥 2026-09-06 是春令时切换日，午夜被跳过，23 小时。
+  const cases: Array<[string, string, string, string, number]> = [
+    ['2026-03-08', 'America/New_York', '2026-03-08T05:00:00.000Z', '2026-03-09T04:00:00.000Z', 23],
+    ['2026-11-01', 'America/Havana', '2026-11-01T04:00:00.000Z', '2026-11-02T05:00:00.000Z', 25],
+    ['2025-03-30', 'Asia/Beirut', '2025-03-29T22:00:00.000Z', '2025-03-30T21:00:00.000Z', 23],
+    ['2026-10-04', 'Australia/Lord_Howe', '2026-10-03T13:30:00.000Z', '2026-10-04T13:00:00.000Z', 23.5],
+    ['2026-06-15', 'Asia/Kathmandu', '2026-06-14T18:15:00.000Z', '2026-06-15T18:15:00.000Z', 24],
+    ['2026-09-06', 'America/Santiago', '2026-09-06T04:00:00.000Z', '2026-09-07T03:00:00.000Z', 23],
+  ];
+  const probed = cases.map(([localDate, timeZone]) => ({ localDate, timeZone }));
   const script = [
     "const { siteDayUtcBounds } = require('./src/lib/analytics/day-boundaries.ts');",
-    "const bounds = siteDayUtcBounds('2026-03-08', 'America/New_York', process.env.TZ);",
-    "process.stdout.write(bounds.startUtc + ' ' + bounds.endUtc);",
+    `const cases = ${JSON.stringify(probed)};`,
+    'const lines = cases.map((item) => {',
+    '  const bounds = siteDayUtcBounds(item.localDate, item.timeZone, process.env.TZ);',
+    '  const hours = (Date.parse(bounds.endUtc) - Date.parse(bounds.startUtc)) / 3600000;',
+    "  return [item.localDate, item.timeZone, bounds.startUtc, bounds.endUtc, String(hours)].join(' ');",
+    '});',
+    "process.stdout.write(lines.join('\\n'));",
   ].join('\n');
   const run = (timeZone: string) => {
     const child = spawnSync(process.execPath, ['--import', 'tsx', '--eval', script], {
@@ -132,8 +151,23 @@ test('进程时区变了，站点日的 UTC 边界仍相同', () => {
     assert.equal(child.status, 0, stderr);
     return child.stdout;
   };
-  assert.equal(run('Pacific/Auckland'), run('America/Los_Angeles'));
-  assert.equal(run('Pacific/Auckland'), '2026-03-08T05:00:00.000Z 2026-03-09T04:00:00.000Z');
+  const auckland = run('Pacific/Auckland');
+  assert.equal(auckland, run('America/Los_Angeles'));
+  const rows = auckland.split('\n');
+  assert.equal(rows.length, cases.length);
+  cases.forEach((expected, index) => {
+    const [localDate, timeZone, startUtc, endUtc, durationHours] = rows[index].split(' ');
+    assert.equal(localDate, expected[0]);
+    assert.equal(timeZone, expected[1]);
+    assert.equal(startUtc, expected[2]);
+    assert.equal(endUtc, expected[3]);
+    assert.equal(Number(durationHours), expected[4]);
+  });
+  const havanaRow = rows.find((row) => row.startsWith('2026-11-01 America/Havana '));
+  assert.ok(havanaRow);
+  const havanaStart = havanaRow.split(' ')[2];
+  assert.equal(havanaStart, '2026-11-01T04:00:00.000Z');
+  assert.ok(Date.parse(havanaStart) < Date.parse('2026-11-01T05:00:00.000Z'));
 });
 
 test('空输入、非法时区和无效时刻被拒绝，浏览器时区不能顶上', () => {
