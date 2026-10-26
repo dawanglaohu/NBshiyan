@@ -88,9 +88,12 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(en.Contact.emailEntry, 'Go to the email field');
   assert.equal(ru.Contact.emailEntry, 'Перейти к полю e-mail');
   assert.equal(en.Contact.capacityLimit, undefined);
-  assert.equal(en.Contact.chatSwitch, undefined);
-  assert.equal(en.Contact.chatOn, undefined);
-  assert.equal(en.Contact.chatOff, undefined);
+  assert.equal(en.Contact.chatSwitch, 'Live chat');
+  assert.equal(ru.Contact.chatSwitch, 'Чат');
+  assert.equal(en.Contact.chatOff, 'Chat is off. The inquiry form and email still work.');
+  assert.equal(ru.Contact.chatOff, 'Чат выключен. Форма запроса и e-mail по-прежнему работают.');
+  assert.equal(en.Contact.chatOn, 'Chat is switched on. This page does not open a chat window. The inquiry form and email still work.');
+  assert.equal(ru.Contact.chatOn, 'Чат включён. На этой странице окно чата не открывается. Форма запроса и e-mail по-прежнему работают.');
   assert.equal(en.Products.names['gift-cards'], 'Greeting Cards');
   assert.equal(ru.Products.names['gift-cards'], 'Открытки');
   assert.equal(en.Products.desc['gift-cards'], 'Custom printed greeting cards and card packaging for retail and promotions.');
@@ -99,4 +102,19 @@ test('语言专家定稿：同意、隐私、联系和贺卡', () => {
   assert.equal(ru.Products.metaDescription, 'Широкий выбор упаковки на заказ в 3D: гофрокороба, подарочные и винные коробки, формованная целлюлоза, бумажные стаканы и печать. Запросите расчёт у PackJoyU.');
   assert.equal(en.Fab.chat, 'Contact us');
   assert.equal(ru.Fab.chat, 'Связаться с нами');
+});
+
+test('联系页聊天开关默认关闭，独立于分析开关，不加载 Tawk', () => {
+  const notice = readFileSync('src/app/[locale]/contact/HumanContactNotice.tsx', 'utf8');
+  assert.match(notice, /useState\(false\)/);
+  assert.match(notice, /id="contact-chat-switch"/);
+  assert.match(notice, /role="switch"/);
+  assert.match(notice, /aria-checked=\{chatEnabled\}/);
+  assert.match(notice, /id="inquiry-email-entry"/);
+  assert.equal(notice.includes('setConsent'), false);
+  assert.equal(notice.includes('analytics'), false);
+  assert.equal(notice.includes('chat: true'), false);
+  assert.equal(/tawk/i.test(notice), false);
+  assert.equal(notice.includes('2.7'), false);
+  assert.equal(notice.includes('chat-availability'), false);
 });
