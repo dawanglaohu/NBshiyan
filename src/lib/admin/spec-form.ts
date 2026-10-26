@@ -179,15 +179,79 @@ const API_ERR: Record<string, string> = {
   service_unavailable: OUTAGE_FORM, http_503: OUTAGE_FORM,
   internal_error: GENERIC_FORM,
 };
-export type ServerIssue = { path: string; message: string };
-/** 服务端错误 → 页面提示：总提示 + 按字段的提示（来自 400 的 issues） */
-export function serverErrors(status: number, json: unknown): { message: string; fields: FieldErrors } {
-  const j = (json && typeof json === 'object' ? json : {}) as { error?: unknown; issues?: unknown };
-  const code = typeof j.error === 'string' ? j.error : `http_${status}`;
-  const fields: FieldErrors = {};
-  if (Array.isArray(j.issues)) for (const it of j.issues as ServerIssue[]) {
-    if (it && typeof it.path === 'string' && typeof it.message === 'string') fields[it.path || '_'] = it.message.slice(0, 200);
+export type ServerIssue = { path?: string; message?: string; code?: string };
+
+/** 服务端自定义 issue 码（message 或 code 整段相等才算）。值都是表单里已有的固定句子。 */
+const ISSUE_CODE: Record<string, string> = {
+  https_url_required: '链接必须是 https:// 开头的有效地址，不能包含用户名或密码（≤ 2048 字符）',
+  cert_no_or_url_required: '证书编号和链接至少填一个',
+  size_min_gt_max: '最大尺寸不能小于最小尺寸',
+  lead_min_gt_max: '最长交期不能小于最短交期',
+  duplicate: '贸易术语无效或重复',
+};
+
+/** 认不出码时按路径用该字段的固定句子。路径对不上就归到顶部 `_`。 */
+const FIELD_GENERIC: { path: RegExp; key?: string; text: string }[] = [
+  { path: /^certifications\.\d+\.url$/, text: ISSUE_CODE.https_url_required },
+  { path: /^certifications\.\d+\.name$/, text: '请填写认证名称' },
+  { path: /^certifications\.\d+\.certNo$/, text: '最多 80 个字符' },
+  { path: /^certifications\.\d+$/, text: ISSUE_CODE.cert_no_or_url_required },
+  { path: /^certifications$/, text: '最多 30 条认证' },
+  { path: /^size\.(min|max)\.[lwh]$/, text: '尺寸范围 1–10000' },
+  { path: /^size\.(min|max)$/, text: '长、宽、高要么都填，要么都不填' },
+  { path: /^size\.unit$/, text: '单位无效' },
+  { path: /^moq\.value$/, text: '起订量范围 1–100000000' },
+  { path: /^moq\.unit$/, text: '单位无效' },
+  { path: /^sampleFee\.amount$/, text: '金额须大于 0，最多两位小数，不超过 100000' },
+  { path: /^sampleFee\.currency$/, text: '币种无效' },
+  { path: /^sampleFee$/, text: '金额须大于 0，最多两位小数，不超过 100000' },
+  { path: /^leadTime\.min$/, text: '交期范围 1–365' },
+  { path: /^leadTime\.max$/, text: '交期范围 1–365' },
+  { path: /^leadTime\.unit$/, text: '单位无效' },
+  { path: /^leadTime$/, text: ISSUE_CODE.lead_min_gt_max },
+  { path: /^tradeTerms(\.\d+)?$/, key: 'tradeTerms', text: ISSUE_CODE.duplicate },
+  { path: /^material(\.(en|ru))?$/, key: 'material', text: '最多 300 个字符' },
+  { path: /^notes(\.(en|ru))?$/, key: 'notes', text: '最多 2000 个字符' },
+];
+
+function knownIssueCopy(token: unknown): string | undefined {
+  if (typeof token !== 'string' || !Object.prototype.hasOwnProperty.call(ISSUE_CODE, token)) return undefined;
+  return ISSUE_CODE[token];
+}
+
+function fieldPlace(path: string): { key: string; text: string } {
+  for (const row of FIELD_GENERIC) {
+    if (row.path.test(path)) return { key: row.key ?? path, text: row.text };
   }
+  return { key: '_', text: API_ERR.invalid };
+}
+
+/** 只在 HTTP 400 调用。文案来自白名单，不使用服务器返回的 message 原文。 */
+function fieldsFromIssues(issues: unknown): FieldErrors {
+  const fields: FieldErrors = {};
+  if (!Array.isArray(issues)) return fields;
+  for (const it of issues) {
+    if (!it || typeof it !== 'object') continue;
+    const row = it as ServerIssue;
+    const path = typeof row.path === 'string' ? row.path : '';
+    const specific = knownIssueCopy(row.code) ?? knownIssueCopy(row.message);
+    const placed = fieldPlace(path);
+    if (specific) fields[placed.key] = specific;
+    else if (fields[placed.key] === undefined) fields[placed.key] = placed.text;
+  }
+  return fields;
+}
+
+/**
+ * 服务端错误 → 页面提示。
+ * 只有 HTTP 400 才读 issues，并按 path / code 换成固定文案。
+ * 其他状态不读 message 和 issues，字段错误留空，调用方因此保留用户已填的内容。
+ * internal_error、http_5xx（503 除外，503 仍是停机那句）和认不出的码用通用句。后台表单用中文；同一句的 en / ru 在 FORM_GENERIC。
+ */
+export function serverErrors(status: number, json: unknown): { message: string; fields: FieldErrors } {
+  const record = json !== null && typeof json === 'object' ? json as { error?: unknown } : {};
+  const code = typeof record.error === 'string' ? record.error : `http_${status}`;
   const message = Object.prototype.hasOwnProperty.call(API_ERR, code) ? API_ERR[code] : GENERIC_FORM;
-  return { message, fields };
+  if (status !== 400) return { message, fields: {} };
+  return { message, fields: fieldsFromIssues((record as { issues?: unknown }).issues) };
 }

@@ -228,7 +228,14 @@ test('同意后导航去重，en 与 ru 产品页使用同一个内部 productSl
       return;
     }
     claiming = true;
-    const res = await route.fetch();
+    let res: Awaited<ReturnType<Route['fetch']>>;
+    try {
+      res = await route.fetch();
+    } catch {
+      claiming = false;
+      try { await route.abort(); } catch { /* 页面已经离开时 abort 也会失败，请求不会再挂着 */ }
+      return;
+    }
     try {
       if (!res.ok()) {
         claiming = false;

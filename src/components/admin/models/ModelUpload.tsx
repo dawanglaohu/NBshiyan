@@ -3,17 +3,13 @@ import '@/components/admin/models/models.css';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { CHECK_LABEL, LIMITS, ModelApiError, blockingChecks, modelApi, readGlbJson, sizeFailed, uploadTotalError, type AdminModel } from '@/lib/admin/models-api';
+import { CHECK_LABEL, LIMITS, blockingChecks, modelApi, readGlbJson, sizeFailed, uploadTotalError, type AdminModel } from '@/lib/admin/models-api';
 import { PRODUCT_LABEL } from '@/components/admin/format';
+import { ModelUploadAlert, modelUploadErrorText } from '@/components/admin/models/ModelUploadAlert';
 
 const ModelPreview = dynamic(() => import('./ModelPreview'), { ssr: false });
 const STEPS = ['上传', '处理与检查', '预览确认', '上架'] as const;
 const fmt = (b: number) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(2)}MB` : `${Math.round(b / 1024)}KB`);
-const API_ERR: Record<string, string> = {
-  too_large: '文件超过上限（主 GLB ≤1.5MB、高精度层 ≤1MB、封面 ≤512KB）', unsupported_type: '不是有效的 GLB 文件', not_ready: '检查未全部通过，不能上架',
-  forbidden_origin: '请求被拒绝：来源校验失败，请刷新页面后重试', unauthorized: '登录已过期，请重新登录', forbidden: '没有权限（需要 ADMIN 或 EDITOR 角色）', upload_too_large: '本次上传的文件合计超过 4MB 上限（服务器单个请求不能超过 4MB），请先压缩后再上传', length_required: '上传请求缺少大小信息，请刷新页面后重试', rate_limited: '操作太频繁，请稍后再试'
-};
-const errText = (e: unknown) => (e instanceof ModelApiError ? API_ERR[e.code] ?? `操作失败：${e.code}` : `操作失败：${String((e as Error)?.message ?? e)}`);
 
 type Files = { glb?: File; lod?: File; poster?: File };
 
@@ -59,16 +55,16 @@ export default function ModelUpload() {
     try {
       setStep(1);
       setModel(await modelApi.upload({ file: files.glb, lod: files.lod, poster: files.poster, productSlug: slug, category: slug, animated }));
-    } catch (e) { setErr(errText(e)); setStep(0); } finally { setBusy(false); }
+    } catch (e) { setErr(modelUploadErrorText(e)); setStep(0); } finally { setBusy(false); }
   }
   const act = async (fn: () => Promise<AdminModel>) => {
     setBusy(true); setErr(undefined);
-    try { setModel(await fn()); } catch (e) { setErr(errText(e)); } finally { setBusy(false); }
+    try { setModel(await fn()); } catch (e) { setErr(modelUploadErrorText(e)); } finally { setBusy(false); }
   };
   const reupload = () => { setModel(undefined); setFiles({}); setStep(0); setReplaced(undefined); setTimeout(() => input.current?.click(), 0); };
   const publish = async () => {
     if (!model) return; setBusy(true); setErr(undefined);
-    try { const r = await modelApi.publish(model.id, true); setModel(r.model); setReplaced(r.replaced); setConfirmPublish(false); } catch (e) { setErr(errText(e)); } finally { setBusy(false); }
+    try { const r = await modelApi.publish(model.id, true); setModel(r.model); setReplaced(r.replaced); setConfirmPublish(false); } catch (e) { setErr(modelUploadErrorText(e)); } finally { setBusy(false); }
   };
 
   const blocking = model ? blockingChecks(model) : [];
@@ -86,7 +82,7 @@ export default function ModelUpload() {
         {STEPS.map((s, i) => (
           <li key={s} className={i < doneUpTo ? 'done' : i === step ? 'cur' : ''} aria-current={i === step ? 'step' : undefined}><i>{i < doneUpTo ? '✓' : i + 1}</i>{s}</li>))}
       </ol>
-      {err && <p className="warn" role="alert">{err}</p>}
+      {err && <ModelUploadAlert text={err} />}
 
       <div className="adm-g2">
         <div>
