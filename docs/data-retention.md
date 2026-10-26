@@ -26,7 +26,7 @@
 
 **并发**：清理（包括试运行）同一时间只跑一次，正在跑时再请求返回 409 `cleanup_running`（Postgres advisory lock）。
 
-**试运行（`RETENTION_DRY_RUN=1`）**：cron 只统计、不清理。返回 `{ dryRun: true, designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos, inactiveUsers, skippedLastAdmin }`。全程只用 count 和只读查询：不写数据库、不删文件、不写审计，日志只记条数。统计的是全部待处理条数，不受 `RETENTION_MAX_PER_RUN` 限制。真实运行会先删过期方案，有些 logo 会因此变成孤儿，所以 `orphanLogos` 可能比真实运行时少。上线前设成 `1` 触发一次，核对条数后**删掉这个变量**，下次 cron 才会真正清理。
+**试运行（`RETENTION_DRY_RUN=1`）**：cron 只统计、不清理。返回 `{ dryRun: true, designs, orphanLogos, sampleCounters, auditLogs, inquiries, inquiryLogos, inactiveUsers, skippedLastAdmin, loginChallenges }`。`loginChallenges` 是过期（`expiresAt` 早于当前时间）或已经核销（`consumedAt` 不为空）的登录挑战行数，条件和 cron 删除这些行相同。全程只用 count 和只读查询：不写数据库、不删文件、不写审计，日志只记条数。统计的是全部待处理条数，不受 `RETENTION_MAX_PER_RUN` 限制。真实运行会先删过期方案，有些 logo 会因此变成孤儿，所以 `orphanLogos` 可能比真实运行时少。上线前设成 `1` 触发一次，核对条数后**删掉这个变量**，下次 cron 才会真正清理。
 
 ## 客户数据导出 / 删除（仅 ADMIN）
 
