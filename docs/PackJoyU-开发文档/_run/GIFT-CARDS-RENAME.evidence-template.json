@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "GIFT-CARDS-RENAME": {
+      "contractHash": "ee73018820ea411c47c960ee61553f4fcb5af0e8067b2c0eca3f90192c3d72dc",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

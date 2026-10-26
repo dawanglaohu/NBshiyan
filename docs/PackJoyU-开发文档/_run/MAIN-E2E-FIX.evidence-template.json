@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "MAIN-E2E-FIX": {
+      "contractHash": "2cd064950343958b957d6328abcac8c75306c5246734687e5d9ee1d270f7a7da",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

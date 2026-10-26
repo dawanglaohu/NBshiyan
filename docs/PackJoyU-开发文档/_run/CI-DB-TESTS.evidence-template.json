@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "CI-DB-TESTS": {
+      "contractHash": "22373db0ebcf53e771644d174e36d8d8ff64c67d2151e65f96bf4a35796ccf66",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

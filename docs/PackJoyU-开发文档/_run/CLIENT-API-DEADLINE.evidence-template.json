@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "CLIENT-API-DEADLINE": {
+      "contractHash": "8b808273553712cab1f3bbdc91461cfabe21f076977edd361cd1aa25697c0f05",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

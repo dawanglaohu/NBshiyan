@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "FE-FAB-390": {
+      "contractHash": "65efd932ebc5670fc60cdd0daba112b9d6c61f123583241342aec52a7fbc15e4",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

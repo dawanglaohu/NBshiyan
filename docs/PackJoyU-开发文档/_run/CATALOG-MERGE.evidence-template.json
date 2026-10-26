@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "CATALOG-MERGE": {
+      "contractHash": "45d87c6f7cb076691ad56a38746cd85bd578654df2ed563a756c6f753bf5445a",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

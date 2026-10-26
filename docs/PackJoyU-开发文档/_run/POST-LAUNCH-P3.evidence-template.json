@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "POST-LAUNCH-P3": {
+      "contractHash": "de7d0fef51bf6d5ff9cb4135d2edc96449e45194a7ffa87f45c345e008fc8896",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

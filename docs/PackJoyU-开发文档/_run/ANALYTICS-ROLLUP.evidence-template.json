@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "ANALYTICS-ROLLUP": {
+      "contractHash": "899ee244c16eadd798ed9ceb9a82e832b5a53a675bc28bc24719f68cd0493fbb",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

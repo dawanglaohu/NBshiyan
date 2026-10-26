@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "FE-404-TITLE": {
+      "contractHash": "b77bab9f64656a254042871dd842199b7235e7b5f1c2d9eed4ff654c777e841d",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
