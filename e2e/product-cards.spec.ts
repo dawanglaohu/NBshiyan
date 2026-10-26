@@ -46,6 +46,48 @@ async function cardBox(page: Page) {
   });
 }
 
+async function assertDescriptionsFitTwoLines(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
+  const descs = page.locator('.desc');
+  const count = await descs.count();
+  expect(count).toBeGreaterThan(0);
+  for (let index = 0; index < count; index++) {
+    const measured = await descs.nth(index).evaluate((el) => {
+      const probe = el.cloneNode(true) as HTMLElement;
+      probe.style.setProperty('-webkit-line-clamp', 'unset');
+      probe.style.lineClamp = 'unset';
+      probe.style.display = 'block';
+      probe.style.overflow = 'visible';
+      probe.style.position = 'absolute';
+      probe.style.visibility = 'hidden';
+      probe.style.width = `${el.getBoundingClientRect().width}px`;
+      probe.style.maxHeight = 'none';
+      probe.style.margin = '0';
+      el.insertAdjacentElement('afterend', probe);
+      const node = probe.firstChild;
+      const range = document.createRange();
+      let lines = 0;
+      let top: number | null = null;
+      if (node && node.nodeType === Node.TEXT_NODE) {
+        const text = node as Text;
+        for (let i = 0; i < text.length; i++) {
+          range.setStart(text, i);
+          range.setEnd(text, i + 1);
+          const rect = range.getBoundingClientRect();
+          if (!rect.height) continue;
+          if (top === null || Math.abs(rect.top - top) > 1) {
+            lines += 1;
+            top = rect.top;
+          }
+        }
+      }
+      probe.remove();
+      return { lines, text: (el.textContent ?? '').trim() };
+    });
+    expect(measured.lines, measured.text).toBeLessThanOrEqual(2);
+  }
+}
+
 function articleChunks(html: string) {
   return html.split(/<article\b/).slice(1).map((part) => part.split('</article>')[0]);
 }
@@ -87,7 +129,7 @@ test('products-link opens the server catalog, large cards, and the real model fi
   expect(ssr.status()).toBe(200);
   const html = await ssr.text();
   const cards = articleChunks(html);
-  expect(cards.length).toBeGreaterThanOrEqual(12);
+  expect(cards.length).toBe(12);
   expect(html).toMatch(/\/models\/[^"'\\\s]+\.glb|\/api\/models\/[^"'\\\s]+\/glb/);
   const descriptions = itemListDescriptions(html);
   expect(descriptions.length).toBe(cards.length);
@@ -99,6 +141,7 @@ test('products-link opens the server catalog, large cards, and the real model fi
     expect(card).not.toContain('category-link');
     expect(card).not.toMatch(/<h2[^>]*>\s*<a\b/);
   }
+  await expect(page.locator('main article.card')).toHaveCount(12);
   await expect(page.locator('main article.card').first()).toBeVisible();
 
   const desktop = await cardBox(page);
@@ -213,6 +256,7 @@ test('a 390px products entry does not overflow and keeps the name, specs, and in
     client: document.documentElement.clientWidth,
   }));
   expect(overflow.scroll).toBeLessThanOrEqual(overflow.client + 1);
+  await assertDescriptionsFitTwoLines(page);
 });
 
 test('ru 390 products page does not overflow and each control center hits itself', async ({ page }) => {
@@ -220,6 +264,8 @@ test('ru 390 products page does not overflow and each control center hits itself
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/ru/products');
   await dismissConsent(page, 'ru');
+  await expect(page.locator('main article.card')).toHaveCount(12);
+  await assertDescriptionsFitTwoLines(page);
   const docOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(docOverflow).toBe(0);
   const title = await page.locator('#pulp-molding h2').evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
@@ -301,12 +347,26 @@ test('unpublished cards stay plain text and published cards keep both links', as
   expect(desktopPad).toBe('8px');
   const desktopHeight = await live.getByTestId('product-name-link').evaluate((el) => el.getBoundingClientRect().height);
   expect(desktopHeight).toBeGreaterThanOrEqual(44);
+  const desktopOverlap = await live.evaluate((root) => {
+    const link = root.querySelector('[data-testid="product-name-link"]');
+    const desc = root.querySelector('.desc');
+    if (!link || !desc) return 99;
+    return link.getBoundingClientRect().bottom - desc.getBoundingClientRect().top;
+  });
+  expect(desktopOverlap).toBeLessThanOrEqual(0.5);
 
   await page.setViewportSize({ width: 390, height: 844 });
   const phonePad = await live.getByTestId('product-name-link').evaluate((el) => getComputedStyle(el).paddingTop);
   expect(phonePad).toBe('10px');
   const phoneHeight = await live.getByTestId('product-name-link').evaluate((el) => el.getBoundingClientRect().height);
   expect(phoneHeight).toBeGreaterThanOrEqual(44);
+  const phoneOverlap = await live.evaluate((root) => {
+    const link = root.querySelector('[data-testid="product-name-link"]');
+    const desc = root.querySelector('.desc');
+    if (!link || !desc) return 99;
+    return link.getBoundingClientRect().bottom - desc.getBoundingClientRect().top;
+  });
+  expect(phoneOverlap).toBeLessThanOrEqual(0.5);
 });
 
 const liveOrigin = process.env.M2_LIVE_ORIGIN;

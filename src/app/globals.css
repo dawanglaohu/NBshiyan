@@ -464,9 +464,10 @@ header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-co
 .product-grid .card .views{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:12px 16px;background:var(--pj-bg);color:var(--pj-fg);border-top:var(--pj-border-width) solid var(--pj-border);border-bottom:var(--pj-border-width) solid var(--pj-border)}
 .product-grid .card .views button{min-height:var(--pj-admin-control-height);padding:0 12px;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg);box-shadow:none;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-control)}
 .product-grid .card .views button[aria-pressed="true"]{background:var(--pj-inverse);border-color:var(--pj-inverse);color:var(--pj-on-inverse)}
-.product-grid .card .body{padding:var(--pj-public-card-pad-desktop);gap:12px;flex:1}
+/* 手机上标题链接 padding-block 是 10px，负 margin 把它伸出 h2。gap 要留出这 10px，描述才不会盖住链接。 */
+.product-grid .card .body{padding:var(--pj-public-card-pad-desktop);gap:10px;flex:1}
 .product-grid .card .body h2{display:block;margin:0;overflow:visible;-webkit-line-clamp:unset;line-clamp:unset;font-size:var(--pj-h3-desktop-size);line-height:var(--pj-h3-desktop-line);font-weight:var(--pj-weight-heading);letter-spacing:var(--pj-heading-tracking)}
-.product-grid .card .body .desc{margin:-4px 0 0;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-body);color:var(--ink-2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;hyphens:auto}
+.product-grid .card .body .desc{margin:0;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-body);color:var(--ink-2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;hyphens:manual}
 .product-grid .card .product-name-link{display:inline-block;padding-block:8px;margin-block:-8px;color:inherit;font:inherit;letter-spacing:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
 .product-grid .card .body .actions{margin-top:auto}
 .product-grid .card:not(.theme-premium) .specs{color:var(--pj-fg)}
