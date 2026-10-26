@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { commitAndReveal } from '@/components/admin/reveal-error';
 import {
   afterConfirm, afterEnroll, afterVoid, canFinish, codeCheck, CONFIRM_PATH, ENROLL_PATH, ENROLL_RESTART, ENROLL_VOID_FOOT, ENROLL_VOID_HINT, ENROLL_VOID_TEXT, errorText, isVoidCode, groupSecret, inProgress, INITIAL, isCompleteCode,
   KEEP_PAGE_HINT, NO_TOKEN_BODY, NO_TOKEN_SIGNIN, NO_TOKEN_TITLE, normalizeCode, parseSecret, postEnroll, recoveryFilename, recoveryTxt, SIGNIN_HREF, STEPS, stepStatus,
@@ -34,6 +35,11 @@ export default function EnrollWizard() {
   const enrollToken = useRef<string | null>(null);
   const tokenRead = useRef(false);
   const pwInput = useRef<HTMLInputElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+  const codeRef = useRef<HTMLParagraphElement>(null);
+  const showError = (code: string, at: 'top' | 'code') => {
+    commitAndReveal(at === 'code' ? codeRef : topRef, () => setError({ code, at }));
+  };
   const focusPw = useRef(false);
   const [tok, setTok] = useState<TokenState>('unknown');
 
@@ -78,11 +84,12 @@ export default function EnrollWizard() {
     return () => { window.removeEventListener('pagehide', wipe); wipe(); };
   }, [wipe]);
 
+  // 密码已清空、不再明文之后，焦点回到密码框（错误条的聚焦不能留在那里）。
   useEffect(() => {
-    if (!focusPw.current || error?.code !== 'bad_credentials') return;
+    if (!focusPw.current || error?.code !== 'bad_credentials' || password !== '' || showPw) return;
     focusPw.current = false;
     pwInput.current?.focus();
-  }, [error]);
+  }, [error, password, showPw]);
 
   // 第 3 步：确认后 30 秒倒计时（确认用掉的码登录时再用会失败并计入锁定次数）
   const left = Math.ceil(waitLeft(s, now) / 1000);
@@ -107,11 +114,13 @@ export default function EnrollWizard() {
     const r = await postEnroll<{ otpauthUri: string }>(ENROLL_PATH, withToken({ email: email.trim(), password }));
     setBusy(false);
     if (!r.ok) {
-      // 401 统一文案：保留邮箱、清空密码并聚焦（下面的 effect 在渲染后聚焦）
+      // 401 统一文案：保留邮箱、清空密码，焦点回到密码框。错误条会先聚焦，所以随后再放回密码框。
       if (r.code === 'bad_credentials') { setPassword(''); setShowPw(false); focusPw.current = true; }
-      setError({ code: r.code, at: 'top' }); return;
+      showError(r.code, 'top');
+      if (r.code === 'bad_credentials') pwInput.current?.focus();
+      return;
     }
-    if (!parseSecret(r.data.otpauthUri)) { setError({ code: 'unknown', at: 'top' }); return; }
+    if (!parseSecret(r.data.otpauthUri)) { showError('unknown', 'top'); return; }
     setShowPw(false);
     setS((p) => afterEnroll(p, r.data.otpauthUri));
   };
@@ -127,8 +136,8 @@ export default function EnrollWizard() {
     // 出错不清空输入框；验证码类错误显示在输入框下方，其他在顶部
     // #350 失败过多、绑定作废：清掉验证码和二维码，只留「重新开始绑定」（错误码待后端定，见 ENROLL_VOID_CODES）
     if (!r.ok && isVoidCode(r.code)) { setCode(''); setS((p) => afterVoid(p)); return; }
-    if (!r.ok) { setError({ code: r.code, at: r.code === 'bad_totp' || r.code === 'invalid' ? 'code' : 'top' }); return; }
-    if (!Array.isArray(r.data.recoveryCodes) || r.data.recoveryCodes.length === 0) { setError({ code: 'unknown', at: 'top' }); return; }
+    if (!r.ok) { showError(r.code, r.code === 'bad_totp' || r.code === 'invalid' ? 'code' : 'top'); return; }
+    if (!Array.isArray(r.data.recoveryCodes) || r.data.recoveryCodes.length === 0) { showError('unknown', 'top'); return; }
     const t = Date.now();
     setPassword(''); setCode(''); setNow(t);
     enrollToken.current = null; // 令牌已被后端消耗
@@ -161,7 +170,7 @@ export default function EnrollWizard() {
     wipe(); setEmail('');
   };
 
-  const topErr = error?.at === 'top' ? <div className="en-err" role="alert">{errorText(error.code)}</div> : null;
+  const topErr = error?.at === 'top' ? <div ref={topRef} tabIndex={-1} className="en-err" role="alert">{errorText(error.code)}</div> : null;
   // 首帧（服务端渲染、还没读地址栏）只渲染空卡片，避免先闪一下「需要绑定链接」或表单
   if (tok === 'unknown') return <main className="en-wrap"><div className="en-card" aria-busy="true" /></main>;
   if (tok === 'none' && s.step === 1) {
@@ -250,7 +259,7 @@ export default function EnrollWizard() {
                 onChange={(e) => setCode(normalizeCode(e.target.value))}
                 onPaste={(e) => { e.preventDefault(); setCode(normalizeCode(e.clipboardData.getData('text'))); }}
               />
-              {codeErr && <p className="en-ferr" id="en-otp-e" role="alert">{errorText(codeErr)}</p>}
+              {codeErr && <p ref={codeRef} tabIndex={-1} className="en-ferr" id="en-otp-e" role="alert">{errorText(codeErr)}</p>}
               <p className="en-hint" id="en-otp-h">每个验证码只能用一次。刚用过或刚报错，请等 App 换下一个码（约 30 秒）再输入。</p>
             </div>
             <button className="en-btn" type="submit" disabled={busy || codeLen !== 'ok'}>{busy ? '确认中…' : '确认绑定'}</button>

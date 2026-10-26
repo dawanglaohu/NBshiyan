@@ -37,7 +37,7 @@ function mappedDenial(code: AppErrorCode, requestId: string, retryAfterSeconds?:
   return mapped;
 }
 
-/** 把守卫的旧 {error} 响应收成带 requestId 的信封。未授权和停用清 cookie；同源拒绝、限流和角色不符保留 cookie。 */
+/** 把守卫的旧 {error} 响应收成带 requestId 的信封。未授权和停用清 cookie；服务不可用、同源拒绝、限流和角色不符保留 cookie。 */
 async function fromGuard(response: Response, requestId: string, record: ActivityRecord) {
   const payload = await response.json() as { error?: unknown };
   const code = AppErrorCodeSchema.safeParse(payload.error);

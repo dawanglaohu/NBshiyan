@@ -23,7 +23,7 @@ export function createAccountGet(deps: {
     try {
       const decision = await authorize(request);
       if (decision instanceof Response) {
-        const { error } = await decision.json() as { error: 'unauthorized' | 'account_disabled' | 'forbidden' };
+        const { error } = await decision.json() as { error: 'unauthorized' | 'account_disabled' | 'forbidden' | 'service_unavailable' };
         const mapped = classifyThrown(new AppError(error), requestId);
         if (mapped.kind !== 'mapped') throw new Error('account denial');
         return finish(mapped.status, mapped.body, mapped.headers, decision.headers.getSetCookie().length > 0, record);

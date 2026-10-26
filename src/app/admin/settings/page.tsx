@@ -12,7 +12,8 @@ import { sectionFrom } from '@/components/admin/settings/SettingsSections';
 export const dynamic = 'force-dynamic';
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  await enforceAdminPage(['ADMIN'], '/admin/settings');
+  const gate = await enforceAdminPage(['ADMIN'], '/admin/settings');
+  if (!gate.ok) return gate.notice;
   const section = sectionFrom((await searchParams).section);
   // 组织信息：网站地址只读，取 SITE_URL；一句话介绍的灰色占位是 SEO 的默认句（只做占位，不预填、不提交）
   if (section === 'org') return <OrgSettings siteUrl={SITE_URL} descriptionPlaceholder={ORGANIZATION_DEFAULTS.description} />;

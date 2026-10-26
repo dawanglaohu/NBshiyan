@@ -2,23 +2,29 @@ import { randomBytes } from 'crypto';
 import type { AdminDeviceSession, PrismaClient, Role, User } from '@prisma/client';
 import { AccountDTOSchema, type AccountDTO } from '../../contracts/account';
 import type { ServerPolicy } from '../config';
+import { isDbUnavailable } from '../designs';
 import { createDeviceRepo, type DeviceRepo } from './device-repo';
 import { activityRetryAfterSeconds, activityWriteAllowed, effectiveDeadline, enforcedAbsolute, initialHardExpiresAt, publicAbsolute } from './session-expiry';
 
 export type SessionPolicy = ServerPolicy['session'];
-export type SessionDenial = 'unauthenticated' | 'disabled' | 'forbidden';
+export type SessionDenial = 'unauthenticated' | 'disabled' | 'forbidden' | 'unavailable' | 'internal';
+/** 会话本身无效。数据库故障和服务异常不在这里。 */
+export type AccountDenial = Exclude<SessionDenial, 'unavailable' | 'internal'>;
 type SessionUser = Pick<User, 'disabled' | 'totpEnabled' | 'lockedUntil' | 'sessionVersion' | 'role'>;
 
 export type ExpiryBounds = { effectiveExpiresAt: Date; absoluteExpiresAt: Date | null };
 
 export type BoundAccess =
   | { ok: true; user: User; device: AdminDeviceSession; bounds: ExpiryBounds }
-  | { ok: false; reason: SessionDenial; status: 401 | 403 };
+  | { ok: false; reason: AccountDenial; status: 401 | 403 };
 
 /** 数据库暂时不可用。调用方保留 cookie，不把这次故障当成未登录。 */
 export type UnavailableAccess = { ok: false; reason: 'unavailable'; status: 503 };
 
-export type AuthenticateResult = BoundAccess | UnavailableAccess;
+/** 其他服务异常。调用方保留 cookie，不把这次故障当成未登录。 */
+export type InternalAccess = { ok: false; reason: 'internal'; status: 500 };
+
+export type AuthenticateResult = BoundAccess | UnavailableAccess | InternalAccess;
 
 const SECURE_COOKIE = '__Secure-authjs.session-token';
 const PLAIN_COOKIE = 'authjs.session-token';
@@ -61,7 +67,7 @@ export async function backfillHardExpiresAt(db: PrismaClient, policy: SessionPol
  * 停用 → 403。路由角色在设备校验之后判断。重置双重验证会增加 sessionVersion，旧会话因此失效。
  */
 function classifyAccount<U extends SessionUser>(uid: string | undefined, user: U | null, sv: number | undefined, now: Date):
-  { ok: true; user: U } | { ok: false; reason: SessionDenial; status: 401 | 403 } {
+  { ok: true; user: U } | { ok: false; reason: AccountDenial; status: 401 | 403 } {
   if (!uid || !user) return { ok: false, reason: 'unauthenticated', status: 401 };
   if (user.disabled) return { ok: false, reason: 'disabled', status: 403 };
   if ((user.lockedUntil && user.lockedUntil > now) || sv !== user.sessionVersion) return { ok: false, reason: 'unauthenticated', status: 401 };
@@ -163,7 +169,7 @@ export type OpenDeviceInput = {
 
 export type ActivityWrite =
   | { ok: true; wrote: boolean; bounds: ExpiryBounds; retryAfterSeconds: number; user: User; device: AdminDeviceSession }
-  | { ok: false; reason: SessionDenial; status: 401 | 403 }
+  | { ok: false; reason: AccountDenial; status: 401 | 403 }
   | UnavailableAccess;
 
 const ACTIVITY_ROLES = ['ADMIN', 'SALES', 'EDITOR'] as const;
@@ -195,8 +201,9 @@ export function createDeviceSessionService(deps: { repo: DeviceRepo; clock: () =
         const user = input.userId ? await repo.findUser(input.userId) : null;
         const device = input.sid ? await repo.findDevice(input.sid) : null;
         return decideAdminAccess({ ...input, user, device, now: clock(), policy });
-      } catch {
-        return { ok: false, reason: 'unavailable', status: 503 };
+      } catch (error) {
+        if (isDbUnavailable(error)) return { ok: false, reason: 'unavailable', status: 503 };
+        return { ok: false, reason: 'internal', status: 500 };
       }
     },
     async revokeSid(id: string, reason: string): Promise<void> {

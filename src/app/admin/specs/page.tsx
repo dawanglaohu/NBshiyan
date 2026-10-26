@@ -6,7 +6,8 @@ import '@/components/admin/specs/specs.css';
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  await enforceAdminPage(SPEC_PAGE_ROLES, '/admin/specs');
+  const gate = await enforceAdminPage(SPEC_PAGE_ROLES, '/admin/specs');
+  if (!gate.ok) return gate.notice;
   return (
     <>
       <h1>产品规格</h1>

@@ -233,7 +233,8 @@ test('webhook：鉴权头缺失 / 格式错 / 超时窗 → 401，且请求体�
   const cases = [
     goodHeaders({ 'x-geiom-signature': undefined }), goodHeaders({ 'x-geiom-timestamp': undefined }), goodHeaders({ 'x-geiom-mail-id': undefined }),
     goodHeaders({ 'x-geiom-signature': 'zz' + 'a'.repeat(62) }), goodHeaders({ 'x-geiom-signature': 'a'.repeat(63) }),
-    goodHeaders({ 'x-geiom-timestamp': String(now - 301) }), goodHeaders({ 'x-geiom-timestamp': String(now + 301) }), goodHeaders({ 'x-geiom-timestamp': 'abc' }),
+    // 离开窗口一整天。窗口是 ±5 分钟，只差一秒时时钟向前跳就会落回窗口，路由接着读请求体。
+    goodHeaders({ 'x-geiom-timestamp': String(now - 86_400) }), goodHeaders({ 'x-geiom-timestamp': String(now + 86_400) }), goodHeaders({ 'x-geiom-timestamp': 'abc' }),
     goodHeaders({ 'x-geiom-mail-id': 'bad id with spaces' }), goodHeaders({ 'content-type': 'text/plain' }),
     {},
   ];

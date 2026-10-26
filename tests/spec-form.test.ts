@@ -82,11 +82,22 @@ test('server errors are shown: codes mapped, 400 issues per field, unknown codes
   assert.equal(serverErrors(403, { error: 'forbidden' }).message, '没有权限（需要 ADMIN 或 EDITOR 角色）');
   assert.equal(serverErrors(403, { error: 'forbidden_origin' }).message, '请求被拒绝：来源校验失败，请刷新页面后重试');
   assert.equal(serverErrors(429, { error: 'rate_limited' }).message, '操作太频繁，请稍后再试');
-  assert.equal(serverErrors(401, {}).message, '保存失败（http_401）');
+  const generic = '服务暂时出错，请稍后重试。';
+  const unknown = 'zz_unknown_code_123';
+  assert.equal(serverErrors(401, {}).message, generic);
+  assert.equal(serverErrors(401, {}).message.includes('http_401'), false);
   const s = serverErrors(400, { error: 'invalid', issues: [{ path: 'certifications.0.url', message: 'https_url_required' }, { path: '', message: 'x' }, { bogus: 1 }] });
   assert.equal(s.message, '服务器校验未通过');
   assert.deepEqual(s.fields, { 'certifications.0.url': 'https_url_required', _: 'x' });
-  assert.equal(serverErrors(500, 'not json').message, '保存失败（http_500）');
+  assert.equal(serverErrors(500, 'not json').message, generic);
+  assert.equal(serverErrors(500, { error: 'internal_error', message: unknown }).message, generic);
+  const odd = serverErrors(500, { error: unknown, message: unknown });
+  assert.equal(odd.message, generic);
+  assert.equal(odd.message.includes(unknown), false);
+  const outage = '服务暂时不可用。数据库连接出现问题，这不会让你退出登录，请稍后重试。';
+  assert.equal(serverErrors(503, { error: 'service_unavailable' }).message, outage);
+  assert.equal(serverErrors(503, {}).message, outage);
+  assert.equal(serverErrors(503, { error: 'service_unavailable' }).message.includes('service_unavailable'), false);
 });
 
 test('page access: EDITOR + ADMIN only, checked server-side before rendering', () => {

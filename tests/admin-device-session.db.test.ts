@@ -117,19 +117,29 @@ test('a revoked row seen on the next call is not served from the first result', 
   if (!denied.ok) assert.equal(denied.status, 401);
 });
 
-test('database errors deny instead of accepting the cookie', async () => {
-  const repo = {
-    findUser: async () => { throw new Error('database down'); },
-    findDevice: async () => { throw new Error('database down'); },
-    create: async () => { throw new Error('database down'); },
-    revokeSid: async () => { throw new Error('database down'); },
-    revokeUser: async () => { throw new Error('database down'); },
-    transaction: async () => { throw new Error('database down'); },
-  } satisfies DeviceRepo;
-  const service = createDeviceSessionService({ repo, clock: () => created, policy });
-  const result = await service.authenticate({ userId: 'user-1', sessionVersion: 3, sid: 'device-1', roles: area });
-  assert.deepEqual(result, { ok: false, reason: 'unavailable', status: 503 });
-  assert.equal(JSON.stringify(result).includes('database down'), false);
+test('authenticate maps a database outage to 503 and any other throw to 500', async () => {
+  const repoFor = (fail: () => never) => ({
+    findUser: async () => fail(),
+    findDevice: async () => fail(),
+    create: async () => fail(),
+    revokeSid: async () => fail(),
+    revokeUser: async () => fail(),
+    transaction: async () => fail(),
+  } satisfies DeviceRepo);
+  const input = { userId: 'user-1', sessionVersion: 3, sid: 'device-1', roles: area };
+  const down = await createDeviceSessionService({
+    repo: repoFor(() => { throw Object.assign(new Error('database down'), { code: 'P1001' }); }),
+    clock: () => created,
+    policy,
+  }).authenticate(input);
+  assert.deepEqual(down, { ok: false, reason: 'unavailable', status: 503 });
+  const other = await createDeviceSessionService({
+    repo: repoFor(() => { throw new Error('database down'); }),
+    clock: () => created,
+    policy,
+  }).authenticate(input);
+  assert.deepEqual(other, { ok: false, reason: 'internal', status: 500 });
+  assert.equal(JSON.stringify(other).includes('database down'), false);
 });
 
 function activityDb(options: { transactionCalls?: { n: number }; findUser?: () => Promise<User | null>; device?: AdminDeviceSession | null }) {

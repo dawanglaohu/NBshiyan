@@ -3,6 +3,8 @@
  * 表单里都是字符串；toBody 做客户端校验并转成 PUT /api/admin/specs/:category 的 body（规则与服务端 zod 一致，
  * 服务端仍会再校验一次）。fromView 把 GET 返回的后台视图转回表单。
  */
+import { outageFormGeneric, outageFormMessage } from '@/lib/admin/outage-copy';
+
 export const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'] as const;
 export const CURRENCIES = ['USD', 'EUR', 'CNY', 'RUB'] as const;
 export const SIZE_UNITS = ['mm'] as const;
@@ -169,9 +171,13 @@ export function toBody(f: SpecForm): { body: Record<string, unknown> | null; err
   };
 }
 
+const OUTAGE_FORM = outageFormMessage();
+const GENERIC_FORM = outageFormGeneric();
 const API_ERR: Record<string, string> = {
   unauthorized: '登录已过期，请重新登录', forbidden: '没有权限（需要 ADMIN 或 EDITOR 角色）', forbidden_origin: '请求被拒绝：来源校验失败，请刷新页面后重试',
   rate_limited: '操作太频繁，请稍后再试', too_large: '内容太长', not_found: '品类不存在', invalid: '服务器校验未通过',
+  service_unavailable: OUTAGE_FORM, http_503: OUTAGE_FORM,
+  internal_error: GENERIC_FORM,
 };
 export type ServerIssue = { path: string; message: string };
 /** 服务端错误 → 页面提示：总提示 + 按字段的提示（来自 400 的 issues） */
@@ -182,5 +188,6 @@ export function serverErrors(status: number, json: unknown): { message: string; 
   if (Array.isArray(j.issues)) for (const it of j.issues as ServerIssue[]) {
     if (it && typeof it.path === 'string' && typeof it.message === 'string') fields[it.path || '_'] = it.message.slice(0, 200);
   }
-  return { message: API_ERR[code] ?? `保存失败（${code.slice(0, 40)}）`, fields };
+  const message = Object.prototype.hasOwnProperty.call(API_ERR, code) ? API_ERR[code] : GENERIC_FORM;
+  return { message, fields };
 }

@@ -1,6 +1,7 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { errorText } from '@/components/admin/format';
+import { commitAndReveal } from '@/components/admin/reveal-error';
 import EnrollLinkPanel from './EnrollLinkPanel';
 import { ISSUE_ERROR_TEXT, panelReducer, pickEnrollLink, submitCreate, type PanelState } from '@/lib/admin/enroll-link';
 import ConfirmDialog from '@/components/admin/settings/ConfirmDialog';
@@ -30,6 +31,8 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 export default function UsersAdmin({ selfId }: { selfId?: string } = {}) {
   const [items, setItems] = useState<U[]>();
   const [err, setErr] = useState('');
+  const errRef = useRef<HTMLParagraphElement>(null);
+  const showErr = (code: string) => commitAndReveal(errRef, () => setErr(msg(code)));
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ email: '', name: '', role: 'SALES' as Role, password: '' });
   // #347 新建账号 / 重置 2FA 返回的一次性绑定链接：同一个面板、只在这个 state 里，「我已复制」后置 null；后端没返回链接时什么都不多显示
@@ -40,12 +43,12 @@ export default function UsersAdmin({ selfId }: { selfId?: string } = {}) {
     onCreated: () => setForm({ email: '', name: '', role: 'SALES', password: '' }),
   }));
 
-  const load = useCallback(() => api<{ items: U[] }>('?all=1').then((d) => setItems(d.items)).catch((e: Error) => setErr(msg(e.message))), []);
+  const load = useCallback(() => api<{ items: U[] }>('?all=1').then((d) => setItems(d.items)).catch((e: Error) => showErr(e.message)), []);
   useEffect(() => { load(); }, [load]);
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true); setErr('');
-    try { await fn(); await load(); } catch (e) { setErr(msg((e as Error).message)); } finally { setBusy(false); }
+    try { await fn(); await load(); } catch (e) { showErr((e as Error).message); } finally { setBusy(false); }
   };
   const patch = (id: string, body: Record<string, unknown>) => run(() => api(`/${id}`, { method: 'PATCH', body: JSON.stringify(body) }));
   // #347：重置 2FA。确认文案是后端的 RESET_2FA_CONFIRM；确认框用后台 ConfirmDialog（危险操作、初始焦点在「取消」、Esc 取消）。
@@ -62,7 +65,7 @@ export default function UsersAdmin({ selfId }: { selfId?: string } = {}) {
   return (
     <>
       <h1>账号权限</h1>
-      {err && <p role="alert" className="adm-msg err">{err}</p>}
+      {err && <p ref={errRef} tabIndex={-1} role="alert" className="adm-msg err">{err}</p>}
       {/* 新建账号和重置 2FA 共用：放在页面顶部，出现时面板自己获得焦点（会滚动到可见） */}
       {linkPanel && <EnrollLinkPanel issued={linkPanel.issued} email={linkPanel.email} onDismiss={() => setLinkPanel((s) => panelReducer(s, { type: 'dismiss' }))} />}
       <form className="adm-card adm-user-form" onSubmit={(e) => { e.preventDefault(); create(); }}>
