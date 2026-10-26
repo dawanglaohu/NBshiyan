@@ -113,7 +113,8 @@ const nextConfig: NextConfig = {
   // #361 部署门禁的只读统计脚本 admin-2fa-audit（只用 @prisma/client）同样挂在这里。
   // 队列 ② 未绑定 2FA 的 ADMIN 重设初始密码脚本 admin-reset-initial-password（@prisma/client、@node-rs/argon2，import 了 admin-create-lib）也一样。
   // #347：admin-create / admin-reset-initial-password 签发绑定令牌用的 enroll-token-lib 也要带上。
-  outputFileTracingIncludes: { '/api/health': ['./scripts/admin-create.mjs', './scripts/admin-create-lib.mjs', './scripts/enroll-token-lib.mjs', './scripts/admin-2fa-audit.mjs', './scripts/admin-2fa-audit-lib.mjs', './scripts/admin-reset-initial-password.mjs', './scripts/admin-reset-initial-password-lib.mjs'] },
+  // hardExpiresAt 回填（prisma db push 之后：node scripts/backfill-hard-expires-at.mjs）同样挂在这里。只用 @prisma/client。
+  outputFileTracingIncludes: { '/api/health': ['./scripts/admin-create.mjs', './scripts/admin-create-lib.mjs', './scripts/enroll-token-lib.mjs', './scripts/admin-2fa-audit.mjs', './scripts/admin-2fa-audit-lib.mjs', './scripts/admin-reset-initial-password.mjs', './scripts/admin-reset-initial-password-lib.mjs', './scripts/backfill-hard-expires-at.mjs', './scripts/backfill-hard-expires-at-lib.mjs'] },
   // #323：mock 源文件不进 standalone 产物。生产构建里 mock 分支已被构建期常量消掉（见文件末尾和 src/lib/admin/*api.ts），
   // 但文件追踪（nft）按源码文本看到 import('./mock') 仍会把 .ts 原文件复制进 .next/standalone/src。任何构建的运行时都不读这些原文件
   // （非生产构建里 mock 被打包进 chunk），所以对所有路由一律排除。不用 .dockerignore（mock 被业务代码 import，排除源码会让构建失败）。

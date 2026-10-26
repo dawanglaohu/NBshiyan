@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { PrismaClient } from '@prisma/client';
-import type { Page } from '@playwright/test';
+import type { Page, Route } from '@playwright/test';
 import { expect, test } from './fixtures';
 
 const FRAMES = path.resolve(process.cwd(), '..', '.codex-plans', 'NBshiyan-m5-t7', 'gif-frames');
@@ -212,15 +212,60 @@ test('同意后导航去重，en 与 ru 产品页使用同一个内部 productSl
   await expect.poll(() => seen.consents.some((body) => body.includes('"analytics":true'))).toBe(true);
   await waitForGrant(page);
 
-  const posted = page.waitForResponse((response) => (
-    response.url().includes('/api/analytics/events') && response.request().method() === 'POST' && response.ok()
-  ));
-  await page.locator('.nav-desktop').getByTestId('products-link').click();
-  const first = await posted;
-  const receipt = await first.json() as { acceptedIds: string[] };
-  const payload = first.request().postDataJSON() as { events: { kind: string; eventId: string; navigationId: string }[] };
-  const pageView = payload.events.find((event) => event.kind === 'page_view');
-  if (!pageView || !receipt.acceptedIds.includes(pageView.eventId)) throw new Error('expected the page view to be accepted');
+  // 回执在 Node 侧从 route.fetch() 读取。点击后页面一跳转，Chromium 就丢掉这条响应体，再调 response.json() 会报 No data found。
+  type PostedEvent = { kind: string; eventId: string; navigationId: string };
+  type NavigationCapture = {
+    receipt: { acceptedIds: string[] };
+    postData: string;
+    payload: { events: PostedEvent[] };
+  };
+  const captured: { current: NavigationCapture | null } = { current: null };
+  let claiming = false;
+  const captureNavigationReceipt = async (route: Route) => {
+    const request = route.request();
+    if (request.method() !== 'POST' || captured.current || claiming) {
+      await route.fallback();
+      return;
+    }
+    claiming = true;
+    let res: Awaited<ReturnType<Route['fetch']>>;
+    try {
+      res = await route.fetch();
+    } catch {
+      claiming = false;
+      try { await route.abort(); } catch { /* 页面已经离开时 abort 也会失败，请求不会再挂着 */ }
+      return;
+    }
+    try {
+      if (!res.ok()) {
+        claiming = false;
+        return;
+      }
+      captured.current = {
+        receipt: await res.json() as NavigationCapture['receipt'],
+        postData: request.postData() ?? '',
+        payload: request.postDataJSON() as NavigationCapture['payload'],
+      };
+    } finally {
+      await route.fulfill({ response: res });
+    }
+  };
+  await page.route('**/api/analytics/events', captureNavigationReceipt);
+  try {
+    await page.locator('.nav-desktop').getByTestId('products-link').click();
+    await expect.poll(() => captured.current !== null, {
+      message: 'expected the navigation receipt',
+      timeout: 20_000,
+    }).toBe(true);
+  } finally {
+    await page.unroute('**/api/analytics/events', captureNavigationReceipt);
+  }
+  const saved = captured.current;
+  if (!saved) throw new Error('expected the page view to be accepted');
+  const pageView = saved.payload.events.find((event) => event.kind === 'page_view');
+  if (!pageView || !saved.receipt.acceptedIds.includes(pageView.eventId)) {
+    throw new Error('expected the page view to be accepted');
+  }
   const replay = await page.evaluate(async (body) => {
     const response = await fetch('/api/analytics/events', {
       method: 'POST',
@@ -229,7 +274,7 @@ test('同意后导航去重，en 与 ru 产品页使用同一个内部 productSl
       body,
     });
     return response.json() as Promise<{ duplicateIds?: string[] }>;
-  }, first.request().postData() ?? '');
+  }, saved.postData);
   if (!replay.duplicateIds?.includes(pageView.eventId)) throw new Error('expected the same navigation to be a duplicate');
   if (await storedCount(pageView.navigationId) !== 1) throw new Error('expected one stored navigation');
 

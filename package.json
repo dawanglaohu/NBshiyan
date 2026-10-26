@@ -12,7 +12,7 @@
     "admin:seed": "node scripts/create-admin.mjs",
     "admin:2fa-audit": "node scripts/admin-2fa-audit.mjs",
     "admin:reset-initial-password": "node scripts/admin-reset-initial-password.mjs",
-    "admin:backfill-hard-expires": "node --import tsx scripts/backfill-hard-expires-at.ts",
+    "admin:backfill-hard-expires": "node scripts/backfill-hard-expires-at.mjs",
     "test": "node --import tsx --test tests/*.test.ts",
     "smoke": "node --import tsx scripts/smoke.ts",
     "email:build": "node scripts/build-email-templates.mjs",

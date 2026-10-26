@@ -54,6 +54,13 @@ test('outage card renders zh, en and ru without technical detail', () => {
   }
   assert.ok(OUTAGE_COPY.ru.unavailable.includes(`к${NBSP}базе данных`));
   assert.equal(OUTAGE_COPY.ru.unavailable.includes('к базе'), false);
+  assert.ok(OUTAGE_COPY.ru.internal.includes(`на${NBSP}сервере`));
+  assert.equal(OUTAGE_COPY.ru.internal.includes('на сервере'), false);
+  const internalCard = renderToStaticMarkup(React.createElement(AdminOutageNotice, {
+    copy: outageCopy('ru-RU', 'internal'), href: '/admin', lang: 'ru',
+  }));
+  assert.ok(internalCard.includes(`на${NBSP}сервере`) || new RegExp(`на(?:${NBSP}|&nbsp;|&#x0*a0;)сервере`, 'i').test(internalCard));
+  assert.equal(internalCard.includes('на сервере'), false);
   assert.ok(ru.includes(`не${NBSP}приведёт`) || new RegExp(`не(?:${NBSP}|&nbsp;|&#x0*a0;)приведёт`, 'i').test(ru));
   assert.ok(ru.includes(`из${NBSP}системы`) || new RegExp(`из(?:${NBSP}|&nbsp;|&#x0*a0;)системы`, 'i').test(ru));
   assert.match(ru, /приведёт/);
