@@ -1,4 +1,114 @@
 {
+  "ANALYTICS-ROLLUP": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "899ee244c16eadd798ed9ceb9a82e832b5a53a675bc28bc24719f68cd0493fbb",
+    "evidence": [
+      "PR #477 状态 MERGED。合并提交 90b2658d2600859ed0a71d4b09e422e1b42a783d。mergedAt 2026-10-25T14:19:49Z。标题：ANALYTICS-ROLLUP 统计按天汇总表。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T14:03:21Z job 121189155244；gate SUCCESS 2026-10-25T14:15:27Z job 121193053707；gate SUCCESS 2026-10-25T14:15:19Z job 121193025427；e2e SUCCESS 2026-10-25T14:05:59Z job 121189155092；posix-storage-security SUCCESS 2026-10-25T13:59:05Z job 121189155208。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "CATALOG-MERGE": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "45d87c6f7cb076691ad56a38746cd85bd578654df2ed563a756c6f753bf5445a",
+    "evidence": [
+      "PR #470 状态 MERGED。合并提交 4d0c18288b499dfbf090432a11bc7e3516eff4fa。mergedAt 2026-10-25T11:55:05Z。标题：CATALOG-MERGE: merge the 3D catalog by category。",
+      "CI rollup：gate FAILURE 2026-10-25T11:23:44Z job 121154787401；build-and-audit SUCCESS 2026-10-25T11:25:17Z job 121154136812；gate SUCCESS 2026-10-25T11:24:05Z job 121154853754；gate SUCCESS 2026-10-25T11:23:58Z job 121154834164；e2e SUCCESS 2026-10-25T11:27:30Z job 121154136646；posix-storage-security SUCCESS 2026-10-25T11:21:00Z job 121154136805。较早失败的检查：gate job 121154787401 2026-10-25T11:23:44Z。其后同名检查已成功的，不把整次 rollup 说成全部通过。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "CI-DB-TESTS": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "22373db0ebcf53e771644d174e36d8d8ff64c67d2151e65f96bf4a35796ccf66",
+    "evidence": [
+      "PR #472 状态 MERGED。合并提交 a3fb6696162fedc5d71b4c9b8a3678823c403351。mergedAt 2026-10-25T11:59:37Z。标题：CI-DB-TESTS: 把 analytics 和 chat 的数据库测试接进 PostgreSQL 17。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T11:57:45Z job 121160870319；gate SUCCESS 2026-10-25T11:56:11Z job 121161595659；gate SUCCESS 2026-10-25T11:56:07Z job 121161574587；e2e SUCCESS 2026-10-25T11:59:13Z job 121160870236；posix-storage-security SUCCESS 2026-10-25T11:53:04Z job 121160870333。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "CLIENT-API-DEADLINE": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "8b808273553712cab1f3bbdc91461cfabe21f076977edd361cd1aa25697c0f05",
+    "evidence": [
+      "PR #471 状态 MERGED。合并提交 02b57ac52fe8a6c4d1e87d28aa62e080bb1e0ba8。mergedAt 2026-10-25T11:54:25Z。标题：CLIENT-API-DEADLINE: deadline 必须打断卡住的正文读取。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T11:25:46Z job 121154163402；gate SUCCESS 2026-10-25T11:20:44Z job 121154164068；gate SUCCESS 2026-10-25T11:23:03Z job 121154645407；e2e SUCCESS 2026-10-25T11:26:27Z job 121154163556；posix-storage-security SUCCESS 2026-10-25T11:21:03Z job 121154164153。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "FE-404-TITLE": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "b77bab9f64656a254042871dd842199b7235e7b5f1c2d9eed4ff654c777e841d",
+    "evidence": [
+      "PR #461 状态 MERGED。合并提交 cc63de7cc401987a636f3aa8abf954c1aa02459a。mergedAt 2026-10-25T08:03:15Z。标题：FE-404-TITLE 404 页标题进 head。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T07:33:42Z job 121107431838；gate SUCCESS 2026-10-25T07:29:12Z job 121107431854；gate SUCCESS 2026-10-25T07:41:23Z job 121109822563；e2e SUCCESS 2026-10-25T07:35:47Z job 121107432020；posix-storage-security SUCCESS 2026-10-25T07:29:30Z job 121107431988。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "FE-FAB-390": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "65efd932ebc5670fc60cdd0daba112b9d6c61f123583241342aec52a7fbc15e4",
+    "evidence": [
+      "PR #468 状态 MERGED。合并提交 2d92d4a72aca2b587b490461380773b20a99ee7b。mergedAt 2026-10-25T12:57:58Z。标题：FE-FAB-390: 390px 下展开的浮动按钮不再遮挡页脚链接。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T12:54:19Z job 121173326544；gate SUCCESS 2026-10-25T12:49:39Z job 121173326373；e2e SUCCESS 2026-10-25T12:56:55Z job 121173326449；posix-storage-security SUCCESS 2026-10-25T12:50:03Z job 121173326530。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "GATE-HARDEN": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "03fa659af1d70c115d579120301278023d8607de3337ba708a951a3c54846554",
+    "evidence": [
+      "PR #438 状态 MERGED。合并提交 bec2066b4876ce814554dd64d2d63f71b5abb26c。mergedAt 2026-10-25T15:54:10Z。标题：GATE-HARDEN 安全审查 gate 防止 PR 改 workflow 绕过并补齐后台/媒体路径。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-24T13:27:40Z job 120883907661；ping SUCCESS 2026-10-24T13:23:53Z job 120884042877；ping SUCCESS 2026-10-24T13:25:51Z job 120884453538；ping SUCCESS 2026-10-24T13:43:21Z job 120888118210；e2e SUCCESS 2026-10-24T13:29:04Z job 120883907574；posix-storage-security SUCCESS 2026-10-24T13:23:38Z job 120883907373。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "GATE-HARDEN-2": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "ec24334be3a2949847e711a2290303697cb5debd157f03d64c9e57265b8e9322",
+    "evidence": [
+      "PR #481 状态 MERGED。合并提交 14a2dadb5cc6d06b531c9eb3d3830d7a16c3570b。mergedAt 2026-10-25T17:05:41Z。标题：GATE-HARDEN-2 工作流 CODEOWNERS 与 App 来源 gate。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T16:48:36Z job 121228381982；gate SUCCESS 2026-10-25T16:46:29Z job 121228906146；ping SUCCESS 2026-10-25T16:46:14Z job 121228843774；e2e SUCCESS 2026-10-25T16:51:10Z job 121228381861；posix-storage-security SUCCESS 2026-10-25T16:44:47Z job 121228382058。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "GIFT-CARD-ASSETS": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "b3fe77cd31b2f591ef5e9888e5ccba44d9e196f47acde5c35fbaec4561b05efc",
+    "evidence": [
+      "PR #469 状态 MERGED。合并提交 f91c02857e1a0a7b30a8d281bc48a10cefffe0e1。mergedAt 2026-10-25T11:20:14Z。标题：GIFT-CARD-ASSETS: 贺卡 D 方案模型、海报与两张 OG 图。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T11:16:49Z job 121152514016；gate SUCCESS 2026-10-25T11:12:52Z job 121152514167；gate SUCCESS 2026-10-25T11:15:36Z job 121153084991；e2e SUCCESS 2026-10-25T11:20:05Z job 121152513845；posix-storage-security SUCCESS 2026-10-25T11:13:09Z job 121152514128。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "GIFT-CARDS-RENAME": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "ee73018820ea411c47c960ee61553f4fcb5af0e8067b2c0eca3f90192c3d72dc",
+    "evidence": [
+      "PR #465 状态 MERGED。合并提交 7ceff069b4c381c55b7e01fe428fea90d34de865。mergedAt 2026-10-25T10:19:23Z。标题：GIFT-CARDS-RENAME 礼品卡品类 slug 与 SEO 元数据改为贺卡。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T10:16:36Z job 121140323060；gate SUCCESS 2026-10-25T10:12:56Z job 121140322733；e2e SUCCESS 2026-10-25T10:19:11Z job 121140323173；posix-storage-security SUCCESS 2026-10-25T10:13:17Z job 121140323171。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "M1-T1": {
     "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
     "contractHash": "50fd5a0344f013263da771d37ce0639e06cb0aa90ee4003e2da7215e51ea5cc1",
@@ -52,15 +162,13 @@
     "verdict": "pass"
   },
   "M1-T5": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "325f1eec2ba53d5df78054eb5232045b711172f4b577093496f619e54bb4f4cb",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "67986af0c5bec7155f4c8947c24362bdf49a809913e90535c528e5fc09d519e7",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:15；已确认工业PNG/GIF可复用，但company-media.ts仍只能精确文件白名单，非任意/brand前缀；外URL/越界/源工程/文件系统路径拒绝，私有docs manifest不能运行时import。己方事实、现master SHA、T9真工程、en/ru alt、发布关闭404、首页/about同映射与1920/1440/390真浏览器证据均保留。",
-      "本任务具体边界：输入=己方可核事实、docs/brand-media/static/selected-media-release.json的已确认工业素材、M1-T9公司图稿/工程清单、现有SiteSetting/Sanity及发布开关；旧PDF仅历史主题对照；输出=company-content；about与首页公司摘要、事实对照、安全发布映射和真实页面图稿消费；原联系隐私入口兼容；前置=M1-T4,M1-T9；阶段=integration；能力=company-content；有效路径共21项（docs/brand-content/; e2e/company-content.spec.ts; messages/en.json; messages/ru.json; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/about/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/brand/company-media.ts; src/lib/navigation/routes.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-111,E-27,E-28,E-29；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "PR #474 状态 MERGED。合并提交 a98ae749f4d22408e96bc3150c28d8ae03eb20ab。mergedAt 2026-10-25T15:34:14Z。标题：M1-T5 集成己方公司内容与选定图稿。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T15:25:08Z job 121208207109；gate SUCCESS 2026-10-25T15:19:57Z job 121208206594；e2e SUCCESS 2026-10-25T15:27:25Z job 121208207169；posix-storage-security SUCCESS 2026-10-25T15:20:20Z job 121208206879。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T12:41:21.832803+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -119,15 +227,13 @@
     "verdict": "pass"
   },
   "M2-T1": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "1358b8c8de3743d627b4afa215665f983f963a61fde77881d25b2da4dfcad17c",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "a7f1ae9424e138e20c14ba37ecc91a28301f62494e68c932eb2f313e63d57572",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:20；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《扩展产品卡视口与精简信息区》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=现有ProductGallery/Scene、SSR loadCatalog(listPublishedModels)及11布局；输出=560px自适应大卡和独立模型/动作区域；前置=M1-T4；阶段=integration；能力=product-cards；有效路径共18项（e2e/product-cards.spec.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/three/GalleryScene.tsx; src/components/three/ProductGallery.tsx; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "PR #476 状态 MERGED。合并提交 69cca15fcc255c1ea69a97bdfabe5871533610a7。mergedAt 2026-10-25T15:12:01Z。标题：M2-T1 扩展产品卡视口与精简信息区。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T14:45:34Z job 121199099281；gate SUCCESS 2026-10-25T14:41:08Z job 121199099110；e2e SUCCESS 2026-10-25T14:48:19Z job 121199099935；posix-storage-security SUCCESS 2026-10-25T14:41:32Z job 121199099496。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T12:41:57.738453+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -305,15 +411,13 @@
     "verdict": "pass"
   },
   "M3-T15": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "13811eace856486756ba4cd57f870e0054904e789e096945c0e84982d2f5b864",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "bee8b6e61941bdd8bbeafc53d57d1f38f56607e68680d1bd74eb17ab29e9da0c",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T15《通过真实活动写回会话期限并验证四条Auth.js路径》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "PR #482 状态 MERGED。合并提交 d85df444f8a743be727170a8e44cdfd79363104f。mergedAt 2026-10-26T00:33:12Z。标题：M3-T15 通过真实活动写回会话期限并验证四条Auth.js路径。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T21:24:07Z job 121294237678；gate SUCCESS 2026-10-25T21:36:27Z job 121298417477；ping SUCCESS 2026-10-25T21:36:11Z job 121298364288；e2e SUCCESS 2026-10-25T21:26:08Z job 121294237622；posix-storage-security SUCCESS 2026-10-25T21:19:09Z job 121294237475。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -370,15 +474,13 @@
     "verdict": "pass"
   },
   "M3-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "996d79a80aec091dc149defcd98c72b2ebe2e9c653be181f93587a62c7a5443f",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "95cacf5a96adeb39a34e3dfbaf812a24cc165a15219e5d2545c4ecffbbbe46b8",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T2《校验登录方式并原子核销当前验证器时间步》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "PR #478 状态 MERGED。合并提交 d3abc6cffbcce8adb2340096c069419ceb0eba07。mergedAt 2026-10-25T17:40:51Z。标题：M3-T2 校验登录方式并原子核销当前验证器时间步。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T17:22:24Z job 121236319736；gate SUCCESS 2026-10-25T17:17:19Z job 121236314464；e2e SUCCESS 2026-10-25T17:24:58Z job 121236319920；posix-storage-security SUCCESS 2026-10-25T17:17:42Z job 121236320083。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -630,15 +732,13 @@
     "verdict": "pass"
   },
   "M4-T15": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "1f6f1b722058f81fa0a1f090a9fb3750f837ba5a226ff31fd75cdd089154c207",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "811f7f7a41befbd279f2861c4922da365f7d181a3ce8cff1a0f9e8530214880a",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:67；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《移除Tawk接线并说明必要人工咨询》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=现有useTawk/FloatingActions/CookieConsent、en/ru隐私内容；第一方必要聊天与可选分析规则。；输出=Tawk零请求运行接线；公共contact/隐私可见说明、独立聊天开关和保留原询盘/邮箱入口。；前置=M1-T2,M1-T8,M1-T1,M1-T7；阶段=integration；能力=chat-consent-migration；有效路径共26项（e2e/chat-consent-migration.spec.ts; e2e/tawk.spec.ts; messages/en.json; messages/ru.json; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/chat/useTawk.ts; src/components/consent/CookieConsent.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/quote/FloatingActions.tsx; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/chat/adminPath.ts; src/lib/client/consent.ts; src/lib/consent.ts; src/lib/legal/privacy.ts; src/lib/navigation/routes.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-20,E-40；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "PR #460 状态 MERGED。合并提交 a3219f26e0a9a70d7db9333b5231306e4055f780。mergedAt 2026-10-25T08:38:38Z。标题：M4-T15 移除Tawk接线并说明必要人工咨询。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T08:32:13Z job 121118682429；gate SUCCESS 2026-10-25T08:32:33Z job 121119803811；gate SUCCESS 2026-10-25T08:32:27Z job 121119781492；e2e SUCCESS 2026-10-25T08:34:01Z job 121118682257；posix-storage-security SUCCESS 2026-10-25T08:27:26Z job 121118682446。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T12:46:23.623689+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -721,15 +821,13 @@
     "verdict": "pass"
   },
   "M4-T8": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "984859bf195f3fe308f62734ad6e2c0ce93a90e5c7f548061e294cee39be1446",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "dad2fabf80c6ce7585eebeb158529ad54ef2e53a473107cbf23306b71cd5a927",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:60；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《建立主动联系才签发的必要cookie》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=共享HTTP/config和ChatSessionDTO；09/10必要会话/同源/期限。；输出=ChatVisitorSession；POST /api/chat/session及cookie校验/有限touch。；前置=M3-T14,M1-T2；阶段=integration；能力=chat-visitor-session；有效路径共21项（prisma/schema.prisma; prod-env-check.ts; src/app/api/admin/account/; src/app/api/admin/chat/; src/app/api/admin/cron/mail-queue/route.ts; src/app/api/admin/cron/operations/route.ts; src/app/api/admin/settings/analytics/route.ts; src/app/api/admin/stats/route.ts; src/app/api/admin/users/; src/app/api/analytics/; src/app/api/auth-admin/; src/app/api/auth/; src/app/api/chat/; src/app/api/chat/session/route.ts; src/app/api/internal/ops-report/route.ts; src/auth.ts; src/lib/server/chat/visitor-session.ts; src/lib/server/composition.ts; src/lib/server/config.ts; src/lib/server/db.ts; tests/chat-session.http.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-40,E-85；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "PR #466 状态 MERGED。合并提交 8e4f18b5cab59933d3c39133f6608c92420e38a1。mergedAt 2026-10-25T10:06:19Z。标题：M4-T8 建立主动联系才签发的必要cookie。",
+      "CI rollup：gate FAILURE 2026-10-25T09:48:19Z job 121135264740；build-and-audit SUCCESS 2026-10-25T09:48:22Z job 121134271872；gate SUCCESS 2026-10-25T10:04:37Z job 121138600892；gate SUCCESS 2026-10-25T10:04:30Z job 121138580847；e2e SUCCESS 2026-10-25T09:50:00Z job 121134271857；posix-storage-security SUCCESS 2026-10-25T09:43:46Z job 121134271696。较早失败的检查：gate job 121135264740 2026-10-25T09:48:19Z。其后同名检查已成功的，不把整次 rollup 说成全部通过。"
     ],
-    "reviewed": "2026-10-22T12:47:12.433088+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -786,15 +884,13 @@
     "verdict": "pass"
   },
   "M5-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "b82a69d866e6eaaf9bd7bf41f44575cc84b7c0cc31699c6d76476d5464977dc6",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "81deb5d6f37e3ba531bedf6c00e395a0af659bc74cd5ce94f93226f3262277de",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T2《接通服务端分析同意签名cookie》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "PR #464 状态 MERGED。合并提交 15d28e88d7c51bcbdedc5829d80c0e0010ea3814。mergedAt 2026-10-25T08:50:10Z。标题：M5-T2 接通服务端分析同意签名cookie。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T08:46:52Z job 121121939938；gate SUCCESS 2026-10-25T08:44:58Z job 121122308060；gate SUCCESS 2026-10-25T08:44:52Z job 121122292339；e2e SUCCESS 2026-10-25T08:49:58Z job 121121939931；posix-storage-security SUCCESS 2026-10-25T08:43:29Z job 121121939771。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -838,28 +934,24 @@
     "verdict": "pass"
   },
   "M5-T6": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "caaebc901d4d39f527e581a8ff89a047cb4dedcfd65c9fa54abaf3d1f1e84d61",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "fa1e3d4aaa1372caeeb43ced9fd1d701761764bd08867a76eb1efe31919b889f",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T6《持久化严格白名单分析事件》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "PR #467 状态 MERGED。合并提交 4a04855c5bb2ef3b732d39bc16437f2d3bfab53c。mergedAt 2026-10-25T10:23:10Z。标题：M5-T6 持久化严格白名单分析事件。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T10:21:08Z job 121141052006；gate SUCCESS 2026-10-25T10:21:29Z job 121142095321；gate SUCCESS 2026-10-25T10:21:22Z job 121142075443；gate SUCCESS 2026-10-25T10:21:59Z job 121142204309；e2e SUCCESS 2026-10-25T10:22:57Z job 121141052202；posix-storage-security SUCCESS 2026-10-25T10:16:44Z job 121141052141。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T7": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "6db8d3f2e582ada0f6351f7799b52d8366a6abb93124b21abe2ca3efb858e8e5",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "22785c5ca1441f4f6ada0f60a86f82f5f45aef8b2ec242d4d40727515220d74b",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T7《接通同意UI、页面事件与隐私说明》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "PR #473 状态 MERGED。合并提交 b880ccbed24164e97b15e8a18fbfbe9740f8fffd。mergedAt 2026-10-25T18:38:58Z。标题：M5-T7 接通同意UI、页面事件与隐私说明。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T18:26:32Z job 121252039700；gate SUCCESS 2026-10-25T18:33:43Z job 121254847365；ping SUCCESS 2026-10-25T18:33:28Z job 121254791292；e2e SUCCESS 2026-10-25T18:30:40Z job 121252039908；posix-storage-security SUCCESS 2026-10-25T18:22:25Z job 121252039899。rollup 里列出的检查结论都是 SUCCESS。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -877,15 +969,14 @@
     "verdict": "pass"
   },
   "M5-T9": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "fa0cb5eac9bcc40ecccf17487c26208626f15c0a30875a0611f1113c07593fea",
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "68daa1ae470de630cdd8123d6da31b4293a73d3b9ac5c2f1f89e788e98535aa2",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T9《建立版本化IANA时区与自然日仓储规则》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "PR #463 状态 MERGED。合并提交 e15b5f101fc1b22b4daff0b8a2f88f6cb02b55c0。mergedAt 2026-10-25T08:39:04Z。标题：M5-T9 建立版本化IANA时区与自然日仓储规则。",
+      "CI rollup：gate FAILURE 2026-10-25T08:32:47Z job 121119844256；build-and-audit SUCCESS 2026-10-25T08:34:59Z job 121119383063；gate SUCCESS 2026-10-25T08:33:09Z job 121119921537；gate SUCCESS 2026-10-25T08:33:00Z job 121119898233；e2e SUCCESS 2026-10-25T08:36:47Z job 121119383081；posix-storage-security SUCCESS 2026-10-25T08:30:54Z job 121119382929。较早失败的检查：gate job 121119844256 2026-10-25T08:32:47Z。其后同名检查已成功的，不把整次 rollup 说成全部通过。",
+      "契约核对仍有提醒，不阻断：M5-T9 疑似接线任务未列注册点（命中：事件、服务）。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1097,6 +1188,28 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "MAIN-E2E-FIX": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "2cd064950343958b957d6328abcac8c75306c5246734687e5d9ee1d270f7a7da",
+    "evidence": [
+      "PR #475 状态 MERGED。合并提交 848b0f43db72225b3994d39d2006af92e9aac893。mergedAt 2026-10-25T12:38:28Z。标题：修复 main e2e：analytics db 测试跟上 #470 的 categoryMeta 规则。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T12:37:03Z job 121169349186；gate SUCCESS 2026-10-25T12:31:59Z job 121169349180；gate SUCCESS 2026-10-25T12:33:37Z job 121169710468；e2e SUCCESS 2026-10-25T12:38:02Z job 121169349391；posix-storage-security SUCCESS 2026-10-25T12:32:20Z job 121169349424。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "POST-LAUNCH-P3": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "de7d0fef51bf6d5ff9cb4135d2edc96449e45194a7ffa87f45c345e008fc8896",
+    "evidence": [
+      "PR #459 状态 MERGED。合并提交 e5dc024fc467bbd10c2ed0df75cedd44ea097e74。mergedAt 2026-10-25T07:06:01Z。标题：POST-LAUNCH-P3 上线后小任务。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T07:00:32Z job 121101211585；gate SUCCESS 2026-10-25T07:05:33Z job 121103009955；gate SUCCESS 2026-10-25T07:05:27Z job 121102990965；e2e SUCCESS 2026-10-25T07:00:25Z job 121101211442；posix-storage-security SUCCESS 2026-10-25T06:56:01Z job 121101211527。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "R3-T09233008": {
     "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
     "contractHash": "b1bfa9084cbbbcebcba80fb0a7a9b8571b71d9ca7b1729ae6d0d1b38f5fd690a",
@@ -1271,6 +1384,28 @@
       "边界：空计划由 planProblems(script, '') 报 empty/unreadable；Bash 语法错误不再被 locBad 的 catch 当成安全 Location；mailSwitchGate 与 SQL 语句在重复读取下仍须逐字成立。任务契约未挂 E 编号。"
     ],
     "reviewed": "2026-10-23T05:45:49.941600+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "RETENTION-CLEANUP": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "5a65f8b8e6f472d36133f01660b8d796b370f61e0f61b2d033b687dfa06770bc",
+    "evidence": [
+      "PR #479 状态 MERGED。合并提交 45ada7a22131646f3be96d56f5c5baa22ce4d7f5。mergedAt 2026-10-25T16:35:49Z。标题：RETENTION-CLEANUP 保留期清理任务。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T16:04:36Z job 121217553501；gate SUCCESS 2026-10-25T16:05:16Z job 121218955899；ping SUCCESS 2026-10-25T16:05:02Z job 121218896227；e2e SUCCESS 2026-10-25T16:06:55Z job 121217553519；posix-storage-security SUCCESS 2026-10-25T15:59:54Z job 121217553263。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "SEO-4": {
+    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
+    "contractHash": "5c66c8769c4d8780e0d995aba5df182a14b5400352b9afae1e5b08c75d1f2b53",
+    "evidence": [
+      "PR #462 状态 MERGED。合并提交 42ca1d1403a78ea8683bb6640a34eb2c71f4d22a。mergedAt 2026-10-25T07:56:02Z。标题：SEO-4 生产环境只认 APP_ENV。",
+      "CI rollup：build-and-audit SUCCESS 2026-10-25T07:50:36Z job 121110668135；gate SUCCESS 2026-10-25T07:49:02Z job 121111259327；gate SUCCESS 2026-10-25T07:48:55Z job 121111241682；e2e SUCCESS 2026-10-25T07:52:04Z job 121110668105；posix-storage-security SUCCESS 2026-10-25T07:46:13Z job 121110668066。rollup 里列出的检查结论都是 SUCCESS。"
+    ],
+    "reviewed": "2026-10-26T02:19:16.103954+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   }

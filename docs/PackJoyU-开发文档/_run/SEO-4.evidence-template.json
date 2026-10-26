@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "SEO-4": {
+      "contractHash": "5c66c8769c4d8780e0d995aba5df182a14b5400352b9afae1e5b08c75d1f2b53",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

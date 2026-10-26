@@ -998,6 +998,9 @@ function showCardAt(x, y, id){
          "<dt>依赖</dt><dd>"+esc(t.dep||"无")+"</dd>"+
          "<dt>验收</dt><dd>"+esc(t.accept||"—")+"</dd>"+
          "<dt>预估</dt><dd>"+esc(t.est||"—")+"</dd>"+
+         (t.pr ? "<dt>PR</dt><dd>#"+esc(t.pr)+"</dd>" : "")+
+         (t.merged ? "<dt>合并提交</dt><dd>"+esc(t.merged)+"</dd>" : "")+
+         (t.ledgerStatus === "done" ? "<dt>登记状态</dt><dd>已落地</dd>" : "")+
          "<dt>状态</dt><dd data-st>"+ST_TEXT[stOf(id)]+"</dd></dl>"+
          '<div class="acts">'+
          /* 卡片里的「实施」和交接台那一行一样受依赖闸门管——否则从正文芯片进来
@@ -3036,7 +3039,11 @@ function handBody(){
           : '<button class="st" data-act="st" title="点一下推进一格：待派 → 进行中 → 审查中 → 已落地（已落地再点会退回待派，会先问一句）">') +
           ST_TEXT[st] + "</button>" +
         '<span class="hid"><button class="chip" data-id="' + id + '">' + id + "</button></span>" +
-        '<span class="htt">' + esc(t.title) + "</span>";
+        '<span class="htt"' + (t.merged ? ' title="' + esc(t.merged) + '"' : "") + ">" + esc(t.title) +
+        (t.pr || t.ledgerStatus === "done"
+          ? ' <small>' + esc([t.pr ? ("PR #" + t.pr) : "", t.ledgerStatus === "done" ? "登记状态：已落地" : ""].filter(Boolean).join(" · ")) + "</small>"
+          : "") +
+        "</span>";
       if(rv.length){
         var one = clashOf(t.id, rv[0].id);
         var brief = one.length > 20 ? "…" + one.slice(-18) : one;

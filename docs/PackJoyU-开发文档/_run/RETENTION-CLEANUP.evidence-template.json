@@ -1,0 +1,10 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "RETENTION-CLEANUP": {
+      "contractHash": "5a65f8b8e6f472d36133f01660b8d796b370f61e0f61b2d033b687dfa06770bc",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
