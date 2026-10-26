@@ -129,7 +129,7 @@ test('products-link opens the server catalog, large cards, and the real model fi
   expect(ssr.status()).toBe(200);
   const html = await ssr.text();
   const cards = articleChunks(html);
-  expect(cards.length).toBeGreaterThanOrEqual(12);
+  expect(cards.length).toBe(12);
   expect(html).toMatch(/\/models\/[^"'\\\s]+\.glb|\/api\/models\/[^"'\\\s]+\/glb/);
   const descriptions = itemListDescriptions(html);
   expect(descriptions.length).toBe(cards.length);
@@ -141,6 +141,7 @@ test('products-link opens the server catalog, large cards, and the real model fi
     expect(card).not.toContain('category-link');
     expect(card).not.toMatch(/<h2[^>]*>\s*<a\b/);
   }
+  await expect(page.locator('main article.card')).toHaveCount(12);
   await expect(page.locator('main article.card').first()).toBeVisible();
 
   const desktop = await cardBox(page);
@@ -263,6 +264,7 @@ test('ru 390 products page does not overflow and each control center hits itself
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/ru/products');
   await dismissConsent(page, 'ru');
+  await expect(page.locator('main article.card')).toHaveCount(12);
   await assertDescriptionsFitTwoLines(page);
   const docOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(docOverflow).toBe(0);
