@@ -86,7 +86,7 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm prisma db push --skip-generate
-      # 这三个文件在 build-and-audit 里会静默 skip。连到本 job 的 postgres:17 后，每个文件自己的 pass 必须 >= 1，fail 和 skip 必须是 0。
+      # 这三个文件在 build-and-audit 里会静默 skip。连到本 job 的 postgres:17 后，每个文件自己的 pass 必须 >= 1，fail、skip、todo 必须是 0。
       # describe 级 skip 的汇总是 tests 0 / skipped 0，汇总门禁看不见，所以按文件核对。
       - name: Device session protocol and PostgreSQL regressions
         env:
@@ -115,20 +115,25 @@ jobs:
               const pass = hit[1].passed ?? 0;
               const fail = hit[1].failed ?? 0;
               const skip = hit[1].skipped ?? 0;
-              yield `${file}\tpass=${pass}\tfail=${fail}\tskip=${skip}\n`;
+              const todo = hit[1].todo ?? 0;
+              yield `${file}\tpass=${pass}\tfail=${fail}\tskip=${skip}\ttodo=${todo}\n`;
             }
           };
           EOF
-          node --import tsx --test \
+          # 默认按文件并行。guard 与 activity 会对同一库 db push 并写同一批表，所以串行。
+          # 失败时把 TAP 和按文件门禁打到日志后 exit 1。成功才跑下面的汇总 grep 和按文件 GATE。
+          node --import tsx --test --test-concurrency=1 \
             --test-reporter=tap \
             --test-reporter=/tmp/device-file-gate.cjs \
             --test-reporter-destination=/tmp/device-regressions.tap \
             --test-reporter-destination=/tmp/device-file-gate.txt \
             tests/admin-device-guard.http.test.ts \
             tests/admin-device-session.db.test.ts \
-            tests/admin-session-activity.http.test.ts
+            tests/admin-session-activity.http.test.ts \
+            || { cat /tmp/device-regressions.tap /tmp/device-file-gate.txt; exit 1; }
           grep -qx '# skipped 0' /tmp/device-regressions.tap
           grep -qx '# fail 0' /tmp/device-regressions.tap
+          grep -qx '# todo 0' /tmp/device-regressions.tap
           grep -Eq '^# pass [1-9][0-9]*$' /tmp/device-regressions.tap
           node --input-type=module <<'EOF'
           import { readFileSync } from 'node:fs';
@@ -142,8 +147,8 @@ jobs:
           let bad = false;
           for (const file of files) {
             const line = gate.split(/\r?\n/).find((row) => row.startsWith(`${file}\t`));
-            const match = line?.match(/\tpass=(\d+)\tfail=(\d+)\tskip=(\d+)$/);
-            if (!match || Number(match[1]) < 1 || Number(match[2]) !== 0 || Number(match[3]) !== 0) {
+            const match = line?.match(/\tpass=(\d+)\tfail=(\d+)\tskip=(\d+)\ttodo=(\d+)$/);
+            if (!match || Number(match[1]) < 1 || Number(match[2]) !== 0 || Number(match[3]) !== 0 || Number(match[4]) !== 0) {
               console.error(`GATE ${line ?? `MISSING\t${file}`}`);
               bad = true;
             }
