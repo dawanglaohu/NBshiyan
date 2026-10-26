@@ -86,9 +86,14 @@ test('server errors are shown: codes mapped, 400 issues per field, unknown codes
   const unknown = 'zz_unknown_code_123';
   assert.equal(serverErrors(401, {}).message, generic);
   assert.equal(serverErrors(401, {}).message.includes('http_401'), false);
+  const urlCopy = toBody({ ...filled(), certifications: [newCertRow({ name: 'FSC', url: 'http://x' })] }).errors['certifications.0.url'];
   const s = serverErrors(400, { error: 'invalid', issues: [{ path: 'certifications.0.url', message: 'https_url_required' }, { path: '', message: 'x' }, { bogus: 1 }] });
   assert.equal(s.message, '服务器校验未通过');
-  assert.deepEqual(s.fields, { 'certifications.0.url': 'https_url_required', _: 'x' });
+  assert.equal(s.fields['certifications.0.url'], urlCopy);
+  assert.equal(s.fields._, '服务器校验未通过');
+  const shown = [s.message, ...Object.values(s.fields)];
+  assert.equal(shown.includes('https_url_required'), false);
+  assert.equal(shown.includes('x'), false);
   assert.equal(serverErrors(500, 'not json').message, generic);
   assert.equal(serverErrors(500, { error: 'internal_error', message: unknown }).message, generic);
   const odd = serverErrors(500, { error: unknown, message: unknown });
@@ -98,6 +103,65 @@ test('server errors are shown: codes mapped, 400 issues per field, unknown codes
   assert.equal(serverErrors(503, { error: 'service_unavailable' }).message, outage);
   assert.equal(serverErrors(503, {}).message, outage);
   assert.equal(serverErrors(503, { error: 'service_unavailable' }).message.includes('service_unavailable'), false);
+});
+
+test('server field errors stay on the whitelist and non-400 responses keep the form', () => {
+  const leaked = 'postgres://secret-should-not-render';
+  const urlCopy = toBody({ ...filled(), certifications: [newCertRow({ name: 'FSC', url: 'http://x' })] }).errors['certifications.0.url'];
+  const sizeCopy = toBody({ ...filled(), sizeMin: { l: '700', w: '50', h: '20' } }).errors['size.max.l'];
+  const moqCopy = toBody({ ...filled(), moqValue: '0' }).errors['moq.value'];
+  const termsCopy = toBody({ ...filled(), tradeTerms: ['FOB', 'XYZ'] }).errors.tradeTerms;
+  const materialCopy = toBody({ ...filled(), materialEn: 'a'.repeat(301) }).errors.material;
+  let readMessage = false;
+  let readIssues = false;
+  const hidden = {
+    error: 'internal_error',
+    get message() { readMessage = true; return leaked; },
+    get issues() { readIssues = true; return [{ path: 'notes', message: leaked }]; },
+  };
+  const internal = serverErrors(500, hidden);
+  assert.equal(readMessage, false);
+  assert.equal(readIssues, false);
+  assert.deepEqual(internal.fields, {});
+  assert.equal(internal.message, '服务暂时出错，请稍后重试。');
+  assert.equal(JSON.stringify(internal).includes(leaked), false);
+
+  for (const status of [401, 403, 502, 503]) {
+    const body = serverErrors(status, { error: status === 503 ? 'service_unavailable' : 'zz_unknown_code_123', message: leaked, issues: [{ path: 'moq.value', message: leaked }] });
+    assert.deepEqual(body.fields, {});
+    assert.equal(JSON.stringify(body).includes(leaked), false);
+    assert.equal(JSON.stringify(body).includes('zz_unknown_code_123'), false);
+  }
+  assert.equal(serverErrors(502, { message: leaked, issues: [{ path: 'notes', message: leaked }] }).message, '服务暂时出错，请稍后重试。');
+  assert.equal(serverErrors(500, { error: 'constructor', message: leaked }).message.includes('constructor'), false);
+
+  let readTop = false;
+  const bad = serverErrors(400, {
+    error: 'invalid',
+    get message() { readTop = true; return leaked; },
+    issues: [
+      { path: 'certifications.0.url', message: 'https_url_required' },
+      { path: 'certifications.0.url', code: 'https_url_required', message: leaked },
+      { path: 'size.max.l', message: 'size_min_gt_max' },
+      { path: 'moq.value', message: leaked },
+      { path: 'material.en', message: `String must contain at most 300 character(s) ${leaked}` },
+      { path: 'tradeTerms.0', message: `Invalid enum value. Expected 'FOB', received '${leaked}'` },
+      { path: '', message: leaked },
+      { path: 'capacity', message: leaked },
+    ],
+  });
+  assert.equal(readTop, false);
+  assert.equal(bad.message, '服务器校验未通过');
+  assert.equal(bad.fields['certifications.0.url'], urlCopy);
+  assert.equal(bad.fields['size.max.l'], sizeCopy);
+  assert.equal(bad.fields['moq.value'], moqCopy);
+  assert.equal(bad.fields.material, materialCopy);
+  assert.equal(bad.fields.tradeTerms, termsCopy);
+  assert.equal(bad.fields._, '服务器校验未通过');
+  assert.equal(JSON.stringify(bad).includes(leaked), false);
+  assert.equal(JSON.stringify(bad).includes('https_url_required'), false);
+  assert.equal(JSON.stringify(bad).includes('size_min_gt_max'), false);
+  assert.equal(JSON.stringify(bad).includes('String must contain'), false);
 });
 
 test('page access: EDITOR + ADMIN only, checked server-side before rendering', () => {
