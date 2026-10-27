@@ -69,11 +69,13 @@ test('cms: list page omitted for a locale with no docs', () => {
 });
 
 import { categoryPagePath, CATEGORY_PAGES_LIVE } from '../src/lib/seo/categoryPages';
-test('categoryPagePath: null when not live or unknown key; per-locale slug when live', () => {
-  assert.equal(CATEGORY_PAGES_LIVE, false);
-  assert.equal(categoryPagePath('en', 'gift-boxes'), null);
+test('categoryPagePath: live by default; null when the flag is off or the key is unknown', () => {
+  assert.equal(CATEGORY_PAGES_LIVE, true);
+  assert.equal(categoryPagePath('en', 'gift-boxes'), '/en/products/custom-gift-boxes');
+  assert.equal(categoryPagePath('en', 'gift-boxes', false), null);
   assert.equal(categoryPagePath('ru', 'gift-boxes', true), '/ru/products/podarochnye-korobki');
   assert.equal(categoryPagePath('en', 'nope', true), null);
+  assert.ok(!buildSitemap(opts).some((e) => /\/products\/custom-/.test(e.url)));
 });
 
 test('cms: list page omitted when a locale only has noindex docs (#207)', () => {

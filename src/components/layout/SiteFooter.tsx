@@ -1,6 +1,8 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { categoryProducts as products } from '@/data/categories';
+import { categoryHref } from '@/lib/seo/categoryPages';
+import { categoryPagesLive } from '@/lib/seo/mock';
 import { PUBLIC_ROUTES } from '@/lib/navigation/routes';
 import LangLinks from './LangLink';
 import CookieSettingsLink from '@/components/consent/CookieSettingsLink';
@@ -12,6 +14,8 @@ export default async function SiteFooter({ aboutVisible = false }: { aboutVisibl
   const t = await getTranslations('Footer');
   const nav = await getTranslations('Nav');
   const names = await getTranslations('Products.names');
+  const locale = (await getLocale()) === 'ru' ? 'ru' : 'en';
+  const categoryLive = categoryPagesLive();
   return (
     <footer className="site-footer">
       <div className="container cols">
@@ -21,7 +25,7 @@ export default async function SiteFooter({ aboutVisible = false }: { aboutVisibl
         </div>
         <nav aria-label={t('categories')}>
           <h2>{t('categories')}</h2>
-          <ul className="cats">{products.map((p) => <li key={p.slug}><Link href={`/products#${p.slug}`}>{names(p.slug)}</Link></li>)}</ul>
+          <ul className="cats">{products.map((p) => <li key={p.slug}><Link href={categoryHref(locale, p.slug, categoryLive)}>{names(p.slug)}</Link></li>)}</ul>
         </nav>
         <div>
           <h2>{t('contact')}</h2>

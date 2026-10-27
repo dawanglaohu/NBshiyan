@@ -84,6 +84,6 @@ test('mock mode is local-only and off in production', () => {
   assert.equal(seoMockEnabled({}), false);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', APP_ENV: 'development' }), true);
   assert.equal(seoMockEnabled({ SEO_AUDIT_MOCK: '1', VERCEL_ENV: 'production' }), false);
-  assert.equal(categoryPagesLive({ SEO_AUDIT_MOCK: '1', VERCEL_ENV: 'production' }), false);
+  assert.equal(categoryPagesLive({ SEO_AUDIT_MOCK: '1', VERCEL_ENV: 'production' }), true);
   for (const a of MOCK_ARTICLES) for (const l of ['en', 'ru'] as const) assert.match(a.slug[l], /^[a-z0-9-]{1,96}$/);
 });
