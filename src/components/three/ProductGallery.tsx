@@ -72,7 +72,8 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     const el = index >= 0 ? tracks[index]?.current : null;
     if (el && id != null) {
       el.dispatchEvent(new PointerEvent('pointerup', { pointerId: id, bubbles: true, cancelable: true }));
-      if (el.hasPointerCapture(id)) el.releasePointerCapture(id);
+      // OrbitControls 只在自己内部 releasePointerCapture，从不 set（已核 three-stdlib 2.36.1 全文）：
+      // 捕获从来不在我们手里，这里不能再碰捕获状态。合成一个 pointerup 已让它结束本次手势。
     }
     pointerId.current = null;
   }, [items, tracks]);
@@ -134,14 +135,17 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     if (!slug) return;
     const index = items.findIndex((item) => item.slug === slug);
     const el = index >= 0 ? tracks[index]?.current : null;
-    if (!el) return;
+    // 焦点可能落在这张卡的任一子元素上（stage、缩放按钮、视角按钮），
+    // 所以监听挂整张卡，而不是只挂 stage；否则光标停在缩放按钮上按 Ctrl+滚轮不会缩放。
+    const card = el?.closest('article') ?? el;
+    if (!card) return;
     const onWheel = (event: WheelEvent) => {
       if (wheelAction({ focused: true, ctrlKey: event.ctrlKey, metaKey: event.metaKey }) !== 'zoom-camera') return;
       event.preventDefault();
       requestZoom(slug, event.deltaY);
     };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    card.addEventListener('wheel', onWheel, { passive: false });
+    return () => card.removeEventListener('wheel', onWheel);
   }, [pointer.focusedSlug, items, tracks, requestZoom]);
   const onEnter = (slug: string) => (event: React.PointerEvent) => {
     if (event.pointerType === 'mouse') setMouse(true);

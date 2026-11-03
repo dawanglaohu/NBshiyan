@@ -4,7 +4,11 @@ import { readFileSync } from 'node:fs';
 import {
   LEGACY_HOVER_ZOOM_MS,
   assertModelPointerContract,
+  createModelPointerState,
+  hoverScalesGeometry,
   legacyHoverZoomWheel,
+  pageScrollLocked,
+  reduceModelPointer,
   wheelAction,
   wheelActionResult,
 } from '../src/lib/three/model-pointer';
@@ -65,4 +69,38 @@ test('联系页面板提示与 Ctrl/Cmd 滚轮策略一致，不再写普通滚�
   }
   assert.match(en.Products.hint, /plain scroll moves the page/i);
   assert.match(ru.Products.hint, /обычная прокрутка листает страницу/i);
+});
+
+test('悬停与页面滚动的结论来自状态机，不是写死的常量', () => {
+  assert.equal(hoverScalesGeometry(), false, '悬停不得置位 owner/dragging');
+  assert.equal(pageScrollLocked(), false, 'pointerup 后必须释放 owner 与 dragging');
+
+  // 可证伪：状态机确实会进入锁页状态，说明判定不是永远返回 false。
+  let locked = createModelPointerState(false);
+  locked = reduceModelPointer(locked, { type: 'visible', slugs: ['a'] });
+  locked = reduceModelPointer(locked, { type: 'pointerdown', slug: 'a', pointerType: 'mouse', button: 0 });
+  assert.equal(locked.ownerSlug, 'a', '按下期间 owner 存在');
+  assert.equal(locked.dragging, true, '按下期间 dragging 为真');
+
+  // 直接证明这两个函数会返回 true：构造一个未释放的状态喂给它们。
+  assert.equal(pageScrollLocked(locked), true, '按下未释放时必须判为锁页');
+  const hoveredNoCapture = reduceModelPointer(
+    reduceModelPointer(createModelPointerState(false), { type: 'visible', slugs: ['a'] }),
+    { type: 'pointerenter', slug: 'a', pointerType: 'mouse' },
+  );
+  assert.equal(hoverScalesGeometry(hoveredNoCapture), false, '纯悬停不得判为缩放');
+  assert.equal(hoverScalesGeometry(locked), true, '拖动中必须判为改变几何');
+});
+
+test('滚轮监听的宿主覆盖控制按钮区，不再只挂 stage', () => {
+  const src = readFileSync('src/components/three/ProductGallery.tsx', 'utf8');
+  assert.match(src, /const card = el\?\.closest\('article'\) \?\? el;/, '必须提升到卡片容器');
+  assert.match(src, /card\.addEventListener\('wheel', onWheel, \{ passive: false \}\)/, '监听挂在卡片上');
+  assert.equal(/el\.addEventListener\('wheel'/.test(src), false, '不得再只挂 stage');
+});
+
+test('不再保留依赖 OrbitControls 的 pointer capture 守卫', () => {
+  const src = readFileSync('src/components/three/ProductGallery.tsx', 'utf8');
+  assert.equal(src.includes('hasPointerCapture'), false, 'OrbitControls 从不 setPointerCapture，该守卫是死代码');
+  assert.match(src, /dispatchEvent\(new PointerEvent\('pointerup'/, '释放仍靠合成 pointerup');
 });
