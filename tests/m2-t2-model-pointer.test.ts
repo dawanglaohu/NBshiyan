@@ -139,6 +139,10 @@ test('退出路径同步撤销滚轮许可，遗留 DOM 焦点不能重获接管
 
   // 焦点进入控制区才重新签发；Zoom 按钮不经过许可判定。
   assert.match(src, /wheelPermit\.current = p\.slug;/, '焦点进入才签发');
+  // 按下是主动重入：焦点已在该元素时浏览器不派发 focus，必须显式补发许可。
+  const onDownBlock = /const onDown = \(slug: string\) =>[\s\S]*?\n  \};/.exec(src)?.[0] ?? '';
+  assert.ok(onDownBlock, '必须能找到 onDown 实现');
+  assert.match(onDownBlock, /wheelPermit\.current = slug;/, '按下必须重新签发许可');
   const zoomButton = /data-testid="model-zoom-in"[^>]*onClick=\{\(\) => \{ setArmed\(true\); requestZoom\(p\.slug, -100\); \}\}/;
   assert.match(src, zoomButton, 'Zoom 按钮保留独立入口，不经许可判定');
 });

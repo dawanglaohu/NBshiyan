@@ -185,6 +185,9 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     pointerId.current = event.pointerId;
     dispatch({ type: 'pointerdown', slug, pointerType: event.pointerType, button: event.button });
     event.currentTarget.focus({ preventScroll: true });
+    // 焦点可能已在该视口上（例如刚取消后 DOM 焦点仍在），此时浏览器不会再派发 focus 事件，
+    // 只靠 onFocus 会漏掉重新签发。按下是明确的主动重入，这里同步补发许可。
+    wheelPermit.current = slug;
   };
   const onCancel = () => {
     releaseDom();
