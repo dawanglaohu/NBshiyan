@@ -104,19 +104,6 @@ function withoutInteraction(state: ModelPointerState): ModelPointerState {
   return { ...state, ownerSlug: null, focusedSlug: null, hoveredSlug: null, dragging: false };
 }
 
-/**
- * 悬停是否会让某张卡进入缩放。由状态机回答，而不是返回字面量：
- * 悬停只写 hoveredSlug，缩放只由 requestZoom（按钮 / Ctrl/Cmd+滚轮）触发。
- * 返回 true 表示悬停确实置位了 owner 或 dragging。传入 state 供测试注入。
- */
-export function hoverScalesGeometry(state?: ModelPointerState): boolean {
-  const current = state ?? reduceModelPointer(
-    reduceModelPointer(createModelPointerState(false), { type: 'visible', slugs: ['a'] }),
-    { type: 'pointerenter', slug: 'a', pointerType: 'mouse' },
-  );
-  return current.ownerSlug !== null || current.dragging;
-}
-
 export function reduceModelPointer(state: ModelPointerState, event: ModelPointerEvent): ModelPointerState {
   switch (event.type) {
     case 'pointerdown': {
@@ -177,22 +164,6 @@ export function shouldAutoRotate(state: ModelPointerState, slug: string): boolea
   return true;
 }
 
-/**
- * 模型手势是否会锁住页面滚动。由状态机回答：
- * 拖动结束时必须回到没有 owner、没有 dragging 的状态，
- * 否则后续轮次里滚动会被当成模型手势。返回 true 表示确实锁住了。
- * 传入 state 供测试注入未释放的中间状态。
- */
-export function pageScrollLocked(state?: ModelPointerState): boolean {
-  let current = state ?? createModelPointerState(false);
-  if (!state) {
-    current = reduceModelPointer(current, { type: 'visible', slugs: ['a'] });
-    current = reduceModelPointer(current, { type: 'pointerdown', slug: 'a', pointerType: 'mouse', button: 0 });
-    current = reduceModelPointer(current, { type: 'pointerup' });
-  }
-  return current.ownerSlug !== null || current.dragging;
-}
-
 export type ModelControlCopy = {
   controls: string;
   zoomIn: string;
@@ -249,8 +220,6 @@ export function assertModelPointerContract(): void {
   if (wheelAction({ focused: true, ctrlKey: false, metaKey: false }) !== 'scroll-page') fail('focused plain wheel must scroll');
   if (wheelAction({ focused: true, ctrlKey: true, metaKey: false }) !== 'zoom-camera') fail('ctrl wheel must zoom when focused');
   if (wheelAction({ focused: false, ctrlKey: true, metaKey: false }) !== 'scroll-page') fail('unfocused ctrl wheel must scroll');
-  if (hoverScalesGeometry()) fail('hover must not scale geometry');
-  if (pageScrollLocked()) fail('model gestures must not lock page scroll');
 
   let state = createModelPointerState(false);
   state = reduceModelPointer(state, { type: 'visible', slugs: ['a', 'b'] });
@@ -258,7 +227,6 @@ export function assertModelPointerContract(): void {
   state = reduceModelPointer(state, { type: 'pointerenter', slug: 'a', pointerType: 'mouse' });
   if (state.ownerSlug !== null || state.focusedSlug !== null) fail('hover must not capture or focus');
   if (shouldAutoRotate(state, 'a')) fail('hover must pause spin');
-  if (hoverScalesGeometry()) fail('hover scale');
 
   state = reduceModelPointer(state, { type: 'pointerdown', slug: 'a', pointerType: 'mouse', button: 0 });
   if (state.ownerSlug !== 'a' || !state.dragging) fail('pointerdown must capture the starting model');

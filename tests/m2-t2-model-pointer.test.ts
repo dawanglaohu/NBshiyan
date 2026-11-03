@@ -5,10 +5,9 @@ import {
   LEGACY_HOVER_ZOOM_MS,
   assertModelPointerContract,
   createModelPointerState,
-  hoverScalesGeometry,
   legacyHoverZoomWheel,
-  pageScrollLocked,
   reduceModelPointer,
+  shouldAutoRotate,
   wheelAction,
   wheelActionResult,
 } from '../src/lib/three/model-pointer';
@@ -71,25 +70,38 @@ test('联系页面板提示与 Ctrl/Cmd 滚轮策略一致，不再写普通滚�
   assert.match(ru.Products.hint, /обычная прокрутка листает страницу/i);
 });
 
-test('悬停与页面滚动的结论来自状态机，不是写死的常量', () => {
-  assert.equal(hoverScalesGeometry(), false, '悬停不得置位 owner/dragging');
-  assert.equal(pageScrollLocked(), false, 'pointerup 后必须释放 owner 与 dragging');
+test('状态机不变量：悬停不抢归属，按下才拥有，松开即释放', () => {
+  let state = createModelPointerState(false);
+  state = reduceModelPointer(state, { type: 'visible', slugs: ['a', 'b'] });
 
-  // 可证伪：状态机确实会进入锁页状态，说明判定不是永远返回 false。
-  let locked = createModelPointerState(false);
-  locked = reduceModelPointer(locked, { type: 'visible', slugs: ['a'] });
-  locked = reduceModelPointer(locked, { type: 'pointerdown', slug: 'a', pointerType: 'mouse', button: 0 });
-  assert.equal(locked.ownerSlug, 'a', '按下期间 owner 存在');
-  assert.equal(locked.dragging, true, '按下期间 dragging 为真');
+  // 悬停只改 hoveredSlug，不抢 owner/focused，也不置 dragging。
+  state = reduceModelPointer(state, { type: 'pointerenter', slug: 'a', pointerType: 'mouse' });
+  assert.equal(state.hoveredSlug, 'a', '悬停应记录 hoveredSlug');
+  assert.equal(state.ownerSlug, null, '悬停不得取得归属');
+  assert.equal(state.focusedSlug, null, '悬停不得取得焦点');
+  assert.equal(state.dragging, false, '悬停不得进入拖动');
+  assert.equal(shouldAutoRotate(state, 'a'), false, '悬停应暂停自转');
 
-  // 直接证明这两个函数会返回 true：构造一个未释放的状态喂给它们。
-  assert.equal(pageScrollLocked(locked), true, '按下未释放时必须判为锁页');
-  const hoveredNoCapture = reduceModelPointer(
-    reduceModelPointer(createModelPointerState(false), { type: 'visible', slugs: ['a'] }),
-    { type: 'pointerenter', slug: 'a', pointerType: 'mouse' },
+  // 按下才拥有归属与拖动标志。
+  state = reduceModelPointer(state, { type: 'pointerdown', slug: 'a', pointerType: 'mouse', button: 0 });
+  assert.equal(state.ownerSlug, 'a', '按下应取得归属');
+  assert.equal(state.dragging, true, '按下应进入拖动');
+
+  // 松开必须同时释放 owner 与 dragging，否则下一次滚动会被当成模型手势。
+  state = reduceModelPointer(state, { type: 'pointerup' });
+  assert.equal(state.ownerSlug, null, '松开必须释放归属');
+  assert.equal(state.dragging, false, '松开必须退出拖动');
+
+  // 取消同样必须释放。
+  let cancelled = reduceModelPointer(
+    reduceModelPointer(
+      reduceModelPointer(createModelPointerState(false), { type: 'visible', slugs: ['a'] }),
+      { type: 'pointerdown', slug: 'a', pointerType: 'mouse', button: 0 },
+    ),
+    { type: 'pointercancel' },
   );
-  assert.equal(hoverScalesGeometry(hoveredNoCapture), false, '纯悬停不得判为缩放');
-  assert.equal(hoverScalesGeometry(locked), true, '拖动中必须判为改变几何');
+  assert.equal(cancelled.ownerSlug, null, '取消必须释放归属');
+  assert.equal(cancelled.dragging, false, '取消必须退出拖动');
 });
 
 test('滚轮监听的宿主覆盖控制按钮区，不再只挂 stage', () => {
