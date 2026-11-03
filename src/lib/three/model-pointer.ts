@@ -22,6 +22,31 @@ export function wheelAction(input: WheelInput): WheelAction {
   return 'scroll-page';
 }
 
+export type WheelAdmissionInput = {
+  /** 真实 DOM 焦点是否落在本模型的视口或命名工具条内；不用缓存的 focusedSlug 代替。 */
+  focusBelongsToModel: boolean;
+  /** 指针是否命中本模型的实际视口元素。 */
+  pointerHitsViewport: boolean;
+  /** 指针是否命中本模型的命名工具条或其按钮。 */
+  pointerHitsToolbar: boolean;
+  ctrlKey: boolean;
+  metaKey: boolean;
+};
+
+/**
+ * 桌面修饰键滚轮的准入判定（E-98）。
+ *
+ * 焦点归属与指针命中必须分别成立且属于同一模型；整张卡片、DOM 包含关系或几何叠入都不扩大范围。
+ * 普通滚轮在任何情形都返回 scroll-page：调用方据此不调用 preventDefault，页面照常滚动。
+ * 本函数只表达规则，不证明浏览器默认行为——页缩放与真实相机变化由浏览器级证据验收。
+ */
+export function wheelAdmission(input: WheelAdmissionInput): WheelAction {
+  if (!input.focusBelongsToModel) return 'scroll-page';
+  if (!input.pointerHitsViewport && !input.pointerHitsToolbar) return 'scroll-page';
+  if (!input.ctrlKey && !input.metaKey) return 'scroll-page';
+  return 'zoom-camera';
+}
+
 /**
  * 给定一个（可能来自旧规则的）动作，判断它在当前规则下是否被允许。
  * 这里不拿新规则和它自己比，而是拿下面的期望表核对，

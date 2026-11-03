@@ -167,6 +167,53 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
 });
 
+test('E-98 准入域限定在本模型视口与命名工具条，标题与说明不缩放', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const first = await openProducts(page);
+  // openProducts 已等到 data-framed=1，此时 publishCamera 已写过距离。
+  await expect(first).toHaveAttribute('data-camera-distance', /^\d+\.\d+$/);
+
+  // 1) 焦点在本模型视口、指针在本模型命名工具条的按钮上 → 应缩放本模型。
+  await first.focus();
+  await expect(first).toHaveAttribute('data-focused', '1');
+  const beforeToolbar = await first.getAttribute('data-camera-distance');
+  const zoomIn = page.locator('article.card').first().getByTestId('model-zoom-in');
+  const zoomBox = await zoomIn.boundingBox();
+  if (!zoomBox) throw new Error('zoom button has no box');
+  await page.mouse.move(zoomBox.x + zoomBox.width / 2, zoomBox.y + zoomBox.height / 2);
+  await page.keyboard.down('Control');
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expect
+    .poll(async () => Number(await first.getAttribute('data-camera-distance')))
+    .not.toBe(Number(beforeToolbar));
+
+  // 2) 焦点仍在本模型、指针移到本模型标题 → 不得缩放。
+  const afterToolbar = await first.getAttribute('data-camera-distance');
+  const titleBox = await page.locator('article.card').first().locator('h2').boundingBox();
+  if (!titleBox) throw new Error('title has no box');
+  await page.mouse.move(titleBox.x + titleBox.width / 2, titleBox.y + titleBox.height / 2);
+  await page.keyboard.down('Control');
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expect(first).toHaveAttribute('data-camera-distance', afterToolbar!);
+
+  // 3) 焦点在本模型、指针移到另一模型的视口 → 两个模型都不变。
+  const beforeCross = await first.getAttribute('data-camera-distance');
+  const secondCard = page.locator('article.card').nth(1);
+  const secondViewport = secondCard.getByTestId('product-viewport');
+  const secondDistance = await secondViewport.getAttribute('data-camera-distance');
+  const secondBox = await secondViewport.boundingBox();
+  if (!secondBox) throw new Error('second viewport has no box');
+  await page.mouse.move(secondBox.x + secondBox.width / 2, secondBox.y + secondBox.height / 2);
+  await page.keyboard.down('Control');
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expect(first).toHaveAttribute('data-camera-distance', beforeCross!);
+  await expect(secondViewport).toHaveAttribute('data-camera-distance', secondDistance!);
+});
+
 test('hover pauses spin and a user pause survives hide and foreground', async ({ page }) => {
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: 'no-preference' });

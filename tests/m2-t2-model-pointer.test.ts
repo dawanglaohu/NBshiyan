@@ -10,6 +10,7 @@ import {
   shouldAutoRotate,
   wheelAction,
   wheelActionResult,
+  wheelAdmission,
 } from '../src/lib/three/model-pointer';
 
 /**
@@ -104,11 +105,70 @@ test('状态机不变量：悬停不抢归属，按下才拥有，松开即释�
   assert.equal(cancelled.dragging, false, '取消必须退出拖动');
 });
 
-test('滚轮监听的宿主覆盖控制按钮区，不再只挂 stage', () => {
+test('滚轮监听挂在焦点 wrapper，不以整张卡片作为准入域', () => {
   const src = readFileSync('src/components/three/ProductGallery.tsx', 'utf8');
-  assert.match(src, /const card = el\?\.closest\('article'\) \?\? el;/, '必须提升到卡片容器');
-  assert.match(src, /card\.addEventListener\('wheel', onWheel, \{ passive: false \}\)/, '监听挂在卡片上');
-  assert.equal(/el\.addEventListener\('wheel'/.test(src), false, '不得再只挂 stage');
+  // 规范 E-98：不得因事件冒泡到整张卡片扩大准入范围。
+  assert.match(src, /const surface = viewport\?\.parentElement \?\? null;/, '监听必须挂在焦点 wrapper');
+  assert.match(src, /surface\.addEventListener\('wheel', onWheel, \{ passive: false \}\)/, '监听挂在 wrapper 上');
+  assert.equal(src.includes("el?.closest('article')"), false, '不得再挂整张 article');
+  assert.match(src, /wheelAdmission\(\{/, '必须走双重准入判定');
+  assert.match(src, /surface\.contains\(document\.activeElement\)/, '焦点归属取真实 DOM 焦点');
+});
+
+test('E-98 准入矩阵：焦点归属与指针命中必须分别成立', () => {
+  const base = {
+    focusBelongsToModel: true,
+    pointerHitsViewport: true,
+    pointerHitsToolbar: false,
+    ctrlKey: true,
+    metaKey: false,
+  };
+
+  // 第一行：焦点在本模型控制区
+  assert.equal(wheelAdmission(base), 'zoom-camera', '视口命中 + Ctrl 应缩放本模型');
+  assert.equal(
+    wheelAdmission({ ...base, pointerHitsViewport: false, pointerHitsToolbar: true }),
+    'zoom-camera',
+    '工具条命中 + Ctrl 应缩放本模型',
+  );
+  assert.equal(
+    wheelAdmission({ ...base, pointerHitsViewport: false, pointerHitsToolbar: false }),
+    'scroll-page',
+    '指针在标题/说明/链接或另一模型时不缩放任一模型',
+  );
+
+  // 第二行：无模型控制区焦点，或已解除交互
+  for (const hit of [
+    { pointerHitsViewport: true, pointerHitsToolbar: false },
+    { pointerHitsViewport: false, pointerHitsToolbar: true },
+    { pointerHitsViewport: false, pointerHitsToolbar: false },
+  ]) {
+    assert.equal(
+      wheelAdmission({ ...base, ...hit, focusBelongsToModel: false }),
+      'scroll-page',
+      '焦点不属于本模型时任何命中都不缩放',
+    );
+  }
+
+  // 普通滚轮在所有格始终滚页，包括 Shift/Ctrl 之外的组合
+  for (const hit of [
+    { pointerHitsViewport: true, pointerHitsToolbar: false },
+    { pointerHitsViewport: false, pointerHitsToolbar: true },
+    { pointerHitsViewport: false, pointerHitsToolbar: false },
+  ]) {
+    assert.equal(
+      wheelAdmission({ ...base, ...hit, ctrlKey: false, metaKey: false }),
+      'scroll-page',
+      '普通滚轮必须滚页',
+    );
+  }
+
+  // Cmd 与 Ctrl 等价
+  assert.equal(
+    wheelAdmission({ ...base, ctrlKey: false, metaKey: true }),
+    'zoom-camera',
+    'Cmd+滚轮应缩放本模型',
+  );
 });
 
 test('不再保留依赖 OrbitControls 的 pointer capture 守卫', () => {

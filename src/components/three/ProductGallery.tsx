@@ -8,7 +8,7 @@ import SceneErrorBoundary from './SceneErrorBoundary';
 import { hintText, COARSE_QUERY } from './hint';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 import { Link } from '@/i18n/navigation';
-import { controlCopy, createModelPointerState, reduceModelPointer, shouldAutoRotate, wheelAction } from '@/lib/three/model-pointer';
+import { controlCopy, createModelPointerState, reduceModelPointer, shouldAutoRotate, wheelAdmission } from '@/lib/three/model-pointer';
 
 /** 深色卡片（.theme-premium）：卡片样式和 3D 轮廓光共用这一份 */
 export const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
@@ -134,18 +134,31 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     const slug = pointer.focusedSlug;
     if (!slug) return;
     const index = items.findIndex((item) => item.slug === slug);
-    const el = index >= 0 ? tracks[index]?.current : null;
-    // 焦点可能落在这张卡的任一子元素上（stage、缩放按钮、视角按钮），
-    // 所以监听挂整张卡，而不是只挂 stage；否则光标停在缩放按钮上按 Ctrl+滚轮不会缩放。
-    const card = el?.closest('article') ?? el;
-    if (!card) return;
+    const viewport = index >= 0 ? tracks[index]?.current : null;
+    // 焦点 wrapper = article > div[style=min-width:0]，只含视口与命名工具条，不含标题/说明/购买。
+    // 监听挂它而不是 article：整张卡片会把正文区也算进准入域（E-98 禁止）。
+    const surface = viewport?.parentElement ?? null;
+    if (!surface) return;
     const onWheel = (event: WheelEvent) => {
-      if (wheelAction({ focused: true, ctrlKey: event.ctrlKey, metaKey: event.metaKey }) !== 'zoom-camera') return;
+      const target = event.target as HTMLElement | null;
+      // 语义命中：必须落在本模型的视口或命名工具条内，且在该 wrapper 之内。
+      const hitsViewport = !!target?.closest('[data-testid="product-viewport"]');
+      const hitsToolbar = !!target?.closest('[data-testid="model-controls"]');
+      const inSurface = !!target && surface.contains(target);
+      const verdict = wheelAdmission({
+        // 焦点归属取真实 DOM 焦点，不用缓存的 focusedSlug 代替（E-98）。
+        focusBelongsToModel: surface.contains(document.activeElement),
+        pointerHitsViewport: hitsViewport && inSurface,
+        pointerHitsToolbar: hitsToolbar && inSurface,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+      });
+      if (verdict !== 'zoom-camera') return;
       event.preventDefault();
       requestZoom(slug, event.deltaY);
     };
-    card.addEventListener('wheel', onWheel, { passive: false });
-    return () => card.removeEventListener('wheel', onWheel);
+    surface.addEventListener('wheel', onWheel, { passive: false });
+    return () => surface.removeEventListener('wheel', onWheel);
   }, [pointer.focusedSlug, items, tracks, requestZoom]);
   const onEnter = (slug: string) => (event: React.PointerEvent) => {
     if (event.pointerType === 'mouse') setMouse(true);
