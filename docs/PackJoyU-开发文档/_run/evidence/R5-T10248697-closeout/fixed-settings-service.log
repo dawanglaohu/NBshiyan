@@ -1,0 +1,65 @@
+TAP version 13
+# SETTINGS_SKIPPED_MIDNIGHT_EVIDENCE {"fixedMain":"a9172b2f2601a4e5605fdbac274050fb09347e0f","mode":"actual service with injected in-memory repo; no SQL, HTTP, or database transaction/lock verification","runtime":{"node":"v24.21.0","icu":"78.3","tz":"2026c"},"observations":[{"timezone":"America/Santiago","offsetMs":-1,"recomputableFrom":"2026-09-06T04:00:00.000Z","version":1,"timezoneRevision":2,"rebuildScheduled":true,"sqlCalls":0},{"timezone":"America/Santiago","offsetMs":0,"recomputableFrom":"2026-09-06T04:00:00.000Z","version":1,"timezoneRevision":2,"rebuildScheduled":true,"sqlCalls":0},{"timezone":"America/Santiago","offsetMs":1,"recomputableFrom":"2026-09-07T03:00:00.000Z","version":1,"timezoneRevision":2,"rebuildScheduled":true,"sqlCalls":0},{"timezone":"America/Havana","offsetMs":-1,"recomputableFrom":"2026-03-08T05:00:00.000Z","version":1,"timezoneRevision":2,"rebuildScheduled":true,"sqlCalls":0},{"timezone":"America/Havana","offsetMs":0,"recomputableFrom":"2026-03-08T05:00:00.000Z","version":1,"timezoneRevision":2,"rebuildScheduled":true,"sqlCalls":0},{"timezone":"America/Havana","offsetMs":1,"recomputableFrom":"2026-03-09T04:00:00.000Z","version":1,"timezoneRevision":2,"rebuildScheduled":true,"sqlCalls":0}]}
+# Subtest: actual settings service accepts America/Santiago skipped-midnight cutoff offset -1ms
+ok 1 - actual settings service accepts America/Santiago skipped-midnight cutoff offset -1ms
+  ---
+  duration_ms: 42.4872
+  type: 'test'
+  ...
+# Subtest: actual settings service accepts America/Santiago skipped-midnight cutoff offset 0ms
+ok 2 - actual settings service accepts America/Santiago skipped-midnight cutoff offset 0ms
+  ---
+  duration_ms: 7.2036
+  type: 'test'
+  ...
+# Subtest: actual settings service accepts America/Santiago skipped-midnight cutoff offset 1ms
+ok 3 - actual settings service accepts America/Santiago skipped-midnight cutoff offset 1ms
+  ---
+  duration_ms: 10.2992
+  type: 'test'
+  ...
+# Subtest: actual settings service accepts America/Havana skipped-midnight cutoff offset -1ms
+ok 4 - actual settings service accepts America/Havana skipped-midnight cutoff offset -1ms
+  ---
+  duration_ms: 7.0918
+  type: 'test'
+  ...
+# Subtest: actual settings service accepts America/Havana skipped-midnight cutoff offset 0ms
+ok 5 - actual settings service accepts America/Havana skipped-midnight cutoff offset 0ms
+  ---
+  duration_ms: 7.1944
+  type: 'test'
+  ...
+# Subtest: actual settings service accepts America/Havana skipped-midnight cutoff offset 1ms
+ok 6 - actual settings service accepts America/Havana skipped-midnight cutoff offset 1ms
+  ---
+  duration_ms: 6.123
+  type: 'test'
+  ...
+# Subtest: invalid IANA is rejected with timezone field error without writes
+ok 7 - invalid IANA is rejected with timezone field error without writes
+  ---
+  duration_ms: 2.9039
+  type: 'test'
+  ...
+# Subtest: same value after accepted update does not increment revision or schedule twice
+ok 8 - same value after accepted update does not increment revision or schedule twice
+  ---
+  duration_ms: 12.2736
+  type: 'test'
+  ...
+# Subtest: version conflict remains rejected before boundary writes
+ok 9 - version conflict remains rejected before boundary writes
+  ---
+  duration_ms: 2.6017
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1134.851

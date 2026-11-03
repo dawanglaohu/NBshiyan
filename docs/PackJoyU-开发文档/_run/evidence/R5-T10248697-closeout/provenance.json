@@ -1,0 +1,23 @@
+{
+  "fixedMain": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+  "mergedImplementationPR": 501,
+  "implementationHead": "d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb",
+  "merge": "b2db0294da689759424c3ec8c777f90ec89ff477",
+  "archiveSha256": {
+    "before-gap.log": "7d9d9d90517fb05c7fb8a7ba8f104c15f1581d253dd4c72a89f495e4572b52e3",
+    "fixed-day-boundaries.log": "d2967c14a6e08f1e1cca42e270b68196e528564d3f88aac1c457c3665fd6c04a",
+    "fixed-settings-service.log": "740965508773558e68d68381a3a305d226b575c04fe4a541d13cf3833b8aae16",
+    "w4-verification-evidence.json": "a76a5bfc835627f36d110f7f14c18fb363b74f8154100f4f78c9ab28ad0d499f",
+    "history-ci-evidence.json": "e67006f66af342c7867bb57d34b692ba38a1e6156f7149f36a635aa32b625812"
+  },
+  "stage": "W4 raw evidence preserved; closing registration is separate",
+  "runtime": {
+    "node": "v24.21.0",
+    "icu": "78.3",
+    "tzdata": "2026c"
+  },
+  "limits": [
+    "No PostgreSQL/HTTP/full-suite/build/deployment rerun in this closeout",
+    "No source change; current formal Git blobs match fixed evidence"
+  ]
+}
