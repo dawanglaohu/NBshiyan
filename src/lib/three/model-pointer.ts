@@ -22,9 +22,34 @@ export function wheelAction(input: WheelInput): WheelAction {
   return 'scroll-page';
 }
 
-export function wheelMatchesContract(action: WheelAction, input: WheelInput): boolean {
-  return action === wheelAction(input);
+/**
+ * 给定一个（可能来自旧规则的）动作，判断它在当前规则下是否被允许。
+ * 这里不拿新规则和它自己比，而是拿下面的期望表核对，
+ * 所以旧规则给出的 'zoom-camera' 在普通滚轮上会被判为不允许。
+ */
+export function wheelActionResult(action: WheelAction, input: WheelInput): boolean {
+  const expected: WheelAction = WHEEL_TRUTH_TABLE[rowOf(input)];
+  return action === expected;
 }
+
+function rowOf(input: WheelInput): string {
+  return `${input.focused ? 'f' : 'u'}|${input.ctrlKey ? 'c' : '-'}|${input.metaKey ? 'm' : '-'}`;
+}
+
+/**
+ * 当前滚轮规则的真值表，写死在这里作为独立于实现的可证伪期望。
+ * 只有「已聚焦 + Ctrl 或 Cmd」才缩放相机；其余一律交回页面滚动。
+ */
+const WHEEL_TRUTH_TABLE: Record<string, WheelAction> = {
+  'u|-|-': 'scroll-page',
+  'u|c|-': 'scroll-page',
+  'u|-|m': 'scroll-page',
+  'u|c|m': 'scroll-page',
+  'f|-|-': 'scroll-page',
+  'f|c|-': 'zoom-camera',
+  'f|-|m': 'zoom-camera',
+  'f|c|m': 'zoom-camera',
+};
 
 export type ModelPointerState = {
   ownerSlug: string | null;
@@ -180,26 +205,30 @@ function fail(message: string): never {
   throw new Error(message);
 }
 
-/** 旧规则必须仍判失败，新规则必须通过。供 e2e 与本地节点核对共用。 */
+/** 当前轮滚规则的真值表。旧规则在「未聚焦的普通滚轮」这一格给出 zoom-camera，因此判为不符合。 */
 export function assertModelPointerContract(): void {
   const plain: WheelInput = { focused: false, ctrlKey: false, metaKey: false };
   const legacy = legacyHoverZoomWheel({ hoverMs: LEGACY_HOVER_ZOOM_MS, pointerArmed: false });
-  if (wheelMatchesContract(legacy, plain)) fail('legacy hover zoom must fail the plain-wheel contract');
   if (legacy !== 'zoom-camera') fail('legacy hover of 500ms armed camera zoom');
+  if (wheelActionResult(legacy, plain)) fail('legacy hover zoom must fail the plain-wheel contract');
 
+  // 八格穷举全部对照真值表；wheelAction 只要有一格偏离就失败。
   const cases: WheelInput[] = [
     { focused: false, ctrlKey: false, metaKey: false },
     { focused: false, ctrlKey: true, metaKey: false },
     { focused: false, ctrlKey: false, metaKey: true },
+    { focused: false, ctrlKey: true, metaKey: true },
     { focused: true, ctrlKey: false, metaKey: false },
     { focused: true, ctrlKey: true, metaKey: false },
     { focused: true, ctrlKey: false, metaKey: true },
+    { focused: true, ctrlKey: true, metaKey: true },
   ];
   for (const input of cases) {
-    if (!wheelMatchesContract(wheelAction(input), input)) fail('wheel action drifted from the contract');
+    if (!wheelActionResult(wheelAction(input), input)) fail('wheel action drifted from the truth table');
   }
   if (wheelAction({ focused: true, ctrlKey: false, metaKey: false }) !== 'scroll-page') fail('focused plain wheel must scroll');
   if (wheelAction({ focused: true, ctrlKey: true, metaKey: false }) !== 'zoom-camera') fail('ctrl wheel must zoom when focused');
+  if (wheelAction({ focused: false, ctrlKey: true, metaKey: false }) !== 'scroll-page') fail('unfocused ctrl wheel must scroll');
   if (hoverScalesGeometry()) fail('hover must not scale geometry');
   if (pageScrollLocked()) fail('model gestures must not lock page scroll');
 

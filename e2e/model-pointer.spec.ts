@@ -1,4 +1,5 @@
-import { expect, test, type Locator, type Page } from './fixtures';
+import type { Locator, Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { assertModelPointerContract } from '../src/lib/three/model-pointer';
 
 async function dismissConsent(page: Page) {

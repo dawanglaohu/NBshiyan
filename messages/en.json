@@ -42,7 +42,7 @@
   },
   "Products": {
     "title": "Our products in 3D",
-    "hint": "Drag to rotate, scroll or pinch to zoom.",
+    "hint": "Drag to rotate. Zoom with the buttons or Ctrl/Cmd + scroll; a plain scroll moves the page.",
     "tapToRotate": "Tap to rotate",
     "dragToRotate": "Drag to rotate",
     "loading": "Loading 3D model…",
