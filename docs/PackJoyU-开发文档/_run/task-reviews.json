@@ -299,15 +299,15 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "9897db49876a6a83dbfcd8e1011d2f180746e55606d2f21f41824d29519a6358",
     "evidence": [
-      "仅复核正式规范的条款与有效范围，不代表应用源码、旧版红→新版绿、GUI、hint、浏览器页缩放、触屏或 PR 合并通过。维护依据为原分支 task/M2-T2@027d97a8963c3af989890b80927b67bc05a70f40 及 Chief 本轮规范维护授权；本轮未运行应用源码测试，不提交推送，不 --landed，不改主检出。",
-      "复用既有 design 裁决：model=jev-1.14.0，state_sha256=9ea3590d36f75a75，pick=A confidence=0.32/low，adopt=take(A)。仓库 judgments.jsonl 已归档原条目且完整双候选英文输入在同补丁的 design-state.json；原时间、标签、model、state hash 和概率保留，本轮没有重跑 Jev。局部 commerce 分类不更改既定网站风格或业务范围。",
-      "12-UX.md 第2节明确桌面控制区为本模型视口及命名工具条：当前真实 DOM 焦点归属与指针命中必须同时属于同一模型，才接管 Ctrl/Cmd+wheel；仅拦截该事件。标题/说明/规格/品类或询盘链接等非控制区以及跨模型命中均不改变相机并保留浏览器默认行为。普通 wheel/触控板普通滚动仍始终滚页，Zoom 按钮点击独立保留；焦点内部移动、Tab 离开、hover 不抢焦点、释放后的缓存/遗留 DOM 焦点不能重启拦截已明确。",
-      "11-UI.md:249 与 07-前端架构.md:140 的输入摘要、UX 时序图、13节 E-98 与 _run/edges.md 原行、19节 M2-T2 验收均对齐上述 A 定义。a-spec-scope-check.py 逐条确认仅 M2-T2 验收行和支持定义直接改变，边界直接变化只有 E-98，任务/边界 IDs、依赖、工期、提供/消费能力、原 pointer-down、相机边界、普通滚页、跨模型隔离、退出释放及 UX 原触屏/键盘段落均保留。",
-      "M2-T2 的 supportPaths 仅补 tests/m2-t2-model-pointer.test.ts、messages/en.json、messages/ru.json；组件/three 与 e2e/model-pointer.spec.ts 已在原有效范围。既有单测的 article 正则以及前端草案的 focusedSlug 判据不能代替新规范的语义命中与实时 DOM 焦点证明，后续由实施/测试按实际代码修改并保留有效行为断言与真实红绿，不在本次文档复核中将旧断言判成通过。",
-      "已读取后端归档 method-review.md：第7格为 Control→wheel→释放，不是普通 wheel；脚本有 mouse/keyboard API、程序化焦点/滚动及 scrollBehavior/overflowAnchor 干预，只保留末 wheel/DOM 采样，未独立覆盖默认样式恢复、真实焦点完整输出、GLB 就绪硬门槛、浏览器页缩放、hint、Tab 离开及触屏/释放等。只作为应用前回归场景输入，原数值是原作者报告转述，不声称本轮新测量；不改变其来源或原件。",
-      "a-spec-scope-check.py 确认应用源码、tests/e2e/messages、package/lockfile/CI 均与本轮起始字节相同；任务状态与全部既有受保护回填不变，17 个静态返工 ID、批次源记录及 presentation/gate 配置未改。规范 sync 退出0，109 个契约哈希受影响，39 个原已落地任务被标待复验；未为它们登记 pass，未删除待复验标记。本次仅登记 M2-T2 的条款/范围。"
+      "仅复核正常 main 合入后的条款/范围与持久化状态，不是 A 实现、退出生命周期、真实浏览器红绿或 hint 验收；任务仍 todo，不 --landed、不合并 PR 到 main。",
+      "正常 merge 的原头 f217a3ed 与目标 main a9172b2f 已锁定；应用索引匹配 Git 预检自动合并树，生成阶段后691个应用/测试/CI等文件字节与自动合并后快照相同，未手改应用源码。",
+      "A 的07/11/12摘要、E-98原行/台账、M2-T2验收及三个支持路径与f217a3ed的规范源哈希逐一相同；真实焦点、同模型命中、普通滚页、跨模型隔离、退出释放、原触屏/键盘义务均保留，不重跑Jev。",
+      "#499 的R4-T16305211完整任务笔记与main Git blob一致，status done及受保护回填未丢；原main的契约通过记录原样保留，docs-data.js的R4-T16305211和M4-T15均为done。",
+      "原39条待复验及其全部历史作为前缀保留；同步器按既有依赖传播新增R4-T16305211一条文档复验，共40，不撤销其done历史，不改为代码返工，也未手删标记。17个静态R任务ID不变。",
+      "六处冲突中原裁决日志按完整记录合并为1034条；五个生成产物仅用main版本引导后由合并后的源重生成，不以ours/theirs整包覆盖源、状态或最终产物；同步退出0、当前stale=[]、无生成器漂移。",
+      "三份既有窄回归（模型输入、日界、产品文案）在Node22.23.4实际19 pass、0 fail/skip/todo/cancelled，仅作合并检查；后台指出的退出许可及异步负例问题仍待前端修复，具名e2e及真实红绿/hint仍未补判通过。"
     ],
-    "reviewed": "2026-11-03T13:15:11.652794+00:00",
+    "reviewed": "2026-11-03T15:40:09.165337+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1445,6 +1445,23 @@
       "边界：空计划由 planProblems(script, '') 报 empty/unreadable；Bash 语法错误不再被 locBad 的 catch 当成安全 Location；mailSwitchGate 与 SQL 语句在重复读取下仍须逐字成立。任务契约未挂 E 编号。"
     ],
     "reviewed": "2026-10-23T05:45:49.941600+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R4-T16305211": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a0fd4e26fa420ca1faa6c3744c2ab3ed105bcc8a26d44c79d3a4aca115314bdb",
+    "evidence": [
+      "验收1（先取得 adopt.action=take 再动手）：D:/xiangmu/.codex-plans/NBshiyan-r4-t16305211/judgments.jsonl 第 2 行 label=R4-T16305211:impl-scope，ts=2026-10-26T05:08:15，model=jev-1.14.0，pick=B(0.82 high)，adopt.action=take、option=B、confidence=high；用 typesafe_ask.py:542 的 sha256(json.dumps(state,ensure_ascii=False,sort_keys=True))[:16] 对同目录 state-2.json 复算得 4c0b322dae8d6fe6，与该行 state_sha256 一致，证明回执与输入 state 属同一次调用。同文件第 1 行 label=R4-T16305211:impl（04:55:15，pick=B 0.53 medium）的 adopt.action=red_line，如实保留：它按 needs_owner=unsure 判为授权红线，不构成用户授权，也不因后一条 take 而被当作已撤销。",
+      "验收4（同一次改动只走被采纳的一条）：采纳的是 impl-scope 的 option B 即「恢复独立开关」，因此 E-20 源行与 M4-T15 验收句按选项 A 分支的写法保持原样未改。git diff --stat 6ff4934c..3863eecc -- 'docs/PackJoyU-开发文档/03-质量/13-边界问题与异常处理.md' 'docs/PackJoyU-开发文档/04-执行/19-模块任务拆分.md' 输出为空；当前 E-20 仍在 03-质量/13-边界问题与异常处理.md:26 写作「保持独立开关可关闭聊天并保留现有联系入口…不声称快照剩余约 2.7 GB…也不自动购买扩容」，M4-T15 产出句仍在 04-执行/19-模块任务拆分.md:67 写作「公共contact/隐私可见说明、独立聊天开关和保留原询盘/邮箱入口」。两条都未被本分支改写，未出现「同时落实两条」。",
+      "验收3（恢复开关的四项具体条件）：src/app/[locale]/contact/HumanContactNotice.tsx:16 的 useState(false) 是默认关闭；:32-:44 的 role=switch + aria-checked 是独立于分析开关的控件，组件内不读 Consent 上下文；:20-:29 的询盘邮箱入口 id=inquiry-email-entry 在开关之外，不受 chatEnabled 条件约束，关闭时仍可提交；messages/en.json:177-181 与 messages/ru.json:177-181 提供 chatSwitch/chatStateOn/chatStateOff/chatOff/chatOn 的英俄文案，tests/m4-t15-copy.test.ts:100-110 逐条断言这些键的最终文案；开关文案由 tests/m4-t15-copy.test.ts:136-156 的用例再锁一次结构（含 role=switch、aria-checked、data-variant=secondary、不含 setConsent/analytics/tawk）。",
+      "验收3 之「不加载 Tawk」：对 src/app/[locale]/contact/HumanContactNotice.tsx 检索 tawk|pj-consent|setConsent|analytics|2\\.7 命中 0 条；tests/m4-t15-copy.test.ts:153 断言组件内 /tawk/i 不匹配、:154 断言不含 2.7、:155 断言不含 chat-availability。同文件 :150 断言 notice.includes('setConsent') 为 false、:151 断言不含 analytics，即开关不写入同意存储。",
+      "验收2 不适用并已核对原因：选项 A（改边界）未被采纳，故不要求 E-20 与 M4-T15 描述「没有独立聊天开关」。当前两处文本仍与实现后的页面一致——页面确有独立开关且询盘邮箱仍可用，与 :26、:67 的现有措辞不冲突。",
+      "验收5（不新增后台登录）：git diff --stat 6ff4934c..3863eecc 的全部改动为 e2e/contact-chat-switch.spec.ts、messages/en.json、messages/ru.json、src/app/[locale]/contact/HumanContactNotice.tsx、src/app/globals.css、tests/m4-t15-copy.test.ts 六个文件，未触及 src/app/**/admin、src/auth.ts、src/lib/server 下的鉴权代码，未新增登录入口。",
+      "边界 E-20 的其余要求：开关只切换自身状态与旁边状态句，HumanContactNotice.tsx:45 的 span 用 aria-live=polite 播报状态，:7-11 的组件注释写明「不写 pj-consent，不挂聊天脚本；询盘和邮箱不放进开关条件」；无容量承诺（组件与文案均不含 2.7），无自动购买扩容的代码路径，无对外承诺。",
+      "ready=false 两条原因的处理：第一条「任务契约待语义复核」由本证据登记解决，不是缺陷；第二条 H12「疑似接线任务未列注册点（命中：置信、页面）」是 WARN，handoff_contract.py:171 写明 H12/H13 不锁派发，且命中词「置信」来自验收1 的 adjudicate 措辞、「页面」来自验收2/3 的界面描述，本任务实际只改既有联系页组件与文案，不新增路由或注册点，故按 WARN 保留，不往静态契约表登记同名 ID（handoff_contract.py:189-192 对重复 ID 抛冲突）。"
+    ],
+    "reviewed": "2026-11-03T02:48:40.779342+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

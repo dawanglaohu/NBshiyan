@@ -8,6 +8,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -15,6 +22,13 @@
   "CITY-STILL-WEBP": {
     "contractHash": "bd84c095ad11e0e98c742ab465a20bdfda846c8bc53f69530637c56c08008d34",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -34,6 +48,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -41,6 +62,13 @@
   "DEPLOY-FIX-1": {
     "contractHash": "9eac64fd89c5ac3f43f7c4c48ae141db5ad8aae958aee5a26692ed39746f6d85",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -60,6 +88,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -67,6 +102,13 @@
   "GIFT-CARD-ASSETS": {
     "contractHash": "7ca71d7798f491483825ab43de10273bef159494554a811dc641331112bbb668",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -86,6 +128,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -93,6 +142,13 @@
   "M1-T2": {
     "contractHash": "5f3be1a318ec318644b2b669005b1353003d21ee28460defc64056ad1dbef1e8",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -112,6 +168,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -119,6 +182,13 @@
   "M1-T4": {
     "contractHash": "410ee6176814b3eafa343406a8e783e51940467f09991e61da400dff3aaffc45",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -138,6 +208,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -145,6 +222,13 @@
   "M1-T6": {
     "contractHash": "7191040391c7bea9554d6ad6286585e142b909777d27a13eb0b8ecd50781e0e1",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -164,6 +248,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -171,6 +262,13 @@
   "M1-T8": {
     "contractHash": "01218af8360c4dcb7c3c3f34ab541ffe30cc757b0ffe67f129c58fdee07f1344",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -190,6 +288,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/11-UI.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -197,6 +302,13 @@
   "M2-T1": {
     "contractHash": "bfeab882f98436862d8cd36584f100dc41119e1ae38e12c6410cbcf2ec686265",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -216,6 +328,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -223,6 +342,13 @@
   "M3-T1": {
     "contractHash": "af4278d674453839280856fd8bb3ad1e2c55eb4a66a15168222e7c2c18833e2a",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -242,6 +368,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -249,6 +382,13 @@
   "M3-T15": {
     "contractHash": "78852ec002863d3d345e213d81d1be0f9f0154cd2a9cab89ea45960158bbc45c",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -268,6 +408,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -275,6 +422,13 @@
   "M4-T15": {
     "contractHash": "f39022bdbb75799ebe5f7d7319e3e3e85c00ae89bd3701e2c45bf4087a09eef6",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -294,6 +448,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -301,6 +462,13 @@
   "M5-T1": {
     "contractHash": "9ab71e76d753125515dd5ce55ab53808db1b2d5397b87f6f48a293ba08d67067",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -320,6 +488,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -327,6 +502,13 @@
   "M5-T6": {
     "contractHash": "aa41cb48a946c6ecf60a11f22583a5006174e921047d97c1b5c0796042bde13c",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -346,6 +528,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -353,6 +542,13 @@
   "M5-T9": {
     "contractHash": "d58697af3e14e4d5f94cec7803d4ad2c934f682a674e648502f78231f8f447ad",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -372,6 +568,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -379,6 +582,13 @@
   "R3-T09598683": {
     "contractHash": "509fa325ea51ffb50fa4779092473077bcc2764e43e927408e70250f3d9d9af7",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -398,6 +608,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -405,6 +622,13 @@
   "R3-T21757567": {
     "contractHash": "f8377abe3c49dbc2a0ba2145008fd483ead5881e8d97892ce1952e04684f057b",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -424,6 +648,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -431,6 +662,13 @@
   "R3-T56876634": {
     "contractHash": "8a7849184f811d15c69b2089ab3cd0f02894aad0aba4225d28c57779c94b2a48",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -450,6 +688,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -457,6 +702,13 @@
   "R3-T75625096": {
     "contractHash": "01d373f96df7eb76e63d95515a64f141be425ec10d46e26ab20b4772cdf7f14b",
     "patches": [
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "providers"
@@ -476,6 +728,13 @@
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "providers"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
       }
     ],
     "previousStatus": "done"
@@ -483,6 +742,13 @@
   "R3-T87287564": {
     "contractHash": "2eace128c2903b7593e86281cd344ac785916a06f7fa3b01a7917e124d47ab0e",
     "patches": [
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
@@ -499,6 +765,26 @@
       {
         "changedFields": [
           "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      },
+      {
+        "changedFields": [
+          "sections:02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md"
+        ],
+        "patch": "M2-T2-wheel-admission-A",
+        "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "R4-T16305211": {
+    "contractHash": "1ae8c04d33cc26c85af0c09cf25ec227daee3cfe9ae176a42e5264454863f4e1",
+    "patches": [
+      {
+        "changedFields": [
+          "providers"
         ],
         "patch": "M2-T2-wheel-admission-A",
         "sourceVersion": "93371b2727efbde0ad6139cba7f12a59f98a60d448f06764a0f9a17ac995cfa0"
