@@ -80,6 +80,13 @@ section.block h2{font-size:var(--fs-h2);margin:0 0 24px}
 .contact-intro{max-width:640px;color:var(--ink-2)}
 .contact-human{max-width:640px;margin:0 0 24px;color:var(--ink-2)}
 .contact-human a{font-weight:600;text-decoration:underline;text-underline-offset:2px}
+/* 填充只跟 aria-checked。id 压过 tokens 里的按钮 :hover，悬停只在能悬停的设备上加下划线。 */
+.contact-chat-line{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:12px;width:100%}
+/* 状态句在所有宽度独占一行，避免 768 与 1280 切换开关时折行跳动。 */
+.contact-chat-line .contact-chat-status{flex-basis:100%;width:100%;min-width:0}
+#contact-chat-switch{gap:8px;background:var(--pj-bg);color:var(--pj-fg)}
+#contact-chat-switch[aria-checked="true"]{background:var(--pj-inverse);color:var(--pj-on-inverse)}
+@media (hover:hover){#contact-chat-switch:not(:disabled):hover{text-decoration:underline;text-underline-offset:3px}}
 /* #307 成功卡片滚进可视区时不被吸顶页头挡住（手机端页头不吸顶） */
 /* 滚动落点 = 吸顶导航实际高度（全局 --header-h，实测 73px）+ 16px；
    ≤767px 导航不吸顶（position:static），只留 16px */
@@ -464,9 +471,10 @@ header.site .lang-btn:hover{background:var(--pj-fg);color:var(--pj-bg);border-co
 .product-grid .card .views{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:12px 16px;background:var(--pj-bg);color:var(--pj-fg);border-top:var(--pj-border-width) solid var(--pj-border);border-bottom:var(--pj-border-width) solid var(--pj-border)}
 .product-grid .card .views button{min-height:var(--pj-admin-control-height);padding:0 12px;border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg);box-shadow:none;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-control)}
 .product-grid .card .views button[aria-pressed="true"]{background:var(--pj-inverse);border-color:var(--pj-inverse);color:var(--pj-on-inverse)}
-.product-grid .card .body{padding:var(--pj-public-card-pad-desktop);gap:12px;flex:1}
+/* 手机上标题链接 padding-block 是 10px，负 margin 把它伸出 h2。gap 要留出这 10px，描述才不会盖住链接。 */
+.product-grid .card .body{padding:var(--pj-public-card-pad-desktop);gap:10px;flex:1}
 .product-grid .card .body h2{display:block;margin:0;overflow:visible;-webkit-line-clamp:unset;line-clamp:unset;font-size:var(--pj-h3-desktop-size);line-height:var(--pj-h3-desktop-line);font-weight:var(--pj-weight-heading);letter-spacing:var(--pj-heading-tracking)}
-.product-grid .card .body .desc{margin:-4px 0 0;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-body);color:var(--ink-2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;hyphens:auto}
+.product-grid .card .body .desc{margin:0;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-body);color:var(--ink-2);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;hyphens:manual}
 .product-grid .card .product-name-link{display:inline-block;padding-block:8px;margin-block:-8px;color:inherit;font:inherit;letter-spacing:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:2px}
 .product-grid .card .body .actions{margin-top:auto}
 .product-grid .card:not(.theme-premium) .specs{color:var(--pj-fg)}

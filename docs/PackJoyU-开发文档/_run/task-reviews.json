@@ -1490,6 +1490,23 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R4-T16305211": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a0fd4e26fa420ca1faa6c3744c2ab3ed105bcc8a26d44c79d3a4aca115314bdb",
+    "evidence": [
+      "验收1（先取得 adopt.action=take 再动手）：D:/xiangmu/.codex-plans/NBshiyan-r4-t16305211/judgments.jsonl 第 2 行 label=R4-T16305211:impl-scope，ts=2026-10-26T05:08:15，model=jev-1.14.0，pick=B(0.82 high)，adopt.action=take、option=B、confidence=high；用 typesafe_ask.py:542 的 sha256(json.dumps(state,ensure_ascii=False,sort_keys=True))[:16] 对同目录 state-2.json 复算得 4c0b322dae8d6fe6，与该行 state_sha256 一致，证明回执与输入 state 属同一次调用。同文件第 1 行 label=R4-T16305211:impl（04:55:15，pick=B 0.53 medium）的 adopt.action=red_line，如实保留：它按 needs_owner=unsure 判为授权红线，不构成用户授权，也不因后一条 take 而被当作已撤销。",
+      "验收4（同一次改动只走被采纳的一条）：采纳的是 impl-scope 的 option B 即「恢复独立开关」，因此 E-20 源行与 M4-T15 验收句按选项 A 分支的写法保持原样未改。git diff --stat 6ff4934c..3863eecc -- 'docs/PackJoyU-开发文档/03-质量/13-边界问题与异常处理.md' 'docs/PackJoyU-开发文档/04-执行/19-模块任务拆分.md' 输出为空；当前 E-20 仍在 03-质量/13-边界问题与异常处理.md:26 写作「保持独立开关可关闭聊天并保留现有联系入口…不声称快照剩余约 2.7 GB…也不自动购买扩容」，M4-T15 产出句仍在 04-执行/19-模块任务拆分.md:67 写作「公共contact/隐私可见说明、独立聊天开关和保留原询盘/邮箱入口」。两条都未被本分支改写，未出现「同时落实两条」。",
+      "验收3（恢复开关的四项具体条件）：src/app/[locale]/contact/HumanContactNotice.tsx:16 的 useState(false) 是默认关闭；:32-:44 的 role=switch + aria-checked 是独立于分析开关的控件，组件内不读 Consent 上下文；:20-:29 的询盘邮箱入口 id=inquiry-email-entry 在开关之外，不受 chatEnabled 条件约束，关闭时仍可提交；messages/en.json:177-181 与 messages/ru.json:177-181 提供 chatSwitch/chatStateOn/chatStateOff/chatOff/chatOn 的英俄文案，tests/m4-t15-copy.test.ts:100-110 逐条断言这些键的最终文案；开关文案由 tests/m4-t15-copy.test.ts:136-156 的用例再锁一次结构（含 role=switch、aria-checked、data-variant=secondary、不含 setConsent/analytics/tawk）。",
+      "验收3 之「不加载 Tawk」：对 src/app/[locale]/contact/HumanContactNotice.tsx 检索 tawk|pj-consent|setConsent|analytics|2\\.7 命中 0 条；tests/m4-t15-copy.test.ts:153 断言组件内 /tawk/i 不匹配、:154 断言不含 2.7、:155 断言不含 chat-availability。同文件 :150 断言 notice.includes('setConsent') 为 false、:151 断言不含 analytics，即开关不写入同意存储。",
+      "验收2 不适用并已核对原因：选项 A（改边界）未被采纳，故不要求 E-20 与 M4-T15 描述「没有独立聊天开关」。当前两处文本仍与实现后的页面一致——页面确有独立开关且询盘邮箱仍可用，与 :26、:67 的现有措辞不冲突。",
+      "验收5（不新增后台登录）：git diff --stat 6ff4934c..3863eecc 的全部改动为 e2e/contact-chat-switch.spec.ts、messages/en.json、messages/ru.json、src/app/[locale]/contact/HumanContactNotice.tsx、src/app/globals.css、tests/m4-t15-copy.test.ts 六个文件，未触及 src/app/**/admin、src/auth.ts、src/lib/server 下的鉴权代码，未新增登录入口。",
+      "边界 E-20 的其余要求：开关只切换自身状态与旁边状态句，HumanContactNotice.tsx:45 的 span 用 aria-live=polite 播报状态，:7-11 的组件注释写明「不写 pj-consent，不挂聊天脚本；询盘和邮箱不放进开关条件」；无容量承诺（组件与文案均不含 2.7），无自动购买扩容的代码路径，无对外承诺。",
+      "ready=false 两条原因的处理：第一条「任务契约待语义复核」由本证据登记解决，不是缺陷；第二条 H12「疑似接线任务未列注册点（命中：置信、页面）」是 WARN，handoff_contract.py:171 写明 H12/H13 不锁派发，且命中词「置信」来自验收1 的 adjudicate 措辞、「页面」来自验收2/3 的界面描述，本任务实际只改既有联系页组件与文案，不新增路由或注册点，故按 WARN 保留，不往静态契约表登记同名 ID（handoff_contract.py:189-192 对重复 ID 抛冲突）。"
+    ],
+    "reviewed": "2026-11-03T02:48:40.779342+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "RETENTION-CLEANUP": {
     "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
     "contractHash": "5a65f8b8e6f472d36133f01660b8d796b370f61e0f61b2d033b687dfa06770bc",
