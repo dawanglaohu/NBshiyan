@@ -1462,6 +1462,22 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R5-T10248697": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "45f18f66df5987836193b99a09ce7e55db027241302531d0ef5f414748ec3554",
+    "evidence": [
+      "仅复核已合实现的当前六条验收映射与文档收尾；关联#501，代码已由b2db0294合并且包含于最新main a9172b2f。独立收尾分支从该main建立，实际owner/settings/直接测试Git blob与d84f0056已审头及W4固定main哈希一致；不重写业务实现。",
+      "验收1/2：已归档fixed-day-boundaries.log 8pass，tests/analytics-day-boundaries.test.ts:54-80核Santiago09-05/09-06、Havana03-07/03-08有效左闭右开UTC边界、前日相接、前1ms及可重算起点，全部fail/skip/todo/cancelled=0。",
+      "验收3/6：同文件43-51纽约23/25小时边界保持；103-117查看者时区对照，119-170两种进程TZ下的重复午夜、缺午夜、LordHowe半小时与Kathmandu05:45期望均通过。生产函数170-177不消费browserTimezone；当前正式仓库行号已读，不复制fixed-main代码链接。",
+      "验收4：固定实际settings服务的内存repo补验fixed-settings-service.log 9pass，两时区日界前/等号/后1ms返回合法version/revision/backlog，并保持非法IANA、同值和冲突行为；观测sqlCalls=0。它不等于PG锁/事务或HTTP端点验证。settings.ts:176-213使用真实recomputableFrom及现有写入路径。",
+      "验收5：同一新回归在旧owner18ae999b真实抛invalid_date（before-gap.log 1fail、0skip），固定main同回归及完整直接文件8pass。原日志字节与W4结构化证据sha256核对后原样归档，未重写旧逻辑、重构stdout或把预期红当当前失败。",
+      "历史CI40333923945实际检出测试合并867dca9（d84f0056合入旧main6ff4934c），不是当前main；具名缺午夜/进程TZ记录已按原日志行核对归档。历史设置PG7pass0skip使用普通日期，不说成PG缺午夜覆盖；旧全量29skip和本轮未重跑PG/HTTP/build/生产作业等限制明确保留。",
+      "R5两个保护区已经填入正式仓库路径、实际行号、日界/残日/数据影响及证据层级；其定义、依赖M5-T9、原批次和其他任务状态未手改。当前仅注册R5契约证据，是否登记done仍必须通过官方--landed前置；收尾仅文档，不改实现/schema/来源任务，不自行合并或改主检出。"
+    ],
+    "reviewed": "2026-11-03T16:28:20.215808+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "RETENTION-CLEANUP": {
     "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
     "contractHash": "5a65f8b8e6f472d36133f01660b8d796b370f61e0f61b2d033b687dfa06770bc",

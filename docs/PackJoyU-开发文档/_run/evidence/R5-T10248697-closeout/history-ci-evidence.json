@@ -1,0 +1,60 @@
+{
+  "runId": 40333923945,
+  "headSha": "d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb",
+  "actualCheckout": "867dca9 Merge d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb into 6ff4934ca428f0083bde437d74314a47f2fc2f9e",
+  "anchors": [
+    {
+      "file": "ci-unit-40333923945.log",
+      "line": 121,
+      "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:17.5248357Z HEAD is now at 867dca9 Merge d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb into 6ff4934ca428f0083bde437d74314a47f2fc2f9e"
+    },
+    {
+      "file": "ci-unit-40333923945.log",
+      "line": 3690,
+      "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:44.0240813Z ok 532 - 跳过本地午夜时用该本地日最早瞬间作左闭端，并接到前一天的右开端"
+    },
+    {
+      "file": "ci-unit-40333923945.log",
+      "line": 3708,
+      "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:44.0245483Z ok 535 - 进程时区变了，站点日的 UTC 边界仍相同"
+    },
+    {
+      "file": "ci-unit-40333923945.log",
+      "line": 3822,
+      "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:44.7335594Z ok 554 - 站点本地日和 UTC 日不一致时，事件只落在本地日的左闭右开窗口里"
+    },
+    {
+      "file": "ci-unit-40333923945.log",
+      "line": 9386,
+      "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:50:48.0489284Z ok 1411 - 原始事件截止点跨过站点日界，只允许删除重算下限之前的本地日"
+    },
+    {
+      "file": "ci-pg-40333923945.log",
+      "line": 266,
+      "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:49:34.3484736Z HEAD is now at 867dca9 Merge d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb into 6ff4934ca428f0083bde437d74314a47f2fc2f9e"
+    },
+    {
+      "file": "ci-pg-40333923945.log",
+      "line": 707,
+      "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:50:22.1011814Z tests/analytics-settings.db.test.ts\tpass=7\tfail=0\tskip=0\ttodo=0\tcancelled=0"
+    },
+    {
+      "file": "ci-pg-40333923945.log",
+      "line": 709,
+      "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:50:22.1014246Z tests/analytics-rollup.http.db.test.ts\tpass=7\tfail=0\tskip=0\ttodo=0\tcancelled=0"
+    },
+    {
+      "file": "ci-pg-40333923945.log",
+      "line": 710,
+      "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:50:22.1015317Z tests/retention-cleanup.http.db.test.ts\tpass=9\tfail=0\tskip=0\ttodo=0\tcancelled=0"
+    }
+  ],
+  "sourceLogSha256": {
+    "ci-unit-40333923945.log": "50a35d713c5bfc74255340979098b676f07e9bed8a896dadd481fd11ab382446",
+    "ci-pg-40333923945.log": "05b98ab097eb41937d1dc17e72ad547fa7d6c81f2d8127b855cd09b45aea57e2"
+  },
+  "limitations": [
+    "Historical test merge, not this main checkout",
+    "Settings PG uses ordinary dates and does not independently cover skipped-midnight PG behavior"
+  ]
+}
