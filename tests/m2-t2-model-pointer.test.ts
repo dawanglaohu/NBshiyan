@@ -93,7 +93,7 @@ test('状态机不变量：悬停不抢归属，按下才拥有，松开即释�
   assert.equal(state.dragging, false, '松开必须退出拖动');
 
   // 取消同样必须释放。
-  let cancelled = reduceModelPointer(
+  const cancelled = reduceModelPointer(
     reduceModelPointer(
       reduceModelPointer(createModelPointerState(false), { type: 'visible', slugs: ['a'] }),
       { type: 'pointerdown', slug: 'a', pointerType: 'mouse', button: 0 },
