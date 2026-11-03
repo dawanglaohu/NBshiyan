@@ -387,7 +387,11 @@
       "wiring": [
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "tests/m2-t2-model-pointer.test.ts",
+        "messages/en.json",
+        "messages/ru.json"
+      ],
       "outputPaths": [
         "src/components/three/",
         "src/lib/three/",

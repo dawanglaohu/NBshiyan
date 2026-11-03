@@ -296,15 +296,18 @@
     "verdict": "pass"
   },
   "M2-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "a259377626bf90a9d3af421555928049e96a386573c115529714995c0850388c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "9897db49876a6a83dbfcd8e1011d2f180746e55606d2f21f41824d29519a6358",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:21；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《修正模型直接拖动与滚轮焦点》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=现有真实GLB和OrbitControls、D20；输出=可取消的精确指针/焦点控制；前置=M2-T1；阶段=integration；能力=model-pointer；有效路径共18项（e2e/model-pointer.spec.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/three/; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts; src/lib/three/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-100,E-97,E-98,E-99；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "仅复核正式规范的条款与有效范围，不代表应用源码、旧版红→新版绿、GUI、hint、浏览器页缩放、触屏或 PR 合并通过。维护依据为原分支 task/M2-T2@027d97a8963c3af989890b80927b67bc05a70f40 及 Chief 本轮规范维护授权；本轮未运行应用源码测试，不提交推送，不 --landed，不改主检出。",
+      "复用既有 design 裁决：model=jev-1.14.0，state_sha256=9ea3590d36f75a75，pick=A confidence=0.32/low，adopt=take(A)。仓库 judgments.jsonl 已归档原条目且完整双候选英文输入在同补丁的 design-state.json；原时间、标签、model、state hash 和概率保留，本轮没有重跑 Jev。局部 commerce 分类不更改既定网站风格或业务范围。",
+      "12-UX.md 第2节明确桌面控制区为本模型视口及命名工具条：当前真实 DOM 焦点归属与指针命中必须同时属于同一模型，才接管 Ctrl/Cmd+wheel；仅拦截该事件。标题/说明/规格/品类或询盘链接等非控制区以及跨模型命中均不改变相机并保留浏览器默认行为。普通 wheel/触控板普通滚动仍始终滚页，Zoom 按钮点击独立保留；焦点内部移动、Tab 离开、hover 不抢焦点、释放后的缓存/遗留 DOM 焦点不能重启拦截已明确。",
+      "11-UI.md:249 与 07-前端架构.md:140 的输入摘要、UX 时序图、13节 E-98 与 _run/edges.md 原行、19节 M2-T2 验收均对齐上述 A 定义。a-spec-scope-check.py 逐条确认仅 M2-T2 验收行和支持定义直接改变，边界直接变化只有 E-98，任务/边界 IDs、依赖、工期、提供/消费能力、原 pointer-down、相机边界、普通滚页、跨模型隔离、退出释放及 UX 原触屏/键盘段落均保留。",
+      "M2-T2 的 supportPaths 仅补 tests/m2-t2-model-pointer.test.ts、messages/en.json、messages/ru.json；组件/three 与 e2e/model-pointer.spec.ts 已在原有效范围。既有单测的 article 正则以及前端草案的 focusedSlug 判据不能代替新规范的语义命中与实时 DOM 焦点证明，后续由实施/测试按实际代码修改并保留有效行为断言与真实红绿，不在本次文档复核中将旧断言判成通过。",
+      "已读取后端归档 method-review.md：第7格为 Control→wheel→释放，不是普通 wheel；脚本有 mouse/keyboard API、程序化焦点/滚动及 scrollBehavior/overflowAnchor 干预，只保留末 wheel/DOM 采样，未独立覆盖默认样式恢复、真实焦点完整输出、GLB 就绪硬门槛、浏览器页缩放、hint、Tab 离开及触屏/释放等。只作为应用前回归场景输入，原数值是原作者报告转述，不声称本轮新测量；不改变其来源或原件。",
+      "a-spec-scope-check.py 确认应用源码、tests/e2e/messages、package/lockfile/CI 均与本轮起始字节相同；任务状态与全部既有受保护回填不变，17 个静态返工 ID、批次源记录及 presentation/gate 配置未改。规范 sync 退出0，109 个契约哈希受影响，39 个原已落地任务被标待复验；未为它们登记 pass，未删除待复验标记。本次仅登记 M2-T2 的条款/范围。"
     ],
-    "reviewed": "2026-10-22T12:42:03.986330+00:00",
+    "reviewed": "2026-11-03T13:15:11.652794+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
