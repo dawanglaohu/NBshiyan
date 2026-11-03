@@ -222,18 +222,29 @@ test('E-98 准入域限定在本模型视口与命名工具条，标题与说明
   await expectStable(first, 'data-camera-distance', titleBaseline, '标题命中');
 
   // 3) 指针移到本模型说明正文 → 同样持续不缩放（复核指出的未覆盖点）。
-  const desc = page.locator('article.card').first().locator('.desc');
-  if (await desc.count()) {
-    const descBaseline = (await first.getAttribute('data-camera-distance'))!;
-    const descBox = await desc.first().boundingBox();
-    if (descBox) {
-      await page.mouse.move(descBox.x + descBox.width / 2, descBox.y + descBox.height / 2);
-      await page.keyboard.down('Control');
-      await page.mouse.wheel(0, -80);
-      await page.keyboard.up('Control');
-      await expectStable(first, 'data-camera-distance', descBaseline, '说明正文命中');
-    }
-  }
+  // 不用条件分支：第一张卡是 corrugated-boxes，locale 文案里必有 desc。
+  // 若将来正文缺失，这里直接失败，而不是静默跳过本场景。
+  const desc = page.locator('article.card').first().locator('p.desc');
+  await expect(desc, '正文必须存在').toHaveCount(1);
+  await expect(desc, '正文必须可见').toBeVisible();
+  await expect(desc, '正文必须有非空文本').not.toHaveText(/^\s*$/);
+  const descBaseline = (await first.getAttribute('data-camera-distance'))!;
+  const descBox = await desc.boundingBox();
+  if (!descBox) throw new Error('正文有可见文本却没有布局盒');
+  // 命中前确认该点确实落在正文元素上，避免摸到别的元素还以为测了正文。
+  const descHit = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y) as HTMLElement | null;
+      return { tag: el?.tagName ?? null, isDesc: !!el?.closest('p.desc') };
+    },
+    { x: descBox.x + descBox.width / 2, y: descBox.y + descBox.height / 2 },
+  );
+  expect(descHit.isDesc, `指针应命中正文，实际命中 ${descHit.tag}`).toBe(true);
+  await page.mouse.move(descBox.x + descBox.width / 2, descBox.y + descBox.height / 2);
+  await page.keyboard.down('Control');
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expectStable(first, 'data-camera-distance', descBaseline, '说明正文命中');
 
   // 4) 焦点在本模型、指针移到另一模型的视口 → 两个模型处理完成后都不变。
   const crossFirst = (await first.getAttribute('data-camera-distance'))!;
@@ -307,12 +318,24 @@ test('E-98 退出后遗留 DOM 焦点不得重新接管修饰滚轮', async ({ p
     .poll(async () => Number(await first.getAttribute('data-camera-distance')))
     .not.toBe(Number(afterReentry));
 
-  // 场景 D：明确 Zoom 按钮不受许可影响，退出后仍可用。
-  const afterExit = (await first.getAttribute('data-camera-distance'))!;
+  // 场景 D：再次退出后，明确 Zoom 按钮仍可用（不能沿用 C 的重入状态当退出前提）。
+  await page.keyboard.press('Escape');
+  await expect(first, 'Escape 后必须释放焦点').toHaveAttribute('data-focused', '0');
+  await expect(page.locator('[data-capture-owner]'), 'Escape 后必须释放归属').toHaveAttribute(
+    'data-capture-owner',
+    '',
+  );
+  // 退出后先确认修饰滚轮已被拦住，证明此时确实处于「已退出」状态。
+  const afterEscapeD = (await first.getAttribute('data-camera-distance'))!;
+  await page.keyboard.down('Control');
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expectStable(first, 'data-camera-distance', afterEscapeD, '退出后 wheel 被拦');
+  // 再点明确 Zoom 按钮：它不经过许可判定，退出状态下必须仍能改变相机。
   await page.locator('article.card').first().getByTestId('model-zoom-in').click();
   await expect
     .poll(async () => Number(await first.getAttribute('data-camera-distance')))
-    .not.toBe(Number(afterExit));
+    .not.toBe(Number(afterEscapeD));
 });
 
 test('hover pauses spin and a user pause survives hide and foreground', async ({ page }) => {
