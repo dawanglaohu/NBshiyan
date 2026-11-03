@@ -115,6 +115,34 @@ test('滚轮监听挂在焦点 wrapper，不以整张卡片作为准入域', () 
   assert.match(src, /surface\.contains\(document\.activeElement\)/, '焦点归属取真实 DOM 焦点');
 });
 
+test('退出路径同步撤销滚轮许可，遗留 DOM 焦点不能重获接管', () => {
+  const src = readFileSync('src/components/three/ProductGallery.tsx', 'utf8');
+
+  // 许可必须存在，并且在执行 wheel 时与真实焦点共同校验。
+  assert.match(src, /const wheelPermit = useRef<string \| null>\(null\)/, '必须有同步许可 ref');
+  assert.match(
+    src,
+    /focusBelongsToModel: wheelPermit\.current === slug && surface\.contains\(document\.activeElement\)/,
+    'wheel 执行时必须同时校验许可与真实焦点',
+  );
+
+  // 四条退出路径都必须在 dispatch 的同一时刻清空许可，不能等渲染。
+  const exits = [
+    [/wheelPermit\.current = null;\s*dispatch\(\{ type: 'escape' \}\)/, 'Escape'],
+    [/wheelPermit\.current = null;\s*dispatch\(\{ type: 'window-blur' \}\)/, '窗口失焦'],
+    [/wheelPermit\.current = null;\s*dispatch\(\{ type: 'pointercancel' \}\)/, 'pointercancel'],
+    [/if \(wheelPermit\.current === p\.slug\) wheelPermit\.current = null;\s*dispatch\(\{ type: 'blur-region', slug: p\.slug \}\)/, '焦点离开'],
+  ] as const;
+  for (const [pattern, label] of exits) {
+    assert.match(src, pattern, `${label} 必须在 dispatch 前同步撤销许可`);
+  }
+
+  // 焦点进入控制区才重新签发；Zoom 按钮不经过许可判定。
+  assert.match(src, /wheelPermit\.current = p\.slug;/, '焦点进入才签发');
+  const zoomButton = /data-testid="model-zoom-in"[^>]*onClick=\{\(\) => \{ setArmed\(true\); requestZoom\(p\.slug, -100\); \}\}/;
+  assert.match(src, zoomButton, 'Zoom 按钮保留独立入口，不经许可判定');
+});
+
 test('E-98 准入矩阵：焦点归属与指针命中必须分别成立', () => {
   const base = {
     focusBelongsToModel: true,

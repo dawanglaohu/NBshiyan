@@ -167,12 +167,34 @@ test('pointer capture, page wheel, modifier zoom, and release', async ({ page })
   await expect(page.locator('[data-capture-owner]')).toHaveAttribute('data-capture-owner', '');
 });
 
+/**
+ * 在有限帧窗口内持续观察某属性不变，避免「异步事件尚未应用时读到旧值」的误判。
+ * 用法：调用前记录基线，wheel 之后等待处理完成，再持续若干帧确认仍等于基线。
+ */
+async function expectStable(locator: Locator, attribute: string, baseline: string, label: string) {
+  // 先等两帧，让 wheel 事件的默认处理与 React 更新落地。
+  await locator.evaluate(async (el) => {
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
+  for (let i = 0; i < 6; i += 1) {
+    await locator.evaluate(
+      (el) => new Promise((resolve) => requestAnimationFrame(resolve)),
+    );
+    await expect(locator, `${label} 第 ${i + 1} 帧`).toHaveAttribute(attribute, baseline);
+  }
+}
+
 test('E-98 准入域限定在本模型视口与命名工具条，标题与说明不缩放', async ({ page }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const first = await openProducts(page);
   // openProducts 已等到 data-framed=1，此时 publishCamera 已写过距离。
   await expect(first).toHaveAttribute('data-camera-distance', /^\d+\.\d+$/);
+
+  // 第二张卡也必须就绪后再用它的距离做基线，不能把 TS 非空断言当就绪证据。
+  const secondViewport = page.locator('article.card').nth(1).getByTestId('product-viewport');
+  await expect(secondViewport).toHaveAttribute('data-framed', '1', { timeout: 25_000 });
+  await expect(secondViewport).toHaveAttribute('data-camera-distance', /^\d+\.\d+$/);
 
   // 1) 焦点在本模型视口、指针在本模型命名工具条的按钮上 → 应缩放本模型。
   await first.focus();
@@ -189,29 +211,104 @@ test('E-98 准入域限定在本模型视口与命名工具条，标题与说明
     .poll(async () => Number(await first.getAttribute('data-camera-distance')))
     .not.toBe(Number(beforeToolbar));
 
-  // 2) 焦点仍在本模型、指针移到本模型标题 → 不得缩放。
-  const afterToolbar = await first.getAttribute('data-camera-distance');
+  // 2) 焦点仍在本模型、指针移到本模型标题 → 处理完成后持续不缩放。
+  const titleBaseline = (await first.getAttribute('data-camera-distance'))!;
   const titleBox = await page.locator('article.card').first().locator('h2').boundingBox();
   if (!titleBox) throw new Error('title has no box');
   await page.mouse.move(titleBox.x + titleBox.width / 2, titleBox.y + titleBox.height / 2);
   await page.keyboard.down('Control');
   await page.mouse.wheel(0, -80);
   await page.keyboard.up('Control');
-  await expect(first).toHaveAttribute('data-camera-distance', afterToolbar!);
+  await expectStable(first, 'data-camera-distance', titleBaseline, '标题命中');
 
-  // 3) 焦点在本模型、指针移到另一模型的视口 → 两个模型都不变。
-  const beforeCross = await first.getAttribute('data-camera-distance');
-  const secondCard = page.locator('article.card').nth(1);
-  const secondViewport = secondCard.getByTestId('product-viewport');
-  const secondDistance = await secondViewport.getAttribute('data-camera-distance');
+  // 3) 指针移到本模型说明正文 → 同样持续不缩放（复核指出的未覆盖点）。
+  const desc = page.locator('article.card').first().locator('.desc');
+  if (await desc.count()) {
+    const descBaseline = (await first.getAttribute('data-camera-distance'))!;
+    const descBox = await desc.first().boundingBox();
+    if (descBox) {
+      await page.mouse.move(descBox.x + descBox.width / 2, descBox.y + descBox.height / 2);
+      await page.keyboard.down('Control');
+      await page.mouse.wheel(0, -80);
+      await page.keyboard.up('Control');
+      await expectStable(first, 'data-camera-distance', descBaseline, '说明正文命中');
+    }
+  }
+
+  // 4) 焦点在本模型、指针移到另一模型的视口 → 两个模型处理完成后都不变。
+  const crossFirst = (await first.getAttribute('data-camera-distance'))!;
+  const crossSecond = (await secondViewport.getAttribute('data-camera-distance'))!;
   const secondBox = await secondViewport.boundingBox();
   if (!secondBox) throw new Error('second viewport has no box');
   await page.mouse.move(secondBox.x + secondBox.width / 2, secondBox.y + secondBox.height / 2);
   await page.keyboard.down('Control');
   await page.mouse.wheel(0, -80);
   await page.keyboard.up('Control');
-  await expect(first).toHaveAttribute('data-camera-distance', beforeCross!);
-  await expect(secondViewport).toHaveAttribute('data-camera-distance', secondDistance!);
+  await expectStable(first, 'data-camera-distance', crossFirst, '跨模型：本模型');
+  await expectStable(secondViewport, 'data-camera-distance', crossSecond, '跨模型：另一模型');
+});
+
+test('E-98 退出后遗留 DOM 焦点不得重新接管修饰滚轮', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const first = await openProducts(page);
+  await expect(first).toHaveAttribute('data-camera-distance', /^\d+\.\d+$/);
+
+  // 基线：先证明同模型焦点 + 命中确实能缩放，避免把「一直不缩放」误判成退出生效。
+  await first.focus();
+  await expect(first).toHaveAttribute('data-focused', '1');
+  const working = await first.getAttribute('data-camera-distance');
+  await page.keyboard.down('Control');
+  const center1 = await center(first);
+  await page.mouse.move(center1.x, center1.y);
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expect
+    .poll(async () => Number(await first.getAttribute('data-camera-distance')))
+    .not.toBe(Number(working));
+
+  // 场景 A：pointercancel 后 DOM 焦点仍在视口，不重新聚焦、不重新按下，直接修饰滚轮。
+  await first.dispatchEvent('pointercancel');
+  await expect(first).toHaveAttribute('data-focused', '0');
+  const afterCancel = (await first.getAttribute('data-camera-distance'))!;
+  await page.keyboard.down('Control');
+  await page.mouse.move(center1.x, center1.y);
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expectStable(first, 'data-camera-distance', afterCancel, '取消后直接 wheel');
+
+  // 场景 B：窗口失焦后 DOM 焦点保留，直接修饰滚轮。
+  await first.focus();
+  await expect(first).toHaveAttribute('data-focused', '1');
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await expect(first).toHaveAttribute('data-focused', '0');
+  const afterBlur = (await first.getAttribute('data-camera-distance'))!;
+  await page.keyboard.down('Control');
+  await page.mouse.move(center1.x, center1.y);
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expectStable(first, 'data-camera-distance', afterBlur, '失焦后直接 wheel');
+
+  // 场景 C：主动重入 —— 重新按下取得交互后，修饰滚轮必须恢复工作。
+  const reentry = await center(first);
+  await page.mouse.move(reentry.x, reentry.y);
+  await page.mouse.down();
+  await expect(page.locator('[data-capture-owner]')).not.toHaveAttribute('data-capture-owner', '');
+  await page.mouse.up();
+  const afterReentry = (await first.getAttribute('data-camera-distance'))!;
+  await page.keyboard.down('Control');
+  await page.mouse.wheel(0, -80);
+  await page.keyboard.up('Control');
+  await expect
+    .poll(async () => Number(await first.getAttribute('data-camera-distance')))
+    .not.toBe(Number(afterReentry));
+
+  // 场景 D：明确 Zoom 按钮不受许可影响，退出后仍可用。
+  const afterExit = (await first.getAttribute('data-camera-distance'))!;
+  await page.locator('article.card').first().getByTestId('model-zoom-in').click();
+  await expect
+    .poll(async () => Number(await first.getAttribute('data-camera-distance')))
+    .not.toBe(Number(afterExit));
 });
 
 test('hover pauses spin and a user pause survives hide and foreground', async ({ page }) => {

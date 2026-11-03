@@ -55,6 +55,13 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   pointerRef.current = pointer;
   const pointerId = useRef<number | null>(null);
   const zoomSeq = useRef(0);
+  /**
+   * 滚轮准入许可证（E-98「退出后不得凭遗留 DOM 焦点再次接管」）。
+   * 退出路径在调用 dispatch 的同一时刻同步清空它，因此即使 reducer 的新状态还没渲染、
+   * 旧 wheel 监听的 cleanup 还没执行，遗留 DOM 焦点也无法让该监听再次缩放相机。
+   * 只由「本模型取得焦点」重新签发；明确的 Zoom 按钮不走这条判定，始终可用。
+   */
+  const wheelPermit = useRef<string | null>(null);
   const [zoom, setZoom] = useState<{ slug: string; delta: number; id: number } | null>(null);
   const [fine, setFine] = useState(false);
   const [mouse, setMouse] = useState(false);
@@ -109,12 +116,15 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
       if (!current.focusedSlug && !current.dragging && !current.ownerSlug) return;
       event.preventDefault();
       releaseDom();
+      // 同步撤销滚轮许可：不等 reducer 渲染，遗留 DOM 焦点也不能再接管 wheel。
+      wheelPermit.current = null;
       dispatch({ type: 'escape' });
       const activeEl = document.activeElement;
       if (activeEl instanceof HTMLElement && rootRef.current?.contains(activeEl)) activeEl.blur();
     };
     const onWindowBlur = () => {
       releaseDom();
+      wheelPermit.current = null;
       dispatch({ type: 'window-blur' });
     };
     const onVis = () => dispatch({ type: 'foreground', on: document.visibilityState === 'visible' });
@@ -124,6 +134,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     document.addEventListener('visibilitychange', onVis);
     return () => {
       releaseDom();
+      wheelPermit.current = null;
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('blur', onWindowBlur);
@@ -147,7 +158,8 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
       const inSurface = !!target && surface.contains(target);
       const verdict = wheelAdmission({
         // 焦点归属取真实 DOM 焦点，不用缓存的 focusedSlug 代替（E-98）。
-        focusBelongsToModel: surface.contains(document.activeElement),
+        // 同时要求同步许可证仍属于本模型：退出后即使遗留 DOM 焦点，旧监听也不能再缩放。
+        focusBelongsToModel: wheelPermit.current === slug && surface.contains(document.activeElement),
         pointerHitsViewport: hitsViewport && inSurface,
         pointerHitsToolbar: hitsToolbar && inSurface,
         ctrlKey: event.ctrlKey,
@@ -176,6 +188,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   };
   const onCancel = () => {
     releaseDom();
+    wheelPermit.current = null;
     dispatch({ type: 'pointercancel' });
   };
   // three.js 不参与首屏：用户第一次交互（移动鼠标、滚动、触摸、按键）后才加载 3D，
@@ -223,10 +236,16 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
           <article key={p.slug} id={p.slug} className={`card${PREMIUM.has(p.slug) ? ' theme-premium' : ''}`}>
             <div
               style={{ minWidth: 0 }}
-              onFocus={() => dispatch({ type: 'focus', slug: p.slug })}
+              onFocus={() => {
+                // 真实焦点进入本模型控制区才签发滚轮许可。
+                wheelPermit.current = p.slug;
+                dispatch({ type: 'focus', slug: p.slug });
+              }}
               onBlur={(event) => {
                 const next = event.relatedTarget as Node | null;
                 if (next && event.currentTarget.contains(next)) return;
+                // 焦点离开本模型控制区时同步撤销许可，guard 不依赖后续渲染。
+                if (wheelPermit.current === p.slug) wheelPermit.current = null;
                 dispatch({ type: 'blur-region', slug: p.slug });
               }}
             >
