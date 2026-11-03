@@ -186,6 +186,8 @@ jobs:
           CHAT_SESSION_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
+          M3T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t3
+          M3T3_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -208,6 +210,8 @@ jobs:
               'tests/admin-reset-initial-password.db.test.ts',
               'tests/admin-login-mode.db.test.ts',
               'tests/admin-enroll-current-state.db.test.ts',
+              'tests/admin-action-grant.db.test.ts',
+              'tests/admin-reauth.http.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -244,6 +248,8 @@ jobs:
             tests/admin-reset-initial-password.db.test.ts \
             tests/admin-login-mode.db.test.ts \
             tests/admin-enroll-current-state.db.test.ts \
+            tests/admin-action-grant.db.test.ts \
+            tests/admin-reauth.http.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -266,6 +272,8 @@ jobs:
             'tests/admin-reset-initial-password.db.test.ts',
             'tests/admin-login-mode.db.test.ts',
             'tests/admin-enroll-current-state.db.test.ts',
+            'tests/admin-action-grant.db.test.ts',
+            'tests/admin-reauth.http.test.ts',
           ];
           let bad = false;
           for (const file of files) {

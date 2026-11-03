@@ -1,3 +1,5 @@
+// Next storage 在依赖评估时创建，必须早于 composition 等静态导入初始化。
+import 'next/dist/server/node-environment-baseline.js';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
@@ -21,12 +23,7 @@ import {
   enforcedAbsolute,
   initialHardExpiresAt,
 } from '../src/lib/server/admin/session-expiry';
-import { AsyncLocalStorage } from 'node:async_hooks';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
-
-if (typeof globalThis.AsyncLocalStorage !== 'function') {
-  Object.defineProperty(globalThis, 'AsyncLocalStorage', { value: AsyncLocalStorage, configurable: true, writable: true });
-}
 
 const policy = ADMIN_SESSION_POLICY;
 const databaseUrl = process.env.ADMIN_DEVICE_TEST_DATABASE_URL?.startsWith('postgres')

@@ -9,9 +9,13 @@ import { ActionGrantDTOSchema } from '../src/lib/contracts/account';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
+// 只连本任务专用库；必执行步骤缺地址直接失败，不回退到 DATABASE_URL。
 const databaseUrl = process.env.M3T3_TEST_DATABASE_URL?.startsWith('postgres')
   ? process.env.M3T3_TEST_DATABASE_URL
   : '';
+if (process.env.M3T3_REQUIRE_DATABASE === 'true' && !databaseUrl) {
+  throw new Error('M3T3_TEST_DATABASE_URL must be a postgres URL when M3T3_REQUIRE_DATABASE=true');
+}
 const skip = !databaseUrl && 'no dedicated M3T3_TEST_DATABASE_URL';
 process.env.APP_ENV = 'test';
 Object.assign(process.env, { NODE_ENV: 'test' });

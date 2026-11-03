@@ -10,10 +10,13 @@ import { ADMIN_SESSION_POLICY } from '../src/lib/server/config';
 import { AppError } from '../src/lib/server/http/errors';
 import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 
-// 只连本任务专用库。没设地址就跳过，避免碰到开发库或生产库。
+// 只连本任务专用库；必执行步骤缺地址直接失败，不回退到 DATABASE_URL。
 const databaseUrl = process.env.M3T3_TEST_DATABASE_URL?.startsWith('postgres')
   ? process.env.M3T3_TEST_DATABASE_URL
   : '';
+if (process.env.M3T3_REQUIRE_DATABASE === 'true' && !databaseUrl) {
+  throw new Error('M3T3_TEST_DATABASE_URL must be a postgres URL when M3T3_REQUIRE_DATABASE=true');
+}
 const skip = !databaseUrl && 'no dedicated M3T3_TEST_DATABASE_URL';
 process.env.APP_ENV = 'test';
 process.env.AUTH_SECRET ??= 'm3t3-action-grant-test-secret-32b';
