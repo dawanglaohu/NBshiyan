@@ -278,7 +278,11 @@ test('E-98 退出后遗留 DOM 焦点不得重新接管修饰滚轮', async ({ p
   await expectStable(first, 'data-camera-distance', afterCancel, '取消后直接 wheel');
 
   // 场景 B：窗口失焦后 DOM 焦点保留，直接修饰滚轮。
-  await first.focus();
+  // 上一场景的 pointercancel 已让视口失焦，先经一次主动重入把焦点放回，再测失焦。
+  const refocusPoint = await center(first);
+  await page.mouse.move(refocusPoint.x, refocusPoint.y);
+  await page.mouse.down();
+  await page.mouse.up();
   await expect(first).toHaveAttribute('data-focused', '1');
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
   await expect(first).toHaveAttribute('data-focused', '0');
