@@ -621,18 +621,60 @@
     "verdict": "pass"
   },
   "M3-T3": {
+    "ci": {
+      "base": "b2db0294da689759424c3ec8c777f90ec89ff477",
+      "checkout": "f58dea13d848b19c65fc2f3af3193fd1cc803ce8",
+      "files": {
+        "tests/admin-action-grant.db.test.ts": {
+          "cancelled": 0,
+          "fail": 0,
+          "pass": 6,
+          "skip": 0,
+          "todo": 0
+        },
+        "tests/admin-reauth.http.test.ts": {
+          "cancelled": 0,
+          "fail": 0,
+          "pass": 7,
+          "skip": 0,
+          "todo": 0
+        },
+        "tests/admin-session-activity.http.test.ts": {
+          "cancelled": 0,
+          "fail": 0,
+          "pass": 8,
+          "skip": 0,
+          "todo": 0
+        }
+      },
+      "head": "a5d851d493be5369be06eedd583db15610af856e",
+      "jobUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328/job/125814267369",
+      "runUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328"
+    },
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "8239d7e82e6efdac5fa2d76115a788f4af34f25d4076fc036036030e636edd24",
+    "decisionBasis": "现有独立产品条款复核、全栈安全完整审查与 P2 增量复验回执，以及对应代码 head 的真实 CI；脚本只登记这些证据，不自动执行安全审查或产生 App 批准。",
     "evidence": [
-      "仅复核条款和支持路径。原工作树 task/M3-T3，HEAD 1461676a1e5707e714b9c7cb40a8a9b8afbf0d78；未运行数据库验收、产品构建或 e2e，不构成代码通过或合并结论。",
-      "product-support-scope-audit.py 对照 begin 保存的 baseline 和当前 docs-data.js：源差异严格只有 task-contracts.json.tasks.M3-T3.supportPaths 追加 .github/workflows/ci.yml、tests/admin-session-activity.http.test.ts、tests/admin-session-activity-bootstrap.test.ts。所有任务 input/output/accept/deps、边界、provides/requires/outputPaths 与原值相同；141 个任务 ID 和 17 个静态返工 ID 不变。",
-      "M3-T3.md:28-31、09-数据模型.md:17、10-接口约定.md:24 仍要求当前设备、现密码、未用 TOTP、256bit 单次授权、5 分钟等号拒绝、按 purpose/target/user/sid/sv 同事务核销；忘密码不得签普通 grant。本补丁不改变这些要求，不实现下游功能。",
-      "ci.yml:95-177 的设备回归已列 admin-session-activity.http.test.ts；该测试静态 composition 导入在 :18，AsyncLocalStorage 全局初始化在 :27-29，现初始化顺序存在待修复问题。追加既有 HTTP 测试及计划新增的无数据库 bootstrap 回归，仅授权测试启动链修正；bootstrap 文件目前尚未创建，后续必须在干净 Node 进程验证实际导入顺序。",
-      "ci.yml 的 PostgreSQL job 使用 postgres:17，但当前命令未列 admin-action-grant.db.test.ts 与 admin-reauth.http.test.ts，也未配置 M3T3_TEST_DATABASE_URL。追加 workflow 支持路径是为接入这两份既有目标测试的专用 m3t3 schema 和逐文件门禁；必须真实执行 pass>=1 且 fail/skip/todo/cancelled=0，缺地址退出失败只属负向验证，不能替代真实 PG 通过。",
-      "product-support-conflicts.py 核对配置重叠及 M2-T2、R4-T16305211、CATEGORY-PAGES-198、BOARD-LANDED 当前工作树差异，三个新路径未与这些在途修改相交；历史配置有 CI-DEVICE-SERIAL、M3-T15、R4-T78812657 等路径重叠，后续合并须保留既有门禁。本次已保存后端两测试的字节基线且核对未变。",
-      "sync 已退出 0；仅 M3-T3 context.definition/effectivePaths 改变，20 个下游契约哈希由依赖传播变化。revalidation.json 为空；本次只登记 M3-T3 的条款/范围复核，不替下游登记通过，不 --landed，不删除任何待复验记录。"
+      "验收1/E-72：reauth真实POST handler经同源和当前设备守卫，现密码及共享TOTP时间步原子核销后才签256bit token，只存SHA-256。prisma/schema.prisma:145；reauth/route.ts:7；action-grant.ts:153。真实PG文件admin-reauth.http.test.ts在CI41605525328为7 pass/0 fail/skip/todo/cancelled，覆盖登录已消费时间步拒绝、并发一次签发和哈希存储。",
+      "验收2/E-73/E-74：action-grant.ts:206在同一事务按purpose/target/user/sid/sv/expiry/usedAt核销，当前权限与目标归属检查在:135。真实PG admin-action-grant.db.test.ts为6 pass/0 fail/skip/todo/cancelled，覆盖用途/目标/账号/设备不匹配、5min等号、撤销/版本变化、并发一次消费与删除账号。",
+      "P2修复：action-grant.ts:212-214先取得User/Device两行锁，再读取一次clock，账号/设备有效性与授权SQL统一用锁后时间。全栈工程师/安全工程师在本群独立确认a5d851d493be5369be06eedd583db15610af856e上P2关闭、无代码阻断；受控探针对照只作为额外代码证据，不算PG。",
+      "真实PG锁等待回归tests/admin-action-grant.db.test.ts:246：独立连接持User/Device锁，消费者PID的pg_blocking_pids及wait_event_type=Lock在到期前后验证等待。CI日志743-746四组User/Device×grant/device：blocker132/141/142/151与consumer130不同连接，waitingAt<expiresAt<releasedAt，分别晚2/4/11/6ms释放，全部消费false且usedAtnull。未过期可消费、重复拒绝保留；fixture短TTL不改变生产5min规则。",
+      "验收3/E-75：真实Auth.js+reauth Request/Response handler与PG验证仅会话或TOTP、或携带recoveryCode不签普通授权，缺密码返回401且grant不变，后续普通passwordless登录可用；这是进程内handler集成，不冒称监听端口上的reauth网络E2E。",
+      "同一CI41605525328使用Node22.23.4和PostgreSQL17.11，M3T3_TEST_DATABASE_URL指向隔离e2e库schema=m3t3，M3T3_REQUIRE_DATABASE=true；三个逐文件名单和缺计数/skip/todo/cancelled拒绝门禁均保留。实际checkout f58dea13d848b19c65fc2f3af3193fd1cc803ce8，包含代码head a5d851d4及base b2db0294。",
+      "本轮CI三个普通job均SUCCESS：build-and-audit、e2e、posix-storage-security。完整Playwright154 pass/9 skip；三个目标PG文件无skip，不把全量9个跳过写成零跳过。Linux构建、standalone启动、Lighthouse、RUM与POSIX检查通过。本机无PG，不将CI结果说成本地实跑。",
+      "回填核查：任务代码位置与实施沉淀已填；产品经理/产品策划独立回读数据影响两句通过，明确totpLastStep、授权/审计新增、usedAt更新，以及本轮未执行生产迁移、生产现状未核验。核心代码/测试/CI与已复验a5d851d4保持相同；后续仅登记分支落地与证据。",
+      "范围与状态：只登记M3-T3。当前task-contracts、dispatch和收口源没有本任务直接关联的R<批>-T<号>返工，17个R任务不代标完成；共享workflow/fetch说明不等于完成其他返工。revalidation初始为空，不手动清除标记。本次按Chief授权只在原分支执行--landed；主检出/主交接台先不改，不合并或部署。",
+      "批准边界：指定packjoyu-security-reviewer[bot]对最终SHA的正式APPROVED尚未取得，普通团队复验不能代替。当前代码head的gate41605522203要求该批准；落地记录不构成合并许可，也不宣称生产迁移或主检出已同步。"
     ],
-    "reviewed": "2026-11-03T06:52:28.116049+00:00",
+    "implementationReviewedHead": "a5d851d493be5369be06eedd583db15610af856e",
+    "independentReviewers": [
+      "产品经理/产品策划",
+      "全栈工程师/安全工程师"
+    ],
+    "mainCheckoutSynced": false,
+    "mergeAuthorized": false,
+    "productionExecuted": false,
+    "reviewed": "2026-11-03T09:21:33.398912+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
