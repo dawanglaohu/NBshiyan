@@ -3,7 +3,8 @@ import { createRequire } from 'node:module';
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
-import type { PrismaClient, User } from '@prisma/client';
+import { setTimeout as delay } from 'node:timers/promises';
+import { PrismaClient, type User } from '@prisma/client';
 import { authenticator } from 'otplib';
 import { encrypt, hashSecret } from '../src/lib/server/admin/crypto';
 import { ADMIN_SESSION_POLICY } from '../src/lib/server/config';
@@ -240,5 +241,103 @@ describe('action grant consumption', { concurrency: 1, skip }, () => {
     await db.user.delete({ where: { id: member.user.id } });
     assert.equal(await db.adminActionGrant.count({ where: { userId: member.user.id } }), 0);
     assert.equal(await db.adminDeviceSession.count({ where: { id: member.device.id } }), 0);
+  });
+
+  test('E-74 real PostgreSQL lock waits cannot consume expired grants or devices', { timeout: 60_000 }, async () => {
+    const { createActionGrantService } = await import('../src/lib/server/admin/action-grant');
+    // 缩短测试授权 TTL；时钟、事务、行锁和消费都是真实实现，生产的 5 分钟策略不变。
+    const live = createActionGrantService({ db, grantTtlMs: 2_000 });
+    async function liveAccount() {
+      const member = await makeAccount();
+      const opened = new Date();
+      await db.adminDeviceSession.update({ where: { id: member.device.id }, data: {
+        createdAt: opened, lastActivityAt: opened,
+        hardExpiresAt: new Date(opened.getTime() + ADMIN_SESSION_POLICY.ordinaryAbsoluteMs),
+      } });
+      return member;
+    }
+    const control = await liveAccount();
+    try {
+      const grant = await live.issue({ userId: control.user.id, sid: control.device.id, purpose: 'PASSWORD', password, totp: unusedCode(control.plain, null) });
+      const input = { token: grant.token, purpose: 'PASSWORD' as const, targetId: null, userId: control.user.id, sid: control.device.id };
+      assert.ok(Date.now() < grant.expiresAt.getTime());
+      assert.equal(await live.consume(input), true);
+      assert.equal(await live.consume(input), false);
+    } finally {
+      await db.user.delete({ where: { id: control.user.id } });
+    }
+
+    for (const lock of ['User', 'Device'] as const) {
+      for (const expiry of ['grant', 'device'] as const) {
+        const member = await liveAccount();
+        const locker = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
+        let release!: () => void;
+        const held = new Promise<void>((resolve) => { release = resolve; });
+        let lockReady!: (pid: number) => void;
+        let lockFailed!: (error: unknown) => void;
+        const ready = new Promise<number>((resolve, reject) => { lockReady = resolve; lockFailed = reject; });
+        let locking: Promise<unknown> | undefined;
+        let consuming: Promise<boolean> | undefined;
+        let settled = false;
+        try {
+          const grantService = expiry === 'grant' ? live : createActionGrantService({ db });
+          const grant = await grantService.issue({ userId: member.user.id, sid: member.device.id, purpose: 'PASSWORD', password, totp: unusedCode(member.plain, null) });
+          const deadline = expiry === 'grant' ? grant.expiresAt : new Date(Date.now() + 2_000);
+          if (expiry === 'device') await db.adminDeviceSession.update({ where: { id: member.device.id }, data: { hardExpiresAt: deadline } });
+          const input = { token: grant.token, purpose: 'PASSWORD' as const, targetId: null, userId: member.user.id, sid: member.device.id };
+          locking = locker.$transaction(async (tx) => {
+            const [backend] = await tx.$queryRaw<{ pid: number }[]>`SELECT pg_backend_pid() AS pid`;
+            if (lock === 'User') await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${member.user.id} FOR UPDATE`;
+            else await tx.$queryRaw`SELECT id FROM "AdminDeviceSession" WHERE id = ${member.device.id} FOR UPDATE`;
+            lockReady(backend.pid);
+            await held;
+          }, { timeout: 20_000 });
+          void locking.catch(lockFailed);
+          const blockerPid = await ready;
+          let consumerReady!: (pid: number) => void;
+          let consumerFailed!: (error: unknown) => void;
+          const consumerStarted = new Promise<number>((resolve, reject) => { consumerReady = resolve; consumerFailed = reject; });
+          consuming = db.$transaction(async (tx) => {
+            const [backend] = await tx.$queryRaw<{ pid: number }[]>`SELECT pg_backend_pid() AS pid`;
+            consumerReady(backend.pid);
+            return grantService.consume(input, tx);
+          }, { timeout: 20_000 }).finally(() => { settled = true; });
+          void consuming.catch(consumerFailed);
+          const consumerPid = await consumerStarted;
+          assert.notEqual(consumerPid, blockerPid);
+          const waiting = async () => {
+            const [backend] = await db.$queryRaw<{ blockers: number[]; waitType: string | null }[]>`
+              SELECT pg_blocking_pids(pid) AS blockers, wait_event_type AS "waitType"
+              FROM pg_stat_activity WHERE pid = ${consumerPid}
+            `;
+            return backend?.waitType === 'Lock' && backend.blockers.includes(blockerPid);
+          };
+          const observeUntil = Date.now() + 5_000;
+          while (!(await waiting())) {
+            assert.equal(settled, false, 'consume completed without the expected PostgreSQL lock wait');
+            assert.ok(Date.now() < observeUntil, 'PostgreSQL never confirmed the consumer blocking on the independent holder');
+            await delay(10);
+          }
+          const waitingAt = Date.now();
+          assert.ok(waitingAt < deadline.getTime(), 'lock wait must be witnessed before the deadline');
+          // 按实际到期条件等待，不把固定 sleep 当成行锁证据；到期后再次核对同一 blocker。
+          while (Date.now() <= deadline.getTime()) await delay(10);
+          assert.equal(await waiting(), true);
+          assert.equal(settled, false);
+          const releasedAt = Date.now();
+          release();
+          await locking;
+          assert.equal(await consuming, false);
+          assert.equal((await db.adminActionGrant.findUniqueOrThrow({ where: { tokenHash: (await grants(member.user.id))[0].tokenHash } })).usedAt, null);
+          console.log(`ACTION_GRANT_LOCK_EXPIRY_EVIDENCE ${JSON.stringify({ lock, expiry, blockerPid, consumerPid, waitingAt, expiresAt: deadline.toISOString(), releasedAt, consumed: false, usedAt: null })}`);
+        } finally {
+          release();
+          await locking?.catch(() => {});
+          await consuming?.catch(() => {});
+          await locker.$disconnect();
+          await db.user.delete({ where: { id: member.user.id } });
+        }
+      }
+    }
   });
 });

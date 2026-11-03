@@ -209,8 +209,9 @@ export function createActionGrantService(deps: {
   }
 
   async function consumeLocked(tx: Prisma.TransactionClient, input: ConsumeActionGrantInput): Promise<boolean> {
-    const now = clock();
     const locked = await lockUserAndDevice(tx, input.userId, input.sid);
+    // 行锁等待可能跨过到期点；锁后取时，账号、设备和授权都按同一时刻判断。
+    const now = clock();
     const user = locked.user;
     const device = locked.device;
     if (!user || !device || !accountOpen(user, now) || !deviceOpen(device, user, now, sessionPolicy)) return false;
