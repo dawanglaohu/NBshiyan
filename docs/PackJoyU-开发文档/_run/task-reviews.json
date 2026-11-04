@@ -1546,6 +1546,23 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R4-T64765902": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "1aad3c32e902f99c471115a8fc54e63a7085ad5a1fd35b97d0059c463fb58a63",
+    "evidence": [
+      "固定当前 main 2e15565d79b1b056d48eadf6ed1e1e316f117395（含 #507 的 3268083a 与 #502 的 2e15565d）：R4-T64765902 任务卡 status=todo，两个保护区仍为占位；实现已随 #496（merge 69611a8c…）合入且为当前 main 祖先。",
+      "逐条验收静态复核：当前 main 全树无 src/lib/chat/adminPath.ts 与 tests/tawk-admin.test.ts，src/lib/chat/ 为空；src/tests/e2e 中 isAdminPath、adminPath、tawk-admin 的产品/测试引用为 0。tests/consent-write.test.ts:48 的 \"https://embed.tawk.to/x.js\" 是清理残留的模拟夹具字符串，不是加载第三方脚本。",
+      "security-headers.ts:4-20 的 CSP script-src 仅 self/内联/wasm 与 Cloudflare challenges、insights，不含 tawk.to、不含通配 https:；e2e/tawk.spec.ts:23-104 跨同意状态、旧 chat=true、admin 路径与 CSP 均断言无第三方聊天。当前 main 在 7d0b4f23..2e15565d 之间这些 R4 相关文件逐字未变。",
+      "联系页与同意入口在当前 main 的真实行号：src/app/[locale]/contact/page.tsx:20-22 intro/HumanContactNotice/InquiryWizard；HumanContactNotice.tsx:19-29 #iq-email 邮箱跳转；src/components/consent/CookieConsent.tsx:79-87、112-114、177-190 必要人工联系常开、可选分析独立、所有写入 chat:false；src/components/quote/FloatingActions.tsx:59 公共联系入口仍指向 /contact；src/lib/consent.ts:29、65 固定 chat:false 并迁移旧 true。",
+      "假设纠正（本轮实测）：source-map.json 头部自述为 2026-10-19 的 \"read-only current source inventory\" 历史快照（sourceRoot 指向 D:/xiangmu/NBshiyan-docs-s2-s6、productImplementation=false），task-contracts.json 是 handoff_contract.input_hashes 读取的源配置；maintain_docs.py build 不重写这两者，其中仍列已删的 adminPath.ts / tawk-admin.test.ts。review.py --json 实测 block=0（warn=28、info=1），两处残留不构成本次落地阻断，按 Chief 指示不修改、不手工删除，也不改写历史批次记录。",
+      "回归证据：固定副本上 tests/security-headers.test.ts、tests/consent-write.test.ts、tests/m4-t15-copy.test.ts 共 19 pass / 0 fail / 0 skip；#496 合并时 PR 五项检查全 success、指定 App APPROVED 属历史证据，不冒充当前 main 的新运行。本轮不重跑 e2e、不改产品源码或规范正文。",
+      "当前契约 hash=1aad3c32e902f99c471115a8fc54e63a7085ad5a1fd35b97d0059c463fb58a63，来自当前 main 的 maintain_docs.py status --task R4-T64765902 实时输出（stale=[]、runtimeDrift=[]）；旧 task-reviews 无本任务可用记录，按当前 hash 重新登记非空证据，不复用旧记录。",
+      "本轮为已合实现的文档契约复核与回填准备，目的是按项目流程登记 verify 后由 Chief 安排 --landed；不降低验收、不扩大范围、不新增需补测的产品行为。"
+    ],
+    "reviewed": "2026-11-04T17:20:36.752233+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "R5-T10248697": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "45f18f66df5987836193b99a09ce7e55db027241302531d0ef5f414748ec3554",
