@@ -171,8 +171,12 @@ test('未选择和拒绝都不采集，页脚偏好面板和产品控件仍可�
   const open = page.getByRole('button', { name: 'Open' }).first();
   await open.click();
   await expect(open).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('footer a[href$="#gift-boxes"]').click();
-  await expect(page).toHaveURL(/#gift-boxes/);
+  // 品类页上线后，页脚品类链接指向 /{locale}/products/{slug}，不再是 3D 目录锚点。
+  // 本用例意图是「点击页脚品类入口不产生分析事件」，与链接形态无关，故跟随新行为改断言。
+  const footerCategory = page.locator('footer a[href*="/products/"]').first();
+  await expect(footerCategory).toBeVisible();
+  await footerCategory.click();
+  await expect(page).toHaveURL(/\/products\//);
   expect(seen.events).toEqual([]);
 
   await page.locator('#analytics-preferences').click();

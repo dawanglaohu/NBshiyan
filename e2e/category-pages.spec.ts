@@ -1,10 +1,11 @@
 import { categoryMeta } from '../src/lib/seo/categoryMeta';
 import { expect, test } from './fixtures';
 
-// 品类页已随 CATEGORY_PAGES_LIVE 打开。不登录后台。
-const paths = categoryMeta.flatMap((meta) => (['en', 'ru'] as const).map((locale) => `/${locale}/products/${meta[locale].slug}`));
+// fix1 口径：本轮只上 en，ru 的品类页未上线（404），因此 e2e 只覆盖 en 的 11 条 URL。
+// ru 待文案通过母语审校后单独开 PR，再补回 en/ru 双向断言。
+const paths = categoryMeta.map((meta) => `/en/products/${meta.en.slug}`);
 
-test('category pages are 200, in the sitemap, with self canonical and en/ru/x-default', async ({ request }) => {
+test('category pages are 200 for en, in the sitemap, with self canonical and hreflang en/x-default', async ({ request }) => {
   const xml = await (await request.get('/sitemap.xml')).text();
   for (const path of paths) {
     const res = await request.get(path, { maxRedirects: 0 });
@@ -12,11 +13,18 @@ test('category pages are 200, in the sitemap, with self canonical and en/ru/x-de
     expect(xml, path).toContain(path);
     const html = await res.text();
     expect(html, path).toMatch(new RegExp(`rel="canonical"[^>]*href="[^"]*${path}"|href="[^"]*${path}"[^>]*rel="canonical"`));
-    for (const lang of ['en', 'ru', 'x-default']) expect(html, path).toContain(`hreflang="${lang}"`);
+    // 已上线语言只有 en，x-default 指向 en；不得出现 ru 的 hreflang。
+    for (const lang of ['en', 'x-default']) expect(html, path).toContain(`hreflang="${lang}"`);
+    expect(html, path).not.toContain('hreflang="ru"');
   }
   for (const meta of categoryMeta) {
     expect(xml).toContain(`/en/products/${meta.en.slug}`);
-    expect(xml).toContain(`/ru/products/${meta.ru.slug}`);
+    // ru 品类 URL 不得进 sitemap。
+    expect(xml).not.toContain(`/ru/products/${meta.ru.slug}`);
+  }
+  // ru 品类页按 fix1 口径未上线，直接访问应 404。
+  for (const meta of categoryMeta) {
+    expect((await request.get(`/ru/products/${meta.ru.slug}`, { maxRedirects: 0 })).status(), meta.key).toBe(404);
   }
   expect((await request.get('/en/products/gift-boxes', { maxRedirects: 0 })).status()).toBe(404);
   expect((await request.get('/en/products/not-a-category', { maxRedirects: 0 })).status()).toBe(404);
@@ -24,7 +32,7 @@ test('category pages are 200, in the sitemap, with self canonical and en/ru/x-de
 
 test('lead is on the first 390 screen; 390 and 1280 do not overflow', async ({ page }) => {
   test.setTimeout(60_000);
-  const samples = ['/en/products/custom-gift-boxes', '/ru/products/podarochnye-korobki', '/ru/products/tovary-dlya-prazdnikov'];
+  const samples = ['/en/products/custom-gift-boxes', '/en/products/custom-paper-cups'];
   for (const path of samples) {
     for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 800 }] as const) {
       await page.setViewportSize(viewport);
@@ -51,9 +59,9 @@ test('lead is on the first 390 screen; 390 and 1280 do not overflow', async ({ p
       expect(fit.overflow, `${path} ${viewport.width}`).toBe(true);
       expect(fit.wrap, path).toBe('pretty');
       if (viewport.width === 1280) expect(fit.prose, path).toBe(true);
-      // en 页不得自动断词；ru 页仍需断词避免 390 溢出。
+      // en 页不得自动断词。ru 品类页本轮未上线，样本里没有 ru 路径，
+      // 因此这里不写 ru 的断词断言，避免给出「已验证」的假象。
       if (path.startsWith('/en/')) expect(fit.hyphens, path).toBe('manual');
-      if (path.startsWith('/ru/')) expect(fit.hyphens, path).toBe('auto');
     }
   }
 });
