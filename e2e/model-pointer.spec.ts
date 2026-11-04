@@ -325,13 +325,14 @@ test('E-98 退出后遗留 DOM 焦点不得重新接管修饰滚轮', async ({ p
     'data-capture-owner',
     '',
   );
-  // 退出后确认这次修饰滚轮不接管相机缩放（相机距离不变）。
-  // 这里没有调用 preventDefault，浏览器默认行为仍会执行；本用例只验证「不再缩放相机」。
+  // 本用例只观察退出后相机距离不变。
+  // 源码的准入失败分支在调用 preventDefault 之前 return；但本用例不读取 event.defaultPrevented，
+  // 也不验证浏览器默认动作（如页缩放）是否被其他处理器取消或实际执行，那些另以事件/运行证据确认。
   const afterEscapeD = (await first.getAttribute('data-camera-distance'))!;
   await page.keyboard.down('Control');
   await page.mouse.wheel(0, -80);
   await page.keyboard.up('Control');
-  await expectStable(first, 'data-camera-distance', afterEscapeD, '退出后 wheel 不接管相机缩放');
+  await expectStable(first, 'data-camera-distance', afterEscapeD, '退出后相机保持不变');
   // 再点明确 Zoom 按钮：它不经过许可判定，退出状态下必须仍能改变相机。
   await page.locator('article.card').first().getByTestId('model-zoom-in').click();
   await expect
