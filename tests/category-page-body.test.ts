@@ -53,8 +53,12 @@ test('switch on publishes category URLs; switch off does not leak them', () => {
   assert.match(page, /categoryForRequest\(locale, slug, categoryPagesLive\(\)\)/);
   assert.doesNotMatch(page, /dangerouslySetInnerHTML/);
   assert.doesNotMatch(readFileSync('src/components/category/CategoryArticle.tsx', 'utf8'), /dangerouslySetInnerHTML/);
-  assert.match(readFileSync('src/app/globals.css', 'utf8'), /main\.category-prose\{[^}]*max-width:min\(70ch/);
-  assert.match(readFileSync('src/app/globals.css', 'utf8'), /text-wrap:pretty/);
+  // UX P2：行宽从 70ch 收窄到 32rem（约 70 字符但可随字号缩放），英文关闭自动断词，俄语保留。
+  const css = readFileSync('src/app/globals.css', 'utf8');
+  assert.match(css, /main\.category-prose\{[^}]*max-width:min\(32rem,var\(--container\)\)/);
+  assert.match(css, /text-wrap:pretty/);
+  assert.match(css, /main\.category-prose:lang\(en\)\{hyphens:manual\}/, '英文不得自动断词');
+  assert.doesNotMatch(css, /main\.category-prose\{[^}]*max-width:min\(70ch/, '旧 70ch 行宽应已移除');
 });
 
 test('every category article: one H1 from the markdown, lead before the catalog link, headings start at H2', () => {
@@ -93,6 +97,15 @@ test('every category article: one H1 from the markdown, lead before the catalog 
     for (let i = 1; i < levels.length; i += 1) assert.ok(levels[i] <= levels[i - 1] + 1, `${meta.key}/${locale} skipped heading`);
     assert.doesNotMatch(html, /<h2[^>]*>Intro<\/h2>|<h2[^>]*>Вступление<\/h2>|<h2[^>]*>CTA<\/h2>/);
     assert.doesNotMatch(html, /\{\{|<script|javascript:/i);
+    // SEO/UX P2-1：页面可见文本不得暴露内部仓库路径或来源标注。
+    assert.doesNotMatch(html, /docs\/content|landing-faq\.md|\.md\b/, `${meta.key}/${locale} 渲染文本含内部路径`);
+    assert.doesNotMatch(html, /(?:\bsource\s*:|источник\s*:)/i, `${meta.key}/${locale} 渲染文本含来源标注`);
+    // #faq 自链接：FAQ 小节删除后不得残留指向自身的锚点。
+    assert.doesNotMatch(html, /href="#faq"/, `${meta.key}/${locale} 残留 #faq 自链接`);
+    // 空分节：不得渲染只有标题、没有正文块的 section。
+    for (const m of html.matchAll(/<section[^>]*>([\s\S]*?)<\/section>/g)) {
+      assert.match(m[1], /<(p|ul|ol|table)[\s>]/, `${meta.key}/${locale} 出现无正文的空分节`);
+    }
   }
   assert.equal(descriptions.size, categoryMeta.length * 2);
 });

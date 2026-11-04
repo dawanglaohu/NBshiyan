@@ -37,22 +37,23 @@ test('lead is on the first 390 screen; 390 and 1280 do not overflow', async ({ p
       if (viewport.width === 390) expect(box!.y, path).toBeLessThan(viewport.height - 24);
       const fit = await page.evaluate(() => {
         const main = document.querySelector('main.category-prose');
-        const probe = document.createElement('span');
-        probe.textContent = '0';
-        probe.style.visibility = 'hidden';
-        (main ?? document.body).appendChild(probe);
-        const ch = probe.getBoundingClientRect().width || 8;
-        probe.remove();
         const root = document.documentElement;
+        const rem = parseFloat(getComputedStyle(root).fontSize) || 16;
         return {
           overflow: root.scrollWidth <= root.clientWidth + 1,
           wrap: getComputedStyle(document.querySelector('[data-testid="category-lead"] p') ?? document.body).textWrap,
-          prose: main ? main.getBoundingClientRect().width <= ch * 70 + 1 : false,
+          // UX P2：行宽上限从 70ch 改为 32rem。按 rem 计算，避免字体族差异让 ch 漂移。
+          prose: main ? main.getBoundingClientRect().width <= Math.min(32 * rem, root.clientWidth) + 1 : false,
+          // UX P2：英文关闭自动断词（manual），俄语保留（auto）。
+          hyphens: main ? getComputedStyle(main).hyphens : '',
         };
       });
       expect(fit.overflow, `${path} ${viewport.width}`).toBe(true);
       expect(fit.wrap, path).toBe('pretty');
       if (viewport.width === 1280) expect(fit.prose, path).toBe(true);
+      // en 页不得自动断词；ru 页仍需断词避免 390 溢出。
+      if (path.startsWith('/en/')) expect(fit.hyphens, path).toBe('manual');
+      if (path.startsWith('/ru/')) expect(fit.hyphens, path).toBe('auto');
     }
   }
 });

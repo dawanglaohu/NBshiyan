@@ -36,12 +36,17 @@ function renderBlock(block: Block, key: string): ReactNode {
 
 /** 导语在 H1 和 3D 目录链接之间。正文标题从 H2 起。CTA 只显示按钮文字，不显示文案里的写作说明。 */
 export default function CategoryArticle({ article, catalogHref, catalogLabel }: { article: Article; catalogHref: string; catalogLabel: string }) {
+  // 删掉 FAQ 等小节后，md 里可能残留一个没有任何正文块的标题；
+  // 渲染时跳过这类空 section，避免页面上出现只有标题的分节。
+  const sections = article.sections.filter(
+    (section) => section.type === 'cta' || section.blocks.length > 0,
+  );
   return (
     <>
       <h1>{article.h1}</h1>
       {article.lead.length > 0 && <div className="lead" data-testid="category-lead">{article.lead.map((block, index) => renderBlock(block, `lead-${index}`))}</div>}
       <p className="catalog-return"><Link href={catalogHref} data-testid="catalog-return-link">{catalogLabel}</Link></p>
-      {article.sections.map((section, index) => section.type === 'cta'
+      {sections.map((section, index) => section.type === 'cta'
         ? <p key={`cta-${index}`} className="category-cta"><Link className="btn" href="/contact">{section.label}</Link></p>
         : <section key={`s-${index}`}>{section.id ? <h2 id={section.id}>{section.heading}</h2> : <h2>{section.heading}</h2>}{section.blocks.map((block, blockIndex) => renderBlock(block, `s-${index}-${blockIndex}`))}</section>)}
     </>
