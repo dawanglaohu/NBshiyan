@@ -32,9 +32,6 @@ PackJoyU поставляет лотки, ложементы и коробки �
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/izdeliya-iz-tsellyulozy#faq) (источник: `docs/content/landing-faq.md`, `pulp-molding`).
-
 ## Похожие товары
 - [Гофрокороба на заказ](/ru/products/gofrokorobki)
 - [Подарочные коробки на заказ](/ru/products/podarochnye-korobki)

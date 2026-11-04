@@ -32,9 +32,6 @@ PackJoyU поставляет новогоднюю упаковку на зак�
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/novogodnyaya-upakovka#faq) (источник: `docs/content/landing-faq.md`, `christmas-merchandise`).
-
 ## Похожие товары
 - [Подарочные коробки на заказ](/ru/products/podarochnye-korobki)
 - [Коробки для вина на заказ](/ru/products/upakovka-dlya-vina)

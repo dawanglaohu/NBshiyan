@@ -32,9 +32,6 @@ PackJoyU поставляет картонные коробки с печать�
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/tsvetnye-korobki#faq) (источник: `docs/content/landing-faq.md`, `color-boxes`).
-
 ## Похожие товары
 - [Гофрокороба на заказ](/ru/products/gofrokorobki)
 - [Подарочные коробки на заказ](/ru/products/podarochnye-korobki)

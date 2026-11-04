@@ -32,9 +32,6 @@ PackJoyU поставляет гофрокороба на заказ для до
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/gofrokorobki#faq) (источник: `docs/content/landing-faq.md`, `corrugated-boxes`).
-
 ## Похожие товары
 - [Картонные коробки с печатью](/ru/products/tsvetnye-korobki)
 - [Упаковка из формованной целлюлозы](/ru/products/izdeliya-iz-tsellyulozy)

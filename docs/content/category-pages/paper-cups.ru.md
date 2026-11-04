@@ -32,9 +32,6 @@ PackJoyU поставляет бумажные стаканы с логотип�
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/bumazhnye-stakany#faq) (источник: `docs/content/landing-faq.md`, `paper-cups`).
-
 ## Похожие товары
 - [Бумажная посуда для праздника](/ru/products/tovary-dlya-prazdnikov)
 - [Печать упаковки на заказ](/ru/products/tsvetnaya-pechat)

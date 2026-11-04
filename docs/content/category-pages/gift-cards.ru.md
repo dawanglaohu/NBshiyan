@@ -32,9 +32,6 @@ PackJoyU печатает открытки на заказ для брендов
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/otkrytki-na-zakaz#faq) (источник: `docs/content/landing-faq.md`, `gift-cards`).
-
 ## Похожие товары
 - [Печать упаковки на заказ](/ru/products/tsvetnaya-pechat)
 - [Подарочные коробки на заказ](/ru/products/podarochnye-korobki)

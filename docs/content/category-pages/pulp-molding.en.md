@@ -4,7 +4,7 @@
 # Molded Pulp Packaging
 
 ## Intro
-PackJoyU supplies molded pulp trays, inserts and boxes shaped to your product. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies molded pulp packaging: trays, inserts and boxes shaped to your product. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Protective inserts for electronics
@@ -13,11 +13,11 @@ PackJoyU supplies molded pulp trays, inserts and boxes shaped to your product. T
 
 ## Materials and options
 - **Types:** Protective inserts, trays, clamshells, cup carriers, boxes
-- **Fibre:** Pulp source: {{待Ryan确认}}
+- **Fiber:** Pulp source: {{待Ryan确认}}
 - **Available options for your order:** {{待Ryan确认}}
 
 ## Customization and printing
-Shape is made with a mould; surface finish, colour and embossed logos can be discussed. Mould cost and timing are confirmed in the quote.
+Shape is made with a mold; surface finish, color and embossed logos can be discussed. Mold cost and timing are confirmed in the quote.
 
 ## From inquiry to delivery
 1. **Send your brief** — product, size, quantity and artwork or a reference.
@@ -31,9 +31,6 @@ Shape is made with a mould; surface finish, colour and embossed logos can be dis
 - **Sample lead time:** {{待Ryan确认}}
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
-
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/molded-pulp-packaging#faq) (source: `docs/content/landing-faq.md`, `pulp-molding`).
 
 ## Related products
 - [Custom Corrugated Boxes](/en/products/custom-corrugated-boxes)

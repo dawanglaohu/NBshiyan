@@ -4,7 +4,7 @@
 # Custom Gift Boxes
 
 ## Intro
-PackJoyU supplies custom rigid gift boxes for brands and corporate gifting. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom gift boxes in rigid board for brands and corporate gifting. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Premium product packaging
@@ -31,9 +31,6 @@ Offset printing on the wrapping paper; foil, embossing, spot UV, ribbon pulls an
 - **Sample lead time:** {{待Ryan确认}}
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
-
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-gift-boxes#faq) (source: `docs/content/landing-faq.md`, `gift-boxes`).
 
 ## Related products
 - [Custom Wine Boxes](/en/products/custom-wine-boxes)
