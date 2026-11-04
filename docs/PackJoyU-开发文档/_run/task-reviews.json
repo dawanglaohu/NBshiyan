@@ -297,17 +297,18 @@
   },
   "M2-T2": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "9897db49876a6a83dbfcd8e1011d2f180746e55606d2f21f41824d29519a6358",
+    "contractHash": "5b4b8b6f682a107ddb8a34c968b3ef9f855a2d602fd60dddce535d97ddb964be",
     "evidence": [
-      "仅复核正常 main 合入后的条款/范围与持久化状态，不是 A 实现、退出生命周期、真实浏览器红绿或 hint 验收；任务仍 todo，不 --landed、不合并 PR 到 main。",
-      "正常 merge 的原头 f217a3ed 与目标 main a9172b2f 已锁定；应用索引匹配 Git 预检自动合并树，生成阶段后691个应用/测试/CI等文件字节与自动合并后快照相同，未手改应用源码。",
-      "A 的07/11/12摘要、E-98原行/台账、M2-T2验收及三个支持路径与f217a3ed的规范源哈希逐一相同；真实焦点、同模型命中、普通滚页、跨模型隔离、退出释放、原触屏/键盘义务均保留，不重跑Jev。",
-      "#499 的R4-T16305211完整任务笔记与main Git blob一致，status done及受保护回填未丢；原main的契约通过记录原样保留，docs-data.js的R4-T16305211和M4-T15均为done。",
-      "原39条待复验及其全部历史作为前缀保留；同步器按既有依赖传播新增R4-T16305211一条文档复验，共40，不撤销其done历史，不改为代码返工，也未手删标记。17个静态R任务ID不变。",
-      "六处冲突中原裁决日志按完整记录合并为1034条；五个生成产物仅用main版本引导后由合并后的源重生成，不以ours/theirs整包覆盖源、状态或最终产物；同步退出0、当前stale=[]、无生成器漂移。",
-      "三份既有窄回归（模型输入、日界、产品文案）在Node22.23.4实际19 pass、0 fail/skip/todo/cancelled，仅作合并检查；后台指出的退出许可及异步负例问题仍待前端修复，具名e2e及真实红绿/hint仍未补判通过。"
+      "仅复核 M2-T2 的条款与有效范围，不代表整体验收、终审或可合并；本轮未改产品行为、依赖或测试断言。任务保留 status todo，未执行 --landed，未合并。",
+      "取证配置支持路径：playwright.config.ts:36 的 CI list reporter 已在 PR 差异中，但原 taskPaths/supportPaths 未含该文件；按定点文档补丁 M2-T2-test-reporter-support 将其追加到 supportPaths，不改验收、生成器或其他任务。",
+      "e2e 仅改 328 行注释与 333 行断言标签，措辞为「不接管相机缩放、未阻止默认行为」；断言对象仍为 data-camera-distance，产品源码未改。",
+      "两个受保护区块已回填真实仓库相对路径与固定 head 44f1fd82 实际行号；pointerup 只清 ownerSlug/dragging 并保留焦点，不写经 withoutInteraction 清空全部；旧规则自测未被写成实际旧产品失败。",
+      "证据分层：CI run 41684377166（检出测试合并 3d4befd）提供两条 E-98 具名通过，证明断言级行为；本地 next start v4 成对对照仅支持 B/C 两格有限 JSON 结论，不替代 standalone 或完整验收。",
+      "v4 采集限制已按更正说明记录：事件后状态由 setTimeout(0) 宏任务读取；两端 frames 为空，不得声称磁盘图片为本次关联帧；绿侧 C 触发定位 0→445、红侧 C 为 89，各自定位完成后测量区间稳定，不宣称初始滚动位置相同；D 格两端均不接管，不是红→绿。",
+      "defaultPrevented=false 只证未阻止默认行为，不证明已实测浏览器页缩放；.hint 只证存在与 elementFromPoint 命中，未验证完整交互语义。未测项与本地对照无 DB、非 standalone 的限制保留。",
+      "同步后复查：revalidation 仍 40 条，M2-T2 status todo，其余普通任务与 R* 状态未改，产品源码与依赖未改。"
     ],
-    "reviewed": "2026-11-03T15:40:09.165337+00:00",
+    "reviewed": "2026-11-04T06:17:11.746851+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

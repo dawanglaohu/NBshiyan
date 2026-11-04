@@ -390,7 +390,8 @@
       "supportPaths": [
         "tests/m2-t2-model-pointer.test.ts",
         "messages/en.json",
-        "messages/ru.json"
+        "messages/ru.json",
+        "playwright.config.ts"
       ],
       "outputPaths": [
         "src/components/three/",
