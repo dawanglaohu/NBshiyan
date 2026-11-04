@@ -116,7 +116,7 @@
 | APP_ENV | 正式环境必须设为 `production`；预览/本地不设。**构建和运行时都要设**（noindex 响应头在构建时定下来） | `production` | 必须手动设，未设一律按非生产（整站 noindex、关闭 IndexNow、跳过生产自检） | — |
 | NODE_ENV / CI | 平台自动注入 | — | 不用手动设 | — |
 | E2E_PORT, SEO_AUDIT_*, PREVIEW_*, REVIEWER_APP | 只在 CI 和脚本里用 | — | 否 | — |
-| GitHub `vars.SECURITY_REVIEWER_APP` | 安全审查 bot 的 workflow 配置 | — | CI 用 | 待确认 |
+| GitHub `vars.SECURITY_REVIEWER_APP` | 已废弃：指定的安全审查 App 已删除，相关 workflow 同时移除，不再有变量使用者；设过可以从仓库变量里删掉 | — | 否 | — |
 | GitHub App 私钥 | 代码里没有引用，应该是在 bot 或 CI 那边配置 | — | 待确认 | **Ryan**，只能在私聊里给 |
 
 ### 4.1 自建部署（standalone 镜像）：构建时 / 运行时
@@ -194,7 +194,7 @@ docker compose exec -it app node scripts/admin-reset-initial-password.mjs --emai
 
 ## 8. 安全规则（长期有效）
 
-- **客户回信（inbound reply）**：以后新增的任何客户回信处理接口，**必须**用 `findInquiryForReply`（`src/lib/server/privacy.ts`）按 token 查找询盘，它会拒绝已匿名化的询盘；**绝不能**对 `anonymizedAt` 不为空的询盘做任何写入（新增往来邮件、改状态、存附件等）。目前还没有这个接口；新增的 PR 属于安全路径，全栈和 `packjoyu-security-reviewer[bot]` 审查时要核对这两条。
+- **客户回信（inbound reply）**：以后新增的任何客户回信处理接口，**必须**用 `findInquiryForReply`（`src/lib/server/privacy.ts`）按 token 查找询盘，它会拒绝已匿名化的询盘；**绝不能**对 `anonymizedAt` 不为空的询盘做任何写入（新增往来邮件、改状态、存附件等）。目前还没有这个接口；新增的 PR 属于安全路径，由全栈审查者人工复核这两条。
 
 ## 9. 关于页图片（PublicAsset，`/media/`）
 
