@@ -167,8 +167,10 @@ test('products-link opens the server catalog, large cards, and the real model fi
   const first = page.locator('article.card').first();
   // CATEGORY_PAGES_LIVE=true 后，已发布品类的卡片带指向品类页的标题链接与品类链接。
   // 断言强度不降：从「必须没有」改为「必须有且指向正确路径」。
-  await expect(first.locator('h2 a')).toHaveCount(1);
-  await expect(first.locator('h2 a')).toHaveAttribute('href', /\/products\/.+/);
+  // 用 testId 精确定位，不用 h2 a 这种结构性选择器（会连带命中文档内其他链接）。
+  await expect(first.getByTestId('product-name-link')).toHaveCount(1);
+  await expect(first.getByTestId('product-name-link')).toHaveAttribute('href', /\/products\/.+/);
+  await expect(first.getByTestId('category-link')).toHaveCount(1);
   await expect(first.getByTestId('category-link')).toHaveAttribute('href', /\/products\/.+/);
   await expect(page.getByTestId('category-link').first()).toBeVisible();
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
@@ -261,8 +263,8 @@ test('a 390px products entry does not overflow and keeps the name, specs, and in
   expect(narrow.descCount).toBe(1);
   const first = page.locator('article.card').first();
   // 与桌面用例同口径：品类页上线后标题是可点链接，窄屏同样必须存在且指向品类页。
-  await expect(first.locator('h2 a')).toHaveCount(1);
-  await expect(first.locator('h2 a')).toHaveAttribute('href', /\/products\/.+/);
+  await expect(first.getByTestId('product-name-link')).toHaveCount(1);
+  await expect(first.getByTestId('product-name-link')).toHaveAttribute('href', /\/products\/.+/);
   await expect(first.locator('.specs li').first()).toBeVisible();
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
   const overflow = await page.evaluate(() => ({
