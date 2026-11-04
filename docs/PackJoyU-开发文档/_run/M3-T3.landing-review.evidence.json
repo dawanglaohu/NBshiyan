@@ -1,0 +1,39 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T3": {
+      "contractHash": "8239d7e82e6efdac5fa2d76115a788f4af34f25d4076fc036036030e636edd24",
+      "verdict": "pass",
+      "implementationReviewedHead": "a5d851d493be5369be06eedd583db15610af856e",
+      "decisionBasis": "现有独立产品条款复核、全栈安全完整审查与 P2 增量复验回执，以及对应代码 head 的真实 CI；脚本只登记这些证据，不自动执行安全审查或产生 App 批准。",
+      "evidence": [
+        "验收1/E-72：reauth真实POST handler经同源和当前设备守卫，现密码及共享TOTP时间步原子核销后才签256bit token，只存SHA-256。prisma/schema.prisma:145；reauth/route.ts:7；action-grant.ts:153。真实PG文件admin-reauth.http.test.ts在CI41605525328为7 pass/0 fail/skip/todo/cancelled，覆盖登录已消费时间步拒绝、并发一次签发和哈希存储。",
+        "验收2/E-73/E-74：action-grant.ts:206在同一事务按purpose/target/user/sid/sv/expiry/usedAt核销，当前权限与目标归属检查在:135。真实PG admin-action-grant.db.test.ts为6 pass/0 fail/skip/todo/cancelled，覆盖用途/目标/账号/设备不匹配、5min等号、撤销/版本变化、并发一次消费与删除账号。",
+        "P2修复：action-grant.ts:212-214先取得User/Device两行锁，再读取一次clock，账号/设备有效性与授权SQL统一用锁后时间。全栈工程师/安全工程师在本群独立确认a5d851d493be5369be06eedd583db15610af856e上P2关闭、无代码阻断；受控探针对照只作为额外代码证据，不算PG。",
+        "真实PG锁等待回归tests/admin-action-grant.db.test.ts:246：独立连接持User/Device锁，消费者PID的pg_blocking_pids及wait_event_type=Lock在到期前后验证等待。CI日志743-746四组User/Device×grant/device：blocker132/141/142/151与consumer130不同连接，waitingAt<expiresAt<releasedAt，分别晚2/4/11/6ms释放，全部消费false且usedAtnull。未过期可消费、重复拒绝保留；fixture短TTL不改变生产5min规则。",
+        "验收3/E-75：真实Auth.js+reauth Request/Response handler与PG验证仅会话或TOTP、或携带recoveryCode不签普通授权，缺密码返回401且grant不变，后续普通passwordless登录可用；这是进程内handler集成，不冒称监听端口上的reauth网络E2E。",
+        "同一CI41605525328使用Node22.23.4和PostgreSQL17.11，M3T3_TEST_DATABASE_URL指向隔离e2e库schema=m3t3，M3T3_REQUIRE_DATABASE=true；三个逐文件名单和缺计数/skip/todo/cancelled拒绝门禁均保留。实际checkout f58dea13d848b19c65fc2f3af3193fd1cc803ce8，包含代码head a5d851d4及base b2db0294。",
+        "本轮CI三个普通job均SUCCESS：build-and-audit、e2e、posix-storage-security。完整Playwright154 pass/9 skip；三个目标PG文件无skip，不把全量9个跳过写成零跳过。Linux构建、standalone启动、Lighthouse、RUM与POSIX检查通过。本机无PG，不将CI结果说成本地实跑。",
+        "回填核查：任务代码位置与实施沉淀已填；产品经理/产品策划独立回读数据影响两句通过，明确totpLastStep、授权/审计新增、usedAt更新，以及本轮未执行生产迁移、生产现状未核验。核心代码/测试/CI与已复验a5d851d4保持相同；后续仅登记分支落地与证据。",
+        "范围与状态：只登记M3-T3。当前task-contracts、dispatch和收口源没有本任务直接关联的R<批>-T<号>返工，17个R任务不代标完成；共享workflow/fetch说明不等于完成其他返工。revalidation初始为空，不手动清除标记。本次按Chief授权只在原分支执行--landed；主检出/主交接台先不改，不合并或部署。",
+        "批准边界：指定packjoyu-security-reviewer[bot]对最终SHA的正式APPROVED尚未取得，普通团队复验不能代替。当前代码head的gate41605522203要求该批准；落地记录不构成合并许可，也不宣称生产迁移或主检出已同步。"
+      ],
+      "ci": {
+        "runUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328",
+        "jobUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328/job/125814267369",
+        "head": "a5d851d493be5369be06eedd583db15610af856e",
+        "checkout": "f58dea13d848b19c65fc2f3af3193fd1cc803ce8",
+        "base": "b2db0294da689759424c3ec8c777f90ec89ff477",
+        "files": {
+          "tests/admin-action-grant.db.test.ts": {"pass": 6, "fail": 0, "skip": 0, "todo": 0, "cancelled": 0},
+          "tests/admin-reauth.http.test.ts": {"pass": 7, "fail": 0, "skip": 0, "todo": 0, "cancelled": 0},
+          "tests/admin-session-activity.http.test.ts": {"pass": 8, "fail": 0, "skip": 0, "todo": 0, "cancelled": 0}
+        }
+      },
+      "independentReviewers": ["产品经理/产品策划", "全栈工程师/安全工程师"],
+      "mergeAuthorized": false,
+      "productionExecuted": false,
+      "mainCheckoutSynced": false
+    }
+  }
+}

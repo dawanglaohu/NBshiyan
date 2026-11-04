@@ -86,6 +86,7 @@ model User {
   inquiries      Inquiry[] @relation("Assignee")
   deviceSessions AdminDeviceSession[]
   loginChallenges AdminLoginChallenge[]
+  actionGrants   AdminActionGrant[]
   createdAt      DateTime  @default(now())
 }
 
@@ -106,6 +107,7 @@ model AdminDeviceSession {
   revokedAt          DateTime?
   revokedReason      String?
   deviceLabel        String?
+  actionGrants       AdminActionGrant[]
 
   @@index([userId, revokedAt])
   @@index([absoluteExpiresAt])
@@ -126,6 +128,35 @@ model AdminLoginChallenge {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+// 敏感设置的一次性本人授权。明文是 256bit，只出现在签发响应里；这里只存 SHA-256。
+// 绑定用户、当前设备、会话版本、用途和目标。5 分钟后失效，到期时刻本身也无效。
+// 设备外键用 NoAction，避免和 User 的 Cascade 形成两条删除路径；删账号仍由用户外键带走授权。
+enum ActionPurpose {
+  LOGIN_MODE
+  PASSWORD
+  TOTP_RESET
+  RECOVERY_AUTHORIZE
+  DEVICE_REVOKE
+  LOGOUT_ALL
+}
+
+model AdminActionGrant {
+  id              String        @id
+  tokenHash       String        @unique
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceSessionId String
+  deviceSession   AdminDeviceSession @relation(fields: [deviceSessionId], references: [id], onDelete: NoAction)
+  sessionVersion  Int
+  purpose         ActionPurpose
+  targetId        String?
+  createdAt       DateTime      @default(now())
+  expiresAt       DateTime
+  usedAt          DateTime?
+
+  @@index([userId, purpose, expiresAt])
 }
 
 // 客户个人信息单独一张表，便于按地区迁移（如俄罗斯数据本地化）和 GDPR 删除
