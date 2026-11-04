@@ -1,16 +1,17 @@
 'use client';
 import dynamic from 'next/dynamic';
-import { createRef, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createRef, useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
+import { useLocale } from 'next-intl';
 import type { Product } from '@/data/products';
 import type { BoxView } from './FoldBox';
 import SceneErrorBoundary from './SceneErrorBoundary';
 import { hintText, COARSE_QUERY } from './hint';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 import { Link } from '@/i18n/navigation';
+import { controlCopy, createModelPointerState, reduceModelPointer, shouldAutoRotate, wheelAdmission } from '@/lib/three/model-pointer';
 
 /** 深色卡片（.theme-premium）：卡片样式和 3D 轮廓光共用这一份 */
 export const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
-const HOVER_ZOOM_MS = 500;
 // 支持“合盖 / 开盖 / 展开刀模”切换的品类
 const VIEW_SLUGS = new Set(['gift-boxes', 'wine-boxes', 'corrugated-boxes']);
 /** 开合途中按整条盖子弧线取景的产品（盖子中途会从顶部出画）；礼盒开盖后静止就放不下，本来就走这条路 */
@@ -38,6 +39,7 @@ function CatalogLink({ href, className, testId, children }: { href: string; clas
 type Labels = { learnMore: string; specsLabel: string; tap: string; drag: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
 export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
+  const copy = controlCopy(useLocale());
   const rootRef = useRef<HTMLDivElement>(null);
   const tracks = useMemo(() => items.map(() => createRef<HTMLDivElement>()), [items]);
   const [visible, setVisible] = useState<Set<string>>(new Set());
@@ -47,14 +49,41 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   const onError = useCallback((slug: string) => setFailed((prev) => (prev.has(slug) ? prev : new Set(prev).add(slug))), []);
   const [sceneDead, setSceneDead] = useState(false);
   const [active, setActive] = useState<string | null>(null);
-  // 桌面端滚轮缩放：只有按住鼠标或悬停 0.5 秒后才交给模型，否则滚轮照常滚动页面
   const [views, setViews] = useState<Record<string, BoxView>>({});
-  const [zoomSlug, setZoomSlug] = useState<string | null>(null);
-  const hoverTimer = useRef<number | undefined>(undefined);
-  const pressed = useRef(false);
-  const finePointer = useRef(false);
+  const [pointer, dispatch] = useReducer(reduceModelPointer, false, createModelPointerState);
+  const pointerRef = useRef(pointer);
+  pointerRef.current = pointer;
+  const pointerId = useRef<number | null>(null);
+  const zoomSeq = useRef(0);
+  /**
+   * 滚轮准入许可证（E-98「退出后不得凭遗留 DOM 焦点再次接管」）。
+   * 退出路径在调用 dispatch 的同一时刻同步清空它，因此即使 reducer 的新状态还没渲染、
+   * 旧 wheel 监听的 cleanup 还没执行，遗留 DOM 焦点也无法让该监听再次缩放相机。
+   * 只由「本模型取得焦点」重新签发；明确的 Zoom 按钮不走这条判定，始终可用。
+   */
+  const wheelPermit = useRef<string | null>(null);
+  const [zoom, setZoom] = useState<{ slug: string; delta: number; id: number } | null>(null);
+  const [fine, setFine] = useState(false);
+  const [mouse, setMouse] = useState(false);
   // 角标文案按指针类型选（#172 第 10 点）；SSR 时角标不渲染（模型未就绪），无水合差异
   const [coarse, setCoarse] = useState(false);
+  const requestZoom = useCallback((slug: string, delta: number) => {
+    if (!delta) return;
+    zoomSeq.current += 1;
+    setZoom({ slug, delta, id: zoomSeq.current });
+  }, []);
+  const releaseDom = useCallback(() => {
+    const slug = pointerRef.current.ownerSlug;
+    const id = pointerId.current;
+    const index = slug ? items.findIndex((item) => item.slug === slug) : -1;
+    const el = index >= 0 ? tracks[index]?.current : null;
+    if (el && id != null) {
+      el.dispatchEvent(new PointerEvent('pointerup', { pointerId: id, bubbles: true, cancelable: true }));
+      // OrbitControls 只在自己内部 releasePointerCapture，从不 set（已核 three-stdlib 2.36.1 全文）：
+      // 捕获从来不在我们手里，这里不能再碰捕获状态。合成一个 pointerup 已让它结束本次手势。
+    }
+    pointerId.current = null;
+  }, [items, tracks]);
   useEffect(() => {
     const mq = window.matchMedia(COARSE_QUERY);
     const sync = () => setCoarse(mq.matches);
@@ -63,21 +92,107 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     return () => mq.removeEventListener?.('change', sync);
   }, []);
   useEffect(() => {
-    finePointer.current = window.matchMedia('(pointer: fine)').matches;
-    const up = () => { pressed.current = false; };
-    window.addEventListener('pointerup', up);
-    return () => { window.removeEventListener('pointerup', up); window.clearTimeout(hoverTimer.current); };
+    const mq = window.matchMedia('(pointer: fine)');
+    const sync = () => setFine(mq.matches);
+    sync();
+    mq.addEventListener?.('change', sync);
+    return () => mq.removeEventListener?.('change', sync);
   }, []);
-  const onEnter = (slug: string) => (e: React.PointerEvent) => {
-    if (e.pointerType !== 'mouse') return;
-    window.clearTimeout(hoverTimer.current);
-    hoverTimer.current = window.setTimeout(() => setZoomSlug(slug), HOVER_ZOOM_MS);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => dispatch({ type: 'reduced', on: mq.matches });
+    sync();
+    mq.addEventListener?.('change', sync);
+    return () => mq.removeEventListener?.('change', sync);
+  }, []);
+  useEffect(() => {
+    dispatch({ type: 'visible', slugs: [...visible] });
+  }, [visible]);
+  useEffect(() => {
+    const onUp = () => dispatch({ type: 'pointerup' });
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      const current = pointerRef.current;
+      if (!current.focusedSlug && !current.dragging && !current.ownerSlug) return;
+      event.preventDefault();
+      releaseDom();
+      // 同步撤销滚轮许可：不等 reducer 渲染，遗留 DOM 焦点也不能再接管 wheel。
+      wheelPermit.current = null;
+      dispatch({ type: 'escape' });
+      const activeEl = document.activeElement;
+      if (activeEl instanceof HTMLElement && rootRef.current?.contains(activeEl)) activeEl.blur();
+    };
+    const onWindowBlur = () => {
+      releaseDom();
+      wheelPermit.current = null;
+      dispatch({ type: 'window-blur' });
+    };
+    const onVis = () => dispatch({ type: 'foreground', on: document.visibilityState === 'visible' });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('blur', onWindowBlur);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      releaseDom();
+      wheelPermit.current = null;
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('blur', onWindowBlur);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [releaseDom]);
+  useEffect(() => {
+    const slug = pointer.focusedSlug;
+    if (!slug) return;
+    const index = items.findIndex((item) => item.slug === slug);
+    const viewport = index >= 0 ? tracks[index]?.current : null;
+    // 焦点 wrapper = article > div[style=min-width:0]，只含视口与命名工具条，不含标题/说明/购买。
+    // 监听挂它而不是 article：整张卡片会把正文区也算进准入域（E-98 禁止）。
+    const surface = viewport?.parentElement ?? null;
+    if (!surface) return;
+    const onWheel = (event: WheelEvent) => {
+      const target = event.target as HTMLElement | null;
+      // 语义命中：必须落在本模型的视口或命名工具条内，且在该 wrapper 之内。
+      const hitsViewport = !!target?.closest('[data-testid="product-viewport"]');
+      const hitsToolbar = !!target?.closest('[data-testid="model-controls"]');
+      const inSurface = !!target && surface.contains(target);
+      const verdict = wheelAdmission({
+        // 焦点归属取真实 DOM 焦点，不用缓存的 focusedSlug 代替（E-98）。
+        // 同时要求同步许可证仍属于本模型：退出后即使遗留 DOM 焦点，旧监听也不能再缩放。
+        focusBelongsToModel: wheelPermit.current === slug && surface.contains(document.activeElement),
+        pointerHitsViewport: hitsViewport && inSurface,
+        pointerHitsToolbar: hitsToolbar && inSurface,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+      });
+      if (verdict !== 'zoom-camera') return;
+      event.preventDefault();
+      requestZoom(slug, event.deltaY);
+    };
+    surface.addEventListener('wheel', onWheel, { passive: false });
+    return () => surface.removeEventListener('wheel', onWheel);
+  }, [pointer.focusedSlug, items, tracks, requestZoom]);
+  const onEnter = (slug: string) => (event: React.PointerEvent) => {
+    if (event.pointerType === 'mouse') setMouse(true);
+    dispatch({ type: 'pointerenter', slug, pointerType: event.pointerType });
   };
-  const onLeave = () => { window.clearTimeout(hoverTimer.current); if (!pressed.current) setZoomSlug(null); };
-  const onDown = (slug: string) => (e: React.PointerEvent) => {
-    if (e.pointerType !== 'mouse') return;
-    pressed.current = true;
-    setZoomSlug(slug);
+  const onLeave = (slug: string) => () => {
+    dispatch({ type: 'pointerleave', slug });
+  };
+  const onDown = (slug: string) => (event: React.PointerEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest('button')) return;
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    pointerId.current = event.pointerId;
+    dispatch({ type: 'pointerdown', slug, pointerType: event.pointerType, button: event.button });
+    event.currentTarget.focus({ preventScroll: true });
+    // 焦点可能已在该视口上（例如刚取消后 DOM 焦点仍在），此时浏览器不会再派发 focus 事件，
+    // 只靠 onFocus 会漏掉重新签发。按下是明确的主动重入，这里同步补发许可。
+    wheelPermit.current = slug;
+  };
+  const onCancel = () => {
+    releaseDom();
+    wheelPermit.current = null;
+    dispatch({ type: 'pointercancel' });
   };
   // three.js 不参与首屏：用户第一次交互（移动鼠标、滚动、触摸、按键）后才加载 3D，
   // 或页面完全空闲 4 秒后兜底加载，避免阻塞主线程影响首屏指标
@@ -113,44 +228,71 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   }, []);
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} data-capture-owner={pointer.ownerSlug ?? ''} data-focused-model={pointer.focusedSlug ?? ''} data-direct-rotate={fine || mouse ? '1' : '0'}>
       <div className="grid product-grid">
         {items.map((p, idx) => {
           const catalogHref = p.landing ?? `#${p.slug}`;
           const linked = !isCatalogSelfAnchor(catalogHref);
+          const spinning = shouldAutoRotate(pointer, p.slug);
+          const paused = pointer.userPaused.includes(p.slug);
           return (
           <article key={p.slug} id={p.slug} className={`card${PREMIUM.has(p.slug) ? ' theme-premium' : ''}`}>
+            <div
+              style={{ minWidth: 0 }}
+              onFocus={() => {
+                // 真实焦点进入本模型控制区才签发滚轮许可。
+                wheelPermit.current = p.slug;
+                dispatch({ type: 'focus', slug: p.slug });
+              }}
+              onBlur={(event) => {
+                const next = event.relatedTarget as Node | null;
+                if (next && event.currentTarget.contains(next)) return;
+                // 焦点离开本模型控制区时同步撤销许可，guard 不依赖后续渲染。
+                if (wheelPermit.current === p.slug) wheelPermit.current = null;
+                dispatch({ type: 'blur-region', slug: p.slug });
+              }}
+            >
             <div
               ref={tracks[idx]}
               data-slug={p.slug}
               data-testid="product-viewport"
+              data-spinning={spinning ? '1' : '0'}
+              data-user-paused={paused ? '1' : '0'}
+              data-focused={pointer.focusedSlug === p.slug ? '1' : '0'}
+              tabIndex={0}
               className={`stage${active === p.slug ? ' active' : ''}`}
-              onClick={() => { if (!finePointer.current) setActive(p.slug); }}
+              onClick={() => { if (!fine) setActive(p.slug); }}
               onPointerEnter={onEnter(p.slug)}
-              onPointerLeave={onLeave}
+              onPointerLeave={onLeave(p.slug)}
               onPointerDown={onDown(p.slug)}
+              onPointerCancel={onCancel}
             >
               {/* 静态图先显示，模型就绪后淡出，不造成布局偏移 */}
               <img src={p.poster} alt={p.alt ?? p.name} draggable={false} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
               {(() => {
-                const h = hintText({ failed: failed.has(p.slug) || sceneDead, started: armed && visible.has(p.slug), ready: ready.has(p.slug), interacting: active === p.slug || zoomSlug === p.slug, coarse }, labels);
+                const h = hintText({ failed: failed.has(p.slug) || sceneDead, started: armed && visible.has(p.slug), ready: ready.has(p.slug), interacting: pointer.dragging && pointer.ownerSlug === p.slug, coarse }, labels);
                 return h && <span className="hint">{h}</span>;
               })()}
               {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面 */}
               {active === p.slug && (
-                <button type="button" className="btn sm done" onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
+                <button type="button" className="btn sm done" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
               )}
             </div>
-            {VIEW_SLUGS.has(p.slug) && (
-              <div className="views" role="group" aria-label={labels.viewsLabel}>
-                {VIEWS.map((v) => (
-                  <button key={v} type="button" aria-pressed={(views[p.slug] ?? 'closed') === v}
-                    onClick={(e) => { e.stopPropagation(); setArmed(true); setViews((s) => ({ ...s, [p.slug]: v })); }}>
-                    {labels.views[v]}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="views" role="group" aria-label={VIEW_SLUGS.has(p.slug) ? `${copy.controls}, ${labels.viewsLabel}` : copy.controls} data-testid="model-controls">
+              <button type="button" data-testid="model-zoom-in" onClick={() => { setArmed(true); requestZoom(p.slug, -100); }}>{copy.zoomIn}</button>
+              <button type="button" data-testid="model-zoom-out" onClick={() => { setArmed(true); requestZoom(p.slug, 100); }}>{copy.zoomOut}</button>
+              <button type="button" data-testid="model-pause-rotation" aria-pressed={paused}
+                onClick={() => dispatch({ type: 'user-pause', slug: p.slug, paused: !paused })}>
+                {paused ? copy.resume : copy.pause}
+              </button>
+              {VIEW_SLUGS.has(p.slug) && VIEWS.map((v) => (
+                <button key={v} type="button" aria-pressed={(views[p.slug] ?? 'closed') === v}
+                  onClick={(e) => { e.stopPropagation(); setArmed(true); setViews((s) => ({ ...s, [p.slug]: v })); }}>
+                  {labels.views[v]}
+                </button>
+              ))}
+            </div>
+            </div>
             <div className="body">
               <h2>
                 {linked ? <CatalogLink href={catalogHref} className="product-name-link" testId="product-name-link">{p.name}</CatalogLink> : p.name}
@@ -172,7 +314,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
         eventSource={rootRef}
         onReady={onReady}
         onError={onError}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug || zoomSlug === p.slug, zoom: zoomSlug === p.slug || (active === p.slug && !finePointer.current), view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, directRotate: fine || mouse, spin: shouldAutoRotate(pointer, p.slug), zoomId: zoom?.slug === p.slug ? zoom.id : 0, zoomDelta: zoom?.slug === p.slug ? zoom.delta : 0, view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), track: tracks[i] }))}
       /></SceneErrorBoundary>)}
     </div>
   );

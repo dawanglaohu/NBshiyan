@@ -1,0 +1,257 @@
+{
+  "observedUtc": "2026-11-03T16:01:42.342420+00:00",
+  "fixedMain": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+  "pr": {
+    "number": 501,
+    "state": "MERGED",
+    "head": "d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb",
+    "merge": "b2db0294da689759424c3ec8c777f90ec89ff477",
+    "mergeParents": [
+      "b177a4d2cd3a1771835d8a48f101fc4f2621b98e",
+      "d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb"
+    ],
+    "approvedReviews": [
+      {
+        "author": "packjoyu-security-reviewer",
+        "commit": "d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb",
+        "state": "APPROVED"
+      }
+    ]
+  },
+  "fixedOwnerAndTestsEqualMergedPrHead": true,
+  "fixedFilesReverified": [
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "AGENTS.md",
+      "sha256": "fd267cff0bcb8237577671ae279803399e1638381ec6576c064b6b2f08da69e2"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "package.json",
+      "sha256": "c0ae57b100d259ae9e20860c1530a0989a5b058972350d1035571665012edbc1"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/analytics/day-boundaries.ts",
+      "sha256": "8f14da7176c59d5700c73fe47d610f51c076dc2bcc27760f114c41bc39cdc0d1"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/server/analytics/settings.ts",
+      "sha256": "9f6820150f242fa9ccccd820904698a6c30d29edbec063c38d1a6d13a87203c0"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "tests/analytics-day-boundaries.test.ts",
+      "sha256": "b9c5c5aad8dd40816f9073e5669ea672acc03cba1d7529d57a3a46b21e3a7488"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "tests/analytics-rollup.test.ts",
+      "sha256": "e235762c6e7e74f7465fb61bbfdab1adff5498e6368082600551fdf48f5e3a37"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "tests/retention-cleanup.test.ts",
+      "sha256": "b4576a17f6395cd475ff9a611261a932473494db7a98b23bf24cb81c6fb0db28"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "docs/PackJoyU-开发文档/图谱/任务/R5-T10248697.md",
+      "sha256": "878956a4a00b2eda1d6e00b404c1b662745f54532e165ee4724a7f8d63115967"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "docs/PackJoyU-开发文档/_run/task-contracts.json",
+      "sha256": "e928123234bddf5543b8b74babf91788f6c9f1af13132dcc17005a2fd06abb5d"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "docs/PackJoyU-开发文档/_run/task-reviews.json",
+      "sha256": "bc366922818e719c1574b3cc9d0a5941d16f7df346819976d409c09f34f23137"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/contracts/common.ts",
+      "sha256": "1cb35ac320b5b5a30f0a24b582facf910d81423a71e2a60e0316db8d65c526d7"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/contracts/analytics.ts",
+      "sha256": "a68d1a932df79bc2b0cb7603fb9449b35202ad70f5c10746dd11f01704dfc62d"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/server/http/errors.ts",
+      "sha256": "2cfa1ded07916a78560838ff2d96d15d0cbd95c386135ff23b4794f0890af489"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/server/jobs/types.ts",
+      "sha256": "a6479c2f4db1b3009ef7d5b40d5a4f21fe68adf3188a5bd3083323bbefc30e1e"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/server/analytics/settings-repo.ts",
+      "sha256": "cbec384275ae72653df6d4030a21c5710d55092d868ea5ca34153d6df9fb506c"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "docs/PackJoyU-开发文档/_run/batches/batch-5-20261026.md",
+      "sha256": "f53ecc0a07268e1cd2b1b3c688c530a05a7154f4ea6177a3eda1894ddcf0f31d"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/contracts/errors.ts",
+      "sha256": "a9a4c986dfec01525cd5301aeec9634ea9feda3d53942e10fdcd010aee82cf10"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/lib/contracts/ops.ts",
+      "sha256": "f6c5fca9c6097896790ff94e52a5bebfae1bd45b65556cf83e71fe0fbd14fd67"
+    },
+    {
+      "ref": "a9172b2f2601a4e5605fdbac274050fb09347e0f",
+      "path": "src/i18n/published-locale-list.ts",
+      "sha256": "5fc105da387f7be5d036e14df613635ad8cf061ff467a1f42ac049f4103d0195"
+    },
+    {
+      "ref": "18ae999be434e34cde985790dc1a8593f55a5775",
+      "path": "src/lib/analytics/day-boundaries.ts",
+      "sha256": "31810a3b4035cf022586507c3d769802ec6005c26b47e357872861044cae918a"
+    },
+    {
+      "ref": "18ae999be434e34cde985790dc1a8593f55a5775",
+      "path": "src/lib/contracts/common.ts",
+      "sha256": "1cb35ac320b5b5a30f0a24b582facf910d81423a71e2a60e0316db8d65c526d7"
+    },
+    {
+      "ref": "18ae999be434e34cde985790dc1a8593f55a5775",
+      "path": "src/i18n/published-locale-list.ts",
+      "sha256": "5fc105da387f7be5d036e14df613635ad8cf061ff467a1f42ac049f4103d0195"
+    },
+    {
+      "path": "src/lib/analytics/rollup-plan.ts",
+      "sha256": "d3db6f4a6c74cf918c419bc8fcbf67b3dce1f40b4034ad7d57186167326a496b"
+    },
+    {
+      "path": "src/lib/server/analytics/rollup.ts",
+      "sha256": "03f6d7217578cd6767aa1407c82a409539625f2aa99196d8806dfd0b3a5b361f"
+    },
+    {
+      "path": "src/lib/server/analytics/retention-plan.ts",
+      "sha256": "df00539f0811464accc0334d1b51b86f2792c4bda601cb78ed59703b92f3a203"
+    },
+    {
+      "path": "src/lib/server/analytics/retention-cleanup.ts",
+      "sha256": "fe121e49c5a092dd5e5ab25c4ccf6478b3592588235a56b9e9b2e5d22085bf51"
+    },
+    {
+      "path": "tests/analytics-settings.db.test.ts",
+      "sha256": "1f93c09116c45dfc5a910e386cdca133515c281036891f861117411f4b3e7db7"
+    }
+  ],
+  "sameRegressionAgainstOldOwner": true,
+  "localChecks": {
+    "before-gap.log": {
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sha256": "7d9d9d90517fb05c7fb8a7ba8f104c15f1581d253dd4c72a89f495e4572b52e3"
+    },
+    "fixed-day-boundaries.log": {
+      "counts": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sha256": "d2967c14a6e08f1e1cca42e270b68196e528564d3f88aac1c457c3665fd6c04a"
+    },
+    "fixed-settings-service.log": {
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "sha256": "740965508773558e68d68381a3a305d226b575c04fe4a541d13cf3833b8aae16"
+    }
+  },
+  "historyCi": {
+    "runId": 40333923945,
+    "headSha": "d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb",
+    "conclusion": "success",
+    "actualCheckout": "867dca9 Merge d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb into 6ff4934ca428f0083bde437d74314a47f2fc2f9e",
+    "anchors": [
+      {
+        "file": "ci-unit-40333923945.log",
+        "line": 121,
+        "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:17.5248357Z HEAD is now at 867dca9 Merge d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb into 6ff4934ca428f0083bde437d74314a47f2fc2f9e"
+      },
+      {
+        "file": "ci-unit-40333923945.log",
+        "line": 3690,
+        "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:44.0240813Z ok 532 - 跳过本地午夜时用该本地日最早瞬间作左闭端，并接到前一天的右开端"
+      },
+      {
+        "file": "ci-unit-40333923945.log",
+        "line": 3708,
+        "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:44.0245483Z ok 535 - 进程时区变了，站点日的 UTC 边界仍相同"
+      },
+      {
+        "file": "ci-unit-40333923945.log",
+        "line": 3822,
+        "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:49:44.7335594Z ok 554 - 站点本地日和 UTC 日不一致时，事件只落在本地日的左闭右开窗口里"
+      },
+      {
+        "file": "ci-unit-40333923945.log",
+        "line": 9386,
+        "text": "build-and-audit\tUNKNOWN STEP\t2026-10-26T13:50:48.0489284Z ok 1411 - 原始事件截止点跨过站点日界，只允许删除重算下限之前的本地日"
+      },
+      {
+        "file": "ci-pg-40333923945.log",
+        "line": 266,
+        "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:49:34.3484736Z HEAD is now at 867dca9 Merge d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb into 6ff4934ca428f0083bde437d74314a47f2fc2f9e"
+      },
+      {
+        "file": "ci-pg-40333923945.log",
+        "line": 707,
+        "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:50:22.1011814Z tests/analytics-settings.db.test.ts\tpass=7\tfail=0\tskip=0\ttodo=0\tcancelled=0"
+      },
+      {
+        "file": "ci-pg-40333923945.log",
+        "line": 709,
+        "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:50:22.1014246Z tests/analytics-rollup.http.db.test.ts\tpass=7\tfail=0\tskip=0\ttodo=0\tcancelled=0"
+      },
+      {
+        "file": "ci-pg-40333923945.log",
+        "line": 710,
+        "text": "e2e\tUNKNOWN STEP\t2026-10-26T13:50:22.1015317Z tests/retention-cleanup.http.db.test.ts\tpass=9\tfail=0\tskip=0\ttodo=0\tcancelled=0"
+      }
+    ]
+  },
+  "untestedInThisRun": [
+    "PostgreSQL transaction/lock behavior",
+    "HTTP settings route",
+    "full suite",
+    "build",
+    "deployment"
+  ],
+  "taskStatus": "todo",
+  "taskBackfillPlaceholdersRemain": true,
+  "worktreeAfter": {
+    "head": "d84f0056293bb6e8b865b9bfe0e9da94aedcd7fb",
+    "status": ""
+  },
+  "workflowRegistrationExecuted": false
+}

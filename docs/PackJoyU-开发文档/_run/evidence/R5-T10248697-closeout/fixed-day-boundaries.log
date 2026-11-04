@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: 23 小时春令时和 25 小时秋令时用本地午夜，不加固定 24 小时
+ok 1 - 23 小时春令时和 25 小时秋令时用本地午夜，不加固定 24 小时
+  ---
+  duration_ms: 90.3389
+  type: 'test'
+  ...
+# Subtest: 跳过本地午夜时用该本地日最早瞬间作左闭端，并接到前一天的右开端
+ok 2 - 跳过本地午夜时用该本地日最早瞬间作左闭端，并接到前一天的右开端
+  ---
+  duration_ms: 137.4693
+  type: 'test'
+  ...
+# Subtest: 秋令时重复的本地时刻只属于一个 UTC 日，午夜只属于新的一天
+ok 3 - 秋令时重复的本地时刻只属于一个 UTC 日，午夜只属于新的一天
+  ---
+  duration_ms: 15.9992
+  type: 'test'
+  ...
+# Subtest: 两种浏览器时区不改变站点日，半小时偏移也不按整点截断
+ok 4 - 两种浏览器时区不改变站点日，半小时偏移也不按整点截断
+  ---
+  duration_ms: 24.3944
+  type: 'test'
+  ...
+# Subtest: 进程时区变了，站点日的 UTC 边界仍相同
+ok 5 - 进程时区变了，站点日的 UTC 边界仍相同
+  ---
+  duration_ms: 844.4358
+  type: 'test'
+  ...
+# Subtest: 空输入、非法时区和无效时刻被拒绝，浏览器时区不能顶上
+ok 6 - 空输入、非法时区和无效时刻被拒绝，浏览器时区不能顶上
+  ---
+  duration_ms: 5.2488
+  type: 'test'
+  ...
+# Subtest: 可重算起点是不早于 30 天 receivedAt 截止时刻的本地午夜
+ok 7 - 可重算起点是不早于 30 天 receivedAt 截止时刻的本地午夜
+  ---
+  duration_ms: 17.6441
+  type: 'test'
+  ...
+# Subtest: 日界线不读取机器本地日历，也不读环境变量
+ok 8 - 日界线不读取机器本地日历，也不读环境变量
+  ---
+  duration_ms: 0.9147
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1744.5492
