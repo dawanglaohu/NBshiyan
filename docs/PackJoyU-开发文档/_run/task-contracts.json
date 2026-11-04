@@ -806,7 +806,10 @@
         "prisma/schema.prisma",
         "src/lib/server/composition.ts",
         "tests/admin-action-grant.db.test.ts",
-        "tests/admin-reauth.http.test.ts"
+        "tests/admin-reauth.http.test.ts",
+        ".github/workflows/ci.yml",
+        "tests/admin-session-activity.http.test.ts",
+        "tests/admin-session-activity-bootstrap.test.ts"
       ],
       "outputPaths": [
         "src/lib/server/admin/action-grant.ts",

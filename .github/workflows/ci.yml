@@ -186,6 +186,8 @@ jobs:
           CHAT_SESSION_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
+          M3T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t3
+          M3T3_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -208,6 +210,8 @@ jobs:
               'tests/admin-reset-initial-password.db.test.ts',
               'tests/admin-login-mode.db.test.ts',
               'tests/admin-enroll-current-state.db.test.ts',
+              'tests/admin-action-grant.db.test.ts',
+              'tests/admin-reauth.http.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -244,6 +248,8 @@ jobs:
             tests/admin-reset-initial-password.db.test.ts \
             tests/admin-login-mode.db.test.ts \
             tests/admin-enroll-current-state.db.test.ts \
+            tests/admin-action-grant.db.test.ts \
+            tests/admin-reauth.http.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -266,6 +272,8 @@ jobs:
             'tests/admin-reset-initial-password.db.test.ts',
             'tests/admin-login-mode.db.test.ts',
             'tests/admin-enroll-current-state.db.test.ts',
+            'tests/admin-action-grant.db.test.ts',
+            'tests/admin-reauth.http.test.ts',
           ];
           let bad = false;
           for (const file of files) {
@@ -288,6 +296,24 @@ jobs:
             }
           }
           if (bad) process.exit(1);
+          EOF
+      - name: Action grant PostgreSQL lock-wait evidence
+        run: |
+          node --input-type=module <<'EOF'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const records = readFileSync('/tmp/pg-regressions.tap', 'utf8').split(/\r?\n/)
+            .map(line => line.match(/# ACTION_GRANT_LOCK_EXPIRY_EVIDENCE (\{.*\})$/))
+            .filter(Boolean).map(match => JSON.parse(match[1]));
+          assert.equal(records.length, 4, 'Missing PostgreSQL lock-wait evidence');
+          assert.deepEqual(records.map(r => `${r.lock}/${r.expiry}`).sort(), ['Device/device', 'Device/grant', 'User/device', 'User/grant']);
+          for (const r of records) {
+            assert.ok(Number.isInteger(r.blockerPid) && Number.isInteger(r.consumerPid) && r.blockerPid !== r.consumerPid);
+            assert.ok(r.waitingAt < Date.parse(r.expiresAt) && r.releasedAt > Date.parse(r.expiresAt));
+            assert.equal(r.consumed, false);
+            assert.equal(r.usedAt, null);
+            console.log(`ACTION_GRANT_LOCK_EXPIRY_EVIDENCE ${JSON.stringify(r)}`);
+          }
           EOF
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build

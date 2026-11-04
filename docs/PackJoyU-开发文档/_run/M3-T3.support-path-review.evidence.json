@@ -1,0 +1,18 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T3": {
+      "contractHash": "8239d7e82e6efdac5fa2d76115a788f4af34f25d4076fc036036030e636edd24",
+      "verdict": "pass",
+      "evidence": [
+        "仅复核条款和支持路径。原工作树 task/M3-T3，HEAD 1461676a1e5707e714b9c7cb40a8a9b8afbf0d78；未运行数据库验收、产品构建或 e2e，不构成代码通过或合并结论。",
+        "product-support-scope-audit.py 对照 begin 保存的 baseline 和当前 docs-data.js：源差异严格只有 task-contracts.json.tasks.M3-T3.supportPaths 追加 .github/workflows/ci.yml、tests/admin-session-activity.http.test.ts、tests/admin-session-activity-bootstrap.test.ts。所有任务 input/output/accept/deps、边界、provides/requires/outputPaths 与原值相同；141 个任务 ID 和 17 个静态返工 ID 不变。",
+        "M3-T3.md:28-31、09-数据模型.md:17、10-接口约定.md:24 仍要求当前设备、现密码、未用 TOTP、256bit 单次授权、5 分钟等号拒绝、按 purpose/target/user/sid/sv 同事务核销；忘密码不得签普通 grant。本补丁不改变这些要求，不实现下游功能。",
+        "ci.yml:95-177 的设备回归已列 admin-session-activity.http.test.ts；该测试静态 composition 导入在 :18，AsyncLocalStorage 全局初始化在 :27-29，现初始化顺序存在待修复问题。追加既有 HTTP 测试及计划新增的无数据库 bootstrap 回归，仅授权测试启动链修正；bootstrap 文件目前尚未创建，后续必须在干净 Node 进程验证实际导入顺序。",
+        "ci.yml 的 PostgreSQL job 使用 postgres:17，但当前命令未列 admin-action-grant.db.test.ts 与 admin-reauth.http.test.ts，也未配置 M3T3_TEST_DATABASE_URL。追加 workflow 支持路径是为接入这两份既有目标测试的专用 m3t3 schema 和逐文件门禁；必须真实执行 pass>=1 且 fail/skip/todo/cancelled=0，缺地址退出失败只属负向验证，不能替代真实 PG 通过。",
+        "product-support-conflicts.py 核对配置重叠及 M2-T2、R4-T16305211、CATEGORY-PAGES-198、BOARD-LANDED 当前工作树差异，三个新路径未与这些在途修改相交；历史配置有 CI-DEVICE-SERIAL、M3-T15、R4-T78812657 等路径重叠，后续合并须保留既有门禁。本次已保存后端两测试的字节基线且核对未变。",
+        "sync 已退出 0；仅 M3-T3 context.definition/effectivePaths 改变，20 个下游契约哈希由依赖传播变化。revalidation.json 为空；本次只登记 M3-T3 的条款/范围复核，不替下游登记通过，不 --landed，不删除任何待复验记录。"
+      ]
+    }
+  }
+}

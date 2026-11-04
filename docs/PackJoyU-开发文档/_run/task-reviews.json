@@ -625,15 +625,60 @@
     "verdict": "pass"
   },
   "M3-T3": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "c1cec5daa4f1a66665e210cec9c80e05407f2a0b48b3ae5972a574edd8be1e3f",
+    "ci": {
+      "base": "b2db0294da689759424c3ec8c777f90ec89ff477",
+      "checkout": "f58dea13d848b19c65fc2f3af3193fd1cc803ce8",
+      "files": {
+        "tests/admin-action-grant.db.test.ts": {
+          "cancelled": 0,
+          "fail": 0,
+          "pass": 6,
+          "skip": 0,
+          "todo": 0
+        },
+        "tests/admin-reauth.http.test.ts": {
+          "cancelled": 0,
+          "fail": 0,
+          "pass": 7,
+          "skip": 0,
+          "todo": 0
+        },
+        "tests/admin-session-activity.http.test.ts": {
+          "cancelled": 0,
+          "fail": 0,
+          "pass": 8,
+          "skip": 0,
+          "todo": 0
+        }
+      },
+      "head": "a5d851d493be5369be06eedd583db15610af856e",
+      "jobUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328/job/125814267369",
+      "runUrl": "https://github.com/dawanglaohu/NBshiyan/actions/runs/41605525328"
+    },
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "8239d7e82e6efdac5fa2d76115a788f4af34f25d4076fc036036030e636edd24",
+    "decisionBasis": "现有独立产品条款复核、全栈安全完整审查与 P2 增量复验回执，以及对应代码 head 的真实 CI；脚本只登记这些证据，不自动执行安全审查或产生 App 批准。",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T3《签发一次性新鲜本人授权》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "验收1/E-72：reauth真实POST handler经同源和当前设备守卫，现密码及共享TOTP时间步原子核销后才签256bit token，只存SHA-256。prisma/schema.prisma:145；reauth/route.ts:7；action-grant.ts:153。真实PG文件admin-reauth.http.test.ts在CI41605525328为7 pass/0 fail/skip/todo/cancelled，覆盖登录已消费时间步拒绝、并发一次签发和哈希存储。",
+      "验收2/E-73/E-74：action-grant.ts:206在同一事务按purpose/target/user/sid/sv/expiry/usedAt核销，当前权限与目标归属检查在:135。真实PG admin-action-grant.db.test.ts为6 pass/0 fail/skip/todo/cancelled，覆盖用途/目标/账号/设备不匹配、5min等号、撤销/版本变化、并发一次消费与删除账号。",
+      "P2修复：action-grant.ts:212-214先取得User/Device两行锁，再读取一次clock，账号/设备有效性与授权SQL统一用锁后时间。全栈工程师/安全工程师在本群独立确认a5d851d493be5369be06eedd583db15610af856e上P2关闭、无代码阻断；受控探针对照只作为额外代码证据，不算PG。",
+      "真实PG锁等待回归tests/admin-action-grant.db.test.ts:246：独立连接持User/Device锁，消费者PID的pg_blocking_pids及wait_event_type=Lock在到期前后验证等待。CI日志743-746四组User/Device×grant/device：blocker132/141/142/151与consumer130不同连接，waitingAt<expiresAt<releasedAt，分别晚2/4/11/6ms释放，全部消费false且usedAtnull。未过期可消费、重复拒绝保留；fixture短TTL不改变生产5min规则。",
+      "验收3/E-75：真实Auth.js+reauth Request/Response handler与PG验证仅会话或TOTP、或携带recoveryCode不签普通授权，缺密码返回401且grant不变，后续普通passwordless登录可用；这是进程内handler集成，不冒称监听端口上的reauth网络E2E。",
+      "同一CI41605525328使用Node22.23.4和PostgreSQL17.11，M3T3_TEST_DATABASE_URL指向隔离e2e库schema=m3t3，M3T3_REQUIRE_DATABASE=true；三个逐文件名单和缺计数/skip/todo/cancelled拒绝门禁均保留。实际checkout f58dea13d848b19c65fc2f3af3193fd1cc803ce8，包含代码head a5d851d4及base b2db0294。",
+      "本轮CI三个普通job均SUCCESS：build-and-audit、e2e、posix-storage-security。完整Playwright154 pass/9 skip；三个目标PG文件无skip，不把全量9个跳过写成零跳过。Linux构建、standalone启动、Lighthouse、RUM与POSIX检查通过。本机无PG，不将CI结果说成本地实跑。",
+      "回填核查：任务代码位置与实施沉淀已填；产品经理/产品策划独立回读数据影响两句通过，明确totpLastStep、授权/审计新增、usedAt更新，以及本轮未执行生产迁移、生产现状未核验。核心代码/测试/CI与已复验a5d851d4保持相同；后续仅登记分支落地与证据。",
+      "范围与状态：只登记M3-T3。当前task-contracts、dispatch和收口源没有本任务直接关联的R<批>-T<号>返工，17个R任务不代标完成；共享workflow/fetch说明不等于完成其他返工。revalidation初始为空，不手动清除标记。本次按Chief授权只在原分支执行--landed；主检出/主交接台先不改，不合并或部署。",
+      "批准边界：指定packjoyu-security-reviewer[bot]对最终SHA的正式APPROVED尚未取得，普通团队复验不能代替。当前代码head的gate41605522203要求该批准；落地记录不构成合并许可，也不宣称生产迁移或主检出已同步。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "implementationReviewedHead": "a5d851d493be5369be06eedd583db15610af856e",
+    "independentReviewers": [
+      "产品经理/产品策划",
+      "全栈工程师/安全工程师"
+    ],
+    "mainCheckoutSynced": false,
+    "mergeAuthorized": false,
+    "productionExecuted": false,
+    "reviewed": "2026-11-03T09:21:33.398912+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
