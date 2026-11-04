@@ -1,0 +1,214 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M1-T2": {
+      "contractHash": "5f3be1a318ec318644b2b669005b1353003d21ee28460defc64056ad1dbef1e8",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/lib/contracts/common.ts:3（Int32、UUID、UTC/自然日、IANA 时区、Unicode 正文、站内路径及分页游标的共享规则。）；src/lib/contracts/account.ts:4（LoginMode、rememberDevice 显式解析及账号/设备请求响应；E-95 缺值、false、字面 fal）；src/lib/contracts/recovery.ts:7（既有首次绑定与独立受限恢复分别导出 schema/DTO，保持原成功体。）；src/lib/contracts/chat.ts:28（人工聊天全部请求与严格嵌套响应、seq/read/分页规则。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=5f3be1a318ec318644b2b669005b1353003d21ee28460defc64056ad1dbef1e8；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M1-T3": {
+      "contractHash": "38c76cd2a52daa51a05e86eff0e542c677ca19ff266af01117c5a0c7ab2517cc",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：public/brand/packjoyu-logo-master.svg:1（现用完整字标转曲及来源核验（E-28）。）；docs/brand-media/static/brand-static-media.json:1（6个选定发布副本、完整媒体SHA/尺寸及历史待核集合。）；docs/brand-media/static/selected_release_checks.py:1（选定成片、真实来源、实际抽帧、静态裁剪和制作记录的发布校验。）；docs/brand-media/static/source-attestation.json:1（员工现场拍摄和助手后加Logo的直接用户说明及限定范围。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=38c76cd2a52daa51a05e86eff0e542c677ca19ff266af01117c5a0c7ab2517cc；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M1-T6": {
+      "contractHash": "7191040391c7bea9554d6ad6286585e142b909777d27a13eb0b8ecd50781e0e1",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：public/brand/packjoyu-industrial-city-v3-loop.gif:1（发布用循环 GIF，1384×720、361 帧、30080 毫秒、无限循环，画面为 PackJoyU（E-26、E-3）；public/brand/packjoyu-industrial-city-v3-loop-preview.gif:1（同时间轴的 960×500 预览 GIF。）；docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png:1（暂停静帧档案，1384×720，与发布副本逐字节相同。）；public/brand/packjoyu-industrial-city-v3-loop-poster.png:1（同尺寸暂停静帧的发布副本，首页从这里引用。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=7191040391c7bea9554d6ad6286585e142b909777d27a13eb0b8ecd50781e0e1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M1-T8": {
+      "contractHash": "01218af8360c4dcb7c3c3f34ab541ffe30cc757b0ffe67f129c58fdee07f1344",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/lib/client/api.ts:24（每次尝试单独计 15 秒截止，不把 1/2/4 秒退避算进同一次截止。）；src/lib/client/api.ts:26（响应 JSON 超过 4MiB 即停止读取，正文不进入失败结果。）；src/lib/client/api.ts:71（只接受单斜杠开头的相对路径，拒绝绝对地址、双斜杠、反斜杠、片段和点段。）；src/lib/client/api.ts:95（`/api/auth` 在 fetch 之前拒绝；`/api/auth-admin` 仍走统一请求。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=01218af8360c4dcb7c3c3f34ab541ffe30cc757b0ffe67f129c58fdee07f1344；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M2-T4": {
+      "contractHash": "ba9a8aa1a4cf0c1789cd159b76cc72fdd373adb219b66f8e5f5b7e8fabc6bff2",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/lib/analytics/model-events.ts:77（终态类型复用打开状态的共同字段并替换 status，支持判别联合收窄。）；src/lib/analytics/model-events.ts:118（按记录顺序归约信号；空序列不产生事件。）；src/lib/analytics/model-events.ts:134（start、success、timeout、failure、cancel、retry 的纯转换；visit、displa）；src/lib/analytics/model-events.ts:176（durationMs 只取注入整数时钟差，范围外不改写、不可读则不算终态。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=ba9a8aa1a4cf0c1789cd159b76cc72fdd373adb219b66f8e5f5b7e8fabc6bff2；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M3-T1": {
+      "contractHash": "af4278d674453839280856fd8bb3ad1e2c55eb4a66a15168222e7c2c18833e2a",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：prisma/schema.prisma:75（User.passwordlessEnabled 默认 false）；prisma/schema.prisma:92（AdminDeviceSession：192 位 id、会话版本、设备闲置和绝对期限、撤销时间）；src/lib/server/admin/device-session.ts:21（普通设备从 lastActivityAt 滑动 2 小时；记住设备取 7 天闲置和首次签发后 30 天的较早期限（E-0）；src/lib/server/admin/device-session.ts:53（先核账号与设备，再判路由角色；无效设备为 401，有效设备越权为 403；到期等号拒绝（E-70））。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=af4278d674453839280856fd8bb3ad1e2c55eb4a66a15168222e7c2c18833e2a；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M3-T14": {
+      "contractHash": "8578593a729c5671e80a84732325f5d0b409033ecbc5646a0145a1c429e7da19",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：prisma/schema.prisma:402（ApiDailyCounter 以站点日、timezoneRevision、routeId 为复合主键，只存 reque）；src/lib/server/config.ts:5（冻结的后台会话 2h/7d/30d/15min 与 grant 5min、permit 15min、受限会话 10min）；src/lib/server/config.ts:68（配置失败只报告字段名和「未设置/无效」，不使用 Zod 自带的 issue.message。）；src/lib/server/config.ts:112（生产环境缺既有秘密即拒绝；返回的冻结对象不复制秘密值。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=8578593a729c5671e80a84732325f5d0b409033ecbc5646a0145a1c429e7da19；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M3-T15": {
+      "contractHash": "78852ec002863d3d345e213d81d1be0f9f0154cd2a9cab89ea45960158bbc45c",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/app/api/admin/account/session/activity/route.ts:6（POST 先做同源检查，再 requireAdmin，然后交给会话活动处理。）；src/lib/server/admin-session-activity.ts:52（真实活动处理。按用户限流、空对象。同源检查和 requireAdmin 在路由里。）；src/lib/server/admin/device-session.ts:42（只回填空的 `hardExpiresAt`。）；src/lib/server/admin/device-session.ts:97（绝对截止的等号拒绝，不写库。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=78852ec002863d3d345e213d81d1be0f9f0154cd2a9cab89ea45960158bbc45c；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M3-T2": {
+      "contractHash": "e32e66da774e525f5a755059d37f947c9c7343b5cae49c6c91ad5917dd984df5",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/auth.ts:21（去掉 Auth.js 传输字段和空密码后再解析登录契约，6 位验证码保持字符串（E-96））；src/auth.ts:69（真实 Credentials 调用 `authorizeLogin`；失败抛同一 `CredentialsSignin`）；src/lib/server/admin/login.ts:100（按当前密文、`totpEnabled`、`sessionVersion` 和时间步原子核销（E-72、E-08））；src/lib/server/admin/login.ts:102（`checkDelta` 和时间步共用一次取样）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=e32e66da774e525f5a755059d37f947c9c7343b5cae49c6c91ad5917dd984df5；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M4-T8": {
+      "contractHash": "4c02e776743875eea86dd2173267e43006b0bb224ac06b6490769089b1a90942",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：prisma/schema.prisma:460（ChatVisitorSession 存 id、tokenHash、createdAt、lastActivityAt、a）；src/lib/server/config.ts:163（CHAT_VISITOR_POLICY 固定 7 天闲置、首次签发后 30 天绝对，不读环境变量。）；src/lib/server/composition.ts:85（createChatServices 注册 visitorSessions，POST 路由调用它。）；src/lib/server/chat/visitor-session.ts:50（256bit base64url 原值，库存 SHA-256。比较走等长 timingSafeEqual；查无此行也对哑）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=4c02e776743875eea86dd2173267e43006b0bb224ac06b6490769089b1a90942；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M5-T1": {
+      "contractHash": "9ab71e76d753125515dd5ce55ab53808db1b2d5397b87f6f48a293ba08d67067",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：prisma/schema.prisma:415（JobRunStatus 五个状态。）；prisma/schema.prisma:423（JobState 的 key、租约、代次、成功时间和 summary。）；deploy/deploy.sh:94（现有 db push 消费整份 schema.prisma，不带 accept-data-loss。）；src/lib/server/jobs/types.ts:7（租约 90 秒；到期等号视为已释放。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=9ab71e76d753125515dd5ce55ab53808db1b2d5397b87f6f48a293ba08d67067；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M5-T2": {
+      "contractHash": "65cd0cb870abaebe21b7e86662898376f4989a79c091403fe94f20f96f0c6fb6",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/app/api/analytics/consent/route.ts:5（注册 nodejs `POST`，进入 `createConsentPost`。）；src/app/api/analytics/consent/post.ts:78（精确同源失败后丢弃未读正文，映射为带 `requestId` 的 `forbidden_origin`。）；src/app/api/analytics/consent/post.ts:84（先扣已出示 cookie 的桶，每 10 分钟 10 次；拒绝时不再扣 IP 桶。）；src/app/api/analytics/consent/post.ts:99（再扣 IP-HMAC 桶，每 10 分钟 20 次；存储失败拒绝，`Retry-After` 为 600。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=65cd0cb870abaebe21b7e86662898376f4989a79c091403fe94f20f96f0c6fb6；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M5-T6": {
+      "contractHash": "aa41cb48a946c6ecf60a11f22583a5006174e921047d97c1b5c0796042bde13c",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：prisma/schema.prisma:460（追加 `AnalyticsEventKind` 与 `AnalyticsEvent`。行里只有事件标识、语义键、载荷哈希）；src/app/api/analytics/events/route.ts:5（`POST` 入口，只导出路由。）；src/app/api/analytics/events/post.ts:73（同源失败为 403 `forbidden_origin`，不计入事件配额。）；src/app/api/analytics/events/post.ts:79（复用 `readAnalyticsCookie` 与 `verifyValue`。cookie 缺失、伪造或 `anal）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=aa41cb48a946c6ecf60a11f22583a5006174e921047d97c1b5c0796042bde13c；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "M5-T9": {
+      "contractHash": "d58697af3e14e4d5f94cec7803d4ad2c934f682a674e648502f78231f8f447ad",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/lib/analytics/day-boundaries.ts:4（原始事件保留 30 个绝对日，不按本地日历月）；src/lib/analytics/day-boundaries.ts:55（`Intl` `formatToParts`，`hourCycle` `h23`，24 点进到下一日历日）；src/lib/analytics/day-boundaries.ts:114（本地午夜取最早匹配的 UTC 时刻，重叠小时只归开始日）；src/lib/analytics/day-boundaries.ts:140（左闭右开边界；查看者时区不参与，也不能代替无效站点时区）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=d58697af3e14e4d5f94cec7803d4ad2c934f682a674e648502f78231f8f447ad；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "R3-T09233008": {
+      "contractHash": "746c8c6884471ad6845cb3f1fa4b002700ba746cd72de6adb75469eaab92b4a1",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：tests/prod-env-check.test.ts:11（探测 POSIX 应用根、临时目录是否绝对、以及符号链接能否创建；缺能力时原因写明分支未执行。）；tests/prod-env-check.test.ts:39（真实符号链接前缀夹具同时要求符号链接、POSIX 临时目录和 POSIX 应用根。）；tests/prod-env-check.test.ts:237（词法拒绝与路径不外泄在任何平台都执行。）；tests/prod-env-check.test.ts:249（拒绝根目录 `/`。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=746c8c6884471ad6845cb3f1fa4b002700ba746cd72de6adb75469eaab92b4a1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "R3-T71889698": {
+      "contractHash": "f2fc89441b421299464c9bb70dbdc92fdcbcddc5d3dda8003b6390df7aad88d6",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：scripts/admin-reset-initial-password-lib.mjs:153（实际签发时追加 auth.enroll_token_issued；密码重置与待确认清理审计仍留在同一函数。）；scripts/admin-reset-initial-password-lib.mjs:290（锁内判定拒绝后立刻返回，不签发令牌、不写审计。）；tests/admin-reset-initial-password.db.test.ts:144（后提交的重置覆盖令牌哈希；两次成功仍各留一条签发审计。）；tests/admin-reset-initial-password.db.test.ts:148（两次并发成功的审计多重集固定为两条密码重置加两条令牌签发。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=f2fc89441b421299464c9bb70dbdc92fdcbcddc5d3dda8003b6390df7aad88d6；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "R3-T75625096": {
+      "contractHash": "01d373f96df7eb76e63d95515a64f141be425ec10d46e26ab20b4772cdf7f14b",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/app/admin/admin.css:145（账号表单标题为 16px，下边距 8px，桌面字段与标题同一行。）；src/components/admin/settings/settings.css:2（设置页水平内边距为 0，左边距只来自主区；上下为 24px 与 96px。）；src/components/admin/settings/settings.css:121（桌面图片格不足三张时收缩到实际占用的列：一张约 260px，两张并排，三张用基础三列网格。）；src/components/admin/models/models.css:6（上传区圆角面的内边距为 16px。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=01d373f96df7eb76e63d95515a64f141be425ec10d46e26ab20b4772cdf7f14b；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "R3-T86511435": {
+      "contractHash": "346f915cb5710b0dc4533b1b23747822bfa151df14f7c6f68223e324fd3fe5ca",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：tests/job-leases.db.test.ts:10（租约文件没有 postgres 开头的 DATABASE_URL 时，数据库用例按环境跳过。）；tests/job-leases.db.test.ts:143（同一 key 并发领取只有一项成功，另一个 key 不互相阻塞。）；tests/job-leases.db.test.ts:167（注入时钟满 90 秒后新代次可以领取；旧 owner 与旧 generation 的完成写被拒绝，不覆盖新结果。）；src/lib/server/jobs/types.ts:7（租约窗口 90 秒；到期等号视为已释放。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=346f915cb5710b0dc4533b1b23747822bfa151df14f7c6f68223e324fd3fe5ca；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    },
+    "R4-T16305211": {
+      "contractHash": "1ae8c04d33cc26c85af0c09cf25ec227daee3cfe9ae176a42e5264454863f4e1",
+      "verdict": "pass",
+      "evidence": [
+        "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+        "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+        "当前 main 代码位置逐条可见：src/app/[locale]/contact/HumanContactNotice.tsx:16（`useState(false)` 让聊天开关默认关闭；开关状态只存在组件内，不落同意存储。）；src/app/[locale]/contact/HumanContactNotice.tsx:30-46（开关与状态句所在行；`:32` `id=\"contact-chat-switch\"`、`:34` `role=\"swit）；src/app/[locale]/contact/HumanContactNotice.tsx:20-29（询盘邮箱入口 `id=\"inquiry-email-entry\"`，在开关之外不受 `chatEnabled` 约束，关）；src/app/globals.css:84（`.contact-chat-line` 的换行布局；`:86` 状态句 `flex-basis:100%` 独占一行；）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+        "当前契约 hash=1ae8c04d33cc26c85af0c09cf25ec227daee3cfe9ae176a42e5264454863f4e1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+        "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
+      ]
+    }
+  }
+}

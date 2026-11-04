@@ -22,13 +22,15 @@
     "verdict": "pass"
   },
   "CATALOG-MERGE": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "45d87c6f7cb076691ad56a38746cd85bd578654df2ed563a756c6f753bf5445a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "919b24bbe4fa942da8557aca7951281f4b43adb5315bb06f8eca311a00eebd66",
     "evidence": [
-      "PR #470 状态 MERGED。合并提交 4d0c18288b499dfbf090432a11bc7e3516eff4fa。mergedAt 2026-10-25T11:55:05Z。标题：CATALOG-MERGE: merge the 3D catalog by category。",
-      "CI rollup：gate FAILURE 2026-10-25T11:23:44Z job 121154787401；build-and-audit SUCCESS 2026-10-25T11:25:17Z job 121154136812；gate SUCCESS 2026-10-25T11:24:05Z job 121154853754；gate SUCCESS 2026-10-25T11:23:58Z job 121154834164；e2e SUCCESS 2026-10-25T11:27:30Z job 121154136646；posix-storage-security SUCCESS 2026-10-25T11:21:00Z job 121154136805。较早失败的检查：gate job 121154787401 2026-10-25T11:23:44Z。其后同名检查已成功的，不把整次 rollup 说成全部通过。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（CATALOG-MERGE）：任务卡 status=done，code=OK(1427B)、notes=OK(154B)，两个受保护区块均已回填；任务卡代码位置 14 处引用，14 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -55,14 +57,44 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
-  "CLIENT-API-DEADLINE": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "8b808273553712cab1f3bbdc91461cfabe21f076977edd361cd1aa25697c0f05",
+  "CITY-STILL-WEBP": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "bd84c095ad11e0e98c742ab465a20bdfda846c8bc53f69530637c56c08008d34",
     "evidence": [
-      "PR #471 状态 MERGED。合并提交 02b57ac52fe8a6c4d1e87d28aa62e080bb1e0ba8。mergedAt 2026-10-25T11:54:25Z。标题：CLIENT-API-DEADLINE: deadline 必须打断卡住的正文读取。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T11:25:46Z job 121154163402；gate SUCCESS 2026-10-25T11:20:44Z job 121154164068；gate SUCCESS 2026-10-25T11:23:03Z job 121154645407；e2e SUCCESS 2026-10-25T11:26:27Z job 121154163556；posix-storage-security SUCCESS 2026-10-25T11:21:03Z job 121154164153。rollup 里列出的检查结论都是 SUCCESS。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（CITY-STILL-WEBP）：任务卡 status=done，code=OK(429B)、notes=OK(77B)，两个受保护区块均已回填；任务卡代码位置按该卡记录约定为文件级引用，所列文件在 main 均存在。",
+      "CITY-STILL-WEBP 代码位置按该卡记录约定为文件级（`src/components/layout/BrandScene.tsx`、`src/lib/home/brandMedia.ts`、两张 poster webp、`tests/home-brand-media.test.ts`、`e2e/home-media.spec.ts`），不带行号；上述文件在 main 均存在。本任务交付首页品牌场景静态海报，不涉及 3D 相机准入。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "CLIENT-API-DEADLINE": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "d12642d68cf265c84580004883acd57c812a4f06d8eb1810415a0b1150c03406",
+    "evidence": [
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（CLIENT-API-DEADLINE）：任务卡 status=done，code=OK(543B)、notes=OK(139B)，两个受保护区块均已回填；任务卡代码位置 4 处引用，4 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+    ],
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "DEPLOY-FIX-1": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "9eac64fd89c5ac3f43f7c4c48ae141db5ad8aae958aee5a26692ed39746f6d85",
+    "evidence": [
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（DEPLOY-FIX-1）：任务卡 status=done，code=OK(202B)、notes=OK(77B)，两个受保护区块均已回填；任务卡代码位置按该卡记录约定为文件级引用，所列文件在 main 均存在。",
+      "DEPLOY-FIX-1 代码位置为文件级引用，文件在 main 均存在。本任务属部署修复，与 E-98 无关。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
+    ],
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -90,13 +122,15 @@
     "verdict": "pass"
   },
   "FE-FAB-390": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "65efd932ebc5670fc60cdd0daba112b9d6c61f123583241342aec52a7fbc15e4",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "ab2c7c10f3af54553b5ce90da994867fa2f3a6b26b6151736ab40f806b698b83",
     "evidence": [
-      "PR #468 状态 MERGED。合并提交 2d92d4a72aca2b587b490461380773b20a99ee7b。mergedAt 2026-10-25T12:57:58Z。标题：FE-FAB-390: 390px 下展开的浮动按钮不再遮挡页脚链接。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T12:54:19Z job 121173326544；gate SUCCESS 2026-10-25T12:49:39Z job 121173326373；e2e SUCCESS 2026-10-25T12:56:55Z job 121173326449；posix-storage-security SUCCESS 2026-10-25T12:50:03Z job 121173326530。rollup 里列出的检查结论都是 SUCCESS。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（FE-FAB-390）：任务卡 status=done，code=OK(1165B)、notes=OK(530B)，两个受保护区块均已回填；任务卡代码位置 8 处引用，8 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -123,13 +157,15 @@
     "verdict": "pass"
   },
   "GIFT-CARD-ASSETS": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "b3fe77cd31b2f591ef5e9888e5ccba44d9e196f47acde5c35fbaec4561b05efc",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "7ca71d7798f491483825ab43de10273bef159494554a811dc641331112bbb668",
     "evidence": [
-      "PR #469 状态 MERGED。合并提交 f91c02857e1a0a7b30a8d281bc48a10cefffe0e1。mergedAt 2026-10-25T11:20:14Z。标题：GIFT-CARD-ASSETS: 贺卡 D 方案模型、海报与两张 OG 图。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T11:16:49Z job 121152514016；gate SUCCESS 2026-10-25T11:12:52Z job 121152514167；gate SUCCESS 2026-10-25T11:15:36Z job 121153084991；e2e SUCCESS 2026-10-25T11:20:05Z job 121152513845；posix-storage-security SUCCESS 2026-10-25T11:13:09Z job 121152514128。rollup 里列出的检查结论都是 SUCCESS。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（GIFT-CARD-ASSETS）：任务卡 status=done，code=OK(912B)、notes=OK(656B)，两个受保护区块均已回填；任务卡代码位置 5 处引用，5 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -168,130 +204,139 @@
     "verdict": "pass"
   },
   "M1-T1": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "50fd5a0344f013263da771d37ce0639e06cb0aa90ee4003e2da7215e51ea5cc1",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "55b6e260ed1c3197324fdca9e50523d483c8de22959d9bcf0042194e79d5b772",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:11；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《接入8个核心品牌变量及既有路径真实冒烟》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=现有首页、GET /api/models、WebVitals/RUM；11节核心变量；本地main中的已审规格基线；输出=visual-base的8个核心变量；runnable-smoke；含已审文档基线的实施PR与CI冒烟；前置=none；阶段=integration；能力=visual-base,runnable-smoke；有效路径共29项（.github/workflows/ci.yml; AGENTS.md; CLAUDE.md; docs/PackJoyU-开发文档/; e2e/brand-smoke.spec.ts; eslint.config.mjs; next.config.ts; package.json; playwright.config.ts; prod-env-check.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/i18n/navigation.ts; src/i18n/routing.ts; src/instrumentation.ts; src/lib/navigation/routes.ts; src/styles/motion-tokens.css; src/styles/tokens.css; tsconfig.json），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：与 E-98 的 3D 相机滚轮准入无实现或调用关系；初次自动关键词扫描的命中经人工复核均为素材缩放/卡片 hover，非相机准入。",
+      "main 落地实证（M1-T1）：任务卡 status=done，code=OK(2571B)、notes=OK(3203B)，两个受保护区块均已回填；任务卡代码位置 26 处引用，26 处可直接核实。",
+      "M1-T1 的 26 处代码位置全部可核实。需要说明：我初次自动扫描把它标为「涉及 3D」，是误判——命中项是 `src/app/globals.css:345` 的「hover 只换强调色边界，不位移不缩放」，讲的是卡片 hover 不缩放，与 E-98 滚轮准入无关。本任务交付的是 8 个核心视觉 token，不实现滚轮准入。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-22T12:40:54.736715+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "53f7b1c90f087ba1fbd56c3af8cdd35b59651712b8bb4724ff12d76c7afa34c4",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "5f3be1a318ec318644b2b669005b1353003d21ee28460defc64056ad1dbef1e8",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:12；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《导出新增领域共享schema与DTO》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=06/09/10节字段契约、Auth.js既有错误协议及visual-base基线；输出=contract-types；account/recovery/chat/analytics/ops/errors schema与公共index导出；前置=M1-T1；阶段=primitive；能力=contract-types；有效路径共4项（src/lib/contracts/; src/lib/contracts/index.ts; src/types/next-auth.d.ts; tests/contracts-foundation.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-95；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/lib/contracts/common.ts:3（Int32、UUID、UTC/自然日、IANA 时区、Unicode 正文、站内路径及分页游标的共享规则。）；src/lib/contracts/account.ts:4（LoginMode、rememberDevice 显式解析及账号/设备请求响应；E-95 缺值、false、字面 fal）；src/lib/contracts/recovery.ts:7（既有首次绑定与独立受限恢复分别导出 schema/DTO，保持原成功体。）；src/lib/contracts/chat.ts:28（人工聊天全部请求与严格嵌套响应、seq/read/分页规则。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=5f3be1a318ec318644b2b669005b1353003d21ee28460defc64056ad1dbef1e8；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T12:41:01.403505+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T3": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "9e75f48e189830323897b921ddd016d3d77c6597898db96c690c8df2cf79601d",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "38c76cd2a52daa51a05e86eff0e542c677ca19ff266af01117c5a0c7ab2517cc",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:13；19节仅改input指向当前selected-media-release与真实制作记录；原完整master、来源身份/时间点、设备标识、成片/海报SHA、未知署名禁发、原件不变的5条验收未改。读选定成品而非强制重做桌面附件，与用户确认及04节相符；提供brand-static-media和brand-logo-master不变。",
-      "本任务具体边界：输入=docs/brand-media/static/selected-media-release.json与真实制作记录；桌面原件只核来源/SHA，不重做已确认素材；输出=brand-static-media：工业PNG、压缩视频及帧海报、哈希清单；brand-logo-master：public/brand/packjoyu-logo-master.svg及源/导出SHA。；前置=M1-T1；阶段=integration；能力=brand-static-media,brand-logo-master；有效路径共18项（design/og-src/render-og.mjs; docs/PackJoyU-开发文档/_run/handoff_contract.py; docs/PackJoyU-开发文档/_run/tests/test_maintenance.py; docs/PackJoyU-开发文档/_run/tool-version.json; docs/brand-media/static/; messages/en.json; messages/ru.json; public/brand/; public/og/home-en.jpg; public/og/home-ru.jpg; src/app/[locale]/page.tsx; src/app/globals.css; src/components/layout/BrandScene.tsx; src/components/layout/HeroVideo.tsx; src/data/og-versions.json; src/lib/home/brandMedia.ts; tests/hero-video.test.ts; tests/home-brand-media.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-28,E-29；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：public/brand/packjoyu-logo-master.svg:1（现用完整字标转曲及来源核验（E-28）。）；docs/brand-media/static/brand-static-media.json:1（6个选定发布副本、完整媒体SHA/尺寸及历史待核集合。）；docs/brand-media/static/selected_release_checks.py:1（选定成片、真实来源、实际抽帧、静态裁剪和制作记录的发布校验。）；docs/brand-media/static/source-attestation.json:1（员工现场拍摄和助手后加Logo的直接用户说明及限定范围。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=38c76cd2a52daa51a05e86eff0e542c677ca19ff266af01117c5a0c7ab2517cc；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T12:41:08.012117+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T4": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "bf82180326ff3ab63d19c295cf5e0e1752aa97e8efe0fbae181e2188181bb73c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "410ee6176814b3eafa343406a8e783e51940467f09991e61da400dff3aaffc45",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:14；19节1-3条更新为v3视频/真实帧poster、工业PNG/GIF和各版本同尺寸暂停帧，保留muted/playsinline、主动播放、300px前无GIF下载、暂停意图、三尺寸四角/主体/不遮挡与真实操作GIF；main第4条home/products/contact PUBLIC_ROUTES→SiteHeader→i18n登记文本完整相等，定义wiring/effectivePaths与main一致，没有把media任务扩到后台。",
-      "本任务具体边界：输入=docs/brand-media/static/selected-media-release.json的PNG/GIF/v3视频及成片海报、src/lib/home/brandMedia.ts现有接线、M1-T6已核发布集合/暂停帧、visual-components与client-api-foundation；输出=home-media；复用现有HeroVideo/BrandScene的选定成品与控制，不重新制作场景；前置=M1-T6,M1-T7,M1-T8；阶段=integration；能力=home-media；有效路径共10项（e2e/home-media.spec.ts; messages/en.json; messages/ru.json; src/app/; src/components/layout/; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts; tests/about-350.test.ts; tests/hero-video.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-21,E-22,E-23,E-24,E-25；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（M1-T4）：任务卡 status=done，code=OK(1479B)、notes=OK(1803B)，两个受保护区块均已回填；任务卡代码位置 19 处引用，19 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-22T12:41:15.120424+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T5": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "67986af0c5bec7155f4c8947c24362bdf49a809913e90535c528e5fc09d519e7",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "e98247b9bf3cd53ae8647b60268309d4bd8807bc54e069a8a627fafcbefc95e9",
     "evidence": [
-      "PR #474 状态 MERGED。合并提交 a98ae749f4d22408e96bc3150c28d8ae03eb20ab。mergedAt 2026-10-25T15:34:14Z。标题：M1-T5 集成己方公司内容与选定图稿。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T15:25:08Z job 121208207109；gate SUCCESS 2026-10-25T15:19:57Z job 121208206594；e2e SUCCESS 2026-10-25T15:27:25Z job 121208207169；posix-storage-security SUCCESS 2026-10-25T15:20:20Z job 121208206879。rollup 里列出的检查结论都是 SUCCESS。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（M1-T5）：任务卡 status=done，code=OK(2479B)、notes=OK(391B)，两个受保护区块均已回填；任务卡代码位置 34 处引用，34 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T6": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "d9f634c6292868f4cb64467ebc678f24fbdbd7ac430ca00fd9ad9ff04419574a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "7191040391c7bea9554d6ad6286585e142b909777d27a13eb0b8ecd50781e0e1",
     "evidence": [
-      "本轮为用户明确要求的完成状态同步：第三批收口已执行，M1-T6标记已完成。恢复本地主分支43592a41已有完成提交的status与code/notes，通过合并保留全部本地5提交历史；最新M1-T6定义、验收和边界来自origin/main，未降低或重写。",
-      "素材完成依据沿用既有用户确认成品及原任务受保护记录。本轮只读验证6个选定public成品逐字节SHA与held/selected一致；full1384x720及preview960x500均真实解码361帧/30080ms/loop0，全部帧duration数组匹配既有动画记录。Desktop原GIF实际SHA仍匹配历史值。完整输出见本仓库本文件的 mediaIntegrity；可复现命令及脚本SHA见 mediaIntegrityReproduction。",
-      "当前真实消费版本是BrandScene的1384x720 fullGIF，page.tsx传同尺寸held/loop-poster.png，SHA及尺寸匹配；preview仅登记而未被当前src消费，不声称有另一个960x500暂停帧。T3静态PNG1737x905与GIF暂停帧分别保存，没有互相冒充。",
-      "本轮没有重新制作或修改媒体，没有声称重新人工视觉审查361帧；沿用用户已确认的制作和完成记录。广义verify-static-media --require-release在现用SiteHeader.tsx与历史制作source-hash不等处失败，该项如实记录，不把它当作素材本体损坏或全绿，也不改旧制作记录迁就检查。",
-      "批次状态修正只给batch3 record登记六个批次成员；实际审查仍四项、两素材任务仍免审，verdict open/tests fail及六个返工task围栏不变。真实浏览器fresh localhost origin storageEntries0，显示已收口2026-10-22有遗留/已落地6/6/再收口一次，M1-T6为htask done；六R3 ID仍可见。",
-      "现有批次闸门回归15/15通过；生成器未修改。所有应用代码与素材相对origin/main零差异，继承revalidation不清除。此登记是当前契约语义复核和明确的人工作品接受状态同步，不将未解决验证返工判为完成。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：public/brand/packjoyu-industrial-city-v3-loop.gif:1（发布用循环 GIF，1384×720、361 帧、30080 毫秒、无限循环，画面为 PackJoyU（E-26、E-3）；public/brand/packjoyu-industrial-city-v3-loop-preview.gif:1（同时间轴的 960×500 预览 GIF。）；docs/brand-media/static/held/packjoyu-industrial-city-v3-loop-poster.png:1（暂停静帧档案，1384×720，与发布副本逐字节相同。）；public/brand/packjoyu-industrial-city-v3-loop-poster.png:1（同尺寸暂停静帧的发布副本，首页从这里引用。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=7191040391c7bea9554d6ad6286585e142b909777d27a13eb0b8ecd50781e0e1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T16:35:51.258962+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T7": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "14f3de2364268d5abf0941ef477ff7f2fb5c95c0aa74145b0e18a2ea051450ee",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "7de1e70f8f46a2bff25e233b1d0a0ec0fd734adaef952c22237a581fa4d99581",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:17；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《补齐共享视觉变量与原生UI包装》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=visual-base的8个核心变量、第11节完整组件/状态规格；输出=visual-components；完整唯一token源与Button/Input/Dialog/Status原生包装；前置=M1-T1；阶段=primitive；能力=visual-components；有效路径共3项（src/components/ui/; src/styles/tokens.css; tests/ui-primitives.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（M1-T7）：任务卡 status=done，code=OK(711B)、notes=OK(711B)，两个受保护区块均已回填；任务卡代码位置 11 处引用，11 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-22T12:41:35.470727+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T8": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "cd48ba85f2fd6b1a80f6605f1883bf30c65379f0283ff92059a9b75961d79292",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "01218af8360c4dcb7c3c3f34ab541ffe30cc757b0ffe67f129c58fdee07f1344",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:18；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《接通统一fetch取消与错误适配》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=contract-types、10节逐方法重试规则与既有Auth.js/旧error协议；输出=client-api-foundation；15s取消、DTO解析、旧错误兼容；服务端HTTP映射由M3-T14唯一实现；前置=M1-T2；阶段=primitive；能力=client-api-foundation；有效路径共3项（src/lib/client/api-errors.ts; src/lib/client/api.ts; tests/client-api-foundation.http.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/lib/client/api.ts:24（每次尝试单独计 15 秒截止，不把 1/2/4 秒退避算进同一次截止。）；src/lib/client/api.ts:26（响应 JSON 超过 4MiB 即停止读取，正文不进入失败结果。）；src/lib/client/api.ts:71（只接受单斜杠开头的相对路径，拒绝绝对地址、双斜杠、反斜杠、片段和点段。）；src/lib/client/api.ts:95（`/api/auth` 在 fetch 之前拒绝；`/api/auth-admin` 仍走统一请求。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=01218af8360c4dcb7c3c3f34ab541ffe30cc757b0ffe67f129c58fdee07f1344；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T12:41:44.336522+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M1-T9": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "f82124325fe550c42f9bb2cc2afe8418ed13ab984b4f986cd0561020072f7aec",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "1484d07a9c901ebef6b4c4c2046003ed50bb4677fd61b5b52cd259735758b045",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:19；以选定新素材复用/排版1-2幅图稿，不重绘旧PDF场景；仍须真实可编辑source、软件打开/独立对象编辑/可撤回记录、Web解码尺寸/SHA、master引用、enru alt和己方事实/示意依据，PNG/GIF本身不代替工程，缺任一必需项未完成。新requires只增加已为deps的M1-T3之brand-static-media，原logo-master依赖保留；集成责任仍M1-T5，禁止源工程入public/镜像。",
-      "本任务具体边界：输入=docs/brand-media/static/selected-media-release.json的已确认工业PNG/GIF、己方可证事实、T3现用brand-logo-master及真实制作记录；PDF/原JPG只作历史主题对照，不作新底图；输出=company-visual-assets；以已确认素材复用/排版的1–2幅公司图稿、真实可编辑工程、Web图/enru alt与来源/SHA清单；前置=M1-T1,M1-T3；阶段=primitive；能力=company-visual-assets；有效路径共3项（docs/brand-content/company-visuals.json; docs/brand-content/source/; public/brand/company/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-111,E-27,E-28,E-29；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/11-UI.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：与 E-98 的 3D 相机滚轮准入无实现或调用关系；初次自动关键词扫描的命中经人工复核均为素材缩放/卡片 hover，非相机准入。",
+      "main 落地实证（M1-T9）：任务卡 status=done，code=OK(1627B)、notes=OK(1345B)，两个受保护区块均已回填；任务卡代码位置 18 处引用，18 处可直接核实。",
+      "M1-T9 的 18 处代码位置全部可核实。初次扫描的「涉及 3D」同样是误判：命中项是字标「保持统一缩放」与 `logo-master` 导入，指图稿缩放而非相机缩放。本任务交付公司图稿工程，只引用 11-UI（不引用 07/12），不与滚轮准入相干。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-22T12:41:51.377403+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M2-T1": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "a7f1ae9424e138e20c14ba37ecc91a28301f62494e68c932eb2f313e63d57572",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "bfeab882f98436862d8cd36584f100dc41119e1ae38e12c6410cbcf2ec686265",
     "evidence": [
-      "PR #476 状态 MERGED。合并提交 69cca15fcc255c1ea69a97bdfabe5871533610a7。mergedAt 2026-10-25T15:12:01Z。标题：M2-T1 扩展产品卡视口与精简信息区。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T14:45:34Z job 121199099281；gate SUCCESS 2026-10-25T14:41:08Z job 121199099110；e2e SUCCESS 2026-10-25T14:48:19Z job 121199099935；posix-storage-security SUCCESS 2026-10-25T14:41:32Z job 121199099496。rollup 里列出的检查结论都是 SUCCESS。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：M2-T1 是共享 Canvas 大卡与独立模型/动作区域的实现任务，直接落在 E-98 准入范围内，因此按新矩阵逐条核对（见下）。",
+      "main 落地实证（M2-T1）：任务卡 status=done，code=OK(2533B)、notes=OK(1204B)，两个受保护区块均已回填；任务卡代码位置 33 处引用，32 处可直接核实。",
+      "M2-T1 与 3D 准入直接相关，已按新矩阵实证：main 上 `src/components/three/ProductGallery.tsx`（321 行）`wheelAdmission` 在 `:159` 调用，`:162` 明确 `focusBelongsToModel: wheelPermit.current === slug && surface.contains(document.activeElement)`——用真实 DOM 焦点而非缓存 focusedSlug，正对应 12-UX 新增要求；`:168-170` 仅当 verdict 为 `zoom-camera` 才 `preventDefault` 并缩放，其余保留浏览器默认行为；`:120`、`:127`、`:137`、`:194` 在释放/退出路径同步 `wheelPermit.current = null`，`:61-62` 注释写明「遗留 DOM 焦点也无法让该监听再次缩放相机，只由本模型取得焦点重新签发」。即本任务交付物已满足收紧后的 E-98 双重准入，无需返工。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -326,15 +371,16 @@
     "verdict": "pass"
   },
   "M2-T4": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "30366699afe5d4aea874f05466cc6622e3343103546b4c734c1095b369f229b0",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "ba9a8aa1a4cf0c1789cd159b76cc72fdd373adb219b66f8e5f5b7e8fabc6bff2",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:23；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《定义模型分析事件生命周期纯规则》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=contract-types中的事件白名单、navigationId/viewId与durationMs约束；输出=model-event-rules；start/terminal去重及取消/重试转换的纯函数；前置=M1-T2；阶段=primitive；能力=model-event-rules；有效路径共2项（src/lib/analytics/model-events.ts; tests/model-event-rules.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/lib/analytics/model-events.ts:77（终态类型复用打开状态的共同字段并替换 status，支持判别联合收窄。）；src/lib/analytics/model-events.ts:118（按记录顺序归约信号；空序列不产生事件。）；src/lib/analytics/model-events.ts:134（start、success、timeout、failure、cancel、retry 的纯转换；visit、displa）；src/lib/analytics/model-events.ts:176（durationMs 只取注入整数时钟差，范围外不改写、不可读则不算终态。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=ba9a8aa1a4cf0c1789cd159b76cc72fdd373adb219b66f8e5f5b7e8fabc6bff2；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T12:42:17.060933+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -391,19 +437,16 @@
     "verdict": "pass"
   },
   "M3-T1": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "40d74414c7f01fde589d3c5357ea89ccd7b5cc1851d116beca329c632b57e959",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "af4278d674453839280856fd8bb3ad1e2c55eb4a66a15168222e7c2c18833e2a",
     "evidence": [
-      "本轮契约语义：M3-T1-security-repair累计只补11个必要supportPaths及有效路径；原三项验收、输入/输出/前置、能力/阶段/wiring及E-01/E-02/E-03/E-69/E-70不变。64个下游仅hash变化已按本轮新hash完成定义差量登记，不宣称其实现通过，不清继承needsReview。",
-      "验收1映射：src/auth.ts:64真实Credentials成功后open设备并返回user/sv/sid；device-session.ts:136/158绑定及每次读取当前User/device，:37/:53账号和设备先于路由角色，缺sid/设备失效/DB失败拒绝；jwt回调auth.ts:97取当前库role。API guard.ts:39和SSR共用判断，account/route.ts:6显式requireAdmin。新增auth.ts:32/:60固定当前环境唯一cookie命名空间，:149以同名salt读取，生产/开发混合cookie不回退另一个账号；tests/admin-device-session.db.test.ts:157有直接red/green回归。",
-      "验收2映射：device-session.ts:21/28限制普通lastActivityAt+2h、记住7d闲置/30d绝对且等号拒绝；auth.ts:43/188限制JWT与Set-Cookie，:84/198保证signOut提交撤sid再清cookie或503。device-repo.ts:42按小于已提交版本撤旧设备，五处真实调用均传已提交sv。owning规则/db/handler测试覆盖期限、旧cookie401及新Credentials后迟到helper；独立安全负对照与最终判定由root补入。",
-      "可写cookie删除直接回归：device-session.ts:122同时发送Max-Age=0和过去Expires；guard.ts:31的jar.set也置expires:new Date(0)。真实Next parse/MutableRequestCookiesAdapter/appendMutableCookies/ResponseCookies链会丢数值0的maxAge时仍保留过去expires；tests/admin-device-session.db.test.ts:187由cookie-delete-red.log的0pass/1fail到green.log的1pass/0fail，不把空cookie值或仅Max-Age正则当作删除成功。",
-      "真实网络已执行：源码提交8eb9979894387b90e60933423493450c90e8fc11，CI39805496310第2次执行build-and-audit/e2e均SUCCESS；PG/协议14pass0skip，E2E78pass9项既有skip。完整DEVICE_SESSION_NETWORK_EVIDENCE经独立JSON核验：invalid3、mixed4、当前secure cookie过去Expires且Auth.js前jar已移除、真实新登录后迟到helper新200旧401、signOut旧cookie401。",
-      "独立安全SECURITY_PASS匹配同一源码head及15项哈希；root另重算17项实施源码哈希相等。两项原始PG红绿、production/development双cookie12矩阵及真实Next cookie管线红绿均保留；组合回归25pass0skip，不冒充25项PG。",
-      "首次同head E2E唯一失败为未改动的首页video Pause状态用例；无代码/素材/断言修改，单次原样重跑后全部通过，未隐藏初次失败。本机Next启动被自动审批拒绝，Windows standalone符号链接EPERM与本地全量平台失败不冒称成功；真实网络与完整构建证据来自Linux CI。",
-      "本轮新契约模板已由status刷新至40d744...；受保护code/notes与当前源一致，workflow指针78。继承10项needsReview/revalidation保留，不代做下游64项实现验收，不改素材或仓库门禁。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：prisma/schema.prisma:75（User.passwordlessEnabled 默认 false）；prisma/schema.prisma:92（AdminDeviceSession：192 位 id、会话版本、设备闲置和绝对期限、撤销时间）；src/lib/server/admin/device-session.ts:21（普通设备从 lastActivityAt 滑动 2 小时；记住设备取 7 天闲置和首次签发后 30 天的较早期限（E-0）；src/lib/server/admin/device-session.ts:53（先核账号与设备，再判路由角色；无效设备为 401，有效设备越权为 403；到期等号拒绝（E-70））。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=af4278d674453839280856fd8bb3ad1e2c55eb4a66a15168222e7c2c18833e2a；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T15:50:40.943694+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -460,26 +503,30 @@
     "verdict": "pass"
   },
   "M3-T14": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "303a61631bbd7455a6a2881bc0b1776f7b9f82d4b618f9eaf1fba9a44e527d9d",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "8578593a729c5671e80a84732325f5d0b409033ecbc5646a0145a1c429e7da19",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:41；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《接通新API配置、错误映射与脱敏计数》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=M1-T2共享错误码/DTO；现有security、SiteSetting和启动检查；09/10固定routeId和计数失败边界。；输出=共享server/config、唯一服务端HTTP错误映射与计数适配；ApiDailyCounter schema。完整GET /api/admin/account及真实响应计数由M3-T1接线。；前置=M1-T2；阶段=primitive；能力=http-guards-metrics；有效路径共9项（prisma/schema.prisma; prod-env-check.ts; src/instrumentation.ts; src/lib/server/composition.ts; src/lib/server/config.ts; src/lib/server/http/errors.ts; src/lib/server/http/metrics.ts; tests/admin-config.test.ts; tests/admin-http-metrics.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：prisma/schema.prisma:402（ApiDailyCounter 以站点日、timezoneRevision、routeId 为复合主键，只存 reque）；src/lib/server/config.ts:5（冻结的后台会话 2h/7d/30d/15min 与 grant 5min、permit 15min、受限会话 10min）；src/lib/server/config.ts:68（配置失败只报告字段名和「未设置/无效」，不使用 Zod 自带的 issue.message。）；src/lib/server/config.ts:112（生产环境缺既有秘密即拒绝；返回的冻结对象不复制秘密值。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=8578593a729c5671e80a84732325f5d0b409033ecbc5646a0145a1c429e7da19；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T12:43:27.050229+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M3-T15": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "bee8b6e61941bdd8bbeafc53d57d1f38f56607e68680d1bd74eb17ab29e9da0c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "78852ec002863d3d345e213d81d1be0f9f0154cd2a9cab89ea45960158bbc45c",
     "evidence": [
-      "PR #482 状态 MERGED。合并提交 d85df444f8a743be727170a8e44cdfd79363104f。mergedAt 2026-10-26T00:33:12Z。标题：M3-T15 通过真实活动写回会话期限并验证四条Auth.js路径。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T21:24:07Z job 121294237678；gate SUCCESS 2026-10-25T21:36:27Z job 121298417477；ping SUCCESS 2026-10-25T21:36:11Z job 121298364288；e2e SUCCESS 2026-10-25T21:26:08Z job 121294237622；posix-storage-security SUCCESS 2026-10-25T21:19:09Z job 121294237475。rollup 里列出的检查结论都是 SUCCESS。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/app/api/admin/account/session/activity/route.ts:6（POST 先做同源检查，再 requireAdmin，然后交给会话活动处理。）；src/lib/server/admin-session-activity.ts:52（真实活动处理。按用户限流、空对象。同源检查和 requireAdmin 在路由里。）；src/lib/server/admin/device-session.ts:42（只回填空的 `hardExpiresAt`。）；src/lib/server/admin/device-session.ts:97（绝对截止的等号拒绝，不写库。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=78852ec002863d3d345e213d81d1be0f9f0154cd2a9cab89ea45960158bbc45c；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -536,13 +583,16 @@
     "verdict": "pass"
   },
   "M3-T2": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "95cacf5a96adeb39a34e3dfbaf812a24cc165a15219e5d2545c4ecffbbbe46b8",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "e32e66da774e525f5a755059d37f947c9c7343b5cae49c6c91ad5917dd984df5",
     "evidence": [
-      "PR #478 状态 MERGED。合并提交 d3abc6cffbcce8adb2340096c069419ceb0eba07。mergedAt 2026-10-25T17:40:51Z。标题：M3-T2 校验登录方式并原子核销当前验证器时间步。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T17:22:24Z job 121236319736；gate SUCCESS 2026-10-25T17:17:19Z job 121236314464；e2e SUCCESS 2026-10-25T17:24:58Z job 121236319920；posix-storage-security SUCCESS 2026-10-25T17:17:42Z job 121236320083。rollup 里列出的检查结论都是 SUCCESS。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/auth.ts:21（去掉 Auth.js 传输字段和空密码后再解析登录契约，6 位验证码保持字符串（E-96））；src/auth.ts:69（真实 Credentials 调用 `authorizeLogin`；失败抛同一 `CredentialsSignin`）；src/lib/server/admin/login.ts:100（按当前密文、`totpEnabled`、`sessionVersion` 和时间步原子核销（E-72、E-08））；src/lib/server/admin/login.ts:102（`checkDelta` 和时间步共用一次取样）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=e32e66da774e525f5a755059d37f947c9c7343b5cae49c6c91ad5917dd984df5；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -839,13 +889,15 @@
     "verdict": "pass"
   },
   "M4-T15": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "811f7f7a41befbd279f2861c4922da365f7d181a3ce8cff1a0f9e8530214880a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "f39022bdbb75799ebe5f7d7319e3e3e85c00ae89bd3701e2c45bf4087a09eef6",
     "evidence": [
-      "PR #460 状态 MERGED。合并提交 a3219f26e0a9a70d7db9333b5231306e4055f780。mergedAt 2026-10-25T08:38:38Z。标题：M4-T15 移除Tawk接线并说明必要人工咨询。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T08:32:13Z job 121118682429；gate SUCCESS 2026-10-25T08:32:33Z job 121119803811；gate SUCCESS 2026-10-25T08:32:27Z job 121119781492；e2e SUCCESS 2026-10-25T08:34:01Z job 121118682257；posix-storage-security SUCCESS 2026-10-25T08:27:26Z job 121118682446。rollup 里列出的检查结论都是 SUCCESS。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（M4-T15）：任务卡 status=done，code=OK(1483B)、notes=OK(734B)，两个受保护区块均已回填；任务卡代码位置 18 处引用，18 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -928,13 +980,16 @@
     "verdict": "pass"
   },
   "M4-T8": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "dad2fabf80c6ce7585eebeb158529ad54ef2e53a473107cbf23306b71cd5a927",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "4c02e776743875eea86dd2173267e43006b0bb224ac06b6490769089b1a90942",
     "evidence": [
-      "PR #466 状态 MERGED。合并提交 8e4f18b5cab59933d3c39133f6608c92420e38a1。mergedAt 2026-10-25T10:06:19Z。标题：M4-T8 建立主动联系才签发的必要cookie。",
-      "CI rollup：gate FAILURE 2026-10-25T09:48:19Z job 121135264740；build-and-audit SUCCESS 2026-10-25T09:48:22Z job 121134271872；gate SUCCESS 2026-10-25T10:04:37Z job 121138600892；gate SUCCESS 2026-10-25T10:04:30Z job 121138580847；e2e SUCCESS 2026-10-25T09:50:00Z job 121134271857；posix-storage-security SUCCESS 2026-10-25T09:43:46Z job 121134271696。较早失败的检查：gate job 121135264740 2026-10-25T09:48:19Z。其后同名检查已成功的，不把整次 rollup 说成全部通过。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：prisma/schema.prisma:460（ChatVisitorSession 存 id、tokenHash、createdAt、lastActivityAt、a）；src/lib/server/config.ts:163（CHAT_VISITOR_POLICY 固定 7 天闲置、首次签发后 30 天绝对，不读环境变量。）；src/lib/server/composition.ts:85（createChatServices 注册 visitorSessions，POST 路由调用它。）；src/lib/server/chat/visitor-session.ts:50（256bit base64url 原值，库存 SHA-256。比较走等长 timingSafeEqual；查无此行也对哑）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=4c02e776743875eea86dd2173267e43006b0bb224ac06b6490769089b1a90942；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -952,15 +1007,16 @@
     "verdict": "pass"
   },
   "M5-T1": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "18428f85178ebc21922b703a1cc39d32ad49ec24cf588333510eb38899e39b91",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "9ab71e76d753125515dd5ce55ab53808db1b2d5397b87f6f48a293ba08d67067",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:68；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《建立JobState租约与代次仓储原语》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=contract-types、09节JobState和数据库时间/条件更新规则；输出=job-leases；JobState schema、原子领取/续租/完成与安全状态读取；前置=M1-T2；阶段=primitive；能力=job-leases；有效路径共5项（deploy/deploy.sh; prisma/schema.prisma; src/lib/server/jobs/lease-repo.ts; src/lib/server/jobs/types.ts; tests/job-leases.db.test.ts），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=done及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：prisma/schema.prisma:415（JobRunStatus 五个状态。）；prisma/schema.prisma:423（JobState 的 key、租约、代次、成功时间和 summary。）；deploy/deploy.sh:94（现有 db push 消费整份 schema.prisma，不带 accept-data-loss。）；src/lib/server/jobs/types.ts:7（租约 90 秒；到期等号视为已释放。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=9ab71e76d753125515dd5ce55ab53808db1b2d5397b87f6f48a293ba08d67067；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-22T12:47:26.195781+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -991,13 +1047,16 @@
     "verdict": "pass"
   },
   "M5-T2": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "81deb5d6f37e3ba531bedf6c00e395a0af659bc74cd5ce94f93226f3262277de",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "65cd0cb870abaebe21b7e86662898376f4989a79c091403fe94f20f96f0c6fb6",
     "evidence": [
-      "PR #464 状态 MERGED。合并提交 15d28e88d7c51bcbdedc5829d80c0e0010ea3814。mergedAt 2026-10-25T08:50:10Z。标题：M5-T2 接通服务端分析同意签名cookie。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T08:46:52Z job 121121939938；gate SUCCESS 2026-10-25T08:44:58Z job 121122308060；gate SUCCESS 2026-10-25T08:44:52Z job 121122292339；e2e SUCCESS 2026-10-25T08:49:58Z job 121121939931；posix-storage-security SUCCESS 2026-10-25T08:43:29Z job 121121939771。rollup 里列出的检查结论都是 SUCCESS。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/app/api/analytics/consent/route.ts:5（注册 nodejs `POST`，进入 `createConsentPost`。）；src/app/api/analytics/consent/post.ts:78（精确同源失败后丢弃未读正文，映射为带 `requestId` 的 `forbidden_origin`。）；src/app/api/analytics/consent/post.ts:84（先扣已出示 cookie 的桶，每 10 分钟 10 次；拒绝时不再扣 IP 桶。）；src/app/api/analytics/consent/post.ts:99（再扣 IP-HMAC 桶，每 10 分钟 20 次；存储失败拒绝，`Retry-After` 为 600。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=65cd0cb870abaebe21b7e86662898376f4989a79c091403fe94f20f96f0c6fb6；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1041,24 +1100,30 @@
     "verdict": "pass"
   },
   "M5-T6": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "fa1e3d4aaa1372caeeb43ced9fd1d701761764bd08867a76eb1efe31919b889f",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "aa41cb48a946c6ecf60a11f22583a5006174e921047d97c1b5c0796042bde13c",
     "evidence": [
-      "PR #467 状态 MERGED。合并提交 4a04855c5bb2ef3b732d39bc16437f2d3bfab53c。mergedAt 2026-10-25T10:23:10Z。标题：M5-T6 持久化严格白名单分析事件。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T10:21:08Z job 121141052006；gate SUCCESS 2026-10-25T10:21:29Z job 121142095321；gate SUCCESS 2026-10-25T10:21:22Z job 121142075443；gate SUCCESS 2026-10-25T10:21:59Z job 121142204309；e2e SUCCESS 2026-10-25T10:22:57Z job 121141052202；posix-storage-security SUCCESS 2026-10-25T10:16:44Z job 121141052141。rollup 里列出的检查结论都是 SUCCESS。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：prisma/schema.prisma:460（追加 `AnalyticsEventKind` 与 `AnalyticsEvent`。行里只有事件标识、语义键、载荷哈希）；src/app/api/analytics/events/route.ts:5（`POST` 入口，只导出路由。）；src/app/api/analytics/events/post.ts:73（同源失败为 403 `forbidden_origin`，不计入事件配额。）；src/app/api/analytics/events/post.ts:79（复用 `readAnalyticsCookie` 与 `verifyValue`。cookie 缺失、伪造或 `anal）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=aa41cb48a946c6ecf60a11f22583a5006174e921047d97c1b5c0796042bde13c；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "M5-T7": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "22785c5ca1441f4f6ada0f60a86f82f5f45aef8b2ec242d4d40727515220d74b",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "219d89a1d65c8d08123867e648b12cb5fe231f0e411d4fcdb844519ec09265e9",
     "evidence": [
-      "PR #473 状态 MERGED。合并提交 b880ccbed24164e97b15e8a18fbfbe9740f8fffd。mergedAt 2026-10-25T18:38:58Z。标题：M5-T7 接通同意UI、页面事件与隐私说明。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T18:26:32Z job 121252039700；gate SUCCESS 2026-10-25T18:33:43Z job 121254847365；ping SUCCESS 2026-10-25T18:33:28Z job 121254791292；e2e SUCCESS 2026-10-25T18:30:40Z job 121252039908；posix-storage-security SUCCESS 2026-10-25T18:22:25Z job 121252039899。rollup 里列出的检查结论都是 SUCCESS。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（M5-T7）：任务卡 status=done，code=OK(1888B)、notes=OK(838B)，两个受保护区块均已回填；任务卡代码位置 19 处引用，17 处可直接核实。",
+      "M5-T7 行号漂移已实证（只影响引用坐标，不影响落地事实）：任务卡写 `src/app/[locale]/privacy/page.tsx:64`，main 上该文件实际 49 行，隐私统计同意段落真实位于 `:42`（`<section id=\"privacy-analytics-consent\">`）与 `:45`（`t('ledger.analytics', facts)`）；`e2e/privacy-analytics.spec.ts:32` 在 main 为 21 行，该用例实际起于 `:3`。`src/app/[locale]/privacy/retention-facts.ts` 确实存在于 main（13 行；`:8` retentionFacts、`:6` AGGREGATE_RETENTION_MONTHS=13；`:10` rawAnalyticsDays 取自 RAW_EVENT_RETENTION_MS）。任务要求的内容在 main 成立。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1076,14 +1141,16 @@
     "verdict": "pass"
   },
   "M5-T9": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "68daa1ae470de630cdd8123d6da31b4293a73d3b9ac5c2f1f89e788e98535aa2",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "d58697af3e14e4d5f94cec7803d4ad2c934f682a674e648502f78231f8f447ad",
     "evidence": [
-      "PR #463 状态 MERGED。合并提交 e15b5f101fc1b22b4daff0b8a2f88f6cb02b55c0。mergedAt 2026-10-25T08:39:04Z。标题：M5-T9 建立版本化IANA时区与自然日仓储规则。",
-      "CI rollup：gate FAILURE 2026-10-25T08:32:47Z job 121119844256；build-and-audit SUCCESS 2026-10-25T08:34:59Z job 121119383063；gate SUCCESS 2026-10-25T08:33:09Z job 121119921537；gate SUCCESS 2026-10-25T08:33:00Z job 121119898233；e2e SUCCESS 2026-10-25T08:36:47Z job 121119383081；posix-storage-security SUCCESS 2026-10-25T08:30:54Z job 121119382929。较早失败的检查：gate job 121119844256 2026-10-25T08:32:47Z。其后同名检查已成功的，不把整次 rollup 说成全部通过。",
-      "契约核对仍有提醒，不阻断：M5-T9 疑似接线任务未列注册点（命中：事件、服务）。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/lib/analytics/day-boundaries.ts:4（原始事件保留 30 个绝对日，不按本地日历月）；src/lib/analytics/day-boundaries.ts:55（`Intl` `formatToParts`，`hourCycle` `h23`，24 点进到下一日历日）；src/lib/analytics/day-boundaries.ts:114（本地午夜取最早匹配的 UTC 时刻，重叠小时只归开始日）；src/lib/analytics/day-boundaries.ts:140（左闭右开边界；查看者时区不参与，也不能代替无效站点时区）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=d58697af3e14e4d5f94cec7803d4ad2c934f682a674e648502f78231f8f447ad；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1318,196 +1385,164 @@
     "verdict": "pass"
   },
   "R3-T09233008": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "b1bfa9084cbbbcebcba80fb0a7a9b8571b71d9ca7b1729ae6d0d1b38f5fd690a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "746c8c6884471ad6845cb3f1fa4b002700ba746cd72de6adb75469eaab92b4a1",
     "evidence": [
-      "第二轮仅复核原 R1-R3 与同步主干的直接回归；三项存储验收与所有生产路径/权限规则保持，前置仍已落地，有效实现路径不扩展。当前契约与原始 task、13/17/19 及06/08约定一致。",
-      "R1已修：ci.yml:117-118仅contents: read，删除actions: write；真实Linux job120188407322的GITHUB_TOKEN Permissions仅Contents: read，53 pass/0 fail/0 skip且artifact12471603121上传成功，旧权限线程已resolve。",
-      "R2已由主干PR #413解除：已合入 9a16d16f9511ce663f1fb57ea8da9a2c44124b4f 的pnpm-lock.yaml锁定Next15.5.28；本分支只merge主干，没有相对主干的package.json/锁文件改动。无需等待仍开放的PR #415。",
-      "同步后真实npx pnpm10.34.6 install --frozen-lockfile退出0，根postinstall完成Prisma生成；实际Next15.5.28，eslint-config-next15.5.27与主干一致。",
-      "同步后真实pnpm10 audit --prod --audit-level high --json退出0，257个生产依赖，info/low/moderate/high/critical全部0；完整JSON已随证据提交。审计阈值与CI规则未降低。",
-      "同步后node --import tsx --test --test-reporter=tap tests/prod-env-check.test.ts tests/storage-local.test.ts tests/storage.test.ts退出0：44 pass/0 fail/7 skip；三个能力探测与平台中性断言仍执行，不可用分支标明未执行；完整TAP已随证据提交。",
-      "同步后pnpm10 lint与pnpm10 exec tsc --noEmit --incremental false均退出0；git diff --check通过；有效四文件反造假扫描无命中。只读CI的最新Linux完整检查在最终推送后另行核验，合并前必核。",
-      "R3按用户本轮明确指令无需等待App确认，仅对本次指定App批准门禁使用管理员例外；授权已在PR #414 comment6355476592留档，不改保护规则或把App失败写成批准，其他构建/测试仍须通过。",
-      "沿用第一轮Jev A：保留本PR依赖范围、继承独立合入main的修复，不弱化审计。没有新增技术岔路口，App例外来自用户明确授权；judgments日志合并保留主干990行与本任务3行，未覆盖任一侧记录。",
-      "只修正任务笔记中删除一行后的四个CI引用行号，并补只读权限维护约束；代码位置、实施沉淀均已复核。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：tests/prod-env-check.test.ts:11（探测 POSIX 应用根、临时目录是否绝对、以及符号链接能否创建；缺能力时原因写明分支未执行。）；tests/prod-env-check.test.ts:39（真实符号链接前缀夹具同时要求符号链接、POSIX 临时目录和 POSIX 应用根。）；tests/prod-env-check.test.ts:237（词法拒绝与路径不外泄在任何平台都执行。）；tests/prod-env-check.test.ts:249（拒绝根目录 `/`。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=746c8c6884471ad6845cb3f1fa4b002700ba746cd72de6adb75469eaab92b4a1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-23T02:20:18.201247+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T09598683": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "6c2094181f3ab22b22bac0ca5aed192e3c45f0b4313152ef72a831ca7897c360",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "509fa325ea51ffb50fa4779092473077bcc2764e43e927408e70250f3d9d9af7",
     "evidence": [
-      "src/app/globals.css:413 的铺满规则从 min-width 1489px 起，只匹配 main:has(> .hero)。:414 取消主视觉容器和 section.container 的 max-width，左右内边距用 --pj-public-gutter-desktop。:422 首页 .ab-home > .sx 使用 border-box 和同样的 24px 边距。:433 铺满宽度下入口卡片为 repeat(6, minmax(190px, 1fr))。",
-      "src/styles/tokens.css:14 的 --container 仍是 1240px。:70 的 --pj-public-gutter-desktop 是 24px。src/app/globals.css:25 的 section.block 上下 padding 仍是 64px，:34 的入口卡片 padding 仍是 12px。后台 16px 间距不参与这条首页规则。",
-      "e2e/brand-smoke.spec.ts:430 的门槛是 1489。:517 在不小于该宽度时要求 max-width 为 none、内容宽大于 1240 且等于视口减 48。:524 在更窄宽度要求 max-width 仍是 1240px、边框盒约 1240、左右内边距 20px，因此 1440 保持居中上限。:556 要求 6 列；:557 只在铺满宽度要求单卡不窄于 190px。",
-      "e2e/home-media.spec.ts:415 在吸顶页头盖住画框时把画框顶移到页头下沿，再执行原来的重叠断言。该文件已列入本任务有效路径。",
-      "实现头 4aff200c 已由合并提交 690ce748 进入 main。UX 在 4aff200c 复验通过：1488 及以下与铺满前一致，1489 起铺满，1920 入口卡片为 6+5。区块间距 48px 与卡片内边距 24px 保持为验收上限，未改成当前值。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（R3-T09598683）：任务卡 status=done，code=OK(1053B)、notes=OK(1585B)，两个受保护区块均已回填；任务卡代码位置 16 处引用，16 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-24T17:03:14.350686+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T12074461": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "895963c5d4bc060ff31555814922b7336a211d7ccdfc21fa95208a318d43064f",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "68a4b92703fb10a6fd82aec838a6d75da143acb505e4195bc5fd89a119557a98",
     "evidence": [
-      "PR 442 head b5fe6162 已由 37f80ea3 合入 main。diff 只含 02-设计/11-UI.md、_run/batches/batch-3-20261024-r5.md 的任务围栏、本任务笔记和生成产物。src/app/globals.css 与 src/styles/tokens.css 不在 diff 里。GitHub checks build-and-audit、e2e、gate、posix-storage-security 均为 pass。没有正式 GitHub review，由仓库管理员合入。",
-      "验收 1：11-UI.md:197 与 :214 写明首页和首页品牌媒体区从 min-width 1489px 起铺满，宽度等于视口减去两侧 24px。1488px 及以下，包括 1440×900、1280、1024 和 390，仍是居中的 1240px 上限。:265 把 1920 铺满和 1440×900 的 1240px 上限分开写。",
-      "验收 2：:197 与 :288 把 48px 区块间距和 24px 卡片内边距写成目标值，不用上限描述这两项。同一处写明首页暂时保留 64px 区块上下 padding 与 12px 入口卡片内边距，用来保持 1440px 宽度下的现有视觉。",
-      "验收 3：:215 产品列表和品类页保持居中的 1240px 上限，铺满标为待定事项，没有改成首页的 1489px 规则。后台容器表未改。",
-      "验收 4：globals.css:413 从 min-width 1489px 起铺满首页外壳，:25 区块上下 padding 为 64px，:34 入口卡片内边距为 12px。文档与这三处一致。1920 仍是视口减两侧 24px，1440 仍是 1240px 上限。本任务不改样式文件。",
-      "edges 为 none。status 的 blockers 为空，只缺语义复核。r5 记录里的任务围栏标题和验收第 2 条改为目标值，第 1、3、4 条保持。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（R3-T12074461）：任务卡 status=done，code=OK(717B)、notes=OK(584B)，两个受保护区块均已回填；任务卡代码位置 9 处引用，9 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-24T18:15:15.478204+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T21757567": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "a1c9bc478d0e5d86c22efc3705c6e7332cc7243241003b40550c49536a241b16",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "f8377abe3c49dbc2a0ba2145008fd483ead5881e8d97892ce1952e04684f057b",
     "evidence": [
-      "本补丁仅扩有效支持路径pnpm-lock.yaml；原七项导入保护、错误解释器与stderr、import.ndjson一致性验收未变；相邻任务/批次结论未更改。源声明为_run/batches/batch-3-20261022.md中baseline-python-runtime围栏，修复任务由生成器同步，未在task-contracts.json重复创建返工ID。",
-      "用户在本次会话明确批准应用已独立审查的单锁文件安全补丁，并确认指定bot开发已取消，授权相应身份门禁管理员例外；此例外不用于跳过审计、构建、E2E。当前保持review、尚未声称已合并。",
-      "冲突检查：开放PR412/414均不改pnpm-lock.yaml；继续原PR413及原工作树，没有新clone或Windows worktree prune。",
-      "实际应用与独立审查候选逐文本相同：Next、@next/env及8个平台SWC解析到15.5.28，只有必要peer引用随之更新，其他包不升级；package.json保留~15.5.27和eslint-config-next15.5.27。独立子代理已核10包integrity与npm官方registry一致，PATCH_SECURITY_VERDICT=PASS。",
-      "真实完整安装：npx --yes pnpm@10.34.6 install --frozen-lockfile exit0，正常根postinstall成功生成Prisma6.19.3客户端，实际node_modules/next版本15.5.28；未把仅lockfile-only检查冒充完整安装。",
-      "应用后真实npx pnpm10 audit --prod --audit-level high --json exit0，257个生产依赖，info/low/moderate/high/critical全部0。",
-      "应用后node --import tsx --test tests/sanity-import.test.ts：13 pass/0 fail/0 skip；七项真实Python保护与逐字节生成、空/缺失解释器、9009诊断均保留。前轮同一测试代码已在Windows三种命令配置及Linux各13 pass/0 fail/0 skip。",
-      "应用后pnpm10 lint exit0（既有warnings）；生产src、Python保护脚本和CI审计规则未改。本轮后续必须由Linux CI验证真正新head的build-and-audit和e2e，再补最终head独立安全复核。",
-      "独立安全报告已在PR https://github.com/dawanglaohu/NBshiyan/pull/413#issuecomment-6355283134 留档；旧锁的sharp0.35.5已满足RCE公告缓解，依赖补丁仍用于满足版本级审计与官方Next修复，不声称当前应用已被证明可利用。",
-      "应用后日志SHA256：{\"merge-applied-audit.json\": \"b73f32a71af6bb1b15f2071e3df4659fc1e02df41126d9aed163ec59277f9f72\", \"merge-applied-lint.log\": \"90278efd449e2b46c14011208a5fde65917e2fd0038451d83a8c896170f6cfb8\", \"merge-applied-tests.log\": \"7f944d42f6905c3afc57cb00f8087047aca3277ae8c0fc03f9d53bf8c3ba3344\", \"merge-frozen-install.log\": \"d76fc4a3b60c86322d849b363e0974116e3594a4c23730c26c9dc49aaa510bcb\"}"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（R3-T21757567）：任务卡 status=done，code=OK(1866B)、notes=OK(1077B)，两个受保护区块均已回填；任务卡代码位置 26 处引用，26 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-23T01:47:18.545173+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T22883505": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "80b3544cf0374db45be29839a8c5ddbc79eeedb6f276d697393b7c2c89760017",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "245df9e0d4faa8d82c72774499950a4ef6681ecf6767fa47595834f557f4ab01",
     "evidence": [
-      "第2轮只核R1。batch-3-20261022.evidence.json 的 r3t22883505.probes 与 GitHub Actions run 39897468015、head 8ec1dd4 的 standalone-smoke.json 逐项相同：14次，densityPassed 6，densityFailed 8，询盘 1920x1080 work pass，fill 0.971，leftGap 25。",
-      "batch-3-20261022.md 的 N7 与 admin-density-applicable-failures 围栏 input 写明同样的六次通过和八次失败。localPrecheck.density 保留本机空库的 5/9，并标明不是正式失败清单。",
-      "PR 418 正文已改为六次通过、八次失败。e2e/brand-smoke.spec.ts 仍只断言测到 14 次。admin CSS、density_probe.js 和 D1–D6 阈值未改，未运行 build_docs.py --batches。",
-      "head ac3e1d33 的 run 39907670845 中 build-and-audit 与 e2e 成功。ci.yml 仍要求 standalone/server.js 非空，且 STANDALONE_TEST=1 的 TAP 为 skipped 0、fail 0。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（R3-T22883505）：任务卡 status=done，code=OK(1667B)、notes=OK(2051B)，两个受保护区块均已回填；任务卡代码位置 21 处引用，21 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-23T07:02:26.472279+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T56876634": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "30407f20970d2fb004839932c96a932d5adab85fed229093dd1bad8e23e0fef6",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "8a7849184f811d15c69b2089ab3cd0f02894aad0aba4225d28c57779c94b2a48",
     "evidence": [
-      "有效路径只有 docs/brand-content/company-visuals.json 与 tests/company-visuals-selected-input.test.ts。前置是 M1-T9。edges 为 E-111、E-27。",
-      "收口记录 input 末句原写「页面消费留给 M1-T5」，H05 把它当成未声明的能力前置。该句只说明页面消费不在本任务。已改成「页面消费不在本任务」。depends-on 仍是 M1-T9。同记录「给下一批的提醒」仍写明公司图稿页面消费归 M1-T5。",
-      "company-visuals.json:91 的 selectedInput.path 为 public/brand/packjoyu-logo-master.svg，与同文件 :21 的 logoMaster 相同。:96 与 :100 的源 SVG、Web PNG 路径和 SHA-256 等于验收里的 d1ae945b 与 5d855fc0。",
-      "tests/company-visuals-selected-input.test.ts:11 与 :12 钉住这两枚 SHA。:79 起要求 path、sha256、use 非空，path 属于 originalMedia 或 logoMaster，并核对目录与文件字节。:100 拒绝 use 写入 YUHAO、产能、规模、证照、认证、厂房或工厂。:116 核对源 SVG 与 Web PNG 字节。:143 与 :161 在缺字段或哈希不等时失败。",
-      "selectedInput.use 只描述字标 master 的导入和统一缩放。pageEvidence 仍为 null，页面加载不在本任务。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：与 E-98 的 3D 相机滚轮准入无实现或调用关系；初次自动关键词扫描的命中经人工复核均为素材缩放/卡片 hover，非相机准入。",
+      "main 落地实证（R3-T56876634）：任务卡 status=done，code=OK(732B)、notes=OK(514B)，两个受保护区块均已回填；任务卡代码位置 7 处引用，7 处可直接核实。",
+      "R3-T56876634 的 7 处代码位置全部可核实。初次扫描命中项是 `logo-master` 与「成片」字样，属图稿素材，非相机缩放。本任务交付品牌图稿，与 E-98 无关。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-24T13:28:29.087964+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T71889698": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "b9e2b4c739b5dd721bbef82c953eabc012411892baf155dfc67512fe83e3cddf",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "f2fc89441b421299464c9bb70dbdc92fdcbcddc5d3dda8003b6390df7aad88d6",
     "evidence": [
-      "本轮只核首轮R1和主干同步的直接回归；当前status ready=true、stale=[]、blockers=[]，契约哈希保持。首轮验收与代码位置、实施沉淀质量检查继续有效，没有重跑整套需求清单。",
-      "独立PR415已经MERGED，merge=5da0b6a6b470f713b26a7db981d7e872a63a16a1；本任务已在同一工作树同步main。当前相对main的代码增量仍只有原DB测试，生产reset/token库无差异，已审依赖与视频四文件逐个blob相等。",
-      "更新后的实际Next/ESLint15.5.28与sharp0.35.5下，ADMIN_RESET_TEST_DATABASE_URL指向本任务planning里的专用PG17.9新空库，三项真实DB测试3pass/0fail/0skip，reset单元22/22；PG已停止。",
-      "验收1/2：tests/admin-reset-initial-password.db.test.ts:143-157核最终密码、sessionVersion=2、末次令牌哈希和两条reset加两条issued精确动作多重集、元数据脱敏及真实锁等待。审计按事务时间排序不被当作动作顺序保证。",
-      "验收3：生产scripts/admin-reset-initial-password-lib.mjs:153保持签发审计，:284-293保持锁后重查和拒绝早返；DB测试:160-183只成功方三条审计、等待拒绝方不签发，:186-198核TOTP拒绝后密码/会话/令牌/审计不变。上述三个源文件与首轮哈希完全相等，反造假/接线结论保留。",
-      "R1实际解除：本分支生产audit各级全0且muted=[]，独立安全子代理checkpoint SECURITY_PASS。首轮Jev A/high0.82/adopt=take(A)在judgments.jsonl:994，独立依赖修复、先合main、再同步和复验的动作已落实。私有App的管理员例外仅按用户明示授权用于PR415，其余CI全部成功；本PR仍须以最终文档提交的检查成功作为merge前提。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：scripts/admin-reset-initial-password-lib.mjs:153（实际签发时追加 auth.enroll_token_issued；密码重置与待确认清理审计仍留在同一函数。）；scripts/admin-reset-initial-password-lib.mjs:290（锁内判定拒绝后立刻返回，不签发令牌、不写审计。）；tests/admin-reset-initial-password.db.test.ts:144（后提交的重置覆盖令牌哈希；两次成功仍各留一条签发审计。）；tests/admin-reset-initial-password.db.test.ts:148（两次并发成功的审计多重集固定为两条密码重置加两条令牌签发。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=f2fc89441b421299464c9bb70dbdc92fdcbcddc5d3dda8003b6390df7aad88d6；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-23T02:39:50.441419+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T75625096": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "0d97df31b3df52e294a5545227387dca6b6bca38f0ea36e7441d15f4433c8eae",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "01d373f96df7eb76e63d95515a64f141be425ec10d46e26ab20b4772cdf7f14b",
     "evidence": [
-      "契约与 batch-3-20261022.md:171-184 的 admin-density-applicable-failures 围栏一致：模块 M3，前置 R3-T22883505，来源 M1-T8、M2-T4、M3-T14、M5-T1，edges 为 none，验收四条要求十四次 densityProbe 的 D1–D6 与 overflow 全部 pass、不改 density_probe.js 判定、四个未完成入口不记完成、回归留在 e2e/brand-smoke.spec.ts 的同一次 standalone 冒烟。有效路径 12 个，与任务笔记一致。status blockers 为空，待登记的只有语义复核。",
-      "验收 1 与 4：PR 419 评论（2026-10-24T02:49:57Z）记录 run 40055157119、head 912b1a47 的 standalone-smoke.json：14 行 probe，D1–D6 与 overflow 共 98 项 pass，densityFailed 为 []。fill/leftGap 为询盘 0.971/25 与 0.961/24，账号权限 0.972/24.5 与 0.961/24，产品规格 0.971/25 与 0.961/24，规格编辑 0.972/24 与 0.961/24，站点设置 0.698/24 与 0.961/24，组织信息 0.698/24 与 0.613/24，3D 模型 0.972/24 与 0.961/24。同 run 的 e2e（job 120756416966）为 80 passed、9 skipped。",
-      "验收 2：同一评论记录 density_probe.js 与 e2e/admin-about-images.spec.ts 相对当时 origin/main 无 diff。本工作树 git diff 912b1a47 afcd8fdc 对 src/app/admin/admin.css、src/components/admin/settings/settings.css、src/components/admin/models/models.css、e2e/brand-smoke.spec.ts、e2e/admin-about-images.spec.ts、docs/PackJoyU-开发文档/_run/density_probe.js 无差异。当前行：admin.css:145 标题 16px 下边距 8px；settings.css:2 水平内边距 0；settings.css:121-123 按网格直接子项收缩；models.css:6 上传区内边距 16px；brand-smoke.spec.ts:357-358 要求 14 次且 densityFailed 为空。",
-      "验收 3：同一份 standalone-smoke 的 notClaimed 为 /admin/samples、/admin/content、/admin/stats、/admin/mail/unassigned。样品申请、内容、数据看板、未归类邮件不记为完成。",
-      "PR 419 评论（2026-10-24T06:05:31Z）确认图片格直接子项选择器已修，e2e 成功，admin-about-images.spec.ts:400 的两条 1440 失败不在失败列表。当时 build-and-audit 失败于 GHSA-mrhx-c7xc-m3w5 与 GHSA-f2hq-32vh-53cc，条件是依赖升级进入 main 且本 PR 的 build-and-audit 变绿后再合并并记录落地。PR 420 已合入 950b63c2。PR 419 head 89381045 的 run 40081092403 中 build-and-audit、e2e、posix-storage-security 均为 success。合并提交 afcd8fdc 的 run 40081550954 同样三项 success。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/app/admin/admin.css:145（账号表单标题为 16px，下边距 8px，桌面字段与标题同一行。）；src/components/admin/settings/settings.css:2（设置页水平内边距为 0，左边距只来自主区；上下为 24px 与 96px。）；src/components/admin/settings/settings.css:121（桌面图片格不足三张时收缩到实际占用的列：一张约 260px，两张并排，三张用基础三列网格。）；src/components/admin/models/models.css:6（上传区圆角面的内边距为 16px。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=01d373f96df7eb76e63d95515a64f141be425ec10d46e26ab20b4772cdf7f14b；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-24T09:29:12.752414+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T86511435": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "79a48731f64dff67eccc6e306c92698b59b8da29e9601139ed78dd00d7259b1a",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "346f915cb5710b0dc4533b1b23747822bfa151df14f7c6f68223e324fd3fe5ca",
     "evidence": [
-      "有效路径是七个数据库测试和 lease-repo.ts、jobs/types.ts、http/metrics.ts。前置是 M3-T14 与 M5-T1。edges 为 none。验收要求一次性 PostgreSQL 17 上这七个文件 0 fail 且 0 环境 skip，并保持租约与计数原语的原断言。",
-      "tests/job-leases.db.test.ts:10 没有 postgres 开头的 DATABASE_URL 时跳过。:143 断言同一 key 并发只有一项成功。:167 用注入时钟满 90 秒后领取新代次，并拒绝旧 owner 覆盖。src/lib/server/jobs/types.ts:7 的租约是 90000 毫秒。lease-repo.ts:177 只在租约为空或已到期时更新。:275 起完成写同时核 owner、generation 与未到期。",
-      "src/lib/server/http/metrics.ts:146 仅 status >= 500 时 errorIncrement 为 1。:149 一条 INSERT ON CONFLICT 递增 requestCount 与 errorCount。:141 与 :168 在设置解析失败或写入失败时返回调用方原来的 status 与 body。",
-      "tests/admin-http-metrics.test.ts:204 的写库用例只认 ADMIN_RESET_TEST_DATABASE_URL。:231 断言每次最终响应 requestCount 加一且 errorCount 只在 5xx 增加。tests/cleanup-lock.db.test.ts:8、tests/last-admin.db.test.ts:11、tests/admin-users-last-admin.test.ts:11 只认 postgres 开头的 DATABASE_URL。tests/admin-reset-initial-password.db.test.ts:13 只认 ADMIN_RESET_TEST_DATABASE_URL。tests/admin-device-guard.http.test.ts:14 只认 ADMIN_DEVICE_TEST_DATABASE_URL。缺变量即环境跳过，按验收算未通过。",
-      "合入提交 a474df01 的任务笔记记录官方 Windows PostgreSQL 17.11、server_version 17.11、Node 22.17.0、上述七个文件 42 pass、0 fail、0 cancelled、0 skipped。本轮契约复核对照了这些门闩和笔记，没有另起一次性实例重跑。租约仓储、计数原语和类型没有被该提交改写。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：tests/job-leases.db.test.ts:10（租约文件没有 postgres 开头的 DATABASE_URL 时，数据库用例按环境跳过。）；tests/job-leases.db.test.ts:143（同一 key 并发领取只有一项成功，另一个 key 不互相阻塞。）；tests/job-leases.db.test.ts:167（注入时钟满 90 秒后新代次可以领取；旧 owner 与旧 generation 的完成写被拒绝，不覆盖新结果。）；src/lib/server/jobs/types.ts:7（租约窗口 90 秒；到期等号视为已释放。）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=346f915cb5710b0dc4533b1b23747822bfa151df14f7c6f68223e324fd3fe5ca；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-10-24T13:28:50.777246+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T87287564": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "2dd4edc4ad7304f795ac7c45977092a81d4c90ee6472af91a20577a62e803c7c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "2eace128c2903b7593e86281cd344ac785916a06f7fa3b01a7917e124d47ab0e",
     "evidence": [
-      "验收1（双平台实跑）：工作树 D:\\xiangmu\\NBshiyan-r3-t87287564 在 Windows 上 `node --import tsx --test tests/lint-ru-yo.test.ts tests/prod-mocks-strip.test.ts` → tests 12 / pass 11 / fail 0 / skipped 1；WSL Ubuntu-20.04 上 `node --experimental-strip-types --test` 同两文件 → tests 12 / pass 11 / fail 0 / skipped 1（skip 项为「#323 生产构建产物」，需 .next/standalone/server.js，仓库未做生产构建）。",
-      "验收1（类型核验）：`npx tsc --noEmit` → EXIT=0、零输出；修复前为 EXIT=2 与 5 条 TS2305/TS2339（tests/lint-ru-yo.test.ts:6/52、tests/prod-mocks-strip.test.ts:9 缺 fileId/sameFile 声明）。",
-      "验收1（lint）：`pnpm run lint:ru-yo` → EXIT=0；WSL 下 `node scripts/lint-ru-yo.mjs` 打印 lint:ru-yo: ok 并正常退出。",
-      "验收2（扫描覆盖保持）：scripts/lint-ru-yo.mjs:101-107 的 ROOTS 与 :112 的 EXCLUDE 未改动，tests/lint-ru-yo.test.ts:39-49 断言 messages/ru.json、docs/seo-category-meta.md、src/lib/seo/categoryMeta.ts、docs/content 仍被发现且校对稿被排除；tests/prod-mocks-strip.test.ts:22-37 断言 next.config 的 MOCK_SOURCE_GLOBS 字面量与 src/lib 下五个真实 mock 文件清单未变。",
-      "验收2（slash/backslash 同文件身份）：scripts/lint-ru-yo.mjs:12-14 fileId 折叠分隔符、:16-18 sameFile 以 fileId 相等判同；:79-86 lintText 用 id 做允许名单比较并把命中 file 写成斜杠身份；:114-120 walk 用 fileId 判 EXCLUDE 且输出斜杠身份；tests/lint-ru-yo.test.ts:64-119 与 tests/prod-mocks-strip.test.ts:81-123 覆盖斜杠/反斜杠互认。",
-      "验收2（真实坏文件负例）：tests/lint-ru-yo.test.ts:77-115 在 mkdtemp 临时目录写入真实坏文件（'черный'）并断言被默认扫描命中、命中 file===斜杠身份、允许名单斜杠与反斜杠两种写法都放行、其他文件不放行；校对稿 'расчет' 被排除；tests/prod-mocks-strip.test.ts:84-119 写真实未覆盖 mock src/components/widget-mock.ts 并断言它仍判失败、静态 import 命中 src/components/widget.ts。",
-      "验收3（未缩小发现范围或改空列表）：tests/lint-ru-yo.test.ts:41 断言 files.length>1、:95 断言 files.length>=5、:92 断言缺目录时 defaultFiles 返回 []；tests/prod-mocks-strip.test.ts:25 断言 files.length>=5、:103 断言缺目录 walk 返回 []、:105-109 断言发现的三个文件精确相等；无一处以空列表代替断言。",
-      "边界（空输入/失败路径/重复提交）：空输入见 scripts/lint-ru-yo.mjs:85 允许名单项 file 为空即全局放行、tests/lint-ru-yo.test.ts:86 断言 sameFile('', badSlash)===false、:105 断言 lintText('', badBack)===[]；失败路径见 defaultFiles 缺根目录返回 [] 与 prod-mocks-strip:103；重复提交/重复身份见 tests/lint-ru-yo.test.ts:96 ids 唯一、:98 坏文件只出现一次、tests/prod-mocks-strip.test.ts:111 同一身份只计数一次。",
-      "范围核对：`git diff --name-status origin/main...HEAD` 仅 4 个文件（docs/PackJoyU-开发文档/图谱/任务/R3-T87287564.md、scripts/lint-ru-yo.mjs、tests/lint-ru-yo.test.ts、tests/prod-mocks-strip.test.ts），无范围外改动；补丁另加 scripts/lint-ru-yo.d.mts（经 DOC_PATCH r3-t87287564-type-decl 扩入有效路径）。",
-      "审查方修复（FIXED_BY_REVIEWER）：scripts/lint-ru-yo.d.mts 末尾补 'export function fileId(p: string): string;' 与 'export function sameFile(a: string, b: string): boolean;'，对应 scripts/lint-ru-yo.mjs:12-14 与 :16-18；修复后 tsc EXIT=0。",
-      "反造假扫描：三个有效路径内 grep 'not implemented|placeholder|stub|TODO|FIXME|待接入|后续接入' 零命中；grep 'window\\.__|globalThis\\.__' 零命中；grep 'return true|return false|=> true|=> false' 零命中；fileId/sameFile 全库唯一，未重复实现前置已有工具。",
-      "任务笔记回填：docs/PackJoyU-开发文档/图谱/任务/R3-T87287564.md 的 code 区块 12 条、notes 区块 4 段已填，路径与行号可核对（scripts/lint-ru-yo.mjs:13/17/80/115、tests/lint-ru-yo.test.ts:39/51/64、tests/prod-mocks-strip.test.ts:15/25/52/81）。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（R3-T87287564）：任务卡 status=done，code=OK(707B)、notes=OK(587B)，两个受保护区块均已回填；任务卡代码位置 11 处引用，11 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-23T04:44:27.627489+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R3-T92231765": {
-    "compiler": "3a4216c24b5bd1241c30be122b2018096ef39bd545361a6c2c82a2057767b346",
-    "contractHash": "239da04b0c08f514342414de7cea95fff42985765f9da9a6dce42b633821ec26",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a2cfe1f3644992e8d4f669c1b59c9ad659ee858bc5cbeeff8ac9ba788c245bd0",
     "evidence": [
-      "契约：maintain_docs.py status --task R3-T92231765 的 contractHash 为 239da04b0c08f514342414de7cea95fff42985765f9da9a6dce42b633821ec26，与派发包一致；ready=false 仅因待语义复核。合入 origin/main 后重跑 status，哈希未变。",
-      "验收1（11 条对上基线）：batch-3-20261022.evidence.json baselineTriage G1 的 142、151、212、290、325、456、727、791、793、849、1214 分别落在 admin-enroll-hardening 的 review-only SQL、admin-enroll-p1 的等待提示、inquiry-history 的 refreshHistory、mail-states 的 onSent、admin-p3 的 focus effect、article-og 的 loc_bad、home-entry-grid 的 hyphens:auto、locale-enum 的枚举注释与 ADD VALUE、mail-routes 的 mailSwitchGate、site-settings 的组织字段签名。",
-      "验收1（Windows 检出）：工作树 D:\\xiangmu\\NBshiyan-r3-t92231765 上 node --import tsx --test 跑上述 10 个测试文件，129 pass、0 fail、0 skipped。真 Bash 是 WSL GNU bash 5.0.17，cwd 为 /mnt/d/xiangmu/NBshiyan-r3-t92231765。",
-      "验收1（Linux 检出）：PR head 4fa51d8 的 CI build-and-audit（actions/runs/39892140053）执行 pnpm test 且结论 SUCCESS。随后 origin/main 合入未改这 10 个测试文件，也未改它们读取的 SQL、shell、CSS 与源码。",
-      "验收2：2FA SQL 仍等于三条 ADD COLUMN；Locale 仍只有 6 条 ADD VALUE；空计划匹配 empty/unreadable，DROP 仍被报出；mailSwitchGate 仍是函数体第一条，换成 notTheGate 失败；recovery .txt 仍断言每行 CRLF，且不经过 lf()；loc_bad('//evil.com/') 仍为 true，同站 /og 路径仍为 false。",
-      "验收3：CRLF 脚本交给真 Bash 必须 syntax error 或 command not found 且 stderr 含 CR；CRLF 源码对不上原 LF 针，收成 LF 后通过，改掉守卫、hyphens:auto 或 alternateName 则失败。plan_problems 对 LF 与 CRLF 计划的结论相同，因为脚本先收成 LF，SQL 文件按原字节交给 Bash。",
-      "范围：相对合并前的实现提交只改 .gitattributes、10 个列出的测试文件和任务笔记。未改生产 SQL、路由、组件或 deploy 脚本行为。.gitattributes 只写 *.sh text eol=lf，没有仓库级 * text eol=lf。",
-      "分层：无新请求、无新错误码、无组件或环境变量。前置 api.ts、model-events、http errors/metrics、lease-repo 未被改写。",
-      "反造假：有效路径内的 placeholder 命中只是 globals.css 断言里的 var(--placeholder)，不是桩。无 window.__ 或 globalThis.__ 测试钩子，无生产文件 TODO/stub。duplicates_shared 为 unsure(0.37)，人工核对 lf() 只在这几个测试里各写一份，不是前置共享类型的另一套实现。",
-      "边界：空计划由 planProblems(script, '') 报 empty/unreadable；Bash 语法错误不再被 locBad 的 catch 当成安全 Location；mailSwitchGate 与 SQL 语句在重复读取下仍须逐字成立。任务契约未挂 E 编号。"
+      "共享条款变化核对（本轮只核变化条款对本任务的影响，不重审任务）：本条被标记是因为契约引用了 `02-设计/07-前端架构.md`、`02-设计/11-UI.md`、`02-设计/12-UX.md`（M1-T9 只引用 11-UI）三节正文哈希变化。补丁 `M2-T2-wheel-admission-A` 的实际正文改动（读 `_run/patches/M2-T2-wheel-admission-A.json` 的 sourceChanges，不是 changes 里的章节指纹）：07 改 1 行、11 改 1 行、12 改 +11/-2、13-E98 改 1 行、19-M2-T2 验收改 1 行、task-contracts 里 M2-T2 的 supportPaths +3。实质是把 E-98 滚轮准入从「模型已聚焦即可缩放」收紧为「真实 DOM 焦点归属该模型视口/命名工具条，且指针命中同一模型视口/工具条」双重准入；标题/说明/规格/品类链接/另一模型命中一律不缩放并保留浏览器默认行为；12 节新增焦点×指针 3×4 矩阵，并明确已解除的交互不得凭缓存 focusedSlug 或遗留 DOM 焦点再次接管。",
+      "本条影响判定：该任务交付物不实现、不调用也不约束 3D 相机滚轮准入，E-98 收紧不改变其输入输出与验收；本条被标记仅因契约引用了变化章节的正文哈希。",
+      "main 落地实证（R3-T92231765）：任务卡 status=done，code=OK(1784B)、notes=OK(742B)，两个受保护区块均已回填；任务卡代码位置 22 处引用，22 处可直接核实。",
+      "结论：共享条款变化不构成本任务返工，保留其已有 done 与回填；本轮只按真实证据清除待复核标记，不改产品源码与规范正文。"
     ],
-    "reviewed": "2026-10-23T05:45:49.941600+00:00",
+    "reviewed": "2026-11-04T15:53:37.150290+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
   "R4-T16305211": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a0fd4e26fa420ca1faa6c3744c2ab3ed105bcc8a26d44c79d3a4aca115314bdb",
+    "contractHash": "1ae8c04d33cc26c85af0c09cf25ec227daee3cfe9ae176a42e5264454863f4e1",
     "evidence": [
-      "验收1（先取得 adopt.action=take 再动手）：D:/xiangmu/.codex-plans/NBshiyan-r4-t16305211/judgments.jsonl 第 2 行 label=R4-T16305211:impl-scope，ts=2026-10-26T05:08:15，model=jev-1.14.0，pick=B(0.82 high)，adopt.action=take、option=B、confidence=high；用 typesafe_ask.py:542 的 sha256(json.dumps(state,ensure_ascii=False,sort_keys=True))[:16] 对同目录 state-2.json 复算得 4c0b322dae8d6fe6，与该行 state_sha256 一致，证明回执与输入 state 属同一次调用。同文件第 1 行 label=R4-T16305211:impl（04:55:15，pick=B 0.53 medium）的 adopt.action=red_line，如实保留：它按 needs_owner=unsure 判为授权红线，不构成用户授权，也不因后一条 take 而被当作已撤销。",
-      "验收4（同一次改动只走被采纳的一条）：采纳的是 impl-scope 的 option B 即「恢复独立开关」，因此 E-20 源行与 M4-T15 验收句按选项 A 分支的写法保持原样未改。git diff --stat 6ff4934c..3863eecc -- 'docs/PackJoyU-开发文档/03-质量/13-边界问题与异常处理.md' 'docs/PackJoyU-开发文档/04-执行/19-模块任务拆分.md' 输出为空；当前 E-20 仍在 03-质量/13-边界问题与异常处理.md:26 写作「保持独立开关可关闭聊天并保留现有联系入口…不声称快照剩余约 2.7 GB…也不自动购买扩容」，M4-T15 产出句仍在 04-执行/19-模块任务拆分.md:67 写作「公共contact/隐私可见说明、独立聊天开关和保留原询盘/邮箱入口」。两条都未被本分支改写，未出现「同时落实两条」。",
-      "验收3（恢复开关的四项具体条件）：src/app/[locale]/contact/HumanContactNotice.tsx:16 的 useState(false) 是默认关闭；:32-:44 的 role=switch + aria-checked 是独立于分析开关的控件，组件内不读 Consent 上下文；:20-:29 的询盘邮箱入口 id=inquiry-email-entry 在开关之外，不受 chatEnabled 条件约束，关闭时仍可提交；messages/en.json:177-181 与 messages/ru.json:177-181 提供 chatSwitch/chatStateOn/chatStateOff/chatOff/chatOn 的英俄文案，tests/m4-t15-copy.test.ts:100-110 逐条断言这些键的最终文案；开关文案由 tests/m4-t15-copy.test.ts:136-156 的用例再锁一次结构（含 role=switch、aria-checked、data-variant=secondary、不含 setConsent/analytics/tawk）。",
-      "验收3 之「不加载 Tawk」：对 src/app/[locale]/contact/HumanContactNotice.tsx 检索 tawk|pj-consent|setConsent|analytics|2\\.7 命中 0 条；tests/m4-t15-copy.test.ts:153 断言组件内 /tawk/i 不匹配、:154 断言不含 2.7、:155 断言不含 chat-availability。同文件 :150 断言 notice.includes('setConsent') 为 false、:151 断言不含 analytics，即开关不写入同意存储。",
-      "验收2 不适用并已核对原因：选项 A（改边界）未被采纳，故不要求 E-20 与 M4-T15 描述「没有独立聊天开关」。当前两处文本仍与实现后的页面一致——页面确有独立开关且询盘邮箱仍可用，与 :26、:67 的现有措辞不冲突。",
-      "验收5（不新增后台登录）：git diff --stat 6ff4934c..3863eecc 的全部改动为 e2e/contact-chat-switch.spec.ts、messages/en.json、messages/ru.json、src/app/[locale]/contact/HumanContactNotice.tsx、src/app/globals.css、tests/m4-t15-copy.test.ts 六个文件，未触及 src/app/**/admin、src/auth.ts、src/lib/server 下的鉴权代码，未新增登录入口。",
-      "边界 E-20 的其余要求：开关只切换自身状态与旁边状态句，HumanContactNotice.tsx:45 的 span 用 aria-live=polite 播报状态，:7-11 的组件注释写明「不写 pj-consent，不挂聊天脚本；询盘和邮箱不放进开关条件」；无容量承诺（组件与文案均不含 2.7），无自动购买扩容的代码路径，无对外承诺。",
-      "ready=false 两条原因的处理：第一条「任务契约待语义复核」由本证据登记解决，不是缺陷；第二条 H12「疑似接线任务未列注册点（命中：置信、页面）」是 WARN，handoff_contract.py:171 写明 H12/H13 不锁派发，且命中词「置信」来自验收1 的 adjudicate 措辞、「页面」来自验收2/3 的界面描述，本任务实际只改既有联系页组件与文案，不新增路由或注册点，故按 WARN 保留，不往静态契约表登记同名 ID（handoff_contract.py:189-192 对重复 ID 抛冲突）。"
+      "固定 main b4247e4738fdc5b725b8d1442ae1d4de3166b042：本任务笔记 status=done、docs-data.js progress=done；revalidation.json 的 changedFields 仅 [\"providers\"]，补丁 M2-T2-wheel-admission-A 的 changes 中本任务 before/after 语义 context 字段无差异、changedSections 为空，确认为前置契约哈希传播，不是本任务条款变化。",
+      "补丁真实正文只改 07-前端架构/11-UI/12-UX 的滚轮准入、13 节 E-98 一行、19 节 M2-T2 验收一行和 M2-T2 supportPaths；本任务验收、边界与有效路径不在被改条款内。",
+      "当前 main 代码位置逐条可见：src/app/[locale]/contact/HumanContactNotice.tsx:16（`useState(false)` 让聊天开关默认关闭；开关状态只存在组件内，不落同意存储。）；src/app/[locale]/contact/HumanContactNotice.tsx:30-46（开关与状态句所在行；`:32` `id=\"contact-chat-switch\"`、`:34` `role=\"swit）；src/app/[locale]/contact/HumanContactNotice.tsx:20-29（询盘邮箱入口 `id=\"inquiry-email-entry\"`，在开关之外不受 `chatEnabled` 约束，关）；src/app/globals.css:84（`.contact-chat-line` 的换行布局；`:86` 状态句 `flex-basis:100%` 独占一行；）。实现与测试已随既有 PR 合入 main 并保持 done；本轮未改产品源码、规范正文或测试用例。",
+      "当前契约 hash=1ae8c04d33cc26c85af0c09cf25ec227daee3cfe9ae176a42e5264454863f4e1；旧 task-reviews 记录的 hash 已落后于当前契约，按 Chief 指出的机制事实不复用旧记录，本证据按 status 实时输出的当前 hash 登记。",
+      "本任务此前已通过独立审查、必要检查与合入，progress=done；本次仅清除「前置契约哈希变化」触发的已落地·待复验标记，不重开业务实现、不降低验收、不新增需补测的产品行为。"
     ],
-    "reviewed": "2026-11-03T02:48:40.779342+00:00",
+    "reviewed": "2026-11-04T15:56:27.538597+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
