@@ -175,7 +175,8 @@ test('placeholder blocks and whole sections drop out; blockquotes and raw HTML d
 test('gift-boxes body keeps the buyer-facing sections and the quote button', () => {
   const html = htmlOf(loadCategoryArticle('gift-boxes', 'en')!);
   assert.match(html, /<h1>Custom Gift Boxes<\/h1>/);
-  assert.match(html, /custom rigid gift boxes/);
+  // 语言 FAIL 要求首句含完整关键词；旧措辞 "custom rigid gift boxes" 已按定稿替换。
+  assert.match(html, /custom gift boxes in rigid board/);
   assert.match(html, /href="(?:\/en)?\/contact"/);
   assert.match(html, />Request a quote</);
   assert.doesNotMatch(html, /inquiry form|pre-filled/);
