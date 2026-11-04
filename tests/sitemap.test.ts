@@ -17,15 +17,20 @@ test('static pages only by default, with en/ru/x-default alternates', () => {
   assert.ok(s.some((e) => e.url === 'https://example.com/en'));
 });
 
-test('category pages use each locale slug and cross-link', () => {
+test('category pages: only live locales in sitemap, no ru entries while ru is unpublished', () => {
   const s = buildSitemap({ ...opts, includeCategories: true });
-  assert.equal(s.length, 6 + categoryMeta.length * 2);
+  // fix1 口径：品类页只上 en，因此 sitemap 只多出 en 的 11 条，没有 ru 条目。
+  assert.equal(s.length, 6 + categoryMeta.length);
   for (const c of categoryMeta) {
     const en = s.find((e) => e.url === `https://example.com/en/products/${c.en.slug}`);
     const ru = s.find((e) => e.url === `https://example.com/ru/products/${c.ru.slug}`);
-    assert.ok(en && ru, c.key);
-    assert.deepEqual(en.alternates, ru.alternates);
-    assert.equal((ru.alternates!.languages as Record<string, string>).en, en.url);
+    assert.ok(en, `${c.key} 缺少 en 品类条目`);
+    assert.equal(ru, undefined, `${c.key} 不应输出未上线的 ru 品类条目`);
+    // alternates 只含已上线语言与 en 的 x-default，不得指 ru。
+    const langs = en.alternates!.languages as Record<string, string>;
+    assert.equal(langs.en, en.url);
+    assert.equal(langs.ru, undefined, `${c.key} 的 alternates 不得指 ru`);
+    assert.equal(langs['x-default'], en.url);
   }
 });
 
@@ -69,11 +74,14 @@ test('cms: list page omitted for a locale with no docs', () => {
 });
 
 import { categoryPagePath, CATEGORY_PAGES_LIVE } from '../src/lib/seo/categoryPages';
-test('categoryPagePath: null when not live or unknown key; per-locale slug when live', () => {
-  assert.equal(CATEGORY_PAGES_LIVE, false);
-  assert.equal(categoryPagePath('en', 'gift-boxes'), null);
-  assert.equal(categoryPagePath('ru', 'gift-boxes', true), '/ru/products/podarochnye-korobki');
+test('categoryPagePath: live for en; null for unpublished ru, flag off, or unknown key', () => {
+  assert.equal(CATEGORY_PAGES_LIVE, true);
+  assert.equal(categoryPagePath('en', 'gift-boxes'), '/en/products/custom-gift-boxes');
+  assert.equal(categoryPagePath('en', 'gift-boxes', false), null);
+  // fix1 口径：ru 文案仍是草稿，未上线，因此即使开关打开也不生成 ru 品类路径。
+  assert.equal(categoryPagePath('ru', 'gift-boxes', true), null);
   assert.equal(categoryPagePath('en', 'nope', true), null);
+  assert.ok(!buildSitemap(opts).some((e) => /\/products\/custom-/.test(e.url)));
 });
 
 test('cms: list page omitted when a locale only has noindex docs (#207)', () => {

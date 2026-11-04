@@ -4,7 +4,7 @@
 # Custom Christmas Packaging
 
 ## Intro
-PackJoyU supplies custom Christmas and New Year packaging for seasonal ranges and corporate gifts. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom Christmas packaging for seasonal ranges and corporate New Year gifts. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Corporate New Year gifts
@@ -31,9 +31,6 @@ Offset CMYK/Pantone, metallic inks; foil, glitter, embossing, windows and ribbon
 - **Sample lead time:** {{待Ryan确认}}
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
-
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-christmas-packaging#faq) (source: `docs/content/landing-faq.md`, `christmas-merchandise`).
 
 ## Related products
 - [Custom Gift Boxes](/en/products/custom-gift-boxes)

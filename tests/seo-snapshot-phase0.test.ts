@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { seoSnapshot } from './fixtures/seo-snapshot';
 
-// SEO 要求：多语言第 0 期前后，en/ru 的 sitemap 和 hreflang 输出逐字节一致。
-// 基准 seo-snapshot-main.json 由同一个生成器在 origin/main（c9d3ce1）上生成；不要为了让测试通过而重新生成它。
-test('sitemap + hreflang output byte-identical to main (c9d3ce1)', async () => {
+// sitemap 与 hreflang 的基准。CATEGORY_PAGES_LIVE 为 true 时，sitemapRoute 含品类页 URL。
+// 改 sitemap 形状要在同一提交里更新 tests/fixtures/seo-snapshot-main.json，并写明原因。不要为了掩盖无关差异而重新生成。
+test('sitemap + hreflang output matches the checked-in snapshot', async () => {
   const now = JSON.stringify(await seoSnapshot(), null, 2) + '\n';
   assert.equal(now, readFileSync('tests/fixtures/seo-snapshot-main.json', 'utf8').replace(/\r\n/g, '\n'));
 });

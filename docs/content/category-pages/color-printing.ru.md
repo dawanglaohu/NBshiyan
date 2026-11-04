@@ -32,9 +32,6 @@ PackJoyU организует цветную печать упаковки, эт
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/tsvetnaya-pechat#faq) (источник: `docs/content/landing-faq.md`, `color-printing`).
-
 ## Похожие товары
 - [Офсетная печать упаковки](/ru/products/ofsetnaya-pechat)
 - [Картонные коробки с печатью](/ru/products/tsvetnye-korobki)

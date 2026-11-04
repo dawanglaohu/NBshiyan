@@ -1,4 +1,4 @@
-# Category page copy drafts（24 页：12 品类 × EN/RU）
+# Category page copy drafts（22 页：11 品类 × EN/RU）
 
 > Refs #99 · 为打开 `CATEGORY_PAGES_LIVE` 做准备 · 只在本地，未推送 · 俄语全部待 Ryan 校对（ё、CTA «Запросить расчёт»）
 
@@ -9,9 +9,11 @@
 4. 使用场景 · 材料与选项 · 定制与印刷
 5. 从询盘到交付（5 步，不含任何天数）
 6. MOQ / 打样周期 / 生产周期 / 贸易条款 —— 全部 `{{待Ryan确认}}`
-7. FAQ：链接到本页 `#faq`，内容来自 `docs/content/landing-faq.md`（seo/landing-faq）
-8. 相关品类内链（用 `categoryMeta.ts` 的 slug）
-9. CTA：Request a quote / Запросить расчёт
+7. 相关品类内链（用 `categoryMeta.ts` 的 slug）
+8. CTA：Request a quote / Запросить расчёт
+
+FAQ 节已删除（2026-10-26 SEO/UX P2-1）：原来每页有一行「See the questions buyers ask most… (source: `docs/content/landing-faq.md`)」，
+把仓库内部路径显示给用户，链接还指向本页 `#faq` 自己。真正的问答接入 `docs/content/landing-faq.md` 之前，整节不输出。
 
 来源：#188 落地页（`seo-188/docs/content/*.md`）的规格表、`src/lib/seo/categoryMeta.ts`、`docs/seo-category-meta.md`、landing-faq。#188 里没确认的说法（清单见 `docs/content/ryan-fact-sheet.md` 附录）全部未沿用或改成占位符。
 
@@ -23,35 +25,33 @@
 ## 字数与占位符（字数不含 HTML 注释）
 | 文件 | 字数 | `{{待Ryan确认}}` 数 |
 |---|---|---|
-| `christmas-merchandise.en.md` | 249 | 6 |
-| `christmas-merchandise.ru.md` | 228 | 6 |
-| `color-boxes.en.md` | 256 | 5 |
-| `color-boxes.ru.md` | 232 | 5 |
-| `color-printing.en.md` | 240 | 5 |
-| `color-printing.ru.md` | 217 | 5 |
-| `corrugated-boxes.en.md` | 257 | 5 |
-| `corrugated-boxes.ru.md` | 238 | 5 |
-| `eco-paper-cups.en.md` | 238 | 6 |
-| `eco-paper-cups.ru.md` | 213 | 6 |
-| `gift-boxes.en.md` | 254 | 5 |
-| `gift-boxes.ru.md` | 232 | 5 |
-| `gift-cards.en.md` | 267 | 8 |
-| `gift-cards.ru.md` | 242 | 8 |
-| `offset-printing.en.md` | 238 | 7 |
-| `offset-printing.ru.md` | 214 | 7 |
-| `paper-cups.en.md` | 244 | 6 |
-| `paper-cups.ru.md` | 223 | 6 |
-| `party-supplies.en.md` | 248 | 6 |
-| `party-supplies.ru.md` | 234 | 6 |
-| `pulp-molding.en.md` | 261 | 6 |
-| `pulp-molding.ru.md` | 237 | 6 |
-| `wine-boxes.en.md` | 249 | 5 |
-| `wine-boxes.ru.md` | 237 | 5 |
-| **合计** | 5748 | 140 |
+| `corrugated-boxes.en.md` | 250 | 5 |
+| `corrugated-boxes.ru.md` | 232 | 5 |
+| `color-boxes.en.md` | 246 | 5 |
+| `color-boxes.ru.md` | 221 | 5 |
+| `gift-boxes.en.md` | 249 | 5 |
+| `gift-boxes.ru.md` | 224 | 5 |
+| `pulp-molding.en.md` | 245 | 6 |
+| `pulp-molding.ru.md` | 222 | 6 |
+| `paper-cups.en.md` | 232 | 6 |
+| `paper-cups.ru.md` | 212 | 6 |
+| `party-supplies.en.md` | 238 | 6 |
+| `party-supplies.ru.md` | 225 | 6 |
+| `wine-boxes.en.md` | 242 | 5 |
+| `wine-boxes.ru.md` | 229 | 5 |
+| `color-printing.en.md` | 231 | 5 |
+| `color-printing.ru.md` | 208 | 5 |
+| `offset-printing.en.md` | 227 | 7 |
+| `offset-printing.ru.md` | 208 | 7 |
+| `gift-cards.en.md` | 231 | 7 |
+| `gift-cards.ru.md` | 216 | 7 |
+| `christmas-merchandise.en.md` | 240 | 6 |
+| `christmas-merchandise.ru.md` | 219 | 6 |
+| **合计** | 5047 | 126 |
 
 ## 待 Ryan 确认
 - 每个品类的 MOQ、打样/生产周期、贸易条款、可选工艺清单
-- paper-cups / eco-paper-cups 的涂层材料、可回收/可降解说法（F22）；pulp-molding 的纤维来源
+- paper-cups 的涂层材料、可回收/可降解说法（F22）；pulp-molding 的纤维来源
 - offset-printing 的设备和幅面（#188 里写的设备品牌未确认，见 fact sheet Q10）
 - party-supplies 涂层；christmas 的季节下单截止日
 - gift-cards：F16 —— 贺卡已定。塑料卡和刷边是否提供

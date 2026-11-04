@@ -171,9 +171,17 @@ test('未选择和拒绝都不采集，页脚偏好面板和产品控件仍可�
   const open = page.getByRole('button', { name: 'Open' }).first();
   await open.click();
   await expect(open).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('footer a[href$="#gift-boxes"]').click();
-  await expect(page).toHaveURL(/#gift-boxes/);
+  // 品类页上线后，页脚品类链接指向 /{locale}/products/{slug}，不再是 3D 目录锚点。
+  // 原用例的意图是「点进页脚品类入口不产生分析事件」，因此保留点击与跳转断言，
+  // 点击后再回到 /en/products，后续的页脚偏好面板与产品控件断言仍在同一上下文。
+  const footerCategory = page.locator('footer a[href*="/products/"]').first();
+  await expect(footerCategory).toBeVisible();
+  await expect(footerCategory).toHaveAttribute('href', /\/products\//);
+  await footerCategory.click();
+  await expect(page).toHaveURL(/\/products\//);
   expect(seen.events).toEqual([]);
+  await page.goto('/en/products');
+  await assertNoAnalyticsIdentity(page);
 
   await page.locator('#analytics-preferences').click();
   const dialog = page.getByRole('dialog', { name: 'Cookie settings' });

@@ -21,7 +21,7 @@ Offset CMYK/Pantone; foil, spot UV and embossing can be discussed; edge painting
 
 ## From inquiry to delivery
 1. **Send your brief** — product, size, quantity and artwork or a reference.
-2. **Quote** — we propose structure, material and printing; prices and terms are confirmed in writing.
+2. **Quote** — we propose materials and printing; prices and terms are confirmed in writing.
 3. **Proof and sample** — digital proof first, then a physical sample if needed.
 4. **Production run and quality checks** — after you approve the sample, we arrange the production run and quality checks.
 5. **Packing and shipping** — shipping terms and destinations are confirmed in the quote.
@@ -31,9 +31,6 @@ Offset CMYK/Pantone; foil, spot UV and embossing can be discussed; edge painting
 - **Sample lead time:** {{待Ryan确认}}
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
-
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-greeting-cards#faq) (source: `docs/content/landing-faq.md`, `gift-cards`).
 
 ## Related products
 - [Packaging Printing](/en/products/custom-color-printing)

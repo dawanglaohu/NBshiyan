@@ -32,9 +32,6 @@ PackJoyU поставляет жёсткие подарочные коробки
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/podarochnye-korobki#faq) (источник: `docs/content/landing-faq.md`, `gift-boxes`).
-
 ## Похожие товары
 - [Коробки для вина на заказ](/ru/products/upakovka-dlya-vina)
 - [Новогодняя упаковка на заказ](/ru/products/novogodnyaya-upakovka)

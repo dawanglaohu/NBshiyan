@@ -137,9 +137,18 @@ test('products-link opens the server catalog, large cards, and the real model fi
     const descs = [...card.matchAll(/<p class="desc">([\s\S]*?)<\/p>/g)];
     expect(descs.length).toBe(1);
     expect(descs[0][1]).toBe(descriptions[index]);
-    expect(card).not.toContain('product-name-link');
-    expect(card).not.toContain('category-link');
-    expect(card).not.toMatch(/<h2[^>]*>\s*<a\b/);
+    // CATEGORY_PAGES_LIVE=true 后，有品类页的卡片带指向品类页的标题链接与品类链接；
+    // 没有品类页的卡片仍是纯文本。两类都必须断言，强度不降。
+    const hasCategoryPage = /data-testid="product-name-link"/.test(card);
+    if (hasCategoryPage) {
+      expect(card).toMatch(/data-testid="product-name-link"[^>]*href="\/en\/products\/[a-z0-9-]+"/);
+      expect(card).toMatch(/data-testid="category-link"[^>]*href="\/en\/products\/[a-z0-9-]+"/);
+      expect(card).toMatch(/<h2[^>]*>\s*<a\b/);
+    } else {
+      expect(card).not.toContain('product-name-link');
+      expect(card).not.toContain('category-link');
+      expect(card).not.toMatch(/<h2[^>]*>\s*<a\b/);
+    }
   }
   await expect(page.locator('main article.card')).toHaveCount(12);
   await expect(page.locator('main article.card').first()).toBeVisible();
@@ -156,9 +165,14 @@ test('products-link opens the server catalog, large cards, and the real model fi
   expect(desktop.viewportInLink).toBe(false);
   expect(desktop.descCount).toBe(1);
   const first = page.locator('article.card').first();
-  await expect(first.locator('h2 a')).toHaveCount(0);
-  await expect(first.getByTestId('category-link')).toHaveCount(0);
-  await expect(page.getByTestId('category-link')).toHaveCount(0);
+  // CATEGORY_PAGES_LIVE=true 后，已发布品类的卡片带指向品类页的标题链接与品类链接。
+  // 断言强度不降：从「必须没有」改为「必须有且指向正确路径」。
+  // 用 testId 精确定位，不用 h2 a 这种结构性选择器（会连带命中文档内其他链接）。
+  await expect(first.getByTestId('product-name-link')).toHaveCount(1);
+  await expect(first.getByTestId('product-name-link')).toHaveAttribute('href', /\/products\/.+/);
+  await expect(first.getByTestId('category-link')).toHaveCount(1);
+  await expect(first.getByTestId('category-link')).toHaveAttribute('href', /\/products\/.+/);
+  await expect(page.getByTestId('category-link').first()).toBeVisible();
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
   await expect(first.locator('.specs li').first()).toBeVisible();
   const heading = await first.locator('h2').evaluate((el) => getComputedStyle(el).textDecorationLine);
@@ -168,8 +182,11 @@ test('products-link opens the server catalog, large cards, and the real model fi
     if (!button) return { children: el.childElementCount, inset: -1 };
     return { children: el.childElementCount, inset: button.getBoundingClientRect().left - el.getBoundingClientRect().left };
   });
-  expect(actions.children).toBe(1);
+  // 品类页上线后 .actions 里有「Add to quote」按钮和「Learn more」品类链接两个子元素；
+  // 按钮仍需贴左对齐（inset ≤ 1）。
+  expect(actions.children).toBe(2);
   expect(actions.inset).toBeLessThanOrEqual(1);
+  await expect(first.locator('.actions').getByTestId('category-link')).toHaveCount(1);
   const descStyle = await first.locator('.desc').evaluate((el) => {
     const style = getComputedStyle(el);
     return { size: style.fontSize, line: style.lineHeight, color: style.color, clamp: style.webkitLineClamp, weight: style.fontWeight };
@@ -204,8 +221,11 @@ test('products-link opens the server catalog, large cards, and the real model fi
   expect(seen.filter((hit) => hit === 'GET /api/models')).toEqual([]);
   await expect.poll(() => seen.some(isGlbRequest), { timeout: 25_000 }).toBe(true);
 
-  const blocked = await page.request.get('/en/products/custom-corrugated-boxes');
-  expect(blocked.status()).toBe(404);
+  // CATEGORY_PAGES_LIVE=true 后，已发布品类的落地页不再 404，而是 200 的品类页；
+  // 断言强度不降：核对状态码 + 页面身份（H1 是品类标题）。
+  const landed = await page.request.get('/en/products/custom-corrugated-boxes');
+  expect(landed.status()).toBe(200);
+  expect(await landed.text()).toContain('Custom Corrugated Boxes');
 
   const api = await page.request.get('/api/models');
   expect(api.status()).toBe(200);
@@ -248,7 +268,9 @@ test('a 390px products entry does not overflow and keeps the name, specs, and in
   expect(narrow.nameLine).toBe('24px');
   expect(narrow.descCount).toBe(1);
   const first = page.locator('article.card').first();
-  await expect(first.locator('h2 a')).toHaveCount(0);
+  // 与桌面用例同口径：品类页上线后标题是可点链接，窄屏同样必须存在且指向品类页。
+  await expect(first.getByTestId('product-name-link')).toHaveCount(1);
+  await expect(first.getByTestId('product-name-link')).toHaveAttribute('href', /\/products\/.+/);
   await expect(first.locator('.specs li').first()).toBeVisible();
   await expect(first.getByRole('button', { name: 'Add to quote' })).toBeVisible();
   const overflow = await page.evaluate(() => ({

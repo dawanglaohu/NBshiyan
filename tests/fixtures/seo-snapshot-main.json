@@ -77,6 +77,138 @@
           "x-default": "http://localhost:3000/en/contact"
         }
       }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-corrugated-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-corrugated-boxes",
+          "x-default": "http://localhost:3000/en/products/custom-corrugated-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-printed-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-printed-boxes",
+          "x-default": "http://localhost:3000/en/products/custom-printed-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-gift-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-gift-boxes",
+          "x-default": "http://localhost:3000/en/products/custom-gift-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/molded-pulp-packaging",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/molded-pulp-packaging",
+          "x-default": "http://localhost:3000/en/products/molded-pulp-packaging"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-paper-cups",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-paper-cups",
+          "x-default": "http://localhost:3000/en/products/custom-paper-cups"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-party-supplies",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-party-supplies",
+          "x-default": "http://localhost:3000/en/products/custom-party-supplies"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-wine-boxes",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-wine-boxes",
+          "x-default": "http://localhost:3000/en/products/custom-wine-boxes"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-color-printing",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-color-printing",
+          "x-default": "http://localhost:3000/en/products/custom-color-printing"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/offset-printing-services",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/offset-printing-services",
+          "x-default": "http://localhost:3000/en/products/offset-printing-services"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-greeting-cards",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-greeting-cards",
+          "x-default": "http://localhost:3000/en/products/custom-greeting-cards"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000/en/products/custom-christmas-packaging",
+      "lastModified": "T",
+      "changeFrequency": "weekly",
+      "priority": 0.8,
+      "alternates": {
+        "languages": {
+          "en": "http://localhost:3000/en/products/custom-christmas-packaging",
+          "x-default": "http://localhost:3000/en/products/custom-christmas-packaging"
+        }
+      }
     }
   ],
   "sitemapWithCategories": [
@@ -166,20 +298,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-corrugated-boxes",
-          "ru": "https://geiom.com/ru/products/gofrokorobki",
-          "x-default": "https://geiom.com/en/products/custom-corrugated-boxes"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/gofrokorobki",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-corrugated-boxes",
-          "ru": "https://geiom.com/ru/products/gofrokorobki",
           "x-default": "https://geiom.com/en/products/custom-corrugated-boxes"
         }
       }
@@ -192,20 +310,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-printed-boxes",
-          "ru": "https://geiom.com/ru/products/tsvetnye-korobki",
-          "x-default": "https://geiom.com/en/products/custom-printed-boxes"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/tsvetnye-korobki",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-printed-boxes",
-          "ru": "https://geiom.com/ru/products/tsvetnye-korobki",
           "x-default": "https://geiom.com/en/products/custom-printed-boxes"
         }
       }
@@ -218,20 +322,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-gift-boxes",
-          "ru": "https://geiom.com/ru/products/podarochnye-korobki",
-          "x-default": "https://geiom.com/en/products/custom-gift-boxes"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/podarochnye-korobki",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-gift-boxes",
-          "ru": "https://geiom.com/ru/products/podarochnye-korobki",
           "x-default": "https://geiom.com/en/products/custom-gift-boxes"
         }
       }
@@ -244,20 +334,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/molded-pulp-packaging",
-          "ru": "https://geiom.com/ru/products/izdeliya-iz-tsellyulozy",
-          "x-default": "https://geiom.com/en/products/molded-pulp-packaging"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/izdeliya-iz-tsellyulozy",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/molded-pulp-packaging",
-          "ru": "https://geiom.com/ru/products/izdeliya-iz-tsellyulozy",
           "x-default": "https://geiom.com/en/products/molded-pulp-packaging"
         }
       }
@@ -270,20 +346,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-paper-cups",
-          "ru": "https://geiom.com/ru/products/bumazhnye-stakany",
-          "x-default": "https://geiom.com/en/products/custom-paper-cups"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/bumazhnye-stakany",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-paper-cups",
-          "ru": "https://geiom.com/ru/products/bumazhnye-stakany",
           "x-default": "https://geiom.com/en/products/custom-paper-cups"
         }
       }
@@ -296,20 +358,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-party-supplies",
-          "ru": "https://geiom.com/ru/products/tovary-dlya-prazdnikov",
-          "x-default": "https://geiom.com/en/products/custom-party-supplies"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/tovary-dlya-prazdnikov",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-party-supplies",
-          "ru": "https://geiom.com/ru/products/tovary-dlya-prazdnikov",
           "x-default": "https://geiom.com/en/products/custom-party-supplies"
         }
       }
@@ -322,20 +370,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-wine-boxes",
-          "ru": "https://geiom.com/ru/products/upakovka-dlya-vina",
-          "x-default": "https://geiom.com/en/products/custom-wine-boxes"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/upakovka-dlya-vina",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-wine-boxes",
-          "ru": "https://geiom.com/ru/products/upakovka-dlya-vina",
           "x-default": "https://geiom.com/en/products/custom-wine-boxes"
         }
       }
@@ -348,20 +382,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-color-printing",
-          "ru": "https://geiom.com/ru/products/tsvetnaya-pechat",
-          "x-default": "https://geiom.com/en/products/custom-color-printing"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/tsvetnaya-pechat",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-color-printing",
-          "ru": "https://geiom.com/ru/products/tsvetnaya-pechat",
           "x-default": "https://geiom.com/en/products/custom-color-printing"
         }
       }
@@ -374,20 +394,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/offset-printing-services",
-          "ru": "https://geiom.com/ru/products/ofsetnaya-pechat",
-          "x-default": "https://geiom.com/en/products/offset-printing-services"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/ofsetnaya-pechat",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/offset-printing-services",
-          "ru": "https://geiom.com/ru/products/ofsetnaya-pechat",
           "x-default": "https://geiom.com/en/products/offset-printing-services"
         }
       }
@@ -400,20 +406,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-greeting-cards",
-          "ru": "https://geiom.com/ru/products/otkrytki-na-zakaz",
-          "x-default": "https://geiom.com/en/products/custom-greeting-cards"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/otkrytki-na-zakaz",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-greeting-cards",
-          "ru": "https://geiom.com/ru/products/otkrytki-na-zakaz",
           "x-default": "https://geiom.com/en/products/custom-greeting-cards"
         }
       }
@@ -426,20 +418,6 @@
       "alternates": {
         "languages": {
           "en": "https://geiom.com/en/products/custom-christmas-packaging",
-          "ru": "https://geiom.com/ru/products/novogodnyaya-upakovka",
-          "x-default": "https://geiom.com/en/products/custom-christmas-packaging"
-        }
-      }
-    },
-    {
-      "url": "https://geiom.com/ru/products/novogodnyaya-upakovka",
-      "lastModified": "2026-01-01T00:00:00.000Z",
-      "changeFrequency": "weekly",
-      "priority": 0.8,
-      "alternates": {
-        "languages": {
-          "en": "https://geiom.com/en/products/custom-christmas-packaging",
-          "ru": "https://geiom.com/ru/products/novogodnyaya-upakovka",
           "x-default": "https://geiom.com/en/products/custom-christmas-packaging"
         }
       }

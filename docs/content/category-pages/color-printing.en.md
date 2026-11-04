@@ -4,7 +4,7 @@
 # Packaging Printing
 
 ## Intro
-PackJoyU arranges colour printing for packaging, labels and printed inserts. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU provides packaging printing in full color for boxes, labels and printed inserts. Tell us what you need and how many, and our team will propose materials and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Printed packaging and sleeves
@@ -13,7 +13,7 @@ PackJoyU arranges colour printing for packaging, labels and printed inserts. Tel
 
 ## Materials and options
 - **Materials:** Coated or uncoated paper, paperboard, kraft
-- **Colour:** CMYK and Pantone; colour proof before the run
+- **Color:** CMYK and Pantone; color proof before the run
 - **Available options for your order:** {{待Ryan确认}}
 
 ## Customization and printing
@@ -21,7 +21,7 @@ Varnish, lamination, foil, embossing and die-cutting can be discussed.
 
 ## From inquiry to delivery
 1. **Send your brief** — product, size, quantity and artwork or a reference.
-2. **Quote** — we propose structure, material and printing; prices and terms are confirmed in writing.
+2. **Quote** — we propose materials and printing; prices and terms are confirmed in writing.
 3. **Proof and sample** — digital proof first, then a physical sample if needed.
 4. **Production run and quality checks** — after you approve the sample, we arrange the production run and quality checks.
 5. **Packing and shipping** — shipping terms and destinations are confirmed in the quote.
@@ -32,13 +32,10 @@ Varnish, lamination, foil, embossing and die-cutting can be discussed.
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
 
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-color-printing#faq) (source: `docs/content/landing-faq.md`, `color-printing`).
-
 ## Related products
 - [Offset Printing Services](/en/products/offset-printing-services)
 - [Custom Printed Boxes](/en/products/custom-printed-boxes)
-- [Greeting cards](/en/products/custom-greeting-cards)
+- [Custom Greeting Cards](/en/products/custom-greeting-cards)
 
 ## CTA
 **Request a quote** → inquiry form, category pre-filled.

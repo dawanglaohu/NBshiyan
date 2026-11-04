@@ -32,9 +32,6 @@ Offset printing; foil, embossing, spot UV, soft-touch and ribbon can be discusse
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
 
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-wine-boxes#faq) (source: `docs/content/landing-faq.md`, `wine-boxes`).
-
 ## Related products
 - [Custom Gift Boxes](/en/products/custom-gift-boxes)
 - [Custom Corrugated Boxes](/en/products/custom-corrugated-boxes)

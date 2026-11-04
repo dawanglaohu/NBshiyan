@@ -32,9 +32,6 @@ PackJoyU поставляет бумажную посуду и празднич�
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/tovary-dlya-prazdnikov#faq) (источник: `docs/content/landing-faq.md`, `party-supplies`).
-
 ## Похожие товары
 - [Бумажные стаканы с логотипом](/ru/products/bumazhnye-stakany)
 - [Новогодняя упаковка на заказ](/ru/products/novogodnyaya-upakovka)

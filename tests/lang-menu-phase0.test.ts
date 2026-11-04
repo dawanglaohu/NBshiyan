@@ -46,9 +46,10 @@ test('header uses the dropdown in desktop and mobile; slug-mapping logic reused 
   assert.match(hook, /const raw = useRawPathname\(\);/);
 });
 
-test('switch logic unchanged for en/ru; missing target slug falls back to list page', () => {
+test('switch logic: unpublished ru falls back to list page; missing target slug also falls back', () => {
   const meta = [{ key: 'gift-boxes', en: { slug: 'custom-gift-boxes' }, ru: { slug: 'podarochnye-korobki' } }] as unknown as CategoryMeta[];
-  assert.equal(switchPath('/en/products/custom-gift-boxes', 'en', 'ru', null, meta, true), '/products/podarochnye-korobki');
+  // fix1 口径：ru 品类页未上线，切到 ru 回退列表页，不指向将来 404 的 ru 品类页。
+  assert.equal(switchPath('/en/products/custom-gift-boxes', 'en', 'ru', null, meta, true), '/products');
   const noRu = [{ key: 'x', en: { slug: 'x-en' }, ru: undefined }] as unknown as CategoryMeta[];
   assert.equal(switchPath('/en/products/x-en', 'en', 'ru', null, noRu, true), '/products');
   assert.equal(safeLocaleHref('/ru/contact', 'ru'), '/ru/contact');

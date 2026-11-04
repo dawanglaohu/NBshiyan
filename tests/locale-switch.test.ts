@@ -5,10 +5,13 @@ import { categoryMeta } from '../src/lib/seo/categoryMeta';
 
 const c = categoryMeta[0];
 
-test('category page en -> ru and ru -> en use the other locale slug', () => {
-  assert.equal(switchPath(`/products/${c.en.slug}`, 'en', 'ru', null, categoryMeta, true), `/products/${c.ru.slug}`);
+test('category page: unpublished ru falls back to list page; en keeps its slug', () => {
+  // fix1 口径：ru 品类页未上线，en → ru 一律回退列表页。
+  assert.equal(switchPath(`/products/${c.en.slug}`, 'en', 'ru', null, categoryMeta, true), '/products');
+  // 反向切到已上线的 en 仍用 en 的品类 slug。
   assert.equal(switchPath(`/products/${c.ru.slug}`, 'ru', 'en', null, categoryMeta, true), `/products/${c.en.slug}`);
-  assert.equal(switchPath(`/en/products/${c.en.slug}`, 'en', 'ru', null, categoryMeta, true), `/products/${c.ru.slug}`, 'accepts locale prefix');
+  // 带 locale 前缀的入参同样回退。
+  assert.equal(switchPath(`/en/products/${c.en.slug}`, 'en', 'ru', null, categoryMeta, true), '/products', 'accepts locale prefix');
 });
 
 test('custom-gift-boxes (#bug) never keeps the en slug in ru', () => {

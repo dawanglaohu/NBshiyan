@@ -4,7 +4,7 @@
 # Custom Printed Boxes
 
 ## Intro
-PackJoyU supplies custom printed folding cartons for retail products. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
+PackJoyU supplies custom printed boxes and folding cartons for retail products. Tell us what you need to pack and how many, and our team will propose a structure, material and print options, then confirm everything in a written quote.
 
 ## Use cases
 - Cosmetics and personal care
@@ -17,7 +17,7 @@ PackJoyU supplies custom printed folding cartons for retail products. Tell us wh
 - **Available options for your order:** {{待Ryan确认}}
 
 ## Customization and printing
-Offset CMYK and Pantone spot colours; foil stamping, embossing, spot UV and lamination can be discussed.
+Offset CMYK and Pantone spot colors; foil stamping, embossing, spot UV and lamination can be discussed.
 
 ## From inquiry to delivery
 1. **Send your brief** — product, size, quantity and artwork or a reference.
@@ -31,9 +31,6 @@ Offset CMYK and Pantone spot colours; foil stamping, embossing, spot UV and lami
 - **Sample lead time:** {{待Ryan确认}}
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
-
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-printed-boxes#faq) (source: `docs/content/landing-faq.md`, `color-boxes`).
 
 ## Related products
 - [Custom Corrugated Boxes](/en/products/custom-corrugated-boxes)

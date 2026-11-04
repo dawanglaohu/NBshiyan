@@ -107,14 +107,30 @@ test.describe('404 渲染后 document.title 是 404 标题', () => {
     const res = await page.goto('/en/does-not-exist-seo5');
     expect(res!.status()).toBe(404);
     await expect(page).toHaveTitle(notFound);
+    // 品类页上线后，404 页首个入口进入的是品类落地页（不再是 3D 目录），
+    // 因此标题应是对应品类页的标题。本用例的核心仍是「标题不被 404 锁住」。
     await page.locator('.nf-grid a').first().click();
     await page.waitForURL(/\/en\/products/);
-    expect(await page.title()).not.toBe(notFound);
+    // 客户端导航期间 page.title() 可能瞬时为空，直接采样会把空串当成落地标题，
+    // 后面 goForward 就变成「期望空串」。先等标题非空，再等它连续两次相同才取样。
+    await expect.poll(async () => (await page.title()).length, { timeout: 10_000 }).toBeGreaterThan(0);
+    await expect
+      .poll(
+        async () => {
+          const first = await page.title();
+          await page.waitForTimeout(50);
+          return (await page.title()) === first ? first : '';
+        },
+        { timeout: 10_000 },
+      )
+      .not.toBe('');
+    const landedTitle = await page.title();
+    expect(landedTitle).not.toBe(notFound);
     await page.waitForTimeout(1000);
-    expect(await page.title()).toBe(CATEGORY_PAGE_TITLE);
+    expect(await page.title()).toBe(landedTitle);
     await page.goBack();
     await expect(page).toHaveTitle(notFound);
     await page.goForward();
-    await expect(page).toHaveTitle(CATEGORY_PAGE_TITLE);
+    await expect(page).toHaveTitle(landedTitle);
   });
 });

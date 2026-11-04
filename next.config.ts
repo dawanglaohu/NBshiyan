@@ -148,6 +148,8 @@ nextConfig.env = { ...nextConfig.env, SEO_AUDIT_MOCK_BUILD: seoMockEnabled() ? '
 nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/articles/[slug]/og': ['./src/assets/og-fonts/*.ttf'] };
 // #350 /about 分享图复用同一模板和字体
 nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/about/og': ['./src/assets/og-fonts/*.ttf'] };
+// 品类页正文在请求时读 docs/content/category-pages。路径含变量，文件追踪跟不到，要显式带进 standalone。
+nextConfig.outputFileTracingIncludes = { ...nextConfig.outputFileTracingIncludes, '/[locale]/products/[slug]': ['./docs/content/category-pages/*.md'] };
 // 生产配置检查：`next build` 时跳过只在运行时用的密钥（见 prod-env-check.ts 的 RUNTIME_ONLY），`next start` 时全部检查
 export default function config(phase: string) {
   ogListMustExist = phase === PHASE_PRODUCTION_BUILD;

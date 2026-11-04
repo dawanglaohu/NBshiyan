@@ -32,9 +32,6 @@ Flexo, digital or litho-laminated printing, outside and inside the box; varnish,
 - **Production lead time:** {{待Ryan确认}}
 - **Shipping terms:** {{待Ryan确认}}
 
-## FAQ
-See the questions buyers ask most about this category: [FAQ](/en/products/custom-corrugated-boxes#faq) (source: `docs/content/landing-faq.md`, `corrugated-boxes`).
-
 ## Related products
 - [Custom Printed Boxes](/en/products/custom-printed-boxes)
 - [Molded Pulp Packaging](/en/products/molded-pulp-packaging)

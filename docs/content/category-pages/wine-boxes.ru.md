@@ -32,9 +32,6 @@ PackJoyU поставляет коробки для вина на заказ д�
 - **Срок производства:** {{待Ryan确认}}
 - **Условия поставки:** {{待Ryan确认}}
 
-## Вопросы и ответы
-Частые вопросы по этой категории: [FAQ](/ru/products/upakovka-dlya-vina#faq) (источник: `docs/content/landing-faq.md`, `wine-boxes`).
-
 ## Похожие товары
 - [Подарочные коробки на заказ](/ru/products/podarochnye-korobki)
 - [Гофрокороба на заказ](/ru/products/gofrokorobki)
