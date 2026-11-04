@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: 跳过本地午夜时用该本地日最早瞬间作左闭端，并接到前一天的右开端
+not ok 1 - 跳过本地午夜时用该本地日最早瞬间作左闭端，并接到前一天的右开端
+  ---
+  duration_ms: 218.3457
+  type: 'test'
+  location: 'D:\\xiangmu\\.codex-plans\\NBshiyan-r5-t10248697\\fixed-before\\tests\\analytics-day-boundaries.test.ts:2:3769'
+  failureType: 'testCodeFailure'
+  error: 'invalid_date'
+  code: 'ERR_TEST_FAILURE'
+  name: 'DayBoundaryError'
+  stack: |-
+    localMidnightUtc (D:\xiangmu\.codex-plans\NBshiyan-r5-t10248697\fixed-before\src\lib\analytics\day-boundaries.ts:133:32)
+    siteDayUtcBounds (D:\xiangmu\.codex-plans\NBshiyan-r5-t10248697\fixed-before\src\lib\analytics\day-boundaries.ts:145:15)
+    assertWindow (D:\xiangmu\.codex-plans\NBshiyan-r5-t10248697\fixed-before\tests\analytics-day-boundaries.test.ts:22:18)
+    TestContext.<anonymous> (D:\xiangmu\.codex-plans\NBshiyan-r5-t10248697\fixed-before\tests\analytics-day-boundaries.test.ts:55:3)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.start (node:internal/test_runner/test:1262:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 862.5113

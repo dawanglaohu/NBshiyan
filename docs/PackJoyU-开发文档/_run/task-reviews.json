@@ -296,15 +296,19 @@
     "verdict": "pass"
   },
   "M2-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "a259377626bf90a9d3af421555928049e96a386573c115529714995c0850388c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "5b4b8b6f682a107ddb8a34c968b3ef9f855a2d602fd60dddce535d97ddb964be",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:21；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《修正模型直接拖动与滚轮焦点》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=现有真实GLB和OrbitControls、D20；输出=可取消的精确指针/焦点控制；前置=M2-T1；阶段=integration；能力=model-pointer；有效路径共18项（e2e/model-pointer.spec.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/three/; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts; src/lib/three/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-100,E-97,E-98,E-99；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "仅复核 M2-T2 的条款与有效范围，不代表整体验收、终审或可合并；本轮未改产品行为、依赖或测试断言。任务保留 status todo，未执行 --landed，未合并。",
+      "取证配置支持路径：playwright.config.ts:36 的 CI list reporter 已在 PR 差异中，但原 taskPaths/supportPaths 未含该文件；按定点文档补丁 M2-T2-test-reporter-support 将其追加到 supportPaths，不改验收、生成器或其他任务。",
+      "e2e 仅改 328 行注释与 333 行断言标签，措辞为「不接管相机缩放、未阻止默认行为」；断言对象仍为 data-camera-distance，产品源码未改。",
+      "两个受保护区块已回填真实仓库相对路径与固定 head 44f1fd82 实际行号；pointerup 只清 ownerSlug/dragging 并保留焦点，不写经 withoutInteraction 清空全部；旧规则自测未被写成实际旧产品失败。",
+      "证据分层：CI run 41684377166（检出测试合并 3d4befd）提供两条 E-98 具名通过，证明断言级行为；本地 next start v4 成对对照仅支持 B/C 两格有限 JSON 结论，不替代 standalone 或完整验收。",
+      "v4 采集限制已按更正说明记录：事件后状态由 setTimeout(0) 宏任务读取；两端 frames 为空，不得声称磁盘图片为本次关联帧；绿侧 C 触发定位 0→445、红侧 C 为 89，各自定位完成后测量区间稳定，不宣称初始滚动位置相同；D 格两端均不接管，不是红→绿。",
+      "defaultPrevented=false 只证未阻止默认行为，不证明已实测浏览器页缩放；.hint 只证存在与 elementFromPoint 命中，未验证完整交互语义。未测项与本地对照无 DB、非 standalone 的限制保留。",
+      "同步后复查：revalidation 仍 40 条，M2-T2 status todo，其余普通任务与 R* 状态未改，产品源码与依赖未改。"
     ],
-    "reviewed": "2026-10-22T12:42:03.986330+00:00",
+    "reviewed": "2026-11-04T06:17:11.746851+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1504,6 +1508,22 @@
       "ready=false 两条原因的处理：第一条「任务契约待语义复核」由本证据登记解决，不是缺陷；第二条 H12「疑似接线任务未列注册点（命中：置信、页面）」是 WARN，handoff_contract.py:171 写明 H12/H13 不锁派发，且命中词「置信」来自验收1 的 adjudicate 措辞、「页面」来自验收2/3 的界面描述，本任务实际只改既有联系页组件与文案，不新增路由或注册点，故按 WARN 保留，不往静态契约表登记同名 ID（handoff_contract.py:189-192 对重复 ID 抛冲突）。"
     ],
     "reviewed": "2026-11-03T02:48:40.779342+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R5-T10248697": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "45f18f66df5987836193b99a09ce7e55db027241302531d0ef5f414748ec3554",
+    "evidence": [
+      "仅复核已合实现的当前六条验收映射与文档收尾；关联#501，代码已由b2db0294合并且包含于最新main a9172b2f。独立收尾分支从该main建立，实际owner/settings/直接测试Git blob与d84f0056已审头及W4固定main哈希一致；不重写业务实现。",
+      "验收1/2：已归档fixed-day-boundaries.log 8pass，tests/analytics-day-boundaries.test.ts:54-80核Santiago09-05/09-06、Havana03-07/03-08有效左闭右开UTC边界、前日相接、前1ms及可重算起点，全部fail/skip/todo/cancelled=0。",
+      "验收3/6：同文件43-51纽约23/25小时边界保持；103-117查看者时区对照，119-170两种进程TZ下的重复午夜、缺午夜、LordHowe半小时与Kathmandu05:45期望均通过。生产函数170-177不消费browserTimezone；当前正式仓库行号已读，不复制fixed-main代码链接。",
+      "验收4：固定实际settings服务的内存repo补验fixed-settings-service.log 9pass，两时区日界前/等号/后1ms返回合法version/revision/backlog，并保持非法IANA、同值和冲突行为；观测sqlCalls=0。它不等于PG锁/事务或HTTP端点验证。settings.ts:176-213使用真实recomputableFrom及现有写入路径。",
+      "验收5：同一新回归在旧owner18ae999b真实抛invalid_date（before-gap.log 1fail、0skip），固定main同回归及完整直接文件8pass。原日志字节与W4结构化证据sha256核对后原样归档，未重写旧逻辑、重构stdout或把预期红当当前失败。",
+      "历史CI40333923945实际检出测试合并867dca9（d84f0056合入旧main6ff4934c），不是当前main；具名缺午夜/进程TZ记录已按原日志行核对归档。历史设置PG7pass0skip使用普通日期，不说成PG缺午夜覆盖；旧全量29skip和本轮未重跑PG/HTTP/build/生产作业等限制明确保留。",
+      "R5两个保护区已经填入正式仓库路径、实际行号、日界/残日/数据影响及证据层级；其定义、依赖M5-T9、原批次和其他任务状态未手改。当前仅注册R5契约证据，是否登记done仍必须通过官方--landed前置；收尾仅文档，不改实现/schema/来源任务，不自行合并或改主检出。"
+    ],
+    "reviewed": "2026-11-03T16:28:20.215808+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
