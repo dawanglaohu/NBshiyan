@@ -182,8 +182,11 @@ test('products-link opens the server catalog, large cards, and the real model fi
     if (!button) return { children: el.childElementCount, inset: -1 };
     return { children: el.childElementCount, inset: button.getBoundingClientRect().left - el.getBoundingClientRect().left };
   });
-  expect(actions.children).toBe(1);
+  // 品类页上线后 .actions 里有「Add to quote」按钮和「Learn more」品类链接两个子元素；
+  // 按钮仍需贴左对齐（inset ≤ 1）。
+  expect(actions.children).toBe(2);
   expect(actions.inset).toBeLessThanOrEqual(1);
+  await expect(first.locator('.actions').getByTestId('category-link')).toHaveCount(1);
   const descStyle = await first.locator('.desc').evaluate((el) => {
     const style = getComputedStyle(el);
     return { size: style.fontSize, line: style.lineHeight, color: style.color, clamp: style.webkitLineClamp, weight: style.fontWeight };
