@@ -30,7 +30,10 @@ export default defineConfig({
   retries: 0, // #144 要求稳定，不靠重试掩盖偶发失败
   timeout: 30_000,
   expect: { timeout: 7_000 },
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  // CI 追加标准 list reporter：github reporter 只在失败时输出注解，成功用例不具名，
+  // 无法从日志证明某条用例是 passed 还是 skipped。list 逐条打印「✓/✘/-」与用例名，
+  // 直接留下具名结果。不改断言、跳过条件或门禁，也不新增判定脚本或 CI 步骤。
+  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }], ['list']] : 'list',
   use: { baseURL: BASE, trace: 'retain-on-failure', screenshot: 'only-on-failure', video: 'off', locale: 'en-US' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: [

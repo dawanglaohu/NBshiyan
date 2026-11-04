@@ -296,15 +296,19 @@
     "verdict": "pass"
   },
   "M2-T2": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "a259377626bf90a9d3af421555928049e96a386573c115529714995c0850388c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "5b4b8b6f682a107ddb8a34c968b3ef9f855a2d602fd60dddce535d97ddb964be",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:21；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《修正模型直接拖动与滚轮焦点》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=现有真实GLB和OrbitControls、D20；输出=可取消的精确指针/焦点控制；前置=M2-T1；阶段=integration；能力=model-pointer；有效路径共18项（e2e/model-pointer.spec.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/three/; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts; src/lib/three/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-100,E-97,E-98,E-99；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "仅复核 M2-T2 的条款与有效范围，不代表整体验收、终审或可合并；本轮未改产品行为、依赖或测试断言。任务保留 status todo，未执行 --landed，未合并。",
+      "取证配置支持路径：playwright.config.ts:36 的 CI list reporter 已在 PR 差异中，但原 taskPaths/supportPaths 未含该文件；按定点文档补丁 M2-T2-test-reporter-support 将其追加到 supportPaths，不改验收、生成器或其他任务。",
+      "e2e 仅改 328 行注释与 333 行断言标签，措辞为「不接管相机缩放、未阻止默认行为」；断言对象仍为 data-camera-distance，产品源码未改。",
+      "两个受保护区块已回填真实仓库相对路径与固定 head 44f1fd82 实际行号；pointerup 只清 ownerSlug/dragging 并保留焦点，不写经 withoutInteraction 清空全部；旧规则自测未被写成实际旧产品失败。",
+      "证据分层：CI run 41684377166（检出测试合并 3d4befd）提供两条 E-98 具名通过，证明断言级行为；本地 next start v4 成对对照仅支持 B/C 两格有限 JSON 结论，不替代 standalone 或完整验收。",
+      "v4 采集限制已按更正说明记录：事件后状态由 setTimeout(0) 宏任务读取；两端 frames 为空，不得声称磁盘图片为本次关联帧；绿侧 C 触发定位 0→445、红侧 C 为 89，各自定位完成后测量区间稳定，不宣称初始滚动位置相同；D 格两端均不接管，不是红→绿。",
+      "defaultPrevented=false 只证未阻止默认行为，不证明已实测浏览器页缩放；.hint 只证存在与 elementFromPoint 命中，未验证完整交互语义。未测项与本地对照无 DB、非 standalone 的限制保留。",
+      "同步后复查：revalidation 仍 40 条，M2-T2 status todo，其余普通任务与 R* 状态未改，产品源码与依赖未改。"
     ],
-    "reviewed": "2026-10-22T12:42:03.986330+00:00",
+    "reviewed": "2026-11-04T06:17:11.746851+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
