@@ -221,8 +221,11 @@ test('products-link opens the server catalog, large cards, and the real model fi
   expect(seen.filter((hit) => hit === 'GET /api/models')).toEqual([]);
   await expect.poll(() => seen.some(isGlbRequest), { timeout: 25_000 }).toBe(true);
 
-  const blocked = await page.request.get('/en/products/custom-corrugated-boxes');
-  expect(blocked.status()).toBe(404);
+  // CATEGORY_PAGES_LIVE=true 后，已发布品类的落地页不再 404，而是 200 的品类页；
+  // 断言强度不降：核对状态码 + 页面身份（H1 是品类标题）。
+  const landed = await page.request.get('/en/products/custom-corrugated-boxes');
+  expect(landed.status()).toBe(200);
+  expect(await landed.text()).toContain('Custom Corrugated Boxes');
 
   const api = await page.request.get('/api/models');
   expect(api.status()).toBe(200);
