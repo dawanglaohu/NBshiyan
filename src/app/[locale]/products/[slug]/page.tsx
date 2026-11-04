@@ -43,7 +43,8 @@ export default async function CategoryPage({ params }: P) {
   const article = loadCategoryArticle(c.key, locale);
   if (!article) notFound();
   setRequestLocale(locale);
-  const alts = categoryLocaleAlternates(c.key);
+  // fix1 口径：只有已上线语言给品类页路径，未上线语言回退到该语言的 3D 目录，不指向将来 404。
+  const alts = categoryLocaleAlternates(c.key, live);
   return (
     <main className="container category-prose">
       {alts && <LocaleAlternates pathname={`/products/${c[locale].slug}`} value={alts} />}

@@ -3,12 +3,14 @@ import { categoryMeta, type CategoryMeta } from './categoryMeta';
 import { PRIVACY_PAGE_COMPLETE, PRIVACY_PATH } from '../legal/privacy';
 import { listLanguages, withXDefault } from './hreflang';
 export { CATEGORY_PAGES_LIVE } from './categoryPages';
+import { isCategoryLocaleLive } from './categoryPages';
 import type { PublishedLocale } from '@/i18n/published-locales';
 
 type Locale = PublishedLocale;
 type Freq = 'weekly' | 'monthly';
 /** 一个页面在各语言下的路径（不含 /{locale} 前缀），例如 { en: '/products/custom-gift-boxes', ru: '/products/podarochnye-korobki' } */
-type Page = { paths: Record<Locale, string>; priority: number; changeFrequency: Freq };
+/** paths 用 null 表示「该语言不输出此页」；空串是合法的根路径（首页）。 */
+type Page = { paths: Record<Locale, string | null>; priority: number; changeFrequency: Freq };
 
 /**
  * 只列可索引的公开页面。以下页面带 noindex 或仍是占位，故意不进 sitemap：
@@ -23,8 +25,10 @@ export const STATIC_PAGES: Page[] = [
 ];
 
 export function categoryPages(meta: CategoryMeta[] = categoryMeta): Page[] {
+  // fix1 口径：品类页只上 en，ru 文案仍草稿，因此 sitemap 只输出 en 品类 URL。
+  // 未上线语言给 null，buildSitemap 会跳过它，不会生成指向 404 的条目。
   return meta.map((c) => ({
-    paths: { en: `/products/${c.en.slug}`, ru: `/products/${c.ru.slug}` },
+    paths: { en: `/products/${c.en.slug}`, ru: isCategoryLocaleLive('ru') ? `/products/${c.ru.slug}` : null },
     priority: 0.8,
     changeFrequency: 'weekly'
   }));
@@ -42,11 +46,16 @@ export function buildSitemap(opts: {
   const pages = [...STATIC_PAGES, ...(opts.includeCategories ? categoryPages() : [])];
   const url = (l: Locale, p: Page) => `${base}/${l}${p.paths[l]}`;
   return pages.flatMap((p) => {
+    // 空串是合法的根路径（首页 /en、/ru），不是「未上线」；只有明确的 null 才表示该语言不输出。
+    // 品类页 fix1 只上 en，因此 ru 的品类条目用 null 标记。
+    const liveLocales = opts.locales.filter((l) => p.paths[l] !== null);
+    if (liveLocales.length === 0) return [];
     const languages = {
-      ...Object.fromEntries(opts.locales.map((l) => [l, url(l, p)])),
-      'x-default': url(opts.defaultLocale, p)
+      ...Object.fromEntries(liveLocales.map((l) => [l, url(l, p)])),
+      // x-default 只在默认语言本身已输出时才有意义。
+      ...(liveLocales.includes(opts.defaultLocale) ? { 'x-default': url(opts.defaultLocale, p) } : {})
     };
-    return opts.locales.map((l) => ({
+    return liveLocales.map((l) => ({
       url: url(l, p),
       lastModified,
       changeFrequency: p.changeFrequency,

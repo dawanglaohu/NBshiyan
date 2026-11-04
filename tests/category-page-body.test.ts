@@ -32,16 +32,20 @@ test('switch on publishes category URLs; switch off does not leak them', () => {
   assert.equal(INDEXNOW_LIVE_TYPES.solution.live, false);
   assert.equal(INDEXNOW_LIVE_TYPES.article.live, false);
   const gift = categoryLanguageAlternates('gift-boxes', true);
+  // fix1 口径：只有 en 上线，hreflang 不得输出 ru，x-default 指向 en。
   assert.deepEqual(gift, {
     en: '/en/products/custom-gift-boxes',
-    ru: '/ru/products/podarochnye-korobki',
     'x-default': '/en/products/custom-gift-boxes',
   });
+  assert.equal(Object.hasOwn(gift!, 'ru'), false, 'hreflang 不得输出未上线的 ru');
   assert.equal(categoryLanguageAlternates('gift-boxes', false), null);
   assert.equal(categoryForRequest('en', 'custom-gift-boxes', true)?.key, 'gift-boxes');
   assert.equal(categoryForRequest('en', 'custom-gift-boxes', false), undefined);
   assert.equal(categoryForRequest('en', 'gift-boxes', true), undefined);
-  assert.equal(categoryHref('ru', 'gift-boxes', true), '/products/podarochnye-korobki');
+  // ru 未上线：即使开关打开也不解析 ru slug，页面 404。
+  assert.equal(categoryForRequest('ru', 'podarochnye-korobki', true), undefined);
+  // 入口回退：ru 未上线时回到该语言 3D 目录里的卡片锚点（既有回退行为，不改）。
+  assert.equal(categoryHref('ru', 'gift-boxes', true), '/products#gift-boxes');
   assert.equal(categoryHref('ru', 'gift-boxes', false), '/products#gift-boxes');
   const hidden = buildSitemap({ siteUrl: 'https://example.com/', locales: ['en', 'ru'] as const, defaultLocale: 'en' as const });
   assert.ok(!hidden.some((entry) => entry.url.includes('/products/custom-gift-boxes') || entry.url.includes('/products/podarochnye-korobki')));

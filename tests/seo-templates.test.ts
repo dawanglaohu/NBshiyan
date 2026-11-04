@@ -69,9 +69,11 @@ test('breadcrumbJsonLd: absolute same-site URLs, positions 1..n, rejects off-sit
 });
 
 test('categoryBreadcrumb uses categoryHref (encoded, per-locale slug)', () => {
+  // fix1 口径：ru 品类页未上线，breadcrumb 回退到 /ru/products，不指向不存在的 ru 品类页。
   const j = categoryBreadcrumb(SITE, 'ru', 'gift-boxes', 'Подарочные коробки', true);
-  assert.deepEqual(j.itemListElement.map((i) => i.item), [`${SITE}/ru`, `${SITE}/ru/products`, `${SITE}/ru/products/podarochnye-korobki`]);
+  assert.deepEqual(j.itemListElement.map((i) => i.item), [`${SITE}/ru`, `${SITE}/ru/products`, `${SITE}/ru/products#gift-boxes`]);
   assert.equal(j.itemListElement[1].name, 'Продукция');
+  // 已上线的 en 仍给出真实品类页。
   assert.equal(categoryBreadcrumb(SITE, 'en', 'paper-cups', 'Cups', true).itemListElement[2].item, `${SITE}/en/products/custom-paper-cups`);
 });
 

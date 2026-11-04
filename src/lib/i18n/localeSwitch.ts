@@ -1,5 +1,5 @@
 import { categoryMeta, type CategoryMeta } from '../seo/categoryMeta';
-import { CATEGORY_PAGES_LIVE } from '../seo/categoryPages';
+import { CATEGORY_PAGES_LIVE, isCategoryLocaleLive } from '../seo/categoryPages';
 import { PUBLISHED_LOCALES, type PublishedLocale } from '@/i18n/published-locales';
 import { isBlockedLocalePath } from '../edge/locale-gate';
 
@@ -31,7 +31,9 @@ export function switchPath(pathname: string, from: Loc, to: Loc, alternates?: Lo
   if (!section) return path;
   let slug: string;
   try { slug = decodeURIComponent(path.slice(section.length + 1).split('/')[0]); } catch { return '/'; } // 非法 % 编码 → 目标语言首页
-  if (section === '/products' && live) { // 品类落地页未上线时目标页也不存在，回退到列表页
+  if (section === '/products' && live && isCategoryLocaleLive(to)) {
+    // 只有目标语言本身已上线品类页时才给出该语言的品类路径；
+    // 否则（fix1 下的 ru）回退到列表页 /products，不指向将来才存在的 404。
     const c = meta.find((m) => m[from]?.slug === slug);
     if (c?.[to]?.slug) return `/products/${c[to].slug}`; // 目标语言没有 slug 时回退到列表页
   }

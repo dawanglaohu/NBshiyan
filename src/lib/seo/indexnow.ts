@@ -1,5 +1,6 @@
 import { isProdEnvFrom } from '../site';
 import { PUBLISHED_LOCALES } from '@/i18n/published-locales';
+import { isCategoryLocaleLive } from './categoryPages';
 // IndexNow 推送（Refs #74），使用全局参与端点 api.indexnow.org。
 // 只在生产环境、并且 INDEXNOW_KEY 格式合法时启用；否则所有函数都是空操作。
 // 端点写死；URL 只用 NEXT_PUBLIC_SITE_URL 拼接，绝不使用 webhook 里的主机名。
@@ -54,11 +55,16 @@ export type SanityWebhookDoc = {
   seo?: { noindex?: unknown };
 };
 
-/** Sanity 文档 → 需要推送的相对路径（两种语言）。noindex、未上线类型、slug 不合法的一律不推。 */
+/**
+ * Sanity 文档 → 需要推送的相对路径。noindex、未上线类型、slug 不合法的一律不推。
+ * fix1 口径：品类页（prefix=products）只上 en，因此不把未上线的 ru 路径推给搜索引擎；
+ * 其他前缀与推送端点、去重、重试逻辑均不变。
+ */
 export function pathsForSanityDoc(doc: SanityWebhookDoc, live = INDEXNOW_LIVE_TYPES): string[] {
   const t = typeof doc?._type === 'string' ? live[doc._type] : undefined;
   if (!t?.live || doc.seo?.noindex === true) return [];
   return LOCALES.flatMap((l) => {
+    if (t.prefix === 'products' && !isCategoryLocaleLive(l)) return [];
     const s = doc.slug?.[l]?.current;
     return typeof s === 'string' && SLUG_RE.test(s) ? [`/${l}/${t.prefix}/${s}`] : [];
   });

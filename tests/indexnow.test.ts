@@ -16,15 +16,17 @@ test('key: only in production with valid format', () => {
     assert.equal(activeIndexNowKey({ ...PROD, INDEXNOW_KEY: bad }), null, bad);
 });
 
-test('paths: both locales, skips noindex / not-live / bad slug', () => {
+test('paths: only live locales for products, skips noindex / not-live / bad slug', () => {
   const doc = { _type: 'product', slug: { en: { current: 'custom-gift-boxes' }, ru: { current: 'podarochnye-korobki' } } };
-  assert.deepEqual(pathsForSanityDoc(doc, LIVE), ['/en/products/custom-gift-boxes', '/ru/products/podarochnye-korobki']);
+  // fix1 口径：品类页只上 en，未上线的 ru 路径不推送给搜索引擎。
+  assert.deepEqual(pathsForSanityDoc(doc, LIVE), ['/en/products/custom-gift-boxes']);
   assert.deepEqual(pathsForSanityDoc({ ...doc, seo: { noindex: true } }, LIVE), []);
   assert.deepEqual(pathsForSanityDoc({ ...doc, _type: 'article' }, LIVE), []);
   assert.deepEqual(pathsForSanityDoc({ ...doc, _type: 'unknown' }, LIVE), []);
   assert.deepEqual(pathsForSanityDoc({ _type: 'product', slug: { en: { current: 'Bad Slug/../x' } } }, LIVE), []);
-  assert.deepEqual(pathsForSanityDoc(doc), ['/en/products/custom-gift-boxes', '/ru/products/podarochnye-korobki']);
+  assert.deepEqual(pathsForSanityDoc(doc), ['/en/products/custom-gift-boxes']);
   assert.deepEqual(pathsForSanityDoc(doc, { product: { live: false, prefix: 'products' }, solution: { live: false, prefix: 'solutions' }, article: { live: false, prefix: 'articles' } }), []);
+  // 3D 目录列表页两种语言都存在，仍按原样推送。
   assert.deepEqual(pathsForModelPublish(), ['/en/products', '/ru/products']);
 });
 
