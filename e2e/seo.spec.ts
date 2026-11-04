@@ -65,6 +65,15 @@ test.describe('SEO（#144 评论 6150724426）', () => {
       const path = new URL(loc).pathname;
       expect((await request.get(path, { maxRedirects: 0 })).status(), path).toBe(200);
       const about = /^\/(en|ru)\/about\/?$/.exec(path);
+      // 品类页按 fix1「只上 en」口径：sitemap 只输出 en 品类 URL，
+      // 其条目只应有 en 与 x-default，不得要求也不得出现 ru。
+      const category = /^\/en\/products\/[a-z0-9-]+$/.test(path);
+      if (category) {
+        expect(u, loc).toMatch(/hreflang="en"/);
+        expect(u, loc).toMatch(/hreflang="x-default"/);
+        expect(u, loc).not.toMatch(/hreflang="ru"/);
+        continue;
+      }
       if (!about) {
         bilingual += 1;
         expect(u, loc).toMatch(/hreflang="en"/);

@@ -5,17 +5,20 @@ import { expect, test } from './fixtures';
 // ru 待文案通过母语审校后单独开 PR，再补回 en/ru 双向断言。
 const paths = categoryMeta.map((meta) => `/en/products/${meta.en.slug}`);
 
-test('category pages are 200 for en, in the sitemap, with self canonical and hreflang en/x-default', async ({ request }) => {
+test('category pages are 200 for en, in the sitemap, with self canonical and hreflang en/x-default', async ({ request, page }) => {
   const xml = await (await request.get('/sitemap.xml')).text();
   for (const path of paths) {
     const res = await request.get(path, { maxRedirects: 0 });
     expect(res.status(), path).toBe(200);
     expect(xml, path).toContain(path);
-    const html = await res.text();
-    expect(html, path).toMatch(new RegExp(`rel="canonical"[^>]*href="[^"]*${path}"|href="[^"]*${path}"[^>]*rel="canonical"`));
+    // 断言基于浏览器实际渲染后的 DOM：request.get 拿到的是流式响应文本，
+    // head 里的 alternate 可能尚未注入，用它判断 hreflang 会误报。
+    await page.goto(path);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', new RegExp(`${path}$`));
     // 已上线语言只有 en，x-default 指向 en；不得出现 ru 的 hreflang。
-    for (const lang of ['en', 'x-default']) expect(html, path).toContain(`hreflang="${lang}"`);
-    expect(html, path).not.toContain('hreflang="ru"');
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveCount(0);
   }
   for (const meta of categoryMeta) {
     expect(xml).toContain(`/en/products/${meta.en.slug}`);
