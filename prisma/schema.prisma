@@ -87,6 +87,8 @@ model User {
   deviceSessions AdminDeviceSession[]
   loginChallenges AdminLoginChallenge[]
   actionGrants   AdminActionGrant[]
+  recoveryPermits AdminRecoveryPermit[] @relation("RecoveryTarget")
+  issuedRecoveryPermits AdminRecoveryPermit[] @relation("RecoveryIssuer")
   createdAt      DateTime  @default(now())
 }
 
@@ -157,6 +159,34 @@ model AdminActionGrant {
   usedAt          DateTime?
 
   @@index([userId, purpose, expiresAt])
+}
+
+// 恢复凭据来源。ADMIN 由另一管理员新鲜授权；SERVER_OWNER 仅本地 OS 权限 CLI 预授权。
+// M3-T19 的 AdminRecoverySession 复用同一枚举，HTTP 入口不得写 SERVER_OWNER 或 pendingPasswordHash。
+enum RecoverySource {
+  ADMIN
+  SERVER_OWNER
+}
+
+// 目标账号恢复 permit。明文 256bit 只在签发响应里出现一次，库里只存 SHA-256。
+// ADMIN 签发须消费绑定目标且非本人的 RECOVERY_AUTHORIZE grant；核销/审计与签发同事务。
+// 15min、单次；pendingPasswordHash 仅 SERVER_OWNER 本地 TTY 预授权写入，HTTP 永不触碰。
+model AdminRecoveryPermit {
+  id                   String         @id
+  tokenHash            String         @unique
+  targetUserId         String
+  targetUser           User           @relation("RecoveryTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  source               RecoverySource
+  issuedById           String?
+  issuedBy             User?          @relation("RecoveryIssuer", fields: [issuedById], references: [id], onDelete: SetNull)
+  reason               String
+  pendingPasswordHash  String?
+  sessionVersion       Int
+  createdAt            DateTime       @default(now())
+  expiresAt            DateTime
+  consumedAt           DateTime?
+
+  @@index([targetUserId, expiresAt])
 }
 
 // 客户个人信息单独一张表，便于按地区迁移（如俄罗斯数据本地化）和 GDPR 删除
