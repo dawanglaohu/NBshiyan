@@ -180,6 +180,7 @@
   background:var(--pj-on-inverse);
   color:var(--pj-inverse);
   border-color:var(--pj-on-inverse);
+  border-left:var(--pj-border-width) solid var(--pj-accent);
   font-weight:600;
 }
 .adm-side a:focus-visible{

@@ -13,6 +13,7 @@ const account = readFileSync('src/lib/client/account.ts', 'utf8');
 const activity = readFileSync('src/components/admin/auth/AdminSessionActivity.tsx', 'utf8');
 const css = readFileSync('src/app/admin/admin.css', 'utf8');
 const tokens = readFileSync('src/styles/tokens.css', 'utf8');
+const spec = readFileSync('e2e/admin-shell-activity.spec.ts', 'utf8');
 
 function harness(overrides: Partial<Parameters<typeof createAdminActivityReporter>[0]> = {}) {
   const calls: Array<{ signal: AbortSignal }> = [];
@@ -190,10 +191,27 @@ test('admin.css 壳元素按 minimalist-flat：2px 黑边 / 0 圆角 / 无阴影
   assert.match(css, /box-shadow:var\(--pj-shadow\)/);
   assert.match(tokens, /--pj-accent:#b45700/, '强调色来自唯一 token');
   assert.match(css, /var\(--pj-accent\)/, '壳样式消费该 token');
+  assert.match(css, /border-left:var\(--pj-border-width\) solid var\(--pj-accent\)/, '当前导航项用强调色标记');
   // 聚焦可见、触屏目标 ≥44px
   assert.match(css, /min-width:var\(--pj-touch-target\)/);
   assert.match(css, /min-height:var\(--pj-touch-target\)/);
   assert.match(css, /outline:var\(--pj-focus-width\) solid var\(--pj-accent\)/);
+});
+
+test('e2e 规格用独立管理员（不碰全局 E2E_ADMIN）、整组一次登录、开 video 供 CI 转 GIF', () => {
+  assert.match(spec, /import \{ useSharedAdmin \} from '\.\/shared-admin'/);
+  assert.match(spec, /useSharedAdmin\(\{ emailPrefix: 'e2e-shell'/);
+  assert.equal(/import\s*\{[^}]*E2E_ADMIN[^}]*\}\s*from/.test(spec), false, '不得 import 全局共享管理员');
+  assert.equal(/E2E_ADMIN\.(?:email|password)/.test(spec), false, '不得使用全局共享管理员的凭据');
+  assert.equal(spec.includes('test.skip('), false, '不得靠 skip 换 CI 绿');
+  assert.match(spec, /test\.use\(\{ video: 'on' \}\)/, '视频留给 CI 转 GIF');
+  // 三尺寸真实壳元素与强调色都要断言，不能只量 signout 控件。
+  assert.match(spec, /\.adm-top/);
+  assert.match(spec, /\.adm-side/);
+  assert.match(spec, /\.adm-main/);
+  assert.match(spec, /rgb\(180, 87, 0\)/, '当前导航强调色');
+  assert.match(spec, /--pj-accent/, '强调色 token');
+  for (const w of ['1920', '1440', '390']) assert.ok(spec.includes(w), `${w} 尺寸必须覆盖`);
 });
 
 test('resetAdminActivityReporter 可丢弃单例，供测试与壳重置', () => {
