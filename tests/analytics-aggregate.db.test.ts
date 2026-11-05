@@ -273,7 +273,7 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     assert.equal(plan.siteDates.includes(farPast), false);
   });
 
-  test('RepeatableRead：事务内两次读取看到同一快照', async () => {
+  test('RepeatableRead：并发连接已提交的写入在本事务快照内不可见，提交后可见', async () => {
     await reset();
     const conn = requireDb();
     const now = new Date('2026-03-01T10:00:00.000Z');
@@ -281,20 +281,76 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     const bounds = siteDayUtcBounds(day, TZ);
     await insertEvent({ occurredAt: new Date(bounds.startUtc), receivedAt: new Date(now.getTime() - 60_000) });
 
-    await conn.$transaction(async (tx) => {
-      const first = await loadEventsAtSnapshot(tx, bounds, now);
-      await tx.$executeRaw`
-        INSERT INTO "AnalyticsEvent" (
-          "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
-          "productSlug", "path", "occurredAt", "receivedAt"
-        ) VALUES (
-          ${`rr-${process.pid}`}, ${`rr-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-rr'},
-          ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
-          ${utc(new Date(bounds.startUtc))}, ${utc(new Date(now.getTime() - 30_000))}
-        )
-      `;
-      const second = await loadEventsAtSnapshot(tx, bounds, now);
-      assert.equal(second.length, first.length, 'RepeatableRead 下第二次读取不应看到事务内新插入的行');
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
+    // 第二个独立连接，先于主事务写入并 commit，制造并发提交。
+    const other = new PrismaClient({ datasources: { db: { url: url! } } });
+    try {
+      await conn.$transaction(async (tx) => {
+        const first = await loadEventsAtSnapshot(tx, bounds, now);
+        assert.equal(first.length, 1, '事务开始前应有 1 条');
+        await other.$executeRaw`
+          INSERT INTO "AnalyticsEvent" (
+            "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+            "productSlug", "path", "occurredAt", "receivedAt"
+          ) VALUES (
+            ${`rr-${process.pid}`}, ${`rr-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-rr'},
+            ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
+            ${utc(new Date(bounds.startUtc))}, ${utc(new Date(now.getTime() - 30_000))}
+          )
+        `;
+        const second = await loadEventsAtSnapshot(tx, bounds, now);
+        assert.equal(second.length, first.length, 'RepeatableRead 快照不应看到另一连接已提交的新行');
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
+      // 事务提交后，新事务应能看到 2 条。
+      const after = await loadEventsAtSnapshot(conn, bounds, now);
+      assert.equal(after.length, 2, '新事务应看到并发提交后的 2 条');
+    } finally {
+      await other.$disconnect();
+    }
+  });
+
+  test('E-81：整组目标日一次事务替换，第 2 天失败时整组回滚、第 1 天保持上一轮结果', async () => {
+    await reset();
+    await seedLease(1);
+    const conn = requireDb();
+    const now = new Date('2026-03-01T10:00:00.000Z');
+    const day1 = '2026-02-28'; // 48h 迟到窗口内的旧日
+    const day2 = siteLocalDate(now, TZ);
+    const b1 = siteDayUtcBounds(day1, TZ);
+    const b2 = siteDayUtcBounds(day2, TZ);
+    // 两天各 1 条事件
+    await insertEvent({ occurredAt: new Date(b1.startUtc), receivedAt: new Date(now.getTime() - 60_000) });
+    await insertEvent({ occurredAt: new Date(b2.startUtc), receivedAt: new Date(now.getTime() - 60_000) });
+
+    // 先跑一轮基线：两天都写入
+    const baseline = await runAggregateOnce({
+      db: conn, now, siteTimezone: TZ, currentDate: day2, timezoneRevision: 1, generation: 1,
+    });
+    assert.ok(baseline.days.some((d) => d.siteDate === day1 && d.written));
+    assert.ok(baseline.days.some((d) => d.siteDate === day2 && d.written));
+    const row1Before = await conn.$queryRaw<{ c: bigint }[]>`
+      SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${day1}
+    `;
+    const wm1Before = await conn.$queryRaw<{ eventCount: number }[]>`
+      SELECT "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${day1}
+    `;
+
+    // 制造第 2 天冲突：把它的 timezoneRevision 提更高，使整组中该日 revision 校验失败。
+    await conn.$executeRaw`
+      UPDATE "AnalyticsRollupDay" SET "timezoneRevision" = 9 WHERE "siteDate" = ${day2}
+    `;
+    // 整轮：事务开头行锁代次 1 通过；day1 会重写，day2 在 writeOneDayInTx 里因 storedRevision 9 > 1 抛错。
+    await assert.rejects(
+      () => runAggregateOnce({ db: conn, now, siteTimezone: TZ, currentDate: day2, timezoneRevision: 1, generation: 1 }),
+      (err: unknown) => err instanceof AggregateVersionConflict,
+    );
+    // 整组回滚：day1 的汇总行与 watermark 必须与基线逐字节一致（未被覆盖成新值、也未清空）。
+    const row1After = await conn.$queryRaw<{ c: bigint }[]>`
+      SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${day1}
+    `;
+    const wm1After = await conn.$queryRaw<{ eventCount: number }[]>`
+      SELECT "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${day1}
+    `;
+    assert.equal(Number(row1After[0]!.c), Number(row1Before[0]!.c), '失败整组回滚后 day1 汇总行数不变');
+    assert.equal(Number(wm1After[0]!.eventCount), Number(wm1Before[0]!.eventCount), '失败整组回滚后 day1 watermark 不变');
   });
 });
