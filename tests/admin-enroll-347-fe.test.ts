@@ -62,13 +62,14 @@ test('EnrollWizard 401：保留邮箱、清空密码并聚焦，不标红单个�
   assert.doesNotMatch(src, /https?:\/\//);
 });
 
-test('账号页：一个面板服务新建和重置；重置用 pickEnrollLink + panelReducer；后端的 issued 块已删除', () => {
+test('账号页：一个面板服务新建；reset-2fa 不再消费一次性 enrollLink（M3-T4 改为恢复授权）', () => {
   const src = code(USERS);
   assert.doesNotMatch(src, /setIssued|issued &&|enrollLink: string/);
-  assert.match(src, /const issued = pickEnrollLink\(await api<unknown>\(`\/\$\{u\.id\}\/reset-2fa`, \{ method: 'POST' \}\)\);/);
-  assert.match(src, /if \(issued\) setLinkPanel\(\(s\) => panelReducer\(s, \{ type: 'issued', issued, email: u\.email \}\)\);/);
+  // 旧 UI 直接 POST 无 body 并期待 enrollLink 响应，已被 E-13 否定。
+  assert.doesNotMatch(src, /pickEnrollLink\(await api<unknown>\(`\/\$\{u\.id\}\/reset-2fa`/);
+  assert.match(src, /body: JSON\.stringify\(\{ reason: '目标账号 2FA 恢复授权申请' \}\)/);
   assert.equal((src.match(/<EnrollLinkPanel /g) ?? []).length, 1);
-  assert.ok(src.indexOf('<EnrollLinkPanel ') < src.indexOf('<form '), '面板在页面顶部（表单和表格之前），两个入口都看得到');
+  assert.ok(src.indexOf('<EnrollLinkPanel ') < src.indexOf('<form '), '面板在页面顶部（表单和表格之前），新建账号仍看得到');
 });
 
 test('账号页「重置 2FA」：危险样式、行内最后一个、和其他按钮隔开；自己那一行不显示；确认框文案是后端的 RESET_2FA_CONFIRM', () => {

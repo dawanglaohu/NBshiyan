@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { errorText } from '@/components/admin/format';
 import { commitAndReveal } from '@/components/admin/reveal-error';
 import EnrollLinkPanel from './EnrollLinkPanel';
-import { ISSUE_ERROR_TEXT, panelReducer, pickEnrollLink, submitCreate, type PanelState } from '@/lib/admin/enroll-link';
+import { ISSUE_ERROR_TEXT, panelReducer, submitCreate, type PanelState } from '@/lib/admin/enroll-link';
 import ConfirmDialog from '@/components/admin/settings/ConfirmDialog';
 import AdminTime from '@/components/admin/AdminTime';
 import { RESET_2FA_CONFIRM } from '@/lib/admin/enroll';
@@ -55,14 +55,14 @@ export default function UsersAdmin({ selfId }: { selfId?: string } = {}) {
     try { await fn(); await load(); } catch (e) { showErr((e as Error).message); } finally { setBusy(false); }
   };
   const patch = (id: string, body: Record<string, unknown>) => run(() => api(`/${id}`, { method: 'PATCH', body: JSON.stringify(body) }));
-  // #347：重置 2FA。确认文案是后端的 RESET_2FA_CONFIRM；确认框用后台 ConfirmDialog（危险操作、初始焦点在「取消」、Esc 取消）。
-  // 返回的一次性链接进同一个面板（pickEnrollLink + panelReducer）；site_url_invalid 时什么都没改，显示 ERR 里的「没有生成绑定链接：…」
+  // M3-T4：重置 2FA 改为申请目标恢复授权。确认文案沿用 RESET_2FA_CONFIRM；确认框用后台 ConfirmDialog。
+  // 新接口要求先由 ADMIN 本人新鲜验证取得 RECOVERY_AUTHORIZE grant，再用该入口换取 15min 一次性 permit；
+  // 这里只带 reason，不再期待一次性 enrollLink。完整 UI 接线归 M3-T9，本任务只去掉对旧响应的消费。
   const [resetTarget, setResetTarget] = useState<U | null>(null);
   const reset2fa = (u: U) => {
     setResetTarget(null);
     run(async () => {
-      const issued = pickEnrollLink(await api<unknown>(`/${u.id}/reset-2fa`, { method: 'POST' }));
-      if (issued) setLinkPanel((s) => panelReducer(s, { type: 'issued', issued, email: u.email }));
+      await api<unknown>(`/${u.id}/reset-2fa`, { method: 'POST', body: JSON.stringify({ reason: '目标账号 2FA 恢复授权申请' }) });
     });
   };
 

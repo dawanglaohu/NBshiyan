@@ -736,15 +736,21 @@
     "verdict": "pass"
   },
   "M3-T4": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "683345e9163057198b0267d33489bc6f978e7fb8fa073f446a16a4b2ead3dbd5",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "5fb965004691814a5cf4a6ebe9ca9747690cbf9cb6cd4dbae120583faf33777d",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T4《签发管理员目标恢复permit》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "验收1/E-13：真实 ADMIN handler 新增 POST /api/admin/account/recovery-authorizations，并把 POST /api/admin/users/[id]/reset-2fa 改为同一 handler 的 URL 绑定别名；两个入口都 requireAdmin(['ADMIN'])、assertSameOrigin、限流、限体、Zod strict。旧无 body 直重置、仅 session、匿名、访客邮件请求、SALES/EDITOR 均到不了 service，目标账号 TOTP/recoveryCodes/sessionVersion 零改动。",
+      "验收1/E-73：当前密码+新 TOTP 由 M3-T3 的 reauth 签发 RECOVERY_AUTHORIZE grant；本服务在 db.$transaction 内调用 actionGrants.consume(token,purpose,targetId,userId,sid,tx) 一次性核销，重复、跨用途、跨目标、过期都返回 action_grant_invalid 且不签第二份。授权方 User 行由 grant 核销按固定 User→Device→Grant 锁序持有，本服务只补读当前角色与目标 sv，不另加 FOR UPDATE，避免两管理员互为目标时交叉死锁。",
+      "验收2：permit 用 randomBytes(32).toString('base64url') 生成 256bit 明文，只在 RecoveryPermitDTO 响应里返回一次；库里 AdminRecoveryPermit 只存 sha256 hex（recovery-repo.ts:hashRecoveryPermitToken），日志与审计 meta 不含 token/邮箱/验证码。15min 期限取自 config.grant.permitTtlMs；recovery.issued 审计与 permit 落库、grant 核销同事务，meta 只记 source/target/reason。",
+      "验收2/E-75：服务不接 body 里的 password/totp，普通 passwordless 会话缺现密码时拿不到 RECOVERY_AUTHORIZE grant，也就签不出 permit；响应丢失后重放同 grant 不再签发。AdminRecoveryPermit 预留 pendingPasswordHash/source=SERVER_OWNER 供 M3-T18/M3-T19 本地 TTY 使用，HTTP 入口永不写该字段。",
+      "验收2 后继复用：schema.prisma 只加 recovery 段（AdminRecoveryPermit + User 两条关系 + RecoverySource 枚举 + targetUserId/expiresAt 索引），AdminRecoverySession 留给 M3-T19；recovery-repo.ts 接显式 tx、不反调 service，可被 M3-T19 的 recovery/start 复用。composition.ts 仅在 createAdminServices 追加 recoveryAuthorizations 注册，analytics/stats 段零改动，未碰 deploy.sh、messages/*.json。",
+      "E-13/E-73/E-75 运行时覆盖：tests/admin-recovery-authorizations.http.test.ts 用真实 Auth.js 登录→reauth grant→两个入口，覆盖 256bit/15min、hash only、重复同 grant、跨用途、目标因素不变、旧旁路拒绝、兼容别名同形。本机无 PostgreSQL，该文件默认 skip；CI 用 M3T3_TEST_DATABASE_URL 专用库必跑，本机不冒充已跑 PG。",
+      "B 方案限定范围：按 Chief 裁定只改断言旧旁路的 #347 测试（admin-reset-2fa-unlock-347 / admin-enroll-token-347 / admin-enroll-hardening-347-348）及 UsersAdmin.tsx 中 reset-2fa 那一处最小调用；admin-enroll-347-fe.test.ts 因同样焊死旧 UI 的 pickEnrollLink 静态断言连带改，并一并补登 M3-T4 supportPaths（begin→sync→verify）。M3-T9 的 UI 迁移未提前做。",
+      "全量 pnpm test：10 个断言已删除旧旁路的红全部清零（173/209/220/450-455/457）；剩 3 个 sanity-import/linkmap 红为 Windows 检出层 CRLF 噪声，在未改动 main a4a4a9bc 上同样红，已作基线证据，按 Chief 要求不给无关文件打补丁。另有 1 个 plan-check 红在全量并行时出现、单独跑通过且与未改动主检出一致，属 bash/CRLF 环境噪声。",
+      "检查：tsc --noEmit=0、prisma validate=0（临时假 DATABASE_URL，generate 已成功）、build_vault --check=0、git diff --check=0、改动文件 CR=0；sync 后 revalidation={}、needsReview=[]、pendingTasks=[] 无回潮，17 条 affected 只属契约哈希传播。",
+      "边界：本证据只登记 M3-T4 契约复核，不跑 --landed、不合并、不部署、不打开生产功能、不迁移数据库；R4-T78812657 等其它任务状态零改动。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-05T02:01:31.056527+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

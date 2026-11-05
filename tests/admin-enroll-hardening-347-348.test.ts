@@ -228,8 +228,9 @@ test('#347 enrollment window: 72h after createdAt (or last 2FA reset) enroll/con
   apply(owner(), r);
   assert.equal((await enroll()).status, 200);
   assert.equal(enrollWindowOpen({ createdAt: new Date(0), enrollIssuedAt: new Date(), totpPendingUntil: null, totpSecret: null }), true);
-  for (const f of ['src/app/api/admin/users/[id]/reset-2fa/route.ts', 'src/app/api/admin/account/2fa/reset/route.ts'])
-    assert.match(readFileSync(f, 'utf8'), /data: \{ \.\.\.reset2faData\(now\), \.\.\.t\.data(, failedLogins: 0, lockedUntil: null)? \}/, f);
+  // M3-T4 起 users/[id]/reset-2fa 改为恢复 permit 别名，不再用 reset2faData 直清 TOTP。
+  assert.match(readFileSync('src/app/api/admin/account/2fa/reset/route.ts', 'utf8'), /data: \{ \.\.\.reset2faData\(now\), \.\.\.t\.data(, failedLogins: 0, lockedUntil: null)? \}/);
+  assert.doesNotMatch(readFileSync('src/app/api/admin/users/[id]/reset-2fa/route.ts', 'utf8'), /reset2faData|newEnrollToken|totpSecret: null/);
 });
 
 test('per-IP limit on both routes (separate bucket), checked after same-origin and before body validation', async () => {
