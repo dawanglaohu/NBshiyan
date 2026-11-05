@@ -29,108 +29,195 @@ import { useSharedAdmin } from './shared-admin';
 const PASSWORD = 'e2e-shell-Passw0rd!';
 const ACCOUNT = '/api/admin/account';
 
-/** 侧栏 `.adm-account` 面板几何帧（只读采集，不含 cookie/token/账号邮箱）。 */
+/** 侧栏 `.adm-account` 面板几何帧（只读采集，不含 cookie/token/账号邮箱/正文文本）。 */
 type AccountFrame = {
   state: string;
   viewport: string;
   panel: {
     w: number; h: number;
+    borderTop: string; borderRight: string; borderBottom: string; borderLeft: string;
     padTop: string; padRight: string; padBottom: string; padLeft: string;
     rowGap: string; columnGap: string; minHeight: string;
     display: string; flexDirection: string; visibility: string;
+    cssReady: boolean;
   };
-  kids: Array<{ tag: string; cls: string; top: number; left: number; w: number; h: number }>;
+  /** 面板同坐标系（相对 panel 左上角）的可见内容盒：文字用 Range rect，控件/有底色块用盒子 rect。 */
+  content: Array<{ kind: 'text' | 'box'; top: number; left: number; right: number; bottom: number; h: number }>;
   textLen: number;
 };
 
 /** 11 节 / density_probe.js 既有阈值，不自造更宽阈值。 */
-const ACCOUNT_DENSITY = { padMax: 20, gapMax: 24, leftMax: 40, nearMax: 24, sparsePad: 32, sparseHeight: 80, sparseText: 120 };
+const ACCOUNT_DENSITY = { padMax: 20, gapMax: 24, nearMax: 24, sparsePad: 32, sparseHeight: 80, sparseText: 120 };
+const EPS = 1.5; // 仅浮点容差，不放宽任何验收阈值
+
+/** 严格读数：非法/缺失/负值返回 null，绝不 `|| 0` 静默当通过。 */
+function px(v: string | undefined): number | null {
+  if (typeof v !== 'string') return null;
+  const n = parseFloat(v);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
 
 /**
- * 独立判定：D4 是 CSS 值（padding / gap），D5 是几何布局结果（内容左上、computed min-height、
- * 底部留白、子项间距、稀疏撑高块）。五项 D5 互不重复，也不拿 D4 通过充当 D5 通过。
+ * 独立判定：D4 是 CSS 值（四边 padding / row+column gap），D5 是几何布局结果。
+ * D5 用**可见文字 Range rect / 控件盒**，检查内容在 panel 内（四边有界、无负坐标）、
+ * 首尾内容相对 border+padding 内边的局部留白、子块内部撑高居中、computed min-height、
+ * 底部留白、子项间距、稀疏撑高块——不拿 D4 通过重复充当 D5 通过。
  */
 function judgeAccountFrame(f: AccountFrame) {
   const p = f.panel;
-  const pads = [p.padTop, p.padRight, p.padBottom, p.padLeft].map((v) => parseFloat(v) || 0);
-  const padMax = Math.max(...pads);
-  const rowGap = parseFloat(p.rowGap) || 0;
-  const colGap = parseFloat(p.columnGap) || 0;
-  const minHeightPx = parseFloat(p.minHeight) || 0;
-  const kids = f.kids || [];
-  const contentTop = kids.length ? Math.min(...kids.map((k) => k.top)) : null;
-  const contentLeft = kids.length ? Math.min(...kids.map((k) => k.left)) : null;
-  const contentBottom = kids.length ? Math.max(...kids.map((k) => k.top + k.h)) : null;
-  const sorted = kids.slice().sort((a, b) => a.top - b.top);
+  const pads = [px(p.padTop), px(p.padRight), px(p.padBottom), px(p.padLeft)];
+  const borders = [px(p.borderTop), px(p.borderRight), px(p.borderBottom), px(p.borderLeft)];
+  const rowGap = px(p.rowGap), colGap = px(p.columnGap), minHeightPx = px(p.minHeight);
+  const w = p.w, h = p.h;
+  const c = (f.content || []).filter((r) => r.h > 0 && r.right > r.left);
+  const contentTop = c.length ? Math.min(...c.map((r) => r.top)) : null;
+  const contentLeft = c.length ? Math.min(...c.map((r) => r.left)) : null;
+  const contentRight = c.length ? Math.max(...c.map((r) => r.right)) : null;
+  const contentBottom = c.length ? Math.max(...c.map((r) => r.bottom)) : null;
+  const sorted = c.slice().sort((a, b) => a.top - b.top);
   let worstChildGap = 0;
-  for (let i = 1; i < sorted.length; i++) worstChildGap = Math.max(worstChildGap, sorted[i].top - (sorted[i - 1].top + sorted[i - 1].h));
-  const bottomWhitespace = contentBottom !== null ? p.h - contentBottom - pads[2] : null;
+  for (let i = 1; i < sorted.length; i++) worstChildGap = Math.max(worstChildGap, sorted[i].top - sorted[i - 1].bottom);
+  // 相对 border+padding 内边的留白（同坐标系）；上下左右都要求内容落在面板内，负值失败。
+  const innerLeft = (borders[3] ?? 0) + (pads[3] ?? 0);
+  const innerTop = (borders[0] ?? 0) + (pads[0] ?? 0);
+  const innerRight = w - (borders[1] ?? 0) - (pads[1] ?? 0);
+  const innerBottom = h - (borders[2] ?? 0) - (pads[2] ?? 0);
+  const topGap = contentTop !== null ? contentTop - innerTop : null;
+  const leftGap = contentLeft !== null ? contentLeft - innerLeft : null;
+  const bottomWhitespace = contentBottom !== null ? innerBottom - contentBottom : null;
+  // 子块内部撑高居中：某个可见内容盒自身高度远大于文字行高、且文字/控件贴其上下边缘之外的空白过大。
+  const stretchedInner = c.some((r) => r.h >= ACCOUNT_DENSITY.sparseHeight && r.h > 80);
 
+  const numbersValid = [...pads, ...borders, rowGap, colGap, minHeightPx].every((n) => n !== null);
   const d4 = {
-    paddingLe20: padMax <= ACCOUNT_DENSITY.padMax,
-    rowGapLe24: rowGap <= ACCOUNT_DENSITY.gapMax,
-    colGapLe24: colGap <= ACCOUNT_DENSITY.gapMax,
+    numbersValid,
+    paddingLe20: numbersValid && Math.max(...(pads as number[])) <= ACCOUNT_DENSITY.padMax,
+    rowGapLe24: numbersValid && (rowGap as number) <= ACCOUNT_DENSITY.gapMax,
+    colGapLe24: numbersValid && (colGap as number) <= ACCOUNT_DENSITY.gapMax,
   };
   const d5 = {
-    // 局部左上：内容顶部/左边缘紧贴 padding 内边，无大块居中留白
-    contentTopNear: contentTop !== null && contentTop - pads[0] <= ACCOUNT_DENSITY.nearMax,
-    contentLeftNear: contentLeft !== null && contentLeft - pads[3] <= ACCOUNT_DENSITY.nearMax,
-    // 无空 min-height 撑高：computed min-height 不把面板撑到内容之外
-    minHeightNoStretch: minHeightPx === 0 || (contentBottom !== null && minHeightPx <= contentBottom),
-    // 底部无大块留白 / 居中插画
-    bottomWhitespaceSmall: bottomWhitespace !== null && bottomWhitespace <= ACCOUNT_DENSITY.nearMax,
-    // 子项之间无大块竖向空白
-    childGapSmall: worstChildGap <= ACCOUNT_DENSITY.gapMax,
-    // 探针 D5 稀疏撑高块语义（用真实采集值，不依赖前面 pad<=20 的结论）
-    notSparseBlock: !(padMax >= ACCOUNT_DENSITY.sparsePad && p.h >= ACCOUNT_DENSITY.sparseHeight && f.textLen < ACCOUNT_DENSITY.sparseText && kids.length <= 4),
+    numbersValid, // 非法/缺失数值不得静默当通过（与 D4 共用同一读数门）
+    hasContent: c.length > 0,
+    // 四边有界：内容在 border+padding 内侧，无负坐标 / 不越右、越下
+    insideLeft: leftGap !== null && leftGap >= -EPS,
+    insideTop: topGap !== null && topGap >= -EPS,
+    insideRight: contentRight !== null && contentRight <= innerRight + EPS,
+    insideBottom: bottomWhitespace !== null && bottomWhitespace >= -EPS,
+    // 局部左上（不靠负坐标通过）
+    contentTopNear: topGap !== null && topGap >= -EPS && topGap <= ACCOUNT_DENSITY.nearMax,
+    contentLeftNear: leftGap !== null && leftGap >= -EPS && leftGap <= ACCOUNT_DENSITY.nearMax,
+    // 无空 min-height 撑高
+    minHeightNoStretch: minHeightPx !== null && (minHeightPx <= EPS || (contentBottom !== null && minHeightPx <= contentBottom + EPS)),
+    // 子块内部不得撑高居中
+    noStretchedInner: !stretchedInner,
+    // 底部无大块留白
+    bottomWhitespaceSmall: bottomWhitespace !== null && bottomWhitespace >= -EPS && bottomWhitespace <= ACCOUNT_DENSITY.nearMax,
+    // 子项之间无大块间距
+    childGapSmall: worstChildGap <= ACCOUNT_DENSITY.gapMax + EPS,
+    // 探针 D5 稀疏撑高块语义
+    notSparseBlock: numbersValid && !(
+      Math.max(...(pads as number[])) >= ACCOUNT_DENSITY.sparsePad &&
+      h >= ACCOUNT_DENSITY.sparseHeight && f.textLen < ACCOUNT_DENSITY.sparseText && c.length <= 4
+    ),
   };
   return {
     d4: { ...d4, pass: Object.values(d4).every(Boolean) },
     d5: { ...d5, pass: Object.values(d5).every(Boolean) },
-    metrics: { padMax, rowGap, colGap, minHeightPx, contentTop, contentLeft, contentBottom, worstChildGap, bottomWhitespace, textLen: f.textLen, kidCount: kids.length },
+    metrics: {
+      pads, borders, rowGap, colGap, minHeightPx, w, h,
+      contentTop, contentLeft, contentRight, contentBottom, innerLeft, innerTop, innerRight, innerBottom,
+      topGap, leftGap, bottomWhitespace, worstChildGap, stretchedInner, contentBoxes: c.length, textLen: f.textLen,
+    },
   };
 }
 
-/** 注入浏览器：只读 MutationObserver。仅在样式已生效、panel 可见且非零尺寸时把 state 记 seen，否则继续等有效帧。 */
+/**
+ * 注入浏览器：只读 observer。样式就绪判据取**本来就应存在的壳样式特征**
+ * （--pj-* token 已解析、面板 display:flex、有非零边框宽度、四边 padding 解析为有限数），
+ * 这些不是验收阈值，不会筛掉真实失败帧（例如 padding 超标仍会被采、由 judge 判失败）。
+ * 按 state+viewport 管理 seen；样式就绪前不锁 seen，用有界 rAF 继续只读重采；结束时 cancel。
+ */
 function installAccountObserver(): void {
   const frames: unknown[] = [];
-  (window as unknown as { __admAccountFrames: unknown[] }).__admAccountFrames = frames;
+  (window as unknown as { __admAccountFrames: unknown[]; __admObserverStop?: () => void }).__admAccountFrames = frames;
+  const bounded = { n: 0, raf: 0 as number | null };
+  const MAX_FRAMES = 900; // ~15s @60fps 的有界只读重采，不无限跑
+  const rootStyle = () => window.getComputedStyle(document.documentElement);
+  const cssReady = (ps: CSSStyleDeclaration): boolean => {
+    const bw = parseFloat(ps.borderTopWidth);
+    const pad = parseFloat(ps.paddingTop);
+    const accent = rootStyle().getPropertyValue('--pj-accent').trim();
+    const border = rootStyle().getPropertyValue('--pj-border-width').trim();
+    // 壳样式特征：flex 布局 + 真实边框 + 已解析的 --pj-* token；与「padding≤20」等验收阈值无关。
+    return ps.display === 'flex' && Number.isFinite(bw) && bw > 0 && Number.isFinite(pad) &&
+      accent === '#b45700' && /^\d/.test(border);
+  };
   const snap = (state: string): boolean => {
     const panel = document.querySelector('.adm-account') as HTMLElement | null;
     if (!panel) return false;
     const pr = panel.getBoundingClientRect();
     const ps = getComputedStyle(panel);
     if (ps.display === 'none' || ps.visibility === 'hidden' || pr.width < 1 || pr.height < 1) return false;
-    if (!ps.paddingTop || ps.minHeight === undefined || ps.minHeight === null) return false;
-    const kids = Array.from(panel.children).map((c) => {
-      const r = c.getBoundingClientRect();
-      return {
-        tag: c.tagName.toLowerCase(), cls: String(c.getAttribute('class') || ''),
-        top: Math.round(r.top - pr.top), left: Math.round(r.left - pr.left),
-        w: Math.round(r.width), h: Math.round(r.height),
-      };
-    });
+    if (!cssReady(ps)) return false; // 样式未生效：不锁 seen，等下一帧重采
+    const content: Array<{ kind: 'text' | 'box'; top: number; left: number; right: number; bottom: number; h: number }> = [];
+    const rel = (r: DOMRect) => ({ top: r.top - pr.top, left: r.left - pr.left, right: r.right - pr.left, bottom: r.bottom - pr.top, h: r.height });
+    const walk = (node: Node) => {
+      if (node.nodeType === 3 && (node.nodeValue || '').trim()) {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        for (const r of Array.from(range.getClientRects())) {
+          if (r.width > 0 && r.height > 0) content.push({ kind: 'text', ...rel(r as DOMRect) });
+        }
+        return;
+      }
+      if (node.nodeType !== 1) return;
+      const el = node as HTMLElement;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return;
+      const r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) return;
+      const replaceable = /^(IMG|SVG|CANVAS|VIDEO|INPUT|SELECT|TEXTAREA|BUTTON|PROGRESS|METER|IFRAME)$/.test(el.tagName);
+      const surfaced = parseFloat(cs.borderTopWidth) > 0 || (cs.backgroundColor !== 'transparent' && cs.backgroundColor !== 'rgba(0, 0, 0, 0)');
+      if (replaceable || surfaced) content.push({ kind: 'box', ...rel(r as DOMRect) });
+      for (const child of Array.from(el.childNodes)) walk(child);
+    };
+    for (const child of Array.from(panel.childNodes)) walk(child);
     frames.push({
       state, viewport: `${window.innerWidth}x${window.innerHeight}`,
       panel: {
         w: Math.round(pr.width), h: Math.round(pr.height),
+        borderTop: ps.borderTopWidth, borderRight: ps.borderRightWidth, borderBottom: ps.borderBottomWidth, borderLeft: ps.borderLeftWidth,
         padTop: ps.paddingTop, padRight: ps.paddingRight, padBottom: ps.paddingBottom, padLeft: ps.paddingLeft,
         rowGap: ps.rowGap, columnGap: ps.columnGap, minHeight: ps.minHeight,
-        display: ps.display, flexDirection: ps.flexDirection, visibility: ps.visibility,
+        display: ps.display, flexDirection: ps.flexDirection, visibility: ps.visibility, cssReady: true,
       },
-      kids, textLen: (panel.textContent || '').trim().length,
+      content, textLen: (panel.textContent || '').trim().length,
     });
     return true;
   };
   const seen: Record<string, boolean> = {};
+  const key = (s: string) => `${s}@${window.innerWidth}x${window.innerHeight}`;
   const scan = () => {
-    if (!seen.loading && document.querySelector('.adm-account-loading')) { if (snap('loading')) seen.loading = true; }
-    if (!seen.data && document.querySelector('.adm-account-name')) { if (snap('data')) seen.data = true; }
-    if (!seen.cleared && document.querySelector('.adm-account-cleared')) { if (snap('cleared')) seen.cleared = true; }
+    const states: Array<[string, boolean]> = [
+      ['loading', !!document.querySelector('.adm-account-loading')],
+      ['data', !!document.querySelector('.adm-account-name')],
+      ['cleared', !!document.querySelector('.adm-account-cleared')],
+    ];
+    let pending = false;
+    for (const [s, present] of states) {
+      if (present && !seen[key(s)] && snap(s)) seen[key(s)] = true;
+      if (present && !seen[key(s)]) pending = true; // 样式未就绪：继续重采
+    }
+    if (pending && bounded.n++ < MAX_FRAMES) bounded.raf = requestAnimationFrame(scan);
   };
+  const stop = () => { if (bounded.raf !== null) cancelAnimationFrame(bounded.raf); };
+  (window as unknown as { __admObserverStop?: () => void }).__admObserverStop = stop;
   new MutationObserver(scan).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
   document.addEventListener('DOMContentLoaded', scan);
   if (document.readyState !== 'loading') requestAnimationFrame(scan);
+  // resize 后按新 viewport 的 seen key 重新只读采样（cleared 态跨两档桌面，不需要第二次登录/signout）。
+  window.addEventListener('resize', () => requestAnimationFrame(scan));
+  window.addEventListener('pagehide', stop);
 }
 
 async function readAccountFrames(page: import('@playwright/test').Page): Promise<AccountFrame[]> {
@@ -294,78 +381,67 @@ test.describe('后台壳主体（独立管理员，整组一次登录）', () =>
    * 补证：侧栏 `.adm-account` 面板（被 density_probe.js 的 rail 排除，14 次既有 main 探针量不到）
    * 的真实 data / loading 态 D4 / D5 几何，以及同元素跨断点 D1 间距。
    *
-   * 只读观测：addInitScript 里挂 MutationObserver，仅在样式已生效、panel 可见且非零尺寸时
-   * 记录真实 getBoundingClientRect / getComputedStyle；不改 DOM / CSS / React state，
-   * 不注入 localStorage / sessionStorage，不伪造会话或业务记录。CDP 标准网络限速只用于让
-   * 客户端 GET account 稍慢、使 loading 帧有稳定观测窗口，响应仍是真实服务端数据，
-   * 不用 route.fulfill 模拟任何账号或 401。401-cleared 态另见本文件末尾独立会话补证。
-   * D4（CSS 值）与 D5（几何布局结果）用 judgeAccountFrame 独立判定，不互相充当。
+   * 只读观测：addInitScript 里挂 MutationObserver，用真实壳样式特征（--pj-* token 已解析、
+   * display:flex、非零边框宽度）确认 CSS 已生效后才记有效帧，样式就绪前不锁 seen、有界 rAF 重采。
+   * 采可见文字 Range rect / 控件盒（只存几何，不存正文），不改 DOM/CSS/React state，不注入存储，
+   * 不伪造会话或业务记录，不用 route.fulfill。401-cleared 态另见本文件末尾独立会话补证。
+   * D4（CSS 值）与 D5（几何布局结果）独立判定，缺帧/非法数值明确失败。
    */
   test('壳内账号区 data/loading 态的 D4/D5 与跨断点 D1 间距（补证）', async ({ page }, testInfo) => {
     test.setTimeout(150_000);
     await page.addInitScript(installAccountObserver);
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Network.enable');
-    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 250, downloadThroughput: -1, uploadThroughput: -1 });
     const all: AccountFrame[] = [];
     for (const view of [{ width: 1920, height: 1080, label: '1920x1080' }, { width: 1440, height: 900, label: '1440x900' }]) {
       await page.setViewportSize(view);
       await page.goto(`${BASE}/admin/inquiries`, { waitUntil: 'load' });
       await expect(page.getByTestId('admin-account-role')).toBeVisible({ timeout: 20_000 });
+      await page.evaluate(() => (window as unknown as { __admObserverStop?: () => void }).__admObserverStop?.());
       all.push(...(await readAccountFrames(page)).filter((f) => f.viewport === view.label));
     }
-    await cdp.detach();
 
     const checked: Array<Record<string, unknown>> = [];
+    const asserts: Array<() => void> = [];
     for (const label of ['1920x1080', '1440x900']) {
       const vf = all.filter((f) => f.viewport === label);
-      // 缺帧明确失败，不用非法/空帧伪填通过。
-      expect(vf.some((f) => f.state === 'loading'), `${label} 须采集到样式已生效的真实 loading 有效帧`).toBe(true);
-      expect(vf.some((f) => f.state === 'data'), `${label} 须采集到样式已生效的真实 data 有效帧`).toBe(true);
+      asserts.push(() => expect(vf.some((f) => f.state === 'loading'), `${label} 须采集到 CSS 已生效的真实 loading 有效帧`).toBe(true));
+      asserts.push(() => expect(vf.some((f) => f.state === 'data'), `${label} 须采集到 CSS 已生效的真实 data 有效帧`).toBe(true));
       for (const f of vf) {
         const j = judgeAccountFrame(f);
         const tag = `${label} ${f.state}`;
-        expect(j.d4.paddingLe20, `${tag} D4 padding≤20（实际 ${j.metrics.padMax}）`).toBe(true);
-        expect(j.d4.rowGapLe24, `${tag} D4 row-gap≤24（实际 ${j.metrics.rowGap}）`).toBe(true);
-        expect(j.d4.colGapLe24, `${tag} D4 column-gap≤24（实际 ${j.metrics.colGap}）`).toBe(true);
-        // D5 五项独立有效断言（几何布局），不拿 D4 通过重复充当 D5 通过：
-        expect(j.d5.contentTopNear, `${tag} D5 内容靠上（top ${j.metrics.contentTop}）`).toBe(true);
-        expect(j.d5.contentLeftNear, `${tag} D5 内容靠左（left ${j.metrics.contentLeft}）`).toBe(true);
-        expect(j.d5.minHeightNoStretch, `${tag} D5 无空 min-height 撑高（${j.metrics.minHeightPx}）`).toBe(true);
-        expect(j.d5.bottomWhitespaceSmall, `${tag} D5 底部无大块留白（${j.metrics.bottomWhitespace}）`).toBe(true);
-        expect(j.d5.childGapSmall, `${tag} D5 子项无大块间距（${j.metrics.worstChildGap}）`).toBe(true);
-        expect(j.d5.notSparseBlock, `${tag} D5 非稀疏撑高块`).toBe(true);
-        checked.push({ viewport: label, state: f.state, panel: f.panel, kids: f.kids, metrics: j.metrics, d4: j.d4, d5: j.d5 });
+        for (const [k, v] of Object.entries(j.d4)) if (typeof v === 'boolean') asserts.push(() => expect(v, `${tag} D4 ${k}`).toBe(true));
+        for (const [k, v] of Object.entries(j.d5)) if (typeof v === 'boolean') asserts.push(() => expect(v, `${tag} D5 ${k}`).toBe(true));
+        checked.push({ viewport: label, state: f.state, panel: f.panel, content: f.content, metrics: j.metrics, d4: j.d4, d5: j.d5 });
       }
     }
-    // D1：两档断点同元素 padding / gap 不随宽度增大
+    // D1：两档断点完整四边 padding 与 row/column gap 都不随宽度增大。
     const d1920 = all.find((f) => f.viewport === '1920x1080' && f.state === 'data');
     const d1440 = all.find((f) => f.viewport === '1440x900' && f.state === 'data');
-    expect(d1920 && d1440, '两档都须有 data 帧供 D1 对比').toBeTruthy();
+    const d1Keys = ['padTop', 'padRight', 'padBottom', 'padLeft', 'rowGap', 'columnGap'] as const;
     const d1 = {
-      padLeftEqual: d1920!.panel.padLeft === d1440!.panel.padLeft,
-      padTopEqual: d1920!.panel.padTop === d1440!.panel.padTop,
-      gapEqual: d1920!.panel.rowGap === d1440!.panel.rowGap,
-      values: { x1920: { padLeft: d1920!.panel.padLeft, rowGap: d1920!.panel.rowGap }, x1440: { padLeft: d1440!.panel.padLeft, rowGap: d1440!.panel.rowGap } },
+      present: !!d1920 && !!d1440,
+      equal: d1920 && d1440 ? d1Keys.map((k) => ({ key: k, a: d1920.panel[k], b: d1440.panel[k], equal: d1920.panel[k] === d1440.panel[k] })) : [],
     };
-    expect(d1.padLeftEqual && d1.padTopEqual && d1.gapEqual, 'D1 断点变宽不增大 padding/gap').toBe(true);
+    asserts.push(() => expect(d1.present, '两档都须有 data 帧供 D1 对比').toBe(true));
+    asserts.push(() => expect(d1.equal.every((e) => e.equal), 'D1 断点变宽不增大四边 padding / row+column gap').toBe(true));
 
+    // 先落盘含真实判定的报告，再执行失败断言，保证几何失败也留下 JSON 供同次 artifact 定位。
     const report = {
       suite: 'M3-T7 admin-account density supplement (#529)',
       selector: '.adm-account', rail: 'nav#adm-nav（既有 14 次 main 探针排除侧栏，本补证直接量面板）',
       viewports: ['1920x1080', '1440x900'], statesMeasured: ['data', 'loading'],
-      thresholds: ACCOUNT_DENSITY,
-      sampling: '样式已生效、panel 可见且非零尺寸才记有效帧；缺帧即失败',
-      d4Definition: 'CSS 值：padding≤20 / row-gap≤24 / column-gap≤24',
-      d5Definition: '几何布局：内容左上、computed min-height 不撑高、底部留白、子项间距、稀疏撑高块；与 D4 独立',
+      thresholds: ACCOUNT_DENSITY, eps: EPS,
+      sampling: 'CSS 已生效（--pj-* / display:flex / 非零边框）+ panel 可见非零才记有效帧；按 state+viewport 管 seen；缺帧即失败',
+      d4Definition: 'CSS 值：四边 padding≤20 / row+column-gap≤24；非法/缺失数值失败',
+      d5Definition: '可见文字 Range / 控件盒几何：四边有界、局部左上、无撑高子块、computed min-height、底部留白、子项间距、稀疏撑高块；与 D4 独立',
       frames: checked, d1,
-      cleared401: { scope: '本用例只采 data/loading；401-cleared 的构造结果见独立会话补证报告 admin-account-cleared.json，不在此伪填。' },
-      note: '390x844 仅沿用既有 44px 触控与无横向溢出证据，不伪填手机 D1–D6；card 不是本卡新增页面类型，不新造 card 页面。',
-      pass: true,
+      cleared401: { scope: '本用例只采 data/loading；401-cleared 构造结果见独立会话补证报告 admin-account-cleared.json。' },
+      note: '390x844 phone probe 未跑，仅复用既有 44px 触控与无横向溢出证据，不伪填手机 D1–D6；card 不是本卡新增页面类型，不新造 card 页面。',
+      pass: checked.length > 0 && checked.every((c) => (c.d4 as { pass: boolean }).pass && (c.d5 as { pass: boolean }).pass) && d1.present && d1.equal.every((e) => e.equal),
     };
     const reportPath = testInfo.outputPath('admin-account-density.json');
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
     await testInfo.attach('admin-account-density', { path: reportPath, contentType: 'application/json' });
+    for (const a of asserts) a();
   });
 });
 
@@ -392,89 +468,145 @@ test.describe('admin-signout 真退出（独立会话）', () => {
 /**
  * 401-cleared 态补证（独立会话，不污染主体组共享管理员/会话）。
  *
- * 时序：整页 goto 时 layout 服务端 checkAdminSession 通过、壳 DOM 已挂载；客户端 AdminShell
- * mount 的 getAccount（useEffect）发出后被 CDP 标准网络限速挂起；此时用**另一真实请求**
- * （独立 request context 复制会话 cookie，发真实 Auth.js /api/auth/signout）撤销服务端设备会话；
- * 放开限速后客户端 GET /api/admin/account 命中已撤销会话返回 401，AdminShell.tsx:38-41 只
- * setAccount(null)/setAccountCleared(true)，不 assign，页面保留壳 DOM 并渲染 .adm-account-cleared。
+ * 实证方式（不用 CDP 延迟推定时序）：**导航前**注册浏览器自身 `GET /api/admin/account` 的
+ * request / response / requestfailed 监听，记录路径、方法、status、requestId 与同源相对时间
+ * （时钟源 = performance.now()，只描述浏览器可观测事件，不写服务端到达时刻）。
+ * 预建 revoker request context 与 CSRF；SSR 导航响应已获得、壳 DOM 出现后尽早触发真实
+ * Auth.js signout（机会策略，非「请求被挂起」的证明），并用复制旧 state 的真实请求确认
+ * 旧 cookie GET account=401。cleared 判定必须同时满足：浏览器自身客户端 GET account 实际 401
+ * + 同页 `.adm-account-cleared` 可见 + 两档桌面各取得 CSS 已生效的有效几何帧。
  *
- * 不 route.fulfill、不拦改本应用响应、不写 DB 绕过产品、不改 src、不注入存储；
- * 401 由真实受保护请求产生，signout 走真实 Auth.js 端点。只读 observer 采有效帧。
- * 若竞争窗口本次未构造成功，如实记录时序/请求结果标「本次未构造/未捕获」，不伪填通过，
- * 也不下「实现不可能 / 须改产品」的定论（mount 路径确实不跳转）。
+ * 不 route.fulfill、不拦改本应用响应、不写 DB 绕过产品、不改 src/DOM/CSS/React、不注入存储。
+ * 若竞争窗口本次未构造成功，报告标 not-captured + 具体事件时序/请求结果，不伪填通过，
+ * 也不下「实现不可能 / 须改产品」的定论（旧头 run 42046524928 已真实 captured 过一次）。
  */
 test.describe('admin-account 401-cleared 态布局补证（独立会话）', () => {
   useSharedAdmin({ emailPrefix: 'e2e-shell-cleared', name: 'E2E shell cleared', password: PASSWORD, probe: ACCOUNT });
 
-  test('SSR 挂载后另一真实请求撤销会话，客户端 GET account 401 触发 .adm-account-cleared', async ({ page, playwright }, testInfo) => {
+  test('SSR 挂载后另一真实请求撤销会话，浏览器自身 GET account 401 触发 .adm-account-cleared（两档桌面）', async ({ page, playwright }, testInfo) => {
     test.setTimeout(150_000);
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.addInitScript(installAccountObserver);
+    const accountEvents: Array<Record<string, unknown>> = [];
+    const t0 = Date.now();
+    const at = () => Date.now() - t0; // 同源相对时间，仅作事件排序，不冒充服务端时刻
+    const watchRequest = (r: import('@playwright/test').Request) => {
+      try {
+        const u = new URL(r.url());
+        if (r.method() === 'GET' && u.pathname === ACCOUNT) {
+          accountEvents.push({ event: 'request', atMs: at(), method: r.method(), path: u.pathname, requestId: (r as unknown as { _guid?: string })._guid ?? undefined });
+        }
+      } catch { /* 忽略非 URL */ }
+    };
+    const watchResponse = (r: import('@playwright/test').Response) => {
+      try {
+        const u = new URL(r.url());
+        if (r.request().method() === 'GET' && u.pathname === ACCOUNT) {
+          accountEvents.push({ event: 'response', atMs: at(), path: u.pathname, status: r.status(), requestId: (r.request() as unknown as { _guid?: string })._guid ?? undefined });
+        }
+      } catch { /* 忽略非 URL */ }
+    };
+    const watchFailed = (r: import('@playwright/test').Request) => {
+      try {
+        const u = new URL(r.url());
+        if (r.method() === 'GET' && u.pathname === ACCOUNT) {
+          accountEvents.push({ event: 'requestfailed', atMs: at(), path: u.pathname, requestId: (r as unknown as { _guid?: string })._guid ?? undefined });
+        }
+      } catch { /* 忽略非 URL */ }
+    };
+    page.on('request', watchRequest);
+    page.on('response', watchResponse);
+    page.on('requestfailed', watchFailed);
+
+    // 预建 revoker 与 CSRF：导航前就绪，避免错过 SSR 已过 → 客户端 GET 之前的窗口。
     const sessionState = await page.context().storageState();
-
-    // CDP 标准网络限速：只让客户端 GET account 在 hydration 后稍慢到达服务端，制造竞争窗口。
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Network.enable');
-    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 1500, downloadThroughput: -1, uploadThroughput: -1 });
-
-    // SSR 校验此刻仍有效 → 壳 DOM 挂载；不等 account 完成。
-    await page.goto(`${BASE}/admin/inquiries`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByTestId('admin-account')).toBeVisible({ timeout: 20_000 });
-    const shellMounted = true;
-
-    // 另一真实请求：独立 context 用同一会话发真实 Auth.js signout（不拦改本应用响应、不写 DB）。
     const revoker = await playwright.request.newContext({ baseURL: BASE, storageState: sessionState });
     const csrf = (await (await revoker.get('/api/auth/csrf')).json()).csrfToken as string;
-    const signout = await revoker.post('/api/auth/signout', { maxRedirects: 0, headers: { Origin: BASE }, form: { csrfToken: csrf, callbackUrl: `${BASE}/admin-login` } });
-    const signoutStatus = signout.status();
-    // 真实受保护请求确认会话已撤销（复制旧 state 的新 context，不复用 revoker 已清的 cookie）。
-    const replay = await playwright.request.newContext({ baseURL: BASE, storageState: sessionState });
-    const replayStatus = (await replay.get(ACCOUNT)).status();
+    const replayCtx = await playwright.request.newContext({ baseURL: BASE, storageState: sessionState });
 
-    // 放开限速，让被挂起的客户端 GET account 打到已撤销会话上。
-    await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
-
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.addInitScript(installAccountObserver);
+    let navigationStatus = 0;
+    let shellVisible = false;
+    let signoutStatus = 0;
+    let replayStatus = 0;
+    let urlAfter = '';
     let clearedTextVisible = false;
+    let frames: AccountFrame[] = [];
+    let err: unknown = null;
     try {
-      await expect(page.getByRole('status').filter({ hasText: '会话已失效' })).toBeVisible({ timeout: 8_000 });
-      clearedTextVisible = true;
-    } catch { /* 未构造成功：如实记录，不伪填 */ }
-    const frames = await readAccountFrames(page);
-    const cleared = frames.filter((f) => f.state === 'cleared');
-    const urlAfter = page.url();
-    await cdp.detach();
+      const nav = await page.goto(`${BASE}/admin/inquiries`, { waitUntil: 'domcontentloaded' });
+      navigationStatus = nav ? nav.status() : 0;
+      // SSR 响应已获得、壳 DOM 出现即尽早触发真实 signout（机会策略，不宣称请求被挂起）。
+      await expect(page.getByTestId('admin-account')).toBeVisible({ timeout: 20_000 });
+      shellVisible = true;
+      const signout = await revoker.post('/api/auth/signout', { maxRedirects: 0, headers: { Origin: BASE }, form: { csrfToken: csrf, callbackUrl: `${BASE}/admin-login` } });
+      signoutStatus = signout.status();
+      // 复制旧 state 的真实受保护请求：确认服务端会话确已撤销。
+      replayStatus = (await replayCtx.get(ACCOUNT)).status();
+
+      try {
+        await expect(page.getByRole('status').filter({ hasText: '会话已失效' })).toBeVisible({ timeout: 10_000 });
+        clearedTextVisible = true;
+      } catch { /* 未捕获：如实记 not-captured */ }
+      // 同页 resize 到 1920 再采 cleared 帧（observer 按 state+viewport 管 seen，无需第二次登录/signout）。
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.waitForTimeout(300);
+      frames = await readAccountFrames(page);
+      urlAfter = page.url();
+      await page.evaluate(() => (window as unknown as { __admObserverStop?: () => void }).__admObserverStop?.());
+    } catch (e) { err = e; }
+    page.off('request', watchRequest);
+    page.off('response', watchResponse);
+    page.off('requestfailed', watchFailed);
     await revoker.dispose();
-    await replay.dispose();
+    await replayCtx.dispose();
 
-    const captured = cleared.length > 0 && clearedTextVisible;
-    const judged = cleared.map((f) => ({ frame: f, d4: judgeAccountFrame(f).d4, d5: judgeAccountFrame(f).d5, metrics: judgeAccountFrame(f).metrics }));
-    if (captured) {
-      // 真实捕获才做 D4/D5 判定；独立几何断言，不拿 D4 充当 D5。
-      for (const j of judged) {
-        expect(j.d4.pass, 'cleared 态 D4 全项通过').toBe(true);
-        expect(j.d5.pass, 'cleared 态 D5 全项通过').toBe(true);
-        expect(j.d5.minHeightNoStretch, 'cleared 态 D5 无空 min-height 撑高').toBe(true);
-        expect(j.d5.bottomWhitespaceSmall, 'cleared 态 D5 底部无大块留白').toBe(true);
-      }
-    }
+    const cleared = frames.filter((f) => f.state === 'cleared');
+    const byViewport = ['1440x900', '1920x1080'].map((label) => ({ label, frames: cleared.filter((f) => f.viewport === label) }));
+    const judged = byViewport.map((v) => ({
+      viewport: v.label,
+      frames: v.frames.map((f) => ({ panel: f.panel, content: f.content, d4: judgeAccountFrame(f).d4, d5: judgeAccountFrame(f).d5, metrics: judgeAccountFrame(f).metrics })),
+    }));
+    const clientAccount401 = accountEvents.some((e) => e.event === 'response' && e.path === ACCOUNT && e.status === 401);
+    const signoutOk = signoutStatus === 200 || signoutStatus === 302;
+    const replayOk = replayStatus === 401;
+    const geomOk = byViewport.every((v) => v.frames.length > 0 && v.frames.every((f) => judgeAccountFrame(f).d4.pass && judgeAccountFrame(f).d5.pass));
+    const captured = clearedTextVisible && clientAccount401 && signoutOk && replayOk && geomOk && !err;
 
+    // 先落盘含真实判定的报告（try/finally 语义），再执行失败断言；失败也留 JSON。
     const report = {
       suite: 'M3-T7 admin-account 401-cleared density supplement (#529)',
       selector: '.adm-account / .adm-account-cleared',
-      viewport: '1440x900',
-      method: 'SSR 挂载后独立真实 Auth.js signout 撤销 + CDP 标准网络限速构造竞争窗口；无 route.fulfill / 无 DB 写入 / 无 src 改动 / 无存储注入',
-      realRequests: { signoutStatus, replayAccountStatus: replayStatus, shellMounted, urlAfter },
+      viewports: ['1440x900', '1920x1080'],
+      clock: 'performance.now() 同源相对时间（Date.now()-t0）；只记浏览器可观测事件，不记服务端到达时刻',
+      method: '导航前注册浏览器自身 GET account request/response/requestfailed；预建 revoker+CSRF；SSR 响应已获、壳出现后尽早发真实 Auth.js signout；复制旧 state 的真实请求确认 401；同页 resize 采两档 cleared 几何。无 CDP 延迟挂起假设、无 route.fulfill、无响应改写、无 DB 写入、无 src/DOM/CSS/React 改动、无存储注入。',
+      realRequests: { navigationStatus, shellVisible, signoutStatus, replayAccountStatus: replayStatus, urlAfter },
+      browserAccountEvents: accountEvents,
+      clientAccount401, signoutOk, replayOk,
       result: captured ? 'captured' : 'not-captured',
-      clearedTextVisible, clearedFrames: cleared.length,
+      clearedTextVisible, clearedFrameCount: cleared.length,
+      byViewport: judged.map((j) => ({ viewport: j.viewport, frameCount: j.frames.length })),
       frames: judged,
-      thresholds: ACCOUNT_DENSITY,
+      thresholds: ACCOUNT_DENSITY, eps: EPS,
+      error: err ? String(err) : null,
       note: captured
-        ? '本次捕获到真实 cleared 态并已完成 D4/D5 几何判定。'
-        : '本次未构造/未捕获：以上为实际时序与请求结果，供 Chief 定窄补证方案；不伪填通过，也不下「实现不可能 / 须改产品」结论（AdminShell mount 的 401 路径确实不 assign）。390 手机 D1–D6 仍 n/a；card 不适用、不新造页面。',
+        ? '浏览器自身 GET account 实测 401 + 真实 signout/旧 cookie 401 + 两档桌面 cleared 几何 D4/D5 均通过。'
+        : '本次未闭合：以上为真实事件时序与请求结果。not-captured / 客户端 GET 非 401 / 缺任一视口 cleared 几何 / 几何不通过 都记为未取得，不伪填 pass、不下「实现不可能 / 须改产品」结论。390 phone probe 未跑，仅复用既有 44px 触控与无横向溢出证据，不伪填手机 D1–D6；card 不适用、不新造页面。',
       pass: captured,
     };
     const reportPath = testInfo.outputPath('admin-account-cleared.json');
     writeFileSync(reportPath, JSON.stringify(report, null, 2));
     await testInfo.attach('admin-account-cleared', { path: reportPath, contentType: 'application/json' });
+
+    // 失败断言（报告已落盘）：缺帧 / not-captured 明确为未闭合。
+    expect(err, `补证执行异常：${err ? String(err) : ''}`).toBeNull();
+    expect(signoutOk, `真实 Auth.js signout 须成功（实际 ${signoutStatus}）`).toBe(true);
+    expect(replayOk, `复制旧 state 的真实 GET account 须 401（实际 ${replayStatus}）`).toBe(true);
+    expect(clientAccount401, '浏览器自身 GET account 须实测 401（与 cleared 关联）').toBe(true);
+    expect(clearedTextVisible, '.adm-account-cleared 须真实可见').toBe(true);
+    for (const v of byViewport) expect(v.frames.length, `${v.label} 须取得 CSS 已生效的 cleared 有效帧`).toBeGreaterThan(0);
+    for (const j of judged) for (const f of j.frames) {
+      expect(f.d4.pass, `${j.viewport} cleared D4 全项`).toBe(true);
+      expect(f.d5.pass, `${j.viewport} cleared D5 全项`).toBe(true);
+    }
   });
 });
