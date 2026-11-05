@@ -9,6 +9,14 @@ import { hintText, COARSE_QUERY } from './hint';
 import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 import { Link } from '@/i18n/navigation';
 import { controlCopy, createModelPointerState, reduceModelPointer, shouldAutoRotate, wheelAdmission } from '@/lib/three/model-pointer';
+import { accessibilityCopy, keyToCameraCommand, TOUCH_TARGET_PX } from '@/lib/three/model-accessibility';
+import type { CameraAction } from './GalleryScene';
+
+/**
+ * 触控目标下限 44×44（E-101、E-102）。内联样式随组件走：不依赖 globals.css 的 pointer:coarse 断点，
+ * 因此键盘与鼠标用户在桌面也能拿到 44px 目标，而不是只有触屏设备才有。
+ */
+const TOUCH_TARGET_STYLE = { minWidth: TOUCH_TARGET_PX, minHeight: TOUCH_TARGET_PX } as const;
 
 /** 深色卡片（.theme-premium）：卡片样式和 3D 轮廓光共用这一份 */
 export const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
@@ -39,7 +47,9 @@ function CatalogLink({ href, className, testId, children }: { href: string; clas
 type Labels = { learnMore: string; specsLabel: string; tap: string; drag: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
 export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
-  const copy = controlCopy(useLocale());
+  const locale = useLocale();
+  const copy = controlCopy(locale);
+  const keys = accessibilityCopy(locale);
   const rootRef = useRef<HTMLDivElement>(null);
   const tracks = useMemo(() => items.map(() => createRef<HTMLDivElement>()), [items]);
   const [visible, setVisible] = useState<Set<string>>(new Set());
@@ -63,6 +73,12 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
    */
   const wheelPermit = useRef<string | null>(null);
   const [zoom, setZoom] = useState<{ slug: string; delta: number; id: number } | null>(null);
+  /**
+   * 方向键/旋转按钮/复位的动作通道（E-101、E-104）。与 `zoom` 分开记账：
+   * 缩放沿用 M2-T2 已验收的 `requestZoom` 通道，新增动作不会覆盖它的 id。
+   */
+  const commandSeq = useRef(0);
+  const [command, setCommand] = useState<{ slug: string; action: CameraAction; id: number } | null>(null);
   const [fine, setFine] = useState(false);
   const [mouse, setMouse] = useState(false);
   // 角标文案按指针类型选（#172 第 10 点）；SSR 时角标不渲染（模型未就绪），无水合差异
@@ -71,6 +87,10 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     if (!delta) return;
     zoomSeq.current += 1;
     setZoom({ slug, delta, id: zoomSeq.current });
+  }, []);
+  const requestCamera = useCallback((slug: string, action: CameraAction) => {
+    commandSeq.current += 1;
+    setCommand({ slug, action, id: commandSeq.current });
   }, []);
   const releaseDom = useCallback(() => {
     const slug = pointerRef.current.ownerSlug;
@@ -111,16 +131,28 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
   useEffect(() => {
     const onUp = () => dispatch({ type: 'pointerup' });
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
       const current = pointerRef.current;
-      if (!current.focusedSlug && !current.dragging && !current.ownerSlug) return;
+      if (event.key === 'Escape') {
+        if (!current.focusedSlug && !current.dragging && !current.ownerSlug) return;
+        event.preventDefault();
+        releaseDom();
+        // 同步撤销滚轮许可：不等 reducer 渲染，遗留 DOM 焦点也不能再接管 wheel。
+        wheelPermit.current = null;
+        dispatch({ type: 'escape' });
+        const activeEl = document.activeElement;
+        if (activeEl instanceof HTMLElement && rootRef.current?.contains(activeEl)) activeEl.blur();
+        return;
+      }
+      // 键盘相机动作（E-101）：只有焦点确实落在某个模型控制区时才接管，其余键一律放行。
+      // 焦点一旦移出控制区，focusedSlug 已被 blur-region 清空，这里自然不再命中，Tab 不会被锁住。
+      const slug = current.focusedSlug;
+      if (!slug) return;
+      const cmd = keyToCameraCommand({ key: event.key, shiftKey: event.shiftKey, ctrlKey: event.ctrlKey, metaKey: event.metaKey, altKey: event.altKey });
+      if (!cmd) return;
       event.preventDefault();
-      releaseDom();
-      // 同步撤销滚轮许可：不等 reducer 渲染，遗留 DOM 焦点也不能再接管 wheel。
-      wheelPermit.current = null;
-      dispatch({ type: 'escape' });
-      const activeEl = document.activeElement;
-      if (activeEl instanceof HTMLElement && rootRef.current?.contains(activeEl)) activeEl.blur();
+      if (cmd.type === 'zoom') requestZoom(slug, cmd.factor < 1 ? -100 : 100);
+      else if (cmd.type === 'rotate') requestCamera(slug, { kind: 'rotate', azimuth: cmd.azimuth, polar: cmd.polar });
+      else requestCamera(slug, { kind: 'reset' });
     };
     const onWindowBlur = () => {
       releaseDom();
@@ -140,7 +172,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
       window.removeEventListener('blur', onWindowBlur);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [releaseDom]);
+  }, [releaseDom, requestZoom, requestCamera]);
   useEffect(() => {
     const slug = pointer.focusedSlug;
     if (!slug) return;
@@ -261,6 +293,9 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               data-focused={pointer.focusedSlug === p.slug ? '1' : '0'}
               tabIndex={0}
               className={`stage${active === p.slug ? ' active' : ''}`}
+              role="group"
+              aria-label={`${copy.controls}: ${p.name}`}
+              aria-describedby={`${p.slug}-model-keys`}
               onClick={() => { if (!fine) setActive(p.slug); }}
               onPointerEnter={onEnter(p.slug)}
               onPointerLeave={onLeave(p.slug)}
@@ -273,20 +308,25 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
                 const h = hintText({ failed: failed.has(p.slug) || sceneDead, started: armed && visible.has(p.slug), ready: ready.has(p.slug), interacting: pointer.dragging && pointer.ownerSlug === p.slug, coarse }, labels);
                 return h && <span className="hint">{h}</span>;
               })()}
-              {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面 */}
+              {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面（E-102 的退出控件 ≥44px） */}
               {active === p.slug && (
-                <button type="button" className="btn sm done" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
+                <button type="button" className="btn sm done" style={TOUCH_TARGET_STYLE} data-testid="model-finish" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
               )}
             </div>
+            {/* 键盘操作说明：给屏幕阅读器读，视觉上不占位；内容与真实按键一致 */}
+            <p id={`${p.slug}-model-keys`} className="sr-only">{keys.keyboardHint}</p>
             <div className="views" role="group" aria-label={VIEW_SLUGS.has(p.slug) ? `${copy.controls}, ${labels.viewsLabel}` : copy.controls} data-testid="model-controls">
-              <button type="button" data-testid="model-zoom-in" onClick={() => { setArmed(true); requestZoom(p.slug, -100); }}>{copy.zoomIn}</button>
-              <button type="button" data-testid="model-zoom-out" onClick={() => { setArmed(true); requestZoom(p.slug, 100); }}>{copy.zoomOut}</button>
-              <button type="button" data-testid="model-pause-rotation" aria-pressed={paused}
+              <button type="button" data-testid="model-rotate-left" style={TOUCH_TARGET_STYLE} aria-label={`${keys.rotateLeft}: ${p.name}`} onClick={(e) => { e.stopPropagation(); setArmed(true); requestCamera(p.slug, { kind: 'rotate', azimuth: Math.PI / 12 }); }}>{keys.rotateLeft}</button>
+              <button type="button" data-testid="model-rotate-right" style={TOUCH_TARGET_STYLE} aria-label={`${keys.rotateRight}: ${p.name}`} onClick={(e) => { e.stopPropagation(); setArmed(true); requestCamera(p.slug, { kind: 'rotate', azimuth: -Math.PI / 12 }); }}>{keys.rotateRight}</button>
+              <button type="button" data-testid="model-zoom-in" style={TOUCH_TARGET_STYLE} onClick={() => { setArmed(true); requestZoom(p.slug, -100); }}>{copy.zoomIn}</button>
+              <button type="button" data-testid="model-zoom-out" style={TOUCH_TARGET_STYLE} onClick={() => { setArmed(true); requestZoom(p.slug, 100); }}>{copy.zoomOut}</button>
+              <button type="button" data-testid="model-reset" style={TOUCH_TARGET_STYLE} aria-label={`${keys.resetView}: ${p.name}`} onClick={(e) => { e.stopPropagation(); setArmed(true); requestCamera(p.slug, { kind: 'reset' }); }}>{keys.resetView}</button>
+              <button type="button" data-testid="model-pause-rotation" style={TOUCH_TARGET_STYLE} aria-pressed={paused}
                 onClick={() => dispatch({ type: 'user-pause', slug: p.slug, paused: !paused })}>
                 {paused ? copy.resume : copy.pause}
               </button>
               {VIEW_SLUGS.has(p.slug) && VIEWS.map((v) => (
-                <button key={v} type="button" aria-pressed={(views[p.slug] ?? 'closed') === v}
+                <button key={v} type="button" style={TOUCH_TARGET_STYLE} aria-pressed={(views[p.slug] ?? 'closed') === v}
                   onClick={(e) => { e.stopPropagation(); setArmed(true); setViews((s) => ({ ...s, [p.slug]: v })); }}>
                   {labels.views[v]}
                 </button>
@@ -314,7 +354,7 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
         eventSource={rootRef}
         onReady={onReady}
         onError={onError}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, directRotate: fine || mouse, spin: shouldAutoRotate(pointer, p.slug), zoomId: zoom?.slug === p.slug ? zoom.id : 0, zoomDelta: zoom?.slug === p.slug ? zoom.delta : 0, view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), track: tracks[i] }))}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, directRotate: fine || mouse, spin: shouldAutoRotate(pointer, p.slug), zoomId: zoom?.slug === p.slug ? zoom.id : 0, zoomDelta: zoom?.slug === p.slug ? zoom.delta : 0, commandId: command?.slug === p.slug ? command.id : 0, command: command?.slug === p.slug ? command.action : undefined, view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), track: tracks[i] }))}
       /></SceneErrorBoundary>)}
     </div>
   );
