@@ -27,6 +27,8 @@ export type NewRecoveryPermit = {
   source: 'ADMIN' | 'SERVER_OWNER';
   issuedById: string | null;
   reason: string;
+  /** 仅 M3-T18 的本地 TTY 预授权写入；ADMIN 路径恒为 null。M3-T19 核销时转入受限会话。 */
+  pendingPasswordHash?: string | null;
   sessionVersion: number;
   createdAt: Date;
   expiresAt: Date;
@@ -84,6 +86,11 @@ export type RecoveryRepo = {
    * M3-T19 核销时会按当前 sv 做 CAS，并发的 sv 变化会让旧 permit 失效，无需在这里抢锁。
    */
   readTargetUser(tx: Prisma.TransactionClient, userId: string): Promise<LockedRecoveryTarget | undefined>;
+  /**
+   * M3-T18：本地恢复预授权要判断目标角色，而 readTargetUser 属 ADMIN 路径、不返回 role。
+   * 单独一条只读查询，不改既有查询形状，避免影响 M3-T4/M3-T19 已验收行为。
+   */
+  readOwnerTarget(tx: Prisma.TransactionClient, userId: string): Promise<LockedRecoveryTarget & { role: string } | undefined>;
   createPermit(tx: Prisma.TransactionClient, permit: NewRecoveryPermit): Promise<void>;
   createAudit(tx: Prisma.TransactionClient, entry: RecoveryAudit): Promise<void>;
 
@@ -113,6 +120,14 @@ export function createRecoveryRepo(): RecoveryRepo {
     async readTargetUser(tx, userId) {
       const rows = await tx.$queryRaw<LockedRecoveryTarget[]>`
         SELECT id, "sessionVersion", disabled, "totpEnabled"
+        FROM "User"
+        WHERE id = ${userId}
+      `;
+      return rows[0];
+    },
+    async readOwnerTarget(tx, userId) {
+      const rows = await tx.$queryRaw<(LockedRecoveryTarget & { role: string })[]>`
+        SELECT id, role::text AS role, "sessionVersion", disabled, "totpEnabled"
         FROM "User"
         WHERE id = ${userId}
       `;

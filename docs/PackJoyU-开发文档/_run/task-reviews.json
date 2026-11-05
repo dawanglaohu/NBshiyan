@@ -534,15 +534,19 @@
     "verdict": "pass"
   },
   "M3-T16": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "efa9ed3a855dc850ccbbcae82191f04d249460ece001cdcda8dd3ac7a252871c",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "fd9cf4a6514ba6ab7a992d42469b182829004cdbc18cb4d58b15d2fd2b29a7f8",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T16《原子切换本人登录方式与密码》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "接线点：实现已随 #517 合入 main（merge commit 0dabe481），本登记只补落地记录、不重做代码。真实 PATCH /api/admin/account/login-mode 与 POST /api/admin/account/password 两个 handler 都经 requireAdmin → assertSameOrigin → 账号+IP 限流 → 限体 → Zod strict → createAdminServices().accountSecurity → 统一 {error,requestId,fieldErrors?} 错误映射；AccountModeRequestSchema/PasswordChangeRequestSchema 与两个 DTO 复用 src/lib/contracts/account.ts 既有定义，未在路由内另造类型。",
+      "验收 1/E-06：LOGIN_MODE grant 启用 passwordlessEnabled 后，tests/admin-account-mode-password.http.test.ts 用真实 Auth.js Credentials mode=totp 只提交 email/totp 即可登录；关闭后该模式通用失败、password+totp 仍可登录。该文件默认 skip（本机无 PostgreSQL），CI 用 M3T3_TEST_DATABASE_URL 专用库必跑，本机不冒充已跑 PG。",
+      "验收 2/E-07/E-08/E-73：grant 按 purpose 严格区分——actionGrants.consume 的 SQL 条件含 purpose::text = 入参 且 \"targetId\" IS NULL，PASSWORD 授权不能切方式、LOGIN_MODE 授权不能改密；消费与最终动作在同一 db.$transaction，并发同 grant 最多一次成功。启用无密码但账号无已绑定且开启的 TOTP 时抛 version_conflict 且零写入（service 级 fake repo 具名测）；关闭后 passwordHash 恒非空、password+TOTP 仍可用，不会失去所有方式。错误/过期/重放不提交，最终查询仍至少一种已验证方式。",
+      "验收 3/E-03/E-74：account-repo.ts 的 applySensitiveChange 用 where {id, sessionVersion} 做 CAS 并 sessionVersion increment 1；最终事务重查当前账号与 sv，成功后 revokeDevices 撤销 < 新 sv 的旧设备、createAudit 写 account.mode_change / account.password_change 审计同事务，旧 JWT 未到期也被拒绝。兼容旧 currentPassword+totp 路径执行同强度新鲜验证（consumeTotpStep 走独立连接，放在事务外避免持 User 行锁死锁），非空 recoveryCode 由 PasswordChangeRequestSchema 的 z.literal('').optional() + strict 拒绝；login.ts:242 的 TODO(M3-T19) 日常恢复码路径本任务未动（属 R5-T59021355）。",
+      "范围边界：src/lib/server/composition.ts 只追加 accountSecurity 注册、复用同一 actionGrants，未碰 src/app/api/admin/account/devices/（M3-T17）、analytics/stats/recovery 段、deploy.sh、messages/*.json；M3-T3 的 grant 与 M3-T4 的 permit 语义均未回退。改动 7 文件全在契约/supportPaths 内：account-repo.ts、account-security.ts、login-mode/route.ts、password/route.ts、composition.ts、tests/admin-account-mode-password.http.test.ts、任务卡两保护区。",
+      "检查证据（#517 时已实测且代码已入 main）：tsc --noEmit=0、prisma validate=0、build_vault --check=0、git diff --check worktree/cached/HEAD^..HEAD=0、7 文件 CR=0、提交与推送前两次 fail-fast 关卡全 PASS；全量 pnpm test 1747 pass / 3 fail（仅 Windows CRLF 噪声 sanity-import×2 + linkmap，未改动 main 上同样红）/ 36 skip，无新红。",
+      "本次复核按当前权威 contractHash fd9cf4a6… 出具：status --task M3-T16 以 Python 脚本文件直调取得，stale=[]、runtimeDrift=[]、blockers=[]，ready=false 仅为『待语义复核』WARN（与 AGENTS.md 一致、不进 blockers）；未复用 task-reviews.json 里的旧 hash efa9ed3a…，也未用旧工作树 status 副产物 5ea3c3fb…。两保护区已随 #517 回填完整、本登记只核质量不重写。",
+      "边界：本证据只登记 M3-T16 契约复核与落地，不跑 --landed 之外的状态变更、不合并、不部署、不打开生产功能、不迁移数据库；落地后 progress 应只新增 M3-T16: done 一条，40 条复验、批次与返工记录、其他任务状态零改动。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-05T06:39:12.766049+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1627,6 +1631,24 @@
       "R5两个保护区已经填入正式仓库路径、实际行号、日界/残日/数据影响及证据层级；其定义、依赖M5-T9、原批次和其他任务状态未手改。当前仅注册R5契约证据，是否登记done仍必须通过官方--landed前置；收尾仅文档，不改实现/schema/来源任务，不自行合并或改主检出。"
     ],
     "reviewed": "2026-11-03T16:28:20.215808+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R5-T59021355": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "02ced4a978b58e916945fe34f62a8c1852169537e354b05c1911a17d44eee804",
+    "evidence": [
+      "R5 实现已随 #519 合入 main（merge 53a773bc；本次登记基线 db770f3f = #522 合并后）：src/lib/server/admin/login.ts 的 authorizeLogin 在 mode 分支之后、查账号之前以 `if (recovery) return genericCredentialFailure(...)` 拦截非空 recoveryCode，返回与未知账号相同的通用失败，不核销恢复码、不 open AdminDeviceSession、不区分账号是否存在（验收 1/2/4）。",
+      "login.ts 内 `authorizeRecovery(` 调用 0 命中、`TODO(M3-T19)` 字面 0 命中；恢复码只经 M3-T19 的 /api/auth-admin/recovery/start 受限入口核销，本任务不重建受限会话、不新增后台 e2e 登录（验收 6）。",
+      "两条存量测试按裁定 B 只改断言层、不放宽判据、不删不跳过用例：tests/admin-enroll-hardening-347-348.test.ts 原 TODO(M3-T19) 静态断言改为守卫式（authorizeRecovery 已移除 + 非空 recovery 走 genericCredentialFailure）；tests/admin-login-challenge.test.ts 把「无 2FA + 非空 recoveryCode」期望由 totp_setup_required 改为通用 CredentialsSignin，其余两形态仍断言 totp_setup_required。",
+      "tests/admin-login-mode.db.test.ts 5 条旧「恢复码登录成功/核销/锁定/并发一次」用例整体翻转为「通用失败、恢复码哈希仍在、无设备行、failedLogins/totpLastStep/sv/passwordlessEnabled 不变」，并补验收 1（当前密码+合法 10 位码）、验收 2（同时带 6 位验证码）、验收 3（password 与 totp 模式仍可登录）的具名断言（验收 3/5）。",
+      "contracts/account.ts 保留 recoveryCode 字段（contracts-foundation.test.ts 大量 parse 断言），auth.ts 无需改动；改动落点收敛在 login.ts 与三条测试，符合任务卡 4 条有效路径的实际最小改动。",
+      "图谱/任务/R5-T59021355.md 的「代码位置」（5 行含路径:行号）与「实施沉淀」（6 条含 CRLF 噪声/DB skip 如实说明）两个保护区已随 #519 回填且无占位；本轮只核质量、不重写。",
+      "全栈/安全工程师对 #519 的独立复核已收齐：核心实现位于 checkPassword 之前、不查账号/不核销码/不建设备；test() 与 skip 数量不变、断言变强；两条路径外测试的登记归属已如实标注。",
+      "本机无 PostgreSQL，admin-login-mode.db.test.ts 的 DB 用例默认 skip，CI 用 M3T3_TEST_DATABASE_URL 专用库必跑；本机 pnpm test 的 Windows CRLF 噪声（sanity-import 等）在未改动 main 上同样红，不冒充本机全绿或已跑并发锁证据。",
+      "R5 是 batch-5-20261026 围栏派生的返工任务，task-contracts.json 无条目；本次 --landed 只登记 R5 一条：progress 只新增 R5-T59021355: done，任务卡 status todo→done，不改 batchRecords/repairTasks/dispatchBatches、不回退 M3-T16 done 与 40 条已清零复验结果，revalidation/needsReview 保持空。"
+    ],
+    "reviewed": "2026-11-05T07:47:43.312619+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
