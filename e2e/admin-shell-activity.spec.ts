@@ -6,13 +6,16 @@ import { useSharedAdmin } from './shared-admin';
  * M3-T7 统一后台外壳：真实登录 → 角色菜单 → GET account → 真实活动 → signOut。
  *
  * 登录：照 e2e/shared-admin.ts 的模式，用 scripts/create-admin.mjs 建**独立**管理员
- * （唯一 email、ADMIN_SEED_TOTP_SECRET=E2E_TOTP），整组 beforeAll 只登录一次、
+ * （唯一 email、ADMIN_SEED_TOTP_SECRET=E2E_TOTP），每组 beforeAll 只登录一次、
  * beforeEach 把 cookie 放进每个用例自己的 page context。
- * 不复用全局 E2E_ADMIN：它会把共享管理员绑掉，让同文件后续用例与 admin.spec.ts 静默 skip，
- * 等于拿覆盖回退换 CI 绿。
+ * 不复用全局 E2E_ADMIN：它会把共享管理员绑掉，让同文件后续用例与 admin.spec.ts 静默 skip。
  *
- * 视觉证据：test.use({ video: 'on' })，CI 从 test-results 视频转 GIF；本文件在三尺寸下
- * 直接量真实壳元素（顶栏 / 侧栏 / 主内容外框）的 computed style，不量旧业务内层。
+ * 为什么 signOut 单独一组会话：signOut 会撤销该设备会话，若与其它用例共用 beforeAll 的
+ * 旧 cookie，后续 beforeEach 注入的旧 cookie 已失效，会 401 落到登录页。这里给 signOut
+ * 单独建管理员/会话，不依赖用例执行顺序（即使将来 workers/fullyParallel 变化也不互相污染）。
+ *
+ * 视觉证据：test.use({ video: 'on' })，CI 从 test-results 视频转 GIF；三尺寸下量真实壳元素。
+ * `.adm-top` 桌面断点 display:none，只在窄屏（<768）断言；桌面量始终可见的 .adm-side/.adm-main。
  *
  * 证据分级：
  * - 本文件在真实 standalone 服务 + 浏览器里跑，量的是 DOM/请求，不是纯函数。
@@ -30,12 +33,11 @@ test('后台壳：未登录不能读 account，页面跳登录', async ({ reques
   expect([302, 303, 307, 308]).toContain(r.status());
 });
 
-test.describe('已登录的 ADMIN（整组共用一次登录，独立管理员）', () => {
+test.describe('后台壳主体（独立管理员，整组一次登录）', () => {
   useSharedAdmin({ emailPrefix: 'e2e-shell', name: 'E2E shell', password: PASSWORD, probe: ACCOUNT });
-  // 视频留给 CI 转 GIF；本文件不用本机浏览器录。
   test.use({ video: 'on' });
 
-  test('角色菜单来自服务端、账号区读 GET account、signOut 真退出', async ({ page, browser }) => {
+  test('角色菜单来自服务端、账号区读 GET account、退出控件可达', async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto(`${BASE}/admin/inquiries`);
     const accountResponse = await page.request.get(ACCOUNT);
@@ -66,14 +68,6 @@ test.describe('已登录的 ADMIN（整组共用一次登录，独立管理员�
     const box = await page.getByTestId('admin-signout').boundingBox();
     if (!box) throw new Error('signout 没有布局盒');
     expect(box.height).toBeGreaterThanOrEqual(44);
-
-    // 真实 Auth.js signOut：点退出后旧 cookie GET account = 401。
-    const before = await page.context().storageState();
-    await page.getByTestId('admin-signout').click();
-    await expect.poll(async () => (await page.request.get(ACCOUNT)).status()).toBe(401);
-    const replay = await browser.newContext({ storageState: before });
-    expect((await replay.request.get(ACCOUNT)).status()).toBe(401);
-    await replay.close();
   });
 
   test('首帧不报 activity，真实指针/键盘/路由操作才 POST，15 分钟内不重复', async ({ page }) => {
@@ -113,7 +107,7 @@ test.describe('已登录的 ADMIN（整组共用一次登录，独立管理员�
       }
       await expect(page.getByTestId('admin-signout')).toBeVisible();
 
-      // 真实壳元素：顶栏、侧栏、主内容外框、当前导航项、退出控件。
+      // 真实壳元素：侧栏、主内容外框始终可见；顶栏桌面 display:none，只在窄屏量。
       const measured = await page.evaluate(() => {
         const pick = (selector: string) => document.querySelector(selector);
         const box = (selector: string) => {
@@ -121,7 +115,7 @@ test.describe('已登录的 ADMIN（整组共用一次登录，独立管理员�
           if (!el) return null;
           const r = el.getBoundingClientRect();
           const s = getComputedStyle(el);
-          return { w: Math.round(r.width), h: Math.round(r.height), border: s.borderTopWidth, radius: s.borderTopLeftRadius, shadow: s.boxShadow };
+          return { w: Math.round(r.width), h: Math.round(r.height), border: s.borderTopWidth, radius: s.borderTopLeftRadius, shadow: s.boxShadow, display: s.display };
         };
         const current = pick('.adm-side a[aria-current=page]');
         const signoutEl = pick('[data-testid="admin-signout"]');
@@ -141,12 +135,21 @@ test.describe('已登录的 ADMIN（整组共用一次登录，独立管理员�
         };
       });
 
-      // 三个壳容器：2px 边框、0 圆角、无阴影。
-      for (const [name, el] of Object.entries({ top: measured.top, side: measured.side, main: measured.main })) {
+      // 始终可见的壳容器：2px 边框、0 圆角、无阴影。
+      for (const [name, el] of Object.entries({ side: measured.side, main: measured.main })) {
         expect(el, `${view.label} ${name} 必须有布局盒`).not.toBeNull();
         expect(el!.border, `${view.label} ${name} 边框宽度`).toBe('2px');
         expect(el!.radius, `${view.label} ${name} 圆角`).toBe('0px');
         expect(el!.shadow, `${view.label} ${name} 阴影`).toBe('none');
+      }
+      // 顶栏：桌面 display:none 不是可见外框，只在窄屏（<768）断言其 2px/0/none。
+      if (view.width < 768) {
+        expect(measured.top!.display, '390 顶栏必须可见').not.toBe('none');
+        expect(measured.top!.border, '390 顶栏边框').toBe('2px');
+        expect(measured.top!.radius, '390 顶栏圆角').toBe('0px');
+        expect(measured.top!.shadow, '390 顶栏阴影').toBe('none');
+      } else {
+        expect(measured.top!.display, `${view.label} 顶栏桌面隐藏`).toBe('none');
       }
       // 当前导航项：黑白反转，不靠颜色单独传义；左边框用强调色标记当前入口。
       expect(measured.currentBg, `${view.label} 当前导航底色`).toBe('rgb(255, 255, 255)');
@@ -168,5 +171,26 @@ test.describe('已登录的 ADMIN（整组共用一次登录，独立管理员�
       expect(measured.signout!.shadow, `${view.label} 退出控件阴影`).toBe('none');
       expect(measured.noHorizontalOverflow, `${view.label} 横向溢出`).toBe(true);
     }
+  });
+});
+
+// signOut 会撤销设备会话，单独建管理员/会话，不与上面的 beforeAll 旧 cookie 共用。
+test.describe('admin-signout 真退出（独立会话）', () => {
+  useSharedAdmin({ emailPrefix: 'e2e-shell-signout', name: 'E2E shell signout', password: PASSWORD, probe: ACCOUNT });
+  test.use({ video: 'on' });
+
+  test('点 admin-signout 执行真实 Auth.js signOut，旧 cookie GET account=401', async ({ page, browser }) => {
+    test.setTimeout(120_000);
+    await page.goto(`${BASE}/admin/inquiries`);
+    await expect(page.getByTestId('admin-signout')).toBeVisible();
+    expect((await page.request.get(ACCOUNT)).status()).toBe(200);
+
+    // 真实 Auth.js signOut：点退出后旧 cookie GET account = 401。
+    const before = await page.context().storageState();
+    await page.getByTestId('admin-signout').click();
+    await expect.poll(async () => (await page.request.get(ACCOUNT)).status()).toBe(401);
+    const replay = await browser.newContext({ storageState: before });
+    expect((await replay.request.get(ACCOUNT)).status()).toBe(401);
+    await replay.close();
   });
 });
