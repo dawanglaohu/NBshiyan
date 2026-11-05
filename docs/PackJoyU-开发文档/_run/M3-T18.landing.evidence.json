@@ -1,0 +1,21 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T18": {
+      "contractHash": "0cd57c17b82a5452e71749d3f04bcd9438410504311bd8504d57f68289e23f2b",
+      "verdict": "pass",
+      "evidence": [
+        "实现已随 PR #521 合入 main：实现头 e951454fee2a150674bf53e877d624ff03f87a85、merge 64e37afad8ca7e6e1dde10edeaf0871d54171a5f，5 文件 / +1119（scripts/admin-authorize-recovery.mjs、.d.mts、src/lib/server/admin/owner-recovery.ts、recovery-repo.ts+15、tests/admin-owner-recovery-cli.test.ts）；本次登记基线是 #527 合并后的 main d7ea36fe。",
+        "验收 1（OS-owner 拒绝路径，E-12）：scripts/admin-authorize-recovery.mjs:123 hasOsAdminPrivilege 的 POSIX 仅 euid===0（刻意不看补充组）、Windows 靠 openProtectedOnWindows(:146) 打开 \\\\.\\PHYSICALDRIVE0 独占写、其他平台/探测缺失一律拒绝且绝不降级；:274 stdin/stdout 非 TTY 在连库前 not_tty 返回、测试断言 writes.length===0。parseArgs(:78) 把 --email/--id 二选一、缺/都给/模糊/--force/--clear-2fa/--skip-totp/密码类参数全拒且不回显值；decideTarget(:210) 只放行存在/未停用/ADMIN，--role 只校验与库中当前 ADMIN 一致（防提权），不提供改角色。E-12 隔离账号（无 TOTP/无恢复码/无第二管理员）被放行，测试 #424 具名覆盖。",
+        "验收 1（一次性 permit 与审计）：PERMIT_TTL_MS=15min(:23)、token 库里只存 sha256 hex（:72 hashPermitToken 与 recovery-repo.ts:5 hashRecoveryPermitToken 同算法，测试 #413 钉住），真实 main() 的 writePermit 用 $transaction 把 adminRecoveryPermit.create + auditLog.create 包在同一事务(:361)，source: SERVER_OWNER、issuedById: null、绑定当前 sessionVersion，M3-T19 的 consumePermit CAS/consumedAt IS NULL(:152) 能对接。凭据只在成功路径末尾 stdout 打印一次（permitLines :219，测试断言计数=1），auditMeta(:228) 固定 actor/passwordReset/reason/source/time/via 且断言无 43 字符 base64url 凭据，stderr 只固定文案、db_error 只输出 e?.name 不带 message/连接串，密码不进 stdout/stderr、密码环境变量只删不读。",
+        "验收 2（可选改密，E-75）：promptPassword(:192) 在 TTY raw 隐藏输入并确认两次、后台同一套 Argon(:25 memoryCost 19456/timeCost 2/parallelism 1，与初始密码脚本同源)；hash 只进 permit 的 pendingPasswordHash(:251)，permit 行不含 passwordHash/totpSecret/recoveryCodes/totpEnabled，User 表零写入；初始密码脚本 admin-reset-initial-password.mjs 的 ADMIN/未绑定/未停用/TTY guard 原样未改。ADMIN/HTTP 路径 recovery-authorizations.ts:87 调 createPermit 不传 pendingPasswordHash，git grep pendingPasswordHash -- 'src/app/**' 为 0 命中，无 HTTP 入口（E-75）。",
+        "两者未混同：『依法一次性返回』（凭据打印到交互终端一次）与『禁止日志泄露』（不进 auditLog/文件/stderr/参数）是两条独立实现且各有断言，没有把必须返回误做成也禁输出，也没把输出放进审计。",
+        "CI 真跑证据（非本机复跑）：run 41982048159 的 head_sha 正是 e951454f，三项全 success（build-and-audit 06:46:07Z / posix 06:41:24Z / e2e 06:55:26Z；e2e 内含 prisma db push、PostgreSQL 回归、standalone 启动、Playwright Chromium、RUM 脱敏核对）；Unit tests 具名日志（job 127094146857）ok 411–443 共 33 条、0 fail / 0 skip，admin-owner-recovery-cli.test.ts 是实跑不是整组 skip。PR 上 Codex bot 的 code_review: failed / has_unresolved_findings: true 不是代码发现（正文是 couldn't complete this review + usage limits，审查未完成，get_reviews 为空），不当通过也不当阻断；后端工程师按同一契约独立审查四项无阻断。",
+        "范围如实登记：净差异 5 文件、零 docs/_run 生成物、零 HTTP 路由；owner-recovery.ts（226 行 TS 服务层）在 src//scripts//tests/ 无任何产品调用方，CLI 运行时不 import 它、composition.ts 只注册 recoveryAuthorizations/recoveryStart，真正跑的是自包含 .mjs。测试只用源码比对 + 行为等价钉住 decideTarget 防漂移（#414），两层 auditMeta 有非秘密细微差异（CLI 多 via、actor 构造不同），属同一契约两套实现、其一无产品入口的架构冗余/简化候选，不影响 CLI 安全行为。4 处残留风险如实登记：孤儿 permit 靠 15min expiresAt 兜底、Windows 物理盘探测失败即拒绝、euid===0 不区分等效能力者、审计 ip 固定 local-cli。",
+        "契约外类型配套：scripts/admin-authorize-recovery.d.mts 因 tsconfig 的 allowJs:false → TS7016 必需（既有 6 个 .mjs 都配 .d.mts），但 141 契约 0 命中、不在 effectivePaths 内。按 Chief 裁定不补契约、不改 hash、不自改 supportPaths，本证据如实写为『契约外类型配套』，若第 6 批收口坚持再走补丁挂 supportPaths。事务证据层级：真实 $transaction 原子性只在 main() 里静态可核，33 条 CLI 用例是假 db 单元测试，e2e 的 DB 回归清单未含该文件，没有专用 Postgres 集成测试证明 permit+audit 同事务与失败回滚，不冒充『真 DB 事务已测』。",
+        "知识库回填（本轮补做）：#521 实现 PR 未带 图谱/任务/M3-T18.md，两保护区此前仍是 AGENTS.md 明令禁止的占位符；本轮按已合入 #521 实现的真实行号（mjs:23/:72/:78/:123/:146/:192/:210/:219/:228/:240/:251/:274/:361、owner-recovery.ts:161、recovery-repo.ts:5/:152、recovery-authorizations.ts:87、CLI 测试:60 等）与后端独审结论回填『代码位置』与『实施沉淀』，不编造、不重写产品代码、不降低验收标准。build_vault --check 核质量。",
+        "落地登记只推进 M3-T18 一条：任务卡 status todo→done、progress 只新增 M3-T18: done，不改 batchRecords / repairTasks / dispatchBatches，不回退 M3-T7 / M3-T16 / R5-T59021355 / M5-T3 的 done 与第 4、5 批 clean，revalidation / needsReview 保持空；第 6 批收口不在本登记内完成，ci.yml 的 M3-T7 契约外事项交该收口复核。"
+      ]
+    }
+  }
+}
