@@ -400,7 +400,9 @@
         "src/lib/server/analytics/aggregate.ts",
         "src/lib/server/analytics/aggregate-repo.ts",
         "prisma/schema.prisma",
-        "tests/analytics-aggregate.db.test.ts"
+        "tests/analytics-aggregate.db.test.ts",
+        "src/lib/analytics/aggregate-plan.ts",
+        "tests/analytics-aggregate-plan.test.ts"
       ],
       "M5-T4": [
         "src/app/api/admin/settings/analytics/route.ts",

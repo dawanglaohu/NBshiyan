@@ -1073,15 +1073,19 @@
     "verdict": "pass"
   },
   "M5-T3": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "e2cfff9a2867fb80f9779f4fc4d4aff85901ac766d83e896a4ab5a13ac7a81d6",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "eac5d5771eecc4d3510b445105efd0e58ad1c57793fe97a16b2c21c7470bfb01",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T3《以一致快照重算并原子替换日聚合》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "验收1（RepeatableRead 快照 + cutoff）：src/lib/server/analytics/aggregate-repo.ts 的 runInRepeatableReadSnapshot 以 Prisma.TransactionIsolationLevel.RepeatableRead 开启事务；loadEventsAtSnapshot 的 SQL 显式带 receivedAt <= cutoff。tests/analytics-aggregate.db.test.ts 中「E-80：receivedAt 晚于 cutoff 的事件留在下一轮」断言 cutoff 前 2 条可见、晚于 cutoff 的 1 条不可见，cutoff 推进后才见 3 条；「RepeatableRead：事务内两次读取看到同一快照」在事务内插入新行后二次读取条数不变。",
+      "验收1（整组替换 + watermark 一次事务）：src/lib/server/analytics/aggregate.ts 的 aggregateOneDayInSnapshot 在同一事务内依次 DELETE 该日 AnalyticsDailyRollup、整组 INSERT、upsert AnalyticsRollupDay 并把 sourceMaxReceivedAt 作为 watermark 一并提交；任一步失败整体回滚，保留上一轮完整结果。tests/analytics-aggregate.db.test.ts 的「E-81：整日替换是原子的，重跑同一输入结果不变」断言重跑后汇总行数不增。",
+      "验收2（旧 generation / 旧 timezoneRevision 拒绝）：src/lib/analytics/aggregate-plan.ts 的 mayPublish 在 storedGeneration 或 storedTimezoneRevision 大于 claim 值时返回 false；aggregateOneDayInSnapshot 写入前读取已存 timezoneRevision 并据此拒绝提交。tests/analytics-aggregate.db.test.ts 的「E-81/E-83：旧 timezoneRevision 不得覆盖新结果」断言旧代次写入 written=false 且落库仍为新代次 2。",
+      "验收2/3（48h 迟到重算与超范围 partial/unavailable）：src/lib/analytics/aggregate-plan.ts 的 lateArrivalSiteDates 按 48h 窗口以小时步进取站点自然日（DST 安全、不假设每日常 24h）；isDateRecomputable 以 recomputableFrom 得到的最早可整日重算日界比较；越界日期进入 skippedDates、coverage 降级为 partial 或 unavailable。聚合层对 skippedReason='out_of_coverage' 的日不写库、不填 0；tests/analytics-aggregate.db.test.ts 的「E-82：超出完整原始覆盖的日不重算、不填 0」断言这些日不产生 AnalyticsRollupDay 行。",
+      "验收3（站点 IANA 左闭右开日、23/25 小时 DST、午夜单归属）：日界一律复用既有 src/lib/analytics/day-boundaries.ts 的 siteDayUtcBounds 与 siteLocalDate，不自行固定加 86400000ms。tests/analytics-aggregate-plan.test.ts 的「DST 日按 23/25 小时计算，不用固定 24h」验证 America/New_York 夏令时附近窗口；「午夜事件只归属一个自然日」断言 2026-03-02 00:00:00（Asia/Shanghai）属次日、其前一毫秒属前一日。",
+      "有效路径补登（补丁 M5-T3-taskpaths）：presentation.json 的 handoff.taskPaths['M5-T3'] 追加 src/lib/analytics/aggregate-plan.ts 与 tests/analytics-aggregate-plan.test.ts；实测 effectivePaths['M5-T3'] 由 5 条变为 7 条且包含两者；sync 后 revalidation 仍为 {}、needsReview 为 []；46 个下游契约仅摘要传播，其 context 与 effectivePaths 零差异。",
+      "自检（工作树 NBshiyan-m5-t3 @ e764ce16）：tsc --noEmit -p tsconfig.json exit 0（生成 Prisma Client 后 0 错误）；node --import tsx --test tests/analytics-aggregate-plan.test.ts 结果 7 tests / 7 pass / 0 fail；tests/analytics-aggregate.db.test.ts 在本机因 no DATABASE_URL 整组 skip（已实跑并保留 skip 证据，不冒充通过），CI 连 postgres:17 时执行。",
+      "与既有实现的边界：本任务不重写 rollup.ts 已成立的整日替换与版本校验，只补它缺失的显式 RepeatableRead 快照与 receivedAt<=cutoff 过滤；src/lib/server/analytics/rollup.ts 保持原样，二者共享 day-boundaries 与 rollup-plan 的纯函数，无重复实现。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-05T06:34:51.587170+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
