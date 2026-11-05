@@ -25,7 +25,23 @@ async function openProducts(page: Page, width = 1440, height = 900) {
   await page.setViewportSize({ width, height });
   await page.goto('/en');
   await dismissConsent(page);
-  await page.locator('[data-testid="products-link"]:visible').click();
+  // 窄屏（<768px）下 `.nav-desktop` 是 display:none，`products-link` 只存在于抽屉里，
+  // 抽屉未打开时根本不在 DOM 中（实测宽屏 total=1 / drawerExists=false）。
+  // 因此窄屏必须走真实路径：先展开菜单，再点入口——不用 force、不换选择器绕过。
+  const narrow = width < 768;
+  if (narrow) {
+    const menuButton = page.getByRole('button', { name: 'Open menu' });
+    await expect(menuButton, '窄屏必须有可到达的菜单按钮').toBeVisible();
+    await menuButton.click();
+    const drawer = page.getByRole('dialog', { name: 'Menu' });
+    await expect(drawer, '展开后必须出现菜单元').toBeVisible();
+    // 抽屉内的入口是唯一可见的 products-link：桌面导航已被隐藏。
+    const links = page.locator('[data-testid="products-link"]');
+    await expect(links).toHaveCount(1);
+    await links.click();
+  } else {
+    await page.locator('[data-testid="products-link"]:visible').click();
+  }
   await expect(page).toHaveURL(/\/en\/products$/);
   const viewport = page.getByTestId('product-viewport').first();
   await expect(viewport.locator('.hint')).toHaveText('Drag to rotate', { timeout: 25_000 });
@@ -136,16 +152,45 @@ test('E-101 键盘：方向键改朝向、加减号缩放、Home 复位，Tab �
   expect(reset.distance).toBeGreaterThanOrEqual(minDistance);
   expect(reset.distance).toBeLessThanOrEqual(maxDistance);
 
-  // Tab 不被锁：从视口按 Tab 必须能把焦点移到别的元素，且原视口失去焦点归属。
+  // Tab 不被锁住（E-101）：控制区由「视口 + 命名工具条」两个并列容器组成，
+  // 在工具条内部移动焦点时模型仍持有归属（data-focused 保持 1），这是 M2-T2 的既定语义。
+  // 所以循环按 Tab，直到焦点离开【两个容器之一都不属于】的地方，再断言归属清空——
+  // 既保留「Tab 能走出去」的原意，又不与「工具条也是控制区」的设计冲突。
   await viewport.focus();
-  await expect(page.locator('[data-focused-model]')).toHaveAttribute('data-focused-model', await viewport.getAttribute('data-slug') ?? '');
-  await page.keyboard.press('Tab');
-  await expect(viewport).toHaveAttribute('data-focused', '0');
-  const focusedIsInside = await page.evaluate(() => {
+  const slug = (await viewport.getAttribute('data-slug')) ?? '';
+  await expect(page.locator('[data-focused-model]')).toHaveAttribute('data-focused-model', slug);
+
+  const insideControlRegion = () => page.evaluate(() => {
     const el = document.activeElement as HTMLElement | null;
-    return !!el?.closest('[data-testid="product-viewport"]');
+    return {
+      inViewport: !!el?.closest('[data-testid="product-viewport"]'),
+      inToolbar: !!el?.closest('[data-testid="model-controls"]'),
+      tag: el?.tagName ?? null,
+      testid: el?.getAttribute('data-testid') ?? null,
+    };
   });
-  expect(focusedIsInside, 'Tab 必须能离开模型视口').toBe(false);
+
+  // 进入工具条内部仍算控制区。
+  await page.keyboard.press('Tab');
+  const afterFirstTab = await insideControlRegion();
+  expect(
+    afterFirstTab.inViewport || afterFirstTab.inToolbar,
+    `第一次 Tab 应落在控制区内（视口或工具条），实际落在 ${afterFirstTab.testid ?? afterFirstTab.tag}`,
+  ).toBe(true);
+
+  // 继续 Tab 直到走出两个容器；上限 40 次，超过即视为「Tab 被锁住」。
+  let escaped = false;
+  for (let step = 0; step < 40; step += 1) {
+    await page.keyboard.press('Tab');
+    const where = await insideControlRegion();
+    if (!where.inViewport && !where.inToolbar) {
+      escaped = true;
+      break;
+    }
+  }
+  expect(escaped, '连续 Tab 必须能走出模型控制区，不得把焦点锁住').toBe(true);
+  await expect(viewport).toHaveAttribute('data-focused', '0');
+  await expect(page.locator('[data-focused-model]')).toHaveAttribute('data-focused-model', '');
 
   // Escape 退出并回到来源之外：焦点释放、归属清空，且不跳产品链接。
   await viewport.focus();
