@@ -1630,6 +1630,24 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R5-T59021355": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "02ced4a978b58e916945fe34f62a8c1852169537e354b05c1911a17d44eee804",
+    "evidence": [
+      "R5 实现已随 #519 合入 main（merge 53a773bc；本次登记基线 db770f3f = #522 合并后）：src/lib/server/admin/login.ts 的 authorizeLogin 在 mode 分支之后、查账号之前以 `if (recovery) return genericCredentialFailure(...)` 拦截非空 recoveryCode，返回与未知账号相同的通用失败，不核销恢复码、不 open AdminDeviceSession、不区分账号是否存在（验收 1/2/4）。",
+      "login.ts 内 `authorizeRecovery(` 调用 0 命中、`TODO(M3-T19)` 字面 0 命中；恢复码只经 M3-T19 的 /api/auth-admin/recovery/start 受限入口核销，本任务不重建受限会话、不新增后台 e2e 登录（验收 6）。",
+      "两条存量测试按裁定 B 只改断言层、不放宽判据、不删不跳过用例：tests/admin-enroll-hardening-347-348.test.ts 原 TODO(M3-T19) 静态断言改为守卫式（authorizeRecovery 已移除 + 非空 recovery 走 genericCredentialFailure）；tests/admin-login-challenge.test.ts 把「无 2FA + 非空 recoveryCode」期望由 totp_setup_required 改为通用 CredentialsSignin，其余两形态仍断言 totp_setup_required。",
+      "tests/admin-login-mode.db.test.ts 5 条旧「恢复码登录成功/核销/锁定/并发一次」用例整体翻转为「通用失败、恢复码哈希仍在、无设备行、failedLogins/totpLastStep/sv/passwordlessEnabled 不变」，并补验收 1（当前密码+合法 10 位码）、验收 2（同时带 6 位验证码）、验收 3（password 与 totp 模式仍可登录）的具名断言（验收 3/5）。",
+      "contracts/account.ts 保留 recoveryCode 字段（contracts-foundation.test.ts 大量 parse 断言），auth.ts 无需改动；改动落点收敛在 login.ts 与三条测试，符合任务卡 4 条有效路径的实际最小改动。",
+      "图谱/任务/R5-T59021355.md 的「代码位置」（5 行含路径:行号）与「实施沉淀」（6 条含 CRLF 噪声/DB skip 如实说明）两个保护区已随 #519 回填且无占位；本轮只核质量、不重写。",
+      "全栈/安全工程师对 #519 的独立复核已收齐：核心实现位于 checkPassword 之前、不查账号/不核销码/不建设备；test() 与 skip 数量不变、断言变强；两条路径外测试的登记归属已如实标注。",
+      "本机无 PostgreSQL，admin-login-mode.db.test.ts 的 DB 用例默认 skip，CI 用 M3T3_TEST_DATABASE_URL 专用库必跑；本机 pnpm test 的 Windows CRLF 噪声（sanity-import 等）在未改动 main 上同样红，不冒充本机全绿或已跑并发锁证据。",
+      "R5 是 batch-5-20261026 围栏派生的返工任务，task-contracts.json 无条目；本次 --landed 只登记 R5 一条：progress 只新增 R5-T59021355: done，任务卡 status todo→done，不改 batchRecords/repairTasks/dispatchBatches、不回退 M3-T16 done 与 40 条已清零复验结果，revalidation/needsReview 保持空。"
+    ],
+    "reviewed": "2026-11-05T07:47:43.312619+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "RETENTION-CLEANUP": {
     "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
     "contractHash": "5a65f8b8e6f472d36133f01660b8d796b370f61e0f61b2d033b687dfa06770bc",
