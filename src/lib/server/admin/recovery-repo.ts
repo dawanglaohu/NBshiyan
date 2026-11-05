@@ -6,6 +6,11 @@ export function hashRecoveryPermitToken(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex');
 }
 
+/** 受限会话 cookie 的明文也是 256bit，库里只存 SHA-256；与 permit 用同一哈希函数但不同凭据族。 */
+export function hashRecoverySessionToken(token: string): string {
+  return createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
 export type RecoveryDb = PrismaClient | Prisma.TransactionClient;
 
 export type LockedRecoveryTarget = {
@@ -35,6 +40,34 @@ export type RecoveryAudit = {
   ip: string;
 };
 
+export type LockedRecoveryUser = {
+  id: string;
+  email: string;
+  disabled: boolean;
+  totpEnabled: boolean;
+  recoveryCodes: string[];
+  sessionVersion: number;
+};
+
+export type ConsumedPermit = {
+  id: string;
+  source: 'ADMIN' | 'SERVER_OWNER';
+  pendingPasswordHash: string | null;
+  sessionVersion: number;
+};
+
+export type NewRecoverySession = {
+  id: string;
+  tokenHash: string;
+  userId: string;
+  sessionVersion: number;
+  source: 'RECOVERY_CODE' | 'ADMIN' | 'SERVER_OWNER' | 'SELF_REAUTH';
+  createdAt: Date;
+  expiresAt: Date;
+  pendingPasswordHash?: string | null;
+  passwordResetSource?: string | null;
+};
+
 /**
  * 恢复相关的持久查询集中在这里，供 M3-T4 签发与 M3-T19 核销复用。
  * 只接显式传入的 db/tx，不读全局 prisma，也不反调 service。
@@ -53,6 +86,18 @@ export type RecoveryRepo = {
   readTargetUser(tx: Prisma.TransactionClient, userId: string): Promise<LockedRecoveryTarget | undefined>;
   createPermit(tx: Prisma.TransactionClient, permit: NewRecoveryPermit): Promise<void>;
   createAudit(tx: Prisma.TransactionClient, entry: RecoveryAudit): Promise<void>;
+
+  /** M3-T19：锁账号行后重读当前 recoveryCodes/sv，禁止用旧快照整组覆盖（09 节第 6 条并发约束）。 */
+  lockRecoveryUser(tx: Prisma.TransactionClient, email: string): Promise<LockedRecoveryUser | undefined>;
+  /** 条件核销 permit：未用、未过期、绑定当前 sv、target 匹配，返回被核销行（含 SERVER_OWNER 预授权 hash）。 */
+  consumePermit(tx: Prisma.TransactionClient, tokenHash: string, userId: string, sessionVersion: number, now: Date): Promise<ConsumedPermit | undefined>;
+  /** 恢复码：锁 User 后按当前数组里恰好匹配的哈希做 array_remove，不整组覆盖。 */
+  consumeRecoveryCode(tx: Prisma.TransactionClient, userId: string, code: string): Promise<boolean>;
+  /** sv 递增后撤销旧设备与旧的未完成恢复会话，再建 10min 受限会话，全部在同一 tx。 */
+  bumpSessionVersion(tx: Prisma.TransactionClient, userId: string, now: Date): Promise<number>;
+  revokeOldDevices(tx: Prisma.TransactionClient, userId: string, sessionVersion: number, now: Date): Promise<void>;
+  revokeOldRecoverySessions(tx: Prisma.TransactionClient, userId: string, now: Date): Promise<void>;
+  createRecoverySession(tx: Prisma.TransactionClient, session: NewRecoverySession): Promise<void>;
 };
 
 export function createRecoveryRepo(): RecoveryRepo {
@@ -78,6 +123,64 @@ export function createRecoveryRepo(): RecoveryRepo {
     },
     async createAudit(tx, entry) {
       await tx.auditLog.create({ data: entry });
+    },
+
+    async lockRecoveryUser(tx, email) {
+      const rows = await tx.$queryRaw<LockedRecoveryUser[]>`
+        SELECT id, email, disabled, "totpEnabled", "recoveryCodes", "sessionVersion"
+        FROM "User"
+        WHERE email = ${email.toLowerCase()}
+        FOR UPDATE
+      `;
+      return rows[0];
+    },
+    async consumePermit(tx, tokenHash, userId, sessionVersion, now) {
+      const instant = Prisma.sql`(${now}::timestamptz AT TIME ZONE 'UTC')`;
+      const rows = await tx.$queryRaw<ConsumedPermit[]>`
+        UPDATE "AdminRecoveryPermit"
+        SET "consumedAt" = ${instant}
+        WHERE "tokenHash" = ${tokenHash}
+          AND "targetUserId" = ${userId}
+          AND "sessionVersion" = ${sessionVersion}
+          AND "consumedAt" IS NULL
+          AND "expiresAt" > ${instant}
+        RETURNING id, source::text AS source, "pendingPasswordHash", "sessionVersion"
+      `;
+      return rows[0];
+    },
+    async consumeRecoveryCode(tx, userId, hash) {
+      const rows = await tx.$queryRaw<{ id: string }[]>`
+        UPDATE "User"
+        SET "recoveryCodes" = array_remove("recoveryCodes", ${hash})
+        WHERE id = ${userId}
+          AND ${hash} = ANY("recoveryCodes")
+        RETURNING id
+      `;
+      return rows.length === 1;
+    },
+    async bumpSessionVersion(tx, userId, now) {
+      const rows = await tx.$queryRaw<{ sessionVersion: number }[]>`
+        UPDATE "User"
+        SET "sessionVersion" = "sessionVersion" + 1
+        WHERE id = ${userId}
+        RETURNING "sessionVersion"
+      `;
+      return rows[0]?.sessionVersion ?? 0;
+    },
+    async revokeOldDevices(tx, userId, sessionVersion, now) {
+      await tx.adminDeviceSession.updateMany({
+        where: { userId, revokedAt: null, sessionVersion: { lt: sessionVersion } },
+        data: { revokedAt: now, revokedReason: 'recovery_start' },
+      });
+    },
+    async revokeOldRecoverySessions(tx, userId, now) {
+      await tx.adminRecoverySession.updateMany({
+        where: { userId, revokedAt: null, completedAt: null },
+        data: { revokedAt: now },
+      });
+    },
+    async createRecoverySession(tx, session) {
+      await tx.adminRecoverySession.create({ data: session });
     },
   };
 }

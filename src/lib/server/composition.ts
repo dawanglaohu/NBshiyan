@@ -3,6 +3,7 @@ import { getServerConfig, type ServerConfig } from './config';
 import { prisma } from './db';
 import { createActionGrantService, type ActionGrantService } from './admin/action-grant';
 import { createRecoveryAuthorizationService, type RecoveryAuthorizationService } from './admin/recovery-authorizations';
+import { createRecoveryStartService, type RecoveryStartService } from './admin/recovery-start';
 import { deviceServiceFor, type DeviceSessionService } from './admin/device-session';
 import { mapAppError, mapUnknownFailure } from './http/errors';
 import { createApiCounter, type ApiCounter, type ApiCounterDb, type CounterLog } from './http/metrics';
@@ -25,6 +26,7 @@ export type AdminServices = HttpServices & {
   devices: DeviceSessionService;
   actionGrants: ActionGrantService;
   recoveryAuthorizations: RecoveryAuthorizationService;
+  recoveryStart: RecoveryStartService;
 };
 
 /** 新 HTTP 层的组装点。路由在最终响应处调用 apiCounter，不在这里发请求。 */
@@ -68,6 +70,11 @@ export function createAdminServices(deps: {
       clock,
       permitTtlMs: config.grant.permitTtlMs,
       actionGrants,
+    }),
+    recoveryStart: createRecoveryStartService({
+      db,
+      clock,
+      restrictedTtlMs: config.grant.restrictedTtlMs,
     }),
   };
 }

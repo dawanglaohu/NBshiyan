@@ -89,6 +89,7 @@ model User {
   actionGrants   AdminActionGrant[]
   recoveryPermits AdminRecoveryPermit[] @relation("RecoveryTarget")
   issuedRecoveryPermits AdminRecoveryPermit[] @relation("RecoveryIssuer")
+  recoverySessions AdminRecoverySession[]
   createdAt      DateTime  @default(now())
 }
 
@@ -187,6 +188,39 @@ model AdminRecoveryPermit {
   consumedAt           DateTime?
 
   @@index([targetUserId, expiresAt])
+}
+
+// 受限恢复会话来源。RECOVERY_CODE 为账号自己的恢复码，ADMIN/SERVER_OWNER 来自 permit，SELF_REAUTH 为本人换验证器。
+// permit 的 RecoverySource 只区分 ADMIN/SERVER_OWNER，两个枚举按 09 节各自独立，不合并。
+enum RecoverySessionSource {
+  RECOVERY_CODE
+  ADMIN
+  SERVER_OWNER
+  SELF_REAUTH
+}
+
+// 受限恢复会话：与 Auth.js 后台会话完全不同的凭据族，cookie 仅 Path=/api/auth-admin/recovery。
+// tokenHash 唯一、10min、仅当前 sv 有效；pendingSecretEncrypted 只在最终 confirm 后启用，
+// pendingPasswordHash 仅 SERVER_OWNER 本地 TTY 预授权转入，HTTP 入口永不写该字段。
+model AdminRecoverySession {
+  id                      String                 @id
+  tokenHash              String                 @unique
+  userId                  String
+  user                    User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionVersion          Int
+  source                 RecoverySessionSource
+  createdAt               DateTime               @default(now())
+  expiresAt               DateTime
+  pendingSecretEncrypted  String?
+  pendingUntil            DateTime?
+  pendingPasswordHash     String?
+  passwordResetSource      String?
+  failedAttempts          Int                    @default(0)
+  completedAt              DateTime?
+  revokedAt                DateTime?
+
+  @@index([userId, sessionVersion])
+  @@index([expiresAt])
 }
 
 // 客户个人信息单独一张表，便于按地区迁移（如俄罗斯数据本地化）和 GDPR 删除
