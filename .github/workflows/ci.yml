@@ -351,6 +351,16 @@ jobs:
             test-results/**/trace.zip
           retention-days: 7
           if-no-files-found: warn
+      # M3-T7 后台壳三尺寸视觉证据：成功运行也要留视频，供 PR 转 GIF。
+      # 现有 playwright-report 只在 failure() 上传，成功时没有视频；这里单独、最小地
+      # 只收 .webm，不动其它上传步骤、不改测试与断言。
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3-t7-visual
+          path: test-results/**/*.webm
+          retention-days: 1
+          if-no-files-found: warn
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
