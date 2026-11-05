@@ -1,0 +1,20 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M5-T3": {
+      "contractHash": "eac5d5771eecc4d3510b445105efd0e58ad1c57793fe97a16b2c21c7470bfb01",
+      "verdict": "pass",
+      "evidence": [
+        "实现已随 PR #520 合入 main：merge commit 5f6a9bf1ab2cd498477b2ab19f6dbb9d230c4864（双亲 04c5b75e + da7adbae），冻结头 da7adbaeb17da8fcd51dab2a38f9813c1f652859，17 文件；本次登记基线正是该 merge 后的 main 5f6a9bf1。三项 CI 全绿（run 41999427892），后端按同一契约只读复核三处阻断全部闭合、无剩余阻断。",
+        "验收 1（一致快照 + cutoff + 整组原子替换）：src/lib/server/analytics/aggregate.ts 的 runAggregateOnce 把 plan.siteDates 全放进一个 runInRepeatableReadSnapshot 事务；行锁与 generation 校验只在事务开头做一次；writeOneDayInTx 共用同一 tx 做 DELETE / 整组 INSERT / 带 WHERE 守卫的 watermark upsert；任一天抛 AggregateVersionConflict 整组回滚、一天都不写。aggregate-repo.ts 的 loadEventsAtSnapshot 显式 receivedAt <= cutoff，新到事件留下一轮（E-80、E-81）。",
+        "验收 2（generation / timezoneRevision 真落库互斥）：readLockedGeneration 在 tx 内 SELECT generation FROM JobState FOR UPDATE 真读真锁，旧代次抛 stale_generation；upsertWatermarkGuarded 的 ON CONFLICT DO UPDATE 带 WHERE timezoneRevision<=EXCLUDED AND watermark 单调守卫，affected!==1 抛 watermark_regression 回滚；writeOneDayInTx 另查已存 revision 拦 stale_timezone_revision；原无条件覆盖路径已不存在（E-81、E-83）。",
+        "验收 2/3（迟到窗口、超范围、时区）：只重算 dayStart 不早于完整原始覆盖起点的日，48h 迟到重算该日，超范围保留原完整值并返回 partial/unavailable 及原口径，不延长原始保留、不用残片变小；结果携带 timezoneRevision，旧代次不得覆盖新时区结果；DST 23/25 小时与午夜左闭右开单归属按站点 IANA 计算（E-56、E-57、E-58、E-82）。",
+        "CI 真跑证据（非本机复跑）：run 41999427892 的 PostgreSQL 回归 job 具名行 `tests/analytics-aggregate.db.test.ts pass=9 fail=0 skip=0 todo=0 cancelled=0`；9 条用例覆盖 E-80 cutoff、E-81 整组替换幂等、E-81/E-83 旧 revision 拒绝、generation 真行锁、watermark 单调、E-82 超范围、48h 迟到窗口、RepeatableRead（已改为另一独立连接提交写入、非本事务看不到自己的写）、整组第 2 天失败回滚。ci.yml 把该文件纳入 wanted / 命令行 / gate.files 三处，M5T3_REQUIRE_DATABASE=true 只在 PG 步骤打开；单测 job 无 flag 时整组 skip 不打红（ok 572 SKIP no DATABASE_URL、Unit tests fail 0）。",
+        "范围与依赖如实登记：净差异只改 aggregate.ts / aggregate-repo.ts / aggregate-plan.ts / 两个测试 / ci.yml 与按源重生成的生成物；未接 composition / cron / 未改 schema.prisma / 未碰 middleware / route.ts。真实 5 分钟调度按任务卡由 M5-T8 接，本任务不硬接，故「零产品调用方」为契约内状态、非孤立死代码。effectivePaths 7 条与 presentation.json 的 handoff.taskPaths 及 #520 的 M5-T3-taskpaths 补丁一致。",
+        "知识库回填（本轮补做）：#520 实现 PR 未带 图谱/任务/M5-T3.md，两保护区此前仍是 AGENTS.md 明令禁止的占位符；本轮按 #520 已合入实现、测试工程师 9 条具名用例与后端三处阻断复核回填「代码位置」与「实施沉淀」，不编造、不重写产品代码、不降低验收标准。",
+        "非阻断证据边界（沿用后端复核、不冒充已测）：① 两个同时开启的 RepeatableRead 写事务抢同一 JobState 行触发 40001 回滚的路径没有直接用例，注释声称会但未实测；② 新代码直接把 JS Date 传给 $queryRaw/$executeRaw，未走既有 rollup.ts 刻意用的 utc() 显式 ::timestamptz AT TIME ZONE 'UTC'，CI 在 UTC 会话下 9 例通过，非 UTC 会话等价性未单独验证；③ 本机无 PostgreSQL，DB 用例默认 skip，不冒充本机全绿。",
+        "落地登记只推进 M5-T3 一条：progress 只新增 M5-T3: done，任务卡 status todo→done，不改 batchRecords（含 batch-5-20261026 仍 open/fail）、repairTasks、dispatchBatches，不回退 M3-T16 / R5-T59021355 的 done，revalidation / needsReview 保持空；第 5 批不凭本登记自动改 clean，后续仍要真实收口。"
+      ]
+    }
+  }
+}
