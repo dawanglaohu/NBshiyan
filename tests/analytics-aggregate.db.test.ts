@@ -2,9 +2,13 @@
 //
 // 本文件被 CI 的「Analytics, chat, and other PostgreSQL regressions」步骤纳入
 // 按文件门禁（wanted / 命令行 / gate.files 三处）。因此：
-//   - 缺 DATABASE_URL 时每个用例具名 assert.fail，不整组 skip；
-//     门禁看到 fail>0 或 skip>0 即判失败，杜绝「没库却报绿」。
-//   - 每个用例都连真实库、真事务、真行锁，验证 generation 互斥与整组原子替换。
+//   - PG 回归步骤会设 M5T3_REQUIRE_DATABASE=true 且注入 DATABASE_URL；该步骤缺库时
+//     顶层直接抛错，且按文件门禁要求 fail/skip/todo/cancelled 全为 0、pass>=1，
+//     杜绝「没库却报绿」。
+//   - build-and-audit 的 `pnpm test`（glob tests/*.test.ts）也会扫到本文件，但那个
+//     job 没有数据库、也不设 M5T3_REQUIRE_DATABASE，此时按仓库既有 db 测试惯例整组
+//     skip，不误伤单元测试 job。
+//   - 每个 PG 用例都连真实库、真事务、真行锁，验证 generation 互斥与整组原子替换。
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Prisma, PrismaClient } from '@prisma/client';
@@ -18,7 +22,12 @@ const SCHEMA = `aggregate_${process.pid}`;
 const url = base?.startsWith('postgres')
   ? `${base}${base.includes('?') ? '&' : '?'}schema=${encodeURIComponent(SCHEMA)}&connection_limit=5&pool_timeout=10`
   : null;
+// 必执行步骤（PG 回归）缺地址直接失败，不回退；其余 job 按既有惯例逐用例 skip。
+if (process.env.M5T3_REQUIRE_DATABASE === 'true' && !url) {
+  throw new Error('DATABASE_URL must be a postgres URL when M5T3_REQUIRE_DATABASE=true');
+}
 const db = url ? new PrismaClient({ datasources: { db: { url } } }) : null;
+const skip = !db && 'no DATABASE_URL';
 
 const TZ = 'Asia/Shanghai';
 
@@ -39,7 +48,7 @@ after(async () => {
   await db.$disconnect();
 });
 
-describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, timeout: 120_000 }, () => {
+describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip, timeout: 120_000 }, () => {
   before(async () => {
     // 不在这里抛错：before 抛错会把 8 个子测试全部 cancelled，CI 日志看不到具名的
     // 失败行。让每个用例自己的 reset()/requireDb() 去 assert.fail，逐条具名失败。
@@ -69,7 +78,8 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, time
     await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsEvent"`);
     await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsDailyRollup"`);
     await conn.$executeRawUnsafe(`DELETE FROM "AnalyticsRollupDay"`);
-    await conn.$executeRawUnsafe(`DELETE FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY}`);
+    // 参数绑定，不能把 JS 模板插值拼进 SQL（会拼成 = analytics-aggregate，PG 报 42703）。
+    await conn.$executeRaw`DELETE FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY}`;
   }
 
   /** 造一个真实的 analytics-aggregate 租约行，让 readLockedGeneration 能真读到代次。 */

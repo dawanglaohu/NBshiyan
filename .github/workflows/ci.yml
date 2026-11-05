@@ -188,6 +188,8 @@ jobs:
           M3T2_REQUIRE_DATABASE: 'true'
           M3T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t3
           M3T3_REQUIRE_DATABASE: 'true'
+          # M5-T3 专用 PG 回归只在 e2e job 设此 flag；缺库即抛错，且按文件门禁要求具名通过。
+          M5T3_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
