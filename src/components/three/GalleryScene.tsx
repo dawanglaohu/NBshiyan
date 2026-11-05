@@ -8,7 +8,14 @@ import { lightRig } from './lights';
 import ProductModel, { type BoxView, type AnimationClips, type ModelBounds } from './ProductModel';
 import { frameClosedBox, openFraming, easeInOut, OPEN_DOLLY_MS, type OpenView } from '@/lib/three/framing';
 
-export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; /** PC 直接旋转，不先再点一次激活 */ directRotate?: boolean; /** 空闲自转。悬停、拖动、用户暂停、离屏和减少动态效果时为 false */ spin?: boolean; /** 按钮或 Ctrl/Cmd+滚轮的一次缩放。id 递增，deltaY<0 拉近 */ zoomId?: number; zoomDelta?: number; view?: BoxView; animationClips?: AnimationClips; /** 开合途中按整条弧线取景（openFraming fitArc） */ fitArc?: boolean; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
+/**
+ * 一次相机动作（E-101、E-104）：方向键/旋转按钮改朝向，复位回该产品初值。
+ * 缩放仍走既有的 `zoomId`/`zoomDelta` 通道（M2-T2 已验收，不改语义）：两条通道各自独立记账，
+ * 因此键盘旋转不会与按钮缩放互相覆盖 id。
+ */
+export type CameraAction = { kind: 'rotate'; azimuth?: number; polar?: number } | { kind: 'reset' };
+
+export type SceneItem = { slug: string; model?: string; visible: boolean; active: boolean; /** PC 直接旋转，不先再点一次激活 */ directRotate?: boolean; /** 空闲自转。悬停、拖动、用户暂停、离屏和减少动态效果时为 false */ spin?: boolean; /** 按钮或 Ctrl/Cmd+滚轮的一次缩放。id 递增，deltaY<0 拉近 */ zoomId?: number; zoomDelta?: number; /** 方向键/旋转按钮/复位的一次动作。id 递增才执行 */ commandId?: number; command?: CameraAction; view?: BoxView; animationClips?: AnimationClips; /** 开合途中按整条弧线取景（openFraming fitArc） */ fitArc?: boolean; /** 深色卡片（.theme-premium） */ dark?: boolean; track: RefObject<HTMLDivElement | null> };
 
 // 整页只用一个 WebGL 画布，用 View 切分到每张卡片，避免超出浏览器的画布数量上限
 // frameloop="demand" 只在 invalidate 时出帧：View 按卡片位置裁剪，页面滚动、尺寸变化、卡片增减后都要重新出一帧，
@@ -51,11 +58,16 @@ function usesGltf(i: SceneItem) { return !!i.model && !(i.view === 'dieline' && 
 
 type OrbitHandle = ComponentRef<typeof OrbitControls>;
 
+/** 该产品的初始相机（复位基准，E-104）：位置、看向点与取景距离，均在取景完成后记录一次 */
+export type InitialCameraState = { position: [number, number, number]; target: [number, number, number]; distance: number };
+
+/** 相机状态写回 DOM，供 e2e 与键盘/按钮断言读取（含 polar，方向键改的就是它） */
 function publishCamera(el: HTMLElement | null, controls: OrbitHandle) {
   if (!el) return;
   const distance = controls.object.position.distanceTo(controls.target);
   el.dataset.cameraDistance = distance.toFixed(4);
   el.dataset.azimuth = controls.getAzimuthalAngle().toFixed(4);
+  el.dataset.polar = controls.getPolarAngle().toFixed(4);
   el.dataset.minDistance = String(controls.minDistance);
   el.dataset.maxDistance = String(controls.maxDistance);
 }
@@ -65,10 +77,11 @@ function publishCamera(el: HTMLElement | null, controls: OrbitHandle) {
  * 缩放只走 dollyIn/dollyOut，由画廊在「已聚焦且 Ctrl/Cmd」或缩放按钮时调用。
  * 自转不依赖 enabled。粗指针设备要保持控件关闭，避免单指把页面滚动手势吃掉；那种情况下 drei 不会调用 update，这里补上。
  */
-function ModelOrbit({ track, enabled, spin, minDistance, maxDistance, target, zoomId = 0, zoomDelta = 0, controlsRef }: { track: RefObject<HTMLDivElement | null>; enabled: boolean; spin: boolean; minDistance: number; maxDistance: number; target?: [number, number, number]; zoomId?: number; zoomDelta?: number; controlsRef?: RefObject<OrbitHandle | null> }) {
+function ModelOrbit({ track, enabled, spin, minDistance, maxDistance, target, zoomId = 0, zoomDelta = 0, commandId = 0, command, initialRef, controlsRef }: { track: RefObject<HTMLDivElement | null>; enabled: boolean; spin: boolean; minDistance: number; maxDistance: number; target?: [number, number, number]; zoomId?: number; zoomDelta?: number; commandId?: number; command?: CameraAction; initialRef?: RefObject<InitialCameraState | null>; controlsRef?: RefObject<OrbitHandle | null> }) {
   const ownRef = useRef<OrbitHandle>(null);
   const ref = controlsRef ?? ownRef;
   const seenZoom = useRef(0);
+  const seenCommand = useRef(0);
   const invalidate = useThree((s) => s.invalidate);
   useFrame(() => {
     const controls = ref.current;
@@ -86,6 +99,26 @@ function ModelOrbit({ track, enabled, spin, minDistance, maxDistance, target, zo
     publishCamera(track.current, controls);
     invalidate();
   }, [zoomId, zoomDelta, invalidate, track, ref]);
+  useLayoutEffect(() => {
+    const controls = ref.current;
+    if (!controls || !commandId || commandId === seenCommand.current || !command) return;
+    seenCommand.current = commandId;
+    if (command.kind === 'rotate') {
+      // 方向键与旋转按钮共用这条路径：改朝向，不改距离，也不改 target。
+      if (command.azimuth) controls.setAzimuthalAngle(controls.getAzimuthalAngle() + command.azimuth);
+      if (command.polar) controls.setPolarAngle(controls.getPolarAngle() + command.polar);
+    } else {
+      // 复位：回到该产品取景时记录的初值，不是「尽量接近」（E-104）。
+      const init = initialRef?.current;
+      if (init) {
+        controls.target.set(...init.target);
+        controls.object.position.set(...init.position);
+        controls.update();
+      }
+    }
+    publishCamera(track.current, controls);
+    invalidate();
+  }, [commandId, command, invalidate, track, ref, initialRef]);
   return (
     <OrbitControls
       ref={ref}
@@ -138,6 +171,8 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
   const aspect = useThree((s) => s.size.width / Math.max(1, s.size.height));
   const invalidate = useThree((s) => s.invalidate);
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
+  // 该产品的初始相机（E-104 复位基准）：取景完成后记录一次，之后不再改写
+  const initialRef = useRef<InitialCameraState | null>(null);
   // 模型平移：按合盖姿态 xz 居中，底面落地
   const offset: [number, number, number] = b ? [-(b.min[0] + b.max[0]) / 2, -b.min[1], -(b.min[2] + b.max[2]) / 2] : [0, 0, 0];
   const size: [number, number, number] = b ? [b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]] : [1, 1, 1];
@@ -179,6 +214,15 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
     const start = i.view === 'open' && openV ? viewCam(openV) : closedCam()!;
     zoom.current = { ...zoom.current, cur: start, from: start, to: start, done: true };
     if (i.view === 'open') { placeAt(start); controls.current?.update(); }
+    // 复位基准（E-104）：取景完成时的相机就是该产品的初始相机。只在首次取景时记录，
+    // 之后开合盖拉远、用户拖动、用户缩放都不改写它，否则「复位」会变成「回到上一次操作」。
+    if (initialRef && !initialRef.current) {
+      initialRef.current = {
+        position: [camera.position.x, camera.position.y, camera.position.z],
+        target: [controls.current?.target.x ?? f.center[0], controls.current?.target.y ?? f.center[1], controls.current?.target.z ?? f.center[2]],
+        distance: f.distance,
+      };
+    }
     invalidate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [f?.distance, f?.center[1], camera, invalidate]);
@@ -230,7 +274,7 @@ function FramedGltf({ item: i, env, onReady, onError }: { item: SceneItem; env: 
           <ContactShadows key={`${footprint.toFixed(4)}:${i.view ?? ''}`} position={[0, 0.0005, 0]} opacity={0.6} blur={1.8} scale={footprint * 2.4} far={Math.max(shadowH, footprint) * 0.6} resolution={512} frames={1} />
         )}
       </Suspense>
-      <ModelOrbit controlsRef={controls} track={i.track} enabled={!!i.directRotate || i.active} spin={!!i.spin} zoomId={i.zoomId} zoomDelta={i.zoomDelta}
+      <ModelOrbit controlsRef={controls} track={i.track} enabled={!!i.directRotate || i.active} spin={!!i.spin} zoomId={i.zoomId} zoomDelta={i.zoomDelta} commandId={i.commandId} command={i.command} initialRef={initialRef}
         target={f?.center} minDistance={f ? f.distance * 0.6 : 0.01} maxDistance={f ? f.distance * 2 : 100} />
     </>
   );
@@ -267,7 +311,7 @@ export default function GalleryScene({ items, eventSource, onReady, onError }: {
             <Environment map={env} environmentIntensity={1} />
             <ContactShadows position={[0, 0, 0]} opacity={0.35} blur={2.5} scale={1.2} far={0.6} resolution={256} frames={1} />
           </Suspense>
-          <ModelOrbit track={i.track} enabled={!!i.directRotate || i.active} spin={!!i.spin} zoomId={i.zoomId} zoomDelta={i.zoomDelta} minDistance={1.8} maxDistance={6} />
+          <ModelOrbit track={i.track} enabled={!!i.directRotate || i.active} spin={!!i.spin} zoomId={i.zoomId} zoomDelta={i.zoomDelta} commandId={i.commandId} command={i.command} minDistance={1.8} maxDistance={6} />
           </>)}
         </View>
       ))}</SharedEnvironment>

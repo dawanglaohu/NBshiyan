@@ -358,15 +358,18 @@
     "verdict": "pass"
   },
   "M2-T3": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "ee245fb4c964c195ddf09a3f0b2c85156f04d72d7ec41b6209d13e63b88eda36",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "6e95012a627d50f859cceb011f5250fb0110d71d43802eefdffd14543abae596",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:22；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《接通模型键盘触屏与复位控件》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=model-pointer、每产品初始相机/缩放边界与现有大卡；输出=model-accessibility；键盘/单指/双指/复位与44px控件；前置=M2-T2；阶段=integration；能力=model-accessibility；有效路径共18项（e2e/model-accessibility.spec.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/three/; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts; src/lib/three/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=E-101,E-102,E-104；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "契约补登复核（本轮只核变化字段）：M2-T3 的 supportPaths 从 [] 变为 ['tests/m2-t3-model-accessibility.test.ts']，其余字段 provides/requires/stage/wiring/outputPaths/sections 逐字未变。逐任务对比 0d0a26dd 与当前 task-contracts.json，实际被改动的契约只有 M2-T3 一个。",
+      "补登理由（来自实际代码，不是形式补充）：该单测是「漏传 zoomId/zoomDelta 导致缩放静默失效」的唯一守卫。该用例把 <ModelOrbit .../> 调用点逐个提取，对每个调用点分别断言 zoomId={i.zoomId} 与 zoomDelta={i.zoomDelta}；PR 描述记录这次回归：改接新通道时两处调用点一度只传 commandId，缩放按钮与键盘加减号全部失效，而只断言源码字面量的单测仍然全绿。删掉该测试会失去对这次回归的防护。",
+      "漏列事实（已独立核实）：在 141 个契约中检索 tests/m2-t3-model-accessibility.test.ts，没有任何任务在 taskPaths/supportPaths/outputPaths 登记该路径；M2-T3 原 outputPaths 只有 src/components/three/、src/lib/three/、e2e/model-accessibility.spec.ts 三项，supportPaths 为空。按 AGENTS.md「漏列的必要支持文件由审查方补齐并核对冲突，不私自无限扩大范围」，只补这一条路径，未改动任何其他任务、未新增产品代码、未改规范正文。",
+      "传播范围解释（避免把机制误读为波及）：sync 输出的 30 条「待真实复核」是补丁 affected 传播清单，包含 M2-T5/T6/T7/T8、M3-T6/T8/T9/T10/T11/T12/T13/T25、M6-T1..T7、M7-T1..T10 等；逐任务对比后确认这些任务的契约内容实际未变，它们的 changedFields 只来自输出路径共享检测，不是我的改动波及。补丁 M2-T3-model-accessibility-test-path.json 的 verifiedTasks 为 []，changes 中 M2-T3 的 before/after 仅体现 supportPaths。",
+      "不造成复验回潮的实测：sync 之后 _run/revalidation.json 仍是 {}（0 条）、maintenance.js 的 needsReview 仍是 []、pendingTasks 是 []。即没有把任何已落地任务重新标为待复验；30 条只是「任务契约待语义复核」的提示，未写入 revalidation。",
+      "下游影响：只有 M2-T6（provides model-accessibility 的消费者）依赖 M2-T3，且 M2-T6 当前 status 仍为 todo、未落地，因此本次契约哈希变化不会触发任何已落地任务的复验标记。",
+      "范围边界：本补丁只改 docs/PackJoyU-开发文档/_run/task-contracts.json 的 M2-T3.supportPaths 一处（3 行：+3/-1），未改产品源码、未改 e2e/单测内容、未改 compose/schema/messages/globals.css，未改其他任何任务的契约。"
     ],
-    "reviewed": "2026-10-22T12:42:10.476379+00:00",
+    "reviewed": "2026-11-05T01:37:39.172411+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
