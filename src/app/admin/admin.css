@@ -155,5 +155,89 @@
 /* #347 UX：页面级错误条用后台的错误样式（红底红边）；危险操作按钮（描边红字） */
 .adm-msg.err{background:var(--errb);border-color:#F3B5B0;color:var(--err);font-weight:600}
 .adm-btn.danger{border-color:#E8A49E;color:var(--err)}
+
+/* M3-T7 统一后台外壳：11 节 minimalist-flat 的唯一 token。
+   2px 黑边、0 圆角、无阴影、强调色 #b45700；黑白反转表达当前状态，不靠颜色单独传义。
+   只作用于壳元素（顶栏 / 侧栏 / 导航 / 账号区 / 退出控件 / 主内容外框），
+   旧业务内层的既有样式由 M3-T21~T25 逐页迁移，本卡不覆盖、不计其视觉通过。 */
+.adm-top,.adm-side,.adm-main,.adm-account{
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+}
+.adm-side{background:var(--pj-inverse);color:var(--pj-on-inverse);border-color:var(--pj-border)}
+.adm-side .brand{color:var(--pj-on-inverse)}
+.adm-side a{
+  border:var(--pj-border-width) solid transparent;
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  color:var(--pj-on-inverse);
+  min-height:40px;
+}
+.adm-side a[aria-current=page]{
+  background:var(--pj-on-inverse);
+  color:var(--pj-inverse);
+  border-color:var(--pj-on-inverse);
+  font-weight:600;
+}
+.adm-side a:focus-visible{
+  outline:var(--pj-focus-width) solid var(--pj-accent);
+  outline-offset:var(--pj-focus-offset);
+}
+.adm-top{background:var(--pj-inverse);color:var(--pj-on-inverse);border-color:var(--pj-border)}
+.adm-menu,.adm-nav-close{
+  border:var(--pj-border-width) solid var(--pj-on-inverse);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:transparent;
+  color:var(--pj-on-inverse);
+  min-width:var(--pj-touch-target);
+  min-height:var(--pj-touch-target);
+}
+.adm-menu:focus-visible,.adm-nav-close:focus-visible{
+  outline:var(--pj-focus-width) solid var(--pj-accent);
+  outline-offset:var(--pj-focus-offset);
+}
+.adm-account{
+  margin-top:16px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  background:var(--pj-inverse);
+  color:var(--pj-on-inverse);
+  border-color:var(--pj-border);
+}
+.adm-account-name{font-weight:600;overflow-wrap:anywhere}
+.adm-account-role{
+  align-self:flex-start;
+  border:var(--pj-border-width) solid var(--pj-on-inverse);
+  border-radius:var(--pj-radius);
+  padding:2px 8px;
+  font-size:12px;
+  line-height:20px;
+}
+.adm-account-loading,.adm-account-cleared{font-size:13px;line-height:20px;margin:0}
+.adm-account-cleared{color:var(--pj-accent)}
+.adm-signout{
+  font:inherit;
+  min-height:var(--pj-touch-target);
+  padding:0 12px;
+  border:var(--pj-border-width) solid var(--pj-on-inverse);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+  cursor:pointer;
+}
+.adm-signout:hover{background:var(--pj-accent);color:var(--pj-on-accent);border-color:var(--pj-accent)}
+.adm-signout:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.adm-main{padding:16px}
+@media (max-width:767px){
+  .adm-side a{min-height:var(--pj-touch-target)}
+  .adm-signout{min-height:var(--pj-touch-target)}
+}
 .adm-btn.danger:hover{background:var(--errb)}
 .adm-btn.adm-row-last{margin-left:12px}
