@@ -117,9 +117,9 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     await conn.$executeRaw`
       INSERT INTO "AnalyticsEvent" (
         "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
-        "productSlug", "path", "occurredAt", "receivedAt", "createdAt"
+        "productSlug", "path", "occurredAt", "receivedAt"
       ) VALUES (
-        ${`ev-${process.pid}-${seq}`}::uuid,
+        ${`ev-${process.pid}-${seq}`},
         ${`sk-${process.pid}-${seq}`},
         ${'p'.repeat(64)},
         ${browserHash},
@@ -128,7 +128,6 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
         ${input.productSlug ?? null},
         ${input.path ?? '/en'},
         ${utc(input.occurredAt)},
-        ${utc(input.receivedAt)},
         ${utc(input.receivedAt)}
       )
     `;
@@ -287,11 +286,11 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
       await tx.$executeRaw`
         INSERT INTO "AnalyticsEvent" (
           "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
-          "productSlug", "path", "occurredAt", "receivedAt", "createdAt"
+          "productSlug", "path", "occurredAt", "receivedAt"
         ) VALUES (
-          ${`rr-${process.pid}`}::uuid, ${`rr-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-rr'},
+          ${`rr-${process.pid}`}, ${`rr-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-rr'},
           ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
-          ${utc(new Date(bounds.startUtc))}, ${utc(new Date(now.getTime() - 30_000))}, ${utc(now)}
+          ${utc(new Date(bounds.startUtc))}, ${utc(new Date(now.getTime() - 30_000))}
         )
       `;
       const second = await loadEventsAtSnapshot(tx, bounds, now);
