@@ -207,7 +207,11 @@ test('e2e 规格用独立管理员（不碰全局 E2E_ADMIN）、signOut 独立�
   // signOut 会撤销设备会话，必须单独建管理员/会话，不与主体组共用 beforeAll 的旧 cookie。
   assert.match(spec, /useSharedAdmin\(\{ emailPrefix: 'e2e-shell-signout'/, 'signOut 必须独立会话');
   assert.match(spec, /admin-signout 真退出（独立会话）/);
-  assert.match(spec, /test\.use\(\{ video: 'on' \}\)/, '视频留给 CI 转 GIF');
+  // video 只能写在文件顶层（describe 内会强制新 worker，Playwright 收集阶段直接报错）。
+  const videoUses = [...spec.matchAll(/^\s*test\.use\(\{ video: 'on' \}\);/gm)].map((m) => m.index!);
+  assert.equal(videoUses.length, 1, '整文件只一处 test.use({ video })');
+  const firstDescribe = spec.indexOf('test.describe(');
+  assert.ok(videoUses[0] < firstDescribe, 'video 必须在第一个 describe 之前（文件顶层）');
   // 三尺寸真实壳元素与强调色都要断言，不能只量 signout 控件。
   assert.match(spec, /\.adm-side/);
   assert.match(spec, /\.adm-main/);

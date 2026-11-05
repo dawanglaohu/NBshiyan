@@ -14,7 +14,8 @@ import { useSharedAdmin } from './shared-admin';
  * 旧 cookie，后续 beforeEach 注入的旧 cookie 已失效，会 401 落到登录页。这里给 signOut
  * 单独建管理员/会话，不依赖用例执行顺序（即使将来 workers/fullyParallel 变化也不互相污染）。
  *
- * 视觉证据：test.use({ video: 'on' })，CI 从 test-results 视频转 GIF；三尺寸下量真实壳元素。
+ * 视觉证据：`test.use({ video: 'on' })` 写在**文件顶层一次**（Playwright 不允许放在 describe 内，
+ * 会强制新 worker、收集阶段直接报错）；CI 从 test-results 视频转 GIF；三尺寸下量真实壳元素。
  * `.adm-top` 桌面断点 display:none，只在窄屏（<768）断言；桌面量始终可见的 .adm-side/.adm-main。
  *
  * 证据分级：
@@ -27,6 +28,11 @@ import { useSharedAdmin } from './shared-admin';
 const PASSWORD = 'e2e-shell-Passw0rd!';
 const ACCOUNT = '/api/admin/account';
 
+// Playwright 只允许 video 在文件顶层或 config：写在 describe 内会强制新 worker，
+// 收集阶段直接报 "Cannot use({ video }) in a describe group"。整文件一次，两组共用。
+// CI 从 test-results 视频转 GIF；本文件不用本机浏览器录。
+test.use({ video: 'on' });
+
 test('后台壳：未登录不能读 account，页面跳登录', async ({ request }) => {
   expect((await request.get(ACCOUNT)).status()).toBe(401);
   const r = await request.get('/admin/inquiries', { maxRedirects: 0 });
@@ -35,7 +41,6 @@ test('后台壳：未登录不能读 account，页面跳登录', async ({ reques
 
 test.describe('后台壳主体（独立管理员，整组一次登录）', () => {
   useSharedAdmin({ emailPrefix: 'e2e-shell', name: 'E2E shell', password: PASSWORD, probe: ACCOUNT });
-  test.use({ video: 'on' });
 
   test('角色菜单来自服务端、账号区读 GET account、退出控件可达', async ({ page }) => {
     test.setTimeout(120_000);
@@ -177,7 +182,6 @@ test.describe('后台壳主体（独立管理员，整组一次登录）', () =>
 // signOut 会撤销设备会话，单独建管理员/会话，不与上面的 beforeAll 旧 cookie 共用。
 test.describe('admin-signout 真退出（独立会话）', () => {
   useSharedAdmin({ emailPrefix: 'e2e-shell-signout', name: 'E2E shell signout', password: PASSWORD, probe: ACCOUNT });
-  test.use({ video: 'on' });
 
   test('点 admin-signout 执行真实 Auth.js signOut，旧 cookie GET account=401', async ({ page, browser }) => {
     test.setTimeout(120_000);
