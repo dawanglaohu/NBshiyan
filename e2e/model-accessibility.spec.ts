@@ -25,9 +25,10 @@ async function openProducts(page: Page, width = 1440, height = 900) {
   await page.setViewportSize({ width, height });
   await page.goto('/en');
   await dismissConsent(page);
-  // 窄屏（<768px）下 `.nav-desktop` 是 display:none，`products-link` 只存在于抽屉里，
-  // 抽屉未打开时根本不在 DOM 中（实测宽屏 total=1 / drawerExists=false）。
-  // 因此窄屏必须走真实路径：先展开菜单，再点入口——不用 force、不换选择器绕过。
+  // 窄屏（<768px）下 `.nav-desktop` 是 display:none，但其中的链接**仍在 DOM 里**；
+  // SiteHeader 把同一份 links 渲染在桌面导航与抽屉两处，所以展开抽屉后
+  // `[data-testid="products-link"]` 会有两个（CI 实测 Received: 2）。
+  // 因此不能断言全局数量，只能点抽屉内的那一个——仍然走真实交互路径，不用 force。
   const narrow = width < 768;
   if (narrow) {
     const menuButton = page.getByRole('button', { name: 'Open menu' });
@@ -35,10 +36,11 @@ async function openProducts(page: Page, width = 1440, height = 900) {
     await menuButton.click();
     const drawer = page.getByRole('dialog', { name: 'Menu' });
     await expect(drawer, '展开后必须出现菜单元').toBeVisible();
-    // 抽屉内的入口是唯一可见的 products-link：桌面导航已被隐藏。
-    const links = page.locator('[data-testid="products-link"]');
-    await expect(links).toHaveCount(1);
-    await links.click();
+    // 抽屉内的入口：作用域限定在 dialog 内，避免与桌面导航里的同名元素混淆。
+    const drawerLink = drawer.locator('[data-testid="products-link"]');
+    await expect(drawerLink, '抽屉内必须有且只有一个产品入口').toHaveCount(1);
+    await expect(drawerLink).toBeVisible();
+    await drawerLink.click();
   } else {
     await page.locator('[data-testid="products-link"]:visible').click();
   }
