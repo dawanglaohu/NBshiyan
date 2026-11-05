@@ -854,7 +854,12 @@
         "src/lib/server/admin/recovery-repo.ts",
         "src/lib/server/admin/audit.ts",
         "src/lib/server/composition.ts",
-        "tests/admin-recovery-authorizations.http.test.ts"
+        "src/components/admin/users/UsersAdmin.tsx",
+        "tests/admin-recovery-authorizations.http.test.ts",
+        "tests/admin-reset-2fa-unlock-347.test.ts",
+        "tests/admin-enroll-token-347.test.ts",
+        "tests/admin-enroll-hardening-347-348.test.ts",
+        "tests/admin-enroll-347-fe.test.ts"
       ],
       "outputPaths": [
         "src/lib/server/admin/recovery-authorizations.ts",
