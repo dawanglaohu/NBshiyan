@@ -1563,6 +1563,24 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R4-T78812657": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "d15b3ff5bdad1dbb29aa939dce68c7251d32b8cbaf1e8d825188c2af2934dc9d",
+    "evidence": [
+      "验收1/3 方案 A 固定：Jev 裁决 model=jev-1.14.0、pick=A、spec_change=no、adopt=red_line；本任务保留代码的 12 小时绝对截止、改文档贴合代码，未采用方案 B。实证：src/lib/server/config.ts:9 `ordinaryAbsoluteMs: 12 * 60 * 60 * 1000` 仍在；session-expiry.ts:15 `policyCapMs` 对未记住设备返回 ordinaryAbsoluteMs；session-expiry.ts:39-40 `publicAbsolute` 对普通会话仍 `return null`，不对外暴露绝对期限。代码自 eb803b6c 起零改动。",
+      "验收2 E-01 与 E-69：docs/PackJoyU-开发文档/03-质量/13-边界问题与异常处理.md 的 E-01 现写「未选时保留 2 小时活动滑动…另加创建后 12 小时绝对截止，续期不能越过该截止。选中后为 7 天闲置…30 天绝对上限」；E-69 同步为「或自创建达到 12 小时绝对截止」并加「服务端在写入 lastActivityAt 之前拒绝授权（到期时刻的等号即拒绝）」。改动由 eb803b6c 落地，已在 main。",
+      "验收2 09 数据模型：docs/PackJoyU-开发文档/02-设计/09-数据模型.md:16 的 AdminDeviceSession 行写明 `hardExpiresAt DateTime?（可空；普通会话为创建后12小时，记住设备为创建后30天）`，同格写「普通会话2h活动滑动，另加创建后12h绝对截止，记住会话7d活动闲置/创建后30d绝对」「hardExpiresAt 记下该绝对截止，续期不改」「对外 absoluteExpiresAt 只属于记住设备」。",
+      "验收2 19 节 M3-T1 与 M3-T15：docs/PackJoyU-开发文档/04-执行/19-模块任务拆分.md:28 与 :42 均已写「普通会话为2h滑动，另加创建后12h绝对截止；记住7d闲置/首次30d绝对；createdAt+12h的等号返回401且不更新lastActivityAt」。",
+      "验收2 en/ru adminSessions：messages/en.json:367 与 messages/ru.json:367 写明 2 小时不活动且不晚于登录后 12 小时、记住设备 7 天/30 天。注：两份 json 正文含不换行空格（NBSP, U+00A0），比对前需先归一化再匹配，否则会误判为缺 12 小时表述。",
+      "验收4 等号拒绝且早于写入：src/lib/server/admin/device-session.ts:103-105 用 `isStrictlyBefore` 严格小于判定 `enforcedAbsolute`、`effectiveDeadline` 与记住设备 `absoluteExpiresAt`，到期时刻本身返回 401；该判定在设备有效性阶段完成，早于 :281 的 `update({ data: { lastActivityAt: now } })`，因此被拒请求不会顺带续期。记住设备仍为 config.ts:7 的 7 天闲置与 :8 的 30 天绝对。",
+      "验收2 测试断言：tests/admin-session-activity.http.test.ts:108 断言 `initialHardExpiresAt(created,false,policy) - created === policy.ordinaryAbsoluteMs`；:240、:255、:339、:498 断言 `hardExpiresAt === createdAt + ordinaryAbsoluteMs`；:117-119 与 :140-141 核到期前 1ms 可访问、到期时刻拒绝。",
+      "真实 PostgreSQL 证据来自 CI，不是本机跑：该文件在 .github/workflows/ci.yml:111 门禁名单、:140 执行列表、:154 逐文件校验内。从 run 41878171304（head c4b281fb，run 级 completed/success）的具名日志取到 `tests/admin-session-activity.http.test.ts\tpass=8\tfail=0\tskip=0\ttodo=0\tcancelled=0`，8 项全通过、零跳过零失败。本机无 PostgreSQL，无法本地复跑该 DB 用例，不把 CI 结果说成本地实跑。",
+      "落地范围：eb803b6c（2026-10-26）只改 5 个文件——02-设计/09-数据模型.md(+3/-3)、03-质量/13-边界问题与异常处理.md(+2/-2)、04-执行/19-模块任务拆分.md(+2/-2)、messages/en.json(+1/-1)、messages/ru.json(+1/-1)，产品源码零改动，符合方案 A「保留代码、改文档」；该提交是 #498 merge commit 6ff4934c 的祖先，且在当前 main 428371bb 中。"
+    ],
+    "reviewed": "2026-11-05T00:36:25.799113+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "R5-T10248697": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "45f18f66df5987836193b99a09ce7e55db027241302531d0ef5f414748ec3554",
