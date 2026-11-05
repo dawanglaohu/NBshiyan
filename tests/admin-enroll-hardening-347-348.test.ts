@@ -192,7 +192,9 @@ test('no enumeration: unknown account vs known account with wrong password look 
   assert.match(login, /if \(!user \|\| user\.disabled\) \{ await burnVerify\(password\);/);
   assert.match(login, /user\.lockedUntil > new Date\(\)\) \{\r?\n    await burnVerify\(password\);/);
   assert.equal(login.split("await burnVerify(totp || '000000')").length - 1, 2);
-  assert.match(login, /TODO\(M3-T19\): remove recovery-code login once \/api\/auth-admin\/recovery\/start ships/);
+  // R5-T59021355 兑现：日常恢复码登录路径已移除，非空 recoveryCode 一律走通用失败（不查账号、不核销、不建设备）。
+  assert.doesNotMatch(login, /authorizeRecovery\(/);
+  assert.match(login, /if \(recovery\) return genericCredentialFailure\(/);
   assert.match(login, /RETURNING "id"/);
   assert.match(login, /removed\.length === 1/);
 });

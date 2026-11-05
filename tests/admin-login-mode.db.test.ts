@@ -368,37 +368,53 @@ test('the existing login rate limit still rejects the next correct code without 
   assert.equal(row.totpLastStep, null);
 });
 
-test('an unused recovery code logs in once and does not change totp or session fields', { skip, timeout: 180_000 }, async () => {
+test('R5: a non-empty recovery code on ordinary Credentials always fails like an unknown account; no code consumed, no device, state unchanged', { skip, timeout: 180_000 }, async () => {
+  const base = await baselineKey();
   const member = await makeRecoveryUser({ passwordlessEnabled: true, sessionVersion: 7 });
   const before = await securitySnapshot(member.row.id);
+  // 验收1：当前密码 + 未使用的合法 10 位恢复码 → 通用 CredentialsSignin。
   const signed = await postLogin({
     email: member.email, password: member.password, totp: member.code(), recoveryCode: member.recovery,
   }, nextIp());
-  assert.equal(hasSession(signed), true);
-  assert.equal(await deviceCount(member.row.id), 1);
+  assert.equal(failureKey(signed), base.key);
+  assert.equal(hasSession(signed), false);
+  assert.equal(await deviceCount(member.row.id), 0);
+  // 验收2：同时带 6 位验证码也不改变结果。
+  const withTotp = await postLogin({
+    email: member.email, password: member.password, totp: member.code(), recoveryCode: member.recovery,
+  }, nextIp());
+  assert.equal(failureKey(withTotp), base.key);
+  assert.equal(await deviceCount(member.row.id), 0);
   const after = await securitySnapshot(member.row.id);
   assert.equal(after.totpEnabled, before.totpEnabled);
   assert.equal(after.totpSecret, before.totpSecret);
   assert.equal(after.sessionVersion, before.sessionVersion);
   assert.equal(after.sessionVersion, 7);
-  assert.equal(after.passwordlessEnabled, true);
-  assert.equal(after.totpLastStep, null);
-  assert.deepEqual(after.recoveryCodes, []);
+  assert.equal(after.passwordlessEnabled, before.passwordlessEnabled);
+  assert.equal(after.totpLastStep, before.totpLastStep);
+  assert.deepEqual(after.recoveryCodes, before.recoveryCodes, 'recovery code hash must remain');
+  // 验收3：不带 recoveryCode 的 password / totp 模式仍可登录（另起账号避免状态干扰）。
+  const plain = await makeUser();
+  const pw = await postLogin({ email: plain.email, password: plain.password, totp: plain.code() }, nextIp());
+  assert.equal(hasSession(pw), true);
+  const totpMode = await makeUser({ passwordlessEnabled: true });
+  const tm = await postLogin({ email: totpMode.email, mode: 'totp', totp: totpMode.code() }, nextIp());
+  assert.equal(hasSession(tm), true);
   const audits = await auditsFor(member.row.id);
-  assert.equal(audits.some((row) => row.action === 'auth.login_success' && (row.meta as { method?: string }).method === 'recovery_code'), true);
   auditsOmit(audits, member.recovery);
 });
 
-test('a wrong recovery code counts as one failure and reuse fails the same way', { skip, timeout: 180_000 }, async () => {
+test('R5: wrong password / wrong code / reuse of a recovery code are all the same generic failure and never consume the code', { skip, timeout: 180_000 }, async () => {
   const base = await baselineKey();
   const member = await makeRecoveryUser();
+  const before = await securitySnapshot(member.row.id);
   const wrongPassword = await authorizeLogin({
     email: member.email, password: 'wrong-password-value', recoveryCode: member.recovery,
   }, nextIp());
   assert.equal(wrongPassword, null);
   const afterPassword = await securitySnapshot(member.row.id);
   assert.deepEqual(afterPassword.recoveryCodes, [member.hash]);
-  assert.equal(afterPassword.failedLogins, 1);
+  assert.equal(afterPassword.failedLogins, before.failedLogins, 'no per-account failure counter change');
 
   const wrongCode = randomBytes(5).toString('hex');
   const wrong = await postLogin({
@@ -406,43 +422,43 @@ test('a wrong recovery code counts as one failure and reuse fails the same way',
   }, nextIp());
   assert.equal(failureKey(wrong), base.key);
   assert.equal(hasSession(wrong), false);
+  assert.equal(await deviceCount(member.row.id), 0);
   const afterWrong = await securitySnapshot(member.row.id);
-  assert.equal(afterWrong.failedLogins, 2);
   assert.deepEqual(afterWrong.recoveryCodes, [member.hash]);
+  assert.equal(afterWrong.failedLogins, before.failedLogins);
   const wrongAudits = await auditsFor(member.row.id);
-  assert.equal(wrongAudits.some((row) => row.action === 'auth.login_fail'), true);
   auditsOmit(wrongAudits, wrongCode);
   auditsOmit(wrongAudits, member.recovery);
 
-  const signed = await postLogin({
-    email: member.email, password: member.password, recoveryCode: member.recovery,
-  }, nextIp());
-  assert.equal(hasSession(signed), true);
+  // 重放同一恢复码仍通用失败，绝不签会话、绝不核销。
   const reused = await postLogin({
     email: member.email, password: member.password, recoveryCode: member.recovery,
   }, nextIp());
   assert.equal(failureKey(reused), base.key);
-  assert.equal(await deviceCount(member.row.id), 1);
-  assert.deepEqual((await securitySnapshot(member.row.id)).recoveryCodes, []);
-  auditsOmit(await auditsFor(member.row.id), member.recovery);
+  assert.equal(hasSession(reused), false);
+  assert.equal(await deviceCount(member.row.id), 0);
+  assert.deepEqual((await securitySnapshot(member.row.id)).recoveryCodes, [member.hash]);
 });
 
-test('two logins with the same recovery code succeed only once', { skip, timeout: 180_000 }, async () => {
+test('R5: two concurrent logins with the same recovery code both fail and leave no device', { skip, timeout: 180_000 }, async () => {
+  const base = await baselineKey();
   const member = await makeRecoveryUser({ sessionVersion: 4 });
   const before = await securitySnapshot(member.row.id);
   const fields = { email: member.email, password: member.password, recoveryCode: member.recovery };
   const [left, right] = await Promise.all([postLogin(fields, nextIp()), postLogin(fields, nextIp())]);
-  assert.equal([left, right].filter(hasSession).length, 1);
-  assert.equal(await deviceCount(member.row.id), 1);
+  assert.equal(failureKey(left), base.key);
+  assert.equal(failureKey(right), base.key);
+  assert.equal([left, right].filter(hasSession).length, 0);
+  assert.equal(await deviceCount(member.row.id), 0);
   const after = await securitySnapshot(member.row.id);
-  assert.deepEqual(after.recoveryCodes, []);
+  assert.deepEqual(after.recoveryCodes, before.recoveryCodes);
   assert.equal(after.totpEnabled, before.totpEnabled);
   assert.equal(after.totpSecret, before.totpSecret);
   assert.equal(after.sessionVersion, before.sessionVersion);
   assert.equal(after.passwordlessEnabled, before.passwordlessEnabled);
 });
 
-test('a correct recovery code still fails while the account is locked', { skip, timeout: 180_000 }, async () => {
+test('R5: a recovery code on a locked account is refused with no state change', { skip, timeout: 180_000 }, async () => {
   const base = await baselineKey();
   const member = await makeRecoveryUser();
   await (prisma as PrismaClient).user.update({
@@ -463,25 +479,24 @@ test('a correct recovery code still fails while the account is locked', { skip, 
   assert.equal(after.totpSecret, before.totpSecret);
   assert.equal(after.sessionVersion, before.sessionVersion);
   assert.equal(after.passwordlessEnabled, before.passwordlessEnabled);
-  const audits = await auditsFor(member.row.id);
-  assert.equal(audits.some((row) => row.action === 'auth.login_fail'), true);
-  auditsOmit(audits, member.recovery);
+  auditsOmit(await auditsFor(member.row.id), member.recovery);
 });
 
-test('five wrong recovery codes lock the account on the shared failure counter', { skip, timeout: 180_000 }, async () => {
+test('R5: five recovery-code attempts still fail generically and never lock or drain the account', { skip, timeout: 180_000 }, async () => {
+  const base = await baselineKey();
   const member = await makeRecoveryUser();
+  const before = await securitySnapshot(member.row.id);
   for (let i = 0; i < 5; i++) {
     const response = await postLogin({
       email: member.email, password: member.password, recoveryCode: randomBytes(5).toString('hex'),
     }, nextIp());
+    assert.equal(failureKey(response), base.key);
     assert.equal(hasSession(response), false);
+    assert.equal(await deviceCount(member.row.id), 0);
   }
-  const locked = await securitySnapshot(member.row.id);
-  assert.equal(locked.failedLogins, 0);
-  assert.ok(locked.lockedUntil && locked.lockedUntil > new Date());
-  assert.deepEqual(locked.recoveryCodes, [member.hash]);
-  const audits = await auditsFor(member.row.id);
-  assert.equal(audits.some((row) => row.action === 'auth.lockout'), true);
-  auditsOmit(audits, member.recovery);
+  const after = await securitySnapshot(member.row.id);
+  assert.equal(after.failedLogins, before.failedLogins);
+  assert.equal(after.lockedUntil, before.lockedUntil);
+  assert.deepEqual(after.recoveryCodes, before.recoveryCodes);
 });
 });

@@ -181,10 +181,9 @@ test('a correct password without 2FA returns the setup code and no session cooki
   const paths: Record<string, string>[] = [
     { email: 'ada@example.test', password: PASSWORD },
     { email: 'ada@example.test', password: PASSWORD, totp: '123456' },
-    { email: 'ada@example.test', password: PASSWORD, recoveryCode: '0123456789' },
   ];
   for (const fields of paths) {
-    users = [user({ id: `user-${fields.totp ?? fields.recoveryCode ?? 'plain'}`, totpEnabled: false, totpSecret: null, failedLogins: 0 })];
+    users = [user({ id: `user-${fields.totp ?? 'plain'}`, totpEnabled: false, totpSecret: null, failedLogins: 0 })];
     challenges = [];
     const response = await postLogin(fields, `198.51.100.${10 + paths.indexOf(fields)}`);
     assert.equal(failureKey(response), '302|/admin-login|CredentialsSignin|totp_setup_required|0');
@@ -192,6 +191,16 @@ test('a correct password without 2FA returns the setup code and no session cooki
     assert.equal(response.headers.getSetCookie().some((cookie) => cookie.startsWith(`${challengeApi.CHALLENGE_COOKIE}=`)), false);
     assert.equal(challenges.length, 0);
   }
+  // R5-T59021355：非空 recoveryCode 是普通 Credentials 的通用失败（与未知账号相同、不区分账号是否存在），
+  // 不再以 totp_setup_required 泄露「账号存在但未绑定 2FA」，也不核销恢复码、不建设备。
+  const recoveryFields = { email: 'ada@example.test', password: PASSWORD, recoveryCode: '0123456789' };
+  users = [user({ id: 'user-recovery', totpEnabled: false, totpSecret: null, failedLogins: 0 })];
+  challenges = [];
+  const recoveryResponse = await postLogin(recoveryFields, '198.51.100.12');
+  assert.equal(failureKey(recoveryResponse), '302|/admin-login|CredentialsSignin|credentials|0');
+  assert.equal(hasSessionCookie(recoveryResponse), false);
+  assert.equal(recoveryResponse.headers.getSetCookie().some((cookie) => cookie.startsWith(`${challengeApi.CHALLENGE_COOKIE}=`)), false);
+  assert.equal(challenges.length, 0);
   assert.equal(deviceInserts, 0);
   const totpMode = await authorizeLogin({ email: 'ada@example.test', mode: 'totp', totp: '123456' }, '198.51.100.20');
   assert.equal(totpMode, null);
