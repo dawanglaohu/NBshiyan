@@ -230,7 +230,8 @@ async function finishLogin(user: User, email: string, ip: string | null, method:
  * 已开启且同时带了验证码时按一次性登录核销验证码，不要求挑战。
  * 只有验证码、没有邮箱和密码时，用 cookie 里的挑战核销。
  * totp 模式要已开启无密码登录；未开启时与未知账号相同，不返回绑定错误。
- * 非空恢复码仍可代替验证码，但必须先通过当前密码；未开启双重验证时抛出 totp_setup_required。
+ * 非空恢复码不作为日常登录因子：一律与未知账号相同的通用失败，不核销恢复码、不建设备会话；
+ * 受限恢复只经 /api/auth-admin/recovery/start（M3-T19）。
  */
 export async function authorizeLogin(input: { email?: string; password?: string; totp?: string; recoveryCode?: string; mode?: string }, ip: string | null, ctx: LoginContext = {}) {
   const mode = input.mode ?? 'password';
@@ -239,8 +240,9 @@ export async function authorizeLogin(input: { email?: string; password?: string;
   const email = (input.email ?? '').trim().toLowerCase();
   if (!email && mode === 'password' && totp && !input.password && !recovery) return authorizeChallenge(totp, ip, ctx);
   if (mode !== 'password' && mode !== 'totp') return genericCredentialFailure(email, ip, input.password || totp || 'x');
-  // TODO(M3-T19): remove recovery-code login once /api/auth-admin/recovery/start ships
-  if (recovery) return authorizeRecovery(email, input.password ?? '', recovery, ip);
+  // 恢复码不再是日常 Credentials 登录因子：非空 recoveryCode 一律与未知账号走同一通用失败，
+  // 不查目标账号、不核销恢复码、不建设备会话。受限恢复只走 /api/auth-admin/recovery/start（M3-T19）。
+  if (recovery) return genericCredentialFailure(email, ip, input.password || totp || recovery);
   if (mode === 'totp') return authorizeTotp(email, totp, ip);
   const user = await checkPassword(email, input.password ?? '', ip);
   if (user === 'rate_limited') throwRateLimited();
@@ -276,19 +278,6 @@ async function authorizeTotp(email: string, totp: string | undefined, ip: string
   }
   if (!(await checkSecondFactor(user, totp, undefined))) { await fail(user, email, ip, totp ? 'bad_totp' : 'totp_missing'); return null; }
   return finishLogin(user, email, ip, 'totp');
-}
-
-/** 恢复码登录与验证码共用密码校验、失败计数、锁定和限流。成功只删掉用过的哈希。 */
-async function authorizeRecovery(email: string, password: string, recovery: string, ip: string | null) {
-  const user = await checkPassword(email, password, ip);
-  if (user === 'rate_limited') throwRateLimited();
-  if (typeof user === 'string') return null;
-  if (!user.totpEnabled) {
-    await audit({ actorId: user.id, action: 'auth.login_fail', target: auditEmailHash(email), meta: { reason: 'totp_setup_required' }, ip });
-    throwTotpSetupRequired();
-  }
-  if (!(await consumeRecoveryCode(user, recovery))) { await fail(user, email, ip, 'bad_totp'); return null; }
-  return finishLogin(user, email, ip, 'recovery_code');
 }
 
 export function newRecoveryCodes(n = 10) {
