@@ -3,7 +3,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminApi, usingMock } from '@/lib/admin/api';
-import { reportAdminActivity } from '@/lib/admin/session-activity';
+import AdminSessionActivity, { reportAdminActivity } from '@/components/admin/auth/AdminSessionActivity';
+import { getAccount } from '@/lib/client/account';
+import type { AccountDTO } from '@/lib/contracts/account';
+import { signOut } from 'next-auth/react';
 import UnassignedNav from './mail/UnassignedNav';
 import { UNASSIGNED_MAIL_LIVE } from '@/lib/admin/mail/features';
 import { mailEnabled, usingMailMock } from '@/lib/admin/mail/api';
@@ -22,6 +25,30 @@ const NAV: { href: string; label: string; ready?: boolean; adminOnly?: boolean }
 export default function AdminShell({ children, role }: { children: React.ReactNode; role?: string }) {
   const path = usePathname();
   const [newCount, setNewCount] = useState<number>();
+  const [account, setAccount] = useState<AccountDTO | null>(null);
+  // 401 / 撤销后立即清本账号内容，并取消在途的账号读取（E-03、E-70）。
+  const [accountCleared, setAccountCleared] = useState(false);
+  const accountAbort = useRef<AbortController | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    accountAbort.current = controller;
+    void getAccount({ signal: controller.signal }).then((result) => {
+      if (controller.signal.aborted) return;
+      if (result.ok) { setAccount(result.data); setAccountCleared(false); return; }
+      if (result.action === 'login' || result.status === 401) {
+        setAccount(null);
+        setAccountCleared(true);
+      }
+    }).catch(() => undefined);
+    return () => { controller.abort(); accountAbort.current = null; };
+  }, []);
+  const onUnauthorized = useCallback(() => {
+    // 活动续期被撤销：清账号内容、取消在途读取，不让旧 cookie 继续渲染敏感界面。
+    accountAbort.current?.abort();
+    accountAbort.current = null;
+    setAccount(null);
+    setAccountCleared(true);
+  }, []);
   const seenPath = useRef<string | null>(null);
   useEffect(() => { adminApi.listInquiries({ status: 'NEW', pageSize: 1 }).then((d) => setNewCount(d.total)).catch(() => {}); }, [path]);
   // 只在真实操作时续期：路由变化、指针、按键、提交。第一次渲染、定时器、焦点和可见性变化都不上报。
@@ -84,6 +111,7 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
   return (
     <MailGateContext.Provider value={mailGate}>
     <div className="adm" data-nav={open ? 'open' : 'closed'} data-mail={mailGate.state}>
+      <AdminSessionActivity onUnauthorized={onUnauthorized} />
       <header className="adm-top">
         <button ref={toggleRef} type="button" className="adm-menu" aria-expanded={open} aria-controls="adm-nav" aria-label={open ? '关闭导航菜单' : '打开导航菜单'} onClick={() => (open ? close() : setOpen(true))}>
           <span aria-hidden="true">☰</span>
@@ -100,6 +128,20 @@ export default function AdminShell({ children, role }: { children: React.ReactNo
             </Link>
           : <a key={n.href} className="soon" role="link" aria-disabled="true" title="待开发">{n.label}</a>)}
         {UNASSIGNED_MAIL_LIVE && mailEnabled && mailGate.state !== 'off' && role === 'ADMIN' && <UnassignedNav active={path.startsWith('/admin/mail')} />}
+        {/* 账号区：角色与账号数据来自 GET /api/admin/account（服务端会话），不由客户端推断。 */}
+        <div className="adm-account" data-testid="admin-account">
+          {accountCleared ? (
+            <p className="adm-account-cleared" role="status">会话已失效，请重新登录。</p>
+          ) : account ? (
+            <>
+              <span className="adm-account-name">{account.name ?? account.email}</span>
+              <span className="adm-account-role" data-testid="admin-account-role">{account.role}</span>
+            </>
+          ) : (
+            <span className="adm-account-loading" aria-live="polite">正在读取账号…</span>
+          )}
+          <button type="button" className="adm-signout" data-testid="admin-signout" aria-label="退出登录" onClick={() => { void signOut({ callbackUrl: '/admin-login' }); }}>退出登录</button>
+        </div>
       </nav>
       <main className="adm-main">
         {usingMailMock && <div className="adm-mock" data-testid="mail-mock">邮件功能当前使用示例数据（NEXT_PUBLIC_ADMIN_MAIL=mock），发信不会真的发出。</div>}
