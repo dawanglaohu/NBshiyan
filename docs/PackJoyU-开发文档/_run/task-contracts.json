@@ -429,7 +429,9 @@
       "wiring": [
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "tests/m2-t3-model-accessibility.test.ts"
+      ],
       "outputPaths": [
         "src/components/three/",
         "src/lib/three/",
