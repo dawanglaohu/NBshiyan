@@ -633,11 +633,12 @@ jobs:
 
   mail-evidence:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 35
     permissions:
       contents: read
     env:
       CI: 'true'
+      SMTP_EVIDENCE_REVIEWED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA'
       TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA'
       TURNSTILE_VERIFY_URL: http://127.0.0.1:3999/siteverify
@@ -650,11 +651,115 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - name: Isolated TLS SMTP preflight-only
-        timeout-minutes: 5
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Prepare real http and off artifacts without business credentials
+        timeout-minutes: 12
         shell: bash
         run: |
-          set -- preflight-only "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tests/evidence/local-smtp.mjs"
+          set -Eeuo pipefail
+          umask 077
+          export SMTP_EVIDENCE_SOURCE_HEAD="$(git rev-parse HEAD)"
+          export SMTP_EVIDENCE_BUILD_ROOT="$RUNNER_TEMP/nbshiyan-mail-builds.$SMTP_EVIDENCE_SOURCE_HEAD"
+          [[ ! -e "$SMTP_EVIDENCE_BUILD_ROOT" ]] || { echo 'PREPARED_ROOT_ALREADY_PRESENT' >&2; exit 1; }
+          mkdir -m 700 "$SMTP_EVIDENCE_BUILD_ROOT"
+          printf 'SMTP_EVIDENCE_BUILD_ROOT=%s\n' "$SMTP_EVIDENCE_BUILD_ROOT" >> "$GITHUB_ENV"
+          node --input-type=module <<'PREPARE'
+          import assert from 'node:assert/strict';
+          import { createHash, randomBytes } from 'node:crypto';
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { spawn, execFileSync } from 'node:child_process';
+
+          // Inline CI preparation only: no SMTP/PG/HTTP service is started and no business credentials are inherited.
+          const project = fs.realpathSync(process.cwd());
+          const sha = (value) => createHash('sha256').update(value).digest('hex');
+          const git = (...args) => execFileSync('git', args, { cwd: project, encoding: 'utf8' }).trim();
+          const source = { commit: git('rev-parse', 'HEAD'), tree: git('rev-parse', 'HEAD^{tree}'),
+            reviewedHead: process.env.SMTP_EVIDENCE_REVIEWED_HEAD || '', lockSha256: sha(fs.readFileSync('pnpm-lock.yaml')) };
+          const root = process.env.SMTP_EVIDENCE_BUILD_ROOT;
+          if (process.platform !== 'linux' || process.env.CI !== 'true' || process.env.GITHUB_ACTIONS !== 'true') throw new Error('LINUX_PREPARATION_ONLY');
+          if (!root || !path.isAbsolute(root) || path.dirname(fs.realpathSync(root)) !== fs.realpathSync(process.env.RUNNER_TEMP) || !path.basename(root).startsWith('nbshiyan-mail-builds.') || (fs.statSync(root).mode & 0o777) !== 0o700) throw new Error('BUILD_ROOT_PROVENANCE_REQUIRED');
+          assert.equal(git('status', '--porcelain', '--untracked-files=no'), '');
+          assert.equal(source.commit, process.env.SMTP_EVIDENCE_SOURCE_HEAD);
+          assert.ok(/^[a-f0-9]{40}$/.test(source.commit) && /^[a-f0-9]{40}$/.test(source.reviewedHead));
+          assert.equal(root, path.join(fs.realpathSync(process.env.RUNNER_TEMP), `nbshiyan-mail-builds.${source.commit}`));
+          assert.equal(fs.existsSync(path.join(project, '.next')), false, 'Fresh preparation must not discard an existing build');
+          for (const name of ['.env', '.env.local', '.env.production', '.env.production.local', '.env.test', '.env.test.local']) assert.equal(fs.existsSync(path.join(project, name)), false, 'Dotenv could bypass build credential isolation');
+          const owner = { version: 1, uid: process.getuid(), inode: fs.statSync(root).ino, nonce: randomBytes(16).toString('hex'), ...source };
+          fs.writeFileSync(path.join(root, 'owner.json'), JSON.stringify(owner), { mode: 0o600, flag: 'wx' });
+          const credentialFreeEnv = (mode) => {
+            const env = {};
+            for (const name of ['PATH', 'HOME', 'USER', 'LOGNAME', 'SHELL', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL']) if (process.env[name]) env[name] = process.env[name];
+            return { ...env, CI: 'true', APP_ENV: 'test', NEXT_TELEMETRY_DISABLED: '1',
+              NEXT_PUBLIC_ADMIN_API: 'http', NEXT_PUBLIC_ADMIN_MAIL: mode, NEXT_PUBLIC_SITE_URL: 'http://localhost:3100',
+              NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '',
+              NEXT_PUBLIC_TAWK_PROPERTY_ID: 'e2eprop', NEXT_PUBLIC_TAWK_WIDGET_ID: 'e2ewidget' };
+          };
+          const inventory = (dir, prefix = '') => {
+            const files = {};
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+              const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+              const file = path.join(dir, entry.name);
+              if (entry.isDirectory()) Object.assign(files, inventory(file, name));
+              else {
+                assert.equal(entry.isFile(), true, 'Packaged artifact must contain only directories and regular files');
+                const info = fs.lstatSync(file); assert.equal(info.nlink, 1);
+                files[name] = sha(fs.readFileSync(file));
+              }
+            }
+            return files;
+          };
+          const modes = {};
+          for (const mode of ['http', 'off']) {
+            assert.equal(git('rev-parse', 'HEAD'), source.commit);
+            const env = credentialFreeEnv(mode);
+            for (const name of ['DATABASE_URL', 'SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'AUTH_SECRET', 'PRIVACY_HASH_SECRET', 'ADMIN_TOTP_KEY', 'NEXT_FONT_GOOGLE_MOCKED_RESPONSES']) assert.equal(Object.hasOwn(env, name), false);
+            const code = await new Promise((resolve, reject) => {
+              const build = spawn('pnpm', ['build'], { cwd: project, env, stdio: 'inherit' });
+              build.once('error', reject); build.once('exit', (status, signal) => resolve(signal ? 1 : status ?? 1));
+            });
+            assert.equal(code, 0, 'Real mode build failed');
+            const next = path.join(project, '.next');
+            assert.equal(path.dirname(next), fs.realpathSync(project));
+            assert.equal(fs.lstatSync(next).isSymbolicLink(), false);
+            const required = JSON.parse(fs.readFileSync(path.join(next, 'required-server-files.json'), 'utf8'));
+            assert.equal(required.config.env.NEXT_PUBLIC_ADMIN_MAIL, mode);
+            assert.equal(required.config.env.NEXT_PUBLIC_ADMIN_API, 'http');
+            assert.equal(required.config.env.APP_ENV_AT_BUILD, 'test');
+            const output = path.join(root, mode);
+            fs.mkdirSync(output, { mode: 0o700 });
+            // Materialize traced links only from this prepared source tree; the immutable inventory records every packaged byte.
+            const copy = (from, to) => fs.cpSync(from, to, { recursive: true, dereference: true, filter: (file) => {
+              const real = fs.realpathSync(file);
+              assert.ok(real === project || real.startsWith(project + path.sep), 'Tracing escaped the prepared checkout');
+              return true;
+            } });
+            copy(path.join(next, 'standalone'), path.join(output, 'app'));
+            copy(path.join(next, 'static'), path.join(output, 'app/.next/static'));
+            copy(path.join(project, 'public'), path.join(output, 'app/public'));
+            const buildId = fs.readFileSync(path.join(next, 'BUILD_ID'), 'utf8').trim();
+            const stagedConfig = JSON.parse(fs.readFileSync(path.join(output, 'app/.next/required-server-files.json'), 'utf8'));
+            assert.equal(stagedConfig.config.env.NEXT_PUBLIC_ADMIN_MAIL, mode);
+            assert.equal(stagedConfig.config.env.APP_ENV_AT_BUILD, 'test');
+            const files = inventory(output);
+            assert.ok(files['app/server.js'] && files['app/.next/BUILD_ID']);
+            const manifest = { version: 1, mode, ...source, buildId, credentialsInBuildEnvironment: false, fontBuild: 'real-next-font-google', files };
+            const bytes = JSON.stringify(manifest);
+            fs.writeFileSync(path.join(output, 'manifest.json'), bytes, { mode: 0o600, flag: 'wx' });
+            modes[mode] = { mode, commit: source.commit, tree: source.tree, buildId, manifestSha256: sha(bytes), fileCount: Object.keys(files).length };
+            // This exact generated .next belongs to the successful build above. No source, user data or another output is removed.
+            assert.equal(git('status', '--porcelain', '--untracked-files=no'), '');
+            assert.equal(fs.lstatSync(next).isDirectory(), true);
+            fs.rmSync(next, { recursive: true, force: false });
+          }
+          fs.writeFileSync(path.join(root, 'provenance.json'), JSON.stringify({ version: 1, owner: owner.nonce, ...source, modes }), { mode: 0o600, flag: 'wx' });
+          console.log(JSON.stringify({ preparedRealModes: ['http', 'off'], source, modeManifests: modes, businessCredentialsUsed: false }));
+          PREPARE
+      - name: Isolated TLS SMTP integration
+        timeout-minutes: 20
+        shell: bash
+        run: |
+          set -- integration "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tests/evidence/local-smtp.mjs"
           set -Eeuo pipefail
           umask 077
           # Execute only on an ephemeral GitHub-hosted Linux runner.
@@ -692,13 +797,124 @@ jobs:
           cat > "$root/driver.sh" <<'DRIVER'
           #!/usr/bin/env bash
           set -Eeuo pipefail
-          cd "$2"
-          node "$3" preflight --root "$4" --project "$2" --report "$5/admin-legacy-inquiries-smtp-preflight.json"
+          umask 077
+          mode=$1
+          project=$2
+          smtp_script=$3
+          root=$4
+          report_dir=$5
+          cd "$project"
+          node "$smtp_script" preflight --root "$root" --project "$project" --report "$report_dir/admin-legacy-inquiries-smtp-preflight.json"
+          if [[ "$mode" == preflight-only ]]; then exit 0; fi
+          # Existing hosted-runner PostgreSQL only. Do not apt-install or fall back to a non-isolated database.
+          pg_bin=''
+          for candidate in /usr/lib/postgresql/*/bin; do
+            if [[ -x "$candidate/initdb" && -x "$candidate/pg_ctl" && -x "$candidate/pg_isready" && -x "$candidate/createdb" ]]; then pg_bin=$candidate; fi
+          done
+          [[ -n "$pg_bin" ]] || { echo 'POSTGRES_BINARIES_MISSING' >&2; exit 1; }
+          [[ -f tests/evidence/admin-legacy-inquiries-mail.spec.ts && -f tests/evidence/mail-evidence.config.ts ]] || { echo 'SUPPORT_FILES_NOT_REGISTERED_AND_IMPLEMENTED' >&2; exit 1; }
+          pg_started=0
+          sink_pid=''
+          cleanup_driver() {
+            result=$?
+            trap - EXIT
+            if [[ -n "$sink_pid" ]]; then
+              if kill -0 "$sink_pid" 2>/dev/null; then kill -TERM "$sink_pid" || result=1; fi
+              wait "$sink_pid" || result=1
+            fi
+            if [[ "$pg_started" == 1 ]]; then "$pg_bin/pg_ctl" -D /tmp/mail-evidence-pg -m fast -w stop >/dev/null 2>&1 || result=1; fi
+            exit "$result"
+          }
+          trap cleanup_driver EXIT
+          trap 'exit 143' TERM INT
+          # /tmp is a private mount-namespace tmpfs. Its database, logs, sockets and cache vanish with the namespace.
+          node "$smtp_script" exec --root "$root" --mode postgres -- "$pg_bin/initdb" -D /tmp/mail-evidence-pg -U postgres --auth-host=scram-sha-256 --auth-local=trust --pwfile="$root/pg.pass" >/dev/null
+          pg_started=1
+          "$pg_bin/pg_ctl" -D /tmp/mail-evidence-pg -l /tmp/mail-evidence-pg.log -o '-h 127.0.0.1 -p 5432 -k /tmp' -w start >/dev/null
+          node "$smtp_script" exec --root "$root" --mode postgres -- "$pg_bin/createdb" -h 127.0.0.1 -p 5432 -U postgres mail_evidence
+          node "$smtp_script" exec --root "$root" --mode postgres -- pnpm prisma db push --skip-generate
+          node "$smtp_script" serve --root "$root" --report "$report_dir/admin-legacy-inquiries-smtp-final.json" &
+          sink_pid=$!
+          # Readiness is bounded; never repeat a failed product test.
+          node --input-type=module -e 'const end=Date.now()+10000;for(;;){try{const r=await fetch("http://127.0.0.1:3998/health");if(r.status===200)break}catch{}if(Date.now()>end)throw Error("SMTP_READINESS_FAILED");await new Promise(r=>setTimeout(r,100))}'
+          activate_build() {
+            node --input-type=module - "$1" <<'ACTIVATE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { createHash } from 'node:crypto';
+          import { execFileSync } from 'node:child_process';
+
+          // Inline private driver activation; no build, font fetch, credentials, SMTP or PG operation is performed here.
+          const mode = process.argv[2];
+          assert.ok(['http-real', 'http-disabled', 'off'].includes(mode));
+          const buildMode = mode === 'off' ? 'off' : 'http';
+          const source = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+          assert.equal(source, process.env.GITHUB_SHA);
+          const tree = execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim();
+          const sha = (value) => createHash('sha256').update(value).digest('hex');
+          const parent = fs.realpathSync(process.env.RUNNER_TEMP);
+          const root = path.join(parent, `nbshiyan-mail-builds.${source}`);
+          assert.equal(fs.realpathSync(root), root);
+          const info = fs.lstatSync(root);
+          assert.ok(info.isDirectory() && !info.isSymbolicLink() && info.uid === process.getuid() && (info.mode & 0o777) === 0o700);
+          const owner = JSON.parse(fs.readFileSync(path.join(root, 'owner.json'), 'utf8'));
+          const provenance = JSON.parse(fs.readFileSync(path.join(root, 'provenance.json'), 'utf8'));
+          assert.equal(owner.inode, info.ino); assert.equal(owner.uid, info.uid); assert.equal(provenance.owner, owner.nonce);
+          assert.equal(provenance.commit, source); assert.equal(provenance.tree, tree);
+          assert.equal(provenance.lockSha256, sha(fs.readFileSync('pnpm-lock.yaml')));
+          const directory = path.join(root, buildMode);
+          const bytes = fs.readFileSync(path.join(directory, 'manifest.json'));
+          assert.equal(sha(bytes), provenance.modes[buildMode].manifestSha256);
+          const manifest = JSON.parse(bytes);
+          function assertBuildIdentity(value, expected) {
+            assert.equal(value.mode, expected.mode); assert.equal(value.commit, expected.commit); assert.equal(value.tree, expected.tree);
+            assert.equal(value.lockSha256, expected.lockSha256); assert.equal(value.credentialsInBuildEnvironment, false);
+          }
+          assertBuildIdentity(manifest, { mode: buildMode, commit: source, tree, lockSha256: provenance.lockSha256 });
+          const required = JSON.parse(fs.readFileSync(path.join(directory, 'app/.next/required-server-files.json'), 'utf8'));
+          assert.equal(required.config.env.NEXT_PUBLIC_ADMIN_MAIL, buildMode);
+          assert.equal(required.config.env.NEXT_PUBLIC_ADMIN_API, 'http');
+          assert.equal(required.config.env.APP_ENV_AT_BUILD, 'test');
+          const inventory = (dir, prefix = '') => {
+            const result = {};
+            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+              const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+              const file = path.join(dir, entry.name);
+              if (entry.isDirectory()) Object.assign(result, inventory(file, name));
+              else { assert.ok(entry.isFile() && !fs.lstatSync(file).isSymbolicLink()); result[name] = sha(fs.readFileSync(file)); }
+            }
+            return result;
+          };
+          const expected = Object.fromEntries(Object.entries(manifest.files).filter(([name]) => name.startsWith('app/')).map(([name, digest]) => [name.slice(4), digest]));
+          assert.deepEqual(inventory(path.join(directory, 'app')), expected);
+          assert.equal(fs.readFileSync(path.join(directory, 'app/.next/BUILD_ID'), 'utf8').trim(), manifest.buildId);
+          // /tmp is the reviewed private mount-namespace tmpfs. A fresh exact mode subdirectory avoids deleting or mutating earlier modes.
+          const runtimeParent = '/tmp/mail-evidence-artifacts';
+          fs.mkdirSync(runtimeParent, { mode: 0o700, recursive: true });
+          assert.equal(fs.realpathSync(runtimeParent), runtimeParent);
+          const active = path.join(runtimeParent, mode);
+          assert.equal(fs.existsSync(active), false);
+          fs.cpSync(path.join(directory, 'app'), active, { recursive: true, dereference: false });
+          assert.deepEqual(inventory(active), expected);
+          const receipt = { version: 1, sourceCommit: source, sourceTree: tree, buildMode, runtimeMode: mode, buildId: manifest.buildId,
+            manifestSha256: sha(bytes), verifiedFiles: Object.keys(expected).length, businessCredentialsUsedInBuild: false };
+          fs.writeFileSync(path.join(active, 'runtime-provenance.json'), JSON.stringify(receipt), { mode: 0o600, flag: 'wx' });
+          console.log(JSON.stringify(receipt));
+          ACTIVATE
+          }
+          activate_build http-real
+          node "$smtp_script" exec --root "$root" --mode http-real -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
+          activate_build http-disabled
+          node "$smtp_script" exec --root "$root" --mode http-disabled -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
+          # off selects a separately prepared real artifact from the same checkout, not a runtime mutation.
+          activate_build off
+          node "$smtp_script" exec --root "$root" --mode off -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
           DRIVER
           chmod 600 "$root/driver.sh"
           # PID 1 owns the lifetime. Parent stdin EOF, a deadline, signal or driver failure ends that PID namespace.
           # Kernel namespace teardown also covers detached PostgreSQL daemons; traps remain for graceful file cleanup only.
-          namespace_budget=26m
+          namespace_budget=18m
           [[ "$mode" == preflight-only ]] && namespace_budget=3m
           timeout --signal=TERM --kill-after=10s "$namespace_budget" node "$smtp_script" namespace-launch --root "$root" --project "$project" --scenario "$mode" --report-dir "$report_dir"
       - name: Cleanup owned private fixture
@@ -707,6 +923,63 @@ jobs:
         run: |
           if [[ -n "${SMTP_EVIDENCE_PRIVATE_ROOT:-}" && -d "$SMTP_EVIDENCE_PRIVATE_ROOT" ]]; then
             node tests/evidence/local-smtp.mjs cleanup --root "$SMTP_EVIDENCE_PRIVATE_ROOT"
+          fi
+      - name: Cleanup verified preparation artifacts
+        if: always()
+        shell: bash
+        run: |
+          if [[ -n "${SMTP_EVIDENCE_BUILD_ROOT:-}" && -d "$SMTP_EVIDENCE_BUILD_ROOT" ]]; then
+            node --input-type=module <<'CLEAN_BUILDS'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import assert from 'node:assert/strict';
+          import { createHash } from 'node:crypto';
+
+          // Preparation cleanup only; validates the exact owner-bound artifact directory before deletion.
+          const root = process.env.SMTP_EVIDENCE_BUILD_ROOT;
+          assert.ok(root && path.isAbsolute(root));
+          assert.equal(path.dirname(root), fs.realpathSync(process.env.RUNNER_TEMP));
+          assert.ok(path.basename(root).startsWith('nbshiyan-mail-builds.'));
+          assert.equal(fs.realpathSync(root), root);
+          const stat = fs.lstatSync(root);
+          assert.ok(stat.isDirectory() && !stat.isSymbolicLink() && stat.uid === process.getuid());
+          const owner = JSON.parse(fs.readFileSync(path.join(root, 'owner.json'), 'utf8'));
+          assert.equal(owner.inode, stat.ino); assert.equal(owner.uid, stat.uid);
+          assert.equal(root, path.join(fs.realpathSync(process.env.RUNNER_TEMP), `nbshiyan-mail-builds.${owner.commit}`));
+          const known = new Set(['http', 'off', 'owner.json', 'provenance.json']);
+          for (const name of fs.readdirSync(root)) {
+            assert.ok(known.has(name));
+            const info = fs.lstatSync(path.join(root, name));
+            assert.equal(info.isSymbolicLink(), false);
+          }
+          for (const mode of ['http', 'off']) {
+            const directory = path.join(root, mode);
+            if (!fs.existsSync(directory)) continue;
+            const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'manifest.json'), 'utf8'));
+            assert.equal(manifest.commit, owner.commit); assert.equal(manifest.mode, mode);
+            const seen = new Set();
+            const inspect = (dir, prefix = '') => {
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+                const file = path.join(dir, entry.name);
+                if (entry.isDirectory()) inspect(file, name);
+                else {
+                  const info = fs.lstatSync(file);
+                  assert.ok(entry.isFile() && !info.isSymbolicLink() && info.nlink === 1);
+                  if (name === 'manifest.json') continue;
+                  assert.equal(createHash('sha256').update(fs.readFileSync(file)).digest('hex'), manifest.files[name]);
+                  seen.add(name);
+                }
+              }
+            };
+            inspect(directory);
+            assert.deepEqual([...seen].sort(), Object.keys(manifest.files).sort());
+          }
+          // Partial, missing-manifest or unknown-content outputs are rejected and preserved, never deleted blindly.
+          // Only this preparation-owned output is removed; source .next and user data are not cleanup targets.
+          fs.rmSync(root, { recursive: true, force: false });
+          console.log(JSON.stringify({ preparedArtifactCleanup: true, filesOutsideOwnedRootTouched: false }));
+          CLEAN_BUILDS
           fi
       - uses: actions/upload-artifact@v4
         if: always()
