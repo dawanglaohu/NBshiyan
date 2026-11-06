@@ -978,15 +978,113 @@ jobs:
           console.log(JSON.stringify(receipt));
           ACTIVATE
           }
+          probe_modules() {
+            node --input-type=module - "$1" "$report_dir" <<'MODULE_PROBE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { createRequire } from 'node:module';
+          import { execFileSync } from 'node:child_process';
+
+          // Resolve from the activated artifact, never evaluate a dependency or load the compiled auth route.
+          const modes = new Set(['http-real', 'http-disabled', 'off']);
+          const codes = new Set(['MODULE_NOT_FOUND', 'ERR_MODULE_NOT_FOUND', 'ERR_PACKAGE_PATH_NOT_EXPORTED', 'ERR_INVALID_PACKAGE_CONFIG', 'ERR_PACKAGE_IMPORT_NOT_DEFINED', 'ENOENT', 'EACCES', 'EPERM']);
+          const safeCode = (error) => codes.has(error?.code) ? error.code : 'OTHER_ERROR';
+          const inside = (file, root) => { const relative = path.relative(root, file); return relative === '' || (!path.isAbsolute(relative) && relative !== '..' && !relative.startsWith(`..${path.sep}`)); };
+          const regular = (file) => { const info = fs.lstatSync(file); return info.isFile() && !info.isSymbolicLink() && info.nlink === 1; };
+          const privateDirectory = (directory) => {
+            const info = fs.lstatSync(directory);
+            assert.ok(info.isDirectory() && !info.isSymbolicLink() && info.uid === process.getuid() && (info.mode & 0o777) === 0o700);
+            assert.equal(fs.realpathSync(directory), directory);
+          };
+          const readJson = (file, privateMode = false) => {
+            let fd;
+            try {
+              assert.equal(typeof fs.constants.O_NOFOLLOW, 'number');
+              fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
+              const info = fs.fstatSync(fd), limit = 65_536;
+              assert.ok(info.isFile() && info.uid === process.getuid() && info.nlink === 1 && info.size <= limit);
+              if (privateMode) assert.equal(info.mode & 0o777, 0o600);
+              const buffer = Buffer.alloc(limit);
+              let length = 0;
+              while (length < limit) { const n = fs.readSync(fd, buffer, length, limit - length, null); if (n === 0) break; length += n; }
+              const after = fs.fstatSync(fd);
+              assert.ok(after.isFile() && after.uid === info.uid && after.nlink === 1 && after.size === info.size && length === info.size);
+              return JSON.parse(buffer.subarray(0, length).toString('utf8'));
+            } finally { if (fd !== undefined) fs.closeSync(fd); }
+          };
+          const unavailable = (dependencyId) => ({ dependencyId, resolved: false, resolvedInsideActive: false, entryRegularSingleLink: false, code: 'PARENT_ENTRY_UNAVAILABLE' });
+          function probe(active, loader, request, dependencyId) {
+            try {
+              const file = fs.realpathSync(loader.resolve(request));
+              // An ancestor/source-tree fallback is a negative result, not a usable parent entry.
+              if (!inside(file, active)) return { record: { dependencyId, resolved: false, resolvedInsideActive: false, entryRegularSingleLink: false, code: 'RESOLVED_OUTSIDE_ARTIFACT' }, file: null };
+              const plain = regular(file);
+              return { record: { dependencyId, resolved: plain, resolvedInsideActive: true, entryRegularSingleLink: plain, code: plain ? null : 'ENTRY_NOT_REGULAR' }, file: plain ? file : null };
+            } catch (error) { return { record: { dependencyId, resolved: false, resolvedInsideActive: false, entryRegularSingleLink: false, code: safeCode(error) }, file: null }; }
+          }
+          try {
+            const mode = process.argv[2];
+            assert.ok(modes.has(mode) && process.platform === 'linux' && process.env.CI === 'true' && process.env.GITHUB_ACTIONS === 'true');
+            assert.ok(!process.env.NODE_PATH);
+            const project = fs.realpathSync(process.cwd());
+            const git = (...args) => execFileSync('git', args, { cwd: project, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+            const sourceCommit = git('rev-parse', 'HEAD'), sourceTree = git('rev-parse', 'HEAD^{tree}');
+            assert.ok(/^[a-f0-9]{40}$/.test(sourceCommit) && /^[a-f0-9]{40}$/.test(sourceTree));
+            assert.equal(sourceCommit, process.env.GITHUB_SHA);
+            const parent = '/tmp/mail-evidence-artifacts', active = path.join(parent, mode);
+            privateDirectory(parent); privateDirectory(active);
+            assert.ok(regular(path.join(active, 'server.js')));
+            const receipt = readJson(path.join(active, 'runtime-provenance.json'), true);
+            assert.equal(receipt.version, 1);
+            assert.equal(receipt.sourceCommit, sourceCommit); assert.equal(receipt.sourceTree, sourceTree);
+            assert.equal(receipt.runtimeMode, mode); assert.equal(receipt.buildMode, mode === 'off' ? 'off' : 'http');
+            assert.equal(receipt.businessCredentialsUsedInBuild, false);
+            assert.ok(/^[A-Za-z0-9_-]{1,128}$/.test(receipt.buildId) && /^[a-f0-9]{64}$/.test(receipt.manifestSha256));
+            assert.ok(Number.isSafeInteger(receipt.verifiedFiles) && receipt.verifiedFiles > 0);
+            const outputDirectory = path.join(project, 'test-results/mail-evidence-preflight');
+            assert.equal(process.argv[3], outputDirectory); privateDirectory(outputDirectory);
+            const loader = createRequire(path.join(active, 'server.js')), checks = [], entries = {};
+            for (const [dependencyId, request] of Object.entries({ PRISMA_CLIENT: '@prisma/client', ARGON2: '@node-rs/argon2', NEXT: 'next' })) {
+              const result = probe(active, loader, request, dependencyId);
+              checks.push(result.record); if (result.file) entries[dependencyId] = result.file;
+            }
+            if (entries.PRISMA_CLIENT) {
+              const generated = probe(active, createRequire(entries.PRISMA_CLIENT), '.prisma/client/default', 'PRISMA_GENERATED');
+              checks.push(generated.record);
+              checks.push(generated.file ? probe(active, createRequire(generated.file), '#main-entry-point', 'PRISMA_GENERATED_MAIN').record : unavailable('PRISMA_GENERATED_MAIN'));
+            } else checks.push(unavailable('PRISMA_GENERATED'), unavailable('PRISMA_GENERATED_MAIN'));
+            const nativeChecksApplicable = process.arch === 'x64';
+            // GNU and musl are alternatives; missing one is evidence, not a demand to install both.
+            if (nativeChecksApplicable) for (const [dependencyId, request] of [
+              ['ARGON2_GNU_LOCAL', './argon2.linux-x64-gnu.node'], ['ARGON2_GNU_PACKAGE', '@node-rs/argon2-linux-x64-gnu'],
+              ['ARGON2_MUSL_LOCAL', './argon2.linux-x64-musl.node'], ['ARGON2_MUSL_PACKAGE', '@node-rs/argon2-linux-x64-musl'],
+            ]) checks.push(entries.ARGON2 ? probe(active, createRequire(entries.ARGON2), request, dependencyId).record : unavailable(dependencyId));
+            let authRouteRegular = false, authRouteManifestMatches = false;
+            try {
+              authRouteRegular = regular(path.join(active, '.next/server/app/api/auth/[...nextauth]/route.js'));
+              authRouteManifestMatches = readJson(path.join(active, '.next/server/app-paths-manifest.json'))['/api/auth/[...nextauth]/route'] === 'app/api/auth/[...nextauth]/route.js';
+            } catch { /* These file checks remain negative; no route is loaded and no raw error is emitted. */ }
+            const record = { version: 1, mode, buildMode: receipt.buildMode, sourceCommit, sourceTree, buildId: receipt.buildId, manifestSha256: receipt.manifestSha256,
+              phase: 'after_activation_before_server', artifactBound: true, causalRequestBound: false, dependencyChecks: checks, nativeChecksApplicable,
+              authRouteRegular, authRouteManifestMatches, dependenciesEvaluated: false, rawErrorIncluded: false, pathsIncluded: false, environmentValuesIncluded: false };
+            fs.writeFileSync(path.join(outputDirectory, `admin-legacy-inquiries-mail-modules-${mode}.json`), JSON.stringify(record, null, 2), { mode: 0o600, flag: 'wx' });
+            // Negative resolution results are evidence; the original CSRF/business chain still executes.
+          } catch { console.error('MAIL_MODULE_PROBE_FAILED'); process.exitCode = 1; }
+          MODULE_PROBE
+          }
           auth_stage=http-real
           activate_build http-real
+          probe_modules http-real
           node "$smtp_script" exec --root "$root" --mode http-real -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
           auth_stage=http-disabled
           activate_build http-disabled
+          probe_modules http-disabled
           node "$smtp_script" exec --root "$root" --mode http-disabled -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
           # off selects a separately prepared real artifact from the same checkout, not a runtime mutation.
           auth_stage=off
           activate_build off
+          probe_modules off
           node "$smtp_script" exec --root "$root" --mode off -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
           DRIVER
           chmod 600 "$root/driver.sh"
