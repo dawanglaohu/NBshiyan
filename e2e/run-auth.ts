@@ -218,7 +218,19 @@ export async function initializeRunAuth(origin: string, factory: RequestFactory,
     const req = await factory.newContext({ baseURL: origin });
     try {
       const csrfResponse = await req.get('/api/auth/csrf');
-      if (csrfResponse.status() !== 200) fail('CSRF');
+      const csrfStatus = csrfResponse.status();
+      if (csrfStatus !== 200) {
+        const mode = env.SMTP_EVIDENCE_MODE;
+        if (mode && ['http-real', 'http-disabled', 'off'].includes(mode)) {
+          const requestedOrigin = ['http://localhost:3100', 'http://127.0.0.1:3100'].includes(origin) ? origin : null;
+          try {
+            console.error(JSON.stringify({ type: 'run-auth-csrf', category: 'CSRF_HTTP_STATUS',
+              slot: Object.hasOwn(RUN_AUTH_SLOTS, slot) ? slot : null, mode, method: 'GET', origin: requestedOrigin,
+              path: '/api/auth/csrf', status: Number.isInteger(csrfStatus) && csrfStatus >= 100 && csrfStatus <= 599 ? csrfStatus : null }));
+          } catch { /* Diagnostic output must not replace the original authentication failure. */ }
+        }
+        fail('CSRF');
+      }
       const csrfToken = (await csrfResponse.json()).csrfToken;
       if (typeof csrfToken !== 'string' || !csrfToken) fail('CSRF');
       const login = await req.post('/api/auth/callback/credentials', { maxRedirects: 0, headers: { Origin: origin }, form: { csrfToken, email, password: SEED_PASSWORD, totp: authenticator.generate(RUN_AUTH_TOTP) } });

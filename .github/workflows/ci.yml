@@ -815,14 +815,72 @@ jobs:
           [[ -f tests/evidence/admin-legacy-inquiries-mail.spec.ts && -f tests/evidence/mail-evidence.config.ts ]] || { echo 'SUPPORT_FILES_NOT_REGISTERED_AND_IMPLEMENTED' >&2; exit 1; }
           pg_started=0
           sink_pid=''
+          auth_stage=''
+          auth_summary() {
+            node --input-type=module - "$auth_stage" "$report_dir" <<'AUTH_SUMMARY'
+          import fs from 'node:fs';
+          import path from 'node:path';
+
+          const mode = process.argv[2];
+          if (!['http-real', 'http-disabled', 'off'].includes(mode)) {
+            console.error('MAIL_AUTH_SUMMARY_FAILED');
+            process.exit(1);
+          }
+          const categories = new Set(['MissingSecret', 'UntrustedHost', 'UnknownAction', 'InvalidCallbackUrl', 'UnsupportedStrategy', 'MissingAuthorize', 'MissingAdapter', 'MissingAdapterMethods', 'AuthError', 'TypeError', 'Error']);
+          const limit = 1_048_576;
+          const record = { version: 1, mode, logState: 'missing', category: null, recognizedErrorCategories: [], rawStdoutIncluded: false };
+          let fd, failed = false;
+          try {
+            if (typeof fs.constants.O_NOFOLLOW !== 'number') throw new Error('LOG_READ_REJECTED');
+            fd = fs.openSync(`/tmp/mail-evidence-server-${mode}.log`, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
+            const info = fs.fstatSync(fd);
+            if (!info.isFile() || info.uid !== process.getuid() || info.nlink !== 1 || info.size > limit) throw new Error('LOG_READ_REJECTED');
+            const buffer = Buffer.alloc(limit);
+            let length = 0;
+            while (length < limit) {
+              const read = fs.readSync(fd, buffer, length, limit - length, null);
+              if (read === 0) break;
+              length += read;
+            }
+            const after = fs.fstatSync(fd);
+            if (!after.isFile() || after.uid !== info.uid || after.nlink !== 1 || after.size > limit) throw new Error('LOG_READ_REJECTED');
+            const lines = buffer.subarray(0, length).toString('utf8').replace(/\x1b\[[0-9;]*m/g, '').split(/\r?\n/);
+            record.recognizedErrorCategories = [...new Set(lines.map(line => /^\[auth\]\[error\]\s+([A-Za-z]+):/.exec(line)?.[1]).filter(value => categories.has(value)))].sort();
+            record.logState = record.recognizedErrorCategories.length ? 'matched' : 'no_match';
+          } catch (error) {
+            if (error?.code !== 'ENOENT' || fd !== undefined) {
+              record.logState = 'unavailable';
+              record.category = 'LOG_UNAVAILABLE';
+              failed = true;
+            }
+          } finally {
+            if (fd !== undefined) {
+              try { fs.closeSync(fd); }
+              catch { record.logState = 'unavailable'; record.category = 'LOG_UNAVAILABLE'; failed = true; }
+            }
+          }
+          try {
+            const output = path.join(process.argv[3], `admin-legacy-inquiries-mail-auth-${mode}.json`);
+            fs.writeFileSync(output, JSON.stringify(record, null, 2), { mode: 0o600, flag: 'wx' });
+          } catch { failed = true; }
+          if (failed) {
+            console.error('MAIL_AUTH_SUMMARY_FAILED');
+            process.exitCode = 1;
+          }
+          AUTH_SUMMARY
+          }
           cleanup_driver() {
             result=$?
             trap - EXIT
+            cleanup_failed=0
+            # Diagnostic failures cannot skip fixture cleanup or replace a prior nonzero exit.
+            if [[ -n "$auth_stage" ]]; then auth_summary || cleanup_failed=1; fi
             if [[ -n "$sink_pid" ]]; then
-              if kill -0 "$sink_pid" 2>/dev/null; then kill -TERM "$sink_pid" || result=1; fi
-              wait "$sink_pid" || result=1
+              if kill -0 "$sink_pid" 2>/dev/null; then kill -TERM "$sink_pid" || cleanup_failed=1; fi
+              wait "$sink_pid" || cleanup_failed=1
             fi
-            if [[ "$pg_started" == 1 ]]; then "$pg_bin/pg_ctl" -D /tmp/mail-evidence-pg -m fast -w stop >/dev/null 2>&1 || result=1; fi
+            if [[ "$pg_started" == 1 ]]; then "$pg_bin/pg_ctl" -D /tmp/mail-evidence-pg -m fast -w stop >/dev/null 2>&1 || cleanup_failed=1; fi
+            if [[ "$result" == 0 && "$cleanup_failed" != 0 ]]; then result=1; fi
             exit "$result"
           }
           trap cleanup_driver EXIT
@@ -903,11 +961,14 @@ jobs:
           console.log(JSON.stringify(receipt));
           ACTIVATE
           }
+          auth_stage=http-real
           activate_build http-real
           node "$smtp_script" exec --root "$root" --mode http-real -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
+          auth_stage=http-disabled
           activate_build http-disabled
           node "$smtp_script" exec --root "$root" --mode http-disabled -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
           # off selects a separately prepared real artifact from the same checkout, not a runtime mutation.
+          auth_stage=off
           activate_build off
           node "$smtp_script" exec --root "$root" --mode off -- pnpm exec playwright test --config tests/evidence/mail-evidence.config.ts
           DRIVER

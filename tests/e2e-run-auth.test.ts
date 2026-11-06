@@ -303,6 +303,66 @@ test('run-auth actual runner orders webServer plugin readiness before globalSetu
   for (const lifecycle of ['admin.spec.ts', 'admin-enroll.spec.ts', 'admin-login.spec.ts', 'admin-device-session.spec.ts', 'hotfix-login-empty.spec.ts']) assert.doesNotMatch(readFileSync(`e2e/${lifecycle}`, 'utf8'), /loadRunAuth|readRunAuth/);
 });
 
+test('run-auth CSRF evidence is mail-only, whitelist-only and preserves the actual initializer failure and success paths', async () => {
+  const source = readFileSync('e2e/run-auth.ts', 'utf8');
+  const tree = ts.createSourceFile('run-auth.ts', source, ts.ScriptTarget.Latest, true);
+  const declaration = tree.statements.find((node): node is ts.FunctionDeclaration => ts.isFunctionDeclaration(node) && node.name?.text === 'initializeRunAuth');
+  assert.ok(declaration);
+  const code = ts.transpileModule(declaration.getText(tree).replace(/^export\s+/, ''), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText + '\ninitializeRunAuth;';
+  const scenarios = [
+    ...['http-real', 'http-disabled', 'off'].flatMap(mode => [400, 401, 403, 404, 429, 500, 503, 0, 700].map(status => ({ mode, status, origin: ORIGIN, slot: 'content-admin', loggerThrows: false }))),
+    ...[undefined, 'invalid'].map(mode => ({ mode, status: 503, origin: ORIGIN, slot: 'content-admin', loggerThrows: false })),
+    { mode: 'http-real', status: 503, origin: 'https://untrusted.invalid/private', slot: 'unknown', loggerThrows: false },
+    { mode: 'http-real', status: 503, origin: 'http://127.0.0.1:3100', slot: 'sales', loggerThrows: false },
+    { mode: 'http-real', status: 503, origin: ORIGIN, slot: 'editor', loggerThrows: true },
+    ...[undefined, 'http-real', 'http-disabled', 'off'].map(mode => ({ mode, status: 200, origin: ORIGIN, slot: 'content-admin', loggerThrows: false })),
+  ];
+  for (const scenario of scenarios) {
+    const env = { GITHUB_SHA: SOURCE, SMTP_EVIDENCE_MODE: scenario.mode } as Record<string, string | undefined>;
+    let csrfGets = 0, csrfReads = 0, logins = 0, disposed = 0, published = 0, cleanups = 0, seededEmail = '';
+    const logs: string[] = [];
+    const factory = { newContext: async () => ({
+      get: async (url: string) => {
+        if (url === '/api/auth/csrf') {
+          csrfGets++;
+          return { status: () => scenario.status, headers: () => { throw new Error('headers must not be read'); }, json: async () => { csrfReads++; return { csrfToken: 'private-token-marker' }; } };
+        }
+        assert.equal(url, '/api/admin/account');
+        return { status: () => 200, json: async () => ({ email: seededEmail }) };
+      },
+      post: async (url: string) => { assert.equal(url, '/api/auth/callback/credentials'); logins++; return { status: () => 302, headers: () => ({ location: '/admin' }) }; },
+      storageState: async () => ({ cookies: [], origins: [] }), dispose: async () => { disposed++; },
+    }) as unknown as APIRequestContext };
+    const initialize = runInNewContext(code, {
+      process: { env }, sourceOf: () => SOURCE, RUN_AUTH_SLOTS, URL,
+      fail: (category: string): never => { throw new RunAuthError(category); },
+      console: { error: (line: string) => { if (scenario.loggerThrows) throw new Error('private-log-error-marker'); logs.push(line); } },
+      execFileSync: (_command: string, _args: string[], options: { env: Record<string, string> }) => { seededEmail = options.env.ADMIN_SEED_EMAIL; },
+      createRunAuthPool: async (options: { initialize: (slot: string, nonce: string) => Promise<unknown> }) => { await options.initialize(scenario.slot, 'control'); return {}; },
+      publishRunAuth: () => { published++; }, cleanupRunAuth: () => { cleanups++; },
+      AccountDTOSchema: { parse: (value: unknown) => value }, authenticator: { generate: () => 'private-totp-marker' }, RUN_AUTH_TOTP: 'private-totp-marker', SEED_PASSWORD: 'private-password-marker',
+    }) as typeof initializeRunAuth;
+    if (scenario.status === 200) {
+      const teardown = await initialize(scenario.origin, factory, env); teardown();
+      assert.deepEqual([csrfGets, csrfReads, logins, disposed, published, cleanups], [1, 1, 1, 1, 1, 1]);
+      assert.equal(logs.length, 0);
+    } else {
+      await assert.rejects(() => initialize(scenario.origin, factory, env), /E2E_RUN_AUTH_CSRF/);
+      assert.deepEqual([csrfGets, csrfReads, logins, disposed, published], [1, 0, 0, 1, 0]);
+      const enabled = !!scenario.mode && ['http-real', 'http-disabled', 'off'].includes(scenario.mode);
+      assert.equal(logs.length, enabled && !scenario.loggerThrows ? 1 : 0);
+      if (logs.length) {
+        const record = JSON.parse(logs[0]);
+        assert.deepEqual(record, { type: 'run-auth-csrf', category: 'CSRF_HTTP_STATUS', slot: Object.hasOwn(RUN_AUTH_SLOTS, scenario.slot) ? scenario.slot : null,
+          mode: scenario.mode, method: 'GET', origin: [ORIGIN, 'http://127.0.0.1:3100'].includes(scenario.origin) ? scenario.origin : null,
+          path: '/api/auth/csrf', status: scenario.status >= 100 && scenario.status <= 599 ? scenario.status : null });
+        assert.equal(logs[0].includes('private-'), false);
+        assert.equal(logs[0].includes('untrusted.invalid'), false);
+      }
+    }
+  }
+});
+
 function resolveRunnerPackage(project = path.resolve('package.json')) {
   const consumer = createRequire(project).resolve('@playwright/test/package.json');
   return createRequire(consumer).resolve('playwright/package.json');
