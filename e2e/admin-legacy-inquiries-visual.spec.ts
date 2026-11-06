@@ -20,7 +20,9 @@ import { STATUS_LABEL } from '../src/lib/admin/types';
  * ADMIN/SALES 角色分别保留，不复用全局 E2E_ADMIN、不靠 test.skip 换绿。
  * 合成数据：真实 POST /api/inquiries，读响应 ref 在列表定位，不直插 DB、不改响应、不造 DOM。
  * 证据：test.use({ video:'on' }) 文件顶层一次；JSON/PNG 写到各用例 testInfo.outputPath
- * （同名重跑不覆盖项目其它证据），density probe 写 JSON 前按白名单投影，PNG 只截控件区不进数据行。
+ * （同名重跑不覆盖项目其它证据），density probe 写 JSON 前按白名单投影。旧列表用例的 PNG 只截
+ * `.inq-list .adm-filters` 控件区；E1/A1/flow 新增帧按本次 ref 过滤后截全页合成数据（仅本次合成询盘），
+ * 发布前须逐张隐私核验，不得直接当公开素材。
  */
 
 const ACCOUNT = '/api/admin/account';
@@ -686,11 +688,19 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     test.setTimeout(180_000);
     const testInfo = test.info();
     const r = report();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    expect(page.viewportSize(), 'E1 截图视口必须显式为 1440x900').toEqual({ width: 1440, height: 900 });
+    const pngSize = (path: string) => {
+      const b = readFileSync(path);
+      return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+    };
     const shot = async (name: string) => {
       const path = testInfo.outputPath(name);
       await page.screenshot({ path });
       expect(readFileSync(path).length).toBeGreaterThan(0);
-      return name;
+      const size = pngSize(path);
+      expect(size, `${name} 实际像素尺寸`).toEqual({ width: 1440, height: 900 });
+      return { name, width: size.width, height: size.height };
     };
     const tag = `m3t21-err-${Date.now()}`;
     const ref = await createSyntheticInquiry(page, tag);
@@ -730,8 +740,10 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     expect(qStyle.color, '旧 .warn 色不得作为验收值').not.toBe('rgb(180, 68, 31)');
     expect(qStyle.w).toBeGreaterThan(0); expect(qStyle.h).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.activeElement?.getAttribute('role'))).toBe('alert');
-    const frames: string[] = [await shot('inquiry-visual-1440x900-error-search.png')];
+    const frames: Array<{ name: string; width: number; height: number }> = [await shot('inquiry-visual-1440x900-error-search.png')];
     r.qStatus = 400; r.qComputed = qStyle; r.qBizMutations = 0; r.qValueRetained = true;
+    r.viewport = page.viewportSize();
+    r.video = 'context 默认 1280x720；不作为 1440 原生证据，E1 只以 1440 PNG 取证';
 
     // 纠正恢复：按本次 ref 精确搜索。
     const okList = page.waitForResponse((res) => res.request().method() === 'GET'
@@ -748,7 +760,11 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     r.searchRecovered = true;
 
     // 备注 5001：400 是“尝试写入但未持久化”，不是无写请求。
-    const notesBefore = (await (await ctx.request.get(`${BASE}/api/admin/inquiries/${id}`)).json()) as { notes: unknown[] };
+    const beforeResp = await ctx.request.get(`${BASE}/api/admin/inquiries/${id}`);
+    expect(beforeResp.status(), '写前详情 GET 须 200').toBe(200);
+    const notesBefore = (await beforeResp.json()) as { ref: string; notes: Array<{ body: string }> };
+    expect(notesBefore.ref).toBe(ref);
+    expect(notesBefore.notes, '写前 notes 应为空数组').toEqual([]);
     await row.locator('a').first().click();
     await expect(page.locator('.inq-detail > .adm-crumb')).toBeVisible();
     const note501 = 'b'.repeat(5001);
@@ -774,8 +790,12 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     expect(nStyle.w).toBeGreaterThan(0); expect(nStyle.h).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.activeElement?.getAttribute('role'))).toBe('alert');
     frames.push(await shot('inquiry-visual-1440x900-error-note.png'));
-    const notesAfter = (await (await ctx.request.get(`${BASE}/api/admin/inquiries/${id}`)).json()) as { notes: unknown[] };
-    expect(notesAfter.notes.length, '5001 备注不得持久化').toBe(notesBefore.notes.length);
+    const afterResp = await ctx.request.get(`${BASE}/api/admin/inquiries/${id}`);
+    expect(afterResp.status(), '写后详情 GET 须 200').toBe(200);
+    const notesAfter = (await afterResp.json()) as { ref: string; notes: Array<{ body: string }> };
+    expect(notesAfter.ref).toBe(ref);
+    expect(notesAfter.notes, '5001 备注不得改变 notes 完整数组').toEqual(notesBefore.notes);
+    expect(notesAfter.notes.some((n) => n.body.length === 5001), '非法正文不得入库').toBe(false);
     expect(biz.filter((m) => m.path === `/api/admin/inquiries/${id}/notes`)).toHaveLength(1);
     r.noteAttempt = { method: 'POST', status: 400, persisted: false };
     r.noteValueRetained = true;
@@ -923,7 +943,8 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     const listAnon = (await (await ctx.request.get(`${BASE}/api/admin/inquiries?q=${encodeURIComponent(refA)}&includeAnonymized=true`)).json()) as { items: Array<{ ref: string; anonymizedAt?: string | null }> };
     expect(listAnon.items.filter((i) => i.ref === refA && i.anonymizedAt)).toHaveLength(1);
 
-    // UI 只读：默认列表隐藏，anon=1 可见；详情无状态/负责人 select、无备注表单、无信任卡片。
+    // UI 只读：默认列表隐藏，anon=1 可见；已匿名化状态 select 恰 1 且 disabled（锁定说明保留），
+    // 负责人 select 隐藏，无备注表单/信任卡片；禁用控件不可被操作。
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(refA)}&anon=1`);
     await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
@@ -936,7 +957,14 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     await expect(page.locator('.inq-detail').getByText('已匿名化').first()).toBeVisible();
     await expect(page.getByTestId('deleted-body').first()).toBeVisible();
     await expect(page.getByTestId('status-locked')).toBeVisible();
-    await expect(page.locator('.inq-detail select[aria-label="状态"]')).toHaveCount(0);
+    const statusSel = page.locator('.inq-detail select[aria-label="状态"]');
+    await expect(statusSel).toHaveCount(1);
+    await expect(statusSel).toBeDisabled();
+    expect(await statusSel.evaluate((el) => (el as HTMLSelectElement).disabled)).toBe(true);
+    let enableRejected = false;
+    try { await statusSel.selectOption('NEW', { timeout: 1500 }); } catch { enableRejected = true; }
+    expect(enableRejected, '禁用状态控件不得可操作').toBe(true);
+    await expect(page.getByTestId('status-locked').getByText('内容已删除，无法更改状态')).toBeVisible();
     await expect(page.locator('.inq-detail select[aria-label="负责人"]')).toHaveCount(0);
     await expect(page.locator('.inq-detail textarea[aria-label="内部备注"]')).toHaveCount(0);
     await expect(page.getByTestId('trust-score')).toHaveCount(0);
@@ -963,7 +991,11 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
 
     r.post = { piiDeleted: true, messageNull: true, notesDeleted: true, companyPhoneNull: true };
     r.list = { defaultHidden: true, includeShown: true };
-    r.ui = { anonNotice: true, readonly: true, deletedBody: true, noSelects: true, noNoteForm: true, noTrust: true };
+    r.ui = {
+      anonNotice: true, readonly: true, deletedBody: true,
+      statusSelectCount: 1, statusSelectDisabled: true, enableRejected: true,
+      assigneeSelectCount: 0, noNoteForm: true, noTrust: true,
+    };
     r.api = { patch409: 'anonymized', notes409: 'anonymized' };
     r.history = { items: ((JSON.parse(histText) as { items?: unknown[] }).items?.length ?? 0), emailAbsent: true };
     r.controlUntouched = true;
