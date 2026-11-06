@@ -213,7 +213,7 @@ export async function initializeRunAuth(origin: string, factory: RequestFactory,
   let source: string;
   try { source = sourceOf(env); } catch { return fail('SOURCE'); }
   const handle = await createRunAuthPool({ origin, source, initialize: async (slot, nonce) => {
-    const email = `run-auth-${slot}-${nonce}@example.test`;
+    const email = `run-auth-${slot}-${nonce}@example.test`.toLowerCase();
     execFileSync('node', ['scripts/create-admin.mjs'], { stdio: 'ignore', env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: SEED_PASSWORD, ADMIN_SEED_NAME: `E2E ${slot}`, ADMIN_SEED_ROLE: RUN_AUTH_SLOTS[slot], ADMIN_SEED_TOTP_SECRET: RUN_AUTH_TOTP } });
     const req = await factory.newContext({ baseURL: origin });
     try {

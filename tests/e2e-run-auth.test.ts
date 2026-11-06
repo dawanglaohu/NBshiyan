@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
-import { chmodSync, lstatSync, readFileSync, readdirSync, writeFileSync, symlinkSync, unlinkSync, realpathSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
+import ts from 'typescript';
+import { chmodSync, lstatSync, readFileSync, readdirSync, writeFileSync, symlinkSync, unlinkSync, realpathSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { APIRequestContext } from '@playwright/test';
 import { AccountDTOSchema, type AccountDTO } from '../src/lib/contracts/account';
-import { createRunAuthPool, cleanupRunAuth, publishRunAuth, readRunAuth, loadRunAuth, initializeRunAuth, RUN_AUTH_SLOTS, privatePermissions, type PermissionPolicy, type RunAuthSlot } from '../e2e/run-auth';
+import { createRunAuthPool, cleanupRunAuth, publishRunAuth, readRunAuth, loadRunAuth, initializeRunAuth, RUN_AUTH_SLOTS, RunAuthError, privatePermissions, type PermissionPolicy, type RunAuthSlot } from '../e2e/run-auth';
 import { MemoryStore } from '../src/lib/server/ratelimit';
 
 const ORIGIN = 'http://localhost:3100';
@@ -167,9 +169,88 @@ test('run-auth 29 compressed login-IP hits pass; duplicate initialization goes o
   assert.equal(Object.keys(RUN_AUTH_SLOTS).length + 22, 29);
 });
 
+test('run-auth initialization uses one normalized email for seed, credentials and strict account validation', async () => {
+  const source = readFileSync('e2e/run-auth.ts', 'utf8');
+  const tree = ts.createSourceFile('run-auth.ts', source, ts.ScriptTarget.Latest, true);
+  const declaration = tree.statements.find((node): node is ts.FunctionDeclaration => ts.isFunctionDeclaration(node) && node.name?.text === 'initializeRunAuth');
+  assert.ok(declaration);
+  const current = declaration.getText(tree).replace(/^export\s+/, '');
+  const legacy = current.replace(/\.toLowerCase\(\)/, '');
+  const fail = (code: string): never => { throw new RunAuthError(code); };
+  // Execute the actual initializer body with synthetic seed/HTTP transports, not a real authentication claim.
+  for (const scenario of ['current', 'legacy-case', 'wrong-account']) {
+    const env = { GITHUB_SHA: SOURCE } as Record<string, string | undefined>;
+    const seeded: string[] = [], credentials: string[] = [];
+    let identity: ReturnType<typeof member>;
+    let disposed = 0, directory: string | undefined;
+    const policy: PermissionPolicy = { secure(target, dir) { if (dir) directory = target; permissions.secure(target, dir); }, check: permissions.check };
+    const factory = { newContext: async () => ({
+      get: async (url: string) => {
+        if (url === '/api/auth/csrf') return { status: () => 200, json: async () => ({ csrfToken: 'synthetic-csrf' }) };
+        assert.equal(url, '/api/admin/account');
+        const account = { ...identity.account };
+        if (scenario === 'wrong-account' && seeded.length === 2) account.email = 'other@example.test';
+        return { status: () => 200, json: async () => account };
+      },
+      post: async (url: string, options: { form: { email: string } }) => {
+        assert.equal(url, '/api/auth/callback/credentials');
+        credentials.push(options.form.email);
+        assert.equal(options.form.email.trim().toLowerCase(), identity.account.email);
+        return { status: () => 302, headers: () => ({ location: '/admin' }) };
+      },
+      storageState: async () => identity.state,
+      dispose: async () => { disposed++; },
+    }) as unknown as APIRequestContext };
+    const initialize = runInNewContext(ts.transpileModule(scenario === 'legacy-case' ? legacy : current, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022 },
+    }).outputText + '\ninitializeRunAuth;', {
+      process: { env }, sourceOf: () => SOURCE, fail, RUN_AUTH_SLOTS, AccountDTOSchema, URL,
+      authenticator: { generate: () => '123456' }, RUN_AUTH_TOTP: 'synthetic-totp', SEED_PASSWORD: 'synthetic-password',
+      execFileSync: (command: string, args: string[], options: { env: Record<string, string> }) => {
+        assert.equal(command, 'node'); assert.deepEqual(Array.from(args), ['scripts/create-admin.mjs']);
+        const slot = Object.keys(RUN_AUTH_SLOTS)[seeded.length] as RunAuthSlot;
+        identity = member(slot); identity.account.email = options.env.ADMIN_SEED_EMAIL.trim().toLowerCase();
+        assert.equal(options.env.ADMIN_SEED_ROLE, RUN_AUTH_SLOTS[slot]); seeded.push(options.env.ADMIN_SEED_EMAIL);
+      },
+      createRunAuthPool: (options: Parameters<typeof createRunAuthPool>[0]) => createRunAuthPool({ ...options, permissions: policy }),
+      publishRunAuth, cleanupRunAuth: (handle: Parameters<typeof cleanupRunAuth>[0]) => cleanupRunAuth(handle, policy),
+    }) as typeof initializeRunAuth;
+    if (scenario === 'current') {
+      const teardown = await initialize(ORIGIN, factory, env);
+      try {
+        assert.equal(seeded.length, 7); assert.equal(new Set(seeded).size, 7);
+        assert.deepEqual(credentials, seeded); assert.ok(seeded.every((email) => email === email.toLowerCase()));
+        assert.match(seeded[1], /^run-auth-imageb-/);
+        assert.equal(readRunAuth('imageB', ORIGIN, env, policy).identity.role, 'ADMIN');
+      } finally { teardown(); }
+    } else {
+      await assert.rejects(() => initialize(ORIGIN, factory, env), /E2E_RUN_AUTH_IDENTITY/);
+      assert.equal(seeded.length, 2); assert.equal(env.E2E_RUN_AUTH_DIRECTORY, undefined);
+    }
+    assert.equal(disposed, seeded.length); assert.ok(directory); assert.throws(() => lstatSync(directory!));
+  }
+});
+
+test('run-auth runner resolution uses the declared consumer under strict dependency visibility', () => {
+  const directory = mkdtempSync(path.join(realpathSync(tmpdir()), 'nbshiyan-run-auth-resolution-'));
+  try {
+    const consumer = path.join(directory, 'node_modules/@playwright/test');
+    const runner = path.join(consumer, 'node_modules/playwright');
+    mkdirSync(runner, { recursive: true });
+    writeFileSync(path.join(directory, 'package.json'), '{}');
+    writeFileSync(path.join(consumer, 'package.json'), JSON.stringify({ name: '@playwright/test', dependencies: { playwright: '1.64.0' } }));
+    writeFileSync(path.join(runner, 'package.json'), JSON.stringify({ name: 'playwright', version: '1.64.0' }));
+    assert.throws(() => createRequire(path.join(directory, 'package.json')).resolve('playwright/package.json'), { code: 'MODULE_NOT_FOUND' });
+    assert.equal(realpathSync(resolveRunnerPackage(path.join(directory, 'package.json'))), realpathSync(path.join(runner, 'package.json')));
+  } finally {
+    assert.equal(path.dirname(directory), realpathSync(tmpdir()));
+    assert.ok(path.basename(directory).startsWith('nbshiyan-run-auth-resolution-'));
+    rmSync(directory, { recursive: true, force: false });
+  }
+});
+
 test('run-auth actual runner orders webServer plugin readiness before globalSetup', () => {
-  const require = requireFromProject();
-  const runner = readFileSync(path.join(path.dirname(require.resolve('playwright/package.json')), 'lib/runner/index.js'), 'utf8');
+  const runner = readFileSync(path.join(path.dirname(resolveRunnerPackage()), 'lib/runner/index.js'), 'utf8');
   assert.match(runner, /webServerPluginsForConfig\(config2\).*config2\.plugins\.push/s);
   const global = runner.slice(runner.indexOf('function createGlobalSetupTasks('), runner.indexOf('function createRunTestsTasks('));
   assert.ok(global.indexOf('createPluginSetupTasks') < global.indexOf('config2.globalSetups.map'));
@@ -178,4 +259,7 @@ test('run-auth actual runner orders webServer plugin readiness before globalSetu
   for (const lifecycle of ['admin.spec.ts', 'admin-enroll.spec.ts', 'admin-login.spec.ts', 'admin-device-session.spec.ts', 'hotfix-login-empty.spec.ts']) assert.doesNotMatch(readFileSync(`e2e/${lifecycle}`, 'utf8'), /loadRunAuth|readRunAuth/);
 });
 
-function requireFromProject() { return createRequire(path.resolve('package.json')); }
+function resolveRunnerPackage(project = path.resolve('package.json')) {
+  const consumer = createRequire(project).resolve('@playwright/test/package.json');
+  return createRequire(consumer).resolve('playwright/package.json');
+}
