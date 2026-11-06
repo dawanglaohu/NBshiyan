@@ -695,6 +695,129 @@ jobs:
               NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '',
               NEXT_PUBLIC_TAWK_PROPERTY_ID: 'e2eprop', NEXT_PUBLIC_TAWK_WIDGET_ID: 'e2ewidget' };
           };
+          const { createRequire } = await import('node:module');
+          // Materializing package aliases changes their Node resolution base. Supplement only these two runtime closures.
+          function supplementRuntime(app) {
+            try {
+              assert.ok(process.platform === 'linux' && process.arch === 'x64' && !process.env.NODE_PATH && !process.env.NAPI_RS_NATIVE_LIBRARY_PATH);
+              const inside = (file, root) => { const rel = path.relative(root, file); return rel === '' || (!path.isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${path.sep}`)); };
+              const sourceFile = (file) => {
+                const real = fs.realpathSync(file), info = fs.lstatSync(real);
+                assert.ok(inside(real, project) && info.isFile() && !info.isSymbolicLink() && info.nlink === 1);
+                return real;
+              };
+              const sourceDirectory = (directory) => {
+                const real = fs.realpathSync(directory), info = fs.lstatSync(real);
+                assert.ok(inside(real, project) && info.isDirectory() && !info.isSymbolicLink());
+                return real;
+              };
+              const stagedFile = (file) => {
+                const real = fs.realpathSync(file), info = fs.lstatSync(file);
+                assert.ok(inside(real, app) && info.isFile() && !info.isSymbolicLink() && info.nlink === 1);
+                return real;
+              };
+              const json = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+              const schemaTokens = (text) => (text.match(/"(?:\\.|[^"\\])*"|\/\/[^\r\n]*|\/\*[\s\S]*?\*\/|[A-Za-z_]\w*|[^\s]/g) || []).filter((token) => !token.startsWith('//') && !token.startsWith('/*'));
+              const elfX64 = (file) => {
+                const bytes = fs.readFileSync(file);
+                assert.ok(bytes.length >= 64 && bytes.subarray(0, 4).equals(Buffer.from([0x7f, 0x45, 0x4c, 0x46])) && bytes[4] === 2 && bytes[5] === 1 && bytes.readUInt16LE(18) === 62);
+              };
+              const identity = () => {
+                assert.equal(git('rev-parse', 'HEAD'), source.commit); assert.equal(git('rev-parse', 'HEAD^{tree}'), source.tree);
+                assert.equal(sha(fs.readFileSync(path.join(project, 'pnpm-lock.yaml'))), source.lockSha256);
+              };
+              identity();
+              app = fs.realpathSync(app);
+              assert.ok(!inside(app, project) && fs.lstatSync(app).isDirectory());
+              const sourceLoader = createRequire(path.join(project, 'package.json')), stagedLoader = createRequire(stagedFile(path.join(app, 'server.js')));
+              const prismaEntry = sourceFile(sourceLoader.resolve('@prisma/client')), stagedPrismaEntry = stagedFile(stagedLoader.resolve('@prisma/client'));
+              const prismaRoot = sourceDirectory(path.dirname(prismaEntry)), stagedPrismaRoot = path.dirname(stagedPrismaEntry);
+              const prismaPackage = json(sourceFile(path.join(prismaRoot, 'package.json'))), stagedPrismaPackage = json(stagedFile(path.join(stagedPrismaRoot, 'package.json')));
+              assert.equal(prismaPackage.name, '@prisma/client'); assert.equal(stagedPrismaPackage.name, prismaPackage.name); assert.equal(stagedPrismaPackage.version, prismaPackage.version);
+              assert.equal(sha(fs.readFileSync(prismaEntry)), sha(fs.readFileSync(stagedPrismaEntry)));
+              const generatedEntry = sourceFile(createRequire(prismaEntry).resolve('.prisma/client/default')), generatedRoot = sourceDirectory(path.dirname(generatedEntry));
+              const generatedMain = sourceFile(createRequire(generatedEntry).resolve('#main-entry-point'));
+              assert.ok(inside(generatedMain, generatedRoot));
+              const schema = sourceFile(path.join(generatedRoot, 'schema.prisma'));
+              assert.deepEqual(schemaTokens(fs.readFileSync(schema, 'utf8')), schemaTokens(fs.readFileSync(sourceFile(path.join(project, 'prisma/schema.prisma')), 'utf8')));
+              const generatedCode = fs.readFileSync(generatedMain, 'utf8');
+              assert.equal(/"clientVersion"\s*:\s*"([^"]+)"/.exec(generatedCode)?.[1], prismaPackage.version);
+              assert.ok(/"engineType"\s*:\s*"library"/.test(generatedCode) && /"copyEngine"\s*:\s*true/.test(generatedCode));
+              const binaryTargets = JSON.parse(/"binaryTargets"\s*:\s*(\[[\s\S]*?\])\s*,/.exec(generatedCode)?.[1] || 'null');
+              assert.ok(Array.isArray(binaryTargets));
+              const nativeTargets = binaryTargets.filter((target) => target.native === true);
+              assert.equal(nativeTargets.length, 1);
+              const target = nativeTargets[0].value, glibc = process.report.getReport().header.glibcVersionRuntime;
+              assert.ok(typeof glibc === 'string' ? /^debian-openssl-(?:1\.1\.x|3\.0\.x)$/.test(target) : /^linux-musl(?:-openssl-3\.0\.x)?$/.test(target));
+              const engine = sourceFile(path.join(generatedRoot, `libquery_engine-${target}.so.node`)); elfX64(engine);
+              const runtimeEntry = sourceFile(createRequire(generatedMain).resolve('@prisma/client/runtime/library.js'));
+              assert.equal(runtimeEntry, path.join(prismaRoot, 'runtime/library.js'));
+              const runtimeRoot = sourceDirectory(path.dirname(runtimeEntry));
+              const generatedTarget = path.resolve(stagedPrismaRoot, '../../.prisma/client');
+              assert.ok(inside(generatedTarget, app));
+              const argonEntry = sourceFile(sourceLoader.resolve('@node-rs/argon2')), stagedArgonEntry = stagedFile(stagedLoader.resolve('@node-rs/argon2'));
+              const argonRoot = sourceDirectory(path.dirname(argonEntry)), stagedArgonRoot = path.dirname(stagedArgonEntry);
+              const argonPackage = json(sourceFile(path.join(argonRoot, 'package.json'))), stagedArgonPackage = json(stagedFile(path.join(stagedArgonRoot, 'package.json')));
+              assert.equal(argonPackage.name, '@node-rs/argon2'); assert.equal(stagedArgonPackage.name, argonPackage.name); assert.equal(stagedArgonPackage.version, argonPackage.version);
+              assert.equal(sha(fs.readFileSync(argonEntry)), sha(fs.readFileSync(stagedArgonEntry)));
+              const abi = typeof glibc === 'string' ? 'gnu' : 'musl', nativeName = `argon2-linux-x64-${abi}`, nativeId = `@node-rs/${nativeName}`;
+              const localNative = path.join(argonRoot, `argon2.linux-x64-${abi}.node`);
+              let nativeSource, nativeTarget, nativeRequest;
+              if (fs.existsSync(localNative)) {
+                nativeSource = sourceFile(localNative); nativeTarget = path.join(stagedArgonRoot, path.basename(localNative)); nativeRequest = `./${path.basename(localNative)}`;
+              } else {
+                const nativeEntry = sourceFile(createRequire(argonEntry).resolve(nativeId)), nativeRoot = sourceDirectory(path.dirname(nativeEntry));
+                const nativePackage = json(sourceFile(path.join(nativeRoot, 'package.json')));
+                assert.equal(nativePackage.name, nativeId); assert.equal(nativePackage.version, argonPackage.optionalDependencies?.[nativeId]);
+                assert.equal(path.extname(nativeEntry), '.node');
+                assert.ok(nativePackage.os?.includes('linux') && nativePackage.cpu?.includes('x64'));
+                elfX64(nativeEntry);
+                nativeSource = nativeRoot; nativeTarget = path.join(path.dirname(stagedArgonRoot), nativeName); nativeRequest = nativeId;
+              }
+              const plan = new Map(), visited = new Set();
+              const checkTargetParents = (file) => {
+                assert.ok(inside(file, app));
+                let current = app;
+                for (const segment of path.relative(app, path.dirname(file)).split(path.sep).filter(Boolean)) {
+                  current = path.join(current, segment);
+                  if (fs.existsSync(current)) { const info = fs.lstatSync(current); assert.ok(info.isDirectory() && !info.isSymbolicLink() && fs.realpathSync(current) === current); }
+                }
+              };
+              const addFile = (from, to) => {
+                from = sourceFile(from); checkTargetParents(to);
+                const bytes = fs.readFileSync(from), info = fs.lstatSync(from), digest = sha(bytes);
+                assert.equal(bytes.length, info.size);
+                if (plan.has(to)) { assert.equal(plan.get(to).from, from); assert.equal(plan.get(to).digest, digest); }
+                else plan.set(to, { from, digest, size: info.size, inode: info.ino, device: info.dev, modified: info.mtimeMs });
+              };
+              const addTree = (from, to) => {
+                from = sourceDirectory(from); assert.ok(!visited.has(from)); visited.add(from);
+                for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
+                  assert.ok(!entry.isSymbolicLink());
+                  if (entry.isDirectory()) addTree(path.join(from, entry.name), path.join(to, entry.name));
+                  else { assert.ok(entry.isFile()); addFile(path.join(from, entry.name), path.join(to, entry.name)); }
+                }
+              };
+              addTree(generatedRoot, generatedTarget); addTree(runtimeRoot, path.join(stagedPrismaRoot, 'runtime'));
+              if (fs.lstatSync(nativeSource).isDirectory()) addTree(nativeSource, nativeTarget); else { elfX64(nativeSource); addFile(nativeSource, nativeTarget); }
+              // Validate every existing target before any supplement write; differing bytes are never overwritten.
+              for (const [to, item] of plan) if (fs.existsSync(to)) assert.equal(sha(fs.readFileSync(stagedFile(to))), item.digest);
+              for (const [to, item] of plan) {
+                const info = fs.lstatSync(item.from);
+                assert.ok(info.ino === item.inode && info.dev === item.device && info.size === item.size && info.mtimeMs === item.modified);
+                assert.equal(sha(fs.readFileSync(sourceFile(item.from))), item.digest); checkTargetParents(to);
+                if (!fs.existsSync(to)) { fs.mkdirSync(path.dirname(to), { recursive: true, mode: 0o700 }); fs.copyFileSync(item.from, to, fs.constants.COPYFILE_EXCL); }
+                assert.equal(sha(fs.readFileSync(stagedFile(to))), item.digest);
+              }
+              const stagedGenerated = stagedFile(createRequire(stagedPrismaEntry).resolve('.prisma/client/default'));
+              assert.equal(stagedGenerated, path.join(generatedTarget, path.basename(generatedEntry)));
+              assert.equal(stagedFile(createRequire(stagedGenerated).resolve('#main-entry-point')), path.join(generatedTarget, path.basename(generatedMain)));
+              assert.equal(stagedFile(createRequire(stagedGenerated).resolve('@prisma/client/runtime/library.js')), path.join(stagedPrismaRoot, 'runtime/library.js'));
+              const stagedNative = stagedFile(createRequire(stagedArgonEntry).resolve(nativeRequest)); elfX64(stagedNative);
+              assert.ok(fs.existsSync(path.join(generatedTarget, path.basename(engine))));
+              identity();
+            } catch { throw new Error('MAIL_DEPENDENCY_CLOSURE_REJECTED'); }
+          }
           const inventory = (dir, prefix = '') => {
             const files = {};
             for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
@@ -737,6 +860,7 @@ jobs:
             copy(path.join(next, 'standalone'), path.join(output, 'app'));
             copy(path.join(next, 'static'), path.join(output, 'app/.next/static'));
             copy(path.join(project, 'public'), path.join(output, 'app/public'));
+            supplementRuntime(path.join(output, 'app'));
             const buildId = fs.readFileSync(path.join(next, 'BUILD_ID'), 'utf8').trim();
             const stagedConfig = JSON.parse(fs.readFileSync(path.join(output, 'app/.next/required-server-files.json'), 'utf8'));
             assert.equal(stagedConfig.config.env.NEXT_PUBLIC_ADMIN_MAIL, mode);
