@@ -241,6 +241,30 @@ async function real(page: Page, info: TestInfo, report: Record<string, unknown>)
   report.actions = { successfulPost201: true, sentPersisted: true, rcpt451BeforeData: true, failed502Persisted: true, visibleManualRetry201: true, sameMailId: true, retryCount: 1, legacyApi201: true, legacySourceMerged: true, acceptedBusinessDelta: 3 };
 }
 
+type ViewportBox = { x: number; y: number; width: number; height: number };
+/** 截图前必须让禁用横幅和发送按钮完整落在当前视口内；旧位置直接截图时两者仍在视口外，由本检查确定性拒绝。 */
+function assertBoxesInViewport(boxes: Array<ViewportBox | null>) {
+  check(boxes.every((box): box is ViewportBox => box !== null
+    && box.width > 0 && box.height > 0
+    && box.x >= 0 && box.y >= 0
+    && box.x + box.width <= VIEWPORT.width && box.y + box.height <= VIEWPORT.height), 'MAIL_DISABLED_FRAME_NOT_VISIBLE');
+}
+
+async function showDisabledComposer(page: Page, report: Record<string, unknown>) {
+  const composer = page.getByRole('region', { name: '回复客户', exact: true });
+  const region = await composer.boundingBox();
+  const frame = { regionHeight: region?.height ?? null, fitsViewport: !!region && region.height <= VIEWPORT.height, banner: null as ViewportBox | null, send: null as ViewportBox | null };
+  report.disabledFrame = frame;
+  check(region && frame.fitsViewport, 'MAIL_DISABLED_COMPOSER_TOO_TALL');
+  // 整块“回复客户”区居中滚入视口：顶部禁用横幅与底部发送按钮同时可见；不缩放、不隐藏、不改产品布局。
+  await composer.evaluate((element) => element.scrollIntoView({ block: 'center', inline: 'nearest' }));
+  frame.banner = await page.getByTestId('sending-disabled').boundingBox();
+  frame.send = await composer.getByRole('button', { name: '发送', exact: true }).boundingBox();
+  assertBoxesInViewport([frame.banner, frame.send]);
+  await expect(composer.getByRole('button', { name: '发送', exact: true })).toBeDisabled();
+  return frame;
+}
+
 async function disabled(page: Page, info: TestInfo, report: Record<string, unknown>) {
   const target = readTarget();
   await validateTarget(target);
@@ -259,6 +283,7 @@ async function disabled(page: Page, info: TestInfo, report: Record<string, unkno
   await page.reload();
   await expect(page.getByTestId('sending-disabled')).toBeVisible();
   await expect(send).toBeDisabled();
+  await showDisabledComposer(page, report);
   await frame(page, info, 'disabled-no-send', report);
   report.actions = { config200SendingDisabled: true, visibleSendDisabled: true, send409: true, retry409: true, databaseUnchanged: true, acceptedDelta: 0 };
 }
