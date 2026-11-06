@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
+import { runInNewContext } from 'node:vm';
 
 /**
  * M3-T21 询盘/邮件视觉迁移的源码接线守卫。
@@ -204,6 +205,38 @@ test('采证用例标题与报告映射一致，标题变更不能留下空报�
   const title = '键盘 36/44 触控';
   assert.ok(source.includes(title));
   assert.throws(() => checkMapping(source.replace(title, '键盘 44px 触控')));
+});
+
+test('匿名化状态负控只接受真实可用选项的禁用拒绝，不能以缺选项或其它失败充数', async () => {
+  const source = read('e2e/admin-legacy-inquiries-visual.spec.ts');
+  const start = source.indexOf('    const statusValue = await statusSel.inputValue();');
+  const end = source.indexOf('    await expect(page.getByTestId(\'status-locked\').getByText(', start);
+  assert.ok(start >= 0 && end > start, '状态负控须先取得实际存在的选项');
+  const code = ts.transpileModule(`async function check() {\n${source.slice(start, end)}\nreturn enableRejected;\n}\ncheck();`, {
+    compilerOptions: { target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  for (const outcome of ['disabled', 'enabled', 'missing', 'transport']) {
+    let attempted = false;
+    const fake = {
+      inputValue: async () => 'x',
+      locator: () => ({ evaluateAll: async () => outcome === 'missing' ? [] : ['x'] }),
+      selectOption: async (value: string) => {
+        attempted = true; assert.equal(value, 'x');
+        if (outcome === 'disabled') throw new Error('Timeout: element is not enabled');
+        if (outcome === 'missing') throw new Error('Timeout: did not find some options');
+        if (outcome === 'transport') throw new Error('browser closed');
+        return ['x'];
+      },
+    };
+    const expectLocal = (actual: unknown) => ({
+      toContain: (wanted: unknown) => assert.ok(Array.isArray(actual) && actual.includes(wanted)),
+      toBe: (wanted: unknown) => assert.equal(actual, wanted),
+    });
+    const checked = runInNewContext(code, { statusSel: fake, expect: expectLocal, Error }) as Promise<boolean>;
+    if (outcome === 'disabled') assert.equal(await checked, true);
+    else await assert.rejects(checked);
+    assert.equal(attempted, outcome !== 'missing');
+  }
 });
 
 test('本域错误 alert 覆盖旧 .warn：两个真实节点消费 accent 与 14/20，旧色不得作为验收值', () => {

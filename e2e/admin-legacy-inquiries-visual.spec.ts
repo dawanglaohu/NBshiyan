@@ -961,9 +961,13 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     await expect(statusSel).toHaveCount(1);
     await expect(statusSel).toBeDisabled();
     expect(await statusSel.evaluate((el) => (el as HTMLSelectElement).disabled)).toBe(true);
+    const statusValue = await statusSel.inputValue();
+    const statusOptions = await statusSel.locator('option').evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
+    expect(statusOptions, '负控必须选当前实际存在的选项').toContain(statusValue);
     let enableRejected = false;
-    try { await statusSel.selectOption('NEW', { timeout: 1500 }); } catch { enableRejected = true; }
-    expect(enableRejected, '禁用状态控件不得可操作').toBe(true);
+    try { await statusSel.selectOption(statusValue, { timeout: 1500 }); }
+    catch (error) { enableRejected = error instanceof Error && /element is not enabled/.test(error.message); }
+    expect(enableRejected, '存在的选项必须因状态控件禁用而拒绝，不接受缺选项或其它错误').toBe(true);
     await expect(page.getByTestId('status-locked').getByText('内容已删除，无法更改状态')).toBeVisible();
     await expect(page.locator('.inq-detail select[aria-label="负责人"]')).toHaveCount(0);
     await expect(page.locator('.inq-detail textarea[aria-label="内部备注"]')).toHaveCount(0);
