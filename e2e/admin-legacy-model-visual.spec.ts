@@ -41,8 +41,41 @@ async function shot(page: Page, testInfo: TestInfo, role: string, width: number,
   await page.screenshot({ path: testInfo.outputPath(`model-workflow-${role}-${width}-${state}.png`), animations: 'disabled' });
 }
 
-async function geometry(page: Page) {
-  return page.evaluate(() => {
+async function waitForEmptyModel(page: Page) {
+  await page.waitForFunction(() => {
+    const root = document.querySelector<HTMLElement>('.mdl[data-model-stage="0"]');
+    const layout = root?.querySelector<HTMLElement>('.mdl-layout');
+    const file = root?.querySelector<HTMLInputElement>('.mdl-file-input');
+    const upload = root?.querySelector<HTMLButtonElement>('.mdl-file-options button');
+    const empty = root?.querySelector<HTMLElement>('.mdl-preview .pj-status[data-tone="empty"]');
+    return Boolean(root && layout && file && upload && empty && getComputedStyle(layout).display === 'grid' && layout.getBoundingClientRect().width > 0 && root.querySelectorAll('.mdl-section').length === 2 && !file.disabled && upload.disabled && empty.getBoundingClientRect().height > 0);
+  });
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+}
+
+async function checkCheckbox(page: Page) {
+  const label = page.locator('.mdl-checkbox-label');
+  const checkbox = page.getByRole('checkbox', { name: '带开盒 / 刀模动画（体积上限 1.5MB）', exact: true });
+  await expect(label).toBeVisible(); await expect(checkbox).not.toBeChecked();
+  await label.click(); await expect(checkbox).toBeChecked();
+  await page.getByLabel('产品', { exact: true }).focus(); await page.keyboard.press('Tab');
+  await expect(checkbox).toBeFocused();
+  const observed = await label.evaluate((el) => {
+    const input = el.querySelector<HTMLInputElement>('input[type="checkbox"]');
+    if (!input) throw new Error('checkbox input missing');
+    const r = el.getBoundingClientRect(), style = getComputedStyle(el), control = getComputedStyle(input), mark = getComputedStyle(input, '::before');
+    return { label: { width: r.width, height: r.height, color: style.color }, checked: input.checked, mark: { content: mark.content, color: mark.color, background: control.backgroundColor }, focus: { visible: input.matches(':focus-visible'), width: control.outlineWidth, style: control.outlineStyle, color: control.outlineColor } };
+  });
+  expect(observed.label.width).toBeGreaterThanOrEqual(44); expect(observed.label.height).toBeGreaterThanOrEqual(44);
+  expect(observed.label.color).toBe('rgb(0, 0, 0)'); expect(observed.checked).toBe(true);
+  expect(observed.mark.content.replace(/^"|"$/g, '')).toBe('✓'); expect(observed.mark.color).toBe('rgb(255, 255, 255)'); expect(observed.mark.background).toBe('rgb(0, 0, 0)');
+  expect(observed.focus).toEqual({ visible: true, width: '2px', style: 'solid', color: 'rgb(180, 87, 0)' });
+  await label.click(); await expect(checkbox).not.toBeChecked();
+  return observed;
+}
+
+async function geometry(page: Page, surface?: string) {
+  return page.evaluate(({ source, label }) => {
     const selectors = ['.mdl-section', '.mdl-drop', '.mdl-preview', '.mdl-steps li i', '.mdl-alert', '.mdl-remedy', '.mdl .pj-button', '.mdl .pj-input', '.mdl-checkbox'];
     const elements = selectors.flatMap((selector) => [...document.querySelectorAll<HTMLElement>(selector)].filter((el) => el.getBoundingClientRect().width > 0).map((el) => {
       const s = getComputedStyle(el), r = el.getBoundingClientRect();
@@ -59,8 +92,21 @@ async function geometry(page: Page) {
     const layout = document.querySelector<HTMLElement>('.mdl-layout'), main = document.querySelector<HTMLElement>('main.adm-main');
     const layoutRect = layout?.getBoundingClientRect(), mainRect = main?.getBoundingClientRect();
     const file = document.querySelector<HTMLInputElement>('.mdl-file-input');
-    return { elements, statuses, facts: { stage: document.querySelector<HTMLElement>('.mdl')?.dataset.modelStage, busy: document.querySelector('.mdl')?.getAttribute('aria-busy') === 'true', fileDisabled: file?.disabled, disabledButtons: document.querySelectorAll('.mdl button:disabled').length, errorVisible: Boolean(document.querySelector('.mdl-alert')), preview: document.querySelector<HTMLElement>('.mdl-preview-scene')?.dataset.previewState || 'empty' }, layout: layoutRect && mainRect && layout ? { width: layoutRect.width, leftGap: layoutRect.left - mainRect.left, tracks: getComputedStyle(layout).gridTemplateColumns, gap: getComputedStyle(layout).columnGap } : null, accent: getComputedStyle(document.documentElement).getPropertyValue('--pj-accent').trim(), overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, focus: focus ? { style: focus.outlineStyle, width: focus.outlineWidth, color: focus.outlineColor } : null };
-  });
+    if (!layout || !mainRect || !layoutRect || layoutRect.width <= 0 || !file || !elements.length || !document.querySelector('.mdl-preview') || document.querySelectorAll('.mdl-section').length < 2 || !elements.some((item) => item.selector === '.mdl .pj-button')) throw new Error('model capture requires current nonempty layout and controls');
+    let measuredDensity: Record<string, unknown> | null = null;
+    if (label) {
+      const root = document.querySelector<HTMLElement>('.mdl');
+      if (label === 'empty' && (root?.dataset.modelStage !== '0' || file.disabled || !document.querySelector('.mdl-file-options button:disabled') || !statuses.some((status) => status.tone === 'empty'))) throw new Error('empty capture no longer matches the initial model state');
+      (0, eval)(source);
+      const probe = (globalThis as { densityProbe?: (o: unknown) => Record<string, unknown> }).densityProbe;
+      if (!probe) throw new Error('densityProbe missing');
+      const raw = probe({ type: 'form', density: 7, gutter: 16, gap: 16, pad: 16, main: 'main.adm-main', rail: 'nav#adm-nav' });
+      const safe = { ...raw };
+      delete safe.url; delete safe.sparseBlocks;
+      measuredDensity = { surface: label, ...safe, sparseBlocks: Array.isArray(raw.sparseBlocks) ? raw.sparseBlocks.map((r) => ({ path: r.path, pad: r.pad })) : [] };
+    }
+    return { measuredDensity, elements, statuses, facts: { stage: document.querySelector<HTMLElement>('.mdl')?.dataset.modelStage, busy: document.querySelector('.mdl')?.getAttribute('aria-busy') === 'true', fileDisabled: file?.disabled, disabledButtons: document.querySelectorAll('.mdl button:disabled').length, errorVisible: Boolean(document.querySelector('.mdl-alert')), preview: document.querySelector<HTMLElement>('.mdl-preview-scene')?.dataset.previewState || 'empty' }, layout: layoutRect && mainRect && layout ? { width: layoutRect.width, leftGap: layoutRect.left - mainRect.left, tracks: getComputedStyle(layout).gridTemplateColumns, gap: getComputedStyle(layout).columnGap } : null, accent: getComputedStyle(document.documentElement).getPropertyValue('--pj-accent').trim(), overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, focus: focus ? { style: focus.outlineStyle, width: focus.outlineWidth, color: focus.outlineColor } : null };
+  }, { source: PROBE, label: surface ?? null });
 }
 
 async function density(page: Page, surface: string) {
@@ -95,6 +141,39 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
   });
   test.beforeEach(async ({ page }) => { await page.context().addCookies(state.cookies); });
 
+  test('1920 coarse pointer: actual named model controls and checkbox label are 44px targets', async ({ browser }, testInfo) => {
+    const context = await browser.newContext({ viewport: VIEWPORTS[0], hasTouch: true, baseURL: BASE });
+    const page = await context.newPage();
+    const path = testInfo.outputPath('admin-legacy-model.json');
+    const cleanupErrors: string[] = [];
+    const report: Record<string, unknown> = { task: 'M3-T23', role, viewport: VIEWPORTS[0], context: 'hasTouch/coarse', source: { commit: process.env.GITHUB_SHA ?? null, runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null }, pass: false, cleanupErrors };
+    let done = false, error: string | null = null;
+    try {
+      await context.addCookies(state.cookies);
+      await page.goto('/admin/specs');
+      await page.getByRole('navigation', { name: '后台导航' }).getByRole('link', { name: '3D 模型', exact: true }).click();
+      await expect(page).toHaveURL(/\/admin\/models\/new$/);
+      await waitForEmptyModel(page);
+      const targets = await page.evaluate(() => ({
+        coarse: matchMedia('(pointer: coarse)').matches,
+        controls: [...document.querySelectorAll<HTMLElement>('.mdl .pj-button, .mdl .pj-input, .mdl-checkbox-label')].map((el) => { const r = el.getBoundingClientRect(); return { selector: el.className, width: r.width, height: r.height }; }),
+      }));
+      expect(targets.coarse).toBe(true); expect(targets.controls.length).toBeGreaterThanOrEqual(7);
+      for (const control of targets.controls) { expect(control.width).toBeGreaterThanOrEqual(44); expect(control.height).toBeGreaterThanOrEqual(44); }
+      report.targets = targets;
+      report.checkbox = await checkCheckbox(page);
+      await shot(page, testInfo, role, 1920, '07-coarse-targets');
+      done = true;
+    } catch (e) { error = e instanceof Error ? e.name : 'unknown'; throw e; }
+    finally {
+      try { await context.close(); } catch { cleanupErrors.push('context-close'); }
+      report.error = error; report.pass = done && error === null && cleanupErrors.length === 0;
+      writeFileSync(path, JSON.stringify(report, null, 2));
+      await testInfo.attach('admin-legacy-model-coarse', { path, contentType: 'application/json' });
+      expect(cleanupErrors).toEqual([]);
+    }
+  });
+
   for (const viewport of VIEWPORTS) test(`${viewport.width}: visible entry, failed checks, real GLB preview and confirmed publish`, async ({ page }, testInfo) => {
     test.setTimeout(180_000);
     await page.setViewportSize(viewport);
@@ -110,6 +189,7 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
     });
     const samples: Array<Record<string, unknown>> = [];
     const checks: Array<Record<string, unknown>> = [];
+    let checkboxEvidence: Awaited<ReturnType<typeof checkCheckbox>> | null = null;
     let publishedId: string | null = null, replacedIds: string[] = [];
     let errorStage = 'entry', errorName: string | null = null;
     const cdp = await page.context().newCDPSession(page);
@@ -127,9 +207,19 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
       const upload = page.getByRole('button', { name: '上传并检查', exact: true });
       await expect(upload).toBeDisabled();
       await expect(page.getByText('选好文件后显示 3D 预览', { exact: false })).toBeVisible();
-      samples.push(await density(page, 'empty'));
-      checks.push({ state: 'empty/disabled', ...(await geometry(page)) });
+      await waitForEmptyModel(page);
+      const { measuredDensity: emptyDensity, ...emptyGeometry } = await geometry(page, 'empty');
+      if (!emptyDensity) throw new Error('initial density capture missing');
+      samples.push(emptyDensity);
+      checks.push({ state: 'empty/disabled', ...emptyGeometry });
+      if (viewport.width >= 1024) {
+        for (const button of await page.locator('.mdl-themes button').all()) {
+          const rectangle = await button.boundingBox();
+          expect(rectangle?.height, 'ordinary desktop theme controls remain 36px').toBe(36);
+        }
+      }
       await shot(page, testInfo, role, viewport.width, '00-empty');
+      checkboxEvidence = await checkCheckbox(page);
 
       errorStage = 'client-limit';
       await page.getByLabel('选择模型与封面文件').setInputFiles({ name: 'oversized.glb', mimeType: 'model/gltf-binary', buffer: Buffer.alloc(1.5 * 1024 * 1024 + 1) });
@@ -190,12 +280,12 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
       }, { message: 'the orange synthetic GLB must actually render' }).toBeGreaterThan(20);
       await page.getByRole('button', { name: '礼盒深色', exact: true }).click();
       await expect(page.locator('.mdl-preview.dark')).toBeVisible();
-      await expect(page.locator('.mdl-preview canvas')).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+      await expect(page.locator('.mdl-preview-scene > div[aria-label="模型 3D 预览"]')).toHaveCSS('background-color', 'rgb(0, 0, 0)');
       await page.getByRole('button', { name: '手机', exact: true }).click();
       await expect(page.locator('.mdl-preview.mobile')).toHaveCSS('height', '340px');
       await page.getByRole('button', { name: '前台', exact: true }).click();
       await expect(page.locator('.mdl-preview.light')).toBeVisible();
-      await expect(page.locator('.mdl-preview canvas')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+      await expect(page.locator('.mdl-preview-scene > div[aria-label="模型 3D 预览"]')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
       const patch = page.waitForResponse((r) => r.request().method() === 'PATCH' && new URL(r.url()).pathname === `/api/admin/models/${ready.id}`);
       await page.getByLabel('排序', { exact: true }).fill('7'); await page.getByLabel('排序', { exact: true }).press('Tab'); expect((await patch).status()).toBe(200);
       await next.click();
@@ -204,7 +294,10 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
       await expect(page.getByRole('button', { name: '确认上架', exact: true })).toBeVisible();
       await page.getByRole('button', { name: '取消', exact: true }).click();
       await expect(page.getByRole('button', { name: '确认上架', exact: true })).toHaveCount(0);
-      expect((await (await modelRequest('GET', `/api/admin/models/${ready.id}`)).json()).published).toBe(false);
+      const savedModelResponse = await modelRequest('GET', `/api/admin/models/${ready.id}`);
+      expect(savedModelResponse.status()).toBe(200);
+      const savedModel = await savedModelResponse.json();
+      expect(savedModel.published).toBe(false); expect(savedModel.sortOrder).toBe(7);
       await page.getByRole('button', { name: '上架', exact: true }).click();
       checks.push({ state: 'confirm', ...(await geometry(page)) });
       samples.push(await density(page, 'confirm'));
@@ -240,7 +333,7 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
           expect(item.borderColors).toEqual(['rgb(0, 0, 0)', 'rgb(0, 0, 0)', 'rgb(0, 0, 0)', 'rgb(0, 0, 0)']);
           expect(item.radii).toEqual(['0px', '0px', '0px', '0px']); expect(item.shadow).toBe('none'); expect(item.image).toBe('none'); expect(item.opacity).toBe('1');
           expect(['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(180, 87, 0)']).toContain(item.background);
-          expect(['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(180, 87, 0)']).toContain(item.color);
+          if (item.selector !== '.mdl-checkbox') expect(['rgb(0, 0, 0)', 'rgb(255, 255, 255)', 'rgb(180, 87, 0)']).toContain(item.color);
           if (item.disabled) {
             expect(item.borderStyles).toEqual(['dashed', 'dashed', 'dashed', 'dashed']);
             expect(item.background).toBe('rgb(255, 255, 255)'); expect(item.color).toBe('rgb(0, 0, 0)');
@@ -267,7 +360,7 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
     finally {
       const cleanupErrors: string[] = [];
       const path = testInfo.outputPath('admin-legacy-model.json');
-      const report = { task: 'M3-T23', role, viewport, source: { commit: process.env.GITHUB_SHA ?? null, runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null }, transport: 'standalone/real Auth.js/real model HTTP', requests, checks, density: samples, capture: 'synthetic GLB and poster, original Canvas decoding, no response/DOM/auth-storage injection', errorStage, error: errorName, cleanupErrors, cleanupPending: true, pass: false };
+      const report = { task: 'M3-T23', role, viewport, source: { commit: process.env.GITHUB_SHA ?? null, runId: process.env.GITHUB_RUN_ID ?? null, runAttempt: process.env.GITHUB_RUN_ATTEMPT ?? null }, transport: 'standalone/real Auth.js/real model HTTP', requests, checks, checkbox: checkboxEvidence, density: samples, capture: 'synthetic GLB and poster, original Canvas decoding, no response/DOM/auth-storage injection', errorStage, error: errorName, cleanupErrors, cleanupPending: true, pass: false };
       writeFileSync(path, JSON.stringify(report, null, 2));
       // Restore the prior synthetic CI storefront through the real API. A cleanup failure is not a pass.
       if (publishedId) {

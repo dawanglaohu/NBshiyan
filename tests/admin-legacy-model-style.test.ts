@@ -22,7 +22,8 @@ test('model styles remain local, flat and consume only the existing pj token pal
   assert.match(css, /\.mdl \.mdl-section\{[^}]*padding:var\(--pj-admin-card-pad\)/);
   assert.match(css, /\.mdl \.mdl-drop\{[^}]*align-items:flex-start[^}]*text-align:left/);
   assert.match(css, /\.mdl \.pj-button\.pj-button[^}]*min-height:var\(--pj-admin-control-height\)/);
-  assert.match(css, /@media\(max-width:1023px\)\{\.mdl \.pj-button\.pj-button[^}]*min-height:var\(--pj-touch-target\)/);
+  assert.match(css, /@media\(pointer:coarse\),\(max-width:1023px\)\{\.mdl \.pj-button\.pj-button[^}]*min-height:var\(--pj-touch-target\)/);
+  assert.match(css, /@media\(pointer:coarse\),\(max-width:1023px\)\{[^}]*\}\.mdl \.pj-button\.pj-button\{min-width:var\(--pj-touch-target\)/);
   assert.doesNotMatch(css, /(^|\})\s*\.adm-/);
 });
 

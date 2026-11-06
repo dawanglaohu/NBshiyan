@@ -62,5 +62,5 @@
 .mdl .mdl-tip{display:inline-block;max-width:100%}
 .mdl .mdl-next-reason{margin-top:calc(var(--pj-space-unit) * 2)}
 @media(max-width:1199px){.mdl .mdl-layout{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:1023px){.mdl .pj-button.pj-button,.mdl .pj-input.pj-input{min-height:var(--pj-touch-target)}}
+@media(pointer:coarse),(max-width:1023px){.mdl .pj-button.pj-button,.mdl .pj-input.pj-input{min-height:var(--pj-touch-target)}.mdl .pj-button.pj-button{min-width:var(--pj-touch-target)}}
 @media(max-width:767px){.mdl .mdl-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.mdl .mdl-steps li::after{display:none}.mdl .mdl-header-space{display:none}.mdl .mdl-header{justify-content:space-between}.mdl .mdl-checks li{grid-template-columns:24px minmax(0,1fr)}.mdl .mdl-checks li>span,.mdl .mdl-bar{grid-column:2}}
