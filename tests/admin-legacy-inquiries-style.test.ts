@@ -197,13 +197,47 @@ test('采证用例标题与报告映射一致，标题变更不能留下空报�
       ts.forEachChild(node, visit);
     };
     visit(tree);
-    assert.equal(titles.length, 5);
+    assert.equal(titles.length, 8);
     assert.deepEqual(mapped.sort(), titles.sort());
   };
   checkMapping(source);
   const title = '键盘 36/44 触控';
   assert.ok(source.includes(title));
   assert.throws(() => checkMapping(source.replace(title, '键盘 44px 触控')));
+});
+
+test('本域错误 alert 覆盖旧 .warn：两个真实节点消费 accent 与 14/20，旧色不得作为验收值', () => {
+  const check = (text: string) => {
+    const stripped = text.replace(/\/\*[\s\S]*?\*\//g, '');
+    const block = stripped.slice(stripped.indexOf('.inq-detail,.inq-list{display:contents}'));
+    const bodyOf = (selector: string) => {
+      for (const m of block.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const sels = m[1].split(',').map((s) => s.trim().replace(/^\s*[\r\n]+/gm, '').trim());
+        if (sels.includes(selector)) return m[2].trim();
+      }
+      return '';
+    };
+    for (const selector of ['.inq-list .adm-card td[role="alert"]', '.inq-detail > p[role="alert"]']) {
+      const body = bodyOf(selector);
+      assert.ok(body, `缺少本域错误规则: ${selector}`);
+      assert.match(body, /color:var\(--pj-accent\)/, `${selector} 必须消费 accent`);
+      assert.match(body, /font-size:var\(--pj-ui-size\)/, `${selector} 反馈文本 14px`);
+      assert.match(body, /line-height:var\(--pj-ui-line\)/, `${selector} 反馈文本 20px`);
+      assert.doesNotMatch(body, /#B4441F|rgb\(180,\s*68,\s*31\)/i, `${selector} 不得保留旧错误色`);
+    }
+    // 全局 .adm .warn 仍是旧定义，本域只做局部覆盖，不改全局。
+    assert.match(text, /\.adm \.warn\{color:#B4441F;font-weight:700\}/);
+    assert.match(tokens, /--pj-ui-size:14px/);
+    assert.match(tokens, /--pj-ui-line:20px/);
+  };
+  check(css);
+  // 负控：把本域 color 换回旧色，守卫必须失败。
+  const broken = css.replace(
+    /(\.inq-list \.adm-card td\[role="alert"\],\s*\.inq-detail > p\[role="alert"\]\{[^}]*?)color:var\(--pj-accent\)/,
+    '$1color:#B4441F',
+  );
+  assert.notEqual(broken, css, '负控替换必须命中本域规则');
+  assert.throws(() => check(broken));
 });
 
 test('普通桌面 tabs 与分页按钮的最终最小高度为36px，不被20px行高覆盖', () => {

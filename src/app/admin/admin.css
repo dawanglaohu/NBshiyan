@@ -321,6 +321,14 @@
   outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset);
 }
 .inq-list .adm-filters button:disabled,.inq-list .adm-pager button:disabled{opacity:1;cursor:not-allowed;border-style:dashed;background:var(--pj-bg);color:var(--pj-fg)}
+/* 本域错误/警示文字：只覆盖两个真实 alert 节点，消费 accent 与 14/20 反馈文本；
+   不修改全局 .adm .warn，也不新增 token（M3-T21 复核意见）。 */
+.inq-list .adm-card td[role="alert"],
+.inq-detail > p[role="alert"]{
+  color:var(--pj-accent);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+}
 
 /* 列表/详情控件的桌面口径：单行 36px、正文 16px、表头 14/20；触控才抬到 44×44。
    只作用于 .inq-list / .inq-detail / .inq-state 命名域，不改公共 .adm-* 定义本身。 */

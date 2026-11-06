@@ -51,13 +51,13 @@ async function loginRole(role: 'ADMIN' | 'SALES'): Promise<{ state: SessionState
 /** 用某角色的 storageState 建本用例自己的 context（继承 baseURL 与必要 video/locale）。
  *  自建 context 显式装外部拦截 + Turnstile 桩，补齐默认 page fixture 不覆盖本卡 context 的缺口。
  *  opts 可指定真实触控配置（hasTouch/isMobile）与视口；触控是 context 级能力，setViewportSize 改不了。 */
-async function contextFor(browser: Browser, state: SessionState, testInfo: TestInfo, opts?: { viewport?: { width: number; height: number }; hasTouch?: boolean; isMobile?: boolean }): Promise<BrowserContext> {
+async function contextFor(browser: Browser, state: SessionState, testInfo: TestInfo, opts?: { viewport?: { width: number; height: number }; hasTouch?: boolean; isMobile?: boolean; videoSize?: { width: number; height: number } }): Promise<BrowserContext> {
   const context = await browser.newContext({
     baseURL: BASE, storageState: state, locale: 'en-US',
     ...(opts?.viewport ? { viewport: opts.viewport } : {}),
     ...(opts?.hasTouch ? { hasTouch: true } : {}),
     ...(opts?.isMobile ? { isMobile: true } : {}),
-    recordVideo: { dir: testInfo.outputPath('video'), size: { width: 1280, height: 720 } },
+    recordVideo: { dir: testInfo.outputPath('video'), size: opts?.videoSize ?? { width: 1280, height: 720 } },
   });
   await context.route(EXTERNAL, (route) => {
     if (route.request().url().startsWith('https://challenges.cloudflare.com/turnstile/v0/api.js')) {
@@ -175,6 +175,9 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     '详情适用 form 区 density_probe 与三尺寸动作': 'admin-legacy-inquiries-form.json',
     '六态采集：loading / empty / error / success / disabled / focus 的真实控件判定': 'admin-legacy-inquiries-states.json',
     'SALES 真实身份：他人询盘详情 GET 404、改派 PATCH 403（不降为匿名）': 'admin-legacy-inquiries-sales.json',
+    'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复': 'admin-legacy-inquiries-error.json',
+    'A1 仅本用例合成询盘：原 privacy/export+delete 匿名化、PII 消失、只读与 409、history 保留': 'admin-legacy-inquiries-anon.json',
+    '三尺寸完整流程：列表→详情→状态/分配/备注写动作→刷新持久（1920/1440/390 真触控 tap，原生帧）': 'admin-legacy-inquiries-flow.json',
   };
   let activeReport: { testInfo: TestInfo; name: string; payload: Record<string, unknown> } | null = null;
   const report = () => activeReport!.payload;
@@ -675,6 +678,397 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       // 任何中途失败都关闭这两个自建 context；关闭异常不覆盖主体原错，但也不让资源泄漏。
       try { if (!adminClosed) await adminCtx.close(); } catch { /* 不覆盖主体原错 */ }
       try { if (salesCtx) await salesCtx.close(); } catch { /* 不覆盖主体原错 */ }
+    }
+    finishReport();
+  });
+
+  test('E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复', async () => {
+    test.setTimeout(180_000);
+    const testInfo = test.info();
+    const r = report();
+    const shot = async (name: string) => {
+      const path = testInfo.outputPath(name);
+      await page.screenshot({ path });
+      expect(readFileSync(path).length).toBeGreaterThan(0);
+      return name;
+    };
+    const tag = `m3t21-err-${Date.now()}`;
+    const ref = await createSyntheticInquiry(page, tag);
+    // createSyntheticInquiry 结束时仍在 /en/contact 成功页：先真实进入后台列表再操作。
+    await page.goto(`${BASE}/admin/inquiries`);
+    await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
+    await expect(page.locator('.inq-list > h1')).toBeVisible();
+
+    // 只统计“目标业务接口”的写请求；activity/RUM/account/users 不计入。
+    const biz: Array<{ method: string; path: string; body: string }> = [];
+    const isTargetBiz = (u: URL) => u.pathname === '/api/admin/inquiries' || u.pathname.startsWith('/api/admin/inquiries/');
+    page.on('request', (req) => {
+      const u = new URL(req.url());
+      if (['PATCH', 'POST', 'PUT', 'DELETE'].includes(req.method()) && isTargetBiz(u)) {
+        biz.push({ method: req.method(), path: u.pathname, body: req.postData() ?? '' });
+      }
+    });
+
+    // 搜索 101：真实 400 + 本域 alert 的实际 computed style（旧 .warn 色必须被覆盖）。
+    const q101 = 'a'.repeat(101);
+    const badQ = page.waitForResponse((res) => res.request().method() === 'GET'
+      && new URL(res.url()).pathname === '/api/admin/inquiries'
+      && new URL(res.url()).searchParams.get('q') === q101);
+    await page.getByLabel('搜索').fill(q101);
+    await page.getByRole('button', { name: '搜索' }).click();
+    expect((await badQ).status()).toBe(400);
+    const qAlert = page.locator('.inq-list td[role="alert"]');
+    await expect(qAlert).toBeVisible();
+    await expect(qAlert).toHaveText('参数不正确，请检查后重试。');
+    await expect(page.getByLabel('搜索')).toHaveValue(q101);
+    expect(biz, '搜索阶段不得有目标业务写请求').toHaveLength(0);
+    const qStyle = await qAlert.evaluate((el) => {
+      const s = getComputedStyle(el); const b = el.getBoundingClientRect();
+      return { color: s.color, fontWeight: s.fontWeight, fontSize: s.fontSize, lineHeight: s.lineHeight, w: Math.round(b.width), h: Math.round(b.height) };
+    });
+    expect(qStyle).toMatchObject({ color: 'rgb(180, 87, 0)', fontSize: '14px', lineHeight: '20px' });
+    expect(qStyle.color, '旧 .warn 色不得作为验收值').not.toBe('rgb(180, 68, 31)');
+    expect(qStyle.w).toBeGreaterThan(0); expect(qStyle.h).toBeGreaterThan(0);
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('role'))).toBe('alert');
+    const frames: string[] = [await shot('inquiry-visual-1440x900-error-search.png')];
+    r.qStatus = 400; r.qComputed = qStyle; r.qBizMutations = 0; r.qValueRetained = true;
+
+    // 纠正恢复：按本次 ref 精确搜索。
+    const okList = page.waitForResponse((res) => res.request().method() === 'GET'
+      && new URL(res.url()).pathname === '/api/admin/inquiries'
+      && new URL(res.url()).searchParams.get('q') === ref);
+    await page.getByLabel('搜索').fill(ref);
+    await page.getByRole('button', { name: '搜索' }).click();
+    expect((await okList).status()).toBe(200);
+    const row = page.locator('.inq-list tbody tr.row').filter({ has: page.locator(`a:has-text("${ref}")`) });
+    await expect(row).toHaveCount(1);
+    const href = await row.locator('a').first().getAttribute('href');
+    expect(href).toMatch(/\/admin\/inquiries\//);
+    const id = href!.split('/').pop()!;
+    r.searchRecovered = true;
+
+    // 备注 5001：400 是“尝试写入但未持久化”，不是无写请求。
+    const notesBefore = (await (await ctx.request.get(`${BASE}/api/admin/inquiries/${id}`)).json()) as { notes: unknown[] };
+    await row.locator('a').first().click();
+    await expect(page.locator('.inq-detail > .adm-crumb')).toBeVisible();
+    const note501 = 'b'.repeat(5001);
+    const noteBox = page.locator('.inq-detail textarea[aria-label="内部备注"]');
+    await noteBox.fill(note501);
+    expect((await noteBox.inputValue()).length).toBe(5001);
+    const isBody = (res: { request: () => { postData: () => string | null } }, want: string) => {
+      try { return JSON.parse(res.request().postData() ?? '{}').body === want; } catch { return false; }
+    };
+    const badNote = page.waitForResponse((res) => res.request().method() === 'POST'
+      && new URL(res.url()).pathname === `/api/admin/inquiries/${id}/notes` && isBody(res, note501));
+    await page.getByRole('button', { name: '添加备注' }).click();
+    expect((await badNote).status()).toBe(400);
+    const nAlert = page.locator('.inq-detail > p[role="alert"]');
+    await expect(nAlert).toHaveText('参数不正确，请检查后重试。');
+    await expect(noteBox).toHaveValue(note501);
+    const nStyle = await nAlert.evaluate((el) => {
+      const s = getComputedStyle(el); const b = el.getBoundingClientRect();
+      return { color: s.color, fontWeight: s.fontWeight, fontSize: s.fontSize, lineHeight: s.lineHeight, w: Math.round(b.width), h: Math.round(b.height) };
+    });
+    expect(nStyle).toMatchObject({ color: 'rgb(180, 87, 0)', fontSize: '14px', lineHeight: '20px' });
+    expect(nStyle.color).not.toBe('rgb(180, 68, 31)');
+    expect(nStyle.w).toBeGreaterThan(0); expect(nStyle.h).toBeGreaterThan(0);
+    expect(await page.evaluate(() => document.activeElement?.getAttribute('role'))).toBe('alert');
+    frames.push(await shot('inquiry-visual-1440x900-error-note.png'));
+    const notesAfter = (await (await ctx.request.get(`${BASE}/api/admin/inquiries/${id}`)).json()) as { notes: unknown[] };
+    expect(notesAfter.notes.length, '5001 备注不得持久化').toBe(notesBefore.notes.length);
+    expect(biz.filter((m) => m.path === `/api/admin/inquiries/${id}/notes`)).toHaveLength(1);
+    r.noteAttempt = { method: 'POST', status: 400, persisted: false };
+    r.noteValueRetained = true;
+
+    // 纠正恢复：合法备注 201，刷新后仍在。
+    const ok = `M3-T21 recover ${tag}`;
+    await noteBox.fill(ok);
+    const okNote = page.waitForResponse((res) => res.request().method() === 'POST'
+      && new URL(res.url()).pathname === `/api/admin/inquiries/${id}/notes` && isBody(res, ok));
+    await page.getByRole('button', { name: '添加备注' }).click();
+    expect((await okNote).status()).toBe(201);
+    await expect(page.locator('.inq-detail').getByText(ok)).toBeVisible();
+    const reloadGet = page.waitForResponse((res) => res.request().method() === 'GET'
+      && new URL(res.url()).pathname === `/api/admin/inquiries/${id}`);
+    await page.reload();
+    const reloadResp = await reloadGet;
+    expect(reloadResp.status()).toBe(200);
+    expect(((await reloadResp.json()) as { ref?: string }).ref).toBe(ref);
+    await expect(page.locator('.inq-detail').getByText(ok)).toBeVisible();
+    r.noteRecovered = true; r.frames = frames;
+    finishReport();
+  });
+
+  test('A1 仅本用例合成询盘：原 privacy/export+delete 匿名化、PII 消失、只读与 409、history 保留', async () => {
+    test.setTimeout(240_000);
+    const testInfo = test.info();
+    const r = report();
+    const shot = async (name: string) => {
+      const path = testInfo.outputPath(name);
+      await page.screenshot({ path });
+      expect(readFileSync(path).length).toBeGreaterThan(0);
+      return name;
+    };
+    const urlOf = (s?: string) => { if (!s) return null; try { return new URL(s); } catch { return null; } };
+    const db = urlOf(process.env.DATABASE_URL);
+    const app = urlOf(BASE);
+    const preflight = {
+      githubActions: process.env.GITHUB_ACTIONS === 'true',
+      ci: process.env.CI === 'true',
+      loopbackOrigin: !!app && ['localhost', '127.0.0.1'].includes(app.hostname)
+        && app.port === (process.env.E2E_PORT ?? '3100'),
+      dbLoopback: !!db && ['localhost', '127.0.0.1'].includes(db.hostname) && db.port === '5432',
+      dbNameE2e: !!db && db.pathname.replace(/^\//, '') === 'e2e',
+      privacySecretPresent: !!process.env.PRIVACY_HASH_SECRET,
+    };
+    expect(preflight, 'A1 必须在 GitHub Actions 隔离 e2e 环境执行；不符则在删除前失败').toEqual({
+      githubActions: true, ci: true, loopbackOrigin: true, dbLoopback: true, dbNameE2e: true, privacySecretPresent: true,
+    });
+    r.preflight = preflight;
+
+    const idByRef = async (ref: string) => {
+      await page.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
+      await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
+      const row = page.locator('.inq-list tbody tr.row').filter({ has: page.locator(`a:has-text("${ref}")`) });
+      await expect(row).toHaveCount(1);
+      const href = await row.locator('a').first().getAttribute('href');
+      expect(href).toMatch(/\/admin\/inquiries\//);
+      return href!.split('/').pop()!;
+    };
+    const tag = `m3t21-anon-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const refA = await createSyntheticInquiry(page, tag);
+    const tagB = `m3t21-anon-ctl-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const refB = await createSyntheticInquiry(page, tagB);
+    const emailA = `qa-${tag}@acme-test.com`;
+    const emailB = `qa-${tagB}@acme-test.com`;
+    const idA = await idByRef(refA);
+    const idB = await idByRef(refB);
+
+    const origin = { Origin: BASE, 'Content-Type': 'application/json' };
+    const exportResp = await ctx.request.post(`${BASE}/api/admin/privacy/export`, { headers: origin, data: { email: emailA } });
+    expect(exportResp.status(), 'privacy/export 目标范围须 200').toBe(200);
+    const exp = (await exportResp.json()) as {
+      contacts: Array<{ email: string }>;
+      inquiries: Array<{ ref: string; logoUploads: unknown[] }>;
+      quoteLists: unknown[]; samples: unknown[];
+    };
+    expect(exp.contacts).toHaveLength(1);
+    expect(exp.contacts[0].email.toLowerCase()).toBe(emailA.toLowerCase());
+    expect(exp.inquiries.filter((i) => i.ref === refA)).toHaveLength(1);
+    expect(exp.inquiries, '同一 normalizedEmail 范围不得有其它询盘').toHaveLength(1);
+    expect(exp.quoteLists).toHaveLength(0);
+    expect(exp.samples).toHaveLength(0);
+    expect(exp.inquiries[0].logoUploads).toHaveLength(0);
+
+    const detailAResp = await ctx.request.get(`${BASE}/api/admin/inquiries/${idA}`);
+    expect(detailAResp.status(), '目标详情须 200').toBe(200);
+    const detailA = (await detailAResp.json()) as { ref: string; contact: { email: string }; logoUploadId: string | null; anonymizedAt: string | null };
+    expect(detailA.ref).toBe(refA);
+    expect(detailA.contact.email.toLowerCase()).toBe(emailA.toLowerCase());
+    expect(detailA.logoUploadId).toBeNull();
+    expect(detailA.anonymizedAt).toBeNull();
+
+    const exportBResp = await ctx.request.post(`${BASE}/api/admin/privacy/export`, { headers: origin, data: { email: emailB } });
+    expect(exportBResp.status(), 'control export 须 200').toBe(200);
+    const expB = (await exportBResp.json()) as { inquiries: Array<{ ref: string }> };
+    expect(expB.inquiries.map((i) => i.ref)).toEqual([refB]);
+    const detailBResp = await ctx.request.get(`${BASE}/api/admin/inquiries/${idB}`);
+    expect(detailBResp.status(), 'control 详情须 200').toBe(200);
+    const detailB = (await detailBResp.json()) as { contact: { email: string }; anonymizedAt: string | null };
+    expect(detailB.anonymizedAt).toBeNull();
+    expect(detailB.contact.email.toLowerCase()).toBe(emailB.toLowerCase());
+
+    // 预置一条真实备注，供匿名化后核“内容已删除 / 只读 / [deleted]”。
+    await page.goto(`${BASE}/admin/inquiries/${idA}`);
+    const preText = `M3-T21 anon pre ${tag}`;
+    await page.locator('.inq-detail textarea[aria-label="内部备注"]').fill(preText);
+    const preNote = page.waitForResponse((res) => res.request().method() === 'POST'
+      && new URL(res.url()).pathname === `/api/admin/inquiries/${idA}/notes`);
+    await page.getByRole('button', { name: '添加备注' }).click();
+    expect((await preNote).status()).toBe(201);
+
+    // 单次删除：仅本次合成目标；counts 只作结果复核，不替代上面 export 前验。
+    const delResp = await ctx.request.post(`${BASE}/api/admin/privacy/delete`, {
+      headers: origin, data: { email: emailA, confirmEmail: emailA },
+    });
+    expect(delResp.status(), 'privacy/delete 须 200').toBe(200);
+    const counts = (await delResp.json()) as { ok: boolean; contacts: number; inquiries: number; logos: number };
+    expect(counts).toMatchObject({ ok: true, contacts: 1, inquiries: 1, logos: 0 });
+    r.counts = { contacts: counts.contacts, inquiries: counts.inquiries, logos: counts.logos };
+
+    const afterResp = await ctx.request.get(`${BASE}/api/admin/inquiries/${idA}`);
+    expect(afterResp.status()).toBe(200);
+    const after = (await afterResp.json()) as {
+      ref: string; anonymizedAt: string | null; message: string | null; logoUploadId: string | null;
+      contact: { name: string; email: string; company: string | null; phone: string | null };
+      notes: Array<{ body: string }>;
+    };
+    expect(after.anonymizedAt, '目标须已匿名化').toBeTruthy();
+    expect(after.ref).toBe(refA);
+    expect(after.contact.name).toBe('[deleted]');
+    expect(after.contact.email).toMatch(/^deleted\+[0-9a-f]{16}@invalid\.invalid$/);
+    expect(after.contact.company).toBeNull();
+    expect(after.contact.phone).toBeNull();
+    expect(after.message).toBeNull();
+    expect(after.notes.length).toBeGreaterThan(0);
+    expect(after.notes.every((n) => n.body === '[deleted]')).toBe(true);
+    expect(after.logoUploadId).toBeNull();
+
+    const controlAfter = (await (await ctx.request.get(`${BASE}/api/admin/inquiries/${idB}`)).json()) as { contact: { email: string }; anonymizedAt: string | null };
+    expect(controlAfter.anonymizedAt).toBeNull();
+    expect(controlAfter.contact.email.toLowerCase()).toBe(emailB.toLowerCase());
+
+    const listDefault = (await (await ctx.request.get(`${BASE}/api/admin/inquiries?q=${encodeURIComponent(refA)}`)).json()) as { items: Array<{ ref: string }> };
+    expect(listDefault.items.filter((i) => i.ref === refA)).toHaveLength(0);
+    const listAnon = (await (await ctx.request.get(`${BASE}/api/admin/inquiries?q=${encodeURIComponent(refA)}&includeAnonymized=true`)).json()) as { items: Array<{ ref: string; anonymizedAt?: string | null }> };
+    expect(listAnon.items.filter((i) => i.ref === refA && i.anonymizedAt)).toHaveLength(1);
+
+    // UI 只读：默认列表隐藏，anon=1 可见；详情无状态/负责人 select、无备注表单、无信任卡片。
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(refA)}&anon=1`);
+    await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
+    const anonRow = page.locator('.inq-list tbody tr.row').filter({ has: page.locator(`a:has-text("${refA}")`) });
+    await expect(anonRow).toHaveCount(1);
+    await expect(anonRow.getByTestId('deleted-tag')).toBeVisible();
+    const frames: string[] = [await shot('inquiry-visual-1440x900-anon-list.png')];
+    await anonRow.locator('a').first().click();
+    await expect(page.getByTestId('anon-notice')).toBeVisible();
+    await expect(page.locator('.inq-detail').getByText('已匿名化').first()).toBeVisible();
+    await expect(page.getByTestId('deleted-body').first()).toBeVisible();
+    await expect(page.getByTestId('status-locked')).toBeVisible();
+    await expect(page.locator('.inq-detail select[aria-label="状态"]')).toHaveCount(0);
+    await expect(page.locator('.inq-detail select[aria-label="负责人"]')).toHaveCount(0);
+    await expect(page.locator('.inq-detail textarea[aria-label="内部备注"]')).toHaveCount(0);
+    await expect(page.getByTestId('trust-score')).toHaveCount(0);
+    await expect(page.locator('.inq-detail').getByText('只读').first()).toBeVisible();
+    await expect(page.locator('.inq-detail').getByText(preText)).toHaveCount(0);
+    frames.push(await shot('inquiry-visual-1440x900-anon-detail.png'));
+
+    const patchResp = await ctx.request.patch(`${BASE}/api/admin/inquiries/${idA}`, {
+      headers: origin, data: { status: 'FOLLOWING' },
+    });
+    expect(patchResp.status(), '匿名化后改状态须 409').toBe(409);
+    expect(((await patchResp.json()) as { error?: string }).error).toBe('anonymized');
+    const notesResp = await ctx.request.post(`${BASE}/api/admin/inquiries/${idA}/notes`, {
+      headers: origin, data: { body: 'should not persist' },
+    });
+    expect(notesResp.status(), '匿名化后备注须 409').toBe(409);
+    expect(((await notesResp.json()) as { error?: string }).error).toBe('anonymized');
+
+    const histResp = await ctx.request.get(`${BASE}/api/admin/inquiries/${idA}/history`);
+    expect(histResp.status()).toBe(200);
+    const histText = JSON.stringify(await histResp.json());
+    expect(histText).not.toContain(emailA);
+    expect((JSON.parse(histText) as { items?: unknown[] }).items?.length ?? 0).toBeGreaterThan(0);
+
+    r.post = { piiDeleted: true, messageNull: true, notesDeleted: true, companyPhoneNull: true };
+    r.list = { defaultHidden: true, includeShown: true };
+    r.ui = { anonNotice: true, readonly: true, deletedBody: true, noSelects: true, noNoteForm: true, noTrust: true };
+    r.api = { patch409: 'anonymized', notes409: 'anonymized' };
+    r.history = { items: ((JSON.parse(histText) as { items?: unknown[] }).items?.length ?? 0), emailAbsent: true };
+    r.controlUntouched = true;
+    r.pre = { preNoteAdded: true, uniqueTarget: true, anonymizedAtNull: true, logoNull: true };
+    r.frames = frames;
+    finishReport();
+  });
+
+  test('三尺寸完整流程：列表→详情→状态/分配/备注写动作→刷新持久（1920/1440/390 真触控 tap，原生帧）', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const r = report();
+    const viewsOut: Array<Record<string, unknown>> = [];
+    r.viewports = viewsOut;
+    const views = [
+      { width: 1920, height: 1080, label: '1920x1080', touch: false, status: 'FOLLOWING' as const },
+      { width: 1440, height: 900, label: '1440x900', touch: false, status: 'QUOTED' as const },
+      { width: 390, height: 844, label: '390x844', touch: true, status: 'WON' as const },
+    ];
+    for (const v of views) {
+      await ctx.close();
+      ctx = await contextFor(browser, adminState, test.info(), {
+        viewport: { width: v.width, height: v.height },
+        hasTouch: v.touch, isMobile: v.touch,
+        videoSize: { width: v.width, height: v.height },
+      });
+      page = await ctx.newPage();
+      const testInfo = test.info();
+      const shot = async (name: string) => {
+        const path = testInfo.outputPath(name);
+        await page.screenshot({ path });
+        expect(readFileSync(path).length).toBeGreaterThan(0);
+        return name;
+      };
+      // 每个视口各自新建本视口自己的目标，避免复用同一记录导致“选当前值不发 PATCH”。
+      const tag = `m3t21-flow-${v.label}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const ref = await createSyntheticInquiry(page, tag);
+      await page.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
+      await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
+      const row = page.locator('.inq-list tbody tr.row').filter({ has: page.locator(`a:has-text("${ref}")`) });
+      await expect(row).toHaveCount(1);
+      const href = await row.locator('a').first().getAttribute('href');
+      expect(href).toMatch(/\/admin\/inquiries\//);
+      const id = href!.split('/').pop()!;
+      const frames: string[] = [await shot(`inquiry-visual-${v.label}-01-list.png`)];
+
+      if (v.touch) await row.locator('a').tap(); else await row.locator('a').first().click();
+      await expect(page.locator('.inq-detail > .adm-crumb')).toBeVisible();
+      frames.push(await shot(`inquiry-visual-${v.label}-02-detail.png`));
+
+      const patchStatus = page.waitForResponse((res) => res.request().method() === 'PATCH'
+        && new URL(res.url()).pathname === `/api/admin/inquiries/${id}`
+        && (() => { try { return JSON.parse(res.request().postData() ?? '{}').status === v.status; } catch { return false; } })());
+      await page.locator('.inq-detail select[aria-label="状态"]').selectOption(v.status);
+      const statusResp = await patchStatus;
+      expect(statusResp.status()).toBe(200);
+      expect(((await statusResp.json()) as { status?: string }).status).toBe(v.status);
+      await expect(page.getByTestId('status-badge')).toHaveText(STATUS_LABEL[v.status]);
+
+      const assignSel = page.locator('.inq-detail select[aria-label="负责人"]');
+      const users = ((await (await ctx.request.get(`${BASE}/api/admin/users`)).json()) as { items: Array<{ id: string; role: string }> }).items
+        .filter((u) => u.role !== 'EDITOR');
+      const optionValues = await assignSel.locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
+      const current = await assignSel.inputValue();
+      const target = users.map((u) => u.id).find((uid) => uid !== current && optionValues.includes(uid));
+      expect(target, '必须有不同于当前值的合法非 EDITOR 负责人').toBeTruthy();
+      const patchAssign = page.waitForResponse((res) => res.request().method() === 'PATCH'
+        && new URL(res.url()).pathname === `/api/admin/inquiries/${id}`
+        && (() => { try { return JSON.parse(res.request().postData() ?? '{}').assigneeId === target; } catch { return false; } })());
+      await assignSel.selectOption(target!);
+      const assignResp = await patchAssign;
+      expect(assignResp.status()).toBe(200);
+      expect(((await assignResp.json()) as { assigneeId?: string | null }).assigneeId).toBe(target);
+      frames.push(await shot(`inquiry-visual-${v.label}-03-action.png`));
+
+      const noteText = `M3-T21 flow ${v.label} ${tag}`;
+      await page.locator('.inq-detail textarea[aria-label="内部备注"]').fill(noteText);
+      const postNote = page.waitForResponse((res) => res.request().method() === 'POST'
+        && new URL(res.url()).pathname === `/api/admin/inquiries/${id}/notes`
+        && (() => { try { return JSON.parse(res.request().postData() ?? '{}').body === noteText; } catch { return false; } })());
+      if (v.touch) await page.getByRole('button', { name: '添加备注' }).tap();
+      else await page.getByRole('button', { name: '添加备注' }).click();
+      expect((await postNote).status()).toBe(201);
+      await page.locator('.inq-detail section', { hasText: '内部备注' }).scrollIntoViewIfNeeded();
+      await expect(page.locator('.inq-detail').getByText(noteText)).toBeVisible();
+      frames.push(await shot(`inquiry-visual-${v.label}-04-note.png`));
+
+      const reloadGet = page.waitForResponse((res) => res.request().method() === 'GET'
+        && new URL(res.url()).pathname === `/api/admin/inquiries/${id}`);
+      await page.reload();
+      const reloadResp = await reloadGet;
+      expect(reloadResp.status()).toBe(200);
+      expect(((await reloadResp.json()) as { ref?: string }).ref).toBe(ref);
+      await expect(page.getByTestId('status-badge')).toHaveText(STATUS_LABEL[v.status]);
+      await expect(page.locator('.inq-detail select[aria-label="负责人"]')).toHaveValue(target!);
+      await expect(page.locator('.inq-detail').getByText(noteText)).toBeVisible();
+      const persistedList = page.waitForResponse((res) => res.request().method() === 'GET'
+        && new URL(res.url()).pathname === '/api/admin/inquiries'
+        && new URL(res.url()).searchParams.get('q') === ref);
+      await page.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
+      expect((await persistedList).status()).toBe(200);
+      await expect(page.locator('.inq-list tbody tr.row').filter({ has: page.locator(`a:has-text("${ref}")`) })).toHaveCount(1);
+      frames.push(await shot(`inquiry-visual-${v.label}-05-persisted.png`));
+
+      viewsOut.push({ label: v.label, touch: v.touch, status: v.status, statusPatch200: true,
+        assigneePatch200: true, notePost201: true, persistedAfterReload: true, frames, video: 'native' });
     }
     finishReport();
   });
