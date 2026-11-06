@@ -349,7 +349,7 @@ test('绝不新增 models.css / specs.css / 公共 adm-* 全局定义或 T6 登�
   assert.doesNotMatch(mailCode, /@import/);
 });
 
-test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 200、等渲染完成、失败先留指标', () => {
+test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 200、等渲染完成、失败先留指标', async () => {
   const source = read('e2e/admin-legacy-inquiries-visual.spec.ts');
 
   // 从源码里取出真实 matcher，用离线样本核精确匹配（不启动浏览器）。
@@ -385,9 +385,11 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
   assert.notEqual(noStatus, matcherSrc);
   assert.equal(compile(noStatus)(req('http://localhost:3100/api/admin/inquiries?page=1&pageSize=10&status=NEW')), true);
 
-  // 提取真实投影/判定函数，用内存 DOM 快照执行实际行为（不是只锁源码字符串）。
+  // 提取真实投影/判定/采样链函数，用内存 DOM+expect 双跑实际 assertListReady
+  // （不是只给判定函数塞人工快照，也不是只锁源码字符串）。
   const extractFn = (name: string) => {
-    const start = source.indexOf(`function ${name}(`);
+    const asyncStart = source.indexOf(`async function ${name}(`);
+    const start = asyncStart >= 0 ? asyncStart : source.indexOf(`function ${name}(`);
     assert.ok(start >= 0, `缺少 ${name}`);
     const braceStart = source.indexOf('{', start);
     let depth = 0;
@@ -399,52 +401,115 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
     assert.ok(end > braceStart, `无法提取 ${name}`);
     return source.slice(start, end);
   };
+  const toPassMs = 20;
+  const expectFake = (actual: unknown, message?: string) => {
+    if (typeof actual === 'function') {
+      return {
+        toPass: async () => {
+          const deadline = Date.now() + toPassMs;
+          let last: unknown;
+          for (;;) {
+            try { await (actual as () => Promise<void>)(); return; }
+            catch (e) { last = e; }
+            if (Date.now() >= deadline) throw last;
+          }
+        },
+      };
+    }
+    const fail = (what: string, want?: unknown): never => {
+      throw new Error(`${message ?? ''} ${what}${want === undefined ? '' : `：${String(want)}`}`);
+    };
+    return {
+      toBe: (want: unknown) => { if (actual !== want) fail('toBe 不相等', want); },
+      toBeGreaterThan: (want: number) => { if (!(Number(actual) > want)) fail('必须大于', want); },
+      toEqual: (want: unknown) => { if (JSON.stringify(actual) !== JSON.stringify(want)) fail('toEqual 不相等', JSON.stringify(actual)); },
+      not: { toBe: (want: unknown) => { if (actual === want) fail('不得等于', want); } },
+    };
+  };
   const fnCode = ts.transpileModule(
-    `const REVIEW_THRESHOLD = 40;\n${extractFn('expectedListShape')}\n${extractFn('verifyListProjection')}\n({ expectedListShape, verifyListProjection });`,
+    `const REVIEW_THRESHOLD = 40;\n${extractFn('expectedListShape')}\n${extractFn('verifyListProjection')}\n${extractFn('assertListReady')}\n({ assertListReady });`,
     { compilerOptions: { target: ts.ScriptTarget.ES2022 } },
   ).outputText;
-  const fnApi = runInNewContext(fnCode, {}) as {
-    expectedListShape: (items: Array<{ ref: string; trustScore: number; anonymizedAt?: string | null }>) => unknown;
-    verifyListProjection: (expected: unknown, dom: Record<string, unknown>) => string[];
+  const fnApi = runInNewContext(fnCode, { expect: expectFake }) as {
+    assertListReady: (page: unknown, resp: unknown) => Promise<void>;
   };
   type Row = { ref: string; trustScore: number; anonymizedAt?: string | null };
   const row = (ref: string, o: { trustScore?: number; anon?: boolean } = {}): Row => ({
     ref, trustScore: o.trustScore ?? 80, anonymizedAt: o.anon ? '2026-01-01T00:00:00.000Z' : null,
   });
-  const snap = (o: Partial<Record<string, unknown>> = {}) => ({
-    rowRefs: [] as string[], groupCount: 0, groupText: '', groupExpanded: null as boolean | null,
-    loading: false, alertCount: 0, hasEmptyText: false, hasAnonText: false, ...o,
-  });
-  const errorsOf = (items: Row[], dom: Record<string, unknown>) => (fnApi.verifyListProjection(fnApi.expectedListShape(items), dom) as string[]).map(String);
-  const rejects = (items: Row[], dom: Record<string, unknown>) => {
-    const errors = errorsOf(items, dom);
-    assert.notEqual(errors.length, 0, '应当被拒的反例却通过了');
+  const model = {
+    rowRefs: [] as string[], groupCount: 0, groupText: '', aria: null as string | null,
+    tbodyText: '', alertCount: 0, status: 200,
   };
-  const accepts = (items: Row[], dom: Record<string, unknown>) => {
-    const errors = errorsOf(items, dom);
-    assert.equal(errors.length, 0, `应当通过但报错：${errors.join('；')}`);
+  const chain = (kind: string): Record<string, unknown> => ({
+    innerText: async () => {
+      if (kind === 'tbody') return model.tbodyText;
+      if (kind === 'group') return model.groupText;
+      throw new Error(`innerText unsupported: ${kind}`);
+    },
+    count: async () => {
+      if (kind === 'rows' || kind === 'cells') return model.rowRefs.length;
+      if (kind === 'groups') return model.groupCount;
+      if (kind === 'alerts') return model.alertCount;
+      throw new Error(`count unsupported: ${kind}`);
+    },
+    allTextContents: async () => {
+      if (kind === 'cells') return model.rowRefs.slice();
+      throw new Error(`allTextContents unsupported: ${kind}`);
+    },
+    first: () => chain('group'),
+    getAttribute: async (name: string) => {
+      if (kind === 'button' && name === 'aria-expanded') return model.aria;
+      throw new Error(`getAttribute unsupported: ${kind}.${name}`);
+    },
+    locator: (sel: string) => {
+      if (kind === 'tbody' && sel === 'tr.row') return chain('rows');
+      if (kind === 'tbody' && sel === 'tr.group') return chain('groups');
+      if (kind === 'tbody' && sel.startsWith('td[role')) return chain('alerts');
+      if (kind === 'rows' && sel === 'td:first-child') return chain('cells');
+      if (kind === 'group' && sel === 'button') return chain('button');
+      throw new Error(`locator unsupported: ${kind} ${sel}`);
+    },
+  });
+  const pageFake = { locator: () => chain('tbody') };
+  const runChain = async (items: Row[], dom: Partial<typeof model>) => {
+    Object.assign(model, { rowRefs: [], groupCount: 0, groupText: '', aria: null, tbodyText: '', alertCount: 0, status: 200 }, dom);
+    await fnApi.assertListReady(pageFake, { status: () => model.status, json: async () => ({ items }) });
+  };
+  const rejects = async (items: Row[], dom: Partial<typeof model>) => {
+    await assert.rejects(runChain(items, dom), '应当被拒的反例却通过了');
+  };
+  const accepts = async (items: Row[], dom: Partial<typeof model>) => {
+    await runChain(items, dom);
   };
 
-  // 7 个后端实际误通过反例：用真实判定函数执行，全部必须被拒。
-  rejects([row('A'), row('B')], snap({ rowRefs: ['A'] }));                                  // 缺行
-  rejects([row('A'), row('B')], snap({ rowRefs: ['A', 'A'] }));                             // 重复/缺行
-  rejects([row('A'), row('B')], snap({ groupCount: 1, groupText: '本页 99 条', groupExpanded: false })); // 错误折叠组
-  rejects([row('A', { trustScore: 10 }), row('B', { trustScore: 10 })], snap({ groupCount: 1, groupText: '本页 99 条', groupExpanded: false })); // 组条数错
-  rejects([row('A'), row('B', { trustScore: 10 })], snap({ groupCount: 1, groupText: '本页 1 条', groupExpanded: false })); // 缺 main 行
-  rejects([row('A')], snap({ hasAnonText: true }));                                         // 伪匿名化提示
-  rejects([], snap({ rowRefs: ['A'], hasEmptyText: true }));                                // 空响应夹旧行
-  // 加载/错误/展开/匿名化夹行同样拒绝。
-  rejects([row('A')], snap({ rowRefs: ['A'], loading: true }));
-  rejects([row('A')], snap({ rowRefs: ['A'], alertCount: 1 }));
-  rejects([row('A', { trustScore: 10 })], snap({ groupCount: 1, groupText: '本页 1 条', groupExpanded: true }));
-  rejects([row('A', { anon: true })], snap({ rowRefs: ['A'], hasAnonText: true }));
+  // 原 7 个误通过反例：走真实 assertListReady 采样链。
+  await rejects([row('A'), row('B')], { rowRefs: ['A'] });                                       // 缺行
+  await rejects([row('A'), row('B')], { rowRefs: ['A', 'A'] });                                  // 重复/缺行
+  await rejects([row('A'), row('B')], { groupCount: 1, groupText: '本页 99 条', aria: 'false' });   // 错误折叠组
+  await rejects([row('A', { trustScore: 10 }), row('B', { trustScore: 10 })], { groupCount: 1, groupText: '本页 99 条', aria: 'false' }); // 组条数错
+  await rejects([row('A'), row('B', { trustScore: 10 })], { groupCount: 1, groupText: '本页 1 条', aria: 'false' }); // 缺 main 行
+  await rejects([row('A')], { tbodyText: '本页都是已匿名化询盘' });                                // 伪匿名化提示
+  await rejects([], { rowRefs: ['A'], tbodyText: '没有符合条件的询盘' });                           // 空响应夹旧行
+  // 本轮 4 个分组边界：1 条不得误收 11/21 条；缺失/非法 aria-expanded 不得当折叠。
+  await rejects([row('A', { trustScore: 10 })], { groupCount: 1, groupText: '本页 11 条', aria: 'false' });
+  await rejects([row('A', { trustScore: 10 })], { groupCount: 1, groupText: '本页 21 条', aria: 'false' });
+  await rejects([row('A', { trustScore: 10 })], { groupCount: 1, groupText: '', aria: 'false' });
+  await rejects([row('A', { trustScore: 10 })], { groupCount: 1, groupText: '本页 1 条', aria: null });
+  await rejects([row('A', { trustScore: 10 })], { groupCount: 1, groupText: '本页 1 条', aria: 'bogus' });
+  await rejects([row('A', { trustScore: 10 })], { groupCount: 1, groupText: '本页 1 条', aria: 'true' });
+  await rejects([row('A', { trustScore: 10 })], { groupCount: 1, groupText: '本页 1 条 · 本页 2 条', aria: 'false' });
+  // 加载/错误/匿名化夹行同样拒绝。
+  await rejects([row('A')], { rowRefs: ['A'], tbodyText: '加载中…' });
+  await rejects([row('A')], { rowRefs: ['A'], alertCount: 1 });
+  await rejects([row('A', { anon: true })], { rowRefs: ['A'], tbodyText: '本页都是已匿名化询盘' });
   // 正控：正常列表 / 顺序无关 / 全 review 折叠 / main+review / 全匿名化 / 真空列表。
-  accepts([row('A'), row('B')], snap({ rowRefs: ['A', 'B'] }));
-  accepts([row('A'), row('B')], snap({ rowRefs: ['B', 'A'] }));
-  accepts([row('A', { trustScore: 10 }), row('B', { trustScore: 10 })], snap({ groupCount: 1, groupText: '▸ 待核实（可信度 <40）· 本页 2 条', groupExpanded: false }));
-  accepts([row('A'), row('B', { trustScore: 10 })], snap({ rowRefs: ['A'], groupCount: 1, groupText: '本页 1 条', groupExpanded: false }));
-  accepts([row('A', { anon: true })], snap({ hasAnonText: true }));
-  accepts([], snap({ hasEmptyText: true }));
+  await accepts([row('A'), row('B')], { rowRefs: ['A', 'B'] });
+  await accepts([row('A'), row('B')], { rowRefs: ['B', 'A'] });
+  await accepts([row('A', { trustScore: 10 }), row('B', { trustScore: 10 })], { groupCount: 1, groupText: '▸ 待核实（可信度 <40）· 本页 2 条', aria: 'false' });
+  await accepts([row('A'), row('B', { trustScore: 10 })], { rowRefs: ['A'], groupCount: 1, groupText: '本页 1 条', aria: 'false' });
+  await accepts([row('A', { anon: true })], { tbodyText: '本页都是已匿名化询盘' });
+  await accepts([], { tbodyText: '没有符合条件的询盘' });
 
   // 所有源码检查都限定在三尺寸用例内，避免同文件其它用例的 goto 干扰顺序判断。
   const blockOf = (text: string) => {
@@ -475,15 +540,19 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
     // 响应结构硬约束（缺 items/重复 ref 直接拒绝）
     assert.match(text, /Array\.isArray\(body\.items\)/);
     assert.match(text, /new Set\(refs\)\.size/);
-    // DOM 快照必须收齐 loading/alert/空态/匿名化/分组条数/折叠状态
+    // DOM 快照必须收齐 loading/alert/空态/匿名化/分组文案
     for (const pat of [
       /loading: text\.includes\('加载中…'\)/,
       /alertCount: await tbody\.locator\('td\[role="alert"\]'\)\.count\(\)/,
       /hasEmptyText: text\.includes\('没有符合条件的询盘'\)/,
       /hasAnonText: text\.includes\('本页都是已匿名化询盘'\)/,
       /groupText: groupCount \? await groups\.first\(\)\.innerText\(\) : ''/,
-      /groupExpanded: groupCount \?/,
     ]) assert.match(text, pat);
+    // 条数必须唯一整数解析（禁止子串匹配）；aria-expanded 保留原始值、不做布尔转换
+    assert.match(text, /matchAll\(\/本页\\s\*\(\\d\+\)\\s\*条\/g\)/);
+    assert.doesNotMatch(text, /groupText\.includes\(/);
+    assert.match(text, /groupExpanded: groupCount \? await groups\.first\(\)\.locator\('button'\)\.getAttribute\('aria-expanded'\) : null/);
+    assert.doesNotMatch(text, /getAttribute\('aria-expanded'\)\) ===/);
     // 4) 失败指标先于断言保留
     const record = block.indexOf('(out.densityProbes as unknown[]).push');
     const densityAssert = block.indexOf('if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);');

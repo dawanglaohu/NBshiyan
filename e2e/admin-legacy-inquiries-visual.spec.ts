@@ -210,7 +210,7 @@ type ListReadySnapshot = {
   rowRefs: string[];
   groupCount: number;
   groupText: string;
-  groupExpanded: boolean | null;
+  groupExpanded: string | null;
   loading: boolean;
   alertCount: number;
   hasEmptyText: boolean;
@@ -241,8 +241,14 @@ function verifyListProjection(expected: ReturnType<typeof expectedListShape>, do
   const wantGroups = expected.reviewCount > 0 ? 1 : 0;
   if (dom.groupCount !== wantGroups) errors.push(`待核实组数量不符：期望 ${wantGroups} 实际 ${dom.groupCount}`);
   if (wantGroups === 1) {
-    if (!dom.groupText.includes(`${expected.reviewCount} 条`)) errors.push('待核实组条数与响应不一致');
-    if (dom.groupExpanded !== false) errors.push('待核实组默认应折叠');
+    // 组文案是「本页 N 条」：必须唯一、可解析为整数并精确比较；缺失/重复/含混都拒绝，
+    // 不能用 includes("1 条")（会误收 11/21 条）。
+    const hits = [...dom.groupText.matchAll(/本页\s*(\d+)\s*条/g)];
+    if (hits.length === 0) errors.push('待核实组缺少「本页 N 条」');
+    else if (hits.length > 1) errors.push('待核实组条数标记重复/含混');
+    else if (Number(hits[0][1]) !== expected.reviewCount) errors.push(`待核实组条数与响应不一致：期望 ${expected.reviewCount} 实际 ${hits[0][1]}`);
+    // 保留 aria-expanded 原始值：只有字面 "false" 才是明确折叠，缺失/非法/"true" 都拒绝。
+    if (dom.groupExpanded !== 'false') errors.push('待核实组默认应折叠（aria-expanded 必须是字面 "false"）');
   }
   if (dom.hasEmptyText) errors.push('有可见记录却显示无结果空态');
   if (dom.hasAnonText) errors.push('有可见记录却显示全匿名化提示');
@@ -276,7 +282,7 @@ async function assertListReady(page: Page, resp: Awaited<ReturnType<typeof listR
       rowRefs: (await rows.locator('td:first-child').allTextContents()).map((s) => s.trim()),
       groupCount,
       groupText: groupCount ? await groups.first().innerText() : '',
-      groupExpanded: groupCount ? (await groups.first().locator('button').getAttribute('aria-expanded')) === 'true' : null,
+      groupExpanded: groupCount ? await groups.first().locator('button').getAttribute('aria-expanded') : null,
       loading: text.includes('加载中…'),
       alertCount: await tbody.locator('td[role="alert"]').count(),
       hasEmptyText: text.includes('没有符合条件的询盘'),
