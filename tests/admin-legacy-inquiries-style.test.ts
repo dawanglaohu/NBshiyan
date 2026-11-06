@@ -412,6 +412,9 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
     assert.match(text, /tbody\.locator\('td\[role="alert"\]'\)\)\.toHaveCount\(0\)/);
     assert.match(text, /tr\.row, tr\.group/);
     assert.match(text, /没有符合条件的询盘/);
+    // 响应结构缺失不能被当空列表；渲染行必须带本次响应的 ref
+    assert.match(text, /Array\.isArray\(body\.items\)/);
+    assert.match(text, /refs\.has\(cell\.trim\(\)\)/);
     // 4) 失败指标先于断言保留
     const record = block.indexOf('(out.densityProbes as unknown[]).push');
     const densityAssert = block.indexOf('if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);');
@@ -431,6 +434,12 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
   const brokenLoading = source.replace("await expect(tbody).not.toContainText('加载中…');\n", '');
   assert.notEqual(brokenLoading, source);
   assert.throws(() => check(brokenLoading), '去掉加载完成等待必须被发现');
+  const brokenItems = source.replace("expect(Array.isArray(body.items), '列表响应必须带 items 数组').toBe(true);", '');
+  assert.notEqual(brokenItems, source);
+  assert.throws(() => check(brokenItems), '去掉 items 数组断言（缺结构当空列表）必须被发现');
+  const brokenRefs = source.replace("expect(refs.has(cell.trim()), `渲染行 ref 必须来自本次响应: ${cell.trim()}`).toBe(true);", '');
+  assert.notEqual(brokenRefs, source);
+  assert.throws(() => check(brokenRefs), '去掉渲染行 ref 与响应一致性核对必须被发现');
   const push = '(out.densityProbes as unknown[]).push({ label: view.label, width: view.width, height: view.height, touch: view.touch, densityWork: safeDensity(work) });';
   const densityAssertLine = '      if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);\n';
   const afterAssert = spliceBlock((b) => b.replace(push + '\n', '').replace(densityAssertLine, densityAssertLine + '      ' + push + '\n'));

@@ -185,14 +185,20 @@ function listResponseWaiter(page: Page, pageNo = 1, pageSize = 10) {
 }
 
 /** 响应到手后等列表完成渲染：加载行消失、无错误 alert，且出现数据行 / 待核实组 /
- *  明确空态之一（与响应条数交叉核对），不能只凭卡片可见或「不含加载」放行。 */
+ *  明确空态之一；响应必须真带 items 数组，渲染行首格 ref 必须来自本次响应。
+ *  缺结构/旧行都不能靠「有行」「不含加载」蒙混过关。 */
 async function assertListReady(page: Page, resp: Awaited<ReturnType<typeof listResponseWaiter>>) {
   expect(resp.status(), '列表响应必须 200').toBe(200);
   const body = await resp.json() as { items?: unknown[] };
+  // 结构缺失不能被当成空列表放行：必须真有 items 数组，且每条带可核对的编号。
+  expect(Array.isArray(body.items), '列表响应必须带 items 数组').toBe(true);
+  const items = body.items as Array<{ ref?: unknown }>;
+  for (const it of items) expect(typeof it.ref, '每个列表条目必须带 ref').toBe('string');
+  const refs = new Set(items.map((it) => it.ref as string));
   const tbody = page.locator('.inq-list .adm-inq-table tbody');
   await expect(tbody).not.toContainText('加载中…');
   await expect(tbody.locator('td[role="alert"]')).toHaveCount(0);
-  const counts = Array.isArray(body.items) ? body.items.length : 0;
+  const counts = items.length;
   if (counts === 0) {
     await expect(tbody).toContainText('没有符合条件的询盘');
     return;
@@ -202,7 +208,12 @@ async function assertListReady(page: Page, resp: Awaited<ReturnType<typeof listR
       || (await tbody.getByText('本页都是已匿名化询盘', { exact: false }).count()) > 0;
     expect(settled, '列表须完成渲染：数据行 / 待核实组 / 明确空态').toBe(true);
   }).toPass({ timeout: 7_000 });
-  expect(await tbody.locator('tr.row').count(), '渲染行数不得超过响应条数').toBeLessThanOrEqual(counts);
+  const rows = tbody.locator('tr.row');
+  expect(await rows.count(), '渲染行数不得超过响应条数').toBeLessThanOrEqual(counts);
+  // 每行首格是询盘编号：必须来自本次响应，防止旧数据/错响应渲染出来的行混过「有行即可」。
+  for (const cell of await rows.locator('td:first-child').allTextContents()) {
+    expect(refs.has(cell.trim()), `渲染行 ref 必须来自本次响应: ${cell.trim()}`).toBe(true);
+  }
 }
 
 let adminState: SessionState;
