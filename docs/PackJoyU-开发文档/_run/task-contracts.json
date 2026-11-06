@@ -3754,7 +3754,9 @@
       ],
       "supportPaths": [
         "e2e/admin-legacy-specs-visual.spec.ts",
-        "tests/admin-legacy-specs-style.test.ts"
+        "tests/admin-legacy-specs-style.test.ts",
+        "tests/spec-editor-render.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "stage": "integration",
       "wiring": [],

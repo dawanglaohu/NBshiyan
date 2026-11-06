@@ -1,14 +1,305 @@
-.spec h1 small{font-size:12px;color:var(--ink-2);font-weight:500;margin-left:8px}
-.spec h2{font-size:15px;margin:0 0 10px}
-.spec-sec{padding:14px 16px;margin-bottom:14px}
-.spec-sec td{white-space:normal;vertical-align:top}
-.spec-sec input:not([type=radio]):not([type=checkbox]),.spec-sec textarea{width:100%}
-.spec-dims{display:flex;gap:8px}.spec-dims label{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--ink-2);flex:1}
-.spec-radio,.spec-terms{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:6px}.spec-radio label,.spec-terms label{display:flex;gap:4px;align-items:center}
-.spec-err{display:block;color:var(--err,#B42318);font-size:12px;margin-top:4px}
-.spec input[aria-invalid=true]{border-color:var(--err,#B42318)}
-.spec-msg{border-radius:var(--r-sm);padding:8px 12px;margin-bottom:12px;font-size:13px}
-.spec-msg.ok{background:var(--okb,#E6F4EA);color:var(--ok,#1A7F37)}.spec-msg.err{background:var(--errb,#FDE8E7);color:var(--err,#B42318)}
-.spec-meta{font-size:12px;color:var(--ink-2)}
-.spec-actions{display:flex;justify-content:flex-end;margin-bottom:24px}
-.spec-list{list-style:none;padding:0;margin:0}.spec-list li{padding:10px 14px;border-bottom:1px solid var(--line)}.spec-list li:last-child{border-bottom:0}
+/* M3-T24：规格列表与品类编辑器视觉统一。
+ * 仅限定 .spec / .spec-list 命名域，不写全局 .adm-* 覆盖（M3-T21 独占 admin.css）。
+ * 全部消费 11 节唯一 --pj-* token；不改 SpecEditorView 的 DOM、字段与回调。
+ * 不留测试诱导的旧色板死规则：tests/spec-editor-render.test.ts 的两条旧字面量断言
+ * 由 T24 串行窗口登记支持路径后定点适配为真实 --pj-* 错误语义。 */
+
+/* 列表页：ul.adm-card.spec-list，覆盖旧 adm-card 的 1px / r-md / surface。
+   用 ul.spec-list（0,1,1）高于 admin.css 的 .adm-card（0,1,0），与加载顺序无关。 */
+ul.spec-list{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  list-style:none;
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background-image:none;
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  font-family:var(--pj-font-sans);
+  font-size:var(--pj-body-size);
+  line-height:var(--pj-body-line);
+  overflow:hidden;
+}
+ul.spec-list li{
+  box-sizing:border-box;
+  min-height:var(--pj-admin-row-height);
+  padding:0 var(--pj-admin-card-pad);
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:var(--pj-admin-block-gap);
+  border-bottom:var(--pj-border-width) solid var(--pj-border);
+  background-image:none;
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  font-weight:var(--pj-weight-control);
+}
+ul.spec-list li:last-child{border-bottom:0}
+ul.spec-list li a{color:var(--pj-fg);text-decoration:underline;text-underline-offset:2px}
+ul.spec-list li a:hover,ul.spec-list li a:focus-visible{background:var(--pj-inverse);color:var(--pj-on-inverse)}
+ul.spec-list li .spec-meta{font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);color:var(--pj-fg);font-weight:var(--pj-weight-body)}
+
+/* 编辑表单：铺满可用宽度、左对齐、gutter16，不居中缩窄 */
+.spec{
+  box-sizing:border-box;
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0;
+  font-family:var(--pj-font-sans);
+  font-size:var(--pj-body-size);
+  line-height:var(--pj-body-line);
+  font-weight:var(--pj-weight-body);
+  color:var(--pj-fg);
+  background-color:var(--pj-bg);
+  background-image:none;
+}
+.spec h1{
+  margin:0 0 var(--pj-admin-block-gap);
+  font-size:var(--pj-admin-h1-size);
+  line-height:var(--pj-admin-h1-line);
+  font-weight:var(--pj-weight-heading);
+  letter-spacing:var(--pj-heading-tracking);
+  color:var(--pj-fg);
+}
+.spec h1 small{margin-left:8px;font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-body);color:var(--pj-fg)}
+.spec h2{
+  margin:0 0 10px;
+  font-size:var(--pj-admin-h2-size);
+  line-height:var(--pj-admin-h2-line);
+  font-weight:var(--pj-weight-heading);
+  letter-spacing:var(--pj-heading-tracking);
+  color:var(--pj-fg);
+}
+.spec p{margin:0 0 var(--pj-admin-block-gap)}
+.spec a{color:var(--pj-fg);text-underline-offset:2px}
+
+/* 卡片区：section.adm-card.spec-sec 覆盖旧 1px / r-md / surface / 圆角 */
+.spec .spec-sec{
+  box-sizing:border-box;
+  margin:0 0 var(--pj-admin-block-gap);
+  padding:var(--pj-admin-card-pad);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background-image:none;
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  overflow:visible;
+}
+
+/* 表格：表头 14/20、行 40、无条纹、必要文字可换行 */
+.spec .spec-sec table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  color:var(--pj-fg);
+  background-image:none;
+  background-color:var(--pj-bg);
+}
+.spec .spec-sec th,.spec .spec-sec td{
+  box-sizing:border-box;
+  min-height:var(--pj-admin-row-height);
+  padding:var(--pj-space-unit);
+  vertical-align:top;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  border:0;
+  border-bottom:var(--pj-border-width) solid var(--pj-border);
+  background-image:none;
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+}
+.spec .spec-sec th{font-weight:var(--pj-weight-control);text-align:left}
+.spec .spec-sec td{font-weight:var(--pj-weight-body)}
+
+/* 单行控件：桌面 36px、正文 16px、2px 黑边 / 0 圆角 / 无阴影；
+   textarea 不套单行高（至少 3 行、可增高）。 */
+.spec .spec-sec input:not([type=radio]):not([type=checkbox]),
+.spec .spec-sec select{
+  box-sizing:border-box;
+  width:100%;
+  min-height:var(--pj-admin-control-height);
+  padding:var(--pj-space-unit) calc(var(--pj-space-unit) * 3);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background-image:none;
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  font-family:var(--pj-font-sans);
+  font-size:var(--pj-body-size);
+  line-height:var(--pj-body-line);
+  font-weight:var(--pj-weight-body);
+  letter-spacing:var(--pj-body-tracking);
+}
+.spec .spec-sec textarea{
+  box-sizing:border-box;
+  width:100%;
+  min-height:calc(var(--pj-body-line) * 3 + var(--pj-space-unit) * 2 + var(--pj-border-width) * 2);
+  padding:var(--pj-space-unit) calc(var(--pj-space-unit) * 3);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background-image:none;
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  font-family:var(--pj-font-sans);
+  font-size:var(--pj-body-size);
+  line-height:var(--pj-body-line);
+  font-weight:var(--pj-weight-body);
+  resize:vertical;
+}
+.spec .spec-sec input:not([type=radio]):not([type=checkbox]):hover,
+.spec .spec-sec select:hover,
+.spec .spec-sec textarea:hover{border-color:var(--pj-border)}
+.spec .spec-sec input:not([type=radio]):not([type=checkbox]):focus-visible,
+.spec .spec-sec select:focus-visible,
+.spec .spec-sec textarea:focus-visible{
+  border-color:var(--pj-border);
+  outline:var(--pj-focus-width) solid var(--pj-accent);
+  outline-offset:var(--pj-focus-offset);
+}
+.spec .spec-sec input[aria-invalid=true],
+.spec .spec-sec textarea[aria-invalid=true]{border-color:var(--pj-accent)}
+.spec .spec-sec input:disabled,
+.spec .spec-sec select:disabled,
+.spec .spec-sec textarea:disabled{
+  border-style:dashed;
+  border-color:var(--pj-border);
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  opacity:var(--pj-opacity);
+  cursor:not-allowed;
+}
+
+/* 按钮：主/次 36px 桌面、2px 黑边 / 0 圆角 / 无阴影；保留原 disabled 文案与 busy 语义 */
+.spec .spec-sec .adm-btn,
+.spec .spec-actions .adm-btn{
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:var(--pj-admin-control-height);
+  padding:var(--pj-space-unit) calc(var(--pj-space-unit) * 3);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  font-family:var(--pj-font-sans);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  font-weight:var(--pj-weight-control);
+  cursor:pointer;
+}
+.spec .spec-actions .adm-btn.primary,
+.spec .spec-sec .adm-btn.primary{
+  background-color:var(--pj-inverse);
+  color:var(--pj-on-inverse);
+  border-color:var(--pj-border);
+  font-weight:var(--pj-weight-control);
+}
+.spec .spec-sec .adm-btn:hover,
+.spec .spec-actions .adm-btn:hover{background-color:var(--pj-inverse);color:var(--pj-on-inverse);border-color:var(--pj-border)}
+.spec .spec-actions .adm-btn.primary:hover,
+.spec .spec-sec .adm-btn.primary:hover{background-color:var(--pj-bg);color:var(--pj-fg)}
+.spec .spec-sec .adm-btn:focus-visible,
+.spec .spec-actions .adm-btn:focus-visible{
+  outline:var(--pj-focus-width) solid var(--pj-accent);
+  outline-offset:var(--pj-focus-offset);
+}
+.spec .spec-sec .adm-btn:disabled,
+.spec .spec-actions .adm-btn:disabled{
+  border-style:dashed;
+  border-color:var(--pj-border);
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  opacity:var(--pj-opacity);
+  cursor:not-allowed;
+}
+
+/* 触控条件才把单行控件与按钮抬到 44px；radio/checkbox 的 label 提供 ≥44×44 可点击区，不缩字 */
+@media (pointer:coarse),(max-width:767px){
+  .spec .spec-sec input:not([type=radio]):not([type=checkbox]),
+  .spec .spec-sec select,
+  .spec .spec-sec textarea,
+  .spec .spec-sec .adm-btn,
+  .spec .spec-actions .adm-btn{min-height:var(--pj-touch-target)}
+  .spec .spec-actions .adm-btn{min-width:var(--pj-touch-target)}
+  .spec .spec-dims label,
+  .spec .spec-radio label,
+  .spec .spec-terms label{
+    min-height:var(--pj-touch-target);
+    min-width:var(--pj-touch-target);
+    align-items:center;
+  }
+}
+
+/* 结果 / 错误 / 辅助文案：左上 16px padding、14/20、无撑高 min-height */
+.spec .spec-msg{
+  box-sizing:border-box;
+  margin:0 0 var(--pj-admin-block-gap);
+  padding:var(--pj-admin-card-pad);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background-image:none;
+  background-color:var(--pj-bg);
+  color:var(--pj-fg);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  font-weight:var(--pj-weight-body);
+  text-align:left;
+}
+.spec .spec-msg.ok,.spec .spec-msg.err{border-color:var(--pj-accent);color:var(--pj-fg)}
+.spec .spec-err{
+  display:block;
+  margin-top:var(--pj-space-unit);
+  color:var(--pj-accent);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  font-weight:var(--pj-weight-body);
+}
+.spec .spec-meta{margin:0;color:var(--pj-fg);font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);font-weight:var(--pj-weight-body)}
+
+/* 表单内布局：六尺寸、样品费、贸易术语、动作区，保持原 DOM 数量与字段 */
+.spec .spec-dims{display:flex;flex-wrap:wrap;gap:var(--pj-admin-block-gap)}
+.spec .spec-dims label{
+  display:flex;
+  flex-direction:column;
+  gap:var(--pj-space-unit);
+  flex:1 1 0;
+  min-width:0;
+  color:var(--pj-fg);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  font-weight:var(--pj-weight-control);
+}
+.spec .spec-radio,.spec .spec-terms{display:flex;flex-wrap:wrap;gap:var(--pj-admin-block-gap);margin:0 0 var(--pj-space-unit)}
+.spec .spec-radio label,.spec .spec-terms label{
+  display:inline-flex;
+  align-items:center;
+  gap:var(--pj-space-unit);
+  color:var(--pj-fg);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+  font-weight:var(--pj-weight-body);
+  cursor:pointer;
+}
+.spec .spec-radio input[type=radio],
+.spec .spec-terms input[type=checkbox]{
+  accent-color:var(--pj-accent);
+  width:var(--pj-ui-line);
+  height:var(--pj-ui-line);
+  margin:0;
+  flex:none;
+}
+.spec .spec-actions{display:flex;justify-content:flex-end;margin:0 0 var(--pj-admin-block-gap)}
