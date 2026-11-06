@@ -827,8 +827,12 @@ jobs:
             process.exit(1);
           }
           const categories = new Set(['MissingSecret', 'UntrustedHost', 'UnknownAction', 'InvalidCallbackUrl', 'UnsupportedStrategy', 'MissingAuthorize', 'MissingAdapter', 'MissingAdapterMethods', 'AuthError', 'TypeError', 'Error']);
+          const runtimeTypes = new Set(['Error', 'TypeError', 'ReferenceError', 'RangeError', 'SyntaxError']);
+          const nodeCodes = new Set(['MODULE_NOT_FOUND', 'ERR_MODULE_NOT_FOUND', 'ERR_PACKAGE_PATH_NOT_EXPORTED', 'ERR_REQUIRE_ESM', 'ENOENT', 'EACCES', 'EPERM', 'ERR_INVALID_ARG_TYPE', 'ERR_INVALID_URL']);
           const limit = 1_048_576;
-          const record = { version: 1, mode, logState: 'missing', category: null, recognizedErrorCategories: [], rawStdoutIncluded: false };
+          const record = { version: 1, mode, logState: 'missing', category: null, recognizedErrorCategories: [],
+            recognizedLogPatterns: [], matchedProducerShapes: { auth: false, nextPrefix: false, rawRuntime: false, nodeCode: false },
+            rawStdoutIncluded: false, causalRequestBound: false };
           let fd, failed = false;
           try {
             if (typeof fs.constants.O_NOFOLLOW !== 'number') throw new Error('LOG_READ_REJECTED');
@@ -845,8 +849,21 @@ jobs:
             const after = fs.fstatSync(fd);
             if (!after.isFile() || after.uid !== info.uid || after.nlink !== 1 || after.size > limit) throw new Error('LOG_READ_REJECTED');
             const lines = buffer.subarray(0, length).toString('utf8').replace(/\x1b\[[0-9;]*m/g, '').split(/\r?\n/);
-            record.recognizedErrorCategories = [...new Set(lines.map(line => /^\[auth\]\[error\]\s+([A-Za-z]+):/.exec(line)?.[1]).filter(value => categories.has(value)))].sort();
-            record.logState = record.recognizedErrorCategories.length ? 'matched' : 'no_match';
+            const authCategories = new Set(), patterns = new Set();
+            // Log shapes are stage evidence, not attribution to a particular HTTP request.
+            for (const line of lines) {
+              const auth = /^\[auth\]\[error\]\s+([A-Za-z]+):/.exec(line)?.[1];
+              if (categories.has(auth)) { authCategories.add(auth); patterns.add(`AUTH_${auth}`); record.matchedProducerShapes.auth = true; }
+              const next = /^\s*⨯\s+([A-Za-z]+)(?:\s*\[[A-Z_]+\])?:/.exec(line)?.[1];
+              if (runtimeTypes.has(next)) { patterns.add(`NEXT_${next}`); record.matchedProducerShapes.nextPrefix = true; }
+              const raw = /^([A-Za-z]+)(?:\s*\[[A-Z_]+\])?:/.exec(line)?.[1];
+              if (runtimeTypes.has(raw)) { patterns.add(`RUNTIME_${raw}`); record.matchedProducerShapes.rawRuntime = true; }
+              const code = /^\s*code:\s*['"]([A-Z_]+)['"],?\s*$/.exec(line)?.[1];
+              if (nodeCodes.has(code)) { patterns.add(`NODE_${code}`); record.matchedProducerShapes.nodeCode = true; }
+            }
+            record.recognizedErrorCategories = [...authCategories].sort();
+            record.recognizedLogPatterns = [...patterns].sort();
+            record.logState = record.recognizedLogPatterns.length ? 'matched' : 'no_match';
           } catch (error) {
             if (error?.code !== 'ENOENT' || fd !== undefined) {
               record.logState = 'unavailable';
