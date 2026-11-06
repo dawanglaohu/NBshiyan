@@ -53,7 +53,8 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
+    timeout-minutes: 35
     services:
       postgres:
         image: postgres:17
@@ -355,8 +356,8 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
       # M3-T7 后台壳三尺寸视觉证据：成功运行也要留视频，供 PR 转 GIF。
-      # 现有 playwright-report 只在 failure() 上传，成功时没有视频；这里单独、最小地
-      # 只收 .webm，不动其它上传步骤、不改测试与断言。
+      # 现有 playwright-report 只在 failure() 上传；此处保留视频与已列账号/模型工作流的脱敏证据。
+      # 只增加明确的测试报告和合成状态帧路径，不动其它步骤、门禁或测试断言。
       # 同一产物同时收 M3-T21 旧询盘页脱敏 JSON/PNG 证据，不是 M3-T7 新验收。
       - if: always()
         uses: actions/upload-artifact@v4
@@ -368,6 +369,8 @@ jobs:
             test-results/**/admin-account-cleared.json
             test-results/**/admin-legacy-inquiries*.json
             test-results/**/inquiry-visual-*.png
+            test-results/**/admin-legacy-model.json
+            test-results/**/model-workflow-*.png
           retention-days: 1
           if-no-files-found: warn
       - if: failure()

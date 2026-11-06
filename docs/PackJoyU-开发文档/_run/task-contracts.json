@@ -3631,7 +3631,8 @@
         "e2e/admin-org-settings.spec.ts",
         "e2e/admin-shell-activity.spec.ts",
         "e2e/brand-smoke.spec.ts",
-        "tests/e2e-run-auth.test.ts"
+        "tests/e2e-run-auth.test.ts",
+        "e2e/admin-legacy-model-visual.spec.ts"
       ],
       "stage": "integration",
       "wiring": [],
@@ -3723,7 +3724,8 @@
       ],
       "supportPaths": [
         "e2e/admin-legacy-model-visual.spec.ts",
-        "tests/admin-legacy-model-style.test.ts"
+        "tests/admin-legacy-model-style.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "stage": "integration",
       "wiring": [],
