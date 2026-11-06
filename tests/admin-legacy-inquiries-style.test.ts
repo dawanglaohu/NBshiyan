@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import ts from 'typescript';
 
 /**
  * M3-T21 询盘/邮件视觉迁移的源码接线守卫。
@@ -177,6 +178,47 @@ test('六态与 DENSITY 7：44px 触屏、focus-visible、disabled、gap/pad 16�
   // 不删字段、不靠缩字过密度：字号仍为 14/20。
   assert.match(css, /font-size:14px/);
   assert.match(css, /line-height:20px/);
+});
+
+test('采证用例标题与报告映射一致，标题变更不能留下空报告', () => {
+  const source = read('e2e/admin-legacy-inquiries-visual.spec.ts');
+  const checkMapping = (text: string) => {
+    const tree = ts.createSourceFile('evidence.ts', text, ts.ScriptTarget.Latest, true);
+    const titles: string[] = [];
+    let mapped: string[] = [];
+    const visit = (node: ts.Node) => {
+      if (ts.isVariableDeclaration(node) && node.name.getText(tree) === 'REPORT_BY_TEST' && node.initializer && ts.isObjectLiteralExpression(node.initializer)) {
+        mapped = node.initializer.properties.map((p) => p.name && ts.isStringLiteral(p.name) ? p.name.text : '');
+      }
+      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'test' && node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
+        const title = node.arguments[0].text;
+        if (!title.startsWith('density_probe 负控：')) titles.push(title);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(tree);
+    assert.equal(titles.length, 5);
+    assert.deepEqual(mapped.sort(), titles.sort());
+  };
+  checkMapping(source);
+  const title = '键盘 36/44 触控';
+  assert.ok(source.includes(title));
+  assert.throws(() => checkMapping(source.replace(title, '键盘 44px 触控')));
+});
+
+test('普通桌面 tabs 与分页按钮的最终最小高度为36px，不被20px行高覆盖', () => {
+  const start = css.indexOf('/* M3-T21');
+  const media = css.indexOf('@media (pointer:coarse)', start);
+  assert.ok(start >= 0 && media > start);
+  const desktop = css.slice(start, media).replace(/\/\*[\s\S]*?\*\//g, '');
+  const lastHeight = (text: string, selector: string) => [...text.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter((m) => m[1].split(',').map((s) => s.trim()).includes(selector))
+    .flatMap((m) => [...m[2].matchAll(/(?:^|;)\s*min-height:([^;}]*)/g)].map((d) => d[1].trim()))
+    .at(-1);
+  for (const selector of ['.inq-list .adm-tabs button', '.inq-list .adm-pager button']) {
+    assert.equal(lastHeight(desktop, selector), 'var(--pj-admin-control-height)');
+    assert.notEqual(lastHeight(`${desktop}\n${selector}{min-height:var(--pj-ui-line)}`, selector), 'var(--pj-admin-control-height)');
+  }
 });
 
 test('P2 级联：真实按钮圆角、toast 前景、DateRange 弹层与早返回状态都有精确命名域规则', () => {

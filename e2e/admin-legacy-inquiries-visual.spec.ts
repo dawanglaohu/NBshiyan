@@ -186,7 +186,7 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
   // 已取得的安全诊断（complete=false）。不采证的负控用例不初始化，避免空报告。
   const REPORT_BY_TEST: Record<string, string> = {
     '真实合成询盘 → 列表 GET 过滤/分页/日期/状态/负责人 → 详情 PATCH/分配/notes 持久': 'admin-legacy-inquiries.json',
-    '三尺寸真实页：wrapper 几何 / density_probe D1–D6 / computed style / overflow / 键盘 44px 触控': 'admin-legacy-inquiries-visual.json',
+    '三尺寸真实页：wrapper 几何 / density_probe D1–D6 / computed style / overflow / 键盘 36/44 触控': 'admin-legacy-inquiries-visual.json',
     '详情适用 form 区 density_probe 与三尺寸动作': 'admin-legacy-inquiries-form.json',
     '六态采集：loading / empty / error / success / disabled / focus 的真实控件判定': 'admin-legacy-inquiries-states.json',
     'SALES 真实身份：他人询盘详情 GET 404、改派 PATCH 403（不降为匿名）': 'admin-legacy-inquiries-sales.json',

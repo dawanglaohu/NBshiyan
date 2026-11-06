@@ -341,9 +341,7 @@
   line-height:var(--pj-ui-line);
 }
 .inq-list .adm-inq-table th{background:var(--pj-bg);color:var(--pj-fg)}
-.inq-list .adm-tabs button,.inq-list .adm-filters label,.inq-list .adm-pager button{
-  min-height:var(--pj-ui-line);
-}
+.inq-list .adm-filters label{min-height:var(--pj-ui-line)}
 @media (pointer:coarse),(max-width:767px){
   .inq-list .adm-filters input,.inq-list .adm-filters select,.inq-list .adm-filters button,
   .inq-list .adm-pager button,.inq-list .adm-tabs button,.inq-detail input,.inq-detail select,
