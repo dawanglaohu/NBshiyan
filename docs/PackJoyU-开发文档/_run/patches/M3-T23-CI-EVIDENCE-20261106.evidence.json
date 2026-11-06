@@ -1,0 +1,26 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T23": {
+      "contractHash": "463705c8e567d50bf41e234505d3ccb7af8d3d8b7358368a76566e2bcfed9b24",
+      "evidence": [
+        "Chief 独立对照基线 9cd631543277b068273313b233556dfd2ae8813b 与原 M3-T23 工作树：唯一任务定义差异是 M3-T23.supportPaths 增加精确 .github/workflows/ci.yml；3个产品产出、2个既有测试支持、前置能力、任务验收、边界E-108与integration阶段不变。",
+        "M3-T23 任务卡明确要求真实ADMIN/EDITOR登录、原模型HTTP和GLB流程、三尺寸操作GIF/computed style及D1-D6证据。现有成功运行只上传webm和账号报告，新增两个精确glob test-results/**/admin-legacy-model.json 与 test-results/**/model-workflow-*.png 是该既定验收所需的证据支持，不新增业务或豁免验收。",
+        "Chief 实际读取 CI 差异：仅上述两条path及同位置两行注释更正；既有webm/账号报告、always条件、1天保留期、其它步骤和所有门禁均保持。读取本卡新e2e的shot/outputPath/writeFileSync调用已确认文件命名对应。只核命名与支持必要性，具体数据脱敏、截图内容和真实运行结果仍归产品验收。",
+        "Chief 独立执行 verify-t23-ci-support.py exit0：仅 M3-T23 的definition/effectivePaths变化，M7-T9/M7-T10上下文逐字段不变、仅provider hash传播；三项均todo，revalidation为空、maintenance两数组为空。本分支没有导入T17的中间CI/test登记，不冒称包含另一任务补丁。",
+        "独立对比确认progress86/done83、全部12条历史记录及batch6 clean/pass、17返工、22批任务集合与提示保持；仅批次6/20/21摘要hash合法变化。六项manifest产品指纹按UTF-8文本的JSON字符串规范哈希独立复算全部一致，结构审查current且block0。此为task-contract范围复核，不代表模型实现、PG/API/GLB/GIF、CI或落地已经通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T10": {
+      "contractHash": "d8db7df22de860e2e0dee2529ea86ea516f7309e0535ab2785d9626201c36c2f",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "91280aac36c778275a274cfed5d07ab06145bd68d049922ec7c845eab767bf63",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
