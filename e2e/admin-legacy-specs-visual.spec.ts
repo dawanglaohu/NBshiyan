@@ -719,9 +719,19 @@ test.describe('规格列表与编辑器视觉迁移（真实会话）', () => {
         { timeout: 15_000 },
       );
       await page.getByRole('button', { name: '保存', exact: true }).click();
-      // saving 态很短，best-effort 观察并如实记录；disabled 绑定由上面的源码断言确定性覆盖。
-      const busyVisible = await page.getByRole('button', { name: '保存中…' }).isVisible().catch(() => false);
-      const busyDisabled = busyVisible ? await page.getByRole('button', { name: '保存中…' }).isDisabled() : null;
+      // 同次同步采样短暂 saving 态；未观察到时不等待文案再次出现，也不声称 disabled 已实测。
+      const busy = await page.evaluate(() => {
+        const button = document.querySelector<HTMLButtonElement>('.spec .spec-actions button[type="submit"]');
+        if (!button) return { visible: false, disabled: null };
+        const style = getComputedStyle(button);
+        const rect = button.getBoundingClientRect();
+        const visible = button.textContent?.trim() === '保存中…'
+          && style.display !== 'none' && style.visibility === 'visible'
+          && rect.width > 0 && rect.height > 0;
+        return { visible, disabled: visible ? button.disabled : null };
+      });
+      const busyVisible = busy.visible;
+      const busyDisabled = busy.disabled;
       const saveResp = await savePromise;
       expect(saveResp.status(), '保存请求须真实返回 200').toBe(200);
       // 证据分类：disabled 绑定是源码静态证据；busy 是浏览器运行时 best-effort 观察。
