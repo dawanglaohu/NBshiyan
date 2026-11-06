@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { authenticator } from 'otplib';
 import { test, expect, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
@@ -291,16 +292,26 @@ test.describe('规格列表与编辑器视觉迁移（真实会话）', () => {
         const detailStatus = detailResp ? detailResp.status() : 0;
         expect([listStatus, detailStatus]).toEqual([404, 404]);
         expect((await sales.page.request.get(PROBE)).status()).toBe(403);
-        expect((await sales.page.request.put(PROBE, { data: EXPECTED })).status()).toBe(403);
+        // 规格路由先 requireAdmin(ADMIN/EDITOR) 再 assertSameOrigin：有效 SALES 先被角色门拒绝，
+        // 不是 forbidden_origin。统一补 Origin: BASE 并核 error==='forbidden'，明确证明拒绝原因；
+        // 另核该会话真实 role，增强「真实 SALES 身份」证据（不降为匿名）。
+        const salesPut = await sales.page.request.put(PROBE, { data: EXPECTED, headers: { Origin: BASE } });
+        expect(salesPut.status()).toBe(403);
+        expect((await salesPut.json()).error).toBe('forbidden');
+        const salesAccount = await sales.page.request.get('/api/admin/account');
+        expect(salesAccount.status()).toBe(200);
+        expect((await salesAccount.json()).role).toBe('SALES');
       } finally { await sales.context.close(); }
 
       // ADMIN 未知 category：页面 404 / GET 404 / PUT 404 error=not_found（不放宽状态数组）
+      // APIRequestContext 的 PUT 不会自动带 Origin，缺 Origin 会被 assertSameOrigin 提前 403；
+      // 补 Origin: BASE 后才真正走到 isCategoryKey / 404 判定。
       const unknownPage = await admin.page.goto(`${BASE}/admin/specs/not-a-category`);
       expect(unknownPage ? unknownPage.status() : 0).toBe(404);
       const unknownGet = await admin.page.request.get('/api/admin/specs/not-a-category');
       expect(unknownGet.status()).toBe(404);
       expect((await unknownGet.json()).error).toBe('not_found');
-      const unknownPut = await admin.page.request.put('/api/admin/specs/not-a-category', { data: EXPECTED });
+      const unknownPut = await admin.page.request.put('/api/admin/specs/not-a-category', { data: EXPECTED, headers: { Origin: BASE } });
       expect(unknownPut.status()).toBe(404);
       expect((await unknownPut.json()).error).toBe('not_found');
     } finally { await admin.context.close(); }
@@ -405,7 +416,8 @@ test.describe('规格列表与编辑器视觉迁移（真实会话）', () => {
       await expect(page.getByLabel('material en')).toHaveValue(EXPECTED.material.en);
       await expect(page.getByLabel('moq value')).toHaveValue('0');
       // 服务端 400 invalid / issues 含 path=moq.value；GET 的 moq.value 仍 123（no-write）
-      const badPut = await page.request.put(PROBE, { data: { ...putBody, moq: { value: 0, unit: 'pcs' } } });
+      // 补 Origin: BASE，避免缺 Origin 被 assertSameOrigin 提前 403 短路到不了 zod 400。
+      const badPut = await page.request.put(PROBE, { data: { ...putBody, moq: { value: 0, unit: 'pcs' } }, headers: { Origin: BASE } });
       expect(badPut.status()).toBe(400);
       const badJson = await badPut.json();
       expect(badJson.error).toBe('invalid');
@@ -651,17 +663,32 @@ test.describe('规格列表与编辑器视觉迁移（真实会话）', () => {
       expect(emptyDom.selects, 'empty fixture select 数 = 3 单位').toBe(3);
       expect(emptyDom.buttons, 'empty fixture button 数 = 添加认证 + 保存').toBe(2);
 
-      // 迁移前后同 fixture 的 DOM 数量相等：迁移只改 CSS，不改 View。
-      // 用 git 对象读迁移前 View 源码（不 checkout、不碰他人树），与工作树 View 逐字比对，
-      // 证明结构零改动；再以相同 empty fixture 渲染后的 DOM 计数作为结构不删减的实值。
-      const HEAD = process.env.M3T24_BASE_SHA ?? 'HEAD';
-      let preSrc: string;
-      try {
-        preSrc = execFileSync('git', ['show', `${HEAD}:src/components/admin/specs/SpecEditorView.tsx`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-      } catch (e) { throw new Error(`读取迁移前 View 失败（${HEAD}）：${String(e)}`); }
-      const curSrc = readFileSync('src/components/admin/specs/SpecEditorView.tsx', 'utf8');
-      expect(curSrc, 'M3-T24 不改 View：迁移前后源码逐字相同 → 同 fixture 下 DOM 结构不删减').toBe(preSrc);
-      states.dom = { preViewBytes: preSrc.length, viewUnchanged: true, currentEmptyDom: emptyDom };
+      // 固定历史源码 + 当前 DOM 计数（不是「拿当前头比当前头」，也不冒称 CSS 前后两次浏览器完整渲染）。
+      // Chief 已固定 git 对象核过：base 9cd631543277b068273313b233556dfd2ae8813b 的
+      // SpecEditorView blob 302f8cd457fee4c7ae1ca38307c4d0661e0ae62e、原始 UTF8 9204 字节、
+      // SHA256 14da626aae414ef03fd8d6f5877277be0db9e32ec1c6784c53825b055c181e8d，与产品头 604d8765 同一 blob。
+      // 为避免浅检出缺 base 历史而扩 CI，只在现 e2e 记录固定 base SHA + 该已审源码 SHA256，
+      // 对当前 View 文件 bytes 算同一 SHA256 比较：正控当前应同、负控改 1 字节应拒。
+      // 不取当前文件生成 expected；不 checkout、不碰他人树、不改 View/CSS。
+      const BASE_SHA = '9cd631543277b068273313b233556dfd2ae8813b';
+      const BASE_VIEW_SHA256 = '14da626aae414ef03fd8d6f5877277be0db9e32ec1c6784c53825b055c181e8d';
+      const BASE_VIEW_BYTES = 9204;
+      const sha256 = (buf: Buffer) => createHash('sha256').update(buf).digest('hex');
+      const curBytes = readFileSync('src/components/admin/specs/SpecEditorView.tsx');
+      const curSha256 = sha256(curBytes);
+      expect(curBytes.length, '当前 View 文件字节数须等于固定基线').toBe(BASE_VIEW_BYTES);
+      expect(curSha256, '当前 View 源码 SHA256 须等于固定历史源码（M3-T24 不改 View）').toBe(BASE_VIEW_SHA256);
+      // 负控：同一算法对「改 1 字节」的内容必须拒绝，证明不是恒真比较。
+      const tampered = Buffer.from(curBytes); tampered[0] = tampered[0] ^ 0x01;
+      expect(sha256(tampered), '负控：改 1 字节后 SHA256 不得仍等于基线').not.toBe(BASE_VIEW_SHA256);
+      states.dom = {
+        baseSha: BASE_SHA, baseViewSha256: BASE_VIEW_SHA256, baseViewBytes: BASE_VIEW_BYTES,
+        currentSha256: curSha256, currentBytes: curBytes.length,
+        viewUnchanged: curSha256 === BASE_VIEW_SHA256,
+        negativeControlRejected: sha256(tampered) !== BASE_VIEW_SHA256,
+        currentEmptyDom: emptyDom,
+        note: '固定历史源码 SHA256 与当前文件相同 + 当前 empty fixture 的真实 DOM 计数；不冒称 CSS 迁移前后两次浏览器完整渲染。',
+      };
 
       // paid 分支 + 认证非空：展开条件分支后 DOM 数量随分支增加（不删字段/动作）
       await page.getByRole('radio', { name: '收费' }).check();
