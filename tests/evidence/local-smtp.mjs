@@ -9,12 +9,15 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import tls from 'node:tls';
 import { pathToFileURL } from 'node:url';
+import nodemailer from 'nodemailer';
 
 // Isolated Linux CI SMTP preflight. Credentials and SMTP payload are never logged.
 const HOST = 'smtp.evidence.test';
 const PORTS = [465, 587];
 const PREFIX = 'nbshiyan-mail-evidence.';
 const FILES = new Set(['owner.json', 'private.json', 'lifecycle.json', 'pg.pass', 'driver.sh', 'hosts', 'ca.key.pem', 'ca.cert.pem', 'leaf.key.pem', 'leaf.csr.pem', 'leaf.cert.pem', 'rogue-ca.key.pem', 'rogue-ca.cert.pem', 'rogue-leaf.key.pem', 'rogue-leaf.csr.pem', 'rogue-leaf.cert.pem', 'leaf.ext', 'target.json']);
+const CERTIFICATE_CODES = new Set(['CERT_HAS_EXPIRED', 'DEPTH_ZERO_SELF_SIGNED_CERT', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY', 'ERR_TLS_CERT_ALTNAME_INVALID']);
+let preflightReport;
 const MAX_COMMAND = 16_384;
 const MAX_DATA = 2_097_152;
 const MAX_LINE = 65_536;
@@ -340,6 +343,28 @@ async function startSink(root, { rogue = false, control = false } = {}) {
   return { stats, close };
 }
 
+function certificateCode(error) {
+  for (const key of ['originalCode', 'code']) {
+    const value = error?.[key];
+    if (typeof value === 'string' && CERTIFICATE_CODES.has(value)) return value;
+  }
+  return null;
+}
+
+/** Observe only certificate categories from the same real send; options, payload, result and thrown error are unchanged. */
+function observingTransportFactory(create, observation) {
+  return (options) => {
+    const transport = create(options);
+    return {
+      async sendMail(mail) {
+        try { return await transport.sendMail(mail); }
+        catch (error) { observation.certificateCode = certificateCode(error); throw error; }
+      },
+      close() { return transport.close?.(); },
+    };
+  };
+}
+
 async function probe() {
   const { root } = rootInfo();
   await requireOfflineNamespace();
@@ -357,7 +382,10 @@ async function probe() {
   assert.equal(options.secure, port === 465); assert.equal(options.requireTLS, port === 587);
   for (const bad of ['25', '2525']) assert.equal(smtpConfig({ ...env, SMTP_PORT: bad }).ok, false);
   assert.equal(smtpConfig({ ...env, NODE_TLS_REJECT_UNAUTHORIZED: '0' }).ok, false);
-  const result = await createSmtpAdapter(config.cfg).send({
+  const observation = { certificateCode: null };
+  const result = await createSmtpAdapter(config.cfg, {
+    createTransport: observingTransportFactory((originalOptions) => nodemailer.createTransport(originalOptions), observation),
+  }).send({
     to: expectation === 'relay' ? 'not-allowed@other.example.test' : secret.recipient,
     replyTo: 'probe@reply.example.test', subject: 'Local SMTP evidence', text: 'Synthetic transport probe', html: '<p>Synthetic transport probe</p>',
     messageId: `<${randomBytes(12).toString('hex')}@reply.example.test>`, sendKey: randomBytes(12).toString('hex'),
@@ -368,25 +396,35 @@ async function probe() {
     if (expectation === 'relay') { assert.equal(result.reason, 'recipient_rejected'); assert.equal(result.retryable, false); }
     // Nodemailer may wrap certificate errors. Evidence requires rejection before AUTH/DATA, not a fabricated reason code.
   }
-  const outcome = { ok: result.ok, reason: result.ok ? 'accepted' : result.reason, code: result.ok ? null : result.code };
+  const outcome = { ok: result.ok, reason: result.ok ? 'accepted' : result.reason, code: result.ok ? null : result.code,
+    certificateCode: observation.certificateCode };
   process.send?.({ kind: 'smtp-probe-result', port, expectation, ...outcome });
   console.log(JSON.stringify({ expectation, port, passed: true, adapter: 'unchanged-production', ...outcome, rawSmtpLogged: false }));
 }
 
 function verifyRogueEvidence(outcome, before, after, port) {
-  const tlsCodes = new Set(['CERT_HAS_EXPIRED', 'DEPTH_ZERO_SELF_SIGNED_CERT', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY', 'ERR_TLS_CERT_ALTNAME_INVALID']);
+  const explicitCode = CERTIFICATE_CODES.has(outcome.certificateCode) ? outcome.certificateCode : CERTIFICATE_CODES.has(outcome.code) ? outcome.code : null;
   const peerCertificateAlert = after[`certificateAlerts${port}`] > before[`certificateAlerts${port}`];
-  if (outcome.ok !== false || (!tlsCodes.has(outcome.code) && !peerCertificateAlert)) fail('ROGUE_CERTIFICATE_REJECTION_NOT_PROVEN');
+  if (outcome.ok !== false || (!explicitCode && !peerCertificateAlert)) fail('ROGUE_CERTIFICATE_REJECTION_NOT_PROVEN');
   if (after[`connections${port}`] <= before[`connections${port}`] || after[`tlsAttempts${port}`] <= before[`tlsAttempts${port}`]) fail('ROGUE_LISTENER_NOT_REACHED');
   if (after.authenticated !== before.authenticated || after.received !== before.received) fail('ROGUE_AUTH_OR_DATA_ACCEPTED');
-  return { port, listenerReached: true, tlsAttempted: true, safeTlsCode: tlsCodes.has(outcome.code) ? outcome.code : 'PEER_CERTIFICATE_ALERT',
+  return { port, listenerReached: true, tlsAttempted: true, safeTlsCode: explicitCode || 'PEER_CERTIFICATE_ALERT',
     adapterCode: outcome.code, adapterReason: outcome.reason, zeroAuthAndData: true };
 }
 
+function preflightFailureReport(error) {
+  return { ...preflightReport, version: 1, pass: false, code: safeCode(error), rawSmtpLogged: false, systemCaChanged: false };
+}
+
 async function preflight() {
+  preflightReport = { version: 1, pass: false, stage: 'namespace', completedPortResults: [], positive: null, negative: null,
+    rogueConnectionEvidence: [], rawPayloadStored: false, rawSmtpLogged: false, systemCaChanged: false, applicationTlsChanged: false };
   const { root } = rootInfo();
   const isolation = await requireOfflineNamespace();
+  Object.assign(preflightReport, isolation);
+  preflightReport.stage = 'certificates';
   certificates(root);
+  preflightReport.openssl = true;
   const privateData = readPrivate(root, 'private.json');
   const run = (port, expectation) => new Promise((resolve, reject) => {
     // An asynchronous child leaves the local sink event loop free to complete TLS and SMTP.
@@ -400,26 +438,35 @@ async function preflight() {
     child.once('error', () => { clearTimeout(timer); reject(Object.assign(new Error('PROBE_START_FAILED'), { code: 'PROBE_START_FAILED' })); });
     child.once('close', (code, signal) => { clearTimeout(timer); if (code === 0 && !signal && !timedOut && outcome) resolve(outcome); else { const category = timedOut ? 'PROBE_TIMEOUT' : 'PRODUCTION_ADAPTER_PROBE_FAILED'; reject(Object.assign(new Error(category), { code: category })); } });
   });
+  preflightReport.stage = 'trusted-listeners';
   let sink = await startSink(root);
-  let positive;
-  try { for (const port of PORTS) { await run(port, 'trusted'); await run(port, 'relay'); } positive = sink.stats(); assert.equal(positive.received, 2); assert.equal(positive.rejectedRecipients, 2); }
-  finally { await sink.close(); }
+  try {
+    for (const port of PORTS) for (const expectation of ['trusted', 'relay']) {
+      preflightReport.stage = `${port}-${expectation}`;
+      const outcome = await run(port, expectation);
+      preflightReport.completedPortResults.push({ port, expectation, outcome, counts: sink.stats() });
+    }
+    const positive = sink.stats(); assert.equal(positive.received, 2); assert.equal(positive.rejectedRecipients, 2);
+  } finally { preflightReport.positive = sink.stats(); await sink.close(); }
+  preflightReport.stage = 'rogue-listeners';
   sink = await startSink(root, { rogue: true });
-  let negative;
-  const rogueConnectionEvidence = [];
   try {
     for (const port of PORTS) {
+      preflightReport.stage = `${port}-untrusted`;
       const before = sink.stats();
       const outcome = await run(port, 'untrusted');
       const deadline = Date.now() + 2_000;
       while (sink.stats()[`tlsAttempts${port}`] <= before[`tlsAttempts${port}`] && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 20));
-      rogueConnectionEvidence.push(verifyRogueEvidence(outcome, before, sink.stats(), port));
+      const portResult = { port, expectation: 'untrusted', outcome, before, counts: sink.stats(), certificateEvidenceVerified: false };
+      preflightReport.completedPortResults.push(portResult);
+      preflightReport.rogueConnectionEvidence.push(verifyRogueEvidence(outcome, before, portResult.counts, port));
+      portResult.certificateEvidenceVerified = true;
     }
-    negative = sink.stats(); assert.equal(negative.received, 0); assert.equal(negative.authenticated, 0);
-  }
-  finally { await sink.close(); }
+    const negative = sink.stats(); assert.equal(negative.received, 0); assert.equal(negative.authenticated, 0);
+  } finally { preflightReport.negative = sink.stats(); await sink.close(); }
   assert.equal(privateData.owner, rootInfo().owner.nonce);
-  const report = { version: 1, pass: true, ...isolation, openssl: true, lowPortBindings: { 465: true, 587: true }, trustedCaThroughNodeExtraCa: true, unrelatedCaRejectedBeforeAuth: true, relayRecipientsRejectedBeforeData: true, positive, negative, rogueConnectionEvidence, rawPayloadStored: false, systemCaChanged: false, applicationTlsChanged: false };
+  const report = { ...preflightReport, pass: true, stage: 'complete', lowPortBindings: { 465: true, 587: true },
+    trustedCaThroughNodeExtraCa: true, unrelatedCaRejectedBeforeAuth: true, relayRecipientsRejectedBeforeData: true };
   if (!arg('report')) fail('REPORT_PATH_REQUIRED');
   writeNew(arg('report'), JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ smtpPreflight: 'passed', applicationTlsChanged: false, systemCaChanged: false }));
@@ -470,7 +517,7 @@ function cleanup() {
   console.log(JSON.stringify({ privateCleanup: true, filesOutsideRootTouched: false }));
 }
 
-function selfCheck() {
+async function selfCheck() {
   assert.equal(envelopeAddress('RCPT TO:<a@b.test>', 'RCPT TO'), 'a@b.test');
   assert.equal(envelopeAddress('RCPT TO:<a@b.test> OR <other@b.test>', 'RCPT TO'), null);
   assert.equal(envelopeAddress('RCPT TO:<a@b.test>\r\nDATA', 'RCPT TO'), null);
@@ -501,14 +548,57 @@ function selfCheck() {
   assert.throws(() => verifyRogueEvidence(rejected, before, before, 465), /ROGUE_LISTENER_NOT_REACHED/);
   assert.throws(() => verifyRogueEvidence({ ok: false, reason: 'send_unavailable', code: 'ECONNREFUSED' }, before, connected, 465), /ROGUE_CERTIFICATE_REJECTION_NOT_PROVEN/);
   assert.throws(() => verifyRogueEvidence(rejected, before, { ...connected, authenticated: 1 }, 465), /ROGUE_AUTH_OR_DATA_ACCEPTED/);
+  const wrappedCertificate = { ok: false, reason: 'send_unavailable', code: 'ESOCKET', certificateCode: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' };
+  assert.equal(verifyRogueEvidence(wrappedCertificate, before, connected, 465).safeTlsCode, wrappedCertificate.certificateCode);
+  for (const code of ['ESOCKET', 'ECONNREFUSED', 'ETIMEDOUT']) {
+    assert.equal(certificateCode({ code }), null);
+    assert.equal(certificateCode({ code: 'ESOCKET', originalCode: code }), null);
+    assert.throws(() => verifyRogueEvidence({ ok: false, reason: 'send_unavailable', code, certificateCode: null }, before, connected, 465), /ROGUE_CERTIFICATE_REJECTION_NOT_PROVEN/);
+  }
+  assert.throws(() => verifyRogueEvidence(wrappedCertificate, before, before, 465), /ROGUE_LISTENER_NOT_REACHED/);
+  assert.throws(() => verifyRogueEvidence(wrappedCertificate, before, { ...connected, received: 1 }, 465), /ROGUE_AUTH_OR_DATA_ACCEPTED/);
+  assert.equal(certificateCode({ code: 'ESOCKET', originalCode: 'not-a-certificate-code' }), null);
+  for (const rejectedSend of [false, true]) {
+    const options = { marker: 'original-options' }, mail = { marker: 'original-mail' }, result = { marker: 'original-result' };
+    const originalError = Object.assign(new Error('unit-private-error-marker'), { code: 'ESOCKET', originalCode: 'UNABLE_TO_VERIFY_LEAF_SIGNATURE', response: 'unit-private-response-marker' });
+    const beforeError = Object.getOwnPropertyDescriptors(originalError);
+    let created = 0, sends = 0, closes = 0;
+    const realTransport = {
+      async sendMail(value) { assert.equal(this, realTransport); assert.equal(value, mail); sends++; if (rejectedSend) throw originalError; return result; },
+      close() { assert.equal(this, realTransport); closes++; return 'closed'; },
+    };
+    const observation = { certificateCode: null };
+    const wrapped = observingTransportFactory((value) => { assert.equal(value, options); created++; return realTransport; }, observation)(options);
+    try {
+      if (rejectedSend) await assert.rejects(() => wrapped.sendMail(mail), (error) => error === originalError);
+      else assert.equal(await wrapped.sendMail(mail), result);
+    } finally { assert.equal(wrapped.close(), 'closed'); }
+    assert.deepEqual([created, sends, closes], [1, 1, 1]);
+    assert.equal(observation.certificateCode, rejectedSend ? 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' : null);
+    assert.deepEqual(Object.getOwnPropertyDescriptors(originalError), beforeError);
+    const serialized = JSON.stringify(observation);
+    assert.equal(serialized.includes(originalError.message), false); assert.equal(serialized.includes(originalError.response), false);
+    assert.deepEqual(Object.keys(observation), ['certificateCode']);
+  }
+  const originalProgress = preflightReport;
+  preflightReport = { stage: '465-untrusted', completedPortResults: [{ port: 465, expectation: 'trusted', outcome: { ok: true, code: null }, counts: { received: 1 } }],
+    positive: { received: 2, rejectedRecipients: 2 }, negative: { connections465: 1, authenticated: 0, received: 0 } };
+  const privateError = Object.assign(new Error('unit-private-failure-text'), { code: 'ROGUE_CERTIFICATE_REJECTION_NOT_PROVEN', response: 'unit-private-failure-response' });
+  const failureReport = preflightFailureReport(privateError), serializedReport = JSON.stringify(failureReport);
+  assert.equal(failureReport.pass, false); assert.equal(failureReport.code, privateError.code);
+  assert.equal(failureReport.completedPortResults.length, 1); assert.equal(failureReport.positive.received, 2);
+  assert.equal(failureReport.negative.connections465, 1); assert.equal(failureReport.stage, '465-untrusted');
+  assert.equal(serializedReport.includes(privateError.message), false); assert.equal(serializedReport.includes(privateError.response), false);
+  preflightReport = originalProgress;
   for (const event of ['deadline', 'parent-eof', 'signal']) assert.notEqual(initExit(event).code, 0);
   assert.notEqual(initExit('driver-exit', 1).code, 0); assert.equal(initExit('driver-exit', 0).code, 0);
-  console.log(JSON.stringify({ offlineSelfCheck: true, namespaceRejectionControls: 4, rogueRejectionControls: 3, lifecycleDecisionControls: 5, networkStarted: false, opensslExecuted: false }));
+  console.log(JSON.stringify({ offlineSelfCheck: true, namespaceRejectionControls: 4, rogueRejectionControls: 8, transparentTransportControls: 2, failureReportControls: 1,
+    lifecycleDecisionControls: 5, networkStarted: false, opensslExecuted: false }));
 }
 
 try {
   process.umask(0o077);
-  if (mode === 'self-check') selfCheck();
+  if (mode === 'self-check') await selfCheck();
   else if (mode === 'prepare') prepare();
   else if (mode === 'namespace-launch') await namespaceLaunch();
   else if (mode === 'pid-init') await pidInit();
@@ -523,7 +613,7 @@ try {
   const category = safeCode(error);
   console.error(JSON.stringify({ smtpEvidence: 'failed', code: category }));
   if (mode === 'preflight' && arg('report') && !fs.existsSync(arg('report'))) {
-    try { writeNew(arg('report'), JSON.stringify({ version: 1, pass: false, code: category, rawSmtpLogged: false, systemCaChanged: false })); }
+    try { writeNew(arg('report'), JSON.stringify(preflightFailureReport(error), null, 2)); }
     catch { console.error('PREFLIGHT_REPORT_WRITE_FAILED'); }
   }
   process.exitCode = 1;
