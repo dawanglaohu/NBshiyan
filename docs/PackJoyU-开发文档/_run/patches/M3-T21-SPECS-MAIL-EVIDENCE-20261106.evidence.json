@@ -1,0 +1,30 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T21": {
+      "contractHash": "90abea96e1790c0df3bd5bc8e1e8d5b05dff4062cc3c6bda5920efb48639a1b1",
+      "evidence": [
+        "Chief独立核固定982cdd38与main e1e274b3合源及本补丁sourceChanges：仅M3-T21.supportPaths追加规格E2E与三份邮件测试设施路径；任务验收、产品output、提供/依赖能力及任务卡不变。",
+        "独立脚本chief-verify-window14.py实际exit0：141份契约按context/provider公式全重算，T21仅definition/effectivePaths变化，T22/M7-T9/M7-T10仅provider传播；批6/7/20/21仅hash变化。派发差量76行已全文读，仅四路径及四任务版本替换。",
+        "89progress/86done、12历史/17返工/22批、维护与复验空、T17/T23/T24done、T21todo保持；6products与34inputs摘要全重算一致，5954个双方非派生blob保持。",
+        "CI保实际模型与规格具名JSON/PNG及询盘两glob、35分钟预算；原614字节判断追加逐字保留且未暂存。规格E2E仍等main，三SMTP实现文件不存在；尚未运行新CI、浏览器/匿名化、Linux SMTP前提或完整邮件业务，此证据只复核支持契约。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T22": {
+      "contractHash": "4a9c076b260ba3ecf7db72ae8a9bc834cbc2201aa1b04a6de50e5bf8d4d0410b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "51586ede0ddb336c9415e0937b039876e1ec409c30dc8743f82276c1c7af4464",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "1e7c9aed6f470a53982b2eead3eb7258252c5d1852c93b39491d0192390f5977",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

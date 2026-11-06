@@ -11,6 +11,27 @@ import { revealFirstSpecError } from '../src/components/admin/specs/reveal-spec-
 
 const LEAK = 'postgres://spec-secret-should-not-render';
 
+const TOKENS = readFileSync('src/styles/tokens.css', 'utf8');
+
+/** 精确取 tokens.css 中 --pj-* 的真实声明值（--name: value;），不靠全文件任意命中。 */
+function pjToken(name: string): string {
+  const m = new RegExp('--' + name + '\\s*:\\s*([^;]+);').exec(TOKENS);
+  if (!m) throw new Error('tokens.css 缺 --' + name);
+  return m[1].trim();
+}
+
+/** 精确取某条 CSS 规则的声明块：按规则的选择器列表逐项精确匹配（支持逗号分组规则），
+ *  只返回该规则自己的声明，不做全文件任意命中。 */
+function cssRule(css: string, selector: string): string {
+  const blocks = css.replace(/\/\*[\s\S]*?\*\//g, '').match(/([^{}]+)\{([^{}]*)\}/g) || [];
+  for (const block of blocks) {
+    const i = block.indexOf('{');
+    const sels = block.slice(0, i).split(',').map((s) => s.trim());
+    if (sels.includes(selector)) return block.slice(i + 1, block.lastIndexOf('}')).trim();
+  }
+  throw new Error('specs.css 缺精确规则 ' + selector);
+}
+
 function render(status: number, json: unknown, form: SpecForm) {
   const s = specSaveErrors(status, json);
   const html = renderToStaticMarkup(React.createElement(SpecEditorView, {
@@ -30,7 +51,7 @@ function render(status: number, json: unknown, form: SpecForm) {
   return html;
 }
 
-test('spec editor marks field errors in red and keeps the typed value', () => {
+test('spec editor marks field errors with the flat accent and keeps the typed value', () => {
   const form = { ...emptyForm(), materialEn: 'Kraft paper' };
   const html = render(400, {
     error: 'invalid',
@@ -42,9 +63,24 @@ test('spec editor marks field errors in red and keeps the typed value', () => {
   assert.equal(html.includes(FORM_INVALID.zh), false);
   assert.equal(html.includes(LEAK), false);
   assert.match(html, /value="Kraft paper"/);
+  // 精确锚定 specs.css 的 .spec-err / .spec-msg.err 声明块与 tokens.css 真实 --pj-* 值，
+  // 不再用被覆盖的旧色板字面量锁死 CSS，也不为旧断言补死 CSS。
   const css = readFileSync('src/components/admin/specs/specs.css', 'utf8');
-  assert.match(css, /\.spec-err\{display:block;color:var\(--err,#B42318\)/);
-  assert.match(css, /\.spec-msg\.err\{[^}]*color:var\(--err,#B42318\)/);
+  const accent = pjToken('pj-accent');            // #b45700
+  const bodySize = pjToken('pj-ui-size');         // 14px
+  const bodyLine = pjToken('pj-ui-line');         // 20px
+  const errBlock = cssRule(css, '.spec .spec-err');
+  assert.match(errBlock, new RegExp('display:block'));
+  assert.match(errBlock, new RegExp('color:var\\(--pj-accent\\)'));
+  assert.match(errBlock, new RegExp('font-size:var\\(--pj-ui-size\\)'));
+  assert.match(errBlock, new RegExp('line-height:var\\(--pj-ui-line\\)'));
+  assert.equal(accent, '#b45700');
+  assert.equal(bodySize, '14px');
+  assert.equal(bodyLine, '20px');
+  // 精确取该规则（文件里选择器是 .spec .spec-msg.ok,.spec .spec-msg.err，逐项精确匹配 .err 那一条）
+  const msgBlock = cssRule(css, '.spec .spec-msg.err');
+  assert.match(msgBlock, new RegExp('color:var\\(--pj-fg\\)'));
+  assert.match(msgBlock, new RegExp('border-color:var\\(--pj-accent\\)'));
 });
 
 test('spec editor top fallback is one alert and hides the server message', () => {

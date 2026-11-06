@@ -356,9 +356,11 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
       # M3-T7 后台壳三尺寸视觉证据：成功运行也要留视频，供 PR 转 GIF。
-      # 现有 playwright-report 只在 failure() 上传；此处保留视频与已列账号/模型工作流的脱敏证据。
+      # 现有 playwright-report 只在 failure() 上传；此处保留视频与已列账号/模型/规格工作流的脱敏证据。
       # 只增加明确的测试报告和合成状态帧路径，不动其它步骤、门禁或测试断言。
       # 同一产物同时收 M3-T21 旧询盘页脱敏 JSON/PNG 证据，不是 M3-T7 新验收。
+      # M3-T24 规格编辑器：同 always 段收本卡三份脱敏 JSON 与四帧 PNG（列表/表单/已保存/返回）；
+      # spec-video 的 .webm 已由上面的 *.webm 覆盖，不重复登记。仅加路径，不改门禁/retention。
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -369,6 +371,10 @@ jobs:
             test-results/**/admin-account-cleared.json
             test-results/**/admin-legacy-inquiries*.json
             test-results/**/inquiry-visual-*.png
+            test-results/**/admin-legacy-specs.json
+            test-results/**/admin-legacy-specs-visual.json
+            test-results/**/admin-legacy-specs-states.json
+            test-results/**/specs-*.png
             test-results/**/admin-legacy-model.json
             test-results/**/model-workflow-*.png
           retention-days: 1
