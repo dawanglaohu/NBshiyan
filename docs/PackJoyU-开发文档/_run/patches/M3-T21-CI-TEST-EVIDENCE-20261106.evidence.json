@@ -1,0 +1,31 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T21": {
+      "contractHash": "941465147e2a66dfc7fcd3cbcb885fba98107a0573218ba1f0ab3988d5075ae4",
+      "evidence": [
+        "Chief 独立比较9cd631543277b068273313b233556dfd2ae8813b与本工作树：唯一canonical定义差异是M3-T21.supportPaths加入tests/admin-anonymized-ui.test.ts及.github/workflows/ci.yml；output/provides/requires/验收/边界E-106和integration阶段保持。",
+        "原匿名化标签测试逐字锁定1px边界/4px圆角，与本卡既定2px/0圆角迁移要求冲突，需要在保留中性、可访问文案、匿名化敏感内容隐藏语义的前提下适配；因此该实际修改文件属于必要支持范围，不代表已接受作者当前具体断言实现。只读消费的其他渲染文件无需因此扩大写入范围。",
+        "本卡既定验收需要真实列表/详情/操作、三尺寸样式密度及媒体证据；CI差异仅在既有always产物path加入test-results/**/admin-legacy-inquiries*.json与test-results/**/inquiry-visual-*.png，另加同位置用途注释。既有webm/账号报告、条件、retention和其他步骤门禁均不变。本分支未复制T17/T23未合并补丁。",
+        "Chief独立执行verify-t21-ci-support.py退出0：M3-T21仅definition/effectivePaths变化，M3-T22/M7-T9/M7-T10上下文逐字段不变、仅provider hash传播。四项皆todo，revalidation为空；86项progress/83done、12历史记录含batch6clean、17repair、22批任务集合与收口提示原样；仅6/7/20/21批摘要hash合法传播。",
+        "已人工读取结构化dispatch文本差异：M3-T1/M3-T3/R3相关提示仅增加M3-T21共享路径冲突提示且自身hash未改；本卡10个codeRefs从源卡回填投影到消费者前置提示。六项规范JSON文本digest独立复算全部匹配，结构审查current且block0、maintenance为空。此为task-contract支持范围复核，不是询盘/邮件产品实现、回归断言、运行状态、脱敏产物、GUI/GIF、CI或落地验收通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T22": {
+      "contractHash": "80271fedd21e1a5f3e318ebbbd7b108d58c81247edeff87b322f1b7acfa1c64d",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "dfe8b4c202437649f4dbd7a659ad67ff763c2077725fc174106a33c373544ca4",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "4c53e8219050fe103eed43bed8422cefd03f46e963408b3d53a46a213ac614a0",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

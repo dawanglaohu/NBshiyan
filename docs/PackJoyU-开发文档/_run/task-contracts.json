@@ -3620,7 +3620,9 @@
       ],
       "supportPaths": [
         "e2e/admin-legacy-inquiries-visual.spec.ts",
-        "tests/admin-legacy-inquiries-style.test.ts"
+        "tests/admin-legacy-inquiries-style.test.ts",
+        "tests/admin-anonymized-ui.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "stage": "integration",
       "wiring": [],

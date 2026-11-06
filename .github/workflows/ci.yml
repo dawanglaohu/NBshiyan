@@ -354,6 +354,7 @@ jobs:
       # M3-T7 后台壳三尺寸视觉证据：成功运行也要留视频，供 PR 转 GIF。
       # 现有 playwright-report 只在 failure() 上传，成功时没有视频；这里单独、最小地
       # 只收 .webm，不动其它上传步骤、不改测试与断言。
+      # 同一产物同时收 M3-T21 旧询盘页脱敏 JSON/PNG 证据，不是 M3-T7 新验收。
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -362,6 +363,8 @@ jobs:
             test-results/**/*.webm
             test-results/**/admin-account-density.json
             test-results/**/admin-account-cleared.json
+            test-results/**/admin-legacy-inquiries*.json
+            test-results/**/inquiry-visual-*.png
           retention-days: 1
           if-no-files-found: warn
       - if: failure()
