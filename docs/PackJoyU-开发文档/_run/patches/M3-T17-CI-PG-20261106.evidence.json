@@ -1,0 +1,55 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T13": {
+      "contractHash": "30f15c871b2a99eaa69a01095ab9af7e0b988407101120048005591e07772885",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M3-T17": {
+      "contractHash": "e26408b43cedbe0498618642cdf2eccea26a0ccbef9798e838a315aafe5bf9e0",
+      "evidence": [
+        "Chief 独立核 HEAD 9cd631543277b068273313b233556dfd2ae8813b 与本工作树：任务契约仅 M3-T17.supportPaths 新增精确 .github/workflows/ci.yml；产出、前置能力、验收、边界与任务阶段均不变。",
+        "已列 tests/admin-device-management.http.test.ts 承担真实 PG/HTTP 验收；CI 只在 PostgreSQL 17 步骤的 wanted、串行执行命令、逐文件 gate 三处各登记该文件，沿用专用 M3T3_TEST_DATABASE_URL 与 M3T3_REQUIRE_DATABASE=true，保留 pass>=1 及 fail/skip/todo/cancelled=0 门禁。",
+        "Chief 运行独立 verify-t17-ci-support.py exit0：M3-T17 仅 definition/effectivePaths 变，其余八项只有 provider hash 传播且都未落地；progress86/done83、12条历史收口记录、17返工、22批任务集合不变，八批摘要hash合法传播，revalidation为空，结构审查current且block0。",
+        "此为 task-contract 支持范围复核；不代表设备管理实现、完整测试内容、实际PostgreSQL执行或CI已经通过，不登记落地。Chief已通过maintain_docs verify --task M3-T17 --patch M3-T17-CI-PG-20261106登记，exit0。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T8": {
+      "contractHash": "e2bcbece52bc48732567f126a055468ec2b150dbbe5323b6a460dc770874eee6",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "bb23ca93c091098b1d894ec60d8f86089ae8bc21b8c8444465f40828e299b6b0",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T2": {
+      "contractHash": "81b82f13f192a7c13f2398891f8e3eb49f608c1c3a8b64d83cc1660fe104600b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T5": {
+      "contractHash": "dbe5da43741394984edcd51672ec7c94fb642b9e54b8667b8bc904653cce9880",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T6": {
+      "contractHash": "fa61a15342f725c7b274a6eaae64e48f4c1465e168e5f7238f4dd59f1febe3f6",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "10074618012d4239d3939c7e76511c5970fc4df6f0647ab3c0b4bcee0203c368",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "a3e28826c9ed09377780c80e0e66af7906a1b399d71b32c142afb72b94719287",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
