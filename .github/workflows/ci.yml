@@ -358,7 +358,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: m3-t7-visual
-          path: test-results/**/*.webm
+          path: |
+            test-results/**/*.webm
+            test-results/**/admin-account-density.json
+            test-results/**/admin-account-cleared.json
           retention-days: 1
           if-no-files-found: warn
       - if: failure()
