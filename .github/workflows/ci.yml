@@ -53,7 +53,8 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 浏览器依赖安装、构建和完整测试共享此作业总预算；各用例超时与验收门禁保持不变。
+    timeout-minutes: 35
     services:
       postgres:
         image: postgres:17
@@ -215,6 +216,7 @@ jobs:
               'tests/admin-enroll-current-state.db.test.ts',
               'tests/admin-action-grant.db.test.ts',
               'tests/admin-reauth.http.test.ts',
+              'tests/admin-device-management.http.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -254,6 +256,7 @@ jobs:
             tests/admin-enroll-current-state.db.test.ts \
             tests/admin-action-grant.db.test.ts \
             tests/admin-reauth.http.test.ts \
+            tests/admin-device-management.http.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -279,6 +282,7 @@ jobs:
             'tests/admin-enroll-current-state.db.test.ts',
             'tests/admin-action-grant.db.test.ts',
             'tests/admin-reauth.http.test.ts',
+            'tests/admin-device-management.http.test.ts',
           ];
           let bad = false;
           for (const file of files) {
@@ -352,8 +356,8 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
       # M3-T7 后台壳三尺寸视觉证据：成功运行也要留视频，供 PR 转 GIF。
-      # 现有 playwright-report 只在 failure() 上传，成功时没有视频；这里单独、最小地
-      # 只收 .webm，不动其它上传步骤、不改测试与断言。
+      # 现有 playwright-report 只在 failure() 上传；此处保留视频与已列账号/模型/规格工作流的脱敏证据。
+      # 只增加明确的测试报告和合成状态帧路径，不动其它步骤、门禁或测试断言。
       # M3-T24 规格编辑器：同 always 段收本卡三份脱敏 JSON 与四帧 PNG（列表/表单/已保存/返回）；
       # spec-video 的 .webm 已由上面的 *.webm 覆盖，不重复登记。仅加路径，不改门禁/retention。
       - if: always()
@@ -368,6 +372,8 @@ jobs:
             test-results/**/admin-legacy-specs-visual.json
             test-results/**/admin-legacy-specs-states.json
             test-results/**/specs-*.png
+            test-results/**/admin-legacy-model.json
+            test-results/**/model-workflow-*.png
           retention-days: 1
           if-no-files-found: warn
       - if: failure()
