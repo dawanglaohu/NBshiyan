@@ -216,6 +216,7 @@ jobs:
               'tests/admin-enroll-current-state.db.test.ts',
               'tests/admin-action-grant.db.test.ts',
               'tests/admin-reauth.http.test.ts',
+              'tests/admin-device-management.http.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -255,6 +256,7 @@ jobs:
             tests/admin-enroll-current-state.db.test.ts \
             tests/admin-action-grant.db.test.ts \
             tests/admin-reauth.http.test.ts \
+            tests/admin-device-management.http.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -280,6 +282,7 @@ jobs:
             'tests/admin-enroll-current-state.db.test.ts',
             'tests/admin-action-grant.db.test.ts',
             'tests/admin-reauth.http.test.ts',
+            'tests/admin-device-management.http.test.ts',
           ];
           let bad = false;
           for (const file of files) {
