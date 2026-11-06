@@ -1504,7 +1504,8 @@
         "src/lib/server/admin/device-repo.ts",
         "src/lib/server/admin/audit.ts",
         "src/lib/server/composition.ts",
-        "tests/admin-device-management.http.test.ts"
+        "tests/admin-device-management.http.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "outputPaths": [
         "src/lib/server/admin/device-management.ts",
