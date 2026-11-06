@@ -703,7 +703,8 @@ jobs:
               const inside = (file, root) => { const rel = path.relative(root, file); return rel === '' || (!path.isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${path.sep}`)); };
               const sourceFile = (file) => {
                 const real = fs.realpathSync(file), info = fs.lstatSync(real);
-                assert.ok(inside(real, project) && info.isFile() && !info.isSymbolicLink() && info.nlink === 1);
+                // pnpm source files may be hard-linked; only copied artifact files require a single link.
+                assert.ok(inside(real, project) && info.isFile() && !info.isSymbolicLink());
                 return real;
               };
               const sourceDirectory = (directory) => {
