@@ -334,18 +334,161 @@ jobs:
           mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/static
           cp -r public .next/standalone/public
-      # 全部 e2e 用例（含 e2e/brand-smoke.spec.ts）共用这一个真实构建产物服务 + 上面的 postgres service。
-      # standalone 的 stdout 由 webServer 重定向到 .next/standalone-server.log，brand-smoke 从同一份文件核 RUM 脱敏日志。
-      - name: Playwright（仅 Chromium；统一跑 .next/standalone/server.js + postgres service）
-        run: pnpm test:e2e
-      - name: 核对同次 standalone 服务的 RUM 脱敏日志
+      # 三段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
+      # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
+      - name: 核对 A3 收集分区并准备执行器（203 + 2 + 1 = 206）
+        id: e2e_partition
+        shell: bash
         run: |
-          test -s .next/standalone-server.log
-          grep -c '^{"type":"rum"' .next/standalone-server.log
-          if grep '^{"type":"rum"' .next/standalone-server.log | grep -q '@'; then
-            echo 'RUM 日志出现邮箱样式字段，脱敏白名单被破坏' >&2
-            exit 1
+          set -Eeuo pipefail
+          mkdir -p e2e-evidence/collection
+          split_pattern='admin-legacy-inquiries-visual\.spec\.ts .* (E1 真实 400：|A1 仅本用例合成询盘：|三尺寸完整流程：)'
+          error_pattern='admin-legacy-inquiries-visual\.spec\.ts .* (E1 真实 400：|A1 仅本用例合成询盘：)'
+          flow_pattern='admin-legacy-inquiries-visual\.spec\.ts .* 三尺寸完整流程：'
+          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/all.json pnpm test:e2e --list --reporter=json
+          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/main.json pnpm test:e2e --list --reporter=json --grep-invert "$split_pattern"
+          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/errors.json pnpm test:e2e e2e/admin-legacy-inquiries-visual.spec.ts --list --reporter=json --grep "$error_pattern"
+          PLAYWRIGHT_JSON_OUTPUT_NAME=e2e-evidence/collection/flow.json pnpm test:e2e e2e/admin-legacy-inquiries-visual.spec.ts --list --reporter=json --grep "$flow_pattern"
+          node --input-type=module <<'EOF'
+          import assert from 'node:assert/strict';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const groups = {};
+          for (const name of ['all', 'main', 'errors', 'flow']) {
+            const report = JSON.parse(readFileSync(`e2e-evidence/collection/${name}.json`, 'utf8'));
+            assert.deepEqual(report.errors, [], `${name}: collection errors`);
+            const rows = [];
+            const visit = (suite, parents = []) => {
+              for (const spec of suite.specs ?? []) for (const test of spec.tests ?? []) {
+                rows.push({ key: JSON.stringify([test.projectName, spec.file, spec.line, spec.column, [...parents, suite.title], spec.title]), file: spec.file, title: spec.title });
+              }
+              for (const child of suite.suites ?? []) visit(child, [...parents, suite.title]);
+            };
+            for (const suite of report.suites) visit(suite);
+            groups[name] = rows;
+            assert.equal(new Set(rows.map(row => row.key)).size, rows.length, `${name}: duplicate tests`);
+          }
+          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 206, main: 203, errors: 2, flow: 1 });
+          const parts = [...groups.main, ...groups.errors, ...groups.flow].map(row => row.key);
+          assert.equal(new Set(parts).size, 206, 'Partitions overlap');
+          assert.deepEqual(parts.sort(), groups.all.map(row => row.key).sort(), 'Partitions omit or change tests');
+          const errors = [
+            'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复',
+            'A1 仅本用例合成询盘：原 privacy/export+delete 匿名化、PII 消失、只读与 409、history 保留',
+          ];
+          const flow = '三尺寸完整流程：列表→详情→状态/分配/备注写动作→刷新持久（1920/1440/390 真触控 tap，原生帧）';
+          assert.deepEqual(groups.errors.map(row => row.title).sort(), errors.sort());
+          assert.deepEqual(groups.flow.map(row => row.title), [flow]);
+          for (const row of [...groups.errors, ...groups.flow]) assert.equal(row.file, 'admin-legacy-inquiries-visual.spec.ts');
+          writeFileSync('e2e-evidence/collection/partition.json', JSON.stringify(groups, null, 2) + '\n');
+          console.log('A3_COLLECTION all=206 main=203 errors=2 flow=1 disjoint=true complete=true');
+          EOF
+          driver_dir=$(mktemp -d "${RUNNER_TEMP:?}/nbshiyan-e2e-a3.XXXXXXXX")
+          cat > "$driver_dir/ports.cjs" <<'EOF'
+          const net = require('node:net');
+          (async () => {
+            for (const [host, port] of [['0.0.0.0', Number(process.env.E2E_PORT ?? 3100)], ['127.0.0.1', 3999]]) {
+              if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('INVALID_E2E_PORT');
+              await new Promise((resolve, reject) => {
+                const server = net.createServer();
+                server.once('error', () => reject(new Error(`A3_PORT_NOT_RELEASED:${port}`)));
+                server.listen({ host, port, exclusive: true }, () => server.close(error => error ? reject(error) : resolve()));
+              });
+            }
+          })().catch(error => { console.error(error.message); process.exitCode = 1; });
+          EOF
+          cat > "$driver_dir/run.sh" <<'EOF'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          segment=${1:?SEGMENT_REQUIRED}
+          case "$segment" in
+            main) args=(--grep-invert "$A3_SPLIT_PATTERN") ;;
+            errors) args=(e2e/admin-legacy-inquiries-visual.spec.ts --grep "$A3_ERROR_PATTERN") ;;
+            flow) args=(e2e/admin-legacy-inquiries-visual.spec.ts --grep "$A3_FLOW_PATTERN") ;;
+            *) exit 1 ;;
+          esac
+          evidence="e2e-evidence/$segment"
+          mkdir -p "$evidence"
+          printf 'released=false\n' >> "$GITHUB_OUTPUT"
+          archive_log() {
+            if [[ -f .next/standalone-server.log && ! -e "$evidence/standalone-server.log" ]]; then
+              mv .next/standalone-server.log "$evidence/standalone-server.log"
+            fi
+          }
+          interrupted() {
+            trap - INT TERM
+            archive_log || true
+            printf 'released=false\ninterrupted=true\n' >> "$GITHUB_OUTPUT"
+            exit "$1"
+          }
+          trap 'interrupted 130' INT
+          trap 'interrupted 143' TERM
+          # Never reuse a listener or attribute a previous segment's stdout to this segment.
+          node "$A3_DRIVER_DIR/ports.cjs" > "$evidence/port-before.log" 2>&1
+          [[ ! -e .next/standalone-server.log && ! -e "$evidence/standalone-server.log" ]] || { echo 'A3_STALE_SERVER_LOG' >&2; exit 1; }
+          export PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report/$segment"
+          set +e
+          pnpm test:e2e "${args[@]}" --output="test-results/$segment" 2>&1 | tee "$evidence/playwright.log"
+          statuses=("${PIPESTATUS[@]}")
+          set -e
+          test_status=${statuses[0]}
+          capture_status=${statuses[1]}
+          printf 'test_exit=%s\ncapture_exit=%s\n' "$test_status" "$capture_status" >> "$GITHUB_OUTPUT"
+          archive_log
+          case "$test_status" in 130|137|143) interrupted "$test_status" ;; esac
+          log_status=0
+          [[ -s "$evidence/standalone-server.log" ]] || log_status=1
+          rum_status=0
+          # Check the main application's own archived stdout before another invocation can truncate the default log.
+          if [[ "$segment" == main ]]; then
+            if [[ "$log_status" != 0 ]] || ! grep -c '^{"type":"rum"' "$evidence/standalone-server.log" > "$evidence/rum-count.txt"; then
+              rum_status=1
+            elif grep -q '^{"type":"rum".*@' "$evidence/standalone-server.log"; then
+              echo 'RUM 日志出现邮箱样式字段，脱敏白名单被破坏' >&2
+              rum_status=1
+            fi
           fi
+          release_status=0
+          node "$A3_DRIVER_DIR/ports.cjs" > "$evidence/port-after.log" 2>&1 || release_status=$?
+          if [[ "$release_status" == 0 ]]; then printf 'released=true\n' >> "$GITHUB_OUTPUT"; fi
+          printf 'test_exit=%s\ncapture_exit=%s\nlog_exit=%s\nrum_exit=%s\nrelease_exit=%s\n' "$test_status" "$capture_status" "$log_status" "$rum_status" "$release_status" > "$evidence/result.txt"
+          if (( test_status != 0 || capture_status != 0 || log_status != 0 || rum_status != 0 || release_status != 0 )); then exit 1; fi
+          EOF
+          {
+            printf 'A3_DRIVER_DIR=%s\n' "$driver_dir"
+            printf 'A3_SPLIT_PATTERN=%s\n' "$split_pattern"
+            printf 'A3_ERROR_PATTERN=%s\n' "$error_pattern"
+            printf 'A3_FLOW_PATTERN=%s\n' "$flow_pattern"
+          } >> "$GITHUB_ENV"
+      - name: Playwright A3 主段（203例，含同次 RUM 检查）
+        id: e2e_main
+        shell: bash
+        run: bash "$A3_DRIVER_DIR/run.sh" main
+      - name: Playwright A3 E1 + A1（2例，新应用进程）
+        id: e2e_errors
+        if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_main.outputs.released == 'true' }}
+        shell: bash
+        run: bash "$A3_DRIVER_DIR/run.sh" errors
+      - name: Playwright A3 三尺寸流程（1例，新应用进程）
+        id: e2e_flow
+        if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' && steps.e2e_errors.outputs.released == 'true' }}
+        shell: bash
+        run: bash "$A3_DRIVER_DIR/run.sh" flow
+      - name: 汇总 A3 三段结果（失败或未执行均不通过）
+        if: ${{ !cancelled() && steps.e2e_partition.outcome == 'success' }}
+        shell: bash
+        env:
+          MAIN_OUTCOME: ${{ steps.e2e_main.outcome }}
+          ERRORS_OUTCOME: ${{ steps.e2e_errors.outcome }}
+          FLOW_OUTCOME: ${{ steps.e2e_flow.outcome }}
+          MAIN_RELEASED: ${{ steps.e2e_main.outputs.released }}
+          ERRORS_RELEASED: ${{ steps.e2e_errors.outputs.released }}
+          FLOW_RELEASED: ${{ steps.e2e_flow.outputs.released }}
+        run: |
+          for segment in MAIN ERRORS FLOW; do
+            outcome="${segment}_OUTCOME"
+            released="${segment}_RELEASED"
+            [[ ${!outcome} == success && ${!released} == true ]] || { echo "A3_SEGMENT_FAILED_OR_MISSING:$segment" >&2; exit 1; }
+          done
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -356,8 +499,8 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
       # M3-T7 后台壳三尺寸视觉证据：成功运行也要留视频，供 PR 转 GIF。
-      # 现有 playwright-report 只在 failure() 上传；此处保留视频与已列账号/模型/规格工作流的脱敏证据。
-      # 只增加明确的测试报告和合成状态帧路径，不动其它步骤、门禁或测试断言。
+      # 此处保留视频与已列账号/模型/规格工作流的脱敏证据；三段 HTML 和服务日志独立归档。
+      # 路径只覆盖测试报告和合成状态帧，不包含系统临时目录中的私有会话缓存。
       # 同一产物同时收 M3-T21 旧询盘页脱敏 JSON/PNG 证据，不是 M3-T7 新验收。
       # M3-T24 规格编辑器：同 always 段收本卡三份脱敏 JSON 与四帧 PNG（列表/表单/已保存/返回）；
       # spec-video 的 .webm 已由上面的 *.webm 覆盖，不重复登记。仅加路径，不改门禁/retention。
@@ -379,15 +522,23 @@ jobs:
             test-results/**/model-workflow-*.png
           retention-days: 1
           if-no-files-found: warn
-      - if: failure()
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: |
             playwright-report/
-            test-results/
+            e2e-evidence/
             .next/standalone-server.log
           retention-days: 7
+          if-no-files-found: warn
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-results
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
 
   # Ubuntu 上名单内的安全用例必须实跑并通过。缺符号链接、POSIX 路径或 0600 时测试记 skip，作业不能算通过。
   posix-storage-security:
