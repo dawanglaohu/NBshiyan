@@ -630,12 +630,18 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "90abea96e1790c0df3bd5bc8e1e8d5b05dff4062cc3c6bda5920efb48639a1b1",
     "evidence": [
-      "Chief独立核固定982cdd38与main e1e274b3合源及本补丁sourceChanges：仅M3-T21.supportPaths追加规格E2E与三份邮件测试设施路径；任务验收、产品output、提供/依赖能力及任务卡不变。",
-      "独立脚本chief-verify-window14.py实际exit0：141份契约按context/provider公式全重算，T21仅definition/effectivePaths变化，T22/M7-T9/M7-T10仅provider传播；批6/7/20/21仅hash变化。派发差量76行已全文读，仅四路径及四任务版本替换。",
-      "89progress/86done、12历史/17返工/22批、维护与复验空、T17/T23/T24done、T21todo保持；6products与34inputs摘要全重算一致，5954个双方非派生blob保持。",
-      "CI保实际模型与规格具名JSON/PNG及询盘两glob、35分钟预算；原614字节判断追加逐字保留且未暂存。规格E2E仍等main，三SMTP实现文件不存在；尚未运行新CI、浏览器/匿名化、Linux SMTP前提或完整邮件业务，此证据只复核支持契约。"
+      "固定头 526f5764d136cb159745c3c58232e40d0a585ed2（PR #532，未进 main；main 仍 e1e274b3），相对 8d5c7d6d 仅改 tests/evidence/admin-legacy-inquiries-mail.spec.ts（+25 行：showDisabledComposer/assertBoxesInViewport 与居中滚动定位）。",
+      "真实 Linux CI：run 42273889836 attempt 1 success（19:10:47Z），checkout merge e632f0f512bc634377c21d99f1b2360186c91c01、tree a4aa6039704815b43dba83a3ee7aa624d14c7c70（=526f 树）；四 job 全 success：posix 18:48:02Z、mail-evidence 18:51:56Z、build-and-audit 18:53:04Z、e2e 19:10:47Z。",
+      "E2E 终态：MAIN 203 用例 → 194 passed / 0 failed / 9 skipped（18.0m，admin-legacy-model-visual.spec.ts 约 6.1m 导致偏慢）；ERRORS 2、FLOW 1 通过；A3 门通过；零 ##[error]；合计 197 passed / 0 failed / 9 skipped；D2 spec.ts:471:7 通过（3.2s）。",
+      "邮件三模式业务（本 run 重点）：http-real 8.7s（201 / 451→502 持久 / 人工重试同 mail id / legacy 合并）、http-disabled 5.1s（config false + 禁发 + send409/retry409 + databaseUnchanged）、off 4.6s（config404 + 入口隐藏 + legacy 回退 + 五路 404 + DB 不变），各 1 passed、cleanupErrors=[]；探针 Prisma 生成链与 ARGON2_GNU_PACKAGE 全 resolved（musl/local 缺失属预期）；清理 privateCleanup/preparedArtifactCleanup 双 true；artifact 4,061,318 B / 23 条目；安全摘要仅 mail-auth-off.json 且 logState:no_match、零模式命中。",
+      "禁用态画面缺口已关闭：新 PNG inquiry-visual-mail-http-disabled-disabled-no-send.png 1440×900 / 47,753 B / SHA256 17C8E227BD86E2157B7FCE3193312ED88D6F4D2B4D4CAD14A2306200220318AF；disabledFrame 几何 regionHeight 623 / fitsViewport true / 横幅 x=236 y=184 w=832 h=44 / 发送按钮 x=1000 y=619 w=68 h=44；3D 独立实读确认横幅 y=184–228 与按钮 y=619–663 同屏、清晰、无遮挡，自测几何与 disabledFrame 逐点一致。",
+      "disabled 样式级联已更正：src/app/admin/mail.css:90 的 .ml .ml-btn:disabled（特异性 0,3,0，background:var(--pj-bg)、color:var(--pj-fg)、border-style:dashed）覆盖同文件 :38 的 .ml-btn:disabled 与 :89 的 .ml .ml-btn.primary；src/styles/tokens.css:25-26 定义 --pj-bg:#ffffff、--pj-fg:#000000。故白底/黑字/虚线即当前生效 disabled 样式，先前「禁用外观不符/渲染异常」推断已撤回；禁用真实性仍由 toBeDisabled() + send409/retry409/databaseUnchanged 承担（来源更正：Chief 对级联的复核 + 3D 报告更正版 8EB35D75…）。",
+      "回填覆盖当前头：按门槛报告 testing-gate-526f5764.md 指出的缺口，本轮更新任务笔记两保护区——notes 改 3 句（GIF 已发布 / editor 已供规格 E2E / 新池 CI 已关闭）+ 增 3 小段（邮件三模式首通、媒体与禁用态关闭、历史失败保留）；code 补 5 条实测行号（specs-visual:36/52/248/311/429/590、mail spec:321/163/268/291/87/143/244/260/287、mail config:7/17/26、local-smtp:257/262/326/75/83/296、ci.yml:634/655/1221/1228）。不搬整份过程记录。",
+      "历史失败保留（不删、不改写成通过）：42220351373 的 mail job 因 mail-evidence.config.ts 首 webServer 未设 cwd 报 MODULE_NOT_FOUND（已在 :26 修为 cwd: sourceRoot）；42224789939 失败归档在册；旧实现头 1ab0d77d / CI 42169912366 的 1 fail（brand credentials rate_limited）继续作为「旧头不证明新池」的历史证据。",
+      "门槛与留档现状：testing-gate-526f5764.md 已核代码与必过检查通过（PR #532 open/非 draft/clean、build-and-audit+e2e success、无未结 review threads、契约 tasks.M3-T21 在册且 task-reviews pass、maintenance 无 pending）；仍缺的两项是回填（本提交补齐）与 PR 当前头审查留档（由测试工程师按 Chief 安排补 COMMENT review，不属本提交）。",
+      "范围与保护：只改 图谱/任务/M3-T21.md 两保护区 + 本证据文件 + 工具直接派生产物；不改 task-contracts.json、不改生成器、不改其他任务状态、不改批次记录；原 614 字节 judgments.jsonl 追加为工作树既有脏项，按实际 git status 精确暂存、不混入本提交。"
     ],
-    "reviewed": "2026-11-06T09:54:10.526690+00:00",
+    "reviewed": "2026-11-06T19:22:10.394003+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
