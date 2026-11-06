@@ -479,3 +479,91 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+
+  mail-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: '1x00000000000000000000AA'
+      TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA'
+      TURNSTILE_VERIFY_URL: http://127.0.0.1:3999/siteverify
+      NEXT_PUBLIC_TAWK_PROPERTY_ID: e2eprop
+      NEXT_PUBLIC_TAWK_WIDGET_ID: e2ewidget
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Isolated TLS SMTP preflight-only
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set -- preflight-only "$GITHUB_WORKSPACE" "$GITHUB_WORKSPACE/tests/evidence/local-smtp.mjs"
+          set -Eeuo pipefail
+          umask 077
+          # Execute only on an ephemeral GitHub-hosted Linux runner.
+          [[ ${CI:-} == true && ${GITHUB_ACTIONS:-} == true && $(uname -s) == Linux ]] || { echo 'LINUX_CI_REQUIRED' >&2; exit 1; }
+          [[ ${1:-} == preflight-only || ${1:-} == integration ]] || { echo 'MODE_REQUIRED' >&2; exit 1; }
+          mode=$1
+          project=$(realpath "${2:-$PWD}")
+          smtp_script=$(realpath "${3:-$project/tests/evidence/local-smtp.mjs}")
+          [[ -f "$smtp_script" && -d "$project/node_modules/nodemailer" && -d "$project/node_modules/tsx" ]] || { echo 'DECLARED_DEPS_MISSING' >&2; exit 1; }
+          for command in node openssl ip mount sysctl setpriv unshare timeout sudo realpath mktemp; do
+            command -v "$command" >/dev/null || { echo "PREREQUISITE_MISSING:$command" >&2; exit 1; }
+          done
+          sudo -n true || { echo 'EPHEMERAL_RUNNER_NAMESPACE_PERMISSION_REQUIRED' >&2; exit 1; }
+          runner_parent=$(realpath "${RUNNER_TEMP:?RUNNER_TEMP_REQUIRED}")
+          root=$(mktemp -d "$runner_parent/nbshiyan-mail-evidence.XXXXXXXX")
+          [[ $(dirname "$(realpath "$root")") == "$runner_parent" && $(basename "$root") == nbshiyan-mail-evidence.* ]] || exit 1
+          chmod 700 "$root"
+          report_dir="$project/test-results/mail-evidence-preflight"
+          mkdir -p "$report_dir"
+          # Keep the launcher/report outside the source tree; only generated test results are written by a future CI run.
+          cleanup() {
+            result=$?
+            trap - EXIT
+            if ! node "$smtp_script" cleanup --root "$root"; then
+              echo 'PRIVATE_CLEANUP_FAILED' >&2
+              result=1
+            fi
+            exit "$result"
+          }
+          trap cleanup EXIT
+          node "$smtp_script" prepare --root "$root"
+          export SMTP_EVIDENCE_PRIVATE_ROOT="$root"
+          # This variable is a path only. No generated password, AUTH token or private key is written to GITHUB_ENV.
+          if [[ -n ${GITHUB_ENV:-} ]]; then printf 'SMTP_EVIDENCE_PRIVATE_ROOT=%s\n' "$root" >> "$GITHUB_ENV"; fi
+          cat > "$root/driver.sh" <<'DRIVER'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          cd "$2"
+          node "$3" preflight --root "$4" --project "$2" --report "$5/admin-legacy-inquiries-smtp-preflight.json"
+          DRIVER
+          chmod 600 "$root/driver.sh"
+          # PID 1 owns the lifetime. Parent stdin EOF, a deadline, signal or driver failure ends that PID namespace.
+          # Kernel namespace teardown also covers detached PostgreSQL daemons; traps remain for graceful file cleanup only.
+          namespace_budget=26m
+          [[ "$mode" == preflight-only ]] && namespace_budget=3m
+          timeout --signal=TERM --kill-after=10s "$namespace_budget" node "$smtp_script" namespace-launch --root "$root" --project "$project" --scenario "$mode" --report-dir "$report_dir"
+      - name: Cleanup owned private fixture
+        if: always()
+        shell: bash
+        run: |
+          if [[ -n "${SMTP_EVIDENCE_PRIVATE_ROOT:-}" && -d "$SMTP_EVIDENCE_PRIVATE_ROOT" ]]; then
+            node tests/evidence/local-smtp.mjs cleanup --root "$SMTP_EVIDENCE_PRIVATE_ROOT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m3-t21-mail-evidence
+          path: |
+            test-results/**/admin-legacy-inquiries*.json
+            test-results/**/inquiry-visual-*.png
+            test-results/**/*.webm
+          retention-days: 1
+          if-no-files-found: error
