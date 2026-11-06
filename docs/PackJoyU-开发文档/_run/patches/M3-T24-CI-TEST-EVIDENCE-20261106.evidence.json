@@ -1,0 +1,26 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T24": {
+      "contractHash": "3d928681bb561c81559551e01373c3f24a184e954a88900909e06bbca0b3a623",
+      "evidence": [
+        "Chief 独立比较9cd631543277b068273313b233556dfd2ae8813b与本工作树：唯一canonical定义差异是M3-T24.supportPaths加入tests/spec-editor-render.test.ts及.github/workflows/ci.yml；原输出、输入、提供/依赖能力、四条验收、边界E-109及integration阶段不变，SpecEditorView只读未加入写入范围。",
+        "既有spec-editor-render测试第46至47行锁定--err/#B42318，与本卡唯一M1 token错误提示迁移要求冲突；该测试属于必要支持文件。当前差异只增加规则/真实token取值、适配两处视觉断言及准确用例名，保留typed value、受控错误不重复、服务器敏感内容隐藏与焦点链断言；不通过删除语义检查或添加死CSS迁就测试。此处核支持必要性，不代替产品质量审查。",
+        "已核E2E真实写出点与CI覆盖：既有always m3-t7-visual仅新增admin-legacy-specs.json、admin-legacy-specs-visual.json、admin-legacy-specs-states.json与specs-*.png四条glob及用途注释；原webm已覆盖specs-video。未改其他步骤、条件、retention、门禁，未复制T17/T21/T23的未合分支补丁。采集代码存在不代表产物或验收已成立。",
+        "独立verify-t24-ci-support.py退出0：T24仅definition/effectivePaths变化；M7-T9与M7-T10完整context不变、仅provider hash传播，三项均todo。progress86/done83、12历史记录含batch6clean/pass、17repair、22批任务集合与提示保持，仅6/20/21批摘要hash变化；revalidation仍空，maintenance.pendingTasks/needsReview均空，task-reviews在登记前与基线一致。",
+        "已人工读派发文本差异：非affected任务只新增M3-T24共享路径提示，自身hash不变；M7-T9引用的九个codeRefs来自本卡已授权源code/notes投影，不是他人源或状态回退。六项规范JSON文本digest独立复算匹配，build-state完整且sourceVersion一致，结构review.current=true/block0。本登记仅task-contract支持范围，不证明规格GET/PUT、三角色权限、真实六态、密度、PNG/video/GIF、CI或落地通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T10": {
+      "contractHash": "e0368b424ba10aacb897bdb2f27f774976ac76c9ab74ede9178e1b89e5507436",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "faca3420a7164e5d30d6a078e8b0199dc22063faba4e0a9a64e31136685c56df",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

@@ -354,6 +354,8 @@ jobs:
       # M3-T7 后台壳三尺寸视觉证据：成功运行也要留视频，供 PR 转 GIF。
       # 现有 playwright-report 只在 failure() 上传，成功时没有视频；这里单独、最小地
       # 只收 .webm，不动其它上传步骤、不改测试与断言。
+      # M3-T24 规格编辑器：同 always 段收本卡三份脱敏 JSON 与四帧 PNG（列表/表单/已保存/返回）；
+      # spec-video 的 .webm 已由上面的 *.webm 覆盖，不重复登记。仅加路径，不改门禁/retention。
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -362,6 +364,10 @@ jobs:
             test-results/**/*.webm
             test-results/**/admin-account-density.json
             test-results/**/admin-account-cleared.json
+            test-results/**/admin-legacy-specs.json
+            test-results/**/admin-legacy-specs-visual.json
+            test-results/**/admin-legacy-specs-states.json
+            test-results/**/specs-*.png
           retention-days: 1
           if-no-files-found: warn
       - if: failure()
