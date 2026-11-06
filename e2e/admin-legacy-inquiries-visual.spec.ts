@@ -162,6 +162,49 @@ function assertDesktopDensity(probe: Record<string, unknown>, label: string) {
   }
 }
 
+/** 列表首屏数据就绪的响应等待：必须是导航前挂上，避免请求先完成而错过。
+ *  精确匹配本 origin、GET、/api/admin/inquiries 与当前分页参数；侧栏计数请求是
+ *  pageSize=1&status=NEW，不带 page，不会被匹配。只等响应本身、不在匹配条件里筛状态：
+ *  非 200 也要先被捕获再断言，避免真实 500 被拖成等待超时。 */
+function listResponseWaiter(page: Page, pageNo = 1, pageSize = 10) {
+  const origin = new URL(BASE).origin;
+  const wantPage = String(pageNo);
+  const wantSize = String(pageSize);
+  const wait = page.waitForResponse((r) => {
+    if (r.request().method() !== 'GET') return false;
+    const u = new URL(r.url());
+    return u.origin === origin
+      && u.pathname === '/api/admin/inquiries'
+      && u.searchParams.get('page') === wantPage
+      && u.searchParams.get('pageSize') === wantSize
+      && !u.searchParams.has('status');
+  }, { timeout: 15_000 });
+  // 导航失败时不能留下未处理拒绝；调用方仍会 await 到真实错误。
+  wait.catch(() => {});
+  return wait;
+}
+
+/** 响应到手后等列表完成渲染：加载行消失、无错误 alert，且出现数据行 / 待核实组 /
+ *  明确空态之一（与响应条数交叉核对），不能只凭卡片可见或「不含加载」放行。 */
+async function assertListReady(page: Page, resp: Awaited<ReturnType<typeof listResponseWaiter>>) {
+  expect(resp.status(), '列表响应必须 200').toBe(200);
+  const body = await resp.json() as { items?: unknown[] };
+  const tbody = page.locator('.inq-list .adm-inq-table tbody');
+  await expect(tbody).not.toContainText('加载中…');
+  await expect(tbody.locator('td[role="alert"]')).toHaveCount(0);
+  const counts = Array.isArray(body.items) ? body.items.length : 0;
+  if (counts === 0) {
+    await expect(tbody).toContainText('没有符合条件的询盘');
+    return;
+  }
+  await expect(async () => {
+    const settled = (await tbody.locator('tr.row, tr.group').count()) > 0
+      || (await tbody.getByText('本页都是已匿名化询盘', { exact: false }).count()) > 0;
+    expect(settled, '列表须完成渲染：数据行 / 待核实组 / 明确空态').toBe(true);
+  }).toPass({ timeout: 7_000 });
+  expect(await tbody.locator('tr.row').count(), '渲染行数不得超过响应条数').toBeLessThanOrEqual(counts);
+}
+
 let adminState: SessionState;
 test.beforeAll(async () => { adminState = (await loginRole('ADMIN')).state; });
 
@@ -341,6 +384,8 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     test.setTimeout(180_000);
     const out = report();
     out.viewports = [];
+    // D2/D6 失败时也要有原始指标：每次 probe 先写白名单记录，再进行密度断言。
+    out.densityProbes = [];
     // 触控是 context 级能力：每个视口用独立 context，手机档显式 hasTouch+isMobile，
     // 桌面两档明确非触控。不用 setViewportSize 冒充真实粗指针。
     await ctx.close();
@@ -353,8 +398,12 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       if (viewCtx) { await viewCtx.close(); viewCtx = null; }
       viewCtx = await contextFor(browser, adminState, test.info(), { viewport: { width: view.width, height: view.height }, hasTouch: view.touch, isMobile: view.touch });
       page = await viewCtx.newPage();
+      // 先挂响应等待再导航：列表首帧数据未返回时测密度会把「加载中…」判成布局缺陷。
+      const listWait = listResponseWaiter(page);
       await page.goto(`${BASE}/admin/inquiries`);
       await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
+      const listResp = await listWait;
+      await assertListReady(page, listResp);
       const m = await page.evaluate(() => {
         const cs = (s: string) => { const el = document.querySelector(s); return el ? getComputedStyle(el) : null; };
         const wrapper = document.querySelector('.inq-list');
@@ -420,6 +469,8 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
 
       // 真实 density_probe：桌面两尺寸逐项 pass，手机只按适用项/overflow。
       const work = await density(page, { type: 'work', density: 7, main: '.adm-main', gutter: 16, gap: 16, pad: 16 });
+      // 先把白名单指标写进报告，D2/D6 失败时也有原始数值（原实现只在断言后 push）。
+      (out.densityProbes as unknown[]).push({ label: view.label, width: view.width, height: view.height, touch: view.touch, densityWork: safeDensity(work) });
       if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);
       else {
         const v = work.verdict as Record<string, string>;

@@ -348,3 +348,92 @@ test('绝不新增 models.css / specs.css / 公共 adm-* 全局定义或 T6 登�
   assert.doesNotMatch(mailCode, /models\.css|specs\.css/);
   assert.doesNotMatch(mailCode, /@import/);
 });
+
+test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 200、等渲染完成、失败先留指标', () => {
+  const source = read('e2e/admin-legacy-inquiries-visual.spec.ts');
+
+  // 从源码里取出真实 matcher，用离线样本核精确匹配（不启动浏览器）。
+  const anchor = source.indexOf('function listResponseWaiter(');
+  assert.ok(anchor >= 0, '缺少 listResponseWaiter');
+  const braceStart = source.indexOf('{', source.indexOf('(r) => {', anchor));
+  let depth = 0;
+  let braceEnd = -1;
+  for (let i = braceStart; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}') { depth--; if (depth === 0) { braceEnd = i + 1; break; } }
+  }
+  assert.ok(braceEnd > braceStart, '无法提取列表响应 matcher');
+  const matcherSrc = `(r) => ${source.slice(braceStart, braceEnd)}`;
+  assert.ok(!matcherSrc.includes('.status('), 'matcher 不得按响应状态筛选，否则真实 500 会变成等待超时');
+  const compile = (src: string) => runInNewContext(
+    `const origin = 'http://localhost:3100';\nconst wantPage = '1';\nconst wantSize = '10';\nconst matcher = ${src};\nmatcher;`,
+    { URL },
+  ) as (r: unknown) => boolean;
+  const req = (url: string, method = 'GET') => ({
+    request: () => ({ method: () => method }),
+    url: () => url,
+  });
+  const matcher = compile(matcherSrc);
+  assert.equal(matcher(req('http://localhost:3100/api/admin/inquiries?page=1&pageSize=10')), true, '本页列表请求必须匹配');
+  assert.equal(matcher(req('http://localhost:3100/api/admin/inquiries?pageSize=1&status=NEW')), false, '侧栏计数请求不得匹配');
+  assert.equal(matcher(req('http://localhost:3100/api/admin/inquiries?page=2&pageSize=10')), false);
+  assert.equal(matcher(req('http://127.0.0.1:3100/api/admin/inquiries?page=1&pageSize=10')), false, '必须是本 origin');
+  assert.equal(matcher(req('http://localhost:3100/api/admin/inquiries?page=1&pageSize=10', 'POST')), false, '只匹配 GET');
+  assert.equal(matcher(req('http://localhost:3100/api/admin/inquiries?page=1&pageSize=10&status=NEW')), false, '带状态筛选的列表请求不当作首屏就绪');
+  // 负控：去掉 status 排除后，带 status 的 URL 会误命中——证明这条排除确实生效。
+  const noStatus = matcherSrc.replace("&& !u.searchParams.has('status')", '');
+  assert.notEqual(noStatus, matcherSrc);
+  assert.equal(compile(noStatus)(req('http://localhost:3100/api/admin/inquiries?page=1&pageSize=10&status=NEW')), true);
+
+  // 所有源码检查都限定在三尺寸用例内，避免同文件其它用例的 goto 干扰顺序判断。
+  const blockOf = (text: string) => {
+    const s = text.indexOf("test('三尺寸真实页：");
+    assert.ok(s >= 0, '缺少三尺寸用例');
+    const e = text.indexOf('\n  test(', s + 10);
+    return text.slice(s, e > 0 ? e : text.length);
+  };
+  const spliceBlock = (mutate: (b: string) => string) => {
+    const block = blockOf(source);
+    const start = source.indexOf(block);
+    return source.slice(0, start) + mutate(block) + source.slice(start + block.length);
+  };
+  const check = (text: string) => {
+    const block = blockOf(text);
+    // 1) 导航前挂等待
+    const waiterCall = block.indexOf('const listWait = listResponseWaiter(page);');
+    const goto = block.indexOf('await page.goto(`${BASE}/admin/inquiries`);', waiterCall);
+    assert.ok(waiterCall >= 0 && goto > waiterCall, '每个视口必须先挂响应等待再导航');
+    // 2) 先取响应、再断言 200
+    assert.match(block, /const listResp = await listWait;/);
+    assert.match(text, /expect\(resp\.status\(\), '列表响应必须 200'\)\.toBe\(200\);/);
+    assert.match(block, /await assertListReady\(page, listResp\);/);
+    // 3) 渲染完成：加载消失 / 无 alert / 行或空态一致
+    assert.match(text, /not\.toContainText\('加载中…'\)/);
+    assert.match(text, /tbody\.locator\('td\[role="alert"\]'\)\)\.toHaveCount\(0\)/);
+    assert.match(text, /tr\.row, tr\.group/);
+    assert.match(text, /没有符合条件的询盘/);
+    // 4) 失败指标先于断言保留
+    const record = block.indexOf('(out.densityProbes as unknown[]).push');
+    const densityAssert = block.indexOf('if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);');
+    assert.ok(record >= 0 && densityAssert > record, 'safeDensity 必须在密度断言前写入白名单记录');
+    assert.match(block, /densityWork: safeDensity\(work\)/);
+  };
+  check(source);
+  // 负控：逐项破坏必须让守卫失败。
+  const waiterLine = '      const listWait = listResponseWaiter(page);\n';
+  const gotoLine = '      await page.goto(`${BASE}/admin/inquiries`);\n';
+  const brokenNoWait = spliceBlock((b) => b.replace(waiterLine, '').replace(gotoLine, gotoLine + waiterLine));
+  assert.notEqual(brokenNoWait, source);
+  assert.throws(() => check(brokenNoWait), '把等待放到导航后必须被发现');
+  const brokenOk = source.replace("expect(resp.status(), '列表响应必须 200').toBe(200);", 'expect(resp.ok()).toBe(true);');
+  assert.notEqual(brokenOk, source);
+  assert.throws(() => check(brokenOk), '把 status 200 断言换成 ok() 必须被发现');
+  const brokenLoading = source.replace("await expect(tbody).not.toContainText('加载中…');\n", '');
+  assert.notEqual(brokenLoading, source);
+  assert.throws(() => check(brokenLoading), '去掉加载完成等待必须被发现');
+  const push = '(out.densityProbes as unknown[]).push({ label: view.label, width: view.width, height: view.height, touch: view.touch, densityWork: safeDensity(work) });';
+  const densityAssertLine = '      if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);\n';
+  const afterAssert = spliceBlock((b) => b.replace(push + '\n', '').replace(densityAssertLine, densityAssertLine + '      ' + push + '\n'));
+  assert.notEqual(afterAssert, source);
+  assert.throws(() => check(afterAssert), '把指标记录放到断言后必须被发现');
+});
