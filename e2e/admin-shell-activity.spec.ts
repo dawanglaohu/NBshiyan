@@ -1,15 +1,15 @@
 import { writeFileSync } from 'node:fs';
 import { performance as nodePerf } from 'node:perf_hooks';
 import { test, expect } from './fixtures';
-import { BASE } from '../playwright.config';
+const BASE = `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`;
 import { useSharedAdmin } from './shared-admin';
 
 /**
  * M3-T7 统一后台外壳：真实登录 → 角色菜单 → GET account → 真实活动 → signOut。
  *
- * 登录：照 e2e/shared-admin.ts 的模式，用 scripts/create-admin.mjs 建**独立**管理员
- * （唯一 email、ADMIN_SEED_TOTP_SECRET=E2E_TOTP），每组 beforeAll 只登录一次、
- * beforeEach 把 cookie 放进每个用例自己的 page context。
+ * 身份：globalSetup 为主体/signout/cleared 分别正常登录独立管理员及设备会话，
+ * 每组 beforeAll 只读对应 run 槽，beforeEach 把真实 cookie 放进独立 page context。
+ * worker 重启不重新登录，已注销的槽不重建。
  * 不复用全局 E2E_ADMIN：它会把共享管理员绑掉，让同文件后续用例与 admin.spec.ts 静默 skip。
  *
  * 为什么 signOut 单独一组会话：signOut 会撤销该设备会话，若与其它用例共用 beforeAll 的
@@ -27,7 +27,6 @@ import { useSharedAdmin } from './shared-admin';
  * - 15 分钟节流 / 隐藏页不发 / 失焦取消由 tests/admin-shell-activity.test.ts 的纯逻辑用例覆盖；
  *   这里只验「真实操作确实发出 POST」与「首帧不报」。
  */
-const PASSWORD = 'e2e-shell-Passw0rd!';
 const ACCOUNT = '/api/admin/account';
 
 type ContentRole = 'state-text' | 'state-block' | 'data-name' | 'data-role' | 'signout-control' | 'signout-text' | 'other-text' | 'other-box';
@@ -399,7 +398,7 @@ test('后台壳：未登录不能读 account，页面跳登录', async ({ reques
 });
 
 test.describe('后台壳主体（独立管理员，整组一次登录）', () => {
-  useSharedAdmin({ emailPrefix: 'e2e-shell', name: 'E2E shell', password: PASSWORD, probe: ACCOUNT });
+  useSharedAdmin({ emailPrefix: 'e2e-shell', name: 'E2E shell', probe: ACCOUNT, slot: 'shell-main' });
 
   test('角色菜单来自服务端、账号区读 GET account、退出控件可达', async ({ page }) => {
     test.setTimeout(120_000);
@@ -633,7 +632,7 @@ test.describe('后台壳主体（独立管理员，整组一次登录）', () =>
 
 // signOut 会撤销设备会话，单独建管理员/会话，不与上面的 beforeAll 旧 cookie 共用。
 test.describe('admin-signout 真退出（独立会话）', () => {
-  useSharedAdmin({ emailPrefix: 'e2e-shell-signout', name: 'E2E shell signout', password: PASSWORD, probe: ACCOUNT });
+  useSharedAdmin({ emailPrefix: 'e2e-shell-signout', name: 'E2E shell signout', probe: ACCOUNT, slot: 'shell-signout' });
 
   test('点 admin-signout 执行真实 Auth.js signOut，旧 cookie GET account=401', async ({ page, browser }) => {
     test.setTimeout(120_000);
@@ -659,7 +658,7 @@ test.describe('admin-signout 真退出（独立会话）', () => {
  * 报告 finally 先写主诊断（清理前），独立清理每项并记录受控失败（最终 pass=false），再更新同一报告。
  */
 test.describe('admin-account 401-cleared 态布局补证（独立会话）', () => {
-  useSharedAdmin({ emailPrefix: 'e2e-shell-cleared', name: 'E2E shell cleared', password: PASSWORD, probe: ACCOUNT });
+  useSharedAdmin({ emailPrefix: 'e2e-shell-cleared', name: 'E2E shell cleared', probe: ACCOUNT, slot: 'shell-cleared' });
 
   test('SSR 挂载后另一真实请求撤销会话，浏览器自身 GET account 401 触发 .adm-account-cleared（两档桌面）', async ({ page, playwright }, testInfo) => {
     test.setTimeout(150_000);

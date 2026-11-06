@@ -1,14 +1,14 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { authenticator } from 'otplib';
-import { execFileSync } from 'node:child_process';
+import { request } from '@playwright/test';
+import { loadRunAuth } from './run-auth';
 import type { Browser, BrowserContext, Page, TestInfo } from '@playwright/test';
 import { test, expect } from './fixtures';
 // 与 playwright.config.ts 的 `E2E_PORT ?? 3100` 一致；不 import 该 config，也不 import 会间接
 // 加载它的 shared-admin，避免本机/收集时触发 standalone 产物前置（CI 仍由真实 config 的
-// webServer 起同一端口的服务）。E2E_TOTP 与 e2e/shared-admin.ts 的测试用假密钥同值。
+// webServer 起同一端口的服务）；认证状态只由 run-auth 的正常登录初始化。
 const BASE = `http://localhost:${process.env.E2E_PORT ?? 3100}`;
-const E2E_TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
+
 import { STATUS_LABEL } from '../src/lib/admin/types';
 
 /**
@@ -16,13 +16,13 @@ import { STATUS_LABEL } from '../src/lib/admin/types';
  * → 状态/分配/notes 持久 → 三尺寸 computed style / density_probe D1–D6 / overflow
  * → 真实触控 44px 矩形 / 六态 / JSON+PNG+video 同次来源证据。
  *
- * 登录：每角色各自独立管理员（create-admin.mjs + E2E_TOTP），整文件 ADMIN 只登录一次；
- * SALES 另建独立账号核他人 scope。不复用全局 E2E_ADMIN、不靠 test.skip 换绿。
+ * 身份来自本 run 正常 Auth.js 登录的 content-admin / sales 会话；worker 只读，失败不补登录。
+ * ADMIN/SALES 角色分别保留，不复用全局 E2E_ADMIN、不靠 test.skip 换绿。
  * 合成数据：真实 POST /api/inquiries，读响应 ref 在列表定位，不直插 DB、不改响应、不造 DOM。
  * 证据：test.use({ video:'on' }) 文件顶层一次；JSON/PNG 写到各用例 testInfo.outputPath
  * （同名重跑不覆盖项目其它证据），density probe 写 JSON 前按白名单投影，PNG 只截控件区不进数据行。
  */
-const PASSWORD = 'e2e-inq-visual-Passw0rd!';
+
 const ACCOUNT = '/api/admin/account';
 const STATUS_KEYS = Object.keys(STATUS_LABEL);
 
@@ -43,24 +43,9 @@ test.use({ video: 'on' });
 
 type SessionState = Awaited<ReturnType<BrowserContext['storageState']>>;
 
-/** 独立建号 + 真实 Auth.js credentials 登录一次，返回 storageState，供各组 page/context 复用。 */
-async function loginRole(browser: Browser, emailPrefix: string, role: string): Promise<{ state: SessionState; email: string }> {
-  const email = `${emailPrefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
-  execFileSync('node', ['scripts/create-admin.mjs'], {
-    stdio: 'pipe',
-    env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: PASSWORD, ADMIN_SEED_NAME: emailPrefix, ADMIN_SEED_ROLE: role, ADMIN_SEED_TOTP_SECRET: E2E_TOTP },
-  });
-  const ctx = await browser.newContext({ baseURL: BASE });
-  const csrf = (await (await ctx.request.get('/api/auth/csrf')).json()).csrfToken as string;
-  const ok = await ctx.request.post('/api/auth/callback/credentials', {
-    headers: { Origin: BASE }, maxRedirects: 0,
-    form: { csrfToken: csrf, email, password: PASSWORD, totp: authenticator.generate(E2E_TOTP) },
-  });
-  expect(ok.headers()['location'] ?? '').not.toContain('error');
-  expect((await ctx.request.get(ACCOUNT)).status()).toBe(200);
-  const state = await ctx.storageState();
-  await ctx.close();
-  return { state, email };
+/** Load the run's already authenticated positive role; no worker performs credentials login. */
+async function loginRole(role: 'ADMIN' | 'SALES'): Promise<{ state: SessionState }> {
+  return { state: await loadRunAuth(role === 'ADMIN' ? 'content-admin' : 'sales', BASE, request) };
 }
 
 /** 用某角色的 storageState 建本用例自己的 context（继承 baseURL 与必要 video/locale）。
@@ -176,7 +161,7 @@ function assertDesktopDensity(probe: Record<string, unknown>, label: string) {
 }
 
 let adminState: SessionState;
-test.beforeAll(async ({ browser }) => { adminState = (await loginRole(browser, 'e2e-inq-visual', 'ADMIN')).state; });
+test.beforeAll(async () => { adminState = (await loginRole('ADMIN')).state; });
 
 test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', () => {
   let ctx: BrowserContext;
@@ -644,9 +629,9 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       expect(realAssignee, 'ADMIN 账号列表必须给出合法真实用户 id').toBeTruthy();
       await adminCtx.close(); adminClosed = true;
 
-      // 独立 SALES 账号真实登录；GET /api/admin/account 的 DTO 自带 role，先确证身份确为 SALES。
+      // 读取本 run 的独立 SALES 会话；GET /api/admin/account 仍确证当前身份确为 SALES。
       stage('sales-login');
-      const sales = await loginRole(browser, 'e2e-inq-sales', 'SALES');
+      const sales = await loginRole('SALES');
       salesCtx = await browser.newContext({ baseURL: BASE, storageState: sales.state });
       const acct = await salesCtx.request.get(ACCOUNT);
       expect(acct.status()).toBe(200);

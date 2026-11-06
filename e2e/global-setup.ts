@@ -1,6 +1,8 @@
 import { execFileSync } from 'node:child_process';
+import { request } from '@playwright/test';
+import { initializeRunAuth } from './run-auth';
 // 用 scripts/create-admin.mjs（pnpm admin:seed）创建测试管理员（仅 E2E 数据库）。已存在则忽略。
-export default function globalSetup() {
+export default async function globalSetup() {
   if (!process.env.DATABASE_URL) throw new Error('E2E 需要 DATABASE_URL（测试库）');
   try {
     const out = execFileSync('node', ['scripts/create-admin.mjs'], {
@@ -12,7 +14,8 @@ export default function globalSetup() {
     if (t) process.env.E2E_ADMIN_ENROLL_TOKEN = t;
   } catch (e) {
     const msg = String((e as { stderr?: Buffer }).stderr ?? e);
-    if (!msg.includes('已存在')) throw e;
+    if (!msg.includes('已存在')) throw new Error('E2E global administrator seed failed');
   }
+  return initializeRunAuth(`http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`, request);
 }
 export const E2E_ADMIN = { email: 'e2e-admin@example.test', password: process.env.E2E_ADMIN_PASSWORD ?? 'e2e-only-Passw0rd!' };

@@ -1,12 +1,11 @@
 import sharp from 'sharp';
 import { test, expect } from './fixtures';
 import { useSharedAdmin } from './shared-admin';
-import { BASE } from '../playwright.config';
+const BASE = `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`;
 import type { Page } from '@playwright/test';
 
 // #350 /admin/settings「关于我们 · 图片列表」：真实页面 + 真实接口（#374 PublicAsset），仅 E2E 测试库。
-// 每组新建一个 ADMIN、只登录一次（scripts/create-admin.mjs，ADMIN_SEED_TOTP_SECRET 只在非生产可用），见 useSharedAdmin。
-const PASSWORD = 'e2e-img-Passw0rd!';
+// 两组读取本 run 不同 user 的真实会话，避免上传额度互相挤占；worker 不重复登录。
 const origin = { Origin: BASE };
 const S = '/api/admin/site-settings';
 
@@ -15,7 +14,7 @@ const S = '/api/admin/site-settings';
  * 分两组两个账号：图片上传按管理员每分钟 20 次（ASSET_UPLOAD_RATE），整个文件约 22 次上传、跑完不到一分钟，一个账号会撞上限。
  * 每个测试仍然自己 reset()（清列表、删图库、内容回到基线），互不依赖。
  */
-const useImgAdmin = (tag: string) => useSharedAdmin({ emailPrefix: `e2e-img-${tag}`, name: `E2E img ${tag}`, password: PASSWORD, probe: `${S}/about` });
+const useImgAdmin = (tag: string) => useSharedAdmin({ emailPrefix: `e2e-img-${tag}`, name: `E2E img ${tag}`, probe: `${S}/about`, slot: tag === 'a' ? 'content-admin' : 'imageB' });
 
 /**
  * 从干净状态开始：清空列表、删掉图库里的图、en 填完整内容（无图）、ru 清空、开关打开。
