@@ -82,6 +82,10 @@
 }
 .ml .ml-status.err{border-left:var(--pj-border-width) solid var(--pj-accent)}
 .ml .ml-att .ico,.ml .ml-resize span,.ml .ml-toast button{border-radius:var(--pj-radius);box-shadow:var(--pj-shadow)}
+/* 白底 toast 内「撤销 / 关闭」按钮：旧定义给的是显式白字，父级 color 覆盖不到子元素，
+   必须显式改前景/背景，否则白字白底失去对比；focus-visible 沿用强调色焦点环。 */
+.ml .ml-toast button{color:var(--pj-fg);background:transparent;border:var(--pj-border-width) solid var(--pj-border)}
+.ml .ml-toast button:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
 .ml .ml-btn.primary{background:var(--pj-inverse);color:var(--pj-on-inverse);border-color:var(--pj-border)}
 .ml .ml-btn:disabled,.ml .ml-compose input[readonly]{opacity:1;border-style:dashed;cursor:not-allowed;background:var(--pj-bg);color:var(--pj-fg)}
 .ml .ml-list button[aria-current]{background:var(--pj-inverse);color:var(--pj-on-inverse);box-shadow:none;border-left:var(--pj-border-width) solid var(--pj-accent)}

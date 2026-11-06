@@ -179,6 +179,56 @@ test('六态与 DENSITY 7：44px 触屏、focus-visible、disabled、gap/pad 16�
   assert.match(css, /line-height:20px/);
 });
 
+test('P2 级联：真实按钮圆角、toast 前景、DateRange 弹层与早返回状态都有精确命名域规则', () => {
+  const strip = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, '');
+  const block = strip(css.slice(css.indexOf('/* M3-T21')));
+  // 精确取规则体：按选择器逐项精确匹配，不做全文件任意命中。
+  const rule = (selector: string): string => {
+    for (const m of block.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const sels = m[1].split(',').map((s) => s.trim());
+      if (sels.includes(selector)) return m[2].trim();
+    }
+    return '';
+  };
+  // 详情真实按钮：.adm-btn.sq 是 0,2,0，必须有一条选择器含更高特异性
+  // `.inq-detail button.adm-btn.sq` 的命名域规则，且其声明把圆角归零。
+  const higherRule = [...block.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter((m) => m[1].split(',').map((s) => s.trim()).includes('.inq-detail button.adm-btn.sq'))
+    .map((m) => m[2]);
+  assert.ok(higherRule.length > 0, '必须有压过 .adm-btn.sq 的命名域选择器');
+  assert.match(higherRule.join('\n'), /border-radius:var\(--pj-radius\)/, '该规则须把圆角归零');
+  assert.match(higherRule.join('\n'), /min-height:var\(--pj-admin-control-height\)/);
+  // 桌面 36 / 触控 44 分档，不是所有尺寸一律 44。
+  assert.match(css, /min-height:var\(--pj-admin-control-height\)/);
+  assert.match(css, /@media \(pointer:coarse\),\(max-width:767px\)/);
+  const mediaIdx = css.indexOf('@media (pointer:coarse)');
+  assert.ok(mediaIdx > 0, '触控 media 块须存在');
+  // 输入 16px / 表头 14/20：精确取含 th 的那条分组规则体，而非全文件任意命中。
+  assert.match(css, /font-size:var\(--pj-body-size\)/);
+  const thRule = [...block.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter((m) => m[1].split(',').map((s) => s.trim()).includes('.inq-list .adm-inq-table th'))
+    .map((m) => m[2]).join('\n');
+  assert.match(thRule, /font-size:var\(--pj-ui-size\)/);
+  assert.match(thRule, /line-height:var\(--pj-ui-line\)/);
+  // DateRange 弹层容器与内部控件被覆盖。
+  assert.ok(rule('.inq-list .drp>button') && rule('.inq-list .drp-pop'), 'DateRange 弹层须有命名域规则');
+  const drp = rule('.inq-list .drp>button');
+  assert.match(drp, /border:var\(--pj-border-width\) solid var\(--pj-border\)/);
+  assert.match(drp, /border-radius:var\(--pj-radius\)/);
+  // 早返回状态 wrapper + 空态/骨架命名域规则。
+  assert.match(css, /\.inq-state\{/);
+  assert.match(css, /\.inq-state \.adm-empty/);
+  assert.match(css, /\.inq-detail \.adm-tl-skel \.adm-tl-ic/);
+  // mail.css：白底 toast 内 button 显式前景（旧定义是 color:#fff，父级覆盖不到子元素）。
+  // 取所有 `.ml .ml-toast button` 规则，确证新增的那条（在 M3-T21 块内）显式改了前景。
+  const mailBlock = strip(mail.slice(mail.indexOf('/* M3-T21')));
+  const toastRules = [...mailBlock.matchAll(/\.ml \.ml-toast button\{([^}]*)\}/g)].map((m) => m[1]);
+  assert.ok(toastRules.length > 0, '必须有 .ml .ml-toast button 覆盖规则');
+  assert.ok(toastRules.some((b) => /color:var\(--pj-fg\)/.test(b)), '须有一条显式把前景改为 --pj-fg');
+  assert.ok(toastRules.some((b) => /background:transparent/.test(b)), '须显式给透明背景');
+  assert.ok(!toastRules.some((b) => /color:#fff/.test(b)), '覆盖规则不得把白字加回');
+});
+
 test('绝不新增 models.css / specs.css / 公共 adm-* 全局定义或 T6 登录页', () => {
   // 本任务只写 admin.css / mail.css 与询盘/邮件组件；公共壳与账号区不动。
   const block = css.slice(css.indexOf('/* M3-T21'));

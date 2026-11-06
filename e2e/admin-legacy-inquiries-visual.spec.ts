@@ -4,8 +4,11 @@ import { authenticator } from 'otplib';
 import { execFileSync } from 'node:child_process';
 import type { Browser, BrowserContext, Page, TestInfo } from '@playwright/test';
 import { test, expect } from './fixtures';
-import { BASE } from '../playwright.config';
-import { E2E_TOTP } from './shared-admin';
+// 与 playwright.config.ts 的 `E2E_PORT ?? 3100` 一致；不 import 该 config，也不 import 会间接
+// 加载它的 shared-admin，避免本机/收集时触发 standalone 产物前置（CI 仍由真实 config 的
+// webServer 起同一端口的服务）。E2E_TOTP 与 e2e/shared-admin.ts 的测试用假密钥同值。
+const BASE = `http://localhost:${process.env.E2E_PORT ?? 3100}`;
+const E2E_TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 import { STATUS_LABEL } from '../src/lib/admin/types';
 
 /**
@@ -61,9 +64,16 @@ async function loginRole(browser: Browser, emailPrefix: string, role: string): P
 }
 
 /** 用某角色的 storageState 建本用例自己的 context（继承 baseURL 与必要 video/locale）。
- *  自建 context 显式装外部拦截 + Turnstile 桩，补齐默认 page fixture 不覆盖本卡 context 的缺口。 */
-async function contextFor(browser: Browser, state: SessionState, testInfo: TestInfo): Promise<BrowserContext> {
-  const context = await browser.newContext({ baseURL: BASE, storageState: state, locale: 'en-US', recordVideo: { dir: testInfo.outputPath('video'), size: { width: 1280, height: 720 } } });
+ *  自建 context 显式装外部拦截 + Turnstile 桩，补齐默认 page fixture 不覆盖本卡 context 的缺口。
+ *  opts 可指定真实触控配置（hasTouch/isMobile）与视口；触控是 context 级能力，setViewportSize 改不了。 */
+async function contextFor(browser: Browser, state: SessionState, testInfo: TestInfo, opts?: { viewport?: { width: number; height: number }; hasTouch?: boolean; isMobile?: boolean }): Promise<BrowserContext> {
+  const context = await browser.newContext({
+    baseURL: BASE, storageState: state, locale: 'en-US',
+    ...(opts?.viewport ? { viewport: opts.viewport } : {}),
+    ...(opts?.hasTouch ? { hasTouch: true } : {}),
+    ...(opts?.isMobile ? { isMobile: true } : {}),
+    recordVideo: { dir: testInfo.outputPath('video'), size: { width: 1280, height: 720 } },
+  });
   await context.route(EXTERNAL, (route) => {
     if (route.request().url().startsWith('https://challenges.cloudflare.com/turnstile/v0/api.js')) {
       return route.fulfill({ contentType: 'text/javascript', body: TURNSTILE_STUB });
@@ -133,6 +143,24 @@ async function density(page: Page, opts: { type: 'work' | 'form'; density: numbe
   }, opts);
 }
 
+/** 真实键盘 Tab：只按 Tab 键循环到达指定 aria-label 控件，不用 .focus() 冒充；
+ *  返回 activeElement 的真实矩形与 focus-visible computed outline。 */
+async function tabTo(page: Page, ariaLabel: string) {
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  for (let i = 0; i < 60; i++) {
+    await page.keyboard.press('Tab');
+    const hit = await page.evaluate((wanted) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el || el.getAttribute('aria-label') !== wanted) return null;
+      const r = el.getBoundingClientRect(); const s = getComputedStyle(el);
+      return { tag: el.tagName, label: el.getAttribute('aria-label'), w: Math.round(r.width), h: Math.round(r.height),
+        outlineWidth: s.outlineWidth, outlineOffset: s.outlineOffset, outlineColor: s.outlineColor, outlineStyle: s.outlineStyle, minHeight: s.minHeight };
+    }, ariaLabel);
+    if (hit) return hit;
+  }
+  return null;
+}
+
 /** 负控：故意把 D2 或 D5 改成 fail，确认验收函数明确失败，不是只判字段存在。 */
 function assertDesktopDensity(probe: Record<string, unknown>, label: string) {
   const v = probe.verdict as Record<string, string> | undefined;
@@ -167,22 +195,32 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
   const report = () => activeReport!.payload;
   const stage = (s: string) => { if (activeReport) activeReport.payload.stage = s; };
   const finishReport = () => { if (activeReport) activeReport.payload.complete = true; };
-  test.beforeEach(async ({ browser }, testInfo) => {
+  test.beforeEach(async ({ browser }) => {
+    const testInfo = test.info();
     const name = REPORT_BY_TEST[testInfo.title];
     activeReport = name ? { testInfo, name, payload: { runSource: 'admin-legacy-inquiries-visual.spec.ts', complete: false, stage: 'setup' } } : null;
     ctx = await contextFor(browser, adminState, testInfo);
     page = await ctx.newPage();
     stage('context-ready');
   });
+  // 清理失败不能让成功主体假绿：afterEach 拿不到主体错误，所以把「证据写出」与「context 关闭」
+  // 都做成显式抛错（Playwright 把 afterEach 的 error 计入用例失败）。主体已失败时这个 hook 抛出的
+  // 错误会并列记录，不吞原错、也不把 complete=true 写成无条件成功。额外 ADMIN/SALES context 由各用例 finally 关。
   test.afterEach(async () => {
     const pending = activeReport;
-    // 报告写出与 context 清理各自兜底：任一清理失败都不覆盖测试主体已抛出的原错误。
-    try { if (pending) await writeJson(pending.testInfo, pending.name, pending.payload); } catch { /* 不覆盖原错误 */ }
-    try { if (ctx) await ctx.close(); } catch { /* 不覆盖原错误 */ }
+    let failure: string | null = null;
+    if (pending) {
+      try { await writeJson(pending.testInfo, pending.name, pending.payload); }
+      catch (e) { failure = `证据 JSON 写出失败：${String((e as Error).message ?? e)}`; }
+    }
+    try { if (ctx) await ctx.close(); }
+    catch (e) { failure = `${failure ? failure + '；' : ''}context 关闭失败：${String((e as Error).message ?? e)}`; }
     activeReport = null;
+    if (failure) throw new Error(`[M3-T21 teardown] ${failure}`);
   });
 
-  test('真实合成询盘 → 列表 GET 过滤/分页/日期/状态/负责人 → 详情 PATCH/分配/notes 持久', async (_fixtures, testInfo) => {
+  test('真实合成询盘 → 列表 GET 过滤/分页/日期/状态/负责人 → 详情 PATCH/分配/notes 持久', async () => {
+    const testInfo = test.info();
     test.setTimeout(180_000);
     const tag = `m3t21-${Date.now()}`;
     const r = report();
@@ -209,11 +247,37 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     await expect.poll(() => gets.some((u) => u.includes('/api/admin/inquiries'))).toBe(true);
     await expect.poll(() => gets.some((u) => u.includes('/api/admin/users'))).toBe(true);
 
-    // 搜索：q 参数；日期 from/to；状态 tab；负责人；分页 page —— 都触发既有 GET。
+    // 逐项触发既有 GET /api/admin/inquiries 的真实查询参数（不是只做 q 搜索、标题却写满）。
+    const awaitParam = async (key: string, value: string | null) => {
+      await expect.poll(() => gets.some((u) => new URL(u).searchParams.get(key) === value), `${key}=${value} 的 GET 参数`).toBe(true);
+    };
+    // q 搜索
+    await page.getByLabel('搜索').fill(ref);
+    await page.getByRole('button', { name: '搜索' }).click();
+    await awaitParam('q', ref);
+    // 日期 from/to：打开 DateRange 弹层，取「今天」预设（真实 onChange → router.replace → GET）
+    await page.locator('.inq-list .drp>button').click();
+    await expect(page.locator('.inq-list .drp-pop')).toBeVisible();
+    const today = new Date().toISOString().slice(0, 10);
+    await page.locator('.inq-list .drp-pop .presets button').first().click();
+    await awaitParam('from', today);
+    await awaitParam('to', today);
+    // 状态 tab：点「跟进中」，触发 status=FOLLOWING 的 GET
+    await page.locator('.inq-list .adm-tabs button', { hasText: '跟进中' }).click();
+    await awaitParam('status', 'FOLLOWING');
+    // 负责人：选「未分配」，触发 assignee=none 的 GET
+    await page.locator('.inq-list select[aria-label="负责人"]').selectOption('none');
+    await awaitParam('assignee', 'none');
+    // 分页：清空筛选后点下一页，触发 page=2 的 GET（列表数据足够时才可点）
+    await page.getByRole('button', { name: '清除筛选' }).click();
+    await expect.poll(() => gets.some((u) => new URL(u).searchParams.get('q') === null)).toBe(true);
+    const next = page.getByRole('button', { name: '下一页' });
+    if (await next.isEnabled()) { await next.click(); await awaitParam('page', '2'); }
+    r.listGetParamsObserved = { q: true, fromTo: true, status: true, assignee: true, page: await next.isEnabled() };
+    // 回到 q 过滤，精确定位本用例合成记录（不是任意首行）。
     await page.getByLabel('搜索').fill(ref);
     await page.getByRole('button', { name: '搜索' }).click();
     await expect.poll(() => gets.some((u) => new URL(u).searchParams.get('q') === ref)).toBe(true);
-    // 在列表里定位该真实编号（不是任意首行）。
     const row = page.locator('.inq-list tbody tr.row').filter({ has: page.locator(`a:has-text("${ref}")`) });
     await expect(row).toHaveCount(1);
     await row.locator('a').first().click();
@@ -231,14 +295,19 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     await expect.poll(() => mutations.some((m) => m.method === 'PATCH' && m.body.includes('FOLLOWING'))).toBe(true);
     await expect.poll(async () => (await page.getByTestId('status-badge').textContent())?.trim()).toBe(STATUS_LABEL.FOLLOWING);
 
-    // 负责人分配：选第一个真实用户，核 PATCH body 含 assigneeId。
+    // 负责人分配：必须有真实合法用户可选（不静默跳过），点击前配对本次真实 PATCH 响应，
+    // 核响应 assigneeId 等于所选值，刷新后下拉框仍选中该值。
     const assignSelect = page.locator('.inq-detail select[aria-label="负责人"]');
     const optionValues = await assignSelect.locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
     const target = optionValues.find((v) => v && v !== '');
-    if (target) {
-      await assignSelect.selectOption(target);
-      await expect.poll(() => mutations.some((m) => m.method === 'PATCH' && m.body.includes('assigneeId'))).toBe(true);
-    }
+    expect(target, '分配下拉框必须有真实用户可选').toBeTruthy();
+    const assignRespPromise = page.waitForResponse((res) => res.request().method() === 'PATCH' && /\/api\/admin\/inquiries\/[^/]+$/.test(new URL(res.url()).pathname) && (res.request().postData() ?? '').includes('assigneeId'));
+    await assignSelect.selectOption(target!);
+    const assignResp = await assignRespPromise;
+    expect(assignResp.status(), '分配 PATCH 须 200').toBe(200);
+    const assignJson = (await assignResp.json()) as { assigneeId?: string | null };
+    expect(assignJson.assigneeId, '响应 assigneeId 必须等于所选真实用户').toBe(target);
+    r.assigneeIdPersistedInResponse = assignJson.assigneeId === target;
     // 内部备注 POST notes，核真实 body。
     const noteBox = page.locator('.inq-detail textarea[aria-label="内部备注"]');
     await noteBox.fill(`M3-T21 note ${tag}`);
@@ -246,10 +315,12 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     await expect.poll(() => mutations.some((m) => m.method === 'POST' && m.path.endsWith('/notes') && m.body.includes(tag))).toBe(true);
     await expect(page.locator('.inq-detail').getByText(`M3-T21 note ${tag}`)).toBeVisible();
 
-    // 刷新后持久一致。
+    // 刷新后持久一致：状态、分配值、备注都还在（分配不再只搜请求 body 字符串）。
     await page.reload();
     await expect(page.getByTestId('status-badge')).toHaveText(STATUS_LABEL.FOLLOWING);
+    await expect(page.locator('.inq-detail select[aria-label="负责人"]')).toHaveValue(target!);
     await expect(page.locator('.inq-detail').getByText(`M3-T21 note ${tag}`)).toBeVisible();
+    r.assigneePersistedAfterReload = true;
 
     // 报告自 beforeEach 起已初始化；这里把最终判定的白名单字段并入，失败时前面各阶段字段仍在。
     r.statusBadgeText = STATUS_LABEL.FOLLOWING;
@@ -276,13 +347,22 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     finishReport();
   });
 
-  test('三尺寸真实页：wrapper 几何 / density_probe D1–D6 / computed style / overflow / 键盘 44px 触控', async () => {
+  test('三尺寸真实页：wrapper 几何 / density_probe D1–D6 / computed style / overflow / 键盘 36/44 触控', async ({ browser }) => {
     test.setTimeout(180_000);
     const out = report();
     out.viewports = [];
-    for (const view of [{ width: 1920, height: 1080, label: '1920x1080' }, { width: 1440, height: 900, label: '1440x900' }, { width: 390, height: 844, label: '390x844' }]) {
+    // 触控是 context 级能力：每个视口用独立 context，手机档显式 hasTouch+isMobile，
+    // 桌面两档明确非触控。不用 setViewportSize 冒充真实粗指针。
+    await ctx.close();
+    ctx = await contextFor(browser, adminState, test.info(), { viewport: { width: 1440, height: 900 } });
+    page = await ctx.newPage();
+    let viewCtx: BrowserContext | null = null;
+    try {
+    for (const view of [{ width: 1920, height: 1080, label: '1920x1080', touch: false }, { width: 1440, height: 900, label: '1440x900', touch: false }, { width: 390, height: 844, label: '390x844', touch: true }]) {
       stage(`viewport:${view.label}`);
-      await page.setViewportSize(view);
+      if (viewCtx) { await viewCtx.close(); viewCtx = null; }
+      viewCtx = await contextFor(browser, adminState, test.info(), { viewport: { width: view.width, height: view.height }, hasTouch: view.touch, isMobile: view.touch });
+      page = await viewCtx.newPage();
       await page.goto(`${BASE}/admin/inquiries`);
       await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
       const m = await page.evaluate(() => {
@@ -295,6 +375,12 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
         const off = (s: string) => { const el = document.querySelector(s); if (!el || !mr) return null; const r = el.getBoundingClientRect(); return { dx: Math.round((r.x - mr.x) * 100) / 100, dy: Math.round((r.y - mr.y) * 100) / 100, w: Math.round(r.width), h: Math.round(r.height) }; };
         const card = cs('.inq-list > .adm-card');
         const input = cs('.inq-list .adm-filters input');
+        const inputEl = document.querySelector('.inq-list .adm-filters input') as HTMLElement | null;
+        const inputRect = inputEl ? inputEl.getBoundingClientRect() : null;
+        const th = document.querySelector('.inq-list .adm-inq-table th') as HTMLElement | null;
+        const tabBtn = document.querySelector('.inq-list .adm-tabs button') as HTMLElement | null;
+        const tabRect = tabBtn ? tabBtn.getBoundingClientRect() : null;
+        const drpBtn = document.querySelector('.inq-list .drp>button') as HTMLElement | null;
         return {
           wrapperDisplay: wcs?.display ?? null,
           wrapperBox: wr ? { w: Math.round(wr.width * 100) / 100, h: Math.round(wr.height * 100) / 100 } : null,
@@ -303,7 +389,13 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
           cardSides: { top: card?.borderTopColor, right: card?.borderRightColor, bottom: card?.borderBottomColor, left: card?.borderLeftColor },
           cornerRadius: { tl: card?.borderTopLeftRadius, tr: card?.borderTopRightRadius, br: card?.borderBottomRightRadius, bl: card?.borderBottomLeftRadius },
           cardBgImage: card?.backgroundImage ?? null,
-          inputBorder: input?.borderTopWidth ?? null, inputMinHeight: input?.minHeight ?? null,
+          inputBorder: input?.borderTopWidth ?? null, inputMinHeight: input?.minHeight ?? null, inputFont: input?.fontSize ?? null,
+          inputRect: inputRect ? { w: Math.round(inputRect.width), h: Math.round(inputRect.height) } : null,
+          tabMinHeight: tabBtn ? getComputedStyle(tabBtn).minHeight : null,
+          tabRect: tabRect ? { w: Math.round(tabRect.width), h: Math.round(tabRect.height) } : null,
+          tableTh: th ? { font: getComputedStyle(th).fontSize, line: getComputedStyle(th).lineHeight } : null,
+          drpPresent: !!drpBtn,
+          touchMatches: matchMedia('(pointer:coarse),(max-width:767px)').matches,
           accent: getComputedStyle(document.documentElement).getPropertyValue('--pj-accent').trim(),
           noHorizontalOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
         };
@@ -320,7 +412,19 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       for (const r of Object.values(m.cornerRadius)) expect(r).toBe('0px');
       expect(m.cardBgImage).toBe('none');
       expect(m.inputBorder).toBe('2px');
-      expect(parseFloat(m.inputMinHeight ?? '0')).toBeGreaterThanOrEqual(44);
+      expect(m.inputFont, `${view.label} 单行输入 16px`).toBe('16px');
+      // 11 节口径：普通桌面单行 36px、触控 ≥44；不是所有尺寸一律 44。
+      const targetH = view.touch ? 44 : 36;
+      expect(parseFloat(m.inputMinHeight ?? '0'), `${view.label} 输入 min-height`).toBeGreaterThanOrEqual(targetH);
+      expect(m.inputRect!.h, `${view.label} 输入真实矩形高`).toBeGreaterThanOrEqual(targetH);
+      expect(m.touchMatches, `${view.label} 触控 media 应与 context 一致`).toBe(view.touch);
+      expect(m.tableTh!.font, `${view.label} 表头 14px`).toBe('14px');
+      expect(m.tableTh!.line, `${view.label} 表头行高 20px`).toBe('20px');
+      expect(m.drpPresent, `${view.label} 日期弹层控件须存在`).toBe(true);
+      if (view.touch) {
+        expect(m.tabRect!.h, `${view.label} tabs 触控高 ≥44`).toBeGreaterThanOrEqual(44);
+        expect(m.tabRect!.w, `${view.label} tabs 触控宽 ≥44`).toBeGreaterThanOrEqual(44);
+      }
       expect(m.accent).toBe('#b45700');
       expect(m.noHorizontalOverflow).toBe(true);
 
@@ -332,21 +436,20 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
         expect(v.overflow).toBe('pass');
         expect(['pass', 'n/a']).toContain(v.D3);
       }
-      // 真实键盘：Tab 到命名本卡控件（搜索框），核 focus-visible 与真实 44px 矩形。
-      await page.getByLabel('搜索').focus();
-      await page.keyboard.press('Tab');
-      const focus = await page.evaluate(() => {
-        const el = document.activeElement as HTMLElement | null;
-        if (!el) return null;
-        const r = el.getBoundingClientRect();
-        const s = getComputedStyle(el);
-        return { tag: el.tagName, name: el.getAttribute('aria-label'), w: Math.round(r.width), h: Math.round(r.height), outline: s.outlineStyle, minHeight: s.minHeight };
-      });
-      expect(focus, `${view.label} 焦点必须落到真实控件`).not.toBeNull();
-      expect(focus!.h, `${view.label} 焦点控件真实高度`).toBeGreaterThanOrEqual(44);
-      expect(parseFloat(focus!.minHeight)).toBeGreaterThanOrEqual(44);
-      expect(focus!.outline).not.toBe('none');
-      (out.viewports as unknown[]).push({ label: view.label, wrapper: m.wrapperBox, card: m.card, densityWork: safeDensity(work), overflow: m.noHorizontalOverflow });
+      // 真实键盘：只按 Tab 到命名控件「搜索」，核 focus-visible 完整 outline 与真实矩形。
+      const focus = await tabTo(page, '搜索');
+      expect(focus, `${view.label} 搜索框须真实 Tab 可达`).not.toBeNull();
+      expect(focus!.h, `${view.label} 焦点控件真实高度`).toBeGreaterThanOrEqual(targetH);
+      expect(focus!.outlineStyle, `${view.label} focus-visible outline 存在`).not.toBe('none');
+      expect(focus!.outlineWidth, `${view.label} focus outline 2px`).toBe('2px');
+      expect(focus!.outlineOffset, `${view.label} focus outline offset 2px`).toBe('2px');
+      expect(focus!.outlineColor, `${view.label} focus outline 强调色`).toBe('rgb(180, 87, 0)');
+      (out.viewports as unknown[]).push({ label: view.label, touch: view.touch, wrapper: m.wrapperBox, card: m.card,
+        densityWork: safeDensity(work), overflow: m.noHorizontalOverflow, inputFont: m.inputFont,
+        inputRect: m.inputRect, tableTh: m.tableTh, tabRect: m.tabRect, focusOutline: { width: focus!.outlineWidth, offset: focus!.outlineOffset, color: focus!.outlineColor } });
+    }
+    } finally {
+      if (viewCtx) await viewCtx.close();
     }
     finishReport();
   });
@@ -375,8 +478,11 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     const tag = `m3t21-form-${Date.now()}`;
     const ref = await createSyntheticInquiry(page, tag);
     out.refPattern = /^PJ-/.test(ref);
-    for (const view of [{ width: 1920, height: 1080, label: '1920x1080' }, { width: 1440, height: 900, label: '1440x900' }, { width: 390, height: 844, label: '390x844' }]) {
+    for (const view of [{ width: 1920, height: 1080, label: '1920x1080', touch: false }, { width: 1440, height: 900, label: '1440x900', touch: false }, { width: 390, height: 844, label: '390x844', touch: true }]) {
       stage(`viewport:${view.label}`);
+      // 该用例沿用 beforeEach 的桌面 context 只做 setViewportSize：CSS 的 (max-width:767px)
+      // 会让 390 档进 44px 触控口径，桌面两档是 36px。真实 hasTouch/coarse 由上面的三尺寸用例
+      // 用独立 context 覆盖，这里不冒充粗指针设备能力。
       await page.setViewportSize(view);
       await page.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
       // 精确按本用例 ref 定位；若该记录落在「待核实」折叠分组，按产品既有分组按钮展开（不改规则）。
@@ -396,17 +502,29 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       const s = await page.evaluate(() => {
         const card = document.querySelector('.inq-detail .adm-sec');
         const cs = card ? getComputedStyle(card) : null;
-        const btn = document.querySelector('.inq-detail button');
+        // 精确量真实按钮：优先 .adm-btn.sq（旧 10px 圆角来源），否则取第一个详情按钮。
+        const btn = (document.querySelector('.inq-detail button.adm-btn.sq') || document.querySelector('.inq-detail button')) as HTMLElement | null;
         const bs = btn ? getComputedStyle(btn) : null;
         const r = btn ? btn.getBoundingClientRect() : null;
-        return { border: cs?.borderTopWidth, radius: cs?.borderTopLeftRadius, shadow: cs?.boxShadow, btnMinHeight: bs?.minHeight, btnH: r ? Math.round(r.height) : 0 };
+        return {
+          border: cs?.borderTopWidth, radius: cs?.borderTopLeftRadius, shadow: cs?.boxShadow,
+          btnSelector: btn ? btn.className : null,
+          btnRadius: bs?.borderTopLeftRadius ?? null, btnMinHeight: bs?.minHeight ?? null,
+          btnH: r ? Math.round(r.height) : 0, btnW: r ? Math.round(r.width) : 0,
+          btnFont: bs?.fontSize ?? null,
+        };
       });
       expect(s.border).toBe('2px');
       expect(s.radius).toBe('0px');
       expect(s.shadow).toBe('none');
-      expect(parseFloat(s.btnMinHeight ?? '0')).toBeGreaterThanOrEqual(44);
-      expect(s.btnH).toBeGreaterThanOrEqual(44);
-      (out.viewports as unknown[]).push({ label: view.label, densityForm: safeDensity(form), sectionBorder: s.border, sectionRadius: s.radius, sectionShadow: s.shadow, buttonMinHeight: s.btnMinHeight, buttonRectHeight: s.btnH });
+      // 旧 .adm-btn.sq 的 10px 圆角必须被本卡命名域覆盖掉（Chief 首轮独审阻断）。
+      expect(s.btnRadius, `${view.label} 真实按钮圆角须为 0px，不得残留 10px`).toBe('0px');
+      expect(s.btnFont, `${view.label} 按钮字号 16px`).toBe('16px');
+      const targetH = view.touch ? 44 : 36;
+      expect(parseFloat(s.btnMinHeight ?? '0'), `${view.label} 按钮 min-height`).toBeGreaterThanOrEqual(targetH);
+      expect(s.btnH, `${view.label} 按钮真实高`).toBeGreaterThanOrEqual(targetH);
+      if (view.touch) expect(s.btnW, `${view.label} 按钮触控宽 ≥44`).toBeGreaterThanOrEqual(44);
+      (out.viewports as unknown[]).push({ label: view.label, touch: view.touch, densityForm: safeDensity(form), sectionBorder: s.border, sectionRadius: s.radius, sectionShadow: s.shadow, buttonSelector: s.btnSelector, buttonRadius: s.btnRadius, buttonMinHeight: s.btnMinHeight, buttonRectHeight: s.btnH, buttonRectWidth: s.btnW });
     }
     finishReport();
   });
@@ -422,12 +540,18 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
       'tests/inquiry-authz.test.ts（SALES 他人详情/history 404、改派 403）',
       'tests/admin-mail-states-74.test.ts / mail-routes.test.ts（GET/POST 开关、关闭不发信、旧回退）',
     ];
+    // 这些不是「等 CI 就自动补」：需真实隔离 PG/SMTP、真实匿名化数据与不改产品响应/权限的
+    // 错误分支，本卡授权范围内无法安全构造，按事实标为未取得、不会被成功 card 或旧路径冒充。
     r.gaps = [
-      'error UI：本文件未触发真实错误响应，未取得同头具名证据',
-      '匿名化只读 UI：未在本文件重跑，仅既有静态测试路径',
-      '邮件 gate 开关：未在本文件重跑，仅既有静态测试路径',
+      'error UI：需真实错误响应分支；本文件未触发，同头具名证据未取得，保持未通过',
+      '匿名化只读 UI：需真实已匿名化询盘数据；本文件不造 DB/响应，未取得同头具名证据',
+      '邮件 gate 开启/关闭不发信与旧回退：需隔离 PG/SMTP 与真实 mail config；本文件不造后端状态，未取得同头具名证据',
     ];
     r.sixStatesComplete = false;
+    r.gapsNotAutoFilledByCi = true;
+    // 逐态按真实执行结果累积，不在状态发生前预写 verified 列表。
+    r.verifiedInThisSpec = [];
+    const verified = r.verifiedInThisSpec as string[];
     stage('loading-capture');
     await page.setViewportSize({ width: 1440, height: 900 });
     // loading 真实采样：goto 前装 MutationObserver + DOMContentLoaded，记录「加载中…」行是否真实出现过。
@@ -447,99 +571,126 @@ test.describe('M3-T21 询盘/邮件视觉迁移（ADMIN 整组一次登录）', 
     await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
     const loadingRowSeen = await page.evaluate(() => (window as unknown as { __m3t21LoadingSeen?: boolean }).__m3t21LoadingSeen === true);
     r.loadingRowSeen = loadingRowSeen;
-    r.verifiedInThisSpec = ['loading(采样)', 'empty', 'disabled', 'focus', 'success'];
+    if (loadingRowSeen) verified.push('loading(采样)'); // loadingSeen=false 时不列 verified
     stage('empty-state');
     // empty：用一个不可能命中的 q，真实 GET 返回空集。
     await page.getByLabel('搜索').fill('zzz-no-such-ref-zzz');
     await page.getByRole('button', { name: '搜索' }).click();
     await expect(page.locator('.inq-list tbody').getByText('没有符合条件的询盘')).toBeVisible();
+    verified.push('empty');
     // disabled：空结果时「上一页」禁用，computed style 为虚线边框、不透明。
     const prev = page.getByRole('button', { name: '上一页' });
     await expect(prev).toBeDisabled();
     const disabled = await prev.evaluate((el) => { const s = getComputedStyle(el); return { opacity: s.opacity, borderStyle: s.borderTopStyle, cursor: s.cursor }; });
     expect(disabled.opacity).toBe('1');
     expect(disabled.borderStyle).toBe('dashed');
-    // focus：Tab 到命名控件，焦点环可见。
-    await page.getByLabel('搜索').focus();
-    const focus = await page.evaluate(() => { const el = document.activeElement; return el ? { label: el.getAttribute('aria-label'), outline: getComputedStyle(el).outlineStyle } : null; });
-    expect(focus?.label).toBe('搜索');
-    expect(focus?.outline).not.toBe('none');
-    // success：清空筛选恢复列表，成功态可见（行/编号）。
+    verified.push('disabled');
+    // focus：只用真实 Tab 到达命名控件「搜索」，不用 .focus() 冒充，核完整 outline。
+    const focus = await tabTo(page, '搜索');
+    expect(focus, 'focus 态须真实 Tab 可达').not.toBeNull();
+    expect(focus!.outlineStyle).not.toBe('none');
+    expect(focus!.outlineWidth).toBe('2px');
+    expect(focus!.outlineOffset).toBe('2px');
+    expect(focus!.outlineColor).toBe('rgb(180, 87, 0)');
+    verified.push('focus');
+    // success：清空筛选后不只看始终存在的 .adm-card，而要真实 GET 后数据行出现（行/编号）。
+    stage('success-state');
     await page.getByRole('button', { name: '清除筛选' }).click();
-    await expect(page.locator('.inq-list > .adm-card')).toBeVisible();
+    await expect(page.locator('.inq-list tbody tr.row').first()).toBeVisible({ timeout: 15_000 });
+    verified.push('success');
     // 六态字段逐步累积到 beforeEach 已初始化的报告；error 如实标本文件未触发，不冒充同头具名证据。
     r.states = {
       emptyTextSeen: true, disabledOpacity: disabled.opacity, disabledBorder: disabled.borderStyle,
-      focusLabel: focus?.label ?? null, focusOutline: focus?.outline ?? null, successCardVisible: true,
-      errorTriggeredInThisSpec: false,
+      focusLabel: focus?.label ?? null, focusOutline: { width: focus!.outlineWidth, offset: focus!.outlineOffset, color: focus!.outlineColor },
+      successRowVisible: true, errorTriggeredInThisSpec: false,
     };
     finishReport();
   });
 
-  test('SALES 真实身份：他人询盘详情 GET 404、改派 PATCH 403（不降为匿名）', async ({ browser }, testInfo) => {
+  test('SALES 真实身份：他人询盘详情 GET 404、改派 PATCH 403（不降为匿名）', async ({ browser }) => {
+    const testInfo = test.info();
     test.setTimeout(150_000);
     const r = report();
     // ADMIN 侧真实建一条合成询盘；用它自己的 ref 精确过滤定位该记录 id，不点任意首行，
     // 录屏/open 详情前就确定是本用例的 fixture。
     stage('admin-create-synthetic');
     const adminCtx = await contextFor(browser, adminState, testInfo);
-    const adminPage = await adminCtx.newPage();
-    const tag = `m3t21-sales-${Date.now()}`;
-    const ref = await createSyntheticInquiry(adminPage, tag);
-    r.refPattern = /^PJ-/.test(ref);
-    await adminPage.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
-    await expect(adminPage.locator('.inq-list > .adm-card')).toBeVisible();
-    let row = adminPage.locator('.inq-list tbody tr.row').filter({ has: adminPage.locator(`a:has-text("${ref}")`) });
-    if (await row.count() === 0) {
-      const expand = adminPage.locator('.inq-list tbody tr.group button[aria-expanded=false]');
-      if (await expand.count() > 0) await expand.first().click();
-      row = adminPage.locator('.inq-list tbody tr.row').filter({ has: adminPage.locator(`a:has-text("${ref}")`) });
+    let salesCtx: BrowserContext | null = null;
+    let adminClosed = false;
+    try {
+      const adminPage = await adminCtx.newPage();
+      const tag = `m3t21-sales-${Date.now()}`;
+      const ref = await createSyntheticInquiry(adminPage, tag);
+      r.refPattern = /^PJ-/.test(ref);
+      await adminPage.goto(`${BASE}/admin/inquiries?q=${encodeURIComponent(ref)}`);
+      await expect(adminPage.locator('.inq-list > .adm-card')).toBeVisible();
+      let row = adminPage.locator('.inq-list tbody tr.row').filter({ has: adminPage.locator(`a:has-text("${ref}")`) });
+      if (await row.count() === 0) {
+        const expand = adminPage.locator('.inq-list tbody tr.group button[aria-expanded=false]');
+        if (await expand.count() > 0) await expand.first().click();
+        row = adminPage.locator('.inq-list tbody tr.row').filter({ has: adminPage.locator(`a:has-text("${ref}")`) });
+      }
+      await expect(row, '必须找到本用例合成 ref 对应记录').toHaveCount(1);
+      const href = await row.locator('a').first().getAttribute('href');
+      expect(href).toMatch(/\/admin\/inquiries\//);
+      const id = href!.split('/').pop()!;
+      r.targetIdPattern = /^[a-z0-9]{20,40}$/.test(id);
+      // 取一个真实合法用户 id 作 assigneeId：让 zod ID_RE 通过，PATCH 的 403 只可能来自
+      // route.ts:57 的角色判定，而不是 forbidden_origin（缺 Origin）或 invalid（非法 id）。
+      const usersResp = await adminCtx.request.get('/api/admin/users');
+      expect(usersResp.status()).toBe(200);
+      const usersBody = (await usersResp.json()) as { items?: Array<{ id: string; role: string }> };
+      const realAssignee = (usersBody.items ?? []).find((u) => /^[a-z0-9]{20,40}$/.test(u.id))?.id;
+      expect(realAssignee, 'ADMIN 账号列表必须给出合法真实用户 id').toBeTruthy();
+      await adminCtx.close(); adminClosed = true;
+
+      // 独立 SALES 账号真实登录；GET /api/admin/account 的 DTO 自带 role，先确证身份确为 SALES。
+      stage('sales-login');
+      const sales = await loginRole(browser, 'e2e-inq-sales', 'SALES');
+      salesCtx = await browser.newContext({ baseURL: BASE, storageState: sales.state });
+      const acct = await salesCtx.request.get(ACCOUNT);
+      expect(acct.status()).toBe(200);
+      const acctBody = (await acct.json()) as { role?: string };
+      expect(acctBody.role, 'SALES 身份确认（不是匿名/降权）').toBe('SALES');
+      r.salesRoleConfirmed = acctBody.role === 'SALES';
+
+      // SALES 本人可见列表：列表页 200、.inq-list 渲染、本人 scope 的 GET 成功（不造数据）。
+      stage('sales-own-list');
+      const salesPage = await salesCtx.newPage();
+      const listResp = await salesPage.goto(`${BASE}/admin/inquiries`);
+      expect(listResp, 'SALES 本人列表页须有真实响应').not.toBeNull();
+      expect(listResp!.status(), 'SALES 列表页须 200').toBe(200);
+      await expect(salesPage.locator('.inq-list > .adm-card')).toBeVisible();
+      const salesList = await salesCtx.request.get('/api/admin/inquiries');
+      expect(salesList.status(), 'SALES 本人 scope 列表 GET 须 200').toBe(200);
+      r.salesOwnListOk = true;
+      await salesPage.close();
+
+      // 归属拒绝：GET 详情针对「本用例所建记录」→ 未分配给该 SALES → 404 not_found。
+      stage('sales-scope-get');
+      const detail = await salesCtx.request.get(`/api/admin/inquiries/${id}`);
+      expect(detail.status(), 'SALES 读未分配给他人的询盘必须 404').toBe(404);
+
+      // 改派拒绝：PATCH 带同源 Origin + 合法真实 assigneeId，403 只能来自角色判定。
+      stage('sales-assign-patch');
+      const patch = await salesCtx.request.patch(`/api/admin/inquiries/${id}`, {
+        headers: { Origin: BASE },
+        data: { assigneeId: realAssignee },
+      });
+      expect(patch.status(), 'SALES 改派必须 403').toBe(403);
+      const patchBody = (await patch.json()) as { error?: string };
+      expect(patchBody.error, '403 必须来自角色判定 forbidden，而非 forbidden_origin / invalid').toBe('forbidden');
+
+      r.role = 'SALES';
+      r.detailStatus = detail.status();
+      r.patchStatus = patch.status();
+      r.patchError = patchBody.error ?? null;
+      r.targetIsSyntheticRecord = true;
+    } finally {
+      // 任何中途失败都关闭这两个自建 context；关闭异常不覆盖主体原错，但也不让资源泄漏。
+      try { if (!adminClosed) await adminCtx.close(); } catch { /* 不覆盖主体原错 */ }
+      try { if (salesCtx) await salesCtx.close(); } catch { /* 不覆盖主体原错 */ }
     }
-    await expect(row, '必须找到本用例合成 ref 对应记录').toHaveCount(1);
-    const href = await row.locator('a').first().getAttribute('href');
-    expect(href).toMatch(/\/admin\/inquiries\//);
-    const id = href!.split('/').pop()!;
-    r.targetIdPattern = /^[a-z0-9]{20,40}$/.test(id);
-    // 取一个真实合法用户 id 作 assigneeId：让 zod ID_RE 通过，PATCH 的 403 只可能来自
-    // route.ts:57 的角色判定，而不是 forbidden_origin（缺 Origin）或 invalid（非法 id）。
-    const usersResp = await adminCtx.request.get('/api/admin/users');
-    expect(usersResp.status()).toBe(200);
-    const usersBody = (await usersResp.json()) as { items?: Array<{ id: string; role: string }> };
-    const realAssignee = (usersBody.items ?? []).find((u) => /^[a-z0-9]{20,40}$/.test(u.id))?.id;
-    expect(realAssignee, 'ADMIN 账号列表必须给出合法真实用户 id').toBeTruthy();
-    await adminCtx.close();
-
-    // 独立 SALES 账号真实登录；GET /api/admin/account 的 DTO 自带 role，先确证身份确为 SALES。
-    stage('sales-login');
-    const sales = await loginRole(browser, 'e2e-inq-sales', 'SALES');
-    const salesCtx = await browser.newContext({ baseURL: BASE, storageState: sales.state });
-    const acct = await salesCtx.request.get(ACCOUNT);
-    expect(acct.status()).toBe(200);
-    const acctBody = (await acct.json()) as { role?: string };
-    expect(acctBody.role, 'SALES 身份确认（不是匿名/降权）').toBe('SALES');
-    r.salesRoleConfirmed = acctBody.role === 'SALES';
-
-    // 归属拒绝：GET 详情针对「本用例所建记录」→ 未分配给该 SALES → 404 not_found。
-    stage('sales-scope-get');
-    const detail = await salesCtx.request.get(`/api/admin/inquiries/${id}`);
-    expect(detail.status(), 'SALES 读未分配给他人的询盘必须 404').toBe(404);
-
-    // 改派拒绝：PATCH 带同源 Origin + 合法真实 assigneeId，403 只能来自角色判定。
-    stage('sales-assign-patch');
-    const patch = await salesCtx.request.patch(`/api/admin/inquiries/${id}`, {
-      headers: { Origin: BASE },
-      data: { assigneeId: realAssignee },
-    });
-    expect(patch.status(), 'SALES 改派必须 403').toBe(403);
-    const patchBody = (await patch.json()) as { error?: string };
-    expect(patchBody.error, '403 必须来自角色判定 forbidden，而非 forbidden_origin / invalid').toBe('forbidden');
-    await salesCtx.close();
-
-    r.role = 'SALES';
-    r.detailStatus = detail.status();
-    r.patchStatus = patch.status();
-    r.patchError = patchBody.error ?? null;
-    r.targetIsSyntheticRecord = true;
     finishReport();
   });
 });

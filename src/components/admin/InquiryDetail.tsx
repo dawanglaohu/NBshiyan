@@ -77,11 +77,16 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   };
 
   // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
+  // 早返回（loading / error / notfound）也用 M3-T21 命名域包一层，让 11 节视觉覆盖到这些状态；
+  // 不改文案、role、ref 与业务分支，只加一个作用域 wrapper。
   if (inq === undefined) {
-    if (err) return <p ref={errRef} tabIndex={-1} className="muted" role="alert">{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></p>;
-    return <p className="muted">加载中…</p>;
+    return <div className="inq-state" data-testid="inq-state-scope">
+      {err
+        ? <p ref={errRef} tabIndex={-1} className="muted" role="alert">{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></p>
+        : <p className="muted">加载中…</p>}
+    </div>;
   }
-  if (inq === null) return <InquiryNotFound />;
+  if (inq === null) return <div className="inq-state" data-testid="inq-state-scope"><InquiryNotFound /></div>;
   const c = inq.contact;
   const anon = isAnonymized(inq);
   // 已匿名化：回复区、分配下拉框直接隐藏（服务端另有 409 拦截）
