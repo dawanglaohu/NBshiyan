@@ -1,13 +1,10 @@
-import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { APIRequestContext, Page, TestInfo } from '@playwright/test';
 import sharp from 'sharp';
-import { authenticator } from 'otplib';
+import { loadRunAuth } from './run-auth';
 import { test, expect } from './fixtures';
 const BASE = `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`;
 
-const PASSWORD = 'M3T23-Test-Only-Strong.2026!';
-const TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 const PROBE = readFileSync('docs/PackJoyU-开发文档/_run/density_probe.js', 'utf8');
 const VIEWPORTS = [{ width: 1920, height: 1080 }, { width: 1440, height: 900 }, { width: 390, height: 844 }];
 const COMPRESSED_POSITION = Buffer.from('oAEMAAAAZgEMAAAAaAEMAAAAaAE8AAAA/3sAAAABDAAAAP8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADNzMy+zczMvgAAAAA=', 'base64');
@@ -128,16 +125,7 @@ test.use({ video: 'on' });
 for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} real model workflow`, () => {
   let state: Awaited<ReturnType<APIRequestContext['storageState']>>;
   test.beforeAll(async ({ playwright }) => {
-    const email = `model-visual-${role.toLowerCase()}-${Date.now()}@example.test`;
-    execFileSync('node', ['scripts/create-admin.mjs'], { stdio: 'ignore', env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: PASSWORD, ADMIN_SEED_NAME: `Model visual ${role}`, ADMIN_SEED_ROLE: role, ADMIN_SEED_TOTP_SECRET: TOTP } });
-    const request = await playwright.request.newContext({ baseURL: BASE });
-    try {
-      const csrf = (await (await request.get('/api/auth/csrf')).json()).csrfToken as string;
-      const login = await request.post('/api/auth/callback/credentials', { maxRedirects: 0, headers: { Origin: BASE }, form: { csrfToken: csrf, email, password: PASSWORD, totp: authenticator.generate(TOTP) } });
-      expect(login.headers().location ?? '').not.toContain('error');
-      const account = await request.get('/api/admin/account'); expect(account.status()).toBe(200); expect((await account.json()).role).toBe(role);
-      state = await request.storageState();
-    } finally { await request.dispose(); }
+    state = await loadRunAuth(role === 'ADMIN' ? 'content-admin' : 'editor', BASE, playwright.request);
   });
   test.beforeEach(async ({ page }) => { await page.context().addCookies(state.cookies); });
 

@@ -149,13 +149,21 @@ test('run-auth real platform directory/file permissions are restricted before wr
 });
 
 test('run-auth consumer slots never authenticate in workers and keep quota/activity/lifecycle identities separate', () => {
-  const consumers = ['shared-admin.ts', 'admin-about-images.spec.ts', 'admin-org-settings.spec.ts', 'admin-shell-activity.spec.ts', 'brand-smoke.spec.ts', 'admin-legacy-inquiries-visual.spec.ts'];
+  const consumers = ['shared-admin.ts', 'admin-about-images.spec.ts', 'admin-org-settings.spec.ts', 'admin-shell-activity.spec.ts', 'brand-smoke.spec.ts', 'admin-legacy-inquiries-visual.spec.ts', 'admin-legacy-model-visual.spec.ts'];
   for (const consumer of consumers) assert.doesNotMatch(readFileSync(`e2e/${consumer}`, 'utf8'), /\.post\(['"][^'"]*callback\/credentials|execFileSync\(|authenticator\.generate\(/, consumer);
   assert.match(readFileSync('e2e/admin-about-images.spec.ts', 'utf8'), /tag === 'a' \? 'content-admin' : 'imageB'/);
   const shell = readFileSync('e2e/admin-shell-activity.spec.ts', 'utf8');
   for (const slot of ['shell-main', 'shell-signout', 'shell-cleared']) assert.match(shell, new RegExp(`slot: '${slot}'`));
   assert.match(readFileSync('e2e/brand-smoke.spec.ts', 'utf8'), /loadRunAuth\('content-admin'/);
   assert.match(readFileSync('e2e/admin-legacy-inquiries-visual.spec.ts', 'utf8'), /role === 'ADMIN' \? 'content-admin' : 'sales'/);
+  const model = readFileSync('e2e/admin-legacy-model-visual.spec.ts', 'utf8');
+  const modelReader = (source: string) => {
+    assert.doesNotMatch(source, /callback\/credentials|execFileSync\(|authenticator\.generate\(/);
+    assert.match(source, /state = await loadRunAuth\(role === 'ADMIN' \? 'content-admin' : 'editor', BASE, playwright\.request\)/);
+  };
+  modelReader(model);
+  assert.throws(() => modelReader(model + '\nrequest.post("/api/auth/callback/credentials");'));
+  assert.throws(() => modelReader(model.replace("'content-admin' : 'editor'", "'content-admin' : 'content-admin'")));
 });
 
 test('run-auth 29 compressed login-IP hits pass; duplicate initialization goes over the original 30 ceiling', async () => {
