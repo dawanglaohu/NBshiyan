@@ -1,0 +1,31 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T21": {
+      "contractHash": "10a74d865cc69205c01eb9030329d1d07260b0deaf7238e6b1552c2e879db8f4",
+      "evidence": [
+        "Chief 独立比较固定1ab0d77da9b2567b2444e15d481cf89d9afdb561与当前T21树，唯一canonical定义差异为M3-T21.supportPaths新增8精确路径：run-auth、global-setup、shared-admin、about-images、org-settings、shell-activity、brand-smoke及e2e-run-auth单测。output/provides/requires/原验收/边界E-106/阶段保持；CI、产品源码及现有测试均未修改。",
+        "支持必要性来自已观察#532 run42168243723的shell/brand rate_limited与共享login-ip机制：失败worker会重新执行beforeAll。源码预算与实际MemoryStore纯控支持正常池化减少重复认证；不是直接读取服务器桶快照。图片A/B需不同user额度，shell-main活动及signout/cleared各独立槽，原认证生命周期和E2E_ADMIN绑定不得并入内容会话。",
+        "已核安装的Playwright1.64先webServer插件setup后globalSetup，可在现globalSetup正常Auth.js登录。Chief复用完整A主动初始化/B惰性单写缓存候选及新532实际失败/533全绿事实，经jev-1.14.0真实复核：pick=A high0.84、spec_change=no、outside_stack=no、needs_owner=no、adopt=take(A)。只授权私有run级真cookie读取与必要测试支持，不修改生产鉴权/限流、不假IP/清桶/固定等待；方案通过不等实现通过。",
+        "独立verify-t21-run-auth-support.py已exit0：M3-T21仅definition/effectivePaths变化，M3-T22/M7-T9/M7-T10完整context与effectivePaths保持，仅provider hash传播，四项皆todo。当前T21基线86progress/83done、12历史含batch6clean/pass、17repair、22批集合完整，只有6/7/20/21批摘要hash传播；task-reviews登记前不变、maintenance/revalidation为空、结构review current/block0。未把其它分支新87/84落地数手抄进本树。",
+        "全部派发文本差异已逐项阅读：本卡增加8有效路径及R3-T09598683共享冲突提示，关联卡只有版本传播；codeRefs及data完全未变，六项产物指纹独立复算匹配。本登记仅task-contract支持范围，不证明会话池代码、真实身份复用、29次预算、询盘页面/邮件/匿名化场景、同头CI、GIF或落地验收通过；实现须另审。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T22": {
+      "contractHash": "02ffd48cd9d9bcd0fd73a6ddfb57eb2cdb0bab9d0b1e182f408831bb9c5bf5fe",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "da389fc95fc0036b6d249f1bbd1e1057507562053ba20b37f509a3fd4b824eaa",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "5a2b6cd1494edef4cc2067c31c3997e665584a167c41f055dc97f02e1fc06c3e",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
