@@ -9,7 +9,7 @@ import { test, expect } from './fixtures';
 // webServer 起同一端口的服务）；认证状态只由 run-auth 的正常登录初始化。
 const BASE = `http://localhost:${process.env.E2E_PORT ?? 3100}`;
 
-import { STATUS_LABEL } from '../src/lib/admin/types';
+import { REVIEW_THRESHOLD, STATUS_LABEL } from '../src/lib/admin/types';
 
 /**
  * M3-T21 旧询盘页视觉迁移：真实登录 → 真实合成询盘 → 原 GET 过滤/分页/详情/history
@@ -184,36 +184,107 @@ function listResponseWaiter(page: Page, pageNo = 1, pageSize = 10) {
   return wait;
 }
 
-/** 响应到手后等列表完成渲染：加载行消失、无错误 alert，且出现数据行 / 待核实组 /
- *  明确空态之一；响应必须真带 items 数组，渲染行首格 ref 必须来自本次响应。
- *  缺结构/旧行都不能靠「有行」「不含加载」蒙混过关。 */
+/** 列表响应条目里与就绪投影相关的字段（真实 API 一定带 ref/trustScore，匿名化才有 anonymizedAt）。 */
+type InquiryRowLite = { ref?: unknown; anonymizedAt?: unknown; trustScore?: unknown };
+
+/** 由响应推导首屏应显示的 DOM 投影：沿用产品真实语义 includeAnon=false →
+ *  filterAnonymized → needsReview(trustScore<REVIEW_THRESHOLD) → 默认折叠 review 组。
+ *  纯函数，离线守卫直接执行；只复算显示结果，不改产品状态。 */
+function expectedListShape(items: InquiryRowLite[]) {
+  const isAnon = (r: InquiryRowLite) => !!r.anonymizedAt;
+  const isReview = (r: InquiryRowLite) => !isAnon(r) && typeof r.trustScore === 'number' && r.trustScore < REVIEW_THRESHOLD;
+  const visible = items.filter((r) => !isAnon(r));
+  const review = visible.filter(isReview);
+  const main = visible.filter((r) => !isReview(r));
+  return {
+    kind: items.length === 0 ? 'empty' as const : visible.length === 0 ? 'anonymized' as const : 'list' as const,
+    mainRefs: main.map((r) => String(r.ref)),
+    reviewCount: review.length,
+  };
+}
+
+/** 实际就绪判定：比较期望投影与当前 DOM 快照，返回错误列表（空数组才是 ready）。
+ *  数量、编号、分组条数与折叠状态逐项核对，缺行/重复行/错行/错组/伪空态都不能通过。
+ *  独立于 Playwright 的 locator，离线守卫可直接用内存快照执行本函数。 */
+type ListReadySnapshot = {
+  rowRefs: string[];
+  groupCount: number;
+  groupText: string;
+  groupExpanded: boolean | null;
+  loading: boolean;
+  alertCount: number;
+  hasEmptyText: boolean;
+  hasAnonText: boolean;
+};
+function verifyListProjection(expected: ReturnType<typeof expectedListShape>, dom: ListReadySnapshot): string[] {
+  const errors: string[] = [];
+  if (dom.loading) errors.push('列表仍在加载');
+  if (dom.alertCount > 0) errors.push('列表出现错误提示');
+  const rows = dom.rowRefs.map((r) => r.trim()).sort();
+  const want = expected.mainRefs.map((r) => r.trim()).sort();
+  if (expected.kind === 'empty') {
+    if (rows.length) errors.push('空响应却渲染了数据行');
+    if (dom.groupCount) errors.push('空响应却渲染了待核实组');
+    if (!dom.hasEmptyText) errors.push('缺少「没有符合条件的询盘」空态');
+    if (dom.hasAnonText) errors.push('空响应不应显示全匿名化提示');
+    return errors;
+  }
+  if (expected.kind === 'anonymized') {
+    if (rows.length) errors.push('全匿名化却渲染了数据行');
+    if (dom.groupCount) errors.push('全匿名化却渲染了待核实组');
+    if (!dom.hasAnonText) errors.push('缺少「本页都是已匿名化询盘」提示');
+    if (dom.hasEmptyText) errors.push('全匿名化不应显示无结果空态');
+    return errors;
+  }
+  if (rows.length !== want.length) errors.push(`数据行数量不符：期望 ${want.length} 实际 ${rows.length}`);
+  else if (rows.some((r, i) => r !== want[i])) errors.push('数据行编号与响应投影不一致');
+  const wantGroups = expected.reviewCount > 0 ? 1 : 0;
+  if (dom.groupCount !== wantGroups) errors.push(`待核实组数量不符：期望 ${wantGroups} 实际 ${dom.groupCount}`);
+  if (wantGroups === 1) {
+    if (!dom.groupText.includes(`${expected.reviewCount} 条`)) errors.push('待核实组条数与响应不一致');
+    if (dom.groupExpanded !== false) errors.push('待核实组默认应折叠');
+  }
+  if (dom.hasEmptyText) errors.push('有可见记录却显示无结果空态');
+  if (dom.hasAnonText) errors.push('有可见记录却显示全匿名化提示');
+  return errors;
+}
+
+/** 响应到手后等列表投影完全一致：加载/错误/空态/行集合/分组条数与折叠状态都由
+ *  verifyListProjection 判定，用有界 expect 轮询等 React 提交，不用 sleep。 */
 async function assertListReady(page: Page, resp: Awaited<ReturnType<typeof listResponseWaiter>>) {
   expect(resp.status(), '列表响应必须 200').toBe(200);
   const body = await resp.json() as { items?: unknown[] };
   // 结构缺失不能被当成空列表放行：必须真有 items 数组，且每条带可核对的编号。
   expect(Array.isArray(body.items), '列表响应必须带 items 数组').toBe(true);
-  const items = body.items as Array<{ ref?: unknown }>;
-  for (const it of items) expect(typeof it.ref, '每个列表条目必须带 ref').toBe('string');
-  const refs = new Set(items.map((it) => it.ref as string));
+  const items = body.items as InquiryRowLite[];
+  for (const it of items) {
+    expect(typeof it.ref, '每个列表条目必须带 ref').toBe('string');
+    expect((it.ref as string).trim().length, '列表条目 ref 不能为空').toBeGreaterThan(0);
+    expect(typeof it.trustScore, '每个列表条目必须带数字 trustScore').toBe('number');
+    if (it.anonymizedAt != null) expect(typeof it.anonymizedAt, 'anonymizedAt 必须是字符串').toBe('string');
+  }
+  const refs = items.map((it) => (it.ref as string).trim());
+  expect(new Set(refs).size, '列表响应条目 ref 不得重复').toBe(refs.length);
+  const expected = expectedListShape(items);
   const tbody = page.locator('.inq-list .adm-inq-table tbody');
-  await expect(tbody).not.toContainText('加载中…');
-  await expect(tbody.locator('td[role="alert"]')).toHaveCount(0);
-  const counts = items.length;
-  if (counts === 0) {
-    await expect(tbody).toContainText('没有符合条件的询盘');
-    return;
-  }
-  await expect(async () => {
-    const settled = (await tbody.locator('tr.row, tr.group').count()) > 0
-      || (await tbody.getByText('本页都是已匿名化询盘', { exact: false }).count()) > 0;
-    expect(settled, '列表须完成渲染：数据行 / 待核实组 / 明确空态').toBe(true);
-  }).toPass({ timeout: 7_000 });
   const rows = tbody.locator('tr.row');
-  expect(await rows.count(), '渲染行数不得超过响应条数').toBeLessThanOrEqual(counts);
-  // 每行首格是询盘编号：必须来自本次响应，防止旧数据/错响应渲染出来的行混过「有行即可」。
-  for (const cell of await rows.locator('td:first-child').allTextContents()) {
-    expect(refs.has(cell.trim()), `渲染行 ref 必须来自本次响应: ${cell.trim()}`).toBe(true);
-  }
+  const groups = tbody.locator('tr.group');
+  await expect(async () => {
+    const text = await tbody.innerText();
+    const groupCount = await groups.count();
+    const snap: ListReadySnapshot = {
+      rowRefs: (await rows.locator('td:first-child').allTextContents()).map((s) => s.trim()),
+      groupCount,
+      groupText: groupCount ? await groups.first().innerText() : '',
+      groupExpanded: groupCount ? (await groups.first().locator('button').getAttribute('aria-expanded')) === 'true' : null,
+      loading: text.includes('加载中…'),
+      alertCount: await tbody.locator('td[role="alert"]').count(),
+      hasEmptyText: text.includes('没有符合条件的询盘'),
+      hasAnonText: text.includes('本页都是已匿名化询盘'),
+    };
+    const errors = verifyListProjection(expected, snap);
+    expect(errors, errors.join('；')).toEqual([]);
+  }).toPass({ timeout: 15_000 });
 }
 
 let adminState: SessionState;

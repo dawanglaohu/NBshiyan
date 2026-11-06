@@ -385,6 +385,67 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
   assert.notEqual(noStatus, matcherSrc);
   assert.equal(compile(noStatus)(req('http://localhost:3100/api/admin/inquiries?page=1&pageSize=10&status=NEW')), true);
 
+  // 提取真实投影/判定函数，用内存 DOM 快照执行实际行为（不是只锁源码字符串）。
+  const extractFn = (name: string) => {
+    const start = source.indexOf(`function ${name}(`);
+    assert.ok(start >= 0, `缺少 ${name}`);
+    const braceStart = source.indexOf('{', start);
+    let depth = 0;
+    let end = -1;
+    for (let i = braceStart; i < source.length; i++) {
+      if (source[i] === '{') depth++;
+      else if (source[i] === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
+    }
+    assert.ok(end > braceStart, `无法提取 ${name}`);
+    return source.slice(start, end);
+  };
+  const fnCode = ts.transpileModule(
+    `const REVIEW_THRESHOLD = 40;\n${extractFn('expectedListShape')}\n${extractFn('verifyListProjection')}\n({ expectedListShape, verifyListProjection });`,
+    { compilerOptions: { target: ts.ScriptTarget.ES2022 } },
+  ).outputText;
+  const fnApi = runInNewContext(fnCode, {}) as {
+    expectedListShape: (items: Array<{ ref: string; trustScore: number; anonymizedAt?: string | null }>) => unknown;
+    verifyListProjection: (expected: unknown, dom: Record<string, unknown>) => string[];
+  };
+  type Row = { ref: string; trustScore: number; anonymizedAt?: string | null };
+  const row = (ref: string, o: { trustScore?: number; anon?: boolean } = {}): Row => ({
+    ref, trustScore: o.trustScore ?? 80, anonymizedAt: o.anon ? '2026-01-01T00:00:00.000Z' : null,
+  });
+  const snap = (o: Partial<Record<string, unknown>> = {}) => ({
+    rowRefs: [] as string[], groupCount: 0, groupText: '', groupExpanded: null as boolean | null,
+    loading: false, alertCount: 0, hasEmptyText: false, hasAnonText: false, ...o,
+  });
+  const errorsOf = (items: Row[], dom: Record<string, unknown>) => (fnApi.verifyListProjection(fnApi.expectedListShape(items), dom) as string[]).map(String);
+  const rejects = (items: Row[], dom: Record<string, unknown>) => {
+    const errors = errorsOf(items, dom);
+    assert.notEqual(errors.length, 0, '应当被拒的反例却通过了');
+  };
+  const accepts = (items: Row[], dom: Record<string, unknown>) => {
+    const errors = errorsOf(items, dom);
+    assert.equal(errors.length, 0, `应当通过但报错：${errors.join('；')}`);
+  };
+
+  // 7 个后端实际误通过反例：用真实判定函数执行，全部必须被拒。
+  rejects([row('A'), row('B')], snap({ rowRefs: ['A'] }));                                  // 缺行
+  rejects([row('A'), row('B')], snap({ rowRefs: ['A', 'A'] }));                             // 重复/缺行
+  rejects([row('A'), row('B')], snap({ groupCount: 1, groupText: '本页 99 条', groupExpanded: false })); // 错误折叠组
+  rejects([row('A', { trustScore: 10 }), row('B', { trustScore: 10 })], snap({ groupCount: 1, groupText: '本页 99 条', groupExpanded: false })); // 组条数错
+  rejects([row('A'), row('B', { trustScore: 10 })], snap({ groupCount: 1, groupText: '本页 1 条', groupExpanded: false })); // 缺 main 行
+  rejects([row('A')], snap({ hasAnonText: true }));                                         // 伪匿名化提示
+  rejects([], snap({ rowRefs: ['A'], hasEmptyText: true }));                                // 空响应夹旧行
+  // 加载/错误/展开/匿名化夹行同样拒绝。
+  rejects([row('A')], snap({ rowRefs: ['A'], loading: true }));
+  rejects([row('A')], snap({ rowRefs: ['A'], alertCount: 1 }));
+  rejects([row('A', { trustScore: 10 })], snap({ groupCount: 1, groupText: '本页 1 条', groupExpanded: true }));
+  rejects([row('A', { anon: true })], snap({ rowRefs: ['A'], hasAnonText: true }));
+  // 正控：正常列表 / 顺序无关 / 全 review 折叠 / main+review / 全匿名化 / 真空列表。
+  accepts([row('A'), row('B')], snap({ rowRefs: ['A', 'B'] }));
+  accepts([row('A'), row('B')], snap({ rowRefs: ['B', 'A'] }));
+  accepts([row('A', { trustScore: 10 }), row('B', { trustScore: 10 })], snap({ groupCount: 1, groupText: '▸ 待核实（可信度 <40）· 本页 2 条', groupExpanded: false }));
+  accepts([row('A'), row('B', { trustScore: 10 })], snap({ rowRefs: ['A'], groupCount: 1, groupText: '本页 1 条', groupExpanded: false }));
+  accepts([row('A', { anon: true })], snap({ hasAnonText: true }));
+  accepts([], snap({ hasEmptyText: true }));
+
   // 所有源码检查都限定在三尺寸用例内，避免同文件其它用例的 goto 干扰顺序判断。
   const blockOf = (text: string) => {
     const s = text.indexOf("test('三尺寸真实页：");
@@ -407,14 +468,22 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
     assert.match(block, /const listResp = await listWait;/);
     assert.match(text, /expect\(resp\.status\(\), '列表响应必须 200'\)\.toBe\(200\);/);
     assert.match(block, /await assertListReady\(page, listResp\);/);
-    // 3) 渲染完成：加载消失 / 无 alert / 行或空态一致
-    assert.match(text, /not\.toContainText\('加载中…'\)/);
-    assert.match(text, /tbody\.locator\('td\[role="alert"\]'\)\)\.toHaveCount\(0\)/);
-    assert.match(text, /tr\.row, tr\.group/);
-    assert.match(text, /没有符合条件的询盘/);
-    // 响应结构缺失不能被当空列表；渲染行必须带本次响应的 ref
+    // 3) 实际判定必须走投影函数，并在有界轮询里比较
+    assert.match(text, /verifyListProjection\(expected, snap\)/);
+    assert.match(text, /expectedListShape\(items\)/);
+    assert.match(text, /toPass\(\{ timeout: 15_000 \}\)/);
+    // 响应结构硬约束（缺 items/重复 ref 直接拒绝）
     assert.match(text, /Array\.isArray\(body\.items\)/);
-    assert.match(text, /refs\.has\(cell\.trim\(\)\)/);
+    assert.match(text, /new Set\(refs\)\.size/);
+    // DOM 快照必须收齐 loading/alert/空态/匿名化/分组条数/折叠状态
+    for (const pat of [
+      /loading: text\.includes\('加载中…'\)/,
+      /alertCount: await tbody\.locator\('td\[role="alert"\]'\)\.count\(\)/,
+      /hasEmptyText: text\.includes\('没有符合条件的询盘'\)/,
+      /hasAnonText: text\.includes\('本页都是已匿名化询盘'\)/,
+      /groupText: groupCount \? await groups\.first\(\)\.innerText\(\) : ''/,
+      /groupExpanded: groupCount \?/,
+    ]) assert.match(text, pat);
     // 4) 失败指标先于断言保留
     const record = block.indexOf('(out.densityProbes as unknown[]).push');
     const densityAssert = block.indexOf('if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);');
@@ -431,15 +500,15 @@ test('D2 就绪等待：导航前精确匹配列表 GET、先取响应再断言 
   const brokenOk = source.replace("expect(resp.status(), '列表响应必须 200').toBe(200);", 'expect(resp.ok()).toBe(true);');
   assert.notEqual(brokenOk, source);
   assert.throws(() => check(brokenOk), '把 status 200 断言换成 ok() 必须被发现');
-  const brokenLoading = source.replace("await expect(tbody).not.toContainText('加载中…');\n", '');
+  const brokenLoading = source.replace("      loading: text.includes('加载中…'),\n", '');
   assert.notEqual(brokenLoading, source);
-  assert.throws(() => check(brokenLoading), '去掉加载完成等待必须被发现');
+  assert.throws(() => check(brokenLoading), '去掉加载态采集必须被发现');
   const brokenItems = source.replace("expect(Array.isArray(body.items), '列表响应必须带 items 数组').toBe(true);", '');
   assert.notEqual(brokenItems, source);
   assert.throws(() => check(brokenItems), '去掉 items 数组断言（缺结构当空列表）必须被发现');
-  const brokenRefs = source.replace("expect(refs.has(cell.trim()), `渲染行 ref 必须来自本次响应: ${cell.trim()}`).toBe(true);", '');
-  assert.notEqual(brokenRefs, source);
-  assert.throws(() => check(brokenRefs), '去掉渲染行 ref 与响应一致性核对必须被发现');
+  const brokenProjection = source.replace('    const errors = verifyListProjection(expected, snap);\n', '');
+  assert.notEqual(brokenProjection, source);
+  assert.throws(() => check(brokenProjection), '去掉投影一致性判定必须被发现');
   const push = '(out.densityProbes as unknown[]).push({ label: view.label, width: view.width, height: view.height, touch: view.touch, densityWork: safeDensity(work) });';
   const densityAssertLine = '      if (view.width >= 1024) assertDesktopDensity(work, `${view.label} work`);\n';
   const afterAssert = spliceBlock((b) => b.replace(push + '\n', '').replace(densityAssertLine, densityAssertLine + '      ' + push + '\n'));
