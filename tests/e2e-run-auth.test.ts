@@ -149,7 +149,7 @@ test('run-auth real platform directory/file permissions are restricted before wr
 });
 
 test('run-auth consumer slots never authenticate in workers and keep quota/activity/lifecycle identities separate', () => {
-  const consumers = ['shared-admin.ts', 'admin-about-images.spec.ts', 'admin-org-settings.spec.ts', 'admin-shell-activity.spec.ts', 'brand-smoke.spec.ts', 'admin-legacy-inquiries-visual.spec.ts', 'admin-legacy-model-visual.spec.ts'];
+  const consumers = ['shared-admin.ts', 'admin-about-images.spec.ts', 'admin-org-settings.spec.ts', 'admin-shell-activity.spec.ts', 'brand-smoke.spec.ts', 'admin-legacy-inquiries-visual.spec.ts', 'admin-legacy-model-visual.spec.ts', 'admin-legacy-specs-visual.spec.ts'];
   for (const consumer of consumers) assert.doesNotMatch(readFileSync(`e2e/${consumer}`, 'utf8'), /\.post\(['"][^'"]*callback\/credentials|execFileSync\(|authenticator\.generate\(/, consumer);
   assert.match(readFileSync('e2e/admin-about-images.spec.ts', 'utf8'), /tag === 'a' \? 'content-admin' : 'imageB'/);
   const shell = readFileSync('e2e/admin-shell-activity.spec.ts', 'utf8');
@@ -164,6 +164,42 @@ test('run-auth consumer slots never authenticate in workers and keep quota/activ
   modelReader(model);
   assert.throws(() => modelReader(model + '\nrequest.post("/api/auth/callback/credentials");'));
   assert.throws(() => modelReader(model.replace("'content-admin' : 'editor'", "'content-admin' : 'content-admin'")));
+});
+
+test('run-auth specs reader checks each live role and never authenticates after rejection', async () => {
+  const source = readFileSync('e2e/admin-legacy-specs-visual.spec.ts', 'utf8');
+  const tree = ts.createSourceFile('specs.ts', source, ts.ScriptTarget.Latest, true);
+  const declaration = tree.statements.find((node): node is ts.FunctionDeclaration => ts.isFunctionDeclaration(node) && node.name?.text === 'readRoleState');
+  assert.ok(declaration);
+  const mapping = /const ROLE_SLOTS = (\{[^;]+\}) as const;/.exec(source)?.[1];
+  assert.ok(mapping);
+  const readerGuard = (candidate: string) => {
+    assert.doesNotMatch(candidate, /callback\/credentials|execFileSync\(|authenticator\.generate\(/);
+    assert.match(candidate, /ADMIN: 'content-admin', EDITOR: 'editor', SALES: 'sales'/);
+    assert.match(candidate, /loadRunAuth\(ROLE_SLOTS\[role\], BASE, playwright\.request\)/);
+  };
+  readerGuard(source);
+  assert.throws(() => readerGuard(source + '\nrequest.post("/api/auth/callback/credentials");'));
+  assert.throws(() => readerGuard(source.replace("EDITOR: 'editor'", "EDITOR: 'content-admin'")));
+  assert.throws(() => readerGuard(source.replace("SALES: 'sales'", "SALES: 'content-admin'")));
+  const body = ts.transpileModule(declaration.getText(tree), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  for (const scenario of ['valid', 'wrong-role', 'denied-cache']) {
+    let cachedReads = 0, opened = 0, disposed = 0, posts = 0;
+    const factory = { newContext: async () => {
+      opened++;
+      return { get: async (url: string) => {
+        assert.equal(url, '/api/admin/account');
+        return { status: () => 200, json: async () => ({ role: scenario === 'wrong-role' ? 'ADMIN' : 'EDITOR' }) };
+      }, post: async () => { posts++; throw new Error('unexpected credentials'); }, dispose: async () => { disposed++; } } as unknown as APIRequestContext;
+    } };
+    const state = member('editor').state;
+    const reader = runInNewContext(body + '\nreadRoleState;', { BASE: ORIGIN, ROLE_SLOTS: { ADMIN: 'content-admin', EDITOR: 'editor', SALES: 'sales' },
+      loadRunAuth: async (slot: string) => { cachedReads++; assert.equal(slot, 'editor'); if (scenario === 'denied-cache') throw new RunAuthError('SESSION_401'); return state; },
+    }) as (playwright: { request: typeof factory }, role: 'EDITOR') => Promise<typeof state>;
+    if (scenario === 'valid') assert.equal(await reader({ request: factory }, 'EDITOR'), state);
+    else await assert.rejects(() => reader({ request: factory }, 'EDITOR'), new RegExp(scenario === 'wrong-role' ? 'E2E_RUN_AUTH_SPEC_ROLE' : 'SESSION_401'));
+    assert.equal(cachedReads, 1); assert.equal(opened, scenario === 'denied-cache' ? 0 : 1); assert.equal(disposed, opened); assert.equal(posts, 0);
+  }
 });
 
 test('run-auth 29 compressed login-IP hits pass; duplicate initialization goes over the original 30 ceiling', async () => {

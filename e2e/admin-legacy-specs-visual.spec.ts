@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
-import { authenticator } from 'otplib';
+import { loadRunAuth } from './run-auth';
 import { test, expect, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import { categoryMeta } from '../src/lib/seo/categoryMeta';
 
@@ -19,11 +18,9 @@ const INCOTERMS = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP'
  * 的 auto fixture；纯负控用例不取 page/browser，可在无服务环境单独跑。
  */
 const BASE = `http://localhost:${process.env.E2E_PORT ?? 3100}`;
-const E2E_TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 const CATEGORY = 'corrugated-boxes';
 const EMPTY_CATEGORY = 'gift-boxes'; // 空数据 / 六态用例专用，避免改写 CATEGORY 的业务数据
 const PROBE = `/api/admin/specs/${CATEGORY}`;
-const PASSWORD = 'e2e-specs-Passw0rd!';
 const PROBE_JS = readFileSync('docs/PackJoyU-开发文档/_run/density_probe.js', 'utf8');
 
 const VIEWPORTS = [
@@ -36,22 +33,16 @@ type Role = 'ADMIN' | 'EDITOR' | 'SALES';
 type StorageState = Awaited<ReturnType<APIRequestContext['storageState']>>;
 let STATES: Record<Role, StorageState> | null = null;
 
-/** 真实隔离身份：create-admin.mjs 建指定角色 + 凭据登录一次，得到 storageState。
- *  每组只登录一次（beforeAll），用例从 storageState 复用，避免把 30 次/10min 登录桶打爆。 */
-async function seedAndLogin(playwright: { request: { newContext: (o: object) => Promise<APIRequestContext> } }, role: Role, prefix: string): Promise<StorageState> {
-  const email = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.test`;
-  execFileSync('node', ['scripts/create-admin.mjs'], {
-    stdio: 'pipe',
-    env: { ...process.env, ADMIN_SEED_EMAIL: email, ADMIN_SEED_PASSWORD: PASSWORD, ADMIN_SEED_NAME: `E2E ${role}`, ADMIN_SEED_ROLE: role, ADMIN_SEED_TOTP_SECRET: E2E_TOTP },
-  });
-  const req = await playwright.request.newContext({ baseURL: BASE });
+const ROLE_SLOTS = { ADMIN: 'content-admin', EDITOR: 'editor', SALES: 'sales' } as const;
+
+/** 仅读本 run 的会话；GET account 必须同时匹配缓存身份与本用例角色，失败不重新登录。 */
+async function readRoleState(playwright: { request: { newContext: (o: object) => Promise<APIRequestContext> } }, role: Role): Promise<StorageState> {
+  const state = await loadRunAuth(ROLE_SLOTS[role], BASE, playwright.request);
+  const req = await playwright.request.newContext({ baseURL: BASE, storageState: state });
   try {
-    const csrf = (await (await req.get('/api/auth/csrf')).json()).csrfToken as string;
-    const ok = await req.post('/api/auth/callback/credentials', {
-      headers: { Origin: BASE }, form: { csrfToken: csrf, email, password: PASSWORD, totp: authenticator.generate(E2E_TOTP) }, maxRedirects: 0,
-    });
-    expect(ok.headers()['location'] ?? '').not.toContain('error');
-    return await req.storageState();
+    const account = await req.get('/api/admin/account');
+    if (account.status() !== 200 || (await account.json()).role !== role) throw new Error('E2E_RUN_AUTH_SPEC_ROLE');
+    return state;
   } finally { await req.dispose(); }
 }
 
@@ -248,9 +239,9 @@ test('纯负控：D2/D5 为 fail 时实际验收函数必须抛错（不只判�
 test.describe('规格列表与编辑器视觉迁移（真实会话）', () => {
   test.beforeAll(async ({ playwright }) => {
     STATES = {
-      ADMIN: await seedAndLogin(playwright, 'ADMIN', 'e2e-specs-admin'),
-      EDITOR: await seedAndLogin(playwright, 'EDITOR', 'e2e-specs-editor'),
-      SALES: await seedAndLogin(playwright, 'SALES', 'e2e-specs-sales'),
+      ADMIN: await readRoleState(playwright, 'ADMIN'),
+      EDITOR: await readRoleState(playwright, 'EDITOR'),
+      SALES: await readRoleState(playwright, 'SALES'),
     };
   });
 
