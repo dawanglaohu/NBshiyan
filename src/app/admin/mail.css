@@ -63,3 +63,31 @@
   .ml-inbox{grid-template-columns:1fr}.ml-inbox.has-sel .ml-list{display:none}.ml-inbox:not(.has-sel) .ml-detail{display:none}.ml-back{display:inline-block}
   .ml-row>.ml-btn{flex:1}
 }
+
+/* M3-T21 邮件往来视觉迁移：11 节 minimalist-flat，2px 黑边 / 0 圆角 / 无阴影 / 无渐变。
+   用 .ml 作用域的高特异性覆盖旧 .ml-* 定义，不改原类字面量（既有测试锁死），
+   也不改公共 adm-* / models.css / specs.css。状态文字与 mail gate 行为不变。 */
+.ml .ml-msg,.ml .ml-pill,.ml .ml-chip,.ml .ml-banner,.ml .ml-unv,.ml .ml-att,.ml .ml-status,
+.ml .ml-btn,.ml .ml-list,.ml .ml-dialog,.ml .ml-toast,.ml .ml-compose input,.ml .ml-compose textarea,
+.ml .ml-assign input,.ml .ml-resize{
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+  background-image:none;
+}
+.ml .ml-msg.out,.ml .ml-pill.strong,.ml .ml-status.ok,.ml .ml-status.ml-warn,.ml .ml-status.err{
+  background:var(--pj-bg);color:var(--pj-fg);border-color:var(--pj-border);
+}
+.ml .ml-status.err{border-left:var(--pj-border-width) solid var(--pj-accent)}
+.ml .ml-att .ico,.ml .ml-resize span,.ml .ml-toast button{border-radius:var(--pj-radius);box-shadow:var(--pj-shadow)}
+.ml .ml-btn.primary{background:var(--pj-inverse);color:var(--pj-on-inverse);border-color:var(--pj-border)}
+.ml .ml-btn:disabled,.ml .ml-compose input[readonly]{opacity:1;border-style:dashed;cursor:not-allowed;background:var(--pj-bg);color:var(--pj-fg)}
+.ml .ml-list button[aria-current]{background:var(--pj-inverse);color:var(--pj-on-inverse);box-shadow:none;border-left:var(--pj-border-width) solid var(--pj-accent)}
+.ml .ml-list li{border-bottom:var(--pj-border-width) solid var(--pj-border)}
+.ml .ml-dialog,.ml .ml-banner,.ml .ml-status,.ml .ml-att,.ml .ml-btn,.ml .ml-list button,.ml .ml-toast button,.ml .ml-resize{min-height:var(--pj-touch-target)}
+.ml :focus-visible,.ml .ml-btn:focus-visible,.ml .ml-att:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.ml .ml-compose label,.ml .ml-assign label{font-size:14px;line-height:20px}
+.ml .ml-thread,.ml .ml-inbox,.ml .ml-row{gap:16px}
+@media (prefers-reduced-motion:reduce){.ml *{transition:none}}

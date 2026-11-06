@@ -88,7 +88,9 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   const ctl = detailControls(inq, role);
   const who: React.ReactNode = anon ? <AnonTag /> : c.name;
   const score = inq.trustScore;
-  const ringColor = score < REVIEW_THRESHOLD ? 'var(--err)' : score < 70 ? 'var(--warn-c)' : 'var(--ok)';
+  // 11 节：不使用 conic-gradient / 环形图 / 渐变；可信度用「数值 + 文字标签 + 原因列表」表达，
+  // 数值、标签与 aria-label 一律保留，不因去环图而消失。
+  const trustState = score < REVIEW_THRESHOLD ? 'review' : score < 70 ? 'warn' : 'ok';
   const sendAndFollow = () => run(async () => {
     await adminApi.reply(inq.id, { subject: `Re: ${inq.ref}`, body });
     if (inq.status === 'NEW') await adminApi.updateInquiry(inq.id, { status: 'FOLLOWING' });
@@ -96,7 +98,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   });
 
   return (
-    <>
+    <div className="inq-detail" data-testid="inq-detail-scope">
       <div className="adm-crumb"><Link href="/admin/inquiries">询盘</Link> / {inq.ref}</div>
       <div className="adm-hd">
         <h1>{anon ? `询盘 ${inq.ref}` : c.company ?? c.name}</h1>
@@ -176,12 +178,14 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         </div>
 
         <aside>
-          {ctl.showTrust && <section className="adm-sec">
+          {ctl.showTrust && <section className="adm-sec inq-trust-card">
             <h2>可信度</h2>
-            <div className="adm-row" style={{ alignItems: 'flex-start', gap: 12 }}>
-              <div className="adm-ring" style={{ background: `conic-gradient(${ringColor} 0 ${score}%, #eee 0)` }} aria-label={`可信度 ${score}`}><b>{score}</b></div>
-              <ul className="adm-chk">
-                {inq.trustReasons.map((r, i) => <li key={i} style={{ color: r.delta < 0 ? 'var(--err)' : undefined }}>{r.delta >= 0 ? '✓' : '−'} {r.label}</li>)}
+            <div className="adm-row inq-trust-row" style={{ alignItems: 'flex-start', gap: 12 }}>
+              <span className="inq-trust-score" data-testid="trust-score" data-state={trustState} aria-label={`可信度 ${score}`}>
+                <b>{score}</b><small>/100</small>
+              </span>
+              <ul className="adm-chk inq-trust-reasons">
+                {inq.trustReasons.map((r, i) => <li key={i} data-delta={r.delta >= 0 ? 'plus' : 'minus'}>{r.delta >= 0 ? '✓' : '−'} {r.label}</li>)}
               </ul>
             </div>
           </section>}
@@ -214,7 +218,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
           </section>
         </aside>
       </div>
-    </>
+    </div>
   );
 }
 
