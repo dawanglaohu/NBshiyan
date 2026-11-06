@@ -675,19 +675,6 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
     const idOf = (r: PWReq): number => { let n = requestIds.get(r); if (n === undefined) { n = ++nextId; requestIds.set(r, n); } return n; };
     const browser401Ids = new Set<number>();
     const isAccount = (r: PWReq) => { try { return r.method() === 'GET' && new URL(r.url()).pathname === ACCOUNT; } catch { return false; } };
-    const watchRequest = (r: PWReq) => { if (isAccount(r)) mark('browser-account-request', { requestId: idOf(r) }); };
-    const watchResponse = (r: import('@playwright/test').Response) => {
-      const req = r.request();
-      if (!isAccount(req)) return;
-      const id = idOf(req);
-      mark('browser-account-response', { status: r.status(), requestId: id });
-      if (r.status() === 401) browser401Ids.add(id);
-    };
-    const watchFailed = (r: PWReq) => { if (isAccount(r)) mark('browser-account-requestfailed', { requestId: idOf(r) }); };
-    page.on('request', watchRequest);
-    page.on('response', watchResponse);
-    page.on('requestfailed', watchFailed);
-
     const frames: AccountFrame[] = [];
     let navigationStatus = 0, signoutStatus = 0, replayStatus = 0;
     let shellVisible = false, clearedTextVisible = false, urlAfter = '';
@@ -695,9 +682,81 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
     let err = safeError(null);
     const cleanupErrors: Array<{ stage: string; code: string }> = [];
     let bridge: ClockBridge | null = null;
-    let navObservedAt: number | null = null, readObservedAt: number | null = null;
+    // 真实目标 document 响应观察时点（不是 goto 返回、不是服务器到达）；作有效帧区间下界。
+    let navigationResponseObservedAt: number | null = null;
+    let readObservedAt: number | null = null;
     let revoker: import('@playwright/test').APIRequestContext | null = null;
     let replayCtx: import('@playwright/test').APIRequestContext | null = null;
+    let csrf = '';
+    // 唯一 signout Promise：由真实主 frame 目标 document 响应观察回调即时启动，不等待 DOM/校准/可见。
+    let signoutPromise: Promise<import('@playwright/test').APIResponse> | null = null;
+    let signoutTriggered = false, signoutRejected = false, signoutSettled = false;
+    let navigationResponseSeen = false;
+    // finally 入口即置 true：禁止迟到 response 在清理/保存诊断期间又开启一个未纳入收尾的 signout。
+    let signoutFrozen = false;
+
+    const isTargetDocumentResponse = (r: import('@playwright/test').Response): boolean => {
+      const req = r.request();
+      // 仅主 frame 的目标 HTML document；排除资源、API、子 frame、后续重复事件与非 200。
+      if (signoutFrozen || navigationResponseSeen || r.status() !== 200) return false;
+      if (req.resourceType() !== 'document') return false;
+      if (req.frame() !== page.mainFrame()) return false;
+      try {
+        const u = new URL(r.url());
+        if (u.pathname !== '/admin/inquiries') return false;
+        if (req.method() !== 'GET') return false;
+      } catch { return false; }
+      return true;
+    };
+    const startSignout = (): void => {
+      if (signoutFrozen || signoutTriggered || !revoker || !csrf) return;
+      signoutTriggered = true;
+      mark('signout-start'); // 真实响应观察回调内即时，早于 clockBridge / 可见等待
+      const posted = revoker.post('/api/auth/signout', {
+        maxRedirects: 0, headers: { Origin: BASE }, form: { csrfToken: csrf, callbackUrl: `${BASE}/admin-login` },
+      });
+      // 结算回调即记录一次真实完成/失败 runner 时点（不被后续 clockBridge/可见等待拖延）；
+      // 主流程只 await 同一 Promise 取结果，不再补写伪完成时间。
+      signoutPromise = posted.then((resp) => {
+        if (!signoutSettled) {
+          signoutSettled = true;
+          signoutStatus = resp.status();
+          mark('signout-complete', { status: signoutStatus });
+        }
+        return resp;
+      }, (cause) => {
+        if (!signoutSettled) {
+          signoutSettled = true;
+          signoutRejected = true;
+          mark('signout-failed');
+        }
+        throw cause; // 保留 rejection 语义，主流程 await 会接到并记受控错误
+      });
+      // 避免未处理 rejection（结算回调已重抛）：额外挂空 catch 消费一份，主流程 await 仍接同一 Promise。
+      void signoutPromise.catch(() => undefined);
+    };
+    const watchRequest = (r: PWReq) => { if (isAccount(r)) mark('browser-account-request', { requestId: idOf(r) }); };
+    const watchResponse = (r: import('@playwright/test').Response) => {
+      const req = r.request();
+      if (isAccount(req)) {
+        const id = idOf(req);
+        mark('browser-account-response', { status: r.status(), requestId: id });
+        if (r.status() === 401) browser401Ids.add(id);
+      }
+      // 目标 document 响应到达的同一回调里立刻发起真实 signout（不等 DOM/校准/可见）。
+      if (isTargetDocumentResponse(r)) {
+        navigationResponseSeen = true;
+        navigationStatus = r.status();
+        navigationResponseObservedAt = at();
+        mark('navigation-response-observed', { status: r.status() });
+        startSignout();
+      }
+    };
+    const watchFailed = (r: PWReq) => { if (isAccount(r)) mark('browser-account-requestfailed', { requestId: idOf(r) }); };
+    // 三个监听均在导航前注册；response 回调承担「真实撤销触发点」。
+    page.on('request', watchRequest);
+    page.on('response', watchResponse);
+    page.on('requestfailed', watchFailed);
     const reportPath = testInfo.outputPath('admin-account-cleared.json');
     // 临时诊断：任何 dispose 之前先落盘——含已有脱敏原帧、实际 coverage、timeline/请求结果、校准、error；
     // 标 cleanup-pending、pass=false。即使 dispose 挂住，磁盘已有当时真实几何与缺口。
@@ -711,6 +770,10 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
         frames: diagVerdict.judged, coverage: diagVerdict.coverage, timeline,
         responsesById: Object.fromEntries(diagResponses), clockBridge: bridge,
         realRequests: { navigationStatus, shellVisible, signoutStatus, replayAccountStatus: replayStatus, urlAfter },
+        triggerState: {
+          navigationResponseSeen, navigationResponseObservedAt,
+          signoutTriggered, signoutRejected, signoutSettled, signoutFrozen, signoutStatus,
+        },
         ...extra,
       }, null, 2));
     };
@@ -718,7 +781,7 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
       stage = 'prepare';
       const sessionState = await page.context().storageState();
       revoker = await playwright.request.newContext({ baseURL: BASE, storageState: sessionState });
-      const csrf = (await (await revoker.get('/api/auth/csrf')).json()).csrfToken as string;
+      csrf = (await (await revoker.get('/api/auth/csrf')).json()).csrfToken as string;
       replayCtx = await playwright.request.newContext({ baseURL: BASE, storageState: sessionState });
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.addInitScript(installAccountObserver);
@@ -727,19 +790,21 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
       stage = 'navigate';
       mark('goto-start');
       const nav = await page.goto(`${BASE}/admin/inquiries`, { waitUntil: 'domcontentloaded' });
-      navigationStatus = nav ? nav.status() : 0;
-      mark('goto-complete', { status: navigationStatus }); // goto 返回的观察时点，非精确网络响应时刻
-      navObservedAt = at(); // 本 document 导航观察时点（帧区间不得明显早于此）
-      bridge = await clockBridge(page, at); // 单次 runner/page 时钟校准（含 docId，失败返回 valid=false）
+      // 触发点在真实 response 回调里（startSignout），此处只标 goto 返回观察，不再发起 signout。
+      if (navigationStatus === 0) navigationStatus = nav ? nav.status() : 0;
+      mark('goto-complete', { status: navigationStatus });
+      // 校准/可见等在 signout 已发起之后进行，不再延后撤销。
+      bridge = await clockBridge(page, at);
       await expect(page.getByTestId('admin-account')).toBeVisible({ timeout: 20_000 });
       shellVisible = true;
       mark('shell-visible');
 
       stage = 'signout';
-      mark('signout-start');
-      const signout = await revoker.post('/api/auth/signout', { maxRedirects: 0, headers: { Origin: BASE }, form: { csrfToken: csrf, callbackUrl: `${BASE}/admin-login` } });
-      signoutStatus = signout.status();
-      mark('signout-complete', { status: signoutStatus });
+      // 等待唯一 signout Promise（赋值发生在 response 回调里，TS 不追踪跨函数副作用，显式读避免 narrow 成 never）。
+      // signout-complete 已在发起时绑定的结算回调按真实完成时点记录一次；这里只 await 取结果，不补写时间。
+      const pendingSignout = signoutPromise as Promise<import('@playwright/test').APIResponse> | null;
+      if (!pendingSignout) { throw new Error('signout-not-triggered-by-target-document-response'); }
+      await pendingSignout;
 
       stage = 'replay';
       mark('replay-start');
@@ -763,10 +828,21 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
       err = safeError(e);
       try { collectFrames(frames, await readAccountFrames(page)); } catch { /* 读帧失败不遮蔽原错误 */ }
     } finally {
-      // 先尽力读当前 document 并稳定去重，再写含真实证据的主诊断，然后独立清理每项。
+      // ① 入口即冻结触发：迟到 response 不得再开启一个未纳入收尾的 signout。
+      signoutFrozen = true;
+      // ② 尽力读当前 document 并稳定去重（读帧失败不遮蔽）。
       try { collectFrames(frames, await readAccountFrames(page)); } catch { /* 读帧失败不遮蔽原错误 */ }
       if (readObservedAt === null) readObservedAt = at();
+      // ③ 在**任何可能挂起的 await 之前**先落首份诊断：含已有原帧/coverage/timeline/校准/
+      //    导航观察/触发/冻结/结算/拒绝/当前请求状态，pass=false、cleanupPending=true。
       saveDiag({});
+      // ④ 再安全结算/消费在途 Promise（结算回调已记真实完成时点；此处仅补齐状态、不补写时间）。
+      const pendingInFinally = signoutPromise as Promise<import('@playwright/test').APIResponse> | null;
+      if (pendingInFinally && !signoutSettled) {
+        try { await pendingInFinally; }
+        catch { signoutRejected = true; }
+      }
+      // ⑤ 独立清理每项：任一失败记受控类别，不遮蔽原错误、不阻断其它清理。
       const cleanups: Array<[string, () => Promise<unknown> | void]> = [
         ['observer-stop', () => page.evaluate(() => (window as unknown as { __admObserverStop?: () => void }).__admObserverStop?.())],
         ['listeners-off', () => { page.off('request', watchRequest); page.off('response', watchResponse); page.off('requestfailed', watchFailed); }],
@@ -789,9 +865,13 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
     // cleared 帧与真实 401 的关联：每帧绑定自身 docId 的有效 bridge，区间有限有序、
     // 不早于本 doc 导航、不晚于读取观察上界，且该 doc 有真实成对浏览器 GET 401；重叠只标不确定。
     const response401 = timeline.filter((e) => e.action === 'browser-account-response' && e.status === 401).map((e) => ({ atMs: e.atMs, requestId: e.requestId as number }));
-    const timeV = frameTimeVerdict(frames, bridge, navObservedAt ?? -1, readObservedAt ?? Number.POSITIVE_INFINITY, response401);
+    // 下界用真实目标 document 响应观察时点（不是 goto 返回）；未观察到则记 -1 让矛盾区间判失败。
+    const timeV = frameTimeVerdict(frames, bridge, navigationResponseObservedAt ?? -1, readObservedAt ?? Number.POSITIVE_INFINITY, response401);
     const frameLinked = timeV.linked;
-    const captured = verdict.pass && clientAccount401 && pairingOk && signoutOk && replayOk && clearedTextVisible && frameLinked && err === null && cleanupErrors.length === 0;
+    const navigationResponseOk = navigationResponseSeen && navigationResponseObservedAt !== null && navigationStatus === 200;
+    const signoutTriggeredOk = signoutTriggered && !signoutRejected && signoutPromise !== null;
+    const captured = verdict.pass && clientAccount401 && pairingOk && signoutOk && replayOk && clearedTextVisible && frameLinked &&
+      navigationResponseOk && signoutTriggeredOk && err === null && cleanupErrors.length === 0;
     const pass = captured;
 
     const report = {
@@ -799,10 +879,11 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
       selector: '.adm-account / .adm-account-cleared',
       viewports: VIEWPORTS, statesMeasured: STATES,
       clock: { runner: 'node:perf_hooks performance.now()-runnerStart（单调）', calibration: bridge, pageFrame: '帧自带页面 performance.now() 采样时间，映射区间 [pageAt+r1-p, pageAt+r2-p]；只述客户端观测顺序、保留不确定性，不推服务端到达，不要求 GET 早于 signout 发出' },
-      method: '导航前 Map<Request,seq> 配对浏览器自身 GET account request/response/requestfailed（不读私有字段）；预建 revoker+CSRF；goto(domcontentloaded) 标 goto-complete，壳出现后尽早发真实 Auth.js signout（机会策略）；复制旧 state 的真实请求确认 401；同页 resize 采两档 cleared 几何。无 CDP 延迟挂起假设、无 route.fulfill、无响应改写、无 DB 写入、无 src/DOM/CSS/React 改动、无存储注入。',
-      realRequests: { navigationStatus, shellVisible, signoutStatus, replayAccountStatus: replayStatus, urlAfter },
+      method: '导航前注册 response 观察回调：匹配主 frame 目标 document（/admin/inquiries、resourceType=document、status200、排除 API/资源/子frame/重复）的响应到达同一回调里即时启动唯一真实 Auth.js signout Promise；不等 DOM/clockBridge/可见等待。预建 revoker+CSRF+replay；Map<Request,seq> 配对浏览器自身 GET account request/response/requestfailed；goto(domcontentloaded) 仅标 goto-complete，响应观察时点另记 navigation-response-observed 作有效帧下界；复制旧 state 的真实请求确认 401；同页 resize 采两档 cleared 几何。无 CDP 延迟挂起假设、无 route.fulfill、无响应改写、无 DB 写入、无 src/DOM/CSS/React 改动、无存储注入、无固定 sleep/多次登录退出。',
+      realRequests: { navigationStatus, navigationResponseSeen, navigationResponseObservedAt, signoutTriggered, signoutRejected, shellVisible, signoutStatus, replayAccountStatus: replayStatus, urlAfter },
       timeline, pairedRequests, responsesById: Object.fromEntries(responsesById), browser401Ids: [...browser401Ids],
-      response401, frameTimeVerdict: timeV, frameLinked,
+      response401, frameTimeVerdict: timeV, frameLinked, navigationResponseOk, signoutTriggeredOk,
+      navigationResponseSeen, navigationResponseObservedAt, signoutTriggered, signoutRejected,
       clientAccount401, pairingOk, signoutOk, replayOk, clearedTextVisible,
       coverage: verdict.coverage, frames: verdict.judged,
       thresholds: ACCOUNT_DENSITY, eps: EPS,
@@ -820,6 +901,8 @@ test.describe('admin-account 401-cleared 态布局补证（独立会话）', () 
     expect(cleanupErrors.length, '清理须无失败').toBe(0);
     expect(signoutOk, `真实 Auth.js signout 须成功（实际 ${signoutStatus}）`).toBe(true);
     expect(replayOk, `复制旧 state 的真实 GET account 须 401（实际 ${replayStatus}）`).toBe(true);
+    expect(navigationResponseOk, '目标 document 真实 200 响应须被观察并触发唯一 signout').toBe(true);
+    expect(signoutTriggeredOk, 'signout 须由响应回调即时发起且 Promise 未被拒').toBe(true);
     expect(pairingOk, '浏览器 GET account request/response 须按本地序号配对').toBe(true);
     expect(clientAccount401, '浏览器自身 GET account 须实测成对 401').toBe(true);
     expect(clearedTextVisible, '.adm-account-cleared 须真实可见').toBe(true);
