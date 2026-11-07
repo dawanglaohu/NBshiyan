@@ -33,18 +33,18 @@
     "_run/batches/batch-3-20261024.md": "8fddca7a7284feb3aeca7847d86f94dd96dd55c446bce2e4f191b3567f6724c7",
     "_run/batches/batch-4-20261026.md": "053880f9ae9620b5b38c923650ed43449185bb040f27ea2bf5af0845bd055de7",
     "_run/batches/batch-5-20261026.md": "51c6425ebc631b859a733e4dcb939ab2ac2f73111f5107902d838aa70ad784fe",
-    "_run/batches/batch-7-20261107.md": "7ba13a10762a26969266a09618a9e4de79ebd07d805f1a783a6e287ace8209df",
+    "_run/batches/batch-7-20261107.md": "74b14ad3649e70d8fa0dc6ec30d850dc644a73db9c0a90209b38a71bf1ad258a",
     "_run/presentation.json": "65ff64e42139bd1ce9157ec11e067fb273ec53c55c832683fb3a7355ae95c682",
     "_run/task-contracts.json": "e47700534ba1eeaf898844d8e2feb6840f167e0e7bf12cb3c182f9d7411d47a6"
   },
   "products": {
     "_MOC.md": "9a97a99eecd6e59e4f9554bd6ef41912e6cd0b3965786bf729f88b178921655c",
-    "_run/dispatch.json": "765ee6f19bb010528d386baaf6bfc49c360dd4981406c199f65c729c46a26a4f",
-    "_run/review.json": "3e34f0a731cb98f5a57c46006f93df06115b22d94a169b5b6928803d3d3ca018",
+    "_run/dispatch.json": "4c5093f0bac9dce618345b469ffb7f19fec50973a42669d2538d91604d9a6cf8",
+    "_run/review.json": "a0ce73b9ca18cb96df7d2bc52c0fe301bdb52577f418a248d36fd6d74d81f313",
     "_run/task-reviews.json": "5b5fdb49a238b6b9c3e81b9dc09906f834250057e16d3d22f87b0775ba6f2cf0",
-    "docs-data.js": "6c0136a77db6615dd6e6f9339ae632df321d0b833f2aeae90a043f1e2e6a7611",
+    "docs-data.js": "7cb48b95b1a07c0e0f2a7c71c166fcdc58a3c66e519196176d1235a74a6bd23a",
     "index.html": "7fda3113b97fe22e225ace0a0558f6cd83712da9c6d043765516a883b3136276"
   },
   "schemaVersion": 1,
-  "sourceVersion": "a41fc75887d52e08b6b4104c942ac0cccc24ab01f860bce4702e3c2d15c6373d"
+  "sourceVersion": "cc9d4c277a367e945df35fc08f246ecf8cc8bb9037fad3b6eb4700a177627f4c"
 }
