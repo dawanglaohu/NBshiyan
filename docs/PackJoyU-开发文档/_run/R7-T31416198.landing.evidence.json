@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R7-T31416198": {
+      "contractHash": "4592fdd01f99ae7f8e31ede4af7bee43a11eb8ee7f32f600b396489b2c69c3d0",
+      "verdict": "pass",
+      "evidence": [
+        "真实验收依据：run 42380725190（attempt 1，head e8410563；合并树 0a7e34a0 = head 树）success；PG 第 9 步 295s，`analytics-aggregate.db.test.ts pass=12 fail=0 skip=0`；本卡为更正后映射的第 11 条。",
+        "测试实现：`tests/analytics-aggregate.db.test.ts:419-514` 第 11 条——同一交互式事务内 `SET LOCAL TIME ZONE`→`SHOW TimeZone`（断言生效）→真实 `loadEventsAtSnapshot`；同一数据播种四类（起点含、起点前 1ms 排除、日末含、cutoff 后排除），UTC 基准恰命中 `tz-at-start` 与 `tz-at-end` 两条，非 UTC（Asia/Shanghai）与该两条基准 deepEqual（`:448-461`，`:461` 为一致性断言点）；`:465-513` 为非 NULL watermark 跨会话对照。`:515` 起属第 12 条区块，其 `:525-552` 适配器不归本条。",
+        "两阶段归属保留：该用例在失败 run 42341518872 真实暴露产品缺陷（Asia/Shanghai 丢日界起点事件），按口径保持失败上报、未改断言、未 pin UTC；产品修复独立成卡 R7-T21418022，本卡保留原测试契约。",
+        "本轮只补测试：保留产品原查询；时区设置与被测查询在同一连接/事务内完成，不对连接池做一次性 SET。",
+        "证据边界（不造）：成功日志只有文件级计数，`R7-T31416198` 与 `# Subtest:` 命中 0，无单测 TAP 或耗时。",
+        "本次 --landed 只登记本卡：两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁。"
+      ]
+    }
+  }
+}

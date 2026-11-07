@@ -353,4 +353,306 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     assert.equal(Number(row1After[0]!.c), Number(row1Before[0]!.c), '失败整组回滚后 day1 汇总行数不变');
     assert.equal(Number(wm1After[0]!.eventCount), Number(wm1Before[0]!.eventCount), '失败整组回滚后 day1 watermark 不变');
   });
+
+  test('R7-T14077261：超范围日走 partial 服务路径，预置聚合与 watermark 逐字段不变', async () => {
+    await reset();
+    const conn = requireDb();
+    const now = new Date('2026-03-01T10:00:00.000Z');
+    const oldDay = '2026-01-15';
+    const plan = planSnapshot({ now, siteTimezone: TZ, currentDate: oldDay });
+    assert.ok(plan.skippedDates.includes(oldDay), '测试前提：该日必须超出完整原始覆盖');
+    assert.ok(plan.siteDates.length > 0, '测试前提：同一轮仍有可重算日，才能触发 partial 而不是 unavailable');
+    assert.equal(plan.coverage, 'partial', '测试前提：本轮覆盖度应为 partial');
+
+    // 预置超范围日的完整聚合（两组）与 watermark。revision 取 3、高于本轮 1：
+    // 若产品误把这天当目标日重算，版本校验会直接抛错，测试立刻失败，不会静默绕过。
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers", "updatedAt")
+      VALUES
+        (${oldDay}, ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${''}, ${41}, ${17}, ${utc(new Date('2026-01-16T00:00:00.000Z'))}),
+        (${oldDay}, ${'product_view'}::"AnalyticsEventKind", ${'en'}, ${'box'}, ${9}, ${4}, ${utc(new Date('2026-01-16T00:00:00.000Z'))})
+    `;
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsRollupDay" ("siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "updatedAt")
+      VALUES (${oldDay}, ${3}, ${utc(new Date('2026-01-16T00:00:00.000Z'))}, ${50}, ${utc(new Date('2026-01-15T23:00:00.000Z'))}, ${utc(new Date('2026-01-16T00:00:00.000Z'))})
+    `;
+
+    const readRollups = () => conn.$queryRaw<Record<string, unknown>[]>`
+      SELECT "siteDate", "kind"::text AS "kind", "locale", "productSlug", "count", "uniqueBrowsers", "createdAt", "updatedAt"
+      FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${oldDay}
+      ORDER BY "kind"::text, "locale", "productSlug"
+    `;
+    const readWatermark = () => conn.$queryRaw<Record<string, unknown>[]>`
+      SELECT "siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "createdAt", "updatedAt"
+      FROM "AnalyticsRollupDay" WHERE "siteDate" = ${oldDay}
+    `;
+    const rowsBefore = await readRollups();
+    const watermarkBefore = await readWatermark();
+    assert.equal(rowsBefore.length, 2, '预置的两组聚合行应可读到');
+
+    const run = await runAggregateOnce({
+      db: conn, now, siteTimezone: TZ, currentDate: oldDay, timezoneRevision: 1, generation: 1,
+    });
+    assert.equal(run.status, 'ok');
+    assert.equal(run.coverage, 'partial', '本轮实际走 partial（不是 unavailable，也不冒称 complete）');
+    assert.equal(
+      run.days.length,
+      plan.siteDates.length + plan.skippedDates.length,
+      '结果必须同时覆盖可重算日与被跳过日',
+    );
+    assert.deepEqual(
+      run.days.filter((d) => d.skippedReason === 'out_of_coverage').map((d) => d.siteDate),
+      plan.skippedDates,
+      'skippedDates 循环必须逐日产出结果，不能是零次执行',
+    );
+    const skipped = run.days.find((d) => d.siteDate === oldDay);
+    assert.ok(skipped, '超范围日必须出现在本轮结果中');
+    assert.equal(skipped!.written, false);
+    assert.equal(skipped!.eventCount, 0);
+    assert.equal(skipped!.sourceMaxReceivedAt, null);
+    assert.ok(run.days.some((d) => d.written && d.siteDate !== oldDay), '同一轮里可重算日必须正常写入');
+
+    assert.deepEqual(await readRollups(), rowsBefore, '超范围日的汇总行必须逐字段不变（不被覆盖、不被清空）');
+    assert.deepEqual(await readWatermark(), watermarkBefore, '超范围日的 watermark 必须逐字段不变');
+  });
+
+  test('R7-T31416198：非 UTC 会话与 UTC 会话的午夜边界、cutoff 与 watermark 结果必须完全一致', async () => {
+    await reset();
+    const conn = requireDb();
+    const now = new Date('2026-03-01T10:00:00.000Z');
+    const day = siteLocalDate(now, TZ);
+    const bounds = siteDayUtcBounds(day, TZ);
+    const startMs = Date.parse(bounds.startUtc);
+    const endMs = Date.parse(bounds.endUtc);
+
+    // 播种覆盖四种语义位置：站点日界起点（最敏感）、日界前 1ms、日末内 1ms、cutoff 之后到达。
+    // insertEvent 用 ::timestamptz AT TIME ZONE 'UTC' 落库，存储值是确定的 UTC 墙钟，
+    // 与会话时区无关；会话差异只会来自产品查询的参数绑定与比较语义。
+    await insertEvent({ occurredAt: new Date(startMs), receivedAt: new Date(now.getTime() - 60_000), browserHash: 'tz-at-start' });
+    await insertEvent({ occurredAt: new Date(startMs - 1), receivedAt: new Date(now.getTime() - 60_000), browserHash: 'tz-before-start' });
+    await insertEvent({ occurredAt: new Date(endMs - 1), receivedAt: new Date(now.getTime() - 60_000), browserHash: 'tz-at-end' });
+    await insertEvent({ occurredAt: new Date(startMs + 60_000), receivedAt: new Date(now.getTime() + 60_000), browserHash: 'tz-late' });
+
+    // 同一连接/事务内完成：SET LOCAL TIME ZONE → SHOW TimeZone 确认生效 → 被测聚合读取。
+    // Prisma 交互式事务整段持有单一连接；SET LOCAL 在事务结束时自动还原，不污染连接池，
+    // 也不是「对连接池 SET 一次就宣称覆盖」。产品查询保持原样，不预先 pin UTC。
+    const readInSession = async (zone: 'UTC' | 'Asia/Shanghai') =>
+      conn.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE '${zone}'`);
+        const shown = await tx.$queryRaw<{ [key: string]: string }[]>`SHOW TimeZone`;
+        const zoneShown = String(Object.values(shown[0]!)[0]);
+        const events = await loadEventsAtSnapshot(tx, bounds, now);
+        return { zoneShown, events };
+      });
+
+    const utcRun = await readInSession('UTC');
+    const cstRun = await readInSession('Asia/Shanghai');
+    assert.equal(utcRun.zoneShown, 'UTC', 'UTC 事务必须确认会话时区生效');
+    assert.equal(cstRun.zoneShown, 'Asia/Shanghai', '非 UTC 事务必须确认会话时区生效');
+
+    // UTC 会话是基准：日界内恰好 2 条（起点含、日末含），日界前与 cutoff 之后各 1 条不入本轮。
+    assert.deepEqual(
+      utcRun.events.map((e) => e.browserHash).sort(),
+      ['tz-at-end', 'tz-at-start'],
+      'UTC 基准必须命中午夜边界与 cutoff 语义',
+    );
+    // 非 UTC 会话的读取结果必须与 UTC 完全一致；出现任何偏移即为产品缺陷，本用例必须失败，
+    // 不得以「记录偏移」当作验收通过。
+    assert.deepEqual(cstRun.events, utcRun.events, '非 UTC 会话的午夜边界与 cutoff 结果与 UTC 不一致');
+
+    // watermark 写入同样对照：相同输入分别落在 UTC / 非 UTC 会话写入两天，
+    // 在 UTC 会话读回逐字段比对（含 completedAt / sourceMaxReceivedAt / 时间戳列）。
+    const wmArgs = (siteDate: string) => ({
+      siteDate,
+      timezoneRevision: 1,
+      completedAt: new Date('2026-03-01T09:30:00.000Z'),
+      eventCount: 7,
+      sourceMaxReceivedAt: new Date('2026-03-01T09:00:00.000Z'),
+      now: new Date('2026-03-01T10:00:00.000Z'),
+    });
+    await conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE 'UTC'`);
+      assert.equal(await upsertWatermarkGuarded(tx, wmArgs('2026-02-20')), 1);
+    });
+    await conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE 'Asia/Shanghai'`);
+      assert.equal(await upsertWatermarkGuarded(tx, wmArgs('2026-02-21')), 1);
+    });
+    const stored = await conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE 'UTC'`);
+      return tx.$queryRaw<{
+        siteDate: string; rev: number; completedAt: string; eventCount: number;
+        sourceMax: string; created: string; updated: string;
+      }[]>`
+        SELECT "siteDate",
+               "timezoneRevision" AS "rev",
+               to_char("completedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "completedAt",
+               "eventCount",
+               to_char("sourceMaxReceivedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "sourceMax",
+               to_char("createdAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "created",
+               to_char("updatedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "updated"
+        FROM "AnalyticsRollupDay"
+        WHERE "siteDate" IN ('2026-02-20', '2026-02-21')
+        ORDER BY "siteDate"
+      `;
+    });
+    assert.equal(stored.length, 2, '两天 watermark 都应写入');
+    const wmUtc = stored.find((r) => r.siteDate === '2026-02-20')!;
+    const wmCst = stored.find((r) => r.siteDate === '2026-02-21')!;
+    assert.equal(wmUtc.rev, 1);
+    assert.equal(wmCst.rev, 1);
+    assert.equal(wmUtc.eventCount, 7);
+    assert.equal(wmCst.eventCount, 7);
+    assert.equal(wmUtc.completedAt, '2026-03-01T09:30:00.000');
+    assert.equal(wmCst.completedAt, '2026-03-01T09:30:00.000', '非 UTC 会话写入的 completedAt 必须与 UTC 完全一致');
+    assert.equal(wmUtc.sourceMax, '2026-03-01T09:00:00.000');
+    assert.equal(wmCst.sourceMax, '2026-03-01T09:00:00.000', '非 UTC 会话写入的 sourceMaxReceivedAt 必须与 UTC 完全一致');
+    assert.equal(wmUtc.created, '2026-03-01T10:00:00.000');
+    assert.equal(wmCst.created, '2026-03-01T10:00:00.000');
+    assert.equal(wmUtc.updated, '2026-03-01T10:00:00.000');
+    assert.equal(wmCst.updated, '2026-03-01T10:00:00.000');
+  });
+  // R7-T21418022：唯一新增的非 UTC 写入覆盖。只加测试层，不改产品导出面、不加产品钩子、
+  // 不复制聚合逻辑；适配器只包住产品自己打开的 $transaction，并在同一个真实 tx 内完成时区/连接证明。
+  type SessionTxOptions = { isolationLevel?: Prisma.TransactionIsolationLevel; maxWait?: number; timeout?: number };
+  type SessionTxProof = { calls: number; options: Array<SessionTxOptions | undefined> };
+
+  /**
+   * 测试层透传适配器：产品调用 db.$transaction(fn, options) 时，本适配器用真实 client 打开同一个事务，
+   * 在真实 tx 内先 SET LOCAL 时区并确认、记录 PID，再把同一个 tx 交给产品原回调；回调结束后再核 PID 与时区。
+   * 不模拟 SQL、不拷贝聚合逻辑、不改隔离级别/maxWait/timeout。
+   */
+  function sessionTxAdapter(client: PrismaClient, zone: 'UTC' | 'Asia/Shanghai', proof: SessionTxProof) {
+    const adapter = {
+      $queryRaw: client.$queryRaw.bind(client),
+      $executeRaw: client.$executeRaw.bind(client),
+      $transaction: async (
+        fn: (tx: Prisma.TransactionClient) => Promise<unknown>,
+        options?: SessionTxOptions,
+      ) => {
+        proof.calls += 1;
+        proof.options.push(options);
+        return client.$transaction(async (tx) => {
+          // 真实事务内的第一件事：设置并确认会话时区，记录连接 PID。
+          await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE '${zone}'`);
+          const beforeZone = await tx.$queryRaw<Record<string, string>[]>`SHOW TimeZone`;
+          assert.equal(String(Object.values(beforeZone[0]!)[0]), zone, '产品事务内必须先确认会话时区');
+          const pidBefore = await tx.$queryRaw<{ pid: number }[]>`SELECT pg_backend_pid() AS pid`;
+          // 同一个真实 tx 交回产品原回调；产品内部的行锁、DELETE、INSERT、watermark upsert 都跑在这里。
+          const result = await fn(tx);
+          const pidAfter = await tx.$queryRaw<{ pid: number }[]>`SELECT pg_backend_pid() AS pid`;
+          const afterZone = await tx.$queryRaw<Record<string, string>[]>`SHOW TimeZone`;
+          assert.equal(pidBefore[0]!.pid, pidAfter[0]!.pid, '产品回调前后必须是同一个数据库连接');
+          assert.equal(String(Object.values(afterZone[0]!)[0]), zone, '产品回调结束后会话时区不得漂移');
+          return result;
+        }, options);
+      },
+    };
+    return adapter as unknown as Parameters<typeof runAggregateOnce>[0]['db'];
+  }
+
+  test('R7-T21418022：参数侧 UTC 转换后，UTC 与非 UTC 会话的真实聚合事务写入逐字段一致', async () => {
+    const conn = requireDb();
+    // 固定带毫秒的 now：汇总 createdAt/updatedAt 与 watermark completedAt 都应是 10:00:00.123。
+    const now = new Date('2026-03-01T10:00:00.123Z');
+    const currentDate = siteLocalDate(now, TZ);
+    const plan = planSnapshot({ now, siteTimezone: TZ, currentDate });
+    const writingDay = currentDate;
+    const emptyDay = plan.siteDates.find((day) => day !== writingDay);
+    assert.ok(plan.siteDates.includes(writingDay), '测试前提：当前日必须在本轮目标日');
+    assert.ok(emptyDay, '测试前提：本轮必须有一个无事件日来验 watermark NULL');
+
+    // 相同业务输入：清库 → 租约 → 一条事件；两次 run 之间重复相同业务输入。
+    // seedLease 的时钟与 insertEvent 的自增 ID 会变化，但它们不参与本测试比较。
+    const seed = async () => {
+      await reset();
+      await seedLease(1);
+      await insertEvent({
+        occurredAt: new Date('2026-03-01T02:00:00.123Z'),
+        receivedAt: new Date('2026-03-01T09:00:00.123Z'),
+        browserHash: 'nonutc-write',
+      });
+    };
+
+    const runAggregate = async (zone: 'UTC' | 'Asia/Shanghai') => {
+      const proof: SessionTxProof = { calls: 0, options: [] };
+      const result = await runAggregateOnce({
+        db: sessionTxAdapter(conn, zone, proof),
+        now, siteTimezone: TZ, currentDate, timezoneRevision: 1, generation: 1,
+      });
+      assert.equal(proof.calls, 1, '产品必须恰好打开一次真实事务');
+      assert.deepEqual(proof.options[0], {
+        isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
+        maxWait: 5_000,
+        timeout: 15_000,
+      }, '隔离级别、maxWait、timeout 必须原样透传');
+      return result;
+    };
+
+    const MS = 'YYYY-MM-DD"T"HH24:MI:SS.MS';
+    type RollupRow = {
+      siteDate: string; kind: string; locale: string; productSlug: string;
+      count: number; uniqueBrowsers: number; createdAt: string; updatedAt: string;
+    };
+    type WatermarkRow = {
+      siteDate: string; timezoneRevision: number; completedAt: string; eventCount: number;
+      sourceMaxReceivedAt: string | null; createdAt: string; updatedAt: string;
+    };
+    // 读回顺序固定：每次 run 提交后再开一个显式 UTC 事务读，确认读回会话是 UTC 才取数。
+    const readUtc = async () => conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE 'UTC'`);
+      const shown = await tx.$queryRaw<Record<string, string>[]>`SHOW TimeZone`;
+      assert.equal(String(Object.values(shown[0]!)[0]), 'UTC', '读回必须在 UTC 会话内');
+      const rollups = await tx.$queryRaw<RollupRow[]>`
+        SELECT "siteDate", "kind"::text AS "kind", "locale", "productSlug", "count", "uniqueBrowsers",
+               to_char("createdAt", ${MS}) AS "createdAt", to_char("updatedAt", ${MS}) AS "updatedAt"
+        FROM "AnalyticsDailyRollup"
+        WHERE "siteDate" = ${writingDay}
+        ORDER BY "kind"::text, "locale", "productSlug"
+      `;
+      const watermarks = await tx.$queryRaw<WatermarkRow[]>`
+        SELECT "siteDate", "timezoneRevision",
+               to_char("completedAt", ${MS}) AS "completedAt", "eventCount",
+               CASE WHEN "sourceMaxReceivedAt" IS NULL THEN NULL
+                    ELSE to_char("sourceMaxReceivedAt", ${MS}) END AS "sourceMaxReceivedAt",
+               to_char("createdAt", ${MS}) AS "createdAt", to_char("updatedAt", ${MS}) AS "updatedAt"
+        FROM "AnalyticsRollupDay"
+        WHERE "siteDate" IN (${Prisma.join(plan.siteDates)})
+        ORDER BY "siteDate"
+      `;
+      return { rollups, watermarks };
+    });
+
+    // 第一轮：UTC 会话真实事务；读回后保存快照。
+    await seed();
+    const utcResult = await runAggregate('UTC');
+    const utcStored = await readUtc();
+
+    // 第二轮：清库并重播相同业务输入，在 Asia/Shanghai 会话的真实事务里跑同一产品入口。
+    await seed();
+    const cstResult = await runAggregate('Asia/Shanghai');
+    const cstStored = await readUtc();
+
+    // 主验收：两会话的聚合结果与落库值必须逐字段完全一致（不拿固定期望值替代两会话比较）。
+    assert.deepEqual(cstResult, utcResult, '同一输入在两个会话中的聚合结果必须一致');
+    assert.deepEqual(cstStored, utcStored, '汇总行与 watermark 的落库值必须逐字段一致（含毫秒）');
+
+    // 辅助锚点：固定毫秒、非空汇总行、空事件日 NULL 与有事件日非 NULL。
+    const expected = '2026-03-01T10:00:00.123';
+    assert.ok(utcStored.rollups.length > 0, '当前日必须有非空汇总行');
+    for (const row of utcStored.rollups) {
+      assert.equal(row.createdAt, expected, '汇总 createdAt 毫秒不得丢失');
+      assert.equal(row.updatedAt, expected, '汇总 updatedAt 毫秒不得丢失');
+    }
+    const empty = utcStored.watermarks.find((row) => row.siteDate === emptyDay);
+    assert.ok(empty, '无事件日也必须写 watermark');
+    assert.equal(empty.sourceMaxReceivedAt, null, '无事件日 sourceMaxReceivedAt 必须保留 NULL');
+    assert.equal(empty.completedAt, expected);
+    assert.equal(empty.createdAt, expected);
+    assert.equal(empty.updatedAt, expected);
+    assert.equal(empty.eventCount, 0);
+    const writing = utcStored.watermarks.find((row) => row.siteDate === writingDay);
+    assert.ok(writing, '有事件日必须有 watermark');
+    assert.equal(writing.sourceMaxReceivedAt, '2026-03-01T09:00:00.123');
+  });
 });

@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R7-T14077261": {
+      "contractHash": "4ceab81810193068e42c4608b0eb4a44b939a27392cafc25553ef211620bc47e",
+      "verdict": "pass",
+      "evidence": [
+        "真实验收依据：run 42380725190（event pull_request，attempt 1，head e84105632cb4f693c718543cfc13f976b03ad432；测试合并提交 7b0d1003，树 0a7e34a0 = head 树）success；PG 门禁第 9 步 14:15:56→14:20:51Z、295s，文件级 `tests/analytics-aggregate.db.test.ts pass=12 fail=0 skip=0 todo=0 cancelled=0`。",
+        "三项映射按更正后取证件 db-ci-42380725190-20261107.md（8,201 B `E4AA2F88…`）/ .json（9,125 B `54471380…`）：本卡为第 10 条，源码 357–417；第 6 条是旧 E-82 用例，保留全表但不作本卡替代证据。",
+        "测试实现：用例由 `8c9fdd00` 新增（`currentDate=2026-01-15` 触发超范围日；自断言 skippedDates 含该日、同轮可重算日 >0、coverage=partial；预置 AnalyticsDailyRollup/AnalyticsRollupDay 与 watermark revision=3；真实入口 runAggregateOnce 后 written=false，预置聚合与 watermark 逐字段 deepEqual）；`f0cdc2ff` 只修两处预置 INSERT 的 `updatedAt`，采用 f0 内容时已含前者，不把用例原创归给夹具修复。",
+        "夹具修复：两处预置 raw INSERT 补 `updatedAt`（`@updatedAt` 客户端管理列、无 DB 默认、固定 UTC 值）；失败 run 42341518872 的 23502 NOT NULL 因此闭合；行为断言、既有 9 条与非 UTC 用例逐字未动。",
+        "证据边界（不造）：成功日志只有文件级门禁计数，`R7-T14077261`／`E-82`／`# Subtest:` 命中 0，无单用例 TAP 与耗时；`partial` 不冒称 `unavailable`。",
+        "本次 --landed 只登记本卡：任务卡代码位置与实施沉淀两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁，不生成 clean/fixed。"
+      ]
+    }
+  }
+}

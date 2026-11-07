@@ -1,0 +1,17 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "R7-T21418022": {
+      "contractHash": "d408013f8ab615bd1291f860a52cb915e8a092132e347581b57b312541adda6b",
+      "verdict": "pass",
+      "evidence": [
+        "真实验收依据：run 42380725190（attempt 1，head e8410563；合并树 0a7e34a0 = head 树）success；PG 第 9 步 295s，`analytics-aggregate.db.test.ts pass=12 fail=0 skip=0`；本卡为更正后映射的第 12 条（新增写入用例）。",
+        "实现（`5c324c2e` 本体＝**3 文件 +162/−9**：`aggregate-repo.ts` +19/−8、`aggregate.ts` +9/−5、测试 +143/−0；`1149..e841` 的 12 文件 +453/−42 是累计范围、非本提交本体）：`aggregate-repo.ts:63-65` 三处读、`:123` completedAt、`:125` sourceMaxReceivedAt（可空、NULL 走 `Prisma.sql`NULL``）、`:126-127` now、`aggregate.ts:105-106` 汇总 INSERT createdAt/updatedAt，共九处统一改仓库既有 `utc()`（`::timestamptz AT TIME ZONE 'UTC'`）；不迁 schema、不强制会话 UTC、不 pin UTC，毫秒精度与 NULL 语义保留。",
+        "测试（第 12 条 `:554-657`；适配器 `:525-552`）：测试层透传适配器包住产品 `AggregateDb.$transaction`，同事务 SET LOCAL/SHOW/pg_backend_pid 断言、同一 tx 交回产品回调、options 原样透传、proof.calls===1；固定 now 两轮 deepEqual。**第 11 条 `:465-513` 只是非 NULL watermark 跨会话对照**，不覆盖 NULL；空事件日 `sourceMaxReceivedAt` NULL／非空日非 NULL 由第 12 条另证，不把旧段归到新增第 12 条。",
+        "审查链：产品代码独审 PASS、0 必要阻断（db-review-5c324c2e-20261107.md `992A1334…`）；审查方技术复判补齐——corrected A/B 与原件逐字相同（`af2c5531…`／`862d6e05…`），返回 `pick=A high 0.86`、`take(A)`、无 red_line；旧 0.98（PASS/BLOCK）作废。",
+        "证据边界（不造）：成功日志只有文件级计数（`R7-T21418022` 与 `# Subtest:` 命中 0），无单测 TAP/耗时；本机无 PG，驱动绑定机制未实证。",
+        "本次 --landed 只登记本卡：两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁，不生成 clean/fixed。"
+      ]
+    }
+  }
+}
