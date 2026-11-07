@@ -1,0 +1,41 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M5-T11": {
+      "contractHash": "a2545030eedc641330c302f147ddbc99268e34d8781f42da8b5c12d5c80d587b",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M5-T5": {
+      "contractHash": "b3d6f9d40f3cb4a5a475fe406b88644e74af212282fee857f2e1b8e07c46f0d0",
+      "evidence": [
+        "契约源 _run/task-contracts.json 的 tasks['M5-T5'].supportPaths 由 [] 改为 ['.github/workflows/ci.yml']；outputPaths 仍为 ['src/lib/server/analytics/retention-plan.ts','tests/analytics-retention-plan.test.ts'] 两条，provides/requires/stage/wiring/sections 未变。",
+        "该路径确为已授权 CI 接线所在：1339e5c8 的 git show --numstat 为 .github/workflows/ci.yml +7/−0；ci.yml:196-197 设置 M5T5_TEST_DATABASE_URL／M5T5_REQUIRE_DATABASE，:227/:271/:301 三处登记 tests/analytics-retention-plan.test.ts。",
+        "CI 文件按共享基础进 supportPaths 而非 outputPaths；未新增其他任务路径、未改其他任务条目；M5-T3 的契约哈希未因此笔变化，既有待复验记录未清除。",
+        "回填内容保持：任务卡 27 条代码引用与 10 条实施沉淀未变，status 仍为 todo；未运行 --landed，docs-data.js 的 progress 未把这笔算作落地。",
+        "派生差量仅限 docs-data.js／dispatch.json／review.json／build-manifest.json／build-state.json 与本补丁 record/evidence/md；待复核集合 M5-T5、M5-T11、M7-T3、M7-T8、M7-T9、M7-T10 是 provides 传播结果，不等于把这些任务判为未完成。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T10": {
+      "contractHash": "e870b0203516b838df3ac4a00f81db840ebf73ec636f5f56a4bc2f077b5ea00f",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T3": {
+      "contractHash": "228608632d5e068863fe17d74daa1f5f45ffe24aaafb2143ccf7659c2b7e9816",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "e8b85a2d943b42ebca96ebd11b20d63c737de0a5ab2bd2fbbaa537ad2ea65fbd",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "a0b43cfea973fcd028cd3c67cda01a0586e56ed2af77d5ee4f8a436936411aa7",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

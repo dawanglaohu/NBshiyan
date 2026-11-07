@@ -1129,15 +1129,16 @@
     "verdict": "pass"
   },
   "M5-T5": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "a352626ae26165f6426b30f81c57456ad4a06beafbd69842be0df4438f1226ec",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "b3d6f9d40f3cb4a5a475fe406b88644e74af212282fee857f2e1b8e07c46f0d0",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T5《实现分析保留候选与覆盖边界计划器》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "契约源 _run/task-contracts.json 的 tasks['M5-T5'].supportPaths 由 [] 改为 ['.github/workflows/ci.yml']；outputPaths 仍为 ['src/lib/server/analytics/retention-plan.ts','tests/analytics-retention-plan.test.ts'] 两条，provides/requires/stage/wiring/sections 未变。",
+      "该路径确为已授权 CI 接线所在：1339e5c8 的 git show --numstat 为 .github/workflows/ci.yml +7/−0；ci.yml:196-197 设置 M5T5_TEST_DATABASE_URL／M5T5_REQUIRE_DATABASE，:227/:271/:301 三处登记 tests/analytics-retention-plan.test.ts。",
+      "CI 文件按共享基础进 supportPaths 而非 outputPaths；未新增其他任务路径、未改其他任务条目；M5-T3 的契约哈希未因此笔变化，既有待复验记录未清除。",
+      "回填内容保持：任务卡 27 条代码引用与 10 条实施沉淀未变，status 仍为 todo；未运行 --landed，docs-data.js 的 progress 未把这笔算作落地。",
+      "派生差量仅限 docs-data.js／dispatch.json／review.json／build-manifest.json／build-state.json 与本补丁 record/evidence/md；待复核集合 M5-T5、M5-T11、M7-T3、M7-T8、M7-T9、M7-T10 是 provides 传播结果，不等于把这些任务判为未完成。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-07T18:36:35.096448+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
