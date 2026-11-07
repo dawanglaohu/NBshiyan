@@ -138,15 +138,38 @@ export function isEventExpired(receivedAt: Date, now: Date): boolean {
   return assertInstant(now).getTime() >= eventExpiresAt(receivedAt).getTime();
 }
 
+/** 站点本地日加减自然日。用 UTC 日历做纯日期运算，不涉及时区偏移。 */
+function shiftLocalDays(localDate: string, days: number): string {
+  const { year, month, day } = assertLocalDate(localDate);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${String(next.getUTCFullYear()).padStart(4, '0')}-${pad(next.getUTCMonth() + 1)}-${pad(next.getUTCDate())}`;
+}
+
 /** 汇总行的到期本地日：siteDate + 13 个自然月（目标月无该日时夹到月末）。等号即到期。 */
 export function rollupExpiresAt(siteDate: string): string {
   assertLocalDate(siteDate);
   return shiftCalendarMonths(siteDate, ROLLUP_RETENTION_MONTHS);
 }
 
-/** 注入时钟下，已到期汇总行的站点本地日上界（含等号）：siteDate <= 此值即到期。 */
+/**
+ * 注入时钟下，已到期汇总行的站点本地日上界（含等号）。
+ *
+ * 边界必须以正推 `rollupExpiresAt` 为准：截止日是「到期日不晚于当前站点日期」的
+ * 最大原日期。自然月正推会把 29–31 日夹到短月的月末，直接按 -13 个月推算会漏掉
+ * 这些日子（例如 2027-02-28 时 2026-01-31 的到期日也是 2027-02-28，但 -13 个月
+ * 只得到 2026-01-28）。从 -13 个月的猜测值起有界向后走，直到下一步的到期日超过今天。
+ */
 export function rollupExpiryCutoff(now: Date, timeZone: string): string {
-  return shiftCalendarMonths(siteLocalDate(assertInstant(now), timeZone), -ROLLUP_RETENTION_MONTHS);
+  const today = siteLocalDate(assertInstant(now), timeZone);
+  let cutoff = shiftCalendarMonths(today, -ROLLUP_RETENTION_MONTHS);
+  // 猜测值与真实截止日的差距上界为 31 天（短月夹取 + 跨月），留足余量后必然停止。
+  for (let step = 0; step < 40; step += 1) {
+    const next = shiftLocalDays(cutoff, 1);
+    if (rollupExpiresAt(next) > today) break;
+    cutoff = next;
+  }
+  return cutoff;
 }
 
 /** 汇总行是否已到期。当前站点本地日恰好等于 expiresAt 时算到期。 */
@@ -244,7 +267,7 @@ export type RetentionCandidateRepo = {
 };
 
 /**
- * 注入时钟与站点时区后固定一套截止值；同一实例的所有查询共用一个快照口径。
+ * 注入时钟与站点时区后固定一套截止值；同一实例的所有查询共用同一个固定截止值。
  * 真实事务、租约与生产保留授权门禁由 M5-T11 集成，这里只读。
  */
 export function createRetentionCandidateRepo(deps: {

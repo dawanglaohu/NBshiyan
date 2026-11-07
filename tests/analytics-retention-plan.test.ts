@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Prisma, type PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import {
   RETENTION_CLEANUP_MAX_PER_RUN,
   classifyRetentionDays,
@@ -243,4 +243,123 @@ test('候选仓储构造后固定同一套截止值，重复查询口径一致',
   assert.equal(calls.length, 6);
   assert.equal(calls[0].values[0], calls[3].values[0]);
   assert.equal(calls[1].values[0], calls[4].values[0]);
+});
+
+test('B1：月末夹取时截止日以正推 expiresAt 为准（Jan31 → Feb28）', () => {
+  // Asia/Shanghai 2027-02-28 12:00；自然月正推会把 2026-01-29..31 都夹到 2027-02-28。
+  const today = new Date('2027-02-28T04:00:00.000Z');
+  assert.equal(siteLocalDate(today, TZ), '2027-02-28');
+  assert.equal(rollupExpiresAt('2026-01-31'), '2027-02-28');
+  assert.equal(rollupExpiresAt('2026-02-01'), '2027-03-01');
+  assert.equal(rollupExpiryCutoff(today, TZ), '2026-01-31');
+  assert.equal(isRollupExpired('2026-01-31', today, TZ), true);
+  assert.equal(isRollupExpired('2026-02-01', today, TZ), false);
+});
+
+test('B1：Mar31 → Apr30 与闰年二月的截止日', () => {
+  const apr30 = new Date('2027-04-30T04:00:00.000Z');
+  assert.equal(rollupExpiresAt('2026-03-31'), '2027-04-30');
+  assert.equal(rollupExpiryCutoff(apr30, TZ), '2026-03-31');
+  assert.equal(isRollupExpired('2026-03-31', apr30, TZ), true);
+  assert.equal(isRollupExpired('2026-04-01', apr30, TZ), false);
+
+  // 闰年：2023-01-31 + 13 个月 = 2024-02-29；到 2024-02-29 当天算到期。
+  const leapDay = new Date('2024-02-29T04:00:00.000Z');
+  assert.equal(siteLocalDate(leapDay, TZ), '2024-02-29');
+  assert.equal(rollupExpiresAt('2023-01-31'), '2024-02-29');
+  assert.equal(rollupExpiryCutoff(leapDay, TZ), '2023-01-31');
+  assert.equal(isRollupExpired('2023-01-31', leapDay, TZ), true);
+  assert.equal(isRollupExpired('2023-02-01', leapDay, TZ), false);
+});
+
+test('B1：普通非月末日期与到期前/当日/后的边界', () => {
+  const onExpiry = new Date('2027-02-15T04:00:00.000Z');
+  assert.equal(rollupExpiryCutoff(onExpiry, TZ), '2026-01-15');
+  assert.equal(isRollupExpired('2026-01-15', onExpiry, TZ), true);
+  assert.equal(isRollupExpired('2026-01-16', onExpiry, TZ), false);
+
+  const dayBefore = new Date(onExpiry.getTime() - 24 * 60 * 60 * 1000);
+  assert.equal(siteLocalDate(dayBefore, TZ), '2027-02-14');
+  assert.equal(rollupExpiryCutoff(dayBefore, TZ), '2026-01-14');
+  assert.equal(isRollupExpired('2026-01-14', dayBefore, TZ), true);
+  assert.equal(isRollupExpired('2026-01-15', dayBefore, TZ), false);
+
+  const dayAfter = new Date(onExpiry.getTime() + 24 * 60 * 60 * 1000);
+  assert.equal(rollupExpiryCutoff(dayAfter, TZ), '2026-01-16');
+  assert.equal(isRollupExpired('2026-01-16', dayAfter, TZ), true);
+});
+
+test('B1：候选计数、列表与判定共用同一边界', async () => {
+  const today = new Date('2027-02-28T04:00:00.000Z');
+  const cutoff = rollupExpiryCutoff(today, TZ);
+  assert.equal(cutoff, '2026-01-31');
+  const { db, calls } = fakeQueryDb(() => [{ count: 1 }]);
+  const repo = createRetentionCandidateRepo({ db, now: today, siteTimezone: TZ });
+  await repo.counts();
+  assert.equal(calls[1].values[0], cutoff, '汇总行计数必须用修正后的截止日');
+  assert.equal(calls[2].values[0], cutoff, 'watermark 计数必须用修正后的截止日');
+});
+
+const PG_URL = process.env.M5T5_TEST_DATABASE_URL?.startsWith('postgres')
+  ? process.env.M5T5_TEST_DATABASE_URL
+  : null;
+
+test('B1 真实 PG：月末截止日行命中、次日未到期行排除（计数与列表一致）', {
+  skip: !PG_URL && 'no M5T5_TEST_DATABASE_URL',
+}, async () => {
+  const schema = `m5t5_b1_${process.pid}`;
+  const url = `${PG_URL}${PG_URL!.includes('?') ? '&' : '?'}schema=${encodeURIComponent(schema)}`;
+  const db = new PrismaClient({ datasources: { db: { url } } });
+  try {
+    await db.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+    const { execFileSync } = await import('node:child_process');
+    const { createRequire } = await import('node:module');
+    const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+    execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
+      cwd: process.cwd(),
+      env: { ...process.env, DATABASE_URL: url },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    // 站点日 2027-02-28：2026-01-30/31 已到期（31 日经月末夹取），2026-02-01 未到期。
+    await db.$executeRawUnsafe(`
+      INSERT INTO "AnalyticsRollupDay" ("siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "createdAt", "updatedAt")
+      VALUES
+        ('2026-01-30', 1, '2026-02-01T00:00:00.000Z'::timestamptz AT TIME ZONE 'UTC', 1, NULL, now(), now()),
+        ('2026-01-31', 1, '2026-02-01T00:00:00.000Z'::timestamptz AT TIME ZONE 'UTC', 2, NULL, now(), now()),
+        ('2026-02-01', 1, '2026-02-02T00:00:00.000Z'::timestamptz AT TIME ZONE 'UTC', 3, NULL, now(), now())
+    `);
+    await db.$executeRawUnsafe(`
+      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers", "createdAt", "updatedAt")
+      VALUES
+        ('2026-01-31', 'page_view'::"AnalyticsEventKind", 'en', '', 2, 1, now(), now()),
+        ('2026-02-01', 'page_view'::"AnalyticsEventKind", 'en', '', 3, 1, now(), now())
+    `);
+    await db.$executeRawUnsafe(`
+      INSERT INTO "AnalyticsEvent" ("eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale", "productSlug", "path", "occurredAt", "receivedAt")
+      VALUES
+        ('ev-expired', 'sk-expired', '${'p'.repeat(64)}', 'bh-1', 'page_view'::"AnalyticsEventKind", 'en', NULL, '/en',
+         '2026-01-01T00:00:00.000Z'::timestamptz AT TIME ZONE 'UTC', '2026-01-01T00:00:00.000Z'::timestamptz AT TIME ZONE 'UTC'),
+        ('ev-fresh', 'sk-fresh', '${'p'.repeat(64)}', 'bh-2', 'page_view'::"AnalyticsEventKind", 'en', NULL, '/en',
+         '2027-02-01T00:00:00.000Z'::timestamptz AT TIME ZONE 'UTC', '2027-02-01T00:00:00.000Z'::timestamptz AT TIME ZONE 'UTC')
+    `);
+
+    const now = new Date('2027-02-28T04:00:00.000Z');
+    const cutoff = rollupExpiryCutoff(now, TZ);
+    assert.equal(cutoff, '2026-01-31');
+    assert.equal(isRollupExpired('2026-02-01', now, TZ), false);
+
+    const repo = createRetentionCandidateRepo({ db, now, siteTimezone: TZ });
+    const counts = await repo.counts();
+    assert.deepEqual(counts, { events: 1, rollupDailyRows: 1, rollupDays: 2, total: 4 });
+    assert.deepEqual(await repo.rollupDays(10), ['2026-01-30', '2026-01-31']);
+    assert.deepEqual(
+      (await repo.rollupDailyKeys(10)).map((key) => key.siteDate),
+      ['2026-01-31'],
+    );
+    assert.deepEqual(await repo.eventIds(10), ['ev-expired']);
+  } finally {
+    await db.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`).catch(() => undefined);
+    await db.$disconnect();
+  }
 });
