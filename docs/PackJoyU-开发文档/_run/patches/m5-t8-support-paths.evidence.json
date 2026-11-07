@@ -132,8 +132,9 @@
         "契约源 _run/task-contracts.json 的 tasks['M5-T8'].supportPaths 由 [] 改为 [aggregate.ts, aggregate-repo.ts, tests/cron-analytics-rollup.test.ts] 三条；outputPaths 仍为 registry/composition/operations route/cron.nbshiyan/deploy.sh/jobs-runtime.http.test/analytics-job-runtime.spec 七条，未拆任务、未改验收语义。",
         "三条路径确为分支内真实 delta：94fb9454..a0d06217 中 aggregate.ts +70/−1、aggregate-repo.ts +13/−3、tests/cron-analytics-rollup.test.ts +11/−5；它们分别承担聚合预算透传、DB statement/lock timeout 与旧 rollup 测试改验新调度入口。",
         "S1 口径按 Chief 裁定记录：三个支持文件已在返工单明确授权，本笔只是契约持久化（授权已给、契约现补），不记未经授权；未改其他任务条目。",
-        "M5-T3 契约逐字未变；其 12/12 仅作为当前代码回归证据记录，不冒称 PG17 或最终头验收。两笔技术复审引用 security-m5-t8-review-rework1(D2BD28CE 为 rework2) 与 rework2 报告，整体仍 BLOCKED（B4/B5、PG17/CI）。",
-        "派生差量：docs-data.js/dispatch.json/review.json/build-manifest.json/build-state.json 与补丁 record/evidence/md；受影响任务是 M5-T8 加 41 个依赖方的 hash 传播（普通任务只变 hash、不变 context），revalidation.json 无 done 任务被置待复验，progress 93/done 90 未变。"
+        "M5-T3 契约逐字未变；其 12/12 仅作为当前代码回归证据记录，不冒称 PG17 或最终头验收。两笔技术复审为 security-m5-t8-review-rework1（62567187…）与 rework2（D2BD28CE…）；此处更正旧证据把 rework2 误写为 rework1 的哈希混写，不手改受影响集合。",
+        "派生差量：docs-data.js/dispatch.json/review.json/build-manifest.json/build-state.json 与补丁 record/evidence/md；受影响任务是 M5-T8 加 41 个依赖方的 hash 传播（普通任务只变 hash、不变 context），revalidation.json 无 done 任务被置待复验，progress 93/done 90 未变。",
+        "派生传播补充：dispatch.json 另含 R7-T21418022 一行共享路径提示的语义变化（随契约哈希/路径集传播更新）；补丁 affected 集合未列该提示，属生成器行为，不手改集合刷绿。"
       ],
       "verdict": "pass"
     },
