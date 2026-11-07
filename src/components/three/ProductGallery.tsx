@@ -10,6 +10,8 @@ import AddToQuoteButton from '@/components/quote/AddToQuoteButton';
 import { Link } from '@/i18n/navigation';
 import { controlCopy, createModelPointerState, reduceModelPointer, shouldAutoRotate, wheelAdmission } from '@/lib/three/model-pointer';
 import { accessibilityCopy, keyToCameraCommand, TOUCH_TARGET_PX } from '@/lib/three/model-accessibility';
+import { fallbackCopy, retryAllowed, type ModelFailureReason, type ModelLoadResult } from '@/lib/three/model-fallback';
+import { detectWebGLSupport } from '@/lib/three/webgl-support';
 import type { CameraAction } from './GalleryScene';
 
 /**
@@ -17,6 +19,9 @@ import type { CameraAction } from './GalleryScene';
  * 因此键盘与鼠标用户在桌面也能拿到 44px 目标，而不是只有触屏设备才有。
  */
 const TOUCH_TARGET_STYLE = { minWidth: TOUCH_TARGET_PX, minHeight: TOUCH_TARGET_PX } as const;
+/** 失败条只占视口底部一条，产品海报仍然可见；2px 黑边、0 圆角、无阴影（11 节）。 */
+const FALLBACK_STYLE = { position: 'absolute', left: 8, right: 8, bottom: 8, display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', border: '2px solid #000000', padding: '6px 8px', textAlign: 'left', zIndex: 1 } as const;
+const FALLBACK_TEXT_STYLE = { margin: 0, fontSize: 13, lineHeight: '18px', flex: '1 1 auto' } as const;
 
 /** 深色卡片（.theme-premium）：卡片样式和 3D 轮廓光共用这一份 */
 export const PREMIUM = new Set(['gift-boxes', 'wine-boxes']);
@@ -46,18 +51,30 @@ function CatalogLink({ href, className, testId, children }: { href: string; clas
 
 type Labels = { learnMore: string; specsLabel: string; tap: string; drag: string; loading: string; add: string; details: string; done: string; views: Record<BoxView, string>; viewsLabel: string };
 
-export default function ProductGallery({ items, labels }: { items: Item[]; labels: Labels }) {
+export default function ProductGallery({ items, labels, onModelResult }: { items: Item[]; labels: Labels; onModelResult?: (result: ModelLoadResult) => void }) {
   const locale = useLocale();
   const copy = controlCopy(locale);
   const keys = accessibilityCopy(locale);
+  const fallback = fallbackCopy(locale);
   const rootRef = useRef<HTMLDivElement>(null);
   const tracks = useMemo(() => items.map(() => createRef<HTMLDivElement>()), [items]);
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [ready, setReady] = useState<Set<string>>(new Set());
   // 模型加载失败的卡片继续显示静态图
   const [failed, setFailed] = useState<Set<string>>(new Set());
-  const onError = useCallback((slug: string) => setFailed((prev) => (prev.has(slug) ? prev : new Set(prev).add(slug))), []);
+  const [failureReason, setFailureReason] = useState<Record<string, ModelFailureReason>>({});
+  // 每张卡的手动重试次数：只由按钮驱动，没有自动重试循环
+  const [attempts, setAttempts] = useState<Record<string, number>>({});
+  const reportedReady = useRef<Set<string>>(new Set());
+  const onError = useCallback((slug: string, reason: ModelFailureReason = 'LOAD_ERROR') => {
+    setFailed((prev) => (prev.has(slug) ? prev : new Set(prev).add(slug)));
+    setFailureReason((prev) => ({ ...prev, [slug]: reason }));
+    onModelResult?.({ slug, status: 'failed', reason });
+  }, [onModelResult]);
   const [sceneDead, setSceneDead] = useState(false);
+  // WebGL 探测在客户端挂载后跑一次；unknown 期间不挂载画布，避免直接吃浏览器错误
+  const [webgl, setWebgl] = useState<'unknown' | 'ok' | 'unavailable'>('unknown');
+  const [contextLost, setContextLost] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const [views, setViews] = useState<Record<string, BoxView>>({});
   const [pointer, dispatch] = useReducer(reduceModelPointer, false, createModelPointerState);
@@ -125,6 +142,39 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
     mq.addEventListener?.('change', sync);
     return () => mq.removeEventListener?.('change', sync);
   }, []);
+  useEffect(() => { setWebgl(detectWebGLSupport() ? 'ok' : 'unavailable'); }, []);
+  const onContextLost = useCallback(() => setContextLost(true), []);
+  // 场景级失败（WebGL 不可用 / context lost / 整块画布异常）对全部卡片生效；
+  // 单模型失败只影响该卡片。两种状态都先显示对应产品海报，再由用户手动重试。
+  const sceneBlocked = sceneDead || webgl === 'unavailable' || contextLost;
+  const sceneReported = useRef(false);
+  useEffect(() => {
+    if (!sceneBlocked) { sceneReported.current = false; return; }
+    if (sceneReported.current) return;
+    sceneReported.current = true;
+    for (const p of items) {
+      if (p.model && visible.has(p.slug)) onModelResult?.({ slug: p.slug, status: 'failed', reason: 'WEBGL_UNAVAILABLE' });
+    }
+  }, [sceneBlocked, items, visible, onModelResult]);
+  const retry = useCallback((slug: string) => {
+    const attempt = attempts[slug] ?? 0;
+    if (!retryAllowed(attempt)) return;
+    setAttempts((prev) => ({ ...prev, [slug]: attempt + 1 }));
+    reportedReady.current.delete(slug);
+    setFailed((prev) => { if (!prev.has(slug)) return prev; const next = new Set(prev); next.delete(slug); return next; });
+    setReady((prev) => { if (!prev.has(slug)) return prev; const next = new Set(prev); next.delete(slug); return next; });
+    if (contextLost || sceneDead) {
+      setContextLost(false);
+      setSceneDead(false);
+      // 场景级失败会让所有卡片一起回退；重挂画布后所有模型都会重新加载
+      setReady(new Set());
+    }
+    if (webgl === 'unavailable') {
+      const ok = detectWebGLSupport();
+      setWebgl(ok ? 'ok' : 'unavailable');
+      if (!ok) onError(slug, 'WEBGL_UNAVAILABLE');
+    }
+  }, [attempts, contextLost, sceneDead, webgl, onError]);
   useEffect(() => {
     dispatch({ type: 'visible', slugs: [...visible] });
   }, [visible]);
@@ -257,7 +307,11 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
 
   const onReady = useCallback((slug: string) => {
     setReady((prev) => (prev.has(slug) ? prev : new Set(prev).add(slug)));
-  }, []);
+    if (!reportedReady.current.has(slug)) {
+      reportedReady.current.add(slug);
+      onModelResult?.({ slug, status: 'ready' });
+    }
+  }, [onModelResult]);
 
   return (
     <div ref={rootRef} data-capture-owner={pointer.ownerSlug ?? ''} data-focused-model={pointer.focusedSlug ?? ''} data-direct-rotate={fine || mouse ? '1' : '0'}>
@@ -291,6 +345,8 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               data-spinning={spinning ? '1' : '0'}
               data-user-paused={paused ? '1' : '0'}
               data-focused={pointer.focusedSlug === p.slug ? '1' : '0'}
+              data-model-state={failed.has(p.slug) || sceneBlocked ? 'failed' : ready.has(p.slug) ? 'ready' : 'pending'}
+              data-failure-reason={failed.has(p.slug) ? (failureReason[p.slug] ?? 'LOAD_ERROR') : sceneBlocked ? 'WEBGL_UNAVAILABLE' : ''}
               tabIndex={0}
               className={`stage${active === p.slug ? ' active' : ''}`}
               role="group"
@@ -303,11 +359,17 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
               onPointerCancel={onCancel}
             >
               {/* 静态图先显示，模型就绪后淡出，不造成布局偏移 */}
-              <img src={p.poster} alt={p.alt ?? p.name} draggable={false} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneDead ? 0 : 1 }} />
+              <img src={p.poster} alt={p.alt ?? p.name} draggable={false} loading={idx < 3 ? 'eager' : 'lazy'} style={{ opacity: ready.has(p.slug) && !failed.has(p.slug) && !sceneBlocked ? 0 : 1 }} />
               {(() => {
-                const h = hintText({ failed: failed.has(p.slug) || sceneDead, started: armed && visible.has(p.slug), ready: ready.has(p.slug), interacting: pointer.dragging && pointer.ownerSlug === p.slug, coarse }, labels);
+                const h = hintText({ failed: failed.has(p.slug) || sceneBlocked, started: !!p.model && armed && visible.has(p.slug), ready: ready.has(p.slug), interacting: pointer.dragging && pointer.ownerSlug === p.slug, coarse }, labels);
                 return h && <span className="hint">{h}</span>;
               })()}
+              {p.model && (failed.has(p.slug) || sceneBlocked) && (
+                <div style={FALLBACK_STYLE} data-testid="model-fallback" data-slug={p.slug} data-reason={failed.has(p.slug) ? (failureReason[p.slug] ?? 'LOAD_ERROR') : 'WEBGL_UNAVAILABLE'}>
+                  <p style={FALLBACK_TEXT_STYLE}>{sceneBlocked && webgl !== 'ok' ? fallback.webgl : fallback.failed}</p>
+                  <button type="button" className="btn sm" style={TOUCH_TARGET_STYLE} data-testid="model-retry" data-slug={p.slug} disabled={!retryAllowed(attempts[p.slug] ?? 0)} onClick={(e) => { e.stopPropagation(); retry(p.slug); }}>{retryAllowed(attempts[p.slug] ?? 0) ? fallback.retry : fallback.retryLimit}</button>
+                </div>
+              )}
               {/* 手机端：点卡片进入旋转模式，出现“完成”按钮退出，恢复单指滚动页面（E-102 的退出控件 ≥44px） */}
               {active === p.slug && (
                 <button type="button" className="btn sm done" style={TOUCH_TARGET_STYLE} data-testid="model-finish" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); setActive(null); }}>{labels.done}</button>
@@ -350,11 +412,12 @@ export default function ProductGallery({ items, labels }: { items: Item[]; label
           );
         })}
       </div>
-      {armed && visible.size > 0 && !sceneDead && (<SceneErrorBoundary onError={() => setSceneDead(true)}><GalleryScene
+      {armed && visible.size > 0 && webgl === 'ok' && !sceneBlocked && (<SceneErrorBoundary onError={() => setSceneDead(true)}><GalleryScene
         eventSource={rootRef}
         onReady={onReady}
         onError={onError}
-        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, directRotate: fine || mouse, spin: shouldAutoRotate(pointer, p.slug), zoomId: zoom?.slug === p.slug ? zoom.id : 0, zoomDelta: zoom?.slug === p.slug ? zoom.delta : 0, commandId: command?.slug === p.slug ? command.id : 0, command: command?.slug === p.slug ? command.action : undefined, view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), track: tracks[i] }))}
+        onContextLost={onContextLost}
+        items={items.map((p, i) => ({ slug: p.slug, model: p.model, visible: visible.has(p.slug), active: active === p.slug, directRotate: fine || mouse, spin: shouldAutoRotate(pointer, p.slug), zoomId: zoom?.slug === p.slug ? zoom.id : 0, zoomDelta: zoom?.slug === p.slug ? zoom.delta : 0, commandId: command?.slug === p.slug ? command.id : 0, command: command?.slug === p.slug ? command.action : undefined, view: VIEW_SLUGS.has(p.slug) ? views[p.slug] ?? 'closed' : undefined, animationClips: p.animationClips, fitArc: FIT_ARC.has(p.slug), dark: PREMIUM.has(p.slug), attempt: attempts[p.slug] ?? 0, track: tracks[i] })).filter((i) => !!i.model)}
       /></SceneErrorBoundary>)}
     </div>
   );

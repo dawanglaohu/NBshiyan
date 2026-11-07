@@ -6,6 +6,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { useNeedleProgressive, setDracoDecoderLocation, setKTX2TranscoderLocation, LODsManager } from '@needle-tools/gltf-progressive';
 import FoldBox, { type BoxView } from './FoldBox';
+import { retrySrc } from '@/lib/three/model-fallback';
 
 export type { BoxView };
 /** 真实 GLB 里对应“开盖 / 展开刀模”的动画片段名 */
@@ -130,15 +131,21 @@ function PlaceholderBox() {
 /**
  * view：合盖 / 开盖 / 展开刀模。没有真实模型时用程序化的 FoldBox 演示。
  */
-export default function ProductModel({ src, onReady, slug, view, animationClips, onBounds }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips; onBounds?: (b: ModelBounds) => void }) {
+export default function ProductModel({ src, onReady, slug, view, animationClips, onBounds, attempt = 0 }: { src?: string; onReady: () => void; slug?: string; view?: BoxView; animationClips?: AnimationClips; onBounds?: (b: ModelBounds) => void; attempt?: number }) {
   const [url, setUrl] = useState<string>();
   const [loadError, setLoadError] = useState<Error>();
   // 抛给外层 SceneErrorBoundary，卡片退回静态图
   if (loadError) throw loadError;
   useEffect(() => {
-    if (!src) { onReady(); return; }
-    import('./modelCache').then(({ cachedModelUrl }) => cachedModelUrl(src)).then(setUrl).catch((e) => setLoadError(e instanceof Error ? e : new Error(String(e))));
-  }, [src, onReady]);
+    let cancelled = false;
+    const loadSrc = src ? retrySrc(src, attempt) : undefined;
+    if (!loadSrc) { onReady(); return; }
+    import('./modelCache')
+      .then(({ cachedModelUrl }) => cachedModelUrl(loadSrc))
+      .then((next) => { if (!cancelled) setUrl(next); })
+      .catch((e) => { if (!cancelled) setLoadError(e instanceof Error ? e : new Error(String(e))); });
+    return () => { cancelled = true; };
+  }, [src, attempt, onReady]);
   useEffect(() => { if (url) onReady(); }, [url, onReady]);
   // 当前 GLB 只有 'Open' 片段、没有展开刀模片段：刀模视图继续用 FoldBox 演示
   if (!src || (view === 'dieline' && !animationClips?.unfold)) {
