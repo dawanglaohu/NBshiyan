@@ -190,4 +190,3 @@ test('刀模 FoldBox：不是失败回退，不显示重试条、不串海报', 
   await expect(stage.locator('img')).toHaveCSS('opacity', '0', { timeout: 30_000 });
   await shot(page, '07-dieline-foldbox.png');
 });
-
