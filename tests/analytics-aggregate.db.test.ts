@@ -353,4 +353,66 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     assert.equal(Number(row1After[0]!.c), Number(row1Before[0]!.c), '失败整组回滚后 day1 汇总行数不变');
     assert.equal(Number(wm1After[0]!.eventCount), Number(wm1Before[0]!.eventCount), '失败整组回滚后 day1 watermark 不变');
   });
+
+  test('R7-T14077261：超范围日走 partial 服务路径，预置聚合与 watermark 逐字段不变', async () => {
+    await reset();
+    const conn = requireDb();
+    const now = new Date('2026-03-01T10:00:00.000Z');
+    const oldDay = '2026-01-15';
+    const plan = planSnapshot({ now, siteTimezone: TZ, currentDate: oldDay });
+    assert.ok(plan.skippedDates.includes(oldDay), '测试前提：该日必须超出完整原始覆盖');
+    assert.ok(plan.siteDates.length > 0, '测试前提：同一轮仍有可重算日，才能触发 partial 而不是 unavailable');
+    assert.equal(plan.coverage, 'partial', '测试前提：本轮覆盖度应为 partial');
+
+    // 预置超范围日的完整聚合（两组）与 watermark。revision 取 3、高于本轮 1：
+    // 若产品误把这天当目标日重算，版本校验会直接抛错，测试立刻失败，不会静默绕过。
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers")
+      VALUES
+        (${oldDay}, ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${''}, ${41}, ${17}),
+        (${oldDay}, ${'product_view'}::"AnalyticsEventKind", ${'en'}, ${'box'}, ${9}, ${4})
+    `;
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsRollupDay" ("siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt")
+      VALUES (${oldDay}, ${3}, ${utc(new Date('2026-01-16T00:00:00.000Z'))}, ${50}, ${utc(new Date('2026-01-15T23:00:00.000Z'))})
+    `;
+
+    const readRollups = () => conn.$queryRaw<Record<string, unknown>[]>`
+      SELECT "siteDate", "kind"::text AS "kind", "locale", "productSlug", "count", "uniqueBrowsers", "createdAt", "updatedAt"
+      FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${oldDay}
+      ORDER BY "kind"::text, "locale", "productSlug"
+    `;
+    const readWatermark = () => conn.$queryRaw<Record<string, unknown>[]>`
+      SELECT "siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "createdAt", "updatedAt"
+      FROM "AnalyticsRollupDay" WHERE "siteDate" = ${oldDay}
+    `;
+    const rowsBefore = await readRollups();
+    const watermarkBefore = await readWatermark();
+    assert.equal(rowsBefore.length, 2, '预置的两组聚合行应可读到');
+
+    const run = await runAggregateOnce({
+      db: conn, now, siteTimezone: TZ, currentDate: oldDay, timezoneRevision: 1, generation: 1,
+    });
+    assert.equal(run.status, 'ok');
+    assert.equal(run.coverage, 'partial', '本轮实际走 partial（不是 unavailable，也不冒称 complete）');
+    assert.equal(
+      run.days.length,
+      plan.siteDates.length + plan.skippedDates.length,
+      '结果必须同时覆盖可重算日与被跳过日',
+    );
+    assert.deepEqual(
+      run.days.filter((d) => d.skippedReason === 'out_of_coverage').map((d) => d.siteDate),
+      plan.skippedDates,
+      'skippedDates 循环必须逐日产出结果，不能是零次执行',
+    );
+    const skipped = run.days.find((d) => d.siteDate === oldDay);
+    assert.ok(skipped, '超范围日必须出现在本轮结果中');
+    assert.equal(skipped!.written, false);
+    assert.equal(skipped!.eventCount, 0);
+    assert.equal(skipped!.sourceMaxReceivedAt, null);
+    assert.ok(run.days.some((d) => d.written && d.siteDate !== oldDay), '同一轮里可重算日必须正常写入');
+
+    assert.deepEqual(await readRollups(), rowsBefore, '超范围日的汇总行必须逐字段不变（不被覆盖、不被清空）');
+    assert.deepEqual(await readWatermark(), watermarkBefore, '超范围日的 watermark 必须逐字段不变');
+  });
 });
