@@ -6,9 +6,10 @@ import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PrismaClient } from '@prisma/client';
-import { createOperationsHandler, JOB_DEADLINE_MS, JOB_MAX_BATCH } from '../src/lib/server/jobs/registry';
+import { createOperationsHandler, JobDeadlineExceeded, JOB_DEADLINE_MS, JOB_MAX_BATCH, createAnalyticsAggregateJob } from '../src/lib/server/jobs/registry';
 import { createJobServices } from '../src/lib/server/composition';
 import { AGGREGATE_JOB_KEY } from '../src/lib/server/analytics/aggregate-repo';
+import { runAggregateOnce } from '../src/lib/server/analytics/aggregate';
 import { siteLocalDate } from '../src/lib/analytics/day-boundaries';
 
 const base = process.env.M5T8_TEST_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -191,5 +192,122 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
       true,
       '原有清理调度保持',
     );
+  });
+
+  test('预算不足：handler 映射 503 job_timeout，不写 JobState', async () => {
+    await reset();
+    const fakeServices = {
+      has: () => true,
+      keys: () => ['analytics-aggregate'],
+      run: async () => {
+        throw new JobDeadlineExceeded();
+      },
+    };
+    const res = await createOperationsHandler({
+      services: fakeServices as never,
+      clock: () => new Date(NOW),
+      secret: SECRET,
+    })(post({ jobKey: 'analytics-aggregate' }));
+    assert.equal(res.status, 503);
+    assert.equal((await res.json() as { error: string }).error, 'job_timeout');
+    const rows = await requireDb().$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "JobState"`;
+    assert.equal(Number(rows[0]!.c), 0, '预算不足不得先写 JobState');
+  });
+
+  test('预算不足：作业在领取租约前拒绝，不写 JobState', async () => {
+    await reset();
+    const job = createAnalyticsAggregateJob({ db: requireDb(), clock: () => new Date(NOW) });
+    await assert.rejects(
+      () => job.run({
+        now: new Date(NOW),
+        deadlineAt: new Date(Date.now() - 1),
+        signal: new AbortController().signal,
+      }),
+      /job_deadline_exceeded/,
+    );
+    const rows = await requireDb().$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "JobState"`;
+    assert.equal(Number(rows[0]!.c), 0);
+  });
+
+  test('租约在提交事务内失效：整组回滚，不写 watermark，也不返回 SUCCEEDED', async () => {
+    await reset();
+    const conn = requireDb();
+    const day = siteLocalDate(NOW, TZ);
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${`lease-${process.pid}`}, ${`lease-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-lease'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
+        ${`${day}T01:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC',
+        ${`${day}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC'
+      )
+    `;
+    // 前两次取时（claim）用基准时刻，之后每次（complete）跳 120s，使租约在提交事务内已过期。
+    let calls = 0;
+    const base = NOW.getTime();
+    const advancing = () => new Date(base + (calls++ >= 2 ? 120_000 : 0));
+    const res = await createOperationsHandler({
+      services: createJobServices({ db: conn, clock: advancing }).jobs,
+      clock: () => new Date(NOW),
+      secret: SECRET,
+    })(post({ jobKey: 'analytics-aggregate' }));
+    assert.equal(res.status, 200);
+    assert.equal((await res.json() as { status: string }).status, 'FAILED', '租约失效不得返回 SUCCEEDED');
+    const watermark = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
+    assert.equal(Number(watermark[0]!.c), 0, '提交守卫失败必须整组回滚，不留下新 watermark');
+    const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
+    assert.equal(Number(daily[0]!.c), 0, '汇总行也必须一起回滚');
+    const state = await conn.$queryRaw<{ s: string }[]>`
+      SELECT "lastStatus"::text AS s FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY}
+    `;
+    assert.notEqual(state[0]?.s, 'SUCCEEDED');
+  });
+
+  test('提交钩子失败：聚合整组回滚，不留下 watermark', async () => {
+    await reset();
+    const conn = requireDb();
+    const now = new Date('2026-03-01T10:00:00.000Z');
+    const day = siteLocalDate(now, 'UTC');
+    await conn.$executeRaw`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${`hook-${process.pid}`}, ${`hook-sk-${process.pid}`}, ${'p'.repeat(64)}, ${'bh-hook'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${null}, ${'/en'},
+        ${`${day}T01:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC',
+        ${`${day}T02:00:00.000Z`}::timestamptz AT TIME ZONE 'UTC'
+      )
+    `;
+    await assert.rejects(() => runAggregateOnce({
+      db: conn,
+      now,
+      siteTimezone: 'UTC',
+      currentDate: day,
+      timezoneRevision: 1,
+      generation: 1,
+      commit: async () => {
+        throw new Error('commit_failed');
+      },
+    }));
+    const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
+    const days = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
+    assert.equal(Number(daily[0]!.c), 0);
+    assert.equal(Number(days[0]!.c), 0);
+  });
+
+  test('设置不可读：安全失败（500 job_failed），不写 watermark', async () => {
+    await reset();
+    const conn = requireDb();
+    await conn.$executeRaw`
+      INSERT INTO "SiteSetting" ("key", "value") VALUES (${'analytics.settings'}, ${'{"broken":true}'}::jsonb)
+    `;
+    const res = await handler()(post({ jobKey: 'analytics-aggregate' }));
+    assert.equal(res.status, 500);
+    assert.equal((await res.json() as { error: string }).error, 'job_failed');
+    const watermark = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
+    assert.equal(Number(watermark[0]!.c), 0);
   });
 });

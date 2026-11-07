@@ -146,14 +146,19 @@ export async function upsertWatermarkGuarded(
  *
  * `db.$transaction` 的第二参数携带 `isolationLevel`，Prisma 会把它下发给
  * `BEGIN ISOLATION LEVEL REPEATABLE READ`，使事务内全部读取共享同一快照。
+ * 作业运行时传入剩余预算作为 `timeoutMs`，超时由 PostgreSQL 整笔回滚。
  */
 export async function runInRepeatableReadSnapshot<T>(
   db: Pick<PrismaClient, '$transaction'>,
   fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  options: { timeoutMs?: number; maxWaitMs?: number } = {},
 ): Promise<T> {
+  const timeout = options.timeoutMs === undefined
+    ? 15_000
+    : Math.max(1_000, Math.min(options.timeoutMs, 60_000));
   return db.$transaction(fn, {
     isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
-    maxWait: 5_000,
-    timeout: 15_000,
+    maxWait: options.maxWaitMs ?? 5_000,
+    timeout,
   });
 }

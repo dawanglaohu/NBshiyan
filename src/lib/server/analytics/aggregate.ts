@@ -35,6 +35,28 @@ export class AggregateVersionConflict extends Error {
   }
 }
 
+/** 本轮预算已用完：整组事务不得再提交，调用方不得宣称成功。 */
+export class AggregateDeadlineExceeded extends Error {
+  constructor() {
+    super('deadline_exceeded');
+    this.name = 'AggregateDeadlineExceeded';
+  }
+}
+
+/** 计划规模超过防御上限：在开启事务前拒绝，不产生任何写入。 */
+export class AggregateBatchExceeded extends Error {
+  constructor(limit: number) {
+    super(`batch_exceeded:${limit}`);
+    this.name = 'AggregateBatchExceeded';
+  }
+}
+
+/** 事务内提交前的回调：与聚合整组写入同事务，任一失败整组回滚。 */
+export type AggregateCommitHook = (
+  tx: Prisma.TransactionClient,
+  summary: { writtenDays: number; dataThrough: string | null; sourceThrough: string | null },
+) => Promise<void>;
+
 export type AggregateDb = Pick<PrismaClient, '$transaction'> & {
   $queryRaw: PrismaClient['$queryRaw'];
   $executeRaw: PrismaClient['$executeRaw'];
@@ -176,12 +198,27 @@ export async function runAggregateOnce(deps: {
   currentDate: string;
   timezoneRevision: number;
   generation: number;
+  /** 整轮预算的截止时刻；到期后不再开始新一天、也不提交，事务整笔回滚。 */
+  deadlineAt?: Date;
+  /** 防御性上限，单位是站点自然日（不是事件数）；超出即拒绝且不写库。 */
+  maxBatchDays?: number;
+  /** 与整组聚合同一事务的提交钩子；抛错则整组回滚（用于原子完成作业租约）。 */
+  commit?: AggregateCommitHook;
 }): Promise<AggregateRunResult> {
+  const deadlineMs = deps.deadlineAt?.getTime();
+  const deadlineReached = () => deadlineMs !== undefined && Date.now() >= deadlineMs;
+  // 提交与完成作业状态需要留出余量，不能把最后一毫秒都花在聚合上。
+  const deadlineReserveMs = 1_500;
+  if (deadlineReached()) throw new AggregateDeadlineExceeded();
+
   const plan: SnapshotPlan = planSnapshot({
     now: deps.now,
     siteTimezone: deps.siteTimezone,
     currentDate: deps.currentDate,
   });
+  if (deps.maxBatchDays !== undefined && plan.siteDates.length > deps.maxBatchDays) {
+    throw new AggregateBatchExceeded(deps.maxBatchDays);
+  }
 
   let days: AggregateDayResult[] = [];
   // 整组事务：任一天失败或版本冲突都会把异常抛到这里，Prisma 整笔回滚，一天都不写。
@@ -194,6 +231,7 @@ export async function runAggregateOnce(deps: {
     }
     const written: AggregateDayResult[] = [];
     for (const siteDate of plan.siteDates) {
+      if (deadlineReached()) throw new AggregateDeadlineExceeded();
       written.push(await writeOneDayInTx(tx, {
         siteDate,
         siteTimezone: deps.siteTimezone,
@@ -202,8 +240,22 @@ export async function runAggregateOnce(deps: {
         now: deps.now,
       }));
     }
+    if (deps.commit) {
+      let dataThrough: string | null = null;
+      let sourceThrough: string | null = null;
+      for (const day of written) {
+        const end = siteDayUtcBounds(day.siteDate, deps.siteTimezone).endUtc;
+        if (dataThrough === null || end > dataThrough) dataThrough = end;
+        if (day.sourceMaxReceivedAt && (sourceThrough === null || day.sourceMaxReceivedAt > sourceThrough)) {
+          sourceThrough = day.sourceMaxReceivedAt;
+        }
+      }
+      await deps.commit(tx, { writtenDays: written.length, dataThrough, sourceThrough });
+    }
     return written;
-  });
+  }, deadlineMs === undefined
+    ? {}
+    : { timeoutMs: Math.max(1_500, Math.min(deadlineMs - Date.now() - deadlineReserveMs, 55_000)) });
 
   for (const siteDate of plan.skippedDates) {
     // 超范围：不写库、不用残片替换旧完整值、不填 0（09 节 `:72`）。
