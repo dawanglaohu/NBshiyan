@@ -43,7 +43,7 @@ export default function UnassignedInbox() {
   };
 
   return (
-    <div className="ml" data-testid="unassigned-inbox">
+    <div className="ml ml-unassigned" data-testid="unassigned-inbox">
       <h1>未归类邮件</h1>
       <p className="muted">匹配不到询盘的来信。只有管理员能看，收到满 90 天自动删除（忽略不改期限）。</p>
       {notice && <div className="ml-banner" role="status">ⓘ {notice} <button type="button" className="ml-btn" onClick={() => setNotice(undefined)}>知道了</button></div>}
@@ -102,7 +102,7 @@ function Detail({ d, onIgnore, onUnignore, onAssigned, onHandled }: { d: Unassig
         {MAIL_ATTACHMENTS_LIVE && d.attachments.filter((a) => a.downloadUrl).map((a) => <AttachmentCard key={a.id} a={a} />)}
       </>}
       {d.status === 'UNASSIGNED' ? <Assign d={d} onIgnore={onIgnore} onAssigned={onAssigned} onHandled={onHandled} />
-        : <div className="ml-row"><button type="button" className="ml-btn" onClick={onUnignore}>移回待处理</button></div>}
+        : <div className="ml-row ml-unassigned-return"><button type="button" className="ml-btn" onClick={onUnignore}>移回待处理</button></div>}
     </article>
   );
 }

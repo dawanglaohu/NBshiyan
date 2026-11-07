@@ -10,7 +10,18 @@ import { useSharedAdmin } from './shared-admin';
  *   一律记 gate-off/not-rendered，不能填通过。
  */
 const BASE = process.env.E2E_BASE_URL ?? `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`;
-const CLOSED_API = /\/api\/admin\/mail\/(?:unassigned|assign-lookup|assign|ignore|attachments)\b/;
+// CLOSED_MAIL_API:begin
+const CLOSED_MAIL_API: RegExp[] = [
+  /\/api\/admin\/mail\/unassigned(?:\/[^/]+)?$/,
+  /\/api\/admin\/mail\/assign-lookup$/,
+  /\/api\/admin\/mail\/[^/]+\/(?:assign|ignore)$/,
+  /\/api\/admin\/mail\/attachments(?:\/|$)/,
+];
+/** 关闭门禁下不允许出现的真实 API 路径（含 /mail/{id}/assign 与 /mail/{id}/ignore|unignore）。 */
+export function isClosedMailApiPath(pathname: string): boolean {
+  return CLOSED_MAIL_API.some((re) => re.test(pathname));
+}
+// CLOSED_MAIL_API:end
 
 useSharedAdmin({ emailPrefix: 'e2e-unassigned', name: 'E2E unassigned gate', probe: '/api/admin/account', slot: 'content-admin' });
 
@@ -18,7 +29,7 @@ function watchClosedApi(page: import('@playwright/test').Page): string[] {
   const hits: string[] = [];
   page.on('request', (r) => {
     const path = new URL(r.url()).pathname;
-    if (CLOSED_API.test(path)) hits.push(r.url());
+    if (isClosedMailApiPath(path)) hits.push(r.url());
   });
   return hits;
 }

@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import ts from 'typescript';
+import { runInNewContext } from 'node:vm';
 
 /**
  * M3-T22 未归类邮件视觉迁移的组件/源码守卫。
@@ -39,6 +41,7 @@ function checkBlock(text: string): void {
   assert.doesNotMatch(block, /border:\s*1px\b/, '专属块不得写死 1px 边界');
   assert.doesNotMatch(block, /border-radius:\s*(?:4|6|8|10|12|999)px/, '不得写死旧圆角');
   assert.doesNotMatch(block, /(?:linear|radial|conic)-gradient/, '不得新增渐变');
+  assert.doesNotMatch(block, /\.ml \.ml-(?:row|from)\b/, '不得用 .ml 作用域命中共享 MailThread 的 .ml-row/.ml-from');
   assert.match(block, /var\(--pj-border-width\)/);
   assert.match(block, /var\(--pj-radius\)/);
   assert.match(block, /var\(--pj-shadow\)/);
@@ -47,8 +50,9 @@ function checkBlock(text: string): void {
   assert.match(block, /var\(--pj-admin-block-gap\)/);
   assert.match(block, /var\(--pj-ui-size\)/);
   assert.match(block, /var\(--pj-ui-line\)/);
+  assert.match(block, /\.ml\.ml-unassigned \.ml-unassigned-return\{margin-top:calc\(var\(--pj-space-unit\) \* 4\)\}/);
   for (const sel of selectorsOf(block)) {
-    assert.match(sel, /^\.ml\b/, `专属块规则必须限定 .ml 作用域：${sel}`);
+    assert.match(sel, /^\.ml\.ml-unassigned\b/, `专属块规则必须收窄到 .ml-unassigned 容器：${sel}`);
     assert.doesNotMatch(sel, /^\.adm-|^\.pj-|^(?:button|input|td|th|select|textarea)\b/, `不得裸改公共/全局选择器：${sel}`);
   }
 }
@@ -79,6 +83,10 @@ test('mail.css：M3-T22 专属块在 M3-T21 之后，只消费 token 且作用�
   const brokenRadius = head + block.replace(/border-radius:var\(--pj-radius\)/, 'border-radius:8px');
   assert.notEqual(brokenRadius, css);
   assert.throws(() => checkBlock(brokenRadius));
+  // 负控：把容器作用域收宽成 .ml（会命中共享 MailThread）必须被守卫发现。
+  const brokenScope = head + block.replaceAll('.ml.ml-unassigned', '.ml');
+  assert.notEqual(brokenScope, css);
+  assert.throws(() => checkBlock(brokenScope));
 });
 
 test('旧 .ml-* 基础字面量与 M3-T21 共享块逐字保留（只在其后覆盖）', () => {
@@ -110,6 +118,8 @@ test('UnassignedNav：关闭时不渲染、不启动轮询；轮询只在 LiveNa
 test('UnassignedInbox：移除内联旧间距，组件证据钩子就位，回调与可访问语义保留', () => {
   assert.doesNotMatch(inbox, /style=\{\{ marginTop: 16 \}\}/);
   assert.doesNotMatch(inbox, /marginTop/);
+  assert.match(inbox, /className="ml ml-unassigned"/);
+  assert.match(inbox, /className="ml-row ml-unassigned-return"/);
   for (const tid of ['unassigned-inbox', 'unassigned-tabs', 'unassigned-list', 'unassigned-detail', 'unassigned-toast']) {
     assert.match(inbox, new RegExp(`data-testid="${tid}"`), `缺少组件证据钩子 ${tid}`);
   }
@@ -143,8 +153,8 @@ test('不新增后端/接口路径，不改共享 MailParts/MailThread', () => {
 });
 
 test('门禁 e2e 采证覆盖：ADMIN 无入口、直达 404、零相关请求、三尺寸截图', () => {
-  assert.match(gateSpec, /CLOSED_API/);
-  assert.match(gateSpec, /unassigned\|assign-lookup\|assign\|ignore\|attachments/);
+  assert.match(gateSpec, /isClosedMailApiPath\(path\)/);
+  assert.match(gateSpec, /CLOSED_MAIL_API/);
   assert.match(gateSpec, /\/api\/admin\/account/);
   assert.match(gateSpec, /expect\([^)]*status\(\)\)\.toBe\(404\)/);
   assert.match(gateSpec, /width: 1920, height: 1080/);
@@ -153,4 +163,41 @@ test('门禁 e2e 采证覆盖：ADMIN 无入口、直达 404、零相关请求�
   assert.match(gateSpec, /screenshot/);
   // 关闭页面不在 DOM 中：不能把密度/computed style 填成通过。
   assert.match(gateSpec, /not-rendered|not\.toContainText|count\(\)\)\.toBe\(0\)/);
+});
+
+test('门禁端点匹配：真实 ID 子路径 assign/ignore 命中，合法 mail 路径不误报', () => {
+  const begin = gateSpec.indexOf('// CLOSED_MAIL_API:begin');
+  const end = gateSpec.indexOf('// CLOSED_MAIL_API:end');
+  assert.ok(begin >= 0 && end > begin, '缺少端点匹配区段');
+  const block = gateSpec.slice(begin, end).replace(/^export /gm, '');
+  const compile = (src: string) => {
+    const code = ts.transpileModule(`${src}\n({ isClosedMailApiPath });`, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022 },
+    }).outputText;
+    return (runInNewContext(code, {}) as { isClosedMailApiPath: (p: string) => boolean }).isClosedMailApiPath;
+  };
+  const match = compile(block);
+  for (const p of [
+    '/api/admin/mail/unassigned',
+    '/api/admin/mail/unassigned/count',
+    '/api/admin/mail/unassigned/um1',
+    '/api/admin/mail/assign-lookup',
+    '/api/admin/mail/um1/assign',
+    '/api/admin/mail/um1/ignore',
+    '/api/admin/mail/attachments/links',
+  ]) assert.equal(match(p), true, `应命中关闭端点：${p}`);
+  for (const p of [
+    '/api/admin/mail/gate',
+    '/api/admin/mail/config',
+    '/api/admin/mail/um1',
+    '/api/admin/mail/um1/retry',
+    '/api/admin/mail/um1/status',
+    '/api/admin/inquiries',
+  ]) assert.equal(match(p), false, `不得误报：${p}`);
+  // 负控：删掉 ID 子路径规则后，/um1/assign 与 /um1/ignore 必须不再命中。
+  const broken = block.split('\n').filter((line) => !line.includes('[^/]+')).join('\n');
+  assert.notEqual(broken, block);
+  const brokenMatch = compile(broken);
+  assert.equal(brokenMatch('/api/admin/mail/um1/assign'), false);
+  assert.equal(brokenMatch('/api/admin/mail/um1/ignore'), false);
 });
