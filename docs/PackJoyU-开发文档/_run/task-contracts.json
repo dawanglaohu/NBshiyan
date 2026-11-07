@@ -3621,7 +3621,22 @@
       ],
       "supportPaths": [
         "e2e/admin-legacy-inquiries-visual.spec.ts",
-        "tests/admin-legacy-inquiries-style.test.ts"
+        "tests/admin-legacy-inquiries-style.test.ts",
+        "tests/admin-anonymized-ui.test.ts",
+        ".github/workflows/ci.yml",
+        "e2e/run-auth.ts",
+        "e2e/global-setup.ts",
+        "e2e/shared-admin.ts",
+        "e2e/admin-about-images.spec.ts",
+        "e2e/admin-org-settings.spec.ts",
+        "e2e/admin-shell-activity.spec.ts",
+        "e2e/brand-smoke.spec.ts",
+        "tests/e2e-run-auth.test.ts",
+        "e2e/admin-legacy-model-visual.spec.ts",
+        "e2e/admin-legacy-specs-visual.spec.ts",
+        "tests/evidence/admin-legacy-inquiries-mail.spec.ts",
+        "tests/evidence/mail-evidence.config.ts",
+        "tests/evidence/local-smtp.mjs"
       ],
       "stage": "integration",
       "wiring": [],

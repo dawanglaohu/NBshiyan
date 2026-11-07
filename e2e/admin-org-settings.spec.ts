@@ -1,13 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { test, expect } from './fixtures';
-import { BASE } from '../playwright.config';
+const BASE = `http://localhost:${Number(process.env.E2E_PORT ?? 3100)}`;
 import { useSharedAdmin } from './shared-admin';
 import type { Page } from '@playwright/test';
 
 // #350 /admin/settings?section=org「组织信息」：真实页面 + 真实接口（#367），仅 E2E 测试库。
-// 整个文件新建一个 ADMIN、只登录一次（见 ./shared-admin.ts 的 useSharedAdmin），cookie 放进每个测试自己的 page context，page.request 和页面共用。
-// 原来每个测试各登录一次（8 次），占单 IP 登录桶（30 次 / 10 分钟）太多。
-const PASSWORD = 'e2e-org-Passw0rd!';
+// 本文件读取 run 级 content-admin 真会话；cookie 放进独立 page context，page.request 和页面共用。
+// 数据库不可用只验原错误，不重新登录或重建缓存。
 const origin = { Origin: BASE };
 const API = '/api/admin/site-settings/organization';
 
@@ -31,7 +30,7 @@ test('组织信息：未登录不能读接口，页面跳登录', async ({ reque
 });
 
 test.describe('已登录的 ADMIN（整组共用一次登录）', () => {
-  useSharedAdmin({ emailPrefix: 'e2e-org', name: 'E2E org', password: PASSWORD, probe: API });
+  useSharedAdmin({ emailPrefix: 'e2e-org', name: 'E2E org', probe: API, slot: 'content-admin' });
 
   test('组织信息：分区导航、占位不预填、计数器、社交主页上限、保存、409 保留输入 + 刷新确认', async ({ page }) => {
     test.setTimeout(90_000);

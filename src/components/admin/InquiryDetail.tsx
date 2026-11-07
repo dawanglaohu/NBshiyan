@@ -77,18 +77,25 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   };
 
   // #225：只有当前登录的 ADMIN 能改分配；SALES 看不到下拉框，只显示负责人名字（服务端改分配仍返回 403）
+  // 早返回（loading / error / notfound）也用 M3-T21 命名域包一层，让 11 节视觉覆盖到这些状态；
+  // 不改文案、role、ref 与业务分支，只加一个作用域 wrapper。
   if (inq === undefined) {
-    if (err) return <p ref={errRef} tabIndex={-1} className="muted" role="alert">{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></p>;
-    return <p className="muted">加载中…</p>;
+    return <div className="inq-state" data-testid="inq-state-scope">
+      {err
+        ? <p ref={errRef} tabIndex={-1} className="muted" role="alert">{errorText(err)} <Link href="/admin/inquiries">返回列表</Link></p>
+        : <p className="muted">加载中…</p>}
+    </div>;
   }
-  if (inq === null) return <InquiryNotFound />;
+  if (inq === null) return <div className="inq-state" data-testid="inq-state-scope"><InquiryNotFound /></div>;
   const c = inq.contact;
   const anon = isAnonymized(inq);
   // 已匿名化：回复区、分配下拉框直接隐藏（服务端另有 409 拦截）
   const ctl = detailControls(inq, role);
   const who: React.ReactNode = anon ? <AnonTag /> : c.name;
   const score = inq.trustScore;
-  const ringColor = score < REVIEW_THRESHOLD ? 'var(--err)' : score < 70 ? 'var(--warn-c)' : 'var(--ok)';
+  // 11 节：不使用 conic-gradient / 环形图 / 渐变；可信度用「数值 + 文字标签 + 原因列表」表达，
+  // 数值、标签与 aria-label 一律保留，不因去环图而消失。
+  const trustState = score < REVIEW_THRESHOLD ? 'review' : score < 70 ? 'warn' : 'ok';
   const sendAndFollow = () => run(async () => {
     await adminApi.reply(inq.id, { subject: `Re: ${inq.ref}`, body });
     if (inq.status === 'NEW') await adminApi.updateInquiry(inq.id, { status: 'FOLLOWING' });
@@ -96,7 +103,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
   });
 
   return (
-    <>
+    <div className="inq-detail" data-testid="inq-detail-scope">
       <div className="adm-crumb"><Link href="/admin/inquiries">询盘</Link> / {inq.ref}</div>
       <div className="adm-hd">
         <h1>{anon ? `询盘 ${inq.ref}` : c.company ?? c.name}</h1>
@@ -176,12 +183,14 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
         </div>
 
         <aside>
-          {ctl.showTrust && <section className="adm-sec">
+          {ctl.showTrust && <section className="adm-sec inq-trust-card">
             <h2>可信度</h2>
-            <div className="adm-row" style={{ alignItems: 'flex-start', gap: 12 }}>
-              <div className="adm-ring" style={{ background: `conic-gradient(${ringColor} 0 ${score}%, #eee 0)` }} aria-label={`可信度 ${score}`}><b>{score}</b></div>
-              <ul className="adm-chk">
-                {inq.trustReasons.map((r, i) => <li key={i} style={{ color: r.delta < 0 ? 'var(--err)' : undefined }}>{r.delta >= 0 ? '✓' : '−'} {r.label}</li>)}
+            <div className="adm-row inq-trust-row" style={{ alignItems: 'flex-start', gap: 12 }}>
+              <span className="inq-trust-score" data-testid="trust-score" data-state={trustState} aria-label={`可信度 ${score}`}>
+                <b>{score}</b><small>/100</small>
+              </span>
+              <ul className="adm-chk inq-trust-reasons">
+                {inq.trustReasons.map((r, i) => <li key={i} data-delta={r.delta >= 0 ? 'plus' : 'minus'}>{r.delta >= 0 ? '✓' : '−'} {r.label}</li>)}
               </ul>
             </div>
           </section>}
@@ -214,7 +223,7 @@ export default function InquiryDetailView({ id, role }: { id: string; role?: str
           </section>
         </aside>
       </div>
-    </>
+    </div>
   );
 }
 

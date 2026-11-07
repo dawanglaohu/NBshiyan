@@ -1,9 +1,9 @@
-import { execFileSync } from 'node:child_process';
+import { request } from '@playwright/test';
+import { loadRunAuth } from './run-auth';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { authenticator } from 'otplib';
-import type { TestInfo } from '@playwright/test';
-import { test, expect, type Page } from './fixtures';
+import type { TestInfo, Page } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 // trace / channel / launchOptions 会新开 worker，Playwright 1.64 不允许写在 describe 里。
 // CI 不设 E2E_BROWSER_CHANNEL，仍用配置里的自带 Chromium。本机 Ubuntu 20.04 设为 chrome。
@@ -251,8 +251,6 @@ test('RUM 端点拒绝带个人信息的载荷，脱敏白名单由同一 route 
  * 后台没有登录页，会话只来自 Auth.js credentials 的 Set-Cookie。密度只量已有工作面。
  */
 const SMOKE_ORIGIN = `http://localhost:${process.env.E2E_PORT ?? 3100}`;
-const SMOKE_TOTP = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
-const SMOKE_PASSWORD = 'e2e-only-Passw0rd!';
 const PROBE_JS = readFileSync(path.join('docs', 'PackJoyU-开发文档', '_run', 'density_probe.js'), 'utf8');
 const VIEWPORTS = [
   { width: 1920, height: 1080 },
@@ -369,25 +367,8 @@ async function shot(page: Page, testInfo: TestInfo, name: string) {
 }
 
 async function loginSmokeAdmin(page: Page) {
-  const email = `r3-standalone-${Date.now()}@example.test`;
-  execFileSync('node', ['scripts/create-admin.mjs'], {
-    stdio: 'pipe',
-    env: {
-      ...process.env,
-      ADMIN_SEED_EMAIL: email,
-      ADMIN_SEED_PASSWORD: SMOKE_PASSWORD,
-      ADMIN_SEED_NAME: 'R3 Standalone',
-      ADMIN_SEED_ROLE: 'ADMIN',
-      ADMIN_SEED_TOTP_SECRET: SMOKE_TOTP,
-    },
-  });
-  const csrf = (await (await page.request.get('/api/auth/csrf')).json()).csrfToken as string;
-  const ok = await page.request.post('/api/auth/callback/credentials', {
-    headers: { Origin: SMOKE_ORIGIN },
-    form: { csrfToken: csrf, email, password: SMOKE_PASSWORD, totp: authenticator.generate(SMOKE_TOTP) },
-    maxRedirects: 0,
-  });
-  expect(ok.headers().location ?? '').not.toContain('error');
+  const state = await loadRunAuth('content-admin', SMOKE_ORIGIN, request);
+  await page.context().addCookies(state.cookies);
 }
 
 async function measure(page: Page, surface: string, type: 'work' | 'form', heading: string | RegExp | { level: 1 }): Promise<ProbeSlim[]> {

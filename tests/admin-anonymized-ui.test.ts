@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import * as React from 'react';
 (globalThis as { React?: unknown }).React = React; // tsx 用经典 JSX 转换
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -16,15 +17,34 @@ test('isAnonymized: 只认 anonymizedAt，缺字段 = 未匿名化', () => {
   assert.equal(isAnonymized({}), false);
 });
 
-test('AnonTag: 中性样式，没有红色 / 警告色', () => {
+test('AnonTag: 11 节中性标签（2px 黑边 / 0 圆角 / 无阴影），没有红色 / 警告色', () => {
   const html = renderToStaticMarkup(React.createElement(AnonTag));
+  const css = readFileSync('src/app/admin/admin.css', 'utf8');
+  const tokens = readFileSync('src/styles/tokens.css', 'utf8');
   assert.match(html, />已匿名化</);
-  assert.match(html, /background:var\(--surface\)/);
-  assert.match(html, /color:var\(--ink-2\)/);
-  assert.match(html, /border:1px solid var\(--ink-2\)/);
-  assert.match(html, /border-radius:4px/);
-  assert.match(html, /font-size:12px/);
-  assert.doesNotMatch(html, /--err|--warn|red/);
+  assert.match(html, /class="inq-anon-tag"/);
+  assert.match(html, /data-testid="anon-tag"/);
+  // 旧 1px/4px/999px 内联值已移除；组件不再内联 --surface/--ink-2，样式走 .inq-anon-tag 命名域。
+  assert.doesNotMatch(html, /border:1px|border-radius:4px|999px/);
+  assert.doesNotMatch(html, /--surface|--ink-2/);
+  // 精确取 .inq-anon-tag 所在规则声明块，而不是全文件任意命中同名字串（M3-T7 壳也有类似声明）。
+  const selector = '.inq-anon-tag,.inq-deleted-tag{';
+  const start = css.indexOf(selector);
+  assert.notEqual(start, -1, '缺少 .inq-anon-tag,.inq-deleted-tag 命名域规则');
+  const body = css.slice(start + selector.length, css.indexOf('}', start));
+  assert.match(body, /border:var\(--pj-border-width\) solid var\(--pj-border\)/);
+  assert.match(body, /border-radius:var\(--pj-radius\)/);
+  assert.match(body, /box-shadow:var\(--pj-shadow\)/);
+  assert.match(body, /background:var\(--pj-bg\)/);
+  assert.match(body, /color:var\(--pj-fg\)/);
+  // 实际 token 值来自唯一 minimalist-flat 色板，不靠注释或全文件弱命中。
+  assert.match(tokens, /--pj-border-width:\s*2px/);
+  assert.match(tokens, /--pj-radius:\s*0px/);
+  assert.match(tokens, /--pj-shadow:\s*none/);
+  assert.match(tokens, /--pj-border:\s*#000000/);
+  // 中性语义：标签文字合法、不泄露 PII、不含 error/warn/红。
+  assert.doesNotMatch(body, /--err|--warn|red/);
+  assert.doesNotMatch(html, /@|deleted|\[deleted\]/);
 });
 
 test('piiField: 已匿名化显示标签而不是 [deleted] / deleted+…@invalid.invalid', () => {

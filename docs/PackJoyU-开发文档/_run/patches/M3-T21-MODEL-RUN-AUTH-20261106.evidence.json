@@ -1,0 +1,31 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T21": {
+      "contractHash": "8038bb4adf7a5413bdebe72d07ef30d90e61227e7723702fc01522d2e3d24ece",
+      "evidence": [
+        "Chief独立读取合源前后固定对象与补丁sourceChanges：以main e66c7b0504d3e687d311d26179a1c2c74da35f61全量canonical保留原1e7b9b4b的M3-T21定义，唯一新增supportPaths为e2e/admin-legacy-model-visual.spec.ts；原output/provides/requires/验收/边界/阶段及其他任务定义逐值不变。该登记延续既裁七槽A，模型ADMIN/EDITOR仅读content-admin/editor，不新建池或修改生产鉴权。",
+        "已读main模型E2E完整消费者：八例只消费模型HTTP/上传/解码/确认/发布/还原，不改账号、TOTP、不撤销会话，不触shell活动；可复用既有content-admin/editor且不借imageB或shell槽。未迁reader时独立模型两角色登录令压缩源码预算29加2为31；此为源码预算，不是服务器计数快照，不放宽30次限制。",
+        "chief-verify-window13.py独立复算exit0：141项契约全部按context与依赖闭包providers重算吻合。T21仅definition/effectivePaths变化，其余受影响T22/M7-T9/M7-T10完整context/effectivePaths不变，仅provider哈希；补丁baseline和四项before/after准确，批6/7/20/21仅摘要传播。派发文本已逐项读取，只有新增该路径和四项哈希替换。",
+        "合源阶段与补丁后88progress/85done、T17/T23done、12历史含batch6clean、17返工、22批集合、其他状态及data保持，T21仅既有32codeRefs；维护和复验均空。六产物与34输入按各自规范口径摘要匹配，源版本一致；全部源卡/产品/测试取正确合并侧，模型E2E仍逐字等main。原判断日志为main1035行加原614bytes追加，索引只含main已提交日志，原追加未暂存。",
+        "本verify只登记必要task-contract支持范围。未改模型reader、未运行含reader的新CI，未证明errorUI、匿名化、SMTP或三尺寸完整GIF缺口关闭；支持登记不等M3-T21产品验收通过或落地。其他三受影响task证据保持pending，不冒批量复验通过。"
+      ],
+      "verdict": "pass"
+    },
+    "M3-T22": {
+      "contractHash": "d1ab02943a5bda50d34366dd88bc0bc879c758505b281d332c9ed31188f21b84",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T10": {
+      "contractHash": "66fa70f6d03af87aeeae43977772de8572508bea89a66758fedff0ae079494d6",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "0d27960d39b2452cbd1c2c15bdeefe6e56234ad83be8ccd4bd5a1b7334f0a84b",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

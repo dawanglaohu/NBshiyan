@@ -7,12 +7,12 @@ import { REVIEW_THRESHOLD } from '@/lib/admin/api';
 export const ANON_LABEL = '已匿名化';
 export const isAnonymized = (r: { anonymizedAt?: string | null }) => !!r.anonymizedAt;
 
-/** 中性标签：正常数据状态，不用红色 / 警告色 */
-export const ANON_TAG_STYLE = {
-  background: 'var(--surface)', color: 'var(--ink-2)', border: '1px solid var(--ink-2)',
-  borderRadius: 4, fontSize: 12, padding: '0 6px', display: 'inline-block', lineHeight: '18px',
-} as const;
-export function AnonTag() { return <span className="adm-anon-tag" data-testid="anon-tag" style={ANON_TAG_STYLE}>{ANON_LABEL}</span>; }
+/**
+ * 已匿名化标签：11 节 minimalist-flat——2px 黑边 / 0 圆角 / 无阴影，取值写在
+ * admin.css 的 .inq-anon-tag 命名域里，不在组件里写死旧 1px/4px 内联值。
+ * 中性标签，不用红色 / 警告色；已匿名化正文与邮箱仍不重新显示。
+ */
+export function AnonTag() { return <span className="inq-anon-tag" data-testid="anon-tag">{ANON_LABEL}</span>; }
 
 /** 姓名 / 邮箱 / 电话 / 公司：已匿名化时显示标签，否则原值（空值显示 fallback） */
 export function piiField(r: { anonymizedAt?: string | null }, value: string | null | undefined, fallback: React.ReactNode = '—'): React.ReactNode {
@@ -73,8 +73,10 @@ export function LockedStatus({ label }: { label: string }) {
 /** 改状态返回 409 anonymized：显示同一句话并刷新详情 */
 export const statusConflictText = (err?: string) => (err === 'anonymized' ? STATUS_LOCKED_MSG : undefined);
 
-/** 列表里已匿名化的行：状态旁一个中性灰小标签，不放长说明 */
+/** 列表里已匿名化的行：状态旁一个中性标签，不放长说明。
+ *  2px 黑边 / 0 圆角 / 无阴影走 .inq-deleted-tag；保留 --neutral-bg 内联是既有
+ *  admin-mail-ui.test.ts:80 的中性背景断言（不是红/警告色），不属被移除的旧边界/圆角。 */
 export const DELETED_TAG = '已删除';
 export function DeletedTag() {
-  return <span className="adm-deleted-tag" data-testid="deleted-tag" style={{ marginLeft: 6, background: 'var(--neutral-bg)', color: 'var(--ink-2)', border: '1px solid var(--line-strong, #8A8378)', borderRadius: 999, padding: '0 8px', fontSize: 12 }}>{DELETED_TAG}</span>;
+  return <span className="inq-deleted-tag" data-testid="deleted-tag" style={{ background: 'var(--neutral-bg)' }}>{DELETED_TAG}</span>;
 }

@@ -65,7 +65,7 @@ export default function InquiryList() {
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <>
+    <div className="inq-list" data-testid="inq-list-scope">
       <h1>询盘管理{data ? ` (${data.total})` : ''}</h1>
       <div className="adm-tabs" role="group" aria-label="状态">
         {TABS.map((t) => <button key={t} type="button" aria-pressed={(query.status ?? '') === t} onClick={() => set({ status: t || undefined })}>{tabLabel(t)}</button>)}
@@ -115,6 +115,6 @@ export default function InquiryList() {
           <button className="adm-btn" disabled={(query.page ?? 1) >= pages} onClick={() => set({ page: String((query.page ?? 1) + 1) })}>下一页</button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

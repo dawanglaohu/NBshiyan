@@ -242,3 +242,168 @@
 }
 .adm-btn.danger:hover{background:var(--errb)}
 .adm-btn.adm-row-last{margin-left:12px}
+
+/* M3-T21 询盘 / 邮件视觉迁移：只在询盘/邮件命名域内覆盖 11 节 minimalist-flat。
+   不改公共 adm-* 选择器定义（models / SpecEditor 也消费它们，避免与 M3-T23/T24 集成漂移），
+   也不改 M3-T7 壳与账号区。2px 黑边 / 0 圆角 / 无阴影 / 强调色 --pj-accent。 */
+.inq-anon-tag,.inq-deleted-tag{
+  display:inline-block;
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+  font-size:12px;
+  line-height:20px;
+  padding:0 8px;
+}
+.inq-deleted-tag{margin-left:6px}
+/* 状态标签：黑白为基础 + 文字；不新增状态色板，不靠颜色单独传义（保留 label 文本）。 */
+.inq-status-badge{
+  display:inline-block;
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);
+  color:var(--pj-fg);
+  font-size:14px;
+  line-height:20px;
+  font-weight:600;
+  padding:2px 8px;
+}
+.inq-status-badge[data-state=current]{background:var(--pj-inverse);color:var(--pj-on-inverse);border-left:var(--pj-border-width) solid var(--pj-accent)}
+/* 可信度：去 conic-gradient / 环形图，改数值 + 文字标签；数值与 aria-label 保留。 */
+.inq-trust-card{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:var(--pj-shadow);background:var(--pj-bg);padding:16px}
+.inq-trust-score{
+  display:inline-flex;align-items:baseline;gap:2px;
+  border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);color:var(--pj-fg);padding:8px 12px;min-width:64px;
+}
+.inq-trust-score b{font-size:24px;line-height:32px}
+.inq-trust-score small{font-size:12px;line-height:20px}
+.inq-trust-score[data-state=review]{border-left:var(--pj-border-width) solid var(--pj-accent)}
+.inq-trust-reasons{list-style:none;padding:0;margin:0;font-size:14px;line-height:24px}
+.inq-trust-reasons li[data-delta=minus]{color:var(--pj-accent)}
+/* 询盘详情的卡片/留言/表单状态：以更高特异性覆盖旧 1px/圆角取值，只作用于 .inq-detail 作用域。 */
+.inq-detail .adm-sec,.inq-detail .adm-msg2,.inq-detail .adm-card{
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);
+}
+.inq-detail .adm-msg2{background:var(--pj-bg);color:var(--pj-fg)}
+.inq-detail .adm-sec:focus-within,.inq-detail input:focus-visible,.inq-detail select:focus-visible,.inq-detail textarea:focus-visible,.inq-detail button:focus-visible{
+  outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset);
+}
+.inq-detail button,.inq-detail select,.inq-detail input,.inq-detail textarea{
+  min-height:var(--pj-touch-target);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+}
+.inq-detail button:disabled{opacity:1;cursor:not-allowed;border-style:dashed;background:var(--pj-bg);color:var(--pj-fg)}
+/* 作用域 wrapper 用 display:contents：不生成布局盒，子节点仍直接参与父流内布局，
+   不改变父 flex/grid 子项关系、宽度与 spacing（M3-T21 复核意见）。 */
+.inq-detail,.inq-list{display:contents}
+/* DENSITY 7：gutter / gap / pad 16；桌面 work 铺满、form 左对齐；触屏 44px。 */
+.inq-detail > .adm-g2,.inq-detail > .adm-detail,.inq-detail .adm-g2,.inq-detail .adm-detail{grid-template-columns:minmax(0,1fr) 320px;gap:16px}
+@media (max-width:1023px){.inq-detail .adm-g2,.inq-detail .adm-detail{grid-template-columns:minmax(0,1fr)}}
+/* 列表域：作用域内覆盖旧圆角/1px/阴影，不动公共 adm-* 定义本身。 */
+.inq-list > .adm-card,.inq-list .adm-tabs button,.inq-list .adm-filters input,.inq-list .adm-filters select,.inq-list .adm-filters button,.inq-list .adm-pager button{
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+}
+.inq-list > .adm-card{background:var(--pj-bg)}
+.inq-list .adm-tabs button[aria-pressed=true]{background:var(--pj-inverse);color:var(--pj-on-inverse);border-color:var(--pj-border)}
+.inq-list .adm-filters input,.inq-list .adm-filters select,.inq-list .adm-filters button,.inq-list .adm-pager button{min-height:var(--pj-touch-target)}
+.inq-list .adm-filters input:focus-visible,.inq-list .adm-filters select:focus-visible,.inq-list .adm-filters button:focus-visible,.inq-list .adm-pager button:focus-visible{
+  outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset);
+}
+.inq-list .adm-filters button:disabled,.inq-list .adm-pager button:disabled{opacity:1;cursor:not-allowed;border-style:dashed;background:var(--pj-bg);color:var(--pj-fg)}
+/* 本域错误/警示文字：只覆盖两个真实 alert 节点，消费 accent 与 14/20 反馈文本；
+   不修改全局 .adm .warn，也不新增 token（M3-T21 复核意见）。 */
+.inq-list .adm-card td[role="alert"],
+.inq-detail > p[role="alert"]{
+  color:var(--pj-accent);
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+}
+
+/* 列表/详情控件的桌面口径：单行 36px、正文 16px、表头 14/20；触控才抬到 44×44。
+   只作用于 .inq-list / .inq-detail / .inq-state 命名域，不改公共 .adm-* 定义本身。 */
+.inq-list .adm-filters input,.inq-list .adm-filters select,.inq-list .adm-filters button,
+.inq-list .adm-pager button,.inq-detail input,.inq-detail select,.inq-detail textarea,
+.inq-detail button,.inq-detail button.adm-btn,.inq-detail button.adm-btn.sq,.inq-list .adm-tabs button{
+  min-height:var(--pj-admin-control-height);
+  font-size:var(--pj-body-size);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background-image:none;
+}
+/* button.adm-btn.sq / .adm-btn.primary.sq 的 0,2,0 特异性不能高于这里的 0,2,1 / 0,3,1，
+   避免旧 10px 圆角与 12px 字号在详情真实按钮上残留。 */
+.inq-detail .adm-sec h2,.inq-list .adm-inq-table th{
+  font-size:var(--pj-ui-size);
+  line-height:var(--pj-ui-line);
+}
+.inq-list .adm-inq-table th{background:var(--pj-bg);color:var(--pj-fg)}
+.inq-list .adm-filters label{min-height:var(--pj-ui-line)}
+@media (pointer:coarse),(max-width:767px){
+  .inq-list .adm-filters input,.inq-list .adm-filters select,.inq-list .adm-filters button,
+  .inq-list .adm-pager button,.inq-list .adm-tabs button,.inq-detail input,.inq-detail select,
+  .inq-detail textarea,.inq-detail button,.inq-detail button.adm-btn,.inq-detail button.adm-btn.sq{
+    min-height:var(--pj-touch-target);
+  }
+  .inq-detail button,.inq-detail button.adm-btn,.inq-detail button.adm-btn.sq,
+  .inq-list .adm-filters button,.inq-list .adm-tabs button,.inq-list .adm-pager button{min-width:var(--pj-touch-target)}
+  .inq-list .adm-filters label{min-height:var(--pj-touch-target)}
+}
+
+/* 日期范围弹层：旧 .drp-pop / .drp>button / .presets button 是 1px / r-md / 999px 圆角，
+   只在询盘列表域内覆盖容器与内部控件，保留原有定位、role 与日期输入。 */
+.inq-list .drp>button,.inq-list .drp-pop,.inq-list .drp-pop .presets button,
+.inq-list .drp-pop input,.inq-list .drp-pop .adm-btn{
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);
+  background-image:none;
+  color:var(--pj-fg);
+  font-size:var(--pj-body-size);
+  min-height:var(--pj-admin-control-height);
+}
+.inq-list .drp-pop .presets button{font-size:var(--pj-ui-size);line-height:var(--pj-ui-line)}
+.inq-list .drp-pop label{color:var(--pj-fg);font-size:var(--pj-ui-size);line-height:var(--pj-ui-line)}
+.inq-list .drp>button:focus-visible,.inq-list .drp-pop button:focus-visible,.inq-list .drp-pop input:focus-visible{
+  outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset);
+}
+@media (pointer:coarse),(max-width:767px){
+  .inq-list .drp>button,.inq-list .drp-pop .presets button,.inq-list .drp-pop input,
+  .inq-list .drp-pop .adm-btn{min-height:var(--pj-touch-target)}
+}
+
+/* 早返回 loading / error / notfound、空态与历史骨架：都用 11 节口径，不删状态或文案。
+   .inq-state 包住 InquiryDetail 的早返回；.inq-detail 内的 HistorySkeleton 用 .adm-tl-skel 命中。 */
+.inq-state{display:block;color:var(--pj-fg);background:var(--pj-bg);font-size:var(--pj-body-size);line-height:var(--pj-body-line)}
+.inq-state .adm-empty,.inq-detail .adm-sec,.inq-detail .adm-card{
+  background:var(--pj-bg);color:var(--pj-fg);
+}
+.inq-state .adm-empty{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:var(--pj-shadow);max-width:none;margin:0 auto;padding:16px}
+.inq-state .adm-empty .adm-btn,.inq-state a.adm-btn{
+  min-height:var(--pj-admin-control-height);
+  border:var(--pj-border-width) solid var(--pj-border);
+  border-radius:var(--pj-radius);
+  box-shadow:var(--pj-shadow);
+  background:var(--pj-bg);color:var(--pj-fg);background-image:none;
+}
+.inq-state a.adm-btn:focus-visible{outline:var(--pj-focus-width) solid var(--pj-accent);outline-offset:var(--pj-focus-offset)}
+.inq-detail .adm-tl-skel .adm-tl-ic,.inq-detail .adm-tl-skel i{
+  background:var(--pj-bg);border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:var(--pj-shadow);
+}
+.inq-detail .adm-tl-err,.inq-state .muted{color:var(--pj-fg);font-size:var(--pj-ui-size);line-height:var(--pj-ui-line)}
+@media (pointer:coarse),(max-width:767px){
+  .inq-state .adm-empty .adm-btn,.inq-state a.adm-btn{min-height:var(--pj-touch-target);min-width:var(--pj-touch-target)}
+}
+@media (prefers-reduced-motion:reduce){.inq-detail *,.inq-list *,.inq-state *{transition:none}}
