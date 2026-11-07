@@ -402,15 +402,16 @@
   },
   "M2-T6": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "5cc27e1e98e4ca9ac5ab453d0fff03aea1c5b125d14e88fc5cc6b2748bbd918b",
+    "contractHash": "a542c5911cbfc4a9df871ec719855c65ea021762b5d198e3a4dddb2e8b4abc16",
     "evidence": [
-      "契约源 _run/task-contracts.json 的 tasks['M2-T6'].supportPaths 由 [] 改为 [e2e/poster-carrier.spec.ts, e2e/poster-carrier/, .github/workflows/ci.yml] 三条；outputPaths 仍为 src/components/three/、src/lib/three/、e2e/model-fallback.spec.ts，未改验收语义。",
-      "三条路径确为分支真实 delta：94fb9454..a356f654 中 e2e/poster-carrier.spec.ts +309、e2e/poster-carrier/ 9 文件、.github/workflows/ci.yml +5/−5（仅 A3 收集计数）；载体测试为组件级载体（真实 ProductGallery + next/dynamic 适配），不是生产路由。",
-      "CI 计数依据实测 collection：新增 model-fallback 5 条 + poster-carrier 1 条使 main 203→209，errors 2、flow 1，all 206→212；ci.yml 五处同步（L348 名称、L379 断言、L381 去重、L392 回显、L471 主段名），未改预算或跳用例。",
-      "纯 poster 当前生产入口不适用：本地 12/12 产品均有 model，目录合并保底 local.model，故载体只证明组件 no-model 输入能力；不冒充生产路由/CSP 证据。",
-      "状态保留：任务卡仍 status: todo，未跑 --landed；本笔不改产品源码/CI 实现/验收，未新增其他任务路径。"
+      "源码 task-contracts.json 的 tasks[\"M2-T6\"].supportPaths 由 3 条（e2e/poster-carrier.spec.ts、e2e/poster-carrier/、.github/workflows/ci.yml）扩为 4 条，仅新增 e2e/admin-legacy-model-visual.spec.ts；outputPaths 未变，未改验收语义、未改 M3-T23 验收/状态。",
+      "该路径是已审头 825e2339..8a5c391c 的真实净差：仅 e2e/admin-legacy-model-visual.spec.ts +27/−2，spec blob 40112aef… 与作者本地跑 8/8 的副本同哈希（全栈 v2 复核报告 3C2ECE1C…，PASS 仅增量）。",
+      "原子采集：entryReady 判定循环退出到测量之间无 await，检查与测量在页面同一任务内连续执行，React 提交插不进该窗口；15s 上限仍在，不满足条件的采集仍会失败；全部几何断言与真实面包屑点击保留。",
+      "重定向证据分层：另一次同源同会话 GET /admin/models（maxRedirects:0）只证明 307/308 与 Location→/admin/models/new 的产品重定向契约，不绑定本次点击的导航链，不写成点击证据。",
+      "旧序列 +40/80/120ms 三档均 1 passed、未复现；注入延迟把提交整体后移，只算不确定负控，不作修复有效性的正证；本头尚无 CI，不声明竞态问题已解决。",
+      "状态保留：M2-T6 卡仍 status: todo、未 landed，未 push；M5-T5 done、progress 94 键/done 91、原批次与补丁历史未动；未新增其他任务路径。"
     ],
-    "reviewed": "2026-11-07T19:24:27.397783+00:00",
+    "reviewed": "2026-11-07T21:39:57.373990+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

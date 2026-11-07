@@ -547,6 +547,7 @@
       "supportPaths": [
         "e2e/poster-carrier.spec.ts",
         "e2e/poster-carrier/",
+        "e2e/admin-legacy-model-visual.spec.ts",
         ".github/workflows/ci.yml"
       ],
       "outputPaths": [
