@@ -415,4 +415,101 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     assert.deepEqual(await readRollups(), rowsBefore, '超范围日的汇总行必须逐字段不变（不被覆盖、不被清空）');
     assert.deepEqual(await readWatermark(), watermarkBefore, '超范围日的 watermark 必须逐字段不变');
   });
+
+  test('R7-T31416198：非 UTC 会话与 UTC 会话的午夜边界、cutoff 与 watermark 结果必须完全一致', async () => {
+    await reset();
+    const conn = requireDb();
+    const now = new Date('2026-03-01T10:00:00.000Z');
+    const day = siteLocalDate(now, TZ);
+    const bounds = siteDayUtcBounds(day, TZ);
+    const startMs = Date.parse(bounds.startUtc);
+    const endMs = Date.parse(bounds.endUtc);
+
+    // 播种覆盖四种语义位置：站点日界起点（最敏感）、日界前 1ms、日末内 1ms、cutoff 之后到达。
+    // insertEvent 用 ::timestamptz AT TIME ZONE 'UTC' 落库，存储值是确定的 UTC 墙钟，
+    // 与会话时区无关；会话差异只会来自产品查询的参数绑定与比较语义。
+    await insertEvent({ occurredAt: new Date(startMs), receivedAt: new Date(now.getTime() - 60_000), browserHash: 'tz-at-start' });
+    await insertEvent({ occurredAt: new Date(startMs - 1), receivedAt: new Date(now.getTime() - 60_000), browserHash: 'tz-before-start' });
+    await insertEvent({ occurredAt: new Date(endMs - 1), receivedAt: new Date(now.getTime() - 60_000), browserHash: 'tz-at-end' });
+    await insertEvent({ occurredAt: new Date(startMs + 60_000), receivedAt: new Date(now.getTime() + 60_000), browserHash: 'tz-late' });
+
+    // 同一连接/事务内完成：SET LOCAL TIME ZONE → SHOW TimeZone 确认生效 → 被测聚合读取。
+    // Prisma 交互式事务整段持有单一连接；SET LOCAL 在事务结束时自动还原，不污染连接池，
+    // 也不是「对连接池 SET 一次就宣称覆盖」。产品查询保持原样，不预先 pin UTC。
+    const readInSession = async (zone: 'UTC' | 'Asia/Shanghai') =>
+      conn.$transaction(async (tx) => {
+        await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE '${zone}'`);
+        const shown = await tx.$queryRaw<{ [key: string]: string }[]>`SHOW TimeZone`;
+        const zoneShown = String(Object.values(shown[0]!)[0]);
+        const events = await loadEventsAtSnapshot(tx, bounds, now);
+        return { zoneShown, events };
+      });
+
+    const utcRun = await readInSession('UTC');
+    const cstRun = await readInSession('Asia/Shanghai');
+    assert.equal(utcRun.zoneShown, 'UTC', 'UTC 事务必须确认会话时区生效');
+    assert.equal(cstRun.zoneShown, 'Asia/Shanghai', '非 UTC 事务必须确认会话时区生效');
+
+    // UTC 会话是基准：日界内恰好 2 条（起点含、日末含），日界前与 cutoff 之后各 1 条不入本轮。
+    assert.deepEqual(
+      utcRun.events.map((e) => e.browserHash).sort(),
+      ['tz-at-end', 'tz-at-start'],
+      'UTC 基准必须命中午夜边界与 cutoff 语义',
+    );
+    // 非 UTC 会话的读取结果必须与 UTC 完全一致；出现任何偏移即为产品缺陷，本用例必须失败，
+    // 不得以「记录偏移」当作验收通过。
+    assert.deepEqual(cstRun.events, utcRun.events, '非 UTC 会话的午夜边界与 cutoff 结果与 UTC 不一致');
+
+    // watermark 写入同样对照：相同输入分别落在 UTC / 非 UTC 会话写入两天，
+    // 在 UTC 会话读回逐字段比对（含 completedAt / sourceMaxReceivedAt / 时间戳列）。
+    const wmArgs = (siteDate: string) => ({
+      siteDate,
+      timezoneRevision: 1,
+      completedAt: new Date('2026-03-01T09:30:00.000Z'),
+      eventCount: 7,
+      sourceMaxReceivedAt: new Date('2026-03-01T09:00:00.000Z'),
+      now: new Date('2026-03-01T10:00:00.000Z'),
+    });
+    await conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE 'UTC'`);
+      assert.equal(await upsertWatermarkGuarded(tx, wmArgs('2026-02-20')), 1);
+    });
+    await conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE 'Asia/Shanghai'`);
+      assert.equal(await upsertWatermarkGuarded(tx, wmArgs('2026-02-21')), 1);
+    });
+    const stored = await conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(`SET LOCAL TIME ZONE 'UTC'`);
+      return tx.$queryRaw<{
+        siteDate: string; rev: number; completedAt: string; eventCount: number;
+        sourceMax: string; created: string; updated: string;
+      }[]>`
+        SELECT "siteDate",
+               "timezoneRevision" AS "rev",
+               to_char("completedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "completedAt",
+               "eventCount",
+               to_char("sourceMaxReceivedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "sourceMax",
+               to_char("createdAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "created",
+               to_char("updatedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS') AS "updated"
+        FROM "AnalyticsRollupDay"
+        WHERE "siteDate" IN ('2026-02-20', '2026-02-21')
+        ORDER BY "siteDate"
+      `;
+    });
+    assert.equal(stored.length, 2, '两天 watermark 都应写入');
+    const wmUtc = stored.find((r) => r.siteDate === '2026-02-20')!;
+    const wmCst = stored.find((r) => r.siteDate === '2026-02-21')!;
+    assert.equal(wmUtc.rev, 1);
+    assert.equal(wmCst.rev, 1);
+    assert.equal(wmUtc.eventCount, 7);
+    assert.equal(wmCst.eventCount, 7);
+    assert.equal(wmUtc.completedAt, '2026-03-01T09:30:00.000');
+    assert.equal(wmCst.completedAt, '2026-03-01T09:30:00.000', '非 UTC 会话写入的 completedAt 必须与 UTC 完全一致');
+    assert.equal(wmUtc.sourceMax, '2026-03-01T09:00:00.000');
+    assert.equal(wmCst.sourceMax, '2026-03-01T09:00:00.000', '非 UTC 会话写入的 sourceMaxReceivedAt 必须与 UTC 完全一致');
+    assert.equal(wmUtc.created, '2026-03-01T10:00:00.000');
+    assert.equal(wmCst.created, '2026-03-01T10:00:00.000');
+    assert.equal(wmUtc.updated, '2026-03-01T10:00:00.000');
+    assert.equal(wmCst.updated, '2026-03-01T10:00:00.000');
+  });
 });
