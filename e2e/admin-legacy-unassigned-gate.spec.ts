@@ -38,12 +38,28 @@ function watchClosedApi(page: import('@playwright/test').Page): string[] {
 /**
  * 从既有后台页（/admin/specs）经可见侧栏「询盘」进入询盘页；<768px 先打开抽屉。
  * 断言「未归类邮件」入口缺失之前，必须先确认导航已实际渲染——不能用尚未加载的空白导航通过。
+ * 路由切换会随 path 变化自动收起抽屉；状态帧必须在抽屉收起后采集，不能带遮罩。
  */
 async function enterInquiriesViaNav(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/admin/specs`, { waitUntil: 'domcontentloaded' });
   const nav = page.getByRole('navigation', { name: '后台导航' });
-  const menu = page.getByRole('button', { name: '打开导航菜单' });
-  if (await menu.isVisible().catch(() => false)) await menu.click();
+  // 用 class 定位菜单按钮：展开时它的可访问名变成「关闭导航菜单」，按名字找会在开合两种状态间失效。
+  const menu = page.locator('button.adm-menu');
+  const shell = page.locator('.adm');
+  const hasDrawer = () => menu.isVisible().catch(() => false); // 桌面端侧栏常驻、菜单按钮隐藏
+  const openDrawer = async () => {
+    if (!(await hasDrawer())) return;
+    if ((await shell.getAttribute('data-nav')) !== 'open') await menu.click();
+    await expect(nav).toBeVisible();
+  };
+  const closeDrawer = async () => {
+    if (!(await hasDrawer())) return;
+    if ((await shell.getAttribute('data-nav')) === 'open') await page.locator('.adm-nav-close').click();
+    // data-nav=closed 且遮罩不在 DOM，才是「抽屉确实收起」；截图前必须成立。
+    await expect(shell).toHaveAttribute('data-nav', 'closed');
+    await expect(page.locator('.adm-scrim')).toHaveCount(0);
+  };
+  await openDrawer();
   await expect(nav).toBeVisible();
   const inquiries = nav.getByRole('link', { name: /^询盘/ });
   await expect(inquiries).toBeVisible();
@@ -51,9 +67,13 @@ async function enterInquiriesViaNav(page: import('@playwright/test').Page) {
   await expect(nav.getByRole('link', { name: /未归类邮件/ })).toHaveCount(0);
   await inquiries.click();
   await page.waitForURL(/\/admin\/inquiries(\?|$)/, { timeout: 30_000 });
-  if (await menu.isVisible().catch(() => false)) await menu.click();
+  // 换页后移动端抽屉自动收起（AdminShell 的 path effect）；等它真正 closed，而不是再点一次菜单按钮把它打开。
+  await expect(shell).toHaveAttribute('data-nav', 'closed');
+  // 换页后再核一次导航门禁入口；移动端重新展开（此时导航已渲染），随后显式收起。
+  await openDrawer();
   await expect(nav).toBeVisible();
   await expect(nav.getByRole('link', { name: /未归类邮件/ })).toHaveCount(0);
+  await closeDrawer();
 }
 
 test('ADMIN 侧栏无未归类入口，直达 404，零相关请求', async ({ page }) => {
