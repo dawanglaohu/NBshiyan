@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 on:
   pull_request:
   push:
@@ -350,7 +350,7 @@ jobs:
           cp -r public .next/standalone/public
       # 三段使用同一构建产物与 PG，各自重启 Playwright 管理的应用，隔离 memory 限流。
       # 建单源码预算 5/3/3，认证源码预算 29/7/7；不是服务器请求实测计数。
-      - name: 核对 A3 收集分区并准备执行器（204 + 2 + 1 = 207）
+      - name: 核对 A3 收集分区并准备执行器（206 + 2 + 1 = 209）
         id: e2e_partition
         shell: bash
         run: |
@@ -381,9 +381,9 @@ jobs:
             groups[name] = rows;
             assert.equal(new Set(rows.map(row => row.key)).size, rows.length, `${name}: duplicate tests`);
           }
-          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 207, main: 204, errors: 2, flow: 1 });
+          assert.deepEqual(Object.fromEntries(Object.entries(groups).map(([name, rows]) => [name, rows.length])), { all: 209, main: 206, errors: 2, flow: 1 });
           const parts = [...groups.main, ...groups.errors, ...groups.flow].map(row => row.key);
-          assert.equal(new Set(parts).size, 207, 'Partitions overlap');
+          assert.equal(new Set(parts).size, 209, 'Partitions overlap');
           assert.deepEqual(parts.sort(), groups.all.map(row => row.key).sort(), 'Partitions omit or change tests');
           const errors = [
             'E1 真实 400：搜索 101 字符 / 备注 5001 字符错误与纠正恢复',
@@ -394,7 +394,7 @@ jobs:
           assert.deepEqual(groups.flow.map(row => row.title), [flow]);
           for (const row of [...groups.errors, ...groups.flow]) assert.equal(row.file, 'admin-legacy-inquiries-visual.spec.ts');
           writeFileSync('e2e-evidence/collection/partition.json', JSON.stringify(groups, null, 2) + '\n');
-          console.log('A3_COLLECTION all=207 main=204 errors=2 flow=1 disjoint=true complete=true');
+          console.log('A3_COLLECTION all=209 main=206 errors=2 flow=1 disjoint=true complete=true');
           EOF
           driver_dir=$(mktemp -d "${RUNNER_TEMP:?}/nbshiyan-e2e-a3.XXXXXXXX")
           cat > "$driver_dir/ports.cjs" <<'EOF'
@@ -1306,3 +1306,4 @@ jobs:
             test-results/**/*.webm
           retention-days: 1
           if-no-files-found: error
+
