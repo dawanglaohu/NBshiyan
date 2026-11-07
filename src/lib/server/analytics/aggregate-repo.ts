@@ -27,6 +27,11 @@ export const AGGREGATE_JOB_KEY = 'analytics-aggregate';
 
 const ISO_FORMAT = 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"';
 
+/** 与 rollup.ts / event-repo / settings-repo 相同的 utc：ISO 字符串再按 UTC 写入 timestamp，避免会话时区平移。 */
+function utc(date: Date): Prisma.Sql {
+  return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
+}
+
 /**
  * 在 RepeatableRead 快照内读取一天的事件，并按 `receivedAt ≤ cutoff` 过滤。
  *
@@ -55,9 +60,9 @@ export async function loadEventsAtSnapshot(
       to_char("occurredAt", ${ISO_FORMAT}) AS "occurredAt",
       to_char("receivedAt", ${ISO_FORMAT}) AS "receivedAt"
     FROM "AnalyticsEvent"
-    WHERE "occurredAt" >= ${new Date(bounds.startUtc)}
-      AND "occurredAt" < ${new Date(bounds.endUtc)}
-      AND "receivedAt" <= ${cutoff}
+    WHERE "occurredAt" >= ${utc(new Date(bounds.startUtc))}
+      AND "occurredAt" < ${utc(new Date(bounds.endUtc))}
+      AND "receivedAt" <= ${utc(cutoff)}
   `;
   return rows.map((row) => ({
     kind: row.kind,
@@ -115,11 +120,11 @@ export async function upsertWatermarkGuarded(
     ) VALUES (
       ${siteDate},
       ${timezoneRevision},
-      ${completedAt},
+      ${utc(completedAt)},
       ${eventCount},
-      ${sourceMaxReceivedAt},
-      ${now},
-      ${now}
+      ${sourceMaxReceivedAt === null ? Prisma.sql`NULL` : utc(sourceMaxReceivedAt)},
+      ${utc(now)},
+      ${utc(now)}
     )
     ON CONFLICT ("siteDate") DO UPDATE SET
       "timezoneRevision" = EXCLUDED."timezoneRevision",

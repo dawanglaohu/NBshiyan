@@ -9,6 +9,11 @@ import {
   upsertWatermarkGuarded,
 } from './aggregate-repo';
 
+/** 与 aggregate-repo / rollup / event-repo 相同：ISO 字符串再按 UTC 写入 timestamp，避免会话时区平移。 */
+function utc(date: Date): Prisma.Sql {
+  return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
+}
+
 /**
  * M5-T3 「以一致快照重算并原子替换日聚合」服务层。
  *
@@ -97,8 +102,8 @@ async function writeOneDayInTx(
       ${row.productSlug},
       ${row.count},
       ${row.uniqueBrowsers},
-      ${now},
-      ${now}
+      ${utc(now)},
+      ${utc(now)}
     )`);
     await tx.$executeRaw`
       INSERT INTO "AnalyticsDailyRollup" (
