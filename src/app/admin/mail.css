@@ -95,3 +95,20 @@
 .ml .ml-compose label,.ml .ml-assign label{font-size:14px;line-height:20px}
 .ml .ml-thread,.ml .ml-inbox,.ml .ml-row{gap:16px}
 @media (prefers-reduced-motion:reduce){.ml *{transition:none}}
+
+/* M3-T22 未归类邮件视觉迁移：11 节 minimalist-flat，只消费 --pj-* 同源值。
+   仅覆盖未归类域的选择器（.ml-inbox/.ml-detail/.ml-pick/.ml-empty/.ml-exp/.ml-row），
+   不改 M3-T21 共享块，也不改上面既有的 .ml-* 基础字面量；业务、门禁与邮件功能开关不变。 */
+.ml .ml-inbox{gap:var(--pj-admin-block-gap)}
+.ml .ml-detail{min-width:0}
+.ml .ml-pick,.ml .ml-empty{color:var(--pj-fg);font-size:var(--pj-ui-size);line-height:var(--pj-ui-line)}
+.ml .ml-empty{padding:calc(var(--pj-space-unit) * 10) var(--pj-admin-card-pad)}
+.ml .ml-exp{font-size:var(--pj-ui-size);line-height:var(--pj-ui-line);color:var(--pj-fg)}
+.ml .ml-exp.soon{color:var(--pj-accent);font-weight:var(--pj-weight-control)}
+.ml .ml-from{min-width:0}
+.ml .ml-row{gap:var(--pj-admin-block-gap)}
+.ml .ml-inbox .ml-list{border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);box-shadow:var(--pj-shadow)}
+.ml .ml-inbox .ml-list button{border-radius:var(--pj-radius);min-height:var(--pj-touch-target)}
+.ml .ml-inbox .ml-list button[aria-current]{border-left:var(--pj-border-width) solid var(--pj-accent);box-shadow:none}
+.ml .ml-inbox .ml-back{min-height:var(--pj-touch-target);border:var(--pj-border-width) solid var(--pj-border);border-radius:var(--pj-radius);background:var(--pj-bg);color:var(--pj-fg)}
+@media (max-width:720px){.ml .ml-inbox{gap:var(--pj-admin-block-gap)}}

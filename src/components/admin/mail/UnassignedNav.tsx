@@ -23,7 +23,7 @@ function LiveNav({ active }: { active: boolean }) {
   }, [active]);
   const b = badgeText(n);
   return (
-    <Link href="/admin/mail/unassigned" aria-current={active ? 'page' : undefined}>
+    <Link href="/admin/mail/unassigned" aria-current={active ? 'page' : undefined} data-testid="unassigned-nav-link">
       未归类邮件{b && <span className="count" aria-label={`${n} 封未归类邮件`}>{b}</span>}
     </Link>
   );
