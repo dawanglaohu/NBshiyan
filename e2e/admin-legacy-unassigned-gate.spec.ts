@@ -58,6 +58,8 @@ async function enterInquiriesViaNav(page: import('@playwright/test').Page) {
     // data-nav=closed 且遮罩不在 DOM，才是「抽屉确实收起」；截图前必须成立。
     await expect(shell).toHaveAttribute('data-nav', 'closed');
     await expect(page.locator('.adm-scrim')).toHaveCount(0);
+    // 属性即时翻转，但收起动画 200ms 后才 visibility:hidden（admin.css）；不等动画结束会抓到过渡中的边沿。
+    await expect(shell.locator('.adm-side')).toHaveCSS('visibility', 'hidden');
   };
   await openDrawer();
   await expect(nav).toBeVisible();
