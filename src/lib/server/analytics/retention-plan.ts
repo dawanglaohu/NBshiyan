@@ -1,4 +1,5 @@
-import { recomputableFrom, siteLocalDate } from '../../analytics/day-boundaries';
+import { Prisma, type PrismaClient } from '@prisma/client';
+import { recomputableFrom, siteDayUtcBounds, siteLocalDate } from '../../analytics/day-boundaries';
 import { RAW_EVENT_RETENTION_MS, ROLLUP_RETENTION_MONTHS } from '../retention';
 
 /** 一次删除语句最多动这么多行。每批各自提交，不把整次运行放进一个事务。 */
@@ -107,4 +108,211 @@ export function deletionBatchSizes(total: number, batchSize: number, maxPerRun: 
     done += size;
   }
   return sizes;
+}
+
+/* ------------------------------------------------------------------------- *
+ * M5-T5 保留候选与覆盖边界计划器（供 M5-T11 消费）
+ *
+ * 边界语义按本任务验收：等号即到期——事件在 receivedAt+30 天整到期，汇总行在
+ * siteDate+13 个自然月的到期日整到期。上文的旧清理链仍用严格早于（等号保留），
+ * 这里不修改那些导出；两套语义同时存在，M5-T11 只用下面这组等号到期函数。
+ * ------------------------------------------------------------------------- */
+
+function assertInstant(instant: Date): Date {
+  if (!(instant instanceof Date) || !Number.isFinite(instant.getTime())) throw new Error('invalid_instant');
+  return instant;
+}
+
+/** 单条原始事件的到期时刻：receivedAt + 30 天。等号即到期。 */
+export function eventExpiresAt(receivedAt: Date): Date {
+  return new Date(assertInstant(receivedAt).getTime() + RAW_EVENT_RETENTION_MS);
+}
+
+/** 注入时钟下，原始事件的到期上界（含等号）：receivedAt <= 此瞬时即到期。 */
+export function eventExpiryCutoff(now: Date): Date {
+  return new Date(assertInstant(now).getTime() - RAW_EVENT_RETENTION_MS);
+}
+
+/** 原始事件是否已到期。now 恰好等于 receivedAt+30 天时算到期。 */
+export function isEventExpired(receivedAt: Date, now: Date): boolean {
+  return assertInstant(now).getTime() >= eventExpiresAt(receivedAt).getTime();
+}
+
+/** 汇总行的到期本地日：siteDate + 13 个自然月（目标月无该日时夹到月末）。等号即到期。 */
+export function rollupExpiresAt(siteDate: string): string {
+  assertLocalDate(siteDate);
+  return shiftCalendarMonths(siteDate, ROLLUP_RETENTION_MONTHS);
+}
+
+/** 注入时钟下，已到期汇总行的站点本地日上界（含等号）：siteDate <= 此值即到期。 */
+export function rollupExpiryCutoff(now: Date, timeZone: string): string {
+  return shiftCalendarMonths(siteLocalDate(assertInstant(now), timeZone), -ROLLUP_RETENTION_MONTHS);
+}
+
+/** 汇总行是否已到期。当前站点本地日恰好等于 expiresAt 时算到期。 */
+export function isRollupExpired(siteDate: string, now: Date, timeZone: string): boolean {
+  assertLocalDate(siteDate);
+  return siteDate <= rollupExpiryCutoff(now, timeZone);
+}
+
+export type RawCoveragePlan = {
+  /** 完整原始覆盖起点（UTC 瞬时，ISO）。早于它的站点日本地日原始事实可能已被部分清理。 */
+  completeRawCoverageStartUtc: string;
+  /** 上述瞬时所在的站点本地日；这一天整日仍完整，更早的日子不一定。 */
+  completeRawCoverageStartLocalDate: string;
+};
+
+/**
+ * 完整原始覆盖起点与 recomputableFrom 同一条线：横跨保留截止的残日不算完整。
+ * 这里只导出给 M5-T11 展示覆盖；能否整日重算仍由 dayStart 与起点比较判定。
+ */
+export function rawCoveragePlan(now: Date, timeZone: string): RawCoveragePlan {
+  const startUtc = recomputableFrom(assertInstant(now), timeZone);
+  return {
+    completeRawCoverageStartUtc: startUtc,
+    completeRawCoverageStartLocalDate: siteLocalDate(new Date(startUtc), timeZone),
+  };
+}
+
+export type RecomputableDayPartition = {
+  /** 整日重算仍完整的日子，升序去重。 */
+  recomputable: string[];
+  /** 原始事实可能已被部分清理的日子，升序去重；不得标记为可整日重算。 */
+  nonRecomputable: string[];
+};
+
+/**
+ * 按完整原始覆盖起点给站点本地日分类。dayStart 早于起点的日子可能只剩残片，
+ * 必须保留旧完整聚合；与起点同瞬间开始的日子整日完整。
+ */
+export function partitionRecomputableDays(input: {
+  siteDates: readonly string[];
+  siteTimezone: string;
+  completeRawCoverageStartUtc: string;
+}): RecomputableDayPartition {
+  const start = Date.parse(input.completeRawCoverageStartUtc);
+  if (!Number.isFinite(start)) throw new Error('invalid_instant');
+  const unique = [...new Set(input.siteDates)].sort();
+  const recomputable: string[] = [];
+  const nonRecomputable: string[] = [];
+  for (const siteDate of unique) {
+    const dayStart = Date.parse(siteDayUtcBounds(siteDate, input.siteTimezone).startUtc);
+    if (dayStart >= start) recomputable.push(siteDate);
+    else nonRecomputable.push(siteDate);
+  }
+  return { recomputable, nonRecomputable };
+}
+
+type RetentionQuery = Pick<PrismaClient, '$queryRaw'>;
+
+/** 候选列举上限复用清理单次上限，避免只读查询本身无界。 */
+const CANDIDATE_LIMIT_MAX = RETENTION_CLEANUP_MAX_PER_RUN;
+
+function assertCandidateLimit(limit: number): number {
+  if (!Number.isInteger(limit) || limit < 1 || limit > CANDIDATE_LIMIT_MAX) throw new Error('invalid_limit');
+  return limit;
+}
+
+/** 与 rollup、event-repo、retention-cleanup 相同的 UTC 绑定：不让会话时区参与 timestamp 解释。 */
+function utc(date: Date): Prisma.Sql {
+  return Prisma.sql`${date.toISOString()}::timestamptz AT TIME ZONE 'UTC'`;
+}
+
+export type ExpiredRollupDailyKey = {
+  siteDate: string;
+  kind: string;
+  locale: string;
+  productSlug: string;
+};
+
+export type RetentionCandidateCounts = {
+  events: number;
+  rollupDailyRows: number;
+  rollupDays: number;
+  total: number;
+};
+
+/**
+ * 只读候选仓储：不提供删除方法，不选 browserHash、path、payloadHash 或任何事件正文，
+ * 只返回 eventId、日期、种类、语言与产品内部 key，够 M5-T11 计数与分批定位。
+ */
+export type RetentionCandidateRepo = {
+  counts(): Promise<RetentionCandidateCounts>;
+  eventIds(limit: number): Promise<string[]>;
+  rollupDailyKeys(limit: number): Promise<ExpiredRollupDailyKey[]>;
+  rollupDays(limit: number): Promise<string[]>;
+};
+
+/**
+ * 注入时钟与站点时区后固定一套截止值；同一实例的所有查询共用一个快照口径。
+ * 真实事务、租约与生产保留授权门禁由 M5-T11 集成，这里只读。
+ */
+export function createRetentionCandidateRepo(deps: {
+  db: RetentionQuery;
+  now: Date;
+  siteTimezone: string;
+}): RetentionCandidateRepo {
+  const db = deps.db;
+  const eventCutoff = utc(eventExpiryCutoff(deps.now));
+  const rollupThrough = rollupExpiryCutoff(deps.now, deps.siteTimezone);
+  return {
+    async counts() {
+      const [events, daily, days] = await Promise.all([
+        db.$queryRaw<{ count: number }[]>(Prisma.sql`
+          SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "receivedAt" <= ${eventCutoff}
+        `),
+        db.$queryRaw<{ count: number }[]>(Prisma.sql`
+          SELECT COUNT(*)::int AS "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" <= ${rollupThrough}
+        `),
+        db.$queryRaw<{ count: number }[]>(Prisma.sql`
+          SELECT COUNT(*)::int AS "count" FROM "AnalyticsRollupDay" WHERE "siteDate" <= ${rollupThrough}
+        `),
+      ]);
+      const eventCount = Number(events[0]?.count ?? 0);
+      const dailyCount = Number(daily[0]?.count ?? 0);
+      const dayCount = Number(days[0]?.count ?? 0);
+      return {
+        events: eventCount,
+        rollupDailyRows: dailyCount,
+        rollupDays: dayCount,
+        total: eventCount + dailyCount + dayCount,
+      };
+    },
+    async eventIds(limit) {
+      const take = assertCandidateLimit(limit);
+      const rows = await db.$queryRaw<{ eventId: string }[]>(Prisma.sql`
+        SELECT "eventId" FROM "AnalyticsEvent"
+        WHERE "receivedAt" <= ${eventCutoff}
+        ORDER BY "receivedAt" ASC, "eventId" ASC
+        LIMIT ${take}
+      `);
+      return rows.map((row) => row.eventId);
+    },
+    async rollupDailyKeys(limit) {
+      const take = assertCandidateLimit(limit);
+      const rows = await db.$queryRaw<ExpiredRollupDailyKey[]>(Prisma.sql`
+        SELECT "siteDate", "kind"::text AS "kind", "locale", "productSlug"
+        FROM "AnalyticsDailyRollup"
+        WHERE "siteDate" <= ${rollupThrough}
+        ORDER BY "siteDate" ASC, "kind" ASC, "locale" ASC, "productSlug" ASC
+        LIMIT ${take}
+      `);
+      return rows.map((row) => ({
+        siteDate: row.siteDate,
+        kind: row.kind,
+        locale: row.locale,
+        productSlug: row.productSlug,
+      }));
+    },
+    async rollupDays(limit) {
+      const take = assertCandidateLimit(limit);
+      const rows = await db.$queryRaw<{ siteDate: string }[]>(Prisma.sql`
+        SELECT "siteDate" FROM "AnalyticsRollupDay"
+        WHERE "siteDate" <= ${rollupThrough}
+        ORDER BY "siteDate" ASC
+        LIMIT ${take}
+      `);
+      return rows.map((row) => row.siteDate);
+    },
+  };
 }
