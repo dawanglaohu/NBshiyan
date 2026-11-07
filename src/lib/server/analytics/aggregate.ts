@@ -51,6 +51,12 @@ export class AggregateBatchExceeded extends Error {
   }
 }
 
+/** 事务等待连接的上限；与执行时间合计不得超过本轮剩余预算。 */
+const AGGREGATE_TX_MAX_WAIT_MS = 2_000;
+
+/** 剩余预算低于此值就不再开启聚合事务。 */
+const AGGREGATE_MIN_TX_MS = 250;
+
 /** 事务内提交前的回调：与聚合整组写入同事务，任一失败整组回滚。 */
 export type AggregateCommitHook = (
   tx: Prisma.TransactionClient,
@@ -207,8 +213,6 @@ export async function runAggregateOnce(deps: {
 }): Promise<AggregateRunResult> {
   const deadlineMs = deps.deadlineAt?.getTime();
   const deadlineReached = () => deadlineMs !== undefined && Date.now() >= deadlineMs;
-  // 提交与完成作业状态需要留出余量，不能把最后一毫秒都花在聚合上。
-  const deadlineReserveMs = 1_500;
   if (deadlineReached()) throw new AggregateDeadlineExceeded();
 
   const plan: SnapshotPlan = planSnapshot({
@@ -218,6 +222,20 @@ export async function runAggregateOnce(deps: {
   });
   if (deps.maxBatchDays !== undefined && plan.siteDates.length > deps.maxBatchDays) {
     throw new AggregateBatchExceeded(deps.maxBatchDays);
+  }
+
+  // 事务预算：maxWait（等连接）与 timeout（执行）之和不超过剩余预算。
+  // 剩余不足时直接不开启事务，不用最小 timeout 反向扩大预算。
+  const txOptions: { maxWaitMs?: number; timeoutMs?: number } = {};
+  if (deadlineMs !== undefined) {
+    const remaining = deadlineMs - Date.now();
+    const maxWaitMs = Math.min(AGGREGATE_TX_MAX_WAIT_MS, Math.floor(remaining / 2));
+    const timeoutMs = Math.floor(remaining - maxWaitMs);
+    if (remaining < AGGREGATE_MIN_TX_MS || maxWaitMs < 1 || timeoutMs < AGGREGATE_MIN_TX_MS) {
+      throw new AggregateDeadlineExceeded();
+    }
+    txOptions.maxWaitMs = maxWaitMs;
+    txOptions.timeoutMs = timeoutMs;
   }
 
   let days: AggregateDayResult[] = [];
@@ -250,12 +268,11 @@ export async function runAggregateOnce(deps: {
           sourceThrough = day.sourceMaxReceivedAt;
         }
       }
+      if (deadlineReached()) throw new AggregateDeadlineExceeded();
       await deps.commit(tx, { writtenDays: written.length, dataThrough, sourceThrough });
     }
     return written;
-  }, deadlineMs === undefined
-    ? {}
-    : { timeoutMs: Math.max(1_500, Math.min(deadlineMs - Date.now() - deadlineReserveMs, 55_000)) });
+  }, txOptions);
 
   for (const siteDate of plan.skippedDates) {
     // 超范围：不写库、不用残片替换旧完整值、不填 0（09 节 `:72`）。

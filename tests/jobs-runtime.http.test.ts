@@ -41,6 +41,48 @@ function post(body: unknown, authorization: string | null = `Bearer ${SECRET}`) 
   });
 }
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+type JobStateRow = {
+  generation: number;
+  lastStatus: string;
+  leaseOwner: string | null;
+  lastErrorCode: string | null;
+  lastSucceededAt: string | null;
+  lastFinishedAt: string | null;
+  lockedUntil: string | null;
+};
+
+/** 插入一条“上一轮成功、租约已释放”的 JobState，作为迟到写入的对照基线。 */
+async function seedSucceededState(generation: number) {
+  const conn = requireDb();
+  const started = new Date(NOW.getTime() - 3_600_000).toISOString();
+  const succeeded = new Date(NOW.getTime() - 1_800_000).toISOString();
+  await conn.$executeRaw`
+    INSERT INTO "JobState" (
+      "key", "leaseOwner", "generation", "lockedUntil", "lastStartedAt", "lastFinishedAt",
+      "lastSucceededAt", "lastStatus", "lastErrorCode", "summary", "createdAt", "updatedAt"
+    ) VALUES (
+      ${AGGREGATE_JOB_KEY}, NULL, ${generation}, NULL,
+      ${started}::timestamptz AT TIME ZONE 'UTC', ${started}::timestamptz AT TIME ZONE 'UTC',
+      ${succeeded}::timestamptz AT TIME ZONE 'UTC', ${'SUCCEEDED'}::"JobRunStatus", NULL, NULL,
+      ${started}::timestamptz AT TIME ZONE 'UTC', ${started}::timestamptz AT TIME ZONE 'UTC'
+    )
+  `;
+}
+
+async function readJobState(): Promise<JobStateRow> {
+  const rows = await requireDb().$queryRaw<JobStateRow[]>`
+    SELECT "generation", "lastStatus"::text AS "lastStatus", "leaseOwner", "lastErrorCode",
+           to_char("lastSucceededAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastSucceededAt",
+           to_char("lastFinishedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lastFinishedAt",
+           to_char("lockedUntil", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "lockedUntil"
+    FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY}
+  `;
+  assert.ok(rows.length === 1, 'JobState 行必须存在');
+  return rows[0]!;
+}
+
 after(async () => {
   if (!db) return;
   await db.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${SCHEMA}" CASCADE`);
@@ -253,16 +295,110 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
       clock: () => new Date(NOW),
       secret: SECRET,
     })(post({ jobKey: 'analytics-aggregate' }));
-    assert.equal(res.status, 200);
-    assert.equal((await res.json() as { status: string }).status, 'FAILED', '租约失效不得返回 SUCCEEDED');
+    assert.equal(res.status, 500, 'FAILED 没有写进数据库时不能返回 200');
+    assert.equal((await res.json() as { error: string }).error, 'job_failed');
     const watermark = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
     assert.equal(Number(watermark[0]!.c), 0, '提交守卫失败必须整组回滚，不留下新 watermark');
     const daily = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup"`;
     assert.equal(Number(daily[0]!.c), 0, '汇总行也必须一起回滚');
-    const state = await conn.$queryRaw<{ s: string }[]>`
-      SELECT "lastStatus"::text AS s FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY}
-    `;
-    assert.notEqual(state[0]?.s, 'SUCCEEDED');
+    const state = await readJobState();
+    assert.equal(state.lastStatus, 'RUNNING', '终态未落库：保持已领取的 RUNNING，等租约自然到期');
+    assert.equal(state.leaseOwner, 'analytics-job-runtime', '不得假释放租约');
+  });
+
+  test('claim 成功后设置读取抛错：FAILED 在预算内落库，不写 watermark', async () => {
+    await reset();
+    const conn = requireDb();
+    const job = createAnalyticsAggregateJob({
+      db: conn,
+      clock: () => new Date(NOW),
+      settingsReader: () => {
+        throw new Error('settings_read_failed');
+      },
+    });
+    const outcome = await job.run({
+      now: new Date(NOW),
+      deadlineAt: new Date(Date.now() + 30_000),
+      signal: new AbortController().signal,
+    });
+    assert.deepEqual(outcome, { kind: 'ran', status: 'FAILED', counts: { candidateCount: 0 } });
+    const state = await readJobState();
+    assert.equal(state.lastStatus, 'FAILED', '读取失败必须落成 FAILED');
+    assert.equal(state.lastErrorCode, 'service_unavailable');
+    assert.equal(state.leaseOwner, null, 'FAILED 必须释放租约');
+    const watermark = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
+    assert.equal(Number(watermark[0]!.c), 0, '设置读取失败不得写 watermark');
+  });
+
+  test('claim 行锁等待跨过截止：超时返回，截止后不补写 JobState', async () => {
+    await reset();
+    const conn = requireDb();
+    await seedSucceededState(5);
+    const before = await readJobState();
+    // 并发事务持有该行 4.5s：claim 的 upsert 必须排队，不能用未设预算的语句一直等下去。
+    const holder = conn.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "generation" FROM "JobState" WHERE "key" = ${AGGREGATE_JOB_KEY} FOR UPDATE`;
+      await sleep(4_500);
+    }, { maxWait: 5_000, timeout: 20_000 });
+    await sleep(150);
+    const job = createAnalyticsAggregateJob({ db: conn, clock: () => new Date() });
+    const startedAt = Date.now();
+    await assert.rejects(
+      () => job.run({
+        now: new Date(),
+        deadlineAt: new Date(startedAt + 3_000),
+        signal: new AbortController().signal,
+      }),
+      /job_deadline_exceeded/,
+    );
+    assert.ok(Date.now() - startedAt < 2_900, `必须在截止前返回，实际 ${Date.now() - startedAt}ms`);
+    await holder.catch(() => {});
+    await sleep(600);
+    assert.deepEqual(await readJobState(), before, '截止后不得补写 claim/FAILED，原成功状态保持');
+  });
+
+  test('聚合被锁阻塞跨过截止：handler 503，截止后无迟到 JobState 写入', async () => {
+    await reset();
+    const conn = requireDb();
+    await seedSucceededState(5);
+    // 表级锁让聚合的第一次读取真阻塞，模拟提交/聚合跨过截止。
+    const holder = conn.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe('LOCK TABLE "AnalyticsEvent" IN ACCESS EXCLUSIVE MODE');
+      await sleep(3_000);
+    }, { maxWait: 5_000, timeout: 20_000 });
+    await sleep(150);
+    const res = await createOperationsHandler({
+      services: createJobServices({ db: conn, clock: () => new Date() }).jobs,
+      clock: () => new Date(),
+      secret: SECRET,
+      deadlineMs: 1_200,
+    })(post({ jobKey: 'analytics-aggregate' }));
+    assert.equal(res.status, 503);
+    assert.equal((await res.json() as { error: string }).error, 'job_timeout');
+    const atDeadline = await readJobState();
+    assert.equal(atDeadline.lastStatus, 'RUNNING', '预算耗尽后停在已领取的 RUNNING，等租约到期');
+    assert.equal(Number(atDeadline.generation), 6);
+    await holder.catch(() => {});
+    await sleep(800);
+    assert.deepEqual(await readJobState(), atDeadline, '截止后不得晚写 FAILED，也不得晚释放租约');
+    const watermark = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
+    assert.equal(Number(watermark[0]!.c), 0, '阻塞中的聚合不得提交 watermark');
+  });
+
+  test('终态未持久化：handler 返回 500 job_failed，不冒充 FAILED', async () => {
+    await reset();
+    const fakeServices = {
+      has: () => true,
+      keys: () => ['analytics-aggregate'],
+      run: async () => ({ kind: 'finish_failed' as const }),
+    };
+    const res = await createOperationsHandler({
+      services: fakeServices as never,
+      clock: () => new Date(NOW),
+      secret: SECRET,
+    })(post({ jobKey: 'analytics-aggregate' }));
+    assert.equal(res.status, 500);
+    assert.equal((await res.json() as { error: string }).error, 'job_failed');
   });
 
   test('提交钩子失败：聚合整组回滚，不留下 watermark', async () => {
@@ -298,7 +434,7 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     assert.equal(Number(days[0]!.c), 0);
   });
 
-  test('设置不可读：安全失败（500 job_failed），不写 watermark', async () => {
+  test('claim 期设置损坏：安全失败（500 job_failed），不写 watermark', async () => {
     await reset();
     const conn = requireDb();
     await conn.$executeRaw`
