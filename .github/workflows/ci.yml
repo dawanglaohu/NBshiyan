@@ -216,6 +216,9 @@ jobs:
               'tests/admin-enroll-current-state.db.test.ts',
               'tests/admin-action-grant.db.test.ts',
               'tests/admin-reauth.http.test.ts',
+              'tests/admin-recovery-authorizations.http.test.ts',
+              'tests/admin-recovery-start.db.test.ts',
+              'tests/admin-account-mode-password.http.test.ts',
               'tests/admin-device-management.http.test.ts',
             ];
             for (const file of wanted) {
@@ -256,6 +259,9 @@ jobs:
             tests/admin-enroll-current-state.db.test.ts \
             tests/admin-action-grant.db.test.ts \
             tests/admin-reauth.http.test.ts \
+            tests/admin-recovery-authorizations.http.test.ts \
+            tests/admin-recovery-start.db.test.ts \
+            tests/admin-account-mode-password.http.test.ts \
             tests/admin-device-management.http.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
@@ -282,6 +288,9 @@ jobs:
             'tests/admin-enroll-current-state.db.test.ts',
             'tests/admin-action-grant.db.test.ts',
             'tests/admin-reauth.http.test.ts',
+            'tests/admin-recovery-authorizations.http.test.ts',
+            'tests/admin-recovery-start.db.test.ts',
+            'tests/admin-account-mode-password.http.test.ts',
             'tests/admin-device-management.http.test.ts',
           ];
           let bad = false;
