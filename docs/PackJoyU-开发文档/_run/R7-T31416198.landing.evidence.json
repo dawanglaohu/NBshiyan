@@ -6,7 +6,7 @@
       "verdict": "pass",
       "evidence": [
         "真实验收依据：run 42380725190（attempt 1，head e8410563；合并树 0a7e34a0 = head 树）success；PG 第 9 步 295s，`analytics-aggregate.db.test.ts pass=12 fail=0 skip=0`；本卡为更正后映射的第 11 条。",
-        "测试实现：`tests/analytics-aggregate.db.test.ts:419-514` 第 11 条——同一交互式事务内 `SET LOCAL TIME ZONE`→`SHOW TimeZone`（断言生效）→真实 `loadEventsAtSnapshot`；UTC 基准命中日界起点/前 1ms/日末/cutoff 四类；非 UTC（Asia/Shanghai）必须 deepEqual，偏移即失败；`:461` 为一致性断言点。",
+        "测试实现：`tests/analytics-aggregate.db.test.ts:419-552` 第 11 条——同一交互式事务内 `SET LOCAL TIME ZONE`→`SHOW TimeZone`（断言生效）→真实 `loadEventsAtSnapshot`；同一数据播种四类（起点含、起点前 1ms 排除、日末含、cutoff 后排除），UTC 基准恰命中 `tz-at-start` 与 `tz-at-end` 两条，非 UTC（Asia/Shanghai）与该两条基准 deepEqual（`:448-461`，`:461` 为一致性断言点）；`:465-513` 为非 NULL watermark 跨会话对照。",
         "两阶段归属保留：该用例在失败 run 42341518872 真实暴露产品缺陷（Asia/Shanghai 丢日界起点事件），按口径保持失败上报、未改断言、未 pin UTC；产品修复独立成卡 R7-T21418022，本卡保留原测试契约。",
         "本轮只补测试：保留产品原查询；时区设置与被测查询在同一连接/事务内完成，不对连接池做一次性 SET。",
         "证据边界（不造）：成功日志只有文件级计数，`R7-T31416198` 与 `# Subtest:` 命中 0，无单测 TAP 或耗时。",
