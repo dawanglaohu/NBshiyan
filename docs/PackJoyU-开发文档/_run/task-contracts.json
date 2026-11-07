@@ -2540,7 +2540,9 @@
       ],
       "stage": "primitive",
       "wiring": [],
-      "supportPaths": [],
+      "supportPaths": [
+        ".github/workflows/ci.yml"
+      ],
       "outputPaths": [
         "src/lib/server/analytics/retention-plan.ts",
         "tests/analytics-retention-plan.test.ts"
