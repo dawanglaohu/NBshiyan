@@ -107,7 +107,8 @@ test('真实五分钟调度：重启后仍由 crond 触发，停调度不再前�
   const stopCron = process.env.M5T8_E2E_STOP_CRON_CMD;
   const startCron = process.env.M5T8_E2E_START_CRON_CMD;
   test.skip(!restart || !stopCron || !startCron, '需要设施提供的重启/停启调度命令');
-  testInfo.setTimeout(25 * 60_000);
+  // 三次真实 */5 触发 + 一个完整停调度周期的上界；每个 waitFor 另有自身超时。
+  testInfo.setTimeout(30 * 60_000);
 
   const conn = database();
   const startedAt = Date.now();
