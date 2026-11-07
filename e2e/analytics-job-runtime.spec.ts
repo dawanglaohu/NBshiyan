@@ -4,20 +4,22 @@
 //   1) 真调度：测试本身不发 POST。真实 crond 每 5 分钟调 cron-tick → 作业入口；
 //      e2e 只观察 JobState/watermark，重启应用后观察下一次真实触发，停调度后
 //      观察状态不再前进（不把旧成功或 409 当新执行）。
-//   2) E-44：真实浏览器同意 + 两次客户端导航，经真实事件入口入库，再跑同一
-//      聚合作业；以本用例开始前的当日聚合为基线，只断言本浏览器的增量
-//      （PV 增加、新增 1 个 UV 且不随刷新增加、同 eventId 重试不增加）。不清任何表。
+//   2) E-44：真实浏览器点击站内可见链接两次（客户端导航，不整页刷新），每一跳都绑定
+//      实际事件请求与回执；先跑一轮聚合作业把已入库事实纳入基线，再逐跳断言本浏览器
+//      的增量（PV 增加、新增 1 个 UV 且不随重复写入增加、同 eventId 重发不改聚合）。
+//      不清任何表；只在**没有并发调度**的专属实例上跑，409 不当作“本轮已覆盖”。
 //
 // 环境（缺一即 skip 并写明原因，不冒充通过）：
 //   真调度：M5T8_E2E_SCHEDULER=1、M5T8_TEST_DATABASE_URL、M5T8_E2E_BASE_URL、
 //           M5T8_E2E_CRON_LOG（必需，本轮触发必须由日志佐证）、
 //           M5T8_E2E_RESTART_CMD / M5T8_E2E_STOP_CRON_CMD / M5T8_E2E_START_CRON_CMD
 //   E-44：  DATABASE_URL（或 M5T8_TEST_DATABASE_URL）、CRON_SECRET；
-//           应用地址默认 Playwright baseURL，可用 M5T8_E2E_BASE_URL 指向隔离实例。
+//           应用地址默认 Playwright baseURL，可用 M5T8_E2E_BASE_URL 指向隔离实例；
+//           M5T8_E2E_SCHEDULER 必须不是 1（同一实例先停 crond 才能绑定成功轮次）。
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { PrismaClient } from '@prisma/client';
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page, Response as ApiResponse } from '@playwright/test';
 import { siteLocalDate } from '../src/lib/analytics/day-boundaries';
 import { expect, test } from './fixtures';
 
@@ -252,7 +254,7 @@ test('真实五分钟调度：重启后仍由 crond 触发，停调度不再前�
   }
 });
 
-type PostedEvent = { kind: string; eventId: string; navigationId: string };
+type PostedEvent = { kind: string; eventId: string; navigationId: string; path?: string };
 type PostedPayload = { events: PostedEvent[] };
 
 async function queueLength(page: Page): Promise<number> {
@@ -269,24 +271,67 @@ async function waitForGrant(page: Page): Promise<void> {
   }).toBe(true);
 }
 
-/** 客户端导航（不整页刷新）并返回本次导航的真实事件载荷，复用 T7 同意/访问步骤。 */
-async function clientNavigate(page: Page, href: string): Promise<PostedPayload> {
-  const pending = page.waitForResponse((response) => (
-    response.url().includes('/api/analytics/events') && response.request().method() === 'POST' && response.ok()
-  ));
-  const stayed = page.evaluate(async (target) => {
-    const marker = { stay: true };
-    Object.defineProperty(window, '__analyticsStay', { configurable: true, value: marker });
-    history.pushState(null, '', target);
-    await new Promise((resolve) => window.setTimeout(resolve, 0));
-    return (window as unknown as { __analyticsStay?: object }).__analyticsStay === marker;
-  }, href);
-  const response = await pending;
-  if (!(await stayed)) throw new Error('expected a client navigation');
-  return response.request().postDataJSON() as PostedPayload;
+function isEventsPost(response: ApiResponse): boolean {
+  return response.url().includes('/api/analytics/events')
+    && response.request().method() === 'POST'
+    && response.ok();
 }
 
-async function runAggregateJob(request: APIRequestContext): Promise<void> {
+type CapturedBatch = { payload: PostedPayload; status: number };
+
+/**
+ * 点击页面上真实可见的站内链接，返回这一跳实际发出的事件载荷与响应状态。
+ * 点击前在窗口对象上打标记、跳转后仍读得到，才说明这是客户端导航：
+ * 事件属于这一次点击，而不是整页加载后新文档里的另一种来源。
+ *
+ * 只取请求载荷与响应状态，不读响应正文：客户端导航之后 Playwright 不再提供
+ * 旧文档的响应体；回执内容只在重放一步由页面自己读（见用例末尾）。
+ */
+async function clickVisibleLink(
+  page: Page,
+  link: Locator,
+  expectedPath: string,
+): Promise<CapturedBatch> {
+  const marker = `e44-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  await page.evaluate((value) => {
+    (window as unknown as { __analyticsNavMarker?: string }).__analyticsNavMarker = value;
+  }, marker);
+  const pending = page.waitForResponse(isEventsPost);
+  await link.click();
+  const response = await pending;
+  const payload = response.request().postDataJSON() as PostedPayload;
+  const status = response.status();
+  expect(new URL(page.url()).pathname, '点击后必须停在该链接的目标页').toBe(expectedPath);
+  const kept = await page.evaluate(() => (
+    (window as unknown as { __analyticsNavMarker?: string }).__analyticsNavMarker ?? null
+  ));
+  expect(kept, 'E-44 需要客户端导航；整页刷新会清掉标记').toBe(marker);
+  return { payload, status };
+}
+
+type RawPageViews = { count: number; maxReceivedAt: number };
+
+/** 这一次导航真实落库的原始事实：行数与最晚 receivedAt（用来证明聚合轮次在其后开始）。 */
+async function rawPageViews(navigationId: string): Promise<RawPageViews> {
+  const rows = await database().$queryRaw<{ c: bigint; m: Date | null }[]>`
+    SELECT COUNT(*)::bigint AS c, MAX("receivedAt") AS m FROM "AnalyticsEvent"
+    WHERE "navigationId" = ${navigationId}
+      AND "kind" = 'page_view'::"AnalyticsEventKind"
+  `;
+  const row = rows[0]!;
+  return { count: Number(row.c), maxReceivedAt: row.m ? row.m.getTime() : 0 };
+}
+
+type JobRound = { startedAt: number; succeededAt: number };
+
+/**
+ * 同步跑一轮聚合作业，并证明这一轮覆盖了 `eventsReceivedThrough` 之前落库的事实：
+ * 请求本身成功、租约已释放，且 lastStartedAt 晚于最后一条事件入库时间。
+ *
+ * 409 表示租约被另一轮占用，只能说明有并发调度在跑，不能当作“本轮已覆盖本次事件”，
+ * 所以直接失败：E-44 必须在没有调度器的专属实例上执行。
+ */
+async function runAggregateJob(request: APIRequestContext, eventsReceivedThrough: number): Promise<JobRound> {
   const secret = process.env.CRON_SECRET;
   if (!secret) throw new Error('expected CRON_SECRET');
   const requestedAt = Date.now();
@@ -296,18 +341,22 @@ async function runAggregateJob(request: APIRequestContext): Promise<void> {
     timeout: 60_000,
   });
   if (res.status() === 409) {
-    // 设施调度持有同一把租约：事件已在其读取前入库，等它这一轮成功即可。
-    await waitFor(async () => {
-      const state = await jobState();
-      return Boolean(state
-        && state.lastStatus === 'SUCCEEDED'
-        && (state.lastSucceededAt?.getTime() ?? 0) >= requestedAt - 1_000);
-    }, '调度正在运行，等待本轮成功', 90_000);
-    return;
+    throw new Error('聚合租约被并发运行占用：E-44 必须在停掉调度器的专属实例上跑，409 不能证明本轮覆盖了本次事件');
   }
   expect(res.status(), await res.text()).toBe(200);
   const body = await res.json() as { status: string };
   expect(body.status).toBe('SUCCEEDED');
+
+  const state = await jobState();
+  expect(state, '聚合作业状态必须可读').not.toBeNull();
+  expect(state!.lastStatus).toBe('SUCCEEDED');
+  expect(state!.lockedUntil, '成功轮次必须已释放租约').toBeNull();
+  const startedAt = state!.lastStartedAt?.getTime() ?? 0;
+  const succeededAt = state!.lastSucceededAt?.getTime() ?? 0;
+  expect(startedAt).toBeGreaterThanOrEqual(requestedAt - 1_000);
+  expect(succeededAt).toBeGreaterThanOrEqual(startedAt);
+  expect(startedAt, '本轮必须在本用例事件入库之后才开始读事实').toBeGreaterThan(eventsReceivedThrough);
+  return { startedAt, succeededAt };
 }
 
 /** 当前站点自然日：读与应用同一份 SiteSetting（缺省 UTC），保证查询与应用落库同一天。 */
@@ -331,50 +380,73 @@ async function pageViewRollup(siteDay: string): Promise<{ count: number; uniqueB
   return rows[0] ?? null;
 }
 
-test('E-44：同浏览器两次新访问 PV 增加、UV 仍 1，同 eventId 重试不增加', async ({ page, request }, testInfo) => {
+test('E-44：真实链接两次访问 PV 增加、UV 仍 1，同 eventId 重发不增加', async ({ page, request }, testInfo) => {
   test.skip(!E2E_DB, '需要数据库 DATABASE_URL/M5T8_TEST_DATABASE_URL');
   test.skip(!process.env.CRON_SECRET, '需要 CRON_SECRET');
+  // 并发调度时无法把某个成功轮次绑定到本用例刚写入的事件，E-44 只在停了 crond 的实例上跑。
+  test.skip(process.env.M5T8_E2E_SCHEDULER === '1', 'E-44 需要没有并发调度的专属实例（先停 crond）');
   // 本机 next dev 首次 hydration 可能超过默认 30s；CI 构建产物下远小于此。
   testInfo.setTimeout(180_000);
   assertDedicatedDatabase();
-  // 不删除任何行：以本用例开始前的当日 page_view/en 聚合为基线，只断言本浏览器的增量。
-  // 共享 e2e 库里已有的事件只会抬高基线，不影响增量断言。
+  // 不清任何行：同意产生的初始事件先全部确认并聚合成基线，之后只断言本浏览器的增量。
   const siteDay = await currentSiteDay();
-  const before = await pageViewRollup(siteDay);
-  const beforeCount = before?.count ?? 0;
-  const beforeUv = before?.uniqueBrowsers ?? 0;
 
   await page.goto(appUrl('/en'));
+  // 同意后若客户端补发首屏 page_view，它必须先落库并计入基线，不能留到后面抬高增量。
+  const grantPending = page.waitForResponse(isEventsPost, { timeout: 5_000 }).catch(() => null);
   await page.getByRole('button', { name: 'Accept all' }).click();
   await waitForGrant(page);
   await expect.poll(() => queueLength(page)).toBe(0);
+  let receivedThrough = 0;
+  // 首屏事件若已落库，本浏览器就已计入当日 UV，基线之后的增量里 UV 不再 +1。
+  let browserCounted = false;
+  const granted = await grantPending;
+  if (granted) {
+    expect(granted.status(), '首屏事件必须被真实入口接受').toBe(200);
+    const payload = granted.request().postDataJSON() as PostedPayload;
+    const views = payload.events.filter((event) => event.kind === 'page_view');
+    expect(views.length).toBeGreaterThan(0);
+    const raw = await rawPageViews(views[0]!.navigationId);
+    expect(raw.count, '同一库证明：应用写的行必须能在本测试的查询连接里读到').toBeGreaterThan(0);
+    receivedThrough = raw.maxReceivedAt;
+    browserCounted = true;
+  }
 
-  // 第一次真实新访问：PV 增加该次导航产生的事件数；本浏览器是当日新增访客，UV +1。
-  const firstPayload = await clientNavigate(page, '/en/products');
-  const firstViews = firstPayload.events.filter((event) => event.kind === 'page_view');
+  // 基线：先跑一轮聚合作业，让基线聚合覆盖上面已确认的全部事实，再读当日 page_view/en。
+  await runAggregateJob(request, receivedThrough);
+  const baseline = (await pageViewRollup(siteDay)) ?? { count: 0, uniqueBrowsers: 0 };
+  const expectedUv = baseline.uniqueBrowsers + (browserCounted ? 0 : 1);
+
+  // 第一次真实新访问：点站内可见链接（客户端导航），绑定这一跳的实际请求与原始行。
+  const first = await clickVisibleLink(page, page.getByTestId('products-link'), '/en/products');
+  expect(first.status, '这一跳的事件批次必须被真实入口接受').toBe(200);
+  const firstViews = first.payload.events.filter((event) => event.kind === 'page_view');
   expect(firstViews.length).toBeGreaterThan(0);
-  // 同一库证明：被测应用刚写的原始行必须能在本测试查询连接里读到。
-  const written = await database().$queryRaw<{ c: bigint }[]>`
-    SELECT COUNT(*)::bigint AS c FROM "AnalyticsEvent"
-    WHERE "navigationId" = ${firstViews[0]!.navigationId}
-      AND "kind" = 'page_view'::"AnalyticsEventKind"
-  `;
-  expect(Number(written[0]!.c)).toBeGreaterThan(0);
-  await runAggregateJob(request);
+  expect(firstViews[0]!.path).toBe('/en/products');
+  const firstRaw = await rawPageViews(firstViews[0]!.navigationId);
+  expect(firstRaw.count, '同一库证明：应用写的行必须能在本测试的查询连接里读到').toBe(firstViews.length);
+  receivedThrough = Math.max(receivedThrough, firstRaw.maxReceivedAt);
+  await runAggregateJob(request, receivedThrough);
   const firstVisit = (await pageViewRollup(siteDay))!;
-  expect(firstVisit.count).toBe(beforeCount + firstViews.length);
-  expect(firstVisit.uniqueBrowsers).toBe(beforeUv + 1);
+  expect(firstVisit.count).toBe(baseline.count + firstViews.length);
+  expect(firstVisit.uniqueBrowsers).toBe(expectedUv);
 
-  // 第二次真实新访问：PV 再增加；同一浏览器不再增加 UV。
-  const secondPayload = await clientNavigate(page, '/en/contact');
-  const secondViews = secondPayload.events.filter((event) => event.kind === 'page_view');
+  // 第二次真实新访问：换一个可见链接再点一次；同一浏览器不再增加 UV。
+  const second = await clickVisibleLink(page, page.getByTestId('contact-link'), '/en/contact');
+  expect(second.status, '这一跳的事件批次必须被真实入口接受').toBe(200);
+  const secondViews = second.payload.events.filter((event) => event.kind === 'page_view');
   expect(secondViews.length).toBeGreaterThan(0);
-  await runAggregateJob(request);
+  expect(secondViews[0]!.path).toBe('/en/contact');
+  const secondRaw = await rawPageViews(secondViews[0]!.navigationId);
+  expect(secondRaw.count).toBe(secondViews.length);
+  receivedThrough = Math.max(receivedThrough, secondRaw.maxReceivedAt);
+  await runAggregateJob(request, receivedThrough);
   const secondVisit = (await pageViewRollup(siteDay))!;
   expect(secondVisit.count).toBe(firstVisit.count + secondViews.length);
-  expect(secondVisit.uniqueBrowsers).toBe(beforeUv + 1);
+  expect(secondVisit.uniqueBrowsers).toBe(expectedUv);
 
-  // 刷新/重试同一 eventId：重发同一份载荷，真实入口接受但不增加 PV/UV。
+  // 同 eventId 重发（刷新/重试路径）：真实入口认得是重复事件，不新增原始行、不改聚合。
+  // 回执正文由页面自己的 fetch 读出，不依赖 Playwright 的响应体缓存。
   const replayEvent = firstViews[0]!;
   const replay = await page.evaluate(async (event) => {
     const response = await fetch('/api/analytics/events', {
@@ -383,11 +455,18 @@ test('E-44：同浏览器两次新访问 PV 增加、UV 仍 1，同 eventId 重�
       body: JSON.stringify({ events: [event] }),
       credentials: 'same-origin',
     });
-    return { status: response.status };
+    return {
+      status: response.status,
+      receipt: await response.json() as { acceptedIds: string[]; duplicateIds: string[] },
+    };
   }, replayEvent);
   expect(replay.status).toBe(200);
-  await runAggregateJob(request);
+  expect(replay.receipt.duplicateIds).toContain(replayEvent.eventId);
+  expect(replay.receipt.acceptedIds).not.toContain(replayEvent.eventId);
+  const replayRaw = await rawPageViews(replayEvent.navigationId);
+  expect(replayRaw.count).toBe(firstRaw.count);
+  await runAggregateJob(request, receivedThrough);
   const afterReplay = (await pageViewRollup(siteDay))!;
   expect(afterReplay.count).toBe(secondVisit.count);
-  expect(afterReplay.uniqueBrowsers).toBe(beforeUv + 1);
+  expect(afterReplay.uniqueBrowsers).toBe(expectedUv);
 });
