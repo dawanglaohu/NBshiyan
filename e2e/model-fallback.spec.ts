@@ -11,7 +11,7 @@ import { fallbackCopy, MAX_MODEL_RETRIES, retryAllowed, retrySrc } from '../src/
  * - 首条纯规则断言只证明重试上限/URL 变化/文案，不证明真实浏览器行为。
  * - 其余用例在真实服务上注入四类状态：GLB 下载失败、WebGL 不支持、context lost、刀模 FoldBox。
  *   分别断言「对应产品海报可见」「重试是有界的新加载尝试」「询盘入口仍可用」。
- * - 本机无生产构建时允许 `next dev` 启动真实服务；正式验收跑 production build（standalone）并在报告里标明实际产物。
+ * - 正式验收跑 production build（standalone）；实际使用的配置/服务来源另记，不用截图推断。
  */
 
 const POSTER = '/images/posters/custom-corrugated-boxes.5f405542.webp';
