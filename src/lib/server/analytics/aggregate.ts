@@ -18,7 +18,8 @@ function utc(date: Date): Prisma.Sql {
  * M5-T3 「以一致快照重算并原子替换日聚合」服务层。
  *
  * 09 节 `:71` 的三条硬要求：
- *   - 每轮先定 cutoff，只统计 `receivedAt ≤ cutoff` 的事实；
+ *   - 每轮先定 cutoff，只统计 `receivedAt ≤ cutoff` 的事实；调度作业再传
+ *     `occurredNotAfter = now`，让准入的未来事件到其 occurredAt 前不计入（E-60）；
  *   - **整组目标日 + 各自 watermark 在一条 RepeatableRead 事务里替换**，
  *     任一目标日失败整组回滚，进程中断保留上一轮完整结果；
  *   - 用数据库行锁与带 WHERE 守卫的 upsert 做 generation/版本互斥，而非内存判断。
@@ -93,6 +94,8 @@ type DayArgs = {
   cutoff: Date;
   timezoneRevision: number;
   now: Date;
+  /** 只统计 occurredAt ≤ 该时刻的事实；调度作业传业务时钟，未到时间的未来事件不提前计入。 */
+  notAfter?: Date;
 };
 
 /**
@@ -118,7 +121,9 @@ async function writeOneDayInTx(
     throw new AggregateVersionConflict('stale_timezone_revision');
   }
 
-  const events: RollupSourceEvent[] = await loadEventsAtSnapshot(tx, bounds, cutoff);
+  const events: RollupSourceEvent[] = await loadEventsAtSnapshot(tx, bounds, cutoff, {
+    ...(args.notAfter ? { notAfter: args.notAfter } : {}),
+  });
   const aggregated = aggregateSiteDay(events, bounds);
 
   await tx.$executeRaw`DELETE FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${bounds.localDate}`;
@@ -206,6 +211,8 @@ export async function runAggregateOnce(deps: {
   generation: number;
   /** 整轮预算的截止时刻；到期后不再开始新一天、也不提交，事务整笔回滚。 */
   deadlineAt?: Date;
+  /** 只统计 occurredAt ≤ 该时刻的事实；调度作业传业务 now，保证未来事件到时间前不计入。 */
+  occurredNotAfter?: Date;
   /** 防御性上限，单位是站点自然日（不是事件数）；超出即拒绝且不写库。 */
   maxBatchDays?: number;
   /** 与整组聚合同一事务的提交钩子；抛错则整组回滚（用于原子完成作业租约）。 */
@@ -256,6 +263,7 @@ export async function runAggregateOnce(deps: {
         cutoff: plan.cutoff,
         timezoneRevision: deps.timezoneRevision,
         now: deps.now,
+        ...(deps.occurredNotAfter ? { notAfter: deps.occurredNotAfter } : {}),
       }));
     }
     if (deps.commit) {

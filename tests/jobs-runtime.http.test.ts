@@ -2,14 +2,23 @@
 //
 // 只在本文件被显式提供 M5T8_TEST_DATABASE_URL（或 DATABASE_URL 且
 // M5T8_REQUIRE_DATABASE=true）时执行；CI 尚未接线前不冒充已跑。
-import { after, before, describe, test } from 'node:test';
+import { after, before, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
+import { request as httpRequest } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { PrismaClient } from '@prisma/client';
 import { createOperationsHandler, JobDeadlineExceeded, JOB_DEADLINE_MS, JOB_MAX_BATCH, createAnalyticsAggregateJob } from '../src/lib/server/jobs/registry';
 import { createJobServices } from '../src/lib/server/composition';
 import { AGGREGATE_JOB_KEY } from '../src/lib/server/analytics/aggregate-repo';
 import { runAggregateOnce } from '../src/lib/server/analytics/aggregate';
+import { createEventsPost } from '../src/app/api/analytics/events/post';
+import { createAnalyticsConsentService } from '../src/lib/server/analytics/consent';
+import { CONSENT_VERSION } from '../src/lib/consent';
+import { loadServerConfig } from '../src/lib/server/config';
+import { MemoryStore, setRateLimitStore } from '../src/lib/server/ratelimit';
 import { siteLocalDate } from '../src/lib/analytics/day-boundaries';
 
 const base = process.env.M5T8_TEST_DATABASE_URL ?? process.env.DATABASE_URL;
@@ -83,6 +92,19 @@ async function readJobState(): Promise<JobStateRow> {
   return rows[0]!;
 }
 
+async function ensureSchema() {
+  const conn = requireDb();
+  await conn.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${SCHEMA}"`);
+  const { execFileSync } = await import('node:child_process');
+  const { createRequire } = await import('node:module');
+  const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+  execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
+    cwd: process.cwd(),
+    env: { ...process.env, DATABASE_URL: url! },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
 after(async () => {
   if (!db) return;
   await db.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${SCHEMA}" CASCADE`);
@@ -92,16 +114,7 @@ after(async () => {
 describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, skip, timeout: 120_000 }, () => {
   before(async () => {
     if (!db) return;
-    const conn = requireDb();
-    await conn.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${SCHEMA}"`);
-    const { execFileSync } = await import('node:child_process');
-    const { createRequire } = await import('node:module');
-    const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
-    execFileSync(process.execPath, [prismaCli, 'db', 'push', '--skip-generate'], {
-      cwd: process.cwd(),
-      env: { ...process.env, DATABASE_URL: url! },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    await ensureSchema();
   });
 
   async function reset() {
@@ -445,5 +458,217 @@ describe('M5-T8 jobs runtime + cron operations route', { concurrency: false, ski
     assert.equal((await res.json() as { error: string }).error, 'job_failed');
     const watermark = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsRollupDay"`;
     assert.equal(Number(watermark[0]!.c), 0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// M5-T8 B5 业务链：事件只经真实事件 HTTP 入口写入，聚合作业跑同一产品实现。
+// 时钟由依赖注入控制（不改系统时钟、不加生产测试开关），不直接向库里造事件。
+// ---------------------------------------------------------------------------
+
+const CONSENT_SECRET = Buffer.from('b'.repeat(32));
+const EDGE_AUTH = 'e'.repeat(32);
+const B5_NOW = '2026-06-15T12:00:00.000Z';
+const B5_CONFIG = loadServerConfig({ APP_ENV: 'test' });
+const B5_ENV = { APP_ENV: 'test', EDGE_AUTH_SECRET: EDGE_AUTH };
+
+type IngestResult = { status: number; text: string; body: unknown };
+
+describe('M5-T8 B5 事件入口 → 聚合作业（E-44 去重 / E-60 时间边界）', { concurrency: false, skip, timeout: 120_000 }, () => {
+  let server: http.Server | undefined;
+  let port = 0;
+  let ingestNow = new Date(B5_NOW);
+  let consentCookie = '';
+
+  function grantCookie(): string {
+    const outcome = createAnalyticsConsentService({ secret: CONSENT_SECRET, clock: () => ingestNow })
+      .apply({ analytics: true, consentVersion: CONSENT_VERSION, secure: false });
+    if (!outcome.ok) throw new Error(`consent:${outcome.code}`);
+    return outcome.setCookie.split(';', 1)[0]!;
+  }
+
+  function eventPost(json: unknown): Promise<IngestResult> {
+    const payload = Buffer.from(JSON.stringify(json));
+    return new Promise((resolve, reject) => {
+      const req = httpRequest({
+        hostname: '127.0.0.1',
+        port,
+        path: '/api/analytics/events',
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-length': String(payload.length),
+          'x-edge-auth': EDGE_AUTH,
+          origin: `http://127.0.0.1:${port}`,
+          cookie: consentCookie,
+        },
+      }, (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+        res.on('end', () => {
+          const text = Buffer.concat(chunks).toString('utf8');
+          let body: unknown = null;
+          try { body = text ? JSON.parse(text) : null; } catch { body = text; }
+          resolve({ status: res.statusCode ?? 0, text, body });
+        });
+      });
+      req.setTimeout(15_000, () => req.destroy(new Error('events http timeout')));
+      req.on('error', reject);
+      req.end(payload);
+    });
+  }
+
+  function pageView(occurredAt: Date, eventId: string = randomUUID(), navigationId: string = randomUUID()) {
+    return { kind: 'page_view', eventId, navigationId, occurredAt: occurredAt.toISOString(), locale: 'en', path: '/en' };
+  }
+
+  async function runJob(at: Date) {
+    const job = createAnalyticsAggregateJob({ db: requireDb(), clock: () => at });
+    return job.run({ now: at, deadlineAt: new Date(Date.now() + 30_000), signal: new AbortController().signal });
+  }
+
+  function expectSucceeded(outcome: Awaited<ReturnType<typeof runJob>>) {
+    assert.equal(outcome.kind, 'ran', '作业必须实际执行');
+    if (outcome.kind !== 'ran') assert.fail('job did not run');
+    assert.equal(outcome.status, 'SUCCEEDED');
+  }
+
+  async function pageViewRollup(siteDate: string) {
+    const rows = await requireDb().$queryRaw<{ count: number; uniqueBrowsers: number }[]>`
+      SELECT "count", "uniqueBrowsers" FROM "AnalyticsDailyRollup"
+      WHERE "siteDate" = ${siteDate}
+        AND "kind" = ${'page_view'}::"AnalyticsEventKind"
+        AND "locale" = ${'en'}
+        AND "productSlug" = ${''}
+    `;
+    return rows[0] ?? null;
+  }
+
+  before(async () => {
+    if (!db) return;
+    await ensureSchema();
+    const handler = createEventsPost({
+      db: requireDb(),
+      config: B5_CONFIG,
+      clock: () => ingestNow,
+      env: B5_ENV,
+      secret: CONSENT_SECRET,
+    });
+    server = http.createServer(async (req, res) => {
+      try {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(Buffer.from(chunk));
+        const body = Buffer.concat(chunks);
+        const headers = new Headers();
+        for (const [key, value] of Object.entries(req.headers)) {
+          if (value === undefined) continue;
+          if (Array.isArray(value)) for (const item of value) headers.append(key, item);
+          else headers.set(key, value);
+        }
+        const request = new Request(`http://127.0.0.1:${port}${req.url ?? '/'}`, {
+          method: req.method,
+          headers,
+          body: body.length > 0 ? body : undefined,
+        });
+        const response = await handler(request);
+        res.statusCode = response.status;
+        response.headers.forEach((value, key) => {
+          if (key !== 'set-cookie') res.setHeader(key, value);
+        });
+        res.end(Buffer.from(await response.arrayBuffer()));
+      } catch {
+        if (!res.headersSent) res.statusCode = 500;
+        res.end('{}');
+      }
+    });
+    await new Promise<void>((resolve) => { server?.listen(0, '127.0.0.1', () => resolve()); });
+    port = (server.address() as AddressInfo).port;
+  });
+
+  after(async () => {
+    setRateLimitStore(undefined);
+    await new Promise<void>((resolve) => {
+      if (!server) { resolve(); return; }
+      server.close(() => resolve());
+    });
+  });
+
+  beforeEach(async () => {
+    if (!db) return;
+    const conn = requireDb();
+    for (const table of ['AnalyticsEvent', 'AnalyticsDailyRollup', 'AnalyticsRollupDay', 'JobState', 'SiteSetting']) {
+      await conn.$executeRawUnsafe(`DELETE FROM "${table}"`);
+    }
+    setRateLimitStore(new MemoryStore());
+    ingestNow = new Date(B5_NOW);
+    consentCookie = grantCookie();
+  });
+
+  test('E-60：四时间边界经真实入口准入，未到 occurredAt 的未来事件不提前计入', async () => {
+    const conn = requireDb();
+    const now = new Date(B5_NOW);
+    const tooOld = new Date(now.getTime() - 48 * 60 * 60 * 1000 - 1);
+    const oldest = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const future = new Date(now.getTime() + 5 * 60 * 1000);
+    const tooFuture = new Date(future.getTime() + 1);
+    const ids: string[] = [];
+    for (const entry of [
+      { at: tooOld, status: 400 },
+      { at: oldest, status: 200 },
+      { at: future, status: 200 },
+      { at: tooFuture, status: 400 },
+    ]) {
+      const eventId = randomUUID();
+      ids.push(eventId);
+      const res = await eventPost({ events: [pageView(entry.at, eventId)] });
+      assert.equal(res.status, entry.status, res.text);
+      if (entry.status === 400) assert.equal((res.body as { error: string }).error, 'event_time_out_of_range');
+    }
+    const stored = await conn.$queryRaw<{ eventId: string }[]>`SELECT "eventId" FROM "AnalyticsEvent" ORDER BY "eventId"`;
+    assert.deepEqual(stored.map((row) => row.eventId).sort(), [ids[1]!, ids[2]!].sort(), '超界两项不得留下记录');
+
+    // 作业时钟仍在 now：48h 边界事件计入所属日；+5min 的未来事件不得提前计入。
+    expectSucceeded(await runJob(now));
+    assert.deepEqual(await pageViewRollup('2026-06-13'), { count: 1, uniqueBrowsers: 1 });
+    assert.equal(await pageViewRollup('2026-06-15'), null, '未到 occurredAt 的未来事件不得计入');
+
+    // 48h 内迟到事件：只重算其所属日，其他日保持原值。
+    assert.equal((await eventPost({ events: [pageView(new Date(now.getTime() - 47 * 60 * 60 * 1000))] })).status, 200);
+    expectSucceeded(await runJob(new Date(now.getTime() + 2 * 60 * 1000)));
+    assert.deepEqual(await pageViewRollup('2026-06-13'), { count: 2, uniqueBrowsers: 1 }, '迟到事件只影响所属日');
+    assert.equal(await pageViewRollup('2026-06-15'), null);
+
+    // 作业时钟到 +5min：未来事件到点后才计入。
+    expectSucceeded(await runJob(new Date(future.getTime())));
+    assert.deepEqual(await pageViewRollup('2026-06-15'), { count: 1, uniqueBrowsers: 1 });
+
+    // 不造未来日：所有日聚合的 siteDate 都不晚于当前站点日。
+    const futureDays = await conn.$queryRaw<{ c: bigint }[]>`
+      SELECT COUNT(*)::bigint AS c FROM "AnalyticsDailyRollup" WHERE "siteDate" > ${'2026-06-15'}
+    `;
+    assert.equal(Number(futureDays[0]!.c), 0, '不得写未来日');
+  });
+
+  test('E-44：同浏览器两次新访问 PV 增加、UV 仍 1，同 eventId 重试不增加', async () => {
+    const conn = requireDb();
+    const now = new Date(B5_NOW);
+    const firstId = randomUUID();
+    const firstEvent = pageView(now, firstId);
+    assert.equal((await eventPost({ events: [firstEvent] })).status, 200);
+    assert.equal((await eventPost({ events: [pageView(now)] })).status, 200);
+    expectSucceeded(await runJob(now));
+    assert.deepEqual(await pageViewRollup('2026-06-15'), { count: 2, uniqueBrowsers: 1 });
+
+    // 刷新/重试同一 eventId：浏览器重发的是同一份载荷，入口接受但不新增原始行。
+    assert.equal((await eventPost({ events: [firstEvent] })).status, 200);
+    const stored = await conn.$queryRaw<{ c: bigint }[]>`SELECT COUNT(*)::bigint AS c FROM "AnalyticsEvent"`;
+    assert.equal(Number(stored[0]!.c), 2, '同一 eventId 重试不得新增原始行');
+    expectSucceeded(await runJob(new Date(now.getTime() + 2 * 60 * 1000)));
+    assert.deepEqual(await pageViewRollup('2026-06-15'), { count: 2, uniqueBrowsers: 1 }, '重复事件不增加 PV/UV');
+
+    // 真实的新访问才增加 PV；UV 仍是同一浏览器。
+    assert.equal((await eventPost({ events: [pageView(new Date(now.getTime() + 3 * 60 * 1000))] })).status, 200);
+    expectSucceeded(await runJob(new Date(now.getTime() + 4 * 60 * 1000)));
+    assert.deepEqual(await pageViewRollup('2026-06-15'), { count: 3, uniqueBrowsers: 1 });
   });
 });

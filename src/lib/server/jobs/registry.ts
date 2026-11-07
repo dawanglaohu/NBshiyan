@@ -253,6 +253,9 @@ export function createAnalyticsAggregateJob(deps: {
           timezoneRevision: claim.timezoneRevision,
           generation: claim.generation,
           deadlineAt: budget.deadlineAt,
+          // 只计已发生的事实：准入窗口内 occurredAt 最多领先 now+5min 的未来事件，
+          // 到其 occurredAt 前不得提前计入（E-60）。
+          occurredNotAfter: now,
           maxBatchDays: JOB_MAX_BATCH,
           commit: async (tx, summary) => {
             if (budgetExhausted(budget)) throw new AggregateDeadlineExceeded();

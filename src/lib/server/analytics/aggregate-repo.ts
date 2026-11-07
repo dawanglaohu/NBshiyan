@@ -33,15 +33,22 @@ function utc(date: Date): Prisma.Sql {
 }
 
 /**
- * 在 RepeatableRead 快照内读取一天的事件，并按 `receivedAt ≤ cutoff` 过滤。
+ * 在 RepeatableRead 快照内读取一天的事件，按 `receivedAt ≤ cutoff` 过滤。
  *
- * 返回的事件仍交给 `aggregateSiteDay` 做去重与计数，本函数不改聚合语义。
+ * 可选的 `notAfter` 再按 `occurredAt ≤ notAfter` 截断：调度作业传本轮业务时钟，
+ * 保证客户端时钟最多领先 5 分钟准入的未来事件，到其 occurredAt 前不提前计入
+ * （E-60）。不传时保持既有快照语义——只由 receivedAt 截断（M5-T3 的 R7 会话
+ * 一致性用例依赖这一点，日末事件仍属当日快照）。
  */
 export async function loadEventsAtSnapshot(
   db: Query,
   bounds: SiteDayBounds,
   cutoff: Date,
+  options: { notAfter?: Date } = {},
 ): Promise<RollupSourceEvent[]> {
+  const occurredUpper = options.notAfter
+    ? Prisma.sql`AND "occurredAt" <= ${utc(options.notAfter)}`
+    : Prisma.empty;
   const rows = await db.$queryRaw<{
     kind: string;
     locale: string;
@@ -63,6 +70,7 @@ export async function loadEventsAtSnapshot(
     WHERE "occurredAt" >= ${utc(new Date(bounds.startUtc))}
       AND "occurredAt" < ${utc(new Date(bounds.endUtc))}
       AND "receivedAt" <= ${utc(cutoff)}
+      ${occurredUpper}
   `;
   return rows.map((row) => ({
     kind: row.kind,
