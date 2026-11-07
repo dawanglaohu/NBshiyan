@@ -303,12 +303,18 @@ test('B1：候选计数、列表与判定共用同一边界', async () => {
 const PG_URL = process.env.M5T5_TEST_DATABASE_URL?.startsWith('postgres')
   ? process.env.M5T5_TEST_DATABASE_URL
   : null;
+// e2e job 设 M5T5_REQUIRE_DATABASE=true：缺地址不能让 PG 用例静默跳过，必须失败；
+// 无库的单元 job 不设该 flag，继续明确 skip。
+const REQUIRE_PG = process.env.M5T5_REQUIRE_DATABASE === 'true';
 
 test('B1 真实 PG：月末截止日行命中、次日未到期行排除（计数与列表一致）', {
-  skip: !PG_URL && 'no M5T5_TEST_DATABASE_URL',
+  skip: !PG_URL && !REQUIRE_PG && 'no M5T5_TEST_DATABASE_URL',
 }, async () => {
+  if (!PG_URL) {
+    throw new Error('M5T5_REQUIRE_DATABASE=true 时 M5T5_TEST_DATABASE_URL 必须设置（PG 用例不允许静默 skip）');
+  }
   const schema = `m5t5_b1_${process.pid}`;
-  const url = `${PG_URL}${PG_URL!.includes('?') ? '&' : '?'}schema=${encodeURIComponent(schema)}`;
+  const url = `${PG_URL}${PG_URL.includes('?') ? '&' : '?'}schema=${encodeURIComponent(schema)}`;
   const db = new PrismaClient({ datasources: { db: { url } } });
   try {
     await db.$executeRawUnsafe(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
