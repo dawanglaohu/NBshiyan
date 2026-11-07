@@ -65,13 +65,26 @@ function hasSession(response: Response) {
   });
 }
 function codeForStep(secret: string, step: number) { return authenticator.clone({ epoch: step * 30_000 + 5_000 }).generate(secret); }
-function unusedCode(secret: string, lastStep: number | null) {
-  const nowStep = Math.floor(Date.now() / 30_000);
-  for (const step of [nowStep + 1, nowStep, nowStep - 1]) {
-    if (lastStep !== null && step <= lastStep) continue;
-    return codeForStep(secret, step);
+const STEP_MS = 30_000;
+// 服务端只接受严格大于 totpLastStep、且落在 ±1 窗口内的步。优先取未来一步；
+// 该步已消费时同一窗口内已无合法新码，只能等真实时间推进到这一步，再取下一步。
+async function unusedCode(secret: string, lastStep: number | null) {
+  const choose = () => {
+    const nowStep = Math.floor(Date.now() / STEP_MS);
+    for (const step of [nowStep + 1, nowStep, nowStep - 1]) {
+      if (lastStep === null || step > lastStep) return step;
+    }
+    return null;
+  };
+  let step = choose();
+  if (step === null) {
+    const waitMs = (lastStep as number) * STEP_MS + 500 - Date.now();
+    if (waitMs > STEP_MS + 1_000) throw new Error('no unused totp step within one time window');
+    await new Promise((resolve) => setTimeout(resolve, Math.max(waitMs, 50)));
+    step = choose();
   }
-  throw new Error('no unused totp step in the current window');
+  if (step === null) throw new Error('no unused totp step in the current window');
+  return codeForStep(secret, step);
 }
 
 before(async () => {
@@ -118,7 +131,7 @@ async function postLogin(fields: Record<string, string>, ip: string) {
   return { response, jar: cookieJar(response, first.jar) };
 }
 async function grantFor(actor: { row: User; email: string; plain: string }, jar: string, purpose: 'LOGIN_MODE' | 'PASSWORD', ip: string) {
-  const fresh = unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
+  const fresh = await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
   const response = await postReauth(new Request(`${origin}/api/admin/account/reauth`, {
     method: 'POST',
     headers: { ...trustedHeaders(ip), cookie: jar, 'content-type': 'application/json' },
@@ -163,16 +176,17 @@ describe('M3-T16 login-mode / password handlers', { concurrency: 1, skip }, () =
     assert.ok((await db.adminActionGrant.findMany({ where: { userId: actor.row.id, purpose: 'LOGIN_MODE' } }))[0]?.usedAt, 'grant consumed');
 
     // E-06：启用后真实 Credentials mode=totp 只提交 email/totp 即可登录（不含 password/recoveryCode）。
-    const next = unusedCode(actor.plain, after.totpLastStep);
+    const next = await unusedCode(actor.plain, after.totpLastStep);
     const totpOnly = await postLogin({ email: actor.email, mode: 'totp', totp: next }, nextIp());
     assert.equal(hasSession(totpOnly.response), true, 'mode=totp with only email+totp succeeds');
     // 关闭后该 totp 模式通用失败，password+totp 仍可登录。
     const grant2 = await grantFor(actor, totpOnly.jar, 'LOGIN_MODE', nextIp());
     const off = await mode(totpOnly.jar, { passwordlessEnabled: false, actionGrant: grant2 }, nextIp());
     assert.equal(off.status, 200);
-    const totpRejected = await postLogin({ email: actor.email, mode: 'totp', totp: next }, nextIp());
+    const disabledCode = await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
+    const totpRejected = await postLogin({ email: actor.email, mode: 'totp', totp: disabledCode }, nextIp());
     assert.equal(hasSession(totpRejected.response), false, 'totp mode refused after disabling');
-    const pwLogin = await postLogin({ email: actor.email, password, totp: unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep) }, nextIp());
+    const pwLogin = await postLogin({ email: actor.email, password, totp: await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep) }, nextIp());
     assert.equal(hasSession(pwLogin.response), true, 'password+totp still works');
   });
 
@@ -243,14 +257,15 @@ describe('M3-T16 login-mode / password handlers', { concurrency: 1, skip }, () =
     assert.equal((await db.auditLog.findMany({ where: { action: 'account.password_change', target: actor.row.id } })).length, 1);
 
     // 非空 recoveryCode 由 Zod strict 拒绝（同强度兼容路径不接受恢复码）
-    const signed2 = await postLogin({ email: actor.email, password: newPassword, totp: authenticator.generate(actor.plain) }, nextIp());
-    const bad = await changePassword(signed2.jar, { newPassword: 'yet-another-pass1', currentPassword: newPassword, totp: unusedCode(actor.plain, afterGrant.totpLastStep), recoveryCode: 'abcde12345' }, nextIp());
+    const reloginCode = await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
+    const signed2 = await postLogin({ email: actor.email, password: newPassword, totp: reloginCode }, nextIp());
+    const bad = await changePassword(signed2.jar, { newPassword: 'yet-another-pass1', currentPassword: newPassword, totp: await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep), recoveryCode: 'abcde12345' }, nextIp());
     assert.equal(bad.status, 400);
     assert.equal((await bad.json() as { error: string }).error, 'invalid');
     assert.equal((await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).sessionVersion, afterGrant.sessionVersion, 'no state change');
 
     // legacy 路径同强度
-    const legacy = await changePassword(signed2.jar, { newPassword: 'yet-another-pass1', currentPassword: newPassword, totp: unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep) }, nextIp());
+    const legacy = await changePassword(signed2.jar, { newPassword: 'yet-another-pass1', currentPassword: newPassword, totp: await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep) }, nextIp());
     assert.equal(legacy.status, 200);
     assert.equal((await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).sessionVersion, afterGrant.sessionVersion + 1);
     // PASSWORD 授权用于改密码之外的目的是否拒绝已由上一条覆盖；replay 同 grant 再改密拒绝。

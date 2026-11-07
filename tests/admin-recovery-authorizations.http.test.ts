@@ -65,13 +65,26 @@ function hasSession(response: Response) {
   });
 }
 function codeForStep(secret: string, step: number) { return authenticator.clone({ epoch: step * 30_000 + 5_000 }).generate(secret); }
-function unusedCode(secret: string, lastStep: number | null) {
-  const nowStep = Math.floor(Date.now() / 30_000);
-  for (const step of [nowStep + 1, nowStep, nowStep - 1]) {
-    if (lastStep !== null && step <= lastStep) continue;
-    return codeForStep(secret, step);
+const STEP_MS = 30_000;
+// 服务端只接受严格大于 totpLastStep、且落在 ±1 窗口内的步。优先取未来一步；
+// 该步已消费时同一窗口内已无合法新码，只能等真实时间推进到这一步，再取下一步。
+async function unusedCode(secret: string, lastStep: number | null) {
+  const choose = () => {
+    const nowStep = Math.floor(Date.now() / STEP_MS);
+    for (const step of [nowStep + 1, nowStep, nowStep - 1]) {
+      if (lastStep === null || step > lastStep) return step;
+    }
+    return null;
+  };
+  let step = choose();
+  if (step === null) {
+    const waitMs = (lastStep as number) * STEP_MS + 500 - Date.now();
+    if (waitMs > STEP_MS + 1_000) throw new Error('no unused totp step within one time window');
+    await new Promise((resolve) => setTimeout(resolve, Math.max(waitMs, 50)));
+    step = choose();
   }
-  throw new Error('no unused totp step in the current window');
+  if (step === null) throw new Error('no unused totp step in the current window');
+  return codeForStep(secret, step);
 }
 
 before(async () => {
@@ -118,7 +131,7 @@ async function postLogin(fields: Record<string, string>, ip: string) {
   return { response, jar: cookieJar(response, first.jar) };
 }
 async function grantFor(actor: { row: User; email: string; plain: string }, jar: string, targetId: string, ip: string) {
-  const fresh = unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
+  const fresh = await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
   const response = await postReauth(new Request(`${origin}/api/admin/account/reauth`, {
     method: 'POST',
     headers: { ...trustedHeaders(ip), cookie: jar, 'content-type': 'application/json' },
@@ -202,7 +215,7 @@ describe('POST /api/admin/account/recovery-authorizations', { concurrency: 1, sk
     assert.equal((await permitRows(other.row.id)).length, 0);
 
     // 目的不符：PASSWORD grant 不能用来签 permit，目标因素不变。
-    const fresh = unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
+    const fresh = await unusedCode(actor.plain, (await db.user.findUniqueOrThrow({ where: { id: actor.row.id } })).totpLastStep);
     const pwGrant = await postReauth(new Request(`${origin}/api/admin/account/reauth`, {
       method: 'POST', headers: { ...trustedHeaders(ip), cookie: signed.jar, 'content-type': 'application/json' },
       body: JSON.stringify({ purpose: 'PASSWORD', password, totp: fresh }),
