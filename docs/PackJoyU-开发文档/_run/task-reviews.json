@@ -1169,15 +1169,16 @@
     "verdict": "pass"
   },
   "M5-T8": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "8467dc2200c68f7e350a85ad34dbbb113d9da50dcb9fa07e68398ce353cf5ef0",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "d5b8e94fa6a2c7b3a0f5a6a2ea15d45eeffb7c72ff554707518087efeb9d24a8",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M5-T8《注册聚合作业并接通真实5分钟cron》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "契约源 _run/task-contracts.json 的 tasks['M5-T8'].supportPaths 由 [] 改为 [aggregate.ts, aggregate-repo.ts, tests/cron-analytics-rollup.test.ts] 三条；outputPaths 仍为 registry/composition/operations route/cron.nbshiyan/deploy.sh/jobs-runtime.http.test/analytics-job-runtime.spec 七条，未拆任务、未改验收语义。",
+      "三条路径确为分支内真实 delta：94fb9454..a0d06217 中 aggregate.ts +70/−1、aggregate-repo.ts +13/−3、tests/cron-analytics-rollup.test.ts +11/−5；它们分别承担聚合预算透传、DB statement/lock timeout 与旧 rollup 测试改验新调度入口。",
+      "S1 口径按 Chief 裁定记录：三个支持文件已在返工单明确授权，本笔只是契约持久化（授权已给、契约现补），不记未经授权；未改其他任务条目。",
+      "M5-T3 契约逐字未变；其 12/12 仅作为当前代码回归证据记录，不冒称 PG17 或最终头验收。两笔技术复审引用 security-m5-t8-review-rework1(D2BD28CE 为 rework2) 与 rework2 报告，整体仍 BLOCKED（B4/B5、PG17/CI）。",
+      "派生差量：docs-data.js/dispatch.json/review.json/build-manifest.json/build-state.json 与补丁 record/evidence/md；受影响任务是 M5-T8 加 41 个依赖方的 hash 传播（普通任务只变 hash、不变 context），revalidation.json 无 done 任务被置待复验，progress 93/done 90 未变。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-07T19:12:06.131009+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
