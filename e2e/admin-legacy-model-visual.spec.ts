@@ -50,50 +50,6 @@ async function waitForEmptyModel(page: Page) {
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 }
 
-/**
- * 面包屑「3D 模型」指向 /admin/models，该页服务端 redirect 回本页（两端 URL 相同）。
- * 这次导航的提交可能晚于所有按 DOM 形状/URL 的等待，因此要绑定本次导航本身：
- * 在点击之前建好等待器，等 redirect 之后回到本页的那次 RSC 导航响应落地，再继续。
- */
-function waitForCrumbRedirect(page: Page) {
-  return page.waitForResponse((response) => {
-    const url = new URL(response.url());
-    const request = response.request();
-    return url.pathname === '/admin/models/new'
-      && url.searchParams.has('_rsc')
-      && request.method() === 'GET'
-      && request.resourceType() === 'fetch'
-      && request.headers()['next-router-prefetch'] === undefined;
-  }, { timeout: 30_000 });
-}
-
-/**
- * entry 条件必须连续成立若干帧才算稳定；中途任一帧不成立（例如导航提交时主内容被卸载）就重新计数。
- * 不假定 React 一定更换 DOM 节点，也不使用固定 sleep：这里只等“当前页面连续有效”。
- */
-async function waitForEntrySettled(page: Page, frames = 6) {
-  await page.waitForFunction((minimumFrames) => {
-    const store = window as unknown as { __entrySettled?: { key: string; frames: number } };
-    const root = document.querySelector<HTMLElement>('.mdl[data-model-stage="0"]');
-    const layout = root?.querySelector<HTMLElement>('.mdl-layout');
-    const file = root?.querySelector<HTMLInputElement>('.mdl-file-input');
-    const upload = root?.querySelector<HTMLButtonElement>('.mdl-file-options button');
-    const empty = root?.querySelector<HTMLElement>('.mdl-preview .pj-status[data-tone="empty"]');
-    const ready = Boolean(root && layout && file && upload && empty
-      && getComputedStyle(layout).display === 'grid'
-      && layout.getBoundingClientRect().width > 0
-      && root.querySelectorAll('.mdl-section').length === 2
-      && !file.disabled
-      && upload.disabled
-      && empty.getBoundingClientRect().height > 0);
-    if (!ready) { store.__entrySettled = undefined; return false; }
-    const key = `${Math.round(layout.getBoundingClientRect().width)}:${root.querySelectorAll('.mdl-section').length}:${Math.round(empty.getBoundingClientRect().height)}`;
-    const previous = store.__entrySettled;
-    store.__entrySettled = previous && previous.key === key ? { key, frames: previous.frames + 1 } : { key, frames: 1 };
-    return store.__entrySettled.frames >= minimumFrames;
-  }, frames);
-}
-
 async function checkCheckbox(page: Page) {
   const label = page.locator('.mdl-checkbox-label');
   const checkbox = page.getByRole('checkbox', { name: '带开盒 / 刀模动画（体积上限 1.5MB）', exact: true });
@@ -116,7 +72,25 @@ async function checkCheckbox(page: Page) {
 }
 
 async function geometry(page: Page, surface?: string) {
-  return page.evaluate(({ source, label }) => {
+  return page.evaluate(async ({ source, label }) => {
+    /**
+     * 入口采集与“当前 DOM 就是完整 entry”的判定放在同一个任务里：先等条件成立，
+     * 紧接着（中间没有 await）读完几何。路由提交要么发生在等待期间（条件不成立，继续等），
+     * 要么发生在测量之后（与本次测量无关），因此不存在“检查通过、测量前被卸载”的窗口。
+     * 这里不推断导航是否完成：同 URL、RSC 请求、history、帧数都不参与判定。
+     */
+    const entryReady = () => {
+      const root = document.querySelector<HTMLElement>('.mdl[data-model-stage="0"]');
+      const layout = root?.querySelector<HTMLElement>('.mdl-layout');
+      const file = root?.querySelector<HTMLInputElement>('.mdl-file-input');
+      const upload = root?.querySelector<HTMLButtonElement>('.mdl-file-options button');
+      const empty = root?.querySelector<HTMLElement>('.mdl-preview .pj-status[data-tone="empty"]');
+      return Boolean(root && layout && file && upload && empty && getComputedStyle(layout).display === 'grid' && layout.getBoundingClientRect().width > 0 && root.querySelectorAll('.mdl-section').length === 2 && !file.disabled && upload.disabled && empty.getBoundingClientRect().height > 0);
+    };
+    if (label === 'empty') {
+      const deadline = performance.now() + 15_000;
+      while (!entryReady() && performance.now() < deadline) await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
     const selectors = ['.mdl-section', '.mdl-drop', '.mdl-preview', '.mdl-steps li i', '.mdl-alert', '.mdl-remedy', '.mdl .pj-button', '.mdl .pj-input', '.mdl-checkbox'];
     const elements = selectors.flatMap((selector) => [...document.querySelectorAll<HTMLElement>(selector)].filter((el) => el.getBoundingClientRect().width > 0).map((el) => {
       const s = getComputedStyle(el), r = el.getBoundingClientRect();
@@ -233,18 +207,20 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
       await page.getByRole('navigation', { name: '后台导航' }).getByRole('link', { name: '3D 模型', exact: true }).click();
       await expect(page).toHaveURL(/\/admin\/models\/new$/);
       await expect(page.getByRole('heading', { name: '上传新模型', exact: true })).toBeVisible();
-      // 面包屑「3D 模型」→ /admin/models 服务端 redirect 回本页；等到这次导航的目标响应落地，
-      // 再等 entry 连续多帧有效，避免在旧实例卸载、新实例挂载的空窗里做首次采集。
-      const crumbRedirect = waitForCrumbRedirect(page);
-      await page.locator('.mdl-crumb').getByRole('link', { name: '3D 模型', exact: true }).click();
-      expect((await crumbRedirect).status()).toBe(200);
+      // 真实点击面包屑；重定向本身用同源、同会话的真实请求核验（缓存导航同样适用）。
+      // 首次采集的同步不依赖这次导航的请求/提交时机，由 geometry('empty') 在页面内原子完成。
+      const crumb = page.locator('.mdl-crumb').getByRole('link', { name: '3D 模型', exact: true });
+      await expect(crumb).toHaveAttribute('href', '/admin/models');
+      await crumb.click();
       await expect(page).toHaveURL(/\/admin\/models\/new$/);
+      const redirect = await page.request.get('/admin/models', { maxRedirects: 0 });
+      expect([307, 308]).toContain(redirect.status());
+      expect(new URL(redirect.headers().location ?? '', BASE).pathname).toBe('/admin/models/new');
       await expect(page.getByLabel('选择模型与封面文件')).toBeAttached();
       const upload = page.getByRole('button', { name: '上传并检查', exact: true });
       await expect(upload).toBeDisabled();
       await expect(page.getByText('选好文件后显示 3D 预览', { exact: false })).toBeVisible();
       await waitForEmptyModel(page);
-      await waitForEntrySettled(page);
       const { measuredDensity: emptyDensity, ...emptyGeometry } = await geometry(page, 'empty');
       if (!emptyDensity) throw new Error('initial density capture missing');
       samples.push(emptyDensity);
