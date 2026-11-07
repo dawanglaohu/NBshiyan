@@ -33,19 +33,19 @@
     "_run/batches/batch-3-20261024.md": "8fddca7a7284feb3aeca7847d86f94dd96dd55c446bce2e4f191b3567f6724c7",
     "_run/batches/batch-4-20261026.md": "053880f9ae9620b5b38c923650ed43449185bb040f27ea2bf5af0845bd055de7",
     "_run/batches/batch-5-20261026.md": "51c6425ebc631b859a733e4dcb939ab2ac2f73111f5107902d838aa70ad784fe",
-    "_run/batches/batch-7-20261107-z-product-repair.md": "69588ad4b48b7db86773fc3b3a8c6e9249f82995a284494c827f6e38401bcd06",
+    "_run/batches/batch-7-20261107-z-product-repair.md": "d9f61d7b16acbfefdc90f7f20f92e32f9bc31242f3b3cfb0842ed464d0753435",
     "_run/batches/batch-7-20261107.md": "e68171fcb4ef8890658a9a171ce3a882273a700a2d9a1bed3495893b650f40ba",
     "_run/presentation.json": "65ff64e42139bd1ce9157ec11e067fb273ec53c55c832683fb3a7355ae95c682",
     "_run/task-contracts.json": "e47700534ba1eeaf898844d8e2feb6840f167e0e7bf12cb3c182f9d7411d47a6"
   },
   "products": {
     "_MOC.md": "9a97a99eecd6e59e4f9554bd6ef41912e6cd0b3965786bf729f88b178921655c",
-    "_run/dispatch.json": "ef932794e2dc66196d668e31cf0fb9efed890aaa9445594abdc3d57ab5fd1969",
-    "_run/review.json": "43b56a9cf8d0e556a2215682633f42165f71db467f2fb1a649c939261b81ec0a",
+    "_run/dispatch.json": "c047271bbffb1c504ae079d5e9f47cc282f3a6198851dcfb0848f3e81f920c63",
+    "_run/review.json": "89de49f01c03d596432db7652e6e635938b372db82d8b636eb7e3afb2d93eb7a",
     "_run/task-reviews.json": "5b5fdb49a238b6b9c3e81b9dc09906f834250057e16d3d22f87b0775ba6f2cf0",
-    "docs-data.js": "91ce8290b6b60e94f4014ead0b07c885a02c6e3a661a69778ed5bb0ed51250fd",
+    "docs-data.js": "0d104a855e208fc3077d9cd1589a8eb2f7b2ab330c686e0c3c8cecd25d4ffdbf",
     "index.html": "7fda3113b97fe22e225ace0a0558f6cd83712da9c6d043765516a883b3136276"
   },
   "schemaVersion": 1,
-  "sourceVersion": "38fe05e41e78e29cb9061b67ba54dca87ea504b673a199fb5b37f48ca8b57f47"
+  "sourceVersion": "bec64cce725db2107b3f8cc75e57cfff9b985e6e0b6596273273164d50cb2ea5"
 }
