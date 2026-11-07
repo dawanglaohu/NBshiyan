@@ -191,6 +191,10 @@ jobs:
           M3T3_REQUIRE_DATABASE: 'true'
           # M5-T3 专用 PG 回归只在 e2e job 设此 flag；缺库即抛错，且按文件门禁要求具名通过。
           M5T3_REQUIRE_DATABASE: 'true'
+          # M5-T5 专用 PG 回归：只在 e2e job 设地址与 require；缺地址必须失败，不能静默 skip。
+          # 测试内按进程号自建 schema 并在 finally 删除，不落到公共 public。
+          M5T5_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          M5T5_REQUIRE_DATABASE: 'true'
         run: |
           set -o pipefail
           cat > /tmp/m3t2-file-gate.cjs <<'EOF'
@@ -220,6 +224,7 @@ jobs:
               'tests/admin-recovery-start.db.test.ts',
               'tests/admin-account-mode-password.http.test.ts',
               'tests/admin-device-management.http.test.ts',
+              'tests/analytics-retention-plan.test.ts',
             ];
             for (const file of wanted) {
               const hit = [...counts.entries()].find(([name]) => name.replaceAll('\\', '/').endsWith(file));
@@ -263,6 +268,7 @@ jobs:
             tests/admin-recovery-start.db.test.ts \
             tests/admin-account-mode-password.http.test.ts \
             tests/admin-device-management.http.test.ts \
+            tests/analytics-retention-plan.test.ts \
             || { status=$?; cat /tmp/pg-regressions.tap /tmp/m3t2-file-gate.txt; exit "$status"; }
           grep -qx '# skipped 0' /tmp/pg-regressions.tap
           grep -qx '# fail 0' /tmp/pg-regressions.tap
@@ -292,6 +298,7 @@ jobs:
             'tests/admin-recovery-start.db.test.ts',
             'tests/admin-account-mode-password.http.test.ts',
             'tests/admin-device-management.http.test.ts',
+            'tests/analytics-retention-plan.test.ts',
           ];
           let bad = false;
           for (const file of files) {
