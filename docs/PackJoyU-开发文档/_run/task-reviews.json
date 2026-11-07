@@ -1673,6 +1673,51 @@
     "scope": "task-contract",
     "verdict": "pass"
   },
+  "R7-T14077261": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "4ceab81810193068e42c4608b0eb4a44b939a27392cafc25553ef211620bc47e",
+    "evidence": [
+      "真实验收依据：run 42380725190（event pull_request，attempt 1，head e84105632cb4f693c718543cfc13f976b03ad432；测试合并提交 7b0d1003，树 0a7e34a0 = head 树）success；PG 门禁第 9 步 14:15:56→14:20:51Z、295s，文件级 `tests/analytics-aggregate.db.test.ts pass=12 fail=0 skip=0 todo=0 cancelled=0`。",
+      "三项映射按更正后取证件 db-ci-42380725190-20261107.md（8,201 B `E4AA2F88…`）/ .json（9,125 B `54471380…`）：本卡为第 10 条，源码 357–417；第 6 条是旧 E-82 用例，保留全表但不作本卡替代证据。",
+      "测试实现（f0cdc2ff）：`currentDate=2026-01-15` 触发超范围日；自断言 skippedDates 含该日、同轮可重算日 >0、coverage=partial；预置 AnalyticsDailyRollup/AnalyticsRollupDay 与 watermark（revision=3）；真实入口 runAggregateOnce 后 written=false，预置聚合与 watermark 逐字段 deepEqual（含 createdAt/updatedAt）。",
+      "夹具修复：两处预置 raw INSERT 补 `updatedAt`（`@updatedAt` 客户端管理列、无 DB 默认、固定 UTC 值）；失败 run 42341518872 的 23502 NOT NULL 因此闭合；行为断言、既有 9 条与非 UTC 用例逐字未动。",
+      "证据边界（不造）：成功日志只有文件级门禁计数，`R7-T14077261`／`E-82`／`# Subtest:` 命中 0，无单用例 TAP 与耗时；`partial` 不冒称 `unavailable`。",
+      "本次 --landed 只登记本卡：任务卡代码位置与实施沉淀两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁，不生成 clean/fixed。"
+    ],
+    "reviewed": "2026-11-07T14:50:15.679709+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R7-T21418022": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "d408013f8ab615bd1291f860a52cb915e8a092132e347581b57b312541adda6b",
+    "evidence": [
+      "真实验收依据：run 42380725190（attempt 1，head e8410563；合并树 0a7e34a0 = head 树）success；PG 第 9 步 295s，`analytics-aggregate.db.test.ts pass=12 fail=0 skip=0`；本卡为更正后映射的第 12 条（新增写入用例）。",
+      "实现（5c324c2e，12 文件 +453/−42 内）：`aggregate-repo.ts:58-60` 三处读、`:118` completedAt、`:120` sourceMaxReceivedAt（可空）、`:121-122` now、`aggregate.ts:100-101` 汇总 INSERT createdAt/updatedAt，共九处统一改仓库既有 `utc()`（`::timestamptz AT TIME ZONE 'UTC'`）；不迁 schema、不强制会话 UTC、不 pin UTC，毫秒精度与 NULL 语义保留。",
+      "测试（第 12 条）：测试层透传适配器包住产品 `AggregateDb.$transaction`，同事务 SET LOCAL/SHOW/pg_backend_pid 断言、同一 tx 交回产品回调、options 原样透传、proof.calls===1；固定 now 两轮（UTC 与 Asia/Shanghai）deepEqual；watermark 跨会话对照 `465-513` 本次实际执行通过。",
+      "审查链：产品代码独审 PASS、0 必要阻断（db-review-5c324c2e-20261107.md `992A1334…`）；审查方技术复判补齐——corrected A/B 与原件逐字相同（`af2c5531…`／`862d6e05…`），返回 `pick=A high 0.86`、`take(A)`、无 red_line；旧 0.98（PASS/BLOCK）作废。",
+      "证据边界（不造）：成功日志只有文件级计数（`R7-T21418022` 与 `# Subtest:` 命中 0），无单测 TAP/耗时；本机无 PG，驱动绑定机制未实证。",
+      "本次 --landed 只登记本卡：两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁，不生成 clean/fixed。"
+    ],
+    "reviewed": "2026-11-07T14:50:36.990196+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
+  "R7-T31416198": {
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "4592fdd01f99ae7f8e31ede4af7bee43a11eb8ee7f32f600b396489b2c69c3d0",
+    "evidence": [
+      "真实验收依据：run 42380725190（attempt 1，head e8410563；合并树 0a7e34a0 = head 树）success；PG 第 9 步 295s，`analytics-aggregate.db.test.ts pass=12 fail=0 skip=0`；本卡为更正后映射的第 11 条。",
+      "测试实现：`tests/analytics-aggregate.db.test.ts:419-514` 第 11 条——同一交互式事务内 `SET LOCAL TIME ZONE`→`SHOW TimeZone`（断言生效）→真实 `loadEventsAtSnapshot`；UTC 基准命中日界起点/前 1ms/日末/cutoff 四类；非 UTC（Asia/Shanghai）必须 deepEqual，偏移即失败；`:461` 为一致性断言点。",
+      "两阶段归属保留：该用例在失败 run 42341518872 真实暴露产品缺陷（Asia/Shanghai 丢日界起点事件），按口径保持失败上报、未改断言、未 pin UTC；产品修复独立成卡 R7-T21418022，本卡保留原测试契约。",
+      "本轮只补测试：保留产品原查询；时区设置与被测查询在同一连接/事务内完成，不对连接池做一次性 SET。",
+      "证据边界（不造）：成功日志只有文件级计数，`R7-T31416198` 与 `# Subtest:` 命中 0，无单测 TAP 或耗时。",
+      "本次 --landed 只登记本卡：两保护区已回填（无占位）；不改产品源码、测试、CI、生成器、原 85 项契约、批次源记录或返工定义；第 7 批最新记录仍 open、第 8 批仍锁。"
+    ],
+    "reviewed": "2026-11-07T14:50:26.551865+00:00",
+    "scope": "task-contract",
+    "verdict": "pass"
+  },
   "RETENTION-CLEANUP": {
     "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
     "contractHash": "5a65f8b8e6f472d36133f01660b8d796b370f61e0f61b2d033b687dfa06770bc",
