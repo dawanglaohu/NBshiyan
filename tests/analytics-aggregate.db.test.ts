@@ -367,14 +367,14 @@ describe('M5-T3 consistent-snapshot daily aggregate', { concurrency: false, skip
     // 预置超范围日的完整聚合（两组）与 watermark。revision 取 3、高于本轮 1：
     // 若产品误把这天当目标日重算，版本校验会直接抛错，测试立刻失败，不会静默绕过。
     await conn.$executeRaw`
-      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers")
+      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers", "updatedAt")
       VALUES
-        (${oldDay}, ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${''}, ${41}, ${17}),
-        (${oldDay}, ${'product_view'}::"AnalyticsEventKind", ${'en'}, ${'box'}, ${9}, ${4})
+        (${oldDay}, ${'page_view'}::"AnalyticsEventKind", ${'en'}, ${''}, ${41}, ${17}, ${utc(new Date('2026-01-16T00:00:00.000Z'))}),
+        (${oldDay}, ${'product_view'}::"AnalyticsEventKind", ${'en'}, ${'box'}, ${9}, ${4}, ${utc(new Date('2026-01-16T00:00:00.000Z'))})
     `;
     await conn.$executeRaw`
-      INSERT INTO "AnalyticsRollupDay" ("siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt")
-      VALUES (${oldDay}, ${3}, ${utc(new Date('2026-01-16T00:00:00.000Z'))}, ${50}, ${utc(new Date('2026-01-15T23:00:00.000Z'))})
+      INSERT INTO "AnalyticsRollupDay" ("siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "updatedAt")
+      VALUES (${oldDay}, ${3}, ${utc(new Date('2026-01-16T00:00:00.000Z'))}, ${50}, ${utc(new Date('2026-01-15T23:00:00.000Z'))}, ${utc(new Date('2026-01-16T00:00:00.000Z'))})
     `;
 
     const readRollups = () => conn.$queryRaw<Record<string, unknown>[]>`
