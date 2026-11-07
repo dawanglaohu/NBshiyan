@@ -1,4 +1,4 @@
-﻿import { expect, test } from './fixtures';
+import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -11,7 +11,7 @@ import { fallbackCopy, MAX_MODEL_RETRIES, retryAllowed, retrySrc } from '../src/
  * - 首条纯规则断言只证明重试上限/URL 变化/文案，不证明真实浏览器行为。
  * - 其余用例在真实服务上注入四类状态：GLB 下载失败、WebGL 不支持、context lost、刀模 FoldBox。
  *   分别断言「对应产品海报可见」「重试是有界的新加载尝试」「询盘入口仍可用」。
- * - 本机无生产构建时允许 `next dev` 启动真实服务；产物与启动方式在报告里如实记录，不冒称 standalone。
+ * - 本机无生产构建时允许 `next dev` 启动真实服务；正式验收跑 production build（standalone）并在报告里标明实际产物。
  */
 
 const POSTER = '/images/posters/custom-corrugated-boxes.5f405542.webp';
@@ -45,12 +45,23 @@ async function readyHint(stage: ReturnType<Page['getByTestId']>) {
   await expect(stage.locator('.hint')).toHaveText('Drag to rotate', { timeout: 45_000 });
 }
 
-// next dev 的客户端包用 eval 编译，仓库 CSP 不允许 unsafe-eval；生产构建不需要这一步。
-// 这里只绕过 CSP 让开发服务完成 hydration，不改变被测的 3D 回退逻辑。
-test.beforeEach(async ({ page }) => {
-  const client = await page.context().newCDPSession(page);
-  await client.send('Page.setBypassCSP', { enabled: true });
-});
+/** 真实用户路径：加入清单 → 再点已加入按钮打开清单面板 → 核清单项归属。 */
+async function verifyQuotePanel(page: Page, mediaName?: string) {
+  const card = page.locator('article.card').first();
+  const name = (await card.locator('h2').innerText()).trim();
+  const add = card.getByRole('button', { name: 'Add to quote' });
+  await add.click();
+  const inQuote = card.getByRole('button', { name: /In quote/ });
+  await expect(inQuote).toHaveAttribute('aria-pressed', 'true');
+  await inQuote.click();
+  const drawer = page.getByRole('dialog', { name: 'Quote list' });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole('listitem')).toHaveCount(1);
+  await expect(drawer.getByRole('listitem').first()).toContainText(name);
+  if (mediaName) await shot(page, mediaName);
+  await drawer.getByRole('button', { name: 'Close' }).click();
+  await expect(drawer).toBeHidden();
+}
 
 test('M2-T6 规则自检：重试有界、重试 URL 是新加载、en/ru 文案齐全', () => {
   expect(MAX_MODEL_RETRIES).toBe(3);
@@ -98,12 +109,8 @@ test('GLB 下载失败：显示对应产品海报，手动重试建立新的真�
   await expect(stage.locator('img')).toHaveCSS('opacity', '0');
   await shot(page, '02-glb-retry-ready.png');
 
-  // 询盘入口仍在真实卡片上可用
-  const add = card.getByRole('button', { name: 'Add to quote' });
-  await add.click();
-  const inQuote = card.getByRole('button', { name: /In quote/ });
-  await expect(inQuote).toBeVisible();
-  await expect(inQuote).toHaveAttribute('aria-pressed', 'true');
+  // 询盘入口仍在真实卡片上可用：加入 → 打开清单面板 → 核产品归属
+  await verifyQuotePanel(page, '08-quote-panel.png');
 });
 
 test('WebGL 不支持：全部卡片显示产品海报，重试次数有界', async ({ page }) => {
@@ -132,11 +139,7 @@ test('WebGL 不支持：全部卡片显示产品海报，重试次数有界', as
   await expect(stage.locator('img')).toHaveCSS('opacity', '1');
   await expect(page.locator('canvas')).toHaveCount(0);
 
-  const add = card.getByRole('button', { name: 'Add to quote' });
-  await add.click();
-  const inQuote = card.getByRole('button', { name: /In quote/ });
-  await expect(inQuote).toBeVisible();
-  await expect(inQuote).toHaveAttribute('aria-pressed', 'true');
+  await verifyQuotePanel(page);
 });
 
 test('context lost：显示海报，重试重建画布并发起新的模型加载', async ({ page }) => {
