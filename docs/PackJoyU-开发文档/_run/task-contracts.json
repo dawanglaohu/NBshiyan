@@ -3690,7 +3690,8 @@
       ],
       "supportPaths": [
         "e2e/admin-legacy-unassigned-gate.spec.ts",
-        "tests/admin-legacy-unassigned-style.test.ts"
+        "tests/admin-legacy-unassigned-style.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "stage": "integration",
       "wiring": [],

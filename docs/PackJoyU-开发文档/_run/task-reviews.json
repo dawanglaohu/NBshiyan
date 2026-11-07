@@ -646,15 +646,16 @@
     "verdict": "pass"
   },
   "M3-T22": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "d51cc7f7f4c48f64cf8ad3025d6589566384f79f2a2cc0e32af54194b7fc4dbd",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "9318c939fa95b9f23968a42304f55b58087c8ddc5fd5ca333695feb5266fed0f",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M3-T22《迁移未归类邮件样式并保持关闭门禁》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "契约源 _run/task-contracts.json 的 tasks['M3-T22'].supportPaths 由 [e2e/admin-legacy-unassigned-gate.spec.ts, tests/admin-legacy-unassigned-style.test.ts] 扩为三条，新增 .github/workflows/ci.yml；outputPaths 仍为 UnassignedInbox.tsx、UnassignedNav.tsx、mail.css 三条，未改验收语义。",
+      "ci.yml 确为本任务真实 delta：94fb9454..f3ea8eb1 中 .github/workflows/ci.yml +4/−4——A3 收集断言 210/207/2/1（L355 名称、L386 分区断言、L388 去重、L399 回显）与本轮合入后主段显示名由 203 改 207（L478，仅名称）。",
+      "merge-forward 后语义核对：保留本任务 210/207/2/1，同时保留 main 的 M5-T5 PG17 接线（M5T5_TEST_DATABASE_URL/REQUIRE_DATABASE 于 L196-197、测试登记 L227/271/301），未引入 M2-T6 的 212/209 或 M3-T23 内容；未改断言、预算或其他 job。",
+      "状态与边界：任务卡仍 status: todo，未跑 --landed；回填与证据边界写作将沿用现有卡片，媒体独验与最终头 CI 未齐前不标 done。",
+      "派生在合并后用 maintain_docs.py build 统一重建（非仅 build_docs），sourceVersion/输入产物哈希见收尾核验。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-07T20:55:26.938354+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
