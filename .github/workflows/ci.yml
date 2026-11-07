@@ -480,7 +480,7 @@ jobs:
             printf 'A3_ERROR_PATTERN=%s\n' "$error_pattern"
             printf 'A3_FLOW_PATTERN=%s\n' "$flow_pattern"
           } >> "$GITHUB_ENV"
-      - name: Playwright A3 主段（203例，含同次 RUM 检查）
+      - name: Playwright A3 主段（206例，含同次 RUM 检查）
         id: e2e_main
         shell: bash
         run: bash "$A3_DRIVER_DIR/run.sh" main
