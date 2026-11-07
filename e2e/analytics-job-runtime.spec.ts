@@ -93,10 +93,39 @@ async function waitFor(check: () => Promise<boolean>, label: string, timeoutMs =
   throw new Error(`timed out waiting for ${label}${last ? `: ${last}` : ''}`);
 }
 
-function cronTail(): string {
+type CronLine = { at: number; status: number };
+
+function cronLines(): CronLine[] {
   const path = process.env.M5T8_E2E_CRON_LOG;
-  if (!path || !existsSync(path)) return '';
-  return readFileSync(path, 'utf8').split(/\r?\n/).slice(-20).join('\n');
+  if (!path || !existsSync(path)) return [];
+  return readFileSync(path, 'utf8').split(/\r?\n/).flatMap((line) => {
+    const match = /^(\S+)\s+analytics-aggregate\s+(\d+)/.exec(line.trim());
+    if (!match) return [];
+    const at = Date.parse(match[1]);
+    return Number.isFinite(at) ? [{ at, status: Number(match[2]) }] : [];
+  });
+}
+
+function cronSuccessSince(since: number): boolean {
+  return cronLines().some((line) => line.at >= since && line.status === 200);
+}
+
+/**
+ * 只允许对本机隔离库执行写操作。E-44 需要清空当日分析事实才能精确断言
+ * PV/UV，因此调用前必须先过这道守卫；B4 本身不再清表。
+ * CI 的库名是 e2e；设施库用 M5T8_E2E_EXPECT_DB 指定（如 m5t8_b4_20261107）。
+ */
+function assertDedicatedDatabase(): void {
+  if (!E2E_DB) throw new Error('需要隔离库 DATABASE_URL / M5T8_TEST_DATABASE_URL');
+  const url = new URL(E2E_DB);
+  if (!['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)) {
+    throw new Error(`只允许本机隔离库，实际主机 ${url.hostname}`);
+  }
+  const name = url.pathname.replace(/^\//, '');
+  const expected = process.env.M5T8_E2E_EXPECT_DB;
+  if (expected ? name !== expected : !/e2e|m5t8/i.test(name)) {
+    throw new Error(`需要任务专属隔离库（期望 ${expected ?? 'e2e/m5t8 命名'}），实际 ${name}`);
+  }
 }
 
 test('真实五分钟调度：重启后仍由 crond 触发，停调度不再前进', async ({}, testInfo) => {
@@ -109,69 +138,90 @@ test('真实五分钟调度：重启后仍由 crond 触发，停调度不再前�
   test.skip(!restart || !stopCron || !startCron, '需要设施提供的重启/停启调度命令');
   // 三次真实 */5 触发 + 一个完整停调度周期的上界；每个 waitFor 另有自身超时。
   testInfo.setTimeout(30 * 60_000);
+  assertDedicatedDatabase();
+  const base = new URL(APP_BASE!);
+  if (!['127.0.0.1', 'localhost'].includes(base.hostname)) throw new Error(`被测应用必须是本机设施，实际 ${base.hostname}`);
 
-  const conn = database();
-  const startedAt = Date.now();
-  // 等上一轮租约释放再清状态，避免删到别的触发正在写的那一行。
-  await waitFor(async () => (await jobState())?.lastStatus !== 'RUNNING', '上一轮租约释放', 120_000);
-  // 只清 JobState 与水位：观测从空状态开始的真实触发，不伪造业务事实。
-  await conn.$executeRawUnsafe('DELETE FROM "AnalyticsRollupDay"');
-  await conn.$executeRawUnsafe('DELETE FROM "AnalyticsDailyRollup"');
-  await conn.$executeRawUnsafe('DELETE FROM "JobState"');
+  // 不清空 JobState/水位：只观察基线之后由 cron 产生的**新成功**。
+  const monitorStartedAt = Date.now();
+  const baseline = await jobState();
+  const baselineSucceeded = baseline?.lastSucceededAt?.getTime() ?? 0;
+  let cronStopped = false;
+  try {
+    // 第一次真实触发：cron 自己调入口，本测试不发任何 POST。
+    await waitFor(async () => {
+      const state = await jobState();
+      return Boolean(state
+        && state.lastStatus === 'SUCCEEDED'
+        && (state.lastStartedAt?.getTime() ?? 0) >= monitorStartedAt - 5_000
+        && (state.lastSucceededAt?.getTime() ?? 0) > baselineSucceeded);
+    }, '第一次真实 cron 触发（新成功）', 7 * 60_000);
+    const first = (await jobState())!;
+    expect(first.generation).toBeGreaterThan(baseline?.generation ?? 0);
+    expect(first.lastSucceededAt!.getTime()).toBeGreaterThan(baselineSucceeded);
+    expect(await watermarkCount()).toBeGreaterThan(0);
+    expect(cronSuccessSince(monitorStartedAt - 1_000), 'cron 日志必须对应本轮触发').toBe(true);
+    const firstWatermark = await latestWatermark();
 
-  // 第一次真实触发：cron 自己调入口，本测试不发任何 POST。
-  await waitFor(async () => (await jobState())?.lastStatus === 'SUCCEEDED', '第一次 cron 触发');
-  const first = (await jobState())!;
-  expect(first.generation).toBeGreaterThanOrEqual(1);
-  expect(first.lastSucceededAt).not.toBeNull();
-  expect(first.lastSucceededAt!.getTime()).toBeGreaterThanOrEqual(startedAt - 6 * 60_000);
-  expect(await watermarkCount()).toBeGreaterThan(0);
-  const firstWatermark = await latestWatermark();
-  expect(cronTail()).toMatch(/analytics-aggregate 200/);
+    // 重启应用：下一次触发必须仍来自 cron，且是重启之后开始的新成功。
+    execSync(restart, { stdio: 'pipe', timeout: 120_000 });
+    await waitFor(async () => {
+      const res = await fetch(appUrl('/api/health'));
+      return res.ok;
+    }, '重启后的应用健康检查', 120_000);
+    const afterRestartAt = Date.now();
+    await waitFor(async () => {
+      const state = await jobState();
+      return Boolean(state
+        && state.lastStatus === 'SUCCEEDED'
+        && state.generation > first.generation
+        && (state.lastStartedAt?.getTime() ?? 0) >= afterRestartAt - 5_000
+        && (state.lastSucceededAt?.getTime() ?? 0) > first.lastSucceededAt!.getTime());
+    }, '重启后的下一次真实触发（新成功）', 7 * 60_000);
+    const second = (await jobState())!;
+    expect(second.lastStartedAt!.getTime()).toBeGreaterThanOrEqual(afterRestartAt - 5_000);
+    expect(second.lastSucceededAt!.getTime()).toBeGreaterThan(first.lastSucceededAt!.getTime());
+    expect(await watermarkCount()).toBeGreaterThan(0);
+    expect(cronSuccessSince(afterRestartAt - 1_000), '重启后的成功必须来自 cron 日志').toBe(true);
+    const secondWatermark = (await latestWatermark())!;
+    expect(secondWatermark.updatedAt.getTime()).toBeGreaterThanOrEqual(firstWatermark!.updatedAt.getTime());
 
-  // 重启应用：下一次触发必须仍来自 cron，且代次/成功时间继续前进。
-  execSync(restart, { stdio: 'pipe', timeout: 120_000 });
-  await waitFor(async () => {
-    const res = await fetch(appUrl('/api/health'));
-    return res.ok;
-  }, '重启后的应用健康检查', 120_000);
-  const afterRestartAt = Date.now();
-  await waitFor(async () => {
-    const state = await jobState();
-    return Boolean(state
-      && state.generation > first.generation
-      && (state.lastSucceededAt?.getTime() ?? 0) > (first.lastSucceededAt?.getTime() ?? 0));
-  }, '重启后的下一次 cron 触发');
-  const second = (await jobState())!;
-  expect(second.generation).toBeGreaterThan(first.generation);
-  expect(second.lastStartedAt!.getTime()).toBeGreaterThanOrEqual(afterRestartAt - 6 * 60_000);
-  expect(second.lastSucceededAt!.getTime()).toBeGreaterThan(first.lastSucceededAt!.getTime());
-  expect(await watermarkCount()).toBeGreaterThan(0);
-  const secondWatermark = (await latestWatermark())!;
-  expect(secondWatermark.updatedAt.getTime()).toBeGreaterThanOrEqual(firstWatermark!.updatedAt.getTime());
+    // 停止调度：过一个完整 5 分钟周期 + 作业时限后，状态与 cron 日志都不得再前进。
+    execSync(stopCron, { stdio: 'pipe', timeout: 60_000 });
+    cronStopped = true;
+    const stopAt = Date.now();
+    const stopped = (await jobState())!;
+    const nextBoundary = new Date();
+    nextBoundary.setSeconds(0, 0);
+    nextBoundary.setMinutes(nextBoundary.getMinutes() + (5 - (nextBoundary.getMinutes() % 5)));
+    const waitUntil = nextBoundary.getTime() + 75_000;
+    await new Promise((resolve) => setTimeout(resolve, Math.max(0, waitUntil - Date.now())));
+    const stillStopped = (await jobState())!;
+    expect(stillStopped.generation).toBe(stopped.generation);
+    expect(stillStopped.lastStartedAt!.getTime()).toBe(stopped.lastStartedAt!.getTime());
+    expect(stillStopped.lastSucceededAt!.getTime()).toBe(stopped.lastSucceededAt!.getTime());
+    const afterStopWatermark = (await latestWatermark())!;
+    expect(afterStopWatermark.updatedAt.getTime()).toBe(secondWatermark.updatedAt.getTime());
+    expect(cronLines().some((line) => line.at > stopAt + 70_000 && line.status === 200), '停调度后 cron 不得再触发').toBe(false);
 
-  // 停止调度：过一个完整 5 分钟周期 + 作业时限后，状态不得再前进。
-  execSync(stopCron, { stdio: 'pipe', timeout: 60_000 });
-  const stopped = (await jobState())!;
-  const nextBoundary = new Date();
-  nextBoundary.setSeconds(0, 0);
-  nextBoundary.setMinutes(nextBoundary.getMinutes() + (5 - (nextBoundary.getMinutes() % 5)));
-  const waitUntil = nextBoundary.getTime() + 75_000;
-  await new Promise((resolve) => setTimeout(resolve, Math.max(0, waitUntil - Date.now())));
-  const stillStopped = (await jobState())!;
-  expect(stillStopped.generation).toBe(stopped.generation);
-  expect(stillStopped.lastStartedAt!.getTime()).toBe(stopped.lastStartedAt!.getTime());
-  expect(stillStopped.lastSucceededAt!.getTime()).toBe(stopped.lastSucceededAt!.getTime());
-  const afterStopWatermark = (await latestWatermark())!;
-  expect(afterStopWatermark.updatedAt.getTime()).toBe(secondWatermark.updatedAt.getTime());
-
-  // 恢复调度：再次由 cron 触发并前进，证明上面的静止不是应用坏了。
-  execSync(startCron, { stdio: 'pipe', timeout: 60_000 });
-  await waitFor(async () => {
-    const state = await jobState();
-    return Boolean(state && state.generation > stillStopped.generation);
-  }, '恢复调度后的下一次触发');
-  expect((await jobState())!.lastStatus).toBe('SUCCEEDED');
+    // 恢复调度：再次由 cron 触发并前进，证明上面的静止不是应用坏了。
+    execSync(startCron, { stdio: 'pipe', timeout: 60_000 });
+    cronStopped = false;
+    const resumeAt = Date.now();
+    await waitFor(async () => {
+      const state = await jobState();
+      return Boolean(state
+        && state.lastStatus === 'SUCCEEDED'
+        && (state.lastStartedAt?.getTime() ?? 0) >= resumeAt - 5_000
+        && (state.lastSucceededAt?.getTime() ?? 0) > stillStopped.lastSucceededAt!.getTime());
+    }, '恢复调度后的新成功');
+    expect(cronSuccessSince(resumeAt - 1_000), '恢复后的成功必须来自 cron 日志').toBe(true);
+  } finally {
+    // 失败路径也必须把调度恢复起来，避免把设施留在停调度状态。
+    if (cronStopped) {
+      try { execSync(startCron, { stdio: 'pipe', timeout: 60_000 }); } catch { /* 留给设施检查 */ }
+    }
+  }
 });
 
 type PostedEvent = { kind: string; eventId: string; navigationId: string };
@@ -235,55 +285,71 @@ test('E-44：同浏览器两次新访问 PV 增加、UV 仍 1，同 eventId 重�
   test.skip(!process.env.CRON_SECRET, '需要 CRON_SECRET');
   // 本机 next dev 首次 hydration 可能超过默认 30s；CI 构建产物下远小于此。
   testInfo.setTimeout(180_000);
+  assertDedicatedDatabase();
   const conn = database();
-  // 隔离本用例的统计事实：事件仍全部经真实入口写入，作业也只跑产品实现。
-  for (const table of ['AnalyticsEvent', 'AnalyticsDailyRollup', 'AnalyticsRollupDay', 'JobState']) {
-    await conn.$executeRawUnsafe(`DELETE FROM "${table}"`);
+  // 设施里若真有调度在跑，先停下再清当日事实；失败路径在 finally 恢复调度。
+  const stopCron = process.env.M5T8_E2E_STOP_CRON_CMD;
+  const startCron = process.env.M5T8_E2E_START_CRON_CMD;
+  let cronStopped = false;
+  if (stopCron && startCron) {
+    execSync(stopCron, { stdio: 'pipe', timeout: 60_000 });
+    cronStopped = true;
   }
+  try {
+    // 隔离本用例的统计事实：事件仍全部经真实入口写入，作业也只跑产品实现。
+    for (const table of ['AnalyticsEvent', 'AnalyticsDailyRollup', 'AnalyticsRollupDay', 'JobState']) {
+      await conn.$executeRawUnsafe(`DELETE FROM "${table}"`);
+    }
 
-  await page.goto(appUrl('/en'));
-  await page.getByRole('button', { name: 'Accept all' }).click();
-  await waitForGrant(page);
-  await expect.poll(() => queueLength(page)).toBe(0);
+    await page.goto(appUrl('/en'));
+    await page.getByRole('button', { name: 'Accept all' }).click();
+    await waitForGrant(page);
+    await expect.poll(() => queueLength(page)).toBe(0);
 
-  // 同意后、任何新访问之前：当日还没有 page_view 事实。
-  await runAggregateJob(request);
-  const baseline = await pageViewRollup();
-  const baselineCount = baseline?.count ?? 0;
-  expect(baselineCount).toBe(0);
+    // 同意后、任何新访问之前：当日还没有 page_view 事实。
+    await runAggregateJob(request);
+    const baseline = await pageViewRollup();
+    const baselineCount = baseline?.count ?? 0;
+    expect(baselineCount).toBe(0);
 
-  // 第一次真实新访问：PV 增加该次导航产生的事件数，UV 仍 1。
-  const firstPayload = await clientNavigate(page, '/en/products');
-  const firstViews = firstPayload.events.filter((event) => event.kind === 'page_view');
-  expect(firstViews.length).toBeGreaterThan(0);
-  await runAggregateJob(request);
-  const firstVisit = (await pageViewRollup())!;
-  expect(firstVisit.count).toBe(baselineCount + firstViews.length);
-  expect(firstVisit.uniqueBrowsers).toBe(1);
-
-  // 第二次真实新访问：PV 再增加。
-  const secondPayload = await clientNavigate(page, '/en/contact');
-  const secondViews = secondPayload.events.filter((event) => event.kind === 'page_view');
-  expect(secondViews.length).toBeGreaterThan(0);
-  await runAggregateJob(request);
-  const secondVisit = (await pageViewRollup())!;
-  expect(secondVisit.count).toBe(firstVisit.count + secondViews.length);
-  expect(secondVisit.uniqueBrowsers).toBe(1);
-
-  // 刷新/重试同一 eventId：重发同一份载荷，真实入口接受但不增加 PV/UV。
-  const replayEvent = firstViews[0]!;
-  const replay = await page.evaluate(async (event) => {
-    const response = await fetch('/api/analytics/events', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ events: [event] }),
-      credentials: 'same-origin',
-    });
-    return { status: response.status };
-  }, replayEvent);
-  expect(replay.status).toBe(200);
-  await runAggregateJob(request);
-  const afterReplay = (await pageViewRollup())!;
-  expect(afterReplay.count).toBe(secondVisit.count);
-  expect(afterReplay.uniqueBrowsers).toBe(1);
+    // 第一次真实新访问：PV 增加该次导航产生的事件数，UV 仍 1。
+    const firstPayload = await clientNavigate(page, '/en/products');
+    const firstViews = firstPayload.events.filter((event) => event.kind === 'page_view');
+    expect(firstViews.length).toBeGreaterThan(0);
+    await runAggregateJob(request);
+    const firstVisit = (await pageViewRollup())!;
+    expect(firstVisit.count).toBe(baselineCount + firstViews.length);
+    expect(firstVisit.uniqueBrowsers).toBe(1);
+  
+    // 第二次真实新访问：PV 再增加。
+    const secondPayload = await clientNavigate(page, '/en/contact');
+    const secondViews = secondPayload.events.filter((event) => event.kind === 'page_view');
+    expect(secondViews.length).toBeGreaterThan(0);
+    await runAggregateJob(request);
+    const secondVisit = (await pageViewRollup())!;
+    expect(secondVisit.count).toBe(firstVisit.count + secondViews.length);
+    expect(secondVisit.uniqueBrowsers).toBe(1);
+  
+    // 刷新/重试同一 eventId：重发同一份载荷，真实入口接受但不增加 PV/UV。
+    const replayEvent = firstViews[0]!;
+    const replay = await page.evaluate(async (event) => {
+      const response = await fetch('/api/analytics/events', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ events: [event] }),
+        credentials: 'same-origin',
+      });
+      return { status: response.status };
+    }, replayEvent);
+    expect(replay.status).toBe(200);
+    await runAggregateJob(request);
+    const afterReplay = (await pageViewRollup())!;
+    expect(afterReplay.count).toBe(secondVisit.count);
+    expect(afterReplay.uniqueBrowsers).toBe(1);
+  } finally {
+    // 失败路径也必须把调度恢复起来。
+    if (cronStopped) {
+      try { execSync(startCron!, { stdio: 'pipe', timeout: 60_000 }); } catch { /* 留给设施检查 */ }
+    }
+  }
 });
