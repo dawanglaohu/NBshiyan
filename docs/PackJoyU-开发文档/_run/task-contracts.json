@@ -544,7 +544,11 @@
       "wiring": [
         "frontendRoutes"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "e2e/poster-carrier.spec.ts",
+        "e2e/poster-carrier/",
+        ".github/workflows/ci.yml"
+      ],
       "outputPaths": [
         "src/components/three/",
         "src/lib/three/",

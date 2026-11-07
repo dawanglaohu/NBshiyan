@@ -401,15 +401,16 @@
     "verdict": "pass"
   },
   "M2-T6": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "9c7f182dcd658c72dbb9a088d59053415f62848fa351509d4555b0df84e420cc",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "5cc27e1e98e4ca9ac5ab453d0fff03aea1c5b125d14e88fc5cc6b2748bbd918b",
     "evidence": [
-      "定义复核（非代码/素材验收）：04-执行/19-模块任务拆分.md:25；逐字段核对该任务before/after context，唯一变化为sections指纹；任务《接通真实模型失败与海报回退》的标题/模块/依赖/input/output/accept/edges、definition阶段/能力、有效路径、wiring、界面样式与skill指引完全相等；不把共享素材说明变更解释成该任务业务范围或标准变化。",
-      "本任务具体边界：输入=model-accessibility、对应产品poster与真实GLB来源；输出=model-fallback；GLB/WebGL/context失败的静态回退和重试入口；前置=M2-T3；阶段=integration；能力=model-fallback；有效路径共18项（e2e/model-fallback.spec.ts; src/app/; src/app/admin-enroll/; src/app/admin-login/; src/app/admin-recovery/; src/app/admin/account/; src/app/admin/chat/; src/app/admin/settings/; src/app/admin/stats/; src/app/admin/users/; src/components/admin/AdminShell.tsx; src/components/layout/SiteFooter.tsx; src/components/layout/SiteHeader.tsx; src/components/three/; src/i18n/navigation.ts; src/i18n/routing.ts; src/lib/navigation/routes.ts; src/lib/three/），与当前taskPaths+supportPaths+wiring范围一致，不新增任意写权限。",
-      "本任务关联边界=none；已复核的共享变化只在00-概览/01-概述与目标.md,01-约束/04-开发条件.md,02-设计/06-系统架构与模块划分.md,02-设计/07-前端架构.md,02-设计/11-UI.md,02-设计/12-UX.md,03-质量/17-测试策略.md。04/06/07/11/12/13/15/17的更新统一解释为已确认工业成品/同源v3帧海报/各版本等尺寸暂停帧/实际授权渠道，保留原件与361帧时序、公司工程/事实/私有路径/真实GUI及安全门槛；其他共享章节和本任务业务接口未改。",
-      "本轮核6个selected-media-release实际文件SHA均等于清单和主干51113b0a，该任务status=todo及code/notes/verify受保护块字节与主干相同；只登记此契约版本可接受，不代表实施已完成，不调用--landed，不清除needsReview。"
+      "契约源 _run/task-contracts.json 的 tasks['M2-T6'].supportPaths 由 [] 改为 [e2e/poster-carrier.spec.ts, e2e/poster-carrier/, .github/workflows/ci.yml] 三条；outputPaths 仍为 src/components/three/、src/lib/three/、e2e/model-fallback.spec.ts，未改验收语义。",
+      "三条路径确为分支真实 delta：94fb9454..a356f654 中 e2e/poster-carrier.spec.ts +309、e2e/poster-carrier/ 9 文件、.github/workflows/ci.yml +5/−5（仅 A3 收集计数）；载体测试为组件级载体（真实 ProductGallery + next/dynamic 适配），不是生产路由。",
+      "CI 计数依据实测 collection：新增 model-fallback 5 条 + poster-carrier 1 条使 main 203→209，errors 2、flow 1，all 206→212；ci.yml 五处同步（L348 名称、L379 断言、L381 去重、L392 回显、L471 主段名），未改预算或跳用例。",
+      "纯 poster 当前生产入口不适用：本地 12/12 产品均有 model，目录合并保底 local.model，故载体只证明组件 no-model 输入能力；不冒充生产路由/CSP 证据。",
+      "状态保留：任务卡仍 status: todo，未跑 --landed；本笔不改产品源码/CI 实现/验收，未新增其他任务路径。"
     ],
-    "reviewed": "2026-10-22T12:42:30.690733+00:00",
+    "reviewed": "2026-11-07T19:24:27.397783+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
