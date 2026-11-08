@@ -50,12 +50,82 @@ const skip = !db && 'no DATABASE_URL';
 const config = loadServerConfig({ APP_ENV: 'test' });
 const testEnv = { APP_ENV: 'test', EDGE_AUTH_SECRET: EDGE };
 
+/**
+ * 把真实块注释/行注释替换为等长空格（保留换行与偏移）；字符串里的注释符号原样保留。
+ * 不做全局正则替换，避免误删字符串内容或让注释里的伪模型改变定位。
+ */
+function stripComments(source: string): string {
+  const out = source.split('');
+  let i = 0;
+  while (i < source.length) {
+    if (source[i] === '"') {
+      i += 1;
+      while (i < source.length) {
+        if (source[i] === '\\') { i += 2; continue; }
+        if (source[i] === '"') { i += 1; break; }
+        i += 1;
+      }
+      continue;
+    }
+    if (source[i] === '/' && source[i + 1] === '/') {
+      while (i < source.length && source[i] !== '\n') { out[i] = ' '; i += 1; }
+      continue;
+    }
+    if (source[i] === '/' && source[i + 1] === '*') {
+      out[i] = ' '; out[i + 1] = ' ';
+      i += 2;
+      while (i < source.length && !(source[i] === '*' && source[i + 1] === '/')) {
+        if (source[i] !== '\n') out[i] = ' ';
+        i += 1;
+      }
+      if (i < source.length) { out[i] = ' '; out[i + 1] = ' '; i += 2; }
+      continue;
+    }
+    i += 1;
+  }
+  return out.join('');
+}
+
+/** 块内至少一行真实字段声明；忽略空白、行注释、块注释与 @@ 模型属性。 */
+function hasFieldDeclaration(block: string): boolean {
+  const body = block
+    .slice(block.indexOf('{') + 1, block.lastIndexOf('}'))
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  return body.split(/\r?\n/).some((line) => {
+    const text = line.trim();
+    return text.length > 0 && !text.startsWith('@@');
+  });
+}
+
+/**
+ * 只取目标模型块：在剥掉真实注释后的文本上按行首 `model X {` 定位，到首个行首 `}` 结束。
+ * 注释里的伪模型不参与定位；目标缺失/未闭合/空块/块内混入相邻模型都直接失败。
+ */
+function modelBlock(schema: string, name: string): string {
+  const code = stripComments(schema);
+  const start = new RegExp(`^model ${name} \\{`, 'm').exec(code)?.index;
+  assert.ok(start !== undefined && start >= 0, `model ${name} missing`);
+  const end = code.indexOf('\n}', start);
+  assert.ok(end > start, `model ${name} block not closed`);
+  const block = code.slice(start, end + 2);
+  assert.ok(hasFieldDeclaration(block), `model ${name} block has no field declarations`);
+  assert.equal((block.match(/^model /gm) ?? []).length, 1, `model ${name} block must not include an adjacent model`);
+  return block;
+}
+
+/** 隐私门禁：原必填字段与禁字段 regex 不变，作用域收窄到 AnalyticsEvent 模型块。 */
+function assertAnalyticsEventPrivacy(schema: string): void {
+  const block = modelBlock(schema, 'AnalyticsEvent');
+  assert.match(block, /model AnalyticsEvent \{[^}]*eventId\s+String\s+@id[^}]*semanticKey\s+String\s+@unique[^}]*payloadHash[^}]*browserHash[^}]*occurredAt[^}]*receivedAt[^}]*@@index\(\[productSlug, occurredAt\]\)[^}]*@@index\(\[viewId\]\)/s);
+  assert.doesNotMatch(block, /email|userAgent|fingerprint|bodyText|\bip\b/i);
+}
+
 test('AnalyticsEvent 进入 schema，并由 deploy.sh 现有 db push 消费', () => {
   const schema = readFileSync('prisma/schema.prisma', 'utf8');
   const deploy = readFileSync('deploy/deploy.sh', 'utf8');
   assert.match(schema, /enum AnalyticsEventKind \{[^}]*page_view[^}]*product_view[^}]*model_view_start[^}]*model_load_success[^}]*model_load_failure[^}]*chat_start/s);
-  assert.match(schema, /model AnalyticsEvent \{[^}]*eventId\s+String\s+@id[^}]*semanticKey\s+String\s+@unique[^}]*payloadHash[^}]*browserHash[^}]*occurredAt[^}]*receivedAt[^}]*@@index\(\[productSlug, occurredAt\]\)[^}]*@@index\(\[viewId\]\)/s);
-  assert.doesNotMatch(schema.slice(schema.indexOf('model AnalyticsEvent')), /email|userAgent|fingerprint|bodyText|\bip\b/i);
+  assertAnalyticsEventPrivacy(schema);
   const push = deploy.split(/\r?\n/).find((line) => line.includes('migrate db push'));
   assert.ok(push);
   assert.match(push, /db push --skip-generate --schema prisma\/schema\.prisma/);
@@ -69,6 +139,59 @@ test('AnalyticsEvent 进入 schema，并由 deploy.sh 现有 db push 消费', ()
   assert.equal(ANALYTICS_EVENTS_COOKIE_LIMIT, 120);
   assert.equal(ANALYTICS_EVENTS_IP_LIMIT, 300);
   assert.equal(ANALYTICS_EVENTS_RETRY_AFTER_SECONDS, 60);
+});
+
+test('AnalyticsEvent 隐私守卫负控：目标泄漏/缺失/空块/未闭合失败，相邻模型与 CRLF 不误报', () => {
+  const fixture = [
+    'model AnalyticsEvent {',
+    '  eventId     String   @id',
+    '  semanticKey String   @unique',
+    '  payloadHash String',
+    '  browserHash String',
+    '  occurredAt  DateTime',
+    '  receivedAt  DateTime',
+    '  @@index([productSlug, occurredAt])',
+    '  @@index([viewId])',
+    '}',
+  ].join('\n');
+  assertAnalyticsEventPrivacy(fixture);
+
+  // 目标模型内加禁字段必须失败（原 doesNotMatch 未放宽）
+  const leaked = fixture.replace('  payloadHash String', '  payloadHash String\n  email String?');
+  assert.throws(() => assertAnalyticsEventPrivacy(leaked));
+
+  // 目标缺失/未闭合都必须失败；空块、仅注释、仅模型属性必须由 modelBlock 自身拒绝
+  assert.throws(() => modelBlock('model ChatMessage {\n  bodyText String\n}', 'AnalyticsEvent'), /missing/);
+  assert.throws(() => modelBlock('model AnalyticsEvent {\n  eventId String @id\n', 'AnalyticsEvent'), /not closed/);
+  assert.throws(() => modelBlock('model AnalyticsEvent {\n}\n', 'AnalyticsEvent'), /no field declarations/);
+  assert.throws(
+    () => modelBlock('model AnalyticsEvent {\n  // email String?\n  /// doc comment\n  /* block */\n}\n', 'AnalyticsEvent'),
+    /no field declarations/,
+  );
+  assert.throws(
+    () => modelBlock('model AnalyticsEvent {\n  @@index([viewId])\n  @@map("analytics")\n}\n', 'AnalyticsEvent'),
+    /no field declarations/,
+  );
+
+  // 块注释里的干净复制品不得骗过定位：真实模型含 email 必须被抓住
+  const commentedCopy = `/*\n${fixture}\n*/\n`;
+  assert.throws(
+    () => assertAnalyticsEventPrivacy(`${commentedCopy}${fixture.replace('  payloadHash String', '  payloadHash String\n  email String?')}`),
+  );
+  // 只有块注释复制品、真实目标缺失 → missing（注释不能冒充模型）
+  assert.throws(() => modelBlock(commentedCopy, 'AnalyticsEvent'), /missing/);
+  // 字符串里的注释符号不改变模型定位（不能被当成注释吞掉后续真实模型）
+  const trickyString = `model ChatMessage {\n  note String @default("/* // decoy")\n}\n${fixture}`;
+  assert.match(modelBlock(trickyString, 'AnalyticsEvent'), /eventId/);
+  assertAnalyticsEventPrivacy(trickyString);
+
+  // 相邻模型含 email/bodyText 不得误报；注释里的示例不得被当成目标模型
+  assertAnalyticsEventPrivacy(`${fixture}\nmodel ChatMessage {\n  email String?\n  bodyText String\n}`);
+  assertAnalyticsEventPrivacy(`// model AnalyticsEvent {\n//   email String?\n// }\n${fixture}`);
+
+  // 模型前后顺序与 LF/CRLF 不改变结果
+  assertAnalyticsEventPrivacy(fixture.replace(/\n/g, '\r\n'));
+  assertAnalyticsEventPrivacy(`model ChatMessage {\r\n  bodyText String\r\n}\r\n${fixture.replace(/\n/g, '\r\n')}`);
 });
 
 type HttpResult = { status: number; text: string; body: unknown; headers: http.IncomingHttpHeaders };

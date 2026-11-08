@@ -90,6 +90,7 @@ model User {
   recoveryPermits AdminRecoveryPermit[] @relation("RecoveryTarget")
   issuedRecoveryPermits AdminRecoveryPermit[] @relation("RecoveryIssuer")
   recoverySessions AdminRecoverySession[]
+  chatReadCursors ChatReadCursor[]
   createdAt      DateTime  @default(now())
 }
 
@@ -635,6 +636,117 @@ model AnalyticsDailyRollup {
   @@unique([siteDate, kind, locale, productSlug])
 }
 
+enum ChatConversationStatus {
+  OPEN
+  CLOSED
+}
+
+enum ChatSender {
+  VISITOR
+  OPERATOR
+}
+
+enum ChatNotificationStatus {
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  UNKNOWN
+  DISABLED
+}
+
+// 一次人工咨询。clientConversationId 由客户端生成，与 visitorSessionId 组成创建幂等键；
+// createPayloadHash 是首次创建载荷的哈希，同键同载荷返回原结果、异载荷 409。
+// email 只用于这次咨询，不扩展分析身份；cookie 过期后不能用相同邮箱找回。
+// retainUntil 只由成功保存的访客消息或人工回复推进（E-86 的 90 天），轮询、读标记和通知重试都不推进。
+model ChatConversation {
+  id                   String                 @id
+  visitorSessionId     String
+  clientConversationId String
+  createPayloadHash    String
+  locale               String
+  productSlug          String?
+  sourcePath           String?
+  email                String?
+  status               ChatConversationStatus @default(OPEN)
+  version              Int                    @default(0)
+  lastSeq              Int                    @default(0)
+  visitorReadSeq       Int                    @default(0)
+  createdAt            DateTime
+  updatedAt            DateTime
+  lastActivityAt       DateTime
+  retainUntil          DateTime
+  anonymizedAt         DateTime?
+
+  visitorSession ChatVisitorSession @relation(fields: [visitorSessionId], references: [id], onDelete: Restrict)
+  messages       ChatMessage[]
+  readCursors    ChatReadCursor[]
+
+  @@unique([visitorSessionId, clientConversationId])
+  @@index([status, updatedAt, id])
+  @@index([retainUntil, anonymizedAt])
+}
+
+// 会话内的一条消息。seq 由会话行锁内递增 lastSeq 分配，同一会话内连续且唯一。
+// clientMessageId 由客户端生成，与 conversationId+sender 组成消息幂等键；payloadHash 不同即 409。
+// authorId 只保留运营账号的审计引用，不建 FK：删除账号不删除咨询正文。
+model ChatMessage {
+  id              String     @id
+  conversationId  String
+  seq             Int
+  sender          ChatSender
+  authorId        String?
+  clientMessageId String
+  payloadHash     String
+  bodyText        String
+  createdAt       DateTime
+  redactedAt      DateTime?
+
+  conversation ChatConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  notification ChatNotification?
+
+  @@unique([conversationId, seq])
+  @@unique([conversationId, sender, clientMessageId])
+}
+
+// 运营人员的读位置。访客读位置在 ChatConversation.visitorReadSeq，两者分开。
+model ChatReadCursor {
+  conversationId String
+  userId         String
+  lastReadSeq    Int
+  updatedAt      DateTime
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+}
+
+// 聊天通知出箱。messageId 唯一：每条成功保存的访客消息恰好一条通知，消息幂等命中不会新增第二条。
+// 只存投递状态与稳定 Message-ID，不复制正文、email 或 cookie/token。
+model ChatNotification {
+  id               String                 @id
+  conversationId   String
+  messageId        String                 @unique
+  status           ChatNotificationStatus @default(QUEUED)
+  attempts         Int                    @default(0)
+  availableAt      DateTime
+  leaseVersion     Int                    @default(0)
+  leaseOwner       String?
+  stableMessageId  String
+  lockedUntil      DateTime?
+  requestStartedAt DateTime?
+  lastErrorCode    String?
+  providerMessageId String?
+  sentAt           DateTime?
+  createdAt        DateTime
+  updatedAt        DateTime
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([status, availableAt])
+}
+
 // 访客必要会话。cookie 是 256bit 随机原值，这里只存 SHA-256。7 天闲置、首次签发后 30 天绝对。
 // 没有邮箱列：相同邮箱不能找回旧会话。过期或撤销只拒绝访问，不在这里删除咨询正文。
 model ChatVisitorSession {
@@ -644,6 +756,8 @@ model ChatVisitorSession {
   lastActivityAt    DateTime
   absoluteExpiresAt DateTime
   revokedAt         DateTime?
+
+  conversations     ChatConversation[]
 
   @@index([absoluteExpiresAt])
   @@index([lastActivityAt])

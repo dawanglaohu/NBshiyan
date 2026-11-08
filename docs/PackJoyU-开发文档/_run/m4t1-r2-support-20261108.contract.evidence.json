@@ -1,0 +1,16 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M4-T1": {
+      "contractHash": "54607ec7209c944ae761db630e3551585540880955bade1935d1fa6bc71eee48",
+      "evidence": [
+        "补丁 m4t1-r2-support-20261108 仅改 _run/task-contracts.json 的 M4-T1.supportPaths：新增 .github/workflows/ci.yml、src/lib/server/chat/visitor-session.ts、src/lib/server/chat/visitor-session-repo.ts、tests/chat-session.http.test.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变（以 patch record 的 changes 为准）。",
+        "四条新增路径在冻结头 88f5db2c 与 merge 063979b5（parents 88f5db2c+a7521e36）树中均实际存在；本窗只登记支持路径，未修改 ci.yml、visitor-session*.ts 或任何产品代码。",
+        "C3 的失败不续期/成功与幂等成功续期只读验证及回归将落在 visitor-session.ts、visitor-session-repo.ts 与 tests/chat-session.http.test.ts；.github/workflows/ci.yml 仅为预登记，待 R2 实现与独审后由集成窗串行接线。",
+        "sync 后 _run/revalidation.json 仍为 {}（0 条）、M4-T1 status=todo、未运行 --landed；本次 verify 仅登记契约补丁复核，不构成 R2 实现通过，也不改变 09/10 条款或验收标准。",
+        "契约哈希变化向下游传播：affected 23 个任务均为依赖 M4-T1 provides 的消费者，其定义未改；确认以 patch record 的 changes 为准。"
+      ],
+      "verdict": "pass"
+    }
+  }
+}

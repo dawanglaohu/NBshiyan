@@ -370,6 +370,9 @@ jobs:
         env:
           ADMIN_RESET_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
           CHAT_SESSION_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          # M4-T1 首消息真实 PG 回归：专属变量 + require；缺地址必须失败，绝不回退通用 DATABASE_URL。
+          B9_M4T1_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e
+          CHAT_REQUIRE_DATABASE: 'true'
           M3T2_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t2
           M3T2_REQUIRE_DATABASE: 'true'
           M3T3_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/e2e?schema=m3t3
@@ -400,6 +403,7 @@ jobs:
               'tests/analytics-rollup.http.db.test.ts',
               'tests/retention-cleanup.http.db.test.ts',
               'tests/chat-session.http.test.ts',
+              'tests/chat-first-message.db.test.ts',
               'tests/cleanup-lock.db.test.ts',
               'tests/job-leases.db.test.ts',
               'tests/last-admin.db.test.ts',
@@ -445,6 +449,7 @@ jobs:
             tests/analytics-rollup.http.db.test.ts \
             tests/retention-cleanup.http.db.test.ts \
             tests/chat-session.http.test.ts \
+            tests/chat-first-message.db.test.ts \
             tests/cleanup-lock.db.test.ts \
             tests/job-leases.db.test.ts \
             tests/last-admin.db.test.ts \
@@ -476,6 +481,7 @@ jobs:
             'tests/analytics-rollup.http.db.test.ts',
             'tests/retention-cleanup.http.db.test.ts',
             'tests/chat-session.http.test.ts',
+            'tests/chat-first-message.db.test.ts',
             'tests/cleanup-lock.db.test.ts',
             'tests/job-leases.db.test.ts',
             'tests/last-admin.db.test.ts',

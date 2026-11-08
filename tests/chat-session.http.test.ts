@@ -38,6 +38,79 @@ const EDGE_SECRET = 'e'.repeat(32);
 const DAY_MS = 24 * 60 * 60 * 1000;
 const config = loadServerConfig({ APP_ENV: 'test' });
 
+/**
+ * 把真实块注释/行注释替换为等长空格（保留换行与偏移）；字符串里的注释符号原样保留。
+ * 不做全局正则替换，避免误删字符串内容或让注释里的伪模型改变定位。
+ */
+function stripComments(source: string): string {
+  const out = source.split('');
+  let i = 0;
+  while (i < source.length) {
+    if (source[i] === '"') {
+      i += 1;
+      while (i < source.length) {
+        if (source[i] === '\\') { i += 2; continue; }
+        if (source[i] === '"') { i += 1; break; }
+        i += 1;
+      }
+      continue;
+    }
+    if (source[i] === '/' && source[i + 1] === '/') {
+      while (i < source.length && source[i] !== '\n') { out[i] = ' '; i += 1; }
+      continue;
+    }
+    if (source[i] === '/' && source[i + 1] === '*') {
+      out[i] = ' '; out[i + 1] = ' ';
+      i += 2;
+      while (i < source.length && !(source[i] === '*' && source[i + 1] === '/')) {
+        if (source[i] !== '\n') out[i] = ' ';
+        i += 1;
+      }
+      if (i < source.length) { out[i] = ' '; out[i + 1] = ' '; i += 2; }
+      continue;
+    }
+    i += 1;
+  }
+  return out.join('');
+}
+
+/** 块内至少一行真实字段声明；忽略空白、行注释、块注释与 @@ 模型属性。 */
+function hasFieldDeclaration(block: string): boolean {
+  const body = block
+    .slice(block.indexOf('{') + 1, block.lastIndexOf('}'))
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  return body.split(/\r?\n/).some((line) => {
+    const text = line.trim();
+    return text.length > 0 && !text.startsWith('@@');
+  });
+}
+
+/**
+ * 只取目标模型块：在剥掉真实注释后的文本上按行首 `model X {` 定位，到首个行首 `}` 结束。
+ * 注释里的伪模型不参与定位；目标缺失/未闭合/空块/块内混入相邻模型都直接失败。
+ */
+function modelBlock(schema: string, name: string): string {
+  const code = stripComments(schema);
+  const start = new RegExp(`^model ${name} \\{`, 'm').exec(code)?.index;
+  assert.ok(start !== undefined && start >= 0, `model ${name} missing`);
+  const end = code.indexOf('\n}', start);
+  assert.ok(end > start, `model ${name} block not closed`);
+  const block = code.slice(start, end + 2);
+  assert.ok(hasFieldDeclaration(block), `model ${name} block has no field declarations`);
+  assert.equal((block.match(/^model /gm) ?? []).length, 1, `model ${name} block must not include an adjacent model`);
+  return block;
+}
+
+/** 隐私门禁：四条原断言不变，作用域收窄到 ChatVisitorSession 模型块。 */
+function assertChatVisitorSessionPrivacy(schema: string): void {
+  const block = modelBlock(schema, 'ChatVisitorSession');
+  assert.match(block, /tokenHash\s+String\s+@unique/);
+  assert.match(block, /@@index\(\[absoluteExpiresAt\]\)/);
+  assert.match(block, /@@index\(\[lastActivityAt\]\)/);
+  assert.equal(/\bemail\b/i.test(block), false);
+}
+
 type HttpResult = {
   status: number;
   text: string;
@@ -345,11 +418,8 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
 
   test('schema stores a hash, indexes expiry, and has no email column', () => {
     const schema = readFileSync('prisma/schema.prisma', 'utf8');
-    const block = schema.slice(schema.indexOf('model ChatVisitorSession'));
-    assert.match(block, /tokenHash\s+String\s+@unique/);
-    assert.match(block, /@@index\(\[absoluteExpiresAt\]\)/);
-    assert.match(block, /@@index\(\[lastActivityAt\]\)/);
-    assert.equal(/\bemail\b/i.test(block), false);
+    assertChatVisitorSessionPrivacy(schema);
+    const block = modelBlock(schema, 'ChatVisitorSession');
     assert.equal(block.includes('accept-data-loss'), false);
     assert.equal(CHAT_VISITOR_POLICY.idleMs, 7 * DAY_MS);
     assert.equal(CHAT_VISITOR_POLICY.absoluteMs, 30 * DAY_MS);
@@ -358,6 +428,54 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
     assert.equal(CHAT_SESSION_COOKIE_LIMIT, 10);
     assert.equal(CHAT_SESSION_IP_LIMIT, 20);
     assert.equal(CHAT_SESSION_RATE_WINDOW_MS, 10 * 60 * 1000);
+  });
+
+  test('ChatVisitorSession 隐私守卫负控：目标泄漏/缺失/空块/未闭合失败，相邻模型与 CRLF 不误报', () => {
+    const fixture = [
+      'model ChatVisitorSession {',
+      '  tokenHash          String   @unique',
+      '  @@index([absoluteExpiresAt])',
+      '  @@index([lastActivityAt])',
+      '}',
+    ].join('\n');
+    assertChatVisitorSessionPrivacy(fixture);
+
+    // 目标模型内加 email 必须失败（原 email 断言未放宽）
+    const leaked = fixture.replace('  tokenHash          String   @unique', '  tokenHash          String   @unique\n  email String?');
+    assert.throws(() => assertChatVisitorSessionPrivacy(leaked));
+
+    // 目标缺失/未闭合都必须失败；空块、仅注释、仅模型属性必须由 modelBlock 自身拒绝
+    assert.throws(() => modelBlock('model ChatMessage {\n  bodyText String\n}', 'ChatVisitorSession'), /missing/);
+    assert.throws(() => modelBlock('model ChatVisitorSession {\n  tokenHash String @unique\n', 'ChatVisitorSession'), /not closed/);
+    assert.throws(() => modelBlock('model ChatVisitorSession {\n}\n', 'ChatVisitorSession'), /no field declarations/);
+    assert.throws(
+      () => modelBlock('model ChatVisitorSession {\n  // email String?\n  /// doc comment\n  /* block */\n}\n', 'ChatVisitorSession'),
+      /no field declarations/,
+    );
+    assert.throws(
+      () => modelBlock('model ChatVisitorSession {\n  @@index([lastActivityAt])\n  @@map("session")\n}\n', 'ChatVisitorSession'),
+      /no field declarations/,
+    );
+
+    // 块注释里的干净复制品不得骗过定位：真实模型含 email 必须被抓住
+    const commentedCopy = `/*\n${fixture}\n*/\n`;
+    assert.throws(
+      () => assertChatVisitorSessionPrivacy(`${commentedCopy}${fixture.replace('  tokenHash          String   @unique', '  tokenHash          String   @unique\n  email String?')}`),
+    );
+    // 只有块注释复制品、真实目标缺失 → missing（注释不能冒充模型）
+    assert.throws(() => modelBlock(commentedCopy, 'ChatVisitorSession'), /missing/);
+    // 字符串里的注释符号不改变模型定位（不能被当成注释吞掉后续真实模型）
+    const trickyString = `model ChatConversation {\n  note String @default("/* // decoy")\n}\n${fixture}`;
+    assert.match(modelBlock(trickyString, 'ChatVisitorSession'), /tokenHash/);
+    assertChatVisitorSessionPrivacy(trickyString);
+
+    // 相邻模型含 email/bodyText 不得误报；注释里的示例不得被当成目标模型
+    assertChatVisitorSessionPrivacy(`${fixture}\nmodel ChatConversation {\n  email String?\n  bodyText String\n}`);
+    assertChatVisitorSessionPrivacy(`// model ChatVisitorSession {\n//   email String?\n// }\n${fixture}`);
+
+    // 模型前后顺序与 LF/CRLF 不改变结果
+    assertChatVisitorSessionPrivacy(fixture.replace(/\n/g, '\r\n'));
+    assertChatVisitorSessionPrivacy(`model ChatConversation {\r\n  email String?\r\n}\r\n${fixture.replace(/\n/g, '\r\n')}`);
   });
 
   test('touch sql binds now and the idle cutoff as UTC wall-clock parameters', () => {

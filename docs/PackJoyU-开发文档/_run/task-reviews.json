@@ -858,15 +858,20 @@
     "verdict": "pass"
   },
   "M4-T1": {
-    "compiler": "dca50b4d1e98373ff7d58d42cec1ed1ad07e7837d20386f3fbfd077b9dc72469",
-    "contractHash": "b8517b772e58242958e395645cc9ac96c25b495e1bae72c0419cdbf9b6bed1f2",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "a7eae271ebab1ce4c25b5eb5fa5bf8697d03a34f604919c24d9e4f54d08ce26e",
     "evidence": [
-      "本项仅为文档契约差量复核，非代码实现验收：任务M4-T1《原子保存咨询首消息及唯一通知出箱》；逐字段比较M3-T1-security-repair补丁before/after，本任务唯一变化严格为hash，完整context和effectivePaths逐值相等。",
-      "任务标题/模块/前置/input/output/accept/edges、definition能力与阶段、有效路径、wiring、共享章节与架构/视觉/skill指引均未改变；哈希变化来自上游M3-T1契约补齐必要支持路径的依赖传播，不引入或删除本任务验收条款。",
-      "补丁直接源差异仅_run/task-contracts.json中M3-T1追加11个必要支持路径：合法account实现模块、实际Auth.js route及旧凭证撤销调用路由、相关回归夹具和既有CI/standalone中的network验收；M3-T1三项原验收标准和边界不变。未运行或声明本任务业务代码/页面/素材通过，不执行--landed，不清除继承的needsReview。",
-      "可复算证据：contract-review/inspect-network-delta-only.py及network-delta-inspection.json（仓库外planning）；以当前补丁完整before/after和实际源JSON一致性校验为准，源再变更须重新核对。"
+      "完整契约复核，不是仅支持路径复核：固定已审实现头 abca9dc4（tree 8204247c78a3412a826b3dd6a0a3ae08ce0b587f，父 1f5bcc38）；git diff 89284f3a abca9dc4 -- src prisma .github 为 0 行，89284f3a 本身是既有授权的 CI 接线 +6 行与 rules.ts 2 行注释，本窗未改生产源码/测试/CI。",
+      "验收 1（调用方/接线/事务）：src/app/api/chat/conversations/route.ts:51 为真实 POST 入口（同源→16KiB 限体→strict schema→必要 cookie→新会话两桶限流→写桶），conversation-service.ts:118 在剩余预算 arm 后按“守卫→读写→最终条件 touch”执行；会话/首消息/seq/唯一出箱同事务，repo.ts:97/112/155/192/224 与 schema 唯一约束保证同 UUID 同载荷幂等、异载荷 409、并发仅一消息一通知。",
+      "验收 2（限体与字段）：16KiB 在解析前限制；strict schema 下正文 1..4000 code points，email 省略/空值按不填，trim 后超 254、CRLF/显示名/非法格式返回字段错误（rules.ts 与 route.ts 段）；测试覆盖 16,384 合法正例、Unicode 与邮箱边界，未放宽。",
+      "验收 3（身份与分析分离）：visitor-session.ts:206 的 resolve() 只读校验，身份只取必要 cookie；拒绝分析仍接收且不建分析身份（E-40）；repo.ts:276 事务内新鲜度守卫先于 readExisting，repo.ts:296 条件 touch 0 行即整笔回滚（C3），400/409/500/503 不续期。",
+      "非作者审查：数据库运行审（b5975207）30/30 PASS；全栈静态审（b5975207）PASS；数据库最终复审（abca9dc4）PASS，含块注释冒充模型的利用复现（旧头 1/1 假绿 → 修复头 0/1 fail）；译审（89284f3a）PASS，附 1 处必要补充——R1 日志出处，已由 6b7bba11 落实；6b7bba11 未单独送非作者译审，其历史回滚表述残留经 Chief 检出后由 7adbb63a 修正；运维 CI 差量审（89284f3a）PASS。",
+      "PR CI：run 42504582269 attempt 1 success，head abca9dc4；GitHub merge checkout 60461a934759e028b8364cf363c6ca3a388c1f00（父 a7521e36+abca9dc4，tree 8204247c 与已审 head 同 tree）。PG17 三文件 analytics pass=10、chat-session pass=19、chat-first-message pass=30，fail=skip=todo=cancelled=0；build 的 Unit tests/build/Lighthouse/standalone 3/3/production mock 4/4 通过；Playwright A3 收集 219，实跑 209 通过、10 跳过（主段 206/10 + 2 + 1），219 是收集数不是全部执行通过。",
+      "首跑 42499360492（head 7adbb63a）failure 保留：PG17 首消息回归 30/30 已通过；build not ok 640 与 e2e not ok 17 是同一用例——tests/analytics-ingest.http.db.test.ts 的“AnalyticsEvent 进入 schema”——其 EOF 切片把相邻模型 ChatConversation.email/ChatMessage.bodyText 误算入分析字段，Playwright 未执行。tests/chat-session.http.test.ts 的同类切片因 ChatVisitorSession 当时位于最后而通过，属同类潜伏问题，不构成首跑失败原因；修复只收窄测试作用域并在定位前剥离真实注释，未改生产 schema/源码/CI，也未放宽禁字段断言。",
+      "保留边界：本地 PG12 与 CI PG17 非同载体；commit/WAL 不在 statement_timeout 内；maxWait 2s 属事务外排队、不计入内部事务预算；R1 三份原日志被 R2 同名脚本覆盖、授权有界范围内未恢复（4,698ms 据作者当时记录，7,080ms 来自初版独审探针）；计时为客户端事务调用包络，不是生产内部预算起点。",
+      "契约未变：本窗未改 _run/task-contracts.json；supportPaths 仅增 tests/analytics-ingest.http.db.test.ts（chat-session 原已在列），provides/requires/stage/wiring/outputPaths/sections 逐字段未变；契约哈希 a7eae271ebab1ce4c25b5eb5fa5bf8697d03a34f604919c24d9e4f54d08ce26e 与 status 一致。"
     ],
-    "reviewed": "2026-10-22T15:02:58.343129+00:00",
+    "reviewed": "2026-11-08T18:18:24.752698+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
