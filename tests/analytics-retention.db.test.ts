@@ -673,6 +673,17 @@ $m5t11$ LANGUAGE plpgsql`);
  */
 function dbThatBumpsBeforePreflight(client: PrismaClient, bump: () => Promise<void>): PrismaClient {
   let fired = false;
+  // Prisma 的 $queryRaw 既接受 tagged template，也接受单个 Prisma.Sql 对象；两种都取正文。
+  const sqlText = (query: unknown): string => {
+    if (Array.isArray(query)) return query.map(String).join(' ');
+    if (query && typeof query === 'object') {
+      const inline = (query as { text?: unknown }).text ?? (query as { sql?: unknown }).sql;
+      if (typeof inline === 'string') return inline;
+      const parts = (query as { strings?: unknown }).strings;
+      if (Array.isArray(parts)) return parts.map(String).join(' ');
+    }
+    return '';
+  };
   const wrapped = {
     $queryRaw: client.$queryRaw.bind(client),
     $executeRaw: client.$executeRaw.bind(client),
@@ -683,13 +694,13 @@ function dbThatBumpsBeforePreflight(client: PrismaClient, bump: () => Promise<vo
       const proxy = new Proxy(tx, {
         get(target, prop) {
           if (prop === '$queryRaw') {
-            return async (strings: TemplateStringsArray, ...values: unknown[]) => {
-              const text = Array.isArray(strings) ? strings.join(' ') : '';
+            return async (query: unknown, ...values: unknown[]) => {
+              const text = sqlText(query);
               if (!fired && text.includes('FROM "AnalyticsEvent"') && text.includes('ORDER BY "receivedAt"')) {
                 fired = true;
                 await bump();
               }
-              return target.$queryRaw(strings, ...values);
+              return (target.$queryRaw as unknown as (input: unknown, ...args: unknown[]) => Promise<unknown>)(query, ...values);
             };
           }
           const value = Reflect.get(target, prop);
