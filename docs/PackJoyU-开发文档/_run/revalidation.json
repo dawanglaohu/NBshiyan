@@ -1,1 +1,29 @@
-{}
+{
+  "ANALYTICS-ROLLUP": {
+    "contractHash": "b3735166073686a2a1965195d6508954a94f8a3b9d3a7685a1c9bb7039e8a6af",
+    "patches": [
+      {
+        "changedFields": [
+          "task"
+        ],
+        "patch": "d1d2-rollup-writeback-20261108",
+        "sourceVersion": "c3d41c1881d9cb9a8919c08a02ded528df0e3afd7969fab623874a39d04c3dd5"
+      }
+    ],
+    "previousStatus": "done"
+  },
+  "M5-T8": {
+    "contractHash": "cbaf13f86bcfb5423c36ecf407210068b85f9c62785068f1fb22a9210136ebab",
+    "patches": [
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths"
+        ],
+        "patch": "d1d2-rollup-writeback-20261108",
+        "sourceVersion": "c3d41c1881d9cb9a8919c08a02ded528df0e3afd7969fab623874a39d04c3dd5"
+      }
+    ],
+    "previousStatus": "done"
+  }
+}

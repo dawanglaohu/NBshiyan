@@ -2705,7 +2705,11 @@
         "src/lib/server/analytics/aggregate.ts",
         "src/lib/server/analytics/aggregate-repo.ts",
         "tests/cron-analytics-rollup.test.ts",
-        ".github/workflows/ci.yml"
+        ".github/workflows/ci.yml",
+        "src/app/api/admin/cron/analytics-rollup/route.ts",
+        "tests/analytics-rollup.test.ts",
+        "tests/d1-route-sideeffect.test.ts",
+        "tests/fixtures/d1-route-sideeffect.case.ts"
       ],
       "outputPaths": [
         "src/lib/server/jobs/registry.ts",

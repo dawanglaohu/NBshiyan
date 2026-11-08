@@ -18,7 +18,7 @@ origin: issue-ledger-20261024
 - 审查：由 PR 上 bot 审查替代
 - 登记状态：已落地
 
-没有单独的 GitHub issue。本轮按单独 cron 入口接入，没有收进 jobs/registry.ts。
+没有单独的 GitHub issue。本轮按单独 cron 入口接入，没有收进 jobs/registry.ts。2026-11-08 更新：旧 `/api/admin/cron/analytics-rollup` 已退役（D1 `3410fe95`），鉴权后统一 410 `route_retired`、零 DB/聚合/邮件/审计；生产调度走 `POST /api/admin/cron/operations`（M5-T8）。
 
 ## 输入 / 产出
 
@@ -53,13 +53,13 @@ origin: issue-ledger-20261024
 - `src/lib/server/analytics/rollup.ts:348` — isSiteDateRolledUp
 - `src/lib/server/analytics/rollup.ts:359` — rolledUpDatesBefore
 - `src/lib/server/analytics/rollup.ts:375` — latestContiguousRolledUpDate：只看当前时区代次
-- `src/app/api/admin/cron/analytics-rollup/route.ts:16` — Bearer CRON_SECRET；忙则 409；失败告警并审计
+- `src/app/api/admin/cron/analytics-rollup/route.ts:21` — 已退役：保留 Bearer 鉴权（`:27-28` 缺/错凭据 401），鉴权后 GET/POST（`:33-34`）统一 **410** `route_retired`、指向 `POST /api/admin/cron/operations`、`Cache-Control: no-store`；零数据库/聚合/邮件/审计副作用
 - `src/lib/server/cron-alert.ts:48` — alertAnalyticsRollupIssue：只含任务名、错误码和已完成天数
 - `.github/workflows/ci.yml:102` — 数据库测试接入既有 PostgreSQL 17 串行步骤，skipped 与 fail 门禁不变
 - `tests/analytics-rollup.test.ts:33` — 跨日边界、秋令时、冒烟排除、迟到重算、天数上限、表不含个人标识
 - `tests/analytics-rollup.http.db.test.ts:39` — 真实 PostgreSQL：跨日、冒烟、重跑、迟到、7 天上限、时区切换、租约互斥
-- `deploy/cron.nbshiyan` — 每 5 分钟在容器内请求 /api/admin/cron/analytics-rollup；409 跳过；失败不重试
-- `src/app/api/admin/cron/analytics-rollup/route.ts` — 失败只告警一次；审计抛错只记日志
+- `deploy/cron.nbshiyan:11` — 生产每 5 分钟请求 `POST /api/admin/cron/operations`（jobKey `analytics-aggregate`）；旧 rollup 行已删，旧路由仅保留 410 历史入口
+- `src/app/api/admin/cron/analytics-rollup/route.ts` — **历史实现（已退役）**：旧版失败只告警一次、审计抛错只记日志；当前路由鉴权后直接 410，不进入告警/审计链
 <!-- code:end -->
 
 ## 实施沉淀
