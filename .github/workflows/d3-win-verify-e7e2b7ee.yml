@@ -1,0 +1,441 @@
+name: D3 Windows verify (frozen v4)
+# 一次性验证入口，只用于 e7e2b7ee 的 Windows 构建/断言取证。
+# 触发仅限精确分支；工作流提交以 e7e2b7ee 为唯一父、只新增本文件；checkout 锁完整源码提交。
+on:
+  push:
+    branches: ["d3-win-verify-e7e2b7ee"]
+permissions:
+  contents: read
+jobs:
+  win-verify:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      SOURCE_SHA: e7e2b7ee50d329e165bf226a8a529723831f44df
+      SOURCE_TREE: 19a9f04af1e20c0893c3f46cb5d64d0dbe5d22cd
+      PATCH_FILE_SHA256: A74898EB02DF4262296E23CEA4C5ADAE84E27CF6E9F7C3B83014CF8C51511525
+      PATCHED_TRACES_BLOB: 2ef267e646d859c5e15ee27d795a49d30d459f23
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e7e2b7ee50d329e165bf226a8a529723831f44df
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.34.6 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+
+      - name: Source binding (before any evidence write)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $sha = (git rev-parse HEAD).Trim(); if ($LASTEXITCODE -ne 0) { exit 1 }
+          $tree = (git rev-parse 'HEAD^{tree}').Trim(); if ($LASTEXITCODE -ne 0) { exit 1 }
+          $dirtyLines = @(git status --porcelain -uall); if ($LASTEXITCODE -ne 0) { exit 1 }
+          "WORKFLOW_COMMIT=$env:GITHUB_SHA"
+          "SOURCE_SHA_EXPECTED=$env:SOURCE_SHA"
+          "SOURCE_SHA_ACTUAL=$sha"
+          "SOURCE_TREE_EXPECTED=$env:SOURCE_TREE"
+          "SOURCE_TREE_ACTUAL=$tree"
+          "SOURCE_DIRTY=$($dirtyLines.Count)"
+          if ($dirtyLines.Count -gt 0) { "DIRTY_LINES:"; $dirtyLines | ForEach-Object { "  $_" } }
+          if ($sha -ne $env:SOURCE_SHA) { exit 1 }
+          if ($tree -ne $env:SOURCE_TREE) { exit 1 }
+          if ($dirtyLines.Count -ne 0) { exit 1 }
+          New-Item -ItemType Directory -Force -Path $env:EVIDENCE | Out-Null
+          "WORKFLOW_COMMIT=$env:GITHUB_SHA" | Tee-Object -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          "SOURCE_SHA_EXPECTED=$env:SOURCE_SHA" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          "SOURCE_SHA_ACTUAL=$sha" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          "SOURCE_TREE_EXPECTED=$env:SOURCE_TREE" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          "SOURCE_TREE_ACTUAL=$tree" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          "SOURCE_DIRTY=$($dirtyLines.Count)" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          "EVIDENCE=$env:EVIDENCE" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          $after = @(git status --porcelain -uall); if ($LASTEXITCODE -ne 0) { exit 1 }
+          "GIT_STATUS_AFTER_EVIDENCE=$($after.Count)" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt')
+          if ($after.Count -gt 0) { $after | ForEach-Object { "AFTER_DIRTY $_" } | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'binding.txt'); exit 1 }
+
+      - name: Link capability precheck (unique dir, no delete)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $out = Join-Path $env:EVIDENCE 'precheck.txt'
+          $id = [Security.Principal.WindowsIdentity]::GetCurrent()
+          $pr = New-Object Security.Principal.WindowsPrincipal($id)
+          "USER=$($id.Name)" | Tee-Object -FilePath $out
+          "IS_ADMIN=$($pr.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))" | Tee-Object -Append -FilePath $out
+          $dev = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' -ErrorAction SilentlyContinue).AllowDevelopmentWithoutDevLicense
+          "DEV_MODE=$dev" | Tee-Object -Append -FilePath $out
+          "IMAGE_VERSION=$env:ImageVersion" | Tee-Object -Append -FilePath $out
+          $os = Get-CimInstance Win32_OperatingSystem
+          "OS=$($os.Caption) $($os.Version)" | Tee-Object -Append -FilePath $out
+          $root = Join-Path $env:RUNNER_TEMP ("d3win-linkprecheck-" + $env:GITHUB_RUN_ID + "-" + $env:GITHUB_RUN_ATTEMPT)
+          if (Test-Path $root) { "PRECHECK_DIR_EXISTS=$root"; exit 1 }
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          "PRECHECK_DIR=$root" | Tee-Object -Append -FilePath $out
+          $fileTarget = Join-Path $root 'target.txt'
+          Set-Content -Path $fileTarget -Value 'link-read-ok' -NoNewline
+          $dirTarget = Join-Path $root 'target-dir'
+          New-Item -ItemType Directory -Force -Path $dirTarget | Out-Null
+          Set-Content -Path (Join-Path $dirTarget 'inside.txt') -Value 'dir-link-ok' -NoNewline
+          try { New-Item -ItemType SymbolicLink -Path (Join-Path $root 'file-link.txt') -Target $fileTarget -ErrorAction Stop | Out-Null; "FILE_SYMLINK=created" | Tee-Object -Append -FilePath $out }
+          catch { "FILE_SYMLINK=fail: $($_.Exception.Message)" | Tee-Object -Append -FilePath $out; exit 1 }
+          $fileRead = Get-Content (Join-Path $root 'file-link.txt') -Raw
+          "FILE_SYMLINK_READ=$fileRead" | Tee-Object -Append -FilePath $out
+          if ($fileRead -ne 'link-read-ok') { exit 1 }
+          try { New-Item -ItemType SymbolicLink -Path (Join-Path $root 'dir-link') -Target $dirTarget -ErrorAction Stop | Out-Null; "DIR_SYMLINK=created" | Tee-Object -Append -FilePath $out }
+          catch { "DIR_SYMLINK=fail: $($_.Exception.Message)" | Tee-Object -Append -FilePath $out; exit 1 }
+          $dirRead = Get-Content (Join-Path $root 'dir-link\inside.txt') -Raw
+          "DIR_SYMLINK_READ=$dirRead" | Tee-Object -Append -FilePath $out
+          if ($dirRead -ne 'dir-link-ok') { exit 1 }
+
+      - name: Install locked dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          pnpm install --frozen-lockfile 2>&1 | Tee-Object -FilePath (Join-Path $env:EVIDENCE 'install.log')
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $modules = Get-Content 'node_modules/.modules.yaml' -Raw
+          $ok = [bool]($modules -match 'pnpm@10\.34\.6')
+          "PACKAGE_MANAGER_PNPM_10_34_6=$ok" | Tee-Object -Append -FilePath (Join-Path $env:EVIDENCE 'install.log')
+          if (-not $ok) { exit 1 }
+
+      - name: Patch identity (version, lock hash, post-image; SWC recorded only)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $script = @'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const path = require('node:path');
+          const root = process.cwd();
+          const pkgPath = require.resolve('next/package.json', { paths: [root] });
+          const tracesPath = path.join(path.dirname(pkgPath), 'dist', 'build', 'collect-build-traces.js');
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+          const bytes = fs.readFileSync(tracesPath);
+          const h = crypto.createHash('sha1');
+          h.update('blob ' + bytes.length + '\0');
+          h.update(bytes);
+          const blob = h.digest('hex');
+          const text = bytes.toString('utf8');
+          const normalized = (text.match(/\.sep\)\.join\('\//g) || []).length;
+          const oldForm = (text.match(/\.split\(path\.sep\)/g) || []).length;
+          const patchSha = crypto.createHash('sha256').update(fs.readFileSync('patches/next@15.5.28.patch')).digest('hex');
+          console.log('NEXT_VERSION=' + pkg.version);
+          console.log('NEXT_PKG=' + pkgPath);
+          console.log('TRACES_PATH=' + tracesPath);
+          console.log('TRACES_BLOB=' + blob);
+          console.log('NORMALIZE_HITS=' + normalized);
+          console.log('OLD_FORM_HITS=' + oldForm);
+          console.log('PATCH_FILE_SHA256=' + patchSha.toUpperCase());
+          console.log('NEXT_PATH_HAS_PATCH_HASH=' + /_patch_hash=/.test(pkgPath));
+          let swc = 'load-failed';
+          let swcPath = 'unresolved';
+          try {
+            const nextDir = require('node:path').dirname(pkgPath);
+            swcPath = require.resolve('@next/swc-win32-x64-msvc', { paths: [nextDir] });
+            const m = require(swcPath);
+            swc = 'loaded exports=' + Object.keys(m).length;
+          } catch (e) { swc = 'load-failed: ' + e.message; }
+          console.log('SWC_PATH=' + swcPath);
+          console.log('SWC_NATIVE=' + swc);
+          const lock = fs.readFileSync('pnpm-lock.yaml', 'utf8');
+          const block = lock.slice(lock.indexOf('\npatchedDependencies:'));
+          const m = block.match(/\n  next@15\.5\.28:\n    hash: ([0-9a-f]{64})\n    path: (patches\/next@15\.5\.28\.patch)/);
+          if (!m) { console.error('LOCK_PATCH_ENTRY_MISSING'); process.exit(1); }
+          console.log('LOCK_PATCH_HASH=' + m[1]);
+          console.log('LOCK_PATCH_PATH=' + m[2]);
+          if (pkg.version !== '15.5.28') process.exit(1);
+          if (!/_patch_hash=/.test(pkgPath)) process.exit(1);
+          if (blob !== process.env.PATCHED_TRACES_BLOB) process.exit(1);
+          if (normalized !== 2) process.exit(1);
+          if (oldForm !== 0) process.exit(1);
+          if (m[1] !== patchSha) process.exit(1);
+          if (m[1].toUpperCase() !== process.env.PATCH_FILE_SHA256) process.exit(1);
+          '@
+          Set-Content -Path (Join-Path $env:EVIDENCE 'patch-check.cjs') -Value $script -Encoding utf8
+          node (Join-Path $env:EVIDENCE 'patch-check.cjs') 2>&1 | Tee-Object -FilePath (Join-Path $env:EVIDENCE 'fingerprint.txt')
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Production build
+        shell: pwsh
+        env:
+          APP_ENV: production
+          NEXT_PUBLIC_ADMIN_API: http
+          NEXT_PUBLIC_ADMIN_MAIL: 'off'
+          NEXT_PUBLIC_SITE_URL: https://geiom.com
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: '0x4AAAAAAFZNDL4a5ZSZhxee'
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          pnpm build 2>&1 | Tee-Object -FilePath (Join-Path $env:EVIDENCE 'build.log')
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Identity and marker (SWC recorded, not a gate)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $nodeV = (node -v); if ($LASTEXITCODE -ne 0) { exit 1 }
+          $pnpmV = (pnpm -v | Select-Object -First 1); if ($LASTEXITCODE -ne 0) { exit 1 }
+          $log = Get-Content (Join-Path $env:EVIDENCE 'build.log') -Raw
+          $swcLines = @(Select-String -Path (Join-Path $env:EVIDENCE 'build.log') -Pattern 'swc' -AllMatches | ForEach-Object { $_.Line.Trim() })
+          $wasm = [bool]($log -match 'swc[-_ ]?wasm|Using (cached )?swc package|@next/swc-wasm')
+          $buildId = $null
+          if (Test-Path '.next/BUILD_ID') { $buildId = (Get-Content '.next/BUILD_ID' -Raw).Trim() }
+          $serverExists = Test-Path '.next/standalone/server.js'
+          $values = @()
+          if ($serverExists) {
+            $s = Get-Content '.next/standalone/server.js' -Raw
+            $values = @([regex]::Matches($s, '"APP_ENV_AT_BUILD":"([^"]*)"') | ForEach-Object { $_.Groups[1].Value })
+          }
+          $identity = [ordered]@{
+            workflowCommit = $env:GITHUB_SHA
+            sourceSha = $env:SOURCE_SHA
+            sourceTree = $env:SOURCE_TREE
+            imageVersion = $env:ImageVersion
+            os = (Get-CimInstance Win32_OperatingSystem).Caption
+            node = $nodeV; pnpm = $pnpmV
+            buildId = $buildId
+            serverJsExists = $serverExists
+            prodMarkerCount = @($values | Where-Object { $_ -eq 'production' }).Count
+            prodMarkerValues = $values
+            wasmFallback = $wasm
+            swcLogLines = $swcLines
+            server = @(Get-ChildItem .next/server -Recurse -File -ErrorAction SilentlyContinue).Count
+            static = @(Get-ChildItem .next/static -Recurse -File -ErrorAction SilentlyContinue).Count
+          }
+          $identity | ConvertTo-Json -Depth 5 | Tee-Object -FilePath (Join-Path $env:EVIDENCE 'identity.json')
+          if (-not $serverExists) { 'MISSING .next/standalone/server.js'; exit 1 }
+          if ($values.Count -lt 1) { exit 1 }
+          if (@($values | Where-Object { $_ -eq 'production' }).Count -ne 1) { exit 1 }
+          if ($values.Count -ne 1) { exit 1 }
+          if ([string]::IsNullOrWhiteSpace($buildId)) { exit 1 }
+
+      - name: Original artifact test (4/4, 0 skip)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $env:MOCK_BUNDLE_TEST = '1'
+          node --import tsx --test --test-reporter=tap tests/prod-mocks-strip.test.ts 2>&1 | Tee-Object -FilePath (Join-Path $env:EVIDENCE 'test.tap')
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $tap = @(Get-Content (Join-Path $env:EVIDENCE 'test.tap'))
+          foreach ($p in '# tests 4', '# pass 4', '# fail 0', '# skipped 0', '# todo 0', '# cancelled 0') {
+            if (-not ($tap -contains $p)) { "MISSING TAP: $p"; exit 1 }
+          }
+          if (-not ($tap | Select-String -Pattern '^ok 3 ' -Quiet)) { 'MISSING ok 3'; exit 1 }
+
+      - name: Independent 9-marker scan (same scope and patterns as the test)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $script = @'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const roots = [['.next/standalone', true], ['.next/server', false], ['.next/static', false]];
+          const markers = ['sales-a@packjoyu.example', 'ivan@romashka.ru', 'mock-article-packaging-guide',
+            'mock-statya-o-upakovke', 'Тестовая статья: проверка макета', 'mockAdminApi',
+            'mockMailApi', 'mockModelApi', 'createMockAdapter'];
+          const files = [];
+          for (const [dir, prune] of roots) {
+            if (!fs.existsSync(dir)) continue;
+            const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
+              const p = path.join(d, e.name);
+              if (e.isDirectory()) { if (!(prune && e.name === 'node_modules')) walk(p); }
+              else files.push(p);
+            });
+            walk(dir);
+          }
+          let hits = 0;
+          const MOCK_FILE = /(^|[\\/])(mock|[A-Za-z]+Mock|[a-z0-9-]+-mock)\.ts$/;
+          for (const f of files) {
+            if (!/\.(js|json|ts|html|rsc|mjs|map)$/.test(f)) continue;
+            const s = fs.readFileSync(f, 'utf8');
+            for (const m of markers) if (s.includes(m)) { hits++; console.log('HIT ' + m + ' ' + f); }
+          }
+          const mockTs = files.filter((f) => MOCK_FILE.test(f));
+          const leaks = mockTs.filter((f) => f.replace(/\\/g, '/').includes('/src/lib/'));
+          console.log('SCOPE_FILES=' + files.length);
+          console.log('MARKER_HITS=' + hits);
+          console.log('MOCK_TS=' + mockTs.length);
+          console.log('LEAK_PATHS=' + leaks.length);
+          fs.writeFileSync(process.argv[2], files.map((f) => f.replace(/\\/g, '/')).join('\n') + '\n');
+          if (files.length <= 100) process.exit(1);
+          if (hits !== 0) process.exit(1);
+          if (mockTs.length !== 0) process.exit(1);
+          if (leaks.length !== 0) process.exit(1);
+          '@
+          Set-Content -Path (Join-Path $env:EVIDENCE 'scan.cjs') -Value $script -Encoding utf8
+          node (Join-Path $env:EVIDENCE 'scan.cjs') (Join-Path $env:EVIDENCE 'scan-files.txt') 2>&1 | Tee-Object -FilePath (Join-Path $env:EVIDENCE 'scan.txt')
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Archive scope and tracing with set/hash integrity (partial kept)
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:EVIDENCE = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          New-Item -ItemType Directory -Force -Path $env:EVIDENCE | Out-Null
+          $archiveLog = Join-Path $env:EVIDENCE 'archive.txt'
+          $script:reparse = @()
+          function Walk-Files {
+            param([string]$Dir, [string[]]$SkipNames)
+            $out = New-Object System.Collections.Generic.List[string]
+            foreach ($e in Get-ChildItem -LiteralPath $Dir -Force -ErrorAction Stop) {
+              if (([IO.FileAttributes]$e.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { $script:reparse += $e.FullName; continue }
+              if ($e.PSIsContainer) {
+                if ($SkipNames -contains $e.Name) { continue }
+                $out.AddRange([string[]](Walk-Files -Dir $e.FullName -SkipNames $SkipNames))
+              } else { $out.Add($e.FullName) }
+            }
+            return $out
+          }
+          if (-not (Test-Path '.next')) {
+            'ARCHIVE=none (.next missing)' | Tee-Object -FilePath $archiveLog
+            exit 0
+          }
+          $incomplete = -not (Test-Path '.next/standalone/server.js')
+          "INCOMPLETE=$([int]$incomplete)" | Tee-Object -FilePath $archiveLog
+          if ($incomplete) { 'INCOMPLETE_REASON=missing .next/standalone/server.js' | Tee-Object -Append -FilePath $archiveLog }
+          $scope = Join-Path $env:EVIDENCE 'scope'
+          $tracing = Join-Path $env:EVIDENCE 'tracing'
+          New-Item -ItemType Directory -Force -Path $scope, $tracing | Out-Null
+          $roots = @(
+            @{ src = '.next/standalone'; dst = 'standalone'; skip = @('node_modules') },
+            @{ src = '.next/server'; dst = 'server'; skip = @() },
+            @{ src = '.next/static'; dst = 'static'; skip = @() }
+          )
+          foreach ($r in $roots) {
+            if (-not (Test-Path $r.src)) { "ROOT_MISSING=$($r.src)" | Tee-Object -Append -FilePath $archiveLog; continue }
+            $rootFull = (Resolve-Path $r.src).Path
+            foreach ($f in (Walk-Files -Dir $rootFull -SkipNames $r.skip)) {
+              $rel = $f.Substring($rootFull.Length).TrimStart('\')
+              $dest = Join-Path (Join-Path $scope $r.dst) $rel
+              New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
+              Copy-Item -LiteralPath $f -Destination $dest -Force
+            }
+          }
+          $nextFull = (Resolve-Path '.next').Path
+          foreach ($f in (Walk-Files -Dir $nextFull -SkipNames @('node_modules', 'cache', 'types'))) {
+            if (-not $f.EndsWith('.nft.json')) { continue }
+            $rel = $f.Substring($nextFull.Length).TrimStart('\')
+            $dest = Join-Path $tracing $rel
+            New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
+            Copy-Item -LiteralPath $f -Destination $dest -Force
+          }
+          if (Test-Path '.next/BUILD_ID') { Copy-Item '.next/BUILD_ID' (Join-Path $env:EVIDENCE 'BUILD_ID') -Force }
+          if ($script:reparse.Count -gt 0) {
+            "REPARSE_POINTS_IN_RETAINED_SCOPE=$($script:reparse.Count)" | Tee-Object -Append -FilePath $archiveLog
+            $script:reparse | ForEach-Object { "REPARSE $_" } | Tee-Object -Append -FilePath $archiveLog
+            'REFUSING unconfirmed traversal of reparse points in the retained scope' | Tee-Object -Append -FilePath $archiveLog
+            exit 1
+          }
+          $manifest = @'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const crypto = require('node:crypto');
+          const [workspace, evidence] = process.argv.slice(2);
+          const hash = (p) => crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex').toUpperCase();
+          const walk = (root, skip) => {
+            const acc = [];
+            const skipSet = new Set(skip || []);
+            const rec = (dir) => {
+              if (!fs.existsSync(dir)) return;
+              for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+                if (e.isDirectory() && skipSet.has(e.name)) continue;
+                const p = path.join(dir, e.name);
+                if (e.isDirectory()) rec(p); else acc.push(p);
+              }
+            };
+            rec(root);
+            return acc;
+          };
+          const mapOf = (root, files) => {
+            const m = new Map();
+            for (const f of files) m.set(f.replace(/\\/g, '/').slice(root.replace(/\\/g, '/').length).replace(/^\//, ''), f);
+            return m;
+          };
+          const compare = (label, srcRoot, dstRoot, srcFiles, skip) => {
+            const src = mapOf(srcRoot, srcFiles);
+            const dst = mapOf(dstRoot, walk(dstRoot, skip));
+            const missing = [...src.keys()].filter((k) => !dst.has(k));
+            const extra = [...dst.keys()].filter((k) => !src.has(k));
+            const mismatch = [];
+            for (const k of src.keys()) {
+              if (!dst.has(k)) continue;
+              const a = fs.readFileSync(src.get(k)), b = fs.readFileSync(dst.get(k));
+              if (a.length !== b.length || hash(src.get(k)) !== hash(dst.get(k))) mismatch.push(k);
+            }
+            console.log(label + '_SOURCE=' + src.size);
+            console.log(label + '_ARCHIVE=' + dst.size);
+            console.log(label + '_MISSING=' + missing.length);
+            console.log(label + '_EXTRA=' + extra.length);
+            console.log(label + '_MISMATCH=' + mismatch.length);
+            return { label, source: src.size, archive: dst.size, missing, extra, mismatch };
+          };
+          const scopeRoots = [['standalone', ['node_modules']], ['server', []], ['static', []]];
+          const results = [];
+          for (const [sub, skip] of scopeRoots) {
+            const src = path.join(workspace, '.next', sub);
+            const dst = path.join(evidence, 'scope', sub);
+            if (!fs.existsSync(src) && !fs.existsSync(dst)) continue;
+            results.push(compare('SCOPE_' + sub.toUpperCase(), src, dst, walk(src, skip), skip));
+          }
+          const nftSrc = walk(path.join(workspace, '.next'), ['node_modules', 'cache', 'types']).filter((f) => f.endsWith('.nft.json'));
+          results.push(compare('TRACING', path.join(workspace, '.next'), path.join(evidence, 'tracing'), nftSrc, []));
+          const bad = results.some((r) => r.missing.length || r.extra.length || r.mismatch.length);
+          const summary = { generatedAt: new Date().toISOString(), results };
+          fs.writeFileSync(path.join(evidence, 'manifest.json'), JSON.stringify(summary, null, 2) + '\n');
+          if (bad) process.exit(1);
+          '@
+          Set-Content -Path (Join-Path $env:EVIDENCE 'manifest.cjs') -Value $manifest -Encoding utf8
+          node (Join-Path $env:EVIDENCE 'manifest.cjs') (Get-Location).Path $env:EVIDENCE 2>&1 | Tee-Object -Append -FilePath $archiveLog
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Evidence completeness (success path only)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidence = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $required = @('binding.txt', 'fingerprint.txt', 'install.log')
+          $missing = @($required | Where-Object { -not (Test-Path -LiteralPath (Join-Path $evidence $_)) })
+          "SUCCESS_PATH_REQUIRED=$($required -join ',')"
+          "SUCCESS_PATH_MISSING=$($missing -join ',')"
+          if ($missing.Count -gt 0) { 'SUCCESS_PATH_INCOMPLETE'; exit 1 }
+
+      - name: Evidence inventory (always, upload still attempts partial)
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $evidence = Join-Path $env:RUNNER_TEMP 'd3win-evidence'
+          $lines = New-Object System.Collections.Generic.List[string]
+          $lines.Add("EVIDENCE_DIR=$evidence")
+          $lines.Add("EVIDENCE_DIR_EXISTS=$([int](Test-Path -LiteralPath $evidence))")
+          if (Test-Path -LiteralPath $evidence) {
+            foreach ($f in (Get-ChildItem -LiteralPath $evidence -Recurse -File -Force -ErrorAction SilentlyContinue | Sort-Object FullName)) {
+              $rel = $f.FullName.Substring($evidence.Length).TrimStart('\')
+              $lines.Add("PRESENT $rel BYTES=$($f.Length)")
+            }
+          }
+          $lines | ForEach-Object { $_ }
+          $lines | Set-Content -Path (Join-Path $env:RUNNER_TEMP 'd3win-inventory.txt') -Encoding utf8
+          if (Test-Path -LiteralPath $evidence) {
+            $lines | Set-Content -Path (Join-Path $evidence 'evidence-inventory.txt') -Encoding utf8
+          }
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d3-win-verify-evidence
+          path: ${{ runner.temp }}/d3win-evidence/
+          if-no-files-found: error
+          retention-days: 7
