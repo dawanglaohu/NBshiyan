@@ -1,0 +1,36 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M5-T11": {
+      "contractHash": "47227a74eb01f7b99a4e2a24b5c5e8cedc48fe3be4bda0066f74d252055d98fc",
+      "evidence": [
+        "补丁 m5t11-aggregate-scope-20261108 仅改 _run/task-contracts.json 的 M5-T11.supportPaths：新增 src/lib/server/analytics/aggregate.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变（task-contracts.json 差量只有 supportPaths，其余 84 个任务定义逐字未变）。",
+        "登记依据：B3 数据正确性阻断要求受影响日 preflight 复用既有整日聚合能力，而现有 aggregateOneDayInSnapshot 的注释限验证、无 deadline/预算参数；把该文件纳入 M5-T11 写域是让后端接入 budget.deadlineAt、完成“可整日重算则先聚合再删”的最小支持路径，不是新增第二套聚合算法。",
+        "本补丁只登记范围：未改接口/源码/测试/schema/CI/产品条款/其他任务；不声称 B2/B3 已修复、不声称真库或 CI 通过，也不代表最终落地条件；B2/B3 仍待后端 R1 实现与独立复验。",
+        "影响集合 5 个任务（M5-T11 + M7-T10/M7-T3/M7-T8/M7-T9 消费者）；它们定义未改，仅契约哈希传播；sync 后 revalidation 仍为空，未手清任何标记。",
+        "范围核对：M5-T11 当前 effectivePaths = outputPaths 5 项 + supportPaths 1 项（新增 aggregate.ts），共 6 项；progress 98 键/done 95、contracts 144、dispatch 144、batchRecords 16、dispatchBatches 22 与父头一致，sourceVersion 更新为 b4e28e1b…。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T10": {
+      "contractHash": "5886c601bdca17198aa6fdc5464888b4ea64c9234c3a13aaecaa02bbce11b2bd",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T3": {
+      "contractHash": "b2dd7e4101412ebaa250e7d9d745b5f8d8b56c8f6cf2815443030e89d5ef6404",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T8": {
+      "contractHash": "af7ca4742fd1f39d3f8aff05ace0bb759d2e7111c896d50cde99763744486350",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "ff1bec7bd3af4dc4f25464bcaa975e45912f98fcf9ebb1a9132c7519c52a6b7a",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}

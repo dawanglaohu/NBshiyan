@@ -2845,7 +2845,9 @@
         "jobs",
         "container"
       ],
-      "supportPaths": [],
+      "supportPaths": [
+        "src/lib/server/analytics/aggregate.ts"
+      ],
       "outputPaths": [
         "src/lib/server/analytics/retention.ts",
         "src/lib/server/jobs/registry.ts",
