@@ -514,6 +514,59 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(state.errorCode, 'source_unavailable');
   });
 
+  test('跨日迟到：缺口按 occurredAt 的站点日归属，不按 receivedAt', async () => {
+    assert.ok(db);
+    // 只留一条「前一天发生、cutoff 当天才入库」的迟到事件：
+    // 删除资格看 receivedAt，聚合归属日必须看 occurredAt。
+    await db.$executeRaw`DELETE FROM "AnalyticsEvent"`;
+    const occurredAt = new Date('2027-02-10T02:00:00.000Z'); // 上海 2027-02-10 10:00
+    await db.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${'ev-late'}, ${'sk-late'}, ${'p'.repeat(64)}, ${'bh-late'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, NULL, ${'/en'}, ${utc(occurredAt)}, ${utc(EVENT_CUTOFF)}
+      )
+    `);
+    const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.deepEqual(run.report.history.affectedDays, ['2027-02-10']);
+    assert.deepEqual(run.report.history.gapDays, ['2027-02-10']);
+    assert.equal(run.report.coverage, 'unavailable');
+    // 删除仍按 receivedAt：这条迟到事件照常被删。
+    assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-late'`), 0);
+  });
+
+  test('可整日重算的到期日：现有接口无预算参数，先记 gap、不无界调用聚合助手', async () => {
+    assert.ok(db);
+    // cutoff 落在本地 23:58，事件 receivedAt 在 cutoff，occurredAt 到次日 00:03：
+    // 归属日 = 2027-02-14，其日界正好等于完整原始覆盖起点（可整日重算）。
+    const edgeNow = new Date('2027-03-15T15:58:00.000Z');
+    await db.$executeRaw`DELETE FROM "AnalyticsEvent"`;
+    const edgeReceivedAt = new Date('2027-02-13T15:58:00.000Z');
+    const edgeOccurredAt = new Date('2027-02-13T16:03:00.000Z');
+    await db.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${'ev-edge'}, ${'sk-edge'}, ${'p'.repeat(64)}, ${'bh-edge'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, NULL, ${'/en'}, ${utc(edgeOccurredAt)}, ${utc(edgeReceivedAt)}
+      )
+    `);
+    const run = await runAnalyticsRetention({ db, context: context(edgeNow, false), clock: () => edgeNow, deleteAuthorized: true });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.deepEqual(run.report.history.affectedDays, ['2027-02-14']);
+    // 可整日重算，但单日聚合助手没有预算参数：按原单不调用、记显式缺口，删除照常。
+    assert.deepEqual(run.report.history.recomputedDays, []);
+    assert.deepEqual(run.report.history.gapDays, ['2027-02-14']);
+    assert.equal(run.report.coverage, 'unavailable');
+    assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-edge'`), 0);
+  });
+
   test('B2 计数：原始事件第二批失败，已提交批次仍计入 FAILED 摘要与实际差量', async () => {
     assert.ok(db);
     // 比默认夹具更早到期的一条：batchSize=1 时第一批删它，第二批撞触发器。

@@ -19,7 +19,6 @@ import {
   AggregateBatchExceeded,
   AggregateDeadlineExceeded,
   AggregateVersionConflict,
-  aggregateOneDayInSnapshot,
   runAggregateOnce,
 } from './aggregate';
 import {
@@ -370,14 +369,14 @@ export async function runAnalyticsRetention(deps: {
     }
 
     // 5. 删除前 preflight：按受影响站点日分类，缺口显式上报（09:72 / E-82）。
-    //    只有日界不早于完整原始覆盖起点的日才允许先整日聚合；其余不碰旧聚合，
-    //    也不为了凑 complete 去调单日测试路径或伪造 now/currentDate。
+    //    删除资格按 receivedAt，但聚合归属日必须看 occurredAt（跨日迟到可能差一到两天），
+    //    否则缺口会标在错误的统计日上。
     const affected = await runWithinBudget(deps.db, budget, (tx) =>
       tx.$queryRaw<{ siteDate: string; hasAggregate: boolean }[]>(Prisma.sql`
         SELECT d."siteDate" AS "siteDate", (r."siteDate" IS NOT NULL) AS "hasAggregate"
         FROM (
           SELECT DISTINCT to_char(
-            ("receivedAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timezone}, 'YYYY-MM-DD'
+            ("occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timezone}, 'YYYY-MM-DD'
           ) AS "siteDate"
           FROM "AnalyticsEvent"
           WHERE "receivedAt" <= ${utc(eventCutoff)}
@@ -398,6 +397,18 @@ export async function runAnalyticsRetention(deps: {
       completeRawCoverageStartUtc: coveragePlan.completeRawCoverageStartUtc,
       rollupExpiryThrough: rollupThrough,
     });
+    if (report.history.recomputedDays.length > 0) {
+      // 现有 aggregateOneDayInSnapshot 是单日验证助手：事务 timeout 固定 15s、等连接 5s，
+      // 没有预算参数，调用前检查约束不了调用中的耗时。按原单不绕过预算、也不复制聚合实现：
+      // 这些日先记显式缺口并照常按 30 天删除；精确支持路径见
+      // backend-m5t11-r1-b2-b3-20261108.md（aggregate.ts 增加可选 deadline 透传）。
+      console.info('[cron] analytics retention preflight needs bounded aggregate', {
+        days: report.history.recomputedDays.length,
+      });
+      report.history.gapDays = [...report.history.gapDays, ...report.history.recomputedDays].sort();
+      report.history.recomputedDays = [];
+      report.history.coverage = 'unavailable';
+    }
     if (report.history.gapDays.length > 0 || report.history.preservedDays.length > 0) {
       console.info('[cron] analytics retention history coverage', {
         affected: report.history.affectedDays.length,
@@ -405,28 +416,6 @@ export async function runAnalyticsRetention(deps: {
         preserved: report.history.preservedDays.length,
         gap: report.history.gapDays.length,
       });
-    }
-    for (const siteDate of [...report.history.recomputedDays]) {
-      if (budgetExhausted(budget)) throw new RetentionRunTimeout();
-      try {
-        await aggregateOneDayInSnapshot({
-          db: deps.db,
-          siteDate,
-          siteTimezone: timezone,
-          cutoff: now,
-          timezoneRevision: claim.timezoneRevision,
-          generation: claim.generation,
-          now,
-        });
-      } catch (error) {
-        if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error)) throw new RetentionRunTimeout();
-        if (error instanceof AggregateVersionConflict) throw error;
-        // 先尝试失败：不重写历史、不用残片补，降级为显式缺口。
-        console.error('[cron] analytics retention preflight aggregate skipped', errorName(error));
-        report.history.recomputedDays = report.history.recomputedDays.filter((day) => day !== siteDate);
-        report.history.gapDays = [...report.history.gapDays, siteDate].sort();
-        report.history.coverage = 'unavailable';
-      }
     }
 
     // 6. 删除：每批独立事务，批内续租并按剩余预算重设 statement/lock timeout。
