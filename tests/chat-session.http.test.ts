@@ -38,6 +38,18 @@ const EDGE_SECRET = 'e'.repeat(32);
 const DAY_MS = 24 * 60 * 60 * 1000;
 const config = loadServerConfig({ APP_ENV: 'test' });
 
+/** 块内至少一行真实字段声明；忽略空白、行注释、块注释与 @@ 模型属性。 */
+function hasFieldDeclaration(block: string): boolean {
+  const body = block
+    .slice(block.indexOf('{') + 1, block.lastIndexOf('}'))
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  return body.split(/\r?\n/).some((line) => {
+    const text = line.trim();
+    return text.length > 0 && !text.startsWith('@@');
+  });
+}
+
 /**
  * 只取目标模型块：行首 `model X {` 到首个行首 `}`，不取到 EOF，也不命中注释里的示例。
  * 目标缺失/未闭合/空块/块内混入相邻模型都直接失败，避免空切片假绿。
@@ -48,7 +60,7 @@ function modelBlock(schema: string, name: string): string {
   const end = schema.indexOf('\n}', start);
   assert.ok(end > start, `model ${name} block not closed`);
   const block = schema.slice(start, end + 2);
-  assert.ok(block.length > `model ${name} {`.length, `model ${name} block empty`);
+  assert.ok(hasFieldDeclaration(block), `model ${name} block has no field declarations`);
   assert.equal((block.match(/^model /gm) ?? []).length, 1, `model ${name} block must not include an adjacent model`);
   return block;
 }
@@ -395,10 +407,18 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
     const leaked = fixture.replace('  tokenHash          String   @unique', '  tokenHash          String   @unique\n  email String?');
     assert.throws(() => assertChatVisitorSessionPrivacy(leaked));
 
-    // 目标缺失/未闭合/空块都必须失败，不能空切片假绿
+    // 目标缺失/未闭合都必须失败；空块、仅注释、仅模型属性必须由 modelBlock 自身拒绝
     assert.throws(() => modelBlock('model ChatMessage {\n  bodyText String\n}', 'ChatVisitorSession'), /missing/);
     assert.throws(() => modelBlock('model ChatVisitorSession {\n  tokenHash String @unique\n', 'ChatVisitorSession'), /not closed/);
-    assert.throws(() => assertChatVisitorSessionPrivacy('model ChatVisitorSession {\n}\nmodel ChatConversation {\n  email String?\n}'));
+    assert.throws(() => modelBlock('model ChatVisitorSession {\n}\n', 'ChatVisitorSession'), /no field declarations/);
+    assert.throws(
+      () => modelBlock('model ChatVisitorSession {\n  // email String?\n  /// doc comment\n  /* block */\n}\n', 'ChatVisitorSession'),
+      /no field declarations/,
+    );
+    assert.throws(
+      () => modelBlock('model ChatVisitorSession {\n  @@index([lastActivityAt])\n  @@map("session")\n}\n', 'ChatVisitorSession'),
+      /no field declarations/,
+    );
 
     // 相邻模型含 email/bodyText 不得误报；注释里的示例不得被当成目标模型
     assertChatVisitorSessionPrivacy(`${fixture}\nmodel ChatConversation {\n  email String?\n  bodyText String\n}`);

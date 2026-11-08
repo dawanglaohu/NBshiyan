@@ -50,6 +50,18 @@ const skip = !db && 'no DATABASE_URL';
 const config = loadServerConfig({ APP_ENV: 'test' });
 const testEnv = { APP_ENV: 'test', EDGE_AUTH_SECRET: EDGE };
 
+/** 块内至少一行真实字段声明；忽略空白、行注释、块注释与 @@ 模型属性。 */
+function hasFieldDeclaration(block: string): boolean {
+  const body = block
+    .slice(block.indexOf('{') + 1, block.lastIndexOf('}'))
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  return body.split(/\r?\n/).some((line) => {
+    const text = line.trim();
+    return text.length > 0 && !text.startsWith('@@');
+  });
+}
+
 /**
  * 只取目标模型块：行首 `model X {` 到首个行首 `}`，不取到 EOF，也不命中注释里的示例。
  * 目标缺失/未闭合/空块/块内混入相邻模型都直接失败，避免空切片假绿。
@@ -60,7 +72,7 @@ function modelBlock(schema: string, name: string): string {
   const end = schema.indexOf('\n}', start);
   assert.ok(end > start, `model ${name} block not closed`);
   const block = schema.slice(start, end + 2);
-  assert.ok(block.length > `model ${name} {`.length, `model ${name} block empty`);
+  assert.ok(hasFieldDeclaration(block), `model ${name} block has no field declarations`);
   assert.equal((block.match(/^model /gm) ?? []).length, 1, `model ${name} block must not include an adjacent model`);
   return block;
 }
@@ -111,10 +123,18 @@ test('AnalyticsEvent 隐私守卫负控：目标泄漏/缺失/空块/未闭合�
   const leaked = fixture.replace('  payloadHash String', '  payloadHash String\n  email String?');
   assert.throws(() => assertAnalyticsEventPrivacy(leaked));
 
-  // 目标缺失/未闭合/空块都必须失败，不能空切片假绿
+  // 目标缺失/未闭合都必须失败；空块、仅注释、仅模型属性必须由 modelBlock 自身拒绝
   assert.throws(() => modelBlock('model ChatMessage {\n  bodyText String\n}', 'AnalyticsEvent'), /missing/);
   assert.throws(() => modelBlock('model AnalyticsEvent {\n  eventId String @id\n', 'AnalyticsEvent'), /not closed/);
-  assert.throws(() => assertAnalyticsEventPrivacy('model AnalyticsEvent {\n}\nmodel ChatMessage {\n  bodyText String\n}'));
+  assert.throws(() => modelBlock('model AnalyticsEvent {\n}\n', 'AnalyticsEvent'), /no field declarations/);
+  assert.throws(
+    () => modelBlock('model AnalyticsEvent {\n  // email String?\n  /// doc comment\n  /* block */\n}\n', 'AnalyticsEvent'),
+    /no field declarations/,
+  );
+  assert.throws(
+    () => modelBlock('model AnalyticsEvent {\n  @@index([viewId])\n  @@map("analytics")\n}\n', 'AnalyticsEvent'),
+    /no field declarations/,
+  );
 
   // 相邻模型含 email/bodyText 不得误报；注释里的示例不得被当成目标模型
   assertAnalyticsEventPrivacy(`${fixture}\nmodel ChatMessage {\n  email String?\n  bodyText String\n}`);
