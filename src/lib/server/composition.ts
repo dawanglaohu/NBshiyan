@@ -16,6 +16,8 @@ import { analyticsConsentSecret } from './config';
 import { CHAT_VISITOR_POLICY } from './config';
 import { createVisitorSessionRepo, type VisitorSessionStore } from './chat/visitor-session-repo';
 import { createVisitorSessionService, type VisitorSessionService } from './chat/visitor-session';
+import { createConversationService, type ConversationService } from './chat/conversation-service';
+import type { ChatWriteDb } from './chat/repo';
 import { createAnalyticsAggregateJob, createJobRegistry, type JobRegistry } from './jobs/registry';
 
 export type HttpServices = {
@@ -147,6 +149,7 @@ export function createAnalyticsIngestServices(deps: {
 
 export type ChatServices = HttpServices & {
   visitorSessions: VisitorSessionService;
+  conversations: ConversationService;
 };
 
 /** 访客必要会话。每次调用新建服务，不保存当前 cookie 或会话行。 */
@@ -159,6 +162,8 @@ export function createChatServices(deps: {
   const clock = deps.clock ?? (() => new Date());
   const http = createHttpServices({ db: deps.db, config: deps.config, clock, log: deps.log });
   const store = (deps.db ?? prisma) as unknown as VisitorSessionStore;
+  // 写入面单独取一次：会话 cookie 的窄替身不需要实现会话/消息表，组合点只在真正调用时用到它。
+  const chatDb = (deps.db ?? prisma) as unknown as ChatWriteDb;
   return {
     ...http,
     visitorSessions: createVisitorSessionService({
@@ -166,6 +171,7 @@ export function createChatServices(deps: {
       clock,
       policy: CHAT_VISITOR_POLICY,
     }),
+    conversations: createConversationService({ db: chatDb, clock }),
   };
 }
 
