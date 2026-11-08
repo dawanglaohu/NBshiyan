@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+﻿import { createHash } from 'node:crypto';
 import type { ConversationCreateRequest } from '../contracts/chat';
 
 /** 请求体上限：先按字节限体，再做字段校验（E-39 / 10 节接口约定）。 */
@@ -34,7 +34,8 @@ export const CHAT_NEW_SESSION_IP_PREFIX = 'chat:new-session:ip:';
  * 所以服务端 statement_timeout / lock_timeout 取 4.5s，客户端 timeout 兜底 5s。
  */
 export const CHAT_TX_BUDGET_MS = 5_000;
-export const CHAT_TX_STATEMENT_MS = 4_500;
+export const CHAT_TX_RESERVE_MS = 800;
+export const CHAT_TX_MIN_MS = 50;
 export const CHAT_TX_MAX_WAIT_MS = 2_000;
 
 /**

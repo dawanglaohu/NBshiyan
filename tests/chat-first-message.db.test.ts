@@ -1,4 +1,4 @@
-// M4-T1 咨询首消息与唯一通知出箱的真实 PostgreSQL 验收。
+﻿// M4-T1 咨询首消息与唯一通知出箱的真实 PostgreSQL 验收。
 //
 // 载体安全：只认专属变量 B9_M4T1_TEST_DATABASE_URL，必须 loopback；**绝不回退通用 DATABASE_URL**
 // （通用变量是业务库）。CHAT_REQUIRE_DATABASE=true 时缺专属 URL 直接失败，不静默 skip。
@@ -13,8 +13,8 @@ import { PrismaClient } from '@prisma/client';
 import { ConversationReceivedDTOSchema } from '../src/lib/contracts/chat';
 import { CHAT_RETENTION_MS } from '../src/lib/chat/rules';
 import { ChatIdempotencyConflict, createConversationService } from '../src/lib/server/chat/conversation-service';
-import { createChatRepo } from '../src/lib/server/chat/repo';
-import { CHAT_VISITOR_COOKIE, hashChatToken } from '../src/lib/server/chat/visitor-session';
+import { createChatRepo, isDatabaseUnavailable } from '../src/lib/server/chat/repo';
+import { CHAT_VISITOR_COOKIE, hashChatToken, type ValidatedSession } from '../src/lib/server/chat/visitor-session';
 import { CHAT_VISITOR_POLICY } from '../src/lib/server/config';
 
 const DEDICATED = process.env.B9_M4T1_TEST_DATABASE_URL?.trim();
@@ -138,6 +138,15 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     return { id, token };
   }
 
+  /** 测试用已校验会话句柄：品牌字段只由 resolve 产生，这里按类型边界显式构造。 */
+  function sessionOf(visitor: { id: string; token: string }): ValidatedSession {
+    return {
+      id: visitor.id,
+      tokenHash: hashChatToken(visitor.token),
+      expiresAt: new Date(Date.now() + CHAT_VISITOR_POLICY.absoluteMs),
+    } as unknown as ValidatedSession;
+  }
+
   const counts = async () => ({
     conversations: await db().chatConversation.count(),
     messages: await db().chatMessage.count(),
@@ -208,7 +217,7 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const input = payload();
     const service = createConversationService({ db: db(), clock: () => NOW });
 
-    const received = await service.createFirstMessage({ visitorSessionId: visitor.id, payload: input });
+    const received = await service.createFirstMessage({ session: sessionOf(visitor), payload: input });
     ConversationReceivedDTOSchema.parse(received);
     assert.equal(received.duplicate, false);
     assert.equal(received.message.seq, 1);
@@ -229,8 +238,8 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const visitor = await seedVisitor();
     const input = payload();
     const service = createConversationService({ db: db(), clock: () => NOW });
-    const first = await service.createFirstMessage({ visitorSessionId: visitor.id, payload: input });
-    const replay = await service.createFirstMessage({ visitorSessionId: visitor.id, payload: input });
+    const first = await service.createFirstMessage({ session: sessionOf(visitor), payload: input });
+    const replay = await service.createFirstMessage({ session: sessionOf(visitor), payload: input });
 
     assert.equal(replay.duplicate, true);
     assert.equal(replay.conversationId, first.conversationId);
@@ -243,11 +252,11 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const visitor = await seedVisitor();
     const input = payload();
     const service = createConversationService({ db: db(), clock: () => NOW });
-    await service.createFirstMessage({ visitorSessionId: visitor.id, payload: input });
+    await service.createFirstMessage({ session: sessionOf(visitor), payload: input });
 
     await assert.rejects(
       () => service.createFirstMessage({
-        visitorSessionId: visitor.id,
+        session: sessionOf(visitor),
         payload: { ...input, bodyText: 'A different message.' },
       }),
       (error: unknown) => error instanceof ChatIdempotencyConflict && error.field === 'clientConversationId',
@@ -261,8 +270,8 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const input = payload();
     const service = createConversationService({ db: db(), clock: () => NOW });
     const [a, b] = await Promise.all([
-      service.createFirstMessage({ visitorSessionId: visitor.id, payload: input }),
-      service.createFirstMessage({ visitorSessionId: visitor.id, payload: input }),
+      service.createFirstMessage({ session: sessionOf(visitor), payload: input }),
+      service.createFirstMessage({ session: sessionOf(visitor), payload: input }),
     ]);
 
     assert.equal(a.conversationId, b.conversationId);
@@ -277,8 +286,8 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const second = await seedVisitor();
     const input = payload();
     const service = createConversationService({ db: db(), clock: () => NOW });
-    const a = await service.createFirstMessage({ visitorSessionId: first.id, payload: input });
-    const b = await service.createFirstMessage({ visitorSessionId: second.id, payload: input });
+    const a = await service.createFirstMessage({ session: sessionOf(first), payload: input });
+    const b = await service.createFirstMessage({ session: sessionOf(second), payload: input });
 
     assert.notEqual(a.conversationId, b.conversationId);
     assert.deepEqual(await counts(), { conversations: 2, messages: 2, notifications: 2 });
@@ -324,12 +333,13 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const keeper = await seedVisitor();
     const baseInput = payload();
     const service = createConversationService({ db: db(), clock: () => NOW });
-    const kept = await service.createFirstMessage({ visitorSessionId: keeper.id, payload: baseInput });
+    const kept = await service.createFirstMessage({ session: sessionOf(keeper), payload: baseInput });
     assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
 
     await createTrigger('m4t1_fail_notification', `RAISE EXCEPTION 'synthetic notification failure';`);
+    // K2：失败后必须用同一个 payload（同一对 UUID）重试，不能改名绕开。
+    const pending = payload();
     try {
-      const pending = payload();
       const response = await post(pending, { cookie: `${CHAT_VISITOR_COOKIE}=${baseline.token}` });
       const body = await expectStatus(response, 500, '触发器故障不是数据库不可用');
       assert.equal(body?.error, 'internal_error');
@@ -340,9 +350,8 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
       await dropTrigger('m4t1_fail_notification');
     }
 
-    const retry = payload();
-    const ok = await post(retry, { cookie: `${CHAT_VISITOR_COOKIE}=${baseline.token}` });
-    await expectStatus(ok, 200, '移除触发器后同键可成功');
+    const ok = await post(pending, { cookie: `${CHAT_VISITOR_COOKIE}=${baseline.token}` });
+    await expectStatus(ok, 200, '移除触发器后用同一 payload 与 UUID 可成功');
     assert.deepEqual(await counts(), { conversations: 2, messages: 2, notifications: 2 });
   });
 
@@ -350,23 +359,50 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     await reset();
     const visitor = await seedVisitor();
     await createTrigger('m4t1_slow_notification', `PERFORM pg_sleep(7); RETURN NEW;`);
+    const input = payload();
     try {
-      const input = payload();
       const started = Date.now();
       const response = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
       const elapsed = Date.now() - started;
       const body = await expectStatus(response, 503, '语句超时应映射 service_unavailable');
       assert.equal(body?.error, 'service_unavailable');
-      assert.ok(elapsed >= 4_000, `应真正跑到预算附近再被截断，实际 ${elapsed}ms`);
-      // 旧实现实测 7,080ms；返工后必须在 5s 契约附近截断。
-      assert.ok(elapsed < 6_000, `事务必须受 5s 预算约束，实际 ${elapsed}ms`);
+      // 首个语句拿到的剩余预算是 5000−0−800=4200ms，不是固定 4500ms。
+      assert.ok(elapsed >= 3_800, `应真正跑到预算附近再被截断，实际 ${elapsed}ms`);
+      assert.ok(elapsed <= 5_000, `事务必须受 5s 预算约束，实际 ${elapsed}ms`);
       assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 }, '慢语句失败后整笔回滚');
     } finally {
       await dropTrigger('m4t1_slow_notification');
     }
 
-    const retry = await post(payload(), { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
-    await expectStatus(retry, 200, '移除慢触发器后重试成功');
+    // K2：原 payload 与原 UUID 重试。
+    const retry = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
+    await expectStatus(retry, 200, '移除慢触发器后用同一 payload 与 UUID 重试成功');
+    assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
+  });
+
+  test('B2：两条各 3.5s 的语句累计也不得越过 5s 事务预算', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    // 第一条慢语句落在会话插入，第二条落在消息插入：单条都 <4.2s，累计会超过 5s。
+    await createTrigger('m4t1_slow_conversation', `PERFORM pg_sleep(3.5); RETURN NEW;`);
+    await createTrigger('m4t1_slow_message', `PERFORM pg_sleep(3.5); RETURN NEW;`);
+    const input = payload();
+    try {
+      const started = Date.now();
+      const response = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
+      const elapsed = Date.now() - started;
+      const body = await expectStatus(response, 503, '累计超预算应 503');
+      assert.equal(body?.error, 'service_unavailable');
+      assert.ok(elapsed <= 5_000, `事务总耗时必须 ≤5000ms，实际 ${elapsed}ms`);
+      assert.ok(elapsed >= 3_000, `必须先真的执行第一条慢语句，实际 ${elapsed}ms`);
+      assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 });
+    } finally {
+      await dropTrigger('m4t1_slow_conversation');
+      await dropTrigger('m4t1_slow_message');
+    }
+
+    const retry = await post(input, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` });
+    await expectStatus(retry, 200, '两条慢触发器移除后同一 payload 恢复成功');
     assert.deepEqual(await counts(), { conversations: 1, messages: 1, notifications: 1 });
   });
 
@@ -508,5 +544,93 @@ describe('M4-T1 原子保存咨询首消息与唯一通知出箱', { concurrency
     const limited = await post(payload(), { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}`, ip });
     assert.equal(limited.status, 429);
     assert.equal(limited.headers.get('retry-after'), '600');
+  });
+
+  // ---------- C3：只有成功响应才 touch ----------
+
+  async function lastActivity(id: string): Promise<number> {
+    const row = await db().chatVisitorSession.findUniqueOrThrow({ where: { id } });
+    return row.lastActivityAt.getTime();
+  }
+
+  test('C3：400/409 失败请求不推进闲置期限，200 新建与重放都推进', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const cookie = `${CHAT_VISITOR_COOKIE}=${visitor.token}`;
+    const seeded = await lastActivity(visitor.id);
+
+    assert.equal((await post(payload({ productSlug: 'not-a-real-product' }), { cookie })).status, 400);
+    assert.equal(await lastActivity(visitor.id), seeded, '400 不得 touch');
+
+    const input = payload();
+    assert.equal((await post(input, { cookie })).status, 200);
+    const afterCreate = await lastActivity(visitor.id);
+    assert.ok(afterCreate >= seeded);
+    assert.equal((await post({ ...input, bodyText: 'different content' }, { cookie })).status, 409);
+    assert.equal(await lastActivity(visitor.id), afterCreate, '409 不得 touch');
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    assert.equal((await post(input, { cookie })).status, 200);
+    assert.ok((await lastActivity(visitor.id)) > afterCreate, '幂等重放 200 也要 touch');
+  });
+
+  test('C3：过期与撤销会话 401，不 touch 也不写库', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    await db().chatVisitorSession.update({ where: { id: visitor.id }, data: { revokedAt: new Date() } });
+    const revokedAt = await lastActivity(visitor.id);
+    assert.equal((await post(payload(), { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` })).status, 401);
+    assert.equal(await lastActivity(visitor.id), revokedAt);
+    assert.deepEqual(await counts(), { conversations: 0, messages: 0, notifications: 0 });
+
+    const expired = await seedVisitor();
+    await db().chatVisitorSession.update({
+      where: { id: expired.id },
+      data: { absoluteExpiresAt: new Date(Date.now() - 1_000) },
+    });
+    const expiredAt = await lastActivity(expired.id);
+    assert.equal((await post(payload(), { cookie: `${CHAT_VISITOR_COOKIE}=${expired.token}` })).status, 401);
+    assert.equal(await lastActivity(expired.id), expiredAt);
+  });
+
+  test('C3：bootstrap（会话签发/复用）仍然 touch', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const before = await lastActivity(visitor.id);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    // 动态导入：composition 会加载 db.ts，必须在 before 设好 DATABASE_URL 之后。
+    const { createChatServices } = await import('../src/lib/server/composition');
+    const services = createChatServices({ db: db() as never, clock: () => new Date() });
+    const outcome = await services.visitorSessions.establish(visitor.token);
+    assert.equal(outcome.kind, 'reused');
+    assert.ok((await lastActivity(visitor.id)) > before, 'bootstrap 必须推进闲置期限');
+  });
+
+  test('K5：精确 16,384 字节的合法载荷返回 200', async () => {
+    await reset();
+    const visitor = await seedVisitor();
+    const input = {
+      clientConversationId: randomUUID(),
+      clientMessageId: randomUUID(),
+      locale: 'en' as const,
+      bodyText: '😀'.repeat(4_000),
+    };
+    let json = JSON.stringify(input);
+    const pad = 16_384 - Buffer.byteLength(json, 'utf8');
+    assert.ok(pad > 0, '4000 个 emoji 的 JSON 必须小于 16KiB');
+    json += ' '.repeat(pad);
+    assert.equal(Buffer.byteLength(json, 'utf8'), 16_384);
+    assert.equal((await post(json, { cookie: `${CHAT_VISITOR_COOKIE}=${visitor.token}` })).status, 200);
+  });
+
+  test('数据库不可用分类只认连接/超时，不误判数据层异常', () => {
+    assert.equal(isDatabaseUnavailable({ name: 'PrismaClientInitializationError' }), true);
+    assert.equal(isDatabaseUnavailable({ code: 'P1001' }), true);
+    assert.equal(isDatabaseUnavailable({ code: 'P2028' }), true);
+    assert.equal(isDatabaseUnavailable({ code: 'P2010', meta: { code: '57014' } }), true);
+    assert.equal(isDatabaseUnavailable({ code: 'ECONNREFUSED' }), true);
+    assert.equal(isDatabaseUnavailable({ code: 'P0001' }), false, '触发器 RAISE 默认 P0001 不是不可用');
+    assert.equal(isDatabaseUnavailable({ code: 'P2002' }), false, '唯一冲突不是不可用');
+    assert.equal(isDatabaseUnavailable(new Error('boom')), false);
   });
 });

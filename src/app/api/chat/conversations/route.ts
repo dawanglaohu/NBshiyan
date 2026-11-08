@@ -17,7 +17,12 @@ import {
   CHAT_WRITE_WINDOW_MS,
 } from '@/lib/chat/rules';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
-import { ChatIdempotencyConflict, ChatUnpublishedProduct } from '@/lib/server/chat/conversation-service';
+import {
+  ChatIdempotencyConflict,
+  ChatSessionNoLongerValid,
+  ChatTransactionBudgetExceeded,
+  ChatUnpublishedProduct,
+} from '@/lib/server/chat/conversation-service';
 import { isDatabaseUnavailable } from '@/lib/server/chat/repo';
 import {
   chatVisitorCookieSecure,
@@ -119,7 +124,7 @@ export async function POST(request: Request) {
         { onStoreError: 'closed' },
       ),
       hitRateLimit(
-        `${CHAT_NEW_SESSION_IP_PREFIX}${rateLimitSubject(ip)}`,
+        `${CHAT_NEW_SESSION_IP_PREFIX}${rateLimitKeyHash(rateLimitSubject(ip), env)}`,
         CHAT_NEW_SESSION_IP_LIMIT,
         CHAT_NEW_SESSION_WINDOW_MS,
         { onStoreError: 'closed' },
@@ -140,16 +145,23 @@ export async function POST(request: Request) {
       return fail(new AppError('rate_limited', { retryAfterSeconds: CHAT_WRITE_RETRY_AFTER_SECONDS }));
     }
 
-    const session = await services.visitorSessions.establish(read.value);
-    if (session.kind === 'rejected') return fail(new AppError('unauthorized'), clearChatVisitorCookie(secure));
+    // C3 / Jev C：这里只校验不写库；成功写入后由服务在同一个事务里做条件 touch。
+    const resolved = await services.visitorSessions.resolve(read.value);
+    if (resolved.kind === 'rejected') return fail(new AppError('unauthorized'), clearChatVisitorCookie(secure));
 
     let received;
     try {
       received = await services.conversations.createFirstMessage({
-        visitorSessionId: session.id,
+        session: resolved.session,
         payload: parsed.data,
       });
     } catch (error) {
+      if (error instanceof ChatSessionNoLongerValid) {
+        return fail(new AppError('unauthorized'), clearChatVisitorCookie(secure));
+      }
+      if (error instanceof ChatTransactionBudgetExceeded) {
+        return fail(new AppError('service_unavailable'));
+      }
       if (error instanceof ChatUnpublishedProduct) {
         return fail(new AppError('invalid', { fieldErrors: { productSlug: 'Must be a published product.' } }));
       }
@@ -166,6 +178,8 @@ export async function POST(request: Request) {
 
     return finish(200, ConversationReceivedDTOSchema.parse(received), {});
   } catch (error) {
+    // 会话校验段（resolve）与写入段的数据库不可用/超时统一映射 503；未知错误仍是 500。
+    if (isDatabaseUnavailable(error)) return fail(new AppError('service_unavailable'));
     const mapped = classifyThrown(error, requestId);
     if (mapped.kind === 'legacy-response') return withPrivateNoStore(mapped.response);
     if (mapped.kind === 'legacy-body') return finish(500, mapped.body, {});

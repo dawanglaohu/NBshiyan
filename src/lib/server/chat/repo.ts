@@ -1,5 +1,22 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { products } from '../../../data/products';
+import { visitorSessionTouchSql } from './visitor-session-repo';
+
+/** 会话在事务内已经不满足期限/撤销条件：整笔回滚，路由返回 401。 */
+export class ChatSessionNoLongerValid extends Error {
+  constructor() {
+    super('chat_session_invalid');
+    this.name = 'ChatSessionNoLongerValid';
+  }
+}
+
+/** 事务剩余预算不足，主动放弃而不是让慢语句拖过 5s。路由返回 503。 */
+export class ChatTransactionBudgetExceeded extends Error {
+  constructor() {
+    super('chat_transaction_budget_exceeded');
+    this.name = 'ChatTransactionBudgetExceeded';
+  }
+}
 
 /**
  * 「数据库不可用或超时」的保守分类，只认确定的类别：
@@ -250,6 +267,41 @@ export function createChatRepo(db: ChatWriteDb) {
         LIMIT 1
       `;
       return rows.length > 0;
+    },
+
+    /**
+     * 事务内的会话守卫（在 readExisting 之前执行，重放路径也不能绕过）。
+     * 用调用时的新鲜 now 比较期限，不看事务开始时间。
+     */
+    async assertSessionActive(tx: ChatTx, args: {
+      tokenHash: string;
+      now: Date;
+      idleMs: number;
+    }): Promise<void> {
+      const cutoff = new Date(args.now.getTime() - args.idleMs);
+      const rows = await tx.$queryRaw<{ id: string }[]>`
+        SELECT "id" FROM "ChatVisitorSession"
+        WHERE "tokenHash" = ${args.tokenHash}
+          AND "revokedAt" IS NULL
+          AND "absoluteExpiresAt" > ${utc(args.now)}
+          AND "lastActivityAt" > ${utc(cutoff)}
+      `;
+      if (rows.length !== 1) throw new ChatSessionNoLongerValid();
+    },
+
+    /**
+     * 事务内最后一次条件 touch：与写入同提交，0 行即整笔回滚（Jev C）。
+     * 时间取调用时刻，不把事务开始时间当最终有效性检查时间。
+     */
+    async touchSession(tx: ChatTx, args: {
+      tokenHash: string;
+      now: Date;
+      idleMs: number;
+    }): Promise<boolean> {
+      const rows = await tx.$queryRaw<{ id: string }[]>(
+        visitorSessionTouchSql(args.tokenHash, args.now, args.idleMs),
+      );
+      return Array.isArray(rows) && rows.length === 1;
     },
 
     async countNotifications(tx: ChatTx, messageId: string): Promise<number> {

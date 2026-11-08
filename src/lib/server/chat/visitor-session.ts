@@ -40,10 +40,30 @@ export type EstablishedChatSession = {
   expiresAt: Date;
 };
 
+declare const validatedChatSession: unique symbol;
+
+/**
+ * 已经通过 resolve 校验的会话句柄。品牌字段只在本模块的 resolve 里产生，
+ * 所以 `createFirstMessage` 拿不到未经校验的会话（不是可选参数、也没有默认 no-op）。
+ * 它不表示会话在事务提交时仍然有效——有效性由事务内的守卫与最终 touch 重新确认。
+ */
+export type ValidatedSession = {
+  id: string;
+  tokenHash: string;
+  expiresAt: Date;
+  readonly [validatedChatSession]: true;
+};
+
+export type ValidatedSessionResult =
+  | { kind: 'valid'; session: ValidatedSession }
+  | { kind: 'rejected' };
+
 export type ChatSessionEstablishResult = EstablishedChatSession | { kind: 'rejected' };
 
 export type VisitorSessionService = {
   establish(token: string | null): Promise<ChatSessionEstablishResult>;
+  /** 只校验不写库：给 conversations 用，失败请求不得推进闲置期限（C3 / 09:20）。 */
+  resolve(token: string): Promise<ValidatedSessionResult>;
 };
 
 /** 256bit 随机原值的 SHA-256。库里不存原值，也不用可逆密钥包装。 */
@@ -182,6 +202,24 @@ export function createVisitorSessionService(deps: {
       const touched = await repo.touchIfValid(row.tokenHash, now, policy.idleMs);
       if (!touched || !sessionAcceptsTouch(touched, now, policy.idleMs)) return { kind: 'rejected' };
       return { kind: 'reused', id: touched.id, token, expiresAt: chatSessionExpiry(touched, policy.idleMs) };
+    },
+    async resolve(token) {
+      const now = nowOrThrow();
+      if (!TOKEN_RE.test(token)) return { kind: 'rejected' };
+      const given = hashChatToken(token);
+      const row = await repo.findByTokenHash(given);
+      // 与 establish 相同：查无此行也对等长哑值比较一次，避免用返回快慢区分「库里没有」。
+      const stored = row?.tokenHash ?? '';
+      if (!row || !hashesMatch(given, stored)) return { kind: 'rejected' };
+      if (!sessionAcceptsTouch(row, now, policy.idleMs)) return { kind: 'rejected' };
+      return {
+        kind: 'valid',
+        session: {
+          id: row.id,
+          tokenHash: row.tokenHash,
+          expiresAt: chatSessionExpiry(row, policy.idleMs),
+        } as ValidatedSession,
+      };
     },
   };
 }
