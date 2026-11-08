@@ -1,4 +1,4 @@
-name: D3 Windows verify (frozen v4)
+name: D3 Windows verify (frozen v5)
 # 一次性验证入口，只用于 e7e2b7ee 的 Windows 构建/断言取证。
 # 触发仅限精确分支；工作流提交以 e7e2b7ee 为唯一父、只新增本文件；checkout 锁完整源码提交。
 on:
@@ -116,22 +116,39 @@ jobs:
           const pkgPath = require.resolve('next/package.json', { paths: [root] });
           const tracesPath = path.join(path.dirname(pkgPath), 'dist', 'build', 'collect-build-traces.js');
           const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-          const bytes = fs.readFileSync(tracesPath);
+          const lf = (b) => Buffer.from(b.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
+          const tracesRaw = fs.readFileSync(tracesPath);
+          const bytes = lf(tracesRaw);
           const h = crypto.createHash('sha1');
           h.update('blob ' + bytes.length + '\0');
           h.update(bytes);
           const blob = h.digest('hex');
+          const rawH = crypto.createHash('sha1');
+          rawH.update('blob ' + tracesRaw.length + '\0');
+          rawH.update(tracesRaw);
+          const rawBlob = rawH.digest('hex');
           const text = bytes.toString('utf8');
           const normalized = (text.match(/\.sep\)\.join\('\//g) || []).length;
           const oldForm = (text.match(/\.split\(path\.sep\)/g) || []).length;
-          const patchSha = crypto.createHash('sha256').update(fs.readFileSync('patches/next@15.5.28.patch')).digest('hex');
+          const patchRaw = fs.readFileSync('patches/next@15.5.28.patch');
+          const patchBytes = lf(patchRaw);
+          const patchSha = crypto.createHash('sha256').update(patchBytes).digest('hex');
+          const patchRawSha = crypto.createHash('sha256').update(patchRaw).digest('hex');
           console.log('NEXT_VERSION=' + pkg.version);
           console.log('NEXT_PKG=' + pkgPath);
           console.log('TRACES_PATH=' + tracesPath);
           console.log('TRACES_BLOB=' + blob);
+          console.log('TRACES_BLOB_RAW=' + rawBlob);
+          console.log('TRACES_RAW_BYTES=' + tracesRaw.length);
+          console.log('TRACES_NORMALIZED_BYTES=' + bytes.length);
+          console.log('TRACES_CR_COUNT=' + (tracesRaw.toString('latin1').match(/\r\n/g) || []).length);
           console.log('NORMALIZE_HITS=' + normalized);
           console.log('OLD_FORM_HITS=' + oldForm);
           console.log('PATCH_FILE_SHA256=' + patchSha.toUpperCase());
+          console.log('PATCH_FILE_SHA256_RAW=' + patchRawSha.toUpperCase());
+          console.log('PATCH_FILE_RAW_BYTES=' + patchRaw.length);
+          console.log('PATCH_FILE_NORMALIZED_BYTES=' + patchBytes.length);
+          console.log('PATCH_FILE_CR_COUNT=' + (patchRaw.toString('latin1').match(/\r\n/g) || []).length);
           console.log('NEXT_PATH_HAS_PATCH_HASH=' + /_patch_hash=/.test(pkgPath));
           let swc = 'load-failed';
           let swcPath = 'unresolved';
@@ -143,12 +160,14 @@ jobs:
           } catch (e) { swc = 'load-failed: ' + e.message; }
           console.log('SWC_PATH=' + swcPath);
           console.log('SWC_NATIVE=' + swc);
-          const lock = fs.readFileSync('pnpm-lock.yaml', 'utf8');
+          const lockRaw = fs.readFileSync('pnpm-lock.yaml', 'utf8');
+          const lock = lockRaw.replace(/\r\n/g, '\n');
           const block = lock.slice(lock.indexOf('\npatchedDependencies:'));
           const m = block.match(/\n  next@15\.5\.28:\n    hash: ([0-9a-f]{64})\n    path: (patches\/next@15\.5\.28\.patch)/);
           if (!m) { console.error('LOCK_PATCH_ENTRY_MISSING'); process.exit(1); }
           console.log('LOCK_PATCH_HASH=' + m[1]);
           console.log('LOCK_PATCH_PATH=' + m[2]);
+          console.log('LOCK_CR_COUNT=' + (lockRaw.match(/\r\n/g) || []).length);
           if (pkg.version !== '15.5.28') process.exit(1);
           if (!/_patch_hash=/.test(pkgPath)) process.exit(1);
           if (blob !== process.env.PATCHED_TRACES_BLOB) process.exit(1);
