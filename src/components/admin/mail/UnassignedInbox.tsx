@@ -43,17 +43,17 @@ export default function UnassignedInbox() {
   };
 
   return (
-    <div className="ml">
+    <div className="ml ml-unassigned" data-testid="unassigned-inbox">
       <h1>未归类邮件</h1>
       <p className="muted">匹配不到询盘的来信。只有管理员能看，收到满 90 天自动删除（忽略不改期限）。</p>
       {notice && <div className="ml-banner" role="status">ⓘ {notice} <button type="button" className="ml-btn" onClick={() => setNotice(undefined)}>知道了</button></div>}
       {err && <p className="warn" role="alert">加载失败：{err}</p>}
-      <div className="adm-tabs" role="group" aria-label="分类">
+      <div className="adm-tabs" role="group" aria-label="分类" data-testid="unassigned-tabs">
         <button type="button" aria-pressed={tab === 'UNASSIGNED'} onClick={() => { setTab('UNASSIGNED'); setSel(undefined); }}>待处理 ({page?.counts.unassigned ?? '…'})</button>
         <button type="button" aria-pressed={tab === 'IGNORED'} onClick={() => { setTab('IGNORED'); setSel(undefined); }}>已忽略 ({page?.counts.ignored ?? '…'})</button>
       </div>
       <div className={`ml-inbox${sel ? ' has-sel' : ''}`}>
-        <ul className="ml-list" aria-label="邮件列表">
+        <ul className="ml-list" aria-label="邮件列表" data-testid="unassigned-list">
           {page?.items.map((r) => {
             const ex = expiresText(r.expiresAt);
             const subj = subjectText(r);
@@ -75,7 +75,7 @@ export default function UnassignedInbox() {
           })}
           {page && !page.items.length && <li className="ml-empty">{tab === 'UNASSIGNED' ? '没有待处理的未归类邮件。' : '没有已忽略的邮件。'}</li>}
         </ul>
-        <div className="ml-detail">
+        <div className="ml-detail" data-testid="unassigned-detail">
           {sel && <button type="button" className="ml-btn ml-back" onClick={() => setSel(undefined)}>← 返回列表</button>}
           {!sel && <p className="muted ml-pick">选择左侧的一封邮件查看。</p>}
           {sel && detail === undefined && <p className="muted">加载中…</p>}
@@ -83,7 +83,7 @@ export default function UnassignedInbox() {
           {detail && <Detail d={detail} onIgnore={() => ignore(detail.id)} onUnignore={() => unignore(detail.id)} onAssigned={() => { setSel(undefined); void load(); }} onHandled={handled} />}
         </div>
       </div>
-      {toast && <div className="ml-toast" role="status">已忽略 · <button type="button" onClick={() => unignore(toast.id)}>撤销</button> <button type="button" aria-label="关闭" onClick={() => setToast(undefined)}>×</button></div>}
+      {toast && <div className="ml-toast" role="status" data-testid="unassigned-toast">已忽略 · <button type="button" onClick={() => unignore(toast.id)}>撤销</button> <button type="button" aria-label="关闭" onClick={() => setToast(undefined)}>×</button></div>}
     </div>
   );
 }
@@ -102,7 +102,7 @@ function Detail({ d, onIgnore, onUnignore, onAssigned, onHandled }: { d: Unassig
         {MAIL_ATTACHMENTS_LIVE && d.attachments.filter((a) => a.downloadUrl).map((a) => <AttachmentCard key={a.id} a={a} />)}
       </>}
       {d.status === 'UNASSIGNED' ? <Assign d={d} onIgnore={onIgnore} onAssigned={onAssigned} onHandled={onHandled} />
-        : <div className="ml-row" style={{ marginTop: 16 }}><button type="button" className="ml-btn" onClick={onUnignore}>移回待处理</button></div>}
+        : <div className="ml-row ml-unassigned-return"><button type="button" className="ml-btn" onClick={onUnignore}>移回待处理</button></div>}
     </article>
   );
 }

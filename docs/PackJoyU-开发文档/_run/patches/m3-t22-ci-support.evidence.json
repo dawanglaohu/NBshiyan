@@ -1,0 +1,26 @@
+{
+  "scope": "task-contract",
+  "tasks": {
+    "M3-T22": {
+      "contractHash": "9318c939fa95b9f23968a42304f55b58087c8ddc5fd5ca333695feb5266fed0f",
+      "evidence": [
+        "契约源 _run/task-contracts.json 的 tasks['M3-T22'].supportPaths 由 [e2e/admin-legacy-unassigned-gate.spec.ts, tests/admin-legacy-unassigned-style.test.ts] 扩为三条，新增 .github/workflows/ci.yml；outputPaths 仍为 UnassignedInbox.tsx、UnassignedNav.tsx、mail.css 三条，未改验收语义。",
+        "ci.yml 确为本任务真实 delta：94fb9454..f3ea8eb1 中 .github/workflows/ci.yml +4/−4——A3 收集断言 210/207/2/1（L355 名称、L386 分区断言、L388 去重、L399 回显）与本轮合入后主段显示名由 203 改 207（L478，仅名称）。",
+        "merge-forward 后语义核对：保留本任务 210/207/2/1，同时保留 main 的 M5-T5 PG17 接线（M5T5_TEST_DATABASE_URL/REQUIRE_DATABASE 于 L196-197、测试登记 L227/271/301），未引入 M2-T6 的 212/209 或 M3-T23 内容；未改断言、预算或其他 job。",
+        "状态与边界：任务卡仍 status: todo，未跑 --landed；回填与证据边界写作将沿用现有卡片，媒体独验与最终头 CI 未齐前不标 done。",
+        "派生在合并后用 maintain_docs.py build 统一重建（非仅 build_docs），sourceVersion/输入产物哈希见收尾核验。"
+      ],
+      "verdict": "pass"
+    },
+    "M7-T10": {
+      "contractHash": "b536a3bd20eb2804abc2c3eb6bda707c81cce67950462af433627c81b3c5a762",
+      "evidence": [],
+      "verdict": "pending"
+    },
+    "M7-T9": {
+      "contractHash": "342e0cbb4c19dd0181e2777e1eb1580aed8e0881c3a7108abd62a32d3def841e",
+      "evidence": [],
+      "verdict": "pending"
+    }
+  }
+}
