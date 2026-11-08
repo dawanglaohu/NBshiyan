@@ -1087,15 +1087,15 @@
   },
   "M5-T11": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "47227a74eb01f7b99a4e2a24b5c5e8cedc48fe3be4bda0066f74d252055d98fc",
+    "contractHash": "e14b37e3f55b410b38333f79f955a6cf0d6cf4cda7af3745ede2161bc872df5b",
     "evidence": [
-      "补丁 m5t11-aggregate-scope-20261108 仅改 _run/task-contracts.json 的 M5-T11.supportPaths：新增 src/lib/server/analytics/aggregate.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变（task-contracts.json 差量只有 supportPaths，其余 84 个任务定义逐字未变）。",
-      "登记依据：B3 数据正确性阻断要求受影响日 preflight 复用既有整日聚合能力，而现有 aggregateOneDayInSnapshot 的注释限验证、无 deadline/预算参数；把该文件纳入 M5-T11 写域是让后端接入 budget.deadlineAt、完成“可整日重算则先聚合再删”的最小支持路径，不是新增第二套聚合算法。",
-      "本补丁只登记范围：未改接口/源码/测试/schema/CI/产品条款/其他任务；不声称 B2/B3 已修复、不声称真库或 CI 通过，也不代表最终落地条件；B2/B3 仍待后端 R1 实现与独立复验。",
-      "影响集合 5 个任务（M5-T11 + M7-T10/M7-T3/M7-T8/M7-T9 消费者）；它们定义未改，仅契约哈希传播；sync 后 revalidation 仍为空，未手清任何标记。",
-      "范围核对：M5-T11 当前 effectivePaths = outputPaths 5 项 + supportPaths 1 项（新增 aggregate.ts），共 6 项；progress 98 键/done 95、contracts 144、dispatch 144、batchRecords 16、dispatchBatches 22 与父头一致，sourceVersion 更新为 b4e28e1b…。"
+      "补丁 m5t11-cron-assert-20261108 仅改 _run/task-contracts.json 的 M5-T11.supportPaths：新增 tests/jobs-runtime.http.test.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变，任务契约 diff 仅 2 增 1 删，其余 84 个任务定义逐字未变。",
+      "登记依据：M5-T11 在 1f4a2da6 新增每日 04:30 analytics-retention 的 operations 调度后，tests/jobs-runtime.http.test.ts 的 cron 模板断言（原为 operations 恰一条）失败；Chief 裁定该失败由本任务新增行触发、须在本任务修复，而该测试文件不在 M5-T11 的 outputPaths/supportPaths，故先做最小支持路径登记。",
+      "本补丁只登记范围：未改源码/测试/schema/cron/CI/产品条款，cron 断言仍未修复、jobs-runtime 仍为红项；不声称 R3 实现通过或真库/CI 通过，测试修复与真库复验另交后续步骤。",
+      "范围核对：M5-T11 effectivePaths 现 9 项 = outputPaths 5 + supportPaths 2（aggregate.ts、tests/jobs-runtime.http.test.ts）+ wiring container 注册点 2（src/auth.ts、src/lib/server/db.ts）；wiring jobs 的 registry.ts 已被 outputPaths 覆盖。",
+      "影响集合 5 个任务（M5-T11 + M7-T10/M7-T3/M7-T8/M7-T9）；定义未改，仅契约哈希传播；sync 后 revalidation 仍为空 {}，未手清标记；progress 98 键 / done 95 / hold 2 / ops 1，contracts 144、dispatch 144、batchRecords 16、dispatchBatches 22；sourceVersion 872063d1a3f5b6cd322eea1452e97d2ec697fdd3bfe583b687a944587e8b7ece。"
     ],
-    "reviewed": "2026-11-08T20:07:00.235061+00:00",
+    "reviewed": "2026-11-08T21:51:03.023338+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

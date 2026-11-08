@@ -2846,7 +2846,8 @@
         "container"
       ],
       "supportPaths": [
-        "src/lib/server/analytics/aggregate.ts"
+        "src/lib/server/analytics/aggregate.ts",
+        "tests/jobs-runtime.http.test.ts"
       ],
       "outputPaths": [
         "src/lib/server/analytics/retention.ts",
