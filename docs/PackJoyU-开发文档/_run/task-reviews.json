@@ -3,13 +3,14 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "2e53631d49f16c6a728602061fe54c057ead6f58ab54fe4cb9ac560fbc5e2a80",
     "evidence": [
-      "本窗对该任务只改事实限定：ANALYTICS-ROLLUP.md:21 与 04-执行/遗留issue-20261024.md:601 改为“收口分支已实现退役、main `78966e99` 尚未包含该修复、main 仍保留旧写入实现；未核验生产部署版本”，不再用“生产仍是旧写入实现”描述未核验的生产状态；:56 标注“收口分支已退役（main 未包含）”；:61-62 把 cron 指向 operations 标注为 M5-T8 已合入 main，旧路由 410 标注为收口分支。",
-      "卡面 :73（实施沉淀）原“收进 registry 另立任务”已标明为 #477 阶段历史结论，并写明该接入已由 M5-T8 完成（固定 registry + POST /api/admin/cron/operations），不再另立任务。",
-      "逐条核对代码事实：b2ea2cfe 的 src/app/api/admin/cron/analytics-rollup/route.ts 在 :21 返回 410 route_retired、:27-28 缺/错凭据返回 401、:33-34 GET/POST 共用同一 handler；main 78966e99 的同文件仍是旧写入实现（未核验生产部署版本）；deploy/cron.nbshiyan:11 自 M5-T8 起每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate）。",
-      "未改任务状态与历史：status done、PR #477、合并提交 90b2658d、acceptance 文本、edges 均保持；不声称生产已部署，不把分支态写成 main 态，也不把 main 状态推成生产状态。",
-      "源码/测试/CI 零漂移（本窗）：git diff --stat a24a8ca9..HEAD -- src tests .github prisma deploy package.json pnpm-lock.yaml 为空；派生由工具重建，stale=[]、runtimeDrift=[]，progress 97 键/done 94，dispatch 144 任务无增删。"
+      "变更字段仅 task（补丁 d1d2-rollup-writeback-20261108；源 04-执行/遗留issue-20261024.md:601，渲染卡面 ANALYTICS-ROLLUP.md:21 与 :73）：把旧入口现状限定为「收口分支已退役、main `78966e99` 尚未包含、main 仍保留旧写入实现、未核验生产部署版本」，并把「收进 registry 另立任务」标为 #477 阶段历史结论、该接入已由 M5-T8 完成；验收文本、status、PR #477、合并提交 90b2658d 均未改。",
+      "固定 e7e2b7ee 代码事实：src/app/api/admin/cron/analytics-rollup/route.ts blob bc82e095…（1,326 B、sha256 1707A02D…，与 D1 冻结头 3410fe95 及 7bcb2468 同 blob）；:21 为 410 `route_retired` + `Cache-Control: no-store`，:27-28 缺/错凭据 401（真实 secretMatches），:33-34 GET/POST 共用同一 handler；鉴权通过后不再调用数据库、聚合、告警、审计或邮件。",
+      "main 事实核对：78966e99 是 Merge pull request #541 from dawanglaohu/task/M5-T8（双亲 a6f0089b、6701a749），其 route.ts 仍为 blob 1435d105…（旧写入实现）；`git merge-base --is-ancestor 3410fe95 78966e99` 返回 1，D1 修复未进 main，与卡面事实限定一致；「未核验生产部署版本」是边界声明，未把分支态写成 main 或生产态。",
+      "部署链：deploy/cron.nbshiyan:11 为每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate，Bearer 取自容器 env），文件已无 analytics-rollup 调度行，与卡面 :61「旧 rollup 行已删」一致；当前生产部署版本未核验，不作宣称。",
+      "通过依据沿用既有 PASS：D1 真实路由调用计数红测 5 用例 1 pass/4 fail（旧路由 200/run=1、500/alert+audit、409、500/alert+audit），三份受影响测试绿 11/11、0 skip；3410fe95 默认入口实跑与预存哨兵窄复核 PASS（db-d1-narrow-recheck-3410fe95-20261108.md）；实际 diff Jev 复判 A high 0.97（state FAA2E202…/result FD758DAB…）。本次只核固定对象与既有证据，未重跑测试、未连库。",
+      "证据对象是候补分支 e7e2b7ee（worktree 0 dirty），不是 main；main 尚未含 D1/D2 修复，不把候选分支状态冒称 main 已修或生产已部署。"
     ],
-    "reviewed": "2026-11-08T05:14:12.000706+00:00",
+    "reviewed": "2026-11-08T12:00:15.298383+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1179,12 +1180,14 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "cbaf13f86bcfb5423c36ecf407210068b85f9c62785068f1fb22a9210136ebab",
     "evidence": [
-      "契约增量来自上一笔已被授权窗口：task-contracts.json 的 M5-T8.supportPaths 由 4 条增至 8 条，只新增 src/app/api/admin/cron/analytics-rollup/route.ts、tests/analytics-rollup.test.ts、tests/d1-route-sideeffect.test.ts、tests/fixtures/d1-route-sideeffect.case.ts；outputPaths、验收标准、status 未动（本窗未再改 task-contracts.json）。",
-      "卡面事实限定：M5-T8.md:100 与 :104 把“未 push/无 CI/未合入 main”明确为当时提交状态，并写明原任务其后由 #541 合入 main（merge 78966e99）；:105 D1 与 :106 D2 保留“未 push/未合并”并明确指本轮修复，不把这些写成当前 main 状态。",
-      "引用行号实核与当前树一致：route.ts:21/:27-28/:33-34；aggregate-repo.ts:117（upsertWatermarkGuarded）与 :147-159（WHERE）；tests/jobs-runtime.http.test.ts:208；tests/cron-analytics-rollup.test.ts:6 与 :26；tests/analytics-rollup.test.ts:149-162；tests/d1-route-sideeffect.test.ts:144。",
-      "只复验变化及其影响：契约哈希 cbaf13f8… 仅在 definition/effectivePaths 待复验，验收/边界/状态未变；D1 受影响三份测试 11/11、D2 整文件 17/17 与 jobs-runtime 16/16 按各自 SHA 记录（D1 3410fe95、D2 b2ea2cfe），不冒充新文档头 CI 已通过。"
+      "变更字段 definition/effectivePaths：task-contracts.json 的 M5-T8.supportPaths 由 4 条增至 8 条，仅新增 src/app/api/admin/cron/analytics-rollup/route.ts、tests/analytics-rollup.test.ts、tests/d1-route-sideeffect.test.ts、tests/fixtures/d1-route-sideeffect.case.ts；outputPaths、验收标准、边界与状态未动。卡面 M5-T8.md:104-106 新增 D1/D2 事实限定，属定义文字增量。",
+      "四条新 supportPaths 在 e7e2b7ee 均存在且与冻结头一致：route.ts blob bc82e095…（1,326 B / 1707A02D…，= D1 3410fe95）；tests/d1-route-sideeffect.test.ts blob 917bff9f…、tests/fixtures/d1-route-sideeffect.case.ts blob d47aa4f1…（与 3410fe95 同 blob）；tests/analytics-rollup.test.ts 存在。8 条 supportPaths 逐条可读，无空项。",
+      "卡面 :105 的 D1 事实核对：78966e99→7bcb2468 对 route.ts 有修改（M），7bcb2468 与 3410fe95 的 route.ts 同 blob bc82e095…、两提交间无 diff；旧路由红测 5 用例 1 pass/4 fail，修复后三份受影响测试 11/11、0 skip，3410fe95 默认入口实跑与窄复核 PASS，Jev A high 0.97 — 与既有 PASS 证据一致。",
+      "卡面 :106 的 D2 事实核对：aggregate-repo.ts:117 为 upsertWatermarkGuarded、:147-159 为 revision 分流 WHERE（blob 48403236… = D2 冻结头 b2ea2cfe）；aggregate.ts:157 仍为 `affected !== 1` 抛 AggregateVersionConflict('watermark_regression')。红 1 pass/4 fail、绿 17/17（0 skip）、jobs-runtime 16/16、数据库独审 PASS（b2ea2cfe）；旧守卫本就放行较新 revision 的 NULL，NULL 重定不计入本次修复收益 — 与 db-d2-watermark-guard-review 一致。",
+      "卡面 :100/:104 的「当时未 push/无 CI」是历史状态限定，并写明原任务其后由 #541 合入 main（merge 78966e99）；「本轮 D1/D2 修复至今未合入 main」经 `git merge-base --is-ancestor 3410fe95/b2ea2cfe 78966e99` 均返回 1 核实。证据对象为候补分支 e7e2b7ee（0 dirty），不是 main。",
+      "边界：D1/D2 的测试与 CI 结论仍绑定各自提交（3410fe95 本地 11/11；b2ea2cfe 本地 17/17 + jobs-runtime 16/16），本次只核 blobs 未漂移并复用既有 PASS；不冒称 e7e2b7ee 有新 CI，也不冒称完整 HTTP 链或真实时区设置链已验证。"
     ],
-    "reviewed": "2026-11-08T05:10:04.353400+00:00",
+    "reviewed": "2026-11-08T12:00:46.276731+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
