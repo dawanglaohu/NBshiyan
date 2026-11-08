@@ -38,6 +38,30 @@ const EDGE_SECRET = 'e'.repeat(32);
 const DAY_MS = 24 * 60 * 60 * 1000;
 const config = loadServerConfig({ APP_ENV: 'test' });
 
+/**
+ * 只取目标模型块：行首 `model X {` 到首个行首 `}`，不取到 EOF，也不命中注释里的示例。
+ * 目标缺失/未闭合/空块/块内混入相邻模型都直接失败，避免空切片假绿。
+ */
+function modelBlock(schema: string, name: string): string {
+  const start = new RegExp(`^model ${name} \\{`, 'm').exec(schema)?.index;
+  assert.ok(start !== undefined && start >= 0, `model ${name} missing`);
+  const end = schema.indexOf('\n}', start);
+  assert.ok(end > start, `model ${name} block not closed`);
+  const block = schema.slice(start, end + 2);
+  assert.ok(block.length > `model ${name} {`.length, `model ${name} block empty`);
+  assert.equal((block.match(/^model /gm) ?? []).length, 1, `model ${name} block must not include an adjacent model`);
+  return block;
+}
+
+/** 隐私门禁：四条原断言不变，作用域收窄到 ChatVisitorSession 模型块。 */
+function assertChatVisitorSessionPrivacy(schema: string): void {
+  const block = modelBlock(schema, 'ChatVisitorSession');
+  assert.match(block, /tokenHash\s+String\s+@unique/);
+  assert.match(block, /@@index\(\[absoluteExpiresAt\]\)/);
+  assert.match(block, /@@index\(\[lastActivityAt\]\)/);
+  assert.equal(/\bemail\b/i.test(block), false);
+}
+
 type HttpResult = {
   status: number;
   text: string;
@@ -345,11 +369,8 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
 
   test('schema stores a hash, indexes expiry, and has no email column', () => {
     const schema = readFileSync('prisma/schema.prisma', 'utf8');
-    const block = schema.slice(schema.indexOf('model ChatVisitorSession'));
-    assert.match(block, /tokenHash\s+String\s+@unique/);
-    assert.match(block, /@@index\(\[absoluteExpiresAt\]\)/);
-    assert.match(block, /@@index\(\[lastActivityAt\]\)/);
-    assert.equal(/\bemail\b/i.test(block), false);
+    assertChatVisitorSessionPrivacy(schema);
+    const block = modelBlock(schema, 'ChatVisitorSession');
     assert.equal(block.includes('accept-data-loss'), false);
     assert.equal(CHAT_VISITOR_POLICY.idleMs, 7 * DAY_MS);
     assert.equal(CHAT_VISITOR_POLICY.absoluteMs, 30 * DAY_MS);
@@ -358,6 +379,34 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
     assert.equal(CHAT_SESSION_COOKIE_LIMIT, 10);
     assert.equal(CHAT_SESSION_IP_LIMIT, 20);
     assert.equal(CHAT_SESSION_RATE_WINDOW_MS, 10 * 60 * 1000);
+  });
+
+  test('ChatVisitorSession 隐私守卫负控：目标泄漏/缺失/空块/未闭合失败，相邻模型与 CRLF 不误报', () => {
+    const fixture = [
+      'model ChatVisitorSession {',
+      '  tokenHash          String   @unique',
+      '  @@index([absoluteExpiresAt])',
+      '  @@index([lastActivityAt])',
+      '}',
+    ].join('\n');
+    assertChatVisitorSessionPrivacy(fixture);
+
+    // 目标模型内加 email 必须失败（原 email 断言未放宽）
+    const leaked = fixture.replace('  tokenHash          String   @unique', '  tokenHash          String   @unique\n  email String?');
+    assert.throws(() => assertChatVisitorSessionPrivacy(leaked));
+
+    // 目标缺失/未闭合/空块都必须失败，不能空切片假绿
+    assert.throws(() => modelBlock('model ChatMessage {\n  bodyText String\n}', 'ChatVisitorSession'), /missing/);
+    assert.throws(() => modelBlock('model ChatVisitorSession {\n  tokenHash String @unique\n', 'ChatVisitorSession'), /not closed/);
+    assert.throws(() => assertChatVisitorSessionPrivacy('model ChatVisitorSession {\n}\nmodel ChatConversation {\n  email String?\n}'));
+
+    // 相邻模型含 email/bodyText 不得误报；注释里的示例不得被当成目标模型
+    assertChatVisitorSessionPrivacy(`${fixture}\nmodel ChatConversation {\n  email String?\n  bodyText String\n}`);
+    assertChatVisitorSessionPrivacy(`// model ChatVisitorSession {\n//   email String?\n// }\n${fixture}`);
+
+    // 模型前后顺序与 LF/CRLF 不改变结果
+    assertChatVisitorSessionPrivacy(fixture.replace(/\n/g, '\r\n'));
+    assertChatVisitorSessionPrivacy(`model ChatConversation {\r\n  email String?\r\n}\r\n${fixture.replace(/\n/g, '\r\n')}`);
   });
 
   test('touch sql binds now and the idle cutoff as UTC wall-clock parameters', () => {
