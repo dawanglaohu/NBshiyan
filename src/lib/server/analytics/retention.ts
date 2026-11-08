@@ -1,6 +1,6 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { planSnapshot, type CoverageState } from '../../analytics/aggregate-plan';
-import { siteLocalDate } from '../../analytics/day-boundaries';
+import { siteDayUtcBounds, siteLocalDate } from '../../analytics/day-boundaries';
 import type { AppErrorCode } from '../../contracts/errors';
 import type { JobCountsDTO, JobResultStatus } from '../../contracts/ops';
 import { createJobLeaseRepo } from '../jobs/lease-repo';
@@ -19,6 +19,7 @@ import {
   AggregateBatchExceeded,
   AggregateDeadlineExceeded,
   AggregateVersionConflict,
+  aggregateOneDayInSnapshot,
   runAggregateOnce,
 } from './aggregate';
 import {
@@ -83,6 +84,19 @@ export function resolveRetentionMode(input: {
   return { mode: 'delete', rejected: false };
 }
 
+export type AnalyticsRetentionHistory = {
+  /** 本轮删除会碰到的站点本地日（升序去重）。 */
+  affectedDays: string[];
+  /** 仍完整可重算、已先整日聚合的日。 */
+  recomputedDays: string[];
+  /** 已有完整旧聚合、保留原结果的日。 */
+  preservedDays: string[];
+  /** 既无完整旧聚合、又不在可整日重算范围内：显式覆盖缺口。 */
+  gapDays: string[];
+  /** 历史受影响日汇总出的覆盖度；近期 complete 不能覆盖它。 */
+  coverage: CoverageState;
+};
+
 export type AnalyticsRetentionReport = {
   mode: RetentionMode;
   requestedDelete: boolean;
@@ -93,8 +107,9 @@ export type AnalyticsRetentionReport = {
   deletedRollupDailyRows: number;
   deletedRollupDays: number;
   batches: number;
-  /** 本轮重算覆盖度；dry-run 时是计划器对「将要重算的日」的判定。 */
+  /** 本轮综合覆盖度：历史受影响日与近期聚合取最坏值。 */
   coverage: CoverageState;
+  history: AnalyticsRetentionHistory;
   /** 完整原始覆盖起点（UTC 瞬时与所在站点本地日），用于解释 partial/unavailable。 */
   completeRawCoverageStartUtc: string;
   completeRawCoverageStartLocalDate: string;
@@ -105,6 +120,58 @@ export type AnalyticsRetentionReport = {
   recomputedDays: number;
   skippedDays: string[];
 };
+
+export type HistoricalDayClass = 'expired' | 'recomputable' | 'preserved' | 'gap';
+
+export type HistoricalDayInput = {
+  siteDate: string;
+  /** 该站点本地日的 UTC 起点（siteDayUtcBounds().startUtc）。 */
+  dayStartUtc: string;
+  /** 该日是否已有完整旧聚合标记（AnalyticsRollupDay 行）。 */
+  hasAggregate: boolean;
+};
+
+/**
+ * 删除前逐受影响站点日分类。顺序即优先级：
+ * 1. 已过 13 个自然月的日：原始与聚合都在本轮到期，按保留规则正常删，不记缺口；
+ * 2. 日界不早于完整原始覆盖起点：仍可整日重算，先聚合再删；
+ * 3. 已有完整旧聚合：保留原结果，原始覆盖变为不完整；
+ * 4. 其余：既不能重算、也没有旧聚合，显式记覆盖缺口。
+ *
+ * 这是纯函数：调用方负责在预算内读取标记、并只为 recomputable 日调用既有聚合能力。
+ */
+export function classifyHistoricalDays(input: {
+  days: readonly HistoricalDayInput[];
+  /** recomputableFrom(now, timezone) 的 UTC 瞬时。 */
+  completeRawCoverageStartUtc: string;
+  /** 汇总到期上界：siteDate <= 此本地日即已过 13 个自然月。 */
+  rollupExpiryThrough: string;
+}): Pick<AnalyticsRetentionHistory, 'affectedDays' | 'recomputedDays' | 'preservedDays' | 'gapDays' | 'coverage'> {
+  const start = Date.parse(input.completeRawCoverageStartUtc);
+  const affectedDays: string[] = [];
+  const recomputedDays: string[] = [];
+  const preservedDays: string[] = [];
+  const gapDays: string[] = [];
+  for (const day of input.days) {
+    affectedDays.push(day.siteDate);
+    if (day.siteDate <= input.rollupExpiryThrough) continue;
+    const dayStart = Date.parse(day.dayStartUtc);
+    if (Number.isFinite(start) && Number.isFinite(dayStart) && dayStart >= start) {
+      recomputedDays.push(day.siteDate);
+      continue;
+    }
+    if (day.hasAggregate) preservedDays.push(day.siteDate);
+    else gapDays.push(day.siteDate);
+  }
+  const coverage: CoverageState = gapDays.length > 0 ? 'unavailable' : preservedDays.length > 0 ? 'partial' : 'complete';
+  return { affectedDays, recomputedDays, preservedDays, gapDays, coverage };
+}
+
+/** 历史与近期覆盖度取最坏值：recent complete 不能掩盖历史 gap。 */
+export function worstCoverage(left: CoverageState, right: CoverageState): CoverageState {
+  const rank: Record<CoverageState, number> = { complete: 0, partial: 1, unavailable: 2 };
+  return rank[left] >= rank[right] ? left : right;
+}
 
 export type AnalyticsRetentionRun =
   | { kind: 'busy' }
@@ -158,6 +225,7 @@ function emptyReport(decision: RetentionModeDecision, requestedDelete: boolean, 
     deletedRollupDays: 0,
     batches: 0,
     coverage: 'unavailable',
+    history: { affectedDays: [], recomputedDays: [], preservedDays: [], gapDays: [], coverage: 'complete' },
     completeRawCoverageStartUtc: '',
     completeRawCoverageStartLocalDate: '',
     eventExpiryCutoff: '',
@@ -301,7 +369,67 @@ export async function runAnalyticsRetention(deps: {
       return persistHere('SUCCEEDED', null, report);
     }
 
-    // 5. 删除：每批独立事务，批内续租并按剩余预算重设 statement/lock timeout。
+    // 5. 删除前 preflight：按受影响站点日分类，缺口显式上报（09:72 / E-82）。
+    //    只有日界不早于完整原始覆盖起点的日才允许先整日聚合；其余不碰旧聚合，
+    //    也不为了凑 complete 去调单日测试路径或伪造 now/currentDate。
+    const affected = await runWithinBudget(deps.db, budget, (tx) =>
+      tx.$queryRaw<{ siteDate: string; hasAggregate: boolean }[]>(Prisma.sql`
+        SELECT d."siteDate" AS "siteDate", (r."siteDate" IS NOT NULL) AS "hasAggregate"
+        FROM (
+          SELECT DISTINCT to_char(
+            ("receivedAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timezone}, 'YYYY-MM-DD'
+          ) AS "siteDate"
+          FROM "AnalyticsEvent"
+          WHERE "receivedAt" <= ${utc(eventCutoff)}
+          ORDER BY 1
+          LIMIT ${maxPerRun}
+        ) AS d
+        LEFT JOIN "AnalyticsRollupDay" AS r ON r."siteDate" = d."siteDate"
+        ORDER BY d."siteDate"
+      `));
+    if (affected.kind === 'budget') return { kind: 'timeout' };
+    if (affected.kind === 'error') throw affected.error;
+    report.history = classifyHistoricalDays({
+      days: affected.value.map((row) => ({
+        siteDate: row.siteDate,
+        dayStartUtc: siteDayUtcBounds(row.siteDate, timezone).startUtc,
+        hasAggregate: row.hasAggregate,
+      })),
+      completeRawCoverageStartUtc: coveragePlan.completeRawCoverageStartUtc,
+      rollupExpiryThrough: rollupThrough,
+    });
+    if (report.history.gapDays.length > 0 || report.history.preservedDays.length > 0) {
+      console.info('[cron] analytics retention history coverage', {
+        affected: report.history.affectedDays.length,
+        recomputed: report.history.recomputedDays.length,
+        preserved: report.history.preservedDays.length,
+        gap: report.history.gapDays.length,
+      });
+    }
+    for (const siteDate of [...report.history.recomputedDays]) {
+      if (budgetExhausted(budget)) throw new RetentionRunTimeout();
+      try {
+        await aggregateOneDayInSnapshot({
+          db: deps.db,
+          siteDate,
+          siteTimezone: timezone,
+          cutoff: now,
+          timezoneRevision: claim.timezoneRevision,
+          generation: claim.generation,
+          now,
+        });
+      } catch (error) {
+        if (error instanceof AggregateDeadlineExceeded || isBudgetTimeoutError(error)) throw new RetentionRunTimeout();
+        if (error instanceof AggregateVersionConflict) throw error;
+        // 先尝试失败：不重写历史、不用残片补，降级为显式缺口。
+        console.error('[cron] analytics retention preflight aggregate skipped', errorName(error));
+        report.history.recomputedDays = report.history.recomputedDays.filter((day) => day !== siteDate);
+        report.history.gapDays = [...report.history.gapDays, siteDate].sort();
+        report.history.coverage = 'unavailable';
+      }
+    }
+
+    // 6. 删除：每批独立事务，批内续租并按剩余预算重设 statement/lock timeout。
     const runBatch = async (work: (tx: Prisma.TransactionClient) => Promise<number>): Promise<number> => {
       if (budgetExhausted(budget)) throw new RetentionRunTimeout();
       const result = await runWithinBudget(deps.db, budget, async (tx) => {
@@ -313,7 +441,15 @@ export async function runAnalyticsRetention(deps: {
       return Number(result.value);
     };
 
-    const drain = async (cap: number, remove: (limit: number) => Promise<number>): Promise<number> => {
+    /**
+     * 每批事务提交返回后才记入报告：中途某批失败时，前面已提交批次的真实删除数
+     * 仍在返回计数和 FAILED 摘要里；失败批次不计，已计入的不重复。
+     */
+    const drain = async (
+      cap: number,
+      remove: (limit: number) => Promise<number>,
+      commit: (count: number) => void,
+    ): Promise<void> => {
       let removed = 0;
       while (removed < cap) {
         const limit = Math.min(batchSize, cap - removed);
@@ -321,13 +457,13 @@ export async function runAnalyticsRetention(deps: {
         if (!Number.isInteger(count) || count < 0 || count > limit) throw new Error('retention_batch_invalid');
         if (count === 0) break;
         removed += count;
+        commit(count);
         report.batches += 1;
         if (count < limit) break;
       }
-      return removed;
     };
 
-    report.deletedEvents = await drain(maxPerRun, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
+    await drain(maxPerRun, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
       DELETE FROM "AnalyticsEvent"
       WHERE "eventId" IN (
         SELECT "eventId" FROM "AnalyticsEvent"
@@ -335,11 +471,13 @@ export async function runAnalyticsRetention(deps: {
         ORDER BY "receivedAt" ASC, "eventId" ASC
         LIMIT ${limit}
       )
-    `)));
+    `)), (count) => {
+      report.deletedEvents += count;
+    });
 
     const remainingAfterEvents = maxPerRun - report.deletedEvents;
     if (remainingAfterEvents > 0) {
-      report.deletedRollupDailyRows = await drain(remainingAfterEvents, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
+      await drain(remainingAfterEvents, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
         DELETE FROM "AnalyticsDailyRollup" AS target
         USING (
           SELECT "siteDate", "kind", "locale", "productSlug"
@@ -352,12 +490,14 @@ export async function runAnalyticsRetention(deps: {
           AND target."kind" = picked."kind"
           AND target."locale" = picked."locale"
           AND target."productSlug" = picked."productSlug"
-      `)));
+      `)), (count) => {
+        report.deletedRollupDailyRows += count;
+      });
     }
 
     const remainingAfterDaily = maxPerRun - report.deletedEvents - report.deletedRollupDailyRows;
     if (remainingAfterDaily > 0) {
-      report.deletedRollupDays = await drain(remainingAfterDaily, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
+      await drain(remainingAfterDaily, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
         DELETE FROM "AnalyticsRollupDay"
         WHERE "siteDate" IN (
           SELECT "siteDate" FROM "AnalyticsRollupDay"
@@ -365,10 +505,12 @@ export async function runAnalyticsRetention(deps: {
           ORDER BY "siteDate" ASC
           LIMIT ${limit}
         )
-      `)));
+      `)), (count) => {
+        report.deletedRollupDays += count;
+      });
     }
 
-    // 6. 清理后调用既有聚合服务：只重算 dayStart >= 完整原始覆盖起点的日，
+    // 7. 清理后调用既有聚合服务：只重算 dayStart >= 完整原始覆盖起点的日，
     //    超范围的日子留在旧聚合里，用 coverage=partial/unavailable 上报。
     const aggregate = await runAggregateOnce({
       db: deps.db,
@@ -381,10 +523,11 @@ export async function runAnalyticsRetention(deps: {
       occurredNotAfter: now,
       maxBatchDays: JOB_MAX_BATCH,
     });
-    report.coverage = aggregate.coverage;
     report.recomputedDays = aggregate.days.filter((day) => day.written).length;
     report.skippedDays = aggregate.days.filter((day) => !day.written).map((day) => day.siteDate);
-    const status: JobResultStatus = aggregate.coverage === 'complete' ? 'SUCCEEDED' : 'PARTIAL';
+    // 历史受影响日与近期窗口取最坏值：近期 complete 不得掩盖历史 gap/preserved。
+    report.coverage = worstCoverage(report.history.coverage, aggregate.coverage);
+    const status: JobResultStatus = report.coverage === 'complete' ? 'SUCCEEDED' : 'PARTIAL';
     return persistHere(status, status === 'SUCCEEDED' ? null : 'source_unavailable', report);
   } catch (error) {
     if (error instanceof RetentionRunTimeout) return { kind: 'timeout' };

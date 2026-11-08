@@ -11,9 +11,11 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { createOperationsHandler, createJobRegistry } from '../src/lib/server/jobs/registry';
 import {
   ANALYTICS_RETENTION_KEY,
+  classifyHistoricalDays,
   createAnalyticsRetentionJob,
   resolveRetentionMode,
   runAnalyticsRetention,
+  worstCoverage,
 } from '../src/lib/server/analytics/retention';
 import {
   eventExpiryCutoff,
@@ -35,6 +37,29 @@ test('保留模式：默认、已授权但未请求、未授权请求都落回 d
   assert.deepEqual(resolveRetentionMode({ requestedDelete: true }), { mode: 'dry-run', rejected: true });
   assert.deepEqual(resolveRetentionMode({ requestedDelete: true, authorized: false }), { mode: 'dry-run', rejected: true });
   assert.deepEqual(resolveRetentionMode({ requestedDelete: true, authorized: true }), { mode: 'delete', rejected: false });
+});
+
+test('历史受影响日分类：可重算 / 保留旧聚合 / 缺口 / 已过期四类与最坏覆盖度', () => {
+  const partition = classifyHistoricalDays({
+    completeRawCoverageStartUtc: '2027-02-13T16:00:00.000Z',
+    rollupExpiryThrough: '2026-02-15',
+    days: [
+      { siteDate: '2026-01-10', dayStartUtc: '2026-01-09T16:00:00.000Z', hasAggregate: true },
+      { siteDate: '2027-02-10', dayStartUtc: '2027-02-09T16:00:00.000Z', hasAggregate: true },
+      { siteDate: '2027-02-11', dayStartUtc: '2027-02-10T16:00:00.000Z', hasAggregate: false },
+      { siteDate: '2027-02-14', dayStartUtc: '2027-02-13T16:00:00.000Z', hasAggregate: false },
+    ],
+  });
+  assert.deepEqual(partition.affectedDays, ['2026-01-10', '2027-02-10', '2027-02-11', '2027-02-14']);
+  // 已过 13 个自然月的日按保留规则到期，不记缺口。
+  assert.deepEqual(partition.recomputedDays, ['2027-02-14']);
+  assert.deepEqual(partition.preservedDays, ['2027-02-10']);
+  assert.deepEqual(partition.gapDays, ['2027-02-11']);
+  assert.equal(partition.coverage, 'unavailable');
+  assert.equal(worstCoverage('complete', 'complete'), 'complete');
+  assert.equal(worstCoverage('complete', 'partial'), 'partial');
+  assert.equal(worstCoverage('partial', 'unavailable'), 'unavailable');
+  assert.equal(worstCoverage('unavailable', 'complete'), 'unavailable');
 });
 
 test('registry 注册 analytics-retention，且 operations 把 dryRun 原样交给作业', async () => {
@@ -225,6 +250,51 @@ async function count(client: PrismaClient, sql: Prisma.Sql): Promise<number> {
   return Number(rows[0]?.count ?? 0);
 }
 
+/** 读 analytics-retention 这一行：状态、错误码与摘要里的实际删除数。 */
+async function retentionState(client: PrismaClient) {
+  const rows = await client.$queryRaw<{ lastStatus: string; lastErrorCode: string | null; summary: unknown }[]>`
+    SELECT "lastStatus"::text AS "lastStatus", "lastErrorCode", "summary"
+    FROM "JobState" WHERE "key" = ${ANALYTICS_RETENTION_KEY}
+  `;
+  assert.equal(rows.length, 1);
+  const summary = rows[0].summary as { counts?: { deletedCount?: number; candidateCount?: number } };
+  return {
+    status: rows[0].lastStatus,
+    errorCode: rows[0].lastErrorCode,
+    deletedCount: summary.counts?.deletedCount,
+    candidateCount: summary.counts?.candidateCount,
+  };
+}
+
+/**
+ * 装一个只拦截指定键值的 BEFORE DELETE 触发器：DELETE 语句命中该行时整句抛错，
+ * 用来制造「第一批已提交、第二批失败」。返回的清理函数只删本用例创建的 function/trigger。
+ */
+async function installDeleteBlocker(
+  client: PrismaClient,
+  spec: { table: string; column: string; value: string },
+): Promise<() => Promise<void>> {
+  const suffix = randomBytes(3).toString('hex');
+  const fn = `m5t11_block_${suffix}`;
+  const trg = `m5t11_trg_${suffix}`;
+  const literal = `'${spec.value.replaceAll("'", "''")}'`;
+  await client.$executeRawUnsafe(`CREATE FUNCTION "${fn}"() RETURNS trigger AS $m5t11$
+BEGIN
+  IF OLD."${spec.column}" = ${literal} THEN
+    RAISE EXCEPTION 'm5t11_blocked_batch';
+  END IF;
+  RETURN OLD;
+END
+$m5t11$ LANGUAGE plpgsql`);
+  await client.$executeRawUnsafe(
+    `CREATE TRIGGER "${trg}" BEFORE DELETE ON "${spec.table}" FOR EACH ROW EXECUTE FUNCTION "${fn}"()`,
+  );
+  return async () => {
+    await client.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "${trg}" ON "${spec.table}"`);
+    await client.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "${fn}"()`);
+  };
+}
+
 describe('analytics retention job', { concurrency: false, skip, timeout: 180_000 }, () => {
   before(async () => {
     assert.ok(db);
@@ -315,12 +385,14 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(jobRows[0]?.lastErrorCode, 'forbidden');
   });
 
-  test('已授权删除：只删到期行（等号到期），删完重算今天，不重建过期明细', async () => {
+  test('已授权删除：只删到期行（等号到期），历史缺口显式上报、近期 complete 不得掩盖', async () => {
     assert.ok(db);
     const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
     assert.equal(run.kind, 'completed');
     if (run.kind !== 'completed') return;
-    assert.equal(run.status, 'SUCCEEDED');
+    // 2027-02-13 是 cutoff 所在日：无旧聚合、也不在可整日重算范围，必须记 gap。
+    assert.equal(run.status, 'PARTIAL');
+    assert.equal(run.errorCode, 'source_unavailable');
     assert.equal(run.report.mode, 'delete');
     assert.equal(run.report.deletedEvents, 1);
     assert.equal(run.report.deletedRollupDailyRows, 2);
@@ -328,7 +400,13 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(run.report.batches, 3);
     assert.equal(run.counts.candidateCount, 5);
     assert.equal(run.counts.deletedCount, 5);
-    assert.equal(run.report.coverage, 'complete');
+    assert.equal(run.report.coverage, 'unavailable');
+    assert.deepEqual(run.report.history.affectedDays, ['2027-02-13']);
+    assert.deepEqual(run.report.history.gapDays, ['2027-02-13']);
+    assert.deepEqual(run.report.history.preservedDays, []);
+    assert.deepEqual(run.report.history.recomputedDays, []);
+    // 近期三天仍然完整重算，但不能把历史 gap 抹成 complete。
+    assert.equal(run.report.recomputedDays, 3);
     assert.deepEqual(run.report.skippedDays, []);
 
     // 过期行消失，未过期行原样保留；去标识意义上的浏览器哈希只剩未过期的两个。
@@ -368,6 +446,179 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     );
     // 已过期事件不会被重算补回（原始行已删，聚合只覆盖今天与 48h 窗口）。
     assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-expired'`), 0);
+
+    // 终态如实记 PARTIAL + 数据源不可用，而不是 SUCCEEDED。
+    const state = await retentionState(db);
+    assert.equal(state.status, 'PARTIAL');
+    assert.equal(state.errorCode, 'source_unavailable');
+    assert.equal(state.deletedCount, 5);
+  });
+
+  test('已有完整旧聚合的部分清理日：保留原结果、报 partial/preserved，不用残片覆盖', async () => {
+    assert.ok(db);
+    // 默认夹具里 cutoff 所在日（无标记）会在本用例里制造 gap，先移除；
+    // 只留一个「有完整旧聚合」的历史到期日，验证保留而非重写。
+    await db.$executeRaw`DELETE FROM "AnalyticsEvent" WHERE "eventId" = 'ev-expired'`;
+    const oldDay = '2026-12-01';
+    const oldReceivedAt = new Date('2026-12-01T00:00:00.000Z');
+    await db.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${'ev-old-day'}, ${'sk-old-day'}, ${'p'.repeat(64)}, ${'bh-old-day'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, NULL, ${'/en'}, ${utc(oldReceivedAt)}, ${utc(oldReceivedAt)}
+      )
+    `);
+    await db.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsRollupDay" (
+        "siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "createdAt", "updatedAt"
+      ) VALUES (${oldDay}, 1, ${utc(NOW)}, 7, ${utc(oldReceivedAt)}, ${utc(NOW)}, ${utc(NOW)})
+    `);
+    await db.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsDailyRollup" ("siteDate", "kind", "locale", "productSlug", "count", "uniqueBrowsers", "createdAt", "updatedAt")
+      VALUES (${oldDay}, 'page_view'::"AnalyticsEventKind", 'en', '', 7, 3, ${utc(NOW)}, ${utc(NOW)})
+    `);
+
+    const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.equal(run.status, 'PARTIAL');
+    assert.equal(run.errorCode, 'source_unavailable');
+    assert.equal(run.report.deletedEvents, 1);
+    assert.deepEqual(run.report.history.affectedDays, [oldDay]);
+    assert.deepEqual(run.report.history.preservedDays, [oldDay]);
+    assert.deepEqual(run.report.history.gapDays, []);
+    assert.equal(run.report.history.coverage, 'partial');
+    assert.equal(run.report.coverage, 'partial');
+
+    // 旧聚合原样保留：标记与日聚合行内容不变，没有被残片重写。
+    const marker = await db.$queryRaw<{ eventCount: number; sourceMaxReceivedAt: string | null }[]>`
+      SELECT "eventCount", to_char("sourceMaxReceivedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "sourceMaxReceivedAt"
+      FROM "AnalyticsRollupDay" WHERE "siteDate" = ${oldDay}
+    `;
+    assert.equal(marker.length, 1);
+    assert.equal(Number(marker[0].eventCount), 7);
+    assert.equal(marker[0].sourceMaxReceivedAt, '2026-12-01T00:00:00.000Z');
+    const daily = await db.$queryRaw<{ count: number; uniqueBrowsers: number }[]>`
+      SELECT "count", "uniqueBrowsers" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${oldDay}
+    `;
+    assert.equal(daily.length, 1);
+    assert.equal(Number(daily[0].count), 7);
+    assert.equal(Number(daily[0].uniqueBrowsers), 3);
+    // 原始行仍按 30 天规则删除，不延长保留。
+    assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-old-day'`), 0);
+
+    const state = await retentionState(db);
+    assert.equal(state.status, 'PARTIAL');
+    assert.equal(state.errorCode, 'source_unavailable');
+  });
+
+  test('B2 计数：原始事件第二批失败，已提交批次仍计入 FAILED 摘要与实际差量', async () => {
+    assert.ok(db);
+    // 比默认夹具更早到期的一条：batchSize=1 时第一批删它，第二批撞触发器。
+    const earlier = new Date(EVENT_CUTOFF.getTime() - 3_600_000);
+    await db.$executeRaw(Prisma.sql`
+      INSERT INTO "AnalyticsEvent" (
+        "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+        "productSlug", "path", "occurredAt", "receivedAt"
+      ) VALUES (
+        ${'ev-expired-first'}, ${'sk-expired-first'}, ${'p'.repeat(64)}, ${'bh-expired-first'},
+        ${'page_view'}::"AnalyticsEventKind", ${'en'}, NULL, ${'/en'}, ${utc(earlier)}, ${utc(earlier)}
+      )
+    `);
+    const cleanup = await installDeleteBlocker(db, { table: 'AnalyticsEvent', column: 'eventId', value: 'ev-expired' });
+    try {
+      const run = await runAnalyticsRetention({
+        db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true, batchSize: 1, maxPerRun: 10,
+      });
+      assert.equal(run.kind, 'completed');
+      if (run.kind !== 'completed') return;
+      assert.equal(run.status, 'FAILED');
+      assert.equal(run.errorCode, 'internal_error');
+      assert.equal(run.report.deletedEvents, 1);
+      assert.equal(run.report.deletedRollupDailyRows, 0);
+      assert.equal(run.report.deletedRollupDays, 0);
+      assert.equal(run.report.batches, 1);
+      assert.equal(run.counts.deletedCount, 1);
+
+      // 实际差量：第一批已提交，被拦截那条仍在。
+      assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-expired-first'`), 0);
+      assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-expired'`), 1);
+
+      const state = await retentionState(db);
+      assert.equal(state.status, 'FAILED');
+      assert.equal(state.errorCode, 'internal_error');
+      assert.equal(state.deletedCount, 1);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  test('B2 计数：日聚合第二批失败，三类阶段计数分别累计', async () => {
+    assert.ok(db);
+    const cleanup = await installDeleteBlocker(db, { table: 'AnalyticsDailyRollup', column: 'siteDate', value: ROLLUP_CUTOFF });
+    try {
+      const run = await runAnalyticsRetention({
+        db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true, batchSize: 1, maxPerRun: 10,
+      });
+      assert.equal(run.kind, 'completed');
+      if (run.kind !== 'completed') return;
+      assert.equal(run.status, 'FAILED');
+      // 事件阶段删掉 1 条到期事件；日聚合阶段第一批提交 1 行，第二批被拦截。
+      assert.equal(run.report.deletedEvents, 1);
+      assert.equal(run.report.deletedRollupDailyRows, 1);
+      assert.equal(run.report.deletedRollupDays, 0);
+      assert.equal(run.report.batches, 2);
+      assert.equal(run.counts.deletedCount, 2);
+
+      assert.equal(
+        await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${shiftDate(ROLLUP_CUTOFF, -1)}`),
+        0,
+      );
+      assert.equal(
+        await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsDailyRollup" WHERE "siteDate" = ${ROLLUP_CUTOFF}`),
+        1,
+      );
+      const state = await retentionState(db);
+      assert.equal(state.status, 'FAILED');
+      assert.equal(state.deletedCount, 2);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  test('B2 计数：日水位第二批失败，事件与日聚合的已提交数不丢', async () => {
+    assert.ok(db);
+    const cleanup = await installDeleteBlocker(db, { table: 'AnalyticsRollupDay', column: 'siteDate', value: ROLLUP_CUTOFF });
+    try {
+      const run = await runAnalyticsRetention({
+        db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true, batchSize: 1, maxPerRun: 10,
+      });
+      assert.equal(run.kind, 'completed');
+      if (run.kind !== 'completed') return;
+      assert.equal(run.status, 'FAILED');
+      // 事件 1 条、日聚合 2 行全部提交，日水位第一批 1 行后第二批被拦截。
+      assert.equal(run.report.deletedEvents, 1);
+      assert.equal(run.report.deletedRollupDailyRows, 2);
+      assert.equal(run.report.deletedRollupDays, 1);
+      assert.equal(run.report.batches, 4);
+      assert.equal(run.counts.deletedCount, 4);
+
+      assert.equal(
+        await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${shiftDate(ROLLUP_CUTOFF, -1)}`),
+        0,
+      );
+      assert.equal(
+        await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${ROLLUP_CUTOFF}`),
+        1,
+      );
+      const state = await retentionState(db);
+      assert.equal(state.status, 'FAILED');
+      assert.equal(state.deletedCount, 4);
+    } finally {
+      await cleanup();
+    }
   });
 
   test('operations HTTP 真接线：缺省 dryRun 只数不删，dryRun:false 未授权记 FAILED/forbidden', async () => {
