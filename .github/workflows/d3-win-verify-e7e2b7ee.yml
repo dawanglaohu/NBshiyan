@@ -1,4 +1,4 @@
-name: D3 Windows verify (frozen v5)
+name: D3 Windows verify (frozen v6)
 # 一次性验证入口，只用于 e7e2b7ee 的 Windows 构建/断言取证。
 # 触发仅限精确分支；工作流提交以 e7e2b7ee 为唯一父、只新增本文件；checkout 锁完整源码提交。
 on:
@@ -311,7 +311,7 @@ jobs:
               if (([IO.FileAttributes]$e.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { $script:reparse += $e.FullName; continue }
               if ($e.PSIsContainer) {
                 if ($SkipNames -contains $e.Name) { continue }
-                $out.AddRange([string[]](Walk-Files -Dir $e.FullName -SkipNames $SkipNames))
+                $out.AddRange([string[]]@(Walk-Files -Dir $e.FullName -SkipNames $SkipNames))
               } else { $out.Add($e.FullName) }
             }
             return $out
