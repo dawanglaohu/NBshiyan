@@ -72,7 +72,25 @@ async function checkCheckbox(page: Page) {
 }
 
 async function geometry(page: Page, surface?: string) {
-  return page.evaluate(({ source, label }) => {
+  return page.evaluate(async ({ source, label }) => {
+    /**
+     * 入口采集与“当前 DOM 就是完整 entry”的判定放在同一个任务里：先等条件成立，
+     * 紧接着（中间没有 await）读完几何。路由提交要么发生在等待期间（条件不成立，继续等），
+     * 要么发生在测量之后（与本次测量无关），因此不存在“检查通过、测量前被卸载”的窗口。
+     * 这里不推断导航是否完成：同 URL、RSC 请求、history、帧数都不参与判定。
+     */
+    const entryReady = () => {
+      const root = document.querySelector<HTMLElement>('.mdl[data-model-stage="0"]');
+      const layout = root?.querySelector<HTMLElement>('.mdl-layout');
+      const file = root?.querySelector<HTMLInputElement>('.mdl-file-input');
+      const upload = root?.querySelector<HTMLButtonElement>('.mdl-file-options button');
+      const empty = root?.querySelector<HTMLElement>('.mdl-preview .pj-status[data-tone="empty"]');
+      return Boolean(root && layout && file && upload && empty && getComputedStyle(layout).display === 'grid' && layout.getBoundingClientRect().width > 0 && root.querySelectorAll('.mdl-section').length === 2 && !file.disabled && upload.disabled && empty.getBoundingClientRect().height > 0);
+    };
+    if (label === 'empty') {
+      const deadline = performance.now() + 15_000;
+      while (!entryReady() && performance.now() < deadline) await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
     const selectors = ['.mdl-section', '.mdl-drop', '.mdl-preview', '.mdl-steps li i', '.mdl-alert', '.mdl-remedy', '.mdl .pj-button', '.mdl .pj-input', '.mdl-checkbox'];
     const elements = selectors.flatMap((selector) => [...document.querySelectorAll<HTMLElement>(selector)].filter((el) => el.getBoundingClientRect().width > 0).map((el) => {
       const s = getComputedStyle(el), r = el.getBoundingClientRect();
@@ -189,8 +207,15 @@ for (const role of ['ADMIN', 'EDITOR'] as const) test.describe(`M3-T23 ${role} r
       await page.getByRole('navigation', { name: '后台导航' }).getByRole('link', { name: '3D 模型', exact: true }).click();
       await expect(page).toHaveURL(/\/admin\/models\/new$/);
       await expect(page.getByRole('heading', { name: '上传新模型', exact: true })).toBeVisible();
-      await page.locator('.mdl-crumb').getByRole('link', { name: '3D 模型', exact: true }).click();
+      // 真实点击面包屑；重定向本身用同源、同会话的真实请求核验（缓存导航同样适用）。
+      // 首次采集的同步不依赖这次导航的请求/提交时机，由 geometry('empty') 在页面内原子完成。
+      const crumb = page.locator('.mdl-crumb').getByRole('link', { name: '3D 模型', exact: true });
+      await expect(crumb).toHaveAttribute('href', '/admin/models');
+      await crumb.click();
       await expect(page).toHaveURL(/\/admin\/models\/new$/);
+      const redirect = await page.request.get('/admin/models', { maxRedirects: 0 });
+      expect([307, 308]).toContain(redirect.status());
+      expect(new URL(redirect.headers().location ?? '', BASE).pathname).toBe('/admin/models/new');
       await expect(page.getByLabel('选择模型与封面文件')).toBeAttached();
       const upload = page.getByRole('button', { name: '上传并检查', exact: true });
       await expect(upload).toBeDisabled();
