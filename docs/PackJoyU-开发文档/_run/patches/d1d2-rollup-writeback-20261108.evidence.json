@@ -2,7 +2,7 @@
   "scope": "task-contract",
   "tasks": {
     "ANALYTICS-ROLLUP": {
-      "contractHash": "b3735166073686a2a1965195d6508954a94f8a3b9d3a7685a1c9bb7039e8a6af",
+      "contractHash": "11e2dc0ece2f8226dcca4a7d3b2903b279431fdc42d84846d9bd8d336b9b16c1",
       "evidence": [],
       "verdict": "pending"
     },

@@ -1,12 +1,14 @@
 {
   "ANALYTICS-ROLLUP": {
-    "compiler": "51f4c12860de8cf62895a3844b7d23d286e1eaefd17dfb4081c7d44264d07d31",
-    "contractHash": "899ee244c16eadd798ed9ceb9a82e832b5a53a675bc28bc24719f68cd0493fbb",
+    "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
+    "contractHash": "11e2dc0ece2f8226dcca4a7d3b2903b279431fdc42d84846d9bd8d336b9b16c1",
     "evidence": [
-      "PR #477 状态 MERGED。合并提交 90b2658d2600859ed0a71d4b09e422e1b42a783d。mergedAt 2026-10-25T14:19:49Z。标题：ANALYTICS-ROLLUP 统计按天汇总表。",
-      "CI rollup：build-and-audit SUCCESS 2026-10-25T14:03:21Z job 121189155244；gate SUCCESS 2026-10-25T14:15:27Z job 121193053707；gate SUCCESS 2026-10-25T14:15:19Z job 121193025427；e2e SUCCESS 2026-10-25T14:05:59Z job 121189155092；posix-storage-security SUCCESS 2026-10-25T13:59:05Z job 121189155208。rollup 里列出的检查结论都是 SUCCESS。"
+      "本窗（a24a8ca9..HEAD）对该任务只改事实限定：ANALYTICS-ROLLUP.md:21 把“旧路由已退役”改为“收口分支已实现、main 78966e99 尚未包含，生产仍是旧写入实现”，并注明 #477 阶段未接入 registry 已由 M5-T8 完成；:56 标注“收口分支已退役（main 未包含）”；:61-62 把 cron 指向 operations 标注为 M5-T8 已合入 main，旧路由 410 标注为收口分支。04-执行/遗留issue-20261024.md:601 同步同一限定。",
+      "逐条核对代码事实：b2ea2cfe 的 src/app/api/admin/cron/analytics-rollup/route.ts 在 :21 返回 410 route_retired、:27-28 缺/错凭据返回 401、:33-34 GET/POST 共用同一 handler；main 78966e99 的同文件仍是旧写入实现；deploy/cron.nbshiyan:11 自 M5-T8 起每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate）。",
+      "未改任务状态与历史：status done、PR #477、合并提交 90b2658d、acceptance 文本、edges 均保持；不声称生产已部署，不把分支态写成 main 态。",
+      "源码/测试/CI 零漂移（本窗）：git diff --stat a24a8ca9..HEAD -- src tests .github prisma deploy package.json pnpm-lock.yaml 为空；派生由工具重建，stale=[]、runtimeDrift=[]，progress 97 键/done 94，dispatch 144 任务无增删。"
     ],
-    "reviewed": "2026-10-26T02:19:16.103954+00:00",
+    "reviewed": "2026-11-08T05:10:04.353400+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1174,16 +1176,14 @@
   },
   "M5-T8": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "a7d796aff6f54f66f36bf275547c8aa5d1cd87f94dadddad9466b8e0c5f72eea",
+    "contractHash": "cbaf13f86bcfb5423c36ecf407210068b85f9c62785068f1fb22a9210136ebab",
     "evidence": [
-      "契约源 _run/task-contracts.json 的 tasks[\"M5-T8\"].supportPaths 由 3 条（aggregate.ts、aggregate-repo.ts、tests/cron-analytics-rollup.test.ts）扩为 4 条，仅新增 .github/workflows/ci.yml；outputPaths 7 条未变；不改验收语义、不拆任务。",
-      "ci.yml 语义：本任务保留 M5T8_REQUIRE_DATABASE（e2e job）与 jobs-runtime/rollup 三处测试登记；A3 收集计数 209/206/2/1（名称、断言、去重、回显）；同时保留 main 的 M5-T5 PG17 接线（M5T5_TEST_DATABASE_URL/M5T5_REQUIRE_DATABASE）与 retention-plan 三处登记；全文无 #538 的 210/207、无 #540 的 212/209、无 M3-T23 内容。",
-      "合并来源：merge commit 双亲 c1916c87 + 8c4dd176（main 8c4dd176，本地=远端）；5 个派生冲突（build-manifest/build-state/dispatch/review/docs-data）取 main 侧后由 maintain_docs build 重建，未手拼；ci.yml 唯一冲突区合并保留双方 env；task-contracts 相对 main 只变 M5-T8 supportPaths，task-reviews 保留 M5-T5 与 M5-T8 两笔。",
-      "P3 更正：两笔技术复审为 rework1 62567187… 与 rework2 D2BD28CE…，旧证据把 rework2 误写为 rework1 的混写已在证据源更正；dispatch.json 的 R7-T21418022 共享路径提示一行随契约哈希/路径集传播更新，补丁 affected 集合未列该提示，属生成器行为，不手改集合刷绿。",
-      "状态保留：M5-T5 done、M5-T8 todo、progress 94 键/done 91、contracts 144 保持；未 landed、未 push、未合并；本笔只补契约支持路径，不改产品/测试行为与 CI 实现。",
-      "边界：本契约只登记 CI 路径，不代表真实 B4 */5 或正式 Linux/PG17 CI 已完成；B4 仍由固定执行器 9d5cc4b5 独立验收，后续新头 CI 不得把设施用例的明确 skip 记成真调度通过。"
+      "契约增量来自上一笔已被授权窗口：task-contracts.json 的 M5-T8.supportPaths 由 4 条增至 8 条，只新增 src/app/api/admin/cron/analytics-rollup/route.ts、tests/analytics-rollup.test.ts、tests/d1-route-sideeffect.test.ts、tests/fixtures/d1-route-sideeffect.case.ts；outputPaths、验收标准、status 未动（本窗未再改 task-contracts.json）。",
+      "卡面事实限定：M5-T8.md:100 与 :104 把“未 push/无 CI/未合入 main”明确为当时提交状态，并写明原任务其后由 #541 合入 main（merge 78966e99）；:105 D1 与 :106 D2 保留“未 push/未合并”并明确指本轮修复，不把这些写成当前 main 状态。",
+      "引用行号实核与当前树一致：route.ts:21/:27-28/:33-34；aggregate-repo.ts:117（upsertWatermarkGuarded）与 :147-159（WHERE）；tests/jobs-runtime.http.test.ts:208；tests/cron-analytics-rollup.test.ts:6 与 :26；tests/analytics-rollup.test.ts:149-162；tests/d1-route-sideeffect.test.ts:144。",
+      "只复验变化及其影响：契约哈希 cbaf13f8… 仅在 definition/effectivePaths 待复验，验收/边界/状态未变；D1 受影响三份测试 11/11、D2 整文件 17/17 与 jobs-runtime 16/16 按各自 SHA 记录（D1 3410fe95、D2 b2ea2cfe），不冒充新文档头 CI 已通过。"
     ],
-    "reviewed": "2026-11-07T22:10:17.461610+00:00",
+    "reviewed": "2026-11-08T05:10:04.353400+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
