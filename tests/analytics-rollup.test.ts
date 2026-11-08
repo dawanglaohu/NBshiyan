@@ -163,6 +163,8 @@ test('汇总表只新增计数，cron 沿用 CRON_SECRET，不把原始标识写
     const body = await wrong.json() as { error: string };
     assert.equal(body.error, 'unauthorized');
     assert.equal(JSON.stringify(body).includes('unit-test-cron-secret'), false);
+    // 合法凭据的 410/零副作用断言放在 cron-analytics-rollup.test.ts 的退役用例里：
+    // 那里先做源码级断言，旧实现会在调用路由前失败，红证据不会进入 DB/告警链。
   } finally {
     if (previous === undefined) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = previous;
