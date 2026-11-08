@@ -3,14 +3,18 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "2e53631d49f16c6a728602061fe54c057ead6f58ab54fe4cb9ac560fbc5e2a80",
     "evidence": [
+      "原证据来源：planning `db-b8-revalidation-ANALYTICS-ROLLUP-20261108.evidence.json`（2476 B、SHA256 85d23782a791fd9ccf97f91561cd312117eebdab5050a779cb3ff97509317007），数据库独立复验；本次只补合入后绑定，不改原复验事实。",
+      "范围声明：自本条之后、『合入后绑定』之前列出的各条，均为**原复验时点（e7e2b7ee，合入前）的历史结论**，不代表当前 main；当前事实见『合入后绑定』。",
       "变更字段仅 task（补丁 d1d2-rollup-writeback-20261108；源 04-执行/遗留issue-20261024.md:601，渲染卡面 ANALYTICS-ROLLUP.md:21 与 :73）：把旧入口现状限定为「收口分支已退役、main `78966e99` 尚未包含、main 仍保留旧写入实现、未核验生产部署版本」，并把「收进 registry 另立任务」标为 #477 阶段历史结论、该接入已由 M5-T8 完成；验收文本、status、PR #477、合并提交 90b2658d 均未改。",
       "固定 e7e2b7ee 代码事实：src/app/api/admin/cron/analytics-rollup/route.ts blob bc82e095…（1,326 B、sha256 1707A02D…，与 D1 冻结头 3410fe95 及 7bcb2468 同 blob）；:21 为 410 `route_retired` + `Cache-Control: no-store`，:27-28 缺/错凭据 401（真实 secretMatches），:33-34 GET/POST 共用同一 handler；鉴权通过后不再调用数据库、聚合、告警、审计或邮件。",
       "main 事实核对：78966e99 是 Merge pull request #541 from dawanglaohu/task/M5-T8（双亲 a6f0089b、6701a749），其 route.ts 仍为 blob 1435d105…（旧写入实现）；`git merge-base --is-ancestor 3410fe95 78966e99` 返回 1，D1 修复未进 main，与卡面事实限定一致；「未核验生产部署版本」是边界声明，未把分支态写成 main 或生产态。",
       "部署链：deploy/cron.nbshiyan:11 为每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate，Bearer 取自容器 env），文件已无 analytics-rollup 调度行，与卡面 :61「旧 rollup 行已删」一致；当前生产部署版本未核验，不作宣称。",
       "通过依据沿用既有 PASS：D1 真实路由调用计数红测 5 用例 1 pass/4 fail（旧路由 200/run=1、500/alert+audit、409、500/alert+audit），三份受影响测试绿 11/11、0 skip；3410fe95 默认入口实跑与预存哨兵窄复核 PASS（db-d1-narrow-recheck-3410fe95-20261108.md）；实际 diff Jev 复判 A high 0.97（state FAA2E202…/result FD758DAB…）。本次只核固定对象与既有证据，未重跑测试、未连库。",
-      "证据对象是候补分支 e7e2b7ee（worktree 0 dirty），不是 main；main 尚未含 D1/D2 修复，不把候选分支状态冒称 main 已修或生产已部署。"
+      "证据对象是候补分支 e7e2b7ee（worktree 0 dirty），不是 main；当时 main 78966e99 尚未含 D1/D2 修复，不把候选分支状态冒称 main 已修或生产已部署。",
+      "合入后绑定：PR #542 已 MERGED（2026-11-08T13:03:11Z），merge commit `12ba8989c7f6e84984c8c9eccadc34f28127a22c`，parents `78966e99`+`272356cf`，tree `350698eb…`＝已审头 tree；main 已实际包含本修复（route.ts blob `bc82e095…`、aggregate-repo.ts blob `48403236…`，与证据冻结头一致；3410fe95/b2ea2cfe/272356cf 均为 12ba8989 祖先）。本地主目录与批次工作树已 fast-forward 至 12ba8989（运维同步回执 EE2D6443…，34 个既有未跟踪项原样保留）。",
+      "边界：本登记只表示『合入后契约复验完成、标记由工具清除』；未重跑测试/CI、未连库、不声称生产已部署；生产部署版本仍未核验。"
     ],
-    "reviewed": "2026-11-08T12:00:15.298383+00:00",
+    "reviewed": "2026-11-08T13:22:54.003033+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
@@ -1180,14 +1184,18 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "cbaf13f86bcfb5423c36ecf407210068b85f9c62785068f1fb22a9210136ebab",
     "evidence": [
+      "原证据来源：planning `db-b8-revalidation-M5-T8-20261108.evidence.json`（2526 B、SHA256 5d2278caafb926d632bc8234cb4b92e2dcc40d81bf62873d37ab1a3dcbba11e8），数据库独立复验；本次只补合入后绑定，不改原复验事实。",
+      "范围声明：自本条之后、『合入后绑定』之前列出的各条，均为**原复验时点（e7e2b7ee，合入前）的历史结论**，不代表当前 main；当前事实见『合入后绑定』。",
       "变更字段 definition/effectivePaths：task-contracts.json 的 M5-T8.supportPaths 由 4 条增至 8 条，仅新增 src/app/api/admin/cron/analytics-rollup/route.ts、tests/analytics-rollup.test.ts、tests/d1-route-sideeffect.test.ts、tests/fixtures/d1-route-sideeffect.case.ts；outputPaths、验收标准、边界与状态未动。卡面 M5-T8.md:104-106 新增 D1/D2 事实限定，属定义文字增量。",
       "四条新 supportPaths 在 e7e2b7ee 均存在且与冻结头一致：route.ts blob bc82e095…（1,326 B / 1707A02D…，= D1 3410fe95）；tests/d1-route-sideeffect.test.ts blob 917bff9f…、tests/fixtures/d1-route-sideeffect.case.ts blob d47aa4f1…（与 3410fe95 同 blob）；tests/analytics-rollup.test.ts 存在。8 条 supportPaths 逐条可读，无空项。",
       "卡面 :105 的 D1 事实核对：78966e99→7bcb2468 对 route.ts 有修改（M），7bcb2468 与 3410fe95 的 route.ts 同 blob bc82e095…、两提交间无 diff；旧路由红测 5 用例 1 pass/4 fail，修复后三份受影响测试 11/11、0 skip，3410fe95 默认入口实跑与窄复核 PASS，Jev A high 0.97 — 与既有 PASS 证据一致。",
       "卡面 :106 的 D2 事实核对：aggregate-repo.ts:117 为 upsertWatermarkGuarded、:147-159 为 revision 分流 WHERE（blob 48403236… = D2 冻结头 b2ea2cfe）；aggregate.ts:157 仍为 `affected !== 1` 抛 AggregateVersionConflict('watermark_regression')。红 1 pass/4 fail、绿 17/17（0 skip）、jobs-runtime 16/16、数据库独审 PASS（b2ea2cfe）；旧守卫本就放行较新 revision 的 NULL，NULL 重定不计入本次修复收益 — 与 db-d2-watermark-guard-review 一致。",
-      "卡面 :100/:104 的「当时未 push/无 CI」是历史状态限定，并写明原任务其后由 #541 合入 main（merge 78966e99）；「本轮 D1/D2 修复至今未合入 main」经 `git merge-base --is-ancestor 3410fe95/b2ea2cfe 78966e99` 均返回 1 核实。证据对象为候补分支 e7e2b7ee（0 dirty），不是 main。",
-      "边界：D1/D2 的测试与 CI 结论仍绑定各自提交（3410fe95 本地 11/11；b2ea2cfe 本地 17/17 + jobs-runtime 16/16），本次只核 blobs 未漂移并复用既有 PASS；不冒称 e7e2b7ee 有新 CI，也不冒称完整 HTTP 链或真实时区设置链已验证。"
+      "卡面 :100/:104 的「当时未 push/无 CI」是历史状态限定，并写明原任务其后由 #541 合入 main（merge 78966e99）；「本轮 D1/D2 修复截至原复验时点尚未合入 main」经 `git merge-base --is-ancestor 3410fe95/b2ea2cfe 78966e99` 均返回 1 核实。证据对象为候补分支 e7e2b7ee（0 dirty），不是 main。",
+      "边界：D1/D2 的测试与 CI 结论仍绑定各自提交（3410fe95 本地 11/11；b2ea2cfe 本地 17/17 + jobs-runtime 16/16），本次只核 blobs 未漂移并复用既有 PASS；原复验使用当时已有证据；后续该头 CI 已通过（PR #542 run 42473786975，测试对象 ec43bf0 与该头同 tree），本次未重跑，也不冒称完整 HTTP 链或真实时区设置链已验证。",
+      "合入后绑定：PR #542 已 MERGED（2026-11-08T13:03:11Z），merge commit `12ba8989c7f6e84984c8c9eccadc34f28127a22c`，parents `78966e99`+`272356cf`，tree `350698eb…`＝已审头 tree；main 已实际包含本修复（route.ts blob `bc82e095…`、aggregate-repo.ts blob `48403236…`，与证据冻结头一致；3410fe95/b2ea2cfe/272356cf 均为 12ba8989 祖先）。本地主目录与批次工作树已 fast-forward 至 12ba8989（运维同步回执 EE2D6443…，34 个既有未跟踪项原样保留）。",
+      "边界：本登记只表示『合入后契约复验完成、标记由工具清除』；未重跑测试/CI、未连库、不声称生产已部署；生产部署版本仍未核验。"
     ],
-    "reviewed": "2026-11-08T12:00:46.276731+00:00",
+    "reviewed": "2026-11-08T13:23:03.616973+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
