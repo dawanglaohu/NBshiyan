@@ -20,6 +20,11 @@ type NavigationContext = { navigationId: string; path: string; locale: Locale };
 let navigation: NavigationContext | null = null;
 /** Last location seen by the page producer, kept even while collection is off. */
 let lastLocation: { pathname: string; locale: Locale } | null = null;
+/**
+ * In-memory page-visit generation for model-attempt dedupe. It is a lifecycle marker
+ * only: never sent, stored or used as an analytics identifier (E-42).
+ */
+let pageVisitSeq = 0;
 let collecting = false;
 let grantConfirmed = false;
 let generation = 0;
@@ -176,6 +181,7 @@ function emit(pathname: string, value: Locale): void {
  * Later pathname changes emit only while collection is on.
  */
 export function noteNavigation(pathname: string, value: Locale): void {
+  pageVisitSeq += 1;
   locale = value;
   lastLocation = { pathname: pathname || '/', locale: value };
   ensureOnlineListener();
@@ -275,6 +281,11 @@ export function canCollectAnalytics(): boolean {
 /** The navigation context of the last emitted page view in this document, when collecting. */
 export function currentNavigation(): NavigationContext | null {
   return navigation;
+}
+
+/** Current in-memory page-visit generation; a lifecycle marker, not an identity. */
+export function currentPageVisitSeq(): number {
+  return pageVisitSeq;
 }
 
 /** Queue already-built model events through the same dedupe/flush path as page events. */

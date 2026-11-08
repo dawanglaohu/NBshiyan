@@ -12,7 +12,7 @@ import {
   type ModelFailureReason,
 } from '@/lib/contracts/analytics';
 import { onConsent } from '@/lib/consent';
-import { canCollectAnalytics, currentNavigation, enqueueAnalyticsEvents } from '@/lib/client/analytics';
+import { canCollectAnalytics, currentNavigation, currentPageVisitSeq, enqueueAnalyticsEvents } from '@/lib/client/analytics';
 
 /**
  * M2-T7 browser producer: the only bridge between the real GLB lifecycle and the shared
@@ -22,7 +22,8 @@ import { canCollectAnalytics, currentNavigation, enqueueAnalyticsEvents } from '
  * Every identifier below is created after `canCollectAnalytics()` and a navigation
  * context exist, so a visitor who has not allowed analytics never gets a viewId. The
  * page producer creates that context when a grant is confirmed on an already-open page;
- * attempts first reported before consent are remembered and never backfilled later.
+ * attempts first reported before consent are remembered per page visit and never
+ * backfilled, while a new visit counts its own real attempts.
  */
 
 /** A GLB attempt that has not settled by then is a TIMEOUT failure (E-63). */
@@ -36,12 +37,26 @@ const lastViewId = new Map<string, string>();
 /** product_view is one row per navigation+product, even if the card retries. */
 const productViews = new Set<string>();
 /**
- * Attempts first reported without consent or without a navigation context. A Suspense or
- * scene remount re-reports the same attempt number; recording it after a grant would
- * backfill a load that started earlier, so these keys never produce a start.
+ * Attempts first reported without consent or without a navigation context, scoped to the
+ * current page visit. A Suspense or scene remount inside one visit re-reports the same
+ * attempt and stays suppressed; a new visit (same-document leave-and-return, attempt
+ * restarts at 0) gets a new generation, so its real attempt is recorded normally. Older
+ * visits are dropped; the set is never cleared wholesale at a size threshold.
  */
-const seenWithoutContext = new Set<string>();
+let seenVisitSeq = -1;
+let seenWithoutContext = new Set<string>();
 let watchingConsent = false;
+
+/** Enter the current visit: attempts and retry links from the previous page session are gone. */
+function visitScope(seq: number): Set<string> {
+  if (seq !== seenVisitSeq) {
+    seenVisitSeq = seq;
+    seenWithoutContext = new Set();
+    open.clear();
+    lastViewId.clear();
+  }
+  return seenWithoutContext;
+}
 
 const uuid = () => crypto.randomUUID();
 const clock = () => Math.round(performance.now());
@@ -52,12 +67,7 @@ function resetSession(): void {
   open.clear();
   lastViewId.clear();
   productViews.clear();
-  // seenWithoutContext survives a revoke: a re-grant must not backfill older attempts.
-}
-
-function rememberWithoutContext(key: string): void {
-  seenWithoutContext.add(key);
-  if (seenWithoutContext.size > 500) seenWithoutContext.clear();
+  // seenWithoutContext survives a revoke: a re-grant in the same visit must not backfill older attempts.
 }
 
 function watchConsent(): void {
@@ -103,13 +113,14 @@ function emitProductView(
  */
 export function noteModelStart(slug: string, attempt: number): boolean {
   if (typeof window === 'undefined') return false;
+  const seen = visitScope(currentPageVisitSeq());
   const attemptKey = `${slug}|${attempt}`;
   const nav = currentNavigation();
   if (!canCollectAnalytics() || !nav) {
-    rememberWithoutContext(attemptKey);
+    seen.add(attemptKey);
     return false;
   }
-  if (seenWithoutContext.has(attemptKey)) return false;
+  if (seen.has(attemptKey)) return false;
   watchConsent();
   const current = open.get(slug);
   if (current?.attempt === attempt) return false;

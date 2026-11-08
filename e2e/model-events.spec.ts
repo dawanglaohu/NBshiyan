@@ -510,3 +510,88 @@ test('M2-T7 context lost：未决尝试立即记 WEBGL_UNAVAILABLE，不再补 T
   expect(after.filter((row) => row.kind === 'model_load_failure' && row.failureReason === 'TIMEOUT')).toEqual([]);
   await expect(page.locator(`article#${failures[0].productSlug}`).getByTestId('model-fallback')).toHaveAttribute('data-reason', 'WEBGL_UNAVAILABLE');
 });
+
+test('M2-T7 R2 同文档离开返回：新访问的 attempt 0 真实加载正常计入', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  await acceptAnalytics(page);
+  await openCatalogAndArm(page);
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+  const firstStarts = await rowsSince(since, 'model_view_start');
+  const firstNav = firstStarts[0].navigationId!;
+  const firstSlug = firstStarts[0].productSlug!;
+
+  // 同一文档内离开再返回：ProductGallery 重新挂载，attempt 从 0 开始。
+  await page.getByTestId('home-link').click();
+  await expect(page).toHaveURL(/\/en$/);
+  await page.getByTestId('products-link').click();
+  await expect(page).toHaveURL(/\/en\/products$/);
+  await page.mouse.move(320, 260);
+
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(firstStarts.length);
+  const starts = await rowsSince(since, 'model_view_start');
+  const returned = starts.find((row) => row.navigationId !== firstNav);
+  if (!returned) throw new Error('expected a start under the returned visit navigation');
+  const views = await rowsSince(since, 'product_view');
+  expect(views.some((row) => row.navigationId === returned.navigationId && row.productSlug === returned.productSlug)).toBe(true);
+  expect(views.filter((row) => row.navigationId === firstNav && row.productSlug === firstSlug)).toHaveLength(1);
+});
+
+test('M2-T7 R2 撤回再授权后返回：新访问的真实加载计入', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  await acceptAnalytics(page);
+  await openCatalogAndArm(page);
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+
+  await openCookieSettings(page);
+  await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Reject all' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-analytics-collecting', 'false', { timeout: 15_000 });
+
+  await openCookieSettings(page);
+  await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Accept all' }).click();
+  await waitForGrant(page);
+  const beforeReturn = (await rowsSince(since, 'model_view_start')).length;
+
+  await page.getByTestId('home-link').click();
+  await expect(page).toHaveURL(/\/en$/);
+  await page.getByTestId('products-link').click();
+  await expect(page).toHaveURL(/\/en\/products$/);
+  await page.mouse.move(320, 260);
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(beforeReturn);
+  const starts = await rowsSince(since, 'model_view_start');
+  const latest = starts[starts.length - 1];
+  const views = await rowsSince(since, 'product_view');
+  expect(views.some((row) => row.navigationId === latest.navigationId && row.productSlug === latest.productSlug)).toBe(true);
+});
+
+test('M2-T7 R2 旧访问的迟到回调不串入新访问', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  await page.route(/\/models\/.*\.glb(\?.*)?$/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 15_000));
+    await route.continue().catch(() => { /* 页面已离开时请求已被取消 */ });
+  });
+  await acceptAnalytics(page);
+  await openCatalogAndArm(page);
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 45_000 }).toBeGreaterThan(0);
+  const firstStarts = await rowsSince(since, 'model_view_start');
+  const first = firstStarts[0];
+
+  // 未决时离开：卸载取消未决尝试；返回后新访问重新发起。
+  await page.getByTestId('home-link').click();
+  await expect(page).toHaveURL(/\/en$/);
+  await page.getByTestId('products-link').click();
+  await expect(page).toHaveURL(/\/en\/products$/);
+  await page.mouse.move(320, 260);
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(firstStarts.length);
+  const starts = await rowsSince(since, 'model_view_start');
+  const returned = starts.find((row) => row.viewId !== first.viewId && row.navigationId !== first.navigationId);
+  if (!returned) throw new Error('expected a start in the returned visit');
+
+  // 等旧请求的 15s 延迟结束，再核终态只属于新访问。
+  await page.waitForTimeout(16_000);
+  const rows = await rowsSince(since);
+  expect(terminalsOf(rows, first.viewId!)).toHaveLength(0);
+  expect(terminalsOf(rows, returned.viewId!)).toHaveLength(1);
+});
