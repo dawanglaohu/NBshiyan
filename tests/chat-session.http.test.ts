@@ -38,6 +38,42 @@ const EDGE_SECRET = 'e'.repeat(32);
 const DAY_MS = 24 * 60 * 60 * 1000;
 const config = loadServerConfig({ APP_ENV: 'test' });
 
+/**
+ * 把真实块注释/行注释替换为等长空格（保留换行与偏移）；字符串里的注释符号原样保留。
+ * 不做全局正则替换，避免误删字符串内容或让注释里的伪模型改变定位。
+ */
+function stripComments(source: string): string {
+  const out = source.split('');
+  let i = 0;
+  while (i < source.length) {
+    if (source[i] === '"') {
+      i += 1;
+      while (i < source.length) {
+        if (source[i] === '\\') { i += 2; continue; }
+        if (source[i] === '"') { i += 1; break; }
+        i += 1;
+      }
+      continue;
+    }
+    if (source[i] === '/' && source[i + 1] === '/') {
+      while (i < source.length && source[i] !== '\n') { out[i] = ' '; i += 1; }
+      continue;
+    }
+    if (source[i] === '/' && source[i + 1] === '*') {
+      out[i] = ' '; out[i + 1] = ' ';
+      i += 2;
+      while (i < source.length && !(source[i] === '*' && source[i + 1] === '/')) {
+        if (source[i] !== '\n') out[i] = ' ';
+        i += 1;
+      }
+      if (i < source.length) { out[i] = ' '; out[i + 1] = ' '; i += 2; }
+      continue;
+    }
+    i += 1;
+  }
+  return out.join('');
+}
+
 /** 块内至少一行真实字段声明；忽略空白、行注释、块注释与 @@ 模型属性。 */
 function hasFieldDeclaration(block: string): boolean {
   const body = block
@@ -51,15 +87,16 @@ function hasFieldDeclaration(block: string): boolean {
 }
 
 /**
- * 只取目标模型块：行首 `model X {` 到首个行首 `}`，不取到 EOF，也不命中注释里的示例。
- * 目标缺失/未闭合/空块/块内混入相邻模型都直接失败，避免空切片假绿。
+ * 只取目标模型块：在剥掉真实注释后的文本上按行首 `model X {` 定位，到首个行首 `}` 结束。
+ * 注释里的伪模型不参与定位；目标缺失/未闭合/空块/块内混入相邻模型都直接失败。
  */
 function modelBlock(schema: string, name: string): string {
-  const start = new RegExp(`^model ${name} \\{`, 'm').exec(schema)?.index;
+  const code = stripComments(schema);
+  const start = new RegExp(`^model ${name} \\{`, 'm').exec(code)?.index;
   assert.ok(start !== undefined && start >= 0, `model ${name} missing`);
-  const end = schema.indexOf('\n}', start);
+  const end = code.indexOf('\n}', start);
   assert.ok(end > start, `model ${name} block not closed`);
-  const block = schema.slice(start, end + 2);
+  const block = code.slice(start, end + 2);
   assert.ok(hasFieldDeclaration(block), `model ${name} block has no field declarations`);
   assert.equal((block.match(/^model /gm) ?? []).length, 1, `model ${name} block must not include an adjacent model`);
   return block;
@@ -419,6 +456,18 @@ describe('POST /api/chat/session', { concurrency: false }, () => {
       () => modelBlock('model ChatVisitorSession {\n  @@index([lastActivityAt])\n  @@map("session")\n}\n', 'ChatVisitorSession'),
       /no field declarations/,
     );
+
+    // 块注释里的干净复制品不得骗过定位：真实模型含 email 必须被抓住
+    const commentedCopy = `/*\n${fixture}\n*/\n`;
+    assert.throws(
+      () => assertChatVisitorSessionPrivacy(`${commentedCopy}${fixture.replace('  tokenHash          String   @unique', '  tokenHash          String   @unique\n  email String?')}`),
+    );
+    // 只有块注释复制品、真实目标缺失 → missing（注释不能冒充模型）
+    assert.throws(() => modelBlock(commentedCopy, 'ChatVisitorSession'), /missing/);
+    // 字符串里的注释符号不改变模型定位（不能被当成注释吞掉后续真实模型）
+    const trickyString = `model ChatConversation {\n  note String @default("/* // decoy")\n}\n${fixture}`;
+    assert.match(modelBlock(trickyString, 'ChatVisitorSession'), /tokenHash/);
+    assertChatVisitorSessionPrivacy(trickyString);
 
     // 相邻模型含 email/bodyText 不得误报；注释里的示例不得被当成目标模型
     assertChatVisitorSessionPrivacy(`${fixture}\nmodel ChatConversation {\n  email String?\n  bodyText String\n}`);
