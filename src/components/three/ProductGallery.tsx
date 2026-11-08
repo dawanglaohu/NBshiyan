@@ -187,9 +187,14 @@ export default function ProductGallery({ items, labels, onModelResult }: { items
     if (sceneReported.current) return;
     sceneReported.current = true;
     for (const p of items) {
-      if (p.model && visible.has(p.slug)) onModelResult?.({ slug: p.slug, status: 'failed', reason: 'WEBGL_UNAVAILABLE' });
+      if (!p.model) continue;
+      // 场景级故障当场结束未决真实尝试（含已滚出视口但计时器仍在跑的卡片）：
+      // 写 WEBGL_UNAVAILABLE 终态并清掉计时器，否则 30s 后会再补一条 TIMEOUT 并改掉可见的失败原因（E-103）。
+      clearModelTimer(p.slug);
+      noteModelFailure(p.slug, 'WEBGL_UNAVAILABLE');
+      if (visible.has(p.slug)) onModelResult?.({ slug: p.slug, status: 'failed', reason: 'WEBGL_UNAVAILABLE' });
     }
-  }, [sceneBlocked, items, visible, onModelResult]);
+  }, [sceneBlocked, items, visible, onModelResult, clearModelTimer]);
   const retry = useCallback((slug: string) => {
     const attempt = attempts[slug] ?? 0;
     if (!retryAllowed(attempt)) return;

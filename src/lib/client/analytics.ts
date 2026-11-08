@@ -18,6 +18,8 @@ type Locale = 'en' | 'ru';
 let locale: Locale = 'en';
 type NavigationContext = { navigationId: string; path: string; locale: Locale };
 let navigation: NavigationContext | null = null;
+/** Last location seen by the page producer, kept even while collection is off. */
+let lastLocation: { pathname: string; locale: Locale } | null = null;
 let collecting = false;
 let grantConfirmed = false;
 let generation = 0;
@@ -175,6 +177,7 @@ function emit(pathname: string, value: Locale): void {
  */
 export function noteNavigation(pathname: string, value: Locale): void {
   locale = value;
+  lastLocation = { pathname: pathname || '/', locale: value };
   ensureOnlineListener();
   const first = !opened;
   opened = true;
@@ -188,6 +191,18 @@ export function noteNavigation(pathname: string, value: Locale): void {
   }
   if (!collecting) return;
   emit(pathname, value);
+}
+
+/**
+ * A grant confirmed after the document loaded has no navigation context, because this
+ * visit predates consent and must not be backfilled as a page_view (M5-T7). Create the
+ * context silently so later real model attempts bind to the page the visitor is on.
+ */
+function resumeNavigationAfterGrant(): void {
+  if (navigation || !lastLocation) return;
+  const path = SitePathSchema.safeParse(sitePath(lastLocation.locale, lastLocation.pathname));
+  if (!path.success) return;
+  navigation = { navigationId: crypto.randomUUID(), path: path.data, locale: lastLocation.locale };
 }
 
 async function postConsent(want: boolean, boundedRetry: boolean): Promise<void> {
@@ -206,6 +221,7 @@ async function postConsent(want: boolean, boundedRetry: boolean): Promise<void> 
   if (result.ok && result.data.analytics === true) {
     grantConfirmed = true;
     collecting = true;
+    resumeNavigationAfterGrant();
     syncMarks();
     return;
   }

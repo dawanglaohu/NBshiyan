@@ -134,6 +134,26 @@ async function openCatalogAndArm(page: Page): Promise<void> {
   await page.mouse.move(320, 260);
 }
 
+/** Grant analytics on the page that is already open, without navigating or reloading. */
+async function acceptOnCurrentPage(page: Page): Promise<void> {
+  const banner = page.getByRole('region', { name: 'Cookie consent' });
+  await expect(banner).toBeVisible({ timeout: 15_000 });
+  await banner.getByRole('button', { name: 'Accept all' }).click();
+  await waitForGrant(page);
+}
+
+async function rejectOnCurrentPage(page: Page): Promise<void> {
+  const banner = page.getByRole('region', { name: 'Cookie consent' });
+  await expect(banner).toBeVisible({ timeout: 15_000 });
+  await banner.getByRole('button', { name: 'Reject all' }).click();
+  await expect(banner).toBeHidden();
+}
+
+async function openCookieSettings(page: Page): Promise<void> {
+  await page.locator('#cookie-settings-link').click();
+  await expect(page.getByRole('dialog', { name: 'Cookie settings' })).toBeVisible({ timeout: 10_000 });
+}
+
 test('M2-T7 真实浏览器：产品访问、model start 与 success 分别落库并共享 viewId', async ({ page }) => {
   test.setTimeout(180_000);
   const since = new Date();
@@ -330,4 +350,163 @@ test('M2-T7 切走产品页：未决尝试被取消，不补写终态', async ({
   for (const start of starts) {
     expect(terminalsOf(after, start.viewId!)).toHaveLength(0);
   }
+});
+
+test('M2-T7 F1 同页接受：不重载页面，后续真实 GLB 发起即落 product_view/start/success', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  const posted = track(page);
+  await page.goto('/en/products');
+  await acceptOnCurrentPage(page);
+
+  // 不导航、不重载：同一页上直接真实发起 3D 懒加载。
+  await page.mouse.move(320, 260);
+  // 首屏卡片可能已因同意前的指针事件开始过；滚到尚未加载的卡片，保证同意后确有新的真实尝试。
+  await page.locator('article.card').last().scrollIntoViewIfNeeded();
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+  await expect.poll(async () => (await rowsSince(since, 'model_load_success')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+
+  const rows = await rowsSince(since);
+  // 同意前的这次停留不补发 page_view；产品访问只随真实 start 落一条同导航的记录。
+  expect(rows.filter((row) => row.kind === 'page_view')).toEqual([]);
+  const starts = rows.filter((row) => row.kind === 'model_view_start');
+  const successes = rows.filter((row) => row.kind === 'model_load_success');
+  const productViews = rows.filter((row) => row.kind === 'product_view');
+  const started = starts[0];
+  expect(started.path).toBe('/en/products');
+  expect(productViews.some((row) => row.navigationId === started.navigationId && row.productSlug === started.productSlug)).toBe(true);
+  expect(terminalsOf(rows, successes[0].viewId!)).toHaveLength(1);
+
+  // 撤回后同一文档内再导航：不补发访问，也不再发事件批。
+  await expect(page.locator('html')).toHaveAttribute('data-analytics-queue', '0', { timeout: 15_000 });
+  await openCookieSettings(page);
+  await page.getByRole('dialog', { name: 'Cookie settings' }).getByRole('button', { name: 'Reject all' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-analytics-collecting', 'false', { timeout: 15_000 });
+  const revokedRows = (await rowsSince(since)).length;
+  const revokedPosts = posted.length;
+  await page.evaluate(() => history.pushState(null, '', '/en'));
+  await page.waitForTimeout(1_500);
+  expect((await rowsSince(since)).length).toBe(revokedRows);
+  expect(posted.length).toBe(revokedPosts);
+});
+
+test('M2-T7 F1 拒绝后再次接受：同页恢复采集，真实加载落库', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  let allow = false;
+  // 同意前的真实尝试全部失败（不产生事件）；接受后用重试（attempt+1）发起新的一次真实加载。
+  await page.route(/\/models\/.*\.glb(\?.*)?$/, async (route) => {
+    if (!allow) return route.abort('failed');
+    return route.continue();
+  });
+  await page.goto('/en/products');
+  await rejectOnCurrentPage(page);
+  // 确保同意前的真实尝试已经发起（全部被上面的路由拒绝）。
+  await page.mouse.move(320, 260);
+
+  await page.locator('.consent-toast button').click();
+  const dialog = page.getByRole('dialog', { name: 'Cookie settings' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Accept all' }).click();
+  await waitForGrant(page);
+
+  const firstCard = page.locator('article.card').first();
+  await expect(firstCard.getByTestId('model-fallback')).toBeVisible({ timeout: 60_000 });
+  // 拒绝与同意前的真实失败都不产生事件。
+  expect(await rowsSince(since)).toEqual([]);
+
+  allow = true;
+  await firstCard.getByTestId('model-retry').click();
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+  await expect.poll(async () => (await rowsSince(since, 'model_load_success')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+  const rows = await rowsSince(since);
+  expect(rows.filter((row) => row.kind === 'page_view')).toEqual([]);
+  const start = rows.find((row) => row.kind === 'model_view_start')!;
+  expect(start.path).toBe('/en/products');
+  expect(rows.some((row) => row.kind === 'product_view' && row.navigationId === start.navigationId && row.productSlug === start.productSlug)).toBe(true);
+});
+
+test('M2-T7 F1 同意请求在途导航：授权确认后按当前页建立上下文', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  await page.route('**/api/analytics/consent', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 3_000));
+    await route.continue().catch(() => { /* 页面已离开时请求可能已被取消 */ });
+  });
+  await page.goto('/en');
+  const banner = page.getByRole('region', { name: 'Cookie consent' });
+  await expect(banner).toBeVisible({ timeout: 15_000 });
+  await banner.getByRole('button', { name: 'Accept all' }).click();
+
+  // 服务端确认还在途时用真实站内链接离开首页；授权确认后应按产品页建立上下文。
+  await page.getByTestId('products-link').click();
+  await expect(page).toHaveURL(/\/en\/products$/);
+  await expect(page.locator('article.card').first()).toBeVisible({ timeout: 20_000 });
+  await waitForGrant(page);
+
+  await page.mouse.move(320, 260);
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+  const rows = await rowsSince(since);
+  expect(rows.filter((row) => row.kind === 'page_view')).toEqual([]);
+  const start = rows.find((row) => row.kind === 'model_view_start')!;
+  expect(start.path).toBe('/en/products');
+  expect(rows.some((row) => row.kind === 'product_view' && row.navigationId === start.navigationId && row.productSlug === start.productSlug)).toBe(true);
+});
+
+test('M2-T7 F1 不补发同意前的真实尝试：同意前已发起的模型不产生 start/终态', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  await page.goto('/en/products');
+  await page.mouse.move(320, 260);
+  await expect.poll(async () => page.locator('[data-testid="product-viewport"][data-framed="1"]').count(), { timeout: 90_000 }).toBeGreaterThan(0);
+  const framed = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('[data-testid="product-viewport"][data-framed="1"]')].map((el) => el.dataset.slug ?? ''));
+  expect(framed.length).toBeGreaterThan(0);
+  expect(await rowsSince(since)).toEqual([]);
+
+  await acceptOnCurrentPage(page);
+  // 滚到同意前未加载的卡片，让新的真实 GLB 发起；同意前已发起的尝试不得补 start。
+  await page.locator('article.card').last().scrollIntoViewIfNeeded();
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 90_000 }).toBeGreaterThan(0);
+  const starts = await rowsSince(since, 'model_view_start');
+  for (const start of starts) expect(framed).not.toContain(start.productSlug);
+  expect(await rowsSince(since, 'page_view')).toEqual([]);
+});
+
+test('M2-T7 context lost：未决尝试立即记 WEBGL_UNAVAILABLE，不再补 TIMEOUT', async ({ page }) => {
+  test.setTimeout(180_000);
+  const since = new Date();
+  await page.route(/\/models\/.*\.glb(\?.*)?$/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 20_000));
+    await route.continue().catch(() => { /* context lost 后请求可能已取消 */ });
+  });
+  await acceptAnalytics(page);
+  await openCatalogAndArm(page);
+
+  await expect.poll(async () => (await rowsSince(since, 'model_view_start')).length, { timeout: 45_000 }).toBeGreaterThan(0);
+  expect(await rowsSince(since, 'model_load_failure')).toEqual([]);
+
+  const lost = await page.evaluate(() => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) return false;
+    const gl = (canvas.getContext('webgl2') || canvas.getContext('webgl')) as WebGLRenderingContext | null;
+    const ext = gl?.getExtension('WEBGL_lose_context');
+    if (!ext) return false;
+    ext.loseContext();
+    return true;
+  });
+  expect(lost, '浏览器必须支持 WEBGL_lose_context 才能注入 context lost').toBe(true);
+
+  await expect.poll(async () => (await rowsSince(since, 'model_load_failure')).length, { timeout: 20_000 }).toBeGreaterThan(0);
+  const failures = await rowsSince(since, 'model_load_failure');
+  for (const failure of failures) {
+    expect(failure.failureReason).toBe('WEBGL_UNAVAILABLE');
+    expect(failure.durationMs!).toBeLessThan(30_000);
+    expect(terminalsOf(await rowsSince(since), failure.viewId!)).toHaveLength(1);
+  }
+
+  // 越过 30s 计时器：不再出现 TIMEOUT，可见失败原因也不被改写。
+  await page.waitForTimeout(32_000);
+  const after = await rowsSince(since);
+  expect(after.filter((row) => row.kind === 'model_load_failure' && row.failureReason === 'TIMEOUT')).toEqual([]);
+  await expect(page.locator(`article#${failures[0].productSlug}`).getByTestId('model-fallback')).toHaveAttribute('data-reason', 'WEBGL_UNAVAILABLE');
 });

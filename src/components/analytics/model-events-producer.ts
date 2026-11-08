@@ -20,7 +20,9 @@ import { canCollectAnalytics, currentNavigation, enqueueAnalyticsEvents } from '
  * the injected monotonic clock, and the consent gate (E-42, E-46, E-103).
  *
  * Every identifier below is created after `canCollectAnalytics()` and a navigation
- * context exist, so a visitor who has not allowed analytics never gets a viewId.
+ * context exist, so a visitor who has not allowed analytics never gets a viewId. The
+ * page producer creates that context when a grant is confirmed on an already-open page;
+ * attempts first reported before consent are remembered and never backfilled later.
  */
 
 /** A GLB attempt that has not settled by then is a TIMEOUT failure (E-63). */
@@ -33,6 +35,12 @@ const open = new Map<string, OpenAttempt>();
 const lastViewId = new Map<string, string>();
 /** product_view is one row per navigation+product, even if the card retries. */
 const productViews = new Set<string>();
+/**
+ * Attempts first reported without consent or without a navigation context. A Suspense or
+ * scene remount re-reports the same attempt number; recording it after a grant would
+ * backfill a load that started earlier, so these keys never produce a start.
+ */
+const seenWithoutContext = new Set<string>();
 let watchingConsent = false;
 
 const uuid = () => crypto.randomUUID();
@@ -44,6 +52,12 @@ function resetSession(): void {
   open.clear();
   lastViewId.clear();
   productViews.clear();
+  // seenWithoutContext survives a revoke: a re-grant must not backfill older attempts.
+}
+
+function rememberWithoutContext(key: string): void {
+  seenWithoutContext.add(key);
+  if (seenWithoutContext.size > 500) seenWithoutContext.clear();
 }
 
 function watchConsent(): void {
@@ -88,9 +102,14 @@ function emitProductView(
  * so the caller knows whether to arm its own UI timeout.
  */
 export function noteModelStart(slug: string, attempt: number): boolean {
-  if (typeof window === 'undefined' || !canCollectAnalytics()) return false;
+  if (typeof window === 'undefined') return false;
+  const attemptKey = `${slug}|${attempt}`;
   const nav = currentNavigation();
-  if (!nav) return false;
+  if (!canCollectAnalytics() || !nav) {
+    rememberWithoutContext(attemptKey);
+    return false;
+  }
+  if (seenWithoutContext.has(attemptKey)) return false;
   watchConsent();
   const current = open.get(slug);
   if (current?.attempt === attempt) return false;
