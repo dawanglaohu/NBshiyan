@@ -3,17 +3,19 @@
 // 为什么单独成文件：Node 的 mock.module 必须在进程启动时带 flag，且必须在路由模块首次导入前注册，
 // 所以不能在默认测试进程里做，而由 tests/d1-route-sideeffect.test.ts 以子进程方式拉起。
 //
-// 被测对象（二选一，同一套断言）：
-//   - 默认：工作树当前路由（新实现，期望 410 + 业务调用数 0）
-//   - D1_ROUTE_REV=<rev>：从该 Git 提交取出旧路由源码，写入 test-results/ 下的临时目录再加载
-//     （不切换工作树、不改主检出、不改写旧路由业务逻辑；只用于红证据）
+// 被测对象（同一套断言）：
+//   - 默认：工作树当前路由，先复制进本进程独占的临时目录再加载，字节必须一致
+//   - D1_ROUTE_REV=<rev>：从该 Git 提交取出旧路由源码写入同一独占目录再加载
+//     （只在本机全量克隆可用；CI 是浅克隆，默认入口不依赖它）
+//
+// 临时目录归属：mkdtemp 唯一目录，进程退出时只删自己这一个；固定路径与父目录一律不碰。
 //
 // 隔离：db / 聚合 / 告警 / 审计 / 邮件全部用哨兵替身，不连真实 DB、不发 SMTP；鉴权走真实 secretMatches。
 import { after, before, test, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -21,7 +23,20 @@ const ROOT = process.cwd();
 const ROUTE_REL = 'src/app/api/admin/cron/analytics-rollup/route.ts';
 const OLD_REV = process.env.D1_ROUTE_REV?.trim() || null;
 const SECRET = 'd1-sideeffect-cron-secret-not-a-real-value';
-const TMP_DIR = path.join(ROOT, 'test-results', '.d1-route-sideeffect');
+
+const RESULTS_DIR = path.join(ROOT, 'test-results');
+
+// 本进程独占目录：mkdtemp 生成唯一名字，前后缀都不与历史固定路径 `.d1-route-sideeffect` 冲突，
+// 因此哪怕旧目录还被别的东西留着，也不会被这里匹配或删除。
+mkdirSync(RESULTS_DIR, { recursive: true });
+const OWNED_DIR = mkdtempSync(path.join(RESULTS_DIR, '.d1-route-sideeffect-'));
+const OWNED_ROUTE = path.join(OWNED_DIR, 'route.ts');
+
+/** 只清理本进程创建的那一个目录；重复调用安全（after 与 exit 双保险） */
+function removeOwnedDir() {
+  rmSync(OWNED_DIR, { recursive: true, force: true });
+}
+process.on('exit', removeOwnedDir);
 
 const RETIRED_BODY = {
   error: 'route_retired',
@@ -91,41 +106,51 @@ mock.module(srcUrl('lib/server/mail.ts'), {
 
 type RouteModule = { GET: (req: Request) => Promise<Response>; POST: (req: Request) => Promise<Response> };
 let route: RouteModule;
-let identity: { route: string; bytes: number; sha256: string; blob?: string };
 let previousSecret: string | undefined;
 
 before(async () => {
   previousSecret = process.env.CRON_SECRET;
   process.env.CRON_SECRET = SECRET;
 
+  let text: string;
+  let source: string;
+  let blob: string | undefined;
   if (OLD_REV) {
-    const text = execFileSync('git', ['show', `${OLD_REV}:${ROUTE_REL}`], {
+    text = execFileSync('git', ['show', `${OLD_REV}:${ROUTE_REL}`], {
       cwd: ROOT,
       encoding: 'utf8',
       maxBuffer: 16 * 1024 * 1024,
     });
-    rmSync(TMP_DIR, { recursive: true, force: true });
-    mkdirSync(TMP_DIR, { recursive: true });
-    const file = path.join(TMP_DIR, 'route.ts');
-    writeFileSync(file, text, 'utf8');
-    route = (await import(pathToFileURL(file).href)) as RouteModule;
-    identity = {
-      route: `git ${OLD_REV}:${ROUTE_REL} → test-results/.d1-route-sideeffect/route.ts`,
+    source = `git ${OLD_REV}:${ROUTE_REL}`;
+    blob = execFileSync('git', ['rev-parse', `${OLD_REV}:${ROUTE_REL}`], { cwd: ROOT, encoding: 'utf8' }).trim();
+  } else {
+    text = readFileSync(path.join(ROOT, ROUTE_REL), 'utf8');
+    source = `worktree ${ROUTE_REL}`;
+  }
+
+  writeFileSync(OWNED_ROUTE, text, 'utf8');
+  // 字节身份：源码 → 临时副本必须一致，加载的就是被测实现本身
+  const onDisk = readFileSync(OWNED_ROUTE, 'utf8');
+  assert.equal(sha256(onDisk), sha256(text), '临时目录里的路由副本必须与源码逐字节一致');
+
+  route = (await import(pathToFileURL(OWNED_ROUTE).href)) as RouteModule;
+
+  console.log(
+    // 用正斜杠输出：TAP 诊断行会再转义一次反斜杠，原样输出 Windows 路径无法稳定解析
+    `[d1-sideeffect] tmpdir ${JSON.stringify({ dir: OWNED_DIR.split(path.sep).join('/'), owned: true, pid: process.pid })}`,
+  );
+  console.log(
+    `[d1-sideeffect] 被测路由 ${JSON.stringify({
+      source,
       bytes: Buffer.byteLength(text, 'utf8'),
       sha256: sha256(text),
-      blob: execFileSync('git', ['rev-parse', `${OLD_REV}:${ROUTE_REL}`], { cwd: ROOT, encoding: 'utf8' }).trim(),
-    };
-  } else {
-    const file = path.join(ROOT, ROUTE_REL);
-    const text = readFileSync(file, 'utf8');
-    route = (await import(pathToFileURL(file).href)) as RouteModule;
-    identity = { route: `worktree ${ROUTE_REL}`, bytes: Buffer.byteLength(text, 'utf8'), sha256: sha256(text) };
-  }
-  console.log(`[d1-sideeffect] 被测路由 ${JSON.stringify(identity)}`);
+      ...(blob ? { blob } : {}),
+    })}`,
+  );
 });
 
 after(() => {
-  rmSync(TMP_DIR, { recursive: true, force: true });
+  removeOwnedDir();
   if (previousSecret === undefined) delete process.env.CRON_SECRET;
   else process.env.CRON_SECRET = previousSecret;
 });
