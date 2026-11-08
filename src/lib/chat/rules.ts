@@ -30,8 +30,8 @@ export const CHAT_NEW_SESSION_COOKIE_PREFIX = 'chat:new-session:cookie:';
 export const CHAT_NEW_SESSION_IP_PREFIX = 'chat:new-session:ip:';
 
 /**
- * 10 节:122 普通数据库交互事务 ≤5s。语句与锁等待留 0.5s 给回滚和响应，
- * 所以服务端 statement_timeout / lock_timeout 取 4.5s，客户端 timeout 兜底 5s。
+ * 10 节:122 普通数据库交互事务 ≤5s。服务端按剩余预算（预算 − 已耗时 − 保留）逐条重设
+ * statement_timeout / lock_timeout；客户端 timeout 兜底 5s，常量见下。
  */
 export const CHAT_TX_BUDGET_MS = 5_000;
 export const CHAT_TX_RESERVE_MS = 800;
