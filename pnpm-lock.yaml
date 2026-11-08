@@ -13,6 +13,9 @@ patchedDependencies:
   '@needle-tools/gltf-progressive@3.6.1':
     hash: 8b657e3c8c7805a339653552f83d7f9d36001e46438d548e7cd5459f6823e98a
     path: patches/@needle-tools__gltf-progressive@3.6.1.patch
+  next@15.5.28:
+    hash: a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525
+    path: patches/next@15.5.28.patch
 
 importers:
 
@@ -44,13 +47,13 @@ importers:
         version: 6.3.0
       next:
         specifier: ~15.5.28
-        version: 15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next-auth:
         specifier: 5.0.0-beta.32
-        version: 5.0.0-beta.32(next@15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(nodemailer@10.1.2)(react@19.3.0)
+        version: 5.0.0-beta.32(next@15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(nodemailer@10.1.2)(react@19.3.0)
       next-intl:
         specifier: ^4.3.9
-        version: 4.14.9(@types/react@19.3.0)(next@15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+        version: 4.14.9(@types/react@19.3.0)(next@15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       nodemailer:
         specifier: ^10.1.2
         version: 10.1.2
@@ -4797,17 +4800,17 @@ snapshots:
     dependencies:
       content-type: 2.1.0
 
-  next-auth@5.0.0-beta.32(next@15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(nodemailer@10.1.2)(react@19.3.0):
+  next-auth@5.0.0-beta.32(next@15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(nodemailer@10.1.2)(react@19.3.0):
     dependencies:
       '@auth/core': 0.41.3(nodemailer@10.1.2)
-      next: 15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next: 15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react: 19.3.0
     optionalDependencies:
       nodemailer: 10.1.2
 
   next-intl-swc-plugin-extractor@4.14.9: {}
 
-  next-intl@4.14.9(@types/react@19.3.0)(next@15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
+  next-intl@4.14.9(@types/react@19.3.0)(next@15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
     dependencies:
       '@eloqnt/config': 0.1.1
       '@eloqnt/format-json': 0.1.0
@@ -4817,7 +4820,7 @@ snapshots:
       '@swc/core': 1.16.18
       icu-minify: 4.14.9
       negotiator: 1.1.0
-      next: 15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next: 15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next-intl-swc-plugin-extractor: 4.14.9
       react: 19.3.0
       use-intl: 4.14.9(@types/react@19.3.0)(react@19.3.0)
@@ -4826,7 +4829,7 @@ snapshots:
     transitivePeerDependencies:
       - '@swc/helpers'
 
-  next@15.5.28(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+  next@15.5.28(patch_hash=a74898eb02df4262296e23cea4c5adae84e27cf6e9f7c3b83014cf8c51511525)(@playwright/test@1.64.0)(@types/node@22.20.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       '@next/env': 15.5.28
       '@swc/helpers': 0.5.15

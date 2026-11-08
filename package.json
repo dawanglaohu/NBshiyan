@@ -64,7 +64,8 @@
       "deepmerge-ts": ">=8.0.0"
     },
     "patchedDependencies": {
-      "@needle-tools/gltf-progressive@3.6.1": "patches/@needle-tools__gltf-progressive@3.6.1.patch"
+      "@needle-tools/gltf-progressive@3.6.1": "patches/@needle-tools__gltf-progressive@3.6.1.patch",
+      "next@15.5.28": "patches/next@15.5.28.patch"
     }
   }
 }
