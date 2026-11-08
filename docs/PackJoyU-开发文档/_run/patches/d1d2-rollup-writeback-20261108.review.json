@@ -2,12 +2,13 @@
   "scope": "task-contract",
   "tasks": {
     "ANALYTICS-ROLLUP": {
-      "contractHash": "11e2dc0ece2f8226dcca4a7d3b2903b279431fdc42d84846d9bd8d336b9b16c1",
+      "contractHash": "2e53631d49f16c6a728602061fe54c057ead6f58ab54fe4cb9ac560fbc5e2a80",
       "verdict": "pass",
       "evidence": [
-        "本窗（a24a8ca9..HEAD）对该任务只改事实限定：ANALYTICS-ROLLUP.md:21 把“旧路由已退役”改为“收口分支已实现、main 78966e99 尚未包含，生产仍是旧写入实现”，并注明 #477 阶段未接入 registry 已由 M5-T8 完成；:56 标注“收口分支已退役（main 未包含）”；:61-62 把 cron 指向 operations 标注为 M5-T8 已合入 main，旧路由 410 标注为收口分支。04-执行/遗留issue-20261024.md:601 同步同一限定。",
-        "逐条核对代码事实：b2ea2cfe 的 src/app/api/admin/cron/analytics-rollup/route.ts 在 :21 返回 410 route_retired、:27-28 缺/错凭据返回 401、:33-34 GET/POST 共用同一 handler；main 78966e99 的同文件仍是旧写入实现；deploy/cron.nbshiyan:11 自 M5-T8 起每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate）。",
-        "未改任务状态与历史：status done、PR #477、合并提交 90b2658d、acceptance 文本、edges 均保持；不声称生产已部署，不把分支态写成 main 态。",
+        "本窗对该任务只改事实限定：ANALYTICS-ROLLUP.md:21 与 04-执行/遗留issue-20261024.md:601 改为“收口分支已实现退役、main `78966e99` 尚未包含该修复、main 仍保留旧写入实现；未核验生产部署版本”，不再用“生产仍是旧写入实现”描述未核验的生产状态；:56 标注“收口分支已退役（main 未包含）”；:61-62 把 cron 指向 operations 标注为 M5-T8 已合入 main，旧路由 410 标注为收口分支。",
+        "卡面 :73（实施沉淀）原“收进 registry 另立任务”已标明为 #477 阶段历史结论，并写明该接入已由 M5-T8 完成（固定 registry + POST /api/admin/cron/operations），不再另立任务。",
+        "逐条核对代码事实：b2ea2cfe 的 src/app/api/admin/cron/analytics-rollup/route.ts 在 :21 返回 410 route_retired、:27-28 缺/错凭据返回 401、:33-34 GET/POST 共用同一 handler；main 78966e99 的同文件仍是旧写入实现（未核验生产部署版本）；deploy/cron.nbshiyan:11 自 M5-T8 起每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate）。",
+        "未改任务状态与历史：status done、PR #477、合并提交 90b2658d、acceptance 文本、edges 均保持；不声称生产已部署，不把分支态写成 main 态，也不把 main 状态推成生产状态。",
         "源码/测试/CI 零漂移（本窗）：git diff --stat a24a8ca9..HEAD -- src tests .github prisma deploy package.json pnpm-lock.yaml 为空；派生由工具重建，stale=[]、runtimeDrift=[]，progress 97 键/done 94，dispatch 144 任务无增删。"
       ]
     },
@@ -15,10 +16,10 @@
       "contractHash": "cbaf13f86bcfb5423c36ecf407210068b85f9c62785068f1fb22a9210136ebab",
       "verdict": "pass",
       "evidence": [
-        "契约增量来自上一笔已被授权窗口：task-contracts.json 的 M5-T8.supportPaths 由 4 条增至 8 条，只新增 src/app/api/admin/cron/analytics-rollup/route.ts、tests/analytics-rollup.test.ts、tests/d1-route-sideeffect.test.ts、tests/fixtures/d1-route-sideeffect.case.ts；outputPaths、验收标准、status 未动（本窗未再改 task-contracts.json）。",
+        "契约为上一轮已核增量，本轮未再改 task-contracts.json：M5-T8.supportPaths 由 4 条增至 8 条，只新增 src/app/api/admin/cron/analytics-rollup/route.ts、tests/analytics-rollup.test.ts、tests/d1-route-sideeffect.test.ts、tests/fixtures/d1-route-sideeffect.case.ts；outputPaths、验收标准、status 未动。",
         "卡面事实限定：M5-T8.md:100 与 :104 把“未 push/无 CI/未合入 main”明确为当时提交状态，并写明原任务其后由 #541 合入 main（merge 78966e99）；:105 D1 与 :106 D2 保留“未 push/未合并”并明确指本轮修复，不把这些写成当前 main 状态。",
-        "引用行号实核与当前树一致：route.ts:21/:27-28/:33-34；aggregate-repo.ts:117（upsertWatermarkGuarded）与 :147-159（WHERE）；tests/jobs-runtime.http.test.ts:208；tests/cron-analytics-rollup.test.ts:6 与 :26；tests/analytics-rollup.test.ts:149-162；tests/d1-route-sideeffect.test.ts:144。",
-        "只复验变化及其影响：契约哈希 cbaf13f8… 仅在 definition/effectivePaths 待复验，验收/边界/状态未变；D1 受影响三份测试 11/11、D2 整文件 17/17 与 jobs-runtime 16/16 按各自 SHA 记录（D1 3410fe95、D2 b2ea2cfe），不冒充新文档头 CI 已通过。"
+        "引用行号实核与当前树一致：route.ts:21/:27-28/:33-34；aggregate-repo.ts:117 与 :147-159；tests/jobs-runtime.http.test.ts:208；tests/cron-analytics-rollup.test.ts:6 与 :26；tests/analytics-rollup.test.ts:149-162；tests/d1-route-sideeffect.test.ts:144。",
+        "只复验变化及其影响：契约哈希 cbaf13f8… 仅 definition/effectivePaths 待复验，验收/边界/状态未变；D1 受影响三份测试 11/11、D2 整文件 17/17 与 jobs-runtime 16/16 按各自 SHA 记录（D1 3410fe95、D2 b2ea2cfe），不冒充新文档头 CI 已通过。"
       ]
     }
   }

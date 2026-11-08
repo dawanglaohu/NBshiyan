@@ -18,7 +18,7 @@ origin: issue-ledger-20261024
 - 审查：由 PR 上 bot 审查替代
 - 登记状态：已落地
 
-没有单独的 GitHub issue。本轮（#477 阶段）按单独 cron 入口接入，没有收进 jobs/registry.ts；该接入已由 M5-T8 完成（固定 registry + `POST /api/admin/cron/operations`）。2026-11-08 更新：**收口分支**已把旧 `/api/admin/cron/analytics-rollup` 改为鉴权后统一 410 `route_retired`、零 DB/聚合/邮件/审计（D1 `3410fe95`）；**main `78966e99` 尚未包含该修复**，生产仍是旧写入实现。
+没有单独的 GitHub issue。本轮（#477 阶段）按单独 cron 入口接入，没有收进 jobs/registry.ts；该接入已由 M5-T8 完成（固定 registry + `POST /api/admin/cron/operations`）。2026-11-08 更新：**收口分支**已把旧 `/api/admin/cron/analytics-rollup` 改为鉴权后统一 410 `route_retired`、零 DB/聚合/邮件/审计（D1 `3410fe95`）；**main `78966e99` 尚未包含该修复，main 仍保留旧写入实现；未核验生产部署版本**。
 
 ## 输入 / 产出
 
@@ -70,5 +70,5 @@ origin: issue-ledger-20261024
 - uniqueBrowsers 按 kind、locale、productSlug 分组，各组不能相加当作当日独立访客。统计页做的时候要单独算。
 - loadEvents 把一整天的原始行读进内存。量变大后再改成 SQL 分组聚合。
 - latestContiguousRolledUpDate 只是删除上限。RETENTION-CLEANUP 仍须逐日用 isSiteDateRolledUp 和当前时区代次过滤。
-- 设计里的统一入口是 jobs/registry.ts 和 /api/admin/cron/operations。本轮按单独路由接到 cron。收进 registry 另立任务。
+- 设计里的统一入口是 jobs/registry.ts 和 /api/admin/cron/operations；本轮（#477 阶段）按单独路由接到 cron，“收进 registry 另立任务”是**当时**的结论——该接入已由 M5-T8 完成（固定 registry + `POST /api/admin/cron/operations`），不再另立任务。
 <!-- notes:end -->

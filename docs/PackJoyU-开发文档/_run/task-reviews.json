@@ -1,14 +1,15 @@
 {
   "ANALYTICS-ROLLUP": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "11e2dc0ece2f8226dcca4a7d3b2903b279431fdc42d84846d9bd8d336b9b16c1",
+    "contractHash": "2e53631d49f16c6a728602061fe54c057ead6f58ab54fe4cb9ac560fbc5e2a80",
     "evidence": [
-      "本窗（a24a8ca9..HEAD）对该任务只改事实限定：ANALYTICS-ROLLUP.md:21 把“旧路由已退役”改为“收口分支已实现、main 78966e99 尚未包含，生产仍是旧写入实现”，并注明 #477 阶段未接入 registry 已由 M5-T8 完成；:56 标注“收口分支已退役（main 未包含）”；:61-62 把 cron 指向 operations 标注为 M5-T8 已合入 main，旧路由 410 标注为收口分支。04-执行/遗留issue-20261024.md:601 同步同一限定。",
-      "逐条核对代码事实：b2ea2cfe 的 src/app/api/admin/cron/analytics-rollup/route.ts 在 :21 返回 410 route_retired、:27-28 缺/错凭据返回 401、:33-34 GET/POST 共用同一 handler；main 78966e99 的同文件仍是旧写入实现；deploy/cron.nbshiyan:11 自 M5-T8 起每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate）。",
-      "未改任务状态与历史：status done、PR #477、合并提交 90b2658d、acceptance 文本、edges 均保持；不声称生产已部署，不把分支态写成 main 态。",
+      "本窗对该任务只改事实限定：ANALYTICS-ROLLUP.md:21 与 04-执行/遗留issue-20261024.md:601 改为“收口分支已实现退役、main `78966e99` 尚未包含该修复、main 仍保留旧写入实现；未核验生产部署版本”，不再用“生产仍是旧写入实现”描述未核验的生产状态；:56 标注“收口分支已退役（main 未包含）”；:61-62 把 cron 指向 operations 标注为 M5-T8 已合入 main，旧路由 410 标注为收口分支。",
+      "卡面 :73（实施沉淀）原“收进 registry 另立任务”已标明为 #477 阶段历史结论，并写明该接入已由 M5-T8 完成（固定 registry + POST /api/admin/cron/operations），不再另立任务。",
+      "逐条核对代码事实：b2ea2cfe 的 src/app/api/admin/cron/analytics-rollup/route.ts 在 :21 返回 410 route_retired、:27-28 缺/错凭据返回 401、:33-34 GET/POST 共用同一 handler；main 78966e99 的同文件仍是旧写入实现（未核验生产部署版本）；deploy/cron.nbshiyan:11 自 M5-T8 起每 5 分钟 POST /api/admin/cron/operations（jobKey analytics-aggregate）。",
+      "未改任务状态与历史：status done、PR #477、合并提交 90b2658d、acceptance 文本、edges 均保持；不声称生产已部署，不把分支态写成 main 态，也不把 main 状态推成生产状态。",
       "源码/测试/CI 零漂移（本窗）：git diff --stat a24a8ca9..HEAD -- src tests .github prisma deploy package.json pnpm-lock.yaml 为空；派生由工具重建，stale=[]、runtimeDrift=[]，progress 97 键/done 94，dispatch 144 任务无增删。"
     ],
-    "reviewed": "2026-11-08T05:10:04.353400+00:00",
+    "reviewed": "2026-11-08T05:14:12.000706+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },

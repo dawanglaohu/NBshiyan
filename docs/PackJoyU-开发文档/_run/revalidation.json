@@ -1,6 +1,6 @@
 {
   "ANALYTICS-ROLLUP": {
-    "contractHash": "11e2dc0ece2f8226dcca4a7d3b2903b279431fdc42d84846d9bd8d336b9b16c1",
+    "contractHash": "2e53631d49f16c6a728602061fe54c057ead6f58ab54fe4cb9ac560fbc5e2a80",
     "patches": [
       {
         "changedFields": [
@@ -15,6 +15,13 @@
         ],
         "patch": "d1d2-rollup-writeback-20261108",
         "sourceVersion": "40cfdbec7c54e148f946e4801f1bc8737b79a3fc8e7fe8ba6293beb991082f45"
+      },
+      {
+        "changedFields": [
+          "task"
+        ],
+        "patch": "d1d2-rollup-writeback-20261108",
+        "sourceVersion": "186b88613873c06cc1a4d3b2a078fb2f7682507a15d32f6af5a96baa88f8b3f3"
       }
     ],
     "previousStatus": "done"
@@ -37,6 +44,14 @@
         ],
         "patch": "d1d2-rollup-writeback-20261108",
         "sourceVersion": "40cfdbec7c54e148f946e4801f1bc8737b79a3fc8e7fe8ba6293beb991082f45"
+      },
+      {
+        "changedFields": [
+          "definition",
+          "effectivePaths"
+        ],
+        "patch": "d1d2-rollup-writeback-20261108",
+        "sourceVersion": "186b88613873c06cc1a4d3b2a078fb2f7682507a15d32f6af5a96baa88f8b3f3"
       }
     ],
     "previousStatus": "done"
