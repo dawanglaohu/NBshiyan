@@ -1678,9 +1678,13 @@
         "container"
       ],
       "supportPaths": [
+        ".github/workflows/ci.yml",
         "prisma/schema.prisma",
+        "src/lib/server/chat/visitor-session-repo.ts",
+        "src/lib/server/chat/visitor-session.ts",
         "src/lib/server/composition.ts",
-        "tests/chat-first-message.db.test.ts"
+        "tests/chat-first-message.db.test.ts",
+        "tests/chat-session.http.test.ts"
       ],
       "outputPaths": [
         "src/lib/server/chat/conversation-service.ts",
