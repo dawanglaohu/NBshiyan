@@ -19,6 +19,25 @@ export const CHAT_WRITE_RETRY_AFTER_SECONDS = 60;
 export const CHAT_WRITE_RATE_PREFIX = 'chat:conversations:cookie:';
 
 /**
+ * 10 节:121 新会话桶（与上面的写桶是两个不同配额，不能互相替代）：
+ * 匿名 cookie 10 次/10 分钟、可信边缘 IP 派生 HMAC 20 次/10 分钟。
+ */
+export const CHAT_NEW_SESSION_COOKIE_LIMIT = 10;
+export const CHAT_NEW_SESSION_IP_LIMIT = 20;
+export const CHAT_NEW_SESSION_WINDOW_MS = 10 * 60 * 1000;
+export const CHAT_NEW_SESSION_RETRY_AFTER_SECONDS = 600;
+export const CHAT_NEW_SESSION_COOKIE_PREFIX = 'chat:new-session:cookie:';
+export const CHAT_NEW_SESSION_IP_PREFIX = 'chat:new-session:ip:';
+
+/**
+ * 10 节:122 普通数据库交互事务 ≤5s。语句与锁等待留 0.5s 给回滚和响应，
+ * 所以服务端 statement_timeout / lock_timeout 取 4.5s，客户端 timeout 兜底 5s。
+ */
+export const CHAT_TX_BUDGET_MS = 5_000;
+export const CHAT_TX_STATEMENT_MS = 4_500;
+export const CHAT_TX_MAX_WAIT_MS = 2_000;
+
+/**
  * 创建载荷的规范化字符串。只收契约字段，按固定键序序列化，
  * 保证同一份输入在任何进程、任何重试里得到同一个哈希。
  * email、productSlug、sourcePath 缺省统一成 null，避免 undefined 与 null 产生两个哈希。

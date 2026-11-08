@@ -1,6 +1,31 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 import { products } from '../../../data/products';
 
+/**
+ * 「数据库不可用或超时」的保守分类，只认确定的类别：
+ * - 连接初始化/不可达/连接池超时：PrismaClientInitializationError/RustPanicError 与 P1001/P1002/P1008/P1017/P2024；
+ * - 事务超时 P2028；
+ * - 服务端 statement_timeout 取消语句：P2010 + SQLSTATE 57014；
+ * - 明确的网络错误码（连接被拒/重置/超时/解析失败）。
+ *
+ * 不按 message 关键词匹配，也不把全部 P2010 归进来——触发器 RAISE EXCEPTION 等数据层错误
+ * 仍是未知失败（500），不是 503。这里刻意不 import designs（它会在模块加载时创建 Prisma 客户端，
+ * 测试需要在设置 DATABASE_URL 之后再导入路由）。
+ */
+const DB_UNAVAILABLE_CODES = new Set(['P1001', 'P1002', 'P1008', 'P1017', 'P2024', 'P2028']);
+const NET_CODES = new Set(['ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAI_AGAIN', 'EHOSTUNREACH', 'ENETUNREACH']);
+
+export function isDatabaseUnavailable(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const shaped = error as { name?: unknown; code?: unknown; errorCode?: unknown; meta?: { code?: unknown }; cause?: unknown };
+  if (shaped.name === 'PrismaClientInitializationError' || shaped.name === 'PrismaClientRustPanicError') return true;
+  for (const code of [shaped.code, shaped.errorCode]) {
+    if (typeof code === 'string' && (DB_UNAVAILABLE_CODES.has(code) || NET_CODES.has(code))) return true;
+  }
+  if (shaped.code === 'P2010' && shaped.meta?.code === '57014') return true;
+  return shaped.cause !== error && isDatabaseUnavailable(shaped.cause);
+}
+
 /** 目录产品的内部 key，与分析事件使用同一份来源；这些 slug 直接算已发布上下文。 */
 const CATALOG_PRODUCT_SLUGS: ReadonlySet<string> = new Set(products.map((product) => product.slug));
 

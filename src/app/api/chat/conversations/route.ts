@@ -2,8 +2,15 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { ConversationCreateRequestSchema, ConversationReceivedDTOSchema } from '@/lib/contracts/chat';
 import { FieldErrorSchema, type FieldError } from '@/lib/contracts/errors';
+import { rateLimitSubject, resolveClientIp } from '@/lib/edge/client-ip';
 import {
   CHAT_BODY_MAX_BYTES,
+  CHAT_NEW_SESSION_COOKIE_LIMIT,
+  CHAT_NEW_SESSION_COOKIE_PREFIX,
+  CHAT_NEW_SESSION_IP_LIMIT,
+  CHAT_NEW_SESSION_IP_PREFIX,
+  CHAT_NEW_SESSION_RETRY_AFTER_SECONDS,
+  CHAT_NEW_SESSION_WINDOW_MS,
   CHAT_WRITE_COOKIE_LIMIT,
   CHAT_WRITE_RATE_PREFIX,
   CHAT_WRITE_RETRY_AFTER_SECONDS,
@@ -11,6 +18,7 @@ import {
 } from '@/lib/chat/rules';
 import { assertSameOrigin } from '@/lib/server/admin-guard';
 import { ChatIdempotencyConflict, ChatUnpublishedProduct } from '@/lib/server/chat/conversation-service';
+import { isDatabaseUnavailable } from '@/lib/server/chat/repo';
 import {
   chatVisitorCookieSecure,
   clearChatVisitorCookie,
@@ -100,6 +108,27 @@ export async function POST(request: Request) {
       return fail(new AppError('unauthorized'), read.kind === 'ambiguous' ? clearChatVisitorCookie(secure) : undefined);
     }
 
+    // 10 节:121 新会话两桶：匿名 cookie 10 次/10 分钟、可信边缘 IP 派生 HMAC 20 次/10 分钟。
+    // 两桶都计数（不是二选一），先返回 cookie 桶结果；不保存原始 IP，key 只含派生值。
+    const ip = resolveClientIp(request.headers, env).ip;
+    const [cookieAllowed, ipAllowed] = await Promise.all([
+      hitRateLimit(
+        `${CHAT_NEW_SESSION_COOKIE_PREFIX}${rateLimitKeyHash(read.value, env)}`,
+        CHAT_NEW_SESSION_COOKIE_LIMIT,
+        CHAT_NEW_SESSION_WINDOW_MS,
+        { onStoreError: 'closed' },
+      ),
+      hitRateLimit(
+        `${CHAT_NEW_SESSION_IP_PREFIX}${rateLimitSubject(ip)}`,
+        CHAT_NEW_SESSION_IP_LIMIT,
+        CHAT_NEW_SESSION_WINDOW_MS,
+        { onStoreError: 'closed' },
+      ),
+    ]);
+    if (!cookieAllowed || !ipAllowed) {
+      return fail(new AppError('rate_limited', { retryAfterSeconds: CHAT_NEW_SESSION_RETRY_AFTER_SECONDS }));
+    }
+
     // 10 节：聊天写每会话 20 条/分钟；创建首消息同样落在这个 cookie 桶里。
     const allowed = await hitRateLimit(
       `${CHAT_WRITE_RATE_PREFIX}${rateLimitKeyHash(read.value, env)}`,
@@ -127,6 +156,10 @@ export async function POST(request: Request) {
       if (error instanceof ChatIdempotencyConflict) {
         const fieldErrors = { [error.field]: CONFLICT_MESSAGE } as FieldError;
         return fail(new AppError('idempotency_conflict', { fieldErrors }));
+      }
+      // 10 节:122：可识别的数据库不可用/超时 → 503；其余未知编程错误仍走 500。
+      if (isDatabaseUnavailable(error)) {
+        return fail(new AppError('service_unavailable'));
       }
       throw error;
     }

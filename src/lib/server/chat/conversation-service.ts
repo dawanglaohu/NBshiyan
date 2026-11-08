@@ -1,6 +1,9 @@
-import { randomUUID } from 'node:crypto';
+﻿import { randomUUID } from 'node:crypto';
 import type { ChatMessageDTO, ConversationCreateRequest, ConversationReceivedDTO } from '../../contracts/chat';
 import {
+  CHAT_TX_BUDGET_MS,
+  CHAT_TX_MAX_WAIT_MS,
+  CHAT_TX_STATEMENT_MS,
   chatRetainUntil,
   conversationCreatePayloadHash,
   firstMessagePayloadHash,
@@ -103,6 +106,10 @@ export function createConversationService(deps: {
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
           return await deps.db.$transaction(async (tx) => {
+            // 服务端先设语句与锁等待预算：客户端 timeout 不会中断已经在跑的语句，
+            // 只有 statement_timeout 能把慢 SQL/锁等待截断在 5s 契约内的 4.5s。
+            await tx.$executeRawUnsafe(`SET LOCAL statement_timeout = ${CHAT_TX_STATEMENT_MS}`);
+            await tx.$executeRawUnsafe(`SET LOCAL lock_timeout = ${CHAT_TX_STATEMENT_MS}`);
             const existing = await readExisting(tx, visitorSessionId, payload, createHash, messageHash);
             if (existing) return existing;
 
@@ -151,7 +158,7 @@ export function createConversationService(deps: {
               receivedAt: now.toISOString(),
               duplicate: false,
             };
-          });
+          }, { timeout: CHAT_TX_BUDGET_MS, maxWait: CHAT_TX_MAX_WAIT_MS });
         } catch (error) {
           if (error instanceof ChatIdempotencyConflict) throw error;
           // 唯一约束说明并发的同名请求先提交了；开新事务重读，返回它的结果。
