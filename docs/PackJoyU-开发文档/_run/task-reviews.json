@@ -861,13 +861,17 @@
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
     "contractHash": "a7eae271ebab1ce4c25b5eb5fa5bf8697d03a34f604919c24d9e4f54d08ce26e",
     "evidence": [
-      "补丁 m4t1-schema-guard-20261108（PR #544）仅改 _run/task-contracts.json 的 M4-T1.supportPaths：新增 tests/analytics-ingest.http.db.test.ts；tests/chat-session.http.test.ts 已在支持路径中，未重复添加；provides/requires/stage/wiring/outputPaths/sections 逐字段未变。",
-      "Jev 裁定采用 B、spec_change=no：不改产品条款/验收标准/schema/生产源码/测试/CI；本补丁只为 PR #544 的 schema 隐私断言修复登记必要测试路径，补救的是支持路径漏列，不是产品要求变更。",
-      "登记依据为 PR #544 首次 CI run 42499360492 的实际失败：tests/analytics-ingest.http.db.test.ts:58 的 EOF 切片把 AnalyticsEvent 之后的 chat 模型误算入分析字段（build not ok 640 / e2e not ok 17）；首消息 PG17 回归 30/30 已通过，修复方案由数据库裁定窗采用 B。",
-      "本补丁不声称修复已完成、不声称 CI 通过；PG17/PR CI 尚未重跑，修复由测试工程师在冻结交树后按 B 落地，再由非作者复审实际 diff。",
-      "契约哈希变化向下游传播：affected 23 个任务均为依赖 M4-T1 provides 的消费者，其定义未改；确认以 patch record 的 changes 为准。"
+      "完整契约复核，不是仅支持路径复核：固定已审实现头 abca9dc4（tree 8204247c78a3412a826b3dd6a0a3ae08ce0b587f，父 1f5bcc38）；git diff 89284f3a abca9dc4 -- src prisma .github 为 0 行，89284f3a 本身是既有授权的 CI 接线 +6 行与 rules.ts 2 行注释，本窗未改生产源码/测试/CI。",
+      "验收 1（调用方/接线/事务）：src/app/api/chat/conversations/route.ts:51 为真实 POST 入口（同源→16KiB 限体→strict schema→必要 cookie→新会话两桶限流→写桶），conversation-service.ts:118 在剩余预算 arm 后按“守卫→读写→最终条件 touch”执行；会话/首消息/seq/唯一出箱同事务，repo.ts:97/112/155/192/224 与 schema 唯一约束保证同 UUID 同载荷幂等、异载荷 409、并发仅一消息一通知。",
+      "验收 2（限体与字段）：16KiB 在解析前限制；strict schema 下正文 1..4000 code points，email 省略/空值按不填，trim 后超 254、CRLF/显示名/非法格式返回字段错误（rules.ts 与 route.ts 段）；测试覆盖 16,384 合法正例、Unicode 与邮箱边界，未放宽。",
+      "验收 3（身份与分析分离）：visitor-session.ts:206 的 resolve() 只读校验，身份只取必要 cookie；拒绝分析仍接收且不建分析身份（E-40）；repo.ts:276 事务内新鲜度守卫先于 readExisting，repo.ts:296 条件 touch 0 行即整笔回滚（C3），400/409/500/503 不续期。",
+      "非作者审查：数据库运行审（b5975207）30/30 PASS；全栈静态审（b5975207）PASS；数据库最终复审（abca9dc4）PASS，含块注释冒充模型的利用复现（旧头 1/1 假绿 → 修复头 0/1 fail）；译审（89284f3a/6b7bba11）PASS；运维 CI 差量审（89284f3a）PASS。",
+      "PR CI：run 42504582269 attempt 1 success，head abca9dc4；GitHub merge checkout 60461a934759e028b8364cf363c6ca3a388c1f00（父 a7521e36+abca9dc4，tree 8204247c 与已审 head 同 tree）。PG17 三文件 analytics pass=10、chat-session pass=19、chat-first-message pass=30，fail=skip=todo=cancelled=0；build 的 Unit tests/build/Lighthouse/standalone 3/3/production mock 4/4 通过；Playwright A3 收集 219，实跑 209 通过、10 跳过（主段 206/10 + 2 + 1），219 是收集数不是全部执行通过。",
+      "首跑 42499360492（head 7adbb63a）failure 保留：PG17 首消息回归 30/30 已通过，但 analytics/session 的 EOF 切片把相邻模型误算入目标模型，致 build not ok 640、e2e not ok 17、Playwright 未执行；修复只收窄测试作用域并在定位前剥离真实注释，未改生产 schema/源码/CI，也未放宽禁字段断言。",
+      "保留边界：本地 PG12 与 CI PG17 非同载体；commit/WAL 不在 statement_timeout 内；maxWait 2s 属事务外排队、不计入内部事务预算；R1 三份原日志被 R2 同名脚本覆盖、授权有界范围内未恢复（4,698ms 据作者当时记录，7,080ms 来自初版独审探针）；计时为客户端事务调用包络，不是生产内部预算起点。",
+      "契约未变：本窗未改 _run/task-contracts.json；supportPaths 仅增 tests/analytics-ingest.http.db.test.ts（chat-session 原已在列），provides/requires/stage/wiring/outputPaths/sections 逐字段未变；契约哈希 a7eae271ebab1ce4c25b5eb5fa5bf8697d03a34f604919c24d9e4f54d08ce26e 与 status 一致。"
     ],
-    "reviewed": "2026-11-08T16:40:49.442375+00:00",
+    "reviewed": "2026-11-08T18:02:58.543351+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
