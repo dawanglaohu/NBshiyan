@@ -2,10 +2,16 @@
 # and reads CRON_SECRET from the container's own env. Times are server local time.
 # retention-cleanup is daily at 03:30 and stays dry-run until the container env sets
 # RETENTION_CLEANUP_MODE=delete and the app is restarted. Do not put that value on this command line.
+# analytics-retention is daily at 04:30. Both retention entries share the analytics-aggregate lease,
+# and the 5-minute aggregate job meets either of them: exclusivity comes from the lease plus the
+# 409 busy skip, not from the wall-clock hour. The request carries no dryRun field, so the contract
+# defaults to dry-run: counts only, zero deletions. Real deletion also needs the operator switch
+# above plus an explicit enable flag in the request body; none of that is on this command line.
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # NBSHIYAN_DATA_DIR is filled in at install time
 30 4 * * * root NBSHIYAN_DATA_DIR=@DATA_DIR@ @DATA_DIR@/src/deploy/backup-postgres.sh daily >> @DATA_DIR@/backup/backup.log 2>&1
 0 3 * * *  root docker exec nbshiyan-app-1 node -e "fetch('http://127.0.0.1:3000/api/admin/cron/cleanup-uploads',{headers:{authorization:'Bearer '+process.env.CRON_SECRET},signal:AbortSignal.timeout(300000)}).then(r=>{console.log(new Date().toISOString(),'cleanup',r.status);process.exit(r.ok?0:1)}).catch(e=>{console.log('cleanup error',e.name);process.exit(1)})" >> @DATA_DIR@/cron-cleanup.log 2>&1
 30 3 * * * root docker exec nbshiyan-app-1 node -e "fetch('http://127.0.0.1:3000/api/admin/cron/retention-cleanup',{headers:{authorization:'Bearer '+process.env.CRON_SECRET},signal:AbortSignal.timeout(300000)}).then(r=>{console.log(new Date().toISOString(),'retention-cleanup',r.status);/* 409: analytics-aggregate lease held; normal skip, not a failure; no retry */process.exit(r.ok||r.status===409?0:1)}).catch(()=>{console.log(new Date().toISOString(),'retention-cleanup',0);process.exit(1)})" >> @DATA_DIR@/cron-retention-cleanup.log 2>&1
+30 4 * * * root docker exec nbshiyan-app-1 node -e "fetch('http://127.0.0.1:3000/api/admin/cron/operations',{method:'POST',headers:{authorization:'Bearer '+process.env.CRON_SECRET,'content-type':'application/json'},body:JSON.stringify({jobKey:'analytics-retention'}),signal:AbortSignal.timeout(55000)}).then(r=>{console.log(new Date().toISOString(),'analytics-retention',r.status);/* 409: analytics-aggregate lease held; normal skip, not a failure; no retry */process.exit(r.ok||r.status===409?0:1)}).catch(()=>{console.log(new Date().toISOString(),'analytics-retention',0);process.exit(1)})" >> @DATA_DIR@/cron-analytics-retention.log 2>&1
 */5 * * * * root docker exec nbshiyan-app-1 node -e "fetch('http://127.0.0.1:3000/api/admin/cron/operations',{method:'POST',headers:{authorization:'Bearer '+process.env.CRON_SECRET,'content-type':'application/json'},body:JSON.stringify({jobKey:'analytics-aggregate'}),signal:AbortSignal.timeout(55000)}).then(r=>{console.log(new Date().toISOString(),'analytics-aggregate',r.status);/* 409: analytics-aggregate lease held; normal skip, not a failure; no retry */process.exit(r.ok||r.status===409?0:1)}).catch(()=>{console.log(new Date().toISOString(),'analytics-aggregate',0);process.exit(1)})" >> @DATA_DIR@/cron-analytics-aggregate.log 2>&1

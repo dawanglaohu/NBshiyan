@@ -32,6 +32,11 @@ export type JobRunContext = {
   now: Date;
   deadlineAt: Date;
   signal: AbortSignal;
+  /**
+   * 请求是否要求 dry-run。只有契约允许带 dryRun 的作业（分析/聊天保留）会收到它；
+   * 缺省视为 dry-run，作业必须把「缺省」当关闭真实写入处理，不能把 undefined 当作启用。
+   */
+  dryRun?: boolean;
 };
 
 export type JobRunOutcome =
@@ -90,29 +95,29 @@ export class JobDeadlineExceeded extends Error {
 }
 
 /** 单轮预算：业务时钟由 context.now 决定，执行预算只看真实墙钟与中止信号。 */
-type JobBudget = {
+export type JobBudget = {
   /** 预算内工作必须结束的时刻（已扣除响应余量）。 */
   deadlineAt: Date;
   signal: AbortSignal;
 };
 
-type BudgetedResult<T> =
+export type BudgetedResult<T> =
   | { kind: 'ok'; value: T }
   | { kind: 'budget' }
   | { kind: 'error'; error: unknown };
 
-function createJobBudget(context: JobRunContext): JobBudget {
+export function createJobBudget(context: JobRunContext): JobBudget {
   return {
     deadlineAt: new Date(context.deadlineAt.getTime() - JOB_RESPONSE_RESERVE_MS),
     signal: context.signal,
   };
 }
 
-function remainingBudgetMs(budget: JobBudget): number {
+export function remainingBudgetMs(budget: JobBudget): number {
   return budget.deadlineAt.getTime() - Date.now();
 }
 
-function budgetExhausted(budget: JobBudget): boolean {
+export function budgetExhausted(budget: JobBudget): boolean {
   return budget.signal.aborted || remainingBudgetMs(budget) <= 0;
 }
 
@@ -121,7 +126,7 @@ function budgetExhausted(budget: JobBudget): boolean {
  * statement_timeout（57014）、lock_timeout（55P03）。
  * 三类都表示本轮没能在截止前完成，数据库已回滚，不能当作业务失败。
  */
-function isBudgetTimeoutError(error: unknown): boolean {
+export function isBudgetTimeoutError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   if ((error as { code?: unknown }).code === 'P2028') return true;
   const pgCode = (error as { meta?: { code?: unknown } }).meta?.code;
@@ -133,8 +138,11 @@ function isBudgetTimeoutError(error: unknown): boolean {
  * 之和不超过剩余预算，并在数据库侧再设 statement_timeout / lock_timeout，
  * 使单句 SQL 和行锁等待也不会跨过截止后继续执行。
  * 预算不足时不开事务；超时类错误同样归为预算耗尽，由调用方决定是否还能写终态。
+ *
+ * 分析聚合作业与分析保留作业共用这一原语：保留清理的每批删除都单独成事务，
+ * 因此每批开始时重新按剩余预算计算，而不是只在整轮开始时算一次。
  */
-async function runWithinBudget<T>(
+export async function runWithinBudget<T>(
   db: Pick<PrismaClient, '$transaction'>,
   budget: JobBudget,
   work: (tx: Prisma.TransactionClient) => Promise<T>,
@@ -339,7 +347,8 @@ export function createOperationsHandler(deps: OperationsHandlerDeps) {
     }
     const parsed = OperationsRequestSchema.safeParse(payload);
     if (!parsed.success) return reply({ error: 'invalid' }, 400);
-    const { jobKey } = parsed.data;
+    const request = parsed.data;
+    const { jobKey } = request;
     if (!deps.services.has(jobKey)) return reply({ error: 'unknown_job' }, 400);
 
     const now = clock();
@@ -351,10 +360,17 @@ export function createOperationsHandler(deps: OperationsHandlerDeps) {
     const deadlineAt = new Date(Date.now() + deadlineMs);
     const controller = new AbortController();
 
+    // 只有契约里带 dryRun 的作业会收到这个字段；其余作业的请求体里没有它。
+    const context: JobRunContext = {
+      now,
+      deadlineAt,
+      signal: controller.signal,
+      ...('dryRun' in request ? { dryRun: request.dryRun } : {}),
+    };
     let outcome: JobRunOutcome | 'deadline';
     try {
       outcome = await runWithDeadline(
-        deps.services.run(jobKey, { now, deadlineAt, signal: controller.signal }),
+        deps.services.run(jobKey, context),
         deadlineMs,
       );
     } catch (error) {
