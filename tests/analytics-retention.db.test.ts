@@ -11,7 +11,9 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { createOperationsHandler, createJobRegistry } from '../src/lib/server/jobs/registry';
 import {
   ANALYTICS_RETENTION_KEY,
+  aggregateIsComplete,
   classifyHistoricalDays,
+  coverageOfHistory,
   createAnalyticsRetentionJob,
   resolveRetentionMode,
   runAnalyticsRetention,
@@ -44,27 +46,72 @@ test('保留模式：默认、已授权但未请求、未授权请求都落回 d
   assert.deepEqual(resolveRetentionMode({ requestedDelete: true, authorized: true }), { mode: 'delete', rejected: false });
 });
 
-test('历史受影响日分类：可重算 / 保留旧聚合 / 缺口 / 已过期四类与最坏覆盖度', () => {
+test('历史受影响日分类：可重算 / 保留完整旧聚合 / 缺口 / 已过期四类与最坏覆盖度', () => {
+  const now = new Date('2027-03-15T04:00:00.000Z');
+  const complete = {
+    timezoneRevision: 1,
+    eventCount: 1,
+    sourceMaxReceivedAt: '2027-02-10T10:00:00.000Z',
+    completedAt: '2027-02-13T00:00:00.000Z',
+  };
   const partition = classifyHistoricalDays({
+    currentTimezoneRevision: 1,
+    now,
+    settleMs: null,
     completeRawCoverageStartUtc: '2027-02-13T16:00:00.000Z',
     rollupExpiryThrough: '2026-02-15',
     days: [
-      { siteDate: '2026-01-10', dayStartUtc: '2026-01-09T16:00:00.000Z', hasAggregate: true },
-      { siteDate: '2027-02-10', dayStartUtc: '2027-02-09T16:00:00.000Z', hasAggregate: true },
-      { siteDate: '2027-02-11', dayStartUtc: '2027-02-10T16:00:00.000Z', hasAggregate: false },
-      { siteDate: '2027-02-14', dayStartUtc: '2027-02-13T16:00:00.000Z', hasAggregate: false },
+      // 已过 13 个自然月：按保留规则到期，不记缺口。
+      { siteDate: '2026-01-10', dayStartUtc: '2026-01-09T16:00:00.000Z', dayEndUtc: '2026-01-10T16:00:00.000Z', dayMaxReceivedAt: '2026-01-10T00:00:00.000Z', aggregate: { ...complete, timezoneRevision: 2 } },
+      // 闭集前写入（completedAt < 日终+48h）：即使 watermark 等于当前最大也不完整。
+      { siteDate: '2027-02-08', dayStartUtc: '2027-02-07T16:00:00.000Z', dayEndUtc: '2027-02-08T16:00:00.000Z', dayMaxReceivedAt: '2027-02-08T02:00:00.000Z', aggregate: { ...complete, sourceMaxReceivedAt: '2027-02-08T02:00:00.000Z', completedAt: '2027-02-09T00:00:00.000Z' } },
+      // 闭集后写入、watermark 远早于闭集：完整可保留。
+      { siteDate: '2027-02-10', dayStartUtc: '2027-02-09T16:00:00.000Z', dayEndUtc: '2027-02-10T16:00:00.000Z', dayMaxReceivedAt: '2027-02-10T10:00:00.000Z', aggregate: complete },
+      // 无聚合标记：缺口。
+      { siteDate: '2027-02-11', dayStartUtc: '2027-02-10T16:00:00.000Z', dayEndUtc: '2027-02-11T16:00:00.000Z', dayMaxReceivedAt: '2027-02-11T10:00:00.000Z', aggregate: null },
+      // 闭集后写入但当前整日仍有更晚事件：负向 staleness 守卫判 gap。
+      { siteDate: '2027-02-12', dayStartUtc: '2027-02-11T16:00:00.000Z', dayEndUtc: '2027-02-12T16:00:00.000Z', dayMaxReceivedAt: '2027-02-12T10:00:00.000Z', aggregate: { ...complete, sourceMaxReceivedAt: '2027-02-12T05:00:00.000Z', completedAt: '2027-02-15T00:00:00.000Z' } },
+      // 计数/水位不一致：gap。
+      { siteDate: '2027-02-13', dayStartUtc: '2027-02-12T16:00:00.000Z', dayEndUtc: '2027-02-13T16:00:00.000Z', dayMaxReceivedAt: '2027-02-13T10:00:00.000Z', aggregate: { ...complete, eventCount: 0, sourceMaxReceivedAt: '2027-02-13T10:00:00.000Z', completedAt: '2027-02-16T00:00:00.000Z' } },
+      // 日界不早于完整覆盖起点：可整日重算。
+      { siteDate: '2027-02-14', dayStartUtc: '2027-02-13T16:00:00.000Z', dayEndUtc: '2027-02-14T16:00:00.000Z', dayMaxReceivedAt: '2027-02-13T17:00:00.000Z', aggregate: null },
     ],
   });
-  assert.deepEqual(partition.affectedDays, ['2026-01-10', '2027-02-10', '2027-02-11', '2027-02-14']);
-  // 已过 13 个自然月的日按保留规则到期，不记缺口。
+  assert.deepEqual(partition.affectedDays, ['2026-01-10', '2027-02-08', '2027-02-10', '2027-02-11', '2027-02-12', '2027-02-13', '2027-02-14']);
   assert.deepEqual(partition.recomputedDays, ['2027-02-14']);
-  assert.deepEqual(partition.preservedDays, ['2027-02-10']);
-  assert.deepEqual(partition.gapDays, ['2027-02-11']);
+  // 没有已证明的 settle 上界：旧行一律不判完整，非可重算日全部 gap。
+  assert.deepEqual(partition.completeAggregateDays, []);
+  assert.deepEqual(partition.preservedDays, []);
+  assert.deepEqual(partition.gapDays, ['2027-02-08', '2027-02-10', '2027-02-11', '2027-02-12', '2027-02-13']);
   assert.equal(partition.coverage, 'unavailable');
+
+  // 生产路径：settle=null，即使行看起来完整也 conservative gap。
+  const base = { dayEndUtc: '2027-02-13T16:00:00.000Z', currentTimezoneRevision: 1, now, dayMaxReceivedAt: null };
+  const wellFormed = {
+    timezoneRevision: 1,
+    eventCount: 1,
+    sourceMaxReceivedAt: '2027-02-13T10:00:00.000Z',
+    completedAt: '2027-02-16T00:00:00.000Z',
+  };
+  assert.equal(aggregateIsComplete({ ...base, aggregate: wellFormed, settleMs: null }), false);
+  // 仅验证「将来有 settle 上界」时的分支：C=2027-02-15T16:00Z，settle=60s → 边界 16:01。
+  assert.equal(
+    aggregateIsComplete({ ...base, aggregate: { ...wellFormed, completedAt: '2027-02-15T16:00:30.000Z' }, settleMs: 60_000 }),
+    false,
+  );
+  assert.equal(
+    aggregateIsComplete({ ...base, aggregate: { ...wellFormed, completedAt: '2027-02-15T16:02:00.000Z' }, settleMs: 60_000 }),
+    true,
+  );
+  // 计数/水位不一致：即使 settle 足够也 gap。
+  assert.equal(aggregateIsComplete({ ...base, aggregate: { ...wellFormed, eventCount: 0 }, settleMs: 60_000 }), false);
+
   assert.equal(worstCoverage('complete', 'complete'), 'complete');
   assert.equal(worstCoverage('complete', 'partial'), 'partial');
   assert.equal(worstCoverage('partial', 'unavailable'), 'unavailable');
   assert.equal(worstCoverage('unavailable', 'complete'), 'unavailable');
+  assert.equal(coverageOfHistory({ preservedDays: ['d'], gapDays: [] }), 'partial');
+  assert.equal(coverageOfHistory({ preservedDays: [], gapDays: [] }), 'complete');
 });
 
 test('单日聚合预算：剩余不足时不开事务，直接抛 deadline', async () => {
@@ -409,6 +456,74 @@ async function retentionState(client: PrismaClient) {
 }
 
 /**
+ * 装一个只拦截指定键值的 BEFORE INSERT 触发器：聚合写当日行时整句抛错，
+ * 用来制造「recomputable 日单日聚合失败」。返回的清理函数只删本用例创建的 function/trigger。
+ */
+async function installInsertBlocker(
+  client: PrismaClient,
+  spec: { table: string; column: string; value: string },
+): Promise<() => Promise<void>> {
+  const suffix = randomBytes(3).toString('hex');
+  const fn = `m5t11_ins_${suffix}`;
+  const trg = `m5t11_ins_trg_${suffix}`;
+  const literal = `'${spec.value.replaceAll("'", "''")}'`;
+  await client.$executeRawUnsafe(`CREATE FUNCTION "${fn}"() RETURNS trigger AS $m5t11$
+BEGIN
+  IF NEW."${spec.column}" = ${literal} THEN
+    RAISE EXCEPTION 'm5t11_blocked_insert';
+  END IF;
+  RETURN NEW;
+END
+$m5t11$ LANGUAGE plpgsql`);
+  await client.$executeRawUnsafe(
+    `CREATE TRIGGER "${trg}" BEFORE INSERT ON "${spec.table}" FOR EACH ROW EXECUTE FUNCTION "${fn}"()`,
+  );
+  return async () => {
+    await client.$executeRawUnsafe(`DROP TRIGGER IF EXISTS "${trg}" ON "${spec.table}"`);
+    await client.$executeRawUnsafe(`DROP FUNCTION IF EXISTS "${fn}"()`);
+  };
+}
+/** 在指定站点日插入一条到期原始事件，可选插入旧聚合标记（watermark/revision/完成时刻由用例控制）。 */
+async function seedOldDay(
+  client: PrismaClient,
+  opts: {
+    day: string;
+    eventId: string;
+    receivedAt: Date;
+    occurredAt?: Date;
+    marker?: {
+      timezoneRevision: number;
+      sourceMaxReceivedAt: Date | null;
+      eventCount?: number;
+      completedAt?: Date;
+    } | null;
+  },
+): Promise<void> {
+  const occurredAt = opts.occurredAt ?? opts.receivedAt;
+  await client.$executeRaw(Prisma.sql`
+    INSERT INTO "AnalyticsEvent" (
+      "eventId", "semanticKey", "payloadHash", "browserHash", "kind", "locale",
+      "productSlug", "path", "occurredAt", "receivedAt"
+    ) VALUES (
+      ${opts.eventId}, ${`sk-${opts.eventId}`}, ${'p'.repeat(64)}, ${`bh-${opts.eventId}`},
+      ${'page_view'}::"AnalyticsEventKind", ${'en'}, NULL, ${'/en'}, ${utc(occurredAt)}, ${utc(opts.receivedAt)}
+    )
+  `);
+  if (opts.marker === null) return;
+  const marker = opts.marker ?? { timezoneRevision: 1, sourceMaxReceivedAt: opts.receivedAt };
+  const sourceMax = marker.sourceMaxReceivedAt === null ? Prisma.sql`NULL` : utc(marker.sourceMaxReceivedAt);
+  const completedAt = marker.completedAt ?? NOW;
+  await client.$executeRaw(Prisma.sql`
+    INSERT INTO "AnalyticsRollupDay" (
+      "siteDate", "timezoneRevision", "completedAt", "eventCount", "sourceMaxReceivedAt", "createdAt", "updatedAt"
+    ) VALUES (
+      ${opts.day}, ${marker.timezoneRevision}, ${utc(completedAt)}, ${marker.eventCount ?? 1},
+      ${sourceMax}, ${utc(NOW)}, ${utc(NOW)}
+    )
+  `);
+}
+
+/**
  * 装一个只拦截指定键值的 BEFORE DELETE 触发器：DELETE 语句命中该行时整句抛错，
  * 用来制造「第一批已提交、第二批失败」。返回的清理函数只删本用例创建的 function/trigger。
  */
@@ -596,7 +711,7 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     assert.equal(state.deletedCount, 5);
   });
 
-  test('已有完整旧聚合的部分清理日：保留原结果、报 partial/preserved，不用残片覆盖', async () => {
+  test('D1 无 settle 上界：旧行看似完整也只记 gap，实物保留不冒充当前口径', async () => {
     assert.ok(db);
     // 默认夹具里 cutoff 所在日（无标记）会在本用例里制造 gap，先移除；
     // 只留一个「有完整旧聚合」的历史到期日，验证保留而非重写。
@@ -625,14 +740,17 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
     assert.equal(run.kind, 'completed');
     if (run.kind !== 'completed') return;
+    // 没有已证明的 settle 上界：即使旧行看起来完整（revision 相符、watermark 覆盖当前最大），
+    // 也只能报 gap/unavailable，旧聚合实物保留、不冒充当前口径。
     assert.equal(run.status, 'PARTIAL');
     assert.equal(run.errorCode, 'source_unavailable');
     assert.equal(run.report.deletedEvents, 1);
     assert.deepEqual(run.report.history.affectedDays, [oldDay]);
-    assert.deepEqual(run.report.history.preservedDays, [oldDay]);
-    assert.deepEqual(run.report.history.gapDays, []);
-    assert.equal(run.report.history.coverage, 'partial');
-    assert.equal(run.report.coverage, 'partial');
+    assert.deepEqual(run.report.history.preservedDays, []);
+    assert.deepEqual(run.report.history.gapDays, [oldDay]);
+    assert.deepEqual(run.report.history.completeAggregateDays, []);
+    assert.equal(run.report.history.coverage, 'unavailable');
+    assert.equal(run.report.coverage, 'unavailable');
 
     // 旧聚合原样保留：标记与日聚合行内容不变，没有被残片重写。
     const marker = await db.$queryRaw<{ eventCount: number; sourceMaxReceivedAt: string | null }[]>`
@@ -654,6 +772,208 @@ describe('analytics retention job', { concurrency: false, skip, timeout: 180_000
     const state = await retentionState(db);
     assert.equal(state.status, 'PARTIAL');
     assert.equal(state.errorCode, 'source_unavailable');
+  });
+
+  test('D1 旧 revision 的聚合行不算完整：记 gap、旧行不动', async () => {
+    assert.ok(db);
+    await db.$executeRaw(Prisma.sql`DELETE FROM "AnalyticsEvent" WHERE "receivedAt" <= ${utc(EVENT_CUTOFF)}`);
+    const day = '2026-12-01';
+    await seedOldDay(db, {
+      day,
+      eventId: 'ev-rev',
+      receivedAt: new Date('2026-12-01T00:00:00.000Z'),
+      marker: { timezoneRevision: 2, sourceMaxReceivedAt: new Date('2026-12-01T00:00:00.000Z') },
+    });
+    const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.deepEqual(run.report.history.affectedDays, [day]);
+    assert.deepEqual(run.report.history.gapDays, [day]);
+    assert.deepEqual(run.report.history.preservedDays, []);
+    assert.deepEqual(run.report.history.completeAggregateDays, []);
+    assert.equal(run.report.coverage, 'unavailable');
+    const marker = await db.$queryRaw<{ timezoneRevision: number }[]>`
+      SELECT "timezoneRevision" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${day}
+    `;
+    assert.equal(marker.length, 1);
+    assert.equal(Number(marker[0].timezoneRevision), 2);
+    assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-rev'`), 0);
+  });
+
+  test('D1 watermark 落后于迟到事实：不算完整，记 gap 不冒充 preserved', async () => {
+    assert.ok(db);
+    await db.$executeRaw(Prisma.sql`DELETE FROM "AnalyticsEvent" WHERE "receivedAt" <= ${utc(EVENT_CUTOFF)}`);
+    const day = '2026-12-02';
+    await seedOldDay(db, {
+      day,
+      eventId: 'ev-late-old',
+      receivedAt: new Date('2026-12-02T06:00:00.000Z'),
+      marker: { timezoneRevision: 1, sourceMaxReceivedAt: new Date('2026-12-02T00:00:00.000Z') },
+    });
+    const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.deepEqual(run.report.history.gapDays, [day]);
+    assert.deepEqual(run.report.history.preservedDays, []);
+    assert.deepEqual(run.report.history.completeAggregateDays, []);
+    assert.equal(run.report.coverage, 'unavailable');
+    // 旧聚合实物不动，只是不再被当完整口径。
+    const marker = await db.$queryRaw<{ sourceMaxReceivedAt: string | null }[]>`
+      SELECT to_char("sourceMaxReceivedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "sourceMaxReceivedAt"
+      FROM "AnalyticsRollupDay" WHERE "siteDate" = ${day}
+    `;
+    assert.equal(marker[0]?.sourceMaxReceivedAt, '2026-12-02T00:00:00.000Z');
+    assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-late-old'`), 0);
+  });
+
+  test('D1 闭集前写入的旧行：watermark 等于当前最大也不算完整（核心反例）', async () => {
+    assert.ok(db);
+    await db.$executeRaw(Prisma.sql`DELETE FROM "AnalyticsEvent" WHERE "receivedAt" <= ${utc(EVENT_CUTOFF)}`);
+    const day = '2026-12-03';
+    const receivedAt = new Date('2026-12-03T02:00:00.000Z');
+    // 站点日终 2026-12-03T16:00Z + 48h = 2026-12-05T16:00Z；该行在 2026-12-04 写入，闭集之前。
+    await seedOldDay(db, {
+      day,
+      eventId: 'ev-closed-before',
+      receivedAt,
+      marker: {
+        timezoneRevision: 1,
+        sourceMaxReceivedAt: receivedAt,
+        eventCount: 1,
+        completedAt: new Date('2026-12-04T00:00:00.000Z'),
+      },
+    });
+    const run = await runAnalyticsRetention({ db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.deepEqual(run.report.history.gapDays, [day]);
+    assert.deepEqual(run.report.history.preservedDays, []);
+    assert.deepEqual(run.report.history.completeAggregateDays, []);
+    assert.equal(run.report.coverage, 'unavailable');
+    assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-closed-before'`), 0);
+  });
+
+  test('D2 候选同源：删除按 receivedAt 排序，分类覆盖同一批事件的 occurredAt 日', async () => {
+    assert.ok(db);
+    await db.$executeRaw(Prisma.sql`DELETE FROM "AnalyticsEvent" WHERE "receivedAt" <= ${utc(EVENT_CUTOFF)}`);
+    // 统计日更晚的先入库、统计日更早的后入库：日序与接收序相反。
+    await seedOldDay(db, {
+      day: '2027-02-11',
+      eventId: 'ev-day-late',
+      occurredAt: new Date('2027-02-11T02:00:00.000Z'),
+      receivedAt: new Date('2027-02-12T00:00:00.000Z'),
+      marker: null,
+    });
+    await seedOldDay(db, {
+      day: '2027-02-10',
+      eventId: 'ev-day-early',
+      occurredAt: new Date('2027-02-10T02:00:00.000Z'),
+      receivedAt: new Date('2027-02-13T00:00:00.000Z'),
+      marker: null,
+    });
+    const run = await runAnalyticsRetention({
+      db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true, batchSize: 1, maxPerRun: 10,
+    });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.equal(run.report.deletedEvents, 2);
+    assert.deepEqual(run.report.history.affectedDays, ['2027-02-10', '2027-02-11']);
+    assert.deepEqual(run.report.history.gapDays, ['2027-02-10', '2027-02-11']);
+    for (const eventId of ['ev-day-late', 'ev-day-early']) {
+      assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = ${eventId}`), 0);
+    }
+  });
+
+  test('D2 候选超上限：只分类并删除同一批前 N 个事件，不滑入未分类日', async () => {
+    assert.ok(db);
+    await db.$executeRaw(Prisma.sql`DELETE FROM "AnalyticsEvent" WHERE "receivedAt" <= ${utc(EVENT_CUTOFF)}`);
+    await seedOldDay(db, { day: '2027-02-05', eventId: 'ev-cap-1', occurredAt: new Date('2027-02-05T02:00:00.000Z'), receivedAt: new Date('2027-02-13T00:00:00.000Z'), marker: null });
+    await seedOldDay(db, { day: '2027-02-06', eventId: 'ev-cap-2', occurredAt: new Date('2027-02-06T02:00:00.000Z'), receivedAt: new Date('2027-02-13T01:00:00.000Z'), marker: null });
+    await seedOldDay(db, { day: '2027-02-07', eventId: 'ev-cap-3', occurredAt: new Date('2027-02-07T02:00:00.000Z'), receivedAt: new Date('2027-02-13T02:00:00.000Z'), marker: null });
+    const run = await runAnalyticsRetention({
+      db, context: context(NOW, false), clock: () => NOW, deleteAuthorized: true, batchSize: 1, maxPerRun: 2,
+    });
+    assert.equal(run.kind, 'completed');
+    if (run.kind !== 'completed') return;
+    assert.equal(run.report.deletedEvents, 2);
+    assert.deepEqual(run.report.history.affectedDays, ['2027-02-05', '2027-02-06']);
+    assert.deepEqual(run.report.history.gapDays, ['2027-02-05', '2027-02-06']);
+    // 第 3 条既没被删，也没被分类。
+    assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-cap-3'`), 1);
+    assert.equal(run.report.history.affectedDays.includes('2027-02-07'), false);
+  });
+
+  test('D3 旧行看似完整但无 settle 证明 + 单日聚合失败：仍记 gap，旧行原样保留', async () => {
+    assert.ok(db);
+    const edgeNow = new Date('2027-03-15T15:58:00.000Z');
+    await db.$executeRaw`DELETE FROM "AnalyticsEvent"`;
+    const day = '2027-02-14';
+    const edgeReceivedAt = new Date('2027-02-13T15:58:00.000Z');
+    await seedOldDay(db, {
+      day,
+      eventId: 'ev-edge',
+      occurredAt: new Date('2027-02-13T16:03:00.000Z'),
+      receivedAt: edgeReceivedAt,
+      marker: { timezoneRevision: 1, sourceMaxReceivedAt: edgeReceivedAt },
+    });
+    const cleanup = await installInsertBlocker(db, { table: 'AnalyticsDailyRollup', column: 'siteDate', value: day });
+    try {
+      const run = await runAnalyticsRetention({ db, context: context(edgeNow, false), clock: () => edgeNow, deleteAuthorized: true });
+      assert.equal(run.kind, 'completed');
+      if (run.kind !== 'completed') return;
+      assert.equal(run.status, 'PARTIAL');
+      assert.deepEqual(run.report.history.recomputedDays, []);
+      // 没有 settle 证明：旧行即使看起来完整也不能回退 preserved，只能记 gap；
+      // 但旧聚合物件不删、不覆盖、不改 revision。
+      assert.deepEqual(run.report.history.preservedDays, []);
+      assert.deepEqual(run.report.history.gapDays, [day]);
+      assert.deepEqual(run.report.history.completeAggregateDays, []);
+      assert.equal(run.report.coverage, 'unavailable');
+      const kept = await db.$queryRaw<{ eventCount: number }[]>`
+        SELECT "eventCount" FROM "AnalyticsRollupDay" WHERE "siteDate" = ${day}
+      `;
+      assert.equal(kept.length, 1);
+      assert.equal(Number(kept[0].eventCount), 1);
+      assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-edge'`), 0);
+    } finally {
+      await cleanup();
+    }
+  });
+
+  test('D3 旧结果不完整 + 单日聚合失败：记 gap，不冒充 preserved', async () => {
+    assert.ok(db);
+    const edgeNow = new Date('2027-03-15T15:58:00.000Z');
+    await db.$executeRaw`DELETE FROM "AnalyticsEvent"`;
+    const day = '2027-02-14';
+    const edgeReceivedAt = new Date('2027-02-13T15:58:00.000Z');
+    await seedOldDay(db, {
+      day,
+      eventId: 'ev-edge',
+      occurredAt: new Date('2027-02-13T16:03:00.000Z'),
+      receivedAt: edgeReceivedAt,
+      marker: { timezoneRevision: 1, sourceMaxReceivedAt: new Date('2027-02-13T00:00:00.000Z') },
+    });
+    const cleanup = await installInsertBlocker(db, { table: 'AnalyticsDailyRollup', column: 'siteDate', value: day });
+    try {
+      const run = await runAnalyticsRetention({ db, context: context(edgeNow, false), clock: () => edgeNow, deleteAuthorized: true });
+      assert.equal(run.kind, 'completed');
+      if (run.kind !== 'completed') return;
+      assert.equal(run.status, 'PARTIAL');
+      assert.deepEqual(run.report.history.recomputedDays, []);
+      assert.deepEqual(run.report.history.preservedDays, []);
+      assert.deepEqual(run.report.history.gapDays, [day]);
+      assert.deepEqual(run.report.history.completeAggregateDays, []);
+      assert.equal(run.report.coverage, 'unavailable');
+      // 未证完整的旧行保留原地，不被当当前口径。
+      const kept = await db.$queryRaw<{ sourceMaxReceivedAt: string | null }[]>`
+        SELECT to_char("sourceMaxReceivedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "sourceMaxReceivedAt"
+        FROM "AnalyticsRollupDay" WHERE "siteDate" = ${day}
+      `;
+      assert.equal(kept[0]?.sourceMaxReceivedAt, '2027-02-13T00:00:00.000Z');
+      assert.equal(await count(db, Prisma.sql`SELECT COUNT(*)::int AS "count" FROM "AnalyticsEvent" WHERE "eventId" = 'ev-edge'`), 0);
+    } finally {
+      await cleanup();
+    }
   });
 
   test('跨日迟到：缺口按 occurredAt 的站点日归属，不按 receivedAt', async () => {

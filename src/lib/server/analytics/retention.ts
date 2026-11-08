@@ -1,5 +1,5 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
-import { planSnapshot, type CoverageState } from '../../analytics/aggregate-plan';
+import { LATE_ARRIVAL_MS, planSnapshot, type CoverageState } from '../../analytics/aggregate-plan';
 import { siteDayUtcBounds, siteLocalDate } from '../../analytics/day-boundaries';
 import type { AppErrorCode } from '../../contracts/errors';
 import type { JobCountsDTO, JobResultStatus } from '../../contracts/ops';
@@ -93,6 +93,11 @@ export type AnalyticsRetentionHistory = {
   preservedDays: string[];
   /** 既无完整旧聚合、又不在可整日重算范围内：显式覆盖缺口。 */
   gapDays: string[];
+  /**
+   * 旧聚合被确证完整可用的日（revision 相符、watermark 覆盖整日当前最大 receivedAt）。
+   * 可重算日聚合失败时只有这些日能回退为 preserved/partial，其余按 gap。
+   */
+  completeAggregateDays: string[];
   /** 历史受影响日汇总出的覆盖度；近期 complete 不能覆盖它。 */
   coverage: CoverageState;
 };
@@ -123,48 +128,130 @@ export type AnalyticsRetentionReport = {
 
 export type HistoricalDayClass = 'expired' | 'recomputable' | 'preserved' | 'gap';
 
+export type HistoricalAggregate = {
+  timezoneRevision: number;
+  eventCount: number;
+  /** 该次聚合覆盖到的最大 receivedAt；NULL 表示聚合时该日没有任何事件。 */
+  sourceMaxReceivedAt: string | null;
+  completedAt: string;
+};
+
 export type HistoricalDayInput = {
   siteDate: string;
-  /** 该站点本地日的 UTC 起点（siteDayUtcBounds().startUtc）。 */
+  /** 该站点本地日的 UTC 起点与终点（siteDayUtcBounds）。 */
   dayStartUtc: string;
-  /** 该日是否已有完整旧聚合标记（AnalyticsRollupDay 行）。 */
-  hasAggregate: boolean;
+  dayEndUtc: string;
+  /**
+   * 该日**当前仍在库**的全部原始事件的最大 receivedAt（按 occurredAt 归日，不是候选子集）。
+   * 只作负向 staleness 守卫：当前仍看得见比 watermark 更晚的事件，说明旧行确定陈旧；
+   * 反过来不能证明完整。
+   */
+  dayMaxReceivedAt: string | null;
+  /** 该日旧的 AnalyticsRollupDay 元信息；没有行时为 null。 */
+  aggregate: HistoricalAggregate | null;
 };
+
+/**
+ * 旧聚合是否可判「完整可用」。
+ *
+ * 数据窄核最终判据（`db-m5t11-r2-predicate` §3）：`completedAt >= 站点日终 + 48h` 只覆盖
+ * 发生时间闭集，还差「接收后已提交可见」的提交闭集。现有代码没有可推出的请求到提交上界
+ * （事件写入事务 maxWait 2s + timeout 5s，之前的目录查询无显式上界），因此 `settleMs` 必须由
+ * 有依据的上界显式给出；为 `null` 时**一律保守判 gap**，不拿 revision/sourceMax/当前 max 补证。
+ * `sourceMaxReceivedAt` 只做计数/水位一致性，不做完整门槛；当前整日最大 receivedAt 只作负向
+ * staleness 守卫（看得见更晚事件才否定完整，看不见不构成证明）。
+ */
+export function aggregateIsComplete(input: {
+  aggregate: HistoricalAggregate | null;
+  dayEndUtc: string;
+  dayMaxReceivedAt: string | null;
+  currentTimezoneRevision: number;
+  now: Date;
+  /** 已证明的「接收后最迟提交」上界；无依据时为 null（本轮生产取 null）。 */
+  settleMs: number | null;
+}): boolean {
+  if (input.settleMs === null) return false; // 无提交闭集证明：保守 gap
+  const aggregate = input.aggregate;
+  if (!aggregate) return false;
+  if (aggregate.timezoneRevision !== input.currentTimezoneRevision) return false;
+  const dayEnd = Date.parse(input.dayEndUtc);
+  const completed = Date.parse(aggregate.completedAt);
+  if (!Number.isFinite(dayEnd) || !Number.isFinite(completed)) return false;
+  const closedSetAt = dayEnd + LATE_ARRIVAL_MS + input.settleMs;
+  if (completed < closedSetAt) return false; // 闭集（含 settle）前写入：可能漏掉迟到/晚提交事件
+  if (completed > input.now.getTime()) return false; // 防御未来时钟/损坏行
+  const consistent = aggregate.eventCount === 0
+    ? aggregate.sourceMaxReceivedAt === null
+    : aggregate.sourceMaxReceivedAt !== null;
+  if (!consistent) return false;
+  // 负向 staleness 守卫：只有当前仍看得见更晚事件时才否定完整；看不见不构成完整证明。
+  if (input.dayMaxReceivedAt !== null) {
+    if (aggregate.eventCount === 0 || aggregate.sourceMaxReceivedAt === null) return false;
+    if (Date.parse(input.dayMaxReceivedAt) > Date.parse(aggregate.sourceMaxReceivedAt)) return false;
+  }
+  return true;
+}
 
 /**
  * 删除前逐受影响站点日分类。顺序即优先级：
  * 1. 已过 13 个自然月的日：原始与聚合都在本轮到期，按保留规则正常删，不记缺口；
  * 2. 日界不早于完整原始覆盖起点：仍可整日重算，先聚合再删；
- * 3. 已有完整旧聚合：保留原结果，原始覆盖变为不完整；
- * 4. 其余：既不能重算、也没有旧聚合，显式记覆盖缺口。
+ * 3. 旧聚合被 `aggregateIsComplete` 确证完整：保留原结果，原始覆盖变为不完整；
+ * 4. 其余：既不能重算、也没有可用的完整旧聚合，显式记覆盖缺口。
  *
- * 这是纯函数：调用方负责在预算内读取标记、并只为 recomputable 日调用既有聚合能力。
+ * 这是纯函数：调用方负责在预算内读取整日事实与聚合元信息，并只为 recomputable 日调用既有聚合能力。
  */
 export function classifyHistoricalDays(input: {
   days: readonly HistoricalDayInput[];
+  /** 当前站点时区代次；旧聚合 revision 必须与它一致才算可用。 */
+  currentTimezoneRevision: number;
+  /** 本轮业务时钟；completedAt 不得晚于它。 */
+  now: Date;
+  /** 已证明的提交 settle 上界；生产当前没有依据，传 null → 非可重算日一律 gap。 */
+  settleMs: number | null;
   /** recomputableFrom(now, timezone) 的 UTC 瞬时。 */
   completeRawCoverageStartUtc: string;
   /** 汇总到期上界：siteDate <= 此本地日即已过 13 个自然月。 */
   rollupExpiryThrough: string;
-}): Pick<AnalyticsRetentionHistory, 'affectedDays' | 'recomputedDays' | 'preservedDays' | 'gapDays' | 'coverage'> {
+}): Pick<
+  AnalyticsRetentionHistory,
+  'affectedDays' | 'recomputedDays' | 'preservedDays' | 'gapDays' | 'completeAggregateDays' | 'coverage'
+> {
   const start = Date.parse(input.completeRawCoverageStartUtc);
   const affectedDays: string[] = [];
   const recomputedDays: string[] = [];
   const preservedDays: string[] = [];
   const gapDays: string[] = [];
+  const completeAggregateDays: string[] = [];
   for (const day of input.days) {
     affectedDays.push(day.siteDate);
     if (day.siteDate <= input.rollupExpiryThrough) continue;
+    const complete = aggregateIsComplete({
+      aggregate: day.aggregate,
+      dayEndUtc: day.dayEndUtc,
+      dayMaxReceivedAt: day.dayMaxReceivedAt,
+      currentTimezoneRevision: input.currentTimezoneRevision,
+      now: input.now,
+      settleMs: input.settleMs,
+    });
+    if (complete) completeAggregateDays.push(day.siteDate);
     const dayStart = Date.parse(day.dayStartUtc);
     if (Number.isFinite(start) && Number.isFinite(dayStart) && dayStart >= start) {
       recomputedDays.push(day.siteDate);
       continue;
     }
-    if (day.hasAggregate) preservedDays.push(day.siteDate);
+    if (complete) preservedDays.push(day.siteDate);
     else gapDays.push(day.siteDate);
   }
   const coverage: CoverageState = gapDays.length > 0 ? 'unavailable' : preservedDays.length > 0 ? 'partial' : 'complete';
-  return { affectedDays, recomputedDays, preservedDays, gapDays, coverage };
+  return { affectedDays, recomputedDays, preservedDays, gapDays, completeAggregateDays, coverage };
+}
+
+/** 由当前 preserved/gap 重算历史覆盖度：聚合失败回退时用它，而不是沿用旧值。 */
+export function coverageOfHistory(history: Pick<AnalyticsRetentionHistory, 'preservedDays' | 'gapDays'>): CoverageState {
+  if (history.gapDays.length > 0) return 'unavailable';
+  if (history.preservedDays.length > 0) return 'partial';
+  return 'complete';
 }
 
 /** 历史与近期覆盖度取最坏值：recent complete 不能掩盖历史 gap。 */
@@ -225,7 +312,14 @@ function emptyReport(decision: RetentionModeDecision, requestedDelete: boolean, 
     deletedRollupDays: 0,
     batches: 0,
     coverage: 'unavailable',
-    history: { affectedDays: [], recomputedDays: [], preservedDays: [], gapDays: [], coverage: 'complete' },
+    history: {
+      affectedDays: [],
+      recomputedDays: [],
+      preservedDays: [],
+      gapDays: [],
+      completeAggregateDays: [],
+      coverage: 'complete',
+    },
     completeRawCoverageStartUtc: '',
     completeRawCoverageStartLocalDate: '',
     eventExpiryCutoff: '',
@@ -372,29 +466,89 @@ export async function runAnalyticsRetention(deps: {
     // 5. 删除前 preflight：按受影响站点日分类，缺口显式上报（09:72 / E-82）。
     //    删除资格按 receivedAt，但聚合归属日必须看 occurredAt（跨日迟到可能差一到两天），
     //    否则缺口会标在错误的统计日上。
-    const affected = await runWithinBudget(deps.db, budget, (tx) =>
-      tx.$queryRaw<{ siteDate: string; hasAggregate: boolean }[]>(Prisma.sql`
-        SELECT d."siteDate" AS "siteDate", (r."siteDate" IS NOT NULL) AS "hasAggregate"
-        FROM (
-          SELECT DISTINCT to_char(
-            ("occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timezone}, 'YYYY-MM-DD'
-          ) AS "siteDate"
-          FROM "AnalyticsEvent"
-          WHERE "receivedAt" <= ${utc(eventCutoff)}
-          ORDER BY 1
-          LIMIT ${maxPerRun}
-        ) AS d
-        LEFT JOIN "AnalyticsRollupDay" AS r ON r."siteDate" = d."siteDate"
-        ORDER BY d."siteDate"
+    // 5. 删除前 preflight（D2）：候选事件集合与本轮删除共用同一有界集合同序——
+    //    先按 receivedAt,eventId 取前 maxPerRun 个待删事件，再从这批事件派生 occurredAt 站点日，
+    //    删除只按这份 id 清单分批，不会滑入未分类事件。
+    const candidateRows = await runWithinBudget(deps.db, budget, (tx) =>
+      tx.$queryRaw<{ eventId: string; siteDate: string }[]>(Prisma.sql`
+        SELECT "eventId" AS "eventId",
+               to_char(("occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timezone}, 'YYYY-MM-DD') AS "siteDate"
+        FROM "AnalyticsEvent"
+        WHERE "receivedAt" <= ${utc(eventCutoff)}
+        ORDER BY "receivedAt" ASC, "eventId" ASC
+        LIMIT ${maxPerRun}
       `));
-    if (affected.kind === 'budget') return { kind: 'timeout' };
-    if (affected.kind === 'error') throw affected.error;
+    if (candidateRows.kind === 'budget') return { kind: 'timeout' };
+    if (candidateRows.kind === 'error') throw candidateRows.error;
+    const candidateIds = candidateRows.value.map((row) => row.eventId);
+    const affectedSiteDates = [...new Set(candidateRows.value.map((row) => row.siteDate))].sort();
+
+    // 5a. 整日事实与旧聚合元信息（D1）：完整性看 revision 与 watermark 是否覆盖整日当前最大
+    //     receivedAt，而不是「有没有一行」。任一读取都在预算内。
+    const dayStats = new Map<string, { count: number; maxReceivedAt: string | null }>();
+    const aggregates = new Map<string, HistoricalAggregate>();
+    if (affectedSiteDates.length > 0) {
+      const statsRead = await runWithinBudget(deps.db, budget, (tx) =>
+        tx.$queryRaw<{ siteDate: string; count: number; maxReceivedAt: string | null }[]>(Prisma.sql`
+          SELECT to_char(("occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timezone}, 'YYYY-MM-DD') AS "siteDate",
+                 COUNT(*)::int AS "count",
+                 to_char(MAX("receivedAt"), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "maxReceivedAt"
+          FROM "AnalyticsEvent"
+          WHERE to_char(("occurredAt" AT TIME ZONE 'UTC') AT TIME ZONE ${timezone}, 'YYYY-MM-DD')
+                IN (${Prisma.join(affectedSiteDates)})
+          GROUP BY 1
+        `));
+      if (statsRead.kind === 'budget') return { kind: 'timeout' };
+      if (statsRead.kind === 'error') throw statsRead.error;
+      for (const row of statsRead.value) {
+        dayStats.set(row.siteDate, { count: Number(row.count), maxReceivedAt: row.maxReceivedAt });
+      }
+
+      const markerRead = await runWithinBudget(deps.db, budget, (tx) =>
+        tx.$queryRaw<{
+          siteDate: string;
+          timezoneRevision: number;
+          eventCount: number;
+          completedAt: string;
+          sourceMaxReceivedAt: string | null;
+        }[]>(Prisma.sql`
+          SELECT "siteDate" AS "siteDate",
+                 "timezoneRevision" AS "timezoneRevision",
+                 "eventCount" AS "eventCount",
+                 to_char("completedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "completedAt",
+                 to_char("sourceMaxReceivedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "sourceMaxReceivedAt"
+          FROM "AnalyticsRollupDay"
+          WHERE "siteDate" IN (${Prisma.join(affectedSiteDates)})
+        `));
+      if (markerRead.kind === 'budget') return { kind: 'timeout' };
+      if (markerRead.kind === 'error') throw markerRead.error;
+      for (const row of markerRead.value) {
+        aggregates.set(row.siteDate, {
+          timezoneRevision: Number(row.timezoneRevision),
+          eventCount: Number(row.eventCount),
+          sourceMaxReceivedAt: row.sourceMaxReceivedAt,
+          completedAt: row.completedAt,
+        });
+      }
+    }
+
     report.history = classifyHistoricalDays({
-      days: affected.value.map((row) => ({
-        siteDate: row.siteDate,
-        dayStartUtc: siteDayUtcBounds(row.siteDate, timezone).startUtc,
-        hasAggregate: row.hasAggregate,
-      })),
+      days: affectedSiteDates.map((siteDate) => {
+        const bounds = siteDayUtcBounds(siteDate, timezone);
+        return {
+          siteDate,
+          dayStartUtc: bounds.startUtc,
+          dayEndUtc: bounds.endUtc,
+          dayMaxReceivedAt: dayStats.get(siteDate)?.maxReceivedAt ?? null,
+          aggregate: aggregates.get(siteDate) ?? null,
+        };
+      }),
+      currentTimezoneRevision: claim.timezoneRevision,
+      now,
+      // 现有代码没有可推出的「接收后最迟提交」上界（事件写入 2s+5s，之前的目录查询无硬上界，
+      // 路由也未声明 maxDuration）。按数据窄核 §3.2：无 settle 证明时不把旧行当完整，
+      // 非可重算受影响日一律记 gap；旧聚合实物保留，只是不冒充当前口径。
+      settleMs: null,
       completeRawCoverageStartUtc: coveragePlan.completeRawCoverageStartUtc,
       rollupExpiryThrough: rollupThrough,
     });
@@ -419,11 +573,16 @@ export async function runAnalyticsRetention(deps: {
           throw new RetentionRunTimeout();
         }
         if (error instanceof AggregateVersionConflict) throw error;
-        // 尝试已发生但失败：显式缺口，随后仍按 30 天删除，不无限延长原始保留。
+        // 尝试已发生但失败：旧结果完整可用才回退 preserved/partial，否则记缺口；
+        // 随后仍按 30 天删除，不无限延长原始保留，也不改写旧聚合实物。
         console.error('[cron] analytics retention preflight aggregate failed', errorName(error));
         report.history.recomputedDays = report.history.recomputedDays.filter((day) => day !== siteDate);
-        report.history.gapDays = [...report.history.gapDays, siteDate].sort();
-        report.history.coverage = 'unavailable';
+        if (report.history.completeAggregateDays.includes(siteDate)) {
+          report.history.preservedDays = [...report.history.preservedDays, siteDate].sort();
+        } else {
+          report.history.gapDays = [...report.history.gapDays, siteDate].sort();
+        }
+        report.history.coverage = coverageOfHistory(report.history);
       }
     }
     if (report.history.gapDays.length > 0 || report.history.preservedDays.length > 0) {
@@ -469,17 +628,21 @@ export async function runAnalyticsRetention(deps: {
       }
     };
 
-    await drain(maxPerRun, (limit) => runBatch((tx) => tx.$executeRaw(Prisma.sql`
-      DELETE FROM "AnalyticsEvent"
-      WHERE "eventId" IN (
-        SELECT "eventId" FROM "AnalyticsEvent"
-        WHERE "receivedAt" <= ${utc(eventCutoff)}
-        ORDER BY "receivedAt" ASC, "eventId" ASC
-        LIMIT ${limit}
-      )
-    `)), (count) => {
-      report.deletedEvents += count;
-    });
+    // 6. 删除：只删 preflight 同一份候选 id 清单，逐批续租 + 预算；
+    //    每批事务提交后立刻累计，失败批次不计（B2 机制不变）。
+    for (let offset = 0; offset < candidateIds.length; offset += batchSize) {
+      const slice = candidateIds.slice(offset, offset + batchSize);
+      const removed = await runBatch((tx) => tx.$executeRaw(Prisma.sql`
+        DELETE FROM "AnalyticsEvent"
+        WHERE "eventId" IN (${Prisma.join(slice)})
+          AND "receivedAt" <= ${utc(eventCutoff)}
+      `));
+      if (!Number.isInteger(removed) || removed < 0 || removed > slice.length) {
+        throw new Error('retention_batch_invalid');
+      }
+      report.deletedEvents += removed;
+      report.batches += 1;
+    }
 
     const remainingAfterEvents = maxPerRun - report.deletedEvents;
     if (remainingAfterEvents > 0) {
