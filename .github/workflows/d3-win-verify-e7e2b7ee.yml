@@ -1,4 +1,4 @@
-name: D3 Windows verify (frozen v6)
+name: D3 Windows verify (frozen v7)
 # 一次性验证入口，只用于 e7e2b7ee 的 Windows 构建/断言取证。
 # 触发仅限精确分支；工作流提交以 e7e2b7ee 为唯一父、只新增本文件；checkout 锁完整源码提交。
 on:
@@ -457,4 +457,5 @@ jobs:
           name: d3-win-verify-evidence
           path: ${{ runner.temp }}/d3win-evidence/
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 7
