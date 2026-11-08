@@ -71,4 +71,5 @@ origin: issue-ledger-20261024
 - loadEvents 把一整天的原始行读进内存。量变大后再改成 SQL 分组聚合。
 - latestContiguousRolledUpDate 只是删除上限。RETENTION-CLEANUP 仍须逐日用 isSiteDateRolledUp 和当前时区代次过滤。
 - 设计里的统一入口是 jobs/registry.ts 和 /api/admin/cron/operations；本轮（#477 阶段）按单独路由接到 cron，“收进 registry 另立任务”是**当时**的结论——该接入已由 M5-T8 完成（固定 registry + `POST /api/admin/cron/operations`），不再另立任务。
+- 2026-11-08 收口分支状态：旧入口 410 退役修复在 `e7e2b7ee`，已推 #542 但**未合入 main**。本轮 #542 Linux CI `42473786975`（测试对象 merge `ec43bf0`，tree 与 `e7e2b7ee` 相同）通过，其中 D1 默认入口 `ok 920`（绿测 5/5）；Hosted Windows v7 `42474589037` 是同一 `e7e2b7ee` 的 production 构建与产物保全，不执行 D1 用例。
 <!-- notes:end -->
