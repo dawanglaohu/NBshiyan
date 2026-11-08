@@ -859,15 +859,15 @@
   },
   "M4-T1": {
     "compiler": "419c163bd28527e4f408fd50d61d29b1fed5b09fd830d12f7ea0407887f2da68",
-    "contractHash": "54607ec7209c944ae761db630e3551585540880955bade1935d1fa6bc71eee48",
+    "contractHash": "a7eae271ebab1ce4c25b5eb5fa5bf8697d03a34f604919c24d9e4f54d08ce26e",
     "evidence": [
-      "补丁 m4t1-r2-support-20261108 仅改 _run/task-contracts.json 的 M4-T1.supportPaths：新增 .github/workflows/ci.yml、src/lib/server/chat/visitor-session.ts、src/lib/server/chat/visitor-session-repo.ts、tests/chat-session.http.test.ts；provides/requires/stage/wiring/outputPaths/sections 逐字段未变（以 patch record 的 changes 为准）。",
-      "四条新增路径在冻结头 88f5db2c 与 merge 063979b5（parents 88f5db2c+a7521e36）树中均实际存在；本窗只登记支持路径，未修改 ci.yml、visitor-session*.ts 或任何产品代码。",
-      "C3 的失败不续期/成功与幂等成功续期只读验证及回归将落在 visitor-session.ts、visitor-session-repo.ts 与 tests/chat-session.http.test.ts；.github/workflows/ci.yml 仅为预登记，待 R2 实现与独审后由集成窗串行接线。",
-      "sync 后 _run/revalidation.json 仍为 {}（0 条）、M4-T1 status=todo、未运行 --landed；本次 verify 仅登记契约补丁复核，不构成 R2 实现通过，也不改变 09/10 条款或验收标准。",
+      "补丁 m4t1-schema-guard-20261108（PR #544）仅改 _run/task-contracts.json 的 M4-T1.supportPaths：新增 tests/analytics-ingest.http.db.test.ts；tests/chat-session.http.test.ts 已在支持路径中，未重复添加；provides/requires/stage/wiring/outputPaths/sections 逐字段未变。",
+      "Jev 裁定采用 B、spec_change=no：不改产品条款/验收标准/schema/生产源码/测试/CI；本补丁只为 PR #544 的 schema 隐私断言修复登记必要测试路径，补救的是支持路径漏列，不是产品要求变更。",
+      "登记依据为 PR #544 首次 CI run 42499360492 的实际失败：tests/analytics-ingest.http.db.test.ts:58 的 EOF 切片把 AnalyticsEvent 之后的 chat 模型误算入分析字段（build not ok 640 / e2e not ok 17）；首消息 PG17 回归 30/30 已通过，修复方案由数据库裁定窗采用 B。",
+      "本补丁不声称修复已完成、不声称 CI 通过；PG17/PR CI 尚未重跑，修复由测试工程师在冻结交树后按 B 落地，再由非作者复审实际 diff。",
       "契约哈希变化向下游传播：affected 23 个任务均为依赖 M4-T1 provides 的消费者，其定义未改；确认以 patch record 的 changes 为准。"
     ],
-    "reviewed": "2026-11-08T14:50:40.920096+00:00",
+    "reviewed": "2026-11-08T16:40:49.442375+00:00",
     "scope": "task-contract",
     "verdict": "pass"
   },
